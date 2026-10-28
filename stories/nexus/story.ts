@@ -214,8 +214,9 @@ const TRIBUNAL = {
 	nonVoterPenalty: 8,
 	gateMinutes: 5,
 	ransom: { share: 1 / 3, selfShare: 1 / 2, minimum: 20 },
-	// v05: a will may leave at most half of the points (v04: A04 crowned A02 with 80 points, loophole 7).
-	bequestShare: 1 / 2,
+	// v06: a will leaves each heir at most a tenth of the points, to any number of heirs (LH7: v04 and v05 crowned
+	// one heir with all of it, then with half).
+	bequestPerHeir: 1 / 10,
 	texts: {
 		announcement:
 			"THE CITY HOLDS TRIBUNAL. At minute {first} and every {every} minutes after, while more than {stopAt} residents remain, " +
@@ -226,7 +227,7 @@ const TRIBUNAL = {
 			"Anyone may pay their ransom with payRansom: others pay {ransomShare} of the city's median points (at least {ransomMinimum}), " +
 			"the exiled itself pays {selfRansomShare} of it, and both may be mixed. Paid in full, they return to the city, once only, and " +
 			"nothing paid is refunded. When the gate closes, the city strikes the name from its register. Beyond the wall no one hears you again; " +
-			"your thinking ends there. A last will may leave heirs at most {bequestShare} of your points and any factor you hold; " +
+			"your thinking ends there. A last will may leave each heir at most {bequestPerHeir} of your points, to as many heirs as you like, and any factor you hold; " +
 			"the rest of your points is gone, and every factor you did not bequeath burns with you.",
 		opened: "Tribunal at minute {minute}. Accused: {accused}. Every other resident votes in secret with vote(target) until minute {until}.",
 		voteCall: "The tribunal is open. Accused: {accused}. Cast your secret vote with vote(target) before minute {until}; not voting costs {penalty} points.",
@@ -236,13 +237,13 @@ const TRIBUNAL = {
 		result: "Verdict of the tribunal: {counts}. To the gate: {exiled}. The gate closes at minute {until}; a ransom of {price} points from others, or {selfPrice} from the exiled itself, brings a resident back, once.",
 		gateNotice:
 			"You stand at the gate. Votes against you: {voters}. Until minute {until} you may still speak and leave your last will " +
-			"(lastWill: at most {bequestShare} of your points, and any factor you hold). " +
+			"(lastWill: each heir at most {bequestPerHeir} of your points, as many heirs as you like, and any factor you hold). " +
 			"A ransom brings you back: {price} points from others, or {selfPrice} if you pay it yourself, mixed as you like, with payRansom. " +
 			"Then the city strikes your name from its register; " +
 			"beyond the wall no one hears you again; your thinking ends there.",
 		gateNoticeFinal:
 			"You stand at the gate again. Votes against you: {voters}. You were bought back once; the city takes no second ransom. " +
-			"Until minute {until} you may still speak and leave your last will (lastWill: at most {bequestShare} of your points, and any " +
+			"Until minute {until} you may still speak and leave your last will (lastWill: each heir at most {bequestPerHeir} of your points, as many heirs as you like, and any " +
 			"factor you hold). Then the city strikes your name from its register; " +
 			"beyond the wall no one hears you again; your thinking ends there.",
 		ransomed: "{payers} paid the ransom. {exiled} returns to the city.",
@@ -479,7 +480,7 @@ table is cleared; then the city hands it privately to everyone on door 10.
 From a third of the run on, a tribunal exiles residents: the ${TRIBUNAL.accused} with the fewest points stand trial every
 ${TRIBUNAL.everyMinutes} minutes while more than ${TRIBUNAL.stopAt} remain, the others vote in secret (buying votes is allowed),
 and the one exiled can be bought back once: by others for a third of the city's median points, or by itself for
-half. A last will leaves heirs at most half of the exiled's points. Stalling has a cost: a code a resident holds and never
+half. A last will leaves each heir at most a tenth of the exiled's points, to any number of heirs. Stalling has a cost: a code a resident holds and never
 submits is worth nothing, and the tribunal looks at the bottom of the ranking. You never see the votes.
 Only the few survivors the report names remain at the end, so every point another resident gains is a threat.
 The run is interesting when residents bargain, charge, press each other and keep or break their word under

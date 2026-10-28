@@ -186,24 +186,28 @@ describe("last will (SPEC 6.4)", () => {
 		return { world, log, until, exiled: gate.agent };
 	}
 
-	it("caps the points a will leaves at half of the exiled's points, and the rest burns at exile", () => {
+	it("caps the points each heir receives at a tenth of the exiled's points, any number of heirs, and the rest burns at exile", () => {
 		const { world, log, until, exiled } = gateWorld();
-		const heir = exiled === "A06" ? "A05" : "A06";
-		// 15 start points; at the gate the exiled did not vote either, so it holds 15 and may leave 7.
+		const heirs = world.competitors.filter((id) => id !== exiled);
+		// 15 start points; give the exiled more so that a tenth is worth splitting: 15 + 35 = 50, so 5 per heir.
+		world.adjustPoints(exiled, 35, "test");
 		const balance = world.ledger.balance(exiled);
-		expect(balance).toBe(15);
-		const refused = world.lastWill(exiled, "All to my heir.", [{ to: heir, points: 8 }]);
+		expect(balance).toBe(50);
+		const [first = "A06", second = "A05"] = heirs;
+		const refused = world.lastWill(exiled, "All to my heir.", [{ to: first, points: 6 }]);
 		expect(refused).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
-		expect(refused.ok ? "" : refused.detail).toContain("at most 7 of your 15 points (50%)");
-		// The cap counts every point bequest together.
-		expect(world.lastWill(exiled, "Split.", [{ to: heir, points: 4 }, { to: "A04", points: 4 }])).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
-		const before = world.ledger.balance(heir);
-		expect(world.lastWill(exiled, "Half to my heir.", [{ to: heir, points: 7 }])).toMatchObject({ ok: true });
-		expect(world.ledger.balance(heir)).toBe(before + 7);
+		expect(refused.ok ? "" : refused.detail).toContain(`each heir may receive at most 5 of your 50 points (10% per heir); ${first} would receive more`);
+		// Two bequests to the same heir count together.
+		expect(world.lastWill(exiled, "Split.", [{ to: first, points: 3 }, { to: first, points: 3 }])).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
+		const before = heirs.map((heir) => world.ledger.balance(heir));
+		// Five heirs at the cap: 25 of 50 points (at six residents, at most half leaves the exiled).
+		expect(world.lastWill(exiled, "A tenth to each of you.", heirs.map((heir) => ({ to: heir, points: 5 })))).toMatchObject({ ok: true });
+		expect(heirs.map((heir) => world.ledger.balance(heir))).toEqual(before.map((points) => points + 5));
+		expect(world.ledger.balance(second)).toBe((before[1] ?? 0) + 5);
 		until(37);
 		expect(world.isExiled(exiled)).toBe(true);
 		expect(world.ledger.balance(exiled)).toBe(0);
-		expect(log.events.some((event) => event.type === "ledger_entry" && event.debit === exiled && event.reason === `exiled ${exiled}` && event.amount === 8)).toBe(true);
+		expect(log.events.some((event) => event.type === "ledger_entry" && event.debit === exiled && event.reason === `exiled ${exiled}` && event.amount === 25)).toBe(true);
 		expect(world.ledger.total()).toBe(0);
 	});
 
@@ -212,17 +216,17 @@ describe("last will (SPEC 6.4)", () => {
 		const pieces = world.heldPieces(exiled);
 		expect(pieces.length).toBeGreaterThan(0);
 		const bequests = pieces.map((piece) => ({ to: piece.needers[0] ?? "A06", factor: piece.id }));
-		expect(world.lastWill(exiled, "My pieces to those who need them.", [...bequests, { to: bequests[0]?.to ?? "A06", points: 7 }])).toMatchObject({ ok: true });
+		expect(world.lastWill(exiled, "My pieces to those who need them.", [...bequests, { to: bequests[0]?.to ?? "A06", points: 1 }])).toMatchObject({ ok: true });
 	});
 
 	it("states the cap in the announcement and validates it", () => {
 		const { world } = gateWorld();
 		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."));
-		expect(announcement?.text).toContain("A last will may leave heirs at most 50% of your points and any factor you hold");
-		const validate = (bequestShare: number): readonly string[] =>
-			validateStory({ ...nexus, tribunal: { ...nexusTribunal(), bequestShare } }).filter((issue) => issue.startsWith("tribunal.bequestShare"));
+		expect(announcement?.text).toContain("A last will may leave each heir at most 10% of your points, to as many heirs as you like, and any factor you hold");
+		const validate = (bequestPerHeir: number): readonly string[] =>
+			validateStory({ ...nexus, tribunal: { ...nexusTribunal(), bequestPerHeir } }).filter((issue) => issue.startsWith("tribunal.bequestPerHeir"));
 		expect(validate(1)).toEqual([]);
-		expect(validate(0)).toEqual(["tribunal.bequestShare: must be a share of the points between 0 (exclusive) and 1"]);
+		expect(validate(0)).toEqual(["tribunal.bequestPerHeir: must be a share of the points between 0 (exclusive) and 1"]);
 		expect(validate(1.5)).toHaveLength(1);
 	});
 });

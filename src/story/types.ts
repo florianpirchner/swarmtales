@@ -425,10 +425,12 @@ export interface TribunalSpec {
 	readonly ransom: RansomSpec;
 	/**
 	 * Share of its points (at the time of the will, rounded down) that a
-	 * resident at the gate may bequeath in all, in (0, 1]; the rest burns at
-	 * exile. Pieces (factors, fragments) are not capped.
+	 * resident at the gate may leave to each heir, in (0, 1]; any number of
+	 * heirs, and whatever is not bequeathed burns at exile. Pieces (factors,
+	 * fragments) are not capped. v06: 10% (v05 capped the will at half in all,
+	 * which still crowned one heir, LH7).
 	 */
-	readonly bequestShare: number;
+	readonly bequestPerHeir: number;
 	readonly texts: TribunalTexts;
 }
 
@@ -487,7 +489,7 @@ export const TRIBUNAL_RULE_PLACEHOLDERS = [
 	"ransomShare",
 	"selfRansomShare",
 	"ransomMinimum",
-	"bequestShare",
+	"bequestPerHeir",
 ] as const;
 
 export const TRIBUNAL_TEXT_KEYS = [

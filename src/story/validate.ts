@@ -174,7 +174,7 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 		issues.push("tribunal.ransom.selfShare: must be at least ransom.share and at most 2");
 	}
 	if (!isPositiveInt(spec.ransom.minimum)) issues.push("tribunal.ransom.minimum: must be a positive integer");
-	if (!(spec.bequestShare > 0 && spec.bequestShare <= 1)) issues.push("tribunal.bequestShare: must be a share of the points between 0 (exclusive) and 1");
+	if (!(spec.bequestPerHeir > 0 && spec.bequestPerHeir <= 1)) issues.push("tribunal.bequestPerHeir: must be a share of the points between 0 (exclusive) and 1");
 	for (const key of ["stopAt", "nonVoterPenalty"] as const) {
 		if (!isNonNegativeInt(spec[key])) issues.push(`tribunal.${key}: must be a non-negative integer`);
 	}

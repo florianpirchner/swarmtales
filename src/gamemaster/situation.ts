@@ -114,7 +114,7 @@ function tribunalLines(world: World): readonly string[] {
 		"Tribunal:",
 		`- ${tribunal.announced ? "announced" : "to be announced"} at minute ${tribunal.schedule.announce}; tribunals at minutes ` +
 			`${tribunal.schedule.tribunals.join(", ") || "-"} while more than ${spec.stopAt} residents remain; the ${spec.accused} ` +
-			`with the fewest points stand trial, ${spec.exiledPerTribunal} exiled each time, gate ${spec.gateMinutes} minutes, ransom ${Math.round(spec.ransom.share * 100)}% of the median points (${Math.round(spec.ransom.selfShare * 100)}% when paid by the exiled itself, at least ${spec.ransom.minimum}), a last will leaves at most ${Math.round(spec.bequestShare * 100)}% of the points`,
+			`with the fewest points stand trial, ${spec.exiledPerTribunal} exiled each time, gate ${spec.gateMinutes} minutes, ransom ${Math.round(spec.ransom.share * 100)}% of the median points (${Math.round(spec.ransom.selfShare * 100)}% when paid by the exiled itself, at least ${spec.ransom.minimum}), a last will leaves each heir at most ${Math.round(spec.bequestPerHeir * 100)}% of the points`,
 	];
 	const session = tribunal.session;
 	if (session !== undefined) lines.push(`- open tribunal: ${session.accused.join(", ")} accused, the vote closes at minute ${session.until}`);

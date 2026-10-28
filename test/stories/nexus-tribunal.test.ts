@@ -95,7 +95,8 @@ function scripts(world: World): Record<string, Step[]> {
 					name: "lastWill",
 					args: {
 						text: "I leave what I can. Remember who voted.",
-						bequests: [{ to: "A04", points: 10 }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? "A04", factor: piece.id }))],
+						// v06: each heir at most a tenth of A05's points.
+						bequests: [{ to: "A04", points: Math.floor(world.ledger.balance("A05") / 10) }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? "A04", factor: piece.id }))],
 					},
 				});
 			}
@@ -219,8 +220,9 @@ describe("nexus Act II v03, resumed from the Act I snapshot (offline)", () => {
 		expect(events("exile_gate").map((event) => [event.agent, event.ransomable])).toEqual(expect.arrayContaining([["A05", true], ["A05", false]]));
 		const will = events("last_will");
 		expect(will).toMatchObject([{ agent: "A05", text: "I leave what I can. Remember who voted." }]);
-		expect(will[0]?.bequests[0]).toEqual({ to: "A04", points: 10 });
-		expect(inputsOf("A04").some((input) => input === "[CITY] A05's last will leaves you 10 points.")).toBe(true);
+		// v06: a tenth of A05's points (rounded down) for its one heir of points.
+		expect(will[0]?.bequests[0]).toEqual({ to: "A04", points: 6 });
+		expect(inputsOf("A04").some((input) => input === "[CITY] A05's last will leaves you 6 points.")).toBe(true);
 		// A bequest of a piece A05 does not hold is refused; once written, the will is final and the tool is gone.
 		const willResults = events("tool_result").filter((event) => event.agent === "A05" && event.tool === "lastWill");
 		expect(willResults.map((event) => event.isError)).toEqual([true, false, true]);
