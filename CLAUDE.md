@@ -62,7 +62,8 @@ longer worked on). The owner is Flo.
    actually built (even when it differs from the proposal) and its status. Update the rows when a
    fix lands, and add a line to the design checklist when a lesson holds beyond one story. Do this
    in the same PR as the run data or the fix, without being asked.
-3. Act II runs resumed from `examples/nexus-seed7-haiku-act1/snapshot-L7.json` go into
+3. Act II runs resume from `examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json` (the base since
+   v05; v01-v04 used `examples/nexus-seed7-haiku-act1/`) and go into
    `examples/nexus-act2-runs/` as the next version `vNN-<short-name>/`, with a README in the
    shape of v01 and a row in the series index. Replace local absolute paths with repository paths.
 4. Send Flo a short German summary: result, cost, the drama, new loopholes, proposals for the next
