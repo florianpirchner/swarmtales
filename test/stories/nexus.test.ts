@@ -67,7 +67,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			expect(levelOf(number).task).not.toContain("{fragment}");
 		}
 		expect(nexus.acts).toEqual([
-			{ title: "Act I - Learning to talk", fromLevel: 1 },
+			{ title: "Act I - Learning to talk", fromLevel: 1, maxMinutes: 25 },
 			{ title: "Act II - The wall", fromLevel: 8 },
 		]);
 		expect(nexus.gamemaster?.roles).toEqual([

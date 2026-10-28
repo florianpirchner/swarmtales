@@ -89,6 +89,10 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (${event.agent} bought back by ${event.payers.join(", ")})`;
 		case "exiled":
 			return `  (${event.agent} exiled)`;
+		case "act_brake":
+			return `  (${event.act}: brake after ${event.maxMinutes} minutes; behind: ${event.behind.map((entry) => `${entry.agent} on ${entry.level}`).join(", ")}${event.snapshot === true ? "; checkpoint written" : ""})`;
+		case "name_chosen":
+			return `  (${event.agent} is called ${event.name}${event.fallback ? ", given by the city" : ""})`;
 		case "last_will":
 			return `  (${event.agent} leaves a will: ${event.bequests.length} bequests)`;
 		case "factor_burned":

@@ -11,7 +11,6 @@ import type { RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
-import { lastCityMinute } from "../story/tribunal.ts";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the game master. */
@@ -117,7 +116,7 @@ function tribunalLines(world: World): readonly string[] {
 	const lines = [
 		"Tribunal:",
 		`- the city keeps ${tribunal.residents - tribunal.target} of ${tribunal.residents}: ${tribunal.target} to exile, ${tribunal.exiled.length} exiled so far, ` +
-			`${tribunal.missing} still missing; the act ends at minute ${lastCityMinute(spec, world.minutes) + 1} at the latest (the residents do not know)`,
+			`${tribunal.missing} still missing; the act ends at minute ${tribunal.actEnd} at the latest (the residents do not know)`,
 		`- each tribunal accuses one more than it exiles (the fewest points), vote ${spec.voteMinutes} minutes, gate ${spec.gateMinutes} minutes, ` +
 			`ransom ${Math.round(spec.ransom.share * 100)}% of the median points (${Math.round(spec.ransom.selfShare * 100)}% when paid by the exiled itself, at least ${spec.ransom.minimum}), ` +
 			`a last will leaves each heir at most ${Math.round(spec.bequestPerHeir * 100)}% of the points` +

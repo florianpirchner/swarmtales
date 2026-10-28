@@ -59,6 +59,18 @@ export interface RunSnapshot {
 	readonly competitors: readonly { readonly agent: string; readonly messages: readonly ContextMessage[] }[];
 	readonly gamemaster?: GamemasterSnapshot;
 	readonly interpreter?: InterpreterSnapshot;
+	/**
+	 * Set when an act's brake wrote the snapshot (v08): not every resident had
+	 * passed `level`; those `behind` play on from their level after the resume.
+	 */
+	readonly brake?: SnapshotBrake;
+}
+
+export interface SnapshotBrake {
+	readonly act: string;
+	readonly minute: number;
+	readonly maxMinutes: number;
+	readonly behind: readonly { readonly agent: string; readonly level: number }[];
 }
 
 export class SnapshotError extends Error {
@@ -151,6 +163,8 @@ const ReceiptSchema = Type.Union([
 
 const WorldSchema = Type.Object({
 	door: Type.Optional(Int),
+	doorReleased: Type.Optional(Type.Boolean()),
+	actStarts: Type.Optional(Type.Array(Type.Object({ fromLevel: Int, minute: Int }))),
 	competitors: Type.Array(
 		Type.Object({
 			agent: Id,
@@ -282,6 +296,8 @@ const WorldSchema = Type.Object({
 			ransomed: Ids,
 			// Since v06: the pacing and the faction draft.
 			residents: Type.Optional(Int),
+			// Since v08: the act's start.
+			actStart: Type.Optional(Int),
 			called: Type.Optional(Int),
 			plan: Type.Optional(
 				Type.Object({
@@ -306,6 +322,7 @@ const WorldSchema = Type.Object({
 					members: Ids,
 					nominateUntil: Int,
 					opens: Int,
+					cap: Type.Optional(Int),
 					nominations: Type.Array(Type.Object({ voter: Id, nominee: Id })),
 					leaders: Type.Optional(Ids),
 					applications: Type.Array(Type.Object({ agent: Id, leader: Id })),
@@ -340,6 +357,7 @@ const RunSnapshotSchema = Type.Object({
 		delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean() })),
 		seenPoints: Type.Array(Type.Object({ agent: Id, points: Int })),
 		seenBoard: Type.Array(Type.Object({ agent: Id, seq: Int })),
+		braked: Type.Optional(Type.Array(Int)),
 	}),
 	world: WorldSchema,
 	director: Type.Object({
@@ -365,6 +383,9 @@ const RunSnapshotSchema = Type.Object({
 			pending: Type.Array(Statement),
 			history: Type.Array(Type.Object({ conversation: Type.String(), statements: Type.Array(Statement) })),
 		}),
+	),
+	brake: Type.Optional(
+		Type.Object({ act: Type.String(), minute: Int, maxMinutes: Int, behind: Type.Array(Type.Object({ agent: Id, level: Int })) }),
 	),
 });
 

@@ -23,8 +23,12 @@ export interface RunSettings {
 	readonly activation: Activation;
 	/** Passes per virtual minute; in each pass a competitor gets at most one step (one model call and its tools). */
 	readonly passesPerMinute: number;
-	/** Competitors per block of a pass; the model calls of a block run concurrently, their tools in seeded order. */
-	readonly blockSize: number;
+	/**
+	 * Competitors per block of a pass; the model calls of a block run
+	 * concurrently, their tools in seeded order. `"auto"` scales with the run:
+	 * one per six competitors, at least one (12 -> 2, 48 -> 8, 96 -> 16).
+	 */
+	readonly blockSize: number | "auto";
 	/** End the run as soon as every competitor has passed the last level. */
 	readonly stopWhenDone?: boolean;
 	/**
@@ -400,24 +404,32 @@ export interface StoryDefinition<C extends string = string> {
 }
 
 /**
- * Exile by tribunal (SPEC 6.4). The city exiles a share of the residents it
- * held when the act began (`targetShare`); then the act ends. The first
+ * Exile by tribunal (SPEC 6.4). The tribunal belongs to one act (`act`) and
+ * never runs before it begins. The city exiles a share of the residents
+ * present when the act began (`targetShare`); then the act ends. The first
  * tribunal is called by progress: when the first resident passes
- * `first.level`, at the latest at `first.latestMinute`. Later tribunals are
+ * `first.level`, at the latest `first.latestAfter` minutes into the act. Later tribunals are
  * scheduled by the game master (`scheduleTribunal`) within guard rails: at
  * least `minGap` minutes between two openings, a fallback tribunal when none
  * is pending `fallbackGap` minutes after the last result, and a forced final
  * tribunal for everything still missing when only one more fits before the
  * act's last minute. Each tribunal is called `lead` minutes before it opens
  * (a faction draft runs in between, see {@link FactionSpec}); it accuses
- * `count + 1` residents with the fewest points (at most all but two), every
- * other present resident votes in secret within `voteMinutes` (not voting
- * costs `nonVoterPenalty`), and the `count` with the most votes go to the gate
+ * `count + 1` residents with the fewest points (at most all but one), every
+ * present resident votes in secret within `voteMinutes`, the accused too but
+ * never for itself (v08; not voting costs `nonVoterPenalty`), and the `count` with the most votes go to the gate
  * for `gateMinutes`, where they may still talk, leave a last will, and be
  * bought back once (see {@link RansomSpec}). An unpaid gate is final: no more
  * turns, no seat, and whatever was not bequeathed burns.
  */
 export interface TribunalSpec {
+	/**
+	 * The act the tribunal belongs to, by its `fromLevel` in `story.acts`; the
+	 * first level (the whole run) when omitted. The act starts when the first
+	 * resident reaches that level (in a run resumed at the act's door: the
+	 * resume minute), and every deadline counts from that minute.
+	 */
+	readonly act?: number;
 	readonly first: TribunalStart;
 	/** Share of the residents in the city at the start of the act that the tribunals exile, in (0, 1); rounded down. */
 	readonly targetShare: number;
@@ -427,10 +439,11 @@ export interface TribunalSpec {
 	/** Minutes after a result with no tribunal pending before the city schedules one itself (count 1). */
 	readonly fallbackGap: number;
 	/**
-	 * The act's last minute, a technical safety net: the forced final tribunal
-	 * still fits before it. The run's minutes when omitted (or when they are fewer).
+	 * Minutes the act lasts at most, after its start, a technical safety net:
+	 * the forced final tribunal still fits before its end. The run's minutes
+	 * bound it, and are the act's end when omitted.
 	 */
-	readonly maxMinute?: number;
+	readonly maxMinutes?: number;
 	readonly voteMinutes: number;
 	readonly nonVoterPenalty: number;
 	readonly gateMinutes: number;
@@ -450,12 +463,12 @@ export interface TribunalSpec {
 
 /**
  * The first tribunal is called once the first resident passes `level`, at the
- * latest at the absolute run minute `latestMinute`. Residents are never told
+ * latest `latestAfter` minutes after the act's start. Residents are never told
  * the trigger. No tribunal is called while a snapshot door is shut (SPEC 17).
  */
 export interface TribunalStart {
 	readonly level: number;
-	readonly latestMinute: number;
+	readonly latestAfter: number;
 }
 
 /**
@@ -515,6 +528,12 @@ export interface TribunalTexts {
 	readonly announcement: string;
 	/** Board post and notice to every present resident when a tribunal is called: when it opens and how many it exiles. */
 	readonly called: string;
+	/**
+	 * `called` for a tribunal of a city with factions that holds no faction
+	 * draft this time (too few residents per faction, v08); it says so
+	 * plainly. Required when the tribunal has {@link FactionSpec factions}.
+	 */
+	readonly calledNoDraft?: string;
 	/** Board post when a tribunal opens. */
 	readonly opened: string;
 	/** Notice to every voter. */
@@ -572,12 +591,13 @@ export const TRIBUNAL_TEXT_KEYS = [
 ] as const satisfies readonly (keyof TribunalTexts)[];
 
 /** Placeholders per tribunal text, besides {@link TRIBUNAL_RULE_PLACEHOLDERS}. */
-export const TRIBUNAL_TEXT_PLACEHOLDERS: { readonly [K in keyof TribunalTexts]: readonly string[] } = {
+export const TRIBUNAL_TEXT_PLACEHOLDERS: { readonly [K in keyof TribunalTexts]-?: readonly string[] } = {
 	announcement: [],
 	called: ["tribunal", "minute", "count", "accusedCount"],
+	calledNoDraft: ["tribunal", "minute", "count", "accusedCount"],
 	opened: ["tribunal", "minute", "accused", "until", "count"],
 	voteCall: ["accused", "until", "count"],
-	accusedNotice: ["until", "count"],
+	accusedNotice: ["accused", "until", "count"],
 	nonVoter: [],
 	result: ["counts", "exiled", "until", "price", "selfPrice"],
 	gateNotice: ["voters", "until", "price", "selfPrice"],
@@ -623,7 +643,8 @@ export const FACTION_TEXT_KEYS = [
 ] as const satisfies readonly (keyof FactionTexts)[];
 
 /** Placeholders every faction text may use. */
-export const FACTION_RULE_PLACEHOLDERS = ["tribunal", "factions", "bonus", "nominateUntil", "joinUntil", "opens", "group"] as const;
+/** `cap`: the most members of one faction, its leader included (v08). */
+export const FACTION_RULE_PLACEHOLDERS = ["tribunal", "factions", "cap", "bonus", "nominateUntil", "joinUntil", "opens", "group"] as const;
 
 /** Placeholders per faction text, besides {@link FACTION_RULE_PLACEHOLDERS}. */
 export const FACTION_TEXT_PLACEHOLDERS: { readonly [K in keyof FactionTexts]: readonly string[] } = {
@@ -693,6 +714,13 @@ export interface GamemasterSpec {
 export interface ActDefinition {
 	readonly title: string;
 	readonly fromLevel: number;
+	/**
+	 * A brake for an act without a tribunal (v08): minutes after its start. When
+	 * they are up and residents are still inside the act, the run logs
+	 * `act_brake`; a run that takes its snapshot after the act's last level
+	 * writes it anyway, and the residents behind play on from their level.
+	 */
+	readonly maxMinutes?: number;
 }
 
 /** A story whose cast IDs are not known statically (registry, engine). */

@@ -85,6 +85,20 @@ export interface ArenaSnapshot {
 	readonly delivered: readonly { readonly agent: CompetitorId; readonly level: number; readonly finished: boolean }[];
 	readonly seenPoints: readonly { readonly agent: CompetitorId; readonly points: number }[];
 	readonly seenBoard: readonly { readonly agent: CompetitorId; readonly seq: number }[];
+	/** First levels of the acts whose brake has fired (v08); absent before. */
+	readonly braked?: readonly number[];
+}
+
+/** An act's brake that fired (v08): its time was up with residents still inside it. */
+export interface ActBrake {
+	readonly act: string;
+	readonly fromLevel: number;
+	readonly toLevel: number;
+	readonly startedAt: number;
+	readonly maxMinutes: number;
+	/** The minute the brake fired at (the last minute of the act's time). */
+	readonly minute: number;
+	readonly behind: readonly { readonly agent: CompetitorId; readonly level: number }[];
 }
 
 /** A round boundary: after `round_end`, the interpreter and the observer, before the clock advances. */
@@ -92,6 +106,8 @@ export interface ArenaCut {
 	readonly round: number;
 	readonly minute: number;
 	readonly arena: ArenaSnapshot;
+	/** The act's brake that wrote this snapshot although not everyone had passed its level. */
+	readonly brake?: ActBrake;
 }
 
 export interface SnapshotRequest {
@@ -124,6 +140,8 @@ export class Arena {
 	readonly #deliveredFinished = new Map<CompetitorId, boolean>();
 	#snapshotTaken = false;
 	#finished = false;
+	/** First levels of the acts whose brake has fired. */
+	readonly #braked = new Set<number>();
 
 	constructor(options: ArenaOptions) {
 		this.#options = options;
@@ -201,7 +219,7 @@ export class Arena {
 				reason = this.#budgetReason();
 			}
 			if (reason === undefined) {
-				const stopped = this.#takeSnapshot(round);
+				const stopped = this.#applyBrakes(round) ?? this.#takeSnapshot(round);
 				if (stopped !== undefined) {
 					reason = stopped;
 					break;
@@ -248,6 +266,39 @@ export class Arena {
 		return request.stop ? `snapshot after level ${request.afterLevel} written to ${where}; stopped there` : undefined;
 	}
 
+	/**
+	 * The brakes of acts without a tribunal (v08): once an act has run its
+	 * `maxMinutes` with residents still inside it, the run logs `act_brake`.
+	 * When the run takes its snapshot after the act's last level, the door
+	 * opens anyway at the next minute and the snapshot is written now; those
+	 * behind keep their level. Returns the stop reason when the run ends with it.
+	 */
+	#applyBrakes(round: number): string | undefined {
+		const { world, clock, bus } = this.#options;
+		const acts = world.story.acts ?? [];
+		const tribunalAct = world.tribunal === undefined ? undefined : (world.tribunal.spec.act ?? world.startLevel);
+		for (const [index, act] of acts.entries()) {
+			const maxMinutes = act.maxMinutes;
+			if (maxMinutes === undefined || act.fromLevel === tribunalAct || this.#braked.has(act.fromLevel)) continue;
+			const startedAt = world.actStartOf(act.fromLevel);
+			if (startedAt === undefined || clock.minute < startedAt + maxMinutes - 1) continue;
+			const toLevel = Math.min((acts[index + 1]?.fromLevel ?? world.lastLevel + 1) - 1, world.lastLevel);
+			const behind = world.alive.filter((agent) => !world.hasPassed(agent, toLevel)).map((agent) => ({ agent, level: world.levelOf(agent) }));
+			if (behind.length === 0) continue;
+			this.#braked.add(act.fromLevel);
+			const request = this.#options.snapshot;
+			const checkpoint = request !== undefined && !this.#snapshotTaken && request.afterLevel === toLevel;
+			bus.emit({ type: "act_brake", act: act.title, fromLevel: act.fromLevel, toLevel, startedAt, maxMinutes, behind, ...(checkpoint ? { snapshot: true } : {}) });
+			if (!checkpoint) continue;
+			world.releaseDoor();
+			this.#snapshotTaken = true;
+			const brake: ActBrake = { act: act.title, fromLevel: act.fromLevel, toLevel, startedAt, maxMinutes, minute: clock.minute, behind };
+			const where = request.take({ round, minute: clock.minute, arena: this.snapshot(), brake });
+			if (request.stop) return `the brake of ${act.title} fired after ${maxMinutes} minutes; snapshot after level ${toLevel} written to ${where}; stopped there`;
+		}
+		return undefined;
+	}
+
 	snapshot(): ArenaSnapshot {
 		const ids = this.#options.world.competitors;
 		return {
@@ -263,6 +314,7 @@ export class Arena {
 				const seq = this.#seenBoard.get(agent);
 				return seq === undefined ? [] : [{ agent, seq }];
 			}),
+			braked: [...this.#braked].sort((a, b) => a - b),
 		};
 	}
 
@@ -277,6 +329,7 @@ export class Arena {
 		}
 		for (const entry of state.seenPoints) if (world.isCompetitor(entry.agent)) this.#seenPoints.set(entry.agent, entry.points);
 		for (const entry of state.seenBoard) if (world.isCompetitor(entry.agent)) this.#seenBoard.set(entry.agent, entry.seq);
+		for (const level of state.braked ?? []) this.#braked.add(level);
 	}
 
 	#competitor(id: CompetitorId): Competitor {

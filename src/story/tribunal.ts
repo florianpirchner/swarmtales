@@ -3,7 +3,9 @@
  * engine and the game master's tool: the exile target, how far ahead a
  * tribunal is called, the earliest minute one may open, and whether it fits
  * before the act's last minute. The city acts at the start of a minute, so a
- * vote and a gate must end by the last minute of the act.
+ * vote and a gate must end by the last minute of the act. The act's end
+ * (`end`, exclusive) comes from {@link actEnd}: its start plus `maxMinutes`,
+ * within the run's minutes (v08: the deadlines count from the act's start).
  */
 import type { RansomSpec, TribunalSpec } from "./types.ts";
 
@@ -22,9 +24,14 @@ export function tribunalHeld(spec: TribunalSpec, residents: number, survivors: n
 	return target >= 1 && residents >= 3 && residents - target >= survivors;
 }
 
-/** The last minute the city acts in: the act's last minute (`maxMinute`), within the run's minutes. */
-export function lastCityMinute(spec: TribunalSpec, minutes: number): number {
-	return Math.min(spec.maxMinute ?? minutes, minutes) - 1;
+/** The minute the tribunal's act ends (exclusive): `maxMinutes` after its start, within the run's minutes. */
+export function actEnd(spec: TribunalSpec, actStart: number, minutes: number): number {
+	return Math.min(spec.maxMinutes === undefined ? minutes : actStart + spec.maxMinutes, minutes);
+}
+
+/** The last minute the city acts in: the minute before the act's end. */
+export function lastCityMinute(end: number): number {
+	return end - 1;
 }
 
 /** Minutes between the call and the opening of a tribunal that opens at `opens`. */
@@ -49,22 +56,43 @@ export function earliestOpening(spec: TribunalSpec, now: number, previousOpening
 	return opens;
 }
 
-/** Whether a tribunal opening at `opens` closes its vote and its gates by the act's last minute. */
-export function fitsBefore(spec: TribunalSpec, opens: number, minutes: number): boolean {
-	return opens + spec.voteMinutes + spec.gateMinutes <= lastCityMinute(spec, minutes);
+/** Whether a tribunal opening at `opens` closes its vote and its gates by the last minute before the act's `end`. */
+export function fitsBefore(spec: TribunalSpec, opens: number, end: number): boolean {
+	return opens + spec.voteMinutes + spec.gateMinutes <= lastCityMinute(end);
 }
 
 /**
  * Whether one more tribunal still fits after a tribunal opening at `opens`:
  * the next can be called once its vote closed and must keep the gap.
  */
-export function roomAfter(spec: TribunalSpec, opens: number, minutes: number): boolean {
-	return fitsBefore(spec, earliestOpening(spec, opens + spec.voteMinutes, opens), minutes);
+export function roomAfter(spec: TribunalSpec, opens: number, end: number): boolean {
+	return fitsBefore(spec, earliestOpening(spec, opens + spec.voteMinutes, opens), end);
 }
 
-/** Residents accused when a tribunal exiles `count` of `present`: one more than it exiles, leaving at least two voters. */
+/**
+ * Residents accused when a tribunal exiles `count` of `present`: one more
+ * than it exiles, at most all but one (one resident is always safe). Every
+ * present resident votes, the accused too (v08, P33), so a tribunal of three
+ * or more always has at least two voters; fewer than three hold none.
+ */
 export function accusedCount(count: number, present: number): number {
-	return Math.max(0, Math.min(count + 1, present - 2));
+	if (present < 3) return 0;
+	return Math.max(0, Math.min(count + 1, present - 1));
+}
+
+/** The most members a faction may hold, its leader included: the present residents shared evenly (v08, P31). */
+export function factionCap(present: number, factions: number): number {
+	return factions <= 0 ? 0 : Math.ceil(present / factions);
+}
+
+/**
+ * Why a tribunal holds no faction draft, if it holds none: fewer than two
+ * factions fit, or a faction would have fewer residents than the tribunal
+ * accuses (v08: `floor(present / factions) < accused`).
+ */
+export function noDraftReason(present: number, factions: number, accused: number): "too few residents" | "too few per faction" | undefined {
+	if (factions < 2) return "too few residents";
+	return Math.floor(present / factions) < accused ? "too few per faction" : undefined;
 }
 
 /** Factions a tribunal of `present` residents may have: 2 up to half of them; 0 when not even two fit. */

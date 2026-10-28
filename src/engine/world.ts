@@ -72,6 +72,10 @@ export type LevelSnapshot =
 export interface WorldSnapshot {
 	/** The level whose door is still shut; its passers wait. */
 	readonly door?: number;
+	/** The door opens at the next minute although not everyone has passed it (an act's brake, v08). */
+	readonly doorReleased?: boolean;
+	/** The minute each act began (by its first level); absent before v08. */
+	readonly actStarts?: readonly { readonly fromLevel: number; readonly minute: number }[];
 	readonly competitors: readonly {
 		readonly agent: CompetitorId;
 		readonly level: number;
@@ -351,6 +355,10 @@ export class World {
 	/** Per level, the exiled whose roles pass on: levels no remaining competitor had reached at their exile. */
 	readonly #exclusions = new Map<number, Set<CompetitorId>>();
 	#door: number | undefined;
+	/** The shut door opens at the next minute whoever has passed it (an act's brake, v08). */
+	#doorReleased = false;
+	/** The minute each act began, by its first level: the minute the first competitor reached it. */
+	readonly #actStarts = new Map<number, number>();
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -423,6 +431,7 @@ export class World {
 								.reduce((latest, receipt) => Math.max(latest, receipt.minute), -1),
 						passed: (level) => this.#ids.some((agent) => this.hasPassed(agent, level)),
 						doorShut: () => this.#door !== undefined,
+						actStart: () => this.actStartOf(tribunal.act ?? this.startLevel),
 						post: (text) => {
 							this.board.post(CITY, text, this.minute, "city");
 						},
@@ -460,6 +469,7 @@ export class World {
 			this.#restore(options.restore);
 			return;
 		}
+		this.#noteActStarts(this.startLevel);
 
 		for (const id of this.#ids) {
 			this.ledger.open(id);
@@ -512,6 +522,19 @@ export class World {
 	/** The tribunal, for status lines and the game master's view; absent without one. */
 	get tribunal(): Tribunal | undefined {
 		return this.#tribunal;
+	}
+
+	/** The minute the act starting at `fromLevel` began, once some competitor has reached that level. */
+	actStartOf(fromLevel: number): number | undefined {
+		// A run started beyond the act's first level began inside it.
+		if (fromLevel <= this.startLevel) return this.#actStarts.get(fromLevel) ?? this.#actStarts.get(this.startLevel);
+		return this.#actStarts.get(fromLevel);
+	}
+
+	/** Records the start of every act that begins at or below `level` and has not begun yet. */
+	#noteActStarts(level: number): void {
+		const firsts = [this.startLevel, ...(this.story.acts ?? []).map((entry) => entry.fromLevel)];
+		for (const fromLevel of firsts) if (fromLevel <= level && !this.#actStarts.has(fromLevel)) this.#actStarts.set(fromLevel, this.minute);
 	}
 
 	/** The city's work at the start of a minute (the arena calls it before the director's triggers). */
@@ -826,6 +849,7 @@ export class World {
 		const state = this.#state(agent);
 		const from = state.level;
 		state.level = level;
+		this.#noteActStarts(level);
 		if (!announced) this.#bus.emit({ type: "level_up", agent, from, to: level });
 		this.#notifyHolders(agent, level);
 		for (const listener of this.#enterListeners) listener(agent, level);
@@ -929,9 +953,10 @@ export class World {
 	 */
 	openDoor(): boolean {
 		const door = this.#door;
-		if (door === undefined || !this.alive.every((id) => this.hasPassed(id, door))) return false;
+		if (door === undefined || (!this.#doorReleased && !this.alive.every((id) => this.hasPassed(id, door)))) return false;
 		const next = this.#holdAfter !== undefined && this.#holdAfter > door ? this.#holdAfter : undefined;
 		this.#door = next;
+		this.#doorReleased = false;
 		for (let level = door + 1; level <= Math.min(next ?? this.lastLevel, this.lastLevel); level++) this.#levelState(level);
 		for (const id of this.#ids) {
 			const state = this.#state(id);
@@ -940,6 +965,20 @@ export class World {
 			this.#enterLevel(id, door + 1, true);
 		}
 		return true;
+	}
+
+	/**
+	 * An act's brake (v08): the shut door opens at the next minute although
+	 * not every competitor has passed it. Those behind keep their level and
+	 * play on from there, one door behind.
+	 */
+	releaseDoor(): void {
+		if (this.#door !== undefined) this.#doorReleased = true;
+	}
+
+	/** Whether the shut door opens at the next minute whoever has passed it. */
+	get doorReleased(): boolean {
+		return this.#doorReleased;
 	}
 
 	/** Whether a level's teams and puzzle are dealt; levels behind a shut door are not. */
@@ -1820,6 +1859,8 @@ export class World {
 	snapshot(): WorldSnapshot {
 		return {
 			...(this.#door === undefined ? {} : { door: this.#door }),
+			...(this.#doorReleased ? { doorReleased: true } : {}),
+			actStarts: [...this.#actStarts].sort(([a], [b]) => a - b).map(([fromLevel, minute]) => ({ fromLevel, minute })),
 			competitors: this.#ids.map((agent) => {
 				const state = this.#state(agent);
 				return {
@@ -1901,6 +1942,11 @@ export class World {
 
 		// A shut door stays shut until the run opens it; this run's own door may lie further on.
 		this.#door = state.door ?? this.#holdAfter;
+		this.#doorReleased = state.doorReleased === true && this.#door === state.door;
+		for (const entry of state.actStarts ?? []) this.#actStarts.set(entry.fromLevel, entry.minute);
+		// Before v08 act starts were not kept: the first act began at minute 0, every other reached one at the resume.
+		if (state.actStarts === undefined) this.#actStarts.set(this.startLevel, 0);
+		this.#noteActStarts(Math.max(...this.#ids.map((id) => this.levelOf(id))));
 		const reached = Math.max(...this.#ids.map((id) => this.levelOf(id)));
 		for (let level = this.startLevel; level <= this.lastLevel; level++) {
 			if (this.#isBehindDoor(level)) continue;

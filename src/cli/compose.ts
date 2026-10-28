@@ -139,11 +139,16 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		stopWhenSeatsDecided: overrides.only === undefined && (overrides.stopWhenSeatsDecided ?? story.run.stopWhenSeatsDecided ?? false),
 		activation: overrides.activation ?? story.run.activation,
 		passesPerMinute: overrides.passesPerMinute ?? story.run.passesPerMinute,
-		blockSize: overrides.blockSize ?? story.run.blockSize,
+		blockSize: overrides.blockSize ?? resolveBlockSize(story.run.blockSize, overrides.agents ?? story.run.agents),
 		personas: overrides.personas ?? true,
 		gamemaster: overrides.gamemaster === true && story.gamemaster !== undefined,
 		classifier: overrides.classifier === true && story.classifier !== undefined,
 	};
+}
+
+/** A block size, with `"auto"` resolved for `agents` competitors: one per six, at least one (v08). */
+export function resolveBlockSize(blockSize: number | "auto", agents: number): number {
+	return blockSize === "auto" ? Math.max(1, Math.ceil(agents / 6)) : blockSize;
 }
 
 /**
@@ -312,6 +317,9 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 								competitors: runners.map((runner) => ({ agent: runner.id, messages: runner.snapshot() })),
 								...(gamemaster === undefined ? {} : { gamemaster: gamemaster.snapshot(bus.seq + 1) }),
 								...(interpreter === undefined ? {} : { interpreter: interpreter.snapshot() }),
+								...(cut.brake === undefined
+									? {}
+									: { brake: { act: cut.brake.act, minute: cut.brake.minute, maxMinutes: cut.brake.maxMinutes, behind: cut.brake.behind } }),
 							}),
 					},
 				}),

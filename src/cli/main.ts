@@ -29,7 +29,7 @@ import type { ModelChoice } from "../story/types.ts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
 import { assertPlayable, composeRun, DEFAULT_LIMITS, effectiveRun, resumeOverrides } from "./compose.ts";
-import { readSnapshot, SnapshotError, writeSnapshot, type RunSnapshot } from "../snapshot/snapshot.ts";
+import { readSnapshot, SnapshotError, writeSnapshot, type RunSnapshot, type SnapshotBrake } from "../snapshot/snapshot.ts";
 import { StoryValidationError } from "../story/validate.ts";
 import { worldOracle } from "./oracle.ts";
 import { runMetadata } from "./metadata.ts";
@@ -224,6 +224,8 @@ const providerLabel = [...new Set(distinctSettings.map((entry) => entry.provider
 const modelIdLabel = [...new Set(distinctSettings.map((entry) => entry.modelId ?? "-"))].join(",");
 
 let snapshotPath: string | undefined;
+/** Set when an act's brake wrote the snapshot (v08). */
+let snapshotBrake: string | undefined;
 const resumedFrom =
 	snapshot === undefined || args.resume === undefined
 		? undefined
@@ -246,7 +248,8 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 					stop: args.stopAfterSnapshot === true,
 					write: (taken) => {
 						snapshotPath = writeSnapshot(allocated.directory, taken);
-						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}\n`);
+						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
+						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
 						return snapshotPath;
 					},
 				},
@@ -377,7 +380,7 @@ process.stdout.write(
 		`transcripts: ${join(allocated.directory, "agents")}`,
 		`minutes:     ${report}`,
 		...(snapshotPath !== undefined
-			? [`snapshot:    ${snapshotPath}`]
+			? [`snapshot:    ${snapshotPath}`, ...(snapshotBrake === undefined ? [] : [`act brake:   ${snapshotBrake}`])]
 			: args.snapshotAfter === undefined
 				? []
 				: [`snapshot:    none; not every competitor passed level ${args.snapshotAfter} before the run ended`]),
@@ -386,6 +389,12 @@ process.stdout.write(
 		"",
 	].join("\n"),
 );
+
+/** "the brake of Act I fired at minute 24 (25 minutes); behind: A03 on level 6, A05 on level 7". */
+function brakeLine(brake: SnapshotBrake): string {
+	const behind = brake.behind.map((entry) => `${entry.agent} on level ${entry.level}`).join(", ");
+	return `the brake of ${brake.act} fired at minute ${brake.minute} (${brake.maxMinutes} minutes); behind: ${behind}`;
+}
 
 /** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
 function roleEnv(role: "GAMEMASTER" | "CLASSIFIER"): ModelEnv {
