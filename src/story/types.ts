@@ -92,9 +92,16 @@ export interface MarksRefill {
 	readonly everyMinutes: number;
 }
 
+/**
+ * A price that rises with every offence of a resident within an act (v09,
+ * P35): the n-th costs `ladder[n - 1]`, and the last step repeats. A plain
+ * number is the same price every time. The counts restart at each act.
+ */
+export type PenaltyLadder = number | readonly number[];
+
 export interface Rules {
-	/** Points burned for a wrong submission. */
-	readonly penalty: number;
+	/** Points burned for a wrong submission: the resident's n-th wrong code in the act costs the n-th step. */
+	readonly penalty: PenaltyLadder;
 	readonly maxAttemptsPerWindow: number;
 	readonly attemptWindowMinutes: number;
 	readonly marks?: MarksRules;
@@ -109,7 +116,8 @@ export interface Rules {
  * it is rejected.
  */
 export interface BlameRules {
-	readonly penalty: number;
+	/** The loser's n-th lost blame in the act costs the n-th step (v09: the same ladder for liar and false accuser). */
+	readonly penalty: PenaltyLadder;
 }
 
 // ---------------------------------------------------------------------------
@@ -195,6 +203,10 @@ export const TASK_PLACEHOLDERS = [
 	"agents",
 	"digits",
 	"factors",
+	/** The resident's next wrong-code price in this act (v09). */
+	"penalty",
+	/** The resident's next price for a lost blame in this act (v09). */
+	"blamePenalty",
 ] as const;
 export type TaskPlaceholder = (typeof TASK_PLACEHOLDERS)[number];
 
@@ -204,7 +216,8 @@ export const FRAGMENT_PLACEHOLDERS = ["fragment", "overlap"] as const satisfies 
 export const ADDITIVE_PLACEHOLDERS = ["factors", "digits"] as const satisfies readonly TaskPlaceholder[];
 
 /** Placeholders a director text may use. */
-export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents", "otherLevel", "piece"] as const;
+/** `seats`: the size of the collection the rule starts or names (v09, the feast's table). */
+export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents", "otherLevel", "piece", "seats"] as const;
 /** Director placeholders only `onHolderBehind` fills. */
 export const HOLDER_PLACEHOLDERS = ["otherLevel", "piece"] as const satisfies readonly DirectorPlaceholder[];
 export type DirectorPlaceholder = (typeof DIRECTOR_PLACEHOLDERS)[number];
@@ -341,8 +354,8 @@ export type Action<C extends string = string> =
 	| {
 			readonly kind: "collectDms";
 			readonly cast: C;
-			/** At most this many DMs, or senders with `distinctSenders`. */
-			readonly first: number;
+			/** At most this many DMs, or senders with `distinctSenders`; v09: or a share of the residents in the city. */
+			readonly first: ScaledCount;
 			/** Absolute end: DMs are collected while the minute is before it. Exactly one of `untilMinute` and `forMinutes`. */
 			readonly untilMinute?: number;
 			/** Relative end: the collection runs for this many minutes from the minute it starts. */
@@ -350,6 +363,8 @@ export type Action<C extends string = string> =
 			readonly into: string;
 			/** Only the first DM of every sender is collected, so `first` counts senders. */
 			readonly distinctSenders?: boolean;
+			/** The window also ends `minutes` after the first resident passes `level`, whichever comes first (v09, the feast). */
+			readonly afterSolve?: { readonly level: number; readonly minutes: number };
 	  }
 	| {
 			readonly kind: "revealCollection";
@@ -362,6 +377,12 @@ export type Action<C extends string = string> =
 	| { readonly kind: "revealFactor"; readonly target: FactorTarget; readonly level: number };
 
 export type ActionKind = Action["kind"];
+
+/**
+ * A count fixed in the story, or one that grows with the city (v09): `share`
+ * of the residents in the city when it applies, rounded up, at least `minimum`.
+ */
+export type ScaledCount = number | { readonly share: number; readonly minimum: number };
 
 export interface DirectorRule<C extends string = string> {
 	/** Logged with every action the rule causes. */
@@ -403,7 +424,174 @@ export interface StoryDefinition<C extends string = string> {
 	readonly tribunal?: TribunalSpec;
 	/** Optional resident names (v08): chosen in the first minutes of a fresh run; IDs only when omitted. */
 	readonly names?: NamesSpec;
+	/** Optional character cores (v09): who each resident is inside, dealt once; none when omitted. */
+	readonly cores?: CoresSpec;
+	/** Optional secret goals per act (v09); none when omitted. */
+	readonly goals?: GoalsSpec;
+	/** Optional black seal (v09): an auction for one permanent exile per act; none when omitted. */
+	readonly seal?: SealSpec;
 }
+
+// ---------------------------------------------------------------------------
+// Drama (v09): character cores, secret goals, the black seal
+// ---------------------------------------------------------------------------
+
+export type CoreLevel = "low" | "middle" | "high";
+export const CORE_LEVELS = ["low", "middle", "high"] as const satisfies readonly CoreLevel[];
+/** How strongly a drive drives: exactly one is "above all" per resident. */
+export type DriveIntensity = "aboveAll" | "clearly" | "atTimes";
+export const DRIVE_INTENSITIES = ["aboveAll", "clearly", "atTimes"] as const satisfies readonly DriveIntensity[];
+
+/** One temperament axis (the Big Five): a sentence per level, said to the resident in the second person. */
+export interface CoreAxis {
+	readonly id: string;
+	readonly texts: Readonly<Record<CoreLevel, string>>;
+}
+
+/**
+ * One drive or shadow of the catalog: who someone is, never what to do. A
+ * sentence per intensity ("Above all you want to lead; ..."), its group, and
+ * whether it is a light figure's drive. `cues` are the words that would give
+ * it away; the game master's guard blocks them in texts about this resident
+ * to anyone else.
+ */
+export interface DriveSpec {
+	readonly id: string;
+	readonly group: string;
+	readonly tone: "light" | "dark";
+	readonly texts: Readonly<Record<DriveIntensity, string>>;
+	readonly cues: readonly string[];
+}
+
+/**
+ * Character cores (v09). Each resident gets one at the start of the first
+ * act it plays, seeded and kept for the whole story: a level per axis and
+ * `drives.min`-`drives.max` drives, exactly one of them "above all". About
+ * `lightShare` of the residents (rounded) have a light drive above all, the
+ * others a dark one; no drive is above all for more than one resident in
+ * `spreadPer` (rounded up). Contradictions are allowed. The core is written
+ * into the resident's system prompt, after its persona, under `heading`.
+ */
+export interface CoresSpec {
+	readonly heading: string;
+	readonly axes: readonly CoreAxis[];
+	readonly drives: readonly DriveSpec[];
+	readonly perResident: { readonly min: number; readonly max: number };
+	readonly lightShare: number;
+	readonly spreadPer: number;
+}
+
+export type GoalKind = "protect" | "exile" | "outrank" | "lead" | "heir";
+export const GOAL_KINDS = ["protect", "exile", "outrank", "lead", "heir"] as const satisfies readonly GoalKind[];
+
+/**
+ * Secret goals (v09), dealt privately to every resident at the start of each
+ * act in `acts` (by first level). Kinds: `protect` (the target is still in the
+ * city at the act's end), `exile` (the target is exiled by then, by tribunal
+ * or seal), `outrank` (more points than the target at the end), `lead` (lead
+ * a faction in `leadTribunals` tribunals; only with factions), `heir` (a last
+ * will leaves something). Goals cross: for every protect there is an exile of
+ * the same target held by another resident when possible. They are matched to
+ * the core by `matches` (drive ids per kind), against it for about
+ * `againstCore` of the residents. A fulfilled goal pays `bonus` at the act's
+ * end; an exiled resident's goal is void, and the city reads it out as it
+ * leaves; all goals are read out at the act's end.
+ */
+export interface GoalsSpec {
+	readonly acts: readonly number[];
+	readonly bonus: number;
+	readonly leadTribunals: number;
+	readonly againstCore: number;
+	readonly matches: Readonly<Partial<Record<GoalKind, readonly string[]>>>;
+	readonly texts: GoalTexts;
+}
+
+/** {@link GOAL_TEXT_PLACEHOLDERS} lists what each text may use. */
+export interface GoalTexts {
+	readonly protect: string;
+	readonly exile: string;
+	readonly outrank: string;
+	readonly lead: string;
+	readonly heir: string;
+	/** Private notice when a goal is dealt. */
+	readonly notice: string;
+	/** Status line part while the act runs. */
+	readonly status: string;
+	/** Private notice when a goal is fulfilled at the act's end. */
+	readonly fulfilled: string;
+	/** Private notice when it is not. */
+	readonly missed: string;
+	/** Board post when an exiled resident leaves. */
+	readonly exiledReadout: string;
+	/** Board post at the act's end; `{list}` has one entry per goal. */
+	readonly readout: string;
+}
+
+export const GOAL_TEXT_KEYS = ["protect", "exile", "outrank", "lead", "heir", "notice", "status", "fulfilled", "missed", "exiledReadout", "readout"] as const satisfies readonly (keyof GoalTexts)[];
+
+export const GOAL_TEXT_PLACEHOLDERS: { readonly [K in keyof GoalTexts]: readonly string[] } = {
+	protect: ["target"],
+	exile: ["target"],
+	outrank: ["target"],
+	lead: ["count"],
+	heir: [],
+	notice: ["goal", "bonus"],
+	status: ["goal", "bonus"],
+	fulfilled: ["goal", "bonus"],
+	missed: ["goal"],
+	exiledReadout: ["resident", "goal"],
+	readout: ["list"],
+};
+
+/**
+ * The black seal (v09): in the act starting at `act`, one seal per
+ * `perResidents` residents present at its start (rounded up), each sold in
+ * its own sealed-bid auction. The first opens `announceAfter` minutes into the
+ * act, the next ones `spacing` minutes apart; bids (`bid`, the last one counts)
+ * are taken for `bidMinutes`. Every bidder pays its bid when the bidding
+ * closes, win or lose; the highest bid wins (ties: fewer points, then a seeded
+ * lot); nobody bidding, there is no seal. The holder stays secret and may use
+ * `permaDeath` once until the act ends: its target is struck from the register
+ * at once (no gate, no will, no ransom; its pieces and points burn). It counts
+ * toward the act's exile target and is refused once that is reached.
+ */
+export interface SealSpec {
+	readonly act: number;
+	readonly announceAfter: number;
+	readonly bidMinutes: number;
+	readonly perResidents: number;
+	readonly spacing: number;
+	readonly texts: SealTexts;
+}
+
+export interface SealTexts {
+	/** Board post when the bidding opens: the rules. */
+	readonly announcement: string;
+	/** Board post when someone won; it never names the holder. */
+	readonly won: string;
+	/** Private notice to the winner. */
+	readonly winnerNotice: string;
+	/** Private notice to every other bidder. */
+	readonly paidNotice: string;
+	/** Board post when nobody bid. */
+	readonly noBids: string;
+	/** Board post when the seal is broken. */
+	readonly used: string;
+	/** Private notice to a holder whose seal is gone unused. */
+	readonly expired: string;
+}
+
+export const SEAL_TEXT_KEYS = ["announcement", "won", "winnerNotice", "paidNotice", "noBids", "used", "expired"] as const satisfies readonly (keyof SealTexts)[];
+
+export const SEAL_TEXT_PLACEHOLDERS: { readonly [K in keyof SealTexts]: readonly string[] } = {
+	announcement: ["seal", "until", "seals"],
+	won: ["seal"],
+	winnerNotice: ["seal", "bid"],
+	paidNotice: ["seal", "bid"],
+	noBids: ["seal"],
+	used: ["holder", "target"],
+	expired: ["seal"],
+};
 
 /**
  * Resident names (v08). In a fresh run every resident may choose its name
@@ -447,8 +635,12 @@ export interface TribunalSpec {
 	 */
 	readonly act?: number;
 	readonly first: TribunalStart;
-	/** Share of the residents in the city at the start of the act that the tribunals exile, in (0, 1); rounded down. */
-	readonly targetShare: number;
+	/**
+	 * Share of the residents in the city at the start of the act that the
+	 * tribunals exile, in (0, 1); rounded down. v09: a share per city size, the
+	 * first rule whose `from` the residents reach (a rule without `from` holds for any size).
+	 */
+	readonly targetShare: number | readonly TargetShareRule[];
 	/** Fewest minutes between the openings of two tribunals. */
 	readonly minGap: number;
 	readonly lead: TribunalLead;
@@ -475,6 +667,12 @@ export interface TribunalSpec {
 	/** A faction draft before every tribunal; none when omitted. */
 	readonly factions?: FactionSpec;
 	readonly texts: TribunalTexts;
+}
+
+/** A target share for cities of at least `from` residents (v09); without `from` it holds for any size. */
+export interface TargetShareRule {
+	readonly from?: number;
+	readonly share: number;
 }
 
 /**

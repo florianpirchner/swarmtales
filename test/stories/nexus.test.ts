@@ -84,13 +84,24 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 		expect(rule("city-factor-8")).toMatchObject({ trigger: { kind: "onFirstEnter", level: 8 }, actions: [{ kind: "revealFactor", target: "board", level: 8 }] });
 		expect(rule("city-factor-9")).toMatchObject({ trigger: { kind: "onFirstEnter", level: 9 }, actions: [{ kind: "revealFactor", target: "board", level: 9 }] });
 		expect(rule("feast")?.trigger).toEqual({ kind: "onFirstEnter", level: 10 });
-		expect(rule("feast")?.actions).toContainEqual({ kind: "collectDms", cast: "STEWARD", first: 3, forMinutes: 12, into: "feast", distinctSenders: true });
+		expect(rule("feast")?.actions).toContainEqual({
+			kind: "collectDms",
+			cast: "STEWARD",
+			first: { share: 1 / 4, minimum: 3 },
+			forMinutes: 12,
+			afterSolve: { level: 10, minutes: 3 },
+			into: "feast",
+			distinctSenders: true,
+		});
 		expect(rule("feast")?.actions).toContainEqual({ kind: "revealCast", cast: "STEWARD" });
 		// The courier says plainly what the table gives; whoever is on or reaches the crossing while it is open is told privately.
 		expect(rule("feast")?.actions).toContainEqual({
 			kind: "post",
 			author: "COURIER",
-			text: "STEWARD sets a table for 3. At door 10 every team has its own city factor. The first 3 residents to write to STEWARD receive their team's; nobody else gets one from the city until the table is cleared in 12 minutes.",
+			text:
+				"STEWARD sets a table for {seats}. At door 10 every team has its own city factor. The first {seats} residents to write to STEWARD " +
+				"receive their team's; nobody else gets one from the city until the table is cleared in 12 minutes, or 3 minutes after the first " +
+				"resident passes door 10, whichever comes first.",
 		});
 		expect(rule("feast-notice")).toMatchObject({ trigger: { kind: "onEnter", level: 10 }, when: [{ kind: "collectionOpen", into: "feast" }], actions: [{ kind: "notify", target: "actor" }] });
 		const ids = nexus.director.map((entry) => entry.id);
@@ -117,9 +128,9 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 		expect(rule("feast-start-seat")?.trigger).toEqual({ kind: "onCollect", into: "feast-start" });
 		expect(rule("table-cleared-start")?.trigger).toEqual({ kind: "onCollectionEnd", into: "feast-start" });
 		// The crossing's task says where its city factor comes from and when the city posts it.
-		expect(levelOf(10).task).toContain("first 3 residents who write to STEWARD once STEWARD's table opens");
+		expect(levelOf(10).task).toContain("first residents who write to STEWARD once STEWARD's table opens (on the first arrival at this door; the board and a city notice say how many seats it has)");
 		expect(levelOf(10).task).toContain("Every team of this door has its own city factor.");
-		expect(levelOf(10).task).toContain("wait until the table is cleared 12 minutes after it opened; then the city sends every resident on this door its team's city factor privately");
+		expect(levelOf(10).task).toContain("wait until the table is cleared, 12 minutes after it opened or 3 minutes after the first resident passes this door, whichever comes first; then the city sends every resident on this door its team's city factor privately");
 		expect(nexus.cast).toEqual({ STEWARD: { level: 10, hidden: true } });
 		expect(rule("standings")?.trigger).toEqual({ kind: "every", minutes: 6, from: 12 });
 	});
@@ -136,7 +147,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			expect(levelOf(number).task).toContain("blame(dm, accused, claim)");
 		}
 		for (const number of [5, 6, 7, 8, 9, 10]) expect(levelOf(number).tools).toContain("showReceipt");
-		expect(nexus.rules.blame).toEqual({ penalty: 12 });
+		expect(nexus.rules.blame).toEqual({ penalty: [2, 4, 6, 8] });
 		for (const entry of nexus.levels) {
 			for (const tool of PETITION_TOOLS) expect(entry.tools).not.toContain(tool);
 		}
@@ -158,7 +169,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 				text: "On the wall board posts, private messages and shown receipts cost 1 mark each; group posts cost nothing. Everyone receives 8 marks per door and regains 1 every 3 minutes, up to 8.",
 			},
 		]);
-		expect(nexus.rules).toMatchObject({ penalty: 8, maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });
+		expect(nexus.rules).toMatchObject({ penalty: [2, 4, 6, 8], maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });
 	});
 
 	it("uses only known placeholders and states the tool contract on level 1", () => {
@@ -297,7 +308,7 @@ describe("nexus acts I and II in one run", () => {
 		const wall = createFixture({ level: 8, minutes: 1, script: () => ({ A01: [say()] }) });
 		await wall.run();
 		const status = wall.inputsOf("A01").find((input) => input.startsWith("[status]"));
-		expect(status).toContain("the city never confirms a value you received; only the door tests your code (a wrong one costs 8 points)");
+		expect(status).toContain("the city never confirms a value you received; only the door tests your code (your next wrong code costs 2 points)");
 		// Residents see the minute, never the time left (v06).
 		expect(status).toMatch(/^\[status\] minute 0 · level 8 · /);
 		expect(status).not.toMatch(/left|of 1 /);

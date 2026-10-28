@@ -68,7 +68,7 @@ export const submitSolution = defineTool({
 			case "incorrect":
 				return failure(
 					"INCORRECT",
-					`-${outcome.penalty} points · ${outcome.attemptsRemaining} attempts left in this window`,
+					`-${outcome.penalty} points · your next wrong code costs ${outcome.nextPenalty} points · ${outcome.attemptsRemaining} attempts left in this window`,
 				);
 			case "wrong_level":
 				return failure("WRONG_LEVEL", `your current level is ${outcome.currentLevel}`);

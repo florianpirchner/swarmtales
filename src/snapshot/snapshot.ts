@@ -231,6 +231,7 @@ const WorldSchema = Type.Object({
 				untilMinute: Int,
 				distinctSenders: Type.Boolean(),
 				entries: Type.Array(CollectedDm),
+				afterSolve: Type.Optional(Type.Object({ level: Int, minutes: Int })),
 			}),
 		),
 	}),
@@ -341,6 +342,8 @@ const WorldSchema = Type.Object({
 		}),
 	),
 	levels: Type.Array(LevelSchema),
+	// Since v09: wrong codes and lost blames per resident in the current act.
+	offences: Type.Optional(Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }))),
 });
 
 const RunSnapshotSchema = Type.Object({

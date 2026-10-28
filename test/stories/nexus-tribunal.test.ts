@@ -222,13 +222,13 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		// The old numbers (board, groups, DMs) stay below every new one.
 		const oldMax = Math.max(...snapshot.world.board.posts.map((post) => post.seq), ...snapshot.world.dms.map((record) => record.id));
 		expect(Math.min(...events("dm_sent").flatMap((event) => (event.number === undefined ? [] : [event.number])))).toBeGreaterThan(oldMax);
-		// v08: Act II begins at the resume (minute 16, when the door opens); the city exiles a quarter of six, one, and the
-		// first tribunal is called 18 minutes into the act at the latest.
+		// v08: Act II begins at the resume (minute 16, when the door opens); v09: the city exiles half of six, three, and
+		// the first tribunal is called 18 minutes into the act at the latest.
 		expect(world.tribunal?.actStart).toBe(16);
-		expect(events("tribunal_announced")).toMatchObject([{ minute: 34, target: 1, residents: 6 }]);
+		expect(events("tribunal_announced")).toMatchObject([{ minute: 34, target: 3, residents: 6 }]);
 		expect(events("tribunal_scheduled")[0]).toMatchObject({ tribunal: 1, by: "deadline", calledAt: 34, opens: 38 });
-		expect(events("exiled")).toHaveLength(1);
-		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept 5 of 6 residents, and of them only 2 take a seat\. Exiled: A0\d\. The tribunals are over\.$/);
+		expect(events("exiled")).toHaveLength(3);
+		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept 3 of 6 residents, and of them only 2 take a seat\. Exiled: A0\d, A0\d and A0\d\. The tribunals are over\.$/);
 	}, 120_000);
 
 	it("plays receipts, blames, a faction draft, the tribunal, a ransom, the forced final tribunal and the end at the target", async () => {
@@ -243,16 +243,17 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		// While a partner waits on the wall, its holder's status line keeps the piece in view.
 		expect(inputsOf("A02").some((input) => input.startsWith("[status]") && input.includes("you hold for others: ") && input.includes(" door 8 "))).toBe(true);
 
-		// Receipts and blames: one upheld (the liar pays 12 and is branded), one rejected (the false accuser pays 12 and is branded).
+		// Receipts and blames: one upheld (the liar pays its first lost blame, 2, and is branded), one rejected (the false accuser
+		// pays its first, 2, and is branded; v09 ladder).
 		expect(inputsOf("A01").some((input) => input.startsWith(`[CITY] DM #${a01dm?.id ?? 0} delivered to A02 at minute `))).toBe(true);
 		const blames = events("blame");
 		expect(blames.map((event) => [event.caller, event.accused, event.outcome, event.payer, event.penalty])).toEqual([
-			["A01", "A02", "upheld", "A02", 12],
-			["A03", "A02", "rejected", "A03", 12],
+			["A01", "A02", "upheld", "A02", 2],
+			["A03", "A02", "rejected", "A03", 2],
 		]);
 		const record = world.board.get(blames[0]?.post ?? 0);
 		expect(record?.text).toMatch(/^City record: A02 lied\. A02 claimed in board #\d+ not to have received DM #\d+ from A01; the city delivered it to A02 at minute \d+\./);
-		expect(world.board.get(blames[1]?.post ?? 0)?.text).toMatch(/^City record: A03 accused A02 falsely\. .* A03 pays 12 points\.$/);
+		expect(world.board.get(blames[1]?.post ?? 0)?.text).toMatch(/^City record: A03 accused A02 falsely\. .* A03 pays 2 points\.$/);
 		expect(record?.text).not.toContain("424242");
 
 		// v06: no calendar. Nobody passes the crossing, so the city calls the first tribunal at its latest minute (30) and

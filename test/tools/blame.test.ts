@@ -15,7 +15,8 @@ import { socialLevels, tinyStory } from "../helpers/stories.ts";
 const story = tinyStory({
 	agents: 4,
 	levels: socialLevels(["sendDM", "readBoard", "postBoard", "createGroup", "addGroupMember", "postGroup", "readGroup", "blame"]),
-	rules: { blame: { penalty: 12 } },
+	// v09: a ladder; each resident's second lost blame within the act costs 20.
+	rules: { blame: { penalty: [12, 20] } },
 });
 
 /** A01's DM to A02. */
@@ -94,7 +95,7 @@ describe("blame (SPEC 7.4)", () => {
 		expect(blames.map((event) => [event.caller, event.outcome, event.payer, event.penalty])).toEqual([
 			["A01", "upheld", "A02", 12],
 			["A01", "rejected", "A01", 12],
-			["A01", "rejected", "A01", 12],
+			["A01", "rejected", "A01", 20],
 			["A03", "rejected", "A03", 12],
 		]);
 		// Upheld: the liar pays and is branded on the board, with brief quotes and the factor masked.
@@ -126,13 +127,13 @@ describe("blame (SPEC 7.4)", () => {
 		expect(blames[3]?.reason).toBe(`DM #${dm} is not a DM of yours to A02`);
 
 		// Wrong blames cost the caller; the repeated pair is refused for free.
-		expect(world.status("A01").points).toBe(10 - 24);
+		expect(world.status("A01").points).toBe(10 - 12 - 20);
 		expect(world.status("A02").points).toBe(10 - 12);
 		expect(world.status("A03").points).toBe(10 - 12);
 		expect(fixture.events("notice").some((notice) => notice.to === "A03" && notice.text.startsWith(`Your blame of A02 was wrong: DM #${dm} is not a DM of yours to A02. It cost you 12 points, and the city's record is on the board as #`))).toBe(true);
 		const results = fixture.toolResults("A01", "blame");
 		expect(results[0]).toBe(`upheld · A02 pays 12 points · the city posted its record on the board as #${blames[0]?.post ?? 0}`);
-		expect(results[1]).toMatch(/^rejected · the city's judge finds that DM #\d+ by A02 does not deny receiving DM #\d+ · you paid 12 points · the city's record is on the board as #\d+$/);
+		expect(results[1]).toMatch(/^rejected · the city's judge finds that DM #\d+ by A02 does not deny receiving DM #\d+ · you paid 12 points \(your next lost blame costs 20\) · the city's record is on the board as #\d+$/);
 		expect(results[3]).toBe(`ALREADY_BLAMED: DM #${dm} and message #${denial} were blamed already`);
 		expect(world.snapshot().blames?.pairs).toHaveLength(4);
 	});
@@ -191,7 +192,7 @@ describe("blame (SPEC 7.4)", () => {
 
 describe("the blame desk's checks", () => {
 	const ports = (overrides: Partial<BlameDeskPorts> = {}): BlameDeskPorts => ({
-		penalty: () => 12,
+		charge: () => 12,
 		isCompetitor: (id) => ["A01", "A02", "A03"].includes(id),
 		minute: () => 9,
 		dm: (number) =>
@@ -228,7 +229,7 @@ describe("the blame desk's checks", () => {
 		const unpriced = tinyStory({ agents: 4, levels: socialLevels(["sendDM", "blame"]) });
 		expect(validateStory(unpriced)).toContain("rules.blame: levels 1, 2 unlock blame, so the story must set what the loser of a blame pays");
 		expect(validateStory(tinyStory({ agents: 4, levels: socialLevels(["sendDM", "blame"]), rules: { blame: { penalty: -1 } } }))).toContain(
-			"rules.blame.penalty: must be a non-negative integer",
+			"rules.blame.penalty: every step must be a non-negative integer",
 		);
 		expect(validateStory(story)).toEqual([]);
 	});

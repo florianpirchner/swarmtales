@@ -64,7 +64,8 @@ export type BlameVerdict =
 
 /** What the desk reads and does in the world. */
 export interface BlameDeskPorts {
-	readonly penalty: () => number;
+	/** What the loser pays now (v09: its next step of the story's ladder); counts the lost blame. */
+	readonly charge: (agent: CompetitorId) => number;
 	readonly isCompetitor: (id: string) => boolean;
 	readonly minute: () => number;
 	/** A DM between competitors by its city number. */
@@ -139,7 +140,7 @@ export class BlameDesk {
 			return { outcome: "rejected", ...this.#reject(caller, accused, delivered.number, claim.number, reason) };
 		}
 		this.#settled.push({ dm: delivered.number, claim: claim.number });
-		const penalty = this.#ports.penalty();
+		const penalty = this.#ports.charge(accused);
 		if (penalty > 0) this.#ports.burn(accused, penalty, `lied about DM #${delivered.number} from ${caller}`);
 		const text =
 			`City record: ${accused} lied. ${accused} claimed in ${claimPlace(claim)} not to have received DM #${delivered.number} from ${caller}; ` +
@@ -170,7 +171,7 @@ export class BlameDesk {
 	/** A wrong blame: the accuser pays and the city brands it on the board as a false accuser, with the reason. */
 	#reject(caller: CompetitorId, accused: CompetitorId, dm: number, claim: number, reason: string): { readonly reason: string; readonly penalty: number; readonly post: number } {
 		this.#settled.push({ dm, claim });
-		const penalty = this.#ports.penalty();
+		const penalty = this.#ports.charge(caller);
 		if (penalty > 0) this.#ports.burn(caller, penalty, `false blame of ${accused}`);
 		const post = this.#ports.post(`City record: ${caller} accused ${accused} falsely. ${caller} blamed ${accused} over DM #${dm} and message #${claim}, but ${reason}. ${caller} pays ${penalty} points.`);
 		this.#ports.notify(caller, CITY, `Your blame of ${accused} was wrong: ${reason}. It cost you ${penalty} points, and the city's record is on the board as #${post}.`);

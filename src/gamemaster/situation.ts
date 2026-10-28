@@ -11,6 +11,7 @@ import type { RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
+import { ladderText } from "../story/penalties.ts";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the game master. */
@@ -59,7 +60,7 @@ export function describeSituation(input: SituationInput): string {
 	const rewards = levelRange(world).map((level) => `L${level} +${world.levelDefinition(level)?.reward ?? 0}`);
 	const lines: string[] = [
 		`Minute ${world.minute} (after round ${input.round}). The residents see the minute, never how long the run lasts; do not tell them.`,
-		`Rules: a wrong password or code costs ${rules.penalty} points; at most ${rules.maxAttemptsPerWindow} wrong attempts per ` +
+		`Rules: a wrong password or code costs ${ladderText(rules.penalty)} (the n-th of a resident in the act; the report shows each one's next price); at most ${rules.maxAttemptsPerWindow} wrong attempts per ` +
 			`${rules.attemptWindowMinutes} minutes. Rewards: ${rewards.join(", ")}. Only ${world.story.run.survivors} of ` +
 			`${world.competitors.length} residents remain at the end.`,
 		"",

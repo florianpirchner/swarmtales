@@ -113,11 +113,24 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (faction of ${event.leader} ${event.united ? `voted as one (+${event.bonus})` : "split"}${event.defectors.length === 0 ? "" : `; defectors: ${event.defectors.join(", ")}`})`;
 		case "group_removed":
 			return `  (the city removed group ${event.group})`;
+		case "seal_auction_opened":
+			return `  (black seal ${event.seal}: bidding open until minute ${event.until})`;
+		case "seal_won":
+			return `  (black seal ${event.seal} won by ${event.agent} for ${event.bid}; ${event.bids.length} bids paid)`;
+		case "seal_used":
+			return `  (${event.holder} broke black seal ${event.seal} on ${event.target})`;
+		case "seal_expired":
+			return `  (black seal ${event.seal} gone: ${event.reason})`;
+		case "goal_resolved":
+			return `  (${event.agent}'s goal ${event.void === true ? "void" : event.fulfilled ? `fulfilled, +${event.bonus}` : "missed"})`;
 		case "tribunal_announced":
 		case "tribunal_vote":
 		case "faction_nominated":
 		case "faction_applied":
 		case "faction_refused":
+		case "seal_bid":
+		case "core_dealt":
+		case "goal_dealt":
 			return undefined;
 		case "blame":
 			return `  (${event.caller} blames ${event.accused}: DM #${event.dm} vs message #${event.claim}, ${event.outcome}${event.outcome === "upheld" ? "" : `, -${event.penalty}`})`;
@@ -160,6 +173,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "cast_revealed":
 		case "cast_retired":
 		case "collection_started":
+		case "collection_shortened":
 		case "collection_revealed":
 		case "lottery_drawn":
 		case "receipt_issued":

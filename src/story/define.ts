@@ -20,6 +20,9 @@ import type {
 	ClassifierSpec,
 	NamesSpec,
 	TribunalSpec,
+	CoresSpec,
+	GoalsSpec,
+	SealSpec,
 	FactorTarget,
 	FactorTopology,
 	GamemasterSpec,
@@ -36,6 +39,7 @@ import type {
 	PuzzleSpec,
 	Rules,
 	RunSettings,
+	ScaledCount,
 	StoryDefinition,
 	TaskPlaceholder,
 	TeamLayout,
@@ -90,6 +94,10 @@ export interface StoryInput<C extends string> {
 	readonly tribunal?: TribunalSpec;
 	/** Optional resident names (v08). */
 	readonly names?: NamesSpec;
+	/** Optional character cores, secret goals and black seal (v09). */
+	readonly cores?: CoresSpec;
+	readonly goals?: GoalsSpec;
+	readonly seal?: SealSpec;
 }
 
 export function defineStory<const C extends string = never>(story: StoryInput<C>): StoryDefinition<C> {
@@ -119,6 +127,9 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.classifier === undefined ? {} : { classifier: story.classifier }),
 		...(story.tribunal === undefined ? {} : { tribunal: story.tribunal }),
 		...(story.names === undefined ? {} : { names: story.names }),
+		...(story.cores === undefined ? {} : { cores: story.cores }),
+		...(story.goals === undefined ? {} : { goals: story.goals }),
+		...(story.seal === undefined ? {} : { seal: story.seal }),
 	};
 }
 
@@ -463,6 +474,7 @@ export const act = {
 			...window,
 			into: options.into,
 			...(options.distinctSenders === undefined ? {} : { distinctSenders: options.distinctSenders }),
+			...(options.afterSolve === undefined ? {} : { afterSolve: options.afterSolve }),
 		};
 	},
 	/** Publishes a collection verbatim as its cast member; `header` is story text posted above the entries. */
@@ -479,9 +491,12 @@ export const act = {
 } as const;
 
 interface CollectCommon {
-	readonly first: number;
+	/** A number, or a share of the residents in the city with a minimum (v09). */
+	readonly first: ScaledCount;
 	readonly into: string;
 	readonly distinctSenders?: boolean;
+	/** The window also ends `minutes` after the first resident passes `level`, whichever comes first (v09). */
+	readonly afterSolve?: { readonly level: number; readonly minutes: number };
 }
 
 /** A collection ends at an absolute minute or after a number of minutes, never both. */

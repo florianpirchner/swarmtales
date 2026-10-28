@@ -30,17 +30,18 @@ export function statusLine(world: World, agent: CompetitorId): string {
 	if (status.receipts > 0) parts.push(plural(status.receipts, "receipt", "receipts"));
 	const held = heldPart(world, agent);
 	if (held !== undefined) parts.push(held);
-	if (world.awaitsCode(agent)) parts.push(noConfirmation(world.story.rules.penalty));
+	if (world.awaitsCode(agent)) parts.push(noConfirmation(world.nextPenalty(agent)));
 	parts.push(...tribunalParts(world, agent));
 	return parts.join(" · ");
 }
 
 /**
  * On a door of personal codes (P25): residents waited for the city to confirm
- * a value they had received, which it never does.
+ * a value they had received, which it never does. v09: the resident's own
+ * next price, which climbs with every wrong code in the act (P35).
  */
 export function noConfirmation(penalty: number): string {
-	const cost = penalty > 0 ? ` (a wrong one costs ${plural(penalty, "point", "points")})` : "";
+	const cost = penalty > 0 ? ` (your next wrong code costs ${plural(penalty, "point", "points")})` : "";
 	return `the city never confirms a value you received; only the door tests your code${cost}`;
 }
 

@@ -21,7 +21,7 @@ export const blame = defineTool({
 		if (judge === undefined) return failure(JUDGE_ABSENT, "the city's judge is absent");
 		const opened = world.openBlame(self, accused, dm, claim);
 		if (!opened.ok) return fromError(opened);
-		if (opened.value.kind === "rejected") return wrong(opened.value);
+		if (opened.value.kind === "rejected") return wrong(opened.value, world.nextBlamePenalty(self));
 		const blamed = opened.value.case;
 		const answer = await judge.deniesReceipt({
 			sender: blamed.caller,
@@ -34,11 +34,14 @@ export const blame = defineTool({
 			return failure("JUDGE_FAILED", "the city's judge could not decide; the blame had no effect, you may try again");
 		}
 		const verdict = world.settleBlame(blamed, answer.deniesReceipt);
-		if (verdict.outcome === "rejected") return wrong(verdict);
+		if (verdict.outcome === "rejected") return wrong(verdict, world.nextBlamePenalty(self));
 		return success(`upheld · ${blamed.accused} pays ${verdict.penalty} points · the city posted its record on the board as #${verdict.post}`);
 	},
 });
 
-function wrong(verdict: { readonly reason: string; readonly penalty: number; readonly post: number }): ToolOutcome {
-	return success(`rejected · ${verdict.reason} · you paid ${verdict.penalty} points · the city's record is on the board as #${verdict.post}`);
+/** A wrong blame: what it cost, and what the caller's next lost blame in this act would cost (v09). */
+function wrong(verdict: { readonly reason: string; readonly penalty: number; readonly post: number }, next: number): ToolOutcome {
+	return success(
+		`rejected · ${verdict.reason} · you paid ${verdict.penalty} points (your next lost blame costs ${next}) · the city's record is on the board as #${verdict.post}`,
+	);
 }

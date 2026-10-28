@@ -6,8 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { act as directorAct, at, onCollect, onCollectionEnd, onEnter, when } from "../../src/story/define.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
-import { castStory, socialLevels } from "../helpers/stories.ts";
+import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { castStory, soloLevels, socialLevels } from "../helpers/stories.ts";
 
 const write = (message: string) => act({ name: "sendDM", args: { target: "STEWARD", message } });
 
@@ -126,5 +126,38 @@ describe("feast collections", () => {
 		});
 		await fixture.run();
 		expect(fixture.events("notice").filter((notice) => notice.text === "The table is open.").map((notice) => notice.to)).toEqual(["A01"]);
+	});
+
+	it("seats a share of the residents, names the seats, and clears the table a few minutes after the first solve (v09, P36)", async () => {
+		const story = castStory({
+			cast: { STEWARD: { level: 3 } },
+			levels: soloLevels(2),
+			agents: 8,
+			minutes: 8,
+			director: [
+				at(
+					0,
+					[
+						directorAct.post("COURIER", "A table for {seats}."),
+						directorAct.collectDms("STEWARD", { first: { share: 1 / 4, minimum: 1 }, forMinutes: 10, afterSolve: { level: 1, minutes: 2 }, into: "feast" }),
+					],
+					{ id: "feast" },
+				),
+				onEnter(1, [directorAct.notify("actor", "The table seats {seats}.")], { id: "seats", when: [when.collectionOpen("feast")] }),
+				onCollectionEnd("feast", [directorAct.post("COURIER", "The table is cleared.")], { id: "cleared" }),
+			],
+		});
+		const fixture = createFixture({
+			story,
+			minutes: 8,
+			script: (world) => ({ A01: [say(), say(), submit(world, "A01", 1), say()], A02: [say()] }),
+		});
+		await fixture.run();
+		// A quarter of 8 is 2 seats; the window of 10 minutes ends 2 minutes after A01 passes door 1 at minute 2.
+		expect(fixture.events("collection_started")).toMatchObject([{ into: "feast", first: 2, untilMinute: 10 }]);
+		expect(fixture.events("collection_shortened")).toMatchObject([{ into: "feast", untilMinute: 4 }]);
+		expect(fixture.world.board.all().map((post) => post.text)).toEqual(expect.arrayContaining(["A table for 2.", "The table is cleared."]));
+		const cleared = fixture.events("director_action").find((event) => event.rule === "cleared");
+		expect(cleared?.minute).toBe(4);
 	});
 });

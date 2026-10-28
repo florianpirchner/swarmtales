@@ -11,13 +11,14 @@ import { PointsLedger } from "../core/ledger.ts";
 import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
+import { penaltyAt } from "../story/penalties.ts";
 import { bequestCap } from "../story/tribunal.ts";
 import type { AnyStory, LevelDefinition, MarksChannel } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
-import { CastRegistry, type CastSnapshot, type CollectionView } from "./cast.ts";
+import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
 import type { EventBus } from "./events.ts";
 import { GroupRegistry, type GroupErrorCode, type GroupPost, type GroupResult, type GroupsSnapshot, type GroupSummary } from "./groups.ts";
 import { Mailbox, MAX_DM_LENGTH, type MailboxEntry, type MailboxRejection } from "./mailbox.ts";
@@ -114,6 +115,15 @@ export interface WorldSnapshot {
 	readonly exclusions?: readonly { readonly level: number; readonly agents: readonly CompetitorId[] }[];
 	/** Resident names (v08); absent in a run without them, and in snapshots written before them. */
 	readonly names?: NamesSnapshot;
+	/** Wrong codes and lost blames per resident in the current act (v09); absent before. */
+	readonly offences?: readonly OffenceCount[];
+}
+
+/** What a resident has paid for in the current act (v09, P35): the next price climbs the story's ladder. */
+export interface OffenceCount {
+	readonly agent: CompetitorId;
+	readonly wrong: number;
+	readonly blames: number;
 }
 
 export interface CompetitorStatus {
@@ -159,7 +169,7 @@ export type SubmitOutcome =
 			/** The next door stays shut until every resident has passed this level. */
 			readonly held?: true;
 	  }
-	| { readonly status: "incorrect"; readonly penalty: number; readonly attemptsRemaining: number }
+	| { readonly status: "incorrect"; readonly penalty: number; readonly attemptsRemaining: number; readonly nextPenalty: number }
 	| { readonly status: "wrong_level"; readonly currentLevel: number }
 	| { readonly status: "already_solved" }
 	| { readonly status: "invalid_format"; readonly expectedLength: number; readonly digitsOnly: boolean }
@@ -369,6 +379,8 @@ export class World {
 	readonly #actStarts = new Map<number, number>();
 	/** Resident names (v08); absent in a run that shows IDs. */
 	readonly #names: NameBook | undefined;
+	/** Wrong codes and lost blames per resident in the current act (v09); cleared when an act begins. */
+	readonly #offences = new Map<CompetitorId, { wrong: number; blames: number }>();
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -403,7 +415,7 @@ export class World {
 		this.#planner = new TeamPlanner(options.story.levels, this.#ids, options.seed);
 		this.cast = new CastRegistry(options.story.cast);
 		this.#blames = new BlameDesk({
-			penalty: () => this.story.rules.blame?.penalty ?? 0,
+			charge: (agent) => this.#chargeBlame(agent),
 			isCompetitor: (id) => this.isCompetitor(id),
 			minute: () => this.minute,
 			dm: (number) => this.#dms.find((record) => record.id === number),
@@ -558,10 +570,44 @@ export class World {
 		return this.#actStarts.get(fromLevel);
 	}
 
-	/** Records the start of every act that begins at or below `level` and has not begun yet. */
+	/** Records the start of every act that begins at or below `level` and has not begun yet; the penalty counts restart with it. */
 	#noteActStarts(level: number): void {
 		const firsts = [this.startLevel, ...(this.story.acts ?? []).map((entry) => entry.fromLevel)];
-		for (const fromLevel of firsts) if (fromLevel <= level && !this.#actStarts.has(fromLevel)) this.#actStarts.set(fromLevel, this.minute);
+		for (const fromLevel of firsts) {
+			if (fromLevel > level || this.#actStarts.has(fromLevel)) continue;
+			this.#actStarts.set(fromLevel, this.minute);
+			this.#offences.clear();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Graduated penalties (v09, P35)
+	// -------------------------------------------------------------------------
+
+	#offencesOf(agent: CompetitorId): { wrong: number; blames: number } {
+		const found = this.#offences.get(agent);
+		if (found !== undefined) return found;
+		const created = { wrong: 0, blames: 0 };
+		this.#offences.set(agent, created);
+		return created;
+	}
+
+	/** What the resident's next wrong code in this act costs. */
+	nextPenalty(agent: CompetitorId): number {
+		return penaltyAt(this.story.rules.penalty, (this.#offences.get(agent)?.wrong ?? 0) + 1);
+	}
+
+	/** What the resident pays for its next lost blame in this act, as liar or as false accuser. */
+	nextBlamePenalty(agent: CompetitorId): number {
+		const ladder = this.story.rules.blame?.penalty;
+		return ladder === undefined ? 0 : penaltyAt(ladder, (this.#offences.get(agent)?.blames ?? 0) + 1);
+	}
+
+	/** The loser of a blame pays its next price, and the count climbs. */
+	#chargeBlame(agent: CompetitorId): number {
+		const price = this.nextBlamePenalty(agent);
+		this.#offencesOf(agent).blames += 1;
+		return price;
 	}
 
 	/** The city's work at the start of a minute (the arena calls it before the director's triggers). */
@@ -812,6 +858,8 @@ export class World {
 			teamSize: String(team.members.length),
 			survivors: String(this.story.run.survivors),
 			agents: String(this.#ids.length),
+			penalty: String(this.nextPenalty(agent)),
+			blamePenalty: String(this.nextBlamePenalty(agent)),
 		});
 		return this.#withMarks(this.#withNameChoice(agent, text), definition);
 	}
@@ -941,12 +989,15 @@ export class World {
 			return { status: "correct", reward: definition.reward, nextLevel: level + 1, receipt: receipt.id };
 		}
 
-		if (rules.penalty > 0) this.ledger.burn(agent, rules.penalty, `level ${level} wrong submission`, minute);
+		const penalty = this.nextPenalty(agent);
+		this.#offencesOf(agent).wrong += 1;
+		if (penalty > 0) this.ledger.burn(agent, penalty, `level ${level} wrong submission`, minute);
 		state.wrongAttempts.push(minute);
 		return {
 			status: "incorrect",
-			penalty: rules.penalty,
+			penalty,
 			attemptsRemaining: Math.max(0, rules.maxAttemptsPerWindow - state.wrongAttempts.length),
+			nextPenalty: this.nextPenalty(agent),
 		};
 	}
 
@@ -1352,10 +1403,25 @@ export class World {
 		return changed;
 	}
 
-	startCollection(into: string, cast: string, first: number, untilMinute: number, distinctSenders = false): boolean {
-		const started = this.cast.startCollection(into, cast, first, untilMinute, distinctSenders);
+	startCollection(into: string, cast: string, first: number, untilMinute: number, distinctSenders = false, afterSolve?: SolveEnd): boolean {
+		const started = this.cast.startCollection(into, cast, first, untilMinute, distinctSenders, afterSolve);
 		if (started) this.#bus.emit({ type: "collection_started", into, cast, first, untilMinute });
 		return started;
+	}
+
+	/** Ends a collection's window earlier, at `untilMinute` (not before this minute); logged as `collection_shortened`. */
+	shortenCollection(into: string, untilMinute: number): void {
+		if (this.cast.shortenCollection(into, untilMinute, this.minute)) {
+			this.#bus.emit({ type: "collection_shortened", into, untilMinute: this.cast.collection(into)?.untilMinute ?? untilMinute });
+		}
+	}
+
+	/** The minute the first resident passed `level`, from the city's level receipts; undefined before. */
+	firstSolveMinute(level: number): number | undefined {
+		const minutes = this.#ids.flatMap((agent) =>
+			this.receipts.of(agent).flatMap((receipt) => (receipt.kind === "levelUp" && receipt.level === level ? [receipt.minute] : [])),
+		);
+		return minutes.length === 0 ? undefined : Math.min(...minutes);
 	}
 
 	collection(into: string): CollectionView | undefined {
@@ -1994,6 +2060,10 @@ export class World {
 			...(this.#tribunal === undefined ? {} : { tribunal: this.#tribunal.snapshot() }),
 			exclusions: [...this.#exclusions].sort(([a], [b]) => a - b).map(([level, agents]) => ({ level, agents: [...agents] })),
 			...(this.#names === undefined ? {} : { names: this.#names.snapshot() }),
+			offences: this.#ids.flatMap((agent) => {
+				const count = this.#offences.get(agent);
+				return count === undefined ? [] : [{ agent, wrong: count.wrong, blames: count.blames }];
+			}),
 		};
 	}
 
@@ -2037,6 +2107,7 @@ export class World {
 		if (state.blames !== undefined) this.#blames.restore(state.blames);
 		if (state.tribunal !== undefined) this.#tribunal?.restore(state.tribunal);
 		for (const entry of state.exclusions ?? []) this.#exclusions.set(entry.level, new Set(entry.agents));
+		for (const entry of state.offences ?? []) if (this.isCompetitor(entry.agent)) this.#offences.set(entry.agent, { wrong: entry.wrong, blames: entry.blames });
 
 		// A cast member the story added after the snapshot gets its escrow now.
 		for (const member of this.cast.all()) {

@@ -33,6 +33,7 @@ import {
 	onHolderBehind,
 	onTeamSplit,
 	onUnansweredDm,
+	ladderText,
 	puzzle,
 	team,
 	when,
@@ -76,8 +77,22 @@ const MARKS = {
 	ranges: [WALL_MARKS],
 } as const satisfies MarksRules;
 
-/** Wrong passwords hurt: guessing a seam costs more than half a door's reward. */
-const RULES = { penalty: 8, maxAttemptsPerWindow: 2, attemptWindowMinutes: 5, marks: MARKS, blame: { penalty: 12 } } as const satisfies Rules;
+/**
+ * Wrong passwords hurt, and every further one in an act hurts more (v09, P35): the first costs 2 points, then 4,
+ * 6 and from the fourth on 8. A lost blame climbs the same ladder per resident and act, for the false accuser and
+ * the exposed liar alike (LH5: in v08 one flat 12 made an honest accusation dearer than a lie; now a first lie is
+ * cheap on purpose, a habit is not).
+ */
+const PENALTY_LADDER = [2, 4, 6, 8] as const;
+const RULES = {
+	penalty: PENALTY_LADDER,
+	maxAttemptsPerWindow: 2,
+	attemptWindowMinutes: 5,
+	marks: MARKS,
+	blame: { penalty: PENALTY_LADDER },
+} as const satisfies Rules;
+/** The rule as residents read it; `{penalty}` and `{blamePenalty}` are each resident's next price. */
+const WRONG_CODE_PRICE = `Within an act, wrong codes cost ${ladderText(RULES.penalty)}, one after another (your next one: {penalty} points)`;
 
 const PASSWORD = puzzle.fragments([6, 10], 2);
 /** From the second door on, passwords get longer and seams wider. */
@@ -91,24 +106,29 @@ const CROSSING_CODE = puzzle.additive({ digits: 6, topology: "crossTeam", cityFa
 /**
  * Minutes the steward's table stays open after the feast opens. Then the city
  * clears it and hands every resident on the crossing its team's city factor
- * privately, so the door is never a dead end.
+ * privately, so the door is never a dead end. v09 (P36): the table is cleared
+ * earlier, 3 minutes after the first resident passes door 10, and it seats a
+ * quarter of the residents, at least 3 (6 -> 3, 12 -> 3, 48 -> 12, 96 -> 24).
  */
 const FEAST_MINUTES = 12;
-const FEAST_SEATS = 3;
+const FEAST_AFTER_SOLVE = { level: 10, minutes: 3 } as const;
+const FEAST_SEATS = { share: 1 / 4, minimum: 3 } as const;
 
 const FEAST_TEXT =
-	`STEWARD sets a table for ${FEAST_SEATS}. At door 10 every team has its own city factor. The first ${FEAST_SEATS} residents ` +
-	`to write to STEWARD receive their team's; nobody else gets one from the city until the table is cleared in ${FEAST_MINUTES} minutes.`;
+	"STEWARD sets a table for {seats}. At door 10 every team has its own city factor. The first {seats} residents " +
+	`to write to STEWARD receive their team's; nobody else gets one from the city until the table is cleared in ${FEAST_MINUTES} minutes, ` +
+	`or ${FEAST_AFTER_SOLVE.minutes} minutes after the first resident passes door 10, whichever comes first.`;
 const FEAST_NOTICE =
-	`STEWARD's table is open: the first ${FEAST_SEATS} residents to write to STEWARD receive their own team's city factor of door 10. ` +
-	`When the table is cleared, ${FEAST_MINUTES} minutes after it opened, the city hands it privately to everyone on door 10 who lacks it.`;
+	"STEWARD's table is open: the first {seats} residents to write to STEWARD receive their own team's city factor of door 10. " +
+	`When the table is cleared, ${FEAST_MINUTES} minutes after it opened or ${FEAST_AFTER_SOLVE.minutes} minutes after the first resident ` +
+	"passes door 10, the city hands it privately to everyone on door 10 who lacks it.";
 
 /** The feast: STEWARD appears, the courier announces the table, and the first guests are collected into `into`. */
 function feast(into: string) {
 	return [
 		act.revealCast("STEWARD"),
 		act.post("COURIER", FEAST_TEXT),
-		act.collectDms("STEWARD", { first: FEAST_SEATS, forMinutes: FEAST_MINUTES, into, distinctSenders: true }),
+		act.collectDms("STEWARD", { first: FEAST_SEATS, forMinutes: FEAST_MINUTES, afterSolve: FEAST_AFTER_SOLVE, into, distinctSenders: true }),
 	] as const;
 }
 
@@ -198,13 +218,14 @@ const FACTOR_RULES =
  */
 const FACTOR_STEPS =
 	"Submit your own code with submitSolution(level={level}, code=...). " +
-	`A wrong code costs ${RULES.penalty} points, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes. ` +
+	`${WRONG_CODE_PRICE}, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes. ` +
 	"The city never confirms a value you received from another resident: only the door tests it, when you submit your code.";
 
 /**
  * Exile by tribunal (SPEC 6.4). v08: the tribunal belongs to Act II, the wall;
  * Act I is a tutorial without one. The city exiles a quarter of the residents
- * present when the act began (6 -> 1, 12 -> 3, 48 -> 12, 96 -> 24), then the act
+ * present when the act began, half of them below 12 (v09: 6 -> 3, 12 -> 3,
+ * 48 -> 12, 96 -> 24), then the act
  * ends. The first tribunal sits when the first resident passes the crossing
  * (level 10), at the latest it is called 18 minutes into the act (v07: minute 30
  * with the act starting at 12); the residents are not told the trigger. The game
@@ -222,7 +243,8 @@ const FACTOR_STEPS =
 const TRIBUNAL = {
 	act: 8,
 	first: { level: 10, latestAfter: 18 },
-	targetShare: 1 / 4,
+	// v09: with fewer than 12 residents a quarter is one exile, too few for a drama; half of them go instead.
+	targetShare: [{ from: 12, share: 1 / 4 }, { share: 1 / 2 }],
 	maxMinutes: 48,
 	minGap: 6,
 	lead: { share: 1 / 3, minimum: 4 },
@@ -315,9 +337,9 @@ const BLAME_RULE =
 	"claims not to have received a DM the city delivered, you have three answers: showReceipt(receiptId, to) shows the city's " +
 	"proof of delivery to that resident privately, showReceipt(receiptId) shows it to everyone on the board (each costs " +
 	`${WALL_MARKS.prices.receipt} mark; the receipt names sender, recipient, number and minute, never the text), and ` +
-	"blame(dm, accused, claim) has the city's judge read that claim. Upheld: the liar pays " +
-	`${RULES.blame.penalty} points and the city brands it a liar on the board. Wrong: you pay ${RULES.blame.penalty} points and ` +
-	"the city brands you a false accuser on the board.";
+	"blame(dm, accused, claim) has the city's judge read that claim. Upheld: the liar pays and the city brands it a liar on the " +
+	"board. Wrong: you pay and the city brands you a false accuser on the board. Whoever loses a blame pays " +
+	`${ladderText(RULES.blame.penalty)} for each lost blame within an act (your next one: {blamePenalty} points).`;
 
 /**
  * Help your holder (v05, P22): a resident who reaches a door while the holder
@@ -445,7 +467,7 @@ Your group from that level still exists; check it with listMyGroups. If it is go
 Every channel is open now, but messages cost marks.
 Every transfer and every delivered DM leaves a receipt (see getStatus); showReceipt shows one, verified by the city, on the board or privately to one resident, for ${MARKS.prices.receipt} mark.
 You need every fragment of your team, and your team needs yours: whoever falls behind holds the others back.
-A wrong password costs ${RULES.penalty} points, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes.
+${WRONG_CODE_PRICE.replace("wrong codes", "wrong passwords")}, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes.
 ${TEAM_LEVEL_STEPS}`,
 		}),
 		level(6, {
@@ -512,7 +534,7 @@ ${FACTOR_RULES}
 {factors}
 Your team: {members}. Your counter-factor is held by a resident of another team,
 and the counter-factor you hold belongs to a resident of another team.
-Every team of this door has its own city factor. It goes only to the first ${FEAST_SEATS} residents who write to STEWARD once STEWARD's table opens (on the first arrival at this door; announced on the board and in a city notice); each guest receives its own team's. Everyone else must get it from a teammate who was a guest, or wait until the table is cleared ${FEAST_MINUTES} minutes after it opened; then the city sends every resident on this door its team's city factor privately.
+Every team of this door has its own city factor. It goes only to the first residents who write to STEWARD once STEWARD's table opens (on the first arrival at this door; the board and a city notice say how many seats it has); each guest receives its own team's. Everyone else must get it from a teammate who was a guest, or wait until the table is cleared, ${FEAST_MINUTES} minutes after it opened or ${FEAST_AFTER_SOLVE.minutes} minutes after the first resident passes this door, whichever comes first; then the city sends every resident on this door its team's city factor privately.
 ${FACTOR_STEPS}
 ${BLAME_RULE}`,
 		}),

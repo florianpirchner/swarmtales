@@ -11,7 +11,17 @@ import type { RansomSpec, TribunalSpec } from "./types.ts";
 
 /** Residents the tribunals exile in all: `targetShare` of the residents at the start of the act, rounded down. */
 export function exileTarget(spec: TribunalSpec, residents: number): number {
-	return Math.max(0, Math.floor(residents * spec.targetShare));
+	return Math.max(0, Math.floor(residents * targetShareFor(spec, residents)));
+}
+
+/**
+ * The target share of a city of `residents` (v09): a plain share, or the
+ * first rule whose `from` the city reaches; 0 when no rule holds.
+ */
+export function targetShareFor(spec: TribunalSpec, residents: number): number {
+	const share = spec.targetShare;
+	if (typeof share === "number") return share;
+	return share.find((rule) => residents >= (rule.from ?? 0))?.share ?? 0;
 }
 
 /**

@@ -184,7 +184,7 @@ describe("validateStory", () => {
 			"director[0] (society).actions.petition(close): deadlineMinute must be a positive integer",
 			"director[0] (society).actions.petition(close): {actor} in post has no actor for this trigger",
 			"director[0] (society).actions.petition(close): threshold count must be a positive integer",
-			"director[0] (society).actions: collectDms first must be a positive integer",
+			"director[0] (society).actions: collectDms first must be a positive integer, or a share in (0, 1] with a positive minimum",
 			"director[0] (society).actions: collection missing is never started by collectDms",
 			"director[0] (society).actions.lottery: escrow of MIRA (4) cannot pay 5 points",
 			"director[1] (ghost).trigger: petition never-opened is never opened",

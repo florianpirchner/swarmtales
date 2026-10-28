@@ -4,6 +4,7 @@
  * hard acts on); the story's `brief` is appended, budgets and the voice
  * come from the story's spec.
  */
+import { ladderText } from "../story/penalties.ts";
 import type { GamemasterRole, GamemasterSpec, Rules } from "../story/types.ts";
 
 /** Characters a note or board post of the game master may have; longer ones are refused. */
@@ -146,7 +147,7 @@ How to write:
   One to three short sentences, addressed by ID, at most ${MAX_NOTE_LENGTH} characters per note or board post;
   a longer one fails and is not delivered. Do not start with a minute or a "CITY minute N:" heading.
 - Make the stakes concrete with numbers from the report: points and ranks, points still open,
-  the penalty of ${rules.penalty} points for a wrong password, who is falling towards the bottom.
+  the penalty for a wrong password (${ladderText(rules.penalty)}, climbing with each wrong one in the act), who is falling towards the bottom.
 
 Hard rules:
 - Say only what is true according to the report. Never invent events, rules, rewards or offers.

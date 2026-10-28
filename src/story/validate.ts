@@ -27,12 +27,14 @@ import {
 	type LevelDefinition,
 	type ModelChoice,
 	type NoticeTarget,
+	type PenaltyLadder,
 	type PuzzleSpec,
 	type TeamLayout,
 	type Trigger,
 	type TriggerKind,
 } from "./types.ts";
 import { assertNever } from "../core/result.ts";
+import { ladderSteps } from "./penalties.ts";
 import { actEnd, fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
@@ -201,7 +203,17 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 		}
 	}
 	if (!isNonNegativeInt(spec.first.latestAfter)) issues.push("tribunal.first.latestAfter: must be a non-negative integer");
-	if (!(spec.targetShare > 0 && spec.targetShare < 1)) issues.push("tribunal.targetShare: must be a share of the residents between 0 and 1");
+	const shares = typeof spec.targetShare === "number" ? [{ share: spec.targetShare }] : spec.targetShare;
+	if (shares.length === 0) issues.push("tribunal.targetShare: needs at least one rule");
+	if (!shares.every((rule) => rule.share > 0 && rule.share < 1)) issues.push("tribunal.targetShare: must be a share of the residents between 0 and 1");
+	if (shares.some((rule) => rule.from !== undefined && !isPositiveInt(rule.from))) issues.push("tribunal.targetShare: from must be a positive integer");
+	// The first rule that a city reaches holds, so the sizes fall and only the last rule may hold for any size.
+	shares.forEach((rule, index) => {
+		const next = shares[index + 1];
+		if (next !== undefined && (rule.from === undefined || (next.from !== undefined && next.from >= rule.from))) {
+			issues.push(`tribunal.targetShare[${index + 1}]: rules go from the largest city down, and only the last one may leave out from`);
+		}
+	});
 	for (const key of ["minGap", "fallbackGap", "voteMinutes", "gateMinutes"] as const) {
 		if (!isPositiveInt(spec[key])) issues.push(`tribunal.${key}: must be a positive integer`);
 	}
@@ -345,10 +357,10 @@ function validateRun(story: AnyStory, agents: number, issues: string[]): void {
 
 function validateRules(story: AnyStory, issues: string[]): void {
 	const rules = story.rules;
-	if (!isNonNegativeInt(rules.penalty)) issues.push("rules.penalty: must be a non-negative integer");
+	validateLadder(rules.penalty, "rules.penalty", issues);
 	if (!isPositiveInt(rules.maxAttemptsPerWindow)) issues.push("rules.maxAttemptsPerWindow: must be at least 1");
 	if (!isPositiveInt(rules.attemptWindowMinutes)) issues.push("rules.attemptWindowMinutes: must be at least 1");
-	if (rules.blame !== undefined && !isNonNegativeInt(rules.blame.penalty)) issues.push("rules.blame.penalty: must be a non-negative integer");
+	if (rules.blame !== undefined) validateLadder(rules.blame.penalty, "rules.blame.penalty", issues);
 	for (const entry of story.levels) {
 		const granted = entry.tools.filter((tool) => CITY_GRANTED_TOOLS.includes(tool));
 		if (granted.length > 0) issues.push(`level ${entry.number}: the tribunal grants ${granted.join(", ")} itself; levels must not list them`);
@@ -997,7 +1009,14 @@ function validateAction(
 			return;
 		case "collectDms":
 			requireCast(action.cast);
-			if (!isPositiveInt(action.first)) issues.push(`${where}: collectDms first must be a positive integer`);
+			if (typeof action.first === "number" ? !isPositiveInt(action.first) : !(action.first.share > 0 && action.first.share <= 1 && isPositiveInt(action.first.minimum))) {
+				issues.push(`${where}: collectDms first must be a positive integer, or a share in (0, 1] with a positive minimum`);
+			}
+			if (action.afterSolve !== undefined) {
+				const solved = action.afterSolve;
+				if (!story.levels.some((entry) => entry.number === solved.level)) issues.push(`${where}: collectDms afterSolve names unknown level ${solved.level}`);
+				if (!isPositiveInt(solved.minutes)) issues.push(`${where}: collectDms afterSolve minutes must be a positive integer`);
+			}
 			if ((action.untilMinute === undefined) === (action.forMinutes === undefined)) {
 				issues.push(`${where}: collectDms needs exactly one of untilMinute and forMinutes`);
 			}
@@ -1083,6 +1102,14 @@ function isPlainObject(value: unknown): value is Readonly<Record<string, unknown
 	if (typeof value !== "object" || value === null) return false;
 	const prototype: unknown = Object.getPrototypeOf(value);
 	return prototype === Object.prototype || prototype === null;
+}
+
+/** A penalty ladder (v09): non-negative integers, at least one step, never falling. */
+function validateLadder(ladder: PenaltyLadder, where: string, issues: string[]): void {
+	const steps = ladderSteps(ladder);
+	if (steps.length === 0) issues.push(`${where}: a ladder needs at least one step`);
+	if (!steps.every(isNonNegativeInt)) issues.push(`${where}: every step must be a non-negative integer`);
+	if (steps.some((step, index) => index > 0 && step < (steps[index - 1] ?? 0))) issues.push(`${where}: a ladder never falls`);
 }
 
 function isPositiveInt(value: number): boolean {
