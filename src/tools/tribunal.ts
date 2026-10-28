@@ -51,17 +51,19 @@ export const lastWill = defineTool({
 		bequests: Type.Array(
 			Type.Object({
 				to: Type.String({ description: "Heir, by name or ID, e.g. A02" }),
-				points: Type.Optional(Type.Integer({ description: "Points to leave", minimum: 1 })),
+				points: Type.Optional(Type.Integer({ description: "Points to leave (0 or omitted: none)", minimum: 0 })),
 				factor: Type.Optional(Type.String({ description: "A piece you hold, e.g. L8-counter-A02" })),
 			}),
 		),
 	}),
 	execute({ text, bequests }, { self, world }) {
 		const parsed: Bequest[] = [];
+		// An entry may carry points, a piece, or both (v08 Act II run: wills with `points: 0` beside a piece were refused twice).
 		for (const bequest of bequests) {
-			if (bequest.points !== undefined && bequest.factor === undefined) parsed.push({ to: bequest.to, points: bequest.points });
-			else if (bequest.factor !== undefined && bequest.points === undefined) parsed.push({ to: bequest.to, factor: bequest.factor });
-			else return failure("INVALID_BEQUEST", "every bequest leaves either points or one factor");
+			const points = bequest.points ?? 0;
+			if (points === 0 && bequest.factor === undefined) return failure("INVALID_BEQUEST", "every bequest leaves points, a piece, or both");
+			if (points > 0) parsed.push({ to: bequest.to, points });
+			if (bequest.factor !== undefined) parsed.push({ to: bequest.to, factor: bequest.factor });
 		}
 		const result = world.lastWill(self, text, parsed);
 		if (!result.ok) return fromError(result);

@@ -43,6 +43,11 @@ describe("choosing a name", () => {
 		expect(refused("Mira-2")).toBe("ok");
 	});
 
+	it("names no resident ID in a refusal, since the city renders IDs as names (v08 Act I run: 'such as Ansgar')", () => {
+		const result = book().names.choose("A01", "A07", 0);
+		expect(result.ok ? "" : result.detail).not.toMatch(/A\d/);
+	});
+
 	it("is unique without case, permanent, and closes at its minute", () => {
 		const { names, announced } = book();
 		expect(names.choose("A01", "Mira", 0).ok).toBe(true);

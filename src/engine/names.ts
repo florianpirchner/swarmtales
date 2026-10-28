@@ -86,7 +86,7 @@ export class NameBook {
 	refusal(name: string): { readonly error: NameError; readonly detail: string } | undefined {
 		if (!NAME.test(name)) return { error: "NAME_INVALID", detail: "3 to 16 characters: letters, digits and hyphens, starting with a letter" };
 		if (HANDLE.test(name)) return { error: "NAME_ID", detail: "a name must not look like a group or receipt of the city, such as GT1 or R-0042" };
-		if (name.split("-").some((part) => ID.test(part))) return { error: "NAME_ID", detail: "a name must not look like a resident ID such as A01" };
+		if (name.split("-").some((part) => ID.test(part))) return { error: "NAME_ID", detail: "a name must not look like a resident ID (the letter A followed by digits, alone or as a part between hyphens)" };
 		if (this.#reserved.has(name.toLowerCase())) return { error: "NAME_RESERVED", detail: `${name} belongs to the city or its cast` };
 		const holder = this.#byName.get(name.toLowerCase());
 		if (holder !== undefined) return { error: "NAME_TAKEN", detail: `another resident is called ${this.nameOf(holder) ?? name}` };
