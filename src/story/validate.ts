@@ -148,9 +148,32 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateGamemaster(story, issues);
 	validateClassifier(story, issues);
 	validateTribunal(story, agents, issues);
+	validateNames(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
+}
+
+/**
+ * Resident names (v08): the choice closes at a positive minute, and every
+ * fallback word gives a valid name with its four digits. `chooseName` is the
+ * city's to grant, never a level's.
+ */
+function validateNames(story: AnyStory, issues: string[]): void {
+	for (const entry of story.levels) {
+		if (entry.tools.some((tool) => tool === "chooseName")) issues.push(`levels[${entry.number}].tools: chooseName is granted by the city while names are chosen`);
+	}
+	const spec = story.names;
+	if (spec === undefined) return;
+	if (!Number.isInteger(spec.untilMinute) || spec.untilMinute < 1) issues.push("names.untilMinute: must be an integer >= 1");
+	if (spec.fallbackWords.length === 0) issues.push("names.fallbackWords: must not be empty");
+	if (spec.announcement.trim().length === 0) issues.push("names.announcement: must not be empty");
+	for (const name of unknownPlaceholders(spec.announcement, ["untilMinute"])) issues.push(`names.announcement: unknown placeholder {${name}}`);
+	for (const word of spec.fallbackWords) {
+		if (!/^[A-Za-z]{2,11}$/.test(word)) issues.push(`names.fallbackWords: "${word}" must be 2 to 11 letters`);
+	}
+	const reserved = new Set([...SYSTEM_AUTHORS, ...Object.keys(story.cast), story.city].map((name) => name.toLowerCase()));
+	for (const word of spec.fallbackWords) if (reserved.has(word.toLowerCase())) issues.push(`names.fallbackWords: "${word}" is a name of the city or its cast`);
 }
 
 /**

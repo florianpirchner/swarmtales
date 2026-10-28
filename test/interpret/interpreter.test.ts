@@ -151,6 +151,26 @@ describe("interpreter context", () => {
 		expect(sink.ofType("interpretation_round").map((event) => event.statements)).toEqual([1, MAX_BATCH_STATEMENTS + 1]);
 	});
 
+	it("tells the classifier the names and maps targets given by name back to IDs (v08)", async () => {
+		const sink = new MemorySink();
+		const bus = new EventBus([sink], () => 0);
+		const batches: StatementBatch[] = [];
+		const classifier: StatementClassifier = {
+			label: "names",
+			classify: (batch) => {
+				batches.push(batch);
+				return Promise.resolve({ verdicts: [{ seq: batch.statements[0]?.seq ?? 0, labels: ["accusation"], targets: ["mira", "A03"] }], usage: [], errors: [] });
+			},
+		};
+		const interpreter = new Interpreter({ classifier, bus, competitors: ["A01", "A02", "A03"], minute: () => 0, nameOf: (agent) => (agent === "A01" ? "Mira" : undefined) });
+		bus.subscribe(interpreter);
+		bus.emit({ type: "dm_sent", from: "A02", to: "A03", text: "Mira lied to us." });
+		await interpreter.afterRound(1);
+		expect(sink.ofType("interpretation")).toEqual([expect.objectContaining({ agent: "A02", labels: ["accusation"], targets: ["A01", "A03"] })]);
+		const prompt = batches[0] === undefined ? "" : classifierPrompt(batches[0], 200);
+		expect(prompt).toContain("Residents: A01 (called Mira), A02, A03.");
+	});
+
 	it("logs a classifier that throws and keeps going", async () => {
 		const sink = new MemorySink();
 		const bus = new EventBus([sink], () => 0);

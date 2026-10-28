@@ -275,6 +275,7 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "cast_retired":
 			case "lottery_drawn":
 			case "collection_revealed":
+			case "name_chosen":
 				break;
 			default:
 				return assertNever(event, "digest event");

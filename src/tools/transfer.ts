@@ -7,7 +7,7 @@ export const transferPoints = defineTool({
 		"Transfers points to another competitor. Immediate, atomic and irreversible. Both sides get a receipt. " +
 		"The memo may not contain numbers of 4 or more digits (also not split by spaces or dashes); send codes by message.",
 	parameters: Type.Object({
-		target: Type.String({ description: "Recipient ID" }),
+		target: Type.String({ description: "Recipient name or ID" }),
 		amount: Type.Integer({ description: "Positive integer", minimum: 1 }),
 		memo: Type.Optional(Type.String({ description: "Purpose, without numbers of 4+ digits", maxLength: 120 })),
 	}),

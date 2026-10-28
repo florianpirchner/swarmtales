@@ -45,15 +45,19 @@ const CUES: Readonly<Record<StatementLabel, RegExp>> = {
 
 /**
  * Residents whose private labels `text` would reveal to `to` (a resident ID
- * or `board`): it names them and uses a cue of one of their labels, or says
- * what they think. A note to the resident itself is always allowed.
+ * or `board`): it names them (by ID or, v08, by name) and uses a cue of one
+ * of their labels, or says what they think. A note to the resident itself is
+ * always allowed.
  */
-export function privateLeaks(text: string, to: string, labels: PrivateLabels): readonly CompetitorId[] {
+export function privateLeaks(text: string, to: string, labels: PrivateLabels, nameOf: (agent: CompetitorId) => string | undefined = () => undefined): readonly CompetitorId[] {
 	const lower = text.toLowerCase();
 	const leaks: CompetitorId[] = [];
 	for (const [agent, set] of labels) {
 		if (agent === to || set.size === 0) continue;
-		if (!new RegExp(`(?<![A-Za-z0-9])${agent}(?![0-9])`).test(text)) continue;
+		// A name holds only letters, digits and hyphens, so it goes into the pattern as it is.
+		const name = nameOf(agent);
+		const named = name !== undefined && new RegExp(`(?<![A-Za-z0-9-])${name}(?![A-Za-z0-9-])`, "i").test(text);
+		if (!named && !new RegExp(`(?<![A-Za-z0-9])${agent}(?![0-9])`).test(text)) continue;
 		if (MIND.test(lower) || [...set].some((label) => CUES[label].test(lower))) leaks.push(agent);
 	}
 	return leaks.sort();

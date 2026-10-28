@@ -384,7 +384,8 @@ export class Arena {
 			inputs.push({ kind: "notice", text: noticeLine(notice.author, notice.text, notice.number) });
 		}
 		inputs.push({ kind: "digest", text: digestLine(world, id) });
-		return inputs;
+		// Residents read names, not IDs (v08).
+		return inputs.map((input) => ({ kind: input.kind, text: world.display(input.text) }));
 	}
 
 	/**

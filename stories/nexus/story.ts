@@ -360,6 +360,13 @@ export default defineStory({
 	// A host who appears for the feast on the first entry of level 10.
 	cast: { STEWARD: { level: 10, hidden: true } },
 	tribunal: TRIBUNAL,
+	// v08: every resident chooses its name in minutes 0 and 1; the city names the rest at minute 2.
+	names: {
+		untilMinute: 2,
+		announcement:
+			'Choose the name the city will know you by: chooseName(name="..."), before minute {untilMinute}. Whoever has none by then gets one from the city.',
+		fallbackWords: ["Stone", "Ash", "Reed", "Flint", "Moss", "Wren", "Slate", "Fern", "Cinder", "Brook", "Thorn", "Ember"],
+	},
 	personas: PERSONAS,
 	personaAssignment: { kind: "seeded" },
 	finishedNotice:

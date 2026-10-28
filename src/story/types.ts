@@ -401,6 +401,22 @@ export interface StoryDefinition<C extends string = string> {
 	readonly classifier?: ClassifierSpec;
 	/** Optional exile by tribunal (SPEC 6.4); every number is a story parameter. */
 	readonly tribunal?: TribunalSpec;
+	/** Optional resident names (v08): chosen in the first minutes of a fresh run; IDs only when omitted. */
+	readonly names?: NamesSpec;
+}
+
+/**
+ * Resident names (v08). In a fresh run every resident may choose its name
+ * with `chooseName` until `untilMinute` starts; then the city names whoever
+ * has none: a word of `fallbackWords` and four digits ("Stone-4417").
+ * The first task carries the `announcement`, the system prompt says it too.
+ */
+export interface NamesSpec {
+	readonly untilMinute: number;
+	/** Added to the first task while the resident may choose; placeholder `{untilMinute}`. */
+	readonly announcement: string;
+	/** Letters only, 2 to 11 of them, so a fallback name stays within 16 characters. */
+	readonly fallbackWords: readonly string[];
 }
 
 /**

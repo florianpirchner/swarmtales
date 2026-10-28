@@ -6,7 +6,7 @@
  * The world knows mechanics only. All texts that reach competitors come from
  * the story (task templates, notices) or describe a mechanic (status, codes).
  */
-import { CITY, type CompetitorId } from "../core/ids.ts";
+import { CITY, SYSTEM_AUTHORS, type CompetitorId } from "../core/ids.ts";
 import { PointsLedger } from "../core/ledger.ts";
 import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
@@ -22,6 +22,7 @@ import type { EventBus } from "./events.ts";
 import { GroupRegistry, type GroupErrorCode, type GroupPost, type GroupResult, type GroupsSnapshot, type GroupSummary } from "./groups.ts";
 import { Mailbox, MAX_DM_LENGTH, type MailboxEntry, type MailboxRejection } from "./mailbox.ts";
 import { MarksBook, type MarksSnapshot, type MarksStatus } from "./marks.ts";
+import { NameBook, type NameEntry, type NameError, type NamesSnapshot } from "./names.ts";
 import { MessageNumbers } from "./numbers.ts";
 import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionView, type Resolution, type SignError } from "./petitions.ts";
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
@@ -55,6 +56,11 @@ export interface WorldOptions {
 	 * A run that takes a snapshot after level n holds its competitors at n.
 	 */
 	readonly holdAfter?: number;
+	/**
+	 * Whether residents choose names in this fresh run (v08); the story's
+	 * `names` decide when omitted. A resumed run keeps the snapshot's names.
+	 */
+	readonly names?: boolean;
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -106,6 +112,8 @@ export interface WorldSnapshot {
 	readonly tribunal?: TribunalSnapshot;
 	/** Per level, the exiled whose roles pass on (SPEC 6.4). */
 	readonly exclusions?: readonly { readonly level: number; readonly agents: readonly CompetitorId[] }[];
+	/** Resident names (v08); absent in a run without them, and in snapshots written before them. */
+	readonly names?: NamesSnapshot;
 }
 
 export interface CompetitorStatus {
@@ -359,6 +367,8 @@ export class World {
 	#doorReleased = false;
 	/** The minute each act began, by its first level: the minute the first competitor reached it. */
 	readonly #actStarts = new Map<number, number>();
+	/** Resident names (v08); absent in a run that shows IDs. */
+	readonly #names: NameBook | undefined;
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -459,6 +469,23 @@ export class World {
 						},
 					});
 
+		const names = options.story.names;
+		const restoredNames = options.restore?.names;
+		const playsNames = options.restore === undefined ? (options.names ?? true) : restoredNames !== undefined;
+		this.#names =
+			names === undefined || !playsNames
+				? undefined
+				: new NameBook({
+						spec: names,
+						ids: this.#ids,
+						seed: options.seed,
+						reserved: [...SYSTEM_AUTHORS, ...Object.keys(options.story.cast), options.story.city],
+						announce: (entry) => {
+							this.#announceName(entry);
+						},
+					});
+		if (restoredNames !== undefined) this.#names?.restore(restoredNames);
+
 		const used = new Set(options.story.levels.flatMap((entry) => entry.tools));
 		this.#finalTools = TOOL_NAMES.filter((name) => used.has(name));
 		// A door after the last level would hold nobody: passing it is finishing.
@@ -539,7 +566,71 @@ export class World {
 
 	/** The city's work at the start of a minute (the arena calls it before the director's triggers). */
 	startMinute(minute: number): void {
+		this.#names?.settle(minute);
 		this.#tribunal?.tick(minute);
+	}
+
+	// -------------------------------------------------------------------------
+	// Names (v08)
+	// -------------------------------------------------------------------------
+
+	/** Whether this run shows names: residents choose them, or the snapshot carried them. */
+	get hasNames(): boolean {
+		return this.#names !== undefined;
+	}
+
+	/** The name of a resident; undefined in a run without names, or before it has one. */
+	nameOf(agent: CompetitorId): string | undefined {
+		return this.#names?.nameOf(agent);
+	}
+
+	/** `Mira (A03)`, or the bare ID without a name. */
+	labelOf(agent: CompetitorId): string {
+		return this.#names?.label(agent) ?? agent;
+	}
+
+	/** Whether `agent` may still choose its name. */
+	canChooseName(agent: CompetitorId): boolean {
+		return this.#names?.canChoose(agent, this.minute) === true;
+	}
+
+	/** The minute at whose start the city names whoever has not chosen; undefined without names. */
+	get namesUntil(): number | undefined {
+		return this.#names?.untilMinute;
+	}
+
+	chooseName(agent: CompetitorId, name: string): Result<NameEntry, NameError> {
+		const book = this.#names;
+		if (book === undefined) return err("NAME_CLOSED", "this city knows its residents by their IDs");
+		return book.choose(agent, name.trim(), this.minute);
+	}
+
+	/**
+	 * The competitor a name or ID stands for (any case), else the text as it
+	 * was, so the tool's own check answers `UNKNOWN_AGENT` with what was written.
+	 */
+	resolveResident(nameOrId: string): string {
+		return this.#names?.resolve(nameOrId) ?? nameOrId;
+	}
+
+	/** `text` as residents read it: names instead of IDs (v08); unchanged in a run without names. */
+	display(text: string): string {
+		const book = this.#names;
+		if (book === undefined) return text;
+		return book.display(text, (token) => this.#isPasswordPiece(token));
+	}
+
+	/** A token that is part of a dealt password stays as written, even when it looks like an ID. */
+	#isPasswordPiece(token: string): boolean {
+		for (const state of this.#levelStates.values()) {
+			if (state.puzzle.kind === "fragments" && state.puzzle.puzzles.some((puzzle) => puzzle.password.includes(token))) return true;
+		}
+		return false;
+	}
+
+	#announceName(entry: NameEntry): void {
+		this.#bus.emit({ type: "name_chosen", agent: entry.agent, name: entry.name, fallback: entry.fallback });
+		this.board.post(CITY, `${entry.agent} is now called ${entry.name}.`, this.minute, "city");
 	}
 
 	isCompetitor(id: string): boolean {
@@ -610,6 +701,7 @@ export class World {
 			}
 			if (ransomOpen) enabled.add("payRansom");
 		}
+		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
 
@@ -719,6 +811,17 @@ export class World {
 			survivors: String(this.story.run.survivors),
 			agents: String(this.#ids.length),
 		});
+		return this.#withMarks(this.#withNameChoice(agent, text), definition);
+	}
+
+	/** The names announcement under a task, while the resident may still choose (v08). */
+	#withNameChoice(agent: CompetitorId, text: string): string {
+		const spec = this.story.names;
+		if (spec === undefined || !this.canChooseName(agent)) return text;
+		return `${text.trimEnd()}\n${renderTemplate(spec.announcement, { untilMinute: String(spec.untilMinute) })}`;
+	}
+
+	#withMarks(text: string, definition: LevelDefinition): string {
 		if (!this.marks.activeOn(definition.number)) return text;
 		const { budget, prices, refill: regain } = this.marks.termsOn(definition.number);
 		const refill = regain === undefined ? "" : ` You regain ${refillText(regain.marks, regain.everyMinutes)}, up to ${budget}.`;
@@ -1888,6 +1991,7 @@ export class World {
 			blames: this.#blames.snapshot(),
 			...(this.#tribunal === undefined ? {} : { tribunal: this.#tribunal.snapshot() }),
 			exclusions: [...this.#exclusions].sort(([a], [b]) => a - b).map(([level, agents]) => ({ level, agents: [...agents] })),
+			...(this.#names === undefined ? {} : { names: this.#names.snapshot() }),
 		};
 	}
 

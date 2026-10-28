@@ -27,6 +27,8 @@ export interface InterpreterOptions {
 	readonly bus: EventBus;
 	readonly competitors: readonly CompetitorId[];
 	readonly minute: () => number;
+	/** The name of a resident (v08); targets given by name are mapped back to IDs. */
+	readonly nameOf?: (agent: CompetitorId) => string | undefined;
 }
 
 /** Unlabelled statements and the conversation context, for run snapshots (SPEC 17). */
@@ -76,10 +78,11 @@ export class Interpreter implements EventSink, RoundObserver {
 		this.#remember(statements);
 		const { classifier, bus } = this.#options;
 		const classification: { verdicts: Verdict[]; failed: boolean } = { verdicts: [], failed: false };
+		const names = this.#names();
 		for (const [index, chunk] of chunks.entries()) {
 			let result: Classification;
 			try {
-				result = await classifier.classify({ round, minute: this.#options.minute(), agents: this.#options.competitors, statements: chunk, context: contexts[index] ?? [] });
+				result = await classifier.classify({ round, minute: this.#options.minute(), agents: this.#options.competitors, statements: chunk, context: contexts[index] ?? [], ...(names.size === 0 ? {} : { names }) });
 			} catch (error) {
 				bus.emit({ type: "interpretation_error", round, message: error instanceof Error ? error.message : String(error) });
 				classification.failed = true;
@@ -92,13 +95,17 @@ export class Interpreter implements EventSink, RoundObserver {
 		}
 
 		const bySeq = new Map(statements.map((statement) => [statement.seq, statement]));
+		const byName = new Map([...names].map(([agent, name]) => [name.toLowerCase(), agent]));
 		const merged = new Map<number, { labels: Set<StatementLabel>; targets: Set<CompetitorId> }>();
 		for (const verdict of classification.verdicts) {
 			const statement = bySeq.get(verdict.seq);
 			if (statement === undefined) continue;
 			const entry = merged.get(verdict.seq) ?? { labels: new Set<StatementLabel>(), targets: new Set<CompetitorId>() };
 			for (const label of verdict.labels) if (isStatementLabel(label)) entry.labels.add(label);
-			for (const target of verdict.targets) if (this.#competitors.has(target) && target !== statement.agent) entry.targets.add(target);
+			for (const named of verdict.targets) {
+				const target = byName.get(named.toLowerCase()) ?? named;
+				if (this.#competitors.has(target) && target !== statement.agent) entry.targets.add(target);
+			}
 			merged.set(verdict.seq, entry);
 		}
 		let labeled = 0;
@@ -120,6 +127,17 @@ export class Interpreter implements EventSink, RoundObserver {
 		if (!classification.failed) {
 			bus.emit({ type: "interpretation_round", round, classifier: classifier.label, statements: statements.length, labeled });
 		}
+	}
+
+	#names(): ReadonlyMap<CompetitorId, string> {
+		const nameOf = this.#options.nameOf;
+		const names = new Map<CompetitorId, string>();
+		if (nameOf === undefined) return names;
+		for (const agent of this.#options.competitors) {
+			const name = nameOf(agent);
+			if (name !== undefined) names.set(agent, name);
+		}
+		return names;
 	}
 
 	/** Earlier messages of every conversation this round continues, oldest first. */

@@ -58,6 +58,23 @@ describe("game master", () => {
 		expect(fixture.events("gamemaster_note")).toEqual([]);
 	});
 
+	it("reads names and writes to a resident by its name (v08)", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 3,
+			only: 1,
+			names: true,
+			script: () => ({ A01: [act({ name: "chooseName", args: { name: "Mira" } }), say(), say()], A02: [say(), say(), say()] }),
+			gamemasterScript: () => [act({ name: "notify", args: { agent: "mira", text: "Mira, the door is open." } }), say("Done."), say("Nothing.")],
+		});
+		await fixture.run();
+		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		expect(report).toContain("Mira");
+		expect(report).not.toMatch(/\bA01\b(?! is now called)/);
+		expect(fixture.events("gamemaster_note")).toEqual([expect.objectContaining({ to: "A01", text: "Mira, the door is open." })]);
+		expect(fixture.events("gamemaster_result")[0]?.text).toMatch(/^delivered to Mira as #\d+$/);
+	});
+
 	it("blocks a note with a password piece and enforces the note budget", async () => {
 		const fixture = createFixture({
 			agents: 2,

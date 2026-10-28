@@ -333,6 +333,13 @@ const WorldSchema = Type.Object({
 		}),
 	),
 	exclusions: Type.Optional(Type.Array(Type.Object({ level: Int, agents: Ids }))),
+	// Since v08: resident names.
+	names: Type.Optional(
+		Type.Object({
+			entries: Type.Array(Type.Object({ agent: Id, name: Type.String({ minLength: 1 }), fallback: Type.Boolean() })),
+			settled: Type.Boolean(),
+		}),
+	),
 	levels: Type.Array(LevelSchema),
 });
 

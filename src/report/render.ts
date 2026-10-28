@@ -4,7 +4,7 @@
  * that survived validation. Rendering is code, never model output.
  */
 import { LABEL_TEXT } from "../interpret/labels.ts";
-import type { ReportFacts, Stall } from "./facts.ts";
+import type { ReportFacts, ResidentResult, Stall } from "./facts.ts";
 
 export interface ReportItem {
 	readonly title: string;
@@ -117,9 +117,9 @@ function result(facts: ReportFacts, narrative?: Narrative): readonly string[] {
 	rows.push(["Levels solved", levelsSolved(facts)]);
 	rows.push(["Stuck", stuck(facts.stalls)]);
 	const ranked = facts.residents.filter((resident) => resident.rank !== undefined).sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
-	rows.push(["Final standings", ranked.length === 0 ? "unknown" : ranked.map((resident) => `${resident.agent} ${resident.points ?? "?"}`).join(", ")]);
+	rows.push(["Final standings", ranked.length === 0 ? "unknown" : ranked.map((resident) => `${residentLabel(resident)} ${resident.points ?? "?"}`).join(", ")]);
 	if (facts.survivors !== undefined) {
-		const seats = ranked.filter((resident) => resident.survivor).map((resident) => resident.agent);
+		const seats = ranked.filter((resident) => resident.survivor).map(residentLabel);
 		rows.push([`Survivors (${facts.survivors})`, seats.length === 0 ? "none" : seats.join(", ")]);
 	}
 	rows.push(["Cost", cost(facts)]);
@@ -155,6 +155,11 @@ function result(facts: ReportFacts, narrative?: Narrative): readonly string[] {
 	return ["| Metric | Value |", "|---|---|", ...rows.map(([key, value]) => `| ${key} | ${cell(value)} |`)];
 }
 
+/** `Mira (A03)` with a name (v08), else the ID. */
+function residentLabel(resident: ResidentResult): string {
+	return resident.name === undefined ? resident.agent : `${resident.name} (${resident.agent})`;
+}
+
 function residents(facts: ReportFacts): readonly string[] {
 	if (facts.residents.length === 0) return [];
 	const lines = ["| Resident | Persona | Start level | Level-ups (minute) | Final level | Points | Rank |", "|---|---|---:|---|---:|---:|---:|"];
@@ -162,7 +167,7 @@ function residents(facts: ReportFacts): readonly string[] {
 		const ups = resident.levelUps.length === 0 ? "none" : resident.levelUps.map((up) => `${up.from}→${up.to} (${up.minute})`).join(", ");
 		const seat = resident.survivor ? " (seat)" : "";
 		lines.push(
-			`| ${resident.agent}${seat} | ${resident.persona ?? "-"} | ${resident.startLevel} | ${ups} | ${finalLevel(facts, resident.finalLevel)} | ${resident.points ?? "-"} | ${resident.rank ?? "-"} |`,
+			`| ${residentLabel(resident)}${seat} | ${resident.persona ?? "-"} | ${resident.startLevel} | ${ups} | ${finalLevel(facts, resident.finalLevel)} | ${resident.points ?? "-"} | ${resident.rank ?? "-"} |`,
 		);
 	}
 	return lines;

@@ -328,6 +328,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "tribunal_opened":
 		case "exile_gate":
 		case "level_contracted":
+		case "name_chosen":
 			return undefined;
 		default:
 			return assertNever(event, "digest event");

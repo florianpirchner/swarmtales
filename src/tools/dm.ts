@@ -9,7 +9,7 @@ export const sendDM = defineTool({
 		"Every DM gets a city number; once it reaches the recipient, the city tells you so with its text and a receipt ID " +
 		"that you (or the recipient) can show with showReceipt.",
 	parameters: Type.Object({
-		target: Type.String({ description: "Recipient ID, e.g. A07" }),
+		target: Type.String({ description: "Recipient name or ID, e.g. A07" }),
 		message: Type.String({ description: "Message text", minLength: 1, maxLength: MAX_DM_LENGTH }),
 	}),
 	execute({ target, message }, { self, world }) {

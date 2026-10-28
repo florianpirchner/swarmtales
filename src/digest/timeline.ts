@@ -8,7 +8,7 @@ import type { ActMap } from "./acts.ts";
 import type { Beat } from "./beats.ts";
 import { eventsOfType, type DigestEvent } from "./event-log.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
-import { labelsOf, type RunFacts } from "./facts.ts";
+import { agentLabel, labelsOf, type RunFacts } from "./facts.ts";
 import { excerpt } from "./relationships.ts";
 
 export interface TimelineHeader {
@@ -20,7 +20,7 @@ export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: Ac
 	const lines: string[] = [`# Timeline of ${header.run}`, ""];
 	if (header.storyTitle !== undefined) lines.push(`Story: ${header.storyTitle}`, "");
 	lines.push(
-		`Competitors: ${facts.agents.length > 0 ? facts.agents.join(", ") : "none"}. Beats found: ${beats.length}.`,
+		`Competitors: ${facts.agents.length > 0 ? facts.agents.map((agent) => agentLabel(facts, agent)).join(", ") : "none"}. Beats found: ${beats.length}.`,
 		"",
 		...endLine(facts),
 		"Every line cites the `#seq` of its event in `events.jsonl`. Private messages are shown in full detail",
@@ -208,6 +208,8 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 			const about = entry.targets.length === 0 ? "" : ` about ${entry.targets.join(", ")}`;
 			return `${entry.agent} privately: ${entry.labels.map((label) => LABEL_TEXT[label]).join(", ")}${about}.`;
 		}
+		case "name_chosen":
+			return `${event.agent} is called ${event.name}${event.fallback ? " (named by the city)" : ""}.`;
 		case "interpretation_round":
 		case "dm_delivered":
 		case "standings_published":

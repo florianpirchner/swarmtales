@@ -16,7 +16,9 @@ const PETITION_TOOLS = ["signPetition", "listPetitions"];
 const ACT_TWO_ONLY: readonly string[] = ["blame"];
 /** Granted by the tribunal while they apply, never listed by a level. */
 const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
-const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name));
+/** Granted by the city while names are chosen (v08), never listed by a level. */
+const NAME_TOOLS: readonly string[] = ["chooseName"];
+const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name));
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
 function levelOf(number: number): LevelDefinition {

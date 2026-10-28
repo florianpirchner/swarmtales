@@ -10,6 +10,7 @@ import { writeRunMetadata } from "../../src/log/run-artifacts.ts";
 import { JsonlEventLog } from "../../src/log/sinks.ts";
 import { createProviderRegistry, OPENROUTER_DEEPSEEK_FLASH } from "../../src/model/providers.ts";
 import { computeFacts, errorCode } from "../../src/report/facts.ts";
+import { factsMarkdown } from "../../src/report/render.ts";
 import { PiReporterModel, resolveReporterModel, type ReporterModel } from "../../src/report/model.ts";
 import { interpretAnswer, ReportError, reportSummary, writeRunReport } from "../../src/report/reporter.ts";
 import { readRunFiles } from "../../src/report/run-log.ts";
@@ -141,6 +142,19 @@ describe("run report facts (computed in code)", () => {
 		]);
 		expect(facts.cost).toEqual({ competitors: 2, gamemaster: 0, classifier: 0, other: 0, total: 2, prefix: 6 });
 		expect(facts.end).toMatchObject({ minute: 7, reason: "time limit" });
+	});
+
+	it("shows names with their IDs in the result table (v08)", () => {
+		const log = new LogBuilder(["A01", "A02"]);
+		log.at(0).add({ type: "name_chosen", agent: "A01", name: "Mira", fallback: false });
+		log.at(2).add({ type: "round_end", round: 2, standings: [standing("A01", 1, 15, 1), standing("A02", 1, 15, 2)] });
+		log.add({ type: "run_end", reason: "time limit" });
+		const facts = computeFacts("run-003", { events: log.jsonl() });
+		expect(facts.residents.map((resident) => resident.name)).toEqual(["Mira", undefined]);
+		const table = factsMarkdown(facts).join("\n");
+		expect(table).toContain("| Mira (A01) |");
+		expect(table).toContain("| A02 |");
+		expect(table).toContain("Mira (A01) 15, A02 15");
 	});
 
 	it("reads the structured code at the start of an error text", () => {

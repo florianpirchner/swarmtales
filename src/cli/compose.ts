@@ -4,7 +4,7 @@
  */
 import { assignModels } from "../agents/models.ts";
 import { assignPersonas } from "../agents/personas.ts";
-import { baseSystemPrompt } from "../agents/system-prompt.ts";
+import { baseSystemPrompt, type PromptFacts } from "../agents/system-prompt.ts";
 import { AgentRunner } from "../agents/runner.ts";
 import { VirtualClock } from "../core/clock.ts";
 import { competitorIds, type CompetitorId } from "../core/ids.ts";
@@ -45,6 +45,8 @@ export interface RunOverrides {
 	readonly gamemaster?: boolean;
 	/** `true` labels every round with the story's classifier; it needs `classifier`. */
 	readonly classifier?: boolean;
+	/** `false` keeps IDs although the story has names (v08); a resumed run keeps the snapshot's. */
+	readonly names?: boolean;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -64,6 +66,8 @@ export interface EffectiveRun {
 	readonly gamemaster: boolean;
 	/** Whether the story's classifier labels every round. */
 	readonly classifier: boolean;
+	/** Whether residents choose names: the story has them and the run starts on its first level (v08). */
+	readonly names: boolean;
 }
 
 /** Builds the model source once the world and the per-competitor models are known. */
@@ -143,7 +147,17 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		personas: overrides.personas ?? true,
 		gamemaster: overrides.gamemaster === true && story.gamemaster !== undefined,
 		classifier: overrides.classifier === true && story.classifier !== undefined,
+		names: story.names !== undefined && startLevel === 1 && (overrides.names ?? true),
 	};
+}
+
+/**
+ * What the system prompt says about names (v08). It is the same in a resumed
+ * run, so the run goes on exactly as before; the resident's own name is in its context.
+ */
+function namesFact(world: World): Pick<PromptFacts, "names"> {
+	const untilMinute = world.namesUntil;
+	return untilMinute === undefined ? {} : { names: { untilMinute } };
 }
 
 /** A block size, with `"auto"` resolved for `agents` competitors: one per six, at least one (v08). */
@@ -230,6 +244,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		minute: () => clock.minute,
 		...(request === undefined ? {} : { holdAfter: request.afterLevel }),
 		...(resume === undefined ? {} : { restore: resume.snapshot.world }),
+		names: effective.names,
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);
@@ -247,7 +262,17 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
 		return new AgentRunner({
 			id,
-			systemPrompt: baseSystemPrompt({ id, city: story.city, survivors: story.run.survivors, agents: ids.length, passesPerMinute: effective.passesPerMinute }, persona),
+			systemPrompt: baseSystemPrompt(
+				{
+					id,
+					city: story.city,
+					survivors: story.run.survivors,
+					agents: ids.length,
+					passesPerMinute: effective.passesPerMinute,
+					...namesFact(world),
+				},
+				persona,
+			),
 			tools: bindAll({ self: id, world, ...(judge === undefined ? {} : { judge }) }),
 			binding: source.bind(id, limits),
 			bus,
@@ -374,6 +399,7 @@ function createInterpreter(options: ComposeOptions, world: World, bus: EventBus,
 		bus,
 		competitors: world.competitors,
 		minute,
+		nameOf: (agent) => world.nameOf(agent),
 	});
 	bus.subscribe(interpreter);
 	return interpreter;

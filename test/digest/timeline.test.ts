@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderDigest } from "../../src/digest/digest.ts";
+import { namedAgents } from "../../src/digest/facts.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 describe("timeline.md", () => {
@@ -27,5 +28,18 @@ describe("timeline.md", () => {
 		expect(timeline).toContain("The run ends: seats decided.");
 		expect(timeline).toContain(`Ended at minute 3: seats decided (#${end}).`);
 		expect(timeline.indexOf("### Minute 1")).toBeLessThan(timeline.indexOf("### Minute 2"));
+	});
+
+	it("names residents with their IDs, and finds them by name in texts (v08)", () => {
+		const log = new LogBuilder(["A01", "A02"]);
+		const named = log.at(0).add({ type: "name_chosen", agent: "A01", name: "Mira", fallback: false });
+		log.add({ type: "name_chosen", agent: "A02", name: "Stone-4417", fallback: true });
+		log.add({ type: "run_end", reason: "time limit" });
+		const analysis = log.analyze({ run: "run-043" });
+		const timeline = renderDigest(analysis).timeline;
+		expect(timeline).toContain("Competitors: Mira (A01), Stone-4417 (A02).");
+		expect(timeline).toContain(`- \`#${named}\` A01 is called Mira.`);
+		expect(timeline).toContain("A02 is called Stone-4417 (named by the city).");
+		expect(namedAgents("stone-4417 lied, ask MIRA or A01", analysis.facts.agents, analysis.facts.names)).toEqual(["A02", "A01"]);
 	});
 });

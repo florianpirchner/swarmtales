@@ -303,8 +303,12 @@ const InterpretationRound = Type.Object({
 	labeled: Type.Integer(),
 });
 
+/** A resident's name (v08). */
+const NameChosen = Type.Object({ ...Base, type: Type.Literal("name_chosen"), agent: Id, name: Type.String(), fallback: Type.Boolean() });
+
 export const DIGEST_EVENT_SCHEMAS = [
 	RunStart,
+	NameChosen,
 	RunEnd,
 	Thinking,
 	Text,

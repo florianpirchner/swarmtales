@@ -79,6 +79,7 @@ describe("pnpm start arguments", () => {
 			personas: true,
 			gamemaster: false,
 			classifier: false,
+			names: true,
 		});
 		expect(effectiveRun(nexus, { classifier: true })).toMatchObject({ classifier: true });
 		expect(effectiveRun(tinyStory(), { classifier: true })).toMatchObject({ classifier: false });

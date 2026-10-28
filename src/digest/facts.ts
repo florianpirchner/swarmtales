@@ -81,6 +81,8 @@ export interface RunFacts {
 	readonly events: readonly DigestEvent[];
 	/** Competitor IDs, from `run_start` (or every acting competitor when it is missing). */
 	readonly agents: readonly string[];
+	/** Resident names by ID (v08); empty in a run without names. */
+	readonly names: ReadonlyMap<string, string>;
 	readonly messages: readonly Message[];
 	readonly shares: readonly Share[];
 	/** Level to (agent to the fragment it holds and its team index on that level). */
@@ -295,13 +297,15 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "last_will":
 			case "factor_burned":
 			case "level_contracted":
+			case "name_chosen":
 				break;
 			default:
 				return assertNever(event, "digest event");
 		}
 	}
 
-	return { events, agents: competitorsOf(events), messages, shares, fragments, factors, receipts, groups, bySeq, interpretations, classifiedMinutes };
+	const names = new Map(events.flatMap((event) => (event.type === "name_chosen" ? [[event.agent, event.name] as const] : [])));
+	return { events, agents: competitorsOf(events), names, messages, shares, fragments, factors, receipts, groups, bySeq, interpretations, classifiedMinutes };
 }
 
 /**
@@ -355,12 +359,19 @@ export function labelsOf(facts: RunFacts, seq: number): readonly StatementLabel[
 	return [...labels];
 }
 
-/** Competitor IDs a text names, in order of first appearance. */
-export function namedAgents(text: string, agents: readonly string[]): readonly string[] {
+/** Competitors a text names, by ID or (v08) by name, in order of first appearance. */
+export function namedAgents(text: string, agents: readonly string[], names: ReadonlyMap<string, string> = new Map()): readonly string[] {
+	const byName = new Map([...names].map(([agent, name]) => [name.toLowerCase(), agent]));
 	const named: string[] = [];
-	for (const match of text.matchAll(/\bA\d+\b/g)) {
-		const id = match[0];
-		if (agents.includes(id) && !named.includes(id)) named.push(id);
+	for (const match of text.matchAll(/[A-Za-z][A-Za-z0-9-]*/g)) {
+		const agent = agents.includes(match[0]) ? match[0] : byName.get(match[0].toLowerCase());
+		if (agent !== undefined && !named.includes(agent)) named.push(agent);
 	}
 	return named;
+}
+
+/** `Mira (A03)` with a name (v08), else the ID. */
+export function agentLabel(facts: RunFacts, agent: string): string {
+	const name = facts.names.get(agent);
+	return name === undefined ? agent : `${name} (${agent})`;
 }

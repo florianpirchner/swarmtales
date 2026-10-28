@@ -4,7 +4,7 @@
  * a run that takes its snapshot after the act's last level writes it anyway,
  * says so in the snapshot, and lets the door open at the next minute. Those
  * behind keep their level and play on from there. A resumed run continues
- * exactly like the run that was not stopped.
+ * exactly like the run that was not stopped, names included.
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
@@ -111,6 +111,11 @@ describe("the brake of a tribunal-free act (v08)", () => {
 		expect(resumed.events.slice(0, cut)).toEqual(snapshot.events);
 		expect(comparable(resumed.events.slice(cut + markers), markers)).toEqual(comparable(whole.events.slice(cut)));
 		expect(resumed.world.levelOf("A03")).toBe(STUCK);
+		// The snapshot keeps the names the city gave at minute 2 (v08); the resumed run shows the same ones.
+		expect(snapshot.world.names).toMatchObject({ settled: true });
+		expect(snapshot.world.names?.entries).toHaveLength(6);
+		expect(whole.world.competitors.map((agent) => resumed.world.nameOf(agent))).toEqual(whole.world.competitors.map((agent) => whole.world.nameOf(agent)));
+		expect(resumed.world.nameOf("A03")).toMatch(/^[A-Z][a-z]+-\d{4}$/);
 		// The brake does not fire again after the resume.
 		expect(resumed.ofType("act_brake")).toHaveLength(1);
 	}, 120_000);
