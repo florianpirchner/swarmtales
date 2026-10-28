@@ -29,7 +29,7 @@ export function detectAccusations(facts: RunFacts, options: AccusationOptions = 
 			if (show.seq >= post.seq || post.minute - show.minute > options.windowMinutes) continue;
 			const receipt = facts.receipts.get(show.receipt);
 			if (receipt === undefined) continue;
-			for (const agent of namedAgents(post.text, facts.agents)) {
+			for (const agent of namedAgents(post.text, facts.agents, facts.names)) {
 				if (agent === post.from || accused.has(agent) || !receipt.parties.includes(agent)) continue;
 				if (facts.classifiedMinutes.has(post.minute) && !hasLabel(facts, post.seq, "accusation", agent)) continue;
 				accused.add(agent);

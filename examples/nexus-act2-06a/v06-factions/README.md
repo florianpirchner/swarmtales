@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-10-28 |
 | Code | swarmtales PR #4 (`0445b36`): the first tribunal bound to progress, later ones planned by the game master (`scheduleTribunal`) within guard rails toward half of the residents exiled, a faction draft before every tribunal with a +5 bloc bonus, marks refill 1 every 3 minutes, free group posts in Act II, bequests at most 10% per heir |
-| Start | resumed from [`../../nexus-seed7-haiku-act1-v2/snapshot-L7.json`](../../nexus-seed7-haiku-act1-v2/) (Act I, minute 12) |
-| Command | `pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic` |
+| Start | resumed from [`../../nexus-act1-06a-02/snapshot-L7.json`](../../nexus-act1-06a-02/) (Act I, minute 12) |
+| Command | `pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
 | Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |

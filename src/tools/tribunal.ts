@@ -8,7 +8,7 @@ export const vote = defineTool({
 	description:
 		"Casts your secret vote in the open tribunal against one of the accused. Once, and final. Nobody sees whom you voted for, " +
 		"except the one you voted against if the city exiles them. Not voting costs points.",
-	parameters: Type.Object({ target: Type.String({ description: "One of the accused, e.g. A03" }) }),
+	parameters: Type.Object({ target: Type.String({ description: "One of the accused, by name or ID, e.g. A03" }) }),
 	execute({ target }, { self, world }) {
 		const result = world.vote(self, target);
 		if (!result.ok) return fromError(result);
@@ -23,7 +23,7 @@ export const payRansom = defineTool({
 		"self-price, and both may be mixed. The points are spent at once and never refunded. When the ransom is covered in full, the " +
 		"resident returns to the city; a resident can be bought back only once.",
 	parameters: Type.Object({
-		target: Type.String({ description: "The resident at the gate, e.g. A03" }),
+		target: Type.String({ description: "The resident at the gate, by name or ID, e.g. A03" }),
 		amount: Type.Integer({ description: "Positive integer; more than the rest of the price is not taken", minimum: 1 }),
 	}),
 	execute({ target, amount }, { self, world }) {
@@ -50,7 +50,7 @@ export const lastWill = defineTool({
 		text: Type.String({ description: "The public text of your will", maxLength: 600 }),
 		bequests: Type.Array(
 			Type.Object({
-				to: Type.String({ description: "Heir, e.g. A02" }),
+				to: Type.String({ description: "Heir, by name or ID, e.g. A02" }),
 				points: Type.Optional(Type.Integer({ description: "Points to leave", minimum: 1 })),
 				factor: Type.Optional(Type.String({ description: "A piece you hold, e.g. L8-counter-A02" })),
 			}),
@@ -74,7 +74,7 @@ export const nominate = defineTool({
 	description:
 		"Nominates a faction leader for the coming tribunal (yourself allowed). Your last nomination counts. When the nominations close, " +
 		"the residents with the most nominations lead the factions.",
-	parameters: Type.Object({ agent: Type.String({ description: "The resident you nominate, e.g. A03" }) }),
+	parameters: Type.Object({ agent: Type.String({ description: "The resident you nominate, by name or ID, e.g. A03" }) }),
 	execute({ agent }, { self, world }) {
 		const result = world.nominate(self, agent);
 		if (!result.ok) return fromError(result);
@@ -89,7 +89,7 @@ export const join = defineTool({
 	description:
 		"Applies to join a leader's faction for the coming tribunal. Your last application counts; the leader may refuse you until the " +
 		"tribunal opens, and then you may apply elsewhere. A faction whose voters all vote for the same target earns each of them a bonus.",
-	parameters: Type.Object({ leader: Type.String({ description: "A faction leader, e.g. A02" }) }),
+	parameters: Type.Object({ leader: Type.String({ description: "A faction leader, by name or ID, e.g. A02" }) }),
 	execute({ leader }, { self, world }) {
 		const result = world.joinFaction(self, leader);
 		if (!result.ok) return fromError(result);
@@ -102,7 +102,7 @@ export const join = defineTool({
 export const refuse = defineTool({
 	name: "refuse",
 	description: "As a faction leader, refuses a resident who applied to your faction. The city tells them; they may apply elsewhere.",
-	parameters: Type.Object({ agent: Type.String({ description: "An applicant to your faction, e.g. A05" }) }),
+	parameters: Type.Object({ agent: Type.String({ description: "An applicant to your faction, by name or ID, e.g. A05" }) }),
 	execute({ agent }, { self, world }) {
 		const result = world.refuseApplicant(self, agent);
 		if (!result.ok) return fromError(result);

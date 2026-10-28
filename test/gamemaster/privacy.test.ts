@@ -41,6 +41,14 @@ describe("private labels", () => {
 		expect(privateLeaks("A03 refused you on the board; ask A01 instead.", "A04", labels)).toEqual([]);
 		expect(privateLeaks("A050 is not a resident, so nothing hesitates.", "A04", labels)).toEqual([]);
 	});
+
+	it("finds a resident by its name too (v08)", () => {
+		const nameOf = (agent: string) => (agent === "A05" ? "Mira" : undefined);
+		expect(privateLeaks("Mira is still hesitating on level 3.", "A04", labels, nameOf)).toEqual(["A05"]);
+		expect(privateLeaks("mira is still hesitating on level 3.", "A04", labels, nameOf)).toEqual(["A05"]);
+		expect(privateLeaks("Mira-2 is still hesitating on level 3.", "A04", labels, nameOf)).toEqual([]);
+		expect(privateLeaks("Mira, do not hesitate.", "A05", labels, nameOf)).toEqual([]);
+	});
 });
 
 describe("game master privacy", () => {

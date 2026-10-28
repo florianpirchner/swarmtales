@@ -79,7 +79,8 @@ export function defineTool<const N extends ToolName, S extends TSchema>(definiti
 			description: definition.description,
 			parameters: definition.parameters,
 			execute(_toolCallId, rawParams) {
-				return Promise.resolve(gateway(definition, context, rawParams)).then(toResult);
+				// Residents read names, not IDs (v08): the reply shows them as well.
+				return Promise.resolve(gateway(definition, context, rawParams)).then((outcome) => toResult(outcome, (text) => context.world.display(text)));
 			},
 		}),
 	};
@@ -94,17 +95,32 @@ function gateway<N extends ToolName, S extends TSchema>(
 	let params: Static<S>;
 	try {
 		// pi validates against the schema already; Parse keeps the boundary typed without a cast.
-		params = Parse(definition.parameters, rawParams);
+		params = Parse(definition.parameters, withResidents(rawParams, (value) => context.world.resolveResident(value)));
 	} catch {
 		return failure(INVALID_ARGUMENTS);
 	}
 	return definition.execute(params, context);
 }
 
-function toResult(outcome: ToolOutcome): AgentToolResult<undefined> {
-	if (outcome.ok) return { content: [{ type: "text", text: outcome.text }], details: undefined };
+/** Parameters that name a resident; each takes a name as well as an ID (v08). */
+export const RESIDENT_PARAMS: readonly string[] = ["target", "agent", "accused", "leader", "to"];
+
+/**
+ * `raw` with every resident parameter, at any depth (a will's bequests),
+ * replaced by the ID it stands for. Anything else is left for the schema.
+ */
+export function withResidents(raw: unknown, resolve: (value: string) => string): unknown {
+	if (Array.isArray(raw)) return raw.map((item: unknown) => withResidents(item, resolve));
+	if (typeof raw !== "object" || raw === null) return raw;
+	return Object.fromEntries(
+		Object.entries(raw).map(([key, value]: [string, unknown]) => [key, typeof value === "string" && RESIDENT_PARAMS.includes(key) ? resolve(value) : withResidents(value, resolve)]),
+	);
+}
+
+function toResult(outcome: ToolOutcome, display: (text: string) => string): AgentToolResult<undefined> {
+	if (outcome.ok) return { content: [{ type: "text", text: display(outcome.text) }], details: undefined };
 	const text = outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;
-	return { content: [{ type: "text", text }], details: undefined, isError: true };
+	return { content: [{ type: "text", text: display(text) }], details: undefined, isError: true };
 }
 
 /** Short suffix for tool replies while marks apply. */

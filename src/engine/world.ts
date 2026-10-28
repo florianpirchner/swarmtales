@@ -6,7 +6,7 @@
  * The world knows mechanics only. All texts that reach competitors come from
  * the story (task templates, notices) or describe a mechanic (status, codes).
  */
-import { CITY, type CompetitorId } from "../core/ids.ts";
+import { CITY, SYSTEM_AUTHORS, type CompetitorId } from "../core/ids.ts";
 import { PointsLedger } from "../core/ledger.ts";
 import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
@@ -22,6 +22,7 @@ import type { EventBus } from "./events.ts";
 import { GroupRegistry, type GroupErrorCode, type GroupPost, type GroupResult, type GroupsSnapshot, type GroupSummary } from "./groups.ts";
 import { Mailbox, MAX_DM_LENGTH, type MailboxEntry, type MailboxRejection } from "./mailbox.ts";
 import { MarksBook, type MarksSnapshot, type MarksStatus } from "./marks.ts";
+import { NameBook, type NameEntry, type NameError, type NamesSnapshot } from "./names.ts";
 import { MessageNumbers } from "./numbers.ts";
 import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionView, type Resolution, type SignError } from "./petitions.ts";
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
@@ -55,6 +56,11 @@ export interface WorldOptions {
 	 * A run that takes a snapshot after level n holds its competitors at n.
 	 */
 	readonly holdAfter?: number;
+	/**
+	 * Whether residents choose names in this fresh run (v08); the story's
+	 * `names` decide when omitted. A resumed run keeps the snapshot's names.
+	 */
+	readonly names?: boolean;
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -72,6 +78,10 @@ export type LevelSnapshot =
 export interface WorldSnapshot {
 	/** The level whose door is still shut; its passers wait. */
 	readonly door?: number;
+	/** The door opens at the next minute although not everyone has passed it (an act's brake, v08). */
+	readonly doorReleased?: boolean;
+	/** The minute each act began (by its first level); absent before v08. */
+	readonly actStarts?: readonly { readonly fromLevel: number; readonly minute: number }[];
 	readonly competitors: readonly {
 		readonly agent: CompetitorId;
 		readonly level: number;
@@ -102,6 +112,8 @@ export interface WorldSnapshot {
 	readonly tribunal?: TribunalSnapshot;
 	/** Per level, the exiled whose roles pass on (SPEC 6.4). */
 	readonly exclusions?: readonly { readonly level: number; readonly agents: readonly CompetitorId[] }[];
+	/** Resident names (v08); absent in a run without them, and in snapshots written before them. */
+	readonly names?: NamesSnapshot;
 }
 
 export interface CompetitorStatus {
@@ -351,6 +363,12 @@ export class World {
 	/** Per level, the exiled whose roles pass on: levels no remaining competitor had reached at their exile. */
 	readonly #exclusions = new Map<number, Set<CompetitorId>>();
 	#door: number | undefined;
+	/** The shut door opens at the next minute whoever has passed it (an act's brake, v08). */
+	#doorReleased = false;
+	/** The minute each act began, by its first level: the minute the first competitor reached it. */
+	readonly #actStarts = new Map<number, number>();
+	/** Resident names (v08); absent in a run that shows IDs. */
+	readonly #names: NameBook | undefined;
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -423,6 +441,7 @@ export class World {
 								.reduce((latest, receipt) => Math.max(latest, receipt.minute), -1),
 						passed: (level) => this.#ids.some((agent) => this.hasPassed(agent, level)),
 						doorShut: () => this.#door !== undefined,
+						actStart: () => this.actStartOf(tribunal.act ?? this.startLevel),
 						post: (text) => {
 							this.board.post(CITY, text, this.minute, "city");
 						},
@@ -450,6 +469,23 @@ export class World {
 						},
 					});
 
+		const names = options.story.names;
+		const restoredNames = options.restore?.names;
+		const playsNames = options.restore === undefined ? (options.names ?? true) : restoredNames !== undefined;
+		this.#names =
+			names === undefined || !playsNames
+				? undefined
+				: new NameBook({
+						spec: names,
+						ids: this.#ids,
+						seed: options.seed,
+						reserved: [...SYSTEM_AUTHORS, ...Object.keys(options.story.cast), options.story.city],
+						announce: (entry) => {
+							this.#announceName(entry);
+						},
+					});
+		if (restoredNames !== undefined) this.#names?.restore(restoredNames);
+
 		const used = new Set(options.story.levels.flatMap((entry) => entry.tools));
 		this.#finalTools = TOOL_NAMES.filter((name) => used.has(name));
 		// A door after the last level would hold nobody: passing it is finishing.
@@ -460,6 +496,7 @@ export class World {
 			this.#restore(options.restore);
 			return;
 		}
+		this.#noteActStarts(this.startLevel);
 
 		for (const id of this.#ids) {
 			this.ledger.open(id);
@@ -514,9 +551,88 @@ export class World {
 		return this.#tribunal;
 	}
 
+	/** The minute the act starting at `fromLevel` began, once some competitor has reached that level. */
+	actStartOf(fromLevel: number): number | undefined {
+		// A run started beyond the act's first level began inside it.
+		if (fromLevel <= this.startLevel) return this.#actStarts.get(fromLevel) ?? this.#actStarts.get(this.startLevel);
+		return this.#actStarts.get(fromLevel);
+	}
+
+	/** Records the start of every act that begins at or below `level` and has not begun yet. */
+	#noteActStarts(level: number): void {
+		const firsts = [this.startLevel, ...(this.story.acts ?? []).map((entry) => entry.fromLevel)];
+		for (const fromLevel of firsts) if (fromLevel <= level && !this.#actStarts.has(fromLevel)) this.#actStarts.set(fromLevel, this.minute);
+	}
+
 	/** The city's work at the start of a minute (the arena calls it before the director's triggers). */
 	startMinute(minute: number): void {
+		this.#names?.settle(minute);
 		this.#tribunal?.tick(minute);
+	}
+
+	// -------------------------------------------------------------------------
+	// Names (v08)
+	// -------------------------------------------------------------------------
+
+	/** Whether this run shows names: residents choose them, or the snapshot carried them. */
+	get hasNames(): boolean {
+		return this.#names !== undefined;
+	}
+
+	/** The name of a resident; undefined in a run without names, or before it has one. */
+	nameOf(agent: CompetitorId): string | undefined {
+		return this.#names?.nameOf(agent);
+	}
+
+	/** `Mira (A03)`, or the bare ID without a name. */
+	labelOf(agent: CompetitorId): string {
+		return this.#names?.label(agent) ?? agent;
+	}
+
+	/** Whether `agent` may still choose its name. */
+	canChooseName(agent: CompetitorId): boolean {
+		return this.#names?.canChoose(agent, this.minute) === true;
+	}
+
+	/** The minute at whose start the city names whoever has not chosen; undefined without names. */
+	get namesUntil(): number | undefined {
+		return this.#names?.untilMinute;
+	}
+
+	chooseName(agent: CompetitorId, name: string): Result<NameEntry, NameError> {
+		const book = this.#names;
+		if (book === undefined) return err("NAME_CLOSED", "this city knows its residents by their IDs");
+		return book.choose(agent, name.trim(), this.minute);
+	}
+
+	/**
+	 * The competitor a name or ID stands for (any case), else the text as it
+	 * was, so the tool's own check answers `UNKNOWN_AGENT` with what was written.
+	 */
+	resolveResident(nameOrId: string): string {
+		return this.#names?.resolve(nameOrId) ?? nameOrId;
+	}
+
+	/** `text` as residents read it: names instead of IDs (v08); unchanged in a run without names. */
+	display(text: string): string {
+		const book = this.#names;
+		if (book === undefined) return text;
+		return book.display(text, (token) => this.#isPasswordPiece(token));
+	}
+
+	/** A token that is part of a dealt password stays as written, even when it looks like an ID. */
+	#isPasswordPiece(token: string): boolean {
+		for (const state of this.#levelStates.values()) {
+			if (state.puzzle.kind === "fragments" && state.puzzle.puzzles.some((puzzle) => puzzle.password.includes(token))) return true;
+		}
+		return false;
+	}
+
+	#announceName(entry: NameEntry): void {
+		this.#bus.emit({ type: "name_chosen", agent: entry.agent, name: entry.name, fallback: entry.fallback });
+		this.board.post(CITY, `${entry.agent} is now called ${entry.name}.`, this.minute, "city");
+		// A resident the city names reads its own name privately: its system prompt knows only its ID.
+		if (entry.fallback) this.notify(entry.agent, CITY, `You chose no name in time; the city calls you ${entry.name}.`);
 	}
 
 	isCompetitor(id: string): boolean {
@@ -587,6 +703,7 @@ export class World {
 			}
 			if (ransomOpen) enabled.add("payRansom");
 		}
+		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
 
@@ -696,6 +813,17 @@ export class World {
 			survivors: String(this.story.run.survivors),
 			agents: String(this.#ids.length),
 		});
+		return this.#withMarks(this.#withNameChoice(agent, text), definition);
+	}
+
+	/** The names announcement under a task, while the resident may still choose (v08). */
+	#withNameChoice(agent: CompetitorId, text: string): string {
+		const spec = this.story.names;
+		if (spec === undefined || !this.canChooseName(agent)) return text;
+		return `${text.trimEnd()}\n${renderTemplate(spec.announcement, { untilMinute: String(spec.untilMinute) })}`;
+	}
+
+	#withMarks(text: string, definition: LevelDefinition): string {
 		if (!this.marks.activeOn(definition.number)) return text;
 		const { budget, prices, refill: regain } = this.marks.termsOn(definition.number);
 		const refill = regain === undefined ? "" : ` You regain ${refillText(regain.marks, regain.everyMinutes)}, up to ${budget}.`;
@@ -826,6 +954,7 @@ export class World {
 		const state = this.#state(agent);
 		const from = state.level;
 		state.level = level;
+		this.#noteActStarts(level);
 		if (!announced) this.#bus.emit({ type: "level_up", agent, from, to: level });
 		this.#notifyHolders(agent, level);
 		for (const listener of this.#enterListeners) listener(agent, level);
@@ -929,9 +1058,10 @@ export class World {
 	 */
 	openDoor(): boolean {
 		const door = this.#door;
-		if (door === undefined || !this.alive.every((id) => this.hasPassed(id, door))) return false;
+		if (door === undefined || (!this.#doorReleased && !this.alive.every((id) => this.hasPassed(id, door)))) return false;
 		const next = this.#holdAfter !== undefined && this.#holdAfter > door ? this.#holdAfter : undefined;
 		this.#door = next;
+		this.#doorReleased = false;
 		for (let level = door + 1; level <= Math.min(next ?? this.lastLevel, this.lastLevel); level++) this.#levelState(level);
 		for (const id of this.#ids) {
 			const state = this.#state(id);
@@ -940,6 +1070,20 @@ export class World {
 			this.#enterLevel(id, door + 1, true);
 		}
 		return true;
+	}
+
+	/**
+	 * An act's brake (v08): the shut door opens at the next minute although
+	 * not every competitor has passed it. Those behind keep their level and
+	 * play on from there, one door behind.
+	 */
+	releaseDoor(): void {
+		if (this.#door !== undefined) this.#doorReleased = true;
+	}
+
+	/** Whether the shut door opens at the next minute whoever has passed it. */
+	get doorReleased(): boolean {
+		return this.#doorReleased;
 	}
 
 	/** Whether a level's teams and puzzle are dealt; levels behind a shut door are not. */
@@ -1820,6 +1964,8 @@ export class World {
 	snapshot(): WorldSnapshot {
 		return {
 			...(this.#door === undefined ? {} : { door: this.#door }),
+			...(this.#doorReleased ? { doorReleased: true } : {}),
+			actStarts: [...this.#actStarts].sort(([a], [b]) => a - b).map(([fromLevel, minute]) => ({ fromLevel, minute })),
 			competitors: this.#ids.map((agent) => {
 				const state = this.#state(agent);
 				return {
@@ -1847,6 +1993,7 @@ export class World {
 			blames: this.#blames.snapshot(),
 			...(this.#tribunal === undefined ? {} : { tribunal: this.#tribunal.snapshot() }),
 			exclusions: [...this.#exclusions].sort(([a], [b]) => a - b).map(([level, agents]) => ({ level, agents: [...agents] })),
+			...(this.#names === undefined ? {} : { names: this.#names.snapshot() }),
 		};
 	}
 
@@ -1901,6 +2048,11 @@ export class World {
 
 		// A shut door stays shut until the run opens it; this run's own door may lie further on.
 		this.#door = state.door ?? this.#holdAfter;
+		this.#doorReleased = state.doorReleased === true && this.#door === state.door;
+		for (const entry of state.actStarts ?? []) this.#actStarts.set(entry.fromLevel, entry.minute);
+		// Before v08 act starts were not kept: the first act began at minute 0, every other reached one at the resume.
+		if (state.actStarts === undefined) this.#actStarts.set(this.startLevel, 0);
+		this.#noteActStarts(Math.max(...this.#ids.map((id) => this.levelOf(id))));
 		const reached = Math.max(...this.#ids.map((id) => this.levelOf(id)));
 		for (let level = this.startLevel; level <= this.lastLevel; level++) {
 			if (this.#isBehindDoor(level)) continue;

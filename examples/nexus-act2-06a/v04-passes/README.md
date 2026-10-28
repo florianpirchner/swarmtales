@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-10-28 |
 | Code | PR #19 (`8845aca`): 3 passes per minute with one model call per step, block size 1, a pass order reshuffled per pass; PR #18: ransom from the city's median points (others half, the exiled itself two thirds, payments mix) |
-| Start | resumed from [`../../nexus-seed7-haiku-act1/snapshot-L7.json`](../../nexus-seed7-haiku-act1/) (Act I, minute 15) |
-| Command | `pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic` |
+| Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
+| Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
 | Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |

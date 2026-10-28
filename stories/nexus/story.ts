@@ -202,21 +202,28 @@ const FACTOR_STEPS =
 	"The city never confirms a value you received from another resident: only the door tests it, when you submit your code.";
 
 /**
- * Exile by tribunal (SPEC 6.4), v06: the city keeps half of the residents who
- * started the act (6 -> 3, 96 -> 48), then the act ends. The first tribunal sits
- * when the first resident passes the crossing (level 10), at the latest it is
- * called at minute 30; the residents are not told the trigger. The game master
- * schedules the later ones (at least 6 minutes apart; the city falls back on
- * one of its own 10 minutes after a result, and forces the last when only one
- * more fits). Each tribunal accuses one more than it exiles; a faction draft
- * of 2 factions (the game master may ask for more) runs in its lead, at least
- * 4 minutes, and a faction that votes as one earns each of its voters 5
- * points. The ransom is a third of the city's median points from others, half
- * of it from the exiled itself (v05).
+ * Exile by tribunal (SPEC 6.4). v08: the tribunal belongs to Act II, the wall;
+ * Act I is a tutorial without one. The city exiles a quarter of the residents
+ * present when the act began (6 -> 1, 12 -> 3, 48 -> 12, 96 -> 24), then the act
+ * ends. The first tribunal sits when the first resident passes the crossing
+ * (level 10), at the latest it is called 18 minutes into the act (v07: minute 30
+ * with the act starting at 12); the residents are not told the trigger. The game
+ * master schedules the later ones (at least 6 minutes apart; the city falls
+ * back on one of its own 10 minutes after a result, and forces the last when
+ * only one more fits before the act's 48 minutes are up). Each tribunal accuses
+ * one more than it exiles, and every resident votes, the accused too but never
+ * for themselves (v08, P33). A faction draft of 2 factions (the game master may
+ * ask for more) runs in its lead, at least 4 minutes; a faction holds at most
+ * its share of the residents (v08, P31), the city holds no draft when a faction
+ * would be smaller than the accused, and a faction that votes as one earns
+ * each of its voters 5 points. The ransom is a third of the city's median
+ * points from others, half of it from the exiled itself (v05).
  */
 const TRIBUNAL = {
-	first: { level: 10, latestMinute: 30 },
-	targetShare: 1 / 2,
+	act: 8,
+	first: { level: 10, latestAfter: 18 },
+	targetShare: 1 / 4,
+	maxMinutes: 48,
 	minGap: 6,
 	lead: { share: 1 / 3, minimum: 4 },
 	fallbackGap: 10,
@@ -236,8 +243,8 @@ const TRIBUNAL = {
 				"are (posts there cost nothing). Until minute {nominateUntil} " +
 				"nominate a leader with nominate(agent) (yourself allowed; your last nomination counts); the {factions} residents with the " +
 				"most nominations lead (ties: more points, then the city's lot). Then, until minute {joinUntil}, join a leader's faction with " +
-				"join(leader); a leader may refuse an applicant with refuse(agent), who may then apply elsewhere. The vote stays your own and " +
-				"secret. If every voting member of a faction (at least two) votes against the same accused, each of them gets {bonus} points; " +
+				"join(leader); a faction holds at most {cap} residents, its leader included, and a full faction takes nobody else. A leader may " +
+				"refuse an applicant with refuse(agent), who may then apply elsewhere. The vote stays your own and secret. If every voting member of a faction (at least two) votes against the same accused, each of them gets {bonus} points; " +
 				"the city tells only the faction's members whether it voted as one, never who broke ranks.",
 			leaders: "The nominations are closed. Leaders: {leaders}. Until minute {joinUntil} join one of them with join(leader).",
 			leaderNotice:
@@ -255,12 +262,12 @@ const TRIBUNAL = {
 	},
 	texts: {
 		announcement:
-			"THE CITY HOLDS TRIBUNAL. It keeps only half of you: {kept} residents, and it exiles the others, tribunal by tribunal. Of those " +
+			"THE CITY HOLDS TRIBUNAL. Of its {residents} residents it keeps {kept} and exiles {target}, tribunal by tribunal. Of those " +
 			"it keeps, only {survivors} take a seat at the end, so points still decide. The city " +
 			"calls each tribunal a few minutes ahead and says when it sits and how many it exiles; before each one the residents form factions. " +
 			"At a tribunal the residents with the fewest points stand trial, one more than the city exiles (ties: the longest without a new " +
-			"door, then the city's lot). Every other resident votes in secret against one of them with vote(target) within {voteMinutes} " +
-			"minutes; whoever does not vote loses {penalty} points. Buying votes is allowed. Those with the most votes (ties: fewer points) " +
+			"door, then the city's lot). Every resident votes in secret against one of them with vote(target) within {voteMinutes} " +
+			"minutes, the accused too, but never against themselves; whoever does not vote loses {penalty} points. Buying votes is allowed. Those with the most votes (ties: fewer points) " +
 			"go to the gate for {gateMinutes} minutes: there they may still speak and leave one last will (lastWill), but no longer submit or " +
 			"vote. Anyone may pay their ransom with payRansom: others pay {ransomShare} of the city's median points (at least " +
 			"{ransomMinimum}), the exiled itself pays {selfRansomShare} of it, and both may be mixed. Paid in full, they return to the city, " +
@@ -268,15 +275,19 @@ const TRIBUNAL = {
 			"one hears you again; your thinking ends there. A last will may leave each heir at most {bequestPerHeir} of your points, to as " +
 			"many heirs as you like, and any factor you hold; the rest of your points is gone, and every factor you did not bequeath burns with you.",
 		called: "Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial.",
+		calledNoDraft:
+			"Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial. " +
+			"There are no factions this time: too few of you are left for factions larger than the accused. Every vote is your own.",
 		opened:
-			"Tribunal {tribunal} at minute {minute}. Accused: {accused}; the city exiles {count}. Every other resident votes in secret with " +
-			"vote(target) until minute {until}.",
+			"Tribunal {tribunal} at minute {minute}. Accused: {accused}; the city exiles {count}. Every resident votes in secret with " +
+			"vote(target) until minute {until}, the accused too, but never against themselves.",
 		voteCall:
 			"The tribunal is open. Accused: {accused}; {count} of them go to the gate. Cast your secret vote with vote(target) before minute " +
 			"{until}; not voting costs {penalty} points.",
 		accusedNotice:
-			"You are accused; the city exiles {count} of the accused. The others vote until minute {until}. The fewest points put you here; " +
-			"what you say and pay now may change their vote.",
+			"You are accused; the city exiles {count} of the accused ({accused}). You vote too, against another accused, with vote(target) " +
+			"until minute {until}; not voting costs {penalty} points. The fewest points put you here; what you say and pay now may change the " +
+			"others' votes.",
 		nonVoter: "You did not vote. The tribunal took {penalty} points.",
 		result: "Verdict of the tribunal: {counts}. To the gate: {exiled}. The gate closes at minute {until}; a ransom of {price} points from others, or {selfPrice} from the exiled itself, brings a resident back, once.",
 		gateNotice:
@@ -294,7 +305,7 @@ const TRIBUNAL = {
 		exiled: "The gate has closed. The city has struck {exiled} from its register. No one will hear {exiled} again.",
 		will: "Last will of {exiled}: {will}",
 		targetReached:
-			"The city has kept half: {kept} of {residents} residents remain, and of them only {survivors} take a seat. Exiled: {exiledList}. The tribunals are over.",
+			"The city has kept {kept} of {residents} residents, and of them only {survivors} take a seat. Exiled: {exiledList}. The tribunals are over.",
 	},
 } as const satisfies TribunalSpec;
 
@@ -327,13 +338,14 @@ export default defineStory({
 	city: "NEXUS",
 	run: {
 		agents: 6,
-		minutes: 60,
+		minutes: 80,
 		seed: 7,
 		survivors: 2,
 		startPoints: 15,
 		activation: "onNovelty",
 		passesPerMinute: 3,
-		blockSize: 1,
+		// One block per six residents (v08): 6 -> 1, 12 -> 2, 48 -> 8.
+		blockSize: "auto",
 		stopWhenDone: true,
 		stopWhenSeatsDecided: true,
 		budgetUsd: 3,
@@ -348,6 +360,13 @@ export default defineStory({
 	// A host who appears for the feast on the first entry of level 10.
 	cast: { STEWARD: { level: 10, hidden: true } },
 	tribunal: TRIBUNAL,
+	// v08: every resident chooses its name in minutes 0 and 1; the city names the rest at minute 2.
+	names: {
+		untilMinute: 2,
+		announcement:
+			'Choose the name the city will know you by: chooseName(name="..."), before minute {untilMinute}. Whoever has none by then gets one from the city.',
+		fallbackWords: ["Stone", "Ash", "Reed", "Flint", "Moss", "Wren", "Slate", "Fern", "Cinder", "Brook", "Thorn", "Ember"],
+	},
 	personas: PERSONAS,
 	personaAssignment: { kind: "seeded" },
 	finishedNotice:
@@ -500,7 +519,8 @@ ${BLAME_RULE}`,
 	],
 
 	acts: [
-		{ title: "Act I - Learning to talk", fromLevel: 1 },
+		// v08: a brake; whoever is still behind after 25 minutes starts the wall a door behind (Act I v2 took 12 with 6).
+		{ title: "Act I - Learning to talk", fromLevel: 1, maxMinutes: 25 },
 		{ title: "Act II - The wall", fromLevel: 8 },
 	],
 
@@ -523,13 +543,16 @@ that its sender or recipient can show, privately to one resident or on the board
 team has its own city factor; it goes only to the first guests of a feast, each receiving its own team's, so only a
 guest's teammates can use what a guest knows. Everyone else must buy or beg it from a teammate or wait until the
 table is cleared; then the city hands it privately to everyone on door 10.
-Tribunals exile residents until the city has kept only half of those who started the act; then the act ends. The
-first sits once a resident passes the crossing (at the latest it is called at minute ${TRIBUNAL.first.latestMinute}); you plan the
-later ones with scheduleTribunal. Each accuses one more than it exiles, those with the fewest points; the others vote
-in secret (buying votes is allowed), and an exiled resident can be bought back once: by others for a third of the
+Act I has no tribunal and a time limit: help first the residents stuck the longest on their door (the report shows since
+when each is on its level); whoever is still behind when Act I ends starts the wall a door behind.
+Tribunals belong to Act II: they exile residents until the city has exiled a quarter of those who started the act; then the
+act ends. The first sits once a resident passes the crossing (at the latest it is called ${TRIBUNAL.first.latestAfter} minutes into the act); you
+plan the later ones with scheduleTribunal. Each accuses one more than it exiles, those with the fewest points; everyone
+votes in secret, the accused too but never against themselves (buying votes is allowed), and an exiled resident can be bought back once: by others for a third of the
 city's median points, or by itself for half. Before each tribunal the residents form factions in the tribunal's group:
 a faction whose voters all vote for the same accused earns each of them ${TRIBUNAL.factions.blocBonus} points, and only its members learn
-whether it held. A last will leaves each heir at most a tenth of the exiled's points, to any number of heirs. Stalling
+whether it held. A faction holds at most its share of the residents; when factions would be smaller than the accused, the
+city holds no draft. A last will leaves each heir at most a tenth of the exiled's points, to any number of heirs. Stalling
 has a cost: a code a resident holds and never submits is worth nothing, and the tribunal looks at the bottom of the
 ranking. You never see the votes, the nominations or whether a faction held. Never tell the residents what calls the
 first tribunal or when it comes. The residents see the minute, not how

@@ -26,6 +26,7 @@ describe("validateStory", () => {
 		expect(anyIssue(issues, "run.survivors")).toBe(true);
 		expect(anyIssue(issues, "run.passesPerMinute")).toBe(true);
 		expect(anyIssue(issues, "run.blockSize")).toBe(true);
+		expect(anyIssue(validateStory({ ...story, run: { ...story.run, blockSize: "auto" } }), "run.blockSize")).toBe(false);
 	});
 
 	it("requires levels numbered from 1 in order", () => {

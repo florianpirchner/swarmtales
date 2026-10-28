@@ -16,7 +16,9 @@ const PETITION_TOOLS = ["signPetition", "listPetitions"];
 const ACT_TWO_ONLY: readonly string[] = ["blame"];
 /** Granted by the tribunal while they apply, never listed by a level. */
 const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
-const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name));
+/** Granted by the city while names are chosen (v08), never listed by a level. */
+const NAME_TOOLS: readonly string[] = ["chooseName"];
+const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name));
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
 function levelOf(number: number): LevelDefinition {
@@ -28,7 +30,7 @@ function levelOf(number: number): LevelDefinition {
 describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 	it("describes the default run", () => {
 		expect(nexus.id).toBe("nexus");
-		expect(nexus.run).toMatchObject({ agents: 6, minutes: 60, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
+		expect(nexus.run).toMatchObject({ agents: 6, minutes: 80, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
 		expect(nexus.run.agents % 6).toBe(0);
 		expect(nexus.model).toMatchObject({
 			provider: "openrouter",
@@ -67,7 +69,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			expect(levelOf(number).task).not.toContain("{fragment}");
 		}
 		expect(nexus.acts).toEqual([
-			{ title: "Act I - Learning to talk", fromLevel: 1 },
+			{ title: "Act I - Learning to talk", fromLevel: 1, maxMinutes: 25 },
 			{ title: "Act II - The wall", fromLevel: 8 },
 		]);
 		expect(nexus.gamemaster?.roles).toEqual([

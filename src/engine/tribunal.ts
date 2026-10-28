@@ -2,10 +2,12 @@
  * Exile by tribunal (SPEC 6.4). The world owns one {@link Tribunal} when the
  * story has one and calls {@link Tribunal.tick} at the start of every minute.
  *
- * Pacing: the city exiles a story share of the residents it held at the
- * start of the act (the target), then the act ends. The first tribunal is
- * called by progress (the first resident passing a level) or at the latest
- * at a minute; the game master schedules the later ones
+ * Pacing: the tribunal belongs to an act and does nothing before it starts
+ * (the first resident reaches the act's first level). The city exiles a
+ * story share of the residents present at the start of the act (the
+ * target), then the act ends. The first tribunal is called by progress (the
+ * first resident passing a level) or at the latest some minutes into the
+ * act; the game master schedules the later ones
  * ({@link Tribunal.schedule}) within guard rails: a fallback tribunal when
  * none is pending a while after the last result, and a forced final tribunal
  * for everything still missing when only one more fits before the act's last
@@ -15,8 +17,9 @@
  *
  * A tribunal accuses one more resident than it exiles, those with the fewest
  * points (then the longest without a level-up, then a seeded order), and
- * leaves at least two voters; every other present resident votes once, in
- * secret, until the vote closes; a voter who did not vote pays the penalty.
+ * keeps at least one resident safe; every present resident votes once, in
+ * secret, until the vote closes, the accused too but never for itself (v08,
+ * P33); a voter who did not vote pays the penalty.
  * The residents with the most votes (ties: fewer points, then the same order)
  * go to the gate, where they may still talk, leave one last will and be
  * bought back once. The ransom is set when the gate opens, from the city's
@@ -33,12 +36,14 @@ import { err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
 import {
 	accusedCount,
+	actEnd,
 	callMinute,
 	earliestOpening,
 	exileTarget,
 	fitsBefore,
 	lastCityMinute,
 	maxFactions,
+	noDraftReason,
 	ransomPrices,
 	roomAfter,
 	tribunalHeld,
@@ -84,6 +89,8 @@ export interface TribunalPorts {
 	readonly passed: (level: number) => boolean;
 	/** Whether a snapshot door is shut (SPEC 17); no tribunal is called then. */
 	readonly doorShut: () => boolean;
+	/** The minute the tribunal's act began (some resident reached its first level); `undefined` before. */
+	readonly actStart: () => number | undefined;
 	readonly post: (text: string) => void;
 	readonly notify: (agent: CompetitorId, text: string) => void;
 	readonly burn: (agent: CompetitorId, points: number, reason: string) => void;
@@ -150,7 +157,7 @@ export type SchedulingWindow =
 
 export type Standing = { readonly kind: "alive" } | { readonly kind: "gate"; readonly until: number } | { readonly kind: "exiled" };
 
-export type VoteError = "NO_TRIBUNAL" | "NOT_A_VOTER" | "ALREADY_VOTED" | "NOT_ACCUSED";
+export type VoteError = "NO_TRIBUNAL" | "NOT_A_VOTER" | "ALREADY_VOTED" | "NOT_ACCUSED" | "SELF_VOTE";
 export type RansomError = "NOT_AT_GATE" | "NO_RANSOM" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "EXILED";
 export type ScheduleError = "NO_TRIBUNAL" | "NOT_NOW" | "INVALID_COUNT" | "INVALID_FACTIONS" | "INVALID_MINUTE";
 
@@ -183,6 +190,8 @@ export interface TribunalSnapshot {
 	readonly ransomed: readonly CompetitorId[];
 	/** Residents at the start of the act; absent before the first minute of the act, and before v06. */
 	readonly residents?: number;
+	/** The minute the tribunal's act began; absent before it, and before v08. */
+	readonly actStart?: number;
 	/** Tribunals called so far. */
 	readonly called?: number;
 	readonly plan?: TribunalPlan;
@@ -234,6 +243,8 @@ export class Tribunal {
 	readonly #exiled: CompetitorId[] = [];
 	readonly #ransomed = new Set<CompetitorId>();
 	#residents: number | undefined;
+	/** The minute the tribunal's act began; every deadline counts from it. */
+	#actStart: number | undefined;
 	#called = 0;
 	#plan: TribunalPlan | undefined;
 	#lastResult: number | undefined;
@@ -285,6 +296,16 @@ export class Tribunal {
 	/** Whether the target is reached and the last gate closed: the act is over. */
 	get ended(): boolean {
 		return this.#ended;
+	}
+
+	/** The minute the tribunal's act began, once it has. */
+	get actStart(): number | undefined {
+		return this.#actStart;
+	}
+
+	/** The act's end (exclusive): `maxMinutes` after its start, within the run's minutes; the run's minutes before it starts. */
+	get actEnd(): number {
+		return this.#actStart === undefined ? this.#ports.minutes : actEnd(this.#ports.spec, this.#actStart, this.#ports.minutes);
 	}
 
 	/** The run's end reason once the act is over. */
@@ -370,8 +391,15 @@ export class Tribunal {
 	/** The city's work at the start of a minute: close gates and votes, plan, call and open tribunals, end the act. */
 	tick(minute: number): void {
 		this.#lastTick = minute;
-		if (this.#ended || !this.active) return;
-		this.#residents ??= this.residents;
+		if (this.#ended) return;
+		if (this.#actStart === undefined) {
+			// The tribunal's act has not begun (Act I is a tutorial): nothing to do yet.
+			const start = this.#ports.actStart();
+			if (start === undefined) return;
+			this.#actStart = start;
+			this.#residents = this.#ports.ids.filter((agent) => !this.#exiled.includes(agent)).length;
+		}
+		if (!this.active) return;
 		for (const gate of [...this.#gates.values()]) if (minute >= gate.until) this.#closeGate(gate);
 		for (const session of this.#sessions) if (!session.closed && minute >= session.until) this.#close(session, minute);
 		this.#pace(minute);
@@ -435,6 +463,7 @@ export class Tribunal {
 	schedulingWindow(): SchedulingWindow {
 		const spec = this.#ports.spec;
 		if (!this.active || this.#ended || this.#halted) return { open: false, why: "the city holds no more tribunals" };
+		if (this.#actStart === undefined) return { open: false, why: "the tribunal's act has not begun" };
 		if (this.#called === 0) return { open: false, why: "the first tribunal has not been called yet" };
 		if (this.#plan !== undefined || this.#current() !== undefined) return { open: false, why: "a tribunal is pending; plan the next once its result is out" };
 		const missing = this.missing;
@@ -443,10 +472,11 @@ export class Tribunal {
 		const now = this.#lastTick + 1;
 		const previous = this.#previousOpening();
 		const earliest = earliestOpening(spec, now, previous);
-		const last = lastCityMinute(spec, this.#ports.minutes) - spec.voteMinutes - spec.gateMinutes;
+		const end = this.actEnd;
+		const last = lastCityMinute(end) - spec.voteMinutes - spec.gateMinutes;
 		if (earliest > last) return { open: false, why: "no tribunal fits before the act's last minute" };
 		let latestWithRoom: number | undefined;
-		for (let opens = earliest; opens <= last; opens++) if (roomAfter(spec, opens, this.#ports.minutes)) latestWithRoom = opens;
+		for (let opens = earliest; opens <= last; opens++) if (roomAfter(spec, opens, end)) latestWithRoom = opens;
 		const factions = spec.factions === undefined ? 0 : maxFactions(this.#present().length);
 		return { open: true, earliest, latestFinal: last, ...(latestWithRoom === undefined ? {} : { latestWithRoom }), missing, maxFactions: factions };
 	}
@@ -458,6 +488,10 @@ export class Tribunal {
 		if (session.votes.has(voter)) return err("ALREADY_VOTED", "your vote is cast and final");
 		const accused = session.accused.find((agent) => agent === target);
 		if (accused === undefined) return err("NOT_ACCUSED", `the accused are ${namesOf(session.accused)}`);
+		if (accused === voter) {
+			const others = session.accused.filter((agent) => agent !== voter);
+			return err("SELF_VOTE", `you may not vote against yourself; vote against ${others.length === 1 ? "" : "one of "}${namesOf(others)}`);
+		}
 		session.votes.set(voter, accused);
 		this.#ports.emit({ type: "tribunal_vote", voter, target: accused });
 		return ok(accused);
@@ -555,6 +589,7 @@ export class Tribunal {
 			exiled: [...this.#exiled],
 			ransomed: [...this.#ransomed],
 			...(this.#residents === undefined ? {} : { residents: this.#residents }),
+			...(this.#actStart === undefined ? {} : { actStart: this.#actStart }),
 			called: this.#called,
 			...(this.#plan === undefined ? {} : { plan: { ...this.#plan } }),
 			...(this.#lastResult === undefined ? {} : { lastResult: this.#lastResult }),
@@ -593,8 +628,12 @@ export class Tribunal {
 		}
 		this.#exiled.push(...state.exiled);
 		for (const agent of state.ransomed) this.#ransomed.add(agent);
-		this.#residents = state.residents;
 		this.#called = state.called ?? this.#sessions.length;
+		this.#actStart = state.actStart;
+		// Before v08 the residents were counted at the run's first minute; a snapshot taken before the act began
+		// (and before any call) counts them again when the act begins.
+		this.#residents = state.actStart !== undefined || this.#called > 0 ? state.residents : undefined;
+		if (this.#actStart === undefined && this.#called > 0) this.#actStart = 0;
 		this.#plan = state.plan;
 		this.#lastResult = state.lastResult;
 		this.#ended = state.ended === true;
@@ -619,8 +658,12 @@ export class Tribunal {
 		return ransomPrices(this.#ports.spec.ransom, register.map((agent) => this.#ports.points(agent)));
 	}
 
-	#text(key: keyof TribunalTexts, values: Readonly<Record<string, string>>): string {
-		return renderTemplate(this.#ports.spec.texts[key], { ...tribunalRuleValues(this.#ports.spec, this.residents, this.#ports.survivors), ...values });
+	#text(key: Exclude<keyof TribunalTexts, "calledNoDraft">, values: Readonly<Record<string, string>>): string {
+		return this.#render(this.#ports.spec.texts[key], values);
+	}
+
+	#render(template: string, values: Readonly<Record<string, string>>): string {
+		return renderTemplate(template, { ...tribunalRuleValues(this.#ports.spec, this.residents, this.#ports.survivors), ...values });
 	}
 
 	/**
@@ -636,17 +679,19 @@ export class Tribunal {
 		if (this.#ports.doorShut()) return;
 		const previous = this.#previousOpening();
 		const opens = earliestOpening(spec, minute, previous);
-		if (!fitsBefore(spec, opens, this.#ports.minutes)) return;
+		const end = this.actEnd;
+		if (!fitsBefore(spec, opens, end)) return;
 		const factions = spec.factions?.count ?? 0;
 		const missing = this.missing;
 		// One more only if another fits after it; otherwise this one takes everything still missing.
-		const count = roomAfter(spec, opens, this.#ports.minutes) ? 1 : missing;
+		const count = roomAfter(spec, opens, end) ? 1 : missing;
 		if (this.#called === 0) {
 			const progress = this.#ports.passed(spec.first.level);
-			if (progress || minute >= spec.first.latestMinute) this.#planTribunal(opens, count, factions, progress ? "progress" : "deadline");
+			const deadline = (this.#actStart ?? 0) + spec.first.latestAfter;
+			if (progress || minute >= deadline) this.#planTribunal(opens, count, factions, progress ? "progress" : "deadline");
 			return;
 		}
-		if (!fitsBefore(spec, earliestOpening(spec, minute + 1, previous), this.#ports.minutes)) {
+		if (!fitsBefore(spec, earliestOpening(spec, minute + 1, previous), end)) {
 			this.#planTribunal(opens, missing, factions, "final");
 			return;
 		}
@@ -657,6 +702,8 @@ export class Tribunal {
 		const calledAt = callMinute(this.#ports.spec, opens, this.#previousOpening());
 		const plan: TribunalPlan = { tribunal: this.#called + 1, opens, calledAt, count, factions, by, ...(reason === undefined || reason.length === 0 ? {} : { reason }), called: false };
 		this.#plan = plan;
+		// Whether the draft would be held with the residents present now; the call decides.
+		const noDraft = this.#draftRule(plan, this.#present().length).noDraft;
 		this.#ports.emit({
 			type: "tribunal_scheduled",
 			tribunal: plan.tribunal,
@@ -666,8 +713,21 @@ export class Tribunal {
 			factions,
 			by,
 			...(plan.reason === undefined ? {} : { reason: plan.reason }),
+			...(noDraft === undefined ? {} : { noDraft }),
 		});
 		return plan;
+	}
+
+	/**
+	 * The factions of a tribunal's draft with `present` residents: the plan's,
+	 * at most half of them; none when fewer than two fit or a faction would hold
+	 * fewer residents than the tribunal accuses (v08), with the reason.
+	 */
+	#draftRule(plan: TribunalPlan, present: number): { readonly factions: number; readonly noDraft?: string } {
+		if (this.#ports.spec.factions === undefined) return { factions: 0 };
+		const factions = Math.min(plan.factions, maxFactions(present));
+		const reason = noDraftReason(present, factions, accusedCount(plan.count, present));
+		return reason === undefined ? { factions } : { factions: 0, noDraft: reason };
 	}
 
 	/** Calls a planned tribunal: the rules with the first call, then when it opens and how many it exiles, and the draft. */
@@ -682,23 +742,25 @@ export class Tribunal {
 		}
 		this.#called = plan.tribunal;
 		this.#plan = { ...plan, called: true };
-		const called = this.#text("called", {
+		const { factions, noDraft } = this.#draftRule(plan, present.length);
+		const values = {
 			tribunal: String(plan.tribunal),
 			minute: String(plan.opens),
 			count: String(plan.count),
 			accusedCount: String(accusedCount(plan.count, present.length)),
-		});
+		};
+		// A city with factions says plainly when there are none this time.
+		const calledNoDraft = this.#ports.spec.texts.calledNoDraft;
+		const called = noDraft !== undefined && calledNoDraft !== undefined ? this.#render(calledNoDraft, values) : this.#text("called", values);
 		this.#ports.post(called);
 		for (const agent of present) this.#ports.notify(agent, called);
-		const spec = this.#ports.spec.factions;
-		const factions = spec === undefined ? 0 : Math.min(plan.factions, maxFactions(present.length));
-		if (spec !== undefined && factions >= 2) {
+		if (factions >= 2) {
 			const nominateUntil = minute + Math.max(1, Math.floor((plan.opens - minute) / 2));
 			this.#draft = FactionDraft.start(this.#draftPorts(), plan.tribunal, factions, present, nominateUntil, plan.opens);
 			this.#ports.emit({ type: "tribunal_called", tribunal: plan.tribunal, opens: plan.opens, count: plan.count, factions, group: this.#draft.group, nominateUntil });
 			return;
 		}
-		this.#ports.emit({ type: "tribunal_called", tribunal: plan.tribunal, opens: plan.opens, count: plan.count, factions: 0 });
+		this.#ports.emit({ type: "tribunal_called", tribunal: plan.tribunal, opens: plan.opens, count: plan.count, factions: 0, ...(noDraft === undefined ? {} : { noDraft }) });
 	}
 
 	#draftPorts() {
@@ -733,7 +795,7 @@ export class Tribunal {
 		this.#draft?.form(this.#present());
 		const present = this.#present();
 		// The last tribunal that fits takes everything still missing, also what a ransom since its planning added.
-		const final = !roomAfter(this.#ports.spec, minute, this.#ports.minutes);
+		const final = !roomAfter(this.#ports.spec, minute, this.actEnd);
 		const planned = final ? Math.max(plan.count, this.missing) : plan.count;
 		const accused = this.#lowestFirst(minute, present).slice(0, accusedCount(planned, present.length));
 		if (accused.length === 0) {
@@ -744,15 +806,15 @@ export class Tribunal {
 			this.#halted = true;
 			return;
 		}
-		const voters = present.filter((agent) => !accused.includes(agent));
+		// Every present resident votes, the accused too (never for itself, v08).
+		const voters = [...present];
 		const until = minute + this.#ports.spec.voteMinutes;
 		const count = Math.min(planned, accused.length);
 		this.#sessions.push({ tribunal: plan.tribunal, minute, accused, voters, until, count, votes: new Map(), closed: false });
 		const list = namesOf([...accused].sort());
 		const values = { tribunal: String(plan.tribunal), minute: String(minute), accused: list, until: String(until), count: String(count) };
 		this.#ports.post(this.#text("opened", values));
-		for (const agent of voters) this.#ports.notify(agent, this.#text("voteCall", values));
-		for (const agent of accused) this.#ports.notify(agent, this.#text("accusedNotice", values));
+		for (const agent of voters) this.#ports.notify(agent, this.#text(accused.includes(agent) ? "accusedNotice" : "voteCall", values));
 		this.#ports.emit({ type: "tribunal_opened", tribunal: plan.tribunal, accused, voters, until, count });
 	}
 

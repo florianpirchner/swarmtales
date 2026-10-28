@@ -54,7 +54,7 @@ export function createFixture(options: FixtureOptions): Fixture {
 			: new ChatDeliveryJudge({ binding: new ScriptedModelSource({ [JUDGE_ID]: judgeScript }).bind(JUDGE_ID, DEFAULT_LIMITS), label: "scripted/judge", thinking: "off" }));
 	const composed = composeRun({
 		story: scarceFor(story ?? nexus, overrides.agents),
-		overrides: { activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: gamemasterScript !== undefined, classifier: classifierScript !== undefined, ...overrides },
+		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: gamemasterScript !== undefined, classifier: classifierScript !== undefined, ...overrides },
 		models: (world) => new ScriptedModelSource(script(world)),
 		sinks: [log, ...(sinks ?? [])],
 		...(cityJudge === undefined ? {} : { judge: cityJudge }),

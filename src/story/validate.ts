@@ -33,7 +33,7 @@ import {
 	type TriggerKind,
 } from "./types.ts";
 import { assertNever } from "../core/result.ts";
-import { fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
+import { actEnd, fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
 const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
@@ -148,16 +148,40 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateGamemaster(story, issues);
 	validateClassifier(story, issues);
 	validateTribunal(story, agents, issues);
+	validateNames(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
 }
 
 /**
- * A tribunal must work for the story's agent count: the residents it keeps
- * hold at least every seat; its first tribunal is triggered by a level that
- * exists and fits into the story's run (call, vote and gate before the last
- * minute); two tribunals never overlap (the gap holds a vote); the lead
+ * Resident names (v08): the choice closes at a positive minute, and every
+ * fallback word gives a valid name with its four digits. `chooseName` is the
+ * city's to grant, never a level's.
+ */
+function validateNames(story: AnyStory, issues: string[]): void {
+	for (const entry of story.levels) {
+		if (entry.tools.some((tool) => tool === "chooseName")) issues.push(`levels[${entry.number}].tools: chooseName is granted by the city while names are chosen`);
+	}
+	const spec = story.names;
+	if (spec === undefined) return;
+	if (!Number.isInteger(spec.untilMinute) || spec.untilMinute < 1) issues.push("names.untilMinute: must be an integer >= 1");
+	if (spec.fallbackWords.length === 0) issues.push("names.fallbackWords: must not be empty");
+	if (spec.announcement.trim().length === 0) issues.push("names.announcement: must not be empty");
+	for (const name of unknownPlaceholders(spec.announcement, ["untilMinute"])) issues.push(`names.announcement: unknown placeholder {${name}}`);
+	for (const word of spec.fallbackWords) {
+		if (!/^[A-Za-z]{2,11}$/.test(word)) issues.push(`names.fallbackWords: "${word}" must be 2 to 11 letters`);
+	}
+	const reserved = new Set([...SYSTEM_AUTHORS, ...Object.keys(story.cast), story.city].map((name) => name.toLowerCase()));
+	for (const word of spec.fallbackWords) if (reserved.has(word.toLowerCase())) issues.push(`names.fallbackWords: "${word}" is a name of the city or its cast`);
+}
+
+/**
+ * A tribunal must work for the story's agent count: it belongs to one of the
+ * story's acts; the residents it keeps hold at least every seat; its first
+ * tribunal is triggered by a level that exists and fits into the act (call,
+ * vote and gate before its last minute, counted from the act's start; the
+ * run's minutes bound an act starting at minute 0); two tribunals never overlap (the gap holds a vote); the lead
  * leaves room for a faction draft of two windows; the faction count fits the
  * story's city. Its texts use only known placeholders, and the announcement
  * states every rule. The checks use the run's agent count (a `--agents`
@@ -170,12 +194,18 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 	const survivors = story.run.survivors;
 	const minutes = story.run.minutes;
 	if (!story.levels.some((entry) => entry.number === spec.first.level)) issues.push(`tribunal.first.level: level ${spec.first.level} does not exist`);
-	if (!isNonNegativeInt(spec.first.latestMinute)) issues.push("tribunal.first.latestMinute: must be a non-negative integer");
+	if (spec.act !== undefined) {
+		const acts = story.acts ?? [];
+		if (acts.length === 0 ? !story.levels.some((entry) => entry.number === spec.act) : !acts.some((entry) => entry.fromLevel === spec.act)) {
+			issues.push(`tribunal.act: no act starts at level ${spec.act}`);
+		}
+	}
+	if (!isNonNegativeInt(spec.first.latestAfter)) issues.push("tribunal.first.latestAfter: must be a non-negative integer");
 	if (!(spec.targetShare > 0 && spec.targetShare < 1)) issues.push("tribunal.targetShare: must be a share of the residents between 0 and 1");
 	for (const key of ["minGap", "fallbackGap", "voteMinutes", "gateMinutes"] as const) {
 		if (!isPositiveInt(spec[key])) issues.push(`tribunal.${key}: must be a positive integer`);
 	}
-	if (spec.maxMinute !== undefined && !isPositiveInt(spec.maxMinute)) issues.push("tribunal.maxMinute: must be a positive integer");
+	if (spec.maxMinutes !== undefined && !isPositiveInt(spec.maxMinutes)) issues.push("tribunal.maxMinutes: must be a positive integer");
 	if (!isPositiveInt(spec.lead.minimum)) issues.push("tribunal.lead.minimum: must be a positive integer");
 	if (!(spec.lead.share >= 0 && spec.lead.share < 1)) issues.push("tribunal.lead.share: must be a share of the gap from 0 up to (not including) 1");
 	if (spec.minGap < spec.voteMinutes) issues.push(`tribunal.minGap: ${spec.minGap} minutes cannot hold a vote of ${spec.voteMinutes}`);
@@ -192,9 +222,12 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 			`tribunal.targetShare: a city of ${agents} holds no tribunal (it must exile at least one, keep the ${survivors} survivors and have three residents for a vote)`,
 		);
 	}
-	const firstOpening = spec.first.latestMinute + spec.lead.minimum;
-	if (held && !fitsBefore(spec, firstOpening, minutes)) {
-		issues.push(`tribunal.first.latestMinute: a tribunal called at minute ${spec.first.latestMinute} does not end before the run's ${minutes} minutes`);
+	// The act's start is known only in the run; an act starting at minute 0 must fit at least.
+	const firstOpening = spec.first.latestAfter + spec.lead.minimum;
+	if (held && !fitsBefore(spec, firstOpening, actEnd(spec, 0, minutes))) {
+		issues.push(
+			`tribunal.first.latestAfter: a tribunal called ${spec.first.latestAfter} minutes into the act does not end within the act's ${actEnd(spec, 0, minutes)} minutes`,
+		);
 	}
 	const factions = spec.factions;
 	if (factions !== undefined) {
@@ -214,10 +247,15 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 			if (/\bA\d{2}\b/.test(factions.texts[key])) issues.push(`tribunal.factions.texts.${key}: must not name a resident`);
 		}
 	}
-	for (const key of TRIBUNAL_TEXT_KEYS) {
-		const text = spec.texts[key];
+	const noDraft = spec.texts.calledNoDraft;
+	if (factions !== undefined && noDraft === undefined) issues.push("tribunal.texts.calledNoDraft: a tribunal with factions must say when it holds no draft");
+	const texts: readonly (readonly [string, string, readonly string[]])[] = [
+		...TRIBUNAL_TEXT_KEYS.map((key) => [key, spec.texts[key], TRIBUNAL_TEXT_PLACEHOLDERS[key]] as const),
+		...(noDraft === undefined ? [] : [["calledNoDraft", noDraft, TRIBUNAL_TEXT_PLACEHOLDERS.calledNoDraft] as const]),
+	];
+	for (const [key, text, placeholders] of texts) {
 		if (text.trim().length === 0) issues.push(`tribunal.texts.${key}: must not be empty`);
-		const allowed = [...TRIBUNAL_RULE_PLACEHOLDERS, ...TRIBUNAL_TEXT_PLACEHOLDERS[key]];
+		const allowed = [...TRIBUNAL_RULE_PLACEHOLDERS, ...placeholders];
 		for (const name of unknownPlaceholders(text, allowed)) issues.push(`tribunal.texts.${key}: unknown placeholder {${name}}`);
 	}
 	const stated = placeholdersOf(spec.texts.announcement);
@@ -277,6 +315,11 @@ function validateActs(story: AnyStory, issues: string[]): void {
 		if (previous !== undefined && entry.fromLevel <= previous.fromLevel) {
 			issues.push(`acts[${index}].fromLevel: must be greater than the previous act's (${previous.fromLevel})`);
 		}
+		if (entry.maxMinutes !== undefined && !isPositiveInt(entry.maxMinutes)) issues.push(`acts[${index}].maxMinutes: must be a positive integer`);
+		const tribunal = story.tribunal;
+		if (entry.maxMinutes !== undefined && tribunal !== undefined && (tribunal.act ?? firstLevel) === entry.fromLevel) {
+			issues.push(`acts[${index}].maxMinutes: the act holds the tribunal; its brake is tribunal.maxMinutes`);
+		}
 	});
 }
 
@@ -292,7 +335,7 @@ function validateRun(story: AnyStory, agents: number, issues: string[]): void {
 	if (!isPositiveInt(run.passesPerMinute) || run.passesPerMinute > MAX_PASSES_PER_MINUTE) {
 		issues.push(`run.passesPerMinute: must be an integer between 1 and ${MAX_PASSES_PER_MINUTE}`);
 	}
-	if (!isPositiveInt(run.blockSize)) issues.push(`run.blockSize: must be a positive integer, got ${run.blockSize}`);
+	if (run.blockSize !== "auto" && !isPositiveInt(run.blockSize)) issues.push(`run.blockSize: must be a positive integer or "auto", got ${run.blockSize}`);
 	if (run.budgetUsd !== undefined && !(run.budgetUsd > 0)) issues.push("run.budgetUsd: must be positive");
 	if (story.model.provider.trim().length === 0) issues.push("model.provider: must not be empty");
 	if (story.model.maxOutputTokens !== undefined && !isPositiveInt(story.model.maxOutputTokens)) {

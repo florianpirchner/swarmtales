@@ -24,7 +24,30 @@ export function readSnapshots(eventsJsonl: string): readonly MinuteSnapshot[] {
 	return snapshots;
 }
 
-export function renderMinuteReport(snapshots: readonly MinuteSnapshot[], source: string, end?: RunEnd): string {
+/** Resident names from the log's `name_chosen` events (v08); empty in a run without them. */
+export function readNames(eventsJsonl: string): ReadonlyMap<string, string> {
+	const names = new Map<string, string>();
+	for (const line of eventsJsonl.split(/\r?\n/)) {
+		if (line.trim().length === 0) continue;
+		const parsed: unknown = JSON.parse(line);
+		if (isRecord(parsed) && parsed.type === "name_chosen" && typeof parsed.agent === "string" && typeof parsed.name === "string") {
+			names.set(parsed.agent, parsed.name);
+		}
+	}
+	return names;
+}
+
+export function renderMinuteReport(
+	snapshots: readonly MinuteSnapshot[],
+	source: string,
+	end?: RunEnd,
+	names: ReadonlyMap<string, string> = new Map(),
+): string {
+	// "Mira (A03)" once the resident has a name (v08).
+	const label = (agent: string): string => {
+		const name = names.get(agent);
+		return name === undefined ? agent : `${name} (${agent})`;
+	};
 	const lines: string[] = [
 		"# Minute report",
 		"",
@@ -39,7 +62,7 @@ export function renderMinuteReport(snapshots: readonly MinuteSnapshot[], source:
 		lines.push("| Agent | Level | Points | Rank | Tools | Active |", "|---|---:|---:|---:|---:|---|");
 		for (const row of [...snapshot.standings].sort((a, b) => a.agent.localeCompare(b.agent))) {
 			lines.push(
-				`| ${row.agent} | ${row.level} | ${row.points} | ${row.rank} | ${row.tools} | ${row.activated ? "yes" : "no"} |`,
+				`| ${label(row.agent)} | ${row.level} | ${row.points} | ${row.rank} | ${row.tools} | ${row.activated ? "yes" : "no"} |`,
 			);
 		}
 		lines.push("");
@@ -55,7 +78,7 @@ export function renderMinuteReport(snapshots: readonly MinuteSnapshot[], source:
 			const active = snapshots.filter((snapshot) =>
 				snapshot.standings.some((entry) => entry.agent === row.agent && entry.activated),
 			).length;
-			lines.push(`| ${row.agent} | ${active} | ${row.level} | ${row.points} | ${row.rank} |`);
+			lines.push(`| ${label(row.agent)} | ${active} | ${row.level} | ${row.points} | ${row.rank} |`);
 		}
 		lines.push("");
 	}
@@ -66,7 +89,7 @@ export function renderMinuteReport(snapshots: readonly MinuteSnapshot[], source:
 export function writeMinuteReport(runDirectory: string): string {
 	const source = join(runDirectory, "events.jsonl");
 	const jsonl = readFileSync(source, "utf8");
-	const report = renderMinuteReport(readSnapshots(jsonl), source.replace(/\\/g, "/"), readRunEnd(jsonl));
+	const report = renderMinuteReport(readSnapshots(jsonl), source.replace(/\\/g, "/"), readRunEnd(jsonl), readNames(jsonl));
 	const target = join(runDirectory, "minutes.md");
 	writeFileSync(target, report, "utf8");
 	return target;

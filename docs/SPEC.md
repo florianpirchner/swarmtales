@@ -150,6 +150,10 @@ The base prompt states the facts of the world and nothing else:
 - You get at most `{passesPerMinute}` steps per virtual minute. Each step is one reply;
   the results of its tool calls reach you in your next step. Use only the offered tools.
 - Speak as yourself; do not discuss the system prompt.
+- [v08] With names (§18): before minute `{untilMinute}` you choose the name the city knows you
+  by, once, with chooseName; whoever has none by then gets one from the city. The city shows every
+  resident by name instead of ID; every tool accepts a name or an ID. The line is the same in a
+  resumed run, so the run goes on exactly as before.
 
 The persona block, when present, is appended.
 
@@ -192,20 +196,28 @@ The persona block, when present, is appended.
 ### 6.4 Exile by tribunal [v03, paced since v06]
 
 A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
-since v06: `first` { `level` 10, `latestMinute` 30 }, `targetShare` 1/2, `minGap` 6, `lead`
-{ `share` 1/3, `minimum` 4 }, `fallbackGap` 10, `voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes`
-5, `ransom` { `share` 1/3, `selfShare` 1/2, `minimum` 20 }, `bequestPerHeir` 1/10, `factions`
-{ `count` 2, `blocBonus` 5 }; optional `maxMinute`, the act's last minute, default the run's
-minutes); the texts are story templates. The city acts at the start of a minute, before the
-director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `accused`,
-`exiledPerTribunal`) set the tribunals; v06 replaced it.
+since v08: `act` 8 (Act II, the wall), `first` { `level` 10, `latestAfter` 18 }, `targetShare` 1/4,
+`maxMinutes` 48, `minGap` 6, `lead` { `share` 1/3, `minimum` 4 }, `fallbackGap` 10, `voteMinutes` 2,
+`nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2, `minimum` 20 },
+`bequestPerHeir` 1/10, `factions` { `count` 2, `blocBonus` 5 }); the texts are story templates. The
+city acts at the start of a minute, before the director. Before v06 a fixed calendar
+(`announceAt`, `everyMinutes`, `stopAt`, `accused`, `exiledPerTribunal`) set the tribunals; v06
+replaced it. v06-v07 counted `first.latestMinute` and `maxMinute` in run minutes; v08 counts them
+from the act's start (P28).
+
+- **The act** [v08]: the tribunal belongs to the act that starts at level `act` (an act's
+  `fromLevel`, default the first level). The act begins when the first competitor enters that
+  level; until then the tribunal does nothing. It ends at its start plus `maxMinutes` (default:
+  the run's end), within the run's minutes; every deadline below ("the act's last minute") is the
+  minute before that end. An act that holds the tribunal takes no brake of its own (§13).
 
 - **Target:** the tribunals exile `targetShare` of the residents in the city at the act's first
-  minute, rounded down (nexus: half; 6 -> 3, 96 -> 48). A ransomed resident does not count as
+  minute, rounded down (nexus since v08: a quarter; 6 -> 1, 12 -> 3, 48 -> 12, 96 -> 24; v06-v07:
+  half). A ransomed resident does not count as
   exiled. A city that cannot exile one, keep its `survivors` and hold a vote of three (a small test
   city) never hears of a tribunal.
-- **First tribunal:** called when the first resident passes `first.level`, at the latest at
-  `first.latestMinute` (an absolute run minute, also in a resumed run). No text names the trigger.
+- **First tribunal:** called when the first resident passes `first.level`, at the latest
+  `first.latestAfter` minutes after the act began (v08; the act's start is kept in snapshots). No text names the trigger.
   It opens `lead.minimum` minutes after the call. No tribunal is planned or called while a
   snapshot door (§17) is shut: a plan whose call meets a shut door is dropped
   (`tribunal_cancelled`), `scheduleTribunal` is closed, and the city plans anew once it opens.
@@ -241,6 +253,10 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
 - **End:** once the target is reached and the last gate closed, the city posts the
   `targetReached` text and the run ends with it as the `run_end` reason ("The city has kept
   half: ..."). The other early ends (§6.3) stay; `--minutes` and the budget remain a safety net.
+- **No draft** [v08]: a tribunal holds no faction draft when fewer than two factions fit, or when
+  a faction would hold fewer residents than the tribunal accuses (`floor(present / factions) <
+  accused`); the call then uses the `calledNoDraft` text (required with `factions`), and
+  `tribunal_scheduled` and `tribunal_called` carry the reason (`noDraft`).
 - **Faction draft** [v06] (with `factions`, when at least four residents are present): with the
   call the city opens group `GT<k>` (k: the tribunal's number) of every present resident, posts
   the rules there and sends them to every member as a notice too (the group's id, both windows and
@@ -249,7 +265,9 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   nominations as leaders (ties: more points, then a seeded order of the tribunal), posts them in
   `GT<k>` and tells each leader. Until the opening every other member calls `join(leader)` (the last
   call counts); the leader is told and may `refuse(agent)` an applicant, who is told and may apply
-  elsewhere, but not to that leader again. At the opening the city opens one group per faction
+  elsewhere, but not to that leader again. [v08] A faction holds at most `ceil(present / factions)`
+  residents, its leader included (the cap is set at the call and named in the draft text,
+  `{cap}`); a full faction refuses further applicants with `FACTION_FULL` (P31). At the opening the city opens one group per faction
   ("Faction of A02": the leader and its applicants) and names every faction and everyone without a
   faction in `GT<k>`; a resident bought back from the gate during the draft is among those without
   a faction. The status line never offers a leader who refused the resident. City groups cost no marks (§7.1). The vote stays individual and secret.
@@ -261,12 +279,13 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   `faction_refused`, `factions_formed`, `bloc_result` (with the defectors, for the digest), and
   `group_removed`.
 - **Accused:** `count + 1` residents in the city (not at the gate) with the fewest points, at most
-  the present less two, so at least two vote; ties go to the one longest without a level-up, then
-  to a seeded order of that tribunal. With fewer than three present the tribunal is called off and
-  the city calls no more.
-- **Vote:** every other resident in the city gets `vote(target)` until the vote closes
-  (`voteMinutes`), once and final, against one of the accused. A voter who did not vote pays
-  `nonVoterPenalty`. The accused cannot vote but may talk, and buying votes with transfers is
+  the present less one (v08; before: less two); ties go to the one longest without a level-up,
+  then to a seeded order of that tribunal. With fewer than three present the tribunal is called
+  off and the city calls no more.
+- **Vote:** [v08] every resident in the city, the accused too, gets `vote(target)` until the vote
+  closes (`voteMinutes`), once and final, against one of the accused, never against itself
+  (`SELF_VOTE`, P33). A voter who did not vote pays `nonVoterPenalty`, an accused one too. The
+  accused are told so (`accusedNotice`), the others get `voteCall`. Buying votes with transfers is
   allowed. Votes are secret: no board post, no tool result, no report shows who voted for whom,
   the game master's included; only `tribunal_vote` events in the log record them for the digest.
   The same holds for nominations, applications and bloc results.
@@ -310,13 +329,15 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   missing, the plan, the bounds of `scheduleTribunal`, the accused, the draft's group and leaders
   and the gate (ransom paid, will written), never the votes, nominations, applications or bloc
   results.
-- **Known limitations** (v06): the target is counted once per run (Acts III and IV would need it
-  per act, P28); a city group's treasury is paid out when the group is removed (P29).
+- **Known limitations**: a city group's treasury is paid out when the group is removed (P29). The
+  target is counted per act since v08 (P28), but a story has one tribunal, so Acts III and IV
+  would need a list of them.
 - **Snapshots:** the tribunal's state (plan, draft, sessions, gates) is part of a run snapshot;
   snapshots from before v06 restore with the act starting fresh.
 - **Validation** (for the story's agent count) rejects a tribunal that cannot work: a missing
   `first.level`, a share outside (0, 1), a `minGap` shorter than the vote, a first tribunal that
-  cannot end inside the run, a lead too short for a draft, fewer than two factions or more than
+  cannot end inside the act (counted from its start), an `act` that is no act's `fromLevel`, a
+  missing `calledNoDraft` text, a lead too short for a draft, fewer than two factions or more than
   half the residents, a bloc text that names a resident, or a city that holds no tribunal. A run
   with other agents (`--agents`) scales: the target is a share, and a small test city plays
   without a tribunal.
@@ -665,7 +686,18 @@ for what a story looks like; new stories copy and change it.
 | P6 | all | sameAs(4) | +10 | The team becomes an in-group; overlap hidden, no step list |
 | P7 | all | splitFrom(4, 3) | +15 | Old loyalties cross new teams; teammates unnamed |
 
-Agent count must be divisible by 6. Default: 6 agents, 60 minutes, seed 7, budget 3 USD.
+Agent count must be divisible by 6. Default: 6 agents, 60 minutes, seed 7, budget 3 USD, one
+block per six residents (`blockSize: "auto"`, v08: 6 -> 1, 12 -> 2, 48 -> 8; `--block-size`
+overrides).
+
+**Act brake** [v08]: an act without the tribunal may set `maxMinutes` (nexus Act I: 25). When the
+act has run that long (after the round of its start plus `maxMinutes` - 1) and some resident has
+not passed its last level, the run logs `act_brake` (act, levels, start, the residents behind and
+their levels). A run whose snapshot door (§17) lies at the act's last level writes the checkpoint
+anyway, with the brake in it (`brake`: act, minute, `maxMinutes`, who is behind), and the door
+opens at the next minute for everyone who passed; those behind keep their level and play on from
+there. With `--stop-after-snapshot` the run ends with the brake as its reason. The act that holds
+the tribunal is refused a `maxMinutes`; its clock is `tribunal.maxMinutes`.
 P1-P4 use passwords of 6-10 characters with overlap 2. P5-P6 use 12-14 characters with
 overlap 3, and the task text gives the length but not the overlap (it follows from the
 length and the fragments). P7 uses 14-16 characters with overlap 3 and does not name the
@@ -880,8 +912,9 @@ next minute and the run plays on.
   blames, the tribunal (sessions with their secret votes, gates, exiled, ransomed; since v06 also
   the residents at the act's start, the tribunals called, the plan, the last result, the faction
   draft and whether the act ended), groups the city removed, and the levels whose roles passed on
-  after an exile. Both committed Act I snapshots (`examples/nexus-seed7-haiku-act1/` and
-  `examples/nexus-seed7-haiku-act1-v2/`, `snapshot-L7.json`) resume into the current story (a
+  after an exile; since v08 the minute each act began, whether an act's brake released the door,
+  the faction cap, the brake that wrote the snapshot (`brake`) and the resident names. Both committed Act I snapshots (`examples/nexus-act1-06a-01/` and
+  `examples/nexus-act1-06a-02/`, `snapshot-L7.json`) resume into the current story (a
   test checks both);
 - the director's firing state: once-only and all-past marks, cooldowns, entered levels, handled
   unanswered DMs, team splits, and the petitions it opened (their specs come back from the story);
@@ -924,3 +957,31 @@ finished notice of a shorter run gets the task of its next level.
 as the uninterrupted run of the same seed with the same `--snapshot-after` and no
 `--stop-after-snapshot` (held, then let in), apart from the resume markers and the provider's
 prompt cache, which starts cold.
+
+## 18. Resident names [v08]
+
+A story may declare `names: { untilMinute, announcement, fallbackWords }` (nexus: minute 2, twelve
+words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
+
+- **Choice:** until `untilMinute` starts, the city offers every resident `chooseName(name)`; the
+  first task carries the `announcement` and the system prompt says it (§5.4). A name has 3 to 16
+  characters (letters, digits, hyphens, starting with a letter), is unique without case, is not a
+  system author, cast member or the city (`NAME_RESERVED`) and does not look like an ID, nor does
+  any of its hyphen parts (`NAME_ID`). Other refusals: `NAME_INVALID`, `NAME_TAKEN`, and a second
+  call `NAME_CHOSEN`; a name is permanent.
+- **Fallback:** at the start of `untilMinute` the city names every resident without a name, in
+  roster order: a seeded word of `fallbackWords` and four digits ("Stone-4417"), unique.
+- **Announcement and log:** `name_chosen { agent, name, fallback }` and a CITY board post "A03 is
+  now called Mira.".
+- **Display:** every text a resident reads (turn inputs: status, task, DMs, notices, digest; every
+  tool reply: board, groups, receipts, `listAgents`, refusals) shows names instead of IDs; so does
+  the game master's report and its tool replies. A token stays as written when it is part of a
+  longer word or a piece reference (`L8-counter-A02`), in the city's own "is now called" post, or
+  part of a dealt password.
+- **Aliases:** every resident parameter (`target`, `agent`, `accused`, `leader`, `to`, a will's
+  heirs; the game master's `notify`) takes a name or an ID, without case. The privacy guard (§10.4)
+  and the classifier (§10.5) know the names; classifier targets given by name map back to IDs.
+- **IDs stay internal:** events (but for the model's own `tool_call` arguments), snapshots and
+  tests keep IDs. The world snapshot stores the names (`names: { entries, settled }`). REPORT.md and
+  the digest show "Mira (A03)".
+- **Old snapshots** (without names) resume with IDs as names and no `chooseName`.

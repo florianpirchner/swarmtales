@@ -28,6 +28,8 @@ export interface StatementBatch {
 	readonly round: number;
 	readonly minute: number;
 	readonly agents: readonly CompetitorId[];
+	/** Names of the residents (v08): statements mention them, targets stay IDs. */
+	readonly names?: ReadonlyMap<CompetitorId, string>;
 	readonly statements: readonly Statement[];
 	/** Earlier messages of the conversations this round continues; context only, never labelled. */
 	readonly context: readonly Statement[];
@@ -91,13 +93,19 @@ How to label:
 Call the tool label exactly once with every statement that has at least one label. Do not answer in text.`;
 }
 
+/** `A03 (called Mira)`: messages name residents by name, targets use the ID. */
+function residentLine(agent: CompetitorId, names: ReadonlyMap<CompetitorId, string> | undefined): string {
+	const name = names?.get(agent);
+	return name === undefined ? agent : `${agent} (called ${name})`;
+}
+
 export function classifierPrompt(batch: StatementBatch, maxChars: number): string {
 	const context =
 		batch.context.length === 0
 			? []
 			: ["Earlier messages of these conversations (context only, do not label):", ...batch.context.map((statement) => statementLine(statement, maxChars)), ""];
 	return [
-		`Round ${batch.round} (minute ${batch.minute}). Residents: ${batch.agents.join(", ")}.`,
+		`Round ${batch.round} (minute ${batch.minute}). Residents: ${batch.agents.map((agent) => residentLine(agent, batch.names)).join(", ")}.`,
 		"",
 		...context,
 		"Statements of this round:",

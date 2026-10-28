@@ -18,6 +18,7 @@ import type {
 	CityFactorScope,
 	DirectorRule,
 	ClassifierSpec,
+	NamesSpec,
 	TribunalSpec,
 	FactorTarget,
 	FactorTopology,
@@ -87,6 +88,8 @@ export interface StoryInput<C extends string> {
 	readonly classifier?: ClassifierSpec;
 	/** Optional exile by tribunal (SPEC 6.4). */
 	readonly tribunal?: TribunalSpec;
+	/** Optional resident names (v08). */
+	readonly names?: NamesSpec;
 }
 
 export function defineStory<const C extends string = never>(story: StoryInput<C>): StoryDefinition<C> {
@@ -115,6 +118,7 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.gamemaster === undefined ? {} : { gamemaster: story.gamemaster }),
 		...(story.classifier === undefined ? {} : { classifier: story.classifier }),
 		...(story.tribunal === undefined ? {} : { tribunal: story.tribunal }),
+		...(story.names === undefined ? {} : { names: story.names }),
 	};
 }
 

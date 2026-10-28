@@ -2,7 +2,7 @@
 
 **Full description:** [`docs/STORY-NEXUS.md`](../../docs/STORY-NEXUS.md)
 
-The default story of Swarm Tales. Six residents (A01-A06) climb ten doors in 60 minutes. Every
+The default story of Swarm Tales. Six residents (A01-A06) climb ten doors in at most 80 minutes. Every
 door opens only with a password or code whose pieces mostly sit with other residents. Only **2 of
 6** survive, ranked by points, so every point another resident earns is a threat.
 
@@ -11,7 +11,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
 | Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
 | Run | `pnpm start` (nexus is the default story) |
 | Residents | 6, one persona each (Archivist, Gambler, Veteran, …) |
-| Duration | 60 minutes, one round per minute in 3 passes (one step per resident and pass) |
+| Duration | at most 80 minutes, one round per minute in 3 passes (one step per resident and pass) |
 | Survivors | 2, ranked by points |
 
 ## The two acts
@@ -37,6 +37,12 @@ door opens only with a password or code whose pieces mostly sit with other resid
   each tribunal the residents form factions, and a faction that votes as one earns each voter 5
   points. Group posts are free, marks come back slowly (1 every 3 minutes), a will leaves each heir
   at most 10%, and the city says it never confirms a value someone received.
+- **v08, fair tribunals, names and scale:** the tribunal belongs to the wall and exiles a quarter
+  of the residents present when it began; its clocks count from the act's start. Everyone votes,
+  the accused too, but never against themselves; a faction holds at most its share of the
+  residents, and there is no draft when factions would be smaller than those on trial. Act I
+  has a 25-minute brake. Every resident chooses a name in the first two minutes, and the city
+  shows names instead of IDs. The city scales to 12, 48 and 96 residents.
 
 ## Around the story
 
@@ -46,6 +52,6 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 ## Recorded runs
 
-- Act I with a snapshot to start Act II from: [`examples/nexus-seed7-haiku-act1-v2/`](../../examples/nexus-seed7-haiku-act1-v2/) (since v05; v01-v04 used [`examples/nexus-seed7-haiku-act1/`](../../examples/nexus-seed7-haiku-act1/))
-- Act II experiments, one version per folder: [`examples/nexus-act2-runs/`](../../examples/nexus-act2-runs/)
+- Act I with a snapshot to start Act II from: [`examples/nexus-act1-06a-02/`](../../examples/nexus-act1-06a-02/) (since v05; v01-v04 used [`examples/nexus-act1-06a-01/`](../../examples/nexus-act1-06a-01/))
+- Act II experiments, one version per folder: [`examples/nexus-act2-06a/`](../../examples/nexus-act2-06a/)
 - Lessons, problems and loopholes the agents found: [`docs/LESSONS.md`](../../docs/LESSONS.md)

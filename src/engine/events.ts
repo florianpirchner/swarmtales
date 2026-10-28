@@ -334,6 +334,8 @@ export type ArenaEvent =
 			readonly factions: number;
 			readonly by: TribunalPlanner;
 			readonly reason?: string;
+			/** Why the tribunal would hold no faction draft with the residents present at its planning (v08). */
+			readonly noDraft?: string;
 	  }
 	| {
 			/** A planned tribunal was called off before its call (the seats were decided). */
@@ -351,6 +353,8 @@ export type ArenaEvent =
 			/** The tribunal's group of every present resident; absent without a faction draft. */
 			readonly group?: string;
 			readonly nominateUntil?: number;
+			/** Why a city with factions holds no draft for this tribunal (v08), e.g. "too few per faction". */
+			readonly noDraft?: string;
 	  }
 	| {
 			readonly type: "tribunal_opened";
@@ -506,6 +510,28 @@ export type ArenaEvent =
 	| { readonly type: "interpretation_error"; readonly round: number; readonly message: string }
 	| { readonly type: "treasury_settled"; readonly group: string; readonly payouts: Readonly<Record<string, number>> }
 	/** `standings`: the final ranking after the last tick (an exile at the end can follow the last `round_end`). */
+	| {
+			/**
+			 * An act without a tribunal reached its `maxMinutes` (v08) with residents
+			 * still inside it (`behind`, with their levels). `snapshot` when the run's
+			 * checkpoint after the act was written anyway.
+			 */
+			readonly type: "act_brake";
+			readonly act: string;
+			readonly fromLevel: number;
+			readonly toLevel: number;
+			readonly startedAt: number;
+			readonly maxMinutes: number;
+			readonly behind: readonly { readonly agent: CompetitorId; readonly level: number }[];
+			readonly snapshot?: boolean;
+	  }
+	| {
+			/** A resident chose its name (v08); `fallback` when the city gave it one. */
+			readonly type: "name_chosen";
+			readonly agent: CompetitorId;
+			readonly name: string;
+			readonly fallback: boolean;
+	  }
 	| { readonly type: "run_end"; readonly reason?: string; readonly standings?: readonly StandingRow[] };
 
 export type ArenaEventType = ArenaEvent["type"];

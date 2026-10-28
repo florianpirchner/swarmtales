@@ -8,7 +8,9 @@
  * 2. Then the city names the `factions` members with the most nominations
  *    (ties: more points, then a seeded order). Until the tribunal opens every
  *    other member applies to one leader with `join` (the last call counts); a
- *    leader may `refuse` an applicant, who may then apply elsewhere.
+ *    leader may `refuse` an applicant, who may then apply elsewhere. A faction
+ *    holds at most `ceil(members / factions)` residents, its leader included
+ *    (v08, P31); a full faction refuses further applicants.
  * 3. When the tribunal opens, the city opens one group per faction and names
  *    the factions and everyone without one in `GT<k>`.
  * 4. When the result is out, a faction whose voting members (at least two)
@@ -23,6 +25,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import { rngFor } from "../core/random.ts";
 import { err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
+import { factionCap } from "../story/tribunal.ts";
 import type { FactionSpec, FactionTexts } from "../story/types.ts";
 import type { ArenaEvent } from "./events.ts";
 
@@ -45,7 +48,7 @@ export interface FactionPorts {
 	readonly emit: (event: FactionEvent) => void;
 }
 
-export type DraftError = "NO_DRAFT" | "NOT_IN_DRAFT" | "UNKNOWN_NOMINEE" | "IS_LEADER" | "NOT_A_LEADER" | "REFUSED" | "NOT_APPLYING";
+export type DraftError = "NO_DRAFT" | "NOT_IN_DRAFT" | "UNKNOWN_NOMINEE" | "IS_LEADER" | "NOT_A_LEADER" | "REFUSED" | "NOT_APPLYING" | "FACTION_FULL";
 
 export interface Faction {
 	readonly leader: CompetitorId;
@@ -61,6 +64,8 @@ export interface DraftSnapshot {
 	readonly members: readonly CompetitorId[];
 	readonly nominateUntil: number;
 	readonly opens: number;
+	/** Most members of one faction, its leader included; absent before v08 (computed from the members then). */
+	readonly cap?: number;
 	readonly nominations: readonly { readonly voter: CompetitorId; readonly nominee: CompetitorId }[];
 	readonly leaders?: readonly CompetitorId[];
 	readonly applications: readonly { readonly agent: CompetitorId; readonly leader: CompetitorId }[];
@@ -96,6 +101,8 @@ export class FactionDraft {
 	readonly members: readonly CompetitorId[];
 	readonly nominateUntil: number;
 	readonly opens: number;
+	/** Most members of one faction, its leader included. */
+	readonly cap: number;
 	readonly #nominations = new Map<CompetitorId, CompetitorId>();
 	#leaders: readonly CompetitorId[] | undefined;
 	readonly #applications = new Map<CompetitorId, CompetitorId>();
@@ -110,6 +117,7 @@ export class FactionDraft {
 		this.members = [...state.members];
 		this.nominateUntil = state.nominateUntil;
 		this.opens = state.opens;
+		this.cap = state.cap ?? factionCap(state.members.length, state.factions);
 		this.#leaders = state.leaders;
 		this.#formed = state.formed;
 	}
@@ -173,6 +181,10 @@ export class FactionDraft {
 		const chosen = this.leaders.find((candidate) => candidate === leader);
 		if (chosen === undefined) return err("NOT_A_LEADER", `the leaders are ${namesOf(this.leaders)}`);
 		if (this.#refusals.some((refusal) => refusal.leader === chosen && refusal.agent === agent)) return err("REFUSED", `${chosen} refused you; apply to another leader`);
+		const taken = 1 + this.#applicantsOf(chosen).filter((applicant) => applicant !== agent).length;
+		if (taken >= this.cap) {
+			return err("FACTION_FULL", `the faction of ${chosen} is full: at most ${this.cap} members, its leader included; apply to another leader`);
+		}
 		this.#applications.set(agent, chosen);
 		this.#ports.emit({ type: "faction_applied", tribunal: this.tribunal, agent, leader: chosen });
 		this.#ports.notify(chosen, this.#text("applied", { applicant: agent }));
@@ -282,6 +294,7 @@ export class FactionDraft {
 			members: [...this.members],
 			nominateUntil: this.nominateUntil,
 			opens: this.opens,
+			cap: this.cap,
 			nominations: [...this.#nominations].map(([voter, nominee]) => ({ voter, nominee })),
 			...(this.#leaders === undefined ? {} : { leaders: [...this.#leaders] }),
 			applications: [...this.#applications].map(([agent, leader]) => ({ agent, leader })),
@@ -298,6 +311,7 @@ export class FactionDraft {
 		return renderTemplate(this.#ports.spec.texts[key], {
 			tribunal: String(this.tribunal),
 			factions: String(this.factions),
+			cap: String(this.cap),
 			bonus: String(this.#ports.spec.blocBonus),
 			nominateUntil: String(this.nominateUntil),
 			joinUntil: String(this.opens),

@@ -43,6 +43,8 @@ export interface LevelUp {
 
 export interface ResidentResult {
 	readonly agent: string;
+	/** The name the resident chose or was given (v08). */
+	readonly name?: string;
 	readonly persona?: string;
 	readonly model?: string;
 	readonly startLevel: number;
@@ -181,6 +183,7 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 	const survivors = metadata.story?.run?.survivors;
 	const levelUps = ofType(events, "level_up");
 	const prefixUps = ofType(prefix, "level_up");
+	const names = new Map(ofType(all, "name_chosen").map((entry) => [entry.agent, entry.name]));
 	const residents = [...agentIds].sort().map((agent): ResidentResult => {
 		const before = standingsBefore.find((row) => row.agent === agent);
 		const ups = levelUps.filter((up) => up.agent === agent).map((up) => ({ seq: up.seq, minute: up.minute, from: up.from, to: up.to }));
@@ -189,8 +192,10 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		const first = prefixLevel > 0 ? prefixLevel : (ups[0]?.from ?? startLevel);
 		const final: StandingRow | undefined = finalStandings.find((row) => row.agent === agent);
 		const profile = profiles.find((entry) => entry.agent === agent);
+		const name = names.get(agent);
 		return {
 			agent,
+			...(name === undefined ? {} : { name }),
 			...(profile?.persona === undefined || profile.persona === null ? {} : { persona: profile.persona }),
 			...(profile === undefined ? {} : { model: profile.model }),
 			startLevel: first,

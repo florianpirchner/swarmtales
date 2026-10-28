@@ -43,7 +43,7 @@ export const createGroup = defineTool({
 export const addGroupMember = defineTool({
 	name: "addGroupMember",
 	description: "Adds a competitor to a group you founded. No consent is needed; the new member is notified.",
-	parameters: Type.Object({ groupId, agent: Type.String({ description: "ID of the new member" }) }),
+	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the new member" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.addGroupMember(id, self, agent), self);
 	},
@@ -52,7 +52,7 @@ export const addGroupMember = defineTool({
 export const removeGroupMember = defineTool({
 	name: "removeGroupMember",
 	description: "Removes a member from a group you founded.",
-	parameters: Type.Object({ groupId, agent: Type.String({ description: "ID of the member" }) }),
+	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the member" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.removeGroupMember(id, self, agent), self);
 	},
@@ -136,7 +136,7 @@ export const withdrawGroup = defineTool({
 	description: "Pays points from the treasury to a member. Only the treasurer may do this.",
 	parameters: Type.Object({
 		groupId,
-		target: Type.String({ description: "Recipient ID" }),
+		target: Type.String({ description: "Recipient name or ID" }),
 		amount: Type.Integer({ description: "Positive integer", minimum: 1 }),
 	}),
 	execute({ groupId: id, target, amount }, { self, world }) {
@@ -148,7 +148,7 @@ export const withdrawGroup = defineTool({
 export const setTreasurer = defineTool({
 	name: "setTreasurer",
 	description: "Hands the treasurer role to another member. Only the current treasurer may do this.",
-	parameters: Type.Object({ groupId, agent: Type.String({ description: "ID of the new treasurer" }) }),
+	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the new treasurer" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.setTreasurer(id, self, agent), self);
 	},

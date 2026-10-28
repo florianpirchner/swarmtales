@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-10-27 |
 | Code | PR #12 (`fed175b`): memos refuse runs of 4+ digits, certificate holders are told who needs their number, holders get a notice when the resident they hold for reaches the door, the run ends early once the seats are decided, `generous` digest beat |
-| Start | resumed from [`../../nexus-seed7-haiku-act1/snapshot-L7.json`](../../nexus-seed7-haiku-act1/) (Act I, minute 15) |
-| Command | `pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic` |
+| Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
+| Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
 | Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier | `claude-haiku-5-5` via Anthropic |

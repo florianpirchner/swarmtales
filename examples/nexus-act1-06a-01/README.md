@@ -1,6 +1,6 @@
 # Recorded Act I of nexus (Haiku, seed 7)
 
-> Superseded as the Act II base by [`../nexus-seed7-haiku-act1-v2/`](../nexus-seed7-haiku-act1-v2/) (from
+> Superseded as the Act II base by [`../nexus-act1-06a-02/`](../nexus-act1-06a-02/) (from
 > v05 on). This recording stays for Act II runs v01-v04 and for the snapshot tests.
 
 A complete live run of Act I ("Learning to talk", levels 1-7) of [nexus](../../docs/STORY-NEXUS.md).
@@ -8,7 +8,7 @@ It was stopped with a snapshot at the door to level 8. Use it to start Act II ex
 replaying Act I:
 
 ```bash
-pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic
 ```
 
 Act II levels are dealt from the current story, so they can change between experiments. The

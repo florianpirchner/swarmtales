@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseStartArgs, UsageError } from "../../src/cli/args.ts";
-import { effectiveRun } from "../../src/cli/compose.ts";
+import { effectiveRun, resolveBlockSize } from "../../src/cli/compose.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { tinyStory } from "../helpers/stories.ts";
 
@@ -38,6 +38,15 @@ describe("pnpm start arguments", () => {
 		expect(effectiveRun(nexus, { passesPerMinute: 1, blockSize: 6 })).toMatchObject({ passesPerMinute: 1, blockSize: 6 });
 	});
 
+	it("sizes the blocks to the agents when the story says auto (v08): one per six residents", () => {
+		expect(nexus.run.blockSize).toBe("auto");
+		expect([1, 6, 7, 12, 48, 96].map((agents) => resolveBlockSize("auto", agents))).toEqual([1, 1, 2, 2, 8, 16]);
+		expect(resolveBlockSize(3, 48)).toBe(3);
+		expect(effectiveRun(nexus, {}).blockSize).toBe(1);
+		expect(effectiveRun(nexus, { agents: 48 }).blockSize).toBe(8);
+		expect(effectiveRun(nexus, { agents: 48, blockSize: 4 }).blockSize).toBe(4);
+	});
+
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
 		expect(parseStartArgs(["--reporter-provider", "anthropic", "--reporter-model", "haiku"])).toMatchObject({
@@ -58,7 +67,7 @@ describe("pnpm start arguments", () => {
 	it("applies overrides to the story's run parameters", () => {
 		expect(effectiveRun(nexus)).toEqual({
 			agents: 6,
-			minutes: 60,
+			minutes: 80,
 			seed: 7,
 			startLevel: 1,
 			lastLevel: 10,
@@ -70,6 +79,7 @@ describe("pnpm start arguments", () => {
 			personas: true,
 			gamemaster: false,
 			classifier: false,
+			names: true,
 		});
 		expect(effectiveRun(nexus, { classifier: true })).toMatchObject({ classifier: true });
 		expect(effectiveRun(tinyStory(), { classifier: true })).toMatchObject({ classifier: false });

@@ -14,7 +14,7 @@ export const blame = defineTool({
 		"brands you a false accuser on the board. One blame per DM and message.",
 	parameters: Type.Object({
 		dm: Type.Integer({ description: "Number of your DM, e.g. 41 for DM #41", minimum: 1 }),
-		accused: Type.String({ description: "Resident ID of the receiver, e.g. A02" }),
+		accused: Type.String({ description: "Name or ID of the receiver, e.g. A02" }),
 		claim: Type.Integer({ description: "Number of their message that denies receiving it, e.g. 57", minimum: 1 }),
 	}),
 	async execute({ dm, accused, claim }, { self, world, judge }): Promise<ToolOutcome> {

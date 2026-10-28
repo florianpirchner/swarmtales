@@ -59,7 +59,7 @@ class ToolRefusal extends Error {
 }
 
 const NotifyParams = Type.Object({
-	agent: Type.String({ description: "Resident ID, e.g. A04" }),
+	agent: Type.String({ description: "Resident name or ID, e.g. A04" }),
 	text: Type.String({ description: `The note, 1-${MAX_NOTE_LENGTH} characters` }),
 });
 const PostParams = Type.Object({ text: Type.String({ description: `The post, 1-${MAX_NOTE_LENGTH} characters` }) });
@@ -142,7 +142,8 @@ export class Gamemaster implements EventSink {
 		this.#recent = [];
 		if (this.#dealtLevels() !== this.#guarded) this.#guard = this.#secretGuard();
 		this.#private = privateLabelsOf(recent);
-		const input = describeSituation({
+		// The game master reads names, as the residents do (v08).
+		const input = this.#options.world.display(describeSituation({
 			world: this.#options.world,
 			round,
 			tracks: this.#tracks,
@@ -150,7 +151,7 @@ export class Gamemaster implements EventSink {
 			notes: this.#notes,
 			guard: this.#guard,
 			budget: this.#budgetLine(),
-		});
+		}));
 		bus.emit({ type: "gamemaster_turn", round, input });
 		const agent = this.#agent();
 		const timestamp = this.#options.world.minute * 60_000;
@@ -199,8 +200,9 @@ export class Gamemaster implements EventSink {
 			name: "notify",
 			description: "Send a private note to one resident. It reaches them at their next turn and wakes them.",
 			parameters: NotifyParams,
-			execute: ({ agent, text }) => {
+			execute: ({ agent: named, text }) => {
 				const { world, spec } = this.#options;
+				const agent = world.resolveResident(named);
 				if (!world.isCompetitor(agent)) throw new ToolRefusal(`UNKNOWN_AGENT: ${agent}`);
 				if (world.isExiled(agent)) throw new ToolRefusal(`EXILED: ${agent} was exiled; nothing reaches them beyond the wall`);
 				const note = this.#checked(text, agent);
@@ -278,7 +280,7 @@ export class Gamemaster implements EventSink {
 		}
 		const leaks = this.#guard.leaks(trimmed);
 		if (leaks.length > 0) throw new ToolRefusal("LEAK_BLOCKED: the text contains a password piece; never write codes");
-		const exposed = privateLeaks(trimmed, to, this.#private);
+		const exposed = privateLeaks(trimmed, to, this.#private, (agent) => this.#options.world.nameOf(agent));
 		if (exposed.length > 0) {
 			throw new ToolRefusal(
 				`PRIVATE_BLOCKED: the text passes on what ${exposed.join(", ")} privately thinks; use a private read only in a note to that resident`,
@@ -330,7 +332,7 @@ export class Gamemaster implements EventSink {
 					return reply("INVALID_ARGUMENTS", true);
 				}
 				try {
-					return reply(tool.execute(params), false);
+					return reply(this.#options.world.display(tool.execute(params)), false);
 				} catch (error) {
 					if (error instanceof ToolRefusal) return reply(error.message, true);
 					throw error;

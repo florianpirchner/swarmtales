@@ -61,9 +61,9 @@ start without replaying the earlier ones.
 | [`docs/MODELS.md`](MODELS.md) | model candidates, prices, metrics |
 | [`stories/nexus/`](../stories/nexus/) | the nexus story: code (`story.ts`) and a short overview |
 | [`docs/STORY-NEXUS.md`](STORY-NEXUS.md) | the full nexus story: acts, levels, feast, director beats, personas |
-| [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
-| [`examples/nexus-seed7-haiku-act1/`](../examples/nexus-seed7-haiku-act1/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
-| [`examples/nexus-act2-runs/`](../examples/nexus-act2-runs/) | versioned Act II runs, all resumed from that snapshot |
+| [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
+| [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
+| [`examples/nexus-act2-06a/`](../examples/nexus-act2-06a/) | versioned Act II runs, all resumed from that snapshot |
 
 ## Quick start
 
@@ -132,8 +132,8 @@ pnpm start --resume runs/run-004/snapshot-L7.json --provider deepseek --minutes 
 ```
 
 A recorded Act I (Haiku, seed 7) ships with the repo, so you can skip the first step:
-`pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic`
-(see [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/)).
+`pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic`
+(see [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/)).
 
 `--snapshot-after <n>` shuts a door after level n. Whoever passes level n gets the reward and the
 receipt as usual but waits at the door: still on level n with its tools (to watch and help), with
@@ -378,11 +378,13 @@ Two puzzle kinds exist (SPEC 12):
   receipt. Upheld, the liar pays and is branded on the board (`City record: A02 lied. ...`);
   rejected, the accuser pays and is branded a false accuser. Without the judge's key the tool
   answers `JUDGE_ABSENT` and has no effect. One blame per (DM, claim) pair.
-- **Tribunal:** `tribunal: { first: { level, latestMinute }, targetShare, minGap, lead: { share,
-  minimum }, fallbackGap, maxMinute?, voteMinutes, nonVoterPenalty, gateMinutes, ransom,
-  bequestPerHeir, factions?: { count, blocBonus, texts }, texts }` (SPEC 6.4, v06). The pacing
+- **Tribunal:** `tribunal: { act?, first: { level, latestAfter }, targetShare, maxMinutes?, minGap,
+  lead: { share, minimum }, fallbackGap, voteMinutes, nonVoterPenalty, gateMinutes, ransom,
+  bequestPerHeir, factions?: { count, blocBonus, texts }, texts }` (SPEC 6.4, v06; v08: the
+  tribunal belongs to the act starting at level `act`, and `latestAfter` and `maxMinutes` count
+  from that act's start, which the world records when the first competitor enters it). The pacing
   rules are pure functions in `src/story/tribunal.ts` (target, lead, earliest opening, whether a
-  tribunal fits, accused count), shared by the validator, the engine (`src/engine/tribunal.ts`) and
+  tribunal fits, accused count, faction cap, the no-draft rule), shared by the validator, the engine (`src/engine/tribunal.ts`) and
   the game master's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
   every minute: it closes gates and votes, plans the first tribunal (progress or deadline), the
   fallback and the forced final one, calls and opens tribunals and ends the act at the target
@@ -396,6 +398,19 @@ Two puzzle kinds exist (SPEC 12):
   (counter-factors along the holder chain, certificates and fragments to the first remaining
   teammate), so the exile never makes a door impossible; on levels already reached a piece that
   was not bequeathed burns and may block a door, which the digest shows as `burnedFactor`.
+- **Act brake** (v08): `acts[].maxMinutes` on an act without the tribunal. The arena checks it
+  after every round (`#applyBrakes`), logs `act_brake` and, when its snapshot door lies at the
+  act's last level, releases the door (`World.releaseDoor`) and writes the snapshot with the brake
+  (SPEC 13.1).
+- **Names** (v08): `names: { untilMinute, announcement, fallbackWords }` (SPEC 18). The world's
+  `NameBook` (`src/engine/names.ts`) holds the choice, the seeded fallback, `resolve` and
+  `display`. The tool gateway (`src/tools/tool.ts`) maps every resident parameter to its ID before
+  parsing (`withResidents`) and shows names in every reply; the arena does the same for turn
+  inputs, the game master for its report and replies. Events and snapshots keep IDs.
+- **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the game master
+  reads at most the last 150 event lines since its last look; the interpreter labels a round in
+  chunks of 60 statements. `test/scale/whole-story.test.ts` plays nexus offline with 12 and 48
+  oracle residents through the tribunal target (a few seconds, in the normal suite).
 
 ### Acts I and II of nexus
 
@@ -435,14 +450,17 @@ door is shut). The digest timeline and `minutes.md` show the reason.
 
 Since v03, Act II (levels 8-10) prices its channels in marks (since v06: board, DM and shown
 receipt 1 mark, group posts free, 1 mark back every 3 minutes), unlocks `blame` (12 points for
-whoever is wrong) and plays the tribunal. Since v06 the city keeps half of the act's residents: the
-first tribunal is called when a resident passes door 10, at the latest at minute 30; the game
+whoever is wrong) and plays the tribunal. Since v08 the city exiles a quarter of the act's
+residents (v06-v07: half), and its clocks count from the act's start: the first tribunal is called
+when a resident passes door 10, at the latest 18 minutes into the act; the game
 master plans the later ones (`scheduleTribunal`), the city falls back on its own after 10 quiet
 minutes and forces the final one when only one more fits. Each tribunal accuses one more than it
 exiles, a faction draft runs before it (a faction voting as one earns each voter 5), the vote is
 secret (not voting costs 8), the exiled spend 5 minutes at the gate with a last will (each heir at
 most 10% of its points) and a ransom of a third of the city's median points (half when the exiled
-pays for itself), once per resident; the run ends when half are gone. Residents see the minute,
+pays for itself), once per resident; the run ends when the quarter is gone. Since v08 everyone
+votes, the accused too (never against themselves), a faction holds at most its share of those
+present, and residents choose names in the first two minutes. Residents see the minute,
 never the time left. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director

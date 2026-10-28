@@ -1,7 +1,11 @@
 /**
  * A scripted, offline Act II run resumed from the published Act I snapshot
- * (examples/nexus-seed7-haiku-act1/snapshot-L7.json, format v2) into the
- * current nexus (v06): delivery receipts and one upheld and one rejected
+ * (examples/nexus-act1-06a-01/snapshot-L7.json, format v2) into the
+ * current nexus. The long scenario plays the v08 rules (the accused vote,
+ * the faction cap, deadlines counted from the act's start at the resume)
+ * with v07's half target and its first call 14 minutes into the act (minute
+ * 30, as before), so three are exiled; the real nexus (a quarter, one exile)
+ * is played apart: delivery receipts and one upheld and one rejected
  * blame; the first tribunal called at its latest minute, with a faction draft
  * (nominations, leaders, applications, a refusal), a bloc bonus and a split
  * faction; secret votes and the non-voter's penalty; a ransom that brings the
@@ -24,10 +28,11 @@ import { ScriptedModelSource } from "../../src/model/source.ts";
 import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
 import { parseSnapshot, readSnapshot } from "../../src/snapshot/snapshot.ts";
 import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
+import type { AnyStory } from "../../src/story/types.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 
-const SNAPSHOT = join(process.cwd(), "examples", "nexus-seed7-haiku-act1", "snapshot-L7.json");
+const SNAPSHOT = join(process.cwd(), "examples", "nexus-act1-06a-01", "snapshot-L7.json");
 const DENIAL = "A01 never sent me anything. I have no DM from A01.";
 const THANKS = "Got your offer, thanks. I will think about it.";
 const CANVASS = "Join A04: we vote together and take the bonus.";
@@ -38,6 +43,14 @@ const NOMINEES: Readonly<Record<string, string>> = { A01: "A01", A02: "A01", A03
 const JOINS: Readonly<Record<string, string>> = { A02: "A01", A03: "A04", A05: "A01", A06: "A04" };
 
 type Step = FauxResponseStep;
+
+/** nexus with v07's target (half of the act's residents) and the first call at minute 30 of the resumed run (the act starts at 16). */
+function halfNexus(): AnyStory {
+	const spec = nexus.tribunal;
+	if (spec === undefined) throw new Error("nexus has no tribunal");
+	// v07's act lasted as long as the run.
+	return { ...nexus, tribunal: { ...spec, targetShare: 1 / 2, first: { level: 10, latestAfter: 14 }, maxMinutes: 1000 } };
+}
 
 function dmBetween(world: World, from: string, to: string) {
 	return world.dmRecords().find((record) => record.from === from && record.to === to && record.text !== undefined);
@@ -100,7 +113,8 @@ function scripts(world: World): Record<string, Step[]> {
 			}
 			const drafting = draft("A03");
 			if (drafting !== undefined) return drafting;
-			if (tribunalNow() === 2 && world.tribunal?.canVote("A03") === true && first("A03-vote", true)) return act({ name: "vote", args: { target: against("A05") } });
+			// Accused in tribunal 1, A03 votes too (v08), against the other accused.
+			if (world.tribunal?.canVote("A03") === true && first(`A03-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
 			return say();
 		},
 		A04: () => {
@@ -109,7 +123,7 @@ function scripts(world: World): Record<string, Step[]> {
 			// A leader canvasses in the draft's group; a post the game master may read.
 			const group = world.tribunal?.draftGroup;
 			if (group !== undefined && phase("A04")?.kind === "join" && first("A04-canvass", true)) return act({ name: "postGroup", args: { groupId: group, message: CANVASS } });
-			if (world.tribunal?.canVote("A04") === true && first(`A04-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: tribunalNow() === 1 ? "A03" : against("A05") } });
+			if (world.tribunal?.canVote("A04") === true && first(`A04-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
 			return say();
 		},
 		A05: () => {
@@ -117,6 +131,9 @@ function scripts(world: World): Record<string, Step[]> {
 			if (first("A05-guess", true)) return act({ name: "submitSolution", args: { level: 8, code: "000000" } });
 			const drafting = draft("A05");
 			if (drafting !== undefined) return drafting;
+			// Accused in tribunal 1, A05 first tries to vote against itself (refused, v08), then votes against A03.
+			if (tribunalNow() === 1 && world.tribunal?.canVote("A05") === true && first("A05-self-vote", true)) return act({ name: "vote", args: { target: "A05" } });
+			if (tribunalNow() === 1 && world.tribunal?.canVote("A05") === true && first("A05-vote", true)) return act({ name: "vote", args: { target: "A03" } });
 			const gate = world.tribunal?.gates().find((entry) => entry.agent === "A05");
 			if (gate?.ransomable === true && gate.covered > 0 && first("A05-ransom", true)) return act({ name: "payRansom", args: { target: "A05", amount: 60 } });
 			if (gate !== undefined && !gate.ransomable && first("A05-bad-will", true)) {
@@ -160,7 +177,7 @@ function gamemasterScript(world: World): Step[] {
 	return Array.from({ length: 400 }, () => step);
 }
 
-async function playActTwo(options: { readonly gamemaster?: boolean } = {}) {
+async function playActTwo(options: { readonly gamemaster?: boolean; readonly story?: AnyStory } = {}) {
 	const snapshot = readSnapshot(SNAPSHOT);
 	const log = new MemorySink();
 	const judge = new ChatDeliveryJudge({
@@ -171,7 +188,7 @@ async function playActTwo(options: { readonly gamemaster?: boolean } = {}) {
 		thinking: "off",
 	});
 	const run = composeRun({
-		story: nexus,
+		story: options.story ?? halfNexus(),
 		overrides: resumeOverrides(snapshot, {
 			minutes: 60,
 			activation: "always",
@@ -198,13 +215,20 @@ async function playActTwo(options: { readonly gamemaster?: boolean } = {}) {
 
 describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 	it("parses the v2 snapshot and resumes it into the current story", async () => {
-		const { snapshot, events, world } = await playActTwo();
+		const { snapshot, events, world } = await playActTwo({ story: nexus });
 		expect(snapshot).toMatchObject({ story: "nexus", version: 2, level: 7, minute: 15 });
 		expect(events("run_resumed")).toMatchObject([{ level: 7 }]);
 		expect(world.competitors.every((id) => world.isExiled(id) || world.levelOf(id) >= 8)).toBe(true);
 		// The old numbers (board, groups, DMs) stay below every new one.
 		const oldMax = Math.max(...snapshot.world.board.posts.map((post) => post.seq), ...snapshot.world.dms.map((record) => record.id));
 		expect(Math.min(...events("dm_sent").flatMap((event) => (event.number === undefined ? [] : [event.number])))).toBeGreaterThan(oldMax);
+		// v08: Act II begins at the resume (minute 16, when the door opens); the city exiles a quarter of six, one, and the
+		// first tribunal is called 18 minutes into the act at the latest.
+		expect(world.tribunal?.actStart).toBe(16);
+		expect(events("tribunal_announced")).toMatchObject([{ minute: 34, target: 1, residents: 6 }]);
+		expect(events("tribunal_scheduled")[0]).toMatchObject({ tribunal: 1, by: "deadline", calledAt: 34, opens: 38 });
+		expect(events("exiled")).toHaveLength(1);
+		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept 5 of 6 residents, and of them only 2 take a seat\. Exiled: A0\d\. The tribunals are over\.$/);
 	}, 120_000);
 
 	it("plays receipts, blames, a faction draft, the tribunal, a ransom, the forced final tribunal and the end at the target", async () => {
@@ -240,13 +264,13 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		]);
 		expect(events("tribunal_announced")).toMatchObject([{ minute: 30, target: 3, residents: 6 }]);
 		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."))?.text ?? "";
-		expect(announcement).toContain("It keeps only half of you: 3 residents");
+		expect(announcement).toContain("Of its 6 residents it keeps 3 and exiles 3");
 		// The same survivors as the base prompt: of the three kept, two take a seat.
 		expect(announcement).toContain("Of those it keeps, only 2 take a seat at the end");
 		expect(announcement).toContain("your thinking ends there");
 		expect(announcement).not.toMatch(/level 10|crossing|minute 30/);
 		for (const id of world.competitors) {
-			expect(inputsOf(id).some((input) => input.startsWith("[CITY] THE CITY HOLDS TRIBUNAL. It keeps only half of you"))).toBe(true);
+			expect(inputsOf(id).some((input) => input.startsWith("[CITY] THE CITY HOLDS TRIBUNAL. Of its 6 residents it keeps 3"))).toBe(true);
 			expect(inputsOf(id).some((input) => input === "[CITY] Tribunal 1 sits at minute 34: the city exiles 1, and the 2 with the fewest points stand trial.")).toBe(true);
 		}
 		// Residents never see how long the run lasts.
@@ -279,19 +303,22 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		]);
 		expect(events("group_post").some((post) => post.group === draftGroup && post.author === "CITY" && post.text === `The factions of tribunal 1: faction of A01 (group ${formed?.factions[0]?.group ?? ""}): A01 and A02; faction of A04 (group ${formed?.factions[1]?.group ?? ""}): A04, A03 and A06. Without a faction: A05.`)).toBe(true);
 
-		// Tribunal at 34: one exiled, so two accused (the two lowest); A06 did not vote and paid 8.
+		// Tribunal at 34: one exiled, so two accused (the two lowest); every resident votes, the accused too (v08), and A06,
+		// who did not vote, paid 8. A05's vote against itself was refused.
 		const opened = events("tribunal_opened");
-		expect(opened[0]).toMatchObject({ minute: 34, tribunal: 1, accused: ["A05", "A03"], until: 36, count: 1 });
+		expect(opened[0]).toMatchObject({ minute: 34, tribunal: 1, accused: ["A05", "A03"], voters: world.competitors, until: 36, count: 1 });
+		const selfVote = events("tool_result").find((event) => event.agent === "A05" && event.tool === "vote");
+		expect(selfVote).toMatchObject({ isError: true, text: "SELF_VOTE: you may not vote against yourself; vote against A03" });
 		const results = events("tribunal_result");
 		expect(results[0]).toMatchObject({ minute: 36, exiled: ["A05"], nonVoters: ["A06"] });
 		expect(results[0]?.counts).toEqual([
-			{ agent: "A05", votes: 2 },
+			{ agent: "A05", votes: 4 },
 			{ agent: "A03", votes: 1 },
 		]);
 		expect(events("ledger_entry").some((entry) => entry.debit === "A06" && entry.reason === "did not vote in the tribunal" && entry.amount === 8)).toBe(true);
 		// Only the exiled learns who voted against it; the result shows counts, never names of voters.
-		expect(world.board.all().find((post) => post.text.startsWith("Verdict of the tribunal: A05: 2 votes · A03: 1 vote."))).toBeDefined();
-		expect(inputsOf("A05").some((input) => input.includes("Votes against you: A01 and A02."))).toBe(true);
+		expect(world.board.all().find((post) => post.text.startsWith("Verdict of the tribunal: A05: 4 votes · A03: 1 vote."))).toBeDefined();
+		expect(inputsOf("A05").some((input) => input.includes("Votes against you: A01, A02, A03 and A04."))).toBe(true);
 		const beforeFinal = (agent: string): readonly string[] => events("turn_input").filter((event) => event.agent === agent && event.minute < 51).flatMap((event) => event.inputs);
 		expect(beforeFinal("A03").some((input) => input.includes("Votes against you"))).toBe(false);
 
@@ -333,9 +360,11 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		expect(events("exile_gate").map((event) => [event.agent, event.ransomable])).toEqual(expect.arrayContaining([["A05", true], ["A05", false]]));
 		const will = events("last_will");
 		expect(will).toMatchObject([{ agent: "A05", text: "I leave what I can. Remember who voted." }]);
-		// v06: a tenth of A05's points (rounded down) for its one heir of points.
-		expect(will[0]?.bequests[0]).toEqual({ to: HEIR, points: 6 });
-		expect(inputsOf(HEIR).some((input) => input === "[CITY] A05's last will leaves you 6 points.")).toBe(true);
+		// v06: a tenth of A05's points (rounded down) for its one heir of points; A05, accused in tribunal 2, did not vote there
+		// and paid 8 for it (v08).
+		expect(will[0]?.bequests[0]).toEqual({ to: HEIR, points: 5 });
+		expect(events("tribunal_result")[1]?.nonVoters).toContain("A05");
+		expect(inputsOf(HEIR).some((input) => input === "[CITY] A05's last will leaves you 5 points.")).toBe(true);
 		// A bequest of a piece A05 does not hold is refused; once written, the will is final and the tool is gone.
 		const willResults = events("tool_result").filter((event) => event.agent === "A05" && event.tool === "lastWill");
 		expect(willResults.map((event) => event.isError)).toEqual([true, false, true]);
@@ -350,7 +379,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 
 		// The target is reached and the last gate closed: the run ends there, before its 60 minutes, and says why.
 		const exiledList = exiled.map((event) => event.agent);
-		expect(events("run_end")).toMatchObject([{ minute: 58, reason: `The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: ${exiledList.slice(0, -1).join(", ")} and ${exiledList.at(-1) ?? ""}. The tribunals are over.` }]);
+		expect(events("run_end")).toMatchObject([{ minute: 58, reason: `The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: ${exiledList.slice(0, -1).join(", ")} and ${exiledList.at(-1) ?? ""}. The tribunals are over.` }]);
 
 		// What A05 did not bequeath burned: its partner's counter-factor of the wall. Unreached doors pass its roles on.
 		const burned = events("factor_burned");
@@ -402,7 +431,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 			[2, 2],
 			[3, 3],
 		]);
-		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat\./);
+		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept 3 of 6 residents, and of them only 2 take a seat\./);
 
 		// What the game master saw: the plan and its bounds, never a vote, a nomination, an application or a bloc's result
 		// (the city's own rule posts in the draft group are public text, like the board).
@@ -429,7 +458,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 			},
 		};
 		const run = composeRun({
-			story: nexus,
+			story: halfNexus(),
 			overrides: resumeOverrides(snapshot, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: false, classifier: false }),
 			models: (current) => new ScriptedModelSource(scripts(current)),
 			sinks: [sink],

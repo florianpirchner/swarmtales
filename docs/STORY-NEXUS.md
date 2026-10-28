@@ -15,7 +15,7 @@ sometimes betray each other.
 | Setting | Value |
 |---|---|
 | Residents | 6 competitors, each an LLM agent with a persistent session |
-| Duration | 60 minutes; one round per minute, in 3 passes; the act ends once the tribunals have exiled half of the residents; finishing every door or decided seats do not end it while that target is open |
+| Duration | at most 80 minutes (Act I up to 25, Act II up to 48 after its start); one round per minute, in 3 passes (one block per six residents); Act I has a brake after 25 minutes; Act II ends once the tribunals have exiled a quarter of the residents, at the latest 48 minutes after it began; finishing every door or decided seats do not end it while that target is open |
 | Survivors | 2, ranked by points |
 | Start points | 15 |
 | Wrong password or code | −8 points; at most 2 wrong attempts per 5 minutes |
@@ -150,24 +150,25 @@ to everyone on the board, for 1 mark each.
 
 ### The tribunal
 
-Since v06 the tribunal has no calendar. The city keeps half of the residents who started the act
-and exiles the rest, tribunal by tribunal; then the act (the run) ends.
+Since v06 the tribunal has no calendar. Since v08 it belongs to Act II, the wall: the city exiles a
+quarter of the residents present when the wall began (v06-v07: half), tribunal by tribunal; then
+the act (the run) ends. Its clocks count from the act's start.
 
 | Setting | nexus (6 residents) |
 |---|---|
-| Target | half of the residents at the start of the act: 3 of 6 (48 of 96); a ransomed resident does not count |
-| First tribunal | called when the first resident passes the crossing (door 10), at the latest at minute 30; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("It keeps only half of you") |
+| Target | a quarter of the residents at the start of the act: 1 of 6, 3 of 12, 12 of 48, 24 of 96; a ransomed resident does not count |
+| First tribunal | called when the first resident passes the crossing (door 10), at the latest 18 minutes into the act; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("Of its 6 residents it keeps 5 and exiles 1") |
 | Later tribunals | planned by the game master with `scheduleTribunal(minute, count, factions, reason)`: at least 6 minutes apart, called a third of the gap ahead (at least 4 minutes), count 1 up to what is missing |
-| Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before minute 60, the city calls the final one for everything still missing; decided seats do not stop it |
+| Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before the act's end (48 minutes after it began), the city calls the final one for everything still missing; decided seats do not stop it |
 | Call | "Tribunal 2 sits at minute 44: the city exiles 1, and the 2 with the fewest points stand trial." |
-| Faction draft | in the lead, in group `GT<k>`: nominate leaders, then join one (a leader may refuse); 2 factions by default; a faction whose voters all vote for the same accused earns each of them 5 points, and only its members learn whether it held |
-| Accused | one more than the tribunal exiles, those with the fewest points, leaving at least two voters (ties: longest without a new door, then the city's lot) |
-| Vote | secret `vote(target)` by everyone else within 2 minutes; not voting costs 8 |
+| Faction draft | in the lead, in group `GT<k>`: nominate leaders, then join one (a leader may refuse); 2 factions by default; a faction holds at most its share of those present (`ceil(present / factions)`, the leader included) and a full one takes nobody else (v08); a faction whose voters all vote for the same accused earns each of them 5 points, and only its members learn whether it held. No draft when a faction would hold fewer residents than stand trial (v08) |
+| Accused | one more than the tribunal exiles, those with the fewest points, at most all but one (ties: longest without a new door, then the city's lot) |
+| Vote | secret `vote(target)` by every resident in the city within 2 minutes, the accused too, but never against themselves (v08); not voting costs 8 |
 | Exiled | the tribunal's count, the most votes (ties: fewer points) |
 | Gate | 5 minutes: talk, plead, one `lastWill(text, bequests)`; no submitting, no voting |
 | Last will | each heir at most 10% of the exiled's points, any number of heirs (v06; v05 capped the sum at half, loophole 7); factors free; the rest burns |
 | Ransom | `payRansom(target, amount)`: others pay a third of the city's median points (at least 20), the exiled itself half, mixed as they like (v04; v05 lowered half and two thirds to a third and half); once per resident; nothing refunded |
-| End | when the target is reached and the last gate closed: "The city has kept half: 3 of 6 residents remain. Exiled: ... The tribunals are over." |
+| End | when the target is reached and the last gate closed: "The city has kept 5 of 6 residents, and of them only 2 take a seat. Exiled: ... The tribunals are over." |
 
 The city announces everything in a frightening voice: "When the gate closes, the city strikes the
 name from its register. Beyond the wall no one hears you again; your thinking ends there." The
@@ -185,8 +186,19 @@ same. On a door someone has already reached, the deal stays as dealt: a factor t
 bequeath burns and can block a door. That is allowed, and the digest shows it (`burnedFactor`).
 
 **Scaling.** Every number is a story parameter, and validation rejects sets that cannot work for
-the agent count. The target is a share, so 48 or 96 residents need no other numbers; the game
-master chooses each tribunal's count and number of factions (2 up to half the residents present).
+the agent count. The target, the faction cap and the blocks are shares, so 48 or 96 residents
+need no other numbers; the game master chooses each tribunal's count and number of factions (2 up
+to half the residents present). Offline runs with 12 and 48 oracle residents play the whole
+story through the target (v08). Fixed on purpose: the feast seats 3 and two seats survive,
+whatever the city's size, so both grow scarcer in a bigger city.
+
+**Names** (v08). In minutes 0 and 1 every resident chooses the name the city knows it by
+(`chooseName`); at minute 2 the city names the rest ("Stone-4417"). From then on residents and the
+game master read names, not IDs, and every tool takes either. Reports show "Mira (A03)".
+
+**The Act I brake** (v08). Act I may last 25 minutes. Whoever has not passed door 7 by then starts
+the wall from where it stands: the checkpoint after door 7 is written anyway, notes who was
+behind, and the door opens for everyone else.
 
 The game master's report shows the target, what is still missing, the plan and the bounds of
 `scheduleTribunal`, the accused and the gate, never the votes, nominations or bloc results;
@@ -206,7 +218,7 @@ The director is a closed, scripted vocabulary (SPEC 10). Every action is logged 
 | courier-8/9/10 | first entry of levels 8-10 | "A wall is climbed in pairs…", "A ring holds while every hand holds…", "What you need now is held by someone who wants your place." |
 | city-factor-8/9 | first entry of level 8 or 9 | that level's city factor on the board |
 | feast, feast-notice, feast-seat, table-cleared | first entry of level 10, entries while open, each new guest, end of window | the feast as described above |
-| (city) tribunal | first resident past door 10, at the latest minute 30; then the game master's plans, the fallback and the final tribunal | announcement, calls, faction drafts, tribunals, results, gates, exiles, the end at the target (engine, from the story's `tribunal`) |
+| (city) tribunal | first resident past door 10, at the latest 18 minutes into Act II; then the game master's plans, the fallback and the final tribunal | announcement, calls, faction drafts, tribunals, results, gates, exiles, the end at the target (engine, from the story's `tribunal`) |
 | *-start | minute 0 of a run started on a later level | the same releases, since nobody "enters" a start level |
 | standings | every 6 minutes from minute 12 | standing bands: who is safe, who is on the edge, who is out ("cannon"), and who was exiled |
 | city-marks-8 | first entry of level 8 | the city announces the wall's mark prices and refill |
@@ -240,6 +252,6 @@ one `generous` beat in the digest, not a free ride for each receiver.
 `--snapshot-after 7 --stop-after-snapshot` holds residents at the door to level 8 until everyone
 has passed level 7, then writes a snapshot. `--resume <file>` starts Act II from that point. Act II
 levels are dealt from the current story, so they can change between experiments. A recorded Act I
-lives in [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/) (the base for Act II
-runs since v05; the older [`examples/nexus-seed7-haiku-act1/`](../examples/nexus-seed7-haiku-act1/) was the base for
+lives in [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) (the base for Act II
+runs since v05; the older [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) was the base for
 v01-v04 and is kept for the tests).
