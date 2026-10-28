@@ -878,6 +878,12 @@ export class World {
 		});
 	}
 
+	/** Whether the competitor stands before a door of personal codes it has not passed (additive level, not waiting). */
+	awaitsCode(agent: CompetitorId): boolean {
+		const level = this.levelOf(agent);
+		return !this.isFinished(agent) && !this.#state(agent).held && this.#levelStates.get(level)?.puzzle.kind === "additive";
+	}
+
 	/** Whether the competitor has passed `level`: beyond it, or waiting at its door. */
 	hasPassed(agent: CompetitorId, level: number): boolean {
 		const state = this.#state(agent);

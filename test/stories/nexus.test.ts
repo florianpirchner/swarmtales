@@ -290,6 +290,21 @@ describe("nexus acts I and II in one run", () => {
 		expect(ring.events("notice").filter((notice) => notice.text.startsWith("STEWARD's table is open")).map((notice) => notice.to)).toEqual(["A01"]);
 	});
 
+	it("says plainly on every door of the wall that the city never confirms a received value (P25)", async () => {
+		for (const level of [8, 9, 10]) expect(levelOf(level).task).toContain("The city never confirms a value you received from another resident: only the door tests it");
+		const wall = createFixture({ level: 8, minutes: 1, script: () => ({ A01: [say()] }) });
+		await wall.run();
+		const status = wall.inputsOf("A01").find((input) => input.startsWith("[status]"));
+		expect(status).toContain("the city never confirms a value you received; only the door tests your code (a wrong one costs 8 points)");
+		// Residents see the minute, never the time left (v06).
+		expect(status).toMatch(/^\[status\] minute 0 · level 8 · /);
+		expect(status).not.toMatch(/left|of 1 /);
+		// Act I has no personal codes, so no such line.
+		const early = createFixture({ level: 7, minutes: 1, script: () => ({ A01: [say()] }) });
+		await early.run();
+		expect(early.inputsOf("A01").find((input) => input.startsWith("[status]"))).not.toContain("never confirms");
+	});
+
 	it("rejects agent counts that do not fit every level", () => {
 		expect(() => createFixture({ agents: 4, minutes: 1, script: () => ({}) })).toThrow(/cannot be split into teams of 3/);
 	});

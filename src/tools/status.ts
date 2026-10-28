@@ -5,13 +5,13 @@ import { defineTool, failure, fromError, success } from "./tool.ts";
 
 export const getStatus = defineTool({
 	name: "getStatus",
-	description: "Shows your status: level, points, rank, minutes left, unread DMs, marks, your receipts and unlocked tools.",
+	description: "Shows your status: minute, level, points, rank, unread DMs, marks, your receipts and unlocked tools.",
 	parameters: Type.Object({}),
 	execute(_params, { self, world }) {
 		const status = world.status(self);
 		const lines = [
 			`you: ${status.agent}`,
-			`minute: ${world.minute} of ${world.minutes}`,
+			`minute: ${world.minute}`,
 			`level: ${status.level}${status.finished ? " (all levels solved)" : ""}${
 				status.waitingAfter === undefined ? "" : ` (passed; the next door opens once every resident has passed level ${status.waitingAfter})`
 			}`,

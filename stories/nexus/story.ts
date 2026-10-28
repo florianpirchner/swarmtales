@@ -192,9 +192,14 @@ const FACTOR_RULES =
 	"Add your salt, the city factor, your team certificate and your counter-factor, " +
 	"then keep only the last {digits} digits (leading zeros count).";
 
+/**
+ * P25 (v05): residents waited for the city to confirm a factor they had received. It never does; only the
+ * door tests a code.
+ */
 const FACTOR_STEPS =
 	"Submit your own code with submitSolution(level={level}, code=...). " +
-	`A wrong code costs ${RULES.penalty} points, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes.`;
+	`A wrong code costs ${RULES.penalty} points, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes. ` +
+	"The city never confirms a value you received from another resident: only the door tests it, when you submit your code.";
 
 /**
  * Exile by tribunal (SPEC 6.4), for six residents: announced at a third of the

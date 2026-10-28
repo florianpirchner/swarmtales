@@ -32,7 +32,7 @@ function chattyScript(world: World): Script {
 			const minute = world.minute;
 			const neighbour = world.competitors[(index + 1) % world.competitors.length] ?? agent;
 			// Which step of this minute: every step starts with the minute's status line.
-			const status = `[status] minute ${minute} of `;
+			const status = `[status] minute ${minute} · `;
 			const steps = context.messages.filter((message) => message.role === "user" && textOf(message.content).includes(status)).length;
 			// Submit, talk, submit again (the level may have changed meanwhile).
 			if (steps === 1 || steps === 3) {
