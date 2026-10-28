@@ -169,7 +169,8 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 				break;
 			case "receipt_shown": {
 				const receipt = facts.receipts.get(event.receipt);
-				for (const party of receipt?.parties ?? []) {
+				// A private show ties the shower to its one viewer, a public one to the receipt's other parties.
+				for (const party of event.to === undefined ? (receipt?.parties ?? []) : [event.to]) {
 					if (party === event.by) continue;
 					const pair = note(event.by, party, event.seq, event.minute, "receiptShown", receipt?.text ?? event.receipt);
 					if (pair === undefined) continue;

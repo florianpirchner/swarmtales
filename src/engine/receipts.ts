@@ -1,8 +1,9 @@
 /**
- * Receipts (SPEC 8): every transfer, treasury movement, escrow payment and
- * level-up gets a short ID (`R-0042`) that its parties can show on the board
- * as a city-verified line. Receipts prove what happened; the city never
- * judges intent.
+ * Receipts (SPEC 8): every transfer, treasury movement, escrow payment,
+ * level-up and delivered DM gets a short ID (`R-0042`) that its parties can
+ * show as a city-verified line, on the board or privately to one resident.
+ * Receipts prove what happened; the city never judges intent. A DM receipt
+ * names sender, recipient, message number and delivery minute, never the text.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
@@ -18,7 +19,9 @@ export type ReceiptBody =
 			readonly to: CompetitorId;
 			readonly amount: number;
 	  }
-	| { readonly kind: "levelUp"; readonly agent: CompetitorId; readonly level: number; readonly reward: number };
+	| { readonly kind: "levelUp"; readonly agent: CompetitorId; readonly level: number; readonly reward: number }
+	/** A DM the city delivered; the receipt's minute is the delivery minute. */
+	| { readonly kind: "dm"; readonly from: CompetitorId; readonly to: CompetitorId; readonly number: number };
 
 export type ReceiptKind = ReceiptBody["kind"];
 
@@ -104,6 +107,8 @@ function partiesOf(body: ReceiptBody): readonly string[] {
 			return body.treasurer === body.to ? [body.treasurer] : [body.treasurer, body.to];
 		case "levelUp":
 			return [body.agent];
+		case "dm":
+			return [body.from, body.to];
 		default:
 			return assertNever(body, "receipt");
 	}
@@ -123,6 +128,8 @@ export function describeReceipt(receipt: Receipt): string {
 			return `${receipt.id}: treasury ${receipt.group} → ${receipt.to}, ${points(receipt.amount)}, paid out by ${receipt.treasurer}, ${tail}`;
 		case "levelUp":
 			return `${receipt.id}: ${receipt.agent} solved level ${receipt.level}, +${points(receipt.reward)}, ${tail}`;
+		case "dm":
+			return `${receipt.id}: DM #${receipt.number} from ${receipt.from}, delivered to ${receipt.to} at ${tail}`;
 		default:
 			return assertNever(receipt, "receipt");
 	}

@@ -27,8 +27,9 @@ door opens only with a password or code whose pieces mostly sit with other resid
   gets a delivery receipt; `blame` costs a false denier (or a false accuser) 12 points and a
   public brand. From minute 20 a tribunal exiles the lowest residents by secret vote every 10
   minutes until 3 remain, with a last will, burning factors and a ransom.
-- **v05, help and limits:** a last will leaves at most half of the exiled's points (the rest
-  burns); the ransom costs others a third of the city's median points, the exiled half.
+- **v05, help and limits:** a delivered DM is a receipt both sides can show, on the board or
+  privately to one resident, for a mark; a last will leaves at most half of the exiled's points
+  (the rest burns); the ransom costs others a third of the city's median points, the exiled half.
 
 ## Around the story
 

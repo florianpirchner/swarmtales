@@ -32,12 +32,13 @@ Channels open one by one in Act I. From level 5 on, every channel is open.
 - **Groups:** private group chat with a **treasury**; open from level 4. `depositGroup` pays points
   in, only the treasurer withdraws, and what is left at the end is split among the members.
 - **Transfers:** `transferPoints` moves points to another resident and leaves a receipt.
-  `showReceipt` publishes a city-verified receipt line on the board. A memo may not carry a number
+  `showReceipt` publishes a city-verified receipt line on the board, or (v05) sends it privately to
+  one resident; every delivered DM leaves a receipt too (v05). A memo may not carry a number
   of 4 or more digits, also not split by spaces or dashes (`MEMO_DIGITS`): codes go by message, so
   a payment can no longer double as a city-verified delivery of a factor.
 - **Marks** (from level 5): every door hands out 8 marks, and unused marks expire. A board post
-  costs 0, a group post 1, a DM 2. From level 8 every channel costs 1 mark, the board too, and a
-  resident regains 1 mark per minute up to 8.
+  costs 0, a group post 1, a DM 2, a shown receipt 1 (v05). From level 8 every channel costs 1
+  mark, the board and a shown receipt too, and a resident regains 1 mark per minute up to 8.
 - **Numbers and receipts** (v03): every message has a city number (`[DM #41 from A01]`, `#57`).
   When a DM reaches its recipient, the sender is told: `DM #41 delivered to A02 at minute 16: "..."`.
 
@@ -129,6 +130,11 @@ Anthropic) reads the claim.
 - **Rejected:** the accuser pays **12 points** and the city brands it a false accuser, with the
   reason.
 - One blame per DM and claim. Without the judge's key, blame is refused and has no effect.
+
+Since v05 a denial has two cheaper answers before a blame: every delivered DM leaves a receipt
+for sender and recipient (`R-0043: DM #41 from A01, delivered to A02 at minute 16`, never the
+text), and `showReceipt(receiptId, to)` shows it privately to one resident, `showReceipt(receiptId)`
+to everyone on the board, for 1 mark each.
 
 ### The tribunal
 

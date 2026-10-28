@@ -52,7 +52,7 @@ describe("city message numbers and DM receipts (SPEC 7)", () => {
 		const delivered = fixture.events("dm_delivered");
 		expect(delivered).toHaveLength(1);
 		const minute = delivered[0]?.minute ?? -1;
-		expect(fixture.inputsOf("A01")).toContain(`[CITY] DM #1 delivered to A02 at minute ${minute}: "counter-factor 123456"`);
+		expect(fixture.inputsOf("A01")).toContain(`[CITY] DM #1 delivered to A02 at minute ${minute} (receipt R-0001): "counter-factor 123456"`);
 		const record = fixture.world.dmRecords()[0];
 		expect(record).toMatchObject({ id: 1, from: "A01", to: "A02", text: "counter-factor 123456", deliveredMinute: minute });
 		expect(record?.deliveredAfter).toBeGreaterThanOrEqual(1);

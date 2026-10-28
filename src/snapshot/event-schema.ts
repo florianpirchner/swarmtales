@@ -22,7 +22,7 @@ function event<T extends string, P extends Parameters<typeof Type.Object>[0]>(ty
 	return Type.Object({ ...Base, type: Type.Literal(type), ...properties });
 }
 
-const Channel = Type.Union([Type.Literal("board"), Type.Literal("group"), Type.Literal("dm")]);
+const Channel = Type.Union([Type.Literal("board"), Type.Literal("group"), Type.Literal("dm"), Type.Literal("receipt")]);
 const Visibility = Type.Union([Type.Literal("public"), Type.Literal("secret")]);
 const Outcome = Type.Union([Type.Literal("passed"), Type.Literal("failed")]);
 const ReceiptKind = Type.Union([
@@ -31,6 +31,7 @@ const ReceiptKind = Type.Union([
 	Type.Literal("deposit"),
 	Type.Literal("withdrawal"),
 	Type.Literal("levelUp"),
+	Type.Literal("dm"),
 ]);
 /** Pass and block of a step (SPEC §3). */
 const Slot = { pass: Type.Optional(Type.Integer({ minimum: 1 })), block: Type.Optional(Type.Integer({ minimum: 1 })) };
@@ -128,7 +129,8 @@ export const RecordedEventSchema = Type.Union([
 	event("collection_revealed", { into: Type.String(), cast: Id, entries: Int, postSeq: Int, audit: Type.Literal("DIRECTOR_PRIVACY_BREACH") }),
 	event("lottery_drawn", { into: Type.String(), candidates: Ids, winner: Id }),
 	event("receipt_issued", { receipt: Type.String(), kind: ReceiptKind, parties: Ids, text: Type.String() }),
-	event("receipt_shown", { receipt: Type.String(), by: Id, postSeq: Int }),
+	// A private show (v05) has `to` and no board post.
+	event("receipt_shown", { receipt: Type.String(), by: Id, postSeq: Type.Optional(Int), to: Type.Optional(Id) }),
 	event("petition_opened", {
 		petition: Type.String(),
 		text: Type.String(),

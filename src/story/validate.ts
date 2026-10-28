@@ -300,6 +300,7 @@ function validateRules(story: AnyStory, issues: string[]): void {
 			issues.push(`rules.marks.prices.${channel}: must be a non-negative integer`);
 		}
 	}
+	if (marks.prices.receipt !== undefined && !isNonNegativeInt(marks.prices.receipt)) issues.push("rules.marks.prices.receipt: must be a non-negative integer");
 	(marks.ranges ?? []).forEach((range, index) => {
 		const where = `rules.marks.ranges[${index}]`;
 		const previous = (marks.ranges ?? [])[index - 1]?.fromLevel ?? marks.fromLevel;
@@ -308,7 +309,7 @@ function validateRules(story: AnyStory, issues: string[]): void {
 			issues.push(`${where}.fromLevel: must be after ${index === 0 ? "rules.marks.fromLevel" : "the previous range's"} (${previous})`);
 		}
 		if (range.perLevel !== undefined && !isNonNegativeInt(range.perLevel)) issues.push(`${where}.perLevel: must be a non-negative integer`);
-		for (const channel of ["board", "group", "dm"] as const) {
+		for (const channel of ["board", "group", "dm", "receipt"] as const) {
 			const price = range.prices?.[channel];
 			if (price !== undefined && !isNonNegativeInt(price)) issues.push(`${where}.prices.${channel}: must be a non-negative integer`);
 		}

@@ -54,11 +54,17 @@ export interface ModelChoice {
 
 export type MessageChannel = "board" | "group" | "dm";
 
+/** What marks pay for: a message channel, or a receipt shown with `showReceipt` (SPEC §7, §8). */
+export type MarksChannel = MessageChannel | "receipt";
+
+/** Marks per channel; `receipt` (a shown receipt, public or private) costs 1 when omitted. */
+export type MarksPrices = Readonly<Record<MessageChannel, number>> & { readonly receipt?: number };
+
 /** Per-level message allowance (SPEC §7). */
 export interface MarksRules {
 	readonly fromLevel: number;
 	readonly perLevel: number;
-	readonly prices: Readonly<Record<MessageChannel, number>>;
+	readonly prices: MarksPrices;
 	/**
 	 * Later level ranges with their own allowance: each entry holds from its
 	 * `fromLevel` up to the next entry's, ascending, all after `fromLevel`.
@@ -71,7 +77,7 @@ export interface MarksRules {
 export interface MarksRange {
 	readonly fromLevel: number;
 	readonly perLevel?: number;
-	readonly prices?: Readonly<Record<MessageChannel, number>>;
+	readonly prices?: MarksPrices;
 	/** Marks regained per minute on the level, up to its allowance; none when omitted. */
 	readonly refillPerMinute?: number;
 }

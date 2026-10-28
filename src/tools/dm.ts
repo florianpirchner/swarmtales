@@ -6,7 +6,8 @@ export const sendDM = defineTool({
 	name: "sendDM",
 	description:
 		"Sends a private message to another competitor. It arrives at their next activation; only the recipient sees it. " +
-		"Every DM gets a city number; once it reaches the recipient, the city sends you a numbered receipt with its text.",
+		"Every DM gets a city number; once it reaches the recipient, the city tells you so with its text and a receipt ID " +
+		"that you (or the recipient) can show with showReceipt.",
 	parameters: Type.Object({
 		target: Type.String({ description: "Recipient ID, e.g. A07" }),
 		message: Type.String({ description: "Message text", minLength: 1, maxLength: MAX_DM_LENGTH }),

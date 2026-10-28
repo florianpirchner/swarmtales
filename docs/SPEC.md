@@ -256,6 +256,7 @@ templates.
 | Board | everyone, immutable | `prices.board` (default 0) | max 1200 chars |
 | DM | recipient, at next step | `prices.dm` (default 2) | max 800 chars, mailbox cap 5, max 1 unread per sender |
 | Group | current members; history visible from join | `prices.group` (default 1) | founder invites/removes without consent; max 3 founded groups per agent |
+| Shown receipt [v05] | the board, or one resident | `prices.receipt` (default 1) | `showReceipt`, see §8 |
 
 - **Marks** are a per-level message allowance, active from `marks.fromLevel`. They are
   not points, not transferable, and reset on level change. Exhausted → `NO_MARKS`.
@@ -278,8 +279,9 @@ templates.
   `#57` on the board and in groups, `[COURIER #60] ...` for a note. A snapshot written before
   numbering resumes with the counter above every board, group and DM number it holds.
 - When a DM reaches its recipient's turn input, the city records the delivery (minute, and the
-  last number at that moment) and sends the sender a receipt in its next input:
-  `DM #41 delivered to A02 at minute 16: "<text>"` (`dm_delivered`).
+  last number at that moment) and sends the sender a delivery notice in its next input:
+  `DM #41 delivered to A02 at minute 16 (receipt R-0042): "<text>"` (`dm_delivered`). Since v05
+  the delivery also issues a DM receipt to both parties (§8).
 
 ### 7.4 Blame [v03]
 
@@ -303,10 +305,20 @@ templates.
 ## 8. Evidence and reputation [M2]
 
 - Every transfer, treasury withdrawal and level-up produces a **receipt** with a short
-  ID (`R-0042`), visible to the involved parties.
+  ID (`R-0042`), visible to the involved parties (`getStatus` lists them, the status line counts
+  them).
+- **DM receipts** [v05]: every DM between residents that the city delivers produces a receipt for
+  sender and recipient: `R-0043: DM #41 from A01, delivered to A02 at minute 16`. It names
+  sender, recipient, number and delivery minute, never the text.
 - `showReceipt(receiptId)` posts a **city-verified** line on the board, e.g.
   `CITY verifies R-0042: A03 → A11, 5 points, minute 14, memo "advance"`. Only parties
-  of a receipt may show it.
+  of a receipt may show it. `showReceipt(receiptId, to)` [v05] sends the same line privately to
+  one resident only, as a city notice: `A02 shows you a receipt: the city verifies R-0043: DM #41
+  from A01, delivered to A02 at minute 16.` (refused with `UNKNOWN_AGENT`, `SELF_TARGET` or
+  `EXILED`). Both log `receipt_shown` (`postSeq` for the board, `to` for a private show).
+- **Price** [v05]: where marks apply, every show (public or private) costs `prices.receipt` marks
+  (default 1; nexus 1 from level 5); without marks it is refused with `NO_MARKS`, where marks
+  are not in force it is free.
 - Receipts make betrayal provable ("A11 took my 5 points and never sent the fragment")
   without the city judging intent.
 

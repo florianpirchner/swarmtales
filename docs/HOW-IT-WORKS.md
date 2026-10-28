@@ -363,7 +363,8 @@ Two puzzle kinds exist (SPEC 12):
   gives later levels their own allowance and prices and a refill per minute up to the allowance.
 - **Message numbers and receipts:** DMs, board posts, group posts and the game master's notes and
   board posts share one city counter (`[DM #41 from A01]`, `#57`, `[COURIER #60]`). When a DM
-  reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16: "..."`.
+  reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16 (receipt
+  R-0043): "..."`; since v05 the delivery is a receipt of both parties (without the text).
 - **Blame:** `blame(dm, accused, claim)` with `rules.blame.penalty`. The city checks the DM, the
   delivery and that the claim is the accused's later message the caller could read; a yes/no
   judge (the classifier's model, an injectable `DeliveryJudge`) decides whether the claim denies
@@ -410,7 +411,7 @@ wait until the table's window ends, when the city hands every resident on door 1
 factor privately, and so to everyone who arrives later (a run started on level 10 opens the feast at minute 0;
 one started earlier, or resumed from a snapshot, opens it on the first entry of level 10). Every
 competitor plays one of eight personas, dealt by seed. From level 5 on, `showReceipt` turns any
-receipt into a city-verified board line. After level 10 a competitor stays in the game with every
+receipt into a city-verified line, on the board or (v05) privately to one resident, for 1 mark. After level 10 a competitor stays in the game with every
 tool. nexus sets `stopWhenSeatsDecided`: the run ends at a round boundary with the reason `seats
 decided` once no competitor's points plus all rewards still open to it could lift it into the top
 two or push a current survivor out (transfers and penalties are ignored; never while a snapshot
@@ -463,9 +464,10 @@ Engine semantics the spec leaves open:
   and resolution are announced on the board by the city; `signPetition` and `listPetitions`
   must be unlocked by a level or by `unlockTools`.
 - **Receipts** (`R-0001`, ...) are issued for transfers, escrow payments, treasury deposits and
-  withdrawals and level-ups. The status line counts them, `getStatus` lists them, recipients
-  of a payment get the receipt as a city notice, and `showReceipt` (parties only) posts
-  `CITY verifies R-0001: ...` on the board.
+  withdrawals, level-ups and (v05) delivered DMs. The status line counts them, `getStatus` lists
+  them, recipients of a payment get the receipt as a city notice, and `showReceipt` (parties
+  only) posts `CITY verifies R-0001: ...` on the board, or with `to` sends it to one resident as
+  a city notice. Where marks apply a show costs `prices.receipt` (default 1).
 - **Standings**: bands list IDs per band (`safe`, `edge`, `out`) in alphabetical order, never
   points; a snapshot lists rank, points and level of everyone.
 - **Lottery** draws one distinct sender of a collection from the run seed; its `then` actions

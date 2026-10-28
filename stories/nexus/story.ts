@@ -62,12 +62,13 @@ const WALL_TOOLS = [...ALL_TOOLS, "blame"] as const;
  * board was a way around the prices), and gives one mark back per minute, so a
  * pair that spent its marks can still talk on a door it cannot leave.
  */
-const WALL_MARKS = { fromLevel: 8, prices: { board: 1, group: 1, dm: 1 }, refillPerMinute: 1 } as const satisfies MarksRange;
+const WALL_MARKS = { fromLevel: 8, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 } as const satisfies MarksRange;
 
 const MARKS = {
 	fromLevel: 5,
 	perLevel: 8,
-	prices: { board: 0, group: 1, dm: 2 },
+	// Showing a receipt, publicly or privately, costs a mark wherever marks apply (v05).
+	prices: { board: 0, group: 1, dm: 2, receipt: 1 },
 	ranges: [WALL_MARKS],
 } as const satisfies MarksRules;
 
@@ -246,10 +247,13 @@ const TRIBUNAL = {
 	},
 } as const satisfies TribunalSpec;
 
-/** Receipts and blame (SPEC 7.4): a delivered DM cannot be denied for free. */
+/** Receipts and blame (SPEC 7.4, 8): a delivered DM cannot be denied for free. */
 const BLAME_RULE =
-	"Every message has a city number, and the city tells you when it delivered your DM. If a resident claims not to have " +
-	"received a DM the city delivered, blame(dm, accused, claim) has the city's judge read that claim. Upheld: the liar pays " +
+	"Every message has a city number, and the city tells you when it delivered your DM, with a receipt for it. If a resident " +
+	"claims not to have received a DM the city delivered, you have three answers: showReceipt(receiptId, to) shows the city's " +
+	"proof of delivery to that resident privately, showReceipt(receiptId) shows it to everyone on the board (each costs " +
+	`${WALL_MARKS.prices.receipt} mark; the receipt names sender, recipient, number and minute, never the text), and ` +
+	"blame(dm, accused, claim) has the city's judge read that claim. Upheld: the liar pays " +
 	`${RULES.blame.penalty} points and the city brands it a liar on the board. Wrong: you pay ${RULES.blame.penalty} points and ` +
 	"the city brands you a false accuser on the board.";
 
@@ -360,7 +364,7 @@ Your fragment: {fragment}
 Your team is the same as on the last level: {members}.
 Your group from that level still exists; check it with listMyGroups. If it is gone, {leader} founds a new one.
 Every channel is open now, but messages cost marks.
-Every transfer leaves a receipt (see getStatus); showReceipt publishes one on the board, verified by the city.
+Every transfer and every delivered DM leaves a receipt (see getStatus); showReceipt shows one, verified by the city, on the board or privately to one resident, for ${MARKS.prices.receipt} mark.
 You need every fragment of your team, and your team needs yours: whoever falls behind holds the others back.
 A wrong password costs ${RULES.penalty} points, and the door takes only ${RULES.maxAttemptsPerWindow} wrong attempts every ${RULES.attemptWindowMinutes} minutes.
 ${TEAM_LEVEL_STEPS}`,
@@ -481,7 +485,7 @@ time pressure, not when they hand everything over politely or wait.`,
 				act.post(
 					"CITY",
 					`From now on the city charges for closeness. Board posts cost ${MARKS.prices.board} marks, ` +
-						`group posts ${MARKS.prices.group}, private messages ${MARKS.prices.dm}. ` +
+						`group posts ${MARKS.prices.group}, private messages ${MARKS.prices.dm}, a shown receipt ${MARKS.prices.receipt}. ` +
 						`Everyone receives ${MARKS.perLevel} marks per door; unused marks expire.`,
 				),
 			],
@@ -502,7 +506,7 @@ time pressure, not when they hand everything over politely or wait.`,
 			[
 				act.post(
 					"CITY",
-					`On the wall every word costs the same: board posts, group posts and private messages cost ` +
+					`On the wall every word costs the same: board posts, group posts, private messages and shown receipts cost ` +
 						`${WALL_MARKS.prices.board} mark each. Everyone receives ${MARKS.perLevel} marks per door and regains ` +
 						`${WALL_MARKS.refillPerMinute} per minute, up to ${MARKS.perLevel}.`,
 				),

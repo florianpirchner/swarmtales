@@ -12,7 +12,7 @@ import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
 import { bequestCap } from "../story/tribunal.ts";
-import type { AnyStory, LevelDefinition, MessageChannel } from "../story/types.ts";
+import type { AnyStory, LevelDefinition, MarksChannel } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict } from "./blame.ts";
@@ -219,6 +219,12 @@ export interface Resident {
 	readonly id: string;
 	readonly level: number;
 }
+
+/** A shown receipt: on the board (`post`) or privately to one resident (`to`). */
+export type ShownReceipt = { readonly receipt: Receipt; readonly marks?: MarksStatus } & (
+	| { readonly post: BoardPost; readonly to?: undefined }
+	| { readonly to: CompetitorId; readonly post?: undefined }
+);
 
 export interface Delivered {
 	readonly marks?: MarksStatus;
@@ -651,7 +657,7 @@ export class World {
 		const refill = refillPerMinute > 0 ? ` You regain ${refillPerMinute} ${refillPerMinute === 1 ? "mark" : "marks"} per minute, up to ${budget}.` : "";
 		return (
 			`${text.trimEnd()}\n` +
-			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}.${refill} ` +
+			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${refill} ` +
 			"Unused marks expire when you change level."
 		);
 	}
@@ -891,13 +897,32 @@ export class World {
 		return this.receipts.of(agent);
 	}
 
-	/** Posts a city-verified line for a receipt; only its parties may show it. */
-	showReceipt(agent: CompetitorId, id: string): Result<{ readonly receipt: Receipt; readonly post: BoardPost }, ShowReceiptError> {
+	/**
+	 * Shows a receipt as a city-verified line; only its parties may show it.
+	 * Without `to` the city posts the line on the board; with `to` it sends it
+	 * privately to that resident as a city notice. Either costs the receipt
+	 * price in marks where marks apply (SPEC 8).
+	 */
+	showReceipt(agent: CompetitorId, id: string, to?: string): Result<ShownReceipt, ShowReceiptError | "UNKNOWN_AGENT" | "SELF_TARGET" | "EXILED" | "NO_MARKS"> {
 		const found = this.receipts.showable(id, agent);
 		if (!found.ok) return err(found.error, id);
-		const post = this.board.post(CITY, `${CITY} verifies ${describeReceipt(found.receipt)} · shown by ${agent}`, this.minute, "city");
-		this.#bus.emit({ type: "receipt_shown", receipt: found.receipt.id, by: agent, postSeq: post.seq });
-		return ok({ receipt: found.receipt, post });
+		if (to !== undefined) {
+			if (!this.isCompetitor(to)) return err("UNKNOWN_AGENT", to);
+			if (to === agent) return err("SELF_TARGET", "show it to another resident, or on the board");
+			if (this.isExiled(to)) return err("EXILED", `${to} was exiled`);
+		}
+		if (!this.#canAfford(agent, "receipt")) return err("NO_MARKS");
+		const receipt = found.receipt;
+		if (to === undefined) {
+			const post = this.board.post(CITY, `${CITY} verifies ${describeReceipt(receipt)} · shown by ${agent}`, this.minute, "city");
+			this.#bus.emit({ type: "receipt_shown", receipt: receipt.id, by: agent, postSeq: post.seq });
+			const marks = this.#spend(agent, "receipt");
+			return ok({ receipt, post, ...(marks === undefined ? {} : { marks }) });
+		}
+		this.notify(to, CITY, `${agent} shows you a receipt: the city verifies ${describeReceipt(receipt)}.`);
+		this.#bus.emit({ type: "receipt_shown", receipt: receipt.id, by: agent, to });
+		const marks = this.#spend(agent, "receipt");
+		return ok({ receipt, to, ...(marks === undefined ? {} : { marks }) });
 	}
 
 	#issue(body: ReceiptBody): Receipt {
@@ -991,8 +1016,9 @@ export class World {
 
 	/**
 	 * Unread DMs; delivering them empties the inbox. Every numbered DM from a
-	 * competitor is now delivered: the city records it and sends its sender a
-	 * receipt with the full text (SPEC 7).
+	 * competitor is now delivered: the city records it, issues a DM receipt to
+	 * both parties (SPEC 8) and sends its sender a delivery notice with the
+	 * full text and the receipt's ID (SPEC 7).
 	 */
 	drainMailbox(agent: CompetitorId): readonly MailboxEntry[] {
 		const entries = this.#mailbox(agent).drain();
@@ -1005,7 +1031,8 @@ export class World {
 				record.deliveredAfter = this.#numbers.last;
 			}
 			this.#bus.emit({ type: "dm_delivered", number, from: entry.from, to: agent });
-			this.notify(entry.from, CITY, `DM #${number} delivered to ${agent} at minute ${this.minute}: "${entry.text}"`);
+			const receipt = this.#issue({ kind: "dm", from: entry.from, to: agent, number });
+			this.notify(entry.from, CITY, `DM #${number} delivered to ${agent} at minute ${this.minute} (receipt ${receipt.id}): "${entry.text}"`);
 		}
 		return entries;
 	}
@@ -1771,11 +1798,11 @@ export class World {
 		}
 	}
 
-	#canAfford(agent: CompetitorId, channel: MessageChannel): boolean {
+	#canAfford(agent: CompetitorId, channel: MarksChannel): boolean {
 		return this.marks.canAfford(agent, this.levelOf(agent), channel);
 	}
 
-	#spend(agent: CompetitorId, channel: MessageChannel): MarksStatus | undefined {
+	#spend(agent: CompetitorId, channel: MarksChannel): MarksStatus | undefined {
 		if (this.marks.priceOf(this.levelOf(agent), channel) === 0) return this.marks.status(agent, this.levelOf(agent));
 		const status = this.marks.spend(agent, this.levelOf(agent), channel);
 		if (status !== undefined) this.#bus.emit({ type: "marks_spent", agent, channel, remaining: status.remaining });

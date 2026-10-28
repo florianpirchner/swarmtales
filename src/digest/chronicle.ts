@@ -265,7 +265,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "treasury_withdrawal":
 			return { text: `VERIFIED ${event.treasurer} paid ${event.amount} points from ${event.group} to ${event.to}`, priority: 1 };
 		case "receipt_shown":
-			return { text: `VERIFIED ${event.by} showed receipt ${event.receipt}`, priority: 1 };
+			return { text: `VERIFIED ${event.by} showed receipt ${event.receipt}${event.to === undefined ? "" : ` privately to ${event.to}`}`, priority: 1 };
 		case "factor_revealed":
 			return {
 				text: `VERIFIED the city released the level ${event.level} city factor ${event.target === "board" ? "on the board" : `privately to ${event.agents.join(", ")}`}`,
