@@ -175,7 +175,8 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 
 	const lastLevel = metadata.story?.levels?.reduce((highest, level) => Math.max(highest, level.number), 0);
 	const standingsBefore = ofType(prefix, "round_end").at(-1)?.standings ?? [];
-	const finalStandings = ofType(all, "round_end").at(-1)?.standings ?? [];
+	// The run's end carries the final ranking: an exile at the last tick comes after the last round_end.
+	const finalStandings = runEnd?.standings ?? ofType(all, "round_end").at(-1)?.standings ?? [];
 	const agentIds = profiles.length > 0 ? profiles.map((profile) => profile.agent) : runStart !== undefined ? [...runStart.agents] : finalStandings.map((row) => row.agent);
 	const survivors = metadata.story?.run?.survivors;
 	const levelUps = ofType(events, "level_up");

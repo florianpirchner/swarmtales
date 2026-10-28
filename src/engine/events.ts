@@ -505,7 +505,8 @@ export type ArenaEvent =
 	  }
 	| { readonly type: "interpretation_error"; readonly round: number; readonly message: string }
 	| { readonly type: "treasury_settled"; readonly group: string; readonly payouts: Readonly<Record<string, number>> }
-	| { readonly type: "run_end"; readonly reason?: string };
+	/** `standings`: the final ranking after the last tick (an exile at the end can follow the last `round_end`). */
+	| { readonly type: "run_end"; readonly reason?: string; readonly standings?: readonly StandingRow[] };
 
 export type ArenaEventType = ArenaEvent["type"];
 

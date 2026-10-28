@@ -214,7 +214,7 @@ export class Arena {
 		world.closePetitions();
 		world.settleTreasuries();
 		this.#finished = true;
-		bus.emit({ type: "run_end", ...(reason === undefined ? {} : { reason }) });
+		bus.emit({ type: "run_end", ...(reason === undefined ? {} : { reason }), standings: this.#standings(new Set()) });
 	}
 
 	/**
