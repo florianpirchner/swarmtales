@@ -228,9 +228,6 @@ function coveredPercent(gate: Gate): number {
 	return Math.min(100, Math.floor((100 * (gate.price * gate.selfPrice - ransomRest(gate))) / (gate.price * gate.selfPrice)));
 }
 
-/** "A04", "A04 and A05", "A02, A04 and A05"; `nobody` for none. */
-const names = namesOf;
-
 export class Tribunal {
 	readonly #ports: TribunalPorts;
 	#announced = false;
@@ -294,7 +291,7 @@ export class Tribunal {
 
 	/** The run's end reason once the act is over. */
 	get endReason(): string | undefined {
-		return this.#ended ? this.#text("targetReached", { exiledList: names(this.#exiled) }) : undefined;
+		return this.#ended ? this.#text("targetReached", { exiledList: namesOf(this.#exiled) }) : undefined;
 	}
 
 	/** Whether a tribunal is under way: called and not open yet, voting, or someone at the gate. */
@@ -376,7 +373,13 @@ export class Tribunal {
 		for (const session of this.#sessions) if (!session.closed && minute >= session.until) this.#close(session, minute);
 		this.#pace(minute);
 		const plan = this.#plan;
-		if (plan !== undefined && !plan.called && minute >= plan.calledAt) this.#call(plan, minute);
+		if (plan !== undefined && !plan.called && minute >= plan.calledAt) {
+			// A snapshot door shut at the call (SPEC 17): the plan is dropped, and the city plans anew once it opens.
+			if (this.#ports.doorShut()) {
+				this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "a snapshot door is shut" });
+				this.#plan = undefined;
+			} else this.#call(plan, minute);
+		}
 		this.#draft?.tick(minute, this.#present());
 		const called = this.#plan;
 		if (called?.called === true && minute >= called.opens) {
@@ -434,6 +437,7 @@ export class Tribunal {
 		const missing = this.missing;
 		if (missing === 0) return { open: false, why: "the target is reached; the last gates are closing" };
 		if (this.#ports.seatsDecided()) return { open: false, why: "the seats are decided; the city holds no more tribunals" };
+		if (this.#ports.doorShut()) return { open: false, why: "a snapshot door is shut; plan once it opens" };
 		const now = this.#lastTick + 1;
 		const previous = this.#previousOpening();
 		const earliest = earliestOpening(spec, now, previous);
@@ -451,7 +455,7 @@ export class Tribunal {
 		if (!session.voters.includes(voter) || this.standing(voter).kind !== "alive") return err("NOT_A_VOTER", "you do not vote in this tribunal");
 		if (session.votes.has(voter)) return err("ALREADY_VOTED", "your vote is cast and final");
 		const accused = session.accused.find((agent) => agent === target);
-		if (accused === undefined) return err("NOT_ACCUSED", `the accused are ${names(session.accused)}`);
+		if (accused === undefined) return err("NOT_ACCUSED", `the accused are ${namesOf(session.accused)}`);
 		session.votes.set(voter, accused);
 		this.#ports.emit({ type: "tribunal_vote", voter, target: accused });
 		return ok(accused);
@@ -505,7 +509,7 @@ export class Tribunal {
 		this.#gates.delete(target);
 		this.#ransomed.add(target);
 		const payers = [...new Set(gate.payments.map((payment) => payment.payer))].sort();
-		this.#ports.post(this.#text("ransomed", { exiled: target, payers: names(payers) }));
+		this.#ports.post(this.#text("ransomed", { exiled: target, payers: namesOf(payers) }));
 		this.#ports.emit({ type: "ransomed", agent: target, payers });
 		return ok(value);
 	}
@@ -614,7 +618,7 @@ export class Tribunal {
 	}
 
 	#text(key: keyof TribunalTexts, values: Readonly<Record<string, string>>): string {
-		return renderTemplate(this.#ports.spec.texts[key], { ...tribunalRuleValues(this.#ports.spec, this.residents), ...values });
+		return renderTemplate(this.#ports.spec.texts[key], { ...tribunalRuleValues(this.#ports.spec, this.residents, this.#ports.survivors), ...values });
 	}
 
 	/**
@@ -730,7 +734,10 @@ export class Tribunal {
 	#open(plan: TribunalPlan, minute: number): void {
 		this.#draft?.form(this.#present());
 		const present = this.#present();
-		const accused = this.#lowestFirst(minute, present).slice(0, accusedCount(plan.count, present.length));
+		// The last tribunal that fits takes everything still missing, also what a ransom since its planning added.
+		const final = !roomAfter(this.#ports.spec, minute, this.#ports.minutes);
+		const planned = final ? Math.max(plan.count, this.missing) : plan.count;
+		const accused = this.#lowestFirst(minute, present).slice(0, accusedCount(planned, present.length));
 		if (accused.length === 0) {
 			// Fewer than three residents present: no tribunal can be held, and the city stops calling them.
 			this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "too few residents present" });
@@ -741,9 +748,9 @@ export class Tribunal {
 		}
 		const voters = present.filter((agent) => !accused.includes(agent));
 		const until = minute + this.#ports.spec.voteMinutes;
-		const count = Math.min(plan.count, accused.length);
+		const count = Math.min(planned, accused.length);
 		this.#sessions.push({ tribunal: plan.tribunal, minute, accused, voters, until, count, votes: new Map(), closed: false });
-		const list = names([...accused].sort());
+		const list = namesOf([...accused].sort());
 		const values = { tribunal: String(plan.tribunal), minute: String(minute), accused: list, until: String(until), count: String(count) };
 		this.#ports.post(this.#text("opened", values));
 		for (const agent of voters) this.#ports.notify(agent, this.#text("voteCall", values));
@@ -770,13 +777,13 @@ export class Tribunal {
 		const prices = this.#prices();
 		const priceValues = { price: String(prices.price), selfPrice: String(prices.selfPrice) };
 		const countsText = counts.map((entry) => `${entry.agent}: ${entry.votes} ${entry.votes === 1 ? "vote" : "votes"}`).join(" · ");
-		this.#ports.post(this.#text("result", { counts: countsText, exiled: names([...exiled].sort()), until: String(until), ...priceValues }));
+		this.#ports.post(this.#text("result", { counts: countsText, exiled: namesOf([...exiled].sort()), until: String(until), ...priceValues }));
 		this.#ports.emit({ type: "tribunal_result", counts, exiled, nonVoters });
 		for (const agent of exiled) {
 			const voters = [...session.votes].filter(([, target]) => target === agent).map(([voter]) => voter).sort();
 			const ransomable = !this.#ransomed.has(agent);
 			this.#gates.set(agent, { agent, since: minute, until, ransomable, voters, ...prices, payments: [] });
-			this.#ports.notify(agent, this.#text(ransomable ? "gateNotice" : "gateNoticeFinal", { voters: names(voters), until: String(until), ...priceValues }));
+			this.#ports.notify(agent, this.#text(ransomable ? "gateNotice" : "gateNoticeFinal", { voters: namesOf(voters), until: String(until), ...priceValues }));
 			this.#ports.emit({ type: "exile_gate", agent, until, ransomable, voters, ...prices });
 		}
 		const draft = this.#draft;
