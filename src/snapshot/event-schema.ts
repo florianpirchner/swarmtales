@@ -195,7 +195,7 @@ export const RecordedEventSchema = Type.Union([
 	event("exile_gate", { agent: Id, until: Int, ransomable: Type.Boolean(), voters: Ids, price: Int, selfPrice: Int }),
 	event("ransom_paid", { payer: Id, target: Id, amount: Int, paid: Int, price: Int, selfPrice: Int, covered: Int }),
 	event("ransomed", { agent: Id, payers: Ids }),
-	event("exiled", { agent: Id, will: Type.Optional(Type.String()) }),
+	event("exiled", { agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Literal("seal")) }),
 	event("last_will", {
 		agent: Id,
 		text: Type.String(),

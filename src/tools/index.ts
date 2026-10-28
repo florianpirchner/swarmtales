@@ -17,6 +17,7 @@ import {
 import { chooseName } from "./names.ts";
 import { listPetitions, signPetition } from "./petitions.ts";
 import { showReceipt } from "./receipts.ts";
+import { bid, permaDeath } from "./seal.ts";
 import { getProblem, getStatus, listAgents, submitSolution } from "./status.ts";
 import type { ArenaTool, BoundTool, ToolContext } from "./tool.ts";
 import { transferPoints } from "./transfer.ts";
@@ -56,6 +57,8 @@ export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
 	join,
 	refuse,
 	chooseName,
+	bid,
+	permaDeath,
 };
 
 export const allTools: readonly ArenaTool[] = TOOL_NAMES.map((name) => TOOLS[name]);

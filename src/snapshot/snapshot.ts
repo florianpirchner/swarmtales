@@ -21,7 +21,7 @@ import type { GamemasterSnapshot } from "../gamemaster/gamemaster.ts";
 import type { InterpreterSnapshot } from "../interpret/interpreter.ts";
 import { STATEMENT_SOURCES } from "../interpret/labels.ts";
 import { TOOL_NAMES } from "../tools/catalog.ts";
-import { FactorHoldingSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
+import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
 
 export const SNAPSHOT_FORMAT = "agent-arena-snapshot";
@@ -344,6 +344,38 @@ const WorldSchema = Type.Object({
 	levels: Type.Array(LevelSchema),
 	// Since v09: wrong codes and lost blames per resident in the current act.
 	offences: Type.Optional(Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }))),
+	// Since v09: character cores (permanent), secret goals per act, the black seal, acts that are over.
+	cores: Type.Optional(Type.Array(Type.Object({ agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema) }))),
+	goals: Type.Optional(
+		Type.Object({
+			acts: Type.Array(
+				Type.Object({
+					act: Int,
+					goals: Type.Array(Type.Object({ agent: Id, goal: GoalSchema })),
+					resolved: Type.Boolean(),
+					leads: Type.Array(Type.Object({ agent: Id, count: Int })),
+					heirs: Ids,
+					voided: Ids,
+				}),
+			),
+		}),
+	),
+	seal: Type.Optional(
+		Type.Object({
+			actStart: Int,
+			seals: Type.Array(
+				Type.Object({
+					seal: Int,
+					opens: Int,
+					until: Int,
+					bids: Type.Array(Type.Object({ agent: Id, points: Int })),
+					state: Type.Union([Type.Literal("pending"), Type.Literal("open"), Type.Literal("held"), Type.Literal("used"), Type.Literal("gone")]),
+					holder: Type.Optional(Id),
+				}),
+			),
+		}),
+	),
+	endedActs: Type.Optional(Type.Array(Int)),
 });
 
 const RunSnapshotSchema = Type.Object({

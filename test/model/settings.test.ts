@@ -68,6 +68,12 @@ describe("model selection through the provider registry", () => {
 		expect(binding.requestDefaults).toBeUndefined();
 	});
 
+	it("binds Claude Sonnet for the game master by its alias (v09)", () => {
+		expect(resolveModelSettings({ provider: "anthropic", modelId: "sonnet" }, {}, defaults, registry)).toEqual({ provider: "anthropic", modelId: "claude-sonnet-5-5" });
+		const binding = createModelSource({ provider: "anthropic", modelId: "claude-sonnet-5-5" }, { registry }).bind("GM", limits);
+		expect(binding.model).toMatchObject({ id: "claude-sonnet-5-5", provider: "anthropic", api: "anthropic-messages" });
+	});
+
 	it("accepts a self-hosted OpenAI-compatible provider", () => {
 		const custom = createProviderRegistry([
 			customProviderSpec({ id: "my-gateway", label: "My gateway", baseUrl: "https://gateway.example/v1", modelIds: ["arena-large"], apiKeyEnv: ["MY_GATEWAY_KEY"] }),

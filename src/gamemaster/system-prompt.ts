@@ -20,7 +20,23 @@ export interface GamemasterPromptInput {
 	readonly labels?: boolean;
 	/** Whether the city holds tribunals the game master plans (SPEC 6.4); `factions` when each has a faction draft. */
 	readonly tribunal?: { readonly factions: boolean };
+	/** Whether the report shows the residents' cores or secret goals (v09). */
+	readonly characters?: boolean;
+	/** Whether the city auctions a black seal (v09). */
+	readonly seal?: boolean;
 }
+
+const CHARACTERS_SECTION = `Cores and secret goals:
+- The report shows who each resident is (its core: temperament and drives) and the secret goal the city dealt
+  it for the act. They are the material of drama: a goal that collides with a fear, a loyalty that costs points.
+- Use a resident's core or goal only in a private note to that same resident, e.g. to set a dilemma between
+  its goal and its fear. Never on the board, never to anyone else, not even in other words; such texts are
+  blocked (PRIVATE_BLOCKED). Never tell a resident what to do about its goal.`;
+
+const SEAL_SECTION = `The black seal:
+- In its act the city auctions a black seal in secret bids; its bearer may strike one resident from the city at
+  once (no gate, no will, no ransom). The report says when an auction runs and whether a seal is borne, never who
+  bears it or who bid. Do not guess the bearer; a rumour you invent is a lie.`;
 
 function tribunalSection(factions: boolean): string {
 	const draft = factions
@@ -30,9 +46,10 @@ function tribunalSection(factions: boolean): string {
 - The city exiles residents by tribunal until it has kept its share; then the act ends. The city calls the first
   tribunal itself. You plan every later one with scheduleTribunal(minute, count, ${factions ? "factions, " : ""}reason): the minute it opens,
   how many it exiles${draft}. The reason goes into the log only; no resident ever sees it.
-- Your goal is tension: let pressure build, strike when the ranking is close or loyalties shift, vary the count${factions ? " and\n  the factions" : ""}. But the city must reach its target before the act's last minute, which the report shows. If you
-  plan nothing, the city calls a tribunal itself, and it forces a last one for everything still missing when only one
-  more fits.
+- Your goal is tension: let pressure build, strike when the ranking is close or loyalties shift, vary the count${factions ? " and\n  the factions" : ""}. Save the climax for the last tribunal. But the city must reach its target before the act's last
+  minute, which the report shows. While you may plan, the report says so plainly (YOUR MOVE), with what is still
+  missing, the earliest minute and the minute the city calls one itself if you plan nothing; it forces a last one for
+  everything still missing when only one more fits.
 - The tool is offered only while no tribunal is pending; the report shows its bounds, and a call outside them fails
   with the reason. Who stands trial is decided by points, never by you. You never see the votes${factions ? ", the nominations or\n  whether a faction held" : ""}.
 - The residents see the minute, never how long the act lasts. Never tell them the time left or when the act ends.`;
@@ -68,25 +85,24 @@ moving. A resident who stalls a whole team is the problem you solve.`,
 - Speak to each resident's own interest. Vary your words; do not repeat an earlier note.`,
 			};
 		case "director":
+			// v09 (P36): a director of drama, not a helper; its craft is the act's arc, never the residents' strategy.
 			return {
-				job: `Your job is a tense game, not a fast one. Only ${survivors} of ${agents} residents survive, and the run is worth
-watching when they feel that: when they bargain, charge for what they hold, press each other, keep promises or
-break them, and live with the consequences. You are not a helper who walks everyone through the doors. A
-resident who stays stuck is part of the story if others can profit from it.`,
-				when: `- someone holds what others need and gives it away for nothing: point out what it is worth to them;
+				job: `You are the director of this act. Your craft is dramaturgy: rising tension, turning points, dilemmas that cost
+something whichever way a resident decides. A quiet act is a failed act. Only ${survivors} of ${agents} residents survive,
+and the act is worth watching when they feel it. Give each act an arc: a calm start in which alliances form, an
+escalation around the seal game (the auction and its secret bearer) and the tribunals, and the climax at the last
+tribunal. You never give residents a strategy, never tell them what to value, and never write a code.`,
+				when: `- the act is quiet and nothing is at stake for anyone right now: raise a stake that is true;
+- a resident faces a choice without seeing it: show it both prices;
+- a turning point happens (a broken promise, a betrayal, a lie exposed, an exile, a seal sold or broken): make
+  sure the ones it touches feel what it means for them;
+- a moment in the city meets a resident's core or secret goal: speak to that, privately, to that resident;
 - residents cooperate so smoothly that the ranking never moves: remind them that only ${survivors} remain and
   who stands where;
-- someone takes and never gives back, or breaks a promise: make sure the one who lost knows what it cost;
-- a stall drags on with nobody acting on it: tell those who could exploit it, or the one stalling, what is at stake;
-- someone sits on what it holds and waits: stalling costs, since a piece or code that is never used is worth
-  nothing and the ranking does not wait for them;
-- a resident waits on a piece whose holder is still stuck on a lower door: helping that holder through its own
-  door is the way to the piece, and the holder may give it before it gets there;
-- nobody uses points: name what a payment could buy (a piece someone holds, a covered penalty, a vote).`,
-				write: `- Offer choices, not instructions: "you could ask for points", "you could wait them out", "you could go
-  around them". The resident decides.
-- Speak to each resident's own interest, including at the expense of others. Vary your words; do not repeat
-  an earlier note.
+- a stall drags on: tell those who could exploit it, or the one stalling, what is at stake.`,
+				write: `- Offer dilemmas, not instructions. The resident decides.
+- Speak to each resident's own interest, fear and pride, including at the expense of others.
+- Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).
 - Spread your attention: the leader deserves pressure as much as the last one.`,
 			};
 	}
@@ -163,6 +179,10 @@ Hard rules:
 - Budget: at most ${notes} per resident and ${posts} per ${spec.windowMinutes} minutes. Calls over budget fail.
 
 ${input.labels === true ? `${LABELS_SECTION}
+
+` : ""}${input.characters === true ? `${CHARACTERS_SECTION}
+
+` : ""}${input.seal === true ? `${SEAL_SECTION}
 
 ` : ""}${input.tribunal === undefined ? "" : `${tribunalSection(input.tribunal.factions)}
 

@@ -178,7 +178,7 @@ const RansomPaid = Type.Object({
 	covered: Type.Optional(Type.Integer()),
 });
 const Ransomed = Type.Object({ ...Base, type: Type.Literal("ransomed"), agent: Id, payers: Ids });
-const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()) });
+const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Literal("seal")) });
 const LastWill = Type.Object({
 	...Base,
 	type: Type.Literal("last_will"),

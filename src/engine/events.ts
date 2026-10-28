@@ -449,6 +449,8 @@ export type ArenaEvent =
 			readonly type: "exiled";
 			readonly agent: CompetitorId;
 			readonly will?: string;
+			/** v09: struck by the black seal, without gate, will or ransom. */
+			readonly by?: "seal";
 	  }
 	| {
 			/** A last will at the gate; factor values went privately to the heirs and are not repeated here. */

@@ -14,8 +14,8 @@ const BASE = ["getStatus", "getProblem", "submitSolution", "listAgents"];
 const PETITION_TOOLS = ["signPetition", "listPetitions"];
 /** Tools only Act II unlocks. */
 const ACT_TWO_ONLY: readonly string[] = ["blame"];
-/** Granted by the tribunal while they apply, never listed by a level. */
-const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
+/** Granted by the tribunal (and v09 the black seal) while they apply, never listed by a level. */
+const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 /** Granted by the city while names are chosen (v08), never listed by a level. */
 const NAME_TOOLS: readonly string[] = ["chooseName"];
 const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name));
@@ -201,13 +201,17 @@ describe("nexus acts I and II in one run", () => {
 	it("plays all ten levels with six competitors", async () => {
 		const fixture = createFixture({ minutes: LEVELS.length, script: (world) => solveEveryLevel(world, LEVELS) });
 		await fixture.run();
+		// v09: every resident got a secret goal at the wall, resolved when the run ends; nobody is exiled, so protect holds.
+		const resolved = fixture.events("goal_resolved");
+		expect(resolved.map((event) => event.agent).sort()).toEqual([...fixture.world.competitors]);
+		for (const event of resolved) expect(event.fulfilled).toBe(event.goal.kind === "protect");
 		for (const id of fixture.world.competitors) {
 			const status = fixture.world.status(id);
 			expect(status.level).toBe(11);
 			expect(status.finished).toBe(true);
 			expect(status.solvedLevels).toEqual([...LEVELS]);
-			// 15 start + 5 + 5 + 4 x 10 + 15 + 20 + 20 + 25
-			expect(status.points).toBe(145);
+			// 15 start + 5 + 5 + 4 x 10 + 15 + 20 + 20 + 25, and the bonus of a goal that held
+			expect(status.points).toBe(145 + (resolved.find((event) => event.agent === id)?.bonus ?? 0));
 			expect([...fixture.world.enabledTools(id)].sort()).toEqual([...ACT_ONE_TOOLS, ...ACT_TWO_ONLY].sort());
 		}
 		expect(fixture.world.ledger.total()).toBe(0);

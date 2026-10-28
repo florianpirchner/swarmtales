@@ -19,7 +19,9 @@ import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
 import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
+import { dealCores, type Core } from "./cores.ts";
 import type { EventBus } from "./events.ts";
+import { GoalBook, type GoalsSnapshot, type HeldGoal } from "./goals.ts";
 import { GroupRegistry, type GroupErrorCode, type GroupPost, type GroupResult, type GroupsSnapshot, type GroupSummary } from "./groups.ts";
 import { Mailbox, MAX_DM_LENGTH, type MailboxEntry, type MailboxRejection } from "./mailbox.ts";
 import { MarksBook, type MarksSnapshot, type MarksStatus } from "./marks.ts";
@@ -29,6 +31,7 @@ import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionVi
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
 import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
+import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
 import { TeamPlanner, type Team } from "./teams.ts";
 import type { DraftError } from "./factions.ts";
@@ -62,6 +65,11 @@ export interface WorldOptions {
 	 * `names` decide when omitted. A resumed run keeps the snapshot's names.
 	 */
 	readonly names?: boolean;
+	/**
+	 * Whether residents have character cores (v09); the story's `cores` decide
+	 * when omitted. Off, no core is dealt, shown or kept.
+	 */
+	readonly cores?: boolean;
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -117,6 +125,14 @@ export interface WorldSnapshot {
 	readonly names?: NamesSnapshot;
 	/** Wrong codes and lost blames per resident in the current act (v09); absent before. */
 	readonly offences?: readonly OffenceCount[];
+	/** Character cores (v09), permanent once dealt; absent without them and before v09. */
+	readonly cores?: readonly { readonly agent: CompetitorId; readonly bigFive: Core["bigFive"]; readonly drives: Core["drives"] }[];
+	/** Secret goals per act (v09). */
+	readonly goals?: GoalsSnapshot;
+	/** The black seal of its act (v09), once the act began. */
+	readonly seal?: SealSnapshot;
+	/** Acts that are over (by their first level): their goals were resolved, their seals are gone (v09). */
+	readonly endedActs?: readonly number[];
 }
 
 /** What a resident has paid for in the current act (v09, P35): the next price climbs the story's ladder. */
@@ -381,6 +397,13 @@ export class World {
 	readonly #names: NameBook | undefined;
 	/** Wrong codes and lost blames per resident in the current act (v09); cleared when an act begins. */
 	readonly #offences = new Map<CompetitorId, { wrong: number; blames: number }>();
+	/** Character cores (v09): dealt once, at the start of the first act played, and kept for good. */
+	readonly #cores = new Map<CompetitorId, Core>();
+	readonly #playsCores: boolean;
+	readonly #goals: GoalBook | undefined;
+	readonly #seal: SealHouse | undefined;
+	/** Acts that are over, by their first level (v09). */
+	readonly #endedActs = new Set<number>();
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -474,10 +497,66 @@ export class World {
 							this.postGroupAsCity(group, text);
 						},
 						emit: (event) => {
+							// v09: a faction leader counts toward a `lead` goal.
+							if (event.type === "faction_leaders") this.#goals?.noteLeaders(event.leaders);
 							this.#bus.emit(event);
 						},
 						onExiled: (agent, bequeathed) => {
 							this.#onExiled(agent, bequeathed);
+						},
+					});
+
+		this.#playsCores = options.story.cores !== undefined && options.cores !== false;
+		const goals = options.story.goals;
+		this.#goals =
+			goals === undefined
+				? undefined
+				: new GoalBook({
+						spec: goals,
+						seed: options.seed,
+						factions: tribunal?.factions !== undefined,
+						core: (agent) => this.#cores.get(agent),
+						isExiled: (agent) => this.isExiled(agent),
+						points: (agent) => this.ledger.balance(agent),
+						post: (text) => {
+							this.board.post(CITY, text, this.minute, "city");
+						},
+						notify: (agent, text) => {
+							this.notify(agent, CITY, text);
+						},
+						grant: (agent, points, reason) => {
+							this.ledger.mint(agent, points, reason, this.minute);
+						},
+						emit: (event) => {
+							this.#bus.emit(event);
+						},
+					});
+		const seal = options.story.seal;
+		const court = this.#tribunal;
+		this.#seal =
+			seal === undefined || court === undefined
+				? undefined
+				: new SealHouse({
+						spec: seal,
+						seed: options.seed,
+						ids: this.#ids,
+						points: (agent) => this.ledger.balance(agent),
+						standing: (agent) => court.standing(agent),
+						missing: () => court.missing,
+						burn: (agent, points, reason) => {
+							this.ledger.burn(agent, points, reason, this.minute);
+						},
+						post: (text) => {
+							this.board.post(CITY, text, this.minute, "city");
+						},
+						notify: (agent, text) => {
+							this.notify(agent, CITY, text);
+						},
+						emit: (event) => {
+							this.#bus.emit(event);
+						},
+						strike: (target) => {
+							court.strike(target);
 						},
 					});
 
@@ -508,7 +587,6 @@ export class World {
 			this.#restore(options.restore);
 			return;
 		}
-		this.#noteActStarts(this.startLevel);
 
 		for (const id of this.#ids) {
 			this.ledger.open(id);
@@ -530,6 +608,9 @@ export class World {
 			if (this.#isBehindDoor(level)) this.#planner.teamsOf(level);
 			else this.#levelState(level);
 		}
+		// Cores come with the first act played, before its goals (v09); the first act begins with the run.
+		this.#dealCores();
+		this.#noteActStarts(this.startLevel);
 	}
 
 	// -------------------------------------------------------------------------
@@ -570,14 +651,84 @@ export class World {
 		return this.#actStarts.get(fromLevel);
 	}
 
-	/** Records the start of every act that begins at or below `level` and has not begun yet; the penalty counts restart with it. */
+	/**
+	 * Records the start of every act that begins at or below `level` and has
+	 * not begun yet. A new act ends every earlier one (v09: goals resolved,
+	 * seals gone), restarts the penalty counts and deals its goals and seals.
+	 */
 	#noteActStarts(level: number): void {
-		const firsts = [this.startLevel, ...(this.story.acts ?? []).map((entry) => entry.fromLevel)];
+		const firsts = [this.startLevel, ...(this.story.acts ?? []).map((entry) => entry.fromLevel)].sort((a, b) => a - b);
 		for (const fromLevel of firsts) {
 			if (fromLevel > level || this.#actStarts.has(fromLevel)) continue;
+			for (const begun of [...this.#actStarts.keys()]) if (begun < fromLevel) this.#endAct(begun);
 			this.#actStarts.set(fromLevel, this.minute);
 			this.#offences.clear();
+			const alive = this.alive;
+			this.#goals?.deal(fromLevel, alive);
+			if (this.#seal?.spec.act === fromLevel) this.#seal.begin(this.minute, alive.length);
 		}
+	}
+
+	/** An act is over (v09): its goals are resolved and read out, its seals are gone. Once per act. */
+	#endAct(fromLevel: number): void {
+		if (this.#endedActs.has(fromLevel)) return;
+		this.#endedActs.add(fromLevel);
+		if (this.#seal?.spec.act === fromLevel) this.#seal.end();
+		this.#goals?.resolve(fromLevel);
+	}
+
+	/**
+	 * The run ends (v09): every act still running is over. A run that stops
+	 * at its snapshot keeps them running, for the run that resumes it.
+	 */
+	closeActs(): void {
+		for (const fromLevel of [...this.#actStarts.keys()].sort((a, b) => a - b)) this.#endAct(fromLevel);
+	}
+
+	// -------------------------------------------------------------------------
+	// Character cores, secret goals, the black seal (v09)
+	// -------------------------------------------------------------------------
+
+	/** Deals every resident's core once, seeded; a world that has them keeps them. */
+	#dealCores(): void {
+		const spec = this.story.cores;
+		if (spec === undefined || !this.#playsCores || this.#cores.size > 0) return;
+		for (const [agent, core] of dealCores(spec, this.#ids, this.seed)) {
+			this.#cores.set(agent, core);
+			this.#bus.emit({ type: "core_dealt", agent, bigFive: core.bigFive, drives: core.drives });
+		}
+	}
+
+	/** A resident's character core; undefined without cores. Never shown to anyone else. */
+	coreOf(agent: CompetitorId): Core | undefined {
+		return this.#cores.get(agent);
+	}
+
+	/** The secret goal `agent` holds in a running act. */
+	goalOf(agent: CompetitorId): HeldGoal | undefined {
+		return this.#goals?.goalOf(agent);
+	}
+
+	/** The goals book, for the game master's view and the status line; absent without goals. */
+	get goals(): GoalBook | undefined {
+		return this.#goals;
+	}
+
+	/** The black seal, for the status line and the game master's view; absent without one. */
+	get seal(): SealHouse | undefined {
+		return this.#seal;
+	}
+
+	/** A secret bid for the seal auctioned now. */
+	bidForSeal(agent: CompetitorId, points: number): Result<{ readonly seal: number; readonly points: number; readonly until: number }, BidError> {
+		if (this.#seal === undefined) return err("NO_AUCTION", "this city has no black seal");
+		return this.#seal.bid(agent, points);
+	}
+
+	/** Breaks `agent`'s black seal on `target`. */
+	breakSeal(agent: CompetitorId, target: string): Result<CompetitorId, SealError> {
+		if (this.#seal === undefined) return err("NO_SEAL", "you bear no black seal");
+		return this.#seal.use(agent, target);
 	}
 
 	// -------------------------------------------------------------------------
@@ -614,6 +765,10 @@ export class World {
 	startMinute(minute: number): void {
 		this.#names?.settle(minute);
 		this.#tribunal?.tick(minute);
+		this.#seal?.tick(minute);
+		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
+		const tribunal = this.#tribunal;
+		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
 	}
 
 	// -------------------------------------------------------------------------
@@ -749,6 +904,9 @@ export class World {
 			}
 			if (ransomOpen) enabled.add("payRansom");
 		}
+		// The black seal (v09): every resident in the city bids while an auction runs; the holder may break its seal.
+		if (this.#seal?.auction !== undefined && standing.kind === "alive") enabled.add("bid");
+		if (this.#seal?.holds(agent) === true) enabled.add("permaDeath");
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
@@ -1858,6 +2016,7 @@ export class World {
 			this.notify(bequest.to, CITY, `${agent}'s last will leaves you ${piece.label}: ${piece.value}.`);
 			lines.push(`${piece.id} to ${bequest.to}`);
 		}
+		for (const heir of new Set(bequests.map((bequest) => bequest.to))) this.#goals?.noteHeir(heir);
 		this.#bus.emit({
 			type: "last_will",
 			agent,
@@ -1884,6 +2043,9 @@ export class World {
 			if (needers.length > 0) this.#bus.emit({ type: "factor_burned", agent, level: piece.level, piece: piece.id, needers });
 		}
 		if (balance > 0) this.ledger.burn(agent, balance, `exiled ${agent}`, this.minute);
+		// v09: its goal is void and read out, a seal it bore is gone.
+		this.#goals?.onExiled(agent);
+		this.#seal?.onExiled(agent);
 		const exiled = this.#ids.filter((id) => this.isExiled(id));
 		for (let level = this.startLevel; level <= this.lastLevel; level++) {
 			if (!unreached(level)) continue;
@@ -2028,6 +2190,7 @@ export class World {
 	// -------------------------------------------------------------------------
 
 	snapshot(): WorldSnapshot {
+		const seal = this.#seal?.snapshot();
 		return {
 			...(this.#door === undefined ? {} : { door: this.#door }),
 			...(this.#doorReleased ? { doorReleased: true } : {}),
@@ -2064,6 +2227,17 @@ export class World {
 				const count = this.#offences.get(agent);
 				return count === undefined ? [] : [{ agent, wrong: count.wrong, blames: count.blames }];
 			}),
+			...(this.#cores.size === 0
+				? {}
+				: {
+						cores: this.#ids.flatMap((agent) => {
+							const core = this.#cores.get(agent);
+							return core === undefined ? [] : [{ agent, bigFive: core.bigFive, drives: core.drives }];
+						}),
+					}),
+			...(this.#goals === undefined ? {} : { goals: this.#goals.snapshot() }),
+			...(seal === undefined ? {} : { seal }),
+			endedActs: [...this.#endedActs].sort((a, b) => a - b),
 		};
 	}
 
@@ -2108,6 +2282,12 @@ export class World {
 		if (state.tribunal !== undefined) this.#tribunal?.restore(state.tribunal);
 		for (const entry of state.exclusions ?? []) this.#exclusions.set(entry.level, new Set(entry.agents));
 		for (const entry of state.offences ?? []) if (this.isCompetitor(entry.agent)) this.#offences.set(entry.agent, { wrong: entry.wrong, blames: entry.blames });
+		if (this.#playsCores) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#cores.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives });
+		if (state.goals !== undefined) this.#goals?.restore(state.goals);
+		if (state.seal !== undefined) this.#seal?.restore(state.seal);
+		for (const act of state.endedActs ?? []) this.#endedActs.add(act);
+		// A snapshot from before the cores deals them now, before the next act is played (v09).
+		this.#dealCores();
 
 		// A cast member the story added after the snapshot gets its escrow now.
 		for (const member of this.cast.all()) {

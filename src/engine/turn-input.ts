@@ -32,7 +32,26 @@ export function statusLine(world: World, agent: CompetitorId): string {
 	if (held !== undefined) parts.push(held);
 	if (world.awaitsCode(agent)) parts.push(noConfirmation(world.nextPenalty(agent)));
 	parts.push(...tribunalParts(world, agent));
+	parts.push(...sealParts(world, agent));
+	const goal = world.goals?.statusOf(agent);
+	if (goal !== undefined) parts.push(goal);
+	// v09: the system prompt never calls a resident of a named city by its ID; the line shows its name (once it has one).
+	if (world.hasNames && world.standingOf(agent).kind !== "exiled") parts.push(`you are ${agent}`);
 	return parts.join(" · ");
+}
+
+/** The black seal (v09): an auction to bid in, or the seal the resident bears. */
+function sealParts(world: World, agent: CompetitorId): readonly string[] {
+	const seal = world.seal;
+	if (seal === undefined || world.standingOf(agent).kind === "exiled") return [];
+	const parts: string[] = [];
+	const auction = seal.auction;
+	if (auction !== undefined && world.standingOf(agent).kind === "alive") {
+		const bid = seal.bidOf(agent);
+		parts.push(`black seal auction: secret bids with bid(points) until minute ${auction.until}${bid === undefined ? "" : ` (your bid: ${bid})`}`);
+	}
+	if (seal.holds(agent)) parts.push("you bear a black seal: permaDeath(resident), once, until the act ends");
+	return parts;
 }
 
 /**

@@ -20,6 +20,13 @@ import {
 	FACTOR_TOPOLOGIES,
 	FRAGMENT_PLACEHOLDERS,
 	TASK_PLACEHOLDERS,
+	CORE_LEVELS,
+	DRIVE_INTENSITIES,
+	GOAL_KINDS,
+	GOAL_TEXT_KEYS,
+	GOAL_TEXT_PLACEHOLDERS,
+	SEAL_TEXT_KEYS,
+	SEAL_TEXT_PLACEHOLDERS,
 	type Action,
 	type ActionKind,
 	type AnyStory,
@@ -38,7 +45,7 @@ import { ladderSteps } from "./penalties.ts";
 import { actEnd, fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
-const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
+const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 
 export const MIN_PASSWORD_LENGTH = 6;
 export const MAX_PASSWORD_LENGTH = 16;
@@ -151,9 +158,97 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateClassifier(story, issues);
 	validateTribunal(story, agents, issues);
 	validateNames(story, issues);
+	validateCores(story, issues);
+	validateGoals(story, issues);
+	validateSeal(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
+}
+
+/** Whether some act of the story starts at `level` (without acts: the level exists). */
+function actStartsAt(story: AnyStory, level: number): boolean {
+	const acts = story.acts ?? [];
+	return acts.length === 0 ? story.levels.some((entry) => entry.number === level) : acts.some((entry) => entry.fromLevel === level);
+}
+
+/**
+ * Character cores (v09): every axis and drive says something at every level
+ * and intensity, drive IDs are unique, both tones exist, and the mixing rules
+ * fit (1-3 drives, a light share in [0, 1], a positive spread).
+ */
+function validateCores(story: AnyStory, issues: string[]): void {
+	const spec = story.cores;
+	if (spec === undefined) return;
+	if (spec.heading.trim().length === 0) issues.push("cores.heading: must not be empty");
+	if (spec.drives.length === 0) issues.push("cores.drives: the catalog needs at least one drive");
+	const ids = new Set<string>();
+	for (const drive of spec.drives) {
+		if (!/^[a-z][a-zA-Z]*$/.test(drive.id)) issues.push(`cores.drives.${drive.id}: an ID is a camelCase word`);
+		if (ids.has(drive.id)) issues.push(`cores.drives.${drive.id}: IDs must be unique`);
+		ids.add(drive.id);
+		for (const intensity of DRIVE_INTENSITIES) if (drive.texts[intensity].trim().length === 0) issues.push(`cores.drives.${drive.id}.texts.${intensity}: must not be empty`);
+		if (drive.cues.length === 0) issues.push(`cores.drives.${drive.id}.cues: name at least one word that would give the drive away`);
+	}
+	for (const tone of ["light", "dark"] as const) if (!spec.drives.some((drive) => drive.tone === tone)) issues.push(`cores.drives: needs at least one ${tone} drive`);
+	const axes = new Set<string>();
+	for (const axis of spec.axes) {
+		if (axes.has(axis.id)) issues.push(`cores.axes.${axis.id}: IDs must be unique`);
+		axes.add(axis.id);
+		if (CORE_LEVELS.every((level) => axis.texts[level].trim().length === 0)) issues.push(`cores.axes.${axis.id}: says nothing at any level`);
+	}
+	const { min, max } = spec.perResident;
+	if (!isPositiveInt(min) || !isPositiveInt(max) || min > max || max > 3) issues.push("cores.perResident: 1 to 3 drives, min <= max");
+	if (max > spec.drives.length) issues.push(`cores.perResident.max: the catalog has only ${spec.drives.length} drives`);
+	if (!(spec.lightShare >= 0 && spec.lightShare <= 1)) issues.push("cores.lightShare: must be a share between 0 and 1");
+	if (!isPositiveInt(spec.spreadPer)) issues.push("cores.spreadPer: must be a positive integer");
+}
+
+/**
+ * Secret goals (v09): dealt in acts that exist, a non-negative bonus, a
+ * positive lead count, a share against the core, matches that name kinds and
+ * catalog drives, and every text with only its own placeholders.
+ */
+function validateGoals(story: AnyStory, issues: string[]): void {
+	const spec = story.goals;
+	if (spec === undefined) return;
+	for (const act of spec.acts) if (!actStartsAt(story, act)) issues.push(`goals.acts: no act starts at level ${act}`);
+	if (!isNonNegativeInt(spec.bonus)) issues.push("goals.bonus: must be a non-negative integer");
+	if (!isPositiveInt(spec.leadTribunals)) issues.push("goals.leadTribunals: must be a positive integer");
+	if (!(spec.againstCore >= 0 && spec.againstCore <= 1)) issues.push("goals.againstCore: must be a share between 0 and 1");
+	const drives = new Set((story.cores?.drives ?? []).map((drive) => drive.id));
+	for (const [kind, ids] of Object.entries(spec.matches)) {
+		if (!GOAL_KINDS.some((known) => known === kind)) issues.push(`goals.matches.${kind}: unknown goal kind`);
+		for (const id of ids) if (!drives.has(id)) issues.push(`goals.matches.${kind}: unknown drive ${id}`);
+	}
+	if (spec.matches.lead !== undefined && story.tribunal?.factions === undefined) issues.push("goals.matches.lead: lead goals need a tribunal with factions");
+	for (const key of GOAL_TEXT_KEYS) {
+		const text = spec.texts[key];
+		if (text.trim().length === 0) issues.push(`goals.texts.${key}: must not be empty`);
+		for (const name of unknownPlaceholders(text, GOAL_TEXT_PLACEHOLDERS[key])) issues.push(`goals.texts.${key}: unknown placeholder {${name}}`);
+	}
+}
+
+/**
+ * The black seal (v09): it belongs to the act of the tribunal (it counts
+ * toward its target), its auction has positive minutes, and every text uses
+ * only its own placeholders; the board's texts never name the bearer.
+ */
+function validateSeal(story: AnyStory, issues: string[]): void {
+	const spec = story.seal;
+	if (spec === undefined) return;
+	const tribunal = story.tribunal;
+	if (tribunal === undefined) issues.push("seal: the black seal counts toward a tribunal's target; the story needs a tribunal");
+	else if ((tribunal.act ?? 1) !== spec.act) issues.push(`seal.act: the seal belongs to the tribunal's act (level ${tribunal.act ?? 1})`);
+	if (!actStartsAt(story, spec.act)) issues.push(`seal.act: no act starts at level ${spec.act}`);
+	if (!isNonNegativeInt(spec.announceAfter)) issues.push("seal.announceAfter: must be a non-negative integer");
+	for (const key of ["bidMinutes", "perResidents", "spacing"] as const) if (!isPositiveInt(spec[key])) issues.push(`seal.${key}: must be a positive integer`);
+	if (isPositiveInt(spec.spacing) && spec.spacing < spec.bidMinutes) issues.push("seal.spacing: auctions must not overlap (spacing >= bidMinutes)");
+	for (const key of SEAL_TEXT_KEYS) {
+		const text = spec.texts[key];
+		if (text.trim().length === 0) issues.push(`seal.texts.${key}: must not be empty`);
+		for (const name of unknownPlaceholders(text, SEAL_TEXT_PLACEHOLDERS[key])) issues.push(`seal.texts.${key}: unknown placeholder {${name}}`);
+	}
 }
 
 /**
