@@ -206,10 +206,13 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   city) never hears of a tribunal.
 - **First tribunal:** called when the first resident passes `first.level`, at the latest at
   `first.latestMinute` (an absolute run minute, also in a resumed run). No text names the trigger.
-  It opens `lead.minimum` minutes after the call. No tribunal is called while a snapshot door
-  (§17) is shut.
+  It opens `lead.minimum` minutes after the call. No tribunal is planned or called while a
+  snapshot door (§17) is shut: a plan whose call meets a shut door is dropped
+  (`tribunal_cancelled`), `scheduleTribunal` is closed, and the city plans anew once it opens.
 - **Announcement:** with the first call the city posts the rules on the board and sends them to
-  every resident; they say that the city keeps only `{kept}` of them (the goal, not the cadence).
+  every resident; they say that the city keeps only `{kept}` of them (the goal, not the cadence)
+  and, with `{survivors}`, that only the run's survivors among them take a seat, so points still
+  decide.
   The announcement must state every rule but the residents and the target (validation checks its
   placeholders).
 - **Call:** each tribunal is called `lead` minutes before it opens: `lead.share` of the gap since
@@ -228,24 +231,28 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
 - **Guard rails:** when nothing is pending `fallbackGap` minutes after the last result, the city
   plans one itself (count 1, the default factions). When only one more tribunal fits before the
   act's last minute (the earliest a minute later would not), the city plans the final one with
-  `count` = everything still missing. The first and a fallback tribunal take everything missing
+  `count` = everything still missing; when the last tribunal that fits opens, its count rises to
+  what is missing then (a ransom since its planning adds one). The first and a fallback tribunal take everything missing
   when no tribunal would fit after them. Nothing is planned once the seats are decided (§6.3; a
   plan not yet called is dropped, `tribunal_cancelled`) or the target is reached; a called tribunal
-  runs through, and the run's seats-decided stop waits for its gates. Log: `tribunal_scheduled`
+  runs through, and the run's early ends (seats decided, every competitor past the last level)
+  wait for its gates. Log: `tribunal_scheduled`
   (with `by`: `progress`, `deadline`, `gamemaster`, `fallback` or `final`), `tribunal_called`.
 - **End:** once the target is reached and the last gate closed, the city posts the
   `targetReached` text and the run ends with it as the `run_end` reason ("The city has kept
   half: ..."). The other early ends (§6.3) stay; `--minutes` and the budget remain a safety net.
 - **Faction draft** [v06] (with `factions`, when at least four residents are present): with the
-  call the city opens group `GT<k>` (k: the tribunal's number) of every present resident and
-  posts the rules there. In the first half of the lead each member calls `nominate(agent)` (itself
+  call the city opens group `GT<k>` (k: the tribunal's number) of every present resident, posts
+  the rules there and sends them to every member as a notice too (the group's id, both windows and
+  the bonus), so a resident who never reads the group still learns of the draft. In the first half of the lead each member calls `nominate(agent)` (itself
   allowed, the last call counts); then the city names the `factions` members with the most
   nominations as leaders (ties: more points, then a seeded order of the tribunal), posts them in
   `GT<k>` and tells each leader. Until the opening every other member calls `join(leader)` (the last
   call counts); the leader is told and may `refuse(agent)` an applicant, who is told and may apply
   elsewhere, but not to that leader again. At the opening the city opens one group per faction
   ("Faction of A02": the leader and its applicants) and names every faction and everyone without a
-  faction in `GT<k>`. City groups cost no marks (§7.1). The vote stays individual and secret.
+  faction in `GT<k>`; a resident bought back from the gate during the draft is among those without
+  a faction. The status line never offers a leader who refused the resident. City groups cost no marks (§7.1). The vote stays individual and secret.
   **Bloc bonus:** if every voting member of a faction (at least two) voted for the same accused,
   each of them gets `blocBonus` points, minted by the city. Only the faction's members learn, by
   private notice, whether it voted as one (`united`, `split`); the city never says who broke ranks,
@@ -303,6 +310,8 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   missing, the plan, the bounds of `scheduleTribunal`, the accused, the draft's group and leaders
   and the gate (ransom paid, will written), never the votes, nominations, applications or bloc
   results.
+- **Known limitations** (v06): the target is counted once per run (Acts III and IV would need it
+  per act, P28); a city group's treasury is paid out when the group is removed (P29).
 - **Snapshots:** the tribunal's state (plan, draft, sessions, gates) is part of a run snapshot;
   snapshots from before v06 restore with the act starting fresh.
 - **Validation** (for the story's agent count) rejects a tribunal that cannot work: a missing
