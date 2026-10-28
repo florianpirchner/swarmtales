@@ -292,10 +292,12 @@ export class Arena {
 		if (ended !== undefined) return ended;
 		// The early ends never cut a tribunal short: a called one runs to its last gate first (P18).
 		const busy = world.tribunal?.busy === true;
-		if (this.#options.stopWhenDone === true && !busy && world.alive.every((id) => world.isFinished(id))) {
+		// While the city still pursues its target, neither finished doors nor decided seats end the act (v06).
+		const pursuing = world.tribunal?.pursuing === true;
+		if (this.#options.stopWhenDone === true && !busy && !pursuing && world.alive.every((id) => world.isFinished(id))) {
 			return "every competitor has passed the last level";
 		}
-		if (this.#options.stopWhenSeatsDecided === true && world.seatsDecided() && !busy) return "seats decided";
+		if (this.#options.stopWhenSeatsDecided === true && world.seatsDecided() && !busy && !pursuing) return "seats decided";
 		return this.#options.stopWhen?.();
 	}
 

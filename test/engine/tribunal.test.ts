@@ -38,7 +38,7 @@ interface Harness {
 	readonly events: TribunalEvent[];
 	readonly exiled: { readonly agent: CompetitorId; readonly bequeathed: readonly string[] }[];
 	readonly groups: GroupRecord[];
-	readonly flags: { seatsDecided: boolean; doorShut: boolean; passed: boolean };
+	readonly flags: { doorShut: boolean; passed: boolean };
 	readonly ofType: <T extends TribunalEvent["type"]>(type: T) => readonly Extract<TribunalEvent, { type: T }>[];
 	readonly noticesOf: (agent: CompetitorId) => readonly string[];
 }
@@ -58,7 +58,7 @@ function harness(points: readonly number[], options: HarnessOptions = {}): Harne
 	const events: TribunalEvent[] = [];
 	const exiled: { agent: CompetitorId; bequeathed: readonly string[] }[] = [];
 	const groups: GroupRecord[] = [];
-	const flags = { seatsDecided: false, doorShut: false, passed: false };
+	const flags = { doorShut: false, passed: false };
 	const group = (id: string): GroupRecord => {
 		const found = groups.find((entry) => entry.id === id);
 		if (found === undefined) throw new Error(`no group ${id}`);
@@ -73,7 +73,6 @@ function harness(points: readonly number[], options: HarnessOptions = {}): Harne
 		points: (agent) => balances.get(agent) ?? 0,
 		lastProgress: (agent) => options.progress?.[ids.indexOf(agent)] ?? -1,
 		passed: () => flags.passed,
-		seatsDecided: () => flags.seatsDecided,
 		doorShut: () => flags.doorShut,
 		post: (text) => {
 			posts.push(text);
@@ -322,30 +321,13 @@ describe("the city's own tribunals", () => {
 		expect(h.ofType("tribunal_scheduled").at(-1)).toMatchObject({ by: "final", count: 3 });
 	});
 
-	it("schedules nothing once the seats are decided, drops a plan not yet called, and finishes a called one", () => {
+	it("keeps holding tribunals until the target is reached, whatever the standings (v06)", () => {
 		const h = harness(SIX);
-		runUntil(h, 0, 30);
-		// Called at 30: decided seats do not stop it.
-		h.flags.seatsDecided = true;
-		runUntil(h, 31, 36);
-		expect(h.tribunal.session).toBeUndefined();
-		expect(h.ofType("tribunal_result")).toHaveLength(1);
-		expect(h.tribunal.busy).toBe(true);
-		expect(h.tribunal.schedulingWindow()).toEqual({ open: false, why: "the seats are decided; the city holds no more tribunals" });
-		runUntil(h, 37, 59);
-		expect(h.ofType("tribunal_scheduled")).toHaveLength(1);
-		expect(h.tribunal.busy).toBe(false);
-
-		const planned = harness(SIX);
-		runUntil(planned, 0, 36);
-		expect(planned.tribunal.schedule(46, 1, 2, "")).toMatchObject({ ok: true });
-		runUntil(planned, 37, 40);
-		planned.flags.seatsDecided = true;
-		planned.tribunal.tick(41);
-		expect(planned.ofType("tribunal_cancelled")).toEqual([{ type: "tribunal_cancelled", tribunal: 2, reason: "the seats are decided" }]);
-		expect(planned.tribunal.plan).toBeUndefined();
-		runUntil(planned, 42, 59);
-		expect(planned.ofType("tribunal_called")).toHaveLength(1);
+		runUntil(h, 0, 120);
+		expect(h.tribunal.missing).toBe(0);
+		expect(h.tribunal.exiled.length).toBeGreaterThanOrEqual(h.tribunal.target);
+		expect(h.tribunal.ended).toBe(true);
+		expect(h.ofType("tribunal_cancelled")).toEqual([]);
 	});
 });
 

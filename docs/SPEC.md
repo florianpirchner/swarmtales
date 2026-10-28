@@ -180,8 +180,8 @@ The persona block, when present, is appended.
   competitor's points plus the rewards of every played level it has not solved stay below the
   lowest seat's points. Transfers, penalties and director grants or fines, which could in theory
   change anything, are ignored. It is only checked once every level is dealt, so never while a
-  snapshot door (§17) is shut, and [v06] never while a tribunal is called, voting or has someone at
-  the gate; once the seats are decided no new tribunal is planned (§6.4). The digest timeline and
+  snapshot door (§17) is shut, and [v06] never while the city still pursues its tribunal target
+  (§6.4): decided seats do not stop the tribunals, and the act runs until the target is reached. The digest timeline and
   `minutes.md` show how the run ended.
 - [v06] With a tribunal the run also ends once the tribunals reached their target and the last gate
   closed, with the story's `targetReached` text as the reason (§6.4).
@@ -233,10 +233,10 @@ director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `
   act's last minute (the earliest a minute later would not), the city plans the final one with
   `count` = everything still missing; when the last tribunal that fits opens, its count rises to
   what is missing then (a ransom since its planning adds one). The first and a fallback tribunal take everything missing
-  when no tribunal would fit after them. Nothing is planned once the seats are decided (§6.3; a
-  plan not yet called is dropped, `tribunal_cancelled`) or the target is reached; a called tribunal
-  runs through, and the run's early ends (seats decided, every competitor past the last level)
-  wait for its gates. Log: `tribunal_scheduled`
+  when no tribunal would fit after them. Nothing is planned once the target is reached. Decided
+  seats do not stop the city, and the run's early ends (seats decided, every competitor past the
+  last level) do not apply while the city still pursues its target (v06 run 1 ended at minute 27,
+  everyone past door 10, with one ransomed exile and the target unmet). Log: `tribunal_scheduled`
   (with `by`: `progress`, `deadline`, `gamemaster`, `fallback` or `final`), `tribunal_called`.
 - **End:** once the target is reached and the last gate closed, the city posts the
   `targetReached` text and the run ends with it as the `run_end` reason ("The city has kept

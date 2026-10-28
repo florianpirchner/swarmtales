@@ -422,7 +422,6 @@ export class World {
 								.filter((receipt) => receipt.kind === "levelUp")
 								.reduce((latest, receipt) => Math.max(latest, receipt.minute), -1),
 						passed: (level) => this.#ids.some((agent) => this.hasPassed(agent, level)),
-						seatsDecided: () => this.seatsDecided(),
 						doorShut: () => this.#door !== undefined,
 						post: (text) => {
 							this.board.post(CITY, text, this.minute, "city");
