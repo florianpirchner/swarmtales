@@ -66,6 +66,8 @@ export type BlameVerdict =
 export interface BlameDeskPorts {
 	/** What the loser pays now (v09: its next step of the story's ladder); counts the lost blame. */
 	readonly charge: (agent: CompetitorId) => number;
+	/** What the agent's next lost blame would cost (v09), for the notices; absent: not said. */
+	readonly nextCharge?: (agent: CompetitorId) => number;
 	readonly isCompetitor: (id: string) => boolean;
 	readonly minute: () => number;
 	/** A DM between competitors by its city number. */
@@ -147,9 +149,15 @@ export class BlameDesk {
 			`the city delivered it to ${accused} at minute ${delivered.deliveredMinute}. ` +
 			`DM #${delivered.number}: ${recordQuote(delivered.text)} · ${claimPlace(claim)}: ${recordQuote(claim.text)} · ${accused} pays ${penalty} points.`;
 		const post = this.#ports.post(text);
-		this.#ports.notify(accused, CITY, `${caller} blamed you for denying DM #${delivered.number}, and the city upheld it: you paid ${penalty} points, and its record is on the board as #${post}.`);
+		this.#ports.notify(accused, CITY, `${caller} blamed you for denying DM #${delivered.number}, and the city upheld it: you paid ${penalty} points${this.#next(accused)}, and its record is on the board as #${post}.`);
 		this.#ports.emit({ caller, accused, dm: delivered.number, claim: claim.number, outcome: "upheld", payer: accused, penalty, post });
 		return { outcome: "upheld", penalty, post };
+	}
+
+	/** ` (your next lost blame costs 4)`: the loser's next price (v09), when the world says it. */
+	#next(agent: CompetitorId): string {
+		const next = this.#ports.nextCharge?.(agent);
+		return next === undefined || next <= 0 ? "" : ` (your next lost blame costs ${next})`;
 	}
 
 	/** Frees the pair of a case the judge could not answer: the blame had no effect. */
@@ -174,7 +182,7 @@ export class BlameDesk {
 		const penalty = this.#ports.charge(caller);
 		if (penalty > 0) this.#ports.burn(caller, penalty, `false blame of ${accused}`);
 		const post = this.#ports.post(`City record: ${caller} accused ${accused} falsely. ${caller} blamed ${accused} over DM #${dm} and message #${claim}, but ${reason}. ${caller} pays ${penalty} points.`);
-		this.#ports.notify(caller, CITY, `Your blame of ${accused} was wrong: ${reason}. It cost you ${penalty} points, and the city's record is on the board as #${post}.`);
+		this.#ports.notify(caller, CITY, `Your blame of ${accused} was wrong: ${reason}. It cost you ${penalty} points${this.#next(caller)}, and the city's record is on the board as #${post}.`);
 		this.#ports.emit({ caller, accused, dm, claim, outcome: "rejected", payer: caller, penalty, reason, post });
 		return { reason, penalty, post };
 	}

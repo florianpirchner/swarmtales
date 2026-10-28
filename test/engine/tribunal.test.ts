@@ -394,6 +394,34 @@ describe("the city's own tribunals", () => {
 		expect(h.ofType("tribunal_scheduled").at(-1)).toMatchObject({ tribunal: 2, by: "final", calledAt: 46 });
 	});
 
+	it("calls no planned tribunal once a black seal reached the target, and calls one for fewer once it struck (v09)", () => {
+		const alive = (h: Harness): CompetitorId[] => competitorIds(6).filter((agent) => h.tribunal.standing(agent).kind === "alive");
+		const full = harness(SIX);
+		runUntil(full, 0, 36);
+		expect(full.tribunal.schedule(46, 2, 2, "")).toMatchObject({ ok: true, value: { calledAt: 42 } });
+		for (const agent of alive(full).slice(0, 2)) full.tribunal.strike(agent);
+		expect(full.tribunal.missing).toBe(0);
+		runUntil(full, 37, 42);
+		expect(full.ofType("tribunal_cancelled")).toEqual([{ type: "tribunal_cancelled", tribunal: 2, reason: "the target is reached" }]);
+		expect(full.ofType("tribunal_called")).toHaveLength(1);
+		const one = harness(SIX);
+		runUntil(one, 0, 36);
+		expect(one.tribunal.schedule(46, 2, 2, "")).toMatchObject({ ok: true });
+		one.tribunal.strike(alive(one)[0] ?? "");
+		runUntil(one, 37, 42);
+		expect(one.ofType("tribunal_called").at(-1)).toMatchObject({ tribunal: 2, count: 1 });
+	});
+
+	it("keeps the bequests of a will written at the gate when a black seal strikes (v09)", () => {
+		const h = harness(SIX);
+		runUntil(h, 0, 36);
+		const gate = h.tribunal.gates()[0]?.agent;
+		if (gate === undefined) throw new Error("nobody at the gate");
+		h.tribunal.recordWill(gate, "for my friends", ["F1"]);
+		h.tribunal.strike(gate);
+		expect(h.exiled.at(-1)).toEqual({ agent: gate, bequeathed: ["F1"] });
+	});
+
 	it("does not count a ransomed resident as exiled", () => {
 		const h = harness(SIX);
 		runUntil(h, 0, 36);

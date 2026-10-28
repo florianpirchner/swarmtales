@@ -439,6 +439,7 @@ export class World {
 		this.cast = new CastRegistry(options.story.cast);
 		this.#blames = new BlameDesk({
 			charge: (agent) => this.#chargeBlame(agent),
+			nextCharge: (agent) => this.nextBlamePenalty(agent),
 			isCompetitor: (id) => this.isCompetitor(id),
 			minute: () => this.minute,
 			dm: (number) => this.#dms.find((record) => record.id === number),

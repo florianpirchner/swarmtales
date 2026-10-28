@@ -103,6 +103,8 @@ describe("the seal auction", () => {
 			"You won the black seal for 9 points. You may break it once with permaDeath(resident) until this act ends. Nobody knows you bear it.",
 		);
 		expect(h.notices.find((notice) => notice.to === "A01")?.text).toBe("The bidding for the black seal is closed and you did not win it. Your bid of 4 points is paid.");
+		// A bid of 0 is no bid: A03 hears nothing.
+		expect(h.notices.some((notice) => notice.to === "A03")).toBe(false);
 		expect(h.house.holds("A02")).toBe(true);
 		expect(h.house.borne).toBe(1);
 		expect(h.house.auction).toBeUndefined();

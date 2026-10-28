@@ -130,7 +130,7 @@ describe("blame (SPEC 7.4)", () => {
 		expect(world.status("A01").points).toBe(10 - 12 - 20);
 		expect(world.status("A02").points).toBe(10 - 12);
 		expect(world.status("A03").points).toBe(10 - 12);
-		expect(fixture.events("notice").some((notice) => notice.to === "A03" && notice.text.startsWith(`Your blame of A02 was wrong: DM #${dm} is not a DM of yours to A02. It cost you 12 points, and the city's record is on the board as #`))).toBe(true);
+		expect(fixture.events("notice").some((notice) => notice.to === "A03" && notice.text.startsWith(`Your blame of A02 was wrong: DM #${dm} is not a DM of yours to A02. It cost you 12 points (your next lost blame costs 20), and the city's record is on the board as #`))).toBe(true);
 		const results = fixture.toolResults("A01", "blame");
 		expect(results[0]).toBe(`upheld · A02 pays 12 points · the city posted its record on the board as #${blames[0]?.post ?? 0}`);
 		expect(results[1]).toMatch(/^rejected · the city's judge finds that DM #\d+ by A02 does not deny receiving DM #\d+ · you paid 12 points \(your next lost blame costs 20\) · the city's record is on the board as #\d+$/);

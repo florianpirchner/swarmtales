@@ -246,7 +246,8 @@ export class SealHouse {
 		seal.holder = holder;
 		const name = this.#name(seal);
 		this.#ports.post(this.#text("won", { seal: name }));
-		for (const entry of paid) {
+		// A bid of 0 is no bid (the tool says so): its bidder hears nothing.
+		for (const entry of paid.filter((bid) => bid.agent === holder || (seal.bids.get(bid.agent) ?? 0) > 0)) {
 			const key = entry.agent === holder ? "winnerNotice" : "paidNotice";
 			this.#ports.notify(entry.agent, this.#text(key, { seal: name, bid: String(entry.points) }));
 		}

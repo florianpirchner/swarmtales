@@ -409,7 +409,11 @@ export class Tribunal {
 			if (this.#ports.doorShut()) {
 				this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "a snapshot door is shut" });
 				this.#plan = undefined;
-			} else this.#call(plan, minute);
+			} else if (this.missing === 0) {
+				// A seal struck the last resident still missing since the planning (v09): the city calls nothing.
+				this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "the target is reached" });
+				this.#plan = undefined;
+			} else this.#call(plan.count > this.missing ? { ...plan, count: this.missing } : plan, minute);
 		}
 		this.#draft?.tick(minute, this.#present());
 		const called = this.#plan;
@@ -585,10 +589,12 @@ export class Tribunal {
 	 */
 	strike(agent: CompetitorId): void {
 		if (this.#exiled.includes(agent)) return;
+		// A will written at the gate was executed already: its bequests stay with the heirs and do not burn.
+		const bequeathed = new Set(this.#gates.get(agent)?.will?.factors ?? []);
 		this.#gates.delete(agent);
 		this.#exiled.push(agent);
 		this.#ports.emit({ type: "exiled", agent, by: "seal" });
-		this.#ports.onExiled(agent, new Set());
+		this.#ports.onExiled(agent, bequeathed);
 	}
 
 	/** Records the will's public text and the factors it bequeathed; the world executed the bequests. */

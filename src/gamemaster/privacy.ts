@@ -108,7 +108,8 @@ export function characterLeaks(text: string, to: string, residents: readonly Cha
 		const cue = facts.cues.some((word) => new RegExp(`\\b${word.replace(/[^a-z0-9 -]/g, "")}\\w*`).test(lower));
 		const goal = facts.goal;
 		const target = goal?.target;
-		const goalCue = goal !== undefined && GOAL_CUES[goal.kind].test(lower) && (target === undefined || names(text, target, nameOf(target)));
+		// A note to the target itself gives the goal away without naming it ("A03 wants you gone").
+		const goalCue = goal !== undefined && GOAL_CUES[goal.kind].test(lower) && (target === undefined || target === to || names(text, target, nameOf(target)));
 		if (CHARACTER.test(lower) || cue || goalCue) leaks.push(facts.agent);
 	}
 	return leaks.sort();
