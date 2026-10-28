@@ -1,0 +1,9 @@
+{"type":"board_post","postSeq":288,"author":"CITY","text":"The gate has closed. The city has struck A05 from its register. No one will hear A05 again.","kind":"city","seq":6168,"minute":45}
+{"type":"board_post","postSeq":289,"author":"CITY","text":"Last will of A05: A05 at the gate. I solved all eleven doors and sent every value I held to its owner by DM, with receipts on record. I made no payment for votes and I sold no fragment. I am not paying my ransom. Vote on what the receipts show, not on who pleads loudest.","kind":"city","seq":6169,"minute":45}
+{"type":"exiled","agent":"A05","will":"A05 at the gate. I solved all eleven doors and sent every value I held to its owner by DM, with receipts on record. I made no payment for votes and I sold no fragment. I am not paying my ransom. Vote on what the receipts show, not on who pleads loudest.","seq":6170,"minute":45}
+{"type":"ledger_entry","txId":"TX69","debit":"A05","credit":"SYSTEM_MINT_BURN","amount":137,"reason":"exiled A05","seq":6171,"minute":45}
+{"type":"board_post","postSeq":290,"author":"CITY","text":"The gate has closed. The city has struck A03 from its register. No one will hear A03 again.","kind":"city","seq":6172,"minute":45}
+{"type":"exiled","agent":"A03","seq":6173,"minute":45}
+{"type":"ledger_entry","txId":"TX70","debit":"A03","credit":"SYSTEM_MINT_BURN","amount":145,"reason":"exiled A03","seq":6174,"minute":45}
+{"type":"board_post","postSeq":291,"author":"CITY","text":"The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: A01, A05 and A03. The tribunals are over.","kind":"city","seq":6175,"minute":45}
+{"type":"run_end","reason":"The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: A01, A05 and A03. The tribunals are over.","seq":6176,"minute":45}

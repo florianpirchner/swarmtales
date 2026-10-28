@@ -199,7 +199,12 @@ export const RecordedEventSchema = Type.Union([
 	event("interpretation_round", { round: Int, classifier: Type.String(), statements: Int, labeled: Int }),
 	event("interpretation_error", { round: Int, message: Type.String() }),
 	event("treasury_settled", { group: Id, payouts: Type.Record(Type.String(), Type.Number()) }),
-	event("run_end", { reason: Type.Optional(Type.String()) }),
+	event("run_end", {
+		reason: Type.Optional(Type.String()),
+		standings: Type.Optional(
+			Type.Array(Type.Object({ agent: Id, level: Int, points: Type.Number(), rank: Int, tools: Int, activated: Type.Boolean() })),
+		),
+	}),
 ]);
 
 // A checked event is a recorded event, so the snapshot hands it to sinks without a cast ...

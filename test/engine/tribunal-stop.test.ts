@@ -26,6 +26,10 @@ describe("early ends and the tribunal", () => {
 		expect(end?.minute).toBe(exiled.at(-1)?.minute);
 		expect(end?.reason).not.toBe("every competitor has passed the last level");
 		expect(end?.reason).not.toBe("seats decided");
+		// The final ranking comes with the end: the three exiled rank last, even when exiled at the last tick.
+		const exiledIds = new Set(exiled.map((event) => event.agent));
+		expect(end?.standings?.slice(3).every((row) => exiledIds.has(row.agent))).toBe(true);
+		expect(end?.standings?.slice(3).every((row) => row.points <= 0)).toBe(true);
 		expect(fixture.events("tribunal_result")).toHaveLength(fixture.events("tribunal_opened").length);
 	}, 60_000);
 });

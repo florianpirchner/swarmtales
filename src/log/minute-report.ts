@@ -50,7 +50,8 @@ export function renderMinuteReport(snapshots: readonly MinuteSnapshot[], source:
 	const last = snapshots.at(-1);
 	if (last !== undefined) {
 		lines.push("## Totals", "", "| Agent | Active minutes | Final level | Points | Rank |", "|---|---:|---:|---:|---:|");
-		for (const row of [...last.standings].sort((a, b) => a.agent.localeCompare(b.agent))) {
+		const final = end?.standings ?? last.standings;
+		for (const row of [...final].sort((a, b) => a.agent.localeCompare(b.agent))) {
 			const active = snapshots.filter((snapshot) =>
 				snapshot.standings.some((entry) => entry.agent === row.agent && entry.activated),
 			).length;
@@ -75,6 +76,8 @@ export function writeMinuteReport(runDirectory: string): string {
 export interface RunEnd {
 	readonly minute: number;
 	readonly reason?: string;
+	/** The final ranking, when the log records it (an exile at the last tick follows the last minute). */
+	readonly standings?: readonly StandingRow[];
 }
 
 export function readRunEnd(eventsJsonl: string): RunEnd | undefined {
@@ -83,7 +86,12 @@ export function readRunEnd(eventsJsonl: string): RunEnd | undefined {
 		if (line.trim().length === 0) continue;
 		const parsed: unknown = JSON.parse(line);
 		if (!isRecord(parsed) || parsed.type !== "run_end" || typeof parsed.minute !== "number") continue;
-		end = { minute: parsed.minute, ...(typeof parsed.reason === "string" ? { reason: parsed.reason } : {}) };
+		const standings = Array.isArray(parsed.standings) ? asRows(parsed.standings) : undefined;
+		end = {
+			minute: parsed.minute,
+			...(typeof parsed.reason === "string" ? { reason: parsed.reason } : {}),
+			...(standings === undefined ? {} : { standings }),
+		};
 	}
 	return end;
 }
@@ -92,14 +100,18 @@ function asSnapshot(value: unknown): MinuteSnapshot | undefined {
 	if (!isRecord(value) || value.type !== "round_end") return undefined;
 	const { round, minute, standings } = value;
 	if (typeof round !== "number" || typeof minute !== "number" || !Array.isArray(standings)) return undefined;
-	const items: readonly unknown[] = standings;
+	const rows = asRows(standings);
+	return rows === undefined ? undefined : { round, minute, standings: rows };
+}
+
+function asRows(items: readonly unknown[]): StandingRow[] | undefined {
 	const rows: StandingRow[] = [];
 	for (const item of items) {
 		const row = asRow(item);
 		if (row === undefined) return undefined;
 		rows.push(row);
 	}
-	return { round, minute, standings: rows };
+	return rows;
 }
 
 function asRow(value: unknown): StandingRow | undefined {
