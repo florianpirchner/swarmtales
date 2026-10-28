@@ -63,6 +63,12 @@ const NotifyParams = Type.Object({
 	text: Type.String({ description: `The note, 1-${MAX_NOTE_LENGTH} characters` }),
 });
 const PostParams = Type.Object({ text: Type.String({ description: `The post, 1-${MAX_NOTE_LENGTH} characters` }) });
+const ScheduleParams = Type.Object({
+	minute: Type.Integer({ description: "The run minute the tribunal opens; the report shows the bounds" }),
+	count: Type.Integer({ description: "Residents it exiles, from 1 to those still missing", minimum: 1 }),
+	factions: Type.Optional(Type.Integer({ description: "Factions formed before it, from 2 to half the residents present", minimum: 0 })),
+	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
+});
 
 export class Gamemaster implements EventSink {
 	readonly #options: GamemasterOptions;
@@ -169,7 +175,7 @@ export class Gamemaster implements EventSink {
 				systemPrompt: this.#options.systemPrompt,
 				model: binding.model,
 				thinkingLevel: this.#options.thinking,
-				tools: [this.#bind(this.#notifyTool()), this.#bind(this.#postTool())],
+				tools: [this.#bind(this.#notifyTool()), this.#bind(this.#postTool()), ...(this.#mayScheduleTribunal() ? [this.#bind(this.#scheduleTool())] : [])],
 			},
 			streamFn: binding.streamFn,
 			finishTurn: (turn) => {
@@ -222,6 +228,39 @@ export class Gamemaster implements EventSink {
 				const posted = world.postAsSystem(spec.author, post);
 				this.#deliver("board", post, posted.seq);
 				return `posted as #${posted.seq}`;
+			},
+		};
+	}
+
+	/**
+	 * Whether this look offers scheduleTribunal: the director role applies to
+	 * a resident in the city, and the tribunal takes a plan now.
+	 */
+	#mayScheduleTribunal(): boolean {
+		const { world, spec } = this.#options;
+		const tribunal = world.tribunal;
+		if (tribunal?.schedulingWindow().open !== true) return false;
+		const roleOn = (level: number) => spec.roles.filter((entry) => entry.fromLevel <= level).at(-1)?.role;
+		return world.alive.some((agent) => world.standingOf(agent).kind === "alive" && roleOn(world.levelOf(agent)) === "director");
+	}
+
+	#scheduleTool(): GmTool<typeof ScheduleParams> {
+		return {
+			name: "scheduleTribunal",
+			description:
+				"Plans the next tribunal: the minute it opens, how many it exiles and how many factions form before it. The city calls it " +
+				"a few minutes ahead. The reason is logged only. Fails outside the bounds the report shows.",
+			parameters: ScheduleParams,
+			execute: ({ minute, count, factions, reason }) => {
+				const tribunal = this.#options.world.tribunal;
+				if (tribunal === undefined) throw new ToolRefusal("NO_TRIBUNAL: this city holds no tribunal");
+				const planned = tribunal.schedule(minute, count, factions, reason);
+				if (!planned.ok) throw new ToolRefusal(`${planned.error}: ${planned.detail ?? ""}`.trim());
+				const plan = planned.value;
+				return (
+					`tribunal ${plan.tribunal} planned: the city calls it at minute ${plan.calledAt}, it opens at minute ${plan.opens} and exiles ${plan.count}` +
+					(plan.factions >= 2 ? `, ${plan.factions} factions` : "")
+				);
 			},
 		};
 	}
