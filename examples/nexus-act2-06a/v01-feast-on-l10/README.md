@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-10-27 |
 | Code | main at PR #10 (`b6e17fd`): feast opens on the first entry of level 10, table cleared after 12 minutes |
-| Start | resumed from [`../../nexus-seed7-haiku-act1/snapshot-L7.json`](../../nexus-seed7-haiku-act1/) (Act I, minute 15) |
-| Command | `pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic` |
+| Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
+| Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
 | Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier | `claude-haiku-5-5` via Anthropic |

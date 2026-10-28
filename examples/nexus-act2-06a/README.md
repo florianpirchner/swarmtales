@@ -1,9 +1,9 @@
 # Act II runs of nexus
 
 Every run in this series starts from a recorded Act I, so its runs differ only in the Act II code
-and the models. v01-v04 start from [`../nexus-seed7-haiku-act1/`](../nexus-seed7-haiku-act1/)
+and the models. v01-v04 start from [`../nexus-act1-06a-01/`](../nexus-act1-06a-01/)
 (recorded with the old turn scheduler); from v05 on every run starts from
-[`../nexus-seed7-haiku-act1-v2/`](../nexus-seed7-haiku-act1-v2/), recorded with the pass scheduler
+[`../nexus-act1-06a-02/`](../nexus-act1-06a-02/), recorded with the pass scheduler
 and the v05 rules. Compare runs across the two bases with care. Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and
 the full `run/` directory.
@@ -21,7 +21,7 @@ the full `run/` directory.
 ## Adding a run
 
 ```bash
-pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic
 ```
 
 Copy the new `runs/run-NNN/` to `vNN-<short-name>/run/`, write its `README.md` in the same shape

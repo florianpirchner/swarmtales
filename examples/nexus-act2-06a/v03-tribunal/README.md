@@ -4,8 +4,8 @@
 |---|---|
 | Date | 2026-10-28 |
 | Code | PR #16 (`f2aac52`): exile by tribunal (announced at minute 20, held every 10 minutes, ransom 40), numbered messages with DM receipts, `blame`, Act II marks (1 per channel, 1 back per minute), a city factor per team at the feast, director tone that names the cost of stalling; PR #15 run reporter |
-| Start | resumed from [`../../nexus-seed7-haiku-act1/snapshot-L7.json`](../../nexus-seed7-haiku-act1/) (Act I, minute 15) |
-| Command | `pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic` |
+| Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
+| Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
 | Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |

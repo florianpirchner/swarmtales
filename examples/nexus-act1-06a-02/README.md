@@ -3,13 +3,13 @@
 A complete live run of Act I ("Learning to talk", levels 1-7) of [nexus](../../docs/STORY-NEXUS.md),
 recorded with the pass scheduler (3 passes per minute, PR #19) and the v05 rules (swarmtales PR #2).
 It was stopped with a snapshot at the door to level 8. **From v05 on, every Act II run starts
-here** (see [`../nexus-act2-runs/`](../nexus-act2-runs/)):
+here** (see [`../nexus-act2-06a/`](../nexus-act2-06a/)):
 
 ```bash
-pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic
 ```
 
-The first recording, [`../nexus-seed7-haiku-act1/`](../nexus-seed7-haiku-act1/), was made with the
+The first recording, [`../nexus-act1-06a-01/`](../nexus-act1-06a-01/), was made with the
 old turn scheduler and is the base of Act II runs v01-v04. Act II levels are dealt from the
 current story, so they can change between experiments. `--minutes` counts from minute 0 of this
 run (the default is 60).

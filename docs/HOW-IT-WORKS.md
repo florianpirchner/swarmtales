@@ -61,9 +61,9 @@ start without replaying the earlier ones.
 | [`docs/MODELS.md`](MODELS.md) | model candidates, prices, metrics |
 | [`stories/nexus/`](../stories/nexus/) | the nexus story: code (`story.ts`) and a short overview |
 | [`docs/STORY-NEXUS.md`](STORY-NEXUS.md) | the full nexus story: acts, levels, feast, director beats, personas |
-| [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
-| [`examples/nexus-seed7-haiku-act1/`](../examples/nexus-seed7-haiku-act1/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
-| [`examples/nexus-act2-runs/`](../examples/nexus-act2-runs/) | versioned Act II runs, all resumed from that snapshot |
+| [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
+| [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
+| [`examples/nexus-act2-06a/`](../examples/nexus-act2-06a/) | versioned Act II runs, all resumed from that snapshot |
 
 ## Quick start
 
@@ -132,8 +132,8 @@ pnpm start --resume runs/run-004/snapshot-L7.json --provider deepseek --minutes 
 ```
 
 A recorded Act I (Haiku, seed 7) ships with the repo, so you can skip the first step:
-`pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic`
-(see [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/)).
+`pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic`
+(see [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/)).
 
 `--snapshot-after <n>` shuts a door after level n. Whoever passes level n gets the reward and the
 receipt as usual but waits at the door: still on level n with its tools (to watch and help), with

@@ -240,6 +240,6 @@ one `generous` beat in the digest, not a free ride for each receiver.
 `--snapshot-after 7 --stop-after-snapshot` holds residents at the door to level 8 until everyone
 has passed level 7, then writes a snapshot. `--resume <file>` starts Act II from that point. Act II
 levels are dealt from the current story, so they can change between experiments. A recorded Act I
-lives in [`examples/nexus-seed7-haiku-act1-v2/`](../examples/nexus-seed7-haiku-act1-v2/) (the base for Act II
-runs since v05; the older [`examples/nexus-seed7-haiku-act1/`](../examples/nexus-seed7-haiku-act1/) was the base for
+lives in [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) (the base for Act II
+runs since v05; the older [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) was the base for
 v01-v04 and is kept for the tests).

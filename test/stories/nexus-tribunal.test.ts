@@ -1,6 +1,6 @@
 /**
  * A scripted, offline Act II run resumed from the published Act I snapshot
- * (examples/nexus-seed7-haiku-act1/snapshot-L7.json, format v2) into the
+ * (examples/nexus-act1-06a-01/snapshot-L7.json, format v2) into the
  * current nexus (v06): delivery receipts and one upheld and one rejected
  * blame; the first tribunal called at its latest minute, with a faction draft
  * (nominations, leaders, applications, a refusal), a bloc bonus and a split
@@ -27,7 +27,7 @@ import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 
-const SNAPSHOT = join(process.cwd(), "examples", "nexus-seed7-haiku-act1", "snapshot-L7.json");
+const SNAPSHOT = join(process.cwd(), "examples", "nexus-act1-06a-01", "snapshot-L7.json");
 const DENIAL = "A01 never sent me anything. I have no DM from A01.";
 const THANKS = "Got your offer, thanks. I will think about it.";
 const CANVASS = "Join A04: we vote together and take the bonus.";

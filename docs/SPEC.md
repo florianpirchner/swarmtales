@@ -880,8 +880,8 @@ next minute and the run plays on.
   blames, the tribunal (sessions with their secret votes, gates, exiled, ransomed; since v06 also
   the residents at the act's start, the tribunals called, the plan, the last result, the faction
   draft and whether the act ended), groups the city removed, and the levels whose roles passed on
-  after an exile. Both committed Act I snapshots (`examples/nexus-seed7-haiku-act1/` and
-  `examples/nexus-seed7-haiku-act1-v2/`, `snapshot-L7.json`) resume into the current story (a
+  after an exile. Both committed Act I snapshots (`examples/nexus-act1-06a-01/` and
+  `examples/nexus-act1-06a-02/`, `snapshot-L7.json`) resume into the current story (a
   test checks both);
 - the director's firing state: once-only and all-past marks, cooldowns, entered levels, handled
   unanswered DMs, team splits, and the petitions it opened (their specs come back from the story);
