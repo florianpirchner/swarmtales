@@ -82,8 +82,6 @@ export interface TribunalPorts {
 	readonly lastProgress: (agent: CompetitorId) => number;
 	/** Whether some resident has passed `level` (the progress trigger of the first tribunal). */
 	readonly passed: (level: number) => boolean;
-	/** Whether no open reward can change who survives; no tribunal is scheduled then. */
-	readonly seatsDecided: () => boolean;
 	/** Whether a snapshot door is shut (SPEC 17); no tribunal is called then. */
 	readonly doorShut: () => boolean;
 	readonly post: (text: string) => void;
@@ -294,6 +292,11 @@ export class Tribunal {
 		return this.#ended ? this.#text("targetReached", { exiledList: namesOf(this.#exiled) }) : undefined;
 	}
 
+	/** Whether the city still pursues its target: the act is not over and tribunals are still held. */
+	get pursuing(): boolean {
+		return this.active && !this.#ended && !this.#halted && this.target > 0;
+	}
+
 	/** Whether a tribunal is under way: called and not open yet, voting, or someone at the gate. */
 	get busy(): boolean {
 		return this.#plan?.called === true || this.#current() !== undefined || this.#gates.size > 0;
@@ -436,7 +439,6 @@ export class Tribunal {
 		if (this.#plan !== undefined || this.#current() !== undefined) return { open: false, why: "a tribunal is pending; plan the next once its result is out" };
 		const missing = this.missing;
 		if (missing === 0) return { open: false, why: "the target is reached; the last gates are closing" };
-		if (this.#ports.seatsDecided()) return { open: false, why: "the seats are decided; the city holds no more tribunals" };
 		if (this.#ports.doorShut()) return { open: false, why: "a snapshot door is shut; plan once it opens" };
 		const now = this.#lastTick + 1;
 		const previous = this.#previousOpening();
@@ -625,17 +627,13 @@ export class Tribunal {
 	 * The city's own plans, when nothing is pending: the first tribunal on
 	 * progress or at its latest minute, then the forced final tribunal when
 	 * only one more fits, else a fallback once the last result is
-	 * `fallbackGap` minutes old. A plan not yet called is dropped once the
-	 * seats are decided.
+	 * `fallbackGap` minutes old. Decided seats do not stop the city: the
+	 * act runs until its target is reached (v06).
 	 */
 	#pace(minute: number): void {
 		const spec = this.#ports.spec;
-		if (this.#plan !== undefined && !this.#plan.called && this.#ports.seatsDecided()) {
-			this.#ports.emit({ type: "tribunal_cancelled", tribunal: this.#plan.tribunal, reason: "the seats are decided" });
-			this.#plan = undefined;
-		}
 		if (this.#halted || this.#plan !== undefined || this.#current() !== undefined || this.missing === 0) return;
-		if (this.#ports.doorShut() || this.#ports.seatsDecided()) return;
+		if (this.#ports.doorShut()) return;
 		const previous = this.#previousOpening();
 		const opens = earliestOpening(spec, minute, previous);
 		if (!fitsBefore(spec, opens, this.#ports.minutes)) return;

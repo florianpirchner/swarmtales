@@ -15,7 +15,7 @@ sometimes betray each other.
 | Setting | Value |
 |---|---|
 | Residents | 6 competitors, each an LLM agent with a persistent session |
-| Duration | 60 minutes; one round per minute, in 3 passes; the run ends early once everyone has passed the last door, or once the seats are decided (no open reward can change the 2 survivors; transfers ignored) |
+| Duration | 60 minutes; one round per minute, in 3 passes; the act ends once the tribunals have exiled half of the residents; finishing every door or decided seats do not end it while that target is open |
 | Survivors | 2, ranked by points |
 | Start points | 15 |
 | Wrong password or code | −8 points; at most 2 wrong attempts per 5 minutes |
@@ -158,7 +158,7 @@ and exiles the rest, tribunal by tribunal; then the act (the run) ends.
 | Target | half of the residents at the start of the act: 3 of 6 (48 of 96); a ransomed resident does not count |
 | First tribunal | called when the first resident passes the crossing (door 10), at the latest at minute 30; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("It keeps only half of you") |
 | Later tribunals | planned by the game master with `scheduleTribunal(minute, count, factions, reason)`: at least 6 minutes apart, called a third of the gap ahead (at least 4 minutes), count 1 up to what is missing |
-| Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before minute 60, the city calls the final one for everything still missing; none once the seats are decided |
+| Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before minute 60, the city calls the final one for everything still missing; decided seats do not stop it |
 | Call | "Tribunal 2 sits at minute 44: the city exiles 1, and the 2 with the fewest points stand trial." |
 | Faction draft | in the lead, in group `GT<k>`: nominate leaders, then join one (a leader may refuse); 2 factions by default; a faction whose voters all vote for the same accused earns each of them 5 points, and only its members learn whether it held |
 | Accused | one more than the tribunal exiles, those with the fewest points, leaving at least two voters (ties: longest without a new door, then the city's lot) |

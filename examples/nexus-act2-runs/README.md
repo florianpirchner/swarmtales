@@ -15,6 +15,7 @@ the full `run/` directory.
 | [v03](v03-tribunal/) | 2026-10-28 | PR #16 (`f2aac52`) | exile by tribunal, numbered messages, DM receipts and blame, Act II marks, a feast factor per team | 2 of 6 | A04, A06 | 0.343 USD |
 | [v04](v04-passes/) | 2026-10-28 | PR #19 (`8845aca`) | 3 passes per minute, ransom from the city's median | 0 of 6 | A02, A03 | 0.488 USD |
 | [v05](v05-receipts/) | 2026-10-28 | swarmtales PR #2 (`3b6b927`); **new Act I base** | help-your-holder hint, DM receipts with `showReceipt(id, to?)`, bequests capped at half, ransom a third / a half of the median | 4 of 6 | A05, A02 | 0.471 USD |
+| [v06](v06-factions/) | 2026-10-28 | swarmtales PR #4 (`0445b36`) | first tribunal on progress, game-master pacing toward half exiled, faction draft with bloc bonus, marks 1 per 3 minutes, bequests 10% per heir | 6 of 6 (run ended at minute 27 with the tribunal target unmet, P30) | A03, A04 | 0.314 USD |
 
 ## Adding a run
 
