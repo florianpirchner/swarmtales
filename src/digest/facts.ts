@@ -298,6 +298,14 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "factor_burned":
 			case "level_contracted":
 			case "name_chosen":
+			case "core_dealt":
+			case "goal_dealt":
+			case "goal_resolved":
+			case "seal_auction_opened":
+			case "seal_bid":
+			case "seal_won":
+			case "seal_used":
+			case "seal_expired":
 				break;
 			default:
 				return assertNever(event, "digest event");
