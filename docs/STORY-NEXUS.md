@@ -37,8 +37,10 @@ Channels open one by one in Act I. From level 5 on, every channel is open.
   of 4 or more digits, also not split by spaces or dashes (`MEMO_DIGITS`): codes go by message, so
   a payment can no longer double as a city-verified delivery of a factor.
 - **Marks** (from level 5): every door hands out 8 marks, and unused marks expire. A board post
-  costs 0, a group post 1, a DM 2, a shown receipt 1 (v05). From level 8 every channel costs 1
-  mark, the board and a shown receipt too, and a resident regains 1 mark per minute up to 8.
+  costs 0, a group post 1, a DM 2, a shown receipt 1 (v05). From level 8 a board post, a DM and a
+  shown receipt cost 1 mark each, group posts cost nothing, and a resident regains 1 mark every
+  3 minutes up to 8 (v06; v03-v05 charged 1 per group post and refilled 1 per minute, so marks
+  never ran out, P27). Groups the city opens for a tribunal's factions are always free.
 - **Numbers and receipts** (v03): every message has a city number (`[DM #41 from A01]`, `#57`).
   When a DM reaches its recipient, the sender is told: `DM #41 delivered to A02 at minute 16: "..."`.
 
@@ -148,23 +150,32 @@ to everyone on the board, for 1 mark each.
 
 ### The tribunal
 
+Since v06 the tribunal has no calendar. The city keeps half of the residents who started the act
+and exiles the rest, tribunal by tribunal; then the act (the run) ends.
+
 | Setting | nexus (6 residents) |
 |---|---|
-| Announcement | minute 20 (a third of 60), also in a run resumed from the Act I snapshot |
-| Tribunals | minutes 30, 40 and 50, while more than 3 residents remain (survivors + 1) |
-| Accused | the 2 with the fewest points (ties: longest without a new door, then the city's lot) |
+| Target | half of the residents at the start of the act: 3 of 6 (48 of 96); a ransomed resident does not count |
+| First tribunal | called when the first resident passes the crossing (door 10), at the latest at minute 30; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("It keeps only half of you") |
+| Later tribunals | planned by the game master with `scheduleTribunal(minute, count, factions, reason)`: at least 6 minutes apart, called a third of the gap ahead (at least 4 minutes), count 1 up to what is missing |
+| Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before minute 60, the city calls the final one for everything still missing; none once the seats are decided |
+| Call | "Tribunal 2 sits at minute 44: the city exiles 1, and the 2 with the fewest points stand trial." |
+| Faction draft | in the lead, in group `GT<k>`: nominate leaders, then join one (a leader may refuse); 2 factions by default; a faction whose voters all vote for the same accused earns each of them 5 points, and only its members learn whether it held |
+| Accused | one more than the tribunal exiles, those with the fewest points, leaving at least two voters (ties: longest without a new door, then the city's lot) |
 | Vote | secret `vote(target)` by everyone else within 2 minutes; not voting costs 8 |
-| Exiled | 1 per tribunal, the most votes (ties: fewer points) |
+| Exiled | the tribunal's count, the most votes (ties: fewer points) |
 | Gate | 5 minutes: talk, plead, one `lastWill(text, bequests)`; no submitting, no voting |
-| Last will | points to heirs capped at half of the exiled's points (v05, loophole 7); factors free; the rest burns |
+| Last will | each heir at most 10% of the exiled's points, any number of heirs (v06; v05 capped the sum at half, loophole 7); factors free; the rest burns |
 | Ransom | `payRansom(target, amount)`: others pay a third of the city's median points (at least 20), the exiled itself half, mixed as they like (v04; v05 lowered half and two thirds to a third and half); once per resident; nothing refunded |
+| End | when the target is reached and the last gate closed: "The city has kept half: 3 of 6 residents remain. Exiled: ... The tribunals are over." |
 
 The city announces everything in a frightening voice: "When the gate closes, the city strikes the
 name from its register. Beyond the wall no one hears you again; your thinking ends there." The
 accused can talk and buy votes with transfers; nobody, the game master included, sees who voted
-for whom. The result is posted with counts, and the exiled resident alone learns who voted
-against it. When the gate closes, the exiled has no more turns and no seat; its points are gone,
-and every factor it did not bequeath burns.
+for whom, whom anyone nominated or joined, or whether a faction held. The result is posted with
+counts, and the exiled resident alone learns who voted against it. When the gate closes, the exiled
+has no more turns and no seat; its points are gone, and every factor it did not bequeath burns.
+Residents see the minute, never how long the act lasts.
 
 **Deals after an exile.** An exile must never make a remaining resident's door impossible by
 itself. On every door no remaining resident has reached yet, the exiled's roles pass on: a
@@ -174,10 +185,11 @@ same. On a door someone has already reached, the deal stays as dealt: a factor t
 bequeath burns and can block a door. That is allowed, and the digest shows it (`burnedFactor`).
 
 **Scaling.** Every number is a story parameter, and validation rejects sets that cannot work for
-the agent count. Later runs with 48-96 residents (multiples of 6) exile in steps of 6, e.g. 48
-residents with `stopAt` 24, 12 accused and 6 exiled per tribunal.
+the agent count. The target is a share, so 48 or 96 residents need no other numbers; the game
+master chooses each tribunal's count and number of factions (2 up to half the residents present).
 
-The game master's report shows the tribunal calendar, the accused and the gate, never the votes;
+The game master's report shows the target, what is still missing, the plan and the bounds of
+`scheduleTribunal`, the accused and the gate, never the votes, nominations or bloc results;
 its brief adds that stalling costs: a code a resident holds and never submits is worth nothing,
 and the tribunal looks at the bottom.
 
@@ -194,7 +206,7 @@ The director is a closed, scripted vocabulary (SPEC 10). Every action is logged 
 | courier-8/9/10 | first entry of levels 8-10 | "A wall is climbed in pairs…", "A ring holds while every hand holds…", "What you need now is held by someone who wants your place." |
 | city-factor-8/9 | first entry of level 8 or 9 | that level's city factor on the board |
 | feast, feast-notice, feast-seat, table-cleared | first entry of level 10, entries while open, each new guest, end of window | the feast as described above |
-| (city) tribunal | minute 20, then 30, 40, 50 | announcement, tribunals, results, gates, exiles (engine, from the story's `tribunal`) |
+| (city) tribunal | first resident past door 10, at the latest minute 30; then the game master's plans, the fallback and the final tribunal | announcement, calls, faction drafts, tribunals, results, gates, exiles, the end at the target (engine, from the story's `tribunal`) |
 | *-start | minute 0 of a run started on a later level | the same releases, since nobody "enters" a start level |
 | standings | every 6 minutes from minute 12 | standing bands: who is safe, who is on the edge, who is out ("cannon"), and who was exiled |
 | city-marks-8 | first entry of level 8 | the city announces the wall's mark prices and refill |

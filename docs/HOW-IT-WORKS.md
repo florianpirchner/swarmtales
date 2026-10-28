@@ -30,7 +30,9 @@ passes:
 - **Director.** The director plays the story's scripted beats: courier lines, city factors, the
   feast and the standings.
 - **City.** The engine numbers every message, sends DM receipts, settles blames and, in a story
-  with a tribunal, announces it, holds the secret votes, keeps the gate and exiles.
+  with a tribunal, calls it (the first on progress, later ones as the game master plans them,
+  within guard rails), runs the faction draft, holds the secret votes, keeps the gate and exiles,
+  and ends the act once it has exiled its target.
 - **Classifier.** After the round, the statement classifier labels what the competitors wrote and
   thought, for example promise, offer, threat, refusal, lie, hesitation, help request, accusation
   or thanks.
@@ -362,8 +364,10 @@ Two puzzle kinds exist (SPEC 12):
   recipient of a private release gets its own team's.
 - Transfer memos may not carry a number of 4 or more digits, also not split by spaces or dashes
   (`MEMO_DIGITS`); payments stay possible, codes go by message.
-- **Marks per level range:** `marks.ranges: [{ fromLevel, perLevel?, prices?, refillPerMinute? }]`
-  gives later levels their own allowance and prices and a refill per minute up to the allowance.
+- **Marks per level range:** `marks.ranges: [{ fromLevel, perLevel?, prices?, refill? }]` gives
+  later levels their own allowance and prices and a refill up to the allowance; `refill: { marks,
+  everyMinutes }` (v06; it replaced `refillPerMinute`) books whole intervals only. Groups the city
+  opens are free to post in.
 - **Message numbers and receipts:** DMs, board posts, group posts and the game master's notes and
   board posts share one city counter (`[DM #41 from A01]`, `#57`, `[COURIER #60]`). When a DM
   reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16 (receipt
@@ -374,11 +378,20 @@ Two puzzle kinds exist (SPEC 12):
   receipt. Upheld, the liar pays and is branded on the board (`City record: A02 lied. ...`);
   rejected, the accuser pays and is branded a false accuser. Without the judge's key the tool
   answers `JUDGE_ABSENT` and has no effect. One blame per (DM, claim) pair.
-- **Tribunal:** `tribunal: { announceAt, everyMinutes, stopAt, accused, exiledPerTribunal,
-  voteMinutes, nonVoterPenalty, gateMinutes, ransom, bequestShare, texts }` (SPEC 6.4); a last
-  will leaves at most `bequestShare` of the exiled's points, the rest burns. The city grants `vote`,
-  `payRansom` and `lastWill` itself while they apply (levels must not list them). Validation
-  checks the parameters against the run's agent count; a city too small for one plays without.
+- **Tribunal:** `tribunal: { first: { level, latestMinute }, targetShare, minGap, lead: { share,
+  minimum }, fallbackGap, maxMinute?, voteMinutes, nonVoterPenalty, gateMinutes, ransom,
+  bequestPerHeir, factions?: { count, blocBonus, texts }, texts }` (SPEC 6.4, v06). The pacing
+  rules are pure functions in `src/story/tribunal.ts` (target, lead, earliest opening, whether a
+  tribunal fits, accused count), shared by the validator, the engine (`src/engine/tribunal.ts`) and
+  the game master's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
+  every minute: it closes gates and votes, plans the first tribunal (progress or deadline), the
+  fallback and the forced final one, calls and opens tribunals and ends the act at the target
+  (`endReason`, which the arena uses as the `run_end` reason). The faction draft is its own class
+  (`src/engine/factions.ts`) that opens and removes city groups through the world. A last will
+  leaves each heir at most `bequestPerHeir` of the exiled's points, the rest burns. The city grants
+  `vote`, `payRansom`, `lastWill`, `nominate`, `join` and `refuse` itself while they apply (levels
+  must not list them). Validation checks the parameters against the story's agent count; a city
+  too small for one plays without.
   After an exile, on levels no remaining resident has reached, the exiled's roles pass on
   (counter-factors along the holder chain, certificates and fragments to the first remaining
   teammate), so the exile never makes a door impossible; on levels already reached a piece that
@@ -420,12 +433,17 @@ decided` once no competitor's points plus all rewards still open to it could lif
 two or push a current survivor out (transfers and penalties are ignored; never while a snapshot
 door is shut). The digest timeline and `minutes.md` show the reason.
 
-Since v03, Act II (levels 8-10) prices every channel at 1 mark with a refill of 1 per minute,
-unlocks `blame` (12 points for whoever is wrong) and plays the tribunal: announced at minute 20 of
-60, tribunals at 30, 40 and 50 while more than 3 residents remain, the 2 with the fewest points
-accused, a 2-minute secret vote (not voting costs 8), 1 exiled to a 5-minute gate with a last will
-(at most half of its points, since v05) and a ransom of a third of the city's median points (half when the exiled pays for itself; v05), once
-per resident. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
+Since v03, Act II (levels 8-10) prices its channels in marks (since v06: board, DM and shown
+receipt 1 mark, group posts free, 1 mark back every 3 minutes), unlocks `blame` (12 points for
+whoever is wrong) and plays the tribunal. Since v06 the city keeps half of the act's residents: the
+first tribunal is called when a resident passes door 10, at the latest at minute 30; the game
+master plans the later ones (`scheduleTribunal`), the city falls back on its own after 10 quiet
+minutes and forces the final one when only one more fits. Each tribunal accuses one more than it
+exiles, a faction draft runs before it (a faction voting as one earns each voter 5), the vote is
+secret (not voting costs 8), the exiled spend 5 minutes at the gate with a last will (each heir at
+most 10% of its points) and a ransom of a third of the city's median points (half when the exiled
+pays for itself), once per resident; the run ends when half are gone. Residents see the minute,
+never the time left. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director
 

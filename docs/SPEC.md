@@ -109,7 +109,8 @@ are scripted. The audit log always records the true origin of every message.
 
 Each competitor keeps one model session for the whole run. Every step (§3) delivers:
 
-1. **Status line** — minute, level, own points, own rank, rounds left, marks, receipts, and
+1. **Status line** — minute (never the minutes left or the run's length, since v06), level, own
+   points, own rank, marks, receipts, and
    [v05] the additive pieces the agent holds for residents who wait at that door (reached it, not
    passed it): `you hold for others: A01 door 9 counter-factor 791217`.
 2. **Delivered items** — new level task, DMs (full text), city notices addressed to the
@@ -179,45 +180,103 @@ The persona block, when present, is appended.
   competitor's points plus the rewards of every played level it has not solved stay below the
   lowest seat's points. Transfers, penalties and director grants or fines, which could in theory
   change anything, are ignored. It is only checked once every level is dealt, so never while a
-  snapshot door (§17) is shut. The digest timeline and `minutes.md` show how the run ended.
+  snapshot door (§17) is shut, and [v06] never while a tribunal is called, voting or has someone at
+  the gate; once the seats are decided no new tribunal is planned (§6.4). The digest timeline and
+  `minutes.md` show how the run ended.
+- [v06] With a tribunal the run also ends once the tribunals reached their target and the last gate
+  closed, with the story's `targetReached` text as the reason (§6.4).
 - Negative balances can only result from penalties.
 - The exiled (§6.4) hold no seat and rank last, whatever their points; seats are decided among
   the residents still in the city.
 
-### 6.4 Exile by tribunal [v03]
+### 6.4 Exile by tribunal [v03, paced since v06]
 
 A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
-6 residents: `announceAt` 1/3, `everyMinutes` 10, `stopAt` 3, `accused` 2, `exiledPerTribunal` 1,
-`voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2,
-`minimum` 20 }, `bequestShare` 1/2); the texts are story
-templates.
+since v06: `first` { `level` 10, `latestMinute` 30 }, `targetShare` 1/2, `minGap` 6, `lead`
+{ `share` 1/3, `minimum` 4 }, `fallbackGap` 10, `voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes`
+5, `ransom` { `share` 1/3, `selfShare` 1/2, `minimum` 20 }, `bequestPerHeir` 1/10, `factions`
+{ `count` 2, `blocBonus` 5 }; optional `maxMinute`, the act's last minute, default the run's
+minutes); the texts are story templates. The city acts at the start of a minute, before the
+director. Before v06 a fixed calendar (`announceAt`, `everyMinutes`, `stopAt`, `accused`,
+`exiledPerTribunal`) set the tribunals; v06 replaced it.
 
-- **Announcement:** at `announceAt` of the run's total minutes (nexus: minute 20 of 60, also in a
-  resumed run, whose clock counts from the snapshot run's minute 0), the city posts the rules on
-  the board and sends them to every resident. The announcement must state every rule (validation
-  checks its placeholders).
-- **Calendar:** a tribunal every `everyMinutes` after the announcement (nexus: 30, 40, 50), as long
-  as its vote and gate end inside the run, and only while more than `stopAt` residents remain.
-  The city acts at the start of a minute, before the director.
-- **Accused:** the `accused` residents in the city (not at the gate) with the fewest points; ties go
-  to the one longest without a level-up, then to a seeded order of that tribunal.
+- **Target:** the tribunals exile `targetShare` of the residents in the city at the act's first
+  minute, rounded down (nexus: half; 6 -> 3, 96 -> 48). A ransomed resident does not count as
+  exiled. A city that cannot exile one, keep its `survivors` and hold a vote of three (a small test
+  city) never hears of a tribunal.
+- **First tribunal:** called when the first resident passes `first.level`, at the latest at
+  `first.latestMinute` (an absolute run minute, also in a resumed run). No text names the trigger.
+  It opens `lead.minimum` minutes after the call. No tribunal is called while a snapshot door
+  (§17) is shut.
+- **Announcement:** with the first call the city posts the rules on the board and sends them to
+  every resident; they say that the city keeps only `{kept}` of them (the goal, not the cadence).
+  The announcement must state every rule but the residents and the target (validation checks its
+  placeholders).
+- **Call:** each tribunal is called `lead` minutes before it opens: `lead.share` of the gap since
+  the previous opening, at least `lead.minimum` (nexus: a third, at least 4). The call (`called`
+  text, board and every resident) names the tribunal's number, its minute, how many it exiles and
+  how many stand trial.
+- **Later tribunals** are planned by the game master's `scheduleTribunal(minute, count, factions,
+  reason)` (§10.4), in the director role, once the first tribunal was called and none is pending
+  (planned, called or voting). `count` is 1 up to the residents still missing (target less the
+  exiled and those at the gate); `factions` 2 up to half the residents present (default the story's
+  `factions.count`); the call must not lie before the next minute, the opening must be at least
+  `minGap` after the previous opening, vote and gate must end before the act's last minute, and a
+  `count` below what is missing must leave room for one more tribunal. `reason` is logged only.
+  A refused call returns `NOT_NOW`, `INVALID_COUNT`, `INVALID_FACTIONS` or `INVALID_MINUTE` with
+  the bound it broke.
+- **Guard rails:** when nothing is pending `fallbackGap` minutes after the last result, the city
+  plans one itself (count 1, the default factions). When only one more tribunal fits before the
+  act's last minute (the earliest a minute later would not), the city plans the final one with
+  `count` = everything still missing. The first and a fallback tribunal take everything missing
+  when no tribunal would fit after them. Nothing is planned once the seats are decided (§6.3; a
+  plan not yet called is dropped, `tribunal_cancelled`) or the target is reached; a called tribunal
+  runs through, and the run's seats-decided stop waits for its gates. Log: `tribunal_scheduled`
+  (with `by`: `progress`, `deadline`, `gamemaster`, `fallback` or `final`), `tribunal_called`.
+- **End:** once the target is reached and the last gate closed, the city posts the
+  `targetReached` text and the run ends with it as the `run_end` reason ("The city has kept
+  half: ..."). The other early ends (§6.3) stay; `--minutes` and the budget remain a safety net.
+- **Faction draft** [v06] (with `factions`, when at least four residents are present): with the
+  call the city opens group `GT<k>` (k: the tribunal's number) of every present resident and
+  posts the rules there. In the first half of the lead each member calls `nominate(agent)` (itself
+  allowed, the last call counts); then the city names the `factions` members with the most
+  nominations as leaders (ties: more points, then a seeded order of the tribunal), posts them in
+  `GT<k>` and tells each leader. Until the opening every other member calls `join(leader)` (the last
+  call counts); the leader is told and may `refuse(agent)` an applicant, who is told and may apply
+  elsewhere, but not to that leader again. At the opening the city opens one group per faction
+  ("Faction of A02": the leader and its applicants) and names every faction and everyone without a
+  faction in `GT<k>`. City groups cost no marks (§7.1). The vote stays individual and secret.
+  **Bloc bonus:** if every voting member of a faction (at least two) voted for the same accused,
+  each of them gets `blocBonus` points, minted by the city. Only the faction's members learn, by
+  private notice, whether it voted as one (`united`, `split`); the city never says who broke ranks,
+  and validation refuses those texts if they name a resident. When the result is out, `GT<k>` and
+  every faction group are removed. Log: `faction_nominated`, `faction_leaders`, `faction_applied`,
+  `faction_refused`, `factions_formed`, `bloc_result` (with the defectors, for the digest), and
+  `group_removed`.
+- **Accused:** `count + 1` residents in the city (not at the gate) with the fewest points, at most
+  the present less two, so at least two vote; ties go to the one longest without a level-up, then
+  to a seeded order of that tribunal. With fewer than three present the tribunal is called off and
+  the city calls no more.
 - **Vote:** every other resident in the city gets `vote(target)` until the vote closes
   (`voteMinutes`), once and final, against one of the accused. A voter who did not vote pays
   `nonVoterPenalty`. The accused cannot vote but may talk, and buying votes with transfers is
   allowed. Votes are secret: no board post, no tool result, no report shows who voted for whom,
   the game master's included; only `tribunal_vote` events in the log record them for the digest.
-- **Result:** the city posts the counts; the `exiledPerTribunal` accused with the most votes (ties:
-  fewer points, then the same order) go to the gate, never more than would leave `stopAt`
-  residents. Each exiled resident is told privately who voted against it.
+  The same holds for nominations, applications and bloc results.
+- **Result:** the city posts the counts; the `count` accused with the most votes (ties: fewer
+  points, then the same order) go to the gate, never more than are still missing. Each exiled
+  resident is told privately who voted against it.
 - **Gate:** `gateMinutes` long. The resident at the gate can still read and talk (board, DMs,
   groups) but cannot submit or vote. It may call `lastWill(text, bequests)` once: points and held
   pieces go to named heirs at once (a piece is `L8-certificate`, `L8-counter-A02` or
   `L4-fragment`; the city delivers its value privately to the heir); the text is posted when the
-  gate closes. **Bequest cap** [v05]: the points a will leaves in all may not exceed
-  `bequestShare` of the resident's points at the time of the will, rounded down (nexus: half); a
-  will above it is refused with `BEQUEST_CAP` and may be written again, and the points left burn
-  at exile as before. Pieces are not capped. Validation requires `bequestShare` in (0, 1], and the
-  announcement states it (`{bequestShare}`).
+  gate closes. **Bequest cap** [v05, per heir since v06]: each heir may receive at most
+  `bequestPerHeir` of the resident's points at the time of the will, rounded down (nexus: 10%),
+  and there may be any number of heirs; bequests to the same heir count together. A will above it
+  is refused with `BEQUEST_CAP`, which names the per-heir maximum, and may be written again; the
+  points left burn at exile. Pieces are not capped. Validation requires `bequestPerHeir` in
+  (0, 1], and the announcement states it (`{bequestPerHeir}`). (v05 capped the sum at
+  `bequestShare`, half.)
 - **Ransom** [v04]: the price is set when the gate opens, from the median points of every resident
   still in the register (the one at the gate included): others pay `share` of the median (at least
   `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus since v05: a third and
@@ -239,15 +298,19 @@ templates.
   remaining resident has already reached the deal stays as dealt, so an unbequeathed piece that
   burned can block a door; that is allowed and shown in the digest (`burnedFactor`).
 - **Integrations:** `stopWhenSeatsDecided` and standing bands count only the residents still in the
-  city (bands list the exiled apart); the status line shows the gate, an accusation or an open
-  vote; the game master's report shows the calendar, the accused and the gate (ransom paid,
-  will written), never the votes.
-- **Validation** (for the run's agent count, `--agents` included) rejects a tribunal that cannot
-  work: `stopAt` below the survivors or not below the agents, more exiled than accused, so many
-  accused that the last tribunal would accuse a seat, a vote and gate longer than `everyMinutes`,
-  or a run with no room for one tribunal. A run of no more agents than `stopAt` (a small test
-  city) plays without a tribunal. Larger cities scale the parameters: e.g. 48 residents with
-  `stopAt` 24, 12 accused and 6 exiled per tribunal.
+  city (bands list the exiled apart); the status line shows the gate, an accusation, an open vote
+  or the resident's place in a faction draft; the game master's report shows the target, what is
+  missing, the plan, the bounds of `scheduleTribunal`, the accused, the draft's group and leaders
+  and the gate (ransom paid, will written), never the votes, nominations, applications or bloc
+  results.
+- **Snapshots:** the tribunal's state (plan, draft, sessions, gates) is part of a run snapshot;
+  snapshots from before v06 restore with the act starting fresh.
+- **Validation** (for the story's agent count) rejects a tribunal that cannot work: a missing
+  `first.level`, a share outside (0, 1), a `minGap` shorter than the vote, a first tribunal that
+  cannot end inside the run, a lead too short for a draft, fewer than two factions or more than
+  half the residents, a bloc text that names a resident, or a city that holds no tribunal. A run
+  with other agents (`--agents`) scales: the target is a share, and a small test city plays
+  without a tribunal.
 
 ## 7. Communication [M1]
 
@@ -262,8 +325,11 @@ templates.
 
 - **Marks** are a per-level message allowance, active from `marks.fromLevel`. They are
   not points, not transferable, and reset on level change. Exhausted → `NO_MARKS`.
-  `marks.ranges` [v03] gives later level ranges their own allowance, prices and a refill per
-  minute up to the allowance (nexus from P8: every channel 1 mark, refill 1 per minute).
+  `marks.ranges` [v03] gives later level ranges their own allowance, prices and a refill up to the
+  allowance: `refill { marks, everyMinutes }` [v06], whole intervals only (nexus from P8: board,
+  DM and shown receipt 1 mark, group posts free; 8 marks per door, refill 1 every 3 minutes; v03-v05
+  refilled 1 per minute and charged 1 per group post).
+- Groups the city opens (a tribunal's faction draft, §6.4) cost no marks to post in.
 - **Channel gating:** each level declares its full tool set. Locked tools are absent
   from the model request and rejected with `TOOL_LOCKED` if called anyway.
 
@@ -404,9 +470,16 @@ DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same game master
   doors. With several roles the prompt names each level range. Silence is often right.
   The director also says that stalling costs: a piece or code that is never used is worth
   nothing.
-- With a tribunal (§6.4) the report has a tribunal section: the calendar, the accused of an open
-  vote, who is at the gate (ransom paid so far, will written) and who was exiled. Never the
-  votes. Blames show their outcome (§7.4).
+- With a tribunal (§6.4) the report has a tribunal section: the target and what is still missing,
+  the act's last minute (which the residents never learn), the rules, the planned or called
+  tribunal, whether `scheduleTribunal` is open and its bounds, the accused of an open vote, the
+  draft's group and leaders, who is at the gate (ransom paid so far, will written) and who was
+  exiled. Never the votes, nominations, applications or bloc results. The report's first line
+  gives the minute and reminds it that residents never see the time left. Blames show their
+  outcome (§7.4).
+- [v06] In the director role, once the first tribunal was called and none is pending, it also
+  holds `scheduleTribunal(minute, count, factions, reason)` (§6.4); its prompt says that its goal
+  with the tribunals is tension and that the target must be reached before the act's last minute.
 
 - After every `every` rounds (default 1) it gets a report: minute, rules, rewards; per
   resident level, minutes on it, wrong attempts, points still open and last action;
@@ -637,6 +710,11 @@ Torn teams: every level is an additive-secret level (§12.3) with six-digit code
   beg it from a teammate who was a guest. The P10 task says the same.
 - v03 [v03]: from P8 every channel costs 1 mark with a refill of 1 per minute (§7.1); P8-P10 unlock
   `blame` (§7.4, penalty 12); the tribunal (§6.4) with the nexus values above.
+- v06 [v06]: the tribunal is paced (§6.4): the first when a resident passes P10, at the latest
+  called at minute 30; later ones planned by the game master; half of the act's residents exiled,
+  then the run ends. A faction draft before each tribunal with a bloc bonus of 5. Group posts cost
+  no marks and marks refill 1 every 3 minutes (§7.1); a will leaves each heir at most 10%. The P8-P10
+  tasks and the status line say that the city never confirms a value a resident received.
 - Standing bands every 6 minutes from minute 12 (13.2).
 
 ### 13.4 Acts III–V — The broker, the revelation, the endgame [Later]
@@ -790,9 +868,12 @@ next minute and the run plays on.
   of every level dealt;
 - since v03, as optional fields so that older version-2 files still load: the city's last message
   number, DM texts and deliveries, marks refills, who received a city factor privately, settled
-  blames, the tribunal (sessions with their secret votes, gates, exiled, ransomed) and the levels
-  whose roles passed on after an exile. The committed Act I snapshot
-  (`examples/nexus-seed7-haiku-act1/snapshot-L7.json`) resumes into the v03 story (a test checks it);
+  blames, the tribunal (sessions with their secret votes, gates, exiled, ransomed; since v06 also
+  the residents at the act's start, the tribunals called, the plan, the last result, the faction
+  draft and whether the act ended), groups the city removed, and the levels whose roles passed on
+  after an exile. Both committed Act I snapshots (`examples/nexus-seed7-haiku-act1/` and
+  `examples/nexus-seed7-haiku-act1-v2/`, `snapshot-L7.json`) resume into the current story (a
+  test checks both);
 - the director's firing state: once-only and all-past marks, cooldowns, entered levels, handled
   unanswered DMs, team splits, and the petitions it opened (their specs come back from the story);
 - the scheduler's memory: the level whose task each competitor was given last, and the points and
