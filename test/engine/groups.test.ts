@@ -121,3 +121,32 @@ describe("GroupRegistry", () => {
 		expect(ledger.total()).toBe(0);
 	});
 });
+
+describe("groups of the city (the faction draft, v06)", () => {
+	it("are opened with their members, take the city's long posts, settle their treasury and vanish when removed", () => {
+		const { ledger, groups } = setup();
+		const opened = groups.createForCity("GT1", ["A01", "A02"]);
+		expect(opened).toMatchObject({ id: "G1", members: ["A01", "A02"] });
+		expect(groups.isCityGroup("G1")).toBe(true);
+		expect(groups.listFor("A01").map((group) => group.id)).toEqual(["G1"]);
+		expect(groups.listFor("A03")).toEqual([]);
+		const long = "x".repeat(1200);
+		expect(value(groups.postAsCity("G1", long)).text).toHaveLength(1200);
+		expect(groups.unreadCount("G1", "A01")).toBe(1);
+		value(groups.post("G1", "A02", "with me?"));
+		ledger.mint("A02", 10, "test", 5);
+		value(groups.deposit("G1", "A02", 3));
+		expect(groups.removeCityGroup("G1")).toEqual({ members: ["A01", "A02"], payouts: { A01: 2, A02: 1 } });
+		expect(groups.isRemoved("G1")).toBe(true);
+		expect(groups.listFor("A01")).toEqual([]);
+		expect(groups.unreadCount("G1", "A01")).toBe(0);
+		expect(errorOf(groups.read("G1", "A01", 0))).toBe("GROUP_NOT_VISIBLE");
+		expect(errorOf(groups.postAsCity("G1", "again"))).toBe("GROUP_NOT_VISIBLE");
+		expect(groups.removeCityGroup("G1")).toBeUndefined();
+		// A resident's group is not the city's to remove.
+		value(groups.create("A03", "Cartel"));
+		expect(groups.removeCityGroup("G2")).toBeUndefined();
+		// Removed groups keep their ids.
+		expect(groups.createForCity("GT2", ["A01"]).id).toBe("G3");
+	});
+});
