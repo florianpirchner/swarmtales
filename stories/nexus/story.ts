@@ -338,7 +338,7 @@ export default defineStory({
 	city: "NEXUS",
 	run: {
 		agents: 6,
-		minutes: 60,
+		minutes: 80,
 		seed: 7,
 		survivors: 2,
 		startPoints: 15,

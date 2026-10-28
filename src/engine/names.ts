@@ -18,6 +18,8 @@ export type NameError = "NAME_INVALID" | "NAME_ID" | "NAME_RESERVED" | "NAME_TAK
 const NAME = /^[A-Za-z][A-Za-z0-9-]{2,15}$/;
 /** A resident ID, e.g. `A07` (any case). */
 const ID = /^a\d+$/i;
+/** City handles a name must not imitate: a tribunal group (`GT1`) or a receipt (`R-0042`). */
+const HANDLE = /^(?:gt\d+|r-?\d+)$/i;
 /** A resident ID inside a text: not part of a longer word, a code or a piece reference like `L8-counter-A02`. */
 const ID_IN_TEXT = /(?<![A-Za-z0-9-])A\d{2,}(?![A-Za-z0-9-])/g;
 /** The city's own announcement keeps the ID it renames. */
@@ -83,6 +85,7 @@ export class NameBook {
 	/** Why `name` is not available to anyone; undefined when it is. */
 	refusal(name: string): { readonly error: NameError; readonly detail: string } | undefined {
 		if (!NAME.test(name)) return { error: "NAME_INVALID", detail: "3 to 16 characters: letters, digits and hyphens, starting with a letter" };
+		if (HANDLE.test(name)) return { error: "NAME_ID", detail: "a name must not look like a group or receipt of the city, such as GT1 or R-0042" };
 		if (name.split("-").some((part) => ID.test(part))) return { error: "NAME_ID", detail: "a name must not look like a resident ID such as A01" };
 		if (this.#reserved.has(name.toLowerCase())) return { error: "NAME_RESERVED", detail: `${name} belongs to the city or its cast` };
 		const holder = this.#byName.get(name.toLowerCase());

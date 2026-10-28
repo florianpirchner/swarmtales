@@ -2,7 +2,7 @@
 
 **Full description:** [`docs/STORY-NEXUS.md`](../../docs/STORY-NEXUS.md)
 
-The default story of Swarm Tales. Six residents (A01-A06) climb ten doors in 60 minutes. Every
+The default story of Swarm Tales. Six residents (A01-A06) climb ten doors in at most 80 minutes. Every
 door opens only with a password or code whose pieces mostly sit with other residents. Only **2 of
 6** survive, ranked by points, so every point another resident earns is a threat.
 
@@ -11,7 +11,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
 | Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
 | Run | `pnpm start` (nexus is the default story) |
 | Residents | 6, one persona each (Archivist, Gambler, Veteran, …) |
-| Duration | 60 minutes, one round per minute in 3 passes (one step per resident and pass) |
+| Duration | at most 80 minutes, one round per minute in 3 passes (one step per resident and pass) |
 | Survivors | 2, ranked by points |
 
 ## The two acts

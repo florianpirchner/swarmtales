@@ -30,7 +30,7 @@ function levelOf(number: number): LevelDefinition {
 describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 	it("describes the default run", () => {
 		expect(nexus.id).toBe("nexus");
-		expect(nexus.run).toMatchObject({ agents: 6, minutes: 60, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
+		expect(nexus.run).toMatchObject({ agents: 6, minutes: 80, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
 		expect(nexus.run.agents % 6).toBe(0);
 		expect(nexus.model).toMatchObject({
 			provider: "openrouter",

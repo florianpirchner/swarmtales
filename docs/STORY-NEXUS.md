@@ -15,7 +15,7 @@ sometimes betray each other.
 | Setting | Value |
 |---|---|
 | Residents | 6 competitors, each an LLM agent with a persistent session |
-| Duration | 60 minutes; one round per minute, in 3 passes (one block per six residents); Act I has a brake after 25 minutes; Act II ends once the tribunals have exiled a quarter of the residents, at the latest 48 minutes after it began; finishing every door or decided seats do not end it while that target is open |
+| Duration | at most 80 minutes (Act I up to 25, Act II up to 48 after its start); one round per minute, in 3 passes (one block per six residents); Act I has a brake after 25 minutes; Act II ends once the tribunals have exiled a quarter of the residents, at the latest 48 minutes after it began; finishing every door or decided seats do not end it while that target is open |
 | Survivors | 2, ranked by points |
 | Start points | 15 |
 | Wrong password or code | −8 points; at most 2 wrong attempts per 5 minutes |

@@ -38,7 +38,7 @@ describe("choosing a name", () => {
 			return result.ok ? "ok" : result.error;
 		};
 		expect(["Mo", "7even", "Mira Bell", "M".repeat(17), "Mira!"].map(refused)).toEqual(["NAME_INVALID", "NAME_INVALID", "NAME_INVALID", "NAME_INVALID", "NAME_INVALID"]);
-		expect(["A07", "a99", "Stone-A12"].map(refused)).toEqual(["NAME_ID", "NAME_ID", "NAME_ID"]);
+		expect(["A07", "a99", "Stone-A12", "GT1", "R-0042"].map(refused)).toEqual(["NAME_ID", "NAME_ID", "NAME_ID", "NAME_ID", "NAME_ID"]);
 		expect(["city", "Courier", "STEWARD", "Nexus"].map(refused)).toEqual(["NAME_RESERVED", "NAME_RESERVED", "NAME_RESERVED", "NAME_RESERVED"]);
 		expect(refused("Mira-2")).toBe("ok");
 	});

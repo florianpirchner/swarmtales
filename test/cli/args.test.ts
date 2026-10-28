@@ -67,7 +67,7 @@ describe("pnpm start arguments", () => {
 	it("applies overrides to the story's run parameters", () => {
 		expect(effectiveRun(nexus)).toEqual({
 			agents: 6,
-			minutes: 60,
+			minutes: 80,
 			seed: 7,
 			startLevel: 1,
 			lastLevel: 10,
