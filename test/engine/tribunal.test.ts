@@ -270,12 +270,46 @@ describe("the city's own tribunals", () => {
 		expect(h.tribunal.busy).toBe(true);
 		h.tribunal.tick(58);
 		expect(h.tribunal.ended).toBe(true);
-		expect(h.tribunal.endReason).toBe("The city has kept half: 3 of 6 residents remain. Exiled: A01, A02 and A03. The tribunals are over.");
+		expect(h.tribunal.endReason).toBe("The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: A01, A02 and A03. The tribunals are over.");
 		expect(h.posts.at(-1)).toBe(h.tribunal.endReason);
 		expect(h.tribunal.schedulingWindow()).toMatchObject({ open: false });
 		const count = h.events.length;
 		h.tribunal.tick(59);
 		expect(h.events).toHaveLength(count);
+	});
+
+	it("lets the final tribunal take what a ransom added after it was planned", () => {
+		const h = harness(SIX);
+		runUntil(h, 0, 36);
+		// Tribunal 2 at 46 sends one more to the gate at 48; then only one more fits: the final, planned for 1 at 52.
+		expect(h.tribunal.schedule(46, 1, 2, "")).toMatchObject({ ok: true });
+		runUntil(h, 37, 48);
+		const [gate] = h.tribunal.gates();
+		expect(h.ofType("tribunal_scheduled").at(-1)).toMatchObject({ tribunal: 3, by: "final", opens: 52, count: 1 });
+		// A ransom before the opening: two are missing again.
+		expect(h.tribunal.payRansom("A06", gate?.agent ?? "", 100)).toMatchObject({ ok: true, value: { freed: true } });
+		expect(h.tribunal.missing).toBe(2);
+		runUntil(h, 49, 52);
+		expect(h.tribunal.session).toMatchObject({ tribunal: 3, count: 2 });
+		expect(h.tribunal.session?.accused).toHaveLength(3);
+		runUntil(h, 53, 59);
+		expect(h.tribunal.exiled).toHaveLength(3);
+		expect(h.tribunal.ended).toBe(true);
+	});
+
+	it("drops a plan whose call meets a shut snapshot door, and plans anew once it opens", () => {
+		const h = harness(SIX);
+		runUntil(h, 0, 36);
+		expect(h.tribunal.schedule(46, 1, 2, "")).toMatchObject({ ok: true, value: { calledAt: 42 } });
+		runUntil(h, 37, 41);
+		h.flags.doorShut = true;
+		h.tribunal.tick(42);
+		expect(h.ofType("tribunal_cancelled")).toEqual([{ type: "tribunal_cancelled", tribunal: 2, reason: "a snapshot door is shut" }]);
+		expect(h.ofType("tribunal_called")).toHaveLength(1);
+		expect(h.tribunal.schedulingWindow()).toEqual({ open: false, why: "a snapshot door is shut; plan once it opens" });
+		h.flags.doorShut = false;
+		runUntil(h, 43, 46);
+		expect(h.ofType("tribunal_scheduled").at(-1)).toMatchObject({ tribunal: 2, by: "final", calledAt: 46 });
 	});
 
 	it("does not count a ransomed resident as exiled", () => {
@@ -410,7 +444,11 @@ describe("the faction draft", () => {
 		const t = h.tribunal;
 		expect(t.draftGroup).toBe("G1");
 		expect(h.groups[0]).toMatchObject({ name: "GT1", members: competitorIds(6) });
-		expect(h.groups[0]?.posts[0]).toMatch(/^Tribunal 1 sits at minute 34\. Before it, the city forms 2 factions\. Until minute 32 nominate a leader/);
+		const rules = h.groups[0]?.posts[0] ?? "";
+		expect(rules).toMatch(/^Tribunal 1 sits at minute 34\. Before it, the city forms 2 factions in group G1, where all of you are \(posts there cost nothing\)\. Until minute 32 nominate a leader/);
+		expect(rules).toContain("each of them gets 5 points");
+		// The rules reach every member's turn too, not only the group.
+		for (const id of competitorIds(6)) expect(h.noticesOf(id)).toContain(rules);
 		expect(t.draftPhase("A01")).toEqual({ kind: "nominate", until: 32 });
 		expect(t.nominate("A01", "A09")).toMatchObject({ ok: false, error: "UNKNOWN_NOMINEE" });
 		expect(t.join("A01", "A03")).toMatchObject({ ok: false, error: "NO_DRAFT" });
@@ -453,13 +491,13 @@ describe("the faction draft", () => {
 		expect(t.join("A04", "A01")).toMatchObject({ ok: true });
 		expect(t.join("A05", "A01")).toMatchObject({ ok: true });
 		expect(t.join("A06", "A03")).toMatchObject({ ok: true });
-		expect(t.draftPhase("A01")).toEqual({ kind: "join", until: 34, leads: true, applicants: ["A04", "A05"] });
+		expect(t.draftPhase("A01")).toEqual({ kind: "join", until: 34, leads: true, applicants: ["A04", "A05"], refusedBy: [] });
 		expect(t.refuse("A02", "A06")).toMatchObject({ ok: false, error: "NOT_A_LEADER" });
 		expect(t.refuse("A01", "A02")).toMatchObject({ ok: false, error: "NOT_APPLYING" });
 		expect(t.refuse("A01", "A05")).toMatchObject({ ok: true });
 		expect(h.noticesOf("A05").at(-1)).toBe("A01 refused you. Until minute 34 you may apply to another leader with join(leader).");
 		expect(t.join("A05", "A01")).toMatchObject({ ok: false, error: "REFUSED" });
-		expect(t.draftPhase("A05")).toEqual({ kind: "join", until: 34, leads: false, applicants: [] });
+		expect(t.draftPhase("A05")).toEqual({ kind: "join", until: 34, leads: false, applicants: [], refusedBy: ["A01"] });
 		runUntil(h, 33, 34);
 		return h;
 	}
@@ -487,6 +525,25 @@ describe("the faction draft", () => {
 		expect(h.groups[0]?.posts.at(-1)).toBe("The factions of tribunal 1: faction of A03 (group G2): A03, A02 and A06; faction of A01 (group G3): A01 and A04. Without a faction: A05.");
 		expect(h.tribunal.draftPhase("A02")).toBeUndefined();
 		expect(h.tribunal.session).toMatchObject({ accused: ["A01", "A02"] });
+	});
+
+	it("refuses draft calls once the factions are formed", () => {
+		const h = drafted();
+		expect(h.tribunal.refuse("A01", "A04")).toMatchObject({ ok: false, error: "NOT_A_LEADER" });
+		expect(h.tribunal.join("A05", "A03")).toMatchObject({ ok: false, error: "NOT_IN_DRAFT" });
+		expect(h.tribunal.nominate("A05", "A03")).toMatchObject({ ok: false, error: "NOT_IN_DRAFT" });
+	});
+
+	it("names a resident bought back from the gate during the draft among those without a faction", () => {
+		const h = harness(SIX);
+		runUntil(h, 0, 36);
+		// A01 is at the gate when tribunal 2 is called at 37, so it is not in the draft.
+		expect(h.tribunal.schedule(41, 1, 2, "")).toMatchObject({ ok: true, value: { calledAt: 37 } });
+		h.tribunal.tick(37);
+		expect(h.groups.find((group) => group.name === "GT2")?.members).toEqual(["A02", "A03", "A04", "A05", "A06"]);
+		expect(h.tribunal.payRansom("A06", "A01", 100)).toMatchObject({ ok: true, value: { freed: true } });
+		runUntil(h, 38, 41);
+		expect(h.ofType("factions_formed").at(-1)?.without).toContain("A01");
 	});
 
 	it("breaks a tie of nominations and points by the city's seeded lot", () => {

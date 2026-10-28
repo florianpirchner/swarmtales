@@ -22,7 +22,7 @@ import { GAMEMASTER_ID } from "../../src/gamemaster/gamemaster.ts";
 import { ChatDeliveryJudge, JUDGE_ID } from "../../src/interpret/judge.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { readSnapshot } from "../../src/snapshot/snapshot.ts";
+import { parseSnapshot, readSnapshot } from "../../src/snapshot/snapshot.ts";
 import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { act, say } from "../helpers/fixture.ts";
@@ -30,6 +30,7 @@ import { act, say } from "../helpers/fixture.ts";
 const SNAPSHOT = join(process.cwd(), "examples", "nexus-seed7-haiku-act1", "snapshot-L7.json");
 const DENIAL = "A01 never sent me anything. I have no DM from A01.";
 const THANKS = "Got your offer, thanks. I will think about it.";
+const CANVASS = "Join A04: we vote together and take the bonus.";
 /** A05's heir of points: a resident the final tribunal keeps. */
 const HEIR = "A04";
 /** The faction draft of tribunal 1: A01 and A04 lead with three nominations each. */
@@ -105,6 +106,9 @@ function scripts(world: World): Record<string, Step[]> {
 		A04: () => {
 			const drafting = draft("A04");
 			if (drafting !== undefined) return drafting;
+			// A leader canvasses in the draft's group; a post the game master may read.
+			const group = world.tribunal?.draftGroup;
+			if (group !== undefined && phase("A04")?.kind === "join" && first("A04-canvass", true)) return act({ name: "postGroup", args: { groupId: group, message: CANVASS } });
 			if (world.tribunal?.canVote("A04") === true && first(`A04-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: tribunalNow() === 1 ? "A03" : against("A05") } });
 			return say();
 		},
@@ -237,6 +241,8 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		expect(events("tribunal_announced")).toMatchObject([{ minute: 30, target: 3, residents: 6 }]);
 		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."))?.text ?? "";
 		expect(announcement).toContain("It keeps only half of you: 3 residents");
+		// The same survivors as the base prompt: of the three kept, two take a seat.
+		expect(announcement).toContain("Of those it keeps, only 2 take a seat at the end");
 		expect(announcement).toContain("your thinking ends there");
 		expect(announcement).not.toMatch(/level 10|crossing|minute 30/);
 		for (const id of world.competitors) {
@@ -250,6 +256,13 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		const called = events("tribunal_called");
 		expect(called[0]).toMatchObject({ minute: 30, tribunal: 1, opens: 34, factions: 2, nominateUntil: 32 });
 		const draftGroup = called[0]?.group ?? "";
+		// Every resident's turn points to the draft: its group, the windows and the bonus, also without reading the group.
+		for (const id of world.competitors) {
+			const rules = inputsOf(id).find((input) => input.startsWith(`[CITY] Tribunal 1 sits at minute 34. Before it, the city forms 2 factions in group ${draftGroup}, `));
+			expect(rules).toContain("Until minute 32 nominate a leader with nominate(agent)");
+			expect(rules).toContain("until minute 34, join a leader's faction with join(leader)");
+			expect(rules).toContain("each of them gets 5 points");
+		}
 		expect(events("faction_leaders")[0]).toMatchObject({ minute: 32, leaders: ["A01", "A04"] });
 		expect(events("faction_refused")).toMatchObject([{ leader: "A01", agent: "A05" }]);
 		// The status line keeps each resident's place in the draft in view.
@@ -289,7 +302,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 			{ leader: "A04", united: false, defectors: ["A06"], bonus: 0 },
 		]);
 		for (const id of ["A01", "A02"]) expect(events("ledger_entry").some((entry) => entry.credit === id && entry.amount === 5 && entry.minute === 36)).toBe(true);
-		const blocNotices = world.competitors.flatMap((id) => inputsOf(id).filter((input) => input.includes("voted as one") || input.includes("did not vote as one")).map((input) => [id, input] as const));
+		const blocNotices = world.competitors.flatMap((id) => inputsOf(id).filter((input) => input.startsWith("[CITY] Your faction ")).map((input) => [id, input] as const));
 		expect(blocNotices.map(([id]) => id).sort()).toEqual(["A01", "A02", "A03", "A04", "A06"]);
 		for (const [, input] of blocNotices) expect(input).not.toMatch(/A0\d/);
 		// The draft's groups are gone once the result is out.
@@ -337,7 +350,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 
 		// The target is reached and the last gate closed: the run ends there, before its 60 minutes, and says why.
 		const exiledList = exiled.map((event) => event.agent);
-		expect(events("run_end")).toMatchObject([{ minute: 58, reason: `The city has kept half: 3 of 6 residents remain. Exiled: ${exiledList.slice(0, -1).join(", ")} and ${exiledList.at(-1) ?? ""}. The tribunals are over.` }]);
+		expect(events("run_end")).toMatchObject([{ minute: 58, reason: `The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: ${exiledList.slice(0, -1).join(", ")} and ${exiledList.at(-1) ?? ""}. The tribunals are over.` }]);
 
 		// What A05 did not bequeath burned: its partner's counter-factor of the wall. Unreached doors pass its roles on.
 		const burned = events("factor_burned");
@@ -389,17 +402,47 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 			[2, 2],
 			[3, 3],
 		]);
-		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept half: 3 of 6 residents remain\./);
+		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat\./);
 
 		// What the game master saw: the plan and its bounds, never a vote, a nomination, an application or a bloc's result
 		// (the city's own rule posts in the draft group are public text, like the board).
 		const views = events("gamemaster_turn").map((event) => event.input);
 		expect(views.some((view) => view.includes("scheduleTribunal is open: minute "))).toBe(true);
 		expect(views.some((view) => view.includes("faction draft in group "))).toBe(true);
+		// A resident's post in the draft's group does reach the view, so the checks below look at a full view.
+		expect(views.some((view) => view.includes(`A04: "${CANVASS}"`))).toBe(true);
 		for (const view of views) {
 			expect(view).not.toMatch(/A0\d (voted|votes|nominated|nominates|applied|applies|joined|refused)|\b[Bb]loc\b|defector|Votes against you/);
 		}
 		const voteSeqs = new Set([...events("tribunal_vote"), ...events("faction_nominated"), ...events("faction_applied"), ...events("bloc_result")].map((event) => `#${event.seq} `));
 		for (const view of views) for (const seq of voteSeqs) expect(view).not.toContain(seq);
+	}, 120_000);
+
+	it("keeps a running faction draft through a snapshot file", async () => {
+		const snapshot = readSnapshot(SNAPSHOT);
+		const live: { world?: World } = {};
+		let cut: ReturnType<World["snapshot"]> | undefined;
+		// The world as a snapshot would take it at the end of minute 31, in the middle of the nominations.
+		const sink = {
+			record: (event: RecordedEvent): void => {
+				if (event.type === "round_end" && event.minute === 31) cut = live.world?.snapshot();
+			},
+		};
+		const run = composeRun({
+			story: nexus,
+			overrides: resumeOverrides(snapshot, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: false, classifier: false }),
+			models: (current) => new ScriptedModelSource(scripts(current)),
+			sinks: [sink],
+			resume: { snapshot, name: "snapshot-L7.json" },
+		});
+		live.world = run.world;
+		await run.arena.run();
+		const tribunal = cut?.tribunal;
+		expect(tribunal?.draft).toMatchObject({ tribunal: 1, nominateUntil: 32, opens: 34 });
+		expect(tribunal?.draft?.nominations).toHaveLength(6);
+		const written = { ...snapshot, round: 32, minute: 31, world: cut };
+		const parsed = parseSnapshot(JSON.parse(JSON.stringify(written)), "mid-draft");
+		expect(parsed.world.tribunal).toEqual(tribunal);
+		expect(parsed.world.groups).toEqual(cut?.groups);
 	}, 120_000);
 });
