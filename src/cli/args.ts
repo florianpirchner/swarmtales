@@ -43,7 +43,7 @@ export const START_USAGE = [
 	"  --only <n>           play only level n and stop once everyone passed it",
 	"  --stop-when-done     stop once every competitor passed the last level",
 	`  --passes <n>         passes per minute, 1 to ${MAX_PASSES_PER_MINUTE} (one step per competitor and pass)`,
-	"  --block-size <n>     competitors per block; a block's model calls run concurrently",
+	"  --block-size <n>     competitors per block; a block's model calls run concurrently (story default; \"auto\" = agents / 6)",
 	"  --no-personas        play without personas (control group)",
 	"  --no-gamemaster      play without the story's game master",
 	"  --gamemaster-provider <id>  game master provider (default: the story's, e.g. openrouter)",

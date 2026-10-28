@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { EventBus, MemorySink } from "../../src/engine/events.ts";
 import type { Classification, StatementBatch, StatementClassifier } from "../../src/interpret/classifier.ts";
 import { classifierPrompt } from "../../src/interpret/classifier.ts";
-import { CONTEXT_MESSAGES, Interpreter } from "../../src/interpret/interpreter.ts";
+import { CONTEXT_MESSAGES, Interpreter, MAX_BATCH_STATEMENTS } from "../../src/interpret/interpreter.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 /** Answers with labels for the statements whose prompt line matches. */
@@ -132,6 +132,23 @@ describe("interpreter context", () => {
 		bus.emit({ type: "dm_sent", from: "A02", to: "A01", text: "reply" });
 		await interpreter.afterRound(2);
 		expect(classifier.batches[1]?.context.map((statement) => statement.text)).toEqual(["m2", "m3", "m4", "m5"]);
+	});
+
+	it("labels a large round in chunks, each with the context of its own conversations (v08, scale)", async () => {
+		const sink = new MemorySink();
+		const bus = new EventBus([sink], () => 0);
+		const classifier = new Recorder();
+		const interpreter = new Interpreter({ classifier, bus, competitors: ["A01", "A02", "A03"], minute: () => 0 });
+		bus.subscribe(interpreter);
+		bus.emit({ type: "dm_sent", from: "A02", to: "A03", text: "earlier" });
+		await interpreter.afterRound(1);
+		for (let index = 0; index < MAX_BATCH_STATEMENTS; index++) bus.emit({ type: "dm_sent", from: "A01", to: "A02", text: `m${index}` });
+		bus.emit({ type: "dm_sent", from: "A03", to: "A02", text: "reply" });
+		await interpreter.afterRound(2);
+		expect(classifier.batches.map((batch) => batch.statements.length)).toEqual([1, MAX_BATCH_STATEMENTS, 1]);
+		expect(classifier.batches[1]?.context).toEqual([]);
+		expect(classifier.batches[2]?.context.map((statement) => statement.text)).toEqual(["earlier"]);
+		expect(sink.ofType("interpretation_round").map((event) => event.statements)).toEqual([1, MAX_BATCH_STATEMENTS + 1]);
 	});
 
 	it("logs a classifier that throws and keeps going", async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseStartArgs, UsageError } from "../../src/cli/args.ts";
-import { effectiveRun } from "../../src/cli/compose.ts";
+import { effectiveRun, resolveBlockSize } from "../../src/cli/compose.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { tinyStory } from "../helpers/stories.ts";
 
@@ -36,6 +36,15 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--passes", "6"])).toThrow(/--passes must be at most 5/);
 		expect(() => parseStartArgs(["--block-size", "0"])).toThrow(/--block-size must be an integer >= 1/);
 		expect(effectiveRun(nexus, { passesPerMinute: 1, blockSize: 6 })).toMatchObject({ passesPerMinute: 1, blockSize: 6 });
+	});
+
+	it("sizes the blocks to the agents when the story says auto (v08): one per six residents", () => {
+		expect(nexus.run.blockSize).toBe("auto");
+		expect([1, 6, 7, 12, 48, 96].map((agents) => resolveBlockSize("auto", agents))).toEqual([1, 1, 2, 2, 8, 16]);
+		expect(resolveBlockSize(3, 48)).toBe(3);
+		expect(effectiveRun(nexus, {}).blockSize).toBe(1);
+		expect(effectiveRun(nexus, { agents: 48 }).blockSize).toBe(8);
+		expect(effectiveRun(nexus, { agents: 48, blockSize: 4 }).blockSize).toBe(4);
 	});
 
 	it("parses the run reporter flags", () => {

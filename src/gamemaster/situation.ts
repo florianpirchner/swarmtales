@@ -15,6 +15,11 @@ import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the game master. */
 const MAX_EXCERPT = 280;
+/**
+ * Most event lines since the last look (v08, scale): a city of 48 writes
+ * hundreds between two looks, so the game master reads the latest ones.
+ */
+export const MAX_RECENT_LINES = 150;
 /** Task placeholders that name teammates; a task without them hides its team. */
 const TEAM_PLACEHOLDERS = ["members", "partner", "leader"];
 
@@ -190,7 +195,9 @@ function dependenciesOf(world: World, level: number, agent: CompetitorId): reado
 
 function recentLines(input: SituationInput): readonly string[] {
 	const lines = input.recent.flatMap((event) => recentLine(event, input.guard));
-	return lines.length === 0 ? ["- nothing happened"] : lines;
+	if (lines.length === 0) return ["- nothing happened"];
+	if (lines.length <= MAX_RECENT_LINES) return lines;
+	return [`- (${lines.length - MAX_RECENT_LINES} earlier lines left out)`, ...lines.slice(-MAX_RECENT_LINES)];
 }
 
 function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[] {
