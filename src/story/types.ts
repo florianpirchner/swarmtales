@@ -544,6 +544,8 @@ export const TRIBUNAL_RULE_PLACEHOLDERS = [
 	"target",
 	"residents",
 	"kept",
+	/** Seats at the end of the run, among those the city keeps. */
+	"survivors",
 	"voteMinutes",
 	"penalty",
 	"gateMinutes",
@@ -621,7 +623,7 @@ export const FACTION_TEXT_KEYS = [
 ] as const satisfies readonly (keyof FactionTexts)[];
 
 /** Placeholders every faction text may use. */
-export const FACTION_RULE_PLACEHOLDERS = ["tribunal", "factions", "bonus", "nominateUntil", "joinUntil", "opens"] as const;
+export const FACTION_RULE_PLACEHOLDERS = ["tribunal", "factions", "bonus", "nominateUntil", "joinUntil", "opens", "group"] as const;
 
 /** Placeholders per faction text, besides {@link FACTION_RULE_PLACEHOLDERS}. */
 export const FACTION_TEXT_PLACEHOLDERS: { readonly [K in keyof FactionTexts]: readonly string[] } = {

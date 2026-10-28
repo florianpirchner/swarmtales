@@ -232,12 +232,13 @@ const TRIBUNAL = {
 		blocBonus: 5,
 		texts: {
 			draft:
-				"Tribunal {tribunal} sits at minute {opens}. Before it, the city forms {factions} factions. Until minute {nominateUntil} " +
+				"Tribunal {tribunal} sits at minute {opens}. Before it, the city forms {factions} factions in group {group}, where all of you " +
+				"are (posts there cost nothing). Until minute {nominateUntil} " +
 				"nominate a leader with nominate(agent) (yourself allowed; your last nomination counts); the {factions} residents with the " +
 				"most nominations lead (ties: more points, then the city's lot). Then, until minute {joinUntil}, join a leader's faction with " +
 				"join(leader); a leader may refuse an applicant with refuse(agent), who may then apply elsewhere. The vote stays your own and " +
 				"secret. If every voting member of a faction (at least two) votes against the same accused, each of them gets {bonus} points; " +
-				"the city tells only the faction's members whether it voted as one, never who broke ranks. Posts in this group cost nothing.",
+				"the city tells only the faction's members whether it voted as one, never who broke ranks.",
 			leaders: "The nominations are closed. Leaders: {leaders}. Until minute {joinUntil} join one of them with join(leader).",
 			leaderNotice:
 				"You lead a faction for tribunal {tribunal}. Until minute {joinUntil} residents apply with join; you may refuse an applicant " +
@@ -254,7 +255,8 @@ const TRIBUNAL = {
 	},
 	texts: {
 		announcement:
-			"THE CITY HOLDS TRIBUNAL. It keeps only half of you: {kept} residents, and it exiles the others, tribunal by tribunal. The city " +
+			"THE CITY HOLDS TRIBUNAL. It keeps only half of you: {kept} residents, and it exiles the others, tribunal by tribunal. Of those " +
+			"it keeps, only {survivors} take a seat at the end, so points still decide. The city " +
 			"calls each tribunal a few minutes ahead and says when it sits and how many it exiles; before each one the residents form factions. " +
 			"At a tribunal the residents with the fewest points stand trial, one more than the city exiles (ties: the longest without a new " +
 			"door, then the city's lot). Every other resident votes in secret against one of them with vote(target) within {voteMinutes} " +
@@ -291,7 +293,8 @@ const TRIBUNAL = {
 		ransomed: "{payers} paid the ransom. {exiled} returns to the city.",
 		exiled: "The gate has closed. The city has struck {exiled} from its register. No one will hear {exiled} again.",
 		will: "Last will of {exiled}: {will}",
-		targetReached: "The city has kept half: {kept} of {residents} residents remain. Exiled: {exiledList}. The tribunals are over.",
+		targetReached:
+			"The city has kept half: {kept} of {residents} residents remain, and of them only {survivors} take a seat. Exiled: {exiledList}. The tribunals are over.",
 	},
 } as const satisfies TribunalSpec;
 
@@ -528,7 +531,8 @@ city's median points, or by itself for half. Before each tribunal the residents 
 a faction whose voters all vote for the same accused earns each of them ${TRIBUNAL.factions.blocBonus} points, and only its members learn
 whether it held. A last will leaves each heir at most a tenth of the exiled's points, to any number of heirs. Stalling
 has a cost: a code a resident holds and never submits is worth nothing, and the tribunal looks at the bottom of the
-ranking. You never see the votes, the nominations or whether a faction held. The residents see the minute, not how
+ranking. You never see the votes, the nominations or whether a faction held. Never tell the residents what calls the
+first tribunal or when it comes. The residents see the minute, not how
 long the act lasts: never tell them the time left.
 Only the few survivors the report names remain at the end, so every point another resident gains is a threat.
 The run is interesting when residents bargain, charge, press each other and keep or break their word under

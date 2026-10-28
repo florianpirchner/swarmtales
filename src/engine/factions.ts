@@ -71,7 +71,15 @@ export interface DraftSnapshot {
 /** Where a resident stands in the draft, for its status line. */
 export type DraftPhase =
 	| { readonly kind: "nominate"; readonly until: number; readonly nominee?: CompetitorId }
-	| { readonly kind: "join"; readonly until: number; readonly leader?: CompetitorId; readonly leads: boolean; readonly applicants: readonly CompetitorId[] };
+	| {
+			readonly kind: "join";
+			readonly until: number;
+			readonly leader?: CompetitorId;
+			readonly leads: boolean;
+			readonly applicants: readonly CompetitorId[];
+			/** Leaders who refused this resident; it cannot apply to them again. */
+			readonly refusedBy: readonly CompetitorId[];
+	  };
 
 /** "A04", "A04 and A05", "A02, A04 and A05"; `nobody` for none. */
 export function namesOf(ids: readonly string[]): string {
@@ -110,7 +118,10 @@ export class FactionDraft {
 	static start(ports: FactionPorts, tribunal: number, factions: number, members: readonly CompetitorId[], nominateUntil: number, opens: number): FactionDraft {
 		const group = ports.createGroup(`GT${tribunal}`, members);
 		const draft = new FactionDraft(ports, { tribunal, factions, group, members, nominateUntil, opens });
-		ports.postGroup(group, draft.#text("draft", {}));
+		const rules = draft.#text("draft", {});
+		ports.postGroup(group, rules);
+		// The rules reach every member's turn too, also one that never opens the group.
+		for (const member of members) ports.notify(member, rules);
 		return draft;
 	}
 
@@ -141,7 +152,8 @@ export class FactionDraft {
 		const leads = this.#leaders.includes(agent);
 		const leader = this.#applications.get(agent);
 		const applicants = leads ? this.#applicantsOf(agent) : [];
-		return { kind: "join", until: this.opens, leads, applicants, ...(leader === undefined ? {} : { leader }) };
+		const refusedBy = this.#refusals.filter((refusal) => refusal.agent === agent).map((refusal) => refusal.leader);
+		return { kind: "join", until: this.opens, leads, applicants, refusedBy, ...(leader === undefined ? {} : { leader }) };
 	}
 
 	nominate(voter: CompetitorId, nominee: string): Result<CompetitorId, DraftError> {
@@ -214,7 +226,8 @@ export class FactionDraft {
 		}
 		this.#formed = factions;
 		const inFaction = new Set(factions.flatMap((faction) => faction.members));
-		const without = this.members.filter((member) => present.includes(member) && !inFaction.has(member));
+		// Everyone present without a faction, a resident bought back from the gate during the draft included.
+		const without = present.filter((agent) => !inFaction.has(agent));
 		const list = factions.map((faction) => `faction of ${faction.leader} (group ${faction.group}): ${namesOf(faction.members)}`).join("; ");
 		this.#ports.emit({ type: "factions_formed", tribunal: this.tribunal, factions, without });
 		this.#ports.postGroup(this.group, this.#text("formed", { list: list.length === 0 ? "no faction" : list, without: namesOf(without) }));
@@ -289,6 +302,7 @@ export class FactionDraft {
 			nominateUntil: String(this.nominateUntil),
 			joinUntil: String(this.opens),
 			opens: String(this.opens),
+			group: this.group,
 			...values,
 		});
 	}

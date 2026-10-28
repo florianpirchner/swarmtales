@@ -66,7 +66,7 @@ const PostParams = Type.Object({ text: Type.String({ description: `The post, 1-$
 const ScheduleParams = Type.Object({
 	minute: Type.Integer({ description: "The run minute the tribunal opens; the report shows the bounds" }),
 	count: Type.Integer({ description: "Residents it exiles, from 1 to those still missing", minimum: 1 }),
-	factions: Type.Optional(Type.Integer({ description: "Factions formed before it, from 2 to half the residents present", minimum: 0 })),
+	factions: Type.Optional(Type.Integer({ description: "Factions formed before it, from 2 to half the residents present", minimum: 2 })),
 	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
 });
 

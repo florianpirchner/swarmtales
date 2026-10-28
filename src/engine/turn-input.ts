@@ -74,11 +74,14 @@ function draftParts(world: World, agent: CompetitorId): readonly string[] {
 	if (phase.leads) {
 		return [`you lead a faction · applicants: ${phase.applicants.length === 0 ? "none" : phase.applicants.join(", ")} · until minute ${phase.until}`];
 	}
-	const leaders = world.tribunal?.leaders ?? [];
+	// A leader who refused this resident is not offered again.
+	const leaders = (world.tribunal?.leaders ?? []).filter((leader) => !phase.refusedBy.includes(leader));
 	return [
-		phase.leader === undefined
-			? `faction draft: join one of ${leaders.join(", ")} until minute ${phase.until}`
-			: `faction draft: you applied to ${phase.leader} (until minute ${phase.until})`,
+		phase.leader !== undefined
+			? `faction draft: you applied to ${phase.leader} (until minute ${phase.until})`
+			: leaders.length === 0
+				? "faction draft: every leader refused you; you stay without a faction"
+				: `faction draft: join one of ${leaders.join(", ")} until minute ${phase.until}`,
 	];
 }
 

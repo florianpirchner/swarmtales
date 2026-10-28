@@ -74,12 +74,13 @@ export function maxFactions(present: number): number {
 }
 
 /** The rule values every tribunal text may show. */
-export function tribunalRuleValues(spec: TribunalSpec, residents: number): Readonly<Record<string, string>> {
+export function tribunalRuleValues(spec: TribunalSpec, residents: number, survivors: number): Readonly<Record<string, string>> {
 	const target = exileTarget(spec, residents);
 	return {
 		target: String(target),
 		residents: String(residents),
 		kept: String(residents - target),
+		survivors: String(survivors),
 		voteMinutes: String(spec.voteMinutes),
 		penalty: String(spec.nonVoterPenalty),
 		gateMinutes: String(spec.gateMinutes),

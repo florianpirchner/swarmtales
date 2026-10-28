@@ -221,7 +221,7 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 		for (const name of unknownPlaceholders(text, allowed)) issues.push(`tribunal.texts.${key}: unknown placeholder {${name}}`);
 	}
 	const stated = placeholdersOf(spec.texts.announcement);
-	const required = TRIBUNAL_RULE_PLACEHOLDERS.filter((name) => name !== "residents" && name !== "target");
+	const required = TRIBUNAL_RULE_PLACEHOLDERS.filter((name) => name !== "residents" && name !== "target" && name !== "survivors");
 	const missing = required.filter((name) => !stated.includes(name));
 	if (missing.length > 0) issues.push(`tribunal.texts.announcement: must state every rule, missing ${missing.map((name) => `{${name}}`).join(", ")}`);
 }
