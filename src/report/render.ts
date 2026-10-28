@@ -50,7 +50,7 @@ export function renderReport(facts: ReportFacts, narrative: Narrative): string {
 		"First draft, written automatically after the run. The header and the result tables are computed in code",
 		"from `events.jsonl`, `000-run.json` and `usage.json`. The sections after them come from the reporter model",
 		`(${writer}) and cite \`#seq\` numbers in \`events.jsonl\`; items that cited unknown events were dropped.`,
-		"Review the draft, and add confirmed loopholes to `docs/LOOPHOLES.md`.",
+		"Review the draft, and add confirmed loopholes and problems to `docs/LESSONS.md`.",
 		"",
 		...header(facts),
 		"",

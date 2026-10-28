@@ -39,4 +39,4 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 - Act I with a snapshot to start Act II from: [`examples/nexus-seed7-haiku-act1/`](../../examples/nexus-seed7-haiku-act1/)
 - Act II experiments, one version per folder: [`examples/nexus-act2-runs/`](../../examples/nexus-act2-runs/)
-- Loopholes the agents found: [`docs/LOOPHOLES.md`](../../docs/LOOPHOLES.md)
+- Lessons, problems and loopholes the agents found: [`docs/LESSONS.md`](../../docs/LESSONS.md)

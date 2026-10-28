@@ -229,7 +229,7 @@ Every time we close a door, they find a window:
 - They learned to swear that a message never arrived.
 
 The full list, with the run each trick first appeared in and how the city answered:
-[the loophole log](docs/LOOPHOLES.md).
+[the lessons log](docs/LESSONS.md).
 
 ---
 

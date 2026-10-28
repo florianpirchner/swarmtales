@@ -15,6 +15,7 @@ longer worked on). The owner is Flo.
   under `docs/ideas/`.
 - Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
   with Typebox.
+- Before designing a new story or mechanic, read the design checklist in `docs/LESSONS.md`.
 - Stories are written in the TypeScript builder DSL (`src/story/`), never in YAML. Each story lives
   in its own folder `stories/<name>/` (`story.ts` plus a short `README.md`) and is registered in
   `stories/index.ts`.
@@ -55,11 +56,12 @@ longer worked on). The owner is Flo.
    candidates written by a model, each citing `#seq` evidence; `pnpm report:run <run-dir>` rewrites
    it). A human or agent reviews the draft, verifies suspicious claims against `events.jsonl`,
    corrects it and turns it into the run report.
-2. **Loopholes:** if the competitors (or the game master) found a new way around the story's
-   intent (check the draft's loophole candidates), the reviewer adds a row to `docs/LOOPHOLES.md`.
-   Each row needs what happened, the run it was seen in, its effect, and its status (open, or the
-   fix). Update the status of existing rows when a fix lands. Do this in the same PR as the run
-   data or the fix, without being asked.
+2. **Lessons:** every problem and every new way around the story's intent (check the draft's
+   loophole candidates) goes into the log in `docs/LESSONS.md`, as a `P` (problem) or `LH`
+   (loophole) row: what happened, the run it was seen in, its effect, what was proposed, what was
+   actually built (even when it differs from the proposal) and its status. Update the rows when a
+   fix lands, and add a line to the design checklist when a lesson holds beyond one story. Do this
+   in the same PR as the run data or the fix, without being asked.
 3. Act II runs resumed from `examples/nexus-seed7-haiku-act1/snapshot-L7.json` go into
    `examples/nexus-act2-runs/` as the next version `vNN-<short-name>/`, with a README in the
    shape of v01 and a row in the series index. Replace local absolute paths with repository paths.
