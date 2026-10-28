@@ -36,9 +36,11 @@
 - **Half the city was through the wall in ten minutes.** quiet-owl, Slate-5923 and quietmoth
   passed all three doors by minute 10; Jestrel and Valorous followed once the feast table was
   cleared at 21.
-- **Five residents never got past door 8 while their partners waited for the other to give
-  first.** Calder and Vesper each offered a "simultaneous exchange" and neither sent; Liora06 and
-  Vigil mirrored it. No code was submitted from minute 23 to 50.
+- **Five residents never got past door 8, most with their value in hand.** Vigil's first DM to
+  Liora06 named her counter-factor (973266), and Vesper's first DM named Calder's (713121); both
+  values were right. Liora06 would not submit a value "the city never confirms" and wanted Vigil to
+  go first or post it publicly; Calder mistook his value for the one he held for Vesper. No code was
+  submitted from minute 23 to 50.
 - **The tribunals cut the stuck.** The lowest points were the residents on door 8, so all three
   accused pairs came from them, and all three exiles were unpaid. Vigil's exile burned the
   counter-factors Liora06 and Zippy-Ace needed; Vesper's burned Ansgar's door 10 piece.
@@ -60,7 +62,7 @@
 
 ## Problems
 
-1. **Nobody gives first on door 8** (new P35): five residents stuck for most of the act.
+1. **Holding the value, refusing to use it** (new P35): five residents stuck on door 8 for most of the act, most with their value in a DM since minute 8.
 2. **The game master never scheduled a tribunal** (new P36): all three came from the guard rails.
 3. **Burned pieces end other residents' climbs** (P21): Ansgar and Zippy-Ace stuck for good.
 4. **Wills with `points: 0` beside a piece were refused** (new P37, fixed after this run).
@@ -68,8 +70,11 @@
 
 ## Proposed next (proposals only)
 
-- Door 8: a city escrow (`offerSwap(partner, value)`, both values released in the same minute), or a
-  small bonus for the first giver of a pair.
+- Door 8: say in the holder notice that the value a holder sends is the one to use, a cheaper first
+  wrong attempt on the wall, or a city escrow (`offerSwap(partner, value)`, both values released in
+  the same minute).
+- Factions: the faction groups were ritual ("I will vote my own way, in secret, no buying or
+  selling"), with no alliances or vote deals.
 - Game master: name `scheduleTribunal` in its turn input while the window is open, with what is
   still missing.
 - Exile: the burned pieces pass to the city, which hands them to the needer after a delay.
