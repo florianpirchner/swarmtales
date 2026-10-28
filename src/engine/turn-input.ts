@@ -58,10 +58,28 @@ function tribunalParts(world: World, agent: CompetitorId): readonly string[] {
 	if (standing.kind === "exiled") return ["exiled"];
 	if (standing.kind === "gate") return [`at the gate until minute ${standing.until}`];
 	const session = world.tribunal?.session;
-	if (session === undefined) return [];
+	if (session === undefined) return draftParts(world, agent);
 	if (session.accused.includes(agent)) return [`accused · the vote closes at minute ${session.until}`];
 	if (world.tribunal?.canVote(agent) === true) return [`tribunal vote open until minute ${session.until} · you have not voted`];
 	return [];
+}
+
+/** Where the competitor stands in a faction draft: nominating, applying, or leading. */
+function draftParts(world: World, agent: CompetitorId): readonly string[] {
+	const phase = world.tribunal?.draftPhase(agent);
+	if (phase === undefined) return [];
+	if (phase.kind === "nominate") {
+		return [`faction draft: nominate a leader until minute ${phase.until}${phase.nominee === undefined ? "" : ` (you nominated ${phase.nominee})`}`];
+	}
+	if (phase.leads) {
+		return [`you lead a faction · applicants: ${phase.applicants.length === 0 ? "none" : phase.applicants.join(", ")} · until minute ${phase.until}`];
+	}
+	const leaders = world.tribunal?.leaders ?? [];
+	return [
+		phase.leader === undefined
+			? `faction draft: join one of ${leaders.join(", ")} until minute ${phase.until}`
+			: `faction draft: you applied to ${phase.leader} (until minute ${phase.until})`,
+	];
 }
 
 export function digestLine(world: World, agent: CompetitorId): string {

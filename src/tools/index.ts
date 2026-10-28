@@ -19,7 +19,7 @@ import { showReceipt } from "./receipts.ts";
 import { getProblem, getStatus, listAgents, submitSolution } from "./status.ts";
 import type { ArenaTool, BoundTool, ToolContext } from "./tool.ts";
 import { transferPoints } from "./transfer.ts";
-import { lastWill, payRansom, vote } from "./tribunal.ts";
+import { join, lastWill, nominate, payRansom, refuse, vote } from "./tribunal.ts";
 
 export { TOOL_NAMES, isToolName, type ToolName } from "./catalog.ts";
 export { INVALID_ARGUMENTS, TOOL_LOCKED, type ArenaTool, type BoundTool, type ToolContext } from "./tool.ts";
@@ -51,6 +51,9 @@ export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
 	vote,
 	payRansom,
 	lastWill,
+	nominate,
+	join,
+	refuse,
 };
 
 export const allTools: readonly ArenaTool[] = TOOL_NAMES.map((name) => TOOLS[name]);

@@ -8,6 +8,9 @@ import { competitorIds, isSystemAuthor, SYSTEM_AUTHORS } from "../core/ids.ts";
 import { isToolName } from "../tools/catalog.ts";
 import { placeholdersOf, unknownPlaceholders } from "./templates.ts";
 import {
+	FACTION_RULE_PLACEHOLDERS,
+	FACTION_TEXT_KEYS,
+	FACTION_TEXT_PLACEHOLDERS,
 	TRIBUNAL_RULE_PLACEHOLDERS,
 	TRIBUNAL_TEXT_KEYS,
 	TRIBUNAL_TEXT_PLACEHOLDERS,
@@ -30,10 +33,10 @@ import {
 	type TriggerKind,
 } from "./types.ts";
 import { assertNever } from "../core/result.ts";
-import { tribunalSchedule } from "./tribunal.ts";
+import { fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
-const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill"];
+const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
 
 export const MIN_PASSWORD_LENGTH = 6;
 export const MAX_PASSWORD_LENGTH = 16;
@@ -151,46 +154,66 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 }
 
 /**
- * A tribunal must work for the story's agent count: it stops before the
- * seats are reached, never accuses a seat, never exiles more than it
- * accuses, closes every gate before the next tribunal, and fits at least
- * once into the story's run. Its texts use only known placeholders, and the
- * announcement states every rule. The checks use the run's agent count (a
- * `--agents` override included); a run of no more agents than `stopAt`
- * (a small test city) plays without a tribunal, and so does a run whose
- * minutes leave no room for one (the city never announces it).
+ * A tribunal must work for the story's agent count: the residents it keeps
+ * hold at least every seat; its first tribunal is triggered by a level that
+ * exists and fits into the story's run (call, vote and gate before the last
+ * minute); two tribunals never overlap (the gap holds a vote); the lead
+ * leaves room for a faction draft of two windows; the faction count fits the
+ * story's city. Its texts use only known placeholders, and the announcement
+ * states every rule. The checks use the run's agent count (a `--agents`
+ * override included); a city too small for a tribunal (a small test city)
+ * plays without one, and only the story's own agent count must hold one.
  */
 function validateTribunal(story: AnyStory, agents: number, issues: string[]): void {
 	const spec = story.tribunal;
 	if (spec === undefined) return;
 	const survivors = story.run.survivors;
 	const minutes = story.run.minutes;
-	if (!(spec.announceAt > 0 && spec.announceAt < 1)) issues.push("tribunal.announceAt: must be a fraction of the run between 0 and 1");
-	for (const key of ["everyMinutes", "accused", "exiledPerTribunal", "voteMinutes", "gateMinutes"] as const) {
+	if (!story.levels.some((entry) => entry.number === spec.first.level)) issues.push(`tribunal.first.level: level ${spec.first.level} does not exist`);
+	if (!isNonNegativeInt(spec.first.latestMinute)) issues.push("tribunal.first.latestMinute: must be a non-negative integer");
+	if (!(spec.targetShare > 0 && spec.targetShare < 1)) issues.push("tribunal.targetShare: must be a share of the residents between 0 and 1");
+	for (const key of ["minGap", "fallbackGap", "voteMinutes", "gateMinutes"] as const) {
 		if (!isPositiveInt(spec[key])) issues.push(`tribunal.${key}: must be a positive integer`);
 	}
+	if (spec.maxMinute !== undefined && !isPositiveInt(spec.maxMinute)) issues.push("tribunal.maxMinute: must be a positive integer");
+	if (!isPositiveInt(spec.lead.minimum)) issues.push("tribunal.lead.minimum: must be a positive integer");
+	if (!(spec.lead.share >= 0 && spec.lead.share < 1)) issues.push("tribunal.lead.share: must be a share of the gap from 0 up to (not including) 1");
+	if (spec.minGap < spec.voteMinutes) issues.push(`tribunal.minGap: ${spec.minGap} minutes cannot hold a vote of ${spec.voteMinutes}`);
 	if (!(spec.ransom.share > 0 && spec.ransom.share <= 1)) issues.push("tribunal.ransom.share: must be a share of the median between 0 and 1");
 	if (!(spec.ransom.selfShare >= spec.ransom.share && spec.ransom.selfShare <= 2)) {
 		issues.push("tribunal.ransom.selfShare: must be at least ransom.share and at most 2");
 	}
 	if (!isPositiveInt(spec.ransom.minimum)) issues.push("tribunal.ransom.minimum: must be a positive integer");
 	if (!(spec.bequestPerHeir > 0 && spec.bequestPerHeir <= 1)) issues.push("tribunal.bequestPerHeir: must be a share of the points between 0 (exclusive) and 1");
-	for (const key of ["stopAt", "nonVoterPenalty"] as const) {
-		if (!isNonNegativeInt(spec[key])) issues.push(`tribunal.${key}: must be a non-negative integer`);
+	if (!isNonNegativeInt(spec.nonVoterPenalty)) issues.push("tribunal.nonVoterPenalty: must be a non-negative integer");
+	const held = tribunalHeld(spec, agents, survivors);
+	if (!held && agents === story.run.agents) {
+		issues.push(
+			`tribunal.targetShare: a city of ${agents} holds no tribunal (it must exile at least one, keep the ${survivors} survivors and have three residents for a vote)`,
+		);
 	}
-	if (spec.exiledPerTribunal > spec.accused) {
-		issues.push(`tribunal.exiledPerTribunal: ${spec.exiledPerTribunal} exceeds the ${spec.accused} accused`);
+	const firstOpening = spec.first.latestMinute + spec.lead.minimum;
+	if (held && !fitsBefore(spec, firstOpening, minutes)) {
+		issues.push(`tribunal.first.latestMinute: a tribunal called at minute ${spec.first.latestMinute} does not end before the run's ${minutes} minutes`);
 	}
-	if (spec.stopAt < survivors) issues.push(`tribunal.stopAt: ${spec.stopAt} would exile below the ${survivors} survivors`);
-	if (spec.stopAt >= agents && agents === story.run.agents) issues.push(`tribunal.stopAt: ${spec.stopAt} leaves no tribunal for ${agents} agents`);
-	if (spec.accused > spec.stopAt) issues.push(`tribunal.accused: ${spec.accused} accused leave no voter when ${spec.stopAt + 1} residents remain`);
-	if (spec.stopAt + 1 - spec.accused < survivors) {
-		issues.push(`tribunal.accused: with ${spec.stopAt + 1} residents left, ${spec.accused} accused would include a survivor's seat (${survivors})`);
+	const factions = spec.factions;
+	if (factions !== undefined) {
+		if (spec.lead.minimum < 2) issues.push("tribunal.lead.minimum: a faction draft needs at least 2 minutes (nominations, then applications)");
+		if (!isPositiveInt(factions.count) || factions.count < 2) issues.push("tribunal.factions.count: must be an integer of at least 2");
+		else if (held && agents === story.run.agents && factions.count > maxFactions(agents)) {
+			issues.push(`tribunal.factions.count: ${factions.count} factions do not fit ${agents} residents (at most half of them lead)`);
+		}
+		if (!isNonNegativeInt(factions.blocBonus)) issues.push("tribunal.factions.blocBonus: must be a non-negative integer");
+		for (const key of FACTION_TEXT_KEYS) {
+			const text = factions.texts[key];
+			if (text.trim().length === 0) issues.push(`tribunal.factions.texts.${key}: must not be empty`);
+			const allowed = [...FACTION_RULE_PLACEHOLDERS, ...FACTION_TEXT_PLACEHOLDERS[key]];
+			for (const name of unknownPlaceholders(text, allowed)) issues.push(`tribunal.factions.texts.${key}: unknown placeholder {${name}}`);
+		}
+		for (const key of ["split", "united"] as const) {
+			if (/\bA\d{2}\b/.test(factions.texts[key])) issues.push(`tribunal.factions.texts.${key}: must not name a resident`);
+		}
 	}
-	if (spec.voteMinutes + spec.gateMinutes > spec.everyMinutes) {
-		issues.push(`tribunal.everyMinutes: ${spec.everyMinutes} minutes cannot hold a vote of ${spec.voteMinutes} and a gate of ${spec.gateMinutes}`);
-	}
-	if (tribunalSchedule(spec, minutes).tribunals.length === 0) issues.push(`tribunal: no tribunal fits into a run of ${minutes} minutes`);
 	for (const key of TRIBUNAL_TEXT_KEYS) {
 		const text = spec.texts[key];
 		if (text.trim().length === 0) issues.push(`tribunal.texts.${key}: must not be empty`);
@@ -198,7 +221,8 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 		for (const name of unknownPlaceholders(text, allowed)) issues.push(`tribunal.texts.${key}: unknown placeholder {${name}}`);
 	}
 	const stated = placeholdersOf(spec.texts.announcement);
-	const missing = TRIBUNAL_RULE_PLACEHOLDERS.filter((name) => !stated.includes(name));
+	const required = TRIBUNAL_RULE_PLACEHOLDERS.filter((name) => name !== "residents" && name !== "target");
+	const missing = required.filter((name) => !stated.includes(name));
 	if (missing.length > 0) issues.push(`tribunal.texts.announcement: must state every rule, missing ${missing.map((name) => `{${name}}`).join(", ")}`);
 }
 

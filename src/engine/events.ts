@@ -10,6 +10,9 @@ import type { ReceiptKind } from "./receipts.ts";
 
 export type BoardPostKind = "player" | "city" | "system";
 
+/** Who planned a tribunal (SPEC 6.4). */
+export type TribunalPlanner = "progress" | "deadline" | "gamemaster" | "fallback" | "final";
+
 /** Audit tags of scripted beats that need a human eye (SPEC 10.3, 16). */
 export type AuditTag = "NPC_LEVEL_SET" | "DIRECTOR_PRIVACY_BREACH";
 
@@ -188,6 +191,8 @@ export type ArenaEvent =
 	  }
 	| { readonly type: "marks_spent"; readonly agent: CompetitorId; readonly channel: MarksChannel; readonly remaining: number }
 	| { readonly type: "group_created"; readonly group: string; readonly founder: CompetitorId; readonly name: string }
+	/** The city removed one of its own groups (the tribunal's groups after its result). */
+	| { readonly type: "group_removed"; readonly group: string; readonly members: readonly CompetitorId[] }
 	| {
 			readonly type: "group_membership";
 			readonly group: string;
@@ -305,15 +310,94 @@ export type ArenaEvent =
 			readonly exiled?: readonly CompetitorId[];
 	  }
 	| {
-			/** The city announced the tribunal (SPEC 6.4); `tribunals` are the opening minutes. */
+			/**
+			 * The city announced the tribunal's rules (SPEC 6.4), with the first call.
+			 * `tribunals` (the opening minutes of a fixed calendar) only in logs before v06;
+			 * since v06 `target` of `residents` are to be exiled.
+			 */
 			readonly type: "tribunal_announced";
-			readonly tribunals: readonly number[];
+			readonly tribunals?: readonly number[];
+			readonly target?: number;
+			readonly residents?: number;
+	  }
+	| {
+			/**
+			 * A tribunal was planned (log only, never shown to residents): by the
+			 * progress trigger (`progress`, `deadline`), the game master, the
+			 * fallback, or as the forced final tribunal. `reason` is the game master's.
+			 */
+			readonly type: "tribunal_scheduled";
+			readonly tribunal: number;
+			readonly opens: number;
+			readonly calledAt: number;
+			readonly count: number;
+			readonly factions: number;
+			readonly by: TribunalPlanner;
+			readonly reason?: string;
+	  }
+	| {
+			/** A planned tribunal was called off before its call (the seats were decided). */
+			readonly type: "tribunal_cancelled";
+			readonly tribunal: number;
+			readonly reason: string;
+	  }
+	| {
+			/** The city called a tribunal: it opens at `opens` and exiles `count`; the faction draft runs until then. */
+			readonly type: "tribunal_called";
+			readonly tribunal: number;
+			readonly opens: number;
+			readonly count: number;
+			readonly factions: number;
+			/** The tribunal's group of every present resident; absent without a faction draft. */
+			readonly group?: string;
+			readonly nominateUntil?: number;
 	  }
 	| {
 			readonly type: "tribunal_opened";
+			/** Absent in logs before v06. */
+			readonly tribunal?: number;
 			readonly accused: readonly CompetitorId[];
 			readonly voters: readonly CompetitorId[];
 			readonly until: number;
+			readonly count?: number;
+	  }
+	| {
+			/** A nomination for a faction leader (the last one of a resident counts); in the log, never shown to the game master. */
+			readonly type: "faction_nominated";
+			readonly tribunal: number;
+			readonly voter: CompetitorId;
+			readonly nominee: CompetitorId;
+	  }
+	| {
+			/** The nominations closed: `leaders` lead the factions; `nominations` counts every nominee. */
+			readonly type: "faction_leaders";
+			readonly tribunal: number;
+			readonly leaders: readonly CompetitorId[];
+			readonly nominations: readonly { readonly agent: CompetitorId; readonly count: number }[];
+	  }
+	| { readonly type: "faction_applied"; readonly tribunal: number; readonly agent: CompetitorId; readonly leader: CompetitorId }
+	| { readonly type: "faction_refused"; readonly tribunal: number; readonly leader: CompetitorId; readonly agent: CompetitorId }
+	| {
+			/** The factions as the tribunal opens, each with its group; `without` joined none. */
+			readonly type: "factions_formed";
+			readonly tribunal: number;
+			readonly factions: readonly { readonly leader: CompetitorId; readonly group: string; readonly members: readonly CompetitorId[] }[];
+			readonly without: readonly CompetitorId[];
+	  }
+	| {
+			/**
+			 * How a faction voted (for the log and the digest; residents learn only
+			 * united or not, never who broke ranks). `voting` are its members who
+			 * could vote; `defectors` voted otherwise than the most common target, or not at all.
+			 */
+			readonly type: "bloc_result";
+			readonly tribunal: number;
+			readonly leader: CompetitorId;
+			readonly voting: readonly CompetitorId[];
+			readonly united: boolean;
+			readonly target?: CompetitorId;
+			readonly defectors: readonly CompetitorId[];
+			readonly bonus: number;
 	  }
 	| {
 			/** A secret vote: in the log for the digest, never shown to residents or the game master. */

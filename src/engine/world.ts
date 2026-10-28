@@ -29,6 +29,7 @@ import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.t
 import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
 import { TeamPlanner, type Team } from "./teams.ts";
+import type { DraftError } from "./factions.ts";
 import { Tribunal, type RansomError, type Standing, type TribunalSnapshot, type VoteError } from "./tribunal.ts";
 
 export interface WorldOptions {
@@ -413,12 +414,16 @@ export class World {
 						minutes: options.minutes,
 						seed: options.seed,
 						ids: this.#ids,
+						survivors: options.story.run.survivors,
 						points: (agent) => this.ledger.balance(agent),
 						lastProgress: (agent) =>
 							this.receipts
 								.of(agent)
 								.filter((receipt) => receipt.kind === "levelUp")
 								.reduce((latest, receipt) => Math.max(latest, receipt.minute), -1),
+						passed: (level) => this.#ids.some((agent) => this.hasPassed(agent, level)),
+						seatsDecided: () => this.seatsDecided(),
+						doorShut: () => this.#door !== undefined,
 						post: (text) => {
 							this.board.post(CITY, text, this.minute, "city");
 						},
@@ -427,6 +432,16 @@ export class World {
 						},
 						burn: (agent, points, reason) => {
 							this.ledger.burn(agent, points, reason, this.minute);
+						},
+						grant: (agent, points, reason) => {
+							this.ledger.mint(agent, points, reason, this.minute);
+						},
+						createGroup: (name, members) => this.createCityGroup(name, members),
+						removeGroup: (group) => {
+							this.removeCityGroup(group);
+						},
+						postGroup: (group, text) => {
+							this.postGroupAsCity(group, text);
 						},
 						emit: (event) => {
 							this.#bus.emit(event);
@@ -564,7 +579,13 @@ export class World {
 				// At the gate a resident may still talk, but no longer submit or vote.
 				enabled.delete("submitSolution");
 				if (tribunal.mayLeaveWill(agent)) enabled.add("lastWill");
-			} else if (tribunal.canVote(agent)) enabled.add("vote");
+			} else {
+				if (tribunal.canVote(agent)) enabled.add("vote");
+				const phase = tribunal.draftPhase(agent);
+				if (phase?.kind === "nominate") enabled.add("nominate");
+				if (phase?.kind === "join" && !phase.leads) enabled.add("join");
+				if (phase?.kind === "join" && phase.leads) enabled.add("refuse");
+			}
 			if (ransomOpen) enabled.add("payRansom");
 		}
 		return TOOL_NAMES.filter((name) => enabled.has(name));
@@ -1372,16 +1393,43 @@ export class World {
 		return result;
 	}
 
+	/** A post in a group; free in the city's own groups (the tribunal's), priced in marks elsewhere. */
 	postGroup(groupId: string, author: CompetitorId, text: string): Result<{ readonly post: GroupPost } & Delivered, WorldGroupError> {
 		const checked = this.groups.checkPost(groupId, author, text);
 		if (!checked.ok) return checked;
-		if (!this.#canAfford(author, "group")) return err("NO_MARKS");
+		const free = this.groups.isCityGroup(groupId);
+		if (!free && !this.#canAfford(author, "group")) return err("NO_MARKS");
 		const posted = this.groups.post(groupId, author, text);
 		if (!posted.ok) return posted;
 		this.#bus.emit({ type: "group_post", group: groupId, author, postSeq: posted.value.seq, text: posted.value.text });
 		this.#noteReply(author, (record) => this.groups.isMember(groupId, record.from));
-		const marks = this.#spend(author, "group");
+		const marks = free ? this.marks.status(author, this.levelOf(author)) : this.#spend(author, "group");
 		return ok({ post: posted.value, ...(marks === undefined ? {} : { marks }) });
+	}
+
+	/** A group the city founds with `members` (the tribunal's); every member hears of it. Returns its id. */
+	createCityGroup(name: string, members: readonly CompetitorId[]): string {
+		const group = this.groups.createForCity(name, members);
+		this.#bus.emit({ type: "group_created", group: group.id, founder: CITY, name: group.name });
+		for (const agent of members) {
+			this.#bus.emit({ type: "group_membership", group: group.id, agent, change: "added", by: CITY });
+			this.notify(agent, CITY, `The city added you to group ${group.id} (${group.name}). Posts there cost no marks.`);
+		}
+		return group.id;
+	}
+
+	/** Removes a group of the city; its treasury is split among its members first. */
+	removeCityGroup(groupId: string): void {
+		const removed = this.groups.removeCityGroup(groupId);
+		if (removed === undefined) return;
+		if (removed.payouts !== undefined) this.#bus.emit({ type: "treasury_settled", group: groupId, payouts: removed.payouts });
+		this.#bus.emit({ type: "group_removed", group: groupId, members: removed.members });
+	}
+
+	/** A post of the city in one of its groups. */
+	postGroupAsCity(groupId: string, text: string): void {
+		const posted = this.groups.postAsCity(groupId, text);
+		if (posted.ok) this.#bus.emit({ type: "group_post", group: groupId, author: CITY, postSeq: posted.value.seq, text: posted.value.text });
 	}
 
 	depositGroup(groupId: string, agent: CompetitorId, amount: number): Result<{ readonly group: GroupSummary; readonly receipt: string }, WorldGroupError> {
@@ -1473,6 +1521,24 @@ export class World {
 	vote(voter: CompetitorId, target: string): Result<CompetitorId, VoteError | "NO_TRIBUNAL"> {
 		if (this.#tribunal === undefined) return err("NO_TRIBUNAL", "this city holds no tribunal");
 		return this.#tribunal.vote(voter, target);
+	}
+
+	/** Nominates a faction leader in the running draft (the last call counts). */
+	nominate(voter: CompetitorId, nominee: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.nominate(voter, nominee);
+	}
+
+	/** Applies to a leader's faction in the running draft (the last call counts). */
+	joinFaction(agent: CompetitorId, leader: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.join(agent, leader);
+	}
+
+	/** A leader refuses an applicant to its faction. */
+	refuseApplicant(leader: CompetitorId, agent: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.refuse(leader, agent);
 	}
 
 	payRansom(

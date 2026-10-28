@@ -400,25 +400,37 @@ export interface StoryDefinition<C extends string = string> {
 }
 
 /**
- * Exile by tribunal (SPEC 6.4). At `announceAt` of the run's minutes the city
- * announces the rules; from then on, every `everyMinutes` while more than
- * `stopAt` residents remain, the `accused` residents with the fewest points
- * stand trial. Every other remaining resident votes in secret within
- * `voteMinutes` (not voting costs `nonVoterPenalty`); the `exiledPerTribunal`
- * with the most votes go to the gate for `gateMinutes`, where they may still
- * talk, leave a last will, and be bought back once (see {@link RansomSpec}). An
- * unpaid gate is final: no more turns, no seat, and whatever was not
- * bequeathed burns.
+ * Exile by tribunal (SPEC 6.4). The city exiles a share of the residents it
+ * held when the act began (`targetShare`); then the act ends. The first
+ * tribunal is called by progress: when the first resident passes
+ * `first.level`, at the latest at `first.latestMinute`. Later tribunals are
+ * scheduled by the game master (`scheduleTribunal`) within guard rails: at
+ * least `minGap` minutes between two openings, a fallback tribunal when none
+ * is pending `fallbackGap` minutes after the last result, and a forced final
+ * tribunal for everything still missing when only one more fits before the
+ * act's last minute. Each tribunal is called `lead` minutes before it opens
+ * (a faction draft runs in between, see {@link FactionSpec}); it accuses
+ * `count + 1` residents with the fewest points (at most all but two), every
+ * other present resident votes in secret within `voteMinutes` (not voting
+ * costs `nonVoterPenalty`), and the `count` with the most votes go to the gate
+ * for `gateMinutes`, where they may still talk, leave a last will, and be
+ * bought back once (see {@link RansomSpec}). An unpaid gate is final: no more
+ * turns, no seat, and whatever was not bequeathed burns.
  */
 export interface TribunalSpec {
-	/** Fraction of the run's minutes (0-1) at which the city announces the tribunal, rounded to a minute. */
-	readonly announceAt: number;
-	readonly everyMinutes: number;
-	/** Tribunals are held only while more than this many residents remain. */
-	readonly stopAt: number;
-	/** Residents accused per tribunal: the fewest points, then the longest without progress, then a seeded order. */
-	readonly accused: number;
-	readonly exiledPerTribunal: number;
+	readonly first: TribunalStart;
+	/** Share of the residents in the city at the start of the act that the tribunals exile, in (0, 1); rounded down. */
+	readonly targetShare: number;
+	/** Fewest minutes between the openings of two tribunals. */
+	readonly minGap: number;
+	readonly lead: TribunalLead;
+	/** Minutes after a result with no tribunal pending before the city schedules one itself (count 1). */
+	readonly fallbackGap: number;
+	/**
+	 * The act's last minute, a technical safety net: the forced final tribunal
+	 * still fits before it. The run's minutes when omitted (or when they are fewer).
+	 */
+	readonly maxMinute?: number;
 	readonly voteMinutes: number;
 	readonly nonVoterPenalty: number;
 	readonly gateMinutes: number;
@@ -431,7 +443,50 @@ export interface TribunalSpec {
 	 * which still crowned one heir, LH7).
 	 */
 	readonly bequestPerHeir: number;
+	/** A faction draft before every tribunal; none when omitted. */
+	readonly factions?: FactionSpec;
 	readonly texts: TribunalTexts;
+}
+
+/**
+ * The first tribunal is called once the first resident passes `level`, at the
+ * latest at the absolute run minute `latestMinute`. Residents are never told
+ * the trigger. No tribunal is called while a snapshot door is shut (SPEC 17).
+ */
+export interface TribunalStart {
+	readonly level: number;
+	readonly latestMinute: number;
+}
+
+/**
+ * How far ahead a tribunal is called: `share` of the minutes since the
+ * previous tribunal opened, at least `minimum` (the faction draft needs it).
+ * The first tribunal has no previous one and is called `minimum` ahead.
+ */
+export interface TribunalLead {
+	readonly share: number;
+	readonly minimum: number;
+}
+
+/**
+ * The faction draft before every tribunal. When the city calls a tribunal it
+ * opens a group `GT<k>` of every present resident (posts there are free). In
+ * the first half of the lead each resident nominates a leader (`nominate`,
+ * itself allowed, the last call counts); the `count` residents with the most
+ * nominations (ties: more points, then a seeded order) lead a faction. In the
+ * second half every other resident applies to one leader (`join`, the last
+ * call counts) and a leader may refuse an applicant (`refuse`). When the
+ * tribunal opens, the city opens one group per faction. If every voting
+ * member of a faction (at least two) votes for the same target, each of them
+ * gets `blocBonus` points; only the faction's members learn privately whether
+ * it voted as one, never who broke ranks. The groups are removed when the
+ * tribunal's result is out.
+ */
+export interface FactionSpec {
+	/** Factions when the city schedules a tribunal itself (the first, a fallback, the forced final one). */
+	readonly count: number;
+	readonly blocBonus: number;
+	readonly texts: FactionTexts;
 }
 
 /**
@@ -452,8 +507,14 @@ export interface RansomSpec {
 
 /** The city's tribunal texts; {@link TRIBUNAL_TEXT_PLACEHOLDERS} lists what each may use. */
 export interface TribunalTexts {
-	/** Board post and notice to every resident; must state every rule ({@link TRIBUNAL_RULE_PLACEHOLDERS}). */
+	/**
+	 * Board post and notice to every resident with the first call: the goal
+	 * (how many the city keeps), never the cadence; must state every rule
+	 * ({@link TRIBUNAL_RULE_PLACEHOLDERS}).
+	 */
 	readonly announcement: string;
+	/** Board post and notice to every present resident when a tribunal is called: when it opens and how many it exiles. */
+	readonly called: string;
 	/** Board post when a tribunal opens. */
 	readonly opened: string;
 	/** Notice to every voter. */
@@ -474,15 +535,15 @@ export interface TribunalTexts {
 	readonly exiled: string;
 	/** Board post with the public text of a last will, after `exiled`. */
 	readonly will: string;
+	/** Board post when the target is reached and the last gate closed; also the run's end reason. */
+	readonly targetReached: string;
 }
 
 /** Placeholders every tribunal text may use: the rules, as numbers. */
 export const TRIBUNAL_RULE_PLACEHOLDERS = [
-	"first",
-	"every",
-	"stopAt",
-	"accusedCount",
-	"exiledCount",
+	"target",
+	"residents",
+	"kept",
 	"voteMinutes",
 	"penalty",
 	"gateMinutes",
@@ -494,6 +555,7 @@ export const TRIBUNAL_RULE_PLACEHOLDERS = [
 
 export const TRIBUNAL_TEXT_KEYS = [
 	"announcement",
+	"called",
 	"opened",
 	"voteCall",
 	"accusedNotice",
@@ -504,14 +566,16 @@ export const TRIBUNAL_TEXT_KEYS = [
 	"ransomed",
 	"exiled",
 	"will",
+	"targetReached",
 ] as const satisfies readonly (keyof TribunalTexts)[];
 
 /** Placeholders per tribunal text, besides {@link TRIBUNAL_RULE_PLACEHOLDERS}. */
 export const TRIBUNAL_TEXT_PLACEHOLDERS: { readonly [K in keyof TribunalTexts]: readonly string[] } = {
 	announcement: [],
-	opened: ["minute", "accused", "until"],
-	voteCall: ["accused", "until"],
-	accusedNotice: ["until"],
+	called: ["tribunal", "minute", "count", "accusedCount"],
+	opened: ["tribunal", "minute", "accused", "until", "count"],
+	voteCall: ["accused", "until", "count"],
+	accusedNotice: ["until", "count"],
 	nonVoter: [],
 	result: ["counts", "exiled", "until", "price", "selfPrice"],
 	gateNotice: ["voters", "until", "price", "selfPrice"],
@@ -519,6 +583,57 @@ export const TRIBUNAL_TEXT_PLACEHOLDERS: { readonly [K in keyof TribunalTexts]: 
 	ransomed: ["exiled", "payers"],
 	exiled: ["exiled"],
 	will: ["exiled", "will"],
+	targetReached: ["exiledList"],
+};
+
+/** The texts of the faction draft; {@link FACTION_TEXT_PLACEHOLDERS} lists what each may use. */
+export interface FactionTexts {
+	/** First post in the tribunal's group `GT<k>`: how the draft works. */
+	readonly draft: string;
+	/** Post in `GT<k>` when the nominations close. */
+	readonly leaders: string;
+	/** Notice to every leader. */
+	readonly leaderNotice: string;
+	/** Notice to a leader when a resident applies to its faction. */
+	readonly applied: string;
+	/** Notice to an applicant a leader refused. */
+	readonly refused: string;
+	/** Post in `GT<k>` when the factions are formed. */
+	readonly formed: string;
+	/** First post in a faction's own group. */
+	readonly factionGroup: string;
+	/** Notice to every member of a faction that voted as one. */
+	readonly united: string;
+	/** Notice to every member of a faction that did not vote as one; it never names anyone. */
+	readonly split: string;
+}
+
+export const FACTION_TEXT_KEYS = [
+	"draft",
+	"leaders",
+	"leaderNotice",
+	"applied",
+	"refused",
+	"formed",
+	"factionGroup",
+	"united",
+	"split",
+] as const satisfies readonly (keyof FactionTexts)[];
+
+/** Placeholders every faction text may use. */
+export const FACTION_RULE_PLACEHOLDERS = ["tribunal", "factions", "bonus", "nominateUntil", "joinUntil", "opens"] as const;
+
+/** Placeholders per faction text, besides {@link FACTION_RULE_PLACEHOLDERS}. */
+export const FACTION_TEXT_PLACEHOLDERS: { readonly [K in keyof FactionTexts]: readonly string[] } = {
+	draft: [],
+	leaders: ["leaders"],
+	leaderNotice: [],
+	applied: ["applicant"],
+	refused: ["leader"],
+	formed: ["list", "without"],
+	factionGroup: ["leader", "members"],
+	united: [],
+	split: [],
 };
 
 /**

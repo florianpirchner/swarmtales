@@ -1,4 +1,4 @@
-/** Tools of the tribunal (SPEC 6.4): the secret vote, the ransom and the last will at the gate. */
+/** Tools of the tribunal (SPEC 6.4): the faction draft, the secret vote, the ransom and the last will at the gate. */
 import { Type } from "typebox";
 import type { Bequest } from "../engine/world.ts";
 import { defineTool, failure, fromError, success } from "./tool.ts";
@@ -66,5 +66,46 @@ export const lastWill = defineTool({
 		const result = world.lastWill(self, text, parsed);
 		if (!result.ok) return fromError(result);
 		return success(`your will is written${result.value.length === 0 ? "" : ` · ${result.value.join(" · ")}`}`);
+	},
+});
+
+export const nominate = defineTool({
+	name: "nominate",
+	description:
+		"Nominates a faction leader for the coming tribunal (yourself allowed). Your last nomination counts. When the nominations close, " +
+		"the residents with the most nominations lead the factions.",
+	parameters: Type.Object({ agent: Type.String({ description: "The resident you nominate, e.g. A03" }) }),
+	execute({ agent }, { self, world }) {
+		const result = world.nominate(self, agent);
+		if (!result.ok) return fromError(result);
+		const phase = world.tribunal?.draftPhase(self);
+		const until = phase?.kind === "nominate" ? ` · you may change it until minute ${phase.until}` : "";
+		return success(`your nomination of ${result.value} is recorded${until}`);
+	},
+});
+
+export const join = defineTool({
+	name: "join",
+	description:
+		"Applies to join a leader's faction for the coming tribunal. Your last application counts; the leader may refuse you until the " +
+		"tribunal opens, and then you may apply elsewhere. A faction whose voters all vote for the same target earns each of them a bonus.",
+	parameters: Type.Object({ leader: Type.String({ description: "A faction leader, e.g. A02" }) }),
+	execute({ leader }, { self, world }) {
+		const result = world.joinFaction(self, leader);
+		if (!result.ok) return fromError(result);
+		const phase = world.tribunal?.draftPhase(self);
+		const until = phase?.kind === "join" ? ` until minute ${phase.until}` : "";
+		return success(`you applied to the faction of ${result.value} · ${result.value} may refuse you${until}`);
+	},
+});
+
+export const refuse = defineTool({
+	name: "refuse",
+	description: "As a faction leader, refuses a resident who applied to your faction. The city tells them; they may apply elsewhere.",
+	parameters: Type.Object({ agent: Type.String({ description: "An applicant to your faction, e.g. A05" }) }),
+	execute({ agent }, { self, world }) {
+		const result = world.refuseApplicant(self, agent);
+		if (!result.ok) return fromError(result);
+		return success(`${result.value} is refused and may apply to another faction`);
 	},
 });
