@@ -1,10 +1,12 @@
 /**
- * Whole-story runs at scale (v08, spec section 3): nexus with 12 and 48
+ * Whole-story runs at scale (v08, spec section 3): nexus with 6, 12 and 48
  * oracle residents from level 1 to the tribunal target, offline. The oracle
  * submits its own solution every minute and never votes, so every tribunal
  * closes on non-voters; the run must still reach the target within the act.
- * Nobody chooses a name, so the city names everyone.
- * Both take a few seconds, so they run in the normal suite.
+ * Nobody chooses a name, so the city names everyone. v09: every resident gets a
+ * core at the start and a goal at the wall; the oracle never bids, so every
+ * black seal goes unsold.
+ * Each takes a few seconds, so they run in the normal suite.
  */
 import { describe, expect, it } from "vitest";
 import { worldOracle } from "../../src/cli/oracle.ts";
@@ -15,7 +17,7 @@ import { createFixture } from "../helpers/fixture.ts";
 
 const tribunal = nexus.tribunal;
 
-describe.each([12, 48])("nexus with %i oracle residents", (agents) => {
+describe.each([6, 12, 48])("nexus with %i oracle residents", (agents) => {
 	it("plays Act I, the wall and every tribunal up to the target", async () => {
 		if (tribunal === undefined) throw new Error("nexus has no tribunal");
 		const fixture = createFixture({
@@ -41,5 +43,13 @@ describe.each([12, 48])("nexus with %i oracle residents", (agents) => {
 		const names = fixture.events("name_chosen");
 		expect(names.filter((event) => event.fallback && event.minute === 2)).toHaveLength(agents);
 		expect(new Set(names.map((event) => event.name.toLowerCase())).size).toBe(agents);
+		// v09: a core for everyone, a goal for everyone at the wall, one seal per 12 residents, none sold.
+		expect(fixture.events("core_dealt")).toHaveLength(agents);
+		expect(fixture.events("goal_dealt")).toHaveLength(agents);
+		expect(fixture.events("goal_resolved")).toHaveLength(agents);
+		expect(fixture.events("seal_auction_opened")).toHaveLength(Math.ceil(agents / 12));
+		expect(fixture.events("seal_expired").filter((event) => event.reason === "nobody bid")).toHaveLength(Math.ceil(agents / 12));
+		// The feast seats a quarter of the residents, at least 3.
+		expect(fixture.events("collection_started").find((event) => event.into.startsWith("feast"))?.first).toBe(Math.max(3, Math.ceil(agents / 4)));
 	}, 600_000);
 });

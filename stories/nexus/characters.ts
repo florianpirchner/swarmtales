@@ -30,7 +30,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, envy gnaws at you when someone stands ahead of you.",
 			atTimes: "At times you begrudge others what they have.",
 		},
-		["envy", "envious", "jealous", "begrudg"],
+		["envy", "envies", "envious", "jealous", "begrudg"],
 	),
 	drive(
 		"greed",
