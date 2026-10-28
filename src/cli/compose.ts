@@ -385,7 +385,15 @@ function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, 
 		world,
 		bus,
 		binding: source.bind(GAMEMASTER_ID, limits),
-		systemPrompt: gamemasterSystemPrompt({ city: story.city, agents, survivors: story.run.survivors, rules: story.rules, spec, labels }),
+		systemPrompt: gamemasterSystemPrompt({
+			city: story.city,
+			agents,
+			survivors: story.run.survivors,
+			rules: story.rules,
+			spec,
+			labels,
+			...(story.tribunal === undefined || !spec.roles.some((entry) => entry.role === "director") ? {} : { tribunal: { factions: story.tribunal.factions !== undefined } }),
+		}),
 		thinking: spec.model.thinking ?? "low",
 	});
 	bus.subscribe(gamemaster);

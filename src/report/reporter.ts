@@ -7,7 +7,8 @@
  * optimizations and loophole candidates. Its answer is untrusted: it is
  * parsed with typebox, and every item that cites no event or an unknown
  * `seq` is dropped with a warning, so the report cannot invent events.
- * Without a model, or when its answer is unusable, the report keeps the
+ * An answer that is not the expected JSON is asked for once more. Without a
+ * model, or when its answer stays unusable, the report keeps the
  * computed sections and says why the rest was skipped; it never fails a run.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -199,22 +200,47 @@ export async function writeRunReport(directory: string, choice: ReporterChoice, 
 	return { path, narrative, warnings };
 }
 
+/**
+ * Asks the model for the narrative sections. An answer that is not the
+ * expected JSON is asked for once more (P26: a model sometimes breaks its
+ * JSON); the spend of both requests is recorded.
+ */
 async function askModel(facts: ReportFacts, files: RunFiles, model: ReporterModel, options: ReporterOptions): Promise<Narrative> {
 	const { prompt } = buildPrompt(facts, files, options);
-	let answer;
-	try {
-		answer = await model.complete(REPORT_SYSTEM_PROMPT, prompt);
-	} catch (error) {
-		const reason = error instanceof Error ? error.message : String(error);
-		return error instanceof ReporterRequestError ? { kind: "skipped", reason, label: model.label, spend: error.spend } : { kind: "skipped", reason, label: model.label };
+	let spent: ReporterSpend | undefined;
+	for (let attempt = 1; ; attempt++) {
+		let answer;
+		try {
+			answer = await model.complete(REPORT_SYSTEM_PROMPT, prompt);
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : String(error);
+			const spend = error instanceof ReporterRequestError ? addSpend(spent, error.spend) : spent;
+			return { kind: "skipped", reason, label: model.label, ...(spend === undefined ? {} : { spend }) };
+		}
+		spent = addSpend(spent, answer.spend);
+		try {
+			const interpreted = interpretAnswer(answer.text, facts.seqs, options.maxItems);
+			return { kind: "written", label: model.label, sections: interpreted.sections, warnings: interpreted.warnings, spend: spent };
+		} catch (error) {
+			if (!(error instanceof ReportError)) throw error;
+			if (attempt >= REPORTER_ATTEMPTS) return { kind: "skipped", reason: error.message, label: model.label, spend: spent };
+		}
 	}
-	try {
-		const interpreted = interpretAnswer(answer.text, facts.seqs, options.maxItems);
-		return { kind: "written", label: model.label, sections: interpreted.sections, warnings: interpreted.warnings, spend: answer.spend };
-	} catch (error) {
-		if (!(error instanceof ReportError)) throw error;
-		return { kind: "skipped", reason: error.message, label: model.label, spend: answer.spend };
-	}
+}
+
+/** Requests of the reporter per report: the first answer and one retry when it is not the expected JSON. */
+export const REPORTER_ATTEMPTS = 2;
+
+function addSpend(total: ReporterSpend | undefined, spend: ReporterSpend): ReporterSpend {
+	if (total === undefined) return spend;
+	return {
+		requests: total.requests + spend.requests,
+		input: total.input + spend.input,
+		output: total.output + spend.output,
+		cacheRead: total.cacheRead + spend.cacheRead,
+		cacheWrite: total.cacheWrite + spend.cacheWrite,
+		costUsd: total.costUsd + spend.costUsd,
+	};
 }
 
 const SpendSchema = Type.Object({

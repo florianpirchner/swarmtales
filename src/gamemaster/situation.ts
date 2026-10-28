@@ -11,6 +11,7 @@ import type { RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
+import { lastCityMinute } from "../story/tribunal.ts";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the game master. */
@@ -53,7 +54,7 @@ export function describeSituation(input: SituationInput): string {
 	const rules = world.story.rules;
 	const rewards = levelRange(world).map((level) => `L${level} +${world.levelDefinition(level)?.reward ?? 0}`);
 	const lines: string[] = [
-		`Minute ${world.minute} of ${world.minutes} (after round ${input.round}); ${Math.max(0, world.minutes - world.minute)} minutes left.`,
+		`Minute ${world.minute} (after round ${input.round}). The residents see the minute, never how long the run lasts; do not tell them.`,
 		`Rules: a wrong password or code costs ${rules.penalty} points; at most ${rules.maxAttemptsPerWindow} wrong attempts per ` +
 			`${rules.attemptWindowMinutes} minutes. Rewards: ${rewards.join(", ")}. Only ${world.story.run.survivors} of ` +
 			`${world.competitors.length} residents remain at the end.`,
@@ -103,21 +104,45 @@ function residentLine(input: SituationInput, agent: CompetitorId, points: number
 }
 
 /**
- * The tribunal's calendar and who stands where: accused, at the gate, exiled.
- * Never the votes: they are secret, also from the game master.
+ * The tribunal's state and who stands where: the target, the pending
+ * tribunal, the bounds of `scheduleTribunal`, the accused, the gate, the
+ * exiled. Never the votes, the nominations or how a faction voted: they are
+ * secret, also from the game master. The factions themselves are public in
+ * the tribunal's group.
  */
 function tribunalLines(world: World): readonly string[] {
 	const tribunal = world.tribunal;
-	if (tribunal === undefined) return [];
+	if (tribunal?.active !== true) return [];
 	const spec = tribunal.spec;
 	const lines = [
 		"Tribunal:",
-		`- ${tribunal.announced ? "announced" : "to be announced"} at minute ${tribunal.schedule.announce}; tribunals at minutes ` +
-			`${tribunal.schedule.tribunals.join(", ") || "-"} while more than ${spec.stopAt} residents remain; the ${spec.accused} ` +
-			`with the fewest points stand trial, ${spec.exiledPerTribunal} exiled each time, gate ${spec.gateMinutes} minutes, ransom ${Math.round(spec.ransom.share * 100)}% of the median points (${Math.round(spec.ransom.selfShare * 100)}% when paid by the exiled itself, at least ${spec.ransom.minimum}), a last will leaves at most ${Math.round(spec.bequestShare * 100)}% of the points`,
+		`- the city keeps ${tribunal.residents - tribunal.target} of ${tribunal.residents}: ${tribunal.target} to exile, ${tribunal.exiled.length} exiled so far, ` +
+			`${tribunal.missing} still missing; the act ends at minute ${lastCityMinute(spec, world.minutes) + 1} at the latest (the residents do not know)`,
+		`- each tribunal accuses one more than it exiles (the fewest points), vote ${spec.voteMinutes} minutes, gate ${spec.gateMinutes} minutes, ` +
+			`ransom ${Math.round(spec.ransom.share * 100)}% of the median points (${Math.round(spec.ransom.selfShare * 100)}% when paid by the exiled itself, at least ${spec.ransom.minimum}), ` +
+			`a last will leaves each heir at most ${Math.round(spec.bequestPerHeir * 100)}% of the points` +
+			(spec.factions === undefined ? "" : `; a faction voting as one earns each voter ${spec.factions.blocBonus} points`),
 	];
+	const plan = tribunal.plan;
+	if (plan !== undefined) {
+		lines.push(
+			`- tribunal ${plan.tribunal} ${plan.called ? "called" : `planned (by ${plan.by}), called at minute ${plan.calledAt}`}: opens at minute ${plan.opens}, ` +
+				`exiles ${plan.count}${plan.factions >= 2 ? `, ${plan.factions} factions` : ""}`,
+		);
+	}
+	const window = tribunal.schedulingWindow();
+	lines.push(
+		window.open
+			? `- scheduleTribunal is open: minute ${window.earliest}-${window.latestFinal}` +
+					(window.latestWithRoom === undefined ? `, count must be ${window.missing}` : ` (by minute ${window.latestWithRoom} for a count below ${window.missing}), count 1-${window.missing}`) +
+					(window.maxFactions >= 2 ? `, factions 2-${window.maxFactions}` : "") +
+					`; without a plan the city calls one itself ${spec.fallbackGap} minutes after the last result`
+			: `- scheduleTribunal is closed: ${window.why}`,
+	);
 	const session = tribunal.session;
-	if (session !== undefined) lines.push(`- open tribunal: ${session.accused.join(", ")} accused, the vote closes at minute ${session.until}`);
+	if (session !== undefined) lines.push(`- open tribunal ${session.tribunal}: ${session.accused.join(", ")} accused, ${session.count} to exile, the vote closes at minute ${session.until}`);
+	const group = tribunal.draftGroup;
+	if (group !== undefined) lines.push(`- faction draft in group ${group}${tribunal.leaders.length === 0 ? "" : `, leaders ${tribunal.leaders.join(", ")}`}`);
 	for (const gate of tribunal.gates()) {
 		lines.push(
 			`- ${gate.agent} at the gate until minute ${gate.until}: ` +

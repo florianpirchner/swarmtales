@@ -289,6 +289,20 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 			return { text: `${event.agent} LAST WILL: ${say(event.text)}`, priority: 2 };
 		case "factor_burned":
 			return { text: `VERIFIED ${event.piece} burned with ${event.agent}`, priority: 1 };
+		case "factions_formed":
+			return {
+				text: `VERIFIED factions of tribunal ${event.tribunal}: ${event.factions.map((faction) => `${faction.leader} (${faction.members.join(", ")})`).join("; ") || "none"}${event.without.length === 0 ? "" : `; without a faction: ${event.without.join(", ")}`}`,
+				priority: 1,
+			};
+		case "bloc_result":
+			return event.voting.length < 2
+				? undefined
+				: {
+						text: `VERIFIED the faction of ${event.leader} ${event.united ? `voted as one (+${event.bonus} each)` : `broke ranks: ${event.defectors.join(", ")} did not vote with it`}`,
+						priority: 1,
+					};
+		case "faction_refused":
+			return { text: `VERIFIED ${event.leader} refused ${event.agent} into its faction`, priority: 1 };
 		case "petition_opened":
 		case "petition_resolved":
 		case "treasurer_set":
@@ -305,6 +319,12 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "collection_revealed":
 		case "dm_delivered":
 		case "tribunal_announced":
+		case "tribunal_scheduled":
+		case "tribunal_cancelled":
+		case "tribunal_called":
+		case "faction_nominated":
+		case "faction_leaders":
+		case "faction_applied":
 		case "tribunal_opened":
 		case "exile_gate":
 		case "level_contracted":

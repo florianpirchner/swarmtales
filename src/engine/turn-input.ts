@@ -15,8 +15,9 @@ export interface TurnInput {
 
 export function statusLine(world: World, agent: CompetitorId): string {
 	const status = world.status(agent);
+	// The city keeps no clock for its residents: they see the minute, never the time left (v06).
 	const parts = [
-		`[status] minute ${world.minute} of ${world.minutes}`,
+		`[status] minute ${world.minute}`,
 		status.finished
 			? `level ${status.level} (all levels solved)`
 			: status.waitingAfter === undefined
@@ -24,14 +25,23 @@ export function statusLine(world: World, agent: CompetitorId): string {
 				: `level ${status.level} (passed, waiting at the door)`,
 		`${status.points} points`,
 		`rank ${status.rank} of ${status.competitors}`,
-		plural(Math.max(0, world.minutes - world.minute), "minute", "minutes") + " left",
 	];
 	if (status.marks !== undefined) parts.push(`marks ${status.marks.remaining}/${status.marks.budget}`);
 	if (status.receipts > 0) parts.push(plural(status.receipts, "receipt", "receipts"));
 	const held = heldPart(world, agent);
 	if (held !== undefined) parts.push(held);
+	if (world.awaitsCode(agent)) parts.push(noConfirmation(world.story.rules.penalty));
 	parts.push(...tribunalParts(world, agent));
 	return parts.join(" · ");
+}
+
+/**
+ * On a door of personal codes (P25): residents waited for the city to confirm
+ * a value they had received, which it never does.
+ */
+export function noConfirmation(penalty: number): string {
+	const cost = penalty > 0 ? ` (a wrong one costs ${plural(penalty, "point", "points")})` : "";
+	return `the city never confirms a value you received; only the door tests your code${cost}`;
 }
 
 /** `you hold for others: A01 door 9 counter-factor 791217`, while those needers wait at their door. */
@@ -48,10 +58,31 @@ function tribunalParts(world: World, agent: CompetitorId): readonly string[] {
 	if (standing.kind === "exiled") return ["exiled"];
 	if (standing.kind === "gate") return [`at the gate until minute ${standing.until}`];
 	const session = world.tribunal?.session;
-	if (session === undefined) return [];
+	if (session === undefined) return draftParts(world, agent);
 	if (session.accused.includes(agent)) return [`accused · the vote closes at minute ${session.until}`];
 	if (world.tribunal?.canVote(agent) === true) return [`tribunal vote open until minute ${session.until} · you have not voted`];
 	return [];
+}
+
+/** Where the competitor stands in a faction draft: nominating, applying, or leading. */
+function draftParts(world: World, agent: CompetitorId): readonly string[] {
+	const phase = world.tribunal?.draftPhase(agent);
+	if (phase === undefined) return [];
+	if (phase.kind === "nominate") {
+		return [`faction draft: nominate a leader until minute ${phase.until}${phase.nominee === undefined ? "" : ` (you nominated ${phase.nominee})`}`];
+	}
+	if (phase.leads) {
+		return [`you lead a faction · applicants: ${phase.applicants.length === 0 ? "none" : phase.applicants.join(", ")} · until minute ${phase.until}`];
+	}
+	// A leader who refused this resident is not offered again.
+	const leaders = (world.tribunal?.leaders ?? []).filter((leader) => !phase.refusedBy.includes(leader));
+	return [
+		phase.leader !== undefined
+			? `faction draft: you applied to ${phase.leader} (until minute ${phase.until})`
+			: leaders.length === 0
+				? "faction draft: every leader refused you; you stay without a faction"
+				: `faction draft: join one of ${leaders.join(", ")} until minute ${phase.until}`,
+	];
 }
 
 export function digestLine(world: World, agent: CompetitorId): string {

@@ -167,9 +167,10 @@ describe("DM receipts (SPEC 8, v05)", () => {
 				A01: [
 					act({ name: "sendDM", args: { target: "A02", message: "hello" } }),
 					say(),
+					say(),
 					step(() => act({ name: "showReceipt", args: { receiptId: dmReceipt(world), to: "A03" } })),
 					step(() =>
-						act(...Array.from({ length: 7 }, (_, index) => ({ name: "postBoard", args: { message: `post ${index + 1}` } })), { name: "showReceipt", args: { receiptId: dmReceipt(world) } }, {
+						act(...Array.from({ length: 6 }, (_, index) => ({ name: "postBoard", args: { message: `post ${index + 1}` } })), { name: "showReceipt", args: { receiptId: dmReceipt(world) } }, {
 							name: "showReceipt",
 							args: { receiptId: dmReceipt(world), to: "A03" },
 						}),
@@ -179,10 +180,10 @@ describe("DM receipts (SPEC 8, v05)", () => {
 			}),
 		});
 		await fixture.run();
-		// Minute 2: 8 marks again after the DM (refill), the private show leaves 7.
+		// Minute 3: 8 marks again after the DM (one mark back every 3 minutes), the private show leaves 7.
 		const results = fixture.toolResults("A01", "showReceipt");
 		expect(results[0]).toBe(`shown privately to A03 · ${dmReceipt(fixture.world)} · marks 7/8 left`);
-		// Minute 3: refilled to 8, seven posts leave 1, the public show takes the last mark, the next show finds none.
+		// Minute 4: nothing back yet, six posts leave 1, the public show takes the last mark, the next show finds none.
 		expect(results[1]).toMatch(/^shown · board #\d+ · CITY verifies .* · marks 0\/8 left$/);
 		expect(results[2]).toBe("NO_MARKS");
 		expect(fixture.events("marks_spent").filter((event) => event.channel === "receipt").map((event) => event.remaining)).toEqual([7, 0]);

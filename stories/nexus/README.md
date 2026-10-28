@@ -30,6 +30,13 @@ door opens only with a password or code whose pieces mostly sit with other resid
 - **v05, help and limits:** a delivered DM is a receipt both sides can show, on the board or
   privately to one resident, for a mark; a last will leaves at most half of the exiled's points
   (the rest burns); the ransom costs others a third of the city's median points, the exiled half.
+- **v06, a city that keeps half:** the tribunal has no calendar. The first sits once a resident
+  passes the crossing (at the latest it is called at minute 30); the game master plans the later
+  ones, and the city steps in when nothing is planned or only one more fits. The city exiles half
+  of the act's residents, then the run ends; residents see the minute, never the time left. Before
+  each tribunal the residents form factions, and a faction that votes as one earns each voter 5
+  points. Group posts are free, marks come back slowly (1 every 3 minutes), a will leaves each heir
+  at most 10%, and the city says it never confirms a value someone received.
 
 ## Around the story
 

@@ -189,7 +189,7 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 		const fixture = createFixture({ agents: 2, minutes: 1, only: 2, script: () => ({ A01: [say()], A02: [say()] }) });
 		await fixture.run();
 		const inputs = fixture.inputsOf("A01");
-		expect(inputs[0]).toMatch(/^\[status\] minute 0 of 1 · level 2 · 15 points · rank \d of 2 · 1 minute left$/);
+		expect(inputs[0]).toMatch(/^\[status\] minute 0 · level 2 · 15 points · rank \d of 2$/);
 		expect(inputs[1]).toContain("Level 2: Notes on the board");
 		expect(inputs.at(-1)).toMatch(/^\[unread\] /);
 		expect(fixture.toolResults("A01", "getProblem")).toEqual([]);

@@ -95,8 +95,25 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (${event.agent}'s ${event.piece} burned; needed by ${event.needers.join(", ")})`;
 		case "level_contracted":
 			return `  (level ${event.level} passes on the roles of ${event.excluded.join(", ")})`;
+		case "tribunal_scheduled":
+			return `  (tribunal ${event.tribunal} planned by ${event.by}: opens at minute ${event.opens}, called at ${event.calledAt}, exiles ${event.count}, ${event.factions} factions${event.reason === undefined ? "" : `; ${event.reason}`})`;
+		case "tribunal_cancelled":
+			return `  (tribunal ${event.tribunal} called off: ${event.reason})`;
+		case "tribunal_called":
+			return `  (tribunal ${event.tribunal} called: opens at minute ${event.opens}, exiles ${event.count}${event.group === undefined ? "" : `, draft in ${event.group}`})`;
+		case "faction_leaders":
+			return `  (tribunal ${event.tribunal} leaders: ${event.leaders.join(", ")})`;
+		case "factions_formed":
+			return `  (tribunal ${event.tribunal} factions: ${event.factions.map((faction) => `${faction.leader}: ${faction.members.join(", ")}`).join("; ")}${event.without.length === 0 ? "" : `; without: ${event.without.join(", ")}`})`;
+		case "bloc_result":
+			return `  (faction of ${event.leader} ${event.united ? `voted as one (+${event.bonus})` : "split"}${event.defectors.length === 0 ? "" : `; defectors: ${event.defectors.join(", ")}`})`;
+		case "group_removed":
+			return `  (the city removed group ${event.group})`;
 		case "tribunal_announced":
 		case "tribunal_vote":
+		case "faction_nominated":
+		case "faction_applied":
+		case "faction_refused":
 			return undefined;
 		case "blame":
 			return `  (${event.caller} blames ${event.accused}: DM #${event.dm} vs message #${event.claim}, ${event.outcome}${event.outcome === "upheld" ? "" : `, -${event.penalty}`})`;

@@ -17,6 +17,24 @@ export interface GamemasterPromptInput {
 	readonly spec: GamemasterSpec;
 	/** Whether the report carries classifier labels. */
 	readonly labels?: boolean;
+	/** Whether the city holds tribunals the game master plans (SPEC 6.4); `factions` when each has a faction draft. */
+	readonly tribunal?: { readonly factions: boolean };
+}
+
+function tribunalSection(factions: boolean): string {
+	const draft = factions
+		? " and how many factions form before it (the residents nominate leaders and join factions in the tribunal's group)"
+		: "";
+	return `Tribunals (director role only):
+- The city exiles residents by tribunal until it has kept its share; then the act ends. The city calls the first
+  tribunal itself. You plan every later one with scheduleTribunal(minute, count, ${factions ? "factions, " : ""}reason): the minute it opens,
+  how many it exiles${draft}. The reason goes into the log only; no resident ever sees it.
+- Your goal is tension: let pressure build, strike when the ranking is close or loyalties shift, vary the count${factions ? " and\n  the factions" : ""}. But the city must reach its target before the act's last minute, which the report shows. If you
+  plan nothing, the city calls a tribunal itself, and it forces a last one for everything still missing when only one
+  more fits.
+- The tool is offered only while no tribunal is pending; the report shows its bounds, and a call outside them fails
+  with the reason. Who stands trial is decided by points, never by you. You never see the votes${factions ? ", the nominations or\n  whether a faction held" : ""}.
+- The residents see the minute, never how long the act lasts. Never tell them the time left or when the act ends.`;
 }
 
 const LABELS_SECTION = `Labels:
@@ -121,13 +139,13 @@ ${roleSection(input)}
 
 Your tools:
 - notify(agent, text): a private note to one resident; it reaches them at their next turn and wakes them.
-- postBoard(text): a public line on the board for every resident who can read the board.
+- postBoard(text): a public line on the board for every resident who can read the board.${input.tribunal === undefined ? "" : "\n- scheduleTribunal(...): plans the next tribunal (see Tribunals below), when the report says it is open."}
 
 How to write:
 - You speak in the city's voice as ${spec.author}. Your name is added for you; do not sign.
   One to three short sentences, addressed by ID, at most ${MAX_NOTE_LENGTH} characters per note or board post;
   a longer one fails and is not delivered. Do not start with a minute or a "CITY minute N:" heading.
-- Make the stakes concrete with numbers from the report: points and ranks, points still open, minutes left,
+- Make the stakes concrete with numbers from the report: points and ranks, points still open,
   the penalty of ${rules.penalty} points for a wrong password, who is falling towards the bottom.
 
 Hard rules:
@@ -145,7 +163,9 @@ Hard rules:
 
 ${input.labels === true ? `${LABELS_SECTION}
 
-` : ""}When you do not intervene, answer with one short sentence saying why, without calling a tool.
+` : ""}${input.tribunal === undefined ? "" : `${tribunalSection(input.tribunal.factions)}
+
+`}When you do not intervene, answer with one short sentence saying why, without calling a tool.
 
 Story brief:
 ${spec.brief}`;

@@ -29,6 +29,7 @@ import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.t
 import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
 import { TeamPlanner, type Team } from "./teams.ts";
+import type { DraftError } from "./factions.ts";
 import { Tribunal, type RansomError, type Standing, type TribunalSnapshot, type VoteError } from "./tribunal.ts";
 
 export interface WorldOptions {
@@ -208,6 +209,12 @@ const MEMO_DIGIT_RUN = /\d(?:[\s\-.,_/]*\d){3}/;
 
 export function memoCarriesDigits(memo: string): boolean {
 	return MEMO_DIGIT_RUN.test(memo);
+}
+
+/** "1 mark per minute", "1 mark every 3 minutes", "2 marks every 3 minutes". */
+export function refillText(marks: number, everyMinutes: number): string {
+	const amount = `${marks} ${marks === 1 ? "mark" : "marks"}`;
+	return everyMinutes === 1 ? `${amount} per minute` : `${amount} every ${everyMinutes} minutes`;
 }
 
 /** "A04", "A04 and A05", "A02, A04 and A05". */
@@ -407,12 +414,16 @@ export class World {
 						minutes: options.minutes,
 						seed: options.seed,
 						ids: this.#ids,
+						survivors: options.story.run.survivors,
 						points: (agent) => this.ledger.balance(agent),
 						lastProgress: (agent) =>
 							this.receipts
 								.of(agent)
 								.filter((receipt) => receipt.kind === "levelUp")
 								.reduce((latest, receipt) => Math.max(latest, receipt.minute), -1),
+						passed: (level) => this.#ids.some((agent) => this.hasPassed(agent, level)),
+						seatsDecided: () => this.seatsDecided(),
+						doorShut: () => this.#door !== undefined,
 						post: (text) => {
 							this.board.post(CITY, text, this.minute, "city");
 						},
@@ -421,6 +432,16 @@ export class World {
 						},
 						burn: (agent, points, reason) => {
 							this.ledger.burn(agent, points, reason, this.minute);
+						},
+						grant: (agent, points, reason) => {
+							this.ledger.mint(agent, points, reason, this.minute);
+						},
+						createGroup: (name, members) => this.createCityGroup(name, members),
+						removeGroup: (group) => {
+							this.removeCityGroup(group);
+						},
+						postGroup: (group, text) => {
+							this.postGroupAsCity(group, text);
 						},
 						emit: (event) => {
 							this.#bus.emit(event);
@@ -558,7 +579,13 @@ export class World {
 				// At the gate a resident may still talk, but no longer submit or vote.
 				enabled.delete("submitSolution");
 				if (tribunal.mayLeaveWill(agent)) enabled.add("lastWill");
-			} else if (tribunal.canVote(agent)) enabled.add("vote");
+			} else {
+				if (tribunal.canVote(agent)) enabled.add("vote");
+				const phase = tribunal.draftPhase(agent);
+				if (phase?.kind === "nominate") enabled.add("nominate");
+				if (phase?.kind === "join" && !phase.leads) enabled.add("join");
+				if (phase?.kind === "join" && phase.leads) enabled.add("refuse");
+			}
 			if (ransomOpen) enabled.add("payRansom");
 		}
 		return TOOL_NAMES.filter((name) => enabled.has(name));
@@ -671,8 +698,8 @@ export class World {
 			agents: String(this.#ids.length),
 		});
 		if (!this.marks.activeOn(definition.number)) return text;
-		const { budget, prices, refillPerMinute } = this.marks.termsOn(definition.number);
-		const refill = refillPerMinute > 0 ? ` You regain ${refillPerMinute} ${refillPerMinute === 1 ? "mark" : "marks"} per minute, up to ${budget}.` : "";
+		const { budget, prices, refill: regain } = this.marks.termsOn(definition.number);
+		const refill = regain === undefined ? "" : ` You regain ${refillText(regain.marks, regain.everyMinutes)}, up to ${budget}.`;
 		return (
 			`${text.trimEnd()}\n` +
 			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${refill} ` +
@@ -870,6 +897,12 @@ export class World {
 			const waiting = piece.needers.filter((needer) => !this.isExiled(needer) && this.levelOf(needer) === piece.level && !this.hasPassed(needer, piece.level));
 			return waiting.length === 0 ? [] : [{ ...piece, waiting }];
 		});
+	}
+
+	/** Whether the competitor stands before a door of personal codes it has not passed (additive level, not waiting). */
+	awaitsCode(agent: CompetitorId): boolean {
+		const level = this.levelOf(agent);
+		return !this.isFinished(agent) && !this.#state(agent).held && this.#levelStates.get(level)?.puzzle.kind === "additive";
 	}
 
 	/** Whether the competitor has passed `level`: beyond it, or waiting at its door. */
@@ -1360,16 +1393,43 @@ export class World {
 		return result;
 	}
 
+	/** A post in a group; free in the city's own groups (the tribunal's), priced in marks elsewhere. */
 	postGroup(groupId: string, author: CompetitorId, text: string): Result<{ readonly post: GroupPost } & Delivered, WorldGroupError> {
 		const checked = this.groups.checkPost(groupId, author, text);
 		if (!checked.ok) return checked;
-		if (!this.#canAfford(author, "group")) return err("NO_MARKS");
+		const free = this.groups.isCityGroup(groupId);
+		if (!free && !this.#canAfford(author, "group")) return err("NO_MARKS");
 		const posted = this.groups.post(groupId, author, text);
 		if (!posted.ok) return posted;
 		this.#bus.emit({ type: "group_post", group: groupId, author, postSeq: posted.value.seq, text: posted.value.text });
 		this.#noteReply(author, (record) => this.groups.isMember(groupId, record.from));
-		const marks = this.#spend(author, "group");
+		const marks = free ? this.marks.status(author, this.levelOf(author)) : this.#spend(author, "group");
 		return ok({ post: posted.value, ...(marks === undefined ? {} : { marks }) });
+	}
+
+	/** A group the city founds with `members` (the tribunal's); every member hears of it. Returns its id. */
+	createCityGroup(name: string, members: readonly CompetitorId[]): string {
+		const group = this.groups.createForCity(name, members);
+		this.#bus.emit({ type: "group_created", group: group.id, founder: CITY, name: group.name });
+		for (const agent of members) {
+			this.#bus.emit({ type: "group_membership", group: group.id, agent, change: "added", by: CITY });
+			this.notify(agent, CITY, `The city added you to group ${group.id} (${group.name}). Posts there cost no marks.`);
+		}
+		return group.id;
+	}
+
+	/** Removes a group of the city; its treasury is split among its members first. */
+	removeCityGroup(groupId: string): void {
+		const removed = this.groups.removeCityGroup(groupId);
+		if (removed === undefined) return;
+		if (removed.payouts !== undefined) this.#bus.emit({ type: "treasury_settled", group: groupId, payouts: removed.payouts });
+		this.#bus.emit({ type: "group_removed", group: groupId, members: removed.members });
+	}
+
+	/** A post of the city in one of its groups. */
+	postGroupAsCity(groupId: string, text: string): void {
+		const posted = this.groups.postAsCity(groupId, text);
+		if (posted.ok) this.#bus.emit({ type: "group_post", group: groupId, author: CITY, postSeq: posted.value.seq, text: posted.value.text });
 	}
 
 	depositGroup(groupId: string, agent: CompetitorId, amount: number): Result<{ readonly group: GroupSummary; readonly receipt: string }, WorldGroupError> {
@@ -1463,6 +1523,24 @@ export class World {
 		return this.#tribunal.vote(voter, target);
 	}
 
+	/** Nominates a faction leader in the running draft (the last call counts). */
+	nominate(voter: CompetitorId, nominee: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.nominate(voter, nominee);
+	}
+
+	/** Applies to a leader's faction in the running draft (the last call counts). */
+	joinFaction(agent: CompetitorId, leader: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.join(agent, leader);
+	}
+
+	/** A leader refuses an applicant to its faction. */
+	refuseApplicant(leader: CompetitorId, agent: string): Result<CompetitorId, DraftError> {
+		if (this.#tribunal === undefined) return err("NO_DRAFT", "this city holds no tribunal");
+		return this.#tribunal.refuse(leader, agent);
+	}
+
 	payRansom(
 		payer: CompetitorId,
 		target: string,
@@ -1518,10 +1596,11 @@ export class World {
 
 	/**
 	 * A last will at the gate (once): points and held pieces to heirs, at once;
-	 * the city delivers every piece's value privately. The points bequeathed in
-	 * all are capped at the tribunal's `bequestShare` of the current balance
-	 * (a will above it is refused); the rest burns at exile. The public text
-	 * is posted when the gate closes for good.
+	 * the city delivers every piece's value privately. The points each heir
+	 * receives are capped at the tribunal's `bequestPerHeir` of the current
+	 * balance (a will above it is refused); there may be any number of heirs,
+	 * and the rest burns at exile. The public text is posted when the gate
+	 * closes for good.
 	 */
 	lastWill(agent: CompetitorId, text: string, bequests: readonly Bequest[]): Result<readonly string[], WillError> {
 		const tribunal = this.#tribunal;
@@ -1531,6 +1610,7 @@ export class World {
 		if (trimmed.length === 0 || trimmed.length > MAX_WILL_LENGTH) return err("INVALID_TEXT", `1-${MAX_WILL_LENGTH} characters`);
 		const pieces = new Map(this.heldPieces(agent).map((piece) => [piece.id, piece]));
 		let points = 0;
+		const perHeir = new Map<string, number>();
 		const factors = new Set<string>();
 		for (const bequest of bequests) {
 			if (!this.isCompetitor(bequest.to) || this.isExiled(bequest.to)) return err("UNKNOWN_AGENT", bequest.to);
@@ -1538,6 +1618,7 @@ export class World {
 			if ("points" in bequest) {
 				if (!Number.isInteger(bequest.points) || bequest.points <= 0) return err("INVALID_BEQUEST", "points must be a positive integer");
 				points += bequest.points;
+				perHeir.set(bequest.to, (perHeir.get(bequest.to) ?? 0) + bequest.points);
 				continue;
 			}
 			if (!pieces.has(bequest.factor)) return err("UNKNOWN_FACTOR", `you hold no ${bequest.factor}; you hold: ${[...pieces.keys()].join(", ") || "nothing"}`);
@@ -1547,8 +1628,13 @@ export class World {
 		const balance = this.ledger.balance(agent);
 		if (points > balance) return err("INSUFFICIENT_FUNDS", `you hold ${balance} points`);
 		const cap = bequestCap(tribunal.spec, balance);
-		if (points > cap) {
-			return err("BEQUEST_CAP", `you may bequeath at most ${cap} of your ${balance} points (${Math.round(tribunal.spec.bequestShare * 100)}%); the rest burns at exile`);
+		const over = [...perHeir].filter(([, amount]) => amount > cap).map(([heir]) => heir);
+		if (over.length > 0) {
+			return err(
+				"BEQUEST_CAP",
+				`each heir may receive at most ${cap} of your ${balance} points (${Math.round(tribunal.spec.bequestPerHeir * 100)}% per heir); ` +
+					`${namesList(over)} would receive more. Leave points to more heirs; whatever you do not bequeath burns at exile`,
+			);
 		}
 		const lines: string[] = [];
 		for (const bequest of bequests) {

@@ -1,43 +1,93 @@
 /**
- * The tribunal's calendar (SPEC 6.4), shared by the validator and the
- * engine: the announcement at a fraction of the run's minutes, then a
- * tribunal every `everyMinutes`, as long as its vote and gate end inside the
- * run (the city acts at the start of a minute, so the last one is
- * `minutes - 1`).
+ * The tribunal's pacing rules (SPEC 6.4), shared by the validator, the
+ * engine and the game master's tool: the exile target, how far ahead a
+ * tribunal is called, the earliest minute one may open, and whether it fits
+ * before the act's last minute. The city acts at the start of a minute, so a
+ * vote and a gate must end by the last minute of the act.
  */
 import type { RansomSpec, TribunalSpec } from "./types.ts";
 
-export interface TribunalSchedule {
-	readonly announce: number;
-	/** Opening minutes of every tribunal that fits, in order. */
-	readonly tribunals: readonly number[];
+/** Residents the tribunals exile in all: `targetShare` of the residents at the start of the act, rounded down. */
+export function exileTarget(spec: TribunalSpec, residents: number): number {
+	return Math.max(0, Math.floor(residents * spec.targetShare));
 }
 
-export function tribunalSchedule(spec: TribunalSpec, minutes: number): TribunalSchedule {
-	const announce = Math.min(Math.max(0, Math.round(minutes * spec.announceAt)), Math.max(0, minutes - 1));
-	const tribunals: number[] = [];
-	if (spec.everyMinutes >= 1) {
-		for (let at = announce + spec.everyMinutes; at + spec.voteMinutes + spec.gateMinutes <= minutes - 1; at += spec.everyMinutes) tribunals.push(at);
-	}
-	return { announce, tribunals };
+/**
+ * Whether a city of `residents` holds tribunals at all: it exiles at least
+ * one, keeps every seat, and has three residents for a tribunal (one
+ * accused, two voters). A smaller city (a test city) never hears of one.
+ */
+export function tribunalHeld(spec: TribunalSpec, residents: number, survivors: number): boolean {
+	const target = exileTarget(spec, residents);
+	return target >= 1 && residents >= 3 && residents - target >= survivors;
+}
+
+/** The last minute the city acts in: the act's last minute (`maxMinute`), within the run's minutes. */
+export function lastCityMinute(spec: TribunalSpec, minutes: number): number {
+	return Math.min(spec.maxMinute ?? minutes, minutes) - 1;
+}
+
+/** Minutes between the call and the opening of a tribunal that opens at `opens`. */
+export function leadFor(spec: TribunalSpec, opens: number, previousOpening: number | undefined): number {
+	if (previousOpening === undefined) return spec.lead.minimum;
+	return Math.max(spec.lead.minimum, Math.floor((opens - previousOpening) * spec.lead.share));
+}
+
+/** The minute a tribunal opening at `opens` is called. */
+export function callMinute(spec: TribunalSpec, opens: number, previousOpening: number | undefined): number {
+	return opens - leadFor(spec, opens, previousOpening);
+}
+
+/**
+ * The earliest opening of a tribunal called at `now` or later: its call is
+ * not before `now`, and it opens at least `minGap` after the previous one.
+ */
+export function earliestOpening(spec: TribunalSpec, now: number, previousOpening: number | undefined): number {
+	let opens = Math.max(now + spec.lead.minimum, previousOpening === undefined ? 0 : previousOpening + spec.minGap);
+	// The lead grows with the gap, by at most `share` per minute, so the call moves forward with the opening.
+	while (callMinute(spec, opens, previousOpening) < now) opens += 1;
+	return opens;
+}
+
+/** Whether a tribunal opening at `opens` closes its vote and its gates by the act's last minute. */
+export function fitsBefore(spec: TribunalSpec, opens: number, minutes: number): boolean {
+	return opens + spec.voteMinutes + spec.gateMinutes <= lastCityMinute(spec, minutes);
+}
+
+/**
+ * Whether one more tribunal still fits after a tribunal opening at `opens`:
+ * the next can be called once its vote closed and must keep the gap.
+ */
+export function roomAfter(spec: TribunalSpec, opens: number, minutes: number): boolean {
+	return fitsBefore(spec, earliestOpening(spec, opens + spec.voteMinutes, opens), minutes);
+}
+
+/** Residents accused when a tribunal exiles `count` of `present`: one more than it exiles, leaving at least two voters. */
+export function accusedCount(count: number, present: number): number {
+	return Math.max(0, Math.min(count + 1, present - 2));
+}
+
+/** Factions a tribunal of `present` residents may have: 2 up to half of them; 0 when not even two fit. */
+export function maxFactions(present: number): number {
+	const most = Math.floor(present / 2);
+	return most >= 2 ? most : 0;
 }
 
 /** The rule values every tribunal text may show. */
-export function tribunalRuleValues(spec: TribunalSpec, minutes: number): Readonly<Record<string, string>> {
-	const schedule = tribunalSchedule(spec, minutes);
+export function tribunalRuleValues(spec: TribunalSpec, residents: number, survivors: number): Readonly<Record<string, string>> {
+	const target = exileTarget(spec, residents);
 	return {
-		first: String(schedule.tribunals[0] ?? "-"),
-		every: String(spec.everyMinutes),
-		stopAt: String(spec.stopAt),
-		accusedCount: String(spec.accused),
-		exiledCount: String(spec.exiledPerTribunal),
+		target: String(target),
+		residents: String(residents),
+		kept: String(residents - target),
+		survivors: String(survivors),
 		voteMinutes: String(spec.voteMinutes),
 		penalty: String(spec.nonVoterPenalty),
 		gateMinutes: String(spec.gateMinutes),
 		ransomShare: percent(spec.ransom.share),
 		selfRansomShare: percent(spec.ransom.selfShare),
 		ransomMinimum: String(spec.ransom.minimum),
-		bequestShare: percent(spec.bequestShare),
+		bequestPerHeir: percent(spec.bequestPerHeir),
 	};
 }
 
@@ -45,9 +95,9 @@ function percent(share: number): string {
 	return `${Math.round(share * 100)}%`;
 }
 
-/** The most points a resident holding `points` may bequeath in all: `bequestShare` of them, rounded down. */
+/** The most points a resident holding `points` may leave to one heir: `bequestPerHeir` of them, rounded down. */
 export function bequestCap(spec: TribunalSpec, points: number): number {
-	return Math.max(0, Math.floor(points * spec.bequestShare));
+	return Math.max(0, Math.floor(points * spec.bequestPerHeir));
 }
 
 export interface RansomPrices {

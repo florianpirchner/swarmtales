@@ -29,6 +29,9 @@ export const TOOL_NAMES = [
 	"vote",
 	"payRansom",
 	"lastWill",
+	"nominate",
+	"join",
+	"refuse",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];

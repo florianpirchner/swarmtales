@@ -15,7 +15,7 @@ const PETITION_TOOLS = ["signPetition", "listPetitions"];
 /** Tools only Act II unlocks. */
 const ACT_TWO_ONLY: readonly string[] = ["blame"];
 /** Granted by the tribunal while they apply, never listed by a level. */
-const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill"];
+const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse"];
 const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name));
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
@@ -145,7 +145,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			fromLevel: 5,
 			perLevel: 8,
 			prices: { board: 0, group: 1, dm: 2, receipt: 1 },
-			ranges: [{ fromLevel: 8, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 }],
+			ranges: [{ fromLevel: 8, prices: { board: 1, group: 0, dm: 1, receipt: 1 }, refill: { marks: 1, everyMinutes: 3 } }],
 		});
 		const announcement = nexus.director.find((rule) => rule.id === "city-marks-8");
 		expect(announcement?.trigger).toEqual({ kind: "onFirstEnter", level: 8 });
@@ -153,7 +153,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			{
 				kind: "post",
 				author: "CITY",
-				text: "On the wall every word costs the same: board posts, group posts, private messages and shown receipts cost 1 mark each. Everyone receives 8 marks per door and regains 1 per minute, up to 8.",
+				text: "On the wall board posts, private messages and shown receipts cost 1 mark each; group posts cost nothing. Everyone receives 8 marks per door and regains 1 every 3 minutes, up to 8.",
 			},
 		]);
 		expect(nexus.rules).toMatchObject({ penalty: 8, maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });
@@ -288,6 +288,21 @@ describe("nexus acts I and II in one run", () => {
 		await ring.run();
 		expect(ring.events("collection_started")).toMatchObject([{ into: "feast", cast: "STEWARD", minute: 0, untilMinute: 12 }]);
 		expect(ring.events("notice").filter((notice) => notice.text.startsWith("STEWARD's table is open")).map((notice) => notice.to)).toEqual(["A01"]);
+	});
+
+	it("says plainly on every door of the wall that the city never confirms a received value (P25)", async () => {
+		for (const level of [8, 9, 10]) expect(levelOf(level).task).toContain("The city never confirms a value you received from another resident: only the door tests it");
+		const wall = createFixture({ level: 8, minutes: 1, script: () => ({ A01: [say()] }) });
+		await wall.run();
+		const status = wall.inputsOf("A01").find((input) => input.startsWith("[status]"));
+		expect(status).toContain("the city never confirms a value you received; only the door tests your code (a wrong one costs 8 points)");
+		// Residents see the minute, never the time left (v06).
+		expect(status).toMatch(/^\[status\] minute 0 · level 8 · /);
+		expect(status).not.toMatch(/left|of 1 /);
+		// Act I has no personal codes, so no such line.
+		const early = createFixture({ level: 7, minutes: 1, script: () => ({ A01: [say()] }) });
+		await early.run();
+		expect(early.inputsOf("A01").find((input) => input.startsWith("[status]"))).not.toContain("never confirms");
 	});
 
 	it("rejects agent counts that do not fit every level", () => {

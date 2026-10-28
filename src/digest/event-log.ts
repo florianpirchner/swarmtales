@@ -81,8 +81,73 @@ const Blame = Type.Object({
 	reason: Type.Optional(Type.String()),
 	post: Type.Integer(),
 });
-const TribunalAnnounced = Type.Object({ ...Base, type: Type.Literal("tribunal_announced"), tribunals: Type.Array(Type.Integer()) });
-const TribunalOpened = Type.Object({ ...Base, type: Type.Literal("tribunal_opened"), accused: Ids, voters: Ids, until: Type.Integer() });
+const TribunalAnnounced = Type.Object({
+	...Base,
+	type: Type.Literal("tribunal_announced"),
+	/** The fixed calendar of logs before v06. */
+	tribunals: Type.Optional(Type.Array(Type.Integer())),
+	target: Type.Optional(Type.Integer()),
+	residents: Type.Optional(Type.Integer()),
+});
+const TribunalScheduled = Type.Object({
+	...Base,
+	type: Type.Literal("tribunal_scheduled"),
+	tribunal: Type.Integer(),
+	opens: Type.Integer(),
+	calledAt: Type.Integer(),
+	count: Type.Integer(),
+	factions: Type.Integer(),
+	by: Type.Union([Type.Literal("progress"), Type.Literal("deadline"), Type.Literal("gamemaster"), Type.Literal("fallback"), Type.Literal("final")]),
+	reason: Type.Optional(Type.String()),
+});
+const TribunalCancelled = Type.Object({ ...Base, type: Type.Literal("tribunal_cancelled"), tribunal: Type.Integer(), reason: Type.String() });
+const TribunalCalled = Type.Object({
+	...Base,
+	type: Type.Literal("tribunal_called"),
+	tribunal: Type.Integer(),
+	opens: Type.Integer(),
+	count: Type.Integer(),
+	factions: Type.Integer(),
+	group: Type.Optional(Id),
+	nominateUntil: Type.Optional(Type.Integer()),
+});
+const TribunalOpened = Type.Object({
+	...Base,
+	type: Type.Literal("tribunal_opened"),
+	tribunal: Type.Optional(Type.Integer()),
+	accused: Ids,
+	voters: Ids,
+	until: Type.Integer(),
+	count: Type.Optional(Type.Integer()),
+});
+const FactionNominated = Type.Object({ ...Base, type: Type.Literal("faction_nominated"), tribunal: Type.Integer(), voter: Id, nominee: Id });
+const FactionLeaders = Type.Object({
+	...Base,
+	type: Type.Literal("faction_leaders"),
+	tribunal: Type.Integer(),
+	leaders: Ids,
+	nominations: Type.Array(Type.Object({ agent: Id, count: Type.Integer() })),
+});
+const FactionApplied = Type.Object({ ...Base, type: Type.Literal("faction_applied"), tribunal: Type.Integer(), agent: Id, leader: Id });
+const FactionRefused = Type.Object({ ...Base, type: Type.Literal("faction_refused"), tribunal: Type.Integer(), leader: Id, agent: Id });
+const FactionsFormed = Type.Object({
+	...Base,
+	type: Type.Literal("factions_formed"),
+	tribunal: Type.Integer(),
+	factions: Type.Array(Type.Object({ leader: Id, group: Id, members: Ids })),
+	without: Ids,
+});
+const BlocResult = Type.Object({
+	...Base,
+	type: Type.Literal("bloc_result"),
+	tribunal: Type.Integer(),
+	leader: Id,
+	voting: Ids,
+	united: Type.Boolean(),
+	target: Type.Optional(Id),
+	defectors: Ids,
+	bonus: Type.Integer(),
+});
 const TribunalVote = Type.Object({ ...Base, type: Type.Literal("tribunal_vote"), voter: Id, target: Id });
 const TribunalResult = Type.Object({
 	...Base,
@@ -272,7 +337,16 @@ export const DIGEST_EVENT_SCHEMAS = [
 	CollectionRevealed,
 	Blame,
 	TribunalAnnounced,
+	TribunalScheduled,
+	TribunalCancelled,
+	TribunalCalled,
 	TribunalOpened,
+	FactionNominated,
+	FactionLeaders,
+	FactionApplied,
+	FactionRefused,
+	FactionsFormed,
+	BlocResult,
 	TribunalVote,
 	TribunalResult,
 	ExileGate,

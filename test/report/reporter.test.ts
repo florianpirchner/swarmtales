@@ -29,16 +29,16 @@ afterEach(() => {
 });
 
 /** A pi-ai model backed by the faux provider: offline, but through the same code path as a real provider. */
-function fauxModel(answer: string): { model: ReporterModel; prompts: string[] } {
+function fauxModel(...answers: readonly string[]): { model: ReporterModel; prompts: string[] } {
 	const faux = fauxProvider();
 	const prompts: string[] = [];
-	faux.setResponses([
-		(context) => {
+	faux.setResponses(
+		answers.map((answer) => (context) => {
 			const last = context.messages.at(-1);
 			if (last?.role === "user") prompts.push(typeof last.content === "string" ? last.content : "");
 			return fauxAssistantMessage(fauxText(answer));
-		},
-	]);
+		}),
+	);
 	const models = createModels();
 	models.setProvider(faux.provider);
 	return { model: new PiReporterModel(models, faux.getModel(), "faux reporter"), prompts };
@@ -212,14 +212,30 @@ describe("run reporter (model-written sections)", () => {
 		expect(() => interpretAnswer("{not json}", new Set())).toThrow(/not valid JSON/);
 		expect(() => interpretAnswer(JSON.stringify({ highlights: "none" }), new Set())).toThrow(/expected shape/);
 
+		// Asked twice (P26), and twice no JSON: the model sections are skipped, and both requests are paid.
 		const directory = await scriptedRun();
-		const { model } = fauxModel("{ this is not json }");
+		const { model, prompts } = fauxModel("{ this is not json }", "{ still not json }");
 		const written = await writeRunReport(directory, { ok: true, model });
+		expect(prompts).toHaveLength(2);
 		expect(written.warnings).toEqual(["model sections skipped: the model's answer is not valid JSON"]);
+		expect(written.narrative.spend?.requests).toBe(2);
 		const report = readFileSync(written.path, "utf8");
 		expect(report).toContain("| Submissions | 2 correct, 1 wrong");
 		expect(report).toContain("Skipped: the model's answer is not valid JSON.");
 		expect(report).not.toContain("## Digest highlights");
+	});
+
+	it("asks the model once more when its first answer is not valid JSON (P26)", async () => {
+		const directory = await scriptedRun();
+		const valid = JSON.stringify({ highlights: [], problems: [], optimizations: [], loopholes: [] });
+		const { model, prompts } = fauxModel("{ broken", valid);
+		const written = await writeRunReport(directory, { ok: true, model });
+		expect(prompts).toHaveLength(2);
+		expect(prompts[1]).toBe(prompts[0]);
+		expect(written.narrative.kind).toBe("written");
+		expect(written.narrative.spend?.requests).toBe(2);
+		const usage: unknown = JSON.parse(readFileSync(join(directory, "usage.json"), "utf8"));
+		expect(usage).toMatchObject({ reporter: { requests: 2 } });
 	});
 
 	it("writes the computed sections and skips the model without an API key", async () => {

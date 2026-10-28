@@ -4,8 +4,12 @@
  * Groups are private: non-members learn neither existence nor name nor
  * members (`GROUP_NOT_VISIBLE`, no existence leak). New members only read
  * posts from their join on. The treasury is the ledger account `GROUP:<id>`.
+ * The city may found groups itself (the tribunal's, SPEC 6.4): their founder
+ * and treasurer is the city, so no resident adds, removes or withdraws, and
+ * the city removes them again. A removed group keeps its id and its posts
+ * (for blames), but nobody sees it any more.
  */
-import type { CompetitorId } from "../core/ids.ts";
+import { CITY, type CompetitorId } from "../core/ids.ts";
 import { LedgerError, type PointsLedger } from "../core/ledger.ts";
 import { err, ok, type Result } from "../core/result.ts";
 import { MessageNumbers } from "./numbers.ts";
@@ -54,6 +58,8 @@ interface GroupState {
 	/** Member to the highest sequence read. */
 	readonly readSeq: Map<CompetitorId, number>;
 	readonly posts: GroupPost[];
+	/** Removed by the city: invisible to everyone, its treasury paid out. */
+	removed: boolean;
 }
 
 export type GroupResult<T> = Result<T, GroupErrorCode>;
@@ -67,6 +73,8 @@ export interface GroupStateSnapshot {
 	readonly members: readonly { readonly agent: CompetitorId; readonly joinedAtSeq: number }[];
 	readonly reads: readonly { readonly agent: CompetitorId; readonly seq: number }[];
 	readonly posts: readonly GroupPost[];
+	/** Removed by the city; absent for a live group. */
+	readonly removed?: true;
 }
 
 /** Every group, the founder counts and the last message number; treasuries live in the ledger. */
@@ -114,11 +122,58 @@ export class GroupRegistry {
 			joinedAtSeq: new Map([[founder, this.#seq]]),
 			readSeq: new Map(),
 			posts: [],
+			removed: false,
 		};
 		this.#groups.set(id, group);
 		this.#founded.set(founder, founded + 1);
 		this.#ledger.open(groupAccountId(id));
 		return ok(this.#summary(group));
+	}
+
+	/** A group the city founds with `members`; the city is its founder and treasurer and counts against no limit. */
+	createForCity(name: string, members: readonly CompetitorId[]): GroupSummary {
+		const id = `G${this.#groups.size + 1}`;
+		const group: GroupState = {
+			id,
+			name: name.trim().slice(0, MAX_GROUP_NAME_LENGTH),
+			founder: CITY,
+			treasurer: CITY,
+			joinedAtSeq: new Map(members.map((member) => [member, this.#seq])),
+			readSeq: new Map(),
+			posts: [],
+			removed: false,
+		};
+		this.#groups.set(id, group);
+		this.#ledger.open(groupAccountId(id));
+		return this.#summary(group);
+	}
+
+	/** Whether the city founded the group. */
+	isCityGroup(groupId: string): boolean {
+		return this.#groups.get(groupId)?.founder === CITY;
+	}
+
+	/** A post of the city in one of its groups; no member check and no length limit. */
+	postAsCity(groupId: string, text: string): GroupResult<GroupPost> {
+		const group = this.#groups.get(groupId);
+		if (group === undefined || group.removed || group.founder !== CITY) return err("GROUP_NOT_VISIBLE");
+		// The city's own texts are never cut: a faction list of 96 residents runs past a resident's limit.
+		const post: GroupPost = { seq: this.#numbers.next(), author: CITY, text: text.trim(), minute: this.#minute() };
+		group.posts.push(post);
+		return ok(post);
+	}
+
+	/**
+	 * Removes a group of the city: its treasury is split among its members
+	 * as at run end, then nobody sees it any more. Returns the members and the payouts.
+	 */
+	removeCityGroup(groupId: string): { readonly members: readonly CompetitorId[]; readonly payouts?: Readonly<Record<string, number>> } | undefined {
+		const group = this.#groups.get(groupId);
+		if (group === undefined || group.removed || group.founder !== CITY) return undefined;
+		const members = [...group.joinedAtSeq.keys()];
+		const payouts = this.#settle(group);
+		group.removed = true;
+		return { members, ...(payouts === undefined ? {} : { payouts }) };
 	}
 
 	addMember(groupId: string, actor: CompetitorId, agent: CompetitorId): GroupResult<GroupSummary> {
@@ -158,12 +213,13 @@ export class GroupRegistry {
 
 	listFor(agent: CompetitorId): readonly GroupSummary[] {
 		return [...this.#groups.values()]
-			.filter((group) => group.joinedAtSeq.has(agent))
+			.filter((group) => !group.removed && group.joinedAtSeq.has(agent))
 			.map((group) => this.#summary(group));
 	}
 
 	isMember(groupId: string, agent: CompetitorId): boolean {
-		return this.#groups.get(groupId)?.joinedAtSeq.has(agent) === true;
+		const group = this.#groups.get(groupId);
+		return group !== undefined && !group.removed && group.joinedAtSeq.has(agent);
 	}
 
 	/** Checks whether `author` may post `text`, without posting. */
@@ -235,7 +291,7 @@ export class GroupRegistry {
 
 	unreadCount(groupId: string, reader: CompetitorId): number {
 		const group = this.#groups.get(groupId);
-		if (group?.joinedAtSeq.has(reader) !== true) return 0;
+		if (group === undefined || group.removed || !group.joinedAtSeq.has(reader)) return 0;
 		const cursor = this.#cursor(group, reader);
 		return group.posts.filter((post) => post.seq > cursor && post.author !== reader).length;
 	}
@@ -261,22 +317,31 @@ export class GroupRegistry {
 	 * remainder goes to the treasurer. Returns the payouts per group.
 	 */
 	settle(): readonly { readonly group: string; readonly payouts: Readonly<Record<string, number>> }[] {
-		const settled: { group: string; payouts: Record<string, number> }[] = [];
+		const settled: { group: string; payouts: Readonly<Record<string, number>> }[] = [];
 		for (const group of this.#groups.values()) {
-			const account = groupAccountId(group.id);
-			const total = this.#ledger.balance(account);
-			if (total <= 0) continue;
-			const members = [...group.joinedAtSeq.keys()].sort((a, b) => a.localeCompare(b));
-			const share = Math.floor(total / members.length);
-			const payouts: Record<string, number> = {};
-			for (const member of members) payouts[member] = share;
-			payouts[group.treasurer] = (payouts[group.treasurer] ?? 0) + (total - share * members.length);
-			for (const [member, amount] of Object.entries(payouts)) {
-				if (amount > 0) this.#ledger.transfer(account, member, amount, `settlement ${group.id}`, this.#minute());
-			}
-			settled.push({ group: group.id, payouts });
+			if (group.removed) continue;
+			const payouts = this.#settle(group);
+			if (payouts !== undefined) settled.push({ group: group.id, payouts });
 		}
 		return settled;
+	}
+
+	/** Splits a treasury among the members; the remainder goes to the treasurer, or to the first member of a city group. */
+	#settle(group: GroupState): Readonly<Record<string, number>> | undefined {
+		const account = groupAccountId(group.id);
+		const total = this.#ledger.balance(account);
+		if (total <= 0) return undefined;
+		const members = [...group.joinedAtSeq.keys()].sort((a, b) => a.localeCompare(b));
+		const rest = group.treasurer === CITY ? members[0] : group.treasurer;
+		if (rest === undefined) return undefined;
+		const share = Math.floor(total / members.length);
+		const payouts: Record<string, number> = {};
+		for (const member of members) payouts[member] = share;
+		payouts[rest] = (payouts[rest] ?? 0) + (total - share * members.length);
+		for (const [member, amount] of Object.entries(payouts)) {
+			if (amount > 0) this.#ledger.transfer(account, member, amount, `settlement ${group.id}`, this.#minute());
+		}
+		return payouts;
 	}
 
 	snapshot(): GroupsSnapshot {
@@ -289,6 +354,7 @@ export class GroupRegistry {
 				members: [...group.joinedAtSeq].map(([agent, joinedAtSeq]) => ({ agent, joinedAtSeq })),
 				reads: [...group.readSeq].map(([agent, seq]) => ({ agent, seq })),
 				posts: [...group.posts],
+				...(group.removed ? { removed: true as const } : {}),
 			})),
 			founded: [...this.#founded].map(([agent, count]) => ({ agent, count })),
 			seq: this.#seq,
@@ -309,6 +375,7 @@ export class GroupRegistry {
 				joinedAtSeq: new Map(group.members.map((member) => [member.agent, member.joinedAtSeq])),
 				readSeq: new Map(group.reads.map((read) => [read.agent, read.seq])),
 				posts: [...group.posts],
+				removed: group.removed === true,
 			});
 			this.#ledger.open(groupAccountId(group.id));
 		});
@@ -316,9 +383,14 @@ export class GroupRegistry {
 		this.#numbers.raiseTo(state.seq);
 	}
 
-	/** Every group with members; for observers and tests, never for competitors. */
+	/** Every group with members, removed ones too; for observers and tests, never for competitors. */
 	inspect(): readonly GroupSummary[] {
 		return [...this.#groups.values()].map((group) => this.#summary(group));
+	}
+
+	/** Whether the city removed the group. */
+	isRemoved(groupId: string): boolean {
+		return this.#groups.get(groupId)?.removed === true;
 	}
 
 	#book(debit: string, credit: string, amount: number, reason: string): GroupResult<undefined> {
@@ -334,7 +406,7 @@ export class GroupRegistry {
 
 	#visible(groupId: string, agent: CompetitorId): GroupResult<GroupState> {
 		const group = this.#groups.get(groupId);
-		if (group?.joinedAtSeq.has(agent) !== true) return err("GROUP_NOT_VISIBLE");
+		if (group === undefined || group.removed || !group.joinedAtSeq.has(agent)) return err("GROUP_NOT_VISIBLE");
 		return ok(group);
 	}
 

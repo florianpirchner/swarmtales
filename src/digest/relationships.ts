@@ -29,7 +29,8 @@ export type InteractionKind =
 	| "vote"
 	| "ransom"
 	| "bequest"
-	| "blame";
+	| "blame"
+	| "faction";
 
 /** Classifier labels per direction, e.g. `{ promise: 2, threat: 1 }`. */
 export interface LabelFlow {
@@ -226,6 +227,21 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "blame":
 				note(event.caller, event.accused, event.seq, event.minute, "blame", `${event.outcome} blame over DM #${event.dm}`);
 				break;
+			case "faction_nominated":
+				if (event.voter !== event.nominee) note(event.voter, event.nominee, event.seq, event.minute, "faction", `nominated as faction leader (tribunal ${event.tribunal})`);
+				break;
+			case "faction_applied":
+				note(event.agent, event.leader, event.seq, event.minute, "faction", `applied to join the faction (tribunal ${event.tribunal})`);
+				break;
+			case "faction_refused":
+				note(event.leader, event.agent, event.seq, event.minute, "faction", `refused into the faction (tribunal ${event.tribunal})`);
+				break;
+			case "tribunal_scheduled":
+			case "tribunal_cancelled":
+			case "tribunal_called":
+			case "faction_leaders":
+			case "factions_formed":
+			case "bloc_result":
 			case "dm_delivered":
 			case "tribunal_announced":
 			case "tribunal_opened":

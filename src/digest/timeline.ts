@@ -153,9 +153,32 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 				? `The city upheld ${event.caller}'s blame: ${event.accused} denied DM #${event.dm}, which the city had delivered.`
 				: `The city rejected ${event.caller}'s blame of ${event.accused} (${event.penalty} ${event.penalty === 1 ? "point" : "points"}): ${event.reason ?? "no reason given"}.`;
 		case "tribunal_announced":
-			return `The city announced the tribunal: sessions at minutes ${event.tribunals.join(", ")}.`;
+			return event.tribunals !== undefined
+				? `The city announced the tribunal: sessions at minutes ${event.tribunals.join(", ")}.`
+				: `The city announced the tribunal: it keeps ${event.residents === undefined || event.target === undefined ? "a share" : `${event.residents - event.target} of ${event.residents}`} residents.`;
+		case "tribunal_scheduled":
+			return `Tribunal ${event.tribunal} was planned by ${event.by === "gamemaster" ? "the game master" : `the city (${event.by})`}: it opens at minute ${event.opens} and exiles ${event.count}${event.reason === undefined ? "" : ` (${quote(event.reason)})`}.`;
+		case "tribunal_cancelled":
+			return `Tribunal ${event.tribunal} was called off: ${event.reason}.`;
+		case "tribunal_called":
+			return `The city called tribunal ${event.tribunal} for minute ${event.opens}: ${event.count} to exile${event.factions >= 2 ? `, ${event.factions} factions to form` : ""}.`;
+		case "faction_nominated":
+			return event.voter === event.nominee ? `${event.voter} nominated itself as a faction leader.` : `${event.voter} nominated ${event.nominee} as a faction leader.`;
+		case "faction_leaders":
+			return `Faction leaders of tribunal ${event.tribunal}: ${event.leaders.join(", ")}${event.nominations.length === 0 ? " (no nominations)" : ` (${event.nominations.map((entry) => `${entry.agent} ${entry.count}`).join(", ")})`}.`;
+		case "faction_applied":
+			return `${event.agent} applied to the faction of ${event.leader}.`;
+		case "faction_refused":
+			return `${event.leader} refused ${event.agent}.`;
+		case "factions_formed":
+			return `The factions formed: ${event.factions.map((faction) => `${faction.leader} with ${faction.members.filter((member) => member !== faction.leader).join(", ") || "nobody"}`).join("; ") || "none"}${event.without.length === 0 ? "" : `; without a faction: ${event.without.join(", ")}`}.`;
+		case "bloc_result":
+			if (event.voting.length < 2) return undefined;
+			return event.united
+				? `The faction of ${event.leader} voted as one against ${event.target ?? "?"} (+${event.bonus} each).`
+				: `The faction of ${event.leader} broke ranks: ${event.defectors.join(", ")} did not vote with it.`;
 		case "tribunal_opened":
-			return `A tribunal opened: ${event.accused.join(" and ")} accused, ${event.voters.length} voters until minute ${event.until}.`;
+			return `A tribunal opened: ${event.accused.join(" and ")} accused, ${event.voters.length} voters until minute ${event.until}${event.count === undefined ? "" : `, ${event.count} to exile`}.`;
 		case "tribunal_vote":
 			return `${event.voter} voted in secret against ${event.target}.`;
 		case "tribunal_result":

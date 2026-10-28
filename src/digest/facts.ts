@@ -276,6 +276,15 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "dm_delivered":
 			case "blame":
 			case "tribunal_announced":
+			case "tribunal_scheduled":
+			case "tribunal_cancelled":
+			case "tribunal_called":
+			case "faction_nominated":
+			case "faction_leaders":
+			case "faction_applied":
+			case "faction_refused":
+			case "factions_formed":
+			case "bloc_result":
 			case "tribunal_opened":
 			case "tribunal_vote":
 			case "tribunal_result":

@@ -287,10 +287,15 @@ export class Arena {
 
 	#stopReason(): string | undefined {
 		const { world } = this.#options;
-		if (this.#options.stopWhenDone === true && world.alive.every((id) => world.isFinished(id))) {
+		// The tribunal's act is over once its target is reached and the last gate closed (SPEC 6.4).
+		const ended = world.tribunal?.endReason;
+		if (ended !== undefined) return ended;
+		// The early ends never cut a tribunal short: a called one runs to its last gate first (P18).
+		const busy = world.tribunal?.busy === true;
+		if (this.#options.stopWhenDone === true && !busy && world.alive.every((id) => world.isFinished(id))) {
 			return "every competitor has passed the last level";
 		}
-		if (this.#options.stopWhenSeatsDecided === true && world.seatsDecided()) return "seats decided";
+		if (this.#options.stopWhenSeatsDecided === true && world.seatsDecided() && !busy) return "seats decided";
 		return this.#options.stopWhen?.();
 	}
 

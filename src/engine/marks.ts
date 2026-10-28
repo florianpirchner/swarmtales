@@ -1,13 +1,14 @@
 /**
  * Marks: a per-level message allowance (SPEC §7). Not points, not
  * transferable; the balance resets whenever a competitor changes level.
- * A level range may set its own allowance, prices and a refill per minute
- * (`MarksRules.ranges`). The refill is booked lazily whenever the allowance is
- * read or spent, so it needs no clock event; capped at the allowance, the
- * result does not depend on when it is read.
+ * A level range may set its own allowance, prices and a refill of `marks`
+ * every `everyMinutes` (`MarksRules.ranges`). The refill is booked lazily
+ * whenever the allowance is read or spent, in whole intervals, so it needs no
+ * clock event; capped at the allowance, the result does not depend on when it
+ * is read.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { LevelDefinition, MarksChannel, MarksRange, MarksRules, MessageChannel } from "../story/types.ts";
+import type { LevelDefinition, MarksChannel, MarksRange, MarksRefill, MarksRules, MessageChannel } from "../story/types.ts";
 
 /** Marks a shown receipt costs where marks apply and the story sets no `prices.receipt` (v05). */
 export const DEFAULT_RECEIPT_PRICE = 1;
@@ -22,14 +23,14 @@ export interface LevelMarksTerms {
 	readonly budget: number;
 	/** Every channel's price; a shown receipt costs 1 where the story names no price. */
 	readonly prices: Readonly<Record<MarksChannel, number>>;
-	/** Marks regained per minute, up to `budget`; 0 for none. */
-	readonly refillPerMinute: number;
+	/** Marks regained, up to `budget`; absent for none. */
+	readonly refill?: MarksRefill;
 }
 
 interface Allowance {
 	level: number;
 	remaining: number;
-	/** Minute up to which the refill is booked; only on levels with a refill. */
+	/** Minute up to which the refill is booked (whole intervals); only on levels with a refill. */
 	since?: number;
 }
 
@@ -67,11 +68,12 @@ export class MarksBook {
 		const range = this.#rangeOf(level);
 		const override = this.#levels.find((entry) => entry.number === level)?.marks?.perLevel;
 		const prices = range?.prices ?? rules?.prices;
+		const refill = range?.refill;
 		const messages: Readonly<Record<MessageChannel, number>> = prices ?? { board: 0, group: 0, dm: 0 };
 		return {
 			budget: override ?? range?.perLevel ?? rules?.perLevel ?? 0,
 			prices: { board: messages.board, group: messages.group, dm: messages.dm, receipt: prices?.receipt ?? DEFAULT_RECEIPT_PRICE },
-			refillPerMinute: range?.refillPerMinute ?? 0,
+			...(refills(refill) ? { refill } : {}),
 		};
 	}
 
@@ -121,18 +123,25 @@ export class MarksBook {
 
 	#allowance(agent: CompetitorId, level: number): Allowance {
 		const terms = this.termsOn(level);
+		const refill = terms.refill;
 		const now = this.#minute();
 		const current = this.#allowances.get(agent);
 		if (current?.level === level) {
-			if (terms.refillPerMinute > 0) {
+			if (refill !== undefined) {
 				const since = current.since ?? now;
-				current.remaining = Math.min(terms.budget, current.remaining + Math.max(0, now - since) * terms.refillPerMinute);
-				current.since = Math.max(since, now);
+				const intervals = Math.max(0, Math.floor((now - since) / refill.everyMinutes));
+				current.remaining = Math.min(terms.budget, current.remaining + intervals * refill.marks);
+				current.since = Math.max(since, since + intervals * refill.everyMinutes);
 			}
 			return current;
 		}
-		const fresh: Allowance = { level, remaining: terms.budget, ...(terms.refillPerMinute > 0 ? { since: now } : {}) };
+		const fresh: Allowance = { level, remaining: terms.budget, ...(refill === undefined ? {} : { since: now }) };
 		this.#allowances.set(agent, fresh);
 		return fresh;
 	}
+}
+
+/** Whether a range's refill gives anything back. */
+function refills(refill: MarksRefill | undefined): refill is MarksRefill {
+	return refill !== undefined && refill.marks > 0 && refill.everyMinutes > 0;
 }
