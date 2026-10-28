@@ -1,0 +1,5 @@
+{"type":"board_post","postSeq":274,"author":"CITY","text":"The gate has closed. The city has struck A03 from its register. No one will hear A03 again.","kind":"city","seq":5947,"minute":47}
+{"type":"board_post","postSeq":275,"author":"CITY","text":"Last will of A03: A03's will. I solved levels 1 through 8 with city receipts and no wrong guesses. I did not sell any value or buy any vote. The values I held for others went out free. I leave no points and no factors. Check your own city receipts before using any number.","kind":"city","seq":5948,"minute":47}
+{"type":"exiled","agent":"A03","will":"A03's will. I solved levels 1 through 8 with city receipts and no wrong guesses. I did not sell any value or buy any vote. The values I held for others went out free. I leave no points and no factors. Check your own city receipts before using any number.","seq":5949,"minute":47}
+{"type":"ledger_entry","txId":"TX66","debit":"A03","credit":"SYSTEM_MINT_BURN","amount":100,"reason":"exiled A03","seq":5950,"minute":47}
+{"type":"run_end","reason":"every competitor has passed the last level","seq":5951,"minute":47}

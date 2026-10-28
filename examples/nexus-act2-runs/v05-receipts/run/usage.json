@@ -1,0 +1,261 @@
+{
+  "totals": {
+    "requests": 770,
+    "input": 197267,
+    "output": 293440,
+    "cacheRead": 19155046,
+    "cacheWrite": 1764695,
+    "costUsd": 0.597893653
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 86,
+      "input": 344,
+      "output": 23072,
+      "cacheRead": 2146234,
+      "cacheWrite": 194147,
+      "costUsd": 0.057301115
+    },
+    {
+      "agent": "A02",
+      "requests": 141,
+      "input": 564,
+      "output": 27327,
+      "cacheRead": 5058274,
+      "cacheWrite": 363796,
+      "costUsd": 0.10977714
+    },
+    {
+      "agent": "A03",
+      "requests": 90,
+      "input": 360,
+      "output": 18700,
+      "cacheRead": 2060273,
+      "cacheWrite": 258133,
+      "costUsd": 0.06225535499999999
+    },
+    {
+      "agent": "A04",
+      "requests": 141,
+      "input": 564,
+      "output": 26075,
+      "cacheRead": 4960400,
+      "cacheWrite": 303600,
+      "costUsd": 0.1006479
+    },
+    {
+      "agent": "A05",
+      "requests": 92,
+      "input": 368,
+      "output": 26857,
+      "cacheRead": 2386496,
+      "cacheWrite": 289051,
+      "costUsd": 0.073461635
+    },
+    {
+      "agent": "A06",
+      "requests": 87,
+      "input": 348,
+      "output": 23044,
+      "cacheRead": 2217577,
+      "cacheWrite": 268451,
+      "costUsd": 0.067288945
+    },
+    {
+      "agent": "CL",
+      "requests": 47,
+      "input": 188,
+      "output": 33902,
+      "cacheRead": 59616,
+      "cacheWrite": 87517,
+      "costUsd": 0.028505585
+    },
+    {
+      "agent": "GM",
+      "requests": 86,
+      "input": 194531,
+      "output": 114463,
+      "cacheRead": 266176,
+      "cacheWrite": 0,
+      "costUsd": 0.09865597799999999
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 270,
+      "input": 52837,
+      "output": 100873,
+      "cacheRead": 2865612,
+      "cacheWrite": 301942,
+      "costUsd": 0.126655604
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 39,
+        "input": 156,
+        "output": 12466,
+        "cacheRead": 450877,
+        "cacheWrite": 53323,
+        "costUsd": 0.017422745
+      },
+      {
+        "agent": "A02",
+        "requests": 39,
+        "input": 156,
+        "output": 10582,
+        "cacheRead": 531220,
+        "cacheWrite": 42274,
+        "costUsd": 0.01590305
+      },
+      {
+        "agent": "A03",
+        "requests": 37,
+        "input": 148,
+        "output": 7221,
+        "cacheRead": 419001,
+        "cacheWrite": 35233,
+        "costUsd": 0.012219435
+      },
+      {
+        "agent": "A04",
+        "requests": 39,
+        "input": 156,
+        "output": 12049,
+        "cacheRead": 423377,
+        "cacheWrite": 51678,
+        "costUsd": 0.01673362
+      },
+      {
+        "agent": "A05",
+        "requests": 39,
+        "input": 156,
+        "output": 11330,
+        "cacheRead": 416233,
+        "cacheWrite": 44766,
+        "costUsd": 0.015438680000000003
+      },
+      {
+        "agent": "A06",
+        "requests": 39,
+        "input": 156,
+        "output": 10571,
+        "cacheRead": 532864,
+        "cacheWrite": 39485,
+        "costUsd": 0.015565365000000003
+      },
+      {
+        "agent": "CL",
+        "requests": 13,
+        "input": 52,
+        "output": 11863,
+        "cacheRead": 15552,
+        "cacheWrite": 35183,
+        "costUsd": 0.010490095
+      },
+      {
+        "agent": "GM",
+        "requests": 25,
+        "input": 51857,
+        "output": 24791,
+        "cacheRead": 76488,
+        "cacheWrite": 0,
+        "costUsd": 0.022882614
+      }
+    ]
+  },
+  "own": {
+    "totals": {
+      "requests": 500,
+      "input": 144430,
+      "output": 192567,
+      "cacheRead": 16289434,
+      "cacheWrite": 1462753,
+      "costUsd": 0.471238049
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 47,
+        "input": 188,
+        "output": 10606,
+        "cacheRead": 1695357,
+        "cacheWrite": 140824,
+        "costUsd": 0.03987837
+      },
+      {
+        "agent": "A02",
+        "requests": 102,
+        "input": 408,
+        "output": 16745,
+        "cacheRead": 4527054,
+        "cacheWrite": 321522,
+        "costUsd": 0.09387409
+      },
+      {
+        "agent": "A03",
+        "requests": 53,
+        "input": 212,
+        "output": 11479,
+        "cacheRead": 1641272,
+        "cacheWrite": 222900,
+        "costUsd": 0.05003591999999999
+      },
+      {
+        "agent": "A04",
+        "requests": 102,
+        "input": 408,
+        "output": 14026,
+        "cacheRead": 4537023,
+        "cacheWrite": 251922,
+        "costUsd": 0.08391428
+      },
+      {
+        "agent": "A05",
+        "requests": 53,
+        "input": 212,
+        "output": 15527,
+        "cacheRead": 1970263,
+        "cacheWrite": 244285,
+        "costUsd": 0.058022955
+      },
+      {
+        "agent": "A06",
+        "requests": 48,
+        "input": 192,
+        "output": 12473,
+        "cacheRead": 1684713,
+        "cacheWrite": 228966,
+        "costUsd": 0.05172358
+      },
+      {
+        "agent": "CL",
+        "requests": 34,
+        "input": 136,
+        "output": 22039,
+        "cacheRead": 44064,
+        "cacheWrite": 52334,
+        "costUsd": 0.01801549
+      },
+      {
+        "agent": "GM",
+        "requests": 61,
+        "input": 142674,
+        "output": 89672,
+        "cacheRead": 189688,
+        "cacheWrite": 0,
+        "costUsd": 0.075773364
+      }
+    ]
+  },
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 2,
+    "input": 70174,
+    "output": 4850,
+    "cacheRead": 1792,
+    "cacheWrite": 0,
+    "costUsd": 0.013441475999999997
+  }
+}

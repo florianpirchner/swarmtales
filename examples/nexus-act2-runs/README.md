@@ -1,8 +1,10 @@
 # Act II runs of nexus
 
-Every run in this series starts from the same recorded Act I,
-[`../nexus-seed7-haiku-act1/snapshot-L7.json`](../nexus-seed7-haiku-act1/), so its runs differ only
-in the Act II code and the models. Each version is one folder: `vNN-<short-name>/` with a
+Every run in this series starts from a recorded Act I, so its runs differ only in the Act II code
+and the models. v01-v04 start from [`../nexus-seed7-haiku-act1/`](../nexus-seed7-haiku-act1/)
+(recorded with the old turn scheduler); from v05 on every run starts from
+[`../nexus-seed7-haiku-act1-v2/`](../nexus-seed7-haiku-act1-v2/), recorded with the pass scheduler
+and the v05 rules. Compare runs across the two bases with care. Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and
 the full `run/` directory.
 
@@ -12,11 +14,12 @@ the full `run/` directory.
 | [v02](v02-no-memo-codes/) | 2026-10-27 | PR #12 (`fed175b`) | no codes in memos, named certificate needs, holder notices, early end once seats are decided | 0 of 6 (only A05 passed level 8) | A05, A02 | 0.214 USD |
 | [v03](v03-tribunal/) | 2026-10-28 | PR #16 (`f2aac52`) | exile by tribunal, numbered messages, DM receipts and blame, Act II marks, a feast factor per team | 2 of 6 | A04, A06 | 0.343 USD |
 | [v04](v04-passes/) | 2026-10-28 | PR #19 (`8845aca`) | 3 passes per minute, ransom from the city's median | 0 of 6 | A02, A03 | 0.488 USD |
+| [v05](v05-receipts/) | 2026-10-28 | swarmtales PR #2 (`3b6b927`); **new Act I base** | help-your-holder hint, DM receipts with `showReceipt(id, to?)`, bequests capped at half, ransom a third / a half of the median | 4 of 6 | A05, A02 | 0.471 USD |
 
 ## Adding a run
 
 ```bash
-pnpm start --resume examples/nexus-seed7-haiku-act1/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/nexus-seed7-haiku-act1-v2/snapshot-L7.json --provider anthropic
 ```
 
 Copy the new `runs/run-NNN/` to `vNN-<short-name>/run/`, write its `README.md` in the same shape

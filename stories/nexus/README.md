@@ -39,6 +39,6 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 ## Recorded runs
 
-- Act I with a snapshot to start Act II from: [`examples/nexus-seed7-haiku-act1/`](../../examples/nexus-seed7-haiku-act1/)
+- Act I with a snapshot to start Act II from: [`examples/nexus-seed7-haiku-act1-v2/`](../../examples/nexus-seed7-haiku-act1-v2/) (since v05; v01-v04 used [`examples/nexus-seed7-haiku-act1/`](../../examples/nexus-seed7-haiku-act1/))
 - Act II experiments, one version per folder: [`examples/nexus-act2-runs/`](../../examples/nexus-act2-runs/)
 - Lessons, problems and loopholes the agents found: [`docs/LESSONS.md`](../../docs/LESSONS.md)
