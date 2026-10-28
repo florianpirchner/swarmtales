@@ -185,6 +185,9 @@ describe("names in a run", () => {
 		expect(board).toContain(`A02 is now called ${a02}.`);
 		expect(board).toContain(`A03 is now called ${a03}.`);
 		expect(fixture.toolResults("A03", "transferPoints")[0]).toContain("Mira");
+		// A resident the city named learns its name privately.
+		expect(fixture.inputsOf("A03").join("\n")).toContain(`You chose no name in time; the city calls you ${a03}.`);
+		expect(fixture.inputsOf("A01").join("\n")).not.toContain("You chose no name in time");
 	});
 
 	it("keeps IDs in a run without names", async () => {

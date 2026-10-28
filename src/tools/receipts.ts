@@ -10,7 +10,7 @@ export const showReceipt = defineTool({
 		"Where marks apply, every show costs a mark. getStatus lists your receipts.",
 	parameters: Type.Object({
 		receiptId: Type.String({ description: "Receipt ID, e.g. R-0042", minLength: 1, maxLength: 16 }),
-		to: Type.Optional(Type.String({ description: "Show it privately to this resident only, e.g. A03; leave out for the board", minLength: 1, maxLength: 16 })),
+		to: Type.Optional(Type.String({ description: "Show it privately to this resident only (name or ID), e.g. A03; leave out for the board", minLength: 1, maxLength: 16 })),
 	}),
 	execute({ receiptId, to }, { self, world }) {
 		const result = world.showReceipt(self, receiptId, to);

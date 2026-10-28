@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { describeEvent, JsonlEventLog } from "../../src/log/sinks.ts";
-import { readRunEnd, readSnapshots, renderMinuteReport, writeMinuteReport } from "../../src/log/minute-report.ts";
+import { readNames, readRunEnd, readSnapshots, renderMinuteReport, writeMinuteReport } from "../../src/log/minute-report.ts";
 import { UsageCollector } from "../../src/log/usage.ts";
 import { createFixture, say, submit } from "../helpers/fixture.ts";
 
@@ -40,6 +40,17 @@ describe("minute report, usage and console", () => {
 		expect(renderMinuteReport([], "x")).toContain("# Minute report");
 		expect(readRunEnd(['{"type":"run_end","minute":7,"reason":"seats decided"}', lines].join("\n"))).toEqual({ minute: 7, reason: "seats decided" });
 		expect(renderMinuteReport([], "x", { minute: 9 })).toContain("Minute 9: time is up.");
+	});
+
+	it("shows resident names with their IDs (v08)", () => {
+		const lines = [
+			'{"type":"name_chosen","agent":"A01","name":"Mira","fallback":false}',
+			'{"type":"round_end","round":1,"minute":0,"standings":[{"agent":"A01","level":1,"points":15,"rank":1,"tools":3,"activated":true},{"agent":"A02","level":1,"points":15,"rank":2,"tools":3,"activated":false}]}',
+		].join("\n");
+		const report = renderMinuteReport(readSnapshots(lines), "x", undefined, readNames(lines));
+		expect(report).toContain("| Mira (A01) | 1 | 15 | 1 | 3 | yes |");
+		expect(report).toContain("| A02 | 1 | 15 | 2 | 3 | no |");
+		expect(report).toContain("| Mira (A01) | 1 | 1 | 15 | 1 |");
 	});
 
 	it("sums usage per competitor", () => {

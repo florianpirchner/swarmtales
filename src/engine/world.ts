@@ -631,6 +631,8 @@ export class World {
 	#announceName(entry: NameEntry): void {
 		this.#bus.emit({ type: "name_chosen", agent: entry.agent, name: entry.name, fallback: entry.fallback });
 		this.board.post(CITY, `${entry.agent} is now called ${entry.name}.`, this.minute, "city");
+		// A resident the city names reads its own name privately: its system prompt knows only its ID.
+		if (entry.fallback) this.notify(entry.agent, CITY, `You chose no name in time; the city calls you ${entry.name}.`);
 	}
 
 	isCompetitor(id: string): boolean {
