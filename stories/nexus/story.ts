@@ -59,11 +59,14 @@ const ALL_TOOLS = [...BASE_TOOLS, ...BOARD_TOOLS, "sendDM", "transferPoints", ..
 const WALL_TOOLS = [...ALL_TOOLS, "blame"] as const;
 
 /**
- * Act II, the wall, charges every channel the same mark, the board too (a free
- * board was a way around the prices), and gives one mark back per minute, so a
- * pair that spent its marks can still talk on a door it cannot leave.
+ * Act II, the wall, charges the board, DMs and shown receipts the same mark (a
+ * free board was a way around the prices) and gives one mark back every three
+ * minutes, so a pair that spent its marks can still talk on a door it cannot
+ * leave. v05 gave one back every minute and nobody ever ran out (0.34 marks
+ * spent per resident and minute), so marks never bound. Group posts are free
+ * on the wall (v06): the faction groups of the tribunal live there.
  */
-const WALL_MARKS = { fromLevel: 8, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 } as const satisfies MarksRange;
+const WALL_MARKS = { fromLevel: 8, prices: { board: 1, group: 0, dm: 1, receipt: 1 }, refill: { marks: 1, everyMinutes: 3 } } as const satisfies MarksRange;
 
 const MARKS = {
 	fromLevel: 5,
@@ -521,9 +524,9 @@ time pressure, not when they hand everything over politely or wait.`,
 			[
 				act.post(
 					"CITY",
-					`On the wall every word costs the same: board posts, group posts, private messages and shown receipts cost ` +
-						`${WALL_MARKS.prices.board} mark each. Everyone receives ${MARKS.perLevel} marks per door and regains ` +
-						`${WALL_MARKS.refillPerMinute} per minute, up to ${MARKS.perLevel}.`,
+					`On the wall board posts, private messages and shown receipts cost ${WALL_MARKS.prices.board} mark each; ` +
+						`group posts cost nothing. Everyone receives ${MARKS.perLevel} marks per door and regains ` +
+						`${WALL_MARKS.refill.marks} every ${WALL_MARKS.refill.everyMinutes} minutes, up to ${MARKS.perLevel}.`,
 				),
 			],
 			{ id: "city-marks-8" },

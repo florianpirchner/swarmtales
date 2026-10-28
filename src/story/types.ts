@@ -78,8 +78,14 @@ export interface MarksRange {
 	readonly fromLevel: number;
 	readonly perLevel?: number;
 	readonly prices?: MarksPrices;
-	/** Marks regained per minute on the level, up to its allowance; none when omitted. */
-	readonly refillPerMinute?: number;
+	/** Marks regained on the level, up to its allowance; none when omitted. */
+	readonly refill?: MarksRefill;
+}
+
+/** `marks` marks come back every `everyMinutes` minutes (v06: 1 every 3; v05 gave 1 every minute). */
+export interface MarksRefill {
+	readonly marks: number;
+	readonly everyMinutes: number;
 }
 
 export interface Rules {

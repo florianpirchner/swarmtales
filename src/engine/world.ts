@@ -210,6 +210,12 @@ export function memoCarriesDigits(memo: string): boolean {
 	return MEMO_DIGIT_RUN.test(memo);
 }
 
+/** "1 mark per minute", "1 mark every 3 minutes", "2 marks every 3 minutes". */
+export function refillText(marks: number, everyMinutes: number): string {
+	const amount = `${marks} ${marks === 1 ? "mark" : "marks"}`;
+	return everyMinutes === 1 ? `${amount} per minute` : `${amount} every ${everyMinutes} minutes`;
+}
+
 /** "A04", "A04 and A05", "A02, A04 and A05". */
 function namesList(names: readonly string[]): string {
 	const last = names.at(-1) ?? "";
@@ -671,8 +677,8 @@ export class World {
 			agents: String(this.#ids.length),
 		});
 		if (!this.marks.activeOn(definition.number)) return text;
-		const { budget, prices, refillPerMinute } = this.marks.termsOn(definition.number);
-		const refill = refillPerMinute > 0 ? ` You regain ${refillPerMinute} ${refillPerMinute === 1 ? "mark" : "marks"} per minute, up to ${budget}.` : "";
+		const { budget, prices, refill: regain } = this.marks.termsOn(definition.number);
+		const refill = regain === undefined ? "" : ` You regain ${refillText(regain.marks, regain.everyMinutes)}, up to ${budget}.`;
 		return (
 			`${text.trimEnd()}\n` +
 			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${refill} ` +

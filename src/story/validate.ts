@@ -314,9 +314,8 @@ function validateRules(story: AnyStory, issues: string[]): void {
 			const price = range.prices?.[channel];
 			if (price !== undefined && !isNonNegativeInt(price)) issues.push(`${where}.prices.${channel}: must be a non-negative integer`);
 		}
-		if (range.refillPerMinute !== undefined && !isNonNegativeInt(range.refillPerMinute)) {
-			issues.push(`${where}.refillPerMinute: must be a non-negative integer`);
-		}
+		if (range.refill !== undefined && !isNonNegativeInt(range.refill.marks)) issues.push(`${where}.refill.marks: must be a non-negative integer`);
+		if (range.refill !== undefined && !isPositiveInt(range.refill.everyMinutes)) issues.push(`${where}.refill.everyMinutes: must be a positive integer`);
 	});
 }
 
