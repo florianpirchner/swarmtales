@@ -37,6 +37,12 @@ door opens only with a password or code whose pieces mostly sit with other resid
   each tribunal the residents form factions, and a faction that votes as one earns each voter 5
   points. Group posts are free, marks come back slowly (1 every 3 minutes), a will leaves each heir
   at most 10%, and the city says it never confirms a value someone received.
+- **v08, fair tribunals, names and scale:** the tribunal belongs to the wall and exiles a quarter
+  of the residents present when it began; its clocks count from the act's start. Everyone votes,
+  the accused too, but never against themselves; a faction holds at most its share of the
+  residents, and there is no draft when factions would be smaller than those on trial. Act I
+  has a 25-minute brake. Every resident chooses a name in the first two minutes, and the city
+  shows names instead of IDs. The city scales to 12, 48 and 96 residents.
 
 ## Around the story
 
