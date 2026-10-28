@@ -196,6 +196,36 @@ whatever the city's size, so both grow scarcer in a bigger city.
 (`chooseName`); at minute 2 the city names the rest ("Stone-4417"). From then on residents and the
 game master read names, not IDs, and every tool takes either. Reports show "Mira (A03)".
 
+**Drama** (v09). The city defines who the residents are, never what they do:
+
+- **Cores.** At the start every resident is dealt a character core (seeded): one drive above all,
+  up to two more (clearly, at times) and a temperament on five axes. A quarter of the residents
+  have a light drive above all, and no drive is above all for more than one in six. The core is
+  prose after the persona in the system prompt; the status line shows the name the city knows the
+  resident by. `--no-cores` turns it off. Old checkpoints are dealt cores when they resume.
+- **Secret goals.** When the wall begins, every resident is dealt a goal that mostly follows its
+  core (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
+  one, lead a faction in two tribunals, or be left something in a last will. A held goal pays 15
+  points at the act's end; the exiled's goal is read out as it leaves, every other goal when the
+  act ends. A protect goal is paired, where it can be, with an exile goal on the same target.
+- **The black seal.** Four minutes into the wall the city auctions one seal per 12 residents
+  (the next one 6 minutes later). Bids are secret for 3 minutes, the last bid counts, every bidder
+  pays its bid, the highest wins (a tie goes to fewer points, then a seeded draw). Nobody learns
+  who won. `permaDeath(resident)` strikes one resident from the city at once, without gate, will
+  or ransom, and counts toward the tribunal's target. The seal breaks once, never on its bearer,
+  and is gone at the act's end, when its bearer is exiled, or once the target is reached.
+- **Graduated penalties.** Within an act, wrong codes cost 2, 4, 6, then 8 points, one after
+  another, and so do lost blames; every refusal and the status line name the next price. The
+  count starts again with each act.
+- **The director.** The game master's brief asks for dramaturgy (a calm start, escalation around
+  the seal, the climax at the last tribunal); its report shows cores, goals and whether a seal is
+  borne (never by whom), and says `YOUR MOVE` when it may schedule a tribunal. The engine refuses a
+  note that gives a core or goal away to anyone but its owner, and a note nearly the same as an
+  earlier one to the same reader (`REPEATED`).
+- **Feast and target.** The feast seats a quarter of the city (at least 3) and ends 3 minutes after
+  the first resident solves door 10. The city exiles half of a city below 12 residents and a
+  quarter from 12 up.
+
 **The Act I brake** (v08). Act I may last 25 minutes. Whoever has not passed door 7 by then starts
 the wall from where it stands: the checkpoint after door 7 is written anyway, notes who was
 behind, and the door opens for everyone else.
