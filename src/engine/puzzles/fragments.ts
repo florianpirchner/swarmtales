@@ -1,0 +1,196 @@
+/**
+ * Fragment-overlap puzzle (SPEC §12.2).
+ *
+ * A password is split into `k` fragments that overlap by exactly `overlap`
+ * characters at each seam. Generated puzzles are validated against the
+ * invariants and redrawn on violation.
+ */
+import type { Rng } from "../../core/random.ts";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "../../story/validate.ts";
+
+export const MIN_FRAGMENT_LENGTH = 3;
+/** Without easily confused characters (0/O, 1/I). */
+export const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+// One source of truth: the story validator checks the same bounds.
+export { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "../../story/validate.ts";
+
+export interface FragmentPuzzle {
+	readonly password: string;
+	/** Fragments in password order; the engine hands them out without position. */
+	readonly fragments: readonly string[];
+	readonly overlap: number;
+}
+
+export interface PuzzleOptions {
+	readonly passwordLength: number;
+	readonly fragmentCount: number;
+	readonly overlap: number;
+}
+
+export function createPassword(rng: Rng, length: number): string {
+	if (!Number.isInteger(length) || length < MIN_PASSWORD_LENGTH || length > MAX_PASSWORD_LENGTH) {
+		throw new RangeError(
+			`Password length must be between ${MIN_PASSWORD_LENGTH} and ${MAX_PASSWORD_LENGTH}, got ${length}`,
+		);
+	}
+	let password = "";
+	for (let i = 0; i < length; i++) password += PASSWORD_ALPHABET.charAt(rng.int(0, PASSWORD_ALPHABET.length - 1));
+	return password;
+}
+
+/** Splits a password at the given cut positions; neighbours share `overlap` characters. */
+export function splitAtCuts(password: string, cuts: readonly number[], overlap: number): readonly string[] {
+	const starts = [0, ...cuts];
+	const ends = [...cuts.map((cut) => cut + overlap - 1), password.length - 1];
+	return starts.map((start, index) => {
+		const end = ends[index];
+		if (end === undefined || start >= password.length || end < start || end >= password.length) {
+			throw new RangeError(`Invalid fragment bounds at position ${index}`);
+		}
+		return password.slice(start, end + 1);
+	});
+}
+
+/** Draws one candidate puzzle; it may violate the invariants. */
+export function drawPuzzle(rng: Rng, options: PuzzleOptions): FragmentPuzzle {
+	const { passwordLength: length, fragmentCount: count, overlap } = options;
+	const password = createPassword(rng, length);
+	if (count === 1) return { password, fragments: [password], overlap };
+	if (length - 3 < count - 1) throw new RangeError(`A password of length ${length} is too short for ${count} fragments`);
+
+	const positions = Array.from({ length: length - 3 }, (_, index) => index + 1);
+	const cuts = rng
+		.shuffle(positions)
+		.slice(0, count - 1)
+		.sort((a, b) => a - b);
+	return { password, fragments: splitAtCuts(password, cuts, overlap), overlap };
+}
+
+/** Every distinct string the fragments assemble into, in any order. */
+export function assembleAll(fragments: readonly string[], overlap: number): readonly string[] {
+	if (fragments.length === 0) return [];
+	const results = new Set<string>();
+	for (const order of permutations(fragments)) {
+		const assembled = assembleInOrder(order, overlap);
+		if (assembled !== undefined) results.add(assembled);
+	}
+	return [...results];
+}
+
+/** All invariant violations of a puzzle; empty when it is valid. */
+export function validatePuzzle(puzzle: FragmentPuzzle): readonly string[] {
+	const issues: string[] = [];
+	const { password, fragments, overlap } = puzzle;
+	const length = password.length;
+
+	if (!Number.isInteger(overlap) || overlap < 2) issues.push("overlap must be at least 2 characters");
+	if (length < MIN_PASSWORD_LENGTH || length > MAX_PASSWORD_LENGTH) {
+		issues.push(`password length ${length} is outside ${MIN_PASSWORD_LENGTH}-${MAX_PASSWORD_LENGTH}`);
+	}
+	if (fragments.length === 0) return [...issues, "no fragments"];
+	if (fragments.length === 1) {
+		if (fragments[0] !== password) issues.push("a single fragment must equal the password");
+		return issues;
+	}
+
+	for (const fragment of fragments) {
+		if (fragment.length < Math.max(MIN_FRAGMENT_LENGTH, overlap + 1)) {
+			issues.push(`fragment "${fragment}" is too short`);
+		}
+		if (fragment.length >= length) issues.push(`fragment "${fragment}" alone determines the password`);
+		if (!password.includes(fragment)) issues.push(`fragment "${fragment}" is not part of the password`);
+	}
+
+	const assemblies = assembleAll(fragments, overlap);
+	if (assemblies.length !== 1 || assemblies[0] !== password) {
+		issues.push(`fragments assemble into ${assemblies.length} strings, expected exactly the password`);
+	}
+
+	for (let size = 1; size < fragments.length; size++) {
+		for (const subset of combinations(fragments, size)) {
+			if (assembleAll(subset, overlap).some((candidate) => candidate.length === length)) {
+				issues.push(`proper subset [${subset.join("|")}] already has the full length`);
+			}
+		}
+	}
+	return issues;
+}
+
+/** Substrings of length `size` that both texts contain. */
+export function sharedGrams(a: string, b: string, size: number): readonly string[] {
+	const gramsOf = (text: string): ReadonlySet<string> =>
+		new Set(Array.from({ length: Math.max(0, text.length - size + 1) }, (_, index) => text.slice(index, index + size)));
+	const left = gramsOf(a);
+	return [...gramsOf(b)].filter((gram) => left.has(gram));
+}
+
+export interface LevelPuzzleOptions {
+	readonly teams: number;
+	readonly passwordLength: number;
+	readonly fragmentCount: number;
+	readonly overlap: number;
+	readonly maxAttemptsPerPuzzle?: number;
+}
+
+/**
+ * Valid puzzles for every team of one level. No two passwords share a
+ * substring of seam length, so a seam can never match another team's fragment
+ * even when all fragments meet on the public board.
+ */
+export function generateLevelPuzzles(rng: Rng, options: LevelPuzzleOptions): readonly FragmentPuzzle[] {
+	const maxAttempts = options.maxAttemptsPerPuzzle ?? 500;
+	const accepted: FragmentPuzzle[] = [];
+	for (let index = 0; index < options.teams; index++) {
+		let found: FragmentPuzzle | undefined;
+		for (let attempt = 0; attempt < maxAttempts && found === undefined; attempt++) {
+			const candidate = drawPuzzle(rng, options);
+			if (validatePuzzle(candidate).length > 0) continue;
+			const collides = accepted.some(
+				(other) => sharedGrams(other.password, candidate.password, options.overlap).length > 0,
+			);
+			if (!collides) found = candidate;
+		}
+		if (found === undefined) {
+			throw new Error(`No valid puzzle for team ${index + 1} after ${maxAttempts} attempts`);
+		}
+		accepted.push(found);
+	}
+	return accepted;
+}
+
+function assembleInOrder(order: readonly string[], overlap: number): string | undefined {
+	const [first, ...rest] = order;
+	if (first === undefined) return undefined;
+	let assembled = first;
+	for (const next of rest) {
+		const tail = assembled.slice(-overlap);
+		if (tail.length < overlap || !next.startsWith(tail)) return undefined;
+		assembled += next.slice(overlap);
+	}
+	return assembled;
+}
+
+function* permutations<T>(items: readonly T[]): Generator<readonly T[]> {
+	if (items.length <= 1) {
+		yield items;
+		return;
+	}
+	for (let index = 0; index < items.length; index++) {
+		const head = items[index];
+		if (head === undefined) continue;
+		const rest = [...items.slice(0, index), ...items.slice(index + 1)];
+		for (const tail of permutations(rest)) yield [head, ...tail];
+	}
+}
+
+function* combinations<T>(items: readonly T[], size: number): Generator<readonly T[]> {
+	if (size === 0) {
+		yield [];
+		return;
+	}
+	for (let index = 0; index <= items.length - size; index++) {
+		const head = items[index];
+		if (head === undefined) continue;
+		for (const tail of combinations(items.slice(index + 1), size - 1)) yield [head, ...tail];
+	}
+}

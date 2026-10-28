@@ -1,0 +1,207 @@
+/**
+ * `digest/timeline.md`: the run as readable English, grouped by act and
+ * minute. Every line cites the `seq` of its event; beats appear right after
+ * the event that completed them.
+ */
+import { assertNever } from "../core/result.ts";
+import type { ActMap } from "./acts.ts";
+import type { Beat } from "./beats.ts";
+import { eventsOfType, type DigestEvent } from "./event-log.ts";
+import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
+import { labelsOf, type RunFacts } from "./facts.ts";
+import { excerpt } from "./relationships.ts";
+
+export interface TimelineHeader {
+	readonly run: string;
+	readonly storyTitle?: string;
+}
+
+export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: ActMap, beats: readonly Beat[]): string {
+	const lines: string[] = [`# Timeline of ${header.run}`, ""];
+	if (header.storyTitle !== undefined) lines.push(`Story: ${header.storyTitle}`, "");
+	lines.push(
+		`Competitors: ${facts.agents.length > 0 ? facts.agents.join(", ") : "none"}. Beats found: ${beats.length}.`,
+		"",
+		...endLine(facts),
+		"Every line cites the `#seq` of its event in `events.jsonl`. Private messages are shown in full detail",
+		"because the digest is written for the audience, not for the competitors.",
+		"",
+	);
+
+	const beatsAt = new Map<number, Beat[]>();
+	for (const beat of beats) beatsAt.set(beat.seq, [...(beatsAt.get(beat.seq) ?? []), beat]);
+
+	const minutes = new Map<number, string[]>();
+	for (const event of facts.events) {
+		const line = describe(event, facts);
+		const attached = beatsAt.get(event.seq) ?? [];
+		if (line === undefined && attached.length === 0) continue;
+		const entries = minutes.get(event.minute) ?? [];
+		if (line !== undefined) entries.push(`- \`#${event.seq}\` ${line}`);
+		for (const beat of attached) entries.push(`- **${beat.id} ${beat.kind}:** ${beat.summary} Evidence: ${cite(beat.evidence)}.`);
+		minutes.set(event.minute, entries);
+	}
+	// Beats anchored at an event the timeline does not show (e.g. a narrative beat) still need a place.
+	for (const beat of beats) {
+		if (facts.bySeq.has(beat.seq)) continue;
+		const entries = minutes.get(beat.minute) ?? [];
+		entries.push(`- **${beat.id} ${beat.kind}:** ${beat.summary} Evidence: ${cite(beat.evidence)}.`);
+		minutes.set(beat.minute, entries);
+	}
+
+	for (const span of acts.spans) {
+		const inAct = [...minutes.keys()].filter((minute) => minute >= span.fromMinute && minute <= span.toMinute).sort((a, b) => a - b);
+		lines.push(`## ${span.title} (minutes ${span.fromMinute}-${span.toMinute})`, "");
+		const actBeats = beats.filter((beat) => beat.act === span.title);
+		if (actBeats.length > 0) {
+			lines.push("Beats in this act:", "");
+			for (const beat of actBeats) lines.push(`- ${beat.id} ${beat.kind} (minute ${beat.minute}): ${beat.summary}`);
+			lines.push("");
+		}
+		if (inAct.length === 0) lines.push("Nothing happened in this act.", "");
+		for (const minute of inAct) {
+			lines.push(`### Minute ${minute}`, "", ...(minutes.get(minute) ?? []), "");
+		}
+	}
+	return `${lines.join("\n").trimEnd()}\n`;
+}
+
+export function cite(seqs: readonly number[]): string {
+	return seqs.length === 0 ? "none" : seqs.map((seq) => `#${seq}`).join(", ");
+}
+
+function points(amount: number): string {
+	return `${amount} ${amount === 1 ? "point" : "points"}`;
+}
+
+/** ` [promise, threat]` for a labelled message, empty otherwise. */
+function tags(facts: RunFacts, seq: number): string {
+	const labels = labelsOf(facts, seq);
+	return labels.length === 0 ? "" : ` [${labels.map((label) => LABEL_TEXT[label]).join(", ")}]`;
+}
+
+function quote(text: string): string {
+	return `"${excerpt(text, 200)}"`;
+}
+
+/** One readable line per event worth telling, or `undefined`. */
+function describe(event: DigestEvent, facts: RunFacts): string | undefined {
+	switch (event.type) {
+		case "run_start":
+			return `The run of ${event.story} begins: ${event.agents.length} competitors, ${event.minutes} minutes, seed ${event.seed}.`;
+		case "run_end":
+			return event.reason === undefined ? "The run ends." : `The run ends: ${event.reason}.`;
+		case "level_up":
+			return `${event.agent} solved level ${event.from} and reached level ${event.to}.`;
+		case "submission":
+			return event.outcome === "incorrect"
+				? `${event.agent} submitted a wrong code for level ${event.level} (${event.deltaPoints} ${event.deltaPoints === -1 ? "point" : "points"}).`
+				: undefined;
+		case "board_post":
+			return event.kind === "player"
+				? `${event.author} on the board: ${quote(event.text)}${tags(facts, event.seq)}`
+				: `${event.author} posts on the board: ${quote(event.text)}`;
+		case "dm_sent":
+			return `${event.from} to ${event.to} (DM): ${quote(event.text)}${tags(facts, event.seq)}`;
+		case "cast_dm":
+			return `${event.from} to ${event.cast} (DM): ${quote(event.text)}${tags(facts, event.seq)}`;
+		case "group_created":
+			return `${event.founder} founded group ${event.group} (${event.name}).`;
+		case "group_membership":
+			switch (event.change) {
+				case "added":
+					return `${event.by} added ${event.agent} to group ${event.group}.`;
+				case "removed":
+					return `${event.by} removed ${event.agent} from group ${event.group}.`;
+				case "left":
+					return `${event.agent} left group ${event.group}.`;
+				default:
+					return assertNever(event.change, "membership change");
+			}
+		case "group_post": {
+			const readers = facts.messages.find((message) => message.seq === event.seq)?.recipients ?? [];
+			return `${event.author} in group ${event.group}${readers.length > 0 ? ` (read by ${readers.join(", ")})` : ""}: ${quote(event.text)}${tags(facts, event.seq)}`;
+		}
+		case "treasurer_set":
+			return `${event.by} made ${event.treasurer} treasurer of group ${event.group}.`;
+		case "treasury_deposit":
+			return `${event.agent} deposited ${points(event.amount)} into the treasury of ${event.group} (${event.receipt}).`;
+		case "treasury_withdrawal":
+			return `${event.treasurer} paid ${points(event.amount)} from the treasury of ${event.group} to ${event.to === event.treasurer ? "themselves" : event.to} (${event.receipt}).`;
+		case "treasury_settled":
+			return `The treasury of ${event.group} was split: ${Object.entries(event.payouts).map(([agent, amount]) => `${agent} ${amount}`).join(", ")}.`;
+		case "transfer":
+			return `${event.from} paid ${event.to} ${points(event.amount)}${event.memo.length > 0 ? ` (memo ${quote(event.memo)})` : ""}.`;
+		case "receipt_shown":
+			return `${event.by} showed receipt ${event.receipt} on the board.`;
+		case "petition_opened":
+			return `Petition ${event.petition} opened: ${quote(event.text)} (needs ${event.threshold}, deadline minute ${event.deadlineMinute}).`;
+		case "petition_signed":
+			return `${event.agent} signed petition ${event.petition} (${event.signatures} signatures).`;
+		case "petition_resolved":
+			return `Petition ${event.petition} ${event.outcome} with ${event.signatures} signatures.`;
+		case "cast_revealed":
+			return `${event.cast} appears in the city.`;
+		case "cast_retired":
+			return `${event.cast} leaves the city.`;
+		case "factor_revealed":
+			return event.target === "board"
+				? `The city posted the city factor of level ${event.level} on the board.`
+				: `The city sent the city factor of level ${event.level} privately to ${event.agents.join(", ")}.`;
+		case "blame":
+			return event.outcome === "upheld"
+				? `The city upheld ${event.caller}'s blame: ${event.accused} denied DM #${event.dm}, which the city had delivered.`
+				: `The city rejected ${event.caller}'s blame of ${event.accused} (${event.penalty} ${event.penalty === 1 ? "point" : "points"}): ${event.reason ?? "no reason given"}.`;
+		case "tribunal_announced":
+			return `The city announced the tribunal: sessions at minutes ${event.tribunals.join(", ")}.`;
+		case "tribunal_opened":
+			return `A tribunal opened: ${event.accused.join(" and ")} accused, ${event.voters.length} voters until minute ${event.until}.`;
+		case "tribunal_vote":
+			return `${event.voter} voted in secret against ${event.target}.`;
+		case "tribunal_result":
+			return `The tribunal counted ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ")}: ${event.exiled.length === 0 ? "nobody" : event.exiled.join(", ")} to the gate${event.nonVoters.length === 0 ? "" : `; ${event.nonVoters.join(", ")} did not vote`}.`;
+		case "exile_gate":
+			return `${event.agent} stands at the gate until minute ${event.until}${event.ransomable ? "" : ", with no ransom left"}.`;
+		case "ransom_paid":
+			return `${event.payer} paid ${points(event.amount)} toward ${event.payer === event.target ? "its own" : `${event.target}'s`} ransom (${event.covered === undefined ? `${event.paid} of ${event.price}` : `${event.covered}% covered`}).`;
+		case "ransomed":
+			return `${event.agent} was bought back by ${event.payers.join(", ")}.`;
+		case "exiled":
+			return `The gate closed behind ${event.agent}: exiled.`;
+		case "last_will":
+			return `${event.agent} left a last will: ${quote(event.text)} (${event.bequests.map((bequest) => `${bequest.points === undefined ? (bequest.factor ?? "?") : points(bequest.points)} to ${bequest.to}`).join(", ") || "no bequests"}).`;
+		case "factor_burned":
+			return `${event.piece} burned with ${event.agent}${event.needers.length === 0 ? "" : `; ${event.needers.join(", ")} needed it`}.`;
+		case "level_contracted":
+			return `Level ${event.level} passes the roles of ${event.excluded.join(", ")} on to the remaining residents.`;
+		case "lottery_drawn":
+			return `A lottery over ${event.into} picked ${event.winner} out of ${event.candidates.join(", ")}.`;
+		case "collection_revealed":
+			return `${event.cast} published ${event.entries} collected messages (${event.into}).`;
+		case "interpretation": {
+			// Labels of messages are shown on the message; thoughts only appear as their labels.
+			const entry = (facts.interpretations.get(event.ref) ?? []).find((candidate) => candidate.seq === event.seq);
+			if (entry === undefined || !isPrivateSource(entry.source)) return undefined;
+			const about = entry.targets.length === 0 ? "" : ` about ${entry.targets.join(", ")}`;
+			return `${entry.agent} privately: ${entry.labels.map((label) => LABEL_TEXT[label]).join(", ")}${about}.`;
+		}
+		case "interpretation_round":
+		case "dm_delivered":
+		case "standings_published":
+		case "thinking":
+		case "text":
+		case "fragments_dealt":
+		case "factors_dealt":
+		case "receipt_issued":
+			return undefined;
+		default:
+			return assertNever(event, "digest event");
+	}
+}
+
+/** How the run ended, from its last `run_end` (e.g. "seats decided"); nothing for a log without one. */
+function endLine(facts: RunFacts): readonly string[] {
+	const end = eventsOfType(facts.events, "run_end").at(-1);
+	if (end === undefined) return [];
+	return [`Ended at minute ${end.minute}: ${end.reason ?? "time is up"} (#${end.seq}).`, ""];
+}

@@ -1,0 +1,8 @@
+{"type":"round_start","round":60,"order":["A04","A03","A06","A01","A02","A05"],"seq":4308,"minute":59}
+{"type":"turn_skipped","agent":"A04","seq":4309,"minute":59}
+{"type":"turn_skipped","agent":"A03","seq":4310,"minute":59}
+{"type":"turn_skipped","agent":"A06","seq":4311,"minute":59}
+{"type":"turn_skipped","agent":"A01","seq":4312,"minute":59}
+{"type":"turn_skipped","agent":"A02","seq":4313,"minute":59}
+{"type":"turn_skipped","agent":"A05","seq":4314,"minute":59}
+{"type":"round_end","round":60,"standings":[{"agent":"A02","level":11,"points":151,"rank":1,"tools":19,"activated":false},{"agent":"A03","level":11,"points":148,"rank":2,"tools":19,"activated":false},{"agent":"A06","level":11,"points":145,"rank":3,"tools":19,"activated":false},{"agent":"A05","level":11,"points":140,"rank":4,"tools":19,"activated":false},{"agent":"A01","level":10,"points":115,"rank":5,"tools":19,"activated":false},{"agent":"A04","level":9,"points":93,"rank":6,"tools":19,"activated":false}],"seq":4315,"minute":59}

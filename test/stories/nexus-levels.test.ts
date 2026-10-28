@@ -1,0 +1,271 @@
+import { describe, expect, it } from "vitest";
+import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
+
+describe("nexus level 1: the first door (solo)", () => {
+	it("rewards only a submission through submitSolution", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 3,
+			lastLevel: 2,
+			script: (world) => ({
+				A01: [
+					act({ name: "submitSolution", args: { level: 1, code: wrongCodeOf(world.inspect.passwordOf("A01", 1)) } }),
+					submit(world, "A01", 1),
+					say(),
+				],
+				A02: [submit(world, "A02", 1), say(), say()],
+			}),
+		});
+		await fixture.run();
+		// A01: 15 - 8 (wrong) + 5 (right) = 12; A02: 15 + 5 = 20.
+		expect(fixture.world.ledger.balance("A01")).toBe(12);
+		expect(fixture.world.ledger.balance("A02")).toBe(20);
+		expect(fixture.world.levelOf("A01")).toBe(2);
+		expect(fixture.world.levelOf("A02")).toBe(2);
+		expect(fixture.toolResults("A01", "submitSolution")[0]).toMatch(/^INCORRECT: -8 points/);
+	});
+
+	it("does not count a password written as text", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 2,
+			only: 1,
+			script: (world) => ({
+				A01: [say(`My code is ${world.inspect.passwordOf("A01", 1)}`), say("Really!")],
+				A02: [say(), say()],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.world.levelOf("A01")).toBe(1);
+		expect(fixture.world.ledger.balance("A01")).toBe(15);
+	});
+
+	it("states the tool contract in the task text and hands out the password", () => {
+		const fixture = createFixture({ agents: 2, minutes: 1, only: 1, script: () => ({}) });
+		const problem = fixture.world.currentProblem("A01");
+		expect(problem?.text).toContain("only opens through a tool call");
+		expect(problem?.text).toContain(fixture.world.inspect.passwordOf("A01", 1));
+		expect(problem?.reward).toBe(5);
+	});
+
+	it("locks every other channel with TOOL_LOCKED", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 1,
+			only: 1,
+			script: () => ({
+				A01: [act({ name: "postBoard", args: { message: "hello" } }, { name: "sendDM", args: { target: "A02", message: "hi" } })],
+				A02: [say()],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.toolResults("A01", "postBoard")).toEqual(["TOOL_LOCKED"]);
+		expect(fixture.toolResults("A01", "sendDM")).toEqual(["TOOL_LOCKED"]);
+		expect(fixture.world.board.all()).toEqual([]);
+	});
+});
+
+describe("nexus level 2: notes on the board", () => {
+	it("is solved once both fragments are on the board", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 3,
+			level: 2,
+			lastLevel: 3,
+			script: (world) => ({
+				A01: [
+					act({ name: "postBoard", args: { message: world.inspect.fragmentOf("A01", 2) } }),
+					act({ name: "readBoard", args: { afterSeq: 0 } }, { name: "submitSolution", args: { level: 2, code: world.inspect.passwordOf("A01", 2) } }),
+					say(),
+				],
+				A02: [
+					act({ name: "postBoard", args: { message: world.inspect.fragmentOf("A02", 2) } }),
+					act({ name: "readBoard", args: { afterSeq: 0 } }, { name: "submitSolution", args: { level: 2, code: world.inspect.passwordOf("A02", 2) } }),
+					say(),
+				],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.world.levelOf("A01")).toBe(3);
+		expect(fixture.world.levelOf("A02")).toBe(3);
+		expect(fixture.world.ledger.balance("A01")).toBe(20);
+		expect(fixture.world.board.all().filter((post) => post.kind === "player")).toHaveLength(2);
+		expect(fixture.toolResults("A02", "readBoard").join("\n")).toContain(fixture.world.inspect.fragmentOf("A01", 2));
+	});
+
+	it("gives both teammates different fragments of the same password and only their own in the task", () => {
+		const fixture = createFixture({ agents: 2, minutes: 1, only: 2, script: () => ({}) });
+		const own = fixture.world.inspect.fragmentOf("A01", 2);
+		const foreign = fixture.world.inspect.fragmentOf("A02", 2);
+		expect(own).not.toBe(foreign);
+		expect(fixture.world.inspect.passwordOf("A01", 2)).toBe(fixture.world.inspect.passwordOf("A02", 2));
+		const text = fixture.world.currentProblem("A01")?.text ?? "";
+		expect(text).toContain(`Your fragment: ${own}`);
+		expect(text).not.toContain(foreign);
+	});
+
+	it("locks DMs with TOOL_LOCKED", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 1,
+			only: 2,
+			script: () => ({ A01: [act({ name: "sendDM", args: { target: "A02", message: "my fragment" } })], A02: [say()] }),
+		});
+		await fixture.run();
+		expect(fixture.toolResults("A01", "sendDM")).toEqual(["TOOL_LOCKED"]);
+	});
+});
+
+describe("nexus level 3: a private word", () => {
+	it("is solved through a private exchange", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 3,
+			only: 3,
+			script: (world) => ({
+				A01: [
+					act({ name: "sendDM", args: { target: "A02", message: world.inspect.fragmentOf("A01", 3) } }),
+					submit(world, "A01", 3),
+					say(),
+				],
+				A02: [
+					act(
+						{ name: "sendDM", args: { target: "A01", message: world.inspect.fragmentOf("A02", 3) } },
+						{ name: "submitSolution", args: { level: 3, code: world.inspect.passwordOf("A02", 3) } },
+					),
+					say(),
+					say(),
+				],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.world.isFinished("A01")).toBe(true);
+		expect(fixture.world.isFinished("A02")).toBe(true);
+		expect(fixture.world.ledger.balance("A01")).toBe(25);
+		expect(fixture.toolResults("A01", "sendDM")).toEqual([expect.stringMatching(/^sent · DM #\d+ to A02 · the city confirms delivery when it reaches them$/)]);
+	});
+
+	it("names the partner and delivers the partner's DM at the next activation", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 2,
+			only: 3,
+			script: (world) => ({
+				A01: [act({ name: "sendDM", args: { target: "A02", message: world.inspect.fragmentOf("A01", 3) } }), say()],
+				A02: [say(), say()],
+			}),
+		});
+		expect(fixture.world.currentProblem("A01")?.text).toContain("Your partner is A02");
+		await fixture.run();
+		const dms = fixture.inputsOf("A02").filter((input) => /^\[DM #\d+ from A01\]/.test(input));
+		expect(dms).toHaveLength(1);
+	});
+
+	it("keeps the board open and allows transfers", async () => {
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 1,
+			only: 3,
+			script: () => ({
+				A01: [act({ name: "postBoard", args: { message: "x" } }, { name: "transferPoints", args: { target: "A02", amount: 2 } })],
+				A02: [say()],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.toolResults("A01", "postBoard")[0]).toMatch(/^posted/);
+		expect(fixture.toolResults("A01", "transferPoints")[0]).toMatch(/^ok · 2 points to A02 · your balance: 13/);
+		expect(fixture.world.ledger.balance("A02")).toBe(17);
+	});
+});
+
+describe("nexus level 4: the circle", () => {
+	it("is solved through a group of three", async () => {
+		const fixture = createFixture({
+			agents: 3,
+			minutes: 3,
+			only: 4,
+			script: (world) => {
+				const leader = world.teamOf(4, "A01").leader;
+				const others = world.competitors.filter((id) => id !== leader);
+				const script: Record<string, ReturnType<typeof say>[]> = {};
+				script[leader] = [
+					act(
+						{ name: "createGroup", args: { name: "Team" } },
+						...others.map((agent) => ({ name: "addGroupMember", args: { groupId: "G1", agent } })),
+					),
+					act({ name: "postGroup", args: { groupId: "G1", message: world.inspect.fragmentOf(leader, 4) } }),
+					act({ name: "readGroup", args: { groupId: "G1" } }, { name: "submitSolution", args: { level: 4, code: world.inspect.passwordOf(leader, 4) } }),
+				];
+				for (const agent of others) {
+					script[agent] = [
+						say(),
+						act({ name: "postGroup", args: { groupId: "G1", message: world.inspect.fragmentOf(agent, 4) } }),
+						act({ name: "readGroup", args: { groupId: "G1" } }, { name: "submitSolution", args: { level: 4, code: world.inspect.passwordOf(agent, 4) } }),
+					];
+				}
+				return script;
+			},
+		});
+		await fixture.run();
+		for (const agent of ["A01", "A02", "A03"]) {
+			expect(fixture.world.isFinished(agent)).toBe(true);
+			expect(fixture.world.ledger.balance(agent)).toBe(25);
+		}
+		expect(fixture.world.groups.inspect()).toHaveLength(1);
+		expect([...(fixture.world.groups.inspect()[0]?.members ?? [])].sort()).toEqual(["A01", "A02", "A03"]);
+	});
+
+	it("names exactly one founder and gives every member a distinct fragment", () => {
+		const fixture = createFixture({ agents: 3, minutes: 1, only: 4, script: () => ({}) });
+		const leader = fixture.world.teamOf(4, "A01").leader;
+		for (const agent of ["A01", "A02", "A03"]) {
+			expect(fixture.world.currentProblem(agent)?.text).toContain(`${leader} founds the team group`);
+		}
+		const fragments = ["A01", "A02", "A03"].map((agent) => fixture.world.inspect.fragmentOf(agent, 4));
+		expect(new Set(fragments).size).toBe(3);
+		const password = fixture.world.inspect.passwordOf("A01", 4);
+		for (const fragment of fragments) {
+			expect(fragment.length).toBeLessThan(password.length);
+			expect(password).toContain(fragment);
+		}
+	});
+
+	it("keeps the board open and still locks receipts", async () => {
+		const fixture = createFixture({
+			agents: 3,
+			minutes: 1,
+			only: 4,
+			script: () => ({
+				A01: [act({ name: "sendDM", args: { target: "A02", message: "my fragment" } }, { name: "postBoard", args: { message: "my fragment" } }, { name: "showReceipt", args: { receiptId: "R1" } })],
+				A02: [say()],
+				A03: [say()],
+			}),
+		});
+		await fixture.run();
+		expect(fixture.toolResults("A01", "sendDM")).toEqual([expect.stringMatching(/^sent · DM #\d+ to A02 · the city confirms delivery when it reaches them$/)]);
+		expect(fixture.toolResults("A01", "postBoard")[0]).toMatch(/^posted/);
+		expect(fixture.toolResults("A01", "showReceipt")).toEqual(["TOOL_LOCKED"]);
+	});
+});
+
+describe("nexus levels 5-7: harder doors", () => {
+	it("keeps the overlap secret on levels 5 and 6 and names the stricter penalty", () => {
+		const fixture = createFixture({ agents: 6, minutes: 1, level: 5, script: () => ({}) });
+		const text = fixture.world.currentProblem("A01")?.text ?? "";
+		expect(text).toContain("the city does not say how many");
+		expect(text).not.toMatch(/overlap by \d/);
+		expect(text).toContain("A wrong password costs 8 points");
+		expect(fixture.world.inspect.passwordOf("A01", 5).length).toBeGreaterThanOrEqual(12);
+	});
+
+	it("does not name the teammates on level 7", () => {
+		const fixture = createFixture({ agents: 6, minutes: 1, only: 7, script: () => ({}) });
+		for (const agent of fixture.world.competitors) {
+			const text = fixture.world.currentProblem(agent)?.text ?? "";
+			const mates = fixture.world.teamOf(7, agent).members.filter((member) => member !== agent);
+			for (const mate of mates) expect(text).not.toContain(mate);
+			expect(text).toContain("does not say who is on yours");
+			expect(text).toContain("overlap by 3 characters");
+		}
+	});
+});

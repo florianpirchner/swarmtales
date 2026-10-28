@@ -1,0 +1,67 @@
+# Working on Swarm Tales
+
+Repository rules for every session (human or agent). `AGENTS.md` points here, so every coding agent
+reads the same rules. See "Coding rules" in `docs/HOW-IT-WORKS.md` and `docs/ARCHITECTURE.md` for
+code conventions.
+
+The repository is `florianpirchner/swarmtales` (it started as `agent-arena`; that repository is no
+longer worked on). The owner is Flo.
+
+## Conventions
+
+- Everything in the repository is in English.
+- The README tells the story of the project for readers, with nothing technical. Technical docs go
+  under `docs/` and are linked from its "For builders" section. Ideas that are not approved yet go
+  under `docs/ideas/`.
+- Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
+  with Typebox.
+- Stories are written in the TypeScript builder DSL (`src/story/`), never in YAML. Each story lives
+  in its own folder `stories/<name>/` (`story.ts` plus a short `README.md`) and is registered in
+  `stories/index.ts`.
+- `pnpm check` (typecheck, lint, test, validate) must be green before a push. Tests run offline;
+  never call live models in tests.
+- Big refactors: a builder agent writes, a challenger agent reviews.
+
+## Working with Flo
+
+- Flo writes German. Answer him in German; the repository stays English.
+- **Brainstorm before building.** For story or game-mechanic ideas, lay out options, trade-offs and
+  open questions, and build only after an explicit go ("leg los", "bau das", "implementiere das").
+  A design reply is not a go. Engineering chores (reporter, docs, merges, fixes) do not need one.
+- **Merging:** every change goes through a PR; never push straight to `main`. GitHub Actions is
+  disabled, so run `pnpm check` locally, say in the PR body that CI did not run, then squash-merge
+  yourself (standing approval) and report.
+- Actions that cannot be undone outside the repository (deleting, publishing, sending messages,
+  spending beyond a normal run) still need Flo's go.
+
+## Models, keys and money
+
+- Competitors in nexus: Claude Haiku via Anthropic (`--provider anthropic`). Game master and
+  reporter: DeepSeek V4.1 Flash via OpenRouter. Classifier and blame judge: Haiku via Anthropic.
+  GLM runs via OpenRouter.
+- Keys come from the environment: `ARENA_ANTHROPIC_API_KEY` (the cloud runtime strips
+  `ANTHROPIC_API_KEY`) and `OPENROUTER_API_KEY`. Never print, log or commit a key, and never ask for
+  one in chat.
+- Any live test run uses Haiku via Anthropic (Flo has promo credit there); keep OpenRouter spending
+  small. A 6-agent Act II run costs about 0.3-0.5 USD.
+- No large runs (12, 48 or 96 agents) until Act II works with 6 agents. Planned scale: a fresh
+  Act I with 48 or 96 agents (a multiple of 6), checkpoints after Act I and Act II, about half left
+  for Acts III and IV.
+
+## After every live run
+
+1. The run reporter writes a first-draft `<run>/REPORT.md` automatically (header and result
+   table computed in code; **digest highlights**, **problems**, **optimizations** and loophole
+   candidates written by a model, each citing `#seq` evidence; `pnpm report:run <run-dir>` rewrites
+   it). A human or agent reviews the draft, verifies suspicious claims against `events.jsonl`,
+   corrects it and turns it into the run report.
+2. **Loopholes:** if the competitors (or the game master) found a new way around the story's
+   intent (check the draft's loophole candidates), the reviewer adds a row to `docs/LOOPHOLES.md`.
+   Each row needs what happened, the run it was seen in, its effect, and its status (open, or the
+   fix). Update the status of existing rows when a fix lands. Do this in the same PR as the run
+   data or the fix, without being asked.
+3. Act II runs resumed from `examples/nexus-seed7-haiku-act1/snapshot-L7.json` go into
+   `examples/nexus-act2-runs/` as the next version `vNN-<short-name>/`, with a README in the
+   shape of v01 and a row in the series index. Replace local absolute paths with repository paths.
+4. Send Flo a short German summary: result, cost, the drama, new loopholes, proposals for the next
+   version (proposals only, see "Brainstorm before building").

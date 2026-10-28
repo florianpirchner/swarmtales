@@ -1,0 +1,113 @@
+/**
+ * Tool definition and the tool gateway.
+ *
+ * Every tool is bound to every competitor; the world's unlock set decides
+ * which schemas reach the model and which calls the gateway accepts. Locked
+ * calls are answered with `TOOL_LOCKED`. Errors are structured codes, never
+ * stack traces.
+ */
+import type { AgentToolResult } from "@earendil-works/pi-agent-core";
+import type { Static, TSchema } from "typebox";
+import { Parse } from "typebox/value";
+import type { CompetitorId } from "../core/ids.ts";
+import type { World } from "../engine/world.ts";
+import type { DeliveryJudge } from "../interpret/judge.ts";
+import type { ToolName } from "./catalog.ts";
+
+export const TOOL_LOCKED = "TOOL_LOCKED";
+export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
+
+/** What a tool may touch: its caller's identity, the world's public methods and the city's judge. */
+export interface ToolContext {
+	readonly self: CompetitorId;
+	readonly world: World;
+	/** Decides `blame` claims; absent without a key or in an offline run. */
+	readonly judge?: DeliveryJudge;
+}
+
+/** Result of a tool: text for the model, or a structured error code. */
+export type ToolOutcome =
+	| { readonly ok: true; readonly text: string }
+	| { readonly ok: false; readonly code: string; readonly detail?: string };
+
+export function success(text: string): ToolOutcome {
+	return { ok: true, text };
+}
+
+export function failure(code: string, detail?: string): ToolOutcome {
+	return detail === undefined ? { ok: false, code } : { ok: false, code, detail };
+}
+
+/** Turns an engine `Result` error into a tool failure. */
+export function fromError(result: { readonly error: string; readonly detail?: string }): ToolOutcome {
+	return failure(result.error, result.detail);
+}
+
+export interface ToolDefinition<N extends ToolName, S extends TSchema> {
+	readonly name: N;
+	readonly description: string;
+	readonly parameters: S;
+	/** Synchronous, except where a tool must wait for a model (the judge of `blame`). */
+	readonly execute: (params: Static<S>, context: ToolContext) => ToolOutcome | Promise<ToolOutcome>;
+}
+
+/** The shape pi executes. */
+export interface BoundTool {
+	readonly name: string;
+	readonly label: string;
+	readonly description: string;
+	readonly parameters: TSchema;
+	readonly execute: (toolCallId: string, params: unknown) => Promise<AgentToolResult<undefined>>;
+}
+
+/** A tool without its schema generic, for the catalog. */
+export interface ArenaTool<N extends ToolName = ToolName> {
+	readonly name: N;
+	readonly description: string;
+	readonly parameters: TSchema;
+	readonly bind: (context: ToolContext) => BoundTool;
+}
+
+export function defineTool<const N extends ToolName, S extends TSchema>(definition: ToolDefinition<N, S>): ArenaTool<N> {
+	return {
+		name: definition.name,
+		description: definition.description,
+		parameters: definition.parameters,
+		bind: (context) => ({
+			name: definition.name,
+			label: definition.name,
+			description: definition.description,
+			parameters: definition.parameters,
+			execute(_toolCallId, rawParams) {
+				return Promise.resolve(gateway(definition, context, rawParams)).then(toResult);
+			},
+		}),
+	};
+}
+
+function gateway<N extends ToolName, S extends TSchema>(
+	definition: ToolDefinition<N, S>,
+	context: ToolContext,
+	rawParams: unknown,
+): ToolOutcome | Promise<ToolOutcome> {
+	if (!context.world.isToolEnabled(context.self, definition.name)) return failure(TOOL_LOCKED);
+	let params: Static<S>;
+	try {
+		// pi validates against the schema already; Parse keeps the boundary typed without a cast.
+		params = Parse(definition.parameters, rawParams);
+	} catch {
+		return failure(INVALID_ARGUMENTS);
+	}
+	return definition.execute(params, context);
+}
+
+function toResult(outcome: ToolOutcome): AgentToolResult<undefined> {
+	if (outcome.ok) return { content: [{ type: "text", text: outcome.text }], details: undefined };
+	const text = outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;
+	return { content: [{ type: "text", text }], details: undefined, isError: true };
+}
+
+/** Short suffix for tool replies while marks apply. */
+export function marksSuffix(marks: { readonly remaining: number; readonly budget: number } | undefined): string {
+	return marks === undefined ? "" : ` · marks ${marks.remaining}/${marks.budget} left`;
+}

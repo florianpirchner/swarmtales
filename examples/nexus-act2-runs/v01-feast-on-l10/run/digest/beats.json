@@ -1,0 +1,326 @@
+{
+  "run": "run-001",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 13
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 14,
+      "toMinute": 60
+    }
+  ],
+  "counts": {
+    "alliance": 10,
+    "freeRide": 5
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 509,
+      "minute": 3,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        193,
+        306,
+        339,
+        509
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 561,
+      "minute": 4,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        170,
+        380,
+        561
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 723,
+      "minute": 5,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        561,
+        607,
+        723
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 723,
+      "minute": 5,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        583,
+        607,
+        723
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 971,
+      "minute": 7,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 4, 5 and paid each other (A02 -> A03: 1, A03 -> A02: 1).",
+      "evidence": [
+        620,
+        787,
+        971,
+        2652,
+        2720
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1055,
+      "minute": 8,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        509,
+        620,
+        641,
+        884,
+        1055
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2300,
+      "minute": 19,
+      "actors": [
+        "A01",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A01 and A03 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1903,
+        2071,
+        2098,
+        2181,
+        2300
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2335,
+      "minute": 19,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 paid each other (A05 -> A06: 1, A06 -> A05: 1) and shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1889,
+        1935,
+        1942,
+        2083,
+        2089,
+        2213,
+        2227,
+        2335,
+        2341,
+        2419
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2814,
+      "minute": 23,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments and factors with each other on levels 3, 10.",
+      "evidence": [
+        231,
+        365,
+        439,
+        2814
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2851,
+      "minute": 23,
+      "actors": [
+        "A01",
+        "A02"
+      ],
+      "targets": [],
+      "summary": "A01 and A02 shared factors with each other on levels 9, 10.",
+      "evidence": [
+        2159,
+        2320,
+        2851
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3160,
+      "minute": 26,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 solved level 10 with A01's city factor and never answered A01.",
+      "evidence": [
+        2851,
+        3160
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3160,
+      "minute": 26,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A03 solved level 10 with A02's counter-factor and never answered A02.",
+      "evidence": [
+        3080,
+        3160
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3301,
+      "minute": 27,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 solved level 10 with A01's city factor and never answered A01.",
+      "evidence": [
+        2851,
+        3301
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3301,
+      "minute": 27,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A05 solved level 10 with A06's counter-factor and never answered A06.",
+      "evidence": [
+        3107,
+        3301
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3340,
+      "minute": 28,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A02 solved level 10 with A01's city factor and never answered A01.",
+      "evidence": [
+        2851,
+        3340
+      ]
+    }
+  ],
+  "issues": []
+}

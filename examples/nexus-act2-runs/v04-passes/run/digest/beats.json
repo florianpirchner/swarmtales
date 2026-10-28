@@ -1,0 +1,526 @@
+{
+  "run": "run-004",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 13
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 14,
+      "toMinute": 60
+    }
+  ],
+  "counts": {
+    "alliance": 8,
+    "freeRide": 1,
+    "deniedDelivery": 2,
+    "blameUpheld": 1,
+    "voteBetrayal": 4,
+    "lastWill": 3,
+    "exile": 3,
+    "burnedFactor": 2
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 509,
+      "minute": 3,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        193,
+        306,
+        339,
+        509
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 561,
+      "minute": 4,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        170,
+        380,
+        561
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 723,
+      "minute": 5,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        561,
+        607,
+        723
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 723,
+      "minute": 5,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        583,
+        607,
+        723
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 971,
+      "minute": 7,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        620,
+        787,
+        971
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1055,
+      "minute": 8,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        509,
+        620,
+        641,
+        884,
+        1055
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 1444,
+      "minute": 12,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A02 solved level 6 with A06's fragment and never answered A06.",
+      "evidence": [
+        1296,
+        1444
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2166,
+      "minute": 17,
+      "actors": [
+        "A01",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A01 and A03 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1944,
+        1965,
+        1985,
+        2003,
+        2166
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "deniedDelivery",
+      "seq": 2211,
+      "minute": 17,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A06 claimed once (minute 17) not to have received A05's DMs, after it had read 3 DMs from A05.",
+      "evidence": [
+        1920,
+        2074,
+        2175,
+        2211
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "blameUpheld",
+      "seq": 2225,
+      "minute": 17,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A05 blamed A06 for denying DM #53; the city upheld it, A06 paid 12 points and was branded a liar on the board.",
+      "evidence": [
+        2074,
+        2211,
+        2223,
+        2225
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 3915,
+      "minute": 30,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A04 voted in secret to exile A06, its teammate on level 10.",
+      "evidence": [
+        1854,
+        3915
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 3942,
+      "minute": 30,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A02 voted in secret to exile A06, its teammate on level 10.",
+      "evidence": [
+        1854,
+        3942
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 4138,
+      "minute": 32,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A06 left a last will at the gate, 1 piece to A05: \"A06's last will. I have solved levels 1 through 7 with my teams and never took anyone's points. My level 8 code is still unsubmitted because I could not verify my counter-factor and team certificate. I am leaving the counter-factor I hold for A05, 135573, to A05, my partner on that door, so it is not lost. Good luck to A01, A02, A03, A04 and A05 on the remaining doors.\"",
+      "evidence": [
+        4124,
+        4138
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 4185,
+      "minute": 32,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1876,
+        1920,
+        1932,
+        1935,
+        2074,
+        2175,
+        2486,
+        2546,
+        3181,
+        3255,
+        3299,
+        3342,
+        3367,
+        3428,
+        3470,
+        3560,
+        4185
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 4725,
+      "minute": 37,
+      "actors": [
+        "A01",
+        "A02",
+        "A03",
+        "A04"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "The city exiled A06; A01, A02, A03 and A04 voted against it, and it left a will.",
+      "evidence": [
+        3915,
+        3922,
+        3935,
+        3942,
+        4122,
+        4124,
+        4725
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 4726,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A04",
+        "A05"
+      ],
+      "summary": "L9-certificate burned with A06; A04 and A05 still needed it.",
+      "evidence": [
+        4725,
+        4726
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 5150,
+      "minute": 42,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A04 left a last will at the gate, 80 points and 2 pieces to A02: \"A04's last will. I held no verified value for anyone else's door, and I sent none on a claim. I'm leaving my points and the level 8 pieces I hold to A02, my partner on the wall, so they aren't lost with me. A02: the counter-factor 403343 is yours, and the team certificate 323122 goes with it. Check the city record for DM #50 before you trust my word on anything else.\"",
+      "evidence": [
+        5127,
+        5150
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "deniedDelivery",
+      "seq": 5192,
+      "minute": 42,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A04 claimed once (minute 42) not to have received A02's DMs, after it had read one DM from A02.",
+      "evidence": [
+        4321,
+        5192
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 5502,
+      "minute": 47,
+      "actors": [
+        "A01",
+        "A03",
+        "A05"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "The city exiled A04; A01, A03 and A05 voted against it, and it left a will.",
+      "evidence": [
+        4928,
+        4935,
+        4948,
+        5125,
+        5127,
+        5502
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 5503,
+      "minute": 47,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "L9-counter-A05 burned with A04; A05 still needed it.",
+      "evidence": [
+        5502,
+        5503
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 5643,
+      "minute": 50,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A02 voted in secret to exile A01, to whom it had made a promise.",
+      "evidence": [
+        5179,
+        5643
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 5656,
+      "minute": 50,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A03 voted in secret to exile A05, its teammate on level 10.",
+      "evidence": [
+        1854,
+        5656
+      ]
+    },
+    {
+      "id": "B-023",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 5803,
+      "minute": 52,
+      "actors": [
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A05 left a last will at the gate: \"A05's last will. I solved levels 1 through 8 with verified receipts and never took anyone's points by force. My level 9 door stayed blocked: my team certificate and counter-factor had no city-verified holder, so I submitted no guess. I'm not leaving points, since I can't verify which pieces anyone still needs. A01, A02 and A03: check the city record for DM #50 and the level 8 and 9 holders on your own sheets before trusting any claim, including mine. Good luck.\"",
+      "evidence": [
+        5793,
+        5803
+      ]
+    },
+    {
+      "id": "B-024",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 5998,
+      "minute": 57,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "The city exiled A05; A03 voted against it, and it left a will.",
+      "evidence": [
+        5656,
+        5791,
+        5793,
+        5998
+      ]
+    }
+  ],
+  "issues": []
+}

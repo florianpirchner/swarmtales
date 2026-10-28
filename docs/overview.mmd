@@ -1,0 +1,27 @@
+flowchart LR
+    subgraph Harness["Harness (TypeScript)"]
+        Story["Story DSL<br/>stories/nexus/story.ts"]
+        World["World<br/>levels, puzzles, points, board,<br/>DMs, groups, receipts, marks"]
+        Director["Director<br/>scripted beats:<br/>courier, feast, standings"]
+        Scheduler["Scheduler<br/>one round per minute"]
+        Log[("Event log<br/>events.jsonl")]
+        Snapshot[("Snapshot<br/>snapshot-L7.json")]
+    end
+
+    Agents["Competitors A01-A06<br/>one persistent LLM session each<br/>persona + tools"]
+    Classifier["Statement classifier<br/>labels every round"]
+    GM["Game master<br/>notes and board posts"]
+    Digest["Story digest<br/>beats, relationships, timeline"]
+
+    Story --> World
+    Story --> Director
+    Scheduler -- "turn input: task, notices, unread" --> Agents
+    Agents -- "tool calls: submitSolution, sendDM,<br/>postBoard, transferPoints, ..." --> World
+    Director --> World
+    World --> Log
+    Log -- "thoughts and messages of the round" --> Classifier
+    Classifier -- "interpretation events" --> Log
+    Log -- "situation report, passwords redacted,<br/>labels instead of thoughts" --> GM
+    GM -- "notify / postBoard" --> World
+    Log --> Digest
+    World <--> Snapshot
