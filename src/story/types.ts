@@ -401,6 +401,12 @@ export interface TribunalSpec {
 	readonly nonVoterPenalty: number;
 	readonly gateMinutes: number;
 	readonly ransom: RansomSpec;
+	/**
+	 * Share of its points (at the time of the will, rounded down) that a
+	 * resident at the gate may bequeath in all, in (0, 1]; the rest burns at
+	 * exile. Pieces (factors, fragments) are not capped.
+	 */
+	readonly bequestShare: number;
 	readonly texts: TribunalTexts;
 }
 
@@ -459,6 +465,7 @@ export const TRIBUNAL_RULE_PLACEHOLDERS = [
 	"ransomShare",
 	"selfRansomShare",
 	"ransomMinimum",
+	"bequestShare",
 ] as const;
 
 export const TRIBUNAL_TEXT_KEYS = [

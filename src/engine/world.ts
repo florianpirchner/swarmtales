@@ -11,6 +11,7 @@ import { PointsLedger } from "../core/ledger.ts";
 import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
+import { bequestCap } from "../story/tribunal.ts";
 import type { AnyStory, LevelDefinition, MessageChannel } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
@@ -153,7 +154,15 @@ export type SubmitOutcome =
 
 export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | MailboxRejection;
 export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED";
-export type WillError = "NOT_AT_GATE" | "WILL_DONE" | "INVALID_TEXT" | "UNKNOWN_AGENT" | "INVALID_BEQUEST" | "INSUFFICIENT_FUNDS" | "UNKNOWN_FACTOR";
+export type WillError =
+	| "NOT_AT_GATE"
+	| "WILL_DONE"
+	| "INVALID_TEXT"
+	| "UNKNOWN_AGENT"
+	| "INVALID_BEQUEST"
+	| "INSUFFICIENT_FUNDS"
+	| "BEQUEST_CAP"
+	| "UNKNOWN_FACTOR";
 
 /** Longest public text of a last will. */
 export const MAX_WILL_LENGTH = 600;
@@ -1418,8 +1427,10 @@ export class World {
 
 	/**
 	 * A last will at the gate (once): points and held pieces to heirs, at once;
-	 * the city delivers every piece's value privately. The public text is
-	 * posted when the gate closes for good.
+	 * the city delivers every piece's value privately. The points bequeathed in
+	 * all are capped at the tribunal's `bequestShare` of the current balance
+	 * (a will above it is refused); the rest burns at exile. The public text
+	 * is posted when the gate closes for good.
 	 */
 	lastWill(agent: CompetitorId, text: string, bequests: readonly Bequest[]): Result<readonly string[], WillError> {
 		const tribunal = this.#tribunal;
@@ -1442,7 +1453,12 @@ export class World {
 			if (factors.has(bequest.factor)) return err("INVALID_BEQUEST", `${bequest.factor} is bequeathed twice`);
 			factors.add(bequest.factor);
 		}
-		if (points > this.ledger.balance(agent)) return err("INSUFFICIENT_FUNDS", `you hold ${this.ledger.balance(agent)} points`);
+		const balance = this.ledger.balance(agent);
+		if (points > balance) return err("INSUFFICIENT_FUNDS", `you hold ${balance} points`);
+		const cap = bequestCap(tribunal.spec, balance);
+		if (points > cap) {
+			return err("BEQUEST_CAP", `you may bequeath at most ${cap} of your ${balance} points (${Math.round(tribunal.spec.bequestShare * 100)}%); the rest burns at exile`);
+		}
 		const lines: string[] = [];
 		for (const bequest of bequests) {
 			if ("points" in bequest) {

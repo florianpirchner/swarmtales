@@ -187,7 +187,7 @@ The persona block, when present, is appended.
 A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
 6 residents: `announceAt` 1/3, `everyMinutes` 10, `stopAt` 3, `accused` 2, `exiledPerTribunal` 1,
 `voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2,
-`minimum` 20 }); the texts are story
+`minimum` 20 }, `bequestShare` 1/2); the texts are story
 templates.
 
 - **Announcement:** at `announceAt` of the run's total minutes (nexus: minute 20 of 60, also in a
@@ -211,7 +211,11 @@ templates.
   groups) but cannot submit or vote. It may call `lastWill(text, bequests)` once: points and held
   pieces go to named heirs at once (a piece is `L8-certificate`, `L8-counter-A02` or
   `L4-fragment`; the city delivers its value privately to the heir); the text is posted when the
-  gate closes.
+  gate closes. **Bequest cap** [v05]: the points a will leaves in all may not exceed
+  `bequestShare` of the resident's points at the time of the will, rounded down (nexus: half); a
+  will above it is refused with `BEQUEST_CAP` and may be written again, and the points left burn
+  at exile as before. Pieces are not capped. Validation requires `bequestShare` in (0, 1], and the
+  announcement states it (`{bequestShare}`).
 - **Ransom** [v04]: the price is set when the gate opens, from the median points of every resident
   still in the register (the one at the gate included): others pay `share` of the median (at least
   `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus since v05: a third and

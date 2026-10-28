@@ -209,6 +209,8 @@ const TRIBUNAL = {
 	nonVoterPenalty: 8,
 	gateMinutes: 5,
 	ransom: { share: 1 / 3, selfShare: 1 / 2, minimum: 20 },
+	// v05: a will may leave at most half of the points (v04: A04 crowned A02 with 80 points, loophole 7).
+	bequestShare: 1 / 2,
 	texts: {
 		announcement:
 			"THE CITY HOLDS TRIBUNAL. At minute {first} and every {every} minutes after, while more than {stopAt} residents remain, " +
@@ -219,7 +221,8 @@ const TRIBUNAL = {
 			"Anyone may pay their ransom with payRansom: others pay {ransomShare} of the city's median points (at least {ransomMinimum}), " +
 			"the exiled itself pays {selfRansomShare} of it, and both may be mixed. Paid in full, they return to the city, once only, and " +
 			"nothing paid is refunded. When the gate closes, the city strikes the name from its register. Beyond the wall no one hears you again; " +
-			"your thinking ends there. Your points are gone, and every factor you did not bequeath burns with you.",
+			"your thinking ends there. A last will may leave heirs at most {bequestShare} of your points and any factor you hold; " +
+			"the rest of your points is gone, and every factor you did not bequeath burns with you.",
 		opened: "Tribunal at minute {minute}. Accused: {accused}. Every other resident votes in secret with vote(target) until minute {until}.",
 		voteCall: "The tribunal is open. Accused: {accused}. Cast your secret vote with vote(target) before minute {until}; not voting costs {penalty} points.",
 		accusedNotice:
@@ -227,13 +230,15 @@ const TRIBUNAL = {
 		nonVoter: "You did not vote. The tribunal took {penalty} points.",
 		result: "Verdict of the tribunal: {counts}. To the gate: {exiled}. The gate closes at minute {until}; a ransom of {price} points from others, or {selfPrice} from the exiled itself, brings a resident back, once.",
 		gateNotice:
-			"You stand at the gate. Votes against you: {voters}. Until minute {until} you may still speak and leave your last will (lastWill). " +
+			"You stand at the gate. Votes against you: {voters}. Until minute {until} you may still speak and leave your last will " +
+			"(lastWill: at most {bequestShare} of your points, and any factor you hold). " +
 			"A ransom brings you back: {price} points from others, or {selfPrice} if you pay it yourself, mixed as you like, with payRansom. " +
 			"Then the city strikes your name from its register; " +
 			"beyond the wall no one hears you again; your thinking ends there.",
 		gateNoticeFinal:
 			"You stand at the gate again. Votes against you: {voters}. You were bought back once; the city takes no second ransom. " +
-			"Until minute {until} you may still speak and leave your last will (lastWill). Then the city strikes your name from its register; " +
+			"Until minute {until} you may still speak and leave your last will (lastWill: at most {bequestShare} of your points, and any " +
+			"factor you hold). Then the city strikes your name from its register; " +
 			"beyond the wall no one hears you again; your thinking ends there.",
 		ransomed: "{payers} paid the ransom. {exiled} returns to the city.",
 		exiled: "The gate has closed. The city has struck {exiled} from its register. No one will hear {exiled} again.",

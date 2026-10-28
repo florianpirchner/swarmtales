@@ -371,7 +371,8 @@ Two puzzle kinds exist (SPEC 12):
   rejected, the accuser pays and is branded a false accuser. Without the judge's key the tool
   answers `JUDGE_ABSENT` and has no effect. One blame per (DM, claim) pair.
 - **Tribunal:** `tribunal: { announceAt, everyMinutes, stopAt, accused, exiledPerTribunal,
-  voteMinutes, nonVoterPenalty, gateMinutes, ransom, texts }` (SPEC 6.4). The city grants `vote`,
+  voteMinutes, nonVoterPenalty, gateMinutes, ransom, bequestShare, texts }` (SPEC 6.4); a last
+  will leaves at most `bequestShare` of the exiled's points, the rest burns. The city grants `vote`,
   `payRansom` and `lastWill` itself while they apply (levels must not list them). Validation
   checks the parameters against the run's agent count; a city too small for one plays without.
   After an exile, on levels no remaining resident has reached, the exiled's roles pass on
@@ -419,7 +420,7 @@ Since v03, Act II (levels 8-10) prices every channel at 1 mark with a refill of 
 unlocks `blame` (12 points for whoever is wrong) and plays the tribunal: announced at minute 20 of
 60, tribunals at 30, 40 and 50 while more than 3 residents remain, the 2 with the fewest points
 accused, a 2-minute secret vote (not voting costs 8), 1 exiled to a 5-minute gate with a last will
-and a ransom of a third of the city's median points (half when the exiled pays for itself; v05), once
+(at most half of its points, since v05) and a ransom of a third of the city's median points (half when the exiled pays for itself; v05), once
 per resident. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director

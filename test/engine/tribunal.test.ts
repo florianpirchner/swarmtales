@@ -2,8 +2,10 @@
 import { describe, expect, it } from "vitest";
 import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
 import { createRng } from "../../src/core/random.ts";
+import { EventBus, MemorySink } from "../../src/engine/events.ts";
 import { contractDeal, dealFactors } from "../../src/engine/puzzles/additive.ts";
 import { Tribunal, type TribunalEvent } from "../../src/engine/tribunal.ts";
+import { World } from "../../src/engine/world.ts";
 import { tribunalSchedule } from "../../src/story/tribunal.ts";
 import type { AnyStory, TribunalSpec } from "../../src/story/types.ts";
 import { validateStory } from "../../src/story/validate.ts";
@@ -164,6 +166,64 @@ describe("tribunal", () => {
 		expect(copy.tribunal.snapshot()).toEqual(h.tribunal.snapshot());
 		expect(copy.tribunal.canVote("A03")).toBe(false);
 		expect(copy.tribunal.canVote("A04")).toBe(true);
+	});
+});
+
+describe("last will (SPEC 6.4)", () => {
+	/** Six residents on the wall; nobody votes, so the first tribunal sends A01 (the city's lot among equals) to the gate. */
+	function gateWorld() {
+		let minute = 0;
+		const log = new MemorySink();
+		const bus = new EventBus([log], () => minute);
+		const world = new World({ story: nexus, competitors: competitorIds(6), seed: 7, minutes: 60, bus, minute: () => minute, startLevel: 8 });
+		const until = (last: number): void => {
+			for (; minute <= last; minute++) world.startMinute(minute);
+			minute = last;
+		};
+		until(32);
+		const gate = world.tribunal?.gates()[0];
+		if (gate === undefined) throw new Error("nobody at the gate");
+		return { world, log, until, exiled: gate.agent };
+	}
+
+	it("caps the points a will leaves at half of the exiled's points, and the rest burns at exile", () => {
+		const { world, log, until, exiled } = gateWorld();
+		const heir = exiled === "A06" ? "A05" : "A06";
+		// 15 start points; at the gate the exiled did not vote either, so it holds 15 and may leave 7.
+		const balance = world.ledger.balance(exiled);
+		expect(balance).toBe(15);
+		const refused = world.lastWill(exiled, "All to my heir.", [{ to: heir, points: 8 }]);
+		expect(refused).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
+		expect(refused.ok ? "" : refused.detail).toContain("at most 7 of your 15 points (50%)");
+		// The cap counts every point bequest together.
+		expect(world.lastWill(exiled, "Split.", [{ to: heir, points: 4 }, { to: "A04", points: 4 }])).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
+		const before = world.ledger.balance(heir);
+		expect(world.lastWill(exiled, "Half to my heir.", [{ to: heir, points: 7 }])).toMatchObject({ ok: true });
+		expect(world.ledger.balance(heir)).toBe(before + 7);
+		until(37);
+		expect(world.isExiled(exiled)).toBe(true);
+		expect(world.ledger.balance(exiled)).toBe(0);
+		expect(log.events.some((event) => event.type === "ledger_entry" && event.debit === exiled && event.reason === `exiled ${exiled}` && event.amount === 8)).toBe(true);
+		expect(world.ledger.total()).toBe(0);
+	});
+
+	it("leaves factors free of the cap", () => {
+		const { world, exiled } = gateWorld();
+		const pieces = world.heldPieces(exiled);
+		expect(pieces.length).toBeGreaterThan(0);
+		const bequests = pieces.map((piece) => ({ to: piece.needers[0] ?? "A06", factor: piece.id }));
+		expect(world.lastWill(exiled, "My pieces to those who need them.", [...bequests, { to: bequests[0]?.to ?? "A06", points: 7 }])).toMatchObject({ ok: true });
+	});
+
+	it("states the cap in the announcement and validates it", () => {
+		const { world } = gateWorld();
+		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."));
+		expect(announcement?.text).toContain("A last will may leave heirs at most 50% of your points and any factor you hold");
+		const validate = (bequestShare: number): readonly string[] =>
+			validateStory({ ...nexus, tribunal: { ...nexusTribunal(), bequestShare } }).filter((issue) => issue.startsWith("tribunal.bequestShare"));
+		expect(validate(1)).toEqual([]);
+		expect(validate(0)).toEqual(["tribunal.bequestShare: must be a share of the points between 0 (exclusive) and 1"]);
+		expect(validate(1.5)).toHaveLength(1);
 	});
 });
 

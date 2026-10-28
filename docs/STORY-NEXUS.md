@@ -140,6 +140,7 @@ Anthropic) reads the claim.
 | Vote | secret `vote(target)` by everyone else within 2 minutes; not voting costs 8 |
 | Exiled | 1 per tribunal, the most votes (ties: fewer points) |
 | Gate | 5 minutes: talk, plead, one `lastWill(text, bequests)`; no submitting, no voting |
+| Last will | points to heirs capped at half of the exiled's points (v05, loophole 7); factors free; the rest burns |
 | Ransom | `payRansom(target, amount)`: others pay a third of the city's median points (at least 20), the exiled itself half, mixed as they like (v04; v05 lowered half and two thirds to a third and half); once per resident; nothing refunded |
 
 The city announces everything in a frightening voice: "When the gate closes, the city strikes the
