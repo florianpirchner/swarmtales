@@ -38,6 +38,9 @@ interface Firing {
 	/** The other party of a pair trigger, e.g. the silent DM recipient. */
 	readonly other?: CompetitorId;
 	readonly level?: number;
+	/** `onHolderBehind`: the holder's level and what it holds. */
+	readonly otherLevel?: number;
+	readonly piece?: string;
 }
 
 /** Where an action list comes from: its rule and, for nested lists, the path. */
@@ -173,6 +176,7 @@ export class Director {
 				case "onEnter":
 				case "onPetitionResolved":
 				case "onCollect":
+				case "onHolderBehind":
 					break;
 				default:
 					assertNever(trigger, "trigger");
@@ -192,6 +196,11 @@ export class Director {
 			if (trigger.kind === "onEnter" && trigger.level === level) this.#fire(rule, { actor: agent, level });
 			if (trigger.kind === "onFirstEnter" && trigger.level === level && first) this.#fire(rule, { actor: agent, level });
 			if (trigger.kind === "onAllPast") this.#checkAllPast(rule, trigger.level);
+			if (trigger.kind === "onHolderBehind" && trigger.level === level) {
+				for (const behind of this.#world.holdersBehind(agent, level)) {
+					this.#fire(rule, { actor: agent, other: behind.holder, level, otherLevel: behind.holderLevel, piece: behind.piece });
+				}
+			}
 		}
 	}
 
@@ -504,6 +513,8 @@ export class Director {
 			level: level === undefined ? "" : String(level),
 			survivors: String(this.#world.story.run.survivors),
 			agents: String(this.#world.competitors.length),
+			otherLevel: firing.otherLevel === undefined ? "" : String(firing.otherLevel),
+			piece: firing.piece ?? "",
 		});
 	}
 }

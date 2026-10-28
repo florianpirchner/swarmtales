@@ -108,7 +108,7 @@ describe("validateStory", () => {
 
 	it("knows that the engine runs every director primitive of SPEC 10", () => {
 		expect([...DIRECTOR_SUPPORT.triggers].sort()).toEqual(
-			["at", "every", "onAllPast", "onCollect", "onCollectionEnd", "onEnter", "onFirstEnter", "onPetitionResolved", "onTeamSplit", "onUnansweredDm"],
+			["at", "every", "onAllPast", "onCollect", "onCollectionEnd", "onEnter", "onFirstEnter", "onHolderBehind", "onPetitionResolved", "onTeamSplit", "onUnansweredDm"],
 		);
 		expect([...DIRECTOR_SUPPORT.conditions].sort()).toEqual(
 			["castActive", "collectionEnded", "collectionOpen", "competitorsAtLevel", "cooldown", "minLevelReached", "onceOnly", "petitionStatus"],

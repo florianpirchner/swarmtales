@@ -109,7 +109,9 @@ are scripted. The audit log always records the true origin of every message.
 
 Each competitor keeps one model session for the whole run. Every step (§3) delivers:
 
-1. **Status line** — minute, level, own points, own rank, rounds left, marks, receipts.
+1. **Status line** — minute, level, own points, own rank, rounds left, marks, receipts, and
+   [v05] the additive pieces the agent holds for residents who wait at that door (reached it, not
+   passed it): `you hold for others: A01 door 9 counter-factor 791217`.
 2. **Delivered items** — new level task, DMs (full text), city notices addressed to the
    agent.
 3. **Digest** — counts only: unread board posts, unread posts per group. Contents must
@@ -350,6 +352,7 @@ arbitrary expressions — so stories stay deterministic, serializable and valida
 | `onTeamSplit(level, forMinutes)` | members of a team from `level` have been on different levels for `forMinutes` |
 | `onCollect(into)` [M4] | once per distinct sender whose DM is collected into the collection `into` (actor = that sender), right when the DM arrives |
 | `onCollectionEnd(into)` | once, at the start of the minute the window of the collection `into` ends, whether or not it filled (no actor) |
+| `onHolderBehind(level)` [v05] | a competitor enters additive `level` while a holder of its counter-factor or team certificate is still on a lower level (not waiting at an opening snapshot door): once per such holder, actor = the needer, `{other}` = the holder, `{otherLevel}` = the holder's level, `{piece}` = `counter-factor` or `team certificate`; the value is never a placeholder |
 
 ### 10.2 Conditions (optional, all must hold)
 
@@ -381,7 +384,7 @@ that level); the exiled (§6.4) never receive anything.
 | `revealFactor(target, level)` [M4] | releases the city factor of additive level `level` (§12.3): `target = "board"` posts it as `CITY`; a notice target (`actor`, a list, `all`, `{ onLevel }`) sends it as a private city notice, once per resident (prior holders are skipped); on a level with a city factor per team each recipient gets its own team's, and the board is refused. Logged as `factor_revealed`; skipped for a level the run does not play |
 
 Text fields are templates with typed placeholders (`{actor}`, `{minute}`, `{level}`,
-`{survivors}`, …). Unknown placeholders are compile errors where the DSL can express
+`{survivors}`, …; `{otherLevel}` and `{piece}` only under `onHolderBehind`). Unknown placeholders are compile errors where the DSL can express
 it, and validation errors otherwise.
 
 Every director action is logged with the rule ID that caused it.
@@ -539,7 +542,12 @@ A non-holder reads `Team certificate: held by A03.`. When a competitor enters an
 while the holder of its counter-factor or of its team certificate is still on a lower level, the
 holder gets a private city notice with the value right away (`A01 has reached door 10 and needs
 the counter-factor you hold for them: 121059.`, likewise `... needs the team certificate you
-hold: ...`); holders on that level or beyond read it in their task. The game master's secret guard
+hold: ...`); since v05 it goes on: `This is your role on door 10 even before you reach it; the
+value is yours to give, and giving it costs only a mark.` (the DM price on the holder's level).
+Holders on that level or beyond read it in their task, and so do holders who wait at an opening
+snapshot door, since they enter with everyone else. While the needer waits at the door, the
+holder's status line keeps the piece (§5.1), and a story may tell the needer where its holder is
+stuck with `onHolderBehind` (§10.1; nexus does on levels 8-10). The game master's secret guard
 redacts these values like every factor. A `feast` level reads `City factor: the city
 sends it privately to the residents it chooses.` (a later board release, e.g. when a feast's
 table is cleared, stays allowed).

@@ -13,6 +13,7 @@ import {
 	TRIBUNAL_TEXT_PLACEHOLDERS,
 	ADDITIVE_PLACEHOLDERS,
 	DIRECTOR_PLACEHOLDERS,
+	HOLDER_PLACEHOLDERS,
 	FACTOR_TOPOLOGIES,
 	FRAGMENT_PLACEHOLDERS,
 	TASK_PLACEHOLDERS,
@@ -562,6 +563,8 @@ interface ActionContext {
 	readonly other: boolean;
 	/** `{level}` resolves. */
 	readonly level: boolean;
+	/** `{otherLevel}` and `{piece}` resolve (`onHolderBehind`). */
+	readonly holder?: boolean;
 	/** The minute the actions run at, when it is statically known (`at`). */
 	readonly minute?: number;
 }
@@ -594,6 +597,8 @@ function contextOf(trigger: Trigger): ActionContext {
 			return { actor: true, other: false, level: true };
 		case "onUnansweredDm":
 			return { actor: true, other: true, level: true };
+		case "onHolderBehind":
+			return { actor: true, other: true, level: true, holder: true };
 		default:
 			return assertNever(trigger, "trigger");
 	}
@@ -797,6 +802,12 @@ function validateTrigger(story: AnyStory, trigger: Trigger, refs: StoryRefs, whe
 		case "onCollectionEnd":
 			if (!refs.collections.has(trigger.into)) issues.push(`${where}: collection ${trigger.into} is never started by collectDms`);
 			return;
+		case "onHolderBehind": {
+			const target = story.levels.find((entry) => entry.number === trigger.level);
+			if (target === undefined) issues.push(`${where}: unknown level ${trigger.level}`);
+			else if (target.puzzle.kind !== "additive") issues.push(`${where}: level ${trigger.level} has no factors, so nobody holds a piece for anyone`);
+			return;
+		}
 		default:
 			assertNever(trigger, "trigger");
 	}
@@ -827,6 +838,9 @@ function validateAction(
 		const hasActor = context.actor || personal;
 		if (used.includes("actor") && !hasActor) issues.push(`${where}: {actor} in ${action.kind} has no actor for this trigger`);
 		if (used.includes("other") && !context.other) issues.push(`${where}: {other} in ${action.kind} has no other party for this trigger`);
+		for (const name of HOLDER_PLACEHOLDERS) {
+			if (used.includes(name) && context.holder !== true) issues.push(`${where}: {${name}} in ${action.kind} needs an onHolderBehind trigger`);
+		}
 		if (used.includes("level") && !context.level && !hasActor) {
 			issues.push(`${where}: {level} in ${action.kind} has no level for this trigger`);
 		}

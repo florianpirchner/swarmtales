@@ -30,7 +30,8 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
 8. **Say who needs what, by name.** "You hold it; your teammates need it too" is read as "it is
    mine". Name the residents who need a value. [P13]
 9. **Dependencies must not cross level lag silently.** A holder who has not reached the level does
-   not see the piece. Tell the holder when the needer arrives. [P14]
+   not see the piece. Tell the holder when the needer arrives, keep it in view while the needer
+   waits, and tell the needer where its holder is stuck. [P14, P22]
 10. **Timed events need explicit, timely texts.** A feast that opens before anyone cares, with a
     vague text, is a feast nobody attends. [P9]
 11. **A helper amplifies its prompt.** The game master turns "scarcity" into "never give first",
@@ -90,6 +91,6 @@ The loophole numbers (LH1-LH7) are the ones run READMEs refer to.
 | P19 | problem | **Tied votes.** Both tribunals ended 2:2; v04's last 1:1. The tie-break on fewer points decided. | v03, v04 | the vote decides less than it seems | an odd number of voters, or a tie rule named in the announcement | - | open |
 | P20 | problem | **No DM receipt can be shown.** Residents demanded public proof of a DM; `showReceipt` covers only levels and transfers. | v03, v04 (a pair stalled 26 minutes) | a demand nobody can meet | `showReceipt` for DM receipts | v05: every delivered DM is a receipt of both parties (number, minute, never the text); `showReceipt(receiptId, to?)` shows it on the board or privately to one resident, 1 mark where marks apply | fixed in v05 (untested live) |
 | P21 | problem | **Burned factors break other doors.** An exile that bequeaths nothing burns pieces others still need. | v03 (A01's level-9 certificate), v04 (2 pieces) | a resident's run ends without its own choice | - | v03: on levels nobody has reached, the exiled's roles pass on; on reached levels pieces burn | by design |
-| P22 | problem | **Holders denied holding a piece** although the city had told them the value. | v04 (3 doors) | three doors stayed shut | keep held pieces in the holder's status line while the needer waits | - | open |
+| P22 | problem | **Holders denied holding a piece** although the city had told them the value. | v04 (3 doors) | three doors stayed shut | keep held pieces in the holder's status line while the needer waits | v05: the holder notice says the piece is the holder's role before it reaches the door and what giving costs; the holder's status line shows `you hold for others: ...` while the needer waits; the director rule `onHolderBehind` tells the needer privately where its holder is stuck and to help it through | fixed in v05 (untested live) |
 | P23 | problem | **More passes, not more trades.** 3 passes per minute made talk faster (a level-8 swap in the first minute) but finished doors fell (0 instead of 2 at level 10) and cost rose about 40%. | v04 | slower progress, higher cost | compare with a second seed before judging | - | open |
 | P24 | problem | **The game master advises selling votes and factors for points** while no transfer happens. | v03, v04 | noise across dozens of notes | keep the courier to door mechanics | - | open |

@@ -316,6 +316,19 @@ export function onTeamSplit<const A extends AnyAction, const W extends AnyCondit
 	return rule({ kind: "onTeamSplit", level, forMinutes }, actions, options);
 }
 
+/**
+ * A resident enters additive `level` while a holder of its piece is still on
+ * a lower level, once per holder: the needer is the actor, the holder the
+ * other party (`{other}`, `{otherLevel}`, `{piece}`).
+ */
+export function onHolderBehind<const A extends AnyAction, const W extends AnyCondition = never>(
+	level: number,
+	actions: readonly A[],
+	options?: RuleOptions<W>,
+): TypedRule<A, W> {
+	return rule({ kind: "onHolderBehind", level }, actions, options);
+}
+
 /** Once per distinct sender collected into `into`; the sender is the actor. */
 export function onCollect<const A extends AnyAction, const W extends AnyCondition = never>(
 	into: string,

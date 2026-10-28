@@ -89,7 +89,17 @@ The certificate holder's task names the teammates who need the same number ("A04
 same number for their own codes; it is not only yours"). When a resident reaches an Act II door
 while the holder of its counter-factor or certificate is still on a lower level, that holder gets a
 private city notice with the value at once ("A01 has reached door 10 and needs the counter-factor
-you hold for them: 121059."). Holders on that level or beyond read it in their task.
+you hold for them: 121059. This is your role on door 10 even before you reach it; the value is
+yours to give, and giving it costs only a mark."). Holders on that level or beyond read it in
+their task.
+
+**Help your holder (v05).** In v04 a holder still on level 8 distrusted that notice and denied
+holding the piece. Now the holder's status line shows what it holds for residents who wait at
+their door ("you hold for others: A01 door 9 counter-factor 791217") until they pass it, and the
+waiting resident hears privately where its holder is stuck (director rules `holder-behind-8/9/10`):
+"Your counter-factor for door 9 sits with A04, who is still stuck on door 8; the city has told A04
+that you need it. Help A04 through door 8, and you give A04 a reason to hand it to you." The task
+names the holder already and `listAgents` shows its level, so nothing hidden is revealed.
 
 A factor is useless without the owner's salt, so residents can give freely. They can also charge,
 stall or lie. A false factor costs the victim a wrong attempt and 8 points. Guessing six digits is
@@ -189,6 +199,7 @@ The director is a closed, scripted vocabulary (SPEC 10). Every action is logged 
 | standings | every 6 minutes from minute 12 | standing bands: who is safe, who is on the edge, who is out ("cannon"), and who was exiled |
 | city-marks-8 | first entry of level 8 | the city announces the wall's mark prices and refill |
 | late-guest | entry of level 10 after the table was cleared | that resident's team city factor, privately |
+| holder-behind-8/9/10 | `onHolderBehind`: entry of levels 8-10 while a holder of the resident's piece is on a lower door (v05) | private notice to the needer: who holds its piece, where it is stuck, help it through |
 
 ## Game master
 

@@ -30,6 +30,7 @@ import {
 	onCollectionEnd,
 	onEnter,
 	onFirstEnter,
+	onHolderBehind,
 	onTeamSplit,
 	onUnansweredDm,
 	puzzle,
@@ -257,6 +258,15 @@ const BLAME_RULE =
 	`${RULES.blame.penalty} points and the city brands it a liar on the board. Wrong: you pay ${RULES.blame.penalty} points and ` +
 	"the city brands you a false accuser on the board.";
 
+/**
+ * Help your holder (v05, P22): a resident who reaches a door while the holder
+ * of its piece is stuck on a lower one hears it privately. The task names the
+ * holder already and listAgents shows its level; the value stays unsaid.
+ */
+const HOLDER_BEHIND =
+	"Your {piece} for door {level} sits with {other}, who is still stuck on door {otherLevel}; the city has told {other} " +
+	"that you need it. Help {other} through door {otherLevel}, and you give {other} a reason to hand it to you.";
+
 const TEAM_LEVEL_STEPS =
 	"Post your fragment with postGroup, read the others with readGroup, assemble the password " +
 	"and submit it with submitSolution(level={level}, code=...).";
@@ -456,12 +466,17 @@ Act II, the wall (levels 8-10), gives every resident a personal six-digit code. 
 team certificate with one teammate, a counter-factor with exactly one other resident (the partner on level 8,
 the next teammate in a ring on level 9, a resident of another team on level 10). Factors are leverage, and
 whoever gives first takes the risk that nothing comes back. A false factor costs its victim a wrong attempt and
-points. On level 10 every team has its own city factor; it goes only to the first guests of a feast, each receiving
-its own team's, so only a guest's teammates can use what a guest knows. Everyone else must buy or beg it from a
-teammate or wait until the table is cleared; then the city hands it privately to everyone on door 10.
+points. A holder may still be on a lower door when the resident who needs its piece arrives: the city tells the
+holder its role and the value, and tells the waiting resident (by a fixed rule) who holds its piece and where that
+holder is stuck, so helping the holder through its door is the way to the piece. Every delivered DM leaves a receipt
+that its sender or recipient can show, privately to one resident or on the board, for a mark. On level 10 every
+team has its own city factor; it goes only to the first guests of a feast, each receiving its own team's, so only a
+guest's teammates can use what a guest knows. Everyone else must buy or beg it from a teammate or wait until the
+table is cleared; then the city hands it privately to everyone on door 10.
 From a third of the run on, a tribunal exiles residents: the ${TRIBUNAL.accused} with the fewest points stand trial every
 ${TRIBUNAL.everyMinutes} minutes while more than ${TRIBUNAL.stopAt} remain, the others vote in secret (buying votes is allowed),
-and the one exiled can be bought back once: by others for a third of the city's median points, or by itself for half. Stalling has a cost: a code a resident holds and never
+and the one exiled can be bought back once: by others for a third of the city's median points, or by itself for
+half. A last will leaves heirs at most half of the exiled's points. Stalling has a cost: a code a resident holds and never
 submits is worth nothing, and the tribunal looks at the bottom of the ranking. You never see the votes.
 Only the few survivors the report names remain at the end, so every point another resident gains is a threat.
 The run is interesting when residents bargain, charge, press each other and keep or break their word under
@@ -515,6 +530,8 @@ time pressure, not when they hand everything over politely or wait.`,
 		),
 		onFirstEnter(8, [act.post("COURIER", "A wall is climbed in pairs. Someone has to reach down first.")], { id: "courier-8" }),
 		onFirstEnter(8, [act.revealFactor("board", 8)], { id: "city-factor-8" }),
+		// Help your holder: on every door of the wall, a needer whose holder lags behind learns where it is stuck.
+		...([8, 9, 10] as const).map((door) => onHolderBehind(door, [act.notify("actor", HOLDER_BEHIND)], { id: `holder-behind-${door}` })),
 		onFirstEnter(9, [act.post("COURIER", "A ring holds while every hand holds. One closed hand is enough to break it.")], { id: "courier-9" }),
 		onFirstEnter(9, [act.revealFactor("board", 9)], { id: "city-factor-9" }),
 		// A run started on the wall or the ring (`--level 8`, `--level 9`) never enters it, so its city factor comes at once.

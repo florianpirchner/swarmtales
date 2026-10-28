@@ -249,7 +249,7 @@ describe("nexus act II in one scripted run (SPEC 13.3)", () => {
 		const holderNotices = fixture.events("notice").filter((notice) => / has reached door \d+ and needs /.test(notice.text));
 		expect(holderNotices.length).toBeGreaterThan(0);
 		for (const notice of holderNotices) {
-			const [, agent = "", level = "0", what = "", value = ""] = /^(A\d+) has reached door (\d+) and needs the (counter-factor|team certificate) you hold(?: for them)?: (\d+)\.$/.exec(notice.text) ?? [];
+			const [, agent = "", level = "0", what = "", value = ""] = /^(A\d+) has reached door (\d+) and needs the (counter-factor|team certificate) you hold(?: for them)?: (\d+)\. This is your role on door \d+ even before you reach it; the value is yours to give, and (?:giving it costs only (?:a mark|\d+ marks)|a DM to them costs nothing)\.$/.exec(notice.text) ?? [];
 			const deal = world.inspect.factorsOf(Number(level));
 			const own = deal?.holdings.find((holding) => holding.agent === agent);
 			const expected = what === "counter-factor" ? own?.counterFactor : deal?.teams.find((team) => team.team === own?.team)?.certificate;

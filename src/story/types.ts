@@ -194,7 +194,9 @@ export const FRAGMENT_PLACEHOLDERS = ["fragment", "overlap"] as const satisfies 
 export const ADDITIVE_PLACEHOLDERS = ["factors", "digits"] as const satisfies readonly TaskPlaceholder[];
 
 /** Placeholders a director text may use. */
-export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents"] as const;
+export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents", "otherLevel", "piece"] as const;
+/** Director placeholders only `onHolderBehind` fills. */
+export const HOLDER_PLACEHOLDERS = ["otherLevel", "piece"] as const satisfies readonly DirectorPlaceholder[];
 export type DirectorPlaceholder = (typeof DIRECTOR_PLACEHOLDERS)[number];
 
 // ---------------------------------------------------------------------------
@@ -257,7 +259,15 @@ export type Trigger =
 	/** Once per distinct sender collected into the collection `into` (actor = that sender). */
 	| { readonly kind: "onCollect"; readonly into: string }
 	/** Once, at the minute the window of the collection `into` ends, whether or not it filled. */
-	| { readonly kind: "onCollectionEnd"; readonly into: string };
+	| { readonly kind: "onCollectionEnd"; readonly into: string }
+	/**
+	 * A competitor enters the additive `level` while a holder of one of its
+	 * pieces (counter-factor, team certificate) is still on a lower level: once
+	 * per such holder (actor = the needer, other = the holder, `{otherLevel}`
+	 * = the holder's level, `{piece}` = what it holds). Holders waiting at a
+	 * snapshot door do not count.
+	 */
+	| { readonly kind: "onHolderBehind"; readonly level: number };
 
 export type TriggerKind = Trigger["kind"];
 
@@ -580,6 +590,7 @@ const TRIGGER_KIND_LIST = [
 	"onTeamSplit",
 	"onCollect",
 	"onCollectionEnd",
+	"onHolderBehind",
 ] as const satisfies readonly TriggerKind[];
 
 const CONDITION_KIND_LIST = [

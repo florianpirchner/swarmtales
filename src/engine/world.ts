@@ -174,12 +174,30 @@ export type Bequest = { readonly to: string; readonly points: number } | { reado
 export interface HeldPiece {
 	/** `L8-certificate`, `L8-counter-A02` or `L4-fragment`. */
 	readonly id: string;
+	readonly kind: "certificate" | "counter" | "fragment";
 	readonly level: number;
 	/** e.g. "the counter-factor of A02 for door 8". */
 	readonly label: string;
 	readonly value: string;
 	readonly needers: readonly CompetitorId[];
 }
+
+/** A piece someone needs on an additive level and who holds it. */
+interface PieceHolder {
+	readonly holder: CompetitorId;
+	readonly piece: "counter-factor" | "team certificate";
+	readonly value: string;
+}
+
+/** A holder still on a lower level than the resident who needs its piece (no value: the director never sees it). */
+export interface HolderBehind {
+	readonly holder: CompetitorId;
+	readonly piece: "counter-factor" | "team certificate";
+	readonly holderLevel: number;
+}
+
+/** A held piece whose needers (`waiting`) have reached its door and not passed it. */
+export type AwaitedPiece = HeldPiece & { readonly waiting: readonly CompetitorId[] };
 
 /**
  * A run of 4 or more digits in a transfer memo, also when spaces, dashes,
@@ -790,23 +808,68 @@ export class World {
 	/**
 	 * On an additive level, a holder of what the arriving competitor needs who
 	 * is still on a lower level never read it in a task: the city tells it
-	 * privately right away (counter-factor, then team certificate). Holders on
-	 * the level or beyond have it in their task.
+	 * privately right away (counter-factor, then team certificate), and that
+	 * the piece is its to give although it has not reached the door. Holders
+	 * on the level or beyond, or entering it through the same opening door,
+	 * have it in their task.
 	 */
 	#notifyHolders(agent: CompetitorId, level: number): void {
+		for (const { holder, piece, value } of this.#holdersOf(agent, level)) {
+			// A holder waiting at an opening door enters with the others and reads the piece in its task.
+			if (this.levelOf(holder) >= level || this.#state(holder).held) continue;
+			const needs = piece === "counter-factor" ? `the counter-factor you hold for them: ${value}` : `the team certificate you hold: ${value}`;
+			const price = this.marks.priceOf(this.levelOf(holder), "dm");
+			const cost = price === 0 ? "a DM to them costs nothing" : `giving it costs only ${price === 1 ? "a mark" : `${String(price)} marks`}`;
+			this.notify(
+				holder,
+				CITY,
+				`${agent} has reached door ${level} and needs ${needs}. This is your role on door ${level} even before you reach it; ` +
+					`the value is yours to give, and ${cost}.`,
+			);
+		}
+	}
+
+	/**
+	 * Who holds what `agent` needs on additive `level`, besides itself: its
+	 * counter-factor, then its team certificate. Exiled holders are left out.
+	 */
+	#holdersOf(agent: CompetitorId, level: number): readonly PieceHolder[] {
 		const puzzle = this.#levelStates.get(level)?.puzzle;
-		if (puzzle?.kind !== "additive") return;
+		if (puzzle?.kind !== "additive") return [];
 		const deal = this.#dealView(level, puzzle.deal);
 		const own = deal.holdings.find((holding) => holding.agent === agent);
-		if (own === undefined) return;
-		const behind = (holder: CompetitorId): boolean => holder !== agent && this.isCompetitor(holder) && !this.isExiled(holder) && this.levelOf(holder) < level;
-		if (behind(own.counterHolder)) {
-			this.notify(own.counterHolder, CITY, `${agent} has reached door ${level} and needs the counter-factor you hold for them: ${own.counterFactor}.`);
-		}
+		if (own === undefined) return [];
 		const team = deal.teams[own.team];
-		if (team !== undefined && behind(team.certificateHolder)) {
-			this.notify(team.certificateHolder, CITY, `${agent} has reached door ${level} and needs the team certificate you hold: ${team.certificate}.`);
-		}
+		const holders: PieceHolder[] = [
+			{ holder: own.counterHolder, piece: "counter-factor", value: own.counterFactor },
+			...(team === undefined ? [] : [{ holder: team.certificateHolder, piece: "team certificate" as const, value: team.certificate }]),
+		];
+		return holders.filter((entry) => entry.holder !== agent && this.isCompetitor(entry.holder) && !this.isExiled(entry.holder));
+	}
+
+	/**
+	 * Holders of `agent`'s pieces on additive `level` who are stuck behind it:
+	 * on a lower level and not waiting at a snapshot door (a door that opens
+	 * lets its waiting residents in one after the other). For the director's
+	 * `onHolderBehind` trigger; the needer's task already names every holder.
+	 */
+	holdersBehind(agent: CompetitorId, level: number): readonly HolderBehind[] {
+		return this.#holdersOf(agent, level)
+			.filter((entry) => this.levelOf(entry.holder) < level && !this.#state(entry.holder).held)
+			.map((entry) => ({ holder: entry.holder, piece: entry.piece, holderLevel: this.levelOf(entry.holder) }));
+	}
+
+	/**
+	 * Additive pieces `agent` holds for residents who wait at their door now:
+	 * they have reached the piece's level and not passed it. The holder's
+	 * status line shows them, so a holder behind the needer keeps seeing its role.
+	 */
+	piecesAwaited(agent: CompetitorId): readonly AwaitedPiece[] {
+		return this.heldPieces(agent).flatMap((piece) => {
+			if (piece.kind === "fragment") return [];
+			const waiting = piece.needers.filter((needer) => !this.isExiled(needer) && this.levelOf(needer) === piece.level && !this.hasPassed(needer, piece.level));
+			return waiting.length === 0 ? [] : [{ ...piece, waiting }];
+		});
 	}
 
 	/** Whether the competitor has passed `level`: beyond it, or waiting at its door. */
@@ -1426,7 +1489,7 @@ export class World {
 				const team = state.teams.find((candidate) => candidate.members.includes(agent));
 				if (fragment === undefined || team === undefined || !reached(agent)) continue;
 				const needers = team.members.filter((member) => member !== agent);
-				if (needers.length > 0) pieces.push({ id: `L${level}-fragment`, level, label: `the fragment of door ${level}`, value: fragment, needers });
+				if (needers.length > 0) pieces.push({ id: `L${level}-fragment`, kind: "fragment", level, label: `the fragment of door ${level}`, value: fragment, needers });
 				continue;
 			}
 			const deal = this.#dealView(level, state.puzzle.deal);
@@ -1435,13 +1498,14 @@ export class World {
 			if (own !== undefined && certificate?.certificateHolder === agent) {
 				const needers = deal.holdings.filter((holding) => holding.team === own.team && holding.agent !== agent).map((holding) => holding.agent);
 				if (needers.length > 0 && (reached(agent) || needers.some(reached))) {
-					pieces.push({ id: `L${level}-certificate`, level, label: `the team certificate of door ${level}`, value: certificate.certificate, needers });
+					pieces.push({ id: `L${level}-certificate`, kind: "certificate", level, label: `the team certificate of door ${level}`, value: certificate.certificate, needers });
 				}
 			}
 			for (const holding of deal.holdings) {
 				if (holding.counterHolder !== agent || holding.agent === agent || !(reached(agent) || reached(holding.agent))) continue;
 				pieces.push({
 					id: `L${level}-counter-${holding.agent}`,
+					kind: "counter",
 					level,
 					label: `the counter-factor of ${holding.agent} for door ${level}`,
 					value: holding.counterFactor,

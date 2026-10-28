@@ -158,9 +158,17 @@ describe("nexus Act II v03, resumed from the Act I snapshot (offline)", () => {
 
 	it("plays receipts, blames, the tribunal, a ransom and a final exile with a last will", async () => {
 		const { world, events, inputsOf, jsonl } = await playActTwo();
+		const a01dm = dmBetween(world, "A01", "A02");
+
+		// v05: the delivered DM is a receipt of both sides; the door to the wall lets everyone in together, so no holder
+		// hears of a needer "reaching" door 8 before itself, and the help-your-holder rule stays silent.
+		expect(world.receiptsOf("A02").some((receipt) => receipt.kind === "dm" && receipt.from === "A01" && receipt.number === a01dm?.id)).toBe(true);
+		expect(events("notice").filter((notice) => notice.text.includes("has reached door 8"))).toEqual([]);
+		expect(events("director_action").filter((action) => action.rule.startsWith("holder-behind-"))).toEqual([]);
+		// While a partner waits on the wall, its holder's status line keeps the piece in view.
+		expect(inputsOf("A02").some((input) => input.startsWith("[status]") && input.includes("you hold for others: ") && input.includes(" door 8 "))).toBe(true);
 
 		// Receipts and blames: one upheld (the liar pays 12 and is branded), one rejected (the false accuser pays 12 and is branded).
-		const a01dm = dmBetween(world, "A01", "A02");
 		expect(inputsOf("A01").some((input) => input.startsWith(`[CITY] DM #${a01dm?.id ?? 0} delivered to A02 at minute `))).toBe(true);
 		const blames = events("blame");
 		expect(blames.map((event) => [event.caller, event.accused, event.outcome, event.payer, event.penalty])).toEqual([

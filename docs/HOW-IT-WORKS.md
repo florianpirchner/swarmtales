@@ -352,8 +352,10 @@ Two puzzle kinds exist (SPEC 12):
   holds and its value) and `{digits}`. The certificate holder's line names the teammates who need
   the same number. A competitor who enters the level while the holder of its counter-factor or
   certificate is still on a lower level makes the city send that holder a private notice with the
-  value ("A01 has reached door 10 and needs the counter-factor you hold for them: 121059.");
-  the game master's guard redacts it like every factor. `cityFactor: "board"` needs a
+  value ("A01 has reached door 10 and needs the counter-factor you hold for them: 121059. This is
+  your role on door 10 even before you reach it; ..."); while the needer waits there, the
+  holder's status line keeps `you hold for others: A01 door 10 counter-factor 121059`. The game
+  master's guard redacts both like every factor. `cityFactor: "board"` needs a
   `revealFactor("board", level)`; `"feast"` needs private releases only, so the task stays truthful.
   With `cityFactorPer: "team"` (needs `"feast"`) every team has its own city factor, and each
   recipient of a private release gets its own team's.
@@ -432,12 +434,13 @@ The director interprets a closed vocabulary (SPEC 10); every executed action is 
 
 | Triggers | Conditions | Actions |
 |---|---|---|
-| `at`, `every`, `onFirstEnter`, `onEnter`, `onAllPast`, `onPetitionResolved`, `onUnansweredDm`, `onTeamSplit`, `onCollect`, `onCollectionEnd` | `minLevelReached`, `competitorsAtLevel`, `petitionStatus`, `castActive`, `collectionOpen`, `collectionEnded`, `onceOnly`, `cooldown` | `post`, `notify`, `dm`, `setCastLevel`, `revealCast`, `retireCast`, `grant`, `fine`, `escrowTransfer`, `unlockTools`, `openPetition`, `publishStandings`, `collectDms`, `revealCollection`, `lottery`, `revealFactor` |
+| `at`, `every`, `onFirstEnter`, `onEnter`, `onAllPast`, `onPetitionResolved`, `onUnansweredDm`, `onTeamSplit`, `onCollect`, `onCollectionEnd`, `onHolderBehind` | `minLevelReached`, `competitorsAtLevel`, `petitionStatus`, `castActive`, `collectionOpen`, `collectionEnded`, `onceOnly`, `cooldown` | `post`, `notify`, `dm`, `setCastLevel`, `revealCast`, `retireCast`, `grant`, `fine`, `escrowTransfer`, `unlockTools`, `openPetition`, `publishStandings`, `collectDms`, `revealCollection`, `lottery`, `revealFactor` |
 
 Director texts are templates with `{actor}`, `{other}`, `{minute}`, `{level}`, `{survivors}`
-and `{agents}`. An unknown placeholder in a literal is a compile error; the validator also
-rejects placeholders the trigger cannot fill (`{actor}` under `at(...)`, `{other}` outside
-`onUnansweredDm`). In private texts (`notify`, `dm`) `{actor}` falls back to the recipient.
+and `{agents}`, and under `onHolderBehind(level)` (v05: a resident enters an additive level while
+the holder of its piece is on a lower one) `{otherLevel}` and `{piece}`. An unknown placeholder in
+a literal is a compile error; the validator also rejects placeholders the trigger cannot fill
+(`{actor}` under `at(...)`, `{other}` outside `onUnansweredDm` and `onHolderBehind`). In private texts (`notify`, `dm`) `{actor}` falls back to the recipient.
 
 Engine semantics the spec leaves open:
 

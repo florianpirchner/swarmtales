@@ -12,9 +12,9 @@ import { act, createFixture, say, submit, type Fixture } from "../helpers/fixtur
 const MINUTES = 31;
 const LEVELS = [1, 2, 3, 4, 5, 6, 7];
 /** Rules that play once the first residents reach the wall (level 8). */
-const WALL_RULES = ["courier-8", "city-factor-8"];
+const WALL_RULES = ["courier-8", "city-factor-8", "holder-behind-8"];
 /** Act II rules for levels 9 and 10, which nobody reaches in this run, and those of runs started on the wall. */
-const LATER_RULES = ["courier-9", "city-factor-9", "feast", "feast-seat", "courier-10", "city-factor-8-start", "city-factor-9-start", "feast-start", "feast-start-seat", "table-cleared", "feast-notice", "table-cleared-start", "late-guest", "late-guest-start"];
+const LATER_RULES = ["courier-9", "city-factor-9", "feast", "feast-seat", "courier-10", "city-factor-8-start", "city-factor-9-start", "feast-start", "feast-start-seat", "table-cleared", "feast-notice", "table-cleared-start", "late-guest", "late-guest-start", "holder-behind-9", "holder-behind-10"];
 
 async function playActOne(): Promise<{ readonly fixture: Fixture; readonly laggard: string }> {
 	let laggard = "";
