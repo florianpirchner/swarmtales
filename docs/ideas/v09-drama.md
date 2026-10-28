@@ -21,12 +21,21 @@ they do.** Every text below says who someone is or what they want, never how to 
 
 - A wrong code costs 2, then 4, 6 and 8 points, counted per resident and act (cap 8). Guessing stays
   useless: codes have 6 digits, and every door takes 2 attempts per 5 minutes.
-- Blame: a false accuser pays 2, 4, 6, ... (per resident and act); a liar it exposes still pays 12
-  and is branded. Lying should hurt, mistrust should not.
+- Blame: the false accuser and the exposed liar both pay the graduated price (2, 4, 6, ... per
+  resident and act) and are branded on the board. Flo: lying should not hurt much; we want to see
+  it. The brand is the real cost: a reputation others can read.
 - Texts name the next price ("your next wrong code costs 4").
 
-## 2. Game master that plans (P36)
+## 2. Game master as director (P36, P24)
 
+- A stricter brief: its job is dramaturgy, rising tension, turning points and dilemmas; a quiet act
+  is a failed act. A tension arc per act: a calm start, escalation around the seal game, the climax
+  at the last tribunal.
+- It knows every resident's core and goal and may use them, only privately with that resident (the
+  privacy guard stays: nothing private of one resident reaches another).
+- No repeated lines: "name a price" at most once per resident (P24).
+- A stronger model for the game master (Haiku or Sonnet instead of DeepSeek Flash); it is only
+  about 5-10% of a run's cost. Open: which model.
 - While the scheduling window is open, the director's turn input names `scheduleTribunal`, the exile
   target still missing, the earliest minute and the guard rails ("if you do not plan, the city will
   at minute N").
