@@ -206,8 +206,8 @@ describe("nexus Act II v03, resumed from the Act I snapshot (offline)", () => {
 		expect(events("ransomed")).toMatchObject([{ agent: "A05", payers: ["A02", "A05"] }]);
 		expect(world.board.all().some((post) => post.text === "A02 and A05 paid the ransom. A05 returns to the city.")).toBe(true);
 
-		// Tribunal at 40: A05 again, no second ransom; a last will, then the gate closes at 47.
-		expect(opened[1]).toMatchObject({ minute: 40, accused: ["A05", "A02"] });
+		// Tribunal at 40: A05 again (behind A02, who paid toward the cheaper ransom), no second ransom; a last will, then the gate closes at 47.
+		expect(opened[1]).toMatchObject({ minute: 40, accused: ["A02", "A05"] });
 		expect(events("exile_gate").map((event) => [event.agent, event.ransomable])).toEqual(expect.arrayContaining([["A05", true], ["A05", false]]));
 		const will = events("last_will");
 		expect(will).toMatchObject([{ agent: "A05", text: "I leave what I can. Remember who voted." }]);

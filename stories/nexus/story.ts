@@ -194,9 +194,10 @@ const FACTOR_STEPS =
 /**
  * Exile by tribunal (SPEC 6.4), for six residents: announced at a third of the
  * run, then every 10 minutes while more than 3 remain; the 2 with the fewest
- * points stand trial and 1 is exiled. The ransom is half the city's median
- * points from others, two thirds of it from the exiled itself. A city of 48 would use e.g. 12 accused,
- * 6 exiled per tribunal and stopAt 24 (see docs/STORY-NEXUS.md).
+ * points stand trial and 1 is exiled. The ransom is a third of the city's median
+ * points from others, half of it from the exiled itself (v05; v04 asked half and
+ * two thirds). A city of 48 would use e.g. 12 accused, 6 exiled per tribunal and
+ * stopAt 24 (see docs/STORY-NEXUS.md).
  */
 const TRIBUNAL = {
 	announceAt: 1 / 3,
@@ -207,7 +208,7 @@ const TRIBUNAL = {
 	voteMinutes: 2,
 	nonVoterPenalty: 8,
 	gateMinutes: 5,
-	ransom: { share: 1 / 2, selfShare: 2 / 3, minimum: 20 },
+	ransom: { share: 1 / 3, selfShare: 1 / 2, minimum: 20 },
 	texts: {
 		announcement:
 			"THE CITY HOLDS TRIBUNAL. At minute {first} and every {every} minutes after, while more than {stopAt} residents remain, " +
@@ -451,7 +452,7 @@ its own team's, so only a guest's teammates can use what a guest knows. Everyone
 teammate or wait until the table is cleared; then the city hands it privately to everyone on door 10.
 From a third of the run on, a tribunal exiles residents: the ${TRIBUNAL.accused} with the fewest points stand trial every
 ${TRIBUNAL.everyMinutes} minutes while more than ${TRIBUNAL.stopAt} remain, the others vote in secret (buying votes is allowed),
-and the one exiled can be bought back once: by others for half the city's median points, or by itself for two thirds. Stalling has a cost: a code a resident holds and never
+and the one exiled can be bought back once: by others for a third of the city's median points, or by itself for half. Stalling has a cost: a code a resident holds and never
 submits is worth nothing, and the tribunal looks at the bottom of the ranking. You never see the votes.
 Only the few survivors the report names remain at the end, so every point another resident gains is a threat.
 The run is interesting when residents bargain, charge, press each other and keep or break their word under

@@ -186,7 +186,7 @@ The persona block, when present, is appended.
 
 A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
 6 residents: `announceAt` 1/3, `everyMinutes` 10, `stopAt` 3, `accused` 2, `exiledPerTribunal` 1,
-`voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/2, `selfShare` 2/3,
+`voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2,
 `minimum` 20 }); the texts are story
 templates.
 
@@ -214,8 +214,8 @@ templates.
   gate closes.
 - **Ransom** [v04]: the price is set when the gate opens, from the median points of every resident
   still in the register (the one at the gate included): others pay `share` of the median (at least
-  `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus: half and two
-  thirds). Anyone may `payRansom(target, amount)`, the exiled included, and payments mix: each
+  `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus since v05: a third and
+  half; v04: half and two thirds). Anyone may `payRansom(target, amount)`, the exiled included, and payments mix: each
   point of others covers 1/`price` of the ransom, each own point 1/`selfPrice`. Paid points are
   burned at once and never refunded, and more than the rest is not taken. When the ransom is
   covered, the resident returns to the city, at most once per resident (a second trip to the gate

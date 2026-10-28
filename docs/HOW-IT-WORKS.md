@@ -419,7 +419,7 @@ Since v03, Act II (levels 8-10) prices every channel at 1 mark with a refill of 
 unlocks `blame` (12 points for whoever is wrong) and plays the tribunal: announced at minute 20 of
 60, tribunals at 30, 40 and 50 while more than 3 residents remain, the 2 with the fewest points
 accused, a 2-minute secret vote (not voting costs 8), 1 exiled to a 5-minute gate with a last will
-and a ransom of half the city's median points (two thirds when the exiled pays for itself), once
+and a ransom of a third of the city's median points (half when the exiled pays for itself; v05), once
 per resident. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director
