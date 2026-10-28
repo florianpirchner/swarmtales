@@ -146,8 +146,8 @@ function scripts(world: World): Record<string, Step[]> {
 					name: "lastWill",
 					args: {
 						text: "I leave what I can. Remember who voted.",
-						// v06: each heir at most a tenth of A05's points.
-						bequests: [{ to: HEIR, points: Math.floor(world.ledger.balance("A05") / 10) }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? HEIR, factor: piece.id }))],
+						// v06: each heir at most a tenth of A05's points. `points: 0` beside a piece is accepted (v08 Act II run).
+						bequests: [{ to: HEIR, points: Math.floor(world.ledger.balance("A05") / 10) }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? HEIR, points: 0, factor: piece.id }))],
 					},
 				});
 			}
