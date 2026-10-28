@@ -87,8 +87,8 @@ describe("blame (SPEC 7.4)", () => {
 		const dm = dmOf(world);
 		const [early = 0, denial = 0] = postsOf(world, "A02");
 
-		// The sender's receipt names the number and the minute.
-		expect(fixture.inputsOf("A01")).toContain(`[CITY] DM #${dm} delivered to A02 at minute 1: "My counter-factor for you: 123456"`);
+		// The sender's delivery notice names the number, the minute and the DM receipt.
+		expect(fixture.inputsOf("A01").some((input) => input.startsWith(`[CITY] DM #${dm} delivered to A02 at minute 1 (receipt R-`) && input.endsWith(`): "My counter-factor for you: 123456"`))).toBe(true);
 
 		const blames = fixture.events("blame");
 		expect(blames.map((event) => [event.caller, event.outcome, event.payer, event.penalty])).toEqual([

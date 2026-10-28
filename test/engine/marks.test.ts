@@ -96,7 +96,7 @@ describe("marks (SPEC 7)", () => {
 		const fixture = createFixture({ agents: 3, minutes: 1, level: 4, lastLevel: 5, script: () => ({}) });
 		expect(fixture.world.currentProblem("A01")?.text).not.toContain("Marks on this level");
 		const later = createFixture({ agents: 3, minutes: 1, only: 5, script: () => ({}) });
-		expect(later.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2.");
+		expect(later.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1.");
 	});
 });
 
@@ -105,15 +105,15 @@ describe("marks per level range (SPEC 7)", () => {
 		fromLevel: 1,
 		perLevel: 4,
 		prices: { board: 0, group: 1, dm: 2 },
-		ranges: [{ fromLevel: 3, prices: { board: 1, group: 1, dm: 1 }, refillPerMinute: 1 }, { fromLevel: 5, perLevel: 2 }],
+		ranges: [{ fromLevel: 3, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 }, { fromLevel: 5, perLevel: 2 }],
 	};
 
 	it("take allowance, prices and refill from the range of the level, the rest from the base rules", () => {
 		const marks = new MarksBook(rules, []);
-		expect(marks.termsOn(2)).toEqual({ budget: 4, prices: { board: 0, group: 1, dm: 2 }, refillPerMinute: 0 });
-		expect(marks.termsOn(3)).toEqual({ budget: 4, prices: { board: 1, group: 1, dm: 1 }, refillPerMinute: 1 });
+		expect(marks.termsOn(2)).toEqual({ budget: 4, prices: { board: 0, group: 1, dm: 2, receipt: 1 }, refillPerMinute: 0 });
+		expect(marks.termsOn(3)).toEqual({ budget: 4, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 });
 		expect(marks.termsOn(4)).toEqual(marks.termsOn(3));
-		expect(marks.termsOn(5)).toEqual({ budget: 2, prices: { board: 0, group: 1, dm: 2 }, refillPerMinute: 0 });
+		expect(marks.termsOn(5)).toEqual({ budget: 2, prices: { board: 0, group: 1, dm: 2, receipt: 1 }, refillPerMinute: 0 });
 		expect(marks.priceOf(2, "board")).toBe(0);
 		expect(marks.priceOf(3, "board")).toBe(1);
 	});
@@ -209,10 +209,10 @@ describe("nexus marks on the wall (SPEC 13.3)", () => {
 	it("state the wall's prices in the task, and keep Act I's", () => {
 		const wall = createFixture({ only: 8, minutes: 1, script: () => ({}) });
 		expect(wall.world.currentProblem("A01")?.text).toContain(
-			"Marks on this level: 8. Prices: board 1, group 1, DM 1. You regain 1 mark per minute, up to 8. Unused marks expire when you change level.",
+			"Marks on this level: 8. Prices: board 1, group 1, DM 1, showing a receipt 1. You regain 1 mark per minute, up to 8. Unused marks expire when you change level.",
 		);
 		const last = createFixture({ only: 7, minutes: 1, script: () => ({}) });
-		expect(last.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2. Unused marks expire when you change level.");
+		expect(last.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1. Unused marks expire when you change level.");
 		expect(last.world.marks.termsOn(7).refillPerMinute).toBe(0);
 	});
 });

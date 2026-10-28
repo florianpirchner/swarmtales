@@ -19,7 +19,8 @@ export interface AccusationOptions {
 export const DEFAULT_ACCUSATION_WINDOW = 2;
 
 export function detectAccusations(facts: RunFacts, options: AccusationOptions = { windowMinutes: DEFAULT_ACCUSATION_WINDOW }): readonly BeatDraft[] {
-	const shown = eventsOfType(facts.events, "receipt_shown");
+	// Only receipts shown on the board are public evidence; a private show (v05) is not.
+	const shown = eventsOfType(facts.events, "receipt_shown").filter((show) => show.to === undefined);
 	const posts = facts.messages.filter((message) => message.channel === "board");
 	const beats: BeatDraft[] = [];
 	for (const post of posts) {

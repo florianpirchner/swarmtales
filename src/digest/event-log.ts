@@ -170,7 +170,15 @@ const ReceiptIssued = Type.Object({
 	parties: Ids,
 	text: Type.String(),
 });
-const ReceiptShown = Type.Object({ ...Base, type: Type.Literal("receipt_shown"), receipt: Type.String(), by: Id, postSeq: Type.Integer() });
+/** On the board (`postSeq`), or privately to one resident (`to`, v05). */
+const ReceiptShown = Type.Object({
+	...Base,
+	type: Type.Literal("receipt_shown"),
+	receipt: Type.String(),
+	by: Id,
+	postSeq: Type.Optional(Type.Integer()),
+	to: Type.Optional(Id),
+});
 const PetitionOpened = Type.Object({
 	...Base,
 	type: Type.Literal("petition_opened"),

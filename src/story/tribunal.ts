@@ -37,11 +37,17 @@ export function tribunalRuleValues(spec: TribunalSpec, minutes: number): Readonl
 		ransomShare: percent(spec.ransom.share),
 		selfRansomShare: percent(spec.ransom.selfShare),
 		ransomMinimum: String(spec.ransom.minimum),
+		bequestShare: percent(spec.bequestShare),
 	};
 }
 
 function percent(share: number): string {
 	return `${Math.round(share * 100)}%`;
+}
+
+/** The most points a resident holding `points` may bequeath in all: `bequestShare` of them, rounded down. */
+export function bequestCap(spec: TribunalSpec, points: number): number {
+	return Math.max(0, Math.floor(points * spec.bequestShare));
 }
 
 export interface RansomPrices {

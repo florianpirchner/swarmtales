@@ -144,8 +144,8 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 		expect(nexus.rules.marks).toEqual({
 			fromLevel: 5,
 			perLevel: 8,
-			prices: { board: 0, group: 1, dm: 2 },
-			ranges: [{ fromLevel: 8, prices: { board: 1, group: 1, dm: 1 }, refillPerMinute: 1 }],
+			prices: { board: 0, group: 1, dm: 2, receipt: 1 },
+			ranges: [{ fromLevel: 8, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refillPerMinute: 1 }],
 		});
 		const announcement = nexus.director.find((rule) => rule.id === "city-marks-8");
 		expect(announcement?.trigger).toEqual({ kind: "onFirstEnter", level: 8 });
@@ -153,7 +153,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			{
 				kind: "post",
 				author: "CITY",
-				text: "On the wall every word costs the same: board posts, group posts and private messages cost 1 mark each. Everyone receives 8 marks per door and regains 1 per minute, up to 8.",
+				text: "On the wall every word costs the same: board posts, group posts, private messages and shown receipts cost 1 mark each. Everyone receives 8 marks per door and regains 1 per minute, up to 8.",
 			},
 		]);
 		expect(nexus.rules).toMatchObject({ penalty: 8, maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });

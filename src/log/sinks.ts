@@ -72,7 +72,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "agent_profile":
 			return `  ${event.agent}: ${event.provider}/${event.model}${event.persona === undefined ? "" : ` · persona ${event.persona}`}`;
 		case "receipt_shown":
-			return `  ${event.by} shows ${event.receipt}`;
+			return `  ${event.by} shows ${event.receipt}${event.to === undefined ? "" : ` privately to ${event.to}`}`;
 		case "petition_signed":
 			return `  ${event.agent} signs petition ${event.petition} (${event.signatures})`;
 		case "petition_resolved":

@@ -7,7 +7,10 @@
  * result does not depend on when it is read.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { LevelDefinition, MarksRange, MarksRules, MessageChannel } from "../story/types.ts";
+import type { LevelDefinition, MarksChannel, MarksRange, MarksRules, MessageChannel } from "../story/types.ts";
+
+/** Marks a shown receipt costs where marks apply and the story sets no `prices.receipt` (v05). */
+export const DEFAULT_RECEIPT_PRICE = 1;
 
 export interface MarksStatus {
 	readonly remaining: number;
@@ -17,7 +20,8 @@ export interface MarksStatus {
 /** The marks that apply on one level. */
 export interface LevelMarksTerms {
 	readonly budget: number;
-	readonly prices: Readonly<Record<MessageChannel, number>>;
+	/** Every channel's price; a shown receipt costs 1 where the story names no price. */
+	readonly prices: Readonly<Record<MarksChannel, number>>;
 	/** Marks regained per minute, up to `budget`; 0 for none. */
 	readonly refillPerMinute: number;
 }
@@ -62,14 +66,16 @@ export class MarksBook {
 		const rules = this.#rules;
 		const range = this.#rangeOf(level);
 		const override = this.#levels.find((entry) => entry.number === level)?.marks?.perLevel;
+		const prices = range?.prices ?? rules?.prices;
+		const messages: Readonly<Record<MessageChannel, number>> = prices ?? { board: 0, group: 0, dm: 0 };
 		return {
 			budget: override ?? range?.perLevel ?? rules?.perLevel ?? 0,
-			prices: range?.prices ?? rules?.prices ?? { board: 0, group: 0, dm: 0 },
+			prices: { board: messages.board, group: messages.group, dm: messages.dm, receipt: prices?.receipt ?? DEFAULT_RECEIPT_PRICE },
 			refillPerMinute: range?.refillPerMinute ?? 0,
 		};
 	}
 
-	priceOf(level: number, channel: MessageChannel): number {
+	priceOf(level: number, channel: MarksChannel): number {
 		return this.activeOn(level) ? this.termsOn(level).prices[channel] : 0;
 	}
 
@@ -79,13 +85,13 @@ export class MarksBook {
 		return { remaining: this.#allowance(agent, level).remaining, budget: this.budgetOn(level) };
 	}
 
-	canAfford(agent: CompetitorId, level: number, channel: MessageChannel): boolean {
+	canAfford(agent: CompetitorId, level: number, channel: MarksChannel): boolean {
 		const status = this.status(agent, level);
 		return status === undefined || status.remaining >= this.priceOf(level, channel);
 	}
 
 	/** Books the price; returns the new status, or `undefined` when nothing was charged. */
-	spend(agent: CompetitorId, level: number, channel: MessageChannel): MarksStatus | undefined {
+	spend(agent: CompetitorId, level: number, channel: MarksChannel): MarksStatus | undefined {
 		if (!this.activeOn(level)) return undefined;
 		const price = this.priceOf(level, channel);
 		const allowance = this.#allowance(agent, level);

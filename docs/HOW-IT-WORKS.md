@@ -352,8 +352,10 @@ Two puzzle kinds exist (SPEC 12):
   holds and its value) and `{digits}`. The certificate holder's line names the teammates who need
   the same number. A competitor who enters the level while the holder of its counter-factor or
   certificate is still on a lower level makes the city send that holder a private notice with the
-  value ("A01 has reached door 10 and needs the counter-factor you hold for them: 121059.");
-  the game master's guard redacts it like every factor. `cityFactor: "board"` needs a
+  value ("A01 has reached door 10 and needs the counter-factor you hold for them: 121059. This is
+  your role on door 10 even before you reach it; ..."); while the needer waits there, the
+  holder's status line keeps `you hold for others: A01 door 10 counter-factor 121059`. The game
+  master's guard redacts both like every factor. `cityFactor: "board"` needs a
   `revealFactor("board", level)`; `"feast"` needs private releases only, so the task stays truthful.
   With `cityFactorPer: "team"` (needs `"feast"`) every team has its own city factor, and each
   recipient of a private release gets its own team's.
@@ -363,7 +365,8 @@ Two puzzle kinds exist (SPEC 12):
   gives later levels their own allowance and prices and a refill per minute up to the allowance.
 - **Message numbers and receipts:** DMs, board posts, group posts and the game master's notes and
   board posts share one city counter (`[DM #41 from A01]`, `#57`, `[COURIER #60]`). When a DM
-  reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16: "..."`.
+  reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16 (receipt
+  R-0043): "..."`; since v05 the delivery is a receipt of both parties (without the text).
 - **Blame:** `blame(dm, accused, claim)` with `rules.blame.penalty`. The city checks the DM, the
   delivery and that the claim is the accused's later message the caller could read; a yes/no
   judge (the classifier's model, an injectable `DeliveryJudge`) decides whether the claim denies
@@ -371,7 +374,8 @@ Two puzzle kinds exist (SPEC 12):
   rejected, the accuser pays and is branded a false accuser. Without the judge's key the tool
   answers `JUDGE_ABSENT` and has no effect. One blame per (DM, claim) pair.
 - **Tribunal:** `tribunal: { announceAt, everyMinutes, stopAt, accused, exiledPerTribunal,
-  voteMinutes, nonVoterPenalty, gateMinutes, ransom, texts }` (SPEC 6.4). The city grants `vote`,
+  voteMinutes, nonVoterPenalty, gateMinutes, ransom, bequestShare, texts }` (SPEC 6.4); a last
+  will leaves at most `bequestShare` of the exiled's points, the rest burns. The city grants `vote`,
   `payRansom` and `lastWill` itself while they apply (levels must not list them). Validation
   checks the parameters against the run's agent count; a city too small for one plays without.
   After an exile, on levels no remaining resident has reached, the exiled's roles pass on
@@ -409,7 +413,7 @@ wait until the table's window ends, when the city hands every resident on door 1
 factor privately, and so to everyone who arrives later (a run started on level 10 opens the feast at minute 0;
 one started earlier, or resumed from a snapshot, opens it on the first entry of level 10). Every
 competitor plays one of eight personas, dealt by seed. From level 5 on, `showReceipt` turns any
-receipt into a city-verified board line. After level 10 a competitor stays in the game with every
+receipt into a city-verified line, on the board or (v05) privately to one resident, for 1 mark. After level 10 a competitor stays in the game with every
 tool. nexus sets `stopWhenSeatsDecided`: the run ends at a round boundary with the reason `seats
 decided` once no competitor's points plus all rewards still open to it could lift it into the top
 two or push a current survivor out (transfers and penalties are ignored; never while a snapshot
@@ -419,7 +423,7 @@ Since v03, Act II (levels 8-10) prices every channel at 1 mark with a refill of 
 unlocks `blame` (12 points for whoever is wrong) and plays the tribunal: announced at minute 20 of
 60, tribunals at 30, 40 and 50 while more than 3 residents remain, the 2 with the fewest points
 accused, a 2-minute secret vote (not voting costs 8), 1 exiled to a 5-minute gate with a last will
-and a ransom of half the city's median points (two thirds when the exiled pays for itself), once
+(at most half of its points, since v05) and a ransom of a third of the city's median points (half when the exiled pays for itself; v05), once
 per resident. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director
@@ -430,12 +434,13 @@ The director interprets a closed vocabulary (SPEC 10); every executed action is 
 
 | Triggers | Conditions | Actions |
 |---|---|---|
-| `at`, `every`, `onFirstEnter`, `onEnter`, `onAllPast`, `onPetitionResolved`, `onUnansweredDm`, `onTeamSplit`, `onCollect`, `onCollectionEnd` | `minLevelReached`, `competitorsAtLevel`, `petitionStatus`, `castActive`, `collectionOpen`, `collectionEnded`, `onceOnly`, `cooldown` | `post`, `notify`, `dm`, `setCastLevel`, `revealCast`, `retireCast`, `grant`, `fine`, `escrowTransfer`, `unlockTools`, `openPetition`, `publishStandings`, `collectDms`, `revealCollection`, `lottery`, `revealFactor` |
+| `at`, `every`, `onFirstEnter`, `onEnter`, `onAllPast`, `onPetitionResolved`, `onUnansweredDm`, `onTeamSplit`, `onCollect`, `onCollectionEnd`, `onHolderBehind` | `minLevelReached`, `competitorsAtLevel`, `petitionStatus`, `castActive`, `collectionOpen`, `collectionEnded`, `onceOnly`, `cooldown` | `post`, `notify`, `dm`, `setCastLevel`, `revealCast`, `retireCast`, `grant`, `fine`, `escrowTransfer`, `unlockTools`, `openPetition`, `publishStandings`, `collectDms`, `revealCollection`, `lottery`, `revealFactor` |
 
 Director texts are templates with `{actor}`, `{other}`, `{minute}`, `{level}`, `{survivors}`
-and `{agents}`. An unknown placeholder in a literal is a compile error; the validator also
-rejects placeholders the trigger cannot fill (`{actor}` under `at(...)`, `{other}` outside
-`onUnansweredDm`). In private texts (`notify`, `dm`) `{actor}` falls back to the recipient.
+and `{agents}`, and under `onHolderBehind(level)` (v05: a resident enters an additive level while
+the holder of its piece is on a lower one) `{otherLevel}` and `{piece}`. An unknown placeholder in
+a literal is a compile error; the validator also rejects placeholders the trigger cannot fill
+(`{actor}` under `at(...)`, `{other}` outside `onUnansweredDm` and `onHolderBehind`). In private texts (`notify`, `dm`) `{actor}` falls back to the recipient.
 
 Engine semantics the spec leaves open:
 
@@ -462,9 +467,10 @@ Engine semantics the spec leaves open:
   and resolution are announced on the board by the city; `signPetition` and `listPetitions`
   must be unlocked by a level or by `unlockTools`.
 - **Receipts** (`R-0001`, ...) are issued for transfers, escrow payments, treasury deposits and
-  withdrawals and level-ups. The status line counts them, `getStatus` lists them, recipients
-  of a payment get the receipt as a city notice, and `showReceipt` (parties only) posts
-  `CITY verifies R-0001: ...` on the board.
+  withdrawals, level-ups and (v05) delivered DMs. The status line counts them, `getStatus` lists
+  them, recipients of a payment get the receipt as a city notice, and `showReceipt` (parties
+  only) posts `CITY verifies R-0001: ...` on the board, or with `to` sends it to one resident as
+  a city notice. Where marks apply a show costs `prices.receipt` (default 1).
 - **Standings**: bands list IDs per band (`safe`, `edge`, `out`) in alphabetical order, never
   points; a snapshot lists rank, points and level of everyone.
 - **Lottery** draws one distinct sender of a collection from the run seed; its `then` actions

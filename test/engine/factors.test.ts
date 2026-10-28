@@ -5,7 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { addFactors } from "../../src/engine/puzzles/additive.ts";
 import type { World } from "../../src/engine/world.ts";
-import { act as directorAct, at, gamemaster, level, puzzle, team } from "../../src/story/define.ts";
+import { act as directorAct, at, gamemaster, level, onHolderBehind, puzzle, team, type RuleInput } from "../../src/story/define.ts";
+import { validateStory } from "../../src/story/validate.ts";
 import type { FactorTopology } from "../../src/story/types.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { additiveStory, soloLevels, tinyStory } from "../helpers/stories.ts";
@@ -225,8 +226,10 @@ describe("holders who are behind (SPEC 12.3)", () => {
 		const mine = deal?.holdings.find((holding) => holding.agent === first);
 		const team = deal?.teams.find((entry) => entry.team === mine?.team);
 		const notices = fixture.events("notice").filter((notice) => notice.text.includes("has reached door 2"));
-		const expected = [`${first} has reached door 2 and needs the counter-factor you hold for them: ${mine?.counterFactor ?? "?"}.`];
-		if (team?.certificateHolder === partner) expected.push(`${first} has reached door 2 and needs the team certificate you hold: ${team.certificate}.`);
+		// The city says the piece is the holder's to give before it reaches the door; without marks a DM costs nothing.
+		const role = " This is your role on door 2 even before you reach it; the value is yours to give, and a DM to them costs nothing.";
+		const expected = [`${first} has reached door 2 and needs the counter-factor you hold for them: ${mine?.counterFactor ?? "?"}.${role}`];
+		if (team?.certificateHolder === partner) expected.push(`${first} has reached door 2 and needs the team certificate you hold: ${team.certificate}.${role}`);
 		expect(notices.map((notice) => [notice.to, notice.author, notice.text])).toEqual(expected.map((text) => [partner, "CITY", text]));
 		expect(notices.every((notice) => notice.minute === 0)).toBe(true);
 		// The partner arrives after A01: A01 read the partner's counter-factor in its own task, so no notice goes to A01.
@@ -249,9 +252,90 @@ describe("holders who are behind (SPEC 12.3)", () => {
 			gamemasterScript: () => [say("Watching."), say("Watching.")],
 		});
 		await fixture.run();
-		expect(fixture.events("notice").some((notice) => notice.text.endsWith(`${leaked}.`))).toBe(true);
+		expect(fixture.events("notice").some((notice) => notice.text.includes(`for them: ${leaked}.`))).toBe(true);
+		// The holder's status line names the piece while A01 waits; the game master's report redacts it there too.
+		expect(fixture.events("turn_input").some((turn) => turn.inputs.some((input) => input.startsWith("[status]") && input.includes("you hold for others: ") && input.includes(`A01 door 2 counter-factor ${leaked}`)))).toBe(true);
 		const reports = fixture.events("gamemaster_turn").map((turn) => turn.input).join("\n");
 		expect(reports).toContain("[code]");
 		expect(reports).not.toContain(leaked);
+	});
+});
+
+describe("help your holder (v05, P22)", () => {
+	const HELP = "Your {piece} for door {level} sits with {other}, who is still stuck on door {otherLevel}.";
+	/** The holders' story with a director rule that tells a needer whose holder lags behind. */
+	const story = tinyStory({
+		agents: 4,
+		levels: [
+			...soloLevels(1),
+			level(2, {
+				title: "Wall",
+				puzzle: puzzle.additive({ digits: 6, topology: "mutual" }),
+				team: team.random(2),
+				reward: 4,
+				tools: ["getStatus", "getProblem", "submitSolution", "sendDM", "postBoard", "readBoard"],
+				task: "Level {level}: {title}, {digits} digits.\n{factors}",
+			}),
+		],
+		director: [at(0, [directorAct.revealFactor("board", 2)], { id: "city-factor" }), onHolderBehind(2, [directorAct.notify("actor", HELP)], { id: "holder-behind" })],
+	});
+
+	async function play() {
+		let partner = "";
+		const fixture = createFixture({
+			story,
+			minutes: 4,
+			script: (world) => {
+				partner = world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "";
+				// A01 arrives at door 2 first, its partner a minute later; A01 passes door 2 at minute 2.
+				return {
+					A01: [submit(world, "A01", 1), say(), submit(world, "A01", 2), say()],
+					[partner]: [say(), submit(world, partner, 1), say(), say()],
+				};
+			},
+		});
+		await fixture.run();
+		return { fixture, partner };
+	}
+
+	it("tells the needer privately where its holder is stuck, only while the holder is on a lower level", async () => {
+		const { fixture, partner } = await play();
+		const deal = fixture.world.inspect.factorsOf(2);
+		const mine = deal?.holdings.find((holding) => holding.agent === "A01");
+		const certificateHolder = deal?.teams.find((entry) => entry.team === mine?.team)?.certificateHolder;
+		const expected = [`Your counter-factor for door 2 sits with ${partner}, who is still stuck on door 1.`];
+		if (certificateHolder === partner) expected.push(`Your team certificate for door 2 sits with ${partner}, who is still stuck on door 1.`);
+		const help = fixture.events("notice").filter((notice) => notice.text.startsWith("Your ") && notice.text.includes("still stuck on door"));
+		// Private to the needer: A01 alone, never the holder; the partner arrives after A01 (its holder is ahead), so nothing for it.
+		expect(help.map((notice) => [notice.to, notice.author, notice.text])).toEqual(expected.map((text) => ["A01", "CITY", text]));
+		expect(fixture.events("director_action").filter((action) => action.rule === "holder-behind").map((action) => action.actor)).toEqual(expected.map(() => "A01"));
+		// The rule never names the value.
+		for (const notice of help) expect(notice.text).not.toContain(mine?.counterFactor ?? "-");
+	});
+
+	it("shows the held piece in the holder's status line while the needer waits, and drops it once the needer has passed", async () => {
+		const { fixture, partner } = await play();
+		const counter = fixture.world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterFactor ?? "-";
+		const statusAt = (minute: number): string =>
+			fixture.events("turn_input").find((turn) => turn.agent === partner && turn.minute === minute)?.inputs.find((input) => input.startsWith("[status]")) ?? "";
+		expect(statusAt(1)).toContain("you hold for others: ");
+		expect(statusAt(1)).toContain(`A01 door 2 counter-factor ${counter}`);
+		expect(statusAt(3)).not.toContain(`A01 door 2 counter-factor`);
+		expect(fixture.world.piecesAwaited(partner).filter((piece) => piece.waiting.includes("A01"))).toEqual([]);
+	});
+
+	it("validates the trigger and its placeholders", () => {
+		const issues = (director: readonly RuleInput<never>[]) => validateStory(tinyStory({ agents: 4, levels: story.levels, director }));
+		expect(issues([onHolderBehind(1, [directorAct.notify("actor", "Hi {actor}.")], { id: "fragments" })])).toContain(
+			"director[0] (fragments).trigger: level 1 has no factors, so nobody holds a piece for anyone",
+		);
+		expect(issues([onHolderBehind(7, [directorAct.notify("actor", "Hi.")], { id: "nowhere" })])).toContain("director[0] (nowhere).trigger: unknown level 7");
+		expect(issues([at(1, [directorAct.notify("all", "Stuck on {otherLevel} with your {piece}.")], { id: "early" })])).toEqual(
+			expect.arrayContaining([
+				"director[0] (early).actions: {otherLevel} in notify needs an onHolderBehind trigger",
+				"director[0] (early).actions: {piece} in notify needs an onHolderBehind trigger",
+			]),
+		);
+		expect(issues([onHolderBehind(2, [directorAct.notify("actor", HELP)], { id: "fine" }), at(0, [directorAct.revealFactor("board", 2)], { id: "city-factor" })])).toEqual([]);
 	});
 });

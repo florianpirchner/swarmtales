@@ -4,7 +4,7 @@
  * counts unread content. Contents must be fetched with read tools.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { World } from "./world.ts";
+import type { HeldPiece, World } from "./world.ts";
 
 export type TurnInputKind = "status" | "task" | "dm" | "notice" | "digest";
 
@@ -28,8 +28,18 @@ export function statusLine(world: World, agent: CompetitorId): string {
 	];
 	if (status.marks !== undefined) parts.push(`marks ${status.marks.remaining}/${status.marks.budget}`);
 	if (status.receipts > 0) parts.push(plural(status.receipts, "receipt", "receipts"));
+	const held = heldPart(world, agent);
+	if (held !== undefined) parts.push(held);
 	parts.push(...tribunalParts(world, agent));
 	return parts.join(" · ");
+}
+
+/** `you hold for others: A01 door 9 counter-factor 791217`, while those needers wait at their door. */
+function heldPart(world: World, agent: CompetitorId): string | undefined {
+	const pieces = world.piecesAwaited(agent);
+	if (pieces.length === 0) return undefined;
+	const noun = (kind: HeldPiece["kind"]): string => (kind === "counter" ? "counter-factor" : kind === "certificate" ? "team certificate" : "fragment");
+	return `you hold for others: ${pieces.map((piece) => `${piece.waiting.join(", ")} door ${String(piece.level)} ${noun(piece.kind)} ${piece.value}`).join("; ")}`;
 }
 
 /** Where the competitor stands with the tribunal: exiled, at the gate, accused or due to vote. */

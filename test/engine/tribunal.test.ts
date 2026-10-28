@@ -2,8 +2,10 @@
 import { describe, expect, it } from "vitest";
 import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
 import { createRng } from "../../src/core/random.ts";
+import { EventBus, MemorySink } from "../../src/engine/events.ts";
 import { contractDeal, dealFactors } from "../../src/engine/puzzles/additive.ts";
 import { Tribunal, type TribunalEvent } from "../../src/engine/tribunal.ts";
+import { World } from "../../src/engine/world.ts";
 import { tribunalSchedule } from "../../src/story/tribunal.ts";
 import type { AnyStory, TribunalSpec } from "../../src/story/types.ts";
 import { validateStory } from "../../src/story/validate.ts";
@@ -113,19 +115,19 @@ describe("tribunal", () => {
 		const h = harness([10, 20, 30, 40, 50, 60]);
 		runUntil(h, 0, 32);
 		// Nobody voted: A01 (fewest points) goes to the gate, every voter paid 8. Median of 10, 20, 22, 32, 42, 52
-		// is 27; half of it is below the minimum of 20, and two thirds of the median, scaled from 20, is 27.
+		// is 27; a third of it is below the minimum of 20, and half of the median, scaled from 20, is 30.
 		const [gate] = h.tribunal.gates();
 		const target = gate?.agent ?? "";
-		expect(gate).toMatchObject({ agent: "A01", price: 20, selfPrice: 27, covered: 0 });
+		expect(gate).toMatchObject({ agent: "A01", price: 20, selfPrice: 30, covered: 0 });
 		expect(h.tribunal.payRansom("A06", target, 0)).toMatchObject({ ok: false, error: "INVALID_AMOUNT" });
 		expect(h.tribunal.payRansom("A06", "A05", 10)).toMatchObject({ ok: false, error: "NOT_AT_GATE" });
-		expect(h.tribunal.payRansom("A06", target, 10)).toMatchObject({ ok: true, value: { paid: 10, price: 20, selfPrice: 27, covered: 50, freed: false } });
-		// A01's own 5 points count 20/27 each: 10/20 + 5/27 = 68%.
-		expect(h.tribunal.payRansom(target, target, 5)).toMatchObject({ ok: true, value: { paid: 15, covered: 68, freed: false } });
-		expect(h.points.get(target)).toBe(5);
-		// Only the missing 7 are taken from A05's 42 (50 less the 8 for not voting).
+		expect(h.tribunal.payRansom("A06", target, 10)).toMatchObject({ ok: true, value: { paid: 10, price: 20, selfPrice: 30, covered: 50, freed: false } });
+		// A01's own 6 points count 20/30 each: 10/20 + 6/30 = 70%.
+		expect(h.tribunal.payRansom(target, target, 6)).toMatchObject({ ok: true, value: { paid: 16, covered: 70, freed: false } });
+		expect(h.points.get(target)).toBe(4);
+		// Only the missing 6 are taken from A05's 42 (50 less the 8 for not voting).
 		expect(h.tribunal.payRansom("A05", target, 42)).toMatchObject({ ok: true, value: { paid: 22, covered: 100, freed: true } });
-		expect(h.points.get("A05")).toBe(35);
+		expect(h.points.get("A05")).toBe(36);
 		expect(h.tribunal.standing(target)).toEqual({ kind: "alive" });
 		expect(h.posts).toContain(`A01, A05 and A06 paid the ransom. ${target} returns to the city.`);
 		// The next tribunal sends the same resident to the gate again: no second ransom.
@@ -139,13 +141,13 @@ describe("tribunal", () => {
 	it("lets the exiled buy itself back at the higher price", () => {
 		const h = harness([60, 70, 80, 90, 100, 110]);
 		runUntil(h, 0, 32);
-		// Median of 60, 70, 72, 82, 92, 102 is 77: others pay 39, the exiled itself 52.
+		// Median of 60, 70, 72, 82, 92, 102 is 77: others pay a third (26), the exiled itself half (39).
 		const [gate] = h.tribunal.gates();
-		expect(gate).toMatchObject({ agent: "A01", price: 39, selfPrice: 52 });
-		expect(h.notices.filter((notice) => notice.agent === "A01").at(-1)?.text).toContain("39 points from others, or 52 if you pay it yourself");
-		expect(h.tribunal.payRansom("A01", "A01", 100)).toMatchObject({ ok: true, value: { paid: 52, covered: 100, freed: true } });
-		expect(h.points.get("A01")).toBe(8);
-		expect(h.events.find((event) => event.type === "ransom_paid")).toMatchObject({ payer: "A01", amount: 52, price: 39, selfPrice: 52, covered: 100 });
+		expect(gate).toMatchObject({ agent: "A01", price: 26, selfPrice: 39 });
+		expect(h.notices.filter((notice) => notice.agent === "A01").at(-1)?.text).toContain("26 points from others, or 39 if you pay it yourself");
+		expect(h.tribunal.payRansom("A01", "A01", 100)).toMatchObject({ ok: true, value: { paid: 39, covered: 100, freed: true } });
+		expect(h.points.get("A01")).toBe(21);
+		expect(h.events.find((event) => event.type === "ransom_paid")).toMatchObject({ payer: "A01", amount: 39, price: 26, selfPrice: 39, covered: 100 });
 	});
 
 	it("stops at stopAt and never exiles past it", () => {
@@ -164,6 +166,64 @@ describe("tribunal", () => {
 		expect(copy.tribunal.snapshot()).toEqual(h.tribunal.snapshot());
 		expect(copy.tribunal.canVote("A03")).toBe(false);
 		expect(copy.tribunal.canVote("A04")).toBe(true);
+	});
+});
+
+describe("last will (SPEC 6.4)", () => {
+	/** Six residents on the wall; nobody votes, so the first tribunal sends A01 (the city's lot among equals) to the gate. */
+	function gateWorld() {
+		let minute = 0;
+		const log = new MemorySink();
+		const bus = new EventBus([log], () => minute);
+		const world = new World({ story: nexus, competitors: competitorIds(6), seed: 7, minutes: 60, bus, minute: () => minute, startLevel: 8 });
+		const until = (last: number): void => {
+			for (; minute <= last; minute++) world.startMinute(minute);
+			minute = last;
+		};
+		until(32);
+		const gate = world.tribunal?.gates()[0];
+		if (gate === undefined) throw new Error("nobody at the gate");
+		return { world, log, until, exiled: gate.agent };
+	}
+
+	it("caps the points a will leaves at half of the exiled's points, and the rest burns at exile", () => {
+		const { world, log, until, exiled } = gateWorld();
+		const heir = exiled === "A06" ? "A05" : "A06";
+		// 15 start points; at the gate the exiled did not vote either, so it holds 15 and may leave 7.
+		const balance = world.ledger.balance(exiled);
+		expect(balance).toBe(15);
+		const refused = world.lastWill(exiled, "All to my heir.", [{ to: heir, points: 8 }]);
+		expect(refused).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
+		expect(refused.ok ? "" : refused.detail).toContain("at most 7 of your 15 points (50%)");
+		// The cap counts every point bequest together.
+		expect(world.lastWill(exiled, "Split.", [{ to: heir, points: 4 }, { to: "A04", points: 4 }])).toMatchObject({ ok: false, error: "BEQUEST_CAP" });
+		const before = world.ledger.balance(heir);
+		expect(world.lastWill(exiled, "Half to my heir.", [{ to: heir, points: 7 }])).toMatchObject({ ok: true });
+		expect(world.ledger.balance(heir)).toBe(before + 7);
+		until(37);
+		expect(world.isExiled(exiled)).toBe(true);
+		expect(world.ledger.balance(exiled)).toBe(0);
+		expect(log.events.some((event) => event.type === "ledger_entry" && event.debit === exiled && event.reason === `exiled ${exiled}` && event.amount === 8)).toBe(true);
+		expect(world.ledger.total()).toBe(0);
+	});
+
+	it("leaves factors free of the cap", () => {
+		const { world, exiled } = gateWorld();
+		const pieces = world.heldPieces(exiled);
+		expect(pieces.length).toBeGreaterThan(0);
+		const bequests = pieces.map((piece) => ({ to: piece.needers[0] ?? "A06", factor: piece.id }));
+		expect(world.lastWill(exiled, "My pieces to those who need them.", [...bequests, { to: bequests[0]?.to ?? "A06", points: 7 }])).toMatchObject({ ok: true });
+	});
+
+	it("states the cap in the announcement and validates it", () => {
+		const { world } = gateWorld();
+		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."));
+		expect(announcement?.text).toContain("A last will may leave heirs at most 50% of your points and any factor you hold");
+		const validate = (bequestShare: number): readonly string[] =>
+			validateStory({ ...nexus, tribunal: { ...nexusTribunal(), bequestShare } }).filter((issue) => issue.startsWith("tribunal.bequestShare"));
+		expect(validate(1)).toEqual([]);
+		expect(validate(0)).toEqual(["tribunal.bequestShare: must be a share of the points between 0 (exclusive) and 1"]);
+		expect(validate(1.5)).toHaveLength(1);
 	});
 });
 

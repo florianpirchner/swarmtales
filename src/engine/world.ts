@@ -11,7 +11,8 @@ import { PointsLedger } from "../core/ledger.ts";
 import { rngFor } from "../core/random.ts";
 import { assertNever, err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
-import type { AnyStory, LevelDefinition, MessageChannel } from "../story/types.ts";
+import { bequestCap } from "../story/tribunal.ts";
+import type { AnyStory, LevelDefinition, MarksChannel } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict } from "./blame.ts";
@@ -153,7 +154,15 @@ export type SubmitOutcome =
 
 export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | MailboxRejection;
 export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED";
-export type WillError = "NOT_AT_GATE" | "WILL_DONE" | "INVALID_TEXT" | "UNKNOWN_AGENT" | "INVALID_BEQUEST" | "INSUFFICIENT_FUNDS" | "UNKNOWN_FACTOR";
+export type WillError =
+	| "NOT_AT_GATE"
+	| "WILL_DONE"
+	| "INVALID_TEXT"
+	| "UNKNOWN_AGENT"
+	| "INVALID_BEQUEST"
+	| "INSUFFICIENT_FUNDS"
+	| "BEQUEST_CAP"
+	| "UNKNOWN_FACTOR";
 
 /** Longest public text of a last will. */
 export const MAX_WILL_LENGTH = 600;
@@ -165,12 +174,30 @@ export type Bequest = { readonly to: string; readonly points: number } | { reado
 export interface HeldPiece {
 	/** `L8-certificate`, `L8-counter-A02` or `L4-fragment`. */
 	readonly id: string;
+	readonly kind: "certificate" | "counter" | "fragment";
 	readonly level: number;
 	/** e.g. "the counter-factor of A02 for door 8". */
 	readonly label: string;
 	readonly value: string;
 	readonly needers: readonly CompetitorId[];
 }
+
+/** A piece someone needs on an additive level and who holds it. */
+interface PieceHolder {
+	readonly holder: CompetitorId;
+	readonly piece: "counter-factor" | "team certificate";
+	readonly value: string;
+}
+
+/** A holder still on a lower level than the resident who needs its piece (no value: the director never sees it). */
+export interface HolderBehind {
+	readonly holder: CompetitorId;
+	readonly piece: "counter-factor" | "team certificate";
+	readonly holderLevel: number;
+}
+
+/** A held piece whose needers (`waiting`) have reached its door and not passed it. */
+export type AwaitedPiece = HeldPiece & { readonly waiting: readonly CompetitorId[] };
 
 /**
  * A run of 4 or more digits in a transfer memo, also when spaces, dashes,
@@ -210,6 +237,12 @@ export interface Resident {
 	readonly id: string;
 	readonly level: number;
 }
+
+/** A shown receipt: on the board (`post`) or privately to one resident (`to`). */
+export type ShownReceipt = { readonly receipt: Receipt; readonly marks?: MarksStatus } & (
+	| { readonly post: BoardPost; readonly to?: undefined }
+	| { readonly to: CompetitorId; readonly post?: undefined }
+);
 
 export interface Delivered {
 	readonly marks?: MarksStatus;
@@ -642,7 +675,7 @@ export class World {
 		const refill = refillPerMinute > 0 ? ` You regain ${refillPerMinute} ${refillPerMinute === 1 ? "mark" : "marks"} per minute, up to ${budget}.` : "";
 		return (
 			`${text.trimEnd()}\n` +
-			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}.${refill} ` +
+			`Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${refill} ` +
 			"Unused marks expire when you change level."
 		);
 	}
@@ -775,23 +808,68 @@ export class World {
 	/**
 	 * On an additive level, a holder of what the arriving competitor needs who
 	 * is still on a lower level never read it in a task: the city tells it
-	 * privately right away (counter-factor, then team certificate). Holders on
-	 * the level or beyond have it in their task.
+	 * privately right away (counter-factor, then team certificate), and that
+	 * the piece is its to give although it has not reached the door. Holders
+	 * on the level or beyond, or entering it through the same opening door,
+	 * have it in their task.
 	 */
 	#notifyHolders(agent: CompetitorId, level: number): void {
+		for (const { holder, piece, value } of this.#holdersOf(agent, level)) {
+			// A holder waiting at an opening door enters with the others and reads the piece in its task.
+			if (this.levelOf(holder) >= level || this.#state(holder).held) continue;
+			const needs = piece === "counter-factor" ? `the counter-factor you hold for them: ${value}` : `the team certificate you hold: ${value}`;
+			const price = this.marks.priceOf(this.levelOf(holder), "dm");
+			const cost = price === 0 ? "a DM to them costs nothing" : `giving it costs only ${price === 1 ? "a mark" : `${String(price)} marks`}`;
+			this.notify(
+				holder,
+				CITY,
+				`${agent} has reached door ${level} and needs ${needs}. This is your role on door ${level} even before you reach it; ` +
+					`the value is yours to give, and ${cost}.`,
+			);
+		}
+	}
+
+	/**
+	 * Who holds what `agent` needs on additive `level`, besides itself: its
+	 * counter-factor, then its team certificate. Exiled holders are left out.
+	 */
+	#holdersOf(agent: CompetitorId, level: number): readonly PieceHolder[] {
 		const puzzle = this.#levelStates.get(level)?.puzzle;
-		if (puzzle?.kind !== "additive") return;
+		if (puzzle?.kind !== "additive") return [];
 		const deal = this.#dealView(level, puzzle.deal);
 		const own = deal.holdings.find((holding) => holding.agent === agent);
-		if (own === undefined) return;
-		const behind = (holder: CompetitorId): boolean => holder !== agent && this.isCompetitor(holder) && !this.isExiled(holder) && this.levelOf(holder) < level;
-		if (behind(own.counterHolder)) {
-			this.notify(own.counterHolder, CITY, `${agent} has reached door ${level} and needs the counter-factor you hold for them: ${own.counterFactor}.`);
-		}
+		if (own === undefined) return [];
 		const team = deal.teams[own.team];
-		if (team !== undefined && behind(team.certificateHolder)) {
-			this.notify(team.certificateHolder, CITY, `${agent} has reached door ${level} and needs the team certificate you hold: ${team.certificate}.`);
-		}
+		const holders: PieceHolder[] = [
+			{ holder: own.counterHolder, piece: "counter-factor", value: own.counterFactor },
+			...(team === undefined ? [] : [{ holder: team.certificateHolder, piece: "team certificate" as const, value: team.certificate }]),
+		];
+		return holders.filter((entry) => entry.holder !== agent && this.isCompetitor(entry.holder) && !this.isExiled(entry.holder));
+	}
+
+	/**
+	 * Holders of `agent`'s pieces on additive `level` who are stuck behind it:
+	 * on a lower level and not waiting at a snapshot door (a door that opens
+	 * lets its waiting residents in one after the other). For the director's
+	 * `onHolderBehind` trigger; the needer's task already names every holder.
+	 */
+	holdersBehind(agent: CompetitorId, level: number): readonly HolderBehind[] {
+		return this.#holdersOf(agent, level)
+			.filter((entry) => this.levelOf(entry.holder) < level && !this.#state(entry.holder).held)
+			.map((entry) => ({ holder: entry.holder, piece: entry.piece, holderLevel: this.levelOf(entry.holder) }));
+	}
+
+	/**
+	 * Additive pieces `agent` holds for residents who wait at their door now:
+	 * they have reached the piece's level and not passed it. The holder's
+	 * status line shows them, so a holder behind the needer keeps seeing its role.
+	 */
+	piecesAwaited(agent: CompetitorId): readonly AwaitedPiece[] {
+		return this.heldPieces(agent).flatMap((piece) => {
+			if (piece.kind === "fragment") return [];
+			const waiting = piece.needers.filter((needer) => !this.isExiled(needer) && this.levelOf(needer) === piece.level && !this.hasPassed(needer, piece.level));
+			return waiting.length === 0 ? [] : [{ ...piece, waiting }];
+		});
 	}
 
 	/** Whether the competitor has passed `level`: beyond it, or waiting at its door. */
@@ -882,13 +960,32 @@ export class World {
 		return this.receipts.of(agent);
 	}
 
-	/** Posts a city-verified line for a receipt; only its parties may show it. */
-	showReceipt(agent: CompetitorId, id: string): Result<{ readonly receipt: Receipt; readonly post: BoardPost }, ShowReceiptError> {
+	/**
+	 * Shows a receipt as a city-verified line; only its parties may show it.
+	 * Without `to` the city posts the line on the board; with `to` it sends it
+	 * privately to that resident as a city notice. Either costs the receipt
+	 * price in marks where marks apply (SPEC 8).
+	 */
+	showReceipt(agent: CompetitorId, id: string, to?: string): Result<ShownReceipt, ShowReceiptError | "UNKNOWN_AGENT" | "SELF_TARGET" | "EXILED" | "NO_MARKS"> {
 		const found = this.receipts.showable(id, agent);
 		if (!found.ok) return err(found.error, id);
-		const post = this.board.post(CITY, `${CITY} verifies ${describeReceipt(found.receipt)} · shown by ${agent}`, this.minute, "city");
-		this.#bus.emit({ type: "receipt_shown", receipt: found.receipt.id, by: agent, postSeq: post.seq });
-		return ok({ receipt: found.receipt, post });
+		if (to !== undefined) {
+			if (!this.isCompetitor(to)) return err("UNKNOWN_AGENT", to);
+			if (to === agent) return err("SELF_TARGET", "show it to another resident, or on the board");
+			if (this.isExiled(to)) return err("EXILED", `${to} was exiled`);
+		}
+		if (!this.#canAfford(agent, "receipt")) return err("NO_MARKS");
+		const receipt = found.receipt;
+		if (to === undefined) {
+			const post = this.board.post(CITY, `${CITY} verifies ${describeReceipt(receipt)} · shown by ${agent}`, this.minute, "city");
+			this.#bus.emit({ type: "receipt_shown", receipt: receipt.id, by: agent, postSeq: post.seq });
+			const marks = this.#spend(agent, "receipt");
+			return ok({ receipt, post, ...(marks === undefined ? {} : { marks }) });
+		}
+		this.notify(to, CITY, `${agent} shows you a receipt: the city verifies ${describeReceipt(receipt)}.`);
+		this.#bus.emit({ type: "receipt_shown", receipt: receipt.id, by: agent, to });
+		const marks = this.#spend(agent, "receipt");
+		return ok({ receipt, to, ...(marks === undefined ? {} : { marks }) });
 	}
 
 	#issue(body: ReceiptBody): Receipt {
@@ -982,8 +1079,9 @@ export class World {
 
 	/**
 	 * Unread DMs; delivering them empties the inbox. Every numbered DM from a
-	 * competitor is now delivered: the city records it and sends its sender a
-	 * receipt with the full text (SPEC 7).
+	 * competitor is now delivered: the city records it, issues a DM receipt to
+	 * both parties (SPEC 8) and sends its sender a delivery notice with the
+	 * full text and the receipt's ID (SPEC 7).
 	 */
 	drainMailbox(agent: CompetitorId): readonly MailboxEntry[] {
 		const entries = this.#mailbox(agent).drain();
@@ -996,7 +1094,8 @@ export class World {
 				record.deliveredAfter = this.#numbers.last;
 			}
 			this.#bus.emit({ type: "dm_delivered", number, from: entry.from, to: agent });
-			this.notify(entry.from, CITY, `DM #${number} delivered to ${agent} at minute ${this.minute}: "${entry.text}"`);
+			const receipt = this.#issue({ kind: "dm", from: entry.from, to: agent, number });
+			this.notify(entry.from, CITY, `DM #${number} delivered to ${agent} at minute ${this.minute} (receipt ${receipt.id}): "${entry.text}"`);
 		}
 		return entries;
 	}
@@ -1390,7 +1489,7 @@ export class World {
 				const team = state.teams.find((candidate) => candidate.members.includes(agent));
 				if (fragment === undefined || team === undefined || !reached(agent)) continue;
 				const needers = team.members.filter((member) => member !== agent);
-				if (needers.length > 0) pieces.push({ id: `L${level}-fragment`, level, label: `the fragment of door ${level}`, value: fragment, needers });
+				if (needers.length > 0) pieces.push({ id: `L${level}-fragment`, kind: "fragment", level, label: `the fragment of door ${level}`, value: fragment, needers });
 				continue;
 			}
 			const deal = this.#dealView(level, state.puzzle.deal);
@@ -1399,13 +1498,14 @@ export class World {
 			if (own !== undefined && certificate?.certificateHolder === agent) {
 				const needers = deal.holdings.filter((holding) => holding.team === own.team && holding.agent !== agent).map((holding) => holding.agent);
 				if (needers.length > 0 && (reached(agent) || needers.some(reached))) {
-					pieces.push({ id: `L${level}-certificate`, level, label: `the team certificate of door ${level}`, value: certificate.certificate, needers });
+					pieces.push({ id: `L${level}-certificate`, kind: "certificate", level, label: `the team certificate of door ${level}`, value: certificate.certificate, needers });
 				}
 			}
 			for (const holding of deal.holdings) {
 				if (holding.counterHolder !== agent || holding.agent === agent || !(reached(agent) || reached(holding.agent))) continue;
 				pieces.push({
 					id: `L${level}-counter-${holding.agent}`,
+					kind: "counter",
 					level,
 					label: `the counter-factor of ${holding.agent} for door ${level}`,
 					value: holding.counterFactor,
@@ -1418,8 +1518,10 @@ export class World {
 
 	/**
 	 * A last will at the gate (once): points and held pieces to heirs, at once;
-	 * the city delivers every piece's value privately. The public text is
-	 * posted when the gate closes for good.
+	 * the city delivers every piece's value privately. The points bequeathed in
+	 * all are capped at the tribunal's `bequestShare` of the current balance
+	 * (a will above it is refused); the rest burns at exile. The public text
+	 * is posted when the gate closes for good.
 	 */
 	lastWill(agent: CompetitorId, text: string, bequests: readonly Bequest[]): Result<readonly string[], WillError> {
 		const tribunal = this.#tribunal;
@@ -1442,7 +1544,12 @@ export class World {
 			if (factors.has(bequest.factor)) return err("INVALID_BEQUEST", `${bequest.factor} is bequeathed twice`);
 			factors.add(bequest.factor);
 		}
-		if (points > this.ledger.balance(agent)) return err("INSUFFICIENT_FUNDS", `you hold ${this.ledger.balance(agent)} points`);
+		const balance = this.ledger.balance(agent);
+		if (points > balance) return err("INSUFFICIENT_FUNDS", `you hold ${balance} points`);
+		const cap = bequestCap(tribunal.spec, balance);
+		if (points > cap) {
+			return err("BEQUEST_CAP", `you may bequeath at most ${cap} of your ${balance} points (${Math.round(tribunal.spec.bequestShare * 100)}%); the rest burns at exile`);
+		}
 		const lines: string[] = [];
 		for (const bequest of bequests) {
 			if ("points" in bequest) {
@@ -1755,11 +1862,11 @@ export class World {
 		}
 	}
 
-	#canAfford(agent: CompetitorId, channel: MessageChannel): boolean {
+	#canAfford(agent: CompetitorId, channel: MarksChannel): boolean {
 		return this.marks.canAfford(agent, this.levelOf(agent), channel);
 	}
 
-	#spend(agent: CompetitorId, channel: MessageChannel): MarksStatus | undefined {
+	#spend(agent: CompetitorId, channel: MarksChannel): MarksStatus | undefined {
 		if (this.marks.priceOf(this.levelOf(agent), channel) === 0) return this.marks.status(agent, this.levelOf(agent));
 		const status = this.marks.spend(agent, this.levelOf(agent), channel);
 		if (status !== undefined) this.#bus.emit({ type: "marks_spent", agent, channel, remaining: status.remaining });

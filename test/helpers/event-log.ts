@@ -5,6 +5,7 @@
  */
 import { analyzeLog, type RunAnalysis } from "../../src/digest/digest.ts";
 import type { ArenaEvent, RecordedEvent } from "../../src/engine/events.ts";
+import type { ReceiptKind } from "../../src/engine/receipts.ts";
 import type { StatementLabel, StatementSource } from "../../src/interpret/labels.ts";
 
 export class LogBuilder {
@@ -96,7 +97,7 @@ export class LogBuilder {
 		return this.add({ type: "level_up", agent, from: level, to: level + 1 });
 	}
 
-	receipt(receipt: string, kind: "transfer" | "deposit" | "withdrawal" | "levelUp" | "escrow", parties: readonly string[], text = `${receipt}: details`): number {
+	receipt(receipt: string, kind: ReceiptKind, parties: readonly string[], text = `${receipt}: details`): number {
 		return this.add({ type: "receipt_issued", receipt, kind, parties, text });
 	}
 

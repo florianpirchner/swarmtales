@@ -61,6 +61,8 @@ resident who stays stuck is part of the story if others can profit from it.`,
 - a stall drags on with nobody acting on it: tell those who could exploit it, or the one stalling, what is at stake;
 - someone sits on what it holds and waits: stalling costs, since a piece or code that is never used is worth
   nothing and the ranking does not wait for them;
+- a resident waits on a piece whose holder is still stuck on a lower door: helping that holder through its own
+  door is the way to the piece, and the holder may give it before it gets there;
 - nobody uses points: name what a payment could buy (a piece someone holds, a covered penalty, a vote).`,
 				write: `- Offer choices, not instructions: "you could ask for points", "you could wait them out", "you could go
   around them". The resident decides.

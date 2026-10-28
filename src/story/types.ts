@@ -54,11 +54,17 @@ export interface ModelChoice {
 
 export type MessageChannel = "board" | "group" | "dm";
 
+/** What marks pay for: a message channel, or a receipt shown with `showReceipt` (SPEC §7, §8). */
+export type MarksChannel = MessageChannel | "receipt";
+
+/** Marks per channel; `receipt` (a shown receipt, public or private) costs 1 when omitted. */
+export type MarksPrices = Readonly<Record<MessageChannel, number>> & { readonly receipt?: number };
+
 /** Per-level message allowance (SPEC §7). */
 export interface MarksRules {
 	readonly fromLevel: number;
 	readonly perLevel: number;
-	readonly prices: Readonly<Record<MessageChannel, number>>;
+	readonly prices: MarksPrices;
 	/**
 	 * Later level ranges with their own allowance: each entry holds from its
 	 * `fromLevel` up to the next entry's, ascending, all after `fromLevel`.
@@ -71,7 +77,7 @@ export interface MarksRules {
 export interface MarksRange {
 	readonly fromLevel: number;
 	readonly perLevel?: number;
-	readonly prices?: Readonly<Record<MessageChannel, number>>;
+	readonly prices?: MarksPrices;
 	/** Marks regained per minute on the level, up to its allowance; none when omitted. */
 	readonly refillPerMinute?: number;
 }
@@ -188,7 +194,9 @@ export const FRAGMENT_PLACEHOLDERS = ["fragment", "overlap"] as const satisfies 
 export const ADDITIVE_PLACEHOLDERS = ["factors", "digits"] as const satisfies readonly TaskPlaceholder[];
 
 /** Placeholders a director text may use. */
-export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents"] as const;
+export const DIRECTOR_PLACEHOLDERS = ["actor", "other", "minute", "level", "survivors", "agents", "otherLevel", "piece"] as const;
+/** Director placeholders only `onHolderBehind` fills. */
+export const HOLDER_PLACEHOLDERS = ["otherLevel", "piece"] as const satisfies readonly DirectorPlaceholder[];
 export type DirectorPlaceholder = (typeof DIRECTOR_PLACEHOLDERS)[number];
 
 // ---------------------------------------------------------------------------
@@ -251,7 +259,15 @@ export type Trigger =
 	/** Once per distinct sender collected into the collection `into` (actor = that sender). */
 	| { readonly kind: "onCollect"; readonly into: string }
 	/** Once, at the minute the window of the collection `into` ends, whether or not it filled. */
-	| { readonly kind: "onCollectionEnd"; readonly into: string };
+	| { readonly kind: "onCollectionEnd"; readonly into: string }
+	/**
+	 * A competitor enters the additive `level` while a holder of one of its
+	 * pieces (counter-factor, team certificate) is still on a lower level: once
+	 * per such holder (actor = the needer, other = the holder, `{otherLevel}`
+	 * = the holder's level, `{piece}` = what it holds). Holders waiting at a
+	 * snapshot door do not count.
+	 */
+	| { readonly kind: "onHolderBehind"; readonly level: number };
 
 export type TriggerKind = Trigger["kind"];
 
@@ -401,6 +417,12 @@ export interface TribunalSpec {
 	readonly nonVoterPenalty: number;
 	readonly gateMinutes: number;
 	readonly ransom: RansomSpec;
+	/**
+	 * Share of its points (at the time of the will, rounded down) that a
+	 * resident at the gate may bequeath in all, in (0, 1]; the rest burns at
+	 * exile. Pieces (factors, fragments) are not capped.
+	 */
+	readonly bequestShare: number;
 	readonly texts: TribunalTexts;
 }
 
@@ -459,6 +481,7 @@ export const TRIBUNAL_RULE_PLACEHOLDERS = [
 	"ransomShare",
 	"selfRansomShare",
 	"ransomMinimum",
+	"bequestShare",
 ] as const;
 
 export const TRIBUNAL_TEXT_KEYS = [
@@ -567,6 +590,7 @@ const TRIGGER_KIND_LIST = [
 	"onTeamSplit",
 	"onCollect",
 	"onCollectionEnd",
+	"onHolderBehind",
 ] as const satisfies readonly TriggerKind[];
 
 const CONDITION_KIND_LIST = [

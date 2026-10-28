@@ -133,7 +133,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "transfer":
 			return `${event.from} paid ${event.to} ${points(event.amount)}${event.memo.length > 0 ? ` (memo ${quote(event.memo)})` : ""}.`;
 		case "receipt_shown":
-			return `${event.by} showed receipt ${event.receipt} on the board.`;
+			return event.to === undefined ? `${event.by} showed receipt ${event.receipt} on the board.` : `${event.by} showed receipt ${event.receipt} privately to ${event.to}.`;
 		case "petition_opened":
 			return `Petition ${event.petition} opened: ${quote(event.text)} (needs ${event.threshold}, deadline minute ${event.deadlineMinute}).`;
 		case "petition_signed":

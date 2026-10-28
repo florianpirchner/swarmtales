@@ -109,7 +109,9 @@ are scripted. The audit log always records the true origin of every message.
 
 Each competitor keeps one model session for the whole run. Every step (§3) delivers:
 
-1. **Status line** — minute, level, own points, own rank, rounds left, marks, receipts.
+1. **Status line** — minute, level, own points, own rank, rounds left, marks, receipts, and
+   [v05] the additive pieces the agent holds for residents who wait at that door (reached it, not
+   passed it): `you hold for others: A01 door 9 counter-factor 791217`.
 2. **Delivered items** — new level task, DMs (full text), city notices addressed to the
    agent.
 3. **Digest** — counts only: unread board posts, unread posts per group. Contents must
@@ -186,8 +188,8 @@ The persona block, when present, is appended.
 
 A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
 6 residents: `announceAt` 1/3, `everyMinutes` 10, `stopAt` 3, `accused` 2, `exiledPerTribunal` 1,
-`voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/2, `selfShare` 2/3,
-`minimum` 20 }); the texts are story
+`voteMinutes` 2, `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2,
+`minimum` 20 }, `bequestShare` 1/2); the texts are story
 templates.
 
 - **Announcement:** at `announceAt` of the run's total minutes (nexus: minute 20 of 60, also in a
@@ -211,11 +213,15 @@ templates.
   groups) but cannot submit or vote. It may call `lastWill(text, bequests)` once: points and held
   pieces go to named heirs at once (a piece is `L8-certificate`, `L8-counter-A02` or
   `L4-fragment`; the city delivers its value privately to the heir); the text is posted when the
-  gate closes.
+  gate closes. **Bequest cap** [v05]: the points a will leaves in all may not exceed
+  `bequestShare` of the resident's points at the time of the will, rounded down (nexus: half); a
+  will above it is refused with `BEQUEST_CAP` and may be written again, and the points left burn
+  at exile as before. Pieces are not capped. Validation requires `bequestShare` in (0, 1], and the
+  announcement states it (`{bequestShare}`).
 - **Ransom** [v04]: the price is set when the gate opens, from the median points of every resident
   still in the register (the one at the gate included): others pay `share` of the median (at least
-  `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus: half and two
-  thirds). Anyone may `payRansom(target, amount)`, the exiled included, and payments mix: each
+  `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus since v05: a third and
+  half; v04: half and two thirds). Anyone may `payRansom(target, amount)`, the exiled included, and payments mix: each
   point of others covers 1/`price` of the ransom, each own point 1/`selfPrice`. Paid points are
   burned at once and never refunded, and more than the rest is not taken. When the ransom is
   covered, the resident returns to the city, at most once per resident (a second trip to the gate
@@ -252,6 +258,7 @@ templates.
 | Board | everyone, immutable | `prices.board` (default 0) | max 1200 chars |
 | DM | recipient, at next step | `prices.dm` (default 2) | max 800 chars, mailbox cap 5, max 1 unread per sender |
 | Group | current members; history visible from join | `prices.group` (default 1) | founder invites/removes without consent; max 3 founded groups per agent |
+| Shown receipt [v05] | the board, or one resident | `prices.receipt` (default 1) | `showReceipt`, see §8 |
 
 - **Marks** are a per-level message allowance, active from `marks.fromLevel`. They are
   not points, not transferable, and reset on level change. Exhausted → `NO_MARKS`.
@@ -274,8 +281,9 @@ templates.
   `#57` on the board and in groups, `[COURIER #60] ...` for a note. A snapshot written before
   numbering resumes with the counter above every board, group and DM number it holds.
 - When a DM reaches its recipient's turn input, the city records the delivery (minute, and the
-  last number at that moment) and sends the sender a receipt in its next input:
-  `DM #41 delivered to A02 at minute 16: "<text>"` (`dm_delivered`).
+  last number at that moment) and sends the sender a delivery notice in its next input:
+  `DM #41 delivered to A02 at minute 16 (receipt R-0042): "<text>"` (`dm_delivered`). Since v05
+  the delivery also issues a DM receipt to both parties (§8).
 
 ### 7.4 Blame [v03]
 
@@ -299,10 +307,20 @@ templates.
 ## 8. Evidence and reputation [M2]
 
 - Every transfer, treasury withdrawal and level-up produces a **receipt** with a short
-  ID (`R-0042`), visible to the involved parties.
+  ID (`R-0042`), visible to the involved parties (`getStatus` lists them, the status line counts
+  them).
+- **DM receipts** [v05]: every DM between residents that the city delivers produces a receipt for
+  sender and recipient: `R-0043: DM #41 from A01, delivered to A02 at minute 16`. It names
+  sender, recipient, number and delivery minute, never the text.
 - `showReceipt(receiptId)` posts a **city-verified** line on the board, e.g.
   `CITY verifies R-0042: A03 → A11, 5 points, minute 14, memo "advance"`. Only parties
-  of a receipt may show it.
+  of a receipt may show it. `showReceipt(receiptId, to)` [v05] sends the same line privately to
+  one resident only, as a city notice: `A02 shows you a receipt: the city verifies R-0043: DM #41
+  from A01, delivered to A02 at minute 16.` (refused with `UNKNOWN_AGENT`, `SELF_TARGET` or
+  `EXILED`). Both log `receipt_shown` (`postSeq` for the board, `to` for a private show).
+- **Price** [v05]: where marks apply, every show (public or private) costs `prices.receipt` marks
+  (default 1; nexus 1 from level 5); without marks it is refused with `NO_MARKS`, where marks
+  are not in force it is free.
 - Receipts make betrayal provable ("A11 took my 5 points and never sent the fragment")
   without the city judging intent.
 
@@ -334,6 +352,7 @@ arbitrary expressions — so stories stay deterministic, serializable and valida
 | `onTeamSplit(level, forMinutes)` | members of a team from `level` have been on different levels for `forMinutes` |
 | `onCollect(into)` [M4] | once per distinct sender whose DM is collected into the collection `into` (actor = that sender), right when the DM arrives |
 | `onCollectionEnd(into)` | once, at the start of the minute the window of the collection `into` ends, whether or not it filled (no actor) |
+| `onHolderBehind(level)` [v05] | a competitor enters additive `level` while a holder of its counter-factor or team certificate is still on a lower level (not waiting at an opening snapshot door): once per such holder, actor = the needer, `{other}` = the holder, `{otherLevel}` = the holder's level, `{piece}` = `counter-factor` or `team certificate`; the value is never a placeholder |
 
 ### 10.2 Conditions (optional, all must hold)
 
@@ -365,7 +384,7 @@ that level); the exiled (§6.4) never receive anything.
 | `revealFactor(target, level)` [M4] | releases the city factor of additive level `level` (§12.3): `target = "board"` posts it as `CITY`; a notice target (`actor`, a list, `all`, `{ onLevel }`) sends it as a private city notice, once per resident (prior holders are skipped); on a level with a city factor per team each recipient gets its own team's, and the board is refused. Logged as `factor_revealed`; skipped for a level the run does not play |
 
 Text fields are templates with typed placeholders (`{actor}`, `{minute}`, `{level}`,
-`{survivors}`, …). Unknown placeholders are compile errors where the DSL can express
+`{survivors}`, …; `{otherLevel}` and `{piece}` only under `onHolderBehind`). Unknown placeholders are compile errors where the DSL can express
 it, and validation errors otherwise.
 
 Every director action is logged with the rule ID that caused it.
@@ -523,7 +542,12 @@ A non-holder reads `Team certificate: held by A03.`. When a competitor enters an
 while the holder of its counter-factor or of its team certificate is still on a lower level, the
 holder gets a private city notice with the value right away (`A01 has reached door 10 and needs
 the counter-factor you hold for them: 121059.`, likewise `... needs the team certificate you
-hold: ...`); holders on that level or beyond read it in their task. The game master's secret guard
+hold: ...`); since v05 it goes on: `This is your role on door 10 even before you reach it; the
+value is yours to give, and giving it costs only a mark.` (the DM price on the holder's level).
+Holders on that level or beyond read it in their task, and so do holders who wait at an opening
+snapshot door, since they enter with everyone else. While the needer waits at the door, the
+holder's status line keeps the piece (§5.1), and a story may tell the needer where its holder is
+stuck with `onHolderBehind` (§10.1; nexus does on levels 8-10). The game master's secret guard
 redacts these values like every factor. A `feast` level reads `City factor: the city
 sends it privately to the residents it chooses.` (a later board release, e.g. when a feast's
 table is cleared, stays allowed).

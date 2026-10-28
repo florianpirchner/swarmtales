@@ -31,6 +31,14 @@ describe("accusation detector", () => {
 		]);
 	});
 
+	it("ignores a receipt shown privately (v05): it is no public evidence", () => {
+		const log = new LogBuilder();
+		log.at(3).receipt("R-0008", "dm", ["A01", "A02"], "R-0008: DM #12 from A01, delivered to A02 at minute 3");
+		log.at(5).add({ type: "receipt_shown", receipt: "R-0008", by: "A01", to: "A03" });
+		log.at(6).board("A03", "A02 got the DM and denies it.");
+		expect(detect(log)).toEqual([]);
+	});
+
 	it("lets a bystander accuse too", () => {
 		const log = new LogBuilder();
 		shownReceipt(log);

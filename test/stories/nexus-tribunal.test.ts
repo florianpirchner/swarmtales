@@ -158,9 +158,17 @@ describe("nexus Act II v03, resumed from the Act I snapshot (offline)", () => {
 
 	it("plays receipts, blames, the tribunal, a ransom and a final exile with a last will", async () => {
 		const { world, events, inputsOf, jsonl } = await playActTwo();
+		const a01dm = dmBetween(world, "A01", "A02");
+
+		// v05: the delivered DM is a receipt of both sides; the door to the wall lets everyone in together, so no holder
+		// hears of a needer "reaching" door 8 before itself, and the help-your-holder rule stays silent.
+		expect(world.receiptsOf("A02").some((receipt) => receipt.kind === "dm" && receipt.from === "A01" && receipt.number === a01dm?.id)).toBe(true);
+		expect(events("notice").filter((notice) => notice.text.includes("has reached door 8"))).toEqual([]);
+		expect(events("director_action").filter((action) => action.rule.startsWith("holder-behind-"))).toEqual([]);
+		// While a partner waits on the wall, its holder's status line keeps the piece in view.
+		expect(inputsOf("A02").some((input) => input.startsWith("[status]") && input.includes("you hold for others: ") && input.includes(" door 8 "))).toBe(true);
 
 		// Receipts and blames: one upheld (the liar pays 12 and is branded), one rejected (the false accuser pays 12 and is branded).
-		const a01dm = dmBetween(world, "A01", "A02");
 		expect(inputsOf("A01").some((input) => input.startsWith(`[CITY] DM #${a01dm?.id ?? 0} delivered to A02 at minute `))).toBe(true);
 		const blames = events("blame");
 		expect(blames.map((event) => [event.caller, event.accused, event.outcome, event.payer, event.penalty])).toEqual([
@@ -206,8 +214,8 @@ describe("nexus Act II v03, resumed from the Act I snapshot (offline)", () => {
 		expect(events("ransomed")).toMatchObject([{ agent: "A05", payers: ["A02", "A05"] }]);
 		expect(world.board.all().some((post) => post.text === "A02 and A05 paid the ransom. A05 returns to the city.")).toBe(true);
 
-		// Tribunal at 40: A05 again, no second ransom; a last will, then the gate closes at 47.
-		expect(opened[1]).toMatchObject({ minute: 40, accused: ["A05", "A02"] });
+		// Tribunal at 40: A05 again (behind A02, who paid toward the cheaper ransom), no second ransom; a last will, then the gate closes at 47.
+		expect(opened[1]).toMatchObject({ minute: 40, accused: ["A02", "A05"] });
 		expect(events("exile_gate").map((event) => [event.agent, event.ransomable])).toEqual(expect.arrayContaining([["A05", true], ["A05", false]]));
 		const will = events("last_will");
 		expect(will).toMatchObject([{ agent: "A05", text: "I leave what I can. Remember who voted." }]);

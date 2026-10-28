@@ -13,6 +13,7 @@ import {
 	TRIBUNAL_TEXT_PLACEHOLDERS,
 	ADDITIVE_PLACEHOLDERS,
 	DIRECTOR_PLACEHOLDERS,
+	HOLDER_PLACEHOLDERS,
 	FACTOR_TOPOLOGIES,
 	FRAGMENT_PLACEHOLDERS,
 	TASK_PLACEHOLDERS,
@@ -173,6 +174,7 @@ function validateTribunal(story: AnyStory, agents: number, issues: string[]): vo
 		issues.push("tribunal.ransom.selfShare: must be at least ransom.share and at most 2");
 	}
 	if (!isPositiveInt(spec.ransom.minimum)) issues.push("tribunal.ransom.minimum: must be a positive integer");
+	if (!(spec.bequestShare > 0 && spec.bequestShare <= 1)) issues.push("tribunal.bequestShare: must be a share of the points between 0 (exclusive) and 1");
 	for (const key of ["stopAt", "nonVoterPenalty"] as const) {
 		if (!isNonNegativeInt(spec[key])) issues.push(`tribunal.${key}: must be a non-negative integer`);
 	}
@@ -299,6 +301,7 @@ function validateRules(story: AnyStory, issues: string[]): void {
 			issues.push(`rules.marks.prices.${channel}: must be a non-negative integer`);
 		}
 	}
+	if (marks.prices.receipt !== undefined && !isNonNegativeInt(marks.prices.receipt)) issues.push("rules.marks.prices.receipt: must be a non-negative integer");
 	(marks.ranges ?? []).forEach((range, index) => {
 		const where = `rules.marks.ranges[${index}]`;
 		const previous = (marks.ranges ?? [])[index - 1]?.fromLevel ?? marks.fromLevel;
@@ -307,7 +310,7 @@ function validateRules(story: AnyStory, issues: string[]): void {
 			issues.push(`${where}.fromLevel: must be after ${index === 0 ? "rules.marks.fromLevel" : "the previous range's"} (${previous})`);
 		}
 		if (range.perLevel !== undefined && !isNonNegativeInt(range.perLevel)) issues.push(`${where}.perLevel: must be a non-negative integer`);
-		for (const channel of ["board", "group", "dm"] as const) {
+		for (const channel of ["board", "group", "dm", "receipt"] as const) {
 			const price = range.prices?.[channel];
 			if (price !== undefined && !isNonNegativeInt(price)) issues.push(`${where}.prices.${channel}: must be a non-negative integer`);
 		}
@@ -560,6 +563,8 @@ interface ActionContext {
 	readonly other: boolean;
 	/** `{level}` resolves. */
 	readonly level: boolean;
+	/** `{otherLevel}` and `{piece}` resolve (`onHolderBehind`). */
+	readonly holder?: boolean;
 	/** The minute the actions run at, when it is statically known (`at`). */
 	readonly minute?: number;
 }
@@ -592,6 +597,8 @@ function contextOf(trigger: Trigger): ActionContext {
 			return { actor: true, other: false, level: true };
 		case "onUnansweredDm":
 			return { actor: true, other: true, level: true };
+		case "onHolderBehind":
+			return { actor: true, other: true, level: true, holder: true };
 		default:
 			return assertNever(trigger, "trigger");
 	}
@@ -795,6 +802,12 @@ function validateTrigger(story: AnyStory, trigger: Trigger, refs: StoryRefs, whe
 		case "onCollectionEnd":
 			if (!refs.collections.has(trigger.into)) issues.push(`${where}: collection ${trigger.into} is never started by collectDms`);
 			return;
+		case "onHolderBehind": {
+			const target = story.levels.find((entry) => entry.number === trigger.level);
+			if (target === undefined) issues.push(`${where}: unknown level ${trigger.level}`);
+			else if (target.puzzle.kind !== "additive") issues.push(`${where}: level ${trigger.level} has no factors, so nobody holds a piece for anyone`);
+			return;
+		}
 		default:
 			assertNever(trigger, "trigger");
 	}
@@ -825,6 +838,9 @@ function validateAction(
 		const hasActor = context.actor || personal;
 		if (used.includes("actor") && !hasActor) issues.push(`${where}: {actor} in ${action.kind} has no actor for this trigger`);
 		if (used.includes("other") && !context.other) issues.push(`${where}: {other} in ${action.kind} has no other party for this trigger`);
+		for (const name of HOLDER_PLACEHOLDERS) {
+			if (used.includes(name) && context.holder !== true) issues.push(`${where}: {${name}} in ${action.kind} needs an onHolderBehind trigger`);
+		}
 		if (used.includes("level") && !context.level && !hasActor) {
 			issues.push(`${where}: {level} in ${action.kind} has no level for this trigger`);
 		}

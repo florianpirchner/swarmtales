@@ -146,6 +146,7 @@ const ReceiptSchema = Type.Union([
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("deposit"), from: Id, group: Id, amount: Int }),
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("withdrawal"), group: Id, treasurer: Id, to: Id, amount: Int }),
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("levelUp"), agent: Id, level: Int, reward: Int }),
+	Type.Object({ ...ReceiptBase, kind: Type.Literal("dm"), from: Id, to: Id, number: Int }),
 ]);
 
 const WorldSchema = Type.Object({

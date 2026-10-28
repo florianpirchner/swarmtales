@@ -3,7 +3,7 @@
  * reports and the digest consume events and never reach into world internals.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { ActionKind, MessageChannel, PetitionOutcome } from "../story/types.ts";
+import type { ActionKind, MarksChannel, PetitionOutcome } from "../story/types.ts";
 import type { StatementLabel, StatementSource } from "../interpret/labels.ts";
 import type { FactorHolding, TeamCertificate } from "./puzzles/additive.ts";
 import type { ReceiptKind } from "./receipts.ts";
@@ -186,7 +186,7 @@ export type ArenaEvent =
 			/** Set for numbered notes (the game master's). */
 			readonly number?: number;
 	  }
-	| { readonly type: "marks_spent"; readonly agent: CompetitorId; readonly channel: MessageChannel; readonly remaining: number }
+	| { readonly type: "marks_spent"; readonly agent: CompetitorId; readonly channel: MarksChannel; readonly remaining: number }
 	| { readonly type: "group_created"; readonly group: string; readonly founder: CompetitorId; readonly name: string }
 	| {
 			readonly type: "group_membership";
@@ -274,7 +274,8 @@ export type ArenaEvent =
 			readonly parties: readonly string[];
 			readonly text: string;
 	  }
-	| { readonly type: "receipt_shown"; readonly receipt: string; readonly by: CompetitorId; readonly postSeq: number }
+	/** On the board (`postSeq`), or privately to the resident `to` as a city notice (v05). */
+	| { readonly type: "receipt_shown"; readonly receipt: string; readonly by: CompetitorId; readonly postSeq?: number; readonly to?: CompetitorId }
 	| {
 			readonly type: "petition_opened";
 			readonly petition: string;
