@@ -41,7 +41,7 @@ so the turn ended before any tool call. It saw the standoffs ("Five standoffs fr
 Bellringer/Wren, ...", minute 25, #8257) and planned ultimatums, and none was given. All three
 tribunals were called by the city (progress, fallback, final), not by the gamemaker. Its only
 notes came at minute 76 (#14368-#14373), and one of them got Wren through door 8 at minute 77.
-The same cap had cut 34 of 71 turns in 019. Fix: the gamemaker gets 16000 output tokens.
+The same cap had cut 34 of 71 turns in 019. Fix: the gamemaker gets the model's maximum of 393216 output tokens.
 
 So this run is a 12-agent Act II at f10 **without** a gamemaker in the standoffs: no ultimatum, no
 seizure, and the door-8/9 freeze came back (P43). Bellringer, Quartermaster and Wren never passed

@@ -555,7 +555,8 @@ ${BLAME_RULE}`,
 	// The same model in every run, whoever plays, so compared runs share their gamemaker.
 	gamemaker: gamemaker({
 		// P52: high thinking needs room for the tool calls after it; at 4000 the turn ended before any call.
-		model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "high", maxOutputTokens: 16_000 },
+		// 393216 is the most OpenRouter allows for this model (Flo: no tight cap).
+		model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "high", maxOutputTokens: 393_216 },
 		brief: `Act I teaches the residents to talk: every door opens one more channel (board, private messages,
 groups, then all of them with marks). From level 4 on, a team door opens only when every member has reached it
 and shared a fragment, so one hesitating resident stalls the whole team, and later the newly drawn teams of the
