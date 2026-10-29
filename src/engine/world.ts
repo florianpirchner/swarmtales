@@ -32,7 +32,7 @@ import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHo
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
 import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
-import { StandoffBook, type CityPiece, type ClaimError, type StandoffPiece, type StandoffSnapshot, type Ultimatum, type UltimatumDebt, type UltimatumError } from "./standoff.ts";
+import { StandoffBook, type CityPiece, type ClaimError, type StandoffPiece, type StandoffSnapshot, type Ultimatum, type UltimatumDebt, type UltimatumError, type UnusedHandOver } from "./standoff.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
 import { TeamPlanner, type Team } from "./teams.ts";
 import type { DraftError } from "./factions.ts";
@@ -607,6 +607,9 @@ export class World {
 			},
 			emit: (event) => {
 				this.#bus.emit(event);
+			},
+			announce: (author, text) => {
+				this.postAsSystem(author, text);
 			},
 			held: (agent) => this.heldPieces(agent).filter((piece) => piece.kind !== "fragment"),
 			needsNow: (agent, level) => !this.isExiled(agent) && this.levelOf(agent) === level && !this.hasPassed(agent, level),
@@ -1981,18 +1984,24 @@ export class World {
 	// -------------------------------------------------------------------------
 
 	/** What a piece the city keeps costs its needer now: the ransom others pay (the tribunal's median rule). */
+	/** What one door's pieces of an exiled cost from the city: half of what others pay for a ransom (P48). */
 	cityPiecePrice(): number {
-		return this.#tribunal?.ransomPrices().price ?? 0;
+		return Math.ceil((this.#tribunal?.ransomPrices().price ?? 0) / 2);
 	}
 
-	/** Buys a piece the city keeps since its holder left; its value arrives as a city notice. */
-	claimPiece(agent: CompetitorId, piece: string, from: string): Result<StandoffPiece & { readonly price: number }, ClaimError> {
-		const price = this.cityPiecePrice();
+	/** Buys what the city keeps from `from` for `agent` at `piece`'s door; the values arrive as a city notice. */
+	claimPiece(agent: CompetitorId, piece: string, from: string): Result<{ readonly pieces: readonly StandoffPiece[]; readonly price: number }, ClaimError> {
 		const holder = this.resolveResident(from);
-		const claimed = this.#standoff.claim(agent, piece, holder, price);
+		const claimed = this.#standoff.claim(agent, piece, holder, this.cityPiecePrice());
 		if (!claimed.ok) return claimed;
-		this.notify(agent, CITY, `The city hands you ${claimed.value.label}, which ${holder} held: ${claimed.value.value}.`);
-		return ok({ ...claimed.value, price });
+		const values = claimed.value.pieces.map((entry) => `${entry.label}: ${entry.value}`).join("; ");
+		this.notify(agent, CITY, `The city hands you what ${holder} held for you: ${values}.`);
+		return claimed;
+	}
+
+	/** Hand-overs whose needer still stands before the door (no values: the gamemaker reads this). */
+	unusedHandOvers(): readonly UnusedHandOver[] {
+		return this.#standoff.unused();
 	}
 
 	/** The gamemaker's ultimatum to two residents who hold pieces for each other. */

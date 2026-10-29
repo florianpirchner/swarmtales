@@ -381,11 +381,13 @@ const WorldSchema = Type.Object({
 	standoff: Type.Optional(
 		Type.Object({
 			given: Type.Array(Type.String()),
+			givenAt: Type.Optional(Type.Record(Type.String(), Int)),
 			city: Type.Array(
 				Type.Object({
 					from: Id,
 					piece: Type.Object({ id: Type.String(), level: Int, label: Type.String(), value: Type.String(), needers: Ids }),
 					claimed: Ids,
+					price: Type.Optional(Int),
 				}),
 			),
 			ultimatums: Type.Array(

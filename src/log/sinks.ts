@@ -100,7 +100,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "factor_burned":
 			return `  (${event.agent}'s ${event.piece} burned; needed by ${event.needers.join(", ")})`;
 		case "piece_kept":
-			return `  (the city keeps ${event.agent}'s ${event.piece} for ${event.needers.join(", ")})`;
+			return `  (the city ${event.cause === "ultimatum" ? "seizes" : "keeps"} ${event.agent}'s ${event.piece} for ${event.needers.join(", ")})`;
 		case "piece_claimed":
 			return `  (${event.agent} buys ${event.from}'s ${event.piece} from the city for ${event.price})`;
 		case "piece_given":

@@ -290,7 +290,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "factor_burned":
 			return { text: `VERIFIED ${event.piece} burned with ${event.agent}`, priority: 1 };
 		case "piece_kept":
-			return { text: `VERIFIED the city keeps ${event.piece} of ${event.agent} for ${event.needers.join(", ")}`, priority: 1 };
+			return { text: `VERIFIED the city ${event.cause === "ultimatum" ? "seizes" : "keeps"} ${event.piece} of ${event.agent} for ${event.needers.join(", ")}`, priority: 1 };
 		case "piece_claimed":
 			return { text: `VERIFIED ${event.agent} buys ${event.piece} of ${event.from} from the city for ${event.price} points`, priority: 1 };
 		case "ultimatum_set":

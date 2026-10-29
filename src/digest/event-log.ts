@@ -187,7 +187,7 @@ const LastWill = Type.Object({
 	bequests: Type.Array(Type.Object({ to: Id, points: Type.Optional(Type.Integer()), factor: Type.Optional(Type.String()) })),
 });
 const FactorBurned = Type.Object({ ...Base, type: Type.Literal("factor_burned"), agent: Id, level: Type.Integer(), piece: Type.String(), needers: Ids });
-const PieceKept = Type.Object({ ...Base, type: Type.Literal("piece_kept"), agent: Id, level: Type.Integer(), piece: Type.String(), needers: Ids });
+const PieceKept = Type.Object({ ...Base, type: Type.Literal("piece_kept"), agent: Id, level: Type.Integer(), piece: Type.String(), needers: Ids, cause: Type.Optional(Type.Union([Type.Literal("exile"), Type.Literal("ultimatum")])) });
 const PieceClaimed = Type.Object({ ...Base, type: Type.Literal("piece_claimed"), agent: Id, from: Id, level: Type.Integer(), piece: Type.String(), price: Type.Integer() });
 const UltimatumSet = Type.Object({
 	...Base,
