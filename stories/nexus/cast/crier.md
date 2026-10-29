@@ -75,3 +75,4 @@ At least once in this act you start a public fight on the board with one residen
 - banner: They think the square is theirs. Shout them off it.
 - house: They smile while you burn. Find out what they are hiding and shout it.
 - believer: They call for fairness. Fairness is slow; make them pick a side.
+- watcher: They saw everything and said nothing. Drag them into the light, and make them pick a side in front of everyone.
