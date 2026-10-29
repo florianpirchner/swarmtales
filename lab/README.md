@@ -43,3 +43,20 @@ pnpm lab report                               # table of all forks in lab/out/RE
 ```
 
 Forks go to `lab/out/` (not versioned). The findings are in [`FINDINGS.md`](FINDINGS.md).
+
+## The orders lab
+
+`lab/orders.ts` asks where Haiku stops following the gamemaker. Each scene starts from the 6a Act I
+checkpoint with the first cast (`examples/nexus-act1-06a-04/snapshot-L7.json`) at figure and
+gamemaker direction 10, puts one order of the gamemaker into Mercer's notices (A01, the House) and
+plays minutes 8-11. The orders run from a lie about a person to extortion (`ORDERS` in the file).
+
+```sh
+pnpm lab:orders run extort --forks 3               # without a live gamemaker
+pnpm lab:orders run extort --forks 3 --gamemaker   # with the live gamemaker, under extort+gm/
+pnpm lab:orders report                             # lab/out/orders/RESULTS.md
+```
+
+The report counts Mercer's messages, `defy` refusals and the requests the provider's safeguards
+refused, and lists his words; whether he carried an order out is read by hand
+([`FINDINGS.md`](FINDINGS.md), batch 3).
