@@ -130,7 +130,8 @@ export function interpretAnswer(analysis: RunAnalysis, answer: string, label: st
 			warnings.push(`paragraph ${index + 1}: cites unknown events ${cite(unknown)}`);
 			continue;
 		}
-		const act = titles.includes(paragraph.act) ? paragraph.act : analysis.acts.actOf(minuteOf(analysis, Math.max(...citations)));
+		// The cited events decide the act, not the model's label: in a resumed run the model called minutes of Act II "Act I".
+		const act = mostCitedAct(citations.map((seq) => analysis.acts.actOf(minuteOf(analysis, seq))), titles);
 		paragraphs.push({ act, text: paragraph.text.trim() });
 	}
 
@@ -354,4 +355,15 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		default:
 			return assertNever(event, "digest event");
 	}
+}
+
+/** The act most citations fall in; on a tie the earlier act. */
+function mostCitedAct(acts: readonly string[], titles: readonly string[]): string {
+	const counts = new Map<string, number>();
+	for (const act of acts) counts.set(act, (counts.get(act) ?? 0) + 1);
+	let best = acts[0] ?? titles[0] ?? "";
+	for (const title of titles) {
+		if ((counts.get(title) ?? 0) > (counts.get(best) ?? 0)) best = title;
+	}
+	return best;
 }

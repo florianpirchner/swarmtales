@@ -2,7 +2,8 @@
   "run": "run-001",
   "story": "NEXUS - The City of Keys",
   "layers": [
-    "deterministic"
+    "deterministic",
+    "narrative"
   ],
   "acts": [
     {
@@ -25,6 +26,7 @@
     "exile": 3,
     "voteBetrayal": 6,
     "lastWill": 2,
+    "brokenPromise": 3,
     "accusation": 3
   },
   "beats": [
@@ -897,6 +899,26 @@
       ]
     },
     {
+      "id": "N-001",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 9245,
+      "minute": 28,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "Holdfast declared in G7 a bloc order that Kessler, Bellringer and Wren vote as one against whoever was not Mira (#7904), and later withdrew the bloc on the board (#8299), which A07 pointed out on #411 removed the list others were answering for (#9245).",
+      "evidence": [
+        7904,
+        8299,
+        9245
+      ]
+    },
+    {
       "id": "B-046",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -957,6 +979,49 @@
         9527,
         9890,
         9992
+      ]
+    },
+    {
+      "id": "N-002",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 9890,
+      "minute": 31,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A03 urged Keeper-Six to name the faction's target first on the board (#7758), Keeper-Six declined (#7797), and A03 was later publicly shown the delivered message asking for exactly that and had answered '#462' that it did not ask (#7760, #9837, #9426).",
+      "evidence": [
+        7758,
+        7797,
+        9426,
+        9837,
+        9847,
+        9890
+      ]
+    },
+    {
+      "id": "N-003",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 10126,
+      "minute": 32,
+      "actors": [
+        "A07"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A07 said on the board it would not spend points to buy a vote or a bloc and would stand with no one before the count (#9347), while A01's post already tied a vote price to whoever carried A07 into a faction (#10023); A07 later answered only its own charges (#10126).",
+      "evidence": [
+        9347,
+        10023,
+        10126
       ]
     },
     {
