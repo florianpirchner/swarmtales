@@ -33,12 +33,14 @@ src/
   story/       DSL: types.ts, define.ts, validate.ts, templates.ts
   log/         event sinks, run artifacts, transcripts, minute report, usage
   digest/      [M3] detectors, relationship graph, timeline, chronicle
+  novel/       the novelist (SPEC 15): casting, outline, scene packs, writer, prompts,
+               novel.ts runs the pipeline and writes <run>/novel/
   report/      run reporter (SPEC 15): facts computed from the run's files (facts.ts,
                run-log.ts), evidence pack, prompt, model binding, REPORT.md rendering;
                reporter.ts validates the model's JSON and writes the file
   snapshot/    run snapshots (SPEC 17): typebox schemas of the file, its events and the
                model contexts; read, check and write
-  cli/         main.ts, validate.ts, digest.ts, report.ts, run-report.ts
+  cli/         main.ts, validate.ts, digest.ts, novel.ts, report.ts, run-report.ts
 stories/       one folder per story: nexus/story.ts (default) with its README; index.ts
                (registry by name)
 test/          mirrors src/; offline only (scripted provider)

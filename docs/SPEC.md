@@ -969,6 +969,36 @@ Per run, `runs/run-NNN/` contains:
 - Model: DeepSeek V4.1 Flash via OpenRouter with thinking high and 64k output tokens, unless
   `--provider`/`--model` or `ARENA_DIGEST_PROVIDER`/`ARENA_DIGEST_MODEL` say otherwise.
 
+**Novelist (optional, needs two models):**
+
+- `pnpm novel <run-dir> [--words <n>] [--dry-run]` turns a run into a short story based on true
+  events (default about 6,000 words, English, rotating close third person) in `<run>/novel/`:
+  `story.md`, `outline.json`, `appendix.md` and the scene packs `packs/NN.md`.
+- **Casting** (code): 3 point-of-view figures (4 from six residents on), scored by the turning
+  points they are part of, their beats and their messages; the winner (rank 1), a loser (an exiled
+  resident, else the last) and someone with a turn (seal, paid ultimatum, ransom, goal held, fate
+  shift, vote betrayal) are preferred, the rest filled by score.
+- **Outline** (model, default DeepSeek V4.1 Flash via OpenRouter, thinking high): reads the POV
+  dossiers, the turning points, the beats, the chronicle if present and the evidence log; answers in
+  JSON with chapters `{pov, title, minutes [from, to], beats, evidence}`. Code validates it: unknown
+  `seq` are dropped, a chapter whose POV is not a cast figure or that cites no known event is
+  dropped, and turning points no chapter cites are warnings.
+- **Scene packs** (code): per chapter, within a character budget, the POV's messages, its thinking
+  (the inner monologue), the gamemaker's notes to it, the board, the city's verified facts of the
+  chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
+  secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
+  another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
+- **Chapters, interludes, edit** (model, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high): one
+  call per chapter with the outline, the pack and the previous chapter's ending; one 100-200 word
+  interlude in italics before each later chapter from the gamemaker's thinking in its minutes; one
+  edit pass that fixes continuity and lists contradictions with the outline. An edit that loses
+  headings or much of the text is not taken. The rule: compress and dramatise, never change an
+  outcome; names, never IDs.
+- **Appendix** (code): per chapter the `seq` its outline and pack rest on, uncovered turning points,
+  contradictions, warnings and the tokens and USD per stage.
+- Without an API key for either model the novel is skipped with a reason; `--dry-run` casts the
+  book and prints the outline prompt's size without calling a model or writing a file.
+
 **Run report (after every run):**
 
 - After the digest, `pnpm start` writes `<run>/REPORT.md`, the first draft of the run report;

@@ -51,6 +51,8 @@ start without replaying the earlier ones.
 | Gamemaker | `deepseek/deepseek-v4.1-flash-1017` | OpenRouter | fixed in the story; `--gamemaker-provider/--gamemaker-model` override it |
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
+| Novelist outline | DeepSeek V4.1 Flash, thinking high | OpenRouter | only with `pnpm novel`; `--outline-provider/--outline-model` override it |
+| Novelist writer | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | chapters and the edit pass of `pnpm novel` (the outline model writes the interludes); `--provider/--model` override it |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
 | Tests and offline runs | scripted provider | none | no API key, no cost |
 
@@ -316,6 +318,39 @@ pnpm digest runs/run-001 --chronicle                       # with the story's mo
 pnpm digest runs/run-001 --chronicle --provider deepseek   # with another provider
 ```
 
+## Novelist
+
+`pnpm novel runs/run-001` turns a run into a short story "based on true events" (about 6,000
+words, English, rotating close third person; SPEC 15). It reuses the digest's analysis and writes
+`runs/run-001/novel/`:
+
+| File | Content |
+|---|---|
+| `story.md` | the story: chapters, with short gamemaker interludes (the city's game makers, in italics) between them |
+| `outline.json` | the point-of-view figures with their scores, and the validated chapters (POV, minutes, what changes, evidence `seq`) |
+| `packs/NN.md` | exactly what the writer saw for chapter NN: the plan, the figure's dossier, its thinking, messages, notes from the gamemaker, the board and the city's facts |
+| `appendix.md` | per chapter the `seq` numbers its outline and pack rest on, turning points no chapter covers, the editor's contradictions, warnings and cost |
+
+The pipeline: casting in code (3-4 POV figures scored by turning points, beats and messages, with
+the winner, a loser and someone with a turn preferred), an outline by DeepSeek V4.1 Flash
+(validated: known `seq` only, POV must be a cast figure, uncovered turning points are warnings),
+scene packs in code, one Sonnet call per chapter (with the previous chapter's ending), one per
+interlude, and one edit pass over the whole text. The writer may compress and dramatise but never
+change an outcome. The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
+an API key for either model the novel is skipped with a reason. The cost of each stage is printed
+at the end and listed in the appendix.
+
+```bash
+pnpm novel runs/run-001 --dry-run                 # offline: casting and the outline prompt's size
+pnpm novel runs/run-001                           # DeepSeek outline, Sonnet prose
+pnpm novel runs/run-001 --words 3000 --model haiku
+```
+
+`--provider/--model` choose the writer (then `ARENA_NOVEL_PROVIDER`/`ARENA_NOVEL_MODEL`),
+`--outline-provider/--outline-model` the planner (then `ARENA_NOVEL_OUTLINE_PROVIDER`/
+`ARENA_NOVEL_OUTLINE_MODEL`). A digest chronicle (`digest/chronicle.md`), when present, is given to
+the planner as well.
+
 ## Stories
 
 A story is a TypeScript module whose default export is `defineStory(...)`: deeply readonly,
@@ -569,9 +604,10 @@ src/
   story/     DSL: types, defineStory and helpers, templates, validation
   log/       event sinks, run artifacts, transcripts, minute report, usage
   digest/    event-log parsing, detectors, relationship graph, acts, timeline, chronicle
+  novel/     the novelist: casting, outline, scene packs, chapters, interludes, edit, appendix
   report/    run reporter: computed facts, evidence pack, prompt, model, REPORT.md rendering
   snapshot/  run snapshot file: schema of state, events and model contexts; read and write
-  cli/       start, validate, report, report:run, digest, run composition
+  cli/       start, validate, report, report:run, digest, novel, run composition
 stories/     one folder per story (nexus is the default) and the registry index.ts
 test/        mirrors src/; offline only
 docs/        SPEC.md, ARCHITECTURE.md, MODELS.md

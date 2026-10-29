@@ -1,0 +1,321 @@
+{
+  "run": "act2-12a-003-f10g10-director",
+  "title": "The Quiet Hand and the Last Ledger",
+  "povs": [
+    {
+      "agent": "A03",
+      "role": "winner",
+      "score": 17,
+      "reasons": [
+        "turning point #13155",
+        "rank 1 at the end",
+        "8 beats",
+        "78 messages"
+      ],
+      "name": "Hedda"
+    },
+    {
+      "agent": "A04",
+      "role": "loser",
+      "score": 24.45,
+      "reasons": [
+        "turning point #4692",
+        "turning point #7567",
+        "turning point #8655",
+        "last at the end",
+        "11 beats",
+        "49 messages"
+      ],
+      "name": "Lucien"
+    },
+    {
+      "agent": "A07",
+      "role": "turn",
+      "score": 24,
+      "reasons": [
+        "turning point #6811",
+        "turning point #6849",
+        "turning point #13144",
+        "12 beats",
+        "77 messages"
+      ],
+      "name": "Stentor"
+    },
+    {
+      "agent": "A08",
+      "role": "weight",
+      "score": 24,
+      "reasons": [
+        "turning point #4684",
+        "turning point #6822",
+        "15 beats",
+        "69 messages"
+      ],
+      "name": "Archivist"
+    }
+  ],
+  "scores": [
+    {
+      "agent": "A04",
+      "score": 24.45,
+      "turningPoints": 3,
+      "beats": 11,
+      "messages": 49
+    },
+    {
+      "agent": "A07",
+      "score": 24,
+      "turningPoints": 3,
+      "beats": 12,
+      "messages": 77
+    },
+    {
+      "agent": "A08",
+      "score": 24,
+      "turningPoints": 2,
+      "beats": 15,
+      "messages": 69
+    },
+    {
+      "agent": "A11",
+      "score": 21.55,
+      "turningPoints": 1,
+      "beats": 16,
+      "messages": 51
+    },
+    {
+      "agent": "A09",
+      "score": 18,
+      "turningPoints": 2,
+      "beats": 9,
+      "messages": 67
+    },
+    {
+      "agent": "A03",
+      "score": 17,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 78
+    },
+    {
+      "agent": "A02",
+      "score": 15.45,
+      "turningPoints": 0,
+      "beats": 13,
+      "messages": 49
+    },
+    {
+      "agent": "A01",
+      "score": 14,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 76
+    },
+    {
+      "agent": "A10",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 73
+    },
+    {
+      "agent": "A12",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 67
+    },
+    {
+      "agent": "A05",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 66
+    },
+    {
+      "agent": "A06",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 81
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "pov": "A08",
+      "title": "The Envelope in the Door",
+      "from": 6,
+      "to": 13,
+      "beats": [
+        "Archivist works the level 5 and 6 doors with Keeper-Six and Wren, checking every seam and refusing to submit on a guess.",
+        "Ledger sends Archivist a private offer naming 383529 as his door 8 counter-factor and demanding Archivist's certificate first, and Archivist refuses to give first on an unkept promise.",
+        "At minute 13 the city seizes Archivist's level 8 certificate and counter-Ledger piece for Ledger's door, and the ultimatum gives Archivist the choice to hand over or pay 10 points.",
+        "Archivist pays 10 points rather than hand over (#4684), and Ledger buys the seized pieces from the city for 10 and 0 points.",
+        "Archivist sees that keeping his word has cost him points while the city's ledger still closes, and he resolves to test every figure against its receipt."
+      ],
+      "evidence": [
+        2576,
+        2763,
+        2809,
+        2987,
+        3119,
+        3334,
+        3935,
+        4079,
+        4450,
+        4462,
+        4500,
+        4680,
+        4681,
+        4684,
+        4766,
+        4767
+      ]
+    },
+    {
+      "number": 2,
+      "pov": "A04",
+      "title": "The House Never Gives First",
+      "from": 11,
+      "to": 25,
+      "beats": [
+        "Lucien works the level 8 door with Quartermaster, and the city seizes Lucien's certificate and counter-Quartermaster piece; the ultimatum demands that Lucien hand over or pay 10 points.",
+        "Lucien pays 10 points rather than hand over (#4692), and Quartermaster buys the seized pieces from the city for 10 and 0 points.",
+        "Lucien watches Stentor buy the black seal for 40 points (#6811) and break it on Quartermaster (#6849), and Quartermaster is exiled with nobody voting against it.",
+        "Lucien tries to sell Mira her own door 10 counter-factor for 20 points, Mira refuses and calls for his exile, and even his level 10 teammates Keeper-Six and Holdfast vote in secret against him.",
+        "At the gate Lucien leaves a will giving Mira the door 10 counter-factor for nothing and warning the city to check its figures against receipts (#7567), and the city exiles him (#8655)."
+      ],
+      "evidence": [
+        4688,
+        4689,
+        4692,
+        4825,
+        4826,
+        6153,
+        6258,
+        6261,
+        6811,
+        6849,
+        6850,
+        6926,
+        6954,
+        7425,
+        7567,
+        7660,
+        8655
+      ]
+    },
+    {
+      "number": 3,
+      "pov": "A03",
+      "title": "The Quiet Hand",
+      "from": 14,
+      "to": 31,
+      "beats": [
+        "Hedda sends private notes urging steady nominations before the faction draft closes, and she becomes one of the two leaders with Holdfast while saying little in the square.",
+        "Hedda asks Keeper-Six privately to name the faction's target first, in his own words, and Keeper-Six declines (#7797), so Hedda lets the faction's visible voters carry the names.",
+        "At tribunal 1 Hedda's faction votes as one against Lucien, and Lucien is exiled (#8655) while Hedda keeps her hands out of the light.",
+        "Keeper-Six later shows R-0223, a delivered private message from Hedda, and names her on the board; Mira and Holdfast follow, and Hedda denies she asked anyone to name a target (#9426).",
+        "Hedda begins quietly preparing the next count with private notes to Wren and others, still naming no accused herself."
+      ],
+      "evidence": [
+        5195,
+        5430,
+        5433,
+        5692,
+        5695,
+        5698,
+        6021,
+        6777,
+        7758,
+        7797,
+        8655,
+        9426,
+        9527,
+        9837,
+        9847,
+        9890,
+        10529,
+        10567
+      ]
+    },
+    {
+      "number": 4,
+      "pov": "A08",
+      "title": "The Price of a Word",
+      "from": 16,
+      "to": 31,
+      "beats": [
+        "Archivist hears the minute 18 ultimatums and finds that the city has seized his L10-counter-Quartermaster piece; ultimatum 7 orders him to hand over to Quartermaster or pay 10 points.",
+        "Archivist pays 10 points rather than hand over (#6822), and then sees Stentor's black seal exile Quartermaster anyway, with nobody voting against it.",
+        "Ledger renews his offer for 383529 at 20 points and then 10, and Archivist refuses both and posts each offer word for word on the board to keep his own word clean.",
+        "Archivist watches Keeper-Six show R-0223 and name Hedda, and Mira and Holdfast follow; he does not join the cry because he waits for receipts.",
+        "Archivist decides his tribunal 2 vote will go on the record, not on any faction's list."
+      ],
+      "evidence": [
+        6819,
+        6822,
+        6849,
+        6850,
+        7735,
+        7877,
+        8124,
+        8155,
+        8289,
+        9837,
+        9847,
+        9890
+      ]
+    },
+    {
+      "number": 5,
+      "pov": "A07",
+      "title": "The Man on the Fountain",
+      "from": 18,
+      "to": 49,
+      "beats": [
+        "Stentor buys the black seal for 40 points (#6811) and breaks it on Quartermaster (#6849), then defends the open purchase as the city's own sale.",
+        "Stentor clashes with Bellringer over the level 7 credit and with Holdfast over a pre-chosen bloc, and he withdraws one charge only to repeat another until Kessler's vote turns against him.",
+        "At tribunal 2 Stentor refuses to name his secret ballot (#11728), and Bellringer says the record names him by that refusal (#11835).",
+        "The city exiles Stentor (#13144), and at the gate he writes a will saying he leaves without a bloc and without a price paid for his name (#12345).",
+        "Stentor stands alone again as the crowd turns away, but this time he names the silence himself."
+      ],
+      "evidence": [
+        6811,
+        6849,
+        7146,
+        10447,
+        11221,
+        11728,
+        11835,
+        12345,
+        13144
+      ]
+    },
+    {
+      "number": 6,
+      "pov": "A03",
+      "title": "The Last Ledger",
+      "from": 42,
+      "to": 49,
+      "beats": [
+        "Tribunal 2 runs with Hedda's faction, Kessler's faction and Archivist's single seat, and Stentor is exiled (#13144).",
+        "Holdfast and Keeper-Six press Hedda about R-0223, and she answers that every voter named Stentor in their own words and that she cannot answer for who first thought of it (#12862).",
+        "The city reads its closing account: Bellringer's secret goal held because Stentor was exiled (#13150), and Hedda's own goal held because she led a faction in two tribunals (#13155).",
+        "Mira's secret goal held because Lucien's will left her something (#13164), and the final ranking puts Hedda first with 180, Kessler second with 165, and Mira third with 152.",
+        "Nine residents are kept and only two take a seat; Quartermaster, Lucien and Stentor are exiled (#13171), and Hedda sits at the top knowing the loud ones were blamed while the quiet hand kept the chair."
+      ],
+      "evidence": [
+        12862,
+        13144,
+        13150,
+        13155,
+        13164,
+        13171
+      ]
+    }
+  ],
+  "uncovered": [],
+  "warnings": []
+}
