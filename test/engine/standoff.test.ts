@@ -169,6 +169,16 @@ describe("the give-first standoff (P43)", () => {
 		expect(points.get("A01")).toBe(30);
 	});
 
+	it("does not keep a piece its holder already handed to the one who needs it (P51)", () => {
+		const { standoff, events } = book();
+		const piece = PIECES.A02?.[0];
+		if (piece === undefined) throw new Error("fixture");
+		standoff.noteText("A02", ["A01"], "542489");
+		standoff.keep("A02", [piece], 20, "CITY");
+		expect(events.some((event) => event.type === "piece_kept")).toBe(false);
+		expect(standoff.claimable("A01")).toEqual([]);
+	});
+
 	it("shows the gamemaker hand-overs the needer has not used", () => {
 		const { standoff, passed, at } = book();
 		at(9);
