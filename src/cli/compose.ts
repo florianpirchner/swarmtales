@@ -100,8 +100,8 @@ export interface ComposeOptions {
 	readonly snapshot?: SnapshotOptions;
 	/** Continue a run from a snapshot; the overrides come from {@link resumeOverrides}. */
 	readonly resume?: ResumeOptions;
-	/** Text appended to every competitor's system prompt (prompt experiments, `lab/`). */
-	readonly promptAddendum?: string;
+	/** Texts appended to the system prompt (prompt experiments, `lab/`): of every competitor, or of `agent` alone. */
+	readonly promptAddenda?: readonly { readonly agent?: CompetitorId; readonly text: string }[];
 }
 
 export interface SnapshotOptions {
@@ -292,7 +292,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			);
 		return new AgentRunner({
 			id,
-			systemPrompt: options.promptAddendum === undefined ? base : `${base}\n\n${options.promptAddendum.trim()}`,
+			systemPrompt: [base, ...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim())].join("\n\n"),
 			tools: bindAll({ self: id, world, ...(judge === undefined ? {} : { judge }) }),
 			binding: source.bind(id, limits),
 			bus,

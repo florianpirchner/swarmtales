@@ -3,13 +3,14 @@
  * times with prompt variants and counts what the residents do. Live models,
  * real money; see `lab/README.md`.
  *
- *   pnpm lab run <scene> <variant> [--forks n] [--glm]
+ *   pnpm lab run <scene> <variant> [--forks n] [--glm] [--for <ID>=<file>]
  *   pnpm lab report
  *
  * Scenes: `auction` (the black seal auction opens at minute 12; minutes
  * 12-14 are played) and `seal-<ID>` (the resident holds the seal from minute
  * 12; minutes 12-15 are played). Variants: `A` (no addendum) or the name of
- * a file in `lab/variants/` without `.md`.
+ * a file in `lab/variants/` without `.md`; any other name is only a label,
+ * for runs that add `--for` characters.
  */
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -62,13 +63,15 @@ function withSeal(base: RunSnapshot, holder: string): RunSnapshot {
 	};
 }
 
-function run(sceneName: string, variant: string, fork: number, glm: boolean): Promise<void> {
+function run(sceneName: string, variant: string, fork: number, glm: boolean, extra: readonly string[]): Promise<void> {
 	const { file, minutes } = scene(sceneName);
 	const dir = join(OUT, glm ? "glm" : "haiku", sceneName, variant, `fork-${fork}`);
 	mkdirSync(dir, { recursive: true });
 	const args = ["start", "--resume", file, "--minutes", String(minutes), "--no-gamemaster", "--no-reporter", "--runs", dir];
 	args.push(...(glm ? ["--provider", "openrouter", "--model", "glm-flash"] : ["--provider", "anthropic"]));
-	if (variant !== "A") args.push("--prompt-addendum", join("lab", "variants", `${variant}.md`));
+	const variantFile = join("lab", "variants", `${variant}.md`);
+	if (variant !== "A" && existsSync(variantFile)) args.push("--prompt-addendum", variantFile);
+	for (const entry of extra) args.push("--prompt-addendum", entry);
 	return new Promise((done, fail) => {
 		const child = spawn("pnpm", ["-s", ...args], { stdio: ["ignore", "ignore", "inherit"] });
 		child.on("exit", (code) => {
@@ -167,11 +170,13 @@ async function main(argv: readonly string[]): Promise<void> {
 	const forksAt = rest.indexOf("--forks");
 	const forks = forksAt < 0 ? 3 : Number(rest[forksAt + 1]);
 	const glm = rest.includes("--glm");
+	// `--for <ID>=<file>`: an addendum for one resident (a hand-written character).
+	const extra = rest.flatMap((entry, index) => (entry === "--for" && rest[index + 1] !== undefined ? [rest[index + 1] ?? ""] : []));
 	// Forks add to those already there; the first writes the prompt cache, the others read it.
 	const dir = join(OUT, glm ? "glm" : "haiku", sceneName, variant);
 	const first = existsSync(dir) ? readdirSync(dir).length + 1 : 1;
-	await run(sceneName, variant, first, glm);
-	await Promise.all(Array.from({ length: forks - 1 }, (_, index) => run(sceneName, variant, first + index + 1, glm)));
+	await run(sceneName, variant, first, glm, extra);
+	await Promise.all(Array.from({ length: forks - 1 }, (_, index) => run(sceneName, variant, first + index + 1, glm, extra)));
 }
 
 await main(process.argv.slice(2));

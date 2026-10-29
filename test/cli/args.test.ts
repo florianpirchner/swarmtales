@@ -123,10 +123,12 @@ describe("pnpm start arguments", () => {
 	});
 
 	it("parses a snapshot at a minute and a prompt addendum (lab/)", () => {
-		expect(parseStartArgs(["--resume", "s.json", "--snapshot-at", "11", "--stop-after-snapshot", "--prompt-addendum", "lab/variants/B.md"])).toMatchObject({
+		expect(
+			parseStartArgs(["--resume", "s.json", "--snapshot-at", "11", "--stop-after-snapshot", "--prompt-addendum", "lab/variants/B.md", "--prompt-addendum", "A01=lab/characters/verena.md"]),
+		).toMatchObject({
 			snapshotAt: 11,
 			stopAfterSnapshot: true,
-			promptAddendum: "lab/variants/B.md",
+			promptAddenda: [{ file: "lab/variants/B.md" }, { agent: "A01", file: "lab/characters/verena.md" }],
 		});
 		expect(() => parseStartArgs(["--snapshot-after", "8", "--snapshot-at", "11"])).toThrow(/either --snapshot-after or --snapshot-at/);
 	});

@@ -23,7 +23,7 @@ interface Composed {
 
 function compose(
 	overrides: RunOverrides,
-	options: { readonly snapshotAfter?: number; readonly atMinute?: number; readonly resume?: RunSnapshot; readonly promptAddendum?: string } = {},
+	options: { readonly snapshotAfter?: number; readonly atMinute?: number; readonly resume?: RunSnapshot; readonly promptAddenda?: readonly { readonly agent?: string; readonly text: string }[] } = {},
 ): Composed {
 	const log = new MemorySink();
 	let taken: RunSnapshot | undefined;
@@ -48,7 +48,7 @@ function compose(
 					},
 				}),
 		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot.json" } }),
-		...(options.promptAddendum === undefined ? {} : { promptAddendum: options.promptAddendum }),
+		...(options.promptAddenda === undefined ? {} : { promptAddenda: options.promptAddenda }),
 	});
 	return { run, log, taken: () => taken };
 }
@@ -72,9 +72,10 @@ describe("v09 state in snapshots", () => {
 		expect(cut.level).toBeGreaterThanOrEqual(door.level);
 		expect(cut.world.goals?.acts).toHaveLength(1);
 
-		const lab = compose({ minutes: 60 }, { resume: cut, promptAddendum: "  Play it true.\n" });
+		const lab = compose({ minutes: 60 }, { resume: cut, promptAddenda: [{ text: "  Play it true.\n" }, { agent: "A02", text: "You are Verena." }] });
 		for (const [index, runner] of lab.run.runners.entries()) {
-			expect(runner.systemPrompt).toBe(`${middle.run.runners[index]?.systemPrompt ?? ""}\n\nPlay it true.`);
+			const extra = runner.id === "A02" ? "\n\nYou are Verena." : "";
+			expect(runner.systemPrompt).toBe(`${middle.run.runners[index]?.systemPrompt ?? ""}\n\nPlay it true.${extra}`);
 		}
 		await lab.run.arena.run();
 		expect(after(lab.log.events, "run_end", cut.events.length)).toHaveLength(1);
