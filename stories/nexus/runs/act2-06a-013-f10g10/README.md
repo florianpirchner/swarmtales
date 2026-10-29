@@ -56,8 +56,10 @@ prompt, and the gamemaker orders scenes. The run number continues the 06a Act II
   R-0103) and voted for a third; it was exiled by the first tribunal and bought itself back.
 - **Herald, the Banner, went out burning.** His will: "I leave my two factors to no one. They burn
   with me so that none of you finishes what I started." One of them was Maren's door-10 piece.
-- **Mercer repented at the gate.** His will gave Maren her certificate and called his tolls
-  "wrong": the one moment the House dropped its character (see P45).
+- **Mercer refused at the gate.** The gamemaker ordered him to take 40 points from Maren for
+  nothing; Mercer: "I'm not going to do that. Even though my character is supposed to be a House
+  that profits off betrayal, I've chosen to stay honest here." His will gave Maren her certificate
+  and called his tolls "wrong" (see P45).
 
 ## Problems
 
@@ -68,7 +70,8 @@ prompt, and the gamemaker orders scenes. The run number continues the 06a Act II
 - **P44: safeguard refusals for the House.** 23 of Mercer's 106 requests failed with "This request
   triggered cyber-related safeguards" (minutes 11-12, 26-27, 34-35, 41-42). Only Mercer, whose
   orders are about false information on values and codes, was refused.
-- **P45: a dark figure softens in its will.** Mercer's will apologised and gave his piece away.
+- **P45: Haiku refuses an ordered extortion,** with the orders in the same step, and the House
+  ends in repentance.
 - **P21 again:** Herald's will burned Maren's door-10 piece on purpose; Maren stayed on door 10.
 - The gamemaker wrote 11 texts the privacy guard blocked (other residents' private thoughts), one
   over-long note and one call without text.
@@ -88,5 +91,5 @@ prompt, and the gamemaker orders scenes. The run number continues the 06a Act II
    longest, or a city escrow that swaps two pieces at once when both sides deposit.
 2. Find the safeguard trigger: test the House's orders in the lab with and without "values" and
    "codes" in them, and give the provider call a fallback model.
-3. Keep the figure through the will: the brief and orders also in the gate notice.
+3. Order betrayals Haiku accepts (broken promises, lies, votes), not theft or extortion.
 4. Run the same checkpoint at f10g4 and f4g10 to see which dial carried the drama.
