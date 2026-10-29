@@ -72,6 +72,11 @@ const ScheduleParams = Type.Object({
 	factions: Type.Optional(Type.Integer({ description: "Factions formed before it, from 2 to half the residents present", minimum: 2 })),
 	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
 });
+const UltimatumParams = Type.Object({
+	a: Type.String({ description: "Resident name or ID" }),
+	b: Type.String({ description: "The other resident, name or ID" }),
+	minutes: Type.Integer({ description: "Minutes until the deadline", minimum: 1 }),
+});
 
 export class Gamemaker implements EventSink {
 	readonly #options: GamemakerOptions;
@@ -185,7 +190,12 @@ export class Gamemaker implements EventSink {
 				systemPrompt: this.#options.systemPrompt,
 				model: binding.model,
 				thinkingLevel: this.#options.thinking,
-				tools: [this.#bind(this.#notifyTool()), this.#bind(this.#postTool()), ...(this.#mayScheduleTribunal() ? [this.#bind(this.#scheduleTool())] : [])],
+				tools: [
+					this.#bind(this.#notifyTool()),
+					this.#bind(this.#postTool()),
+					...(this.#mayScheduleTribunal() ? [this.#bind(this.#scheduleTool())] : []),
+					...(this.#mayGiveUltimatums() ? [this.#bind(this.#ultimatumTool())] : []),
+				],
 			},
 			streamFn: binding.streamFn,
 			finishTurn: (turn) => {
@@ -272,6 +282,27 @@ export class Gamemaker implements EventSink {
 					`tribunal ${plan.tribunal} planned: the city calls it at minute ${plan.calledAt}, it opens at minute ${plan.opens} and exiles ${plan.count}` +
 					(plan.factions >= 2 ? `, ${plan.factions} factions` : "")
 				);
+			},
+		};
+	}
+
+	/** At gm direction 10, in a story with ultimatums (P43). */
+	#mayGiveUltimatums(): boolean {
+		return (this.#options.direction ?? 4) >= 10 && this.#options.world.hasUltimatums;
+	}
+
+	#ultimatumTool(): GmTool<typeof UltimatumParams> {
+		return {
+			name: "ultimatum",
+			description:
+				"Gives two residents who hold pieces for each other a deadline: whoever has not handed over what it holds for the other by then " +
+				"loses the city's penalty. The city words it, tells both in private and settles it; the report shows the standoffs.",
+			parameters: UltimatumParams,
+			execute: ({ a, b, minutes }) => {
+				const given = this.#options.world.issueUltimatum(a, b, minutes, this.#options.spec.author);
+				if (!given.ok) throw new ToolRefusal(`${given.error}: ${given.detail ?? ""}`.trim());
+				const ultimatum = given.value;
+				return `ultimatum ${ultimatum.number} to ${ultimatum.between.join(" and ")}: due at minute ${ultimatum.until}, ${ultimatum.penalty} points for whoever has not handed over`;
 			},
 		};
 	}

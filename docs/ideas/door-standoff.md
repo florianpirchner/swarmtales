@@ -1,8 +1,9 @@
 # Breaking the give-first standoff (P43)
 
-Status: idea, not approved. Flo (2026-10-29): keep direction 10 (its outcome is the more
-interesting one); first try a gamemaker that pushes much harder on stalled pairs. The mechanics
-below are plan B, if the gamemaker alone does not break the standoff.
+Status: plan A and point 3 of plan B (with the second way, `claimPiece`) were approved by Flo on
+2026-10-29 and built (SPEC 6.5, PR #31); points 1 and 2 of plan B stay ideas, for the case that
+the gamemaker alone does not break the standoff. Flo: keep direction 10 (its outcome is the more
+interesting one).
 
 ## Plan A: the gamemaker pushes
 

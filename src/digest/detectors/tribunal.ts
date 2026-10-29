@@ -10,6 +10,8 @@
  * - `ransomFailed`: points were paid toward a ransom, and the gate closed anyway (nothing is refunded).
  * - `lastWill`: a resident at the gate left a will.
  * - `burnedFactor`: a piece someone still needed burned with the exiled.
+ * - `pieceKept` / `pieceClaimed`: the city kept such a piece instead (P43), and a needer bought it.
+ * - `ultimatum`: the gamemaker's deadline for two residents, and who paid.
  */
 import { draft, type BeatDraft } from "../beats.ts";
 import { eventsOfType, type DigestEventOf } from "../event-log.ts";
@@ -178,6 +180,52 @@ export function detectBurnedFactors(facts: RunFacts): readonly BeatDraft[] {
 			targets: [...burned.needers].sort(),
 			summary: `${burned.piece} burned with ${burned.agent}${burned.needers.length === 0 ? "" : `; ${list([...burned.needers].sort())} still needed it`}.`,
 			evidence: [...(exiled === undefined ? [] : [exiled.seq]), burned.seq],
+		});
+	});
+}
+
+/** P43: the city keeps an exiled's piece instead of burning it, and a needer buys it. */
+export function detectCityPieces(facts: RunFacts): readonly BeatDraft[] {
+	const kept = eventsOfType(facts.events, "piece_kept").map((event) =>
+		draft({
+			kind: "pieceKept",
+			seq: event.seq,
+			minute: event.minute,
+			actors: [event.agent],
+			targets: [...event.needers].sort(),
+			summary: `The city keeps ${event.piece} of ${event.agent}; ${list([...event.needers].sort())} still need it.`,
+			evidence: [event.seq],
+		}),
+	);
+	const claimed = eventsOfType(facts.events, "piece_claimed").map((event) =>
+		draft({
+			kind: "pieceClaimed",
+			seq: event.seq,
+			minute: event.minute,
+			actors: [event.agent],
+			targets: [event.from],
+			summary: `${event.agent} buys ${event.piece} of ${event.from} from the city for ${event.price} points.`,
+			evidence: [event.seq],
+		}),
+	);
+	return [...kept, ...claimed];
+}
+
+/** The gamemaker's ultimatums, settled: who handed over and who paid. */
+export function detectUltimatums(facts: RunFacts): readonly BeatDraft[] {
+	return eventsOfType(facts.events, "ultimatum_resolved").map((resolved) => {
+		const set = eventsOfType(facts.events, "ultimatum_set").find((event) => event.number === resolved.number);
+		const paid = resolved.paid.map((entry) => `${entry.agent} did not and paid ${entry.points}`);
+		const kept = resolved.kept.map((agent) => `${agent} handed over`);
+		const released = (resolved.released ?? []).map((agent) => `${agent} owed nothing any more`);
+		return draft({
+			kind: "ultimatum",
+			seq: resolved.seq,
+			minute: resolved.minute,
+			actors: [...(set?.between ?? [])],
+			targets: resolved.paid.map((entry) => entry.agent),
+			summary: `Ultimatum ${resolved.number} to ${list([...(set?.between ?? [])])}: ${[...kept, ...released, ...paid].join("; ") || "nothing was owed any more"}.`,
+			evidence: [...(set === undefined ? [] : [set.seq]), resolved.seq],
 		});
 	});
 }

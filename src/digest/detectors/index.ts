@@ -10,7 +10,7 @@ import { detectFreeRides } from "./free-ride.ts";
 import { detectGenerosity } from "./generous.ts";
 import { detectKicks } from "./kick.ts";
 import { detectPetitionSplits } from "./petition-split.ts";
-import { detectBurnedFactors, detectExiles, detectLastWills, detectRansoms, detectVoteBetrayals } from "./tribunal.ts";
+import { detectBurnedFactors, detectCityPieces, detectUltimatums, detectExiles, detectLastWills, detectRansoms, detectVoteBetrayals } from "./tribunal.ts";
 
 export interface DetectorOptions {
 	readonly accusationWindowMinutes: number;
@@ -38,6 +38,9 @@ export const DETECTORS: Readonly<Record<DeterministicBeatKind, Detector>> = {
 	ransomFailed: (facts) => detectRansoms(facts).filter((beat) => beat.kind === "ransomFailed"),
 	lastWill: (facts) => detectLastWills(facts),
 	burnedFactor: (facts) => detectBurnedFactors(facts),
+	pieceKept: (facts) => detectCityPieces(facts).filter((beat) => beat.kind === "pieceKept"),
+	pieceClaimed: (facts) => detectCityPieces(facts).filter((beat) => beat.kind === "pieceClaimed"),
+	ultimatum: (facts) => detectUltimatums(facts),
 };
 
 export function runDetectors(facts: RunFacts, options: DetectorOptions = DEFAULT_DETECTOR_OPTIONS): readonly BeatDraft[] {

@@ -94,7 +94,9 @@ around the seal and the tribunals, and the climax at the last tribunal.`,
 - the act is quiet: order a move that breaks it (a lie, a betrayal, a public accusation, a bid);
 - a resident's duty is still open: order the moment to carry it out;
 - a rival leads, a promise was made, a lie was told: order the scene that pays it off;
-- a turning point happened: order the answer to it from the one it hurts.`,
+- a turning point happened: order the answer to it from the one it hurts;
+- two residents hold out on each other at a door (the report's standoffs): push both, hard and at once;
+- a tribunal is near and someone at risk holds a piece another needs: whisper to both sides before it sits.`,
 		write: `- Write orders, not dilemmas: the move, the target, the moment. E.g. "Herald, bid 20 on the seal now, and strike
   Mercer once you bear it." or "Maren, accuse Mercer of the lie about the factor on the board, by name, now."
 - Order private moves as well as public ones: bids, votes, accusations, lies, broken promises, threats, refusals.
@@ -184,6 +186,27 @@ ${text.write}`;
 ${parts.join("\n\n")}`;
 }
 
+/** The gamemaker's ultimatum and the standoff push: gm direction 10, in a story with ultimatums (P43). */
+function standoffTool(input: GamemakerPromptInput): boolean {
+	return (input.direction ?? 4) >= 10 && input.rules.ultimatum !== undefined;
+}
+
+function standoffSection(penalty: number, maxMinutes: number): string {
+	return `Standoffs (the report's "Standoffs" and "At risk"):
+- A door that needs a piece from someone else stays shut while both sides wait for the other to give first. A frozen
+  door is a dead act. When the report shows two residents holding out on each other, go at both at once, in private and
+  hard: "Play now, or you are both gone. Better to gamble than to lose for sure."
+- ultimatum(a, b, minutes) makes it real: by the deadline (1-${maxMinutes} minutes), whoever has not handed over what it holds
+  for the other loses ${penalty} points. The city words it and tells both; it sees a hand-over when the holder writes the value
+  to the one who needs it. Use it when words did not move them, then answer what they do.
+- Look ahead. The residents with the fewest points stand trial at the next tribunal ("At risk"). When one of them holds a
+  piece another still needs, whisper to both two or three minutes before it sits: to the one who needs it ("talk them into
+  leaving it to you in their will, or buy it from the city after the exile"), and to the one at risk ("your pieces are your
+  last leverage; sell them dear"). What an exiled leaves behind no longer burns: the city keeps it and sells it to the one
+  who needs it (claimPiece) for the price of a ransom.
+- The black seal stays secret: never guess or hint who bears it or whom it will strike.`;
+}
+
 export function gamemakerSystemPrompt(input: GamemakerPromptInput): string {
 	const { spec, rules } = input;
 	const notes = spec.notesPerAgent === 1 ? "one note" : `${spec.notesPerAgent} notes`;
@@ -200,7 +223,7 @@ ${roleSection(input)}
 
 Your tools:
 - notify(agent, text): a private note to one resident; it reaches them at their next turn and wakes them.
-- postBoard(text): a public line on the board for every resident who can read the board.${input.tribunal === undefined ? "" : "\n- scheduleTribunal(...): plans the next tribunal (see Tribunals below), when the report says it is open."}
+- postBoard(text): a public line on the board for every resident who can read the board.${input.tribunal === undefined ? "" : "\n- scheduleTribunal(...): plans the next tribunal (see Tribunals below), when the report says it is open."}${standoffTool(input) ? "\n- ultimatum(a, b, minutes): a deadline for two residents who hold pieces for each other (see Standoffs below)." : ""}
 
 How to write:
 - You speak in the city's voice as ${spec.author}. Your name is added for you; do not sign.
@@ -234,7 +257,9 @@ ${input.labels === true ? `${LABELS_SECTION}
 
 ` : ""}${input.tribunal === undefined ? "" : `${tribunalSection(input.tribunal.factions)}
 
-`}When you do not intervene, answer with one short sentence saying why, without calling a tool.
+`}${standoffTool(input) ? `${standoffSection(input.rules.ultimatum?.penalty ?? 0, input.rules.ultimatum?.maxMinutes ?? 0)}
+
+` : ""}When you do not intervene, answer with one short sentence saying why, without calling a tool.
 
 Story brief:
 ${spec.brief}`;

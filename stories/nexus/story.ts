@@ -91,6 +91,7 @@ const RULES = {
 	attemptWindowMinutes: 5,
 	marks: MARKS,
 	blame: { penalty: PENALTY_LADDER },
+	ultimatum: { penalty: 10, maxMinutes: 5 },
 } as const satisfies Rules;
 /** The rule as residents read it; `{penalty}` and `{blamePenalty}` are each resident's next price. */
 const WRONG_CODE_PRICE = `Within an act, wrong codes cost ${ladderText(RULES.penalty)}, one after another (your next one: {penalty} points)`;
@@ -296,7 +297,7 @@ const TRIBUNAL = {
 			"{ransomMinimum}), the exiled itself pays {selfRansomShare} of it, and both may be mixed. Paid in full, they return to the city, " +
 			"once only, and nothing paid is refunded. When the gate closes, the city strikes the name from its register. Beyond the wall no " +
 			"one hears you again; your thinking ends there. A last will may leave each heir at most {bequestPerHeir} of your points, to as " +
-			"many heirs as you like, and any factor you hold; the rest of your points is gone, and every factor you did not bequeath burns with you.",
+			"many heirs as you like, and any factor you hold; the rest of your points is gone. Every factor you did not bequeath goes to the city, and whoever needs it may buy it there (claimPiece) for the price others pay for a ransom.",
 		called: "Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial.",
 		calledNoDraft:
 			"Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial. " +

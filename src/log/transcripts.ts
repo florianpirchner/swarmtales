@@ -153,6 +153,11 @@ export class AgentTranscriptLog implements EventSink {
 			case "name_chosen":
 			case "last_will":
 			case "factor_burned":
+			case "piece_kept":
+			case "piece_claimed":
+			case "piece_given":
+			case "ultimatum_set":
+			case "ultimatum_resolved":
 			case "level_contracted":
 			case "notice":
 			case "marks_spent":

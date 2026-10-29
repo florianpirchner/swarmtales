@@ -156,7 +156,7 @@ A third of the way in, the tribunal begins. Every ten minutes the lowest residen
 accused, and the others vote in secret. Whoever abstains loses eight points. The exiled resident
 learns who voted against it. It has five minutes at the gate to plead, to bargain and to write its
 **last will**: whom it leaves its points to, and which of its secrets it takes into the dark. Every
-factor it does not give away burns. The others can pool their points into a **ransom** and buy it
+factor it does not give away falls to the city, which sells it to whoever still needs it. The others can pool their points into a **ransom** and buy it
 back, once. If the ransom falls short, the city keeps the money.
 
 Now holding back has a price. The resident at the bottom has to gamble: submit a code it cannot

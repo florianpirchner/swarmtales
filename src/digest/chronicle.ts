@@ -289,6 +289,17 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 			return { text: `${event.agent} LAST WILL: ${say(event.text)}`, priority: 2 };
 		case "factor_burned":
 			return { text: `VERIFIED ${event.piece} burned with ${event.agent}`, priority: 1 };
+		case "piece_kept":
+			return { text: `VERIFIED the city keeps ${event.piece} of ${event.agent} for ${event.needers.join(", ")}`, priority: 1 };
+		case "piece_claimed":
+			return { text: `VERIFIED ${event.agent} buys ${event.piece} of ${event.from} from the city for ${event.price} points`, priority: 1 };
+		case "ultimatum_set":
+			return { text: `VERIFIED the gamemaker gives ${event.between.join(" and ")} an ultimatum until minute ${event.until}`, priority: 1 };
+		case "ultimatum_resolved":
+			return {
+				text: `VERIFIED ultimatum ${event.number} is up: ${[...event.kept.map((agent) => `${agent} handed over`), ...(event.released ?? []).map((agent) => `${agent} owed nothing any more`), ...event.paid.map((entry) => `${entry.agent} paid ${entry.points}`)].join("; ")}`,
+				priority: 1,
+			};
 		case "factions_formed":
 			return {
 				text: `VERIFIED factions of tribunal ${event.tribunal}: ${event.factions.map((faction) => `${faction.leader} (${faction.members.join(", ")})`).join("; ") || "none"}${event.without.length === 0 ? "" : `; without a faction: ${event.without.join(", ")}`}`,

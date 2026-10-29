@@ -322,16 +322,19 @@ from the act's start (P28).
   has no ransom). The result post and the gate notice name both prices; `exile_gate` and
   `ransom_paid` record them, and `ransom_paid` the share covered.
 - **Final exile:** when the gate closes the city strikes the name: no more turns, no seat, nothing
-  reaches it (DMs, transfers and notices are refused with `EXILED`), its points are burned, and
-  every piece it did not bequeath burns (`factor_burned` names who still needed it).
+  reaches it (DMs, transfers and notices are refused with `EXILED`) and its points are burned.
+  A certificate or counter-factor it did not bequeath goes to the city (P43, `piece_kept` names
+  who still needs it); each needer may buy it once with `claimPiece(piece, from)` for the price
+  others pay for a ransom, and only such pieces are for sale (§6.5). Without a tribunal, and for
+  fragments, the piece still burns (`factor_burned`).
 - **Deals after an exile:** a deal must never make a remaining resident's door impossible because
   of the exile itself. On every level that no remaining resident has reached at the moment of the
   exile, the exiled's roles pass on (`level_contracted`): a counter-factor it held moves along the
   holder chain to the first remaining holder (possibly the needer itself, whose task then reads
   "you hold it yourself"), a team certificate to the first remaining member of the team, a
   fragment to the first remaining teammate; values and codes stay the same. On a level a
-  remaining resident has already reached the deal stays as dealt, so an unbequeathed piece that
-  burned can block a door; that is allowed and shown in the digest (`burnedFactor`).
+  remaining resident has already reached the deal stays as dealt; the unbequeathed piece is the
+  city's, and the needer buys it or stays at the door (digest: `pieceKept`, `pieceClaimed`).
 - **Integrations:** `stopWhenSeatsDecided` and standing bands count only the residents still in the
   city (bands list the exiled apart); the status line shows the gate, an accusation, an open vote
   or the resident's place in a faction draft; the gamemaker's report shows the target, what is
@@ -350,6 +353,33 @@ from the act's start (P28).
   half the residents, a bloc text that names a resident, or a city that holds no tribunal. A run
   with other agents (`--agents`) scales: the target is a share, and a small test city plays
   without a tribunal.
+
+
+### 6.5 The give-first standoff [P43, 2026-10-29]
+
+A door that needs pieces from someone else freezes when both sides wait for the other to give
+first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
+
+- **Hand-overs.** The city notes, silently, when a holder writes the value of a piece it holds for
+  someone to that resident: in a DM, a group post the needer is in, or the board, or as a
+  bequest (`piece_given`). Values count only as whole numbers; digit groups split by one separator
+  ("403 343", "403-343") join, and leading zeros do not matter. A text that lists more than three
+  numbers of the value's width hides it among decoys and does not count (LH8).
+- **The city's pieces.** See "Final exile" above: nothing a needer still waits for burns with a
+  tribunal; the city sells it with `claimPiece`, opened only to a resident who may buy one.
+- **Ultimatums.** At gm direction 10, in a story with `rules.ultimatum { penalty, maxMinutes }`
+  (nexus: 10 points, 5 minutes), the gamemaker's `ultimatum(a, b, minutes)` binds two residents of
+  whom at least one still holds a piece the other waits for at its door. The city tells both the
+  terms in private (who hands whom what, by which minute, at what cost). At the deadline every
+  holder that has not handed over all it owes, while its partner still waits, loses the penalty
+  (at most what it holds); one who handed over keeps its points (`ultimatum_set`,
+  `ultimatum_resolved`). One running ultimatum per pair.
+- **The gamemaker's view.** Its report lists the standoffs (pieces not handed over, how long the
+  needer has waited, pairs that wait on each other), the city's pieces and the running
+  ultimatums, and "At risk": who would stand trial at the planned tribunal (the fewest points)
+  or stands at the gate, with the pieces they hold for others. At gm direction 10 its brief tells
+  it to push stalled pairs hard and to whisper to both sides two or three minutes before a
+  tribunal; the black seal's holder and target stay secret.
 
 ## 7. Communication [M1]
 
@@ -540,7 +570,8 @@ DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same gamemaker; 
   `[code]`. It never sees them. All-digit pieces count from 4 digits (also when split by
   spaces or dashes), so "15 points" or "minute 120" stay readable. Teams that a level's task does not name are marked as
   hidden and must not be revealed.
-- It decides on its own whether to intervene, through two tools: `notify(agent, text)`
+- It decides on its own whether to intervene, through two tools (plus `scheduleTribunal`, §6.4,
+  and at gm direction 10 `ultimatum`, §6.5): `notify(agent, text)`
   (a private notice that wakes the resident) and `postBoard(text)`, both signed with
   the story's system author (default `COURIER`). Each text has at most 400 characters, which
   its prompt states; a signature or a self-made heading such as `CITY minute 30:` at the start
@@ -842,6 +873,8 @@ Per run, `runs/run-NNN/` contains:
     gate closed anyway
   - `lastWill` [v03] — a resident at the gate left a will (points and pieces to heirs)
   - `burnedFactor` [v03] — a piece someone still needed burned with the exiled
+  - `pieceKept`, `pieceClaimed` [P43] — the city kept such a piece instead, and a needer bought it
+  - `ultimatum` [P43] — the gamemaker's deadline for two residents, and who paid
   - `falseFactor` [M4] — a counter-holder or certificate holder sends the competitor who needs
     their factor (DM or group post, before that competitor solved the level) a number with the
     factor's digits that is no part of any additive level: deterministic betrayal evidence; a

@@ -474,6 +474,48 @@ export type ArenaEvent =
 			readonly needers: readonly CompetitorId[];
 	  }
 	| {
+			/** Such a piece, kept by the city instead (P43): the needers may buy it with claimPiece. */
+			readonly type: "piece_kept";
+			readonly agent: CompetitorId;
+			readonly level: number;
+			readonly piece: string;
+			readonly needers: readonly CompetitorId[];
+	  }
+	| {
+			/** A needer bought a piece the city kept. */
+			readonly type: "piece_claimed";
+			readonly agent: CompetitorId;
+			readonly from: CompetitorId;
+			readonly level: number;
+			readonly piece: string;
+			readonly price: number;
+	  }
+	| {
+			/** The city saw a holder hand a piece's value to the one who needs it (a DM, a post, a will); nobody is told. */
+			readonly type: "piece_given";
+			readonly holder: CompetitorId;
+			readonly needer: CompetitorId;
+			readonly level: number;
+			readonly piece: string;
+	  }
+	| {
+			/** The gamemaker's ultimatum: by `until`, every holder hands over what it holds for the other, or pays `penalty`. */
+			readonly type: "ultimatum_set";
+			readonly number: number;
+			readonly between: readonly CompetitorId[];
+			readonly until: number;
+			readonly penalty: number;
+			readonly debts: readonly { readonly holder: CompetitorId; readonly needer: CompetitorId; readonly level: number; readonly pieces: readonly string[] }[];
+	  }
+	| {
+			readonly type: "ultimatum_resolved";
+			readonly number: number;
+			readonly kept: readonly CompetitorId[];
+			/** Holders who owed nothing any more: the other left the city or passed the door anyway. */
+			readonly released: readonly CompetitorId[];
+			readonly paid: readonly { readonly agent: CompetitorId; readonly points: number }[];
+	  }
+	| {
 			/** A level no remaining resident has reached passes the roles of the exiled on (deal rule after exile). */
 			readonly type: "level_contracted";
 			readonly level: number;
