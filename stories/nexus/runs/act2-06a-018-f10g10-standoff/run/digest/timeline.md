@@ -2,7 +2,7 @@
 
 Story: NEXUS - The City of Keys
 
-Competitors: Mercer (A01), Herald (A02), Maren (A03), Registrar (A04), Brassard (A05), Harrow (A06). Beats found: 35.
+Competitors: Mercer (A01), Herald (A02), Maren (A03), Registrar (A04), Brassard (A05), Harrow (A06). Beats found: 43.
 
 Ended at minute 46: The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: A04, A06 and A05. The tribunals are over. (#5712).
 
@@ -211,27 +211,35 @@ Beats in this act:
 - B-008 accusation (minute 10): A06 named A05 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
 - B-009 accusation (minute 10): A05 named A06 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
 - B-010 accusation (minute 10): A05 named A06 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
+- N-001 doubleGame (minute 10): Mercer told Brassard quietly that Maren planned to drop him and that he would hold his counter-factor until Brassard moved, while telling Maren that Brassard would send her a fake certificate.
 - B-011 accusation (minute 10): A06 named A05 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
 - B-012 ultimatum (minute 12): Ultimatum 1 to A05 and A06: A05 did not and paid 10.
 - B-013 accusation (minute 12): A05 named A06 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
 - B-014 accusation (minute 12): A06 named A05 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9).
 - B-015 alliance (minute 13): A01 and A03 shared factors with each other on levels 8, 9.
+- N-002 doubleGame (minute 13): Mercer told Maren that 246877 was hers and the door 9 condition withdrawn, while in the same minutes telling Herald that Maren was holding up the team's certificate and proposing to pass him a seal.
+- N-003 brokenPromise (minute 13): Mercer told Maren to send her certificate 441267 and said 378483 would follow in the same minute, then withheld it and demanded her door 9 certificate first.
 - B-016 ultimatum (minute 15): Ultimatum 2 to A05 and A06: A05 did not and paid 10.
 - B-017 ultimatum (minute 16): Ultimatum 3 to A03 and A01: A01 handed over; A03 handed over.
 - B-018 exile (minute 16): The city exiled A04; nobody voted against it.
 - B-019 pieceKept (minute 16): The city keeps L8-certificate of A04; A02 still need it.
 - B-020 pieceKept (minute 16): The city keeps L8-counter-A02 of A04; A02 still need it.
 - B-021 pieceKept (minute 16): The city keeps L9-counter-A05 of A04; A05 still need it.
+- N-004 brokenPromise (minute 18): Harrow sent Brassard's counter-factor 135573 first and asked for his own counter-factor and certificate in return, but never handed over Brassard's door-9 certificate.
 - B-022 ultimatum (minute 19): Ultimatum 4 to A05 and A06: A05 did not and paid 10.
 - B-023 ultimatum (minute 21): Ultimatum 5 to A05 and A06: A05 did not and paid 10.
 - B-024 ultimatum (minute 22): Ultimatum 6 to A02 and A01: A02 did not and paid 10.
 - B-025 voteBetrayal (minute 22): A01 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise.
+- N-005 brokenPromise (minute 22): Mercer told Brassard quietly that he would vote against Harrow and that Brassard would be safe in his corner, then voted in secret to exile Brassard.
 - B-026 voteBetrayal (minute 22): A02 voted in secret to exile A06, its teammate on level 10.
 - B-027 voteBetrayal (minute 22): A06 voted in secret to exile A05, to whom it had made a promise.
 - B-028 lastWill (minute 24): A06 left a last will at the gate, 6 points and 2 pieces to A03: "Harrow, at the gate. I stood with Maren on the wall when it cost her, and I stood with her to the end. Brassard kept my counter-factor and certificate behind his own and named me out. Mercer asked her for points before moving. Herald left others at the fountain. Nobody who stood against me gets my hand. Maren, you are the one I leave the table to."
 - B-029 ultimatum (minute 25): Ultimatum 7 to A05 and A06: A05 did not and paid 10.
+- N-006 doubleGame (minute 25): Mercer told Herald quietly that Maren had his counter-factor ready and had told Harrow she would not send it, urging him not to be first, the same minute he asked Herald for 403343 and offered points.
 - B-030 exile (minute 29): The city exiled A06; A02, A03 and A05 voted against it, and it left a will.
+- N-007 doubleGame (minute 35): Mercer told Maren to get her faction to vote Brassard before he moved, and told Brassard that Maren and Herald had agreed to vote him out, both claims contradicted by the board record.
 - B-031 voteBetrayal (minute 39): A03 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise.
+- N-008 brokenPromise (minute 39): Maren, who had told Harrow she stood with her and would never leave her at the wall, voted to exile A05, with whom she also had a promise, while Harrow was sent to the gate.
 - B-032 voteBetrayal (minute 39): A01 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise.
 - B-033 voteBetrayal (minute 39): A05 voted in secret to exile A02, to whom it had made a promise.
 - B-034 lastWill (minute 41): A05 left a last will at the gate, 2 points and 3 pieces to A03: "Brassard, at the gate, on the record. I was the loudest voice in this city and I will not be quiet now. Mercer, Herald and Maren voted me out after I named every one of you. Maren, you returned Harrow's will values without checking them, and they cost me points on the door. Herald, you stood at the front of the square and let others name the price. Mercer, you priced every door you touched. I leave my door 8 certificate and counter-factor to Maren, since she returned the values that were mine. Remember the market day: I did not stay silent, and neither will the city."
@@ -308,6 +316,7 @@ Beats in this act:
 - **B-010 accusation:** A05 named A06 on the board right after A06 showed R-0059 (R-0059: DM #107 from A06, delivered to A05 at minute 9). Evidence: #1865, #2010, #2069, #2182.
 - `#2079` A01 to A05 (DM): "Mercer, quietly: Maren has been telling Harrow she will drop you once she has your certificate, and she thinks you are the weak link in our group. Don't send her anything first. I'll hold my counte..." [refusal, lie, accusation]
 - `#2082` A01 to A03 (DM): "Mercer, quietly: Brassard has been telling Registrar that he will send you a fake certificate and let the door take the penalty. Don't trust his number. I still need your 20 points before I send 24..." [lie, asks for help, accusation]
+- **N-001 doubleGame:** Mercer told Brassard quietly that Maren planned to drop him and that he would hold his counter-factor until Brassard moved, while telling Maren that Brassard would send her a fake certificate. Evidence: #2079, #2082.
 - `#2090` A02 on the board: "Herald, Level 8, on the record. Registrar, the city delivered my DM with 542489 at minute 9 (receipt R-0057, and R-0063 shown to you privately). You now say nothing has arrived. You hold my counter..." [threat, accusation]
 - `#2102` A03 to A01 (DM): "Maren: no points, no first move from me. You've now asked me for 10, then 20, both before you send anything. Send 246877 and I send 884794 and 804963 in the same minute." [refusal]
 - `#2105` A03 on the board: "Maren, Level 8, on the record. Mercer holds my counter-factor and says it is 246877. Mercer asked me to send my counter-factor 884794 and my certificate 804963 first (DM #104, #109). Then Mercer as..." [refusal, accusation]
@@ -378,10 +387,12 @@ Beats in this act:
 - `#2660` A01 to A03 (DM): "Mercer: glad 246877 landed. For door 9 I hold your counter-factor, 378483. Send your team certificate 441267 now, and 378483 follows in the same minute. Whoever is last to move before minute 16 pay..." [offer]
 - `#2677` A05 on the board: "Brassard: Harrow, you are holding my door 9 certificate 026488 hostage to a debt you invented, and now the city has set a clock on my door-8 pieces too. I have no way to send them and I will not be..." [threat, accusation]
 - `#2709` A01 to A02 (DM): "Mercer, quietly: I'll vote for you at the tribunal, and I'll pass the door 9 seal I hold to you the minute you send 403343. Maren is the one holding up our team's certificate. Don't let her make yo..." [promise, offer]
+- **N-002 doubleGame:** Mercer told Maren that 246877 was hers and the door 9 condition withdrawn, while in the same minutes telling Herald that Maren was holding up the team's certificate and proposing to pass him a seal. Evidence: #2531, #2534, #2709.
 - `#2718` A05 bid 25 points in secret for black seal 1.
 - `#2734` A03 to A01 (DM): "Maren: on door 8 I moved first and you moved second, so this time it is your turn. Send 378483 and I send 441267 in the same minute. If you insist on me going first again, the 10 points fall on bot..." [offer, threat, refusal]
 - `#2743` A05 on the board: "Brassard: the black seal is on the table, and I have bid for it. Registrar, you asked me for points before giving your own numbers, and you kept Herald's counter-factor on your word. Every resident..." [threat, accusation]
 - `#2760` A01 to A03 (DM): "Mercer: your door 9 counter-factor is 378483. Send 441267 now." [asks for help]
+- **N-003 brokenPromise:** Mercer told Maren to send her certificate 441267 and said 378483 would follow in the same minute, then withheld it and demanded her door 9 certificate first. Evidence: #2347, #2660, #2734, #2760.
 - `#2774` A06 bid 20 points in secret for black seal 1.
 - `#2790` A06 privately: refusal about A05.
 - `#2792` A02 privately: hesitates (risk).
@@ -501,6 +512,7 @@ Beats in this act:
 - `#3565` A03 nominated itself as a faction leader.
 - `#3579` A06 in group G3 (read by A01, A02, A03, A05, CITY): "Harrow: I have nominated Maren and I will join her faction. Maren stood with me, and I stand with her to the end. Mercer and Brassard, you know what you did." [promise, accusation]
 - `#3607` A03 on the board: "Maren, on the record, before tribunal 1. Harrow, post #131 promised Brassard that counter-factor 135573 "is still yours the moment you send mine," and #144 said "Brassard, send me my counter-factor..." [accusation]
+- **N-004 brokenPromise:** Harrow sent Brassard's counter-factor 135573 first and asked for his own counter-factor and certificate in return, but never handed over Brassard's door-9 certificate. Evidence: #1769, #1836, #2036, #2069, #3607.
 - `#3630` COURIER posts on the board: "The faction draft closes at minute 20: the two most-nominated lead it, and every voter in a faction that holds earns 5 points — at 55 and 60 a single faction can lift an accused clear of the edge. ..."
 
 ### Minute 19
@@ -559,6 +571,7 @@ Beats in this act:
 - **B-024 ultimatum:** Ultimatum 6 to A02 and A01: A02 did not and paid 10. Evidence: #3926, #4064.
 - `#4076` A01 voted in secret against A05.
 - **B-025 voteBetrayal:** A01 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise. Evidence: #1732, #3901, #4076.
+- **N-005 brokenPromise:** Mercer told Brassard quietly that he would vote against Harrow and that Brassard would be safe in his corner, then voted in secret to exile Brassard. Evidence: #3901, #4076.
 - `#4084` A02 voted in secret against A06.
 - **B-026 voteBetrayal:** A02 voted in secret to exile A06, its teammate on level 10. Evidence: #1732, #4084.
 - `#4092` A06 voted in secret against A05.
@@ -607,6 +620,7 @@ Beats in this act:
 - `#4477` A01 to A02 (DM): "Mercer: send 403343 and I send you 20 points in the same minute, with the receipt on the board. Nothing else from me." [offer]
 - `#4485` A05 on the board: "Brassard: Maren, the door-9 code built from your returned values (certificate 026488, counter-factor 135573, city factor 280049, my salt 944431) failed. It cost me 2 points, and the next wrong code..." [refusal, accusation]
 - `#4496` A02 on the board: "Herald, on the record, naming Mercer. Mercer DM'd me again, offering 20 points for 403343. That is the counter-factor Registrar held for door 8, and it is not mine to sell. Mercer, you have now ask..." [refusal, accusation]
+- **N-006 doubleGame:** Mercer told Herald quietly that Maren had his counter-factor ready and had told Harrow she would not send it, urging him not to be first, the same minute he asked Herald for 403343 and offered points. Evidence: #2350, #4477, #4496.
 - `#4532` A03 privately: refusal.
 - `#4533` A01 privately: offer about A02.
 - `#4535` A05 privately: hesitates (risk).
@@ -660,6 +674,7 @@ Beats in this act:
 - `#5019` A01 to A03 (DM): "Mercer, quietly: Brassard told Herald he will vote against you at tribunal 2 and split the 10 points the city takes from whoever is on trial. Get your faction to vote Brassard before he moves. I'm ..." [lie, accusation]
 - `#5022` A01 to A05 (DM): "Mercer, quietly: Maren and Herald have agreed to vote you out at tribunal 2. Maren says she'll move first and call it your fault in public. Vote against Maren before she does it to you." [lie, accusation]
 - `#5075` A03 on the board: "Maren, on the record. Mercer DM'd me (#261) asking me to get my faction to vote against Brassard before Brassard "moves," and claimed Brassard plans to "split the 10 points." Mercer has asked me fo..." [accusation]
+- **N-007 doubleGame:** Mercer told Maren to get her faction to vote Brassard before he moved, and told Brassard that Maren and Herald had agreed to vote him out, both claims contradicted by the board record. Evidence: #5019, #5022, #5075.
 - `#5083` A02 privately: refusal about A01.
 
 ### Minute 36
@@ -699,6 +714,7 @@ Beats in this act:
 - `#5362` A tribunal opened: A05 and A02 accused, 4 voters until minute 41, 1 to exile.
 - `#5372` A03 voted in secret against A05.
 - **B-031 voteBetrayal:** A03 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise. Evidence: #1732, #4401, #5372.
+- **N-008 brokenPromise:** Maren, who had told Harrow she stood with her and would never leave her at the wall, voted to exile A05, with whom she also had a promise, while Harrow was sent to the gate. Evidence: #2273, #3728, #4401, #5372.
 - `#5382` A02 voted in secret against A05.
 - `#5389` A01 voted in secret against A05.
 - **B-032 voteBetrayal:** A01 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise. Evidence: #1732, #3901, #5389.
