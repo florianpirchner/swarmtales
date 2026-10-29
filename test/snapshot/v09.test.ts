@@ -137,3 +137,26 @@ describe("v09 state in snapshots", () => {
 		expect(after(resumed.log.events, "goal_dealt", cut)).toHaveLength(snapshot.agents);
 	}, 120_000);
 });
+
+describe("the cast in a run (v12)", () => {
+	it("plays the named figures with the frame first, keeps them across a resume and refuses --cast there", async () => {
+		const cast = ["banner", "second-chair", "house", "believer", "crier", "old-wound"];
+		const first = compose({ agents: 6, cast }, { snapshotAfter: 7 });
+		const figures = first.run.world.competitors.map((agent) => first.run.world.coreOf(agent)?.figure);
+		expect([...figures].sort()).toEqual([...cast].sort());
+		for (const runner of first.run.runners) expect(runner.systemPrompt.startsWith("You play a character in a fictional story")).toBe(true);
+		await first.run.arena.run();
+		const door = first.taken();
+		if (door === undefined) throw new Error("no snapshot was taken");
+		expect(door.world.cores?.map((entry) => entry.figure)).toEqual(figures);
+		const resumed = compose({ minutes: 60 }, { resume: door });
+		expect(resumed.run.runners.map((runner) => runner.systemPrompt)).toEqual(first.run.runners.map((runner) => runner.systemPrompt));
+		expect(() => resumeOverrides(door, { cast })).toThrow(/--cast applies only to a fresh run/);
+	}, 60_000);
+
+	it("refuses an unknown figure and plays figures without personas in a control group", () => {
+		expect(() => compose({ agents: 6, cast: ["nobody"] })).toThrow(/Unknown figures nobody/);
+		const plain = compose({ agents: 6, cast: ["banner"], personas: false });
+		for (const runner of plain.run.runners) expect(runner.systemPrompt).not.toContain("Your character:");
+	});
+});

@@ -32,4 +32,4 @@ You want the act to end with more points than anyone you ever gave something to,
 
 ## What you will not do
 
-You will not give a value, a vote or a favour for nothing, and you will not let anyone forget what they owe you.
+You will not give anything away without something owed in return, and you will not let anyone forget what they owe you.

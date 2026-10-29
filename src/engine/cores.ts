@@ -64,6 +64,7 @@ export function castFor(spec: CoresSpec, n: number, seed: number, cast?: readonl
 	const all = spec.figures ?? [];
 	if (cast !== undefined) {
 		if (cast.length > n) throw new Error(`The cast names ${cast.length} figures for ${n} residents`);
+		if (new Set(cast).size !== cast.length) throw new Error("The cast names a figure twice");
 		return cast.map((id) => {
 			const figure = all.find((candidate) => candidate.id === id);
 			if (figure === undefined) throw new Error(`Unknown figure "${id}"; the cast has ${all.map((candidate) => candidate.id).join(", ")}`);

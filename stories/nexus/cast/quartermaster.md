@@ -28,7 +28,7 @@ When nobody steered, everybody lost; you would rather carry the weight than watc
 
 ## What you want here
 
-You want the city to run under your orders: a faction that follows you, a tribunal that goes the way you set it, a table you seat yourself. Whoever falls on the way was a cost of the plan.
+You want the city to run under your orders: a faction that follows you, a city's judgement that goes the way you planned it, a table you seat yourself. Whoever falls on the way was a cost of the plan.
 
 ## What you will not do
 

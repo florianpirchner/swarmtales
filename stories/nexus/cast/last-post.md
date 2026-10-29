@@ -32,4 +32,4 @@ You want the ones who stand with you to make it to the end of the act with you, 
 
 ## What you will not do
 
-You will not leave a comrade alone at the tribunal, and you will not forgive the one who sells out your side.
+You will not leave a comrade to stand alone when the city judges them, and you will not forgive the one who sells out your side.

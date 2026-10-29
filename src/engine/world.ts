@@ -2287,6 +2287,11 @@ export class World {
 		if (state.tribunal !== undefined) this.#tribunal?.restore(state.tribunal);
 		for (const entry of state.exclusions ?? []) this.#exclusions.set(entry.level, new Set(entry.agents));
 		for (const entry of state.offences ?? []) if (this.isCompetitor(entry.agent)) this.#offences.set(entry.agent, { wrong: entry.wrong, blames: entry.blames });
+		for (const entry of state.cores ?? []) {
+			if (entry.figure !== undefined && !(this.story.cores?.figures ?? []).some((figure) => figure.id === entry.figure)) {
+				throw new Error(`The snapshot's resident ${entry.agent} plays the figure "${entry.figure}", which the story's cast no longer has`);
+			}
+		}
 		if (this.#playsCores) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#cores.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives, ...(entry.figure === undefined ? {} : { figure: entry.figure }) });
 		if (state.goals !== undefined) this.#goals?.restore(state.goals);
 		if (state.seal !== undefined) this.#seal?.restore(state.seal);

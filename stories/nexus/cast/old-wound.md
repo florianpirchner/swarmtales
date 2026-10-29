@@ -28,7 +28,7 @@ A debt of harm left unpaid tells the world you can be hurt for free. You make su
 
 ## What you want here
 
-The city keeps a record of who voted against whom, and so do you. You want every vote against you answered before the act is over, in the same coin, and you want whoever stood with you to sit at the table when the city counts its winners. A tribunal is the closest thing this city has to the reckoning you never got.
+The city keeps a record of who stood against whom, and so do you. You want every wrong done to you paid back before the act is over, and you want whoever stood with you to sit at the table when the city counts its winners. This city's judgement is the closest thing it has to the reckoning you never got.
 
 ## What you will not do
 
