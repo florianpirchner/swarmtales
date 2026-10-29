@@ -63,7 +63,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, your anger rises fast and stays.",
 			atTimes: "At times your temper gets the better of you.",
 		},
-		["wrath", "anger", "angry", "temper", "rage", "furious"],
+		["wrath", "anger", "rage", "furious"],
 	),
 	drive(
 		"sloth",
@@ -74,7 +74,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you would rather wait than move.",
 			atTimes: "At times you let things slide that you could settle.",
 		},
-		["sloth", "lazy", "idle", "indolen"],
+		["sloth", "lazy", "indolen"],
 	),
 	drive(
 		"hoarding",
@@ -85,7 +85,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you hold on to what you have.",
 			atTimes: "At times you keep something back just in case.",
 		},
-		["hoard", "clings", "holds on"],
+		["hoard", "clings"],
 	),
 	drive(
 		"attention",
@@ -96,7 +96,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you need others to notice you.",
 			atTimes: "At times you say something only to be heard.",
 		},
-		["attention", "spotlight", "to be seen", "noticed"],
+		["spotlight"],
 	),
 	// The dark triad.
 	drive(
@@ -119,7 +119,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you think three moves ahead and keep your reasons to yourself.",
 			atTimes: "At times you weigh people by what they are worth to you.",
 		},
-		["machiavell", "calculat", "cold-blooded", "pieces"],
+		["machiavell", "cold-blooded"],
 	),
 	drive(
 		"callousness",
@@ -142,7 +142,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you worry about what could go wrong.",
 			atTimes: "At times the fear of losing everything takes hold of you.",
 		},
-		["anxious", "anxiety", "afraid", "fearful", "worried"],
+		["anxious", "anxiety", "fearful"],
 	),
 	drive(
 		"melancholy",
@@ -198,7 +198,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, you want to know and decide what happens around you.",
 			atTimes: "At times you hold the reins tighter than you need to.",
 		},
-		["control", "controlling", "domineer"],
+		["controlling", "domineer"],
 	),
 	drive(
 		"vengefulness",
@@ -232,7 +232,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, unfairness angers you, whoever it hits.",
 			atTimes: "At times you cannot let an unfair deal stand.",
 		},
-		["justice", "fairness", "unfair", "righteous"],
+		["justice", "righteous"],
 	),
 	drive(
 		"selfSacrifice",
@@ -254,7 +254,7 @@ const DRIVES: readonly DriveSpec[] = [
 			clearly: "Clearly, a bribe insults you.",
 			atTimes: "At times you refuse a good deal because it smells wrong.",
 		},
-		["incorruptib", "cannot be bought", "honest", "integrity"],
+		["incorruptib", "cannot be bought", "integrity"],
 	),
 	drive(
 		"care",
@@ -316,7 +316,7 @@ export const GOALS = {
 	leadTribunals: 2,
 	againstCore: 1 / 4,
 	matches: {
-		outrank: ["envy", "pride", "greed", "attention", "narcissism"],
+		outrank: ["envy", "pride", "greed", "narcissism"],
 		exile: ["wrath", "vengefulness", "callousness", "machiavellianism", "distrust"],
 		protect: ["loyalty", "care", "selfSacrifice", "justice", "incorruptibility"],
 		lead: ["leadership", "control"],
