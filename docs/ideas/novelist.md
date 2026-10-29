@@ -77,21 +77,26 @@ SPEC 15 "Novelist") writes `<run>/novel/story.md`, `outline.json`, `appendix.md`
    last) and someone with a turn, then fills up by score: 4 figures from six residents on, else 3.
 2. **Outline** (`outline.ts`, DeepSeek V4.1 Flash via OpenRouter, thinking high, 64k output):
    JSON chapters `{pov, title, minutes, beats, evidence}`. Validation drops unknown `seq`, chapters
-   with a POV outside the cast (an ID or a name is accepted) or no known evidence; uncovered turning
-   points are warnings in the appendix.
+   with a POV outside the cast (an ID or a name is accepted) or no known evidence, and every chapter
+   beyond twice the planned count (each one is a writer call); `"#123"` strings count as seq
+   numbers. Uncovered turning points are warnings in the appendix.
 3. **Scene packs** (`packs.ts`, code, 30k characters of material per chapter): the POV's thinking
    and messages, the gamemaker's notes to it, the board, the city's verified facts in the window
-   and the cited events; board lines and facts not about the POV are dropped first. The dossier
+   and the cited events; board lines and facts not about the POV are dropped first. A secret fact
+   is shown only to those who know it: votes (and, to the exiled, the votes against it), bloc
+   results, faction refusals, payments, privately shown receipts and city factors, secret
+   signatures, and another resident's fate shifts. The dossier
    holds the figure text from `cast/<ID>-<figure>.md` (from "Who you are" up to the direction), the
    core, the secret goals and the fate shifts so far. IDs become names.
-4. **Chapters** (`writer.ts`, Sonnet via Anthropic, thinking off, 16k output per call): outline,
+4. **Chapters** (`writer.ts`, Sonnet via Anthropic, thinking low, 24k output per call): outline,
    pack, the previous chapter's last paragraphs. Headings and IDs that slip into the prose are
    removed (IDs replaced by names, with a warning).
 5. **Interludes**: before each later chapter, from the `gamemaker_thinking` events in that
    chapter's minutes (each thought used once); set in italics between `* * *`.
-6. **Edit pass** (48k output): the full text and the outline; the answer is the corrected text, a
-   delimiter line and the contradictions. An edit that changes headings or shrinks the text below
-   70% is not taken (warning).
+6. **Edit pass** (64k output): the full text and the outline; the answer is the corrected text, a
+   delimiter line and the contradictions. An edit that changes headings or the `* * *` lines of the
+   interludes or shrinks the text below 70% is not taken (warning). A failed edit or interlude keeps
+   the rest (warning); a failed chapter leaves the chapters so far in `story.partial.md`.
 7. **Appendix** (code): per chapter the outline's and the pack's `seq`, turning points told and
    untold, interlude sources, contradictions, warnings, and tokens and USD per stage.
 

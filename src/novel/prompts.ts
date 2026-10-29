@@ -22,6 +22,7 @@ export const OUTLINE_SYSTEM_PROMPT = [
 	"- Every chapter covers a span of minutes and cites the seq numbers of the events it rests on; cite only seq numbers that appear in the material.",
 	"- Every turning point must be told in some chapter: cite its seq in that chapter's evidence.",
 	"- The chapters follow the run in order of time; they may overlap when two figures live through the same minutes.",
+	"- Write each chapter's beats as what its point-of-view figure lives through and can know. Another resident's thinking, secret vote or private payment belongs only in a chapter told by someone who knows it.",
 	"- Answer with one JSON object and nothing else.",
 ].join("\n");
 

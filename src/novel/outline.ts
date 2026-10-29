@@ -56,6 +56,11 @@ export function chapterCount(words: number): number {
 	return Math.min(12, Math.max(3, Math.round(words / 1_000)));
 }
 
+/** The most chapters an outline may have: twice the planned count. */
+export function maxChaptersFor(words: number): number {
+	return 2 * chapterCount(words);
+}
+
 /** The prompt of the outline call; the dry run prints its size. */
 export function buildOutlineRequest(source: NovelSource, casting: Casting, options: OutlineOptions = DEFAULT_OUTLINE_OPTIONS): { readonly system: string; readonly prompt: string } {
 	const { analysis } = source;
@@ -104,7 +109,8 @@ const AnswerSchema = Type.Object({
 			title: Type.String(),
 			minutes: Type.Array(Type.Integer(), { minItems: 2, maxItems: 2 }),
 			beats: Type.Union([Type.Array(Type.String()), Type.String()]),
-			evidence: Type.Array(Type.Integer()),
+			// Models sometimes write "#123"; such strings are read as seq numbers.
+			evidence: Type.Array(Type.Union([Type.Integer(), Type.String()])),
 		}),
 	),
 });
@@ -112,7 +118,7 @@ const AnswerSchema = Type.Object({
 type Answer = Static<typeof AnswerSchema>;
 
 /** Validates the model's answer against the run and the casting. */
-export function interpretOutline(source: NovelSource, casting: Casting, answer: string): Outline {
+export function interpretOutline(source: NovelSource, casting: Casting, answer: string, options: { readonly words: number } = DEFAULT_OUTLINE_OPTIONS): Outline {
 	const parsed = parseAnswer(answer);
 	const { analysis } = source;
 	const names = analysis.facts.names;
@@ -122,17 +128,28 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 	const warnings: string[] = [];
 	const chapters: OutlineChapter[] = [];
 
+	// Every chapter is one writer call: a runaway outline must not multiply the cost.
+	const maxChapters = maxChaptersFor(options.words);
 	for (const [index, chapter] of parsed.chapters.entries()) {
 		const where = `chapter ${String(index + 1)} ("${chapter.title}")`;
+		if (chapters.length >= maxChapters) {
+			warnings.push(`${where}: more than ${String(maxChapters)} chapters; chapter dropped`);
+			continue;
+		}
 		const idInText = /\bA\d+\b/.exec(chapter.pov)?.[0];
 		const pov = idInText !== undefined && povIds.includes(idInText) ? idInText : byName.get(chapter.pov.trim().toLowerCase());
 		if (pov === undefined) {
 			warnings.push(`${where}: "${chapter.pov}" is not a point-of-view figure; chapter dropped`);
 			continue;
 		}
-		const unknown = chapter.evidence.filter((seq) => !analysis.seqs.has(seq));
+		const cited = chapter.evidence.flatMap((entry) => {
+			const seq = typeof entry === "number" ? entry : Number(/^\s*#?(\d+)\s*$/.exec(entry)?.[1] ?? Number.NaN);
+			return Number.isSafeInteger(seq) ? [seq] : [];
+		});
+		if (cited.length < chapter.evidence.length) warnings.push(`${where}: ${String(chapter.evidence.length - cited.length)} evidence entries are no seq number; they were dropped`);
+		const unknown = cited.filter((seq) => !analysis.seqs.has(seq));
 		if (unknown.length > 0) warnings.push(`${where}: cites unknown events ${cite(unknown)}; they were dropped`);
-		const evidence = [...new Set(chapter.evidence.filter((seq) => analysis.seqs.has(seq)))].sort((a, b) => a - b);
+		const evidence = [...new Set(cited.filter((seq) => analysis.seqs.has(seq)))].sort((a, b) => a - b);
 		if (evidence.length === 0) {
 			warnings.push(`${where}: cites no known event; chapter dropped`);
 			continue;

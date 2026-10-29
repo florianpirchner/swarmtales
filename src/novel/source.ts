@@ -6,7 +6,7 @@
  * untrusted and parsed with typebox.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import { analyzeRun, DIGEST_DIRECTORY, DIGEST_FILES, type RunAnalysis } from "../digest/digest.ts";
@@ -91,11 +91,21 @@ export function readFigures(runDirectory: string): ReadonlyMap<string, string> {
 
 /** Reads a run directory; throws `DigestError` without an `events.jsonl`. */
 export function loadNovelSource(runDirectory: string): NovelSource {
-	const analysis = analyzeRun(runDirectory);
+	const analysis = { ...analyzeRun(runDirectory), run: runLabel(runDirectory) };
 	const gamemaker = parseGamemakerLog(readFileSync(join(runDirectory, "events.jsonl"), "utf8"));
 	const chroniclePath = join(runDirectory, DIGEST_DIRECTORY, DIGEST_FILES.chronicle);
 	const chronicle = existsSync(chroniclePath) ? readFileSync(chroniclePath, "utf8") : undefined;
 	return { analysis, gamemaker, figures: readFigures(runDirectory), ...(chronicle === undefined ? {} : { chronicle }) };
+}
+
+/**
+ * The run's name for the story's header: the folder name, or the folder
+ * above it for a run kept as `<name>/run` (as under `stories/<story>/runs/`).
+ */
+export function runLabel(runDirectory: string): string {
+	const absolute = resolve(runDirectory);
+	const name = basename(absolute);
+	return name === "run" ? basename(dirname(absolute)) : name;
 }
 
 /** Resident names, so the writer never sees a bare ID it could copy into the prose. */

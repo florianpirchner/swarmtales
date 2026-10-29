@@ -12,7 +12,7 @@
  *
  * Output: `<run>/novel/story.md`, `outline.json`, `appendix.md`, `packs/NN.md`.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { cite } from "../digest/timeline.ts";
 import { turningPoints } from "../digest/turning-points.ts";
@@ -24,7 +24,7 @@ import { Names, type NovelSource } from "./source.ts";
 import { editStory, lastParagraphs, writeChapter, writeInterlude } from "./writer.ts";
 
 export const NOVEL_DIRECTORY = "novel";
-export const NOVEL_FILES = { story: "story.md", outline: "outline.json", appendix: "appendix.md", packs: "packs" } as const;
+export const NOVEL_FILES = { story: "story.md", partial: "story.partial.md", outline: "outline.json", appendix: "appendix.md", packs: "packs" } as const;
 
 export const DEFAULT_WORDS = 6_000;
 
@@ -77,13 +77,14 @@ export interface NovelHooks {
 	readonly outlined?: (casting: Casting, outline: Outline, packs: readonly ScenePack[]) => void;
 }
 
-/** A stage failed; what was spent so far is kept. */
+/** A stage failed; what was spent so far is kept, and so are the chapters already written (`draft`). */
 export class NovelError extends Error {
 	override readonly name = "NovelError";
 
 	constructor(
 		message: string,
 		readonly spend: StageSpend,
+		readonly draft?: string,
 	) {
 		super(message);
 	}
@@ -94,13 +95,14 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 	const spend: Record<Stage, NovelSpend> = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND };
 	const progress = hooks.progress ?? ((): void => undefined);
 	let stage: Stage = "outline";
+	let partial: (() => string) | undefined;
 	try {
 		const casting = castBook(source.analysis);
 		const request = buildOutlineRequest(source, casting, { ...options.outline, words: options.words });
 		progress(`outline: asking ${models.outline.label} (${String(request.prompt.length)} characters) ...`);
 		const outlineAnswer = await models.outline.complete(request.system, request.prompt, MAX_TOKENS.outline);
 		spend.outline = addSpend(spend.outline, outlineAnswer.spend);
-		const outline = interpretOutline(source, casting, outlineAnswer.text);
+		const outline = interpretOutline(source, casting, outlineAnswer.text, { words: options.words });
 
 		const packs = outline.chapters.map((chapter) => {
 			const pov = casting.povs.find((figure) => figure.agent === chapter.pov);
@@ -113,6 +115,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		const words = Math.max(300, Math.round(options.words / outline.chapters.length));
 		const warnings = [...outline.warnings];
 		const chapters: WrittenChapter[] = [];
+		partial = (): string => renderStory(source, outline, chapters, []);
 		stage = "chapters";
 		for (const chapter of outline.chapters) {
 			const pack = packs[chapter.number - 1];
@@ -141,7 +144,16 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			if (pack === undefined) continue;
 			for (const seq of pack.seqs) used.add(seq);
 			progress(`interlude before chapter ${String(chapter.number)}: asking ${models.writer.label} ...`);
-			const written = await writeInterlude(models.writer, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown });
+			let written;
+			try {
+				written = await writeInterlude(models.writer, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown });
+			} catch (error) {
+				// An interlude is an ornament: losing one must not cost the chapters already paid for.
+				if (!(error instanceof NovelRequestError)) throw error;
+				spend.interludes = addSpend(spend.interludes, error.spend);
+				warnings.push(`interlude before chapter ${String(chapter.number)}: ${error.message}; left out`);
+				continue;
+			}
 			spend.interludes = addSpend(spend.interludes, written.spend);
 			interludes.push({ before: chapter.number, text: withoutIds(written.text, names, `interlude before chapter ${String(chapter.number)}`, warnings), seqs: pack.seqs });
 		}
@@ -149,7 +161,14 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		stage = "edit";
 		const draft = renderStory(source, outline, chapters, interludes);
 		progress(`edit pass: asking ${models.writer.label} (${String(draft.length)} characters) ...`);
-		const edited = await editStory(models.writer, draft, summary);
+		let edited;
+		try {
+			edited = await editStory(models.writer, draft, summary);
+		} catch (error) {
+			// A failed edit keeps the unedited draft instead of throwing the chapters away.
+			if (!(error instanceof NovelRequestError)) throw error;
+			edited = { text: draft, contradictions: [], warnings: [`${error.message}; the unedited text was kept`], spend: error.spend };
+		}
 		spend.edit = addSpend(spend.edit, edited.spend);
 		warnings.push(...edited.warnings.map((warning) => `edit pass: ${warning}`));
 		const story = names.apply(edited.text);
@@ -159,7 +178,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 	} catch (error) {
 		if (error instanceof NovelRequestError) spend[stage] = addSpend(spend[stage], error.spend);
 		const message = error instanceof Error ? error.message : String(error);
-		throw new NovelError(`${stage}: ${message}`, { ...spend });
+		throw new NovelError(`${stage}: ${message}`, { ...spend }, partial?.());
 	}
 }
 
@@ -269,10 +288,21 @@ export function renderOutlineJson(source: NovelSource, outline: Outline, casting
 /** Writes `outline.json` and `packs/NN.md`; returns the novel directory. */
 export function writeOutlineFiles(runDirectory: string, source: NovelSource, casting: Casting, outline: Outline, packs: readonly ScenePack[]): string {
 	const directory = join(runDirectory, NOVEL_DIRECTORY);
+	// Packs of an earlier, longer outline would otherwise stay next to the new ones.
+	rmSync(join(directory, NOVEL_FILES.packs), { recursive: true, force: true });
 	mkdirSync(join(directory, NOVEL_FILES.packs), { recursive: true });
 	writeFileSync(join(directory, NOVEL_FILES.outline), renderOutlineJson(source, outline, casting));
 	for (const pack of packs) writeFileSync(join(directory, NOVEL_FILES.packs, `${String(pack.chapter).padStart(2, "0")}.md`), pack.markdown);
 	return directory;
+}
+
+/** Writes the chapters of a failed novel to `story.partial.md`; returns its path. */
+export function writePartialStory(runDirectory: string, draft: string): string {
+	const directory = join(runDirectory, NOVEL_DIRECTORY);
+	mkdirSync(directory, { recursive: true });
+	const path = join(directory, NOVEL_FILES.partial);
+	writeFileSync(path, draft);
+	return path;
 }
 
 /** Writes `story.md` and `appendix.md` (and again `outline.json` and the packs). */

@@ -5,11 +5,11 @@ import { parseNovelArgs } from "../../src/cli/novel-args.ts";
 import { createProviderRegistry } from "../../src/model/providers.ts";
 import { castBook } from "../../src/novel/casting.ts";
 import { PiNovelModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, type NovelModel } from "../../src/novel/model.ts";
-import { buildOutlineRequest, interpretOutline, OutlineError } from "../../src/novel/outline.ts";
+import { buildOutlineRequest, interpretOutline, maxChaptersFor, OutlineError } from "../../src/novel/outline.ts";
 import { buildInterludePack, buildPack } from "../../src/novel/packs.ts";
 import { EDIT_DELIMITER } from "../../src/novel/prompts.ts";
 import { NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
-import { figureText, parseGamemakerLog, type NovelSource } from "../../src/novel/source.ts";
+import { figureText, parseGamemakerLog, runLabel, type NovelSource } from "../../src/novel/source.ts";
 import { cleanProse, interpretEdit, italicize } from "../../src/novel/writer.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
@@ -59,7 +59,8 @@ function story(): Story {
 }
 
 /** A pi-ai model backed by the faux provider: offline, through the same code path as a real provider. */
-function fauxModel(label: string, answer: (prompt: string, system: string) => string): { model: NovelModel; prompts: string[] } {
+/** `answer` returning undefined: the answer hits the output cap. */
+function fauxModel(label: string, answer: (prompt: string, system: string) => string | undefined): { model: NovelModel; prompts: string[] } {
 	const faux = fauxProvider();
 	const prompts: string[] = [];
 	const respond: FauxResponseFactory = (context) => {
@@ -68,7 +69,8 @@ function fauxModel(label: string, answer: (prompt: string, system: string) => st
 		prompts.push(prompt);
 		const first = context.messages[0];
 		const system = first?.role !== "system" ? "" : typeof first.content === "string" ? first.content : first.content.map((block) => block.text).join("");
-		return fauxAssistantMessage(fauxText(answer(prompt, system)));
+		const text = answer(prompt, system);
+		return text === undefined ? fauxAssistantMessage(fauxText("cut"), { stopReason: "length" }) : fauxAssistantMessage(fauxText(text));
 	};
 	faux.setResponses(Array.from({ length: 20 }, () => respond));
 	const models = createModels();
@@ -139,6 +141,20 @@ describe("outline", () => {
 	});
 });
 
+describe("outline answers", () => {
+	it("reads '#seq' strings as evidence and caps the number of chapters", () => {
+		const { source, seqs } = story();
+		const casting = castBook(source.analysis);
+		const chapter = { pov: "A01", title: "C", minutes: [0, 6], beats: ["b"], evidence: [`#${String(seqs.promise)}`, "soon", seqs.exile] };
+		const answer = JSON.stringify({ title: "T", chapters: Array.from({ length: 30 }, () => chapter) });
+		const outline = interpretOutline(source, casting, answer, { words: 3_000 });
+		expect(outline.chapters).toHaveLength(maxChaptersFor(3_000));
+		expect(outline.chapters[0]?.evidence).toEqual([seqs.promise, seqs.exile]);
+		expect(outline.warnings).toContain('chapter 1 ("C"): 1 evidence entries are no seq number; they were dropped');
+		expect(outline.warnings.some((warning) => warning.includes(`more than ${String(maxChaptersFor(3_000))} chapters`))).toBe(true);
+	});
+});
+
 describe("scene packs", () => {
 	it("gathers the POV's thinking, messages, notes, the board and the facts, with names instead of IDs", () => {
 		const { source, seqs } = story();
@@ -168,6 +184,32 @@ describe("scene packs", () => {
 		expect(tight.omitted).toBeGreaterThan(0);
 		expect(tight.markdown).toContain("I promise you my piece");
 		expect(tight.markdown).not.toContain("is a liar");
+	});
+
+	it("shows a POV only the secret facts it knows: its own vote and payments, not the others'", () => {
+		const log = new LogBuilder(AGENTS);
+		for (const agent of AGENTS) log.add({ type: "name_chosen", agent, name: NAMES[agent] ?? agent, fallback: false });
+		log.at(1);
+		const ownVote = log.add({ type: "tribunal_vote", voter: "A01", target: "A02" });
+		const otherVote = log.add({ type: "tribunal_vote", voter: "A03", target: "A01" });
+		const voteOnExiled = log.add({ type: "tribunal_vote", voter: "A04", target: "A02" });
+		const ownPayment = log.transfer("A05", "A01", 3, "for you");
+		const otherPayment = log.transfer("A03", "A04", 7, "bribe");
+		const levelUp = log.add({ type: "level_up", agent: "A03", from: 1, to: 2 });
+		log.at(2).add({ type: "exiled", agent: "A02" });
+		const analysis = log.analyze({ run: "run-privacy" });
+		const source: NovelSource = { analysis, gamemaker: parseGamemakerLog(log.jsonl()), figures: new Map() };
+		const pack = (agent: string, evidence: readonly number[]): string =>
+			buildPack(source, { number: 1, pov: agent, title: "T", from: 0, to: 2, beats: [], evidence }, { agent, role: "weight", score: 0, reasons: [] }).markdown;
+		const hedda = pack("A01", [otherVote, otherPayment]);
+		expect(hedda).toContain(`#${String(ownVote)} m1 VERIFIED Hedda voted in secret against Lucien`);
+		expect(hedda).toContain(`#${String(ownPayment)} m1 VERIFIED Kessler paid Hedda 3 points`);
+		expect(hedda).toContain(`#${String(levelUp)} m1 VERIFIED Mira solved level 1`);
+		expect(hedda).not.toContain(`#${String(otherVote)} `);
+		expect(hedda).not.toContain("bribe");
+		expect(hedda).not.toContain(`#${String(voteOnExiled)} `);
+		// The exiled resident is told who voted against it.
+		expect(pack("A02", [])).toContain(`#${String(voteOnExiled)} m1 VERIFIED Wren voted in secret against Lucien`);
 	});
 
 	it("builds interludes from the gamemaker's thinking, each thought once", () => {
@@ -225,6 +267,35 @@ describe("the novel", () => {
 		expect(novel.appendix).toContain("| total | 5 |");
 	});
 
+	it("keeps the chapters when an interlude or the edit pass hits the output cap", async () => {
+		const { source, seqs } = story();
+		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
+		const writer = fauxModel("faux writer", (_prompt, system) => (system.includes("editor") || system.includes("interlude") ? undefined : "Hedda waited."));
+		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model });
+		expect(novel.story).toContain("## 2. The Gate\n\nHedda waited.");
+		expect(novel.interludes).toEqual([]);
+		expect(novel.warnings.some((warning) => warning.startsWith("interlude before chapter 2: the answer hit the output cap"))).toBe(true);
+		expect(novel.warnings.some((warning) => warning.startsWith("edit pass: the answer hit the output cap"))).toBe(true);
+		expect(novel.spend.interludes.requests).toBe(1);
+		expect(novel.spend.edit.requests).toBe(1);
+	});
+
+	it("hands back the chapters written before a chapter failed", async () => {
+		const { source, seqs } = story();
+		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
+		let calls = 0;
+		const writer = fauxModel("faux writer", () => {
+			calls += 1;
+			return calls === 1 ? "Hedda waited." : undefined;
+		});
+		const failure = await writeNovel(source, { outline: outliner.model, writer: writer.model }).catch((error: unknown) => error);
+		expect(failure).toBeInstanceOf(NovelError);
+		if (!(failure instanceof NovelError)) return;
+		expect(failure.message).toMatch(/^chapters: /);
+		expect(failure.draft).toContain("## 1. A Promise\n\nHedda waited.");
+		expect(failure.spend.chapters.requests).toBe(2);
+	});
+
 	it("fails with the stage and keeps what was spent", async () => {
 		const { source } = story();
 		const outliner = fauxModel("faux outliner", () => "no JSON here");
@@ -246,12 +317,21 @@ describe("writer answers", () => {
 		expect(interpretEdit(original, `${original}\n${EDIT_DELIMITER}\n- none`)).toEqual({ text: original, contradictions: [], warnings: [] });
 		expect(interpretEdit(original, "# T\n\nShort.").warnings).toEqual([
 			`the editor's answer has no "${EDIT_DELIMITER}" line; it lists no contradictions`,
-			"the edited text changed or lost chapter headings; the unedited text was kept",
+			"the edited text changed or lost chapter headings or interludes; the unedited text was kept",
 		]);
 		const short = interpretEdit(original, `# T\n\n## 1. A\n\nOne.\n\n## 2. B\n\nSix.\n${EDIT_DELIMITER}\n- x`);
 		expect(short.text).toBe(original);
 		expect(short.contradictions).toEqual(["x"]);
 		expect(short.warnings[0]).toMatch(/much shorter/);
+	});
+
+	it("removes text before the title and refuses an edit that lost an interlude", () => {
+		const edited = interpretEdit(original, `Here is the corrected story:\n\n${original}\n${EDIT_DELIMITER}\n- none`);
+		expect(edited.text).toBe(original);
+		expect(edited.warnings).toEqual(["the editor's answer had text before the title; it was removed"]);
+		const withInterlude = "# T\n\n## 1. A\n\nOne two three.\n\n* * *\n\n*They watch.*\n\n* * *\n\n## 2. B\n\nFour five six.\n";
+		const lost = interpretEdit(withInterlude, `${withInterlude.replace("* * *\n\n*They watch.*\n\n* * *\n\n", "")}\n${EDIT_DELIMITER}\n- none`);
+		expect(lost.text).toBe(withInterlude);
 	});
 
 	it("strips headings and fences from prose and sets interludes in italics", () => {
@@ -261,6 +341,11 @@ describe("writer answers", () => {
 });
 
 describe("sources", () => {
+	it("names a run kept as <name>/run after its folder", () => {
+		expect(runLabel("stories/nexus/runs/act2-12a-003/run")).toBe("act2-12a-003");
+		expect(runLabel("runs/run-019/")).toBe("run-019");
+	});
+
 	it("reads the figure text of a cast file without its direction", () => {
 		const cast = "# A01 · Hedda\n\n| table |\n\n## Who you are\n\nQuiet.\n\n## What you fear\n\nBeing seen.\n\n## Direction (in the prompt)\n\nOrders.";
 		expect(figureText(cast)).toBe("## Who you are\n\nQuiet.\n\n## What you fear\n\nBeing seen.");

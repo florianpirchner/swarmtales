@@ -1,7 +1,7 @@
 /**
  * The novelist's two models: the outliner (default DeepSeek V4.1 Flash via
  * OpenRouter, thinking high, like the chronicle) and the writer (default
- * Claude Sonnet via Anthropic, thinking off for prose). Without a usable model
+ * Claude Sonnet via Anthropic, thinking low for prose). Without a usable model
  * or API key the novel is skipped with a reason, never failed.
  *
  * Precedence: CLI > environment (`ARENA_NOVEL_OUTLINE_PROVIDER`/`_MODEL`,
@@ -54,18 +54,24 @@ export class NovelRequestError extends Error {
 
 export interface NovelRequestOptions {
 	readonly timeoutMs: number;
-	/** Absent: thinking off. Thinking counts against `maxTokens` (P52). */
+	/** Absent: no level is sent, which is not "off" on every model (see WRITER_REQUEST). Thinking counts against `maxTokens` (P52). */
 	readonly reasoning?: ThinkingLevel;
 }
 
 export const OUTLINE_REQUEST: NovelRequestOptions = { timeoutMs: 900_000, reasoning: "high" };
-export const WRITER_REQUEST: NovelRequestOptions = { timeoutMs: 600_000 };
+/**
+ * Thinking low: Claude Sonnet 5.5 cannot turn thinking off (its "off" level
+ * is not offered), and without a level pi-ai sends adaptive thinking at
+ * effort high, which would eat the output caps below (P52).
+ */
+export const WRITER_REQUEST: NovelRequestOptions = { timeoutMs: 900_000, reasoning: "low" };
 
 /**
- * Output caps per call. The outline leaves room for high thinking; a chapter
- * of ~1,000-2,000 words is ~3k tokens, the edit pass returns the whole story.
+ * Output caps per call, with room for the writer's (low) thinking. The
+ * outline leaves room for high thinking; a chapter of ~1,000-2,000 words is
+ * ~3k tokens, an interlude ~300, the edit pass returns the whole story.
  */
-export const MAX_TOKENS = { outline: 64_000, chapter: 16_000, interlude: 4_000, edit: 48_000 } as const;
+export const MAX_TOKENS = { outline: 64_000, chapter: 24_000, interlude: 12_000, edit: 64_000 } as const;
 
 /** Any pi-ai model, e.g. a real provider or the faux provider in tests. */
 export class PiNovelModel implements NovelModel {

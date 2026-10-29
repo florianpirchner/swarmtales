@@ -51,7 +51,13 @@ export function interpretEdit(original: string, answer: string): Omit<EditedStor
 	const warnings: string[] = [];
 	const at = answer.lastIndexOf(EDIT_DELIMITER);
 	if (at < 0) warnings.push(`the editor's answer has no "${EDIT_DELIMITER}" line; it lists no contradictions`);
-	const body = stripFences(at < 0 ? answer : answer.slice(0, at)).trim();
+	let body = stripFences(at < 0 ? answer : answer.slice(0, at)).trim();
+	// "Here is the corrected story:" before the title would end up in the book.
+	const title = body.search(/^# /m);
+	if (original.startsWith("# ") && title > 0) {
+		warnings.push("the editor's answer had text before the title; it was removed");
+		body = body.slice(title);
+	}
 	const contradictions =
 		at < 0
 			? []
@@ -62,9 +68,14 @@ export function interpretEdit(original: string, answer: string): Omit<EditedStor
 					.filter((line) => line.startsWith("- "))
 					.map((line) => line.slice(2).trim())
 					.filter((line) => line.length > 0 && line.toLowerCase() !== "none");
-	const headings = (text: string): string => text.split(/\r?\n/).filter((line) => line.startsWith("#")).join("\n");
+	// The structure: headings and the `* * *` lines around the interludes.
+	const headings = (text: string): string =>
+		text
+			.split(/\r?\n/)
+			.filter((line) => line.startsWith("#") || line.trim() === "* * *")
+			.join("\n");
 	if (headings(body) !== headings(original)) {
-		warnings.push("the edited text changed or lost chapter headings; the unedited text was kept");
+		warnings.push("the edited text changed or lost chapter headings or interludes; the unedited text was kept");
 		return { text: original, contradictions, warnings };
 	}
 	if (body.length < original.length * 0.7) {

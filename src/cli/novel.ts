@@ -12,7 +12,7 @@ import { createProviderRegistry } from "../model/providers.ts";
 import { castBook } from "../novel/casting.ts";
 import { resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
 import { buildOutlineRequest, chapterCount, DEFAULT_OUTLINE_OPTIONS } from "../novel/outline.ts";
-import { DEFAULT_NOVEL_OPTIONS, NOVEL_FILES, NovelError, STAGES, totalSpend, writeNovel, writeNovelFiles, writeOutlineFiles, type StageSpend } from "../novel/novel.ts";
+import { DEFAULT_NOVEL_OPTIONS, NOVEL_FILES, NovelError, STAGES, totalSpend, writeNovel, writeNovelFiles, writeOutlineFiles, writePartialStory, type StageSpend } from "../novel/novel.ts";
 import { loadNovelSource, Names } from "../novel/source.ts";
 import { UsageError } from "./args.ts";
 import { NOVEL_USAGE, parseNovelArgs } from "./novel-args.ts";
@@ -106,6 +106,7 @@ try {
 } catch (error) {
 	if (error instanceof NovelError) {
 		out(`novel failed: ${error.message}`);
+		if (error.draft?.includes("\n## ") === true) out(`chapters written so far: ${writePartialStory(directory, error.draft)}`);
 		printSpend(error.spend);
 		process.exit(1);
 	}

@@ -48,7 +48,7 @@ interface PackItem {
 export interface ScenePack {
 	readonly chapter: number;
 	readonly markdown: string;
-	/** Every `seq` the pack shows, ascending. */
+	/** Every `seq` the pack shows (its material, not the outline's evidence), ascending. */
 	readonly seqs: readonly number[];
 	readonly omitted: number;
 }
@@ -91,8 +91,12 @@ export function buildPack(source: NovelSource, chapter: OutlineChapter, pov: Pov
 		if (!inWindow(note.minute) || note.to !== agent) continue;
 		items.push({ seq: note.seq, section: "notes", priority: 2, text: `#${note.seq} m${note.minute} ${say(note.text, options.messageChars)}` });
 	}
+	const privacy = factPrivacy(facts.events);
 	for (const event of facts.events) {
 		if (NOT_FACTS.has(event.type) || (!inWindow(event.minute) && !cited.has(event.seq))) continue;
+		// A secret fact (a vote, a private payment, another's change) is only material for those who know it.
+		const knownTo = privacy(event);
+		if (knownTo !== undefined && !knownTo.includes(agent)) continue;
 		const line = evidenceLines([event], { maxEvidenceChars: Number.MAX_SAFE_INTEGER, excerptChars: options.messageChars }).lines[0];
 		if (line === undefined) continue;
 		const priority = cited.has(event.seq) || mentions(event, agent) ? 3 : 1;
@@ -126,8 +130,31 @@ export function buildPack(source: NovelSource, chapter: OutlineChapter, pov: Pov
 		lines.push(`## ${SECTION_TITLES[section](name)}`, "", ...inSection.map((item) => `- ${item.text}`), "");
 	}
 	if (kept.omitted > 0) lines.push(`(${String(kept.omitted)} less important lines were left out to keep the pack within budget.)`, "");
-	const seqs = [...new Set([...chapter.evidence, ...kept.items.map((item) => item.seq)])].sort((a, b) => a - b);
+	const seqs = [...new Set(kept.items.map((item) => item.seq))].sort((a, b) => a - b);
 	return { chapter: chapter.number, markdown: `${lines.join("\n").trimEnd()}\n`, seqs, omitted: kept.omitted };
+}
+
+/**
+ * Who may know a recorded fact: undefined for a public one, else the
+ * residents who saw it. Secret votes, nominations and bloc results (SPEC
+ * tribunal; an exiled resident learns who voted against it), payments and
+ * privately shown receipts, private city factors, refusals into a faction,
+ * signatures on a secret petition and the weaver's changes of a resident.
+ */
+export function factPrivacy(events: readonly DigestEvent[]): (event: DigestEvent) => readonly string[] | undefined {
+	const exiled = new Set(events.flatMap((event) => (event.type === "exiled" ? [event.agent] : [])));
+	const secretPetitions = new Set(events.flatMap((event) => (event.type === "petition_opened" && event.visibility === "secret" ? [event.petition] : [])));
+	return (event) => {
+		if (event.type === "tribunal_vote") return exiled.has(event.target) ? [event.voter, event.target] : [event.voter];
+		if (event.type === "bloc_result") return [event.leader, ...event.voting];
+		if (event.type === "faction_refused") return [event.leader, event.agent];
+		if (event.type === "transfer") return [event.from, event.to];
+		if (event.type === "receipt_shown") return event.to === undefined ? undefined : [event.by, event.to];
+		if (event.type === "factor_revealed") return event.target === "board" ? undefined : event.agents;
+		if (event.type === "petition_signed") return secretPetitions.has(event.petition) ? [event.agent] : undefined;
+		if (event.type === "fate_shift") return [event.agent];
+		return undefined;
+	};
 }
 
 /** Drops the lowest priorities first, earliest first, until the items fit. Keeps `seq` order. */

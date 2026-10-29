@@ -986,8 +986,9 @@ Per run, `runs/run-NNN/` contains:
 - **Scene packs** (code): per chapter, within a character budget, the POV's messages, its thinking
   (the inner monologue), the gamemaker's notes to it, the board, the city's verified facts of the
   chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
-  secret goal and fate shifts. IDs are replaced by names.
-- **Chapters, interludes, edit** (model, default Claude Sonnet via Anthropic, thinking off): one
+  secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
+  another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
+- **Chapters, interludes, edit** (model, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high): one
   call per chapter with the outline, the pack and the previous chapter's ending; one 100-200 word
   interlude in italics before each later chapter from the gamemaker's thinking in its minutes; one
   edit pass that fixes continuity and lists contradictions with the outline. An edit that loses

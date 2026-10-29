@@ -17,7 +17,7 @@ export const NOVEL_USAGE = [
 	"Usage: pnpm novel <run-dir> [--provider <id>] [--model <id>] [--outline-provider <id>] [--outline-model <id>] [--words <n>] [--dry-run]",
 	"",
 	"  --provider <id>          writer of chapters, interludes and the edit pass (default: ARENA_NOVEL_PROVIDER, then anthropic)",
-	"  --model <id>             writer model (default: ARENA_NOVEL_MODEL, then claude-sonnet-5-5, thinking off)",
+	"  --model <id>             writer model (default: ARENA_NOVEL_MODEL, then claude-sonnet-5-5, thinking low)",
 	"  --outline-provider <id>  outline model's provider (default: ARENA_NOVEL_OUTLINE_PROVIDER, then openrouter)",
 	"  --outline-model <id>     outline model (default: ARENA_NOVEL_OUTLINE_MODEL, then deepseek/deepseek-v4.1-flash-1017, thinking high)",
 	`  --words <n>              length of the story (default ${String(DEFAULT_WORDS)})`,

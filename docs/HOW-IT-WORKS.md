@@ -52,7 +52,7 @@ start without replaying the earlier ones.
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
 | Novelist outline | DeepSeek V4.1 Flash, thinking high | OpenRouter | only with `pnpm novel`; `--outline-provider/--outline-model` override it |
-| Novelist writer | `claude-sonnet-5-5`, thinking off | Anthropic | chapters, interludes and the edit pass of `pnpm novel`; `--provider/--model` override it |
+| Novelist writer | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | chapters, interludes and the edit pass of `pnpm novel`; `--provider/--model` override it |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
 | Tests and offline runs | scripted provider | none | no API key, no cost |
 
