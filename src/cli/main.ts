@@ -6,6 +6,7 @@ import { basename, join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
 import { allocateRunDirectory, MinuteEventLog, writeRunMetadata, writeSystemPrompts } from "../log/run-artifacts.ts";
 import { writeMinuteReport } from "../log/minute-report.ts";
+import { writeCastFiles, writePrivateFiles } from "../log/private-files.ts";
 import { analyzeRun, writeDigest } from "../digest/digest.ts";
 import { ConsoleReporter, JsonlEventLog } from "../log/sinks.ts";
 import { AgentTranscriptLog } from "../log/transcripts.ts";
@@ -334,6 +335,16 @@ writeSystemPrompts(join(allocated.directory, "agents"), [
 	}),
 	...(run.gamemaster === undefined ? [] : [{ agent: "GM", label: "game master", prompt: run.gamemaster.systemPrompt }]),
 ]);
+// Who every resident is, before the first step: cast/<ID>-<figure>.md (the act files follow at the end).
+writeCastFiles(
+	allocated.directory,
+	story,
+	run.world.competitors.flatMap((agent) => {
+		const core = run.world.coreOf(agent);
+		const name = run.world.nameOf(agent);
+		return core === undefined ? [] : [{ agent, core, ...(name === undefined ? {} : { name }) }];
+	}),
+);
 
 process.stdout.write(
 	`> story ${story.id} · ${modelLabel} · ${effective.agents} competitors · ` +
@@ -350,6 +361,11 @@ writeFileSync(
 	`${JSON.stringify(usage.toJSON(), null, 2)}\n`,
 );
 const report = writeMinuteReport(allocated.directory);
+try {
+	writePrivateFiles(allocated.directory, story);
+} catch (error) {
+	process.stderr.write(`private files failed (${error instanceof Error ? error.message : String(error)}); retry with pnpm report:private ${allocated.directory}\n`);
+}
 // The deterministic digest is cheap and offline; a failure must not hide the run's other artifacts.
 let digestLine: string;
 try {

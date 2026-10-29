@@ -200,6 +200,8 @@ Every run creates `runs/run-NNN/`:
 | `events.jsonl` | every event with `seq`, virtual `minute` and wall-clock time `at`; `pass_start` gives each pass's order and blocks, `turn_input`, `request` and `turn_skipped` carry `pass` and `block` (absent in logs written before passes) |
 | `NNN-minute/events.jsonl` | the events of one virtual minute |
 | `agents/A01.md` | transcript per competitor, one section per step (minute and pass): inputs, reasoning, text, tool calls and results |
+| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
+| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the game master's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, in total and per competitor; split into `prefix` and `own` spend |
 | `digest/` | the story digest (see below), written at the end of every run |

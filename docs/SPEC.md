@@ -778,6 +778,8 @@ Per run, `runs/run-NNN/` contains:
 | `events.jsonl` | every event with `seq`, virtual minute, wall-clock time |
 | `NNN-minute/events.jsonl` | events of one minute |
 | `agents/A01.md` | transcript per agent: inputs, reasoning, text, tool calls and results |
+| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
+| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the game master's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, total and per agent; a resumed run splits them into `prefix` and `own` (§17) |
 | `digest/` | [M3] story digest (§15) |

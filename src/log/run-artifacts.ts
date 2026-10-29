@@ -7,6 +7,8 @@
  *   events.jsonl          every event
  *   NNN-minute/events.jsonl  events of one virtual minute
  *   agents/A01.md         transcript per competitor
+ *   cast/A01-house.md     who each resident is (name, figure, core), before the run starts
+ *   acts/act-2/private.md secret goals, the black seal, private game master notes, per act
  *   minutes.md            per-minute table
  *   usage.json            tokens and cost
  * ```
