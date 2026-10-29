@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { EventBus } from "../../src/engine/events.ts";
-import { allocateRunDirectory, minuteDirectoryName, MinuteEventLog, runDirectoryName, writeRunMetadata } from "../../src/log/run-artifacts.ts";
+import { allocateRunDirectory, minuteDirectoryName, MinuteEventLog, runDirectoryName, writeRunMetadata, writeSystemPrompts } from "../../src/log/run-artifacts.ts";
 import { JsonlEventLog } from "../../src/log/sinks.ts";
 
 const directories: string[] = [];
@@ -19,6 +19,12 @@ afterEach(() => {
 });
 
 describe("run artifacts (SPEC 14)", () => {
+	it("writes each system prompt to agents/<id>.prompt.md", () => {
+		const directory = join(tempDirectory(), "agents");
+		writeSystemPrompts(directory, [{ agent: "A01", label: "persona: Archivist", prompt: "You are a resident.\n" }]);
+		expect(readFileSync(join(directory, "A01.prompt.md"), "utf8")).toBe("# A01: system prompt\n\npersona: Archivist\n\n---\n\nYou are a resident.\n");
+	});
+
 	it("numbers runs consecutively", () => {
 		const base = tempDirectory();
 		const first = allocateRunDirectory(base);

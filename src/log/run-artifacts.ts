@@ -53,6 +53,18 @@ export function writeRunMetadata(directory: string, metadata: Readonly<Record<st
 	return path;
 }
 
+/**
+ * Writes each model's system prompt, exactly as the model gets it, to
+ * `agents/<id>.prompt.md`, so a reader sees who every resident is (persona,
+ * core) and what the game master was told.
+ */
+export function writeSystemPrompts(directory: string, prompts: readonly { readonly agent: string; readonly label: string; readonly prompt: string }[]): void {
+	mkdirSync(directory, { recursive: true });
+	for (const { agent, label, prompt } of prompts) {
+		writeFileSync(join(directory, `${agent.replace(/[^A-Za-z0-9_-]/g, "_")}.prompt.md`), `# ${agent}: system prompt\n\n${label}\n\n---\n\n${prompt.trim()}\n`);
+	}
+}
+
 /** Writes every event a second time into the folder of its virtual minute. */
 export class MinuteEventLog implements EventSink {
 	constructor(readonly directory: string) {

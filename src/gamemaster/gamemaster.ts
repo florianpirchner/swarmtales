@@ -88,6 +88,11 @@ export class Gamemaster implements EventSink {
 		for (const agent of world.competitors) this.#tracks.set(agent, { levelSince: 0, wrongOnLevel: 0 });
 	}
 
+	/** The game master's system prompt, as its model gets it. */
+	get systemPrompt(): string {
+		return this.#options.systemPrompt;
+	}
+
 	/** Guards the secrets of every dealt level; levels behind a shut door have none yet. */
 	#secretGuard(): SecretGuard {
 		const world = this.#options.world;

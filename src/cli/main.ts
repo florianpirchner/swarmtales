@@ -4,7 +4,7 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { allocateRunDirectory, MinuteEventLog, writeRunMetadata } from "../log/run-artifacts.ts";
+import { allocateRunDirectory, MinuteEventLog, writeRunMetadata, writeSystemPrompts } from "../log/run-artifacts.ts";
 import { writeMinuteReport } from "../log/minute-report.ts";
 import { analyzeRun, writeDigest } from "../digest/digest.ts";
 import { ConsoleReporter, JsonlEventLog } from "../log/sinks.ts";
@@ -255,7 +255,9 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 					},
 				},
 			}),
-	...(args.promptAddendum === undefined ? {} : { promptAddendum: readFileSync(args.promptAddendum, "utf8") }),
+	...(args.promptAddenda === undefined
+		? {}
+		: { promptAddenda: args.promptAddenda.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") })) }),
 	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { snapshot, name: basename(args.resume) } }),
 	...(gamemasterSettings === undefined ? {} : { gamemasterModels: createModelSource(gamemasterSettings, { registry }) }),
 	...(modelOverride === undefined ? {} : { modelOverride }),
@@ -323,6 +325,15 @@ writeRunMetadata(
 		...(resumedFrom === undefined ? {} : { resumedFrom }),
 	}),
 );
+
+writeSystemPrompts(join(allocated.directory, "agents"), [
+	...run.runners.map((runner) => {
+		const profile = run.profiles.find((entry) => entry.agent === runner.id);
+		const persona = profile?.persona === undefined ? "no persona" : `persona: ${profile.persona.name}`;
+		return { agent: runner.id, label: `${profile === undefined ? "" : `${profile.model.provider}${profile.model.id === undefined ? "" : `/${profile.model.id}`} · `}${persona}`, prompt: runner.systemPrompt };
+	}),
+	...(run.gamemaster === undefined ? [] : [{ agent: "GM", label: "game master", prompt: run.gamemaster.systemPrompt }]),
+]);
 
 process.stdout.write(
 	`> story ${story.id} · ${modelLabel} · ${effective.agents} competitors · ` +

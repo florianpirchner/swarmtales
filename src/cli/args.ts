@@ -28,10 +28,15 @@ export interface StartArgs {
 	readonly snapshotAt?: number;
 	/** End the run right after that snapshot. */
 	readonly stopAfterSnapshot?: true;
-	/** File whose text is appended to every competitor's system prompt (prompt experiments, `lab/`). */
-	readonly promptAddendum?: string;
+	/** Files whose text is appended to the system prompt (prompt experiments, `lab/`): of every competitor, or of `agent` alone. */
+	readonly promptAddenda?: readonly PromptAddendumFile[];
 	/** Snapshot file to continue from. */
 	readonly resume?: string;
+}
+
+export interface PromptAddendumFile {
+	readonly agent?: string;
+	readonly file: string;
 }
 
 export const START_USAGE = [
@@ -64,7 +69,7 @@ export const START_USAGE = [
 	"  --snapshot-after <n> write snapshot-L<n>.json into the run directory once every competitor passed level n",
 	"  --snapshot-at <m>    write snapshot-M<m>.json at the end of minute m instead (a cut inside an act)",
 	"  --stop-after-snapshot  end the run right after that snapshot",
-	"  --prompt-addendum <file>  append the file's text to every competitor's system prompt (lab/)",
+	"  --prompt-addendum [<ID>=]<file>  append the file's text to every competitor's system prompt, or to <ID>'s; repeatable (lab/)",
 	"  --resume <file>      continue from a snapshot: its story, seed and agents; models may differ,",
 	"                       --minutes counts from minute 0 of the snapshot's run",
 ].join("\n");
@@ -101,7 +106,7 @@ function parseValues(argv: readonly string[]) {
 				"snapshot-after": { type: "string" },
 				"stop-after-snapshot": { type: "boolean" },
 				"snapshot-at": { type: "string" },
-				"prompt-addendum": { type: "string" },
+				"prompt-addendum": { type: "string", multiple: true },
 				resume: { type: "string" },
 			},
 			allowPositionals: false,
@@ -168,10 +173,16 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		runsDirectory: values.runs ?? "runs",
 		...(snapshotAfter === undefined ? {} : { snapshotAfter }),
 		...(snapshotAt === undefined ? {} : { snapshotAt }),
-		...(values["prompt-addendum"] === undefined ? {} : { promptAddendum: values["prompt-addendum"] }),
+		...(values["prompt-addendum"] === undefined ? {} : { promptAddenda: values["prompt-addendum"].map(addendumFile) }),
 		...(values["stop-after-snapshot"] === true ? { stopAfterSnapshot: true } : {}),
 		...(resume === undefined ? {} : { resume }),
 	};
+}
+
+/** `<file>` for every competitor, `<ID>=<file>` for one. */
+function addendumFile(value: string): PromptAddendumFile {
+	const match = /^(A\d+)=(.+)$/.exec(value);
+	return match?.[1] === undefined || match[2] === undefined ? { file: value } : { agent: match[1], file: match[2] };
 }
 
 function optionalInt<K extends string>(name: K, raw: string | undefined, minimum: number): Partial<Record<K, number>> {
