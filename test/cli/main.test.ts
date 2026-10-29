@@ -30,7 +30,9 @@ describe("pnpm start (end to end, offline)", () => {
 			expect(metadata).toHaveProperty("agents.length", 6);
 			expect(metadata).toHaveProperty("agents.0.persona", expect.any(String));
 			expect(readFileSync(join(directory, "agents", "A01.md"), "utf8")).toMatch(/- persona: \w+/);
-			expect(readdirSync(join(directory, "agents"))).toHaveLength(6);
+			// A transcript and the system prompt of every resident.
+		expect(readdirSync(join(directory, "agents"))).toHaveLength(12);
+		expect(readFileSync(join(directory, "agents", "A01.prompt.md"), "utf8")).toContain("You are a resident of the closed city");
 			// Three passes a minute: the oracle passes the last level in minute 3 and the run stops there.
 			expect(readFileSync(join(directory, "minutes.md"), "utf8")).toContain("## Minute 3 (round 4)");
 			expect(readFileSync(join(directory, "agents", "A01.md"), "utf8")).toContain("## Minute 0, pass 1");
