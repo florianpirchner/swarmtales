@@ -47,7 +47,6 @@ if (args.chronicle) {
 	const choice = resolveNarrativeModel(
 		{ ...(args.provider === undefined ? {} : { provider: args.provider }), ...(args.model === undefined ? {} : { model: args.model }) },
 		process.env,
-		analysis.info,
 		createProviderRegistry(),
 	);
 	if (!choice.ok) {

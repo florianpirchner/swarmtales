@@ -959,8 +959,15 @@ Per run, `runs/run-NNN/` contains:
 - An LLM reads beats, relevant messages and reasoning excerpts and detects
   `brokenPromise` (commitment in a message, contrary action later) and `doubleGame`
   (reasoning contradicts the message sent).
-- It writes `digest/chronicle.md`: a short chronicle per act with quotes and evidence
-  references. It must not invent events; every claim cites `seq` numbers.
+- It writes `digest/chronicle.md`: a chronicle per act with quotes and evidence
+  references, using the residents' names. It must not invent events; every claim cites `seq`
+  numbers, and a paragraph is filed under the act most of its citations fall in.
+- **Turning points** are computed in code and given as must-tell: the black seal won and
+  broken, an ultimatum someone paid rather than hand over, an exile, a ransom, a last will with
+  bequests, a secret goal that held, and the end of the run with the final ranking. The
+  chronicle lists the ones it did not tell.
+- Model: DeepSeek V4.1 Flash via OpenRouter with thinking high and 64k output tokens, unless
+  `--provider`/`--model` or `ARENA_DIGEST_PROVIDER`/`ARENA_DIGEST_MODEL` say otherwise.
 
 **Run report (after every run):**
 

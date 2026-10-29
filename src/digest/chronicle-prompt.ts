@@ -16,6 +16,9 @@ export const CHRONICLE_SYSTEM_PROMPT = [
 	"- Quote short phrases verbatim when you quote at all.",
 	"- Messages are claims made by agents; actions marked VERIFIED are facts recorded by the city.",
 	"- Reasoning lines are the private thoughts of an agent; the other agents never saw them.",
+	"- Write for readers, as a chronicle and not a list: who wanted what, what they did about it, and what it cost them.",
+	"- Call residents by their names (the log uses IDs; the list of residents gives the names). Use IDs only in beats.",
+	"- Put the citations at the end of a sentence, at most three per sentence.",
 	"- Write in plain English. Answer with one JSON object and nothing else.",
 ].join("\n");
 
@@ -42,8 +45,12 @@ export interface PromptBeat {
 export interface ChroniclePromptInput {
 	readonly run: string;
 	readonly storyTitle?: string;
+	/** Resident names by ID; empty in a run without names. */
+	readonly names?: ReadonlyMap<string, string>;
 	readonly acts: readonly PromptAct[];
 	readonly beats: readonly PromptBeat[];
+	/** Events the chronicle must tell (seal, paid ultimatums, exiles, wills, goals, the end). */
+	readonly turningPoints: readonly { readonly seq: number; readonly minute: number; readonly text: string }[];
 	/** Numbered evidence lines, e.g. `#42 m7 A03 DM to A05: "..."`. */
 	readonly evidence: readonly string[];
 	/** Number of lines left out to keep the prompt small. */
@@ -56,12 +63,19 @@ export function buildChroniclePrompt(input: ChroniclePromptInput): string {
 		input.beats.length === 0
 			? ["(none)"]
 			: input.beats.map((beat) => `- ${beat.id} ${beat.kind} (minute ${beat.minute}): ${beat.summary} Evidence: ${beat.evidence.map((seq) => `#${seq}`).join(", ")}`);
+	const residents = [...(input.names ?? new Map<string, string>())].map(([agent, name]) => `- ${agent}: ${name}`);
+	const turningPoints =
+		input.turningPoints.length === 0 ? ["(none)"] : input.turningPoints.map((point) => `- #${point.seq} (minute ${point.minute}): ${point.text}`);
 	const definitions = Object.entries(NARRATIVE_BEAT_DEFINITIONS).map(([kind, definition]) => `- ${kind}: ${definition}`);
 	return [
 		`Run: ${input.run}${input.storyTitle === undefined ? "" : ` (story: ${input.storyTitle})`}`,
 		"",
 		"Acts:",
 		...acts,
+		"",
+		...(residents.length === 0 ? [] : ["Residents:", ...residents, ""]),
+		"Turning points (verified by the city; the chronicle must tell every one of them, citing its seq):",
+		...turningPoints,
 		"",
 		"Beats already found by deterministic detectors:",
 		...beats,
@@ -73,8 +87,10 @@ export function buildChroniclePrompt(input: ChroniclePromptInput): string {
 		"1. Find narrative beats of these kinds:",
 		...definitions,
 		"   Report only beats the log proves; an empty list is a good answer when nothing qualifies.",
-		"2. Write a short chronicle: one to three paragraphs per act, in the order of the acts, telling the story of",
-		"   alliances, trust, deception and betrayal. Cite seq numbers (#123) in every sentence that states a fact.",
+		"2. Write a chronicle: one to five paragraphs per act (few for a short or quiet act), in the order of the acts, telling the story of",
+		"   alliances, trust, deception and betrayal. Build it around the turning points: tell each one, and tell",
+		"   what led to it (the messages and thoughts before it) and what it changed. Name who won and who was lost.",
+		"   Cite seq numbers (#123) in every sentence that states a fact.",
 		"",
 		"Answer with exactly this JSON shape:",
 		'{"beats": [{"kind": "brokenPromise", "actors": ["A01"], "targets": ["A02"], "summary": "one sentence", "evidence": [12, 40]}],',
