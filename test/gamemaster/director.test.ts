@@ -26,6 +26,10 @@ describe("the character guard", () => {
 		expect(characterLeaks("A01 wants A03 exiled before the act ends.", "A04", residents)).toEqual(["A01"]);
 		expect(characterLeaks("A02 has a secret goal, A04.", "A04", residents)).toEqual(["A02"]);
 		expect(characterLeaks("Deep down A02 is loyal to you.", "A05", residents)).toEqual(["A02"]);
+		// Direction 8 and 10: a figure's orders, duty, rivals and tendencies are private too.
+		expect(characterLeaks("A02's orders are to betray you.", "A01", residents)).toEqual(["A02"]);
+		expect(characterLeaks("A01 has sworn to ruin you, A02.", "A02", residents)).toEqual(["A01"]);
+		expect(characterLeaks("A01, your duty this act is still open.", "A01", residents)).toEqual([]);
 		// To the target itself, "you" names it: the exile goal of A01 is given away.
 		expect(characterLeaks("Careful: A01 wants you gone.", "A03", residents)).toEqual(["A01"]);
 		// A protect goal in its own wording.

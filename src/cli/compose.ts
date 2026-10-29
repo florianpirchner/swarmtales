@@ -6,6 +6,7 @@ import { assignModels } from "../agents/models.ts";
 import { assignPersonas } from "../agents/personas.ts";
 import { baseSystemPrompt, type PromptFacts } from "../agents/system-prompt.ts";
 import { renderCore } from "../engine/cores.ts";
+import { DEFAULT_DIRECTION, briefLine, directFigure, directionBlock, directionLevel, figureOf, FigureCues, type DirectionLevel, type FigureCue } from "../engine/direction.ts";
 import { AgentRunner } from "../agents/runner.ts";
 import { VirtualClock } from "../core/clock.ts";
 import { competitorIds, type CompetitorId } from "../core/ids.ts";
@@ -52,6 +53,10 @@ export interface RunOverrides {
 	readonly cores?: boolean;
 	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
 	readonly cast?: readonly string[];
+	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, src/engine/direction.ts). */
+	readonly figureDirection?: number;
+	/** How strongly the game master steers, 0-10 (`--gm-direction`). */
+	readonly gmDirection?: number;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -75,6 +80,9 @@ export interface EffectiveRun {
 	readonly names: boolean;
 	/** Whether residents have character cores: the story has them and the run does not turn them off (v09). */
 	readonly cores: boolean;
+	/** The direction levels the run plays (default 4 each, as v12). */
+	readonly figureDirection: DirectionLevel;
+	readonly gmDirection: DirectionLevel;
 }
 
 /** Builds the model source once the world and the per-competitor models are known. */
@@ -160,6 +168,8 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		classifier: overrides.classifier === true && story.classifier !== undefined,
 		names: story.names !== undefined && startLevel === 1 && (overrides.names ?? true),
 		cores: story.cores !== undefined && (overrides.cores ?? true),
+		figureDirection: overrides.figureDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.figureDirection),
+		gmDirection: overrides.gmDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.gmDirection),
 	};
 }
 
@@ -296,10 +306,26 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const source = typeof options.models === "function" ? options.models(world, assignments) : options.models;
 	const judge = options.judge === undefined ? undefined : meteredJudge(options.judge, bus);
 
+	const figures = story.cores?.figures;
+	// Rivals still in the city; an exiled one is no longer faced.
+	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
+	// Residents follow the notes as orders only when the director gives orders (gm direction 10).
+	const author = effective.gamemaster && effective.gmDirection >= 10 ? story.gamemaster?.author : undefined;
+	const cues = new Map<CompetitorId, FigureCue>();
 	const profiles: AgentProfile[] = [];
 	const runners = ids.map((id) => {
 		const model = assignments.get(id) ?? story.model;
-		const persona = effective.personas ? (figurePersona(world, id) ?? personas.get(id)) : undefined;
+		const figure = figureOf(figures, world.coreOf(id)?.figure);
+		// From figure direction 6 a figure speaks for itself: no persona block beside it.
+		const led = figure !== undefined && effective.figureDirection >= 6;
+		const directed = directFigure(effective.figureDirection, figure?.direction, playedBy);
+		const block = directed === undefined ? undefined : directionBlock(directed, (text) => world.display(text), author);
+		const core = coreFact(world, id);
+		if (directed !== undefined && core.core !== undefined) {
+			const brief = briefLine(directed);
+			cues.set(id, { ...(brief === undefined ? {} : { brief }), full: [core.core, ...(block === undefined ? [] : [block])].join("\n\n") });
+		}
+		const persona = effective.personas && !led ? (figurePersona(world, id) ?? personas.get(id)) : undefined;
 		profiles.push({ agent: id, model, ...(persona === undefined ? {} : { persona }) });
 		const maxOutputTokens = model.maxOutputTokens ?? story.model.maxOutputTokens;
 		const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
@@ -311,7 +337,8 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					agents: ids.length,
 					passesPerMinute: effective.passesPerMinute,
 					...namesFact(world),
-					...coreFact(world, id),
+					...core,
+					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined ? {} : { block }) } } : {}),
 				},
 				persona,
 			);
@@ -328,7 +355,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	});
 
 	const interpreter = effective.classifier ? createInterpreter(options, world, bus, () => clock.minute) : undefined;
-	const gamemaster = effective.gamemaster ? createGamemaster(options, world, bus, ids.length, interpreter !== undefined) : undefined;
+	const gamemaster = effective.gamemaster ? createGamemaster(options, world, bus, ids.length, interpreter !== undefined, effective.gmDirection) : undefined;
 	if (resume !== undefined) {
 		const { snapshot } = resume;
 		for (const runner of runners) runner.restore(snapshot.competitors.find((entry) => entry.agent === runner.id)?.messages ?? []);
@@ -357,6 +384,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(gamemaster === undefined ? {} : { observer: gamemaster }),
 		...(interpreter === undefined ? {} : { interpreter }),
 		...(resume === undefined ? {} : { resume: { round: resume.snapshot.round, state: resume.snapshot.arena } }),
+		...(cues.size === 0 ? {} : { cues: new FigureCues(cues) }),
 		...(request === undefined || prefix === undefined
 			? {}
 			: {
@@ -458,7 +486,7 @@ function createInterpreter(options: ComposeOptions, world: World, bus: EventBus,
 	return interpreter;
 }
 
-function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, agents: number, labels: boolean): Gamemaster {
+function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, agents: number, labels: boolean, direction: DirectionLevel): Gamemaster {
 	const story = options.story;
 	const spec = story.gamemaster;
 	if (spec === undefined) throw new Error(`Story ${story.id} has no game master`);
@@ -482,8 +510,10 @@ function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, 
 			...(story.tribunal === undefined || !spec.roles.some((entry) => entry.role === "director") ? {} : { tribunal: { factions: story.tribunal.factions !== undefined } }),
 			characters: story.goals !== undefined || world.competitors.some((agent) => world.coreOf(agent) !== undefined),
 			seal: world.seal !== undefined,
+			direction,
 		}),
 		thinking: spec.model.thinking ?? "low",
+		direction,
 	});
 	bus.subscribe(gamemaster);
 	return gamemaster;

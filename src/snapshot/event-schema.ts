@@ -204,6 +204,7 @@ export const RecordedEventSchema = Type.Union([
 	event("factor_burned", { agent: Id, level: Int, piece: Type.String(), needers: Ids }),
 	event("level_contracted", { level: Int, excluded: Ids }),
 	event("gamemaster_turn", { round: Int, input: Type.String() }),
+	event("gamemaster_thinking", { text: Type.String() }),
 	event("gamemaster_text", { text: Type.String() }),
 	event("gamemaster_call", { tool: Type.String(), args: Type.Unknown() }),
 	event("gamemaster_result", { tool: Type.String(), isError: Type.Boolean(), text: Type.String() }),

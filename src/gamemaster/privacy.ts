@@ -86,7 +86,8 @@ export interface CharacterFacts {
 }
 
 /** Words that talk about a core or a goal, whoever it belongs to. */
-const CHARACTER = /\b(goals?|cores?|drives?|secretly|deep down|at heart|above all|longs? to|yearns? to)\b/;
+// Direction 8 and 10 show the figures' tendencies, rivals, orders and duty in the report: private material too.
+const CHARACTER = /\b(goals?|cores?|drives?|secretly|deep down|at heart|above all|longs? to|yearns? to|orders?|dut(?:y|ies)|rivals?|tendenc\w*|sworn)\b/;
 
 /**
  * A wish, for the goal cues: exiles, ranks and wills are public, only wanting

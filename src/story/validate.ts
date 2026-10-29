@@ -224,6 +224,10 @@ function validateFigures(story: AnyStory, drives: ReadonlySet<string>, axes: Rea
 		if (tone !== undefined && tone !== figure.tone) issues.push(`${at}.tone: the drive above all is ${tone}`);
 		for (const axis of axes) if (!figure.bigFive.some((trait) => trait.axis === axis)) issues.push(`${at}.bigFive: missing axis ${axis}`);
 		if (!story.personas.some((persona) => persona.name.toLowerCase() === figure.profession.toLowerCase())) issues.push(`${at}.profession: no persona ${figure.profession}`);
+		for (const rival of figure.direction?.rivals ?? []) {
+			if (rival.figure === figure.id) issues.push(`${at}.direction.rivals: a figure is not its own rival`);
+			else if (!spec.figures.some((other) => other.id === rival.figure)) issues.push(`${at}.direction.rivals: unknown figure ${rival.figure}`);
+		}
 	}
 }
 

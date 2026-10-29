@@ -6,7 +6,7 @@
 import type { CompetitorId } from "../core/ids.ts";
 import type { HeldPiece, World } from "./world.ts";
 
-export type TurnInputKind = "status" | "task" | "dm" | "notice" | "digest";
+export type TurnInputKind = "character" | "status" | "task" | "dm" | "notice" | "digest";
 
 export interface TurnInput {
 	readonly kind: TurnInputKind;

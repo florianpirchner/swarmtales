@@ -3,10 +3,12 @@
  * No goals, no strategy hints; a persona block is appended when present, and
  * after it the resident's character core as prose (v09), who it is, never
  * what to do; a story's frame for the cores comes first (who the resident
- * plays and how seriously). The prompt is built once per run from facts a resume keeps, so
+ * plays and how seriously). From figure direction 6 on the figure leads and
+ * its direction closes the prompt (src/engine/direction.ts). The prompt is built once per run from facts a resume keeps, so
  * it stays identical across a resume (prompt caching).
  */
 import type { CompetitorId } from "../core/ids.ts";
+import { VOICE_RULE, type DirectionLevel } from "../engine/direction.ts";
 import type { Persona } from "../story/types.ts";
 
 export interface PromptFacts {
@@ -22,6 +24,12 @@ export interface PromptFacts {
 	readonly core?: string;
 	/** The story's frame for residents with a core: what they play and how seriously, first in the prompt. */
 	readonly frame?: string;
+	/**
+	 * A cast figure's direction (`--figure-direction`): from 6 the figure comes
+	 * right after the frame with the voice rule; `block` (tendencies, rivals,
+	 * orders) closes the prompt.
+	 */
+	readonly direction?: { readonly level: DirectionLevel; readonly block?: string };
 }
 
 export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string {
@@ -46,8 +54,14 @@ export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string 
 			`- Voice: ${persona.voice}`,
 		);
 	}
-	if (facts.core !== undefined) lines.push("", facts.core);
 	const frame = facts.frame?.trim() ?? "";
+	const direction = facts.direction;
+	if (direction !== undefined && direction.level >= 6 && facts.core !== undefined) {
+		// Who the resident is comes before the city, and what it must do comes last, nearest to its answers.
+		const head = [...(frame.length === 0 ? [] : [frame, ""]), facts.core, "", VOICE_RULE, "", "The city:"];
+		return [...head, ...lines, ...(direction.block === undefined ? [] : ["", direction.block])].join("\n");
+	}
+	if (facts.core !== undefined) lines.push("", facts.core);
 	return frame.length === 0 ? lines.join("\n") : [frame, "", ...lines].join("\n");
 }
 

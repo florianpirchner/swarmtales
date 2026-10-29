@@ -479,6 +479,7 @@ export type ArenaEvent =
 			readonly round: number;
 			readonly input: string;
 	  }
+	| { readonly type: "gamemaster_thinking"; readonly text: string }
 	| { readonly type: "gamemaster_text"; readonly text: string }
 	| { readonly type: "gamemaster_call"; readonly tool: string; readonly args: unknown }
 	| { readonly type: "gamemaster_result"; readonly tool: string; readonly isError: boolean; readonly text: string }

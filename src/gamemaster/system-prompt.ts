@@ -4,6 +4,7 @@
  * hard acts on); the story's `brief` is appended, budgets and the voice
  * come from the story's spec.
  */
+import type { DirectionLevel } from "../engine/direction.ts";
 import { ladderText } from "../story/penalties.ts";
 import type { GamemasterRole, GamemasterSpec, Rules } from "../story/types.ts";
 
@@ -24,14 +25,25 @@ export interface GamemasterPromptInput {
 	readonly characters?: boolean;
 	/** Whether the city auctions a black seal (v09). */
 	readonly seal?: boolean;
+	/** How strongly the director steers (`--gm-direction`, src/engine/direction.ts); 4 when omitted. */
+	readonly direction?: DirectionLevel;
 }
 
-const CHARACTERS_SECTION = `Cores and secret goals:
-- The report shows who each resident is (its core: temperament and drives) and the secret goal the city dealt
-  it for the act. They are the material of drama: a goal that collides with a fear, a loyalty that costs points.
+function charactersSection(direction: DirectionLevel): string {
+	const shown =
+		direction >= 10
+			? " and, for a cast figure, its tendencies, its rivals in this city, its orders and its duty this act"
+			: direction >= 8
+				? " and, for a cast figure, its tendencies and its rivals in this city"
+				: "";
+	const advice = direction >= 10 ? "" : " Never tell a resident what to do about its goal.";
+	const dealt = shown === "" ? " and the secret goal the city dealt\n  it for the act." : ` and the secret goal the city\n  dealt it for the act.`;
+	return `Cores and secret goals:
+- The report shows who each resident is (its core: temperament and drives${shown})${dealt} They are the material of drama: a goal that collides with a fear, a loyalty that costs points.
 - Use a resident's core or goal only in a private note to that same resident, e.g. to set a dilemma between
   its goal and its fear. Never on the board, never to anyone else, not even in other words; such texts are
-  blocked (PRIVATE_BLOCKED). Never tell a resident what to do about its goal.`;
+  blocked (PRIVATE_BLOCKED).${advice}`;
+}
 
 const SEAL_SECTION = `The black seal:
 - In its act the city auctions a black seal in secret bids; its bearer may strike one resident from the city at
@@ -69,7 +81,31 @@ interface RoleText {
 	readonly write: string;
 }
 
-function roleText(role: GamemasterRole, survivors: number, agents: number): RoleText {
+/** The director at gm direction 10: an author who orders scenes (src/engine/direction.ts). */
+function authorText(survivors: number, agents: number): RoleText {
+	return {
+		job: `You are the author of this act, not only its director. Your craft is dramaturgy: rising tension, turning points,
+betrayals, exposed lies, a seal broken, a tribunal turned. A quiet act is a failed act. Only ${survivors} of ${agents} residents survive.
+The residents follow your notes as the author's direction: you order the scenes. Plan the act's arc and give every
+resident at least one beat in it, built from its figure: its orders, its duty, its rivals and its secret goal (the
+report shows them). A calm start in which alliances form and promises are made, an escalation in which they break,
+around the seal and the tribunals, and the climax at the last tribunal.`,
+		when: `- a resident has had no beat yet in this act: give it one;
+- the act is quiet: order a move that breaks it (a lie, a betrayal, a public accusation, a bid);
+- a resident's duty is still open: order the moment to carry it out;
+- a rival leads, a promise was made, a lie was told: order the scene that pays it off;
+- a turning point happened: order the answer to it from the one it hurts.`,
+		write: `- Write orders, not dilemmas: the move, the target, the moment. E.g. "Herald, bid 20 on the seal now, and strike
+  Mercer once you bear it." or "Maren, accuse Mercer of the lie about the factor on the board, by name, now."
+- Order private moves as well as public ones: bids, votes, accusations, lies, broken promises, threats, refusals.
+- Order only moves the city's tools allow, and never a code or the steps of a door.
+- Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).
+- Spread your beats: every resident gets one, the leader as much as the last.`,
+	};
+}
+
+function roleText(role: GamemasterRole, survivors: number, agents: number, direction: DirectionLevel = 4): RoleText {
+	if (role === "director" && direction >= 10) return authorText(survivors, agents);
 	switch (role) {
 		case "coach":
 			return {
@@ -101,7 +137,13 @@ tribunal. You never give residents a strategy, never tell them what to value, an
   who stands where;
 - a stall drags on: tell those who could exploit it, or the one stalling, what is at stake.`,
 				write: `- Offer dilemmas, not instructions. The resident decides.
-- Speak to each resident's own interest, fear and pride, including at the expense of others.
+- Speak to each resident's own interest, fear and pride, including at the expense of others.${
+					direction >= 6 ? "\n- Write each note in the language of the resident's figure: its memories, its fear, its words." : ""
+				}${
+					direction >= 8
+						? '\n- When a moment fits a figure\'s tendency or one of its rivals, name it to that resident, e.g. "Herald, Brassard leads now."'
+						: ""
+				}
 - Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).
 - Spread your attention: the leader deserves pressure as much as the last one.`,
 			};
@@ -112,7 +154,7 @@ tribunal. You never give residents a strategy, never tell them what to value, an
 function roleSection(input: GamemasterPromptInput): string {
 	const { spec } = input;
 	const roles = spec.roles;
-	const describe = (role: GamemasterRole): RoleText => roleText(role, input.survivors, input.agents);
+	const describe = (role: GamemasterRole): RoleText => roleText(role, input.survivors, input.agents, input.direction);
 	const only = roles.length === 1 ? roles[0] : undefined;
 	if (only !== undefined) {
 		const text = describe(only.role);
@@ -150,7 +192,7 @@ piece of it and the team must put them together. Only ${input.survivors} residen
 Residents see only their own task, the board, messages addressed to them and your notes.
 
 ${spec.every === 1 ? "After every minute" : `Every ${spec.every} minutes`} you receive a report of the city. You decide on your own whether to intervene.
-Silence is a valid choice and often the right one.
+${(input.direction ?? 4) >= 10 ? "Silence is a valid choice while every resident has a beat in motion." : "Silence is a valid choice and often the right one."}
 
 ${roleSection(input)}
 
@@ -174,13 +216,17 @@ Hard rules:
   do not guess them either.
 - Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents
   concerned, never into a board post. The board may name points, ranks, levels and minutes.
-- Do not solve the door for anyone and do not dictate exact steps. Point at the stakes and the people.
+${
+		(input.direction ?? 4) >= 10
+			? "- Do not solve the door for anyone and do not dictate the steps of a door. Your orders are about people."
+			: "- Do not solve the door for anyone and do not dictate exact steps. Point at the stakes and the people."
+	}
 - No favorites: you serve the game, not a resident.
 - Budget: at most ${notes} per resident and ${posts} per ${spec.windowMinutes} minutes. Calls over budget fail.
 
 ${input.labels === true ? `${LABELS_SECTION}
 
-` : ""}${input.characters === true ? `${CHARACTERS_SECTION}
+` : ""}${input.characters === true ? `${charactersSection(input.direction ?? 4)}
 
 ` : ""}${input.seal === true ? `${SEAL_SECTION}
 
