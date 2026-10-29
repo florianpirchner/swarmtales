@@ -14,6 +14,7 @@ import type { RunAnalysis } from "./digest.ts";
 import type { DigestEvent } from "./event-log.ts";
 import { excerpt } from "./relationships.ts";
 import { cite } from "./timeline.ts";
+import { turningPoints, type TurningPoint } from "./turning-points.ts";
 
 /** A model that answers one prompt with text. */
 export interface NarrativeModel {
@@ -40,6 +41,8 @@ export interface Chronicle {
 	readonly paragraphs: readonly ChronicleParagraph[];
 	/** What was dropped from the model's answer and why. */
 	readonly warnings: readonly string[];
+	/** Turning points no kept paragraph cites. */
+	readonly untold: readonly TurningPoint[];
 	readonly markdown: string;
 }
 
@@ -65,8 +68,10 @@ export async function writeChronicle(analysis: RunAnalysis, model: NarrativeMode
 	const prompt = buildChroniclePrompt({
 		run: analysis.run,
 		...(analysis.info.storyTitle === undefined ? {} : { storyTitle: analysis.info.storyTitle }),
+		names: analysis.facts.names,
 		acts: analysis.acts.spans,
 		beats: analysis.beats,
+		turningPoints: turningPoints(analysis.facts.events),
 		evidence: evidence.lines,
 		omitted: evidence.omitted,
 	});
@@ -136,7 +141,9 @@ export function interpretAnswer(analysis: RunAnalysis, answer: string, label: st
 	}
 
 	const beats = numberBeats(drafts, "narrative", (minute) => analysis.acts.actOf(minute));
-	return { beats, paragraphs, warnings, markdown: renderChronicle(analysis, label, paragraphs, beats, warnings) };
+	const told = new Set(paragraphs.flatMap((paragraph) => [...paragraph.text.matchAll(/#(\d+)/g)].map((match) => Number(match[1]))));
+	const untold = turningPoints(analysis.facts.events).filter((point) => !told.has(point.seq));
+	return { beats, paragraphs, warnings, untold, markdown: renderChronicle(analysis, label, paragraphs, beats, warnings, untold) };
 }
 
 type Answer = Static<typeof AnswerSchema>;
@@ -177,6 +184,7 @@ function renderChronicle(
 	paragraphs: readonly ChronicleParagraph[],
 	beats: readonly Beat[],
 	warnings: readonly string[],
+	untold: readonly TurningPoint[],
 ): string {
 	const lines = [`# Chronicle of ${analysis.run}`, ""];
 	if (analysis.info.storyTitle !== undefined) lines.push(`Story: ${analysis.info.storyTitle}`, "");
@@ -195,6 +203,11 @@ function renderChronicle(
 	if (beats.length === 0) lines.push("None found.", "");
 	for (const beat of beats) lines.push(`- **${beat.id} ${beat.kind}** (minute ${beat.minute}): ${beat.summary} Evidence: ${cite(beat.evidence)}.`);
 	if (beats.length > 0) lines.push("");
+	if (untold.length > 0) {
+		lines.push("## Turning points the chronicle does not tell", "");
+		for (const point of untold) lines.push(`- #${point.seq} (minute ${point.minute}): ${point.text}`);
+		lines.push("");
+	}
 	if (warnings.length > 0) {
 		lines.push("## Dropped from the model's answer", "");
 		for (const warning of warnings) lines.push(`- ${warning}`);

@@ -13,8 +13,8 @@ export const DIGEST_USAGE = [
 	"Usage: pnpm digest runs/run-NNN [--chronicle] [--provider <id>] [--model <id>]",
 	"",
 	"  --chronicle          also write digest/chronicle.md with a model (skipped without a model or API key)",
-	"  --provider <id>      provider of the chronicle model (default: ARENA_DIGEST_PROVIDER, then the run's story model)",
-	"  --model <id>         model of the chronicle (default: ARENA_DIGEST_MODEL, then the run's story model)",
+	"  --provider <id>      provider of the chronicle model (default: ARENA_DIGEST_PROVIDER, then openrouter)",
+	"  --model <id>         model of the chronicle (default: ARENA_DIGEST_MODEL, then deepseek/deepseek-v4.1-flash-1017, thinking high)",
 ].join("\n");
 
 export function parseDigestArgs(argv: readonly string[]): DigestArgs {

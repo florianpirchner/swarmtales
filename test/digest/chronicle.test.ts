@@ -97,6 +97,17 @@ describe("chronicle (narrative layer)", () => {
 		expect(chronicle.paragraphs.map((paragraph) => paragraph.act)).toEqual(["Act II", "Act I"]);
 	});
 
+	it("names the turning points the chronicle leaves out", async () => {
+		const { log, promise } = story();
+		const exile = log.at(4).add({ type: "exiled", agent: "A02" });
+		const analysis = log.analyze({ run: "run-009", story: { title: "Test", acts: [{ title: "Act I", fromLevel: 1 }] } });
+		const { model, prompts } = fauxModel(JSON.stringify({ beats: [], chronicle: [{ act: "Act I", text: `A01 promised (#${promise}).` }] }));
+		const chronicle = await writeChronicle(analysis, model);
+		expect(prompts[0]).toContain(`- #${exile} (minute 4): A02 was exiled.`);
+		expect(chronicle.untold.map((point) => point.seq)).toEqual([exile]);
+		expect(chronicle.markdown).toContain("## Turning points the chronicle does not tell");
+	});
+
 	it("rejects answers that are not the expected JSON", () => {
 		const analysis = story().log.analyze();
 		expect(() => interpretAnswer(analysis, "Once upon a time.", "m")).toThrow(ChronicleError);
@@ -120,7 +131,16 @@ describe("chronicle (narrative layer)", () => {
 
 	it("keeps its prompt in English and states the no-invention rule", () => {
 		expect(CHRONICLE_SYSTEM_PROMPT).toContain("Never invent events");
-		const prompt = buildChroniclePrompt({ run: "run-1", acts: [], beats: [], evidence: ["#1 m0 A01 on the board: \"hi\""], omitted: 3 });
+		const prompt = buildChroniclePrompt({
+			run: "run-1",
+			acts: [],
+			beats: [],
+			turningPoints: [{ seq: 7, minute: 2, text: "A01 was exiled." }],
+			evidence: ["#1 m0 A01 on the board: \"hi\""],
+			omitted: 3,
+		});
+		expect(prompt).toContain("must tell every one of them");
+		expect(prompt).toContain("- #7 (minute 2): A01 was exiled.");
 		expect(prompt).toContain("brokenPromise:");
 		expect(prompt).toContain("doubleGame:");
 		expect(prompt).toContain("3 less important lines were left out");
@@ -131,22 +151,21 @@ describe("narrative model selection", () => {
 	const registry = createProviderRegistry();
 
 	it("skips the chronicle without an API key, for the scripted provider and for unknown providers", () => {
-		expect(resolveNarrativeModel({}, {}, { acts: [], model: { provider: "openrouter" } }, registry)).toEqual({
+		expect(resolveNarrativeModel({}, {}, registry)).toEqual({
 			ok: false,
 			reason: 'missing API key OPENROUTER_API_KEY for provider "openrouter"',
 		});
-		expect(resolveNarrativeModel({}, { OPENROUTER_API_KEY: "" }, { acts: [] }, registry)).toMatchObject({ ok: false, reason: /missing API key/ });
-		expect(resolveNarrativeModel({}, {}, { acts: [], model: { provider: "scripted" } }, registry)).toMatchObject({ ok: false, reason: /scripted/ });
-		expect(resolveNarrativeModel({ provider: "nowhere" }, {}, { acts: [] }, registry)).toMatchObject({ ok: false, reason: /Unknown provider "nowhere"/ });
+		expect(resolveNarrativeModel({}, { OPENROUTER_API_KEY: "" }, registry)).toMatchObject({ ok: false, reason: /missing API key/ });
+		expect(resolveNarrativeModel({ provider: "scripted" }, {}, registry)).toMatchObject({ ok: false, reason: /scripted/ });
+		expect(resolveNarrativeModel({ provider: "nowhere" }, {}, registry)).toMatchObject({ ok: false, reason: /Unknown provider "nowhere"/ });
 	});
 
-	it("prefers the CLI, then ARENA_DIGEST_*, then the run's story model", () => {
+	it("prefers the CLI, then ARENA_DIGEST_*, then DeepSeek V4.1 Flash via OpenRouter", () => {
 		const env = { DEEPSEEK_API_KEY: "key", ZAI_API_KEY: "key", OPENROUTER_API_KEY: "key" };
-		const info = { acts: [], model: { provider: "openrouter", id: "z-ai/glm-5.3-flash" } };
 		const label = (choice: ReturnType<typeof resolveNarrativeModel>) => (choice.ok ? choice.model.label : choice.reason);
-		expect(label(resolveNarrativeModel({}, env, info, registry))).toBe("OpenRouter (z-ai/glm-5.3-flash)");
-		expect(label(resolveNarrativeModel({}, { ...env, ARENA_DIGEST_PROVIDER: "zai" }, info, registry))).toBe("Z.ai (direct) (glm-5.3-flash)");
-		expect(label(resolveNarrativeModel({ provider: "deepseek" }, { ...env, ARENA_DIGEST_PROVIDER: "zai" }, info, registry))).toBe(
+		expect(label(resolveNarrativeModel({}, env, registry))).toBe("OpenRouter (deepseek/deepseek-v4.1-flash-1017)");
+		expect(label(resolveNarrativeModel({}, { ...env, ARENA_DIGEST_PROVIDER: "zai" }, registry))).toBe("Z.ai (direct) (glm-5.3-flash)");
+		expect(label(resolveNarrativeModel({ provider: "deepseek" }, { ...env, ARENA_DIGEST_PROVIDER: "zai" }, registry))).toBe(
 			"DeepSeek (direct) (deepseek-flash)",
 		);
 	});

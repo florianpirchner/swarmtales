@@ -14,7 +14,12 @@ const Id = Type.String();
 const Ids = Type.Array(Type.String());
 
 const RunStart = Type.Object({ ...Base, type: Type.Literal("run_start"), story: Type.String(), agents: Ids, minutes: Type.Integer(), seed: Type.Integer() });
-const RunEnd = Type.Object({ ...Base, type: Type.Literal("run_end"), reason: Type.Optional(Type.String()) });
+const RunEnd = Type.Object({
+	...Base,
+	type: Type.Literal("run_end"),
+	reason: Type.Optional(Type.String()),
+	standings: Type.Optional(Type.Array(Type.Object({ agent: Id, points: Type.Integer(), rank: Type.Integer() }))),
+});
 const Thinking = Type.Object({ ...Base, type: Type.Literal("thinking"), agent: Id, text: Type.String() });
 const Text = Type.Object({ ...Base, type: Type.Literal("text"), agent: Id, text: Type.String() });
 const Submission = Type.Object({
