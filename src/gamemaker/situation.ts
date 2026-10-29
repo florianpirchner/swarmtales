@@ -257,7 +257,7 @@ export function standoffLines(input: SituationInput): readonly string[] {
 	const debts = world.outstandingPieces();
 	const city = world.cityPieces().flatMap((entry) =>
 		entry.piece.needers
-			.filter((needer) => !entry.claimed.includes(needer) && !world.isExiled(needer) && world.levelOf(needer) === entry.piece.level && !world.hasPassed(needer, entry.piece.level))
+			.filter((needer) => !entry.claimed.includes(needer) && world.standingOf(needer).kind === "alive" && world.levelOf(needer) === entry.piece.level && !world.hasPassed(needer, entry.piece.level))
 			.map((needer) => `- the city keeps ${entry.piece.label} of ${entry.from} for ${needer}; ${needer} may buy it with claimPiece for ${world.cityPiecePrice()} points`),
 	);
 	const ultimatums = world.ultimatums().map((ultimatum) => `- ultimatum ${ultimatum.number}: ${ultimatum.between.join(" and ")}, due at minute ${ultimatum.until}, ${ultimatum.penalty} points`);
@@ -289,7 +289,8 @@ export function riskLines(world: World): readonly string[] {
 			.filter((piece) => piece.kind !== "fragment")
 			.flatMap((piece) => piece.needers.filter((needer) => !world.isExiled(needer) && !world.hasPassed(needer, piece.level)).map((needer) => `${piece.label} for ${needer}`));
 		const standing = world.standingOf(agent);
-		const why = standing.kind === "gate" ? `at the gate until minute ${standing.until}` : `stands trial at minute ${risk?.opens ?? "?"} as things stand`;
+		const trial = risk?.now === true ? `stands trial now (opened minute ${risk.opens})` : `stands trial at minute ${risk?.opens ?? "?"} as things stand`;
+		const why = standing.kind === "gate" ? `at the gate until minute ${standing.until}` : trial;
 		return [`- ${agent} (${world.ledger.balance(agent)} points) ${why}; holds ${held.length === 0 ? "nothing others need" : held.join(", ")}`];
 	});
 	if (lines.length === 0) return [];

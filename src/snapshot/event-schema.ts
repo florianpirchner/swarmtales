@@ -215,7 +215,7 @@ export const RecordedEventSchema = Type.Union([
 		penalty: Int,
 		debts: Type.Array(Type.Object({ holder: Id, needer: Id, level: Int, pieces: Type.Array(Type.String()) })),
 	}),
-	event("ultimatum_resolved", { number: Int, kept: Ids, paid: Type.Array(Type.Object({ agent: Id, points: Int })) }),
+	event("ultimatum_resolved", { number: Int, kept: Ids, released: Ids, paid: Type.Array(Type.Object({ agent: Id, points: Int })) }),
 	event("level_contracted", { level: Int, excluded: Ids }),
 	event("gamemaker_turn", { round: Int, input: Type.String() }),
 	event("gamemaker_thinking", { text: Type.String() }),

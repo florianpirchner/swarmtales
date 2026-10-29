@@ -297,7 +297,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 			return { text: `VERIFIED the gamemaker gives ${event.between.join(" and ")} an ultimatum until minute ${event.until}`, priority: 1 };
 		case "ultimatum_resolved":
 			return {
-				text: `VERIFIED ultimatum ${event.number} is up: ${[...event.kept.map((agent) => `${agent} handed over`), ...event.paid.map((entry) => `${entry.agent} paid ${entry.points}`)].join("; ")}`,
+				text: `VERIFIED ultimatum ${event.number} is up: ${[...event.kept.map((agent) => `${agent} handed over`), ...(event.released ?? []).map((agent) => `${agent} owed nothing any more`), ...event.paid.map((entry) => `${entry.agent} paid ${entry.points}`)].join("; ")}`,
 				priority: 1,
 			};
 		case "factions_formed":

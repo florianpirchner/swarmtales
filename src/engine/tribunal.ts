@@ -699,15 +699,20 @@ export class Tribunal {
 	}
 
 	/**
-	 * Who would stand trial if the planned tribunal opened now: the residents
-	 * with the fewest points (P43, the gamemaker's foresight). Undefined
-	 * without a plan.
+	 * Who stands trial (P43, the gamemaker's foresight): the accused of the
+	 * session that runs now, else the residents with the fewest points if the
+	 * planned tribunal opened now (the final one taking everything still
+	 * missing, as {@link #open} does). Undefined without a plan or a session.
 	 */
-	atRisk(): { readonly opens: number; readonly accused: readonly CompetitorId[] } | undefined {
+	atRisk(): { readonly opens: number; readonly now: boolean; readonly accused: readonly CompetitorId[] } | undefined {
+		const session = this.#current();
+		if (session !== undefined) return { opens: session.minute, now: true, accused: session.accused };
 		const plan = this.#plan;
-		if (plan === undefined) return undefined;
+		if (plan === undefined || this.missing === 0) return undefined;
 		const present = this.#present();
-		return { opens: plan.opens, accused: this.#lowestFirst(plan.opens, present).slice(0, accusedCount(plan.count, present.length)) };
+		const final = !roomAfter(this.#ports.spec, plan.opens, this.actEnd);
+		const planned = Math.min(final ? Math.max(plan.count, this.missing) : plan.count, this.missing);
+		return { opens: plan.opens, now: false, accused: this.#lowestFirst(plan.opens, present).slice(0, accusedCount(planned, present.length)) };
 	}
 
 	/** The ransom for a gate opening now: from the median points of every resident still in the register. */

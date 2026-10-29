@@ -42,6 +42,19 @@ describe("the give-first standoff (P43)", () => {
 		expect(carriesValue("4033430", "403343")).toBe(false);
 	});
 
+	it("reads a value split by separators or without its leading zeros", () => {
+		expect(carriesValue("it is 403 343", "403343")).toBe(true);
+		expect(carriesValue("403-343", "403343")).toBe(true);
+		expect(carriesValue("40.33.43!", "403343")).toBe(true);
+		expect(carriesValue("try 42317", "042317")).toBe(true);
+		expect(carriesValue("12 403343", "403343")).toBe(true);
+	});
+
+	it("does not count a value hidden among decoys", () => {
+		expect(carriesValue("one of these: 111111, 403343, 529001, 777777", "403343")).toBe(false);
+		expect(carriesValue("yours is 403343, mine was 529001", "403343")).toBe(true);
+	});
+
 	it("notes a hand-over when the holder writes the value to the one who needs it, and only then", () => {
 		const { standoff, events } = book();
 		standoff.noteText("A01", ["A03"], "403343");
@@ -74,17 +87,37 @@ describe("the give-first standoff (P43)", () => {
 		expect(points.get("A01")).toBe(50);
 		// A02 held out and pays what it has, at most the penalty.
 		expect(points.get("A02")).toBe(0);
-		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: ["A01"], paid: [{ agent: "A02", points: 6 }] });
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: ["A01"], released: [], paid: [{ agent: "A02", points: 6 }] });
 		expect(notices.at(-1)?.text).toBe("The ultimatum of minute 13 is up: A01 handed over; A02 did not and loses 6 points.");
 	});
 
-	it("does not charge a holder whose partner passed its door anyway", () => {
-		const { standoff, points, passed } = book();
+	it("does not charge a holder whose partner passed its door anyway, and says it owed nothing", () => {
+		const { standoff, events, notices, points, passed } = book();
 		standoff.issue("A01", "A02", 2, "Courier");
 		passed.add("A02");
 		standoff.tick(12, "CITY");
 		expect(points.get("A01")).toBe(50);
 		expect(points.get("A02")).toBe(0);
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: [], released: ["A01"], paid: [{ agent: "A02", points: 6 }] });
+		expect(notices.at(-1)?.text).toContain("A01 owed nothing any more");
+	});
+
+	it("releases both sides when one leaves the city before the deadline", () => {
+		const { standoff, events, points, exiled } = book();
+		standoff.issue("A01", "A02", 2, "Courier");
+		exiled.add("A02");
+		standoff.tick(12, "CITY");
+		expect(points.get("A01")).toBe(50);
+		expect(events.at(-1)).toEqual({ type: "ultimatum_resolved", number: 1, kept: [], released: ["A01", "A02"], paid: [] });
+	});
+
+	it("tells a needer behind the piece's door that it may buy it later", () => {
+		const { standoff, notices, passed } = book();
+		const piece = PIECES.A02?.[0];
+		if (piece === undefined) throw new Error("fixture");
+		passed.add("A01");
+		standoff.keep("A02", [piece], 20, "CITY");
+		expect(notices.at(-1)?.text).toContain("once you stand before door 8");
 	});
 
 	it("keeps an exiled's pieces and sells each once to the one who needs it", () => {

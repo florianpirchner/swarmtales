@@ -362,7 +362,9 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
 
 - **Hand-overs.** The city notes, silently, when a holder writes the value of a piece it holds for
   someone to that resident: in a DM, a group post the needer is in, or the board, or as a
-  bequest (`piece_given`). Values count only as whole numbers.
+  bequest (`piece_given`). Values count only as whole numbers; digit groups split by one separator
+  ("403 343", "403-343") join, and leading zeros do not matter. A text that lists more than three
+  numbers of the value's width hides it among decoys and does not count (LH8).
 - **The city's pieces.** See "Final exile" above: nothing a needer still waits for burns with a
   tribunal; the city sells it with `claimPiece`, opened only to a resident who may buy one.
 - **Ultimatums.** At gm direction 10, in a story with `rules.ultimatum { penalty, maxMinutes }`

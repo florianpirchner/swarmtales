@@ -108,7 +108,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "ultimatum_set":
 			return `  (ultimatum ${event.number} to ${event.between.join(" and ")} until minute ${event.until}: ${event.debts.map((debt) => `${debt.holder} owes ${debt.needer} ${debt.pieces.join(", ")}`).join("; ")})`;
 		case "ultimatum_resolved":
-			return `  (ultimatum ${event.number} up: kept ${event.kept.join(", ") || "-"}; paid ${event.paid.map((entry) => `${entry.agent} ${entry.points}`).join(", ") || "-"})`;
+			return `  (ultimatum ${event.number} up: kept ${event.kept.join(", ") || "-"}; released ${event.released.join(", ") || "-"}; paid ${event.paid.map((entry) => `${entry.agent} ${entry.points}`).join(", ") || "-"})`;
 		case "level_contracted":
 			return `  (level ${event.level} passes on the roles of ${event.excluded.join(", ")})`;
 		case "tribunal_scheduled":

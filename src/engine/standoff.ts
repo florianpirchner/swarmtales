@@ -85,9 +85,45 @@ export interface StandoffPorts {
 export type ClaimError = "UNKNOWN_PIECE" | "ALREADY_CLAIMED" | "NOT_NEEDED" | "INSUFFICIENT_FUNDS";
 export type UltimatumError = "NO_ULTIMATUM" | "UNKNOWN_AGENT" | "SAME_AGENT" | "INVALID_MINUTES" | "NO_STANDOFF" | "ALREADY_SET";
 
-/** Whether `text` carries `value` as a whole number (not inside a longer one). */
+/** Characters a writer may put between the digits of one number ("403 343", "403-343"). */
+const DIGIT_SEPARATOR = /^[ \-.,_/]$/;
+
+/** At most this many numbers as wide as the value may stand around it; more is a list of decoys, not a hand-over. */
+const MAX_CANDIDATES = 3;
+
+/**
+ * Whether `text` carries `value` as a whole number: digit groups split by a
+ * single separator count as one number up to the value's width, and leading
+ * zeros do not matter. A text that lists more than {@link MAX_CANDIDATES}
+ * numbers of that width hides the value among decoys and does not count.
+ */
 export function carriesValue(text: string, value: string): boolean {
-	return new RegExp(`(?:^|\\D)${value}(?:\\D|$)`).test(text);
+	const wanted = withoutLeadingZeros(value);
+	const numbers = numbersIn(text, value.length).map(withoutLeadingZeros);
+	const wide = numbers.filter((number) => number.length >= wanted.length - 1);
+	return wide.length <= MAX_CANDIDATES && wide.includes(wanted);
+}
+
+/** The numbers in `text`, joining digit groups split by one separator while they fit in `width` digits. */
+function numbersIn(text: string, width: number): readonly string[] {
+	const numbers: string[] = [];
+	let previous: { readonly digits: string; readonly end: number } | undefined;
+	for (const match of text.matchAll(/\d+/g)) {
+		const start = match.index;
+		const gap = previous === undefined ? "" : text.slice(previous.end, start);
+		if (previous !== undefined && DIGIT_SEPARATOR.test(gap) && previous.digits.length + match[0].length <= width) {
+			previous = { digits: previous.digits + match[0], end: start + match[0].length };
+			numbers[numbers.length - 1] = previous.digits;
+			continue;
+		}
+		previous = { digits: match[0], end: start + match[0].length };
+		numbers.push(match[0]);
+	}
+	return numbers;
+}
+
+function withoutLeadingZeros(digits: string): string {
+	return digits.replace(/^0+(?=\d)/, "");
 }
 
 export class StandoffBook {
@@ -147,15 +183,17 @@ export class StandoffBook {
 
 	/** `from` left the city: it keeps every piece in `pieces` someone still needs. */
 	keep(from: CompetitorId, pieces: readonly StandoffPiece[], price: number, author: string): void {
-		for (const piece of pieces) {
+		for (const held of pieces) {
+			const piece: StandoffPiece = { id: held.id, level: held.level, label: held.label, value: held.value, needers: [...held.needers] };
 			this.#city.push({ from, piece, claimed: [] });
 			this.#ports.emit({ type: "piece_kept", agent: from, level: piece.level, piece: piece.id, needers: [...piece.needers] });
 			for (const needer of piece.needers) {
+				const when = this.#ports.needsNow(needer, piece.level) ? "" : ` once you stand before door ${piece.level}`;
 				this.#ports.notify(
 					needer,
 					author,
 					`${from} is gone, and the city keeps ${piece.label}, which you need. It no longer burns: claimPiece("${piece.id}", "${from}") ` +
-						`buys it from the city for the price of a ransom (now ${price} points).`,
+						`buys it from the city${when} for the price of a ransom (now ${price} points).`,
 				);
 			}
 		}
@@ -223,30 +261,31 @@ export class StandoffBook {
 	}
 
 	#settle(ultimatum: Ultimatum, author: string): void {
-		const failed = (debt: UltimatumDebt): boolean =>
-			this.#ports.inCity(debt.holder) &&
-			this.#ports.inCity(debt.needer) &&
-			this.#ports.needsNow(debt.needer, debt.level) &&
-			debt.pieces.some((piece) => !this.isGiven(debt.holder, debt.needer, piece.id));
+		const ports = this.#ports;
+		const given = (debt: UltimatumDebt): boolean => debt.pieces.every((piece) => this.isGiven(debt.holder, debt.needer, piece.id));
+		// A debt lapses when one side left the city or the needer passed the door anyway.
+		const lapsed = (debt: UltimatumDebt): boolean => !ports.inCity(debt.holder) || !ports.inCity(debt.needer) || !ports.needsNow(debt.needer, debt.level);
 		const holders = [...new Set(ultimatum.debts.map((debt) => debt.holder))];
 		const paid: { agent: CompetitorId; points: number }[] = [];
 		const kept: CompetitorId[] = [];
+		const released: CompetitorId[] = [];
 		for (const holder of holders) {
-			if (!ultimatum.debts.some((debt) => debt.holder === holder && failed(debt))) {
-				kept.push(holder);
-				continue;
-			}
-			const points = Math.min(ultimatum.penalty, Math.max(0, this.#ports.points(holder)));
-			if (points > 0) this.#ports.burn(holder, points, `ultimatum ${ultimatum.number}`);
-			paid.push({ agent: holder, points });
+			const debts = ultimatum.debts.filter((debt) => debt.holder === holder);
+			if (debts.some((debt) => !given(debt) && !lapsed(debt))) {
+				const points = Math.min(ultimatum.penalty, Math.max(0, ports.points(holder)));
+				if (points > 0) ports.burn(holder, points, `ultimatum ${ultimatum.number}`);
+				paid.push({ agent: holder, points });
+			} else if (debts.some(given)) kept.push(holder);
+			else released.push(holder);
 		}
-		this.#ports.emit({ type: "ultimatum_resolved", number: ultimatum.number, kept, paid });
+		ports.emit({ type: "ultimatum_resolved", number: ultimatum.number, kept, released, paid });
 		const parts = [
 			...kept.map((agent) => `${agent} handed over`),
+			...released.map((agent) => `${agent} owed nothing any more`),
 			...paid.map((entry) => `${entry.agent} did not and loses ${entry.points} points`),
 		];
 		for (const agent of ultimatum.between) {
-			if (this.#ports.inCity(agent)) this.#ports.notify(agent, author, `The ultimatum of minute ${ultimatum.until} is up: ${parts.join("; ")}.`);
+			if (ports.inCity(agent)) ports.notify(agent, author, `The ultimatum of minute ${ultimatum.until} is up: ${parts.join("; ")}.`);
 		}
 	}
 

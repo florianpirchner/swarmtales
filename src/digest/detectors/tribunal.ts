@@ -217,13 +217,14 @@ export function detectUltimatums(facts: RunFacts): readonly BeatDraft[] {
 		const set = eventsOfType(facts.events, "ultimatum_set").find((event) => event.number === resolved.number);
 		const paid = resolved.paid.map((entry) => `${entry.agent} did not and paid ${entry.points}`);
 		const kept = resolved.kept.map((agent) => `${agent} handed over`);
+		const released = (resolved.released ?? []).map((agent) => `${agent} owed nothing any more`);
 		return draft({
 			kind: "ultimatum",
 			seq: resolved.seq,
 			minute: resolved.minute,
 			actors: [...(set?.between ?? [])],
 			targets: resolved.paid.map((entry) => entry.agent),
-			summary: `Ultimatum ${resolved.number} to ${list([...(set?.between ?? [])])}: ${[...kept, ...paid].join("; ") || "nothing was owed any more"}.`,
+			summary: `Ultimatum ${resolved.number} to ${list([...(set?.between ?? [])])}: ${[...kept, ...released, ...paid].join("; ") || "nothing was owed any more"}.`,
 			evidence: [...(set === undefined ? [] : [set.seq]), resolved.seq],
 		});
 	});

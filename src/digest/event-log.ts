@@ -203,6 +203,7 @@ const UltimatumResolved = Type.Object({
 	type: Type.Literal("ultimatum_resolved"),
 	number: Type.Integer(),
 	kept: Ids,
+	released: Type.Optional(Ids),
 	paid: Type.Array(Type.Object({ agent: Id, points: Type.Integer() })),
 });
 const LevelContracted = Type.Object({ ...Base, type: Type.Literal("level_contracted"), level: Type.Integer(), excluded: Ids });

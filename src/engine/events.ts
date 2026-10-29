@@ -511,6 +511,8 @@ export type ArenaEvent =
 			readonly type: "ultimatum_resolved";
 			readonly number: number;
 			readonly kept: readonly CompetitorId[];
+			/** Holders who owed nothing any more: the other left the city or passed the door anyway. */
+			readonly released: readonly CompetitorId[];
 			readonly paid: readonly { readonly agent: CompetitorId; readonly points: number }[];
 	  }
 	| {
