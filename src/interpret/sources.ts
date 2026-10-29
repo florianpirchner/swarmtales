@@ -11,6 +11,7 @@ import type { ClassifierSpec } from "../story/types.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge, type JudgeTemper } from "./judge.ts";
 import { ChatSouffleur, SOUFFLEUR_ID, type Souffleur } from "./souffleur.ts";
+import { ChatWeaver, WEAVER_ID, type WeaverModel } from "./weaver-model.ts";
 
 export function createStatementClassifier(
 	settings: ModelSettings,
@@ -61,6 +62,22 @@ export function createDeliveryJudge(
 		label: `${provider.id}/${modelId}`,
 		thinking: spec.model.thinking ?? "off",
 		temper,
+	});
+}
+
+/** Builds the weaver's model (`--weaver`): a chat model, the classifier's unless its own flags choose another. */
+export function createWeaverModel(settings: ModelSettings, spec: ClassifierSpec, registry: ProviderRegistry, limits: RequestLimits): WeaverModel {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Weaver model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatWeaver({
+		binding: createModelSource(settings, { registry }).bind(WEAVER_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
 	});
 }
 

@@ -1,6 +1,8 @@
-# Fate: characters that change (idea, not approved)
+# Fate: characters that change (the weaver)
 
-Status: brainstorm with Flo, 2026-10-29 16:15-16:25. Nothing is built; Flo: only after Act II runs stable.
+Status: brainstorm with Flo, 2026-10-29 16:15-16:25; Flo approved the weaver the same day. Built
+in PR #35 (flag --weaver), untested live. The built design is SPEC 10.6; the answers to the open
+questions are at the end.
 
 ## The gap
 
@@ -52,3 +54,19 @@ draws the psychological consequence.
 - Which events trigger the fate model, and how many soft patches per act?
 - Model: DeepSeek (cheap) or Haiku (consistent with the residents)?
 - Does the cast's figure text (orders, duty) change too, or only the core?
+
+## As built (2026-10-29)
+
+- The fate model is the **weaver**, a model role beside the classifier, judge and souffleur
+  (`src/interpret/weaver*.ts`). Model: the classifier's (Haiku via Anthropic), so it speaks like
+  the residents; `--weaver-provider` / `--weaver-model` change it.
+- **Triggers** (code, every minute): a lost blame, a classifier `accusation` in a message the
+  target could read (a DM only for its recipient, a group post only for its members), the
+  tribunal's accused, the gate and a ransom, an ally's exile (shared group or faction), a paid
+  ultimatum or a seized piece. Secret events never trigger, and no trigger names a voter.
+- **Caps:** 6 soft and 2 hard changes per resident and act; a hard one beyond its cap becomes
+  soft, beyond both nothing.
+- **The gamemaker sees the line**, built in code ("A03 has changed (hard): after a blame
+  (after #4401)"), never the text or the weaver's reason.
+- **Only the core changes:** the hard text stands after the core under "Who the story has made
+  of you so far:"; the figure's orders and duty stay as they are.

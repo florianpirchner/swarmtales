@@ -82,6 +82,9 @@ export class AgentTranscriptLog implements EventSink {
 				);
 				return;
 			}
+			case "fate_shift":
+				this.#write(event.agent, `\n**Weaver (${event.kind}):** ${event.reason}\n\n${quote(event.text)}\n`);
+				return;
 			case "souffleur_rewrite":
 				this.#write(event.agent, `\n**Souffleur:** the step again${event.error === undefined ? ", rewritten" : `, without its inputs (${event.error})`}\n`);
 				return;

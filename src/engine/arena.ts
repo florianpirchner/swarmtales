@@ -67,6 +67,8 @@ export interface ArenaOptions {
 	readonly meta?: Readonly<Record<string, string>>;
 	/** Labels every round's statements, after every round including the last, before the observer (classifier). */
 	readonly interpreter?: RoundObserver;
+	/** Changes who residents are after every round, after the interpreter and before the observer (weaver). */
+	readonly weaver?: RoundObserver;
 	/** Looks at the city after every round, before the clock advances (gamemaker). */
 	readonly observer?: RoundObserver;
 	/** Takes a run snapshot once every competitor has passed a level (SPEC 17). */
@@ -219,7 +221,11 @@ export class Arena {
 				await this.#options.interpreter?.afterRound(round);
 				reason = this.#budgetReason();
 			}
-			// No look after the last round or once the run stops: its notes would never be read.
+			// Neither a change nor a look after the last round or once the run stops: nobody would read them.
+			if (reason === undefined && round < clock.durationMinutes && this.#stopReason() === undefined && this.#options.weaver !== undefined) {
+				await this.#options.weaver.afterRound(round);
+				reason = this.#budgetReason();
+			}
 			if (reason === undefined && round < clock.durationMinutes && this.#stopReason() === undefined && this.#options.observer !== undefined) {
 				await this.#options.observer.afterRound(round);
 				reason = this.#budgetReason();

@@ -314,6 +314,8 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 					};
 		case "faction_refused":
 			return { text: `VERIFIED ${event.leader} refused ${event.agent} into its faction`, priority: 1 };
+		case "fate_shift":
+			return { text: `WEAVER ${event.agent} ${event.kind === "soft" ? "inner voice" : "changed"}: ${say(event.text)}`, priority: 1 };
 		case "petition_opened":
 		case "petition_resolved":
 		case "treasurer_set":

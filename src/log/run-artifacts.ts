@@ -10,6 +10,7 @@
  *   cast/A01-house.md     who each resident is (name, figure, core), before the run starts
  *   acts/act-2/private.md secret goals, the black seal, private gamemaker notes, per act
  *   minutes.md            per-minute table
+ *   weaver.md             every change of a resident's character (`--weaver`), when there was one
  *   usage.json            tokens and cost
  * ```
  */

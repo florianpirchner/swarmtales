@@ -99,17 +99,26 @@ round-trips through JSON unchanged (proves it is pure data).
 `stories/index.ts` maps names to stories. `pnpm start --story nexus` (default
 `nexus`). CLI flags override run parameters: `--agents --minutes --seed --provider
 --model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --no-classifier
---classifier-provider --classifier-model --snapshot-after --stop-after-snapshot --resume`.
+--classifier-provider --classifier-model --weaver --weaver-provider --weaver-model
+--snapshot-after --stop-after-snapshot --resume`.
 The gamemaker (`src/gamemaker/`) is an `EventSink` and a round observer of the arena.
 The statement classifier (`src/interpret/`) is an `EventSink` and the arena's interpreter:
 it labels each round before the gamemaker looks and writes `interpretation` events.
+The weaver (`--weaver`, SPEC 10.6) is an `EventSink` and the arena's `weaver` observer,
+between the two: `interpret/fate-triggers.ts` picks the residents a round's events touched
+(code, no model), `interpret/weaver-model.ts` asks the chat model (`weave` tool, typebox),
+and `interpret/weaver.ts` applies the answer within the caps: an inner voice the runner
+appends after the tools notice (`RunnerOptions.innerVoice`), or a rewrite of the leading
+system message (`AgentRunner.rewriteSystemPrompt`, rebuilt by `composeRun` from the prompt
+facts plus `PromptFacts.shift`). It writes `fate_shift` events; `log/weaver-log.ts` turns
+them into `weaver.md`.
 
 ### 3.5 Run snapshots
 
 A run snapshot (SPEC 17) serializes the engine objects explicitly instead of replaying
 the run: every stateful component has `snapshot()` and `restore()` (ledger, board,
 mailbox, marks, receipts, petitions, cast, groups, world with its level states,
-director, arena, agent runner, gamemaker, interpreter), and `composeRun` assembles
+director, arena, agent runner, gamemaker, interpreter, weaver), and `composeRun` assembles
 them into one versioned file (`src/snapshot/snapshot.ts`). Restoring emits nothing; the
 bus replays the recorded prefix to the log sinks (`EventSink.replay`) and numbering
 continues after it. Replaying a live run would need every model answer again and would

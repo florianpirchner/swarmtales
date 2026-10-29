@@ -310,6 +310,7 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "seal_won":
 			case "seal_used":
 			case "seal_expired":
+			case "fate_shift":
 				break;
 			default:
 				return assertNever(event, "digest event");

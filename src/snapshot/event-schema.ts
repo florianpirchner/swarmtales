@@ -7,7 +7,7 @@
  * accept stops compiling.
  */
 import { Type, type Static } from "typebox";
-import type { ArenaEventType, RecordedEvent } from "../engine/events.ts";
+import { FATE_TRIGGERS, type ArenaEventType, type RecordedEvent } from "../engine/events.ts";
 import { STATEMENT_LABELS, STATEMENT_SOURCES } from "../interpret/labels.ts";
 import { ACTION_KINDS } from "../story/types.ts";
 import type { Writable } from "./message-schema.ts";
@@ -37,7 +37,8 @@ const ReceiptKind = Type.Union([
 const Slot = { pass: Type.Optional(Type.Integer({ minimum: 1 })), block: Type.Optional(Type.Integer({ minimum: 1 })) };
 const Usage = { provider: Type.String(), model: Type.String(), input: Type.Number(), output: Type.Number(), cacheRead: Type.Number(), cacheWrite: Type.Number(), costUsd: Type.Number() };
 
-export const TeamCertificateSchema = Type.Object({ team: Int, certificate: Type.String(), certificateHolder: Id, cityFactor: Type.Optional(Type.String()) });
+export const FateTriggerSchema = Type.Enum(FATE_TRIGGERS);
+export const TeamCertificateSchema =Type.Object({ team: Int, certificate: Type.String(), certificateHolder: Id, cityFactor: Type.Optional(Type.String()) });
 export const FactorHoldingSchema = Type.Object({
 	agent: Id,
 	team: Int,
@@ -254,6 +255,14 @@ export const RecordedEventSchema = Type.Union([
 	event("seal_won", { seal: Int, agent: Id, bid: Int, bids: Type.Array(Type.Object({ agent: Id, points: Int })) }),
 	event("seal_used", { seal: Int, holder: Id, target: Id }),
 	event("seal_expired", { seal: Int, holder: Type.Optional(Id), reason: Type.String() }),
+	event("fate_shift", {
+		agent: Id,
+		kind: Type.Union([Type.Literal("soft"), Type.Literal("hard"), Type.Literal("act")]),
+		text: Type.String(),
+		reason: Type.String(),
+		evidence: Type.Array(Int),
+		triggers: Type.Array(FateTriggerSchema),
+	}),
 	event("run_end", {
 		reason: Type.Optional(Type.String()),
 		standings: Type.Optional(

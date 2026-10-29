@@ -53,6 +53,13 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--judge-temper", "cruel"])).toThrow(UsageError);
 	});
 
+	it("parses the weaver's flags: off by default, its model only with --weaver", () => {
+		expect(parseStartArgs([]).overrides.weaver).toBeUndefined();
+		expect(parseStartArgs(["--weaver"])).toMatchObject({ overrides: { weaver: true } });
+		expect(parseStartArgs(["--weaver", "--weaver-provider", "anthropic", "--weaver-model", "haiku"])).toMatchObject({ weaverProvider: "anthropic", weaverModel: "haiku" });
+		expect(() => parseStartArgs(["--weaver-model", "haiku"])).toThrow(/need --weaver/);
+	});
+
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
 		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { cores: false } });

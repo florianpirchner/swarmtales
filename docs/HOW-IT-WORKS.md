@@ -102,7 +102,7 @@ pnpm start --resume runs/run-001/snapshot-L7.json     # continue from that snaps
 ```
 
 Flags override the story's run parameters: `--story --agents --minutes --seed --provider
---model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --runs
+--model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
 --snapshot-after --stop-after-snapshot --resume --no-reporter --reporter-provider --reporter-model`.
 `--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; nexus: 3): in every pass each
 competitor gets at most one step, one model call with its tools. `--block-size <n>` sets
@@ -115,6 +115,15 @@ master (SPEC 10.4); nexus uses DeepSeek V4.1 Flash via OpenRouter for it, so it 
 statements and thoughts (promise, threat, refusal, ...) for the digest and the gamemaker. It uses
 Haiku via Anthropic (`ARENA_ANTHROPIC_API_KEY`); `--classifier-provider openrouter --classifier-model perplexity/pplx-decider-v1.2` switches
 it to a structured classifier model.
+
+`--weaver` (off by default, SPEC 10.6) lets residents' characters change during the run: after
+every minute, code picks the residents a hard fact touched (a lost blame, a labelled accusation,
+the tribunal, the gate, an ally's exile, a paid ultimatum), and only those go to the weaver's
+model (the classifier's, Haiku; `--weaver-provider` / `--weaver-model` change it). It answers
+with an inner voice at the end of the resident's next step, a rewrite of the character part of
+its system prompt, or nothing; at an act's end it writes one text for the next act. Every change
+is a `fate_shift` event, a line for the gamemaker (who changed and after what kind of event,
+never the text or the model's reason) and a section of `weaver.md`.
 
 `--provider scripted` needs no key. Its competitors read their solution from the world's
 observer view and submit it, so a whole run, including all artifacts, can be exercised offline.
@@ -204,6 +213,7 @@ Every run creates `runs/run-NNN/`:
 | `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the gamemaker's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, in total and per competitor; split into `prefix` and `own` spend |
+| `weaver.md` | with `--weaver`: every change of a resident's character, with minute, kind, text, reason and evidence |
 | `digest/` | the story digest (see below), written at the end of every run |
 | `REPORT.md` | the first draft of the run report (see below), written after the digest |
 | `snapshot-L7.json` | with `--snapshot-after 7`: the run snapshot to `--resume` from |
@@ -274,6 +284,7 @@ Its detectors:
 | `burnedFactor` | a piece someone still needed burned with the exiled |
 | `pieceKept`, `pieceClaimed` | the city kept such a piece instead, and a needer bought it |
 | `ultimatum` | the gamemaker's deadline for two residents, and who paid |
+| `fateShift` | the weaver (`--weaver`) rewrote who a resident is: a hard change, or the text for the next act; inner voices make no beat |
 
 A fragment counts as shared when a DM or group post contains the sender's own fragment as a
 standalone upper-case token (so "the" or "then" never share the fragment `THE`). A factor counts
