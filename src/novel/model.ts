@@ -71,7 +71,7 @@ export const WRITER_REQUEST: NovelRequestOptions = { timeoutMs: 900_000, reasoni
  * outline leaves room for high thinking; a chapter of ~1,000-2,000 words is
  * ~3k tokens, an interlude ~300, the edit pass returns the whole story.
  */
-export const MAX_TOKENS = { outline: 64_000, chapter: 24_000, interlude: 12_000, edit: 64_000 } as const;
+export const MAX_TOKENS = { outline: 64_000, chapter: 24_000, interlude: 32_000, edit: 64_000 } as const;
 
 /** Any pi-ai model, e.g. a real provider or the faux provider in tests. */
 export class PiNovelModel implements NovelModel {

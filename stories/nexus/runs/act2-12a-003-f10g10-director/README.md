@@ -87,4 +87,6 @@ exiles sooner, and residents spend fewer turns arguing at closed doors.
 - Problem 3: Quartermaster was struck by the seal, not voted out ("nobody voting against").
 - Problem 4 (quoting DMs on the board): residents may do that; showReceipt makes it verifiable.
 
+Short story: [*The Quiet Hand and the Last Ledger*](run/novel/story.md) (`pnpm novel`, 5335 words, 0.44 USD; [appendix](run/novel/appendix.md)). Chronicle: [run/digest/chronicle.md](run/digest/chronicle.md).
+
 Files: [`run/`](run/) (events, transcripts, minutes, digest, [REPORT.md](run/REPORT.md)).

@@ -225,14 +225,14 @@ describe("scene packs", () => {
 describe("the novel", () => {
 	it("runs outline, chapters, interludes and the edit pass and keeps an appendix of the events", async () => {
 		const { source, seqs } = story();
-		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
+		// The outline model also writes the interludes (Anthropic refuses to rewrite another model's reasoning).
+		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? "**The control room hums.** They watch Lucien stall." : outlineAnswer(seqs)));
 		let chapter = 0;
 		const writer = fauxModel("faux writer", (prompt, system) => {
 			if (system.includes("editor")) {
 				const story = prompt.slice(prompt.indexOf("The story:\n\n") + "The story:\n\n".length);
 				return `${story.replace("The door", "The iron door")}\n${EDIT_DELIMITER}\n- Chapter 2 calls the exile a vote.\n- none`;
 			}
-			if (system.includes("interlude")) return "**The control room hums.** They watch Lucien stall.";
 			chapter += 1;
 			return chapter === 1 ? "# Chapter One\n\nHedda smiled at A02. The door stayed shut." : "Lucien walked to the gate.";
 		});
@@ -242,8 +242,8 @@ describe("the novel", () => {
 		});
 
 		expect(outlined).toEqual([2, 2]);
-		expect(outliner.prompts).toHaveLength(1);
-		expect(writer.prompts).toHaveLength(4);
+		expect(outliner.prompts).toHaveLength(2);
+		expect(writer.prompts).toHaveLength(3);
 		expect(writer.prompts[1]).toContain("The previous chapter ended like this");
 		expect(writer.prompts[1]).toContain("Hedda smiled at Lucien.");
 		expect(novel.story).toContain("# The Gate");
@@ -269,8 +269,8 @@ describe("the novel", () => {
 
 	it("keeps the chapters when an interlude or the edit pass hits the output cap", async () => {
 		const { source, seqs } = story();
-		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
-		const writer = fauxModel("faux writer", (_prompt, system) => (system.includes("editor") || system.includes("interlude") ? undefined : "Hedda waited."));
+		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? undefined : outlineAnswer(seqs)));
+		const writer = fauxModel("faux writer", (_prompt, system) => (system.includes("editor") ? undefined : "Hedda waited."));
 		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model });
 		expect(novel.story).toContain("## 2. The Gate\n\nHedda waited.");
 		expect(novel.interludes).toEqual([]);

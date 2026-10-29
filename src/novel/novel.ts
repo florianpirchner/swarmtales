@@ -143,10 +143,12 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			const pack = buildInterludePack(source, chapter.from, chapter.to, used);
 			if (pack === undefined) continue;
 			for (const seq of pack.seqs) used.add(seq);
-			progress(`interlude before chapter ${String(chapter.number)}: asking ${models.writer.label} ...`);
+			progress(`interlude before chapter ${String(chapter.number)}: asking ${models.outline.label} ...`);
 			let written;
 			try {
-				written = await writeInterlude(models.writer, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown });
+				// The outline model writes the interludes: they retell the gamemaker's own reasoning, and Anthropic
+				// refuses to rewrite another model's reasoning ("duplicating model outputs").
+				written = await writeInterlude(models.outline, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown });
 			} catch (error) {
 				// An interlude is an ornament: losing one must not cost the chapters already paid for.
 				if (!(error instanceof NovelRequestError)) throw error;
@@ -214,7 +216,7 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 	const lines = [
 		`# Appendix: the events behind "${outline.title}"`,
 		"",
-		`Run ${source.analysis.run}. Outline by ${models.outline.label}; prose, interludes and edit by ${models.writer.label}.`,
+		`Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prose and edit by ${models.writer.label}.`,
 		"Every `#seq` refers to a line of `events.jsonl`. The pack of each chapter (`packs/NN.md`) is exactly what its writer saw.",
 		"",
 		"## Point-of-view figures (cast in code)",
