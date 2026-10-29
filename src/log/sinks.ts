@@ -138,6 +138,8 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (city factor of level ${event.level} released ${event.target === "board" ? "on the board" : `to ${event.agents.join(", ")}`})`;
 		case "cast_dm":
 			return `  ${event.from} -> ${event.cast} (DM${event.collections.length === 0 ? ", recorded" : `, collected into ${event.collections.join(", ")}`})`;
+		case "gamemaster_thinking":
+			return `  GM thinks: ${event.text}`;
 		case "gamemaster_text":
 			return `  GM thinks aloud: ${event.text}`;
 		case "gamemaster_call":

@@ -209,6 +209,13 @@ game master read names, not IDs, and every tool takes either. Reports show "Mira
   `--cast banner,house,...` names the figures of a run. A figure plays its profession's persona.
   Every resident with a core first reads the story's frame: a fictional city played by AI agents,
   where dark sides are played without softening ([`lab/FINDINGS.md`](../lab/FINDINGS.md)).
+- **Direction.** Two dials from 0 to 10 say how strongly a run steers the residents: the figure's
+  own prompt (`--figure-direction`) and the game master (`--gm-direction`). At 10 every figure of
+  the first cast gets hard orders and a duty for the act ("You must spread false information"),
+  and the director orders scenes ("Herald, bid 20 on the seal now"). The default 4 plays as v12, except that the six figures of the first cast now have longer texts (a
+  memory, a fear, a secret) at every level.
+  Runs from here on live in [`stories/nexus/runs/`](../stories/nexus/runs/), named by act, city
+  size, number and both levels (`act2-06a-013-f10g10`). See SPEC "Direction".
 - **Secret goals.** When the wall begins, every resident is dealt a goal that mostly follows its
   core (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
   one, lead a faction in two tribunals, or be left something in a last will. A held goal pays 15

@@ -4,7 +4,7 @@
  *
  * ```
  * <run>/cast/A01-house.md      who A01 is: name, figure, core, the text of its system prompt
- * <run>/acts/act-2/private.md  per act: secret goals and their outcome, the black seal, the game master's private notes
+ * <run>/acts/act-2/private.md  per act: secret goals and their outcome, the black seal, the game master's private notes and its thinking
  * ```
  *
  * The cast files are written before the run starts (from the world) and
@@ -16,7 +16,7 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
 import { coreLine, renderCore, type Core } from "../engine/cores.ts";
-import type { AnyStory } from "../story/types.ts";
+import type { AnyStory, FigureDirection } from "../story/types.ts";
 
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
@@ -47,8 +47,9 @@ const SealWon = Type.Object({ ...Base, type: Type.Literal("seal_won"), seal: Typ
 const SealUsed = Type.Object({ ...Base, type: Type.Literal("seal_used"), seal: Type.Integer(), holder: Type.String(), target: Type.String() });
 const SealExpired = Type.Object({ ...Base, type: Type.Literal("seal_expired"), seal: Type.Integer(), reason: Type.String() });
 const Note = Type.Object({ ...Base, type: Type.Literal("gamemaster_note"), to: Type.String(), text: Type.String() });
+const Thinking = Type.Object({ ...Base, type: Type.Literal("gamemaster_thinking"), text: Type.String() });
 
-const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note]);
+const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking]);
 type PrivateEvent = Static<typeof PrivateEvent>;
 type Of<T extends PrivateEvent["type"]> = Extract<PrivateEvent, { type: T }>;
 
@@ -107,9 +108,25 @@ export function writeCastFiles(directory: string, story: AnyStory, entries: read
 			"",
 			renderCore(spec, entry.core),
 			"",
+			...directionPart(figure?.direction),
 		].join("\n");
 		writeFileSync(join(folder, `${entry.agent}${figure === undefined ? "" : `-${figure.id}`}.md`), text);
 	}
+}
+
+/** A figure's direction sections, which reach the prompt only from a direction level on (src/engine/direction.ts). */
+function directionPart(direction: FigureDirection | undefined): readonly string[] {
+	if (direction === undefined) return [];
+	const list = (title: string, lines: readonly string[]): readonly string[] => (lines.length === 0 ? [] : [`**${title}**`, "", ...lines.map((line) => `- ${line}`), ""]);
+	return [
+		"## Direction (in the prompt from figure direction 6, 8 or 10)",
+		"",
+		...(direction.brief === undefined ? [] : ["**In brief** (6)", "", direction.brief, ""]),
+		...list("Tendencies (8)", direction.tendencies),
+		...list("Rivals (8, when the figure plays in the run)", direction.rivals.map((rival) => `${rival.figure}: ${rival.text}`)),
+		...list("Orders (10)", direction.orders),
+		...(direction.duty === undefined ? [] : ["**Duty** (10)", "", direction.duty, ""]),
+	];
 }
 
 /** Writes the cast files and `acts/act-<n>/private.md` from a run's `events.jsonl`. */
@@ -177,6 +194,11 @@ export function writePrivateFiles(directory: string, story: AnyStory): void {
 		lines.push("## The game master's private notes", "");
 		if (notes.length === 0) lines.push("None.", "");
 		else lines.push("| Minute | To | Note |", "|---:|---|---|", ...notes.map((note) => `| ${note.minute} | ${label(note.to)} | ${named(note.text).replace(/\|/g, "\\|").replace(/\n/g, " ")} |`), "");
+		const thoughts = inAct(ofType(events, "gamemaster_thinking"));
+		if (thoughts.length > 0) {
+			// The gamemaker's own reasoning (logged from run 013 on): who it plans for, and why.
+			lines.push("## The gamemaker's thinking", "", ...thoughts.flatMap((thought) => [`**Minute ${thought.minute}**`, "", ...named(thought.text).split("\n").map((line) => `> ${line}`), ""]));
+		}
 		const folder = join(directory, "acts", `act-${index + 1}`);
 		mkdirSync(folder, { recursive: true });
 		writeFileSync(join(folder, "private.md"), lines.join("\n"));

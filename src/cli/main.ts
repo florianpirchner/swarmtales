@@ -296,6 +296,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		gamemaster: gamemasterSettings === undefined ? "off" : `${gamemasterSettings.provider}/${gamemasterSettings.modelId ?? "-"}`,
 		classifier: statementClassifier?.label ?? "off",
 		judge: judge?.label ?? "off",
+		direction: `figure ${effective.figureDirection}, game master ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
 	},
 };

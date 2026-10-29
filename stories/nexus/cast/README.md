@@ -14,6 +14,16 @@ core also gets the story's frame first in its system prompt: a fictional city, p
 where dark sides are played without softening (`stories/nexus/characters.ts`). The resident still chooses its own name in Act I; the title is
 not a name.
 
+## Direction sections (the six of the first cast)
+
+The six figures of the first cast are written out at length (a memory, a fear, a secret) and carry
+five more sections that steer what they do, not only who they are: **In brief** (two or three
+sentences), **Tendencies**, **Orders**, **Duty** (one move per act) and **Rivals** (`- <figure>:
+text`, about other figures of the cast). These sections are cut from the figure's text and reach
+the prompts only when a run turns the dial up (`--figure-direction 6`, `8` or `10`, see the SPEC's
+"Direction"); at the default 4 a figure plays its (now longer) text without them. They break the promise above on
+purpose: they exist to find out how much steering strong drama needs.
+
 ## The first cast: six figures for tension (Act I + II, 6 residents)
 
 Chosen so that every figure has a natural opponent in the same city:

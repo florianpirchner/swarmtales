@@ -3,7 +3,7 @@
  * 7): REPORT.md's facts, minutes.md and the digest's timeline show who each
  * resident was, what it secretly wanted, and who won and broke the seal.
  */
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -85,5 +85,17 @@ describe("the drama in the run's documents (v09)", () => {
 		expect(act).toMatch(/## Secret goals\n\n\| Resident \| Goal/);
 		expect(act).toMatch(/\| A01 \| 6 \|/);
 		expect(act).toContain("A01 broke the seal on A02");
+		expect(act).not.toContain("## The gamemaker's thinking");
+	});
+
+	it("adds the gamemaker's thinking to the act's private file", () => {
+		const copy = mkdtempSync(join(tmpdir(), "private-"));
+		const events = readFileSync(join(directory, "events.jsonl"), "utf8").trimEnd().split("\n");
+		const last: unknown = JSON.parse(events.at(-1) ?? "{}");
+		const minute = typeof last === "object" && last !== null && "minute" in last && typeof last.minute === "number" ? last.minute : 0;
+		writeFileSync(join(copy, "events.jsonl"), [...events, JSON.stringify({ seq: 1_000_000, minute, type: "gamemaster_thinking", text: "A01 should strike now." })].join("\n"));
+		writePrivateFiles(copy, nexus);
+		expect(readFileSync(join(copy, "acts", "act-2", "private.md"), "utf8")).toContain("## The gamemaker's thinking");
+		rmSync(copy, { recursive: true, force: true });
 	});
 });

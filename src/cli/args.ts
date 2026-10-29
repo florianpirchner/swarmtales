@@ -57,6 +57,8 @@ export const START_USAGE = [
 	"  --no-names           keep resident IDs; nobody chooses a name",
 	"  --no-cores           play without character cores",
 	"  --cast <ids>         the story's cast figures to play, comma-separated (default: a seeded pick)",
+	"  --figure-direction <0-10>  how strongly a cast figure's prompt steers it (default 4; 6, 8, 10 add more, see docs)",
+	"  --gm-direction <0-10>      how strongly the game master steers (default 4; 10 = it orders scenes)",
 	"  --no-gamemaster      play without the story's game master",
 	"  --gamemaster-provider <id>  game master provider (default: the story's, e.g. openrouter)",
 	"  --gamemaster-model <id>     game master model, e.g. sonnet (claude-sonnet-5-5) on anthropic",
@@ -95,6 +97,8 @@ function parseValues(argv: readonly string[]) {
 				"no-names": { type: "boolean" },
 				"no-cores": { type: "boolean" },
 				cast: { type: "string" },
+				"figure-direction": { type: "string" },
+				"gm-direction": { type: "string" },
 				"no-gamemaster": { type: "boolean" },
 				"no-classifier": { type: "boolean" },
 				"gamemaster-provider": { type: "string" },
@@ -139,10 +143,14 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["no-names"] === true ? { names: false } : {}),
 		...(values["no-cores"] === true ? { cores: false } : {}),
 		...(values.cast === undefined ? {} : { cast: castList(values.cast) }),
+		...direction("figure-direction", "figureDirection", values["figure-direction"]),
+		...direction("gm-direction", "gmDirection", values["gm-direction"]),
 		...(values["no-gamemaster"] === true ? { gamemaster: false } : {}),
 		...(values["no-classifier"] === true ? { classifier: false } : {}),
 	};
 	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
+	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures; drop --no-cores");
+	if (overrides.gmDirection !== undefined && overrides.gamemaster === false) throw new UsageError("--gm-direction steers the game master; drop --no-gamemaster");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}
@@ -197,6 +205,16 @@ function optionalInt<K extends string>(name: K, raw: string | undefined, minimum
 	}
 	const result: Partial<Record<K, number>> = {};
 	result[name] = value;
+	return result;
+}
+
+/** A dial from 0 to 10 (src/engine/direction.ts). */
+function direction<K extends "figureDirection" | "gmDirection">(flag: string, key: K, raw: string | undefined): Partial<Record<K, number>> {
+	if (raw === undefined) return {};
+	const value = Number(raw);
+	if (!Number.isInteger(value) || value < 0 || value > 10) throw new UsageError(`--${flag} must be an integer from 0 to 10, got "${raw}"`);
+	const result: Partial<Record<K, number>> = {};
+	result[key] = value;
 	return result;
 }
 

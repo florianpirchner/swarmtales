@@ -86,7 +86,10 @@ describe("pnpm start arguments", () => {
 			classifier: false,
 			names: true,
 			cores: true,
+			figureDirection: 4,
+			gmDirection: 4,
 		});
+		expect(effectiveRun(nexus, { figureDirection: 9, gmDirection: 5 })).toMatchObject({ figureDirection: 8, gmDirection: 4 });
 		expect(effectiveRun(nexus, { cores: false })).toMatchObject({ cores: false });
 		expect(effectiveRun(tinyStory())).toMatchObject({ cores: false });
 		expect(effectiveRun(nexus, { classifier: true })).toMatchObject({ classifier: true });
@@ -137,5 +140,10 @@ describe("pnpm start arguments", () => {
 		expect(parseStartArgs(["--cast", "banner, house,crier"])).toMatchObject({ overrides: { cast: ["banner", "house", "crier"] } });
 		expect(() => parseStartArgs(["--cast", "banner,banner"])).toThrow(/twice/);
 		expect(() => parseStartArgs(["--cast", "banner", "--no-cores"])).toThrow(/needs character cores/);
+		expect(parseStartArgs(["--figure-direction", "10", "--gm-direction", "0"])).toMatchObject({ overrides: { figureDirection: 10, gmDirection: 0 } });
+		expect(() => parseStartArgs(["--figure-direction", "11"])).toThrow(/from 0 to 10/);
+		expect(() => parseStartArgs(["--gm-direction", "x"])).toThrow(/from 0 to 10/);
+		expect(() => parseStartArgs(["--figure-direction", "6", "--no-cores"])).toThrow(/drop --no-cores/);
+		expect(() => parseStartArgs(["--gm-direction", "10", "--no-gamemaster"])).toThrow(/drop --no-gamemaster/);
 	});
 });

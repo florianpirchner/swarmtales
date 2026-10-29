@@ -19,6 +19,7 @@ import type { GamemasterSpec, ThinkingLevel } from "../story/types.ts";
 import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
 import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
+import type { DirectionLevel } from "../engine/direction.ts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
 import { MAX_NOTE_LENGTH } from "./system-prompt.ts";
 
@@ -33,6 +34,8 @@ export interface GamemasterOptions {
 	readonly binding: ModelBinding;
 	readonly systemPrompt: string;
 	readonly thinking: ThinkingLevel;
+	/** The game master's direction level (`--gm-direction`); from 8 its report shows the figures' direction. */
+	readonly direction?: DirectionLevel;
 }
 
 interface GmTool<S extends TSchema> {
@@ -156,6 +159,7 @@ export class Gamemaster implements EventSink {
 			notes: this.#notes,
 			guard: this.#guard,
 			budget: this.#budgetLine(),
+			...(this.#options.direction === undefined ? {} : { direction: this.#options.direction }),
 		}));
 		bus.emit({ type: "gamemaster_turn", round, input });
 		const agent = this.#agent();
@@ -377,6 +381,8 @@ export class Gamemaster implements EventSink {
 		const bus = this.#options.bus;
 		if (message.role === "assistant") {
 			for (const block of message.content) {
+				// The gamemaker's own reasoning: material for the novella, never shown to a resident.
+				if (block.type === "thinking" && block.thinking.trim().length > 0) bus.emit({ type: "gamemaster_thinking", text: block.thinking });
 				if (block.type === "text") bus.emit({ type: "gamemaster_text", text: block.text });
 				if (block.type === "toolCall") bus.emit({ type: "gamemaster_call", tool: block.name, args: block.arguments });
 			}

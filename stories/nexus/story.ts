@@ -553,7 +553,7 @@ ${BLAME_RULE}`,
 
 	// The same model in every run, whoever plays, so compared runs share their game master.
 	gamemaster: gamemaster({
-		model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "low" },
+		model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "high" },
 		brief: `Act I teaches the residents to talk: every door opens one more channel (board, private messages,
 groups, then all of them with marks). From level 4 on, a team door opens only when every member has reached it
 and shared a fragment, so one hesitating resident stalls the whole team, and later the newly drawn teams of the

@@ -12,6 +12,7 @@ import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
 import { coreLine } from "../engine/cores.ts";
+import { directFigure, figureOf, type DirectionLevel } from "../engine/direction.ts";
 import { ladderText } from "../story/penalties.ts";
 import type { SecretGuard } from "./secrets.ts";
 
@@ -53,6 +54,8 @@ export interface SituationInput {
 	readonly notes: readonly Note[];
 	readonly guard: SecretGuard;
 	readonly budget: string;
+	/** The game master's direction level; from 8 the report shows each figure's tendencies and rivals, at 10 its orders and duty. */
+	readonly direction?: DirectionLevel;
 }
 
 export function describeSituation(input: SituationInput): string {
@@ -68,7 +71,7 @@ export function describeSituation(input: SituationInput): string {
 		"Residents:",
 		...world.ranking().map((entry) => residentLine(input, entry.agent, entry.points, entry.rank)),
 		"",
-		...characterLines(world),
+		...characterLines(world, input.direction ?? 0),
 		...tribunalLines(world),
 		...sealLines(world),
 		"Who waits on whom (a door opens only with every fragment or factor a resident needs):",
@@ -117,12 +120,21 @@ function residentLine(input: SituationInput, agent: CompetitorId, points: number
  * goal of the running act. Private: the engine refuses any text that gives
  * them away to someone else or on the board.
  */
-function characterLines(world: World): readonly string[] {
+export function characterLines(world: World, direction: DirectionLevel): readonly string[] {
+	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
 	const lines = world.alive.flatMap((agent) => {
 		const core = world.coreOf(agent);
 		const goal = world.goalOf(agent);
 		if (core === undefined && goal === undefined) return [];
 		const parts = [...(core === undefined ? [] : [`core: ${coreLine(core)}`]), ...(goal === undefined ? [] : [`secret goal: ${goal.text}`])];
+		// From direction 8 the director stages with the figure's own material (src/engine/direction.ts).
+		const directed = direction < 8 ? undefined : directFigure(direction, figureOf(world.story.cores?.figures, core?.figure)?.direction, playedBy);
+		if (directed !== undefined) {
+			if (directed.tendencies.length > 0) parts.push(`tendencies: ${directed.tendencies.join(" ")}`);
+			if (directed.rivals.length > 0) parts.push(`rivals: ${directed.rivals.map((rival) => `${rival.agent} (${rival.text})`).join(" ")}`);
+			if (directed.orders.length > 0) parts.push(`orders: ${directed.orders.join(" ")}`);
+			if (directed.duty !== undefined) parts.push(`duty this act: ${directed.duty}`);
+		}
 		return [`- ${agent}: ${parts.join(" · ")}`];
 	});
 	if (lines.length === 0) return [];

@@ -502,6 +502,25 @@ export interface FigureSpec {
 	readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[];
 	readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[];
 	readonly text: string;
+	/** What the direction dial adds above level 4 (`--figure-direction`); absent for a figure without it. */
+	readonly direction?: FigureDirection;
+}
+
+/**
+ * The parts of a figure that steer what it does, not only who it is
+ * (`## In brief`, `## Tendencies`, `## Orders`, `## Duty`, `## Rivals` in
+ * its file). They reach the prompt only from a direction level on: the brief
+ * from 6, tendencies and rivals from 8, orders and duty at 10.
+ */
+export interface FigureDirection {
+	/** Two or three sentences, repeated in every step from level 6. */
+	readonly brief?: string;
+	readonly tendencies: readonly string[];
+	readonly orders: readonly string[];
+	/** One move the figure makes at least once per act. */
+	readonly duty?: string;
+	/** Lines about other figures of the cast; only those whose figure plays in the run are shown, with that resident. */
+	readonly rivals: readonly { readonly figure: string; readonly text: string }[];
 }
 
 export type GoalKind = "protect" | "exile" | "outrank" | "lead" | "heir";

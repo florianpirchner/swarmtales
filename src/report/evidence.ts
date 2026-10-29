@@ -92,6 +92,7 @@ function describe(event: RecordedEvent, chars: number): { readonly text: string;
 	}
 	if (event.type === "thinking") return { text: `${event.agent} REASONING: ${say(event.text)}`, priority: 0 };
 	if (event.type === "text") return { text: `${event.agent} SAYS TO ITSELF: ${say(event.text)}`, priority: 0 };
+	if (event.type === "gamemaster_thinking") return { text: `GAME MASTER THINKS: ${say(event.text)}`, priority: 0 };
 	if (event.type === "gamemaster_text") return { text: `GAME MASTER REASONING: ${say(event.text)}`, priority: 0 };
 	return undefined;
 }

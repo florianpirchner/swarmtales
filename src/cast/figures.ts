@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureSpec } from "../story/index.ts";
+import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureDirection, type FigureSpec } from "../story/index.ts";
 
 const Level = Type.Union(CORE_LEVELS.map((level) => Type.Literal(level)));
 const Tone = Type.Union([Type.Literal("light"), Type.Literal("dark")]);
@@ -61,7 +61,9 @@ export interface FigureFile {
 	readonly tone: "light" | "dark";
 	readonly drives: readonly CastDrive[];
 	readonly temperament: Readonly<Record<"openness" | "conscientiousness" | "extraversion" | "agreeableness" | "neuroticism", CoreLevel>>;
+	/** The body without its direction sections: who the figure is. */
 	readonly body: string;
+	readonly direction?: FigureDirection;
 }
 
 export interface Archetypes {
@@ -98,8 +100,66 @@ function parseDrives(value: string, source: string): CastDrive[] {
 	});
 }
 
+/** The sections of a figure body that steer what it does; the rest says who it is. */
+const DIRECTION_HEADINGS = ["In brief", "Tendencies", "Orders", "Duty", "Rivals"] as const;
+type DirectionHeading = (typeof DIRECTION_HEADINGS)[number];
+
+function isDirectionHeading(heading: string): heading is DirectionHeading {
+	return DIRECTION_HEADINGS.some((known) => known === heading);
+}
+
+/** `- text` lines of a section. */
+function bullets(text: string, source: string, heading: string): string[] {
+	return text
+		.split("\n")
+		.map((line) => line.trim())
+		.filter((line) => line.length > 0)
+		.map((line) => {
+			if (!line.startsWith("- ")) throw new Error(`${source}: "## ${heading}" holds "- " lines only, got "${line}"`);
+			return line.slice(2).trim();
+		});
+}
+
+/** Splits a figure body into who it is and its direction sections (`## In brief`, ...). */
+export function splitDirection(body: string, source: string): { body: string; direction?: FigureDirection } {
+	const sections = body.split(/^(?=## )/m);
+	const kept: string[] = [];
+	const found = new Map<DirectionHeading, string>();
+	for (const section of sections) {
+		const match = /^## (.+)\n?([\s\S]*)$/.exec(section);
+		const heading = match?.[1]?.trim();
+		if (match === null || heading === undefined || !isDirectionHeading(heading)) {
+			kept.push(section);
+			continue;
+		}
+		if (found.has(heading)) throw new Error(`${source}: "## ${heading}" twice`);
+		found.set(heading, (match[2] ?? "").trim());
+	}
+	const rest = kept.join("").trim();
+	if (found.size === 0) return { body: rest };
+	const brief = found.get("In brief");
+	const duty = found.get("Duty");
+	const rivals = bullets(found.get("Rivals") ?? "", source, "Rivals").map((line) => {
+		const rival = /^\*{0,2}([a-z0-9][a-z0-9-]*)\*{0,2}:\s*(.+)$/.exec(line);
+		if (rival?.[1] === undefined || rival[2] === undefined) throw new Error(`${source}: a rival line is "- <figure id>: text", got "${line}"`);
+		return { figure: rival[1], text: rival[2] };
+	});
+	return {
+		body: rest,
+		direction: {
+			...(brief === undefined || brief.length === 0 ? {} : { brief }),
+			tendencies: bullets(found.get("Tendencies") ?? "", source, "Tendencies"),
+			orders: bullets(found.get("Orders") ?? "", source, "Orders"),
+			...(duty === undefined || duty.length === 0 ? {} : { duty }),
+			rivals,
+		},
+	};
+}
+
 export function parseFigure(text: string, source: string): FigureFile {
-	const { header, body } = splitFrontmatter(text, source);
+	const split = splitFrontmatter(text, source);
+	const { header } = split;
+	const { body, direction } = splitDirection(split.body, source);
 	const parsed = Parse(FigureHeader, header);
 	return {
 		id: parsed.id,
@@ -116,6 +176,7 @@ export function parseFigure(text: string, source: string): FigureFile {
 			neuroticism: parsed.neuroticism,
 		},
 		body,
+		...(direction === undefined ? {} : { direction }),
 	};
 }
 
@@ -163,5 +224,6 @@ export function figureSpec(file: FigureFile): FigureSpec {
 		bigFive: Object.entries(file.temperament).map(([axis, level]) => ({ axis, level })),
 		drives: file.drives.map((entry) => ({ drive: entry.id, intensity: entry.intensity })),
 		text: file.body,
+		...(file.direction === undefined ? {} : { direction: file.direction }),
 	};
 }

@@ -76,6 +76,9 @@ export class AgentTranscriptLog implements EventSink {
 			case "gamemaster_turn":
 				this.#write(GAMEMASTER_FILE, `\n## Minute ${event.minute} (after round ${event.round})\n\n**Situation**\n${quote(event.input)}\n`);
 				return;
+			case "gamemaster_thinking":
+				this.#write(GAMEMASTER_FILE, `\n**Thinking**\n\n${quote(event.text)}\n`);
+				return;
 			case "gamemaster_text":
 				this.#write(GAMEMASTER_FILE, `\n**Text**\n\n${event.text}\n`);
 				return;

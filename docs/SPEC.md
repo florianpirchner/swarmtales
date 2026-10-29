@@ -1010,6 +1010,21 @@ three are optional, and the texts say who someone is or what it wants, never how
   the persona of its `profession`; `core_dealt` and the snapshot carry its `figure` ID. Residents
   beyond the cast get a drawn core. `frame`, when set, comes first in the system prompt of every
   resident with a core.
+- **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; src/engine/direction.ts):
+  how strongly a run steers what its residents do. Defined levels are 0, 4, 6, 8 and 10; other
+  values round down. Up to 4 the prompts are built as before (v12). A figure's file may hold the
+  sections `## In brief`, `## Tendencies`, `## Orders`, `## Duty` and `## Rivals`
+  (`- <figure id>: text`); they are cut from its text and reach the prompts only from a level on.
+  Figure direction 6: no persona block, the figure right after the frame, a voice rule, the city's
+  facts after it, the brief before the status line of every step and the full figure again every
+  10 minutes (and in a resident's first step, also after a resume). 8: tendencies, and the rivals
+  whose figure plays in the run, named by resident. 10: orders and the duty of the act close the
+  system prompt, and the game master's notes count as the author's direction. Game master
+  direction 6: notes in the figure's language. 8: the report shows tendencies and rivals, and the
+  director names them when a moment fits. 10: the director is the act's author and orders scenes,
+  private moves included (bids, votes, lies); the report shows each figure's orders and duty. From
+  8 on a run breaks the promise "who, not what" on purpose; the run's `000-run.json` and `meta`
+  carry both levels.
 - **Goals** (`goals: { acts, bonus, leadTribunals, againstCore, matches, texts }`): at the start
   of each listed act every resident in the city is dealt a goal (`goal_dealt`): `protect`,
   `exile` or `outrank` a target, `lead` a faction in `leadTribunals` tribunals, or `heir` (a will

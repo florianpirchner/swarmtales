@@ -73,6 +73,8 @@ export interface ArenaOptions {
 	readonly snapshot?: SnapshotRequest;
 	/** Continues a run from a snapshot: the cut's round was the last one played. */
 	readonly resume?: ArenaResume;
+	/** Reminders of who a resident is, before its status line (figure direction 6 and up). */
+	readonly cues?: { inputsFor(agent: CompetitorId, minute: number): readonly TurnInput[] };
 }
 
 export interface RoundObserver {
@@ -371,12 +373,12 @@ export class Arena {
 	}
 
 	/**
-	 * Delivery for one activation: status line, the task text on a level change
+	 * Delivery for one activation: the figure's reminders, status line, the task text on a level change
 	 * (or the story's finished notice), DMs, city notices, then the digest.
 	 */
 	#inputsFor(id: CompetitorId): readonly TurnInput[] {
 		const { world } = this.#options;
-		const inputs: TurnInput[] = [{ kind: "status", text: statusLine(world, id) }];
+		const inputs: TurnInput[] = [...(this.#options.cues?.inputsFor(id, world.minute) ?? []), { kind: "status", text: statusLine(world, id) }];
 		const level = world.levelOf(id);
 		if (this.#deliveredLevel.get(id) !== level) {
 			this.#deliveredLevel.set(id, level);
