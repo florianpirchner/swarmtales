@@ -428,12 +428,10 @@ function brakeLine(brake: SnapshotBrake): string {
 	return `the brake of ${brake.act} fired at minute ${brake.minute} (${brake.maxMinutes} minutes); behind: ${behind}`;
 }
 
-/** The old name of a role's variables, still read (the gamemaker was the game master until 2026-10-29). */
-const OLD_ROLE_NAMES: Readonly<Record<string, string>> = { GAMEMAKER: "GAMEMASTER" };
-
 /** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
 function roleEnv(role: "GAMEMAKER" | "CLASSIFIER"): ModelEnv {
-	const old = OLD_ROLE_NAMES[role];
+	// The old name of the gamemaker's variables is still read (it was the game master until 2026-10-29).
+	const old = role === "GAMEMAKER" ? "GAMEMASTER" : undefined;
 	const read = (key: string): string => process.env[`ARENA_${role}_${key}`] ?? (old === undefined ? undefined : process.env[`ARENA_${old}_${key}`]) ?? "";
 	const provider = read("PROVIDER");
 	const model = read("MODEL");
