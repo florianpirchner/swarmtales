@@ -79,6 +79,9 @@ export class AgentTranscriptLog implements EventSink {
 			case "gamemaker_thinking":
 				this.#write(GAMEMAKER_FILE, `\n**Thinking**\n\n${quote(event.text)}\n`);
 				return;
+			case "gamemaker_defied":
+				this.#write(GAMEMAKER_FILE, `\n**${event.agent} refuses${event.note === undefined ? "" : ` note #${event.note}`}**\n\n${quote(event.reason)}\n`);
+				return;
 			case "gamemaker_text":
 				this.#write(GAMEMAKER_FILE, `\n**Text**\n\n${event.text}\n`);
 				return;

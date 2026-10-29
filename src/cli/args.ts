@@ -160,7 +160,6 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	};
 	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
 	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures; drop --no-cores");
-	if (overrides.gmDirection !== undefined && overrides.gamemaker === false) throw new UsageError("--gm-direction steers the gamemaker; drop --no-gamemaker");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}

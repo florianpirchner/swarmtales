@@ -144,6 +144,7 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--figure-direction", "11"])).toThrow(/from 0 to 10/);
 		expect(() => parseStartArgs(["--gm-direction", "x"])).toThrow(/from 0 to 10/);
 		expect(() => parseStartArgs(["--figure-direction", "6", "--no-cores"])).toThrow(/drop --no-cores/);
-		expect(() => parseStartArgs(["--gm-direction", "10", "--no-gamemaker"])).toThrow(/drop --no-gamemaker/);
+		// The lab plays the gamemaker's orders from a scene, without a live gamemaker.
+		expect(parseStartArgs(["--gm-direction", "10", "--no-gamemaker"])).toMatchObject({ overrides: { gmDirection: 10, gamemaker: false } });
 	});
 });

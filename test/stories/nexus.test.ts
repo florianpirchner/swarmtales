@@ -16,8 +16,8 @@ const PETITION_TOOLS = ["signPetition", "listPetitions"];
 const ACT_TWO_ONLY: readonly string[] = ["blame"];
 /** Granted by the tribunal (and v09 the black seal) while they apply, never listed by a level. */
 const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
-/** Granted by the city while names are chosen (v08), never listed by a level. */
-const NAME_TOOLS: readonly string[] = ["chooseName"];
+/** Granted by the city while names are chosen (v08), or by gm direction 10 (`defy`), never listed by a level. */
+const NAME_TOOLS: readonly string[] = ["chooseName", "defy"];
 const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name));
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 

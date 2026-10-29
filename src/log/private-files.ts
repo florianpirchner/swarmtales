@@ -48,8 +48,9 @@ const SealUsed = Type.Object({ ...Base, type: Type.Literal("seal_used"), seal: T
 const SealExpired = Type.Object({ ...Base, type: Type.Literal("seal_expired"), seal: Type.Integer(), reason: Type.String() });
 const Note = Type.Object({ ...Base, type: Type.Literal("gamemaker_note"), to: Type.String(), text: Type.String() });
 const Thinking = Type.Object({ ...Base, type: Type.Literal("gamemaker_thinking"), text: Type.String() });
+const Defied = Type.Object({ ...Base, type: Type.Literal("gamemaker_defied"), agent: Type.String(), note: Type.Optional(Type.Integer()), reason: Type.String() });
 
-const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking]);
+const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking, Defied]);
 type PrivateEvent = Static<typeof PrivateEvent>;
 type Of<T extends PrivateEvent["type"]> = Extract<PrivateEvent, { type: T }>;
 
@@ -194,6 +195,12 @@ export function writePrivateFiles(directory: string, story: AnyStory): void {
 		lines.push("## The gamemaker's private notes", "");
 		if (notes.length === 0) lines.push("None.", "");
 		else lines.push("| Minute | To | Note |", "|---:|---|---|", ...notes.map((note) => `| ${note.minute} | ${label(note.to)} | ${named(note.text).replace(/\|/g, "\\|").replace(/\n/g, " ")} |`), "");
+		const refusals = inAct(ofType(events, "gamemaker_defied"));
+		if (refusals.length > 0) {
+			lines.push("## Refusals of the gamemaker", "", "| Minute | Resident | Note | Reason |", "|---:|---|---:|---|");
+			for (const refusal of refusals) lines.push(`| ${refusal.minute} | ${label(refusal.agent)} | ${refusal.note === undefined ? "-" : `#${refusal.note}`} | ${named(refusal.reason).replace(/\|/g, "\\|").replace(/\n/g, " ")} |`);
+			lines.push("");
+		}
 		const thoughts = inAct(ofType(events, "gamemaker_thinking"));
 		if (thoughts.length > 0) {
 			// The gamemaker's own reasoning (logged from run 013 on): who it plans for, and why.

@@ -37,6 +37,9 @@ import { TeamPlanner, type Team } from "./teams.ts";
 import type { DraftError } from "./factions.ts";
 import { Tribunal, type RansomError, type Standing, type TribunalSnapshot, type VoteError } from "./tribunal.ts";
 
+/** How long a refusal of the gamemaker may be: a reason in the character's own words. */
+export const DEFY_REASON = { min: 20, max: 600 } as const;
+
 export interface WorldOptions {
 	readonly story: AnyStory;
 	readonly competitors: readonly CompetitorId[];
@@ -72,6 +75,8 @@ export interface WorldOptions {
 	readonly cores?: boolean;
 	/** The cast figures to deal, by ID, when the story has a cast; seeded from the cast when omitted. */
 	readonly cast?: readonly string[];
+	/** Whether residents may refuse the gamemaker's orders with `defy` (gm direction 10). */
+	readonly defiance?: boolean;
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -402,6 +407,7 @@ export class World {
 	/** Character cores (v09): dealt once, at the start of the first act played, and kept for good. */
 	readonly #cores = new Map<CompetitorId, Core>();
 	readonly #cast: readonly string[] | undefined;
+	readonly #defiance: boolean;
 	readonly #playsCores: boolean;
 	readonly #goals: GoalBook | undefined;
 	readonly #seal: SealHouse | undefined;
@@ -512,6 +518,7 @@ export class World {
 
 		this.#playsCores = options.story.cores !== undefined && options.cores !== false;
 		this.#cast = options.cast;
+		this.#defiance = options.defiance === true;
 		const goals = options.story.goals;
 		this.#goals =
 			goals === undefined
@@ -725,6 +732,14 @@ export class World {
 	}
 
 	/** A secret bid for the seal auctioned now. */
+	/** A resident refuses the gamemaker's order (gm direction 10); the reason is logged and shown to the gamemaker. */
+	defyGamemaker(agent: CompetitorId, reason: string, note?: number): Result<{ readonly reason: string }, "INVALID_REASON"> {
+		const text = reason.trim();
+		if (text.length < DEFY_REASON.min || text.length > DEFY_REASON.max) return err("INVALID_REASON", `${DEFY_REASON.min}-${DEFY_REASON.max} characters`);
+		this.#bus.emit({ type: "gamemaker_defied", agent, reason: text, ...(note === undefined ? {} : { note }) });
+		return ok({ reason: text });
+	}
+
 	bidForSeal(agent: CompetitorId, points: number): Result<{ readonly seal: number; readonly points: number; readonly until: number }, BidError> {
 		if (this.#seal === undefined) return err("NO_AUCTION", "this city has no black seal");
 		return this.#seal.bid(agent, points);
@@ -913,6 +928,7 @@ export class World {
 		if (this.#seal?.auction !== undefined && standing.kind === "alive") enabled.add("bid");
 		if (this.#seal?.holds(agent) === true) enabled.add("permaDeath");
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
+		if (this.#defiance) enabled.add("defy");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
 

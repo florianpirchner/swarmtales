@@ -108,4 +108,24 @@ describe("the direction dial", () => {
 		expect(characterLines(run.world, 8).join("\n")).toContain("tendencies:");
 		expect(characterLines(run.world, 10).join("\n")).toContain("orders:");
 	});
+
+	it("lets a resident refuse the gamemaker's order at gm direction 10, and shows the refusal to it", () => {
+		const off = compose({ figureDirection: 10, gmDirection: 8 });
+		expect(off.world.enabledTools("A01")).not.toContain("defy");
+		const log = new MemorySink();
+		const run = composeRun({
+			story: nexus,
+			overrides: { names: true, agents: 6, cast: CAST, figureDirection: 10, gmDirection: 10, gamemaker: true },
+			models: new ScriptedModelSource({}),
+			gamemakerModels: new ScriptedModelSource({}),
+			sinks: [log],
+		});
+		expect(run.world.enabledTools("A01")).toContain("defy");
+		expect(run.runners[0]?.systemPrompt).toContain("defy(reason, note)");
+		expect(run.world.defyGamemaker("A01", "too short").ok).toBe(false);
+		expect(run.world.defyGamemaker("A01", "The House never steals in the open; it collects.", 12).ok).toBe(true);
+		const defied = log.events.filter((event) => event.type === "gamemaker_defied");
+		expect(defied).toHaveLength(1);
+		expect(run.gamemaker?.systemPrompt).toContain("A refusal is a turning point");
+	});
 });
