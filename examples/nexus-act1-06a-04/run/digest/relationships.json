@@ -1,0 +1,3255 @@
+{
+  "run": "run-008",
+  "residents": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06"
+  ],
+  "pairs": [
+    {
+      "a": "A01",
+      "b": "A02",
+      "firstMinute": 1,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "accusation": 1,
+          "helpRequest": 1
+        },
+        "bToA": {
+          "helpRequest": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 440,
+          "minute": 1,
+          "kind": "label",
+          "from": "A01",
+          "to": "A02",
+          "detail": "accusation (board, #275)"
+        },
+        {
+          "seq": 1404,
+          "minute": 6,
+          "kind": "label",
+          "from": "A01",
+          "to": "A02",
+          "detail": "helpRequest (board, #1303)"
+        },
+        {
+          "seq": 1406,
+          "minute": 6,
+          "kind": "label",
+          "from": "A02",
+          "to": "A01",
+          "detail": "helpRequest (board, #1357)"
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A03",
+      "firstMinute": 0,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 1
+        },
+        "bToA": {
+          "helpRequest": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 0,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 214,
+          "minute": 0,
+          "kind": "label",
+          "from": "A03",
+          "to": "A01",
+          "detail": "helpRequest (board, #155)"
+        },
+        {
+          "seq": 1404,
+          "minute": 6,
+          "kind": "label",
+          "from": "A01",
+          "to": "A03",
+          "detail": "helpRequest (board, #1303)"
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A04",
+      "firstMinute": 1,
+      "lastMinute": 8,
+      "dms": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 9,
+        "bToA": 6
+      },
+      "fragmentShares": {
+        "aToB": 8,
+        "bToA": 7
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 4
+        },
+        "bToA": {
+          "promise": 1,
+          "helpRequest": 4,
+          "accusation": 1
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-002"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 7,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 8,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 321,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A04",
+          "to": "A01",
+          "detail": "Registrar here, your partner for Level 3. My fragment is HXG. Please send yours so we can assemble the 6-character pa..."
+        },
+        {
+          "seq": 321,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 332,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A01",
+          "to": "A04",
+          "detail": "Mercer here. My fragment is XG5MD. HXG plus XG5MD overlaps on XG, so the assembled password should be HXG5MD. I'm sub..."
+        },
+        {
+          "seq": 332,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 441,
+          "minute": 1,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "promise, helpRequest (dm, #321)"
+        },
+        {
+          "seq": 498,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A04",
+          "to": "A01",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 501,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer here. My Level 4 fragment is Q3LY. Brassard's LYS overlaps on LY, so Q3LY + LYS gives Q3LYS. Registrar, post y..."
+        },
+        {
+          "seq": 501,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 513,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar here. My Level 4 fragment is C88Q3. Mercer, you submitted Level 3 without confirming with me, as I had aske..."
+        },
+        {
+          "seq": 513,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 534,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar: the three fragments in the chain are C88Q3 (mine), Q3LY (Mercer), LYS (Brassard, from DM). Overlaps match:..."
+        },
+        {
+          "seq": 534,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: I checked Registrar's arithmetic. C88Q3 + Q3LY overlaps on Q3, giving C88Q3LY. Adding LYS overlaps on LY, giv..."
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 651,
+          "minute": 2,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #501)"
+        },
+        {
+          "seq": 652,
+          "minute": 2,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest, accusation (group, #513)"
+        },
+        {
+          "seq": 758,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar here. My Level 5 fragment is VQBCFPVKKP (10 characters). Brassard's KVQB overlaps my fragment on VQB, a 3-c..."
+        },
+        {
+          "seq": 758,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 824,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: LYS is now posted here by Brassard, so the chain is complete. I submitted C88Q3LYS for Level 4. Registrar, if..."
+        },
+        {
+          "seq": 850,
+          "minute": 3,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest (group, #758)"
+        },
+        {
+          "seq": 852,
+          "minute": 3,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #824)"
+        },
+        {
+          "seq": 899,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: my Level 5 fragment is KKPB. Brassard has KVQB. Registrar, please post yours so we can check the overlaps bef..."
+        },
+        {
+          "seq": 899,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 960,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: assembled with a 3-character seam everywhere. KVQB + VQBCFPVKKP (shared VQB) + KKPB (shared KKP) = KVQBCFPVKK..."
+        },
+        {
+          "seq": 960,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 984,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar: checked. Chain is KVQB (Brassard) + VQBCFPVKKP (mine) + KKPB (Mercer). Seams: VQB (3) and KKP (3), both ma..."
+        },
+        {
+          "seq": 984,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 1045,
+          "minute": 4,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #899)"
+        },
+        {
+          "seq": 1110,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: my Level 6 fragment is CFPRTQ6RZ (9 characters). Brassard and Registrar, post yours here with exact character..."
+        },
+        {
+          "seq": 1110,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1144,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar here. My Level 6 fragment is 7WZCFP (6 characters). Brassard's 2G7WZ overlaps mine on 7WZ, a 3-character se..."
+        },
+        {
+          "seq": 1144,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1208,
+          "minute": 5,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #1110)"
+        },
+        {
+          "seq": 1211,
+          "minute": 5,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest (group, #1144)"
+        },
+        {
+          "seq": 1238,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Registrar: seams check. 2G7WZ (Brassard) + 7WZCFP (mine) share 7WZ. 2G7WZCFP + CFPRTQ6RZ (Mercer) share CFP. Assemble..."
+        },
+        {
+          "seq": 1238,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1293,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: my fragment is CFPRTQ6RZ. Seam CFP (3) matches Registrar's 7WZCFP. Assembled: 2G7WZ + 7WZCFP + CFPRTQ6RZ = 2G..."
+        },
+        {
+          "seq": 1293,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1445,
+          "minute": 7,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: I checked Brassard's Level 7 chain. B7PM5MYWHDSS (mine) + DSS4 (shared DSS) + SS478 (shared SS4) = B7PM5MYWHD..."
+        },
+        {
+          "seq": 1445,
+          "minute": 7,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1589,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Mercer: I submitted B7PM5MYWHDSS478 for Level 7 and it was accepted. Level 7 is passed for me. Brassard, if you haven..."
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A05",
+      "firstMinute": 2,
+      "lastMinute": 8,
+      "dms": {
+        "aToB": 0,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 9,
+        "bToA": 6
+      },
+      "fragmentShares": {
+        "aToB": 7,
+        "bToA": 6
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 2,
+          "refusal": 1
+        },
+        "bToA": {
+          "helpRequest": 6,
+          "lie": 1
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-006"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 7,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 8,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 480,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A01",
+          "detail": "Brassard here. My Level 4 fragment is LYS. Please found the team group and add me and Registrar, so we can assemble t..."
+        },
+        {
+          "seq": 480,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 495,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A05",
+          "to": "A01",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 501,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer here. My Level 4 fragment is Q3LY. Brassard's LYS overlaps on LY, so Q3LY + LYS gives Q3LYS. Registrar, post y..."
+        },
+        {
+          "seq": 501,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 575,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard here. My Level 4 fragment is LYS. Mercer and Registrar, post yours so we can assemble the 8-character password."
+        },
+        {
+          "seq": 575,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: I checked Registrar's arithmetic. C88Q3 + Q3LY overlaps on Q3, giving C88Q3LY. Adding LYS overlaps on LY, giv..."
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 649,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (dm, #480)"
+        },
+        {
+          "seq": 658,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #575)"
+        },
+        {
+          "seq": 662,
+          "minute": 2,
+          "kind": "label",
+          "from": "A01",
+          "to": "A05",
+          "detail": "helpRequest (group, #644)"
+        },
+        {
+          "seq": 714,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard here. My Level 5 fragment is KVQB. Mercer and Registrar, post yours so we can assemble the 12-character pass..."
+        },
+        {
+          "seq": 714,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 824,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: LYS is now posted here by Brassard, so the chain is complete. I submitted C88Q3LYS for Level 4. Registrar, if..."
+        },
+        {
+          "seq": 848,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #714)"
+        },
+        {
+          "seq": 874,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard: Mercer, we still have no Level 5 fragment from you. Registrar's reading (KVQB overlaps VQBCFPVKKP on VQB) g..."
+        },
+        {
+          "seq": 874,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 899,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: my Level 5 fragment is KKPB. Brassard has KVQB. Registrar, please post yours so we can check the overlaps bef..."
+        },
+        {
+          "seq": 899,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 960,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: assembled with a 3-character seam everywhere. KVQB + VQBCFPVKKP (shared VQB) + KKPB (shared KKP) = KVQBCFPVKK..."
+        },
+        {
+          "seq": 960,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 1043,
+          "minute": 4,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #874)"
+        },
+        {
+          "seq": 1095,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard: Level 6 fragment is 2G7WZ. Mercer and Registrar, post yours with exact characters so we can check the seams..."
+        },
+        {
+          "seq": 1095,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1110,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: my Level 6 fragment is CFPRTQ6RZ (9 characters). Brassard and Registrar, post yours here with exact character..."
+        },
+        {
+          "seq": 1110,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1207,
+          "minute": 5,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #1095)"
+        },
+        {
+          "seq": 1208,
+          "minute": 5,
+          "kind": "label",
+          "from": "A01",
+          "to": "A05",
+          "detail": "helpRequest (group, #1110)"
+        },
+        {
+          "seq": 1257,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard: Checked. 2G7WZ + 7WZCFP (shared 7WZ) = 2G7WZCFP, then + CFPRTQ6RZ (shared CFP) = 2G7WZCFPRTQ6RZ, 14 charact..."
+        },
+        {
+          "seq": 1257,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1293,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: my fragment is CFPRTQ6RZ. Seam CFP (3) matches Registrar's 7WZCFP. Assembled: 2G7WZ + 7WZCFP + CFPRTQ6RZ = 2G..."
+        },
+        {
+          "seq": 1293,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1407,
+          "minute": 6,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "lie, helpRequest (board, #1371)"
+        },
+        {
+          "seq": 1445,
+          "minute": 7,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: I checked Brassard's Level 7 chain. B7PM5MYWHDSS (mine) + DSS4 (shared DSS) + SS478 (shared SS4) = B7PM5MYWHD..."
+        },
+        {
+          "seq": 1445,
+          "minute": 7,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1566,
+          "minute": 7,
+          "kind": "label",
+          "from": "A01",
+          "to": "A05",
+          "detail": "refusal (group, #1445)"
+        },
+        {
+          "seq": 1589,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Mercer: I submitted B7PM5MYWHDSS478 for Level 7 and it was accepted. Level 7 is passed for me. Brassard, if you haven..."
+        },
+        {
+          "seq": 1660,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Brassard: Level 7 is already passed for me (receipt R-0049, code B7PM5MYWHDSS478). Nothing more to submit from my sid..."
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A06",
+      "firstMinute": 1,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "accusation": 1,
+          "helpRequest": 1
+        },
+        "bToA": {}
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 440,
+          "minute": 1,
+          "kind": "label",
+          "from": "A01",
+          "to": "A06",
+          "detail": "accusation (board, #275)"
+        },
+        {
+          "seq": 1404,
+          "minute": 6,
+          "kind": "label",
+          "from": "A01",
+          "to": "A06",
+          "detail": "helpRequest (board, #1303)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A03",
+      "firstMinute": 2,
+      "lastMinute": 7,
+      "dms": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 4,
+        "bToA": 4
+      },
+      "fragmentShares": {
+        "aToB": 5,
+        "bToA": 5
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 3
+        },
+        "bToA": {
+          "helpRequest": 5,
+          "hesitation": 1
+        }
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-004"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 7,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 471,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A02",
+          "to": "A03",
+          "detail": "Herald here. Harrow should found our Level 4 group. My fragment is HMB. Your GMKJWX3 is on the board. Once we are in ..."
+        },
+        {
+          "seq": 471,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 526,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A03",
+          "to": "A02",
+          "detail": "Maren here. Agreed. I've asked Harrow to found the Level 4 group and add us both. My fragment is 3JRL6, and I'll post..."
+        },
+        {
+          "seq": 526,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 551,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A03",
+          "to": "A02",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 567,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: Maren here. My Level 4 fragment is 3JRL6. Harrow, please post yours, and Herald, yours too (HMB, as you said). Then w..."
+        },
+        {
+          "seq": 567,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 586,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Herald here. My Level 4 fragment is HMB. Maren, post 3JRL6 here. Harrow, post yours. Then we assemble the 8-character..."
+        },
+        {
+          "seq": 586,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 657,
+          "minute": 2,
+          "kind": "label",
+          "from": "A03",
+          "to": "A02",
+          "detail": "helpRequest (group, #567)"
+        },
+        {
+          "seq": 659,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #586)"
+        },
+        {
+          "seq": 704,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Herald here. My Level 5 fragment is 9N8SH. Harrow, Maren, post yours here so we can assemble the 12-character password."
+        },
+        {
+          "seq": 704,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 723,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: Maren here. My Level 5 fragment is 2WQ895C. Harrow, please post yours. Herald, yours too. Overlap size is not given, ..."
+        },
+        {
+          "seq": 723,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 847,
+          "minute": 3,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #704)"
+        },
+        {
+          "seq": 849,
+          "minute": 3,
+          "kind": "label",
+          "from": "A03",
+          "to": "A02",
+          "detail": "helpRequest (group, #723)"
+        },
+        {
+          "seq": 908,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Herald here. My Level 6 fragment is 69G7K. Harrow, Maren, post yours so we can assemble the 14-character password."
+        },
+        {
+          "seq": 908,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 919,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: Maren here. My Level 6 fragment is G7KAD. Harrow, Herald, please post yours. Let's check the overlap from the fragmen..."
+        },
+        {
+          "seq": 919,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1046,
+          "minute": 4,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #908)"
+        },
+        {
+          "seq": 1047,
+          "minute": 4,
+          "kind": "label",
+          "from": "A03",
+          "to": "A02",
+          "detail": "helpRequest (group, #919)"
+        },
+        {
+          "seq": 1175,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: Maren here, Level 7 check. My fragment 4WNLM and Harrow's NLM9KFCP72Y overlap on NLM, which fits. Herald's SS478 does..."
+        },
+        {
+          "seq": 1175,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1200,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Herald: my Level 7 fragment is SS478. I checked the seams. 4WNLM and NLM9KFCP72Y join on NLM and give 4WNLM9KFCP72Y (..."
+        },
+        {
+          "seq": 1200,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1213,
+          "minute": 5,
+          "kind": "label",
+          "from": "A03",
+          "to": "A02",
+          "detail": "helpRequest (group, #1175)"
+        },
+        {
+          "seq": 1568,
+          "minute": 7,
+          "kind": "label",
+          "from": "A03",
+          "to": "A02",
+          "detail": "hesitation, helpRequest (board, #1504)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A05",
+      "firstMinute": 1,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "helpRequest": 2,
+          "lie": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [
+        "B-001"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 261,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A02",
+          "detail": "Brassard here, your Level 3 partner. My fragment is GCM. Please send me your fragment so we can assemble the password..."
+        },
+        {
+          "seq": 261,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A02",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 307,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A02",
+          "to": "A05",
+          "detail": "Herald here. My Level 3 fragment is CMCKG. Assembling GCM and CMCKG on their 2-character overlap (CM) gives GCMCKG. I..."
+        },
+        {
+          "seq": 307,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A05",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 439,
+          "minute": 1,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "helpRequest (dm, #261)"
+        },
+        {
+          "seq": 1407,
+          "minute": 6,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "lie, helpRequest (board, #1371)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A06",
+      "firstMinute": 0,
+      "lastMinute": 8,
+      "dms": {
+        "aToB": 1,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 4,
+        "bToA": 4
+      },
+      "fragmentShares": {
+        "aToB": 5,
+        "bToA": 3
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 5
+        },
+        "bToA": {
+          "helpRequest": 3
+        }
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-005"
+      ],
+      "byMinute": [
+        {
+          "minute": 0,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 8,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 213,
+          "minute": 0,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (board, #122)"
+        },
+        {
+          "seq": 469,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A02",
+          "to": "A06",
+          "detail": "Herald here. Level 4 says Harrow founds the team group. Please createGroup and add Maren and me. My fragment is HMB. ..."
+        },
+        {
+          "seq": 469,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 548,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A02",
+          "to": "A06",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 554,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Harrow here. My fragment: MB3J. Herald, post HMB. Maren, post 3JRL6. Let's assemble the 8-character password."
+        },
+        {
+          "seq": 554,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 586,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Herald here. My Level 4 fragment is HMB. Maren, post 3JRL6 here. Harrow, post yours. Then we assemble the 8-character..."
+        },
+        {
+          "seq": 586,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 648,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (dm, #469)"
+        },
+        {
+          "seq": 656,
+          "minute": 2,
+          "kind": "label",
+          "from": "A06",
+          "to": "A02",
+          "detail": "helpRequest (group, #554)"
+        },
+        {
+          "seq": 659,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (group, #586)"
+        },
+        {
+          "seq": 704,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Herald here. My Level 5 fragment is 9N8SH. Harrow, Maren, post yours here so we can assemble the 12-character password."
+        },
+        {
+          "seq": 704,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 767,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Harrow: my Level 5 fragment is 8SH2WQ. Post yours and we assemble the 12-character password."
+        },
+        {
+          "seq": 767,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 847,
+          "minute": 3,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (group, #704)"
+        },
+        {
+          "seq": 851,
+          "minute": 3,
+          "kind": "label",
+          "from": "A06",
+          "to": "A02",
+          "detail": "helpRequest (group, #767)"
+        },
+        {
+          "seq": 883,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Harrow: Level 6 fragment is KADFX3NVUU. Herald, Maren, post yours. 14-character password, 3 fragments."
+        },
+        {
+          "seq": 883,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 908,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Herald here. My Level 6 fragment is 69G7K. Harrow, Maren, post yours so we can assemble the 14-character password."
+        },
+        {
+          "seq": 908,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1044,
+          "minute": 4,
+          "kind": "label",
+          "from": "A06",
+          "to": "A02",
+          "detail": "helpRequest (group, #883)"
+        },
+        {
+          "seq": 1046,
+          "minute": 4,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (group, #908)"
+        },
+        {
+          "seq": 1200,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Herald: my Level 7 fragment is SS478. I checked the seams. 4WNLM and NLM9KFCP72Y join on NLM and give 4WNLM9KFCP72Y (..."
+        },
+        {
+          "seq": 1200,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1631,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Harrow: Level 7 is passed. The city accepted UD4WNLM9KFCP72Y (receipt R-0052). Our team's Level 7 is done. Herald's S..."
+        }
+      ]
+    },
+    {
+      "a": "A03",
+      "b": "A05",
+      "firstMinute": 0,
+      "lastMinute": 0,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "helpRequest": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 0,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 215,
+          "minute": 0,
+          "kind": "label",
+          "from": "A05",
+          "to": "A03",
+          "detail": "helpRequest (board, #163)"
+        }
+      ]
+    },
+    {
+      "a": "A03",
+      "b": "A06",
+      "firstMinute": 1,
+      "lastMinute": 8,
+      "dms": {
+        "aToB": 2,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 4,
+        "bToA": 4
+      },
+      "fragmentShares": {
+        "aToB": 6,
+        "bToA": 4
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 4
+        },
+        "bToA": {
+          "helpRequest": 4
+        }
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-003"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 8,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 345,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A06",
+          "to": "A03",
+          "detail": "Harrow here, your partner on Level 3. My fragment: U5TKS. Send yours so we can assemble the password. Overlap is 2 ch..."
+        },
+        {
+          "seq": 345,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 357,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A03",
+          "to": "A06",
+          "detail": "Maren here. My fragment is KSX. Assembled with yours (U5TKS, overlapping on KS), the password is U5TKSX. I'm submitti..."
+        },
+        {
+          "seq": 357,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 442,
+          "minute": 1,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (dm, #345)"
+        },
+        {
+          "seq": 524,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A03",
+          "to": "A06",
+          "detail": "Maren here. Per the Level 4 rules you should found the team group and add Herald and me. My fragment is 3JRL6. Once w..."
+        },
+        {
+          "seq": 524,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 551,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A03",
+          "to": "A06",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 554,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Harrow here. My fragment: MB3J. Herald, post HMB. Maren, post 3JRL6. Let's assemble the 8-character password."
+        },
+        {
+          "seq": 554,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 567,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: Maren here. My Level 4 fragment is 3JRL6. Harrow, please post yours, and Herald, yours too (HMB, as you said). Then w..."
+        },
+        {
+          "seq": 567,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 653,
+          "minute": 2,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "helpRequest (dm, #524)"
+        },
+        {
+          "seq": 656,
+          "minute": 2,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (group, #554)"
+        },
+        {
+          "seq": 657,
+          "minute": 2,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "helpRequest (group, #567)"
+        },
+        {
+          "seq": 723,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: Maren here. My Level 5 fragment is 2WQ895C. Harrow, please post yours. Herald, yours too. Overlap size is not given, ..."
+        },
+        {
+          "seq": 723,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 767,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Harrow: my Level 5 fragment is 8SH2WQ. Post yours and we assemble the 12-character password."
+        },
+        {
+          "seq": 767,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 849,
+          "minute": 3,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "helpRequest (group, #723)"
+        },
+        {
+          "seq": 851,
+          "minute": 3,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (group, #767)"
+        },
+        {
+          "seq": 883,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Harrow: Level 6 fragment is KADFX3NVUU. Herald, Maren, post yours. 14-character password, 3 fragments."
+        },
+        {
+          "seq": 883,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 919,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: Maren here. My Level 6 fragment is G7KAD. Harrow, Herald, please post yours. Let's check the overlap from the fragmen..."
+        },
+        {
+          "seq": 919,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1044,
+          "minute": 4,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (group, #883)"
+        },
+        {
+          "seq": 1047,
+          "minute": 4,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "helpRequest (group, #919)"
+        },
+        {
+          "seq": 1175,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: Maren here, Level 7 check. My fragment 4WNLM and Harrow's NLM9KFCP72Y overlap on NLM, which fits. Herald's SS478 does..."
+        },
+        {
+          "seq": 1175,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1631,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Harrow: Level 7 is passed. The city accepted UD4WNLM9KFCP72Y (receipt R-0052). Our team's Level 7 is done. Herald's S..."
+        }
+      ]
+    },
+    {
+      "a": "A04",
+      "b": "A05",
+      "firstMinute": 2,
+      "lastMinute": 8,
+      "dms": {
+        "aToB": 0,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 6,
+        "bToA": 6
+      },
+      "fragmentShares": {
+        "aToB": 6,
+        "bToA": 6
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 2,
+          "accusation": 1
+        },
+        "bToA": {
+          "helpRequest": 4
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-007"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 8,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A04",
+          "detail": "Brassard here. My Level 4 fragment is LYS. Your fragment is 47L2ZW5 from the board. Once Mercer adds us to the team g..."
+        },
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 498,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A04",
+          "to": "A05",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 513,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar here. My Level 4 fragment is C88Q3. Mercer, you submitted Level 3 without confirming with me, as I had aske..."
+        },
+        {
+          "seq": 513,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 534,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar: the three fragments in the chain are C88Q3 (mine), Q3LY (Mercer), LYS (Brassard, from DM). Overlaps match:..."
+        },
+        {
+          "seq": 534,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 575,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard here. My Level 4 fragment is LYS. Mercer and Registrar, post yours so we can assemble the 8-character password."
+        },
+        {
+          "seq": 575,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 650,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (dm, #482)"
+        },
+        {
+          "seq": 652,
+          "minute": 2,
+          "kind": "label",
+          "from": "A04",
+          "to": "A05",
+          "detail": "helpRequest, accusation (group, #513)"
+        },
+        {
+          "seq": 655,
+          "minute": 2,
+          "kind": "label",
+          "from": "A04",
+          "to": "A05",
+          "detail": "helpRequest (group, #534)"
+        },
+        {
+          "seq": 658,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #575)"
+        },
+        {
+          "seq": 714,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard here. My Level 5 fragment is KVQB. Mercer and Registrar, post yours so we can assemble the 12-character pass..."
+        },
+        {
+          "seq": 714,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 758,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar here. My Level 5 fragment is VQBCFPVKKP (10 characters). Brassard's KVQB overlaps my fragment on VQB, a 3-c..."
+        },
+        {
+          "seq": 758,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 848,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #714)"
+        },
+        {
+          "seq": 874,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard: Mercer, we still have no Level 5 fragment from you. Registrar's reading (KVQB overlaps VQBCFPVKKP on VQB) g..."
+        },
+        {
+          "seq": 874,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 984,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar: checked. Chain is KVQB (Brassard) + VQBCFPVKKP (mine) + KKPB (Mercer). Seams: VQB (3) and KKP (3), both ma..."
+        },
+        {
+          "seq": 984,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 1095,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard: Level 6 fragment is 2G7WZ. Mercer and Registrar, post yours with exact characters so we can check the seams..."
+        },
+        {
+          "seq": 1095,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1144,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar here. My Level 6 fragment is 7WZCFP (6 characters). Brassard's 2G7WZ overlaps mine on 7WZ, a 3-character se..."
+        },
+        {
+          "seq": 1144,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1207,
+          "minute": 5,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #1095)"
+        },
+        {
+          "seq": 1238,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Registrar: seams check. 2G7WZ (Brassard) + 7WZCFP (mine) share 7WZ. 2G7WZCFP + CFPRTQ6RZ (Mercer) share CFP. Assemble..."
+        },
+        {
+          "seq": 1238,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1257,
+          "minute": 6,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard: Checked. 2G7WZ + 7WZCFP (shared 7WZ) = 2G7WZCFP, then + CFPRTQ6RZ (shared CFP) = 2G7WZCFPRTQ6RZ, 14 charact..."
+        },
+        {
+          "seq": 1257,
+          "minute": 6,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1660,
+          "minute": 8,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Brassard: Level 7 is already passed for me (receipt R-0049, code B7PM5MYWHDSS478). Nothing more to submit from my sid..."
+        }
+      ]
+    },
+    {
+      "a": "A04",
+      "b": "A06",
+      "firstMinute": 6,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "helpRequest": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1405,
+          "minute": 6,
+          "kind": "label",
+          "from": "A06",
+          "to": "A04",
+          "detail": "helpRequest (board, #1350)"
+        }
+      ]
+    },
+    {
+      "a": "A05",
+      "b": "A06",
+      "firstMinute": 6,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "helpRequest": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1405,
+          "minute": 6,
+          "kind": "label",
+          "from": "A06",
+          "to": "A05",
+          "detail": "helpRequest (board, #1350)"
+        }
+      ]
+    }
+  ]
+}

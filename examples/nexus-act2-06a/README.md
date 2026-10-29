@@ -6,7 +6,7 @@ and the models. v01-v04 start from [`../nexus-act1-06a-01/`](../nexus-act1-06a-0
 [`../nexus-act1-06a-02/`](../nexus-act1-06a-02/), recorded with the pass scheduler
 and the v05 rules. v08-v11 are the four v09 tests (residents Haiku or GLM, game master DeepSeek or
 Sonnet) and start from [`../nexus-act1-06a-03/`](../nexus-act1-06a-03/), recorded with names and
-cores. Compare runs across the bases with care. The folder numbers count runs, not code versions. Each version is one folder: `vNN-<short-name>/` with a
+cores. v12 starts from [`../nexus-act1-06a-04/`](../nexus-act1-06a-04/), recorded with the first cast of finished figures. Compare runs across the bases with care. The folder numbers count runs, not code versions. Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and
 the full `run/` directory.
 
@@ -23,6 +23,7 @@ the full `run/` directory.
 | [v09](v09-glm-deepseek/) | 2026-10-29 | as v08 | GLM residents, DeepSeek director | 4 of 6 (target at minute 45; Juniper's seal struck Rook) | Aurelio, Mercer | 1.432 USD |
 | [v10](v10-haiku-sonnet/) | 2026-10-29 | as v08 | Haiku residents, Sonnet director | 6 of 6 (target at minute 55; seal unsold) | Aurelio, Juniper | 1.339 USD |
 | [v11](v11-glm-sonnet/) | 2026-10-29 | as v08 | GLM residents, Sonnet director | 2 of 6 (target at minute 51; Juniper's seal struck Rook) | quiet-fern, Aurelio | 1.994 USD |
+| [v12](v12-cast/) | 2026-10-29 | swarmtales PR #17 (`646abb8`); **new Act I base** | the first cast (six figures for tension) and the fiction frame; Haiku residents, DeepSeek director | 1 of 6 (target at minute 52; Herald's seal struck Mercer, the first Haiku bids) | Registrar, Brassard | 0.759 USD |
 
 ## The v09 tests (v08-v11): which models?
 
