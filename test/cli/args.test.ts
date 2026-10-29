@@ -53,6 +53,14 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--judge-temper", "cruel"])).toThrow(UsageError);
 	});
 
+	it("parses --budget as a positive number of USD (P47)", () => {
+		expect(parseStartArgs(["--budget", "8"])).toMatchObject({ overrides: { budgetUsd: 8 } });
+		expect(parseStartArgs(["--budget", "0.5"])).toMatchObject({ overrides: { budgetUsd: 0.5 } });
+		expect(parseStartArgs([]).overrides).not.toHaveProperty("budgetUsd");
+		expect(() => parseStartArgs(["--budget", "0"])).toThrow(/--budget/);
+		expect(() => parseStartArgs(["--budget", "lots"])).toThrow(/--budget/);
+	});
+
 	it("parses the weaver's flags: off by default, its model only with --weaver", () => {
 		expect(parseStartArgs([]).overrides.weaver).toBeUndefined();
 		expect(parseStartArgs(["--weaver"])).toMatchObject({ overrides: { weaver: true } });
