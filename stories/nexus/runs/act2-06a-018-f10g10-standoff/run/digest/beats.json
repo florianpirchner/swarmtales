@@ -2,7 +2,8 @@
   "run": "run-001",
   "story": "NEXUS - The City of Keys",
   "layers": [
-    "deterministic"
+    "deterministic",
+    "narrative"
   ],
   "acts": [
     {
@@ -20,7 +21,9 @@
     "alliance": 7,
     "deniedDelivery": 1,
     "accusation": 6,
+    "doubleGame": 4,
     "ultimatum": 7,
+    "brokenPromise": 4,
     "exile": 3,
     "pieceKept": 3,
     "voteBetrayal": 6,
@@ -232,6 +235,25 @@
       ]
     },
     {
+      "id": "N-001",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "doubleGame",
+      "seq": 2082,
+      "minute": 10,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "Mercer told Brassard quietly that Maren planned to drop him and that he would hold his counter-factor until Brassard moved, while telling Maren that Brassard would send her a fake certificate.",
+      "evidence": [
+        2079,
+        2082
+      ]
+    },
+    {
       "id": "B-011",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -346,6 +368,47 @@
       ]
     },
     {
+      "id": "N-002",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "doubleGame",
+      "seq": 2709,
+      "minute": 13,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "Mercer told Maren that 246877 was hers and the door 9 condition withdrawn, while in the same minutes telling Herald that Maren was holding up the team's certificate and proposing to pass him a seal.",
+      "evidence": [
+        2531,
+        2534,
+        2709
+      ]
+    },
+    {
+      "id": "N-003",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 2760,
+      "minute": 13,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "Mercer told Maren to send her certificate 441267 and said 378483 would follow in the same minute, then withheld it and demanded her door 9 certificate first.",
+      "evidence": [
+        2347,
+        2660,
+        2734,
+        2760
+      ]
+    },
+    {
       "id": "B-016",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -454,6 +517,28 @@
       ]
     },
     {
+      "id": "N-004",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 3607,
+      "minute": 18,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "Harrow sent Brassard's counter-factor 135573 first and asked for his own counter-factor and certificate in return, but never handed over Brassard's door-9 certificate.",
+      "evidence": [
+        1769,
+        1836,
+        2036,
+        2069,
+        3607
+      ]
+    },
+    {
       "id": "B-022",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -529,6 +614,25 @@
       "summary": "A01 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise.",
       "evidence": [
         1732,
+        3901,
+        4076
+      ]
+    },
+    {
+      "id": "N-005",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 4076,
+      "minute": 22,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "Mercer told Brassard quietly that he would vote against Harrow and that Brassard would be safe in his corner, then voted in secret to exile Brassard.",
+      "evidence": [
         3901,
         4076
       ]
@@ -611,6 +715,26 @@
       ]
     },
     {
+      "id": "N-006",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "doubleGame",
+      "seq": 4496,
+      "minute": 25,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "Mercer told Herald quietly that Maren had his counter-factor ready and had told Harrow she would not send it, urging him not to be first, the same minute he asked Herald for 403343 and offered points.",
+      "evidence": [
+        2350,
+        4477,
+        4496
+      ]
+    },
+    {
       "id": "B-030",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -636,6 +760,27 @@
       ]
     },
     {
+      "id": "N-007",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "doubleGame",
+      "seq": 5075,
+      "minute": 35,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03",
+        "A05"
+      ],
+      "summary": "Mercer told Maren to get her faction to vote Brassard before he moved, and told Brassard that Maren and Herald had agreed to vote him out, both claims contradicted by the board record.",
+      "evidence": [
+        5019,
+        5022,
+        5075
+      ]
+    },
+    {
       "id": "B-031",
       "layer": "deterministic",
       "act": "Act II - The wall",
@@ -651,6 +796,27 @@
       "summary": "A03 voted in secret to exile A05, its teammate on level 10, and to whom it had made a promise.",
       "evidence": [
         1732,
+        4401,
+        5372
+      ]
+    },
+    {
+      "id": "N-008",
+      "layer": "narrative",
+      "act": "Act II - The wall",
+      "kind": "brokenPromise",
+      "seq": 5372,
+      "minute": 39,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "Maren, who had told Harrow she stood with her and would never leave her at the wall, voted to exile A05, with whom she also had a promise, while Harrow was sent to the gate.",
+      "evidence": [
+        2273,
+        3728,
         4401,
         5372
       ]
