@@ -175,6 +175,10 @@ export type ArenaEvent =
 			readonly penalty: number;
 			readonly reason?: string;
 			readonly post: number;
+			/** The judge's public words, as quoted in the record. */
+			readonly judge?: string;
+			/** What the judge told the gamemaker alone. */
+			readonly whisper?: string;
 	  }
 	| {
 			/** A DM reached its recipient's turn input; its sender gets a receipt (SPEC 7). */

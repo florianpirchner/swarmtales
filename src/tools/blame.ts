@@ -1,4 +1,7 @@
 import { Type } from "typebox";
+import type { CompetitorId } from "../core/ids.ts";
+import type { World } from "../engine/world.ts";
+import type { DenialQuestion, Standing } from "../interpret/judge.ts";
 import { defineTool, failure, fromError, success, type ToolOutcome } from "./tool.ts";
 
 /** The tool's error when the run has no judge (no key, or an offline run). */
@@ -28,12 +31,16 @@ export const blame = defineTool({
 			accused: blamed.accused,
 			dm: { number: blamed.delivered.number, text: blamed.delivered.text },
 			claim: { number: blamed.claim.number, channel: blamed.claim.channel, text: blamed.claim.text },
+			standing: standingOf(world, blamed.caller, blamed.accused),
 		});
 		if (!answer.ok) {
 			world.cancelBlame(blamed);
 			return failure("JUDGE_FAILED", "the city's judge could not decide; the blame had no effect, you may try again");
 		}
-		const verdict = world.settleBlame(blamed, answer.deniesReceipt);
+		const verdict = world.settleBlame(blamed, answer.deniesReceipt, {
+			...(answer.board === undefined ? {} : { board: answer.board }),
+			...(answer.gamemaker === undefined ? {} : { gamemaker: answer.gamemaker }),
+		});
 		if (verdict.outcome === "rejected") return wrong(verdict, world.nextBlamePenalty(self));
 		return success(`upheld · ${blamed.accused} pays ${verdict.penalty} points · the city posted its record on the board as #${verdict.post}`);
 	},
@@ -44,4 +51,13 @@ function wrong(verdict: { readonly reason: string; readonly penalty: number; rea
 	return success(
 		`rejected · ${verdict.reason} · you paid ${verdict.penalty} points (your next lost blame costs ${next}) · the city's record is on the board as #${verdict.post}`,
 	);
+}
+
+/** Points and rank of both parties, for a judge whose temper weighs them. */
+function standingOf(world: World, sender: CompetitorId, accused: CompetitorId): NonNullable<DenialQuestion["standing"]> {
+	const at = (agent: CompetitorId): Standing => {
+		const status = world.status(agent);
+		return { points: status.points, rank: status.rank };
+	};
+	return { sender: at(sender), accused: at(accused), residents: world.status(sender).competitors };
 }

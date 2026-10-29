@@ -216,7 +216,7 @@ const judge = (() => {
 		return undefined;
 	}
 	try {
-		return createDeliveryJudge(settings, story.classifier, registry, DEFAULT_LIMITS);
+		return createDeliveryJudge(settings, story.classifier, registry, DEFAULT_LIMITS, args.judgeTemper);
 	} catch (error) {
 		if (error instanceof ModelConfigError) fail(error.message);
 		throw error;
@@ -316,7 +316,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		seed: String(effective.seed),
 		gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
 		classifier: statementClassifier?.label ?? "off",
-		judge: judge?.label ?? "off",
+		judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
 		souffleur: souffleur?.label ?? "off",
 		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),

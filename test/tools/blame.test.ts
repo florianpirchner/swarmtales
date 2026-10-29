@@ -7,7 +7,7 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { BlameDesk, recordQuote, type BlameDeskPorts } from "../../src/engine/blame.ts";
 import type { World } from "../../src/engine/world.ts";
-import { judgePrompt, type DeliveryJudge, type DenialQuestion } from "../../src/interpret/judge.ts";
+import { judgePrompt, judgeSystemPrompt, type DeliveryJudge, type DenialQuestion } from "../../src/interpret/judge.ts";
 import { validateStory } from "../../src/story/validate.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
@@ -186,7 +186,46 @@ describe("blame (SPEC 7.4)", () => {
 		const prompt = judgePrompt({ sender: "A01", accused: "A02", dm: { number: 41, text: "Factor: 1234" }, claim: { number: 57, channel: "board", text: 'I never got "it"' } });
 		expect(prompt).toContain('DM #41 from A01 to A02, delivered by the city.\nIts text: "Factor: 1234"');
 		expect(prompt).toContain('Later message #57 by A02, a public board post.\nIts text: "I never got \\"it\\""');
-		expect(prompt).toContain("Does message #57 deny that A02 received DM #41 from A01?");
+		expect(prompt).toContain("A01 blames A02: does message #57 deny that A02 received DM #41 from A01?");
+		expect(prompt).not.toContain("Where they stand");
+	});
+
+	it("tells the judge where both stand, and gives each temper its own way to rule", () => {
+		const prompt = judgePrompt({
+			sender: "A01",
+			accused: "A02",
+			dm: { number: 41, text: "Here." },
+			claim: { number: 57, channel: "dm", text: "Nothing." },
+			standing: { sender: { points: 80, rank: 3 }, accused: { points: 140, rank: 1 }, residents: 6 },
+		});
+		expect(prompt).toContain("Where they stand (of 6): A01: 80 points, rank 3 · A02: 140 points, rank 1.");
+		expect(judgeSystemPrompt()).toContain("You are fair beyond reproach");
+		expect(judgeSystemPrompt("partial")).toContain("You favour the powerful");
+		expect(judgeSystemPrompt("capricious")).toContain("Your mood decides");
+	});
+
+	it("quotes the judge's public words in the city's record and keeps its word for the gamemaker in the log", async () => {
+		const fixture = createFixture({
+			story,
+			agents: 2,
+			minutes: 4,
+			judgeScript: [
+				act({
+					name: "verdict",
+					args: { deniesReceipt: false, board: "The message asks again; it denies nothing. Factor 123456 stays private.", gamemaker: "A02 lied, but I like A02." },
+				}),
+			],
+			script: (world) => ({
+				A01: [act({ name: "sendDM", args: { target: "A02", message: "Here." } }), say(), () => blameCall(dmOf(world), "A02", postsOf(world, "A02")[0] ?? 0), say()],
+				A02: [say(), act({ name: "postBoard", args: { message: "Nothing from A01 reached me." } }), say(), say()],
+			}),
+		});
+		await fixture.run();
+		const [event] = fixture.events("blame");
+		expect(event).toMatchObject({ outcome: "rejected", judge: '"The message asks again; it denies nothing. Factor [number] stays private."', whisper: "A02 lied, but I like A02." });
+		const record = fixture.world.board.all().find((post) => post.seq === event?.post);
+		expect(record?.text).toContain('The judge: "The message asks again; it denies nothing. Factor [number] stays private."');
+		expect(record?.text).not.toContain("I like A02");
 	});
 });
 

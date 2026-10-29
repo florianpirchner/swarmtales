@@ -47,6 +47,12 @@ describe("pnpm start arguments", () => {
 		expect(effectiveRun(nexus, { agents: 48, blockSize: 4 }).blockSize).toBe(4);
 	});
 
+	it("parses the judge's temper", () => {
+		expect(parseStartArgs(["--judge-temper", "partial"]).judgeTemper).toBe("partial");
+		expect(parseStartArgs([]).judgeTemper).toBeUndefined();
+		expect(() => parseStartArgs(["--judge-temper", "cruel"])).toThrow(UsageError);
+	});
+
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
 		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { cores: false } });

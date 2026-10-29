@@ -10,6 +10,8 @@ import type { EventSink, RecordedEvent } from "../engine/events.ts";
 
 /** Transcript file of the gamemaker (`agents/GM.md`). */
 const GAMEMAKER_FILE = "GM";
+/** Transcript file of the city's judge (`agents/judge.md`): its rulings and both of its channels. */
+const JUDGE_FILE = "judge";
 
 export class AgentTranscriptLog implements EventSink {
 	readonly #lastTools = new Map<CompetitorId, string>();
@@ -68,6 +70,18 @@ export class AgentTranscriptLog implements EventSink {
 			case "turn_error":
 				this.#write(event.agent, `\n**Turn error:** ${event.message}\n`);
 				return;
+			case "blame": {
+				const ruling = event.outcome === "upheld" ? `upheld: ${event.accused} lied` : `rejected: ${event.caller} accused falsely`;
+				const words = [
+					...(event.judge === undefined ? [] : [`On the board: ${event.judge}`]),
+					...(event.whisper === undefined ? [] : [`To the gamemaker: ${quote(event.whisper)}`]),
+				];
+				this.#write(
+					JUDGE_FILE,
+					`\n## Minute ${event.minute}: ${event.caller} blames ${event.accused} (DM #${event.dm}, message #${event.claim})\n\n**${ruling}**, ${event.payer} pays ${event.penalty}${event.reason === undefined ? "" : ` (${event.reason})`}\n${words.map((line) => `\n${line}\n`).join("")}`,
+				);
+				return;
+			}
 			case "souffleur_rewrite":
 				this.#write(event.agent, `\n**Souffleur:** the step again${event.error === undefined ? ", rewritten" : `, without its inputs (${event.error})`}\n`);
 				return;
@@ -117,7 +131,6 @@ export class AgentTranscriptLog implements EventSink {
 			case "board_post":
 			case "dm_sent":
 			case "dm_delivered":
-			case "blame":
 			case "tribunal_announced":
 			case "tribunal_scheduled":
 			case "tribunal_cancelled":

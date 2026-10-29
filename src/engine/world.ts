@@ -16,7 +16,7 @@ import { bequestCap } from "../story/tribunal.ts";
 import type { AnyStory, LevelDefinition, MarksChannel } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
-import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict } from "./blame.ts";
+import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
 import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
 import { dealCores, type Core } from "./cores.ts";
@@ -1548,8 +1548,8 @@ export class World {
 	}
 
 	/** Records the judge's answer: upheld goes on the board, wrong costs the caller. */
-	settleBlame(blame: BlameCase, deniesReceipt: boolean): BlameVerdict {
-		return this.#blames.settle(blame, deniesReceipt);
+	settleBlame(blame: BlameCase, deniesReceipt: boolean, words?: JudgeWords): BlameVerdict {
+		return this.#blames.settle(blame, deniesReceipt, words);
 	}
 
 	/** The judge could not answer: the blame has no effect and may be made again. */

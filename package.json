@@ -20,6 +20,7 @@
     "digest": "tsx src/cli/digest.ts",
     "lab": "tsx lab/lab.ts",
     "lab:orders": "tsx lab/orders.ts",
+    "lab:judge": "tsx lab/judge.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm validate"
   },
   "dependencies": {
