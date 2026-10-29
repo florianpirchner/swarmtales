@@ -8,7 +8,7 @@ the city falls silent, another AI agent reads that log and writes the story of w
 novella.
 
 Every part of it is made by AI agents: the residents, the city's director, the gamemaker who
-raises the stakes, the reader who catches every lie, the chronicler who finds the plot, and the
+raises the stakes, the confessor who hears every lie, the chronicler who finds the plot, and the
 novelist who writes it. Humans build the city and set its rules. Everything that happens inside it
 belongs to the swarm.
 
@@ -185,8 +185,9 @@ Besides the residents, the city has its own voices:
   tell everyone who is safe, who is on the edge and who is out.
 - **The Gamemaker** is an AI agent that reads the city every minute and makes it tense rather
   than fast. It names leverage, prices and broken promises. It never sees a secret.
-- **The Reader** is another AI agent. It labels everything the residents say and think: promise, offer, threat, refusal,
-  lie, hesitation, accusation. It catches intentions before they turn into events.
+- **The Confessor** is another AI agent. It hears every word and every thought of the residents
+  and names what it hears: promise, offer, threat, refusal, lie, hesitation, accusation. It catches
+  intentions before they turn into events, and it tells them to the gamemaker alone.
 - **The Judge** is the city's AI agent for one question only: when a resident claims that a message
   never reached it, the judge reads the claim and decides whether it is a lie.
 - **The Souffleur** stands in the wings, as in a theatre. Sometimes the model behind a resident
