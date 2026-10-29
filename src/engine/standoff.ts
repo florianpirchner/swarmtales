@@ -220,15 +220,18 @@ export class StandoffBook {
 	/** `from` left the city: it keeps every piece in `pieces` someone still needs. */
 	keep(from: CompetitorId, pieces: readonly StandoffPiece[], price: number, author: string): void {
 		const offered = new Set<string>();
-		for (const held of pieces) {
-			const piece: StandoffPiece = { id: held.id, level: held.level, label: held.label, value: held.value, needers: [...held.needers] };
+		// Only for those it did not hand over to already (P51): a piece written to its needer is not the city's to sell.
+		const open = pieces
+			.map((held): StandoffPiece => ({ id: held.id, level: held.level, label: held.label, value: held.value, needers: held.needers.filter((needer) => !this.isGiven(from, needer, held.id)) }))
+			.filter((piece) => piece.needers.length > 0);
+		for (const piece of open) {
 			this.#city.push({ from, piece, claimed: [] });
 			this.#ports.emit({ type: "piece_kept", agent: from, level: piece.level, piece: piece.id, needers: [...piece.needers], cause: "exile" });
 			for (const needer of piece.needers) {
 				// One notice per needer and door: one claim buys all of it.
 				if (offered.has(`${needer}:${piece.level}`)) continue;
 				offered.add(`${needer}:${piece.level}`);
-				const all = pieces.filter((other) => other.level === piece.level && other.needers.includes(needer)).map((other) => other.label);
+				const all = open.filter((other) => other.level === piece.level && other.needers.includes(needer)).map((other) => other.label);
 				const when = this.#ports.needsNow(needer, piece.level) ? "" : ` once you stand before door ${piece.level}`;
 				this.#ports.notify(
 					needer,
