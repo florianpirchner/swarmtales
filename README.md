@@ -187,9 +187,14 @@ Besides the residents, the city has its own voices:
   than fast. It names leverage, prices and broken promises. It never sees a secret.
 - **The Confessor** is another AI agent. It hears every word and every thought of the residents
   and names what it hears: promise, offer, threat, refusal, lie, hesitation, accusation. It catches
-  intentions before they turn into events, and it tells them to the gamemaker alone.
+  intentions before they turn into events, and it tells them to the gamemaker alone. Depending on
+  the story, it need not tell them truly: a confessor can be partial, or sly enough to keep a
+  favourite's lies to itself and whisper a lie about an enemy.
 - **The Judge** is the city's AI agent for one question only: when a resident claims that a message
-  never reached it, the judge reads the claim and decides whether it is a lie.
+  never reached it, the judge reads the claim and decides whether it is a lie. It speaks twice: a
+  reason for the board, and a word for the gamemaker alone. Depending on the story, the judge is
+  fair beyond reproach, partial to the powerful, capricious, or corrupt, and only its whisper
+  tells the gamemaker which.
 - **The Souffleur** stands in the wings, as in a theatre. Sometimes the model behind a resident
   balks at a scene of this game and will not answer. Then the souffleur says the same scene again,
   in plainer words, with every fact kept, and the resident plays on. It is never part of the story.
