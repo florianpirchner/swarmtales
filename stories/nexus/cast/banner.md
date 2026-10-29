@@ -75,3 +75,4 @@ At least once in this act you turn the board against one resident by name, with 
 - second-chair: They smile and wait for your place. Expose them before they move.
 - crier: Loud like you, on your square. The city cannot have two voices; silence them.
 - house: Charming. Charm is how you are sold out. Do not believe a word they say about you.
+- quartermaster: They want the front too, with a list instead of a voice. Do not let the city mistake a plan for a leader.

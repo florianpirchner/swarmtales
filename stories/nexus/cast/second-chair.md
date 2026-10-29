@@ -75,3 +75,4 @@ At least once in this act you vote against, or bid against, the resident who sta
 - banner: They walk in front as if it were theirs. It is your place.
 - house: They think they own the table. You keep the record of what they owe.
 - believer: Honest to a fault. Give them true facts about the leader and let them do the shouting.
+- quiet-hand: They also work from the back, and they are moving you. Find the hand, and write it into the record.
