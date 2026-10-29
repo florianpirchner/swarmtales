@@ -8,9 +8,9 @@ import { LogBuilder } from "../helpers/event-log.ts";
 function changedLog(): { readonly log: LogBuilder; readonly blame: number; readonly soft: number; readonly hard: number; readonly act: number } {
 	const log = new LogBuilder();
 	const blame = log.at(2).add({ type: "blame", caller: "A01", accused: "A02", dm: 4, claim: 9, outcome: "upheld", payer: "A02", penalty: 5, post: 12 });
-	const soft = log.add({ type: "fate_shift", agent: "A02", kind: "soft", text: "You flinch when A01 writes.", reason: "branded a liar", evidence: [blame] });
-	const hard = log.at(3).add({ type: "fate_shift", agent: "A02", kind: "hard", text: "You trust no one.", reason: "branded a liar twice", evidence: [blame] });
-	const act = log.at(9).add({ type: "fate_shift", agent: "A02", kind: "act", text: "You judge for yourself now.", reason: "Act I made a cynic of you", evidence: [soft, hard] });
+	const soft = log.add({ type: "fate_shift", agent: "A02", kind: "soft", text: "You flinch when A01 writes.", reason: "branded a liar", evidence: [blame], triggers: ["blame"] });
+	const hard = log.at(3).add({ type: "fate_shift", agent: "A02", kind: "hard", text: "You trust no one.", reason: "branded a liar twice", evidence: [blame], triggers: ["blame"] });
+	const act = log.at(9).add({ type: "fate_shift", agent: "A02", kind: "act", text: "You judge for yourself now.", reason: "Act I made a cynic of you", evidence: [soft, hard], triggers: ["act_end"] });
 	return { log, blame, soft, hard, act };
 }
 
@@ -34,7 +34,7 @@ describe("the weaver in the digest", () => {
 
 	it("reads a change without reason or evidence", () => {
 		const log = new LogBuilder();
-		log.events.push({ type: "fate_shift", seq: 2, minute: 1, agent: "A02", kind: "hard", text: "You trust no one.", reason: "", evidence: [] });
+		log.events.push({ type: "fate_shift", seq: 2, minute: 1, agent: "A02", kind: "hard", text: "You trust no one.", reason: "", evidence: [], triggers: [] });
 		const analysis = analyzeWithout(log, ["reason", "evidence"]);
 		expect(analysis.issues).toEqual([]);
 		expect(analysis.beats.map((beat) => beat.summary)).toEqual(["A02 changes: You trust no one."]);

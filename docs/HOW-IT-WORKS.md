@@ -122,7 +122,8 @@ the tribunal, the gate, an ally's exile, a paid ultimatum), and only those go to
 model (the classifier's, Haiku; `--weaver-provider` / `--weaver-model` change it). It answers
 with an inner voice at the end of the resident's next step, a rewrite of the character part of
 its system prompt, or nothing; at an act's end it writes one text for the next act. Every change
-is a `fate_shift` event, a line for the gamemaker and a section of `weaver.md`.
+is a `fate_shift` event, a line for the gamemaker (who changed and after what kind of event,
+never the text or the model's reason) and a section of `weaver.md`.
 
 `--provider scripted` needs no key. Its competitors read their solution from the world's
 observer view and submit it, so a whole run, including all artifacts, can be exercised offline.

@@ -6,7 +6,22 @@ import { AgentRunner, toolsNotice } from "../../src/agents/runner.ts";
 import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
 import { EventBus, MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
 import { INNER_VOICE_HEAD, MAX_HARD, MAX_SOFT, Weaver, type WeaverCity } from "../../src/interpret/weaver.ts";
-import { ChatWeaver, WEAVER_ID, weaverPrompt, type Weave, type WeaverAnswer, type WeaverModel, type WeaverQuestion } from "../../src/interpret/weaver-model.ts";
+import type { Souffleur } from "../../src/interpret/souffleur.ts";
+import {
+	ChatWeaver,
+	clip,
+	WEAVER_ID,
+	WEAVER_REASON_MAX,
+	WEAVER_TEXT_MAX,
+	weaverPrompt,
+	type Weave,
+	type WeaverAnswer,
+	type WeaverModel,
+	type WeaverQuestion,
+} from "../../src/interpret/weaver-model.ts";
+
+/** A step the provider's safeguards refused. */
+const refused = (): FauxResponseStep => fauxAssistantMessage("", { stopReason: "error", errorMessage: "This request triggered cyber-related safeguards." });
 import { act, say } from "../../src/model/scripted.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 
@@ -109,10 +124,14 @@ describe("the weaver", () => {
 		const { weaver, brand, shifts, log } = fixture([soft()]);
 		const seq = brand();
 		await weaver.afterRound();
-		expect(shifts()).toMatchObject([{ agent: "A02", kind: "soft", text: "Since A01 exposed you, you flinch when A01 writes.", reason: "branded a liar by A01", evidence: [seq] }]);
+		expect(shifts()).toMatchObject([{ agent: "A02", kind: "soft", text: "Since A01 exposed you, you flinch when A01 writes.", reason: "branded a liar by A01", evidence: [seq], triggers: ["blame"] }]);
 		expect(log.ofType("usage")).toMatchObject([{ agent: WEAVER_ID, costUsd: 0.001 }]);
-		expect(weaver.takeVoices("A02")).toEqual([`${INNER_VOICE_HEAD}Since A01 exposed you, you flinch when A01 writes.`]);
+		const voices = weaver.takeVoices("A02");
+		expect(voices).toEqual([`${INNER_VOICE_HEAD}Since A01 exposed you, you flinch when A01 writes.`]);
 		expect(weaver.takeVoices("A02")).toEqual([]);
+		// A step that lost its inputs gives the voice back; it comes first again.
+		weaver.returnVoices("A02", voices);
+		expect(weaver.takeVoices("A02")).toEqual(voices);
 		expect(weaver.shiftOf("A02")).toBeUndefined();
 	});
 
@@ -233,9 +252,18 @@ describe("the weaver's chat model", () => {
 
 	it("refuses a malformed answer, which the weaver treats as none", async () => {
 		expect(await ask(act({ name: "weave", args: { kind: "maybe", text: "You flinch.", reason: "x" } }))).toMatchObject({ ok: false });
-		expect(await ask(act({ name: "weave", args: { kind: "hard", text: "x".repeat(2_000), reason: "x" } }))).toMatchObject({ ok: false });
 		expect(await ask(act({ name: "weave", args: { kind: "soft" } }))).toMatchObject({ ok: false });
 		expect(await ask(say("Maren changes."))).toMatchObject({ ok: false, error: "the weaver answered without calling weave" });
+	});
+
+	it("cuts a text or reason that is too long instead of throwing the answer away", async () => {
+		const answer = await ask(act({ name: "weave", args: { kind: "hard", text: "word ".repeat(400), reason: "why ".repeat(100) } }));
+		expect(answer.ok).toBe(true);
+		if (!answer.ok) return;
+		expect(answer.weave.text.length).toBeLessThanOrEqual(WEAVER_TEXT_MAX);
+		expect(answer.weave.text.endsWith("word ...")).toBe(true);
+		expect(answer.weave.reason.length).toBeLessThanOrEqual(WEAVER_REASON_MAX);
+		expect(clip("  short  ", 10)).toBe("short");
 	});
 
 	it("shows the act's end as a request for one text for the next act", () => {
@@ -247,7 +275,7 @@ describe("the weaver's chat model", () => {
 });
 
 describe("the weaver in a resident's steps", () => {
-	function runner(steps: FauxResponseStep[], voices: string[][]) {
+	function runner(steps: FauxResponseStep[], voices: string[][], souffleur?: Souffleur) {
 		const events: RecordedEvent[] = [];
 		const bus = new EventBus([{ record: (event) => events.push(event) }], () => 3);
 		const resident = new AgentRunner({
@@ -259,7 +287,13 @@ describe("the weaver in a resident's steps", () => {
 			thinking: "off",
 			enabledTools: () => ["getStatus"],
 			minute: () => 3,
-			innerVoice: () => voices.shift() ?? [],
+			innerVoice: {
+				take: () => voices.shift() ?? [],
+				giveBack: (back) => {
+					voices.unshift([...back]);
+				},
+			},
+			...(souffleur === undefined ? {} : { souffleur }),
 		});
 		const step = (...texts: string[]) => resident.step(texts.map((text) => ({ kind: "notice" as const, text })), { pass: 1, block: 1, turn: Promise.resolve() });
 		const inputs = () => events.flatMap((event: RecordedEvent) => (event.type === "turn_input" ? [event.inputs] : []));
@@ -271,6 +305,25 @@ describe("the weaver in a resident's steps", () => {
 		await step("[status] minute 3");
 		await step("[status] minute 3");
 		expect(inputs()).toEqual([["[status] minute 3", toolsNotice(["getStatus"]), `${INNER_VOICE_HEAD}You flinch.`], ["[status] minute 3"]]);
+	});
+
+	it("hears an inner voice again with the next step when a refused step lost it, with or without a souffleur that fails", async () => {
+		const voice = `${INNER_VOICE_HEAD}You flinch.`;
+		const plain = runner([refused(), say()], [[voice]]);
+		await plain.step("one");
+		await plain.step("two");
+		expect(plain.inputs().at(-1)).toEqual(["two", voice]);
+		const failing: Souffleur = { label: "test/fail", rewrite: () => Promise.resolve({ ok: false, error: "no", usage: [] }) };
+		const lost = runner([refused(), say(), say()], [[voice]], failing);
+		await lost.step("one");
+		await lost.step("two");
+		expect(lost.inputs().at(-1)).toEqual(["two", toolsNotice(["getStatus"]), voice]);
+		// A rewrite that goes through keeps the voice (rewritten) in the context: it is not heard twice.
+		const rewriting: Souffleur = { label: "test/rewrite", rewrite: (texts) => Promise.resolve({ ok: true, texts: texts.map((text) => `${text} (a game)`), usage: [] }) };
+		const kept = runner([refused(), say(), say()], [[voice]], rewriting);
+		await kept.step("one");
+		await kept.step("two");
+		expect(kept.inputs().at(-1)).toEqual(["two"]);
 	});
 
 	it("sends the rewritten character in the leading system message of the next request", async () => {

@@ -382,7 +382,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			enabledTools: () => world.enabledTools(id),
 			minute: () => clock.minute,
 			...(souffleur === undefined ? {} : { souffleur }),
-			...(weaver === undefined ? {} : { innerVoice: () => weaver.takeVoices(id) }),
+			...(weaver === undefined ? {} : { innerVoice: { take: () => weaver.takeVoices(id), giveBack: (voices: readonly string[]) => { weaver.returnVoices(id, voices); } } }),
 		});
 	});
 

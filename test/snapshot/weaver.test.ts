@@ -178,10 +178,12 @@ describe("the weaver in a run", () => {
 		expect(played.prompts[0]).not.toContain(SHIFT_HEADING);
 		expect(played.prompts.at(-1)).toContain(SHIFT_HEADING);
 
-		// The gamemaker reads why, in at most twelve words, never the text.
+		// The gamemaker reads what kind of event moved A02, built in code: never the text, never the model's reason.
 		const look = ofType(played.events, "gamemaker_turn").find((event) => event.seq > hard.seq);
-		expect(look?.input).toContain(`A02 has changed (hard): accused of cheating by A01 again and again, for the ${String(hard.minute)}th time ... (after #${String(Math.max(...hard.evidence))})`);
+		expect(hard.triggers).toEqual(["accusation"]);
+		expect(look?.input).toContain(`A02 has changed (hard): after an accusation (after #${String(Math.max(...hard.evidence))})`);
 		expect(look?.input).not.toContain(hard.text);
+		expect(look?.input).not.toContain(hard.reason);
 
 		// weaver.md lists every change.
 		const file = readFileSync(join(played.directory, "weaver.md"), "utf8");

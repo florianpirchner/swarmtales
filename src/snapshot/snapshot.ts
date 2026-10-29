@@ -22,7 +22,7 @@ import type { InterpreterSnapshot } from "../interpret/interpreter.ts";
 import type { WeaverSnapshot } from "../interpret/weaver.ts";
 import { STATEMENT_SOURCES } from "../interpret/labels.ts";
 import { TOOL_NAMES } from "../tools/catalog.ts";
-import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
+import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
 
 export const SNAPSHOT_FORMAT = "agent-arena-snapshot";
@@ -462,7 +462,7 @@ const RunSnapshotSchema = Type.Object({
 	),
 	weaver: Type.Optional(
 		Type.Object({
-			pending: Type.Array(Type.Object({ agent: Id, seq: Int, text: Type.String() })),
+			pending: Type.Array(Type.Object({ agent: Id, seq: Int, text: Type.String(), trigger: FateTriggerSchema })),
 			patches: Type.Array(
 				Type.Object({
 					agent: Id,

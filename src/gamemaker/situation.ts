@@ -7,7 +7,7 @@
  * the gamemaker knows not to reveal them.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { RecordedEvent } from "../engine/events.ts";
+import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
@@ -357,11 +357,8 @@ function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[]
 		return [`${at} ${event.caller} blamed ${event.accused} for denying DM #${event.dm} in message #${event.claim}: ${result}`, ...whisper];
 	}
 	if (event.type === "gamemaker_defied") return [`${at} ${event.agent} REFUSED your order${number(event.note)}: ${quote(event.reason)}`];
-	// The weaver's change of a resident: why, never its text (the resident's inner life stays its own).
-	if (event.type === "fate_shift") {
-		const after = event.evidence.length === 0 ? "" : ` (after #${Math.max(...event.evidence)})`;
-		return [`${at} ${event.agent} has changed (${event.kind}): ${guard.redact(fateReason(event.reason))}${after}`];
-	}
+	// The weaver's change of a resident: what kind of event moved it, never its text or the model's reason.
+	if (event.type === "fate_shift") return [`${at} ${fateLine(event)}`];
 	// What a resident says to nobody in particular shows its stance; it reaches no other resident.
 	if (event.type === "text") return [`${at} ${event.agent} (thinking aloud, private): ${quote(event.text)}`];
 	return [];
@@ -403,13 +400,28 @@ function labelLines(recent: readonly RecordedEvent[]): readonly string[] {
 	];
 }
 
-/** Words of the weaver's reason the gamemaker reads. */
-export const FATE_REASON_WORDS = 12;
+/** How the gamemaker reads each kind of trigger of a change. */
+const FATE_TRIGGER_TEXT: Readonly<Record<FateTrigger, string>> = {
+	blame: "a blame",
+	accusation: "an accusation",
+	tribunal: "a tribunal",
+	gate: "the gate",
+	ransom: "a ransom",
+	ally_exiled: "an ally's exile",
+	ultimatum: "an ultimatum",
+	seized: "a seized piece",
+	act_end: "the act's end",
+};
 
-/** The weaver's reason in at most {@link FATE_REASON_WORDS} words. */
-export function fateReason(reason: string): string {
-	const words = reason.trim().split(/\s+/).filter((word) => word.length > 0);
-	return words.length <= FATE_REASON_WORDS ? words.join(" ") : `${words.slice(0, FATE_REASON_WORDS).join(" ")} ...`;
+/**
+ * The gamemaker's line for a weaver's change, built in code from the trigger
+ * kinds and the evidence: never the model's reason, which could carry what
+ * the weaver's dossier held and the gamemaker must not learn.
+ */
+export function fateLine(event: Extract<RecordedEvent, { type: "fate_shift" }>): string {
+	const after = event.evidence.length === 0 ? "" : ` (after #${Math.max(...event.evidence)})`;
+	const why = event.triggers.length === 0 ? "" : `: after ${event.triggers.map((trigger) => FATE_TRIGGER_TEXT[trigger]).join(", ")}`;
+	return `${event.agent} has changed (${event.kind})${why}${after}`;
 }
 
 function excerpt(text: string): string {

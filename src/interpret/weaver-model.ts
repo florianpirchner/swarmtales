@@ -21,17 +21,18 @@ import type { ClassifierUsage } from "./classifier.ts";
 /** ID of the weaver in usage records. */
 export const WEAVER_ID = "WV";
 
-/** Characters of the weaver's text: about three short sentences. */
+/** Characters of the weaver's text (about three short sentences); a longer one is cut in code, not refused. */
 export const WEAVER_TEXT_MAX = 600;
-/** Characters of the weaver's reason; the gamemaker reads its first twelve words. */
+/** Characters of the weaver's reason (for the run's record, never the gamemaker); a longer one is cut in code. */
 export const WEAVER_REASON_MAX = 200;
 
+/** No length limits here: a schema limit would throw a whole answer away; {@link clip} cuts it instead. */
 export const WeaveParams = Type.Object({
 	kind: Type.Union([Type.Literal("none"), Type.Literal("soft"), Type.Literal("hard")], {
 		description: "none: nothing changes; soft: an inner voice heard once; hard: who the resident is from now on",
 	}),
-	text: Type.String({ maxLength: WEAVER_TEXT_MAX, description: "To the resident, in the second person, at most three short sentences; empty for none" }),
-	reason: Type.String({ maxLength: WEAVER_REASON_MAX, description: "Why, in at most twelve words, citing what happened (#seq)" }),
+	text: Type.String({ description: "To the resident, in the second person, at most three short sentences; empty for none" }),
+	reason: Type.String({ description: "Why, in at most twelve words, citing what happened (#seq)" }),
 });
 export type Weave = Static<typeof WeaveParams>;
 
@@ -199,8 +200,17 @@ export class ChatWeaver implements WeaverModel {
 		if (answer === undefined || more.length > 0 || errors.length > 0) {
 			return { ok: false, error: errors[0] ?? (answer === undefined ? "the weaver answered without calling weave" : "the weaver answered twice"), usage };
 		}
-		return { ok: true, weave: answer, usage };
+		return { ok: true, weave: { kind: answer.kind, text: clip(answer.text, WEAVER_TEXT_MAX), reason: clip(answer.reason, WEAVER_REASON_MAX) }, usage };
 	}
+}
+
+/** `text` trimmed and cut to at most `max` characters, at a word's end where there is one, marked with " ...". */
+export function clip(text: string, max: number): string {
+	const trimmed = text.trim();
+	if (trimmed.length <= max) return trimmed;
+	const head = trimmed.slice(0, max - 4);
+	const space = head.lastIndexOf(" ");
+	return `${(space > 0 ? head.slice(0, space) : head).trimEnd()} ...`;
 }
 
 function collectUsage(message: AgentMessage, usage: ClassifierUsage[]): void {

@@ -24,7 +24,7 @@
  * snapshot, so a resumed run builds the same system prompts.
  */
 import type { CompetitorId } from "../core/ids.ts";
-import type { EventBus, EventSink, FateShiftKind, RecordedEvent } from "../engine/events.ts";
+import { FATE_TRIGGERS, type EventBus, type EventSink, type FateShiftKind, type FateTrigger, type RecordedEvent } from "../engine/events.ts";
 import type { RoundObserver } from "../engine/arena.ts";
 import { FateTriggers, type FateHit } from "./fate-triggers.ts";
 import { WEAVER_ID, type Weave, type WeaverAnswer, type WeaverModel, type WeaverQuestion } from "./weaver-model.ts";
@@ -112,9 +112,19 @@ export class Weaver implements EventSink, RoundObserver {
 		return voices;
 	}
 
+	/**
+	 * Puts back inner voices a step took but its model never kept (a refused
+	 * step, or one the souffleur could not rewrite), ahead of any newer ones.
+	 */
+	returnVoices(agent: CompetitorId, voices: readonly string[]): void {
+		if (voices.length === 0) return;
+		this.#voices.set(agent, [...voices, ...(this.#voices.get(agent) ?? [])]);
+	}
+
 	record(event: RecordedEvent): void {
-		this.#triggers.observe(event);
+		// Hits first: a message's readers are read before its interpretation forgets them.
 		this.#pending.push(...this.#triggers.hitsOf(event));
+		this.#triggers.observe(event);
 	}
 
 	snapshot(): WeaverSnapshot {
@@ -181,7 +191,7 @@ export class Weaver implements EventSink, RoundObserver {
 			for (const { agent, own, answer } of asked) {
 				const weave = usable(this.#metered(await answer));
 				if (weave === undefined || weave.kind === "none") continue;
-				this.#harden(agent, weave, "act", own.map((patch) => patch.seq));
+				this.#harden(agent, weave, "act", own.map((patch) => patch.seq), ["act_end"]);
 			}
 		}
 	}
@@ -200,29 +210,35 @@ export class Weaver implements EventSink, RoundObserver {
 		const kind = weave.kind === "hard" && hard < MAX_HARD ? "hard" : soft < MAX_SOFT ? "soft" : undefined;
 		if (kind === undefined) return;
 		const evidence = [...new Set(hits.map((entry) => entry.seq))].sort((a, b) => a - b);
-		const text = kind === "hard" ? this.#harden(agent, weave, "hard", evidence) : this.#whisper(agent, weave, evidence);
+		const triggers = FATE_TRIGGERS.filter((trigger) => hits.some((entry) => entry.trigger === trigger));
+		const text = kind === "hard" ? this.#harden(agent, weave, "hard", evidence, triggers) : this.#whisper(agent, weave, evidence, triggers);
 		this.#patches.push({ agent, act, kind, text, minute: this.#options.city.minute, seq: this.#options.bus.seq });
 	}
 
 	/** A soft change: an inner voice at the end of the resident's next step. */
-	#whisper(agent: CompetitorId, weave: Weave, evidence: readonly number[]): string {
+	#whisper(agent: CompetitorId, weave: Weave, evidence: readonly number[], triggers: readonly FateTrigger[]): string {
 		const text = this.#options.city.display(weave.text.trim());
 		this.#voices.set(agent, [...(this.#voices.get(agent) ?? []), `${INNER_VOICE_HEAD}${text}`]);
-		this.#emit(agent, "soft", text, weave.reason, evidence);
+		this.#emit(agent, "soft", text, weave.reason, evidence, triggers);
 		return text;
 	}
 
 	/** A hard change or an act's end: the resident's prompt is rebuilt with the new text. */
-	#harden(agent: CompetitorId, weave: Weave, kind: "hard" | "act", evidence: readonly number[]): string {
+	#harden(agent: CompetitorId, weave: Weave, kind: "hard" | "act", evidence: readonly number[], triggers: readonly FateTrigger[]): string {
 		const text = this.#options.city.display(weave.text.trim());
 		this.#shifts.set(agent, text);
 		this.#options.rewrite(agent, text);
-		this.#emit(agent, kind, text, weave.reason, evidence);
+		this.#emit(agent, kind, text, weave.reason, evidence, triggers);
 		return text;
 	}
 
-	#emit(agent: CompetitorId, kind: FateShiftKind, text: string, reason: string, evidence: readonly number[]): void {
-		this.#options.bus.emit({ type: "fate_shift", agent, kind, text, reason: this.#options.city.display(reason.trim()), evidence });
+	/**
+	 * The event keeps the model's reason as it wrote it (for the run's record);
+	 * the gamemaker reads only `kind`, `triggers` and `evidence`, which the code
+	 * built, so nothing the model saw can reach it through the reason.
+	 */
+	#emit(agent: CompetitorId, kind: FateShiftKind, text: string, reason: string, evidence: readonly number[], triggers: readonly FateTrigger[]): void {
+		this.#options.bus.emit({ type: "fate_shift", agent, kind, text, reason: reason.trim(), evidence, triggers });
 	}
 
 	#question(agent: CompetitorId, patches: readonly FatePatch[], hits: readonly FateHit[], actEnd: number | undefined): WeaverQuestion {

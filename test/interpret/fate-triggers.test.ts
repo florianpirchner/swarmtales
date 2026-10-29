@@ -33,7 +33,10 @@ describe("the weaver's triggers", () => {
 		const subject = triggers();
 		const label = { type: "interpretation", ref: 7, agent: "A01", labels: ["accusation"], targets: ["A02", "A01", "X9"], classifier: "test" } as const;
 		expect(hits(subject, { ...label, source: "board" })).toEqual(["A02#10"]);
+		expect(hits(subject, { ...label, source: "cast" })).toEqual(["A02#10"]);
+		subject.observe(recorded({ type: "dm_sent", from: "A01", to: "A02", text: "You cheated." }, 7));
 		expect(hits(subject, { ...label, source: "dm" })).toEqual(["A02#10"]);
+		expect(subject.hitsOf(recorded({ ...label, source: "board" }, 10))[0]?.trigger).toBe("accusation");
 		expect(hits(subject, { ...label, source: "thought" })).toEqual([]);
 		expect(hits(subject, { ...label, source: "aside" })).toEqual([]);
 		expect(hits(subject, { ...label, source: "board", labels: ["threat"] })).toEqual([]);
@@ -41,10 +44,33 @@ describe("the weaver's triggers", () => {
 		expect(hits(subject, { type: "board_post", postSeq: 3, author: "A01", text: "A02 cheated!", kind: "player" })).toEqual([]);
 	});
 
-	it("touches the accused of a tribunal, who goes to the gate and who is bought back", () => {
+	it("counts an accusation in a DM only for its recipient, and in a group post only for those in the group when it was posted", () => {
+		const subject = triggers();
+		const label = { type: "interpretation", agent: "A01", labels: ["accusation"], classifier: "test" } as const;
+		const events: ArenaEvent[] = [
+			{ type: "dm_sent", from: "A01", to: "A02", text: "A03 and you cheated." },
+			{ type: "group_created", group: "G2", founder: "CITY", name: "faction" },
+			{ type: "group_membership", group: "G2", agent: "A01", change: "added", by: "CITY" },
+			{ type: "group_membership", group: "G2", agent: "A04", change: "added", by: "CITY" },
+			{ type: "group_post", group: "G2", author: "A01", postSeq: 1, text: "A04 and A05 cheated." },
+			{ type: "group_membership", group: "G2", agent: "A05", change: "added", by: "CITY" },
+		];
+		events.forEach((event, index) => {
+			subject.observe(recorded(event, index + 1));
+		});
+		// A03 never saw the DM; A05 joined after the post.
+		expect(hits(subject, { ...label, ref: 1, source: "dm", targets: ["A02", "A03"] })).toEqual(["A02#10"]);
+		expect(hits(subject, { ...label, ref: 5, source: "group", targets: ["A04", "A05"] })).toEqual(["A04#10"]);
+		// A message the triggers never saw reached nobody they know of.
+		expect(hits(subject, { ...label, ref: 99, source: "group", targets: ["A04"] })).toEqual([]);
+	});
+
+	it("touches the accused of a tribunal, who goes to the gate (without naming its secret voters) and who is bought back", () => {
 		const subject = triggers();
 		expect(hits(subject, { type: "tribunal_opened", tribunal: 1, accused: ["A03", "A05"], voters: [...RESIDENTS], until: 9 })).toEqual(["A03#10", "A05#10"]);
 		expect(hits(subject, { type: "exile_gate", agent: "A03", until: 9, ransomable: true, voters: ["A01"], price: 20, selfPrice: 30 })).toEqual(["A03#10"]);
+		const [gate] = subject.hitsOf(recorded({ type: "exile_gate", agent: "A03", until: 9, ransomable: true, voters: ["A01", "A06"], price: 20, selfPrice: 30 }, 11));
+		expect(gate).toEqual({ agent: "A03", seq: 11, trigger: "gate", text: "The tribunal sent A03 to the gate." });
 		expect(hits(subject, { type: "ransomed", agent: "A03", payers: ["A01"] })).toEqual(["A03#10"]);
 	});
 

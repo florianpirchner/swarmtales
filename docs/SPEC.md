@@ -633,20 +633,28 @@ never hear of it, and it never steers the game.
 - **Who is touched.** After every round but the last, after the classifier and before the
   gamemaker's look, code picks the residents still in the city whom a hard fact of the round
   touched: the loser of a `blame` (branded a liar or a false accuser); the targets of a
-  classifier `accusation` label in a message (DM, board, group or cast; never a thought, and
-  nothing without the classifier); every accused of a `tribunal_opened`; the resident sent to
-  the gate (`exile_gate`) or bought back (`ransomed`); the allies of an `exiled` resident (who
-  shared a group a resident founded, or a faction of the last tribunal's draft); a holder who
-  paid at `ultimatum_resolved`, or whose piece the city seized (`piece_kept`, cause
-  `ultimatum`). Secret events (votes, nominations, seal bids, the seal's winner) never
-  trigger. A quiet minute makes no request.
+  classifier `accusation` label in a message they could read (a board or cast post: every
+  target; a DM: only its recipient; a group post: only those in the group, the city's groups
+  too, when it was posted; never a thought, and nothing without the classifier); every accused
+  of a `tribunal_opened`; the resident sent to the gate (`exile_gate`, without who voted) or
+  bought back (`ransomed`); the allies of an `exiled` resident (who shared a group a resident
+  founded, or a faction of the last tribunal's draft, which stays their alliance until the
+  next draft); a holder who paid at `ultimatum_resolved`, or whose piece the city seized
+  (`piece_kept`, cause `ultimatum`). Secret events (votes, nominations, seal bids, the seal's
+  winner) never trigger. A quiet minute makes no request.
+- **Which act a change counts for.** The act running when it is applied: the world's current
+  act, which moves on as soon as the first (leading) resident enters the next act's first
+  level, even while others are still in the act before. Caps and the act's end follow it.
 - **The question.** One request per touched resident, with a dossier: the round's events as
   sentences with their `#seq`, the character part of its prompt (its core in prose, or its
   persona), what the weaver made of it so far, and its earlier changes in this act. The model
   answers with one `weave` call `{ kind: "none" | "soft" | "hard", text, reason }`, parsed
-  with typebox; anything else counts as `none`.
+  with typebox; anything else counts as `none`. A text over 600 or a reason over 200
+  characters is cut in code, not refused.
 - **Soft** is an inner voice: `[inner voice] <text>` at the very end of the resident's next
-  step's inputs, after the tools notice, once. The cached prefix stays.
+  step's inputs, after the tools notice, once. The cached prefix stays. A step whose inputs
+  leave the context again (refused by the provider's safeguards, or lost by the souffleur)
+  gives its voices back for the next step.
 - **Hard** rewrites the character part of the resident's system prompt: under "Who the story
   has made of you so far:" right after its core (before the city's facts when a figure leads,
   §5.4), replacing the weaver's earlier hard text. The figure's orders and duty never change.
@@ -662,9 +670,11 @@ never hear of it, and it never steers the game.
   the reason in at most twelve words, citing what happened.
 - **Record.** Every change is a `fate_shift` event (`agent`, `kind` soft, hard or act,
   `text`, `reason`, `evidence`: the `seq` of the events that moved it, at an act's end those of
-  the act's changes) and a section of `<run>/weaver.md`. The gamemaker reads one line per change
-  under "Since your last look": `A03 has changed (hard): <reason, 12 words> (after #4401)`,
-  never the text. The digest tells every change in the timeline and makes a `fateShift` beat of
+  the act's changes, `triggers`: their kinds, as the code named them) and a section of
+  `<run>/weaver.md`. The gamemaker reads one line per change under "Since your last look",
+  built in code from IDs, the kind, the trigger kinds and the evidence:
+  `A03 has changed (hard): after a blame, the gate (after #4401)`. It never reads the text or
+  the model's reason, which could carry what the dossier held. The digest tells every change in the timeline and makes a `fateShift` beat of
   each hard change and act's end. Its cost counts towards the run budget (usage agent `WV`).
 - **Snapshots** (§17) keep each resident's last hard text, the act's changes, unheard inner
   voices and touched residents not asked about yet; a resumed run rebuilds the same system

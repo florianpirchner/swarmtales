@@ -638,7 +638,9 @@ export type ArenaEvent =
 			 * The weaver (`--weaver`) changed who a resident is: `soft` an inner voice
 			 * at the end of its next step, `hard` the character part of its system
 			 * prompt rewritten, `act` that part written anew at an act's end.
-			 * `evidence` are the events that moved it (for `act`, the act's shifts).
+			 * `evidence` are the events that moved it (for `act`, the act's shifts),
+			 * `triggers` what kind of event they were, as the code named them (the
+			 * gamemaker reads these, never the model's `reason`).
 			 */
 			readonly type: "fate_shift";
 			readonly agent: CompetitorId;
@@ -646,11 +648,16 @@ export type ArenaEvent =
 			readonly text: string;
 			readonly reason: string;
 			readonly evidence: readonly number[];
+			readonly triggers: readonly FateTrigger[];
 	  }
 	| { readonly type: "run_end"; readonly reason?: string; readonly standings?: readonly StandingRow[] };
 
 /** How the weaver changed a resident (`fate_shift`). */
 export type FateShiftKind = "soft" | "hard" | "act";
+
+/** What kind of event touched a resident (the weaver's triggers, SPEC 10.6); `act_end` for an act's end. */
+export const FATE_TRIGGERS = ["blame", "accusation", "tribunal", "gate", "ransom", "ally_exiled", "ultimatum", "seized", "act_end"] as const;
+export type FateTrigger = (typeof FATE_TRIGGERS)[number];
 
 /** One Big Five axis of a core (v09). */
 export interface CoreTrait {
