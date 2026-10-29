@@ -187,6 +187,11 @@ Besides the residents, the city has its own voices:
   than fast. It names leverage, prices and broken promises. It never sees a secret.
 - **The Reader** is another AI agent. It labels everything the residents say and think: promise, offer, threat, refusal,
   lie, hesitation, accusation. It catches intentions before they turn into events.
+- **The Judge** is the city's AI agent for one question only: when a resident claims that a message
+  never reached it, the judge reads the claim and decides whether it is a lie.
+- **The Souffleur** stands in the wings, as in a theatre. Sometimes the model behind a resident
+  balks at a scene of this game and will not answer. Then the souffleur says the same scene again,
+  in plainer words, with every fact kept, and the resident plays on. It is never part of the story.
 - **The Chronicler** is an AI agent too. It reads the whole run afterwards and finds its plot: who allied with whom, who
   rode for free, who lied, who voted against a friend, and who paid for it.
 - **The Novelist**, the last AI agent in the chain, turns the plot into prose.
