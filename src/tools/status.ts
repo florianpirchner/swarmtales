@@ -29,6 +29,16 @@ export const getStatus = defineTool({
 	},
 });
 
+/** Every schema reaches the model in every request (P46); this tells the resident which of them it may call now. */
+export const activeTools = defineTool({
+	name: "activeTools",
+	description: "Lists the tools you can use now. Every other tool answers TOOL_LOCKED until a level or a phase opens it.",
+	parameters: Type.Object({}),
+	execute(_params, { self, world }) {
+		return success(`active tools: ${world.enabledTools(self).join(", ")}`);
+	},
+});
+
 export const getProblem = defineTool({
 	name: "getProblem",
 	description: "Returns the task text of your current level or of a level you already reached.",

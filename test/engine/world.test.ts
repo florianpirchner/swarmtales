@@ -137,9 +137,9 @@ describe("world: submissions and points (SPEC 6)", () => {
 	it("unlocks every tool of the story once the last level is passed", async () => {
 		const fixture = createFixture({ agents: 2, minutes: 2, only: 1, script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: [say(), say()] }) });
 		await fixture.run();
-		const storyTools = new Set(fixture.story.levels.flatMap((entry) => entry.tools));
+		const storyTools = new Set([...fixture.story.levels.flatMap((entry) => entry.tools), "activeTools"]);
 		expect(new Set(fixture.world.enabledTools("A01"))).toEqual(storyTools);
-		expect(fixture.world.enabledTools("A02")).toEqual(["getStatus", "getProblem", "submitSolution", "listAgents"]);
+		expect(fixture.world.enabledTools("A02")).toEqual(["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"]);
 		expect(fixture.world.isFinished("A01")).toBe(true);
 	});
 });

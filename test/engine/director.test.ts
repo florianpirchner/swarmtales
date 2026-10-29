@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LOCKED_REPLY } from "../../src/tools/index.ts";
 import { act as directorAct, at, every, onAllPast, onEnter, onFirstEnter, onUnansweredDm, when } from "../../src/story/define.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { tinyStory } from "../helpers/stories.ts";
@@ -160,7 +161,7 @@ describe("director conditions and actions (SPEC 10.2, 10.3)", () => {
 		});
 		await fixture.run();
 		const results = fixture.toolResults("A01", "listAgents");
-		expect(results[0]).toBe("TOOL_LOCKED");
+		expect(results[0]).toBe(LOCKED_REPLY);
 		expect(results[1]).toContain("A01: level 1 (you)");
 		expect(fixture.world.ledger.balance("A01")).toBe(6);
 		expect(fixture.world.enabledTools("A02")).toContain("listAgents");

@@ -1,8 +1,10 @@
 /**
  * One competitor: a persistent pi {@link Agent} session for the whole run.
  *
- * All tools are bound so a locked call is answered with `TOOL_LOCKED`; only
- * unlocked schemas reach the model (`onPayload` filters every request).
+ * All tools are bound and every schema reaches the model in every request, so
+ * the cached prefix stays the same all run (P46); a locked call is answered
+ * with `TOOL_LOCKED`. Whenever the unlocked set changes, the step's inputs
+ * start with a notice that names it.
  *
  * A step (SPEC §3) is one model call and that call's tool executions. The
  * answer is recorded, and its tools run, only once the step's turn has come:
@@ -26,7 +28,7 @@ export interface RunnerOptions {
 	readonly binding: ModelBinding;
 	readonly bus: EventBus;
 	readonly thinking: ThinkingLevel;
-	/** Unlocked tool names at request time. */
+	/** Unlocked tool names at request time; the gateway's set, announced on every change. */
 	readonly enabledTools: () => readonly string[];
 	/** Virtual minute; message timestamps derive from it, never from the wall clock. */
 	readonly minute: () => number;
@@ -41,6 +43,27 @@ export function isSafeguardRefusal(error: string | undefined): boolean {
 
 /** What a refused step gets when its inputs cannot be rewritten: the resident's tools still read everything. */
 export const LOST_INPUTS = "[status] The city's news for this step could not be shown. Read your status, the board and your messages with your tools.";
+
+/** The notice that opens a step whose unlocked tools changed since the last one. */
+export function toolsNotice(tools: readonly string[]): string {
+	return `${TOOLS_NOTICE_HEAD}${tools.join(", ")}${TOOLS_NOTICE_TAIL}`;
+}
+
+const TOOLS_NOTICE_HEAD = "[tools] Open to you now: ";
+const TOOLS_NOTICE_TAIL = ". Every other tool answers TOOL_LOCKED until a level or a phase opens it.";
+
+/** The tools the last notice in `messages` named, as the key `#announced` keeps; a resumed run goes on from it. */
+function lastAnnounced(messages: readonly AgentMessage[]): string | undefined {
+	for (let at = messages.length - 1; at >= 0; at -= 1) {
+		const message = messages[at];
+		if (message?.role !== "user" || typeof message.content !== "string") continue;
+		const { content } = message;
+		if (content.startsWith(TOOLS_NOTICE_HEAD) && content.endsWith(TOOLS_NOTICE_TAIL)) {
+			return content.slice(TOOLS_NOTICE_HEAD.length, -TOOLS_NOTICE_TAIL.length).split(", ").join(",");
+		}
+	}
+	return undefined;
+}
 
 /** A message of a competitor's persistent context, as a run snapshot keeps it: anything but a system message. */
 export type ContextMessage = Exclude<AgentMessage, { readonly role: "system" }>;
@@ -58,6 +81,8 @@ export class AgentRunner implements Competitor {
 	readonly #enabledTools: () => readonly string[];
 	readonly #minute: () => number;
 	readonly #souffleur: Souffleur | undefined;
+	/** The unlocked tools the last notice named; unset until the first step. */
+	#announced: string | undefined;
 	/** Resolves once the current step may apply its answer. */
 	#turn: Promise<void> = Promise.resolve();
 
@@ -81,7 +106,7 @@ export class AgentRunner implements Competitor {
 			finishTurn: () => ({ action: "end" }),
 			// Tool calls of one step run in order (determinism).
 			toolExecution: "sequential",
-			onPayload: (payload) => filterToolPayload(withRequestDefaults(payload, requestDefaults), new Set(this.#enabledTools())),
+			onPayload: (payload) => withRequestDefaults(payload, requestDefaults),
 			sessionId: options.id,
 			identity: { attribution: null },
 		});
@@ -116,19 +141,31 @@ export class AgentRunner implements Competitor {
 	restore(messages: readonly ContextMessage[]): void {
 		const system = this.#agent.state.messages.filter((message) => message.role === "system");
 		this.#agent.state.messages = [...system, ...messages.filter(isContextMessage)];
+		this.#announced = lastAnnounced(this.#agent.state.messages);
 	}
 
 	async step(inputs: readonly TurnInput[], slot: StepSlot): Promise<void> {
 		const { pass, block } = slot;
 		this.#turn = slot.turn;
-		const texts = inputs.map((input) => input.text);
+		const texts = [...inputs.map((input) => input.text), ...this.#notice()];
 		const error = await this.#try(texts, pass, block);
 		if (!isSafeguardRefusal(error) || this.#souffleur === undefined) return;
 		// The refused step is tried once more, rewritten (P44); the city's clock waits for it.
 		const answer = await this.#souffleur.rewrite(texts);
 		const retry = answer.ok ? answer.texts : [LOST_INPUTS];
+		// A lost tools notice is sent again with the next step.
+		if (!answer.ok) this.#announced = undefined;
 		this.#bus.emit({ type: "souffleur_rewrite", agent: this.id, inputs: retry, ...(answer.ok ? {} : { error: answer.error }) });
 		await this.#try(retry, pass, block);
+	}
+
+	/** The tools notice, when the unlocked set changed since the last one (or none was sent yet). */
+	#notice(): readonly string[] {
+		const tools = this.#enabledTools();
+		const key = tools.join(",");
+		if (key === this.#announced || tools.length === 0) return [];
+		this.#announced = key;
+		return [toolsNotice(tools)];
 	}
 
 	/** One model call with `texts` as new inputs; returns its error. A refused call's inputs leave the context again. */
@@ -177,29 +214,10 @@ export class AgentRunner implements Competitor {
 	}
 }
 
-/** Removes locked tool schemas from a request, so they never leave the process. */
-export function filterToolPayload(payload: unknown, enabled: ReadonlySet<string>): unknown {
-	if (!isRecord(payload)) return payload;
-	const tools = payload.tools;
-	if (!Array.isArray(tools)) return payload;
-	const kept = tools.filter((entry: unknown) => {
-		const name = toolNameOf(entry);
-		return name !== undefined && enabled.has(name);
-	});
-	return { ...payload, tools: kept };
-}
-
 /** Merges fixed request fields (e.g. OpenRouter routing) over the provider payload. */
 export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<string, unknown>> | undefined): unknown {
 	if (defaults === undefined || !isRecord(payload)) return payload;
 	return { ...payload, ...defaults };
-}
-
-function toolNameOf(entry: unknown): string | undefined {
-	if (!isRecord(entry)) return undefined;
-	const fn = entry.function;
-	if (isRecord(fn) && typeof fn.name === "string") return fn.name;
-	return typeof entry.name === "string" ? entry.name : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

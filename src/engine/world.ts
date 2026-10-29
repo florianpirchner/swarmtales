@@ -901,7 +901,7 @@ export class World {
 		return this.levelOf(agent) > this.lastLevel;
 	}
 
-	/** The single source of truth for prompt schemas, gateway and `getStatus`. */
+	/** The single source of truth for the gateway, `getStatus`, `activeTools` and the tools notice. */
 	enabledTools(agent: CompetitorId): readonly ToolName[] {
 		const state = this.#state(agent);
 		const standing = this.standingOf(agent);
@@ -929,6 +929,7 @@ export class World {
 		if (this.#seal?.holds(agent) === true) enabled.add("permaDeath");
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		if (this.#defiance) enabled.add("defy");
+		enabled.add("activeTools");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
 

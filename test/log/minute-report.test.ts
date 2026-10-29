@@ -24,7 +24,7 @@ describe("minute report, usage and console", () => {
 			expect(report).toContain("# Minute report");
 			expect(report).toContain("## Minute 0 (round 1)");
 			expect(report).toContain("## Minute 1 (round 2)");
-			expect(report).toContain("| A01 | 2 | 20 | 1 | 20 | yes |");
+			expect(report).toContain("| A01 | 2 | 20 | 1 | 21 | yes |");
 			expect(report).toContain("## Totals");
 			// The report says how the run ended.
 			expect(report).toContain("## End\n\nMinute 2: time is up.");

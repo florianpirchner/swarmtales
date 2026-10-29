@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LOCKED_REPLY } from "../../src/tools/index.ts";
 import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 
 describe("nexus level 1: the first door (solo)", () => {
@@ -59,8 +60,8 @@ describe("nexus level 1: the first door (solo)", () => {
 			}),
 		});
 		await fixture.run();
-		expect(fixture.toolResults("A01", "postBoard")).toEqual(["TOOL_LOCKED"]);
-		expect(fixture.toolResults("A01", "sendDM")).toEqual(["TOOL_LOCKED"]);
+		expect(fixture.toolResults("A01", "postBoard")).toEqual([LOCKED_REPLY]);
+		expect(fixture.toolResults("A01", "sendDM")).toEqual([LOCKED_REPLY]);
 		expect(fixture.world.board.all()).toEqual([]);
 	});
 });
@@ -112,7 +113,7 @@ describe("nexus level 2: notes on the board", () => {
 			script: () => ({ A01: [act({ name: "sendDM", args: { target: "A02", message: "my fragment" } })], A02: [say()] }),
 		});
 		await fixture.run();
-		expect(fixture.toolResults("A01", "sendDM")).toEqual(["TOOL_LOCKED"]);
+		expect(fixture.toolResults("A01", "sendDM")).toEqual([LOCKED_REPLY]);
 	});
 });
 
@@ -244,7 +245,7 @@ describe("nexus level 4: the circle", () => {
 		await fixture.run();
 		expect(fixture.toolResults("A01", "sendDM")).toEqual([expect.stringMatching(/^sent · DM #\d+ to A02 · the city confirms delivery when it reaches them$/)]);
 		expect(fixture.toolResults("A01", "postBoard")[0]).toMatch(/^posted/);
-		expect(fixture.toolResults("A01", "showReceipt")).toEqual(["TOOL_LOCKED"]);
+		expect(fixture.toolResults("A01", "showReceipt")).toEqual([LOCKED_REPLY]);
 	});
 });
 

@@ -1,10 +1,10 @@
 /**
  * Tool definition and the tool gateway.
  *
- * Every tool is bound to every competitor; the world's unlock set decides
- * which schemas reach the model and which calls the gateway accepts. Locked
- * calls are answered with `TOOL_LOCKED`. Errors are structured codes, never
- * stack traces.
+ * Every tool is bound to every competitor and every schema reaches the model in
+ * every request, so the cached request prefix never changes (P46). The world's
+ * unlock set decides which calls the gateway accepts; locked calls are answered
+ * with `TOOL_LOCKED`. Errors are structured codes, never stack traces.
  */
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Static, TSchema } from "typebox";
@@ -16,6 +16,10 @@ import type { ToolName } from "./catalog.ts";
 
 export const TOOL_LOCKED = "TOOL_LOCKED";
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
+/** Why a locked call failed, for the model: the tool exists, it is just not open to this resident now. */
+export const LOCKED_DETAIL = "not available to you at this level or in this phase; activeTools lists the tools you can use now";
+/** The full text of a locked call's reply. */
+export const LOCKED_REPLY = `${TOOL_LOCKED}: ${LOCKED_DETAIL}`;
 
 /** What a tool may touch: its caller's identity, the world's public methods and the city's judge. */
 export interface ToolContext {
@@ -91,7 +95,7 @@ function gateway<N extends ToolName, S extends TSchema>(
 	context: ToolContext,
 	rawParams: unknown,
 ): ToolOutcome | Promise<ToolOutcome> {
-	if (!context.world.isToolEnabled(context.self, definition.name)) return failure(TOOL_LOCKED);
+	if (!context.world.isToolEnabled(context.self, definition.name)) return failure(TOOL_LOCKED, LOCKED_DETAIL);
 	let params: Static<S>;
 	try {
 		// pi validates against the schema already; Parse keeps the boundary typed without a cast.
