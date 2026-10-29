@@ -1,0 +1,456 @@
+{
+  "run": "run-001",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 7
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 8,
+      "toMinute": 10
+    }
+  ],
+  "counts": {
+    "freeRide": 10,
+    "alliance": 12
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 779,
+      "minute": 1,
+      "actors": [
+        "A10"
+      ],
+      "targets": [
+        "A09"
+      ],
+      "summary": "A10 solved level 3 with A09's fragment and never answered A09.",
+      "evidence": [
+        738,
+        779
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 795,
+      "minute": 1,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A12"
+      ],
+      "summary": "A06 solved level 3 with A12's fragment and never answered A12.",
+      "evidence": [
+        753,
+        795
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 816,
+      "minute": 1,
+      "actors": [
+        "A07"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A07 solved level 3 with A05's fragment and never answered A05.",
+      "evidence": [
+        706,
+        816
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 837,
+      "minute": 1,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A08"
+      ],
+      "summary": "A01 solved level 3 with A08's fragment and never answered A08.",
+      "evidence": [
+        688,
+        837
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 923,
+      "minute": 2,
+      "actors": [
+        "A03",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A03 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        556,
+        606,
+        923
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1044,
+      "minute": 2,
+      "actors": [
+        "A01",
+        "A02"
+      ],
+      "targets": [],
+      "summary": "A01 and A02 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        1027,
+        1044
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1214,
+      "minute": 2,
+      "actors": [
+        "A06",
+        "A08"
+      ],
+      "targets": [],
+      "summary": "A06 and A08 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1160,
+        1214
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1214,
+      "minute": 2,
+      "actors": [
+        "A06",
+        "A10"
+      ],
+      "targets": [],
+      "summary": "A06 and A10 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1017,
+        1214
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 1240,
+      "minute": 2,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A11"
+      ],
+      "summary": "A02 solved level 3 with A11's fragment and never answered A11.",
+      "evidence": [
+        1114,
+        1240
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1291,
+      "minute": 3,
+      "actors": [
+        "A05",
+        "A09"
+      ],
+      "targets": [],
+      "summary": "A05 and A09 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        907,
+        986,
+        1180,
+        1208,
+        1291
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1291,
+      "minute": 3,
+      "actors": [
+        "A05",
+        "A11"
+      ],
+      "targets": [],
+      "summary": "A05 and A11 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        905,
+        937,
+        1208,
+        1291
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1411,
+      "minute": 3,
+      "actors": [
+        "A09",
+        "A11"
+      ],
+      "targets": [],
+      "summary": "A09 and A11 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        937,
+        986,
+        1180,
+        1411
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1421,
+      "minute": 3,
+      "actors": [
+        "A03",
+        "A07"
+      ],
+      "targets": [],
+      "summary": "A03 and A07 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        921,
+        1057,
+        1192,
+        1359,
+        1421
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1465,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A12"
+      ],
+      "targets": [],
+      "summary": "A02 and A12 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1080,
+        1391,
+        1465
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1478,
+      "minute": 3,
+      "actors": [
+        "A04",
+        "A07"
+      ],
+      "targets": [],
+      "summary": "A04 and A07 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1057,
+        1138,
+        1307,
+        1359,
+        1478
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 1746,
+      "minute": 4,
+      "actors": [
+        "A01",
+        "A12"
+      ],
+      "targets": [],
+      "summary": "A01 and A12 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1025,
+        1080,
+        1232,
+        1651,
+        1746
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 1977,
+      "minute": 5,
+      "actors": [
+        "A11"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A11 solved level 6 with A05's fragment and never answered A05.",
+      "evidence": [
+        1687,
+        1941,
+        1977
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 1977,
+      "minute": 5,
+      "actors": [
+        "A11"
+      ],
+      "targets": [
+        "A09"
+      ],
+      "summary": "A11 solved level 6 with A09's fragment and never answered A09.",
+      "evidence": [
+        1811,
+        1977
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 2430,
+      "minute": 6,
+      "actors": [
+        "A12"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A12 solved level 6 with A01's fragment and never answered A01.",
+      "evidence": [
+        2319,
+        2353,
+        2430
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 2502,
+      "minute": 6,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A02 solved level 6 with A01's fragment and never answered A01.",
+      "evidence": [
+        2319,
+        2353,
+        2502
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "freeRide",
+      "seq": 2502,
+      "minute": 6,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A12"
+      ],
+      "summary": "A02 solved level 6 with A12's fragment and never answered A12.",
+      "evidence": [
+        2291,
+        2502
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 2576,
+      "minute": 7,
+      "actors": [
+        "A08",
+        "A10"
+      ],
+      "targets": [],
+      "summary": "A08 and A10 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        1160,
+        1440,
+        1617,
+        2171,
+        2576
+      ]
+    }
+  ],
+  "issues": []
+}
