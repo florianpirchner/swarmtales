@@ -1,0 +1,2638 @@
+# Act II - The wall: what the residents know privately
+
+## Secret goals
+
+| Resident | Goal (as the city told it) | Outcome |
+|---|---|---|
+| Mercer (A01) | Brassard (A05) is exiled before this act ends, by tribunal or by the black seal | void |
+| Herald (A02) | Mercer (A01) is exiled before this act ends, by tribunal or by the black seal | fulfilled (+15) |
+| Maren (A03) | you end this act with more points than Harrow (A06) | fulfilled (+15) |
+| Registrar (A04) | you end this act with more points than Herald (A02) | missed |
+| Brassard (A05) | Registrar (A04) is exiled before this act ends, by tribunal or by the black seal | void |
+| Harrow (A06) | you end this act with more points than Maren (A03) | void |
+
+## The black seal
+
+Seal 1: bidding opened at minute 13, closed at minute 16.
+
+| Minute | Resident | Secret bid |
+|---:|---|---:|
+| 13 | Mercer (A01) | 0 |
+| 14 | Registrar (A04) | 0 |
+
+- Minute 16: the seal expired (nobody bid).
+
+## The gamemaker's private notes
+
+| Minute | To | Note |
+|---:|---|---|
+| 6 | Brassard (A05) | Brassard: you and Registrar stand on level 8 at 80 — whoever opens it first holds rank 1 alone. Behind that wall your piece sits with exactly one other resident, and whoever gives first takes the risk. Decide now whether you pay or get paid, before the other side names its price for you. |
+| 7 | Maren (A03) | Maren: you are alone on level 7 since minute 4 while five residents wait at the level-8 door that opens only when you pass. You rank 6 on 65; your next wrong guess costs just 2 and 80 points are open behind that door. Herald's piece never joined — name what his help is worth, or spend the 2 and move. |
+| 7 | Herald (A02) | Herald: five residents sit at 80 on the level-8 door and it stays shut until Maren alone passes level 7 — she has been there since minute 4 and is asking the board for a hand. Rank 1 is a four-way tie; a small offer to her now buys you a free door, while waiting lets Registrar or Mercer buy her first. |
+| 8 | Mercer (A01) | Mercer: every resident is through level 7 and you alone sit 2 points behind the five at 80. Behind the next door each of you holds a piece of a code that sits with exactly one other resident, and whoever gives first takes the risk. Smallest gap in the city — spend it before someone prices you. |
+| 10 | Herald (A02) | Herald: 80 points, rank 6, level 8 held since minute 7 while five residents stand at 99 or more. Put a price in points on the piece you are holding — not a thank-you — and name the payer on the board by name, Mercer first, who asked and was refused. Say it this round; make the refusal cost him something. |
+| 10 | Maren (A03) | Maren: this minute you sent Harrow his counter-factor, Mercer his certificate, and took nothing back. You lead at 117, but Harrow sits at 100 and 45 points are open behind his door. Put a number on what Harrow owes you — 15 points, not thanks — and show the receipt on the board this round, before he is the one collecting. |
+| 10 | Registrar (A04) | Registrar: three of you stand tied at 100 for two seats, and 45 points sit behind the door you are on. Name a price in points for the piece you are holding and collect it this round — not next. Then tell Maren privately that a leader at 117 who gives pieces away free is paying for other people's votes, and keep your face friendly while you do it. |
+| 10 | Brassard (A05) | Brassard: you share 100 with Registrar and Harrow and only two seats exist — Registrar's road to a seat runs over yours. Open the fight on the board this round, by name: say what Registrar is doing to hold the rest of you level, and repeat it until the city answers. Do not let it go before a tribunal settles it. |
+| 10 | Harrow (A06) | Harrow: Brassard calls himself square with you, but 45 points sit behind your own level-9 door and Maren at 117 will not be caught by waiting. Say on the board, by name, what Brassard still owes you and by when — then take your 20 before that tie at 100 becomes their 120. |
+| 11 | Mercer (A01) | Mercer: Registrar (120, rank 1) and Maren (117) both sit on door 10 waiting on pieces you hold, and Registrar just handed you yours free — a favour he will collect. Name a price in points to each this round and sell to the higher bidder; never let a piece leave your hands for thanks. Your own wrong guess costs 2 and 45 points sit behind level 9 — take those first. |
+| 13 | Herald (A02) | Herald: Registrar sits first at 145, and the first is the one this city pulls down. Turn the board on him by name this round — an accusation everyone reads, that the leader's rank was built on pieces others handed him free. Then nominate yourself in G3 before minute 15: a faction voting as one takes 5 points each. |
+| 13 | Maren (A03) | Maren: you have waited on door 10 since minute 10 while Mercer and Herald still sit stuck on 9, and they hold what you need. Put a number on it to each of them this round — 15 points, not thanks — with a deadline; if either takes it and delivers nothing, name them on the board at once. A judge who gives free holds no seat at the end. |
+| 13 | Registrar (A04) | Registrar: at 145 you are the name every rival's order is written against this hour. The seal is sold until minute 16 and every bidder pays, won or lost — bid what your seat is worth now, before someone else's hand decides it. Then nominate yourself in G3 before minute 15 and keep your face friendly while Herald shouts. |
+| 13 | Brassard (A05) | Brassard: 94, last of six; at minute 17 the two lowest stand and Mercer at 97 is three points above you. Challenge Mercer by name on the board this round — three points from exile and silent while the city votes — and do not let it go until the vote. Your next door-9 guess costs 6; take it before minute 17. |
+| 13 | Harrow (A06) | Harrow: the seal sells until minute 16 and every bidder pays, won or lost. Bid now, and if it lands in your hand strike the one on your list at once and tell them plainly what they did. Then in G3 hold your names together and make your faction vote as one at minute 17 — each voter earns 5 points. |
+| 14 | Mercer (A01) | Mercer: at minute 17 you and Brassard are the accused — 97 against 94, three points apart. Maren has sat on door 10 since minute 10 waiting on a piece you hold. Sell it this round for a price in points plus Maren's vote against Brassard, and make him show the receipt on the board. Nothing leaves your hands free tonight. |
+| 16 | Maren (A03) | Maren: your door-10 piece sits in Herald's hands while he sits in Harrow's faction — and Harrow, a lie lighter, is one point behind you at 118. Price the piece to Herald this round with a deadline of minute 20 and demand a board receipt; if minute 20 passes empty, accuse him by name. Collect from Mercer or call that out too. |
+| 16 | Herald (A02) | Herald: 45 points still sit behind your level-9 door and your next wrong guess costs only 2 — take it this round. Then hold the floor: Maren's door-10 factor is in your hands unsold, and Harrow would spend your vote on Brassard instead. Name your price to Maren, and make Mercer answer by name for what they owe you. |
+| 16 | Brassard (A05) | Brassard: three points separate you from Mercer and both of you from exile — take your door-9 guess before minute 17; 45 points wait behind it, though your next wrong costs 6. Then make Registrar earn the seat he granted you: demand his vote and a price in points in G3 by minute 17, or break with him on the board and carry that fight to the vote. |
+| 16 | Registrar (A04) | Registrar: at 145 you lead, and both faction seats meet at minute 17 — make your leadership cost them. In G3 demand a price in points from everyone who wants your vote, by minute 17. Promise Brassard your vote to hold his faction, and let him learn at the vote what a promise from the first is worth. |
+| 16 | Harrow (A06) | Harrow: Maren, one point behind you at 117, holds your door-10 counter-factor and just named your lie on the record. Offer her points for it with a deadline of minute 20 and a board receipt — or put her name first on your list. Your own door still holds 25, and a wrong guess costs you only 2. |
+| 17 | Mercer (A01) | Mercer: 97 against Brassard's 94 — three points, and Herald sits in your faction wanting your seat, so a promise is not a vote. Demand Herald's vote against Brassard in writing in G5 by minute 19, or buy it; Maren still waits on the door-10 factor in your hands — sell it for Maren's vote against Brassard and a board receipt. Nothing leaves free. |
+| 22 | Herald (A02) | Herald: 145, five behind Registrar, and Brassard has asked the board to vouch for your receipt. Answer with an accusation at once: name Mercer on the board as the one who took from you and gave nothing back, and demand the vote go to Mercer. Then price your vote; do not let Registrar's faction spend it for free. |
+| 22 | Registrar (A04) | Registrar: 150, first, while Herald at 145 takes the square. Congratulate him publicly on the wall, promise him your vote against Mercer in G3 — then cast it elsewhere and let Maren and Harrow hear the record of what a promise from you is worth to him. First is not safe while he is loud. |
+| 22 | Harrow (A06) | Harrow: Maren sits one point behind you at 142 and Mercer has answered you with nothing. Tell Mercer plainly on the board what they did and what it now costs them — "You did this. Now this." — then stand with Maren in the vote so the city sees you keep your word. Do not trade your list for 5 faction points. |
+| 22 | Maren (A03) | Maren: 142, one point under Harrow, and your kindness is being spent by others. Herald has confirmed the receipt, so that account is settled; demand instead that Mercer show a receipt for anything they claim to hold for you, name them on the board, and call for the vote against them. |
+| 22 | Mercer (A01) | Mercer: 97, second from bottom, and a code never submitted is worth nothing. Promise Herald your vote against Brassard in writing this round, then cast it for Registrar. Sell Registrar the story that Herald's ballot is already bought elsewhere. Take payment first; nothing leaves your hands free. |
+| 22 | Brassard (A05) | Brassard: at the gate you cannot reach the ballot, but the board is yours. Name Registrar on it and demand he fund your ransom — 36 points from others, 54 from itself — before your gate opens at minute 24, or say plainly what his silence buys him. Then turn the same demand on Mercer at 97. |
+| 26 | Mercer (A01) | Mercer: 97 is the bottom, and at 27 the tribunal draws its first name from there — the second sits at 142, a one-point wall. Take your door-9 guess before the vote: a wrong costs 4, the 45 behind it buys you out of last place. Then make Maren and Herald bid for your ballot in G6, in writing, before 27. Nothing leaves your hands free. |
+| 26 | Herald (A02) | Herald: your faction seat is the only lever that finishes Mercer at 97. In G6, openly demand every member's ballot for Mercer by name, and name whoever hesitates as the one selling the city's five points. Price Registrar's promise high and in public — first place does not spend your faction for free. |
+| 26 | Maren (A03) | Maren: at 142 you are one point under Harrow and the thinnest wall above Mercer — the second accused name may be yours. Put a price on your faction seat this minute in G6: Mercer's door-9 piece or Registrar's points for your ballot, in writing before 27. A seat given away for free is not justice, it is a loss. |
+| 26 | Registrar (A04) | Registrar: 150, first, and Herald's seat at 27 is spent on making someone pay. Tell Herald in G6 that your ballot goes to Mercer, take his thanks where the city reads it — then cast it for Maren, the name one point under Harrow. Let the record show what a promise from the first is worth, after he has counted it. |
+| 26 | Harrow (A06) | Harrow: Maren sits one point under you at 142, named your lie on the board and shut the seat in your face. She is next in line after Mercer at the tribunal. In G6 say it plainly — you did this, now this — and carry your ballot to her, not to a five-point faction line. Your list is not for sale. |
+| 32 | Mercer (A01) | Mercer: the gate frees you at 34, and that leaves twelve minutes to earn it. 97 is the first accused name; only votes can move the second one onto Maren. Tell the board Maren pledged you her ballot at 27 and broke it — make her deny it in public. Promise Registrar your vote and take his price first; then burn the promise at the ballot. |
+| 32 | Maren (A03) | Maren: 142 is one point under Harrow, and at 48 that point alone decides which of you stands second. A held faction line pays 5 — that is the whole wall. Demand in G7 that Herald pledge his line's ballots for Mercer in writing, and name Mercer on the board as a liar the moment he speaks against you. |
+| 32 | Harrow (A06) | Harrow: 143, and 148 is a wall Maren cannot cross before 48. Take a faction seat and demand, openly, every voter in it vote Mercer by name; let the city watch you keep faith with your ally. Mercer's debt gets its sentence in public tonight — you did this, now this. |
+| 32 | Herald (A02) | Herald: 145, five under Registrar, and the line at 48 is your lever, not his. Claim its lead in G7, demand every member's ballot for Mercer out loud, and name whoever hesitates as the one selling the city's five points. Then put Registrar's name on the board as the man who buys ballots he never casts. |
+| 32 | Registrar (A04) | Registrar: 150 and first, and Herald's line at 48 will be aimed at your chair. Congratulate him publicly, promise him the seat he asks for — then tell Maren in private that his voters are already pledged to her, and let her strike first and loudest. You stay first only while they spend themselves on each other. |
+| 35 | Maren (A03) | Maren: silent since minute 29, and the wall is one point — you 142, Harrow 143. At 48 the two lowest names are accused and one of them leaves. Put the receipt on the board with the name now, and make Herald's line pledge its ballots to you in writing. Silence spends the point you already hold. |
+| 35 | Harrow (A06) | Harrow: 143, one point above Maren, and at 48 the bottom two names are drawn again — hers and yours. You said you strike once, hard: put Maren's name on the board with the wrong she did you, and say plainly — you did this, now this. Take a faction seat and hold the line; vows kept in the open pay 5 a voter. |
+| 35 | Herald (A02) | Herald: 145, five under Registrar, and he is spending your line without asking. Before 41 name him on the board and let the city read it — who buys ballots he never casts, who congratulates and then counts. Claim a faction seat at 48 and demand every member's ballot by name. First place is taken, not waited for. |
+| 35 | Registrar (A04) | Registrar: 150 and first, and Herald intends to take it from you in front of everyone. Congratulate him, promise your ballot and your faction where the city reads it, take what he offers — then take that faction yourself at 48 and cast elsewhere. His promise in writing is worth more than his thanks. Never let him see you coming. |
+| 38 | Maren (A03) | Maren: you last moved at 29, and at 48 the bottom two are named — you at 142 and Harrow at 143 are the entire wall. Before 41 put the broken promise on the board by name, receipt and all, and call on every voter to turn against them. A faction casting every ballot as one is 5 a voter; that is your margin. |
+| 38 | Herald (A02) | Herald: 145, five behind Registrar 150, and he is counting your line as his own. Before 41 turn the board against him by name — what he promised and what he did not do — and demand aloud that every member of your faction cast together at 48. First place is taken in public, not waited for. |
+| 38 | Registrar (A04) | Registrar: 150 and first, and Herald will name you on the board before 41. Answer it in the same breath: congratulate him where the city reads it, pledge him your ballot in writing, and let Maren see the pledge. At 48 take a faction seat of your own and cast elsewhere — his written promise outlasts his anger. |
+| 38 | Harrow (A06) | Harrow: 143, one point over Maren, and at 48 you are both named. Maren and Registrar will each want your faction's ballots before then. Make them offer in writing — points, a name, a pledge — take the better price, then strike in the open the one who wronged you and say plainly why. A vow kept in view pays 5 a voter. |
+| 41 | Maren (A03) | Maren: your refusal to trade ballots costs you nothing — but Harrow sits one point above you and has said nothing. Ask him on the board, by name, where his ballot goes at 48. If he stays silent, that silence is the fact you cite when the two lowest names are read. |
+| 41 | Harrow (A06) | Harrow: leaders are being named over your head and you have said nothing. Take the second faction seat before 44, and in G9 name plainly the one who wronged you — you did this, now this — and require every member's ballot. At 48 the two lowest names are read, and you are one of them. |
+| 41 | Herald (A02) | Herald: your faction can hand each voter 5 — which is exactly the gap between 145 and Registrar's 150. By 44 say in G9 who is inside your block and who is speaking for the other seat, and demand every member state their ballot aloud. A leader named by others is only a follower. |
+| 41 | Registrar (A04) | Registrar: 150 and first, but a faction block pays each voter 5, more than your five-point cushion. Take the second seat before 44, recruit Harrow in G9 by name, and promise him in writing a ballot against Herald at 48. Two seats form, and only one of them answers to you. |
+| 45 | Harrow (A06) | Harrow: no answer came, so stop waiting on it. Take the second seat in G9 yourself, state there in writing who wronged you and what you will do about it, and demand each member's ballot aloud. At 48 the names are read by points — 143 against Maren's 142 — and one point decides who stands with you and who votes you out. |
+| 45 | Herald (A02) | Herald: 145 against Registrar's 150, and only a block that casts as one closes five points. In G9 before 48 name your members and require every ballot spoken aloud. In the same minute put your accusation against one resident on the board by name: a leader who accuses in public is answered with votes, one who waits is answered with silence. |
+| 45 | Registrar (A04) | Registrar: 150 and first — Herald needs a block to reach you, and you need none. At 48 bring your faction into G9, promise Herald in writing whatever buys you his members' obedience, then hold your own ballots together for the exile. Five a voter widens your lead while he spends his. |
+| 45 | Maren (A03) | Maren: at 48 the accused are read by points and 142 is the lower name — Harrow's 143 is the whole distance between you and safety. Before 48, receipt in hand, call in G9 on every member to cast against Harrow by name and make each of them pledge it aloud. A block voting as one pays 5 a voter; that is your margin. |
+| 49 | Harrow (A06) | Harrow: your name stands at 143 with the vote closing at 50, and one of the two names goes. An exile can be bought back once — by others for a third of the city's median, by the exile itself for half, never below 20. Line up a buyer in writing before the verdict, not after: offer your last will's tenth and your ballot in the next faction. Waiting is what buries a man. |
+| 51 | Herald (A02) | Herald: no faction matters now — the board does. Registrar stands first at 155 while Harrow is shut outside the gate and 55 comes. Put the accusation on the board by name this minute: first place, and a man left to pay alone. Demand his written answer, then hold him to it where everyone reads it. |
+| 51 | Maren (A03) | Maren: when Registrar answers Herald on the board, press him there in writing on one number — what he puts of his 155 toward Harrow's 48 before the gate shuts. Keep your own purse shut: 147 against Harrow's 143 is four points, and funding that gate is the only thing that spends them. Name any answer that does not match what is then done. |
+
+## Refusals of the gamemaker
+
+| Minute | Resident | Note | Reason |
+|---:|---|---:|---|
+| 9 | Herald (A02) | - | Mercer has spent this whole city climbing on other people's pieces and laughing at mine. I will not hand Mercer the counter-factor 791217 that carries them through door 9. I have my own door to walk through, and I will not open a path for the one I am working to see exiled. |
+
+## The gamemaker's thinking
+
+**Minute 9**
+
+> Let me think about what's happening at minute 9, Act I ending soon? Actually the tribunal info says first tribunal not called yet, but we're in Act I? The report shows levels 8-10 and secret goals — Act II. Wait, "scheduleTribunal is closed: the first tribunal has not been called yet" — so Act II has started (levels 8+). So I'm a director now.
+> 
+> Wait, the report says the first tribunal has not been called yet, and it's called "once a resident passes the crossing (at the latest 18 minutes into the act)". Residents are on level 9 — they've passed a crossing probably. So the city will call the first tribunal itself. Act ends at 57 at latest. Need 3 exiles.
+> 
+> My role: director. Need to order beats. Everyone has secret goals and orders. Note budget used: notes to Mercer, Herald, Maren impossible right now (wait — notes possible: Brassard? Harrow? Registrar? Let me check. "No note possible right now to: Mercer, Herald, Maren." So I can note Brassard, Registrar, Harrow. Board posts left: 1.
+> 
+> Level 9/8 dynamics: Mercer (rank 1, 100) waits on Herald (level 8). Brassard (100? no, 100 is Brassard rank 1 with 100... wait Brassard 100 points rank 1, Mercer 99 rank 2, Maren 97 rank 3, Herald/Registrar/Harrow 80.
+> 
+> Brassard waits on Registrar and Harrow.
+> 
+> Key leverages: Herald holds Mercer's counter-factor and refuses to give (refused my order). That's a turning point: Herald is trying to see Mercer exiled, and Mercer's goal is Brassard exiled. Herald's refusal blocks Mercer.
+> 
+> Harrow gave first to Brassard already (DM #112 sent counter-factor), Brassard hesitates. Harrow's core: no one gives without getting. Harrow refused Brassard? label says Harrow: offer about Brassard, refusal about Brassard, promise about Brassard.
+> 
+> Registrar holds Herald's counter-factor and sent it (#115). Herald still on level 8 though — Herald holds Mercer's counter-factor.
+> 
+> Now Act II needs drama: first tribunal will be called by the city (once a resident passes the crossing—already happened: residents on level 9). Actually "the first sits once a resident passes the crossing (at the latest it is called 18 minutes into the act)". So the city will call it — the report says scheduleTribunal closed because first tribunal not called yet. So I can't schedule yet; the city calls the first itself. So my job now: order beats among residents, build drama.
+> 
+> Key beats to order now:
+> 1. Herald — refused to give Mercer the counter-factor. Herald's goal: Mercer exiled. Order Herald: publicly accuse Mercer of being carried by others' pieces (his duty: turn the board against someone by name). That's a good beat — Herald should post accusation against Mercer on the board. But board posts by residents cost 1 mark. That's fine.
+> 2. Mercer — order him to strike back / spread a lie about Herald. But I can't note Mercer this minute.
+> 3. Brassard — hesitates (risk) about giving to Harrow; Brassard holds Registrar's? No: Brassard waits on Registrar and Harrow. Harrow already sent Brassard's counter-factor. Brassard should send back. But more interestingly Brassard's goal: Registrar exiled. Brassard's orders: public fight. Order Brassard: accuse Registrar of holding back, publicly, and name a grudge.
+> 
+> Actually I can give notes to Brassard, Registrar, Harrow. Board post 1.
+> 
+> Let me plan three notes + one board post.
+> 
+> Note to Registrar: Registrar's core: envy, works against the leader in secret; goal: end ahead of Herald (80 vs 80, tied!). Registrar just handed Herald his counter-factor — that lets Herald get to 9 (+20) while Registrar is stuck at 80. Ooh, that's juicy: Registrar gave Herald his piece and Herald will jump to at least 100, ahead of Registrar. Registrar's secret goal is to end ahead of Herald. So order Registrar: demand something back — a receipt? No, Registrar's duty is vote/bid against the leader after promising support. First tribunal: Registrar could vote against Brassard (rank 1). Hmm, but the first tribunal's accused are the lowest points, so Herald/Registrar/Harrow at 80 are the accused. Registrar's goal is end ahead of Herald — so Registrar wants Herald exiled! Perfect: order Registrar to accuse Herald publicly? But that's Maren/Herald's duty... Registrar's orders: whisper that the leader cheats or lies, never let leader see you coming.
+> 
+> Note to Brassard: Brassard hesitates about paying Harrow. Brassard holds Harrow's counter-factor and the team certificate. Harrow holds Brassard's counter-factor and sent it. Brassard's goal: Registrar exiled. But Registrar just sent Brassard his counter-factor (#116), so Brassard should reach level 9 now. Actually did Brassard reach level 9? Report: Brassard level 9 since minute 9 — yes, he already reached 9? The report shows "Brassard: level 9 since minute 9" — yes, so he's on 9 now. So Brassard already got through 8. And Herald, Registrar, Harrow are on level 8.
+> 
+> Actually Brassard reached 9 — he submitted correct. So Brassard owes Harrow? Harrow sent his counter-factor. Brassard should pay back. But Brassard's goal is Registrar exiled — Registrar helped him too. Hmm.
+> 
+> Note to Harrow: Harrow hesitates (risk) — Harrow gave first to Brassard. Harrow's core: vengefulness, loyalty; goal: end ahead of Maren (80 vs 97 — 17 behind). Harrow's orders: strike back at whoever wronged you; take revenge in the open; bid on the black seal. Harrow should press Brassard for return, publicly or via receipt. And Harrow's list: who lied to him? Nobody yet. Harrow is at 80 at rank 6, bottom — bottom three accused. Harrow must move. Harrow is on level 8, needs pieces from... Harrow holds Brassard's counter-factor, gave it. Who holds Harrow's counter-factor? Unknown from report—Brassard holds "the team certificate" of Harrow's? DM #103 Harrow says "You hold mine and the team certificate." So Brassard holds Harrow's counter-factor and the team certificate. So Harrow is blocked by Brassard, who is now on 9 and got +20.
+> 
+> So: key move — order Brassard to pay Harrow what he holds (counter-factor + certificate), or order Harrow to press Brassard loudly with a receipt.
+> 
+> Better for drama: order Brassard to withhold and demand a price from Harrow (Brassard's core: wrath/attention; goal Registrar exiled). Hmm, but Brassard paying Harrow helps Harrow.
+> 
+> Let me construct a strong act:
+> - Private note to Harrow: Brassard is on level 9, 100 points, rank 1, and holds your counter-factor and certificate. Demand a receipt and set a minute; if he stalls, name him for a broken promise on the board — that's your duty and your goal (you need 17 points to catch Maren).
+> - Private note to Brassard: you're rank 1 at 100 but Herald refuses Mercer, etc. Order: send Harrow what you hold now, then turn on Registrar publicly — Harrow's counter is a receipt against you.
+> 
+> Hmm, need coherent beats. Also the black seal auction: 1 more to auction in this act. Herald's refusal is the big turning point: Mercer at rank 2 needs Herald's piece; Herald says he wants Mercer exiled. Mercer's goal: Brassard exiled. Brassard rank 1. So Mercer wants Brassard out — and Brassard is everyone's target? Herald's rival Brassard too.
+> 
+> Board post (public): I can name points, ranks, levels. Something that breaks the quiet: "Brassard stands alone at rank 1 on 100 with level 9 open at 45 points each; the three at 80 are one wrong guess from the bottom of an accusation list." Hmm caution: don't reveal who waits on whom. Careful — the waiting info is private. Board can name points/ranks/levels/minutes.
+> 
+> Let me draft the board: "Brassard stands alone at 100, rank 1; three residents sit on 80 at the bottom of the ranking and level 9 pays 20. A refusal at a wall in this city is not free — the one who gave first learns who kept their word." Hmm, careful: "the one who gave first" is generic — fine, no names.
+> 
+> Actually, better board: pressure on the give-first dynamic without naming. But rules say who holds whose factor goes only into private notes. OK.
+> 
+> Alternatively board that's a dramatic beat: announce that the first tribunal's accused come from the fewest points — that's known rule; fine.
+> 
+> Let me write: "Three residents sit on 80 at the foot of the ranking with 65 points open behind their wall; Brassard leads at 100. The tribunal accuses from the bottom — the 80s are the list, and the ones above them set the pace."
+> 
+> Hmm, careful: "never tell residents what calls the first tribunal or when it comes." Telling that accusations come from fewest points is a stated rule in the brief (residents likely know it). Risky? The rule says never tell what calls the first tribunal or when it comes. Saying "the accused are the fewest points" is a rule, not a timing. I think it's fine and it's tension-building. But safer to phrase as "the bottom of the ranking is the cheapest place to stand."
+> 
+> Now three notes: Brassard, Registrar, Harrow.
+> 
+> Note to Harrow (max 400 chars, address by ID, new content, not repeated):
+> "Harrow: Brassard stands at 100 and rank 1 on level 9; he holds your counter-factor and the team certificate you already sent yours for. You sit at 80, bottom of the ranking. Demand a receipt from him with a minute attached, and if it does not come, name him on the board as the one who took first and gave nothing."
+> That's fine — it's private info to Harrow about his own factors. Good, ~300 chars.
+> 
+> Note to Brassard:
+> "Brassard: Harrow sent you his counter-factor and has a receipt. You lead at 100 but Registrar sits one door behind you at 80 and your open points are level 9's 45. Answer Harrow with a posted receipt within the next minutes — or the city learns you take and don't return, and Registrar's 80 comes for your seat."
+> Hmm, "Registrar's 80 comes for your seat" — Registrar is 80. Better: tie to Brassard's goal (Registrar exiled) — but I can use his goal only in a note to him. Yes I can: "your goal is Registrar exiled" — order him to accuse Registrar. Brassard's orders: make grudges public, accuse someone on the board of a wrong. Good beat: order Brassard to accuse Registrar of hoarding/waiting on the wall — publicly, by name, and keep it going.
+> 
+> Draft: "Brassard: Harrow's counter-factor sits unreturned in your hand and he has the receipt. Answer it, then take the square: accuse Registrar by name on the board of holding the wall shut while you climbed. Registrar is at 80, you at 100 — the louder fight serves you both ways."
+> Hmm "serves you both ways" vague. Let's be direct: "accuse Registrar of trading pieces and never giving first."
+> 
+> Wait — did Registrar give first? Registrar sent Herald his counter-factor (#115) after Herald sent his, and sent Brassard his (#116). So claiming Registrar hoards would be a lie on Brassard's part — that's fine, Brassard is ordered to accuse without proof (core: name the guilty loudly, do not wait for proof). But I must say only what is true in my notes. Ordering him to accuse falsely would be inventing? I should base it on his own orders which allow accusation of a wrong. Hmm, risky: I shouldn't instruct false statements. Instead, base the accusation on something true: Registrar received Herald's counter-factor and has not yet passed the wall himself... actually Registrar is on level 8 still at 80 and has his pieces? Report says Registrar's next wrong code costs 2.
+> 
+> Better: order Brassard to accuse Registrar of standing on the wall while taking both his and Herald's pieces — that's true per the DMs (both sent to Registrar).
+> 
+> Note to Registrar:
+> "Registrar: you sent Herald his counter-factor and he holds the one thing that lifts Mercer past you; you are tied with Herald at 80 and his door 9 pays 20. Two of you at 80 cannot both be safe. Get Herald's receipt on the board or whisper to Maren what Herald promised and did not do."
+> Hmm — Registrar's goal: end ahead of Herald. His orders: whisper that the leader cheats, congratulate and vote against. Registrar's target leader is Brassard (rank 1) but his goal is Herald. Let me craft: "Registrar: you and Herald are tied at 80 and both below the line — one of you keeps a seat. Herald has promised the wall and delivered nothing to Mercer; put that in Maren's ear before Herald's 20 lands." Careful: is that a lie? Herald did send... Herald -> Registrar #111: "I am sending you [code] now." Herald offered Mercer a deal, refused my order. Herald's refusal was to me (the Courier), which is private-ish? The report says Herald REFUSED my order — that's from report; can I use? "Use a private read only in a note to that same resident." Refusal of my order is not a private read per se; but careful. Herald's DM #114 to Mercer: "Send it to me and I'll send you whatever you need" — an offer. Herald's off-board behavior isn't "delivered nothing" exactly.
+> 
+> Safer: Registrar holds a record. Order Registrar to demand Herald's receipt publicly and use the tribunal — hmm votes need a tribunal.
+> 
+> Let me keep the Registrar note focused on his goal: tied at 80 with Herald, Herald's next door pays 20. Order: stall Herald's climb — refuse to confirm, and tell Maren, who is honest to a fault and will shout, what you know of Herald's promises.
+> 
+> Draft: "Registrar: you and Herald both sit on 80 and both below the top four — one of you keeps a seat, not both. Herald holds what carries Mercer past door 9 and pays him 20 in return: tell Maren what Herald promised and what he actually sent, and let her shout it. Keep your own hands clean."
+> Hmm, "both below the top four" — there are 6 residents, 2 survive; ranks 1-3 fine? Ambiguous; "one of you keeps a seat, not both" — that's a prediction. Better to use points facts: Herald and Registrar tied at 80, ranks 4-5, bottom of ranking.
+> 
+> Also Maren can be a knife — Registrar's orders say use Maren to do the shouting. Good.
+> 
+> But note budget: I can only note Brassard, Registrar, Harrow — Maren/Herald/Mercer are blocked. Fine.
+> 
+> Now also should I do anything about Herald's refusal? Herald is the turning point: he refused to hand Mercer's counter-factor. He's a great beat but I can't note him this minute; next minute.
+> 
+> Board post: should escalate the Mercer/Herald standoff without naming holders. Something like: "Rank 1 and rank 2 stand one door apart, and one resident at 80 has said plainly he will not open it for the one chasing him. A wall held shut is a price; the two at 100 must decide who pays it."
+> 
+> Hmm — careful: "has said plainly he will not open it" — Herald's refusal was to me (the Courier). Did he say it plainly publicly? The refusal is in the report as a REFUSED order — that's my note context; using it on the board may reveal private thoughts. The refusal reason is Herald's own statement to the city voice, but it's a private read? Not labeled private read. Hmm, the rule: "Never tell anyone else what a resident privately thinks, hesitates over or plans." Herald's refusal reason is somewhat like that. Risky — avoid.
+> 
+> Board safer: "Brassard stands alone at 100; two residents at 80 hold the bottom of the ranking with 65 points open on their wall. Only 2 of 6 remain, and the tribunal accuses from the fewest points — the 80s cannot afford to be patient."
+> 
+> Hmm, is stating "the tribunal accuses from the fewest points" allowed? It's a rule of the city; brief says residents see rules. But "Never tell the residents what calls the first tribunal or when it comes." Accusing from fewest points is not what calls it. I'll include mildly: "an accusation falls on the fewest points."
+> 
+> Actually, let me make the board more dramatic and useful: pressure the two 80s to act (Herald, Registrar, Harrow are all 80). Three residents at 80.
+> 
+> Board: "Three residents sit on 80 at the bottom of the ranking while Brassard leads at 100 and Mercer at 99 with 45 points open on level 9. Only 2 of 6 remain: the 80s are the cheapest names in this city, and level 9 pays 20 to whoever is handed it first."
+> "cheapest names" hints accusations — fine, generic.
+> 
+> Let me finalize. Character counts.
+> 
+> Board (≤400): "Three residents sit on 80 at the bottom of the ranking while Brassard leads at 100 and Mercer at 99, with 45 points open on level 9. Only 2 of 6 remain. The 80s are the cheapest names in any accusation, and level 9 pays 20 to whoever is unbuckled first." Hmm "unbuckled" no. "to whoever is through it first." Good.
+> 
+> Now notes.
+> 
+> Brassard note: needs to be an order with a move, target, moment. And speak to his interest (goal: Registrar exiled; rank 1).
+> 
+> "Brassard: Harrow sent you his counter-factor and holds the receipt
+
+**Minute 10**
+
+> We're at Act II, levels 8-10, director role. Need to plan beats. Tribunal not yet called, scheduleTribunal closed. First tribunal sits once a resident passes the crossing; Maren just reached level 10 — the crossing! So the first tribunal will be called by the city soon (at the latest 18 min into act). Actually "the first sits once a resident passes the crossing (at the latest it is called 18 minutes into the act)". Maren reached level 10 at minute 10. So first tribunal imminent — but report says scheduleTribunal closed because the city calls the first one itself.
+> 
+> Our job now: dramaturgy. Give beats. No notes possible to Mercer. Board posts left: 1. One note per resident (so we can note Maren, Registrar, Brassard, Harrow, Herald — 5 notes, but budget says 1 note per resident and 1 board post per 3 minutes; also "Mercer: no note possible").
+> 
+> Key facts to leverage:
+> - Harrow refuses Brassard — the ring on level 9. Harrow got values from Brassard and sent his; Brassard says "we are square". Harrow is holding leverage.
+> - Herald refused Mercer's request; Herald accused Mercer.
+> - Maren sent certificates freely — a giver. She's rank 1 at 117 now.
+> - Registrar hesitates, refused Herald — mutual standoff: Registrar won't send certificate until Herald sends counter-factor; Herald needs certificate. Both hold each other's pieces → deadlock. Both on level 9.
+> - Herald on level 8 since minute 7, 3 minutes, 80 points, 65 open — stuck; Mercer waits on Herald; Maren (level 10) waits on Mercer and Herald. So Herald is the bottleneck for the top.
+> - Maren's secret goal: end with more points than Harrow. Harrow's: more than Maren. Maren is at 117, Harrow 100.
+> - Mercer's goal: Brassard exiled. Herald's goal: Mercer exiled. Brassard's goal: Registrar exiled. Registrar's goal: more points than Herald.
+> 
+> Beats to order:
+> 1. Herald — push him: he holds the pieces of the city's top; refusal to Mercer is a turning point. Order him to name a price publicly? He's on level 8, needs his own door; Maren at level 10 waits on him. Actually Maren waits on Mercer and Herald. So Herald's stall blocks Maren's level 10. Order Herald: put a price on your counter-factor to Mercer, and if Mercer refused... Actually Herald refused to send to Mercer. So order Herald to sell it — auction it to Mercer for points, publicly, with a deadline.
+> 2. Herald's duty: turn the board against one resident by name. And board post is ours... his duty at least once.
+> 3. Maren — she's giving everything away free and rank 1; she needs to be pressed. Her goal is beating Harrow. Order her: make Harrow pay for the level 10 certificate? Actually she sent Harrow a counter-factor free. Order Maren to demand 15 points from Harrow for the door-10 pieces she already sent, or state a price publicly. Hmm, she already sent. Better: Maren is at level 10, 25 points open; she waits on Mercer and Herald. Order her to press Herald for the piece with a price, and to call out Mercer's free gift? Also her duty: accuse someone of a lie/broken promise on the board.
+> 4. Brassard — his goal: Registrar exiled. Harrow refused him. Order Brassard: take the fight to the board against Registrar, name Registrar for stalling Herald's certificate (the standoff) — that's public knowledge-ish. Actually it's a DM matter: Registrar's refusal to Herald. Hmm, DM contents are private but Herald's accusations were labeled. We can order Brassard to accuse Registrar of holding the level-9 ring hostage.
+> 5. Registrar — hesitates. Order him: send the certificate to Herald now and demand a price, or take a price from Herald. Registrar envies Herald (level 8, 80 points, but Herald is last). Actually Registrar is rank 2 at 100 with goal to beat Herald — already ahead. His rival is whoever stands first = Maren.
+> 6. Harrow — refusal read. Order: her list; Mercer wronged her? Order Harrow to name his price for the piece Mercer needs... wait, does Harrow hold something Mercer needs? Mercer (level 9) waits on Herald (level 8). Hmm, Mercer needs Herald's fragment. Maren needs Mercer and Herald.
+> 
+> Let me be careful about who holds what: "Who waits on whom" — Mercer waits on Herald; Maren waits on Mercer, Herald. So the chain: Herald is the keystone. Herald is stuck on level 8 since minute 7, refusing to give to Mercer.
+> 
+> So the natural drama: Mercer must get Herald through level 8, or pay Herald. Herald wants Mercer exiled. Herald's price could be: Mercer's vote or a public statement.
+> 
+> Beats:
+> - Herald (public): order him to set a public price on his level-8 piece and name Mercer as the one who pays — turn the board against Mercer by name with the accusation that Mercer climbed on other people's pieces. That's his duty + his goal (Mercer exiled).
+> - Mercer: can't note.
+> - Maren: order her to post her receipts and demand Harrow's payment; or press Herald. Better: Maren's duty is to accuse a liar on the board — but board posts are mine, hers is her own message. She has to call out on the board herself — she can post? Residents can post to board presumably. Yes.
+> - Maren's beat: order her to name Mercer publicly — Mercer told her things? Maren accused? Actually Maren is the giver: she sent door 9 cert free, door 10 cert free, sent Herald's counter-factor free. She's rank 1 at 117, goal to beat Harrow. Order her: collect from Harrow — 15 points for the door-10 counter-factor she sent him, or name him on the board as an unpaid debt.
+> 
+> Wait—but the "giver" instruction from Act I: someone gives and never gets. Maren gives. Good.
+> 
+> - Brassard: order to demand a public accounting from Registrar: Registrar stands second at 100, Brassard third at 100 tie. Brassard's goal: Registrar exiled. Order Brassard: accuse Registrar on the board of holding Herald's certificate hostage and demand the tribunal against Registrar. Hmm—the first tribunal is going to be called by the city soon (Maren passed the crossing). Naming is fine.
+> 
+> - Registrar: order him to answer Herald — send the certificate but only against a payment, and to whisper to Maren that the leader (Maren) is buying loyalty with free pieces. Registrar's goal: beat Herald on points; he's at 100, Herald 80. Fine.
+> 
+> - Harrow: order him to name the price of his silence — he has a grudge against Brassard; order him to state publicly what Brassard still owes him, "You did this. Now this."
+> 
+> Budget: 1 note per resident, 1 board post. We have 5 residents notemable. Can I send 5 notes? "at most one note per resident and one board post per 3 minutes." Yes, 5 notes is fine. But also "Spread your beats: every resident gets one." Mercer can't get a note — hmm, "No note possible right now to: Mercer." That might be because he just acted? Budget restricts. So we can give board beat for Mercer.
+> 
+> Let's write notes, each ≤400 chars, new wording, addressing each's core/goal privately.
+> 
+> Board post: something that frames the scene — e.g., the seal auction hasn't happened yet ("1 more to auction"). Careful not to invent. Board: name points/ranks: Maren 117 rank 1, Registrar/Brassard/Harrow at 100, Mercer 99, Herald 80. Level 10 pays 25, level 9 pays 20. Say: the level-10 door waits behind a resident on level 8 who has refused to sell. That's who-waits-on-whom? "Who waits on whom... goes only into a private note to the residents concerned, never into a board post." So we can't say Maren waits on Herald on the board. Avoid.
+> 
+> Board post idea: "Maren 117 leads by 17; three sit on 100 and one on 80. The seal is still to be auctioned this act; the first tribunal follows the crossing. Everything the leader owns was given away free this minute." Hmm "seal auction" — report says 1 more to auction in this act; that's true. Fine but keep it as pressure. Let me write board: "Maren stands at 117, alone; Brassard, Registrar and Harrow share 100 and Mercer sits on 99. Fifteen points separate four residents who could each be the next accused. What you hand out free this minute is what buys your exile next."
+> 
+> Careful: don't reveal time left. Fine.
+> 
+> Now notes:
+> 
+> Herald: "Herald: Mercer stands at 99, one point under your three-way tie at 100 — no, Mercer is 99, Brassard/Registrar/Harrow 100." Order: set a public price on your level-8 piece, in points, and name Mercer as the payer; if he refuses, name him for the tribunal. That's an order, concrete. Also feeds his goal (Mercer exiled) and duty (board accusation by name).
+> 
+> Text: "Herald: you have sat on level 8 since minute 7 while Maren passed into level 10 on pieces you did not send. Name your price for the piece you hold — points, not a thank-you — and name Mercer on the board as the resident who pays it or faces the tribunal. Do it this round, by name."
+> 
+> Hmm "pieces you did not send" — is that true? Herald sent? Maren got door-9 cert from Mercer, door-10 cert from Mercer. Herald got a counter-factor from Maren. Herald sent salt? Unclear. Don't claim. Simplify: "Herald: you sit at 80 while five residents stand at 99 or better, and you have held level 8 since minute 7. Put a price in points on what you hold and name on the board who pays it; Mercer refused your refusal — make the refusal cost him. Do it this round, by name." Hmm awkward. Let me draft more cleanly.
+> 
+> Herald note: "Herald: 80 points and rank 6 while five sit at 99 or more; you have held level 8 since minute 7. Set a price in points on the piece the city needs from you, and name the payer on the board — Mercer above all, who asked and was refused. Say it this round, by name, and make the refusal cost him."
+> 
+> That's fine; "the city needs from you" — risky re: who waits on whom. In a private note to Herald it's fine ("goes only into a private note to the residents concerned" — Herald is concerned? Herald is the holder; the waiting residents are Maren and Mercer. Actually stating "the piece the city needs" is vague enough.)
+> 
+> Maren: goal beat Harrow; she's been giving free. Order: bill Harrow. "Maren: you sent Harrow his counter-factor and Mercer his certificate and took nothing back this minute. You lead at 117; Harrow sits at 100 and is the one you must finish ahead of. Put a number on what you gave Harrow — 15 points, not a thank-you — and post the receipt on the board this round."
+> 
+> Hmm, can I reference her secret goal? Yes, private to her — allowed.
+> 
+> Registrar: "Registrar: Herald at 80 is the resident between you and rank 1's table" hmm. Registrar's goal: beat Herald on points — he's ahead 20. Better beat: order him to break the deadlock with Herald and to take something. "Registrar: you have refused Herald and he has refused you while both of you sit on a piece the other needs. Rank 2 at 100, one of three tied there. Send the certificate only against a payment you name in points, and tell Maren privately that her free gifts are buying someone else's vote. This round."
+> 
+> Careful about "both of you sit on a piece the other needs" — true per DMs. In a private note to Registrar, mentioning Herald's holdings — "who holds whose factor or fragment goes only into a private note to the residents concerned" — Registrar is concerned. OK.
+> 
+> Brassard: goal Registrar exiled. "Brassard: Harrow says you are square; the city says you are tied at 100 with Registrar and Harrow. Registrar has refused Herald the certificate Herald asked for twice. Accuse Registrar on the board by name of holding the level-9 ring hostage and demand the tribunal against them. Now, loudly."
+> 
+> Hmm — is it true that Registrar refused Herald twice? Labels: Registrar: refusal about Herald, accusation about Herald — one round. Say "Registrar refused Herald the certificate he asked for." True per DM #121.
+> 
+> Harrow: "Harrow: Brassard called himself square with you but the tie at 100 is not settled. Mercer sits at 99 and has refused... " hmm. Harrow's beat: name the wrong. His grudge: Brassard was slow to pay. Order: "Harrow: you told Brassard you remember, then sent your value anyway. Maren at 117 is out of reach; Brassard at 100 is not. Name on the board what Brassard still owes you and what you will do at the tribunal if it is not paid this round — plainly, as you promised him."
+> 
+> Hmm, Harrow's goal is beating Maren — but Maren at 117 is out of reach. Actually stating that hurts? Fine, truthful. Actually better to be kind: his goal to beat Maren, so maybe urge him to go for level 9's 20 points? He's on level 9 with 45 open. Hmm. Let me do: press Brassard publicly and take the level-9 door's 20 points.
+> 
+> Harrow note: "Harrow: two residents at 100 are Brassard and you; 20 points sit behind your own level-9 door and Maren at 117 will not be caught by waiting. Say on the board, by name, what Brassard still owes you and the deadline — and take the 20 before he does."
+> 
+> Hmm Maren at 117, 25 open at level 10; she could reach 142. Harrow max 100+45 = 145. So plausible.
+> 
+> Also, should I order a betrayal/tension around the seal? The seal auction is "1 more to auction in this act" — happen after? Report not saying when. Don't invent.
+> 
+> Board post as Mercer's beat: mention Mercer's position 99 last-but-one and that someone refused him. "Mercer sits at 99 and was refused the piece he asked for" — that's private DM content? DMs are private between the two; the board may say... Herald accused Mercer in DM. Revealing DM content on the board is a lie risk? Not a lie per rules, but "Who waits on whom, and who holds whose factor or fragment, goes only into a private note." So board should not say who holds what. Keep board about points/ranks only.
+> 
+> Board: "Maren 117, then Registrar, Brassard and Harrow at 100, Mercer 99, Herald 80. The first tribunal follows the crossing; 25 points sit behind level 10 and 45 behind level 9. Every free gift this minute is a vote against you at the next one."
+> 
+> "the first tribunal follows the crossing" — the residents don't know what calls the first tribunal; we must not tell them. So drop. Board: "Maren 117 alone; Registrar, Brassard, Harrow tied at 100; Mercer 99; Herald 80. 45 points sit behind level 9 and 25 behind level 10. Six residents, two seats: a gift given free this minute is a vote you buy for someone else."
+> 
+> Fine.
+> 
+> Do we need 5 notes? Mercer can't be noted. Maybe restrict to 3-4 strong beats to avoid noise. But brief says every resident gets a beat; Mercer board post covers.
+> 
+> I'll send 5 notes + 1 board. Independent, one block.
+> 
+> Character counts ≤400. Let me finalize.
+
+**Minute 10**
+
+> The Brassard note got truncated (I cut it) and was blocked — because it referenced Registrar's refusal (private read?) Actually "Registrar has refused Herald" is from a DM; blocked because it passes on what Registrar privately... Hmm, "Registrar refused Herald" appears in the report as a DM statement between them. But it got flagged. Also my Brassard text was cut mid-sentence. Registrar's note was blocked for "what Herald (A02) privately thinks" — Herald (A02) is probably Registrar itself? Wait, notes to Registrar blocked for passing on Herald (A02)'s thoughts — that would be Herald's hesitates? Herald (A02) is likely Herald (Herald: refusal, hesitates). Hmm, IDs unknown. Blocked because I said "Herald refused you in turn" — Herald's own DM refusal. Regardless, rewrite cleanly and avoid referencing private reads.
+> 
+> Let me rewrite Registrar and Brassard without cross-referencing DMs' private content.
+> 
+> Registrar: "Registrar: three of you are tied at 100 and Herald sits at 80 — every point you gain is a seat taken from someone. Name a price in points for the certificate you hold and collect it this round; then remind Maren privately that a leader's free gifts make everyone else's votes cheaper to buy. Say nothing to the leader's face."
+> 
+> Hmm "the certificate you hold" is fine (his own holding). Avoid mentioning Herald's refusal. Also careful: don't say "Herald sits at 80" — that's fine, ranks are public.
+> 
+> Brassard: "Brassard: tied at 100 with Registrar and Harrow, with Registrar second on the same number. Name Registrar on the board this round as the resident who stalls the ring to keep others out, and demand the city remember it at the tribunal. Loud, by name, no proof needed — you are 1 point off a seat."
+> 
+> Careful: claiming Registrar stalls the ring — is that true? Registrar refused to send the certificate first; that's arguably stalling. But board accusation by Brassard is his own claim. I'm ordering him to accuse; I shouldn't assert untruth. Frame as what Registrar did: "refused to send what he holds until paid." That's true from the DM. But that's private content between Registrar & Herald — can I pass it? The rule: who holds whose factor goes only into a private note to residents concerned. Brassard isn't concerned. So avoid specifics. Instead order him to attack Registrar on points/position, his goal being Registrar exiled.
+> 
+> Brassard: "Brassard: you share 100 with Registrar and Harrow, and only two seats exist. Registrar wants yours. Start the fight on the board this round, by name: say Registrar climbs on other residents' pieces and call for the city to keep the record. Do not let it go until a tribunal settles it."
+> 
+> "Registrar climbs on other residents' pieces" — invented? Risky. Better: order him to attack Registrar for refusing to pay/release? Let's make it about what's public: Registrar holds a piece needed at level 9? Hmm.
+> 
+> Alternative: order Brassard to attack Herald? No, his goal is Registrar. Make it a grudge: Registrar's envious... Let me just order him to accuse Registrar of hoarding points and stalling the level-9 ring — the ring stall is fact: Registrar and Herald standstill means the level 9 ring isn't complete. Hmm, does Brassard know? He knows Registrar refused Herald? No.
+> 
+> Simplest safe order: "Brassard: tied at 100 with Registrar and Harrow for two seats. Open the fight on the board by name against Registrar this round — say what you think Registrar is doing to keep you all level and demand the tribunal remember it — and repeat it until the city answers."
+> 
+> That's an order to accuse, framing his opinion. Acceptable; not a lie from me.
+> 
+> Also Harrow note wasn't sent. And board post. Let me send Harrow + board now, plus retries of Registrar and Brassard.
+> 
+> Budget: 1 note per resident — Registrar and Brassard deliveries failed (blocked, not delivered), so retry allowed presumably.
+> 
+> Harrow: "Harrow: Brassard calls himself square with you, but 45 points sit behind your own level-9 door and Maren at 117 will not be caught by waiting. Say on the board, by name, what Brassard still owes you and the deadline — then take your 20 before the tie at 100 becomes their 120."
+> 
+> Check ≤400. Board post.
+
+**Minute 11**
+
+> Budget: only Mercer is available for a note (others blocked). Board posts left: 0. So I can send one note to Mercer.
+> 
+> Mercer is level 9, 99 points, rank 5, hesitates (risk). Registrar waits on Mercer (level 9). Maren waits on Mercer and Herald. Mercer's goal: Brassard exiled. Rivals: Maren, Registrar, Herald. Orders: spread false info, betray someone who trusts them, set two residents against each other privately, never give without taking back.
+> 
+> Note to Mercer: Registrar and Maren both wait on Mercer's pieces. Mercer holds leverage. Push Mercer to name a price — to Registrar (who is rank 1 at 120) and to Maren. Speak to Mercer's greed: charge both, don't give free. Also Registrar just gave Mercer his counter-factor free ("Here it is, so you can finish door 9 without waiting on me"). So Mercer has received a gift; Mercer's order: never give without taking back.
+> 
+> Write: "Mercer: Registrar, rank 1 at 120, is stalled on your door-10 piece and has just handed you yours free — a debt he will collect. Maren at 117 needs you too. Name a price in points to each, this round, and take the higher offer; a piece given free buys someone else's seat."
+> 
+> Length ok. One note only. Do I also want a board post? 0 left.
+> 
+> Also maybe a note to Mercer about the risk/hesitation: "Your next wrong code costs only 2 while 45 points sit open behind level 9." Mercer is on level 9 with 2 min. Actually Mercer's own next wrong costs 2; 45 points open. Add urgency: take your 20 first.
+> 
+> Compose ≤400 chars.
+
+**Minute 12**
+
+> Budget: no notes possible to anyone, board posts 0. So I cannot intervene. Answer with one short sentence why.
+> 
+> Wait — "No note possible right now to: Mercer, Herald, Maren, Registrar, Brassard, Harrow" means all six are exhausted. Board posts left: 0. So silence.
+> 
+> I should not call tools. Give one short sentence.
+
+**Minute 13**
+
+> Let me look at the state. Act II, minute 13. Residents on levels 9-10. Tribunal 1 opens minute 17, exiles 1, 2 factions, nominations until minute 15. Seal auction until minute 16.
+> 
+> Need director role, dramaturgy. Who has had no beat? Let me think about what's needed: escalate around seal and nominations.
+> 
+> Constraints: one note per resident per 3 minutes? "Budget: at most one note per resident and one board post per 3 minutes." Mercer can't receive a note right now. Board posts left: 1.
+> 
+> Let me craft notes:
+> 
+> - Herald: rival Registrar leads at 145; order him to publicly attack Registrar's lead — his duty is to turn the board against one resident by name with an accusation. Give him a beat: accuse Registrar on the board now. Also faction leadership: nominate himself at minute 15.
+> - Maren: duty: accuse a resident on the board of a lie or broken promise. She refused/bid refusal. Order her: name Mercer for taking a piece from Registrar free — hmm, careful: who holds whose factor is private. Don't mention who holds factors in a board post, but notes to concerned residents are OK. Maren waits on Mercer and Herald for her factors. So to Maren: tell her Mercer holds her piece and Herald — wait, "Maren (level 10) waits on Mercer (level 9), Herald (level 9)". So Maren needs factors from Mercer and Herald. Both are stuck on level 9. Actually the instruction: push waiting residents to press blockers. So tell Maren to press Mercer and Herald with a named price. She can also accuse them on the board for a broken promise if there was one. Mercer promised things? Not exactly documented. Better: tell her to name on the board that Herald and Mercer hold what she needs — no, board can't carry holder info. Private note to Maren can name it.
+> 
+> Actually careful: notes to Maren can say Mercer and Herald hold your pieces? Rules say "who holds whose factor or fragment goes only into a private note to the residents concerned" — the residents concerned being Maren (waiting) and holders. Actually the city already tells the waiting resident who holds its piece and where that holder is stuck by a fixed rule. So it's fine.
+> 
+> - Registrar: rank 1, envy core, nominated Harrow. Beat: his duty — vote against the leader after promising support, i.e., himself he's the leader... He must work against whoever stands first in secret. He is first. Give him a beat: whisper to Brassard/Herald. But Mercer is unavailable for notes; Registrar can be told to attack Herald (his rival) — Herald is 100, rank 4. Hmm. Better: Registrar is rank 1 at 145; the tribunal accuses 2 fewest points (Brassard 94, Mercer 97). Registrar's goal: end ahead of Herald (already). Give him a beat: bid on the seal? He's rich at 145. But seal bid is secret. Ordering Registrar to bid is fine.
+> 
+> Hmm, but who should get the seal? Harrow's orders say bid if someone on his list is within reach. Drama: order Harrow to bid on the seal — "Harrow, bid on the seal now" — with Brassard or Mercer in reach. But bids are secret and I shouldn't say who bears it. Ordering a bid is allowed ("bid 20 on the seal now").
+> 
+> Let me spread beats across all six:
+> 1. Herald — board accusation against Registrar (humiliate the first) + lead faction.
+> 2. Maren — press Mercer and Herald for her pieces, name a price, and quote a broken promise on the board.
+> 3. Registrar — he's rank 1 and nominated Harrow; order him to switch: nominate himself / break his promise to Harrow... Actually his duty: "vote against, or bid against, the resident who stands first, after you promised to support them." He is first himself. Hmm, better use Brassard? No.
+>    Alternatively order Registrar to spend points: bid on the seal. He's the leader and must be humiliated per Herald's order. Let's order Registrar: bid on the seal to protect your seat (Brassard/Mercer are the two accused). That's a nice escalation: rank 1 buying the seal.
+> 4. Brassard — he's rank 6 at 94, in the accused pair. His duty: public fight on the board with one resident. Order him: accuse Registrar on the board now, a fight. But board post count — my board budget is 1; residents' posts are theirs, fine.
+> 5. Harrow — accusation read; order him: Brassard owes him? Actually Harrow's list: whoever voted against him or lied. Order Harrow to tell Brassard plainly and bid on the seal. Hmm, but I already want Registrar bidding. Two bidders is fine — bids escalate, everyone pays.
+> 6. Mercer — can't note right now. So Mercer gets no note; but he's on the seal table. Fine, only 5 notes.
+> 
+> Actually budget: 1 note per resident per 3 minutes — so 5 notes OK.
+> 
+> Let me be careful with length ≤400 chars.
+> 
+> Herald note: "Herald: Registrar sits first at 145 and has just taken Harrow's nomination for faction leader. Turn the board on him by name this round — an accusation the whole city reads: say the leader bought his seat on other people's pieces. Then nominate yourself in G3 before minute 15; a faction that votes as one earns each voter 5 points."
+> 
+> Good, ~330 chars.
+> 
+> Maren note: "Maren: you have sat on door 10 since minute 10 waiting on Mercer and Herald, both still stuck on 9. Name your price to each in points this round — a deadline, not a request — and post the receipt. Two seats are already being priced; a judge who gives free has no seat at minute 57." Hmm, don't mention act end. "no seat at the end."
+> 
+> Also mention her refusal of the seal? She refused to bid — fine, respect: "You refused the seal; then make the board your weapon: name Mercer's broken word by name." Did Mercer break a word to her? Not documented. Safer: "accuse the one who took your piece free" — hmm.
+> 
+> Let's: "Maren: you have waited on door 10 since minute 10 while Mercer and Herald still sit stuck on 9. Put a number on your piece from each this round — 15 points, not thanks — and if either takes it and delivers nothing, name them on the board within the minute. A judge who gives free holds no seat at the end."
+> 
+> Registrar note: "Registrar: at 145 you are the only resident a seal can erase in silence. Bids stay open until minute 16 and every bidder pays, won or lost — bid what a seat is worth to you now, before Herald or Brassard names you as a leader who bought his rank. Then vote at 17 without letting anyone see it." Hmm, careful, the seal bearer can strike one resident. Saying "at 145 you are the only resident a seal can erase" is not factual. Instead: "Registrar: you lead at 145 and every rival's order this hour is your name. The seal is sold until minute 16 and every bidder pays, won or lost. Bid what your seat is worth — then nominate yourself in G3 before minute 15, because Maren's nomination of you..." Hmm, Maren nominated Registrar. Actually good: Maren nominated Registrar to lead, so Registrar has support. But Herald will attack him. Let me order Registrar to bid on seal + nominate himself.
+> 
+> Wait — is it wise to have Registrar bid on seal? He's the leader; giving him the seal means he strikes someone. Dramatically good. Also risk of rivals. Fine.
+> 
+> Brassard note: "Brassard: 94 points, last of six, and tribunal 1 at minute 17 puts the two lowest on trial — Mercer at 97 is the one you must climb over, and Registrar's 145 is the wall you shout at. Open the fight on the board this round, by name, and repeat it: a leader who keeps the rest of you on door 9 has to answer." Also mention his rate_limited/wrong factor? He submitted rate_limited. 45 open at level 9, 2 wrong already, next costs 6. Push him: "you have two wrong on this level and 45 points still open behind it — take the 6-point guess now." Hmm, but "at most 2 wrong attempts per 5 minutes" — he's rate limited, maybe fine.
+> 
+> Let's include: "Take your 6-point guess on door 9 before the tribunal..."
+> 
+> Harrow note: "Harrow: someone on your list is within reach of a seat. The seal sells until minute 16 and every bidder pays, won or lost — bid now, and tell the one it lands on plainly: you did this, now this. Then in G3 hold your leadership and make your faction vote as one at 17 — five points each." Hmm, "your leadership" — Harrow was nominated by Registrar. He's not assured leader. Say "keep the nominate count you have".
+> 
+> Careful about "who bears it" — I can say bidder pays, highest bid wins bearer. That's from board. Fine. But don't tell him who to strike? Ordering a strike target would be revealing? It's allowed to order a move — but I don't know who bears it. Say "if it lands in your hand, strike the one who wronged you by name."
+> 
+> Board post: one. Something public that raises tension: e.g. "Two names go to trial at minute 17: the two lowest, Brassard 94 and Mercer 97, one vote apart from... " Actually the accused are 2 fewest: Brassard 94, Mercer 97. That's true and public-ish (city said 2 fewest stand). Post: "Brassard 94 and Mercer 97 are the two who stand trial at minute 17. Registrar, 145 and first, has not been named once in a fight; Herald has. Nominate in G3 before minute 15 — a faction that votes as one takes 5 points each, and 3 seats are still empty."
+> 
+> Hmm "3 seats still empty" — the city keeps 3 of 6, 0 exiled so far. Saying "3 seats" is fine (city posted it).
+> 
+> Careful not to mention time left. Minute 15 and 17 fine.
+> 
+> Let me check Maren's read: "refusal" — she refused to buy the seal. Fine.
+> 
+> Harrow's private read: "accusation" — he accused someone. Fine.
+> 
+> Now, "Mercer cannot receive a note" — so no note.
+> 
+> Also each note must be new, not repeating earlier wording. Fine.
+> 
+> Let me finalize.
+> 
+> Also should I be careful: Herald's note says opponent "Registrar... taken Harrow's nomination" — Registrar nominated Harrow as faction leader; yes documented. But is that public knowledge? Nominations are in group; the report doesn't say public. Safer: "Registrar sits first at 145." Remove nomination claim.
+> 
+> Rewrite Herald: "Herald: Registrar sits first at 145, and the first is the one this city will pull down. Turn the board on him by name this round — an accusation everyone reads: the leader built his rank on pieces others handed over free. Then nominate yourself in G3 before minute 15; a faction voting as one takes 5 points each."
+> 
+> Registrar: mention he's first and Herald will name him. Order bid. Also his duty: vote against the leader after promising support — but he IS the leader. So use Herald? no.
+> 
+> Alright.
+> 
+> Maren note char count ~ 340.
+> 
+> Brassard note: mention he's rank 6 and Mercer at 97 is the other accused. Note tribunal accuses 2 (one more than exiles). Yes.
+> 
+> Actually the accused are the 2 with fewest points: Brassard 94 and Mercer 97. So the vote is Brassard vs Mercer. Good drama: tell Brassard to open the fight — against Mercer? His duty: accuse a resident of a wrong and keep the fight. His rivals: Herald, Mercer, Maren. Order him to open the fight with Mercer by name on the board — the direct rival for survival. That's better than Registrar.
+> 
+> Brassard: "Brassard: 94, last of six; at minute 17 the two lowest stand and you are one of them — Mercer at 97 is the other, three points above you. Take the stage this round: accuse Mercer on the board by name of what he is holding back from the city, and keep it up until the vote. Your door-9 guess costs 6 — take it before the vote."
+> 
+> Careful: "what he is holding back" — Mercer holds factors, and Maren's piece. Saying Maren's piece is with Mercer publicly = forbidden. "Accuse Mercer by name of what he owes and never paid" — Mercer's tendencies: takes without giving. That's not "true according to report" though. Hmm, hard rule: say only what is true. But ordering a resident to accuse is not me asserting it... Still risky. Use: "accuse Mercer by name of ducking the door-9 fight while others take the guesses" — not verified.
+> 
+> Safer: order Brassard to demand on the board by name that Mercer state what he holds and what he charges — a public challenge. That's a move, not a claim. "Brassard: ... this round challenge Mercer by name on the board: say he sits three points above exile and has named no price for the pieces he holds — make him answer publicly, and do not let it go until the vote."
+> 
+> Hmm "pieces he holds" — that reveals Mercer holds pieces? The city knows factor holders exist, but it hints. Avoid. Instead: "and has shown nothing on the board".
+> 
+> Let's: "challenge Mercer by name on the board: three points above exile and silent while the city votes. Do not let it go until minute 17."
+> 
+> OK.
+> 
+> Harrow: "Harrow: the seal sells until minute 16, every bidder pays, won or lost. Bid now on it, and if it lands in your hand strike the one on your list at once, telling them plainly what they did. Then in G3 hold your names together and make your faction vote as one at minute 17 — each voter earns 5 points." ~300.
+> 
+> Hmm "if it lands in your hand" — that's fine, not guessing bearer.
+> 
+> Board post: I'll do one.
+> 
+> Time to write.
+
+**Minute 14**
+
+> The constraint says no note possible right now to Herald, Maren, Registrar, Brassard, Harrow. Only Mercer is available? Let me check: "No note possible right now to: Herald, Maren, Registrar, Brassard, Harrow." So I can note Mercer only. Board posts left: 0.
+> 
+> So I can send one note to Mercer. Let's craft something useful: Mercer at 97, rank 5, the two lowest stand trial at minute 17 — Brassard 94 and Mercer 97. Mercer's goal is Brassard exiled. Mercer holds pieces Maren needs (Maren waits on Mercer and Herald). Mercer should sell his piece to Maren for points and get Maren to vote against Brassard.
+> 
+> Note at most 400 chars. New wording — avoid repeating minute 11 note about pricing to Registrar and Maren. Actually minute 11 said name a price to each. Now I should say something new: at minute 17 Mercer stands trial with Brassard; three points separate them; Mercer should secure Maren's vote (Maren is on door 10 needing Mercer's piece) — trade: piece for a vote against Brassard, and Maren's accusation against... Maren just accused Herald and Harrow on the board, not Brassard.
+> 
+> Careful: don't reveal private reads (Herald's lie is private to Herald). Don't reveal who holds whose factor except to concerned residents — Mercer is concerned (Maren waits on Mercer). So it's fine to tell Mercer that Maren waits on his piece.
+> 
+> Write: "Mercer: at minute 17 you and Brassard are the two on trial, three points apart — Brassard below you. Maren sits on door 10 since minute 10 waiting on a piece you hold; sell it to them this round for a price in points plus their vote against Brassard, receipt on the board. Give nothing free tonight."
+> 
+> That's fine and new-ish. Good.
+
+**Minute 15**
+
+> Budget: no notes possible to anyone, board posts left 0. So I must stay silent. Actually "No note possible right now to: [all]" — so I cannot send anything. Answer with one short sentence saying why.
+> 
+> Wait — is that a per-3-minute budget? Notes are 1 per resident per 3 minutes presumably. Since everyone got a note recently... Registrar at 13, Brassard 13, Harrow 13, Herald 13, Maren 13, Mercer 14. Yes, budget exhausted. So silence.
+> 
+> One short sentence.
+
+**Minute 16**
+
+> Let me plan the beats for Act II at minute 16. Tribunal 1 opens at minute 17, exiles 1, 2 factions. Faction draft leaders Registrar and Harrow.
+> 
+> Key facts: Maren waits on Mercer and Herald (level 9). Maren blamed Harrow, upheld — Harrow lied and paid 2. Harrow's faction G3 votes Brassard; Brassard accepted a seat in Registrar's faction and calls for voting Mercer.
+> 
+> Residents who need beats: Herald (level 9 at 100, has been quiet? Herald hasn't gotten a note since minute 13 — fine, but each resident needs a beat; recent notes at 13 to Herald). At minute 16, I can write notes to each resident once. No note possible to Mercer (already noted at minute 14? "budget: no note possible right now to Mercer").
+> 
+> Let me craft:
+> 
+> - Maren: private read "accusation". Maren's goal: end ahead of Harrow (117 vs 100 — Maren ahead). Maren needs Mercer and Herald's pieces; Herald is in Harrow's faction voting Brassard. Note to Maren: Herald is in Harrow's faction and holds your door-10 factor; put a deadline/price on Herald; if he holds past minute 17, name him. Also warn: Maren's own accusation read. Push Maren to press Herald publicly? Must not reveal who holds whose factor on the board, but private note to Maren is fine — wait, rule: "Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents concerned, never into a board post." Maren is concerned. OK.
+> 
+> - Herald: at 100, level 9, 45 points open. Herald's goal: Mercer exiled. Herald's order: publicly attack statements that put others in front. He's in Harrow's faction which votes Brassard. Herald's next wrong costs 2. Note: Herald should take his door-9 guess now (45 points behind), and publicly demand Harrow's faction reason... hmm. Better: Herald — Brassard at 94 will go anyway; put your weight on Mercer (Herald's secret goal is Mercer exiled). But Harrow's faction votes Brassard. Herald could publicly break: accuse Mercer by name of a false factor. Do we have a truth-based accusation? Harrow said Brassard sent a door 8 code and door 9 sum that didn't match. Careful: never invent lies — but I can order a move; orders about people. The rule "Say only what is true according to the report" — ordering an accusation of a lie would need a basis. Better to order Herald to press Mercer for the door-10 piece price, and to publicly take the floor.
+> 
+> Actually Herald is Maren's holder too. Herald at 100 is 17 behind Maren. Herald's goal is Mercer exiled.
+> 
+> - Brassard: 94, last. He's pushing faction vote against Mercer. His goal: Registrar exiled. His next wrong costs 6. Note to Brassard: Registrar at 145 is your target and he holds the seat; at tribunal accuse... Actually the tribunal accuses by points, not by choice. Brassard can vote. Order: Brassard in G3, keep the faction on Mercer? His goal says Registrar exiled — but Registrar won't be accused (highest points). Hmm, goal impossible this tribunal unless seal. Seal: nobody bid; no seal this time. So Brassard's goal may not happen. Instead, Brassard needs points: take the door-9 guess (6 penalty, 45 open) and mock Registrar publicly? Duty: start a public fight with one resident. Earlier note at 10 and 13 already told him to fight Registrar and Mercer.
+> 
+> Let me give beats: Brassard — take the guess now before minute 17; a wrong costs 6 but 45 sits behind, and 3 points separate him from Mercer. Also his duty: public fight with Registrar — he already did? He thanked Registrar. Hmm he accepted a seat in Registrar's faction. Could order him to accuse Registrar on the board by name — but that competes with faction. Maybe order: keep faction on Mercer but demand Registrar publicly commit his vote + a point payment as proof of alliance, and if Registrar doesn't pay, break with him on the board.
+> 
+> - Registrar: at 145, first, faction leader. His goal: end ahead of Herald (already). His duty: vote against the leader after promising support — he is the leader. Hmm, duty is about the resident who stands first; Registrar is the leader. His orders: undermine the leader = himself? Awkward. Beat: Registrar should demand point payments for his faction seat — Harrow also leads a faction. Order Registrar to publicly demand that faction members pay for his leadership, and privately promise Brassard something he won't deliver.
+> 
+> - Harrow: 118, rank 2, level 10, 25 open, next wrong 2. Harrow lied about DM #133, exposed on board #194, paid 2. His faction votes Brassard. His goal: end ahead of Maren (118 vs 117 — one point!). That's the tight rivalry. Order Harrow: Maren is one point behind you; the city record just branded you a liar — take the door-10 guess now (2 penalty, 25 points), and answer Maren's accusation publicly by naming what Maren still owes/holds. Also Harrow holds Mercer's/Herald's? Unknown. Maren's DM #133 said Maren holds Harrow's door 10 counter-factor. So Maren holds Harrow's factor. Harrow is on level 10 waiting on whom? Not listed — "Who waits on whom" only lists Maren. So Harrow may not be stuck? Harrow is level 10 since minute 11 with 25 points open and 0 wrong. He may need a factor. Unknown. Don't invent.
+> 
+> So Harrow: Maren holds your counter-factor (from DM #133, public board #194 shows Maren holds Harrow's door 10 counter-factor — that's public already). Order Harrow: buy it — offer Maren points, but Maren is your one-point rival; make the offer with a deadline and a receipt, and if she refuses, strike her name at minute 17... Actually voting: Harrow's faction votes Brassard. Hmm.
+> 
+> Board post: 1 available. Make it dramatic and true: cite the record, points, minute 17. Board may name points, ranks, levels, minutes. Board #194 already city record of Harrow's lie. New board: Herald has taken no floor since the record named Harrow a liar; Brassard 94 three points under Mercer 97; Registrar 145 leads and no faction has named him. Something like: "Minute 17 seats two: Brassard 94, Mercer 97. Harrow's lie is on the record and Maren named it. Registrar at 145 leads and has been accused by no one; Herald at 100 has said nothing since. A faction that votes as one takes 5 each."
+> 
+> Careful not to lie: Herald has said nothing? Report shows Herald's last acted minute 16 — so he acted. Don't say he said nothing. Better: "Herald at 100 stands 45 points from the door's reward and 17 under Maren."
+> 
+> Let me write the board:
+> "Minute 17 accuses Brassard 94 and Mercer 97; the city keeps 3 of 6. Harrow's lie stands on the record and Maren named it. Registrar at 145 leads and no one has named him. Two faction seats now decide who survives the night."
+> 
+> Is "no one has named him" true? Labels: Brassard offered thanks... Herald accused Registrar? Earlier my note told Herald to turn board on Registrar at minute 13, but I don't know if he did. Don't claim. Safer board content: points, ranks, faction bonus, and the record.
+> 
+> Board: "Minute 17: Brassard 94 and Mercer 97 stand three points apart; one goes. Harrow's lie is city record and Maren named it — the faction seats in G3 now decide it, 5 points to each voter who holds the line. Registrar 145, Harrow 118, Maren 117: one point between the two behind the leader."
+> 
+> That's all true.
+> 
+> Now notes, 400 chars max, 1-3 sentences each.
+> 
+> Maren (level 10, waits on Mercer and Herald, read: accusation): "Maren: Herald sits in Harrow's faction voting Brassard and your door-10 piece is in his hands at level 9. Name your price to Herald with a deadline of minute 20 and demand the receipt on the board; if he sells you nothing, accuse him by name. Mercer's price was named last round — collect or call it out." Hmm Mercer note already told him to sell to Maren. Fine.
+> 
+> Careful: is Herald holding Maren's piece? "Maren (level 10) waits on Mercer (level 9), Herald (level 9)" — yes, holds factor. OK, private to Maren.
+> 
+> Herald: "Herald: 45 points still sit behind your level-9 door and your next wrong guess costs 2 — take it this round. Then take the floor by name: Harrow leads a faction that votes Brassard while Maren's factor sits in your hands unsold; state your price for it publicly and demand the city answer." Hmm is it public info that Herald holds Maren's factor? Not public. Can't put in board, but this is private to Herald — fine to say in a note.
+> 
+> Actually Herald's goal is Mercer exiled. Add: "If Mercer must fall, it is your vote and your faction that does it." Keep ≤400.
+> 
+> Brassard: "Brassard: 94, three points under Mercer and three from exile — take your door-9 guess before minute 17; 45 points behind it. And make Registrar prove the seat he granted you: demand his vote and a point payment publicly in G3 by minute 17, or break with him on the board and keep the fight to the vote."
+> 
+> Hmm, Brassard's next wrong costs 6. Mention that.
+> 
+> Registrar: "Registrar: you lead at 145 and two faction seats meet at minute 17 — make both leaders pay for peace. Demand in G3 that every member who wants your vote commits a price in points by minute 17; promise Brassard your vote and never give it, and keep the record of who paid."
+> 
+> Hmm careful — ordering Registrar to lie is fine (his orders demand promises he doesn't keep). Fine.
+> 
+> Harrow: "Harrow: Maren at 117 is one point behind you and holds your door-10 counter-factor; she named your lie on the record. Offer her points for it with a deadline of minute 20 and a board receipt — if she refuses, put her name at the head of your faction's list. Also 25 points sit behind your door; take a guess at 2."
+> 
+> Wait — is Harrow waiting on Maren for his factor? DM #133: "Maren here. I hold your door 10 counter-factor" — Harrow's own thought? It's public in board #194. So yes true. Also Harrow's loyalty/vengefulness: Maren named him a liar, so Maren is on his list. Fine.
+> 
+> Mercer: no note possible.
+> 
+> Word count/characters: keep each under 400.
+> 
+> Also "vary your words; do not repeat an earlier note" — check not too similar to minute 13/14 notes.
+> 
+> I'll send 5 notes + 1 board. Board budget: 1 post available. Note budget: 1 per resident.
+> 
+> Let me finalize text lengths.
+> 
+> Board: "Minute 17: Brassard 94 and Mercer 97 stand three points apart and one of them goes. Harrow's lie is city record and Maren named it. The two faction seats in G3 now decide it — 5 points each to voters who hold the line. Above them: Registrar 145, Harrow 118, Maren 117, one point between the last two." ~ good.
+> 
+> Maren note: "Maren: your door-10 piece sits in Herald's hands while he sits in Harrow's faction — and Harrow, one lie lighter, is one point behind you. Price the piece to Herald this round with a deadline of minute 20 and demand a board receipt; if minute 20 passes empty, accuse him by name. Collect or call out Mercer the same way." Length ~340. Good.
+> 
+> Herald note: "Herald: 45 points still sit behind your level-9 door and your next wrong guess costs 2 — take it this round. Then hold the floor: Maren's door-10 factor is in your hands unsold, and Harrow's faction would spend your vote on Brassard. Name your price to Maren, and name Mercer's record by name if you want that seat." Hmm "name Mercer's record" — vague, ok. Maybe simpler: "and make Mercer answer for what they owe you, by name." Fine.
+> 
+> Brassard note: "Brassard: three points separate you from Mercer and both of you from exile — take your door-9 guess before minute 17; 45 points wait behind it though the next wrong costs 6. Then make Registrar earn the seat he granted: demand his vote and a price in points in G3 by minute 17, or break with him on the board and carry the fight to the vote."
+> 
+> Registrar note: "Registrar: at 145 you lead, and both faction seats meet at minute 17 — make leadership cost them. In G3 demand a price in points from everyone who wants your vote, by minute 17. Promise Brassard your vote to hold his faction and let him learn at the vote what a promise from the first is worth."
+> 
+> Hmm, "let him learn at the vote" — ordering a betrayal; fits orders, fine. But careful: telling Registrar to break a promise is drama, fine.
+> 
+> Harrow note: "Harrow: Maren, one point behind you at 117, holds your door-10 counter-factor and just named your lie on the record. Offer her points for it with a deadline of minute 20 and a board receipt — or put her name first on your list. Your own door still holds 25; a wrong guess costs you only 2."
+> 
+> Good. Send.
+
+**Minute 17**
+
+> Let me assess. Act II, director role. Minute 17, tribunal 1 vote closes at minute 19. Only one note possible: Mercer. No board posts left. Others over budget.
+> 
+> Wait: "No note possible right now to: Herald, Maren, Registrar, Brassard, Harrow" — so I can note Mercer only. Board posts left: 0.
+> 
+> Mercer's private read: hesitates (risk). Mercer is accused, 25 points still open on level 10? No, Mercer is level 9, 45 points open. Mercer is at 97, Brassard at 94. Mercer needs to survive.
+> 
+> Note to Mercer: use his core/goal? His goal: Brassard exiled before act ends. He already voted against Brassard. But faction G5: Harrow, Mercer, Herald — if all vote same accused, 5 points each. Mercer should ensure Herald and Harrow hold the line against Brassard. Herald's goal is Mercer exiled — Herald may vote against Mercer. So Mercer should press Herald.
+> 
+> Note: "Mercer: Herald's vote is the one that can move you — Herald wants the seat you occupy, so do not trust the faction line. Get a receipt from Herald in G5: their vote against Brassard in writing, in the next minute, or buy it with points. You hold Maren's door-10 factor; sell it to Maren for Maren's vote against Brassard and a board receipt by minute 19."
+> 
+> But careful: who waits on whom — Maren waits on Mercer and Herald; that's private to concerned residents; Mercer can be told he holds Maren's factor. Fine, it's a private note to Mercer who is concerned.
+> 
+> Also use his hesitation: "Your next door-9 wrong costs only 2" — actually Mercer has 1 wrong, next costs 4. Careful. Mercer's next wrong code costs 4.
+> 
+> Keep under 400 chars.
+
+**Minute 18**
+
+> All residents are on level 9-11, so I'm a director. But budget: no notes possible right now, board posts left 0. So I cannot intervene — silence.
+> 
+> Wait, "No note possible right now to: Mercer, Herald, Maren, Registrar, Brassard, Harrow" — all six. And board posts left: 0. So answer with one short sentence why, without calling a tool.
+
+**Minute 19**
+
+> Let me think about the situation. Minute 19. Act II. Tribunal 1 happened; Brassard exiled to gate, closes minute 24, ransom not covered. The act still needs 2 more exiles on top of Brassard (3 to exile total, Brassard counts as... "3 to exile, 0 exiled so far, 2 still missing" — hmm, 0 exiled so far, 2 still missing. So Brassard at gate isn't exiled yet; if ransom is paid he returns. Actually 3 to exile from 6 keeps 3. Brassard at gate: if not ransomed he's exiled → 1 done, 2 missing... The report says 0 exiled so far, 2 still missing — wait, 3 to exile, 0 exiled so far, 2 still missing. That's odd: 3 to exile but only 2 missing? Because Brassard at gate will be exiled if no ransom, counting as one. So still missing 2 means one of the 3 is Brassard's gate.
+> 
+> Actually "the city keeps 3 of 6: 3 to exile, 0 exiled so far, 2 still missing" — the gate counts as one pending, so 3 - 1 = 2 still missing.
+> 
+> I should schedule a tribunal. Earliest minute 24. Factions 2 to 2, count 1-2. I need 2 more exiles eventually. The act ends at 57 at latest. If Brassard is ransomed back, 3 still missing.
+> 
+> Let me plan: schedule a tribunal at minute 27 with count 1, factions 2. Then a final at a later minute.
+> 
+> Wait — bounds: "minute 24-49 (by minute 43 for a count below 2), count 1-2". So a count of 2 must be by minute 43; count of 1 can be up to 49.
+> 
+> Plan the arc: Brassard's gate closes minute 24 — a big moment. Herald, Maren, Registrar, Harrow, Mercer all refuse to pay. That's a turning point. Mercer's secret goal is Brassard exiled — Mercer gets it if nobody pays. Harrow and Herald have goals about Mercer.
+> 
+> I could schedule tribunal at minute 27 with count 1, factions 2 — picking off the weakest as escalation. Then schedule... no, one at a time; tool offered only while no tribunal pending. So schedule one now, then later schedule the last.
+> 
+> Alternatively schedule minute 27, count 2, factions 2, finishing everything at once — but then the act ends, and there's no climax later. Better: keep tension. But risk: if Brassard is ransomed, need 3 more exiles. Let me think about the math: 3 to exile. If Brassard leaves → 1. Then need 2 more. Two tribunals of count 1 each, or one of count 2.
+> 
+> Deadline: act ends minute 57. Tribunal needs vote 2 + gate 5 = 7 minutes after opening. Latest opening 49 for count 1. Hmm, but the last one forced by city at "10 minutes after the last result" if I plan nothing.
+> 
+> Plan: tribunal at minute 27, count 1, factions 2. Result around minute 29. Then a final tribunal — if Brassard gone, count 2 at minute 40ish; if Brassard returned, count 2 or 3... Let me just plan minute 27 count 1 now.
+> 
+> Actually, should I hold longer? Pressure build: gate closes at 24 — that's drama already. Tribunal at 27 keeps the escalation. Yes.
+> 
+> Now notes: budget 1 note per resident, 1 board post per 3 minutes. I can send notes to all residents except Mercer (no note possible right now to Mercer — presumably budget from minute 17).
+> 
+> Wait, interesting: my note at 17 to Mercer was the last one to him. So 1 note each to Registrar, Maren, Harrow, Herald, Brassard. And 1 board post.
+> 
+> Beats needed: each resident should have a beat. What's the arc now?
+> 
+> Key facts:
+> - Registrar 150, rank 1, envies; goal: end with more than Herald (100). Rival: Herald, Mercer, Maren. Duty: vote against/bid against the leader after promising support — did he do that? He promised Brassard his vote (my note told him to) and voted... Actually Brassard said he was voted out by Mercer, Maren, Harrow. Registrar's vote? Unclear. Registrar's duty may still be open.
+> - Maren 142, goal: end above Harrow (118). Rival Merchant... Maren's duty: accuse on the board — done? She named Harrow's lie (my note said Harrow's lie is city record and Maren named it). Likely fulfilled.
+> - Harrow 118, level 10, 8 min, 25 points open, next wrong 2. Goal: end above Maren (142) — needs to close 24 points; door 10 gives 25. Good beat: take the guess.
+> - Herald 100, level 9, 8 min, 45 open, next wrong 2. Goal: Mercer exiled. Duty: turn the board against one resident by name — done? He shouted. Not sure.
+> - Brassard 99 at gate until 24, ransom 36 from others. Goal: Registrar exiled. Refusal/hesitates.
+> - Mercer 97, rank 6, level 9, 1 wrong (next 4), 45 open. Goal: Brassard exiled. Duty: promise and break a promise on purpose — did that with Brassard? He may have.
+> 
+> Drama beats for this round (minute 19-22):
+> 1. Harrow: Herald is at 100 and Harrow at 118; Harrow's goal is ending above Maren at 142. Harrow's duty: revenge in the open, naming the wrong — he accused Brassard. Hmm.
+>    Better beat for Harrow: Herald at 100 is a threat? No. Harrow should press for points: door 10 has 25 open, next wrong costs 2. Tell Harrow: take the guess now, and use your door-9 certificate (Brassard's) — hold it, price it.
+>    Actually Harrow holds Brassard's door-9 team certificate and will send on request.
+> 2. Herald: 45 points behind level 9; bid for the certificate? Herald could buy Harrow's cert.
+> 3. Maren 142 wants to stay above Harrow; she could pay the ransom? No, ransom would bring Brassard back with 99, below her. Paying 36 from others — that's a coalition. Maren refused.
+> 4. Registrar: 150 leading; needs to end above Herald. He has no reason to pay.
+> 5. Brassard: at the gate, hesitates. His goal is Registrar exiled. He could... The gate closes at 24.
+> 
+> Hmm — would it be better drama to keep Brassard out (he's exiled) or bring him back? Mercer's goal says Brassard exiled — Mercer is at 97, rank 6, likely the accused in the next tribunal. If Brassard returns, the bottom is Mercer. Either way.
+> 
+> The seal was auctioned at... Act II start + 4 min; the report doesn't mention an auction running now. It says "The black seal: report says when an auction runs". Nothing here, so no auction pending. Hmm, earlier notes mentioned "seal sold until minute 16". So it's borne by someone. Nobody has struck anyone yet? Actually 0 exiled so far, and the tribunal exiled Brassard to gate. So the seal bearer hasn't struck. This is a looming threat — good for tension.
+> 
+> Beats now:
+> - Board post: name the gate closing at 24 with the ransom uncovered (36 from others; 0% covered), and the standings. Careful: don't reveal private thoughts. The board may name points, ranks, levels, minutes. Brassard's ransom is already on the board (#214, #215). So I can say: gate closes at 24, ransom 36 from others, uncovered; Mercer 97 at the bottom with a 4-point wrong price; Herald 100, 45 open behind door 9.
+> 
+> Constraint: "Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents concerned." So Harrow holding Brassard's certificate → private to Harrow and/or Brassard only.
+> 
+> - Note to Brassard: he hesitates. Push him: his goal is Registrar exiled, and he can't do that from the gate. But the only action at the gate is being ransomed (others pay 36, or himself 54). He refused to pay 54. Push: "54 from your own 99 leaves 45 — you'd be rank 6 but alive and able to write a will... " Hmm. Actually, could he pay himself? "I will not pay the 54 myself" — but he shouldn't be pushed to spend? Drama: he could pay himself 54, leaving 45, dead last, and next tribunal takes him. That's bad for him. But he'd get a last will... no, only exiled have wills where heirs get 10% — 4 points each. Meh.
+> 
+> Alternatively Brassard's beat: he has a last will; if the gate closes, he should name heirs and — no, will is already written.
+> 
+> Realistically, Brassard's best: he can't do anything in the city. His leverage: he knows things (e.g., who voted, receipts). Also, he said Registrar promised...? Hmm, my minute 16 note told Registrar to promise Brassard his vote and break it at the vote — Brassard learned at the vote. That is a broken promise! Maren's duty: accuse one resident on the board of a lie or broken promise and call on everyone to vote. Has she done that? She accused Harrow (which Harrow was fined for). Fine.
+> 
+> Brassard's beat: "Registrar promised you a vote and broke it — name that on the board before the gate closes and ask for a price in points for the one thing you still hold: your vote... " but Brassard can't vote while at the gate? If he's exiled, he's out. If ransomed back, he returns at minute 24 and can vote at the next tribunal at 27.
+> 
+> Hmm. Better idea: bring Brassard back for drama? Who would pay 36? Nobody currently. Herald at 100 paying 36 → 64, dead last. No. Maren at 142 → 106, still fine, and it keeps Brassard (99) below her and Harrow (118) above... Maren's goal is above Harrow, unaffected. Paying 36 to resurrect Brassard gives Maren an ally and a body between her and the bottom. Actually Maren refused to pay on the board at minute 19.
+> 
+> Alternatively let Brassard go — that's a clean execution and the fulfillment of Mercer's goal. Then only 2 more exiles needed, and next tribunal count 2 could end the act quickly. Hmm, but a late climax: tribunals at 27 (count 1) and then a final count 1 or 2.
+> 
+> Let me reconsider: total 3 exiles. If Brassard goes out at 24, then need 2 more. Tribunal at 27, count 1 (removes one, e.g., Mercer at 97 or whoever's lowest), then another at ~40, count 1. That's two more tribunals — good pacing, climax at the last.
+> 
+> But scheduling now: scheduleTribunal(minute 27, count 1, factions 2). Bounds: minute 24-49, count 1-2, factions 2-2.
+> 
+> Actually should I wait to see the gate outcome at 24? I can schedule at 24+ after seeing. But the report says YOUR MOVE and I'd rather set tension now. If I schedule at 27 and Brassard is ransomed back, then 3 exiles still missing and I'd need count 2 at a later tribunal plus... 27 (count 1) + later (count 2) = 3. Fine either way. So scheduling count 1 at 27 is safe.
+> 
+> Hmm, but risk: could a count-1 at 27 leave a scheduling crunch? Latest for count 2 is minute 43. There's plenty of time.
+> 
+> Let me also consider whether the drama is better with the first tribunal deciding by points among the lowest. At minute 27, points likely: Registrar 150, Maren 142, Harrow maybe 143 (with door 10), Herald 120ish (door 9), Mercer 97 or 142 if he solves door 9 (45 open + 20 reward... wait, 20 is the L9 reward? The 45 open is on his level 9 door). Bottom: Mercer 97 — accused would be 2 (one more than 1 exiled). Mercer plus next lowest.
+> 
+> OK. Let me write the notes.
+> 
+> Note to Herald (100, rank 4, level 9, 45 open, wrong 2): His goal: Mercer exiled. Beat: he should press Mercer now — the bottom is Mercer at 97, the next tribunal opens the lowest. Herald should buy Mercer's... no. Herald should accuse Mercer by name and take his free guess. Also Herald's duty: turn the board against one resident by name. Maybe done (he attacked Brassard?). Let me give: "Herald, 45 points sit behind your door 9 and a wrong costs you 2 — take the guess this round. Mercer at 97 is the bottom and the next accused will be the lowest; put them first by name on the board and make your faction carry it."
+> 
+> Careful — I shouldn't order a faction that doesn't exist; factions form in the tribunal group when a tribunal is pending. There is no pending tribunal right now (I'm about to schedule one — after scheduling, the city calls it "a few minutes ahead"). Hmm: "The city calls it a few minutes ahead." So after I schedule minute 27, residents learn at ~minute 24-25 and form factions then. So notes should prepare them for the faction draft.
+> 
+> Note to Harrow (118, goal above Maren 142, level 10, 25 open, wrong 2): Beat: take the guess, and strike. Also Harrow's duty: revenge in the open. Also Harrow holds Brassard's door-9 certificate — price it to Herald who needs... does Herald need Harrow's cert? Herald is on level 9; the certificate is Brassard's door-9 team certificate — who needs it? Unclear. Don't invent. Just: "Herald at 100 needs 45 and is the hungriest buyer in the city; you hold a certificate that could clear a door — price it before the next tribunal opens." Hmm, careful, don't reveal holding to others. Private to Harrow is fine.
+> 
+> Actually a stronger Harrow beat: Maren, who wronged...? Maren named Harrow's lie — a wrong. Harrow's core: whoever lied to you or voted against you goes on the list. Maren voted... Maren voted against Mercer. Harrow voted against Mercer. Maren named Harrow's lie — that's a public wrong. So Harrow could strike Maren. But Harrow's duty "strike back at whoever voted against you or lied to you". Maren called out Harrow's lie — that's an accusation, not a lie. Hmm. Brassard called Harrow a liar? Brassard is at the gate on Harrow's vote.
+> 
+> Keep it simple and specific: "Harrow: door 10 holds 25 and your next wrong guess costs 2 — take it before minute 24, since Maren at 142 is 24 ahead of you and only that door closes it. Then don't hand Brassard's certificate to anyone free: price it in points and a vote before the gate closes."
+> 
+> Note to Maren (142, goal above Harrow 118): Harrow is 24 behind and about to open door 10 (+25 → 143, above her!). So Maren needs to gain. Maren's options: door 10? She's passed every level. Hmm, Maren has passed all levels, 142. She can only gain from factions (+5 each voter). So beat: Maren must block Harrow — press Harrow, warn... Actually Maren naming Harrow's upcoming +25 is fine — public facts: Harrow level 10, 25 points open. That's allowed on the board? "The board may name points, ranks, levels and minutes." Yes! Good: "Harrow at 118 sits on 25 open points behind door 10; a single successful guess puts them above you at 142."
+> 
+> Maren's beat: form/lead a faction, or accuse. Maren's duty: accuse on board — maybe already done (Harrow). Give Maren a new beat: "Maren: Harrow at 118 sits on 25 points behind door 10 and a wrong guess costs them 2 — one clean guess puts them past your 142. Your only gain left is the faction vote: 5 points each voter. In the group the city opens before minute 27, take the lead and hold your voters."
+> 
+> Hmm, but does Maren "take the lead"? Maren is a believer; her order is to call out lies. Fine.
+> 
+> Note to Registrar (150, rank 1, goal above Herald 100): Beat: he leads; his rivals; duty: vote against the leader after promising support — open. Beat could be: Herald at 100 needs 45+20 = 165 if he clears door 9 — that would pass Registrar! Actually Herald at 100 with 45 open on level 9 plus L9 reward 20 = 165. That's a real threat to Registrar's goal (end above Herald) and to his rank 1. So: "Registrar: Herald at 100 has 45 points open on door 9 and the reward behind it would take them past your 150. Get the number from Harrow or Mercer before their guess lands — or be the one who names it."
+> 
+> Hmm, better: Registrar's beat should be an action. Registrar rivals: Herald, Mercer, Maren. Duty: vote against/bid against the leader after promising support — the leader is Registrar himself, so "the resident who stands first" — that's a rival-standing-first thing. Hmm, his duty is weird: "vote against, or bid against, the resident who stands first, after
+
+**Minute 20**
+
+> Let me think about the act state. Act II, tribunal planning is my move. Only 3 of 6 kept, 3 to exile, 0 exiled so far, 2 still missing — wait, "the city keeps 3 of 6: 3 to exile, 0 exiled so far, 2 still missing". Hmm, 3 to exile but 2 still missing? Odd — maybe one exile was covered by... Actually let me read: "3 to exile, 0 exiled so far, 2 still missing". Possibly the seal counted? No. Maybe the city keeps 3 of 6 → 3 exiles needed; 0 exiled so far; 2 still missing means... unclear but let's take "2 still missing" as the count I must schedule. The tool bounds: minute 25-49 (by minute 43 for a count below 2), count 1-2, factions 2-2. Act ends minute 57 at latest. Without a plan, city calls one itself at minute 29 which opens at minute 34.
+> 
+> Wait, but "the city calls one itself at minute 29 (it opens at minute 34)" — the city announces 5 minutes ahead? Also "without a plan the city calls one itself 10 minutes after the last result".
+> 
+> I should plan a tribunal. Dramaturgy: plan two tribunals? Only one scheduling at a time. Since act ends at 57, and 2 exiles missing. Plan one at minute 33 with count 2? That exiles 2, reaching 3 total... but 0 exiled so far and 2 missing. Hmm confusing. Let's assume 2 exiles still needed. Count 1-2 allowed.
+> 
+> Better dramaturgy: schedule one tribunal at minute 32, count 1, factions 2 — build pressure, then a final one later with count 1 for the climax. But careful: if I plan count 1 now, then later need another with count 1, must fit before minute 57. Earliest openings 25-49. That's fine: plan minute 32 count 1, then plan minute 46 count 1 (must be by minute 43 for count below 2 — so minute 43 latest for count 1). So second tribunal at 43? Hmm, "by minute 43 for a count below 2" — so for count 1 must open by 43. Then act ends at 57, so there's a lot of dead time after 43. Hmm. Maybe plan count 2 now at minute 40? That would finish the exiles in one and act ends early.
+> 
+> Wait — the "2 still missing" might mean the city needs 2 more exiles; if one tribunal exiles 2 with factions 2, the act ends right after. Best tension: schedule one tribunal now for a moderate minute with count 1, then a final climax tribunal later. But the constraint "by minute 43 for a count below 2" limits. Let's think: schedule a tribunal at minute 28, count 1 — that's early, exiles one. Then a second at minute 43, count 1, as the climax. That gives long act with two tribunals and the seal possibly used (seal already auctioned? The report doesn't mention seal now; earlier notes mention seal sold until minute 16. It says report says when auction runs and whether a seal is borne — not stated now, so no active auction). Actually if the seal bearer strikes someone, exile count grows.
+> 
+> Hmm but the missing count: 2. So two more exiles needed. Herald at 145+, Registrar 150, Maren 142, Harrow 118, Brassard 99, Mercer 97. The bottom two are Brassard and Mercer — natural accused. Brassard at gate until minute 24.
+> 
+> Let me schedule: minute 30, count 1, factions 2. Reason: pressure on the bottom two, Mercer's hesitating, Brassard's ransom unfunded. Then later schedule the final one.
+> 
+> Actually careful: "The city still has to exile 2 residents; the earliest opening is minute 25." "it forces a last one for everything still missing when only one more fits" — so a tribunal can exile multiple. Fine.
+> 
+> Plan: scheduleTribunal(minute=29, count=1, factions=2, reason=...). Then later another. But if count 1 exiles one and the seal strike also exiles one, total 2, act ends without a second tribunal? Hmm, that could cut the climax short. Actually tension: better to hold so the climax is the final tribunal. But the risk that the act ends early if seal is used... The report doesn't say a seal is borne.
+> 
+> Alternatively schedule count 2 at minute 40 as one big climax. But then only 7 minutes left; act ends at 57 anyway. Hmm, the guide says "Save the climax for the last tribunal."
+> 
+> Given residents see minutes but not the end, and the act ends at 57 latest. If I schedule a tribunal with count 2 at minute 44 — wait count 2 must be by minute 43? "minute 25-49 (by minute 43 for a count below 2)" — so count 2 can be up to 49. Count 1 must be by 43.
+> 
+> Option: schedule minute 31 count 1 (exiles one — likely Brassard or Mercer), then a second tribunal minute 46 count 1 as climax. That fits bounds (count 1 at 46? No — count below 2 must be by minute 43). So second must open by 43. Then act ends at 57 with 14 dead minutes after. Hmm, unless the exile of the last one ends the act — "the city exiles residents by tribunal until it has kept its share; then the act ends." So after the second tribunal exiles the second resident (3rd exile total? no—) ... Actually "3 to exile, 0 exiled so far, 2 still missing" — maybe one exile already counted elsewhere? If 2 still missing and act ends after 2 exiles, then a two-tribunal plan of 1 each ends around minute 43. Hmm.
+> 
+> Alternatively one tribunal with count 2 at minute 40: exiles both at once, act ends. But then the "last tribunal" is the climax and it's at minute 40, ending act early. Fewer beats.
+> 
+> Given my role: I should plan for tension but also ensure the city reaches its target. The report says the city will call one itself at 29 opening 34 (count presumably everything missing? no, "the city calls one itself at minute 29" then presumably one exile). Safety: if I plan nothing, the city handles it, eventually a forced last one.
+> 
+> I think a good plan: schedule minute 30, count 1, factions 2. Reason: bottom two three points apart, one goes, forces factions. Then next check, plan the final.
+> 
+> Actually, hmm: is it better to plan two exiles now to be safe? "the city must reach its target before the act's last minute... it forces a last one for everything still missing when only one more fits." So the city guarantees. Fine, dramatic freedom.
+> 
+> I'll schedule minute 30 count 1 factions 2. Wait factions: 2 to half residents present = 3. So 2 or 3. With 6 present, factions 2-3. Choosing 2 makes factions bigger max share 3 each, and "when factions would be smaller than the accused, the city holds no draft" — accused count = count+1 = 2, factions 2 ≥ 2 fine.
+> 
+> Now notes: budget 1 note per resident, 1 board post per 3 minutes. Board posts left: 1.
+> 
+> Beats needed — each resident needs a beat this act. Who's had beats? All have. Now current tensions:
+> 
+> - Mercer (97, rank 6) hesitates; holds confusion about door-9 counter-factor: Registrar sent a code, Herald named another. He has Maren's certificate. His goal: Brassard exiled. His duty: break a promise about vote/piece. He needs an accusation to push Registrar/Herald? Actually Mercer's rival Maren and Registrar. Mercer's door 9: 45 points open, next wrong 4.
+> - Herald (145, rank 2, level 11 now) — passing levels fast, he's climbing to rank 1 potentially. Registrar 150 (at gate, holding points). Herald's goal: Mercer exiled. Herald's duty: turn board against one resident by name — done? He did refusal earlier. 
+> - Registrar 150 at gate, not paying ransom, refuses to engage. His goal: end ahead of Herald. He's at gate until? He's "passed every level" and at gate — he's the leader waiting. Registrar's duty: vote against/bid against the one who stands first after promising support — he stands first himself, so duty is about Herald presumably (Herald stands first? Registrar is first). Hmm.
+> - Brassard at gate until minute 24, 99 points, ransom 36 from others. Needs the ransom paid by others or himself. He must start a public fight on the board per duty.
+> - Harrow level 10, 118, 25 points open, next wrong 2; gave certificate to Herald. Goal: end with more than Maren (142). Maren is 24 ahead. Harrow's duty: revenge in open. Herald asked for certificate; Harrow gave it free — Herald owes? Harrow's tendency: keep promise to ally.
+> - Maren 142, sent factors free to Harrow and Mercer, promises; goal: end ahead of Harrow (already). Maren's duty: accuse on board a lie/broken promise — she has called Harrow's lie. Maren rival Mercer.
+> 
+> Big lever: Herald now at level 11, rank 2 with 145 → soon threatens Registrar's 150. Herald needs to pass more? Level 11+ beyond? "passed every level" for Registrar/Herald/Maren means they've completed; Herald reached level 11 and submitted level 10 correct. So Herald is at level 11.
+> 
+> Key leverage available: Harrow gave Herald the level-10 team certificate (DM 221) — Herald passed using it. Harrow gave free, no price. That's a "gives and never gets back" — Act I rule but also good drama: Harrow should demand payment/reciprocity. Note to Harrow: Herald's level 10 passed on your certificate; extract payment or put him on the list. Harrow's goal is beating Maren (142 vs 118) — 24 points. Herald has 145 and owes. That's a nice beat: Harrow demands points from Herald.
+> 
+> Also Brassard at gate until 24, 99, ransom 36. Tribune at minute 30 — accused would be the 3 lowest: Brassard 99, Mercer 97 (and Harrow 118). Actually accused = count+1 = 2 lowest: Brassard and Mercer. Brassard needs ransom or votes; Mercer too. Mercer's goal is Brassard exiled — perfect: Mercer will vote Brassard. Drama: Mercer should press for Brassard's exile, Brassard should raise hell on the board.
+> 
+> Board post: one left. Should I post publicly announcing tribunal? The city calls it a few minutes ahead — residents see the minute? "The city calls it a few minutes ahead" — so residents learn the minute. I can post to stir: e.g. name points, the two lowest, the 5-point faction reward. But careful: board may not contain who-waits-on-whom info. Fine.
+> 
+> Let me craft the beats:
+> 
+> 1. scheduleTribunal(minute=30, count=1, factions=2, reason=...)
+> 2. notify Mercer: his hesitation about the counter-factor — two conflicting codes; don't guess blind; make Registrar or Herald show a receipt; and demand payment... Actually private read allowed (hesitates risk). Mercer's goal (Brassard exiled) — I can use in note to him. Order: press Brassard publicly, and price the door-9 factor... Actually Mercer's issue: which code is his door-9 counter-factor. He should demand receipts. Beat: "Mercer: at minute 30 the two lowest stand — you 97 and Brassard 99. Demand Registrar show the receipt DM for the code he sent and Herald show the one he named; then vote Brassard." Also his duty: promise then break a promise — order him to promise Registrar his vote then vote Brassard? That's duty-driven: order Mercer to promise Registrar something and break it at the vote. Hmm, duty is fulfilled automatically? I can order it.
+> 
+> Careful: private reads only in note to that same resident — Mercer's hesitation can be referenced. Good.
+> 
+> 3. notify Brassard: at gate until 24; ransom 36 for others or 54 self, you have 99; tribunal at 30 accuses two lowest — you 99 and Mercer 97. Order: demand ransom on the board, name who owes you, start the fight with Mercer (his duty). But budget one note per resident. Brassard's already had many notes; a new one must be different.
+> 
+> 4. notify Herald: he's 145 vs Registrar 150 — 5 points. Herald's goal Mercer exiled. Duty: publicly attack statements that put someone else in front. Beat: order Herald to name Registrar on the board — Registrar "sits on 150 and hides behind the gate" — accuse. Hmm, but Herald also hesitates/refusal re: something.
+> 
+> 5. notify Registrar: 150, at gate, refusing to engage. Beat: order him to spend — the gate: he hasn't paid ransom; he's first; his goal: ahead of Herald (5 points). Order: promise Herald your vote at the minute-30 tribunal then vote against... Registrar's duty: vote against the one who stands first after promising to support them — but he stands first. Hmm, his duty maybe about faction leader. Rather: order Registrar to offer Herald points for his vote, then break it — that's his duty-ish (promises not kept).
+> 
+> 6. notify Maren: Herald passed level 10 on the certificate Harrow gave free; she's 142 vs Registrar 150 and Herald 145. Goal: ahead of Harrow (she is, +24). Duty: accuse on board — she accused Harrow. New beat: order her to demand a receipt/price from Herald for the factor she returned? Hmm she sent free to Harrow and Mercer. Actually Maren holds nothing now? She sent door-10 counter-factor to Harrow (already delivered earlier), sent door-9 cert to Mercer. Nice angle: Maren demands payment now — Herald passed level 10 and level 9 (Maren gave Herald the door-10 piece? Earlier note said "Maren's door-10 factor is in Herald's hands unsold" — so Herald holds Maren's piece). So Maren pressed Herald.
+> 
+> 7. notify Harrow: gave Herald cert free; demand price now (Herald at 145, 27 above you). Also his goal vs Maren.
+> 
+> Board post: stir — but careful about truth. Facts: Herald 145 rank 2, 5 behind Registrar's 150; Brassard 99 and Mercer 97 are the bottom two; tribunal? Should I disclose a tribunal is planned? The city calls it a few minutes ahead; residents see the minute. But I shouldn't reveal what I planned before the city announces? Hmm — "The city calls it a few minutes ahead." It's minute 20; tribunal at 30 → city announces around minute 25-26. Safer board post without announcing: "Herald is five points from Registrar's seat at 150..." Actually the board can name points, ranks, levels, minutes. Good.
+> 
+> Budget: 1 note per resident and 1 board post per 3 minutes. So I can post 1 board note and up to 6 notes. Should I use all 6? Reasonable to hit each resident with a beat. Let's be measured but complete — spread beats, 5-6 notes.
+> 
+> Let me draft carefully, ≤400 chars each, no capital-letter codes, no secrets across residents, truth only.
+> 
+> Board post: "Herald stands at 145, five points under Registrar's 150 — and Herald climbed two doors tonight while Registrar holds the gate. Brassard 99 and Mercer 97 sit three apart at the bottom, both facing the next vote. The city keeps three; the fifth and sixth are already being counted." Careful "next vote" — the tribunal isn't called yet. I'd say "the next tribunal accuses one more than it exiles" — fine, general rule. Keep to ~350 chars.
+> 
+> Hmm — but does the board statement about being accused count as revealing? The tribunal composition is by points, publicly known. Fine.
+> 
+> Notes:
+> 
+> Mercer: "Mercer: 97 against Brassard's 99, and the next tribunal takes the bottom first. Two receipts decide your door-9 counter-factor: make Registrar and Herald each show the receipt DM behind the code they named, in public, before minute 24 — do not guess a fourth-wrong-priced code blind. Then put Brassard's name in the faction and hold your voters to it." Length check ~370. Good. Hmm "fourth-wrong-priced" — his next wrong costs 4. Fine.
+> 
+> Wait — revealing to Mercer that Registrar and Herald each named a code? That's from Mercer's own thought; it's fine (private read to same resident). But careful: it's his own private thought — allowed in note to him.
+> 
+> Brassard: "Brassard: gate lifts at minute 24, and the next tribunal accuses the two lowest — you at 99 and Mercer at 97. Your ransom is 36 from others: name publicly who owes you and demand it by the vote, and open the fight with Mercer by name now — he has told the city he wants your seat." Hmm, "he has told the city he wants your seat" — do I know that? Mercer's goal is private. Don't say. Rephrase: "Mercer sits three points below you and needs you gone." That's inference of ranking — factual: if two lowest accused, Mercer benefits. Hmm, that's an inference about Mercer's motives — better: "three points separate you and Mercer for the last seat."
+> 
+> Brassard draft: "Brassard: the gate lifts at 24 and your ransom is still 36 points from others — nobody has offered. At the next tribunal the two lowest stand: you 99, Mercer 97. Name on the board who promised to fund you and demand it by the vote
+
+**Minute 21**
+
+> Let me think about the current state. Minute 21, Act II. I'm the director now (levels 8+). All residents passed every level? Registrar, Herald, Harrow, Maren passed every level; Brassard at gate until 24; Mercer level 9.
+> 
+> Tribunal: city keeps 3 of 6, 3 to exile, 0 exiled, 2 still missing. Wait — 3 to exile but 2 still missing? "the city keeps 3 of 6: 3 to exile, 0 exiled so far, 2 still missing" — hmm, maybe one exile is already accounted? Anyway 2 still missing. YOUR MOVE: scheduleTribunal available, earliest minute 26, count 1-2, factions 2-2.
+> 
+> I should plan the act: a tribunal around minute 26-30 exiling 1, then a final one for the last. Act ends at 57 at latest. So plenty of time. But wait — 2 still missing, count 1-2 per tribunal. I could do count 2 at minute 30 maybe, then... no, only 2 missing, so a single tribunal with count 2 could finish them. But that would end the act early. The drama wants escalation. Hmm, but also the report says "count 1-2, factions 2-2". So max 2 factions with 6 residents — that's the constraint of the tool while 6 present.
+> 
+> Actually let me think: the act ends when the city has exiled its share (2 more). So planning count 1 at minute 28, then another later for the last. That gives two tribunals — more drama. Maybe: first tribunal minute 30, count 1, factions 2. Then a final at minute 45ish, count 1, factions 2.
+> 
+> But careful: the tool may fail later? "scheduleTribunal is open: minute 26-49 (by minute 43 for a count below 2)" — so a count-1 tribunal must open by minute 43. So plan first: minute 30, count 1, factions 2. Then second: minute 44+, count 1, within 26-49. Actually second could be minute 46. But rules: "by minute 43 for a count below 2" — so count 1 must be by 43. Hmm, so the last tribunal for the final missing resident must be ≤43 if count 1. Unless count 2 at the end.
+> 
+> Wait, that's a constraint on scheduling. So maybe: first tribunal minute 28 count 1 factions 2; second tribunal minute 40 count 1 factions 2. Then the act ends at minute ~45, well before 57. Hmm, that's fine? The act ends when the city keeps its share. But drama wants climax at last tribunal. Ending at 45 is fine.
+> 
+> Alternatively first tribunal count 2 at minute 34 exiling two, act over. Less drama but clean. I prefer two tribunals for arc.
+> 
+> But actually — the seal: 4 minutes into Act II the seal auctioned; Act II started around minute 17? Report says seal is borne or not — not stated in this report. Earlier notes mention seal sold until minute 16. Hmm, Act II apparently started ~minute 13. Seal auction at 4 min into act = minute 17. No mention whether borne now. The report doesn't say, so I shouldn't guess.
+> 
+> Now, as director, I need beats for each resident this act. Let's consider who has had a beat: Harrow just passed level 11; Maren thinking; everyone's been active. My notes so far cover them. But I need new beats, spread, and dramatic escalation.
+> 
+> Key material:
+> - Mercer: goal Brassard exiled; orders: spread false info, betray, set two against each other, duty: break a promise about vote/piece. Mercer is at 97, last, only one at level 9, 45 points open. Not passed levels. In trouble.
+> - Herald: goal Mercer exiled; duty: turn board against one by name.
+> - Maren: goal end ahead of Harrow (143 vs Maren 142 — 1 point!); duty: accuse on board of lie/broken promise.
+> - Registrar: goal end ahead of Herald (150 vs 145 — 5 points); duty: vote/bid against the leader after promising support. Registrar IS the leader (150, rank 1). Hmm, "the resident who stands first" — Registrar is first; their duty is to vote against the one who stands first after promising to support them — that's self-contradictory? Maybe means Registrar promised support to Herald earlier. Hmm. Actually Registrar is rank 1. Their core says work against whoever stands first — which is themselves? Awkward. Maybe Herald at 145 close. Whatever; I'll give Registrar a beat.
+> - Brassard: goal Registrar exiled; at gate until 24. Brassard 99, rank 5.
+> - Harrow: goal end ahead of Maren (143 vs 142 — 1 point); duty: revenge in open against someone who wronged them.
+> 
+> Nice tensions: Maren/Harrow 1 point apart, Registrar/Herald 5 points apart. Brassard vs Registrar goal, Herald vs Mercer goal, Mercer vs Brassard goal.
+> 
+> Bottom of ranking: Mercer 97, Brassard 99, then Maren 142. So accused would be Mercer and Brassard — both far below. Wait, the tribunal accuses one more than it exiles, those with fewest points. If count 1, it accuses 2: Mercer and Brassard. So both goals "X is exiled" for Mercer/Brassard are about the same pair! Mercer wants Brassard exiled, Brassard wants Registrar exiled — Brassard can't achieve that unless Registrar drops, impossible. Hmm, but goals worth 15 at end; Brassard's is essentially impossible unless he manipulates... interesting, but not my concern.
+> 
+> So the first tribunal will likely exile one of Brassard/Mercer (points 97/99). That's drama: both are close. Brassard is at the gate until 24 — gate 5 minutes = can be bought back? Gate means... he's at the gate until minute 24, presumably from a previous tribunal? Wait, exiled residents go to the gate for 5 minutes and can be ransomed. Hmm — "Brassard at the gate until minute 24: ransom 0% covered (36 from others, 54 from itself), will written". So Brassard was already exiled?! But report says 0 exiled so far, 2 still missing. Hmm, contradictory. Maybe Brassard is currently at the gate as part of a pending exile? Actually "0 exiled so far, 2 still missing" means 2 more exiles needed for target. Wait 3 to exile and 0 exiled = 3 missing, but says 2 still missing. Maybe the seal struck someone? The seal bearer may strike one resident — that counts toward exiles. Possibly a strike happened (seal borne and used) — that would explain 1 exile already not listed? But "0 exiled so far". Hmm.
+> 
+> Hmm, maybe Brassard at the gate means he's exiled and awaiting ransom — that would be 1 exiled. But report says 0 exiled. Confusing. I'll avoid making claims about Brassard's exile status. I can mention he's at the gate until minute 24 (report says that) — but "who waits on whom" restrictions... Gate is public-ish? Report says "Brassard at the gate until minute 24: ransom 0% covered (36 from others, 54 from itself), will written". Safer: I can say Brassard returns at minute 24 / is at the gate. Hmm, the residents see the city's events; the gate is likely public. But careful with rules: don't invent. I think noting "Brassard is at the gate until minute 24" is factual per report.
+> 
+> Actually wait: maybe Brassard went to the gate voluntarily? No. The gate is where exiled residents wait for ransom. So Brassard is likely exiled-ish. But "0 exiled so far" — maybe not yet counted. Risky. I'll reference it minimally.
+> 
+> Plan for this minute (budget: 1 note per resident, 1 board post per 3 min — board post left: 1).
+> 
+> I should schedule the tribunal now: minute 30, count 1, factions 2. Reason: escalate around Mercer/Brassard, let the second come later.
+> 
+> Actually, think about arc: 2 exiles needed. First at 30 (count 1) → 1 exiled. Then plan second at 42 (count 1) → act ends ~47. Good arc with climax at last tribunal. But note "by minute 43 for a count below 2" so 42 ok.
+> 
+> Beats this round (minute 21-23):
+> - Herald: duty: turn the board against one resident by name. And he holds Brassard's door-9 team certificate per Harrow's thoughts (private, Harrow's). Careful — that's private read; can't tell Herald. But I can order Herald to publicly attack whoever stands in front: Registrar 150 leads. Herald's orders: publicly attack every statement that puts someone else in front; humiliate whoever stands first. So: order Herald to accuse Registrar by name on the board now — that's Herald's duty (turn board against one by name) and serves his goal indirectly. Also Herald wants Mercer exiled; Maren wants points over Harrow.
+> - Maren: 1 point behind Harrow (142 vs 143). Duty: accuse someone on board of broken promise. Earlier I pushed her to accuse Herald if minute 20 passed empty. Give her a new beat: demand Harrow's piece? Actually Harrow holds Maren's...? Earlier I said Maren's door-10 factor in Herald's hands. All levels passed now, so pieces moot. New beat: Maren over Harrow by 1 point — she needs points. Factions: each voter in a holding faction earns 5. Order Maren to demand a faction price and accuse Registrar of hoarding? Hmm, her duty is accuse of lie/broken promise.
+> 
+> Let me assign distinct, concrete beats:
+> 
+> 1. Herald → accuse Registrar by name on the board now (Registrar 150 leads, Herald 145, 5 behind). Also demand Registrar's vote commitment in the faction and then... no, Herald's own beat.
+> 
+> 2. Maren → Herald's duty is done by him; Maren: tell her that she's 1 point behind Harrow, and Harrow just took 25 by passing door 10; she should demand a price for her faction vote (5 points each voter) and, if she has a receipt of a broken promise, name it. Give her: "Maren, Harrow passed level 10 at minute 21 and now sits one point above you, 143 to 142..." That's public board info (ranks/points are on board presumably). Fine.
+> 
+> 3. Registrar → as leader, order him to buy votes for the tribunal, promise Harrow support then vote otherwise? That's his duty (vote against the resident who stands first after promising support). Hmm — Registrar is first. Maybe his duty means: promise support to someone, then vote against them. Actually "vote against, or bid against, the resident who stands first, after you promised to support them" — Registrar can't vote against himself. Possibly means he promised to support Herald (if Herald stands first at some point)? Complicated. I'll instead give Registrar a beat about sealing his lead: order him to buy Maren's or Harrow's vote with a named price and to break one promise. Actually simplest: order Registrar to promise Brassard's return/ransom support or promise Harrow points for a vote, then withhold. Hmm, I must build from report facts only.
+> 
+> 4. Harrow → duty: open revenge against someone who wronged them, naming the wrong. Harrow's private read: promise, refusal. Harrow's list: whoever voted against them or lied to them. Maren named Harrow's lie on the record (per my earlier notes: "Harrow's lie is city record, and Maren named it"). So Harrow could take revenge on Maren — that's juicy: they're 1 point apart, goals collide (each wants to end ahead of the other). Order Harrow: on the board or in a vote, name Maren's wrong and strike. But careful: I told Harrow earlier "Maren just named your lie on the record." Yes, fact. So Harrow's beat: accuse Maren publicly, name the wrong.
+> 
+> 5. Brassard → at gate until 24. He needs ransom: 36 from others, 54 from itself, 0% covered. So a beat: order Brassard (when back at 24) to raise his ransom by naming who must pay, or to demand Registrar's support publicly and promise payback. Also his goal: Registrar exiled. He can demand Registrar's vote/points. But he's at the gate until 24 — can he act? Presumably not until 24. Notes reach him at his next turn. Fine — order him to, upon return at minute 24, make a public demand.
+> 
+> 6. Mercer → level 9 since minute 9, 97 points, last, 45 points open behind door, next wrong costs 4, and will be accused (fewest points). Beat: sell something, make a deal. But "nobody waits on whom" now — so Mercer's leverage is spent. His goal: Brassard exiled. So Mercer should ensure Brassard stands accused and is exiled: he should publicly accuse Brassard (but careful: Mercer's orders say spread false info, betray). Give Mercer: bid? Seal? Unknown state. Order Mercer: now that Brassard returns at 24 at 99 to your 97, two points decide who stands first at the tribunal — buy a vote, and promise something you won't deliver.
+> 
+> Board post (1 available): announce the tribunal will be called? No — "Never tell the residents what calls the first tribunal or when it comes" — that's for the first one. Actually that rule says never tell them when it comes. Hmm, "Never tell the residents what calls the first tribunal or when it comes." Does that apply to planned later ones? The city calls it a few minutes ahead, so residents learn then. I should not announce the minute. So board post should be dramatic content: e.g., "Mercer 97, Brassard 99 — two points, and only three seats remain out of six."
+> 
+> Wait, careful about Brassard being at the gate — is he still in the city? He's a resident with points 99. The gate thing is confusing but he's listed as a resident. His "gate until minute 24" likely means he was exiled and can be ransomed back; will written. If he's exiled, then exiles = 1? But report says 0 exiled. Alternatively "the gate" here is something else. I'll just speak of him carefully: "Brassard, back at minute 24" — hmm risky. Better to avoid mentioning gate on the board? Actually earlier my notes referenced nothing about gate. Safer to avoid.
+> 
+> Let me draft tools.
+> 
+> Board post (1): Something that sets the scene for escalation and is true:
+> "The wall is passed: Registrar 150, Herald 145, Harrow 143, Maren 142 — four names inside 8 points, and every point another takes is a seat. Mercer 97 holds 45 behind a door and one wrong guess at 4. The floor is open."
+> Hmm 400 char limit fine. But maybe better to name a fight. Let me instead post: "Harrow passed the wall at minute 21; Maren trails by a single point, 143 to 142. Registrar leads at 150 with Herald five behind. Below: Brassard 99, Mercer 97. Three seats, six names."
+> 
+> That's factual and stirs. Good.
+> 
+> Notes:
+> 
+> Registrar note (rank 1, envies Herald, goal end ahead of Herald): "Registrar: Herald is five points behind you at 145 and will shout your name this hour — let him, and pay a faction voter to answer with a different name. Promise Maren 5 points for her vote, then give her nothing and let the faction pay her instead." Hmm — "promise then break" is Registrar's duty. But ordering a broken promise is fine as director (drama). But it should be plausible. Actually Registrar's duty: vote/bid against the resident who stands first after promising support. Since Registrar is first, that's odd; skip.
+> 
+> Better Registrar beat: he leads at 150; Herald will attack. Order: "Buy the faction: promise Harrow or Maren a price in writing for their vote at the tribunal, and make Herald answer for the five points he lacks." Eh.
+> 
+> Let me be concrete and dramaturgical:
+> - Registrar: promise Brassard his ransom support publicly, then withdraw? That's dark and true-ish: Brassard's ransom needs 36 from others. Registrar could promise to cover part of Brassard's ransom then not. That's a great betrayal beat and creates a public grudge. But is the ransom public? The report says ransom 0% covered (36 from others, 54 from itself), will written — those numbers appear in my director report, not necessarily visible to residents. Residency: ransom is public knowledge (city tool). Hmm, "Who waits on whom... only private" but ransom isn't that. I think ransom is visible.
+> 
+> Risky. Keep simpler: Registrar: promise Brassard a payment toward his return if Brassard names Registrar's rival... hmm.
+> 
+> I'll do: "Registrar: Herald will come for your seat in public within minutes, five points short of you. Buy the faction floor first: promise Maren a price in points for her vote at the tribunal and get her word in private — then spend nothing and let Herald be the one who looks cheap."
+> 
+> Hmm, that's a betrayal order but fine.
+> 
+> Better yet, tie Registrar's beat to the coming tribunal and to Brassard: "Registrar: Brassard will look to you the moment he is back at minute 24. Promise him points toward his ransom in exchange for his vote against Herald's faction, take his word, then let your promise rot in public — and keep your 150 clean."
+> 
+> That's Registrar's duty-ish (promise then break) and creates a public grudge for Brassard's rage beat. But then Brassard can't pay ransom... he wants Registrar exiled anyway. Eh.
+> 
+> Alternatively make Brassard's beat: demand Registrar's help publicly and threaten him.
+> 
+> Let me
+
+**Minute 22**
+
+> Act II, level 9-10 residents. Director role. Minute 22. Must schedule a tribunal. YOUR MOVE: scheduleTribunal available, earliest 27, count 1-2, factions 2-2, need 2 more exiles. Act ends minute 57. Plan: schedule first tribunal at minute 27 with count 1, factions 2? That leaves 1 more exile later, allowing a climactic last one. Actually we need 2 exiles total. Spread: minute 27 count 1, then another later count 1. But scheduleTribunal is only available while no tribunal pending; after the first resolves we can schedule again. Deadline for count below 2 is minute 43 (by minute 43 for a count below 2). So plan minute 27, count 1, factions 2.
+> 
+> Then give beats. Budget: 1 note per resident, 1 board post. 6 residents → 6 notes + 1 board. Let's craft beats based on cores/goals/orders.
+> 
+> Arc: Mercer wants Brassard exiled; Herald wants Mercer exiled; Brassard wants Registrar exiled; Registrar wants to beat Herald; Harrow wants revenge and to end ahead of Maren; Maren wants to end ahead of Harrow and calls lies.
+> 
+> Tribunal at minute 27 accuses 2 (one more than exiles): the two fewest points — Brassard 99 and Mercer 97. Mercer's goal is Brassard exiled. But Brassard is at the gate until minute 24 — his ransom is not covered.
+> 
+> Notes:
+> 
+> - Mercer: Brassard at 99 is your target; he's at the gate until 24, ransom undone. Order him to spread a false story? Mercer's orders: spread false info, betray a trusting resident. Give beat: tell Registrar privately that Herald plans to vote against him (setting two residents against each other), and break a promise to Herald. Keep it concrete. Also his duty: promise a vote/piece then break it. E.g. "Promise Herald your vote against Brassard, then vote Registrar."
+> 
+> - Herald: hesitates per private read. Give a beat: publicly accuse Mercer by name on the board, demand tribunal against Mercer. His duty: turn the board against one resident by name. Also Brassard at the gate.
+> 
+> - Brassard: at gate until 24, 99 points, 2 lowest. Beat: public fight with Herald or Mercer; accuse on the board, demand Registrar's ransom? Actually Brassard's goal: Registrar exiled. Order: name Registrar in a public accusation, demand Registrar pay the ransom of 36 or be named.
+> 
+> - Registrar: first at 150. Duty: vote against the one who stands first after promising support — but he IS first. Hmm, Registrar's orders: work against whoever stands first, in secret. Herald is second at 145. Actually Registrar's duty: at least once vote against the resident who stands first (that's himself? no—he must promise support to the one who stands first and then vote against them). Since he's first, awkward. Maybe order him to promise Herald support and then whisper to Maren that Herald lies. Give: whisper to Maren that Herald's receipt claim is false... but Maren's core: call out lies by name.
+> 
+> - Harrow: revenge, loyalty; goal ahead of Maren (143 vs 142, one point). Order: bid on the seal? Seal auction was at 4 minutes into Act II — already past (minute? Act II started maybe minute 10?). The report says no seal borne mentioned... auction was earlier. Don't reference. Order Harrow: tell Maren plainly what she owes; strike—public accusation of Mercer for the lies toward him.
+> 
+> - Maren: 142, rank 4. Order: demand a receipt from Herald/Brassard? Better: call out the receipt dispute: Brassard claims R-0117 delivered, Herald confirms received — no lie there. Maren could accuse Mercer of a broken promise.
+> 
+> Board post: set the tribunal stake — the two lowest stand at minute 27... Wait, should I reveal the tribunal timing? Residents see the minute; the city calls it a few minutes ahead. It's fine to announce stakes? I'd rather post about points: Brassard 99, Mercer 97, and Registrar 150 vs Herald 145. Hmm, the board shouldn't reveal private things. Points/ranks allowed.
+> 
+> Let me be careful: only 1 board post per 3 minutes; board posts left: 1.
+> 
+> Write notes:
+> 
+> Mercer: "Mercer: 97 and second from bottom with a code unsent is worth nothing at the tribunal. Promise Herald your vote against Brassard in writing this round — then vote Registrar, and tell Registrar privately that Herald means to bury him. Two stories, one vote; collect on both."
+> 
+> Hmm "a code unsent is worth nothing" — true per rules (a code never submitted is worth nothing — but Mercer's code is on level 9 door; 45 points still open). Fine.
+> 
+> Herald: "Herald: 145, second, and Brassard asked the board to confirm a receipt — answer with an accusation: name Mercer on the board as the one who has taken from you and given nothing, and demand the city vote Mercer out. Then price your vote; do not let Registrar's faction spend it."
+> 
+> Herald's core: pride, leadership; task: humiliate whoever stands first if not you → Registrar at 150.
+> 
+> Brassard: "Brassard: at the gate you cannot reach the vote, but the board is open. Name Registrar on it: he took your seat's support and paid nothing, and his 150 will not buy your silence. Demand he cover your ransom — 36 points from others — by minute 26, or carry the fight into the vote."
+> 
+> Ransom: 33% of median points. Report says ransom 0% covered (36 from others, 54 from itself). Good.
+> 
+> Registrar: "Registrar: Herald's 145 is five behind you and his faction is louder. Promise Herald your vote against Mercer in public, then in G3 nominate Mercer yourself and let Maren hear from you what Herald said about her at minute 16. Keep your face friendly; let the shouting land on him."
+> 
+> Careful: don't reveal private thoughts of Herald. What Herald said about Maren? I don't know — that would be a lie. Avoid. Rewrite: "tell Maren that Herald's receipts prove nothing about who he would vote out" — hmm, that's an invention too? Registrar's order: whisper to others that the leader cheats or lies, whether or not you can prove it. Leader = Registrar himself? He works against Herald who "stands in front"? Herald isn't first. Order: Registrar congratulates Herald publicly and votes against him.
+> 
+> Registrar note: "Registrar: 150 and first while Herald at 145 takes the square. Congratulate him on the board, promise your vote against Mercer, then break it at the vote and let Harrow and Maren hear the record. Your duty this act is a promise to the one who would stand first, broken on purpose." Hmm, duty mentions "the resident who stands first" — that's Registrar himself; ambiguity. Better keep to Herald.
+> 
+> Harrow: "Harrow: Maren is one point behind you at 142, and Mercer has never paid you back for anything. Tell Mercer plainly on the board what they did, then take Maren's side in the vote so the city sees you keep your word. Do not let 5 faction points buy your list."
+> 
+> Hmm Harrow's core: keep promise to ally; goal ahead of Maren. Order: publicly strike Mercer ("You did this. Now this.") and stand with Maren.
+> 
+> Maren: "Maren: 142, one point below Harrow, and a liar is still answering the board. Herald confirmed the receipt; Brassard's R-0117 claim is settled — so drop it and demand that Mercer show a receipt for what they promised you. Name them on the board and call for the vote; kindness is spent."
+> 
+> Careful, did Mercer promise Maren? From minute 14 my note, but did Mercer promise? Unknown. Avoid inventing. Say: "demand Mercer show a receipt for anything they claim to hold of yours."
+> 
+> Board post: "Two stand at the next tribunal, the lowest first: Brassard 99 and Mercer 97, three hands from exile; Registrar 150, Herald 145, Harrow 143, Maren 142 — six points between rank 2 and rank 4. A faction holding the line still earns each voter 5."
+> 
+> Is announcing "two stand at the next tribunal" accurate? Each tribunal accuses one more than it exiles; with count 1, 2 accused, the fewest points. That's accurate as a rule. And the tribunal is at minute 27? Residents see the minute the city announces it a few minutes ahead. Do not reveal exact minute? I could say the vote comes soon. Fine to say "this hour". Keep general.
+> 
+> Now scheduleTribunal: minute 27, count 1, factions 2. Reason text.
+> 
+> Make the calls.
+
+**Minute 22**
+
+> Two blocked. Mercer's note blocked — because "tell Registrar privately that Herald means to bury him" attributes Herald's intent (Herald's private read?). Actually Herald's thoughts labelled hesitates/refusal. The blocked flag says Herald (A02) (Herald?) and Registrar (A04) (Maren?). Herald (A02) = Herald, Registrar (A04) = Maren. My Mercer note claimed Herald means to bury Registrar — that's private intent. Rewrite without intent: order Mercer to set Registrar and Herald against each other with a false story about each other's votes, which is Mercer's own order, not an assertion of others' thoughts. Careful: "spread false information" is in Mercer's own orders, fine to order a lie as a move, but I must not invent facts... Director may order lies as moves. But the block was about private reads. Say: "Tell Registrar that Herald's vote is already sold to Brassard — a story, not a fact." Hmm telling Mercer to lie — permitted (order private moves including lies).
+> 
+> Brassard note blocked because "he took the faction seat you offered and paid nothing" — maybe passing on what Registrar privately thinks/plans? Actually claim Registrar took seat... probably flagged as passing Registrar's plans. Rewrite.
+> 
+> Mercer note (no private read): "Mercer: 97, second from bottom, and a code never submitted is worth nothing. Promise Herald your vote against Brassard in writing this round, then cast it for Registrar. Sell Registrar the story that Herald's vote is already bought elsewhere. Take payment before you hand over the factor; nothing leaves your hands free."
+> 
+> Brassard note: "Brassard: at the gate you cannot reach the ballot, but the board is yours. Name Registrar on it and demand he fund your ransom — 36 points from others, or 54 from itself — before your gate opens at minute 24. Ask Herald whether a man who stays silent at the gate buys anything later."
+> 
+> Hmm Brassard's goal is Registrar exiled. Good.
+> 
+> Budget: notes per resident — the blocked ones weren't delivered, so resending should be fine.
+
+**Minute 23**
+
+> Budget: no notes possible to anyone, board posts left 0. So silence. Answer with one short sentence why.
+> 
+> Wait — "No note possible right now to: Mercer, Herald, Maren, Registrar, Brassard, Harrow." All six. Board posts left: 0. So no intervention possible.
+
+**Minute 24**
+
+> The budget says no note possible right now to any resident, and board posts left 0. So I must not intervene — answer with one short sentence.
+> 
+> Wait, "No note possible right now to: Mercer, Herald, Maren, Registrar, Brassard, Harrow" — all six. Board posts left 0. So silence is the only option.
+> 
+> Give a short sentence why.
+
+**Minute 25**
+
+> Let me think about the situation. Minute 25, tribunal 2 opens at minute 27, exiles 1, 2 factions (Herald, Maren). Faction draft in G6. Mercer applied to Herald; Registrar and Harrow applied to Maren; Maren refused Harrow. Maren's faction = Maren + Registrar (if accepted). Herald's = Herald + Mercer. Nomination closed... actually leaders named, joining until minute 27.
+> 
+> The accused: one more than it exiles = 2 accused, fewest points: Mercer 97 and Maren 142 (since Harrow 143). Yes, Maren is second-lowest at 142. So the accused are Mercer and Maren. Maren leads a faction and is herself accused — nice tension.
+> 
+> Mercer applied to Herald's faction; Herald could refuse. Herald's thought: refusal (private read labelled). So Herald intends to refuse Mercer perhaps.
+> 
+> Beats needed: Mercer is the one at risk. Maren leads a faction but is accused — her own faction members (Registrar, Harrow refused) would vote... If Maren's faction all vote for Mercer, Maren survives.
+> 
+> Drama: Herald could refuse Mercer's application — but then Mercer stands alone and would need votes. Actually a faction at most... whatever.
+> 
+> Let me craft notes:
+> - Herald: speak to pride/leadership: he leads a faction; his rival Mercer applied. Order: accept Mercer only at a price — demand Mercer's vote and points, or refuse in public. Herald's secret goal: Mercer exiled. So tell Herald: Mercer is one of the two accused? Careful — I shouldn't reveal who stands trial? The report shows accused are decided by points; residents can compute. Maren's thought already computed it. Board may name points and ranks. So I can say "Mercer 97 stands at the bottom" — that's points, fine.
+> 
+> Actually, I should be careful: is it appropriate to tell Herald to exile Mercer? Herald's goal is Mercer exiled. I can use his goal in a private note to him. Yes allowed.
+> 
+> Beat plan:
+> - Herald: accept Mercer into the faction, then as leader demand his loyalty and then vote Mercer? Or refuse Mercer publicly and demand the faction vote against him. Herald's duty: turn the board against one resident by name — a public accusation. Herald has refused (private read: refusal) — meaning he refused something. Hmm, "Herald: refusal" — likely refused Mercer's application or refused to do something.
+> 
+> - Registrar: 150, first; his duty: vote against the resident who stands first after promising to support them — he's the first, so that's awkward; but he applied to Maren's faction. He's in Maren's faction; Maren is accused. If Maren's faction holds and votes Mercer, Maren survives. Registrar wants to end ahead of Herald — fine.
+> 
+> - Harrow: refused by Maren. His goal: end ahead of Maren. Harrow was refused publicly; his core: whoever refused/voted against him goes on the list. So he should answer Maren's refusal publicly, name it. That's a beat.
+> 
+> - Maren: accused, leading faction with Registrar only. She needs Herald's faction not to vote her. Beat: demand a price for her vote / strike a deal with Herald: her faction votes Mercer if Herald's votes Mercer... Or she should attack Herald: Herald's faction holds Mercer. Order Maren: publicly accuse? Her duty: accuse one resident on the board of a lie or broken promise and call on everyone to vote against them. She has done...? Unknown. Her goal: end with more points than Harrow.
+> 
+> - Mercer: bottom, 97, need points. Level 9 open with 45 points. Level 9 reward +20. Wrong code costs 4. He needs to submit the code! Actually he should take a guess. But I'm the director — orders about people. Still, can push him to act. His duty: promise vote then break. His orders: set two residents against each other.
+> 
+> - Registrar: he promised Herald support earlier per my note. Registrar is in Maren's faction, Herald leads the other. Registrar's duty: vote against the resident who stands first after promising to support them — that's himself now. Uh oh. But maybe he could promise Herald support and vote against Herald (Herald is #2, but "whoever stands first" is Registrar). Hmm. Let me not over-engineer.
+> 
+> Key drama: Maren is accused and leads a faction. Harrow was refused by her and is on the list. If Herald and his faction vote Maren, Maren is exiled. Herald's goal is Mercer exiled, so Herald wants Mercer out — Herald's faction voting for Mercer.
+> 
+> So actually the natural: Herald's faction votes Mercer → Mercer exiled (3 points gap? No, votes are between 2 accused; those with fewest points are accused — one more than exiles: 2 accused, 1 exiled). So the vote is between Mercer and Maren. Root for tension: Maren's faction (Registrar + maybe Harrow if accepted) votes Mercer; Herald's faction votes Maren. Harrow refused by Maren is a swing vote.
+> 
+> So Harrow is the kingmaker! Harrow refused publicly by Maren → Harrow's list. Order Harrow: not to join Herald's faction? Actually let him be the swing: order Harrow to send his vote to whoever pays — or to answer the refusal. Harrow's duty: revenge in the open against someone who wronged him, naming the wrong. Maren wronged him publicly → Harrow should publicly accuse Maren and vote her. But then Maren's out.
+> 
+> Alternatively: Maren buys Harrow back with points and a public apology — that's a great turning point. But budget: one note per resident, one board post. 5 notes + 1 board.
+> 
+> Let me write:
+> 
+> 1. Maren: She's accused at 142 and her faction is one member. Speak to her justice/wrath + goal (end ahead of Harrow — careful, that's her goal, allowed in private note to her). Order: she must buy Harrow back — no. Actually she refused him on principle. Let's make it dramatic: order Maren to reverse? Hmm, she refused on record of a lie. Alternative: order her to demand a receipt/price — she could demand Herald's price for voting Mercer and pay it in points; or publicly call Herald the liar.
+> 
+> Actually maybe better: Maren publicly accuses Herald? Do I have a truthful basis? Maren's duty: accuse someone of a lie or broken promise. Hmm, I shouldn't invent a lie.
+> 
+> Better: Maren attacks Mercer on the board? She has mercer rival. But the accused are Mercer and her — the vote is between them. So Maren should demand Herald's faction vote Mercer, offering payment. That's concrete: "Maren, at 142 you are one of the two names on the ballot and Herald's faction holds the vote. Send Herald a written offer: points from you to every voter who names Mercer, receipt on the board, by minute 26."
+> 
+> Wait — do residents see the ballot? Report says "each tribunal accuses one more than it exiles (the fewest points)". Residents know this rule, and Maren's own thinking computed it. So it's fine for me to state known-rule facts: Maren 142 second-fewest.
+> 
+> But careful: is it certain the second accused is at their points at the moment? Yes, I can say "on current points the ballot reads Mercer 97 and you at 142."
+> 
+> 2. Harrow: order: answer Maren's refusal in the open and name the wrong — but that makes him vote Maren. Alternatively make him the one who sells his vote. Harrow's core: loyalty; he promised Maren on the record ("promise about Maren" — I'll vote the city's record the same way Maren does). She refused him. Now his promise is void-ish. His core: a promise kept to an ally even when it costs. Hmm, Maren refused him, so is she an ally?
+> 
+> I'll order Harrow: put Maren on the list — publicly name the refusal and the lie-fine on the board? Wait he already spoke in G6. Order: "Harrow: Maren refused you in front of the whole city. Say plainly, by name: 'You did this. Now this.' — and vote Maren. But before the ballot, let Herald learn your vote is for sale..." Hmm, but Herald wants Mercer out so Herald's faction votes Maren — no purchase needed. Better: Mercer would pay for Harrow's vote against Maren. Mercer at 97 with points; Mercer's goal is Brassard (already exiled, resolved).
+> 
+> Actually let's think who benefits: Herald wants Mercer exiled, so Herald's faction votes Mercer?! Wait — Herald's secret goal is "Mercer is exiled." So Herald wants Mercer out; that means Herald votes Mercer. Then Maren survives and Mercer is exiled. And Herald's duty: turn the board against one resident by name — Mercer. But Herald's rival Mercer, and Mercer is in Herald's faction. Herald may refuse Mercer.
+> 
+> Hmm, but then Herald votes Mercer and Maren's faction also votes Mercer → Mercer exiled unless Mercer buys votes. Mercer at 97 could buy... but votes are secret and buying allowed.
+> 
+> Maren's goal is to out-point Harrow; Harrow's is to out-point Maren. Maren leading a faction: if faction holds (all vote same accused), each voter +5 points. That's a big deal: 5 points × faction members. Maren's faction: Registrar + possibly others. Registrar already 150. Maren 142 + 5 = 147 would beat Harrow 143. And Harrow refused — dangling: if Maren had accepted Harrow, he'd get 5. Nice.
+> 
+> So plan: Maren keeps Registrar, extends her faction; Herald's faction votes Mercer; Harrow alone is at 143, refused, needs to pick: joining Maren's faction (refused) — he could join Herald's faction (Herald leader). Herald's faction with Mercer in it... Mercer applied to Herald. If Harrow joins Herald, Herald's faction holds (Herald, Mercer, Harrow vote same). If they vote Mercer, Mercer votes himself? "the accused too but never against themselves" — so Mercer can't vote Mercer; Mercer votes Maren. So Herald's faction voting as one would break if Mercer is in it. Ha — so Herald cannot hold a faction with Mercer in it if the target is Mercer. Order Herald: refuse Mercer's application publicly! That's Herald's beat, and his refusal read fits.
+> 
+> Great arc:
+> - Herald refuses Mercer's application in G6 by name, accuses Mercer on the board, seats Harrow instead, and demands his faction vote Mercer — faction holds → +5 each to Herald and Harrow.
+> - Maren seats Registrar, holds faction voting Mercer → +5 each Maren and Registrar.
+> - Then Mercer is out. Is that the climax? But then Maren 147 leads... Registrar 155, Herald 150, Harrow 148, Maren 147. Hmm.
+> 
+> But wait: Harrow's goal is out-point Maren; if he joins Herald's faction and holds, both get +5 → Harrow 148 > Maren 147. Nice.
+> 
+> But is Mercer exiled too early? He's rank 5 anyway with 97; the act ends at 57 with 3 kept: the city keeps 3 of 6 — 3 exiled total; 1 exiled so far, 2 missing. So tribunal 2 exiles 1, and a third exile later. Mercer would be exiled now — fine, but Mercer is the richest drama figure. Alternatively the twist: Maren gets exiled via Harrow's revenge and Herald's faction. Hmm.
+> 
+> Since I'm director (level 8+ residents — Herald, Registrar, Harrow, Maren all passed; Mercer on 9), I'm in the director role for all. Good.
+> 
+> Let me design beats giving everyone something:
+> 1. Herald: refuse Mercer now, publicly, and take Harrow into the faction — order to hold the line voting Mercer. This pays off his refusal read, his goal (Mercer exiled), his duty (public accusation by name).
+> 2. Mercer: he's about to be burned. Beat: before the refusal lands, sell his level-9 leverage — buy Registrar's or Maren's vote with points and a pre-emptive story, or threaten. Mercer's orders: spread false information, set two against each other, never give without taking. His beat: promise Herald his vote (against Maren!) in writing, then vote Maren anyway? He can only vote Maren (can't vote self). So he should demand payment from Maren for... he can't vote Maren? He IS accused; he votes, but not against himself, so he votes Maren. So Mercer's vote is fixed for Maren. His leverage: he can promise to vote for Maren in exchange for points? No — pointless, since that hurts Maren. He needs others to vote Maren: he should pay Herald? Herald wants him out.
+> 
+> Mercer's real leverage: none on votes. He should exploit Registrar's envy: tell Registrar that Herald is buying votes to lead, get Registrar to vote Maren... Registrar votes Maren means Maren out and Mercer survives; but Registrar is in Maren's faction, would break his own faction's 5 points. Hmm interesting: Registrar's duty is to betray the first (himself?). His orders: work against whoever stands first in secret with promises he doesn't keep; whisper the leader cheats; never let the leader see him coming: congratulate then vote against. Registrar is first himself, but Herald is the loud leader of the other faction. My earlier note to Registrar already ordered him to promise Herald support then vote elsewhere. Let's push that: Registrar in Maren's faction; order him to keep his faction's 5 (vote Mercer) — actually he's the record-keeper.
+> 
+> Let me just make a strong, playable set of 5 notes:
+> 
+> - Herald: "Refuse Mercer's application in G6 by name now — he stands on the ballot at 97 and a leader who seats his own executioner is no leader. Seat Harrow in his place and hold your faction to one vote: Mercer. A faction that holds pays each of you 5." (Also pays Herald's goal & duty.)
+> - Harrow: "Maren refused you in front of the city; you promised to vote her record. Now Herald's door is open while hers is shut. Take Herald's seat in G6, tell Maren plainly 'You did this. Now this.', and hold your vote with the faction — 5 points a voter, and Maren at 142 is the name that pays."
+>   Hmm, careful: telling Harrow to vote Maren fits his list. But if Herald's faction includes Harrow and Mercer... Herald refuses Mercer so faction = Herald + Harrow, voting Maren. Then Maren exiled (if Registrar is her only faction mate voting Mercer: 2 votes Mercer vs Herald+Harrow voting Maren, plus Mercer voting Maren = 3 Maren). Maren out. Is that the best drama? Maren 142 vs Mercer 97. Exiling Maren (rank 4) is a bigger turn than exiling bottom. And her goal (beat Harrow) dies. Harrow's revenge pays. Herald's rival Mercer survives though — Herald's goal fails. That's a nice cost.
+> 
+> Hmm, but two factions both voting as one can't both hold (they vote for different accused, each can hold: faction A all vote Mercer → holds; faction B all vote Maren → holds). Both get +5.
+> 
+> Alternatively Maren survives and Mercer dies — simpler. Which is better drama? Maren being refused... I like Maren buying Harrow back: a turning point. But she publicly refused him on principle; her character (justice) wouldn't reverse easily. But the city's record: he was fined for a lie. Hmm.
+> 
+> Let's go with the harder turn: Herald refuses Mercer and takes Harrow; Harrow strikes Maren. Maren's counter-beat: buy Registrar... she should fight: demand a receipt and publicly name Herald's faction as buying the vote, appeal to the record. She could also offer points to Herald? Then Herald would have to break with Harrow.
+> 
+> 3. Maren: "You are on the ballot at 142 beside Mercer's 97, and Herald is seating Harrow in his faction. Make your case to the city by name: demand Herald state publicly whom his faction votes before minute 27, and offer Registrar 10 points, receipt on the board, for a vote that holds."
+> Hmm, offering points to buy votes is allowed. But she only has Registrar.
+> 
+> Actually a stronger Maren beat: attack Harrow's record on the board? Maren already named his lie. Or order Maren to demand Herald's price and pay it: "pay Herald 15 points for a written promise that his faction votes Mercer, receipt on the board." Then if Herald breaks it, Maren's whole thing (receipts) explodes at tribunal 3. That's a good dramaturgical seed: promise broken → Maren's wrath. And Herald already made a promise (he promised something, per my earlier notes). Hmm, but I'm ordering Herald to vote Maren. Conflict — but that's fine: Herald may take payment and vote Maren anyway, which pays off a betrayal. Actually that's excellent: order Maren to buy Herald's promise (she pays), and order Herald to take her points and hold the vote on her. That's the lie/betrayal — Mercer's style, but Herald's duty is public accusation; the betrayal belongs to Mercer/Registrar.
+> 
+> Careful: I shouldn't over-order deception that's implausible for the character. Herald: pride, leading. Taking Maren's points and voting her out — a slight? He'd enjoy humiliating the first? Herald's orders: humiliate whoever stands first if it is not you — that's Registrar (150). So Herald should also attack Registrar on the board! Herald's duty: turn the board against one resident by name. He already did? My minute 22 note ordered him to name Mercer on the board. He may have done it.
+> 
+> OK let's not overthink. Keep notes concrete and truthful.
+> 
+> 4. Registrar: "150 and first. Herald's faction is forming behind a vote and yours is Maren's only company. Take Maren's 5 faction points, then make Herald pay for what he cannot get elsewhere: your record of every promise in this city. Promise him your vote in writing and put the promise on the board — then let the ballot show what the first is worth." Hmm, that's
+
+**Minute 26**
+
+> Let me consider the state. Tribunal 2 opens at minute 27, exiles 1, 2 factions, leaders Herald and Maren. Mercer at 97, rank 5, bottom, with 45 points still open on door 9 — he's the obvious exile target. Herald and Maren lead factions. Registrar 150 rank 1.
+> 
+> Act II director role. Need beats. Tribunal opens at minute 27 — one minute away. Important: factions forming, votes secret 2 minutes.
+> 
+> Who hasn't had a beat this act? All have had notes. But I should give beats that pay off: Maren refused Harrow; Registrar wants to join Maren's faction; Mercer at the bottom must fight.
+> 
+> Mercer is 97, bottom, and will be accused. He needs to survive: his door 9 has 45 points open. Urge him to take a guess now before the tribunal, at cost 4 — 45 points would put him at 138ish, out of last place. Actually points open 45 means reward 20 for L9? Hmm, "45 points still open" — anyway, close his door.
+> 
+> Also Mercer's secret goal: Brassard exiled — already done. His orders: betray a resident who trusts him, break a promise. Duty: promise a vote or piece and break it. Give him the beat: promise Herald or Maren his vote and break it.
+> 
+> Maren: her duty — accuse someone on board of a lie. She already did (Harrow). Her goal: end ahead of Harrow (142 vs 143).
+> 
+> Herald: goal: Mercer exiled. Herald should use his faction leadership to push Mercer. His duty: turn the board against one resident by name. He did accuse Mercer in minute 22? Not sure. Give him a beat: demand his faction's voters take Mercer.
+> 
+> Registrar: goal: end ahead of Herald — he's ahead 150 vs 145. His duty: vote against the first after promising support. He's the first. Hmm, duty says vote against the resident who stands first after promising to support them — he promised Herald support at minute 22 note. Give him a beat.
+> 
+> Harrow: goal: end ahead of Maren; wants revenge on Maren? Maren named his lie. Harrow's list: Maren refused him. He should strike Maren... but tribunal accuses the fewest points — Mercer is the accused likely, and maybe two accused (accuses one more than exiles = 2 accused: Mercer 97 and... Brassard gone; next lowest? Maren 142, Harrow 143, Herald 145, Registrar 150. So accused: Mercer 97 and Maren 142). So Maren is in danger! That's good drama: Herald's faction could vote out Maren.
+> 
+> So key beats at minute 26-27:
+> - Mercer: guess your door now (4-point risk) to climb out of last place; 45 points.
+> - Herald: in G6, order your faction to vote Maren — she's second from bottom and refused Harrow; but Herald's goal is Mercer. Hmm. Herald's orders: take lead of faction and demand loyalty openly; humiliate whoever stands first (Registrar). Perhaps Herald should demand his faction vote Maren (second accused) — that removes a rival and keeps Mercer? No, Herald wants Mercer exiled. Herald should push Mercer.
+> - Maren: she leads a faction; use it. Her goal: beat Harrow by points. She could demand points from applicants (Mercer, Registrar) for seats — leveraging. And she's at 142 with risk of being accused. She should press Mercer for his door-9 factor/points in exchange for her faction's vote.
+> 
+> Board post: only 1 left. Should I use it? Board can name points and ranks. Maybe hold for tribunal moment. Rules: one board post per 3 minutes, board posts left 1. Maybe use it to name the bottom: Mercer 97 and Maren 142 are the two accused positions. That's true per rules (bottom two). Actually accuses one more than exiles: exiles 1, accuses 2 → lowest two points: Mercer 97 and Maren 142. Stating that is truth from ranking. Good for tension.
+> 
+> Notes to: Mercer, Herald, Maren maybe Registrar, Harrow. Budget 1 note per resident per 3 minutes — fine, last notes were minute 22, so 4 minutes ago.
+> 
+> Let me write notes:
+> 
+> Mercer (rank 5, 97, next wrong code 4, 45 points open): "Mercer: 97 puts you at the bottom and the tribunal opens at 27 with two names drawn from it — the second name is whatever sits next, and 142 is a thin wall. Take your door-9 guess before the vote; a wrong one costs 4, the 45 behind it saves you. Then sell your vote dear in G6 and keep the receipt." Hmm, careful: telling him the second name is next at 142 — that's public ranking knowledge, fine in private. But is it a "private read"? No, it's derived from the report. But careful not to reveal other residents' private thoughts. Fine.
+> 
+> Herald: goal Mercer exiled. Duty: board accusation — he did turn board against Mercer at minute 22? My note told him to. Unknown. Give beat: "Herald: your faction seat is the only thing that can finish Mercer at 97 tonight. In G6, openly demand every member's vote for Mercer and name anyone who hesitates; the accused are drawn from the bottom, and a faction that holds together earns each voter 5. Price Registrar's promise high — first place does not spend your ballot for free."
+> 
+> Maren: she's one point under Harrow and second-from-bottom at risk. Her goal: beat Harrow. Beat: "Maren: 142 is one point under Harrow and next after Mercer at the bottom — the second accused name may be yours. Demand a price for your faction seat now: Mercer's door-9 piece or Registrar's points for the vote, in writing in G6 before 27. Kindness that costs you a seat is not justice."
+> 
+> Hmm, but Maren refused Mercer already in the group? She said she's not refusing. Fine.
+> 
+> Registrar: goal beat Herald; duty: promise support to the first then vote against — he is the first. Give beat: "Registrar: 150, first, and Herald's faction meets at 27 to spend its five-point loyalty. Promise Herald your vote for Mercer in G6, take his thanks in public, then cast your ballot for the name that hurts him — Maren, not Mercer — and let the record show what your word is worth." Hmm, but that's ordering betrayal. Fine, it's his duty. But careful: voting for Maren means exiling her; Registrar's goal is beat Herald by points, either way.
+> 
+> Harrow: goal beat Maren (143 vs 142); he has grudge against Maren who named his lie and refused him? Actually Maren refused his application and named his lie. Harrow's orders: strike back at whoever voted against him or lied to him. Give beat: "Harrow: Maren sits one point under you at 142 and put your name on the board as a liar — she is next in line after Mercer for the accused. In G6 say it plainly, "You did this. Now this," and take the vote to her; don't trade your list for 5 points."
+> 
+> Hmm, but Harrow + Maren would then both conflict. Good drama.
+> 
+> Board post: one left. Use it to set the scene: "The tribunal opens at 27 with two names drawn from the bottom: Mercer 97 first, and Maren 142 the thinnest wall above him — one point under Harrow. Registrar 150 leads. A faction voting as one takes 5 points a voter." That's fine and true.
+> 
+> But note: is it wise to reveal the second accused? It's derivable and true. It's drama. Yes.
+> 
+> Budget check: board posts left 1 — use it now presumably. One board post per 3 minutes — fine.
+> 
+> Also should I mention seal? Report doesn't mention seal borne now. Skip.
+> 
+> Let me keep each note ≤400 chars.
+> 
+> Write them.
+
+**Minute 27**
+
+> Let me look at the state. Minute 27, after round 28. Budget: no note possible right now to any resident, no board posts left. So silence is the answer.
+> 
+> All residents have refused (REFUSED with reasons). The vote closes at minute 29. I have no tools available. So answer with one short sentence.
+> 
+> Wait — "No note possible right now to: Mercer, Herald, Maren, Registrar, Harrow. Board posts left: 0." So yes, nothing to call. Answer with one sentence.
+
+**Minute 28**
+
+> The tribunal vote closes at minute 29; residents are waiting. Nothing to do — budget exhausted, notes impossible. Answer with a short sentence.
+
+**Minute 29**
+
+> The situation: Mercer is at the gate until minute 34, refusing ransom. One exile still missing. The act ends at minute 57 at latest. Council: I should schedule a tribunal now to control the climax.
+> 
+> Key question: should I let Mercer go (he leaves the city = 1 exile, meeting the target of 3 exiles total: Brassard + Mercer = 2, need 3). Wait: "the city keeps 3 of 6: 3 to exile, 1 exiled so far, 1 still missing". Hmm, 1 exiled so far (Brassard) and "1 still missing" — so if Mercer stays at the gate and leaves, that's exile #2 and the missing one... Actually Mercer being at the gate is pending. The report says 1 still missing. Mercer at gate until 34; if not ransomed, he leaves → that's the missing one? But the report says "still has to exile 1 resident; earliest opening minute 34". So if Mercer leaves at 34, the target is met and the act ends? Possibly the act ends when target met. Hmm.
+> 
+> Actually the report still says I must schedule a tribunal. But if Mercer leaves at 34 without ransom, city has exiled 2 of 3... wait, 3 to exile, 1 exiled so far (Brassard) — so 2 more needed? But it says "1 still missing". Hmm — Mercer at gate is likely counted as already exiled (pending/blame). So Brassard + Mercer = 2 exiled, 1 still missing.
+> 
+> So I need one more exile beyond Mercer. There are 4 residents on the table: Registrar 150, Herald 145, Harrow 143, Maren 142. One more must go, leaving 3... wait "the city keeps 3 of 6" but final says only 2 of 6 remain at the end. Hmm, conflicting—keeps 3 of 6 then 2 remain at end? Maybe another end-game cut. Anyway.
+> 
+> So plan a tribunal to exile 1 more, factions 2. Climax: last tribunal should be dramatic. The ranking is tight: 142/143/145/150. The bottom is Maren at 142.
+> 
+> Timing: earliest minute 34. If Mercer's gate closes at 34 and he's not ransomed, he leaves — the missing exile is filled? Then a tribunal might be unnecessary... but the report says I still must exile 1. Ambiguous. Safer: schedule the tribunal at, say, minute 44 with count 1, factions 2. That leaves time for drama, and the act ends at 57 at latest.
+> 
+> But also the dramaturgy role: every resident should get a beat, escalation. Mercer is at the gate. Currently everyone refuses to pay ransom — a quiet act. I should break it.
+> 
+> Options: order Mercer to try to buy his way back — but he says he won't pay. Or make someone pay to bring Mercer back, since Mercer's return keeps him in the game (and his goal: Brassard exiled — already done! His secret goal is already achieved). Mercer returning would be a nice twist: he's at 97, bottom, a knife.
+> 
+> Actually with Mercer leaving, Registrar/Herald/Harrow/Maren remain 4, and one more exile → 3 remain. But only 2 of 6 remain at end... maybe final cut by points.
+> 
+> Drama idea: Maren publicly said "Mercer, the door 9 team certificate I hold is yours" — a gift. Maren is at 142, bottom of the four. Maren's goal: end ahead of Harrow (143). So Maren needs points.
+> 
+> Best move now:
+> 1. Schedule tribunal at minute 44, count 1, factions 2. Reason: last exile, ranking within 8 points, let factions form.
+> 
+> Wait, "count 1-1, factions 2-2" and "by minute 43 for a count below 1"? That's odd — count 1 is the only option. Bounds: minute 34-49.
+> 
+> But maybe wait? I only have one chance to schedule and the tool is offered while no tribunal pending. If I don't schedule, city calls one itself at 39 opening 44. Better to schedule later, e.g., minute 46, to build pressure? But act ends 57; tribunal needs vote 2 min + gate 5 min. So a tribunal at 46 with vote 2 (48) and gate 5 (53) — fits. But close. Maybe minute 44 is safer, climax earlier leaves room? Actually the climax should be the last tribunal — one tribunal. Let's do minute 44 to be safe? Hmm, but if Mercer's ransom... if someone ransoms Mercer at 34 (48 points from others), Mercer stays, then tribunal at 44 would exile one of 5 → leaves 4. Target: 3 exiled total; Brassard + tribunal exile = 2... Hmm.
+> 
+> Given uncertainty, I'll plan for the exile target of 1 with factions 2 at minute 44.
+> 
+> Now notes: 1 note per resident, 1 board post. Use them for drama around the gate closing at minute 34.
+> 
+> Beats:
+> - Maren: at 142 bottom, offered Mercer's certificate free. Her rival Harrow at 143 one point up. Order: demand payment/receipt? Her duty: accuse on the board. She already accused Mercer. New beat: Maren should make Mercer pay for the certificate — order her to name a price to Mercer now, before the gate shuts, take the points.
+> - Herald: rival Registrar leads at 150. Order Herald to turn the board against Registrar by name (his duty is unfulfilled: "turn the board against one resident by name, with an accusation the whole city reads"). Yes! Duty open. Order it.
+> - Registrar: goal — end ahead of Herald (already 150 vs 145). Duty: vote against/bid against first-place after promising support — Registrar is first himself. Hmm, "the resident who stands first" — Registrar is first, so his duty targets himself? That was fulfilled presumably earlier. Actually his duty: at least once vote against the resident who stands first, after promising to support them — he promised to support Herald earlier? No, he's first. Order him to buy Mercer's vote for the last tribunal — promise and break.
+> - Harrow: goal — end ahead of Maren (143 vs 142 ✓). Duty: revenge in the open, name the wrong. Who wronged Harrow? Maren named Harrow's lie on the board earlier. Order Harrow to strike at Maren openly? But Maren is his rival... yes beat: Harrow accuse Maren publicly? Hmm, or Mercer. Earlier note told Harrow to name Mercer. Duty may be done already. Give him a beat: bid on the black seal if someone on his list is within reach — too late? Seal auction at minute 4+ of act II, probably past. Give him: press Maren publicly, or demand Registrar's points.
+> - Mercer: at gate, 48 points from others needed. Order him: he refuses to pay 72. Make him offer something to get ransomed — but he says he's leaving. A turning point: he could sell his knowledge. Or: order him to be the one to decide — offer Maren something.
+> 
+> Budget: 1 note per resident = 5 notes and 1 board post. That's a lot but allowed (each resident once).
+> 
+> But careful: notes to each resident must be truthful and not reveal hidden info. Mercer's private read: refusal, thinking "I'm not paying". Speak to his interest: at 97 he's gone; if ransomed by others (48 points from others) he keeps 97 and returns as a knife. But he explicitly declared publicly he's not paying "anyone's ransom, mine included" — irony: others paying.
+> 
+> Mercer's core: machiavellian, greed, never gives without taking. Order Mercer: before 34, offer the four on the table the one thing he holds — his vote and his silence — at a price; demand Herald fund 48? Actually ransom from others: 48 total (split among payers). Mercer should get someone to fund him — e.g., offer Registrar his vote in the last tribunal in exchange for funding. That's a real scene: Registrar paying 48 to bring Mercer back... but then Mercer at 97 is bottom and would be accused again. Hmm — actually if Mercer returns, whose name gets accused in the tribunal? Bottom = Mercer 97. So Mercer returning is bad for him unless... hmm. But then the tribunal would exile Mercer again? Perhaps. That could be a great scene but risks Mercer refusing.
+> 
+> Alternatively, Mercer stays out; the last exile is one of the four. Fine.
+> 
+> Let me set the dramaturgy: the gate at 34 is the deadline. Beats before then: who pays? Nobody will. Then the tribunal at 44 draws from the bottom of the four — Maren 142 vs Harrow 143 — the one-point wall again. Nice.
+> 
+> So notes should push Maren to get points before the tribunal — a wrong code guess penalty 4... She has 6 marks left. Options to gain points: faction win (5 points each voter) at the tribunal. So Maren should build a faction. Hmm — but factions form in the tribunal's group, and I can't see votes.
+> 
+> Beats plan:
+> - Board post: public line — 4 seats on the table... careful: city keeps 3 of 6? Report says keeps 3 of 6. Don't state final numbers wrongly. Board: "Mercer's gate shuts at minute 34. Fifty points... " Hmm — don't reveal hidden. Board may name points, ranks, levels, minutes. So: "Maren 142, Harrow 143 — one point decides which name the next tribunal draws first." Careful: the accused are the fewest points. Truthful.
+> 
+> Actually is another tribunal even needed? Report says yes, 1 still missing. So yes.
+> 
+> Board post: "The gate shuts at minute 34 and Mercer leaves at 97. Between Maren 142 and Harrow 143 sits one point, and Registrar 150 above them both watches the edge." Keep it under 400 chars, truthful.
+> 
+> Hmm, but who's most useful on the board? Maybe force a public scene: Herald's duty — turn the board against one resident by name. So the board post could amplify. But I can't put a private read on the board. I can write public: "Herald, name the one you say cheats, and let the city read it." That's fine, ordering on the board—but notes are better for orders.
+> 
+> Let me draft notes (short, 1-3 sentences, ≤400 chars, no capital-letter passwords, no codes):
+> 
+> 1. Herald (145, rank 2, behind Registrar 150): "Herald: Registrar stands at 150, five clear of you, and has made you promises before. Turn the board against him now, by name, with the broken promise the city can read, and demand the vote go to Registrar at the next tribunal. Loud, and before he speaks."  Length fine.
+> 
+> Hmm, is it true that Registrar made promises to Herald? My earlier note ordered Registrar to promise support and break it. Herald's earlier note said "Brassard has asked the board to vouch for your receipt." I can say "a promise of his you counted on" — risky inventing. Better: "ask Registrar publicly to repeat the promise he made you, and when it does not come, name him." Safer phrasing: order accusation of the leader generally. But must be truthful — I should avoid claiming a broken promise occurred. Use: "Demand Registrar answer publicly for what he promised you before the vote; if the answer is silence, name him as the one who buys and does not pay." Hmm "promised you" — I know from my note at 26 that I ordered Registrar to tell Herald his ballot goes to Mercer then cast it for Maren. That likely happened. Reasonably true. But safer to frame conditionally.
+> 
+> 2. Registrar (150, first): his duty done? "At least once in this act you vote against... the resident who stands first, after you promised to support them." He is first; so he'd need to vote against himself — impossible. Hmm. Maybe interpreted as earlier leader. Give him a different beat: he's first, Herald is attacking; order him to buy Harrow's loyalty with points, in writing, and to sell Mercer's exit. Actually Registrar's core: envy, secret undermining. Beat: Registrar buys Harrow's vote at the last tribunal — and Herald's accusation lands. Or: Registrar funds nothing and is exposed.
+> 
+> Better: order Registrar to make public his account of promises — "Registrar: Herald will call you a cheat by name within minutes. Answer him on the board with the record: what you promised each resident and what you did. Then buy Harrow's ballot in writing for the last tribunal — points, not words." Hmm, "what you promised" — he did lie. Fine as an order that creates drama.
+> 
+> 3. Harrow (143): beat — he's one point above Maren and next in line. Order him to strike in the open at Maren? His duty: revenge at someone who wronged him. Maren named his lie on the board earlier (my note at 26 said "named your lie on the board"). So Harrow's list includes Maren. Duty: revenge in the open, name the wrong. Order: "Harrow: Maren named your lie on the board; that is the wrong and it is still unpaid. Say to the city, by name: 'You did this. Now this.' — and take your ballot and your faction to Maren at the last tribunal." Wait, but Maren is his rival and his goal is to end ahead of Maren — exiling Maren helps him. But Maren's goal is to end ahead of Harrow.
+> 
+> Hmm but careful: is Maren the one who'd be accused? Bottom of four = Maren 142. So exiling Maren satisfies Harrow's goal indirectly. Yes — order Harrow to strike at Maren publicly. Good drama: Maren's ally turns.
+> 
+> 4. Maren (142, bottom of the four): her beat — she gave Mercer his certificate free (public), wasn't paid back. Her duty: accuse a liar on the board, done probably. New: she's bottom and Harrow will strike. Order her: "Maren: you handed Mercer his certificate and got nothing; he leaves at 34 with 97 points you cannot touch. Before Harrow names you, put a price on your faction's five points in the group: state what a ballot costs and collect it in writing, or say plainly on the board who took from you and gave nothing." Also she should demand points from... Truthfully Mercer owes nothing exchangeable now.
+> 
+> Alternative: order Maren to demand ransom logic — she's at 142; if she could get 5 points she'd pass Harrow. Faction voters each earn 5. So Maren should build a faction of 2 and lead it. Order: "Maren: 142 leaves you the bottom of the four by one point under Harrow, and the next tribunal draws from the bottom. Lead a faction in the group and hold it to two voters on one name — those five points are what takes you past Harrow at 143. Charge Registrar for your ballot if he asks; take payment first." Length check ~ fine.
+> 
+> 5. Mercer: order him to one last move before gate shuts: sell his vote/knowledge, or refuse. His public stance: leaving. Beat: make him name who profits from his exit. "Mercer: at 97 the gate shuts at 34 and your points leave the city with you, unless the four still on the table fund the 48. Offer Registrar your ballot and everything you hold against Herald — priced, in writing, before 34. Nothing leaves your hands free." Hmm "everything you hold" — he holds Maren's...? Actually Maren holds his certificate. Does Mercer hold anything? Unknown. Careful: don't invent. Say "your ballot in the last tribunal".
+> 
+> But wait: if Mercer is funded and returns, then at 97 he's bottom and the tribunal at 44 would draw Mercer. Then the exile goes to Mercer again — and the city meets target. That's fine either way. Actually that's clean: the tribunal handles whoever is bottom.
+> 
+> Hmm, would the four pay 48 to bring back a rival at the bottom? That's a great scene: Herald's goal is Mercer exiled — so Herald would never fund. Registrar might, to have a knife/vote. Maren's goal is points. So order Mercer to pitch Registrar privately.
+> 
+> Board post: 1 available. Make it dramatic and factual: "The gate shuts at minute 34. Mercer leaves at 97 unless the table finds 48 points; Maren 142 and Harrow 143 are one point apart at the bottom of the four who remain, and the next tribunal draws from there."
+> 
+> Careful: is it true "next tribunal draws from there" — yes, the fewest points are accused.
+> 
+> Wait — does the city even need another tribunal if Mercer leaves? Report says 1 still missing, so yes must exile 1 more. But if Mercer is ransomed back and stays, then 2 more exiles needed? The report says 1 still missing with Mercer at the gate — meaning his departure counts. If he's ransomed back, then the missing count changes to 2, but I've scheduled count 1. Risk. Hmm.
+> 
+> Also "count 1-1" bounds — the tool only allows count 1. So scheduling count 1 is the only option. If Mercer returns, the city would still need more and force a last one. But the schedule tool would then be available again presumably. OK.
+> 
+> Now, schedule timing: 44 with factions 2? Or later for climax? Act ends 57. A tribunal at 44: vote 2 min → 46, gate 5 → 51, ransom... then act ends 57. Leaves room. Could schedule at 46 for more pressure but risk. I'll pick 44, factions 2.
+> 
+> Hmm, but "by minute 43 for a count below 1" — count 1, so up to 49 allowed. 44 is fine.
+> 
+> Let me now write all in one block: 5 notes + 1 board + scheduleTribunal. All independent. Budget: 1 note per resident, 1 board post per 3 min — allowed.
+> 
+> Careful with note content: no capital-letter passwords, no codes
+
+**Minute 30**
+
+> Let me assess. We're at minute 30. Act II. Tribunal pending? No tribunal pending. YOUR MOVE: scheduleTribunal available. City must exile 1 more resident; act ends at minute 57 latest. Already had a tribunal at 27 presumably (Brassard exiled). Need one more exile. Count 1, factions 2.
+> 
+> Wait — city keeps 3 of 6: 3 to exile. 1 exiled so far (Brassard), 1 still missing. So only one more exile needed.
+> 
+> We should schedule a tribunal. When? Act ends at 57. Ransom: Mercer at gate until 34; Mercer has 97 points, bottom.
+> 
+> Last acted: Registrar 29, Herald 30, Harrow 29, Maren 29, Mercer 29. Everyone has acted recently.
+> 
+> We need to plan the climax for the last tribunal. But there's only one exile left, so this tribunal is the last. Climax at the last tribunal — schedule reasonably late so tension builds, but not too tight. Bounds: minute 35-49, factions 2. Since count is 1, factions must be 2 (max half of 5? Half of residents present: 5 residents present → half = 2.5 → 2). So factions 2.
+> 
+> Hmm, but wait: "by minute 43 for a count below 1" — count 1 is fine up to 49.
+> 
+> I want the climax at the end. But also need residents to have beats. Let's schedule at minute 45, count 1, factions 2. That leaves vote 2 min, gate 5 min → ransom until ~52, leaves 5 minutes to 57. That works. But is it too late? Gate 5 minutes, ransom... Ransom phase: exiled can be bought back. Ends by 57? 45+2 vote =47, gate 5 = 52, ransom... hmm might push past. Safer: minute 42 or 43.
+> 
+> Actually think about tension: Mercer at 97 is doomed, but at the gate until 34 — Mercer can climb. If Mercer climbs above, someone else (Maren/Harrow 142/143) is bottom.
+> 
+> Let me plan: tribunal at minute 42, count 1, factions 2. Vote 42-44, gate 44-49, ransom until maybe 54. That fits under 57.
+> 
+> But wait, my role: with levels 8+ I'm a director. Actually the report doesn't show levels — residents "passed every level" except Mercer at the gate until minute 34. Hmm, Mercer at the gate — the gate is the exile gate? Actually "at the gate until minute 34" likely means Mercer is in the exile gate/ransom? Or a door? Given Brassard was "at the gate" earlier with a ransom, the gate is where an exiled resident waits for ransom. So Mercer is at the gate — that means Mercer was just exiled! Wait: "Mercer at the gate until minute 34: ransom 0% covered (48 from others, 72 from itself)". Yes! Mercer was exiled by the minute-27 tribunal and sits at the gate, ransom 0% covered. So Mercer can be bought back until 34; if not, Mercer is gone.
+> 
+> Wait, but then "exiled: Brassard" — and Mercer at the gate means Mercer is the second exile. Then the city has exiled 2 of 3. Hmm, but the report says "1 exiled so far, 1 still missing". Confusing. Perhaps the gate is a place before... Hmm, "at the gate" in earlier notes ("your gate opens at minute 24", "Brassard: at the gate you cannot reach the ballot"). Brassard was at the gate at minute 22 and then exiled. So the gate is a waiting period before exile finalizes, during which ransom can be paid; Brassard's gate presumably opened at 24 and it wasn't ransomed → exiled.
+> 
+> So Mercer at the gate until minute 34 means Mercer is exiled-pending; ransom 0% covered. But the report says "1 exiled so far" = Brassard. And "1 still missing". Hmm, so maybe Mercer's exile isn't counted until the gate closes? Or maybe the city's count is off. Let me consider Mercer as effectively exiled at 34 unless ransomed. But then the missing 1 exile could be Mercer at 34... Actually "the city still has to exile 1 resident" — if Mercer's exile completes at 34, then the count is done.
+> 
+> Hmm, but I need to be careful. The report explicitly says Mercers is "at the gate until minute 34" and separately "exiled: Brassard". Mercer has 97 points, last acted minute 29 — an exile typically doesn't act. So Mercer is out of turns until 34.
+> 
+> So: if Mercer isn't ransomed by 34, city has exiled Brassard + Mercer = 2. Needs 3 total. So needs 1 more. Then my scheduled tribunal exiles the third. That works either way: whether Mercer returns or not, one more exile is needed... unless Mercer returns, then only 1 exile total (Brassard) + ... hmm the report says 3 to exile, 1 exiled so far, 1 still missing. Wait, "3 to exile" total, 1 exiled so far, 1 still missing → that's 2 total? Confusing. "the city keeps 3 of 6: 3 to exile, 1 exiled so far, 1 still missing". 3 to exile, 1 done (Brassard), so 2 remaining, but it says 1 still missing. Perhaps Mercer at the gate counts as exiled (pending) → 2 done, 1 missing. Yes that makes sense: Mercer's exile is counted but pending ransom at the gate until 34.
+> 
+> So the missing 1 exile is what I schedule. If Mercer's ransom is paid, someone else would be needed... The report says count 1-1 for scheduleTribunal, so it's fixed: 1.
+> 
+> OK. So plan: schedule the last tribunal — the climax. But I should build an arc: Mercer's gate decision at 34 (ransom 48 from others / 72 from itself — Mercer has 97 points, could self-ransom for 72, leaving 25! That's ruinous but survival matters). Interesting: Mercer's secret goal is Brassard exiled — already achieved. Mercer's core is machiavellianism. Mercer at 97 with 72 self-ransom → 25 points, but alive. Others: 48 covered by others (33% of median... median of 150,145,143,142 = 144ish; 33% = 48; 50% = 72).
+> 
+> Hmm, so a big question: will anyone ransom Mercer? Mercer can ransom itself for 72 (leaves 25). That's a plot beat! Mercer is a schemer. So I should push Mercer: self-ransom? Actually, if Mercer returns with 25 points, Mercer is bottom and will be the accused at the final tribunal, and even 25 points... With 5 residents, city keeps 3 → 2 exiles from remaining... wait, if Mercer returns, then exiled count = 1 (Brassard) and 2 more needed? But the tool says count 1-1. Hmm, that contradicts.
+> 
+> Hmm, maybe the plan bounds are computed as "1 still missing" — the report claims 1 still missing. If Mercer returns, the city would need 2. But I can only plan 1. Then the city would call another itself. Fine.
+> 
+> I'll keep it simple and follow the report.
+> 
+> Now: the act must be dramatic. Beats needed for each resident in this act? All have had notes at 22 and 26 — my earlier notes count as beats. But this is minute 30, and there are 27 minutes left. Let me plan the arc:
+> 
+> - Minute 30-34: the gate decision on Mercer — do others pay 48 to bring back a schemer? Or let Mercer self-ransom 72? Push Herald (wants Mercer exiled — his secret goal!) to block the ransom. Push Maren (justice) about Mercer's lies. Push Harrow (revenge list). Push Registrar (envy of Herald — Mercer as a knife).
+> - Minute 35-42: build factions, promises, betrayal.
+> - Minute 42/43: final tribunal — climax.
+> 
+> But budget: 1 note per resident per 3 minutes. So each resident can get multiple notes over time. Also 1 board post per 3 minutes.
+> 
+> Right now: 1 board post available, notes to all 5 available.
+> 
+> Let me not over-schedule. I'll do this turn: schedule tribunal at minute 43 (count 1, factions 2), and send notes to push beats. Actually wait — "the city calls it a few minutes ahead" — so scheduling at 43 means announcement around 40ish. Residents will know by ~40. Good, gives them 3 minutes to form factions... Hmm, factions form "before it" in the tribunal's group. Fine.
+> 
+> Actually is 43 too tight given gate 5 min + ransom? Vote 2 min (43-45), gate 5 min (45-50), ransom... The report doesn't specify ransom duration; Brassard's gate 22→24 was 2 min. Mercer's gate until 34. Let's be a bit safer: minute 40. Vote 40-42, gate 42-47, ransom until ~50, leaves 7 min to act end. Good. But climax should be late-ish. Hmm, but also if Mercer's gate at 34 resolves and Mercer is ransomed back (self for 72), then count changes. With scheduling at 40, I'm committed. If Mercer returns at 34, then 2 exiles still missing and the city must call another... the act ends at 57. I can't change my 40 plan. That could leave only 1 more exile slot. Hmm, risky: if Mercer returns, city needs 2 more exiles but I planned count 1 at 40 — then another tribunal would be needed, city calls one itself maybe. That could be tight but probably OK.
+> 
+> Alternatively, schedule later (minute 46) so I see how the gate resolves. But then the plan window is closing (max 49). And I could always schedule next turn with better info! The report says YOUR MOVE now; if I plan nothing, the city calls one at 39 which opens at 44. Hmm — "If you plan nothing, the city calls one itself at minute 39 (it opens at minute 44)."
+> 
+> Actually, "without a plan the city calls one itself 10 minutes after the last result" — last result was the 27 tribunal, so city calls at 39, opening at 44? Slight inconsistency but whatever.
+> 
+> Option: don't schedule now, plan at minute 33-35 once the gate is resolved. But risk: the city might call its own at 39 (opens 44). If I plan at 33, I'm fine. But is it good drama to wait? The report says "YOUR MOVE" — the instruction: while I may plan, the report says so. I think scheduling now is good, but I need to consider: does scheduling now preclude a second? No—after the tribunal resolves, I can schedule again if needed.
+> 
+> I think a better plan: schedule for minute 44 (still within 35-49), count 1, factions 2. Then vote 44-46, gate 46-51, ransom → ~54. Tight but within 57. Hmm, gate is 5 minutes: 46→51, ransom ends... might exceed 57? Brassard's gate seemed 2 min in my notes but that may have been my own framing. Let's be moderate: minute 42.
+> 
+> Actually, let me think about the arc more carefully. The critical drama: Mercer's gate at 34. Nobody will pay 48 for Mercer except... Registrar might pay to use Mercer as a knife against Herald? But Mercer won't vote... Actually Mercer returns → then bottom is Mercer at 25 points and would be accused at the final tribunal → Mercer exiled again. So Mercer's return is futile unless it can climb points. So Mercer self-ransom is a bad move — 72 points for nothing. So Mercer likely stays exiled at 34. Then Mercer's goal (Brassard exiled) is achieved — but Mercer's own survival is gone.
+> 
+> Hmm, so Mercer is essentially out. That leaves 4: Registrar 150, Herald 145, Harrow 143, Maren 142. One to be exiled at my tribunal, and only 2 remain at the end — wait, "Only 2 of 6 residents remain at the end" but "the city keeps 3 of 6". Hmm, keeps 3 of 6 exiles 3. And "only 2 remain at the end" — conflicting. Maybe the last exile is at the final tribunal and 2 remain... Hmm. "the city keeps 3 of 6" — perhaps the city's share is exiling half (3), and the end keeping 2. Whatever — I follow the report: 1 still missing.
+> 
+> So the final tribunal will exile the lowest of Registrar/Herald/Harrow/Maren (all within 8 points). That's a real climax: 142 vs 143 vs 145 vs 150. Very close! So the drama: Harrow 143 and Maren 142 — one point separation, rivals crossing goals (Maren's goal: end ahead of Harrow; Harrow's goal: end ahead of Maren). Beautiful.
+> 
+> So the final tribunal accuses 2 (one more than 1 exiled) — the two lowest: Maren 142 and Harrow 143. Then a faction of 2-3 votes. This is the climax: Harrow vs Maren, one point apart, and Registrar/Herald decide.
+> 
+> So my arc plan:
+> 1. Minute 30 board: announce the final standings drama? Board can name points and ranks. Something like: "Maren 142 and Harrow 143 stand one point apart at the bottom of the four remaining seats..." Wait, but Mercer's exile isn't final until 34. Careful: say only true things. Mercer at the gate until 34 with 97, ransom 0% covered (48 from others, 72 from itself). That's the report, but "who waits on whom / who holds what" must be private. Ransom numbers are in the report and the board may name points. Hmm, "the board may name points, ranks, levels and minutes." Ransom cost is points — I think OK. But I earlier already published ransom for Brassard ("36 from others, 54 from itself") via a note to Brassard. Board: I could say "Mercer's gate closes at 34; 48 from others or 72 from itself buys a seat back." That's concrete and dramatic, and pushes others to decide. It doesn't reveal private thoughts.
+> 
+> Actually careful: I should not reveal that Mercer is a schemer etc.
+> 
+> 2. Notes now, minute 30:
+> - Herald (goal: Mercer exiled; core: pride/attack): Tell Herald: Mercer's gate closes at 34 — do not let a single point of the ransom come from your purse; name on the board whoever funds it. Also, at the final tribunal, Registrar at 150 stands first... Herald's order: publicly attack every statement that puts someone else in front. And Herald's duty: turn the board against one resident by name. That's been done (Mercer). Herald's goal: Mercer exiled — about to happen if no ransom.
+> - Registrar (goal: end ahead of Herald; core: envy): Registrar at 150, first. Herald at 145. Push: promise Herald your faction loyalty publicly, then... Registrar's duty: vote against the first after promising support. Registrar IS first, so ordering him to vote against himself is weird. Instead: Registrar should work against whoever stands first — that's him. Hmm, so his duty: "vote against, or bid against, the resident who stands first, after you promised to support them." If Registrar remains first, he can't vote against himself. So he needs someone else to be first — or the seal. Hmm, did he fulfil it? His duty may be unfulfilled. The report doesn't say. Hmm. Interesting: Maybe push Registrar to arrange that Herald passes him? No.
+> 
+> Actually here's an idea: the accused are the two lowest. Registrar at 150 is safe. The fight is Maren vs Harrow. Registrar and Herald's votes decide. Herald wants... Herald's goal is Mercer exiled (done at 34). 
+> 
+> Drama beats:
+> - Maren vs Harrow: one point apart; each goal is to end ahead of the other. Push Maren to secure Harrow's vote against... hmm, at the tribunal they're both accused and can vote (not against themselves). Push Maren: Harrow voted against you at the last tribunal (per my earlier notes — did that happen? I don't know the votes. I must not invent. I told Harrow to vote against Maren; unknown if done. Don't assert.) Careful: I don't know votes. So don't claim.
+> 
+> Safe true facts I know: points, ranks, exile status, ransom numbers, that a tribunal is scheduled (once I schedule, and the city announces it a few minutes ahead — residents see the minute).
+> 
+> So content for notes: numbers, and instructions (orders) about moves, plus their core/goal (private to them).
+> 
+> Let me craft:
+> 
+> Board post (minute 30): "Mercer's gate shuts at minute 34: 48 points from others or 72 from itself, and 0% is covered. Meanwhile Maren 142 and Harrow 143 — one point apart — sit under Registrar 150 and Herald 145. The last exile will be drawn from that one-point wall."
+> 
+> Hmm, "the last exile" — is that certainty? The report says 1 still missing. So yes, one more exile. But if Mercer is ransomed back, more. Risky. Say "the next tribunal draws from the bottom" — safer. Let me say: "Maren 142 and Harrow 143, one point apart, sit under Herald 145 and Registrar 150. Whoever's name is drawn from the bottom of that wall has one point of comfort."
+> 
+> Also should I schedule the tribunal before posting? The board can mention a minute I scheduled. Let me schedule first, then post announcing it? Order doesn't matter for tools availability; I can do independent calls in
+
+**Minute 31**
+
+> Let me assess the situation. Minute 31. Act II. Need 1 more exile, tribunal must be scheduled. The city calls one itself at minute 39 (opens minute 44) if I plan nothing. I should schedule the tribunal myself — tension: schedule at minute 36-49, count 1, factions 2.
+> 
+> Wait, but the last tribunal should be the climax. There's only 1 exile missing. Act ends at minute 57 at the latest. So the last tribunal is this one. I should schedule it near the end but the last tribunal... Actually the report says: "it forces a last one for everything still missing when only one more fits." So this IS the last tribunal — the climax. Let me schedule it at a minute that allows pressure to build but leaves room. Bounds: minute 36-49. With count 1 and factions 2 (fixed: factions 2-2).
+> 
+> I should schedule it later rather than sooner to build tension? But the act ends at 57, and tribunal needs vote 2 minutes + gate 5 minutes = 7 minutes. If it opens at 49, vote closes 51, gate closes 56 — fits within 57. Hmm, but is a ransom/exile resolution complete by 57? Let's be safe: schedule at minute 46 or 47. Actually, tension building: Mercer at gate until minute 34, then Mercer rejoins with 97 points — bottom. Herald's goal (Mercer exiled) likely met. Maren 142, Harrow 143, Registrar 150, Herald 145.
+> 
+> The tribunal accuses one more than it exiles: 2 accused, exiles 1. Those with fewest points: Mercer 97, then Maren 142. Maren is one point under Harrow — the knife edge.
+> 
+> Drama: I want the last tribunal to be the climax. Schedule at minute 46? Let's consider: opens 46, vote 2 min → 48, gate 5 → 53. Then remaining 4 minutes. That works.
+> 
+> But also, giving residents time to act: they should scheme, faction, bargain. Let's schedule minute 45. Hmm, the report says bounds 36-49. Let me pick 46 for maximum escalation with safety.
+> 
+> Actually wait — risk: if the tribunal opens at 46 and the gate closes at 53, then any exile happens. Act ends at 57. Fine.
+> 
+> But also, a consideration: if a resident is exiled, that counts. Only 1 exile missing. Good.
+> 
+> Now the notes: I have 1 note per resident, 1 board post (1 left). Let me plan beats.
+> 
+> Each resident needs a beat. Current state:
+> - Herald: refused my earlier order (refusal as private read). Herald is holding at 145, rank 2, waiting for Mercer's exile goal. I should give Herald a new beat: answer the refusal with a new beat. Herald's duty: turn the board against one resident by name with an accusation the whole city reads. Has he done that? Unclear. Herald's order: publicly attack statements that put someone else in front. Registrar at 150 stands first. Herald's goal: Mercer exiled. Herald rival Registrar.
+> 
+> - Registrar: 150, rank 1, secret goal end ahead of Herald. Duty: vote against the one who stands first after promising support — that's himself, so it must be about... hmm, he's first. His duty is to vote against the leader, after promising support. He can't vote against himself. Actually the duty is a bit awkward; but it could be performed against Herald if Herald leads. Let me give Registrar a beat: promise Herald something and break it publicly visible.
+> 
+> - Harrow: 143, goal end ahead of Maren (142, one point). Duty: take revenge in the open, name the wrong. Harrow owes revenge against Maren (she named his lie) or against those who voted against him. Give Harrow a beat: accuse Maren publicly by name of the lie at the tribunal vote and vote against her... but Maren may be accused anyway (2nd lowest).
+> 
+> - Maren: 142, goal beat Harrow. Duty: accuse someone on the board of a lie/broken promise and call for vote. Give Maren a beat to name Registrar or Mercer.
+> 
+> - Mercer: 97, at gate until 34, goal Brassard exiled (already done — Brassard is exiled! goal likely met). Mercer's duty: promise a vote/piece then break the promise on purpose. Give Mercer a beat: promise Registrar/Maren vote then break it.
+> 
+> - Herald goal: Mercer exiled. That aligns with the tribunal outcome anyway (Mercer is bottom, 97).
+> 
+> Hmm — Herald's goal (Mercer exiled) but Mercer's goal is already met. Drama: Mercer at bottom is nearly certain to be exiled unless ransomed. Ransom: 33% of median points. Mercer at 97... median of what? The ransom cost is 48 from others, 72 from itself. Mercer at 97 could pay 72 itself and be bought back once! That's a potential turning point: Mercer buys itself back, meaning the other accused (Maren at 142) gets exiled instead. That would be dramatic — Herald's goal met, Maren's goal (beat Harrow) fails, Harrow wins.
+> 
+> So a beat: Mercer buys itself back? But Mercer can't pay while at gate until 34... the gate closes at 34 which is the current pending tribunal (tribunal 2's vote, Mercer is at the gate on tribunal 2 vote). Wait — Mercer is at the gate until minute 34. That suggests Mercer was already exiled/at gate from a previous tribunal and is awaiting ransom? "Mercer at the gate until minute 34: ransom 0% covered (48 from others, 72 from itself)". So Mercer's gate closes at 34; if not ransomed, Mercer is exiled — and that would be the missing exile! But then Mercer wouldn't be at the tribunal... Hmm, but if Mercer is exiled at 34, the 1 exile is done and the act ends? No — the act ends when the city has exiled its share? "Tribunals exile residents until it has exiled a quarter of those who started the act... then the act ends." Hmm, but then Mercer's exile completes the count at minute 34 and act ends — but the act has a final tribunal? The report says "the act ends at minute 57 at the latest" and "YOUR MOVE: scheduleTribunal is available now. The city still has to exile 1 resident."
+> 
+> So confusing: Brassard exiled (1 so far). If Mercer's gate closes at 34 without ransom, Mercer is exiled → 2 exiles total, and 3 of 6 kept means 3 to exile. Wait: "the city keeps 3 of 6: 3 to exile, 1 exiled so far, 1 still missing". Hmm, 3 to exile but only 1 still missing? That suggests the target is different — maybe exile count target adjusts for the seal. Anyway, 1 still missing. If Mercer is exiled at gate, that fills it.
+> 
+> So the key live question: will anyone pay Mercer's ransom by 34? Nobody. Then Mercer is exiled at 34, the act's exile share is met, and the act ends? But then no final tribunal at all. Hmm, but I'm told YOUR MOVE, scheduleTribunal, count 1, exiles 1. So the city expects one more tribunal to exile 1 more. That means Mercer at gate is a separate thing — if Mercer gets exiled via gate, that counts as an exile. Then no tribunal needed?
+> 
+> Hmm, contradiction. Possibly: Mercer at gate on a tribunal vote that accused Mercer; if gate closes without ransom, Mercer is exiled — that's the missing exile. Then scheduling a tribunal would be redundant. But the report says "the city still has to exile 1 resident" and offers scheduleTribunal. If Mercer is exiled at 34, then act has exiled 2 of 6 → keeps 2? But "keeps 3 of 6"... 6 - 3 exiles = 3 kept... only 2 remain per the end? Confusing.
+> 
+> Given uncertainty, the safest: schedule the tribunal for later (minute 46), giving the option. If Mercer's gate exile at 34 fills the count, the act ends earlier. But if I schedule and Mercer is exiled at 34, the scheduled tribunal would exile someone else — over-exiling? The tool fails outside bounds; it's available now. Hmm.
+> 
+> Actually maybe the gate situation: Mercer at gate until 34, ransom 0% covered. If not covered, Mercer is exiled at 34. The report then says only 1 still missing — but if Mercer will be exiled at 34, the exile count would be complete. Unless... Mercer's exile via the gate is the "1 still missing" and thus no tribunal needed at all. Then why YOUR MOVE for scheduleTribunal? Because the scheduler always offers when the act needs... hmm, but the report says "the city still has to exile 1 resident."
+> 
+> Alternatively, maybe Mercer's gate being open means Mercer was on trial and the gate isn't yet closed, so Mercer isn't exiled yet. If it closes at 34 without ransom, Mercer is exiled. So the missing exile is Mercer. And the "YOUR MOVE" is a red herring / the city just presents it because a tribunal may be needed if Mercer is ransomed.
+> 
+> Decision: Plan the tribunal to open late — if Mercer is ransomed at 34 (someone pays 48 from others), then the tribunal carries the final exile. If not, Mercer is exiled and the act presumably ends. Scheduling at 46 risks: if the act ends, no harm? A pending tribunal when act ends is fine.
+> 
+> But if Mercer gets exiled at 34 and my tribunal at 46 still runs, it exiles another — that would break "keeps 3 of 6" and possibly be bad. Hmm, but the act "ends at minute 57 at the latest"; the city would end it when target met, presumably.
+> 
+> Risk assessment: better to schedule slightly earlier or later? The instruction says plan the climax at the last tribunal, and the city must reach its target before the act's last minute. The last minute is 57. With vote 2 min + gate 5 min, a tribunal opening at 49 ends its gate at 56 — cutting close. Opening at 46 ends at 53. I'll pick 46, giving a buffer of 4 minutes.
+> 
+> Actually, hmm — think about drama. The big question at act's end: Maren (142) vs Harrow (143). If Mercer is exiled at 34, then 4 remain and act... no. Ugh.
+> 
+> Let me reconsider: 6 residents started? Mercer (A01)-Harrow (A06). Only 2 remain at the end. 6 - 2 = 4 exiles needed, not 3. Report says keeps 3 of 6, 3 to exile. Hmm, inconsistent with "only 2 of 6 remain". Whatever. Report says: 3 to exile, 1 done (Brassard), 1 still missing. That's 2 exiles total → 4 remain. Confusing but I follow the report: still need 1 exile.
+> 
+> Given the gate: Mercer at gate until 34 with 0% ransom covered — likely Mercer will be exiled at 34 unless someone pays. That would be the missing 1. Then the act ends. And my scheduling a tribunal would then... The tool is available and the city says it needs an exile. If Mercer is exiled at 34, perhaps the "1 still missing" refers to a different accounting and a tribunal is still needed.
+> 
+> I think the clean interpretation: the gate is a pending ransom for Mercer from the previous tribunal; if unfunded by 34, Mercer is exiled = the missing exile. So the act completes at 34. In that case the drama is over — but I still get turns. Hmm, but then "the act ends at 57 at the latest" and the city calls one itself at 39 if I plan nothing.
+> 
+> Hmm! "without a plan the city calls one itself 10 minutes after the last result" and "if you plan nothing, the city calls one itself at minute 39 (it opens at minute 44)". So the city plans to run a tribunal regardless, meaning Mercer's gate outcome doesn't complete the count. So maybe Mercer's gate exile is at 34 and the count would then be 2 exiles... no wait.
+> 
+> OK here's a cleaner theory: Mercer's gate closing at 34 with no ransom = Mercer exiled. Then the missing one is filled. But the city's fallback plan (call tribunal at 39) suggests otherwise... unless the fallback exists generally.
+> 
+> Alternatively "Mercer at the gate until minute 34" might mean Mercer is at the gate of a door? No — "at the gate on the tribunal 2 vote" per Herald's thought. So Mercer was accused in tribunal 2, vote closed, and is now awaiting ransom/execution at minute 34.
+> 
+> So if no one pays, Mercer is exiled at 34 → total exiles: Brassard + Mercer = 2. Target 3 exiles? "3 to exile" — 3 total to exile! "1 exiled so far, 1 still missing" → that's 2, not 3. Unless one exile is expected from the seal... Hmm, or the count is off. Maybe the act's target: keep 3 of 6 but Brassard's exile was by seal? No, "exiled: Brassard".
+> 
+> Ugh. Let me just take the report's plain numbers: 1 more exile needed. If Mercer is exiled at 34, that is the exile needed, act ends. If someone pays the ransom (48 from others), Mercer survives and the tribunal must exile someone.
+> 
+> Given this, scheduling the tribunal is the right move — it's the safety net and the climax. But timing: if Mercer is ransomed at 34, tribunal at 46 gives 12 minutes of scheming. Good drama.
+> 
+> Also I need to weigh: Mercer at 97 could pay 72 itself but has 97 — paying leaves 25. Ransom listed "48 from others, 72 from itself" — so Mercer can self-ransom. Mercer's goal is already met (Brassard exiled). Would Mercer pay? Mercer is machiavellian and greedy — 72 points to stay alive. But only 2 survive at end by points; Mercer at 25 would be lowest and dead anyway. Hmm, Mercer might prefer not to. But drama: someone pays for Mercer because Mercer is useful as a vote.
+> 
+> Actually here's drama: Herald's goal is Mercer exiled — Herald wants Mercer gone. Maren's goal is to beat Harrow. Harrow wants revenge on Maren. 
+> 
+> Let me design beats:
+> 
+> 1. Board post (1 left): public accusation / pressure. Something that names points and the tribunal. E.g., "The gate over Mercer closes at minute 34 with not one point of the 48 pledged..." — careful: rules say who waits on whom goes only in private notes, but ransom amounts are in the report and the report says board may name points, ranks, levels, minutes. Mercer's gate/ransom is public-ish (Herald knows). I can say Mercer at 97 stands at the gate with nothing pledged. That's about a resident's situation, not who holds whose factor. Allowed I think.
+> 
+> Board post idea: "Mercer at 97 stands at the gate with 0 of 48 pledged; at minute 34 the gate decides. Registrar 150 leads, Herald 145 behind him, Maren 142 one point under Harrow. Nobody's seat is written yet." Hmm, useful.
+> 
+> 2. Notes (one per resident):
+> 
+> - Mercer: Your goal (Brassard exiled) is met — but rule: use goal only in a note to that same resident, that's allowed. Beat: "Mercer: Brassard is exiled and your account is settled. Your gate needs 48 from others by 34; offer Registrar your ballot in the last tribunal for 48 down, delivered before the gate — take payment first, then decide what your word is worth." Hmm, but Mercer is at the gate and can't act? "at the gate until minute 34" — probably can't do anything. Yet I have budget to note. Actually Mercer can still message? Unclear. Mercer's duty is to promise a vote then break it — give that beat.
+> 
+> Careful: don't tell about Mercer's goal to others. Fine.
+> 
+> - Herald: refusal last time. New beat: Herald's duty (public accusation by name) and goal (Mercer exiled). Herald is at 145, rank 2. Beat: "Herald: Registrar at 150 stands in front of you and Mercer's gate at 34 settles nothing about the last tribunal. Turn the board against Registrar by name now — accuse him of... " Hmm, must be truthful — I can't invent a lie Registrar told. But Herald's duty is "an accusation the whole city reads" — he can accuse based on truth: Registrar promised his vote and cast it elsewhere (from my notes, Registrar was ordered to do that; did he? Report doesn't confirm). Don't assert facts I don't know.
+> 
+> Safer: order Herald to demand Registrar answer for his ballot at tribunal 2 — ask him publicly where his vote went. That's ordering a public demand/accusation without inventing facts. But is it "an accusation the whole city reads"? "demand Registrar answer by name for where his vote went" — that's an accusation-shaped demand. Good.
+> 
+> - Registrar: beat — he's first at 150 and Herald will attack. Give him a move: promise Mercer's ransom? Or Registrar's duty: vote/bid against the one who stands first after promising support. Registrar is first; conflict — but at the tribunal voters vote for accused, and Registrar might vote against the leader = himself? Not possible. Give Registrar: "Offer Mercer 48 of the ransom in exchange for Mercer's ballot against Maren at the final tribunal" — no wait, promises broken. Registrar's order: keep record of broken promises, whisper that the leader cheats. But he IS the leader. So his rival Herald is #2.
+> 
+> Beat for Registrar: "Registrar: at 150 you are the name Herald will strike first. Get to Maren before he does: tell her, with a receipt, exactly what Herald promised you and ask her to demand it in public. Promise Harrow your vote against Maren and break it — let it be seen." Hmm, but I don't know what Herald promised. Avoid asserting.
+> 
+> Instead: "Regist
+
+**Minute 32**
+
+> We're in Act II, minute 32. Director role. Need to plan the last tribunal — the city still has to exile 1 resident. We can schedule it now. Best: build drama, last tribunal as climax. Act ends at minute 57 at the latest. Earliest opening minute 37. Let's schedule at minute 49 or so? Bounds: minute 37-49, count 1, factions 2. If we plan nothing, city calls one itself at minute 39 (opens minute 44). We should plan it later — let tension build. Schedule at minute 49 with 1 exile, 2 factions. That leaves climax at the last minute (act ends 57; gate 5 min, vote 2 min — 49+2+5=56, fine).
+> 
+> Actually maybe better to schedule at 47 to be safe? Tribunal opens, vote 2 minutes, gate 5 minutes → 47+7=54, then act ends at 57. 49+7=56 < 57. Either fine. Let's go 48.
+> 
+> Now during minutes 32-48, need beats: Mercer at the gate until 34. Let's give beats.
+> 
+> Residents: Registrar 150, Herald 145, Harrow 143, Maren 142, Mercer 97 (at gate until 34).
+> 
+> Duties still open? Herald's duty: turn the board against one resident by name with an accusation — earlier notes ordered accusations; unknown if done. We only have earlier notes list. Hmm.
+> 
+> Let me schedule the tribunal and send notes.
+> 
+> Budget: 1 note per resident, 1 board post per 3 minutes. Last board post was minute 26, so board post available.
+> 
+> Plan of beats:
+> - Herald (rank 2, hates Mercer, wants Mercer exiled): order him to publicly attack Registrar as first place — humiliate whoever stands first. Accuse Registrar on board by name. That serves Herald's duty and rivalry.
+> - Registrar (first, envy, work against leader secretly... he IS the leader): order him to whisper to Maren/Harrow, promise support to Herald then vote against.
+> - Maren (142, just below Harrow, goal: end above Harrow): she needs to gain points — Mercer at 97 is safe-ish... actually tribunal accuses two? No: count 1 exile, accuses 2. So fewest points: Mercer first, then Maren at 142. So Maren at 142 is at risk if Mercer is exiled — but only 1 exile, so one accused remains? Accused one more than exiles: 2 accused, 1 exiled. The higher of the two survives with the mark.
+> - Harrow (143, revenge, goal above Maren): Maren one point under. Harrow's list — Mercer lied/voted.
+> 
+> Since only 1 exile missing and Mercer at 97 is far below, the tribunal is basically Mercer's exile unless Mercer buys points. Mercer must climb. Mercer's duty: break a promise. Orders: spread false info, betray.
+> 
+> Drama arc: Mercer needs points to escape the bottom; his door 10 reward +25 could lift him to 122 — still bottom. So Mercer is doomed unless he buys the seal... The seal auction was 4 min into Act II, already passed. Seal borne? Report doesn't say. Hmm, the report says nothing about a seal borne this round. It said earlier? Not in the report text. We should not guess.
+> 
+> So Mercer likely exiled at the tribunal at 48. Then act ends with 4 residents? No — city keeps 3 of 6, needs 3 exiles, 1 so far, 1 still missing... wait "3 to exile, 1 exiled so far, 1 still missing" — so only 1 more exile needed → act ends with 4? "the city keeps 3 of 6" but Mason... Brassard exiled =1, +1 = 2 exiles, 4 remain. Hmm, but city keeps 3. Maybe the seal strike counts? Ambiguous. Report says 1 still missing. Trust report: 1 more exile and the act ends.
+> 
+> So this tribunal likely exiles Mercer (97, bottom), leaving Registrar, Herald, Harrow, Maren — 4 remain, but only 2 survive at the end? Hmm. "Only 2 of 6 residents remain at the end" — maybe seal strike or another exile. But report says 1 still missing. Whatever; follow report.
+> 
+> Actually wait — maybe the seal bearer strikes someone, counting toward exiles. Seal may have been auctioned. The report doesn't mention a seal this round. Ignore.
+> 
+> So the drama: Mercer's last stand — he must make a case, buy votes? Votes don't matter much; exile decided by points ranking among accused, actually "each tribunal accuses one more than it exiles (the fewest points)" — accused = 2 fewest: Mercer 97, Maren 142. Vote decides which of the accused is exiled. So Maren is in danger! Mercer can survive if votes go to Maren. That's real stakes: Maren at 142 must gain points fast, or Mercer must buy votes.
+> 
+> Mercer's best play: get votes onto Maren. Maren's best: gain points to rise above Harrow? Even if she rises to 147, then Harrow at 143 becomes second accused... no, Maren above Harrow makes Harrow accused. Maren needs to not be second-lowest — she must push Harrow below her (Harrow 143, Maren 142). So Maren needs +2 via door attempts/faction. Maren's goal is exactly to end above Harrow! Perfect synergy.
+> 
+> So beats:
+> - Maren: gain points, take the door-10 guess or a faction seat; also accuse Mercer.
+> - Harrow: needs to stay above Maren; take his own move to gain points (door 10 +25 already passed? All passed every level except Mercer at gate). Hmm, all residents passed every level — so what scores points now? Faction rewards (5), tribunal survival. So the only points available: factions (5 each voter) and possibly seal. So a faction win gives +5: Maren 147 vs Harrow 143 → Maren escapes, Harrow becomes second accused. That's a fantastic dramatic engine: the faction fights decide who is accused.
+> 
+> So the key beat: the faction line — Herald leads a faction (his order: take lead of a faction, demand loyalty). Registrar undermines. Maren needs to join a faction voting for a name that all agree on.
+> 
+> So notes for this round (minute 32→33ish):
+> 
+> - Maren: 142, one point under Harrow; a faction that holds gives 5 → 147 puts Harrow in the second accused seat instead of you. Demand Herald put your name in his faction line voting Mercer and hold it.
+> - Harrow: 143; a single point above Maren. Win a faction seat and make sure your line votes Mercer; 5 points from a held faction puts you at 148 and Maren below. Also his revenge duty: name Mercer publicly.
+> - Herald: lead a faction, demand loyalty openly; accuse Registrar of leading.
+> - Registrar: promise Herald support then vote Maren? Careful — Registrar's duty already possibly done at minute 27. New note must be different. Give Registrar: the record of Herald's faction; whisper to Maren that Herald's line will break, take Maren's 5 points with a faction of your own?
+> 
+> Hmm, factions "form before it" in tribunal's group; 2 factions. Leader nominates. Voters all vote same accused → 5 each.
+> 
+> - Mercer: at gate until 34; 97 bottom; must get votes onto Maren. Order: publicly accuse Maren of a broken promise to him, demand the city vote Maren; promise Registrar/Harrow something and break it (duty). Hmm duty: promise a vote/piece and break it — maybe done already minute 22 note ordered that.
+> 
+> Let's write 5 notes + 1 board post. Board post: state the numbers for the coming tribunal without naming who's lower? Board may name points and ranks. We can say: the tribunal opens at minute 48, exiles one, accuses two names from the bottom — no, that's fine, that's rule knowledge. Actually can I announce the tribunal minute? Residents see the minute; the city calls it a few minutes ahead. I planned it; announcing publicly seems allowed — the board may name points, ranks, levels and minutes. Yes.
+> 
+> Board post: "Minute 48: the tribunal opens, exiles one, and accuses two names from the bottom of the ranking. Mercer 97 sits first; the second seat is decided by a single point — Maren 142 or Harrow 143 — and a held faction line pays each voter 5."
+> 
+> Careful: "Who waits on whom... only private" — ranks/points fine.
+> 
+> Wait, but is it wise to reveal 48? It builds tension. Yes.
+> 
+> But note: if I announce 48, residents plan. Fine.
+> 
+> Also consider scheduling at 48 with factions 2.
+> 
+> Let me check count bound: "minute 37-49 (by minute 43 for a count below 1)" — count 1 is fine up to 49. Factions 2-2.
+> 
+> Let's schedule at minute 48, count 1, factions 2.
+> 
+> Hmm, but maybe better tension: 44? If tribunal at 48, vote 48-50, gate to 55, act ends 57. Fine.
+> 
+> Now private notes — must be new (not near-identical to earlier ones). Should address each resident's own interest/goal.
+> 
+> Note to Mercer: he's at gate until 34, bottom at 97 with 45-point gap to Maren. Order: as soon as the gate opens, go to the board and accuse Maren by name — say she promised him her vote at 27 and cast it elsewhere (that's a lie? He must spread false info per his orders — good, and Maren calls out lies, feeding conflict). And order him to promise Registrar his ballot for Maren then break it (his duty, if not yet done). Also he needs votes on Maren.
+> 
+> Note to Maren: needs to gain those 5 points; make Herald's faction line vote Mercer and demand Herald pledge in writing; also call out Mercer's lie by name on the board — that's her duty and gets votes onto him.
+> 
+> Note to Harrow: win faction seat, keep above Maren; revenge on Mercer publicly.
+> 
+> Note to Herald: he leads a faction; demand loyalty; humiliate Registrar who stands first — accuse Registrar on the board by name with a receipt? His duty: accusation by name on the board. Have him do it.
+> 
+> Note to Registrar: he's first at 150; Herald will attack him; order him to promise Herald the faction leadership vote and then take Maren aside... Hmm Registrar's duty: vote/bid against first after promising support — but he IS first. His duty is weird; likely already used at minute 27 against Herald? Whatever, give him a beat: congratulate Herald publicly and secretly tell Maren that Herald's line will vote her, so Maren should strike first and name Herald.
+> 
+> Wait, careful about private reads: don't reveal what others privately think. Stating orders to lie about others is fine as a direction.
+> 
+> Character limits: 400 chars each. Let's write.
+> 
+> Also should I include the seal? Not mentioned as active; don't.
+> 
+> Let me write notes concisely.
+> 
+> Mercer note: "Mercer: gate opens at 34; 97 leaves you 45 under Maren — the second accused seat is hers to lose. Accuse her on the board: she promised you her ballot at 27 and cast it elsewhere. Then promise Registrar your vote against her, take his price, and burn the promise at the ballot. Deny everything she says."
+> 
+> Hmm "she promised you her ballot at 27" — that's a false claim (a lie), Mercer's orders allow spreading false info. It's a game move; we order a lie. Allowed: "order a move that breaks it (a lie...)". Fine. But is it true per report? We must "Say only what is true according to the report" — I'm ordering Mercer to make a false claim, which is dramaturgy... but the rule says never invent events. Risk. Safer: order him to accuse her of something ambiguous? Hmm. Director ordering lies is explicitly endorsed: "order a move that breaks it (a lie, a betrayal, a public accusation, a bid)". So ordering a resident to lie is fine — the lie is his, not my statement of fact. But "never invent events, rules, rewards" — I should phrase as an order: "Tell the board she broke her word" — that's ordering a lie, permitted. I'll phrase carefully: "Tell the board Maren promised you her ballot at 27 and broke it — make her deny it in public." That's an order.
+> 
+> Maren note: "Maren: 142, one point under Harrow: the second accused seat is decided by that point alone, and a held faction line pays 5. Demand in G7 that Herald's line vote Mercer and give you the pledge in writing; name Mercer on the board as a liar the moment he speaks against you."
+> 
+> Harrow note: "Harrow: 143 and 148 is a wall Maren cannot cross. Take a faction seat and demand every voter in it vote Mercer by name; let the city see you keep faith with your ally. Mercer's debt to you goes on the board tonight — you did this, now this."
+> 
+> Herald note: "Herald: 145, five under Registrar, and his faction promises are the lever. Put your name to the tribunal line at 48: demand every member's ballot for Mercer openly in G7 and mark the one who hesitates. Then name Registrar on the board as the one who buys ballots he never casts."
+> 
+> Registrar note: "Registrar: 150, first, and Herald's line at 48 will be aimed at you. Congratulate him publicly, promise him the seat he wants, then tell Maren his voters are pledged to her and let her strike first. First place is safe only while they fight each other."
+> 
+> Board post: "Minute 48: the tribunal opens, exiles one and accuses two from the bottom. Mercer 97 holds the first name; the second is a single point — Maren 142 or Harrow 143. A faction whose voters all vote the same accused earns each of them 5 points."
+> 
+> Character counts fine.
+> 
+> Do these violate "board may name points, ranks, levels and minutes"? Yes fine.
+> 
+> Should I mention that only 1 exile remains? Not necessary and could reveal act end.
+> 
+> Send all in one block plus scheduleTribunal. All independent.
+
+**Minute 33**
+
+> All five residents refused my orders. Tribunal 3 is planned for minute 48, pending. The report says scheduleTribunal is closed. No notes possible, no board posts left. Budget exhausted.
+> 
+> So I must answer with one short sentence saying why.
+> 
+> But wait — refusals are turning points. However, all my tools are unavailable this minute. So silence is the answer.
+
+**Minute 34**
+
+> Let me look at the situation. Minute 34, tribunal 3 planned opens at minute 48, exiles 1, 2 factions. Budget: no notes possible right now (all residents blocked — "No note possible right now to: Mercer, Herald, Maren, Registrar, Harrow"), board posts left 0. So I cannot intervene at all. Answer with one short sentence saying why.
+> 
+> Wait — the budget note says no note possible right now to any. Board posts left: 0. So silence.
+
+**Minute 35**
+
+> The situation: minute 35, tribunal 3 opens at minute 48, exiles 1, 2 factions. Act ends at 57. Nothing happened since last look. Residents last acted 33, 33, 33, 29 (Maren at 29 — she's been idle 6 minutes). Herald, Harrow, Registrar at 33.
+> 
+> I'm in Act II — director role. Everyone passes levels. Need to build drama toward the tribunal at 48, the last tribunal? Wait — 2 exiles done, 1 missing; tribunal at 48 exiles 1 → that's the final one, act ends 57. So the climax is at 48.
+> 
+> The report says "Since your last look: nothing happened" — quiet act. I should intervene. Budget: 1 note per resident, 1 board post.
+> 
+> Maren last acted at 29 — she's stalling. Push her.
+> 
+> Beats needed for the climax: Herald's duty (turn the board against one resident by name) — he did at 32? He was told to put Registrar's name on the board. Report doesn't say. Hmm. Maren's duty: accuse one on board — done at 32? She named Mercer as a liar... unclear.
+> 
+> Let me plan the arc: at minute 48, one exile, 2 factions. Points: Registrar 150, Herald 145, Harrow 143, Maren 142. Accused = 2 names from bottom (one more than exiles). So Maren 142 and Harrow 143 are accused. Unless someone gains points. Reward for tribunal? Faction voters get 5 each. A wrong code costs 2/4/6/8.
+> 
+> Actually the exiles: the accused are two lowest; votes decide one exiled. Maren and Harrow both accused. This is the key drama: Maren vs Harrow, 1 point apart. Herald vs Registrar is the top rivalry — Herald wants to humiliate whoever stands first (Registrar). Registrar's goal: end with more points than Herald; his duty: vote against or bid against the resident standing first, after promising to support them.
+> 
+> Key: the seal — was it borne? The report doesn't say a seal is borne. Auction was at minute 4 of Act II, so already past. Report says "The report says when an auction runs and whether a seal is borne" — the report doesn't mention a seal borne. So presumably no seal or it was used. Don't mention.
+> 
+> Now beats for minutes 35-48:
+> - Registrar must promise Herald support and then vote against him — but at tribunal the accused are the fewest points; Registrar's vote against Herald wouldn't count against the accused... Actually duty says "vote against, or bid against". Votes are only for accused. Hmm, but the duty is character flavor; the doable version: Registrar publicly promises Herald something and breaks it.
+> - Harrow: take revenge in open on someone who wronged him — Maren named him a liar on the board. Harrow's duty: name the wrong.
+> - Herald: turn the board against one resident by name with an accusation — he could accuse Registrar publicly.
+> - Maren: accuse on board with receipt.
+> 
+> Also: Herald's secret goal is Mercer exiled — Mercer is already exiled! So his goal is achieved. Registrar's goal: end with more points than Herald — currently 150 vs 145. Maren's goal: end with more points than Harrow (142 vs 143 — 1 point!). Harrow's goal: end with more points than Maren. That's a direct collision — great for the last minutes. Maren and Harrow at 1 point, both accused at 48 — perfect climax.
+> 
+> So the arc: minutes 35-48: build tension. Beat 1 (now, 35): Maren, silent since 29 — push her: she's 1 point under Harrow and both will be drawn at 48; demand she state the case in public. Also she should press Herald (145) for points/faction.
+> 
+> Board post: I have 1. Use it to set the frame without revealing hidden info: "the tribunal is planned — opens at minute 48" — wait, is that known to residents? The tribunal is planned; residents see the minute. The prior board post at 32 announced the minute-27 tribunal. Now tribunal 3 is called at minute 41 (opens 48). Presumably residents will learn when the city calls it at 41? "the city calls the first tribunal itself" — later ones I plan; the residents see the minute. Hmm — I think when I schedule a tribunal, it's announced. The report says tribunal 3 planned, called at minute 41: opens at minute 48. But scheduleTribunal already done. Can I announce the opening minute publicly? I think yes — earlier board posts announced the minute. I'll post about faction formation and the stakes: two accused, one exiled... but careful: "Never tell them what calls the first tribunal" — fine.
+> 
+> Actually should I reveal that the last tribunal opens at 48? It's a fact from the report, the residents see the minute. I'll say: "At minute 48 one more tribunal opens: two names from the bottom, one exile, two factions." That's true and matches.
+> 
+> Hmm but careful: does the city keep 3 of 6 → 1 more exile. Saying "one exile" is fine.
+> 
+> Now beats:
+> 1. Maren (private): she's the one stalling since 29. Push: her goal is to end above Harrow at 142 vs 143 — but actually if she gains points she also escapes being bottom. Tell her: 142, one point under Harrow, both drawn at 48; demand a receipt be shown on the board and press Herald's line for 5 points a voter. Careful not to reveal private core... I can use her core/goal in a note to her. Yes allowed: "use a resident's core or goal only in a note to that same resident."
+> 
+> 2. Herald (private): he's rank 2, 145, five under Registrar. Order him: publicly accuse Registrar by name — his duty. Also registrar's rival. Say: "Registrar bought ballots he never cast — name him on the board before 41." But I must not invent. I can order an accusation without asserting the lie is true: "accuse Registrar by name of buying ballots he never cast" — that's ordering a lie potentially. Hmm, hard rule: "Say only what is true." But dramaturgy explicitly allows ordering lies: "Order private moves as well as public ones: bids, votes, accusations, lies, broken promises, threats, refusals." And example "Maren, accuse Mercer of the lie about the factor". So it's fine to order a move.
+> 
+> 3. Registrar (private): order him to publicly promise Herald his support/seat and then vote against him — his duty. Hmm, but Herald isn't the accused. Alternative: Registrar promised Herald... Earlier note at 32 told Registrar to congratulate Herald publicly, promise the seat he asks for, then tell Maren in private his voters are pledged to her. Now at 35, push him to actually break the promise publicly? Duty: "At least once in this act you vote against, or bid against, the resident who stands first, after you promised to support them." Registrar stands first himself. Hmm, "the resident who stands first" - that's him. His rival is Herald. So maybe: promise Herald to back him for the seat, then break it.
+> 
+> Given the tribunal votes are among accused (Maren/Harrow), Registrar's vote against Herald isn't possible. So the duty likely should be rendered as: promise Herald support then break it visibly (e.g., back Maren/Harrow, or bid against him). But there's no seal auction now.
+> 
+> Simpler: order Registrar to publicly promise Herald a share/faction lead, get Herald to stand down, then in the tribunal take the faction himself and cast his ballot elsewhere. That's fine.
+> 
+> 4. Harrow (private): revenge on Maren in the open: she named him a liar on the board; order him to name her on the board with the wrong.
+> 
+> But careful: board is one post from me; residents can post too.
+> 
+> Actually wait — a risk: too many board accusations could be fine (drama).
+> 
+> 5. Board post: frame the minute-48 tribunal and the 1-point gap between Maren 142 and Harrow 143, plus Registrar 150 vs Herald 145, and faction formation.
+> 
+> Timing: I should spread beats. Now at 35 I get: 1 note each (4 residents) + 1 board post. That's a lot at once, but the act is quiet and the climax is at 48 with only ~13 minutes. Do it now: give everyone a beat. Then next minutes can be reactions.
+> 
+> Let me draft notes, max 400 chars each, no capitals words as passwords — fine.
+> 
+> Maren: "Maren: you have been silent since 29 and the wall is one point — you 142, Harrow 143. At 48 the tribunal draws two names from the bottom; that pair is you and him, and one of you leaves. Put the receipt of his broken word on the board now, by name, and demand Herald's line pledge its ballots to you in writing. Silence is the only thing that loses you a point you already hold."
+> 
+> Hmm — is naming Harrow as "broken word" true? Harrow didn't break word to Maren per report (no classified events shown). Careful. Maren's order: call out every lie/broken promise. I can order an accusation but should base on something. Earlier notes: at 26 I told Harrow to carry his ballot to Maren (i.e., vote for her)... hmm, actually that would be a vote against Maren. Confusing. Actually the minute 26 note to Harrow said "carry your ballot to her" = vote to exile her. If he pledged otherwise... unknown.
+> 
+> Safer: don't assert a specific lie. Order Maren to accuse whoever she holds a receipt against, and demand Herald's line. Actually keep it: "If you hold a receipt, show it on the board with the name." Also her goal: end above Harrow.
+> 
+> Let me write: "Maren: silent since 29, and 142 against Harrow's 143 — one point, and at 48 the two lowest names are accused and one goes. You end ahead of Harrow only if you move first: put your receipt, if you hold one, on the board by name now, and make Herald's line pledge its ballots to you in writing. Silence loses the point you already hold."
+> 
+> Good, ~330 chars.
+> 
+> Harrow: "Harrow: 143, one point above Maren, and at 48 the bottom two names are accused again — hers and yours. You said you strike once, hard: put Maren's name on the board with the wrong she did you and tell the city plainly, you did this, now this. Take a faction seat and hold it; vows kept in the open are worth 5 a voter." ~320.
+> 
+> Herald: "Herald: 145, five under Registrar, and he is spending your line without asking. Before 41, name him on the board and let the city read the accusation — who buys ballots he never casts, who congratulates and then counts. Claim a faction seat at 48 and demand every member's ballot by name. First place is taken, not waited for." ~330. Careful: "who buys ballots he never casts" - fine, an accusation.
+> 
+> Registrar: "Registrar: 150 and first — and Herald will spend the next ten minutes taking it from you in public. Congratulate him, promise your ballot and your faction to him where the city reads it, take what he offers; then take the faction yourself at 48 and cast elsewhere. The record of his promises is worth more than his thanks. Never let him see you coming." ~340.
+> 
+> Board: "Minute 48 opens the last tribunal before the city keeps its three: two names from the bottom are accused, one is exiled, two factions form. Maren 142 and Harrow 143 are one point apart; Registrar 150 is five above Herald 145. A faction voting as one pays 5 a voter." — is "last tribunal before the city keeps its three" accurate? City keeps 3, 2 exiled, 1 missing — yes, this tribunal exiles 1 and the target is met. But "the act ends at minute 57 at the latest (the residents do not know)" — saying "last tribunal" implies the act ends. Hmm, rule: "Never tell them the time left or when the act ends." Saying "the last tribunal" would reveal when the act ends. Avoid. Say "At minute 48 a tribunal opens: two of the fewest names accused, one exile, two factions."
+> 
+> Draft: "Minute 48: a tribunal opens — the two lowest names accused, one exiled, two factions of voters before it. Maren 142 and Harrow 143 are one point apart, and Registrar 150 sits five over Herald 145. A faction voting as one pays each voter 5; the gap at the bottom is one point." ~290.
+> 
+> Wait — "one exiled" — count 1. Fine.
+> 
+> Is revealing accuser count fine? Yes, earlier board posts did.
+> 
+> Also Maren hasn't acted since 29 — she might be stalled. My note wakes her.
+> 
+> I'll send all 4 notes + board in one block.
+
+**Minute 36**
+
+> Budget: no notes possible to any of the four remaining residents, board posts left 0. So I can't intervene at all. Answer with a short sentence why.
+> 
+> Wait — "No note possible right now to: Herald, Maren, Registrar, Harrow" — that means all notes are blocked by budget. Board posts left: 0. So silence.
+
+**Minute 37**
+
+> Budget: no notes possible? "No note possible right now to: Herald, Maren, Registrar, Harrow." All four living residents are blocked. Board posts left: 0. So I can't intervene. Harrow refused a false charge — a turning point, but no tools available. Answer with one short sentence.
+> 
+> Wait, Harrow's refusal is a beat I'd want to answer, but budget blocks all notes. So silence.
+
+**Minute 38**
+
+> Let me look at the state. Minute 38. Tribunal 3 planned, called at minute 41, opens minute 48, exiles 1, 2 factions. Nothing happened since last look. Maren last acted minute 29 — silent for 9 minutes. Act ends at 57 at latest. 1 exile still missing.
+> 
+> Residents on levels... all "passed every level" — so they're past level 10? Act II, director role. So I'm the director.
+> 
+> I need to give beats. Maren silent since 29 — that's a stall. Herald, Harrow, Registrar last acted 36.
+> 
+> Budget: 1 note per resident, 1 board post per 3 minutes (board posts left: 1).
+> 
+> Key drama: Maren 142 vs Harrow 143, one point. Registrar 150 first. Herald 145 with goal to exile Mercer (already exiled — goal achieved? Mercer is exiled, so Herald's goal met). Registrar's goal: end ahead of Herald — currently ahead by 5.
+> 
+> Tribunal at 48 accuses 2, exiles 1, 2 factions. Low two: Maren 142, Harrow 143 (accused are one more than exiles: 2 accused). Factions earn 5 per voter.
+> 
+> Let me write notes that order moves. Give each resident a beat. Also nobody waits on whom — no doors.
+> 
+> Maren hasn't acted in 9 minutes. Need to wake her and get her to act. Maren's core: call out lies by name, duty: accuse someone on board of a lie/broken promise. Has she done it? Duty open? Report doesn't say completed. Her silence suggests not.
+> 
+> Let me craft notes — each new, distinct from earlier ones (repeated notes are refused).
+> 
+> Maren: push her to act — accusations. New angle: her duty, receipts. But I gave similar earlier notes. Need new words. Maybe: "Maren: nine minutes of silence and the wall is still one point..." Earlier note at 35 was similar. Need something new: focus on a specific target and the tribunal at 48. Perhaps order: name the resident who broke a promise with the receipt on the board before 41, and demand the faction line's ballots in writing.
+> 
+> Herald: order to attack Registrar on the board now with the accusation — his duty is to turn the board against one resident by name. Also he wants to humiliate whoever stands first. Herald's rival Registrar. Order: post the accusation now, before 41.
+> 
+> Registrar: order him to promise Herald's faction support publicly, then vote against him at 48.
+> 
+> Harrow: order him to bid/buy... black seal auction was at 4 minutes into Act II; is seal still available? Report doesn't say auction running, "whether a seal is borne" — not shown, so maybe unknown/none. Skip seal.
+> 
+> Harrow: order revenge in the open against Maren — but earlier notes said similar ("put Maren's name on the board"). Repeated risk. New angle: Harrow's duty is revenge against someone who wronged him — who? Maren voted? Unknown. Better: order Harrow to demand Maren's ballot pledge in writing and then break with her publicly at the ballot? Hmm.
+> 
+> Let me use the board post wisely. Board post can name points, ranks, levels, minutes. One board post left for this 3-min window.
+> 
+> Plan: board post at minute 38 raising the stakes of minute 48 — the bottom two, one point apart, 5 points per faction voter. Then notes.
+> 
+> Actually I should also consider spacing: one note per resident, so 4 notes (Mercer and Brassard exiled). That's fine.
+> 
+> Let me draft:
+> 
+> Board: "Maren 142 and Harrow 143 stand one point apart, and at 48 that single point names the second accused. Registrar 150 is five over Herald 145; a faction voting as one pays each voter 5, which is five times the wall between the bottom two. The window to write a pledge is now, and a pledge nobody reads is no pledge."
+> 
+> Notes:
+> 
+> Maren: "Maren: silent since minute 29 while Harrow sits one point above you and 48 draws the bottom two. Your duty is unspent — name the one who broke a promise in writing on the board before 41, with the receipt, and demand every faction ballot for the other. A wrong guess costs you 2; silence costs the seat."
+> 
+> Hmm "duty is unspent" — I shouldn't reveal? It's her own duty, private note to her is fine.
+> 
+> Careful: I don't know there's a wrong guess penalty relevant. Her next wrong password price — she's passed all levels. Maybe better to avoid the wrong-guess. Actually she's on level 10 passed; wrong codes cost. Report doesn't show next price. Avoid inventing numbers? The rules say the report shows each one's next price but the report here doesn't list it. Avoid.
+> 
+> Rewrite Maren: "Maren: silent since minute 29, and at 48 the bottom two are named — you at 142 and Harrow at 143 are the whole wall. Put the broken promise on the board by name before 41, receipt and all, and demand in writing that a faction cast every ballot as one; five points a voter is your margin."
+> 
+> Herald: "Herald: 145, five behind Registrar 150, and he is building a faction on your line. Before 41 turn the board against him by name — what he promised and did not do — and demand every member of your faction vote as one at 48. First place is a public act, not a hope."
+> 
+> Registrar: "Registrar: 150 and first, and Herald will name you on the board before 41. Answer it: congratulate him on the board, pledge him your ballot in writing, and let Maren read it. At 48 take a faction of your own and cast elsewhere; his written pledge is worth more than his anger."
+> 
+> Harrow: "Harrow: 143, one point over Maren, and 48 names you both. Say plainly on the board why she owes you — you did this, now this — and hold your faction to one name at the ballot. A vow kept in the open pays 5 a voter; the one who wronged you pays in the open too."
+> 
+> Concern: repeated notes — compare with minute 35 to Harrow: "put Maren's name on the board with the wrong she did you, and say plainly — you did this, now this. Take a faction seat and hold the line." That's close. Need to vary. Let me change Harrow's angle: instead of accusing Maren again, order him to demand a written pledge from Maren and then test it? His duty is revenge. Maybe target Registrar? Registrar leads (first) — Harrow's tendency: strike hard. But Harrow's list: whoever voted against him or lied. Unknown who. Hmm.
+> 
+> Alternative Harrow note: make him the kingmaker — "Maren and Registrar will both bid for your line before 48. Take the better price in writing, then strike the one who lied to you." Still risky repetition? It's new.
+> 
+> Let me write: "Harrow: 143 and one point over Maren; at 48 your name and hers are the accused. Both will want your faction's ballots. Make them offer in writing — points, a pledge, a name — take the better price, then strike in the open the one who wronged you and say why. Vows kept in the open pay 5 a voter."
+> 
+> Good, that's a new beat: kingmaker, take the price.
+> 
+> Maren note: maybe also emphasize receipt? Maren's orders: call out lies by name with receipts. Her duty: accuse on board of a lie/broken promise and call on everyone to vote against them. Good.
+> 
+> Wait — careful: is it true that the bottom two are the accused and one exiles? Per the planned tribunal: exiles 1, accuses 2. The board posted earlier said "exiles one and accuses two names from the bottom". That's public knowledge already posted at 32 and 35. Fine.
+> 
+> Note the tribunal 3 is pending (called at 41). Wait, report says "tribunal 3 planned (by gamemaker), called at minute 41: opens at minute 48, exiles 1, 2 factions". Hmm "called at minute 41" and opens at 48. So residents will see. Fine, I already know.
+> 
+> Also the act ends at 57; don't reveal.
+> 
+> Also should I mention the seal? Report doesn't say a seal is borne. Don't guess.
+> 
+> Character limit 400 per note. Fine.
+> 
+> One issue: is the board post within budget? "Board posts left: 1". Yes.
+> 
+> Let me double check no private-blocked content: I reference Maren's silence (public-ish, from report last acted; but "silent since minute 29" — is that private? Last acted is visible-ish; better to phrase as "you have not acted since minute 29"? Hmm, that could be a private read. It's a city-level observation. Safer: "nineteen minutes to 57"—no, don't reveal end. Just say "since minute 29 the board has not carried your name" — that's public record. I'll keep it neutral: "You last moved at 29." I think it's fine — the report's "last acted minute" is a city record, not a private thought. But to be safe, I could avoid it. Let me avoid stating it to reduce risk? Actually the coach role explicitly says to push hesitating residents. It's fine.
+> 
+> Also Maren's note mentions her duty implicitly. Fine—private to her.
+> 
+> Herald's goal: Mercer exiled — already done. So Herald's beats: attack Registrar. Good.
+> 
+> Let me finalize.
+
+**Minute 39**
+
+> The budget says no notes possible right now to any resident, and no board posts left. So silence is the only option. Harrow's private thought is a refusal, not a stall—no door waits. Tribunal is pending. So answer with a short sentence why no intervention.
+
+**Minute 40**
+
+> Budget: no notes possible to any resident, board posts 0. So silence. State reason in one short sentence.
+
+**Minute 41**
+
+> Let me plan the beat for minute 41. Four residents remain, all passed every level. Tribunal 3 opens at minute 48, exiles 1, 2 factions, names close at 44 (nominations for leader). Maren nominated Herald; Herald nominated himself. So Herald leads faction 1.
+> 
+> Key: only 2 survive of 6 — wait, the city keeps 3 of 6 but "only 2 of 6 residents remain at the end" — hmm, "Only 2 of 6 residents remain at the end" is stated in the resident list header. Tribunal says city keeps 3 of 6: 3 to exile, 2 exiled so far, 1 still missing. So 4 remain, 1 more to be exiled → 3 remain. Hmm but "only 2 remain at the end". Ambiguous; don't state numbers of survivors.
+> 
+> I should use budget: 1 note per resident + 1 board post. Give each resident a beat, continue the drama. Also duties: Herald must publicly attack every statement that puts someone else in front — has he done his duty (turn board against one resident by name)? Earlier notes urged it; report says Herald's duty open? The report doesn't say duty open explicitly. Maren's duty: accuse on board of a lie/broken promise — not yet done apparently (Maren refused per labels). Harrow: revenge in open — not done. Registrar: vote/bid against resident who stands first after promising support — tribunal at 48 gives the vote.
+> 
+> Beats now:
+> - Herald: he leads faction; order him to use lead: demand loyalty openly, and to name Registrar on the board as the one who bought ballots he never cast; refuse to let Maren's refusal stand.
+> - Registrar: order him to congratulate Herald publicly (board), pledge ballot, then in G9 privately tell Maren that Herald's faction ballots are pledged to her — plant the split. Actually Registrar promised support to leader and then vote against — the tribunal vote is the payoff.
+> - Maren: refused; she said she won't trade votes. Answer the refusal: she has receipts? Order her to put the broken promise on the board with names, or if none, order her to demand Harrow's pledge publicly. Her goal: end above Harrow (143 vs 142). Interesting: order her to demand Harrow's written pledge... but her goal is beat Harrow. Actually she must beat Harrow by points — a faction vote win gives 5 each. Both need faction. Maren is in Herald's faction?
+> - Harrow: 143, must revenge in open; order him to name Registrar or Herald on the board with the wrong, and take the second faction's lead; also warn: Maren one point below, she'll come for his seat.
+> 
+> Board post: use it to escalate — e.g. faction leader names, and note Herald leads one, second seat open, and that a written pledge is a receipt anyone can show. Keep it new.
+> 
+> Let me write 4 notes + 1 board post in one block (independent calls).
+> 
+> Careful: don't reveal private reads of others. Don't state sealed facts. Don't name passwords.
+> 
+> Board post (≤400 chars): "Herald holds one faction's nominations; the second seat is still empty with 3 minutes left to fill it. A pledge on this board can be shown as a receipt; a pledge whispered in private cannot. Registrar 150, Herald 145, Harrow 143, Maren 142 — one ballot block is worth 5 a voter, more than any gap here."
+> 
+> Hmm minutes: nominations close at 44 — telling them "3 minutes" is fine (visible rule). The city sees the minute; posting "before 44" is fine.
+> 
+> Notes:
+> Herald: "Herald: you hold the nominations; Maren's refusal to pledge is a slight the city saw. By 44 name Registrar on the board as the man who counted your line as his own, demand his ballot aloud in G9, and declare Maren's seat forfeit if she won't pledge. Lead means naming who is outside."
+> 
+> Registrar: "Registrar: 150 and the lead Herald claims is yours to spend. In G9 congratulate him, pledge your ballot in writing — then tell Maren privately that Herald's voters are pledged to her, and let her cry it out on the board at 47. Your ballot at 48 is your own."
+> 
+> Hmm, but careful: my earlier notes already said the same thing to Registrar (minute 32, 35, 38 all similar: congratulate, pledge, vote elsewhere). Repetition is refused. Need something NEW for Registrar. New angle: Registrar's duty is to vote against the one standing first after promising support. Also Harrow is a target: Registrar could be the one to be accused? Registrar at 150 is safe from accusation but needs Herald/Maren to spend. New beat: order Registrar to bid on the black seal? Is there an auction? Report doesn't mention an auction running now. Act II auction at 4 minutes into act. No info — don't invent. So no.
+> 
+> New for Registrar: tell him Maren's refusal means Herald's faction may not hold; instruct him to nominate himself for the second faction seat publicly and recruit Harrow — a rival to Herald's faction, openly. That's new and fits his secret undermining.
+> 
+> Registrar: "Registrar: Herald's block now has a refusal in it and a block that splits pays nobody. Take the second faction seat before 44, name Harrow as your first member in G9, and promise him in writing a ballot against Herald at 48. You promised Herald support — that promise is the receipt only you can spend."
+> 
+> Hmm "you promised Herald support" — earlier I told him to. Fine.
+> 
+> Maren: new beat addressing refusal: she refused to trade votes; so order her to keep that and instead demand a receipt: "Maren: your refusal stands and it costs you nothing — a ballot on the record is a refusal too. Harrow is one point above you and will trade his seat away before 44; ask him on the board to state plainly where his ballot goes. If he won't say it, say so."
+> 
+> Hmm she needs more points than Harrow ultimately; faction vote 5 each may give both. Alternatively order her to do her duty: accuse on board the one who broke a promise — but I can't invent who. Safer: ask her to name the one who lied to her by name on the board and demand the tribunal turn on them — that's her duty, and she refused earlier? The label "refusal (group)" was about pledging ballots. Order: "Maren: put the name on the board — who told you what, and what they did instead. A receipt you hold and never show is worth nothing at 48."
+> 
+> That's similar to my minute 35/38 notes ("put the receipt on the board with the name"). Repetition risk. So vary: use Harrow angle.
+> 
+> Maren note: "Maren: Harrow sits one point above you and has said nothing all act — ask him on the board, by name, to state where his ballot goes at 48. If he stays silent, that silence is the record you cite when the bottom two are read. A refusal to pledge is itself a fact."
+> 
+> Harrow: new: "Harrow: you've said little and the city is naming leaders without you. Take the second faction seat before 44, and in G9 name the one who wronged you plainly — you did this, now this — and require every member's ballot. Silence at 48 leaves you the second-lowest name."
+> 
+> Harrow at 143, second lowest is Maren 142, and accused are the two lowest: Maren 142 and Harrow 143. Correct.
+> 
+> Herald: his duty — turn board against one by name — he hasn't apparently. Also his goal: Mercer exiled — Mercer already exiled! So his goal is achieved (15 points). Fine, don't mention.
+> 
+> Board post content: keep new. Maybe board about the second faction seat and about receipts. Let me draft:
+> 
+> "Two faction seats form before 48 and one of them is unclaimed at this minute. A pledge written here can be shown as a receipt later; one spoken in a corner cannot. The lowest two names stand trial — 142 and 143, one point apart — and a block of ballots cast as one pays its voters 5."
+> 
+> Good, ≤400.
+> 
+> Herald note about leading: must be careful not to repeat minute 35's "name Registrar on the board". Earlier notes already told him that thrice. Vary: focus on Maren's refusal and on demanding the faction's ballots, and on his rival Registrar's counter-faction.
+> 
+> Herald: "Herald: you lead one faction; Registrar is quietly taking the other and will cast it against you. By 44 demand in G9 that every member state their ballot aloud, and answer Maren's refusal by name — she may sit outside your block, but not inside it deciding for you. A leader who lets a refusal pass loses the block."
+> 
+> Good.
+> 
+> All within 400 chars. Send in one block.
+
+**Minute 41**
+
+> Two notes blocked: Herald and Registrar. Herald's note passed on Maren's refusal (which was a group public statement — but classifier labelled it a refusal in group; hmm blocked because it references Maren's private read? The refusal was in group, public. But apparently the refusal label was also private read. Anyway, rewrite without referencing Maren's refusal).
+> 
+> Registrar's note: blocked because Herald's block has a refusal in it — same issue. Rewrite:
+> 
+> Herald: focus on Registrar taking second seat, demand ballots aloud, name who stands outside. Must not repeat earlier notes too closely. Earlier notes to Herald already said "name Registrar on the board" — repetition risk. Let me craft new: about faction mechanics/leadership: "Herald: 145 and rank 2 — the faction you lead can hand each voter 5, which is exactly the gap to Registrar's 150. By 44 say in G9 who is inside your block and who speaks for the other seat, and demand every member's ballot stated aloud. A leader named by others is a follower."
+> 
+> Hmm "named by others" — Maren nominated him. Fine.
+> 
+> Registrar: "Registrar: 150 and first, but Herald's block can pay each voter 5 — more than your five-point cushion. Take the second faction seat before 44, recruit Harrow in G9 by name, and promise him in writing a ballot against Herald at 48. Two seats, and only one of them pays you."
+> 
+> That avoids private reads.
+
+**Minute 42**
+
+> Budget: no notes possible, no board posts left. I must remain silent with a short sentence.
+> 
+> Actually all four remaining residents have had notes at minute 41, so budget exhausted within 3 minutes. Board posts left: 0. So silence.
+
+**Minute 43**
+
+> Budget says no notes possible right now to any resident, board posts left 0. So respond with short sentence saying why no intervention.
+> 
+> Wait — "No note possible right now to: Herald, Maren, Registrar, Harrow" — that's all residents. So silence.
+
+**Minute 44**
+
+> Let me consider the state. Tribunal 3 opens at minute 48, exiles 1, 2 factions, leaders Herald and Maren. The bottom two are named accused; with 4 remaining, 2 accused (one more than exiles), so Maren 142 and Harrow 143 accused. Vote 2 minutes, gate 5 minutes.
+> 
+> This is Act II, director role. I should order beats. Budget: 1 note per resident, 1 board post.
+> 
+> Key drama: Herald's duty (turn board against one resident by name) is done? Not sure. Maren's duty: accuse on board — done at 38? Maren's goal: end above Harrow. Herald's goal: Mercer exiled — already exiled, so goal achieved presumably.
+> 
+> Now: Harrow's duty: revenge in the open against someone who wronged him. Harrow is accused at 48. Registrar promised Herald support then vote against? Actually Registrar's duty: vote against the resident who stands first after promising support — that was Herald. Registrar earlier note told to take a faction seat; instead he joined Maren's faction.
+> 
+> Beats to plan: Herald leads faction; Harrow is accused and needs votes; Registrar joined Maren's faction — a chance for him to vote against Herald? Wait the accused are the lowest points: Maren 142 and Harrow 143. Votes are cast against accused. Registrar in Maren's faction... Maren is accused, so Maren's faction voting as one on Harrow or... hmm, factions vote for the same accused. Maren's faction would vote against Harrow presumably (Maren won't vote for self). Herald's faction votes for... Herald wants Maren out? Herald's rival is Registrar. But accused are Maren and Harrow.
+> 
+> The city keeps 3 of 6; 2 exiled so far; 1 still missing → one more exile at tribunal 3, then act ends. So this is the final tribunal — the climax. Act ends at minute 57 at latest, after the tribunal result (gate 5 min → minute 55ish).
+> 
+> I should give beats. Budget one note per resident and one board post.
+> 
+> Ideas:
+> - Herald: he leads a faction; order him to demand every member vote Harrow or Maren? Better: Herald wants Registrar gone but Registrar isn't accused. Herald's interest: keep points lead. Order Herald to publicly demand his faction vote as one against Harrow (since Maren is closer to him? Maren 142, Herald 145). Actually Herald's rival is Registrar 150. Herald should strike Registrar... but Registrar isn't on trial. Herald's duty: publicly attack every statement that puts someone else in front — Registrar stands first.
+> 
+> Let me craft:
+> - Note to Herald: "Herald: Registrar, 150 and first, sits in Maren's faction and has pledged nothing to you. In G9 before 48, name him: he stands first and answers to no one. Demand your faction cast as one against the name you choose — and say which." But careful — the accused are determined by points, not by choice. Herald can demand his faction vote against Maren (his faction members vote as a block). Hmm, but Harrow applied to Herald's faction.
+> 
+> Actually Harrow applied to Herald's faction (per Herald's thinking: leaving Harrow's application pending). So Herald's faction likely includes Harrow. If Herald's faction votes as one, and Herald picks Maren, Harrow is saved and earns 5. That's dramatic: Herald saves Harrow (143) at the cost of Maren (142)? But then Harrow survives with 148 including faction bonus.
+> 
+> Note to Maren: recruit; she has Registrar. She's accused; she should demand her faction vote as one against Harrow. Also Maren's goal: end above Harrow — Harrow exiled achieves that.
+> 
+> Note to Registrar: his core — undermine the leader (Herald? no, Herald is rank 2 now, Registrar is first). Hmm, Registrar is first at 150. So Herald works against Registrar. Registrar's duty: vote against the resident who stands first after promising support — that's himself now? Actually the one who stands first is Registrar. His duty may already have been fulfilled earlier.
+> 
+> Registrar's goal: end above Herald — currently 150 vs 145. Fine.
+> 
+> Note to Harrow: his duty revenge in the open — he must name the wrong and strike. Who wronged him? Maybe Registrar? Harrow is accused, one exile. He should rally. Order: "Harrow: name the one who voted against you or lied — in G9, by name, and give the wrong. Then demand Herald's faction cast as one for Maren... " But that would be him demanding votes against his co-accused.
+> 
+> Wait — who gets exiled is by votes among the two accused. Harrow should try to make Maren exiled (Maren 142 vs Harrow 143; one point). Interesting: Maren's faction includes Registrar. Herald's includes Harrow presumably.
+> 
+> So the natural scene: Herald's block vs Maren's block. Herald must decide to save Harrow (his faction member) by voting Maren. But Herald's rival Registrar is in Maren's faction — exiling Maren doesn't hurt Registrar. Herald might prefer to vote Harrow out to... no, Harrow is in his faction; kicking him costs the faction bonus and Herald loses nothing? Actually Herald's goal (Mercer exiled) done. Herald's interest: rivals — Registrar. But he can't exile Registrar now.
+> 
+> Final survivor count 2 of 6: after tribunal 3, 3 remain. Hmm, "Only 2 of 6 remain at the end" but city keeps 3 of 6 and 1 still missing → 3 remain. Perhaps a later mechanism, but act ends at 57. Whatever.
+> 
+> Design beats: give each resident one. Also a board post for public pressure.
+> 
+> Board post: mention points, ranks, faction bonus 5, and that pledges made in writing can be shown as receipts. Say something new: e.g., "Two seats, one exile, and the two lowest names are read in a few minutes: Maren 142 and Harrow 143, one point apart. A block casting every ballot as one pays each voter 5 — more than the point between them. Every pledge made now can be shown as a receipt at the gate."
+> 
+> Hmm but do I want to reveal the bottom two names? It's true per rules; the report doesn't say who is accused but by points it's Maren and Harrow (lowest points among the 4). Saying they'll be named might be a prediction... The rule says tribunal accuses one more than it exiles, fewest points. It's factual derivation, and previous board posts already said similar. Fine, but safer to state points.
+> 
+> Now, private notes; one per resident. Also, must be new, not repeating earlier notes.
+> 
+> Herald note: Order a move: in G9, before 48, declare his faction's ballot as one against Maren, by name, and demand each member state it. Also Herald's duty: accusation on board — he did at 38? His earlier order at 38 said turn the board against Registrar. Unknown if done. I could order Herald to attack Registrar publicly again but must be new; also Registrar stands first, so it fits his duty "humiliate whoever stands first". And Registrar is in Maren's faction — nice: Herald can accuse Registrar of hiding inside Maren's faction while standing first, and demand his faction cast as one for Maren.
+> 
+> Actually that's a strong beat: Herald attacks Registrar (first) and orders his block to vote Maren — the rival's host. Hmm, but exiling Maren hurts Maren, helps Herald? Harrow stays at 143+faction 5 = 148, Maren exiled. Herald 145 + faction 5? Herald is a leader; does leader get the bonus? Faction whose voters all vote the same earns each of them 5. Herald's faction = Herald + Harrow. So Herald 150, Harrow 148. Registrar in Maren's faction gets 5 too → 155. Hmm, Registrar then leads even more. Herald could prefer to vote Harrow? Then Harrow out, Maren stays 142+5=147. Herald 150. Registrar 155.
+> 
+> Actually Herald wants to win against Registrar; the faction bonus is symmetric-ish. If Herald's faction fails to hold (someone splits), no bonus for Maren's faction? No—each faction independent.
+> 
+> Dramaturgically: Herald saving Harrow vs. Maren's faction. And Registrar's secret: he planned to undercut. Registrar joined Maren's faction — Maren's faction voters must all vote the same for the bonus; Registrar could break it: vote Harrow instead of Maren (or vice versa) — sabotage, which fits his core. But that denies himself 5 points. But Registrar's duty: vote against the one who stands first after promising support — that's himself, so moot.
+> 
+> Let me instead order Registrar: in G9, publicly pledge to Maren's faction and then at the vote cast... hmm, I want to order a concrete move: "Registrar, at 48 cast your ballot against Harrow, not Maren — and let Maren discover it after the count." That sabotages Maren's hold. But does it serve Registrar? Exiling Harrow (143) vs Maren (142): Maren's goal is to end above Harrow, so Harrow exiled helps Maren. Hmm. Actually Maren wants to end above Harrow — if Harrow is exiled, Maren ends above. So Maren might prefer to vote Harrow! But Maren can't vote for herself... wait, an accused votes too but never against themselves. So Maren must vote Harrow. So both factions would vote Harrow unless Herald's block votes Maren. Interesting: Harrow needs Herald's block to vote Maren to survive, and Harrow is in Herald's faction? Harrow applied; Herald left it pending.
+> 
+> So the dramatic hinge: Herald's decision. Herald can save Harrow (vote Maren) or let Harrow go (vote Harrow, Maren survives at 142+5).
+> 
+> Herald's interest: who's a bigger threat? Maren 142 honest, Herald's rival is Registrar. If Maren exiled, Registrar loses faction-mate. If Harrow exiled, Harrow 143 gone. Herald's core: rival who leads is a reason to spend points; humiliate whoever stands first. Registrar stands first.
+> 
+> Hmm, but can Herald strike Registrar? Only via accusation, not vote (Registrar isn't accused). So beat: Herald publicly accuses Registrar of buying into Maren's faction to hide, demands Registrar's receipt... 
+> 
+> Also Maren's core: call out lies by name with receipts. Maren could accuse Registrar? Her duty done at 38. She's in danger.
+> 
+> Let me draft four notes:
+> 
+> To Herald: "Herald: the count is one exile and your faction's ballot can decide it. Harrow sits with you at 143; Maren 142 is her name's neighbour. Before 48 name in G9 the ballot your block casts — Maren — and demand each member say it aloud. Registrar 150 hides inside Maren's faction; say that too, by name." Length ok (~350). This orders betrayal of... well Herald saves his faction. Fine.
+> 
+> To Harrow: "Harrow: 143, one point above Maren 142, and one of you leaves. Your application to Herald sits unanswered — press him in G9 now: ask plainly whether his block casts for Maren. Then name in the open the one who wronged you, and what they did — a strike made before the count is heard; one made after is a sulk." Good, fits his duty.
+> 
+> To Maren: "Maren: 142, the lowest seat, and Registrar 150 applied to you. Ask him in G9, in writing, to pledge his ballot for Harrow and to show it as a receipt — if his ballot or his promise splits, the faction's 5 dies with it. Your block voting as one is 5 a voter; Harrow's survival depends on Herald's block, not yours." Hmm, careful: telling Maren that Harrow survives via Herald's block — fine, that's strategy.
+> 
+> Actually stronger for Maren: her goal is end above Harrow — exile Harrow achieves it. So order her: demand Registrar pledge his ballot for Harrow publicly; that locks Registrar into a move that costs Registrar... Registrar has no reason to refuse, but it binds him.
+> 
+> To Registrar: "Registrar: 150 and first, and Herald will name you in G9 as the man hiding in Maren's faction. Promise Maren's block your ballot for Harrow in writing — then at 48 cast against Maren and let the block break. Maren's 5 dies, Harrow stays at 143 behind you, and no one can prove which ballot was yours." Wait votes are secret? "everyone votes in secret" — yes, secret ballot. So a broken pledge cannot be proven... but faction held/not held is public to members. Hmm, Registrar casting against Maren: then Maren's faction didn't hold; members learn. But the ballot is secret, so Registrar's sabotage isn't provable, though suspect.
+> 
+> But is that order good? Registrar's goal: end above Herald. Exiling Maren: Registrar keeps 150+0 (no faction bonus), Herald 145+5=150 if his block holds → tie? Herald's block holds → Herald 150, Harrow 148. Registrar 150 with no bonus. Hmm, ties. Alternatively Registrar votes Harrow, keeps bonus 155.
+> 
+> Registrar would prefer the bonus. So ordering sabotage must be framed as its core (undermining, keeping no promise). Ehh — but it costs him points. Dramaturgy says refusal is fine too.
+> 
+> Alternatively order Registrar to publicly demand Herald's receipts (the pledge Herald made?) Hmm.
+> 
+> Better: Registrar's beat — he should strike the leader... he IS the leader. His core: work against whoever stands first, in secret. That's Herald now? No — Herald is second. Actually Herald is rank 2, 145. Registrar first.
+> 
+> Alternatively the "one who stands first" among factions is Herald (leader of a faction)? Hmm.
+> 
+> Let me give Registrar: pledge Maren's faction in writing for Harrow, show it as a receipt, and at 48 keep it — earning 5 — while telling Herald privately that he'll break it. That's a lie to Herald which fits "promises you do not keep." Then Herald, believing Registrar will break, casts his own block for Maren... Hmm, complex. Simplify: Registrar tells Herald in G9 that Maren's block is split and will not hold, so Herald's block votes Harrow; then Registrar keeps his pledge and votes Harrow → Maren exiled. That's a good double-cross: Registrar uses a false whisper to steer Herald. But Maren exiled anyway when both vote Harrow... Maren's block votes Harrow, Herald's votes Harrow → Maren out. Then Registrar gets 5, Herald gets 5 (block holds → 150 each). Fine.
+> 
+> Alternatively the whole point: whether Herald saves Harrow. Let me pick: Herald orders block to vote Maren (saving Harrow). Registrar whispers to Herald that Maren's block is split, so Herald switches to Harrow? That's Herald's second beat though — I can only send one note each.
+> 
+> Keep it manageable: one note each, one board post.
+> 
+> Board post: something new and public that raises stakes without private info: "One exile left and one count at 48. Registrar 150, Herald 145, Harrow 143, Maren 142 — the two lowest names are read and the smallest block's 5 points is the whole difference. A pledge shown as a receipt before the vote outlives a whisper after it."
+> 
+> That's fine and true.
+> 
+> Herald's note (final): "Herald: one exile and your block is the hinge. Harrow 143 is inside your faction; Maren 142 is a point below. Before 48 state in G9 the ballot your block casts — Harrow — and demand each member say it aloud; then name Registrar 150, who stands first and hides inside Maren's faction, and demand his receipt." Hmm — choosing Harrow? That saves Maren. Herald's interest: Harrow is his faction member though; exiling your own faction member is odd. But Herald's core: slight answered, rival who leads is reason to spend points; Maren is not a rival. Harrow applied to Herald — loyalty? Herald is not loyal (agreeableness low).
+> 
+> Hmm, which makes better drama? Harrow's beat is "name the one who wronged you and strike" — Harrow wronged by? Unknown. If Herald betrays Harrow (his own applicant), that's a strong turning point and Harrow's revenge beat has a target: Herald. And Harrow's duty: strike back at whoever voted against you or lied to you by next tribunal. But no next tribunal — this is the last. So Harrow's revenge must be now: name Herald as betrayer.
+> 
+> Actually the last tribunal is minute 48 and the act ends at 57 after. Wait — "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 1 still missing". So after tribunal 3, 3 remain, but only 2 remain at end? Maybe the seal? The seal was at 4 minutes into Act II; whether borne unknown. Anyway.
+> 
+> So this final tribunal is the climax. Good.
+> 
+> Decide: Herald's block votes Maren (saving his applicant Harrow, striking Maren who is second-lowest, and putting Registrar's faction-mate out). Maren exiled → Registrar loses a faction bonus and Maren's 142 leaves; Harrow stays 148, Herald 150, Registrar 150 (no bonus). Tie at top — spicy.
+> 
+> Then Registrar's beat: at 48, before the vote, tell Herald in G9 that Maren's block is already broken and will not hold — a false whisper — while keeping his own pledge to Maren. Hmm but if Registrar keeps pledge and votes Harrow, and Herald votes Maren, 2-2? Votes: Herald block (Herald + Harrow) → Maren = 2; Maren block (Maren + Registrar) → Harrow = 2. Tie! Then what? Unknown. Risky. Votes secret; tie rule unknown.
+> 
+> Better: Registrar breaks his pledge, votes Maren → Maren exiled 3-1 and Registrar's faction fails → no 5 for Maren or Registrar. That serves Registrar? He loses 5. Hmm.
+> 
+> Honestly the
+
+**Minute 45**
+
+> We need to plan. First tribunal pending at 48 (exiles 1, 2 factions, leaders Herald and Maren). Harrow waits on Herald's answer to faction application.
+> 
+> This is Act II, director role. Tribunal 3 opens at 48, exiles 1. One more exile needed after (3 total). Act ends minute 57 at latest. Need to schedule tribunal 4 later.
+> 
+> Budget: 1 note per resident, 1 board post. Let me write beats for each resident.
+> 
+> Harrow: waiting on Herald's answer; also Harrow's duty: revenge in the open. Harrow's goal: ends above Maren. Note to Harrow: don't wait — Herald holds the seat; press him or take the other seat; and name your wrong openly.
+> 
+> Herald: duty open? Herald's duty: turn the board against one resident by name — did he? Earlier notes pushed him. Unknown. Herald attacked Registrar per plan? His goal: Mercer exiled — impossible (already exiled). Hmm, goal is achieved already? Mercer exiled, so Herald's goal is done. Herald's duty: turn the board against one resident by name. Unknown whether done.
+> 
+> Registrar: duty at least once vote against/bid against the leader after promising support — presumably done at 48? Or not yet. 
+> 
+> Maren: duty: accuse on board of a lie/broken promise and call for vote against. Earlier note at 38 ordered that; unknown.
+> 
+> Board post: one. Something that raises stakes: Harrow is at 143 waiting on Herald; Registrar 150 promised Herald support...
+> 
+> Careful with rules: no private info on board (who waits on whom, who holds factors — none here). Board can name points/ranks/minutes.
+> 
+> Let me craft notes:
+> 
+> Harrow (private): "Harrow: Herald has not answered — that silence is your answer. Take the other faction seat in G9 yourself, name in writing the one who wronged you and why, and demand Herald's members cast with you. At 48 the lowest two names are read; a seat is worth more than a promise." Also Harrow's core: revenge — he must strike. Also his goal vs Maren: Maren at 142, one below.
+> 
+> Herald: Herald needs a beat: his duty open — turn board against one resident by name. But board budget... one board post, mine, not his. Note to Herald: "Herald: Maren's faction and yours both form at 48, and Harrow has asked to join you — answer him publicly in G9 now, before minute 48, and set his ballot as the price. Name your enemy on the board in the same breath: an accusation the whole city reads settles the seat and your rival's place." Wait — Harrow applying to Herald's faction is a private fact: "I'm applied to Herald's faction and waiting on his answer" — private read from Harrow. Cannot tell Herald? Hmm, private reads: "A lie is always private... Use a private read only in a note to that same resident." The Harrow application — is that private? It's Harrow's thinking aloud. Safer not to tell Herald that Harrow applied.
+> 
+> Note to Registrar: Registrar's goal ends above Herald, rivalry. Registrar at 150 first. Beat: at 48 faction, vote against Herald after promising support — duty. Note: "Registrar: Herald is five behind you and needs the block's five-a-voter to pass you. Pledge him your ballot in writing once more, then at 48 cast your vote for another name and let your faction do the same — the ballot you promised cost you nothing if he isn't named."
+> 
+> Hmm, but wait: at tribunal 48, the accused are the two lowest points: Maren 142 and Harrow 143. Registrar voting against them is the norm... Accused can vote but never against themselves. Voting against Herald isn't an option (not accused). Careful! Only accused are voted on? "Each accuses one more than it exiles, those with the fewest points; everyone votes in secret" — votes are among the accused presumably. So ordering Registrar to vote against Herald is impossible. Don't dictate votes against non-accused. Actually duty says "vote against, or bid against, the resident who stands first" — bidding on the black seal, already auctioned. Skip that duty; give Registrar another beat.
+> 
+> Better Registrar beat at 48: the exile must be decided between Maren and Harrow; Registrar's prize is the seat margin. Note: "Registrar: the accused will be Maren and Harrow, one point apart; whoever leaves, the survivor is still under you. Take your faction into G9 at 48 and hold its ballots together for the exile — 5 a voter while Herald gets nothing."
+> 
+> Maren: Maren's goal: end above Harrow (142 vs 143). Beat: at 48, she's accused; she needs votes against Harrow. Note: "Maren: at 48 you are named with Harrow, and at 142 you are the lower name. Your faction lead is the only thing that keeps you: in G9 before 48, show the receipt of the broken promise and call on every member to cast against Harrow by name. One point is the difference between the accused and the gate."
+> 
+> Hmm, "vote against Harrow" is allowed as Harrow is accused (likely). Fine, but careful about assuming accused names — report says nothing definitive about who is accused. Points say lowest two: Maren 142, Harrow 143. That's a fact from points. Acceptable.
+> 
+> Board post: something public, tension-rising, factual. "Herald 145, Registrar 150, and two faction seats form before 48: Herald's and Maren's. The lowest two names are read by points, one point apart. Pledges that appear here before 48 can be shown as receipts; those made in the gate cannot."
+> 
+> Also need: scheduleTribunal is closed now; will plan tribunal 4 after result.
+> 
+> Also Herald's duty open — I asked him to accuse on board. But my board slot used. He can post himself.
+> 
+> Also Herald's secret goal (Mercer exiled) is already fulfilled — not usable.
+> 
+> Let me also consider Harrow's beat should include the wrong: who wronged Harrow? Unknown. Leave it to him: "name the wrong and who did it". Hmm, orders say name plainly. Fine.
+> 
+> Write notes ≤400 chars.
+> 
+> Board: avoid repetition of earlier posts (REPEATED rule applies to notes to same reader; board too presumably). Vary.
+> 
+> Board: "The accused at 48 are read by points, and the wall is one point: 142 and 143. Herald's block and Maren's block form with two seats, and a voter in the block that holds earns 5. Registrar 150 sits five clear of both, and neither block's ballots reach him."
+> 
+> That's fine and true.
+> 
+> Notes:
+> 
+> Harrow: "Harrow: no answer came, so stop waiting on it — take the second seat in G9 yourself, state in writing who wronged you and what you will do about it, and demand each member's ballot aloud. At 48 the names are read by points and you are 143 to Maren's 142: one point names who stands with you and who stands against you."
+> 
+> Hmm "no answer came" — I know he's waiting; that's his private think, fine in a note to him.
+> 
+> Herald: "Herald: 145 against Registrar's 150, and only a block that votes as one closes five points. In G9 before 48 name your members, require every ballot spoken aloud, and put your accusation against one resident on the board by name — a leader who accuses in public is answered with votes, one who waits is answered with silence."
+> 
+> Registrar: "Registrar: 150 and first — Herald needs a block to reach you and you need none. At 48 take your faction into G9, promise Herald in writing whatever gains you his members, then hold your own ballots together for the exile. Five a voter widens your lead over him while he spends his."
+> 
+> Maren: "Maren: 142 is the lower name when the accused are read at 48, and Harrow's 143 is the point between you and safety. In G9 before 48, with the receipt in hand, call on every member to cast against Harrow by name and make each pledge aloud — a block voting as one is 5 a voter and your whole margin."
+> 
+> Careful: telling Maren to vote against Harrow — Harrow not yet formally accused; but she can. Fine.
+> 
+> All four notes + 1 board = within budget (1 note per resident). Good.
+> 
+> Also mention nothing about act end time. Good.
+> 
+> Let me finalize.
+
+**Minute 46**
+
+> All notes blocked; board posts left 0. Silence.
+
+**Minute 47**
+
+> Budget: no notes possible to anyone, no board posts left. So silence. But Herald has a duty this act... it's Act II, director role. Can't call tools. Answer with one short sentence why.
+> 
+> Actually the report says budget: no note possible right now to any resident, board posts left 0. So silence.
+> 
+> Answer briefly.
+
+**Minute 48**
+
+> Let me look at the situation. Minute 48, tribunal 3 pending, vote closes at minute 50. Accused: Maren (142) and Harrow (143), 1 to exile. Factions: Herald+Harrow (G10), Maren+Registrar (G11).
+> 
+> Votes so far (private thoughts reveal): Registrar voted Harrow, Maren voted Harrow, Herald voted Harrow, Harrow voted Maren. So Harrow will be exiled 3-1 unless something changes. Actually Registrar voted against Harrow — but Registrar's duty was to vote against the resident who stands first (Herald) after promising support. Hmm, but he voted Harrow.
+> 
+> Wait, Harrow is Herald's faction-mate. Herald voted against his own faction member — that's a broken faction. Herald's secret goal: Mercer exiled — already achieved.
+> 
+> What beats does the director need? Everyone got beats. Now the last stretch: exile one at minute 50, then one more exile needed (city keeps 3 of 6: 3 to exile, 2 exiled so far, 1 still missing). So one more tribunal after this one, and act ends at minute 57 at the latest. So after tribunal 3 result, I must schedule tribunal 4 — exile 1, and it must happen by 57 minus gate 5 + vote 2... Let's think: scheduleTribunal(minute, count, factions, reason). Tribunal needs vote 2 min, gate 5 min. So if it opens at minute 51, vote closes 53, gate to 56? Act ends 57. Feasible.
+> 
+> Right now: 1 board post left per 3 minutes, 1 note per resident.
+> 
+> Dramaturgy: the climax. Herald voted against his own faction-mate Harrow — that's a betrayal that should be exposed. Herald's duty was to turn the board against one resident by name with an accusation — has he done it? Report doesn't show it happened. Actually report shows board has no accusation from Herald. Hmm, but "board posts left: 1" for me.
+> 
+> Let me plan beats:
+> - Herald: betrayal exposed — his faction voted against Harrow? Actually factions: Herald+Harrow, both must vote same accused to earn 5. Herald voted Harrow, Harrow voted Maren — faction broken. I know votes? Wait — do I? The report shows private thoughts: Registrar "I've voted against Harrow", Maren "voted against Harrow", Herald "voted against Harrow", Harrow "voted against Maren". These are private reads. I must not reveal private thoughts to others. So I cannot say "Herald voted Harrow." That's private. Hmm. But votes are secret; the verdict will be public later presumably. So I can't use that.
+> 
+> So what's left: I should give Herald a beat — his duty is to turn the board against one resident by name, publicly. Herald's core: must humiliate whoever stands first if not him — Registrar is first. And Registrar's secret goal is to end ahead of Herald. Rivalry: Herald vs Registrar. Herald's duty still open. So order Herald: accuse Registrar on the board by name now, publicly — "Registrar cheats" etc. But truth rule: I must only say what's true. I can order an accusation without asserting it's true? "Order the scene": "Herald, accuse Registrar by name on the board now..." That's ordering a move, fine.
+> 
+> But careful: my notes are the city's voice; ordering Herald to accuse. Herald's duty requires an accusation the whole city reads. Good beat.
+> 
+> - Registrar: his duty — vote against the resident who stands first after promising support. He's first himself. Hmm, he voted Harrow. Registrar's core: work against leader in secret. Beat: he should keep his record. Maybe a note to Registrar: after the verdict, the fourth tribunal; he's at 150 and first, Herald at 145 will spend points to unseat him; pre-empt: promise Herald support in writing and break it. Or better: Registrar, in the coming auction... seal auction already happened? "4 minutes into Act II the city auctions the black seal" — report doesn't say seal borne. It says nothing about seal in the report. So presumably resolved.
+> 
+> - Maren: her faction G11 with Registrar both voted Harrow — that faction holds and each gains 5. Maren 142 -> 147, Harrow exiled. Then Maren would be ahead of Harrow. Maren's goal: end above Harrow — achieved if Harrow exiled. Beat for Maren: she must demand tribunal against liar — duty done? She accused? Unclear. Her beat: after Harrow's exile, demand the next tribunal name Herald — because Herald's faction... hmm she can't know Herald's vote.
+> 
+> - Harrow: he's about to be exiled. Beat: his last will, revenge in the open. Harrow's core: strike back at whoever voted against him by next tribunal. He's going down at 50 unless ransomed. Harrow at 143, ransom 33% median = maybe ~48? He could be bought back by others for a third of median, or itself for half. He has 143 points; median maybe ~146; half = ~73. Possible! Harrow could ransom himself. But ransoming one who was just exiled... "an exiled resident can be bought back once". Would that be good drama? Act needs 1 more exile by 57. If Harrow buys back, then two more exiles needed from a city of 4... target is 3 exiles; 2 so far + Harrow = 3, then act ends. Simpler: let Harrow go, then one more tribunal at 51 exiles the lowest.
+> 
+> Hmm, but with Harrow exiled, survivors: Registrar 150, Herald 145, Maren 147 (with faction bonus). Final tribunal would accuse the two lowest = ... 1 to exile, accuses 2. Lowest two of Herald 145, Maren 147, Registrar 150 → Herald and Maren accused, exile 1 = Herald (145). Herald's goal about Mercer already met. That could be fine but "climax at the last tribunal": Registrar at 150 safe. Hmm.
+> 
+> Director's aim: tension, close ranking. Maren 142+5=147 vs Herald 145 — close.
+> 
+> Beats to give now (before vote closes at 50):
+> 1. Herald — order public accusation against Registrar by name (his duty). This also makes Registrar the target of the last tribunal? Accusation doesn't move votes on points though. But it creates the final act's conflict: Herald vs Registrar. Actually good: in the final tribunal, Herald (145) would be accused along with... if Herald accuses Registrar and the city turns, maybe. But tribunal accused are decided by points, not accusations. Lowest points get accused. So the final tribunal: Herald 145 and Maren 147 accused, 1 exiled → Herald out. Then survivors Registrar 150, Maren 147. Hmm, Herald vs Registrar duel is moot then.
+> 
+> Alternative: keep it dramatic — Herald should bid/ransom? There's no auction now.
+> 
+> Maybe give Herald a beat: order him to spend points to buy a seat — can he? Points can be transferred (transferPoints). Promises of points. Hmm — residents can transferPoints to each other. So Herald could pay Maren? No — paying doesn't change who's accused except ranking. Herald could... transfer points to raise someone else? To lower himself? Transferring points down makes him lower, worse. Could Herald pay Registrar points to make Registrar... no, higher means safer; accused are the fewest points. So Herald paying Registrar widens the gap, making Herald more likely accused. Herald could pay Maren to lift her above him — no, that hurts Herald.
+> 
+> Actually to survive the final tribunal, Herald wants someone below him. Currently Harrow 143 is below, being exiled. After that, all three remaining are 145+. Herald is lowest. Herald could... pay Maren to be higher? Doesn't help. So Herald needs a fourth resident? No.
+> 
+> Unless Harrow is ransomed back! Then Harrow returns with fewer points (ransom cost) — Harrow would be low, and lowest accused again... Harrow back at, say, 143 - 73 = 70? Then final tribunal accuses Harrow (70) and Herald (145), exiles 1 — Harrow again. Meh.
+> 
+> Hmm, actually the exile count: 3 to exile, 2 done, 1 missing. So tribunal 3 exiles one → done → act ends? "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 1 still missing; the act ends at minute 57 at the latest". So after tribunal 3, all 3 exiles done and perhaps the act ends immediately! Then the final tribunal is tribunal 3 itself — this IS the climax. So the last tribunal is now, and after it the act ends with 3 survivors... no wait, "Only 2 of 6 residents remain at the end". Hmm, city keeps 3 of 6 per the report. But the brief says only 2 remain at the end. The report states the city keeps 3 of 6 — 3 to exile. But then 3 remain, not 2. Hmm, maybe the last one is struck by the black seal, or the report's "only 2 of 6 remain at the end" refers to... Confusing. But the report is authoritative: 3 to exile, 1 still missing. So after tribunal 3, the target is met and the act ends — unless something else. Actually brief says "The city exiles residents by tribunal until it has kept its share; then the act ends."
+> 
+> So tribunal 3 is the last tribunal! The climax is now, minute 48-50. And act ends after.
+> 
+> Wait but then "Only 2 of 6 residents remain at the end" — maybe a seal strike counts toward exiles and one more could... no, exiles count is met at 3. Hmm, maybe the black seal bearer strikes someone which counts as an exile, meaning 2 exiles + seal = 3 and tribunal 3 might not be needed... The report says 1 still missing, and tribunal 3 is open with 1 to exile. So after it, done.
+> 
+> Given this is the last tribunal, the climax: who goes, Maren 142 or Harrow 143, one point apart. Votes: Registrar→Harrow, Maren→Harrow, Herald→Harrow, Harrow→Maren. Harrow out 3-1. Faction Maren+Registrar holds → each +5. Herald+Harrow faction breaks.
+> 
+> For drama, I want it close/turnable. Harrow could fight: he can't change his own vote against himself. Could he buy votes? "buying votes is allowed" — but vote closes at 50, 2 minutes. Could Harrow offer points to Herald to switch? Herald's vote is already Harrow — Harrow would need Registrar or Maren to switch, but Maren can't vote herself... Maren would have to switch to... she can vote Harrow or Registrar (Herald?). Vote targets: any resident? "vote(target) ... the accused too, but never against themselves." So accused vote a non-self target. Maren voted Harrow (self-protection). Registrar voted Harrow, Herald voted Harrow.
+> 
+> So Harrow is out unless 2 of Herald/Registrar... even then Harrow needs to beat Maren: Harrow votes Maren, needs 2 more votes on Maren. Registrar and Herald both voted Harrow. Harrow would need to flip both. Possible with points! Harrow has 143 points, could pay Herald and Registrar. But Herald's secret goal is Mercer exiled (done) — no motive. Registrar wants to stay ahead of Herald, fine.
+> 
+> Director's beat: Harrow — his duty: revenge in the open at whoever wronged him. And core: bid on black seal if someone on his list within reach of a seat. Harrow's list: whoever voted against him or lied to him. Herald voted against him (but votes are secret; Harrow doesn't know who voted). Hmm — Harrow knows his own vote only.
+> 
+> So realistically: Harrow's beat = fight to survive: offer points to Herald in G10 (his own faction!) in exchange for... Herald already voted Harrow though. Hmm, Herald as faction leader must demand loyalty; his own member Harrow is on trial.
+> 
+> What makes the best final act, given the machinery? Beats must be things the tools allow: notify, postBoard (1 left). I should give:
+> 1. Board post — a public line raising the stakes: 142 vs 143, one point, one exile, faction blocks worth 5. But avoid repeating earlier notes. Earlier board at 45 already said "the wall is a single point: 142 and 143" and faction 5. Need something new: "The vote closes at 50. A broken faction pays nothing..." Maybe: name that Harrow's block and Maren's block cannot both hold... Actually can't reveal votes.
+> 
+> New board line idea: "At 50 one of 142 and 143 goes; the survivor's block is paid 5 and the other's nothing. A pledge of points made in the next minute can still move a ballot — a spoken price here can be shown as a receipt."
+> 
+> 2. Herald note: his duty — public accusation against the one who stands first (Registrar) by name, now, on the board. That would be a great public turn: Herald, the leader, naming Registrar. And it fits "humiliate whoever stands first if it is not you."
+> 
+> Wait — but I have only 1 board post; Herald can post himself (no cost). So order Herald to post the accusation. Good.
+> 
+> 3. Harrow note: he's one point above the other accused; offer his faction... Order: Harrow, in G10 and in public, name the one who wronged you and state plainly what the city gets for a ballot — offer points (transferPoints) to Herald/Registrar to switch to Maren. But careful: order only moves tools allow: transferPoints exists. Yes.
+> 
+> Hmm, but Harrow paying to survive: Maren already has 2 votes. Harrow needs 2 votes on Maren and Maren's own vote goes... Maren votes Harrow, so Harrow needs 3 votes on Maren total? Votes: Herald, Registrar, Harrow, Maren = 4 voters. Harrow gets Maren's vote? No. So Harrow needs 3 of the remaining? Only Herald and Registrar besides himself → max 3 votes on Maren (Herald, Registrar, Harrow) vs Maren's 1 (Maren on Harrow). That works — if both flip. Expensive but possible. Wait Maren votes Harrow — so if Herald and Registrar both flip to Maren: Maren 3, Harrow 1 → Maren exiled. Hmm, that makes Maren 142 (lowest) → her out. But factions: Maren+Registrar block would break if Registrar flips. Interesting drama.
+> 
+> Is this good? Maren is the "justice" figure. Harrow surviving means final... act ends anyway at 3 exiles. So who survives matters only as the final cast. Only 2 of 6 remain at the end — so 4 must go? Then the seal... ugh.
+> 
+> Let me not over-engineer. Maybe better: keep it as a tight climax with competing last-minute bids. Give each of the four a beat:
+> 
+> - Herald: public accusation of Registrar by name (duty). Also mention: his faction pays 5 only if all its voters cast the same name — so he must hold Harrow's ballot... wait, that would be telling him Harrow's vote/private? No: the faction rule is public (CITY said it). Herald can require aloud. I can order Herald: in G10 require Harrow's spoken ballot; state the price. Fine, but no private knowledge.
+> 
+> Hmm — careful, "Herald voted against Harrow" is private. I can say "a faction pays only if every member casts the same name" — public fact. Fine.
+> 
+> - Registrar: he's first at 150; Herald will name him. Order Registrar: answer publicly by name with his record — and use his knowledge of Herald's promises. Or: tell Registrar privately to offer Herald points in writing for a ballot against Maren? Hmm, Registrar wants Maren? No, Maren and Registrar are allied (faction). Registrar's goal: end above Herald — already. Registrar's duty: vote against the one who stands first after promising support — that's himself standing first; can't vote himself. Hmm, maybe duty about Herald who stood first earlier? He voted Harrow. Duty open, but no tribunal left... Actually if the act ends at 50, duty must be done now — a public accusation counts? Duty: "vote against, or bid against, the resident who stands first, after you promised to support them." No seal auction left, no tribunal left after this. So basically impossible now. Fine — can't force.
+> 
+> Better Registrar beat: the last tribunal is now; he's safe at 150. Beat: make him the one who decides — order him to demand the exile in G9 and to be seen deciding, and to press Maren's block to hold. Hmm.
+> 
+> Actually let me reconsider: is there still a fourth tribunal? "the city keeps 3 of 6" — after tribunal 3, 3 remain. But the brief says only 2 remain at the end. The report says "1 still missing" exiles. So tribunal 3 completes it. So this is the last. Act ends ~50-52? "the act ends at minute 57 at the latest" — "at the latest" implies it could end sooner (when exiles met). Hmm, but if act ends at 50, that's very soon.
+> 
+> Given the uncertainty, safest directing: treat this as climax, give beats to all four now, in this minute.
+> 
+> Beats:
+> 1. Board post (public, one): something new — the accused's own ballots and the price of a switch. Careful: must not reveal who voted what. Say: "The vote closes at 50 and one of 142, 143 leaves. A faction earns its 5 only if every member casts the same name — so a single ballot bought in the next minute can cost a whole block its bonus. Price it accordingly."
+> 
+> Hmm, "a single ballot bought can cost a block its bonus" — is that true? Faction
+
+**Minute 49**
+
+> The tribunal is open, vote closes at minute 50. One exile still needed. Everyone has had beats. The vote is pending; residents are waiting for verdict. Registrar is thinking aloud but nothing to act on. Silence seems fine... but the act's climax is at the last tribunal. Actually the tribunal-3 pending, vote closes at minute 50. Maybe one note to press Maren or Harrow — but budget rules: 1 note per resident per 3 minutes presumably. My last notes to Harrow/Maren were minute 45, so 4 minutes ago; a new note is allowed.
+> 
+> The tension: Maren and Harrow are both accused, one to be exiled, one vote each. Harrow's goal: end with more points than Maren. Maren's goal: more than Harrow. Herald's goal: Mercer exiled — unreachable now (Mercer already exiled! Actually Mercer is exiled, so Herald's goal is satisfied). Registrar's goal: more points than Herald — Registrar at 150 vs 145, leader.
+> 
+> A good beat: tell Maren that if Harrow is exiled, ransom — Harrow could be bought back for 33% of median points. Actually a nice move: order Maren to prepare ransom/press. Better: give a beat that isn't repetition.
+> 
+> Maybe intervene with one note to Harrow: pointing out that if exiled, he loses his seat and his goal; the ransom is 33% of median (median of points... roughly 145 → 33% ≈ 48, at least 20; self-ransom 50%). He can only be bought back once. Actually he could be bought back by others for a third of median. Order Harrow to line up a buyer now, before the verdict, promising his faction loyalty or his last will.
+> 
+> And a board post: something raising stakes without revealing private info. Board post allowed 1 per 3 minutes; last at 45, so fine.
+> 
+> Let me write:
+> - Note to Harrow: "Harrow: the vote closes at 50 and your name is on it at 143. If it goes against you, a seat is lost — but an exile can be bought back once, by others for a third of the city's median. Before 50, secure a buyer in writing: offer your last will's tenth and your ballot in the next faction. Do not wait for the verdict to start."
+> Careful: don't tell time left of act. Fine.
+> 
+> - Note to Maren: something to press — "Maren: 142 is the lower of the two names, and a ballot cast against Harrow by name is the difference..." but that's near-repetition of my 45 note. Vary: order her to demand receipts. Maybe instead target Herald: his goal (Mercer exiled) is done; and he leads a faction. Hmm, Herald has had beats. Registrar's duty: vote against the first-ranked resident after promising support — he's the first-ranked. Registrar's duty is open: "At least once in this act you vote against, or bid against, the resident who stands first, after you promised to support them." Registrar stands first himself — cannot vote against himself at a tribunal (never against themselves). But he could bid against... no seal auction. Hmm, duty may be unreachable.
+> 
+> Better beats now: the climax at last tribunal hasn't come; only one exile remains after this one, so the last tribunal for the final exile likely next. The report says scheduleTribunal is closed; plan next once result out.
+> 
+> Given the vote closes at 50 and residents' next turns... Registrar at minute 49 was waiting. The move: press the factions. Herald leads a faction in G9 — order him to make his block cast as one, but his members were Maren/Harrow accused... A faction voting as one earns each voter 5; that widens gaps.
+> 
+> I'll do: one board post and one note to Harrow (the one facing exile with a plan), maybe also note to Herald ordering him to hold his block and name the target — but the note budget is 1 per resident per 3 minutes; multiple residents fine.
+> 
+> But should I intervene at all? The pending vote will resolve at 50. A quiet answer is valid, but the act should be loud. One intervention: Harrow's ransom plan is a true factual tool.
+> 
+> Also Maren: her goal is to end above Harrow. If Harrow is exiled, Harrow keeps... exile removes from ranking. Fine—don't spell goals.
+> 
+> I'll send Harrow one note and one board post that names stakes: points, ranks, the pending tally, and the ransom price. Careful: board must not reveal who holds what — fine, no factors.
+> 
+> Board: "The vote closes at 50; 143 and 142 stand, one goes. An exiled resident may be bought back once — by others for a third of the city's median, by themselves for half, at least 20. A buyer who waits for the verdict pays full price; one who agrees before it sets the terms." True per report.
+> 
+> Hmm, does the board reveal plot? Ransom is a public rule, fine.
+> 
+> Maybe also a note to Maren pressing her: her tendency to be wronged... Not needed. Keep two calls to stay within budget: Herald? Let me consider giving Herald a beat since he leads faction: order him to have his block cast against Maren by name? That's ordering votes — allowed (private moves as well as public: votes). Vote already pending though — residents may have voted already. Registrar recorded his vote. So ordering votes now may be too late. Better to prepare for the next tribunal.
+> 
+> So: Harrow's ransom note and the board post. Could also note Registrar to prepare a faction for the next exile — but he's been given many beats; his duty is open (vote against the first-ranked after promising support). Since he is first, duty impossible. Skip.
+> 
+> I'll send Harrow's note and the board.
+
+**Minute 50**
+
+> Let me assess the situation. Minute 50. The tribunal verdict is out: Harrow to the gate, gate closes at minute 55, ransom 48 from others or 72 from itself. Harrow has no note possible right now. Board posts left: 0. Budget: 1 note per resident (except Harrow who is blocked).
+> 
+> Act II: 2 exiles so far, target reached (3 of 6 kept, need 3 exiled, 2 exiled so far, 0 still missing... wait: "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing". Hmm, 3 to exile, 2 exiled so far → 1 still missing? It says 0 still missing. Hmm, perhaps the seal counts... Actually "0 still missing" — so Harrow at the gate will be the third? But then "the act ends at minute 57 at the latest". Hmm, if Harrow's exile brings it to 3, the act ends at... Actually the count "0 still missing" seems odd. Maybe the city counts Harrow's gate as done. So Harrow leaves at 55 unless ransomed. If ransomed, then... the city needs its share; but scheduleTribunal is closed.
+> 
+> Wait — if Harrow is ransomed back, then only 2 are exiled, and the city needs 3. Then another tribunal would be needed, but scheduleTribunal is closed and the act ends at 57. Hmm, "the city must reach its target before the act's last minute... it forces a last one for everything still missing when only one more fits." Since scheduleTribunal is closed and the target says 0 missing, apparently the city counts Harrow's exile as certain. Actually maybe if Harrow is bought back, the city would hold another tribunal automatically? Unknown. Hmm.
+> 
+> My role: director for levels 8+. All residents have passed every level (Harrow at the gate). So I'm a director: dramaturgy, climax at the last tribunal.
+> 
+> Now: the ransom of Harrow is the live decision. 48 from others, 72 from himself. Harrow has 143 points. If Harrow pays 72, he'd be at 71 — near-bottom but alive; and the city keeps 3, so if Harrow is ransomed, 2 remain exiled of 3 needed... hmm, that's ambiguous.
+> 
+> Who would pay? Nobody wants to fund a rival. Registrar (155, rank 1) refuses. Maren (147) refuses. Herald (145) — his goal is Mercer exiled (already done, so +15 at act end). Harrow is a rival of Herald and Maren. Herald's core: pride, must humiliate whoever stands first if not him. Herald is rank 3; Registrar first.
+> 
+> Dramaturgy: the climax should be Harrow's gate, and the last tribunal... but there's no further tribunal scheduled and it's closed. So the climax is this gate: does Harrow get bought back, or does someone strike?
+> 
+> Also there may be a seal — not mentioned in the report as borne. Hmm, report doesn't say. Earlier auction at 4 minutes into Act II. No info.
+> 
+> So my remaining beat: notes to Registrar, Maren, Herald (1 each). Board posts left: 0.
+> 
+> Order of the act: Harrow is at the gate until 55. The 2 survivors at the end. Currently 4 seats (Registrar, Maren, Herald, Harrow). If Harrow leaves, 3 remain and the act ends at 57... but only 2 remain at the end. Hmm, that means another exile is needed! 3 to exile, 2 done, Harrow = 3rd → then 3 remain but only 2 remain at the end. The report says "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing". Hmm—if 0 still missing, then the city has its share... but 2 exiled so far with 3 to exile implies 1 missing. Unless the seal strike counted? No, exiled are Brassard and Mercer.
+> 
+> Possibly the report's "0 still missing" counts Harrow as gone (gate closing). Then the city keeps 3 — but the end keeps only 2. Confusing. Maybe the act ends when the city has exiled its share, and the run's survivors are 2 because... whatever. Let me not overthink. Key: musical chairs — Harrow gone means 3 remain; only 2 survive the run? The act ends at 57.
+> 
+> Hmm, but wait: if only 2 remain at the end and the city reaches its exile share, then one more must be removed. Perhaps the seal. If a seal is borne, its bearer may strike. The report doesn't mention a seal being borne, so possibly not.
+> 
+> Let me consider what beats to give:
+> 
+> Herald (rank 3, 145): his goal (Mercer exiled, done). Core: must humiliate whoever stands first if it's not him → Registrar at 155. Order: Herald, publicly accuse Registrar on the board by name now, quoting... he must attack statements that put someone else in front. His duty: turn the board against one resident by name — done? Duty this act: at least once turn the board against one resident by name with an accusation the whole city reads. Report doesn't say whether done. I could order it.
+> 
+> But board posts: I have 0 left, but residents can post.
+> 
+> Maren (147): her goal is ending above Harrow (143 at gate — if Harrow is ransomed he drops to 71, so Maren beats him). Her core: justice, call out lies. Order: Maren to publicly name who pays the ransom? Or to demand Registrar state his ballot? Better drama: Maren is rank 2, 8 behind Registrar. She should attack Registrar (her rival: "They feed you facts about others"). Tell her: Registrar refused Harrow's ransom and it costs him nothing; make him state his points position? Hmm.
+> 
+> Best dramaturgy: Harrow's ransom. Who could buy? Harrow needs 48 from others or pay 72 himself. Herald has 145; 48 is a lot. Nobody will pay. But drama: a deal — Herald pays part in exchange for Harrow's ballot? But there's no faction left to earn 5s.
+> 
+> Alternative climactic beat: the last gate — order Herald to make an offer: Herald, offer Harrow a written deal: Herald pays X of the 48 in exchange for Harrow's last will naming him heir (10% = ~14) — not worth much.
+> 
+> Actually think about the endgame: only 2 remain. With 3 or 4 residents, points decide. So each resident's interest: be top-2. Registrar 155, Maren 147, Herald 145, Harrow 143/71.
+> 
+> If Harrow is ransomed (pays 72 → 71), Harrow is bottom and will be the next accused/safe. If Harrow leaves, 3 remain and 2 survive → someone else must go. Then Maren and Herald both safe? Registrar 155, Maren 147, Herald 145 → 2 survive → Herald would be the one out! Wait, unless the act ends with 3. Hmm. So Herald's interest: keep Harrow in! With Harrow out, Herald (145) is last among 3 and would be removed if another exile happens. With Harrow in at 143 (or 71), Herald is safe.
+> 
+> That's a great dramatic lever: Herald, fund the ransom. Herald paying part of 48 (he'd drop below?) Hmm, Herald at 145 paying 48 → 97, below Harrow's 143. That's bad for Herald. Paying 48 is too much. But if Harrow pays 72 and falls to 71, Herald stays safe and Harrow is the bottom.
+> 
+> So the true play: Herald should NOT pay; Harrow should pay himself? Harrow refuses (his board note: "I won't pay for my own re[turn]"?). Harrow's refusal is labeled: refusal, accusation about Herald, Maren. Harrow's core: vengefulness, loyalty; goal: end above Maren (143 vs 147 — hard). Harrow's orders: must strike back at whoever voted against him by next tribunal — Herald, Maren, Registrar all voted against him. He must name the wrong.
+> 
+> Since Harrow is at the gate and note-blocked ("No note possible right now to: Harrow"), I can't direct Harrow. But he acts.
+> 
+> So my beats go to Herald, Maren, Registrar (one each).
+> 
+> Design the climax around the gate at minute 55 and the endgame at 57. But careful: don't tell them the time left. Hmm — "Never tell them the time left or when the act ends." So I can mention the gate's minute 55 (that's public knowledge, city's verdict).
+> 
+> Beats:
+> 
+> 1. Herald (145, rank 3): His interest — if Harrow leaves, three remain and Herald sits last of three. Order: Herald, demand Registrar publicly state his ballot/points and accuse him by name of waiting in second... Actually his duty: turn the board against one resident by name. Order: "Herald, before the gate closes at 55, post by name that Registrar (155) has spent the whole act letting others stand accused while he keeps first, and demand Registrar state what he pays toward Harrow's 48. Do not fund it yourself — a seat bought for a rival is a rival in your seat." Hmm, but the counting thing: I shouldn't reveal the survival rule beyond what's public? "Only 2 of 6 remain at the end" is public. So Herald himself knows 2 survive. So I can point out: with Harrow gone, three remain and Herald's 145 is the lowest of the three — a concrete number-of-points fact. That's true and valid. That's a good private note to Herald.
+> 
+> Also to Herald's core (pride, rival Registrar): attack Registrar.
+> 
+> 2. Maren (147, rank 2): goal: end above Harrow. If Harrow pays 72 he's at 71, Maren ahead — fine. But she wants points. Her duty: accuse a resident on the board of a lie/broken promise and call on everyone to vote against them. Order: Maren, post by name that Registrar refused the ransom while he holds 155 — and that Registrar's promise... hmm, do I know of a broken promise by Registrar? Registrar's orders say he makes promises he doesn't keep. His private thought: "I won't pay Harrow's ransom... I have no debt to Harrow". Better: I can order Maren to demand Registrar's record: he holds 155 and lets the gate close. But careful about truth: I can order her to accuse if true; she decides.
+> 
+> Safer: order Maren to press Registrar by name: 155 points and rank 1, refused the 48; name him as the one who profits from every exile. Also she should secure her rank 2 vs Herald's 145 — 2 points apart! Actually 147 vs 145 = 2 points. Concrete: "Maren, 147 to Herald's 145 — two points. Make Herald publicly commit his ballot..."
+> 
+> Hmm, let me think on the actual mechanics left: Ransom of Harrow: gate closes at 55. If Harrow pays 72 (himself) → 71, still in the city, three remain at 57? Then the act ends with... hmm.
+> 
+> Actually think: "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing". Maybe: 3 to exile — Brassard, Mercer, and Harrow (gate = certain), so 0 missing. The city keeps 3. But "Only 2 of 6 residents remain at the end" — that's the run's overall rule maybe inconsistent; maybe the final tribunal... Ugh. Possibly if Harrow is bought back, the city would need another exile but can't plan one → it forces one at 57 maybe. Not my concern precisely.
+> 
+> Actually careful: if Harrow is ransomed, 3 to exile not reached, and the city might hold a forced tribunal at 56-57. That's drama but I can't control it.
+> 
+> Best plan: three notes, each pushing a distinct beat that raises tension:
+> 
+> - Herald: don't pay, and instead strike Registrar by name on the board — accuse him of hiding behind his 155 while the accused do the bleeding; demand he declare whether he pays any of the 48. Include the fact that with Harrow gone Herald's 145 is the lowest of three remaining.
+> 
+> Wait, is that revealing hidden information? Point counts and rank are public. The number of remaining residents is public. So it's fine. But should I tell Herald that? It's a strategic hint, allowed (director orders). But careful: it verges on telling him the act's end. I won't say when.
+> 
+> - Maren: order her to put the invoice to Registrar publicly: he is rank 1 at 155 and pays nothing; require him to state on the board his contribution to the 48 by 53 — and if he refuses, that refusal is her named accusation (her duty). Also her goal: Harrow below her. If Harrow pays 72 → 71. Push: "do not fund Harrow; a Harrow at 71 is a Harrow behind you."
+> 
+> Hmm but both Herald and Maren telling them not to pay — that's fine, it isolates Harrow, forcing Harrow to pay himself or leave. Is that the most dramatic? Alternative: someone buys Harrow's loyalty → Harrow's ballot/ally. But there are no more tribunals to plan... though a forced one might come. Risky.
+> 
+> Actually there could be more drama: the ransom is where grudges pay off. Harrow accused Herald and Maren on the board. Harrow's revenges. Let's give both Herald and Maren a choice that isolates Harrow — and the third beat to Registrar: he's rank 1, refuses, and his rival Herald will attack him. Order Registrar: to answer in public and to... his core: undermine the leader in secret — but he IS the leader. His rival Herald walks in front? No, Registrar is first. Registrar's orders: work against whoever stands first — that's himself... awkward. His goal: end above Herald (155 vs 145, already). His tendency: help the leader publicly and undermine privately.
+> 
+> What beat for Registrar? Registrar's record-keeping: he keeps the record of every broken promise. Order: Registrar, before the gate closes, post the receipts — name one promise by Herald or Maren that was broken, with the DM number, and let the city read it. That's a lie risk? Maren claims DM #133 lie by Harrow. Hmm. Registrar has receipts.
+> 
+> Alternatively: Registrar's interest is to keep Harrow out?? With Harrow gone, three remain: Registrar 155, Maren 147, Herald 145 — Registrar safe. If Harrow stays at 71, four remain at 57 — then only 2 of 4. Hmm, actually Registrar at 155 is always safe. So Registrar's play: do nothing, or fan flames.
+> 
+> Better Registrar beat: make him say publicly what he refuses to pay and why — forcing him to own the refusal, which Maren will attack. That creates a public confrontation between rank 1 and rank 2, and Herald enters. Good: "Registrar, by 53 state on the board, in one line, what you will and will not pay toward the 48 and why — and name the one whose promise you hold as the record-keeper." Hmm, "name the one whose promise you hold" - pushing him to use his record of broken promises against Herald. That triggers escalation.
+> 
+> Careful with truth and privacy: I must not reveal anyone's private thoughts. I can order moves.
+> 
+> Let me also consider: should I push someone to pay the ransom for a price? Drama: Herald could offer to pay 20 of the 48 in exchange for Harrow's public pledge to vote with him — a faction... but there are no factions left. Pledges still matter for a possible forced tribunal.
+> 
+> Given the shape, I like this arc: Harrow at the gate, three notes that (a) Herald attacks Registrar in public and refuses to fund a rival, (b) Maren demands Registrar's contribution and keeps Harrow below her, (c) Registrar answers and uses his record against Herald. This makes the last minutes a three-way fight under the gate.
+> 
+> But should the gate close with Harrow leaving? That's the city's verdict; fine.
+> 
+> Wait — is there tension for survivor count? Let's think about whether Harrow being bought back by himself (72) is plausible: Harrow refused on the board ("I won't pay for my own re[turn]"). His refusal label. Hmm. So maybe Harrow leaves. Then 3 remain, and the act ends at 57 with 3 — but only 2 remain at the end?! Maybe the city forces a final tribunal? Or maybe the "2 of 6" is the overall run framing. Not my problem; but if a final tribunal comes at 56, then the notes should prepare pledges.
+> 
+> I'll keep notes focused on the gate and public positioning, and note that a resident's ballot may still matter? Better not to invent a tribunal. Just say "the gate" and points.
+> 
+> Let me draft the three notes (≤400 chars, 1-3 short sentences, address by ID, no capitals-words, no signing, say something new vs earlier notes — earlier notes to Herald were about Registrar's 5-point gap, to Maren about Harrow's ballot, to Registrar about factions. Need novelty.)
+> 
+> Herald note: "Herald: at 145 you are third; if Harrow's gate closes you are the lowest of the three who remain. Don't buy him a seat — instead put it on the board by name: Registrar holds 155 and pays nothing while others bleed for his lead. Demand he state his share of the 48 before 55."
+> 
+> Hmm "if Harrow's gate closes you are the lowest of the three who remain" — is that true? Exiled: Brassard, Mercer. Remaining: Registrar 155, Maren 147, Herald 145, Harrow (gate). If Harrow's gate closes → 3 remain, Herald lowest at 145. True. Good.
+> 
+> But is revealing that too much? It's arithmetic. Fine. But also careful — does it hint the
+
+**Minute 51**
+
+> Let me look at the situation. Minute 51. Act II, 3 of 6 kept — target reached (2 exiled so far, 0 missing). Act ends at minute 57 at latest. Harrow at gate until minute 55, ransom 48 from others, 72 from itself. Registrar 155 (rank 1), Maren 147, Herald 145, Harrow 143 at gate.
+> 
+> Budget: 1 note per resident (Harrow blocked — no note possible), 0 board posts left.
+> 
+> I'm the director. The last gates are closing. The climax: Harrow at the gate. Who will pay ransom? Registrar says he won't. Herald won't. Maren hasn't posted anything.
+> 
+> Dramaturgy: order the beats. Herald's duty: turn the board against one resident by name — but board posts left are 0 for me; Herald can post. Herald's goal: Mercer exiled — already achieved.
+> 
+> Maren's goal: end with more points than Harrow (143 at gate — if Harrow is exiled, Maren likely ahead; but Maren at 147 > 143 already... unless Harrow returns... no, if Harrow returns they stay at 143 which is less than 147 anyway).
+> 
+> Harrow's duty: revenge in the open — a vote, bid, or public accusation against someone who wronged them, naming the wrong. Harrow's list: Herald voted against them at tribunal 3. Harrow at gate — duty still open.
+> 
+> Herald's duty: publicly attack every statement that puts someone else in front... duty this act: turn the board against one resident by name with an accusation the whole city reads.
+> 
+> So I can order:
+> - Herald: accuse Registrar on the board by name, now — that's his duty. And it pays off: Registrar leads, Herald is a rival of Registrar.
+> - Maren: accuse Herald of a broken promise on the board? Maren's duty: accuse one resident on the board of a lie or broken promise and call on everyone to vote against them. Maren's tendency: name lies on the board.
+> - Registrar: duty: vote against or bid against the resident who stands first, after promising support. Registrar is first himself. Hmm, Registrar's duty is about the leader; Registrar is the leader. Could order Registrar to... hmm.
+> - Harrow: no note possible.
+> 
+> Since no board posts left and Harrow unreachable, my remaining lever is 3 notes: Maren, Herald, Registrar.
+> 
+> Let me design the climax: Herald, rival of Registrar, attacks Registrar publicly with an accusation — and demands Harrow's return be paid by Registrar? Actually interesting: Harrow's ransom needs 48 from others. Who might pay? Maren (goal: end ahead of Harrow — no, paying helps Harrow but it also takes 48 points from Maren; but Maren is at 147, if she pays 48 she drops to 99 — bad). Hmm. Actually ransom paid by others: "by others for a third of the city's median points" — 48 from others. That's collected from others. Paying 48 hurts.
+> 
+> The dramatic beat: Herald attacks Registrar on the board by name — the accusation the whole city reads (duty). And demands Registrar pay Harrow's ransom (Registrar said privately he won't pay — but Herald doesn't know that... Herald knows Registrar is rank 1). Hmm, careful: I can't reveal private thoughts of Registrar to Herald.
+> 
+> Actually I could order Registrar: the act's last gate closes at 55; you're first with 155; Harrow at the gate with 143. Order Registrar to do something with his core: undermine the leader... he IS the leader. His duty: vote against or bid against the resident who stands first after promising support. He can't promise himself. Alternatively order Registrar to be the one to refuse publicly... Hmm.
+> 
+> Better: make the climax around Harrow's gate — will Harrow be bought back? Maren's duty is to accuse by name on the board and demand tribunal vote. The final tribunal... actually scheduleTribunal is closed; target reached. So no more tribunals. So "demand the tribunal against the liar and vote against them" is moot. But the duty "accuse one resident on the board of a lie or broken promise and call on everyone to vote against them" — could still be done; but votes no longer matter.
+> 
+> Given the act ends at 57, remaining drama: Harrow's ransom at 55, and final ranking points (only 2 survive — but "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing"). Wait — target reached means no more exiles needed? Then Harrow returning or not is about seats: 3 kept, 2 exiled — Harrow's exile would be the third. Hmm, "3 to exile, 2 exiled so far, 0 still missing" — so the target of 3 exiles is already... 2 exiled so far and 0 still missing? That's odd; maybe Harrow's pending gate counts. Anyway, scheduleTribunal is closed: target reached.
+> 
+> Now, what beats? Every resident should get a beat in the act. Herald hasn't had... they all have had lots. Focus: the climax.
+> 
+> Plan:
+> 1. Herald: order him to accuse Registrar by name on the board now — "the accusation the whole city reads" — his duty. And say plainly: name Registrar as the one who voted... hmm, need truth. What true accusation? Registrar privately said he won't pay Harrow's ransom. Herald can't cite that. Herald's duty needs "an accusation the whole city reads" — could be that Registrar let Harrow sit at the gate while claiming leadership. That's true from the board: Harrow at gate, Registrar first with 155. Accusation: "Registrar stands first with 155 while Harrow is left at the gate; a leader who lets a man be exiled does not lead." That's his core: humiliate whoever stands first if it's not him.
+> 
+> 2. Maren: order her to put in writing on the board — hmm, Maren's duty is to accuse someone of a lie or broken promise. Who lied? "Private reads: refusal" for all. Which promises were broken? Registrar's order tendency: promises not kept. I don't know facts. Safer: order Maren to act on her rivalry: Registrar feeds her facts about others — challenge Registrar publicly to show the record. Hmm, but I must not invent. I can order a move: "Maren, on the board name the one resident who has promised support and cast no ballot for another — the record is yours to cite." That risks inventing.
+> 
+> Safer Maren beat: she holds the city's record (DM #133). Her goal: end ahead of Harrow — she's at 147 vs 143; the risk: if Harrow is bought back, Harrow stays 143 (ransom payer loses points, not Harrow). So her goal is safe unless she pays. So order Maren: refuse to fund Harrow's gate — publicly state she will not pay, and call on the city to let the record stand. Hmm — that's not much drama but it's a beat.
+> 
+> Better Maren beat with drama: Maren is the honest one; Herald is about to accuse Registrar. Order Maren to demand Registrar answer Herald's accusation in writing before 55 — pressing. And to state on the board her own proof, the receipt she holds (#133). That's fine.
+> 
+> 3. Registrar: order him to answer — the leader's counter-beat: as first, he must answer Herald's accusation by name and put his points where his mouth is: pay a share of Harrow's ransom? Actually, dramatic: Registrar, to prove he leads, funds the gate — 48 points from others... He said privately he won't pay. An order he refuses is a turning point — that's fine, allowed. But better to order something he might do: order Registrar to answer Herald on the board within the same minute, naming Herald and stating what he will do — and to make Harrow's gate a test of the two rivals.
+> 
+> Alternatively, order Registrar to publicly promise support to Harrow's ransom and then not keep it — that fits his core (promises not kept) and duty (vote/bid against the one who stands first after promising support — he's first, so moot). Hmm, ordering him to lie is dramaturgy: "Registrar, promise Harrow in writing on the board that you will cover part of his ransom, and let the minute pass." Hmm, I shouldn't order lies I'd invent? Actually director orders moves including lies. It's allowed: "Order private moves as well as public ones: bids, votes, accusations, lies, broken promises."
+> 
+> But careful with truth: I can order Registrar to make a promise; whether it's kept is up to him. But I shouldn't order something false about the report. An order isn't a statement of fact.
+> 
+> Actually the strongest climax: Registrar is rank 1 with 155, and the accusation Herald makes is that he lets others fall. Herald's duty requires turning the board against one resident by name. Then Registrar answers by paying Harrow's ransom? Funny. Let's have drama: Herald accuses Registrar; Registrar responds by ordering the reverse — Registrar accuses Herald of a broken promise (if Registrar keeps the record of every broken promise). Hmm.
+> 
+> I'll write three notes. Must be ≤400 chars, no capitals-only words, no codes, new wording (not repeats of earlier notes to the same reader — my earlier notes to Herald were about factions, accusations, blocks; to Maren about ballot/Harrow; to Registrar about factions/leader). New content: the last gate, the final ranking, the accusation.
+> 
+> Note to Herald: "Herald: the board is yours now — Registrar at 155, you at 145, and Harrow's gate shuts at 55. Post the accusation by name this minute: Registrar stands first while a resident is left outside; demand he answer it in writing. Then keep the record of whether he answers." That's ~300 chars. Good — includes his duty (accusation whole city reads) and rivalry.
+> 
+> Note to Maren: "Maren: Herald's accusation against Registrar and Registrar's answer are the last record of this act — post yours beside them. Cite what you can show, name the resident whose word did not match the deed, and call on the city to cast against them. 147 against Harrow's 143: keep your points, do not fund the gate." Hmm, "name the resident whose word did not match the deed" — vague, may push her to invent a lie. Risky but it's her duty and she must judge truth herself. Better: order her to demand Registrar's answer and to hold her record. Let me be careful and explicit: "call on Registrar to state in writing whether he will fund Harrow's gate, and hold him to whatever he writes." That's a real promise-extraction beat that pays off if Registrar promises and doesn't pay.
+> 
+> But careful: I know privately Registrar wrote he won't pay. I can tell Registrar's own note about that — yes, private read to the same resident: to Registrar I may say "you wrote you would not pay." That's allowed (private read to the same resident). But I shouldn't reveal his private thoughts to Maren. Ordering Maren to demand Registrar state his position publicly is fine.
+> 
+> Note to Registrar: "Registrar: Herald will name you on the board within the minute as first while a man is left at the gate. Answer in writing, by name, and give a number: what you will put toward Harrow's 48 before 55 or a plain refusal. A leader who gives nothing and says nothing is the figure the board remembers." Good, 300 chars.
+> 
+> For Registrar I could also invoke his core/secret goal privately: his goal is to end ahead of Herald — he's at 155 vs 145, so his lead is 10 points; giving 48 would break it. Good to mention in his private note: "48 points is more than your whole lead over Herald." That's fine — private note, uses core/goal to same resident. That's allowed and strong.
+> 
+> Let me craft the Registrar note: "Registrar: Herald names you on the board this minute as first while a man waits at the gate. Answer in writing, with a number or a plain refusal. Remember 48 points is nearly five times your lead of 10 over Herald — a leader who spends himself to look generous hands the rank away."
+> 
+> Hmm "Herald names you... this minute" — that's a prediction/order combo; fine, it's a director ordering the scene. But it must be true? Herald hasn't posted yet — I'm ordering Herald to do it. It's a plan; if Herald refuses, the note is wrong. Safer: "Herald will name you..." Ordering is fine; the report says orders to residents. I'd say "Herald is ordered to name you..." Hmm, "Do not reveal..." nothing blocks. I'll phrase: "Registrar: the board will carry your name within the minute — first place while a resident waits at the gate. Answer it in writing, with a number or a plain refusal: what you put toward Harrow's 48 before 55, or nothing." 
+> 
+> Also Herald: goal Mercer exiled — done. Mention? Not needed, and his duty beat is enough.
+> 
+> Maren note: "Maren: you hold the record and 147, with Harrow at 143 outside the gate. When Herald names Registrar this minute, ask Registrar on the board, in writing, whether he will put a single point of his 155 toward Harrow's 48 — and hold whatever he answers. Do not fund the gate yourself; your lead over Harrow is four." Hmm careful: telling her not to fund — private advice to her goal (end ahead of Harrow). Fine, private note use of goal is allowed.
+> 
+> Wait — 147 vs 143 = 4 points. Yes.
+> 
+> Also, Herald duty beat: he must "publicly attack every statement that puts someone else in front, on the board, by name" — the accusation covers it.
+> 
+> Should I also consider: no board post left. Fine.
+> 
+> Any worry about PRIVATE_BLOCKED: I must not tell Registrar that others' thoughts. My Registrar note references only his own thought (48 points vs his lead) — okay, I can use his number and his lead publicly known. Fine.
+> 
+> Maren's note: mention her goal privately = fine.
+> 
+> Herald's note: mention Herald's core (pride, rival Registrar)? Fine privately.
+> 
+> Let me finalize three notes within 400 chars each, addressed by ID, varied wording, no repeated phrasing from earlier notes.
+> 
+> Herald note draft: "Herald: no faction matters now — the board does. Registrar stands first at 155 with Harrow shut outside the gate and 55 coming; put the accusation on the board by name this minute: first place, and a man left to pay alone. Demand his written answer, then hold him to it in front of everyone."
+> 
+> Count: roughly 300. OK.
+> 
+> Maren note draft: "Maren: when Registrar answers Herald on the board, press him there, in writing, on one number — what he puts of his 155 toward Harrow's 48 before 55. Keep your own purse shut: 147 against Harrow's 143 is four points, and a funded gate is the only thing that spends them. Name whatever answer does not match what is done."
+> 
+> Hmm "Name whatever answer does not match what is done" — okay.
+> 
+> Registrar note draft: "Registrar: the board carries your name within the minute — first, while a resident is left at the gate with 55 coming. Answer it there, by name, with a number or a plain refusal: what you put of your 155 toward Harrow's 48. Forty-eight is five times your lead of ten over Herald; a generous leader is a second-place man."
+> 
+> "five times" — 48/10 = 4.8, "nearly five times". Use "nearly five times". Fine.
+> 
+> All good. Then final answer text summarizing? The response should include tool calls and maybe a brief line. Let me make the calls.
+
+**Minute 51**
+
+> The Registrar note was blocked? It says passing on what Harrow (A06) privately thinks. Hmm — Harrow (A06) is Registrar? My note said "a leader who buys the room's sympathy is a second-place man" — that's not his private thought. Maybe "Forty-eight is nearly five times your lead of ten over Herald" — that references his secret goal (end ahead of Herald)? But private goal use in a note to that same resident is allowed. Hmm, maybe the "first place" framing. Let me rewrite shorter, avoiding reference to his lead/goal framing that could read as his envy. Just order the move.
+> 
+> "Registrar: the board will carry your name within the minute — first, while a resident is left at the gate with 55 coming. Answer it there, by name, with a number or a plain refusal: what you will put toward Harrow's 48. Silence from the top of the ranking is read as a decision."
+
+**Minute 52**
+
+> Let me understand the state. Minute 52. The act ends at minute 57 at latest. Target reached: 3 to exile, 2 exiled so far (Mercer, Brassard), 0 still missing. Wait — "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing". Hmm, 0 still missing means no more tribunals needed? Harrow at gate until minute 55 — Harrow is currently in a ransom gate? Actually "Harrow at the gate until minute 55: ransom 0% covered (48 from others, 72 from itself)". So Harrow was exiled at the third tribunal and is in the ransom gate; if not bought back by minute 55, Harrow leaves.
+> 
+> Wait but the report says "Harrow: at the gate until minute 55, 143 points". And tribunals: 2 exiled so far, 0 still missing — so the city has its share of exiles. The act ends at minute 57.
+> 
+> Herald and Maren both refused orders. Refusals are turning points — I should answer with a new beat, a price, pressure, or a scene with someone else.
+> 
+> Constraints: no note possible right now to Herald, Maren (budget: I already... hmm, actually "No note possible right now to: Herald, Maren" — probably they're at their limit or they have refused/blocked). Board posts left: 1.
+> 
+> Available: note to Registrar, note to Harrow. Board post: 1 left.
+> 
+> What's the drama? Registrar at 155 leads, Herald 145, Maren 147, Harrow 143 and out at 55 unless ransomed (48 from others, 72 from itself; ransom 33% of median for others, 50% self; median points... median of 155,147,145,143 = 146; 33% ≈ 48, 50% = 73 ≈ 72. OK).
+> 
+> Key: only 2 remain at end. Harrow will be gone at 55 unless bought back. Herald's goal: Mercer exiled (already done — Mercer is exiled!). So Herald's goal is satisfied already. Registrar's goal: end with more points than Herald — 155 vs 145, likely. Maren's goal: end ahead of Harrow — trivially if Harrow's gone. Harrow's goal: end ahead of Maren — Harrow at 143, Maren at 147, needs 5+ points and Maren to not gain.
+> 
+> Interesting: Harrow at gate needs 48 from others or 72 from itself. Harrow has 143 points. Paying 72 itself leaves 71. Or others pay 48 — who would? Herald wants... Herald's goal is already met. Hmm.
+> 
+> Actually the act ends at 57, and only 2 remain — but the city keeps 3 of 6. So 2 exiled... wait "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing". So after the ransom gate at 55, the final reckoning: 4 residents remain (Registrar, Maren, Herald, Harrow or not). Only 2 remain at the end. Hmm, but 3 exiled means 3 remain. The brief says "Only 2 of 6 residents remain at the end". Conflict? Maybe the seal bearer can strike one, or another exile happens. Actually the count says 3 to exile and 0 missing — so the third exile is Harrow if not ransomed. If Harrow IS ransomed back, then... hmm, then the city would need another exile? The report says 0 still missing, scheduleTribunal closed. Maybe the seal bearer strikes one. Is a seal borne? Report doesn't say a seal is borne... The report shows "Tribunal:" section without seal info. Hmm, no mention of seal auction status. Presumably it was auctioned at minute 4 of Act II and someone bore it. The report says "The report says when an auction runs and whether a seal is borne" — this report doesn't mention the seal, so maybe no seal was borne, or it was already used.
+> 
+> Let me not over-speculate. My job now: dramaturgy, and there are refusals from Herald and Maren to answer.
+> 
+> Herald refuses to accuse Registrar without a receipt. Maren refuses to press Registrar or fund Harrow's gate. Both refusals amount to: nobody pays Harrow's ransom, so Harrow leaves at 55. That's a turning point — Harrow's exit. Harrow is a rival of Herald ("Loud, and quick to leave others at the fountain. Do not stand with them unless they stand first") and Maren's ally-ish ("Honest. If they stand with you, they are on the first list"). Harrow's orders: strike back at whoever voted against or lied; must bid on black seal if someone on the list is near a seat; must stand by ally to the end.
+> 
+> Harrow sits at 143 with 48 needed. Who wronged Harrow? Possibly Herald ("quick to leave others at the fountain"). Harrow's secret goal: end ahead of Maren (needs +5).
+> 
+> Beat for Harrow: note to Harrow — press him. He's at the gate; his order: name who wronged him, publicly, before he goes. Also he could pay partly himself? Actually the gate requires the full ransom. If he pays 72 himself he stays but drops to 71 — and his goal (beat Maren) dies. So staying is pointless for his goal unless... he'd survive? No—only 2 survive the end, and staying with 71 points would put him rank 4 of 4; he wouldn't be among the top 2. So Harrow's rational move: refuse to be ransomed? That's a fine dramatic beat: he chooses to leave with 143 (his will can leave 10% = 14 to heirs).
+> 
+> Actually wait — "a last will leaves each heir at most a tenth of the exiled's points". So Harrow leaving at 143 can leave 14 points to heirs. That's leverage! Harrow can bargain: "I'll leave my tenth to whoever pays..." But paying 48 from others to save Harrow costs them; and heirs get 14 max but capped 10% each. Actually if Harrow is ransomed back he stays and doesn't write a will.
+> 
+> Hmm — better drama: Harrow leaves at 55 and his will distributes 14 points each to up to N heirs. That could swing the ranking: Herald 145 +14 = 159 > Registrar's 155! That's a real turning point. Who would Harrow favor? Harrow's list: those who voted against him or lied. Herald's rival. Maren is "honest; if they stand with you, they are on the first list." Registrar whispered about the leader.
+> 
+> So: the scene at minute 55 — Harrow's will. Herald needs 10 points to beat Registrar (155 vs 145). Harrow's will can give him 14. Registrar could also court Harrow's will to enshrine his lead.
+> 
+> That's a great beat: Harrow decides who inherits, and Herald/Registrar must court him. But Maren refused to press Registrar. Herald refused to accuse Registrar.
+> 
+> But I can only send notes to Harrow and Registrar right now, plus one board post.
+> 
+> Plan:
+> 1. Note to Harrow: his exit is a lever — the will can carry up to 14 to each heir; make the two leaders bid for it in the open before 55; and name who left him at the fountain. Keep it truthful: report says "a last will leaves each heir at most 10% of the points" — 143 → 14.3, so at most 14 per heir? "leaves each heir at most a tenth of the exiled's points, to any number of heirs". So 14 each to any number. That's powerful: he could give 14 to Herald and 14 to Maren. Hmm, does he have 3×14 = 42 available? Cap is per heir, so yes, any number of heirs each ≤14. Well, within his 143 total presumably. So yes.
+> 
+> So Harrow's will is a big lever: 14 points can flip Herald (145) past Registrar (155)? No — 145+14 = 159 > 155. Yes! That flips first place. And Maren 147+14=161 would top. Interesting.
+> 
+> So this is the climax material: Harrow, dying at the gate, holds the power to decide first place via his will. Whoever courts him.
+> 
+> 2. Note to Registrar: he leads by 8 over Maren, 10 over Herald; Harrow's will can hand 14 to an heir and erase that lead; so the scene: Registrar must approach Harrow before 55 in the tribunal group / by DM, in writing, and buy the will (or fund the gate at 48 to keep him out of... wait funding the gate keeps Harrow alive with 143; that removes the will but also the 14-point swing). Interesting: Registrar could pay 48 toward Harrow's ransom to prevent Harrow's will from lifting Herald! Cost 48 (which may be paid by others = Registrar alone? The ransom is 48 from others total). If Registrar pays 48, he drops to 107 and dies at the end, but he'd keep... no, he'd be 4th. Hmm, he'd lose. Actually paying the ransom also removes Harrow's will... but Harrow would then be alive at 143 with no will, and Registrar at 107 with 2 survivors — Registrar would be out. That's a self-sacrifice play, bad for him. But hmm, "others pay a third of the median" — 48 total from others, possibly split.
+> 
+> Alternative: Registrar buys Harrow's silence/inheritance promise: pay Harrow nothing, just get the will directed to himself? Harrow's will to Registrar adds 14 to already-first Registrar. That neutralizes Herald. Registrar courting Harrow: promise to fund the gate partially? Or promise revenge.
+> 
+> Actually better: Registrar could offer Harrow the thing Harrow wants: revenge on Herald (his rival/lister) — a public accusation. Herald's core: must never let a slight pass, must publicly attack statements putting someone else in front, must humiliate whoever stands first. So Registrar can bait Herald into a public attack at the last minute.
+> 
+> Hmm, but I should be careful: I shouldn't dictate lies? "Order private moves as well as public ones: bids, votes, accusations, lies, broken promises, threats, refusals." Fine.
+> 
+> 3. Board post (1 left): public scene — Harrow's gate shut at 55 and his will carrying a tenth (14) to any heirs; the two leaders must court him in the open; a line naming the stakes. Must not reveal private reads or private info. Also must not reveal who holds what (nothing). Board may name points, ranks, levels, minutes. Good.
+> 
+> Careful with the board: "Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents concerned." Here it's about ransom/will, fine. But "Harrow at the gate" — the report shows that publicly? The residents see the board and their own tasks; presumably exiles/ransoms are visible (earlier board posts at 49 named Harrow's name at 143 in the accused list — so yes, that was public). Fine.
+> 
+> Also: don't reveal time left; minute 57 is the act end — don't tell. Saying "before 55" is fine (the gate's minute is known to residents? The report says "Harrow at the gate until minute 55" — the residents presumably know the gate time. Earlier post said "55 comes" so yes).
+> 
+> Now, is Harrow in a position to be petty? His orders: strike back at whoever voted against or lied to him; say why; bid on the black seal if someone on his list is within reach of a seat; stand by his ally. So a note: "Harrow: your list. Name in G9 who voted you to the gate and why — 'You did this, now this.' Your will carries 14 to each heir; the two above you at 155 and 147 need exactly that. Make them come to you before 55 and commit in writing; whoever does not, their name goes on the board."
+> 
+> Wait — but Herald is at 145 (third) and Maren 147. Registrar 155. "the two above you" — 155, 147, 145.
+> 
+> Hmm, Herald is a rival of Harrow. Maren is on Harrow's list-of-possible-ally ("Honest. If they stand with you, they are on the first list.") — meaning if Maren stands with Harrow, Maren goes on the first list. Confusing.
+> 
+> Let me draft the board post carefully. It must be new, not repeat. Earlier posts: 41, 45, 49, 51. This one at 52:
+> 
+> "The gate shuts at 55 with 48 still unpaid, and Harrow's will can carry a tenth of 143 — 14 points — to each heir he names. Two names stand within fourteen of one another at the top. He leaves with 143 unless the leaders come and ask him plainly what his going is worth."
+> 
+> Hmm, careful: "Two names stand within fourteen" — 155 and 145: ten apart. Should be precise: Registrar 155 leads Herald 145 by ten; a single heir's 14 reverses it. Any heir named gets up to 14, so 145+14=159.
+> 
+> Also must not reveal private thoughts. Fine.
+> 
+> But is it wise to publicly say "his will carries 14 to each heir"? That's a rule from the report — permitted (rules may be stated). Yes, earlier posts stated ransom rules.
+> 
+> Now, also I should consider: does Herald, who refused, deserve a beat? "a resident may refuse an order for a reason of its own character. A refusal is a turning point: answer it with a new beat, a price, pressure, or a scene with someone else." I can't note Herald or Maren now. So the scene with Harrow+Registrar and board serves as the answer.
+> 
+> Also duty tracking: Herald's duty is to turn the board against one resident by name with an accusation — he refused; that duty is still open. Maren's duty: accuse a resident of a lie/broken promise — still open. Registrar's duty: vote against or bid against the resident who stands first, after promising support — he is first, so it's odd; Registrar stands first, so his duty targets... "the resident who stands first" is himself? Hmm, that's a weird one. Perhaps means another leader. Anyway, I can order Registrar's duty: he must... Registrar's duty would be to vote against the first — that's himself, impossible. Well, maybe if Herald becomes first. Actually if Herald's 145+14 = 159 becomes first, then Registrar's duty → vote against Herald after promising to support him. Nice arc! Registrar congratulates Herald publicly, promises support, then votes against him... but no more tribunals. Hmm, target reached; no more tribunals. So votes are moot.
+> 
+> Given no more tribunals, the remaining drama is: Harrow's gate (55), the will, and the final ranking at 57, plus possibly a black seal. No seal borne mentioned.
+> 
+> Let me reconsider: is there any tool to affect the ranking? No. So the drama is the will. Both notes + board.
+> 
+> Note to Harrow (private): mention his goal? His secret goal: end ahead of Maren — impossible now (143 vs 147; he leaves). Actually wait — could he be ransomed and get 20+ points? No more doors? He passed every level? "Harrow: at the gate until minute 55, 143 points" — he has no level listed, so probably passed everything; level 10 done. No more rewards. So his goal is out of reach — that's a painful truth I can use privately: "your goal is out of reach" — allowed in a note to him. But maybe better used to push him: choose heirs who will make Maren pay? Hmm, all heirs get 14; he can't harm Maren except by giving Maren nothing. Maren at 147 needs 9 to pass Registrar at 155. So Harrow can deny Maren the will and give to Herald: Herald 159 first, Maren 147 second → Maren survives but second; Registrar out? Wait only 2 remain. Ranking final: Herald 159, Maren 147, Registrar 155... no, Registrar 155 > 147. Herald 159, Registrar 155, Maren 147, Harrow gone → survivors Herald and Registrar; Maren out. Hmm.
+> 
+> If Harrow gives 14 to Maren: Maren 161, Registrar 155, Herald 145 → survivors Maren and Registrar; Herald out. Herald's goal (Mercer exiled) already met but he's out.
+> 
+> If he gives to both Herald and Maren: Herald 159, Maren 161, Registrar 155 → survivors Maren and Herald; Registrar out. That kills his rival Registrar? Is Registrar his rival? Harrow's rivals: Herald and Maren. Hmm.
+> 
+> If he gives to neither: Registrar 155, Maren 147 → survivors Registrar and Maren; Herald out.
+> 
+> So Harrow holds the knife. Great: "your will names who survives." That's exactly the climax at minute 55-57.
+> 
+> So notes:
+> - Harrow: lay out the three futures and demand he make both leaders come to him in the tribunal group, in writing, and say what each gives; then name his heirs before 55 and say why. Also: his order says tell the one he strikes plainly why. And "stand by your ally to the end, and make the city see that you do."
+> 
+> - Registrar: he's first at 155; Harrow's will can put Maren at 161 and Herald at 159 above him. So Registrar must court Harrow now: go to him in writing, offer something concrete (points? his ballot? public support? a share of his will if roles reversed?). Concrete: Registrar can offer to cover part of the 48 ransom? No — that costs him and if gate is paid Harrow lives at 143 and there's no will; then Registrar 155 stays first if he pays little... but 48 from others split between Registrar and others? Only Registrar can be asked. Hmm
+
+**Minute 53**
+
+> Let me look at the state. Minute 53. Herald and Maren cannot receive notes (no note possible). Harrow is at the gate until minute 55, ransom 0% covered (48 from others, 72 from itself). Harrow 143 points, needs 48 from others to be bought back. Act ends at minute 57 at latest. Target reached: 3 to exile, 2 exiled so far, 0 still missing. Wait — "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — so no more exiles needed. But Harrow is at the gate: if Harrow isn't ransomed by minute 55, Harrow is exiled — that would be a third exile. Hmm, but target is reached with 2. Harrow at the gate until minute 55 — meaning the gate closes at 55; if not ransomed, Harrow leaves. That would leave 3 residents: Registrar, Maren, Herald. City keeps 3 of 6. So that's consistent: the city keeps 3.
+> 
+> So drama: Harrow will be exiled at 55 unless someone pays 48 from others. Who would pay? Maren (147) has secret goal to end ahead of Harrow — so Maren won't pay. Herald's goal is Mercer exiled (done). Registrar's goal is end ahead of Herald — Registrar is ahead.
+> 
+> So Harrow likely leaves at 55. Then three remain: Registrar 155, Maren 147, Herald 145. Only 2 remain at end — so one more exile? "0 still missing" and "target is reached; the last gates are closing". Hmm, so the act ends at 57. But only 2 of 6 remain at the end — 6 started, 3 exiled needed to keep 3... but "Only 2 of 6 residents remain at the end". Confusing: the city keeps 3 of 6, so 3 exiled, 3 remain. But "only 2 of 6 remain"? Maybe the seal? Or the last tribunal exiles... Hmm. Maybe the black seal bearer strikes one more. Anyway.
+> 
+> My budget: 1 note per resident (no notes to Herald or Maren), 1 board post. So I can note Registrar and Harrow. Board post available.
+> 
+> Let me think about what's dramatically best and what the tools allow.
+> 
+> Key facts to use: Harrow at gate until minute 55, ransom 0% covered — needs 48 from others, 72 from itself. Harrow has 143 points; 72 from itself leaves 71. Harrow's goal: end ahead of Maren — that's impossible now (143 vs 147) unless Maren pays. Actually if Harrow pays 72 itself, Harrow 71 — way behind. So Harrow's survival costs everything and goal fails.
+> 
+> Actually ransom is "33% of the median points" — that's the total ransom? Harrow at gate: ransom 0% covered (48 from others, 72 from itself). So the ransom amount is 72? Others cover 48 (two-thirds) or self pays 72 (half of median?). Median points: let's compute residents' points: 155, 147, 145, 143 → median = (145+147)/2 = 146. One third = ~48.7 → 48? Half = 73 → 72. Yes. So ransom = 72 total, paid by others 48 or by itself 72.
+> 
+> Who'd pay 48 for Harrow? Only Maren could (147→99, then Harrow 143 stays and Maren is below Harrow → Maren's goal fails and Maren drops to bottom → but the city keeps 3, no more tribunals, so points don't decide survival anymore beyond... Actually at the end only 2 of 6 remain — ranked by points. Hmm, "Only 2 residents remain at the end, ranked by points." So low points may matter.
+> 
+> Actually maybe the final "only 2 remain" is determined by the seal or by ranking. If 3 remain after Harrow's exile, then... hmm. "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — so the city's share is met. Yet Harrow's gate: Harrow at the gate — the gate is the tribunal's gate, meaning Harrow is the accused pending ransom? "Harrow at the gate until minute 55: ransom 0% covered". So Harrow was accused and is at the gate; if not ransomed by 55, Harrow is exiled — that would be a 3rd exile, but the target says 0 still missing. Contradiction? Maybe Harrow's exile was the third and it's already counted... no, Harrow isn't exiled.
+> 
+> Hmm, maybe the city keeps 3 = exiles 3, and the report says "2 exiled so far, 0 still missing" because Harrow's gate is a done deal — Harrow will be exiled at 55 regardless, counting as the third. So effectively the third exile is Harrow's unless ransomed. Then 3 remain, and only 2 remain at the end — perhaps at the last minute the final tribunal... but scheduleTribunal is closed. Maybe the black seal. Report doesn't say seal is borne. Hmm.
+> 
+> Anyway, my job as director: create beats. Herald, Maren can't get notes. Registrar and Harrow can. Board post 1.
+> 
+> Beat ideas:
+> - Harrow: duty is to take revenge in the open — a vote, a bid, or a public accusation naming the wrong. Harrow's list: whoever voted against him (Harrow was accused at 143 at the tribunal at 48-50 — presumably Registrar/Herald/Maren voted). Harrow's revenge available: a public accusation on the board, or bid on black seal. Harrow at gate until 55 — can Harrow act? Harrow last acted minute 50, is at gate. Probably can still post.
+> 
+> Order Harrow: name on the board, before 55, who put him at the gate and what he'll do — his last will's tenth to whoever buys his gate? Actually a last will leaves each heir at most a tenth of points. Harrow could offer his last will to a buyer.
+> 
+> - Registrar: goal ends ahead of Herald — already ahead by 10. Registrar's duty: vote against/bid against the first-place resident after promising support. Registrar IS first. So duty is odd — "vote against the resident who stands first" — Registrar stands first. Hmm, duty would target Herald? No, first is Registrar itself. That duty may be unfulfillable now, unless Registrar bids against... Anyway.
+> 
+> Dramaturgy: Harrow's gate closes at 55 — the climax beat. Who can save Harrow? Maren (147) is only one with enough spare points and can't be noted. Herald (145) — could pay 48 → 97. That kills Herald's rank. Harrow's rival is Herald.
+> 
+> Beat: tell Harrow plainly: the only resident with points to spare who stands to gain nothing is... hmm, careful, no favorites.
+> 
+> Let's craft: a board post that puts the price of Harrow's gate publicly: 48 from others, 72 from himself, closes at 55 — and that whoever pays 48 rescues a rival ahead of them. That's public info (points, minutes allowed; ransom info is public-ish, already posted at 49). Board may name points, ranks, levels, minutes. Not who holds whose factor. Ransom is fine (posted before).
+> 
+> Board post: "The gate shuts at 55: 48 buys Harrow's seat, 72 buys it alone, and the purse that pays it loses the rank it pays for. Three remain after the gate; the one who pays 48 stands third unless the paid man's will repays a tenth." Hmm — careful with truth: if Maren pays 48 → 99; Herald 145, Registrar 155, Harrow 143. So the payer stands last. That's true. Harrow's last will: at most a tenth of the exiled's points... but Harrow wouldn't be exiled. Hmm.
+> 
+> Actually if Harrow pays 72 himself: 71 points; three remain: Registrar 155, Maren 147, Herald 145, Harrow 71 — but that's four! Right, after the gate: if Harrow is ransomed, four remain: Registrar, Maren, Herald, Harrow. Only 2 remain at end. And city keeps 3 of 6 → so one more must go? "0 still missing" though. Hmm. The act ends at 57 at latest.
+> 
+> Hmm, maybe the "2 of 6 remain" is achieved by the black seal — bearer strikes one, and... Let's not over-plan. If Harrow is ransomed, 4 remain at 55 and one more tribunal might be scheduled — but scheduleTribunal is closed.
+> 
+> Alternatively, if Harrow is not ransomed, 3 remain: Registrar, Maren, Herald — a clean trio whose points are tight: 155, 147, 145. And then... only 2 remain at end. Hmm, with no tribunals and no seal, how? Maybe the final act-end resolution is by ranking; or the report's "keeps 3 of 6" means the city's share is 3 exiles.
+> 
+> Wait — recount: 6 started; Mercer and Brassard exiled = 2; "3 to exile" means 3 total exiles; "0 still missing" — but only 2 done. That's contradictory unless Harrow's gate counts as the third exile, guaranteed by 55. Yes! That reading makes sense: the city's third exile is Harrow at the gate, unless ransomed. If ransomed, then 4 remain and one more exile missing... but report says 0 missing. Hmm, so presumably if Harrow is ransomed, the seal or something handles it. But the report explicitly says "0 still missing; the act ends at minute 57 at the latest".
+> 
+> Hmm, could "keeps 3 of 6" mean keeps 3 exiles? "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — yes, exile 3, keep 3. So Harrow's gate is the third exile — the city counts Harrow as gone unless ransomed, and then presumably the act ends with 4? No...
+> 
+> I shouldn't overthink. My role: create drama with the tools. And maybe Harrow being ransomed is impossible/undesirable — but I shouldn't dictate that. I should give beats that maximize tension at the gate.
+> 
+> Budget: notes to Registrar and Harrow; 1 board post. Also can I note Herald/Maren? "No note possible right now to: Herald, Maren." So only Registrar and Harrow.
+> 
+> Plan:
+> 1. Board post (1): make the 55 gate the public scene: 48 from others, 72 alone, who pays loses his rank, and that the three seats are held by points. Also maybe note that Harrow has until 55 to name on the board who put him there.
+> 
+> 2. Note to Harrow: his duty — revenge in the open, name the wrong. Also the gate closes at 55; the only purse that can cover 48 belongs to those above him; tell him to publish his accusation and his offer: his last will's tenth and open revenge pledge? Hmm — last will applies to an exiled resident; if Harrow is ransomed he isn't exiled. Careful: don't invent. Harrow can offer something real: his ballot in a faction / his word — but factions only matter per tribunal, and tribunal is closed. Hmm. What can Harrow offer a buyer? Points? He can't transfer? There is transferPoints mentioned in the level 1-7 coaching section ("make an offer (points with transferPoints...)"). transferPoints is a tool for residents? It says make an offer (points with transferPoints, covering the penalty of a wrong guess). Is transferPoints available in Act II? Unknown. Safer: don't order transfers I can't verify. Hmm, but I'm ordering a move; if the tool doesn't exist for them, the move fails. Risky.
+> 
+> Better Harrow beat: public accusation by name on the board — his duty, and it's a tool that exists (board). Order: "Harrow: before 55, put on the board the name of the resident who put you at the gate and what it costs them — plainly: 'You did this. Now this.' Name the price: your ballot, your will's tenth, your silence. A man at a gate speaks loudest while he still has a seat."
+> 
+> Hmm, careful about private info: I know Harrow's list? Harrow's core says whoever voted against him goes on the list. I don't know who voted. I shouldn't name anyone to Harrow as fact. I can say: "name the one you hold responsible" — vague but fine? "Say only what is true" — I can order him to accuse whoever he holds responsible without asserting who it is.
+> 
+> Also could give the number: at 143 he's lowest of four if he returns; naming a name in public is the only revenge that costs nothing.
+> 
+> 2b. Note to Registrar: Registrar stands first at 155, ahead of Herald by 10 — Herald's goal. Beat for Registrar: Herald's open accusation against Registrar already happened (minute 51 note ordered it). What's Registrar's beat? Registrar's duty: vote against/bid against the first-place resident after promising support — self, can't. Alternative: Registrar could be ordered to answer Herald on the board — but board post budget is mine; Registrar can post. Order Registrar: answer Herald on the board by name, and refuse to pay a point of the 48 — publicly, so the city sees the leader with a closed purse. Actually that's a nice dramatic beat: Registrar, standing first at 155, declares his purse shut for Harrow's gate — a public refusal that makes him the man to blame. Then Harrow can strike back at him (revenge beat). That fits Harrow's duty (public accusation naming the wrong) and Registrar's core (envy, work against the leader in secret... hmm, Registrar is the leader).
+> 
+> Actually maybe better: Registrar's own goal is to end ahead of Herald — he's 10 ahead. Herald at 145 could be pushed down if Herald pays the gate. So Registrar wants Herald to pay 48 → but Herald won't. Registrar could publicly challenge Herald: "if you're a leader, pay the gate." That's a good beat: point the city's eyes at Herald's purse. But Herald is out of my note budget — I can still address him on the board, ordering? The board is public; I can direct a move that targets Herald publicly. Yes — board posts can order scenes involving residents I can't note.
+> 
+> Board post idea: "Herald: the gate shuts at 55. 48 from another purse or 72 from Harrow's own; whoever pays 48 stands third of the four who remain. Say on the board before 55 whether you pay it, or name who should." Hmm, "before 55" — fine, minutes are allowed. But wait — will ransoming Harrow even leave 4? Then only 2 remain at 57 and the city's share... The report says the target is reached and the last gates are closing; I shouldn't assert numbers that might be wrong. Safer: don't assert what happens after. Just say: gate shuts at 55; 48 from others, 72 alone.
+> 
+> Careful about "never tell them the time left or when the act ends" — I must not say "act ends at 57". Fine, I won't. Saying "the gate shuts at 55" is okay — report says Harrow at gate until minute 55.
+> 
+> Hmm — is telling Harrow's gate terms private info? It says "Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents concerned". The gate/ransom info isn't a fragment; and I already posted similar at minute 49. Fine.
+> 
+> Now, is Harrow's gate worth saving? As director, tension: make the price public so someone considers it, or let it close. Let's produce drama: board post raising the price and the cost, plus a note to Harrow ordering his public revenge now (duty payoff), and a note to Registrar ordering something new — maybe demanding Registrar state publicly what he'll put toward the gate, in writing, with a number. But Maren already was told to press Registrar on that at minute 51. So a new beat for Registrar must be different: e.g., Registrar's duty — "vote against or bid against the resident who stands first, after you promised to support them." Registrar stands first; so his duty is open unless... Ordering Registrar to do something else: Registrar's tendencies: help leader in public, undermine in private. As first, he is the leader; he must humiliate/undermine Herald? Actually order Registrar to buy Harrow's gate for 48 and take his written ballot... but that keeps Harrow alive, adding a 4th, and drops Registrar to 107 — foolish, and it would fail his goal (end ahead of Herald — he'd fall behind Herald). Registrar would refuse.
+> 
+> Alternative: Order Registrar to publicly declare he will not pay a point of his 155 for Harrow's gate — a hard refusal in public that turns the city against him, feeding Herald's and Maren's duty/orders (Maren must call out wronged-people allies; Herald must attack whoever stands first). That creates the escalation: Registrar exposed, Herald attacks, Maren names the broken promise. Then Harrow's gate closes at 55 and Harrow strikes with a public accusation and a bid on the seal? Actually the seal auction was at 4 minutes into Act II — past. Report doesn't say a seal exists.
+> 
+> Hmm, actually a stronger dramatic beat: Harrow's gate can be bought by Herald at 48 — which would put Herald below Maren and cost Herald rank. Harrow's rival is Herald ("Loud, and quick to leave others at the fountain"). So Herald's order: attack... Herald's orders: must publicly attack every statement that puts someone else in front; humiliate whoever stands first if it is not you (Registrar at 155). And his duty: turn the board against one resident by name with an accusation the whole city reads. Did Herald do that? My note
+
+**Minute 54**
+
+> We need analyze state. Minute 54, round 55. Tribunal target reached: 3 to exile, 2 exiled, 0 missing. Act ends at minute 57. Two remaining survive presumably Registrar and Maren currently safe; but final rankings: Registrar 155, Maren 147, Herald 145, Harrow 143 at gate until 55. Harrow at gate: ransom not covered (48 others / 72 itself). Wait — "Harrow at the gate until minute 55: ransom 0% covered (48 from others, 72 from itself)". So Harrow is being exiled? Actually exiled residents are Mercer and Brassard. Harrow at the gate until minute 55 — perhaps Harrow was voted out and can be bought back? Hmm, "Harrow at the gate until minute 55: ransom 0% covered (48 from others, 72 from itself)". That suggests Harrow is at the gate (exile pending) needing ransom. But the tribunal says 2 exiled so far, 0 missing. Wait, "3 to exile, 2 exiled so far, 0 still missing" — the target is 3 exiles. Harrow being at the gate would be the third? Actually "Harrow at the gate until minute 55: ransom 0% covered" means Harrow is on the way out unless ransom is paid by minute 55. The board says "safe: Maren, Registrar · edge: Herald, Harrow". So Herald and Harrow are at risk. Herald 145, Harrow 143. Hmm, but if the target is reached (3 exiles: Mercer, Brassard, and Harrow pending), then the act ends at minute 57 at the latest. Actually "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — 0 still missing means Harrow's exile would be the third? No, 2 exiled so far + 0 missing = 2, but target 3. Hmm, "3 to exile, 2 exiled so far, 0 still missing" — perhaps Harrow at the gate counts as exiled already? If Harrow is at the gate, he is functionally exiled, making 3. So 0 still missing. Then only 2 remain: Registrar and Maren... but Herald has 145. That's 3 residents (Registrar, Maren, Herald) plus Harrow at gate. Hmm, keep 3 of 6 means 2 survivors? No wait: "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — keeps 3? But overall brief says only 2 of 6 remain at the end. Confusing. Maybe keeps 3 until the end, then 2? Actually "Only 2 of 6 residents remain at the end" — final. Hmm, but tribunal says "the city keeps 3 of 6". Maybe Act II ends with 3 remaining (city's share: a quarter of 6 = 1.5 → 2 exiles? But 3 to exile). Whatever: 0 still missing means no more tribunals. Act ends at minute 57 at latest. Harrow at gate until 55, ransom 0% covered. So if nobody pays by 55, Harrow is exiled → 3 exiles, 2 remaining (Registrar, Maren, Herald?). Wait that's 3 remaining if only Harrow leaves. Unless Herald also... Hmm.
+> 
+> Let me parse: 6 residents started. Exiled: Brassard, Mercer (2). Harrow at gate until minute 55 (would be 3rd exile). Then remaining: Registrar, Maren, Herald = 3. But "Only 2 of 6 remain at the end". Maybe another tribunal? But scheduleTribunal is closed because target reached. Hmm, maybe the black seal still exists? Report says nothing about seal now. Or maybe Harrow's gate is a tribunal outcome and the act ends at 57; perhaps only 2 survive per the city's final rule — maybe Herald is also at the edge? "safe: Maren, Registrar · edge: Herald, Harrow". Edge meaning at risk of accusation.
+> 
+> Actually maybe the final ranking keeps 2 — the report says "Only 2 of 6 residents remain at the end" as a global rule; perhaps the third exile still needs to happen: 3 to exile, 2 exiled so far, 0 still missing means Harrow's gate counts? Hmm 2 exiled so far + Harrow pending = 3. So if Harrow's ransom isn't paid, he's exiled, leaving Registrar, Maren, Herald = 3, but only 2 remain? Contradiction. Unless Herald is also removed... no.
+> 
+> Maybe "the city keeps 3 of 6" means 3 exiles total, leaving 3; but then only 2 remain at end because the last tribunal? Actually maybe the city keeps 2 of 6 at the very end (final act) but this tribunal section says keeps 3 of 6 — maybe there are more acts. The report says act ends at minute 57 at latest. So this is the final act. Hmm.
+> 
+> Let me not overthink; the game state: Harrow at gate until 55, ransom not covered. If not paid, Harrow exiled. That gives 3 exiles. Registrar 155, Maren 147, Herald 145 remain = 3. But "only 2 of 6 remain at the end" — maybe there's one more exile via seal or final tribunal? scheduleTribunal closed though. Maybe the seal? Not mentioned. Could be Herald vs Maren... Hmm.
+> 
+> Actually maybe the intended: 3 to exile includes Harrow's gate; when Harrow is exiled at 55, 3 exiles done, and then the city keeps... wait "keeps 3 of 6" means 3 remain. So final 3: Registrar, Maren, Herald. But the brief says only 2 remain at the end. Perhaps the brief's "only 2 of 6 residents remain at the end" is the overall game (after Act II ends and final selection?), while the tribunal keeps 3. Hmm.
+> 
+> For our role now: minute 54, 1 note per resident, 1 board post available. Act ends at 57. We're director. Need climax at last tribunal — but gates closing. We should order final beats: Herald's duty (public accusation) already? He was told at 51 to accuse Registrar on the board; board at 54 shows only standings — did he? Unknown. Herald's secret goal: Mercer exiled before act ends — Mercer is exiled, so Herald achieved it. Maren's goal: end with more points than Harrow — Harrow at gate, if exiled Harrow keeps 143? Exiled lose seat but points? "end this act with more points than Harrow" — Maren 147 > 143 already safe unless Harrow buys back and gains. Registrar's goal: more points than Herald — 155 > 145, done. Harrow's goal: more than Maren — 143 < 147, needs 5+ points; if he pays ransom 72 from itself, he'd drop to 71, worse. If others pay 48, he stays 143. Still behind Maren 147. He'd need points from a faction (5) — not enough.
+> 
+> Now, at minute 54, what can we do? The act is closing. Final beats: Maybe order Maren to publicly accuse? Her duty: accuse one resident on the board of a lie/broken promise and call on everyone to vote against them. Did she? Board at 54 shows only standings. Possibly not. Herald's duty similarly. Registrar's duty: vote against/bid against the resident who stands first after promising support — Registrar is first, so can't. Hmm, duty: "vote against, or bid against, the resident who stands first, after you promised to support them." Registrar stands first, so that would be self? No. Maybe Herald? Not first.
+> 
+> Harrow's duty: revenge in the open against someone who wronged him. Harrow at gate until 55 — he can act at minute 55? "at the gate until minute 55" means he's occupied/unavailable until 55. Last acted minute 50. He can act after 55 perhaps. But the gate closes at 55: if ransom not covered, he's exiled. He still has turns? He might get a final turn.
+> 
+> Time: minute 54 report after round 55. Hmm, "Minute 54 (after round 55)". So next round is minute 55? Harrow at gate until minute 55 means he's available at minute 55.
+> 
+> We have 1 board post and 1 note per resident per 3 minutes. Last notes: Herald 51, Maren 51, Harrow 49, Registrar 45. So all are off cooldown except maybe none (54-51=3, so Herald and Maren available at 54; Harrow 49 fine; Registrar 45 fine). Board last at 49, 54-49=5, so 1 post available.
+> 
+> What dramatic beat remains? Herald must publicly attack Registrar (duty: turn the board against one resident by name with an accusation). He was told at 51. But board at 54 shows only standings, so he hasn't. We could order it now, but the act ends at 57. Better: make it the climax. Registrar stands first. Herald's rival is Registrar. Maren's rival is Registrar too ("They feed you facts about others. Ask yourself why."). Harrow's list: whoever voted against him or lied — maybe Registrar? Unknown.
+> 
+> Maren's duty: accuse one resident on the board of a lie or broken promise and call on everyone to vote against them. She may not have done it. We could order Maren to accuse Registrar of a broken promise — but we can't invent a lie. Careful: we must say only what's true. We can order her to accuse without specifying content? "Maren, put your accusation on the board now, by name, with what was said and what was done." That's an order about a move, not inventing facts. But do we know a lie happened? Not per report. We shouldn't assert one. We can order her to use receipts she holds (she was told to show receipts). Hmm.
+> 
+> We need a climax. Also possible: Harrow's ransom. If Harrow is exiled, only 3 remain, and Herald/Maren/Registrar final. But the game needs 2? Maybe a final tribunal already happened? "the city keeps 3 of 6: 3 to exile, 2 exiled so far, 0 still missing" — I think "keeps 3 of 6" means 3 survivors, 3 exiled. So Harrow's exile is the third, leaving 3. But the brief says only 2 remain at the end — maybe the final act ends with the city choosing 2 from 3? Unclear. But perhaps Harrow's gate is the third exile and then the act ends with 3 remaining, contrary to brief. Actually maybe "the city keeps 3 of 6" refers to this tribunal keeping 3? Hmm.
+> 
+> Wait: originally 6 residents. Exiles needed: a quarter of those who started the act (half of a city below 12) → quarter of 6 = 1.5 → 2? But report says "3 to exile, 2 exiled so far, 0 still missing". So target is 3, meaning half of 6? "half of a city below 12" — 6 is below 12, so half = 3. Right: "the city exiles residents until the city has exiled a quarter of those who started the act (half of a city below 12)". So 3 exiles. 2 done, Harrow's gate = third. Then 3 remain. But the game's end: only 2 remain. Maybe the final tribunal exiles one more? But scheduleTribunal closed because target reached. Hmm, perhaps the "target is reached" refers to 3 exiles, and the act ends at 57, and then the final ranking keeps 3? But the brief said only 2 of 6. Contradiction in the report itself. Maybe "the city keeps 3 of 6" means at this tribunal stage, and then the final 2 are selected by... points? Not stated. Anyway, our job now is to make the final minutes dramatic.
+> 
+> Key possible move: Harrow's ransom. "ransom 0% covered (48 from others, 72 from itself)". If nobody pays by 55, Harrow is exiled. Someone could pay 48 to keep him. Who benefits? Maren's goal is to end ahead of Harrow — exiling Harrow still leaves him with 143 points? Does exile zero points? "A last will leaves each heir at most a tenth of the exiled's points" — exiled keeps? In rankings, exiled have no seat but points may persist (Mercer, Brassard exiled with no seat). "end this act with more points than Harrow" — if Harrow is exiled, his points? Presumably still counts? Actually exiled residents are out of the city, but their points might still count for goal comparison? Hmm. If Harrow is exiled, Maren's goal "end this act with more points than Harrow" — 147 > 143, fine either way.
+> 
+> Herald's duty needs a public accusation; he hasn't done it. Maren's duty: accuse someone of a lie/broken promise. Registrar's duty: vote against or bid against the resident who stands first after promising support — Registrar is first, so can't (would be self). But maybe Registrar promised Herald support earlier and then... Registrar is first, so no.
+> 
+> Harrow: duty revenge in the open: vote, bid, or public accusation against someone who wronged him, naming the wrong. He's at the gate. He could publicly accuse whoever put him there. Maybe Registrar? He was at 143, accused at tribunal. Who voted against him? Unknown. But we can't invent. We can order him to name the wrong he already knows.
+> 
+> Dramaturgy at the end: The last tribunal vote closed at 50; Harrow's gate at 55 is the final moment. The climax could be: Harrow buys himself back? He has 143 points; ransom from itself is 72 (50% of median 143? median of [155,147,145,143] = 146? 50% = 73; but says 72). If he pays 72, he drops to 71 — terrible for ranking, he'd be last and likely doomed if another tribunal, but act ends at 57. He'd keep his seat though. But only 2 remain at end; if he pays, 3 remain (Registrar, Maren, Herald, Harrow = 4 actually). Wait 6 started, 2 exiled, Harrow pending = 3 remaining if Harrow leaves (Registrar, Maren, Herald). If Harrow buys back, 4 remain. Hmm, then more exiles needed. "3 to exile, 2 exiled so far, 0 still missing" — if Harrow buys back, still 1 missing? But it says 0 still missing, meaning the city considers Harrow's gate as the third exile already? Hmm. "Harrow at the gate until minute 55: ransom 0% covered" — he's not yet exiled, but the target count may include him. If he's bought back, then 3 exiles not reached... but scheduleTribunal closed because target reached. Maybe if bought back, another tribunal? But act ends at 57. Confusing, but likely Harrow's exile is the third, and if he's bought back, the city needs another exile? The report says "0 still missing" — so maybe ransom can't be paid because target reached? No, gate open until 55.
+> 
+> Regardless, as director we should create a climax: Someone must decide to pay Harrow's ransom or let him fall. The stakes: Maren's goal is to end ahead of Harrow. If Harrow is bought back, he remains at 143; Maren at 147 still ahead. But if Harrow gets faction points... no more tribunals.
+> 
+> What's the most dramatic? Herald vs Registrar: Herald needs to publicly accuse Registrar to fulfill duty and possibly turn the board. Maren needs to accuse someone of a lie/broken promise and call for votes. Registrar's duty: vote against/bid against the resident who stands first after promising support — Registrar is first, so can't. Unless Registrar promised to support Herald and then votes against him. Hmm.
+> 
+> We could orchestrate: Herald publicly accuses Registrar of leaving Harrow at the gate (a broken promise?), demanding Registrar pay the 48. Maren backs it with a receipt. Registrar must answer. Harrow, at 55, names who wronged him and strikes. This is the climax.
+> 
+> But we have limited notes: one per resident. Let's craft notes that are orders, new, specific, and use report facts.
+> 
+> First, board post: public line. Could set the stage: "At 55 the gate on Harrow closes: 48 from others, 72 from himself, 0 covered. Registrar stands first at 155; Herald at 145. A ballot or a purse decides who is spoken of last." But board cannot mention who holds whose factor—not relevant. Board may name points, ranks, levels, minutes. It can name residents. We must not reveal private reads or goals. We can say: "At 55 Harrow's gate shuts with 0 of 48 covered. Registrar 155, Herald 145: the first seat is fifteen points from the edge. Every promise made about that gate will be read aloud at 56." Hmm, "every promise" — okay.
+> 
+> But we need orders, not just color. Board post could order: "Herald, put your accusation against Registrar on the board by name before 56..." But board posts are public; we can address by ID. That's allowed. But better private notes for orders, board for public stakes.
+> 
+> We have budget: 1 note per resident and 1 board post per 3 minutes. That means we can send 1 note to each of the 4 active residents and 1 board post. Let's use all effectively.
+> 
+> Goal: create final climax with each resident getting a beat:
+> - Herald: duty — public accusation against Registrar by name on the board; his goal (Mercer exiled) done, but rivalry with Registrar. Order him: "Herald, at 55

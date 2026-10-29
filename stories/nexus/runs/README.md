@@ -13,3 +13,6 @@ index they count as direction 0 (v01-v07: no cores), 2 (v08-v11: drawn cores) an
 | [v08-v11](../../../examples/nexus-act2-06a/) | 2026-10-29 | 06a-03 | f2 g4 | Haiku or GLM / DeepSeek or Sonnet | see the series index | 0.66-1.99 USD |
 | [v12](../../../examples/nexus-act2-06a/v12-cast/) | 2026-10-29 | 06a-04 | f4 g4 | Haiku / DeepSeek | seats Registrar, Brassard; Herald's seal struck Mercer | 0.76 USD |
 | [act2-06a-013-f10g10](act2-06a-013-f10g10/) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | seats Harrow, Maren; Mercer's seal struck Brassard; 17 lies, 28 threats; 3 never passed door 8 | 1.91 USD |
+| [act2-06a-014-f10g10](act2-06a-014-f10g10/) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | seats Harrow, Herald; Brassard's seal struck Registrar; 9 refusals in character; stopped by the 3 USD cap | 3.05 USD |
+| [act2-06a-015-f4g10](act2-06a-015-f4g10/) | 2026-10-29 | 06a-04 | f4 g10 | Haiku / DeepSeek | seats Maren, Herald; 6/6 passed door 8 by minute 11; no seal bid; 1 lie, 3 threats | 0.87 USD |
+| [act2-06a-016-f10g4](act2-06a-016-f10g4/) | 2026-10-29 | 06a-04 | f10 g4 | Haiku / DeepSeek | seats Harrow, Mercer (the House, by lying); Brassard's seal struck Registrar; 2 never passed door 8 | 0.89 USD |

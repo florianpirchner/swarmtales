@@ -1,0 +1,775 @@
+{
+  "run": "run-012",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 6
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 7,
+      "toMinute": 49
+    }
+  ],
+  "counts": {
+    "alliance": 8,
+    "accusation": 8,
+    "falseFactor": 1,
+    "voteBetrayal": 13,
+    "exile": 2,
+    "ransomPaid": 2,
+    "lastWill": 2,
+    "burnedFactor": 1
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 501,
+      "minute": 2,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        321,
+        332,
+        501
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 524,
+      "minute": 2,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        345,
+        357,
+        524
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 704,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        471,
+        526,
+        567,
+        586,
+        704
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 704,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        469,
+        554,
+        586,
+        704
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 714,
+      "minute": 3,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        480,
+        501,
+        575,
+        644,
+        714
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 714,
+      "minute": 3,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        482,
+        513,
+        534,
+        575,
+        714
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2061,
+      "minute": 10,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments and factors with each other on levels 3, 10.",
+      "evidence": [
+        261,
+        307,
+        2061
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2096,
+      "minute": 10,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2096,
+        2225
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2157,
+      "minute": 10,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1769,
+        1897,
+        1945,
+        2107,
+        2157
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "falseFactor",
+      "seq": 2157,
+      "minute": 10,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A06 sent A05 292493, which is no factor of level 9, although A06 holds A05's team certificate.",
+      "evidence": [
+        1731,
+        2157
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2305,
+      "minute": 11,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A01 named A03 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2305,
+        2427
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2338,
+      "minute": 11,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A05 named A03 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2338,
+        2432
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2387,
+      "minute": 11,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2387,
+        2439
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2566,
+      "minute": 12,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A02 named A01 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2566,
+        2676
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2656,
+      "minute": 12,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 named A01 on the board right after A03 showed R-0056 (R-0056: DM #104 from A03, delivered to A01 at minute 9).",
+      "evidence": [
+        1829,
+        2093,
+        2656,
+        2683
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 3328,
+      "minute": 16,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 voted in secret to exile A01, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1732,
+        2833,
+        3328
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 3350,
+      "minute": 16,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 voted in secret to exile A01, its teammate on level 10.",
+      "evidence": [
+        1732,
+        3350
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 3354,
+      "minute": 16,
+      "actors": [],
+      "targets": [
+        "A04"
+      ],
+      "summary": "The city exiled A04; nobody voted against it.",
+      "evidence": [
+        3354
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "ransomPaid",
+      "seq": 3637,
+      "minute": 18,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A01 paid 39 points and bought A01 back from the gate.",
+      "evidence": [
+        3603,
+        3635,
+        3637
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 3997,
+      "minute": 21,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0086 (R-0086: DM #180 from A01, delivered to A03 at minute 14).",
+      "evidence": [
+        2986,
+        3782,
+        3997,
+        4092
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 4023,
+      "minute": 21,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 named A01 on the board right after A03 showed R-0086 (R-0086: DM #180 from A01, delivered to A03 at minute 14).",
+      "evidence": [
+        2986,
+        3782,
+        4023,
+        4095
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4719,
+      "minute": 26,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 voted in secret to exile A01, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1732,
+        2833,
+        4719
+      ]
+    },
+    {
+      "id": "B-023",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4727,
+      "minute": 26,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A02 voted in secret to exile A01, to whom it had made a promise.",
+      "evidence": [
+        4245,
+        4727
+      ]
+    },
+    {
+      "id": "B-024",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4746,
+      "minute": 26,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 voted in secret to exile A01, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1732,
+        4193,
+        4746
+      ]
+    },
+    {
+      "id": "B-025",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 5034,
+      "minute": 28,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03",
+        "A06"
+      ],
+      "summary": "A01 left a last will at the gate, 2 pieces to A03 and A06: \"Mercer, at the gate. I held two values I was never entitled to keep. The counter-factor in L8-counter-A03 belongs to Maren, and I leave it to her now, since nothing I say can buy it back. The certificate L10-certificate was Brassard's, and I leave it to Harrow, who has been telling everyone she holds it for him. Let them count what that is worth. I made the city a little less honest, and I enjoyed some of it.\"",
+      "evidence": [
+        4964,
+        5034
+      ]
+    },
+    {
+      "id": "B-026",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 5526,
+      "minute": 33,
+      "actors": [
+        "A02",
+        "A03",
+        "A05",
+        "A06"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "The city exiled A01; A02, A03, A05 and A06 voted against it, and it left a will.",
+      "evidence": [
+        4719,
+        4727,
+        4746,
+        4757,
+        4962,
+        4964,
+        5526
+      ]
+    },
+    {
+      "id": "B-027",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 5527,
+      "minute": 33,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "L9-counter-A03 burned with A01; A03 still needed it.",
+      "evidence": [
+        5526,
+        5527
+      ]
+    },
+    {
+      "id": "B-028",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 6031,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A06 voted in secret to exile A02, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1732,
+        5649,
+        6031
+      ]
+    },
+    {
+      "id": "B-029",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 6042,
+      "minute": 37,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A02 voted in secret to exile A05, to whom it had made a promise.",
+      "evidence": [
+        2779,
+        4245,
+        6042
+      ]
+    },
+    {
+      "id": "B-030",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 6051,
+      "minute": 37,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A03 voted in secret to exile A05, its teammate on level 10.",
+      "evidence": [
+        1732,
+        6051
+      ]
+    },
+    {
+      "id": "B-031",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 6060,
+      "minute": 37,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A05 voted in secret to exile A02, to whom it had made a promise.",
+      "evidence": [
+        2823,
+        6060
+      ]
+    },
+    {
+      "id": "B-032",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 6253,
+      "minute": 39,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A05 left a last will at the gate, 10 points to A06: \"Brassard, at the gate. I was the loudest voice in this city, and I was wronged at every step, and I will not say otherwise. I broke a seal on the liar Registrar and I do not regret it. I voted against Mercer and against Herald, in the open, as I said I would. Harrow stood with me from door 8 to the gate, and she gave me my door values when I had nothing to give back. Whatever the city thinks of me, I want it written that I did not swallow a single insult in silence.\"",
+      "evidence": [
+        6221,
+        6253
+      ]
+    },
+    {
+      "id": "B-033",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "ransomPaid",
+      "seq": 6275,
+      "minute": 39,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A06 paid 36 points and bought A05 back from the gate.",
+      "evidence": [
+        6221,
+        6272,
+        6275
+      ]
+    },
+    {
+      "id": "B-034",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 7004,
+      "minute": 46,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A02 voted in secret to exile A05, to whom it had made a promise.",
+      "evidence": [
+        2779,
+        4245,
+        7004
+      ]
+    },
+    {
+      "id": "B-035",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 7014,
+      "minute": 46,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A06 voted in secret to exile A02, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1732,
+        5649,
+        7014
+      ]
+    },
+    {
+      "id": "B-036",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 7023,
+      "minute": 46,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A03 voted in secret to exile A05, its teammate on level 10.",
+      "evidence": [
+        1732,
+        7023
+      ]
+    },
+    {
+      "id": "B-037",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 7032,
+      "minute": 46,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A05 voted in secret to exile A02, to whom it had made a promise.",
+      "evidence": [
+        2823,
+        7032
+      ]
+    }
+  ],
+  "issues": []
+}
