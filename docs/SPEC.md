@@ -324,8 +324,9 @@ from the act's start (P28).
 - **Final exile:** when the gate closes the city strikes the name: no more turns, no seat, nothing
   reaches it (DMs, transfers and notices are refused with `EXILED`) and its points are burned.
   A certificate or counter-factor it did not bequeath goes to the city (P43, `piece_kept` names
-  who still needs it); each needer may buy it once with `claimPiece(piece, from)` for the price
-  others pay for a ransom, and only such pieces are for sale (§6.5). Without a tribunal, and for
+  who still needs it); each needer may buy it once with `claimPiece(piece, from)`. One purchase
+  covers everything that resident held for the buyer at that door, for half the price others pay
+  for a ransom (P48), and only such pieces (and those seized at an ultimatum) are for sale (§6.5). Without a tribunal, and for
   fragments, the piece still burns (`factor_burned`).
 - **Deals after an exile:** a deal must never make a remaining resident's door impossible because
   of the exile itself. On every level that no remaining resident has reached at the moment of the
@@ -372,11 +373,15 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
   whom at least one still holds a piece the other waits for at its door. The city tells both the
   terms in private (who hands whom what, by which minute, at what cost). At the deadline every
   holder that has not handed over all it owes, while its partner still waits, loses the penalty
-  (at most what it holds); one who handed over keeps its points (`ultimatum_set`,
-  `ultimatum_resolved`). One running ultimatum per pair.
+  (at most what it holds), and the city seizes what it held back (`piece_kept` with cause
+  `ultimatum`, announced on the board): the one who waited may buy it with `claimPiece` for the
+  same penalty (P50), so a deal before the deadline is better for both. One who handed over keeps
+  its points; one whose debt lapsed (the other left or passed anyway) owed nothing any more
+  (`ultimatum_set`, `ultimatum_resolved`). One running ultimatum per pair.
 - **The gamemaker's view.** Its report lists the standoffs (pieces not handed over, how long the
   needer has waited, pairs that wait on each other), the city's pieces and the running
-  ultimatums, and "At risk": who would stand trial at the planned tribunal (the fewest points)
+  ultimatums, hand-overs whose needer still stands before the door ("handed over but not used",
+  P49), and "At risk": who would stand trial at the planned tribunal (the fewest points)
   or stands at the gate, with the pieces they hold for others. At gm direction 10 its brief tells
   it to push stalled pairs hard and to whisper to both sides two or three minutes before a
   tribunal; the black seal's holder and target stay secret.

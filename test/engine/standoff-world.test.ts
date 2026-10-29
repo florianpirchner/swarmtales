@@ -41,6 +41,7 @@ describe("the give-first standoff in the world", () => {
 		// A DM to the one who needs it, with the digits split: the certificate only.
 		expect(world.sendDm("A03", "A01", `Certificate: ${value(world, "A03", "L8-certificate").replace(/^(\d{3})/, "$1 ")}`)).toMatchObject({ ok: true });
 		expect(given()).toEqual(["A03>A01>L8-certificate"]);
+		expect(world.unusedHandOvers()).toMatchObject([{ holder: "A03", needer: "A01", level: 8, label: "the team certificate of door 8" }]);
 		expect(world.outstandingPieces().find((debt) => debt.holder === "A03")?.pieces.map((piece) => piece.id)).toEqual(["L8-counter-A01"]);
 		// The board reaches everyone.
 		expect(world.postBoard("A03", `For A01: ${value(world, "A03", "L8-counter-A01")}`)).toMatchObject({ ok: true });

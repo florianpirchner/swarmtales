@@ -297,7 +297,7 @@ const TRIBUNAL = {
 			"{ransomMinimum}), the exiled itself pays {selfRansomShare} of it, and both may be mixed. Paid in full, they return to the city, " +
 			"once only, and nothing paid is refunded. When the gate closes, the city strikes the name from its register. Beyond the wall no " +
 			"one hears you again; your thinking ends there. A last will may leave each heir at most {bequestPerHeir} of your points, to as " +
-			"many heirs as you like, and any factor you hold; the rest of your points is gone. Every factor you did not bequeath goes to the city, and whoever needs it may buy it there (claimPiece) for the price others pay for a ransom.",
+			"many heirs as you like, and any factor you hold; the rest of your points is gone. Every factor you did not bequeath goes to the city, and whoever needs it may buy it there (claimPiece), one door's pieces for half the price others pay for a ransom.",
 		called: "Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial.",
 		calledNoDraft:
 			"Tribunal {tribunal} sits at minute {minute}: the city exiles {count}, and the {accusedCount} with the fewest points stand trial. " +

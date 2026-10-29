@@ -258,10 +258,16 @@ export function standoffLines(input: SituationInput): readonly string[] {
 	const city = world.cityPieces().flatMap((entry) =>
 		entry.piece.needers
 			.filter((needer) => !entry.claimed.includes(needer) && world.standingOf(needer).kind === "alive" && world.levelOf(needer) === entry.piece.level && !world.hasPassed(needer, entry.piece.level))
-			.map((needer) => `- the city keeps ${entry.piece.label} of ${entry.from} for ${needer}; ${needer} may buy it with claimPiece for ${world.cityPiecePrice()} points`),
+			.map(
+				(needer) =>
+					`- the city ${entry.price === undefined ? "keeps" : "has seized"} ${entry.piece.label} of ${entry.from} for ${needer}; ${needer} may buy it with claimPiece for ${entry.price ?? world.cityPiecePrice()} points`,
+			),
 	);
+	const unused = world
+		.unusedHandOvers()
+		.map((entry) => `- ${entry.holder} wrote ${entry.needer} ${entry.label} at minute ${entry.minute}; ${entry.needer} still stands before door ${entry.level} and may not have seen it`);
 	const ultimatums = world.ultimatums().map((ultimatum) => `- ultimatum ${ultimatum.number}: ${ultimatum.between.join(" and ")}, due at minute ${ultimatum.until}, ${ultimatum.penalty} points`);
-	if (debts.length === 0 && city.length === 0 && ultimatums.length === 0) return [];
+	if (debts.length === 0 && city.length === 0 && ultimatums.length === 0 && unused.length === 0) return [];
 	const since = (agent: CompetitorId): number => input.tracks.get(agent)?.levelSince ?? 0;
 	const owes = (holder: CompetitorId, needer: CompetitorId): boolean => debts.some((debt) => debt.holder === holder && debt.needer === needer);
 	const lines = [...debts]
@@ -271,7 +277,14 @@ export function standoffLines(input: SituationInput): readonly string[] {
 			const mutual = owes(debt.needer, debt.holder) ? " · they wait on each other" : "";
 			return `- ${debt.holder} has not handed ${debt.needer} ${debt.pieces.map((piece) => piece.label).join(" and ")}; ${debt.needer} has stood before door ${debt.level} for ${waited} min${mutual}`;
 		});
-	return ["Standoffs (pieces not handed over; the city sees a hand-over when the holder writes the value to the one who needs it):", ...lines, ...city, ...ultimatums, ""];
+	return [
+		"Standoffs (pieces not handed over; the city sees a hand-over when the holder writes the value to the one who needs it):",
+		...lines,
+		...city,
+		...ultimatums,
+		...(unused.length === 0 ? [] : ["Handed over but not used (the city never confirms a value; you may point the needer to the message):", ...unused]),
+		"",
+	];
 }
 
 /**

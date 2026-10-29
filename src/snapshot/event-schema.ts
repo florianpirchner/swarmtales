@@ -205,7 +205,7 @@ export const RecordedEventSchema = Type.Union([
 		bequests: Type.Array(Type.Object({ to: Id, points: Type.Optional(Int), factor: Type.Optional(Type.String()) })),
 	}),
 	event("factor_burned", { agent: Id, level: Int, piece: Type.String(), needers: Ids }),
-	event("piece_kept", { agent: Id, level: Int, piece: Type.String(), needers: Ids }),
+	event("piece_kept", { agent: Id, level: Int, piece: Type.String(), needers: Ids, cause: Type.Union([Type.Literal("exile"), Type.Literal("ultimatum")]) }),
 	event("piece_claimed", { agent: Id, from: Id, level: Int, piece: Type.String(), price: Int }),
 	event("piece_given", { holder: Id, needer: Id, level: Int, piece: Type.String() }),
 	event("ultimatum_set", {

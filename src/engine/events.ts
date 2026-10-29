@@ -480,6 +480,8 @@ export type ArenaEvent =
 			readonly level: number;
 			readonly piece: string;
 			readonly needers: readonly CompetitorId[];
+			/** `exile`: the holder left; `ultimatum`: the city seized it from a holdout (P50). */
+			readonly cause: "exile" | "ultimatum";
 	  }
 	| {
 			/** A needer bought a piece the city kept. */

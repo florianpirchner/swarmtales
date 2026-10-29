@@ -193,7 +193,7 @@ export function detectCityPieces(facts: RunFacts): readonly BeatDraft[] {
 			minute: event.minute,
 			actors: [event.agent],
 			targets: [...event.needers].sort(),
-			summary: `The city keeps ${event.piece} of ${event.agent}; ${list([...event.needers].sort())} still need it.`,
+			summary: `The city ${event.cause === "ultimatum" ? "seizes" : "keeps"} ${event.piece} of ${event.agent}; ${list([...event.needers].sort())} still need it.`,
 			evidence: [event.seq],
 		}),
 	);

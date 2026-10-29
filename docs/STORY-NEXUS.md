@@ -176,8 +176,10 @@ accused can talk and buy votes with transfers; nobody, the gamemaker included, s
 for whom, whom anyone nominated or joined, or whether a faction held. The result is posted with
 counts, and the exiled resident alone learns who voted against it. When the gate closes, the exiled
 has no more turns and no seat; its points are gone. Every factor it did not bequeath goes to the
-city, and whoever still needs it may buy it there (`claimPiece`) for the price others pay for a
-ransom (2026-10-29, P43).
+city, and whoever still needs it may buy it there (`claimPiece`), one door's pieces for half the
+price others pay for a ransom (2026-10-29, P43, P48). At gm direction 10 the gamemaker may also
+give two residents an ultimatum; a holdout pays 10 points and the city seizes what it held back,
+which the one who waited may buy for the same 10 (P50).
 Residents see the minute, never how long the act lasts.
 
 **Deals after an exile.** An exile must never make a remaining resident's door impossible by

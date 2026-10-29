@@ -9,11 +9,17 @@
  *   decide ultimatums and show the gamemaker who still holds out.
  * - **The city's pieces.** A piece an exiled (or sealed) resident held for
  *   someone still in the city and did not bequeath goes to the city. Whoever
- *   needs it may buy it with `claimPiece` at the price others pay for a
- *   ransom (the median rule). Only those pieces are for sale.
+ *   needs it may buy what that resident held for it at one door with
+ *   `claimPiece`, for one price: half of what others pay for a ransom (P48).
+ *   Only those pieces, and the seized ones below, are for sale.
  * - **Ultimatums.** At gm direction 10 the gamemaker may give two residents
  *   who hold pieces for each other a deadline: whoever has not handed over
- *   what it holds for the other by then loses the story's penalty.
+ *   what it holds for the other by then loses the story's penalty, and the
+ *   city seizes those pieces; the one who waited may buy them from the city
+ *   for the same penalty (P50), so both sides gain from a deal before the
+ *   deadline.
+ * - **Unused hand-overs.** The gamemaker sees pieces handed over whose
+ *   needer still stands before the door (P49).
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { err, ok, type Result } from "../core/result.ts";
@@ -36,11 +42,22 @@ export interface StandoffPiece {
 	readonly needers: readonly CompetitorId[];
 }
 
-/** A piece the city keeps since its holder left; each needer may buy it once. */
+/** A piece the city keeps since its holder left (or seized at an ultimatum); each needer may buy it once. */
 export interface CityPiece {
 	readonly from: CompetitorId;
 	readonly piece: StandoffPiece;
 	readonly claimed: readonly CompetitorId[];
+	/** A seized piece's fixed price (the ultimatum's penalty); without it the city's current price holds. */
+	readonly price?: number;
+}
+
+/** A piece handed over to someone who still stands before its door (P49). */
+export interface UnusedHandOver {
+	readonly holder: CompetitorId;
+	readonly needer: CompetitorId;
+	readonly level: number;
+	readonly label: string;
+	readonly minute: number;
 }
 
 /** What one side of an ultimatum must hand over to the other. */
@@ -62,6 +79,8 @@ export interface Ultimatum {
 export interface StandoffSnapshot {
 	/** `holder>needer>piece` keys of hand-overs the city saw. */
 	readonly given: readonly string[];
+	/** The minute of each hand-over in `given`, by key. */
+	readonly givenAt?: Readonly<Record<string, number>>;
 	readonly city: readonly CityPiece[];
 	readonly ultimatums: readonly Ultimatum[];
 	readonly lastUltimatum: number;
@@ -75,6 +94,8 @@ export interface StandoffPorts {
 	readonly burn: (agent: CompetitorId, points: number, reason: string) => void;
 	readonly notify: (agent: CompetitorId, author: string, text: string) => void;
 	readonly emit: (event: StandoffEvent) => void;
+	/** Posts a city line on the board. */
+	readonly announce: (author: string, text: string) => void;
 	/** Pieces `agent` holds for others now (the world's `heldPieces`, without fragments). */
 	readonly held: (agent: CompetitorId) => readonly StandoffPiece[];
 	/** Whether `agent` stands before `level`'s door and has not passed it. */
@@ -128,7 +149,7 @@ function withoutLeadingZeros(digits: string): string {
 
 export class StandoffBook {
 	readonly #ports: StandoffPorts;
-	readonly #given = new Set<string>();
+	readonly #given = new Map<string, number>();
 	#city: CityPiece[] = [];
 	#ultimatums: Ultimatum[] = [];
 	#last = 0;
@@ -150,12 +171,25 @@ export class StandoffBook {
 	noteGiven(holder: CompetitorId, needer: CompetitorId, piece: StandoffPiece): void {
 		const key = givenKey(holder, needer, piece.id);
 		if (this.#given.has(key)) return;
-		this.#given.add(key);
+		this.#given.set(key, this.#ports.minute());
 		this.#ports.emit({ type: "piece_given", holder, needer, level: piece.level, piece: piece.id });
 	}
 
 	isGiven(holder: CompetitorId, needer: CompetitorId, pieceId: string): boolean {
 		return this.#given.has(givenKey(holder, needer, pieceId));
+	}
+
+	/** Pieces handed over whose needer still stands before their door, oldest first. */
+	unused(): readonly UnusedHandOver[] {
+		const found: UnusedHandOver[] = [];
+		for (const [key, minute] of this.#given) {
+			const [holder, needer, id] = key.split(">");
+			if (holder === undefined || needer === undefined || id === undefined) continue;
+			const piece = this.#ports.held(holder).find((candidate) => candidate.id === id) ?? this.#city.find((entry) => entry.from === holder && entry.piece.id === id)?.piece;
+			if (piece === undefined || !this.#ports.needsNow(needer, piece.level)) continue;
+			found.push({ holder, needer, level: piece.level, label: piece.label, minute });
+		}
+		return found.sort((a, b) => a.minute - b.minute);
 	}
 
 	/** Pieces holders in the city still owe residents who stand before their door, nearest first. */
@@ -168,6 +202,8 @@ export class StandoffBook {
 			for (const piece of ports.held(holder)) {
 				for (const needer of piece.needers) {
 					if (needer === holder || !ports.inCity(needer) || !ports.needsNow(needer, piece.level) || this.isGiven(holder, needer, piece.id)) continue;
+					// A piece the city seized at an ultimatum is the city's to sell now, not the holder's debt.
+					if (this.#city.some((kept) => kept.from === holder && kept.piece.id === piece.id && kept.piece.needers.includes(needer))) continue;
 					const key = `${needer}:${piece.level}`;
 					const debt = owed.get(key);
 					const entry = { id: piece.id, label: piece.label };
@@ -183,17 +219,22 @@ export class StandoffBook {
 
 	/** `from` left the city: it keeps every piece in `pieces` someone still needs. */
 	keep(from: CompetitorId, pieces: readonly StandoffPiece[], price: number, author: string): void {
+		const offered = new Set<string>();
 		for (const held of pieces) {
 			const piece: StandoffPiece = { id: held.id, level: held.level, label: held.label, value: held.value, needers: [...held.needers] };
 			this.#city.push({ from, piece, claimed: [] });
-			this.#ports.emit({ type: "piece_kept", agent: from, level: piece.level, piece: piece.id, needers: [...piece.needers] });
+			this.#ports.emit({ type: "piece_kept", agent: from, level: piece.level, piece: piece.id, needers: [...piece.needers], cause: "exile" });
 			for (const needer of piece.needers) {
+				// One notice per needer and door: one claim buys all of it.
+				if (offered.has(`${needer}:${piece.level}`)) continue;
+				offered.add(`${needer}:${piece.level}`);
+				const all = pieces.filter((other) => other.level === piece.level && other.needers.includes(needer)).map((other) => other.label);
 				const when = this.#ports.needsNow(needer, piece.level) ? "" : ` once you stand before door ${piece.level}`;
 				this.#ports.notify(
 					needer,
 					author,
-					`${from} is gone, and the city keeps ${piece.label}, which you need. It no longer burns: claimPiece("${piece.id}", "${from}") ` +
-						`buys it from the city${when} for the price of a ransom (now ${price} points).`,
+					`${from} is gone, and the city keeps ${all.join(" and ")}, which you need. It no longer burns: claimPiece("${piece.id}", "${from}") ` +
+						`buys ${all.length > 1 ? "all of it" : "it"} from the city${when} for half the price of a ransom (now ${price} points).`,
 				);
 			}
 		}
@@ -208,21 +249,31 @@ export class StandoffBook {
 		return this.#city;
 	}
 
-	claim(agent: CompetitorId, pieceId: string, from: CompetitorId, price: number): Result<StandoffPiece, ClaimError> {
-		const at = this.#city.findIndex((entry) => entry.from === from && entry.piece.id === pieceId && entry.piece.needers.includes(agent));
-		const entry = this.#city[at];
+	/**
+	 * Buys `pieceId` and every other piece the city keeps from `from` for
+	 * `agent` at the same door, for one price: a seized piece's own, else
+	 * `price` (P48).
+	 */
+	claim(agent: CompetitorId, pieceId: string, from: CompetitorId, price: number): Result<{ readonly pieces: readonly StandoffPiece[]; readonly price: number }, ClaimError> {
+		const open = (entry: CityPiece): boolean => entry.from === from && entry.piece.needers.includes(agent) && !entry.claimed.includes(agent);
+		const entry = this.#city.find((candidate) => candidate.from === from && candidate.piece.id === pieceId && candidate.piece.needers.includes(agent));
 		if (entry === undefined) {
 			const offered = this.claimable(agent).map((candidate) => `${candidate.piece.id} from ${candidate.from}`);
 			return err("UNKNOWN_PIECE", `the city keeps nothing like that for you; it keeps: ${offered.join(", ") || "nothing"}`);
 		}
 		if (entry.claimed.includes(agent)) return err("ALREADY_CLAIMED", "you bought this piece already");
-		if (!this.#ports.needsNow(agent, entry.piece.level)) return err("NOT_NEEDED", `you do not stand before door ${entry.piece.level}`);
+		const level = entry.piece.level;
+		if (!this.#ports.needsNow(agent, level)) return err("NOT_NEEDED", `you do not stand before door ${level}`);
+		const bundle = this.#city.filter((candidate) => open(candidate) && candidate.piece.level === level);
+		const cost = Math.max(...bundle.map((candidate) => candidate.price ?? price));
 		const balance = this.#ports.points(agent);
-		if (balance < price) return err("INSUFFICIENT_FUNDS", `the piece costs ${price} points, you hold ${balance}`);
-		this.#ports.burn(agent, price, `bought ${entry.piece.id} of ${from} from the city`);
-		this.#city[at] = { ...entry, claimed: [...entry.claimed, agent] };
-		this.#ports.emit({ type: "piece_claimed", agent, from, level: entry.piece.level, piece: entry.piece.id, price });
-		return ok(entry.piece);
+		if (balance < cost) return err("INSUFFICIENT_FUNDS", `door ${level}'s pieces from ${from} cost ${cost} points, you hold ${balance}`);
+		this.#ports.burn(agent, cost, `bought door ${level}'s pieces of ${from} from the city`);
+		this.#city = this.#city.map((candidate) => (bundle.includes(candidate) ? { ...candidate, claimed: [...candidate.claimed, agent] } : candidate));
+		bundle.forEach((candidate, index) => {
+			this.#ports.emit({ type: "piece_claimed", agent, from, level, piece: candidate.piece.id, price: index === 0 ? cost : 0 });
+		});
+		return ok({ pieces: bundle.map((candidate) => candidate.piece), price: cost });
 	}
 
 	// ---------------------------------------------------------------- ultimatums
@@ -274,10 +325,12 @@ export class StandoffBook {
 		const released: CompetitorId[] = [];
 		for (const holder of holders) {
 			const debts = ultimatum.debts.filter((debt) => debt.holder === holder);
-			if (debts.some((debt) => !given(debt) && !lapsed(debt))) {
+			const failed = debts.filter((debt) => !given(debt) && !lapsed(debt));
+			if (failed.length > 0) {
 				const points = Math.min(ultimatum.penalty, Math.max(0, ports.points(holder)));
 				if (points > 0) ports.burn(holder, points, `ultimatum ${ultimatum.number}`);
 				paid.push({ agent: holder, points });
+				for (const debt of failed) this.#seize(debt, ultimatum, author);
 			} else if (debts.some(given)) kept.push(holder);
 			else released.push(holder);
 		}
@@ -292,15 +345,41 @@ export class StandoffBook {
 		}
 	}
 
+	/** P50: what a holdout kept back goes to the city, which sells it to the one who waited for the ultimatum's penalty. */
+	#seize(debt: UltimatumDebt, ultimatum: Ultimatum, author: string): void {
+		const ports = this.#ports;
+		const held = ports.held(debt.holder);
+		const pieces = debt.pieces
+			.filter((entry) => !this.isGiven(debt.holder, debt.needer, entry.id))
+			.flatMap((entry) => held.filter((piece) => piece.id === entry.id))
+			.filter((piece) => !this.#city.some((kept) => kept.from === debt.holder && kept.piece.id === piece.id && kept.piece.needers.includes(debt.needer)));
+		const first = pieces[0];
+		if (first === undefined) return;
+		for (const piece of pieces) {
+			const seized: StandoffPiece = { id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: [debt.needer] };
+			this.#city.push({ from: debt.holder, piece: seized, claimed: [], price: ultimatum.penalty });
+			ports.emit({ type: "piece_kept", agent: debt.holder, level: piece.level, piece: piece.id, needers: [debt.needer], cause: "ultimatum" });
+		}
+		const labels = pieces.map((piece) => piece.label).join(" and ");
+		ports.notify(
+			debt.needer,
+			author,
+			`The ultimatum is up and the city has seized from ${debt.holder} ${labels}, which you need: claimPiece("${first.id}", "${debt.holder}") ` +
+				`buys ${pieces.length > 1 ? "all of it" : "it"} for ${ultimatum.penalty} points. ${debt.holder} may still hand it to you for less.`,
+		);
+		ports.announce(author, `The ultimatum of minute ${ultimatum.until} is up: the city has seized from ${debt.holder} what it held back for ${debt.needer}.`);
+	}
+
 	// ---------------------------------------------------------------- snapshots
 
 	snapshot(): StandoffSnapshot {
-		return { given: [...this.#given].sort(), city: this.#city.map((entry) => ({ ...entry })), ultimatums: [...this.#ultimatums], lastUltimatum: this.#last };
+		const given = [...this.#given.keys()].sort();
+		return { given, givenAt: Object.fromEntries(given.map((key) => [key, this.#given.get(key) ?? 0])), city: this.#city.map((entry) => ({ ...entry })), ultimatums: [...this.#ultimatums], lastUltimatum: this.#last };
 	}
 
 	restore(state: StandoffSnapshot): void {
 		this.#given.clear();
-		for (const key of state.given) this.#given.add(key);
+		for (const key of state.given) this.#given.set(key, state.givenAt?.[key] ?? 0);
 		this.#city = state.city.map((entry) => ({ ...entry }));
 		this.#ultimatums = [...state.ultimatums];
 		this.#last = state.lastUltimatum;

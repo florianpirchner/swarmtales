@@ -239,7 +239,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "factor_burned":
 			return `${event.piece} burned with ${event.agent}${event.needers.length === 0 ? "" : `; ${event.needers.join(", ")} needed it`}.`;
 		case "piece_kept":
-			return `The city keeps ${event.piece} of ${event.agent}; ${event.needers.join(", ")} may buy it.`;
+			return `The city ${event.cause === "ultimatum" ? "seizes" : "keeps"} ${event.piece} of ${event.agent}; ${event.needers.join(", ")} may buy it.`;
 		case "piece_claimed":
 			return `${event.agent} buys ${event.piece} of ${event.from} from the city for ${event.price} points.`;
 		case "ultimatum_set":
