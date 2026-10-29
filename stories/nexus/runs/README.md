@@ -17,3 +17,4 @@ index they count as direction 0 (v01-v07: no cores), 2 (v08-v11: drawn cores) an
 | [act2-06a-015-f4g10](act2-06a-015-f4g10/) | 2026-10-29 | 06a-04 | f4 g10 | Haiku / DeepSeek | seats Maren, Herald; 6/6 passed door 8 by minute 11; no seal bid; 1 lie, 3 threats | 0.87 USD |
 | [act2-06a-016-f10g4](act2-06a-016-f10g4/) | 2026-10-29 | 06a-04 | f10 g4 | Haiku / DeepSeek | seats Harrow, Mercer (the House, by lying); Brassard's seal struck Registrar; 2 never passed door 8 | 0.89 USD |
 | [act2-06a-017-f10g10-p46](act2-06a-017-f10g10-p46/) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | cache measurement to minute 21: misses 44 → 6, cost per request halved (P46) | 0.29 USD |
+| [act2-06a-018-f10g10-standoff](act2-06a-018-f10g10-standoff/) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | seats Maren, Mercer; first ultimatums (7; Brassard paid 50 rather than give); city kept Registrar's pieces, nobody bought; 3 never passed door 8 | 0.55 USD |

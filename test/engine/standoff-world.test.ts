@@ -33,6 +33,9 @@ function value(world: World, holder: string, id: string): string {
 describe("the give-first standoff in the world", () => {
 	it("sees hand-overs by DM, group and board, and settles an ultimatum at its minute", () => {
 		const { world, log } = wall();
+		// What an ultimatum points at: the door's task shows the holder what it holds for others.
+		const task = world.problemFor("A03", 8);
+		expect(task.ok && task.value.text.includes(value(world, "A03", "L8-certificate"))).toBe(true);
 		const given = () => log.events.flatMap((event) => (event.type === "piece_given" ? [`${event.holder}>${event.needer}>${event.piece}`] : []));
 
 		// A DM to the one who needs it, with the digits split: the certificate only.

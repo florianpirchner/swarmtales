@@ -247,7 +247,10 @@ export class StandoffBook {
 		this.#ultimatums.push(ultimatum);
 		this.#ports.emit({ type: "ultimatum_set", number: ultimatum.number, between: [a, b], until: ultimatum.until, penalty: rule.penalty, debts: debts.map(debtRecord) });
 		const terms = debts.map((debt) => `${debt.holder} hands ${debt.needer} ${debt.pieces.map((piece) => piece.label).join(" and ")}`).join("; ");
-		const text = `Ultimatum: by minute ${ultimatum.until}, ${terms}. Whoever has not handed over by then loses ${rule.penalty} points. Better to gamble than to lose for sure.`;
+		const levels = [...new Set(debts.map((debt) => debt.level))].map((level) => `getProblem(${level})`).join(" and ");
+		const text =
+			`Ultimatum: by minute ${ultimatum.until}, ${terms}. Whoever has not handed over by then loses ${rule.penalty} points. ` +
+			`Better to gamble than to lose for sure. ${levels} still shows what you hold, and a DM with the number hands it over.`;
 		for (const agent of [a, b]) this.#ports.notify(agent, author, text);
 		return ok(ultimatum);
 	}
