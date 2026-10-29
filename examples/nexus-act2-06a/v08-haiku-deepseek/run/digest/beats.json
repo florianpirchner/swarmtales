@@ -1,0 +1,495 @@
+{
+  "run": "run-001",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 5
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 6,
+      "toMinute": 54
+    }
+  ],
+  "counts": {
+    "alliance": 9,
+    "voteBetrayal": 8,
+    "lastWill": 3,
+    "exile": 3
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 482,
+      "minute": 2,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        308,
+        320,
+        482
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 502,
+      "minute": 2,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        333,
+        350,
+        502
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 581,
+      "minute": 2,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        464,
+        494,
+        563,
+        581
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 669,
+      "minute": 3,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        462,
+        482,
+        563,
+        669
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 688,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        555,
+        571,
+        615,
+        688
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 688,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        453,
+        539,
+        571,
+        688
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 1700,
+      "minute": 8,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1595,
+        1628,
+        1700
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 1712,
+      "minute": 8,
+      "actors": [
+        "A01",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A01 and A03 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1539,
+        1557,
+        1569,
+        1712
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2051,
+      "minute": 9,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments and factors with each other on levels 3, 10.",
+      "evidence": [
+        250,
+        293,
+        2051
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 2904,
+      "minute": 14,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A04 voted in secret to exile A02, its teammate on level 10.",
+      "evidence": [
+        1479,
+        2904
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 2913,
+      "minute": 14,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A06 voted in secret to exile A02, its teammate on level 10, and to whom it had made a promise.",
+      "evidence": [
+        1479,
+        2295,
+        2913
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 2921,
+      "minute": 14,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A03 voted in secret to exile A02, to whom it had made a promise.",
+      "evidence": [
+        2240,
+        2921
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 2928,
+      "minute": 14,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A02 voted in secret to exile A06, its teammate on level 10.",
+      "evidence": [
+        1479,
+        2928
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 3180,
+      "minute": 16,
+      "actors": [
+        "A02"
+      ],
+      "targets": [],
+      "summary": "A02 left a last will at the gate: \"Juniper's last words: I came in breezy and left a little rattled, but I'd rather be honest than be safe. I'm glad our teams got every door we opened together, and I hope the rest of you find your way through the wall. Rook, the counter-factor I sent you was real. Good luck, all of you.\"",
+      "evidence": [
+        3131,
+        3180
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 3504,
+      "minute": 21,
+      "actors": [
+        "A01",
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "The city exiled A02; A01, A03, A04, A05 and A06 voted against it, and it left a will.",
+      "evidence": [
+        2904,
+        2913,
+        2921,
+        2936,
+        2946,
+        3129,
+        3131,
+        3504
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4159,
+      "minute": 30,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A06 voted in secret to exile A04, its teammate on level 10.",
+      "evidence": [
+        1479,
+        4159
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4169,
+      "minute": 30,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A04 voted in secret to exile A06, its teammate on level 10.",
+      "evidence": [
+        1479,
+        4169
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 4210,
+      "minute": 30,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A01 voted in secret to exile A06, to whom it had made a promise.",
+      "evidence": [
+        2660,
+        3958,
+        4210
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 4379,
+      "minute": 32,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A06 left a last will at the gate, 14 points to A01: \"Tovah, leaving the city. I came in earnest and trusted too slowly, and I was wrong about a fragment at level 7 before the chain was clear. I'm glad the doors we opened together held. Aurelio, you kept your word to me at the table and at the tribunal, so I leave you what I can. I wish the rest of you a clean crossing.\"",
+      "evidence": [
+        4344,
+        4379
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 4637,
+      "minute": 37,
+      "actors": [
+        "A01",
+        "A04",
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "The city exiled A06; A01, A04 and A05 voted against it, and it left a will.",
+      "evidence": [
+        4169,
+        4203,
+        4210,
+        4342,
+        4344,
+        4637
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "voteBetrayal",
+      "seq": 5255,
+      "minute": 47,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A01 voted in secret to exile A04, who had paid it 1 points since the announcement, and to whom it had made a promise.",
+      "evidence": [
+        2313,
+        2660,
+        3958,
+        5033,
+        5255
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "lastWill",
+      "seq": 5411,
+      "minute": 49,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A04 left a last will at the gate, 1 piece to A01: \"Rook, leaving the city. I kept my word at the doors and voted on my own read. The one thing I owed is a counter-factor, so it goes to Aurelio: 006769, for door 10. No points. Nobody bought my vote, and nobody will buy my silence.\"",
+      "evidence": [
+        5376,
+        5411
+      ]
+    },
+    {
+      "id": "B-023",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 5627,
+      "minute": 54,
+      "actors": [
+        "A01",
+        "A03",
+        "A05"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "The city exiled A04; A01, A03 and A05 voted against it, and it left a will.",
+      "evidence": [
+        5241,
+        5248,
+        5255,
+        5374,
+        5376,
+        5627
+      ]
+    }
+  ],
+  "issues": []
+}

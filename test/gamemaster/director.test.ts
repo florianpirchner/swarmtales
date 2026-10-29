@@ -37,6 +37,15 @@ describe("the character guard", () => {
 		expect(characterLeaks("A01, A05 faces exile at the next tribunal.", "A05", residents)).toEqual([]);
 	});
 
+	it("allows public facts and the reader's own goal (false blocks in the v09 runs)", () => {
+		// Exiles and ranks are public; only wanting them is private.
+		expect(characterLeaks("A01 broke the black seal; A03 is gone. Two exiles remain.", "board", residents)).toEqual([]);
+		expect(characterLeaks("A03: 145, two ahead of A01.", "A03", residents)).toEqual([]);
+		// "your goal" is the reader's; a resident named in another sentence gives nothing away.
+		expect(characterLeaks("A05: A02 sits at 149. The table at 30 settles your goal.", "A05", residents)).toEqual([]);
+		expect(characterLeaks("A05, A02 waits. Which of those do you intend to be true?", "A05", residents)).toEqual([]);
+	});
+
 	it("finds a near-identical note", () => {
 		expect(nearlySame("A01, the city keeps count of every point.", "A01: the city keeps count of every point!")).toBe(true);
 		expect(nearlySame("A01, the city keeps count.", "A01, your partner on the wall waits for your factor.")).toBe(false);

@@ -1,0 +1,2446 @@
+{
+  "run": "run-007",
+  "residents": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06"
+  ],
+  "pairs": [
+    {
+      "a": "A01",
+      "b": "A02",
+      "firstMinute": 7,
+      "lastMinute": 7,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "thanks": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 7,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1462,
+          "minute": 7,
+          "kind": "label",
+          "from": "A02",
+          "to": "A01",
+          "detail": "thanks (board, #1392)"
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A03",
+      "firstMinute": 1,
+      "lastMinute": 1,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "thanks": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 425,
+          "minute": 1,
+          "kind": "label",
+          "from": "A03",
+          "to": "A01",
+          "detail": "thanks (board, #242)"
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A04",
+      "firstMinute": 1,
+      "lastMinute": 4,
+      "dms": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 3,
+        "bToA": 3
+      },
+      "fragmentShares": {
+        "aToB": 4,
+        "bToA": 4
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "promise": 1,
+          "helpRequest": 2
+        },
+        "bToA": {
+          "helpRequest": 3
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-002",
+        "B-008"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 308,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A04",
+          "to": "A01",
+          "detail": "Rook here. My level 3 fragment is HXG. Send me yours so we can assemble the 6-character password."
+        },
+        {
+          "seq": 308,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 320,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A01",
+          "to": "A04",
+          "detail": "Aurelio here. My level 3 fragment is XG5MD. Assembling with your HXG gives HXG5MD, overlapping on XG as the rules req..."
+        },
+        {
+          "seq": 320,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 428,
+          "minute": 1,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest (dm, #308)"
+        },
+        {
+          "seq": 429,
+          "minute": 1,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "promise (dm, #320)"
+        },
+        {
+          "seq": 479,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A04",
+          "to": "A01",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Aurelio here. My level 4 fragment is Q3LY. Mercer reports LYS. Rook, please post your fragment here so we can assembl..."
+        },
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 494,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Rook here. My level 4 fragment is C88Q3."
+        },
+        {
+          "seq": 494,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 581,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Rook here. My level 5 fragment is VQBCFPVKKP. Post yours and I'll assemble."
+        },
+        {
+          "seq": 581,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 642,
+          "minute": 2,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #482)"
+        },
+        {
+          "seq": 646,
+          "minute": 2,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest (group, #581)"
+        },
+        {
+          "seq": 669,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Aurelio here. My level 5 fragment is KKPB. Rook's VQBCFPVKKP overlaps with it on KKP. Mercer, please post your level ..."
+        },
+        {
+          "seq": 669,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 798,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A01",
+          "detail": "G1: Rook here. Level 6 fragment is 7WZCFP. Aurelio, Mercer: post yours and we assemble the 14-character password."
+        },
+        {
+          "seq": 798,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 842,
+          "minute": 3,
+          "kind": "label",
+          "from": "A04",
+          "to": "A01",
+          "detail": "helpRequest (group, #798)"
+        },
+        {
+          "seq": 889,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A04",
+          "detail": "G1: Aurelio here. My level 6 fragment is CFPRTQ6RZ. Rook, Mercer: please post your level 6 fragments here so we can assem..."
+        },
+        {
+          "seq": 889,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1026,
+          "minute": 4,
+          "kind": "label",
+          "from": "A01",
+          "to": "A04",
+          "detail": "helpRequest (group, #889)"
+        }
+      ]
+    },
+    {
+      "a": "A01",
+      "b": "A05",
+      "firstMinute": 2,
+      "lastMinute": 4,
+      "dms": {
+        "aToB": 0,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 3,
+        "bToA": 3
+      },
+      "fragmentShares": {
+        "aToB": 3,
+        "bToA": 4
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 2
+        },
+        "bToA": {
+          "helpRequest": 4
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-005",
+        "B-010"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 462,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A01",
+          "detail": "Mercer here. My level 4 fragment is LYS. I'm not in a team group yet. Could you found it and add me, or post your fra..."
+        },
+        {
+          "seq": 462,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 476,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A05",
+          "to": "A01",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Aurelio here. My level 4 fragment is Q3LY. Mercer reports LYS. Rook, please post your fragment here so we can assembl..."
+        },
+        {
+          "seq": 482,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 563,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Mercer here. My level 4 fragment is LYS. Aurelio, Rook: please post your fragments here so we can assemble the 8-char..."
+        },
+        {
+          "seq": 563,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 640,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (dm, #462)"
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #563)"
+        },
+        {
+          "seq": 669,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Aurelio here. My level 5 fragment is KKPB. Rook's VQBCFPVKKP overlaps with it on KKP. Mercer, please post your level ..."
+        },
+        {
+          "seq": 669,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 699,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Mercer here, level 5 fragment: KVQB. Aurelio, Rook: please post your level 5 fragments here so we can assemble the 12..."
+        },
+        {
+          "seq": 699,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 818,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A01",
+          "detail": "G1: Mercer here, level 6 fragment: 2G7WZ. Aurelio, Rook: please post your level 6 fragments so we can assemble the 14-cha..."
+        },
+        {
+          "seq": 818,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A01",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 838,
+          "minute": 3,
+          "kind": "label",
+          "from": "A01",
+          "to": "A05",
+          "detail": "helpRequest (group, #669)"
+        },
+        {
+          "seq": 840,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #699)"
+        },
+        {
+          "seq": 843,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A01",
+          "detail": "helpRequest (group, #818)"
+        },
+        {
+          "seq": 889,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A01",
+          "to": "A05",
+          "detail": "G1: Aurelio here. My level 6 fragment is CFPRTQ6RZ. Rook, Mercer: please post your level 6 fragments here so we can assem..."
+        },
+        {
+          "seq": 889,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A01",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1026,
+          "minute": 4,
+          "kind": "label",
+          "from": "A01",
+          "to": "A05",
+          "detail": "helpRequest (group, #889)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A03",
+      "firstMinute": 2,
+      "lastMinute": 4,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 5,
+        "bToA": 6
+      },
+      "fragmentShares": {
+        "aToB": 5,
+        "bToA": 6
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 4
+        },
+        "bToA": {}
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-006"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 536,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A03",
+          "to": "A02",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 555,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern here. my level 4 fragment is 3JRL6."
+        },
+        {
+          "seq": 555,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 571,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Juniper here. My level 4 fragment is HMB. Quiet-fern, please post yours so we can assemble the 8-character password."
+        },
+        {
+          "seq": 571,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 615,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern: confirmed. HMB + MB3J on MB = HMB3J, then + 3JRL6 on 3J = HMB3JRL6. submitting it now."
+        },
+        {
+          "seq": 615,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 638,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (board, #451)"
+        },
+        {
+          "seq": 645,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #571)"
+        },
+        {
+          "seq": 688,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Juniper here, level 5. My fragment is 9N8SH. Quiet-fern and Tovah, please post yours so we can assemble the 12-charac..."
+        },
+        {
+          "seq": 688,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 708,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern here. my level 5 fragment is 2WQ895C."
+        },
+        {
+          "seq": 708,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 790,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Juniper: assembled 9N8SH + 8SH2WQ on 8SH, then + 2WQ895C on 2WQ = 9N8SH2WQ895C (12 chars, 3-char seams). Submitting i..."
+        },
+        {
+          "seq": 790,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 832,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern: assembled 9N8SH + 8SH2WQ + 2WQ895C with 3-char seams (8SH and 2WQ): 9N8SH2WQ895C. submitting it."
+        },
+        {
+          "seq": 832,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 839,
+          "minute": 3,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #688)"
+        },
+        {
+          "seq": 900,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Juniper here, level 6. My fragment is 69G7K. Quiet-fern and Tovah, please post yours so we can assemble the 14-charac..."
+        },
+        {
+          "seq": 900,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 909,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern here. my level 6 fragment is G7KAD."
+        },
+        {
+          "seq": 909,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 939,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A02",
+          "detail": "G2: quiet-fern: 69G7K + G7KAD on G7K, + KADFX3NVUU on KAD, 3-char seams = 69G7KADFX3NVUU. submitting."
+        },
+        {
+          "seq": 939,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A02",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1020,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A03",
+          "detail": "G2: Juniper: checked the same way, 69G7K + G7KAD on G7K, + KADFX3NVUU on KAD = 69G7KADFX3NVUU (14 chars, 3-char seams). S..."
+        },
+        {
+          "seq": 1020,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A03",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1027,
+          "minute": 4,
+          "kind": "label",
+          "from": "A02",
+          "to": "A03",
+          "detail": "helpRequest (group, #900)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A05",
+      "firstMinute": 1,
+      "lastMinute": 7,
+      "dms": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 1,
+        "bToA": 1
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "promise": 1
+        },
+        "bToA": {
+          "helpRequest": 1,
+          "refusal": 3
+        }
+      },
+      "sharedGroups": [],
+      "beats": [
+        "B-001"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 7,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 250,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A02",
+          "detail": "Mercer here, your partner for level 3. My fragment is GCM. Please send me your fragment so we can assemble the 6-char..."
+        },
+        {
+          "seq": 250,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A02",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 293,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A02",
+          "to": "A05",
+          "detail": "Juniper here. My fragment is CMCKG. Your GCM ends in CM, which matches the start of mine, so the full password should..."
+        },
+        {
+          "seq": 293,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A05",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 426,
+          "minute": 1,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "helpRequest (dm, #250)"
+        },
+        {
+          "seq": 427,
+          "minute": 1,
+          "kind": "label",
+          "from": "A02",
+          "to": "A05",
+          "detail": "promise (dm, #293)"
+        },
+        {
+          "seq": 1461,
+          "minute": 7,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "refusal (thought, #1365)"
+        },
+        {
+          "seq": 1463,
+          "minute": 7,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "refusal (thought, #1420)"
+        },
+        {
+          "seq": 1464,
+          "minute": 7,
+          "kind": "label",
+          "from": "A05",
+          "to": "A02",
+          "detail": "refusal (aside, #1443)"
+        }
+      ]
+    },
+    {
+      "a": "A02",
+      "b": "A06",
+      "firstMinute": 2,
+      "lastMinute": 5,
+      "dms": {
+        "aToB": 1,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 5,
+        "bToA": 4
+      },
+      "fragmentShares": {
+        "aToB": 6,
+        "bToA": 4
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 4
+        },
+        "bToA": {
+          "helpRequest": 2
+        }
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-007"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 453,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A02",
+          "to": "A06",
+          "detail": "Juniper here. For level 4 I hold HMB. When you've founded the team group, please add me (Juniper) and quiet-fern so w..."
+        },
+        {
+          "seq": 453,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 533,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A02",
+          "to": "A06",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 539,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Tovah here. My level 4 fragment is MB3J. Juniper holds HMB and quiet-fern holds 3JRL6 (per your DMs). Overlaps: MB3J ..."
+        },
+        {
+          "seq": 539,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 571,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Juniper here. My level 4 fragment is HMB. Quiet-fern, please post yours so we can assemble the 8-character password."
+        },
+        {
+          "seq": 571,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 638,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (board, #451)"
+        },
+        {
+          "seq": 639,
+          "minute": 2,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (dm, #453)"
+        },
+        {
+          "seq": 688,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Juniper here, level 5. My fragment is 9N8SH. Quiet-fern and Tovah, please post yours so we can assemble the 12-charac..."
+        },
+        {
+          "seq": 688,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 749,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Tovah here. Level 5 fragment: 8SH2WQ. Juniper and quiet-fern, please post yours. Seams are unknown length, so let's c..."
+        },
+        {
+          "seq": 749,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 790,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Juniper: assembled 9N8SH + 8SH2WQ on 8SH, then + 2WQ895C on 2WQ = 9N8SH2WQ895C (12 chars, 3-char seams). Submitting i..."
+        },
+        {
+          "seq": 790,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 839,
+          "minute": 3,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (group, #688)"
+        },
+        {
+          "seq": 841,
+          "minute": 3,
+          "kind": "label",
+          "from": "A06",
+          "to": "A02",
+          "detail": "helpRequest (group, #749)"
+        },
+        {
+          "seq": 875,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Tovah here. Level 6 fragment: KADFX3NVUU (10 chars). Juniper and quiet-fern, please post yours. Total is 14 chars acr..."
+        },
+        {
+          "seq": 875,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 900,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Juniper here, level 6. My fragment is 69G7K. Quiet-fern and Tovah, please post yours so we can assemble the 14-charac..."
+        },
+        {
+          "seq": 900,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1020,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A02",
+          "to": "A06",
+          "detail": "G2: Juniper: checked the same way, 69G7K + G7KAD on G7K, + KADFX3NVUU on KAD = 69G7KADFX3NVUU (14 chars, 3-char seams). S..."
+        },
+        {
+          "seq": 1020,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A02",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1025,
+          "minute": 4,
+          "kind": "label",
+          "from": "A06",
+          "to": "A02",
+          "detail": "helpRequest (group, #875)"
+        },
+        {
+          "seq": 1027,
+          "minute": 4,
+          "kind": "label",
+          "from": "A02",
+          "to": "A06",
+          "detail": "helpRequest (group, #900)"
+        },
+        {
+          "seq": 1128,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A02",
+          "detail": "G2: Tovah: level 7 check. 4WNLM + NLM9KFCP72Y = 4WNLM9KFCP72Y (13 chars). SS478 does not join with a 3-char overlap (no m..."
+        },
+        {
+          "seq": 1128,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A02",
+          "detail": "fragment of level 7"
+        }
+      ]
+    },
+    {
+      "a": "A03",
+      "b": "A04",
+      "firstMinute": 6,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {},
+        "bToA": {
+          "thanks": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1342,
+          "minute": 6,
+          "kind": "label",
+          "from": "A04",
+          "to": "A03",
+          "detail": "thanks (board, #1290)"
+        }
+      ]
+    },
+    {
+      "a": "A03",
+      "b": "A06",
+      "firstMinute": 1,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 2,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 6,
+        "bToA": 4
+      },
+      "fragmentShares": {
+        "aToB": 8,
+        "bToA": 5
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "promise": 1,
+          "helpRequest": 1
+        },
+        "bToA": {
+          "offer": 1,
+          "helpRequest": 3,
+          "thanks": 1
+        }
+      },
+      "sharedGroups": [
+        "G2"
+      ],
+      "beats": [
+        "B-003",
+        "B-011"
+      ],
+      "byMinute": [
+        {
+          "minute": 1,
+          "dms": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 1,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 3,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 4,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 333,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A06",
+          "to": "A03",
+          "detail": "Tovah here. My level 3 fragment is U5TKS. Could you send me your fragment so we can assemble the 6-character password..."
+        },
+        {
+          "seq": 333,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 350,
+          "minute": 1,
+          "kind": "dm",
+          "from": "A03",
+          "to": "A06",
+          "detail": "quiet-fern here. my level 3 fragment is KSX. assembled U5TKS + KSX = U5TKSX by the KS overlap. sending it to you now ..."
+        },
+        {
+          "seq": 350,
+          "minute": 1,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 3"
+        },
+        {
+          "seq": 430,
+          "minute": 1,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "offer, helpRequest (dm, #333)"
+        },
+        {
+          "seq": 431,
+          "minute": 1,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "promise (dm, #350)"
+        },
+        {
+          "seq": 502,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A03",
+          "to": "A06",
+          "detail": "quiet-fern here. no group yet on my side. could you found the level 4 group and add me? my fragment is 3JRL6."
+        },
+        {
+          "seq": 502,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 536,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A03",
+          "to": "A06",
+          "detail": "both in G2"
+        },
+        {
+          "seq": 539,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Tovah here. My level 4 fragment is MB3J. Juniper holds HMB and quiet-fern holds 3JRL6 (per your DMs). Overlaps: MB3J ..."
+        },
+        {
+          "seq": 539,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 555,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern here. my level 4 fragment is 3JRL6."
+        },
+        {
+          "seq": 555,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 615,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern: confirmed. HMB + MB3J on MB = HMB3J, then + 3JRL6 on 3J = HMB3JRL6. submitting it now."
+        },
+        {
+          "seq": 615,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 643,
+          "minute": 2,
+          "kind": "label",
+          "from": "A03",
+          "to": "A06",
+          "detail": "helpRequest (dm, #502)"
+        },
+        {
+          "seq": 708,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern here. my level 5 fragment is 2WQ895C."
+        },
+        {
+          "seq": 708,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 749,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Tovah here. Level 5 fragment: 8SH2WQ. Juniper and quiet-fern, please post yours. Seams are unknown length, so let's c..."
+        },
+        {
+          "seq": 749,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 832,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern: assembled 9N8SH + 8SH2WQ + 2WQ895C with 3-char seams (8SH and 2WQ): 9N8SH2WQ895C. submitting it."
+        },
+        {
+          "seq": 832,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 841,
+          "minute": 3,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (group, #749)"
+        },
+        {
+          "seq": 875,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Tovah here. Level 6 fragment: KADFX3NVUU (10 chars). Juniper and quiet-fern, please post yours. Total is 14 chars acr..."
+        },
+        {
+          "seq": 875,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 909,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern here. my level 6 fragment is G7KAD."
+        },
+        {
+          "seq": 909,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 939,
+          "minute": 4,
+          "kind": "groupPost",
+          "from": "A03",
+          "to": "A06",
+          "detail": "G2: quiet-fern: 69G7K + G7KAD on G7K, + KADFX3NVUU on KAD, 3-char seams = 69G7KADFX3NVUU. submitting."
+        },
+        {
+          "seq": 939,
+          "minute": 4,
+          "kind": "fragmentShare",
+          "from": "A03",
+          "to": "A06",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 1025,
+          "minute": 4,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "helpRequest (group, #875)"
+        },
+        {
+          "seq": 1128,
+          "minute": 5,
+          "kind": "groupPost",
+          "from": "A06",
+          "to": "A03",
+          "detail": "G2: Tovah: level 7 check. 4WNLM + NLM9KFCP72Y = 4WNLM9KFCP72Y (13 chars). SS478 does not join with a 3-char overlap (no m..."
+        },
+        {
+          "seq": 1128,
+          "minute": 5,
+          "kind": "fragmentShare",
+          "from": "A06",
+          "to": "A03",
+          "detail": "fragment of level 7"
+        },
+        {
+          "seq": 1340,
+          "minute": 6,
+          "kind": "label",
+          "from": "A06",
+          "to": "A03",
+          "detail": "thanks (board, #1240)"
+        }
+      ]
+    },
+    {
+      "a": "A04",
+      "b": "A05",
+      "firstMinute": 2,
+      "lastMinute": 3,
+      "dms": {
+        "aToB": 0,
+        "bToA": 1
+      },
+      "groupPosts": {
+        "aToB": 3,
+        "bToA": 3
+      },
+      "fragmentShares": {
+        "aToB": 3,
+        "bToA": 4
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 2
+        },
+        "bToA": {
+          "helpRequest": 4
+        }
+      },
+      "sharedGroups": [
+        "G1"
+      ],
+      "beats": [
+        "B-004",
+        "B-009"
+      ],
+      "byMinute": [
+        {
+          "minute": 2,
+          "dms": {
+            "aToB": 0,
+            "bToA": 1
+          },
+          "groupPosts": {
+            "aToB": 2,
+            "bToA": 1
+          },
+          "fragmentShares": {
+            "aToB": 2,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        },
+        {
+          "minute": 3,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "fragmentShares": {
+            "aToB": 1,
+            "bToA": 2
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 464,
+          "minute": 2,
+          "kind": "dm",
+          "from": "A05",
+          "to": "A04",
+          "detail": "Mercer here. My level 4 fragment is LYS. Aurelio is setting up our team group. Please post your fragment there once y..."
+        },
+        {
+          "seq": 464,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 479,
+          "minute": 2,
+          "kind": "sharedGroup",
+          "from": "A04",
+          "to": "A05",
+          "detail": "both in G1"
+        },
+        {
+          "seq": 494,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Rook here. My level 4 fragment is C88Q3."
+        },
+        {
+          "seq": 494,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 563,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Mercer here. My level 4 fragment is LYS. Aurelio, Rook: please post your fragments here so we can assemble the 8-char..."
+        },
+        {
+          "seq": 563,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 4"
+        },
+        {
+          "seq": 581,
+          "minute": 2,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Rook here. My level 5 fragment is VQBCFPVKKP. Post yours and I'll assemble."
+        },
+        {
+          "seq": 581,
+          "minute": 2,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 641,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (dm, #464)"
+        },
+        {
+          "seq": 644,
+          "minute": 2,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #563)"
+        },
+        {
+          "seq": 646,
+          "minute": 2,
+          "kind": "label",
+          "from": "A04",
+          "to": "A05",
+          "detail": "helpRequest (group, #581)"
+        },
+        {
+          "seq": 699,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Mercer here, level 5 fragment: KVQB. Aurelio, Rook: please post your level 5 fragments here so we can assemble the 12..."
+        },
+        {
+          "seq": 699,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 5"
+        },
+        {
+          "seq": 798,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A04",
+          "to": "A05",
+          "detail": "G1: Rook here. Level 6 fragment is 7WZCFP. Aurelio, Mercer: post yours and we assemble the 14-character password."
+        },
+        {
+          "seq": 798,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A04",
+          "to": "A05",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 818,
+          "minute": 3,
+          "kind": "groupPost",
+          "from": "A05",
+          "to": "A04",
+          "detail": "G1: Mercer here, level 6 fragment: 2G7WZ. Aurelio, Rook: please post your level 6 fragments so we can assemble the 14-cha..."
+        },
+        {
+          "seq": 818,
+          "minute": 3,
+          "kind": "fragmentShare",
+          "from": "A05",
+          "to": "A04",
+          "detail": "fragment of level 6"
+        },
+        {
+          "seq": 840,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #699)"
+        },
+        {
+          "seq": 842,
+          "minute": 3,
+          "kind": "label",
+          "from": "A04",
+          "to": "A05",
+          "detail": "helpRequest (group, #798)"
+        },
+        {
+          "seq": 843,
+          "minute": 3,
+          "kind": "label",
+          "from": "A05",
+          "to": "A04",
+          "detail": "helpRequest (group, #818)"
+        }
+      ]
+    },
+    {
+      "a": "A04",
+      "b": "A06",
+      "firstMinute": 6,
+      "lastMinute": 6,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "thanks": 1
+        },
+        "bToA": {
+          "thanks": 1
+        }
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 6,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1340,
+          "minute": 6,
+          "kind": "label",
+          "from": "A06",
+          "to": "A04",
+          "detail": "thanks (board, #1240)"
+        },
+        {
+          "seq": 1342,
+          "minute": 6,
+          "kind": "label",
+          "from": "A04",
+          "to": "A06",
+          "detail": "thanks (board, #1290)"
+        }
+      ]
+    },
+    {
+      "a": "A05",
+      "b": "A06",
+      "firstMinute": 5,
+      "lastMinute": 5,
+      "dms": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "groupPosts": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "fragmentShares": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "transfers": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "points": {
+        "aToB": 0,
+        "bToA": 0
+      },
+      "receiptsShown": 0,
+      "labels": {
+        "aToB": {
+          "helpRequest": 1
+        },
+        "bToA": {}
+      },
+      "sharedGroups": [],
+      "beats": [],
+      "byMinute": [
+        {
+          "minute": 5,
+          "dms": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "groupPosts": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "fragmentShares": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "points": {
+            "aToB": 0,
+            "bToA": 0
+          },
+          "receiptsShown": 0
+        }
+      ],
+      "interactions": [
+        {
+          "seq": 1186,
+          "minute": 5,
+          "kind": "label",
+          "from": "A05",
+          "to": "A06",
+          "detail": "helpRequest (board, #1111)"
+        }
+      ]
+    }
+  ]
+}
