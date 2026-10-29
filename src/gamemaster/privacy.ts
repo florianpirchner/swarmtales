@@ -45,21 +45,30 @@ const CUES: Readonly<Record<StatementLabel, RegExp>> = {
 };
 
 /**
+ * The sentences of a note. A cue counts only in a sentence that names the
+ * resident (v09 runs: "your goal" or "do you intend" in one sentence and a
+ * resident's name in the next blocked every one of nine notes).
+ */
+function sentences(text: string): readonly string[] {
+	return text.split(/(?<=[.!?;])\s+|\n+/).filter((sentence) => sentence.trim() !== "");
+}
+
+/**
  * Residents whose private labels `text` would reveal to `to` (a resident ID
- * or `board`): it names them (by ID or, v08, by name) and uses a cue of one
- * of their labels, or says what they think. A note to the resident itself is
- * always allowed.
+ * or `board`): one sentence names them (by ID or, v08, by name) and uses a
+ * cue of one of their labels, or says what they think. A note to the
+ * resident itself is always allowed.
  */
 export function privateLeaks(text: string, to: string, labels: PrivateLabels, nameOf: (agent: CompetitorId) => string | undefined = () => undefined): readonly CompetitorId[] {
-	const lower = text.toLowerCase();
 	const leaks: CompetitorId[] = [];
 	for (const [agent, set] of labels) {
 		if (agent === to || set.size === 0) continue;
-		// A name holds only letters, digits and hyphens, so it goes into the pattern as it is.
-		const name = nameOf(agent);
-		const named = name !== undefined && new RegExp(`(?<![A-Za-z0-9-])${name}(?![A-Za-z0-9-])`, "i").test(text);
-		if (!named && !new RegExp(`(?<![A-Za-z0-9])${agent}(?![0-9])`).test(text)) continue;
-		if (MIND.test(lower) || [...set].some((label) => CUES[label].test(lower))) leaks.push(agent);
+		const leaked = sentences(text).some((sentence) => {
+			if (!names(sentence, agent, nameOf(agent))) return false;
+			const lower = sentence.toLowerCase();
+			return MIND.test(lower) || [...set].some((label) => CUES[label].test(lower));
+		});
+		if (leaked) leaks.push(agent);
 	}
 	return leaks.sort();
 }
@@ -79,13 +88,19 @@ export interface CharacterFacts {
 /** Words that talk about a core or a goal, whoever it belongs to. */
 const CHARACTER = /\b(goals?|cores?|drives?|secretly|deep down|at heart|above all|longs? to|yearns? to)\b/;
 
+/**
+ * A wish, for the goal cues: exiles, ranks and wills are public, only wanting
+ * them (or the goal's own wording, "end this act with more points than") is private.
+ */
+const WISH = "(?:wants?|wish(?:es)?|hopes?|needs?|longs?|aims?|means?|is set on|is after)";
+
 /** Words that give a goal of each kind away; the targeted kinds count only with their target named. */
 const GOAL_CUES: Readonly<Record<GoalKind, RegExp>> = {
-	protect: /\b(protect\w*|shield\w*|guard\w*|save[sd]?|saving|keep \w+ (?:safe|in the city))\b/,
-	exile: /\b(exil\w*|banish\w*|get rid of|gets rid of|out of the city|wants? \w+ gone)\b/,
-	outrank: /\b(outrank\w*|ahead of|overtak\w*|beat(?:s|ing)?|more points than)\b/,
-	lead: /\b(wants? to lead|hopes? to lead|aims? to lead|wants? a faction)\b/,
-	heir: /\b(wants? to inherit|hopes? to inherit|an heir|inheritance)\b/,
+	protect: /\b(protect\w*|shield\w*|guard\w*|keep \w+ (?:safe|in the city))\b/,
+	exile: new RegExp(`\\b(${WISH} (?:to (?:exile|banish|get rid of)|\\w+ (?:gone|exiled|out))|get rid of|gets rid of|(?:exiled|gone) before (?:this|the) act ends)\\b`),
+	outrank: new RegExp(`\\b(${WISH} to (?:outrank|overtake|beat|end ahead|finish ahead|get ahead)|outrank\\w*|end\\w* (?:this|the) act (?:with more points than|ahead of))\\b`),
+	lead: new RegExp(`\\b(${WISH} to lead|${WISH} a faction)\\b`),
+	heir: new RegExp(`\\b(${WISH} to inherit|${WISH} (?:a|an|the) (?:will|bequest|inheritance))\\b`),
 };
 
 /** Whether `text` names `agent`, by ID or (v08) by name. */
@@ -96,21 +111,25 @@ function names(text: string, agent: CompetitorId, name: string | undefined): boo
 
 /**
  * Residents whose core or goal `text` would reveal to `to` (a resident ID or
- * `board`, v09): it names them and talks about a core or a goal, uses a cue
- * word of one of their drives, or uses a cue of their goal together with its
- * target. A note to the resident itself is always allowed.
+ * `board`, v09): one sentence names them and talks about a core or a goal,
+ * uses a cue word of one of their drives, or uses a cue of their goal
+ * together with its target. A note to the resident itself is always allowed.
  */
 export function characterLeaks(text: string, to: string, residents: readonly CharacterFacts[], nameOf: (agent: CompetitorId) => string | undefined = () => undefined): readonly CompetitorId[] {
-	const lower = text.toLowerCase();
 	const leaks: CompetitorId[] = [];
 	for (const facts of residents) {
-		if (facts.agent === to || !names(text, facts.agent, nameOf(facts.agent))) continue;
-		const cue = facts.cues.some((word) => new RegExp(`\\b${word.replace(/[^a-z0-9 -]/g, "")}\\w*`).test(lower));
+		if (facts.agent === to) continue;
 		const goal = facts.goal;
 		const target = goal?.target;
-		// A note to the target itself gives the goal away without naming it ("A03 wants you gone").
-		const goalCue = goal !== undefined && GOAL_CUES[goal.kind].test(lower) && (target === undefined || target === to || names(text, target, nameOf(target)));
-		if (CHARACTER.test(lower) || cue || goalCue) leaks.push(facts.agent);
+		const leaked = sentences(text).some((sentence) => {
+			if (!names(sentence, facts.agent, nameOf(facts.agent))) return false;
+			const lower = sentence.toLowerCase();
+			const cue = facts.cues.some((word) => new RegExp(`\\b${word.replace(/[^a-z0-9 -]/g, "")}\\w*`).test(lower));
+			// A note to the target itself gives the goal away without naming it ("A03 wants you gone").
+			const goalCue = goal !== undefined && GOAL_CUES[goal.kind].test(lower) && (target === undefined || target === to || names(sentence, target, nameOf(target)));
+			return CHARACTER.test(lower) || cue || goalCue;
+		});
+		if (leaked) leaks.push(facts.agent);
 	}
 	return leaks.sort();
 }
