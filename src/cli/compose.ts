@@ -18,6 +18,7 @@ import { Gamemaker, GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
 import { gamemakerSystemPrompt } from "../gamemaker/system-prompt.ts";
 import type { StatementClassifier } from "../interpret/classifier.ts";
 import { JUDGE_ID, type DeliveryJudge } from "../interpret/judge.ts";
+import { SOUFFLEUR_ID, type Souffleur } from "../interpret/souffleur.ts";
 import { Interpreter } from "../interpret/interpreter.ts";
 import type { ModelSource, RequestLimits } from "../model/source.ts";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
@@ -106,6 +107,8 @@ export interface ComposeOptions {
 	readonly classifier?: StatementClassifier | ((world: World) => StatementClassifier);
 	/** The city's judge for `blame`; without one the tool answers that the judge is absent. */
 	readonly judge?: DeliveryJudge;
+	/** Rewrites a resident's step the provider's safeguards refused (P44). */
+	readonly souffleur?: Souffleur;
 	/** Take a run snapshot once every competitor has passed `afterLevel` (SPEC 17). */
 	readonly snapshot?: SnapshotOptions;
 	/** Continue a run from a snapshot; the overrides come from {@link resumeOverrides}. */
@@ -307,6 +310,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const personas = effective.personas ? assignPersonas(story, ids, effective.seed) : new Map<CompetitorId, never>();
 	const source = typeof options.models === "function" ? options.models(world, assignments) : options.models;
 	const judge = options.judge === undefined ? undefined : meteredJudge(options.judge, bus);
+	const souffleur = options.souffleur === undefined ? undefined : meteredSouffleur(options.souffleur, bus);
 
 	const figures = story.cores?.figures;
 	// Rivals still in the city; an exiled one is no longer faced.
@@ -354,6 +358,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			thinking: options.thinking ?? model.thinking ?? story.model.thinking ?? "medium",
 			enabledTools: () => world.enabledTools(id),
 			minute: () => clock.minute,
+			...(souffleur === undefined ? {} : { souffleur }),
 		});
 	});
 
@@ -470,6 +475,18 @@ function meteredJudge(judge: DeliveryJudge, bus: EventBus): DeliveryJudge {
 		async deniesReceipt(question) {
 			const answer = await judge.deniesReceipt(question);
 			for (const entry of answer.usage) bus.emit({ type: "usage", agent: JUDGE_ID, ...entry });
+			return answer;
+		},
+	};
+}
+
+/** The souffleur with its spend logged as `usage` of {@link SOUFFLEUR_ID}. */
+function meteredSouffleur(souffleur: Souffleur, bus: EventBus): Souffleur {
+	return {
+		label: souffleur.label,
+		async rewrite(texts) {
+			const answer = await souffleur.rewrite(texts);
+			for (const entry of answer.usage) bus.emit({ type: "usage", agent: SOUFFLEUR_ID, ...entry });
 			return answer;
 		},
 	};

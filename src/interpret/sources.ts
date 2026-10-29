@@ -10,6 +10,7 @@ import { createModelSource, type RequestLimits } from "../model/source.ts";
 import type { ClassifierSpec } from "../story/types.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "./judge.ts";
+import { ChatSouffleur, SOUFFLEUR_ID, type Souffleur } from "./souffleur.ts";
 
 export function createStatementClassifier(
 	settings: ModelSettings,
@@ -51,6 +52,22 @@ export function createDeliveryJudge(settings: ModelSettings, spec: ClassifierSpe
 	}
 	return new ChatDeliveryJudge({
 		binding: createModelSource(settings, { registry }).bind(JUDGE_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+	});
+}
+
+/** Builds the souffleur (P44) from the classifier's model: a chat model, like the judge. */
+export function createSouffleur(settings: ModelSettings, spec: ClassifierSpec, registry: ProviderRegistry, limits: RequestLimits): Souffleur {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Souffleur model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatSouffleur({
+		binding: createModelSource(settings, { registry }).bind(SOUFFLEUR_ID, limits),
 		label: `${provider.id}/${modelId}`,
 		thinking: spec.model.thinking ?? "off",
 	});
