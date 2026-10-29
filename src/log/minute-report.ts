@@ -41,7 +41,13 @@ export function readNames(eventsJsonl: string): ReadonlyMap<string, string> {
 	return names;
 }
 
-const CoreDealt = Type.Object({ type: Type.Literal("core_dealt"), agent: Type.String(), bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema) });
+const CoreDealt = Type.Object({
+	type: Type.Literal("core_dealt"),
+	agent: Type.String(),
+	bigFive: Type.Array(CoreTraitSchema),
+	drives: Type.Array(CoreDriveSchema),
+	figure: Type.Optional(Type.String()),
+});
 const GoalDealt = Type.Object({ type: Type.Literal("goal_dealt"), act: Type.Integer(), agent: Type.String(), text: Type.String() });
 const GoalResolved = Type.Object({ type: Type.Literal("goal_resolved"), act: Type.Integer(), agent: Type.String(), fulfilled: Type.Boolean(), void: Type.Optional(Type.Boolean()) });
 

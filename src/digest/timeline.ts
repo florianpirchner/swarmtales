@@ -77,7 +77,8 @@ function characterTables(facts: RunFacts): readonly string[] {
 	if (cores.length > 0) {
 		lines.push("## Cores", "", "| Resident | Drives | Temperament |", "|---|---|---|");
 		for (const core of cores) {
-			const drives = core.drives.map((entry) => `${words[entry.intensity] ?? entry.intensity} ${entry.drive}`).join("; ");
+			const list = core.drives.map((entry) => `${words[entry.intensity] ?? entry.intensity} ${entry.drive}`).join("; ");
+			const drives = core.figure === undefined ? list : `${core.figure}: ${list}`;
 			lines.push(`| ${agentLabel(facts, core.agent)} | ${drives} | ${core.bigFive.map((trait) => `${trait.axis} ${trait.level}`).join(", ")} |`);
 		}
 		lines.push("");

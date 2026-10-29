@@ -94,13 +94,15 @@ describe("nexus act I director beats (SPEC 13.2)", () => {
 		expect(fixture.events("director_skipped")).toEqual([]);
 	}, 30_000);
 
-	it("gives every competitor a distinct persona from the pool by seed", async () => {
+	it("gives every competitor a figure of the cast and the persona of its profession", async () => {
 		const { fixture } = await playActOne();
 		const profiles = fixture.events("agent_profile");
 		expect(profiles.map((event) => event.agent)).toEqual([...fixture.world.competitors]);
-		const names = profiles.map((event) => event.persona);
-		expect(new Set(names).size).toBe(6);
-		for (const name of names) expect(nexus.personas.map((persona) => persona.name)).toContain(name);
+		const figures = fixture.world.competitors.map((agent) => nexus.cores?.figures?.find((figure) => figure.id === fixture.world.coreOf(agent)?.figure));
+		expect(new Set(figures.map((figure) => figure?.id)).size).toBe(6);
+		profiles.forEach((event, index) => {
+			expect(event.persona?.toLowerCase()).toBe(figures[index]?.profession);
+		});
 		for (const runner of fixture.runners) expect(runner.systemPrompt).toContain("Your character:");
 	}, 30_000);
 });

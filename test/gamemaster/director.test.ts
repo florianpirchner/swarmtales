@@ -28,6 +28,9 @@ describe("the character guard", () => {
 		expect(characterLeaks("Deep down A02 is loyal to you.", "A05", residents)).toEqual(["A02"]);
 		// To the target itself, "you" names it: the exile goal of A01 is given away.
 		expect(characterLeaks("Careful: A01 wants you gone.", "A03", residents)).toEqual(["A01"]);
+		// A protect goal in its own wording.
+		const keeper = [{ agent: "A01", cues: ["care"], goal: { kind: "protect", target: "A04" } }] as const;
+		expect(characterLeaks("A03, A04 is still in the city when this act ends: that is what A01 wants.", "A03", keeper)).toEqual(["A01"]);
 	});
 
 	it("allows the note to the resident itself and neutral texts naming others", () => {
@@ -77,7 +80,7 @@ describe("the director's report and refusals (scripted)", () => {
 		const inputs = fixture.events("gamemaster_turn").map((event) => event.input);
 		const first = inputs[0] ?? "";
 		expect(first).toContain("Who they are (private: use a resident's core or goal only in a note to that same resident");
-		expect(first).toMatch(/- A01: core: above all \w+/);
+		expect(first).toMatch(/- A01: core: [a-z-]+: above all \w+/);
 		const dealt = fixture.events("goal_dealt").find((event) => event.agent === "A01");
 		expect(first).toContain(`secret goal: ${dealt?.text ?? "-"}`);
 		expect(first).toMatch(/next wrong code costs 2\)/);

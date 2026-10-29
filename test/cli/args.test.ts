@@ -132,4 +132,10 @@ describe("pnpm start arguments", () => {
 		});
 		expect(() => parseStartArgs(["--snapshot-after", "8", "--snapshot-at", "11"])).toThrow(/either --snapshot-after or --snapshot-at/);
 	});
+
+	it("parses the cast figures to play", () => {
+		expect(parseStartArgs(["--cast", "banner, house,crier"])).toMatchObject({ overrides: { cast: ["banner", "house", "crier"] } });
+		expect(() => parseStartArgs(["--cast", "banner,banner"])).toThrow(/twice/);
+		expect(() => parseStartArgs(["--cast", "banner", "--no-cores"])).toThrow(/needs character cores/);
+	});
 });

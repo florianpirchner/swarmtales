@@ -542,6 +542,8 @@ export type ArenaEvent =
 			readonly agent: CompetitorId;
 			readonly bigFive: readonly CoreTrait[];
 			readonly drives: readonly CoreDrive[];
+			/** The cast figure the core comes from, when the story has a cast. */
+			readonly figure?: string;
 	  }
 	| {
 			/** A secret goal for the act starting at `act` (its first level), dealt privately (v09). */

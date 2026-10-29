@@ -202,6 +202,29 @@ function validateCores(story: AnyStory, issues: string[]): void {
 	if (max > spec.drives.length) issues.push(`cores.perResident.max: the catalog has only ${spec.drives.length} drives`);
 	if (!(spec.lightShare >= 0 && spec.lightShare <= 1)) issues.push("cores.lightShare: must be a share between 0 and 1");
 	if (!isPositiveInt(spec.spreadPer)) issues.push("cores.spreadPer: must be a positive integer");
+	validateFigures(story, ids, axes, issues);
+}
+
+/** Cast figures: unique IDs, catalog drives within the per-resident range, exactly one above all, of its tone, every axis, a known persona, a text. */
+function validateFigures(story: AnyStory, drives: ReadonlySet<string>, axes: ReadonlySet<string>, issues: string[]): void {
+	const spec = story.cores;
+	if (spec?.figures === undefined) return;
+	const seen = new Set<string>();
+	for (const figure of spec.figures) {
+		const at = `cores.figures.${figure.id}`;
+		if (seen.has(figure.id)) issues.push(`${at}: IDs must be unique`);
+		seen.add(figure.id);
+		if (figure.text.trim().length === 0) issues.push(`${at}.text: must not be empty`);
+		const { min, max } = spec.perResident;
+		if (figure.drives.length < min || figure.drives.length > max) issues.push(`${at}.drives: ${min} to ${max} drives`);
+		for (const entry of figure.drives) if (!drives.has(entry.drive)) issues.push(`${at}.drives: unknown drive ${entry.drive}`);
+		const above = figure.drives.filter((entry) => entry.intensity === "aboveAll");
+		if (above.length !== 1) issues.push(`${at}.drives: exactly one drive above all`);
+		const tone = spec.drives.find((drive) => drive.id === above[0]?.drive)?.tone;
+		if (tone !== undefined && tone !== figure.tone) issues.push(`${at}.tone: the drive above all is ${tone}`);
+		for (const axis of axes) if (!figure.bigFive.some((trait) => trait.axis === axis)) issues.push(`${at}.bigFive: missing axis ${axis}`);
+		if (!story.personas.some((persona) => persona.name.toLowerCase() === figure.profession.toLowerCase())) issues.push(`${at}.profession: no persona ${figure.profession}`);
+	}
 }
 
 /**

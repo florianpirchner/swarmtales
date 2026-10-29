@@ -1,22 +1,24 @@
 /**
- * The cast library (cast/): professions, drives, the Big Five and finished
- * residents as Markdown files with a flat frontmatter header. This module
- * reads and validates the files; nothing in a run uses them yet.
+ * Characters as Markdown files with a flat frontmatter header: the
+ * story-independent library (archetypes/: professions, drives, the Big Five
+ * and general figures) and a story's own cast (stories/<story>/cast/:
+ * finished figures with a `base` archetype and the story's wants and limits).
  *
- * A header line is `key: value`; a resident's drives are `id=intensity`
- * pairs separated by commas.
+ * A header line is `key: value`; a figure's drives are `id=intensity` pairs
+ * separated by commas.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity } from "../story/index.ts";
+import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureSpec } from "../story/index.ts";
 
 const Level = Type.Union(CORE_LEVELS.map((level) => Type.Literal(level)));
 const Tone = Type.Union([Type.Literal("light"), Type.Literal("dark")]);
 
-const ResidentHeader = Type.Object({
-	id: Type.String({ pattern: "^c\\d{2,}$" }),
+const FigureHeader = Type.Object({
+	id: Type.String({ pattern: "^[a-z0-9][a-z0-9-]*$" }),
+	base: Type.Optional(Type.String({ minLength: 1 })),
 	title: Type.String({ minLength: 1 }),
 	profession: Type.String({ minLength: 1 }),
 	tone: Tone,
@@ -50,8 +52,10 @@ export interface CastDrive {
 	readonly intensity: DriveIntensity;
 }
 
-export interface ResidentFile {
+export interface FigureFile {
 	readonly id: string;
+	/** The archetype a story figure is built on. */
+	readonly base?: string;
 	readonly title: string;
 	readonly profession: string;
 	readonly tone: "light" | "dark";
@@ -60,10 +64,10 @@ export interface ResidentFile {
 	readonly body: string;
 }
 
-export interface Cast {
+export interface Archetypes {
 	readonly professions: readonly ProfessionFile[];
 	readonly drives: readonly DriveFile[];
-	readonly residents: readonly ResidentFile[];
+	readonly figures: readonly FigureFile[];
 }
 
 /** Splits a file into its flat `key: value` header and the Markdown body. */
@@ -94,11 +98,12 @@ function parseDrives(value: string, source: string): CastDrive[] {
 	});
 }
 
-export function parseResident(text: string, source: string): ResidentFile {
+export function parseFigure(text: string, source: string): FigureFile {
 	const { header, body } = splitFrontmatter(text, source);
-	const parsed = Parse(ResidentHeader, header);
+	const parsed = Parse(FigureHeader, header);
 	return {
 		id: parsed.id,
+		...(parsed.base === undefined ? {} : { base: parsed.base }),
 		title: parsed.title,
 		profession: parsed.profession,
 		tone: parsed.tone,
@@ -126,7 +131,7 @@ export function parseDrive(text: string, source: string): DriveFile {
 
 function readAll<T>(directory: string, parse: (text: string, source: string) => T): T[] {
 	return readdirSync(directory)
-		.filter((name) => name.endsWith(".md"))
+		.filter((name) => name.endsWith(".md") && name !== "README.md")
 		.sort()
 		.map((name) => {
 			const path = join(directory, name);
@@ -134,11 +139,29 @@ function readAll<T>(directory: string, parse: (text: string, source: string) => 
 		});
 }
 
-/** Reads the whole library from a cast/ folder. */
-export function readCast(directory: string): Cast {
+/** Reads the whole library from an archetypes/ folder. */
+export function readArchetypes(directory: string): Archetypes {
 	return {
 		professions: readAll(join(directory, "professions"), parseProfession),
 		drives: readAll(join(directory, "drives"), parseDrive),
-		residents: readAll(join(directory, "residents"), parseResident),
+		figures: readAll(join(directory, "figures"), parseFigure),
+	};
+}
+
+/** Reads a story's cast: one finished figure per file. */
+export function readFigures(directory: string): FigureFile[] {
+	return readAll(directory, parseFigure);
+}
+
+/** A figure file as the story's cast holds it: the core in the engine's shape and the body as its text. */
+export function figureSpec(file: FigureFile): FigureSpec {
+	return {
+		id: file.id,
+		title: file.title,
+		profession: file.profession,
+		tone: file.tone,
+		bigFive: Object.entries(file.temperament).map(([axis, level]) => ({ axis, level })),
+		drives: file.drives.map((entry) => ({ drive: entry.id, intensity: entry.intensity })),
+		text: file.body,
 	};
 }

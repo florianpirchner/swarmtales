@@ -70,6 +70,8 @@ export interface WorldOptions {
 	 * when omitted. Off, no core is dealt, shown or kept.
 	 */
 	readonly cores?: boolean;
+	/** The cast figures to deal, by ID, when the story has a cast; seeded from the cast when omitted. */
+	readonly cast?: readonly string[];
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -126,7 +128,7 @@ export interface WorldSnapshot {
 	/** Wrong codes and lost blames per resident in the current act (v09); absent before. */
 	readonly offences?: readonly OffenceCount[];
 	/** Character cores (v09), permanent once dealt; absent without them and before v09. */
-	readonly cores?: readonly { readonly agent: CompetitorId; readonly bigFive: Core["bigFive"]; readonly drives: Core["drives"] }[];
+	readonly cores?: readonly { readonly agent: CompetitorId; readonly bigFive: Core["bigFive"]; readonly drives: Core["drives"]; readonly figure?: string }[];
 	/** Secret goals per act (v09). */
 	readonly goals?: GoalsSnapshot;
 	/** The black seal of its act (v09), once the act began. */
@@ -399,6 +401,7 @@ export class World {
 	readonly #offences = new Map<CompetitorId, { wrong: number; blames: number }>();
 	/** Character cores (v09): dealt once, at the start of the first act played, and kept for good. */
 	readonly #cores = new Map<CompetitorId, Core>();
+	readonly #cast: readonly string[] | undefined;
 	readonly #playsCores: boolean;
 	readonly #goals: GoalBook | undefined;
 	readonly #seal: SealHouse | undefined;
@@ -508,6 +511,7 @@ export class World {
 					});
 
 		this.#playsCores = options.story.cores !== undefined && options.cores !== false;
+		this.#cast = options.cast;
 		const goals = options.story.goals;
 		this.#goals =
 			goals === undefined
@@ -694,9 +698,9 @@ export class World {
 	#dealCores(): void {
 		const spec = this.story.cores;
 		if (spec === undefined || !this.#playsCores || this.#cores.size > 0) return;
-		for (const [agent, core] of dealCores(spec, this.#ids, this.seed)) {
+		for (const [agent, core] of dealCores(spec, this.#ids, this.seed, this.#cast)) {
 			this.#cores.set(agent, core);
-			this.#bus.emit({ type: "core_dealt", agent, bigFive: core.bigFive, drives: core.drives });
+			this.#bus.emit({ type: "core_dealt", agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) });
 		}
 	}
 
@@ -2233,7 +2237,7 @@ export class World {
 				: {
 						cores: this.#ids.flatMap((agent) => {
 							const core = this.#cores.get(agent);
-							return core === undefined ? [] : [{ agent, bigFive: core.bigFive, drives: core.drives }];
+							return core === undefined ? [] : [{ agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) }];
 						}),
 					}),
 			...(this.#goals === undefined ? {} : { goals: this.#goals.snapshot() }),
@@ -2283,7 +2287,12 @@ export class World {
 		if (state.tribunal !== undefined) this.#tribunal?.restore(state.tribunal);
 		for (const entry of state.exclusions ?? []) this.#exclusions.set(entry.level, new Set(entry.agents));
 		for (const entry of state.offences ?? []) if (this.isCompetitor(entry.agent)) this.#offences.set(entry.agent, { wrong: entry.wrong, blames: entry.blames });
-		if (this.#playsCores) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#cores.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives });
+		for (const entry of state.cores ?? []) {
+			if (entry.figure !== undefined && !(this.story.cores?.figures ?? []).some((figure) => figure.id === entry.figure)) {
+				throw new Error(`The snapshot's resident ${entry.agent} plays the figure "${entry.figure}", which the story's cast no longer has`);
+			}
+		}
+		if (this.#playsCores) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#cores.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives, ...(entry.figure === undefined ? {} : { figure: entry.figure }) });
 		if (state.goals !== undefined) this.#goals?.restore(state.goals);
 		if (state.seal !== undefined) this.#seal?.restore(state.seal);
 		for (const act of state.endedActs ?? []) this.#endedActs.add(act);

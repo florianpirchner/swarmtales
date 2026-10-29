@@ -315,6 +315,7 @@ const CoreDealt = Type.Object({
 	agent: Id,
 	bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Level })),
 	drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Intensity })),
+	figure: Type.Optional(Type.String()),
 });
 const GoalShape = Type.Union([
 	Type.Object({ kind: Type.Union([Type.Literal("protect"), Type.Literal("exile"), Type.Literal("outrank")]), target: Id }),
