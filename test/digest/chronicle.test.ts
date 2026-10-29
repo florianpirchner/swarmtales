@@ -78,6 +78,25 @@ describe("chronicle (narrative layer)", () => {
 		expect(chronicle.markdown).toContain("## Dropped from the model's answer");
 	});
 
+	it("files a paragraph under the act its citations fall in, whatever act the model names", async () => {
+		const { log, promise } = story();
+		const later = log.at(4).dm("A02", "A01", "You solved alone.");
+		const analysis = log.analyze({
+			run: "run-009",
+			story: { title: "Test", acts: [{ title: "Act I", fromLevel: 1 }, { title: "Act II", fromLevel: 4 }] },
+		});
+		const answer = {
+			beats: [],
+			chronicle: [
+				{ act: "Act I", text: `A02 noticed (#${later}).` },
+				{ act: "Act II", text: `A01 promised (#${promise}).` },
+			],
+		};
+		const { model } = fauxModel(JSON.stringify(answer));
+		const chronicle = await writeChronicle(analysis, model);
+		expect(chronicle.paragraphs.map((paragraph) => paragraph.act)).toEqual(["Act II", "Act I"]);
+	});
+
 	it("rejects answers that are not the expected JSON", () => {
 		const analysis = story().log.analyze();
 		expect(() => interpretAnswer(analysis, "Once upon a time.", "m")).toThrow(ChronicleError);

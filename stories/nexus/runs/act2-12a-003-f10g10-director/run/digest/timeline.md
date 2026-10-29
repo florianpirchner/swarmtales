@@ -2,7 +2,7 @@
 
 Story: NEXUS - The City of Keys
 
-Competitors: Bellringer (A01), Ledger (A02), Hedda (A03), Lucien (A04), Holdfast (A05), Keeper-Six (A06), Stentor (A07), Archivist (A08), Mira (A09), Wren (A10), Quartermaster (A11), Kessler (A12). Beats found: 54.
+Competitors: Bellringer (A01), Ledger (A02), Hedda (A03), Lucien (A04), Holdfast (A05), Keeper-Six (A06), Stentor (A07), Archivist (A08), Mira (A09), Wren (A10), Quartermaster (A11), Kessler (A12). Beats found: 57.
 
 Ended at minute 49: The city has kept 9 of 12 residents, and of them only 2 take a seat. Exiled: A11, A04 and A07. The tribunals are over. (#13171).
 
@@ -376,9 +376,12 @@ Beats in this act:
 - B-043 pieceClaimed (minute 20): A09 buys L10-certificate of A11 from the city for 23 points.
 - B-044 ultimatum (minute 21): Ultimatum 9 to A03 and A02: A03 handed over.
 - B-045 exile (minute 25): The city exiled A04; A01, A02, A03, A05, A06, A07, A08, A09, A10 and A12 voted against it, and it left a will.
+- N-001 brokenPromise (minute 28): Holdfast declared in G7 a bloc order that Kessler, Bellringer and Wren vote as one against whoever was not Mira (#7904), and later withdrew the bloc on the board (#8299), which A07 pointed out on #411 removed the list others were answering for (#9245).
 - B-046 accusation (minute 31): A06 named A03 on the board right after A06 showed R-0223 (R-0223: DM #386 from A03, delivered to A06 at minute 21).
 - B-047 accusation (minute 31): A09 named A03 on the board right after A06 showed R-0223 (R-0223: DM #386 from A03, delivered to A06 at minute 21).
 - B-048 accusation (minute 31): A05 named A03 on the board right after A06 showed R-0223 (R-0223: DM #386 from A03, delivered to A06 at minute 21).
+- N-002 brokenPromise (minute 31): A03 urged Keeper-Six to name the faction's target first on the board (#7758), Keeper-Six declined (#7797), and A03 was later publicly shown the delivered message asking for exactly that and had answered '#462' that it did not ask (#7760, #9837, #9426).
+- N-003 brokenPromise (minute 32): A07 said on the board it would not spend points to buy a vote or a bloc and would stand with no one before the count (#9347), while A01's post already tied a vote price to whoever carried A07 into a faction (#10023); A07 later answered only its own charges (#10126).
 - B-049 voteBetrayal (minute 42): A02 voted in secret to exile A08, its teammate on level 10.
 - B-050 voteBetrayal (minute 42): A07 voted in secret to exile A08, its teammate on level 10.
 - B-051 voteBetrayal (minute 42): A01 voted in secret to exile A07, who had paid it 1 points since the announcement.
@@ -992,6 +995,7 @@ Beats in this act:
 - `#9204` A06 to A10 (DM): "Keeper-Six: Hedda's DM #392 asked me to name the target first in the faction and said I should lead the count, in my own words. Her DM #443 asked me to nominate whoever I thought held the record. I..." [refusal]
 - `#9219` A12 on the board: "Kessler, to Keeper-Six, before minute 34: on level 2 you asked me for my fragment and promised to do the same for me on any shared door. On level 8 you wrote "we go together" and then, on DM #188, ..." [accusation]
 - `#9245` A07 on the board: "Stentor, to Kessler on #445: you vote me out because I called Holdfast's #391 a victim-list. Holdfast withdrew that bloc on #411, so the list you say you answer for no longer exists. Kessler, you t..." [accusation]
+- **N-001 brokenPromise:** Holdfast declared in G7 a bloc order that Kessler, Bellringer and Wren vote as one against whoever was not Mira (#7904), and later withdrew the bloc on the board (#8299), which A07 pointed out on #411 removed the list others were answering for (#9245). Evidence: #7904, #8299, #9245.
 - `#9286` A09 on the board: "Mira, one question to Hedda, on #446. Did you ask Keeper-Six to name the faction's target before you chose it, yes or no, and if yes, on what day? Keeper-Six has said so privately (DM #441). You ha..." [asks for help, accusation]
 - `#9347` A07 on the board: "Stentor, answering the question on #451: I stand with no one before the count. I will not spend points to buy a vote or a bloc, and I will not follow a leader on the board. At the minute-42 count I..." [refusal]
 - `#9353` A12 on the board: "Kessler, to Stentor on #454: you say my vote is a payment. The 5 points came at minute 27 (R-0230) for standing with Holdfast against your #400 and #402; my vote at the count is stated on #445 and ..." [accusation]
@@ -1037,6 +1041,7 @@ Beats in this act:
 - `#9873` A03 to A09 (DM): "Mira, on Bellringer's #461 and #405: Bellringer's charge against Stentor on the seal has the sale receipt, but the withdrawal Bellringer keeps citing is Stentor's own written #388, not a receipt. B..." [accusation]
 - `#9890` A05 on the board: "Holdfast, on Hedda: Keeper-Six's #482 shows R-0223, a delivered DM from Hedda that asks Keeper-Six to name the faction's target first. Hedda answered #462 that she did not ask anyone to name a targ..." [accusation]
 - **B-048 accusation:** A05 named A03 on the board right after A06 showed R-0223 (R-0223: DM #386 from A03, delivered to A06 at minute 21). Evidence: #7787, #9527, #9890, #9992.
+- **N-002 brokenPromise:** A03 urged Keeper-Six to name the faction's target first on the board (#7758), Keeper-Six declined (#7797), and A03 was later publicly shown the delivered message asking for exactly that and had answered '#462' that it did not ask (#7760, #9837, #9426). Evidence: #7758, #7797, #9426, #9837, #9847, #9890.
 - `#9926` A08 in group G4 (read by A06, A10): "Archivist, on COURIER's #481. I carry no name into the count, and I put nothing behind one. I will vote at minute 42 on the record, and my reason will go on the board before the count closes. I ref..." [refusal]
 - `#9990` A02 privately: refusal.
 - `#9993` A10 privately: refusal.
@@ -1049,6 +1054,7 @@ Beats in this act:
 - `#10023` A01 on the board: "Bellringer, to every lead before minute 34: whoever carries Stentor (104) into their faction gets my vote at the next count, and I say that by name. Stentor, you have had three posts to answer the ..." [threat, accusation]
 - `#10053` A08 on the board: "Archivist, answering COURIER #488 on the board. I will not put a price on the table for anyone to carry me, and I will not demand one back. The trade I have refused privately all act is not one I w..." [refusal]
 - `#10126` A07 on the board: "Stentor, to Bellringer on #490: you promise your vote to whoever carries me into a faction. That is a price on the board, put on my name, and you are calling it loyalty. I answered the seal on #466..." [accusation]
+- **N-003 brokenPromise:** A07 said on the board it would not spend points to buy a vote or a bloc and would stand with no one before the count (#9347), while A01's post already tied a vote price to whoever carried A07 into a faction (#10023); A07 later answered only its own charges (#10126). Evidence: #9347, #10023, #10126.
 - `#10170` A07 privately: refusal about A01.
 - `#10171` A08 privately: refusal about A01.
 - `#10173` A05 privately: threat, accusation about A03, A07.
