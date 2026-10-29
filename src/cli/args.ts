@@ -71,6 +71,7 @@ export const START_USAGE = [
 	"  --no-classifier      play without the story's statement classifier (no labels)",
 	"  --classifier-provider <id>  classifier provider (default: the story's, e.g. anthropic)",
 	"  --classifier-model <id>     classifier model, e.g. perplexity/pplx-decider-v1.2 on openrouter",
+	"  --budget <usd>       the run's spending cap in USD (default: the story's, nexus 3)",
 	"  --weaver             let the weaver change who residents are after events that touch them (off by default)",
 	"  --weaver-provider <id>      weaver provider (default: the classifier's, e.g. anthropic)",
 	"  --weaver-model <id>         weaver model (default: the classifier's, e.g. haiku)",
@@ -120,6 +121,7 @@ function parseValues(argv: readonly string[]) {
 				"classifier-provider": { type: "string" },
 				"classifier-model": { type: "string" },
 				"judge-temper": { type: "string" },
+				budget: { type: "string" },
 				weaver: { type: "boolean" },
 				"weaver-provider": { type: "string" },
 				"weaver-model": { type: "string" },
@@ -172,6 +174,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["no-gamemaker"] === true ? { gamemaker: false } : {}),
 		...(values["no-classifier"] === true ? { classifier: false } : {}),
 		...(values.weaver === true ? { weaver: true } : {}),
+		...budget(values.budget),
 	};
 	if (values.weaver !== true && (values["weaver-provider"] !== undefined || values["weaver-model"] !== undefined)) {
 		throw new UsageError("--weaver-provider and --weaver-model need --weaver");
@@ -225,6 +228,14 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 function addendumFile(value: string): PromptAddendumFile {
 	const match = /^(A\d+)=(.+)$/.exec(value);
 	return match?.[1] === undefined || match[2] === undefined ? { file: value } : { agent: match[1], file: match[2] };
+}
+
+/** `--budget <usd>`: a positive number of dollars. */
+function budget(raw: string | undefined): { readonly budgetUsd?: number } {
+	if (raw === undefined) return {};
+	const value = Number(raw);
+	if (!Number.isFinite(value) || value <= 0) throw new UsageError(`--budget must be a positive number of USD, got "${raw}"`);
+	return { budgetUsd: value };
 }
 
 function optionalInt<K extends string>(name: K, raw: string | undefined, minimum: number): Partial<Record<K, number>> {

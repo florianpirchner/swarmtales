@@ -62,6 +62,8 @@ export interface RunOverrides {
 	readonly gmDirection?: number;
 	/** `true` lets the weaver change who residents are (`--weaver`); it needs the `weaver` option. */
 	readonly weaver?: boolean;
+	/** The run's spending cap in USD (`--budget`), instead of the story's `run.budgetUsd` (P47). */
+	readonly budgetUsd?: number;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -400,7 +402,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		for (const entry of carriedWeaver?.shifts ?? []) rewrite(entry.agent, entry.text);
 	}
 
-	const budgetLimit = story.run.budgetUsd;
+	const budgetLimit = options.overrides?.budgetUsd ?? story.run.budgetUsd;
 	const arena = new Arena({
 		world,
 		director,
