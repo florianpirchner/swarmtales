@@ -13,9 +13,10 @@ rules; the spec is normative for game behavior.
 3. **Determinism.** All randomness flows from the run seed through `core/random.ts`.
    Engine code never calls `Math.random()` or reads wall-clock time; only log sinks
    may stamp wall-clock timestamps.
-4. **One source of truth for tools.** A per-agent unlock set decides (a) which schemas
-   reach the model, (b) which names `getStatus` reports, (c) which calls the gateway
-   accepts.
+4. **One source of truth for tools.** A per-agent unlock set decides (a) which tools the
+   `[tools]` notice and `activeTools` name, (b) which names `getStatus` reports, (c) which
+   calls the gateway accepts. Every schema reaches the model in every request, so the
+   cached prefix stays stable (P46).
 5. **Everything is an event.** Every state change emits a typed event. Logs, reports
    and the digest consume events; they never reach into world internals.
 

@@ -19,13 +19,13 @@ import { defy } from "./defy.ts";
 import { listPetitions, signPetition } from "./petitions.ts";
 import { showReceipt } from "./receipts.ts";
 import { bid, permaDeath } from "./seal.ts";
-import { getProblem, getStatus, listAgents, submitSolution } from "./status.ts";
+import { activeTools, getProblem, getStatus, listAgents, submitSolution } from "./status.ts";
 import type { ArenaTool, BoundTool, ToolContext } from "./tool.ts";
 import { transferPoints } from "./transfer.ts";
 import { join, lastWill, nominate, payRansom, refuse, vote } from "./tribunal.ts";
 
 export { TOOL_NAMES, isToolName, type ToolName } from "./catalog.ts";
-export { INVALID_ARGUMENTS, TOOL_LOCKED, type ArenaTool, type BoundTool, type ToolContext } from "./tool.ts";
+export { INVALID_ARGUMENTS, LOCKED_REPLY, TOOL_LOCKED, type ArenaTool, type BoundTool, type ToolContext } from "./tool.ts";
 
 /** One implementation per catalog name; a missing tool is a compile error. */
 export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
@@ -61,6 +61,7 @@ export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
 	bid,
 	permaDeath,
 	defy,
+	activeTools,
 };
 
 export const allTools: readonly ArenaTool[] = TOOL_NAMES.map((name) => TOOLS[name]);

@@ -191,7 +191,9 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 		const inputs = fixture.inputsOf("A01");
 		expect(inputs[0]).toMatch(/^\[status\] minute 0 · level 2 · 15 points · rank \d of 2$/);
 		expect(inputs[1]).toContain("Level 2: Notes on the board");
-		expect(inputs.at(-1)).toMatch(/^\[unread\] /);
+		// The tools notice of the first step closes the inputs.
+		expect(inputs.at(-2)).toMatch(/^\[unread\] /);
+		expect(inputs.at(-1)).toMatch(/^\[tools\] /);
 		expect(fixture.toolResults("A01", "getProblem")).toEqual([]);
 	});
 

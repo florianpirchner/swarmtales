@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LOCKED_REPLY } from "../../src/tools/index.ts";
 import { PetitionBook, resolveThreshold } from "../../src/engine/petitions.ts";
 import { act as directorAct, at, every, onPetitionResolved, when } from "../../src/story/define.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
@@ -241,6 +242,6 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 		});
 		const fixture = createFixture({ story, minutes: 2, script: () => ({ A01: [sign("p"), sign("p")], A02: idle(2) }) });
 		await fixture.run();
-		expect(fixture.toolResults("A01", "signPetition")).toEqual(["TOOL_LOCKED", expect.stringContaining("signed · p (passed)")]);
+		expect(fixture.toolResults("A01", "signPetition")).toEqual([LOCKED_REPLY, expect.stringContaining("signed · p (passed)")]);
 	});
 });
