@@ -3,15 +3,17 @@
  * 7): REPORT.md's facts, minutes.md and the digest's timeline show who each
  * resident was, what it secretly wanted, and who won and broke the seal.
  */
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
 import { writeMinuteReport } from "../../src/log/minute-report.ts";
+import { writePrivateFiles } from "../../src/log/private-files.ts";
 import { JsonlEventLog } from "../../src/log/sinks.ts";
 import { computeFacts } from "../../src/report/facts.ts";
 import { factsMarkdown } from "../../src/report/render.ts";
+import nexus from "../../stories/nexus/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 let directory = "";
@@ -70,5 +72,18 @@ describe("the drama in the run's documents (v09)", () => {
 		expect(timeline).toContain("A01 won black seal 1 for 6 points (bids: A01 6, A03 2).");
 		expect(timeline).toContain("A01 broke black seal 1 on A02.");
 		expect(timeline).toContain("A02 was struck from the city by the black seal: exiled.");
+	});
+
+	it("writes the cast and the act's private file: goals, the seal's secret bids, the game master's notes", () => {
+		writePrivateFiles(directory, nexus);
+		const cast = readdirSync(join(directory, "cast"));
+		expect(cast).toHaveLength(6);
+		expect(cast.every((file) => /^A0\d-[a-z-]+\.md$/.test(file))).toBe(true);
+		expect(readFileSync(join(directory, "cast", cast[0] ?? ""), "utf8")).toContain("## What you want here");
+		expect(existsSync(join(directory, "acts", "act-1"))).toBe(false);
+		const act = readFileSync(join(directory, "acts", "act-2", "private.md"), "utf8");
+		expect(act).toMatch(/## Secret goals\n\n\| Resident \| Goal/);
+		expect(act).toMatch(/\| A01 \| 6 \|/);
+		expect(act).toContain("A01 broke the seal on A02");
 	});
 });
