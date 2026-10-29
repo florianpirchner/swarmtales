@@ -408,6 +408,15 @@ from the act's start (P28).
 - One blame per (DM, claim) pair. The `blame` event names the payer and the record's number; the
   gamemaker sees the outcome with values redacted. Delivered messages are generic, so board
   and group posts can become blameable later.
+- **Two channels and a temper (2026-10-29).** The judge answers with `verdict(deniesReceipt,
+  board, gamemaker)`: its ruling, its words for the board (the city's record quotes them as
+  `The judge: "..."`, numbers of 4+ digits masked) and a word for the gamemaker alone (the
+  `blame` event's `whisper`, shown only in the gamemaker's situation as "the judge told you
+  alone"). It is told where both parties stand (points and rank). `--judge-temper` sets how it
+  rules: `fair` (default; rules by the texts alone and says the same on both channels),
+  `partial` (favours whoever stands higher and hides it behind a fair-sounding public reason) or
+  `capricious` (its mood decides as much as the texts). Its rulings and both channels are in
+  `agents/judge.md`.
 
 ## 8. Evidence and reputation [M2]
 

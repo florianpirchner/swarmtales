@@ -23,4 +23,14 @@ describe("the gamemaker's situation", () => {
 		expect(text).toContain(`board #41 A01: "post 41"`);
 		expect(text).toContain(`board #${String(MAX_RECENT_LINES + 40)} A01`);
 	});
+
+	it("tells the gamemaker alone what the judge whispered (two channels)", () => {
+		const fixture = createFixture({ agents: 6, minutes: 2, script: () => ({}) });
+		const recent: RecordedEvent[] = [
+			{ type: "blame", seq: 1, minute: 1, caller: "A01", accused: "A02", dm: 4, claim: 9, outcome: "rejected", payer: "A01", penalty: 2, reason: "no denial", post: 12, judge: '"It denies nothing."', whisper: "A02 lied, but A02 is rich." },
+		];
+		const text = describeSituation({ world: fixture.world, round: 1, tracks: new Map(), recent, notes: [], guard: new SecretGuard([]), budget: "0 of 3 USD" });
+		expect(text).toContain("A01 blamed A02 for denying DM #4 in message #9: rejected");
+		expect(text).toContain('- m1 the judge told you alone: "A02 lied, but A02 is rich."');
+	});
 });

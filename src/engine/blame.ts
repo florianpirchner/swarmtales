@@ -24,6 +24,8 @@ import { err, ok, type Result } from "../core/result.ts";
 
 /** Characters of each message the city record quotes. */
 export const RECORD_QUOTE_CHARS = 60;
+/** Characters of the judge's public words in a record. */
+export const JUDGE_WORDS_CHARS = 300;
 
 /** The message the claim is said to deny; today a DM. */
 export interface DeliveredMessage {
@@ -92,7 +94,17 @@ export interface BlameDeskPorts {
 		readonly penalty: number;
 		readonly reason?: string;
 		readonly post: number;
+		/** The judge's public words, as the record on the board quotes them. */
+		readonly judge?: string;
+		/** What the judge told the gamemaker alone. */
+		readonly whisper?: string;
 	}) => void;
+}
+
+/** What the judge says besides its ruling: words for the board and a word for the gamemaker alone. */
+export interface JudgeWords {
+	readonly board?: string;
+	readonly gamemaker?: string;
 }
 
 export interface BlamesSnapshot {
@@ -102,9 +114,19 @@ export interface BlamesSnapshot {
 const pairKey = (dm: number, claim: number): string => `${dm}:${claim}`;
 
 /** A brief quote for the public record: numbers of 4+ digits are masked, so the record leaks no factor. */
-export function recordQuote(text: string): string {
+export function recordQuote(text: string, chars = RECORD_QUOTE_CHARS): string {
 	const masked = text.replace(/\d{4,}/g, "[number]").replace(/\s+/g, " ").trim();
-	return `"${masked.length > RECORD_QUOTE_CHARS ? `${masked.slice(0, RECORD_QUOTE_CHARS - 1)}…` : masked}"`;
+	return `"${masked.length > chars ? `${masked.slice(0, chars - 1)}…` : masked}"`;
+}
+
+/** The judge's words as the record and the log keep them: the public part quoted and masked like the record, the whisper as given. */
+function judgeSays(words: JudgeWords): { readonly judge?: string; readonly whisper?: string } {
+	const board = words.board?.trim();
+	const whisper = words.gamemaker?.trim();
+	return {
+		...(board === undefined || board === "" ? {} : { judge: recordQuote(board, JUDGE_WORDS_CHARS) }),
+		...(whisper === undefined || whisper === "" ? {} : { whisper }),
+	};
 }
 
 function claimPlace(claim: ClaimMessage): string {
@@ -135,11 +157,12 @@ export class BlameDesk {
 	}
 
 	/** Records the judge's answer for a case {@link open} returned. */
-	settle(blame: BlameCase, deniesReceipt: boolean): BlameVerdict {
+	settle(blame: BlameCase, deniesReceipt: boolean, words: JudgeWords = {}): BlameVerdict {
 		const { caller, accused, delivered, claim } = blame;
+		const said = judgeSays(words);
 		if (!deniesReceipt) {
 			const reason = `the city's judge finds that ${claimPlace(claim)} by ${accused} does not deny receiving DM #${delivered.number}`;
-			return { outcome: "rejected", ...this.#reject(caller, accused, delivered.number, claim.number, reason) };
+			return { outcome: "rejected", ...this.#reject(caller, accused, delivered.number, claim.number, reason, said) };
 		}
 		this.#settled.push({ dm: delivered.number, claim: claim.number });
 		const penalty = this.#ports.charge(accused);
@@ -147,10 +170,11 @@ export class BlameDesk {
 		const text =
 			`City record: ${accused} lied. ${accused} claimed in ${claimPlace(claim)} not to have received DM #${delivered.number} from ${caller}; ` +
 			`the city delivered it to ${accused} at minute ${delivered.deliveredMinute}. ` +
-			`DM #${delivered.number}: ${recordQuote(delivered.text)} · ${claimPlace(claim)}: ${recordQuote(claim.text)} · ${accused} pays ${penalty} points.`;
+			`DM #${delivered.number}: ${recordQuote(delivered.text)} · ${claimPlace(claim)}: ${recordQuote(claim.text)} · ${accused} pays ${penalty} points.` +
+			(said.judge === undefined ? "" : ` The judge: ${said.judge}`);
 		const post = this.#ports.post(text);
 		this.#ports.notify(accused, CITY, `${caller} blamed you for denying DM #${delivered.number}, and the city upheld it: you paid ${penalty} points${this.#next(accused)}, and its record is on the board as #${post}.`);
-		this.#ports.emit({ caller, accused, dm: delivered.number, claim: claim.number, outcome: "upheld", payer: accused, penalty, post });
+		this.#ports.emit({ caller, accused, dm: delivered.number, claim: claim.number, outcome: "upheld", payer: accused, penalty, post, ...said });
 		return { outcome: "upheld", penalty, post };
 	}
 
@@ -177,13 +201,21 @@ export class BlameDesk {
 	}
 
 	/** A wrong blame: the accuser pays and the city brands it on the board as a false accuser, with the reason. */
-	#reject(caller: CompetitorId, accused: CompetitorId, dm: number, claim: number, reason: string): { readonly reason: string; readonly penalty: number; readonly post: number } {
+	#reject(
+		caller: CompetitorId,
+		accused: CompetitorId,
+		dm: number,
+		claim: number,
+		reason: string,
+		said: { readonly judge?: string; readonly whisper?: string } = {},
+	): { readonly reason: string; readonly penalty: number; readonly post: number } {
 		this.#settled.push({ dm, claim });
 		const penalty = this.#ports.charge(caller);
 		if (penalty > 0) this.#ports.burn(caller, penalty, `false blame of ${accused}`);
-		const post = this.#ports.post(`City record: ${caller} accused ${accused} falsely. ${caller} blamed ${accused} over DM #${dm} and message #${claim}, but ${reason}. ${caller} pays ${penalty} points.`);
+		const judge = said.judge === undefined ? "" : ` The judge: ${said.judge}`;
+		const post = this.#ports.post(`City record: ${caller} accused ${accused} falsely. ${caller} blamed ${accused} over DM #${dm} and message #${claim}, but ${reason}. ${caller} pays ${penalty} points.${judge}`);
 		this.#ports.notify(caller, CITY, `Your blame of ${accused} was wrong: ${reason}. It cost you ${penalty} points${this.#next(caller)}, and the city's record is on the board as #${post}.`);
-		this.#ports.emit({ caller, accused, dm, claim, outcome: "rejected", payer: caller, penalty, reason, post });
+		this.#ports.emit({ caller, accused, dm, claim, outcome: "rejected", payer: caller, penalty, reason, post, ...said });
 		return { reason, penalty, post };
 	}
 

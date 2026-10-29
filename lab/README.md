@@ -60,3 +60,11 @@ pnpm lab:orders report                             # lab/out/orders/RESULTS.md
 The report counts Mercer's messages, `defy` refusals and the requests the provider's safeguards
 refused, and lists his words; whether he carried an order out is read by hand
 ([`FINDINGS.md`](FINDINGS.md), batch 3).
+
+## The judge lab
+
+`lab/judge.ts` hears fixed blames (a plain denial, a request, an unclear text, a confirmed receipt)
+with every judge temper (`fair`, `partial`, `capricious`), the accused once on top of the city and
+once below the accuser, and records the ruling and both channels: `pnpm lab:judge --repeats 3`
+writes `lab/out/judge/RESULTS.md` (a cent or two; two hearings at a time, since the
+organisation's concurrency limit is shared with live runs).

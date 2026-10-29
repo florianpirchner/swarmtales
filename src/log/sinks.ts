@@ -135,7 +135,10 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "goal_dealt":
 			return undefined;
 		case "blame":
-			return `  (${event.caller} blames ${event.accused}: DM #${event.dm} vs message #${event.claim}, ${event.outcome}${event.outcome === "upheld" ? "" : `, -${event.penalty}`})`;
+			return (
+				`  (${event.caller} blames ${event.accused}: DM #${event.dm} vs message #${event.claim}, ${event.outcome}${event.outcome === "upheld" ? "" : `, -${event.penalty}`})` +
+				(event.whisper === undefined ? "" : `\n  (the judge to the gamemaker: ${event.whisper})`)
+			);
 		case "factor_revealed":
 			return `  (city factor of level ${event.level} released ${event.target === "board" ? "on the board" : `to ${event.agents.join(", ")}`})`;
 		case "cast_dm":

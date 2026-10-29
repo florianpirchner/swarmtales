@@ -108,6 +108,8 @@ export const RecordedEventSchema = Type.Union([
 		penalty: Int,
 		reason: Type.Optional(Type.String()),
 		post: Int,
+		judge: Type.Optional(Type.String()),
+		whisper: Type.Optional(Type.String()),
 	}),
 	event("notice", { to: Id, author: Id, text: Type.String(), number: Type.Optional(Int) }),
 	event("marks_spent", { agent: Id, channel: Channel, remaining: Type.Number() }),

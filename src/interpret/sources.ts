@@ -9,7 +9,7 @@ import { describeModel, ModelConfigError, type ModelSettings } from "../model/se
 import { createModelSource, type RequestLimits } from "../model/source.ts";
 import type { ClassifierSpec } from "../story/types.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
-import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "./judge.ts";
+import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge, type JudgeTemper } from "./judge.ts";
 import { ChatSouffleur, SOUFFLEUR_ID, type Souffleur } from "./souffleur.ts";
 
 export function createStatementClassifier(
@@ -42,7 +42,13 @@ export function createStatementClassifier(
  * Builds the city's judge for `blame` from the classifier's model: always a
  * chat model, since it answers one free question rather than a label.
  */
-export function createDeliveryJudge(settings: ModelSettings, spec: ClassifierSpec, registry: ProviderRegistry, limits: RequestLimits): DeliveryJudge {
+export function createDeliveryJudge(
+	settings: ModelSettings,
+	spec: ClassifierSpec,
+	registry: ProviderRegistry,
+	limits: RequestLimits,
+	temper: JudgeTemper = "fair",
+): DeliveryJudge {
 	const provider = registry.require(settings.provider);
 	const modelId = settings.modelId ?? provider.defaultModelId;
 	const models = createModels();
@@ -54,6 +60,7 @@ export function createDeliveryJudge(settings: ModelSettings, spec: ClassifierSpe
 		binding: createModelSource(settings, { registry }).bind(JUDGE_ID, limits),
 		label: `${provider.id}/${modelId}`,
 		thinking: spec.model.thinking ?? "off",
+		temper,
 	});
 }
 

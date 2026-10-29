@@ -1,6 +1,7 @@
 /** Command-line parsing for `pnpm start`. Pure, so it is testable offline. */
 import { parseArgs } from "node:util";
 import { MAX_PASSES_PER_MINUTE } from "../story/validate.ts";
+import { JUDGE_TEMPERS, type JudgeTemper } from "../interpret/judge.ts";
 import type { RunOverrides } from "./compose.ts";
 
 export class UsageError extends Error {
@@ -17,6 +18,8 @@ export interface StartArgs {
 	readonly gamemakerModel?: string;
 	readonly classifierProvider?: string;
 	readonly classifierModel?: string;
+	/** How the city's judge rules and speaks (default fair). */
+	readonly judgeTemper?: JudgeTemper;
 	/** Write `REPORT.md` with the run reporter at the end of the run (default on). */
 	readonly reporter: boolean;
 	readonly reporterProvider?: string;
@@ -65,6 +68,7 @@ export const START_USAGE = [
 	"  --no-classifier      play without the story's statement classifier (no labels)",
 	"  --classifier-provider <id>  classifier provider (default: the story's, e.g. anthropic)",
 	"  --classifier-model <id>     classifier model, e.g. perplexity/pplx-decider-v1.2 on openrouter",
+	`  --judge-temper <t>   how the city's judge rules: ${JUDGE_TEMPERS.join(", ")} (default fair)`,
 	"  --no-reporter        write no REPORT.md at the end of the run",
 	"  --reporter-provider <id>    run reporter provider (default: openrouter)",
 	"  --reporter-model <id>       run reporter model (default: deepseek/deepseek-v4.1-flash-1017)",
@@ -109,6 +113,7 @@ function parseValues(argv: readonly string[]) {
 				"gamemaster-model": { type: "string" },
 				"classifier-provider": { type: "string" },
 				"classifier-model": { type: "string" },
+				"judge-temper": { type: "string" },
 				"no-reporter": { type: "boolean" },
 				"reporter-provider": { type: "string" },
 				"reporter-model": { type: "string" },
@@ -188,6 +193,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
 		...(values["classifier-provider"] === undefined ? {} : { classifierProvider: values["classifier-provider"] }),
 		...(values["classifier-model"] === undefined ? {} : { classifierModel: values["classifier-model"] }),
+		...(values["judge-temper"] === undefined ? {} : { judgeTemper: judgeTemper(values["judge-temper"]) }),
 		reporter: values["no-reporter"] !== true,
 		...(values["reporter-provider"] === undefined ? {} : { reporterProvider: values["reporter-provider"] }),
 		...(values["reporter-model"] === undefined ? {} : { reporterModel: values["reporter-model"] }),
@@ -232,4 +238,10 @@ function castList(value: string): readonly string[] {
 	if (ids.length === 0) throw new UsageError("--cast needs at least one figure ID");
 	if (new Set(ids).size !== ids.length) throw new UsageError("--cast names a figure twice");
 	return ids;
+}
+
+function judgeTemper(value: string): JudgeTemper {
+	const temper = JUDGE_TEMPERS.find((entry) => entry === value);
+	if (temper === undefined) throw new UsageError(`--judge-temper must be one of ${JUDGE_TEMPERS.join(", ")}`);
+	return temper;
 }

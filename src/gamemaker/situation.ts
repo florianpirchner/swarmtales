@@ -287,7 +287,8 @@ function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[]
 			event.outcome === "upheld"
 				? `upheld, ${event.accused} lied and paid ${event.penalty}, city record board #${event.post}`
 				: `rejected, ${event.caller} accused falsely and paid ${event.penalty}: ${quote(event.reason ?? "")}, city record board #${event.post}`;
-		return [`${at} ${event.caller} blamed ${event.accused} for denying DM #${event.dm} in message #${event.claim}: ${result}`];
+		const whisper = event.whisper === undefined ? [] : [`${at} the judge told you alone: ${quote(event.whisper)}`];
+		return [`${at} ${event.caller} blamed ${event.accused} for denying DM #${event.dm} in message #${event.claim}: ${result}`, ...whisper];
 	}
 	if (event.type === "gamemaker_defied") return [`${at} ${event.agent} REFUSED your order${number(event.note)}: ${quote(event.reason)}`];
 	// What a resident says to nobody in particular shows its stance; it reaches no other resident.
