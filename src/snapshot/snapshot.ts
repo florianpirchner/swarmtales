@@ -378,6 +378,30 @@ const WorldSchema = Type.Object({
 		}),
 	),
 	endedActs: Type.Optional(Type.Array(Int)),
+	standoff: Type.Optional(
+		Type.Object({
+			given: Type.Array(Type.String()),
+			city: Type.Array(
+				Type.Object({
+					from: Id,
+					piece: Type.Object({ id: Type.String(), level: Int, label: Type.String(), value: Type.String(), needers: Ids }),
+					claimed: Ids,
+				}),
+			),
+			ultimatums: Type.Array(
+				Type.Object({
+					number: Int,
+					between: Ids,
+					until: Int,
+					penalty: Int,
+					debts: Type.Array(
+						Type.Object({ holder: Id, needer: Id, level: Int, pieces: Type.Array(Type.Object({ id: Type.String(), label: Type.String() })) }),
+					),
+				}),
+			),
+			lastUltimatum: Int,
+		}),
+	),
 });
 
 const RunSnapshotSchema = Type.Object({

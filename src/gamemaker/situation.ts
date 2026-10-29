@@ -77,6 +77,8 @@ export function describeSituation(input: SituationInput): string {
 		"Who waits on whom (a door opens only with every fragment or factor a resident needs):",
 		...waitLines(world),
 		"",
+		...standoffLines(input),
+		...riskLines(world),
 		`Since your last look:`,
 		...recentLines(input),
 		"",
@@ -242,6 +244,56 @@ function waitLines(world: World): readonly string[] {
 		lines.push(`- ${agent} (level ${level}) waits on ${blockers}`);
 	}
 	return lines.length === 0 ? ["- nobody"] : lines;
+}
+
+/**
+ * Pieces a holder in the city still has not handed to a resident who stands
+ * before its door (P43): the give-first standoffs, longest first, with the
+ * pairs that wait on each other, the city's pieces of the exiled and the
+ * running ultimatums.
+ */
+export function standoffLines(input: SituationInput): readonly string[] {
+	const { world } = input;
+	const debts = world.outstandingPieces();
+	const city = world.cityPieces().flatMap((entry) =>
+		entry.piece.needers
+			.filter((needer) => !entry.claimed.includes(needer) && !world.isExiled(needer) && world.levelOf(needer) === entry.piece.level && !world.hasPassed(needer, entry.piece.level))
+			.map((needer) => `- the city keeps ${entry.piece.label} of ${entry.from} for ${needer}; ${needer} may buy it with claimPiece for ${world.cityPiecePrice()} points`),
+	);
+	const ultimatums = world.ultimatums().map((ultimatum) => `- ultimatum ${ultimatum.number}: ${ultimatum.between.join(" and ")}, due at minute ${ultimatum.until}, ${ultimatum.penalty} points`);
+	if (debts.length === 0 && city.length === 0 && ultimatums.length === 0) return [];
+	const since = (agent: CompetitorId): number => input.tracks.get(agent)?.levelSince ?? 0;
+	const owes = (holder: CompetitorId, needer: CompetitorId): boolean => debts.some((debt) => debt.holder === holder && debt.needer === needer);
+	const lines = [...debts]
+		.sort((a, b) => since(a.needer) - since(b.needer))
+		.map((debt) => {
+			const waited = world.minute - since(debt.needer);
+			const mutual = owes(debt.needer, debt.holder) ? " · they wait on each other" : "";
+			return `- ${debt.holder} has not handed ${debt.needer} ${debt.pieces.map((piece) => piece.label).join(" and ")}; ${debt.needer} has stood before door ${debt.level} for ${waited} min${mutual}`;
+		});
+	return ["Standoffs (pieces not handed over; the city sees a hand-over when the holder writes the value to the one who needs it):", ...lines, ...city, ...ultimatums, ""];
+}
+
+/**
+ * Who stands to lose the next tribunal and what it holds for others (P43,
+ * the gamemaker's foresight): the residents with the fewest points stand
+ * trial, and what an exiled held goes to the city.
+ */
+export function riskLines(world: World): readonly string[] {
+	const risk = world.tribunal?.atRisk();
+	const gates = world.alive.filter((agent) => world.standingOf(agent).kind === "gate");
+	const people = [...new Set([...(risk?.accused ?? []), ...gates])];
+	const lines = people.flatMap((agent) => {
+		const held = world
+			.heldPieces(agent)
+			.filter((piece) => piece.kind !== "fragment")
+			.flatMap((piece) => piece.needers.filter((needer) => !world.isExiled(needer) && !world.hasPassed(needer, piece.level)).map((needer) => `${piece.label} for ${needer}`));
+		const standing = world.standingOf(agent);
+		const why = standing.kind === "gate" ? `at the gate until minute ${standing.until}` : `stands trial at minute ${risk?.opens ?? "?"} as things stand`;
+		return [`- ${agent} (${world.ledger.balance(agent)} points) ${why}; holds ${held.length === 0 ? "nothing others need" : held.join(", ")}`];
+	});
+	if (lines.length === 0) return [];
+	return ["At risk (if they leave, what they hold goes to the city, which sells it to the one who needs it):", ...lines, ""];
 }
 
 /**

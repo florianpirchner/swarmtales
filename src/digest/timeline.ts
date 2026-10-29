@@ -238,6 +238,14 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 			return `${event.agent} left a last will: ${quote(event.text)} (${event.bequests.map((bequest) => `${bequest.points === undefined ? (bequest.factor ?? "?") : points(bequest.points)} to ${bequest.to}`).join(", ") || "no bequests"}).`;
 		case "factor_burned":
 			return `${event.piece} burned with ${event.agent}${event.needers.length === 0 ? "" : `; ${event.needers.join(", ")} needed it`}.`;
+		case "piece_kept":
+			return `The city keeps ${event.piece} of ${event.agent}; ${event.needers.join(", ")} may buy it.`;
+		case "piece_claimed":
+			return `${event.agent} buys ${event.piece} of ${event.from} from the city for ${event.price} points.`;
+		case "ultimatum_set":
+			return `The gamemaker gives ${event.between.join(" and ")} an ultimatum until minute ${event.until}: ${event.debts.map((debt) => `${debt.holder} owes ${debt.needer} ${debt.pieces.join(", ")}`).join("; ")}.`;
+		case "ultimatum_resolved":
+			return `Ultimatum ${event.number} is up: ${[...event.kept.map((agent) => `${agent} handed over`), ...event.paid.map((entry) => `${entry.agent} pays ${entry.points}`)].join("; ")}.`;
 		case "level_contracted":
 			return `Level ${event.level} passes the roles of ${event.excluded.join(", ")} on to the remaining residents.`;
 		case "lottery_drawn":

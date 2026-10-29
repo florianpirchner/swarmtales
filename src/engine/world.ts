@@ -32,6 +32,7 @@ import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHo
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
 import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
+import { StandoffBook, type CityPiece, type ClaimError, type StandoffPiece, type StandoffSnapshot, type Ultimatum, type UltimatumDebt, type UltimatumError } from "./standoff.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
 import { TeamPlanner, type Team } from "./teams.ts";
 import type { DraftError } from "./factions.ts";
@@ -138,6 +139,8 @@ export interface WorldSnapshot {
 	readonly goals?: GoalsSnapshot;
 	/** The black seal of its act (v09), once the act began. */
 	readonly seal?: SealSnapshot;
+	/** Hand-overs, the city's pieces and running ultimatums (P43); absent before. */
+	readonly standoff?: StandoffSnapshot;
 	/** Acts that are over (by their first level): their goals were resolved, their seals are gone (v09). */
 	readonly endedActs?: readonly number[];
 }
@@ -413,6 +416,8 @@ export class World {
 	readonly #seal: SealHouse | undefined;
 	/** Acts that are over, by their first level (v09). */
 	readonly #endedActs = new Set<number>();
+	/** Hand-overs, the pieces the city keeps for the exiled, and the gamemaker's ultimatums (P43). */
+	readonly #standoff: StandoffBook;
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -588,6 +593,25 @@ export class World {
 						},
 					});
 		if (restoredNames !== undefined) this.#names?.restore(restoredNames);
+
+		this.#standoff = new StandoffBook({
+			ids: this.#ids,
+			...(options.story.rules.ultimatum === undefined ? {} : { rule: options.story.rules.ultimatum }),
+			minute: () => this.minute,
+			points: (agent) => this.ledger.balance(agent),
+			burn: (agent, points, reason) => {
+				this.ledger.burn(agent, points, reason, this.minute);
+			},
+			notify: (agent, author, text) => {
+				this.notify(agent, author, text);
+			},
+			emit: (event) => {
+				this.#bus.emit(event);
+			},
+			held: (agent) => this.heldPieces(agent).filter((piece) => piece.kind !== "fragment"),
+			needsNow: (agent, level) => !this.isExiled(agent) && this.levelOf(agent) === level && !this.hasPassed(agent, level),
+			inCity: (agent) => !this.isExiled(agent),
+		});
 
 		const used = new Set(options.story.levels.flatMap((entry) => entry.tools));
 		this.#finalTools = TOOL_NAMES.filter((name) => used.has(name));
@@ -786,6 +810,7 @@ export class World {
 		this.#names?.settle(minute);
 		this.#tribunal?.tick(minute);
 		this.#seal?.tick(minute);
+		this.#standoff.tick(minute, CITY);
 		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
 		const tribunal = this.#tribunal;
 		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
@@ -929,6 +954,7 @@ export class World {
 		if (this.#seal?.holds(agent) === true) enabled.add("permaDeath");
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		if (this.#defiance) enabled.add("defy");
+		if (standing.kind === "alive" && this.#standoff.claimable(agent).length > 0) enabled.add("claimPiece");
 		enabled.add("activeTools");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
@@ -1424,6 +1450,7 @@ export class World {
 		}
 		if (!this.#canAfford(author, "board")) return err("NO_MARKS");
 		const post = this.board.post(author, trimmed, this.minute, "player");
+		this.#standoff.noteText(author, this.alive, trimmed);
 		const marks = this.#spend(author, "board");
 		return ok({ post, ...(marks === undefined ? {} : { marks }) });
 	}
@@ -1453,6 +1480,7 @@ export class World {
 		this.#bus.emit({ type: "dm_sent", from, to, text: trimmed, number });
 		this.#noteReply(from, (record) => record.from === to);
 		this.#dms.push({ id: number, from, to, minute: this.minute, answered: false, text: trimmed });
+		this.#standoff.noteText(from, [to], trimmed);
 		const marks = this.#spend(from, "dm");
 		return ok({ number, ...(marks === undefined ? {} : { marks }) });
 	}
@@ -1792,6 +1820,7 @@ export class World {
 		if (!posted.ok) return posted;
 		this.#bus.emit({ type: "group_post", group: groupId, author, postSeq: posted.value.seq, text: posted.value.text });
 		this.#noteReply(author, (record) => this.groups.isMember(groupId, record.from));
+		this.#standoff.noteText(author, this.alive.filter((agent) => this.groups.isMember(groupId, agent)), posted.value.text);
 		const marks = free ? this.marks.status(author, this.levelOf(author)) : this.#spend(author, "group");
 		return ok({ post: posted.value, ...(marks === undefined ? {} : { marks }) });
 	}
@@ -1947,6 +1976,53 @@ export class World {
 	 * from: its task (it reached the level) or the city's holder notice (a
 	 * needer reached it). Fragments only from the own task.
 	 */
+	// -------------------------------------------------------------------------
+	// The give-first standoff (P43)
+	// -------------------------------------------------------------------------
+
+	/** What a piece the city keeps costs its needer now: the ransom others pay (the tribunal's median rule). */
+	cityPiecePrice(): number {
+		return this.#tribunal?.ransomPrices().price ?? 0;
+	}
+
+	/** Buys a piece the city keeps since its holder left; its value arrives as a city notice. */
+	claimPiece(agent: CompetitorId, piece: string, from: string): Result<StandoffPiece & { readonly price: number }, ClaimError> {
+		const price = this.cityPiecePrice();
+		const holder = this.resolveResident(from);
+		const claimed = this.#standoff.claim(agent, piece, holder, price);
+		if (!claimed.ok) return claimed;
+		this.notify(agent, CITY, `The city hands you ${claimed.value.label}, which ${holder} held: ${claimed.value.value}.`);
+		return ok({ ...claimed.value, price });
+	}
+
+	/** The gamemaker's ultimatum to two residents who hold pieces for each other. */
+	issueUltimatum(a: string, b: string, minutes: number, author: string): Result<Ultimatum, UltimatumError> {
+		const first = this.resolveResident(a);
+		const second = this.resolveResident(b);
+		if (!this.isCompetitor(first) || !this.isCompetitor(second)) return err("UNKNOWN_AGENT", `${a}, ${b}`);
+		return this.#standoff.issue(first, second, minutes, author);
+	}
+
+	/** Whether the story gives the gamemaker ultimatums. */
+	get hasUltimatums(): boolean {
+		return this.story.rules.ultimatum !== undefined;
+	}
+
+	/** Pieces holders in the city still owe residents before their door (no values: the gamemaker reads this). */
+	outstandingPieces(): readonly UltimatumDebt[] {
+		return this.#standoff.outstanding();
+	}
+
+	/** The pieces the city keeps for the exiled. */
+	cityPieces(): readonly CityPiece[] {
+		return this.#standoff.cityPieces;
+	}
+
+	/** The ultimatums still running. */
+	ultimatums(): readonly Ultimatum[] {
+		return this.#standoff.ultimatums;
+	}
+
 	heldPieces(agent: CompetitorId): readonly HeldPiece[] {
 		const pieces: HeldPiece[] = [];
 		for (const [level, state] of [...this.#levelStates].sort(([a], [b]) => a - b)) {
@@ -2036,6 +2112,7 @@ export class World {
 			const piece = pieces.get(bequest.factor);
 			if (piece === undefined) continue;
 			this.notify(bequest.to, CITY, `${agent}'s last will leaves you ${piece.label}: ${piece.value}.`);
+			if (piece.kind !== "fragment" && piece.needers.includes(bequest.to)) this.#standoff.noteGiven(agent, bequest.to, piece);
 			lines.push(`${piece.id} to ${bequest.to}`);
 		}
 		for (const heir of new Set(bequests.map((bequest) => bequest.to))) this.#goals?.noteHeir(heir);
@@ -2059,11 +2136,16 @@ export class World {
 		const balance = this.ledger.balance(agent);
 		const alive = this.alive;
 		const unreached = (level: number): boolean => !alive.some((id) => this.levelOf(id) >= level);
+		const kept: StandoffPiece[] = [];
 		for (const piece of this.heldPieces(agent)) {
 			if (bequeathed.has(piece.id) || unreached(piece.level)) continue;
 			const needers = piece.needers.filter((id) => !this.isExiled(id) && !this.hasPassed(id, piece.level));
-			if (needers.length > 0) this.#bus.emit({ type: "factor_burned", agent, level: piece.level, piece: piece.id, needers });
+			if (needers.length === 0) continue;
+			// P43: with a tribunal, the city keeps a certificate or counter-factor instead of burning it and sells it to its needers.
+			if (this.#tribunal !== undefined && piece.kind !== "fragment") kept.push({ ...piece, needers });
+			else this.#bus.emit({ type: "factor_burned", agent, level: piece.level, piece: piece.id, needers });
 		}
+		if (kept.length > 0) this.#standoff.keep(agent, kept, this.cityPiecePrice(), CITY);
 		if (balance > 0) this.ledger.burn(agent, balance, `exiled ${agent}`, this.minute);
 		// v09: its goal is void and read out, a seal it bore is gone.
 		this.#goals?.onExiled(agent);
@@ -2260,6 +2342,7 @@ export class World {
 			...(this.#goals === undefined ? {} : { goals: this.#goals.snapshot() }),
 			...(seal === undefined ? {} : { seal }),
 			endedActs: [...this.#endedActs].sort((a, b) => a - b),
+			standoff: this.#standoff.snapshot(),
 		};
 	}
 
@@ -2313,6 +2396,7 @@ export class World {
 		if (state.goals !== undefined) this.#goals?.restore(state.goals);
 		if (state.seal !== undefined) this.#seal?.restore(state.seal);
 		for (const act of state.endedActs ?? []) this.#endedActs.add(act);
+		if (state.standoff !== undefined) this.#standoff.restore(state.standoff);
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
 		this.#dealCores();
 

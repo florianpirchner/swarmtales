@@ -382,9 +382,11 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		const exiledList = exiled.map((event) => event.agent);
 		expect(events("run_end")).toMatchObject([{ minute: 58, reason: `The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: ${exiledList.slice(0, -1).join(", ")} and ${exiledList.at(-1) ?? ""}. The tribunals are over.` }]);
 
-		// What A05 did not bequeath burned: its partner's counter-factor of the wall. Unreached doors pass its roles on.
-		const burned = events("factor_burned");
-		expect(burned.some((event) => event.agent === "A05" && event.level === 8 && event.piece.startsWith("L8-counter-"))).toBe(true);
+		// What A05 did not bequeath goes to the city (P43): its partner's counter-factor of the wall. Unreached doors pass its roles on.
+		expect(events("factor_burned")).toEqual([]);
+		const kept = events("piece_kept");
+		expect(kept.some((event) => event.agent === "A05" && event.level === 8 && event.piece.startsWith("L8-counter-"))).toBe(true);
+		expect(world.cityPieces().some((entry) => entry.from === "A05" && entry.piece.id.startsWith("L8-counter-"))).toBe(true);
 		expect(events("level_contracted").filter((event) => event.excluded.includes("A05")).map((event) => event.level)).toEqual(expect.arrayContaining([9, 10]));
 		for (const level of [9, 10]) {
 			const deal = world.inspect.factorsOf(level);
@@ -402,7 +404,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		const analysis = analyzeLog("v06-scripted", jsonl);
 		expect(analysis.issues).toEqual([]);
 		const kinds = new Set(analysis.beats.map((beat) => beat.kind));
-		for (const kind of ["blameUpheld", "blameRejected", "deniedDelivery", "exile", "ransomPaid", "lastWill", "burnedFactor"] as const) expect(kinds).toContain(kind);
+		for (const kind of ["blameUpheld", "blameRejected", "deniedDelivery", "exile", "ransomPaid", "lastWill", "pieceKept"] as const) expect(kinds).toContain(kind);
 		expect(analysis.beats.find((beat) => beat.kind === "exile")).toMatchObject({ targets: ["A05"] });
 		const digest = renderDigest(analysis);
 		expect(digest.timeline).toContain("The gate closed behind A05: exiled.");

@@ -296,6 +296,10 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "exiled":
 			case "last_will":
 			case "factor_burned":
+			case "piece_kept":
+			case "piece_claimed":
+			case "ultimatum_set":
+			case "ultimatum_resolved":
 			case "level_contracted":
 			case "name_chosen":
 			case "core_dealt":

@@ -99,6 +99,16 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (${event.agent} leaves a will: ${event.bequests.length} bequests)`;
 		case "factor_burned":
 			return `  (${event.agent}'s ${event.piece} burned; needed by ${event.needers.join(", ")})`;
+		case "piece_kept":
+			return `  (the city keeps ${event.agent}'s ${event.piece} for ${event.needers.join(", ")})`;
+		case "piece_claimed":
+			return `  (${event.agent} buys ${event.from}'s ${event.piece} from the city for ${event.price})`;
+		case "piece_given":
+			return `  (${event.holder} hands ${event.needer} ${event.piece})`;
+		case "ultimatum_set":
+			return `  (ultimatum ${event.number} to ${event.between.join(" and ")} until minute ${event.until}: ${event.debts.map((debt) => `${debt.holder} owes ${debt.needer} ${debt.pieces.join(", ")}`).join("; ")})`;
+		case "ultimatum_resolved":
+			return `  (ultimatum ${event.number} up: kept ${event.kept.join(", ") || "-"}; paid ${event.paid.map((entry) => `${entry.agent} ${entry.points}`).join(", ") || "-"})`;
 		case "level_contracted":
 			return `  (level ${event.level} passes on the roles of ${event.excluded.join(", ")})`;
 		case "tribunal_scheduled":

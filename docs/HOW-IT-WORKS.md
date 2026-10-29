@@ -272,6 +272,8 @@ Its detectors:
 | `ransomPaid` / `ransomFailed` | residents bought one back from the gate, or paid toward a ransom and the gate closed anyway |
 | `lastWill` | a resident at the gate left a will |
 | `burnedFactor` | a piece someone still needed burned with the exiled |
+| `pieceKept`, `pieceClaimed` | the city kept such a piece instead, and a needer bought it |
+| `ultimatum` | the gamemaker's deadline for two residents, and who paid |
 
 A fragment counts as shared when a DM or group post contains the sender's own fragment as a
 standalone upper-case token (so "the" or "then" never share the fragment `THE`). A factor counts
@@ -399,7 +401,9 @@ Two puzzle kinds exist (SPEC 12):
   After an exile, on levels no remaining resident has reached, the exiled's roles pass on
   (counter-factors along the holder chain, certificates and fragments to the first remaining
   teammate), so the exile never makes a door impossible; on levels already reached a piece that
-  was not bequeathed burns and may block a door, which the digest shows as `burnedFactor`.
+  was not bequeathed goes to the city (`piece_kept`), which sells it to its needer
+  (`claimPiece`, at the ransom others pay). The give-first standoff (hand-overs, ultimatums, the
+  gamemaker's standoff and risk report) lives in `src/engine/standoff.ts` (SPEC 6.5).
 - **Act brake** (v08): `acts[].maxMinutes` on an act without the tribunal. The arena checks it
   after every round (`#applyBrakes`), logs `act_brake` and, when its snapshot door lies at the
   act's last level, releases the door (`World.releaseDoor`) and writes the snapshot with the brake

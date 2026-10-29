@@ -107,6 +107,19 @@ export interface Rules {
 	readonly marks?: MarksRules;
 	/** The `blame` tool (SPEC 7.4): what the loser of a blame pays. Required when a level unlocks `blame`. */
 	readonly blame?: BlameRules;
+	/** The gamemaker's `ultimatum` at gm direction 10 (P43); without it the gamemaker has none. */
+	readonly ultimatum?: UltimatumRule;
+}
+
+/**
+ * An ultimatum binds two residents who hold pieces for each other: whoever
+ * has not handed over what it holds for the other by the deadline loses
+ * `penalty` points (at most what it holds).
+ */
+export interface UltimatumRule {
+	readonly penalty: number;
+	/** The longest deadline the gamemaker may give, in minutes. */
+	readonly maxMinutes: number;
 }
 
 /**

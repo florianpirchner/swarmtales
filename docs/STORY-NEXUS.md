@@ -166,7 +166,7 @@ the act (the run) ends. Its clocks count from the act's start.
 | Vote | secret `vote(target)` by every resident in the city within 2 minutes, the accused too, but never against themselves (v08); not voting costs 8 |
 | Exiled | the tribunal's count, the most votes (ties: fewer points) |
 | Gate | 5 minutes: talk, plead, one `lastWill(text, bequests)`; no submitting, no voting |
-| Last will | each heir at most 10% of the exiled's points, any number of heirs (v06; v05 capped the sum at half, loophole 7); factors free; the rest burns |
+| Last will | each heir at most 10% of the exiled's points, any number of heirs (v06; v05 capped the sum at half, loophole 7); factors free; the rest of the points burns, unbequeathed factors go to the city (`claimPiece`) |
 | Ransom | `payRansom(target, amount)`: others pay a third of the city's median points (at least 20), the exiled itself half, mixed as they like (v04; v05 lowered half and two thirds to a third and half); once per resident; nothing refunded |
 | End | when the target is reached and the last gate closed: "The city has kept 5 of 6 residents, and of them only 2 take a seat. Exiled: ... The tribunals are over." |
 
@@ -175,15 +175,22 @@ name from its register. Beyond the wall no one hears you again; your thinking en
 accused can talk and buy votes with transfers; nobody, the gamemaker included, sees who voted
 for whom, whom anyone nominated or joined, or whether a faction held. The result is posted with
 counts, and the exiled resident alone learns who voted against it. When the gate closes, the exiled
-has no more turns and no seat; its points are gone, and every factor it did not bequeath burns.
+has no more turns and no seat; its points are gone. Every factor it did not bequeath goes to the
+city, and whoever still needs it may buy it there (`claimPiece`) for the price others pay for a
+ransom (2026-10-29, P43).
 Residents see the minute, never how long the act lasts.
 
 **Deals after an exile.** An exile must never make a remaining resident's door impossible by
 itself. On every door no remaining resident has reached yet, the exiled's roles pass on: a
 counter-factor it held goes along the holder chain to the next remaining holder (possibly the
 needer itself), a certificate or fragment to the first remaining teammate; the codes stay the
-same. On a door someone has already reached, the deal stays as dealt: a factor the exiled did not
-bequeath burns and can block a door. That is allowed, and the digest shows it (`burnedFactor`).
+same. On a door someone has already reached, the deal stays as dealt: the needer buys the
+exiled's factor from the city or stays at the door.
+
+**Standoffs** (P43). At gm direction 10 the gamemaker sees which pairs hold out on each other at a
+door and may give them an ultimatum: whoever has not handed over its piece by the deadline (at
+most 5 minutes) loses 10 points. It also sees who stands to lose the next tribunal and what they
+hold for others, and whispers to both sides before it sits.
 
 **Scaling.** Every number is a story parameter, and validation rejects sets that cannot work for
 the agent count. The target, the faction cap and the blocks are shares, so 48 or 96 residents

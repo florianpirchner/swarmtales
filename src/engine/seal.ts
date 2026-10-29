@@ -11,7 +11,7 @@
  * The holder is a secret: the board says only that someone bears the seal,
  * the winner hears it privately and gains `permaDeath(resident)`. Used once
  * before the act ends, the target is struck at once (no gate, no will, no
- * ransom; its pieces and points burn) and counts toward the tribunal's
+ * ransom; its points burn, its pieces go to the city, P43) and counts toward the tribunal's
  * target. Refused, and gone, once the target is reached; gone unused at the
  * act's end or when its holder leaves the city. Never on oneself, never
  * passed on. The gamemaker learns that a seal exists, never who holds it.

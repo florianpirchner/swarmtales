@@ -25,7 +25,7 @@
  * bought back once. The ransom is set when the gate opens, from the city's
  * median points; the exiled may pay for itself at a higher price, and
  * payments of others and its own mix. An unpaid gate is final: the world then
- * burns what the exiled did not bequeath.
+ * burns the points the exiled did not bequeath; the city keeps its pieces (P43).
  *
  * Votes are never shown: not on the board, not to the gamemaker, not to
  * other residents. Only the exiled learns who voted against it.
@@ -691,6 +691,23 @@ export class Tribunal {
 
 	#previousOpening(): number | undefined {
 		return this.#sessions.at(-1)?.minute;
+	}
+
+	/** The ransom a gate opening now would ask (others' price and the exiled's own). */
+	ransomPrices(): RansomPrices {
+		return this.#prices();
+	}
+
+	/**
+	 * Who would stand trial if the planned tribunal opened now: the residents
+	 * with the fewest points (P43, the gamemaker's foresight). Undefined
+	 * without a plan.
+	 */
+	atRisk(): { readonly opens: number; readonly accused: readonly CompetitorId[] } | undefined {
+		const plan = this.#plan;
+		if (plan === undefined) return undefined;
+		const present = this.#present();
+		return { opens: plan.opens, accused: this.#lowestFirst(plan.opens, present).slice(0, accusedCount(plan.count, present.length)) };
 	}
 
 	/** The ransom for a gate opening now: from the median points of every resident still in the register. */

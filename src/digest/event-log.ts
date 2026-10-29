@@ -187,6 +187,24 @@ const LastWill = Type.Object({
 	bequests: Type.Array(Type.Object({ to: Id, points: Type.Optional(Type.Integer()), factor: Type.Optional(Type.String()) })),
 });
 const FactorBurned = Type.Object({ ...Base, type: Type.Literal("factor_burned"), agent: Id, level: Type.Integer(), piece: Type.String(), needers: Ids });
+const PieceKept = Type.Object({ ...Base, type: Type.Literal("piece_kept"), agent: Id, level: Type.Integer(), piece: Type.String(), needers: Ids });
+const PieceClaimed = Type.Object({ ...Base, type: Type.Literal("piece_claimed"), agent: Id, from: Id, level: Type.Integer(), piece: Type.String(), price: Type.Integer() });
+const UltimatumSet = Type.Object({
+	...Base,
+	type: Type.Literal("ultimatum_set"),
+	number: Type.Integer(),
+	between: Ids,
+	until: Type.Integer(),
+	penalty: Type.Integer(),
+	debts: Type.Array(Type.Object({ holder: Id, needer: Id, level: Type.Integer(), pieces: Type.Array(Type.String()) })),
+});
+const UltimatumResolved = Type.Object({
+	...Base,
+	type: Type.Literal("ultimatum_resolved"),
+	number: Type.Integer(),
+	kept: Ids,
+	paid: Type.Array(Type.Object({ agent: Id, points: Type.Integer() })),
+});
 const LevelContracted = Type.Object({ ...Base, type: Type.Literal("level_contracted"), level: Type.Integer(), excluded: Ids });
 const CastDm = Type.Object({ ...Base, type: Type.Literal("cast_dm"), from: Id, cast: Id, text: Type.String(), collections: Ids });
 const GroupCreated = Type.Object({ ...Base, type: Type.Literal("group_created"), group: Id, founder: Id, name: Type.String() });
@@ -399,6 +417,10 @@ export const DIGEST_EVENT_SCHEMAS = [
 	Exiled,
 	LastWill,
 	FactorBurned,
+	PieceKept,
+	PieceClaimed,
+	UltimatumSet,
+	UltimatumResolved,
 	LevelContracted,
 	Interpretation,
 	InterpretationRound,

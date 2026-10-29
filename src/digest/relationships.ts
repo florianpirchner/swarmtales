@@ -250,6 +250,10 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "ransomed":
 			case "exiled":
 			case "factor_burned":
+			case "piece_kept":
+			case "piece_claimed":
+			case "ultimatum_set":
+			case "ultimatum_resolved":
 			case "level_contracted":
 			case "interpretation_round":
 			case "run_start":
