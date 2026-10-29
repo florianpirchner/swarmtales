@@ -140,6 +140,8 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  ${event.from} -> ${event.cast} (DM${event.collections.length === 0 ? ", recorded" : `, collected into ${event.collections.join(", ")}`})`;
 		case "gamemaker_thinking":
 			return `  GM thinks: ${event.text}`;
+		case "gamemaker_defied":
+			return `  ${event.agent} defies the gamemaker${event.note === undefined ? "" : ` (note #${event.note})`}: ${event.reason}`;
 		case "gamemaker_text":
 			return `  GM thinks aloud: ${event.text}`;
 		case "gamemaker_call":

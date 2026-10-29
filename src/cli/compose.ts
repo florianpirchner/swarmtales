@@ -298,6 +298,8 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		names: effective.names,
 		cores: effective.cores,
 		...(options.overrides?.cast === undefined ? {} : { cast: options.overrides.cast }),
+		// At gm direction 10 the gamemaker orders scenes, and a resident may refuse one (defy).
+		defiance: story.gamemaker !== undefined && effective.gmDirection >= 10,
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);
@@ -310,7 +312,8 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	// Rivals still in the city; an exiled one is no longer faced.
 	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
 	// Residents follow the notes as orders only when the director gives orders (gm direction 10).
-	const author = effective.gamemaker && effective.gmDirection >= 10 ? story.gamemaker?.author : undefined;
+	// Without a live gamemaker (the lab), its orders come from the scene as notes in its name.
+	const author = effective.gmDirection >= 10 ? story.gamemaker?.author : undefined;
 	const cues = new Map<CompetitorId, FigureCue>();
 	const profiles: AgentProfile[] = [];
 	const runners = ids.map((id) => {

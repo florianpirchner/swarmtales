@@ -100,7 +100,9 @@ around the seal and the tribunals, and the climax at the last tribunal.`,
 - Order private moves as well as public ones: bids, votes, accusations, lies, broken promises, threats, refusals.
 - Order only moves the city's tools allow, and never a code or the steps of a door.
 - Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).
-- Spread your beats: every resident gets one, the leader as much as the last.`,
+- Spread your beats: every resident gets one, the leader as much as the last.
+- A resident may refuse an order for a reason of its own character (the report shows "REFUSED" with the reason).
+  A refusal is a turning point, not a failure: answer it with a new beat, a price, pressure, or a scene with someone else.`,
 	};
 }
 

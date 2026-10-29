@@ -1022,7 +1022,10 @@ three are optional, and the texts say who someone is or what it wants, never how
   system prompt, and the gamemaker's notes count as the author's direction. Gamemaker
   direction 6: notes in the figure's language. 8: the report shows tendencies and rivals, and the
   director names them when a moment fits. 10: the director is the act's author and orders scenes,
-  private moves included (bids, votes, lies); the report shows each figure's orders and duty. From
+  private moves included (bids, votes, lies); the report shows each figure's orders and duty. A
+  resident may refuse an order for a reason of its own character, after thinking it through, with
+  `defy(reason, note?)`: the gamemaker sees "REFUSED" with the reason in its next report and answers
+  with a new beat; the refusal goes into `gamemaker_defied` and the act's private file. From
   8 on a run breaks the promise "who, not what" on purpose; the run's `000-run.json` and `meta`
   carry both levels.
 - **Goals** (`goals: { acts, bonus, leadTribunals, againstCore, matches, texts }`): at the start

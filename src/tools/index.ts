@@ -15,6 +15,7 @@ import {
 	withdrawGroup,
 } from "./groups.ts";
 import { chooseName } from "./names.ts";
+import { defy } from "./defy.ts";
 import { listPetitions, signPetition } from "./petitions.ts";
 import { showReceipt } from "./receipts.ts";
 import { bid, permaDeath } from "./seal.ts";
@@ -59,6 +60,7 @@ export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
 	chooseName,
 	bid,
 	permaDeath,
+	defy,
 };
 
 export const allTools: readonly ArenaTool[] = TOOL_NAMES.map((name) => TOOLS[name]);

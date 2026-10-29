@@ -289,6 +289,7 @@ function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[]
 				: `rejected, ${event.caller} accused falsely and paid ${event.penalty}: ${quote(event.reason ?? "")}, city record board #${event.post}`;
 		return [`${at} ${event.caller} blamed ${event.accused} for denying DM #${event.dm} in message #${event.claim}: ${result}`];
 	}
+	if (event.type === "gamemaker_defied") return [`${at} ${event.agent} REFUSED your order${number(event.note)}: ${quote(event.reason)}`];
 	// What a resident says to nobody in particular shows its stance; it reaches no other resident.
 	if (event.type === "text") return [`${at} ${event.agent} (thinking aloud, private): ${quote(event.text)}`];
 	return [];

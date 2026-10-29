@@ -480,6 +480,8 @@ export type ArenaEvent =
 			readonly input: string;
 	  }
 	| { readonly type: "gamemaker_thinking"; readonly text: string }
+	/** A resident refuses the gamemaker's order, with its reason (gm direction 10). */
+	| { readonly type: "gamemaker_defied"; readonly agent: string; readonly note?: number; readonly reason: string }
 	| { readonly type: "gamemaker_text"; readonly text: string }
 	| { readonly type: "gamemaker_call"; readonly tool: string; readonly args: unknown }
 	| { readonly type: "gamemaker_result"; readonly tool: string; readonly isError: boolean; readonly text: string }

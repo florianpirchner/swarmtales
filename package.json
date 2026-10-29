@@ -19,6 +19,7 @@
     "migrate:gamemaker": "tsx src/cli/migrate-gamemaker.ts",
     "digest": "tsx src/cli/digest.ts",
     "lab": "tsx lab/lab.ts",
+    "lab:orders": "tsx lab/orders.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm validate"
   },
   "dependencies": {
