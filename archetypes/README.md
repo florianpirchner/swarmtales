@@ -1,11 +1,12 @@
-# The cast
+# Archetypes
 
-A library of characters for Swarm Tales: the parts a resident is made of, and finished residents
-built from them. Every file is Markdown with a flat frontmatter header (`key: value`, one per line),
+The story-independent library of characters for Swarm Tales: the parts a resident is made of, and
+general figures built from them, to pick from (later on the website). Every file is Markdown with a flat frontmatter header (`key: value`, one per line),
 so the library can later be searched and shown on a website.
 
-Nothing in a run reads this folder yet. The game still deals cores from the catalog in
-`stories/nexus/characters.ts`; wiring the finished residents into a run is a later, separate step.
+A story does not read this folder. It has its own cast, `stories/<story>/cast/`: finished figures
+that name their archetype (`base: c01`) and add what the figure wants in that story and what it
+will not do. See [`../stories/nexus/cast/`](../stories/nexus/cast/).
 
 ## Folders
 
@@ -14,9 +15,9 @@ Nothing in a run reads this folder yet. The game still deals cores from the cata
 | `professions/` | 8 backgrounds from before the city closed (archivist, gambler, veteran, idealist, merchant, recluse, firebrand, skeptic) | `id`, `persona`, `temperament`, `values`, `voice` |
 | `drives/` | one file per drive of the nexus catalog (22): what it is and how it can make sense from the inside | `id`, `group`, `tone` (`light` or `dark`) |
 | `temperaments/` | the five Big Five axes and what low and high mean | `id`, `axes`, `levels` |
-| `residents/` | 24 finished residents, `cNN-<title>.md` | see below |
+| `figures/` | 24 general figures, `cNN-<title>.md` | see below |
 
-## A resident
+## A figure
 
 ```markdown
 ---
@@ -47,11 +48,11 @@ neuroticism: low
   too: a character says who someone is and what they want, never how to get it.
 - The `title` is not a name. Residents still choose their own name in Act I.
 
-The first 24 mix 18 dark and 6 light residents, three per profession. The identity of a resident
+The first 24 mix 18 dark and 6 light figures, three per profession. The identity of a resident
 lives within one game, across its acts; there is no memory across games.
 
 ## Checks
 
-`src/cast/cast.ts` reads and validates the library (Typebox), and `test/cast/cast.test.ts` checks it
+`src/cast/figures.ts` reads and validates the library (Typebox), and `test/cast/archetypes.test.ts` checks it
 in `pnpm check`: every drive and profession exists, exactly one drive is above all, the levels are
-valid, and no resident text names a resident id or a tool.
+valid, and no figure text names a resident id or a tool.
