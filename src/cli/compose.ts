@@ -20,6 +20,8 @@ import type { StatementClassifier } from "../interpret/classifier.ts";
 import { JUDGE_ID, type DeliveryJudge } from "../interpret/judge.ts";
 import { SOUFFLEUR_ID, type Souffleur } from "../interpret/souffleur.ts";
 import { Interpreter } from "../interpret/interpreter.ts";
+import { Weaver } from "../interpret/weaver.ts";
+import type { WeaverModel } from "../interpret/weaver-model.ts";
 import type { ModelSource, RequestLimits } from "../model/source.ts";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
 import { assertValidStory } from "../story/validate.ts";
@@ -58,6 +60,8 @@ export interface RunOverrides {
 	readonly figureDirection?: number;
 	/** How strongly the gamemaker steers, 0-10 (`--gm-direction`). */
 	readonly gmDirection?: number;
+	/** `true` lets the weaver change who residents are (`--weaver`); it needs the `weaver` option. */
+	readonly weaver?: boolean;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -109,6 +113,8 @@ export interface ComposeOptions {
 	readonly judge?: DeliveryJudge;
 	/** Rewrites a resident's step the provider's safeguards refused (P44). */
 	readonly souffleur?: Souffleur;
+	/** The weaver's model (or a factory that needs the world); required when the run plays with the weaver. */
+	readonly weaver?: WeaverModel | ((world: World) => WeaverModel);
 	/** Take a run snapshot once every competitor has passed `afterLevel` (SPEC 17). */
 	readonly snapshot?: SnapshotOptions;
 	/** Continue a run from a snapshot; the overrides come from {@link resumeOverrides}. */
@@ -144,6 +150,7 @@ export interface ComposedRun {
 	readonly profiles: readonly AgentProfile[];
 	readonly gamemaker?: Gamemaker;
 	readonly interpreter?: Interpreter;
+	readonly weaver?: Weaver;
 	readonly arena: Arena;
 }
 
@@ -320,6 +327,15 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const author = effective.gmDirection >= 10 ? story.gamemaker?.author : undefined;
 	const cues = new Map<CompetitorId, FigureCue>();
 	const profiles: AgentProfile[] = [];
+	const prompts = new Map<CompetitorId, (shift: string | undefined) => string>();
+	/** The character part of each prompt, unchanged: what the weaver reads as who a resident is. */
+	const characters = new Map<CompetitorId, string>();
+	/** Rebuilds a resident's system prompt with the weaver's text as who it has become. */
+	const rewrite = (agent: CompetitorId, shift: string): void => {
+		const promptOf = prompts.get(agent);
+		if (promptOf !== undefined) runners.find((runner) => runner.id === agent)?.rewriteSystemPrompt(promptOf(shift));
+	};
+	const weaver = options.overrides?.weaver === true ? createWeaver(options, world, bus, (agent) => characters.get(agent) ?? "", rewrite) : undefined;
 	const runners = ids.map((id) => {
 		const model = assignments.get(id) ?? story.model;
 		const figure = figureOf(figures, world.coreOf(id)?.figure);
@@ -336,7 +352,9 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		profiles.push({ agent: id, model, ...(persona === undefined ? {} : { persona }) });
 		const maxOutputTokens = model.maxOutputTokens ?? story.model.maxOutputTokens;
 		const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
-		const base = baseSystemPrompt(
+		// The prompt is a function of facts a resume keeps, and of the weaver's last hard text (`shift`).
+		const promptOf = (shift: string | undefined): string => {
+			const base = baseSystemPrompt(
 				{
 					id,
 					city: story.city,
@@ -346,12 +364,17 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					...namesFact(world),
 					...core,
 					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined ? {} : { block }) } } : {}),
+					...(shift === undefined ? {} : { shift }),
 				},
 				persona,
 			);
+			return [base, ...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim())].join("\n\n");
+		};
+		prompts.set(id, promptOf);
+		characters.set(id, core.core ?? (persona === undefined ? "" : personaText(persona)));
 		return new AgentRunner({
 			id,
-			systemPrompt: [base, ...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim())].join("\n\n"),
+			systemPrompt: promptOf(undefined),
 			tools: bindAll({ self: id, world, ...(judge === undefined ? {} : { judge }) }),
 			binding: source.bind(id, limits),
 			bus,
@@ -359,17 +382,22 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			enabledTools: () => world.enabledTools(id),
 			minute: () => clock.minute,
 			...(souffleur === undefined ? {} : { souffleur }),
+			...(weaver === undefined ? {} : { innerVoice: () => weaver.takeVoices(id) }),
 		});
 	});
 
 	const interpreter = effective.classifier ? createInterpreter(options, world, bus, () => clock.minute) : undefined;
 	const gamemaker = effective.gamemaker ? createGamemaker(options, world, bus, ids.length, interpreter !== undefined, effective.gmDirection) : undefined;
+	// A run without the weaver keeps who the residents have become and hands it on to its own snapshot.
+	const carriedWeaver = weaver === undefined ? resume?.snapshot.weaver : undefined;
 	if (resume !== undefined) {
 		const { snapshot } = resume;
 		for (const runner of runners) runner.restore(snapshot.competitors.find((entry) => entry.agent === runner.id)?.messages ?? []);
 		// A run that had no classifier or gamemaker before starts them fresh.
 		if (interpreter !== undefined && snapshot.interpreter !== undefined) interpreter.restore(snapshot.interpreter);
 		if (gamemaker !== undefined && snapshot.gamemaker !== undefined) gamemaker.restore(snapshot.gamemaker, snapshot.events);
+		if (weaver !== undefined) weaver.restore(snapshot.weaver, snapshot.events);
+		for (const entry of carriedWeaver?.shifts ?? []) rewrite(entry.agent, entry.text);
 	}
 
 	const budgetLimit = story.run.budgetUsd;
@@ -391,6 +419,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(options.meta === undefined ? {} : { meta: options.meta }),
 		...(gamemaker === undefined ? {} : { observer: gamemaker }),
 		...(interpreter === undefined ? {} : { interpreter }),
+		...(weaver === undefined ? {} : { weaver }),
 		...(resume === undefined ? {} : { resume: { round: resume.snapshot.round, state: resume.snapshot.arena } }),
 		...(cues.size === 0 ? {} : { cues: new FigureCues(cues) }),
 		...(request === undefined || prefix === undefined
@@ -424,6 +453,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 								competitors: runners.map((runner) => ({ agent: runner.id, messages: runner.snapshot() })),
 								...(gamemaker === undefined ? {} : { gamemaker: gamemaker.snapshot(bus.seq + 1) }),
 								...(interpreter === undefined ? {} : { interpreter: interpreter.snapshot() }),
+								...(weaver === undefined ? (carriedWeaver === undefined ? {} : { weaver: carriedWeaver }) : { weaver: weaver.snapshot() }),
 								...(cut.brake === undefined
 									? {}
 									: { brake: { act: cut.brake.act, minute: cut.brake.minute, maxMinutes: cut.brake.maxMinutes, behind: cut.brake.behind } }),
@@ -443,6 +473,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		profiles,
 		...(gamemaker === undefined ? {} : { gamemaker }),
 		...(interpreter === undefined ? {} : { interpreter }),
+		...(weaver === undefined ? {} : { weaver }),
 		arena,
 	};
 }
@@ -490,6 +521,33 @@ function meteredSouffleur(souffleur: Souffleur, bus: EventBus): Souffleur {
 			return answer;
 		},
 	};
+}
+
+/** The weaver as a sink of the bus; it asks the model only about residents an event touched. */
+function createWeaver(
+	options: ComposeOptions,
+	world: World,
+	bus: EventBus,
+	characterOf: (agent: CompetitorId) => string,
+	rewrite: (agent: CompetitorId, shift: string) => void,
+): Weaver {
+	const model = options.weaver;
+	if (model === undefined) throw new Error("A run with the weaver needs the weaver option");
+	const weaver = new Weaver({
+		model: typeof model === "function" ? model(world) : model,
+		bus,
+		city: world,
+		characterOf,
+		rewrite,
+		actTitle: (fromLevel) => world.story.acts?.find((act) => act.fromLevel === fromLevel)?.title,
+	});
+	bus.subscribe(weaver);
+	return weaver;
+}
+
+/** A persona as the weaver reads it, for a resident without a core. */
+function personaText(persona: Persona): string {
+	return `Temperament: ${persona.temperament}. Values: ${persona.values}. Voice: ${persona.voice}.`;
 }
 
 function createInterpreter(options: ComposeOptions, world: World, bus: EventBus, minute: () => number): Interpreter {

@@ -254,6 +254,13 @@ export const RecordedEventSchema = Type.Union([
 	event("seal_won", { seal: Int, agent: Id, bid: Int, bids: Type.Array(Type.Object({ agent: Id, points: Int })) }),
 	event("seal_used", { seal: Int, holder: Id, target: Id }),
 	event("seal_expired", { seal: Int, holder: Type.Optional(Id), reason: Type.String() }),
+	event("fate_shift", {
+		agent: Id,
+		kind: Type.Union([Type.Literal("soft"), Type.Literal("hard"), Type.Literal("act")]),
+		text: Type.String(),
+		reason: Type.String(),
+		evidence: Type.Array(Int),
+	}),
 	event("run_end", {
 		reason: Type.Optional(Type.String()),
 		standings: Type.Optional(

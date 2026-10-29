@@ -288,6 +288,7 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "seal_won":
 			case "seal_used":
 			case "seal_expired":
+			case "fate_shift":
 				break;
 			default:
 				return assertNever(event, "digest event");

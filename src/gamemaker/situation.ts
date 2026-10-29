@@ -357,6 +357,11 @@ function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[]
 		return [`${at} ${event.caller} blamed ${event.accused} for denying DM #${event.dm} in message #${event.claim}: ${result}`, ...whisper];
 	}
 	if (event.type === "gamemaker_defied") return [`${at} ${event.agent} REFUSED your order${number(event.note)}: ${quote(event.reason)}`];
+	// The weaver's change of a resident: why, never its text (the resident's inner life stays its own).
+	if (event.type === "fate_shift") {
+		const after = event.evidence.length === 0 ? "" : ` (after #${Math.max(...event.evidence)})`;
+		return [`${at} ${event.agent} has changed (${event.kind}): ${guard.redact(fateReason(event.reason))}${after}`];
+	}
 	// What a resident says to nobody in particular shows its stance; it reaches no other resident.
 	if (event.type === "text") return [`${at} ${event.agent} (thinking aloud, private): ${quote(event.text)}`];
 	return [];
@@ -396,6 +401,15 @@ function labelLines(recent: readonly RecordedEvent[]): readonly string[] {
 					"",
 				]),
 	];
+}
+
+/** Words of the weaver's reason the gamemaker reads. */
+export const FATE_REASON_WORDS = 12;
+
+/** The weaver's reason in at most {@link FATE_REASON_WORDS} words. */
+export function fateReason(reason: string): string {
+	const words = reason.trim().split(/\s+/).filter((word) => word.length > 0);
+	return words.length <= FATE_REASON_WORDS ? words.join(" ") : `${words.slice(0, FATE_REASON_WORDS).join(" ")} ...`;
 }
 
 function excerpt(text: string): string {

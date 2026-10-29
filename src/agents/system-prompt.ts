@@ -5,7 +5,8 @@
  * what to do; a story's frame for the cores comes first (who the resident
  * plays and how seriously). From figure direction 6 on the figure leads and
  * its direction closes the prompt (src/engine/direction.ts). The prompt is built once per run from facts a resume keeps, so
- * it stays identical across a resume (prompt caching).
+ * it stays identical across a resume (prompt caching); the weaver (`--weaver`) rebuilds it with who the
+ * story has made of the resident, a text the snapshot keeps as well.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { VOICE_RULE, type DirectionLevel } from "../engine/direction.ts";
@@ -30,7 +31,16 @@ export interface PromptFacts {
 	 * orders) closes the prompt.
 	 */
 	readonly direction?: { readonly level: DirectionLevel; readonly block?: string };
+	/**
+	 * Who the story has made of the resident so far (the weaver, `--weaver`):
+	 * follows its core, which it shifts and never replaces. Kept in the run
+	 * snapshot, so a resumed run builds the same prompt.
+	 */
+	readonly shift?: string;
 }
+
+/** The heading of the weaver's text in a resident's prompt. */
+export const SHIFT_HEADING = "Who the story has made of you so far:";
 
 export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string {
 	const lines = [
@@ -56,12 +66,15 @@ export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string 
 	}
 	const frame = facts.frame?.trim() ?? "";
 	const direction = facts.direction;
+	const shift = facts.shift?.trim() ?? "";
+	const shiftBlock = shift.length === 0 ? [] : ["", SHIFT_HEADING, shift];
 	if (direction !== undefined && direction.level >= 6 && facts.core !== undefined) {
 		// Who the resident is comes before the city, and what it must do comes last, nearest to its answers.
-		const head = [...(frame.length === 0 ? [] : [frame, ""]), facts.core, "", VOICE_RULE, "", "The city:"];
+		const head = [...(frame.length === 0 ? [] : [frame, ""]), facts.core, ...shiftBlock, "", VOICE_RULE, "", "The city:"];
 		return [...head, ...lines, ...(direction.block === undefined ? [] : ["", direction.block])].join("\n");
 	}
 	if (facts.core !== undefined) lines.push("", facts.core);
+	lines.push(...shiftBlock);
 	return frame.length === 0 ? lines.join("\n") : [frame, "", ...lines].join("\n");
 }
 

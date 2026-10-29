@@ -10,6 +10,7 @@ import { writeCastFiles, writePrivateFiles } from "../log/private-files.ts";
 import { analyzeRun, writeDigest } from "../digest/digest.ts";
 import { ConsoleReporter, JsonlEventLog } from "../log/sinks.ts";
 import { AgentTranscriptLog } from "../log/transcripts.ts";
+import { WEAVER_FILE, WeaverLog } from "../log/weaver-log.ts";
 import { UsageCollector } from "../log/usage.ts";
 import { createProviderRegistry, customProviderSpec, SCRIPTED_PROVIDER_ID, type ProviderSpec } from "../model/providers.ts";
 import { oracleScript } from "../model/scripted.ts";
@@ -25,7 +26,7 @@ import {
 } from "../model/settings.ts";
 import { createModelSource, RoutedModelSource, ScriptedModelSource, type ModelSource } from "../model/source.ts";
 import { assignModels } from "../agents/models.ts";
-import { createDeliveryJudge, createSouffleur, createStatementClassifier } from "../interpret/sources.ts";
+import { createDeliveryJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "../interpret/sources.ts";
 import type { ModelChoice } from "../story/types.ts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
@@ -135,7 +136,9 @@ const overrides = {
 	...runOverrides,
 	gamemaker: runOverrides.gamemaker !== false && !offline,
 	classifier: runOverrides.classifier !== false && !offline,
+	weaver: runOverrides.weaver === true && !offline,
 };
+if (runOverrides.weaver === true && offline) process.stderr.write("> the weaver is off in an offline run (scripted competitors)\n");
 const gamemakerSettings =
 	overrides.gamemaker && story.gamemaker !== undefined
 		? resolveSettings(
@@ -236,6 +239,34 @@ const souffleur = (() => {
 	}
 })();
 
+// The weaver (--weaver) changes who residents are after events that touch them. Like the judge it asks the
+// classifier's model (Haiku by default) unless its own flags or ARENA_WEAVER_* choose another.
+const weaverModel = (() => {
+	if (!overrides.weaver) return undefined;
+	const classifier = story.classifier ?? fail(`The story ${story.id} has no classifier model for the weaver; play without --weaver`);
+	const settings = resolveSettings(
+		{
+			...(args.weaverProvider === undefined ? {} : { provider: args.weaverProvider }),
+			...(args.weaverModel === undefined ? {} : { modelId: args.weaverModel }),
+		},
+		roleEnv("WEAVER"),
+		classifier.model,
+	);
+	const missingKeys = missingApiKeys(settings, registry, process.env);
+	if (missingKeys.length > 0) {
+		fail(
+			`Missing API keys for the weaver (provider "${settings.provider}"): ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or play without --weaver.`,
+		);
+	}
+	try {
+		return createWeaverModel(settings, classifier, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
 const allocated = allocateRunDirectory(args.runsDirectory);
 const usage = new UsageCollector();
 // One model call per step and at most one step per pass: the oracle never needs more answers.
@@ -285,6 +316,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
 	...(judge === undefined ? {} : { judge }),
 	...(souffleur === undefined ? {} : { souffleur }),
+	...(weaverModel === undefined ? {} : { weaver: weaverModel }),
 	models: (world) => {
 		const sources = new Map<string, ModelSource>();
 		const sourceFor = (entry: ModelSettings): ModelSource => {
@@ -305,6 +337,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		new JsonlEventLog(join(allocated.directory, "events.jsonl")),
 		new MinuteEventLog(allocated.directory),
 		new AgentTranscriptLog(join(allocated.directory, "agents")),
+		new WeaverLog(join(allocated.directory, WEAVER_FILE)),
 		usage,
 	],
 	// Per run: a resumed run's budget counts only its own spend, not the prefix's.
@@ -318,6 +351,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		classifier: statementClassifier?.label ?? "off",
 		judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
 		souffleur: souffleur?.label ?? "off",
+		...(weaverModel === undefined ? {} : { weaver: weaverModel.label }),
 		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
 	},
@@ -374,6 +408,7 @@ process.stdout.write(
 		`${effective.minutes} minutes · seed ${effective.seed}` +
 		(gamemakerSettings === undefined ? "" : ` · gamemaker ${describeModel(gamemakerSettings, registry)}`) +
 		(statementClassifier === undefined ? "" : ` · classifier ${statementClassifier.label}`) +
+		(weaverModel === undefined ? "" : ` · weaver ${weaverModel.label}`) +
 		(snapshot === undefined ? "" : ` · resumed after round ${snapshot.round} (every competitor past level ${snapshot.level})`) +
 		"\n",
 );
@@ -431,6 +466,7 @@ process.stdout.write(
 		`events:      ${join(allocated.directory, "events.jsonl")}`,
 		`transcripts: ${join(allocated.directory, "agents")}`,
 		`minutes:     ${report}`,
+		...(existsSync(join(allocated.directory, WEAVER_FILE)) ? [`weaver:      ${join(allocated.directory, WEAVER_FILE)}`] : []),
 		...(snapshotPath !== undefined
 			? [`snapshot:    ${snapshotPath}`, ...(snapshotBrake === undefined ? [] : [`act brake:   ${snapshotBrake}`])]
 			: args.snapshotAfter === undefined
@@ -451,7 +487,7 @@ function brakeLine(brake: SnapshotBrake): string {
 }
 
 /** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
-function roleEnv(role: "GAMEMAKER" | "CLASSIFIER"): ModelEnv {
+function roleEnv(role: "GAMEMAKER" | "CLASSIFIER" | "WEAVER"): ModelEnv {
 	// The old name of the gamemaker's variables is still read (it was the game master until 2026-10-29).
 	const old = role === "GAMEMAKER" ? "GAMEMASTER" : undefined;
 	const read = (key: string): string => process.env[`ARENA_${role}_${key}`] ?? (old === undefined ? undefined : process.env[`ARENA_${old}_${key}`]) ?? "";

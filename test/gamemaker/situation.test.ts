@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import type { RecordedEvent } from "../../src/engine/events.ts";
 import { SecretGuard } from "../../src/gamemaker/secrets.ts";
-import { describeSituation, MAX_RECENT_LINES } from "../../src/gamemaker/situation.ts";
+import { describeSituation, fateReason, MAX_RECENT_LINES } from "../../src/gamemaker/situation.ts";
 import { createFixture } from "../helpers/fixture.ts";
 
 describe("the gamemaker's situation", () => {
@@ -32,5 +32,18 @@ describe("the gamemaker's situation", () => {
 		const text = describeSituation({ world: fixture.world, round: 1, tracks: new Map(), recent, notes: [], guard: new SecretGuard([]), budget: "0 of 3 USD" });
 		expect(text).toContain("A01 blamed A02 for denying DM #4 in message #9: rejected");
 		expect(text).toContain('- m1 the judge told you alone: "A02 lied, but A02 is rich."');
+	});
+
+	it("reads one line per change of the weaver: who, which kind, why in twelve words and after which event, never the text", () => {
+		const fixture = createFixture({ agents: 6, minutes: 2, script: () => ({}) });
+		const recent: RecordedEvent[] = [
+			{ type: "fate_shift", seq: 9, minute: 1, agent: "A03", kind: "hard", text: "You trust no one.", reason: "branded a liar by A01 after the blame over DM four, at the board, in front of all", evidence: [4401, 4398] },
+			{ type: "fate_shift", seq: 10, minute: 1, agent: "A04", kind: "soft", text: "You flinch.", reason: "accused by A01", evidence: [] },
+		];
+		const text = describeSituation({ world: fixture.world, round: 1, tracks: new Map(), recent, notes: [], guard: new SecretGuard([]), budget: "0 of 3 USD" });
+		expect(text).toContain("- m1 A03 has changed (hard): branded a liar by A01 after the blame over DM four, at ... (after #4401)");
+		expect(text).toContain("- m1 A04 has changed (soft): accused by A01\n");
+		expect(text).not.toContain("You trust no one.");
+		expect(fateReason("  one two  ")).toBe("one two");
 	});
 });

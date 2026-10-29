@@ -633,7 +633,24 @@ export type ArenaEvent =
 	| { readonly type: "seal_used"; readonly seal: number; readonly holder: CompetitorId; readonly target: CompetitorId }
 	/** A seal is gone without use: nobody bid, the act ended, the target was reached, or its holder left the city. */
 	| { readonly type: "seal_expired"; readonly seal: number; readonly holder?: CompetitorId; readonly reason: string }
+	| {
+			/**
+			 * The weaver (`--weaver`) changed who a resident is: `soft` an inner voice
+			 * at the end of its next step, `hard` the character part of its system
+			 * prompt rewritten, `act` that part written anew at an act's end.
+			 * `evidence` are the events that moved it (for `act`, the act's shifts).
+			 */
+			readonly type: "fate_shift";
+			readonly agent: CompetitorId;
+			readonly kind: FateShiftKind;
+			readonly text: string;
+			readonly reason: string;
+			readonly evidence: readonly number[];
+	  }
 	| { readonly type: "run_end"; readonly reason?: string; readonly standings?: readonly StandingRow[] };
+
+/** How the weaver changed a resident (`fate_shift`). */
+export type FateShiftKind = "soft" | "hard" | "act";
 
 /** One Big Five axis of a core (v09). */
 export interface CoreTrait {

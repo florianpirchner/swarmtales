@@ -18,6 +18,9 @@ export interface StartArgs {
 	readonly gamemakerModel?: string;
 	readonly classifierProvider?: string;
 	readonly classifierModel?: string;
+	/** The weaver's provider and model (`--weaver`); the classifier's by default. */
+	readonly weaverProvider?: string;
+	readonly weaverModel?: string;
 	/** How the city's judge rules and speaks (default fair). */
 	readonly judgeTemper?: JudgeTemper;
 	/** Write `REPORT.md` with the run reporter at the end of the run (default on). */
@@ -68,6 +71,9 @@ export const START_USAGE = [
 	"  --no-classifier      play without the story's statement classifier (no labels)",
 	"  --classifier-provider <id>  classifier provider (default: the story's, e.g. anthropic)",
 	"  --classifier-model <id>     classifier model, e.g. perplexity/pplx-decider-v1.2 on openrouter",
+	"  --weaver             let the weaver change who residents are after events that touch them (off by default)",
+	"  --weaver-provider <id>      weaver provider (default: the classifier's, e.g. anthropic)",
+	"  --weaver-model <id>         weaver model (default: the classifier's, e.g. haiku)",
 	`  --judge-temper <t>   how the city's judge rules: ${JUDGE_TEMPERS.join(", ")} (default fair)`,
 	"  --no-reporter        write no REPORT.md at the end of the run",
 	"  --reporter-provider <id>    run reporter provider (default: openrouter)",
@@ -114,6 +120,9 @@ function parseValues(argv: readonly string[]) {
 				"classifier-provider": { type: "string" },
 				"classifier-model": { type: "string" },
 				"judge-temper": { type: "string" },
+				weaver: { type: "boolean" },
+				"weaver-provider": { type: "string" },
+				"weaver-model": { type: "string" },
 				"no-reporter": { type: "boolean" },
 				"reporter-provider": { type: "string" },
 				"reporter-model": { type: "string" },
@@ -162,7 +171,11 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...direction("gm-direction", "gmDirection", values["gm-direction"]),
 		...(values["no-gamemaker"] === true ? { gamemaker: false } : {}),
 		...(values["no-classifier"] === true ? { classifier: false } : {}),
+		...(values.weaver === true ? { weaver: true } : {}),
 	};
+	if (values.weaver !== true && (values["weaver-provider"] !== undefined || values["weaver-model"] !== undefined)) {
+		throw new UsageError("--weaver-provider and --weaver-model need --weaver");
+	}
 	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
 	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures; drop --no-cores");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
@@ -193,6 +206,8 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
 		...(values["classifier-provider"] === undefined ? {} : { classifierProvider: values["classifier-provider"] }),
 		...(values["classifier-model"] === undefined ? {} : { classifierModel: values["classifier-model"] }),
+		...(values["weaver-provider"] === undefined ? {} : { weaverProvider: values["weaver-provider"] }),
+		...(values["weaver-model"] === undefined ? {} : { weaverModel: values["weaver-model"] }),
 		...(values["judge-temper"] === undefined ? {} : { judgeTemper: judgeTemper(values["judge-temper"]) }),
 		reporter: values["no-reporter"] !== true,
 		...(values["reporter-provider"] === undefined ? {} : { reporterProvider: values["reporter-provider"] }),

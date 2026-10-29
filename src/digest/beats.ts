@@ -25,6 +25,7 @@ export const DETERMINISTIC_BEAT_KINDS = [
 	"pieceKept",
 	"pieceClaimed",
 	"ultimatum",
+	"fateShift",
 ] as const;
 export const NARRATIVE_BEAT_KINDS = ["brokenPromise", "doubleGame"] as const;
 

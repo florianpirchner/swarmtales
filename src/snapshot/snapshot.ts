@@ -19,6 +19,7 @@ import type { RecordedEvent } from "../engine/events.ts";
 import type { WorldSnapshot } from "../engine/world.ts";
 import type { GamemakerSnapshot } from "../gamemaker/gamemaker.ts";
 import type { InterpreterSnapshot } from "../interpret/interpreter.ts";
+import type { WeaverSnapshot } from "../interpret/weaver.ts";
 import { STATEMENT_SOURCES } from "../interpret/labels.ts";
 import { TOOL_NAMES } from "../tools/catalog.ts";
 import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
@@ -59,6 +60,8 @@ export interface RunSnapshot {
 	readonly competitors: readonly { readonly agent: string; readonly messages: readonly ContextMessage[] }[];
 	readonly gamemaker?: GamemakerSnapshot;
 	readonly interpreter?: InterpreterSnapshot;
+	/** Who the weaver has made of the residents (`--weaver`); a run without the weaver keeps it too. */
+	readonly weaver?: WeaverSnapshot;
 	/**
 	 * Set when an act's brake wrote the snapshot (v08): not every resident had
 	 * passed `level`; those `behind` play on from their level after the resume.
@@ -456,6 +459,24 @@ const RunSnapshotSchema = Type.Object({
 	),
 	brake: Type.Optional(
 		Type.Object({ act: Type.String(), minute: Int, maxMinutes: Int, behind: Type.Array(Type.Object({ agent: Id, level: Int })) }),
+	),
+	weaver: Type.Optional(
+		Type.Object({
+			pending: Type.Array(Type.Object({ agent: Id, seq: Int, text: Type.String() })),
+			patches: Type.Array(
+				Type.Object({
+					agent: Id,
+					act: Int,
+					kind: Type.Union([Type.Literal("soft"), Type.Literal("hard")]),
+					text: Type.String(),
+					minute: Int,
+					seq: Int,
+				}),
+			),
+			shifts: Type.Array(Type.Object({ agent: Id, text: Type.String() })),
+			voices: Type.Array(Type.Object({ agent: Id, text: Type.String() })),
+			closed: Type.Array(Int),
+		}),
 	),
 });
 

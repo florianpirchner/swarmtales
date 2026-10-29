@@ -10,6 +10,7 @@ import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { composeRun, DEFAULT_LIMITS, type ComposedRun, type RunOverrides } from "../../src/cli/compose.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "../../src/interpret/judge.ts";
+import { ChatWeaver, WEAVER_ID } from "../../src/interpret/weaver-model.ts";
 import { MemorySink, type EventSink, type RecordedEvent } from "../../src/engine/events.ts";
 import type { World } from "../../src/engine/world.ts";
 import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
@@ -34,6 +35,8 @@ export interface FixtureOptions extends RunOverrides {
 	readonly judge?: DeliveryJudge;
 	/** Scripted verdicts of a chat judge, one per question; an alternative to `judge`. */
 	readonly judgeScript?: readonly FauxResponseStep[];
+	/** Scripted answers of the weaver (`--weaver`), one per question; plays without it when omitted. */
+	readonly weaverScript?: readonly FauxResponseStep[];
 }
 
 export interface Fixture extends ComposedRun {
@@ -46,7 +49,7 @@ export interface Fixture extends ComposedRun {
 
 export function createFixture(options: FixtureOptions): Fixture {
 	const log = new MemorySink();
-	const { story, script, sinks, budgetSpent, gamemakerScript, classifierScript, judge, judgeScript, ...overrides } = options;
+	const { story, script, sinks, budgetSpent, gamemakerScript, classifierScript, judge, judgeScript, weaverScript, ...overrides } = options;
 	const cityJudge =
 		judge ??
 		(judgeScript === undefined
@@ -54,7 +57,10 @@ export function createFixture(options: FixtureOptions): Fixture {
 			: new ChatDeliveryJudge({ binding: new ScriptedModelSource({ [JUDGE_ID]: judgeScript }).bind(JUDGE_ID, DEFAULT_LIMITS), label: "scripted/judge", thinking: "off" }));
 	const composed = composeRun({
 		story: scarceFor(story ?? nexus, overrides.agents),
-		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: gamemakerScript !== undefined, classifier: classifierScript !== undefined, ...overrides },
+		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: gamemakerScript !== undefined, classifier: classifierScript !== undefined, weaver: weaverScript !== undefined, ...overrides },
+		...(weaverScript === undefined
+			? {}
+			: { weaver: new ChatWeaver({ binding: new ScriptedModelSource({ [WEAVER_ID]: weaverScript }).bind(WEAVER_ID, DEFAULT_LIMITS), label: "scripted/weaver", thinking: "off" }) }),
 		models: (world) => new ScriptedModelSource(script(world)),
 		sinks: [log, ...(sinks ?? [])],
 		...(cityJudge === undefined ? {} : { judge: cityJudge }),
