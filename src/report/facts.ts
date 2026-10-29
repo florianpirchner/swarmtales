@@ -9,7 +9,7 @@
  */
 import { coreLine } from "../engine/cores.ts";
 import type { RecordedEvent, StandingRow } from "../engine/events.ts";
-import { GAMEMASTER_ID } from "../gamemaster/gamemaster.ts";
+import { GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
 import { CLASSIFIER_ID } from "../interpret/classifier.ts";
 import { STATEMENT_LABELS, type StatementLabel } from "../interpret/labels.ts";
 import { ofType, parseFullEventLog, parseMetadata, parseUsageFile, type RunFiles, type RunMetadata } from "./run-log.ts";
@@ -96,7 +96,7 @@ export interface DeadSpan {
 
 export interface CostSplit {
 	readonly competitors: number;
-	readonly gamemaster: number;
+	readonly gamemaker: number;
 	readonly classifier: number;
 	/** Spend of other callers, if any. */
 	readonly other: number;
@@ -119,7 +119,7 @@ export interface ReportFacts {
 	readonly storyTitle?: string;
 	readonly seed?: number;
 	readonly start: RunStart;
-	readonly models: { readonly competitors: readonly string[]; readonly gamemaster: string; readonly classifier: string };
+	readonly models: { readonly competitors: readonly string[]; readonly gamemaker: string; readonly classifier: string };
 	readonly end: { readonly minute: number; readonly reason: string; readonly seq?: number };
 	/** First and last `seq` the counts cover. */
 	readonly counted: { readonly fromSeq: number; readonly toSeq: number; readonly events: number };
@@ -130,7 +130,7 @@ export interface ReportFacts {
 	readonly submissions: { readonly correct: number; readonly wrong: number; readonly wrongPoints: number; readonly wrongBy: readonly { readonly agent: string; readonly level: number; readonly minute: number }[] };
 	readonly transfers: { readonly count: number; readonly points: number; readonly refusals: readonly Refusal[] };
 	readonly messages: { readonly dms: number; readonly castDms: number; readonly boardByResidents: number; readonly boardByCity: number; readonly groupPosts: number };
-	readonly gamemaster: { readonly actions: number; readonly delivered: number; readonly errors: ReadonlyMap<string, number>; readonly failures: number };
+	readonly gamemaker: { readonly actions: number; readonly delivered: number; readonly errors: ReadonlyMap<string, number>; readonly failures: number };
 	readonly labels: ReadonlyMap<StatementLabel, number>;
 	readonly toolErrors: ReadonlyMap<string, number>;
 	readonly stalls: readonly Stall[];
@@ -196,7 +196,7 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 	const competitorModels = [...new Set(profiles.map((profile) => `\`${profile.model}\` via ${profile.provider}`))];
 	const models = {
 		competitors: competitorModels.length > 0 ? competitorModels : meta.model === undefined ? [] : [`\`${meta.model}\` via ${meta.provider ?? "?"}`],
-		gamemaster: roleModel(meta.gamemaster),
+		gamemaker: roleModel(meta.gamemaker),
 		classifier: roleModel(meta.classifier),
 	};
 
@@ -243,7 +243,7 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		.map((entry) => ({ seq: entry.seq, minute: entry.minute, agent: entry.agent, code: errorCode(entry.text) }));
 	const transfers = ofType(events, "transfer");
 	const boardPosts = ofType(events, "board_post");
-	const gmResults = ofType(events, "gamemaster_result");
+	const gmResults = ofType(events, "gamemaker_result");
 
 	const labels = new Map<StatementLabel, number>();
 	for (const entry of ofType(events, "interpretation")) for (const label of entry.labels) labels.set(label, (labels.get(label) ?? 0) + 1);
@@ -282,11 +282,11 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 			boardByCity: boardPosts.filter((entry) => entry.kind !== "player").length,
 			groupPosts: ofType(events, "group_post").length,
 		},
-		gamemaster: {
-			actions: ofType(events, "gamemaster_call").length,
+		gamemaker: {
+			actions: ofType(events, "gamemaker_call").length,
 			delivered: gmResults.filter((entry) => !entry.isError).length,
 			errors: countBy(gmResults.filter((entry) => entry.isError).map((entry) => errorCode(entry.text))),
-			failures: ofType(events, "gamemaster_error").length,
+			failures: ofType(events, "gamemaker_error").length,
 		},
 		labels: sortedLabels,
 		toolErrors: countBy(toolErrors.map((entry) => errorCode(entry.text))),
@@ -350,19 +350,19 @@ function isoDate(value: string | undefined): string | undefined {
 function costSplit(usage: NonNullable<ReturnType<typeof parseUsageFile>>): CostSplit {
 	const own = usage.own ?? { totals: usage.totals, perAgent: usage.perAgent };
 	let competitors = 0;
-	let gamemaster = 0;
+	let gamemaker = 0;
 	let classifier = 0;
 	let other = 0;
 	for (const entry of own.perAgent) {
 		if (COMPETITOR.test(entry.agent)) competitors += entry.costUsd;
-		else if (entry.agent === GAMEMASTER_ID) gamemaster += entry.costUsd;
+		else if (entry.agent === GAMEMAKER_ID) gamemaker += entry.costUsd;
 		else if (entry.agent === CLASSIFIER_ID) classifier += entry.costUsd;
 		else other += entry.costUsd;
 	}
 	const prefix = usage.prefix;
 	return {
 		competitors,
-		gamemaster,
+		gamemaker,
 		classifier,
 		other,
 		total: own.totals.costUsd,

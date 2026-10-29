@@ -12,7 +12,7 @@ import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/clas
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "../../src/interpret/judge.ts";
 import { MemorySink, type EventSink, type RecordedEvent } from "../../src/engine/events.ts";
 import type { World } from "../../src/engine/world.ts";
-import { GAMEMASTER_ID } from "../../src/gamemaster/gamemaster.ts";
+import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import nexus from "../../stories/nexus/story.ts";
 import type { AnyStory } from "../../src/story/types.ts";
@@ -26,8 +26,8 @@ export interface FixtureOptions extends RunOverrides {
 	readonly script: (world: World) => Script;
 	readonly sinks?: readonly EventSink[];
 	readonly budgetSpent?: () => number;
-	/** Scripted responses of the story's game master; plays without one when omitted. */
-	readonly gamemasterScript?: (world: World) => readonly FauxResponseStep[];
+	/** Scripted responses of the story's gamemaker; plays without one when omitted. */
+	readonly gamemakerScript?: (world: World) => readonly FauxResponseStep[];
 	/** Scripted responses of the statement classifier, one per round with statements; plays without one when omitted. */
 	readonly classifierScript?: (world: World) => readonly FauxResponseStep[];
 	/** The city's judge for `blame`; plays without one (the judge is absent) when omitted. */
@@ -46,7 +46,7 @@ export interface Fixture extends ComposedRun {
 
 export function createFixture(options: FixtureOptions): Fixture {
 	const log = new MemorySink();
-	const { story, script, sinks, budgetSpent, gamemasterScript, classifierScript, judge, judgeScript, ...overrides } = options;
+	const { story, script, sinks, budgetSpent, gamemakerScript, classifierScript, judge, judgeScript, ...overrides } = options;
 	const cityJudge =
 		judge ??
 		(judgeScript === undefined
@@ -54,12 +54,12 @@ export function createFixture(options: FixtureOptions): Fixture {
 			: new ChatDeliveryJudge({ binding: new ScriptedModelSource({ [JUDGE_ID]: judgeScript }).bind(JUDGE_ID, DEFAULT_LIMITS), label: "scripted/judge", thinking: "off" }));
 	const composed = composeRun({
 		story: scarceFor(story ?? nexus, overrides.agents),
-		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: gamemasterScript !== undefined, classifier: classifierScript !== undefined, ...overrides },
+		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: gamemakerScript !== undefined, classifier: classifierScript !== undefined, ...overrides },
 		models: (world) => new ScriptedModelSource(script(world)),
 		sinks: [log, ...(sinks ?? [])],
 		...(cityJudge === undefined ? {} : { judge: cityJudge }),
 		...(budgetSpent === undefined ? {} : { budget: { spentUsd: budgetSpent } }),
-		...(gamemasterScript === undefined ? {} : { gamemasterModels: (world: World) => new ScriptedModelSource({ [GAMEMASTER_ID]: gamemasterScript(world) }) }),
+		...(gamemakerScript === undefined ? {} : { gamemakerModels: (world: World) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }) }),
 		...(classifierScript === undefined
 			? {}
 			: {

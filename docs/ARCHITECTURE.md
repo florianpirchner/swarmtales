@@ -97,18 +97,18 @@ round-trips through JSON unchanged (proves it is pure data).
 
 `stories/index.ts` maps names to stories. `pnpm start --story nexus` (default
 `nexus`). CLI flags override run parameters: `--agents --minutes --seed --provider
---model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaster --no-classifier
+--model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --no-classifier
 --classifier-provider --classifier-model --snapshot-after --stop-after-snapshot --resume`.
-The game master (`src/gamemaster/`) is an `EventSink` and a round observer of the arena.
+The gamemaker (`src/gamemaker/`) is an `EventSink` and a round observer of the arena.
 The statement classifier (`src/interpret/`) is an `EventSink` and the arena's interpreter:
-it labels each round before the game master looks and writes `interpretation` events.
+it labels each round before the gamemaker looks and writes `interpretation` events.
 
 ### 3.5 Run snapshots
 
 A run snapshot (SPEC 17) serializes the engine objects explicitly instead of replaying
 the run: every stateful component has `snapshot()` and `restore()` (ledger, board,
 mailbox, marks, receipts, petitions, cast, groups, world with its level states,
-director, arena, agent runner, game master, interpreter), and `composeRun` assembles
+director, arena, agent runner, gamemaker, interpreter), and `composeRun` assembles
 them into one versioned file (`src/snapshot/snapshot.ts`). Restoring emits nothing; the
 bus replays the recorded prefix to the log sinks (`EventSink.replay`) and numbering
 continues after it. Replaying a live run would need every model answer again and would
@@ -122,7 +122,7 @@ level n is marked `held` and stays on level n; levels behind the door are never 
 once `world.hasPassed` holds for everyone, and `#nextMinute` calls `world.openDoor()`
 after the clock advances and before the director's minute triggers. A resumed run starts
 with `#nextMinute`, so it opens the door at the same point as the run that goes on, and
-deals the later levels from the story it was given. The game master rebuilds its secret
+deals the later levels from the story it was given. The gamemaker rebuilds its secret
 guard whenever more levels are dealt. `UsageCollector` keeps the replayed prefix's usage
 apart (`replay`), so the budget counts only the run's own spend.
 
@@ -168,5 +168,5 @@ Enforced by `tsc`, ESLint and a code-rules test. CI runs all of them.
 | **M1 Foundation** | ESLint + CI + English code-rules test; new layout; story DSL and validator; `nexus` tutorial P1–P7 as TS story; seeded turn order; YAML, JSON schema, `yaml`, `ajv` removed; README rewritten in English | `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm validate` green; scripted run of `nexus` completes and writes run artifacts incl. serialized story |
 | **M2 Director & society** | director interpreter (all triggers/conditions/actions in SPEC §10), cast, personas, per-agent models, receipts + `showReceipt`, petitions + `signPetition`/`listPetitions`, standings; nexus Act I beats moved into the story | same checks; every SPEC §10–§11 primitive has a test; no story text left in engine |
 | **M3 Digest** | `pnpm digest` deterministic layer + optional chronicle | detectors tested on synthetic event logs; digest of a scripted run produces all files |
-| **M4 Act II** | additive-secret puzzle (`puzzle.additive`, `{factors}`, `factors_dealt`), `revealFactor`, `onCollect`, `collectDms` with `forMinutes`/`distinctSenders`, factor secrets in the game master guard, factor shares and `falseFactor` in the digest; nexus levels 8-10 with the feast | same checks; generator invariants per topology; a scripted nexus run that works only from what reached each resident passes level 10 |
+| **M4 Act II** | additive-secret puzzle (`puzzle.additive`, `{factors}`, `factors_dealt`), `revealFactor`, `onCollect`, `collectDms` with `forMinutes`/`distinctSenders`, factor secrets in the gamemaker guard, factor shares and `falseFactor` in the digest; nexus levels 8-10 with the feast | same checks; generator invariants per topology; a scripted nexus run that works only from what reached each resident passes level 10 |
 | **M5 Run snapshots** | `--snapshot-after`, `--stop-after-snapshot`, `--resume`; `snapshot()`/`restore()` per component; versioned, schema-checked snapshot file | same checks; a scripted nexus run snapshotted after level 7 and resumed logs the same events after the cut as an uninterrupted run |

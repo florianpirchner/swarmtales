@@ -1,5 +1,5 @@
 /**
- * The LLM game master (SPEC 10.4).
+ * The LLM gamemaker (SPEC 10.4).
  *
  * It listens to the event bus, and after every `every` rounds it reads a
  * filtered report of the city and may send private notes or post on the
@@ -15,7 +15,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import type { ModelBinding } from "../model/source.ts";
-import type { GamemasterSpec, ThinkingLevel } from "../story/types.ts";
+import type { GamemakerSpec, ThinkingLevel } from "../story/types.ts";
 import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
 import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
@@ -23,18 +23,18 @@ import type { DirectionLevel } from "../engine/direction.ts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
 import { MAX_NOTE_LENGTH } from "./system-prompt.ts";
 
-/** ID of the game master in usage records and transcripts. */
-export const GAMEMASTER_ID = "GM";
+/** ID of the gamemaker in usage records and transcripts. */
+export const GAMEMAKER_ID = "GM";
 export { MAX_NOTE_LENGTH };
 
-export interface GamemasterOptions {
-	readonly spec: GamemasterSpec;
+export interface GamemakerOptions {
+	readonly spec: GamemakerSpec;
 	readonly world: World;
 	readonly bus: EventBus;
 	readonly binding: ModelBinding;
 	readonly systemPrompt: string;
 	readonly thinking: ThinkingLevel;
-	/** The game master's direction level (`--gm-direction`); from 8 its report shows the figures' direction. */
+	/** The gamemaker's direction level (`--gm-direction`); from 8 its report shows the figures' direction. */
 	readonly direction?: DirectionLevel;
 }
 
@@ -46,11 +46,11 @@ interface GmTool<S extends TSchema> {
 }
 
 /**
- * What the game master carries from look to look, for run snapshots (SPEC
+ * What the gamemaker carries from look to look, for run snapshots (SPEC
  * 17). The events since its last look are not copied: they are the prefix
  * events from `recentFrom` on.
  */
-export interface GamemasterSnapshot {
+export interface GamemakerSnapshot {
 	readonly tracks: readonly ({ readonly agent: CompetitorId } & ResidentTrack)[];
 	readonly notes: readonly Note[];
 	/** Sequence number of the first event since the last look. */
@@ -73,8 +73,8 @@ const ScheduleParams = Type.Object({
 	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
 });
 
-export class Gamemaster implements EventSink {
-	readonly #options: GamemasterOptions;
+export class Gamemaker implements EventSink {
+	readonly #options: GamemakerOptions;
 	#guard: SecretGuard;
 	/** Levels the guard knows the secrets of; a door that opens deals more (SPEC 17). */
 	#guarded = 0;
@@ -84,14 +84,14 @@ export class Gamemaster implements EventSink {
 	/** Private labels shown in the current look; notes may not pass them on. */
 	#private: PrivateLabels = new Map();
 
-	constructor(options: GamemasterOptions) {
+	constructor(options: GamemakerOptions) {
 		this.#options = options;
 		const world = options.world;
 		this.#guard = this.#secretGuard();
 		for (const agent of world.competitors) this.#tracks.set(agent, { levelSince: 0, wrongOnLevel: 0 });
 	}
 
-	/** The game master's system prompt, as its model gets it. */
+	/** The gamemaker's system prompt, as its model gets it. */
 	get systemPrompt(): string {
 		return this.#options.systemPrompt;
 	}
@@ -116,7 +116,7 @@ export class Gamemaster implements EventSink {
 	}
 
 	/** `nextSeq` is the sequence the next event will get; it starts the window when nothing happened since the last look. */
-	snapshot(nextSeq: number): GamemasterSnapshot {
+	snapshot(nextSeq: number): GamemakerSnapshot {
 		return {
 			tracks: [...this.#tracks].map(([agent, track]) => ({ agent, ...track })),
 			notes: [...this.#notes],
@@ -125,7 +125,7 @@ export class Gamemaster implements EventSink {
 	}
 
 	/** Restores tracks, notes and the events since the last look, taken from the prefix. */
-	restore(state: GamemasterSnapshot, prefix: readonly RecordedEvent[]): void {
+	restore(state: GamemakerSnapshot, prefix: readonly RecordedEvent[]): void {
 		for (const { agent, ...track } of state.tracks) if (this.#tracks.has(agent)) this.#tracks.set(agent, track);
 		this.#notes.splice(0, this.#notes.length, ...state.notes);
 		this.#recent = prefix.filter((event) => event.seq >= state.recentFrom);
@@ -150,7 +150,7 @@ export class Gamemaster implements EventSink {
 		this.#recent = [];
 		if (this.#dealtLevels() !== this.#guarded) this.#guard = this.#secretGuard();
 		this.#private = privateLabelsOf(recent);
-		// The game master reads names, as the residents do (v08).
+		// The gamemaker reads names, as the residents do (v08).
 		const input = this.#options.world.display(describeSituation({
 			world: this.#options.world,
 			round,
@@ -161,13 +161,13 @@ export class Gamemaster implements EventSink {
 			budget: this.#budgetLine(),
 			...(this.#options.direction === undefined ? {} : { direction: this.#options.direction }),
 		}));
-		bus.emit({ type: "gamemaster_turn", round, input });
+		bus.emit({ type: "gamemaker_turn", round, input });
 		const agent = this.#agent();
 		const timestamp = this.#options.world.minute * 60_000;
 		const messages: AgentMessage[] = [{ role: "user", content: input, timestamp }];
 		await agent.prompt(messages);
 		const error = agent.state.errorMessage;
-		if (error !== undefined && error.length > 0) bus.emit({ type: "gamemaster_error", message: error });
+		if (error !== undefined && error.length > 0) bus.emit({ type: "gamemaker_error", message: error });
 	}
 
 	#dealtLevels(): number {
@@ -195,7 +195,7 @@ export class Gamemaster implements EventSink {
 			},
 			toolExecution: "sequential",
 			onPayload: (payload) => withRequestDefaults(payload, binding.requestDefaults),
-			sessionId: GAMEMASTER_ID,
+			sessionId: GAMEMAKER_ID,
 			identity: { attribution: null },
 		});
 		agent.subscribe((event) => {
@@ -327,7 +327,7 @@ export class Gamemaster implements EventSink {
 
 	#deliver(to: NoteTarget, text: string, number: number): void {
 		this.#notes.push({ minute: this.#options.world.minute, to, text });
-		this.#options.bus.emit({ type: "gamemaster_note", to, author: this.#options.spec.author, text, number });
+		this.#options.bus.emit({ type: "gamemaker_note", to, author: this.#options.spec.author, text, number });
 	}
 
 	/** Notes to `to` within the current window. */
@@ -382,13 +382,13 @@ export class Gamemaster implements EventSink {
 		if (message.role === "assistant") {
 			for (const block of message.content) {
 				// The gamemaker's own reasoning: material for the novella, never shown to a resident.
-				if (block.type === "thinking" && block.thinking.trim().length > 0) bus.emit({ type: "gamemaster_thinking", text: block.thinking });
-				if (block.type === "text") bus.emit({ type: "gamemaster_text", text: block.text });
-				if (block.type === "toolCall") bus.emit({ type: "gamemaster_call", tool: block.name, args: block.arguments });
+				if (block.type === "thinking" && block.thinking.trim().length > 0) bus.emit({ type: "gamemaker_thinking", text: block.thinking });
+				if (block.type === "text") bus.emit({ type: "gamemaker_text", text: block.text });
+				if (block.type === "toolCall") bus.emit({ type: "gamemaker_call", tool: block.name, args: block.arguments });
 			}
 			bus.emit({
 				type: "usage",
-				agent: GAMEMASTER_ID,
+				agent: GAMEMAKER_ID,
 				provider: message.provider,
 				model: message.model,
 				input: message.usage.input,
@@ -400,7 +400,7 @@ export class Gamemaster implements EventSink {
 		}
 		if (message.role === "toolResult") {
 			const text = message.content.map((part) => (part.type === "text" ? part.text : "")).join("");
-			bus.emit({ type: "gamemaster_result", tool: message.toolName, isError: message.isError, text });
+			bus.emit({ type: "gamemaker_result", tool: message.toolName, isError: message.isError, text });
 		}
 	}
 }

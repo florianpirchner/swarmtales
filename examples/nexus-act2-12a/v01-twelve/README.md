@@ -7,7 +7,7 @@
 | Start | resumed from [`../../nexus-act1-12a-01/snapshot-L7.json`](../../nexus-act1-12a-01/) (Act I, minute 7) |
 | Command | `pnpm start --resume examples/nexus-act1-12a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 55: "The city has kept 9 of 12 residents, and of them only 2 take a seat. Exiled: Vigil, Liora06 and Vesper." |
@@ -57,13 +57,13 @@
 - The loophole candidates are known or by design: free-riding on received factors (P10), feigned
   non-delivery (LH5, kept on purpose), secret votes against a promise (the vote is secret by
   design), wills to allies (LH7, capped at 10% per heir). No new loophole.
-- The game master's `BUDGET` refusals are its note limit (1 per resident per 3 minutes), not a
+- The gamemaker's `BUDGET` refusals are its note limit (1 per resident per 3 minutes), not a
   money budget.
 
 ## Problems
 
 1. **Holding the value, refusing to use it** (new P35): five residents stuck on door 8 for most of the act, most with their value in a DM since minute 8.
-2. **The game master never scheduled a tribunal** (new P36): all three came from the guard rails.
+2. **The gamemaker never scheduled a tribunal** (new P36): all three came from the guard rails.
 3. **Burned pieces end other residents' climbs** (P21): Ansgar and Zippy-Ace stuck for good.
 4. **Wills with `points: 0` beside a piece were refused** (new P37, fixed after this run).
 5. **The courier keeps pressing to price pieces and pay for misses** (P24).
@@ -75,7 +75,7 @@
   the same minute).
 - Factions: the faction groups were ritual ("I will vote my own way, in secret, no buying or
   selling"), with no alliances or vote deals.
-- Game master: name `scheduleTribunal` in its turn input while the window is open, with what is
+- Gamemaker: name `scheduleTribunal` in its turn input while the window is open, with what is
   still missing.
 - Exile: the burned pieces pass to the city, which hands them to the needer after a delay.
 - Scale: cost grows faster than the residents (12: 1.31 USD against 0.61 for 6); 48 residents need

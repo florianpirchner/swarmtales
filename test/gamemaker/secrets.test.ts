@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { REDACTED, SecretGuard } from "../../src/gamemaster/secrets.ts";
+import { REDACTED, SecretGuard } from "../../src/gamemaker/secrets.ts";
 
-describe("game master secret guard", () => {
+describe("gamemaker secret guard", () => {
 	const guard = new SecretGuard(["HXG5MD", "C88Q3LYS"]);
 
 	it("redacts fragments, partial assemblies and lowercase spellings", () => {
@@ -21,7 +21,7 @@ describe("game master secret guard", () => {
 	});
 });
 
-describe("game master secret guard, evasions", () => {
+describe("gamemaker secret guard, evasions", () => {
 	const guard = new SecretGuard(["HXG5MD", "C88Q3LYS"]);
 
 	it("redacts spelled-out and suffixed fragments", () => {
@@ -37,7 +37,7 @@ describe("game master secret guard, evasions", () => {
 	});
 });
 
-describe("game master secret guard, factors and codes", () => {
+describe("gamemaker secret guard, factors and codes", () => {
 	const guard = new SecretGuard(["HXG5MD"], ["559102", "118273", "040817"]);
 
 	it("redacts factors from four digits on, also split into groups", () => {

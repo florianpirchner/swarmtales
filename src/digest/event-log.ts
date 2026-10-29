@@ -97,7 +97,7 @@ const TribunalScheduled = Type.Object({
 	calledAt: Type.Integer(),
 	count: Type.Integer(),
 	factions: Type.Integer(),
-	by: Type.Union([Type.Literal("progress"), Type.Literal("deadline"), Type.Literal("gamemaster"), Type.Literal("fallback"), Type.Literal("final")]),
+	by: Type.Union([Type.Literal("progress"), Type.Literal("deadline"), Type.Literal("gamemaker"), Type.Literal("fallback"), Type.Literal("final")]),
 	reason: Type.Optional(Type.String()),
 });
 const TribunalCancelled = Type.Object({ ...Base, type: Type.Literal("tribunal_cancelled"), tribunal: Type.Integer(), reason: Type.String() });

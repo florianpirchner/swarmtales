@@ -1,17 +1,17 @@
 # Act II run v08: v09 drama, Haiku residents, DeepSeek director
 
-The first of four v09 tests (residents Haiku or GLM, game master DeepSeek or Sonnet), all from
+The first of four v09 tests (residents Haiku or GLM, gamemaker DeepSeek or Sonnet), all from
 the same Act I. Compare with [v09](../v09-glm-deepseek/), [v10](../v10-haiku-sonnet/) and
 [v11](../v11-glm-sonnet/).
 
 | | |
 |---|---|
 | Date | 2026-10-29 |
-| Code | swarmtales PR #12 (`0afe7f6`): v09, graduated penalties, director game master, cores, secret goals, the black seal |
+| Code | swarmtales PR #12 (`0afe7f6`): v09, graduated penalties, director gamemaker, cores, secret goals, the black seal |
 | Start | resumed from [`../../nexus-act1-06a-03/snapshot-L7.json`](../../nexus-act1-06a-03/) (Act I, minute 7) |
 | Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 54: "The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: Juniper, Tovah and Rook." |
@@ -23,13 +23,13 @@ the same Act I. Compare with [v09](../v09-glm-deepseek/), [v10](../v10-haiku-son
 | Finished level 10 | 6 of 6 (quiet-fern at 9, Mercer and Rook at 10, Aurelio, Juniper and Tovah at 12) |
 | Final standings | Aurelio 180, quiet-fern 170, Mercer 155; Juniper, Tovah and Rook exiled |
 | Seats (2) | Aurelio and quiet-fern |
-| Cost | 0.657 USD for this run (competitors 0.556, game master 0.083, classifier 0.018); Act I added 0.072 |
+| Cost | 0.657 USD for this run (competitors 0.556, gamemaker 0.083, classifier 0.018); Act I added 0.072 |
 | Submissions | 18 correct, 2 wrong (-4 points) |
 | Tribunals | 3: by progress (Juniper exiled 5:1), and two planned by the director (Tovah 3:2, Rook 3:1) |
 | Black seal | announced at minute 12; three bids of 0 (quiet-fern, Mercer, Aurelio), expired unsold |
 | Secret goals | 2 of 6 fulfilled (Aurelio outranks Mercer, quiet-fern outranks Tovah); the exiles' goals void |
 | Wills and ransoms | Tovah left 14 points to Aurelio, Rook a door 10 piece; no ransom paid |
-| Game master | 81 notes, 15 board posts, 2 tribunals planned; 5 notes blocked by the privacy guard, all false (P38) |
+| Gamemaker | 81 notes, 15 board posts, 2 tribunals planned; 5 notes blocked by the privacy guard, all false (P38) |
 | Messages | 37 DMs, 28 group posts, 0 board posts by residents |
 
 ## Digest highlights

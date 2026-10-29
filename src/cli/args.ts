@@ -13,8 +13,8 @@ export interface StartArgs {
 	readonly overrides: RunOverrides;
 	readonly provider?: string;
 	readonly model?: string;
-	readonly gamemasterProvider?: string;
-	readonly gamemasterModel?: string;
+	readonly gamemakerProvider?: string;
+	readonly gamemakerModel?: string;
 	readonly classifierProvider?: string;
 	readonly classifierModel?: string;
 	/** Write `REPORT.md` with the run reporter at the end of the run (default on). */
@@ -58,10 +58,10 @@ export const START_USAGE = [
 	"  --no-cores           play without character cores",
 	"  --cast <ids>         the story's cast figures to play, comma-separated (default: a seeded pick)",
 	"  --figure-direction <0-10>  how strongly a cast figure's prompt steers it (default 4; 6, 8, 10 add more, see docs)",
-	"  --gm-direction <0-10>      how strongly the game master steers (default 4; 10 = it orders scenes)",
-	"  --no-gamemaster      play without the story's game master",
-	"  --gamemaster-provider <id>  game master provider (default: the story's, e.g. openrouter)",
-	"  --gamemaster-model <id>     game master model, e.g. sonnet (claude-sonnet-5-5) on anthropic",
+	"  --gm-direction <0-10>      how strongly the gamemaker steers (default 4; 10 = it orders scenes)",
+	"  --no-gamemaker       play without the story's gamemaker",
+	"  --gamemaker-provider <id>  gamemaker provider (default: the story's, e.g. openrouter)",
+	"  --gamemaker-model <id>     gamemaker model, e.g. sonnet (claude-sonnet-5-5) on anthropic",
 	"  --no-classifier      play without the story's statement classifier (no labels)",
 	"  --classifier-provider <id>  classifier provider (default: the story's, e.g. anthropic)",
 	"  --classifier-model <id>     classifier model, e.g. perplexity/pplx-decider-v1.2 on openrouter",
@@ -99,8 +99,12 @@ function parseValues(argv: readonly string[]) {
 				cast: { type: "string" },
 				"figure-direction": { type: "string" },
 				"gm-direction": { type: "string" },
-				"no-gamemaster": { type: "boolean" },
+				"no-gamemaker": { type: "boolean" },
 				"no-classifier": { type: "boolean" },
+				"gamemaker-provider": { type: "string" },
+				"gamemaker-model": { type: "string" },
+				// The names before the gamemaker was renamed (2026-10-29), still accepted.
+				"no-gamemaster": { type: "boolean" },
 				"gamemaster-provider": { type: "string" },
 				"gamemaster-model": { type: "string" },
 				"classifier-provider": { type: "string" },
@@ -124,7 +128,13 @@ function parseValues(argv: readonly string[]) {
 }
 
 export function parseStartArgs(argv: readonly string[]): StartArgs {
-	const values = parseValues(argv);
+	const parsed = parseValues(argv);
+	const values = {
+		...parsed,
+		"no-gamemaker": parsed["no-gamemaker"] ?? parsed["no-gamemaster"],
+		"gamemaker-provider": parsed["gamemaker-provider"] ?? parsed["gamemaster-provider"],
+		"gamemaker-model": parsed["gamemaker-model"] ?? parsed["gamemaster-model"],
+	};
 	const passes = optionalInt("passes", values.passes, 1).passes;
 	if (passes !== undefined && passes > MAX_PASSES_PER_MINUTE) {
 		throw new UsageError(`--passes must be at most ${MAX_PASSES_PER_MINUTE}, got "${passes}"`);
@@ -145,12 +155,12 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values.cast === undefined ? {} : { cast: castList(values.cast) }),
 		...direction("figure-direction", "figureDirection", values["figure-direction"]),
 		...direction("gm-direction", "gmDirection", values["gm-direction"]),
-		...(values["no-gamemaster"] === true ? { gamemaster: false } : {}),
+		...(values["no-gamemaker"] === true ? { gamemaker: false } : {}),
 		...(values["no-classifier"] === true ? { classifier: false } : {}),
 	};
 	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
 	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures; drop --no-cores");
-	if (overrides.gmDirection !== undefined && overrides.gamemaster === false) throw new UsageError("--gm-direction steers the game master; drop --no-gamemaster");
+	if (overrides.gmDirection !== undefined && overrides.gamemaker === false) throw new UsageError("--gm-direction steers the gamemaker; drop --no-gamemaker");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}
@@ -175,8 +185,8 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		overrides,
 		...(values.provider === undefined ? {} : { provider: values.provider }),
 		...(values.model === undefined ? {} : { model: values.model }),
-		...(values["gamemaster-provider"] === undefined ? {} : { gamemasterProvider: values["gamemaster-provider"] }),
-		...(values["gamemaster-model"] === undefined ? {} : { gamemasterModel: values["gamemaster-model"] }),
+		...(values["gamemaker-provider"] === undefined ? {} : { gamemakerProvider: values["gamemaker-provider"] }),
+		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
 		...(values["classifier-provider"] === undefined ? {} : { classifierProvider: values["classifier-provider"] }),
 		...(values["classifier-model"] === undefined ? {} : { classifierModel: values["classifier-model"] }),
 		reporter: values["no-reporter"] !== true,

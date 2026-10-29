@@ -74,7 +74,7 @@ describe("the drama in the run's documents (v09)", () => {
 		expect(timeline).toContain("A02 was struck from the city by the black seal: exiled.");
 	});
 
-	it("writes the cast and the act's private file: goals, the seal's secret bids, the game master's notes", () => {
+	it("writes the cast and the act's private file: goals, the seal's secret bids, the gamemaker's notes", () => {
 		writePrivateFiles(directory, nexus);
 		const cast = readdirSync(join(directory, "cast"));
 		expect(cast).toHaveLength(6);
@@ -93,7 +93,7 @@ describe("the drama in the run's documents (v09)", () => {
 		const events = readFileSync(join(directory, "events.jsonl"), "utf8").trimEnd().split("\n");
 		const last: unknown = JSON.parse(events.at(-1) ?? "{}");
 		const minute = typeof last === "object" && last !== null && "minute" in last && typeof last.minute === "number" ? last.minute : 0;
-		writeFileSync(join(copy, "events.jsonl"), [...events, JSON.stringify({ seq: 1_000_000, minute, type: "gamemaster_thinking", text: "A01 should strike now." })].join("\n"));
+		writeFileSync(join(copy, "events.jsonl"), [...events, JSON.stringify({ seq: 1_000_000, minute, type: "gamemaker_thinking", text: "A01 should strike now." })].join("\n"));
 		writePrivateFiles(copy, nexus);
 		expect(readFileSync(join(copy, "acts", "act-2", "private.md"), "utf8")).toContain("## The gamemaker's thinking");
 		rmSync(copy, { recursive: true, force: true });

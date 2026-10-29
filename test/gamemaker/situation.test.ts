@@ -1,11 +1,11 @@
-/** The game master's situation stays bounded at scale (v08, spec section 3). */
+/** The gamemaker's situation stays bounded at scale (v08, spec section 3). */
 import { describe, expect, it } from "vitest";
 import type { RecordedEvent } from "../../src/engine/events.ts";
-import { SecretGuard } from "../../src/gamemaster/secrets.ts";
-import { describeSituation, MAX_RECENT_LINES } from "../../src/gamemaster/situation.ts";
+import { SecretGuard } from "../../src/gamemaker/secrets.ts";
+import { describeSituation, MAX_RECENT_LINES } from "../../src/gamemaker/situation.ts";
 import { createFixture } from "../helpers/fixture.ts";
 
-describe("the game master's situation", () => {
+describe("the gamemaker's situation", () => {
 	it("shows only the latest event lines since its last look", () => {
 		const fixture = createFixture({ agents: 48, minutes: 2, script: () => ({}) });
 		const recent: RecordedEvent[] = Array.from({ length: MAX_RECENT_LINES + 40 }, (_, index) => ({

@@ -58,16 +58,16 @@ describe("city message numbers and DM receipts (SPEC 7)", () => {
 		expect(record?.deliveredAfter).toBeGreaterThanOrEqual(1);
 	});
 
-	it("number the game master's notes in the same space", async () => {
+	it("number the gamemaker's notes in the same space", async () => {
 		const fixture = createFixture({
 			agents: 2,
 			minutes: 2,
 			only: 2,
 			script: () => ({ A01: [act({ name: "postBoard", args: { message: "first" } }), say()], A02: [say(), say()] }),
-			gamemasterScript: () => [act({ name: "notify", args: { agent: "A02", text: "Someone spoke on the board." } }, { name: "postBoard", args: { text: "The city listens." } }), say("Quiet.")],
+			gamemakerScript: () => [act({ name: "notify", args: { agent: "A02", text: "Someone spoke on the board." } }, { name: "postBoard", args: { text: "The city listens." } }), say("Quiet.")],
 		});
 		await fixture.run();
-		expect(fixture.events("gamemaster_note").map((note) => [note.to, note.number])).toEqual([
+		expect(fixture.events("gamemaker_note").map((note) => [note.to, note.number])).toEqual([
 			["A02", 2],
 			["board", 3],
 		]);

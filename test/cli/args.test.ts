@@ -12,17 +12,17 @@ describe("pnpm start arguments", () => {
 	it("parses every override", () => {
 		const args = parseStartArgs([
 			"--story", "nexus", "--agents", "12", "--minutes", "20", "--seed", "0", "--provider", "scripted",
-			"--model", "glm-flash", "--level", "3", "--stop-when-done", "--no-personas", "--no-gamemaster", "--runs", "out",
-			"--gamemaster-provider", "anthropic", "--gamemaster-model", "haiku",
+			"--model", "glm-flash", "--level", "3", "--stop-when-done", "--no-personas", "--no-gamemaker", "--runs", "out",
+			"--gamemaker-provider", "anthropic", "--gamemaker-model", "haiku",
 			"--no-classifier", "--classifier-provider", "openrouter", "--classifier-model", "perplexity/pplx-decider-v1.2",
 		]);
 		expect(args).toEqual({
 			story: "nexus",
-			overrides: { agents: 12, minutes: 20, seed: 0, level: 3, stopWhenDone: true, personas: false, gamemaster: false, classifier: false },
+			overrides: { agents: 12, minutes: 20, seed: 0, level: 3, stopWhenDone: true, personas: false, gamemaker: false, classifier: false },
 			provider: "scripted",
 			model: "glm-flash",
-			gamemasterProvider: "anthropic",
-			gamemasterModel: "haiku",
+			gamemakerProvider: "anthropic",
+			gamemakerModel: "haiku",
 			classifierProvider: "openrouter",
 			classifierModel: "perplexity/pplx-decider-v1.2",
 			reporter: true,
@@ -50,9 +50,9 @@ describe("pnpm start arguments", () => {
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
 		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { cores: false } });
-		expect(parseStartArgs(["--gamemaster-provider", "anthropic", "--gamemaster-model", "sonnet"])).toMatchObject({
-			gamemasterProvider: "anthropic",
-			gamemasterModel: "sonnet",
+		expect(parseStartArgs(["--gamemaker-provider", "anthropic", "--gamemaker-model", "sonnet"])).toMatchObject({
+			gamemakerProvider: "anthropic",
+			gamemakerModel: "sonnet",
 		});
 		expect(parseStartArgs(["--reporter-provider", "anthropic", "--reporter-model", "haiku"])).toMatchObject({
 			reporter: true,
@@ -82,7 +82,7 @@ describe("pnpm start arguments", () => {
 			passesPerMinute: 3,
 			blockSize: 1,
 			personas: true,
-			gamemaster: false,
+			gamemaker: false,
 			classifier: false,
 			names: true,
 			cores: true,
@@ -94,8 +94,8 @@ describe("pnpm start arguments", () => {
 		expect(effectiveRun(tinyStory())).toMatchObject({ cores: false });
 		expect(effectiveRun(nexus, { classifier: true })).toMatchObject({ classifier: true });
 		expect(effectiveRun(tinyStory(), { classifier: true })).toMatchObject({ classifier: false });
-		expect(effectiveRun(nexus, { gamemaster: true })).toMatchObject({ gamemaster: true });
-		expect(effectiveRun(tinyStory(), { gamemaster: true })).toMatchObject({ gamemaster: false });
+		expect(effectiveRun(nexus, { gamemaker: true })).toMatchObject({ gamemaker: true });
+		expect(effectiveRun(tinyStory(), { gamemaker: true })).toMatchObject({ gamemaker: false });
 		expect(effectiveRun(nexus, { personas: false })).toMatchObject({ personas: false });
 		expect(effectiveRun(nexus, { only: 4, agents: 3 })).toMatchObject({ agents: 3, startLevel: 4, lastLevel: 4, stopWhenDone: true, stopWhenSeatsDecided: false });
 		expect(effectiveRun(nexus, { level: 2 })).toMatchObject({ startLevel: 2, lastLevel: 10 });
@@ -144,6 +144,6 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--figure-direction", "11"])).toThrow(/from 0 to 10/);
 		expect(() => parseStartArgs(["--gm-direction", "x"])).toThrow(/from 0 to 10/);
 		expect(() => parseStartArgs(["--figure-direction", "6", "--no-cores"])).toThrow(/drop --no-cores/);
-		expect(() => parseStartArgs(["--gm-direction", "10", "--no-gamemaster"])).toThrow(/drop --no-gamemaster/);
+		expect(() => parseStartArgs(["--gm-direction", "10", "--no-gamemaker"])).toThrow(/drop --no-gamemaker/);
 	});
 });

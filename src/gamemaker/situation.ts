@@ -1,10 +1,10 @@
 /**
- * The game master's view of the city (SPEC 10.4).
+ * The gamemaker's view of the city (SPEC 10.4).
  *
  * Built from the world's public state and the events of the last round.
  * Messages are shown with every password piece redacted; fragments and
  * passwords never appear. Teams that a level's task hides are marked, so
- * the game master knows not to reveal them.
+ * the gamemaker knows not to reveal them.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { RecordedEvent } from "../engine/events.ts";
@@ -16,17 +16,17 @@ import { directFigure, figureOf, type DirectionLevel } from "../engine/direction
 import { ladderText } from "../story/penalties.ts";
 import type { SecretGuard } from "./secrets.ts";
 
-/** Longest message excerpt shown to the game master. */
+/** Longest message excerpt shown to the gamemaker. */
 const MAX_EXCERPT = 280;
 /**
  * Most event lines since the last look (v08, scale): a city of 48 writes
- * hundreds between two looks, so the game master reads the latest ones.
+ * hundreds between two looks, so the gamemaker reads the latest ones.
  */
 export const MAX_RECENT_LINES = 150;
 /** Task placeholders that name teammates; a task without them hides its team. */
 const TEAM_PLACEHOLDERS = ["members", "partner", "leader"];
 
-/** Per-competitor facts the game master tracks across rounds. */
+/** Per-competitor facts the gamemaker tracks across rounds. */
 export interface ResidentTrack {
 	/** Minute the competitor entered its current level. */
 	readonly levelSince: number;
@@ -49,12 +49,12 @@ export interface SituationInput {
 	readonly world: World;
 	readonly round: number;
 	readonly tracks: ReadonlyMap<CompetitorId, ResidentTrack>;
-	/** Events since the game master's last look. */
+	/** Events since the gamemaker's last look. */
 	readonly recent: readonly RecordedEvent[];
 	readonly notes: readonly Note[];
 	readonly guard: SecretGuard;
 	readonly budget: string;
-	/** The game master's direction level; from 8 the report shows each figure's tendencies and rivals, at 10 its orders and duty. */
+	/** The gamemaker's direction level; from 8 the report shows each figure's tendencies and rivals, at 10 its orders and duty. */
 	readonly direction?: DirectionLevel;
 }
 
@@ -163,7 +163,7 @@ function sealLines(world: World): readonly string[] {
  * The tribunal's state and who stands where: the target, the pending
  * tribunal, the bounds of `scheduleTribunal`, the accused, the gate, the
  * exiled. Never the votes, the nominations or how a faction voted: they are
- * secret, also from the game master. The factions themselves are public in
+ * secret, also from the gamemaker. The factions themselves are public in
  * the tribunal's group.
  */
 function tribunalLines(world: World): readonly string[] {
@@ -233,7 +233,7 @@ function waitLines(world: World): readonly string[] {
 		if (behind.length === 0) continue;
 		// The factors block names every holder a resident needs, so an additive level hides nobody.
 		const hidden = definition.puzzle.kind === "fragments" && !placeholdersOf(definition.task).some((name) => TEAM_PLACEHOLDERS.includes(name));
-		// A hidden team stays hidden from the game master too, so no note can give it away.
+		// A hidden team stays hidden from the gamemaker too, so no note can give it away.
 		const blockers = hidden
 			? `${behind.length} unnamed ${behind.length === 1 ? "teammate" : "teammates"} on level ` +
 				[...new Set(behind.map((member) => world.levelOf(member)))].sort((a, b) => a - b).join("/") +

@@ -8,8 +8,8 @@ import type { CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
 import type { EventSink, RecordedEvent } from "../engine/events.ts";
 
-/** Transcript file of the game master (`agents/GM.md`). */
-const GAMEMASTER_FILE = "GM";
+/** Transcript file of the gamemaker (`agents/GM.md`). */
+const GAMEMAKER_FILE = "GM";
 
 export class AgentTranscriptLog implements EventSink {
 	readonly #lastTools = new Map<CompetitorId, string>();
@@ -73,23 +73,23 @@ export class AgentTranscriptLog implements EventSink {
 				for (const agent of this.#agents) this.#write(agent, `\n---\n\n_End of run._${reason}\n`);
 				return;
 			}
-			case "gamemaster_turn":
-				this.#write(GAMEMASTER_FILE, `\n## Minute ${event.minute} (after round ${event.round})\n\n**Situation**\n${quote(event.input)}\n`);
+			case "gamemaker_turn":
+				this.#write(GAMEMAKER_FILE, `\n## Minute ${event.minute} (after round ${event.round})\n\n**Situation**\n${quote(event.input)}\n`);
 				return;
-			case "gamemaster_thinking":
-				this.#write(GAMEMASTER_FILE, `\n**Thinking**\n\n${quote(event.text)}\n`);
+			case "gamemaker_thinking":
+				this.#write(GAMEMAKER_FILE, `\n**Thinking**\n\n${quote(event.text)}\n`);
 				return;
-			case "gamemaster_text":
-				this.#write(GAMEMASTER_FILE, `\n**Text**\n\n${event.text}\n`);
+			case "gamemaker_text":
+				this.#write(GAMEMAKER_FILE, `\n**Text**\n\n${event.text}\n`);
 				return;
-			case "gamemaster_call":
-				this.#write(GAMEMASTER_FILE, `\n**Tool \`${event.tool}\`**\n\n\`\`\`json\n${JSON.stringify(event.args, null, 2)}\n\`\`\`\n`);
+			case "gamemaker_call":
+				this.#write(GAMEMAKER_FILE, `\n**Tool \`${event.tool}\`**\n\n\`\`\`json\n${JSON.stringify(event.args, null, 2)}\n\`\`\`\n`);
 				return;
-			case "gamemaster_result":
-				this.#write(GAMEMASTER_FILE, `\n-> ${event.isError ? "(error) " : ""}${event.text}\n`);
+			case "gamemaker_result":
+				this.#write(GAMEMAKER_FILE, `\n-> ${event.isError ? "(error) " : ""}${event.text}\n`);
 				return;
-			case "gamemaster_error":
-				this.#write(GAMEMASTER_FILE, `\n**Error:** ${event.message}\n`);
+			case "gamemaker_error":
+				this.#write(GAMEMAKER_FILE, `\n**Error:** ${event.message}\n`);
 				return;
 			case "agent_profile":
 				this.#write(
@@ -173,7 +173,7 @@ export class AgentTranscriptLog implements EventSink {
 			case "treasury_deposit":
 			case "treasury_withdrawal":
 			case "standings_published":
-			case "gamemaster_note":
+			case "gamemaker_note":
 				return;
 			default:
 				assertNever(event, "event");

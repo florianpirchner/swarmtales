@@ -11,7 +11,7 @@ version is v09 in all four.
 | Start | resumed from [`../../nexus-act1-06a-03/snapshot-L7.json`](../../nexus-act1-06a-03/) (Act I with Haiku, minute 7) |
 | Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider openrouter --model glm-flash` |
 | Competitors | `z-ai/glm-5.3-flash` via OpenRouter (Act I was played by Haiku) |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 45: "The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: Rook, quiet-fern and Tovah." |
@@ -23,13 +23,13 @@ version is v09 in all four.
 | Finished level 10 | 4 of 6 (Rook at 10, Juniper at 13, Aurelio at 19, Mercer at 27); quiet-fern stuck on door 9, Tovah on door 10 |
 | Final standings | Aurelio 148, Mercer 148, Juniper 119; Rook, quiet-fern and Tovah exiled |
 | Seats (2) | Aurelio and Mercer |
-| Cost | 1.432 USD for this run (competitors 1.332, game master 0.060, classifier 0.040); Act I added 0.072 |
+| Cost | 1.432 USD for this run (competitors 1.332, gamemaker 0.060, classifier 0.040); Act I added 0.072 |
 | Submissions | 15 correct, 9 wrong (-32 points) |
 | Black seal | Juniper bid 30, Rook 10; Juniper won and struck Rook at minute 16 |
 | Tribunals | 2: by progress (quiet-fern 5:1) and one planned by the director (Tovah 2:1) |
 | Secret goals | 1 of 6 fulfilled: Juniper (exile Rook), by the seal |
 | Deals | Juniper paid Mercer 10 points for a vote against Tovah (#5288, #5299, paid after the verdict #5698) |
-| Game master | 48 notes, 12 board posts, 1 tribunal planned; 4 texts blocked by the privacy guard, all false (P38) |
+| Gamemaker | 48 notes, 12 board posts, 1 tribunal planned; 4 texts blocked by the privacy guard, all false (P38) |
 | Labels | offer 25, promise 29, refusal 17, threat 6 (Haiku in v08: offer 6, refusal 89, threat 0) |
 
 ## Digest highlights

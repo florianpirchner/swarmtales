@@ -3,8 +3,8 @@
  * round and, after the round, labels them in classifier batches (one per
  * {@link MAX_BATCH_STATEMENTS} statements). Results
  * are new `interpretation` events that reference the original event by
- * `seq`; the log stays append-only. It runs before the game master's look,
- * so the game master reads the labels of the round it looks at.
+ * `seq`; the log stays append-only. It runs before the gamemaker's look,
+ * so the gamemaker reads the labels of the round it looks at.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";

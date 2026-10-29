@@ -416,8 +416,8 @@ export interface StoryDefinition<C extends string = string> {
 	readonly director: readonly DirectorRule<C>[];
 	/** Acts of the story, for the digest; one implicit act when omitted. */
 	readonly acts?: readonly ActDefinition[];
-	/** Optional LLM game master; runs without one when omitted. */
-	readonly gamemaster?: GamemasterSpec;
+	/** Optional LLM gamemaker; runs without one when omitted. */
+	readonly gamemaker?: GamemakerSpec;
 	/** Optional statement classifier; runs without labels when omitted. */
 	readonly classifier?: ClassifierSpec;
 	/** Optional exile by tribunal (SPEC 6.4); every number is a story parameter. */
@@ -452,7 +452,7 @@ export interface CoreAxis {
  * One drive or shadow of the catalog: who someone is, never what to do. A
  * sentence per intensity ("Above all you want to lead; ..."), its group, and
  * whether it is a light figure's drive. `cues` are the words that would give
- * it away; the game master's guard blocks them in texts about this resident
+ * it away; the gamemaker's guard blocks them in texts about this resident
  * to anyone else.
  */
 export interface DriveSpec {
@@ -655,7 +655,7 @@ export interface NamesSpec {
  * present when the act began (`targetShare`); then the act ends. The first
  * tribunal is called by progress: when the first resident passes
  * `first.level`, at the latest `first.latestAfter` minutes into the act. Later tribunals are
- * scheduled by the game master (`scheduleTribunal`) within guard rails: at
+ * scheduled by the gamemaker (`scheduleTribunal`) within guard rails: at
  * least `minGap` minutes between two openings, a fallback tribunal when none
  * is pending `fallbackGap` minutes after the last result, and a forced final
  * tribunal for everything still missing when only one more fits before the
@@ -918,7 +918,7 @@ export const FACTION_TEXT_PLACEHOLDERS: { readonly [K in keyof FactionTexts]: re
 /**
  * A statement classifier (SPEC 10.5). After every round it labels each new
  * statement and thought of the competitors with a fixed label set (promise,
- * threat, refusal, ...). The labels feed the digest and the game master.
+ * threat, refusal, ...). The labels feed the digest and the gamemaker.
  */
 export interface ClassifierSpec {
 	/** A chat model, or a structured classifier model such as `perplexity/pplx-decider-v1.2`. */
@@ -928,22 +928,22 @@ export interface ClassifierSpec {
 }
 
 /**
- * An LLM game master (SPEC 10.4). After every `every` rounds it reads a
+ * An LLM gamemaker (SPEC 10.4). After every `every` rounds it reads a
  * filtered view of the city (levels, waits, messages with every password
  * substring redacted) and may send private notes or post on the board.
  * It decides on its own whether to intervene; the engine enforces budgets
  * and blocks any text that contains a password substring.
  */
 /** `coach` keeps a tutorial moving; `director` raises the stakes in the hard acts. */
-export type GamemasterRole = "coach" | "director";
+export type GamemakerRole = "coach" | "director";
 
-export interface GamemasterActRole {
+export interface GamemakerActRole {
 	/** First level this role applies to; it holds until the next entry's level. */
 	readonly fromLevel: number;
-	readonly role: GamemasterRole;
+	readonly role: GamemakerRole;
 }
 
-export interface GamemasterSpec {
+export interface GamemakerSpec {
 	/** Always the same model, independent of who plays (comparability). */
 	readonly model: ModelChoice;
 	/** Author of notes and board posts, e.g. `COURIER`. */
@@ -957,10 +957,10 @@ export interface GamemasterSpec {
 	readonly windowMinutes: number;
 	/** Upper bound of model calls per look (tool loop). */
 	readonly modelCallsPerTurn: number;
-	/** Story-specific instructions appended to the base game master prompt. */
+	/** Story-specific instructions appended to the base gamemaker prompt. */
 	readonly brief: string;
 	/** Role per level range, ascending by `fromLevel`; the first entry starts at the first level. */
-	readonly roles: readonly GamemasterActRole[];
+	readonly roles: readonly GamemakerActRole[];
 }
 
 /**

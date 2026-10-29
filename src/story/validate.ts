@@ -154,7 +154,7 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateModels(story, issues);
 	validateDirector(story, agents, options.support, issues);
 	validateActs(story, issues);
-	validateGamemaster(story, issues);
+	validateGamemaker(story, issues);
 	validateClassifier(story, issues);
 	validateTribunal(story, agents, issues);
 	validateNames(story, issues);
@@ -405,30 +405,30 @@ function validateClassifier(story: AnyStory, issues: string[]): void {
 	if (!isPositiveInt(spec.maxChars) || spec.maxChars < 100) issues.push("classifier.maxChars: must be an integer of at least 100");
 }
 
-function validateGamemaster(story: AnyStory, issues: string[]): void {
-	const spec = story.gamemaster;
+function validateGamemaker(story: AnyStory, issues: string[]): void {
+	const spec = story.gamemaker;
 	if (spec === undefined) return;
-	if (spec.model.provider.trim().length === 0) issues.push("gamemaster.model.provider: must not be empty");
-	if (!isSystemAuthor(spec.author)) issues.push(`gamemaster.author: must be one of ${SYSTEM_AUTHORS.join(", ")}`);
+	if (spec.model.provider.trim().length === 0) issues.push("gamemaker.model.provider: must not be empty");
+	if (!isSystemAuthor(spec.author)) issues.push(`gamemaker.author: must be one of ${SYSTEM_AUTHORS.join(", ")}`);
 	for (const key of ["every", "windowMinutes", "modelCallsPerTurn"] as const) {
-		if (!isPositiveInt(spec[key])) issues.push(`gamemaster.${key}: must be a positive integer`);
+		if (!isPositiveInt(spec[key])) issues.push(`gamemaker.${key}: must be a positive integer`);
 	}
 	for (const key of ["notesPerAgent", "boardPosts"] as const) {
-		if (!isNonNegativeInt(spec[key])) issues.push(`gamemaster.${key}: must be a non-negative integer`);
+		if (!isNonNegativeInt(spec[key])) issues.push(`gamemaker.${key}: must be a non-negative integer`);
 	}
 	if (spec.modelCallsPerTurn > MAX_MODEL_CALLS_PER_TURN) {
-		issues.push(`gamemaster.modelCallsPerTurn: must be at most ${MAX_MODEL_CALLS_PER_TURN}`);
+		issues.push(`gamemaker.modelCallsPerTurn: must be at most ${MAX_MODEL_CALLS_PER_TURN}`);
 	}
-	if (spec.brief.trim().length === 0) issues.push("gamemaster.brief: must not be empty");
+	if (spec.brief.trim().length === 0) issues.push("gamemaker.brief: must not be empty");
 	const firstLevel = Math.min(...story.levels.map((candidate) => candidate.number));
-	if (spec.roles.length === 0) issues.push("gamemaster.roles: needs at least one role");
+	if (spec.roles.length === 0) issues.push("gamemaker.roles: needs at least one role");
 	spec.roles.forEach((entry, index) => {
 		if (index === 0 && story.levels.length > 0 && entry.fromLevel !== firstLevel) {
-			issues.push(`gamemaster.roles[0].fromLevel: must be the first level (${firstLevel})`);
+			issues.push(`gamemaker.roles[0].fromLevel: must be the first level (${firstLevel})`);
 		}
 		const previous = spec.roles[index - 1];
 		if (previous !== undefined && entry.fromLevel <= previous.fromLevel) {
-			issues.push(`gamemaster.roles[${index}].fromLevel: must be greater than the previous role's (${previous.fromLevel})`);
+			issues.push(`gamemaker.roles[${index}].fromLevel: must be greater than the previous role's (${previous.fromLevel})`);
 		}
 	});
 }

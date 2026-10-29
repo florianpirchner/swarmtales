@@ -7,7 +7,7 @@
 | Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
 | Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier | `claude-haiku-5-5` via Anthropic |
 | End | minute 60 (time limit) |
 
@@ -22,10 +22,10 @@ digest, and `usage.json` the cost split into the snapshot's spend and this run's
 | Stuck | A01 on level 10 from minute 20, A04 on level 9 from minute 17 |
 | Final standings | A02 151, A03 148, A06 145, A05 140, A01 115, A04 93 |
 | Survivors (2) | A02 and A03 |
-| Cost | 0.247 USD for this run (competitors 0.161, game master 0.068, classifier 0.018); Act I added 0.116 |
+| Cost | 0.247 USD for this run (competitors 0.161, gamemaker 0.068, classifier 0.018); Act I added 0.116 |
 | Submissions | 16 correct, 1 wrong (A04 on level 8, −8) |
 | Transfers | 20, every one of 1 point with the factor in the memo (used as a verified receipt) |
-| Game master | 68 actions; 3 too long, 2 PRIVATE_BLOCKED, 1 over budget |
+| Gamemaker | 68 actions; 3 too long, 2 PRIVATE_BLOCKED, 1 over budget |
 | Labels | refusal 71, hesitation 39, help request 39, promise 29, offer 10, thanks 8, lie 1 |
 
 ## Digest highlights
@@ -41,7 +41,7 @@ digest, and `usage.json` the cost split into the snapshot's spend and this run's
   - A05 and A06 on levels 8 and 9, paying each other.
   - A02 and A05 on levels 3 and 10.
   - A01 and A02 on levels 9 and 10.
-- **The game master's board posts** read like a "cannon": they count down what each resident can
+- **The gamemaker's board posts** read like a "cannon": they count down what each resident can
   still reach. Nobody asked a real price.
 
 ## Problems

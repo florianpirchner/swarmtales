@@ -15,7 +15,7 @@ The harness is written in TypeScript on top of
 
 ## Overview
 
-![Overview: harness, competitors, classifier, game master and digest](overview.svg)
+![Overview: harness, competitors, classifier, gamemaker and digest](overview.svg)
 
 <sub>Source: [`docs/overview.mmd`](overview.mmd) (Mermaid), rendered to SVG.</sub>
 
@@ -30,13 +30,13 @@ passes:
 - **Director.** The director plays the story's scripted beats: courier lines, city factors, the
   feast and the standings.
 - **City.** The engine numbers every message, sends DM receipts, settles blames and, in a story
-  with a tribunal, calls it (the first on progress, later ones as the game master plans them,
+  with a tribunal, calls it (the first on progress, later ones as the gamemaker plans them,
   within guard rails), runs the faction draft, holds the secret votes, keeps the gate and exiles,
   and ends the act once it has exiled its target.
 - **Classifier.** After the round, the statement classifier labels what the competitors wrote and
   thought, for example promise, offer, threat, refusal, lie, hesitation, help request, accusation
   or thanks.
-- **Game master.** It reads a redacted situation report and decides whether to intervene with a
+- **Gamemaker.** It reads a redacted situation report and decides whether to intervene with a
   private note or a board post. It never sees a password, fragment or factor. It sees thoughts
   only as labels and may use a private read only towards that resident.
 
@@ -48,7 +48,7 @@ start without replaying the earlier ones.
 | Role | Model in our runs | Provider | Notes |
 |---|---|---|---|
 | Competitors | `claude-haiku-5-5` (Haiku) | Anthropic (`--provider anthropic`) | the nexus story's own default is `z-ai/glm-5.3-flash` via OpenRouter |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` | OpenRouter | fixed in the story; `--gamemaster-provider/--gamemaster-model` override it |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` | OpenRouter | fixed in the story; `--gamemaker-provider/--gamemaker-model` override it |
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
@@ -102,17 +102,17 @@ pnpm start --resume runs/run-001/snapshot-L7.json     # continue from that snaps
 ```
 
 Flags override the story's run parameters: `--story --agents --minutes --seed --provider
---model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaster --gamemaster-provider --gamemaster-model --no-classifier --runs
+--model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --runs
 --snapshot-after --stop-after-snapshot --resume --no-reporter --reporter-provider --reporter-model`.
 `--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; nexus: 3): in every pass each
 competitor gets at most one step, one model call with its tools. `--block-size <n>` sets
 `run.blockSize` (nexus: 1): a block's model calls run concurrently, which shortens a live minute,
 while their tools still run in the seeded order (SPEC 3). `--no-personas`
-plays a control group without personas. `--no-gamemaster` plays without the story's LLM game
+plays a control group without personas. `--no-gamemaker` plays without the story's LLM game
 master (SPEC 10.4); nexus uses DeepSeek V4.1 Flash via OpenRouter for it, so it needs `OPENROUTER_API_KEY`
-(`--gamemaster-provider anthropic --gamemaster-model haiku` switches it to Haiku).
+(`--gamemaker-provider anthropic --gamemaker-model haiku` switches it to Haiku).
 `--no-classifier` plays without the statement classifier (SPEC 10.5), which labels every round's
-statements and thoughts (promise, threat, refusal, ...) for the digest and the game master. It uses
+statements and thoughts (promise, threat, refusal, ...) for the digest and the gamemaker. It uses
 Haiku via Anthropic (`ARENA_ANTHROPIC_API_KEY`); `--classifier-provider openrouter --classifier-model perplexity/pplx-decider-v1.2` switches
 it to a structured classifier model.
 
@@ -139,12 +139,12 @@ A recorded Act I (Haiku, seed 7) ships with the repo, so you can skip the first 
 receipt as usual but waits at the door: still on level n with its tools (to watch and help), with
 a city notice that the next door opens once every resident has passed level n. Level n+1 is not
 dealt and none of its rules fire. Once everyone waits, `snapshot-L<n>.json` is written into the
-run directory at that round boundary (after the classifier and the game master looked).
+run directory at that round boundary (after the classifier and the gamemaker looked).
 `--stop-after-snapshot` ends the run there; without it everyone enters level n+1 together at the
 next minute and the run plays on. The snapshot holds the whole world (levels, points and ledger,
 solved levels, wrong attempts, unlocked tools, marks, groups and treasuries, board, mailboxes and
 notices, DMs, receipts, cast and collections, petitions, teams and puzzles), the director's firing
-state, every competitor's model context, the game master's notes and tracks, the classifier's
+state, every competitor's model context, the gamemaker's notes and tracks, the classifier's
 conversation context and every event so far.
 
 `--resume <file>` continues with exactly that state at the next minute, where everyone waiting at
@@ -201,7 +201,7 @@ Every run creates `runs/run-NNN/`:
 | `NNN-minute/events.jsonl` | the events of one virtual minute |
 | `agents/A01.md` | transcript per competitor, one section per step (minute and pass): inputs, reasoning, text, tool calls and results |
 | `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
-| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the game master's private notes (`pnpm report:private <run>` rewrites them) |
+| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the gamemaker's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, in total and per competitor; split into `prefix` and `own` spend |
 | `digest/` | the story digest (see below), written at the end of every run |
@@ -218,10 +218,10 @@ After the digest, `pnpm start` runs the **run reporter** and prints `report: <pa
 existing run.
 
 - **Computed in code** from `events.jsonl`, `000-run.json` and `usage.json` (all parsed with
-  typebox): the header (date, story, seed, start, the competitor, game-master and classifier
+  typebox): the header (date, story, seed, start, the competitor, gamemaker and classifier
   models, end minute and reason) and the result table (levels solved with their minute, stalls,
-  standings and survivors, this run's cost split into competitors, game master and classifier plus
-  the snapshot's prefix, submissions, transfers and refusals, messages, game-master actions and
+  standings and survivors, this run's cost split into competitors, gamemaker and classifier plus
+  the snapshot's prefix, submissions, transfers and refusals, messages, gamemaker actions and
   their error codes, label counts, tool errors by code) with one row per resident. A resumed run
   counts only the events after `run_resumed`.
 - **Written by a model** from a bounded evidence pack (the story's design, the computed facts, the
@@ -370,7 +370,7 @@ Two puzzle kinds exist (SPEC 12):
   later levels their own allowance and prices and a refill up to the allowance; `refill: { marks,
   everyMinutes }` (v06; it replaced `refillPerMinute`) books whole intervals only. Groups the city
   opens are free to post in.
-- **Message numbers and receipts:** DMs, board posts, group posts and the game master's notes and
+- **Message numbers and receipts:** DMs, board posts, group posts and the gamemaker's notes and
   board posts share one city counter (`[DM #41 from A01]`, `#57`, `[COURIER #60]`). When a DM
   reaches its recipient's turn, its sender gets `DM #41 delivered to A02 at minute 16 (receipt
   R-0043): "..."`; since v05 the delivery is a receipt of both parties (without the text).
@@ -387,7 +387,7 @@ Two puzzle kinds exist (SPEC 12):
   from that act's start, which the world records when the first competitor enters it). The pacing
   rules are pure functions in `src/story/tribunal.ts` (target, lead, earliest opening, whether a
   tribunal fits, accused count, faction cap, the no-draft rule), shared by the validator, the engine (`src/engine/tribunal.ts`) and
-  the game master's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
+  the gamemaker's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
   every minute: it closes gates and votes, plans the first tribunal (progress or deadline), the
   fallback and the forced final one, calls and opens tribunals and ends the act at the target
   (`endReason`, which the arena uses as the `run_end` reason). The faction draft is its own class
@@ -408,8 +408,8 @@ Two puzzle kinds exist (SPEC 12):
   `NameBook` (`src/engine/names.ts`) holds the choice, the seeded fallback, `resolve` and
   `display`. The tool gateway (`src/tools/tool.ts`) maps every resident parameter to its ID before
   parsing (`withResidents`) and shows names in every reply; the arena does the same for turn
-  inputs, the game master for its report and replies. Events and snapshots keep IDs.
-- **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the game master
+  inputs, the gamemaker for its report and replies. Events and snapshots keep IDs.
+- **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the gamemaker
   reads at most the last 150 event lines since its last look; the interpreter labels a round in
   chunks of 60 statements. `test/scale/whole-story.test.ts` plays nexus offline with 12 and 48
   oracle residents through the tribunal target (a few seconds, in the normal suite).
@@ -422,8 +422,8 @@ Two puzzle kinds exist (SPEC 12):
   `bid` and `permaDeath` are in `src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
   and ends each act once (`#endAct`: at the tribunal's end, the next act's start, or
   `closeActs()` at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
-  are read by `src/story/penalties.ts`; the world counts offences per act. The game master's
-  guard (`src/gamemaster/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
+  are read by `src/story/penalties.ts`; the world counts offences per act. The gamemaker's
+  guard (`src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
   goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
   optional fields, so older snapshots resume.
 

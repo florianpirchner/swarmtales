@@ -300,7 +300,7 @@ export interface Delivered {
 export interface Notice {
 	readonly author: string;
 	readonly text: string;
-	/** The city's message number of a numbered note (the game master's). */
+	/** The city's message number of a numbered note (the gamemaker's). */
 	readonly number?: number;
 }
 
@@ -644,7 +644,7 @@ export class World {
 		return this.#tribunal?.standing(agent) ?? { kind: "alive" };
 	}
 
-	/** The tribunal, for status lines and the game master's view; absent without one. */
+	/** The tribunal, for status lines and the gamemaker's view; absent without one. */
 	get tribunal(): Tribunal | undefined {
 		return this.#tribunal;
 	}
@@ -714,12 +714,12 @@ export class World {
 		return this.#goals?.goalOf(agent);
 	}
 
-	/** The goals book, for the game master's view and the status line; absent without goals. */
+	/** The goals book, for the gamemaker's view and the status line; absent without goals. */
 	get goals(): GoalBook | undefined {
 		return this.#goals;
 	}
 
-	/** The black seal, for the status line and the game master's view; absent without one. */
+	/** The black seal, for the status line and the gamemaker's view; absent without one. */
 	get seal(): SealHouse | undefined {
 		return this.#seal;
 	}
@@ -1500,7 +1500,7 @@ export class World {
 		this.#bus.emit({ type: "notice", to: agent, author, text });
 	}
 
-	/** A numbered private note (the game master's); returns its message number. */
+	/** A numbered private note (the gamemaker's); returns its message number. */
 	note(agent: CompetitorId, author: string, text: string): number {
 		const number = this.#numbers.next();
 		this.#noticesOf(agent).push({ author, text, number });

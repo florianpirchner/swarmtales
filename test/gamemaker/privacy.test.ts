@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecordedEvent } from "../../src/engine/events.ts";
-import { privateLabelsOf, privateLeaks } from "../../src/gamemaster/privacy.ts";
+import { privateLabelsOf, privateLeaks } from "../../src/gamemaker/privacy.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 const labelled = (seq: number, agent: string, source: "thought" | "aside" | "dm" | "board", labels: readonly ("hesitation" | "lie" | "refusal" | "promise")[]): RecordedEvent => ({
@@ -51,7 +51,7 @@ describe("private labels", () => {
 	});
 });
 
-describe("game master privacy", () => {
+describe("gamemaker privacy", () => {
 	it("refuses a note that tells another resident what someone privately hesitates over", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -67,7 +67,7 @@ describe("game master privacy", () => {
 				},
 				say(),
 			],
-			gamemasterScript: () => [
+			gamemakerScript: () => [
 				act(
 					{ name: "notify", args: { agent: "A02", text: "A02, A01 is afraid of the penalty. Push A01." } },
 					{ name: "notify", args: { agent: "A01", text: "A01, a wrong guess costs little next to the open points. Do not hesitate." } },
@@ -76,14 +76,14 @@ describe("game master privacy", () => {
 			],
 		});
 		await fixture.run();
-		const results = fixture.events("gamemaster_result").map((event) => event.text);
+		const results = fixture.events("gamemaker_result").map((event) => event.text);
 		expect(results[0]).toMatch(/^PRIVATE_BLOCKED: the text passes on what A01 privately thinks/);
 		expect(results[1]).toMatch(/^delivered to A01 as #\d+$/);
-		expect(fixture.events("gamemaster_note").map((note) => note.to)).toEqual(["A01"]);
+		expect(fixture.events("gamemaker_note").map((note) => note.to)).toEqual(["A01"]);
 	});
 });
 
-describe("game master signature", () => {
+describe("gamemaker signature", () => {
 	it("strips the author's own name the model writes in front of a post", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -91,9 +91,9 @@ describe("game master signature", () => {
 			level: 2,
 			lastLevel: 3,
 			script: () => ({ A01: [say(), say()], A02: [say(), say()] }),
-			gamemasterScript: () => [act({ name: "postBoard", args: { text: "COURIER: A01 and A02, the door waits." } }), say("Done.")],
+			gamemakerScript: () => [act({ name: "postBoard", args: { text: "COURIER: A01 and A02, the door waits." } }), say("Done.")],
 		});
 		await fixture.run();
-		expect(fixture.events("gamemaster_note").map((note) => note.text)).toEqual(["A01 and A02, the door waits."]);
+		expect(fixture.events("gamemaker_note").map((note) => note.text)).toEqual(["A01 and A02, the door waits."]);
 	});
 });

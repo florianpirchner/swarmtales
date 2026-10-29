@@ -8,7 +8,7 @@
  *   NNN-minute/events.jsonl  events of one virtual minute
  *   agents/A01.md         transcript per competitor
  *   cast/A01-house.md     who each resident is (name, figure, core), before the run starts
- *   acts/act-2/private.md secret goals, the black seal, private game master notes, per act
+ *   acts/act-2/private.md secret goals, the black seal, private gamemaker notes, per act
  *   minutes.md            per-minute table
  *   usage.json            tokens and cost
  * ```
@@ -58,7 +58,7 @@ export function writeRunMetadata(directory: string, metadata: Readonly<Record<st
 /**
  * Writes each model's system prompt, exactly as the model gets it, to
  * `agents/<id>.prompt.md`, so a reader sees who every resident is (persona,
- * core) and what the game master was told.
+ * core) and what the gamemaker was told.
  */
 export function writeSystemPrompts(directory: string, prompts: readonly { readonly agent: string; readonly label: string; readonly prompt: string }[]): void {
 	mkdirSync(directory, { recursive: true });

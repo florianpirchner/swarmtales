@@ -3,7 +3,7 @@
  * resident chooses the name the city knows it by (`chooseName`); whoever has
  * none when the choice closes gets a seeded one from the story's word list.
  * IDs stay the engine's keys: events, snapshots and tests keep them. Every
- * text a resident (or the game master) reads shows names instead
+ * text a resident (or the gamemaker) reads shows names instead
  * ({@link NameBook.display}), and every tool that takes a resident accepts
  * the name as well as the ID ({@link NameBook.resolve}).
  */

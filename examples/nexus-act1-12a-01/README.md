@@ -11,7 +11,7 @@ pnpm start --resume examples/nexus-act1-12a-01/snapshot-L7.json --provider anthr
 
 | File | Content |
 |---|---|
-| `snapshot-L7.json` | world, director, scheduler, agent contexts, game master, classifier, names, event log |
+| `snapshot-L7.json` | world, director, scheduler, agent contexts, gamemaker, classifier, names, event log |
 | `run/events.jsonl` | the full event log of Act I |
 | `run/digest/` | deterministic story digest: `beats.json`, `relationships.json`, `timeline.md` |
 | `run/REPORT.md` | the reporter's draft, reviewed (see below) |
@@ -27,16 +27,16 @@ Command: `pnpm start --provider anthropic --agents 12 --seed 7 --snapshot-after 
 | Role | Model |
 |---|---|
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
 | Classifier | `claude-haiku-5-5` via Anthropic |
 
 | Metric | Value |
 |---|---|
 | Snapshot | round 8: every resident passed level 7 by minute 7 (6 residents in 06a-02: minute 12) |
 | Submissions | 84 correct, 0 wrong |
-| Cost | 0.148 USD, of which competitors 0.123, game master 0.015, classifier 0.010 |
+| Cost | 0.148 USD, of which competitors 0.123, gamemaker 0.015, classifier 0.010 |
 | Requests | 308 |
-| Game master | 13 actions, all delivered |
+| Gamemaker | 13 actions, all delivered |
 | Standings at the cut | all 12 at 80 points |
 | Act brake | not needed (limit 25 minutes) |
 

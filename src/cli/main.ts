@@ -128,36 +128,36 @@ for (const entry of distinctSettings) {
 	}
 }
 
-// The game master plays along unless switched off. Offline runs (any scripted competitor) never call
-// a real model. It keeps the story's model whatever the competitors play; only its own flags or ARENA_GAMEMASTER_* change it.
+// The gamemaker plays along unless switched off. Offline runs (any scripted competitor) never call
+// a real model. It keeps the story's model whatever the competitors play; only its own flags or ARENA_GAMEMAKER_* change it.
 const offline = distinctSettings.some((entry) => entry.provider === SCRIPTED_PROVIDER_ID);
 const overrides = {
 	...runOverrides,
-	gamemaster: runOverrides.gamemaster !== false && !offline,
+	gamemaker: runOverrides.gamemaker !== false && !offline,
 	classifier: runOverrides.classifier !== false && !offline,
 };
-const gamemasterSettings =
-	overrides.gamemaster && story.gamemaster !== undefined
+const gamemakerSettings =
+	overrides.gamemaker && story.gamemaker !== undefined
 		? resolveSettings(
 				{
-					...(args.gamemasterProvider === undefined ? {} : { provider: args.gamemasterProvider }),
-					...(args.gamemasterModel === undefined ? {} : { modelId: args.gamemasterModel }),
+					...(args.gamemakerProvider === undefined ? {} : { provider: args.gamemakerProvider }),
+					...(args.gamemakerModel === undefined ? {} : { modelId: args.gamemakerModel }),
 				},
-				roleEnv("GAMEMASTER"),
-				story.gamemaster.model,
+				roleEnv("GAMEMAKER"),
+				story.gamemaker.model,
 			)
 		: undefined;
-if (gamemasterSettings !== undefined) {
-	const missingKeys = missingApiKeys(gamemasterSettings, registry, process.env);
+if (gamemakerSettings !== undefined) {
+	const missingKeys = missingApiKeys(gamemakerSettings, registry, process.env);
 	if (missingKeys.length > 0) {
 		fail(
-			`Missing API keys for the game master (provider "${gamemasterSettings.provider}"): ${missingKeys.join(", ")}\n` +
-				`Add the key to ${envFile} or export it in your shell, or play without it: --no-gamemaster.`,
+			`Missing API keys for the gamemaker (provider "${gamemakerSettings.provider}"): ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or play without it: --no-gamemaker.`,
 		);
 	}
 }
 
-// The classifier labels every round for the digest and the game master. Like the game master it keeps the
+// The classifier labels every round for the digest and the gamemaker. Like the gamemaker it keeps the
 // story's model whatever the competitors play; only its own flags or ARENA_CLASSIFIER_* change it.
 const classifierSpec = overrides.classifier ? story.classifier : undefined;
 const classifierSettings =
@@ -260,7 +260,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		? {}
 		: { promptAddenda: args.promptAddenda.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") })) }),
 	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { snapshot, name: basename(args.resume) } }),
-	...(gamemasterSettings === undefined ? {} : { gamemasterModels: createModelSource(gamemasterSettings, { registry }) }),
+	...(gamemakerSettings === undefined ? {} : { gamemakerModels: createModelSource(gamemakerSettings, { registry }) }),
 	...(modelOverride === undefined ? {} : { modelOverride }),
 	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
 	...(judge === undefined ? {} : { judge }),
@@ -293,10 +293,10 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		provider: providerLabel,
 		model: modelIdLabel,
 		seed: String(effective.seed),
-		gamemaster: gamemasterSettings === undefined ? "off" : `${gamemasterSettings.provider}/${gamemasterSettings.modelId ?? "-"}`,
+		gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
 		classifier: statementClassifier?.label ?? "off",
 		judge: judge?.label ?? "off",
-		direction: `figure ${effective.figureDirection}, game master ${effective.gmDirection}`,
+		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
 	},
 };
@@ -334,7 +334,7 @@ writeSystemPrompts(join(allocated.directory, "agents"), [
 		const persona = profile?.persona === undefined ? "no persona" : `persona: ${profile.persona.name}`;
 		return { agent: runner.id, label: `${profile === undefined ? "" : `${profile.model.provider}${profile.model.id === undefined ? "" : `/${profile.model.id}`} · `}${persona}`, prompt: runner.systemPrompt };
 	}),
-	...(run.gamemaster === undefined ? [] : [{ agent: "GM", label: "game master", prompt: run.gamemaster.systemPrompt }]),
+	...(run.gamemaker === undefined ? [] : [{ agent: "GM", label: "gamemaker", prompt: run.gamemaker.systemPrompt }]),
 ]);
 // Who every resident is, before the first step: cast/<ID>-<figure>.md (the act files follow at the end).
 writeCastFiles(
@@ -350,7 +350,7 @@ writeCastFiles(
 process.stdout.write(
 	`> story ${story.id} · ${modelLabel} · ${effective.agents} competitors · ` +
 		`${effective.minutes} minutes · seed ${effective.seed}` +
-		(gamemasterSettings === undefined ? "" : ` · game master ${describeModel(gamemasterSettings, registry)}`) +
+		(gamemakerSettings === undefined ? "" : ` · gamemaker ${describeModel(gamemakerSettings, registry)}`) +
 		(statementClassifier === undefined ? "" : ` · classifier ${statementClassifier.label}`) +
 		(snapshot === undefined ? "" : ` · resumed after round ${snapshot.round} (every competitor past level ${snapshot.level})`) +
 		"\n",
@@ -428,10 +428,15 @@ function brakeLine(brake: SnapshotBrake): string {
 	return `the brake of ${brake.act} fired at minute ${brake.minute} (${brake.maxMinutes} minutes); behind: ${behind}`;
 }
 
+/** The old name of a role's variables, still read (the gamemaker was the game master until 2026-10-29). */
+const OLD_ROLE_NAMES: Readonly<Record<string, string>> = { GAMEMAKER: "GAMEMASTER" };
+
 /** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
-function roleEnv(role: "GAMEMASTER" | "CLASSIFIER"): ModelEnv {
-	const provider = process.env[`ARENA_${role}_PROVIDER`] ?? "";
-	const model = process.env[`ARENA_${role}_MODEL`] ?? "";
+function roleEnv(role: "GAMEMAKER" | "CLASSIFIER"): ModelEnv {
+	const old = OLD_ROLE_NAMES[role];
+	const read = (key: string): string => process.env[`ARENA_${role}_${key}`] ?? (old === undefined ? undefined : process.env[`ARENA_${old}_${key}`]) ?? "";
+	const provider = read("PROVIDER");
+	const model = read("MODEL");
 	return { ...(provider.length === 0 ? {} : { ARENA_PROVIDER: provider }), ...(model.length === 0 ? {} : { ARENA_MODEL: model }) };
 }
 

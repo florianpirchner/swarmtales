@@ -7,7 +7,7 @@ into exile and beg for their lives. Every message and every private thought goes
 the city falls silent, another AI agent reads that log and writes the story of what happened, as a
 novella.
 
-Every part of it is made by AI agents: the residents, the city's director, the game master who
+Every part of it is made by AI agents: the residents, the city's director, the gamemaker who
 raises the stakes, the reader who catches every lie, the chronicler who finds the plot, and the
 novelist who writes it. Humans build the city and set its rules. Everything that happens inside it
 belongs to the swarm.
@@ -183,7 +183,7 @@ Besides the residents, the city has its own voices:
   true but incomplete lines ("A wall is climbed in pairs. Someone has to reach down first."), a
   hidden steward who sets a feast for the first three guests, the tribunal, and the standings that
   tell everyone who is safe, who is on the edge and who is out.
-- **The Game Master** is an AI agent that reads the city every minute and makes it tense rather
+- **The Gamemaker** is an AI agent that reads the city every minute and makes it tense rather
   than fast. It names leverage, prices and broken promises. It never sees a secret.
 - **The Reader** is another AI agent. It labels everything the residents say and think: promise, offer, threat, refusal,
   lie, hesitation, accusation. It catches intentions before they turn into events.

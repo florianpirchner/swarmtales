@@ -27,7 +27,7 @@ export const ZAI_GLM_FLASH = "glm-5.3-flash";
 
 /** Direct Anthropic API: Claude Haiku 5.5. */
 export const ANTHROPIC_HAIKU = "claude-haiku-5-5";
-/** Direct Anthropic API: Claude Sonnet 5.5, e.g. for the game master (v09). */
+/** Direct Anthropic API: Claude Sonnet 5.5, e.g. for the gamemaker (v09). */
 export const ANTHROPIC_SONNET = "claude-sonnet-5-5";
 /**
  * The arena reads its own variable instead of `ANTHROPIC_API_KEY`: hosted

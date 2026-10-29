@@ -70,14 +70,14 @@ function describe(event: RecordedEvent, chars: number): { readonly text: string;
 		return { text: `VERIFIED ${event.from} paid ${event.to} ${event.amount} points${event.memo.length > 0 ? ` memo ${say(event.memo)}` : ""}`, priority: 3 };
 	}
 	if (event.type === "tool_result" && event.isError) return { text: `REFUSED ${event.agent} ${event.tool}: ${errorCode(event.text)} ${say(event.text)}`, priority: 3 };
-	if (event.type === "gamemaster_result" && event.isError) return { text: `REFUSED game master ${event.tool}: ${errorCode(event.text)}`, priority: 3 };
-	if (event.type === "gamemaster_error") return { text: `GAME MASTER FAILED: ${say(event.message)}`, priority: 3 };
+	if (event.type === "gamemaker_result" && event.isError) return { text: `REFUSED gamemaker ${event.tool}: ${errorCode(event.text)}`, priority: 3 };
+	if (event.type === "gamemaker_error") return { text: `GAMEMAKER FAILED: ${say(event.message)}`, priority: 3 };
 	if (event.type === "run_end") return { text: `RUN ENDS: ${event.reason ?? "time limit"}`, priority: 3 };
 	if (event.type === "dm_sent") return { text: `${event.from} DM to ${event.to}: ${say(event.text)}`, priority: 2 };
 	if (event.type === "cast_dm") return { text: `${event.from} DM to ${event.cast}: ${say(event.text)}`, priority: 2 };
 	if (event.type === "group_post") return { text: `${event.author} in group ${event.group}: ${say(event.text)}`, priority: 2 };
 	if (event.type === "board_post") return { text: `${event.author} on the board${event.kind === "player" ? "" : ` (${event.kind})`}: ${say(event.text)}`, priority: event.kind === "player" ? 2 : 1 };
-	if (event.type === "gamemaster_note") return { text: `GAME MASTER note as ${event.author} to ${event.to}: ${say(event.text)}`, priority: 2 };
+	if (event.type === "gamemaker_note") return { text: `GAMEMAKER note as ${event.author} to ${event.to}: ${say(event.text)}`, priority: 2 };
 	if (event.type === "group_created") return { text: `VERIFIED ${event.founder} founded group ${event.group}`, priority: 2 };
 	if (event.type === "group_membership") return { text: `VERIFIED ${event.agent} ${event.change === "left" ? "left" : `${event.change} by ${event.by}`} group ${event.group}`, priority: 2 };
 	if (event.type === "petition_opened") return { text: `PETITION ${event.petition} opened: ${say(event.text)}`, priority: 2 };
@@ -92,7 +92,7 @@ function describe(event: RecordedEvent, chars: number): { readonly text: string;
 	}
 	if (event.type === "thinking") return { text: `${event.agent} REASONING: ${say(event.text)}`, priority: 0 };
 	if (event.type === "text") return { text: `${event.agent} SAYS TO ITSELF: ${say(event.text)}`, priority: 0 };
-	if (event.type === "gamemaster_thinking") return { text: `GAME MASTER THINKS: ${say(event.text)}`, priority: 0 };
-	if (event.type === "gamemaster_text") return { text: `GAME MASTER REASONING: ${say(event.text)}`, priority: 0 };
+	if (event.type === "gamemaker_thinking") return { text: `GAMEMAKER THINKS: ${say(event.text)}`, priority: 0 };
+	if (event.type === "gamemaker_text") return { text: `GAMEMAKER REASONING: ${say(event.text)}`, priority: 0 };
 	return undefined;
 }

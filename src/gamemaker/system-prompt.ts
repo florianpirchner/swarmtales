@@ -1,25 +1,25 @@
 /**
- * Base system prompt of the game master (SPEC 10.4). Its role comes from
+ * Base system prompt of the gamemaker (SPEC 10.4). Its role comes from
  * the story's act roles (a coach in a tutorial act, a director from the
  * hard acts on); the story's `brief` is appended, budgets and the voice
  * come from the story's spec.
  */
 import type { DirectionLevel } from "../engine/direction.ts";
 import { ladderText } from "../story/penalties.ts";
-import type { GamemasterRole, GamemasterSpec, Rules } from "../story/types.ts";
+import type { GamemakerRole, GamemakerSpec, Rules } from "../story/types.ts";
 
-/** Characters a note or board post of the game master may have; longer ones are refused. */
+/** Characters a note or board post of the gamemaker may have; longer ones are refused. */
 export const MAX_NOTE_LENGTH = 400;
 
-export interface GamemasterPromptInput {
+export interface GamemakerPromptInput {
 	readonly city: string;
 	readonly agents: number;
 	readonly survivors: number;
 	readonly rules: Rules;
-	readonly spec: GamemasterSpec;
+	readonly spec: GamemakerSpec;
 	/** Whether the report carries classifier labels. */
 	readonly labels?: boolean;
-	/** Whether the city holds tribunals the game master plans (SPEC 6.4); `factions` when each has a faction draft. */
+	/** Whether the city holds tribunals the gamemaker plans (SPEC 6.4); `factions` when each has a faction draft. */
 	readonly tribunal?: { readonly factions: boolean };
 	/** Whether the report shows the residents' cores or secret goals (v09). */
 	readonly characters?: boolean;
@@ -104,7 +104,7 @@ around the seal and the tribunals, and the climax at the last tribunal.`,
 	};
 }
 
-function roleText(role: GamemasterRole, survivors: number, agents: number, direction: DirectionLevel = 4): RoleText {
+function roleText(role: GamemakerRole, survivors: number, agents: number, direction: DirectionLevel = 4): RoleText {
 	if (role === "director" && direction >= 10) return authorText(survivors, agents);
 	switch (role) {
 		case "coach":
@@ -151,10 +151,10 @@ tribunal. You never give residents a strategy, never tell them what to value, an
 }
 
 /** The role section: one role, or one per act with the levels it covers. */
-function roleSection(input: GamemasterPromptInput): string {
+function roleSection(input: GamemakerPromptInput): string {
 	const { spec } = input;
 	const roles = spec.roles;
-	const describe = (role: GamemasterRole): RoleText => roleText(role, input.survivors, input.agents, input.direction);
+	const describe = (role: GamemakerRole): RoleText => roleText(role, input.survivors, input.agents, input.direction);
 	const only = roles.length === 1 ? roles[0] : undefined;
 	if (only !== undefined) {
 		const text = describe(only.role);
@@ -182,11 +182,11 @@ ${text.write}`;
 ${parts.join("\n\n")}`;
 }
 
-export function gamemasterSystemPrompt(input: GamemasterPromptInput): string {
+export function gamemakerSystemPrompt(input: GamemakerPromptInput): string {
 	const { spec, rules } = input;
 	const notes = spec.notesPerAgent === 1 ? "one note" : `${spec.notesPerAgent} notes`;
 	const posts = spec.boardPosts === 1 ? "one board post" : `${spec.boardPosts} board posts`;
-	return `You are the game master of ${input.city}, a closed city of ${input.agents} residents (A01, A02, ...).
+	return `You are the gamemaker of ${input.city}, a closed city of ${input.agents} residents (A01, A02, ...).
 The residents climb levels ("doors"). Each door opens with a password; on team levels every member holds a
 piece of it and the team must put them together. Only ${input.survivors} residents remain at the end, ranked by points.
 Residents see only their own task, the board, messages addressed to them and your notes.

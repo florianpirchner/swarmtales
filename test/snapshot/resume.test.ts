@@ -10,7 +10,7 @@ import { composeRun, DEFAULT_LIMITS, resumeOverrides, type RunOverrides } from "
 import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
 import type { World } from "../../src/engine/world.ts";
 import type { AnyStory } from "../../src/story/types.ts";
-import { GAMEMASTER_ID } from "../../src/gamemaster/gamemaster.ts";
+import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import { parseSnapshot, SnapshotError, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
@@ -65,8 +65,8 @@ function textOf(content: string | readonly { readonly type: string; readonly tex
 	return typeof content === "string" ? content : content.map((part) => part.text ?? "").join("\n");
 }
 
-/** The game master writes one note a look, to a resident chosen by the round. */
-function gamemasterScript(world: World): readonly FauxResponseStep[] {
+/** The gamemaker writes one note a look, to a resident chosen by the round. */
+function gamemakerScript(world: World): readonly FauxResponseStep[] {
 	const step: FauxResponseStep = (context) => {
 		if (context.messages.at(-1)?.role === "toolResult") return say("Done.");
 		const agent = world.competitors[world.minute % world.competitors.length] ?? "A01";
@@ -104,9 +104,9 @@ async function play(overrides: RunOverrides, extra: PlayOptions = {}): Promise<P
 	const resume = extra.resume;
 	const run = composeRun({
 		story: extra.story ?? nexus,
-		overrides: { minutes: MINUTES, gamemaster: true, classifier: true, ...(resume === undefined ? overrides : resumeOverrides(resume, overrides)) },
+		overrides: { minutes: MINUTES, gamemaker: true, classifier: true, ...(resume === undefined ? overrides : resumeOverrides(resume, overrides)) },
 		models: (world) => new ScriptedModelSource(chattyScript(world)),
-		gamemasterModels: (world) => new ScriptedModelSource({ [GAMEMASTER_ID]: gamemasterScript(world) }),
+		gamemakerModels: (world) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }),
 		classifier: () =>
 			new ChatStatementClassifier({
 				binding: new ScriptedModelSource({ [CLASSIFIER_ID]: classifierScript() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS),
@@ -172,13 +172,13 @@ describe("run snapshots", () => {
 		const snapshot = first.snapshot;
 		if (snapshot === undefined) throw new Error("no snapshot was taken");
 
-		// The cut: every competitor passed level 7 and waits at its door, the run still going, and the game master looked.
+		// The cut: every competitor passed level 7 and waits at its door, the run still going, and the gamemaker looked.
 		expect(snapshot.world.door).toBe(7);
 		expect(snapshot.world.competitors.every((entry) => entry.level === 7 && entry.held && entry.solved.includes(7))).toBe(true);
 		expect(snapshot.world.levels.map((entry) => entry.level)).not.toContain(8);
 		expect(snapshot.round).toBeLessThan(MINUTES);
 		const cut = snapshot.events.length;
-		expect(snapshot.events.filter((event) => event.type === "gamemaster_turn").at(-1)).toMatchObject({ round: snapshot.round });
+		expect(snapshot.events.filter((event) => event.type === "gamemaker_turn").at(-1)).toMatchObject({ round: snapshot.round });
 		expect(comparable(snapshot.events)).toEqual(comparable(whole.events.slice(0, cut)));
 		const end = first.events.at(-1);
 		expect(end?.type === "run_end" ? end.reason : undefined).toMatch(/^snapshot after level 7 written to memory; stopped there$/);
@@ -187,7 +187,7 @@ describe("run snapshots", () => {
 		expect(snapshot.world.groups.groups.length).toBeGreaterThan(0);
 		expect(snapshot.world.receipts.length).toBeGreaterThan(10);
 		expect(snapshot.world.dms.length).toBeGreaterThan(0);
-		expect(snapshot.gamemaster?.notes.length).toBeGreaterThan(0);
+		expect(snapshot.gamemaker?.notes.length).toBeGreaterThan(0);
 		expect(snapshot.interpreter?.history.length).toBeGreaterThan(0);
 		expect(snapshot.director.fired.length).toBeGreaterThan(0);
 		expect(whole.events.filter((event) => event.type === "interpretation").length).toBeGreaterThan(0);

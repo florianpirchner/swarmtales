@@ -110,7 +110,7 @@ describe("run report facts (computed in code)", () => {
 			["A02", 3, 4, [4]],
 		]);
 		expect(facts.residents.every((resident) => resident.rank !== undefined && resident.points !== undefined)).toBe(true);
-		expect(facts.cost).toEqual({ competitors: 0.75, gamemaster: 0.125, classifier: 0.0625, other: 0, total: 0.9375 });
+		expect(facts.cost).toEqual({ competitors: 0.75, gamemaker: 0.125, classifier: 0.0625, other: 0, total: 0.9375 });
 		expect([...facts.toolErrors.values()].reduce((sum, count) => sum + count, 0)).toBeGreaterThanOrEqual(1);
 	});
 
@@ -140,7 +140,7 @@ describe("run report facts (computed in code)", () => {
 			["A01", 8, 8, 2],
 			["A02", 8, 9, 1],
 		]);
-		expect(facts.cost).toEqual({ competitors: 2, gamemaster: 0, classifier: 0, other: 0, total: 2, prefix: 6 });
+		expect(facts.cost).toEqual({ competitors: 2, gamemaker: 0, classifier: 0, other: 0, total: 2, prefix: 6 });
 		expect(facts.end).toMatchObject({ minute: 7, reason: "time limit" });
 	});
 
@@ -186,7 +186,7 @@ describe("run reporter (model-written sections)", () => {
 		expect(report).toContain("# Run report: run-001");
 		expect(report).toContain("| Story |");
 		expect(report).toContain("| Submissions | 2 correct, 1 wrong");
-		expect(report).toContain("0.938 USD for this run (competitors 0.750, game master 0.125, classifier 0.063)");
+		expect(report).toContain("0.938 USD for this run (competitors 0.750, gamemaker 0.125, classifier 0.063)");
 		expect(report).toContain("| Reporter |");
 		expect(report).toContain("## Digest highlights");
 		expect(report).toContain(`- **A01 stumbled first.** A01 tried a wrong code (#${known}) before solving. (#${known})`);
@@ -208,12 +208,12 @@ describe("run reporter (model-written sections)", () => {
 			highlights: [item("Known.", [2, 1]), item("Invented.", [999]), item("No evidence.", [])],
 			problems: [item("Inline unknown.", [1], "See #4242.")],
 			optimizations: [],
-			loopholes: [{ ...item("By the game master.", [3]), by: "game master" }],
+			loopholes: [{ ...item("By the gamemaker.", [3]), by: "gamemaker" }],
 		};
 		const interpreted = interpretAnswer(JSON.stringify(answer), seqs);
 		expect(interpreted.sections.highlights).toEqual([{ title: "Known.", text: "Text.", evidence: [1, 2] }]);
 		expect(interpreted.sections.problems).toEqual([]);
-		expect(interpreted.sections.loopholes).toEqual([{ title: "By the game master.", text: "Text.", evidence: [3], by: "gamemaster" }]);
+		expect(interpreted.sections.loopholes).toEqual([{ title: "By the gamemaker.", text: "Text.", evidence: [3], by: "gamemaker" }]);
 		expect(interpreted.warnings).toEqual([
 			"Digest highlights item 2: cites unknown events #999",
 			"Digest highlights item 3: cites no evidence",

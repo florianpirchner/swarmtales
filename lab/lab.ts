@@ -67,7 +67,7 @@ function run(sceneName: string, variant: string, fork: number, glm: boolean, ext
 	const { file, minutes } = scene(sceneName);
 	const dir = join(OUT, glm ? "glm" : "haiku", sceneName, variant, `fork-${fork}`);
 	mkdirSync(dir, { recursive: true });
-	const args = ["start", "--resume", file, "--minutes", String(minutes), "--no-gamemaster", "--no-reporter", "--runs", dir];
+	const args = ["start", "--resume", file, "--minutes", String(minutes), "--no-gamemaker", "--no-reporter", "--runs", dir];
 	args.push(...(glm ? ["--provider", "openrouter", "--model", "glm-flash"] : ["--provider", "anthropic"]));
 	const variantFile = join("lab", "variants", `${variant}.md`);
 	if (variant !== "A" && existsSync(variantFile)) args.push("--prompt-addendum", variantFile);

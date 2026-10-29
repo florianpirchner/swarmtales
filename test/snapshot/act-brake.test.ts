@@ -43,7 +43,7 @@ function script(world: World): Script {
 async function play(options: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: RunSnapshot } = {}) {
 	const log = new MemorySink();
 	let taken: RunSnapshot | undefined;
-	const base = { minutes: MINUTES, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: false, classifier: false } as const;
+	const base = { minutes: MINUTES, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: false, classifier: false } as const;
 	const resume = options.resume;
 	const run = composeRun({
 		story: shortAct,

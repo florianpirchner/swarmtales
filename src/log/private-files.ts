@@ -4,7 +4,7 @@
  *
  * ```
  * <run>/cast/A01-house.md      who A01 is: name, figure, core, the text of its system prompt
- * <run>/acts/act-2/private.md  per act: secret goals and their outcome, the black seal, the game master's private notes and its thinking
+ * <run>/acts/act-2/private.md  per act: secret goals and their outcome, the black seal, the gamemaker's private notes and its thinking
  * ```
  *
  * The cast files are written before the run starts (from the world) and
@@ -46,8 +46,8 @@ const SealBid = Type.Object({ ...Base, type: Type.Literal("seal_bid"), seal: Typ
 const SealWon = Type.Object({ ...Base, type: Type.Literal("seal_won"), seal: Type.Integer(), agent: Type.String(), bid: Type.Integer() });
 const SealUsed = Type.Object({ ...Base, type: Type.Literal("seal_used"), seal: Type.Integer(), holder: Type.String(), target: Type.String() });
 const SealExpired = Type.Object({ ...Base, type: Type.Literal("seal_expired"), seal: Type.Integer(), reason: Type.String() });
-const Note = Type.Object({ ...Base, type: Type.Literal("gamemaster_note"), to: Type.String(), text: Type.String() });
-const Thinking = Type.Object({ ...Base, type: Type.Literal("gamemaster_thinking"), text: Type.String() });
+const Note = Type.Object({ ...Base, type: Type.Literal("gamemaker_note"), to: Type.String(), text: Type.String() });
+const Thinking = Type.Object({ ...Base, type: Type.Literal("gamemaker_thinking"), text: Type.String() });
 
 const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking]);
 type PrivateEvent = Static<typeof PrivateEvent>;
@@ -190,11 +190,11 @@ export function writePrivateFiles(directory: string, story: AnyStory): void {
 				lines.push("");
 			}
 		}
-		const notes = inAct(ofType(events, "gamemaster_note")).filter((note) => note.to !== "board");
-		lines.push("## The game master's private notes", "");
+		const notes = inAct(ofType(events, "gamemaker_note")).filter((note) => note.to !== "board");
+		lines.push("## The gamemaker's private notes", "");
 		if (notes.length === 0) lines.push("None.", "");
 		else lines.push("| Minute | To | Note |", "|---:|---|---|", ...notes.map((note) => `| ${note.minute} | ${label(note.to)} | ${named(note.text).replace(/\|/g, "\\|").replace(/\n/g, " ")} |`), "");
-		const thoughts = inAct(ofType(events, "gamemaster_thinking"));
+		const thoughts = inAct(ofType(events, "gamemaker_thinking"));
 		if (thoughts.length > 0) {
 			// The gamemaker's own reasoning (logged from run 013 on): who it plans for, and why.
 			lines.push("## The gamemaker's thinking", "", ...thoughts.flatMap((thought) => [`**Minute ${thought.minute}**`, "", ...named(thought.text).split("\n").map((line) => `> ${line}`), ""]));

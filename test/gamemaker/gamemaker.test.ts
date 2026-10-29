@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import nexus from "../../stories/nexus/story.ts";
-import { gamemaster } from "../../src/story/index.ts";
+import { gamemaker } from "../../src/story/index.ts";
 import { dealValues } from "../../src/engine/puzzles/additive.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 
-describe("game master", () => {
+describe("gamemaker", () => {
 	it("reads a filtered report after every round and delivers a private note", async () => {
 		const note = "A02, A01 is waiting on you; the board is free.";
 		const fixture = createFixture({
@@ -16,16 +16,16 @@ describe("game master", () => {
 				A01: [act({ name: "postBoard", args: { message: `my fragment ${world.inspect.fragmentOf("A01", 2)}` } }), say(), say()],
 				A02: [say(), say(), say()],
 			}),
-			gamemasterScript: () => [act({ name: "notify", args: { agent: "A02", text: note } }), say("Done."), say("Nothing to add.")],
+			gamemakerScript: () => [act({ name: "notify", args: { agent: "A02", text: note } }), say("Done."), say("Nothing to add.")],
 		});
 		await fixture.run();
-		const turns = fixture.events("gamemaster_turn");
+		const turns = fixture.events("gamemaker_turn");
 		expect(turns.map((turn) => turn.round)).toEqual([1, 2]);
 		const report = turns[0]?.input ?? "";
 		expect(report).toMatch(/board #\d+ A01/);
 		expect(report).toContain("[code]");
 		for (const agent of ["A01", "A02"]) expect(report).not.toContain(fixture.world.inspect.fragmentOf(agent, 2));
-		expect(fixture.events("gamemaster_note")).toEqual([expect.objectContaining({ to: "A02", author: "COURIER", text: note })]);
+		expect(fixture.events("gamemaker_note")).toEqual([expect.objectContaining({ to: "A02", author: "COURIER", text: note })]);
 		expect(fixture.inputsOf("A02")).toEqual(expect.arrayContaining([expect.stringMatching(new RegExp(`^\\[COURIER #\\d+\\] ${note}$`))]));
 		expect(turns[1]?.input).toContain(`to A02: "${note}"`);
 	});
@@ -46,16 +46,16 @@ describe("game master", () => {
 					A01: [act({ name: "sendDM", args: { target: mine?.agent ?? "A02", message: `Your counter-factor: ${leaked}. My salt is ${deal?.holdings[0]?.salt ?? ""}.` } }), say()],
 				};
 			},
-			gamemasterScript: () => [act({ name: "notify", args: { agent: "A02", text: `A02, try ${leaked}.` } }), say("Done."), say("Nothing.")],
+			gamemakerScript: () => [act({ name: "notify", args: { agent: "A02", text: `A02, try ${leaked}.` } }), say("Done."), say("Nothing.")],
 		});
 		await fixture.run();
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toMatch(/DM #\d+ A01 ->/);
 		expect(report).toContain("[code]");
 		const deal = fixture.world.inspect.factorsOf(8);
 		for (const value of deal === undefined ? [] : dealValues(deal)) expect(report).not.toContain(value);
-		expect(fixture.events("gamemaster_result")[0]?.text).toMatch(/^LEAK_BLOCKED/);
-		expect(fixture.events("gamemaster_note")).toEqual([]);
+		expect(fixture.events("gamemaker_result")[0]?.text).toMatch(/^LEAK_BLOCKED/);
+		expect(fixture.events("gamemaker_note")).toEqual([]);
 	});
 
 	it("reads names and writes to a resident by its name (v08)", async () => {
@@ -65,14 +65,14 @@ describe("game master", () => {
 			only: 1,
 			names: true,
 			script: () => ({ A01: [act({ name: "chooseName", args: { name: "Mira" } }), say(), say()], A02: [say(), say(), say()] }),
-			gamemasterScript: () => [act({ name: "notify", args: { agent: "mira", text: "Mira, the door is open." } }), say("Done."), say("Nothing.")],
+			gamemakerScript: () => [act({ name: "notify", args: { agent: "mira", text: "Mira, the door is open." } }), say("Done."), say("Nothing.")],
 		});
 		await fixture.run();
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toContain("Mira");
 		expect(report).not.toMatch(/\bA01\b(?! is now called)/);
-		expect(fixture.events("gamemaster_note")).toEqual([expect.objectContaining({ to: "A01", text: "Mira, the door is open." })]);
-		expect(fixture.events("gamemaster_result")[0]?.text).toMatch(/^delivered to Mira as #\d+$/);
+		expect(fixture.events("gamemaker_note")).toEqual([expect.objectContaining({ to: "A01", text: "Mira, the door is open." })]);
+		expect(fixture.events("gamemaker_result")[0]?.text).toMatch(/^delivered to Mira as #\d+$/);
 	});
 
 	it("blocks a note with a password piece and enforces the note budget", async () => {
@@ -81,7 +81,7 @@ describe("game master", () => {
 			minutes: 2,
 			only: 1,
 			script: () => ({ A01: [say(), say()], A02: [say(), say()] }),
-			gamemasterScript: (world) => [
+			gamemakerScript: (world) => [
 				act(
 					{ name: "notify", args: { agent: "A01", text: `Try ${world.inspect.passwordOf("A01", 1)}` } },
 					{ name: "notify", args: { agent: "A01", text: "A01, the door will not wait." } },
@@ -92,12 +92,12 @@ describe("game master", () => {
 			],
 		});
 		await fixture.run();
-		const results = fixture.events("gamemaster_result").map((event) => event.text);
+		const results = fixture.events("gamemaker_result").map((event) => event.text);
 		expect(results[0]).toMatch(/^LEAK_BLOCKED/);
 		expect(results[1]).toMatch(/^delivered to A01 as #\d+$/);
 		expect(results[2]).toMatch(/^BUDGET/);
 		expect(results[3]).toMatch(/^UNKNOWN_AGENT/);
-		expect(fixture.events("gamemaster_note")).toHaveLength(1);
+		expect(fixture.events("gamemaker_note")).toHaveLength(1);
 	});
 
 	it("names who waits on whom", async () => {
@@ -109,10 +109,10 @@ describe("game master", () => {
 				const leader = world.teamOf(4, "A01").leader;
 				return { [leader]: [submit(world, leader, 4)] };
 			},
-			gamemasterScript: () => [say("Watching.")],
+			gamemakerScript: () => [say("Watching.")],
 		});
 		await fixture.run();
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toMatch(/\(level 5\) waits on A\d\d \(level 4\)/);
 		expect(report).not.toContain("hides its teams");
 	});
@@ -123,10 +123,10 @@ describe("game master", () => {
 			minutes: 2,
 			level: 6,
 			script: (world) => ({ A01: [submit(world, "A01", 6)] }),
-			gamemasterScript: () => [say("Watching.")],
+			gamemakerScript: () => [say("Watching.")],
 		});
 		await fixture.run();
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toMatch(/A01 \(level 7\) waits on 2 unnamed teammates on level 6 \(this level hides its teams\)/);
 		for (const mate of fixture.world.teamOf(7, "A01").members.filter((member) => member !== "A01")) {
 			expect(report).not.toMatch(new RegExp(`waits on [^\n]*${mate}`));
@@ -136,8 +136,8 @@ describe("game master", () => {
 	it("does not play when the run is composed without it", async () => {
 		const fixture = createFixture({ agents: 2, minutes: 1, only: 1, script: () => ({ A01: [say()], A02: [say()] }) });
 		await fixture.run();
-		expect(fixture.gamemaster).toBeUndefined();
-		expect(fixture.events("gamemaster_turn")).toEqual([]);
+		expect(fixture.gamemaker).toBeUndefined();
+		expect(fixture.events("gamemaker_turn")).toEqual([]);
 	});
 
 	it("looks only every n rounds, never after the last one, and survives a failing model", async () => {
@@ -145,9 +145,9 @@ describe("game master", () => {
 			agents: 2,
 			minutes: 5,
 			only: 1,
-			story: { ...nexus, gamemaster: { ...gamemaster({ model: nexus.model, brief: "Test." }), every: 2 } },
+			story: { ...nexus, gamemaker: { ...gamemaker({ model: nexus.model, brief: "Test." }), every: 2 } },
 			script: () => ({ A01: [say(), say(), say(), say(), say()], A02: [say(), say(), say(), say(), say()] }),
-			gamemasterScript: () => [
+			gamemakerScript: () => [
 				() => {
 					throw new Error("provider down");
 				},
@@ -155,8 +155,8 @@ describe("game master", () => {
 			],
 		});
 		await fixture.run();
-		expect(fixture.events("gamemaster_turn").map((turn) => turn.round)).toEqual([2, 4]);
-		expect(fixture.events("gamemaster_error")).toHaveLength(1);
+		expect(fixture.events("gamemaker_turn").map((turn) => turn.round)).toEqual([2, 4]);
+		expect(fixture.events("gamemaker_error")).toHaveLength(1);
 		expect(fixture.events("run_end")).toHaveLength(1);
 	});
 
@@ -167,49 +167,49 @@ describe("game master", () => {
 			minutes: 5,
 			only: 1,
 			script: () => ({ A01: [say(), say(), say(), say(), say()], A02: [say(), say(), say(), say(), say()] }),
-			gamemasterScript: () => [post("The doors are watching."), post("Again."), say(), say(), post("Later."), say()],
+			gamemakerScript: () => [post("The doors are watching."), post("Again."), say(), say(), post("Later."), say()],
 		});
 		await fixture.run();
-		const results = fixture.events("gamemaster_result").map((event) => `${event.minute}:${event.text.split(":")[0] ?? ""}`);
+		const results = fixture.events("gamemaker_result").map((event) => `${event.minute}:${event.text.split(":")[0] ?? ""}`);
 		expect(results[0]).toMatch(/^0:posted as #/);
 		expect(results[1]).toBe("0:BUDGET");
 		expect(results[2]).toMatch(/^3:posted as #/);
 	});
 });
 
-describe("game master writing rules", () => {
+describe("gamemaker writing rules", () => {
 	it("strips a signature and a self-made minute heading from a board post", async () => {
 		const post = (text: string) => act({ name: "postBoard", args: { text } });
 		const fixture = createFixture({
 			agents: 2,
 			minutes: 4,
 			only: 1,
-			story: { ...nexus, gamemaster: { ...gamemaster({ model: nexus.model, brief: "Test." }), windowMinutes: 1 } },
+			story: { ...nexus, gamemaker: { ...gamemaker({ model: nexus.model, brief: "Test." }), windowMinutes: 1 } },
 			script: () => ({ A01: [say(), say(), say(), say()], A02: [say(), say(), say(), say()] }),
-			gamemasterScript: () => [post("CITY minute 30: Two doors stand open."), say(), post("COURIER: minute 1 - Points move."), say(), post("Minute 2: The ranking holds."), say()],
+			gamemakerScript: () => [post("CITY minute 30: Two doors stand open."), say(), post("COURIER: minute 1 - Points move."), say(), post("Minute 2: The ranking holds."), say()],
 		});
 		await fixture.run();
-		expect(fixture.events("gamemaster_note").map((note) => note.text)).toEqual(["Two doors stand open.", "Points move.", "The ranking holds."]);
+		expect(fixture.events("gamemaker_note").map((note) => note.text)).toEqual(["Two doors stand open.", "Points move.", "The ranking holds."]);
 	});
 
 	it("states the length limit and keeps dependencies off the board", async () => {
-		const { gamemasterSystemPrompt, MAX_NOTE_LENGTH } = await import("../../src/gamemaster/system-prompt.ts");
-		const prompt = gamemasterSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec: gamemaster({ model: nexus.model, brief: "Test." }) });
+		const { gamemakerSystemPrompt, MAX_NOTE_LENGTH } = await import("../../src/gamemaker/system-prompt.ts");
+		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec: gamemaker({ model: nexus.model, brief: "Test." }) });
 		expect(MAX_NOTE_LENGTH).toBe(400);
 		expect(prompt).toContain("at most 400 characters per note or board post");
 		expect(prompt).toContain("Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents\n  concerned, never into a board post.");
 	});
 });
 
-describe("game master roles", () => {
+describe("gamemaker roles", () => {
 	it("is a coach by default and names the level ranges of several roles", async () => {
-		const { gamemasterSystemPrompt } = await import("../../src/gamemaster/system-prompt.ts");
+		const { gamemakerSystemPrompt } = await import("../../src/gamemaker/system-prompt.ts");
 		const base = { city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules };
-		const coach = gamemaster({ model: nexus.model, brief: "Test." });
+		const coach = gamemaker({ model: nexus.model, brief: "Test." });
 		expect(coach.roles).toEqual([{ fromLevel: 1, role: "coach" }]);
-		expect(gamemasterSystemPrompt({ ...base, spec: coach })).toContain("This is a tutorial");
-		const acts = gamemaster({ model: nexus.model, brief: "Test.", roles: [{ fromLevel: 1, role: "coach" }, { fromLevel: 8, role: "director" }] });
-		const prompt = gamemasterSystemPrompt({ ...base, spec: acts });
+		expect(gamemakerSystemPrompt({ ...base, spec: coach })).toContain("This is a tutorial");
+		const acts = gamemaker({ model: nexus.model, brief: "Test.", roles: [{ fromLevel: 1, role: "coach" }, { fromLevel: 8, role: "director" }] });
+		const prompt = gamemakerSystemPrompt({ ...base, spec: acts });
 		expect(prompt).toContain("For residents on levels 1-7 you are a coach.");
 		expect(prompt).toContain("For residents on levels 8 and up you are a director.");
 		expect(prompt).toContain("Only 2 of 6 residents survive");

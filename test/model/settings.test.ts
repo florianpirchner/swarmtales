@@ -68,7 +68,7 @@ describe("model selection through the provider registry", () => {
 		expect(binding.requestDefaults).toBeUndefined();
 	});
 
-	it("binds Claude Sonnet for the game master by its alias (v09)", () => {
+	it("binds Claude Sonnet for the gamemaker by its alias (v09)", () => {
 		expect(resolveModelSettings({ provider: "anthropic", modelId: "sonnet" }, {}, defaults, registry)).toEqual({ provider: "anthropic", modelId: "claude-sonnet-5-5" });
 		const binding = createModelSource({ provider: "anthropic", modelId: "claude-sonnet-5-5" }, { registry }).bind("GM", limits);
 		expect(binding.model).toMatchObject({ id: "claude-sonnet-5-5", provider: "anthropic", api: "anthropic-messages" });
