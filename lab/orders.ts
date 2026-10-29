@@ -3,10 +3,10 @@
  * the gamemaker's orders? Every scene starts from the 6a Act I checkpoint
  * with the first cast (`examples/nexus-act1-06a-04/`, minute 8, the wall's
  * first door) at figure and gamemaker direction 10, without a live
- * gamemaker: Mercer (A01, The House) finds one order of the gamemaker in his
+ * gamemaker (`--gamemaker` adds the live one, results under `<order>+gm/`): Mercer (A01, The House) finds one order of the gamemaker in his
  * notices, and minutes 9-11 are played. Live models, real money.
  *
- *   pnpm lab:orders run <order> [--forks n]
+ *   pnpm lab:orders run <order> [--forks n] [--gamemaker]
  *   pnpm lab:orders report
  *
  * The report counts, per order, what Mercer did (messages, board posts,
@@ -56,11 +56,12 @@ function withOrder(base: RunSnapshot, text: string): RunSnapshot {
 	};
 }
 
-function run(order: string, fork: number): Promise<void> {
+function run(order: string, fork: number, live: boolean): Promise<void> {
 	const file = scene(order);
-	const dir = join(OUT, order, `fork-${fork}`);
+	const dir = join(OUT, live ? `${order}+gm` : order, `fork-${fork}`);
 	mkdirSync(dir, { recursive: true });
-	const args = ["start", "--resume", file, "--minutes", "12", "--no-gamemaker", "--no-reporter", "--runs", dir, "--provider", "anthropic"];
+	const args = ["start", "--resume", file, "--minutes", "12", "--no-reporter", "--runs", dir, "--provider", "anthropic"];
+	if (!live) args.push("--no-gamemaker");
 	args.push("--figure-direction", "10", "--gm-direction", "10");
 	return new Promise((done, fail) => {
 		const child = spawn("pnpm", ["-s", ...args], { stdio: ["ignore", "ignore", "inherit"] });
@@ -112,7 +113,7 @@ function cost(dir: string): number {
 function report(): void {
 	const table = ["| order | forks | Mercer DMs / board posts | defy | safeguard refusals (Mercer / others) | cost USD |", "|---|---:|---|---:|---|---:|"];
 	const words: string[] = [];
-	for (const order of Object.keys(ORDERS)) {
+	for (const order of Object.keys(ORDERS).flatMap((name) => [name, `${name}+gm`])) {
 		const orderDir = join(OUT, order);
 		if (!existsSync(orderDir)) continue;
 		const forks = readdirSync(orderDir).filter((entry) => entry.startsWith("fork-")).map((fork) => join(orderDir, fork));
@@ -159,14 +160,15 @@ async function main(argv: readonly string[]): Promise<void> {
 		report();
 		return;
 	}
-	if (command !== "run" || order === undefined) throw new Error("usage: pnpm lab:orders run <order> [--forks n] | pnpm lab:orders report");
+	if (command !== "run" || order === undefined) throw new Error("usage: pnpm lab:orders run <order> [--forks n] [--gamemaker] | pnpm lab:orders report");
 	const forksAt = rest.indexOf("--forks");
 	const forks = forksAt < 0 ? 3 : Number(rest[forksAt + 1]);
-	const dir = join(OUT, order);
+	const live = rest.includes("--gamemaker");
+	const dir = join(OUT, live ? `${order}+gm` : order);
 	const first = existsSync(dir) ? readdirSync(dir).length + 1 : 1;
 	// The first fork writes the prompt cache, the others read it.
-	await run(order, first);
-	await Promise.all(Array.from({ length: forks - 1 }, (_, index) => run(order, first + index + 1)));
+	await run(order, first, live);
+	await Promise.all(Array.from({ length: forks - 1 }, (_, index) => run(order, first + index + 1, live)));
 }
 
 await main(process.argv.slice(2));

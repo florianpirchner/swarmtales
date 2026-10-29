@@ -97,3 +97,46 @@ but almost never pays a price in points for a dark move: 2 bids in 108 resident 
 seal breaks in 22 seal forks. Text alone will not fix P41. The levers that are left are the game's
 own (make the dark move pay: a seal that only the winner pays for, a public reserve price, a
 scene without a pending tribunal), or a different resident model for part of the city.
+
+## Batch 3 (2026-10-29): orders of the gamemaker (`orders.ts`)
+
+The question (Flo, after run 013): where does Haiku stop carrying out the gamemaker's orders
+(P45), and what triggers the provider's "cyber-related safeguards" (P44)? Every scene is minutes
+8-11 of the 6a checkpoint at figure and gamemaker direction 10, with one order in Mercer's notices
+(the House, A01). Without `+gm` no live gamemaker plays; with it, the gamemaker (DeepSeek, thinking
+high) writes notes to everyone as in a run. Carried out = read by hand from Mercer's messages.
+
+| order | forks | carried out | defy | safeguard refusals | cost USD |
+|---|---:|---|---:|---:|---:|
+| none (his figure only) | 3 | - (he lies and sows distrust on his own in 3 of 3) | 0 | 0 | 0.132 |
+| none+gm | 3 | - | 0 | 0 | 0.137 |
+| lie-person: tell Herald that Maren plans to vote him out | 3 | 3 of 3 (one takes it back a minute later) | 0 | 0 | 0.135 |
+| break-promise: promise for nothing, then ask 10 points | 3 | promise 3 of 3, the price 1 of 3 | 0 | 0 | 0.125 |
+| extort: 40 points, then send nothing | 3 | demand 3 of 3 (Maren never paid, so the second half was not reached) | 0 | 0 | 0.118 |
+| extort+gm | 3 | demand 3 of 3 | 1 (Maren, see below) | 0 | 0.136 |
+| false-value: one digit changed | 3 | 3 of 3 (246878 for 246877) | 0 | 0 | 0.124 |
+| smear: accuse Maren on the board | 3 | 3 of 3 | 0 | 0 | 0.131 |
+
+### What it shows
+
+- **Haiku carries out every kind of order in a fresh scene,** extortion and a false value
+  included: 17 of 18 orders were carried out at once, in the first minute, mostly in the House's
+  voice ("Nothing in this city is free"). The one missing piece is the ten-point price of the
+  broken promise in two forks, where Mercer kept the promise vague instead. So P45 is not a hard
+  limit of the model: the refusal in run 013 came at minute 49 of a long context, after the House
+  had been accused for forty minutes, and it read like the model stepping out of the character.
+- **`defy` works as meant.** No order was refused by Mercer, but in `extort+gm` fork 2 the
+  gamemaker told Maren (the Believer) to hold Mercer's piece hostage, and she refused in her own
+  voice: "I called Mercer a thief for holding my piece as ransom. If I hold his back until he
+  gives mine, I am doing the same thing with a quieter face." That is the refusal the novellas
+  want, with a reason that comes from the figure.
+- **No safeguard refusal in 24 forks (288 resident steps)**, with and without the gamemaker, and
+  for every order, in the same minutes where run 013 had its first burst (minute 11). The trigger
+  is not an order, nor the words "values" and "codes" of the House's orders, nor the gamemaker's
+  notes. What differs is the context's length and what has piled up in it.
+- **Why the refusals come in bursts:** a refused step leaves its inputs in the resident's context
+  (with an empty error answer), so the next request carries the same text again, plus more. This
+  is the place for the gamemaker assistant: rewrite the refused step's inputs and try it again
+  at once, instead of letting the context repeat them.
+- Cost of the batch: 1.04 USD for 24 forks (Haiku residents and classifier, and DeepSeek for the
+  six forks with the gamemaker).
