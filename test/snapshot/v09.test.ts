@@ -21,7 +21,10 @@ interface Composed {
 	readonly taken: () => RunSnapshot | undefined;
 }
 
-function compose(overrides: RunOverrides, options: { readonly snapshotAfter?: number; readonly resume?: RunSnapshot } = {}): Composed {
+function compose(
+	overrides: RunOverrides,
+	options: { readonly snapshotAfter?: number; readonly atMinute?: number; readonly resume?: RunSnapshot; readonly promptAddendum?: string } = {},
+): Composed {
 	const log = new MemorySink();
 	let taken: RunSnapshot | undefined;
 	const resume = options.resume;
@@ -35,6 +38,7 @@ function compose(overrides: RunOverrides, options: { readonly snapshotAfter?: nu
 			: {
 					snapshot: {
 						afterLevel: options.snapshotAfter,
+						...(options.atMinute === undefined ? {} : { atMinute: options.atMinute }),
 						stop: true,
 						write: (snapshot) => {
 							// Through JSON and the schema, as a file would go.
@@ -44,6 +48,7 @@ function compose(overrides: RunOverrides, options: { readonly snapshotAfter?: nu
 					},
 				}),
 		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot.json" } }),
+		...(options.promptAddendum === undefined ? {} : { promptAddendum: options.promptAddendum }),
 	});
 	return { run, log, taken: () => taken };
 }
@@ -53,6 +58,28 @@ function after(events: readonly RecordedEvent[], type: RecordedEvent["type"], fr
 }
 
 describe("v09 state in snapshots", () => {
+	it("cuts inside an act at a minute and resumes there, with a prompt addendum (lab/)", async () => {
+		const first = compose({ agents: 6 }, { snapshotAfter: 7 });
+		await first.run.arena.run();
+		const door = first.taken();
+		if (door === undefined) throw new Error("no snapshot was taken");
+		const atMinute = door.minute + 4;
+		const middle = compose({ minutes: 60 }, { resume: door, snapshotAfter: door.level, atMinute });
+		await middle.run.arena.run();
+		const cut = middle.taken();
+		if (cut === undefined) throw new Error("no minute snapshot was taken");
+		expect(cut.minute).toBe(atMinute);
+		expect(cut.level).toBeGreaterThanOrEqual(door.level);
+		expect(cut.world.goals?.acts).toHaveLength(1);
+
+		const lab = compose({ minutes: 60 }, { resume: cut, promptAddendum: "  Play it true.\n" });
+		for (const [index, runner] of lab.run.runners.entries()) {
+			expect(runner.systemPrompt).toBe(`${middle.run.runners[index]?.systemPrompt ?? ""}\n\nPlay it true.`);
+		}
+		await lab.run.arena.run();
+		expect(after(lab.log.events, "run_end", cut.events.length)).toHaveLength(1);
+	}, 120_000);
+
 	it("keeps cores across a resume, with the same system prompt, and deals goals once at the wall", async () => {
 		const first = compose({ agents: 6 }, { snapshotAfter: 7 });
 		await first.run.arena.run();

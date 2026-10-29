@@ -24,8 +24,12 @@ export interface StartArgs {
 	readonly runsDirectory: string;
 	/** Write `snapshot-L<n>.json` once every competitor has passed level n (SPEC 17). */
 	readonly snapshotAfter?: number;
+	/** Write `snapshot-M<m>.json` at the first round boundary at or after minute m (prompt experiments). */
+	readonly snapshotAt?: number;
 	/** End the run right after that snapshot. */
 	readonly stopAfterSnapshot?: true;
+	/** File whose text is appended to every competitor's system prompt (prompt experiments, `lab/`). */
+	readonly promptAddendum?: string;
 	/** Snapshot file to continue from. */
 	readonly resume?: string;
 }
@@ -58,7 +62,9 @@ export const START_USAGE = [
 	"  --reporter-model <id>       run reporter model (default: deepseek/deepseek-v4.1-flash-1017)",
 	"  --runs <dir>         directory for run artifacts (default: runs)",
 	"  --snapshot-after <n> write snapshot-L<n>.json into the run directory once every competitor passed level n",
+	"  --snapshot-at <m>    write snapshot-M<m>.json at the end of minute m instead (a cut inside an act)",
 	"  --stop-after-snapshot  end the run right after that snapshot",
+	"  --prompt-addendum <file>  append the file's text to every competitor's system prompt (lab/)",
 	"  --resume <file>      continue from a snapshot: its story, seed and agents; models may differ,",
 	"                       --minutes counts from minute 0 of the snapshot's run",
 ].join("\n");
@@ -94,6 +100,8 @@ function parseValues(argv: readonly string[]) {
 				runs: { type: "string" },
 				"snapshot-after": { type: "string" },
 				"stop-after-snapshot": { type: "boolean" },
+				"snapshot-at": { type: "string" },
+				"prompt-addendum": { type: "string" },
 				resume: { type: "string" },
 			},
 			allowPositionals: false,
@@ -130,8 +138,12 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		throw new UsageError("Use either --level or --only, not both");
 	}
 	const snapshotAfter = optionalInt("snapshot-after", values["snapshot-after"], 1)["snapshot-after"];
-	if (values["stop-after-snapshot"] === true && snapshotAfter === undefined) {
-		throw new UsageError("--stop-after-snapshot needs --snapshot-after <level>");
+	const snapshotAt = optionalInt("snapshot-at", values["snapshot-at"], 0)["snapshot-at"];
+	if (snapshotAfter !== undefined && snapshotAt !== undefined) {
+		throw new UsageError("Use either --snapshot-after or --snapshot-at, not both");
+	}
+	if (values["stop-after-snapshot"] === true && snapshotAfter === undefined && snapshotAt === undefined) {
+		throw new UsageError("--stop-after-snapshot needs --snapshot-after <level> or --snapshot-at <minute>");
 	}
 	if (values["no-reporter"] === true && (values["reporter-provider"] !== undefined || values["reporter-model"] !== undefined)) {
 		throw new UsageError("--no-reporter switches the reporter off; --reporter-provider and --reporter-model do not apply");
@@ -155,6 +167,8 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["reporter-model"] === undefined ? {} : { reporterModel: values["reporter-model"] }),
 		runsDirectory: values.runs ?? "runs",
 		...(snapshotAfter === undefined ? {} : { snapshotAfter }),
+		...(snapshotAt === undefined ? {} : { snapshotAt }),
+		...(values["prompt-addendum"] === undefined ? {} : { promptAddendum: values["prompt-addendum"] }),
 		...(values["stop-after-snapshot"] === true ? { stopAfterSnapshot: true } : {}),
 		...(resume === undefined ? {} : { resume }),
 	};
