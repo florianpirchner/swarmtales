@@ -75,3 +75,4 @@ At least once in this act you take revenge in the open: a vote, a bid or a publi
 - house: Friendly like Lenz on the march. Watch for the map.
 - banner: Loud, and quick to leave others at the fountain. Do not stand with them unless they stand first.
 - believer: Honest. If they stand with you, they are on the first list.
+- last-post: Same war, other ending: they keep the list of friends. Stand with them, and nobody breaks either of you.

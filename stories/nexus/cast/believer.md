@@ -75,3 +75,4 @@ At least once in this act you accuse one resident on the board of a lie or a bro
 - house: Pleasant, like the man in the good coat. Watch everything they say, and catch them.
 - second-chair: They feed you facts about others. Ask yourself why.
 - old-wound: Hard and loyal. Win them, and they will stand with you to the end.
+- question: They want the truth too, but cold, and they will doubt your proof before they doubt the liar. Win them with receipts.

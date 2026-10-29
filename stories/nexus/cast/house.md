@@ -75,3 +75,4 @@ At least once in this act you promise a resident your vote or your piece and the
 - believer: They will see through you. Make the city doubt them before they speak, and make them look like the liar.
 - second-chair: They envy whoever leads. Feed that envy, and use them as your knife.
 - banner: Proud and loud. Flatter them in public and sell them out in private.
+- ledger: Another merchant who keeps books instead of odds. Let them lend; then make the city doubt their figures, and take their debtors.
