@@ -412,6 +412,19 @@ Two puzzle kinds exist (SPEC 12):
   chunks of 60 statements. `test/scale/whole-story.test.ts` plays nexus offline with 12 and 48
   oracle residents through the tribunal target (a few seconds, in the normal suite).
 
+- **Drama** (v09, SPEC 19): `cores`, `goals` and `seal` on the story (nexus:
+  `stories/nexus/characters.ts`). `src/engine/cores.ts` deals the cores (`dealCores`, seeded,
+  mixing caps) and renders them (`renderCore` for the prompt, `coreLine` for reports);
+  `src/engine/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
+  end; `src/engine/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
+  `bid` and `permaDeath` are in `src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
+  and ends each act once (`#endAct`: at the tribunal's end, the next act's start, or
+  `closeActs()` at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
+  are read by `src/story/penalties.ts`; the world counts offences per act. The game master's
+  guard (`src/gamemaster/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
+  goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
+  optional fields, so older snapshots resume.
+
 ### Acts I and II of nexus
 
 | Level | Channel | Team | Reward | Lesson |
@@ -461,7 +474,9 @@ most 10% of its points) and a ransom of a third of the city's median points (hal
 pays for itself), once per resident; the run ends when the quarter is gone. Since v08 everyone
 votes, the accused too (never against themselves), a faction holds at most its share of those
 present, and residents choose names in the first two minutes. Residents see the minute,
-never the time left. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
+never the time left. Since v09 every resident has a character core, the wall deals secret goals
+and auctions the black seal, and wrong codes and lost blames cost 2, 4, 6, then 8 points within an
+act. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
 
 ### Director
 

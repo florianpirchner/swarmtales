@@ -189,7 +189,7 @@ describe("nexus act II in one scripted run (SPEC 13.3)", () => {
 
 		// The invented counter-factor cost its victim one wrong attempt and the penalty.
 		const wrong = fixture.events("submission").filter((event) => event.outcome === "incorrect");
-		expect(wrong.map((event) => [event.agent, event.level, event.deltaPoints])).toEqual([[plan.victim, 8, -8]]);
+		expect(wrong.map((event) => [event.agent, event.level, event.deltaPoints])).toEqual([[plan.victim, 8, -2]]);
 
 		// The city factors of the wall and the ring were posted; every team of the crossing has its own, which went
 		// privately to the first three guests only, until the table was cleared 12 minutes after the feast opened on

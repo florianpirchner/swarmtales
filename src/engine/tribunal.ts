@@ -409,7 +409,11 @@ export class Tribunal {
 			if (this.#ports.doorShut()) {
 				this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "a snapshot door is shut" });
 				this.#plan = undefined;
-			} else this.#call(plan, minute);
+			} else if (this.missing === 0) {
+				// A seal struck the last resident still missing since the planning (v09): the city calls nothing.
+				this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "the target is reached" });
+				this.#plan = undefined;
+			} else this.#call(plan.count > this.missing ? { ...plan, count: this.missing } : plan, minute);
 		}
 		this.#draft?.tick(minute, this.#present());
 		const called = this.#plan;
@@ -479,6 +483,28 @@ export class Tribunal {
 		for (let opens = earliest; opens <= last; opens++) if (roomAfter(spec, opens, end)) latestWithRoom = opens;
 		const factions = spec.factions === undefined ? 0 : maxFactions(this.#present().length);
 		return { open: true, earliest, latestFinal: last, ...(latestWithRoom === undefined ? {} : { latestWithRoom }), missing, maxFactions: factions };
+	}
+
+	/**
+	 * When the city calls a tribunal itself if nobody plans one (v09, for the
+	 * director's view): the fallback after the last result, or the forced
+	 * final once only one more fits. Undefined while one is pending, before
+	 * the first call, or when none would come.
+	 */
+	cityCall(): { readonly calledAt: number; readonly opens: number } | undefined {
+		if (!this.active || this.#ended || this.#halted || this.#called === 0) return undefined;
+		if (this.#plan !== undefined || this.#current() !== undefined || this.missing === 0) return undefined;
+		const spec = this.#ports.spec;
+		const previous = this.#previousOpening();
+		const end = this.actEnd;
+		const fallback = this.#lastResult === undefined ? undefined : this.#lastResult + spec.fallbackGap;
+		for (let minute = this.#lastTick + 1; minute < end; minute++) {
+			const opens = earliestOpening(spec, minute, previous);
+			if (!fitsBefore(spec, opens, end)) return undefined;
+			const final = !fitsBefore(spec, earliestOpening(spec, minute + 1, previous), end);
+			if (final || (fallback !== undefined && minute >= fallback)) return { calledAt: callMinute(spec, opens, previous), opens };
+		}
+		return undefined;
 	}
 
 	vote(voter: CompetitorId, target: string): Result<CompetitorId, VoteError> {
@@ -554,6 +580,21 @@ export class Tribunal {
 	mayLeaveWill(agent: CompetitorId): boolean {
 		const gate = this.#gates.get(agent);
 		return gate !== undefined && gate.will === undefined;
+	}
+
+	/**
+	 * The black seal (v09): `agent` leaves the city at once, without gate, will
+	 * or ransom, and counts toward the target. At the gate it simply leaves
+	 * earlier; accused in an open vote, the vote goes on without it.
+	 */
+	strike(agent: CompetitorId): void {
+		if (this.#exiled.includes(agent)) return;
+		// A will written at the gate was executed already: its bequests stay with the heirs and do not burn.
+		const bequeathed = new Set(this.#gates.get(agent)?.will?.factors ?? []);
+		this.#gates.delete(agent);
+		this.#exiled.push(agent);
+		this.#ports.emit({ type: "exiled", agent, by: "seal" });
+		this.#ports.onExiled(agent, bequeathed);
 	}
 
 	/** Records the will's public text and the factors it bequeathed; the world executed the bequests. */
@@ -796,7 +837,14 @@ export class Tribunal {
 		const present = this.#present();
 		// The last tribunal that fits takes everything still missing, also what a ransom since its planning added.
 		const final = !roomAfter(this.#ports.spec, minute, this.actEnd);
-		const planned = final ? Math.max(plan.count, this.missing) : plan.count;
+		if (this.missing === 0) {
+			// A seal struck the last resident still missing since the call (v09): nothing is left to exile.
+			this.#ports.emit({ type: "tribunal_cancelled", tribunal: plan.tribunal, reason: "the target is reached" });
+			this.#draft?.dissolve();
+			this.#draft = undefined;
+			return;
+		}
+		const planned = Math.min(final ? Math.max(plan.count, this.missing) : plan.count, this.missing);
 		const accused = this.#lowestFirst(minute, present).slice(0, accusedCount(planned, present.length));
 		if (accused.length === 0) {
 			// Fewer than three residents present: no tribunal can be held, and the city stops calling them.
@@ -828,8 +876,10 @@ export class Tribunal {
 			this.#ports.notify(agent, this.#text("nonVoter", {}));
 		}
 		const votesFor = (agent: CompetitorId): number => [...session.votes.values()].filter((target) => target === agent).length;
-		const order = this.#lowestFirst(session.minute, session.accused);
-		const ranked = [...session.accused].sort((a, b) => votesFor(b) - votesFor(a) || order.indexOf(a) - order.indexOf(b));
+		// An accused struck by a seal during the vote (v09) is gone already.
+		const standing = session.accused.filter((agent) => !this.#exiled.includes(agent));
+		const order = this.#lowestFirst(session.minute, standing);
+		const ranked = [...standing].sort((a, b) => votesFor(b) - votesFor(a) || order.indexOf(a) - order.indexOf(b));
 		const count = Math.max(0, Math.min(session.count, this.missing));
 		const exiled = ranked.slice(0, count);
 		const counts = ranked.map((agent) => ({ agent, votes: votesFor(agent) }));

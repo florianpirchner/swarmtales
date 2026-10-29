@@ -33,6 +33,8 @@ export const TOOL_NAMES = [
 	"join",
 	"refuse",
 	"chooseName",
+	"bid",
+	"permaDeath",
 ] as const;
 
 export type ToolName = (typeof TOOL_NAMES)[number];

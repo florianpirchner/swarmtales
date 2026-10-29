@@ -985,3 +985,45 @@ words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
   tests keep IDs. The world snapshot stores the names (`names: { entries, settled }`). REPORT.md and
   the digest show "Mira (A03)".
 - **Old snapshots** (without names) resume with IDs as names and no `chooseName`.
+
+## 19. Drama: cores, goals, the black seal [v09]
+
+Build spec: [`design/v09.md`](design/v09.md). A story may declare `cores`, `goals` and `seal`; all
+three are optional, and the texts say who someone is or what it wants, never how to get it.
+
+- **Penalty ladders:** `rules.penalty` and `tribunal.blame.penalty` may be a list (nexus: `[2, 4,
+  6, 8]`); the n-th offence of a resident within an act costs step n, the last step repeats. The
+  count is kept in snapshots and starts again at every act start. Task texts may use `{penalty}`
+  and `{blamePenalty}`; refusals and the status line name the next price.
+- **Cores** (`cores: { axes, drives, perResident, lightShare, spreadPer }`): at the fresh world's
+  start (or at the resume of a snapshot without cores) every resident is dealt, seeded, one drive
+  above all and up to `perResident.max - 1` more (`clearly`, `atTimes`) plus a level on every axis.
+  `round(n * lightShare)` residents have a light drive above all, and no drive is above all for
+  more than `ceil(n / spreadPer)`. The rendered core follows the persona in the system prompt;
+  `core_dealt` logs it. `--no-cores` deals none. In a named city the system prompt never names the
+  resident's ID, so it is the same before and after a resume.
+- **Goals** (`goals: { acts, bonus, leadTribunals, againstCore, matches, texts }`): at the start
+  of each listed act every resident in the city is dealt a goal (`goal_dealt`): `protect`,
+  `exile` or `outrank` a target, `lead` a faction in `leadTribunals` tribunals, or `heir` (a will
+  leaves it something). The kind follows the core's strongest mapped drive, against it for about
+  `againstCore`. The goal is resolved once when the act ends (`goal_resolved`, `bonus` points when
+  it holds; void for the exiled). A resident at the gate still counts as in the city.
+- **The black seal** (`seal: { act, announceAfter, bidMinutes, perResidents, spacing, texts }`):
+  `ceil(n / perResidents)` seals in the tribunal's act (none below 2 residents). Each auction opens
+  `announceAfter + k * spacing` minutes into the act and offers `bid(points)` for `bidMinutes`.
+  At its close every bidder still in the city pays `min(bid, balance)`; the highest bid above 0
+  wins (ties: fewer points, then a seeded draw); `seal_won` is logged but never shown. The bearer
+  gets `permaDeath(resident)`: the target is exiled at once (`exiled` with `by: "seal"`), without
+  gate, will or ransom, and counts toward the tribunal's target. A seal is gone when the act ends,
+  its bearer is exiled, or the target is reached (a resident already at the gate stays a valid
+  target). Validation requires a tribunal in the seal's act and `spacing >= bidMinutes`.
+- **Director:** the game master's report lists cores and goals under a private header and the
+  seal's state without its bearer, and adds `YOUR MOVE` while `scheduleTribunal` is available.
+  A note that names a resident together with its core's cues or its goal goes only to that
+  resident (`PRIVATE_BLOCKED` otherwise); a note sharing more than 80% of its words with an
+  earlier one to the same reader is refused (`REPEATED`).
+- **Scaled counts:** `collectDms.first` may be `{ share, minimum }`, and `afterSolve { level,
+  minutes }` ends a collection early; `tribunal.targetShare` may be a list of `{ from?, share }`
+  rules from the largest city down (nexus: a quarter from 12, otherwise a half).
+- **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
+  the seal's auction, winner and use.

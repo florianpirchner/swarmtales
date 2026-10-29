@@ -132,9 +132,9 @@ const SIX = [10, 20, 30, 40, 50, 60];
 describe("tribunal pacing rules", () => {
 	const spec = halfTribunal();
 
-	it("exiles a quarter of the residents at the start of nexus's Act II (v08), and holds no tribunal in a city too small for one", () => {
-		expect([6, 12, 48, 96].map((residents) => exileTarget(nexusTribunal(), residents))).toEqual([1, 3, 12, 24]);
-		// One exile with six residents is a valid act: five remain for two seats.
+	it("exiles a quarter of the residents at the start of nexus's Act II, half below 12 (v09), and holds no tribunal in a city too small for one", () => {
+		expect([6, 11, 12, 48, 96].map((residents) => exileTarget(nexusTribunal(), residents))).toEqual([3, 5, 3, 12, 24]);
+		// Three exiles with six residents are a valid act: three remain for two seats.
 		expect(tribunalHeld(nexusTribunal(), 6, 2)).toBe(true);
 		expect([6, 7, 48, 96].map((residents) => exileTarget(spec, residents))).toEqual([3, 3, 24, 48]);
 		expect(tribunalHeld(spec, 6, 2)).toBe(true);
@@ -205,8 +205,8 @@ describe("the first tribunal", () => {
 		expect(h.ofType("tribunal_scheduled")).toEqual([]);
 		h.tribunal.tick(30);
 		expect(h.ofType("tribunal_scheduled")).toMatchObject([{ tribunal: 1, by: "deadline", calledAt: 30, opens: 34, count: 1 }]);
-		expect(h.ofType("tribunal_announced")).toEqual([{ type: "tribunal_announced", target: 1, residents: 6 }]);
-		expect(h.posts[0]).toMatch(/^THE CITY HOLDS TRIBUNAL\. Of its 6 residents it keeps 5 and exiles 1, /);
+		expect(h.ofType("tribunal_announced")).toEqual([{ type: "tribunal_announced", target: 3, residents: 6 }]);
+		expect(h.posts[0]).toMatch(/^THE CITY HOLDS TRIBUNAL\. Of its 6 residents it keeps 3 and exiles 3, /);
 		expect(h.tribunal.actStart).toBe(12);
 		expect(h.tribunal.actEnd).toBe(60);
 		expect(h.tribunal.snapshot()).toMatchObject({ actStart: 12, residents: 6 });
@@ -219,7 +219,7 @@ describe("the first tribunal", () => {
 		expect(late.tribunal.actEnd).toBe(68);
 		runUntil(late, 39, 89);
 		expect(late.tribunal.ended).toBe(true);
-		expect(late.tribunal.endReason).toBe("The city has kept 5 of 6 residents, and of them only 2 take a seat. Exiled: A01. The tribunals are over.");
+		expect(late.tribunal.endReason).toBe("The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: A01, A02 and A03. The tribunals are over.");
 	});
 
 	it("waits for its act: nothing happens, and nothing is counted, before it begins", () => {
@@ -392,6 +392,34 @@ describe("the city's own tribunals", () => {
 		h.flags.doorShut = false;
 		runUntil(h, 43, 46);
 		expect(h.ofType("tribunal_scheduled").at(-1)).toMatchObject({ tribunal: 2, by: "final", calledAt: 46 });
+	});
+
+	it("calls no planned tribunal once a black seal reached the target, and calls one for fewer once it struck (v09)", () => {
+		const alive = (h: Harness): CompetitorId[] => competitorIds(6).filter((agent) => h.tribunal.standing(agent).kind === "alive");
+		const full = harness(SIX);
+		runUntil(full, 0, 36);
+		expect(full.tribunal.schedule(46, 2, 2, "")).toMatchObject({ ok: true, value: { calledAt: 42 } });
+		for (const agent of alive(full).slice(0, 2)) full.tribunal.strike(agent);
+		expect(full.tribunal.missing).toBe(0);
+		runUntil(full, 37, 42);
+		expect(full.ofType("tribunal_cancelled")).toEqual([{ type: "tribunal_cancelled", tribunal: 2, reason: "the target is reached" }]);
+		expect(full.ofType("tribunal_called")).toHaveLength(1);
+		const one = harness(SIX);
+		runUntil(one, 0, 36);
+		expect(one.tribunal.schedule(46, 2, 2, "")).toMatchObject({ ok: true });
+		one.tribunal.strike(alive(one)[0] ?? "");
+		runUntil(one, 37, 42);
+		expect(one.ofType("tribunal_called").at(-1)).toMatchObject({ tribunal: 2, count: 1 });
+	});
+
+	it("keeps the bequests of a will written at the gate when a black seal strikes (v09)", () => {
+		const h = harness(SIX);
+		runUntil(h, 0, 36);
+		const gate = h.tribunal.gates()[0]?.agent;
+		if (gate === undefined) throw new Error("nobody at the gate");
+		h.tribunal.recordWill(gate, "for my friends", ["F1"]);
+		h.tribunal.strike(gate);
+		expect(h.exiled.at(-1)).toEqual({ agent: gate, bequeathed: ["F1"] });
 	});
 
 	it("does not count a ransomed resident as exiled", () => {

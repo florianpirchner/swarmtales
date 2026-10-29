@@ -178,7 +178,7 @@ const RansomPaid = Type.Object({
 	covered: Type.Optional(Type.Integer()),
 });
 const Ransomed = Type.Object({ ...Base, type: Type.Literal("ransomed"), agent: Id, payers: Ids });
-const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()) });
+const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Literal("seal")) });
 const LastWill = Type.Object({
 	...Base,
 	type: Type.Literal("last_will"),
@@ -306,6 +306,45 @@ const InterpretationRound = Type.Object({
 /** A resident's name (v08). */
 const NameChosen = Type.Object({ ...Base, type: Type.Literal("name_chosen"), agent: Id, name: Type.String(), fallback: Type.Boolean() });
 
+/** v09: character cores, secret goals and the black seal. */
+const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
+const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
+const CoreDealt = Type.Object({
+	...Base,
+	type: Type.Literal("core_dealt"),
+	agent: Id,
+	bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Level })),
+	drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Intensity })),
+});
+const GoalShape = Type.Union([
+	Type.Object({ kind: Type.Union([Type.Literal("protect"), Type.Literal("exile"), Type.Literal("outrank")]), target: Id }),
+	Type.Object({ kind: Type.Literal("lead"), count: Type.Integer() }),
+	Type.Object({ kind: Type.Literal("heir") }),
+]);
+const GoalDealt = Type.Object({ ...Base, type: Type.Literal("goal_dealt"), act: Type.Integer(), agent: Id, goal: GoalShape, text: Type.String() });
+const GoalResolved = Type.Object({
+	...Base,
+	type: Type.Literal("goal_resolved"),
+	act: Type.Integer(),
+	agent: Id,
+	goal: GoalShape,
+	fulfilled: Type.Boolean(),
+	void: Type.Optional(Type.Boolean()),
+	bonus: Type.Integer(),
+});
+const SealAuctionOpened = Type.Object({ ...Base, type: Type.Literal("seal_auction_opened"), seal: Type.Integer(), until: Type.Integer() });
+const SealBid = Type.Object({ ...Base, type: Type.Literal("seal_bid"), seal: Type.Integer(), agent: Id, points: Type.Integer() });
+const SealWon = Type.Object({
+	...Base,
+	type: Type.Literal("seal_won"),
+	seal: Type.Integer(),
+	agent: Id,
+	bid: Type.Integer(),
+	bids: Type.Array(Type.Object({ agent: Id, points: Type.Integer() })),
+});
+const SealUsed = Type.Object({ ...Base, type: Type.Literal("seal_used"), seal: Type.Integer(), holder: Id, target: Id });
+const SealExpired = Type.Object({ ...Base, type: Type.Literal("seal_expired"), seal: Type.Integer(), holder: Type.Optional(Id), reason: Type.String() });
+
 export const DIGEST_EVENT_SCHEMAS = [
 	RunStart,
 	NameChosen,
@@ -362,6 +401,14 @@ export const DIGEST_EVENT_SCHEMAS = [
 	LevelContracted,
 	Interpretation,
 	InterpretationRound,
+	CoreDealt,
+	GoalDealt,
+	GoalResolved,
+	SealAuctionOpened,
+	SealBid,
+	SealWon,
+	SealUsed,
+	SealExpired,
 ] as const;
 
 const DigestEventSchema = Type.Union([...DIGEST_EVENT_SCHEMAS]);

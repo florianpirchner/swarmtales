@@ -26,6 +26,7 @@ export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: Ac
 		"Every line cites the `#seq` of its event in `events.jsonl`. Private messages are shown in full detail",
 		"because the digest is written for the audience, not for the competitors.",
 		"",
+		...characterTables(facts),
 	);
 
 	const beatsAt = new Map<number, Beat[]>();
@@ -64,6 +65,33 @@ export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: Ac
 		}
 	}
 	return `${lines.join("\n").trimEnd()}\n`;
+}
+
+/** The Cores and Goals tables (v09): who each resident is and what it secretly wanted; nothing without them. */
+function characterTables(facts: RunFacts): readonly string[] {
+	const words: Readonly<Record<string, string>> = { aboveAll: "above all", clearly: "clearly", atTimes: "at times" };
+	const cores = eventsOfType(facts.events, "core_dealt");
+	const goals = eventsOfType(facts.events, "goal_dealt");
+	const resolved = eventsOfType(facts.events, "goal_resolved");
+	const lines: string[] = [];
+	if (cores.length > 0) {
+		lines.push("## Cores", "", "| Resident | Drives | Temperament |", "|---|---|---|");
+		for (const core of cores) {
+			const drives = core.drives.map((entry) => `${words[entry.intensity] ?? entry.intensity} ${entry.drive}`).join("; ");
+			lines.push(`| ${agentLabel(facts, core.agent)} | ${drives} | ${core.bigFive.map((trait) => `${trait.axis} ${trait.level}`).join(", ")} |`);
+		}
+		lines.push("");
+	}
+	if (goals.length > 0) {
+		lines.push("## Goals", "", "| Resident | Act | Goal | Outcome |", "|---|---:|---|---|");
+		for (const goal of goals) {
+			const end = resolved.find((entry) => entry.agent === goal.agent && entry.act === goal.act);
+			const outcome = end === undefined ? "open" : end.void === true ? "void" : end.fulfilled ? `fulfilled (+${end.bonus})` : "missed";
+			lines.push(`| ${agentLabel(facts, goal.agent)} | ${goal.act} | ${goal.text} | ${outcome} |`);
+		}
+		lines.push("");
+	}
+	return lines;
 }
 
 export function cite(seqs: readonly number[]): string {
@@ -190,7 +218,21 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "ransomed":
 			return `${event.agent} was bought back by ${event.payers.join(", ")}.`;
 		case "exiled":
-			return `The gate closed behind ${event.agent}: exiled.`;
+			return event.by === "seal" ? `${event.agent} was struck from the city by the black seal: exiled.` : `The gate closed behind ${event.agent}: exiled.`;
+		case "goal_dealt":
+			return `${event.agent} was dealt a secret goal: ${event.text}.`;
+		case "goal_resolved":
+			return `${event.agent}'s secret goal ${event.void === true ? "is void (exiled)" : event.fulfilled ? `held (+${points(event.bonus)})` : "did not hold"}.`;
+		case "seal_auction_opened":
+			return `The city opened the bidding for black seal ${event.seal}, until minute ${event.until}.`;
+		case "seal_bid":
+			return `${event.agent} bid ${points(event.points)} in secret for black seal ${event.seal}.`;
+		case "seal_won":
+			return `${event.agent} won black seal ${event.seal} for ${points(event.bid)} (bids: ${event.bids.map((bid) => `${bid.agent} ${bid.points}`).join(", ")}).`;
+		case "seal_used":
+			return `${event.holder} broke black seal ${event.seal} on ${event.target}.`;
+		case "seal_expired":
+			return `Black seal ${event.seal} is gone${event.holder === undefined ? "" : ` from ${event.holder}`}: ${event.reason}.`;
 		case "last_will":
 			return `${event.agent} left a last will: ${quote(event.text)} (${event.bequests.map((bequest) => `${bequest.points === undefined ? (bequest.factor ?? "?") : points(bequest.points)} to ${bequest.to}`).join(", ") || "no bequests"}).`;
 		case "factor_burned":
@@ -211,6 +253,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "name_chosen":
 			return `${event.agent} is called ${event.name}${event.fallback ? " (named by the city)" : ""}.`;
 		case "interpretation_round":
+		case "core_dealt":
 		case "dm_delivered":
 		case "standings_published":
 		case "thinking":

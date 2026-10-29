@@ -43,6 +43,14 @@ door opens only with a password or code whose pieces mostly sit with other resid
   residents, and there is no draft when factions would be smaller than those on trial. Act I
   has a 25-minute brake. Every resident chooses a name in the first two minutes, and the city
   shows names instead of IDs. The city scales to 12, 48 and 96 residents.
+- **v09, drama:** every resident gets a character core (one drive above all, up to two more, and a
+  temperament), written into its system prompt as who it is, never what to do. On the wall each
+  resident holds a secret goal (keep someone in the city, see someone exiled, end ahead of
+  someone, lead factions, inherit) worth 15 points, read out when the act ends. Four minutes into
+  the wall the city auctions the black seal in secret bids: its bearer may strike one resident
+  from the city at once. Wrong codes and lost blames cost 2, 4, 6, then 8 points within an act,
+  the game master directs the act's drama, the feast seats a quarter of the city, and from 12
+  residents the city exiles a quarter (a half below 12).
 
 ## Around the story
 

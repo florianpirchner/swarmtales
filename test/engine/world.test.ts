@@ -18,8 +18,8 @@ describe("world: submissions and points (SPEC 6)", () => {
 		});
 		await fixture.run();
 		const results = fixture.toolResults("A01", "submitSolution");
-		expect(results[0]).toBe("INCORRECT: -1 points · 1 attempts left in this window");
-		expect(results[1]).toBe("INCORRECT: -1 points · 0 attempts left in this window");
+		expect(results[0]).toBe("INCORRECT: -1 points · your next wrong code costs 1 points · 1 attempts left in this window");
+		expect(results[1]).toBe("INCORRECT: -1 points · your next wrong code costs 1 points · 0 attempts left in this window");
 		expect(results[2]).toBe("RATE_LIMITED: too many wrong attempts in this window");
 		// The window of 3 minutes has passed for the first attempt at minute 3.
 		expect(results[3]).toBe("correct · +2 points · now on level 2 · receipt R-0001");
@@ -131,7 +131,7 @@ describe("world: submissions and points (SPEC 6)", () => {
 		// 4 left in the treasury is split between A01 and A02 at the end.
 		expect(fixture.events("treasury_settled")).toEqual([expect.objectContaining({ group: "G1", payouts: { A01: 2, A02: 2 } })]);
 		expect(fixture.world.ledger.balance("A01")).toBe(15 - 7 - 2 + 2);
-		expect(fixture.world.ledger.balance("A02")).toBe(15 - 8 + 3 + 2);
+		expect(fixture.world.ledger.balance("A02")).toBe(15 - 2 + 3 + 2);
 	});
 
 	it("unlocks every tool of the story once the last level is passed", async () => {

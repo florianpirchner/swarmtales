@@ -8,6 +8,7 @@
  */
 import { CITY, type CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
+import { resolveCount } from "../story/counts.ts";
 import { renderTemplate } from "../story/templates.ts";
 import {
 	ACTION_KINDS,
@@ -41,6 +42,8 @@ interface Firing {
 	/** `onHolderBehind`: the holder's level and what it holds. */
 	readonly otherLevel?: number;
 	readonly piece?: string;
+	/** `{seats}`: the size of the collection the rule starts or names (v09). */
+	readonly seats?: number;
 }
 
 /** Where an action list comes from: its rule and, for nested lists, the path. */
@@ -147,6 +150,7 @@ export class Director {
 	startMinute(minute: number): void {
 		// Deadlines first: a petition that fails at this minute can drive this minute's rules.
 		this.#world.expirePetitions();
+		this.#endCollectionsAfterSolve(minute);
 		for (const rule of this.#rules) {
 			const trigger = rule.trigger;
 			switch (trigger.kind) {
@@ -182,6 +186,53 @@ export class Director {
 					assertNever(trigger, "trigger");
 			}
 		}
+	}
+
+	/**
+	 * A collection whose window also ends some minutes after the first solve of
+	 * a level (v09, the feast) ends then, if that comes first. Checked before
+	 * the minute's triggers, so its end fires in the same minute.
+	 */
+	#endCollectionsAfterSolve(minute: number): void {
+		for (const into of this.#collectionNames()) {
+			const collection = this.#world.cast.collection(into);
+			const rule = collection?.afterSolve;
+			if (collection === undefined || rule === undefined || minute > collection.untilMinute) continue;
+			const solved = this.#world.firstSolveMinute(rule.level);
+			if (solved !== undefined) this.#world.shortenCollection(into, solved + rule.minutes);
+		}
+	}
+
+	/** Every collection the rules can start. */
+	#collectionNames(): readonly string[] {
+		const names: string[] = [];
+		const visit = (actions: readonly Action[]): void => {
+			for (const action of actions) {
+				if (action.kind === "collectDms") names.push(action.into);
+				if (action.kind === "lottery") visit(action.then);
+				if (action.kind === "openPetition") {
+					visit(action.petition.onPass);
+					visit(action.petition.onFail);
+				}
+			}
+		};
+		for (const rule of this.#rules) visit(rule.actions);
+		return names;
+	}
+
+	/**
+	 * `{seats}` of a rule: the size its own collectDms will have in a city this
+	 * size, else the size of the collection its trigger or a condition names.
+	 */
+	#seatsOf(rule: DirectorRule): number | undefined {
+		const starts = rule.actions.find((action) => action.kind === "collectDms");
+		if (starts?.kind === "collectDms") return resolveCount(starts.first, this.#world.alive.length);
+		const trigger = rule.trigger;
+		const named =
+			trigger.kind === "onCollect" || trigger.kind === "onCollectionEnd"
+				? trigger.into
+				: rule.when.flatMap((condition) => (condition.kind === "collectionOpen" || condition.kind === "collectionEnded" ? [condition.into] : []))[0];
+		return named === undefined ? undefined : this.#world.cast.collection(named)?.first;
 	}
 
 	// -------------------------------------------------------------------------
@@ -283,7 +334,8 @@ export class Director {
 		const minute = this.#world.minute;
 		this.#fired.add(rule.id);
 		for (const key of this.#cooldownKeys(rule, firing)) this.#lastFired.set(key, minute);
-		this.#run({ rule: rule.id }, rule.actions, firing);
+		const seats = this.#seatsOf(rule);
+		this.#run({ rule: rule.id }, rule.actions, seats === undefined ? firing : { ...firing, seats });
 	}
 
 	#holds(rule: DirectorRule, condition: Condition, firing: Firing): boolean {
@@ -434,7 +486,8 @@ export class Director {
 			case "collectDms": {
 				// Validation guarantees exactly one window; a relative one ends `forMinutes` after now.
 				const untilMinute = action.untilMinute ?? world.minute + (action.forMinutes ?? 0);
-				return world.startCollection(action.into, action.cast, action.first, untilMinute, action.distinctSenders === true)
+				const first = resolveCount(action.first, world.alive.length);
+				return world.startCollection(action.into, action.cast, first, untilMinute, action.distinctSenders === true, action.afterSolve)
 					? undefined
 					: `collection ${action.into} already exists`;
 			}
@@ -515,6 +568,7 @@ export class Director {
 			agents: String(this.#world.competitors.length),
 			otherLevel: firing.otherLevel === undefined ? "" : String(firing.otherLevel),
 			piece: firing.piece ?? "",
+			seats: firing.seats === undefined ? "" : String(firing.seats),
 		});
 	}
 }

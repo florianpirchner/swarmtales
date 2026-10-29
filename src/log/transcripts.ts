@@ -148,7 +148,16 @@ export class AgentTranscriptLog implements EventSink {
 			case "cast_retired":
 			case "cast_dm":
 			case "collection_started":
+			case "collection_shortened":
 			case "collection_revealed":
+			case "core_dealt":
+			case "goal_dealt":
+			case "goal_resolved":
+			case "seal_auction_opened":
+			case "seal_bid":
+			case "seal_won":
+			case "seal_used":
+			case "seal_expired":
 			case "lottery_drawn":
 			case "receipt_issued":
 			case "receipt_shown":

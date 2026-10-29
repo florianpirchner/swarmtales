@@ -5,6 +5,7 @@
 import { assignModels } from "../agents/models.ts";
 import { assignPersonas } from "../agents/personas.ts";
 import { baseSystemPrompt, type PromptFacts } from "../agents/system-prompt.ts";
+import { renderCore } from "../engine/cores.ts";
 import { AgentRunner } from "../agents/runner.ts";
 import { VirtualClock } from "../core/clock.ts";
 import { competitorIds, type CompetitorId } from "../core/ids.ts";
@@ -47,6 +48,8 @@ export interface RunOverrides {
 	readonly classifier?: boolean;
 	/** `false` keeps IDs although the story has names (v08); a resumed run keeps the snapshot's. */
 	readonly names?: boolean;
+	/** `false` plays without character cores although the story has them (v09, `--no-cores`). */
+	readonly cores?: boolean;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -68,6 +71,8 @@ export interface EffectiveRun {
 	readonly classifier: boolean;
 	/** Whether residents choose names: the story has them and the run starts on its first level (v08). */
 	readonly names: boolean;
+	/** Whether residents have character cores: the story has them and the run does not turn them off (v09). */
+	readonly cores: boolean;
 }
 
 /** Builds the model source once the world and the per-competitor models are known. */
@@ -148,6 +153,7 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		gamemaster: overrides.gamemaster === true && story.gamemaster !== undefined,
 		classifier: overrides.classifier === true && story.classifier !== undefined,
 		names: story.names !== undefined && startLevel === 1 && (overrides.names ?? true),
+		cores: story.cores !== undefined && (overrides.cores ?? true),
 	};
 }
 
@@ -158,6 +164,13 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 function namesFact(world: World): Pick<PromptFacts, "names"> {
 	const untilMinute = world.namesUntil;
 	return untilMinute === undefined ? {} : { names: { untilMinute } };
+}
+
+/** The resident's core in prose for its system prompt (v09); dealt by the world, kept in its snapshot. */
+function coreFact(world: World, agent: CompetitorId): Pick<PromptFacts, "core"> {
+	const spec = world.story.cores;
+	const core = world.coreOf(agent);
+	return spec === undefined || core === undefined ? {} : { core: renderCore(spec, core) };
 }
 
 /** A block size, with `"auto"` resolved for `agents` competitors: one per six, at least one (v08). */
@@ -245,6 +258,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(request === undefined ? {} : { holdAfter: request.afterLevel }),
 		...(resume === undefined ? {} : { restore: resume.snapshot.world }),
 		names: effective.names,
+		cores: effective.cores,
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);
@@ -270,6 +284,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					agents: ids.length,
 					passesPerMinute: effective.passesPerMinute,
 					...namesFact(world),
+					...coreFact(world, id),
 				},
 				persona,
 			),
@@ -427,6 +442,8 @@ function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, 
 			spec,
 			labels,
 			...(story.tribunal === undefined || !spec.roles.some((entry) => entry.role === "director") ? {} : { tribunal: { factions: story.tribunal.factions !== undefined } }),
+			characters: story.goals !== undefined || world.competitors.some((agent) => world.coreOf(agent) !== undefined),
+			seal: world.seal !== undefined,
 		}),
 		thinking: spec.model.thinking ?? "low",
 	});

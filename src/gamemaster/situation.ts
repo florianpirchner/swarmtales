@@ -11,6 +11,8 @@ import type { RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
+import { coreLine } from "../engine/cores.ts";
+import { ladderText } from "../story/penalties.ts";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the game master. */
@@ -59,14 +61,16 @@ export function describeSituation(input: SituationInput): string {
 	const rewards = levelRange(world).map((level) => `L${level} +${world.levelDefinition(level)?.reward ?? 0}`);
 	const lines: string[] = [
 		`Minute ${world.minute} (after round ${input.round}). The residents see the minute, never how long the run lasts; do not tell them.`,
-		`Rules: a wrong password or code costs ${rules.penalty} points; at most ${rules.maxAttemptsPerWindow} wrong attempts per ` +
+		`Rules: a wrong password or code costs ${ladderText(rules.penalty)} (the n-th of a resident in the act; the report shows each one's next price); at most ${rules.maxAttemptsPerWindow} wrong attempts per ` +
 			`${rules.attemptWindowMinutes} minutes. Rewards: ${rewards.join(", ")}. Only ${world.story.run.survivors} of ` +
 			`${world.competitors.length} residents remain at the end.`,
 		"",
 		"Residents:",
 		...world.ranking().map((entry) => residentLine(input, entry.agent, entry.points, entry.rank)),
 		"",
+		...characterLines(world),
 		...tribunalLines(world),
+		...sealLines(world),
 		"Who waits on whom (a door opens only with every fragment or factor a resident needs):",
 		...waitLines(world),
 		"",
@@ -98,13 +102,49 @@ function residentLine(input: SituationInput, agent: CompetitorId, points: number
 	}
 	const level = world.levelOf(agent);
 	const since = track?.levelSince ?? 0;
+	const price = `next wrong code costs ${world.nextPenalty(agent)}`;
 	const ahead = levelRange(world)
 		.filter((candidate) => candidate >= level)
 		.reduce((sum, candidate) => sum + (world.levelDefinition(candidate)?.reward ?? 0), 0);
 	return (
 		`- ${agent}: level ${level} since minute ${since} (${world.minute - since} min), ${points} points, rank ${rank}, ` +
-		`${track?.wrongOnLevel ?? 0} wrong on this level, ${ahead} points still open, ${active}`
+		`${track?.wrongOnLevel ?? 0} wrong on this level (${price}), ${ahead} points still open, ${active}`
 	);
+}
+
+/**
+ * Who each resident is and what it secretly wants (v09): its core and its
+ * goal of the running act. Private: the engine refuses any text that gives
+ * them away to someone else or on the board.
+ */
+function characterLines(world: World): readonly string[] {
+	const lines = world.alive.flatMap((agent) => {
+		const core = world.coreOf(agent);
+		const goal = world.goalOf(agent);
+		if (core === undefined && goal === undefined) return [];
+		const parts = [...(core === undefined ? [] : [`core: ${coreLine(core)}`]), ...(goal === undefined ? [] : [`secret goal: ${goal.text}`])];
+		return [`- ${agent}: ${parts.join(" · ")}`];
+	});
+	if (lines.length === 0) return [];
+	return [
+		"Who they are (private: use a resident's core or goal only in a note to that same resident, never on the board or to anyone else):",
+		...lines,
+		"",
+	];
+}
+
+/** The black seal (v09): that it exists and whether someone bears one, never who. */
+function sealLines(world: World): readonly string[] {
+	const seal = world.seal;
+	if (seal === undefined) return [];
+	const auction = seal.auction;
+	const parts = [
+		...(auction === undefined ? [] : [`an auction runs until minute ${auction.until} (bids are secret, also from you)`]),
+		...(seal.borne === 0 ? [] : [`${seal.borne === 1 ? "someone bears an unused seal" : `${seal.borne} unused seals are borne`} (you do not know who)`]),
+		...(seal.pending > (auction === undefined ? 0 : 1) ? [`${seal.pending - (auction === undefined ? 0 : 1)} more to auction in this act`] : []),
+	];
+	if (parts.length === 0) return [];
+	return ["Black seal (its bearer strikes one resident from the city at once):", ...parts.map((part) => `- ${part}`), ""];
 }
 
 /**
@@ -135,6 +175,17 @@ function tribunalLines(world: World): readonly string[] {
 		);
 	}
 	const window = tribunal.schedulingWindow();
+	// v09 (P24): the director's move said plainly, with what happens when it makes none.
+	if (window.open) {
+		const call = tribunal.cityCall();
+		lines.push(
+			`- YOUR MOVE: scheduleTribunal is available now. The city still has to exile ${window.missing} ${window.missing === 1 ? "resident" : "residents"}; ` +
+				`the earliest opening is minute ${window.earliest}. ` +
+				(call === undefined
+					? "If you plan nothing, the city calls no further tribunal itself."
+					: `If you plan nothing, the city calls one itself at minute ${call.calledAt} (it opens at minute ${call.opens}).`),
+		);
+	}
 	lines.push(
 		window.open
 			? `- scheduleTribunal is open: minute ${window.earliest}-${window.latestFinal}` +

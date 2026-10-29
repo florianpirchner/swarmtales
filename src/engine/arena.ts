@@ -186,6 +186,8 @@ export class Arena {
 			});
 		}
 		let reason: string | undefined;
+		/** The run stops at its snapshot (or an act's brake): the acts go on in the run that resumes it. */
+		let paused = false;
 		if (resume === undefined) {
 			world.startMinute(clock.minute);
 			director.startMinute(clock.minute);
@@ -222,6 +224,7 @@ export class Arena {
 				const stopped = this.#applyBrakes(round) ?? this.#takeSnapshot(round);
 				if (stopped !== undefined) {
 					reason = stopped;
+					paused = true;
 					break;
 				}
 			}
@@ -229,6 +232,8 @@ export class Arena {
 			reason ??= stop;
 		}
 
+		// v09: the acts still running are over with the run: goals resolved and read out, seals gone.
+		if (!paused) world.closeActs();
 		world.closePetitions();
 		world.settleTreasuries();
 		this.#finished = true;

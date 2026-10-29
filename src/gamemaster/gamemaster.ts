@@ -16,7 +16,7 @@ import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { GamemasterSpec, ThinkingLevel } from "../story/types.ts";
-import { privateLabelsOf, privateLeaks, type PrivateLabels } from "./privacy.ts";
+import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
 import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
@@ -286,7 +286,34 @@ export class Gamemaster implements EventSink {
 				`PRIVATE_BLOCKED: the text passes on what ${exposed.join(", ")} privately thinks; use a private read only in a note to that resident`,
 			);
 		}
+		const revealed = characterLeaks(trimmed, to, this.#characters(), (agent) => this.#options.world.nameOf(agent));
+		if (revealed.length > 0) {
+			throw new ToolRefusal(
+				`PRIVATE_BLOCKED: the text gives away the core or the secret goal of ${revealed.join(", ")}; use them only in a note to that resident`,
+			);
+		}
+		// v09: a director says something new or nothing; the same line twice to the same reader is refused.
+		const earlier = this.#notes.find((note) => note.to === to && nearlySame(note.text, trimmed));
+		if (earlier !== undefined) {
+			throw new ToolRefusal(`REPEATED: you wrote nearly the same to ${to === "board" ? "the board" : to} at minute ${earlier.minute}; say something new or nothing`);
+		}
 		return trimmed;
+	}
+
+	/** Every resident's drive cues and running goal, for the privacy guard (v09). */
+	#characters(): readonly CharacterFacts[] {
+		const world = this.#options.world;
+		const drives = world.story.cores?.drives ?? [];
+		return world.competitors.map((agent) => {
+			const core = world.coreOf(agent);
+			const cues = (core?.drives ?? []).flatMap((entry) => drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
+			const goal = world.goalOf(agent)?.goal;
+			return {
+				agent,
+				cues,
+				...(goal === undefined ? {} : { goal: { kind: goal.kind, ...("target" in goal ? { target: goal.target } : {}) } }),
+			};
+		});
 	}
 
 	#deliver(to: NoteTarget, text: string, number: number): void {

@@ -7,6 +7,7 @@
  * only the events after `run_resumed` belong to the run and are counted.
  * Levels and standings at the start come from the prefix's last `round_end`.
  */
+import { coreLine } from "../engine/cores.ts";
 import type { RecordedEvent, StandingRow } from "../engine/events.ts";
 import { GAMEMASTER_ID } from "../gamemaster/gamemaster.ts";
 import { CLASSIFIER_ID } from "../interpret/classifier.ts";
@@ -53,6 +54,26 @@ export interface ResidentResult {
 	readonly points?: number;
 	readonly rank?: number;
 	readonly survivor: boolean;
+	/** The character core in a line (v09), from `core_dealt` (also in a resumed run's prefix). */
+	readonly core?: string;
+}
+
+/** A secret goal of an act (v09): its text and how it ended; `open` while the act runs. */
+export interface GoalResult {
+	readonly agent: string;
+	readonly act: number;
+	readonly text: string;
+	readonly outcome: "fulfilled" | "missed" | "void" | "open";
+	readonly bonus: number;
+}
+
+/** One black seal of the run (v09): who won it for how much, whom it struck, or why it went. */
+export interface SealResult {
+	readonly seal: number;
+	readonly bids: readonly { readonly agent: string; readonly points: number }[];
+	readonly winner?: { readonly agent: string; readonly bid: number; readonly seq: number };
+	readonly used?: { readonly target: string; readonly minute: number; readonly seq: number };
+	readonly expired?: string;
 }
 
 /** A resident that stayed on one level for `minutes` minutes. */
@@ -118,6 +139,10 @@ export interface ReportFacts {
 	readonly quietMinutes: { readonly quiet: number; readonly of: number };
 	/** Highest level number of the story, when known. */
 	readonly lastLevel?: number;
+	/** Secret goals of the acts this run played (v09), in deal order. */
+	readonly goals: readonly GoalResult[];
+	/** Black seals auctioned in this run (v09). */
+	readonly seals: readonly SealResult[];
 	/** Problems with the run's files. */
 	readonly issues: readonly string[];
 	/** The run's own events (after `run_resumed`), for the evidence pack. */
@@ -184,6 +209,8 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 	const levelUps = ofType(events, "level_up");
 	const prefixUps = ofType(prefix, "level_up");
 	const names = new Map(ofType(all, "name_chosen").map((entry) => [entry.agent, entry.name]));
+	// Cores are dealt once, maybe in the snapshot's prefix: read them from the whole log.
+	const cores = new Map(ofType(all, "core_dealt").map((entry) => [entry.agent, coreLine(entry)]));
 	const residents = [...agentIds].sort().map((agent): ResidentResult => {
 		const before = standingsBefore.find((row) => row.agent === agent);
 		const ups = levelUps.filter((up) => up.agent === agent).map((up) => ({ seq: up.seq, minute: up.minute, from: up.from, to: up.to }));
@@ -193,9 +220,11 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		const final: StandingRow | undefined = finalStandings.find((row) => row.agent === agent);
 		const profile = profiles.find((entry) => entry.agent === agent);
 		const name = names.get(agent);
+		const core = cores.get(agent);
 		return {
 			agent,
 			...(name === undefined ? {} : { name }),
+			...(core === undefined ? {} : { core }),
 			...(profile?.persona === undefined || profile.persona === null ? {} : { persona: profile.persona }),
 			...(profile === undefined ? {} : { model: profile.model }),
 			startLevel: first,
@@ -265,11 +294,44 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		deadSpans: deadSpans(events, firstMinute, end.minute, options.deadMinutes),
 		quietMinutes: quiet,
 		...(lastLevel === undefined || lastLevel === 0 ? {} : { lastLevel }),
+		goals: goalResults(all, events),
+		seals: sealResults(events),
 		issues,
 		events,
 		seqs: new Set(all.map((event) => event.seq)),
 		metadata,
 	};
+}
+
+/**
+ * Goals of every act this run played: dealt in the run, or in the prefix of a
+ * resumed run whose act goes on; resolved by the run's own events.
+ */
+function goalResults(all: readonly RecordedEvent[], own: readonly RecordedEvent[]): readonly GoalResult[] {
+	const resolvedBefore = new Set(ofType(all, "goal_resolved").filter((entry) => !own.includes(entry)).map((entry) => `${entry.act}:${entry.agent}`));
+	const resolved = new Map(ofType(own, "goal_resolved").map((entry) => [`${entry.act}:${entry.agent}`, entry]));
+	return ofType(all, "goal_dealt")
+		.filter((entry) => !resolvedBefore.has(`${entry.act}:${entry.agent}`))
+		.map((entry): GoalResult => {
+			const end = resolved.get(`${entry.act}:${entry.agent}`);
+			const outcome = end === undefined ? "open" : end.void === true ? "void" : end.fulfilled ? "fulfilled" : "missed";
+			return { agent: entry.agent, act: entry.act, text: entry.text, outcome, bonus: end?.bonus ?? 0 };
+		});
+}
+
+function sealResults(events: readonly RecordedEvent[]): readonly SealResult[] {
+	return ofType(events, "seal_auction_opened").map((opened): SealResult => {
+		const won = ofType(events, "seal_won").find((entry) => entry.seal === opened.seal && entry.seq > opened.seq);
+		const used = ofType(events, "seal_used").find((entry) => entry.seal === opened.seal && entry.seq > opened.seq);
+		const expired = ofType(events, "seal_expired").find((entry) => entry.seal === opened.seal && entry.seq > opened.seq);
+		return {
+			seal: opened.seal,
+			bids: won?.bids ?? [],
+			...(won === undefined ? {} : { winner: { agent: won.agent, bid: won.bid, seq: won.seq } }),
+			...(used === undefined ? {} : { used: { target: used.target, minute: used.minute, seq: used.seq } }),
+			...(expired === undefined ? {} : { expired: expired.reason }),
+		};
+	});
 }
 
 /** `openrouter/deepseek/x` as "`deepseek/x` via openrouter"; `off` stays. */

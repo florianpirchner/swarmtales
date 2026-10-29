@@ -49,6 +49,11 @@ describe("pnpm start arguments", () => {
 
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
+		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { cores: false } });
+		expect(parseStartArgs(["--gamemaster-provider", "anthropic", "--gamemaster-model", "sonnet"])).toMatchObject({
+			gamemasterProvider: "anthropic",
+			gamemasterModel: "sonnet",
+		});
 		expect(parseStartArgs(["--reporter-provider", "anthropic", "--reporter-model", "haiku"])).toMatchObject({
 			reporter: true,
 			reporterProvider: "anthropic",
@@ -80,7 +85,10 @@ describe("pnpm start arguments", () => {
 			gamemaster: false,
 			classifier: false,
 			names: true,
+			cores: true,
 		});
+		expect(effectiveRun(nexus, { cores: false })).toMatchObject({ cores: false });
+		expect(effectiveRun(tinyStory())).toMatchObject({ cores: false });
 		expect(effectiveRun(nexus, { classifier: true })).toMatchObject({ classifier: true });
 		expect(effectiveRun(tinyStory(), { classifier: true })).toMatchObject({ classifier: false });
 		expect(effectiveRun(nexus, { gamemaster: true })).toMatchObject({ gamemaster: true });

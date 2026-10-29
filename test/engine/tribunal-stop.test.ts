@@ -19,18 +19,18 @@ describe("early ends and the tribunal", () => {
 		const lastLevelUp = Math.max(...fixture.events("level_up").map((event) => event.minute));
 		const [opened] = fixture.events("tribunal_opened");
 		expect(opened?.minute).toBeGreaterThan(lastLevelUp);
-		// The act ends only at the target: a quarter of the six (one) is exiled, every tribunal closed its gates.
+		// The act ends only at the target: half of the six (three, v09) are exiled, every tribunal closed its gates.
 		const exiled = fixture.events("exiled");
-		expect(exiled).toHaveLength(1);
+		expect(exiled).toHaveLength(3);
 		const [end] = fixture.events("run_end");
 		expect(end?.minute).toBe(exiled.at(-1)?.minute);
 		expect(end?.reason).not.toBe("every competitor has passed the last level");
 		expect(end?.reason).not.toBe("seats decided");
-		expect(end?.reason).toMatch(/^The city has kept 5 of 6 residents/);
+		expect(end?.reason).toMatch(/^The city has kept 3 of 6 residents/);
 		// The final ranking comes with the end: the exiled ranks last, even when exiled at the last tick.
 		const exiledIds = new Set(exiled.map((event) => event.agent));
-		expect(end?.standings?.slice(5).every((row) => exiledIds.has(row.agent))).toBe(true);
-		expect(end?.standings?.slice(5).every((row) => row.points <= 0)).toBe(true);
+		expect(end?.standings?.slice(3).every((row) => exiledIds.has(row.agent))).toBe(true);
+		expect(end?.standings?.slice(3).every((row) => row.points <= 0)).toBe(true);
 		expect(fixture.events("tribunal_result")).toHaveLength(fixture.events("tribunal_opened").length);
 	}, 60_000);
 });

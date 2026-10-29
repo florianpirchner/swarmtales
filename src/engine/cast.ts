@@ -37,15 +37,24 @@ export interface CollectionView {
 	/** Only the first DM of every sender is collected. */
 	readonly distinctSenders: boolean;
 	readonly entries: readonly CollectedDm[];
+	/** The window also ends `minutes` after the first resident passes `level` (v09); absent before. */
+	readonly afterSolve?: SolveEnd;
+}
+
+/** An earlier end of a collection's window: `minutes` after the first resident passed `level` (v09). */
+export interface SolveEnd {
+	readonly level: number;
+	readonly minutes: number;
 }
 
 interface CollectionState {
 	readonly into: string;
 	readonly cast: string;
 	readonly first: number;
-	readonly untilMinute: number;
+	untilMinute: number;
 	readonly distinctSenders: boolean;
 	readonly entries: CollectedDm[];
+	readonly afterSolve?: SolveEnd;
 }
 
 /** Where a DM to a cast member was collected. */
@@ -122,9 +131,18 @@ export class CastRegistry {
 		return true;
 	}
 
-	startCollection(into: string, cast: string, first: number, untilMinute: number, distinctSenders = false): boolean {
+	startCollection(into: string, cast: string, first: number, untilMinute: number, distinctSenders = false, afterSolve?: SolveEnd): boolean {
 		if (this.#collections.has(into) || !this.#members.has(cast)) return false;
-		this.#collections.set(into, { into, cast, first, untilMinute, distinctSenders, entries: [] });
+		this.#collections.set(into, { into, cast, first, untilMinute, distinctSenders, entries: [], ...(afterSolve === undefined ? {} : { afterSolve }) });
+		return true;
+	}
+
+	/** Moves a collection's end earlier (never later, never before `minute`); returns whether it changed. */
+	shortenCollection(into: string, untilMinute: number, minute: number): boolean {
+		const collection = this.#collections.get(into);
+		const until = Math.max(minute, untilMinute);
+		if (collection === undefined || until >= collection.untilMinute) return false;
+		collection.untilMinute = until;
 		return true;
 	}
 

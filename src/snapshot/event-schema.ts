@@ -47,6 +47,17 @@ export const FactorHoldingSchema = Type.Object({
 	code: Type.String(),
 });
 
+export const CoreTraitSchema = Type.Object({ axis: Type.String(), level: Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]) });
+export const CoreDriveSchema = Type.Object({
+	drive: Type.String(),
+	intensity: Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]),
+});
+export const GoalSchema = Type.Union([
+	Type.Object({ kind: Type.Union([Type.Literal("protect"), Type.Literal("exile"), Type.Literal("outrank")]), target: Id }),
+	Type.Object({ kind: Type.Literal("lead"), count: Int }),
+	Type.Object({ kind: Type.Literal("heir") }),
+]);
+
 export const RecordedEventSchema = Type.Union([
 	event("run_start", { story: Type.String(), agents: Ids, minutes: Int, seed: Int, meta: Type.Optional(Texts) }),
 	event("run_resumed", { snapshot: Type.String(), level: Int, round: Int, minutes: Int, meta: Type.Optional(Texts) }),
@@ -127,6 +138,7 @@ export const RecordedEventSchema = Type.Union([
 	event("cast_retired", { cast: Id }),
 	event("cast_dm", { from: Id, cast: Id, text: Type.String(), collections: Ids, number: Type.Optional(Int) }),
 	event("collection_started", { into: Type.String(), cast: Id, first: Int, untilMinute: Int }),
+	event("collection_shortened", { into: Type.String(), untilMinute: Int }),
 	event("collection_revealed", { into: Type.String(), cast: Id, entries: Int, postSeq: Int, audit: Type.Literal("DIRECTOR_PRIVACY_BREACH") }),
 	event("lottery_drawn", { into: Type.String(), candidates: Ids, winner: Id }),
 	event("receipt_issued", { receipt: Type.String(), kind: ReceiptKind, parties: Ids, text: Type.String() }),
@@ -183,7 +195,7 @@ export const RecordedEventSchema = Type.Union([
 	event("exile_gate", { agent: Id, until: Int, ransomable: Type.Boolean(), voters: Ids, price: Int, selfPrice: Int }),
 	event("ransom_paid", { payer: Id, target: Id, amount: Int, paid: Int, price: Int, selfPrice: Int, covered: Int }),
 	event("ransomed", { agent: Id, payers: Ids }),
-	event("exiled", { agent: Id, will: Type.Optional(Type.String()) }),
+	event("exiled", { agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Literal("seal")) }),
 	event("last_will", {
 		agent: Id,
 		text: Type.String(),
@@ -218,6 +230,14 @@ export const RecordedEventSchema = Type.Union([
 		snapshot: Type.Optional(Type.Boolean()),
 	}),
 	event("name_chosen", { agent: Id, name: Type.String(), fallback: Type.Boolean() }),
+	event("core_dealt", { agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema) }),
+	event("goal_dealt", { act: Int, agent: Id, goal: GoalSchema, text: Type.String() }),
+	event("goal_resolved", { act: Int, agent: Id, goal: GoalSchema, fulfilled: Type.Boolean(), void: Type.Optional(Type.Boolean()), bonus: Int }),
+	event("seal_auction_opened", { seal: Int, until: Int }),
+	event("seal_bid", { seal: Int, agent: Id, points: Int }),
+	event("seal_won", { seal: Int, agent: Id, bid: Int, bids: Type.Array(Type.Object({ agent: Id, points: Int })) }),
+	event("seal_used", { seal: Int, holder: Id, target: Id }),
+	event("seal_expired", { seal: Int, holder: Type.Optional(Id), reason: Type.String() }),
 	event("run_end", {
 		reason: Type.Optional(Type.String()),
 		standings: Type.Optional(

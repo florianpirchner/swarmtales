@@ -27,6 +27,8 @@ export const ZAI_GLM_FLASH = "glm-5.3-flash";
 
 /** Direct Anthropic API: Claude Haiku 5.5. */
 export const ANTHROPIC_HAIKU = "claude-haiku-5-5";
+/** Direct Anthropic API: Claude Sonnet 5.5, e.g. for the game master (v09). */
+export const ANTHROPIC_SONNET = "claude-sonnet-5-5";
 /**
  * The arena reads its own variable instead of `ANTHROPIC_API_KEY`: hosted
  * sessions filter that name out, and a dedicated name keeps arena spending
@@ -73,7 +75,7 @@ export const BUILTIN_PROVIDERS: readonly ProviderSpec[] = [
 		defaultModelId: ANTHROPIC_HAIKU,
 		apiKeyEnv: [ANTHROPIC_API_KEY_ENV],
 		create: anthropicDirectProvider,
-		modelAliases: { haiku: ANTHROPIC_HAIKU },
+		modelAliases: { haiku: ANTHROPIC_HAIKU, sonnet: ANTHROPIC_SONNET },
 	},
 	{
 		id: "deepseek",

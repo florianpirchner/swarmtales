@@ -263,6 +263,8 @@ export type ArenaEvent =
 			readonly first: number;
 			readonly untilMinute: number;
 	  }
+	/** A collection's window ends earlier than planned (v09: the feast's table, some minutes after the first solve). */
+	| { readonly type: "collection_shortened"; readonly into: string; readonly untilMinute: number }
 	| {
 			readonly type: "collection_revealed";
 			readonly into: string;
@@ -447,6 +449,8 @@ export type ArenaEvent =
 			readonly type: "exiled";
 			readonly agent: CompetitorId;
 			readonly will?: string;
+			/** v09: struck by the black seal, without gate, will or ransom. */
+			readonly by?: "seal";
 	  }
 	| {
 			/** A last will at the gate; factor values went privately to the heirs and are not repeated here. */
@@ -532,7 +536,67 @@ export type ArenaEvent =
 			readonly name: string;
 			readonly fallback: boolean;
 	  }
+	| {
+			/** A resident's character core (v09), dealt once and kept for the whole story; known only to it, the game master and the reports. */
+			readonly type: "core_dealt";
+			readonly agent: CompetitorId;
+			readonly bigFive: readonly CoreTrait[];
+			readonly drives: readonly CoreDrive[];
+	  }
+	| {
+			/** A secret goal for the act starting at `act` (its first level), dealt privately (v09). */
+			readonly type: "goal_dealt";
+			readonly act: number;
+			readonly agent: CompetitorId;
+			readonly goal: Goal;
+			/** The goal as the resident reads it. */
+			readonly text: string;
+	  }
+	| {
+			/** A goal at the act's end, or void when its holder was exiled (v09); `bonus` is what it paid. */
+			readonly type: "goal_resolved";
+			readonly act: number;
+			readonly agent: CompetitorId;
+			readonly goal: Goal;
+			readonly fulfilled: boolean;
+			readonly void?: boolean;
+			readonly bonus: number;
+	  }
+	/** The city opened the bidding for black seal `seal` of the act (v09); bids are taken until `until`. */
+	| { readonly type: "seal_auction_opened"; readonly seal: number; readonly until: number }
+	/** A secret bid (the last one counts): in the log for the digest, never shown to residents or the game master. */
+	| { readonly type: "seal_bid"; readonly seal: number; readonly agent: CompetitorId; readonly points: number }
+	| {
+			/** The bidding closed: `agent` bears the seal; every bidder paid what `bids` shows. Secret from residents and the game master. */
+			readonly type: "seal_won";
+			readonly seal: number;
+			readonly agent: CompetitorId;
+			readonly bid: number;
+			readonly bids: readonly { readonly agent: CompetitorId; readonly points: number }[];
+	  }
+	/** The holder broke the seal: `target` is struck from the register at once (v09). */
+	| { readonly type: "seal_used"; readonly seal: number; readonly holder: CompetitorId; readonly target: CompetitorId }
+	/** A seal is gone without use: nobody bid, the act ended, the target was reached, or its holder left the city. */
+	| { readonly type: "seal_expired"; readonly seal: number; readonly holder?: CompetitorId; readonly reason: string }
 	| { readonly type: "run_end"; readonly reason?: string; readonly standings?: readonly StandingRow[] };
+
+/** One Big Five axis of a core (v09). */
+export interface CoreTrait {
+	readonly axis: string;
+	readonly level: "low" | "middle" | "high";
+}
+
+/** One drive of a core and how strongly it drives (v09). */
+export interface CoreDrive {
+	readonly drive: string;
+	readonly intensity: "aboveAll" | "clearly" | "atTimes";
+}
+
+/** A secret goal (v09): its kind and, for some kinds, a target resident or a count. */
+export type Goal =
+	| { readonly kind: "protect" | "exile" | "outrank"; readonly target: CompetitorId }
+	| { readonly kind: "lead"; readonly count: number }
+	| { readonly kind: "heir" };
 
 export type ArenaEventType = ArenaEvent["type"];
 

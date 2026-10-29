@@ -17,12 +17,12 @@ describe("nexus level 1: the first door (solo)", () => {
 			}),
 		});
 		await fixture.run();
-		// A01: 15 - 8 (wrong) + 5 (right) = 12; A02: 15 + 5 = 20.
-		expect(fixture.world.ledger.balance("A01")).toBe(12);
+		// A01: 15 - 2 (the first wrong code of the act) + 5 (right) = 18; A02: 15 + 5 = 20.
+		expect(fixture.world.ledger.balance("A01")).toBe(18);
 		expect(fixture.world.ledger.balance("A02")).toBe(20);
 		expect(fixture.world.levelOf("A01")).toBe(2);
 		expect(fixture.world.levelOf("A02")).toBe(2);
-		expect(fixture.toolResults("A01", "submitSolution")[0]).toMatch(/^INCORRECT: -8 points/);
+		expect(fixture.toolResults("A01", "submitSolution")[0]).toBe("INCORRECT: -2 points · your next wrong code costs 4 points · 1 attempts left in this window");
 	});
 
 	it("does not count a password written as text", async () => {
@@ -254,7 +254,7 @@ describe("nexus levels 5-7: harder doors", () => {
 		const text = fixture.world.currentProblem("A01")?.text ?? "";
 		expect(text).toContain("the city does not say how many");
 		expect(text).not.toMatch(/overlap by \d/);
-		expect(text).toContain("A wrong password costs 8 points");
+		expect(text).toContain("Within an act, wrong passwords cost 2, 4, 6, then 8 points, one after another (your next one: 2 points)");
 		expect(fixture.world.inspect.passwordOf("A01", 5).length).toBeGreaterThanOrEqual(12);
 	});
 

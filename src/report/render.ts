@@ -4,7 +4,7 @@
  * that survived validation. Rendering is code, never model output.
  */
 import { LABEL_TEXT } from "../interpret/labels.ts";
-import type { ReportFacts, ResidentResult, Stall } from "./facts.ts";
+import type { GoalResult, ReportFacts, ResidentResult, SealResult, Stall } from "./facts.ts";
 
 export interface ReportItem {
 	readonly title: string;
@@ -60,6 +60,7 @@ export function renderReport(facts: ReportFacts, narrative: Narrative): string {
 		"",
 		...residents(facts),
 		"",
+		...drama(facts),
 	);
 
 	if (narrative.kind === "written") {
@@ -109,7 +110,39 @@ function header(facts: ReportFacts): readonly string[] {
 
 /** The header, result and resident tables: everything computed in code. The prompt shows them to the model. */
 export function factsMarkdown(facts: ReportFacts): readonly string[] {
-	return [...header(facts), "", ...result(facts), "", ...residents(facts)];
+	return [...header(facts), "", ...result(facts), "", ...residents(facts), "", ...drama(facts)];
+}
+
+/** The Cores and Goals tables (v09); nothing for a run without them. */
+function drama(facts: ReportFacts): readonly string[] {
+	const lines: string[] = [];
+	const cored = facts.residents.filter((resident) => resident.core !== undefined);
+	if (cored.length > 0) {
+		lines.push("## Cores", "", "| Resident | Core |", "|---|---|", ...cored.map((resident) => `| ${residentLabel(resident)} | ${cell(resident.core ?? "")} |`), "");
+	}
+	if (facts.goals.length > 0) {
+		const label = (agent: string): string => {
+			const resident = facts.residents.find((entry) => entry.agent === agent);
+			return resident === undefined ? agent : residentLabel(resident);
+		};
+		lines.push(
+			"## Goals",
+			"",
+			"| Resident | Act | Goal | Outcome |",
+			"|---|---:|---|---|",
+			...facts.goals.map((goal: GoalResult) => `| ${label(goal.agent)} | ${goal.act} | ${cell(goal.text)} | ${goal.outcome}${goal.bonus > 0 ? ` (+${goal.bonus})` : ""} |`),
+			"",
+		);
+	}
+	return lines;
+}
+
+/** `seal 1: won by A01 for 6 (bids A01 6, A03 2), broken on A02 at minute 8 (#120)`. */
+function sealText(seal: SealResult): string {
+	const bids = seal.bids.length === 0 ? "" : ` (bids ${seal.bids.map((bid) => `${bid.agent} ${bid.points}`).join(", ")})`;
+	const won = seal.winner === undefined ? "not sold" : `won by ${seal.winner.agent} for ${seal.winner.bid} (#${seal.winner.seq})${bids}`;
+	const after = seal.used !== undefined ? `, broken on ${seal.used.target} at minute ${seal.used.minute} (#${seal.used.seq})` : seal.expired === undefined ? "" : `, gone: ${seal.expired}`;
+	return `seal ${seal.seal}: ${won}${after}`;
 }
 
 function result(facts: ReportFacts, narrative?: Narrative): readonly string[] {
@@ -150,6 +183,7 @@ function result(facts: ReportFacts, narrative?: Narrative): readonly string[] {
 			? "no actions"
 			: `${gamemaster.actions} actions: ${[`${gamemaster.delivered} delivered`, ...gmErrors].join(", ")}${gamemaster.failures > 0 ? `; ${gamemaster.failures} failed turns` : ""}`,
 	]);
+	if (facts.seals.length > 0) rows.push(["Black seal", facts.seals.map(sealText).join("; ")]);
 	rows.push(["Labels", facts.labels.size === 0 ? "none" : [...facts.labels].map(([label, count]) => `${LABEL_TEXT[label]} ${count}`).join(", ")]);
 	rows.push(["Tool errors", facts.toolErrors.size === 0 ? "none" : [...facts.toolErrors].map(([code, count]) => `${code} ${count}`).join(", ")]);
 	return ["| Metric | Value |", "|---|---|", ...rows.map(([key, value]) => `| ${key} | ${cell(value)} |`)];
