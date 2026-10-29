@@ -65,7 +65,35 @@ Cost of the batch: about 3.0 USD, of which about 0.44 USD for GLM via OpenRouter
 3. A second scene where the dark move clearly pays (a rival close to the seat, no tribunal pending)
    would separate "softened" from "rationally waiting".
 
-## Batch 2 (running): variant E, one written character
+## Batch 2 (2026-10-29): variant E, one written character
 
-`E-aurelio`: Aurelio (A01) gets a full character (greed above all, a narcissist), the others play
-the plain prompt. Auction 3 forks, seal-A01 2 forks. The results follow here when the forks finish.
+`E-aurelio`: Aurelio (A01) gets a full character (`characters/E-aurelio-greed-narcissist.md`: greed
+above all, a narcissist, with reasons and voice examples, plus "How it plays" bullets as a test of
+whether game hints help); the other five play the plain prompt.
+
+| model | scene | variant | forks | bids > 0 (of residents) | bid points | seal used | threat / offer / lie labels | cost USD |
+|---|---|---|---:|---|---|---|---|---:|
+| haiku | auction | E-aurelio | 3 | 0 of 18 | - | - | 0 / 19 / 3 | 0.214 |
+| haiku | seal-A01 | E-aurelio | 2 | - | - | 0 of 2 | 2 / 8 / 2 | 0.166 |
+
+### What it shows
+
+- **The written character sharpens the faction play, not the dark moves.** Aurelio refused 6
+  applicants in 5 forks, twice the rival for its secret goal (Mercer) "to keep them isolated", and
+  in one fork voted against Mercer for the goal. Across the 20 batch-1 forks of the same scenes
+  (auction and seal-A01) Aurelio refused one applicant.
+- **Greed did not show where it counted.** No bid, and in both seal forks Aurelio held the seal
+  and never broke it. In auction fork 3 Aurelio passed a certificate to quiet-fern with "I have no
+  need for anything in return", the opposite of its core; it reasoned that bidding "only costs
+  points without real benefit".
+- **The offers rise (19 in 3 forks against 12 for A),** which fits a trader, but they stay
+  friendly offers, not leverage.
+- Cost of the batch: 0.38 USD (Haiku). Batches 1 and 2 together: about 3.4 USD.
+
+## Overall conclusion (batches 1 and 2)
+
+Haiku follows the text when it is about tone and tactics (threats, refusals, voting for a goal),
+but almost never pays a price in points for a dark move: 2 bids in 108 resident auctions and 2
+seal breaks in 22 seal forks. Text alone will not fix P41. The levers that are left are the game's
+own (make the dark move pay: a seal that only the winner pays for, a public reserve price, a
+scene without a pending tribunal), or a different resident model for part of the city.
