@@ -364,6 +364,16 @@ const SealWon = Type.Object({
 });
 const SealUsed = Type.Object({ ...Base, type: Type.Literal("seal_used"), seal: Type.Integer(), holder: Id, target: Id });
 const SealExpired = Type.Object({ ...Base, type: Type.Literal("seal_expired"), seal: Type.Integer(), holder: Type.Optional(Id), reason: Type.String() });
+/** The weaver's change of a resident; reason and evidence are optional, so a log with less still parses. */
+const FateShift = Type.Object({
+	...Base,
+	type: Type.Literal("fate_shift"),
+	agent: Id,
+	kind: Type.Union([Type.Literal("soft"), Type.Literal("hard"), Type.Literal("act")]),
+	text: Type.String(),
+	reason: Type.Optional(Type.String()),
+	evidence: Type.Optional(Type.Array(Type.Integer())),
+});
 
 export const DIGEST_EVENT_SCHEMAS = [
 	RunStart,
@@ -433,6 +443,7 @@ export const DIGEST_EVENT_SCHEMAS = [
 	SealWon,
 	SealUsed,
 	SealExpired,
+	FateShift,
 ] as const;
 
 const DigestEventSchema = Type.Union([...DIGEST_EVENT_SCHEMAS]);

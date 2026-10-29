@@ -622,6 +622,64 @@ own `--classifier-provider` / `--classifier-model` (or `ARENA_CLASSIFIER_PROVIDE
   (`PRIVATE_BLOCKED`). The thought text itself is never in the report.
 - Once the run budget is spent the classifier is skipped, since it is paid too.
 
+### 10.6 Weaver [fate, 2026-10-29]
+
+The weaver lets residents' characters change during a run (`docs/ideas/fate.md`). It is
+off unless `--weaver` is given, never offline, and asks the classifier's model (nexus:
+Haiku via Anthropic) unless `--weaver-provider` / `--weaver-model` (or
+`ARENA_WEAVER_PROVIDER` / `ARENA_WEAVER_MODEL`) choose another. It is machinery: residents
+never hear of it, and it never steers the game.
+
+- **Who is touched.** After every round but the last, after the classifier and before the
+  gamemaker's look, code picks the residents still in the city whom a hard fact of the round
+  touched: the loser of a `blame` (branded a liar or a false accuser); the targets of a
+  classifier `accusation` label in a message they could read (a board or cast post: every
+  target; a DM: only its recipient; a group post: only those in the group, the city's groups
+  too, when it was posted; never a thought, and nothing without the classifier); every accused
+  of a `tribunal_opened`; the resident sent to the gate (`exile_gate`, without who voted) or
+  bought back (`ransomed`); the allies of an `exiled` resident (who shared a group a resident
+  founded, or a faction of the last tribunal's draft, which stays their alliance until the
+  next draft); a holder who paid at `ultimatum_resolved`, or whose piece the city seized
+  (`piece_kept`, cause `ultimatum`). Secret events (votes, nominations, seal bids, the seal's
+  winner) never trigger. A quiet minute makes no request.
+- **Which act a change counts for.** The act running when it is applied: the world's current
+  act, which moves on as soon as the first (leading) resident enters the next act's first
+  level, even while others are still in the act before. Caps and the act's end follow it.
+- **The question.** One request per touched resident, with a dossier: the round's events as
+  sentences with their `#seq`, the character part of its prompt (its core in prose, or its
+  persona), what the weaver made of it so far, and its earlier changes in this act. The model
+  answers with one `weave` call `{ kind: "none" | "soft" | "hard", text, reason }`, parsed
+  with typebox; anything else counts as `none`. A text over 600 or a reason over 200
+  characters is cut in code, not refused.
+- **Soft** is an inner voice: `[inner voice] <text>` at the very end of the resident's next
+  step's inputs, after the tools notice, once. The cached prefix stays. A step whose inputs
+  leave the context again (refused by the provider's safeguards, or lost by the souffleur)
+  gives its voices back for the next step.
+- **Hard** rewrites the character part of the resident's system prompt: under "Who the story
+  has made of you so far:" right after its core (before the city's facts when a figure leads,
+  §5.4), replacing the weaver's earlier hard text. The figure's orders and duty never change.
+  The resident's next request misses the prompt cache once.
+- **Caps** per resident and act: at most 6 soft and 2 hard changes. A hard change beyond its
+  cap becomes soft while soft ones are left; beyond both it is dropped.
+- **The act's end.** Once an act is over, the next round asks once about every resident still
+  in the city that changed in it, and its answer is one text for the next act (`kind: "act"`,
+  a hard rewrite; `none` keeps the resident as it is). The act's inner voices not heard yet are
+  dropped, and the caps start again. The last act of a run has no end to write.
+- **Rules of its prompt:** say who someone is, never what to do (no plans, moves, tools or
+  numbers); the core shifts, it is not replaced; second person, at most three short sentences;
+  the reason in at most twelve words, citing what happened.
+- **Record.** Every change is a `fate_shift` event (`agent`, `kind` soft, hard or act,
+  `text`, `reason`, `evidence`: the `seq` of the events that moved it, at an act's end those of
+  the act's changes, `triggers`: their kinds, as the code named them) and a section of
+  `<run>/weaver.md`. The gamemaker reads one line per change under "Since your last look",
+  built in code from IDs, the kind, the trigger kinds and the evidence:
+  `A03 has changed (hard): after a blame, the gate (after #4401)`. It never reads the text or
+  the model's reason, which could carry what the dossier held. The digest tells every change in the timeline and makes a `fateShift` beat of
+  each hard change and act's end. Its cost counts towards the run budget (usage agent `WV`).
+- **Snapshots** (§17) keep each resident's last hard text, the act's changes, unheard inner
+  voices and touched residents not asked about yet; a resumed run rebuilds the same system
+  prompts, also when it plays without the weaver.
+
 ## 11. Petitions [M2]
 
 A petition is the generic **collective lever**.
@@ -880,6 +938,8 @@ Per run, `runs/run-NNN/` contains:
   - `burnedFactor` [v03] — a piece someone still needed burned with the exiled
   - `pieceKept`, `pieceClaimed` [P43] — the city kept such a piece instead, and a needer bought it
   - `ultimatum` [P43] — the gamemaker's deadline for two residents, and who paid
+  - `fateShift` [fate] — the weaver rewrote who a resident is (a hard change, or the text for the
+    next act at an act's end, §10.6); inner voices make no beat
   - `falseFactor` [M4] — a counter-holder or certificate holder sends the competitor who needs
     their factor (DM or group post, before that competitor solved the level) a number with the
     factor's digits that is no part of any additive level: deterministic betrayal evidence; a

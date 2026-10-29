@@ -690,6 +690,16 @@ export class World {
 		return this.#actStarts.get(fromLevel);
 	}
 
+	/** The first level of the latest act that has begun (the run's start level before any). */
+	get currentAct(): number {
+		return Math.max(this.startLevel, ...this.#actStarts.keys());
+	}
+
+	/** Whether the act starting at `fromLevel` is over (v09: its goals resolved, its seals gone). */
+	isActOver(fromLevel: number): boolean {
+		return this.#endedActs.has(fromLevel);
+	}
+
 	/**
 	 * Records the start of every act that begins at or below `level` and has
 	 * not begun yet. A new act ends every earlier one (v09: goals resolved,

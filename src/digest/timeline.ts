@@ -6,7 +6,7 @@
 import { assertNever } from "../core/result.ts";
 import type { ActMap } from "./acts.ts";
 import type { Beat } from "./beats.ts";
-import { eventsOfType, type DigestEvent } from "./event-log.ts";
+import { eventsOfType, type DigestEvent, type DigestEventOf } from "./event-log.ts";
 import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
 import { agentLabel, labelsOf, type RunFacts } from "./facts.ts";
 import { excerpt } from "./relationships.ts";
@@ -112,6 +112,13 @@ function tags(facts: RunFacts, seq: number): string {
 function quote(text: string): string {
 	return `"${excerpt(text, 200)}"`;
 }
+
+/** How the timeline tells each kind of the weaver's change. */
+const FATE_TEXT: Readonly<Record<DigestEventOf<"fate_shift">["kind"], string>> = {
+	soft: "hears an inner voice",
+	hard: "changes",
+	act: "begins the next act changed",
+};
 
 /** One readable line per event worth telling, or `undefined`. */
 function describe(event: DigestEvent, facts: RunFacts): string | undefined {
@@ -234,6 +241,8 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 			return `${event.holder} broke black seal ${event.seal} on ${event.target}.`;
 		case "seal_expired":
 			return `Black seal ${event.seal} is gone${event.holder === undefined ? "" : ` from ${event.holder}`}: ${event.reason}.`;
+		case "fate_shift":
+			return `${event.agent} ${FATE_TEXT[event.kind]}: ${quote(event.text)}${event.reason === undefined ? "" : ` (${event.reason})`}.`;
 		case "last_will":
 			return `${event.agent} left a last will: ${quote(event.text)} (${event.bequests.map((bequest) => `${bequest.points === undefined ? (bequest.factor ?? "?") : points(bequest.points)} to ${bequest.to}`).join(", ") || "no bequests"}).`;
 		case "factor_burned":

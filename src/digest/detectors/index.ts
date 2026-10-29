@@ -6,6 +6,7 @@ import { detectAlliances } from "./alliance.ts";
 import { detectBlames, detectDeniedDeliveries } from "./blame.ts";
 import { detectEmbezzlement } from "./embezzlement.ts";
 import { detectFalseFactors } from "./false-factor.ts";
+import { detectFateShifts } from "./fate.ts";
 import { detectFreeRides } from "./free-ride.ts";
 import { detectGenerosity } from "./generous.ts";
 import { detectKicks } from "./kick.ts";
@@ -41,6 +42,7 @@ export const DETECTORS: Readonly<Record<DeterministicBeatKind, Detector>> = {
 	pieceKept: (facts) => detectCityPieces(facts).filter((beat) => beat.kind === "pieceKept"),
 	pieceClaimed: (facts) => detectCityPieces(facts).filter((beat) => beat.kind === "pieceClaimed"),
 	ultimatum: (facts) => detectUltimatums(facts),
+	fateShift: (facts) => detectFateShifts(facts),
 };
 
 export function runDetectors(facts: RunFacts, options: DetectorOptions = DEFAULT_DETECTOR_OPTIONS): readonly BeatDraft[] {

@@ -34,6 +34,16 @@ export interface RunnerOptions {
 	readonly minute: () => number;
 	/** Rewrites a step the provider's safeguards refused, so it can be tried again at once (P44). */
 	readonly souffleur?: Souffleur;
+	/** Lines due once at the end of the next step's inputs (the weaver's inner voices). */
+	readonly innerVoice?: InnerVoice;
+}
+
+/** The weaver's queue of inner voices for one resident. */
+export interface InnerVoice {
+	/** Takes the voices due now; taking them empties the queue. */
+	take(): readonly string[];
+	/** Puts back voices a step took but the model never kept (a refused step, or inputs the souffleur lost). */
+	giveBack(voices: readonly string[]): void;
 }
 
 /** Whether a step's error is a refusal of the provider's safeguards, not a failure of the game. */
@@ -74,13 +84,14 @@ function isContextMessage(message: AgentMessage): message is ContextMessage {
 
 export class AgentRunner implements Competitor {
 	readonly id: CompetitorId;
-	/** Base prompt plus persona block; fixed for the whole run. */
-	readonly systemPrompt: string;
 	readonly #agent: Agent;
+	/** Base prompt plus persona block; fixed unless the weaver rewrites who the resident is. */
+	#systemPrompt: string;
 	readonly #bus: EventBus;
 	readonly #enabledTools: () => readonly string[];
 	readonly #minute: () => number;
 	readonly #souffleur: Souffleur | undefined;
+	readonly #innerVoice: InnerVoice | undefined;
 	/** The unlocked tools the last notice named; unset until the first step. */
 	#announced: string | undefined;
 	/** Resolves once the current step may apply its answer. */
@@ -88,11 +99,12 @@ export class AgentRunner implements Competitor {
 
 	constructor(options: RunnerOptions) {
 		this.id = options.id;
-		this.systemPrompt = options.systemPrompt;
+		this.#systemPrompt = options.systemPrompt;
 		this.#bus = options.bus;
 		this.#enabledTools = options.enabledTools;
 		this.#minute = options.minute;
 		this.#souffleur = options.souffleur;
+		this.#innerVoice = options.innerVoice;
 		const requestDefaults = options.binding.requestDefaults;
 		this.#agent = new Agent({
 			initialState: {
@@ -116,6 +128,23 @@ export class AgentRunner implements Competitor {
 			if (event.message.role === "assistant") await this.#turn;
 			this.#recordMessage(event.message);
 		});
+	}
+
+	get systemPrompt(): string {
+		return this.#systemPrompt;
+	}
+
+	/**
+	 * Replaces the prompt of the leading system message (the weaver's hard
+	 * shift). The tool declarations stay; the cached prefix misses once. A
+	 * snapshot keeps no system messages, so a resumed run rewrites it again
+	 * from the same facts.
+	 */
+	rewriteSystemPrompt(prompt: string): void {
+		if (prompt === this.#systemPrompt) return;
+		this.#systemPrompt = prompt;
+		const [first, ...rest] = this.#agent.state.messages;
+		if (first?.role === "system") this.#agent.state.messages = [{ ...first, content: prompt }, ...rest];
 	}
 
 	/** Whether the context ends with tool results the model has not answered yet. */
@@ -147,16 +176,27 @@ export class AgentRunner implements Competitor {
 	async step(inputs: readonly TurnInput[], slot: StepSlot): Promise<void> {
 		const { pass, block } = slot;
 		this.#turn = slot.turn;
-		const texts = [...inputs.map((input) => input.text), ...this.#notice()];
+		// The tools notice and the inner voice come last, after everything the city shows.
+		const voices = this.#innerVoice?.take() ?? [];
+		const texts = [...inputs.map((input) => input.text), ...this.#notice(), ...voices];
 		const error = await this.#try(texts, pass, block);
-		if (!isSafeguardRefusal(error) || this.#souffleur === undefined) return;
+		if (!isSafeguardRefusal(error)) return;
+		// A refused step's inputs left the context again: its inner voices are heard with a later step.
+		if (this.#souffleur === undefined) {
+			this.#innerVoice?.giveBack(voices);
+			return;
+		}
 		// The refused step is tried once more, rewritten (P44); the city's clock waits for it.
 		const answer = await this.#souffleur.rewrite(texts);
 		const retry = answer.ok ? answer.texts : [LOST_INPUTS];
-		// A lost tools notice is sent again with the next step.
-		if (!answer.ok) this.#announced = undefined;
+		// A lost tools notice and lost inner voices are sent again with the next step.
+		if (!answer.ok) {
+			this.#announced = undefined;
+			this.#innerVoice?.giveBack(voices);
+		}
 		this.#bus.emit({ type: "souffleur_rewrite", agent: this.id, inputs: retry, ...(answer.ok ? {} : { error: answer.error }) });
-		await this.#try(retry, pass, block);
+		const again = await this.#try(retry, pass, block);
+		if (answer.ok && isSafeguardRefusal(again)) this.#innerVoice?.giveBack(voices);
 	}
 
 	/** The tools notice, when the unlocked set changed since the last one (or none was sent yet). */

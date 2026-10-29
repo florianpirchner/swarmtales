@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { baseSystemPrompt } from "../../src/agents/system-prompt.ts";
+import { baseSystemPrompt, SHIFT_HEADING } from "../../src/agents/system-prompt.ts";
 import { PERSONA_STRATEGY_WORDS } from "../../src/story/validate.ts";
 
 describe("base system prompt (SPEC 5.4)", () => {
@@ -17,6 +17,18 @@ describe("base system prompt (SPEC 5.4)", () => {
 
 	it("contains no strategy", () => {
 		for (const word of PERSONA_STRATEGY_WORDS) expect(prompt.toLowerCase()).not.toMatch(new RegExp(`\\b${word}\\b`));
+	});
+
+	it("puts who the story has made of the resident (the weaver) right after its core, and nothing without it", () => {
+		const facts = { id: "A07", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 3, core: "Who you are:\nYou are greedy above all." } as const;
+		const plain = baseSystemPrompt(facts);
+		expect(plain).not.toContain(SHIFT_HEADING);
+		const shifted = baseSystemPrompt({ ...facts, shift: "You trust no one any more." });
+		expect(shifted).toBe(`${plain}\n\n${SHIFT_HEADING}\nYou trust no one any more.`);
+		// A led figure keeps its direction last: the change stands with its core, before the city.
+		const led = baseSystemPrompt({ ...facts, shift: "You trust no one any more.", direction: { level: 6, block: "Your duty: keep the gate." } });
+		expect(led.indexOf("You trust no one any more.")).toBeLessThan(led.indexOf("The city:"));
+		expect(led.endsWith("Your duty: keep the gate.")).toBe(true);
 	});
 
 	it("appends a persona block when present", () => {

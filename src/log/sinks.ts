@@ -133,6 +133,8 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (${event.holder} broke black seal ${event.seal} on ${event.target})`;
 		case "seal_expired":
 			return `  (black seal ${event.seal} gone: ${event.reason})`;
+		case "fate_shift":
+			return `  (the weaver: ${event.agent} ${event.kind === "soft" ? "hears an inner voice" : event.kind === "hard" ? "has changed" : "begins the next act changed"}: ${event.reason})`;
 		case "goal_resolved":
 			return `  (${event.agent}'s goal ${event.void === true ? "void" : event.fulfilled ? `fulfilled, +${event.bonus}` : "missed"})`;
 		case "tribunal_announced":
