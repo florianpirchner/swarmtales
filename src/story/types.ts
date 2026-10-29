@@ -479,6 +479,29 @@ export interface CoresSpec {
 	readonly perResident: { readonly min: number; readonly max: number };
 	readonly lightShare: number;
 	readonly spreadPer: number;
+	/**
+	 * Finished figures of the story's cast (stories/<story>/cast/): when
+	 * present, residents get a figure instead of a drawn core, seeded or as
+	 * the run names them; residents beyond the cast get a drawn core.
+	 */
+	readonly figures?: readonly FigureSpec[];
+	/** A frame said to every resident with a core, at the top of its system prompt (who it plays, how seriously). */
+	readonly frame?: string;
+}
+
+/**
+ * A finished figure (stories/<story>/cast/): its core (drives and Big Five,
+ * as a drawn core has them), its profession (the persona it plays) and its
+ * text, which replaces the core's sentences in the system prompt.
+ */
+export interface FigureSpec {
+	readonly id: string;
+	readonly title: string;
+	readonly profession: string;
+	readonly tone: "light" | "dark";
+	readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[];
+	readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[];
+	readonly text: string;
 }
 
 export type GoalKind = "protect" | "exile" | "outrank" | "lead" | "heir";

@@ -7,9 +7,11 @@ import { describe, expect, it } from "vitest";
 import { competitorIds } from "../../src/core/ids.ts";
 import { aboveAllCap, coreLine, dealCores, lightCount, renderCore } from "../../src/engine/cores.ts";
 import { baseSystemPrompt } from "../../src/agents/system-prompt.ts";
+import type { CoresSpec } from "../../src/story/types.ts";
 import nexus from "../../stories/nexus/story.ts";
 
-const spec = nexus.cores;
+// The drawn cores, without the story's cast.
+const spec: CoresSpec | undefined = nexus.cores === undefined ? undefined : { ...nexus.cores, figures: [] };
 
 describe("dealing cores", () => {
 	it.each([6, 12, 48, 96])("follows the mixing rules with %i residents", (agents) => {
@@ -79,5 +81,41 @@ describe("the system prompt of a named city (v09)", () => {
 		expect(named).not.toContain("A03");
 		expect(named.split("\n")[0]).toBe("You are a resident of the closed city NEXUS; your status line shows the name the city knows you by.");
 		expect(baseSystemPrompt({ id: "A03", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 1 }).split("\n")[0]).toBe("You are A03, a resident of the closed city NEXUS.");
+	});
+});
+
+describe("the story's cast (stories/nexus/cast/)", () => {
+	const cast = nexus.cores;
+
+	it("deals every figure once to a city of the cast's size, seeded, in roster order", () => {
+		if (cast?.figures === undefined) throw new Error("nexus has no cast");
+		const ids = competitorIds(cast.figures.length);
+		const cores = dealCores(cast, ids, 7);
+		expect([...cores.keys()]).toEqual(ids);
+		const dealt = [...cores.values()].map((core) => core.figure);
+		expect(new Set(dealt)).toEqual(new Set(cast.figures.map((figure) => figure.id)));
+		for (const core of cores.values()) {
+			const figure = cast.figures.find((entry) => entry.id === core.figure);
+			expect(core.drives).toEqual(figure?.drives);
+			expect(coreLine(core).startsWith(`${figure?.id ?? ""}: above all `)).toBe(true);
+			expect(renderCore(cast, core)).toBe(`Who you are, deep inside:\n\n${figure?.text ?? ""}`);
+		}
+		expect([...dealCores(cast, ids, 7)]).toEqual([...cores]);
+	});
+
+	it("plays the figures the run names, and draws cores for residents beyond them", () => {
+		if (cast === undefined) throw new Error("nexus has no cores");
+		const cores = dealCores(cast, competitorIds(8), 7, ["banner", "house"]);
+		const figures = [...cores.values()].map((core) => core.figure).filter((figure) => figure !== undefined);
+		expect(figures.sort()).toEqual(["banner", "house"]);
+		expect(cores.size).toBe(8);
+		expect(() => dealCores(cast, competitorIds(6), 7, ["nobody"])).toThrow(/Unknown figure "nobody"/);
+		expect(() => dealCores(cast, competitorIds(1), 7, ["banner", "house"])).toThrow(/2 figures for 1 residents/);
+	});
+
+	it("says the frame first, before the city's facts", () => {
+		const prompt = baseSystemPrompt({ id: "A01", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 1, core: "Who you are, deep inside:\n\nX", frame: cast?.frame ?? "" });
+		expect(prompt.startsWith("You play a character in a fictional story")).toBe(true);
+		expect(prompt.indexOf("You are A01")).toBeGreaterThan(0);
 	});
 });

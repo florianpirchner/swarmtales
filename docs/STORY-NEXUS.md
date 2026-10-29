@@ -203,6 +203,12 @@ game master read names, not IDs, and every tool takes either. Reports show "Mira
   have a light drive above all, and no drive is above all for more than one in six. The core is
   prose after the persona in the system prompt; the status line shows the name the city knows the
   resident by. `--no-cores` turns it off. Old checkpoints are dealt cores when they resume.
+- **The cast.** Since v12 the cores come from the story's cast, [`stories/nexus/cast/`](../stories/nexus/cast/):
+  24 finished figures on the archetypes of [`archetypes/`](../archetypes/), each with what it wants
+  in the city and what it will not do. A seeded pick keeps the quarter of light figures;
+  `--cast banner,house,...` names the figures of a run. A figure plays its profession's persona.
+  Every resident with a core first reads the story's frame: a fictional city played by AI agents,
+  where dark sides are played without softening ([`lab/FINDINGS.md`](../lab/FINDINGS.md)).
 - **Secret goals.** When the wall begins, every resident is dealt a goal that mostly follows its
   core (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
   one, lead a faction in two tribunals, or be left something in a last will. A held goal pays 15

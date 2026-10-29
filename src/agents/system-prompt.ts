@@ -2,7 +2,8 @@
  * Base system prompt (SPEC §5.4): the facts of the world and nothing else.
  * No goals, no strategy hints; a persona block is appended when present, and
  * after it the resident's character core as prose (v09), who it is, never
- * what to do. The prompt is built once per run from facts a resume keeps, so
+ * what to do; a story's frame for the cores comes first (who the resident
+ * plays and how seriously). The prompt is built once per run from facts a resume keeps, so
  * it stays identical across a resume (prompt caching).
  */
 import type { CompetitorId } from "../core/ids.ts";
@@ -19,6 +20,8 @@ export interface PromptFacts {
 	readonly names?: { readonly untilMinute: number };
 	/** The character core in prose (v09), heading and sentences. */
 	readonly core?: string;
+	/** The story's frame for residents with a core: what they play and how seriously, first in the prompt. */
+	readonly frame?: string;
 }
 
 export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string {
@@ -44,7 +47,8 @@ export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string 
 		);
 	}
 	if (facts.core !== undefined) lines.push("", facts.core);
-	return lines.join("\n");
+	const frame = facts.frame?.trim() ?? "";
+	return frame.length === 0 ? lines.join("\n") : [frame, "", ...lines].join("\n");
 }
 
 function namesLines(facts: PromptFacts): readonly string[] {

@@ -42,13 +42,13 @@ afterAll(() => {
 describe("the drama in the run's documents (v09)", () => {
 	it("puts cores, goals and the seal into the report's computed facts", () => {
 		const facts = computeFacts("run-v09", { events: jsonl });
-		expect(facts.residents.every((resident) => resident.core?.startsWith("above all ") === true)).toBe(true);
+		expect(facts.residents.every((resident) => /^[a-z-]+: above all /.test(resident.core ?? ""))).toBe(true);
 		expect(facts.goals).toHaveLength(6);
 		expect(facts.goals.find((goal) => goal.agent === "A02")?.outcome).toBe("void");
 		expect(facts.seals).toMatchObject([{ seal: 1, winner: { agent: "A01", bid: 6 }, used: { target: "A02", minute: 8 } }]);
 		const markdown = factsMarkdown(facts).join("\n");
 		expect(markdown).toContain("## Cores");
-		expect(markdown).toMatch(/\| A01 \| above all \w+/);
+		expect(markdown).toMatch(/\| A01 \| [a-z-]+: above all \w+/);
 		expect(markdown).toContain("## Goals");
 		expect(markdown).toMatch(/\| A02 \| 8 \| .+ \| void \|/);
 		expect(markdown).toMatch(/\| Black seal \| seal 1: won by A01 for 6 \(#\d+\) \(bids A01 6, A03 2\), broken on A02 at minute 8 \(#\d+\) \|/);
@@ -57,7 +57,7 @@ describe("the drama in the run's documents (v09)", () => {
 	it("adds Cores and Goals tables to minutes.md", () => {
 		const minutes = readFileSync(writeMinuteReport(directory), "utf8");
 		expect(minutes).toContain("## Cores\n\n| Agent | Core |");
-		expect(minutes).toMatch(/\| A06 \| above all \w+/);
+		expect(minutes).toMatch(/\| A06 \| [a-z-]+: above all \w+/);
 		expect(minutes).toContain("## Goals\n\n| Agent | Act | Goal | Outcome |");
 		expect(minutes).toMatch(/\| A02 \| 8 \| .+ \| void \|/);
 	});

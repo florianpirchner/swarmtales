@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity } from "../story/index.ts";
+import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureSpec } from "../story/index.ts";
 
 const Level = Type.Union(CORE_LEVELS.map((level) => Type.Literal(level)));
 const Tone = Type.Union([Type.Literal("light"), Type.Literal("dark")]);
@@ -151,4 +151,17 @@ export function readArchetypes(directory: string): Archetypes {
 /** Reads a story's cast: one finished figure per file. */
 export function readFigures(directory: string): FigureFile[] {
 	return readAll(directory, parseFigure);
+}
+
+/** A figure file as the story's cast holds it: the core in the engine's shape and the body as its text. */
+export function figureSpec(file: FigureFile): FigureSpec {
+	return {
+		id: file.id,
+		title: file.title,
+		profession: file.profession,
+		tone: file.tone,
+		bigFive: Object.entries(file.temperament).map(([axis, level]) => ({ axis, level })),
+		drives: file.drives.map((entry) => ({ drive: entry.id, intensity: entry.intensity })),
+		text: file.body,
+	};
 }

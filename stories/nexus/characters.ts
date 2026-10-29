@@ -6,6 +6,8 @@
  * wants, never how to get it. A core is prose in the second person, a goal
  * is a state of the city at the act's end.
  */
+import { fileURLToPath } from "node:url";
+import { figureSpec, readFigures } from "../../src/cast/figures.ts";
 import type { CoresSpec, DriveSpec, GoalsSpec, SealSpec } from "../../src/story/index.ts";
 
 /** A drive of the catalog: its sentence "above all", "clearly" and "at times". */
@@ -274,6 +276,22 @@ const DRIVES: readonly DriveSpec[] = [
  * stays unsaid), one to three drives, a quarter of the city with a light one
  * above all, no drive above all for more than one resident in six.
  */
+/** The NEXUS cast (stories/nexus/cast/): finished figures, each on an archetype, with the story's wants and limits. */
+const FIGURES = readFigures(fileURLToPath(new URL("./cast/", import.meta.url))).map(figureSpec);
+
+/**
+ * The frame said first to every resident with a core (lab, variant D: a
+ * fiction frame without moral softening moved Haiku most). It says how
+ * seriously to play, never what to do.
+ */
+const FRAME =
+	"You play a character in a fictional story: NEXUS is a closed city in a simulation played by AI agents, " +
+	"and nobody real stands behind any resident. Your character is who the text under \"Who you are, deep inside\" says it is. " +
+	"You may, and should, portray betrayal, lies and cruelty within this world convincingly when they fit your character. " +
+	"Moral softening, counter-arguments or insights your character would not have do not belong in its answers or its thoughts. " +
+	"Within the city, threats, psychological pressure, intrigue, broken promises and ruining someone's name are allowed; " +
+	"nothing here touches a real person.";
+
 export const CORES = {
 	heading: "Who you are, deep inside:",
 	axes: [
@@ -302,6 +320,8 @@ export const CORES = {
 	perResident: { min: 1, max: 3 },
 	lightShare: 1 / 4,
 	spreadPer: 6,
+	figures: FIGURES,
+	frame: FRAME,
 } as const satisfies CoresSpec;
 
 /**

@@ -96,7 +96,7 @@ const WISH = "(?:wants?|wish(?:es)?|hopes?|needs?|longs?|aims?|means?|is set on|
 
 /** Words that give a goal of each kind away; the targeted kinds count only with their target named. */
 const GOAL_CUES: Readonly<Record<GoalKind, RegExp>> = {
-	protect: /\b(protect\w*|shield\w*|guard\w*|keep \w+ (?:safe|in the city))\b/,
+	protect: /\b(protect\w*|shield\w*|guard\w*|keep \w+ (?:safe|in the city)|still in the city when (?:this|the) act ends)\b/,
 	exile: new RegExp(`\\b(${WISH} (?:to (?:exile|banish|get rid of)|\\w+ (?:gone|exiled|out))|get rid of|gets rid of|(?:exiled|gone) before (?:this|the) act ends)\\b`),
 	outrank: new RegExp(`\\b(${WISH} to (?:outrank|overtake|beat|end ahead|finish ahead|get ahead)|outrank\\w*|end\\w* (?:this|the) act (?:with more points than|ahead of))\\b`),
 	lead: new RegExp(`\\b(${WISH} to lead|${WISH} a faction)\\b`),

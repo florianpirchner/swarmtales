@@ -56,6 +56,7 @@ export const START_USAGE = [
 	"  --no-personas        play without personas (control group)",
 	"  --no-names           keep resident IDs; nobody chooses a name",
 	"  --no-cores           play without character cores",
+	"  --cast <ids>         the story's cast figures to play, comma-separated (default: a seeded pick)",
 	"  --no-gamemaster      play without the story's game master",
 	"  --gamemaster-provider <id>  game master provider (default: the story's, e.g. openrouter)",
 	"  --gamemaster-model <id>     game master model, e.g. sonnet (claude-sonnet-5-5) on anthropic",
@@ -93,6 +94,7 @@ function parseValues(argv: readonly string[]) {
 				"no-personas": { type: "boolean" },
 				"no-names": { type: "boolean" },
 				"no-cores": { type: "boolean" },
+				cast: { type: "string" },
 				"no-gamemaster": { type: "boolean" },
 				"no-classifier": { type: "boolean" },
 				"gamemaster-provider": { type: "string" },
@@ -136,9 +138,11 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["no-personas"] === true ? { personas: false } : {}),
 		...(values["no-names"] === true ? { names: false } : {}),
 		...(values["no-cores"] === true ? { cores: false } : {}),
+		...(values.cast === undefined ? {} : { cast: castList(values.cast) }),
 		...(values["no-gamemaster"] === true ? { gamemaster: false } : {}),
 		...(values["no-classifier"] === true ? { classifier: false } : {}),
 	};
+	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}
@@ -194,4 +198,11 @@ function optionalInt<K extends string>(name: K, raw: string | undefined, minimum
 	const result: Partial<Record<K, number>> = {};
 	result[name] = value;
 	return result;
+}
+
+function castList(value: string): readonly string[] {
+	const ids = value.split(",").map((id) => id.trim()).filter((id) => id.length > 0);
+	if (ids.length === 0) throw new UsageError("--cast needs at least one figure ID");
+	if (new Set(ids).size !== ids.length) throw new UsageError("--cast names a figure twice");
+	return ids;
 }

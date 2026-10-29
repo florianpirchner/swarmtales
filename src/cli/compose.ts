@@ -21,7 +21,7 @@ import { Interpreter } from "../interpret/interpreter.ts";
 import type { ModelSource, RequestLimits } from "../model/source.ts";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
 import { assertValidStory } from "../story/validate.ts";
-import type { Activation, AnyStory, ModelChoice, ThinkingLevel } from "../story/types.ts";
+import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "../story/types.ts";
 import { bindAll } from "../tools/index.ts";
 
 /** CLI-level overrides of the story's run parameters. */
@@ -50,6 +50,8 @@ export interface RunOverrides {
 	readonly names?: boolean;
 	/** `false` plays without character cores although the story has them (v09, `--no-cores`). */
 	readonly cores?: boolean;
+	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
+	readonly cast?: readonly string[];
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -171,10 +173,18 @@ function namesFact(world: World): Pick<PromptFacts, "names"> {
 }
 
 /** The resident's core in prose for its system prompt (v09); dealt by the world, kept in its snapshot. */
-function coreFact(world: World, agent: CompetitorId): Pick<PromptFacts, "core"> {
+function coreFact(world: World, agent: CompetitorId): Pick<PromptFacts, "core" | "frame"> {
 	const spec = world.story.cores;
 	const core = world.coreOf(agent);
-	return spec === undefined || core === undefined ? {} : { core: renderCore(spec, core) };
+	if (spec === undefined || core === undefined) return {};
+	return { core: renderCore(spec, core), ...(spec.frame === undefined ? {} : { frame: spec.frame }) };
+}
+
+/** A cast figure plays the persona of its profession, so its voice and its figure agree. */
+function figurePersona(world: World, agent: CompetitorId): Persona | undefined {
+	const id = world.coreOf(agent)?.figure;
+	const profession = id === undefined ? undefined : world.story.cores?.figures?.find((figure) => figure.id === id)?.profession;
+	return profession === undefined ? undefined : world.story.personas.find((persona) => persona.name.toLowerCase() === profession.toLowerCase());
 }
 
 /** A block size, with `"auto"` resolved for `agents` competitors: one per six, at least one (v08). */
@@ -263,6 +273,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(resume === undefined ? {} : { restore: resume.snapshot.world }),
 		names: effective.names,
 		cores: effective.cores,
+		...(options.overrides?.cast === undefined ? {} : { cast: options.overrides.cast }),
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);
@@ -274,7 +285,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const profiles: AgentProfile[] = [];
 	const runners = ids.map((id) => {
 		const model = assignments.get(id) ?? story.model;
-		const persona = personas.get(id);
+		const persona = figurePersona(world, id) ?? personas.get(id);
 		profiles.push({ agent: id, model, ...(persona === undefined ? {} : { persona }) });
 		const maxOutputTokens = model.maxOutputTokens ?? story.model.maxOutputTokens;
 		const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };

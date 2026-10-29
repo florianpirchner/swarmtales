@@ -345,7 +345,9 @@ const WorldSchema = Type.Object({
 	// Since v09: wrong codes and lost blames per resident in the current act.
 	offences: Type.Optional(Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }))),
 	// Since v09: character cores (permanent), secret goals per act, the black seal, acts that are over.
-	cores: Type.Optional(Type.Array(Type.Object({ agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema) }))),
+	cores: Type.Optional(
+		Type.Array(Type.Object({ agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema), figure: Type.Optional(Type.String()) })),
+	),
 	goals: Type.Optional(
 		Type.Object({
 			acts: Type.Array(

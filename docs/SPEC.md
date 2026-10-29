@@ -1002,6 +1002,12 @@ three are optional, and the texts say who someone is or what it wants, never how
   more than `ceil(n / spreadPer)`. The rendered core follows the persona in the system prompt;
   `core_dealt` logs it. `--no-cores` deals none. In a named city the system prompt never names the
   resident's ID, so it is the same before and after a resume.
+  With `figures` (a story's cast) residents get finished figures instead, as many as the cast has:
+  the ones the run names (`--cast`), or a seeded pick with `round(count * lightShare)` light ones.
+  A figure's core is its own drives and axes, its text replaces the core's sentences, and it plays
+  the persona of its `profession`; `core_dealt` and the snapshot carry its `figure` ID. Residents
+  beyond the cast get a drawn core. `frame`, when set, comes first in the system prompt of every
+  resident with a core.
 - **Goals** (`goals: { acts, bonus, leadTribunals, againstCore, matches, texts }`): at the start
   of each listed act every resident in the city is dealt a goal (`goal_dealt`): `protect`,
   `exile` or `outrank` a target, `lead` a faction in `leadTribunals` tribunals, or `heir` (a will
