@@ -121,4 +121,13 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--snapshot-after", "0"])).toThrow(/--snapshot-after must be an integer >= 1/);
 		expect(() => parseStartArgs(["--resume", "s.json", "--level", "8"])).toThrow(/--level and --only do not apply/);
 	});
+
+	it("parses a snapshot at a minute and a prompt addendum (lab/)", () => {
+		expect(parseStartArgs(["--resume", "s.json", "--snapshot-at", "11", "--stop-after-snapshot", "--prompt-addendum", "lab/variants/B.md"])).toMatchObject({
+			snapshotAt: 11,
+			stopAfterSnapshot: true,
+			promptAddendum: "lab/variants/B.md",
+		});
+		expect(() => parseStartArgs(["--snapshot-after", "8", "--snapshot-at", "11"])).toThrow(/either --snapshot-after or --snapshot-at/);
+	});
 });

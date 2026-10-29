@@ -87,8 +87,8 @@ export function snapshotFileName(level: number): string {
  * `--resume` will check it, so a snapshot that could not be resumed fails
  * now, at the cut, and not in a later run.
  */
-export function writeSnapshot(directory: string, snapshot: RunSnapshot): string {
-	const path = join(directory, snapshotFileName(snapshot.level));
+export function writeSnapshot(directory: string, snapshot: RunSnapshot, name = snapshotFileName(snapshot.level)): string {
+	const path = join(directory, name);
 	const text = `${JSON.stringify(snapshot)}\n`;
 	const partial = `${path}.partial`;
 	writeFileSync(partial, text);

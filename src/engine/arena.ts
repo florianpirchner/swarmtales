@@ -112,6 +112,8 @@ export interface ArenaCut {
 
 export interface SnapshotRequest {
 	readonly afterLevel: number;
+	/** When set, the snapshot is due at the first boundary at or after this minute instead (prompt experiments: a cut inside an act). */
+	readonly atMinute?: number;
 	/** Called once, at the first boundary where every competitor's level is above `afterLevel`; returns where it went. */
 	readonly take: (cut: ArenaCut) => string;
 	/** End the run right after the snapshot. */
@@ -265,10 +267,12 @@ export class Arena {
 		const request = this.#options.snapshot;
 		const { world, clock } = this.#options;
 		if (request === undefined || this.#snapshotTaken) return undefined;
-		if (!world.alive.every((id) => world.hasPassed(id, request.afterLevel))) return undefined;
+		const atMinute = request.atMinute;
+		if (atMinute === undefined ? !world.alive.every((id) => world.hasPassed(id, request.afterLevel)) : clock.minute < atMinute) return undefined;
 		this.#snapshotTaken = true;
 		const where = request.take({ round, minute: clock.minute, arena: this.snapshot() });
-		return request.stop ? `snapshot after level ${request.afterLevel} written to ${where}; stopped there` : undefined;
+		const label = atMinute === undefined ? `after level ${request.afterLevel}` : `at minute ${clock.minute}`;
+		return request.stop ? `snapshot ${label} written to ${where}; stopped there` : undefined;
 	}
 
 	/**

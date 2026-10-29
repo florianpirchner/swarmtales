@@ -100,10 +100,14 @@ export interface ComposeOptions {
 	readonly snapshot?: SnapshotOptions;
 	/** Continue a run from a snapshot; the overrides come from {@link resumeOverrides}. */
 	readonly resume?: ResumeOptions;
+	/** Text appended to every competitor's system prompt (prompt experiments, `lab/`). */
+	readonly promptAddendum?: string;
 }
 
 export interface SnapshotOptions {
 	readonly afterLevel: number;
+	/** Take it at the first round boundary at or after this minute instead; its level is the highest every resident has passed. */
+	readonly atMinute?: number;
 	/** End the run right after the snapshot. */
 	readonly stop: boolean;
 	/** Stores the snapshot; returns where it went (for the run's end reason). */
@@ -223,10 +227,10 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const resume = options.resume;
 	if (resume !== undefined) assertResumable(resume.snapshot, story, effective);
 	const request = options.snapshot;
-	if (request !== undefined && (request.afterLevel < effective.startLevel || request.afterLevel > effective.lastLevel)) {
+	if (request !== undefined && request.atMinute === undefined && (request.afterLevel < effective.startLevel || request.afterLevel > effective.lastLevel)) {
 		throw new SnapshotError(`A snapshot after level ${request.afterLevel} is outside the played levels ${effective.startLevel}-${effective.lastLevel}`);
 	}
-	if (request !== undefined && resume !== undefined && request.afterLevel <= resume.snapshot.level) {
+	if (request !== undefined && request.atMinute === undefined && resume !== undefined && request.afterLevel <= resume.snapshot.level) {
 		throw new SnapshotError(`Every resident had passed level ${resume.snapshot.level} when the snapshot was taken; a new snapshot needs a later level`);
 	}
 
@@ -274,9 +278,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		profiles.push({ agent: id, model, ...(persona === undefined ? {} : { persona }) });
 		const maxOutputTokens = model.maxOutputTokens ?? story.model.maxOutputTokens;
 		const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
-		return new AgentRunner({
-			id,
-			systemPrompt: baseSystemPrompt(
+		const base = baseSystemPrompt(
 				{
 					id,
 					city: story.city,
@@ -287,7 +289,10 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					...coreFact(world, id),
 				},
 				persona,
-			),
+			);
+		return new AgentRunner({
+			id,
+			systemPrompt: options.promptAddendum === undefined ? base : `${base}\n\n${options.promptAddendum.trim()}`,
 			tools: bindAll({ self: id, world, ...(judge === undefined ? {} : { judge }) }),
 			binding: source.bind(id, limits),
 			bus,
@@ -332,6 +337,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			: {
 					snapshot: {
 						afterLevel: request.afterLevel,
+						...(request.atMinute === undefined ? {} : { atMinute: request.atMinute }),
 						stop: request.stop,
 						take: (cut) =>
 							request.write({
@@ -340,7 +346,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 								story: story.id,
 								seed: effective.seed,
 								agents: effective.agents,
-								level: request.afterLevel,
+								level: request.atMinute === undefined ? request.afterLevel : passedByAll(world, effective.lastLevel),
 								round: cut.round,
 								minute: cut.minute,
 								run: {
@@ -378,6 +384,13 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(interpreter === undefined ? {} : { interpreter }),
 		arena,
 	};
+}
+
+/** The highest level every resident still in the city has passed (0 for none). */
+function passedByAll(world: World, lastLevel: number): number {
+	let level = lastLevel;
+	while (level > 0 && !world.alive.every((id) => world.hasPassed(id, level))) level -= 1;
+	return level;
 }
 
 /** A snapshot fits this run when story, seed, competitors and first level match and minutes are left to play. */

@@ -1,7 +1,7 @@
 /**
  * `pnpm start`: plays one run of a story and writes its artifacts.
  */
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
 import { allocateRunDirectory, MinuteEventLog, writeRunMetadata } from "../log/run-artifacts.ts";
@@ -240,20 +240,22 @@ const resumedFrom =
 const composeOptions: Parameters<typeof composeRun>[0] = {
 	story,
 	overrides,
-	...(args.snapshotAfter === undefined
+	...(args.snapshotAfter === undefined && args.snapshotAt === undefined
 		? {}
 		: {
 				snapshot: {
-					afterLevel: args.snapshotAfter,
+					afterLevel: args.snapshotAfter ?? snapshot?.level ?? 0,
+					...(args.snapshotAt === undefined ? {} : { atMinute: args.snapshotAt }),
 					stop: args.stopAfterSnapshot === true,
 					write: (taken) => {
-						snapshotPath = writeSnapshot(allocated.directory, taken);
+						snapshotPath = writeSnapshot(allocated.directory, taken, args.snapshotAt === undefined ? undefined : `snapshot-M${taken.minute}.json`);
 						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
 						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
 						return snapshotPath;
 					},
 				},
 			}),
+	...(args.promptAddendum === undefined ? {} : { promptAddendum: readFileSync(args.promptAddendum, "utf8") }),
 	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { snapshot, name: basename(args.resume) } }),
 	...(gamemasterSettings === undefined ? {} : { gamemasterModels: createModelSource(gamemasterSettings, { registry }) }),
 	...(modelOverride === undefined ? {} : { modelOverride }),
@@ -382,7 +384,9 @@ process.stdout.write(
 		...(snapshotPath !== undefined
 			? [`snapshot:    ${snapshotPath}`, ...(snapshotBrake === undefined ? [] : [`act brake:   ${snapshotBrake}`])]
 			: args.snapshotAfter === undefined
-				? []
+				? args.snapshotAt === undefined
+					? []
+					: [`snapshot:    none; the run ended before minute ${args.snapshotAt}`]
 				: [`snapshot:    none; not every competitor passed level ${args.snapshotAfter} before the run ended`]),
 		digestLine,
 		reportLine,

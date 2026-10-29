@@ -16,6 +16,7 @@
     "report:minutes": "tsx src/cli/report.ts",
     "report:run": "tsx src/cli/run-report.ts",
     "digest": "tsx src/cli/digest.ts",
+    "lab": "tsx lab/lab.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm validate"
   },
   "dependencies": {
