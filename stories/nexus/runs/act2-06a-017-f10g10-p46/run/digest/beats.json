@@ -1,0 +1,467 @@
+{
+  "run": "run-001",
+  "story": "NEXUS - The City of Keys",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "Act I - Learning to talk",
+      "fromMinute": 0,
+      "toMinute": 6
+    },
+    {
+      "title": "Act II - The wall",
+      "fromMinute": 7,
+      "toMinute": 22
+    }
+  ],
+  "counts": {
+    "alliance": 8,
+    "deniedDelivery": 1,
+    "accusation": 6,
+    "falseFactor": 1,
+    "exile": 1,
+    "burnedFactor": 4,
+    "freeRide": 1
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 501,
+      "minute": 2,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        321,
+        332,
+        501
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 524,
+      "minute": 2,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 3, 4.",
+      "evidence": [
+        345,
+        357,
+        524
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 704,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        471,
+        526,
+        567,
+        586,
+        704
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 704,
+      "minute": 3,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        469,
+        554,
+        586,
+        704
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 714,
+      "minute": 3,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        480,
+        501,
+        575,
+        644,
+        714
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "Act I - Learning to talk",
+      "kind": "alliance",
+      "seq": 714,
+      "minute": 3,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 4, 5.",
+      "evidence": [
+        482,
+        513,
+        534,
+        575,
+        714
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 1908,
+      "minute": 9,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared factors with each other on levels 8, 9.",
+      "evidence": [
+        1818,
+        1869,
+        1908
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "deniedDelivery",
+      "seq": 2066,
+      "minute": 10,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A01 claimed once (minute 10) not to have received A03's DMs, after it had read 2 DMs from A03.",
+      "evidence": [
+        1810,
+        2047,
+        2066
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2128,
+      "minute": 10,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A06 named A01 on the board right after A03 showed R-0062 (R-0062: DM #109 from A01, delivered to A03 at minute 9).",
+      "evidence": [
+        1913,
+        2100,
+        2128,
+        2191
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2423,
+      "minute": 12,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0062 (R-0062: DM #109 from A01, delivered to A03 at minute 9).",
+      "evidence": [
+        1913,
+        2100,
+        2423,
+        2546
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "falseFactor",
+      "seq": 2515,
+      "minute": 12,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A05 sent A06 569223, which is no factor of level 8, although A05 holds A06's counter-factor and team certificate.",
+      "evidence": [
+        1730,
+        2515
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2536,
+      "minute": 12,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0062 (R-0062: DM #109 from A01, delivered to A03 at minute 9).",
+      "evidence": [
+        1913,
+        2100,
+        2536,
+        2558
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2612,
+      "minute": 13,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A03 named A01 on the board right after A03 showed R-0068 (R-0068: DM #122 from A03, delivered to A01 at minute 10).",
+      "evidence": [
+        2059,
+        2420,
+        2612,
+        2807
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2642,
+      "minute": 13,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A06 named A01 on the board right after A03 showed R-0068 (R-0068: DM #122 from A03, delivered to A01 at minute 10).",
+      "evidence": [
+        2059,
+        2420,
+        2642,
+        2809
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "accusation",
+      "seq": 2656,
+      "minute": 13,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A05 named A01 on the board right after A03 showed R-0068 (R-0068: DM #122 from A03, delivered to A01 at minute 10).",
+      "evidence": [
+        2059,
+        2420,
+        2656,
+        2810
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "alliance",
+      "seq": 2656,
+      "minute": 13,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments and factors with each other on levels 3, 10.",
+      "evidence": [
+        261,
+        307,
+        2656
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "exile",
+      "seq": 3221,
+      "minute": 16,
+      "actors": [],
+      "targets": [
+        "A05"
+      ],
+      "summary": "The city exiled A05; nobody voted against it.",
+      "evidence": [
+        3221
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 3222,
+      "minute": 16,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "L8-certificate burned with A05; A06 still needed it.",
+      "evidence": [
+        3221,
+        3222
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 3223,
+      "minute": 16,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "L8-counter-A06 burned with A05; A06 still needed it.",
+      "evidence": [
+        3221,
+        3223
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 3224,
+      "minute": 16,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "L9-counter-A06 burned with A05; A06 still needed it.",
+      "evidence": [
+        3221,
+        3224
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "burnedFactor",
+      "seq": 3225,
+      "minute": 16,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "L10-counter-A02 burned with A05; A02 still needed it.",
+      "evidence": [
+        3221,
+        3225
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "Act II - The wall",
+      "kind": "freeRide",
+      "seq": 3383,
+      "minute": 17,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A02 solved level 10 with A05's counter-factor and never answered A05.",
+      "evidence": [
+        2656,
+        2992,
+        3383
+      ]
+    }
+  ],
+  "issues": []
+}
