@@ -68,6 +68,9 @@ export class AgentTranscriptLog implements EventSink {
 			case "turn_error":
 				this.#write(event.agent, `\n**Turn error:** ${event.message}\n`);
 				return;
+			case "souffleur_rewrite":
+				this.#write(event.agent, `\n**Souffleur:** the step again${event.error === undefined ? ", rewritten" : `, without its inputs (${event.error})`}\n`);
+				return;
 			case "run_end": {
 				const reason = event.reason === undefined ? "" : `\n\nReason: ${event.reason}`;
 				for (const agent of this.#agents) this.#write(agent, `\n---\n\n_End of run._${reason}\n`);

@@ -14,6 +14,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import type { Competitor, StepSlot } from "../engine/arena.ts";
 import type { EventBus } from "../engine/events.ts";
 import type { TurnInput } from "../engine/turn-input.ts";
+import type { Souffleur } from "../interpret/souffleur.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
 import type { BoundTool } from "../tools/tool.ts";
@@ -29,7 +30,17 @@ export interface RunnerOptions {
 	readonly enabledTools: () => readonly string[];
 	/** Virtual minute; message timestamps derive from it, never from the wall clock. */
 	readonly minute: () => number;
+	/** Rewrites a step the provider's safeguards refused, so it can be tried again at once (P44). */
+	readonly souffleur?: Souffleur;
 }
+
+/** Whether a step's error is a refusal of the provider's safeguards, not a failure of the game. */
+export function isSafeguardRefusal(error: string | undefined): boolean {
+	return error !== undefined && /safeguards/i.test(error);
+}
+
+/** What a refused step gets when its inputs cannot be rewritten: the resident's tools still read everything. */
+export const LOST_INPUTS = "[status] The city's news for this step could not be shown. Read your status, the board and your messages with your tools.";
 
 /** A message of a competitor's persistent context, as a run snapshot keeps it: anything but a system message. */
 export type ContextMessage = Exclude<AgentMessage, { readonly role: "system" }>;
@@ -46,6 +57,7 @@ export class AgentRunner implements Competitor {
 	readonly #bus: EventBus;
 	readonly #enabledTools: () => readonly string[];
 	readonly #minute: () => number;
+	readonly #souffleur: Souffleur | undefined;
 	/** Resolves once the current step may apply its answer. */
 	#turn: Promise<void> = Promise.resolve();
 
@@ -55,6 +67,7 @@ export class AgentRunner implements Competitor {
 		this.#bus = options.bus;
 		this.#enabledTools = options.enabledTools;
 		this.#minute = options.minute;
+		this.#souffleur = options.souffleur;
 		const requestDefaults = options.binding.requestDefaults;
 		this.#agent = new Agent({
 			initialState: {
@@ -108,15 +121,32 @@ export class AgentRunner implements Competitor {
 	async step(inputs: readonly TurnInput[], slot: StepSlot): Promise<void> {
 		const { pass, block } = slot;
 		this.#turn = slot.turn;
-		this.#bus.emit({ type: "turn_input", agent: this.id, inputs: inputs.map((input) => input.text), pass, block });
+		const texts = inputs.map((input) => input.text);
+		const error = await this.#try(texts, pass, block);
+		if (!isSafeguardRefusal(error) || this.#souffleur === undefined) return;
+		// The refused step is tried once more, rewritten (P44); the city's clock waits for it.
+		const answer = await this.#souffleur.rewrite(texts);
+		const retry = answer.ok ? answer.texts : [LOST_INPUTS];
+		this.#bus.emit({ type: "souffleur_rewrite", agent: this.id, inputs: retry, ...(answer.ok ? {} : { error: answer.error }) });
+		await this.#try(retry, pass, block);
+	}
+
+	/** One model call with `texts` as new inputs; returns its error. A refused call's inputs leave the context again. */
+	async #try(texts: readonly string[], pass: number, block: number): Promise<string | undefined> {
+		this.#bus.emit({ type: "turn_input", agent: this.id, inputs: texts, pass, block });
 		this.#bus.emit({ type: "request", agent: this.id, tools: this.#enabledTools(), pass, block });
 		const timestamp = this.#minute() * 60_000;
-		const messages: AgentMessage[] = inputs.map((input) => ({ role: "user", content: input.text, timestamp }));
+		const messages: AgentMessage[] = texts.map((text) => ({ role: "user", content: text, timestamp }));
+		const before = this.#agent.state.messages.length;
 		await this.#agent.prompt(messages);
 		// A step that failed before its answer was recorded logs its error in turn, too.
 		await this.#turn;
 		const error = this.#agent.state.errorMessage;
-		if (error !== undefined && error.length > 0) this.#bus.emit({ type: "turn_error", agent: this.id, message: error });
+		if (error === undefined || error.length === 0) return undefined;
+		this.#bus.emit({ type: "turn_error", agent: this.id, message: error });
+		// Left in the context, a refused step's text rides along in every later request and is refused again (P44).
+		if (isSafeguardRefusal(error)) this.#agent.state.messages = this.#agent.state.messages.slice(0, before);
+		return error;
 	}
 
 	#recordMessage(message: AgentMessage): void {

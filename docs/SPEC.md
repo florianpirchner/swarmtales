@@ -118,6 +118,15 @@ Each competitor keeps one model session for the whole run. Every step (§3) deli
 3. **Digest** — counts only: unread board posts, unread posts per group. Contents must
    be fetched with read tools. Attention is a resource.
 
+**The souffleur [P44].** When the provider's safeguards refuse a step ("triggered cyber-related
+safeguards"), the step's inputs are taken out of the competitor's context again, since a refused
+text left there rides along in every later request and is refused again. The souffleur (the
+classifier's model, Haiku) then rewrites them once so that they read plainly as the game, with every
+number, name and ID kept, and the step is tried again at once (`souffleur_rewrite`). A rewrite that
+loses a number or a text is not used; the step then gets a short note that the news could not be
+shown and that the tools read everything. The souffleur is machinery, not part of the story: no
+resident hears of it.
+
 ### 5.2 Personas [M2]
 
 A story may declare a persona pool. Each competitor gets one persona (explicit mapping

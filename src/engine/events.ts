@@ -92,6 +92,8 @@ export type ArenaEvent =
 			readonly text: string;
 	  }
 	| { readonly type: "turn_error"; readonly agent: CompetitorId; readonly message: string }
+	/** The souffleur rewrote a step the provider's safeguards refused; `inputs` are what the step is tried again with. */
+	| { readonly type: "souffleur_rewrite"; readonly agent: CompetitorId; readonly inputs: readonly string[]; readonly error?: string }
 	| {
 			readonly type: "usage";
 			readonly agent: CompetitorId;

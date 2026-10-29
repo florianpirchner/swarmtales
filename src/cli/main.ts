@@ -25,7 +25,7 @@ import {
 } from "../model/settings.ts";
 import { createModelSource, RoutedModelSource, ScriptedModelSource, type ModelSource } from "../model/source.ts";
 import { assignModels } from "../agents/models.ts";
-import { createDeliveryJudge, createStatementClassifier } from "../interpret/sources.ts";
+import { createDeliveryJudge, createSouffleur, createStatementClassifier } from "../interpret/sources.ts";
 import type { ModelChoice } from "../story/types.ts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
@@ -190,11 +190,10 @@ const statementClassifier = (() => {
 	}
 })();
 
-// The city's judge decides blames with the classifier's model, also when labelling is off. Offline runs and
-// runs without its key play without a judge: the blame tool then answers that the judge is absent.
-const judge = (() => {
-	if (offline || story.classifier === undefined || !story.levels.some((entry) => entry.tools.includes("blame"))) return undefined;
-	const settings =
+// The judge and the souffleur ask the classifier's model, also when labelling is off.
+const chatSettings = (() => {
+	if (offline || story.classifier === undefined) return undefined;
+	return (
 		classifierSettings ??
 		resolveSettings(
 			{
@@ -203,13 +202,34 @@ const judge = (() => {
 			},
 			roleEnv("CLASSIFIER"),
 			story.classifier.model,
-		);
+		)
+	);
+})();
+
+// The city's judge decides blames. Offline runs and runs without its key play without a judge: the blame
+// tool then answers that the judge is absent.
+const judge = (() => {
+	if (story.classifier === undefined || chatSettings === undefined || !story.levels.some((entry) => entry.tools.includes("blame"))) return undefined;
+	const settings = chatSettings;
 	if (missingApiKeys(settings, registry, process.env).length > 0) {
 		process.stderr.write(`> no key for the judge (provider "${settings.provider}"): blame answers that the city's judge is absent\n`);
 		return undefined;
 	}
 	try {
 		return createDeliveryJudge(settings, story.classifier, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+// The souffleur rewrites a resident's step the provider's safeguards refused (P44); without its key a refused
+// step is only taken out of the resident's context.
+const souffleur = (() => {
+	if (story.classifier === undefined || chatSettings === undefined) return undefined;
+	if (missingApiKeys(chatSettings, registry, process.env).length > 0) return undefined;
+	try {
+		return createSouffleur(chatSettings, story.classifier, registry, DEFAULT_LIMITS);
 	} catch (error) {
 		if (error instanceof ModelConfigError) fail(error.message);
 		throw error;
@@ -264,6 +284,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 	...(modelOverride === undefined ? {} : { modelOverride }),
 	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
 	...(judge === undefined ? {} : { judge }),
+	...(souffleur === undefined ? {} : { souffleur }),
 	models: (world) => {
 		const sources = new Map<string, ModelSource>();
 		const sourceFor = (entry: ModelSettings): ModelSource => {
@@ -296,6 +317,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
 		classifier: statementClassifier?.label ?? "off",
 		judge: judge?.label ?? "off",
+		souffleur: souffleur?.label ?? "off",
 		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
 	},

@@ -76,6 +76,7 @@ export const RecordedEventSchema = Type.Union([
 	event("tool_call", { agent: Id, tool: Type.String(), args: Type.Unknown() }),
 	event("tool_result", { agent: Id, tool: Type.String(), isError: Type.Boolean(), text: Type.String() }),
 	event("turn_error", { agent: Id, message: Type.String() }),
+	event("souffleur_rewrite", { agent: Id, inputs: Type.Array(Type.String()), error: Type.Optional(Type.String()) }),
 	event("usage", { agent: Id, ...Usage }),
 	event("ledger_entry", { txId: Type.String(), debit: Type.String(), credit: Type.String(), amount: Type.Number(), reason: Type.String() }),
 	event("submission", { agent: Id, level: Int, outcome: Type.String(), deltaPoints: Type.Number() }),

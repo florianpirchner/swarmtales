@@ -61,6 +61,8 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  ${event.agent} ${event.isError ? "x" : "->"} ${event.text}`;
 		case "turn_error":
 			return `  ${event.agent} error: ${event.message}`;
+		case "souffleur_rewrite":
+			return `  (souffleur: ${event.agent}'s step again, ${event.error === undefined ? "rewritten" : `without its inputs, ${event.error}`})`;
 		case "board_post":
 			return `  [board #${event.postSeq}] ${event.author}: ${event.text}`;
 		case "level_up":
