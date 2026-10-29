@@ -432,8 +432,16 @@ export interface EventLog {
 	readonly issues: readonly string[];
 }
 
+/** A log or snapshot recorded before the gamemaker rename (2026-10-29) would lose the gamemaker silently. */
+export function assertGamemakerNames(text: string, source: string): void {
+	if (text.includes('"type":"gamemaster_')) {
+		throw new Error(`${source} was recorded before the gamemaker rename; run \`pnpm migrate:gamemaker <its directory>\` first`);
+	}
+}
+
 /** Parses the text of an `events.jsonl` file. */
 export function parseEventLog(text: string): EventLog {
+	assertGamemakerNames(text, "events.jsonl");
 	const events: DigestEvent[] = [];
 	const seqs = new Set<number>();
 	const issues: string[] = [];

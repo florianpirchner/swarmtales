@@ -15,3 +15,10 @@ describe("the gamemaker rename", () => {
 		expect(parseStartArgs(["--gamemaster-provider", "anthropic", "--gamemaster-model", "sonnet"])).toMatchObject({ gamemakerProvider: "anthropic", gamemakerModel: "sonnet" });
 	});
 });
+
+describe("an unmigrated recording", () => {
+	it("is refused with the migration's name", async () => {
+		const { parseEventLog } = await import("../../src/digest/event-log.ts");
+		expect(() => parseEventLog('{"seq":1,"minute":0,"type":"gamemaster_note","to":"A01","author":"COURIER","text":"x"}')).toThrow(/migrate:gamemaker/);
+	});
+});

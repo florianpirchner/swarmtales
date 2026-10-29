@@ -450,6 +450,9 @@ export function parseSnapshot(raw: unknown, source = "snapshot"): RunSnapshot {
 		throw new SnapshotError(`${source} has snapshot version ${raw.version}; this build reads version ${SNAPSHOT_VERSION} only`);
 	}
 	if (!validator.Check(raw)) {
+		if (JSON.stringify(raw).includes('"type":"gamemaster_')) {
+			throw new SnapshotError(`${source} was recorded before the gamemaker rename; run \`pnpm migrate:gamemaker <its directory>\` first`);
+		}
 		const errors = validator
 			.Errors(raw)
 			.slice(0, 5)
