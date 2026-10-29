@@ -11,7 +11,7 @@
  * faction; secret votes and the non-voter's penalty; a ransom that brings the
  * exiled back; then the forced final tribunal for everything still missing,
  * a last will, burned factors and passed-on roles, and the run's end once the
- * city has kept half. The game master is off, so the city paces alone.
+ * city has kept half. The gamemaker is off, so the city paces alone.
  *
  * Every resident acts from the world it can see; scripts are functions of the
  * world, so the seeded activation order inside a minute does not matter.
@@ -22,7 +22,7 @@ import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
 import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
 import type { World } from "../../src/engine/world.ts";
-import { GAMEMASTER_ID } from "../../src/gamemaster/gamemaster.ts";
+import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
 import { ChatDeliveryJudge, JUDGE_ID } from "../../src/interpret/judge.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
@@ -120,7 +120,7 @@ function scripts(world: World): Record<string, Step[]> {
 		A04: () => {
 			const drafting = draft("A04");
 			if (drafting !== undefined) return drafting;
-			// A leader canvasses in the draft's group; a post the game master may read.
+			// A leader canvasses in the draft's group; a post the gamemaker may read.
 			const group = world.tribunal?.draftGroup;
 			if (group !== undefined && phase("A04")?.kind === "join" && first("A04-canvass", true)) return act({ name: "postGroup", args: { groupId: group, message: CANVASS } });
 			if (world.tribunal?.canVote("A04") === true && first(`A04-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
@@ -162,8 +162,8 @@ function scripts(world: World): Record<string, Step[]> {
 	return Object.fromEntries(Object.entries(steps).map(([agent, step]) => [agent, Array.from({ length: 60 }, (): Step => step)]));
 }
 
-/** A scripted game master: it tries a count too large once, then plans tribunal 2 at minute 44 for one exile. */
-function gamemasterScript(world: World): Step[] {
+/** A scripted gamemaker: it tries a count too large once, then plans tribunal 2 at minute 44 for one exile. */
+function gamemakerScript(world: World): Step[] {
 	let tried = false;
 	const step: Step = () => {
 		const window = world.tribunal?.schedulingWindow();
@@ -177,7 +177,7 @@ function gamemasterScript(world: World): Step[] {
 	return Array.from({ length: 400 }, () => step);
 }
 
-async function playActTwo(options: { readonly gamemaster?: boolean; readonly story?: AnyStory } = {}) {
+async function playActTwo(options: { readonly gamemaker?: boolean; readonly story?: AnyStory } = {}) {
 	const snapshot = readSnapshot(SNAPSHOT);
 	const log = new MemorySink();
 	const judge = new ChatDeliveryJudge({
@@ -195,11 +195,11 @@ async function playActTwo(options: { readonly gamemaster?: boolean; readonly sto
 			passesPerMinute: 1,
 			stopWhenDone: false,
 			stopWhenSeatsDecided: false,
-			gamemaster: options.gamemaster === true,
+			gamemaker: options.gamemaker === true,
 			classifier: false,
 		}),
 		models: (world) => new ScriptedModelSource(scripts(world)),
-		...(options.gamemaster === true ? { gamemasterModels: (world: World) => new ScriptedModelSource({ [GAMEMASTER_ID]: gamemasterScript(world) }) } : {}),
+		...(options.gamemaker === true ? { gamemakerModels: (world: World) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }) } : {}),
 		sinks: [log],
 		judge,
 		resume: { snapshot, name: "snapshot-L7.json" },
@@ -350,7 +350,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		expect(events("ransomed")).toMatchObject([{ agent: "A05", payers: ["A02", "A05"] }]);
 		expect(world.board.all().some((post) => post.text === "A02 and A05 paid the ransom. A05 returns to the city.")).toBe(true);
 
-		// The ransom undid the exile, so all three are still missing. The game master is off, and at minute 46 only one more
+		// The ransom undid the exile, so all three are still missing. The gamemaker is off, and at minute 46 only one more
 		// tribunal fits: the city forces the final one with everything missing, four accused, and exiles three.
 		expect(called[1]).toMatchObject({ minute: 46, tribunal: 2, opens: 51, count: 3 });
 		expect(opened[1]).toMatchObject({ minute: 51, tribunal: 2, count: 3 });
@@ -412,18 +412,18 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		expect(digest.timeline).toContain("A01 refused A05.");
 	}, 120_000);
 
-	it("lets the game master plan a tribunal within the guard rails, and never shows it votes, nominations or blocs", async () => {
-		const { events } = await playActTwo({ gamemaster: true });
-		const results = events("gamemaster_result").filter((event) => event.tool === "scheduleTribunal");
+	it("lets the gamemaker plan a tribunal within the guard rails, and never shows it votes, nominations or blocs", async () => {
+		const { events } = await playActTwo({ gamemaker: true });
+		const results = events("gamemaker_result").filter((event) => event.tool === "scheduleTribunal");
 		expect(results[0]).toMatchObject({ isError: true });
 		expect(results[0]?.text).toMatch(/^INVALID_COUNT: count must be between 1 and 3, the residents still to exile$/);
 		expect(results[1]).toMatchObject({ isError: false });
 		expect(results[1]?.text).toMatch(/^tribunal 2 planned: the city calls it at minute 40, it opens at minute 44 and exiles 1, 2 factions$/);
-		// The game master's tribunal 2, then the city's forced final tribunal 3 for what is still missing.
+		// The gamemaker's tribunal 2, then the city's forced final tribunal 3 for what is still missing.
 		const scheduled = events("tribunal_scheduled");
 		expect(scheduled.map((event) => [event.tribunal, event.by, event.opens, event.count])).toEqual([
 			[1, "deadline", 34, 1],
-			[2, "gamemaster", 44, 1],
+			[2, "gamemaker", 44, 1],
 			[3, "final", 52, 2],
 		]);
 		expect(scheduled[1]?.reason).toBe("A05 is back and the bottom is crowded.");
@@ -434,9 +434,9 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		]);
 		expect(events("run_end").at(-1)?.reason).toMatch(/^The city has kept 3 of 6 residents, and of them only 2 take a seat\./);
 
-		// What the game master saw: the plan and its bounds, never a vote, a nomination, an application or a bloc's result
+		// What the gamemaker saw: the plan and its bounds, never a vote, a nomination, an application or a bloc's result
 		// (the city's own rule posts in the draft group are public text, like the board).
-		const views = events("gamemaster_turn").map((event) => event.input);
+		const views = events("gamemaker_turn").map((event) => event.input);
 		expect(views.some((view) => view.includes("scheduleTribunal is open: minute "))).toBe(true);
 		expect(views.some((view) => view.includes("faction draft in group "))).toBe(true);
 		// A resident's post in the draft's group does reach the view, so the checks below look at a full view.
@@ -460,7 +460,7 @@ describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
 		};
 		const run = composeRun({
 			story: halfNexus(),
-			overrides: resumeOverrides(snapshot, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaster: false, classifier: false }),
+			overrides: resumeOverrides(snapshot, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: false, classifier: false }),
 			models: (current) => new ScriptedModelSource(scripts(current)),
 			sinks: [sink],
 			resume: { snapshot, name: "snapshot-L7.json" },

@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { addFactors } from "../../src/engine/puzzles/additive.ts";
 import type { World } from "../../src/engine/world.ts";
-import { act as directorAct, at, gamemaster, level, onHolderBehind, puzzle, team, type RuleInput } from "../../src/story/define.ts";
+import { act as directorAct, at, gamemaker, level, onHolderBehind, puzzle, team, type RuleInput } from "../../src/story/define.ts";
 import { validateStory } from "../../src/story/validate.ts";
 import type { FactorTopology } from "../../src/story/types.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
@@ -236,10 +236,10 @@ describe("holders who are behind (SPEC 12.3)", () => {
 		expect(fixture.events("notice").filter((notice) => notice.to === first && notice.text.includes("has reached door 2"))).toEqual([]);
 	});
 
-	it("keeps the noticed value out of the game master's report", async () => {
+	it("keeps the noticed value out of the gamemaker's report", async () => {
 		let leaked = "";
 		const fixture = createFixture({
-			story: { ...story, gamemaster: gamemaster({ model: story.model, brief: "Test." }) },
+			story: { ...story, gamemaker: gamemaker({ model: story.model, brief: "Test." }) },
 			minutes: 3,
 			script: (world) => {
 				const partner = world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "A02";
@@ -249,13 +249,13 @@ describe("holders who are behind (SPEC 12.3)", () => {
 					[partner]: [say(), act({ name: "sendDM", args: { target: "A01", message: `Here: ${leaked}` } }), say()],
 				};
 			},
-			gamemasterScript: () => [say("Watching."), say("Watching.")],
+			gamemakerScript: () => [say("Watching."), say("Watching.")],
 		});
 		await fixture.run();
 		expect(fixture.events("notice").some((notice) => notice.text.includes(`for them: ${leaked}.`))).toBe(true);
-		// The holder's status line names the piece while A01 waits; the game master's report redacts it there too.
+		// The holder's status line names the piece while A01 waits; the gamemaker's report redacts it there too.
 		expect(fixture.events("turn_input").some((turn) => turn.inputs.some((input) => input.startsWith("[status]") && input.includes("you hold for others: ") && input.includes(`A01 door 2 counter-factor ${leaked}`)))).toBe(true);
-		const reports = fixture.events("gamemaster_turn").map((turn) => turn.input).join("\n");
+		const reports = fixture.events("gamemaker_turn").map((turn) => turn.input).join("\n");
 		expect(reports).toContain("[code]");
 		expect(reports).not.toContain(leaked);
 	});

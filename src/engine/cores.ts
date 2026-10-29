@@ -144,7 +144,7 @@ export function renderCore(spec: CoresSpec, core: Core): string {
 	return [spec.heading, [...temperament, ...drives].join(" ")].join("\n");
 }
 
-/** `above all pride; clearly greed · openness high, ...`: the core in a line, for the game master and the reports. */
+/** `above all pride; clearly greed · openness high, ...`: the core in a line, for the gamemaker and the reports. */
 export function coreLine(core: Core): string {
 	const words: Readonly<Record<CoreDrive["intensity"], string>> = { aboveAll: "above all", clearly: "clearly", atTimes: "at times" };
 	const drives = core.drives.map((entry) => `${words[entry.intensity]} ${entry.drive}`).join("; ");

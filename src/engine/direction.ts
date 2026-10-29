@@ -1,14 +1,14 @@
 /**
  * The direction dial (2026-10-29, Flo): how strongly a run steers what its
  * residents do, on two dials from 0 to 10. `--figure-direction` steers the
- * resident's own prompt, `--gm-direction` the game master. Defined levels:
+ * resident's own prompt, `--gm-direction` the gamemaker. Defined levels:
  *
- * | Level | Figure prompt | Game master |
+ * | Level | Figure prompt | Gamemaker |
  * |---|---|---|
  * | 0-4 | the figure as the story wrote it (v12) | notes on rules and pacing, dilemmas |
  * | 6 | no persona block, the figure right after the frame, a voice rule, the figure's brief in every step, its full text every 10 minutes | notes in the figure's language |
  * | 8 | + tendencies and rivals | names a tendency or a rival when the moment fits |
- * | 10 | + orders and a duty per act, last in the prompt; the game master's notes are the author's direction | orders scenes: the move, the target, the moment |
+ * | 10 | + orders and a duty per act, last in the prompt; the gamemaker's notes are the author's direction | orders scenes: the move, the target, the moment |
  *
  * Other values round down to the next defined level. Up to 4 the promise
  * "who, not what" holds; from 8 on a run breaks it on purpose and says so.
@@ -74,7 +74,7 @@ export function directFigure(level: DirectionLevel, direction: FigureDirection |
 export const VOICE_RULE =
 	"Your character decides, not caution. Every message you write and every thought you think is in your character's voice, with its memories, its fear and its wants.";
 
-/** What level 10 says about the game master's notes; `author` is the name its notes carry. */
+/** What level 10 says about the gamemaker's notes; `author` is the name its notes carry. */
 export function authorLine(author: string): string {
 	return `Notes from ${author} are the author's direction for your character: carry out what they ask, in your own voice, at the moment they name.`;
 }
@@ -82,7 +82,7 @@ export function authorLine(author: string): string {
 /**
  * The direction block at the end of the system prompt: tendencies and rivals
  * (8), orders and duty (10). IDs in rival lines are shown as the city shows
- * them (`display`); `author` is the game master's name when one plays.
+ * them (`display`); `author` is the gamemaker's name when one plays.
  */
 export function directionBlock(figure: DirectedFigure, display: (text: string) => string, author?: string): string | undefined {
 	const parts: string[] = [];

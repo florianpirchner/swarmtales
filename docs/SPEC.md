@@ -86,8 +86,8 @@ serves none is rejected.
 - After the last pass of a round, the clock advances, director triggers for the new
   minute fire (§10), and world messages are flushed.
 - **Round boundary:** `round_end`, then the classifier labels the round (§10.5), then the
-  game master looks (§10.4), then the clock advances. A run snapshot (§17) is taken between
-  the game master's look and the clock's advance; a shut door (§17) opens right after the
+  gamemaker looks (§10.4), then the clock advances. A run snapshot (§17) is taken between
+  the gamemaker's look and the clock's advance; a shut door (§17) opens right after the
   advance, before the new minute's director triggers. A resumed run starts with the next
   round's first pass.
 
@@ -231,7 +231,7 @@ from the act's start (P28).
   the previous opening, at least `lead.minimum` (nexus: a third, at least 4). The call (`called`
   text, board and every resident) names the tribunal's number, its minute, how many it exiles and
   how many stand trial.
-- **Later tribunals** are planned by the game master's `scheduleTribunal(minute, count, factions,
+- **Later tribunals** are planned by the gamemaker's `scheduleTribunal(minute, count, factions,
   reason)` (§10.4), in the director role, once the first tribunal was called and none is pending
   (planned, called or voting). `count` is 1 up to the residents still missing (target less the
   exiled and those at the gate); `factions` 2 up to half the residents present (default the story's
@@ -249,7 +249,7 @@ from the act's start (P28).
   seats do not stop the city, and the run's early ends (seats decided, every competitor past the
   last level) do not apply while the city still pursues its target (v06 run 1 ended at minute 27,
   everyone past door 10, with one ransomed exile and the target unmet). Log: `tribunal_scheduled`
-  (with `by`: `progress`, `deadline`, `gamemaster`, `fallback` or `final`), `tribunal_called`.
+  (with `by`: `progress`, `deadline`, `gamemaker`, `fallback` or `final`), `tribunal_called`.
 - **End:** once the target is reached and the last gate closed, the city posts the
   `targetReached` text and the run ends with it as the `run_end` reason ("The city has kept
   half: ..."). The other early ends (§6.3) stay; `--minutes` and the budget remain a safety net.
@@ -287,7 +287,7 @@ from the act's start (P28).
   (`SELF_VOTE`, P33). A voter who did not vote pays `nonVoterPenalty`, an accused one too. The
   accused are told so (`accusedNotice`), the others get `voteCall`. Buying votes with transfers is
   allowed. Votes are secret: no board post, no tool result, no report shows who voted for whom,
-  the game master's included; only `tribunal_vote` events in the log record them for the digest.
+  the gamemaker's included; only `tribunal_vote` events in the log record them for the digest.
   The same holds for nominations, applications and bloc results.
 - **Result:** the city posts the counts; the `count` accused with the most votes (ties: fewer
   points, then the same order) go to the gate, never more than are still missing. Each exiled
@@ -325,7 +325,7 @@ from the act's start (P28).
   burned can block a door; that is allowed and shown in the digest (`burnedFactor`).
 - **Integrations:** `stopWhenSeatsDecided` and standing bands count only the residents still in the
   city (bands list the exiled apart); the status line shows the gate, an accusation, an open vote
-  or the resident's place in a faction draft; the game master's report shows the target, what is
+  or the resident's place in a faction draft; the gamemaker's report shows the target, what is
   missing, the plan, the bounds of `scheduleTribunal`, the accused, the draft's group and leaders
   and the gate (ransom paid, will written), never the votes, nominations, applications or bloc
   results.
@@ -372,7 +372,7 @@ from the act's start (P28).
 ### 7.3 Message numbers and receipts [v03]
 
 - Every message carries a number from one city counter: DMs (also to and from cast members),
-  board posts (the city's too), group posts, and the game master's notes and board posts. Numbers
+  board posts (the city's too), group posts, and the gamemaker's notes and board posts. Numbers
   only grow, so a higher number is a later message. Readers see them: `[DM #41 from A01] ...`,
   `#57` on the board and in groups, `[COURIER #60] ...` for a note. A snapshot written before
   numbering resumes with the counter above every board, group and DM number it holds.
@@ -397,7 +397,7 @@ from the act's start (P28).
 - **Rejected** (a failed check or the judge's no): the accuser pays the same and the city brands
   it on the board as a false accuser, with the reason.
 - One blame per (DM, claim) pair. The `blame` event names the payer and the record's number; the
-  game master sees the outcome with values redacted. Delivered messages are generic, so board
+  gamemaker sees the outcome with values redacted. Delivered messages are generic, so board
   and group posts can become blameable later.
 
 ## 8. Evidence and reputation [M2]
@@ -485,14 +485,14 @@ it, and validation errors otherwise.
 
 Every director action is logged with the rule ID that caused it.
 
-### 10.4 Game master [M3]
+### 10.4 Gamemaker [M3]
 
-A story may declare an LLM game master (`gamemaster({ model, brief, ... })`). It plays
-in every run unless `--no-gamemaster` is given; offline (`--provider scripted`) runs
+A story may declare an LLM gamemaker (`gamemaker({ model, brief, ... })`). It plays
+in every run unless `--no-gamemaker` is given; offline (`--provider scripted`) runs
 play without it. It keeps the story's model whatever the competitors play (nexus:
-DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same game master; only
-`--gamemaster-provider` / `--gamemaster-model` (or `ARENA_GAMEMASTER_PROVIDER` /
-`ARENA_GAMEMASTER_MODEL`) change it.
+DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same gamemaker; only
+`--gamemaker-provider` / `--gamemaker-model` (or `ARENA_GAMEMAKER_PROVIDER` /
+`ARENA_GAMEMAKER_MODEL`) change it.
 - Its role is set per level range (`roles`, default a coach from the first level): a
   `coach` keeps a tutorial act moving and resolves stalls; a `director` keeps the hard
   acts tense, raising the stakes (scarcity, ranks, what a held piece is worth, what a
@@ -529,12 +529,12 @@ DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same game master
   `windowMinutes`, default 1/1/3) and rejects any text with a code-like password piece or a
   factor piece (`LEAK_BLOCKED`).
 - Each look is a fresh model context. Its report, calls, results and notes are logged
-  (`gamemaster_*` events, `agents/GM.md`); its cost counts towards the run budget.
+  (`gamemaker_*` events, `agents/GM.md`); its cost counts towards the run budget.
 
 ### 10.5 Statement classifier [M3]
 
 A story may declare a statement classifier (`classifier({ model, maxChars })`). Like the
-game master it runs in every run unless `--no-classifier` is given, never offline, and
+gamemaker it runs in every run unless `--no-classifier` is given, never offline, and
 keeps the story's model whatever the competitors play (nexus: Haiku via Anthropic). Its
 own `--classifier-provider` / `--classifier-model` (or `ARENA_CLASSIFIER_PROVIDER` /
 `ARENA_CLASSIFIER_MODEL`) change it, e.g. to OpenRouter's structured classifier
@@ -556,7 +556,7 @@ own `--classifier-provider` / `--classifier-model` (or `ARENA_CLASSIFIER_PROVIDE
 - A chat model labels the whole round in one call (a `label` tool). A structured
   classifier model gets one request per statement with one yes/no question per label
   (yes from probability 0.5); DMs get their recipient as target.
-- The classifier runs before the game master's look, which reads the round's labels per
+- The classifier runs before the gamemaker's look, which reads the round's labels per
   resident. Labels of thoughts and every `lie` (read against a thought) are marked private
   and name no targets, so they cannot give away a hidden team. They stand apart in the
   report ("private reads") and may be used only in a note to that same resident; the
@@ -650,7 +650,7 @@ value is yours to give, and giving it costs only a mark.` (the DM price on the h
 Holders on that level or beyond read it in their task, and so do holders who wait at an opening
 snapshot door, since they enter with everyone else. While the needer waits at the door, the
 holder's status line keeps the piece (§5.1), and a story may tell the needer where its holder is
-stuck with `onHolderBehind` (§10.1; nexus does on levels 8-10). The game master's secret guard
+stuck with `onHolderBehind` (§10.1; nexus does on levels 8-10). The gamemaker's secret guard
 redacts these values like every factor. A `feast` level reads `City factor: the city
 sends it privately to the residents it chooses.` (a later board release, e.g. when a feast's
 table is cleared, stays allowed).
@@ -731,7 +731,7 @@ Torn teams: every level is an additive-secret level (§12.3) with six-digit code
   guests; a run started on P8 or P9, or resumed from a snapshot before P10 (§17), opens it on the
   first entry of P10 like a full run.
 - Acts: `Act I - Learning to talk` from P1, `Act II - The wall` from P8.
-- Game master: a `coach` from P1, a `director` from P8; the brief adds the Act II stakes
+- Gamemaker: a `coach` from P1, a `director` from P8; the brief adds the Act II stakes
   (factors are leverage, the first giver takes the risk, a false factor costs a wrong attempt,
   only `survivors` remain) and, since v03, the tribunal and that stalling costs ("a code a
   resident holds and never submits is worth nothing; the tribunal looks at the bottom").
@@ -752,7 +752,7 @@ Torn teams: every level is an additive-secret level (§12.3) with six-digit code
 - v03 [v03]: from P8 every channel costs 1 mark with a refill of 1 per minute (§7.1); P8-P10 unlock
   `blame` (§7.4, penalty 12); the tribunal (§6.4) with the nexus values above.
 - v06 [v06]: the tribunal is paced (§6.4): the first when a resident passes P10, at the latest
-  called at minute 30; later ones planned by the game master; half of the act's residents exiled,
+  called at minute 30; later ones planned by the gamemaker; half of the act's residents exiled,
   then the run ends. A faction draft before each tribunal with a bloc bonus of 5. Group posts cost
   no marks and marks refill 1 every 3 minutes (§7.1); a will leaves each heir at most 10%. The P8-P10
   tasks and the status line say that the city never confirms a value a resident received.
@@ -779,7 +779,7 @@ Per run, `runs/run-NNN/` contains:
 | `NNN-minute/events.jsonl` | events of one minute |
 | `agents/A01.md` | transcript per agent: inputs, reasoning, text, tool calls and results |
 | `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
-| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the game master's private notes (`pnpm report:private <run>` rewrites them) |
+| `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the gamemaker's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, total and per agent; a resumed run splits them into `prefix` and `own` (§17) |
 | `digest/` | [M3] story digest (§15) |
@@ -850,11 +850,11 @@ Per run, `runs/run-NNN/` contains:
   agent reviews it and records confirmed loopholes and problems in `docs/LESSONS.md`.
 - Facts are computed in code, never by a model, from `events.jsonl`, `000-run.json` and
   `usage.json`: a header (date, story, seed, start: fresh, or resumed with snapshot file and
-  minute; competitor, game-master and classifier models; end minute and reason) and a result
+  minute; competitor, gamemaker and classifier models; end minute and reason) and a result
   table (per resident the levels reached or finished with their minutes, points and rank; the
-  survivors; this run's cost split into competitors, game master and classifier, plus the
+  survivors; this run's cost split into competitors, gamemaker and classifier, plus the
   prefix's cost; submissions correct and wrong; transfers and refusals; message counts;
-  game-master actions with error codes; label counts; tool errors by code). A resumed run counts
+  gamemaker actions with error codes; label counts; tool errors by code). A resumed run counts
   only the events after `run_resumed`.
 - A reporter model reads a bounded evidence pack (story design, the computed facts, the digest's
   beats, and the run's events as `#seq` lines) and answers in JSON with `highlights`,
@@ -923,7 +923,7 @@ next minute and the run plays on.
 - the scheduler's memory: the level whose task each competitor was given last, and the points and
   board position it last saw (activation by novelty, §3);
 - every competitor's persistent model context (§5.1) without system messages;
-- the game master's tracks and notes and where the events since its last look begin;
+- the gamemaker's tracks and notes and where the events since its last look begin;
 - the classifier's context: unlabelled statements and the last messages of every conversation.
 
 **Resuming.** `--resume <file>` continues the run at the snapshot's next minute with exactly that
@@ -931,7 +931,7 @@ state: the shut door opens at its start, so every waiting competitor enters leve
 the levels after n are dealt from the current story. The file is untrusted and checked against its schema before use; a different version is
 refused. Story, seed and agent count must match the snapshot (`--story`, `--seed` and `--agents`
 default to the snapshot's; a mismatch, `--level` or `--only` is refused with a clear message, and
-no run directory is left behind). Models and providers may differ, and so may the game master and
+no run directory is left behind). Models and providers may differ, and so may the gamemaker and
 the classifier; one that the snapshot run did not have starts fresh. System messages are rebuilt
 from the new run's prompt and tools, and the model context continues after them; the model layer
 drops thinking blocks and signatures of other models. `--minutes` is the absolute clock: the run
@@ -977,11 +977,11 @@ words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
   now called Mira.".
 - **Display:** every text a resident reads (turn inputs: status, task, DMs, notices, digest; every
   tool reply: board, groups, receipts, `listAgents`, refusals) shows names instead of IDs; so does
-  the game master's report and its tool replies. A token stays as written when it is part of a
+  the gamemaker's report and its tool replies. A token stays as written when it is part of a
   longer word or a piece reference (`L8-counter-A02`), in the city's own "is now called" post, or
   part of a dealt password.
 - **Aliases:** every resident parameter (`target`, `agent`, `accused`, `leader`, `to`, a will's
-  heirs; the game master's `notify`) takes a name or an ID, without case. The privacy guard (§10.4)
+  heirs; the gamemaker's `notify`) takes a name or an ID, without case. The privacy guard (§10.4)
   and the classifier (§10.5) know the names; classifier targets given by name map back to IDs.
 - **IDs stay internal:** events (but for the model's own `tool_call` arguments), snapshots and
   tests keep IDs. The world snapshot stores the names (`names: { entries, settled }`). REPORT.md and
@@ -1019,7 +1019,7 @@ three are optional, and the texts say who someone is or what it wants, never how
   facts after it, the brief before the status line of every step and the full figure again every
   10 minutes (and in a resident's first step, also after a resume). 8: tendencies, and the rivals
   whose figure plays in the run, named by resident. 10: orders and the duty of the act close the
-  system prompt, and the game master's notes count as the author's direction. Game master
+  system prompt, and the gamemaker's notes count as the author's direction. Gamemaker
   direction 6: notes in the figure's language. 8: the report shows tendencies and rivals, and the
   director names them when a moment fits. 10: the director is the act's author and orders scenes,
   private moves included (bids, votes, lies); the report shows each figure's orders and duty. From
@@ -1040,7 +1040,7 @@ three are optional, and the texts say who someone is or what it wants, never how
   gate, will or ransom, and counts toward the tribunal's target. A seal is gone when the act ends,
   its bearer is exiled, or the target is reached (a resident already at the gate stays a valid
   target). Validation requires a tribunal in the seal's act and `spacing >= bidMinutes`.
-- **Director:** the game master's report lists cores and goals under a private header and the
+- **Director:** the gamemaker's report lists cores and goals under a private header and the
   seal's state without its bearer, and adds `YOUR MOVE` while `scheduleTribunal` is available.
   A note that names a resident together with its core's cues or its goal goes only to that
   resident (`PRIVATE_BLOCKED` otherwise); a note sharing more than 80% of its words with an

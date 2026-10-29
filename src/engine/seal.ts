@@ -14,7 +14,7 @@
  * ransom; its pieces and points burn) and counts toward the tribunal's
  * target. Refused, and gone, once the target is reached; gone unused at the
  * act's end or when its holder leaves the city. Never on oneself, never
- * passed on. The game master learns that a seal exists, never who holds it.
+ * passed on. The gamemaker learns that a seal exists, never who holds it.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { rngFor } from "../core/random.ts";
@@ -122,7 +122,7 @@ export class SealHouse {
 		return this.#seals.some((seal) => seal.state === "held" && seal.holder === agent);
 	}
 
-	/** How many seals someone bears right now: what the game master may know. */
+	/** How many seals someone bears right now: what the gamemaker may know. */
 	get borne(): number {
 		return this.#seals.filter((seal) => seal.state === "held").length;
 	}

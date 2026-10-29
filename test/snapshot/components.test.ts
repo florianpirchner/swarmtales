@@ -274,21 +274,21 @@ describe("snapshot: world and director", () => {
 		expect(director.snapshot().petitions).toEqual([]);
 	});
 
-	it("competitor, interpreter and game master contexts round-trip", async () => {
+	it("competitor, interpreter and gamemaker contexts round-trip", async () => {
 		const fixture = createFixture({
 			agents: 2,
 			minutes: 2,
 			level: 2,
 			lastLevel: 3,
 			script: () => ({ A01: [act({ name: "postBoard", args: { message: "Deal? I share." } }), say()], A02: [say(), say()] }),
-			gamemasterScript: () => [act({ name: "notify", args: { agent: "A02", text: "A02, look at the board." } }), say("Done."), say("Nothing."), say("Nothing.")],
+			gamemakerScript: () => [act({ name: "notify", args: { agent: "A02", text: "A02, look at the board." } }), say("Done."), say("Nothing."), say("Nothing.")],
 			classifierScript: () => [act({ name: "label", args: { items: [] } }), act({ name: "label", args: { items: [] } })],
 		});
 		await fixture.run();
 		const runner = fixture.runners[0];
-		const gamemaster = fixture.gamemaster;
+		const gamemaker = fixture.gamemaker;
 		const interpreter = fixture.interpreter;
-		if (runner === undefined || gamemaster === undefined || interpreter === undefined) throw new Error("incomplete fixture");
+		if (runner === undefined || gamemaker === undefined || interpreter === undefined) throw new Error("incomplete fixture");
 
 		const messages = copied(runner.snapshot());
 		const roles: readonly string[] = messages.map((message) => message.role);
@@ -300,11 +300,11 @@ describe("snapshot: world and director", () => {
 		expect(twin.snapshot()).toEqual(messages);
 		expect(twin.contextSize).toBe(messages.length + 1);
 
-		const notes = copied(gamemaster.snapshot(fixture.bus.seq + 1));
+		const notes = copied(gamemaker.snapshot(fixture.bus.seq + 1));
 		expect(notes.notes).toEqual([expect.objectContaining({ to: "A02", text: "A02, look at the board." })]);
 		expect(notes.tracks.map((track) => track.agent)).toEqual(["A01", "A02"]);
-		gamemaster.restore(notes, fixture.log.events);
-		expect(gamemaster.snapshot(fixture.bus.seq + 1)).toEqual(notes);
+		gamemaker.restore(notes, fixture.log.events);
+		expect(gamemaker.snapshot(fixture.bus.seq + 1)).toEqual(notes);
 
 		const context = copied(interpreter.snapshot());
 		expect(context.history).toEqual([]);

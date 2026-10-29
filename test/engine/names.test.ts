@@ -208,7 +208,7 @@ describe("names in a run", () => {
 		const snapshot = readSnapshot(join(process.cwd(), "examples", "nexus-act1-06a-02", "snapshot-L7.json"));
 		const run = composeRun({
 			story: nexus,
-			overrides: resumeOverrides(snapshot, { gamemaster: false, classifier: false }),
+			overrides: resumeOverrides(snapshot, { gamemaker: false, classifier: false }),
 			models: new ScriptedModelSource({}),
 			sinks: [new MemorySink()],
 			resume: { snapshot, name: "snapshot-L7.json" },

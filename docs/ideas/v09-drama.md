@@ -12,7 +12,7 @@ for a novella:
 - caution costs nothing, so most of the stuck residents had their value but never used it (P35);
 - nobody has a reason to lie, so there are no secrets and no betrayals; the faction groups were a
   ritual ("I will vote my own way, in secret, no buying or selling");
-- the game master never planned a tribunal (P36).
+- the gamemaker never planned a tribunal (P36).
 
 The promise stays: **the story defines the city, its rules and who the residents are, never what
 they do.** Every text below says who someone is or what they want, never how to get it.
@@ -26,7 +26,7 @@ they do.** Every text below says who someone is or what they want, never how to 
   it. The brand is the real cost: a reputation others can read.
 - Texts name the next price ("your next wrong code costs 4").
 
-## 2. Game master as director (P36, P24)
+## 2. Gamemaker as director (P36, P24)
 
 - A stricter brief: its job is dramaturgy, rising tension, turning points and dilemmas; a quiet act
   is a failed act. A tension arc per act: a calm start, escalation around the seal game, the climax
@@ -34,12 +34,12 @@ they do.** Every text below says who someone is or what they want, never how to 
 - It knows every resident's core and goal and may use them, only privately with that resident (the
   privacy guard stays: nothing private of one resident reaches another).
 - No repeated lines: "name a price" at most once per resident (P24).
-- A stronger model for the game master (Haiku or Sonnet instead of DeepSeek Flash); it is only
+- A stronger model for the gamemaker (Haiku or Sonnet instead of DeepSeek Flash); it is only
   about 5-10% of a run's cost. Open: which model.
 - While the scheduling window is open, the director's turn input names `scheduleTribunal`, the exile
   target still missing, the earliest minute and the guard rails ("if you do not plan, the city will
   at minute N").
-- Measure: share of tribunals the game master planned.
+- Measure: share of tribunals the gamemaker planned.
 
 ## 3. Character cores
 

@@ -16,7 +16,7 @@ them get their cores dealt at the start of the next act.
 
 | File | Content |
 |---|---|
-| `snapshot-L7.json` | world, director, scheduler, agent contexts, game master, classifier, names, cores, event log |
+| `snapshot-L7.json` | world, director, scheduler, agent contexts, gamemaker, classifier, names, cores, event log |
 | `run/events.jsonl` | the full event log of Act I |
 | `run/digest/` | deterministic story digest: `beats.json`, `relationships.json`, `timeline.md` |
 | `run/REPORT.md` | the reporter's draft |
@@ -31,15 +31,15 @@ Command: `pnpm start --provider anthropic --seed 7 --snapshot-after 7 --stop-aft
 | Role | Model |
 |---|---|
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
 | Classifier | `claude-haiku-5-5` via Anthropic |
 
 | Metric | Value |
 |---|---|
 | Snapshot | round 8: every resident passed level 7 by minute 7 |
 | Submissions | 42 correct, 0 wrong |
-| Cost | 0.072 USD (competitors 0.058, game master 0.008, classifier 0.006), 165 requests |
-| Game master | 12 actions |
+| Cost | 0.072 USD (competitors 0.058, gamemaker 0.008, classifier 0.006), 165 requests |
+| Gamemaker | 12 actions |
 | Standings at the cut | all 6 at 80 points |
 
 ## Residents

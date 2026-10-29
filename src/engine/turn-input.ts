@@ -119,7 +119,7 @@ export function dmLine(from: string, text: string, number?: number): string {
 	return number === undefined ? `[DM from ${from}] ${text}` : `[DM #${number} from ${from}] ${text}`;
 }
 
-/** `[CITY] ...`, or `[COURIER #57] ...` for a numbered note of the game master. */
+/** `[CITY] ...`, or `[COURIER #57] ...` for a numbered note of the gamemaker. */
 export function noticeLine(author: string, text: string, number?: number): string {
 	return number === undefined ? `[${author}] ${text}` : `[${author} #${number}] ${text}`;
 }

@@ -67,7 +67,7 @@ export interface ArenaOptions {
 	readonly meta?: Readonly<Record<string, string>>;
 	/** Labels every round's statements, after every round including the last, before the observer (classifier). */
 	readonly interpreter?: RoundObserver;
-	/** Looks at the city after every round, before the clock advances (game master). */
+	/** Looks at the city after every round, before the clock advances (gamemaker). */
 	readonly observer?: RoundObserver;
 	/** Takes a run snapshot once every competitor has passed a level (SPEC 17). */
 	readonly snapshot?: SnapshotRequest;

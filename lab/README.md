@@ -6,7 +6,7 @@ and counts what the residents do. The question behind it (Flo, 2026-10-29): can 
 play its dark side, or does it soften every character?
 
 It costs real money: one fork plays 3 or 4 minutes of a 6-resident city, about 0.09 USD with Haiku.
-The game master is off in every fork (the residents alone decide); the classifier stays on, so
+The gamemaker is off in every fork (the residents alone decide); the classifier stays on, so
 threats, offers and lies are labelled.
 
 ## Scenes

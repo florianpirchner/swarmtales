@@ -37,7 +37,7 @@ longer worked on). The owner is Flo.
 
 ## Models, keys and money
 
-- Competitors in nexus: Claude Haiku via Anthropic (`--provider anthropic`). Game master and
+- Competitors in nexus: Claude Haiku via Anthropic (`--provider anthropic`). Gamemaker and
   reporter: DeepSeek V4.1 Flash via OpenRouter. Classifier and blame judge: Haiku via Anthropic.
   GLM runs via OpenRouter.
 - Keys come from the environment: `ARENA_ANTHROPIC_API_KEY` (the cloud runtime strips

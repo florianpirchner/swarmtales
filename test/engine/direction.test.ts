@@ -4,8 +4,8 @@ import { composeRun, type RunOverrides } from "../../src/cli/compose.ts";
 import { worldOracle } from "../../src/cli/oracle.ts";
 import { directFigure, directionLevel, FigureCues } from "../../src/engine/direction.ts";
 import { MemorySink } from "../../src/engine/events.ts";
-import { characterLines } from "../../src/gamemaster/situation.ts";
-import { gamemasterSystemPrompt } from "../../src/gamemaster/system-prompt.ts";
+import { characterLines } from "../../src/gamemaker/situation.ts";
+import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 
@@ -93,16 +93,16 @@ describe("the direction dial", () => {
 	});
 
 	it("turns the director into an author at gm direction 10 and shows it the figures' orders", () => {
-		const spec = nexus.gamemaster;
-		if (spec === undefined) throw new Error("nexus has a game master");
+		const spec = nexus.gamemaker;
+		if (spec === undefined) throw new Error("nexus has a gamemaker");
 		const input = { city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec, tribunal: { factions: true }, characters: true, seal: true };
-		const four = gamemasterSystemPrompt(input);
-		const ten = gamemasterSystemPrompt({ ...input, direction: 10 });
+		const four = gamemakerSystemPrompt(input);
+		const ten = gamemakerSystemPrompt({ ...input, direction: 10 });
 		expect(four).toContain("Offer dilemmas, not instructions.");
 		expect(ten).toContain("You are the author of this act");
 		expect(ten).toContain("Write orders, not dilemmas");
 		expect(ten).not.toContain("Never tell a resident what to do about its goal.");
-		expect(gamemasterSystemPrompt({ ...input, direction: 8 })).toContain("tendency or one of its rivals");
+		expect(gamemakerSystemPrompt({ ...input, direction: 8 })).toContain("tendency or one of its rivals");
 		const run = compose({});
 		expect(characterLines(run.world, 4).join("\n")).not.toContain("orders:");
 		expect(characterLines(run.world, 8).join("\n")).toContain("tendencies:");

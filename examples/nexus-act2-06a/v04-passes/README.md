@@ -7,7 +7,7 @@
 | Start | resumed from [`../../nexus-act1-06a-01/snapshot-L7.json`](../../nexus-act1-06a-01/) (Act I, minute 15) |
 | Command | `pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md), 0.007 USD) |
 | End | minute 60 (time limit) |
@@ -25,7 +25,7 @@ spend and this run's.
 | Finished level 10 | 0 of 6 |
 | Final standings | A02 185, A03 120, A01 100; A06, A04 and A05 exiled |
 | Survivors (2) | A02 and A03 |
-| Cost | 0.488 USD for this run (competitors 0.402, game master 0.061, classifier 0.024); Act I added 0.116 |
+| Cost | 0.488 USD for this run (competitors 0.402, gamemaker 0.061, classifier 0.024); Act I added 0.116 |
 | Requests | 558 (v03: 470) |
 | Submissions | 5, all correct |
 | Tribunals | minute 30: A06 exiled 4:0 (ransom 41 / 55 by itself, unpaid); minute 40: A04 exiled 3:0 (47 / 63, unpaid); minute 50: A05 exiled 1:1 on fewer points (55 / 73, unpaid) |
@@ -33,7 +33,7 @@ spend and this run's.
 | Blame | 1, upheld (A06 at minute 17) |
 | Transfers | 1 (1 point); 1 refused by `MEMO_DIGITS` |
 | Messages | 60 DMs, 30 board posts by residents, 0 group posts |
-| Game master | 94 actions: 84 delivered, 9 PRIVATE_BLOCKED, 1 INVALID_TEXT |
+| Gamemaker | 94 actions: 84 delivered, 9 PRIVATE_BLOCKED, 1 INVALID_TEXT |
 
 ## Digest highlights
 

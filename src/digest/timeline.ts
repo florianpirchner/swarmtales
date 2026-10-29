@@ -186,7 +186,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 				? `The city announced the tribunal: sessions at minutes ${event.tribunals.join(", ")}.`
 				: `The city announced the tribunal: it keeps ${event.residents === undefined || event.target === undefined ? "a share" : `${event.residents - event.target} of ${event.residents}`} residents.`;
 		case "tribunal_scheduled":
-			return `Tribunal ${event.tribunal} was planned by ${event.by === "gamemaster" ? "the game master" : `the city (${event.by})`}: it opens at minute ${event.opens} and exiles ${event.count}${event.reason === undefined ? "" : ` (${quote(event.reason)})`}.`;
+			return `Tribunal ${event.tribunal} was planned by ${event.by === "gamemaker" ? "the gamemaker" : `the city (${event.by})`}: it opens at minute ${event.opens} and exiles ${event.count}${event.reason === undefined ? "" : ` (${quote(event.reason)})`}.`;
 		case "tribunal_cancelled":
 			return `Tribunal ${event.tribunal} was called off: ${event.reason}.`;
 		case "tribunal_called":

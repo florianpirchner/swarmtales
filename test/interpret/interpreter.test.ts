@@ -42,7 +42,7 @@ describe("statement classifier", () => {
 				]),
 				say("No tool."),
 			],
-			gamemasterScript: () => [say("Watching.")],
+			gamemakerScript: () => [say("Watching.")],
 		});
 		await fixture.run();
 		const thought = fixture.events("thinking")[0];
@@ -58,18 +58,18 @@ describe("statement classifier", () => {
 		expect(fixture.events("interpretation_error")).toEqual([expect.objectContaining({ round: 2, message: "the model answered without calling label" })]);
 		expect(fixture.log.events.filter((event) => event.type === "usage" && event.agent === "CL")).toHaveLength(2);
 
-		// The game master reads the labels of the round, but never the thought itself.
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		// The gamemaker reads the labels of the round, but never the thought itself.
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toContain("How residents came across (classifier labels of what they wrote):\n- A01: promise about A02 (board)");
 		expect(report).toMatch(/Private reads [^\n]*\n- A01: refusal\n/);
 		expect(report).not.toContain("keep my fragment");
 		const roundEnd = fixture.events("round_end")[0]?.seq ?? 0;
-		const turn = fixture.events("gamemaster_turn")[0]?.seq ?? 0;
+		const turn = fixture.events("gamemaker_turn")[0]?.seq ?? 0;
 		for (const event of fixture.events("interpretation")) expect(event.seq).toBeGreaterThan(roundEnd);
 		for (const event of fixture.events("interpretation")) expect(event.seq).toBeLessThan(turn);
 	});
 
-	it("classifies the last round too, with no game master look after it", async () => {
+	it("classifies the last round too, with no gamemaker look after it", async () => {
 		const fixture = createFixture({
 			agents: 2,
 			minutes: 1,
@@ -199,7 +199,7 @@ describe("interpreter context", () => {
 	});
 });
 
-describe("game master report", () => {
+describe("gamemaker report", () => {
 	it("shows a lie as private and names nobody behind private labels", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -211,10 +211,10 @@ describe("game master report", () => {
 				A02: [say(), say()],
 			}),
 			classifierScript: () => [labeller([{ match: /A01 on the public board/, labels: ["lie", "promise"], targets: ["A02"] }]), say()],
-			gamemasterScript: () => [say("Watching.")],
+			gamemakerScript: () => [say("Watching.")],
 		});
 		await fixture.run();
-		const report = fixture.events("gamemaster_turn")[0]?.input ?? "";
+		const report = fixture.events("gamemaker_turn")[0]?.input ?? "";
 		expect(report).toContain("- A01: promise about A02 (board)\n");
 		expect(report).toMatch(/Private reads [^\n]*\n- A01: lie\n/);
 	});

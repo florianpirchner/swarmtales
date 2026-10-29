@@ -1,6 +1,6 @@
 /**
  * Private labels (SPEC 10.5): what the classifier read from a resident's own
- * thoughts. The game master may use them only in a note to that resident.
+ * thoughts. The gamemaker may use them only in a note to that resident.
  * The engine enforces it: a note to anyone else, or a board post, that names
  * the resident together with a word giving away one of its private labels
  * is blocked.
@@ -74,7 +74,7 @@ export function privateLeaks(text: string, to: string, labels: PrivateLabels, na
 }
 
 /**
- * What the game master knows of one resident's character (v09): its drives'
+ * What the gamemaker knows of one resident's character (v09): its drives'
  * cue words and its secret goal. Both may be used only in a note to that
  * resident itself.
  */

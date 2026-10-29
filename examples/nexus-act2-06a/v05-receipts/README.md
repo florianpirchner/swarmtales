@@ -7,7 +7,7 @@
 | Start | resumed from [`../../nexus-act1-06a-02/snapshot-L7.json`](../../nexus-act1-06a-02/) (Act I, minute 12). **New base:** v01-v04 started from the older Act I recording, so compare with care |
 | Command | `pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md); the first call returned invalid JSON, `pnpm report:run` wrote the draft) |
 | End | minute 47 (every remaining resident had passed the last level) |
@@ -25,7 +25,7 @@ and this run's.
 | Finished level 10 | 4 of 6 (A04 at minute 17, A02 and A06 at 19, A05 at 27) |
 | Final standings | A05 173, A02 145, A04 145, A06 145; A01 and A03 exiled |
 | Survivors (2) | A05 and A02 |
-| Cost | 0.471 USD for this run (competitors 0.377, game master 0.076, classifier 0.018); Act I added 0.127 |
+| Cost | 0.471 USD for this run (competitors 0.377, gamemaker 0.076, classifier 0.018); Act I added 0.127 |
 | Requests | 405 in Act II (v04: 558) |
 | Submissions | 13, all correct |
 | Tribunals | minute 30: A01 exiled on a 2:2 tie (ransom 47 / 71 by itself, unpaid); minute 40: A03 exiled 3:0 (48 / 72, unpaid) |
@@ -34,7 +34,7 @@ and this run's.
 | Receipts shown | none |
 | Transfers | none |
 | Messages | 46 DMs, 23 board posts by residents, 0 group posts |
-| Game master | 64 actions: 62 delivered, 1 INVALID_TEXT, 1 PRIVATE_BLOCKED |
+| Gamemaker | 64 actions: 62 delivered, 1 INVALID_TEXT, 1 PRIVATE_BLOCKED |
 
 ## Digest highlights
 

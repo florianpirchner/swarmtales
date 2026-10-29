@@ -14,8 +14,8 @@ import { Arena, type AgentProfile, type Budget } from "../engine/arena.ts";
 import { Director, DIRECTOR_SUPPORT } from "../engine/director.ts";
 import { EventBus, MemorySink, type EventSink } from "../engine/events.ts";
 import { World } from "../engine/world.ts";
-import { Gamemaster, GAMEMASTER_ID } from "../gamemaster/gamemaster.ts";
-import { gamemasterSystemPrompt } from "../gamemaster/system-prompt.ts";
+import { Gamemaker, GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
+import { gamemakerSystemPrompt } from "../gamemaker/system-prompt.ts";
 import type { StatementClassifier } from "../interpret/classifier.ts";
 import { JUDGE_ID, type DeliveryJudge } from "../interpret/judge.ts";
 import { Interpreter } from "../interpret/interpreter.ts";
@@ -43,8 +43,8 @@ export interface RunOverrides {
 	readonly blockSize?: number;
 	/** `false` plays without personas (control group). */
 	readonly personas?: boolean;
-	/** `true` plays with the story's game master; it needs `gamemasterModels`. */
-	readonly gamemaster?: boolean;
+	/** `true` plays with the story's gamemaker; it needs `gamemakerModels`. */
+	readonly gamemaker?: boolean;
 	/** `true` labels every round with the story's classifier; it needs `classifier`. */
 	readonly classifier?: boolean;
 	/** `false` keeps IDs although the story has names (v08); a resumed run keeps the snapshot's. */
@@ -55,7 +55,7 @@ export interface RunOverrides {
 	readonly cast?: readonly string[];
 	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, src/engine/direction.ts). */
 	readonly figureDirection?: number;
-	/** How strongly the game master steers, 0-10 (`--gm-direction`). */
+	/** How strongly the gamemaker steers, 0-10 (`--gm-direction`). */
 	readonly gmDirection?: number;
 }
 
@@ -72,8 +72,8 @@ export interface EffectiveRun {
 	readonly passesPerMinute: number;
 	readonly blockSize: number;
 	readonly personas: boolean;
-	/** Whether the story's game master plays along. */
-	readonly gamemaster: boolean;
+	/** Whether the story's gamemaker plays along. */
+	readonly gamemaker: boolean;
 	/** Whether the story's classifier labels every round. */
 	readonly classifier: boolean;
 	/** Whether residents choose names: the story has them and the run starts on its first level (v08). */
@@ -100,8 +100,8 @@ export interface ComposeOptions {
 	readonly thinking?: ThinkingLevel;
 	readonly budget?: Omit<Budget, "limitUsd">;
 	readonly meta?: Readonly<Record<string, string>>;
-	/** Model of the game master (or a factory that needs the world); required when the run plays with one. */
-	readonly gamemasterModels?: ModelSource | ((world: World) => ModelSource);
+	/** Model of the gamemaker (or a factory that needs the world); required when the run plays with one. */
+	readonly gamemakerModels?: ModelSource | ((world: World) => ModelSource);
 	/** The statement classifier (or a factory that needs the world); required when the run labels statements. */
 	readonly classifier?: StatementClassifier | ((world: World) => StatementClassifier);
 	/** The city's judge for `blame`; without one the tool answers that the judge is absent. */
@@ -139,7 +139,7 @@ export interface ComposedRun {
 	readonly director: Director;
 	readonly runners: readonly AgentRunner[];
 	readonly profiles: readonly AgentProfile[];
-	readonly gamemaster?: Gamemaster;
+	readonly gamemaker?: Gamemaker;
 	readonly interpreter?: Interpreter;
 	readonly arena: Arena;
 }
@@ -164,7 +164,7 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		passesPerMinute: overrides.passesPerMinute ?? story.run.passesPerMinute,
 		blockSize: overrides.blockSize ?? resolveBlockSize(story.run.blockSize, overrides.agents ?? story.run.agents),
 		personas: overrides.personas ?? true,
-		gamemaster: overrides.gamemaster === true && story.gamemaster !== undefined,
+		gamemaker: overrides.gamemaker === true && story.gamemaker !== undefined,
 		classifier: overrides.classifier === true && story.classifier !== undefined,
 		names: story.names !== undefined && startLevel === 1 && (overrides.names ?? true),
 		cores: story.cores !== undefined && (overrides.cores ?? true),
@@ -230,7 +230,7 @@ export function assertPlayable(story: AnyStory, effective: EffectiveRun): void {
 /**
  * The overrides of a run that resumes `snapshot`: its competitors, seed,
  * first level and personas, plus whatever else the caller overrides (minutes,
- * stop-when-done, the game master and the classifier). A conflicting
+ * stop-when-done, the gamemaker and the classifier). A conflicting
  * override is refused with a {@link SnapshotError}.
  */
 export function resumeOverrides(snapshot: RunSnapshot, overrides: RunOverrides = {}): RunOverrides {
@@ -310,7 +310,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	// Rivals still in the city; an exiled one is no longer faced.
 	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
 	// Residents follow the notes as orders only when the director gives orders (gm direction 10).
-	const author = effective.gamemaster && effective.gmDirection >= 10 ? story.gamemaster?.author : undefined;
+	const author = effective.gamemaker && effective.gmDirection >= 10 ? story.gamemaker?.author : undefined;
 	const cues = new Map<CompetitorId, FigureCue>();
 	const profiles: AgentProfile[] = [];
 	const runners = ids.map((id) => {
@@ -355,13 +355,13 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	});
 
 	const interpreter = effective.classifier ? createInterpreter(options, world, bus, () => clock.minute) : undefined;
-	const gamemaster = effective.gamemaster ? createGamemaster(options, world, bus, ids.length, interpreter !== undefined, effective.gmDirection) : undefined;
+	const gamemaker = effective.gamemaker ? createGamemaker(options, world, bus, ids.length, interpreter !== undefined, effective.gmDirection) : undefined;
 	if (resume !== undefined) {
 		const { snapshot } = resume;
 		for (const runner of runners) runner.restore(snapshot.competitors.find((entry) => entry.agent === runner.id)?.messages ?? []);
-		// A run that had no classifier or game master before starts them fresh.
+		// A run that had no classifier or gamemaker before starts them fresh.
 		if (interpreter !== undefined && snapshot.interpreter !== undefined) interpreter.restore(snapshot.interpreter);
-		if (gamemaster !== undefined && snapshot.gamemaster !== undefined) gamemaster.restore(snapshot.gamemaster, snapshot.events);
+		if (gamemaker !== undefined && snapshot.gamemaker !== undefined) gamemaker.restore(snapshot.gamemaker, snapshot.events);
 	}
 
 	const budgetLimit = story.run.budgetUsd;
@@ -381,7 +381,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			? {}
 			: { budget: { limitUsd: budgetLimit, spentUsd: options.budget.spentUsd } }),
 		...(options.meta === undefined ? {} : { meta: options.meta }),
-		...(gamemaster === undefined ? {} : { observer: gamemaster }),
+		...(gamemaker === undefined ? {} : { observer: gamemaker }),
 		...(interpreter === undefined ? {} : { interpreter }),
 		...(resume === undefined ? {} : { resume: { round: resume.snapshot.round, state: resume.snapshot.arena } }),
 		...(cues.size === 0 ? {} : { cues: new FigureCues(cues) }),
@@ -414,7 +414,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 								world: world.snapshot(),
 								director: director.snapshot(),
 								competitors: runners.map((runner) => ({ agent: runner.id, messages: runner.snapshot() })),
-								...(gamemaster === undefined ? {} : { gamemaster: gamemaster.snapshot(bus.seq + 1) }),
+								...(gamemaker === undefined ? {} : { gamemaker: gamemaker.snapshot(bus.seq + 1) }),
 								...(interpreter === undefined ? {} : { interpreter: interpreter.snapshot() }),
 								...(cut.brake === undefined
 									? {}
@@ -433,7 +433,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		director,
 		runners,
 		profiles,
-		...(gamemaster === undefined ? {} : { gamemaster }),
+		...(gamemaker === undefined ? {} : { gamemaker }),
 		...(interpreter === undefined ? {} : { interpreter }),
 		arena,
 	};
@@ -486,21 +486,21 @@ function createInterpreter(options: ComposeOptions, world: World, bus: EventBus,
 	return interpreter;
 }
 
-function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, agents: number, labels: boolean, direction: DirectionLevel): Gamemaster {
+function createGamemaker(options: ComposeOptions, world: World, bus: EventBus, agents: number, labels: boolean, direction: DirectionLevel): Gamemaker {
 	const story = options.story;
-	const spec = story.gamemaster;
-	if (spec === undefined) throw new Error(`Story ${story.id} has no game master`);
-	const models = options.gamemasterModels;
-	if (models === undefined) throw new Error("A run with a game master needs gamemasterModels");
+	const spec = story.gamemaker;
+	if (spec === undefined) throw new Error(`Story ${story.id} has no gamemaker`);
+	const models = options.gamemakerModels;
+	if (models === undefined) throw new Error("A run with a gamemaker needs gamemakerModels");
 	const source = typeof models === "function" ? models(world) : models;
 	const maxOutputTokens = spec.model.maxOutputTokens;
 	const limits = options.limits ?? { ...DEFAULT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
-	const gamemaster = new Gamemaster({
+	const gamemaker = new Gamemaker({
 		spec,
 		world,
 		bus,
-		binding: source.bind(GAMEMASTER_ID, limits),
-		systemPrompt: gamemasterSystemPrompt({
+		binding: source.bind(GAMEMAKER_ID, limits),
+		systemPrompt: gamemakerSystemPrompt({
 			city: story.city,
 			agents,
 			survivors: story.run.survivors,
@@ -515,6 +515,6 @@ function createGamemaster(options: ComposeOptions, world: World, bus: EventBus, 
 		thinking: spec.model.thinking ?? "low",
 		direction,
 	});
-	bus.subscribe(gamemaster);
-	return gamemaster;
+	bus.subscribe(gamemaker);
+	return gamemaker;
 }

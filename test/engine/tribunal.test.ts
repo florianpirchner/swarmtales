@@ -1,5 +1,5 @@
 /**
- * Exile by tribunal (SPEC 6.4): pacing (first tribunal, the game master's
+ * Exile by tribunal (SPEC 6.4): pacing (first tribunal, the gamemaker's
  * plans and their guard rails, fallback and forced final, the end at the
  * target), accusation, votes, gate and ransom, the faction draft and its bloc
  * bonus, last wills, the deal after an exile, validation.
@@ -263,7 +263,7 @@ describe("the first tribunal", () => {
 	});
 });
 
-describe("scheduleTribunal (the game master's plans)", () => {
+describe("scheduleTribunal (the gamemaker's plans)", () => {
 	/** Tribunal 1 at 34 with nobody voting: A01 is at the gate from minute 36. */
 	function afterFirst(options: HarnessOptions = {}): Harness {
 		const h = harness(SIX, options);
@@ -294,7 +294,7 @@ describe("scheduleTribunal (the game master's plans)", () => {
 		// A count below what is missing must leave room for one more tribunal.
 		expect(h.tribunal.schedule(47, 1, 2, "")).toMatchObject({ ok: false, error: "INVALID_MINUTE", detail: "open by minute 46 to leave room for one more tribunal, or exile all 2 still missing" });
 		expect(h.events.filter((event) => event.type === "tribunal_scheduled")).toHaveLength(1);
-		expect(h.tribunal.schedule(52, 2, 2, "all at once")).toMatchObject({ ok: true, value: { tribunal: 2, opens: 52, calledAt: 46, count: 2, factions: 2, by: "gamemaster", reason: "all at once" } });
+		expect(h.tribunal.schedule(52, 2, 2, "all at once")).toMatchObject({ ok: true, value: { tribunal: 2, opens: 52, calledAt: 46, count: 2, factions: 2, by: "gamemaker", reason: "all at once" } });
 		expect(h.tribunal.schedule(46, 1, 2, "again")).toMatchObject({ ok: false, error: "NOT_NOW" });
 	});
 

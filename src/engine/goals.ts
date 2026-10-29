@@ -175,7 +175,7 @@ export class GoalBook {
 		return undefined;
 	}
 
-	/** Every goal of the acts still running, for the game master's view. */
+	/** Every goal of the acts still running, for the gamemaker's view. */
 	running(): readonly (HeldGoal & { readonly agent: CompetitorId })[] {
 		return [...this.#acts].flatMap(([act, state]) =>
 			state.resolved ? [] : [...state.goals].filter(([agent]) => !state.voided.has(agent)).map(([agent, goal]) => ({ act, agent, goal, text: this.textOf(goal) })),

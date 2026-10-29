@@ -4,7 +4,7 @@ Every run in this series starts from a recorded Act I, so its runs differ only i
 and the models. v01-v04 start from [`../nexus-act1-06a-01/`](../nexus-act1-06a-01/)
 (recorded with the old turn scheduler); from v05 on every run starts from
 [`../nexus-act1-06a-02/`](../nexus-act1-06a-02/), recorded with the pass scheduler
-and the v05 rules. v08-v11 are the four v09 tests (residents Haiku or GLM, game master DeepSeek or
+and the v05 rules. v08-v11 are the four v09 tests (residents Haiku or GLM, gamemaker DeepSeek or
 Sonnet) and start from [`../nexus-act1-06a-03/`](../nexus-act1-06a-03/), recorded with names and
 cores. v12 starts from [`../nexus-act1-06a-04/`](../nexus-act1-06a-04/), recorded with the first cast of finished figures. Compare runs across the bases with care. The folder numbers count runs, not code versions. Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and
@@ -17,7 +17,7 @@ the full `run/` directory.
 | [v03](v03-tribunal/) | 2026-10-28 | PR #16 (`f2aac52`) | exile by tribunal, numbered messages, DM receipts and blame, Act II marks, a feast factor per team | 2 of 6 | A04, A06 | 0.343 USD |
 | [v04](v04-passes/) | 2026-10-28 | PR #19 (`8845aca`) | 3 passes per minute, ransom from the city's median | 0 of 6 | A02, A03 | 0.488 USD |
 | [v05](v05-receipts/) | 2026-10-28 | swarmtales PR #2 (`3b6b927`); **new Act I base** | help-your-holder hint, DM receipts with `showReceipt(id, to?)`, bequests capped at half, ransom a third / a half of the median | 4 of 6 | A05, A02 | 0.471 USD |
-| [v06](v06-factions/) | 2026-10-28 | swarmtales PR #4 (`0445b36`) | first tribunal on progress, game-master pacing toward half exiled, faction draft with bloc bonus, marks 1 per 3 minutes, bequests 10% per heir | 6 of 6 (run ended at minute 27 with the tribunal target unmet, P30) | A03, A04 | 0.314 USD |
+| [v06](v06-factions/) | 2026-10-28 | swarmtales PR #4 (`0445b36`) | first tribunal on progress, gamemaker pacing toward half exiled, faction draft with bloc bonus, marks 1 per 3 minutes, bequests 10% per heir | 6 of 6 (run ended at minute 27 with the tribunal target unmet, P30) | A03, A04 | 0.314 USD |
 | [v07](v07-target-end/) | 2026-10-28 | swarmtales PR #5 (`ae2a537`) | v06 plus the act ending at the tribunal target | 5 of 6 (target reached at minute 45: A01, A05, A03 exiled) | A02, A04 | 0.611 USD |
 | [v08](v08-haiku-deepseek/) | 2026-10-29 | swarmtales PR #12 (`0afe7f6`); **new Act I base** | v09 drama (graduated penalties, director, cores, secret goals, black seal); Haiku residents, DeepSeek director | 6 of 6 (target at minute 54; seal unsold) | Aurelio, quiet-fern | 0.657 USD |
 | [v09](v09-glm-deepseek/) | 2026-10-29 | as v08 | GLM residents, DeepSeek director | 4 of 6 (target at minute 45; Juniper's seal struck Rook) | Aurelio, Mercer | 1.432 USD |

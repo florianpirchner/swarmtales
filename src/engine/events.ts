@@ -11,7 +11,7 @@ import type { ReceiptKind } from "./receipts.ts";
 export type BoardPostKind = "player" | "city" | "system";
 
 /** Who planned a tribunal (SPEC 6.4). */
-export type TribunalPlanner = "progress" | "deadline" | "gamemaster" | "fallback" | "final";
+export type TribunalPlanner = "progress" | "deadline" | "gamemaker" | "fallback" | "final";
 
 /** Audit tags of scripted beats that need a human eye (SPEC 10.3, 16). */
 export type AuditTag = "NPC_LEVEL_SET" | "DIRECTOR_PRIVACY_BREACH";
@@ -186,7 +186,7 @@ export type ArenaEvent =
 			readonly to: CompetitorId;
 			readonly author: string;
 			readonly text: string;
-			/** Set for numbered notes (the game master's). */
+			/** Set for numbered notes (the gamemaker's). */
 			readonly number?: number;
 	  }
 	| { readonly type: "marks_spent"; readonly agent: CompetitorId; readonly channel: MarksChannel; readonly remaining: number }
@@ -325,8 +325,8 @@ export type ArenaEvent =
 	| {
 			/**
 			 * A tribunal was planned (log only, never shown to residents): by the
-			 * progress trigger (`progress`, `deadline`), the game master, the
-			 * fallback, or as the forced final tribunal. `reason` is the game master's.
+			 * progress trigger (`progress`, `deadline`), the gamemaker, the
+			 * fallback, or as the forced final tribunal. `reason` is the gamemaker's.
 			 */
 			readonly type: "tribunal_scheduled";
 			readonly tribunal: number;
@@ -368,7 +368,7 @@ export type ArenaEvent =
 			readonly count?: number;
 	  }
 	| {
-			/** A nomination for a faction leader (the last one of a resident counts); in the log, never shown to the game master. */
+			/** A nomination for a faction leader (the last one of a resident counts); in the log, never shown to the gamemaker. */
 			readonly type: "faction_nominated";
 			readonly tribunal: number;
 			readonly voter: CompetitorId;
@@ -406,7 +406,7 @@ export type ArenaEvent =
 			readonly bonus: number;
 	  }
 	| {
-			/** A secret vote: in the log for the digest, never shown to residents or the game master. */
+			/** A secret vote: in the log for the digest, never shown to residents or the gamemaker. */
 			readonly type: "tribunal_vote";
 			readonly voter: CompetitorId;
 			readonly target: CompetitorId;
@@ -474,25 +474,25 @@ export type ArenaEvent =
 			readonly excluded: readonly CompetitorId[];
 	  }
 	| {
-			/** The filtered view the game master received after a round. */
-			readonly type: "gamemaster_turn";
+			/** The filtered view the gamemaker received after a round. */
+			readonly type: "gamemaker_turn";
 			readonly round: number;
 			readonly input: string;
 	  }
-	| { readonly type: "gamemaster_thinking"; readonly text: string }
-	| { readonly type: "gamemaster_text"; readonly text: string }
-	| { readonly type: "gamemaster_call"; readonly tool: string; readonly args: unknown }
-	| { readonly type: "gamemaster_result"; readonly tool: string; readonly isError: boolean; readonly text: string }
+	| { readonly type: "gamemaker_thinking"; readonly text: string }
+	| { readonly type: "gamemaker_text"; readonly text: string }
+	| { readonly type: "gamemaker_call"; readonly tool: string; readonly args: unknown }
+	| { readonly type: "gamemaker_result"; readonly tool: string; readonly isError: boolean; readonly text: string }
 	| {
-			/** A note the game master delivered: `to` is a competitor or `board`. */
-			readonly type: "gamemaster_note";
+			/** A note the gamemaker delivered: `to` is a competitor or `board`. */
+			readonly type: "gamemaker_note";
 			readonly to: string;
 			readonly author: string;
 			readonly text: string;
 			/** The city's message number of the note or board post. */
 			readonly number?: number;
 	  }
-	| { readonly type: "gamemaster_error"; readonly message: string }
+	| { readonly type: "gamemaker_error"; readonly message: string }
 	| {
 			/** Classifier labels of one earlier event (`ref`); the event itself is never changed. */
 			readonly type: "interpretation";
@@ -538,7 +538,7 @@ export type ArenaEvent =
 			readonly fallback: boolean;
 	  }
 	| {
-			/** A resident's character core (v09), dealt once and kept for the whole story; known only to it, the game master and the reports. */
+			/** A resident's character core (v09), dealt once and kept for the whole story; known only to it, the gamemaker and the reports. */
 			readonly type: "core_dealt";
 			readonly agent: CompetitorId;
 			readonly bigFive: readonly CoreTrait[];
@@ -567,10 +567,10 @@ export type ArenaEvent =
 	  }
 	/** The city opened the bidding for black seal `seal` of the act (v09); bids are taken until `until`. */
 	| { readonly type: "seal_auction_opened"; readonly seal: number; readonly until: number }
-	/** A secret bid (the last one counts): in the log for the digest, never shown to residents or the game master. */
+	/** A secret bid (the last one counts): in the log for the digest, never shown to residents or the gamemaker. */
 	| { readonly type: "seal_bid"; readonly seal: number; readonly agent: CompetitorId; readonly points: number }
 	| {
-			/** The bidding closed: `agent` bears the seal; every bidder paid what `bids` shows. Secret from residents and the game master. */
+			/** The bidding closed: `agent` bears the seal; every bidder paid what `bids` shows. Secret from residents and the gamemaker. */
 			readonly type: "seal_won";
 			readonly seal: number;
 			readonly agent: CompetitorId;
@@ -626,7 +626,7 @@ export class EventBus {
 		this.#minute = minute;
 	}
 
-	/** Adds a sink that is built after the bus (e.g. the game master). */
+	/** Adds a sink that is built after the bus (e.g. the gamemaker). */
 	subscribe(sink: EventSink): void {
 		this.#sinks.push(sink);
 	}

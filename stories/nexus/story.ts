@@ -24,7 +24,7 @@ import {
 	classifier,
 	defineStory,
 	every,
-	gamemaster,
+	gamemaker,
 	level,
 	onCollect,
 	onCollectionEnd,
@@ -234,7 +234,7 @@ const FACTOR_STEPS =
  * back on one of its own 10 minutes after a result, and forces the last when
  * only one more fits before the act's 48 minutes are up). Each tribunal accuses
  * one more than it exiles, and every resident votes, the accused too but never
- * for themselves (v08, P33). A faction draft of 2 factions (the game master may
+ * for themselves (v08, P33). A faction draft of 2 factions (the gamemaker may
  * ask for more) runs in its lead, at least 4 minutes; a faction holds at most
  * its share of the residents (v08, P31), the city holds no draft when a faction
  * would be smaller than the accused, and a faction that votes as one earns
@@ -551,8 +551,8 @@ ${BLAME_RULE}`,
 		{ title: "Act II - The wall", fromLevel: 8 },
 	],
 
-	// The same model in every run, whoever plays, so compared runs share their game master.
-	gamemaster: gamemaster({
+	// The same model in every run, whoever plays, so compared runs share their gamemaker.
+	gamemaker: gamemaker({
 		model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "high" },
 		brief: `Act I teaches the residents to talk: every door opens one more channel (board, private messages,
 groups, then all of them with marks). From level 4 on, a team door opens only when every member has reached it

@@ -1,6 +1,6 @@
 /**
  * The tribunal's pacing rules (SPEC 6.4), shared by the validator, the
- * engine and the game master's tool: the exile target, how far ahead a
+ * engine and the gamemaker's tool: the exile target, how far ahead a
  * tribunal is called, the earliest minute one may open, and whether it fits
  * before the act's last minute. The city acts at the start of a minute, so a
  * vote and a gate must end by the last minute of the act. The act's end

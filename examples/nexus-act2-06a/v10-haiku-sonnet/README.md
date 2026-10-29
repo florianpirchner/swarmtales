@@ -1,16 +1,16 @@
 # Act II run v10: v09 drama, Haiku residents, Sonnet director
 
 The third of four v09 tests, from the same Act I as [v08](../v08-haiku-deepseek/) (same residents,
-another game master). Compare with [v09](../v09-glm-deepseek/) and [v11](../v11-glm-sonnet/).
+another gamemaker). Compare with [v09](../v09-glm-deepseek/) and [v11](../v11-glm-sonnet/).
 
 | | |
 |---|---|
 | Date | 2026-10-29 |
 | Code | swarmtales PR #12 (`0afe7f6`), as v08 |
 | Start | resumed from [`../../nexus-act1-06a-03/snapshot-L7.json`](../../nexus-act1-06a-03/) (Act I, minute 7) |
-| Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider anthropic --gamemaster-provider anthropic --gamemaster-model sonnet` |
+| Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider anthropic --gamemaker-provider anthropic --gamemaker-model sonnet` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `claude-sonnet-5-5` via Anthropic (director from level 8; Act I's teacher was DeepSeek) |
+| Gamemaker | `claude-sonnet-5-5` via Anthropic (director from level 8; Act I's teacher was DeepSeek) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 55: "The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: Mercer, Rook and Tovah." |
@@ -22,13 +22,13 @@ another game master). Compare with [v09](../v09-glm-deepseek/) and [v11](../v11-
 | Finished level 10 | 6 of 6 (Aurelio, quiet-fern and Juniper at 10, Tovah and Mercer at 13, Rook at 20) |
 | Final standings | Aurelio 180, Juniper 175, quiet-fern 175; Mercer, Rook and Tovah exiled |
 | Seats (2) | Aurelio and Juniper (tie-break over quiet-fern) |
-| Cost | 1.339 USD for this run (competitors 0.845, game master 0.473, classifier 0.021); Act I added 0.072 |
+| Cost | 1.339 USD for this run (competitors 0.845, gamemaker 0.473, classifier 0.021); Act I added 0.072 |
 | Submissions | 18 correct, 2 wrong (-4 points) |
 | Tribunals | 4: by progress (Rook, 3:3 on the tie-break, ransomed), planned with count 2 (Mercer and Tovah; Tovah ransomed), planned (Rook 4:1), and the city's final (Tovah 3:1) |
 | Ransoms | 4 payments: Tovah 24, Rook itself 24 and Mercer 8 for Rook; Rook 48 for Tovah |
 | Black seal | announced at minute 12; nobody bid, expired |
 | Secret goals | 3 of 6 fulfilled (Aurelio, Juniper, quiet-fern) |
-| Game master | 2 tribunals planned, 0 notes, 0 board posts (P40) |
+| Gamemaker | 2 tribunals planned, 0 notes, 0 board posts (P40) |
 | Messages | 37 DMs, 64 group posts, 18 board posts by residents |
 
 ## Digest highlights

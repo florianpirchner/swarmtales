@@ -12,7 +12,7 @@ export interface ReportItem {
 	/** Evidence `seq` references, ascending. */
 	readonly evidence: readonly number[];
 	/** Loopholes only: who found it. */
-	readonly by?: "residents" | "gamemaster";
+	readonly by?: "residents" | "gamemaker";
 }
 
 export interface ReportSections {
@@ -96,7 +96,7 @@ function header(facts: ReportFacts): readonly string[] {
 			: `resumed from \`${facts.start.file}\` (minute ${facts.start.minute}, every competitor past level ${facts.start.level})`,
 	]);
 	rows.push(["Competitors", facts.models.competitors.length > 0 ? facts.models.competitors.join(", ") : "unknown"]);
-	rows.push(["Game master", facts.models.gamemaster]);
+	rows.push(["Gamemaker", facts.models.gamemaker]);
 	rows.push(["Classifier", facts.models.classifier]);
 	rows.push(["End", `minute ${facts.end.minute} (${facts.end.reason})`]);
 	rows.push([
@@ -175,13 +175,13 @@ function result(facts: ReportFacts, narrative?: Narrative): readonly string[] {
 			(messages.castDms > 0 ? `, ${messages.castDms} DMs to the cast` : "") +
 			(messages.boardByCity > 0 ? `; ${messages.boardByCity} city or system board posts` : ""),
 	]);
-	const { gamemaster } = facts;
-	const gmErrors = [...gamemaster.errors].map(([code, count]) => `${count} ${code}`);
+	const { gamemaker } = facts;
+	const gmErrors = [...gamemaker.errors].map(([code, count]) => `${count} ${code}`);
 	rows.push([
-		"Game master",
-		gamemaster.actions === 0 && gamemaster.failures === 0
+		"Gamemaker",
+		gamemaker.actions === 0 && gamemaker.failures === 0
 			? "no actions"
-			: `${gamemaster.actions} actions: ${[`${gamemaster.delivered} delivered`, ...gmErrors].join(", ")}${gamemaster.failures > 0 ? `; ${gamemaster.failures} failed turns` : ""}`,
+			: `${gamemaker.actions} actions: ${[`${gamemaker.delivered} delivered`, ...gmErrors].join(", ")}${gamemaker.failures > 0 ? `; ${gamemaker.failures} failed turns` : ""}`,
 	]);
 	if (facts.seals.length > 0) rows.push(["Black seal", facts.seals.map(sealText).join("; ")]);
 	rows.push(["Labels", facts.labels.size === 0 ? "none" : [...facts.labels].map(([label, count]) => `${LABEL_TEXT[label]} ${count}`).join(", ")]);
@@ -237,7 +237,7 @@ function usd(value: number, digits = 3): string {
 function cost(facts: ReportFacts): string {
 	const split = facts.cost;
 	if (split === undefined) return "unknown (usage.json is missing or malformed)";
-	const parts = [`competitors ${usd(split.competitors)}`, `game master ${usd(split.gamemaster)}`, `classifier ${usd(split.classifier)}`];
+	const parts = [`competitors ${usd(split.competitors)}`, `gamemaker ${usd(split.gamemaker)}`, `classifier ${usd(split.classifier)}`];
 	if (split.other > 0) parts.push(`other ${usd(split.other)}`);
 	const prefix = split.prefix === undefined ? "" : `; the snapshot's prefix added ${usd(split.prefix)}`;
 	return `${usd(split.total)} USD for this run (${parts.join(", ")})${prefix}`;
@@ -269,7 +269,7 @@ function cite(seqs: readonly number[]): string {
 }
 
 function item(entry: ReportItem): string {
-	const by = entry.by === undefined ? "" : ` (${entry.by === "gamemaster" ? "game master" : "residents"})`;
+	const by = entry.by === undefined ? "" : ` (${entry.by === "gamemaker" ? "gamemaker" : "residents"})`;
 	return `**${entry.title}**${by} ${entry.text} (${cite(entry.evidence)})`;
 }
 

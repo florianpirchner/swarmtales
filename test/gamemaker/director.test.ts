@@ -1,5 +1,5 @@
 /**
- * The game master as director (v09, spec section 2): its report says plainly
+ * The gamemaker as director (v09, spec section 2): its report says plainly
  * when scheduleTribunal is its move and when the city calls one itself, shows
  * cores and secret goals and whether a black seal is borne (never by whom),
  * and the engine refuses a note that gives a core or goal away to anyone else
@@ -7,8 +7,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { worldOracle } from "../../src/cli/oracle.ts";
-import { characterLeaks, nearlySame } from "../../src/gamemaster/privacy.ts";
-import { gamemasterSystemPrompt } from "../../src/gamemaster/system-prompt.ts";
+import { characterLeaks, nearlySame } from "../../src/gamemaker/privacy.ts";
+import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
 import nexus from "../../stories/nexus/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
@@ -66,7 +66,7 @@ describe("the director's report and refusals (scripted)", () => {
 			level: 8,
 			minutes: 12,
 			script: () => ({ A01: [say(), say(), say(), say(), act({ name: "bid", args: { points: 3 } })] }),
-			gamemasterScript: (world) => [
+			gamemakerScript: (world) => [
 				act(
 					{ name: "notify", args: { agent: "A02", text: "A02, the wall is climbed in pairs, and yours waits." } },
 					{ name: "notify", args: { agent: "A03", text: `A03, ${world.goalOf("A01")?.text ?? ""}: that is what A01 wants.` } },
@@ -77,11 +77,11 @@ describe("the director's report and refusals (scripted)", () => {
 			],
 		});
 		await fixture.run();
-		const results = fixture.events("gamemaster_result").map((event) => event.text);
+		const results = fixture.events("gamemaker_result").map((event) => event.text);
 		expect(results[0]).toMatch(/^delivered to A02 as #\d+$/);
 		expect(results[1]).toMatch(/^PRIVATE_BLOCKED: the text gives away the core or the secret goal of A01/);
 		expect(results[2]).toMatch(/^REPEATED: you wrote nearly the same to A02 at minute \d+; say something new or nothing$/);
-		const inputs = fixture.events("gamemaster_turn").map((event) => event.input);
+		const inputs = fixture.events("gamemaker_turn").map((event) => event.input);
 		const first = inputs[0] ?? "";
 		expect(first).toContain("Who they are (private: use a resident's core or goal only in a note to that same resident");
 		expect(first).toMatch(/- A01: core: [a-z-]+: above all \w+/);
@@ -101,10 +101,10 @@ describe("the director's report and refusals (scripted)", () => {
 			level: 10,
 			minutes: 40,
 			script: (world) => oracleScript(world.competitors, () => worldOracle(world), 40),
-			gamemasterScript: () => Array.from({ length: 80 }, () => say("Quiet.")),
+			gamemakerScript: () => Array.from({ length: 80 }, () => say("Quiet.")),
 		});
 		await fixture.run();
-		const moves = fixture.events("gamemaster_turn").flatMap((event) => event.input.split("\n").filter((line) => line.startsWith("- YOUR MOVE")));
+		const moves = fixture.events("gamemaker_turn").flatMap((event) => event.input.split("\n").filter((line) => line.startsWith("- YOUR MOVE")));
 		expect(moves.length).toBeGreaterThan(0);
 		expect(moves[0]).toMatch(
 			/^- YOUR MOVE: scheduleTribunal is available now\. The city still has to exile \d residents?; the earliest opening is minute \d+\. If you plan nothing, the city calls one itself at minute \d+ \(it opens at minute \d+\)\.$/,
@@ -116,9 +116,9 @@ describe("the director's report and refusals (scripted)", () => {
 	}, 60_000);
 
 	it("tells the director its craft, and what it may do with cores, goals and the seal", () => {
-		const spec = nexus.gamemaster;
-		if (spec === undefined) throw new Error("nexus has no game master");
-		const prompt = gamemasterSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec, tribunal: { factions: true }, characters: true, seal: true });
+		const spec = nexus.gamemaker;
+		if (spec === undefined) throw new Error("nexus has no gamemaker");
+		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec, tribunal: { factions: true }, characters: true, seal: true });
 		expect(prompt).toContain("Your craft is dramaturgy: rising tension, turning points, dilemmas");
 		expect(prompt).toContain("A quiet act is a failed act.");
 		expect(prompt).toContain("the climax at the last");

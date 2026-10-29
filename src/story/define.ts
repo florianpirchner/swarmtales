@@ -25,7 +25,7 @@ import type {
 	SealSpec,
 	FactorTarget,
 	FactorTopology,
-	GamemasterSpec,
+	GamemakerSpec,
 	LevelDefinition,
 	LevelMarks,
 	ModelAssignment,
@@ -86,8 +86,8 @@ export interface StoryInput<C extends string> {
 	readonly director?: readonly RuleInput<NoInfer<C>>[];
 	/** Acts for the digest; one implicit act when omitted. */
 	readonly acts?: readonly ActDefinition[];
-	/** Optional LLM game master, see {@link gamemaster}. */
-	readonly gamemaster?: GamemasterSpec;
+	/** Optional LLM gamemaker, see {@link gamemaker}. */
+	readonly gamemaker?: GamemakerSpec;
 	/** Optional statement classifier, see {@link classifier}. */
 	readonly classifier?: ClassifierSpec;
 	/** Optional exile by tribunal (SPEC 6.4). */
@@ -123,7 +123,7 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 			}),
 		),
 		...(story.acts === undefined ? {} : { acts: story.acts }),
-		...(story.gamemaster === undefined ? {} : { gamemaster: story.gamemaster }),
+		...(story.gamemaker === undefined ? {} : { gamemaker: story.gamemaker }),
 		...(story.classifier === undefined ? {} : { classifier: story.classifier }),
 		...(story.tribunal === undefined ? {} : { tribunal: story.tribunal }),
 		...(story.names === undefined ? {} : { names: story.names }),
@@ -133,13 +133,13 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 	};
 }
 
-export type GamemasterInput = Pick<GamemasterSpec, "model" | "brief"> & Partial<Omit<GamemasterSpec, "model" | "brief">>;
+export type GamemakerInput = Pick<GamemakerSpec, "model" | "brief"> & Partial<Omit<GamemakerSpec, "model" | "brief">>;
 
 /**
- * An LLM game master with defaults: the courier's voice, a look after every
+ * An LLM gamemaker with defaults: the courier's voice, a look after every
  * round, one note per competitor and one board post per 3 minutes.
  */
-export function gamemaster(spec: GamemasterInput): GamemasterSpec {
+export function gamemaker(spec: GamemakerInput): GamemakerSpec {
 	return {
 		model: spec.model,
 		author: spec.author ?? "COURIER",

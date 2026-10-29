@@ -1,6 +1,6 @@
 /**
  * The city's message numbers (SPEC 7): one number space for every message a
- * reader can cite, DMs, board posts, group posts and game master notes alike.
+ * reader can cite, DMs, board posts, group posts and gamemaker notes alike.
  * Numbers only grow, so a higher number is always a later message.
  */
 export class MessageNumbers {

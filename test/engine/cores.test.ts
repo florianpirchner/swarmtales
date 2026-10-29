@@ -1,7 +1,7 @@
 /**
  * Character cores (v09, spec section 3): the dealing rules at every city
  * size, the prose of the system prompt, and the line for reports and the
- * game master.
+ * gamemaker.
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds } from "../../src/core/ids.ts";

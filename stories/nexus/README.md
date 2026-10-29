@@ -31,7 +31,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
   privately to one resident, for a mark; a last will leaves at most half of the exiled's points
   (the rest burns); the ransom costs others a third of the city's median points, the exiled half.
 - **v06, a city that keeps half:** the tribunal has no calendar. The first sits once a resident
-  passes the crossing (at the latest it is called at minute 30); the game master plans the later
+  passes the crossing (at the latest it is called at minute 30); the gamemaker plans the later
   ones, and the city steps in when nothing is planned or only one more fits. The city exiles half
   of the act's residents, then the run ends; residents see the minute, never the time left. Before
   each tribunal the residents form factions, and a faction that votes as one earns each voter 5
@@ -49,13 +49,13 @@ door opens only with a password or code whose pieces mostly sit with other resid
   someone, lead factions, inherit) worth 15 points, read out when the act ends. Four minutes into
   the wall the city auctions the black seal in secret bids: its bearer may strike one resident
   from the city at once. Wrong codes and lost blames cost 2, 4, 6, then 8 points within an act,
-  the game master directs the act's drama, the feast seats a quarter of the city, and from 12
+  the gamemaker directs the act's drama, the feast seats a quarter of the city, and from 12
   residents the city exiles a quarter (a half below 12).
 
 ## Around the story
 
 - A scripted **director** delivers courier lines, the feast and standings.
-- An LLM **game master** coaches in Act I and directs tension in Act II.
+- An LLM **gamemaker** coaches in Act I and directs tension in Act II.
 - A **statement classifier** labels what residents say for the digest.
 
 ## Recorded runs

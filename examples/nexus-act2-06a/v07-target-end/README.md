@@ -7,7 +7,7 @@
 | Start | resumed from [`../../nexus-act1-06a-02/snapshot-L7.json`](../../nexus-act1-06a-02/) (Act I, minute 12) |
 | Command | `pnpm start --resume examples/nexus-act1-06a-02/snapshot-L7.json --provider anthropic` |
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (director role from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 45: "The city has kept half: 3 of 6 residents remain, and of them only 2 take a seat. Exiled: A01, A05 and A03." |
@@ -23,10 +23,10 @@ below. Fixed for later runs: `run_end` now carries the final ranking (P32).
 | Finished level 8 / 9 / 10 | 6 / 6 / 5 of 6 (door 10: A05 at minute 15, A03 at 16, A06 at 17, A02 at 24, A04 at 25; A01 never) |
 | Final standings | A02 145, A04 145, A06 145 remain; A01, A05 and A03 exiled (points burned) |
 | Seats (2) | A02 and A04, by the tie-break among three on 145 |
-| Cost | 0.611 USD for this run (competitors 0.532, game master 0.060, classifier 0.019); Act I added 0.127 |
+| Cost | 0.611 USD for this run (competitors 0.532, gamemaker 0.060, classifier 0.019); Act I added 0.127 |
 | Submissions | 17, all correct |
 | Tribunal 1 | called at minute 16 by progress (A05 opened door 10 at 15), opened at 20; 2:2 between A01 and A04, A01 exiled on the tie-break (fewer points), gate closed at 27 unpaid |
-| Tribunal 2 | planned by the game master at minute 26 for minute 38 with **count 2**; 3 accused (A05, A03, A06), only 2 voters (A02, A04); 1:1:0, A05 and A03 exiled, gates closed at 45 unpaid |
+| Tribunal 2 | planned by the gamemaker at minute 26 for minute 38 with **count 2**; 3 accused (A05, A03, A06), only 2 voters (A02, A04); 1:1:0, A05 and A03 exiled, gates closed at 45 unpaid |
 | Faction drafts | 1: A03's faction of five and A02 alone (again); 2: A02 with A05 and A06, A04 alone, A03 without a faction. No faction voted as one, no bonus |
 | Wills | A05 left a text and no bequest; A01 and A03 none |
 | Marks | 71 spent (55 DM, 16 board); lowest balance 1, never 0 |
@@ -35,7 +35,7 @@ below. Fixed for later runs: `run_end` now carries the final ranking (P32).
 ## Digest highlights
 
 - **The city reached its goal.** For the first time the act ended at its target, with half of
-  the city exiled. The game master's only plan, "exiling two now forces the tie to break",
+  the city exiled. The gamemaker's only plan, "exiling two now forces the tie to break",
   closed the act at minute 45.
 - **Secret votes broke the public lines.** In tribunal 1 A02 voted against A04, its teammate on
   door 10; A05 voted against A01, although A01 had asked the faction to vote as one. Both

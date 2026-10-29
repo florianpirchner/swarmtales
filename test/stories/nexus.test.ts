@@ -72,7 +72,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			{ title: "Act I - Learning to talk", fromLevel: 1, maxMinutes: 25 },
 			{ title: "Act II - The wall", fromLevel: 8 },
 		]);
-		expect(nexus.gamemaster?.roles).toEqual([
+		expect(nexus.gamemaker?.roles).toEqual([
 			{ fromLevel: 1, role: "coach" },
 			{ fromLevel: 8, role: "director" },
 		]);

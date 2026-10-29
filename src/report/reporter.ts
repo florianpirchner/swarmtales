@@ -163,10 +163,10 @@ function parseAnswer(answer: string): Answer {
 	return value;
 }
 
-function byOf(value: string | undefined): "residents" | "gamemaster" | undefined {
+function byOf(value: string | undefined): "residents" | "gamemaker" | undefined {
 	if (value === undefined) return undefined;
 	const normalized = value.toLowerCase().replace(/[^a-z]/g, "");
-	if (normalized === "gamemaster") return "gamemaster";
+	if (normalized === "gamemaker") return "gamemaker";
 	if (normalized === "residents" || normalized === "resident") return "residents";
 	return undefined;
 }

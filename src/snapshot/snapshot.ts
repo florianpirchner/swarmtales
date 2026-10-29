@@ -17,7 +17,7 @@ import type { ArenaSnapshot } from "../engine/arena.ts";
 import type { DirectorSnapshot } from "../engine/director.ts";
 import type { RecordedEvent } from "../engine/events.ts";
 import type { WorldSnapshot } from "../engine/world.ts";
-import type { GamemasterSnapshot } from "../gamemaster/gamemaster.ts";
+import type { GamemakerSnapshot } from "../gamemaker/gamemaker.ts";
 import type { InterpreterSnapshot } from "../interpret/interpreter.ts";
 import { STATEMENT_SOURCES } from "../interpret/labels.ts";
 import { TOOL_NAMES } from "../tools/catalog.ts";
@@ -57,7 +57,7 @@ export interface RunSnapshot {
 	readonly director: DirectorSnapshot;
 	/** Each competitor's persistent model context, without system messages. */
 	readonly competitors: readonly { readonly agent: string; readonly messages: readonly ContextMessage[] }[];
-	readonly gamemaster?: GamemasterSnapshot;
+	readonly gamemaker?: GamemakerSnapshot;
 	readonly interpreter?: InterpreterSnapshot;
 	/**
 	 * Set when an act's brake wrote the snapshot (v08): not every resident had
@@ -307,7 +307,7 @@ const WorldSchema = Type.Object({
 					calledAt: Int,
 					count: Int,
 					factions: Int,
-					by: Type.Union([Type.Literal("progress"), Type.Literal("deadline"), Type.Literal("gamemaster"), Type.Literal("fallback"), Type.Literal("final")]),
+					by: Type.Union([Type.Literal("progress"), Type.Literal("deadline"), Type.Literal("gamemaker"), Type.Literal("fallback"), Type.Literal("final")]),
 					reason: Type.Optional(Type.String()),
 					called: Type.Boolean(),
 				}),
@@ -415,7 +415,7 @@ const RunSnapshotSchema = Type.Object({
 		petitions: Type.Array(Type.Object({ petition: Type.String(), rule: Type.String(), via: Type.Optional(Type.String()) })),
 	}),
 	competitors: Type.Array(Type.Object({ agent: Id, messages: Type.Array(ContextMessageSchema) })),
-	gamemaster: Type.Optional(
+	gamemaker: Type.Optional(
 		Type.Object({
 			tracks: Type.Array(Type.Object({ agent: Id, levelSince: Int, wrongOnLevel: Int, lastActive: Type.Optional(Int) })),
 			notes: Type.Array(Type.Object({ minute: Int, to: Type.String(), text: Type.String() })),
@@ -450,6 +450,9 @@ export function parseSnapshot(raw: unknown, source = "snapshot"): RunSnapshot {
 		throw new SnapshotError(`${source} has snapshot version ${raw.version}; this build reads version ${SNAPSHOT_VERSION} only`);
 	}
 	if (!validator.Check(raw)) {
+		if (JSON.stringify(raw).includes('"type":"gamemaster_')) {
+			throw new SnapshotError(`${source} was recorded before the gamemaker rename; run \`pnpm migrate:gamemaker <its directory>\` first`);
+		}
 		const errors = validator
 			.Errors(raw)
 			.slice(0, 5)

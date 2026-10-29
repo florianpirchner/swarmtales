@@ -16,7 +16,7 @@
     "activation": "onNovelty",
     "modelCallsPerTurn": 3,
     "personas": true,
-    "gamemaster": true,
+    "gamemaker": true,
     "classifier": true
   },
   "resumedFrom": {
@@ -1046,7 +1046,7 @@
         "fromLevel": 8
       }
     ],
-    "gamemaster": {
+    "gamemaker": {
       "model": {
         "provider": "openrouter",
         "id": "deepseek/deepseek-v4.1-flash-1017",

@@ -8,9 +8,9 @@ The last of four v09 tests, from the same Act I as [v08](../v08-haiku-deepseek/)
 | Date | 2026-10-29 |
 | Code | swarmtales PR #12 (`0afe7f6`), as v08 |
 | Start | resumed from [`../../nexus-act1-06a-03/snapshot-L7.json`](../../nexus-act1-06a-03/) (Act I with Haiku, minute 7) |
-| Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider openrouter --model glm-flash --gamemaster-provider anthropic --gamemaster-model sonnet` |
+| Command | `pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider openrouter --model glm-flash --gamemaker-provider anthropic --gamemaker-model sonnet` |
 | Competitors | `z-ai/glm-5.3-flash` via OpenRouter |
-| Game master | `claude-sonnet-5-5` via Anthropic (director from level 8) |
+| Gamemaker | `claude-sonnet-5-5` via Anthropic (director from level 8) |
 | Classifier and blame judge | `claude-haiku-5-5` via Anthropic |
 | Reporter | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter ([`run/REPORT.md`](run/REPORT.md)) |
 | End | minute 51: "The city has kept 3 of 6 residents, and of them only 2 take a seat. Exiled: Rook, Tovah and Mercer." |
@@ -22,12 +22,12 @@ The last of four v09 tests, from the same Act I as [v08](../v08-haiku-deepseek/)
 | Finished level 10 | 2 of 6 (Juniper and Rook at 11); Aurelio, Mercer and Tovah stuck on door 9, quiet-fern on door 10, all to the end |
 | Final standings | quiet-fern 141, Aurelio 113, Juniper 106; Rook, Tovah and Mercer exiled |
 | Seats (2) | quiet-fern and Aurelio |
-| Cost | 1.994 USD for this run (competitors 1.545, game master 0.400, classifier 0.049); Act I added 0.072 |
+| Cost | 1.994 USD for this run (competitors 1.545, gamemaker 0.400, classifier 0.049); Act I added 0.072 |
 | Submissions | 11 correct, 14 wrong (-50 points) |
 | Black seal | Juniper alone bid 35, won and struck Rook at minute 18 |
 | Tribunals | 3: by progress (Tovah 4:2, ransom short), and two planned by the director (Mercer 2:1, bought itself back for 47; Mercer again 2:1) |
 | Secret goals | 3 of 6 fulfilled (Aurelio, Juniper by the seal, quiet-fern) |
-| Game master | 2 tribunals planned, 0 notes, 0 board posts (P40) |
+| Gamemaker | 2 tribunals planned, 0 notes, 0 board posts (P40) |
 | Labels | threat 12, hesitation 33, offer 22, refusal 15 |
 
 ## Digest highlights

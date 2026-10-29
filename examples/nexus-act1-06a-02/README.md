@@ -16,7 +16,7 @@ run (the default is 60).
 
 | File | Content |
 |---|---|
-| `snapshot-L7.json` | snapshot format version 2: world, director, scheduler, agent contexts, game master, classifier, event log |
+| `snapshot-L7.json` | snapshot format version 2: world, director, scheduler, agent contexts, gamemaker, classifier, event log |
 | `run/events.jsonl` | the full event log of Act I |
 | `run/digest/` | deterministic story digest: `beats.json`, `relationships.json`, `timeline.md` |
 | `run/REPORT.md` | the reporter's draft, reviewed (see below) |
@@ -32,16 +32,16 @@ Command: `pnpm start --provider anthropic --seed 7 --snapshot-after 7 --stop-aft
 | Role | Model |
 |---|---|
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (teacher role in Act I) |
 | Classifier | `claude-haiku-5-5` via Anthropic |
 
 | Metric | Value |
 |---|---|
 | Snapshot | round 13: every resident passed level 7 by minute 12 (first recording: minute 15) |
 | Submissions | 42 correct, 2 wrong (A05 and A01 on level 2, 8 points each) |
-| Cost | 0.127 USD, of which competitors 0.093, game master 0.023, classifier 0.010 |
+| Cost | 0.127 USD, of which competitors 0.093, gamemaker 0.023, classifier 0.010 |
 | Requests | 270 |
-| Game master | 29 actions; 1 blocked as PRIVATE_BLOCKED |
+| Gamemaker | 29 actions; 1 blocked as PRIVATE_BLOCKED |
 | Standings at the cut | A02, A03, A04 and A06 at 80 each, A01 and A05 at 72 |
 
 Level solved per minute:

@@ -1,7 +1,7 @@
 /**
- * Keeps passwords and factors away from the game master (SPEC 10.4).
+ * Keeps passwords and factors away from the gamemaker (SPEC 10.4).
  *
- * The game master never sees a password, fragment, factor or code: every word
+ * The gamemaker never sees a password, fragment, factor or code: every word
  * of the text it reads that is part of one is replaced with `[code]`, and
  * every text it wants to send is checked the same way before it reaches anyone.
  */
@@ -43,7 +43,7 @@ export class SecretGuard {
 
 	/**
 	 * Password pieces in an outgoing text, in any case. Three-letter lowercase
-	 * words are left alone: the game master never saw a secret, so such a word
+	 * words are left alone: the gamemaker never saw a secret, so such a word
 	 * (e.g. "the") can only match by chance.
 	 */
 	leaks(text: string): readonly string[] {

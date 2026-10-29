@@ -138,15 +138,15 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  (city factor of level ${event.level} released ${event.target === "board" ? "on the board" : `to ${event.agents.join(", ")}`})`;
 		case "cast_dm":
 			return `  ${event.from} -> ${event.cast} (DM${event.collections.length === 0 ? ", recorded" : `, collected into ${event.collections.join(", ")}`})`;
-		case "gamemaster_thinking":
+		case "gamemaker_thinking":
 			return `  GM thinks: ${event.text}`;
-		case "gamemaster_text":
+		case "gamemaker_text":
 			return `  GM thinks aloud: ${event.text}`;
-		case "gamemaster_call":
+		case "gamemaker_call":
 			return `  GM calls ${event.tool} ${JSON.stringify(event.args)}`;
-		case "gamemaster_result":
+		case "gamemaker_result":
 			return `  GM ${event.isError ? "x" : "->"} ${event.text}`;
-		case "gamemaster_error":
+		case "gamemaker_error":
 			return `  GM error: ${event.message}`;
 		case "interpretation":
 			return `  (${event.agent} #${event.ref} ${event.source}: ${event.labels.join(", ")}${event.targets.length === 0 ? "" : ` -> ${event.targets.join(", ")}`})`;
@@ -185,8 +185,8 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "treasury_deposit":
 		case "treasury_withdrawal":
 		case "standings_published":
-		case "gamemaster_turn":
-		case "gamemaster_note":
+		case "gamemaker_turn":
+		case "gamemaker_note":
 			return undefined;
 		default:
 			return assertNever(event, "event");

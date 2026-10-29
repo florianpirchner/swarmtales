@@ -158,7 +158,7 @@ the act (the run) ends. Its clocks count from the act's start.
 |---|---|
 | Target | a quarter of the residents at the start of the act: 1 of 6, 3 of 12, 12 of 48, 24 of 96; a ransomed resident does not count |
 | First tribunal | called when the first resident passes the crossing (door 10), at the latest 18 minutes into the act; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("Of its 6 residents it keeps 5 and exiles 1") |
-| Later tribunals | planned by the game master with `scheduleTribunal(minute, count, factions, reason)`: at least 6 minutes apart, called a third of the gap ahead (at least 4 minutes), count 1 up to what is missing |
+| Later tribunals | planned by the gamemaker with `scheduleTribunal(minute, count, factions, reason)`: at least 6 minutes apart, called a third of the gap ahead (at least 4 minutes), count 1 up to what is missing |
 | Guard rails | if nothing is planned 10 minutes after a result, the city calls one itself (1 exile); when only one more fits before the act's end (48 minutes after it began), the city calls the final one for everything still missing; decided seats do not stop it |
 | Call | "Tribunal 2 sits at minute 44: the city exiles 1, and the 2 with the fewest points stand trial." |
 | Faction draft | in the lead, in group `GT<k>`: nominate leaders, then join one (a leader may refuse); 2 factions by default; a faction holds at most its share of those present (`ceil(present / factions)`, the leader included) and a full one takes nobody else (v08); a faction whose voters all vote for the same accused earns each of them 5 points, and only its members learn whether it held. No draft when a faction would hold fewer residents than stand trial (v08) |
@@ -172,7 +172,7 @@ the act (the run) ends. Its clocks count from the act's start.
 
 The city announces everything in a frightening voice: "When the gate closes, the city strikes the
 name from its register. Beyond the wall no one hears you again; your thinking ends there." The
-accused can talk and buy votes with transfers; nobody, the game master included, sees who voted
+accused can talk and buy votes with transfers; nobody, the gamemaker included, sees who voted
 for whom, whom anyone nominated or joined, or whether a faction held. The result is posted with
 counts, and the exiled resident alone learns who voted against it. When the gate closes, the exiled
 has no more turns and no seat; its points are gone, and every factor it did not bequeath burns.
@@ -187,14 +187,14 @@ bequeath burns and can block a door. That is allowed, and the digest shows it (`
 
 **Scaling.** Every number is a story parameter, and validation rejects sets that cannot work for
 the agent count. The target, the faction cap and the blocks are shares, so 48 or 96 residents
-need no other numbers; the game master chooses each tribunal's count and number of factions (2 up
+need no other numbers; the gamemaker chooses each tribunal's count and number of factions (2 up
 to half the residents present). Offline runs with 12 and 48 oracle residents play the whole
 story through the target (v08). Fixed on purpose: the feast seats 3 and two seats survive,
 whatever the city's size, so both grow scarcer in a bigger city.
 
 **Names** (v08). In minutes 0 and 1 every resident chooses the name the city knows it by
 (`chooseName`); at minute 2 the city names the rest ("Stone-4417"). From then on residents and the
-game master read names, not IDs, and every tool takes either. Reports show "Mira (A03)".
+gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (A03)".
 
 **Drama** (v09). The city defines who the residents are, never what they do:
 
@@ -210,7 +210,7 @@ game master read names, not IDs, and every tool takes either. Reports show "Mira
   Every resident with a core first reads the story's frame: a fictional city played by AI agents,
   where dark sides are played without softening ([`lab/FINDINGS.md`](../lab/FINDINGS.md)).
 - **Direction.** Two dials from 0 to 10 say how strongly a run steers the residents: the figure's
-  own prompt (`--figure-direction`) and the game master (`--gm-direction`). At 10 every figure of
+  own prompt (`--figure-direction`) and the gamemaker (`--gm-direction`). At 10 every figure of
   the first cast gets hard orders and a duty for the act ("You must spread false information"),
   and the director orders scenes ("Herald, bid 20 on the seal now"). The default 4 plays as v12, except that the six figures of the first cast now have longer texts (a
   memory, a fear, a secret) at every level.
@@ -230,7 +230,7 @@ game master read names, not IDs, and every tool takes either. Reports show "Mira
 - **Graduated penalties.** Within an act, wrong codes cost 2, 4, 6, then 8 points, one after
   another, and so do lost blames; every refusal and the status line name the next price. The
   count starts again with each act.
-- **The director.** The game master's brief asks for dramaturgy (a calm start, escalation around
+- **The director.** The gamemaker's brief asks for dramaturgy (a calm start, escalation around
   the seal, the climax at the last tribunal); its report shows cores, goals and whether a seal is
   borne (never by whom), and says `YOUR MOVE` when it may schedule a tribunal. The engine refuses a
   note that gives a core or goal away to anyone but its owner, and a note nearly the same as an
@@ -243,7 +243,7 @@ game master read names, not IDs, and every tool takes either. Reports show "Mira
 the wall from where it stands: the checkpoint after door 7 is written anyway, notes who was
 behind, and the door opens for everyone else.
 
-The game master's report shows the target, what is still missing, the plan and the bounds of
+The gamemaker's report shows the target, what is still missing, the plan and the bounds of
 `scheduleTribunal`, the accused and the gate, never the votes, nominations or bloc results;
 its brief adds that stalling costs: a code a resident holds and never submits is worth nothing,
 and the tribunal looks at the bottom.
@@ -261,16 +261,16 @@ The director is a closed, scripted vocabulary (SPEC 10). Every action is logged 
 | courier-8/9/10 | first entry of levels 8-10 | "A wall is climbed in pairs…", "A ring holds while every hand holds…", "What you need now is held by someone who wants your place." |
 | city-factor-8/9 | first entry of level 8 or 9 | that level's city factor on the board |
 | feast, feast-notice, feast-seat, table-cleared | first entry of level 10, entries while open, each new guest, end of window | the feast as described above |
-| (city) tribunal | first resident past door 10, at the latest 18 minutes into Act II; then the game master's plans, the fallback and the final tribunal | announcement, calls, faction drafts, tribunals, results, gates, exiles, the end at the target (engine, from the story's `tribunal`) |
+| (city) tribunal | first resident past door 10, at the latest 18 minutes into Act II; then the gamemaker's plans, the fallback and the final tribunal | announcement, calls, faction drafts, tribunals, results, gates, exiles, the end at the target (engine, from the story's `tribunal`) |
 | *-start | minute 0 of a run started on a later level | the same releases, since nobody "enters" a start level |
 | standings | every 6 minutes from minute 12 | standing bands: who is safe, who is on the edge, who is out ("cannon"), and who was exiled |
 | city-marks-8 | first entry of level 8 | the city announces the wall's mark prices and refill |
 | late-guest | entry of level 10 after the table was cleared | that resident's team city factor, privately |
 | holder-behind-8/9/10 | `onHolderBehind`: entry of levels 8-10 while a holder of the resident's piece is on a lower door (v05) | private notice to the needer: who holds its piece, where it is stuck, help it through |
 
-## Game master
+## Gamemaker
 
-An LLM game master (SPEC 10.4) reads a redacted situation report every minute and may send a
+An LLM gamemaker (SPEC 10.4) reads a redacted situation report every minute and may send a
 private note to a resident or post on the board. It is limited to 1 note per resident and 1 board
 post per 3 minutes, and each text to 400 characters.
 
@@ -286,7 +286,7 @@ post per 3 minutes, and each text to 400 characters.
 
 After every round, a classifier labels what each resident wrote and thought. The labels are
 promise, offer, threat, refusal, lie, hesitation, help request, accusation and thanks (SPEC 10.5).
-The game master sees labels, never raw thoughts. The digest uses them for accusations, free rides
+The gamemaker sees labels, never raw thoughts. The digest uses them for accusations, free rides
 and relationships. A resident who hands the same city factor or certificate to 3 or more others is
 one `generous` beat in the digest, not a free ride for each receiver.
 

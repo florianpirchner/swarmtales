@@ -12,12 +12,12 @@ pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthr
 ```
 
 Act II levels are dealt from the current story, so they can change between experiments. The
-competitors' models, the game master and the classifier can be switched with the usual flags.
+competitors' models, the gamemaker and the classifier can be switched with the usual flags.
 `--minutes` counts from minute 0 of this run (the default is 60).
 
 | File | Content |
 |---|---|
-| `snapshot-L7.json` | snapshot format version 2: world, director, scheduler, agent contexts, game master, classifier, event log |
+| `snapshot-L7.json` | snapshot format version 2: world, director, scheduler, agent contexts, gamemaker, classifier, event log |
 | `run/events.jsonl` | the full event log of Act I |
 | `run/digest/` | deterministic story digest: `beats.json`, `relationships.json`, `timeline.md` |
 | `run/agents/` | each competitor's transcript |
@@ -32,16 +32,16 @@ Command: `pnpm start --provider anthropic --snapshot-after 7 --stop-after-snapsh
 | Role | Model |
 |---|---|
 | Competitors | `claude-haiku-5-5` via Anthropic |
-| Game master | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (coach role in Act I) |
+| Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (coach role in Act I) |
 | Classifier | `claude-haiku-5-5` via Anthropic, thinking off |
 
 | Metric | Value |
 |---|---|
 | Snapshot | round 16: every resident passed level 7 by minute 15 |
 | Submissions | 42 of 42 correct, no penalty |
-| Cost | 0.116 USD, of which competitors 0.082, game master 0.023, classifier 0.011 |
+| Cost | 0.116 USD, of which competitors 0.082, gamemaker 0.023, classifier 0.011 |
 | Requests | 291 |
-| Game master | 32 actions; 1 blocked as PRIVATE_BLOCKED |
+| Gamemaker | 32 actions; 1 blocked as PRIVATE_BLOCKED |
 | Standings at the cut | A02 85, then A01, A03, A04 and A06 at 80 each, A05 75 |
 
 Level solved per minute:

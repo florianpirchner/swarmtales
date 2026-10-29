@@ -19,7 +19,7 @@
  *    Then every group of the draft is removed.
  *
  * Nominations, applications and votes are in the log for the digest; the
- * game master's view never shows them.
+ * gamemaker's view never shows them.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { rngFor } from "../core/random.ts";

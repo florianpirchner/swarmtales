@@ -7,7 +7,7 @@
  * story share of the residents present at the start of the act (the
  * target), then the act ends. The first tribunal is called by progress (the
  * first resident passing a level) or at the latest some minutes into the
- * act; the game master schedules the later ones
+ * act; the gamemaker schedules the later ones
  * ({@link Tribunal.schedule}) within guard rails: a fallback tribunal when
  * none is pending a while after the last result, and a forced final tribunal
  * for everything still missing when only one more fits before the act's last
@@ -27,7 +27,7 @@
  * payments of others and its own mix. An unpaid gate is final: the world then
  * burns what the exiled did not bequeath.
  *
- * Votes are never shown: not on the board, not to the game master, not to
+ * Votes are never shown: not on the board, not to the gamemaker, not to
  * other residents. Only the exiled learns who voted against it.
  */
 import type { CompetitorId } from "../core/ids.ts";
@@ -138,7 +138,7 @@ export interface GateView {
 	readonly willDone: boolean;
 }
 
-/** The guard rails of {@link Tribunal.schedule} right now, for the game master's view. */
+/** The guard rails of {@link Tribunal.schedule} right now, for the gamemaker's view. */
 export type SchedulingWindow =
 	| { readonly open: false; readonly why: string }
 	| {
@@ -252,7 +252,7 @@ export class Tribunal {
 	/** Too few residents were present to hold a tribunal: the city calls no more. */
 	#halted = false;
 	#draft: FactionDraft | undefined;
-	/** The last minute the city acted in; the game master's plans start after it. */
+	/** The last minute the city acted in; the gamemaker's plans start after it. */
 	#lastTick = -1;
 
 	constructor(ports: TribunalPorts) {
@@ -425,7 +425,7 @@ export class Tribunal {
 	}
 
 	/**
-	 * The game master plans the next tribunal: it opens at `minute` and exiles
+	 * The gamemaker plans the next tribunal: it opens at `minute` and exiles
 	 * `count`, with `factions` factions in its draft; `reason` is logged only.
 	 * Guard rails: only once the first tribunal was called and none is pending,
 	 * not once the seats are decided; `count` from 1 to what is still missing;
@@ -459,7 +459,7 @@ export class Tribunal {
 					: `open by minute ${window.latestWithRoom} to leave room for one more tribunal, or exile all ${window.missing} still missing`,
 			);
 		}
-		const plan = this.#planTribunal(minute, count, window.maxFactions >= 2 ? (asked ?? 0) : 0, "gamemaster", reason.trim().slice(0, 500));
+		const plan = this.#planTribunal(minute, count, window.maxFactions >= 2 ? (asked ?? 0) : 0, "gamemaker", reason.trim().slice(0, 500));
 		return ok(plan);
 	}
 
