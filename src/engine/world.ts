@@ -790,7 +790,10 @@ export class World {
 	#dealCores(): void {
 		const spec = this.story.cores;
 		if (spec === undefined || !this.#playsCores || this.#cores.size > 0) return;
-		for (const [agent, core] of dealCores(spec, this.#ids, this.seed, this.#cast)) {
+		const own = this.story.whisperer?.core;
+		for (const [agent, drawn] of dealCores(spec, this.#ids, this.seed, this.#cast)) {
+			// The whisperer plays his role with the character the story gives it.
+			const core: Core = own !== undefined && agent === this.#whisperer ? own : drawn;
 			this.#cores.set(agent, core);
 			this.#bus.emit({ type: "core_dealt", agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) });
 		}

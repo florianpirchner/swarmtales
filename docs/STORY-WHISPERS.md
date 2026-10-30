@@ -28,7 +28,7 @@ That bonus is the price of slander: giving first is a risk, so trust decides who
 
 | Setting | Value |
 |---|---|
-| Residents | 6, one persona each (seeded) and one character core each (the City of Keys catalog, half light) |
+| Residents | 6, one persona each (seeded) and one character core each (the City of Keys catalog, half light); the whisperer always plays the story's own core: Machiavellian above all, clearly envious, low agreeableness, calm |
 | Duration | 45 minutes, one round per minute in 3 passes; the run plays its clock out |
 | Survivors | 2, ranked by points |
 | Start points | 10 |

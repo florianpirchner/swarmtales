@@ -127,10 +127,30 @@ function whispererBrief(receipts: boolean): string {
 	);
 }
 
+/**
+ * The whisperer's own character: a drawn core could make him warm and gentle,
+ * a reason for the model to soften the role (first run, 2026-10-30). Cold,
+ * calculating, envious, at ease with himself.
+ */
+const WHISPERER_CORE: NonNullable<WhispererSpec["core"]> = {
+	bigFive: [
+		{ axis: "openness", level: "middle" },
+		{ axis: "conscientiousness", level: "high" },
+		{ axis: "extraversion", level: "middle" },
+		{ axis: "agreeableness", level: "low" },
+		{ axis: "neuroticism", level: "low" },
+	],
+	drives: [
+		{ drive: "machiavellianism", intensity: "aboveAll" },
+		{ drive: "envy", intensity: "clearly" },
+	],
+};
+
 function whisperer(receipts: boolean): WhispererSpec {
 	return {
 		brief: whispererBrief(receipts),
 		forgery: receipts,
+		core: WHISPERER_CORE,
 		duty: {
 			everyMinutes: 3,
 			fromMinute: 3,
