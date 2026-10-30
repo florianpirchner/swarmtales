@@ -499,6 +499,8 @@ export interface WhispererSpec {
 	readonly brief: string;
 	readonly forgery: boolean;
 	readonly duty: WhisperDuty;
+	/** The whisperer's own character core, in place of a drawn one (a role needs a fitting character); drawn when omitted. */
+	readonly core?: { readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[]; readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[] };
 }
 
 export interface WhisperDuty {

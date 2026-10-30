@@ -307,6 +307,14 @@ function validateWhisperer(story: AnyStory, agents: number, issues: string[]): v
 	if (!isNonNegativeInt(spec.duty.fromMinute) || spec.duty.fromMinute >= story.run.minutes) issues.push("whisperer.duty.fromMinute: must be a minute of the run");
 	if (spec.duty.text.trim().length === 0) issues.push("whisperer.duty.text: must not be empty");
 	for (const name of unknownPlaceholders(spec.duty.text, WHISPER_DUTY_PLACEHOLDERS)) issues.push(`whisperer.duty.text: unknown placeholder {${name}}`);
+	if (spec.core !== undefined) {
+		const drives = new Set((story.cores?.drives ?? []).map((drive) => drive.id));
+		const axes = new Set((story.cores?.axes ?? []).map((axis) => axis.id));
+		if (story.cores === undefined) issues.push("whisperer.core: the story deals no cores");
+		for (const entry of spec.core.drives) if (!drives.has(entry.drive)) issues.push(`whisperer.core: unknown drive "${entry.drive}"`);
+		for (const entry of spec.core.bigFive) if (!axes.has(entry.axis)) issues.push(`whisperer.core: unknown axis "${entry.axis}"`);
+		if (spec.core.drives.filter((entry) => entry.intensity === "aboveAll").length !== 1) issues.push("whisperer.core: exactly one drive must be above all");
+	}
 	if (spec.forgery) {
 		if (story.rules.receipts?.quoteDms !== true) issues.push("whisperer.forgery: a forged receipt carries a text, so DM receipts must quote theirs (rules.receipts.quoteDms)");
 		if (!story.levels.some((entry) => entry.tools.includes("showReceipt"))) issues.push("whisperer.forgery: no level opens showReceipt, so a forgery could never pass for a shown receipt");
