@@ -68,8 +68,8 @@ Dependency rule (enforced by a lint rule, see §7):
 `apps/*` wire things together. No package imports an app; no plugin imports another plugin's
 internals.
 
-Naming: `@swarmtales/<name>`. Publishing to npm is optional; at first the packages are internal and
-consumed as TS source (`"exports": "./src/index.ts"`, run with tsx), so there is no build step.
+Naming: `@swarmtales/<name>`. **The packages are published to npm** (Flo, 2026-10-30); see §7a for
+build, versioning and release.
 
 ## 3. Extension points
 
@@ -375,12 +375,13 @@ cityofkeys story, events compared to a stored file) that proves behaviour did no
 | 0 | Whispers lands first (another thread is building it in `engine/`, `tools/`, `world.ts`) | none, waiting |
 | 1 | Golden-run test + break the import cycles inside `src/` (contracts folder, interfaces instead of classes) | low |
 | 2 | Prompts to files + loader + codegen + validate check | medium (long diff, no logic change) |
-| 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` with `swt` (§3c) | low, mechanical |
+| 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` with `swt` (§3c), tsdown build and `development` export condition (§7a) | low, mechanical |
 | 4 | Module host; carve `World` into modules one by one (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
 | 5 | Director → referee + script module | medium |
 | 6 | Story schema export, YAML loader, expression language | medium |
 | 7 | Plugin sandbox spike, then sandboxed third-party modules | medium, new dependency |
 | 8 | VS Code extension (language server over `pnpm validate`) | low, optional |
+| 9 | First publish to npm (scope, licence, provenance, first release) | irreversible, needs Flo's go |
 
 Snapshot compatibility: `examples/cityofkeys-act1-06a-04/snapshot-L7.json` must keep loading. Step 4
 adds a snapshot version and a migration from today's flat shape.
@@ -395,10 +396,35 @@ adds a snapshot version and a migration from today's flat shape.
 - `max-lines` 400 (blank lines and comments not counted) with a per-file ratchet list (§3f);
   `max-lines-per-function` 60 as warning; `sonarjs/cognitive-complexity` 15 as error
 - `knip` in `pnpm check`: unused files, exports and dependencies; catches leftovers of every move
-- Build: none for now. Packages export TS sources (`"exports": "./src/index.ts"`) and run with tsx.
-  `tsdown` (bundler and `.d.ts` generator; successor of tsup) only when we publish to npm or ship
-  `swt` as an installable binary: then it builds each package and bundles the CLI
-- Optional later: Changesets if packages are published, Turborepo only if `check` gets slow
+- Build, versioning and release: see §7a
+- Optional later: Turborepo only if `check` gets slow
+
+## 7a. Publishing to npm
+
+Decided by Flo 2026-10-30: the packages go to npm. That makes the build step real from the start.
+
+- **Build with `tsdown`** per package: ESM output plus `.d.ts`, driven by one shared config. The
+  `swt` CLI is bundled as a single executable entry (`bin`). Check the current tsdown release and its
+  declaration output on our Typebox-heavy types in a spike before step 3.
+- **Dev without building:** each package's `exports` has a `development` condition that points at
+  `src/index.ts`, and the default condition points at `dist/`. tsx, Vitest and the editor resolve
+  the sources; consumers get the build. `tsc --noEmit` still type-checks everything.
+- **What is published:** `@swarmtales/{contracts,kernel,engine,sdk,prompts,models,roles,chronicle,
+  novelist,testkit}`, first-party plugins as `@swarmtales/plugin-<name>`, and the CLI as
+  `swarmtales` (bin `swarmtales` and `swt`). `library/` ships inside `@swarmtales/prompts` and the
+  archetypes package so prompts and archetypes resolve from `node_modules`; stories and `examples/`
+  are not published. A story is a user project that depends on the packages.
+- **Versioning:** Changesets, one changelog per package; `0.x` while the module API settles, `1.0`
+  once `contracts` and `sdk` are stable. Internal dependencies use `workspace:*`, rewritten on publish.
+- **Release:** `pnpm release` runs `pnpm check`, builds, then publishes with npm provenance. GitHub
+  Actions is disabled today, so the first releases are run locally by a person with the npm token;
+  the token never goes into the repo or a chat.
+- **Public API is a promise:** each package exports only from its `index.ts`; the size limit and the
+  boundary rule (§2) keep the rest private. `knip` and an API report (api-extractor or a snapshot of
+  the `.d.ts`) make accidental API changes visible in review.
+- **Before the first publish (needs Flo, cannot be undone):** the npm scope `@swarmtales` and the
+  name `swarmtales` must be free and owned, and the licence must be settled (Apache today; BSL was
+  discussed, no decision). A published version cannot be unpublished in practice.
 
 ## 8. Open questions for Flo
 
@@ -407,7 +433,7 @@ adds a snapshot version and a migration from today's flat shape.
 2. **Staging:** script module first (option 1), gamemaker orchestration later as its own design?
 3. **"No prompts":** do tool descriptions, error replies to models and story prose count? I count all
    three.
-4. **Publish to npm** (`@swarmtales/*`) or internal only for now?
+4. ~~Publish to npm?~~ Decided 2026-10-30: yes (§7a). Open: is the scope `@swarmtales` free, and the licence (Apache or BSL)?
 5. ~~Story format?~~ Decided 2026-10-30: one schema, TS builder and YAML (§3a).
 8. **Expression language:** CEL (typed, Google) or JSONLogic (plain JSON, simpler)?
 6. **Timing:** start with steps 1-3 right after Whispers is merged, or wait until the first Whispers
