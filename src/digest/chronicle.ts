@@ -370,6 +370,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "popularity_opened":
 		case "popularity_ballot":
 		case "popularity_result":
+		case "guard_verdict":
 			return undefined;
 		default:
 			return assertNever(event, "digest event");

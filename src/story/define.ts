@@ -26,6 +26,7 @@ import type {
 	FactorTarget,
 	FactorTopology,
 	GamemakerSpec,
+	GuardsSpec,
 	LevelDefinition,
 	LevelMarks,
 	ModelAssignment,
@@ -104,6 +105,8 @@ export interface StoryInput<C extends string> {
 	/** Optional whisperer and popularity vote (Whispers). */
 	readonly whisperer?: WhispererSpec;
 	readonly popularity?: PopularitySpec;
+	/** Optional tool guards (SPEC 20). */
+	readonly guards?: GuardsSpec;
 	/** Which tool schemas residents see; every tool when omitted. */
 	readonly toolScope?: ToolScope;
 }
@@ -140,6 +143,7 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.seal === undefined ? {} : { seal: story.seal }),
 		...(story.whisperer === undefined ? {} : { whisperer: story.whisperer }),
 		...(story.popularity === undefined ? {} : { popularity: story.popularity }),
+		...(story.guards === undefined ? {} : { guards: story.guards }),
 		...(story.toolScope === undefined ? {} : { toolScope: story.toolScope }),
 	};
 }
@@ -183,6 +187,8 @@ export interface LevelSpec<S extends string> {
 	readonly tools: readonly ToolName[];
 	readonly task: CheckedTemplate<S, TaskPlaceholder>;
 	readonly marks?: LevelMarks;
+	/** The door clock: the minute the level opens (SPEC 20); open from the start when omitted. */
+	readonly opensAt?: number;
 }
 
 export function level<const S extends string>(number: number, spec: LevelSpec<S>): LevelDefinition {
@@ -195,6 +201,7 @@ export function level<const S extends string>(number: number, spec: LevelSpec<S>
 		tools: spec.tools,
 		task: spec.task,
 		...(spec.marks === undefined ? {} : { marks: spec.marks }),
+		...(spec.opensAt === undefined ? {} : { opensAt: spec.opensAt }),
 	};
 }
 

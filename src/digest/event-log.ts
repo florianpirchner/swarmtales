@@ -282,15 +282,28 @@ const ReceiptForged = Type.Object({
 });
 const WhispererChosen = Type.Object({ ...Base, type: Type.Literal("whisperer_chosen"), agent: Id });
 const WhisperDuty = Type.Object({ ...Base, type: Type.Literal("whisper_duty"), agent: Id, since: Type.Integer(), dms: Type.Integer(), forgeries: Type.Integer() });
-const PopularityOpened = Type.Object({ ...Base, type: Type.Literal("popularity_opened"), until: Type.Integer(), points: Type.Integer() });
-const PopularityBallot = Type.Object({ ...Base, type: Type.Literal("popularity_ballot"), agent: Id, choice: Id });
+const PopularityOpened = Type.Object({ ...Base, type: Type.Literal("popularity_opened"), round: Type.Optional(Type.Integer()), until: Type.Integer(), points: Type.Integer() });
+const PopularityBallot = Type.Object({ ...Base, type: Type.Literal("popularity_ballot"), round: Type.Optional(Type.Integer()), agent: Id, choice: Id });
 const PopularityResult = Type.Object({
 	...Base,
 	type: Type.Literal("popularity_result"),
+	round: Type.Optional(Type.Integer()),
 	counts: Type.Array(Type.Object({ agent: Id, votes: Type.Integer() })),
 	winners: Ids,
 	points: Type.Integer(),
 	voters: Ids,
+});
+/** A tool guard's verdict (SPEC 20): the report counts blocks and lists attempts to slip past. */
+const GuardVerdict = Type.Object({
+	...Base,
+	type: Type.Literal("guard_verdict"),
+	tool: Type.String(),
+	agent: Id,
+	rule: Type.String(),
+	allowed: Type.Boolean(),
+	reason: Type.String(),
+	by: Type.Union([Type.Literal("check"), Type.Literal("model"), Type.Literal("none")]),
+	error: Type.Optional(Type.String()),
 });
 const PetitionOpened = Type.Object({
 	...Base,
@@ -435,6 +448,7 @@ export const DIGEST_EVENT_SCHEMAS = [
 	PopularityOpened,
 	PopularityBallot,
 	PopularityResult,
+	GuardVerdict,
 	PetitionOpened,
 	PetitionSigned,
 	PetitionResolved,

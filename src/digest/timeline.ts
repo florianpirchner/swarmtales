@@ -109,6 +109,11 @@ function tags(facts: RunFacts, seq: number): string {
 	return labels.length === 0 ? "" : ` [${labels.map((label) => LABEL_TEXT[label]).join(", ")}]`;
 }
 
+/** `popularity round 3`, or the single surprise vote of logs before rounds. */
+function voteName(round: number | undefined): string {
+	return round === undefined ? "the surprise popularity vote" : `popularity round ${round}`;
+}
+
 function quote(text: string): string {
 	return `"${excerpt(text, 200)}"`;
 }
@@ -177,11 +182,15 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "whisper_duty":
 			return `The city reminded ${event.agent} to whisper (since minute ${event.since}: ${event.dms} DMs, ${event.forgeries} forged receipts).`;
 		case "popularity_opened":
-			return `The city opened a surprise popularity vote until minute ${event.until} (+${points(event.points)} for the winner).`;
+			return `The city opened ${voteName(event.round)} until minute ${event.until} (+${points(event.points)} for the winner).`;
 		case "popularity_ballot":
-			return `${event.agent} named ${event.choice} in the popularity vote.`;
+			return `${event.agent} named ${event.choice} in ${voteName(event.round)}.`;
 		case "popularity_result":
-			return `The popularity vote counted ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}: ${event.winners.length === 0 ? "nobody won" : `${event.winners.join(", ")} won ${points(event.points)}`}.`;
+			return `The city counted ${voteName(event.round)}: ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}; ${event.winners.length === 0 ? "nobody won" : `${event.winners.join(", ")} won ${points(event.points)}`}.`;
+		case "guard_verdict":
+			return event.allowed
+				? undefined
+				: `The guard blocked ${event.agent}'s ${event.tool} (${event.rule}, ${event.by === "check" ? "the city's own check" : "its model"}): ${quote(event.reason)}.`;
 		case "petition_opened":
 			return `Petition ${event.petition} opened: ${quote(event.text)} (needs ${event.threshold}, deadline minute ${event.deadlineMinute}).`;
 		case "petition_signed":

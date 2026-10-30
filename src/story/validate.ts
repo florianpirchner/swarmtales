@@ -30,6 +30,8 @@ import {
 	POPULARITY_TEXT_KEYS,
 	POPULARITY_TEXT_PLACEHOLDERS,
 	WHISPER_DUTY_PLACEHOLDERS,
+	GUARD_ACTIONS,
+	GUARDABLE_TOOLS,
 	type Action,
 	type ActionKind,
 	type AnyStory,
@@ -167,6 +169,7 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateSeal(story, issues);
 	validateWhisperer(story, agents, issues);
 	validatePopularity(story, issues);
+	validateGuards(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
@@ -303,8 +306,18 @@ function validateWhisperer(story: AnyStory, agents: number, issues: string[]): v
 		issues.push(`whisperer.agent: ${spec.agent} is not one of the ${agents} competitors`);
 	}
 	if (spec.brief.trim().length === 0) issues.push("whisperer.brief: must not be empty");
-	if (!isPositiveInt(spec.duty.everyMinutes)) issues.push("whisperer.duty.everyMinutes: must be a positive integer");
-	if (!isNonNegativeInt(spec.duty.fromMinute) || spec.duty.fromMinute >= story.run.minutes) issues.push("whisperer.duty.fromMinute: must be a minute of the run");
+	const duty = spec.duty;
+	switch (duty.kind) {
+		case "every":
+			if (!isPositiveInt(duty.everyMinutes)) issues.push("whisperer.duty.everyMinutes: must be a positive integer");
+			if (!isNonNegativeInt(duty.fromMinute) || duty.fromMinute >= story.run.minutes) issues.push("whisperer.duty.fromMinute: must be a minute of the run");
+			break;
+		case "afterVote":
+			if (story.popularity === undefined) issues.push("whisperer.duty: a duty after each vote needs the story's popularity votes");
+			break;
+		default:
+			assertNever(duty, "whisper duty");
+	}
 	if (spec.duty.text.trim().length === 0) issues.push("whisperer.duty.text: must not be empty");
 	for (const name of unknownPlaceholders(spec.duty.text, WHISPER_DUTY_PLACEHOLDERS)) issues.push(`whisperer.duty.text: unknown placeholder {${name}}`);
 	if (spec.core !== undefined) {
@@ -322,21 +335,58 @@ function validateWhisperer(story: AnyStory, agents: number, issues: string[]): v
 }
 
 /**
- * The popularity vote: it opens inside the run and closes before its last
- * minute, so the result is read; every text uses only its placeholders.
+ * The popularity votes: at least one round, each opening before it is
+ * counted, counted before the run's last minute (so the result is read),
+ * and in order without overlap; every text uses only its placeholders.
  */
 function validatePopularity(story: AnyStory, issues: string[]): void {
 	const spec = story.popularity;
 	if (spec === undefined) return;
-	if (!isPositiveInt(spec.opensBeforeEnd) || spec.opensBeforeEnd >= story.run.minutes) issues.push("popularity.opensBeforeEnd: must be a positive number of minutes within the run");
-	if (!isPositiveInt(spec.voteMinutes) || spec.voteMinutes >= spec.opensBeforeEnd) {
-		issues.push("popularity.voteMinutes: must be positive and end before the run's last minute (less than opensBeforeEnd)");
-	}
-	if (!isNonNegativeInt(spec.points)) issues.push("popularity.points: must be a non-negative integer");
+	if (spec.rounds.length === 0) issues.push("popularity.rounds: needs at least one round");
+	spec.rounds.forEach((round, index) => {
+		const where = `popularity.rounds[${index}]`;
+		if (!isNonNegativeInt(round.opensAt)) issues.push(`${where}.opensAt: must be a minute of the run`);
+		if (!isPositiveInt(round.countsAt) || round.countsAt <= round.opensAt || round.countsAt >= story.run.minutes) {
+			issues.push(`${where}.countsAt: must be after opensAt and before the run's last minute`);
+		}
+		const previous = spec.rounds[index - 1];
+		if (previous !== undefined && round.opensAt < previous.countsAt) issues.push(`${where}.opensAt: opens before the round before is counted (minute ${previous.countsAt})`);
+		if (!isNonNegativeInt(round.points)) issues.push(`${where}.points: must be a non-negative integer`);
+		if (round.label.trim().length === 0) issues.push(`${where}.label: must not be empty`);
+	});
 	for (const key of POPULARITY_TEXT_KEYS) {
 		const text = spec.texts[key];
 		if (text.trim().length === 0) issues.push(`popularity.texts.${key}: must not be empty`);
 		for (const name of unknownPlaceholders(text, POPULARITY_TEXT_PLACEHOLDERS[key])) issues.push(`popularity.texts.${key}: unknown placeholder {${name}}`);
+	}
+}
+
+/**
+ * Tool guards: a model with a provider, and rules with unique IDs, a text,
+ * a known action and guardable tools that some level opens.
+ */
+function validateGuards(story: AnyStory, issues: string[]): void {
+	const spec = story.guards;
+	if (spec === undefined) return;
+	if (spec.model.provider.trim().length === 0) issues.push("guards.model.provider: must not be empty");
+	if (spec.rules.length === 0) issues.push("guards.rules: needs at least one rule");
+	const ids = new Set<string>();
+	const opened = new Set<string>(story.levels.flatMap((entry) => entry.tools));
+	for (const rule of spec.rules) {
+		const where = `guards.rules.${rule.id}`;
+		if (rule.id.trim().length === 0) issues.push("guards.rules: every rule needs an ID");
+		if (ids.has(rule.id)) issues.push(`${where}: IDs must be unique`);
+		ids.add(rule.id);
+		if (rule.rule.trim().length === 0) issues.push(`${where}.rule: must not be empty`);
+		// Only `block` is built; a story from JSON may name a planned action.
+		const actions: readonly string[] = GUARD_ACTIONS;
+		if (!actions.includes(rule.on)) issues.push(`${where}.on: must be one of ${GUARD_ACTIONS.join(", ")}`);
+		if (rule.tools.length === 0) issues.push(`${where}.tools: name at least one tool`);
+		for (const tool of rule.tools) {
+			if (!Object.hasOwn(GUARDABLE_TOOLS, tool)) issues.push(`${where}.tools: ${tool} cannot be guarded (only ${Object.keys(GUARDABLE_TOOLS).join(", ")})`);
+			else if (!opened.has(tool)) issues.push(`${where}.tools: no level opens ${tool}`);
+		}
+		if (rule.secrets !== undefined && (!isPositiveInt(rule.secrets.minRun) || rule.secrets.minRun < 3)) issues.push(`${where}.secrets.minRun: must be an integer of at least 3`);
 	}
 }
 
@@ -553,6 +603,11 @@ function validateRules(story: AnyStory, issues: string[]): void {
 	if (rules.blame === undefined && blaming.length > 0) {
 		issues.push(`rules.blame: levels ${blaming.join(", ")} unlock blame, so the story must set what the loser of a blame pays`);
 	}
+	const limit = rules.dmLimit;
+	if (limit !== undefined) {
+		if (!isPositiveInt(limit.perWindow)) issues.push("rules.dmLimit.perWindow: must be a positive integer");
+		if (!isPositiveInt(limit.windowMinutes)) issues.push("rules.dmLimit.windowMinutes: must be a positive integer");
+	}
 	const marks = rules.marks;
 	if (marks === undefined) return;
 	if (!story.levels.some((entry) => entry.number === marks.fromLevel)) {
@@ -623,6 +678,11 @@ function validateLevels(
 		}
 
 		validatePuzzle(entry.puzzle, where, issues);
+		if (entry.opensAt !== undefined) {
+			if (!isNonNegativeInt(entry.opensAt) || entry.opensAt >= story.run.minutes) issues.push(`${where}.opensAt: must be a minute of the run`);
+			const before = story.levels[index - 1]?.opensAt ?? 0;
+			if (entry.opensAt < before) issues.push(`${where}.opensAt: a door opens no earlier than the one before it (minute ${before})`);
+		}
 
 		const played = playable === undefined || (entry.number >= playable.from && entry.number <= playable.to);
 		validateTeam(story.levels, entry, played ? agents : undefined, where, issues);

@@ -26,7 +26,7 @@ import {
 } from "../model/settings.ts";
 import { createModelSource, RoutedModelSource, ScriptedModelSource, type ModelSource } from "../model/source.ts";
 import { assignModels } from "../agents/models.ts";
-import { createDeliveryJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "../interpret/sources.ts";
+import { createDeliveryJudge, createGuardJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "../interpret/sources.ts";
 import type { ModelChoice } from "../story/types.ts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
@@ -226,6 +226,24 @@ const judge = (() => {
 	}
 })();
 
+// The tool guards' judge (SPEC 20) asks the story's guard model unless ARENA_GUARD_* choose another. Offline runs
+// and runs without its key keep only the city's own check, and every other guarded call goes through.
+const guardJudge = (() => {
+	const spec = story.guards;
+	if (spec === undefined || offline || overrides.guards === false) return undefined;
+	const settings = resolveSettings({}, roleEnv("GUARD"), spec.model);
+	if (missingApiKeys(settings, registry, process.env).length > 0) {
+		process.stderr.write(`> no key for the guard (provider "${settings.provider}"): only the city's own check runs on guarded posts\n`);
+		return undefined;
+	}
+	try {
+		return createGuardJudge(settings, spec, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
 // The souffleur rewrites a resident's step the provider's safeguards refused (P44); without its key a refused
 // step is only taken out of the resident's context.
 const souffleur = (() => {
@@ -315,6 +333,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 	...(modelOverride === undefined ? {} : { modelOverride }),
 	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
 	...(judge === undefined ? {} : { judge }),
+	...(guardJudge === undefined ? {} : { guardJudge }),
 	...(souffleur === undefined ? {} : { souffleur }),
 	...(weaverModel === undefined ? {} : { weaver: weaverModel }),
 	models: (world) => {
@@ -351,6 +370,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		classifier: statementClassifier?.label ?? "off",
 		judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
 		souffleur: souffleur?.label ?? "off",
+		...(story.guards === undefined ? {} : { guards: overrides.guards === false ? "off" : (guardJudge?.label ?? "own check only") }),
 		...(weaverModel === undefined ? {} : { weaver: weaverModel.label }),
 		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
 		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
@@ -487,7 +507,7 @@ function brakeLine(brake: SnapshotBrake): string {
 }
 
 /** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
-function roleEnv(role: "GAMEMAKER" | "CLASSIFIER" | "WEAVER"): ModelEnv {
+function roleEnv(role: "GAMEMAKER" | "CLASSIFIER" | "WEAVER" | "GUARD"): ModelEnv {
 	// The old name of the gamemaker's variables is still read (it was the game master until 2026-10-29).
 	const old = role === "GAMEMAKER" ? "GAMEMASTER" : undefined;
 	const read = (key: string): string => process.env[`ARENA_${role}_${key}`] ?? (old === undefined ? undefined : process.env[`ARENA_${old}_${key}`]) ?? "";

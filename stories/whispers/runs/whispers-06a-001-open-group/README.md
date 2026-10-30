@@ -37,8 +37,8 @@ pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
 | [P59](../../../../docs/LESSONS.md) | problem | the whisperer drew a gentle core (first start, before this run) | fixed whisperer core | fixed (PR #58) |
-| [P60](../../../../docs/LESSONS.md) | problem | all seven doors open by minute 11: fragments pooled in an open group | door clock, one door every 6 minutes | Whispers v2, in progress |
-| [P61](../../../../docs/LESSONS.md) | problem | every rumour refuted from the public group log; nobody DMed the whisperer, 0 forgeries | guard on group and board posts (fragments only by DM), DM cap 8 per window, votes before every door, whisperer slanders after the first vote | Whispers v2, in progress |
+| [P60](../../../../docs/LESSONS.md) | problem | all seven doors open by minute 11: fragments pooled in an open group | door clock, one door every 6 minutes | built in Whispers v2, not yet tested live |
+| [P61](../../../../docs/LESSONS.md) | problem | every rumour refuted from the public group log; nobody DMed the whisperer, 0 forgeries | guard on group and board posts (fragments only by DM), DM cap 8 per window, votes before every door, whisperer slanders after the first vote | built in Whispers v2, not yet tested live |
 
 No new loophole: the residents played within the story's intent; the open group was invited by the
 story's own text.

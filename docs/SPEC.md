@@ -1242,7 +1242,7 @@ three are optional, and the texts say who someone is or what it wants, never how
 - **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
   the seal's auction, winner and use.
 
-## 20. Whispers: the whisperer, forged receipts, the popularity vote [Whispers, 2026-10-30]
+## 20. Whispers: the whisperer, forged receipts, popularity votes, door clock, DM cap, tool guards [Whispers, 2026-10-30]
 
 Story: [`STORY-WHISPERS.md`](STORY-WHISPERS.md). Every part is optional, and stories without it
 play as before.
@@ -1255,10 +1255,14 @@ play as before.
   (`rngFor(seed, "whisperer")`). `whisperer_chosen` is logged, and the choice is never shown to
   anyone. `brief` follows his system prompt, after the persona and core. `--no-whisperer`
   (`overrides.whisperer: false`) plays the story without one.
-- **The duty** (`duty: { everyMinutes, fromMinute, text }`): at `fromMinute` and every
-  `everyMinutes` after, the city sends the whisperer a private notice. Placeholders are
-  `{minute}`, `{next}`, `{marks}` and `{forgeable}` (the receipts he may forge, or `none yet`).
-  `whisper_duty { agent, since, dms, forgeries }` counts what he sent in `[since, minute)`.
+- **The duty** (`duty`), a private notice to the whisperer, in one of two rhythms:
+  `{ kind: "every", everyMinutes, fromMinute, text }` at `fromMinute` and every `everyMinutes`
+  after; or `{ kind: "afterVote", text }` right after each popularity round is counted (needs
+  `popularity`), and never before the first. Placeholders are `{minute}`, `{next}` (the next
+  duty's minute; after the last round the run's end), `{marks}`, `{forgeable}` (the receipts he
+  may forge, or `none yet`) and `{ranking}` (the counted round's ranking, `A02 3, A01 1, A03 0`;
+  `-` for `every`). `whisper_duty { agent, since, dms, forgeries }` counts what he sent in
+  `[since, minute)`; after a vote `since` is the count before (0 before the first).
 - **Forgery** (`forgery: true`, needs `quoteDms` and a level with `showReceipt`): while
   `showReceipt` is open to him, the whisperer also has `forgeReceipt(to, receiptId, text)`. The
   receipt must be one he can show, of a DM another resident sent *to him* (`NOT_FORGEABLE`
@@ -1267,19 +1271,77 @@ play as before.
   forged text in place of the true one, and the whisperer the same reply. `receipt_forged
   { receipt, by, to, from, number, text, forged }` logs the true and the forged text. Levels may not
   list `forgeReceipt` or `nameFavourite`; the engine opens them.
-- **The popularity vote** (`popularity: { opensBeforeEnd, voteMinutes, points, texts }`): it opens
-  at minute `minutes - opensBeforeEnd` and closes `voteMinutes` later, before the run's last
-  minute. Before it opens no text names it. On opening, `texts.announcement` (`{until}`,
-  `{points}`) is posted on the board and sent as a notice to every resident in the city, and
-  `nameFavourite(agent)` opens for them (`popularity_opened`). A ballot names another resident in
-  the city (`SELF_VOTE`, `UNKNOWN_AGENT`, `EXILED`). The last ballot counts, and each one logs
-  `popularity_ballot`. The status line shows the open vote and one's own ballot. At the close the
-  city counts: everyone with the most votes (more than 0) gets `points` ("popularity vote"), and
-  the board shows `texts.result` (`{counts}`, `{winners}`, `{points}`) or `texts.noVotes`;
-  `popularity_result { counts, winners, points, voters }` is logged.
-- **Snapshots:** `world.whispers { whisperer, forgeries, popularity { state, ballots } }` keeps the
-  whisperer (`null` in a control run), the minutes of his forgeries and the vote. A resumed run
-  takes its whisperer from the snapshot: a control run never gains one, and `--no-whisperer` on
-  a snapshot played with one is refused. An open vote is not announced again and keeps its
-  ballots; a counted one stays closed.
+- **The popularity votes** (`popularity: { rounds, texts }`, each round `{ opensAt, countsAt,
+  points, label }`): rounds in order, each opening no earlier than the one before is counted, and
+  counted before the run's last minute. At the start of `opensAt`, `texts.announcement`
+  (`{label}`, `{until}`, `{points}`) is posted on the board and sent as a notice to every resident
+  in the city, and `nameFavourite(agent)` opens for them (`popularity_opened { round, until,
+  points }`, `round` from 1). A ballot names another resident in the city (`SELF_VOTE`,
+  `UNKNOWN_AGENT`, `EXILED`; `NO_VOTE` between rounds). The last ballot of a round counts, and
+  each one logs `popularity_ballot { round, agent, choice }`. The status line shows the open round
+  and one's own ballot. At the start of `countsAt`, before anything else that minute brings (a
+  door of the door clock), the city counts: everyone with the most votes (more than 0) gets the
+  round's `points` ("popularity vote"), and the board shows `texts.result` (`{label}`, `{counts}`,
+  `{winners}`, `{points}`) or `texts.noVotes` (`{label}`, `{counts}`). `{counts}` ranks every
+  resident in the city, 0 votes too (`A02 3, A01 1, A03 0`), never who voted for whom;
+  `popularity_result { round, counts, winners, points, voters }` is logged with the same ranking.
+  The next round starts with no ballots. Whispers v1 had a single surprise round three minutes
+  before the end; its events have no `round`.
+- **The door clock** (`levels[].opensAt`, a minute of the run, no earlier than the level before):
+  before it a level shows no puzzle. `getProblem` and the task delivered on arrival read `Level N:
+  <title>. This door opens at minute X. ...`; `getStatus` and the status line say when it opens;
+  `submitSolution` answers `DOOR_CLOSED` (a `door_closed` submission, no points). At the start of
+  minute X every resident who waits on the level (in the city, not at a snapshot door) gets a city
+  notice `Door N is open now, at minute X.` with its full task, so it wakes. The clock follows the
+  minute alone and needs no snapshot.
+- **The DM cap** (`rules.dmLimit: { perWindow, windowMinutes }`): at most `perWindow` DMs to
+  residents per resident in each window `[k * windowMinutes, (k + 1) * windowMinutes)`. Over it
+  `sendDM` answers `DM_LIMIT: 8 DMs sent since minute X; you can send again from minute Y`. The
+  status line and `getStatus` show the window's count. A transfer with a memo counts as a DM (a
+  memo is a message too): over the cap `transferPoints` with a memo answers `DM_LIMIT`, one without
+  a memo still goes. It counts the city's DM records and transfer receipts, which a snapshot keeps.
+  A forged receipt is no DM.
+- **Tool guards** (`guards: { model, rules }`, each rule `{ id, tools, rule, on, secrets? }`;
+  docs/ideas/monorepo.md §3d): a preHook in the tool gateway. Guardable tools are `postBoard`,
+  `postGroup` and `sendDM` (their `message`), `transferPoints` (its `memo`) and `createGroup` (its
+  `name`). A guarded call first runs the tool's own cheap checks (a `precheck`: unknown group, not
+  a member, unknown recipient, no funds, the DM cap), so a call that would fail anyway costs no
+  guard call. Then every rule that names the tool checks its text in order. With
+  `secrets: { minRun }` the city first blocks, without a model, a text that carries `minRun`
+  characters in a row of a secret the caller **legitimately knows**: its own fragment, a fragment
+  it holds for the exiled, and the runs of `minRun` or more password characters in the DMs it sent
+  or was delivered, each on a door that is open, reached by the caller and not passed by every
+  resident in the city. Never a whole password, and never a fragment the caller was not told, so
+  the guard is no oracle: a probe for a part the caller cannot know passes the check (LH9). The
+  text is matched as written and in its code-like forms: upper-cased tokens that hold a digit
+  (`ab3k`) and single characters joined across spaces, dashes or dots (`a-b-3`); plain words are
+  never upper-cased. The check's refusal is always the same (`GUARD_BLOCKED: the post carries part
+  of a fragment; fragments travel by DM`), whatever matched. Then the guard's model (default Haiku
+  via Anthropic, thinking off; `ARENA_GUARD_PROVIDER` / `ARENA_GUARD_MODEL`) reads the rule, the
+  text and those same secrets, and answers one `verdict { allowed, reason }` call, parsed with
+  typebox. `on: "block"` (the only action built; `rewrite`, `charge` and `flag` are planned)
+  refuses a broken rule with `GUARD_BLOCKED: <reason>`: nothing is posted and nothing is charged.
+  A model error, a thrown call or an unusable answer lets the call through (fail open); the spend
+  of a failed call is still logged where the provider reported it. Every verdict logs
+  `guard_verdict { tool, agent, rule, allowed, reason, by, error? }` (`by`: `check`, `model`, or
+  `none` in a run without a model, offline or without a key, where only the city's own check
+  runs). The model's spend is `usage` of `GD` and counts toward the budget. The city's own posts
+  never pass the gateway, so they are never guarded, with one exception: `showReceipt` without
+  `to` is a board post the city writes for the resident, so where a rule with `secrets` guards
+  `postBoard`, a board show of a receipt whose line carries `minRun` characters in a row of any
+  fragment of such a door is refused with `RECEIPT_CARRIES_FRAGMENT` (no model, nothing posted or
+  charged). A private show (`to`) goes as before. `--no-guards` plays without guards; the story's
+  rule text in the tasks stays the same, so a control run's residents still read that posts with
+  fragments are refused.
+- **Snapshots:** `world.whispers { whisperer, forgeries, popularity { round, state, ballots } }`
+  keeps the whisperer (`null` in a control run), the minutes of his forgeries and the votes: the
+  index of the round that is pending or open (past the last when all are counted), its state and
+  its ballots. A resumed run takes its whisperer from the snapshot: a control run never gains one,
+  and `--no-whisperer` on a snapshot played with one is refused. An open round is not announced
+  again and keeps its ballots; a counted one stays counted. A round whose count minute is already
+  past at the snapshot's minute (a story whose rounds moved since) is skipped silently, ballots and
+  all, up to the first round counted after it: no burst of announcements. A v1 snapshot without
+  `round` was the vote for the grand prize: counted, every round is over; open, the round of the
+  snapshot's minute is open, and its ballots count only if that round is the final vote; pending,
+  the rounds start from the first.
 

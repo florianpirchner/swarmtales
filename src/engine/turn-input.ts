@@ -20,9 +20,11 @@ export function statusLine(world: World, agent: CompetitorId): string {
 		`[status] minute ${world.minute}`,
 		status.finished
 			? `level ${status.level} (all levels solved)`
-			: status.waitingAfter === undefined
-				? `level ${status.level}`
-				: `level ${status.level} (passed, waiting at the door)`,
+			: status.waitingAfter !== undefined
+				? `level ${status.level} (passed, waiting at the door)`
+				: world.isOpenOnClock(status.level)
+					? `level ${status.level}`
+					: `level ${status.level} (its door opens at minute ${world.opensAt(status.level)})`,
 		`${status.points} points`,
 		`rank ${status.rank} of ${status.competitors}`,
 	];
@@ -35,11 +37,14 @@ export function statusLine(world: World, agent: CompetitorId): string {
 	parts.push(...sealParts(world, agent));
 	const goal = world.goals?.statusOf(agent);
 	if (goal !== undefined) parts.push(goal);
-	// Whispers: the surprise vote, once it is open.
+	// Whispers (SPEC 20): the DM cap's window, and a popularity vote while it is open.
+	const window = world.dmWindow(agent);
+	if (window !== undefined) parts.push(`DMs ${window.sent}/${window.limit} sent since minute ${window.from} (a new allowance at minute ${window.until})`);
 	const vote = world.popularity;
-	if (vote?.isOpen === true && world.standingOf(agent).kind === "alive") {
+	const round = vote?.current;
+	if (vote?.isOpen === true && round !== undefined && world.standingOf(agent).kind === "alive") {
 		const ballot = vote.ballotOf(agent);
-		parts.push(`popularity vote open until minute ${vote.until} · ${ballot === undefined ? "you have named nobody (nameFavourite)" : `you named ${ballot}`}`);
+		parts.push(`popularity vote (${round.label}) open until minute ${round.countsAt} · ${ballot === undefined ? "you have named nobody (nameFavourite)" : `you named ${ballot}`}`);
 	}
 	// v09: the system prompt never calls a resident of a named city by its ID; the line shows its name (once it has one).
 	if (world.hasNames && world.standingOf(agent).kind !== "exiled") parts.push(`you are ${agent}`);

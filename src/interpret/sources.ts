@@ -7,8 +7,9 @@ import { createModels } from "@earendil-works/pi-ai";
 import type { ProviderRegistry } from "../model/providers.ts";
 import { describeModel, ModelConfigError, type ModelSettings } from "../model/settings.ts";
 import { createModelSource, type RequestLimits } from "../model/source.ts";
-import type { ClassifierSpec } from "../story/types.ts";
+import type { ClassifierSpec, GuardsSpec } from "../story/types.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
+import { ChatGuardJudge, GUARD_ID, type GuardJudge } from "./guard.ts";
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge, type JudgeTemper } from "./judge.ts";
 import { ChatSouffleur, SOUFFLEUR_ID, type Souffleur } from "./souffleur.ts";
 import { ChatWeaver, WEAVER_ID, type WeaverModel } from "./weaver-model.ts";
@@ -92,6 +93,22 @@ export function createSouffleur(settings: ModelSettings, spec: ClassifierSpec, r
 	}
 	return new ChatSouffleur({
 		binding: createModelSource(settings, { registry }).bind(SOUFFLEUR_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+	});
+}
+
+/** Builds the tool guard's judge (SPEC 20) from the story's guard model: a chat model, like the judge. */
+export function createGuardJudge(settings: ModelSettings, spec: GuardsSpec, registry: ProviderRegistry, limits: RequestLimits): GuardJudge {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Guard model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatGuardJudge({
+		binding: createModelSource(settings, { registry }).bind(GUARD_ID, limits),
 		label: `${provider.id}/${modelId}`,
 		thinking: spec.model.thinking ?? "off",
 	});

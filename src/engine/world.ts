@@ -30,7 +30,8 @@ import { MessageNumbers } from "./numbers.ts";
 import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionView, type Resolution, type SignError } from "./petitions.ts";
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
-import { PopularityVote, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
+import { PopularityVote, type CountedRound, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
+import { carriesRun, sharedRuns } from "./secrets.ts";
 import { describeReceipt, ReceiptBook, shownPrivatelyText, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { dutyDue, forgeableList, isForgeable, pickWhisperer, previousDuty } from "./whisperer.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
@@ -215,10 +216,22 @@ export type SubmitOutcome =
 	| { readonly status: "wrong_level"; readonly currentLevel: number }
 	| { readonly status: "already_solved" }
 	| { readonly status: "invalid_format"; readonly expectedLength: number; readonly digitsOnly: boolean }
-	| { readonly status: "rate_limited" };
+	| { readonly status: "rate_limited" }
+	/** The door clock (SPEC 20): the level's door opens at `opensAt`. */
+	| { readonly status: "door_closed"; readonly opensAt: number };
 
-export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | MailboxRejection;
-export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED";
+export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | "DM_LIMIT" | MailboxRejection;
+
+/** A resident's DMs in the current window of the story's DM cap (SPEC 20). */
+export interface DmWindow {
+	readonly sent: number;
+	readonly limit: number;
+	/** The window's first minute. */
+	readonly from: number;
+	/** The next window's first minute. */
+	readonly until: number;
+}
+export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED" | "DM_LIMIT";
 export type WillError =
 	| "NOT_AT_GATE"
 	| "WILL_DONE"
@@ -646,7 +659,6 @@ export class World {
 				? undefined
 				: new PopularityVote({
 						spec: popularity,
-						minutes: options.minutes,
 						isCompetitor: (id) => this.isCompetitor(id),
 						inCity: (agent) => !this.isExiled(agent),
 						alive: () => this.alive,
@@ -661,6 +673,9 @@ export class World {
 						},
 						emit: (event) => {
 							this.#bus.emit(event);
+						},
+						counted: (result) => {
+							this.#whisperDutyAfterVote(result);
 						},
 					});
 
@@ -876,12 +891,29 @@ export class World {
 		return saved.whisperer;
 	}
 
-	/** The whisperer's private duty notice, when one is due at the start of `minute`. */
+	/** The whisperer's private duty notice of a duty `every` few minutes, when one is due at the start of `minute`. */
 	#whisperDuty(minute: number): void {
 		const spec = this.story.whisperer;
+		if (spec?.duty.kind !== "every" || !dutyDue(spec, minute)) return;
+		this.#sendDuty(spec.duty.text, minute, previousDuty(spec, minute), String(minute + spec.duty.everyMinutes), "-");
+	}
+
+	/** The duty after each vote (`afterVote`), right after the count: with the ranking, his marks and what he could forge. */
+	#whisperDutyAfterVote(result: CountedRound): void {
+		const spec = this.story.whisperer;
+		if (spec?.duty.kind !== "afterVote") return;
+		const rounds = this.story.popularity?.rounds ?? [];
+		// What he sent since the count before (the run's start before the first).
+		const since = rounds[result.round - 2]?.countsAt ?? 0;
+		// The next count, or the run's end after the last.
+		const next = Math.min(rounds[result.round]?.countsAt ?? this.minutes, this.minutes);
+		this.#sendDuty(spec.duty.text, this.minute, since, String(next), result.ranking);
+	}
+
+	/** Sends the whisperer his duty notice and logs what he sent in `[since, minute)`. */
+	#sendDuty(text: string, minute: number, since: number, next: string, ranking: string): void {
 		const agent = this.#whisperer;
-		if (spec === undefined || agent === undefined || this.isExiled(agent) || !dutyDue(spec, minute)) return;
-		const since = previousDuty(spec, minute);
+		if (agent === undefined || this.isExiled(agent)) return;
 		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= since && record.minute < minute).length;
 		const forgeries = this.#forgeries.filter((at) => at >= since && at < minute).length;
 		const marks = this.marks.status(agent, this.levelOf(agent));
@@ -889,11 +921,12 @@ export class World {
 		this.notify(
 			agent,
 			CITY,
-			renderTemplate(spec.duty.text, {
+			renderTemplate(text, {
 				minute: String(minute),
-				next: String(minute + spec.duty.everyMinutes),
+				next,
 				marks: marks === undefined ? "-" : String(marks.remaining),
 				forgeable,
+				ranking,
 			}),
 		);
 		this.#bus.emit({ type: "whisper_duty", agent, since, dms, forgeries });
@@ -974,7 +1007,9 @@ export class World {
 		this.#seal?.tick(minute);
 		this.#standoff.tick(minute, CITY);
 		this.#whisperDuty(minute);
+		// A vote counted at a door's minute is counted before the door opens.
 		this.#popularity?.tick(minute);
+		this.#openOnClock(minute);
 		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
 		const tribunal = this.#tribunal;
 		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
@@ -1208,6 +1243,13 @@ export class World {
 		if (definition === undefined || level > this.lastLevel || level < this.startLevel) return err("UNKNOWN_LEVEL");
 		const state = this.#state(agent);
 		if (level > state.level) return err("LEVEL_NOT_REACHED");
+		if (!this.isOpenOnClock(level)) {
+			// The door clock (SPEC 20): nothing of the level before its door opens.
+			const closed =
+				`Level ${level}: ${definition.title}. This door opens at minute ${this.opensAt(level)}. ` +
+				"Until then the city shows no part of it and takes no code; it tells you when the door opens.";
+			return ok({ level, title: definition.title, reward: definition.reward, text: this.#withNameChoice(agent, closed), solved: false });
+		}
 		return ok({
 			level,
 			title: definition.title,
@@ -1337,6 +1379,7 @@ export class World {
 			return { status: "wrong_level", currentLevel: state.level };
 		}
 		if (level < state.level || state.solved.includes(level)) return { status: "already_solved" };
+		if (!this.isOpenOnClock(level)) return { status: "door_closed", opensAt: this.opensAt(level) };
 
 		const solution = this.#solutionOf(level, agent);
 		const digitsOnly = this.#levelState(level).puzzle.kind === "additive";
@@ -1526,18 +1569,117 @@ export class World {
 		return this.#door !== undefined && level > this.#door;
 	}
 
-	transfer(
-		from: CompetitorId,
-		to: string,
-		amount: number,
-		memo: string,
-	): Result<{ readonly txId: string; readonly balance: number; readonly receipt: string }, TransferError> {
+	/**
+	 * What `agent` legitimately knows that the city keeps from the others, for
+	 * the tool guard (SPEC 20): on every open fragment level it has reached and
+	 * not every resident in the city has passed, its own fragment (and any it
+	 * holds for the exiled), and the runs of `minRun` or more password
+	 * characters in the DMs it sent or was delivered. Never a whole password
+	 * it was not told, so neither the city's check nor the judge is an oracle
+	 * for what the author does not know. Never shown to a resident.
+	 */
+	secretsOf(agent: CompetitorId, minRun: number): readonly { readonly label: string; readonly value: string }[] {
+		const secrets: { readonly label: string; readonly value: string }[] = [];
+		const dmTexts = this.#dms
+			.filter((record) => record.from === agent || (record.to === agent && record.deliveredMinute !== undefined))
+			.flatMap((record) => (record.text === undefined ? [] : [record.text]));
+		for (const level of this.#guardedLevels()) {
+			if (level > this.levelOf(agent)) continue;
+			const state = this.#levelStates.get(level);
+			if (state?.puzzle.kind !== "fragments") continue;
+			const own = state.puzzle.fragments.get(agent);
+			if (own === undefined) continue;
+			secrets.push({ label: `your fragment of door ${level}`, value: own });
+			for (const [from, fragment] of this.#inheritedFragments(level, agent)) secrets.push({ label: `the fragment of ${from} on door ${level}, which you hold`, value: fragment });
+			const runs = new Set<string>();
+			for (const puzzle of state.puzzle.puzzles) {
+				for (const text of dmTexts) for (const run of sharedRuns(text, puzzle.password, minRun)) runs.add(run);
+			}
+			for (const run of runs) secrets.push({ label: `a part of a door ${level} password you sent or received by DM`, value: run });
+		}
+		return secrets;
+	}
+
+	/** The open fragment levels not every resident in the city has passed: the ones whose fragments the city keeps off the board. */
+	#guardedLevels(): readonly number[] {
+		const levels: number[] = [];
+		for (let level = this.startLevel; level <= this.lastLevel; level++) {
+			const state = this.#levelStates.get(level);
+			if (state?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.alive.every((id) => this.hasPassed(id, level))) continue;
+			levels.push(level);
+		}
+		return levels;
+	}
+
+	/**
+	 * Whether showing receipt `id` on the board would quote `minRun` or more
+	 * characters in a row of a fragment of a guarded level (SPEC 20): a
+	 * public show is a board post the city writes, so it must not carry what
+	 * the guard keeps off the board. False for a receipt `agent` cannot show
+	 * (showReceipt reports why).
+	 */
+	receiptCarriesFragment(agent: CompetitorId, id: string, minRun: number): boolean {
+		const found = this.receipts.showable(id, agent);
+		if (!found.ok) return false;
+		const text = describeReceipt(found.receipt);
+		return this.#guardedLevels().some((level) => {
+			const state = this.#levelStates.get(level);
+			return state?.puzzle.kind === "fragments" && [...state.puzzle.fragments.values()].some((fragment) => carriesRun(text, fragment, minRun));
+		});
+	}
+
+	/** The minute `level`'s door opens on the door clock (SPEC 20); 0 for a level without one. */
+	opensAt(level: number): number {
+		return this.levelDefinition(level)?.opensAt ?? 0;
+	}
+
+	/** Whether `level`'s door is open on the door clock now. */
+	isOpenOnClock(level: number): boolean {
+		return this.minute >= this.opensAt(level);
+	}
+
+	/**
+	 * The door clock (SPEC 20): a door that opens at the start of `minute` lets
+	 * in the residents who wait at it, and the city tells each of them
+	 * privately, with the task they could not read before (a notice, so they
+	 * wake). It follows the minute alone, so a resumed run tells nobody twice.
+	 */
+	#openOnClock(minute: number): void {
+		for (const definition of this.story.levels) {
+			// Nobody waits at a door open from the start.
+			if (minute === 0 || definition.opensAt !== minute || !this.isPlayable(definition.number)) continue;
+			for (const agent of this.alive) {
+				if (this.levelOf(agent) !== definition.number || this.#state(agent).held) continue;
+				const problem = this.problemFor(agent, definition.number);
+				if (problem.ok) this.notify(agent, CITY, `Door ${definition.number} is open now, at minute ${minute}. ${problem.value.text}`);
+			}
+		}
+	}
+
+	/** The checks of {@link transfer}, without moving a point: the transfer tool runs them before its guard asks a model. */
+	checkTransfer(from: CompetitorId, to: string, amount: number, memo: string): Result<undefined, TransferError> {
 		if (!this.isCompetitor(to)) return err("UNKNOWN_AGENT", to);
 		if (from === to) return err("SELF_TRANSFER");
 		if (this.isExiled(to)) return err("EXILED", `${to} was exiled`);
 		if (!Number.isInteger(amount) || amount <= 0) return err("INVALID_AMOUNT");
 		if (memoCarriesDigits(memo)) return err("MEMO_DIGITS", "memos may not carry numbers of 4+ digits; send codes by message");
 		if (this.ledger.balance(from) < amount) return err("INSUFFICIENT_FUNDS");
+		// A memo is a message too: it counts toward the DM cap (SPEC 20).
+		const window = memo.length > 0 ? this.dmWindow(from) : undefined;
+		if (window !== undefined && window.sent >= window.limit) {
+			return err("DM_LIMIT", `${window.sent} DMs and memos sent since minute ${window.from}; send a memo again from minute ${window.until}, or transfer without one`);
+		}
+		return ok(undefined);
+	}
+
+	transfer(
+		from: CompetitorId,
+		to: string,
+		amount: number,
+		memo: string,
+	): Result<{ readonly txId: string; readonly balance: number; readonly receipt: string }, TransferError> {
+		const checked = this.checkTransfer(from, to, amount, memo);
+		if (!checked.ok) return checked;
 		const entry = this.ledger.transfer(from, to, amount, memo.length > 0 ? memo : "transfer", this.minute);
 		this.#bus.emit({ type: "transfer", from, to, amount, memo, txId: entry.txId });
 		const receipt = this.#issue({ kind: "transfer", from, to, amount, memo });
@@ -1646,6 +1788,10 @@ export class World {
 		if (this.isExiled(to)) return err("EXILED", `${to} was exiled; beyond the wall no message reaches them`);
 		const trimmed = text.trim();
 		if (trimmed.length === 0 || trimmed.length > MAX_DM_LENGTH) return err("INVALID_TEXT", `1-${MAX_DM_LENGTH} characters`);
+		const window = this.dmWindow(from);
+		if (window !== undefined && window.sent >= window.limit) {
+			return err("DM_LIMIT", `${window.sent} DMs sent since minute ${window.from}; you can send again from minute ${window.until}`);
+		}
 		if (!this.#canAfford(from, "dm")) return err("NO_MARKS");
 		const rejection = mailbox.rejectionFor(from);
 		if (rejection !== undefined) return err(rejection);
@@ -1657,6 +1803,22 @@ export class World {
 		this.#standoff.noteText(from, [to], trimmed);
 		const marks = this.#spend(from, "dm");
 		return ok({ number, ...(marks === undefined ? {} : { marks }) });
+	}
+
+	/**
+	 * The DM cap (`rules.dmLimit`, SPEC 20): the DMs to residents and the
+	 * transfers with a memo `agent` sent in the current window, the windows
+	 * counted from minute 0. Counted from the city's DM records and receipts,
+	 * which a snapshot keeps. Undefined without a cap.
+	 */
+	dmWindow(agent: CompetitorId): DmWindow | undefined {
+		const limit = this.story.rules.dmLimit;
+		if (limit === undefined) return undefined;
+		const from = Math.floor(this.minute / limit.windowMinutes) * limit.windowMinutes;
+		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= from).length;
+		const memos = this.receipts.of(agent).filter((receipt) => receipt.kind === "transfer" && receipt.from === agent && receipt.memo.length > 0 && receipt.minute >= from).length;
+		const sent = dms + memos;
+		return { sent, limit: limit.perWindow, from, until: from + limit.windowMinutes };
 	}
 
 	/**
@@ -2591,7 +2753,7 @@ export class World {
 		if (state.standoff !== undefined) this.#standoff.restore(state.standoff);
 		// The whisperer himself was taken from the snapshot in the constructor (#chooseWhisperer).
 		this.#forgeries.push(...(state.whispers?.forgeries ?? []));
-		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity);
+		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity, this.minute);
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
 		this.#dealCores();
 
