@@ -170,6 +170,36 @@ Each noun is a small command module in `apps/cli/src/commands/`; options are par
 like every other untrusted input. Library: commander with extra typings, or citty; decided when
 building.
 
+## 3d. Tool guards (preHook)
+
+Some limits are soft and hard to program: "no secrets on the board", "no threats". Today each one is
+code (word lists in `src/gamemaker/privacy.ts`, the memo's digit-run refusal). A **guard** puts the
+rule into the story data instead: a text rule per tool, checked by a small model before the call runs.
+
+```ts
+tools: {
+  postBoard: { guard: { rule: "No password fragments, seams or parts of a password.", on: "block" } },
+  postGroup: { guard: { rule: "No password fragments, seams or parts of a password.", on: "block" } },
+}
+```
+
+- `on` is what happens when the rule is broken: `block` (refused with the judge's one-line reason,
+  nothing is posted), `rewrite` (the offending part blacked out), `charge` (passes for one mark),
+  `flag` (passes; the gamemaker and the report are told).
+- Two tiers: limits a program can check (length, digit runs, prices) stay in the expression language
+  (§3a) without a model; only soft rules go to the guard model (Haiku via Anthropic by default).
+- Every verdict is an event (`guard_verdict`: tool, agent, rule, verdict, reason), so the reporter
+  can count blocks and the lab can replay them.
+- Each rule gets a small case set in `lab/` (should pass / should block) before a live run, because
+  false positives are the known risk (P38).
+- Agents will try to slip past a guard (split a fragment, spell it out, encode it). That is story
+  material; the report lists attempts as loophole candidates.
+- Cost: one short model call per guarded call; only guarded tools pay it.
+
+**First use, decided by Flo 2026-10-30 (P61):** in Whispers, guard group and board posts with
+`block` against fragments and password parts; group, board and DMs all stay free. Fragments can then
+travel only by DM, which makes private messages matter and gives the whisperer real DMs to forge.
+
 ## 4. No prompts in code
 
 Every text a model reads lives in a file:
@@ -270,3 +300,5 @@ adds a snapshot version and a migration from today's flat shape.
 6. **Timing:** start with steps 1-3 right after Whispers is merged, or wait until the first Whispers
    run is done?
 7. **Names:** `kernel`, `roles`, `chronicle`, `referee` fine, or other names?
+9. **Guards (§3d):** does a blocked post cost anything (a mark, or a strike)? Does the guard also
+   block a seam or a chain written in words? Are the city's own notices exempt (yes, I assume)?
