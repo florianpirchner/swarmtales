@@ -113,8 +113,8 @@ Costs to watch: coupling between plugins (made explicit by `requires` and visibl
 event-bus overhead (measure in the golden run), and debugging across plugins (every service call and
 refusal is an event).
 
-Migration: a strangler. `World` stays while modules are carved out one at a time (§6, step 4); the
-step ends when `World` is empty and is deleted.
+Migration: no strangler and no transition period (Flo, 2026-10-30). Nothing is migrated piece by
+piece; once Flo gives the go, everything is rewritten in one pass (§6) and `World` is deleted.
 
 ## 3. Extension points
 
@@ -163,6 +163,13 @@ the plugin sandbox (§3b).
   picks which one is loaded.
 - **Events** are the loose coupling: a module can listen to events of others ("resident exiled") without
   requiring them. Rule of thumb: services for commands, events for notifications.
+- **Event bus overhead.** Three costs. *Runtime:* a few thousand events per run, negligible next to
+  model calls; dispatch is synchronous in a fixed order so runs stay reproducible. *Traceability:* a
+  chain (A emits, B and C react) is no longer in one place in the code, so every event carries
+  `causedBy` and `swt run trace <event>` prints the chain; the event log is the debugging tool.
+  *Writing effort:* each event needs a Typebox schema and a declaration in its module; in return
+  we get checked types, replay and facts. Keep the bus small: anything that needs an answer
+  ("what does this cost?") is a service call, events only announce what has happened.
 - **Facts.** A module may publish *facts*: pure functions over the event log and its own state that
   the gamemaker's situation report and the `watch` role (§3g) can read, for example "who blocks which
   door since when". They never change state, so a replay computes them again from the events.
@@ -543,8 +550,11 @@ cost grows fast (a 12-figure run already cost 6 USD).
 
 ## 6. Migration plan
 
-Each step is one PR with `pnpm check` green and an offline golden-run test (scripted run on the
-cityofkeys story, events compared to a stored file) that proves behaviour did not change.
+Decision (Flo, 2026-10-30): no step-by-step migration. Everything is written in one pass once Flo
+says go, ideally on one branch, with builder and challenger agents per area. The steps below are the
+order of work inside that pass, not separate releases; the golden-run test (scripted run on the
+cityofkeys story, events compared to a stored file) is the gate for the whole pass and proves
+behaviour did not change.
 
 | Step | What | Risk |
 |---|---|---|
@@ -552,7 +562,7 @@ cityofkeys story, events compared to a stored file) that proves behaviour did no
 | 1 | Golden-run test + break the import cycles inside `src/` (contracts folder, interfaces instead of classes) | low |
 | 2 | Prompts to files + loader + codegen + validate check | medium (long diff, no logic change) |
 | 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` with `swt` (§3c), tsdown build and `development` export condition (§7a) | low, mechanical |
-| 4 | Module host; carve `World` into modules one by one (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
+| 4 | Module host; carve `World` into modules (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
 | 5 | Director → referee + script module | medium |
 | 6 | Story schema export, YAML loader, expression language | medium |
 | 7 | Plugin sandbox spike, then sandboxed third-party modules | medium, new dependency |
