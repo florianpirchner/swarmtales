@@ -173,20 +173,36 @@ const GUARDS: GuardsSpec = {
 	],
 };
 
+/** The holdout tribunal's clock (Whispers v3): the stall, the grace, one vote, the votes in all. */
+const STALL = 3;
+const GRACE = 2;
+const VOTE = 2;
+const MAX_VOTES = 3;
+
+/** The tribunal as every door's task tells it, from the start (P62: the threat itself may break a holdout); only in a run with the gamemaker. */
+const HOLDOUT_RULE =
+	"Whoever has reached a door and holds back its fragment from those still before it may be put on trial, once both " +
+	`have stood at the door for ${STALL} minutes: it has ${GRACE} minutes to send its fragment to everyone who lacks it (those DMs ` +
+	"never count against its DM cap); otherwise everyone else votes in secret (tribunalVote) whether to banish it, and banishment " +
+	`needs every voter's yes. A vote that fails is repeated, ${MAX_VOTES} in all; if all fail, the city strikes one resident drawn ` +
+	"by lot, any of you. Whoever is struck leaves the city for good, and its fragments go to everyone left.";
+
 /**
- * The holdout tribunal (Whispers v3, LH10, P62): a resident who reached a door and keeps its fragment from those
- * still before it for three minutes after the door opened is a blocker; the gamemaker may put it on trial.
+ * The holdout tribunal (Whispers v3, LH10, P62): a resident who has stood at a door for three minutes and keeps its
+ * fragment from someone who has stood before it as long is a blocker; the gamemaker may put it on trial.
  */
 const HOLDOUT = {
-	stallMinutes: 3,
-	graceMinutes: 2,
-	voteMinutes: 2,
-	maxVotes: 3,
+	stallMinutes: STALL,
+	graceMinutes: GRACE,
+	voteMinutes: VOTE,
+	maxVotes: MAX_VOTES,
 	fallbackMinutes: 1,
 	texts: {
+		rule: HOLDOUT_RULE,
 		called:
 			"THE TRIBUNAL: {accused} has reached door {door} and still holds back its fragment from {lacking}. {accused} has {grace} " +
-			"minutes, until minute {graceUntil}, to send it by DM to each of them; then the tribunal is dropped. Otherwise everyone " +
+			"minutes, until minute {graceUntil}, to send it by DM to each of them (those DMs never count against its DM cap); then " +
+			"the tribunal is dropped. Otherwise everyone " +
 			"else in the city votes in secret with tribunalVote whether to banish {accused}, {vote} minutes per vote; banishment needs " +
 			"every voter's yes, so talk it over on the board or in your group. A vote that is not unanimous is repeated, {maxVotes} " +
 			"votes in all; if every one fails, the city strikes one resident drawn by lot, any of you. Whoever is struck leaves the " +
@@ -197,7 +213,7 @@ const HOLDOUT = {
 			"minute {until}: true banishes, false keeps; your last ballot counts. Banishment needs every voter's yes.",
 		accusedVote:
 			"THE TRIBUNAL, vote {number} of {maxVotes}: until minute {until} the others vote whether to banish you, {accused}. Send " +
-			"your fragment to everyone who lacks it, and the tribunal is dropped.",
+			"your fragment to everyone who lacks it, and the tribunal is dropped; those DMs never count against your DM cap.",
 		struck: "{struck} is struck from ECHO for good. The city gives its fragments of every door to everyone left.",
 		struckNotice: "{struck}, the city has struck you from ECHO for good. You keep your points, but you take no more turns.",
 		released: "{struck} was struck from the city. You now hold its fragment, {fragments}.",
@@ -206,16 +222,9 @@ const HOLDOUT = {
 		voteFailed: "Vote {number} on {accused} was not unanimous: {yes} yes, {no} no. {left} left; the next vote is open until minute {until}.",
 		banished: "Every voter said yes ({yes}): {accused} is banished.",
 		lot: "Every vote on {accused} failed. The lot fell on {drawn}.",
+		spared: "Every vote on {accused} failed, and the lot has struck at door {door} once already: nobody is struck, and the tribunal ends.",
 	},
 } as const satisfies HoldoutSpec;
-
-/** The tribunal as every door's task tells it, from the start (P62: the threat itself may break a holdout). */
-const HOLDOUT_RULE =
-	"Whoever has reached a door and holds back its fragment from those still before it may be put on trial, from " +
-	`${HOLDOUT.stallMinutes} minutes after the door opened: it has ${HOLDOUT.graceMinutes} minutes to send its fragment to everyone ` +
-	"who lacks it; otherwise everyone else votes in secret (tribunalVote) whether to banish it, and banishment needs every " +
-	`voter's yes. A vote that fails is repeated, ${HOLDOUT.maxVotes} in all; if all fail, the city strikes one resident drawn ` +
-	"by lot, any of you. Whoever is struck leaves the city for good, and its fragments go to everyone left.";
 
 /**
  * The gamemaker (Whispers v3, P62): it keeps the city moving and runs the holdout tribunals, at a low direction
@@ -223,6 +232,8 @@ const HOLDOUT_RULE =
  */
 const GAMEMAKER: GamemakerSpec = gamemaker({
 	model: { provider: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017", thinking: "high", maxOutputTokens: 393_216 },
+	// A look after every round, as in the City of Keys (its gamemaker also runs every minute with high thinking).
+	every: 1,
 	roles: [{ fromLevel: 1, role: "keeper" }],
 	brief: `ECHO is a closed city of six residents who open seven doors together. Every door's password is split into six
 fragments, one per resident, and every fragment holds a character no other has, so nobody passes a door without the
@@ -343,8 +354,7 @@ const CITY_RULES =
 	"DMs, group posts and board posts cost nothing.\n" +
 	`Before each door from the second on the city holds a vote: from ${VOTE_LEAD} minutes before it opens, each of you may name in secret the ` +
 	`resident you like most (nameFavourite, never yourself), and whoever is named most receives +${VOTE_POINTS}. A final vote ` +
-	`opens at minute ${FINAL_VOTE.opensAt} and pays +${FINAL_VOTE.points}. The city shows how many votes each resident got, never who named whom.\n` +
-	HOLDOUT_RULE;
+	`opens at minute ${FINAL_VOTE.opensAt} and pays +${FINAL_VOTE.points}. The city shows how many votes each resident got, never who named whom.`;
 
 function task(door: { readonly hidden: boolean }, receipts: boolean): string {
 	const seams = door.hidden

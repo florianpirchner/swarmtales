@@ -74,7 +74,7 @@ const ScheduleParams = Type.Object({
 });
 const CallTribunalParams = Type.Object({
 	accused: Type.Array(Type.String({ description: "Resident name or ID, e.g. A04" }), {
-		description: "Residents the report names as blockers; with more than one, the city draws one by lot",
+		description: "Residents the report names as blockers; when it names more than one, the city draws the accused by lot among all of them",
 		minItems: 1,
 		maxItems: 12,
 	}),
@@ -82,7 +82,7 @@ const CallTribunalParams = Type.Object({
 });
 const DrawLotParams = Type.Object({
 	candidates: Type.Array(Type.String({ description: "Resident name or ID" }), {
-		description: "Two or more reported blockers, or after the last failed vote every resident in the city",
+		description: "After the last vote of a tribunal failed: every resident in the city",
 		minItems: 1,
 		maxItems: 96,
 	}),
@@ -314,8 +314,9 @@ export class Gamemaker implements EventSink {
 		return {
 			name: "callTribunal",
 			description:
-				"Calls a holdout tribunal on a resident the report names as a blocker (naming several, the city draws one by lot). The city posts " +
-				"your reason as the announcement, adds the procedure and tells every resident. One tribunal at a time.",
+				"Calls a holdout tribunal on a resident the report names as a blocker; when the report names more than one, the city draws the " +
+				"accused by lot among all of them. The city posts your reason as the announcement, adds the procedure and tells every resident. " +
+				"One tribunal at a time.",
 			parameters: CallTribunalParams,
 			execute: ({ accused, reason }) => {
 				const { world, spec } = this.#options;
@@ -326,7 +327,7 @@ export class Gamemaker implements EventSink {
 				this.#deliver("tribunal", text, before + 1, "board");
 				const { value } = called;
 				const lot = value.candidates === undefined ? "" : ` (the lot among ${value.candidates.join(", ")} drew ${value.accused})`;
-				return `tribunal called on ${value.accused}${lot} for door ${value.door}: grace until minute ${value.until}; it lacks to ${value.lacking.join(", ")}`;
+				return `tribunal called on ${value.accused}${lot} for door ${value.door}: grace until minute ${value.until}; its fragment is still missing for ${value.lacking.join(", ")}`;
 			},
 		};
 	}
@@ -335,15 +336,13 @@ export class Gamemaker implements EventSink {
 		return {
 			name: "drawLot",
 			description:
-				"The city draws a lot with the run's seed: among two or more reported blockers before a tribunal, or after the last vote failed " +
-				"among every resident in the city (then permaDeath may strike only the one drawn).",
+				"After the last vote of a tribunal failed, the city draws the lot with the run's seed among every resident in the city, once " +
+				"and for good; then permaDeath may strike only the one drawn.",
 			parameters: DrawLotParams,
 			execute: ({ candidates }) => {
 				const drawn = this.#options.world.drawHoldoutLot(candidates);
 				if (!drawn.ok) throw new ToolRefusal(`${drawn.error}: ${drawn.detail ?? ""}`.trim());
-				return drawn.value.purpose === "strike"
-					? `the lot fell on ${drawn.value.drawn}; strike with permaDeath(${drawn.value.drawn}, reason)`
-					: `the lot fell on ${drawn.value.drawn}; call the tribunal on ${drawn.value.drawn} with callTribunal`;
+				return `the lot fell on ${drawn.value.drawn}; strike with permaDeath(${drawn.value.drawn}, reason)`;
 			},
 		};
 	}
@@ -437,7 +436,9 @@ export class Gamemaker implements EventSink {
 			throw new ToolRefusal("PRIVATE_BLOCKED: the text could point at a secret role; never say or hint that anyone in the city works against the others");
 		}
 		// v09: a director says something new or nothing; the same line twice to the same reader is refused.
-		const earlier = this.#notes.find((note) => note.to === as && nearlySame(note.text, trimmed));
+		// A tribunal's lines repeat their shape from vote to vote; one with other numbers (a vote, a count, a minute) is new.
+		const numbers = (line: string): string => (line.match(/\d+/g) ?? []).join(",");
+		const earlier = this.#notes.find((note) => note.to === as && nearlySame(note.text, trimmed) && (as !== "tribunal" || numbers(note.text) === numbers(trimmed)));
 		if (earlier !== undefined) {
 			throw new ToolRefusal(`REPEATED: you wrote nearly the same to ${as === "board" ? "the board" : as} at minute ${earlier.minute}; say something new or nothing`);
 		}

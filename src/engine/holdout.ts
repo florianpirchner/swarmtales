@@ -1,21 +1,28 @@
 /**
  * The holdout tribunal (`story.holdout`, Whispers v3, SPEC 20; LH10, P62).
  *
- * Every minute the city reports who blocks a door: a resident who has
- * reached a door that has been open `stallMinutes` and has not sent its
- * fragment of it to another resident standing before it (the world computes
- * the facts; see `World.lackingFragment`). The report is facts only: the
- * gamemaker decides whether to put a blocker on trial (`call`). The rules
- * after the call are code: the accused has `graceMinutes` to send its
- * fragment to everyone who lacks it (the tribunal is dropped as soon as
- * nobody does); otherwise everyone else in the city votes in secret whether
- * to banish it, `voteMinutes` long; banishment needs every voter's yes. A
- * vote that is not unanimous is repeated, `maxVotes` in all; when the last
- * one fails, one resident of the city, drawn by lot with the run's seed,
- * is struck. The gamemaker announces each outcome and strikes (`permaDeath`)
- * only where the rules allow it; when it stays silent for `fallbackMinutes`
- * the city posts a plain line, or strikes itself, so a run never hangs.
- * One tribunal at a time. Everything is kept in snapshots.
+ * Every minute the city reports who blocks a door: a resident who has stood
+ * at an open door (reached, passed or not) for `stallMinutes` and has not
+ * sent its fragment of it to another resident who has stood before it
+ * (reached, not passed) for `stallMinutes` too (the world computes who
+ * lacks what; see `World.lackingFragment`; the tribunal keeps when it first
+ * saw each resident at each open door). The report is facts only: the
+ * gamemaker decides whether to put a blocker on trial (`call`); with
+ * several blockers the city draws the accused among all of them, so the
+ * gamemaker never picks one. The rules after the call are code: the accused
+ * has `graceMinutes` of turns after the call to send its fragment to
+ * everyone who lacks it (the tribunal is dropped as soon as nobody does;
+ * those DMs never hit the DM cap, see {@link HoldoutTribunal.exemptFromCap});
+ * otherwise everyone else in the city votes in secret whether to banish it,
+ * `voteMinutes` long; banishment needs every voter's yes. A vote that is
+ * not unanimous is repeated, `maxVotes` in all; when the last one fails,
+ * one resident of the city, drawn by lot with the run's seed, is struck, at
+ * most once per door (a second time nobody is struck). After a tribunal
+ * ends, none is called for `stallMinutes`. The gamemaker announces each
+ * outcome and strikes (`permaDeath`) only where the rules allow it; when it
+ * stays silent for `fallbackMinutes` the city posts a plain line, or
+ * strikes itself, so a run never hangs. One tribunal at a time. Everything
+ * is kept in snapshots.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { rngFor } from "../core/random.ts";
@@ -40,11 +47,23 @@ export type HoldoutEvent = Extract<
 	}
 >;
 
-/** A blocker as the world computes it: `blocker` has reached `door` and `lacking` stand before it without its fragment. */
+/**
+ * Who lacks a fragment, as the world computes it: `blocker` has reached open
+ * `door` (`passed` it already, holding every fragment it needed) and
+ * `lacking` stand before it without its fragment. The tribunal applies the
+ * stall.
+ */
 export interface BlockerFact {
 	readonly door: number;
 	readonly blocker: CompetitorId;
 	readonly lacking: readonly CompetitorId[];
+	readonly passed: boolean;
+}
+
+/** A resident at an open fragment door, reached (passed or not). */
+export interface Presence {
+	readonly door: number;
+	readonly agent: CompetitorId;
 }
 
 /** A blocker as the city reports it, with the minute it first found it. */
@@ -53,7 +72,7 @@ export interface Blocker extends BlockerFact {
 }
 
 export type HoldoutStage = "grace" | "vote" | "banish" | "lot";
-export type HoldoutOutcome = "dropped" | "graceFailed" | "voteFailed";
+export type HoldoutOutcome = "dropped" | "graceFailed" | "voteFailed" | "spared";
 
 /** The running tribunal, as the gamemaker's report shows it (never a ballot). */
 export interface HoldoutSessionView {
@@ -81,9 +100,15 @@ export interface HoldoutPending {
 
 export interface HoldoutSnapshot {
 	readonly blockers: readonly Blocker[];
+	/** When the city first saw each resident at each open fragment door. */
+	readonly reached?: readonly { readonly door: number; readonly agent: CompetitorId; readonly minute: number }[];
 	readonly struck: readonly CompetitorId[];
 	readonly tribunals: number;
 	readonly lots: number;
+	/** No tribunal is called before this minute (after one ended). */
+	readonly cooldownUntil?: number;
+	/** Doors where the lot has struck. */
+	readonly lotDoors?: readonly number[];
 	readonly session?: {
 		readonly number: number;
 		readonly accused: CompetitorId;
@@ -105,8 +130,10 @@ export interface HoldoutPorts {
 	readonly minute: () => number;
 	/** Residents in the city, the struck excluded. */
 	readonly alive: () => readonly CompetitorId[];
-	/** Every blocker now, with the stall threshold applied. */
+	/** Everyone who lacks a fragment now, by holder and door, without the stall. */
 	readonly blockers: () => readonly BlockerFact[];
+	/** Every resident in the city at an open fragment door it has reached. */
+	readonly present: () => readonly Presence[];
 	/** Who stands before `door` without `holder`'s fragment of it now, without the stall threshold. */
 	readonly lacking: (door: number, holder: CompetitorId) => readonly CompetitorId[];
 	/** `Mira (A03)`. */
@@ -150,8 +177,11 @@ export class HoldoutTribunal {
 	readonly #ports: HoldoutPorts;
 	readonly #blockers = new Map<string, Blocker>();
 	readonly #struck: CompetitorId[] = [];
+	readonly #reached = new Map<string, number>();
+	readonly #lotDoors: number[] = [];
 	#tribunals = 0;
 	#lots = 0;
+	#cooldownUntil = 0;
 	#session: Session | undefined;
 	#pending: HoldoutPending | undefined;
 
@@ -214,12 +244,29 @@ export class HoldoutTribunal {
 		return session === undefined ? [] : this.#ports.lacking(session.door, session.accused);
 	}
 
+	/**
+	 * Whether a DM from `from` to `to` passes the DM cap: the accused's DMs to
+	 * those who still lack its fragment, during its grace and votes (counted,
+	 * never refused), so the cap never makes the fix impossible.
+	 */
+	exemptFromCap(from: CompetitorId, to: CompetitorId): boolean {
+		const session = this.#session;
+		if (session?.accused !== from || (session.stage !== "grace" && session.stage !== "vote")) return false;
+		return this.lackingNow().includes(to);
+	}
+
+	/** The minute before which no tribunal may be called (after one ended); 0 when none ended. */
+	get cooldownUntil(): number {
+		return this.#cooldownUntil;
+	}
+
 	// -------------------------------------------------------------------------
 	// The city's minute
 	// -------------------------------------------------------------------------
 
 	/** At the start of a minute: the blockers, an overdue announcement, then the running tribunal. */
 	tick(minute: number): void {
+		this.#notePresent(minute);
 		this.#updateBlockers(minute);
 		if (this.#pending !== undefined && minute >= this.#pending.due) this.#flush();
 		const session = this.#session;
@@ -253,8 +300,34 @@ export class HoldoutTribunal {
 		}
 	}
 
+	/** Notes the first minute each resident stands at each open fragment door. */
+	#notePresent(minute: number): void {
+		for (const { door, agent } of this.#ports.present()) {
+			const id = key(door, agent);
+			if (!this.#reached.has(id)) this.#reached.set(id, minute);
+		}
+	}
+
+	/** Whether `agent` has stood at `door` for the stall by `minute`. */
+	#stalled(door: number, agent: CompetitorId, minute: number): boolean {
+		const since = this.#reached.get(key(door, agent));
+		return since !== undefined && minute - since >= this.spec.stallMinutes;
+	}
+
+	/** The blockers now: holder and lacking residents both at the door for the stall. */
+	#qualified(minute: number): readonly BlockerFact[] {
+		return this.#ports
+			.blockers()
+			.flatMap((fact) => {
+				if (!this.#stalled(fact.door, fact.blocker, minute)) return [];
+				const lacking = fact.lacking.filter((agent) => this.#stalled(fact.door, agent, minute));
+				return lacking.length === 0 ? [] : [{ ...fact, lacking }];
+			})
+			.sort(byDoor);
+	}
+
 	#updateBlockers(minute: number): void {
-		const now = new Map(this.#ports.blockers().map((fact) => [key(fact.door, fact.blocker), fact]));
+		const now = new Map(this.#qualified(minute).map((fact) => [key(fact.door, fact.blocker), fact]));
 		for (const [id, blocker] of [...this.#blockers]) {
 			if (now.has(id)) continue;
 			this.#blockers.delete(id);
@@ -307,14 +380,32 @@ export class HoldoutTribunal {
 			);
 			return;
 		}
+		if (this.#lotDoors.includes(session.door)) {
+			this.#end(minute);
+			this.#ports.emit({ type: "holdout_ended", tribunal: session.number, outcome: "spared" });
+			this.#await(
+				session,
+				"spared",
+				`every vote on ${this.#label(session.accused)} failed, and the lot has struck at door ${session.door} before (once per door): nobody is struck, the tribunal ends`,
+				{ accused: this.#label(session.accused), door: String(session.door) },
+				minute,
+			);
+			return;
+		}
 		session.stage = "lot";
 		session.until = minute + spec.fallbackMinutes;
 	}
 
 	#drop(session: Session, minute: number): void {
-		this.#session = undefined;
+		this.#end(minute);
 		this.#ports.emit({ type: "holdout_ended", tribunal: session.number, outcome: "dropped" });
 		this.#await(session, "dropped", `${this.#label(session.accused)} has sent its door-${session.door} fragment to everyone who lacked it; the tribunal is dropped`, { accused: this.#label(session.accused) }, minute);
+	}
+
+	/** The tribunal is over: none is called for the stall. */
+	#end(minute: number): void {
+		this.#session = undefined;
+		this.#cooldownUntil = minute + this.spec.stallMinutes;
 	}
 
 	/** An outcome for the gamemaker to announce; an earlier one still waiting is posted plainly first. */
@@ -336,9 +427,13 @@ export class HoldoutTribunal {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * A tribunal on one of `accused`, all of whom the city reports as blockers
-	 * now. With several the city draws one by lot. The gamemaker's
-	 * `announcement` and the procedure go on the board and to every resident.
+	 * A tribunal on a blocker. Everyone in `accused` must be a blocker the city
+	 * reports now; when the city reports more than one, it draws the accused
+	 * by lot among all of them, whomever the gamemaker named, so the
+	 * gamemaker never picks a victim. The gamemaker's `announcement` and the
+	 * procedure go on the board and to every resident. The grace counts in
+	 * whole minutes of turns after this one (the gamemaker calls after the
+	 * residents' turns of its minute).
 	 */
 	call(
 		accused: readonly CompetitorId[],
@@ -346,11 +441,13 @@ export class HoldoutTribunal {
 		author: string,
 	): Result<{ readonly accused: CompetitorId; readonly door: number; readonly lacking: readonly CompetitorId[]; readonly until: number; readonly candidates?: readonly CompetitorId[] }, CallError> {
 		if (this.#session !== undefined) return err("NOT_NOW", `tribunal ${this.#session.number} on ${this.#label(this.#session.accused)} is still running; one at a time`);
+		const minute = this.#ports.minute();
+		if (minute < this.#cooldownUntil) return err("NOT_NOW", `a tribunal ended a short while ago; the next may be called from minute ${this.#cooldownUntil}`);
 		const unique = [...new Set(accused)].sort((a, b) => a.localeCompare(b));
 		if (unique.length === 0 || unique.length !== accused.length) return err("INVALID_ACCUSED", "name each accused once");
 		// The facts as they stand now, not as the minute began: a fragment sent since clears a blocker.
-		const blockers = this.#ports.blockers();
-		const listed = [...new Set(blockers.map((blocker) => blocker.blocker))];
+		const blockers = this.#qualified(minute);
+		const listed = [...new Set(blockers.map((blocker) => blocker.blocker))].sort((a, b) => a.localeCompare(b));
 		const innocent = unique.filter((agent) => !listed.includes(agent));
 		if (innocent.length > 0) {
 			return err(
@@ -361,15 +458,16 @@ export class HoldoutTribunal {
 		}
 		this.#tribunals += 1;
 		const number = this.#tribunals;
-		const chosen = unique.length === 1 ? unique[0] : this.#draw("accused", unique, number);
+		const several = listed.length > 1;
+		const chosen = several ? this.#draw("accused", listed, number) : listed[0];
 		if (chosen === undefined) return err("INVALID_ACCUSED", "name each accused once");
 		const door = Math.min(...blockers.filter((blocker) => blocker.blocker === chosen).map((blocker) => blocker.door));
 		const lacking = this.#ports.lacking(door, chosen);
 		const spec = this.spec;
-		const minute = this.#ports.minute();
-		const session: Session = { number, accused: chosen, door, stage: "grace", until: minute + spec.graceMinutes, vote: 0, voters: [], ballots: new Map() };
+		// Called after the residents' turns of this minute: the accused gets `graceMinutes` whole minutes of turns from the next one.
+		const session: Session = { number, accused: chosen, door, stage: "grace", until: minute + spec.graceMinutes + 1, vote: 0, voters: [], ballots: new Map() };
 		this.#session = session;
-		const lot = unique.length > 1 ? `${this.#text("drawnAccused", { candidates: namesList(unique.map((agent) => this.#label(agent))), drawn: this.#label(chosen) })}\n` : "";
+		const lot = several ? `${this.#text("drawnAccused", { candidates: namesList(listed.map((agent) => this.#label(agent))), drawn: this.#label(chosen) })}\n` : "";
 		const procedure = this.#text("called", {
 			accused: this.#label(chosen),
 			door: String(door),
@@ -390,39 +488,31 @@ export class HoldoutTribunal {
 			lacking: [...lacking],
 			until: session.until,
 			text,
-			...(unique.length > 1 ? { candidates: unique } : {}),
+			...(several ? { candidates: listed } : {}),
 		});
-		return ok({ accused: chosen, door, lacking, until: session.until, ...(unique.length > 1 ? { candidates: unique } : {}) });
+		return ok({ accused: chosen, door, lacking, until: session.until, ...(several ? { candidates: listed } : {}) });
 	}
 
 	/**
-	 * A lot drawn by the city with the run's seed: among two or more reported
-	 * blockers before a tribunal, or among every resident in the city after
-	 * the last vote failed (then the drawn one is the only one permaDeath may
-	 * strike).
+	 * The final lot, drawn by the city with the run's seed among every
+	 * resident in the city after the last vote failed; the drawn one is the
+	 * only one permaDeath may strike. It is binding and drawn once. (The
+	 * accused among several blockers is drawn by `call` itself.)
 	 */
-	drawLot(candidates: readonly CompetitorId[]): Result<{ readonly drawn: CompetitorId; readonly purpose: "accused" | "strike" }, LotError> {
+	drawLot(candidates: readonly CompetitorId[]): Result<{ readonly drawn: CompetitorId }, LotError> {
 		const unique = [...new Set(candidates)].sort((a, b) => a.localeCompare(b));
 		const session = this.#session;
-		if (session?.stage === "lot") {
-			if (session.drawn !== undefined) return err("ALREADY_DRAWN", `the lot fell on ${this.#label(session.drawn)}`);
-			const alive = [...this.#ports.alive()].sort((a, b) => a.localeCompare(b));
-			if (unique.length !== candidates.length || unique.join(",") !== alive.join(",")) {
-				return err("INVALID_CANDIDATES", `after the last vote the lot is drawn among every resident in the city: ${namesList(alive.map((agent) => this.#label(agent)))}`);
-			}
-			const drawn = this.#draw("strike", alive, session.number);
-			session.drawn = drawn;
-			return ok({ drawn, purpose: "strike" });
+		if (session?.stage !== "lot") {
+			return err("NOT_NOW", "a lot is drawn only after the last vote of a tribunal failed; with several blockers callTribunal draws the accused itself");
 		}
-		if (session !== undefined) return err("NOT_NOW", `tribunal ${session.number} is in its ${session.stage}; a lot is drawn only after its last vote failed`);
-		const listed = new Set(this.#ports.blockers().map((blocker) => blocker.blocker));
-		if (unique.length < 2 || unique.length !== candidates.length || unique.some((agent) => !listed.has(agent))) {
-			return err(
-				"INVALID_CANDIDATES",
-				`name two or more of the blockers the city reports, each once: ${listed.size === 0 ? "nobody" : namesList([...listed].map((agent) => this.#label(agent)))}`,
-			);
+		if (session.drawn !== undefined) return err("ALREADY_DRAWN", `the lot fell on ${this.#label(session.drawn)}`);
+		const alive = [...this.#ports.alive()].sort((a, b) => a.localeCompare(b));
+		if (unique.length !== candidates.length || unique.join(",") !== alive.join(",")) {
+			return err("INVALID_CANDIDATES", `after the last vote the lot is drawn among every resident in the city: ${namesList(alive.map((agent) => this.#label(agent)))}`);
 		}
-		return ok({ drawn: this.#draw("accused", unique, this.#tribunals + 1), purpose: "accused" });
+		const drawn = this.#draw("strike", alive, session.number);
+		session.drawn = drawn;
+		return ok({ drawn });
 	}
 
 	/**
@@ -477,7 +567,9 @@ export class HoldoutTribunal {
 	// -------------------------------------------------------------------------
 
 	#strike(session: Session, agent: CompetitorId, outcome: "banished" | "lot", by: "gamemaker" | "city"): void {
-		this.#session = undefined;
+		const minute = this.#ports.minute();
+		this.#end(minute);
+		if (outcome === "lot" && !this.#lotDoors.includes(session.door)) this.#lotDoors.push(session.door);
 		if (!this.#struck.includes(agent)) this.#struck.push(agent);
 		this.#blockers.forEach((blocker, id) => {
 			if (blocker.blocker === agent) this.#blockers.delete(id);
@@ -486,6 +578,8 @@ export class HoldoutTribunal {
 		this.#ports.notify(agent, "CITY", this.#text("struckNotice", { struck: this.#label(agent) }));
 		this.#ports.post("CITY", this.#text("struck", { struck: this.#label(agent) }));
 		this.#ports.struck(agent);
+		// The released fragments may clear other blockers at once.
+		this.#updateBlockers(minute);
 	}
 
 	/** Draws one of `candidates` with the run's seed; the n-th lot of a run always falls the same way. */
@@ -513,9 +607,15 @@ export class HoldoutTribunal {
 		const session = this.#session;
 		return {
 			blockers: this.blockers.map((blocker) => ({ ...blocker, lacking: [...blocker.lacking] })),
+			reached: [...this.#reached].map(([id, minute]) => {
+				const [door, agent] = id.split(":");
+				return { door: Number(door), agent: agent ?? "", minute };
+			}),
 			struck: [...this.#struck],
 			tribunals: this.#tribunals,
 			lots: this.#lots,
+			...(this.#cooldownUntil === 0 ? {} : { cooldownUntil: this.#cooldownUntil }),
+			...(this.#lotDoors.length === 0 ? {} : { lotDoors: [...this.#lotDoors] }),
 			...(session === undefined
 				? {}
 				: {
@@ -540,6 +640,7 @@ export class HoldoutTribunal {
 	restore(saved: HoldoutSnapshot, isCompetitor: (id: string) => boolean): void {
 		const named = [
 			...saved.struck,
+			...(saved.reached ?? []).map((entry) => entry.agent),
 			...saved.blockers.flatMap((blocker) => [blocker.blocker, ...blocker.lacking]),
 			...(saved.session === undefined ? [] : [saved.session.accused, ...saved.session.voters, ...saved.session.ballots.map((ballot) => ballot.agent), ...(saved.session.drawn === undefined ? [] : [saved.session.drawn])]),
 		];
@@ -548,8 +649,12 @@ export class HoldoutTribunal {
 		this.#blockers.clear();
 		for (const blocker of saved.blockers) this.#blockers.set(key(blocker.door, blocker.blocker), { ...blocker, lacking: [...blocker.lacking] });
 		this.#struck.splice(0, this.#struck.length, ...saved.struck);
+		this.#reached.clear();
+		for (const entry of saved.reached ?? []) this.#reached.set(key(entry.door, entry.agent), entry.minute);
+		this.#lotDoors.splice(0, this.#lotDoors.length, ...(saved.lotDoors ?? []));
 		this.#tribunals = saved.tribunals;
 		this.#lots = saved.lots;
+		this.#cooldownUntil = saved.cooldownUntil ?? 0;
 		const session = saved.session;
 		this.#session =
 			session === undefined

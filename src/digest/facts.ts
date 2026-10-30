@@ -316,6 +316,10 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "popularity_opened":
 			case "popularity_ballot":
 			case "popularity_result":
+			case "holdout_called":
+			case "holdout_vote_result":
+			case "holdout_ended":
+			case "lot_drawn":
 			case "guard_verdict":
 			case "fate_shift":
 				break;

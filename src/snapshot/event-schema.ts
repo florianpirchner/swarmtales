@@ -221,13 +221,13 @@ export const RecordedEventSchema = Type.Union([
 	event("holdout_vote_result", { tribunal: Int, vote: Int, yes: Int, no: Int, voters: Ids, unanimous: Type.Boolean() }),
 	event("holdout_announced", {
 		tribunal: Int,
-		kind: Type.Union([Type.Literal("dropped"), Type.Literal("graceFailed"), Type.Literal("voteFailed")]),
+		kind: Type.Union([Type.Literal("dropped"), Type.Literal("graceFailed"), Type.Literal("voteFailed"), Type.Literal("spared")]),
 		by: Type.Union([Type.Literal("gamemaker"), Type.Literal("city")]),
 		text: Type.String(),
 	}),
 	event("holdout_ended", {
 		tribunal: Int,
-		outcome: Type.Union([Type.Literal("dropped"), Type.Literal("banished"), Type.Literal("lot")]),
+		outcome: Type.Union([Type.Literal("dropped"), Type.Literal("banished"), Type.Literal("lot"), Type.Literal("spared")]),
 		struck: Type.Optional(Id),
 		by: Type.Optional(Type.Union([Type.Literal("gamemaker"), Type.Literal("city")])),
 	}),

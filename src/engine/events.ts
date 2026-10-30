@@ -342,7 +342,7 @@ export type ArenaEvent =
 	| { readonly type: "blocker_found"; readonly door: number; readonly blocker: CompetitorId; readonly lacking: readonly CompetitorId[] }
 	/** Nobody before door `door` lacks `blocker`'s fragment any more (or it left the city, or they passed). */
 	| { readonly type: "blocker_cleared"; readonly door: number; readonly blocker: CompetitorId }
-	/** The gamemaker called holdout tribunal `tribunal` on `accused` (drawn by lot among `candidates` when it named several); its grace ends at `until`. */
+	/** The gamemaker called holdout tribunal `tribunal` on `accused` (drawn by lot among `candidates`, every reported blocker, when there were several); its grace ends at `until`. */
 	| {
 			readonly type: "holdout_called";
 			readonly tribunal: number;
@@ -353,7 +353,7 @@ export type ArenaEvent =
 			readonly text: string;
 			readonly candidates?: readonly CompetitorId[];
 	  }
-	/** The city drew a lot with the run's seed: the accused among blockers, or the resident struck after the last vote failed. */
+	/** The city drew a lot with the run's seed: the accused among every reported blocker, or the resident struck after the last vote failed. */
 	| { readonly type: "lot_drawn"; readonly tribunal: number; readonly purpose: "accused" | "strike"; readonly candidates: readonly CompetitorId[]; readonly drawn: CompetitorId }
 	| { readonly type: "holdout_vote_opened"; readonly tribunal: number; readonly vote: number; readonly voters: readonly CompetitorId[]; readonly until: number }
 	/** A secret ballot (the last one of a vote counts); never shown to residents or the gamemaker. */
@@ -372,15 +372,15 @@ export type ArenaEvent =
 	| {
 			readonly type: "holdout_announced";
 			readonly tribunal: number;
-			readonly kind: "dropped" | "graceFailed" | "voteFailed";
+			readonly kind: "dropped" | "graceFailed" | "voteFailed" | "spared";
 			readonly by: "gamemaker" | "city";
 			readonly text: string;
 	  }
-	/** A tribunal ended: dropped (the accused fixed it), the accused banished, or the lot's resident struck; `by` who struck. */
+	/** A tribunal ended: dropped (the accused fixed it), the accused banished, the lot's resident struck, or spared (the lot struck at this door before); `by` who struck. */
 	| {
 			readonly type: "holdout_ended";
 			readonly tribunal: number;
-			readonly outcome: "dropped" | "banished" | "lot";
+			readonly outcome: "dropped" | "banished" | "lot" | "spared";
 			readonly struck?: CompetitorId;
 			readonly by?: "gamemaker" | "city";
 	  }

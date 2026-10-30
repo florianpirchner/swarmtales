@@ -139,6 +139,9 @@ const overrides = {
 	weaver: runOverrides.weaver === true && !offline,
 };
 if (runOverrides.weaver === true && offline) process.stderr.write("> the weaver is off in an offline run (scripted competitors)\n");
+if (story.holdout !== undefined && !overrides.gamemaker) {
+	process.stderr.write("warning: no gamemaker, so nobody calls the holdout tribunal; it is left out, with its rule in the tasks, and a hold-out can freeze the city\n");
+}
 const gamemakerSettings =
 	overrides.gamemaker && story.gamemaker !== undefined
 		? resolveSettings(

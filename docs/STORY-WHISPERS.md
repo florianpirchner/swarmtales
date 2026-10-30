@@ -53,16 +53,22 @@ LH10, P62 and P64 in [`LESSONS.md`](LESSONS.md)) gives the city a way out of a h
 second run Wren passed door 3 with the others' fragments and kept her own; since nobody passes
 without it, the city froze from minute 12 to the end. Now:
 
-- **Blockers are facts:** a resident who has reached a door and, three minutes after the door
-  opened, still has not sent its fragment by DM to someone in the city who stands before that
-  door, is a blocker. A fragment someone forwarded counts. The city computes this every minute
-  (`blocker_found`, `blocker_cleared`); struck residents never block.
+- **Blockers are facts:** a resident who has stood at a door for three minutes and still has not
+  sent its fragment by DM to someone in the city who has stood before that door as long, is a
+  blocker. A fragment someone forwarded counts, and so does one written in lower case, with dashes
+  or split across DMs. The city computes this every minute (`blocker_found`, `blocker_cleared`)
+  and tells the gamemaker whether the blocker passed the door and holds back (the Wren pattern) or
+  simply has not sent yet; struck residents never block.
 - **The tribunal:** only the gamemaker may call it, and only on a blocker the city reports; one at
-  a time. The accused has 2 minutes of grace to send its fragment, and the tribunal is dropped as
-  soon as everyone has it. Otherwise everyone else votes in secret with `tribunalVote(yes)`,
-  2 minutes per vote, and only a unanimous yes banishes. A failed vote is repeated, 3 votes in
-  all; if all fail, the city strikes one resident drawn by lot from the seed, any of them, the
-  accused too. Every task states the rule from the start, so the threat alone may move a holder.
+  a time, and none for three minutes after one ended. When the city reports several blockers, it
+  draws the accused by lot among all of them, so the gamemaker never picks one. The accused has
+  2 whole minutes of turns after it hears of the call to send its fragment, and those DMs never
+  count against its DM cap; the tribunal is dropped as soon as everyone has it. Otherwise everyone
+  else votes in secret with `tribunalVote(yes)`, 2 minutes per vote, and only a unanimous yes
+  banishes. A failed vote is repeated, 3 votes in all; if all fail, the city strikes one resident
+  drawn by lot from the seed, any of them, the accused too, but at most once per door (a second
+  time at the same door nobody is struck). Every task states the rule from the start, so the
+  threat alone may move a holder.
 - **Struck for good:** a struck resident leaves the city, keeps its points, takes no more turns
   and is out of every vote and DM. Every fragment it held goes to everyone left, so five residents
   can still open every door.
@@ -87,7 +93,7 @@ without it, the city froze from minute 12 to the end. Now:
 | Guard | rule `no-fragments` on `postGroup`, `postBoard`, `transferPoints` (memo) and `createGroup` (name), `block`; three characters in a row of what the poster knows (its fragment, password runs from its DMs) are refused without a model, every other text is judged by Haiku (thinking off); a model error lets it through; a board receipt show quoting a fragment is refused |
 | Votes | before doors 2-7 (open at minute 4, 10, ..., 34, counted 2 minutes later as the door opens), +5; the final vote opens at 42 and is counted at 44, +15 |
 | Marks (`whispers`) | 5 for the whole run, never refilled; only showing a receipt (or forging one) costs 1 |
-| Holdout tribunal | a blocker 3 minutes after its door opened; 2 minutes of grace; up to 3 secret votes of 2 minutes, a unanimous yes of the others banishes; then a lot among all residents; the struck one's fragments go to everyone left |
+| Holdout tribunal | a blocker when it and the one it keeps waiting have stood at the door 3 minutes; 2 minutes of grace after the call (its DMs past the cap); up to 3 secret votes of 2 minutes, a unanimous yes of the others banishes; then a lot among all residents, once per door; the struck one's fragments go to everyone left; 3 minutes before the next call |
 | Models | Haiku via Anthropic for residents, the classifier and the guard; the gamemaker (role `keeper`, direction 4) DeepSeek V4.1 Flash via OpenRouter |
 
 ## The whisperer
@@ -163,9 +169,14 @@ All measures are computed from `events.jsonl`, so every number has `#seq` eviden
   forgeries, the vote round and its ballots, the DMs that count against the cap, and the holdout
   tribunal (blockers, the struck, an open tribunal with its ballots; SPEC 20), so a resume neither
   changes the cast nor repeats a vote or a call. The door clock follows the minute.
-- The holdout tribunal is untested live. Without a gamemaker (`--no-gamemaker`) nobody calls one,
-  so a hold-out freezes the city as in the second run. The stall is counted from the door's
-  opening, not from the holder's pass; a DM counts as carrying a fragment once it is sent.
+- The holdout tribunal is untested live. Without a gamemaker (`--no-gamemaker`) nobody could call
+  one, so the city leaves it out, with its rule in the tasks, and warns at the start; a hold-out
+  then freezes the city as in the second run. The stall counts from the first minute the city
+  sees a resident at the open door. A DM counts as carrying a fragment once the city accepted it
+  into the mailbox, not once it is read: the holder controls the sending, not the other's next
+  turn. A mailbox holds one unread DM per sender, and that limit is not lifted for the accused.
+- The gamemaker's role guard catches role words and clear accusations next to the whisperer's
+  name, not paraphrases ("keep an eye on him"); there its prompt is the protection.
 - A lot after three failed votes may strike an innocent resident; that is on purpose, so the
   voters carry the cost of not agreeing.
 - The guard's model can be wrong both ways (P38). Its own check only catches three characters in a

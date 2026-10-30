@@ -328,6 +328,8 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		// At gm direction 10 the gamemaker orders scenes, and a resident may refuse one (defy).
 		defiance: story.gamemaker !== undefined && effective.gmDirection >= 10,
 		whisperer: effective.whisperer,
+		// Only the gamemaker calls a holdout tribunal: without it the tribunal (and its rule in the tasks) is left out.
+		holdout: effective.gamemaker,
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);

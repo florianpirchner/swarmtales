@@ -165,11 +165,16 @@ export function holdoutLines(world: World): readonly string[] {
 	const holdout = world.holdout;
 	if (holdout === undefined) return [];
 	const spec = holdout.spec;
-	const lines = [`Blockers (the city's facts: a door open ${spec.stallMinutes}+ minutes, a resident who reached it, others before it without its fragment):`];
+	const lines = [
+		`Blockers (the city's facts: a resident at a door ${spec.stallMinutes}+ minutes, others before it ${spec.stallMinutes}+ minutes without its fragment):`,
+	];
 	const blockers = holdout.blockers;
 	if (blockers.length === 0) lines.push("- nobody");
 	for (const blocker of blockers) {
-		lines.push(`- door ${blocker.door}: ${blocker.blocker} has not sent its fragment to ${blocker.lacking.join(", ")} (a blocker since minute ${blocker.since})`);
+		const what = blocker.passed
+			? `${blocker.blocker} passed it and holds back its fragment from ${blocker.lacking.join(", ")}`
+			: `${blocker.blocker} has not sent its fragment yet to ${blocker.lacking.join(", ")}`;
+		lines.push(`- door ${blocker.door}: ${what} (a blocker since minute ${blocker.since})`);
 	}
 	const session = holdout.session;
 	const pending = holdout.pending;
@@ -179,11 +184,14 @@ export function holdoutLines(world: World): readonly string[] {
 	}
 	if (session === undefined) {
 		const accusable = [...new Set(blockers.map((blocker) => blocker.blocker))];
+		const minute = world.minute;
 		lines.push(
 			accusable.length === 0
 				? "- none running; callTribunal needs a blocker"
-				: `- none running. YOUR MOVE if a blocker holds the city: callTribunal on ${accusable.join(" or ")}` +
-						(accusable.length > 1 ? " (naming several, the city draws one by lot)" : ""),
+				: minute < holdout.cooldownUntil
+					? `- none running; a tribunal ended a short while ago, the next may be called from minute ${holdout.cooldownUntil}`
+					: `- none running. YOUR MOVE if a blocker holds the city: callTribunal on ${accusable.join(" or ")}` +
+						(accusable.length > 1 ? ` (the city draws the accused by lot among all ${accusable.length} blockers, whomever you name)` : ""),
 		);
 		lines.push(`- struck so far: ${holdout.struck.length === 0 ? "nobody" : holdout.struck.join(", ")}`);
 		return [...lines, ""];

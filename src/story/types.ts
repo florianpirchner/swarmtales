@@ -598,21 +598,28 @@ export const POPULARITY_TEXT_PLACEHOLDERS: { readonly [K in keyof PopularityText
 
 /**
  * The holdout tribunal (LH10, P62). The city computes, each minute, who
- * blocks a door: resident X blocks door N when the door has been open
- * `stallMinutes`, X has reached it, and another resident in the city stands
- * before it (reached, not passed) without X's fragment of it (no DM to it
- * carried that fragment, and the city did not release it). The gamemaker may
- * then call a tribunal on a blocker. The accused has `graceMinutes` to send
- * its fragment to everyone who lacks it; if it does, the tribunal is
- * dropped. Otherwise everyone else in the city votes in secret, for
- * `voteMinutes`, whether to banish it; banishment needs every voter's yes.
- * A vote that is not unanimous is repeated, `maxVotes` in all; after the
- * last one fails, one resident drawn by lot (anyone in the city) is struck.
- * A struck resident leaves the city for good (it keeps its points on the
- * ledger, but has no more turns and ranks last), and the city releases its
- * fragments of every door to everyone left. The rules (grace, counts, lot)
- * are code; the gamemaker announces each outcome, and the city posts a
- * plain line (and strikes itself) when it does not within `fallbackMinutes`.
+ * blocks a door: resident X blocks door N when X has stood at the open door
+ * (reached it, passed or not) for `stallMinutes`, and another resident Y in
+ * the city has stood before it (reached, not passed) for `stallMinutes`
+ * without X's fragment of it (the DMs to Y, joined, upper-cased and without
+ * separators, do not hold it, and the city did not release it). The
+ * gamemaker may then call a tribunal; with several blockers the city draws
+ * the accused among all of them. The accused has `graceMinutes` of turns
+ * after the call to send its fragment to everyone who lacks it (those DMs
+ * never hit the DM cap); if it does, the tribunal is dropped. Otherwise
+ * everyone else in the city votes in secret, for `voteMinutes`, whether to
+ * banish it; banishment needs every voter's yes. A vote that is not
+ * unanimous is repeated, `maxVotes` in all; after the last one fails, one
+ * resident drawn by lot (anyone in the city) is struck, at most once per
+ * door (a second time the tribunal ends, nobody struck). A struck resident
+ * leaves the city for good (it keeps its points on the ledger, but has no
+ * more turns and ranks last), and the city releases its fragments of every
+ * door to everyone left. After a tribunal ends, no new one for
+ * `stallMinutes`. The rules (grace, counts, lot) are code; the gamemaker
+ * announces each outcome, and the city posts a plain line (and strikes
+ * itself) when it does not within `fallbackMinutes`. The tribunal exists
+ * only in a run with the gamemaker; `texts.rule` joins every door's task
+ * then.
  */
 export interface HoldoutSpec {
 	readonly stallMinutes: number;
@@ -624,6 +631,8 @@ export interface HoldoutSpec {
 }
 
 export interface HoldoutTexts {
+	/** The rule as every door's task states it, only in a run with the gamemaker. */
+	readonly rule: string;
 	/** The procedure, appended to the gamemaker's announcement on the board and in every resident's notice. */
 	readonly called: string;
 	/** Added to the announcement when the city drew the accused by lot among several blockers. */
@@ -644,9 +653,12 @@ export interface HoldoutTexts {
 	readonly voteFailed: string;
 	readonly banished: string;
 	readonly lot: string;
+	/** Every vote failed at a door where the lot has struck before: nobody is struck. */
+	readonly spared: string;
 }
 
 export const HOLDOUT_TEXT_KEYS = [
+	"rule",
 	"called",
 	"drawnAccused",
 	"voteOpened",
@@ -659,10 +671,12 @@ export const HOLDOUT_TEXT_KEYS = [
 	"voteFailed",
 	"banished",
 	"lot",
+	"spared",
 ] as const satisfies readonly (keyof HoldoutTexts)[];
 
 /** Placeholders of each holdout text. */
 export const HOLDOUT_TEXT_PLACEHOLDERS: { readonly [K in keyof HoldoutTexts]: readonly string[] } = {
+	rule: [],
 	called: ["accused", "door", "lacking", "grace", "graceUntil", "vote", "maxVotes"],
 	drawnAccused: ["candidates", "drawn"],
 	voteOpened: ["accused", "number", "maxVotes", "until"],
@@ -675,6 +689,7 @@ export const HOLDOUT_TEXT_PLACEHOLDERS: { readonly [K in keyof HoldoutTexts]: re
 	voteFailed: ["accused", "number", "yes", "no", "left", "until"],
 	banished: ["accused", "yes"],
 	lot: ["accused", "drawn"],
+	spared: ["accused", "door"],
 };
 
 /** Placeholders `called` must use: the procedure states its minutes and its limit. */
