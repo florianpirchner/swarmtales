@@ -50,6 +50,8 @@ export const NO_STAGE_SPEND: StageSpend = { outline: NO_SPEND, chapters: NO_SPEN
 export interface NovelModels {
 	readonly outline: NovelModel;
 	readonly writer: NovelModel;
+	/** Line-edits and translates the draft; the writer when absent. */
+	readonly editor?: NovelModel;
 }
 
 export interface Interlude {
@@ -183,12 +185,13 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		}
 
 		stage = "edit";
+		const editor = models.editor ?? models.writer;
 		const draft = renderStory(source, outline, chapters, interludes, prologue);
-		progress(`edit pass: asking ${models.writer.label} (${String(draft.length)} characters) ...`);
+		progress(`edit pass: asking ${editor.label} (${String(draft.length)} characters) ...`);
 		let edited;
 		try {
 			const facts = turningPoints(source.analysis.facts.events).map((point) => names.apply(point.text));
-			edited = await editStory(models.writer, draft, summary, facts, outline.glossary);
+			edited = await editStory(editor, draft, summary, facts, outline.glossary);
 		} catch (error) {
 			// A failed edit keeps the unedited draft instead of throwing the chapters away.
 			if (!(error instanceof NovelRequestError)) throw error;
@@ -203,8 +206,9 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			stage = "translation";
 			const { code, language } = options.translate;
 			try {
-				const translated = await translateStory(models.writer, story, language, {
-					fallback: models.outline,
+				// The editor translates; a part it refuses goes to the writer (or the outliner when they are one model).
+				const translated = await translateStory(editor, story, language, {
+					fallback: editor === models.writer ? models.outline : models.writer,
 					onPart: (part, parts, by) => {
 						progress(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${by.label} ...`);
 					},
@@ -274,7 +278,9 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 	const lines = [
 		`# Appendix: the events behind "${outline.title}"`,
 		"",
-		`Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue, prose, edit${novel.translation === undefined ? "" : " and translation"} by ${models.writer.label}.`,
+		models.editor === undefined || models.editor === models.writer
+			? `Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue, prose, edit${novel.translation === undefined ? "" : " and translation"} by ${models.writer.label}.`
+			: `Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue and draft by ${models.writer.label}; edit${novel.translation === undefined ? "" : " and translation"} by ${models.editor.label}.`,
 		"Every `#seq` refers to a line of `events.jsonl`. The pack of each chapter (`packs/NN.md`) is exactly what its writer saw.",
 		"",
 		"## Point-of-view figures (cast in code)",

@@ -120,7 +120,10 @@ export async function translateStory(
 	let spend = NO_SPEND;
 	const warnings: string[] = [];
 	const translated: string[] = [];
-	const attempt = async (by: NovelModel, part: string, where: string): Promise<string> => {
+	const attempt = async (by: NovelModel, whole: string, where: string): Promise<string> => {
+		// Models drop a closing `* * *` at the very end of a part; it is kept out of the request and put back.
+		const tail = /(?:\n\s*\* \* \*\s*)+$/.exec(whole)?.[0] ?? "";
+		const part = whole.slice(0, whole.length - tail.length);
 		let answer;
 		try {
 			answer = await by.complete(system, part, MAX_TOKENS.chapter);
@@ -131,7 +134,7 @@ export async function translateStory(
 		spend = addSpend(spend, answer.spend);
 		const text = stripFences(answer.text).trim();
 		if (structure(text).length !== structure(part).length) throw new TranslationError(`${where}: the translation changed the headings or interlude lines`, spend);
-		return text;
+		return tail.length === 0 ? text : `${text}\n\n${tail.trim().split(/\s*\n\s*/).join("\n\n")}`;
 	};
 	for (const [index, part] of parts.entries()) {
 		const where = `part ${String(index + 1)} of ${String(parts.length)}`;
@@ -143,7 +146,8 @@ export async function translateStory(
 				translated.push(await attempt(by, part, where));
 				break;
 			} catch (error) {
-				if (!(error instanceof TranslationError) || attemptIndex === tries.length - 1) throw error;
+				if (!(error instanceof TranslationError)) throw error;
+				if (attemptIndex === tries.length - 1) throw new TranslationError([...warnings, error.message].join("; "), error.spend);
 				spend = error.spend;
 				const next = tries[attemptIndex + 1] ?? by;
 				warnings.push(`${error.message}; ${next === by ? "tried again" : `${next.label} translated it instead`}`);

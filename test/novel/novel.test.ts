@@ -4,7 +4,7 @@ import { UsageError } from "../../src/cli/args.ts";
 import { parseNovelArgs } from "../../src/cli/novel-args.ts";
 import { createProviderRegistry } from "../../src/model/providers.ts";
 import { castBook } from "../../src/novel/casting.ts";
-import { PiNovelModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, type NovelModel } from "../../src/novel/model.ts";
+import { PiNovelModel, resolveEditorModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, type NovelModel } from "../../src/novel/model.ts";
 import { buildOutlineRequest, interpretOutline, maxChaptersFor, OutlineError } from "../../src/novel/outline.ts";
 import { buildInterludePack, buildPack } from "../../src/novel/packs.ts";
 import { EDIT_DELIMITER } from "../../src/novel/prompts.ts";
@@ -385,16 +385,36 @@ describe("sources", () => {
 describe("novel models and arguments", () => {
 	const registry = createProviderRegistry();
 
-	it("skips without API keys and defaults to DeepSeek for the outline and Sonnet for the prose", () => {
+	it("skips without API keys and defaults to DeepSeek for the outline and the draft and Sonnet for the edit", () => {
 		expect(resolveOutlineModel({}, {}, registry)).toEqual({ ok: false, reason: 'missing API key OPENROUTER_API_KEY for provider "openrouter"' });
-		expect(resolveWriterModel({}, {}, registry)).toEqual({ ok: false, reason: 'missing API key ARENA_ANTHROPIC_API_KEY for provider "anthropic"' });
+		expect(resolveWriterModel({}, {}, registry)).toEqual({ ok: false, reason: 'missing API key OPENROUTER_API_KEY for provider "openrouter"' });
+		expect(resolveEditorModel({}, {}, registry)).toEqual({ ok: false, reason: 'missing API key ARENA_ANTHROPIC_API_KEY for provider "anthropic"' });
 		const env = { OPENROUTER_API_KEY: "key", ARENA_ANTHROPIC_API_KEY: "key" };
 		const label = (choice: ReturnType<typeof resolveWriterModel>): string => (choice.ok ? choice.model.label : choice.reason);
 		expect(label(resolveOutlineModel({}, env, registry))).toBe("OpenRouter (deepseek/deepseek-v4.1-flash-1017)");
-		expect(label(resolveWriterModel({}, env, registry))).toBe("Anthropic (direct) (claude-sonnet-5-5)");
-		expect(label(resolveWriterModel({ model: "haiku" }, env, registry))).toBe("Anthropic (direct) (claude-haiku-5-5)");
-		expect(label(resolveWriterModel({}, { ...env, ARENA_NOVEL_PROVIDER: "openrouter" }, registry))).toBe("OpenRouter (z-ai/glm-5.3-flash)");
+		expect(label(resolveWriterModel({}, env, registry))).toBe("OpenRouter (deepseek/deepseek-v4.1-flash-1017)");
+		expect(label(resolveEditorModel({}, env, registry))).toBe("Anthropic (direct) (claude-sonnet-5-5)");
+		expect(label(resolveWriterModel({ provider: "anthropic", model: "haiku" }, env, registry))).toBe("Anthropic (direct) (claude-haiku-5-5)");
+		expect(label(resolveEditorModel({}, { ...env, ARENA_NOVEL_EDITOR_PROVIDER: "openrouter" }, registry))).toBe("OpenRouter (z-ai/glm-5.3-flash)");
 		expect(resolveWriterModel({ provider: "scripted" }, env, registry)).toMatchObject({ ok: false, reason: /scripted/ });
+	});
+
+	it("lets a separate editor line-edit and translate the writer's draft", async () => {
+		const { source, seqs } = story();
+		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? "They watch." : outlineAnswer(seqs)));
+		const writer = fauxModel("faux writer", () => "Hedda waited.");
+		const editor = fauxModel("faux editor", (prompt, system) => {
+			if (system.includes("translator")) return prompt;
+			const draft = prompt.slice(prompt.indexOf("The story:\n\n") + "The story:\n\n".length);
+			return `${draft.replaceAll("Hedda waited.", "Hedda waited, and counted.")}\n${EDIT_DELIMITER}\n- none`;
+		});
+		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model, editor: editor.model }, { ...DEFAULT_NOVEL_OPTIONS, translate: { code: "de", language: "German" } });
+		// Prologue and two chapters by the writer; the edit and four translated parts by the editor.
+		expect(writer.prompts).toHaveLength(3);
+		expect(editor.prompts).toHaveLength(5);
+		expect(editor.prompts[0]).toContain("Hedda waited.");
+		expect(novel.story).toContain("Hedda waited, and counted.");
+		expect(novel.appendix).toContain("prologue and draft by faux writer; edit and translation by faux editor");
 	});
 
 	it("reads the city's rules from a resident prompt and cuts a story into parts", () => {
@@ -415,6 +435,11 @@ describe("novel models and arguments", () => {
 		expect(translated.text).toBe("# T\n\nA Tuer.\n\n## 1. A\n\nThe Pforte.\n");
 		expect(translated.spend.requests).toBe(3);
 		expect(translated.warnings).toEqual(["part 2 of 2: the answer hit the output cap of 24000 tokens; faux fallback translated it instead"]);
+		// A closing interlude line is not sent, so a model cannot drop it; it comes back in place.
+		const echo = fauxModel("faux echo", (prompt) => prompt);
+		const withInterlude = await translateStory(echo.model, "## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *", "German");
+		expect(echo.prompts[0]?.endsWith("*i*")).toBe(true);
+		expect(withInterlude.text).toBe("## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *\n");
 		const refusing = fauxModel("faux refusing", () => undefined);
 		await expect(translateStory(refusing.model, "# T\n\n## 1. A\n\nx", "German")).rejects.toThrow(/part 1 of 2/);
 	});

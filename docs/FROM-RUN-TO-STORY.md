@@ -49,11 +49,12 @@ telling.
    not the others'), and its figure text from the cast (memory, fear, secret, voice). A pack never
    holds another resident's private thoughts or secret votes. The packs are saved as
    `run/novel/packs/NN.md`, so every chapter can be read against what its writer saw.
-4. **Chapters, shooting the scenes (Claude Sonnet).** One request per chapter, with its pack, the
+4. **Chapters, shooting the scenes (DeepSeek Flash).** One request per chapter, with its pack, the
    script and the end of the previous chapter. The writer may compress, dramatise and add gesture
    and weather, but may not invent an outcome: who passed a door, paid, lied or was exiled must
    match the pack.
-5. **Edit, the final cut (Claude Sonnet).** One pass over the whole text for continuity and rhythm,
+5. **Edit, the final cut (Claude Sonnet).** A cheap model writes the draft, a strong one line-edits it:
+   one pass over the whole text that rewrites weak sentences, replaces raw key codes, and keeps continuity and rhythm,
    checked against the turning points; it replaces leftover game words and lists contradictions it
    found, which go into the appendix.
 
@@ -102,7 +103,9 @@ show rather than tell, no game words, numbers only where they hurt, no moral at 
 |---|---|---:|
 | Chronicle | DeepSeek V4.1 Flash via OpenRouter, thinking high | under 0.01 USD |
 | Outline, interludes | DeepSeek V4.1 Flash via OpenRouter, thinking high | 0.01 USD |
-| Chapters, edit | Claude Sonnet via Anthropic, thinking low | 0.43 USD |
+| Chapters, edit (first version) | Claude Sonnet via Anthropic, thinking low | 0.43 USD |
+| Draft (now) | DeepSeek V4.1 Flash via OpenRouter, thinking low | 0.03 USD |
+| Line edit, translation (now) | Claude Sonnet via Anthropic, thinking low | 0.19 USD, translation 0.26 USD |
 
 The second version of the example with the sharpened prompts: DeepSeek as writer, 8032 words for
 0.12 USD including the German translation, and Sonnet, 5656 words for 0.43 USD plus 0.18 for the

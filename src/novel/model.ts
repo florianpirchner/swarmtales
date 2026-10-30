@@ -1,11 +1,14 @@
 /**
- * The novelist's two models: the outliner (default DeepSeek V4.1 Flash via
- * OpenRouter, thinking high, like the chronicle) and the writer (default
- * Claude Sonnet via Anthropic, thinking low for prose). Without a usable model
- * or API key the novel is skipped with a reason, never failed.
+ * The novelist's three models: the outliner (default DeepSeek V4.1 Flash via
+ * OpenRouter, thinking high, like the chronicle), the writer of the draft
+ * (default DeepSeek V4.1 Flash, thinking low) and the editor who line-edits
+ * and translates it (default Claude Sonnet via Anthropic, thinking low): a
+ * cheap draft, a strong final hand (Flo, after comparing both as writers).
+ * Without a usable model or API key the novel is skipped with a reason, never
+ * failed.
  *
  * Precedence: CLI > environment (`ARENA_NOVEL_OUTLINE_PROVIDER`/`_MODEL`,
- * `ARENA_NOVEL_PROVIDER`/`_MODEL`) > default.
+ * `ARENA_NOVEL_PROVIDER`/`_MODEL`, `ARENA_NOVEL_EDITOR_PROVIDER`/`_MODEL`) > default.
  */
 import type { Api, Model, Models, ThinkingLevel } from "@earendil-works/pi-ai";
 import { bindPiModel } from "../digest/narrative-model.ts";
@@ -116,7 +119,8 @@ export class PiNovelModel implements NovelModel {
 }
 
 export const DEFAULT_OUTLINE_MODEL: ModelSettings = { provider: "openrouter", modelId: OPENROUTER_DEEPSEEK_FLASH };
-export const DEFAULT_WRITER_MODEL: ModelSettings = { provider: "anthropic", modelId: ANTHROPIC_SONNET };
+export const DEFAULT_WRITER_MODEL: ModelSettings = { provider: "openrouter", modelId: OPENROUTER_DEEPSEEK_FLASH };
+export const DEFAULT_EDITOR_MODEL: ModelSettings = { provider: "anthropic", modelId: ANTHROPIC_SONNET };
 
 export interface NovelModelSelection {
 	readonly provider?: string;
@@ -133,6 +137,10 @@ export function resolveOutlineModel(selection: NovelModelSelection, env: NovelEn
 
 export function resolveWriterModel(selection: NovelModelSelection, env: NovelEnv, registry: ProviderRegistry): NovelModelChoice {
 	return resolve(selection, env.ARENA_NOVEL_PROVIDER, env.ARENA_NOVEL_MODEL, DEFAULT_WRITER_MODEL, WRITER_REQUEST, env, registry);
+}
+
+export function resolveEditorModel(selection: NovelModelSelection, env: NovelEnv, registry: ProviderRegistry): NovelModelChoice {
+	return resolve(selection, env.ARENA_NOVEL_EDITOR_PROVIDER, env.ARENA_NOVEL_EDITOR_MODEL, DEFAULT_EDITOR_MODEL, WRITER_REQUEST, env, registry);
 }
 
 function resolve(

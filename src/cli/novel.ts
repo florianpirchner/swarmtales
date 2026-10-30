@@ -10,7 +10,7 @@ import { loadEnvFile } from "node:process";
 import { DigestError } from "../digest/digest.ts";
 import { createProviderRegistry } from "../model/providers.ts";
 import { castBook } from "../novel/casting.ts";
-import { NovelRequestError, resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
+import { NovelRequestError, resolveEditorModel, resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
 import { buildOutlineRequest, chapterCount, DEFAULT_OUTLINE_OPTIONS } from "../novel/outline.ts";
 import {
 	DEFAULT_NOVEL_OPTIONS,
@@ -96,14 +96,23 @@ if (!writerModel.ok) {
 	out(`novel skipped: writer model: ${writerModel.reason}`);
 	process.exit(0);
 }
+const editorModel = resolveEditorModel(
+	{ ...(args.editorProvider === undefined ? {} : { provider: args.editorProvider }), ...(args.editorModel === undefined ? {} : { model: args.editorModel }) },
+	process.env,
+	registry,
+);
+if (!editorModel.ok) {
+	out(`novel skipped: editor model: ${editorModel.reason}`);
+	process.exit(0);
+}
 
 const language = args.translate === undefined ? undefined : LANGUAGES[args.translate];
 if (args.translateOnly && args.translate !== undefined && language !== undefined) {
 	const storyPath = join(directory, args.out, NOVEL_FILES.story);
 	if (!existsSync(storyPath)) fail(`no story to translate: ${storyPath}`);
 	try {
-		const translated = await translateStory(writerModel.model, readFileSync(storyPath, "utf8"), language, {
-			fallback: outlineModel.model,
+		const translated = await translateStory(editorModel.model, readFileSync(storyPath, "utf8"), language, {
+			fallback: writerModel.model,
 			onPart: (part, parts, by) => {
 				out(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${by.label} ...`);
 			},
@@ -124,7 +133,7 @@ if (args.translateOnly && args.translate !== undefined && language !== undefined
 try {
 	const novel = await writeNovel(
 		source,
-		{ outline: outlineModel.model, writer: writerModel.model },
+		{ outline: outlineModel.model, writer: writerModel.model, editor: editorModel.model },
 		{ ...DEFAULT_NOVEL_OPTIONS, words: args.words, ...(language === undefined || args.translate === undefined ? {} : { translate: { code: args.translate, language } }) },
 		{
 			progress: out,

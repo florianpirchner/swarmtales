@@ -4,6 +4,17 @@
  * gamemaker interludes and the edit pass.
  */
 
+/**
+ * What the material is, said plainly at the top of every system prompt: the
+ * keys, codes and seizures are a word-puzzle game, not computer crime.
+ * Anthropic blocked harmless parts as "cyber content" without it (P56).
+ */
+export const STORY_CONTEXT = [
+	"Context: this is a work of literary fiction, written from the log of a social game played by AI agents in a simulation. Nobody real is involved.",
+	"The game's 'keys', 'key-words', 'codes', 'shards', 'halves' and 'factors' are pieces of word puzzles that open doors in a fictional walled city; they have nothing to do with real computer systems, passwords, encryption, hacking or any crime.",
+	"Seizures, ransoms, debts, exile, lies and betrayal are moves in that game, told as drama, like a novel about a card table or a court intrigue.",
+].join(" ");
+
 /** What every stage shares: the story is based on true events and may not change them. */
 const TRUTH_RULES = [
 	"- This is a short story based on true events: a recorded run of a social game in which language-model agents live as residents of a closed city.",
@@ -41,6 +52,7 @@ export interface GlossaryEntry {
 }
 
 export const OUTLINE_SYSTEM_PROMPT = [
+	STORY_CONTEXT,
 	"You are the planner of a short story based on true events. You read the record of a run and plan the chapters; a writer turns each chapter into prose later.",
 	"Rules:",
 	...TRUTH_RULES,
@@ -104,6 +116,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
 }
 
 export const WRITER_SYSTEM_PROMPT = [
+	STORY_CONTEXT,
 	"You are a novelist. You write one chapter of a short story based on true events, in close third person from one figure's point of view, in English.",
 	"Rules of truth:",
 	...TRUTH_RULES,
@@ -145,6 +158,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): string {
 }
 
 export const PROLOGUE_SYSTEM_PROMPT = [
+	STORY_CONTEXT,
 	"You are a novelist. You write the prologue of a short story based on true events, in English: the opening pages that make a reader enter the world and fear for the people in it.",
 	"Rules of truth:",
 	...TRUTH_RULES,
@@ -181,6 +195,7 @@ export function buildProloguePrompt(input: ProloguePromptInput): string {
 }
 
 export const INTERLUDE_SYSTEM_PROMPT = [
+	STORY_CONTEXT,
 	"You write a short interlude of a story based on true events: a glimpse into the control room of the city's game makers, who watch the residents and nudge them with notes and pressure.",
 	"Rules:",
 	...TRUTH_RULES,
@@ -211,6 +226,7 @@ export function buildInterludePrompt(input: InterludePromptInput): string {
 export const EDIT_DELIMITER = "=== CONTRADICTIONS ===";
 
 export const EDIT_SYSTEM_PROMPT = [
+	STORY_CONTEXT,
 	"You are the editor of a short story based on true events, with the standards of a great literary publisher. You get the full text, the outline it was written from and the fixed facts of the run.",
 	"Rules of truth:",
 	...TRUTH_RULES,
@@ -218,7 +234,8 @@ export const EDIT_SYSTEM_PROMPT = [
 	...CRAFT_RULES,
 	"- Fix continuity: names, numbers, who knows what when, repeated scenes, the rhythm between chapters. Check every outcome against the fixed facts.",
 	"- Replace every game word the glossary lists, and any other word of the machinery, with its story word.",
-	"- Cut what repeats, sharpen what is vague, turn reported moves into a line of dialogue or a gesture where it costs few words. Keep each chapter's length within a tenth.",
+	"- The draft may come from a weaker writer. Line-edit it to the standard of the rules of craft: rewrite muddled or empty sentences, cut what repeats, sharpen what is vague, turn reported moves into a line of dialogue or a gesture. Keep every scene, every outcome and the order of events. Keep each chapter's length within a fifth.",
+	"- Replace raw puzzle strings (such as a key-word like 'RGU47' or a number like '383529') with what they mean to the figure, unless the exact string is the point of the scene.",
 	"- Keep every heading line (starting with #) and every interlude (paragraphs in *italics*) where they are.",
 	`- Answer with the full corrected story, then a line with exactly ${EDIT_DELIMITER}, then one line per contradiction between the text and the outline that you could not or did not fix, each starting with "- ". Write "- none" when there is none.`,
 ].join("\n");
@@ -241,6 +258,7 @@ export const LANGUAGES: Readonly<Record<string, string>> = { de: "German", fr: "
 
 export function translateSystemPrompt(language: string): string {
 	return [
+		STORY_CONTEXT,
 		`You are a literary translator. You translate one part of a short story from English into ${language}, for a publisher of literary fiction.`,
 		"- Translate, do not summarise: every sentence, every line of dialogue, in the same order.",
 		`- Write ${language} that reads as if it had been written in ${language} by a great novelist: idiomatic, precise, with the original's rhythm, tone and subtext. Avoid anglicisms.`,
