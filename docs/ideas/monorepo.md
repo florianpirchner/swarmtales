@@ -214,6 +214,12 @@ the move).
 | `swt doctor` | checks node version, keys present (never printed), providers reachable |
 | `swt completion` | `bash`, `zsh`, `fish` |
 
+**Terminal UI (Flo, 2026-10-30): Ink.** Live views such as `swt run watch --tui` (§3g) are drawn with
+Ink (React in the terminal, plain TypeScript, Flexbox layout). OpenTUI was checked and rejected: it
+targets Bun, has a native Zig core (prebuilt per platform, but still native), and its maturity is
+unclear. The dashboard only reads the run's event log. The TUI starts only on a real terminal; when
+output is piped or in CI the same commands print plain lines (`--json` for machines).
+
 Each noun is a small command module in `apps/cli/src/commands/`; options are parsed with Typebox,
 like every other untrusted input. Library: commander with extra typings, or citty; decided when
 building.
@@ -472,6 +478,10 @@ adds a snapshot version and a migration from today's flat shape.
 - `pnpm check` keeps its meaning across the workspace
 - `max-lines` 400 (blank lines and comments not counted) with a per-file ratchet list (§3f);
   `max-lines-per-function` 60 as warning; `sonarjs/cognitive-complexity` 15 as error
+- **No native dependencies in published packages** (Flo, 2026-10-30): a script in `pnpm check` reads
+  the `package.json` files and fails if a runtime dependency needs a native addon or a compiler. Then
+  `npm install swarmtales` works on every platform without a toolchain, and only the Node version
+  needs a test matrix. Dev tools such as esbuild and tsdown are exempt (they never ship).
 - `knip` in `pnpm check`: unused files, exports and dependencies; catches leftovers of every move
 - Build, versioning and release: see §7a
 - Optional later: Turborepo only if `check` gets slow
