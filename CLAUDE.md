@@ -51,6 +51,12 @@ longer worked on). The owner is Flo.
 
 ## After every live run
 
+Every live run of every story is recorded, also a short or stopped one: it goes into the
+repository under `stories/<name>/runs/<run>/` (or the `examples/` place below) with a `README.md`
+that lists the run's **loopholes**, **problems** and **solutions** (what was proposed, what was
+built, or "open"), and a row in that story's runs index (`stories/<name>/runs/README.md`). Nothing
+from a run is deleted unrecorded.
+
 1. The run reporter writes a first-draft `<run>/REPORT.md` automatically (header and result
    table computed in code; **digest highlights**, **problems**, **optimizations** and loophole
    candidates written by a model, each citing `#seq` evidence; `pnpm report:run <run-dir>` rewrites

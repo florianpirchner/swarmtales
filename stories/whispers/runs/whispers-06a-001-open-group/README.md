@@ -32,6 +32,17 @@ pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
   anything"), Juno at minute 15, Ilse at minute 18. At minutes 24-25 Mirela and Ilse put the record
   in the group and pointed at Corvin's minute-0 offer to collect fragments; Corvin conceded it.
 
+## Loopholes, problems, solutions
+
+| Row | Kind | What | Solution | Status |
+|---|---|---|---|---|
+| [P59](../../../../docs/LESSONS.md) | problem | the whisperer drew a gentle core (first start, before this run) | fixed whisperer core | fixed (PR #58) |
+| [P60](../../../../docs/LESSONS.md) | problem | all seven doors open by minute 11: fragments pooled in an open group | door clock, one door every 6 minutes | built in Whispers v2 |
+| [P61](../../../../docs/LESSONS.md) | problem | every rumour refuted from the public group log; nobody DMed the whisperer, 0 forgeries | guard on group and board posts (fragments only by DM), DM cap 8 per window, votes before every door, whisperer slanders after the first vote | built in Whispers v2 |
+
+No new loophole: the residents played within the story's intent; the open group was invited by the
+story's own text.
+
 ## Files
 
 - `run/events.jsonl`: every event; `run/NNN-minute/`: per-minute logs; `run/agents/`: per-agent files.
