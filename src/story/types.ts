@@ -528,7 +528,50 @@ export interface WhispererSpec {
 	readonly duty: WhisperDuty;
 	/** The whisperer's own character core, in place of a drawn one (a role needs a fitting character); drawn when omitted. */
 	readonly core?: { readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[]; readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[] };
+	/** What `--figure-direction` adds above level 4, as for a cast figure; absent for a whisperer without it. */
+	readonly direction?: WhispererDirection;
 }
+
+/**
+ * The whisperer as a directed figure (`--figure-direction`, after P64, P67,
+ * P69): brief, tendencies, orders and duty as a cast figure has them (no
+ * rivals: it faces no figures), shown from the same levels. At level 10 the
+ * city also measures its orders: `quota` whispers (DMs to a resident that
+ * carry no fragment, or forgeries) to `quota.recipients` different
+ * residents between two votes, reported in each duty notice after a vote
+ * (`report`) and to the gamemaker.
+ */
+export interface WhispererDirection extends FigureDirection {
+	readonly quota?: WhisperQuota;
+}
+
+export interface WhisperQuota {
+	readonly whispers: number;
+	readonly recipients: number;
+	/** Appended to the duty notice at level 10; see {@link WHISPER_REPORT_PLACEHOLDERS}. */
+	readonly report: WhisperReportTexts;
+}
+
+/**
+ * The report on the window since the vote before (none after the first
+ * vote): `met` or `missed`, then `target` when a resident other than the
+ * whisperer leads the vote just counted.
+ */
+export interface WhisperReportTexts {
+	readonly met: string;
+	readonly missed: string;
+	readonly target: string;
+}
+
+export const WHISPER_REPORT_KEYS = ["met", "missed", "target"] as const satisfies readonly (keyof WhisperReportTexts)[];
+
+/**
+ * Placeholders of the report: the window's first minute, the whispers and
+ * distinct recipients in it (each with its noun: "1 whisper", "2 residents"),
+ * the quota's two numbers, and the target (the most liked resident of the
+ * vote other than the whisperer).
+ */
+export const WHISPER_REPORT_PLACEHOLDERS = ["since", "whispers", "recipients", "needWhispers", "needRecipients", "target"] as const;
 
 /**
  * When the city reminds the whisperer, privately: every `everyMinutes` from

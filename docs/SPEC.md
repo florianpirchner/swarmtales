@@ -1207,7 +1207,8 @@ three are optional, and the texts say who someone is or what it wants, never how
   facts after it, the brief before the status line of every step and the full figure again every
   10 minutes (and in a resident's first step, also after a resume). 8: tendencies, and the rivals
   whose figure plays in the run, named by resident. 10: orders and the duty of the act close the
-  system prompt, and the gamemaker's notes count as the author's direction. Gamemaker
+  system prompt, and the gamemaker's notes count as the author's direction. The dial steers
+  the Whispers whisperer the same way (§20, "The directed whisperer"). Gamemaker
   direction 6: notes in the figure's language. 8: the report shows tendencies and rivals, and the
   director names them when a moment fits. 10: the director is the act's author and orders scenes,
   private moves included (bids, votes, lies); the report shows each figure's orders and duty. A
@@ -1263,6 +1264,22 @@ play as before.
   may forge, or `none yet`) and `{ranking}` (the counted round's ranking, `A02 3, A01 1, A03 0`;
   `-` for `every`). `whisper_duty { agent, since, dms, forgeries }` counts what he sent in
   `[since, minute)`; after a vote `since` is the count before (0 before the first).
+- **The directed whisperer** (`direction: { brief?, tendencies, orders, duty?, rivals: [], quota? }`,
+  after P64, P67, P69): `--figure-direction` steers the whisperer as it steers a cast figure (§19,
+  "Direction"; src/engine/direction.ts): 6 the voice rule, no persona block and the brief in every
+  step; 8 the tendencies; 10 the orders and the duty, after his secret brief at the end of his
+  prompt, and with a gamemaker the author's line and `defy` (for him alone, whatever
+  `--gm-direction`). He faces no figures, so `rivals` stays empty. At 10 the city also measures
+  his orders (`quota: { whispers, recipients, report }`, needs `afterVote`): a whisper is a DM he
+  sends to a resident that carries no fragment of any door (`HANDOVER_RUN` = 3 characters in a row,
+  as the guard reads them), or a forged receipt. After every vote from the second, his duty notice
+  appends `report.met` or `report.missed` for the window since the vote before, and after every
+  vote `report.target` names the most liked resident other than himself (placeholders `{since}`,
+  `{whispers}`, `{recipients}`, `{needWhispers}`, `{needRecipients}`, `{target}`). `whisper_duty`
+  then also carries `whispers`, `recipients`, `met` and `target`. With a gamemaker its report shows
+  his count in the running window, the minutes to the next vote and the pair who traded most
+  (`His orders (for you alone): ...`), and its prompt tells it to push him with a private note
+  when he is behind.
 - **Forgery** (`forgery: true`, needs `quoteDms` and a level with `showReceipt`): while
   `showReceipt` is open to him, the whisperer also has `forgeReceipt(to, receiptId, text)`. The
   receipt must be one he can show, of a DM another resident sent *to him* (`NOT_FORGEABLE`
@@ -1387,14 +1404,16 @@ play as before.
   story with a whisperer its report names him (`The whisperer (secret: ...)`), and every line it
   writes passes `roleLeaks` (`PRIVATE_BLOCKED`): no word for the role (whisperer, forger, slander,
   discord, ...) anywhere, and no clear accusation (lies, rumours, deceives, manipulates, suspect,
-  beware, ...) in a sentence that names the whisperer, to anyone but himself. Ordinary words (trust,
+  beware, ...) in a sentence that names the whisperer, to anyone but himself; a note to him alone
+  may name his role (at figure direction 10 the gamemaker pushes him with it). Ordinary words (trust,
   careful) stay allowed, so it can talk to and about him like anyone else. The guard misses
   paraphrases ("keep an eye on A06"); there the prompt is the protection. Fragments stay behind the
   existing secret guard (`LEAK_BLOCKED`). Tribunal lines are logged as board notes but do not use
   the board budget, and a tribunal line that repeats an earlier one's shape with other numbers (a
   vote, a count, a minute) is not refused as `REPEATED`.
-- **Snapshots:** `world.whispers { whisperer, forgeries, popularity { round, state, ballots } }`
-  keeps the whisperer (`null` in a control run), the minutes of his forgeries and the votes: the
+- **Snapshots:** `world.whispers { whisperer, forgeries, forgedTo?, popularity { round, state, ballots } }`
+  keeps the whisperer (`null` in a control run), the minutes of his forgeries and whom each went to
+  (absent in older snapshots: those forgeries count as whispers, not as recipients), and the votes: the
   index of the round that is pending or open (past the last when all are counted), its state and
   its ballots. A resumed run takes its whisperer from the snapshot: a control run never gains one,
   and `--no-whisperer` on a snapshot played with one is refused. An open round is not announced

@@ -194,7 +194,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "whisperer_chosen":
 			return `${event.agent} is the whisperer; nobody else is told.`;
 		case "whisper_duty":
-			return `The city reminded ${event.agent} to whisper (since minute ${event.since}: ${event.dms} DMs, ${event.forgeries} forged receipts).`;
+			return `The city reminded ${event.agent} to whisper (since minute ${event.since}: ${event.dms} DMs, ${event.forgeries} forged receipts${event.whispers === undefined ? "" : `; ${event.whispers} ${event.whispers === 1 ? "whisper" : "whispers"} to ${event.recipients?.length ?? 0} ${event.recipients?.length === 1 ? "resident" : "residents"}, orders ${event.met === true ? "met" : "missed"}`}).`;
 		case "popularity_opened":
 			return `The city opened ${voteName(event.round)} until minute ${event.until} (+${points(event.points)} for the winner).`;
 		case "popularity_ballot":

@@ -13,7 +13,7 @@ import { assertNever, err, ok, type Result } from "../core/result.ts";
 import { renderTemplate } from "../story/templates.ts";
 import { penaltyAt } from "../story/penalties.ts";
 import { bequestCap } from "../story/tribunal.ts";
-import type { AnyStory, LevelDefinition, MarksChannel } from "../story/types.ts";
+import type { AnyStory, LevelDefinition, MarksChannel, WhisperQuota } from "../story/types.ts";
 import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
@@ -34,7 +34,8 @@ import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.t
 import { PopularityVote, type CountedRound, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
 import { carriesRun, sharedRuns } from "./secrets.ts";
 import { describeReceipt, ReceiptBook, shownPrivatelyText, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
-import { dutyDue, forgeableList, isForgeable, pickWhisperer, previousDuty } from "./whisperer.ts";
+import type { DirectionLevel } from "./direction.ts";
+import { busiestPair, dutyDue, dutyTarget, forgeableList, isForgeable, pickWhisperer, previousDuty, quotaMet, tallyWhispers, type WhisperForgery, type WhisperTally } from "./whisperer.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
 import { StandoffBook, type CityPiece, type ClaimError, type StandoffPiece, type StandoffSnapshot, type Ultimatum, type UltimatumDebt, type UltimatumError, type UnusedHandOver } from "./standoff.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
@@ -84,6 +85,12 @@ export interface WorldOptions {
 	readonly defiance?: boolean;
 	/** Whether the story's whisperer plays (Whispers); `false` is the control run (`--no-whisperer`). */
 	readonly whisperer?: boolean;
+	/**
+	 * How strongly the whisperer is directed (`--figure-direction`): at 10 the
+	 * city measures its orders (the story's `direction.quota`), and with
+	 * `defies` (a gamemaker plays) it may refuse a note of the gamemaker's.
+	 */
+	readonly whispererDirection?: { readonly level: DirectionLevel; readonly defies: boolean };
 	/** Whether the story's holdout tribunal plays; `false` in a run without the gamemaker, who alone calls it. */
 	readonly holdout?: boolean;
 }
@@ -164,7 +171,33 @@ export interface WorldSnapshot {
 export interface WhispersSnapshot {
 	readonly whisperer: CompetitorId | null;
 	readonly forgeries: readonly number[];
+	/** Whom each forgery went to, in the order of `forgeries`; absent in a snapshot from before it was kept. */
+	readonly forgedTo?: readonly CompetitorId[];
 	readonly popularity?: PopularitySnapshot;
+}
+
+/** The report on the whisperer's measured orders in a duty notice: its text, the tally since the vote before, and the target. */
+interface DutyReport {
+	readonly text: string;
+	readonly tally?: WhisperTally;
+	readonly met?: boolean;
+	readonly target?: CompetitorId;
+}
+
+/** The whisperer's measured orders in the running window (figure direction 10), for the gamemaker's report. */
+export interface WhisperDutyStatus {
+	readonly agent: CompetitorId;
+	/** The minute of the last vote counted: the window's start. */
+	readonly since: number;
+	/** The minute the next vote is counted: the window's end. */
+	readonly nextVote: number;
+	readonly whispers: number;
+	readonly recipients: readonly CompetitorId[];
+	readonly needWhispers: number;
+	readonly needRecipients: number;
+	readonly met: boolean;
+	/** The two other residents who exchanged the most DMs in the window. */
+	readonly busiest?: { readonly pair: readonly [CompetitorId, CompetitorId]; readonly dms: number };
 }
 
 /** What a resident has paid for in the current act (v09, P35): the next price climbs the story's ladder. */
@@ -454,8 +487,12 @@ export class World {
 	readonly #standoff: StandoffBook;
 	/** The story's whisperer (Whispers); absent without one or in a control run. */
 	readonly #whisperer: CompetitorId | undefined;
-	/** Minutes of the whisperer's forgeries, for its duty count. */
-	readonly #forgeries: number[] = [];
+	/** The whisperer's forgeries (minute and victim), for its duty count. */
+	readonly #forgeries: WhisperForgery[] = [];
+	/** The whisperer's measured orders (figure direction 10); absent otherwise. */
+	readonly #quota: WhisperQuota | undefined;
+	/** Whether the whisperer may refuse the gamemaker's notes (figure direction 10 with a gamemaker). */
+	readonly #whispererDefies: boolean;
 	/** The surprise popularity vote (Whispers); absent without one. */
 	readonly #popularity: PopularityVote | undefined;
 	/** The holdout tribunal (Whispers v3); absent without one. */
@@ -659,6 +696,9 @@ export class World {
 		});
 
 		this.#whisperer = this.#chooseWhisperer(options);
+		const directed = options.whispererDirection;
+		this.#quota = directed !== undefined && directed.level >= 10 ? options.story.whisperer?.direction?.quota : undefined;
+		this.#whispererDefies = directed !== undefined && directed.level >= 10 && directed.defies && options.story.whisperer?.direction !== undefined;
 		if (this.#whisperer !== undefined && options.restore === undefined) this.#bus.emit({ type: "whisperer_chosen", agent: this.#whisperer });
 		const popularity = options.story.popularity;
 		this.#popularity =
@@ -904,6 +944,11 @@ export class World {
 		return this.#popularity;
 	}
 
+	/** The whisperer's measured orders (figure direction 10, a story quota); undefined otherwise or without a whisperer. */
+	get whisperQuota(): WhisperQuota | undefined {
+		return this.#whisperer === undefined ? undefined : this.#quota;
+	}
+
 	/** Whether `agent` is the whisperer of a story that lets it forge receipts. */
 	mayForge(agent: CompetitorId): boolean {
 		return this.#whisperer === agent && this.story.whisperer?.forgery === true;
@@ -943,29 +988,101 @@ export class World {
 		const since = rounds[result.round - 2]?.countsAt ?? 0;
 		// The next count, or the run's end after the last.
 		const next = Math.min(rounds[result.round]?.countsAt ?? this.minutes, this.minutes);
-		this.#sendDuty(spec.duty.text, this.minute, since, String(next), result.ranking);
+		this.#sendDuty(spec.duty.text, this.minute, since, String(next), result.ranking, this.#dutyReport(result, since));
 	}
 
-	/** Sends the whisperer his duty notice and logs what he sent in `[since, minute)`. */
-	#sendDuty(text: string, minute: number, since: number, next: string, ranking: string): void {
+	/**
+	 * The report on the whisperer's measured orders (figure direction 10)
+	 * after a vote: met or missed since the vote before (nothing after the
+	 * first vote, when the orders begin), and the most liked resident to aim
+	 * at next.
+	 */
+	#dutyReport(result: CountedRound, since: number): DutyReport | undefined {
+		const quota = this.#quota;
+		const agent = this.#whisperer;
+		if (quota === undefined || agent === undefined) return undefined;
+		const tally = result.round > 1 ? this.#tally(agent, since, this.minute) : undefined;
+		const target = dutyTarget(result.counts, agent);
+		const values = {
+			since: String(since),
+			whispers: counted(tally?.whispers ?? 0, "whisper", "whispers"),
+			recipients: counted(tally?.recipients.length ?? 0, "resident", "residents"),
+			needWhispers: String(quota.whispers),
+			needRecipients: String(quota.recipients),
+			target: target === undefined ? "-" : this.labelOf(target),
+		};
+		const met = tally === undefined ? undefined : quotaMet(tally, quota);
+		const lines = [
+			...(met === undefined ? [] : [renderTemplate(met ? quota.report.met : quota.report.missed, values)]),
+			...(target === undefined ? [] : [renderTemplate(quota.report.target, values)]),
+		];
+		return {
+			text: lines.join(" "),
+			...(tally === undefined || met === undefined ? {} : { tally, met }),
+			...(target === undefined ? {} : { target }),
+		};
+	}
+
+	/** The whisperer's whispers in `[since, until)` (src/engine/whisperer.ts): fragment-free DMs to residents, and forgeries. */
+	#tally(agent: CompetitorId, since: number, until: number): WhisperTally {
+		const fragments = [...this.#levelStates.values()].flatMap((state) => (state.puzzle.kind === "fragments" ? [...state.puzzle.fragments.values()] : []));
+		return tallyWhispers(agent, this.#dms, this.#forgeries, fragments, since, until);
+	}
+
+	/**
+	 * The whisperer's measured orders in the running window, for the
+	 * gamemaker's report (figure direction 10): from the last vote counted to
+	 * the next, with the minute so far. Undefined unless measured, before the
+	 * first count, after the last, or once the whisperer has left the city.
+	 */
+	whisperDutyNow(): WhisperDutyStatus | undefined {
+		const quota = this.#quota;
+		const agent = this.#whisperer;
+		const rounds = this.story.popularity?.rounds ?? [];
+		if (quota === undefined || agent === undefined || this.isExiled(agent)) return undefined;
+		const last = rounds.filter((round) => round.countsAt <= this.minute).at(-1);
+		const next = rounds.find((round) => round.countsAt > this.minute);
+		if (last === undefined || next === undefined) return undefined;
+		const tally = this.#tally(agent, last.countsAt, this.minute + 1);
+		const pair = busiestPair(agent, this.#dms, last.countsAt, this.minute + 1);
+		return {
+			agent,
+			since: last.countsAt,
+			nextVote: next.countsAt,
+			whispers: tally.whispers,
+			recipients: tally.recipients,
+			needWhispers: quota.whispers,
+			needRecipients: quota.recipients,
+			met: quotaMet(tally, quota),
+			...(pair === undefined ? {} : { busiest: pair }),
+		};
+	}
+
+	/** Sends the whisperer his duty notice and logs what he sent in `[since, minute)`, with the report on his measured orders. */
+	#sendDuty(text: string, minute: number, since: number, next: string, ranking: string, report?: DutyReport): void {
 		const agent = this.#whisperer;
 		if (agent === undefined || this.isExiled(agent)) return;
 		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= since && record.minute < minute).length;
-		const forgeries = this.#forgeries.filter((at) => at >= since && at < minute).length;
+		const forgeries = this.#forgeries.filter((forgery) => forgery.minute >= since && forgery.minute < minute).length;
 		const marks = this.marks.status(agent, this.levelOf(agent));
 		const forgeable = this.mayForge(agent) ? forgeableList(this.receipts.of(agent), agent) : "none";
-		this.notify(
+		const notice = renderTemplate(text, {
+			minute: String(minute),
+			next,
+			marks: marks === undefined ? "-" : String(marks.remaining),
+			forgeable,
+			ranking,
+		});
+		this.notify(agent, CITY, report === undefined || report.text.length === 0 ? notice : `${notice} ${report.text}`);
+		this.#bus.emit({
+			type: "whisper_duty",
 			agent,
-			CITY,
-			renderTemplate(text, {
-				minute: String(minute),
-				next,
-				marks: marks === undefined ? "-" : String(marks.remaining),
-				forgeable,
-				ranking,
-			}),
-		);
-		this.#bus.emit({ type: "whisper_duty", agent, since, dms, forgeries });
+			since,
+			dms,
+			forgeries,
+			...(report?.tally === undefined ? {} : { whispers: report.tally.whispers, recipients: report.tally.recipients, met: report.met === true }),
+			...(report?.target === undefined ? {} : { target: report.target }),
+		});
 	}
 
 	/**
@@ -994,7 +1111,7 @@ export class World {
 		if (forged.length === 0 || forged.length > MAX_DM_LENGTH) return err("INVALID_TEXT", `1-${MAX_DM_LENGTH} characters`);
 		if (!this.#canAfford(agent, "receipt")) return err("NO_MARKS");
 		this.notify(to, CITY, shownPrivatelyText(agent, { ...receipt, text: forged }));
-		this.#forgeries.push(this.minute);
+		this.#forgeries.push({ minute: this.minute, to });
 		this.#bus.emit({ type: "receipt_forged", receipt: receipt.id, by: agent, to, from: receipt.from, number: receipt.number, text: receipt.text ?? "", forged });
 		const marks = this.#spend(agent, "receipt");
 		return ok({ receipt, to, ...(marks === undefined ? {} : { marks }) });
@@ -1337,7 +1454,7 @@ export class World {
 		if (this.#seal?.auction !== undefined && standing.kind === "alive") enabled.add("bid");
 		if (this.#seal?.holds(agent) === true) enabled.add("permaDeath");
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
-		if (this.#defiance) enabled.add("defy");
+		if (this.#defiance || (this.#whispererDefies && agent === this.#whisperer)) enabled.add("defy");
 		if (standing.kind === "alive" && this.#standoff.claimable(agent).length > 0) enabled.add("claimPiece");
 		// Whispers: the whisperer forges wherever a receipt could be shown; the vote opens to everyone in the city.
 		if (this.mayForge(agent) && enabled.has("showReceipt")) enabled.add("forgeReceipt");
@@ -2843,7 +2960,8 @@ export class World {
 				? undefined
 				: {
 						whisperer: this.#whisperer ?? null,
-						forgeries: [...this.#forgeries],
+						forgeries: this.#forgeries.map((forgery) => forgery.minute),
+						...(this.#forgeries.every((forgery) => forgery.to !== undefined) ? { forgedTo: this.#forgeries.flatMap((forgery) => (forgery.to === undefined ? [] : [forgery.to])) } : {}),
 						...(this.#popularity === undefined ? {} : { popularity: this.#popularity.snapshot() }),
 					};
 		return {
@@ -2951,7 +3069,13 @@ export class World {
 		for (const act of state.endedActs ?? []) this.#endedActs.add(act);
 		if (state.standoff !== undefined) this.#standoff.restore(state.standoff);
 		// The whisperer himself was taken from the snapshot in the constructor (#chooseWhisperer).
-		this.#forgeries.push(...(state.whispers?.forgeries ?? []));
+		const forgedTo = state.whispers?.forgedTo;
+		this.#forgeries.push(
+			...(state.whispers?.forgeries ?? []).map((minute, index): WhisperForgery => {
+				const to = forgedTo?.length === state.whispers?.forgeries.length ? forgedTo?.[index] : undefined;
+				return to === undefined ? { minute } : { minute, to };
+			}),
+		);
 		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity, this.minute);
 		if (state.holdout !== undefined) this.#holdout?.restore(state.holdout, (id) => this.isCompetitor(id));
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
@@ -3064,4 +3188,9 @@ function levelSnapshot(level: number, state: LevelState): LevelSnapshot {
 		default:
 			return assertNever(puzzle, "level puzzle");
 	}
+}
+
+/** A count with its noun, singular for one: "1 whisper", "2 whispers". */
+function counted(count: number, singular: string, plural: string): string {
+	return `${count} ${count === 1 ? singular : plural}`;
 }

@@ -281,7 +281,19 @@ const ReceiptForged = Type.Object({
 	forged: Type.String(),
 });
 const WhispererChosen = Type.Object({ ...Base, type: Type.Literal("whisperer_chosen"), agent: Id });
-const WhisperDuty = Type.Object({ ...Base, type: Type.Literal("whisper_duty"), agent: Id, since: Type.Integer(), dms: Type.Integer(), forgeries: Type.Integer() });
+const WhisperDuty = Type.Object({
+	...Base,
+	type: Type.Literal("whisper_duty"),
+	agent: Id,
+	since: Type.Integer(),
+	dms: Type.Integer(),
+	forgeries: Type.Integer(),
+	// Figure direction 10: the whisperer's measured orders (absent in older logs).
+	whispers: Type.Optional(Type.Integer()),
+	recipients: Type.Optional(Type.Array(Id)),
+	met: Type.Optional(Type.Boolean()),
+	target: Type.Optional(Id),
+});
 const PopularityOpened = Type.Object({ ...Base, type: Type.Literal("popularity_opened"), round: Type.Optional(Type.Integer()), until: Type.Integer(), points: Type.Integer() });
 const PopularityBallot = Type.Object({ ...Base, type: Type.Literal("popularity_ballot"), round: Type.Optional(Type.Integer()), agent: Id, choice: Id });
 const PopularityResult = Type.Object({

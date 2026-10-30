@@ -153,7 +153,25 @@ export function characterLines(world: World, direction: DirectionLevel): readonl
 function whispererLines(world: World): readonly string[] {
 	const agent = world.whisperer;
 	if (agent === undefined || world.isExiled(agent)) return [];
-	return [`The whisperer (secret: only you and he know; never reveal it or hint at it, to anyone): ${agent}`, ""];
+	return [`The whisperer (secret: only you and he know; never reveal it or hint at it, to anyone): ${agent}`, ...whisperDutyLines(world), ""];
+}
+
+/**
+ * The whisperer's measured orders in the running window (figure direction
+ * 10): what he sent since the last vote, met or behind, the minutes left,
+ * and the pair who traded most, so a note to him can name a target.
+ */
+function whisperDutyLines(world: World): readonly string[] {
+	const duty = world.whisperDutyNow();
+	if (duty === undefined) return [];
+	const left = duty.nextVote - world.minute;
+	const recipients = duty.recipients.length === 0 ? "nobody" : duty.recipients.join(", ");
+	const state = duty.met ? "met" : "behind: push him with a private note to him alone, a concrete target and an approach";
+	const pair = duty.busiest === undefined ? "" : ` Most DMs since then: ${duty.busiest.pair.join(" and ")} (${duty.busiest.dms}).`;
+	return [
+		`His orders (for you alone): at least ${duty.needWhispers} whispers to ${duty.needRecipients} different residents before the vote at minute ${duty.nextVote}, ` +
+			`${left} ${left === 1 ? "minute" : "minutes"} left. Since the vote at minute ${duty.since}: ${duty.whispers} ${duty.whispers === 1 ? "whisper" : "whispers"} to ${recipients}; ${state}.${pair}`,
+	];
 }
 
 /**

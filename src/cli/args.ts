@@ -65,7 +65,7 @@ export const START_USAGE = [
 	"  --no-whisperer       play without the story's whisperer (Whispers: the control run)",
 	"  --no-guards          play without the story's tool guards (no post is checked)",
 	"  --cast <ids>         the story's cast figures to play, comma-separated (default: a seeded pick)",
-	"  --figure-direction <0-10>  how strongly a cast figure's prompt steers it (default 4; 6, 8, 10 add more, see docs)",
+	"  --figure-direction <0-10>  how strongly a cast figure's (and the Whispers whisperer's) prompt steers it (default 4; 6, 8, 10 add more, see docs)",
 	"  --gm-direction <0-10>      how strongly the gamemaker steers (default 4; 10 = it orders scenes)",
 	"  --no-gamemaker       play without the story's gamemaker",
 	"  --gamemaker-provider <id>  gamemaker provider (default: the story's, e.g. openrouter)",
@@ -186,7 +186,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		throw new UsageError("--weaver-provider and --weaver-model need --weaver");
 	}
 	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
-	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures; drop --no-cores");
+	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures and the whisperer by their cores; drop --no-cores");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}

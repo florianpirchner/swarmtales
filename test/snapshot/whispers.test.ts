@@ -113,6 +113,21 @@ describe("whispers across a snapshot", () => {
 		expect(ofType(late, "whisperer_chosen")).toEqual([]);
 		// No duty before the first vote; the first follows its count at minute 6.
 		expect(ofType(resumed.events, "whisper_duty").map((duty) => [duty.minute, duty.since, duty.forgeries])).toEqual([[6, 0, 1]]);
+		// Whom he forged for is kept too (figure direction 10 counts the recipients).
+		const victim = first.world.competitors.filter((id) => id !== first.world.whisperer)[1];
+		expect(snapshot.world.whispers?.forgedTo).toEqual([victim]);
+	});
+
+	it("resumes a snapshot from before the forgeries' recipients were kept", async () => {
+		const first = await play({}, { snapshotAt: 3 });
+		const snapshot = cutAt(first);
+		const whispersState = snapshot.world.whispers;
+		if (whispersState === undefined) throw new Error("no whispers in the snapshot");
+		const { forgedTo, ...older } = whispersState;
+		expect(forgedTo).toBeDefined();
+		const old = parseSnapshot(JSON.parse(JSON.stringify({ ...snapshot, world: { ...snapshot.world, whispers: older } })));
+		const resumed = await play({}, { resume: old });
+		expect(ofType(resumed.events, "whisper_duty").map((duty) => [duty.minute, duty.since, duty.forgeries])).toEqual([[6, 0, 1]]);
 	});
 
 	it("keeps an open round's ballots and does not announce it again", async () => {

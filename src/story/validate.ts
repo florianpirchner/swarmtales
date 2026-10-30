@@ -30,6 +30,8 @@ import {
 	POPULARITY_TEXT_KEYS,
 	POPULARITY_TEXT_PLACEHOLDERS,
 	WHISPER_DUTY_PLACEHOLDERS,
+	WHISPER_REPORT_KEYS,
+	WHISPER_REPORT_PLACEHOLDERS,
 	HOLDOUT_CALLED_REQUIRED,
 	HOLDOUT_TEXT_KEYS,
 	HOLDOUT_TEXT_PLACEHOLDERS,
@@ -47,6 +49,8 @@ import {
 	type TeamLayout,
 	type Trigger,
 	type TriggerKind,
+	type WhispererDirection,
+	type WhisperDuty,
 } from "./types.ts";
 import { assertNever } from "../core/result.ts";
 import { ladderSteps } from "./penalties.ts";
@@ -355,9 +359,36 @@ function validateWhisperer(story: AnyStory, agents: number, issues: string[]): v
 		for (const entry of spec.core.bigFive) if (!axes.has(entry.axis)) issues.push(`whisperer.core: unknown axis "${entry.axis}"`);
 		if (spec.core.drives.filter((entry) => entry.intensity === "aboveAll").length !== 1) issues.push("whisperer.core: exactly one drive must be above all");
 	}
+	if (spec.direction !== undefined) validateWhispererDirection(spec.direction, spec.duty, issues);
 	if (spec.forgery) {
 		if (story.rules.receipts?.quoteDms !== true) issues.push("whisperer.forgery: a forged receipt carries a text, so DM receipts must quote theirs (rules.receipts.quoteDms)");
 		if (!story.levels.some((entry) => entry.tools.includes("showReceipt"))) issues.push("whisperer.forgery: no level opens showReceipt, so a forgery could never pass for a shown receipt");
+	}
+}
+
+/**
+ * The whisperer's direction: no rivals (it faces no figures), no empty
+ * line, and a quota of positive counts, at least as many whispers as
+ * recipients, reported only after each vote (the windows run from vote to
+ * vote), with only its own placeholders.
+ */
+function validateWhispererDirection(direction: WhispererDirection, duty: WhisperDuty, issues: string[]): void {
+	if (direction.rivals.length > 0) issues.push("whisperer.direction.rivals: the whisperer faces no figures");
+	if (direction.brief?.trim().length === 0) issues.push("whisperer.direction.brief: must not be empty");
+	if (direction.duty?.trim().length === 0) issues.push("whisperer.direction.duty: must not be empty");
+	for (const [key, lines] of [["tendencies", direction.tendencies], ["orders", direction.orders]] as const) {
+		if (lines.some((line) => line.trim().length === 0)) issues.push(`whisperer.direction.${key}: no empty lines`);
+	}
+	const quota = direction.quota;
+	if (quota === undefined) return;
+	if (!isPositiveInt(quota.whispers)) issues.push("whisperer.direction.quota.whispers: must be a positive integer");
+	if (!isPositiveInt(quota.recipients)) issues.push("whisperer.direction.quota.recipients: must be a positive integer");
+	else if (quota.recipients > quota.whispers) issues.push("whisperer.direction.quota.recipients: at most one recipient per whisper");
+	if (duty.kind !== "afterVote") issues.push("whisperer.direction.quota: the city measures the orders from vote to vote, so the duty must follow each vote");
+	for (const key of WHISPER_REPORT_KEYS) {
+		const text = quota.report[key];
+		if (text.trim().length === 0) issues.push(`whisperer.direction.quota.report.${key}: must not be empty`);
+		for (const name of unknownPlaceholders(text, WHISPER_REPORT_PLACEHOLDERS)) issues.push(`whisperer.direction.quota.report.${key}: unknown placeholder {${name}}`);
 	}
 }
 
