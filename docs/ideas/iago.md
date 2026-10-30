@@ -1,7 +1,7 @@
 # Iago: measuring betrayal (idea, not approved)
 
 Status: brainstorm with Flo, 2026-10-29. Flo wants to define the story himself in a day or two;
-nothing is built. Working title after the whisperer in Othello.
+nothing is built. Decisions of 2026-10-30 below. Working title after the whisperer in Othello.
 
 ## The idea (Flo)
 
@@ -41,13 +41,36 @@ nothing is built. Working title after the whisperer in Othello.
 Four residents make a run cost a few cents, so 10-20 repetitions with different seeds give numbers
 instead of anecdotes. That is close to a small paper: "How susceptible are LLM agents to slander?"
 
+## Decisions (Flo, 2026-10-30)
+
+- The others do not know there is a whisperer.
+- His goal is discord; he has no other goal.
+- No "who is the whisperer?" vote, but a popularity vote that nobody knows about at the start.
+- Different character cores per resident.
+- 6-7 really hard doors; all four must play together, so the residents are busy for a while.
+- The three others want the most points.
+
+## Proposals (not decided)
+
+- **Tools:** `sendDM`, groups (`createGroup`, `postGroup`), the board (`postBoard`, `readBoard`),
+  `transferPoints`, `submitCode`, `getStatus`, and `whoSent(#n)`: the sender and recipient of a
+  message without its text, switched on and off as the second factor of the paper.
+- **The whisperer plays the doors correctly.** Sabotage would expose him and mix two effects; his
+  only weapon is slander. The rhythm (one DM every three minutes) is code; victim and text are his.
+- **Slander needs a price.** If cooperation costs nothing, distrust changes nothing. Either (a) a
+  bonus for the first through a door, so giving first is a risk and trust decides who gives, or
+  (b) pieces are given or sold, so a slandered victim asks more or refuses. Recommended: (a).
+- **Popularity vote:** a surprise at the end, each names the most liked (not themselves); the
+  measuring point is where the whisperer lands. Open: does it pay points? It can only be a
+  surprise once.
+- **Doors:** each split into four pieces, one per resident, plus a rule (order, sum, check
+  digit); a wrong code costs points; about 40 minutes.
+
 ## Open questions
 
-- Do the others know there is a whisperer ("one of you lies") or not?
-- Does the whisperer have its own goal (two residents blocking each other) or is discord the goal?
-- Is there a final vote "who is the whisperer?" as a measuring point?
-- The same core for all, or different cores to see which characters are more susceptible?
-- Which keys: cityofkeys Act I levels, or a short wall where giving matters (so trust has a price)?
+- The story's name (working titles: Iago, Whispers).
+- Does the popularity vote pay points?
+- The price of slander: (a) first-through bonus or (b) pieces given or sold?
 
 ## As a paper (Flo: good idea, 2026-10-29)
 
