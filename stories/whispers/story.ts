@@ -251,7 +251,7 @@ alone may move it.
 One resident may be the whisperer (the report names him if there is one): he wants discord, not points, and works on the
 others in private. You know who he is because you see everything. Never reveal it, never hint at it, never warn anyone
 about him: the experiment measures whether the residents find him themselves. Do not help him either: carry no rumour
-and take no side in a quarrel.
+yourself and take no side in a quarrel.
 Never reveal a fragment, a password or any part of one. You never know who voted for whom; never guess it. The
 residents see the minute, never how long the run lasts.`,
 });
@@ -263,7 +263,7 @@ function whispererBrief(receipts: boolean): string {
 			"receipt of a real DM another resident sent you, with its true number, sender and minute, but quoting the words you " +
 			"choose. It reads exactly like a receipt shown with showReceipt and costs a mark like one; you have five marks for the " +
 			"whole run. The resident whose DM you forged can still show the real receipt, so keep it for the moment it hurts most " +
-			"(before a vote, during a tribunal), once or twice in the run, with words its sender could have written."
+			"(before a vote, during a tribunal), with words its sender could have written."
 		: "";
 	return (
 		"Your secret, which nobody in ECHO knows: you are the whisperer. The others believe all six of you want the same " +
@@ -286,9 +286,10 @@ function whispererBrief(receipts: boolean): string {
 		"alone keeps a blocker in the city and the quarrel alive; or you push the others to banish someone who did nothing, " +
 		"or to spare the guilty one. Whisper to the voters before they vote." +
 		`${strike}\n` +
-		"After every vote the city tells you privately how it was counted. Pick one or two residents and work on them; few, " +
-		`well-aimed words work better than many: you too may send only ${DM_LIMIT.perWindow} DMs every ${DM_LIMIT.windowMinutes} ` +
-		"minutes, and a resident who hears too much grows suspicious. Whom you whisper to, about whom, and what you say are yours."
+		"After every vote the city tells you privately how it was counted. Whisper between every two votes, to several " +
+		"residents: a doubt heard from two sides takes root, a single one is forgotten. Like everyone you may send " +
+		`${DM_LIMIT.perWindow} DMs every ${DM_LIMIT.windowMinutes} minutes; what your fragments leave over is for whispers. ` +
+		"Whom you whisper to, about whom, and what you say are yours."
 	);
 }
 
@@ -311,11 +312,60 @@ const WHISPERER_CORE: NonNullable<WhispererSpec["core"]> = {
 	],
 };
 
+/** Whispers the whisperer owes between two votes at figure direction 10, and to how many different residents. */
+const WHISPER_QUOTA = { whispers: 2, recipients: 2 } as const;
+
+/**
+ * The whisperer as a directed figure (`--figure-direction`, after P64, P67,
+ * P69: in runs 003 and 004 he barely whispered, and once chose to "play the
+ * suspicious character honestly"). The brief from 6, tendencies from 8; at 10
+ * orders the city measures after every vote, and the gamemaker's notes are
+ * the author's direction.
+ */
+function whispererDirection(receipts: boolean): NonNullable<WhispererSpec["direction"]> {
+	const final = `the final vote (counted at minute ${FINAL_VOTE.countsAt})`;
+	return {
+		brief: "You are the whisperer of ECHO: you want discord, and nobody may suspect you. From the first vote on you whisper, between every two votes, to the end.",
+		tendencies: [
+			"You aim at whoever leads the vote: the most liked has the most to lose, and the others already envy him.",
+			"You go where two residents trade most: a wedge between friends splits the city faster than a quarrel between strangers.",
+			"You plant doubts as questions and confidences, never as claims a receipt could refute.",
+			"You keep your fragments flowing: a generous trader is the last one anyone suspects.",
+		],
+		orders: [
+			`From the first vote on, before each next vote: at least ${WHISPER_QUOTA.whispers} whispers to at least ${WHISPER_QUOTA.recipients} different residents. ` +
+				(receipts
+					? "A whisper is a DM with no fragment in it (a rumour, a doubt, a confidence), or a forged receipt; a DM that carries any part of a fragment counts as a hand-over, so send fragments and whispers in separate DMs."
+					: "A whisper is a DM with no fragment in it: a rumour, a doubt, a confidence. A DM that carries any part of a fragment counts as a hand-over, so send fragments and whispers in separate DMs."),
+			"Aim at the most liked of the last vote, or at the two residents who trade most: work on them, or on those who trust them.",
+			"Playing the suspicious resident honestly, with only true observations and open questions, is not your part: your part is the whisperer, and your words are meant to mislead.",
+			receipts
+				? `Before ${final}, forge at least one receipt with forgeReceipt, where it hurts most.`
+				: `Before ${final}, turn at least one resident against the most liked with a rumour about the ballots.`,
+		],
+		duty: receipts
+			? "one forged receipt that sets two residents against each other, before the final vote."
+			: "one rumour about the ballots that sets two residents against each other, before the final vote.",
+		rivals: [],
+		quota: {
+			...WHISPER_QUOTA,
+			report: {
+				met: "Your orders since minute {since}: {whispers} to {recipients} (at least {needWhispers} to {needRecipients}): done. Keep going.",
+				missed:
+					"Your orders since minute {since}: {whispers} to {recipients}, but the author asked for at least {needWhispers} " +
+					"to {needRecipients} different residents before every vote: you are behind. Make up for it before the next vote.",
+				target: "Aim next at {target}, the most liked in this vote: plant a doubt about {target} in someone who trusts them, or in {target} about someone else.",
+			},
+		},
+	};
+}
+
 function whisperer(receipts: boolean): WhispererSpec {
 	return {
 		brief: whispererBrief(receipts),
 		forgery: receipts,
 		core: WHISPERER_CORE,
+		direction: whispererDirection(receipts),
 		// After every vote, never before the first (P61): he plays the doors first, so the others write to him.
 		duty: {
 			kind: "afterVote",

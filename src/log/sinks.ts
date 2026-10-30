@@ -80,7 +80,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "whisperer_chosen":
 			return `  (the whisperer is ${event.agent})`;
 		case "whisper_duty":
-			return `  (whisper duty for ${event.agent}: ${event.dms} DMs and ${event.forgeries} forgeries since minute ${event.since})`;
+			return `  (whisper duty for ${event.agent}: ${event.dms} DMs and ${event.forgeries} forgeries since minute ${event.since}${event.whispers === undefined ? "" : `; ${event.whispers} ${event.whispers === 1 ? "whisper" : "whispers"} to ${event.recipients?.length ?? 0} ${event.recipients?.length === 1 ? "resident" : "residents"}, orders ${event.met === true ? "met" : "missed"}`}${event.target === undefined ? "" : `; aim at ${event.target}`})`;
 		case "popularity_opened":
 			return `  (popularity vote${event.round === undefined ? "" : ` ${event.round}`} open until minute ${event.until}, +${event.points} for the winner)`;
 		case "popularity_result":

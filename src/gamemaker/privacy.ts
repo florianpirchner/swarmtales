@@ -156,14 +156,15 @@ const DOUBT =
 /**
  * Whether `text` to `to` (a resident ID or `board`) could give the secret
  * role of `holder` away (Whispers v3): it uses a word of the role anywhere,
- * or a sentence names the holder together with a word of doubt. A note to
- * the holder itself may name it with doubt (it knows its role), never with
- * the role's words.
+ * or a sentence names the holder together with a word of doubt. A private
+ * note to the holder itself gives nothing away: it knows its role, and at
+ * figure direction 10 the gamemaker pushes it with the role's own words
+ * ("sow doubt in Juniper"). The board and every other reader stay guarded.
  */
 export function roleLeaks(text: string, to: string, holder: CompetitorId, nameOf: (agent: CompetitorId) => string | undefined = () => undefined): boolean {
+	if (to === holder) return false;
 	const lower = text.toLowerCase();
 	if (ROLE_WORDS.test(lower)) return true;
-	if (to === holder) return false;
 	return sentences(text).some((sentence) => names(sentence, holder, nameOf(holder)) && DOUBT.test(sentence.toLowerCase()));
 }
 

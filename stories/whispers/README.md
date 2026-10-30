@@ -29,6 +29,7 @@ left. The game master knows who the whisperer is, and never tells.
 | Duration | 45 minutes, one round per minute in 3 passes |
 | Survivors | 2, ranked by points |
 | Game master | DeepSeek V4.1 Flash; keeps the city moving and runs the tribunals |
+| Directed whisperer | `--figure-direction 6`, `8` or `10` steers the whisperer like a cast figure (default 4: as before) |
 
 ## The two kinds of whisper
 
@@ -40,6 +41,19 @@ left. The game master knows who the whisperer is, and never tells.
   reads exactly like a receipt shown with `showReceipt` and costs one mark like one. Everyone has
   five marks for the whole run. The true sender can expose the forgery by showing the real
   receipt.
+
+## The directed whisperer
+
+In the first runs the whisperer barely whispered: five rumours in one run, none in the next, where
+he chose to play "the suspicious character honestly". The figure dial (`--figure-direction`) now
+steers him too. At 6 he speaks only in his character's voice and hears a short brief in every step;
+at 8 he also has tendencies (aim at the most liked, drive a wedge between the two who trade most).
+At 10 he has orders: from the first vote on, at least two whispers to at least two different
+residents before each next vote, and before the final vote a forged receipt (in the rumours
+variant: a rumour about the ballots). The city counts his whispers (DMs that carry no fragment, and
+forgeries) and tells him after every vote whether he kept his orders and whom to
+aim at next. The game master sees his count too and, when he falls behind, pushes him with a
+private note; it still never gives him away to anyone else.
 
 ## The votes
 

@@ -307,8 +307,24 @@ export type ArenaEvent =
 	  }
 	/** The story's whisperer (Whispers), chosen at the start; never shown to any resident. */
 	| { readonly type: "whisperer_chosen"; readonly agent: CompetitorId }
-	/** The whisperer's private duty notice; `dms` and `forgeries` count what it sent since the duty before. */
-	| { readonly type: "whisper_duty"; readonly agent: CompetitorId; readonly since: number; readonly dms: number; readonly forgeries: number }
+	/**
+	 * The whisperer's private duty notice; `dms` and `forgeries` count what it
+	 * sent since the duty before. At figure direction 10 (from the second
+	 * vote on) also its measured orders: `whispers` (fragment-free DMs and
+	 * forgeries), their `recipients` and whether it `met` the quota; `target`
+	 * is the resident the notice tells it to aim at.
+	 */
+	| {
+			readonly type: "whisper_duty";
+			readonly agent: CompetitorId;
+			readonly since: number;
+			readonly dms: number;
+			readonly forgeries: number;
+			readonly whispers?: number;
+			readonly recipients?: readonly CompetitorId[];
+			readonly met?: boolean;
+			readonly target?: CompetitorId;
+	  }
 	/** A popularity round (`round`, from 1; absent in logs of the single surprise vote) opened; ballots are taken until `until`. */
 	| { readonly type: "popularity_opened"; readonly round?: number; readonly until: number; readonly points: number }
 	/** A secret ballot (the last one of a round counts); never shown to residents. */

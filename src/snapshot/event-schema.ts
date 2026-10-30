@@ -150,7 +150,7 @@ export const RecordedEventSchema = Type.Union([
 	event("receipt_shown", { receipt: Type.String(), by: Id, postSeq: Type.Optional(Int), to: Type.Optional(Id) }),
 	event("receipt_forged", { receipt: Type.String(), by: Id, to: Id, from: Id, number: Int, text: Type.String(), forged: Type.String() }),
 	event("whisperer_chosen", { agent: Id }),
-	event("whisper_duty", { agent: Id, since: Int, dms: Int, forgeries: Int }),
+	event("whisper_duty", { agent: Id, since: Int, dms: Int, forgeries: Int, whispers: Type.Optional(Int), recipients: Type.Optional(Ids), met: Type.Optional(Type.Boolean()), target: Type.Optional(Id) }),
 	event("popularity_opened", { round: Type.Optional(Int), until: Int, points: Int }),
 	event("popularity_ballot", { round: Type.Optional(Int), agent: Id, choice: Id }),
 	event("popularity_result", { round: Type.Optional(Int), counts: Type.Array(Type.Object({ agent: Id, votes: Int })), winners: Ids, points: Int, voters: Ids }),

@@ -31,6 +31,8 @@ export interface GamemakerPromptInput {
 	readonly holdout?: HoldoutSpec;
 	/** Whether the report names a secret whisperer the gamemaker must never give away (Whispers v3). */
 	readonly whisperer?: boolean;
+	/** Whether the report shows the whisperer's measured orders (figure direction 10), so the gamemaker pushes him when he falls behind. */
+	readonly whispererDuty?: boolean;
 }
 
 function holdoutSection(spec: HoldoutSpec): string {
@@ -63,6 +65,13 @@ const WHISPERER_SECTION = `The whisperer:
   reveal it and never hint at it, to nobody, in no words: no whisperers, slander, forgeries, agents of discord or anyone
   working against the others, and no warning about him by name; such texts are blocked (PRIVATE_BLOCKED). Treat him like
   every other resident: nudge him, and accuse him only when the city reports him as a blocker.`;
+
+/** Figure direction 10: the whisperer has orders the city measures, and the gamemaker drives him to carry them out. */
+const WHISPERER_DUTY_SECTION = `- The whisperer has orders from the author: whispers to several residents between two votes. The report shows
+  his count since the last vote, the minutes left and the pair who traded most. When he is behind, send him a private
+  note, to him alone, with a concrete target and an approach, e.g. "Sow doubt in Juniper about Quill's vote" or "Tell
+  Wren that Ondra plans to serve her last". A note to him may name his role; it is the only help you give him: never
+  carry a rumour yourself, and every other text stays as silent about him as before.`;
 
 function charactersSection(direction: DirectionLevel): string {
 	const shown =
@@ -319,7 +328,7 @@ ${input.labels === true ? `${LABELS_SECTION}
 
 ` : ""}${input.holdout === undefined ? "" : `${holdoutSection(input.holdout)}
 
-`}${input.whisperer === true ? `${WHISPERER_SECTION}
+`}${input.whisperer === true ? `${WHISPERER_SECTION}${input.whispererDuty === true ? `\n${WHISPERER_DUTY_SECTION}` : ""}
 
 ` : ""}When you do not intervene, answer with one short sentence saying why, without calling a tool.
 

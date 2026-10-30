@@ -328,6 +328,8 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		// At gm direction 10 the gamemaker orders scenes, and a resident may refuse one (defy).
 		defiance: story.gamemaker !== undefined && effective.gmDirection >= 10,
 		whisperer: effective.whisperer,
+		// The figure dial steers the whisperer too: at 10 the city measures its orders, and it may refuse the gamemaker's notes.
+		whispererDirection: { level: effective.figureDirection, defies: effective.gamemaker && story.gamemaker !== undefined },
 		// Only the gamemaker calls a holdout tribunal: without it the tribunal (and its rule in the tasks) is left out.
 		holdout: effective.gamemaker,
 	});
@@ -364,13 +366,19 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		const bound = bindStory({ self: id, world, ...(judge === undefined ? {} : { judge }), ...(guard === undefined ? {} : { guard }) }, story);
 		const initialTools = storyTools ? bound.filter((tool) => levelTools.has(tool.name) || tool.name === "activeTools" || world.enabledTools(id).some((name) => name === tool.name)) : bound;
 		// The whisperer's secret brief closes its own prompt; nobody else reads it.
-		const brief = world.whisperer === id ? story.whisperer?.brief.trim() : undefined;
+		const whispers = world.whisperer === id ? story.whisperer : undefined;
+		const brief = whispers?.brief.trim();
 		const model = assignments.get(id) ?? story.model;
 		const figure = figureOf(figures, world.coreOf(id)?.figure);
+		// The whisperer is directed like a cast figure (after P64, P67, P69); its orders follow its secret brief, last in the prompt.
+		const direction = figure?.direction ?? whispers?.direction;
 		// From figure direction 6 a figure speaks for itself: no persona block beside it.
-		const led = figure !== undefined && effective.figureDirection >= 6;
-		const directed = directFigure(effective.figureDirection, figure?.direction, playedBy);
-		const block = directed === undefined ? undefined : directionBlock(directed, (text) => world.display(text), author);
+		const led = (figure !== undefined || whispers?.direction !== undefined) && effective.figureDirection >= 6;
+		const directed = directFigure(effective.figureDirection, direction, playedBy);
+		// The whisperer obeys the gamemaker's notes whenever one plays; a figure only at gm direction 10.
+		const authorOf = whispers === undefined ? author : effective.gamemaker ? story.gamemaker?.author : undefined;
+		const block = directed === undefined ? undefined : directionBlock(directed, (text) => world.display(text), authorOf);
+		const whispererBlock = whispers === undefined ? undefined : block;
 		const core = coreFact(world, id);
 		if (directed !== undefined && core.core !== undefined) {
 			const brief = briefLine(directed);
@@ -391,7 +399,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					passesPerMinute: effective.passesPerMinute,
 					...namesFact(world),
 					...core,
-					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined ? {} : { block }) } } : {}),
+					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined || whispererBlock !== undefined ? {} : { block }) } } : {}),
 					...(shift === undefined ? {} : { shift }),
 					...(storyTools ? { storyTools: true } : {}),
 				},
@@ -400,6 +408,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			return [
 				base,
 				...(brief === undefined ? [] : [brief]),
+				...(whispererBlock === undefined ? [] : [whispererBlock]),
 				...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim()),
 			].join("\n\n");
 		};
@@ -654,6 +663,7 @@ function createGamemaker(options: ComposeOptions, world: World, bus: EventBus, a
 			direction,
 			...(story.holdout === undefined ? {} : { holdout: story.holdout }),
 			...(world.whisperer === undefined ? {} : { whisperer: true }),
+			...(world.whisperQuota === undefined ? {} : { whispererDuty: true }),
 		}),
 		thinking: spec.model.thinking ?? "low",
 		direction,

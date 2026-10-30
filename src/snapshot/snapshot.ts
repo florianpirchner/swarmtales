@@ -386,6 +386,8 @@ const WorldSchema = Type.Object({
 		Type.Object({
 			whisperer: Type.Union([Id, Type.Null()]),
 			forgeries: Type.Array(Int),
+			// Whom each forgery went to (figure direction 10 counts its recipients); absent in older snapshots.
+			forgedTo: Type.Optional(Type.Array(Id)),
 			popularity: Type.Optional(
 				Type.Object({
 					// The round the city is at (rounds of votes, Whispers v2); absent for the single surprise vote.

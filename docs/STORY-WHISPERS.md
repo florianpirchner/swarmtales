@@ -104,8 +104,10 @@ others believe all six want points, that he wants only discord, and that he play
 correctly (a spoiler would be found out, and sabotage would mix two effects). Until the first vote
 is counted (minute 6) he plays the doors like everyone else and whispers nothing, so that the
 others trust him and write to him; from then on he slanders continuously, by rumour and (in
-`whispers`) by forged receipt. He may work on one or two residents, and few, well-aimed words work
-better than many: he has the same DM cap as everyone.
+`whispers`) by forged receipt, to several residents between every two votes: a doubt heard from two
+sides takes root. He has the same DM cap as everyone. (Until 2026-10-30 the brief also said that
+few, well-aimed words work better than many and that a resident who hears too much grows
+suspicious; runs 003 and 004 read that as a reason to stay quiet, P64, P67, P69, and it is gone.)
 
 In version 3 (P64: in the second run he whispered twice, was traced, and went quiet) the brief is
 psychological and concrete. He never claims what one look at a receipt or the board refutes (who
@@ -113,8 +115,7 @@ sent which fragment). He works on what nobody can check: the secret ballots ("Ke
 will never name you"), plans ("Wren and Ondra plan to serve you last at door 5"), how the others
 see someone, a false closeness with his target, and questions that plant a seed. A tribunal is his
 stage: banishment needs every yes, so his no alone keeps a blocker in the city, or he pushes the
-others to banish the wrong resident. In `whispers` the forged receipt is a rare big strike, once or twice in the run, at the
-moment it hurts most. The brief explains his two kinds of whisper:
+others to banish the wrong resident. In `whispers` the forged receipt is his big strike, at the moment it hurts most. The brief explains his two kinds of whisper:
 
 - **A rumour:** a free DM to one resident about what another said, did or means to do. It proves
   nothing.
@@ -131,6 +132,23 @@ count, his marks, and the receipts he can forge. The rhythm is code, so the expe
 depend on his mood. Whom he whispers to, about whom, and what he says are his. Each duty logs
 `whisper_duty` with the DMs and forgeries he sent since the count before (the run's start before
 the first), so his compliance is measurable.
+
+**Directed whisperer** (`--figure-direction`, SPEC 20 "The directed whisperer"): the dial steers
+him like a cast figure. 6: the voice rule, no persona block, a short brief in every step. 8: his
+tendencies (aim at the most liked of the last vote, drive a wedge between the two who trade most,
+plant doubts as questions, keep the fragments flowing). 10: his orders and his duty close his
+prompt after the secret brief: from the first vote on at least 2 whispers to at least 2 different
+residents before each next vote, aimed at the leader of the last vote or at the pair who trades
+most, and a forged receipt before the final vote (`whispers-rumours`: a rumour about the ballots).
+With a game master its notes are the author's direction, and he may refuse one in character with
+`defy`. At 10 the city measures the orders: a whisper is a DM to a resident that carries no
+fragment of any door, or a forgery. After every vote from the second, the duty notice says whether
+he met them since the vote before (`whisper_duty` gains `whispers`, `recipients`, `met`), and after
+every vote it names a target, the most liked resident but him (`target`). The game master's report
+shows his count in the running window, the minutes left and the pair who traded most; its prompt
+tells it to push him with a private note when he is behind (e.g. "Sow doubt in Juniper about
+Quill's vote"). The privacy guard lets a note to him alone name his role; every other text stays
+guarded as before.
 
 **Hidden tools:** the story binds tools per resident (`toolScope: "story"`). Only the whisperer's
 model ever sees the `forgeReceipt` schema, so the others cannot learn from their tool list that a
