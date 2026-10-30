@@ -110,6 +110,54 @@ the events it returns: no direct `World` access, no Node APIs, randomness and ti
 host. That keeps runs deterministic and resumable, and it lets the same module run in the repo and in
 the plugin sandbox (§3b).
 
+### Writing a plugin, and using one
+
+`defineModule` is written **once per mechanic**, in the plugin package (`plugins/marks/`). A story
+only loads finished modules and passes their options; it needs no new code.
+
+| Role | Does |
+|---|---|
+| Module author | `defineModule` once: options schema, state, events, tools, hooks, pipeline stages, default prompts |
+| Story author | picks modules, sets options, overrides single prompts, writes levels and rules |
+
+cityofkeys is a list of modules; Whispers is the same list plus `forgery`. Only someone inventing a
+new mechanic writes a module. Workflow: `swt module new <name>` scaffolds `plugins/<name>/`
+(`package.json` with `@swarmtales/sdk` as peer dependency, `src/index.ts`, `prompts/`, a test); test
+with `testkit` (scripted run, no model) plus a snapshot round-trip test; use it with
+`defineStory({ modules: [marks(), forgery({ marksPerForgery: 2 })] })`; third-party plugins load by
+path or npm package (`swt run start --plugin ./my-plugin`) and later run in the sandbox (§3b).
+
+```ts
+const forgery = defineModule({
+  id: "forgery",
+  options: Type.Object({ marksPerForgery: Type.Number() }),    // O
+  state: (opts) => ({ forged: new Map<string, number>() }),     // S; opts: Static<O>
+  events: { receipt_forged: ReceiptForged },
+  tools: [
+    defineTool({
+      name: "forgeReceipt",
+      parameters: Type.Object({ to: Type.String(), n: Type.Number() }),
+      execute(params, ctx) {
+        ctx.options.marksPerForgery;  // number, from O
+        ctx.state.forged;             // Map<string, number>, from S
+        ctx.emit("receipt_forged", { ... });  // only declared events, typed payload
+      },
+    }),
+  ],
+  prompts: "./prompts",
+});
+```
+
+**Typing.** `defineModule` is generic and derives everything from the options schema (`Static<O>`):
+
+- options and state reach tools and hooks with their exact types; a tool reading an option that does
+  not exist is a compile error
+- `emit` accepts only events the module declared, with the payload of their schema
+- `forgery({ marksPerForgery: 2 })` checks the options against the schema; the tool names of the
+  loaded modules form the set of names allowed in `unlockTools` and in the pipeline config (§3d)
+- the same schemas validate the values at load time, YAML included (via the JSON Schema), so a wrong
+  option fails at start, not in the middle of a run
+
 ## 3a. Story format: one schema, TS or YAML
 
 A story is already pure data (`000-run.json` holds `JSON.stringify(story)`, and a test checks the
