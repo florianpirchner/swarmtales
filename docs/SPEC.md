@@ -991,7 +991,7 @@ Per run, `runs/run-NNN/` contains:
   chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
   secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
   another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
-- **Prologue, chapters, interludes, edit, translation** (model, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high): a
+- **Prologue, chapters, interludes, edit, translation** (models: the draft by the writer, default DeepSeek V4.1 Flash, thinking low; the edit and translation by the editor, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high; every system prompt opens with a plain statement that the keys and codes are a word-puzzle game, not computer crime, P56): a
   300-500 word prologue from the "The city:" block of a resident prompt (what every resident was
   told), told as the world; one call per chapter with the outline, the glossary, the chapter's
   dramatic question, the pack and the previous chapter's ending; one 100-200 word interlude in

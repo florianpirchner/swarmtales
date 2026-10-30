@@ -94,6 +94,7 @@ Short stories (`pnpm novel`), chronicle: [run/digest/chronicle.md](run/digest/ch
 | 1 | Claude Sonnet | 5335 | 0.44 | [story](run/novel/story.md) | first prompts; game words, reported moves, overlapping chapters (LESSONS P57) |
 | 2 | DeepSeek V4.1 Flash | 8032 | 0.12 | [story](run/novel-deepseek/story.md) | sharpened prompts with prologue and glossary; more scenes and dialogue, keeps raw key codes, a few muddled sentences |
 | 2 | Claude Sonnet | 5656 | 0.61 | [story](run/novel-sonnet/story.md) | sharpened prompts; the tightest prose; Anthropic refused 2 of 8 translation parts, DeepSeek translated them (P56); the appendix's translation row is from the refused first try (0.18 USD were spent with `--translate-only`) |
+| 3 | DeepSeek draft, Sonnet line edit | 7626 | 0.24 (+0.26 German) | [story](run/novel-hybrid/story.md) | the default now: DeepSeek's scenes with Sonnet's sentences; no raw codes left; Anthropic refused no translation part after the context paragraph (P56) |
 
 USD of version 2 includes a German translation (`--translate de`), which is not kept in the repository (English only).
 All outlines and interludes are by DeepSeek. Each version's [appendix](run/novel-sonnet/appendix.md) lists the events each chapter rests on.

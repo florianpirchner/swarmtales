@@ -52,7 +52,8 @@ start without replaying the earlier ones.
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
 | Novelist outline | DeepSeek V4.1 Flash, thinking high | OpenRouter | only with `pnpm novel`; `--outline-provider/--outline-model` override it |
-| Novelist writer | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | prologue, chapters, the edit pass and the translation of `pnpm novel` (the outline model writes the interludes); `--provider/--model` override it |
+| Novelist writer | DeepSeek V4.1 Flash, thinking low | OpenRouter | the draft of `pnpm novel`: prologue and chapters; `--provider/--model` override it |
+| Novelist editor | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | the line edit and the translation of `pnpm novel` (the outline model writes the interludes); `--editor-provider/--editor-model` override it |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
 | Tests and offline runs | scripted provider | none | no API key, no cost |
 
@@ -347,7 +348,7 @@ at the end and listed in the appendix.
 
 ```bash
 pnpm novel runs/run-001 --dry-run                 # offline: casting and the outline prompt's size
-pnpm novel runs/run-001                           # DeepSeek outline, Sonnet prose
+pnpm novel runs/run-001                           # DeepSeek outline and draft, Sonnet line edit
 pnpm novel runs/run-001 --words 3000 --model haiku
 pnpm novel runs/run-001 --provider openrouter --model deepseek/deepseek-v4.1-flash-1017 --translate de --out novel-deepseek
 ```

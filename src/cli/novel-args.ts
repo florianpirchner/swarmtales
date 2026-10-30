@@ -10,6 +10,8 @@ export interface NovelArgs {
 	readonly model?: string;
 	readonly outlineProvider?: string;
 	readonly outlineModel?: string;
+	readonly editorProvider?: string;
+	readonly editorModel?: string;
 	readonly words: number;
 	/** A language code from LANGUAGES. */
 	readonly translate?: string;
@@ -21,10 +23,12 @@ export interface NovelArgs {
 }
 
 export const NOVEL_USAGE = [
-	"Usage: pnpm novel <run-dir> [--provider <id>] [--model <id>] [--outline-provider <id>] [--outline-model <id>] [--words <n>] [--translate <lang> [--translate-only]] [--out <dir>] [--dry-run]",
+	"Usage: pnpm novel <run-dir> [--provider <id>] [--model <id>] [--outline-provider <id>] [--outline-model <id>] [--editor-provider <id>] [--editor-model <id>] [--words <n>] [--translate <lang> [--translate-only]] [--out <dir>] [--dry-run]",
 	"",
-	"  --provider <id>          writer of chapters, interludes and the edit pass (default: ARENA_NOVEL_PROVIDER, then anthropic)",
-	"  --model <id>             writer model (default: ARENA_NOVEL_MODEL, then claude-sonnet-5-5, thinking low)",
+	"  --provider <id>          writer of the prologue and the chapters (default: ARENA_NOVEL_PROVIDER, then openrouter)",
+	"  --model <id>             writer model (default: ARENA_NOVEL_MODEL, then deepseek/deepseek-v4.1-flash-1017, thinking low)",
+	"  --editor-provider <id>   editor: line edit and translation (default: ARENA_NOVEL_EDITOR_PROVIDER, then anthropic)",
+	"  --editor-model <id>      editor model (default: ARENA_NOVEL_EDITOR_MODEL, then claude-sonnet-5-5, thinking low)",
 	"  --outline-provider <id>  outline model's provider (default: ARENA_NOVEL_OUTLINE_PROVIDER, then openrouter)",
 	"  --outline-model <id>     outline model (default: ARENA_NOVEL_OUTLINE_MODEL, then deepseek/deepseek-v4.1-flash-1017, thinking high)",
 	`  --words <n>              length of the story (default ${String(DEFAULT_WORDS)})`,
@@ -44,6 +48,8 @@ export function parseNovelArgs(argv: readonly string[]): NovelArgs {
 				model: { type: "string" },
 				"outline-provider": { type: "string" },
 				"outline-model": { type: "string" },
+				"editor-provider": { type: "string" },
+				"editor-model": { type: "string" },
 				words: { type: "string" },
 				translate: { type: "string" },
 				out: { type: "string" },
@@ -76,6 +82,8 @@ export function parseNovelArgs(argv: readonly string[]): NovelArgs {
 		...(values.model === undefined ? {} : { model: values.model }),
 		...(values["outline-provider"] === undefined ? {} : { outlineProvider: values["outline-provider"] }),
 		...(values["outline-model"] === undefined ? {} : { outlineModel: values["outline-model"] }),
+		...(values["editor-provider"] === undefined ? {} : { editorProvider: values["editor-provider"] }),
+		...(values["editor-model"] === undefined ? {} : { editorModel: values["editor-model"] }),
 		words,
 		...(values.translate === undefined ? {} : { translate: values.translate }),
 		out,
