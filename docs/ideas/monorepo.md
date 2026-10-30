@@ -415,6 +415,24 @@ rewrite:
   be reproduced.
 - The golden-run test runs at f4g4 (today's default) and at f10g10; both must match the stored events.
 
+## 3i. News from Whispers v3 and runs 003-007 (2026-10-30)
+
+What the Whispers thread built or learned after the first paper, and where it lands in the target layout.
+
+| News | Where it lands |
+|---|---|
+| **GM-called tribunal, `permaDeath`, seeded `drawLot`** (PR #75) | exactly the `standoff-tribunal` plugin of §3h; the rewrite takes this code as the reference, not a new design |
+| **The whisperer is a directed figure** under `--figure-direction` (PR #79): rumour duty, the GM pushes it privately | a *role module* (`whisperer`) that reads the figure dial profile (§3e item 6); the duty text is a prompt file in `library/`, the dial level decides whether it is added |
+| **Prompt addenda per resident** (`--prompt-addendum <ID>=<file>`, e.g. the grudge rule `stories/whispers/addenda/grudge.md` for A01-A05, not the whisperer) | stays a first-class feature: addenda are files in `library/addenda/` or the story folder, attached per resident in the run config (`residents.<id>.addenda`); the lab uses the same mechanism |
+| **Grudge ("forgiveness") rule** works on Haiku and exposed the whisperer in run 006 (P72: honest errors are punished too; run 007 sharpens it with "ask first, shun only after a stand-off") | rule text lives only as a prompt file; if it moves into the f10 direction it becomes a section of the figure dial profile, not code |
+| **Model per resident** (idea: Haiku against DeepSeek for the same story) | run config gets `models.residents` as a default plus per-resident overrides, same schema as `models.roles`; needs no engine change once the providers are behind `packages/models` |
+| **Temperature and other model parameters** are not passed to Haiku today | one `params` object per model entry in `swt.config` (temperature, max tokens, thinking level); the provider adapter decides what it supports |
+| **`world.ts` grew again** (about +175 lines for the whisperer and tribunal changes) | confirms the carve-out is worth it; the size ratchet (§3f) must be re-measured when the rewrite starts |
+| **LESSONS.md replaced LOOPHOLES.md** (design checklist and `P`/`LH` rows) | stays in `docs/`; the module conformance tests (§3e item 8) should cite the checklist lines they guard |
+
+Requirement for the rewrite: runs 005-007 (directed whisperer, grudge addendum) are the second golden
+runs next to f4g4 and f10g10 (see "The two direction dials"), so these behaviours cannot be lost.
+
 ## 3f. Size limit per file
 
 A hard cap on lines per code file, tests excluded, enforced by lint so it cannot drift.
