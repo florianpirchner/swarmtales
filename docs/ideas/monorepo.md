@@ -270,6 +270,43 @@ stages of one fixed chain every tool call runs through:
 `block` against fragments and password parts; group, board and DMs all stay free. Fragments can then
 travel only by DM, which makes private messages matter and gives the whisperer real DMs to forge.
 
+## 3e. More seams (Flo asked for further modularisation, 2026-10-30)
+
+Found by reading structure (file sizes, imports, what `compose.ts` wires), not every line. Ordered by
+value; the marked ones are my recommendation for the first migration steps.
+
+| # | Seam | Today | Target |
+|---|---|---|---|
+| 1 ★ | **One abstraction for model roles** | gamemaker, judge, classifier, souffleur, weaver, reporter and novelist each have their own file with the same pattern: build prompt, call model, parse the answer with Typebox, fall back | `defineRole({ prompt, output, model, fallback })`; a new role (the whisperer) is configuration, not a new file |
+| 2 ★ | **Composition root out of the CLI** | `cli/compose.ts` (620 lines) wires everything | `createRun(config)` in the engine package; CLI and tests call the same function; the config is stored in the run folder for reproducibility |
+| 3 | **One config file instead of many flags** | flags in `cli/args.ts`, models in `agents/models.ts` | `swt.config.ts` or `.yaml` with profiles (models per role, budget, dials); flags override single values; Typebox schema |
+| 4 ★ | **Snapshot slice per module** | `snapshot/snapshot.ts` (532 lines) knows almost every part | each module carries its slice with schema, version and migration; old snapshots (`snapshot-L7.json`) migrate on load |
+| 5 | **Read and write split in `World`** | tools and roles hold the whole `World` | read-only `WorldView` for tools and roles; changes are commands the engine applies (through the tool pipeline, §3d), so every change leaves an event |
+| 6 | **Dials as data** | `engine/direction.ts` and the gamemaker prompt branch on levels 0/4/6/8/10 | profile files in `library/` (which prompt sections, which powers) |
+| 7 | **`RunStore` interface** | `log/`, `digest/`, `report/`, `novel/` write files directly | one storage interface (filesystem now); tests run in memory |
+| 8 ★ | **Module conformance tests** in `testkit` | none | same seed gives same events, snapshot round trip, no forbidden imports, every option documented; a module that fails is not loaded |
+
+To check before recommending: whether `report/facts.ts` and `digest/facts.ts` hold duplicated logic,
+and whether versioned event schemas per module (instead of the one union in `engine/events.ts`,
+781 lines) are easier to maintain. Event sourcing (rebuild state from `events.jsonl`) would be the big
+step behind both and is its own topic.
+
+## 3f. Size limit per file
+
+A hard cap on lines per code file, tests excluded, enforced by lint so it cannot drift.
+
+- Proposal: **400 lines** per file (`max-lines` in `eslint.config.js`, blank lines and comments not
+  counted). Applies to `packages/*`, `plugins/*`, `apps/*` and `stories/*`; `test/` and generated
+  files (`prompt-keys.ts`, `story.schema.json`) are exempt.
+- Today 18 of 152 code files are over 400 and 7 are over 600 (`engine/world.ts` 2705,
+  `story/validate.ts` 1324, `story/types.ts` 1159, `engine/tribunal.ts` 943, `engine/events.ts` 781,
+  `cityofkeys/story.ts` 673, `cli/compose.ts` 620). They get a **ratchet**: the lint config lists each
+  with its current size as its own limit, which may only shrink; the migration steps remove the
+  entries as the files are split.
+- The cap also forces the cuts of §3: `World` into modules, prose out of `story.ts` into `texts/`,
+  prompts out of code.
+- Optional second rule: functions over 60 lines warn.
+
 ## 4. No prompts in code
 
 Every text a model reads lives in a file:
@@ -372,3 +409,4 @@ adds a snapshot version and a migration from today's flat shape.
 7. **Names:** `kernel`, `roles`, `chronicle`, `referee` fine, or other names?
 9. **Guards (§3d):** does a blocked post cost anything (a mark, or a strike)? Does the guard also
    block a seam or a chain written in words? Are the city's own notices exempt (yes, I assume)?
+10. **Size limit:** 400 lines per code file (tests excluded) with a shrinking ratchet for the 18 files over it? Or another number? (§3f)
