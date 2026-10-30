@@ -38,6 +38,8 @@ export interface NovelSource {
 	readonly figures: ReadonlyMap<string, string>;
 	/** `digest/chronicle.md`, when it exists. */
 	readonly chronicle?: string;
+	/** What every resident was told about the city (the "The city:" block of a resident's prompt), when the run has one. */
+	readonly world?: string;
 }
 
 const Base = { seq: Type.Integer({ minimum: 1 }), minute: Type.Integer({ minimum: 0 }) };
@@ -95,7 +97,25 @@ export function loadNovelSource(runDirectory: string): NovelSource {
 	const gamemaker = parseGamemakerLog(readFileSync(join(runDirectory, "events.jsonl"), "utf8"));
 	const chroniclePath = join(runDirectory, DIGEST_DIRECTORY, DIGEST_FILES.chronicle);
 	const chronicle = existsSync(chroniclePath) ? readFileSync(chroniclePath, "utf8") : undefined;
-	return { analysis, gamemaker, figures: readFigures(runDirectory), ...(chronicle === undefined ? {} : { chronicle }) };
+	const world = readWorld(runDirectory);
+	return { analysis, gamemaker, figures: readFigures(runDirectory), ...(chronicle === undefined ? {} : { chronicle }), ...(world === undefined ? {} : { world }) };
+}
+
+/** The "The city:" block of the first resident prompt in `agents/` (the rules every resident read). */
+export function readWorld(runDirectory: string): string | undefined {
+	const directory = join(runDirectory, "agents");
+	if (!existsSync(directory)) return undefined;
+	const prompt = readdirSync(directory)
+		.sort()
+		.find((entry) => entry.endsWith(".prompt.md"));
+	return prompt === undefined ? undefined : worldText(readFileSync(join(directory, prompt), "utf8"));
+}
+
+/** The paragraph after a line "The city:", up to the next blank line. */
+export function worldText(promptMarkdown: string): string | undefined {
+	const match = /^The city:\r?\n([\s\S]*?)(?:\r?\n\s*\r?\n|(?![\s\S]))/m.exec(promptMarkdown);
+	const text = match?.[1]?.trim();
+	return text === undefined || text.length === 0 ? undefined : text;
 }
 
 /**

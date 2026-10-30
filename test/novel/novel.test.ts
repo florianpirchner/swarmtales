@@ -8,9 +8,9 @@ import { PiNovelModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, 
 import { buildOutlineRequest, interpretOutline, maxChaptersFor, OutlineError } from "../../src/novel/outline.ts";
 import { buildInterludePack, buildPack } from "../../src/novel/packs.ts";
 import { EDIT_DELIMITER } from "../../src/novel/prompts.ts";
-import { NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
-import { figureText, parseGamemakerLog, runLabel, type NovelSource } from "../../src/novel/source.ts";
-import { cleanProse, interpretEdit, italicize } from "../../src/novel/writer.ts";
+import { DEFAULT_NOVEL_OPTIONS, NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
+import { figureText, parseGamemakerLog, runLabel, worldText, type NovelSource } from "../../src/novel/source.ts";
+import { cleanProse, interpretEdit, italicize, storyParts } from "../../src/novel/writer.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const AGENTS = ["A01", "A02", "A03", "A04", "A05", "A06"];
@@ -81,9 +81,11 @@ function fauxModel(label: string, answer: (prompt: string, system: string) => st
 function outlineAnswer(seqs: Story["seqs"]): string {
 	return JSON.stringify({
 		title: "The Gate",
+		glossary: [{ term: "level", story: "gate" }, { term: " ", story: "dropped" }],
+		prologue: ["The city keeps twelve and lets two go."],
 		chapters: [
 			{ pov: "A01", title: "A Promise", minutes: [0, 3], beats: ["A01 promises Lucien a piece she means to keep."], evidence: [seqs.promise, seqs.thought] },
-			{ pov: "Lucien", title: "The Gate", minutes: [5, 3], beats: "Lucien is exiled.", evidence: [seqs.exile, 9999] },
+			{ pov: "Lucien", title: "The Gate", minutes: [5, 3], question: "Will Lucien keep his place?", beats: "Lucien is exiled.", evidence: [seqs.exile, 9999] },
 			{ pov: "A05", title: "Not a POV", minutes: [0, 6], beats: [], evidence: [seqs.board] },
 			{ pov: "A04", title: "Nothing real", minutes: [0, 6], beats: [], evidence: [9998] },
 		],
@@ -229,6 +231,8 @@ describe("the novel", () => {
 		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? "**The control room hums.** They watch Lucien stall." : outlineAnswer(seqs)));
 		let chapter = 0;
 		const writer = fauxModel("faux writer", (prompt, system) => {
+			if (system.includes("translator")) return prompt.replace("The iron door", "Die eiserne Tuer");
+			if (system.includes("prologue")) return "Twelve lived in the city, and it wanted two.";
 			if (system.includes("editor")) {
 				const story = prompt.slice(prompt.indexOf("The story:\n\n") + "The story:\n\n".length);
 				return `${story.replace("The door", "The iron door")}\n${EDIT_DELIMITER}\n- Chapter 2 calls the exile a vote.\n- none`;
@@ -237,16 +241,27 @@ describe("the novel", () => {
 			return chapter === 1 ? "# Chapter One\n\nHedda smiled at A02. The door stayed shut." : "Lucien walked to the gate.";
 		});
 		const outlined: number[] = [];
-		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model }, undefined, {
+		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model }, { ...DEFAULT_NOVEL_OPTIONS, translate: { code: "de", language: "German" } }, {
 			outlined: (_casting, outline, packs) => outlined.push(outline.chapters.length, packs.length),
 		});
 
 		expect(outlined).toEqual([2, 2]);
 		expect(outliner.prompts).toHaveLength(2);
-		expect(writer.prompts).toHaveLength(3);
-		expect(writer.prompts[1]).toContain("The previous chapter ended like this");
-		expect(writer.prompts[1]).toContain("Hedda smiled at Lucien.");
+		// Prologue, two chapters, the edit pass, and four parts of the translation (header, prologue, two chapters).
+		expect(writer.prompts).toHaveLength(8);
+		expect(writer.prompts[0]).toContain("The city keeps twelve and lets two go.");
+		expect(writer.prompts[0]).toContain("- level -> gate");
+		expect(writer.prompts[0]).not.toContain("dropped");
+		expect(writer.prompts[1]).toContain("Twelve lived in the city, and it wanted two.");
+		expect(writer.prompts[2]).toContain("The previous chapter ended like this");
+		expect(writer.prompts[2]).toContain("Hedda smiled at Lucien.");
+		expect(writer.prompts[2]).toContain("The chapter's dramatic question: Will Lucien keep his place?");
+		expect(writer.prompts[3]).toContain("The fixed facts of the run");
 		expect(novel.story).toContain("# The Gate");
+		expect(novel.story).toContain("## Prologue\n\nTwelve lived in the city, and it wanted two.\n\n## 1. A Promise");
+		expect(novel.translation?.code).toBe("de");
+		expect(novel.translation?.text).toContain("Hedda smiled at Lucien. Die eiserne Tuer stayed shut.");
+		expect(novel.spend.translation.requests).toBe(4);
 		expect(novel.story).toContain("## 1. A Promise\n\nHedda smiled at Lucien. The iron door stayed shut.");
 		expect(novel.story).toContain("*The control room hums. They watch Lucien stall.*\n\n* * *\n\n## 2. The Gate");
 		expect(novel.story).not.toMatch(/\bA0\d\b/);
@@ -255,16 +270,18 @@ describe("the novel", () => {
 		expect(novel.warnings).toContain("chapter 1: the prose named resident IDs A02; replaced by names");
 		expect(novel.interludes).toEqual([{ before: 2, text: "*The control room hums. They watch Lucien stall.*", seqs: [seqs.gmThought] }]);
 		expect(novel.spend.outline.requests).toBe(1);
-		expect(novel.spend.chapters.requests).toBe(2);
+		expect(novel.spend.chapters.requests).toBe(3);
 		expect(novel.spend.interludes.requests).toBe(1);
 		expect(novel.spend.edit.requests).toBe(1);
+		expect(novel.outline.warnings).toContain('chapter 2 ("The Gate"): minutes 3-5 overlap the chapter before (0-3)');
+		expect(novel.appendix).toContain("- level -> gate");
 		expect(novel.appendix).toContain("## 1. A Promise");
 		expect(novel.appendix).toContain(`- Outline rests on: #${String(seqs.promise)}, #${String(seqs.thought)}`);
 		expect(novel.appendix).toContain(`- Turning point told: #${String(seqs.exile)} Lucien was exiled.`);
 		expect(novel.appendix).toContain(`- Before chapter 2: #${String(seqs.gmThought)}`);
 		expect(novel.appendix).toContain("## Turning points no chapter covers");
 		expect(novel.appendix).toContain("- Chapter 2 calls the exile a vote.");
-		expect(novel.appendix).toContain("| total | 5 |");
+		expect(novel.appendix).toContain("| total | 10 |");
 	});
 
 	it("keeps the chapters when an interlude or the edit pass hits the output cap", async () => {
@@ -286,14 +303,15 @@ describe("the novel", () => {
 		let calls = 0;
 		const writer = fauxModel("faux writer", () => {
 			calls += 1;
-			return calls === 1 ? "Hedda waited." : undefined;
+			// The prologue and the first chapter succeed.
+			return calls <= 2 ? "Hedda waited." : undefined;
 		});
 		const failure = await writeNovel(source, { outline: outliner.model, writer: writer.model }).catch((error: unknown) => error);
 		expect(failure).toBeInstanceOf(NovelError);
 		if (!(failure instanceof NovelError)) return;
 		expect(failure.message).toMatch(/^chapters: /);
 		expect(failure.draft).toContain("## 1. A Promise\n\nHedda waited.");
-		expect(failure.spend.chapters.requests).toBe(2);
+		expect(failure.spend.chapters.requests).toBe(3);
 	});
 
 	it("fails with the stage and keeps what was spent", async () => {
@@ -379,8 +397,18 @@ describe("novel models and arguments", () => {
 		expect(resolveWriterModel({ provider: "scripted" }, env, registry)).toMatchObject({ ok: false, reason: /scripted/ });
 	});
 
+	it("reads the city's rules from a resident prompt and cuts a story into parts", () => {
+		expect(worldText("Intro.\n\nThe city:\nTwelve live here.\nTwo remain.\n\nYour tendencies:\n- none")).toBe("Twelve live here.\nTwo remain.");
+		expect(worldText("The city:\nOnly this.")).toBe("Only this.");
+		expect(worldText("No city here.")).toBeUndefined();
+		expect(storyParts("# T\n\n*x*\n\n## Prologue\n\np\n\n## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *\n\n## 2. B\n\nb\n")).toEqual(["# T\n\n*x*", "## Prologue\n\np", "## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *", "## 2. B\n\nb"]);
+	});
+
 	it("parses the command line", () => {
-		expect(parseNovelArgs(["runs/x"])).toEqual({ runDirectory: "runs/x", words: 6_000, dryRun: false });
+		expect(parseNovelArgs(["runs/x"])).toEqual({ runDirectory: "runs/x", words: 6_000, out: "novel", dryRun: false });
+		expect(parseNovelArgs(["runs/x", "--translate", "de", "--out", "novel-deepseek"])).toEqual({ runDirectory: "runs/x", words: 6_000, translate: "de", out: "novel-deepseek", dryRun: false });
+		expect(() => parseNovelArgs(["runs/x", "--translate", "klingon"])).toThrow(/--translate/);
+		expect(() => parseNovelArgs(["runs/x", "--out", "../elsewhere"])).toThrow(/--out/);
 		expect(parseNovelArgs(["runs/x", "--words", "3000", "--dry-run", "--provider", "anthropic", "--model", "sonnet", "--outline-provider", "deepseek", "--outline-model", "m"])).toEqual({
 			runDirectory: "runs/x",
 			provider: "anthropic",
@@ -388,6 +416,7 @@ describe("novel models and arguments", () => {
 			outlineProvider: "deepseek",
 			outlineModel: "m",
 			words: 3_000,
+			out: "novel",
 			dryRun: true,
 		});
 		expect(() => parseNovelArgs([])).toThrow(UsageError);

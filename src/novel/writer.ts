@@ -1,21 +1,26 @@
 /**
- * The writer's three calls (model): one chapter from its pack, a gamemaker
- * interlude from the control room's thinking, and the edit pass over the
- * whole text. Answers are prose; the code strips what is not (headings,
+ * The writer's calls (model): the prologue, one chapter from its pack, a
+ * gamemaker interlude from the control room's thinking, the edit pass over
+ * the whole text and the translation, part by part. Answers are prose; the code strips what is not (headings,
  * fences) and refuses an edit that lost the story's structure.
  */
 import type { NovelModel, NovelSpend } from "./model.ts";
-import { MAX_TOKENS } from "./model.ts";
+import { addSpend, MAX_TOKENS, NO_SPEND, NovelRequestError } from "./model.ts";
 import {
 	buildChapterPrompt,
 	buildEditPrompt,
 	buildInterludePrompt,
+	buildProloguePrompt,
 	EDIT_DELIMITER,
 	EDIT_SYSTEM_PROMPT,
 	INTERLUDE_SYSTEM_PROMPT,
+	PROLOGUE_SYSTEM_PROMPT,
+	translateSystemPrompt,
 	WRITER_SYSTEM_PROMPT,
 	type ChapterPromptInput,
+	type GlossaryEntry,
 	type InterludePromptInput,
+	type ProloguePromptInput,
 } from "./prompts.ts";
 
 export interface WrittenText {
@@ -25,6 +30,11 @@ export interface WrittenText {
 
 export async function writeChapter(model: NovelModel, input: ChapterPromptInput): Promise<WrittenText> {
 	const answer = await model.complete(WRITER_SYSTEM_PROMPT, buildChapterPrompt(input), MAX_TOKENS.chapter);
+	return { text: cleanProse(answer.text), spend: answer.spend };
+}
+
+export async function writePrologue(model: NovelModel, input: ProloguePromptInput): Promise<WrittenText> {
+	const answer = await model.complete(PROLOGUE_SYSTEM_PROMPT, buildProloguePrompt(input), MAX_TOKENS.chapter);
 	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
@@ -41,8 +51,8 @@ export interface EditedStory {
 	readonly spend: NovelSpend;
 }
 
-export async function editStory(model: NovelModel, story: string, outline: readonly string[]): Promise<EditedStory> {
-	const answer = await model.complete(EDIT_SYSTEM_PROMPT, buildEditPrompt(story, outline), MAX_TOKENS.edit);
+export async function editStory(model: NovelModel, story: string, outline: readonly string[], facts: readonly string[] = [], glossary: readonly GlossaryEntry[] = []): Promise<EditedStory> {
+	const answer = await model.complete(EDIT_SYSTEM_PROMPT, buildEditPrompt(story, outline, facts, glossary), MAX_TOKENS.edit);
 	return { ...interpretEdit(story, answer.text), spend: answer.spend };
 }
 
@@ -83,6 +93,47 @@ export function interpretEdit(original: string, answer: string): Omit<EditedStor
 		return { text: original, contradictions, warnings };
 	}
 	return { text: `${body}\n`, contradictions, warnings };
+}
+
+export interface TranslatedStory {
+	readonly text: string;
+	readonly spend: NovelSpend;
+}
+
+/**
+ * Translates the story part by part (the header, then each chapter with the
+ * interlude after it), so no answer has to hold the whole book. A part that
+ * lost its heading or interlude lines keeps nothing: the error says which.
+ */
+export async function translateStory(model: NovelModel, story: string, language: string, onPart?: (part: number, parts: number) => void): Promise<TranslatedStory> {
+	const parts = storyParts(story);
+	const system = translateSystemPrompt(language);
+	let spend: NovelSpend | undefined;
+	const translated: string[] = [];
+	for (const [index, part] of parts.entries()) {
+		onPart?.(index + 1, parts.length);
+		const answer = await model.complete(system, part, MAX_TOKENS.chapter);
+		spend = spend === undefined ? answer.spend : addSpend(spend, answer.spend);
+		const text = stripFences(answer.text).trim();
+		if (structure(text).length !== structure(part).length) throw new TranslationError(`part ${String(index + 1)} of ${String(parts.length)}: the translation changed the headings or interlude lines`, spend);
+		translated.push(text);
+	}
+	return { text: `${translated.join("\n\n")}\n`, spend: spend ?? NO_SPEND };
+}
+
+/** The translation of a part was unusable; what it cost so far is kept. */
+export class TranslationError extends NovelRequestError {}
+
+/** The story cut before every chapter heading (`## `). */
+export function storyParts(story: string): readonly string[] {
+	return story
+		.split(/\r?\n(?=## )/)
+		.map((part) => part.trim())
+		.filter((part) => part.length > 0);
+}
+
+function structure(text: string): readonly string[] {
+	return text.split(/\r?\n/).filter((line) => line.startsWith("#") || line.trim() === "* * *");
 }
 
 /** Prose only: no code fences and no heading lines. */

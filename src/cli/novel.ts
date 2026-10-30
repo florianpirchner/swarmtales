@@ -12,7 +12,20 @@ import { createProviderRegistry } from "../model/providers.ts";
 import { castBook } from "../novel/casting.ts";
 import { resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
 import { buildOutlineRequest, chapterCount, DEFAULT_OUTLINE_OPTIONS } from "../novel/outline.ts";
-import { DEFAULT_NOVEL_OPTIONS, NOVEL_FILES, NovelError, STAGES, totalSpend, writeNovel, writeNovelFiles, writeOutlineFiles, writePartialStory, type StageSpend } from "../novel/novel.ts";
+import {
+	DEFAULT_NOVEL_OPTIONS,
+	NOVEL_FILES,
+	NovelError,
+	STAGES,
+	totalSpend,
+	translationFile,
+	writeNovel,
+	writeNovelFiles,
+	writeOutlineFiles,
+	writePartialStory,
+	type StageSpend,
+} from "../novel/novel.ts";
+import { LANGUAGES } from "../novel/prompts.ts";
 import { loadNovelSource, Names } from "../novel/source.ts";
 import { UsageError } from "./args.ts";
 import { NOVEL_USAGE, parseNovelArgs } from "./novel-args.ts";
@@ -82,31 +95,33 @@ if (!writerModel.ok) {
 	process.exit(0);
 }
 
+const language = args.translate === undefined ? undefined : LANGUAGES[args.translate];
 try {
 	const novel = await writeNovel(
 		source,
 		{ outline: outlineModel.model, writer: writerModel.model },
-		{ ...DEFAULT_NOVEL_OPTIONS, words: args.words },
+		{ ...DEFAULT_NOVEL_OPTIONS, words: args.words, ...(language === undefined || args.translate === undefined ? {} : { translate: { code: args.translate, language } }) },
 		{
 			progress: out,
 			outlined: (cast, outline, packs) => {
-				const written = writeOutlineFiles(directory, source, cast, outline, packs);
+				const written = writeOutlineFiles(directory, source, cast, outline, packs, args.out);
 				out(`outline: "${outline.title}", ${String(outline.chapters.length)} chapters (${join(written, NOVEL_FILES.outline)})`);
 				for (const warning of outline.warnings) process.stderr.write(`warning: outline ${warning}\n`);
 			},
 		},
 	);
-	const written = writeNovelFiles(directory, source, novel);
+	const written = writeNovelFiles(directory, source, novel, args.out);
 	for (const warning of novel.warnings.slice(novel.outline.warnings.length)) process.stderr.write(`warning: ${warning}\n`);
 	const words = novel.story.split(/\s+/).filter((word) => word.length > 0).length;
 	out(`story:    ${join(written, NOVEL_FILES.story)} (${String(words)} words)`);
+	if (novel.translation !== undefined) out(`translation: ${join(written, translationFile(novel.translation.code))}`);
 	out(`appendix: ${join(written, NOVEL_FILES.appendix)}`);
 	out(`contradictions the editor listed: ${String(novel.contradictions.length)}`);
 	printSpend(novel.spend);
 } catch (error) {
 	if (error instanceof NovelError) {
 		out(`novel failed: ${error.message}`);
-		if (error.draft?.includes("\n## ") === true) out(`chapters written so far: ${writePartialStory(directory, error.draft)}`);
+		if (error.draft?.includes("\n## ") === true) out(`chapters written so far: ${writePartialStory(directory, error.draft, args.out)}`);
 		printSpend(error.spend);
 		process.exit(1);
 	}
@@ -116,7 +131,7 @@ try {
 function printSpend(spend: StageSpend): void {
 	out("cost:");
 	const row = (label: string, entry: NovelSpend): void => {
-		out(`  ${label.padEnd(10)} ${String(entry.requests).padStart(3)} requests, ${String(entry.input + entry.cacheRead + entry.cacheWrite).padStart(8)} in, ${String(entry.output).padStart(7)} out, ${entry.costUsd.toFixed(4)} USD`);
+		out(`  ${label.padEnd(11)} ${String(entry.requests).padStart(3)} requests, ${String(entry.input + entry.cacheRead + entry.cacheWrite).padStart(8)} in, ${String(entry.output).padStart(7)} out, ${entry.costUsd.toFixed(4)} USD`);
 	};
 	for (const stage of STAGES) row(stage, spend[stage]);
 	row("total", totalSpend(spend));

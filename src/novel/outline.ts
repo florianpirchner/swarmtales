@@ -12,7 +12,7 @@ import { cite } from "../digest/timeline.ts";
 import { turningPoints, type TurningPoint } from "../digest/turning-points.ts";
 import type { Casting } from "./casting.ts";
 import { dossier } from "./packs.ts";
-import { buildOutlinePrompt, OUTLINE_SYSTEM_PROMPT } from "./prompts.ts";
+import { buildOutlinePrompt, OUTLINE_SYSTEM_PROMPT, type GlossaryEntry } from "./prompts.ts";
 import { Names, type NovelSource } from "./source.ts";
 
 export interface OutlineChapter {
@@ -24,6 +24,8 @@ export interface OutlineChapter {
 	readonly from: number;
 	readonly to: number;
 	readonly beats: readonly string[];
+	/** The chapter's dramatic question, when the planner gave one. */
+	readonly question?: string;
 	/** Known `seq` numbers, ascending. */
 	readonly evidence: readonly number[];
 }
@@ -31,6 +33,10 @@ export interface OutlineChapter {
 export interface Outline {
 	readonly title: string;
 	readonly chapters: readonly OutlineChapter[];
+	/** Game terms and the story's words for them, used by every writer. */
+	readonly glossary: readonly GlossaryEntry[];
+	/** What the prologue tells; empty when the planner gave nothing. */
+	readonly prologue: readonly string[];
 	/** Turning points no chapter cites. */
 	readonly uncovered: readonly TurningPoint[];
 	/** What was dropped or corrected in the model's answer. */
@@ -86,6 +92,7 @@ export function buildOutlineRequest(source: NovelSource, casting: Casting, optio
 		...(chronicle === undefined ? {} : { chronicle }),
 		evidence: evidence.lines.map((line) => names.apply(line)),
 		omitted: evidence.omitted,
+		...(source.world === undefined ? {} : { world: source.world }),
 	});
 	return { system: OUTLINE_SYSTEM_PROMPT, prompt };
 }
@@ -103,11 +110,14 @@ export function lastMinute(source: NovelSource): number {
 
 const AnswerSchema = Type.Object({
 	title: Type.String(),
+	glossary: Type.Optional(Type.Array(Type.Object({ term: Type.String(), story: Type.String() }))),
+	prologue: Type.Optional(Type.Union([Type.Array(Type.String()), Type.String()])),
 	chapters: Type.Array(
 		Type.Object({
 			pov: Type.String(),
 			title: Type.String(),
 			minutes: Type.Array(Type.Integer(), { minItems: 2, maxItems: 2 }),
+			question: Type.Optional(Type.String()),
 			beats: Type.Union([Type.Array(Type.String()), Type.String()]),
 			// Models sometimes write "#123"; such strings are read as seq numbers.
 			evidence: Type.Array(Type.Union([Type.Integer(), Type.String()])),
@@ -158,7 +168,12 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 		const from = clamp(Math.min(first, second), 0, end);
 		const to = clamp(Math.max(first, second), 0, end);
 		const beats = (typeof chapter.beats === "string" ? [chapter.beats] : chapter.beats).map((beat) => beat.trim()).filter((beat) => beat.length > 0);
-		chapters.push({ number: chapters.length + 1, pov, title: chapter.title.trim(), from, to, beats, evidence });
+		const previous = chapters.at(-1);
+		// The planner is asked not to overlap; an overlap is kept (the writer still has the minutes) but reported.
+		if (previous !== undefined && from <= previous.to) warnings.push(`${where}: minutes ${String(from)}-${String(to)} overlap the chapter before (${String(previous.from)}-${String(previous.to)})`);
+		if (previous?.pov === pov) warnings.push(`${where}: the same point of view as the chapter before`);
+		const question = chapter.question?.trim();
+		chapters.push({ number: chapters.length + 1, pov, title: chapter.title.trim(), from, to, beats, ...(question === undefined || question.length === 0 ? {} : { question }), evidence });
 	}
 	if (chapters.length === 0) throw new OutlineError(`The outline has no usable chapter${warnings.length === 0 ? "" : `: ${warnings.join("; ")}`}`);
 
@@ -166,7 +181,9 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 	const uncovered = turningPoints(analysis.facts.events).filter((point) => !cited.has(point.seq));
 	for (const point of uncovered) warnings.push(`turning point #${String(point.seq)} is not covered by any chapter: ${point.text}`);
 	const title = parsed.title.trim();
-	return { title: title.length === 0 ? analysis.run : title, chapters, uncovered, warnings };
+	const glossary = (parsed.glossary ?? []).map((entry) => ({ term: entry.term.trim(), story: entry.story.trim() })).filter((entry) => entry.term.length > 0 && entry.story.length > 0);
+	const prologue = (typeof parsed.prologue === "string" ? [parsed.prologue] : (parsed.prologue ?? [])).map((beat) => beat.trim()).filter((beat) => beat.length > 0);
+	return { title: title.length === 0 ? analysis.run : title, chapters, glossary, prologue, uncovered, warnings };
 }
 
 function clamp(value: number, min: number, max: number): number {
