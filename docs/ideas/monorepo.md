@@ -31,8 +31,8 @@ packages/
   contracts/      Typebox schemas + types only: events, snapshots, story shape, plugin API,
                   tool contract, prompt keys. Depends on typebox and nothing else.
   kernel/         rng, clock, ids, ledger, result (today's src/core)
-  engine/         world core (residents, levels, points, mail, board), scheduler, module host,
-                  referee (hard limits), snapshot read/write
+  engine/         the slim core (§2a): residents registry, clock and scheduler, event log, module
+                  host, tool gateway and pipeline, referee, snapshot read/write. No game words.
   sdk/            story builder DSL + validator; what a story or plugin author imports
   prompts/        prompt loader and renderer (code only; the prompt files live in library/)
   models/         providers, model settings, pi-agent runner, scripted offline source
@@ -42,13 +42,18 @@ packages/
   testkit/        scripted competitors, fake world builders, golden-file helpers
 
 plugins/          first-party mechanics, each a package built only on sdk + contracts
-  core-channels/  board, DM, groups, transfers, receipts
+  ledger/         points, transfers, ransom (the service others `require` to move points)
+  progression/    levels, doors, who has passed what, act structure
+  channels/       board, DM, groups, mailbox
+  receipts/       receipts, showReceipt, forgeReceipt
   marks/          message stamps
   puzzles/        fragments, additive (and later new ones)
-  tribunal/       tribunal, blame, wills, ransom, factions
+  exile/          exile and permaDeath as a service (status, wills, inheritance)
+  tribunal/       tribunal, blame, factions; `standoff-tribunal` for Whispers (§3h)
   seal/           black seal
   standoff/       ultimatums, claimPiece, confiscation
   cast/           figures, cores, goals, names, archetypes
+  script/         the programmed director: courier lines, feast, standings (§5)
 
 library/          content anyone can replace or extend, no code
   archetypes/     drives, temperaments, professions, figures (today's archetypes/)
@@ -70,6 +75,46 @@ internals.
 
 Naming: `@swarmtales/<name>`. **The packages are published to npm** (Flo, 2026-10-30); see §7a for
 build, versioning and release.
+
+## 2a. The slim core (Flo, 2026-10-30)
+
+Goal: **an extremely slim core; every mechanic is loaded as a plugin.** The test is simple: the core
+contains no game word. No door, point, DM, board, tribunal, mark or level appears in it. Today's
+`World` (2705 lines) is the opposite: all of that lives in one class.
+
+| In the core (small, stable, rarely changes) | Plugin (everything with game meaning) |
+|---|---|
+| resident registry: id, a status bag that modules own | points, transfers, ransom (`ledger`) |
+| virtual clock and the scheduler (§3g) | levels, doors, acts (`progression`) |
+| append-only event log and the typed event bus | board, DM, groups (`channels`) |
+| module host: load order, `requires`, services, hooks, state and snapshot slices | marks, receipts, tribunal, exile, seal, standoff |
+| tool gateway and the pipeline (§3d): lock, limit, afford, rule, guard, execute, settle, after | puzzles (fragments, additive) |
+| agent turn loop (who acts when, what a turn sees) | cast, cores, goals, names |
+| referee: run limits (time, budget, steps) and the registry of limits that modules add | the script director, gamemaker mode, model roles |
+| prompt and asset lookup (story, plugin, library) | everything else |
+
+How it stays that small:
+
+- **The core knows only extension points.** "Points" is not in the core; `ledger` publishes a typed
+  *service* (`ledger.transfer(from, to, n)`), and the modules that need it say `requires: ["ledger"]`.
+  Another story can load a different ledger (or none).
+- **Residents are an id plus attributes modules own.** Exile sets `status: "exiled"` through its own
+  slice; the core only asks the registry whether a resident may act.
+- **The referee enforces limits it is told about.** Run limits are its own; an act's `maxMinutes`,
+  tribunal deadlines and the DM cap are registered by `progression`, `tribunal` and `channels`.
+- **Size budget as a check:** the core stays under about 1500 lines in files of at most 400 (§3f);
+  a plugin that needs core changes is a sign the extension point is missing.
+- **Two proof stories:** an empty story (zero plugins; residents exist, the clock runs, the log is
+  written) and a minimal one (`channels` plus `ledger`) run in `testkit`; cityofkeys and Whispers are
+  plain lists of plugins plus options.
+
+Costs to watch: coupling between plugins (made explicit by `requires` and visible with
+`swt module graph`), load order (fixed by the dependency graph, ties broken by the story's list),
+event-bus overhead (measure in the golden run), and debugging across plugins (every service call and
+refusal is an event).
+
+Migration: a strangler. `World` stays while modules are carved out one at a time (§6, step 4); the
+step ends when `World` is empty and is deleted.
 
 ## 3. Extension points
 
@@ -109,6 +154,18 @@ Design rule: a module touches nothing but its own state, the narrow context the 
 the events it returns: no direct `World` access, no Node APIs, randomness and time only from the
 host. That keeps runs deterministic and resumable, and it lets the same module run in the repo and in
 the plugin sandbox (§3b).
+
+### Services, facts and dependencies between modules
+
+- **Services.** A module may publish typed services (`ledger.transfer`, `exile.ban`,
+  `fragments.release`) and may `require` those of others. A service is a narrow function with a
+  schema, not access to another module's state. If two modules offer the same service name, the story
+  picks which one is loaded.
+- **Events** are the loose coupling: a module can listen to events of others ("resident exiled") without
+  requiring them. Rule of thumb: services for commands, events for notifications.
+- **Facts.** A module may publish *facts*: pure functions over the event log and its own state that
+  the gamemaker's situation report and the `watch` role (§3g) can read, for example "who blocks which
+  door since when". They never change state, so a replay computes them again from the events.
 
 ### Writing a plugin, and using one
 
@@ -157,6 +214,41 @@ const forgery = defineModule({
   loaded modules form the set of names allowed in `unlockTools` and in the pipeline config (§3d)
 - the same schemas validate the values at load time, YAML included (via the JSON Schema), so a wrong
   option fails at start, not in the middle of a run
+
+## 3h. Worked example: `standoff-tribunal`
+
+The tribunal that Whispers v3 uses (the gamemaker calls it, the code only checks, counts and
+carries out) as a module. Flo's rules map onto options and branches:
+
+```ts
+export const standoffTribunal = defineModule({
+  id: "standoff-tribunal",
+  requires: ["exile", "fragments"],
+  options: Type.Object({
+    calledBy:       Type.Union([Type.Literal("gamemaker"), Type.Literal("code")]),
+    minOpenMinutes: Type.Number({ default: 3 }),   // a door open this long
+    graceMinutes:   Type.Number({ default: 2 }),   // time for the blocker to fix it
+    vote:           Type.Union([Type.Literal("yes-no"), Type.Literal("unanimous")]),
+    splitRepeats:   Type.Number({ default: 3 }),   // when the vote is split
+    onNoBlocker:    Type.Literal("random-permaDeath"),
+  }),
+  facts:    [blockers],                    // door open long enough, someone waits, X is past it
+  tools:    [callTribunal, permaDeath, drawLot, vote],
+  state:    () => ({ open: undefined, votes: [], rounds: 0 }),
+  events:   { tribunal_called, vote_cast, tribunal_resolved },
+  pipeline: { callTribunal: { limit: { minGapMinutes: 3 } } },
+  hooks:    { onMinute: checkGraceAndVotes },
+  prompts:  "./prompts",                   // the announcement states the full procedure
+});
+```
+
+- One blocker: yes/no vote; several: `drawLot`; split vote: repeated `splitRepeats` times; otherwise
+  `permaDeath` on a random resident. `drawLot` draws with the run's seed in code; the model never rolls.
+- `calledBy: "gamemaker"` gives the gamemaker the tools and the code only validates; in City of Keys the
+  same module runs with `"code"` and today's rules.
+- `blockers` is a replaceable fact: another story can define "blocks" differently and keep the rest.
+- After a ban, `exile.ban` and `fragments.release` (services) do their part; the tribunal touches no
+  other module's state.
 
 ## 3a. Story format: one schema, TS or YAML
 
@@ -423,6 +515,7 @@ silently the way a model can (P52, P40), so it is also the fallback.
 - its tools run through the same tool pipeline as the residents' (§3d), so the referee can refuse
 - it is an ordinary role (`defineRole`, §3e), not a special case in the core
 - this matches the 2026-10-29 idea: Act I stays programmed, later acts are staged by the gamemaker
+- first use: Whispers v3 (2026-10-30), where the gamemaker calls the tribunal and `permaDeath` with tools and the code only checks, counts and carries out; `drawLot` is the pattern for randomness (the code draws with the seed, the model never rolls); the blocker detection is a fact (§3, services and facts)
 
 **Helpers of the gamemaker.** The city already has voices that run today (README, "The voices behind
 the curtain"); they are the gamemaker's team and need no new inventions:
