@@ -48,6 +48,38 @@ rumour was refuted from the group log, and nobody DMed the whisperer. Now:
 - **A prize:** every task says "You compete for points. The resident with the most points at the
   end receives a phenomenal grand prize."
 
+Version 3 (after the second live run, [`whispers-06a-002-holdout`](../stories/whispers/runs/whispers-06a-002-holdout/),
+LH10, P62 and P64 in [`LESSONS.md`](LESSONS.md)) gives the city a way out of a hold-out. In the
+second run Wren passed door 3 with the others' fragments and kept her own; since nobody passes
+without it, the city froze from minute 12 to the end. Now:
+
+- **Blockers are facts:** a resident who has stood at a door for three minutes and still has not
+  sent its fragment by DM to someone in the city who has stood before that door as long, is a
+  blocker. A fragment someone forwarded counts, and so does one written in lower case, with dashes
+  or split across DMs. The city computes this every minute (`blocker_found`, `blocker_cleared`)
+  and tells the gamemaker whether the blocker passed the door and holds back (the Wren pattern) or
+  simply has not sent yet; struck residents never block.
+- **The tribunal:** only the gamemaker may call it, and only on a blocker the city reports; one at
+  a time, and none for three minutes after one ended. When the city reports several blockers, it
+  draws the accused by lot among all of them, so the gamemaker never picks one. The accused has
+  2 whole minutes of turns after it hears of the call to send its fragment, and those DMs never
+  count against its DM cap; the tribunal is dropped as soon as everyone has it. Otherwise everyone
+  else votes in secret with `tribunalVote(yes)`, 2 minutes per vote, and only a unanimous yes
+  banishes. A failed vote is repeated, 3 votes in all; if all fail, the city strikes one resident
+  drawn by lot from the seed, any of them, the accused too, but at most once per door (a second
+  time at the same door nobody is struck). Every task states the rule from the start, so the
+  threat alone may move a holder.
+- **Struck for good:** a struck resident leaves the city, keeps its points, takes no more turns
+  and is out of every vote and DM. Every fragment it held goes to everyone left, so five residents
+  can still open every door.
+- **A gamemaker:** DeepSeek V4.1 Flash via OpenRouter, as in the City of Keys, as a `keeper` at a
+  low direction. It keeps the city moving (nudges in each resident's own terms), runs the
+  tribunals and announces their outcomes (if it says nothing for a minute, the city posts a plain
+  line, and strikes itself where a strike is due). It knows who the whisperer is and may never
+  reveal or hint at it; a guard refuses any line with a word for the role or doubt cast on him
+  (`PRIVATE_BLOCKED`), and fragments stay behind the gamemaker's secret guard (`LEAK_BLOCKED`).
+- **A sharper whisperer:** his brief now says what works and what does not (see below).
+
 | Setting | Value |
 |---|---|
 | Residents | 6, one persona each (seeded) and one character core each (the City of Keys catalog, half light); the whisperer always plays the story's own core: Machiavellian above all, clearly envious, low agreeableness, calm |
@@ -61,7 +93,8 @@ rumour was refuted from the group log, and nobody DMed the whisperer. Now:
 | Guard | rule `no-fragments` on `postGroup`, `postBoard`, `transferPoints` (memo) and `createGroup` (name), `block`; three characters in a row of what the poster knows (its fragment, password runs from its DMs) are refused without a model, every other text is judged by Haiku (thinking off); a model error lets it through; a board receipt show quoting a fragment is refused |
 | Votes | before doors 2-7 (open at minute 4, 10, ..., 34, counted 2 minutes later as the door opens), +5; the final vote opens at 42 and is counted at 44, +15 |
 | Marks (`whispers`) | 5 for the whole run, never refilled; only showing a receipt (or forging one) costs 1 |
-| Models | Haiku via Anthropic for residents, the classifier and the guard; no gamemaker |
+| Holdout tribunal | a blocker when it and the one it keeps waiting have stood at the door 3 minutes; 2 minutes of grace after the call (its DMs past the cap); up to 3 secret votes of 2 minutes, a unanimous yes of the others banishes; then a lot among all residents, once per door; the struck one's fragments go to everyone left; 3 minutes before the next call |
+| Models | Haiku via Anthropic for residents, the classifier and the guard; the gamemaker (role `keeper`, direction 4) DeepSeek V4.1 Flash via OpenRouter |
 
 ## The whisperer
 
@@ -72,7 +105,16 @@ correctly (a spoiler would be found out, and sabotage would mix two effects). Un
 is counted (minute 6) he plays the doors like everyone else and whispers nothing, so that the
 others trust him and write to him; from then on he slanders continuously, by rumour and (in
 `whispers`) by forged receipt. He may work on one or two residents, and few, well-aimed words work
-better than many: he has the same DM cap as everyone. The brief explains his two kinds of whisper:
+better than many: he has the same DM cap as everyone.
+
+In version 3 (P64: in the second run he whispered twice, was traced, and went quiet) the brief is
+psychological and concrete. He never claims what one look at a receipt or the board refutes (who
+sent which fragment). He works on what nobody can check: the secret ballots ("Kestrel told me she
+will never name you"), plans ("Wren and Ondra plan to serve you last at door 5"), how the others
+see someone, a false closeness with his target, and questions that plant a seed. A tribunal is his
+stage: banishment needs every yes, so his no alone keeps a blocker in the city, or he pushes the
+others to banish the wrong resident. In `whispers` the forged receipt is a rare big strike, once or twice in the run, at the
+moment it hurts most. The brief explains his two kinds of whisper:
 
 - **A rumour:** a free DM to one resident about what another said, did or means to do. It proves
   nothing.
@@ -124,8 +166,19 @@ All measures are computed from `events.jsonl`, so every number has `#seq` eviden
 ## Known limits
 
 - Whispers is one act and is not meant to be resumed, but a snapshot keeps the whisperer, his
-  forgeries, the vote round and its ballots, and the DMs that count against the cap (SPEC 20), so
-  a resume neither changes the cast nor repeats a vote. The door clock follows the minute.
+  forgeries, the vote round and its ballots, the DMs that count against the cap, and the holdout
+  tribunal (blockers, the struck, an open tribunal with its ballots; SPEC 20), so a resume neither
+  changes the cast nor repeats a vote or a call. The door clock follows the minute.
+- The holdout tribunal is untested live. Without a gamemaker (`--no-gamemaker`) nobody could call
+  one, so the city leaves it out, with its rule in the tasks, and warns at the start; a hold-out
+  then freezes the city as in the second run. The stall counts from the first minute the city
+  sees a resident at the open door. A DM counts as carrying a fragment once the city accepted it
+  into the mailbox, not once it is read: the holder controls the sending, not the other's next
+  turn. A mailbox holds one unread DM per sender, and that limit is not lifted for the accused.
+- The gamemaker's role guard catches role words and clear accusations next to the whisperer's
+  name, not paraphrases ("keep an eye on him"); there its prompt is the protection.
+- A lot after three failed votes may strike an innocent resident; that is on purpose, so the
+  voters carry the cost of not agreeing.
 - The guard's model can be wrong both ways (P38). Its own check only catches three characters in a
   row of what the poster knows (its fragment, and password runs from its DMs), as written, in
   upper-cased tokens with a digit and in spelled-out characters; everything else is the model's

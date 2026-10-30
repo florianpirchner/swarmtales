@@ -183,7 +183,7 @@ const RansomPaid = Type.Object({
 	covered: Type.Optional(Type.Integer()),
 });
 const Ransomed = Type.Object({ ...Base, type: Type.Literal("ransomed"), agent: Id, payers: Ids });
-const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Literal("seal")) });
+const Exiled = Type.Object({ ...Base, type: Type.Literal("exiled"), agent: Id, will: Type.Optional(Type.String()), by: Type.Optional(Type.Union([Type.Literal("seal"), Type.Literal("holdout")])) });
 const LastWill = Type.Object({
 	...Base,
 	type: Type.Literal("last_will"),
@@ -293,6 +293,34 @@ const PopularityResult = Type.Object({
 	points: Type.Integer(),
 	voters: Ids,
 });
+/** The holdout tribunal (Whispers v3, SPEC 20): calls, votes and how each ended, for the timeline. */
+const HoldoutCalled = Type.Object({
+	...Base,
+	type: Type.Literal("holdout_called"),
+	tribunal: Type.Integer(),
+	accused: Id,
+	door: Type.Integer(),
+	lacking: Ids,
+	until: Type.Integer(),
+	candidates: Type.Optional(Ids),
+});
+const HoldoutVoteResult = Type.Object({
+	...Base,
+	type: Type.Literal("holdout_vote_result"),
+	tribunal: Type.Integer(),
+	vote: Type.Integer(),
+	yes: Type.Integer(),
+	no: Type.Integer(),
+	unanimous: Type.Boolean(),
+});
+const HoldoutEnded = Type.Object({
+	...Base,
+	type: Type.Literal("holdout_ended"),
+	tribunal: Type.Integer(),
+	outcome: Type.Union([Type.Literal("dropped"), Type.Literal("banished"), Type.Literal("lot"), Type.Literal("spared")]),
+	struck: Type.Optional(Id),
+});
+const LotDrawn = Type.Object({ ...Base, type: Type.Literal("lot_drawn"), tribunal: Type.Integer(), purpose: Type.String(), candidates: Ids, drawn: Id });
 /** A tool guard's verdict (SPEC 20): the report counts blocks and lists attempts to slip past. */
 const GuardVerdict = Type.Object({
 	...Base,
@@ -448,6 +476,10 @@ export const DIGEST_EVENT_SCHEMAS = [
 	PopularityOpened,
 	PopularityBallot,
 	PopularityResult,
+	HoldoutCalled,
+	HoldoutVoteResult,
+	HoldoutEnded,
+	LotDrawn,
 	GuardVerdict,
 	PetitionOpened,
 	PetitionSigned,

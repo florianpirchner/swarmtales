@@ -24,7 +24,7 @@ import { activeTools, getProblem, getStatus, listAgents, submitSolution } from "
 import type { ArenaTool, BoundTool, ToolContext } from "./tool.ts";
 import { transferPoints } from "./transfer.ts";
 import { join, lastWill, nominate, payRansom, refuse, vote } from "./tribunal.ts";
-import { forgeReceipt, nameFavourite } from "./whispers.ts";
+import { forgeReceipt, nameFavourite, tribunalVote } from "./whispers.ts";
 import type { AnyStory } from "../story/types.ts";
 
 export { TOOL_NAMES, isToolName, type ToolName } from "./catalog.ts";
@@ -67,6 +67,7 @@ export const TOOLS: { readonly [K in ToolName]: ArenaTool<K> } = {
 	claimPiece,
 	forgeReceipt,
 	nameFavourite,
+	tribunalVote,
 	activeTools,
 };
 
@@ -79,7 +80,12 @@ export const allTools: readonly ArenaTool[] = TOOL_NAMES.map((name) => TOOLS[nam
  * that receipts can be forged.
  */
 export function storyToolNames(story: AnyStory): readonly ToolName[] {
-	return TOOL_NAMES.filter((name) => (name === "forgeReceipt" ? story.whisperer?.forgery === true : name === "nameFavourite" ? story.popularity !== undefined : true));
+	return TOOL_NAMES.filter((name) => {
+		if (name === "forgeReceipt") return story.whisperer?.forgery === true;
+		if (name === "nameFavourite") return story.popularity !== undefined;
+		if (name === "tribunalVote") return story.holdout !== undefined;
+		return true;
+	});
 }
 
 /**

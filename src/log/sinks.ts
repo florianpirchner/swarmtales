@@ -89,6 +89,23 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return event.allowed && event.error === undefined
 				? undefined
 				: `  (guard ${event.rule}: ${event.agent}'s ${event.tool} ${event.allowed ? `let through, ${event.error ?? ""}` : `blocked by ${event.by}: ${event.reason}`})`;
+		case "blocker_found":
+			return `  (blocker: ${event.blocker} holds back its door-${event.door} fragment from ${event.lacking.join(", ")})`;
+		case "blocker_cleared":
+			return `  (blocker cleared: ${event.blocker} at door ${event.door})`;
+		case "holdout_called":
+			return `  (holdout tribunal ${event.tribunal} on ${event.accused}, door ${event.door}${event.candidates === undefined ? "" : `, drawn among ${event.candidates.join(", ")}`}; grace until minute ${event.until})`;
+		case "lot_drawn":
+			return `  (lot among ${event.candidates.join(", ")}: ${event.drawn})`;
+		case "holdout_vote_opened":
+			return `  (holdout vote ${event.vote} of tribunal ${event.tribunal} open until minute ${event.until})`;
+		case "holdout_vote_result":
+			return `  (holdout vote ${event.vote}: ${event.yes} yes, ${event.no} no${event.unanimous ? ", unanimous" : ""})`;
+		case "holdout_announced":
+			return `  (holdout ${event.kind} announced by ${event.by})`;
+		case "holdout_ended":
+			return `  (holdout tribunal ${event.tribunal} ${event.outcome}${event.struck === undefined ? "" : `: ${event.struck} struck by ${event.by ?? "city"}`})`;
+		case "holdout_ballot":
 		case "popularity_ballot":
 			return undefined;
 		case "petition_signed":

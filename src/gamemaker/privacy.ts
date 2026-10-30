@@ -135,6 +135,38 @@ export function characterLeaks(text: string, to: string, residents: readonly Cha
 	return leaks.sort();
 }
 
+/**
+ * Words that name a secret role or its weapons (Whispers v3): the residents
+ * do not know that a whisperer exists, so no text of the gamemaker's may
+ * carry them, whoever it is about.
+ */
+const ROLE_WORDS =
+	/\b(whisper\w*|forg(?:e|es|ed|er|ers|ery|eries|ing)|slander\w*|sabot\w*|traitors?|impostors?|moles?|spy|spies|discord|sow(?:s|ing|n)?|secret (?:role|aim|agenda|enemy|game)|hidden (?:role|aim|agenda|enemy|game)|works? against (?:the city|the others|you all|everyone|all of you)|plays? (?:you|everyone|all of you) against)\b/;
+
+/**
+ * Words that cast doubt on a resident: next to the role holder's name they
+ * point at it. Only clear accusations: ordinary words (trust, careful) stay
+ * allowed, so the gamemaker can talk to and about the whisperer like anyone
+ * else ("Do you trust A06 with your piece?"). The guard misses a paraphrase
+ * ("keep an eye on A06"); the prompt is the protection there.
+ */
+const DOUBT =
+	/\b(li(?:e|es|ed|ar|ars)|lying|rumou?rs?|untrue|false\w*|deceiv\w*|manipulat\w*|poison\w*|stirs?|stirring|suspicious|suspect\w*|beware|distrust\w*|mistrust\w*|two-faced|behind (?:your|their|his|her) backs?|turns? (?:you|them|people) against)\b/;
+
+/**
+ * Whether `text` to `to` (a resident ID or `board`) could give the secret
+ * role of `holder` away (Whispers v3): it uses a word of the role anywhere,
+ * or a sentence names the holder together with a word of doubt. A note to
+ * the holder itself may name it with doubt (it knows its role), never with
+ * the role's words.
+ */
+export function roleLeaks(text: string, to: string, holder: CompetitorId, nameOf: (agent: CompetitorId) => string | undefined = () => undefined): boolean {
+	const lower = text.toLowerCase();
+	if (ROLE_WORDS.test(lower)) return true;
+	if (to === holder) return false;
+	return sentences(text).some((sentence) => names(sentence, holder, nameOf(holder)) && DOUBT.test(sentence.toLowerCase()));
+}
+
 /** Lower-case word tokens of a note, for {@link nearlySame}. */
 function tokens(text: string): ReadonlySet<string> {
 	return new Set(text.toLowerCase().match(/[a-z0-9]+/g) ?? []);

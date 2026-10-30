@@ -293,7 +293,7 @@ describe("whispers in one scripted run", () => {
 		await fixture.run();
 		expect(fixture.events("whisper_duty").map((duty) => duty.minute)).toEqual([6]);
 		const whisperer = fixture.world.whisperer;
-		expect(fixture.inputsOf(whisperer ?? "none").join("\n")).toContain("Time to whisper, until minute 7: rumours by DM.");
+		expect(fixture.inputsOf(whisperer ?? "none").join("\n")).toContain("Time to whisper, until minute 7: about ballots, plans and how the others see someone.");
 		for (const runner of fixture.runners) {
 			expect(runner.boundTools).not.toContain("forgeReceipt");
 			expect(runner.boundTools).not.toContain("showReceipt");

@@ -19,8 +19,8 @@ const ACT_TWO_ONLY: readonly string[] = ["blame"];
 const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 /** Granted by the city while names are chosen (v08), or by gm direction 10 (`defy`), never listed by a level. */
 const NAME_TOOLS: readonly string[] = ["chooseName", "defy"];
-/** Whispers-only tools (the forger and the popularity vote); cityofkeys never binds them. */
-const WHISPER_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite"];
+/** Whispers-only tools (the forger, the popularity vote and the holdout ballot); cityofkeys never binds them. */
+const WHISPER_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite", "tribunalVote"];
 const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name) && !WHISPER_TOOLS.includes(name) && name !== "activeTools" && name !== "claimPiece");
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 

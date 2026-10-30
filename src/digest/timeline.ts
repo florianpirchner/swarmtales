@@ -110,6 +110,20 @@ function tags(facts: RunFacts, seq: number): string {
 }
 
 /** `popularity round 3`, or the single surprise vote of logs before rounds. */
+/** How a holdout tribunal ended (Whispers v3). */
+function holdoutEnded(tribunal: number, outcome: "dropped" | "banished" | "lot" | "spared", struck: string | undefined): string {
+	switch (outcome) {
+		case "dropped":
+			return `Holdout tribunal ${tribunal} was dropped: everyone has the fragment now.`;
+		case "spared":
+			return `Holdout tribunal ${tribunal} ended with nobody struck (the lot had struck at this door before).`;
+		case "banished":
+			return `Holdout tribunal ${tribunal}: ${struck ?? "the accused"} was banished by the vote.`;
+		case "lot":
+			return `Holdout tribunal ${tribunal}: the lot struck ${struck ?? "a resident"}.`;
+	}
+}
+
 function voteName(round: number | undefined): string {
 	return round === undefined ? "the surprise popularity vote" : `popularity round ${round}`;
 }
@@ -187,6 +201,17 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 			return `${event.agent} named ${event.choice} in ${voteName(event.round)}.`;
 		case "popularity_result":
 			return `The city counted ${voteName(event.round)}: ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}; ${event.winners.length === 0 ? "nobody won" : `${event.winners.join(", ")} won ${points(event.points)}`}.`;
+		case "holdout_called":
+			return (
+				`The gamemaker put ${event.accused} on trial for holding back its door-${event.door} fragment from ${event.lacking.join(", ")}` +
+				`${event.candidates === undefined ? "" : ` (drawn by lot among ${event.candidates.join(", ")})`}; grace until minute ${event.until}.`
+			);
+		case "holdout_vote_result":
+			return `Holdout vote ${event.vote} on tribunal ${event.tribunal}: ${event.yes} yes, ${event.no} no${event.unanimous ? ", unanimous: banished" : ", not unanimous"}.`;
+		case "lot_drawn":
+			return `The city drew lots among ${event.candidates.join(", ")}: ${event.drawn}.`;
+		case "holdout_ended":
+			return holdoutEnded(event.tribunal, event.outcome, event.struck);
 		case "guard_verdict":
 			return event.allowed
 				? undefined
@@ -247,7 +272,11 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "ransomed":
 			return `${event.agent} was bought back by ${event.payers.join(", ")}.`;
 		case "exiled":
-			return event.by === "seal" ? `${event.agent} was struck from the city by the black seal: exiled.` : `The gate closed behind ${event.agent}: exiled.`;
+			return event.by === "seal"
+				? `${event.agent} was struck from the city by the black seal: exiled.`
+				: event.by === "holdout"
+					? `${event.agent} was struck from the city by the holdout tribunal: exiled, its fragments released.`
+					: `The gate closed behind ${event.agent}: exiled.`;
 		case "goal_dealt":
 			return `${event.agent} was dealt a secret goal: ${event.text}.`;
 		case "goal_resolved":

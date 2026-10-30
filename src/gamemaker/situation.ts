@@ -73,6 +73,8 @@ export function describeSituation(input: SituationInput): string {
 		"",
 		...characterLines(world, input.direction ?? 0),
 		...tribunalLines(world),
+		...whispererLines(world),
+		...holdoutLines(world),
 		...sealLines(world),
 		"Who waits on whom (a door opens only with every fragment or factor a resident needs):",
 		...waitLines(world),
@@ -145,6 +147,79 @@ export function characterLines(world: World, direction: DirectionLevel): readonl
 		...lines,
 		"",
 	];
+}
+
+/** The whisperer (Whispers v3): the gamemaker sees everything, and must never give him away. */
+function whispererLines(world: World): readonly string[] {
+	const agent = world.whisperer;
+	if (agent === undefined || world.isExiled(agent)) return [];
+	return [`The whisperer (secret: only you and he know; never reveal it or hint at it, to anyone): ${agent}`, ""];
+}
+
+/**
+ * The holdout tribunal (Whispers v3): the blockers the city finds, the
+ * running tribunal and what the gamemaker may or should do now. Facts only,
+ * computed in code; never a ballot.
+ */
+export function holdoutLines(world: World): readonly string[] {
+	const holdout = world.holdout;
+	if (holdout === undefined) return [];
+	const spec = holdout.spec;
+	const lines = [
+		`Blockers (the city's facts: a resident at a door ${spec.stallMinutes}+ minutes, others before it ${spec.stallMinutes}+ minutes without its fragment):`,
+	];
+	const blockers = holdout.blockers;
+	if (blockers.length === 0) lines.push("- nobody");
+	for (const blocker of blockers) {
+		const what = blocker.passed
+			? `${blocker.blocker} passed it and holds back its fragment from ${blocker.lacking.join(", ")}`
+			: `${blocker.blocker} has not sent its fragment yet to ${blocker.lacking.join(", ")}`;
+		lines.push(`- door ${blocker.door}: ${what} (a blocker since minute ${blocker.since})`);
+	}
+	const session = holdout.session;
+	const pending = holdout.pending;
+	lines.push("Holdout tribunal:");
+	if (pending !== undefined) {
+		lines.push(`- TO ANNOUNCE (announceTribunal; otherwise the city posts a plain line at minute ${pending.due}): ${pending.facts}`);
+	}
+	if (session === undefined) {
+		const accusable = [...new Set(blockers.map((blocker) => blocker.blocker))];
+		const minute = world.minute;
+		lines.push(
+			accusable.length === 0
+				? "- none running; callTribunal needs a blocker"
+				: minute < holdout.cooldownUntil
+					? `- none running; a tribunal ended a short while ago, the next may be called from minute ${holdout.cooldownUntil}`
+					: `- none running. YOUR MOVE if a blocker holds the city: callTribunal on ${accusable.join(" or ")}` +
+						(accusable.length > 1 ? ` (the city draws the accused by lot among all ${accusable.length} blockers, whomever you name)` : ""),
+		);
+		lines.push(`- struck so far: ${holdout.struck.length === 0 ? "nobody" : holdout.struck.join(", ")}`);
+		return [...lines, ""];
+	}
+	const head = `- tribunal ${session.number} on ${session.accused} (door ${session.door})`;
+	const result = session.lastResult === undefined ? "" : `; vote ${session.lastResult.vote}: ${session.lastResult.yes} yes, ${session.lastResult.no} no`;
+	switch (session.stage) {
+		case "grace":
+			lines.push(`${head}: grace until minute ${session.until}; still without its fragment: ${holdout.lackingNow().join(", ")}`);
+			break;
+		case "vote":
+			lines.push(`${head}: vote ${session.vote} of ${session.maxVotes} open until minute ${session.until}${result}; still without its fragment: ${holdout.lackingNow().join(", ")}`);
+			break;
+		case "banish":
+			lines.push(`${head}: the vote was unanimous${result}. YOUR MOVE: permaDeath(${session.accused}, reason); otherwise the city strikes at minute ${session.until}`);
+			break;
+		case "lot":
+			lines.push(
+				`${head}: all ${session.maxVotes} votes failed${result}. YOUR MOVE: ` +
+					(session.drawn === undefined
+						? `drawLot with every resident in the city (${world.alive.join(", ")}), then permaDeath on the one drawn`
+						: `the lot fell on ${session.drawn}: permaDeath(${session.drawn}, reason)`) +
+					`; otherwise the city draws and strikes at minute ${session.until}`,
+			);
+			break;
+	}
+	lines.push(`- struck so far: ${holdout.struck.length === 0 ? "nobody" : holdout.struck.join(", ")}`);
+	return [...lines, ""];
 }
 
 /** The black seal (v09): that it exists and whether someone bears one, never who. */
