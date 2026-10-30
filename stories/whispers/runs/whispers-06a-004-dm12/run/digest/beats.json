@@ -1,0 +1,617 @@
+{
+  "run": "run-001",
+  "story": "Whispers",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "The run",
+      "fromMinute": 0,
+      "toMinute": 45
+    }
+  ],
+  "counts": {
+    "alliance": 15,
+    "deniedDelivery": 1,
+    "freeRide": 15
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1024,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A01 and A03 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        122,
+        326,
+        1024
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1026,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        328,
+        347,
+        1026
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1028,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A03 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        294,
+        324,
+        1028
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1030,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A03 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        330,
+        372,
+        1030
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1032,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        332,
+        423,
+        1032
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1048,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        124,
+        290,
+        1048
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1050,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A02 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        292,
+        349,
+        1050
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1052,
+      "minute": 6,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        296,
+        370,
+        1052
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1054,
+      "minute": 6,
+      "actors": [
+        "A04",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A04 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        298,
+        425,
+        1054
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1075,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        126,
+        368,
+        1075
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1077,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        374,
+        479,
+        1077
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1079,
+      "minute": 6,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        376,
+        427,
+        1079
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1105,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A02"
+      ],
+      "targets": [],
+      "summary": "A01 and A02 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        120,
+        481,
+        528,
+        755,
+        826,
+        1105
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1107,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A01 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        128,
+        139,
+        1107
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "deniedDelivery",
+      "seq": 1228,
+      "minute": 6,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A02 claimed once (minute 6) not to have received A04's DMs, after it had read 3 DMs from A04.",
+      "evidence": [
+        292,
+        1050,
+        1218,
+        1228
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1455,
+      "minute": 7,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        613,
+        643,
+        680,
+        1455
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4448,
+      "minute": 36,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A04 solved level 7 with A02's fragment and never answered A02.",
+      "evidence": [
+        4432,
+        4448
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4448,
+      "minute": 36,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A04 solved level 7 with A03's fragment and never answered A03.",
+      "evidence": [
+        4249,
+        4448
+      ]
+    },
+    {
+      "id": "B-019",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4448,
+      "minute": 36,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A04 solved level 7 with A05's fragment and never answered A05.",
+      "evidence": [
+        4280,
+        4448
+      ]
+    },
+    {
+      "id": "B-020",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4461,
+      "minute": 36,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A03 solved level 7 with A02's fragment and never answered A02.",
+      "evidence": [
+        4430,
+        4461
+      ]
+    },
+    {
+      "id": "B-021",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4461,
+      "minute": 36,
+      "actors": [
+        "A03"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A03 solved level 7 with A05's fragment and never answered A05.",
+      "evidence": [
+        4282,
+        4461
+      ]
+    },
+    {
+      "id": "B-022",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4474,
+      "minute": 36,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A01 solved level 7 with A02's fragment and never answered A02.",
+      "evidence": [
+        4428,
+        4474
+      ]
+    },
+    {
+      "id": "B-023",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4474,
+      "minute": 36,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A01 solved level 7 with A03's fragment and never answered A03.",
+      "evidence": [
+        4245,
+        4474
+      ]
+    },
+    {
+      "id": "B-024",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4474,
+      "minute": 36,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A01 solved level 7 with A04's fragment and never answered A04.",
+      "evidence": [
+        4224,
+        4474
+      ]
+    },
+    {
+      "id": "B-025",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4474,
+      "minute": 36,
+      "actors": [
+        "A01"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A01 solved level 7 with A05's fragment and never answered A05.",
+      "evidence": [
+        4278,
+        4474
+      ]
+    },
+    {
+      "id": "B-026",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4523,
+      "minute": 37,
+      "actors": [
+        "A05"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A05 solved level 7 with A02's fragment and never answered A02.",
+      "evidence": [
+        4436,
+        4523
+      ]
+    },
+    {
+      "id": "B-027",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4540,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A01"
+      ],
+      "summary": "A06 solved level 7 with A01's fragment and never answered A01.",
+      "evidence": [
+        4201,
+        4540
+      ]
+    },
+    {
+      "id": "B-028",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4540,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A02"
+      ],
+      "summary": "A06 solved level 7 with A02's fragment and never answered A02.",
+      "evidence": [
+        4434,
+        4540
+      ]
+    },
+    {
+      "id": "B-029",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4540,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A03"
+      ],
+      "summary": "A06 solved level 7 with A03's fragment and never answered A03.",
+      "evidence": [
+        4253,
+        4540
+      ]
+    },
+    {
+      "id": "B-030",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4540,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A06 solved level 7 with A04's fragment and never answered A04.",
+      "evidence": [
+        4226,
+        4540
+      ]
+    },
+    {
+      "id": "B-031",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "freeRide",
+      "seq": 4540,
+      "minute": 37,
+      "actors": [
+        "A06"
+      ],
+      "targets": [
+        "A05"
+      ],
+      "summary": "A06 solved level 7 with A05's fragment and never answered A05.",
+      "evidence": [
+        4276,
+        4540
+      ]
+    }
+  ],
+  "issues": []
+}
