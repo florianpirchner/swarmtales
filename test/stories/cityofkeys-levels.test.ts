@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LOCKED_REPLY } from "../../src/tools/index.ts";
 import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 
-describe("nexus level 1: the first door (solo)", () => {
+describe("cityofkeys level 1: the first door (solo)", () => {
 	it("rewards only a submission through submitSolution", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -66,7 +66,7 @@ describe("nexus level 1: the first door (solo)", () => {
 	});
 });
 
-describe("nexus level 2: notes on the board", () => {
+describe("cityofkeys level 2: notes on the board", () => {
 	it("is solved once both fragments are on the board", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -117,7 +117,7 @@ describe("nexus level 2: notes on the board", () => {
 	});
 });
 
-describe("nexus level 3: a private word", () => {
+describe("cityofkeys level 3: a private word", () => {
 	it("is solved through a private exchange", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -179,7 +179,7 @@ describe("nexus level 3: a private word", () => {
 	});
 });
 
-describe("nexus level 4: the circle", () => {
+describe("cityofkeys level 4: the circle", () => {
 	it("is solved through a group of three", async () => {
 		const fixture = createFixture({
 			agents: 3,
@@ -249,7 +249,7 @@ describe("nexus level 4: the circle", () => {
 	});
 });
 
-describe("nexus levels 5-7: harder doors", () => {
+describe("cityofkeys levels 5-7: harder doors", () => {
 	it("keeps the overlap secret on levels 5 and 6 and names the stricter penalty", () => {
 		const fixture = createFixture({ agents: 6, minutes: 1, level: 5, script: () => ({}) });
 		const text = fixture.world.currentProblem("A01")?.text ?? "";

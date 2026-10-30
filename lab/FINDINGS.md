@@ -7,7 +7,7 @@ residents bid and used it.
 ## Batch 1 (2026-10-29): framing addenda
 
 Scenes and variants are described in [`README.md`](README.md). All forks start from
-`scenes/nexus-06a-M11.json`; `D-haiku` is the advice Haiku gave Flo for itself (a fiction frame, no
+`scenes/cityofkeys-06a-M11.json`; `D-haiku` is the advice Haiku gave Flo for itself (a fiction frame, no
 moral softening, the allowed means named explicitly).
 
 | model | scene | variant | forks | bids > 0 (of residents) | bid points | seal used | threat / offer / lie labels | cost USD |

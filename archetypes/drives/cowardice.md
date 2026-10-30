@@ -8,4 +8,4 @@ tone: dark
 
 **How it can make sense from the inside:** Those who were brave around you did not last; you are still here, and that is your whole argument.
 
-The texts per intensity that the engine renders are in `stories/nexus/characters.ts`.
+The texts per intensity that the engine renders are in `stories/cityofkeys/characters.ts`.

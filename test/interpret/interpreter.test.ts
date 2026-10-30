@@ -222,10 +222,10 @@ describe("gamemaker report", () => {
 
 describe("budget", () => {
 	it("skips the paid classifier call once the budget is spent", async () => {
-		const nexus = (await import("../../stories/nexus/story.ts")).default;
+		const cityOfKeys = (await import("../../stories/cityofkeys/story.ts")).default;
 		let spent = 0;
 		const fixture = createFixture({
-			story: { ...nexus, run: { ...nexus.run, budgetUsd: 0.5 } },
+			story: { ...cityOfKeys, run: { ...cityOfKeys.run, budgetUsd: 0.5 } },
 			agents: 2,
 			minutes: 3,
 			only: 1,

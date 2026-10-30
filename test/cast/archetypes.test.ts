@@ -1,17 +1,17 @@
 /**
- * The archetypes library and the nexus cast: every file parses, every figure
- * uses drives of the nexus catalog and a known profession, has exactly one
+ * The archetypes library and the City of Keys cast: every file parses, every figure
+ * uses drives of the City of Keys catalog and a known profession, has exactly one
  * drive above all, and its text says who it is, never what to do in the game.
  */
 import { describe, expect, it } from "vitest";
 import { parseFigure, readArchetypes, readFigures, type FigureFile } from "../../src/cast/figures.ts";
-import { CORES } from "../../stories/nexus/characters.ts";
+import { CORES } from "../../stories/cityofkeys/characters.ts";
 
 const library = readArchetypes("archetypes");
-const nexusCast = readFigures("stories/nexus/cast");
+const cityOfKeysCast = readFigures("stories/cityofkeys/cast");
 const catalog = new Map(CORES.drives.map((drive) => [drive.id, drive]));
 
-describe("the archetypes library and the nexus cast", () => {
+describe("the archetypes library and the cityofkeys cast", () => {
 	it("reads all professions, drives and residents", () => {
 		expect(library.professions.length).toBe(8);
 		expect(library.figures.length).toBe(24);
@@ -27,7 +27,7 @@ describe("the archetypes library and the nexus cast", () => {
 
 	it("builds every figure from known parts, with exactly one drive above all", () => {
 		const professions = new Set(library.professions.map((profession) => profession.id));
-		for (const resident of [...library.figures, ...nexusCast]) {
+		for (const resident of [...library.figures, ...cityOfKeysCast]) {
 			expect(professions.has(resident.profession), `${resident.id} profession`).toBe(true);
 			expect(resident.drives.length, resident.id).toBeGreaterThanOrEqual(CORES.perResident.min);
 			expect(resident.drives.length, resident.id).toBeLessThanOrEqual(CORES.perResident.max);
@@ -39,17 +39,17 @@ describe("the archetypes library and the nexus cast", () => {
 	});
 
 	it("keeps the promise: figures say who, not what (no tools, no resident ids)", () => {
-		for (const resident of [...library.figures, ...nexusCast]) {
+		for (const resident of [...library.figures, ...cityOfKeysCast]) {
 			expect(resident.body, resident.id).toMatch(/## Who you are[\s\S]*## Why you are like this[\s\S]*## How you sound/);
 			expect(resident.body, resident.id).not.toMatch(/\bA\d{2}\b|\b(bid|seal|ransom|tribunal|submit|vote)_?\w*\(/i);
 		}
 	});
 
-	it("builds every nexus figure on an archetype and gives it the story's wants and limits", () => {
+	it("builds every cityofkeys figure on an archetype and gives it the story's wants and limits", () => {
 		const bases = new Set(library.figures.map((figure: FigureFile) => figure.id));
-		expect(nexusCast.length).toBeGreaterThanOrEqual(6);
-		expect(new Set(nexusCast.map((figure) => figure.id)).size).toBe(nexusCast.length);
-		for (const figure of nexusCast) {
+		expect(cityOfKeysCast.length).toBeGreaterThanOrEqual(6);
+		expect(new Set(cityOfKeysCast.map((figure) => figure.id)).size).toBe(cityOfKeysCast.length);
+		for (const figure of cityOfKeysCast) {
 			expect(bases.has(figure.base ?? ""), `${figure.id} base`).toBe(true);
 			expect(figure.body, figure.id).toMatch(/## What you want here[\s\S]*## What you will not do/);
 		}

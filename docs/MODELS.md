@@ -11,7 +11,7 @@ Qwen3.8 Flash is slightly lower at $0.47), DeepSeek has by far the lowest cache-
 ($0.003). Which run ends up cheaper depends on the ratio of cached input to output: with long,
 reused contexts DeepSeek is ahead, with many short answers GLM.
 
-- **GLM-5.3-Flash:** low output price; currently the default model of the `nexus` story.
+- **GLM-5.3-Flash:** low output price; currently the default model of the `cityofkeys` story.
 - **DeepSeek V4.1 Flash:** cheapest cache read; the cost alternative for cache-heavy runs.
 - **Claude Haiku 5.5:** reference and price anchor.
 - **Qwen3.8 Flash** and **MiniMax M3.1 Flash:** candidates for a separate comparison run.

@@ -1,7 +1,7 @@
 # act2-12a-003-f10g10-director: the gamemaker directs twelve
 
-Act II of [nexus](../../../../docs/STORY-NEXUS.md) with 12 residents, resumed from
-[`examples/nexus-act1-12a-02/`](../../../../examples/nexus-act1-12a-02/) at both dials 10, without
+Act II of [cityofkeys](../../../../docs/STORY-CITYOFKEYS.md) with 12 residents, resumed from
+[`examples/cityofkeys-act1-12a-02/`](../../../../examples/cityofkeys-act1-12a-02/) at both dials 10, without
 the weaver. It is the rerun of [002](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-12a-002-f10g10-mute) after the P52 fix: the
 gamemaker may now write up to 393216 output tokens instead of 4000, so its thinking no longer
 ends the turn before it acts. Same checkpoint, same seed, same secret goals.
@@ -10,7 +10,7 @@ ends the turn before it acts. Same checkpoint, same seed, same secret goals.
 |---|---|
 | Date | 2026-10-29 |
 | Code | swarmtales PR #40 (gamemaker output cap), PR #39 |
-| Command | `pnpm start --resume examples/nexus-act1-12a-02/snapshot-L7.json --provider anthropic --figure-direction 10 --gm-direction 10 --budget 8` |
+| Command | `pnpm start --resume examples/cityofkeys-act1-12a-02/snapshot-L7.json --provider anthropic --figure-direction 10 --gm-direction 10 --budget 8` |
 | Residents | `claude-haiku-5-5` via Anthropic |
 | Gamemaker | `deepseek/deepseek-v4.1-flash-1017` via OpenRouter, thinking high, 393216 output tokens |
 | Classifier, judge, souffleur | `claude-haiku-5-5` via Anthropic |

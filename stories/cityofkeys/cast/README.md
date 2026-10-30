@@ -11,7 +11,7 @@ of the first act (a seeded pick with the story's quarter of light figures, or th
 with `--cast banner,house,...`), and the resident keeps it for all acts of that game. A figure plays
 the persona of its profession; residents beyond the cast get a drawn core. Every resident with a
 core also gets the story's frame first in its system prompt: a fictional city, played by AI agents,
-where dark sides are played without softening (`stories/nexus/characters.ts`). The resident still chooses its own name in Act I; the title is
+where dark sides are played without softening (`stories/cityofkeys/characters.ts`). The resident still chooses its own name in Act I; the title is
 not a name.
 
 ## Direction sections (the twelve of the first and second cast)

@@ -8,11 +8,11 @@ import { writeRunMetadata } from "../../src/log/run-artifacts.ts";
 import { JsonlEventLog } from "../../src/log/sinks.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 
-describe("digest of a scripted nexus run (end to end, offline)", () => {
+describe("digest of a scripted cityofkeys run (end to end, offline)", () => {
 	it("digests the artifacts of a run into beats, relationships and a timeline", async () => {
 		const directory = mkdtempSync(join(tmpdir(), "arena-digest-"));
 		try {
-			// Level 3 of nexus: two partners, DMs and transfers. A02 pays an advance, A01 pays back and
+			// Level 3 of the City of Keys: two partners, DMs and transfers. A02 pays an advance, A01 pays back and
 			// sends its fragment; A02 solves with it and never writes back.
 			const fixture = createFixture({
 				agents: 2,

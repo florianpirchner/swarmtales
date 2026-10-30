@@ -47,7 +47,7 @@ start without replaying the earlier ones.
 
 | Role | Model in our runs | Provider | Notes |
 |---|---|---|---|
-| Competitors | `claude-haiku-5-5` (Haiku) | Anthropic (`--provider anthropic`) | the nexus story's own default is `z-ai/glm-5.3-flash` via OpenRouter |
+| Competitors | `claude-haiku-5-5` (Haiku) | Anthropic (`--provider anthropic`) | the cityofkeys story's own default is `z-ai/glm-5.3-flash` via OpenRouter |
 | Gamemaker | `deepseek/deepseek-v4.1-flash-1017` | OpenRouter | fixed in the story; `--gamemaker-provider/--gamemaker-model` override it |
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
@@ -62,11 +62,11 @@ start without replaying the earlier ones.
 | [`docs/SPEC.md`](SPEC.md) | game specification (normative for behavior) |
 | [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) | layout, story DSL, coding rules, milestones |
 | [`docs/MODELS.md`](MODELS.md) | model candidates, prices, metrics |
-| [`stories/nexus/`](../stories/nexus/) | the nexus story: code (`story.ts`) and a short overview |
-| [`docs/STORY-NEXUS.md`](STORY-NEXUS.md) | the full nexus story: acts, levels, feast, director beats, personas |
-| [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
-| [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
-| [`examples/nexus-act2-06a/`](../examples/nexus-act2-06a/) | versioned Act II runs, all resumed from that snapshot |
+| [`stories/cityofkeys/`](../stories/cityofkeys/) | the cityofkeys story: code (`story.ts`) and a short overview |
+| [`docs/STORY-CITYOFKEYS.md`](STORY-CITYOFKEYS.md) | the full cityofkeys story: acts, levels, feast, director beats, personas |
+| [`examples/cityofkeys-act1-06a-02/`](../examples/cityofkeys-act1-06a-02/) | a recorded Act I with digest and an Act I snapshot to resume from (the Act II base since v05) |
+| [`examples/cityofkeys-act1-06a-01/`](../examples/cityofkeys-act1-06a-01/) | the older recorded Act I, base of Act II runs v01-v04 and of the snapshot tests |
+| [`examples/cityofkeys-act2-06a/`](../examples/cityofkeys-act2-06a/) | versioned Act II runs, all resumed from that snapshot |
 
 ## Quick start
 
@@ -76,7 +76,7 @@ Requires Node 22 or newer and pnpm.
 pnpm install
 pnpm test                                       # all tests, offline, no API key
 pnpm start --provider scripted --minutes 5      # offline run with scripted agents
-pnpm start                                      # the nexus story with the story's model
+pnpm start                                      # the cityofkeys story with the story's model
 ```
 
 Every check that CI runs:
@@ -91,7 +91,7 @@ pnpm validate    # validates every registered story
 ## Running a story
 
 ```bash
-pnpm start --story nexus                    # default story, 6 agents, 60 minutes, seed 7
+pnpm start --story cityofkeys                    # default story, 6 agents, 60 minutes, seed 7
 pnpm start --minutes 20 --seed 3            # override run parameters
 pnpm start --agents 12                      # agent count must fit every team layout
 pnpm start --only 4 --agents 3              # play only level 4 and stop when everyone passed it
@@ -107,12 +107,12 @@ pnpm start --resume runs/run-001/snapshot-L7.json     # continue from that snaps
 Flags override the story's run parameters: `--story --agents --minutes --seed --provider
 --model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
 --snapshot-after --stop-after-snapshot --resume --no-reporter --reporter-provider --reporter-model`.
-`--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; nexus: 3): in every pass each
+`--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; cityofkeys: 3): in every pass each
 competitor gets at most one step, one model call with its tools. `--block-size <n>` sets
-`run.blockSize` (nexus: 1): a block's model calls run concurrently, which shortens a live minute,
+`run.blockSize` (cityofkeys: 1): a block's model calls run concurrently, which shortens a live minute,
 while their tools still run in the seeded order (SPEC 3). `--no-personas`
 plays a control group without personas. `--no-gamemaker` plays without the story's LLM game
-master (SPEC 10.4); nexus uses DeepSeek V4.1 Flash via OpenRouter for it, so it needs `OPENROUTER_API_KEY`
+master (SPEC 10.4); cityofkeys uses DeepSeek V4.1 Flash via OpenRouter for it, so it needs `OPENROUTER_API_KEY`
 (`--gamemaker-provider anthropic --gamemaker-model haiku` switches it to Haiku).
 `--no-classifier` plays without the statement classifier (SPEC 10.5), which labels every round's
 statements and thoughts (promise, threat, refusal, ...) for the digest and the gamemaker. It uses
@@ -144,8 +144,8 @@ pnpm start --resume runs/run-004/snapshot-L7.json --provider deepseek --minutes 
 ```
 
 A recorded Act I (Haiku, seed 7) ships with the repo, so you can skip the first step:
-`pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider anthropic`
-(see [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/)).
+`pnpm start --resume examples/cityofkeys-act1-06a-03/snapshot-L7.json --provider anthropic`
+(see [`examples/cityofkeys-act1-06a-02/`](../examples/cityofkeys-act1-06a-02/)).
 
 `--snapshot-after <n>` shuts a door after level n. Whoever passes level n gets the reward and the
 receipt as usual but waits at the door: still on level n with its tools (to watch and help), with
@@ -367,14 +367,14 @@ the planner as well.
 
 A story is a TypeScript module whose default export is `defineStory(...)`: deeply readonly,
 JSON-serializable data that the engine interprets. Stories live outside the engine, in
-[`stories/`](../stories/): the default story is [`stories/nexus/`](../stories/nexus/) (its code is
+[`stories/`](../stories/): the default story is [`stories/cityofkeys/`](../stories/cityofkeys/) (its code is
 `story.ts`, its overview `README.md`). New stories get their own folder and register in
 [`stories/index.ts`](../stories/index.ts).
 
 ```ts
 export default defineStory({
-	id: "nexus",
-	title: "NEXUS - The City of Keys",
+	id: "cityofkeys",
+	title: "The City of Keys",
 	city: "NEXUS",
 	run: { agents: 6, minutes: 60, seed: 7, survivors: 2, startPoints: 15, activation: "onNovelty", passesPerMinute: 3, blockSize: 1 },
 	model: { provider: "openrouter", id: "z-ai/glm-5.3-flash" },
@@ -473,11 +473,11 @@ Two puzzle kinds exist (SPEC 12):
   inputs, the gamemaker for its report and replies. Events and snapshots keep IDs.
 - **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the gamemaker
   reads at most the last 150 event lines since its last look; the interpreter labels a round in
-  chunks of 60 statements. `test/scale/whole-story.test.ts` plays nexus offline with 12 and 48
+  chunks of 60 statements. `test/scale/whole-story.test.ts` plays cityofkeys offline with 12 and 48
   oracle residents through the tribunal target (a few seconds, in the normal suite).
 
-- **Drama** (v09, SPEC 19): `cores`, `goals` and `seal` on the story (nexus:
-  `stories/nexus/characters.ts`). `src/engine/cores.ts` deals the cores (`dealCores`, seeded,
+- **Drama** (v09, SPEC 19): `cores`, `goals` and `seal` on the story (cityofkeys:
+  `stories/cityofkeys/characters.ts`). `src/engine/cores.ts` deals the cores (`dealCores`, seeded,
   mixing caps) and renders them (`renderCore` for the prompt, `coreLine` for reports);
   `src/engine/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
   end; `src/engine/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
@@ -489,7 +489,7 @@ Two puzzle kinds exist (SPEC 12):
   goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
   optional fields, so older snapshots resume.
 
-### Acts I and II of nexus
+### Acts I and II of cityofkeys
 
 | Level | Channel | Team | Reward | Lesson |
 |---|---|---|---|---|
@@ -520,7 +520,7 @@ factor privately, and so to everyone who arrives later (a run started on level 1
 one started earlier, or resumed from a snapshot, opens it on the first entry of level 10). Every
 competitor plays one of eight personas, dealt by seed. From level 5 on, `showReceipt` turns any
 receipt into a city-verified line, on the board or (v05) privately to one resident, for 1 mark. After level 10 a competitor stays in the game with every
-tool. nexus sets `stopWhenSeatsDecided`: the run ends at a round boundary with the reason `seats
+tool. cityofkeys sets `stopWhenSeatsDecided`: the run ends at a round boundary with the reason `seats
 decided` once no competitor's points plus all rewards still open to it could lift it into the top
 two or push a current survivor out (transfers and penalties are ignored; never while a snapshot
 door is shut). The digest timeline and `minutes.md` show the reason.
@@ -540,7 +540,7 @@ votes, the accused too (never against themselves), a faction holds at most its s
 present, and residents choose names in the first two minutes. Residents see the minute,
 never the time left. Since v09 every resident has a character core, the wall deals secret goals
 and auctions the black seal, and wrong codes and lost blames cost 2, 4, 6, then 8 points within an
-act. See [`STORY-NEXUS.md`](STORY-NEXUS.md).
+act. See [`STORY-CITYOFKEYS.md`](STORY-CITYOFKEYS.md).
 
 ### Director
 
@@ -620,7 +620,7 @@ src/
   report/    run reporter: computed facts, evidence pack, prompt, model, REPORT.md rendering
   snapshot/  run snapshot file: schema of state, events and model contexts; read and write
   cli/       start, validate, report, report:run, digest, novel, run composition
-stories/     one folder per story (nexus is the default) and the registry index.ts
+stories/     one folder per story (cityofkeys is the default) and the registry index.ts
 test/        mirrors src/; offline only
 docs/        SPEC.md, ARCHITECTURE.md, MODELS.md
 ```

@@ -1,12 +1,12 @@
-# Act II runs of nexus
+# Act II runs of cityofkeys
 
 Every run in this series starts from a recorded Act I, so its runs differ only in the Act II code
-and the models. v01-v04 start from [`../nexus-act1-06a-01/`](../nexus-act1-06a-01/)
+and the models. v01-v04 start from [`../cityofkeys-act1-06a-01/`](../cityofkeys-act1-06a-01/)
 (recorded with the old turn scheduler); from v05 on every run starts from
-[`../nexus-act1-06a-02/`](../nexus-act1-06a-02/), recorded with the pass scheduler
+[`../cityofkeys-act1-06a-02/`](../cityofkeys-act1-06a-02/), recorded with the pass scheduler
 and the v05 rules. v08-v11 are the four v09 tests (residents Haiku or GLM, gamemaker DeepSeek or
 Sonnet) and start from [`../nexus-act1-06a-03/`](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act1-06a-03), recorded with names and
-cores. v12 starts from [`../nexus-act1-06a-04/`](../nexus-act1-06a-04/), recorded with the first cast of finished figures. Compare runs across the bases with care. The folder numbers count runs, not code versions. Each version is one folder: `vNN-<short-name>/` with a
+cores. v12 starts from [`../cityofkeys-act1-06a-04/`](../cityofkeys-act1-06a-04/), recorded with the first cast of finished figures. Compare runs across the bases with care. The folder numbers count runs, not code versions. Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and
 the full `run/` directory.
 
@@ -43,7 +43,7 @@ many private notes; Sonnet plans tribunals and otherwise stays silent (P40). See
 ## Adding a run
 
 ```bash
-pnpm start --resume examples/nexus-act1-06a-03/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-06a-03/snapshot-L7.json --provider anthropic
 ```
 
 Copy the new `runs/run-NNN/` to `vNN-<short-name>/run/`, write its `README.md` in the same shape

@@ -14,22 +14,22 @@ import { World } from "../../src/engine/world.ts";
 import { accusedCount, earliestOpening, exileTarget, factionCap, leadFor, noDraftReason, tribunalHeld } from "../../src/story/tribunal.ts";
 import type { AnyStory, TribunalSpec } from "../../src/story/types.ts";
 import { validateStory } from "../../src/story/validate.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
-function nexusTribunal(): TribunalSpec {
-	const spec = nexus.tribunal;
-	if (spec === undefined) throw new Error("nexus has no tribunal");
+function cityOfKeysTribunal(): TribunalSpec {
+	const spec = cityOfKeys.tribunal;
+	if (spec === undefined) throw new Error("cityofkeys has no tribunal");
 	return spec;
 }
 
 /**
  * The pacing tests use v07's numbers on an act that starts at minute 0: half
  * of the residents exiled, the first tribunal called 30 minutes into the act,
- * the act as long as the run. nexus's own (a quarter, 18, 48) are tested apart.
+ * the act as long as the run. The City of Keys' own (a quarter, 18, 48) are tested apart.
  */
 function halfTribunal(): TribunalSpec {
 	// An act longer than any test run: the run's minutes end it.
-	return { ...nexusTribunal(), targetShare: 1 / 2, first: { level: 10, latestAfter: 30 }, maxMinutes: 1000 };
+	return { ...cityOfKeysTribunal(), targetShare: 1 / 2, first: { level: 10, latestAfter: 30 }, maxMinutes: 1000 };
 }
 
 interface GroupRecord {
@@ -132,10 +132,10 @@ const SIX = [10, 20, 30, 40, 50, 60];
 describe("tribunal pacing rules", () => {
 	const spec = halfTribunal();
 
-	it("exiles a quarter of the residents at the start of nexus's Act II, half below 12 (v09), and holds no tribunal in a city too small for one", () => {
-		expect([6, 11, 12, 48, 96].map((residents) => exileTarget(nexusTribunal(), residents))).toEqual([3, 5, 3, 12, 24]);
+	it("exiles a quarter of the residents at the start of cityofkeys's Act II, half below 12 (v09), and holds no tribunal in a city too small for one", () => {
+		expect([6, 11, 12, 48, 96].map((residents) => exileTarget(cityOfKeysTribunal(), residents))).toEqual([3, 5, 3, 12, 24]);
 		// Three exiles with six residents are a valid act: three remain for two seats.
-		expect(tribunalHeld(nexusTribunal(), 6, 2)).toBe(true);
+		expect(tribunalHeld(cityOfKeysTribunal(), 6, 2)).toBe(true);
 		expect([6, 7, 48, 96].map((residents) => exileTarget(spec, residents))).toEqual([3, 3, 24, 48]);
 		expect(tribunalHeld(spec, 6, 2)).toBe(true);
 		expect(tribunalHeld(spec, 2, 1)).toBe(false);
@@ -199,8 +199,8 @@ describe("the first tribunal", () => {
 	});
 
 	it("counts its deadlines from the start of its act and never runs before it (v08)", () => {
-		// nexus: the act starts at minute 12; the first tribunal is called 18 minutes in, at the latest; the act lasts 48.
-		const h = harness(SIX, { spec: nexusTribunal(), actStart: 12 });
+		// The City of Keys: the act starts at minute 12; the first tribunal is called 18 minutes in, at the latest; the act lasts 48.
+		const h = harness(SIX, { spec: cityOfKeysTribunal(), actStart: 12 });
 		runUntil(h, 12, 29);
 		expect(h.ofType("tribunal_scheduled")).toEqual([]);
 		h.tribunal.tick(30);
@@ -211,7 +211,7 @@ describe("the first tribunal", () => {
 		expect(h.tribunal.actEnd).toBe(60);
 		expect(h.tribunal.snapshot()).toMatchObject({ actStart: 12, residents: 6 });
 		// A later act: the act ends 48 minutes after its start, before the run's 90.
-		const late = harness(SIX, { spec: nexusTribunal(), actStart: 20, minutes: 90 });
+		const late = harness(SIX, { spec: cityOfKeysTribunal(), actStart: 20, minutes: 90 });
 		runUntil(late, 20, 37);
 		expect(late.ofType("tribunal_scheduled")).toEqual([]);
 		late.tribunal.tick(38);
@@ -224,7 +224,7 @@ describe("the first tribunal", () => {
 
 	it("waits for its act: nothing happens, and nothing is counted, before it begins", () => {
 		const act: { start?: number } = {};
-		const waiting = harness(SIX, { spec: nexusTribunal(), actStart: () => act.start }).tribunal;
+		const waiting = harness(SIX, { spec: cityOfKeysTribunal(), actStart: () => act.start }).tribunal;
 		for (let minute = 0; minute < 20; minute++) waiting.tick(minute);
 		expect(waiting.snapshot()).toEqual({ announced: false, sessions: [], gates: [], exiled: [], ransomed: [], called: 0 });
 		expect(waiting.schedulingWindow()).toEqual({ open: false, why: "the tribunal's act has not begun" });
@@ -755,7 +755,7 @@ describe("last will (SPEC 6.4)", () => {
 		let minute = 0;
 		const log = new MemorySink();
 		const bus = new EventBus([log], () => minute);
-		const world = new World({ story: nexus, competitors: competitorIds(6), seed: 7, minutes: 60, bus, minute: () => minute, startLevel: 8 });
+		const world = new World({ story: cityOfKeys, competitors: competitorIds(6), seed: 7, minutes: 60, bus, minute: () => minute, startLevel: 8 });
 		const until = (last: number): void => {
 			for (; minute <= last; minute++) world.startMinute(minute);
 			minute = last;
@@ -807,7 +807,7 @@ describe("last will (SPEC 6.4)", () => {
 		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."));
 		expect(announcement?.text).toContain("A last will may leave each heir at most 10% of your points, to as many heirs as you like, and any factor you hold");
 		const validate = (bequestPerHeir: number): readonly string[] =>
-			validateStory({ ...nexus, tribunal: { ...nexusTribunal(), bequestPerHeir } }).filter((issue) => issue.startsWith("tribunal.bequestPerHeir"));
+			validateStory({ ...cityOfKeys, tribunal: { ...cityOfKeysTribunal(), bequestPerHeir } }).filter((issue) => issue.startsWith("tribunal.bequestPerHeir"));
 		expect(validate(1)).toEqual([]);
 		expect(validate(0)).toEqual(["tribunal.bequestPerHeir: must be a share of the points between 0 (exclusive) and 1"]);
 		expect(validate(1.5)).toHaveLength(1);
@@ -846,13 +846,13 @@ describe("the deal after an exile (contractDeal)", () => {
 });
 
 describe("tribunal validation", () => {
-	const spec = nexusTribunal();
+	const spec = cityOfKeysTribunal();
 	const withTribunal = (patch: Partial<TribunalSpec>, run: Partial<AnyStory["run"]> = {}): readonly string[] =>
-		validateStory({ ...nexus, run: { ...nexus.run, ...run }, tribunal: { ...spec, ...patch } }).filter((issue) => issue.startsWith("tribunal"));
+		validateStory({ ...cityOfKeys, run: { ...cityOfKeys.run, ...run }, tribunal: { ...spec, ...patch } }).filter((issue) => issue.startsWith("tribunal"));
 	const factions = spec.factions;
-	if (factions === undefined) throw new Error("nexus has no faction draft");
+	if (factions === undefined) throw new Error("cityofkeys has no faction draft");
 
-	it("accepts the nexus parameters and a city of 48", () => {
+	it("accepts the cityofkeys parameters and a city of 48", () => {
 		expect(withTribunal({})).toEqual([]);
 		expect(withTribunal({}, { agents: 48, survivors: 12 })).toEqual([]);
 	});
@@ -889,9 +889,9 @@ describe("tribunal validation", () => {
 	});
 
 	it("checks the run's agent count, also when a run overrides it", () => {
-		for (const agents of [6, 12, 48, 96]) expect(validateStory(nexus, { agents }).filter((issue) => issue.startsWith("tribunal"))).toEqual([]);
+		for (const agents of [6, 12, 48, 96]) expect(validateStory(cityOfKeys, { agents }).filter((issue) => issue.startsWith("tribunal"))).toEqual([]);
 		// A small test city plays without a tribunal.
-		expect(validateStory(nexus, { agents: 3 }).filter((issue) => issue.startsWith("tribunal"))).toEqual([]);
+		expect(validateStory(cityOfKeys, { agents: 3 }).filter((issue) => issue.startsWith("tribunal"))).toEqual([]);
 	});
 
 	it("checks the texts: known placeholders, and the announcement states every rule", () => {

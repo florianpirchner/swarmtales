@@ -9,10 +9,10 @@ import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
 import { dealCores, type Core } from "../../src/engine/cores.ts";
 import type { Goal } from "../../src/engine/events.ts";
 import { dealGoals, GoalBook, type GoalEvent } from "../../src/engine/goals.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
-const spec = nexus.goals;
-const cores = nexus.cores;
+const spec = cityOfKeys.goals;
+const cores = cityOfKeys.cores;
 
 function targetOf(goal: Goal): CompetitorId | undefined {
 	return "target" in goal ? goal.target : undefined;
@@ -20,7 +20,7 @@ function targetOf(goal: Goal): CompetitorId | undefined {
 
 describe("dealing goals", () => {
 	it.each([6, 12, 48, 96])("gives each of %i residents a goal on someone else, and crosses protect with exile", (agents) => {
-		if (spec === undefined || cores === undefined) throw new Error("nexus has no goals");
+		if (spec === undefined || cores === undefined) throw new Error("cityofkeys has no goals");
 		const ids = competitorIds(agents);
 		const dealt = dealCores(cores, ids, 7);
 		const goals = dealGoals(spec, ids, { seed: 7, act: 8, factions: true, core: (agent) => dealt.get(agent) });
@@ -42,7 +42,7 @@ describe("dealing goals", () => {
 	});
 
 	it("follows the core most of the time, deals lead only with factions, and is seeded", () => {
-		if (spec === undefined || cores === undefined) throw new Error("nexus has no goals");
+		if (spec === undefined || cores === undefined) throw new Error("cityofkeys has no goals");
 		const ids = competitorIds(96);
 		const leaders: Core = { bigFive: [], drives: [{ drive: "leadership", intensity: "aboveAll" }] };
 		const goals = dealGoals(spec, ids, { seed: 3, act: 8, factions: true, core: () => leaders });
@@ -67,7 +67,7 @@ interface Harness {
 }
 
 function harness(): Harness {
-	if (spec === undefined) throw new Error("nexus has no goals");
+	if (spec === undefined) throw new Error("cityofkeys has no goals");
 	const events: GoalEvent[] = [];
 	const posts: string[] = [];
 	const notices: { to: string; text: string }[] = [];

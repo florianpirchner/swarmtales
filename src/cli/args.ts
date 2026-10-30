@@ -46,9 +46,9 @@ export interface PromptAddendumFile {
 }
 
 export const START_USAGE = [
-	"Usage: pnpm start [--story nexus] [options]",
+	"Usage: pnpm start [--story cityofkeys] [options]",
 	"",
-	"  --story <name>       story from the registry (default: nexus)",
+	"  --story <name>       story from the registry (default: cityofkeys)",
 	"  --agents <n>         number of competitors",
 	"  --minutes <n>        virtual minutes (= rounds)",
 	"  --seed <n>           run seed",
@@ -71,7 +71,7 @@ export const START_USAGE = [
 	"  --no-classifier      play without the story's statement classifier (no labels)",
 	"  --classifier-provider <id>  classifier provider (default: the story's, e.g. anthropic)",
 	"  --classifier-model <id>     classifier model, e.g. perplexity/pplx-decider-v1.2 on openrouter",
-	"  --budget <usd>       the run's spending cap in USD (default: the story's, nexus 3)",
+	"  --budget <usd>       the run's spending cap in USD (default: the story's, cityofkeys 3)",
 	"  --weaver             let the weaver change who residents are after events that touch them (off by default)",
 	"  --weaver-provider <id>      weaver provider (default: the classifier's, e.g. anthropic)",
 	"  --weaver-model <id>         weaver model (default: the classifier's, e.g. haiku)",
@@ -199,7 +199,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	if (resume !== undefined && (overrides.level !== undefined || overrides.only !== undefined)) {
 		throw new UsageError("--resume continues where the snapshot stopped; --level and --only do not apply");
 	}
-	const story = values.story ?? (resume === undefined ? "nexus" : undefined);
+	const story = values.story ?? (resume === undefined ? "cityofkeys" : undefined);
 	return {
 		...(story === undefined ? {} : { story }),
 		overrides,

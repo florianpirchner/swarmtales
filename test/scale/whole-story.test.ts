@@ -1,5 +1,5 @@
 /**
- * Whole-story runs at scale (v08, spec section 3): nexus with 6, 12 and 48
+ * Whole-story runs at scale (v08, spec section 3): the City of Keys with 6, 12 and 48
  * oracle residents from level 1 to the tribunal target, offline. The oracle
  * submits its own solution every minute and never votes, so every tribunal
  * closes on non-voters; the run must still reach the target within the act.
@@ -12,17 +12,17 @@ import { describe, expect, it } from "vitest";
 import { worldOracle } from "../../src/cli/oracle.ts";
 import { exileTarget } from "../../src/story/tribunal.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { createFixture } from "../helpers/fixture.ts";
 
-const tribunal = nexus.tribunal;
+const tribunal = cityOfKeys.tribunal;
 
-describe.each([6, 12, 48])("nexus with %i oracle residents", (agents) => {
+describe.each([6, 12, 48])("cityofkeys with %i oracle residents", (agents) => {
 	it("plays Act I, the wall and every tribunal up to the target", async () => {
-		if (tribunal === undefined) throw new Error("nexus has no tribunal");
+		if (tribunal === undefined) throw new Error("cityofkeys has no tribunal");
 		const fixture = createFixture({
 			agents,
-			story: nexus,
+			story: cityOfKeys,
 			names: true,
 			stopWhenDone: true,
 			stopWhenSeatsDecided: true,

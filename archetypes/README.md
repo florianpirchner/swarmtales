@@ -6,14 +6,14 @@ so the library can later be searched and shown on a website.
 
 A story does not read this folder. It has its own cast, `stories/<story>/cast/`: finished figures
 that name their archetype (`base: c01`) and add what the figure wants in that story and what it
-will not do. See [`../stories/nexus/cast/`](../stories/nexus/cast/).
+will not do. See [`../stories/cityofkeys/cast/`](../stories/cityofkeys/cast/).
 
 ## Folders
 
 | Folder | What is in it | Header |
 |---|---|---|
 | `professions/` | 8 backgrounds from before the city closed (archivist, gambler, veteran, idealist, merchant, recluse, firebrand, skeptic) | `id`, `persona`, `temperament`, `values`, `voice` |
-| `drives/` | one file per drive of the nexus catalog (22): what it is and how it can make sense from the inside | `id`, `group`, `tone` (`light` or `dark`) |
+| `drives/` | one file per drive of the cityofkeys catalog (22): what it is and how it can make sense from the inside | `id`, `group`, `tone` (`light` or `dark`) |
 | `temperaments/` | the five Big Five axes and what low and high mean | `id`, `axes`, `levels` |
 | `figures/` | 24 general figures, `cNN-<title>.md` | see below |
 

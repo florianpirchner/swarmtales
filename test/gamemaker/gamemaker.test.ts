@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { gamemaker } from "../../src/story/index.ts";
 import { dealValues } from "../../src/engine/puzzles/additive.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
@@ -145,7 +145,7 @@ describe("gamemaker", () => {
 			agents: 2,
 			minutes: 5,
 			only: 1,
-			story: { ...nexus, gamemaker: { ...gamemaker({ model: nexus.model, brief: "Test." }), every: 2 } },
+			story: { ...cityOfKeys, gamemaker: { ...gamemaker({ model: cityOfKeys.model, brief: "Test." }), every: 2 } },
 			script: () => ({ A01: [say(), say(), say(), say(), say()], A02: [say(), say(), say(), say(), say()] }),
 			gamemakerScript: () => [
 				() => {
@@ -184,7 +184,7 @@ describe("gamemaker writing rules", () => {
 			agents: 2,
 			minutes: 4,
 			only: 1,
-			story: { ...nexus, gamemaker: { ...gamemaker({ model: nexus.model, brief: "Test." }), windowMinutes: 1 } },
+			story: { ...cityOfKeys, gamemaker: { ...gamemaker({ model: cityOfKeys.model, brief: "Test." }), windowMinutes: 1 } },
 			script: () => ({ A01: [say(), say(), say(), say()], A02: [say(), say(), say(), say()] }),
 			gamemakerScript: () => [post("CITY minute 30: Two doors stand open."), say(), post("COURIER: minute 1 - Points move."), say(), post("Minute 2: The ranking holds."), say()],
 		});
@@ -194,7 +194,7 @@ describe("gamemaker writing rules", () => {
 
 	it("states the length limit and keeps dependencies off the board", async () => {
 		const { gamemakerSystemPrompt, MAX_NOTE_LENGTH } = await import("../../src/gamemaker/system-prompt.ts");
-		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec: gamemaker({ model: nexus.model, brief: "Test." }) });
+		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec: gamemaker({ model: cityOfKeys.model, brief: "Test." }) });
 		expect(MAX_NOTE_LENGTH).toBe(400);
 		expect(prompt).toContain("at most 400 characters per note or board post");
 		expect(prompt).toContain("Who waits on whom, and who holds whose factor or fragment, goes only into a private note to the residents\n  concerned, never into a board post.");
@@ -204,11 +204,11 @@ describe("gamemaker writing rules", () => {
 describe("gamemaker roles", () => {
 	it("is a coach by default and names the level ranges of several roles", async () => {
 		const { gamemakerSystemPrompt } = await import("../../src/gamemaker/system-prompt.ts");
-		const base = { city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules };
-		const coach = gamemaker({ model: nexus.model, brief: "Test." });
+		const base = { city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules };
+		const coach = gamemaker({ model: cityOfKeys.model, brief: "Test." });
 		expect(coach.roles).toEqual([{ fromLevel: 1, role: "coach" }]);
 		expect(gamemakerSystemPrompt({ ...base, spec: coach })).toContain("This is a tutorial");
-		const acts = gamemaker({ model: nexus.model, brief: "Test.", roles: [{ fromLevel: 1, role: "coach" }, { fromLevel: 8, role: "director" }] });
+		const acts = gamemaker({ model: cityOfKeys.model, brief: "Test.", roles: [{ fromLevel: 1, role: "coach" }, { fromLevel: 8, role: "director" }] });
 		const prompt = gamemakerSystemPrompt({ ...base, spec: acts });
 		expect(prompt).toContain("For residents on levels 1-7 you are a coach.");
 		expect(prompt).toContain("For residents on levels 8 and up you are a director.");

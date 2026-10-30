@@ -1,5 +1,5 @@
 /**
- * Run snapshots end to end (SPEC 17): a scripted nexus run is snapshotted
+ * Run snapshots end to end (SPEC 17): a scripted City of Keys run is snapshotted
  * after level 7 and resumed; from the cut on, the resumed run logs exactly
  * what the uninterrupted run logs that holds everyone at the door of level 7
  * and then lets them in together.
@@ -14,7 +14,7 @@ import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
 import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import { parseSnapshot, SnapshotError, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 
 const MINUTES = 26;
@@ -103,7 +103,7 @@ async function play(overrides: RunOverrides, extra: PlayOptions = {}): Promise<P
 	let taken: RunSnapshot | undefined;
 	const resume = extra.resume;
 	const run = composeRun({
-		story: extra.story ?? nexus,
+		story: extra.story ?? cityOfKeys,
 		overrides: { minutes: MINUTES, gamemaker: true, classifier: true, ...(resume === undefined ? overrides : resumeOverrides(resume, overrides)) },
 		models: (world) => new ScriptedModelSource(chattyScript(world)),
 		gamemakerModels: (world) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }),
@@ -154,8 +154,8 @@ function comparable(events: readonly RecordedEvent[], shift = 0, from = Number.P
 
 /** Nexus with a different level 8: another reward, title and code length. */
 const changedWall: AnyStory = {
-	...nexus,
-	levels: nexus.levels.map((entry) =>
+	...cityOfKeys,
+	levels: cityOfKeys.levels.map((entry) =>
 		entry.number === 8 ? { ...entry, title: "The new wall", reward: 33, puzzle: { ...entry.puzzle, digits: 4 } } : entry,
 	),
 };
@@ -268,6 +268,6 @@ describe("run snapshots", () => {
 		expect(() => resumeOverrides(snapshot, { level: 8 })).toThrow(SnapshotError);
 		await expect(play({ minutes: snapshot.round }, { resume: snapshot })).rejects.toThrow(/--minutes must be greater than/);
 		const otherStory = { ...snapshot, story: "atlantis" };
-		await expect(play({}, { resume: otherStory })).rejects.toThrow(/story "atlantis" \(this run: "nexus"\)/);
+		await expect(play({}, { resume: otherStory })).rejects.toThrow(/story "atlantis" \(this run: "cityofkeys"\)/);
 	}, 60_000);
 });

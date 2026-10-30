@@ -199,7 +199,7 @@ describe("marks per level range (SPEC 7)", () => {
 	});
 });
 
-describe("nexus marks on the wall (SPEC 13.3)", () => {
+describe("cityofkeys marks on the wall (SPEC 13.3)", () => {
 	it("charge one mark for the board and a DM, nothing for a group post, and give one back every 3 minutes", async () => {
 		const fixture = createFixture({
 			level: 8,

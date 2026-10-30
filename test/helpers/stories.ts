@@ -1,4 +1,4 @@
-/** Small stories for mechanics tests, independent of the nexus text. */
+/** Small stories for mechanics tests, independent of the City of Keys text. */
 import { act, at, defineStory, level, puzzle, team, type RuleInput } from "../../src/story/define.ts";
 import type { AnyStory, CastMember, CityFactorRelease, CityFactorScope, FactorTopology, LevelDefinition, Rules } from "../../src/story/types.ts";
 import type { ToolName } from "../../src/tools/catalog.ts";

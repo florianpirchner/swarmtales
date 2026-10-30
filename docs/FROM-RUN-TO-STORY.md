@@ -90,8 +90,8 @@ told, the editor's contradictions and the cost of each stage.
 
 ## An example
 
-The first story, [*The Quiet Hand and the Last Ledger*](../stories/nexus/runs/act2-12a-003-f10g10-director/run/novel/story.md),
-comes from run [act2-12a-003](../stories/nexus/runs/act2-12a-003-f10g10-director/) (5335 words,
+The first story, [*The Quiet Hand and the Last Ledger*](../stories/cityofkeys/runs/act2-12a-003-f10g10-director/run/novel/story.md),
+comes from run [act2-12a-003](../stories/cityofkeys/runs/act2-12a-003-f10g10-director/) (5335 words,
 0.44 USD). Casting picked Hedda (winner), Lucien (loser), Stentor (turn: the seal) and Archivist
 (two ultimatums paid). The script:
 
@@ -123,8 +123,8 @@ show rather than tell, no game words, numbers only where they hurt, no moral at 
 
 The second version of the example with the sharpened prompts: DeepSeek as writer, 8032 words for
 0.12 USD including the German translation, and Sonnet, 5656 words for 0.43 USD plus 0.18 for the
-translation (see the [run's README](../stories/nexus/runs/act2-12a-003-f10g10-director/)). The
-fourth version, [*The Quiet Hand at the Gate*](../stories/nexus/runs/act2-12a-003-f10g10-director/run/novel-gamemaker/story.md),
+translation (see the [run's README](../stories/cityofkeys/runs/act2-12a-003-f10g10-director/)). The
+fourth version, [*The Quiet Hand at the Gate*](../stories/cityofkeys/runs/act2-12a-003-f10g10-director/run/novel-gamemaker/story.md),
 is the first with the Gamemaker's chapters and the city's records (7373 words, 0.23 USD plus 0.26
 for German).
 

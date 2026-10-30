@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createModelSource } from "../../src/model/source.ts";
 import { describeModel, missingApiKeys, ModelConfigError, resolveModelSettings, settingsFromStory } from "../../src/model/settings.ts";
 import { createProviderRegistry, customProviderSpec, OPENROUTER_DEEPSEEK_FLASH } from "../../src/model/providers.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const registry = createProviderRegistry();
 const defaults = { provider: "openrouter", modelId: OPENROUTER_DEEPSEEK_FLASH };
@@ -11,7 +11,7 @@ const limits = { maxOutputTokens: 100, timeoutMs: 1_000 };
 describe("model selection through the provider registry", () => {
 	it("uses the story default", () => {
 		expect(resolveModelSettings({}, {}, defaults, registry)).toEqual({ provider: "openrouter", modelId: OPENROUTER_DEEPSEEK_FLASH });
-		expect(settingsFromStory(nexus.model)).toEqual({
+		expect(settingsFromStory(cityOfKeys.model)).toEqual({
 			provider: "openrouter",
 			modelId: "z-ai/glm-5.3-flash",
 			routing: { order: ["open-inference"], allowFallbacks: false },

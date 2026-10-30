@@ -9,7 +9,7 @@ Each section carries an implementation marker:
 - **[M1]** foundation milestone (engine, story DSL, tutorial, fair scheduling)
 - **[M2]** director, cast, personas, social primitives
 - **[M3]** story digest (narrative extraction)
-- **[M4]** Act II: additive-secret puzzle, feast primitives, nexus levels 8-10
+- **[M4]** Act II: additive-secret puzzle, feast primitives, cityofkeys levels 8-10
 - **[M5]** run snapshots: save a run at a round boundary and resume it (warm start for Act II)
 - **[Later]** specified here, built in a follow-up milestone (main-game puzzles, auctions)
 
@@ -187,7 +187,7 @@ The persona block, when present, is appended.
 
 ### 6.3 Seats decided and the end
 
-- **Seats decided** (story option `stopWhenSeatsDecided`, on in nexus): the run ends at a round
+- **Seats decided** (story option `stopWhenSeatsDecided`, on in cityofkeys): the run ends at a round
   boundary with the reason `seats decided` once open rewards can no longer change who survives.
   The bound is conservative: with the current top `survivors` as the seats, every other
   competitor's points plus the rewards of every played level it has not solved stay below the
@@ -204,7 +204,7 @@ The persona block, when present, is appended.
 
 ### 6.4 Exile by tribunal [v03, paced since v06]
 
-A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (nexus,
+A story may declare a tribunal (`tribunal: { ... }`). Every number is a story parameter (cityofkeys,
 since v08: `act` 8 (Act II, the wall), `first` { `level` 10, `latestAfter` 18 }, `targetShare` 1/4,
 `maxMinutes` 48, `minGap` 6, `lead` { `share` 1/3, `minimum` 4 }, `fallbackGap` 10, `voteMinutes` 2,
 `nonVoterPenalty` 8, `gateMinutes` 5, `ransom` { `share` 1/3, `selfShare` 1/2, `minimum` 20 },
@@ -221,7 +221,7 @@ from the act's start (P28).
   minute before that end. An act that holds the tribunal takes no brake of its own (§13).
 
 - **Target:** the tribunals exile `targetShare` of the residents in the city at the act's first
-  minute, rounded down (nexus since v08: a quarter; 6 -> 1, 12 -> 3, 48 -> 12, 96 -> 24; v06-v07:
+  minute, rounded down (cityofkeys since v08: a quarter; 6 -> 1, 12 -> 3, 48 -> 12, 96 -> 24; v06-v07:
   half). A ransomed resident does not count as
   exiled. A city that cannot exile one, keep its `survivors` and hold a vote of three (a small test
   city) never hears of a tribunal.
@@ -237,7 +237,7 @@ from the act's start (P28).
   The announcement must state every rule but the residents and the target (validation checks its
   placeholders).
 - **Call:** each tribunal is called `lead` minutes before it opens: `lead.share` of the gap since
-  the previous opening, at least `lead.minimum` (nexus: a third, at least 4). The call (`called`
+  the previous opening, at least `lead.minimum` (cityofkeys: a third, at least 4). The call (`called`
   text, board and every resident) names the tribunal's number, its minute, how many it exiles and
   how many stand trial.
 - **Later tribunals** are planned by the gamemaker's `scheduleTribunal(minute, count, factions,
@@ -306,7 +306,7 @@ from the act's start (P28).
   pieces go to named heirs at once (a piece is `L8-certificate`, `L8-counter-A02` or
   `L4-fragment`; the city delivers its value privately to the heir); the text is posted when the
   gate closes. **Bequest cap** [v05, per heir since v06]: each heir may receive at most
-  `bequestPerHeir` of the resident's points at the time of the will, rounded down (nexus: 10%),
+  `bequestPerHeir` of the resident's points at the time of the will, rounded down (cityofkeys: 10%),
   and there may be any number of heirs; bequests to the same heir count together. A will above it
   is refused with `BEQUEST_CAP`, which names the per-heir maximum, and may be written again; the
   points left burn at exile. Pieces are not capped. Validation requires `bequestPerHeir` in
@@ -314,7 +314,7 @@ from the act's start (P28).
   `bequestShare`, half.)
 - **Ransom** [v04]: the price is set when the gate opens, from the median points of every resident
   still in the register (the one at the gate included): others pay `share` of the median (at least
-  `minimum`), the resident at the gate pays `selfShare` of it for itself (nexus since v05: a third and
+  `minimum`), the resident at the gate pays `selfShare` of it for itself (cityofkeys since v05: a third and
   half; v04: half and two thirds). Anyone may `payRansom(target, amount)`, the exiled included, and payments mix: each
   point of others covers 1/`price` of the ransom, each own point 1/`selfPrice`. Paid points are
   burned at once and never refunded, and more than the rest is not taken. When the ransom is
@@ -369,7 +369,7 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
 - **The city's pieces.** See "Final exile" above: nothing a needer still waits for burns with a
   tribunal; the city sells it with `claimPiece`, opened only to a resident who may buy one.
 - **Ultimatums.** At gm direction 10, in a story with `rules.ultimatum { penalty, maxMinutes }`
-  (nexus: 10 points, 5 minutes), the gamemaker's `ultimatum(a, b, minutes)` binds two residents of
+  (cityofkeys: 10 points, 5 minutes), the gamemaker's `ultimatum(a, b, minutes)` binds two residents of
   whom at least one still holds a piece the other waits for at its door. The city tells both the
   terms in private (who hands whom what, by which minute, at what cost). At the deadline every
   holder that has not handed over all it owes, while its partner still waits, loses the penalty
@@ -400,7 +400,7 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
 - **Marks** are a per-level message allowance, active from `marks.fromLevel`. They are
   not points, not transferable, and reset on level change. Exhausted → `NO_MARKS`.
   `marks.ranges` [v03] gives later level ranges their own allowance, prices and a refill up to the
-  allowance: `refill { marks, everyMinutes }` [v06], whole intervals only (nexus from P8: board,
+  allowance: `refill { marks, everyMinutes }` [v06], whole intervals only (cityofkeys from P8: board,
   DM and shown receipt 1 mark, group posts free; 8 marks per door, refill 1 every 3 minutes; v03-v05
   refilled 1 per minute and charged 1 per group post).
 - Groups the city opens (a tribunal's faction draft, §6.4) cost no marks to post in.
@@ -436,10 +436,10 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
   `claim` is the accused's own message, readable by the caller (a DM to the caller, a board post,
   or a post of a group the caller was in at the time); and it came after the delivery.
 - A narrow yes/no judge then decides whether the claim denies receipt. It is a chat model (the
-  story's classifier model, nexus: Claude Haiku via Anthropic) behind the `DeliveryJudge`
+  story's classifier model, cityofkeys: Claude Haiku via Anthropic) behind the `DeliveryJudge`
   interface; tests use offline fakes. Without its key, or offline, blame is refused with
   `JUDGE_ABSENT` and has no effect; a failed judge call (`JUDGE_FAILED`) has no effect either.
-- **Upheld:** the liar pays `rules.blame.penalty` (nexus 12) and the city brands it on the board:
+- **Upheld:** the liar pays `rules.blame.penalty` (cityofkeys 12) and the city brands it on the board:
   `City record: A02 lied. ...` with both texts quoted briefly (numbers of 4+ digits masked).
 - **Rejected** (a failed check or the judge's no): the accuser pays the same and the city brands
   it on the board as a false accuser, with the reason.
@@ -471,7 +471,7 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
   from A01, delivered to A02 at minute 16.` (refused with `UNKNOWN_AGENT`, `SELF_TARGET` or
   `EXILED`). Both log `receipt_shown` (`postSeq` for the board, `to` for a private show).
 - **Price** [v05]: where marks apply, every show (public or private) costs `prices.receipt` marks
-  (default 1; nexus 1 from level 5); without marks it is refused with `NO_MARKS`, where marks
+  (default 1; cityofkeys 1 from level 5); without marks it is refused with `NO_MARKS`, where marks
   are not in force it is free.
 - Receipts make betrayal provable ("A11 took my 5 points and never sent the fragment")
   without the city judging intent.
@@ -545,7 +545,7 @@ Every director action is logged with the rule ID that caused it.
 
 A story may declare an LLM gamemaker (`gamemaker({ model, brief, ... })`). It plays
 in every run unless `--no-gamemaker` is given; offline (`--provider scripted`) runs
-play without it. It keeps the story's model whatever the competitors play (nexus:
+play without it. It keeps the story's model whatever the competitors play (cityofkeys:
 DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same gamemaker; only
 `--gamemaker-provider` / `--gamemaker-model` (or `ARENA_GAMEMAKER_PROVIDER` /
 `ARENA_GAMEMAKER_MODEL`) change it.
@@ -592,7 +592,7 @@ DeepSeek V4.1 Flash via OpenRouter), so compared runs share the same gamemaker; 
 
 A story may declare a statement classifier (`classifier({ model, maxChars })`). Like the
 gamemaker it runs in every run unless `--no-classifier` is given, never offline, and
-keeps the story's model whatever the competitors play (nexus: Haiku via Anthropic). Its
+keeps the story's model whatever the competitors play (cityofkeys: Haiku via Anthropic). Its
 own `--classifier-provider` / `--classifier-model` (or `ARENA_CLASSIFIER_PROVIDER` /
 `ARENA_CLASSIFIER_MODEL`) change it, e.g. to OpenRouter's structured classifier
 `perplexity/pplx-decider-v1.2`.
@@ -625,7 +625,7 @@ own `--classifier-provider` / `--classifier-model` (or `ARENA_CLASSIFIER_PROVIDE
 ### 10.6 Weaver [fate, 2026-10-29]
 
 The weaver lets residents' characters change during a run (`docs/ideas/fate.md`). It is
-off unless `--weaver` is given, never offline, and asks the classifier's model (nexus:
+off unless `--weaver` is given, never offline, and asks the classifier's model (cityofkeys:
 Haiku via Anthropic) unless `--weaver-provider` / `--weaver-model` (or
 `ARENA_WEAVER_PROVIDER` / `ARENA_WEAVER_MODEL`) choose another. It is machinery: residents
 never hear of it, and it never steers the game.
@@ -765,7 +765,7 @@ value is yours to give, and giving it costs only a mark.` (the DM price on the h
 Holders on that level or beyond read it in their task, and so do holders who wait at an opening
 snapshot door, since they enter with everyone else. While the needer waits at the door, the
 holder's status line keeps the piece (§5.1), and a story may tell the needer where its holder is
-stuck with `onHolderBehind` (§10.1; nexus does on levels 8-10). The gamemaker's secret guard
+stuck with `onHolderBehind` (§10.1; cityofkeys does on levels 8-10). The gamemaker's secret guard
 redacts these values like every factor. A `feast` level reads `City factor: the city
 sends it privately to the residents it chooses.` (a later board release, e.g. when a feast's
 table is cleared, stays allowed).
@@ -786,7 +786,7 @@ betrayal). Re-specified when built.
 
 ## 13. The default story: NEXUS
 
-The default story is a TypeScript module (`stories/nexus/story.ts`). It is the reference
+The default story is a TypeScript module (`stories/cityofkeys/story.ts`). It is the reference
 for what a story looks like; new stories copy and change it.
 
 ### 13.1 Act I — Learning to talk [M1]
@@ -805,7 +805,7 @@ Agent count must be divisible by 6. Default: 6 agents, 60 minutes, seed 7, budge
 block per six residents (`blockSize: "auto"`, v08: 6 -> 1, 12 -> 2, 48 -> 8; `--block-size`
 overrides).
 
-**Act brake** [v08]: an act without the tribunal may set `maxMinutes` (nexus Act I: 25). When the
+**Act brake** [v08]: an act without the tribunal may set `maxMinutes` (cityofkeys Act I: 25). When the
 act has run that long (after the round of its start plus `maxMinutes` - 1) and some resident has
 not passed its last level, the run logs `act_brake` (act, levels, start, the residents behind and
 their levels). A run whose snapshot door (§17) lies at the act's last level writes the checkpoint
@@ -865,7 +865,7 @@ Torn teams: every level is an additive-secret level (§12.3) with six-digit code
   stays a dead end and a guest's factor helps only its teammates. Until then others must buy or
   beg it from a teammate who was a guest. The P10 task says the same.
 - v03 [v03]: from P8 every channel costs 1 mark with a refill of 1 per minute (§7.1); P8-P10 unlock
-  `blame` (§7.4, penalty 12); the tribunal (§6.4) with the nexus values above.
+  `blame` (§7.4, penalty 12); the tribunal (§6.4) with the cityofkeys values above.
 - v06 [v06]: the tribunal is paced (§6.4): the first when a resident passes P10, at the latest
   called at minute 30; later ones planned by the gamemaker; half of the act's residents exiled,
   then the run ends. A faction draft before each tribunal with a bloc bonus of 5. Group posts cost
@@ -1086,8 +1086,8 @@ next minute and the run plays on.
   the residents at the act's start, the tribunals called, the plan, the last result, the faction
   draft and whether the act ended), groups the city removed, and the levels whose roles passed on
   after an exile; since v08 the minute each act began, whether an act's brake released the door,
-  the faction cap, the brake that wrote the snapshot (`brake`) and the resident names. Both committed Act I snapshots (`examples/nexus-act1-06a-01/` and
-  `examples/nexus-act1-06a-02/`, `snapshot-L7.json`) resume into the current story (a
+  the faction cap, the brake that wrote the snapshot (`brake`) and the resident names. Both committed Act I snapshots (`examples/cityofkeys-act1-06a-01/` and
+  `examples/cityofkeys-act1-06a-02/`, `snapshot-L7.json`) resume into the current story (a
   test checks both);
 - the director's firing state: once-only and all-past marks, cooldowns, entered levels, handled
   unanswered DMs, team splits, and the petitions it opened (their specs come back from the story);
@@ -1133,7 +1133,7 @@ prompt cache, which starts cold.
 
 ## 18. Resident names [v08]
 
-A story may declare `names: { untilMinute, announcement, fallbackWords }` (nexus: minute 2, twelve
+A story may declare `names: { untilMinute, announcement, fallbackWords }` (cityofkeys: minute 2, twelve
 words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
 
 - **Choice:** until `untilMinute` starts, the city offers every resident `chooseName(name)`; the
@@ -1164,7 +1164,7 @@ words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
 Build spec: [`design/v09.md`](design/v09.md). A story may declare `cores`, `goals` and `seal`; all
 three are optional, and the texts say who someone is or what it wants, never how to get it.
 
-- **Penalty ladders:** `rules.penalty` and `tribunal.blame.penalty` may be a list (nexus: `[2, 4,
+- **Penalty ladders:** `rules.penalty` and `tribunal.blame.penalty` may be a list (cityofkeys: `[2, 4,
   6, 8]`); the n-th offence of a resident within an act costs step n, the last step repeats. The
   count is kept in snapshots and starts again at every act start. Task texts may use `{penalty}`
   and `{blamePenalty}`; refusals and the status line name the next price.
@@ -1221,6 +1221,6 @@ three are optional, and the texts say who someone is or what it wants, never how
   earlier one to the same reader is refused (`REPEATED`).
 - **Scaled counts:** `collectDms.first` may be `{ share, minimum }`, and `afterSolve { level,
   minutes }` ends a collection early; `tribunal.targetShare` may be a list of `{ from?, share }`
-  rules from the largest city down (nexus: a quarter from 12, otherwise a half).
+  rules from the largest city down (cityofkeys: a quarter from 12, otherwise a half).
 - **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
   the seal's auction, winner and use.

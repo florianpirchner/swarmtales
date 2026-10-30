@@ -61,7 +61,7 @@ describe("pnpm digest arguments", () => {
 });
 
 describe("pnpm digest (end to end, offline)", () => {
-	it("digests a scripted nexus run; the start command already wrote the digest and --chronicle skips without a key", async () => {
+	it("digests a scripted cityofkeys run; the start command already wrote the digest and --chronicle skips without a key", async () => {
 		const runs = mkdtempSync(join(tmpdir(), "arena-digest-cli-"));
 		try {
 			const started = await tsx("src/cli/main.ts", ["--provider", "scripted", "--minutes", "4", "--runs", runs]);

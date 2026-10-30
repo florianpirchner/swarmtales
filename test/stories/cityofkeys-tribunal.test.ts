@@ -1,10 +1,10 @@
 /**
  * A scripted, offline Act II run resumed from the published Act I snapshot
- * (examples/nexus-act1-06a-01/snapshot-L7.json, format v2) into the
- * current nexus. The long scenario plays the v08 rules (the accused vote,
+ * (examples/cityofkeys-act1-06a-01/snapshot-L7.json, format v2) into the
+ * current City of Keys. The long scenario plays the v08 rules (the accused vote,
  * the faction cap, deadlines counted from the act's start at the resume)
  * with v07's half target and its first call 14 minutes into the act (minute
- * 30, as before), so three are exiled; the real nexus (a quarter, one exile)
+ * 30, as before), so three are exiled; the real City of Keys (a quarter, one exile)
  * is played apart: delivery receipts and one upheld and one rejected
  * blame; the first tribunal called at its latest minute, with a faction draft
  * (nominations, leaders, applications, a refusal), a bloc bonus and a split
@@ -29,10 +29,10 @@ import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
 import { parseSnapshot, readSnapshot } from "../../src/snapshot/snapshot.ts";
 import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
 import type { AnyStory } from "../../src/story/types.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 
-const SNAPSHOT = join(process.cwd(), "examples", "nexus-act1-06a-01", "snapshot-L7.json");
+const SNAPSHOT = join(process.cwd(), "examples", "cityofkeys-act1-06a-01", "snapshot-L7.json");
 const DENIAL = "A01 never sent me anything. I have no DM from A01.";
 const THANKS = "Got your offer, thanks. I will think about it.";
 const CANVASS = "Join A04: we vote together and take the bonus.";
@@ -44,12 +44,12 @@ const JOINS: Readonly<Record<string, string>> = { A02: "A01", A03: "A04", A05: "
 
 type Step = FauxResponseStep;
 
-/** nexus with v07's target (half of the act's residents) and the first call at minute 30 of the resumed run (the act starts at 16). */
+/** The City of Keys with v07's target (half of the act's residents) and the first call at minute 30 of the resumed run (the act starts at 16). */
 function halfNexus(): AnyStory {
-	const spec = nexus.tribunal;
-	if (spec === undefined) throw new Error("nexus has no tribunal");
+	const spec = cityOfKeys.tribunal;
+	if (spec === undefined) throw new Error("cityofkeys has no tribunal");
 	// v07's act lasted as long as the run.
-	return { ...nexus, tribunal: { ...spec, targetShare: 1 / 2, first: { level: 10, latestAfter: 14 }, maxMinutes: 1000 } };
+	return { ...cityOfKeys, tribunal: { ...spec, targetShare: 1 / 2, first: { level: 10, latestAfter: 14 }, maxMinutes: 1000 } };
 }
 
 function dmBetween(world: World, from: string, to: string) {
@@ -213,9 +213,9 @@ async function playActTwo(options: { readonly gamemaker?: boolean; readonly stor
 	return { snapshot, run, world: run.world, events, inputsOf, jsonl };
 }
 
-describe("nexus Act II v06, resumed from the Act I snapshot (offline)", () => {
+describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () => {
 	it("parses the v2 snapshot and resumes it into the current story", async () => {
-		const { snapshot, events, world } = await playActTwo({ story: nexus });
+		const { snapshot, events, world } = await playActTwo({ story: cityOfKeys });
 		expect(snapshot).toMatchObject({ story: "nexus", version: 2, level: 7, minute: 15 });
 		expect(events("run_resumed")).toMatchObject([{ level: 7 }]);
 		expect(world.competitors.every((id) => world.isExiled(id) || world.levelOf(id) >= 8)).toBe(true);

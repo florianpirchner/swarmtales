@@ -1,15 +1,18 @@
-# NEXUS: The City of Keys
+# The City of Keys
 
-**Full description:** [`docs/STORY-NEXUS.md`](../../docs/STORY-NEXUS.md)
+**Full description:** [`docs/STORY-CITYOFKEYS.md`](../../docs/STORY-CITYOFKEYS.md)
 
-The default story of Swarm Tales. Six residents (A01-A06) climb ten doors in at most 80 minutes. Every
+The default story of Swarm Tales, and our home city: this is where the tools, the characters (cast
+and archetypes), the Gamemaker and the city's mechanics are tuned before other stories use them.
+The story was called `nexus` until 2026-10-30; snapshots and runs recorded under that name still
+load (`stories/index.ts` maps the old name). Inside the fiction the city is still called NEXUS. Six residents (A01-A06) climb ten doors in at most 80 minutes. Every
 door opens only with a password or code whose pieces mostly sit with other residents. Only **2 of
 6** survive, ranked by points, so every point another resident earns is a threat.
 
 | | |
 |---|---|
 | Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
-| Run | `pnpm start` (nexus is the default story) |
+| Run | `pnpm start` (cityofkeys is the default story) |
 | Residents | 6, one persona each (Archivist, Gambler, Veteran, …) |
 | Duration | at most 80 minutes, one round per minute in 3 passes (one step per resident and pass) |
 | Survivors | 2, ranked by points |
@@ -60,6 +63,6 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 ## Recorded runs
 
-- Act I with a snapshot to start Act II from: [`examples/nexus-act1-06a-02/`](../../examples/nexus-act1-06a-02/) (since v05; v01-v04 used [`examples/nexus-act1-06a-01/`](../../examples/nexus-act1-06a-01/))
-- Act II experiments, one version per folder: [`examples/nexus-act2-06a/`](../../examples/nexus-act2-06a/)
+- Act I with a snapshot to start Act II from: [`examples/cityofkeys-act1-06a-02/`](../../examples/cityofkeys-act1-06a-02/) (since v05; v01-v04 used [`examples/cityofkeys-act1-06a-01/`](../../examples/cityofkeys-act1-06a-01/))
+- Act II experiments, one version per folder: [`examples/cityofkeys-act2-06a/`](../../examples/cityofkeys-act2-06a/)
 - Lessons, problems and loopholes the agents found: [`docs/LESSONS.md`](../../docs/LESSONS.md)

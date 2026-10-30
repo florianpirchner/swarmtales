@@ -1,6 +1,6 @@
-# Runs of nexus
+# Runs of cityofkeys
 
-From 2026-10-29 every run of nexus lives here, one folder per run:
+From 2026-10-29 every run of cityofkeys lives here, one folder per run:
 `act<k>-<NN>a-<run>-f<figure>g<gamemaker>/`. `act<k>` is the act played, `<NN>a` the number of
 residents, `<run>` a running number per act and city size, and `f`/`g` the two direction dials
 (`--figure-direction`, `--gm-direction`, see the SPEC's "Direction"). Each folder has a `README.md`
@@ -11,8 +11,8 @@ index they count as direction 0 (v01-v07: no cores), 2 (v08-v11: drawn cores) an
 
 | Run | Date | Base | Direction | Residents / gamemaker | Result | Cost |
 |---|---|---|---|---|---|---:|
-| [v01-v07](../../../examples/nexus-act2-06a/) | 2026-10-27/28 | 06a-01, 06a-02 | f0 g0 | Haiku or GLM / Haiku or DeepSeek | see the series index | 0.21-0.61 USD |
-| [v08-v11](../../../examples/nexus-act2-06a/) | 2026-10-29 | 06a-03 | f2 g4 | Haiku or GLM / DeepSeek or Sonnet | see the series index | 0.66-1.99 USD |
+| [v01-v07](../../../examples/cityofkeys-act2-06a/) | 2026-10-27/28 | 06a-01, 06a-02 | f0 g0 | Haiku or GLM / Haiku or DeepSeek | see the series index | 0.21-0.61 USD |
+| [v08-v11](../../../examples/cityofkeys-act2-06a/) | 2026-10-29 | 06a-03 | f2 g4 | Haiku or GLM / DeepSeek or Sonnet | see the series index | 0.66-1.99 USD |
 | [v12](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-06a/v12-cast) | 2026-10-29 | 06a-04 | f4 g4 | Haiku / DeepSeek | seats Registrar, Brassard; Herald's seal struck Mercer | 0.76 USD |
 | [act2-06a-013-f10g10](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-013-f10g10) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | seats Harrow, Maren; Mercer's seal struck Brassard; 17 lies, 28 threats; 3 never passed door 8 | 1.91 USD |
 | [act2-06a-014-f10g10](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-014-f10g10) | 2026-10-29 | 06a-04 | f10 g10 | Haiku / DeepSeek | seats Harrow, Herald; Brassard's seal struck Registrar; 9 refusals in character; stopped by the 3 USD cap | 3.05 USD |

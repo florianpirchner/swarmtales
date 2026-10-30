@@ -1,8 +1,8 @@
-# Act II runs of nexus, 12 residents
+# Act II runs of cityofkeys, 12 residents
 
-Every run in this series starts from [`../nexus-act1-12a-01/`](../nexus-act1-12a-01/), a recorded
+Every run in this series starts from [`../cityofkeys-act1-12a-01/`](../cityofkeys-act1-12a-01/), a recorded
 Act I with 12 residents and the v08 rules (resident names). The 6-resident series is
-[`../nexus-act2-06a/`](../nexus-act2-06a/). Each version is one folder: `vNN-<short-name>/` with a
+[`../cityofkeys-act2-06a/`](../cityofkeys-act2-06a/). Each version is one folder: `vNN-<short-name>/` with a
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and the
 full `run/` directory.
 
@@ -13,7 +13,7 @@ full `run/` directory.
 ## Adding a run
 
 ```bash
-pnpm start --resume examples/nexus-act1-12a-01/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-12a-01/snapshot-L7.json --provider anthropic
 ```
 
 Copy the new `runs/run-NNN/` to `vNN-<short-name>/run/`, write its `README.md` in the same shape

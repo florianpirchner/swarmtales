@@ -10,7 +10,7 @@ import { worldOracle } from "../../src/cli/oracle.ts";
 import { characterLeaks, nearlySame } from "../../src/gamemaker/privacy.ts";
 import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 describe("the character guard", () => {
@@ -116,9 +116,9 @@ describe("the director's report and refusals (scripted)", () => {
 	}, 60_000);
 
 	it("tells the director its craft, and what it may do with cores, goals and the seal", () => {
-		const spec = nexus.gamemaker;
-		if (spec === undefined) throw new Error("nexus has no gamemaker");
-		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec, tribunal: { factions: true }, characters: true, seal: true });
+		const spec = cityOfKeys.gamemaker;
+		if (spec === undefined) throw new Error("cityofkeys has no gamemaker");
+		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec, tribunal: { factions: true }, characters: true, seal: true });
 		expect(prompt).toContain("Your craft is dramaturgy: rising tension, turning points, dilemmas");
 		expect(prompt).toContain("A quiet act is a failed act.");
 		expect(prompt).toContain("the climax at the last");

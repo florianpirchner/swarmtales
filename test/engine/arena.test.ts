@@ -263,7 +263,7 @@ describe("arena: ending a run", () => {
 	it("aborts cleanly once the budget is exceeded", async () => {
 		let spent = 0;
 		const fixture = createFixture({
-			story: { ...(await import("../../stories/nexus/story.ts")).default, run: { ...(await import("../../stories/nexus/story.ts")).default.run, budgetUsd: 0.5 } },
+			story: { ...(await import("../../stories/cityofkeys/story.ts")).default, run: { ...(await import("../../stories/cityofkeys/story.ts")).default.run, budgetUsd: 0.5 } },
 			agents: 2,
 			minutes: 5,
 			only: 1,

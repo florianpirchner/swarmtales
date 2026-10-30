@@ -34,8 +34,8 @@ describe("random", () => {
 	});
 
 	it("hashes text stably", () => {
-		expect(seedFrom("nexus")).toBe(seedFrom("nexus"));
-		expect(seedFrom("nexus")).not.toBe(seedFrom("nexuz"));
+		expect(seedFrom("cityofkeys")).toBe(seedFrom("cityofkeys"));
+		expect(seedFrom("cityofkeys")).not.toBe(seedFrom("nexuz"));
 	});
 
 	it("refuses to pick from an empty list", () => {

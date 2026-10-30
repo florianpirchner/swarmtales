@@ -9,14 +9,14 @@ import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
-const FIGURES = nexus.cores?.figures ?? [];
+const FIGURES = cityOfKeys.cores?.figures ?? [];
 const CAST = ["banner", "second-chair", "house", "believer", "crier", "old-wound"];
 
 function compose(overrides: RunOverrides, log = new MemorySink()) {
 	return composeRun({
-		story: nexus,
+		story: cityOfKeys,
 		overrides: { names: true, agents: 6, cast: CAST, ...overrides },
 		models: (world) => new ScriptedModelSource(oracleScript(world.competitors, () => worldOracle(world), 50)),
 		sinks: [log],
@@ -93,9 +93,9 @@ describe("the direction dial", () => {
 	});
 
 	it("turns the director into an author at gm direction 10 and shows it the figures' orders", () => {
-		const spec = nexus.gamemaker;
-		if (spec === undefined) throw new Error("nexus has a gamemaker");
-		const input = { city: "NEXUS", agents: 6, survivors: 2, rules: nexus.rules, spec, tribunal: { factions: true }, characters: true, seal: true };
+		const spec = cityOfKeys.gamemaker;
+		if (spec === undefined) throw new Error("cityofkeys has a gamemaker");
+		const input = { city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec, tribunal: { factions: true }, characters: true, seal: true };
 		const four = gamemakerSystemPrompt(input);
 		const ten = gamemakerSystemPrompt({ ...input, direction: 10 });
 		expect(four).toContain("Offer dilemmas, not instructions.");
@@ -114,7 +114,7 @@ describe("the direction dial", () => {
 		expect(off.world.enabledTools("A01")).not.toContain("defy");
 		const log = new MemorySink();
 		const run = composeRun({
-			story: nexus,
+			story: cityOfKeys,
 			overrides: { names: true, agents: 6, cast: CAST, figureDirection: 10, gmDirection: 10, gamemaker: true },
 			models: new ScriptedModelSource({}),
 			gamemakerModels: new ScriptedModelSource({}),

@@ -1,13 +1,13 @@
-# Recorded Act I of nexus, 12 residents with the cast (Haiku, seed 7)
+# Recorded Act I of cityofkeys, 12 residents with the cast (Haiku, seed 7)
 
-A live Act I of [nexus](../../docs/STORY-NEXUS.md) with 12 residents, each playing one of the 12
-figures of [`stories/nexus/cast/`](../../stories/nexus/cast/) (swarmtales PR #37: the first six plus
+A live Act I of [cityofkeys](../../docs/STORY-CITYOFKEYS.md) with 12 residents, each playing one of the 12
+figures of [`stories/cityofkeys/cast/`](../../stories/cityofkeys/cast/) (swarmtales PR #37: the first six plus
 quartermaster, question, last-post, ledger, quiet-hand and watcher). Residents choose their own
 names. The run was stopped with a snapshot at the door to level 8. Act II runs with 12 residents
-start here (see [`stories/nexus/runs/`](../../stories/nexus/runs/)):
+start here (see [`stories/cityofkeys/runs/`](../../stories/cityofkeys/runs/)):
 
 ```bash
-pnpm start --resume examples/nexus-act1-12a-02/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-12a-02/snapshot-L7.json --provider anthropic
 ```
 
 | File | Content |

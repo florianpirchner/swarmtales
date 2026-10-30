@@ -169,7 +169,7 @@ describe("director conditions and actions (SPEC 10.2, 10.3)", () => {
 	});
 });
 
-describe("nexus act I beats", () => {
+describe("cityofkeys act I beats", () => {
 	it("sends the courier on the first entry of level 2 and announces marks on level 5", async () => {
 		const fixture = createFixture({
 			agents: 3,

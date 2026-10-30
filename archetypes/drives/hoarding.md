@@ -8,4 +8,4 @@ tone: dark
 
 **How it can make sense from the inside:** Once you had nothing to fall back on; every piece you keep is a floor under your feet.
 
-The texts per intensity that the engine renders are in `stories/nexus/characters.ts`.
+The texts per intensity that the engine renders are in `stories/cityofkeys/characters.ts`.

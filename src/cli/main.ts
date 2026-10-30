@@ -66,7 +66,7 @@ const snapshot: RunSnapshot | undefined = (() => {
 		throw error;
 	}
 })();
-const storyName = args.story ?? snapshot?.story ?? "nexus";
+const storyName = args.story ?? snapshot?.story ?? "cityofkeys";
 const story = findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}`);
 const runOverrides = (() => {
 	if (snapshot === undefined) return args.overrides;

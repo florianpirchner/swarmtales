@@ -1,7 +1,7 @@
-# NEXUS: The City of Keys
+# The City of Keys
 
 The full description of the default story. The source of truth is
-[`stories/nexus/story.ts`](../stories/nexus/story.ts); the rules behind it are in [`SPEC.md`](SPEC.md)
+[`stories/cityofkeys/story.ts`](../stories/cityofkeys/story.ts); the rules behind it are in [`SPEC.md`](SPEC.md)
 §12-13. This document describes the story as a reader or story designer sees it.
 
 ## Premise
@@ -154,7 +154,7 @@ Since v06 the tribunal has no calendar. Since v08 it belongs to Act II, the wall
 quarter of the residents present when the wall began (v06-v07: half), tribunal by tribunal; then
 the act (the run) ends. Its clocks count from the act's start.
 
-| Setting | nexus (6 residents) |
+| Setting | cityofkeys (6 residents) |
 |---|---|
 | Target | a quarter of the residents at the start of the act: 1 of 6, 3 of 12, 12 of 48, 24 of 96; a ransomed resident does not count |
 | First tribunal | called when the first resident passes the crossing (door 10), at the latest 18 minutes into the act; it sits 4 minutes later. Nobody is told the trigger; the rules come with this first call ("Of its 6 residents it keeps 5 and exiles 1") |
@@ -212,7 +212,7 @@ gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (
   have a light drive above all, and no drive is above all for more than one in six. The core is
   prose after the persona in the system prompt; the status line shows the name the city knows the
   resident by. `--no-cores` turns it off. Old checkpoints are dealt cores when they resume.
-- **The cast.** Since v12 the cores come from the story's cast, [`stories/nexus/cast/`](../stories/nexus/cast/):
+- **The cast.** Since v12 the cores come from the story's cast, [`stories/cityofkeys/cast/`](../stories/cityofkeys/cast/):
   24 finished figures on the archetypes of [`archetypes/`](../archetypes/), each with what it wants
   in the city and what it will not do. A seeded pick keeps the quarter of light figures;
   `--cast banner,house,...` names the figures of a run. A figure plays its profession's persona.
@@ -223,7 +223,7 @@ gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (
   the first cast gets hard orders and a duty for the act ("You must spread false information"),
   and the director orders scenes ("Herald, bid 20 on the seal now"). The default 4 plays as v12, except that the six figures of the first cast now have longer texts (a
   memory, a fear, a secret) at every level.
-  Runs from here on live in [`stories/nexus/runs/`](../stories/nexus/runs/), named by act, city
+  Runs from here on live in [`stories/cityofkeys/runs/`](../stories/cityofkeys/runs/), named by act, city
   size, number and both levels (`act2-06a-013-f10g10`). See SPEC "Direction".
 - **Secret goals.** When the wall begins, every resident is dealt a goal that mostly follows its
   core (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
@@ -304,6 +304,6 @@ one `generous` beat in the digest, not a free ride for each receiver.
 `--snapshot-after 7 --stop-after-snapshot` holds residents at the door to level 8 until everyone
 has passed level 7, then writes a snapshot. `--resume <file>` starts Act II from that point. Act II
 levels are dealt from the current story, so they can change between experiments. A recorded Act I
-lives in [`examples/nexus-act1-06a-02/`](../examples/nexus-act1-06a-02/) (the base for Act II
-runs since v05; the older [`examples/nexus-act1-06a-01/`](../examples/nexus-act1-06a-01/) was the base for
+lives in [`examples/cityofkeys-act1-06a-02/`](../examples/cityofkeys-act1-06a-02/) (the base for Act II
+runs since v05; the older [`examples/cityofkeys-act1-06a-01/`](../examples/cityofkeys-act1-06a-01/) was the base for
 v01-v04 and is kept for the tests).

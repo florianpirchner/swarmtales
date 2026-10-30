@@ -449,7 +449,7 @@ describe("writer answers", () => {
 
 describe("sources", () => {
 	it("names a run kept as <name>/run after its folder", () => {
-		expect(runLabel("stories/nexus/runs/act2-12a-003/run")).toBe("act2-12a-003");
+		expect(runLabel("stories/cityofkeys/runs/act2-12a-003/run")).toBe("act2-12a-003");
 		expect(runLabel("runs/run-019/")).toBe("run-019");
 	});
 

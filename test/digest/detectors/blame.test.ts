@@ -10,7 +10,7 @@ import { parseEventLog } from "../../../src/digest/event-log.ts";
 import { buildFacts } from "../../../src/digest/facts.ts";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
-/** run_start and every DM, board and group post of minutes 15-24 of examples/nexus-act2-06a/v02-no-memo-codes. */
+/** run_start and every DM, board and group post of minutes 15-24 of examples/cityofkeys-act2-06a/v02-no-memo-codes. */
 const V02 = join(import.meta.dirname, "..", "fixtures", "v02-denied-delivery.jsonl");
 
 describe("deniedDelivery", () => {

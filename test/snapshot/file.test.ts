@@ -16,7 +16,7 @@ import { say, submit } from "../helpers/fixture.ts";
 import { soloLevels, tinyStory } from "../helpers/stories.ts";
 import { worldOracle } from "../../src/cli/oracle.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const story = tinyStory({ levels: soloLevels(3) });
 
@@ -133,12 +133,13 @@ describe("snapshot file", () => {
 
 describe("the published Act I snapshots", () => {
 	// v01-v04 resumed the first, v05 and later the second; both must keep resuming (v06 replaced the tribunal's calendar).
-	it.each(["nexus-act1-06a-01", "nexus-act1-06a-02"])("%s still loads and resumes into the current nexus, held residents entering level 8", async (folder) => {
+	it.each(["cityofkeys-act1-06a-01", "cityofkeys-act1-06a-02"])("%s still loads and resumes into the current cityofkeys, held residents entering level 8", async (folder) => {
 		const snapshot = readSnapshot(join(process.cwd(), "examples", folder, "snapshot-L7.json"));
+		// Recorded under the story's old name; findStory still resolves it.
 		expect(snapshot).toMatchObject({ story: "nexus", version: 2, level: 7, agents: 6 });
 		const log = new MemorySink();
 		const run = composeRun({
-			story: nexus,
+			story: cityOfKeys,
 			overrides: resumeOverrides(snapshot, { minutes: snapshot.minute + 3 }),
 			models: (world) => new ScriptedModelSource(oracleScript(world.competitors, () => worldOracle(world), 20)),
 			sinks: [log],

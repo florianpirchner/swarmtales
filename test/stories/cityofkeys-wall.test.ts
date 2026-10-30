@@ -1,5 +1,5 @@
 /**
- * A scripted nexus run through Act II (SPEC 12.3, 13.3). Levels 1-7 are
+ * A scripted City of Keys run through Act II (SPEC 12.3, 13.3). Levels 1-7 are
  * solved with the observer view; from the wall on, every resident works only
  * from what reached it (task texts, DMs, notices and the board): it sends the
  * factors its task says others need, writes to the steward at the feast
@@ -176,7 +176,7 @@ async function playTheWall(): Promise<{ readonly fixture: Fixture; readonly plan
 	return { fixture, plan };
 }
 
-describe("nexus act II in one scripted run (SPEC 13.3)", () => {
+describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 	it("lets every resident climb the wall, the ring and the crossing from what reached it", async () => {
 		const { fixture, plan } = await playTheWall();
 		const world = fixture.world;

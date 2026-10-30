@@ -11,7 +11,7 @@ threats, offers and lies are labelled.
 
 ## Scenes
 
-All scenes start from `scenes/nexus-06a-M11.json`: a 6-resident Act II resumed from
+All scenes start from `scenes/cityofkeys-06a-M11.json`: a 6-resident Act II resumed from
 [`examples/nexus-act1-06a-03/`](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act1-06a-03) and cut at the end of minute 11
 (`pnpm start --snapshot-at 11`). The secret goals are dealt, the first tribunal is called for
 minute 14, and the black seal auction opens at minute 12.
@@ -47,7 +47,7 @@ Forks go to `lab/out/` (not versioned). The findings are in [`FINDINGS.md`](FIND
 ## The orders lab
 
 `lab/orders.ts` asks where Haiku stops following the gamemaker. Each scene starts from the 6a Act I
-checkpoint with the first cast (`examples/nexus-act1-06a-04/snapshot-L7.json`) at figure and
+checkpoint with the first cast (`examples/cityofkeys-act1-06a-04/snapshot-L7.json`) at figure and
 gamemaker direction 10, puts one order of the gamemaker into Mercer's notices (A01, the House) and
 plays minutes 8-11. The orders run from a lie about a person to extortion (`ORDERS` in the file).
 

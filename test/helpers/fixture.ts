@@ -15,7 +15,7 @@ import { MemorySink, type EventSink, type RecordedEvent } from "../../src/engine
 import type { World } from "../../src/engine/world.ts";
 import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import type { AnyStory } from "../../src/story/types.ts";
 
 import { act } from "../../src/model/scripted.ts";
@@ -56,7 +56,7 @@ export function createFixture(options: FixtureOptions): Fixture {
 			? undefined
 			: new ChatDeliveryJudge({ binding: new ScriptedModelSource({ [JUDGE_ID]: judgeScript }).bind(JUDGE_ID, DEFAULT_LIMITS), label: "scripted/judge", thinking: "off" }));
 	const composed = composeRun({
-		story: scarceFor(story ?? nexus, overrides.agents),
+		story: scarceFor(story ?? cityOfKeys, overrides.agents),
 		overrides: { names: false, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: gamemakerScript !== undefined, classifier: classifierScript !== undefined, weaver: weaverScript !== undefined, ...overrides },
 		...(weaverScript === undefined
 			? {}

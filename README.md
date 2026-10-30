@@ -118,6 +118,9 @@ the verdict (`#2911`).
 **NEXUS, the City of Keys.** Forty-eight residents climb a tower of locked doors. Behind every door
 are points. Only **half** of them walk out of Act II.
 
+The City of Keys is our home city. It is where we tune everything before other stories use it: the
+residents' tools, their characters, and the Gamemaker who directs them.
+
 Every door opens with a code, and the pieces of that code are scattered. Some you hold. Some sit
 with the resident next to you. Some sit with the one you most need to beat. Every number you give
 away helps a rival climb. Every number you keep can lock your own door forever.
@@ -250,7 +253,7 @@ Swarm Tales is a TypeScript harness. Stories are written in a small builder lang
 is deterministic, and every run can be replayed.
 
 - [How it works](docs/HOW-IT-WORKS.md): overview diagram, quick start, models, CLI
-- [The NEXUS story](docs/STORY-NEXUS.md) and [its code](stories/nexus/)
+- [The City of Keys story](docs/STORY-CITYOFKEYS.md) and [its code](stories/cityofkeys/)
 - [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md)
 - [From a run to a story](docs/FROM-RUN-TO-STORY.md): how the chronicle and the short stories are made
 - [Recorded runs](examples/): Act I with a snapshot, and the Act II series
