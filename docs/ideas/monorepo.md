@@ -427,7 +427,7 @@ What the Whispers thread built or learned after the first paper, and where it la
 | **Grudge ("forgiveness") rule** works on Haiku and exposed the whisperer in run 006 (P72: honest errors are punished too; run 007 sharpens it with "ask first, shun only after a stand-off") | rule text lives only as a prompt file; if it moves into the f10 direction it becomes a section of the figure dial profile, not code |
 | **Model per resident** (idea: Haiku against DeepSeek for the same story) | run config gets `models.residents` as a default plus per-resident overrides, same schema as `models.roles`; needs no engine change once the providers are behind `packages/models` |
 | **Temperature and other model parameters** are not passed to Haiku today | one `params` object per model entry in `swt.config` (temperature, max tokens, thinking level); the provider adapter decides what it supports |
-| **`world.ts` grew again** (about +175 lines for the whisperer and tribunal changes) | confirms the carve-out is worth it; the size ratchet (§3f) must be re-measured when the rewrite starts |
+| **`world.ts` grew again** (now 3196 lines, the paper measured 2705 earlier) | confirms the carve-out is worth it; the size ratchet (§3f) must be re-measured when the rewrite starts |
 | **LESSONS.md replaced LOOPHOLES.md** (design checklist and `P`/`LH` rows) | stays in `docs/`; the module conformance tests (§3e item 8) should cite the checklist lines they guard |
 
 Requirement for the rewrite: runs 005-007 (directed whisperer, grudge addendum) are the second golden
