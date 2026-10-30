@@ -674,6 +674,7 @@ export class World {
 						emit: (event) => {
 							this.#bus.emit(event);
 						},
+						label: (agent) => this.labelOf(agent),
 						counted: (result) => {
 							this.#whisperDutyAfterVote(result);
 						},

@@ -434,6 +434,28 @@ describe("the popularity votes (Whispers)", () => {
 		expect(old.current).toBeUndefined();
 	});
 
+	it("names residents by the city's label in the ranking and the winners", () => {
+		const posts: string[] = [];
+		const ids = ["A01", "A02", "A03"];
+		const names: Readonly<Record<string, string>> = { A01: "Ilse", A02: "Juno", A03: "Mirela" };
+		const vote = new PopularityVote({
+			spec: ROUNDS,
+			isCompetitor: (id: string) => ids.includes(id),
+			inCity: () => true,
+			alive: () => ids,
+			post: (text: string) => posts.push(text),
+			notify: () => undefined,
+			grant: () => undefined,
+			emit: () => undefined,
+			label: (agent: string) => `${names[agent] ?? agent} (${agent})`,
+		});
+		vote.tick(2);
+		vote.vote("A01", "A02");
+		vote.tick(4);
+		expect(posts.at(-1)).toContain("Juno (A02) 1, Ilse (A01) 0, Mirela (A03) 0");
+		expect(posts.at(-1)).toContain("Juno (A02)");
+	});
+
 	it("skips a lagging round silently on restore, and never pays an old single vote's ballots as an earlier round", () => {
 		const events: PopularityEvent[] = [];
 		const ids = ["A01", "A02", "A03"];

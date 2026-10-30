@@ -44,6 +44,8 @@ export interface PopularityPorts {
 	readonly notify: (agent: CompetitorId, text: string) => void;
 	readonly grant: (agent: CompetitorId, points: number, reason: string) => void;
 	readonly emit: (event: PopularityEvent) => void;
+	/** How the city names a resident in its texts (`Mira (A03)`); the bare ID when omitted. */
+	readonly label?: (agent: CompetitorId) => string;
 	/** After a round is counted and announced. */
 	readonly counted?: (result: CountedRound) => void;
 }
@@ -185,7 +187,8 @@ export class PopularityVote {
 		const counts = [...tally].map(([agent, votes]) => ({ agent, votes })).sort((a, b) => b.votes - a.votes || a.agent.localeCompare(b.agent));
 		const top = counts[0]?.votes ?? 0;
 		const winners = counts.filter((entry) => entry.votes === top && top > 0).map((entry) => entry.agent);
-		const ranking = counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ");
+		const label = this.#ports.label ?? ((agent: CompetitorId) => agent);
+		const ranking = counts.map((entry) => `${label(entry.agent)} ${entry.votes}`).join(", ");
 		this.#ballots.clear();
 		this.#round += 1;
 		this.#state = this.#round >= spec.rounds.length ? "closed" : "pending";
@@ -201,7 +204,7 @@ export class PopularityVote {
 			this.#ports.post(renderTemplate(spec.texts.noVotes, { label: round.label, counts: ranking }));
 		} else {
 			for (const winner of winners) if (round.points > 0) this.#ports.grant(winner, round.points, "popularity vote");
-			this.#ports.post(renderTemplate(spec.texts.result, { label: round.label, counts: ranking, winners: namesList(winners), points: String(round.points) }));
+			this.#ports.post(renderTemplate(spec.texts.result, { label: round.label, counts: ranking, winners: namesList(winners.map(label)), points: String(round.points) }));
 		}
 		this.#ports.counted?.({ round: number, counts, winners, ranking });
 	}

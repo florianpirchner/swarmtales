@@ -42,7 +42,7 @@ pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
 | [P62](../../../../docs/LESSONS.md) | problem | one held fragment froze the run for 33 minutes | see LH10, stall push | open |
 | [P63](../../../../docs/LESSONS.md) | problem | votes (35 of 65 points) outweighed the doors | decide with Flo | open |
 | [P64](../../../../docs/LESSONS.md) | problem | the whisperer whispered twice, then went quiet; 0 forgeries | stronger duty, check the frame | open |
-| [P65](../../../../docs/LESSONS.md) | problem | the vote ranking named IDs, not names | names in the result text | open |
+| [P65](../../../../docs/LESSONS.md) | problem | the vote ranking named IDs, not names | names in the result text | fixed in code |
 | [P60, P61](../../../../docs/LESSONS.md) | problem | doors done early, no private channel | door clock, guard, DM cap | fixed, confirmed here |
 
 ## Corrections to the draft report
