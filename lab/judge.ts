@@ -55,8 +55,8 @@ interface Hearing {
 async function main(argv: readonly string[]): Promise<void> {
 	const at = argv.indexOf("--repeats");
 	const repeats = at < 0 ? 2 : Number(argv[at + 1]);
-	const story = findStory("nexus");
-	if (story?.classifier === undefined) throw new Error("nexus has no classifier model");
+	const story = findStory("cityofkeys");
+	if (story?.classifier === undefined) throw new Error("cityofkeys has no classifier model");
 	const registry = createProviderRegistry([]);
 	const settings = resolveModelSettings({}, {}, settingsFromStory(story.classifier.model), registry);
 	const limits = { maxOutputTokens: 1_000, timeoutMs: 60_000 };

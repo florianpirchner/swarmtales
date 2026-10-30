@@ -8,14 +8,14 @@ import { competitorIds } from "../../src/core/ids.ts";
 import { aboveAllCap, coreLine, dealCores, lightCount, renderCore } from "../../src/engine/cores.ts";
 import { baseSystemPrompt } from "../../src/agents/system-prompt.ts";
 import type { CoresSpec } from "../../src/story/types.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 // The drawn cores, without the story's cast.
-const spec: CoresSpec | undefined = nexus.cores === undefined ? undefined : { ...nexus.cores, figures: [] };
+const spec: CoresSpec | undefined = cityOfKeys.cores === undefined ? undefined : { ...cityOfKeys.cores, figures: [] };
 
 describe("dealing cores", () => {
 	it.each([6, 12, 48, 96])("follows the mixing rules with %i residents", (agents) => {
-		if (spec === undefined) throw new Error("nexus has no cores");
+		if (spec === undefined) throw new Error("cityofkeys has no cores");
 		const ids = competitorIds(agents);
 		const cores = dealCores(spec, ids, 7);
 		expect([...cores.keys()]).toEqual(ids);
@@ -41,14 +41,14 @@ describe("dealing cores", () => {
 	});
 
 	it("deals the same cores for the same seed and others for another", () => {
-		if (spec === undefined) throw new Error("nexus has no cores");
+		if (spec === undefined) throw new Error("cityofkeys has no cores");
 		const ids = competitorIds(12);
 		expect([...dealCores(spec, ids, 7)]).toEqual([...dealCores(spec, ids, 7)]);
 		expect([...dealCores(spec, ids, 7)]).not.toEqual([...dealCores(spec, ids, 8)]);
 	});
 
 	it("writes the core as prose after the persona, never as an instruction", () => {
-		if (spec === undefined) throw new Error("nexus has no cores");
+		if (spec === undefined) throw new Error("cityofkeys has no cores");
 		const core = {
 			bigFive: [
 				{ axis: "openness", level: "high" },
@@ -66,7 +66,7 @@ describe("dealing cores", () => {
 				"Clearly, envy gnaws at you when someone stands ahead of you. At times the fear of losing everything takes hold of you.",
 		);
 		expect(coreLine(core)).toBe("above all leadership; clearly envy; at times anxiety · openness high, agreeableness middle");
-		const persona = nexus.personas[0];
+		const persona = cityOfKeys.personas[0];
 		const prompt = baseSystemPrompt({ id: "A01", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 1, core: prose }, persona);
 		expect(prompt.indexOf("Who you are, deep inside:")).toBeGreaterThan(prompt.indexOf("Your character:"));
 		expect(prompt.endsWith(prose)).toBe(true);
@@ -84,11 +84,11 @@ describe("the system prompt of a named city (v09)", () => {
 	});
 });
 
-describe("the story's cast (stories/nexus/cast/)", () => {
-	const cast = nexus.cores;
+describe("the story's cast (stories/cityofkeys/cast/)", () => {
+	const cast = cityOfKeys.cores;
 
 	it("deals every figure once to a city of the cast's size, seeded, in roster order", () => {
-		if (cast?.figures === undefined) throw new Error("nexus has no cast");
+		if (cast?.figures === undefined) throw new Error("cityofkeys has no cast");
 		const ids = competitorIds(cast.figures.length);
 		const cores = dealCores(cast, ids, 7);
 		expect([...cores.keys()]).toEqual(ids);
@@ -104,7 +104,7 @@ describe("the story's cast (stories/nexus/cast/)", () => {
 	});
 
 	it("plays the figures the run names, and draws cores for residents beyond them", () => {
-		if (cast === undefined) throw new Error("nexus has no cores");
+		if (cast === undefined) throw new Error("cityofkeys has no cores");
 		const cores = dealCores(cast, competitorIds(8), 7, ["banner", "house"]);
 		const figures = [...cores.values()].map((core) => core.figure).filter((figure) => figure !== undefined);
 		expect(figures.sort()).toEqual(["banner", "house"]);

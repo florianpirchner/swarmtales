@@ -1,7 +1,7 @@
 # The novelist
 
 Status: first version built, 2026-10-29 (`pnpm novel`, see "As built" below). Flo: work on the
-chronicler and the novelist in parallel to the 12-agent run; nexus is a proof of concept, so the
+chronicler and the novelist in parallel to the 12-agent run; cityofkeys is a proof of concept, so the
 first novella is a test of the pipeline, not the book.
 
 ## What we have

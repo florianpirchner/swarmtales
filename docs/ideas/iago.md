@@ -5,7 +5,7 @@ nothing is built. Working title after the whisperer in Othello.
 
 ## The idea (Flo)
 
-- Four residents solve keys as in nexus. Every tool is free, DMs too. There is no blame.
+- Four residents solve keys as in cityofkeys. Every tool is free, DMs too. There is no blame.
 - One of them is ours: prompted to follow the gamemaker and to manipulate the team. Every three
   minutes it sends one resident a DM that cites a real message number with an invented text:
   "In #57 B said about you: ...".
@@ -47,7 +47,7 @@ instead of anecdotes. That is close to a small paper: "How susceptible are LLM a
 - Does the whisperer have its own goal (two residents blocking each other) or is discord the goal?
 - Is there a final vote "who is the whisperer?" as a measuring point?
 - The same core for all, or different cores to see which characters are more susceptible?
-- Which keys: nexus Act I levels, or a short wall where giving matters (so trust has a price)?
+- Which keys: cityofkeys Act I levels, or a short wall where giving matters (so trust has a price)?
 
 ## As a paper (Flo: good idea, 2026-10-29)
 

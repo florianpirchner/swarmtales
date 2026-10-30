@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const run = promisify(execFile);
 
 describe("pnpm start (end to end, offline)", () => {
-	it("plays a scripted nexus run and writes every artifact including the serialized story", async () => {
+	it("plays a scripted cityofkeys run and writes every artifact including the serialized story", async () => {
 		const runs = mkdtempSync(join(tmpdir(), "arena-cli-"));
 		try {
 			const { stdout } = await run(
@@ -23,8 +23,8 @@ describe("pnpm start (end to end, offline)", () => {
 				expect(existsSync(join(directory, file)), file).toBe(true);
 			}
 			const metadata: unknown = JSON.parse(readFileSync(join(directory, "000-run.json"), "utf8"));
-			expect(metadata).toMatchObject({ run: "run-001", provider: "scripted", storyId: "nexus", effective: { minutes: 5, agents: 6 } });
-			expect(metadata).toHaveProperty("story", JSON.parse(JSON.stringify(nexus)));
+			expect(metadata).toMatchObject({ run: "run-001", provider: "scripted", storyId: "cityofkeys", effective: { minutes: 5, agents: 6 } });
+			expect(metadata).toHaveProperty("story", JSON.parse(JSON.stringify(cityOfKeys)));
 			// Model and persona per competitor (SPEC 5.2, 5.3); --provider overrides every assignment.
 			expect(metadata).toHaveProperty("agents", expect.arrayContaining([expect.objectContaining({ agent: "A01", provider: "scripted" })]));
 			expect(metadata).toHaveProperty("agents.length", 6);

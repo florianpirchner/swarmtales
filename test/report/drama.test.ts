@@ -13,7 +13,7 @@ import { writePrivateFiles } from "../../src/log/private-files.ts";
 import { JsonlEventLog } from "../../src/log/sinks.ts";
 import { computeFacts } from "../../src/report/facts.ts";
 import { factsMarkdown } from "../../src/report/render.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 let directory = "";
@@ -75,7 +75,7 @@ describe("the drama in the run's documents (v09)", () => {
 	});
 
 	it("writes the cast and the act's private file: goals, the seal's secret bids, the gamemaker's notes", () => {
-		writePrivateFiles(directory, nexus);
+		writePrivateFiles(directory, cityOfKeys);
 		const cast = readdirSync(join(directory, "cast"));
 		expect(cast).toHaveLength(6);
 		expect(cast.every((file) => /^A0\d-[a-z-]+\.md$/.test(file))).toBe(true);
@@ -94,7 +94,7 @@ describe("the drama in the run's documents (v09)", () => {
 		const last: unknown = JSON.parse(events.at(-1) ?? "{}");
 		const minute = typeof last === "object" && last !== null && "minute" in last && typeof last.minute === "number" ? last.minute : 0;
 		writeFileSync(join(copy, "events.jsonl"), [...events, JSON.stringify({ seq: 1_000_000, minute, type: "gamemaker_thinking", text: "A01 should strike now." })].join("\n"));
-		writePrivateFiles(copy, nexus);
+		writePrivateFiles(copy, cityOfKeys);
 		expect(readFileSync(join(copy, "acts", "act-2", "private.md"), "utf8")).toContain("## The gamemaker's thinking");
 		rmSync(copy, { recursive: true, force: true });
 	});

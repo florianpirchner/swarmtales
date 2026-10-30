@@ -11,12 +11,12 @@ import type { World } from "../../src/engine/world.ts";
 import { worldOracle } from "../../src/cli/oracle.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 function wall(): { readonly world: World; readonly log: MemorySink } {
 	const log = new MemorySink();
 	const run = composeRun({
-		story: nexus,
+		story: cityOfKeys,
 		overrides: { agents: 6, level: 8 },
 		models: (world) => new ScriptedModelSource(oracleScript(world.competitors, () => worldOracle(world), 200)),
 		sinks: [log],

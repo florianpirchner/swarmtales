@@ -8,4 +8,4 @@ tone: dark
 
 **How it can make sense from the inside:** You learned early that nobody else would put you first; so you do, always.
 
-The texts per intensity that the engine renders are in `stories/nexus/characters.ts`.
+The texts per intensity that the engine renders are in `stories/cityofkeys/characters.ts`.

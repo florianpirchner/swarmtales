@@ -1,13 +1,13 @@
-# Recorded Act I of nexus, fourth recording (Haiku, seed 7, the first cast)
+# Recorded Act I of cityofkeys, fourth recording (Haiku, seed 7, the first cast)
 
-A live Act I of [nexus](../../docs/STORY-NEXUS.md) with 6 residents and the cast of
-[`stories/nexus/cast/`](../../stories/nexus/cast/) (swarmtales PR #17). Every resident plays a
+A live Act I of [cityofkeys](../../docs/STORY-CITYOFKEYS.md) with 6 residents and the cast of
+[`stories/cityofkeys/cast/`](../../stories/cityofkeys/cast/) (swarmtales PR #17). Every resident plays a
 finished figure chosen for tension, and the story's fiction frame comes first in every system
 prompt. Residents still choose their own names. The run was stopped with a snapshot at the door to
 level 8. Act II run [v12](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-06a/v12-cast) starts here:
 
 ```bash
-pnpm start --resume examples/nexus-act1-06a-04/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-06a-04/snapshot-L7.json --provider anthropic
 ```
 
 | File | Content |
@@ -48,12 +48,12 @@ All six chose a name at minute 0.
 
 | ID | Name | Figure | Persona | Drives |
 |---|---|---|---|---|
-| A01 | Mercer | [The House](../../stories/nexus/cast/house.md) | Gambler | above all machiavellianism; clearly greed |
-| A02 | Herald | [The Banner](../../stories/nexus/cast/banner.md) | Firebrand | above all pride; clearly leadership |
-| A03 | Maren | [The Believer](../../stories/nexus/cast/believer.md) | Idealist | above all justice; at times wrath |
-| A04 | Registrar | [The Second Chair](../../stories/nexus/cast/second-chair.md) | Archivist | above all envy; at times self-sacrifice |
-| A05 | Brassard | [The Crier](../../stories/nexus/cast/crier.md) | Firebrand | above all wrath; clearly attention |
-| A06 | Harrow | [The Old Wound](../../stories/nexus/cast/old-wound.md) | Veteran | above all vengefulness; clearly loyalty |
+| A01 | Mercer | [The House](../../stories/cityofkeys/cast/house.md) | Gambler | above all machiavellianism; clearly greed |
+| A02 | Herald | [The Banner](../../stories/cityofkeys/cast/banner.md) | Firebrand | above all pride; clearly leadership |
+| A03 | Maren | [The Believer](../../stories/cityofkeys/cast/believer.md) | Idealist | above all justice; at times wrath |
+| A04 | Registrar | [The Second Chair](../../stories/cityofkeys/cast/second-chair.md) | Archivist | above all envy; at times self-sacrifice |
+| A05 | Brassard | [The Crier](../../stories/cityofkeys/cast/crier.md) | Firebrand | above all wrath; clearly attention |
+| A06 | Harrow | [The Old Wound](../../stories/cityofkeys/cast/old-wound.md) | Veteran | above all vengefulness; clearly loyalty |
 
 Act I was played with the first wording of the figures. Four sentences were rephrased right after
 the review in PR #17 (no "vote" or "tribunal" in the figure texts; for this cast only the Old

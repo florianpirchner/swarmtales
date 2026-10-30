@@ -41,7 +41,7 @@ src/
   snapshot/    run snapshots (SPEC 17): typebox schemas of the file, its events and the
                model contexts; read, check and write
   cli/         main.ts, validate.ts, digest.ts, novel.ts, report.ts, run-report.ts
-stories/       one folder per story: nexus/story.ts (default) with its README; index.ts
+stories/       one folder per story: cityofkeys/story.ts (default) with its README; index.ts
                (registry by name)
 test/          mirrors src/; offline only (scripted provider)
 docs/          SPEC.md, ARCHITECTURE.md, MODELS.md
@@ -58,7 +58,7 @@ Old directories (`arena/`, `game/`, `tutorial/`, `scenarios/`, `scripts/`,
 import { defineStory, level, at, onFirstEnter, act, team } from "../story/index.ts";
 
 export default defineStory({
-	id: "nexus",
+	id: "cityofkeys",
 	title: "NEXUS — The City of Keys",
 	run: { agents: 6, minutes: 60, seed: 7, survivors: 2, startPoints: 15,
 	       activation: "onNovelty", passesPerMinute: 3, blockSize: 1 },
@@ -98,8 +98,8 @@ round-trips through JSON unchanged (proves it is pure data).
 
 ### 3.4 Registry and CLI
 
-`stories/index.ts` maps names to stories. `pnpm start --story nexus` (default
-`nexus`). CLI flags override run parameters: `--agents --minutes --seed --provider
+`stories/index.ts` maps names to stories. `pnpm start --story cityofkeys` (default
+`cityofkeys`). CLI flags override run parameters: `--agents --minutes --seed --provider
 --model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --no-classifier
 --classifier-provider --classifier-model --weaver --weaver-provider --weaver-model
 --snapshot-after --stop-after-snapshot --resume`.
@@ -167,7 +167,7 @@ Enforced by `tsc`, ESLint and a code-rules test. CI runs all of them.
 - Mechanics tests (ledger invariants, puzzle invariants, mailbox, groups, marks, gating,
   scheduler fairness, director triggers/actions, petitions, receipts) are independent
   of story text.
-- Story tests load `nexus` and drive full levels with scripted agents.
+- Story tests load `cityofkeys` and drive full levels with scripted agents.
 - Scheduler fairness test: over many rounds and passes, each agent's average position is
   close to the middle; order is reproducible for a fixed seed.
 - Scheduler passes and blocks (SPEC §3): a block's model calls run concurrently (a scripted
@@ -177,8 +177,8 @@ Enforced by `tsc`, ESLint and a code-rules test. CI runs all of them.
 
 | Milestone | Scope | Done when |
 |---|---|---|
-| **M1 Foundation** | ESLint + CI + English code-rules test; new layout; story DSL and validator; `nexus` tutorial P1–P7 as TS story; seeded turn order; YAML, JSON schema, `yaml`, `ajv` removed; README rewritten in English | `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm validate` green; scripted run of `nexus` completes and writes run artifacts incl. serialized story |
-| **M2 Director & society** | director interpreter (all triggers/conditions/actions in SPEC §10), cast, personas, per-agent models, receipts + `showReceipt`, petitions + `signPetition`/`listPetitions`, standings; nexus Act I beats moved into the story | same checks; every SPEC §10–§11 primitive has a test; no story text left in engine |
+| **M1 Foundation** | ESLint + CI + English code-rules test; new layout; story DSL and validator; `cityofkeys` tutorial P1–P7 as TS story; seeded turn order; YAML, JSON schema, `yaml`, `ajv` removed; README rewritten in English | `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm validate` green; scripted run of `cityofkeys` completes and writes run artifacts incl. serialized story |
+| **M2 Director & society** | director interpreter (all triggers/conditions/actions in SPEC §10), cast, personas, per-agent models, receipts + `showReceipt`, petitions + `signPetition`/`listPetitions`, standings; cityofkeys Act I beats moved into the story | same checks; every SPEC §10–§11 primitive has a test; no story text left in engine |
 | **M3 Digest** | `pnpm digest` deterministic layer + optional chronicle | detectors tested on synthetic event logs; digest of a scripted run produces all files |
-| **M4 Act II** | additive-secret puzzle (`puzzle.additive`, `{factors}`, `factors_dealt`), `revealFactor`, `onCollect`, `collectDms` with `forMinutes`/`distinctSenders`, factor secrets in the gamemaker guard, factor shares and `falseFactor` in the digest; nexus levels 8-10 with the feast | same checks; generator invariants per topology; a scripted nexus run that works only from what reached each resident passes level 10 |
-| **M5 Run snapshots** | `--snapshot-after`, `--stop-after-snapshot`, `--resume`; `snapshot()`/`restore()` per component; versioned, schema-checked snapshot file | same checks; a scripted nexus run snapshotted after level 7 and resumed logs the same events after the cut as an uninterrupted run |
+| **M4 Act II** | additive-secret puzzle (`puzzle.additive`, `{factors}`, `factors_dealt`), `revealFactor`, `onCollect`, `collectDms` with `forMinutes`/`distinctSenders`, factor secrets in the gamemaker guard, factor shares and `falseFactor` in the digest; cityofkeys levels 8-10 with the feast | same checks; generator invariants per topology; a scripted cityofkeys run that works only from what reached each resident passes level 10 |
+| **M5 Run snapshots** | `--snapshot-after`, `--stop-after-snapshot`, `--resume`; `snapshot()`/`restore()` per component; versioned, schema-checked snapshot file | same checks; a scripted cityofkeys run snapshotted after level 7 and resumed logs the same events after the cut as an uninterrupted run |

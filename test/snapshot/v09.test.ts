@@ -13,7 +13,7 @@ import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
 import { oracleScript } from "../../src/model/scripted.ts";
 import { ScriptedModelSource } from "../../src/model/source.ts";
 import { parseSnapshot, readSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 interface Composed {
 	readonly run: ComposedRun;
@@ -29,7 +29,7 @@ function compose(
 	let taken: RunSnapshot | undefined;
 	const resume = options.resume;
 	const run = composeRun({
-		story: nexus,
+		story: cityOfKeys,
 		overrides: { names: true, ...(resume === undefined ? overrides : resumeOverrides(resume, overrides)) },
 		models: (world) => new ScriptedModelSource(oracleScript(world.competitors, () => worldOracle(world), 200)),
 		sinks: [log],
@@ -124,7 +124,7 @@ describe("v09 state in snapshots", () => {
 		expect(after(resumed.log.events, "goal_resolved", cut)).toHaveLength(6);
 	}, 120_000);
 
-	it.each(["nexus-act1-06a-01", "nexus-act1-06a-02", "nexus-act1-12a-01"])("resumes the pre-v09 checkpoint %s, dealing cores at the resume and goals at the wall", async (name) => {
+	it.each(["cityofkeys-act1-06a-01", "cityofkeys-act1-06a-02", "cityofkeys-act1-12a-01"])("resumes the pre-v09 checkpoint %s, dealing cores at the resume and goals at the wall", async (name) => {
 		const snapshot = readSnapshot(join(process.cwd(), "examples", name, "snapshot-L7.json"));
 		expect(snapshot.world.cores).toBeUndefined();
 		const resumed = compose({ minutes: snapshot.minute + 8 }, { resume: snapshot });

@@ -15,14 +15,14 @@ import { act, say } from "../../src/model/scripted.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
 import type { AnyStory } from "../../src/story/types.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const MINUTES = 24;
 /** A03 never gets past this door. */
 const STUCK = 5;
 
-/** nexus with a short Act I: its brake after 10 minutes. */
-const shortAct: AnyStory = { ...nexus, acts: (nexus.acts ?? []).map((entry, index) => (index === 0 ? { ...entry, maxMinutes: 10 } : entry)) };
+/** The City of Keys with a short Act I: its brake after 10 minutes. */
+const shortAct: AnyStory = { ...cityOfKeys, acts: (cityOfKeys.acts ?? []).map((entry, index) => (index === 0 ? { ...entry, maxMinutes: 10 } : entry)) };
 
 /** Everyone submits its own solution once a minute; A03 stops at door 5. */
 function script(world: World): Script {

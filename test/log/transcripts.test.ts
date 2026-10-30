@@ -51,7 +51,7 @@ describe("AgentTranscriptLog", () => {
 	it("writes run metadata into the header and the unlock set only when it changes", () => {
 		const directory = tempDirectory();
 		const bus = new EventBus([new AgentTranscriptLog(directory)], () => 0);
-		bus.emit({ type: "run_start", story: "nexus", agents: ["A01"], minutes: 3, seed: 7, meta: { provider: "scripted", model: "-" } });
+		bus.emit({ type: "run_start", story: "cityofkeys", agents: ["A01"], minutes: 3, seed: 7, meta: { provider: "scripted", model: "-" } });
 		bus.emit({ type: "request", agent: "A01", tools: ["getStatus", "submitSolution"] });
 		bus.emit({ type: "request", agent: "A01", tools: ["getStatus", "submitSolution"] });
 		const content = readFileSync(join(directory, "A01.md"), "utf8");

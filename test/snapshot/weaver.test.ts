@@ -24,7 +24,7 @@ import { WeaverLog } from "../../src/log/weaver-log.ts";
 import { act, say } from "../../src/model/scripted.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { createFixture, submit } from "../helpers/fixture.ts";
 
 const MINUTES = 8;
@@ -104,7 +104,7 @@ async function play(options: PlayOptions = {}): Promise<Played> {
 	};
 	const resume = options.resume;
 	const run = composeRun({
-		story: nexus,
+		story: cityOfKeys,
 		overrides: resume === undefined ? { ...base, level: 2 } : resumeOverrides(resume, base),
 		models: (world) => new ScriptedModelSource(residents(world, prompts)),
 		gamemakerModels: () => new ScriptedModelSource({ [GAMEMAKER_ID]: Array.from({ length: MINUTES * 2 }, () => say("Watching.")) }),

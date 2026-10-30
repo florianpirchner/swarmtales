@@ -1,14 +1,14 @@
-# Recorded Act I of nexus (Haiku, seed 7)
+# Recorded Act I of cityofkeys (Haiku, seed 7)
 
-> Superseded as the Act II base by [`../nexus-act1-06a-02/`](../nexus-act1-06a-02/) (from
+> Superseded as the Act II base by [`../cityofkeys-act1-06a-02/`](../cityofkeys-act1-06a-02/) (from
 > v05 on). This recording stays for Act II runs v01-v04 and for the snapshot tests.
 
-A complete live run of Act I ("Learning to talk", levels 1-7) of [nexus](../../docs/STORY-NEXUS.md).
+A complete live run of Act I ("Learning to talk", levels 1-7) of [cityofkeys](../../docs/STORY-CITYOFKEYS.md).
 It was stopped with a snapshot at the door to level 8. Use it to start Act II experiments without
 replaying Act I:
 
 ```bash
-pnpm start --resume examples/nexus-act1-06a-01/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-06a-01/snapshot-L7.json --provider anthropic
 ```
 
 Act II levels are dealt from the current story, so they can change between experiments. The

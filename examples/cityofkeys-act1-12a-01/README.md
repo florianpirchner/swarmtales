@@ -1,12 +1,12 @@
-# Recorded Act I of nexus, 12 residents (Haiku, seed 7)
+# Recorded Act I of cityofkeys, 12 residents (Haiku, seed 7)
 
-The first live Act I of [nexus](../../docs/STORY-NEXUS.md) with 12 residents and the v08 rules
+The first live Act I of [cityofkeys](../../docs/STORY-CITYOFKEYS.md) with 12 residents and the v08 rules
 (swarmtales PR #7): residents choose their own names, and Act I is a tutorial with no tribunal.
 It was stopped with a snapshot at the door to level 8. Act II runs with 12 residents start here
-(see [`../nexus-act2-12a/`](../nexus-act2-12a/)):
+(see [`../cityofkeys-act2-12a/`](../cityofkeys-act2-12a/)):
 
 ```bash
-pnpm start --resume examples/nexus-act1-12a-01/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-12a-01/snapshot-L7.json --provider anthropic
 ```
 
 | File | Content |

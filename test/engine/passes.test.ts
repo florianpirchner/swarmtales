@@ -198,7 +198,7 @@ describe("blocks of a pass (SPEC 3)", () => {
 
 describe("event logs from before passes", () => {
 	const old = [
-		{ seq: 1, minute: 0, type: "run_start", story: "nexus", agents: ["A01", "A02"], minutes: 2, seed: 7 },
+		{ seq: 1, minute: 0, type: "run_start", story: "cityofkeys", agents: ["A01", "A02"], minutes: 2, seed: 7 },
 		{ seq: 2, minute: 0, type: "round_start", round: 1, order: ["A02", "A01"] },
 		{ seq: 3, minute: 0, type: "turn_input", agent: "A02", inputs: ["[status] minute 0"] },
 		{ seq: 4, minute: 0, type: "request", agent: "A02", tools: ["getStatus"] },

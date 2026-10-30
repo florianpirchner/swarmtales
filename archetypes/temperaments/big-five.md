@@ -7,7 +7,7 @@ levels: low, middle, high
 Every resident has a temperament on the five Big Five axes, each low, middle or high. The temperament
 colours how a drive shows: an envious resident with high extraversion says it out loud, one with
 low extraversion lets it eat at it in silence. The engine renders the levels as prose; the texts
-are in `stories/nexus/characters.ts`.
+are in `stories/cityofkeys/characters.ts`.
 
 | Axis | Low | High |
 |---|---|---|

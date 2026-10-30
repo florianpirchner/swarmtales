@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assignModels } from "../../src/agents/models.ts";
 import { assignPersonas } from "../../src/agents/personas.ts";
 import { competitorIds } from "../../src/core/ids.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import type { AnyStory, Persona } from "../../src/story/types.ts";
 import { PERSONA_STRATEGY_WORDS, strategyWordsIn, validateStory } from "../../src/story/validate.ts";
 import { createFixture, say } from "../helpers/fixture.ts";
@@ -110,14 +110,14 @@ describe("persona validation (SPEC 5.2)", () => {
 		);
 	});
 
-	it("ships nexus with at least six distinct, valid personas dealt by seed", () => {
-		expect(nexus.personas.length).toBeGreaterThanOrEqual(6);
-		expect(new Set(nexus.personas.map((persona) => persona.name)).size).toBe(nexus.personas.length);
-		expect(nexus.personaAssignment).toEqual({ kind: "seeded" });
-		for (const persona of nexus.personas) {
+	it("ships cityofkeys with at least six distinct, valid personas dealt by seed", () => {
+		expect(cityOfKeys.personas.length).toBeGreaterThanOrEqual(6);
+		expect(new Set(cityOfKeys.personas.map((persona) => persona.name)).size).toBe(cityOfKeys.personas.length);
+		expect(cityOfKeys.personaAssignment).toEqual({ kind: "seeded" });
+		for (const persona of cityOfKeys.personas) {
 			for (const text of [persona.temperament, persona.values, persona.voice]) expect(strategyWordsIn(text)).toEqual([]);
 		}
-		const assigned = assignPersonas(nexus, competitorIds(6), nexus.run.seed);
+		const assigned = assignPersonas(cityOfKeys, competitorIds(6), cityOfKeys.run.seed);
 		expect(new Set([...assigned.values()].map((persona) => persona.name)).size).toBe(6);
 	});
 });

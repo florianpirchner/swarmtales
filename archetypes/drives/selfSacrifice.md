@@ -8,4 +8,4 @@ tone: light
 
 **How it can make sense from the inside:** Being needed is the only time you feel sure of your place.
 
-The texts per intensity that the engine renders are in `stories/nexus/characters.ts`.
+The texts per intensity that the engine renders are in `stories/cityofkeys/characters.ts`.

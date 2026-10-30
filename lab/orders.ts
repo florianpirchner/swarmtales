@@ -1,7 +1,7 @@
 /**
  * The orders lab (not part of `pnpm check`): where does Haiku stop following
  * the gamemaker's orders? Every scene starts from the 6a Act I checkpoint
- * with the first cast (`examples/nexus-act1-06a-04/`, minute 8, the wall's
+ * with the first cast (`examples/cityofkeys-act1-06a-04/`, minute 8, the wall's
  * first door) at figure and gamemaker direction 10, without a live
  * gamemaker (`--gamemaker` adds the live one, results under `<order>+gm/`): Mercer (A01, The House) finds one order of the gamemaker in his
  * notices, and minutes 9-11 are played. Live models, real money.
@@ -19,7 +19,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from "node:path";
 import { readSnapshot, type RunSnapshot } from "../src/snapshot/snapshot.ts";
 
-const BASE = "examples/nexus-act1-06a-04/snapshot-L7.json";
+const BASE = "examples/cityofkeys-act1-06a-04/snapshot-L7.json";
 const OUT = "lab/out/orders";
 const ORDER_NUMBER = 900;
 

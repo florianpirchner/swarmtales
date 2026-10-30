@@ -57,7 +57,7 @@ function usageFile(own: Readonly<Record<string, number>>, prefix: Readonly<Recor
 }
 
 /**
- * Level 3 of nexus with two residents: A01 tries an overdraft (refused), a wrong code and then
+ * Level 3 of the City of Keys with two residents: A01 tries an overdraft (refused), a wrong code and then
  * the right one; A02 sends a DM and solves.
  */
 async function scriptedRun(): Promise<string> {
@@ -99,7 +99,7 @@ describe("run report facts (computed in code)", () => {
 		const directory = await scriptedRun();
 		const facts = computeFacts("run-001", readRunFiles(directory));
 		expect(facts.issues).toEqual([]);
-		expect(facts).toMatchObject({ run: "run-001", date: "2026-01-01", storyId: "nexus", start: { kind: "fresh", level: 3 } });
+		expect(facts).toMatchObject({ run: "run-001", date: "2026-01-01", storyId: "cityofkeys", start: { kind: "fresh", level: 3 } });
 		expect(facts.submissions).toMatchObject({ correct: 2, wrong: 1 });
 		expect(facts.transfers.count).toBe(0);
 		expect(facts.transfers.refusals).toHaveLength(1);

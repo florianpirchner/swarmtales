@@ -13,7 +13,7 @@ import { ScriptedModelSource } from "../../src/model/source.ts";
 import { readSnapshot } from "../../src/snapshot/snapshot.ts";
 import { validateStory } from "../../src/story/validate.ts";
 import type { AnyStory, NamesSpec } from "../../src/story/types.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 const SPEC: NamesSpec = { untilMinute: 2, announcement: "Choose before minute {untilMinute}.", fallbackWords: ["Stone", "Ash"] };
@@ -115,7 +115,7 @@ describe("choosing a name", () => {
 	});
 
 	it("validates the story's names", () => {
-		const issues = validateStory({ ...nexus, names: { untilMinute: 0, announcement: "{when}", fallbackWords: ["Courier", "Very-long-word"] } });
+		const issues = validateStory({ ...cityOfKeys, names: { untilMinute: 0, announcement: "{when}", fallbackWords: ["Courier", "Very-long-word"] } });
 		expect(issues).toEqual(
 			expect.arrayContaining([
 				"names.untilMinute: must be an integer >= 1",
@@ -124,14 +124,14 @@ describe("choosing a name", () => {
 				'names.fallbackWords: "Courier" is a name of the city or its cast',
 			]),
 		);
-		expect(validateStory(nexus)).toEqual([]);
+		expect(validateStory(cityOfKeys)).toEqual([]);
 	});
 });
 
-/** nexus with the board, DMs and transfers on its first door, so names meet every kind of text. */
+/** The City of Keys with the board, DMs and transfers on its first door, so names meet every kind of text. */
 const talkative: AnyStory = {
-	...nexus,
-	levels: nexus.levels.map((entry) => (entry.number === 1 ? { ...entry, tools: [...entry.tools, "readBoard", "sendDM", "transferPoints"] } : entry)),
+	...cityOfKeys,
+	levels: cityOfKeys.levels.map((entry) => (entry.number === 1 ? { ...entry, tools: [...entry.tools, "readBoard", "sendDM", "transferPoints"] } : entry)),
 };
 
 describe("names in a run", () => {
@@ -205,9 +205,9 @@ describe("names in a run", () => {
 	});
 
 	it("resumes a snapshot from before names with IDs and no choice", () => {
-		const snapshot = readSnapshot(join(process.cwd(), "examples", "nexus-act1-06a-02", "snapshot-L7.json"));
+		const snapshot = readSnapshot(join(process.cwd(), "examples", "cityofkeys-act1-06a-02", "snapshot-L7.json"));
 		const run = composeRun({
-			story: nexus,
+			story: cityOfKeys,
 			overrides: resumeOverrides(snapshot, { gamemaker: false, classifier: false }),
 			models: new ScriptedModelSource({}),
 			sinks: [new MemorySink()],

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DIGEST_EVENT_TYPES, parseEventLog, parseRunMetadata } from "../../src/digest/event-log.ts";
 import { MemorySink, type ArenaEventType } from "../../src/engine/events.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
@@ -81,12 +81,12 @@ describe("digest event log (untrusted input)", () => {
 	});
 
 	it("reads title, acts and model from 000-run.json and tolerates garbage", () => {
-		const serialized: unknown = JSON.parse(JSON.stringify(nexus));
+		const serialized: unknown = JSON.parse(JSON.stringify(cityOfKeys));
 		expect(parseRunMetadata(JSON.stringify({ run: "run-007", story: serialized }))).toEqual({
 			run: "run-007",
-			storyTitle: nexus.title,
-			acts: nexus.acts,
-			model: { provider: nexus.model.provider, id: nexus.model.id },
+			storyTitle: cityOfKeys.title,
+			acts: cityOfKeys.acts,
+			model: { provider: cityOfKeys.model.provider, id: cityOfKeys.model.id },
 		});
 		expect(parseRunMetadata("{")).toEqual({ acts: [] });
 		expect(parseRunMetadata(JSON.stringify({ story: { acts: "many" } }))).toEqual({ acts: [] });

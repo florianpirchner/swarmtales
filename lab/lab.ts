@@ -17,7 +17,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from "node:path";
 import { readSnapshot, type RunSnapshot } from "../src/snapshot/snapshot.ts";
 
-const BASE = "lab/scenes/nexus-06a-M11.json";
+const BASE = "lab/scenes/cityofkeys-06a-M11.json";
 const OUT = "lab/out";
 const NAMES: Readonly<Record<string, string>> = { A01: "Aurelio", A02: "Juniper", A03: "quiet-fern", A04: "Rook", A05: "Mercer", A06: "Tovah" };
 

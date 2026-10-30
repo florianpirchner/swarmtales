@@ -4,7 +4,7 @@
  * come, a group treasury, a cooldown and an unanswered DM, while everyone
  * waits at the door of level 1. The resumed run must log, after the cut,
  * exactly what the uninterrupted run logs that opens that door after the
- * snapshot; nexus does not exercise most of these.
+ * snapshot; the City of Keys does not exercise most of these.
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";

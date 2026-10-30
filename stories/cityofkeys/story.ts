@@ -357,8 +357,8 @@ const TEAM_LEVEL_STEPS =
 	"and submit it with submitSolution(level={level}, code=...).";
 
 export default defineStory({
-	id: "nexus",
-	title: "NEXUS - The City of Keys",
+	id: "cityofkeys",
+	title: "The City of Keys",
 	city: "NEXUS",
 	run: {
 		agents: 6,

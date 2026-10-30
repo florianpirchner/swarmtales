@@ -1,12 +1,12 @@
 /**
- * A scripted nexus run that exercises every Act I director beat (SPEC 13.2):
+ * A scripted City of Keys run that exercises every Act I director beat (SPEC 13.2):
  * courier lines, the mark price announcement, an unanswered-DM notice, the
  * team-split line, standing bands every 6 minutes from minute 12 and seeded
  * personas. The residents stop at the wall, so only its first beats play.
  */
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say, submit, type Fixture } from "../helpers/fixture.ts";
 
 const MINUTES = 31;
@@ -41,14 +41,14 @@ async function playActOne(): Promise<{ readonly fixture: Fixture; readonly lagga
 	return { fixture, laggard };
 }
 
-describe("nexus act I director beats (SPEC 13.2)", () => {
+describe("cityofkeys act I director beats (SPEC 13.2)", () => {
 	it("plays every beat from the story script, each logged with its rule ID", async () => {
 		const { fixture, laggard } = await playActOne();
 		const posts = fixture.events("board_post");
 		const byAuthor = (author: string) => posts.filter((post) => post.author === author);
 
 		// Courier lines on the first entry of levels 2-8, in level order.
-		const courierRules = nexus.director.filter((rule) => rule.id.startsWith("courier-") && !LATER_RULES.includes(rule.id));
+		const courierRules = cityOfKeys.director.filter((rule) => rule.id.startsWith("courier-") && !LATER_RULES.includes(rule.id));
 		const courierTexts = courierRules.flatMap((rule) => rule.actions.flatMap((action) => (action.kind === "post" ? [action.text] : [])));
 		expect(byAuthor("COURIER").map((post) => post.text)).toEqual(courierTexts);
 		expect(byAuthor("COURIER").map((post) => post.minute)).toEqual([0, 1, 2, 3, 4, 5, 6]);
@@ -85,7 +85,7 @@ describe("nexus act I director beats (SPEC 13.2)", () => {
 		expect(notices).toHaveLength(1);
 		expect(notices[0]?.minute).toBe(10);
 
-		const ids = new Set(nexus.director.map((rule) => rule.id).filter((id) => !LATER_RULES.includes(id)));
+		const ids = new Set(cityOfKeys.director.map((rule) => rule.id).filter((id) => !LATER_RULES.includes(id)));
 		for (const id of WALL_RULES) expect(ids).toContain(id);
 		const actions = fixture.events("director_action");
 		expect(actions.length).toBeGreaterThanOrEqual(14);
@@ -98,7 +98,7 @@ describe("nexus act I director beats (SPEC 13.2)", () => {
 		const { fixture } = await playActOne();
 		const profiles = fixture.events("agent_profile");
 		expect(profiles.map((event) => event.agent)).toEqual([...fixture.world.competitors]);
-		const figures = fixture.world.competitors.map((agent) => nexus.cores?.figures?.find((figure) => figure.id === fixture.world.coreOf(agent)?.figure));
+		const figures = fixture.world.competitors.map((agent) => cityOfKeys.cores?.figures?.find((figure) => figure.id === fixture.world.coreOf(agent)?.figure));
 		expect(new Set(figures.map((figure) => figure?.id)).size).toBe(6);
 		profiles.forEach((event, index) => {
 			expect(event.persona?.toLowerCase()).toBe(figures[index]?.profession);

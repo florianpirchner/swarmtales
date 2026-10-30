@@ -2,17 +2,17 @@
  * The black seal (v09, spec section 5): the sealed-bid auction (timing, last
  * bid counts, everyone pays, highest wins, ties to fewer points, no bids no
  * seal), the secret holder, its use (struck at once, counted, refused once the
- * target is reached), expiry and the snapshot; then one scripted nexus run
+ * target is reached), expiry and the snapshot; then one scripted City of Keys run
  * in which the seal is won and broken.
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
 import { SealHouse, sealCount, type SealEvent } from "../../src/engine/seal.ts";
 import type { Standing } from "../../src/engine/tribunal.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
-const spec = nexus.seal;
+const spec = cityOfKeys.seal;
 
 interface Harness {
 	readonly house: SealHouse;
@@ -27,7 +27,7 @@ interface Harness {
 }
 
 function harness(agents = 6): Harness {
-	if (spec === undefined) throw new Error("nexus has no seal");
+	if (spec === undefined) throw new Error("cityofkeys has no seal");
 	const ids = competitorIds(agents);
 	const events: SealEvent[] = [];
 	const notices: { to: string; text: string }[] = [];
@@ -66,7 +66,7 @@ function harness(agents = 6): Harness {
 
 describe("the seal auction", () => {
 	it("sells one seal per 12 residents, the first 4 minutes into the act, each 6 minutes after the last", () => {
-		if (spec === undefined) throw new Error("nexus has no seal");
+		if (spec === undefined) throw new Error("cityofkeys has no seal");
 		expect([6, 12, 13, 48, 96].map((residents) => sealCount(spec, residents))).toEqual([1, 1, 2, 4, 8]);
 		const h = harness(48);
 		h.house.begin(16, 48);
@@ -197,7 +197,7 @@ describe("breaking the seal", () => {
 	});
 });
 
-describe("the black seal in a nexus run (scripted)", () => {
+describe("the black seal in a cityofkeys run (scripted)", () => {
 	it("is won by a secret bid and broken on a resident, who leaves at once and counts toward the target", async () => {
 		// The run starts on the wall: Act II begins at minute 0, the auction opens at minute 4 and closes at 7.
 		const fixture = createFixture({

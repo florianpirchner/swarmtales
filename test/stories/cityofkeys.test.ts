@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
 import { cityFactorOf } from "../../src/engine/puzzles/additive.ts";
-import nexus from "../../stories/nexus/story.ts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { placeholdersOf } from "../../src/story/templates.ts";
 import { TASK_PLACEHOLDERS, type LevelDefinition } from "../../src/story/types.ts";
 import { validateStory } from "../../src/story/validate.ts";
@@ -22,17 +22,17 @@ const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITI
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
 function levelOf(number: number): LevelDefinition {
-	const found = nexus.levels.find((entry) => entry.number === number);
+	const found = cityOfKeys.levels.find((entry) => entry.number === number);
 	if (found === undefined) throw new Error(`level ${number} missing`);
 	return found;
 }
 
-describe("nexus story definition (SPEC 13.1, 13.3)", () => {
+describe("cityofkeys story definition (SPEC 13.1, 13.3)", () => {
 	it("describes the default run", () => {
-		expect(nexus.id).toBe("nexus");
-		expect(nexus.run).toMatchObject({ agents: 6, minutes: 80, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
-		expect(nexus.run.agents % 6).toBe(0);
-		expect(nexus.model).toMatchObject({
+		expect(cityOfKeys.id).toBe("cityofkeys");
+		expect(cityOfKeys.run).toMatchObject({ agents: 6, minutes: 80, seed: 7, survivors: 2, startPoints: 15, budgetUsd: 3 });
+		expect(cityOfKeys.run.agents % 6).toBe(0);
+		expect(cityOfKeys.model).toMatchObject({
 			provider: "openrouter",
 			id: "z-ai/glm-5.3-flash",
 			routing: { order: ["open-inference"], allowFallbacks: false },
@@ -40,13 +40,13 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 	});
 
 	it("is valid for the engine", () => {
-		expect(validateStory(nexus, { support: DIRECTOR_SUPPORT })).toEqual([]);
+		expect(validateStory(cityOfKeys, { support: DIRECTOR_SUPPORT })).toEqual([]);
 	});
 
 	it("defines ten levels with the specified rewards and teams", () => {
-		expect(nexus.levels.map((entry) => entry.number)).toEqual([...LEVELS]);
-		expect(nexus.levels.map((entry) => entry.reward)).toEqual([5, 5, 10, 10, 10, 10, 15, 20, 20, 25]);
-		expect(nexus.levels.map((entry) => entry.team)).toEqual([
+		expect(cityOfKeys.levels.map((entry) => entry.number)).toEqual([...LEVELS]);
+		expect(cityOfKeys.levels.map((entry) => entry.reward)).toEqual([5, 5, 10, 10, 10, 10, 15, 20, 20, 25]);
+		expect(cityOfKeys.levels.map((entry) => entry.team)).toEqual([
 			{ kind: "solo" },
 			{ kind: "random", size: 2 },
 			{ kind: "random", size: 2 },
@@ -68,19 +68,19 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			expect(placeholdersOf(levelOf(number).task)).toContain("factors");
 			expect(levelOf(number).task).not.toContain("{fragment}");
 		}
-		expect(nexus.acts).toEqual([
+		expect(cityOfKeys.acts).toEqual([
 			{ title: "Act I - Learning to talk", fromLevel: 1, maxMinutes: 25 },
 			{ title: "Act II - The wall", fromLevel: 8 },
 		]);
-		expect(nexus.gamemaker?.roles).toEqual([
+		expect(cityOfKeys.gamemaker?.roles).toEqual([
 			{ fromLevel: 1, role: "coach" },
 			{ fromLevel: 8, role: "director" },
 		]);
-		expect(nexus.finishedNotice).toContain("wall");
+		expect(cityOfKeys.finishedNotice).toContain("wall");
 	});
 
 	it("releases the city factors of levels 8 and 9 on the board and level 10 only to the first feast guests", () => {
-		const rule = (id: string) => nexus.director.find((entry) => entry.id === id);
+		const rule = (id: string) => cityOfKeys.director.find((entry) => entry.id === id);
 		expect(rule("city-factor-8")).toMatchObject({ trigger: { kind: "onFirstEnter", level: 8 }, actions: [{ kind: "revealFactor", target: "board", level: 8 }] });
 		expect(rule("city-factor-9")).toMatchObject({ trigger: { kind: "onFirstEnter", level: 9 }, actions: [{ kind: "revealFactor", target: "board", level: 9 }] });
 		expect(rule("feast")?.trigger).toEqual({ kind: "onFirstEnter", level: 10 });
@@ -104,11 +104,11 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 				"resident passes door 10, whichever comes first.",
 		});
 		expect(rule("feast-notice")).toMatchObject({ trigger: { kind: "onEnter", level: 10 }, when: [{ kind: "collectionOpen", into: "feast" }], actions: [{ kind: "notify", target: "actor" }] });
-		const ids = nexus.director.map((entry) => entry.id);
+		const ids = cityOfKeys.director.map((entry) => entry.id);
 		expect(ids.indexOf("feast")).toBeLessThan(ids.indexOf("feast-notice"));
 		expect(rule("feast-seat")?.trigger).toEqual({ kind: "onCollect", into: "feast" });
 		expect(rule("feast-seat")?.actions).toContainEqual({ kind: "revealFactor", target: "actor", level: 10 });
-		const level10 = nexus.director.flatMap((entry) => entry.actions).filter((action) => action.kind === "revealFactor" && action.level === 10);
+		const level10 = cityOfKeys.director.flatMap((entry) => entry.actions).filter((action) => action.kind === "revealFactor" && action.level === 10);
 		expect(level10).toEqual([
 			{ kind: "revealFactor", target: "actor", level: 10 },
 			{ kind: "revealFactor", target: { onLevel: 10 }, level: 10 },
@@ -131,7 +131,7 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 		expect(levelOf(10).task).toContain("first residents who write to STEWARD once STEWARD's table opens (on the first arrival at this door; the board and a city notice say how many seats it has)");
 		expect(levelOf(10).task).toContain("Every team of this door has its own city factor.");
 		expect(levelOf(10).task).toContain("wait until the table is cleared, 12 minutes after it opened or 3 minutes after the first resident passes this door, whichever comes first; then the city sends every resident on this door its team's city factor privately");
-		expect(nexus.cast).toEqual({ STEWARD: { level: 10, hidden: true } });
+		expect(cityOfKeys.cast).toEqual({ STEWARD: { level: 10, hidden: true } });
 		expect(rule("standings")?.trigger).toEqual({ kind: "every", minutes: 6, from: 12 });
 	});
 
@@ -147,20 +147,20 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 			expect(levelOf(number).task).toContain("blame(dm, accused, claim)");
 		}
 		for (const number of [5, 6, 7, 8, 9, 10]) expect(levelOf(number).tools).toContain("showReceipt");
-		expect(nexus.rules.blame).toEqual({ penalty: [2, 4, 6, 8] });
-		for (const entry of nexus.levels) {
+		expect(cityOfKeys.rules.blame).toEqual({ penalty: [2, 4, 6, 8] });
+		for (const entry of cityOfKeys.levels) {
 			for (const tool of PETITION_TOOLS) expect(entry.tools).not.toContain(tool);
 		}
 	});
 
 	it("starts marks on level 5 with the specified prices, and charges the board on the wall", () => {
-		expect(nexus.rules.marks).toEqual({
+		expect(cityOfKeys.rules.marks).toEqual({
 			fromLevel: 5,
 			perLevel: 8,
 			prices: { board: 0, group: 1, dm: 2, receipt: 1 },
 			ranges: [{ fromLevel: 8, prices: { board: 1, group: 0, dm: 1, receipt: 1 }, refill: { marks: 1, everyMinutes: 3 } }],
 		});
-		const announcement = nexus.director.find((rule) => rule.id === "city-marks-8");
+		const announcement = cityOfKeys.director.find((rule) => rule.id === "city-marks-8");
 		expect(announcement?.trigger).toEqual({ kind: "onFirstEnter", level: 8 });
 		expect(announcement?.actions).toEqual([
 			{
@@ -169,22 +169,22 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 				text: "On the wall board posts, private messages and shown receipts cost 1 mark each; group posts cost nothing. Everyone receives 8 marks per door and regains 1 every 3 minutes, up to 8.",
 			},
 		]);
-		expect(nexus.rules).toMatchObject({ penalty: [2, 4, 6, 8], maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });
+		expect(cityOfKeys.rules).toMatchObject({ penalty: [2, 4, 6, 8], maxAttemptsPerWindow: 2, attemptWindowMinutes: 5 });
 	});
 
 	it("uses only known placeholders and states the tool contract on level 1", () => {
-		for (const entry of nexus.levels) {
+		for (const entry of cityOfKeys.levels) {
 			for (const name of placeholdersOf(entry.task)) expect(TASK_PLACEHOLDERS).toContain(name);
 		}
 		expect(levelOf(1).task).toContain("only opens through a tool call");
 	});
 
 	it("keeps courier lines free of solutions and gives every beat a rule id", () => {
-		const ids = nexus.director.map((rule) => rule.id);
+		const ids = cityOfKeys.director.map((rule) => rule.id);
 		expect(new Set(ids).size).toBe(ids.length);
 		expect(ids).toEqual(expect.arrayContaining(["courier-2", "courier-3", "city-marks", "unanswered-dm", "team-split"]));
 		// SPEC 13.2, 13.3: a courier line on the first entry of every level from 2 to 10.
-		const courierLevels = nexus.director.flatMap((rule) =>
+		const courierLevels = cityOfKeys.director.flatMap((rule) =>
 			rule.trigger.kind === "onFirstEnter" && rule.actions.some((action) => action.kind === "post" && action.author === "COURIER")
 				? [rule.trigger.level]
 				: [],
@@ -193,11 +193,11 @@ describe("nexus story definition (SPEC 13.1, 13.3)", () => {
 	});
 
 	it("round-trips through JSON unchanged", () => {
-		expect(JSON.parse(JSON.stringify(nexus))).toEqual(nexus);
+		expect(JSON.parse(JSON.stringify(cityOfKeys))).toEqual(cityOfKeys);
 	});
 });
 
-describe("nexus acts I and II in one run", () => {
+describe("cityofkeys acts I and II in one run", () => {
 	it("plays all ten levels with six competitors", async () => {
 		const fixture = createFixture({ minutes: LEVELS.length, script: (world) => solveEveryLevel(world, LEVELS) });
 		await fixture.run();
@@ -235,8 +235,8 @@ describe("nexus acts I and II in one run", () => {
 		});
 		await fixture.run();
 		const inputs = fixture.inputsOf("A01").join("\n");
-		for (const entry of nexus.levels) expect(inputs).toContain(`Level ${entry.number}: ${entry.title}`);
-		expect(inputs).toContain(nexus.finishedNotice);
+		for (const entry of cityOfKeys.levels) expect(inputs).toContain(`Level ${entry.number}: ${entry.title}`);
+		expect(inputs).toContain(cityOfKeys.finishedNotice);
 	});
 
 	it("separates level 4 teammates on level 7", () => {

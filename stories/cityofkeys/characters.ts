@@ -276,7 +276,7 @@ const DRIVES: readonly DriveSpec[] = [
  * stays unsaid), one to three drives, a quarter of the city with a light one
  * above all, no drive above all for more than one resident in six.
  */
-/** The NEXUS cast (stories/nexus/cast/): finished figures, each on an archetype, with the story's wants and limits. */
+/** The NEXUS cast (stories/cityofkeys/cast/): finished figures, each on an archetype, with the story's wants and limits. */
 const FIGURES = readFigures(fileURLToPath(new URL("./cast/", import.meta.url))).map(figureSpec);
 
 /**

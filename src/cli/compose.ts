@@ -27,6 +27,7 @@ import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } fr
 import { assertValidStory } from "../story/validate.ts";
 import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "../story/types.ts";
 import { bindAll } from "../tools/index.ts";
+import { storyId } from "../../stories/index.ts";
 
 /** CLI-level overrides of the story's run parameters. */
 export interface RunOverrides {
@@ -490,7 +491,7 @@ function passedByAll(world: World, lastLevel: number): number {
 /** A snapshot fits this run when story, seed, competitors and first level match and minutes are left to play. */
 function assertResumable(snapshot: RunSnapshot, story: AnyStory, effective: EffectiveRun): void {
 	const mismatches = [
-		snapshot.story === story.id ? undefined : `story "${snapshot.story}" (this run: "${story.id}")`,
+		storyId(snapshot.story) === story.id ? undefined : `story "${snapshot.story}" (this run: "${story.id}")`,
 		snapshot.seed === effective.seed ? undefined : `seed ${snapshot.seed} (this run: ${effective.seed})`,
 		snapshot.agents === effective.agents ? undefined : `${snapshot.agents} agents (this run: ${effective.agents})`,
 		snapshot.run.startLevel === effective.startLevel ? undefined : `first level ${snapshot.run.startLevel} (this run: ${effective.startLevel})`,
