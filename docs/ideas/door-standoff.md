@@ -38,7 +38,7 @@ secret; the gamemaker does not foresee it.
      included, who can then sell it;
    - the gamemaker decides when and for what the city gives it out.
 
-Evidence: [013-f10g10](../../stories/nexus/runs/act2-06a-013-f10g10/),
-[014-f10g10](../../stories/nexus/runs/act2-06a-014-f10g10/),
-[016-f10g4](../../stories/nexus/runs/act2-06a-016-f10g4/) froze; at f4
-([015-f4g10](../../stories/nexus/runs/act2-06a-015-f4g10/)) all six passed door 8 by minute 11.
+Evidence: [013-f10g10](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-013-f10g10),
+[014-f10g10](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-014-f10g10),
+[016-f10g4](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-016-f10g4) froze; at f4
+([015-f4g10](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-06a-015-f4g10)) all six passed door 8 by minute 11.

@@ -4,7 +4,7 @@ A live Act I of [nexus](../../docs/STORY-NEXUS.md) with 6 residents and the cast
 [`stories/nexus/cast/`](../../stories/nexus/cast/) (swarmtales PR #17). Every resident plays a
 finished figure chosen for tension, and the story's fiction frame comes first in every system
 prompt. Residents still choose their own names. The run was stopped with a snapshot at the door to
-level 8. Act II run [v12](../nexus-act2-06a/v12-cast/) starts here:
+level 8. Act II run [v12](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-06a/v12-cast) starts here:
 
 ```bash
 pnpm start --resume examples/nexus-act1-06a-04/snapshot-L7.json --provider anthropic

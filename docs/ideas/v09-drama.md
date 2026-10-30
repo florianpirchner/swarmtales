@@ -1,7 +1,7 @@
 # Idea: v09, drama (character cores, secret goals, the black seal)
 
 Status: **built in v09** (build spec: [`../design/v09.md`](../design/v09.md)); untested live. It began as an idea from a brainstorm with Flo on 2026-10-28 after the first runs with
-12 residents ([`examples/nexus-act2-12a/v01-twelve/`](../../examples/nexus-act2-12a/v01-twelve/)).
+12 residents ([`examples/nexus-act2-12a/v01-twelve/`](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-12a/v01-twelve)).
 
 ## Why
 

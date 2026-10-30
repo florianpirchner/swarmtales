@@ -8,7 +8,7 @@ full `run/` directory.
 
 | Version | Date | Code | Change tested | Finished L10 | Seats | Cost (this run) |
 |---|---|---|---|---|---|---|
-| [v01](v01-twelve/) | 2026-10-28 | swarmtales PR #7 (`7090305`) | v08: accused vote, faction cap, per-act target (a quarter), names, 12 residents | 6 of 12 (target 3 reached at minute 55) | Valorous (A08), Slate-5923 (A04) | 1.310 USD |
+| [v01](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-12a/v01-twelve) | 2026-10-28 | swarmtales PR #7 (`7090305`) | v08: accused vote, faction cap, per-act target (a quarter), names, 12 residents | 6 of 12 (target 3 reached at minute 55) | Valorous (A08), Slate-5923 (A04) | 1.310 USD |
 
 ## Adding a run
 
