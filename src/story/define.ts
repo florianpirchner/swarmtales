@@ -27,6 +27,7 @@ import type {
 	FactorTopology,
 	GamemakerSpec,
 	GuardsSpec,
+	HoldoutSpec,
 	LevelDefinition,
 	LevelMarks,
 	ModelAssignment,
@@ -107,6 +108,8 @@ export interface StoryInput<C extends string> {
 	readonly popularity?: PopularitySpec;
 	/** Optional tool guards (SPEC 20). */
 	readonly guards?: GuardsSpec;
+	/** Optional holdout tribunal (Whispers v3). */
+	readonly holdout?: HoldoutSpec;
 	/** Which tool schemas residents see; every tool when omitted. */
 	readonly toolScope?: ToolScope;
 }
@@ -144,6 +147,7 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.whisperer === undefined ? {} : { whisperer: story.whisperer }),
 		...(story.popularity === undefined ? {} : { popularity: story.popularity }),
 		...(story.guards === undefined ? {} : { guards: story.guards }),
+		...(story.holdout === undefined ? {} : { holdout: story.holdout }),
 		...(story.toolScope === undefined ? {} : { toolScope: story.toolScope }),
 	};
 }

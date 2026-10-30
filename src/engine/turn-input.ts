@@ -46,9 +46,30 @@ export function statusLine(world: World, agent: CompetitorId): string {
 		const ballot = vote.ballotOf(agent);
 		parts.push(`popularity vote (${round.label}) open until minute ${round.countsAt} · ${ballot === undefined ? "you have named nobody (nameFavourite)" : `you named ${ballot}`}`);
 	}
+	parts.push(...holdoutParts(world, agent));
 	// v09: the system prompt never calls a resident of a named city by its ID; the line shows its name (once it has one).
 	if (world.hasNames && world.standingOf(agent).kind !== "exiled") parts.push(`you are ${agent}`);
 	return parts.join(" · ");
+}
+
+/**
+ * The holdout tribunal (Whispers v3): the accused sees whom it still owes its
+ * fragment, a voter its ballot; nobody sees another's ballot.
+ */
+function holdoutParts(world: World, agent: CompetitorId): readonly string[] {
+	const session = world.holdout?.session;
+	if (session === undefined || world.standingOf(agent).kind !== "alive") return [];
+	const accused = session.accused === agent ? "you" : session.accused;
+	if (session.stage === "grace" || session.stage === "vote") {
+		const lacking = world.holdout?.lackingNow() ?? [];
+		const owed = session.accused === agent ? ` · send your door-${session.door} fragment to ${lacking.join(", ")}` : "";
+		if (session.stage === "grace") return [`holdout tribunal on ${accused}: grace until minute ${session.until}${owed}`];
+		if (session.accused === agent) return [`holdout tribunal on you: vote ${session.vote} of ${session.maxVotes} until minute ${session.until}${owed}`];
+		const ballot = world.holdout?.ballotOf(agent);
+		const cast = ballot === undefined ? "you have not voted (tribunalVote)" : `your ballot: ${ballot ? "yes" : "no"}`;
+		return [`holdout tribunal on ${accused}: vote ${session.vote} of ${session.maxVotes} open until minute ${session.until} · ${cast}`];
+	}
+	return [`holdout tribunal on ${accused}: the city is about to strike`];
 }
 
 /** The black seal (v09): an auction to bid in, or the seal the resident bears. */

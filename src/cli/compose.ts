@@ -650,6 +650,8 @@ function createGamemaker(options: ComposeOptions, world: World, bus: EventBus, a
 			characters: story.goals !== undefined || world.competitors.some((agent) => world.coreOf(agent) !== undefined),
 			seal: world.seal !== undefined,
 			direction,
+			...(story.holdout === undefined ? {} : { holdout: story.holdout }),
+			...(world.whisperer === undefined ? {} : { whisperer: true }),
 		}),
 		thinking: spec.model.thinking ?? "low",
 		direction,

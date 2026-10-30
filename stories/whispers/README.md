@@ -12,6 +12,12 @@ to anyone. He wants only discord. He plays the doors correctly, and his only wea
 Until the first vote he whispers nothing; after every vote the city reminds him, privately, to
 whisper.
 
+Whoever passes a door and keeps its own fragment from the others can freeze the whole city. So the
+city has a tribunal: the game master may put such a hold-out on trial. It gets two minutes to give;
+then the others vote in secret, and only a unanimous yes banishes it. If three votes fail, the lot
+strikes one of them, anyone. Whoever is struck leaves for good, and its fragments go to everyone
+left. The game master knows who the whisperer is, and never tells.
+
 | | |
 |---|---|
 | Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
@@ -22,6 +28,7 @@ whisper.
 | Residents | 6, one persona and one character core each |
 | Duration | 45 minutes, one round per minute in 3 passes |
 | Survivors | 2, ranked by points |
+| Game master | DeepSeek V4.1 Flash; keeps the city moving and runs the tribunals |
 
 ## The two kinds of whisper
 

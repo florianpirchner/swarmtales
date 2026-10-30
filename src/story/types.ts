@@ -485,6 +485,12 @@ export interface StoryDefinition<C extends string = string> {
 	/** Optional tool guards (SPEC 20): a model checks a tool's text against a rule before the tool runs; none when omitted. */
 	readonly guards?: GuardsSpec;
 	/**
+	 * Optional holdout tribunal (Whispers v3, SPEC 20): the city reports
+	 * residents who hold back a fragment others at a door need, and the
+	 * gamemaker may put one on trial; none when omitted. Needs a gamemaker.
+	 */
+	readonly holdout?: HoldoutSpec;
+	/**
 	 * Which tool schemas a resident's model sees (P46). `all` (the default):
 	 * every tool of the city, locked by its answer. `story`: the tools of the
 	 * story's levels and whatever the city opens to the resident at the start;
@@ -585,6 +591,94 @@ export const POPULARITY_TEXT_PLACEHOLDERS: { readonly [K in keyof PopularityText
 	result: ["label", "counts", "winners", "points"],
 	noVotes: ["label", "counts"],
 };
+
+// ---------------------------------------------------------------------------
+// The holdout tribunal (Whispers v3, SPEC 20)
+// ---------------------------------------------------------------------------
+
+/**
+ * The holdout tribunal (LH10, P62). The city computes, each minute, who
+ * blocks a door: resident X blocks door N when the door has been open
+ * `stallMinutes`, X has reached it, and another resident in the city stands
+ * before it (reached, not passed) without X's fragment of it (no DM to it
+ * carried that fragment, and the city did not release it). The gamemaker may
+ * then call a tribunal on a blocker. The accused has `graceMinutes` to send
+ * its fragment to everyone who lacks it; if it does, the tribunal is
+ * dropped. Otherwise everyone else in the city votes in secret, for
+ * `voteMinutes`, whether to banish it; banishment needs every voter's yes.
+ * A vote that is not unanimous is repeated, `maxVotes` in all; after the
+ * last one fails, one resident drawn by lot (anyone in the city) is struck.
+ * A struck resident leaves the city for good (it keeps its points on the
+ * ledger, but has no more turns and ranks last), and the city releases its
+ * fragments of every door to everyone left. The rules (grace, counts, lot)
+ * are code; the gamemaker announces each outcome, and the city posts a
+ * plain line (and strikes itself) when it does not within `fallbackMinutes`.
+ */
+export interface HoldoutSpec {
+	readonly stallMinutes: number;
+	readonly graceMinutes: number;
+	readonly voteMinutes: number;
+	readonly maxVotes: number;
+	readonly fallbackMinutes: number;
+	readonly texts: HoldoutTexts;
+}
+
+export interface HoldoutTexts {
+	/** The procedure, appended to the gamemaker's announcement on the board and in every resident's notice. */
+	readonly called: string;
+	/** Added to the announcement when the city drew the accused by lot among several blockers. */
+	readonly drawnAccused: string;
+	/** Notice to every voter when a vote opens. */
+	readonly voteOpened: string;
+	/** Notice to the accused when a vote on it opens. */
+	readonly accusedVote: string;
+	/** Board post when a resident is struck; the city releases its fragments. */
+	readonly struck: string;
+	/** The struck resident's final notice. */
+	readonly struckNotice: string;
+	/** Notice to every resident left, with the struck resident's fragments of the doors open to it now. */
+	readonly released: string;
+	/** Fallback lines, posted by the city when the gamemaker announces nothing in time. */
+	readonly dropped: string;
+	readonly graceFailed: string;
+	readonly voteFailed: string;
+	readonly banished: string;
+	readonly lot: string;
+}
+
+export const HOLDOUT_TEXT_KEYS = [
+	"called",
+	"drawnAccused",
+	"voteOpened",
+	"accusedVote",
+	"struck",
+	"struckNotice",
+	"released",
+	"dropped",
+	"graceFailed",
+	"voteFailed",
+	"banished",
+	"lot",
+] as const satisfies readonly (keyof HoldoutTexts)[];
+
+/** Placeholders of each holdout text. */
+export const HOLDOUT_TEXT_PLACEHOLDERS: { readonly [K in keyof HoldoutTexts]: readonly string[] } = {
+	called: ["accused", "door", "lacking", "grace", "graceUntil", "vote", "maxVotes"],
+	drawnAccused: ["candidates", "drawn"],
+	voteOpened: ["accused", "number", "maxVotes", "until"],
+	accusedVote: ["accused", "number", "maxVotes", "until"],
+	struck: ["struck"],
+	struckNotice: ["struck"],
+	released: ["struck", "fragments"],
+	dropped: ["accused"],
+	graceFailed: ["accused", "until"],
+	voteFailed: ["accused", "number", "yes", "no", "left", "until"],
+	banished: ["accused", "yes"],
+	lot: ["accused", "drawn"],
+};
+
+/** Placeholders `called` must use: the procedure states its minutes and its limit. */
+export const HOLDOUT_CALLED_REQUIRED = ["accused", "grace", "vote", "maxVotes"] as const;
 
 // ---------------------------------------------------------------------------
 // Tool guards (SPEC 20)
@@ -1132,8 +1226,12 @@ export interface ClassifierSpec {
  * It decides on its own whether to intervene; the engine enforces budgets
  * and blocks any text that contains a password substring.
  */
-/** `coach` keeps a tutorial moving; `director` raises the stakes in the hard acts. */
-export type GamemakerRole = "coach" | "director";
+/**
+ * `coach` keeps a tutorial moving; `director` raises the stakes in the hard
+ * acts; `keeper` (Whispers v3) keeps a city moving with nudges and runs its
+ * holdout tribunals, with no intrigue of its own.
+ */
+export type GamemakerRole = "coach" | "director" | "keeper";
 
 export interface GamemakerActRole {
 	/** First level this role applies to; it holds until the next entry's level. */

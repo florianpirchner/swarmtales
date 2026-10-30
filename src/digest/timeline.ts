@@ -247,7 +247,11 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "ransomed":
 			return `${event.agent} was bought back by ${event.payers.join(", ")}.`;
 		case "exiled":
-			return event.by === "seal" ? `${event.agent} was struck from the city by the black seal: exiled.` : `The gate closed behind ${event.agent}: exiled.`;
+			return event.by === "seal"
+				? `${event.agent} was struck from the city by the black seal: exiled.`
+				: event.by === "holdout"
+					? `${event.agent} was struck from the city by the holdout tribunal: exiled, its fragments released.`
+					: `The gate closed behind ${event.agent}: exiled.`;
 		case "goal_dealt":
 			return `${event.agent} was dealt a secret goal: ${event.text}.`;
 		case "goal_resolved":

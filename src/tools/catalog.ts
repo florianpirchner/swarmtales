@@ -39,6 +39,7 @@ export const TOOL_NAMES = [
 	"claimPiece",
 	"forgeReceipt",
 	"nameFavourite",
+	"tribunalVote",
 	"activeTools",
 ] as const;
 

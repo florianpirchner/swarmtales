@@ -16,7 +16,7 @@ import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { GamemakerSpec, ThinkingLevel } from "../story/types.ts";
-import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
+import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, roleLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
 import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
 import type { DirectionLevel } from "../engine/direction.ts";
@@ -71,6 +71,26 @@ const ScheduleParams = Type.Object({
 	count: Type.Integer({ description: "Residents it exiles, from 1 to those still missing", minimum: 1 }),
 	factions: Type.Optional(Type.Integer({ description: "Factions formed before it, from 2 to half the residents present", minimum: 2 })),
 	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
+});
+const CallTribunalParams = Type.Object({
+	accused: Type.Array(Type.String({ description: "Resident name or ID, e.g. A04" }), {
+		description: "Residents the report names as blockers; with more than one, the city draws one by lot",
+		minItems: 1,
+		maxItems: 12,
+	}),
+	reason: Type.String({ description: `Your public announcement, 1-${MAX_NOTE_LENGTH} characters; the city adds the procedure` }),
+});
+const DrawLotParams = Type.Object({
+	candidates: Type.Array(Type.String({ description: "Resident name or ID" }), {
+		description: "Two or more reported blockers, or after the last failed vote every resident in the city",
+		minItems: 1,
+		maxItems: 96,
+	}),
+});
+const AnnounceParams = Type.Object({ text: Type.String({ description: `The outcome in your words, 1-${MAX_NOTE_LENGTH} characters` }) });
+const PermaDeathParams = Type.Object({
+	agent: Type.String({ description: "The banished accused, or the resident the lot drew; name or ID" }),
+	reason: Type.String({ description: `Your public line on the board, 1-${MAX_NOTE_LENGTH} characters` }),
 });
 const UltimatumParams = Type.Object({
 	a: Type.String({ description: "Resident name or ID" }),
@@ -195,6 +215,10 @@ export class Gamemaker implements EventSink {
 					this.#bind(this.#postTool()),
 					...(this.#mayScheduleTribunal() ? [this.#bind(this.#scheduleTool())] : []),
 					...(this.#mayGiveUltimatums() ? [this.#bind(this.#ultimatumTool())] : []),
+					// Whispers v3: offered in every look of a city with a holdout tribunal (a stable tool list); the city refuses what the rules do not allow now.
+					...(this.#options.world.holdout === undefined
+						? []
+						: [this.#bind(this.#callTribunalTool()), this.#bind(this.#drawLotTool()), this.#bind(this.#announceTool()), this.#bind(this.#permaDeathTool())]),
 				],
 			},
 			streamFn: binding.streamFn,
@@ -286,6 +310,80 @@ export class Gamemaker implements EventSink {
 		};
 	}
 
+	#callTribunalTool(): GmTool<typeof CallTribunalParams> {
+		return {
+			name: "callTribunal",
+			description:
+				"Calls a holdout tribunal on a resident the report names as a blocker (naming several, the city draws one by lot). The city posts " +
+				"your reason as the announcement, adds the procedure and tells every resident. One tribunal at a time.",
+			parameters: CallTribunalParams,
+			execute: ({ accused, reason }) => {
+				const { world, spec } = this.#options;
+				const text = this.#checked(reason, "board", "tribunal");
+				const before = world.lastMessageNumber;
+				const called = world.callHoldoutTribunal(accused, text, spec.author);
+				if (!called.ok) throw new ToolRefusal(`${called.error}: ${called.detail ?? ""}`.trim());
+				this.#deliver("tribunal", text, before + 1, "board");
+				const { value } = called;
+				const lot = value.candidates === undefined ? "" : ` (the lot among ${value.candidates.join(", ")} drew ${value.accused})`;
+				return `tribunal called on ${value.accused}${lot} for door ${value.door}: grace until minute ${value.until}; it lacks to ${value.lacking.join(", ")}`;
+			},
+		};
+	}
+
+	#drawLotTool(): GmTool<typeof DrawLotParams> {
+		return {
+			name: "drawLot",
+			description:
+				"The city draws a lot with the run's seed: among two or more reported blockers before a tribunal, or after the last vote failed " +
+				"among every resident in the city (then permaDeath may strike only the one drawn).",
+			parameters: DrawLotParams,
+			execute: ({ candidates }) => {
+				const drawn = this.#options.world.drawHoldoutLot(candidates);
+				if (!drawn.ok) throw new ToolRefusal(`${drawn.error}: ${drawn.detail ?? ""}`.trim());
+				return drawn.value.purpose === "strike"
+					? `the lot fell on ${drawn.value.drawn}; strike with permaDeath(${drawn.value.drawn}, reason)`
+					: `the lot fell on ${drawn.value.drawn}; call the tribunal on ${drawn.value.drawn} with callTribunal`;
+			},
+		};
+	}
+
+	#announceTool(): GmTool<typeof AnnounceParams> {
+		return {
+			name: "announceTribunal",
+			description: "Announces the tribunal outcome the report shows under TO ANNOUNCE on the board, in your words (the counts, never who voted how).",
+			parameters: AnnounceParams,
+			execute: ({ text }) => {
+				const { world, spec } = this.#options;
+				const checked = this.#checked(text, "board", "tribunal");
+				const before = world.lastMessageNumber;
+				const announced = world.announceHoldout(checked, spec.author);
+				if (!announced.ok) throw new ToolRefusal(`${announced.error}: ${announced.detail ?? ""}`.trim());
+				this.#deliver("tribunal", checked, before + 1, "board");
+				return `announced (${announced.value})`;
+			},
+		};
+	}
+
+	#permaDeathTool(): GmTool<typeof PermaDeathParams> {
+		return {
+			name: "permaDeath",
+			description:
+				"Strikes a resident from the city for good: only the accused after a unanimous vote to banish it, or the resident the lot drew after " +
+				"the last vote failed. Your reason goes on the board; the city gives the struck resident's fragments to everyone left.",
+			parameters: PermaDeathParams,
+			execute: ({ agent, reason }) => {
+				const { world, spec } = this.#options;
+				const text = this.#checked(reason, "board", "tribunal");
+				const before = world.lastMessageNumber;
+				const struck = world.holdoutPermaDeath(agent, text, spec.author);
+				if (!struck.ok) throw new ToolRefusal(`${struck.error}: ${struck.detail ?? ""}`.trim());
+				this.#deliver("tribunal", text, before + 1, "board");
+				return `${struck.value.agent} is struck from the city (${struck.value.by === "lot" ? "by lot" : "banished by the vote"}); its fragments go to everyone left`;
+			},
+		};
+	}
+
 	/** At gm direction 10, in a story with ultimatums (P43). */
 	#mayGiveUltimatums(): boolean {
 		return (this.#options.direction ?? 4) >= 10 && this.#options.world.hasUltimatums;
@@ -307,7 +405,8 @@ export class Gamemaker implements EventSink {
 		};
 	}
 
-	#checked(text: string, to: NoteTarget): string {
+	/** `to` is the reader the privacy checks apply to; `as` the note list a repeat is looked for in (a tribunal's lines apart from the board's). */
+	#checked(text: string, to: NoteTarget, as: NoteTarget = to): string {
 		// Models sign anyway, or head a post like the report's lines ("CITY minute 30:"); the author's name is added for them.
 		const author = this.#options.spec.author;
 		const trimmed = text
@@ -332,10 +431,15 @@ export class Gamemaker implements EventSink {
 				`PRIVATE_BLOCKED: the text gives away the core or the secret goal of ${revealed.join(", ")}; use them only in a note to that resident`,
 			);
 		}
+		// Whispers v3: the whisperer stays secret, also from hints.
+		const whisperer = this.#options.world.whisperer;
+		if (whisperer !== undefined && roleLeaks(trimmed, to, whisperer, (agent) => this.#options.world.nameOf(agent))) {
+			throw new ToolRefusal("PRIVATE_BLOCKED: the text could point at a secret role; never say or hint that anyone in the city works against the others");
+		}
 		// v09: a director says something new or nothing; the same line twice to the same reader is refused.
-		const earlier = this.#notes.find((note) => note.to === to && nearlySame(note.text, trimmed));
+		const earlier = this.#notes.find((note) => note.to === as && nearlySame(note.text, trimmed));
 		if (earlier !== undefined) {
-			throw new ToolRefusal(`REPEATED: you wrote nearly the same to ${to === "board" ? "the board" : to} at minute ${earlier.minute}; say something new or nothing`);
+			throw new ToolRefusal(`REPEATED: you wrote nearly the same to ${as === "board" ? "the board" : as} at minute ${earlier.minute}; say something new or nothing`);
 		}
 		return trimmed;
 	}
@@ -356,9 +460,10 @@ export class Gamemaker implements EventSink {
 		});
 	}
 
-	#deliver(to: NoteTarget, text: string, number: number): void {
+	/** Records a note under `to` (its budget and repeats) and logs it as sent to `shown` (the board for a tribunal's lines). */
+	#deliver(to: NoteTarget, text: string, number: number, shown: NoteTarget = to): void {
 		this.#notes.push({ minute: this.#options.world.minute, to, text });
-		this.#options.bus.emit({ type: "gamemaker_note", to, author: this.#options.spec.author, text, number });
+		this.#options.bus.emit({ type: "gamemaker_note", to: shown, author: this.#options.spec.author, text, number });
 	}
 
 	/** Notes to `to` within the current window. */

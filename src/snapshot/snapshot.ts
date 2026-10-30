@@ -396,6 +396,38 @@ const WorldSchema = Type.Object({
 			),
 		}),
 	),
+	// Whispers v3 (SPEC 20): the holdout tribunal's blockers, the running tribunal with its ballots, an outcome to announce, the struck.
+	holdout: Type.Optional(
+		Type.Object({
+			blockers: Type.Array(Type.Object({ door: Int, blocker: Id, lacking: Ids, since: Int })),
+			struck: Ids,
+			tribunals: Int,
+			lots: Int,
+			session: Type.Optional(
+				Type.Object({
+					number: Int,
+					accused: Id,
+					door: Int,
+					stage: Type.Union([Type.Literal("grace"), Type.Literal("vote"), Type.Literal("banish"), Type.Literal("lot")]),
+					until: Int,
+					vote: Int,
+					voters: Ids,
+					ballots: Type.Array(Type.Object({ agent: Id, yes: Type.Boolean() })),
+					lastResult: Type.Optional(Type.Object({ vote: Int, yes: Int, no: Int })),
+					drawn: Type.Optional(Id),
+				}),
+			),
+			pending: Type.Optional(
+				Type.Object({
+					tribunal: Int,
+					kind: Type.Union([Type.Literal("dropped"), Type.Literal("graceFailed"), Type.Literal("voteFailed")]),
+					facts: Type.String(),
+					text: Type.String(),
+					due: Int,
+				}),
+			),
+		}),
+	),
 	standoff: Type.Optional(
 		Type.Object({
 			given: Type.Array(Type.String()),

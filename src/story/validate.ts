@@ -30,6 +30,9 @@ import {
 	POPULARITY_TEXT_KEYS,
 	POPULARITY_TEXT_PLACEHOLDERS,
 	WHISPER_DUTY_PLACEHOLDERS,
+	HOLDOUT_CALLED_REQUIRED,
+	HOLDOUT_TEXT_KEYS,
+	HOLDOUT_TEXT_PLACEHOLDERS,
 	GUARD_ACTIONS,
 	GUARDABLE_TOOLS,
 	type Action,
@@ -170,6 +173,7 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateWhisperer(story, agents, issues);
 	validatePopularity(story, issues);
 	validateGuards(story, issues);
+	validateHoldout(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
@@ -288,7 +292,30 @@ function validateSeal(story: AnyStory, issues: string[]): void {
 }
 
 /** Tools only a story feature grants (Whispers); a level never lists them. */
-const FEATURE_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite"];
+const FEATURE_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite", "tribunalVote"];
+
+/**
+ * The holdout tribunal (Whispers v3): positive minutes and at least one vote,
+ * a gamemaker to call it, fragment doors to block, no second tribunal beside
+ * it, and texts that use only their placeholders; the procedure states the
+ * grace, the vote and the number of votes.
+ */
+function validateHoldout(story: AnyStory, issues: string[]): void {
+	const spec = story.holdout;
+	if (spec === undefined) return;
+	if (!isNonNegativeInt(spec.stallMinutes)) issues.push("holdout.stallMinutes: must be a non-negative integer");
+	for (const key of ["graceMinutes", "voteMinutes", "maxVotes", "fallbackMinutes"] as const) if (!isPositiveInt(spec[key])) issues.push(`holdout.${key}: must be a positive integer`);
+	if (story.gamemaker === undefined) issues.push("holdout: the gamemaker calls its tribunals; the story needs a gamemaker");
+	if (story.tribunal !== undefined) issues.push("holdout: a story holds a tribunal or a holdout tribunal, not both");
+	if (!story.levels.some((entry) => entry.puzzle.kind === "fragments")) issues.push("holdout: only a fragment door can be blocked; the story has none");
+	for (const key of HOLDOUT_TEXT_KEYS) {
+		const text = spec.texts[key];
+		if (text.trim().length === 0) issues.push(`holdout.texts.${key}: must not be empty`);
+		for (const name of unknownPlaceholders(text, HOLDOUT_TEXT_PLACEHOLDERS[key])) issues.push(`holdout.texts.${key}: unknown placeholder {${name}}`);
+	}
+	const used = placeholdersOf(spec.texts.called);
+	for (const name of HOLDOUT_CALLED_REQUIRED) if (!used.includes(name)) issues.push(`holdout.texts.called: must state the procedure with {${name}}`);
+}
 
 /**
  * The whisperer (Whispers): a known resident when fixed, a duty with a

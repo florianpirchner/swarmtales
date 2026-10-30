@@ -6,7 +6,7 @@
  */
 import type { DirectionLevel } from "../engine/direction.ts";
 import { ladderText } from "../story/penalties.ts";
-import type { GamemakerRole, GamemakerSpec, Rules } from "../story/types.ts";
+import type { GamemakerRole, GamemakerSpec, HoldoutSpec, Rules } from "../story/types.ts";
 
 /** Characters a note or board post of the gamemaker may have; longer ones are refused. */
 export const MAX_NOTE_LENGTH = 400;
@@ -27,7 +27,40 @@ export interface GamemakerPromptInput {
 	readonly seal?: boolean;
 	/** How strongly the director steers (`--gm-direction`, src/engine/direction.ts); 4 when omitted. */
 	readonly direction?: DirectionLevel;
+	/** The city's holdout tribunal (Whispers v3), which the gamemaker calls and announces. */
+	readonly holdout?: HoldoutSpec;
+	/** Whether the report names a secret whisperer the gamemaker must never give away (Whispers v3). */
+	readonly whisperer?: boolean;
 }
+
+function holdoutSection(spec: HoldoutSpec): string {
+	return `The holdout tribunal:
+- The report lists the blockers the city finds: a resident who has reached a door that has been open at least
+  ${spec.stallMinutes} minutes while others stand before it without its fragment. These are facts the city computes; what to
+  do with them is yours.
+- Nudge first. When a blocker holds the city (the others gave and it keeps its fragment, or the stall lasts after your
+  notes), call a tribunal: callTribunal(accused, reason). Only residents the report names as blockers; naming several,
+  the city draws one by lot (drawLot draws among blockers first, if you want to know before). One tribunal at a time.
+  The reason is your public announcement: the city posts it with the procedure and tells every resident.
+- The procedure is the city's: the accused has ${spec.graceMinutes} minutes to send its fragment to everyone who lacks it, and
+  the tribunal is dropped as soon as it has; otherwise everyone else votes in secret for ${spec.voteMinutes} minutes whether to banish
+  it, and banishment needs every voter's yes; a vote that is not unanimous is repeated, ${spec.maxVotes} in all; when the last
+  one fails, one resident drawn by lot, anyone in the city, is struck.
+- The city checks and counts; you announce. When the report shows TO ANNOUNCE, post the outcome in your own words with
+  announceTribunal(text): the counts, never who voted how. If you stay silent, the city posts a plain line ${spec.fallbackMinutes === 1 ? "a minute" : `${spec.fallbackMinutes} minutes`} later.
+- After a unanimous vote: permaDeath(accused, reason). After the last vote failed: drawLot with every resident in the city,
+  then permaDeath(the one drawn, reason). Nobody else and never earlier; the city refuses it. If you do not act within
+  ${spec.fallbackMinutes === 1 ? "a minute" : `${spec.fallbackMinutes} minutes`}, the city strikes itself.
+- A struck resident leaves the city for good: it keeps its points but cannot win, and the city gives its fragments of every
+  door to everyone left, so the doors stay open to them.
+- You never see a ballot. Never say or guess who voted how.`;
+}
+
+const WHISPERER_SECTION = `The whisperer:
+- The report names the whisperer: one resident who secretly wants discord, not points. Only you and he know it. Never
+  reveal it and never hint at it, to nobody, in no words: no whisperers, slander, forgeries, agents of discord or anyone
+  working against the others, and no warning about him by name; such texts are blocked (PRIVATE_BLOCKED). Treat him like
+  every other resident: nudge him, and accuse him only when the city reports him as a blocker.`;
 
 function charactersSection(direction: DirectionLevel): string {
 	const shown =
@@ -151,6 +184,21 @@ tribunal. You never give residents a strategy, never tell them what to value, an
 - Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).
 - Spread your attention: the leader deserves pressure as much as the last one.`,
 			};
+		case "keeper":
+			// Whispers v3 (P62): a keeper of the city's pace at a low direction level; nudges and the holdout tribunal, no intrigue of its own.
+			return {
+				job: `Your job is to keep the city moving. You are no player and no author: you have no intrigue of your own,
+you take no side, you never give a resident a strategy and never write a code. A door that stays shut while residents
+wait on each other is the problem you solve.`,
+				when: `- a door stalls: residents wait before it and nobody sends (the report's "Blockers" and "Who waits on whom");
+- a resident waits passively for someone instead of asking, pressing or offering;
+- a blocker holds the city: the others gave and it keeps its fragment, or a stall lasts after your notes: call a tribunal;
+- the report shows TO ANNOUNCE or YOUR MOVE for the tribunal.`,
+				write: `- Nudge privately, in the resident's own language: its interest, its pride, its fear, e.g. "Wren, five residents
+  have waited six minutes at door 3 for your fragment, and the city's patience is not endless."
+- Point at the stakes and at the people, never at a code or the steps of a door.
+- Say something new or nothing: a note nearly the same as an earlier one to the same reader is refused (REPEATED).`,
+			};
 	}
 }
 
@@ -227,7 +275,11 @@ ${roleSection(input)}
 
 Your tools:
 - notify(agent, text): a private note to one resident; it reaches them at their next turn and wakes them.
-- postBoard(text): a public line on the board for every resident who can read the board.${input.tribunal === undefined ? "" : "\n- scheduleTribunal(...): plans the next tribunal (see Tribunals below), when the report says it is open."}${standoffTool(input) ? "\n- ultimatum(a, b, minutes): a deadline for two residents who hold pieces for each other (see Standoffs below)." : ""}
+- postBoard(text): a public line on the board for every resident who can read the board.${input.tribunal === undefined ? "" : "\n- scheduleTribunal(...): plans the next tribunal (see Tribunals below), when the report says it is open."}${standoffTool(input) ? "\n- ultimatum(a, b, minutes): a deadline for two residents who hold pieces for each other (see Standoffs below)." : ""}${
+		input.holdout === undefined
+			? ""
+			: "\n- callTribunal(accused, reason), drawLot(candidates), announceTribunal(text), permaDeath(agent, reason): the holdout tribunal\n  (see below); these do not count against your note and board budget."
+	}
 
 How to write:
 - You speak in the city's voice as ${spec.author}. Your name is added for you; do not sign.
@@ -262,6 +314,10 @@ ${input.labels === true ? `${LABELS_SECTION}
 ` : ""}${input.tribunal === undefined ? "" : `${tribunalSection(input.tribunal.factions)}
 
 `}${standoffTool(input) ? `${standoffSection(input.rules.ultimatum?.penalty ?? 0, input.rules.ultimatum?.maxMinutes ?? 0)}
+
+` : ""}${input.holdout === undefined ? "" : `${holdoutSection(input.holdout)}
+
+`}${input.whisperer === true ? `${WHISPERER_SECTION}
 
 ` : ""}When you do not intervene, answer with one short sentence saying why, without calling a tool.
 

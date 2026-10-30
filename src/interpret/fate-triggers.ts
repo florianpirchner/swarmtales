@@ -119,7 +119,7 @@ export class FateTriggers {
 		if (event.type === "ransomed") return [hit(event.agent, "ransom", `${event.payers.join(", ")} bought ${event.agent} back from the gate.`)];
 		if (event.type === "exiled") {
 			return this.alliesOf(event.agent).map((ally) =>
-				hit(ally, "ally_exiled", `${ally}'s ally ${event.agent} ${event.by === "seal" ? "was struck from the register by the black seal" : "was exiled"}.`),
+				hit(ally, "ally_exiled", `${ally}'s ally ${event.agent} ${event.by === "seal" ? "was struck from the register by the black seal" : event.by === "holdout" ? "was struck from the city by the holdout tribunal" : "was exiled"}.`),
 			);
 		}
 		if (event.type === "ultimatum_resolved") {

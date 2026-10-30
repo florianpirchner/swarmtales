@@ -338,6 +338,52 @@ export type ArenaEvent =
 			readonly by: "check" | "model" | "none";
 			readonly error?: string;
 	  }
+	/** The holdout tribunal (Whispers v3): `blocker` reached open door `door` and `lacking` stand before it without its fragment. */
+	| { readonly type: "blocker_found"; readonly door: number; readonly blocker: CompetitorId; readonly lacking: readonly CompetitorId[] }
+	/** Nobody before door `door` lacks `blocker`'s fragment any more (or it left the city, or they passed). */
+	| { readonly type: "blocker_cleared"; readonly door: number; readonly blocker: CompetitorId }
+	/** The gamemaker called holdout tribunal `tribunal` on `accused` (drawn by lot among `candidates` when it named several); its grace ends at `until`. */
+	| {
+			readonly type: "holdout_called";
+			readonly tribunal: number;
+			readonly accused: CompetitorId;
+			readonly door: number;
+			readonly lacking: readonly CompetitorId[];
+			readonly until: number;
+			readonly text: string;
+			readonly candidates?: readonly CompetitorId[];
+	  }
+	/** The city drew a lot with the run's seed: the accused among blockers, or the resident struck after the last vote failed. */
+	| { readonly type: "lot_drawn"; readonly tribunal: number; readonly purpose: "accused" | "strike"; readonly candidates: readonly CompetitorId[]; readonly drawn: CompetitorId }
+	| { readonly type: "holdout_vote_opened"; readonly tribunal: number; readonly vote: number; readonly voters: readonly CompetitorId[]; readonly until: number }
+	/** A secret ballot (the last one of a vote counts); never shown to residents or the gamemaker. */
+	| { readonly type: "holdout_ballot"; readonly tribunal: number; readonly vote: number; readonly agent: CompetitorId; readonly yes: boolean }
+	/** A vote counted: `no` counts every voter without a yes ballot; banishment needs `unanimous`. */
+	| {
+			readonly type: "holdout_vote_result";
+			readonly tribunal: number;
+			readonly vote: number;
+			readonly yes: number;
+			readonly no: number;
+			readonly voters: readonly CompetitorId[];
+			readonly unanimous: boolean;
+	  }
+	/** An outcome announced on the board, by the gamemaker or, when it stayed silent, by the city's plain line. */
+	| {
+			readonly type: "holdout_announced";
+			readonly tribunal: number;
+			readonly kind: "dropped" | "graceFailed" | "voteFailed";
+			readonly by: "gamemaker" | "city";
+			readonly text: string;
+	  }
+	/** A tribunal ended: dropped (the accused fixed it), the accused banished, or the lot's resident struck; `by` who struck. */
+	| {
+			readonly type: "holdout_ended";
+			readonly tribunal: number;
+			readonly outcome: "dropped" | "banished" | "lot";
+			readonly struck?: CompetitorId;
+			readonly by?: "gamemaker" | "city";
+	  }
 	| {
 			readonly type: "petition_opened";
 			readonly petition: string;
@@ -504,8 +550,8 @@ export type ArenaEvent =
 			readonly type: "exiled";
 			readonly agent: CompetitorId;
 			readonly will?: string;
-			/** v09: struck by the black seal, without gate, will or ransom. */
-			readonly by?: "seal";
+			/** v09: struck by the black seal, without gate, will or ransom; Whispers v3: struck by the holdout tribunal, its points kept. */
+			readonly by?: "seal" | "holdout";
 	  }
 	| {
 			/** A last will at the gate; factor values went privately to the heirs and are not repeated here. */

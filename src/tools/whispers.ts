@@ -38,3 +38,20 @@ export const nameFavourite = defineTool({
 		return success(`ballot cast for ${result.value.choice} · secret · the vote closes at minute ${result.value.until}; your last ballot counts`);
 	},
 });
+
+/** Whispers v3: the secret ballot of a holdout tribunal, open only to its voters while a vote runs. */
+export const tribunalVote = defineTool({
+	name: "tribunalVote",
+	description:
+		"Your secret ballot in the open holdout tribunal: yes banishes the accused from the city for good, no keeps it. " +
+		"Banishment needs a yes from every voter. Nobody sees how you voted; your last ballot counts.",
+	parameters: Type.Object({
+		yes: Type.Boolean({ description: "true: banish the accused; false: keep it" }),
+	}),
+	execute({ yes }, { self, world }) {
+		const result = world.tribunalVote(self, yes);
+		if (!result.ok) return fromError(result);
+		const { accused, until, number } = result.value;
+		return success(`ballot cast: ${yes ? "yes, banish" : "no, keep"} ${accused} · vote ${number} · secret · it closes at minute ${until}; your last ballot counts`);
+	},
+});

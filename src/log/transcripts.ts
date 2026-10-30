@@ -198,6 +198,15 @@ export class AgentTranscriptLog implements EventSink {
 			case "popularity_ballot":
 			case "popularity_result":
 			case "guard_verdict":
+			case "blocker_found":
+			case "blocker_cleared":
+			case "holdout_called":
+			case "lot_drawn":
+			case "holdout_vote_opened":
+			case "holdout_ballot":
+			case "holdout_vote_result":
+			case "holdout_announced":
+			case "holdout_ended":
 			case "petition_opened":
 			case "petition_signed":
 			case "petition_resolved":

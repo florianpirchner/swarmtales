@@ -1242,7 +1242,7 @@ three are optional, and the texts say who someone is or what it wants, never how
 - **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
   the seal's auction, winner and use.
 
-## 20. Whispers: the whisperer, forged receipts, popularity votes, door clock, DM cap, tool guards [Whispers, 2026-10-30]
+## 20. Whispers: the whisperer, forged receipts, popularity votes, door clock, DM cap, tool guards, holdout tribunal [Whispers, 2026-10-30]
 
 Story: [`STORY-WHISPERS.md`](STORY-WHISPERS.md). Every part is optional, and stories without it
 play as before.
@@ -1333,6 +1333,44 @@ play as before.
   charged). A private show (`to`) goes as before. `--no-guards` plays without guards; the story's
   rule text in the tasks stays the same, so a control run's residents still read that posts with
   fragments are refused.
+- **The holdout tribunal** (`holdout: { stallMinutes, graceMinutes, voteMinutes, maxVotes,
+  fallbackMinutes, texts }`, Whispers v3, LH10 and P62; needs a gamemaker and a fragment level, and
+  is not allowed together with `tribunal`). **Blockers** are facts the city computes every minute:
+  X blocks door N when the door has been open for `stallMinutes` or more, X has reached door N,
+  and another resident Y in the city stands at door N, has not passed it and lacks X's fragment.
+  Y holds it when it inherited it or when any DM to Y (sent, not only delivered; forwarded by
+  someone else counts) carried the whole fragment as written or spelled out (the guard's
+  `carriesRun`). Exiled residents never block. `blocker_found { agent, door, lacking }` and
+  `blocker_cleared { agent, door }` log the changes. The gamemaker sees the blockers in its report
+  (`- door N: X has not sent its fragment to ... (a blocker since minute M)`) and its next move.
+  Its tools, offered in every holdout story so the tool list stays stable (the city refuses a move
+  that does not fit with `NOT_NOW`, `NOT_A_BLOCKER`, `INVALID_ACCUSED`, `INVALID_CANDIDATES`,
+  `NOT_ALLOWED`, `NOTHING_TO_ANNOUNCE`):
+  `callTribunal(accused[], reason)` only on blockers the city reports, one tribunal at a time;
+  with several accused the city draws one by the seed (`drawnAccused`). `drawLot(candidates)` draws
+  among two or more current blockers before a call, or among all residents in the lot stage
+  (`lot_drawn`, `rngFor(seed, "holdout-lot", n)`). `announceTribunal(text)` posts the line for a
+  pending outcome; when it does not come within `fallbackMinutes`, the city posts the plain
+  `texts` line itself (`holdout_announced { kind, by }`). `permaDeath(agent, reason)` strikes only
+  after a unanimous vote (the accused) or after a lot (the drawn one); after `fallbackMinutes`
+  the city strikes itself. The stages are code: `holdout_called` posts the reason and
+  `texts.called` on the board and notifies everyone in the city; the accused has `graceMinutes`;
+  if everyone has its fragment (in the grace or a vote) the tribunal is dropped; otherwise up to
+  `maxVotes` votes of `voteMinutes` (`holdout_vote_opened`), where every other resident may cast
+  `tribunalVote(yes)` (a resident tool, offered only while a vote is open; secret, the last ballot
+  counts, `holdout_ballot`; `NO_VOTE`, `NOT_A_VOTER`); a vote banishes only with every voter's yes
+  (no ballot is a no; `holdout_vote_result`); after `maxVotes` failed votes the lot falls on any
+  resident, the accused too. A strike (`holdout_ended { outcome, struck, by }`) exiles the resident
+  for good (`exiled { by: "holdout" }`): it keeps its points and ranks last, takes no turns, is not
+  in votes, popularity rounds, tribunals or DMs, gets `texts.struckNotice`, and every fragment it
+  holds goes to everyone left (`texts.released` to those at an open unpassed door), so five can
+  still open every door. The status line shows an open tribunal and one's ballot.
+- **The keeper gamemaker** (role `keeper`): keeps the city moving and runs the holdout tribunals,
+  at a low direction. In a story with a whisperer its report names him (`The whisperer (secret:
+  ...)`), and every line it writes passes `roleLeaks` (`PRIVATE_BLOCKED`): no word for the role
+  (whisperer, liar, forger, slander, discord, ...), and no doubt cast on the whisperer by ID or
+  name to anyone but himself. Fragments stay behind the existing secret guard (`LEAK_BLOCKED`).
+  Tribunal lines are logged as board notes but do not use the board budget.
 - **Snapshots:** `world.whispers { whisperer, forgeries, popularity { round, state, ballots } }`
   keeps the whisperer (`null` in a control run), the minutes of his forgeries and the votes: the
   index of the round that is pending or open (past the last when all are counted), its state and
@@ -1343,5 +1381,8 @@ play as before.
   all, up to the first round counted after it: no burst of announcements. A v1 snapshot without
   `round` was the vote for the grand prize: counted, every round is over; open, the round of the
   snapshot's minute is open, and its ballots count only if that round is the final vote; pending,
-  the rounds start from the first.
+  the rounds start from the first. `world.holdout { blockers, struck, tribunals, lots, session?,
+  pending? }` keeps the known blockers, the struck residents, the counters for the seeded draws,
+  an open tribunal (accused, door, stage, vote, until, ballots, last result) and a pending
+  announcement, so a resumed run neither calls nor opens a vote again and counts the kept ballots.
 

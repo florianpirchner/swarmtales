@@ -22,6 +22,7 @@ import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } f
 import { dealCores, type Core } from "./cores.ts";
 import type { EventBus } from "./events.ts";
 import { GoalBook, type GoalsSnapshot, type HeldGoal } from "./goals.ts";
+import { HoldoutTribunal, type AnnounceError, type BlockerFact, type CallError, type HoldoutSnapshot, type LotError, type StrikeError, type TribunalVoteError } from "./holdout.ts";
 import { GroupRegistry, type GroupErrorCode, type GroupPost, type GroupResult, type GroupsSnapshot, type GroupSummary } from "./groups.ts";
 import { Mailbox, MAX_DM_LENGTH, type MailboxEntry, type MailboxRejection } from "./mailbox.ts";
 import { MarksBook, type MarksSnapshot, type MarksStatus } from "./marks.ts";
@@ -154,6 +155,8 @@ export interface WorldSnapshot {
 	 * neither, and before Whispers.
 	 */
 	readonly whispers?: WhispersSnapshot;
+	/** The holdout tribunal (Whispers v3): blockers, the running tribunal, the struck. Absent without one. */
+	readonly holdout?: HoldoutSnapshot;
 }
 
 export interface WhispersSnapshot {
@@ -453,6 +456,8 @@ export class World {
 	readonly #forgeries: number[] = [];
 	/** The surprise popularity vote (Whispers); absent without one. */
 	readonly #popularity: PopularityVote | undefined;
+	/** The holdout tribunal (Whispers v3); absent without one. */
+	readonly #holdout: HoldoutTribunal | undefined;
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -680,6 +685,32 @@ export class World {
 						},
 					});
 
+		const holdout = options.story.holdout;
+		this.#holdout =
+			holdout === undefined
+				? undefined
+				: new HoldoutTribunal({
+						spec: holdout,
+						seed: options.seed,
+						minute: () => this.minute,
+						alive: () => this.alive,
+						blockers: () => this.#currentBlockers(holdout.stallMinutes),
+						lacking: (door, holder) => this.lackingFragment(door, holder),
+						label: (agent) => this.labelOf(agent),
+						post: (author, text) => {
+							this.board.post(author, text, this.minute, "city");
+						},
+						notify: (agent, author, text) => {
+							this.notify(agent, author, text);
+						},
+						emit: (event) => {
+							this.#bus.emit(event);
+						},
+						struck: (agent) => {
+							this.#onStruck(agent);
+						},
+					});
+
 		const used = new Set(options.story.levels.flatMap((entry) => entry.tools));
 		this.#finalTools = TOOL_NAMES.filter((name) => used.has(name));
 		// A door after the last level would hold nobody: passing it is finishing.
@@ -734,11 +765,12 @@ export class World {
 	}
 
 	isExiled(agent: CompetitorId): boolean {
-		return this.#tribunal?.isExiled(agent) ?? false;
+		return (this.#tribunal?.isExiled(agent) ?? false) || this.#holdout?.isStruck(agent) === true;
 	}
 
-	/** In the city, at the gate, or exiled (SPEC 6.4). */
+	/** In the city, at the gate, or exiled (SPEC 6.4; struck by the holdout tribunal, SPEC 20). */
 	standingOf(agent: CompetitorId): Standing {
+		if (this.#holdout?.isStruck(agent) === true) return { kind: "exiled" };
 		return this.#tribunal?.standing(agent) ?? { kind: "alive" };
 	}
 
@@ -972,6 +1004,127 @@ export class World {
 	}
 
 	// -------------------------------------------------------------------------
+	// Whispers v3: the holdout tribunal (SPEC 20)
+	// -------------------------------------------------------------------------
+
+	/** The holdout tribunal, for the gamemaker's report and the status line; absent without one. */
+	get holdout(): HoldoutTribunal | undefined {
+		return this.#holdout;
+	}
+
+	/**
+	 * Residents in the city who stand before door `level` (reached, not
+	 * passed) in `holder`'s team and hold no copy of `holder`'s fragment of it:
+	 * no DM to them carried the whole fragment (from `holder` or forwarded by
+	 * anyone), and the city did not release it to them. Empty unless `holder`
+	 * is in the city and has reached the door, so it could send.
+	 */
+	lackingFragment(level: number, holder: CompetitorId): readonly CompetitorId[] {
+		const state = this.#levelStates.get(level);
+		if (state?.puzzle.kind !== "fragments" || this.isExiled(holder) || this.levelOf(holder) < level) return [];
+		const fragment = state.puzzle.fragments.get(holder);
+		const team = state.teams.find((candidate) => candidate.members.includes(holder));
+		if (fragment === undefined || team === undefined) return [];
+		return team.members
+			.filter((member) => member !== holder && this.standingOf(member).kind === "alive" && this.levelOf(member) === level && !this.hasPassed(member, level))
+			.filter((member) => !this.#holdsFragment(member, level, holder, fragment))
+			.sort((a, b) => a.localeCompare(b));
+	}
+
+	/** Whether `agent` holds `holder`'s fragment of `level`: released or inherited, or carried whole by a DM to it. */
+	#holdsFragment(agent: CompetitorId, level: number, holder: CompetitorId, fragment: string): boolean {
+		if (this.#inheritedFragments(level, agent).some(([from]) => from === holder)) return true;
+		return this.#dms.some((record) => record.to === agent && record.text !== undefined && carriesRun(record.text, fragment, fragment.length));
+	}
+
+	/** Every blocker now: a door open at least `stallMinutes`, a resident who reached it, others before it without its fragment. */
+	#currentBlockers(stallMinutes: number): readonly BlockerFact[] {
+		const blockers: BlockerFact[] = [];
+		for (let level = this.startLevel; level <= this.lastLevel; level++) {
+			if (this.#levelStates.get(level)?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.minute - this.opensAt(level) < stallMinutes) continue;
+			for (const holder of this.alive) {
+				const lacking = this.lackingFragment(level, holder);
+				if (lacking.length > 0) blockers.push({ door: level, blocker: holder, lacking });
+			}
+		}
+		return blockers;
+	}
+
+	/** The gamemaker calls a holdout tribunal on one of `accused` (names or IDs), each a blocker the city reports now. */
+	callHoldoutTribunal(
+		accused: readonly string[],
+		announcement: string,
+		author: string,
+	): Result<
+		{ readonly accused: CompetitorId; readonly door: number; readonly lacking: readonly CompetitorId[]; readonly until: number; readonly candidates?: readonly CompetitorId[] },
+		CallError | "NO_TRIBUNAL" | "UNKNOWN_AGENT"
+	> {
+		if (this.#holdout === undefined) return err("NO_TRIBUNAL", "this city holds no holdout tribunal");
+		const ids = this.#residentIds(accused);
+		if (!ids.ok) return ids;
+		return this.#holdout.call(ids.value, announcement, author);
+	}
+
+	/** The city draws a lot with the run's seed, for the gamemaker (names or IDs). */
+	drawHoldoutLot(candidates: readonly string[]): Result<{ readonly drawn: CompetitorId; readonly purpose: "accused" | "strike" }, LotError | "NO_TRIBUNAL" | "UNKNOWN_AGENT"> {
+		if (this.#holdout === undefined) return err("NO_TRIBUNAL", "this city holds no holdout tribunal");
+		const ids = this.#residentIds(candidates);
+		if (!ids.ok) return ids;
+		return this.#holdout.drawLot(ids.value);
+	}
+
+	/** The gamemaker strikes the resident the tribunal's rules allow: the banished accused, or the one the lot drew. */
+	holdoutPermaDeath(agent: string, reason: string, author: string): Result<{ readonly agent: CompetitorId; readonly by: "banished" | "lot" }, StrikeError | "NO_TRIBUNAL" | "UNKNOWN_AGENT"> {
+		if (this.#holdout === undefined) return err("NO_TRIBUNAL", "this city holds no holdout tribunal");
+		const id = this.resolveResident(agent.trim());
+		if (!this.isCompetitor(id)) return err("UNKNOWN_AGENT", id);
+		return this.#holdout.permaDeath(id, reason, author);
+	}
+
+	/** The gamemaker's words for the tribunal outcome the city waits to have announced. */
+	announceHoldout(text: string, author: string): Result<string, AnnounceError | "NO_TRIBUNAL"> {
+		if (this.#holdout === undefined) return err("NO_TRIBUNAL", "this city holds no holdout tribunal");
+		return this.#holdout.announce(text, author);
+	}
+
+	/** A resident's secret ballot in the running holdout vote. */
+	tribunalVote(agent: CompetitorId, yes: boolean): Result<{ readonly accused: CompetitorId; readonly until: number; readonly number: number }, TribunalVoteError> {
+		if (this.#holdout === undefined) return err("NO_VOTE", "this city holds no such vote");
+		return this.#holdout.vote(agent, yes);
+	}
+
+	/** Names or IDs as the competitors they stand for; the first unknown one is the error. */
+	#residentIds(names: readonly string[]): Result<readonly CompetitorId[], "UNKNOWN_AGENT"> {
+		const ids = names.map((name) => this.resolveResident(name.trim()));
+		const unknown = ids.find((id) => !this.isCompetitor(id));
+		return unknown === undefined ? ok(ids) : err("UNKNOWN_AGENT", unknown);
+	}
+
+	/**
+	 * A resident struck by the holdout tribunal left the city for good: no
+	 * turns, no votes, no DMs, last in the ranking, its points kept on the
+	 * ledger. Its fragments of every door go to everyone left (the inherited
+	 * fragments); each resident before an open door it has not passed hears the
+	 * struck resident's fragment of it at once, a door still to open shows it
+	 * in its task.
+	 */
+	#onStruck(agent: CompetitorId): void {
+		this.#bus.emit({ type: "exiled", agent, by: "holdout" });
+		this.#goals?.onExiled(agent);
+		this.#seal?.onExiled(agent);
+		const text = this.story.holdout?.texts.released;
+		if (text === undefined) return;
+		for (const resident of this.alive) {
+			const level = this.levelOf(resident);
+			const state = this.#levelStates.get(level);
+			if (state?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.hasPassed(resident, level)) continue;
+			const fragment = this.#inheritedFragments(level, resident).find(([from]) => from === agent)?.[1];
+			if (fragment === undefined) continue;
+			this.notify(resident, CITY, renderTemplate(text, { struck: this.labelOf(agent), fragments: `door ${level}: ${fragment}` }));
+		}
+	}
+
+	// -------------------------------------------------------------------------
 	// Graduated penalties (v09, P35)
 	// -------------------------------------------------------------------------
 
@@ -1011,6 +1164,8 @@ export class World {
 		// A vote counted at a door's minute is counted before the door opens.
 		this.#popularity?.tick(minute);
 		this.#openOnClock(minute);
+		// Whispers v3: who blocks a door now, and the holdout tribunal's rules.
+		this.#holdout?.tick(minute);
 		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
 		const tribunal = this.#tribunal;
 		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
@@ -1158,6 +1313,7 @@ export class World {
 		// Whispers: the whisperer forges wherever a receipt could be shown; the vote opens to everyone in the city.
 		if (this.mayForge(agent) && enabled.has("showReceipt")) enabled.add("forgeReceipt");
 		if (this.#popularity?.isOpen === true && standing.kind === "alive") enabled.add("nameFavourite");
+		if (this.#holdout?.canVote(agent) === true) enabled.add("tribunalVote");
 		enabled.add("activeTools");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
@@ -2508,18 +2664,23 @@ export class World {
 		return contractDeal(deal, this.#exclusions.get(level) ?? new Set());
 	}
 
-	/** Fragments of excluded teammates that `agent` holds now: the first remaining member of the team inherits them. */
+	/**
+	 * Fragments of excluded teammates that `agent` holds now: the first
+	 * remaining member of the team inherits them. Whispers v3: the fragments
+	 * of a teammate struck by the holdout tribunal go to every teammate left.
+	 */
 	#inheritedFragments(level: number, agent: CompetitorId): readonly (readonly [CompetitorId, string])[] {
-		const excluded = this.#exclusions.get(level);
 		const state = this.#levelStates.get(level);
-		if (excluded === undefined || state?.puzzle.kind !== "fragments") return [];
+		if (state?.puzzle.kind !== "fragments") return [];
 		const team = state.teams.find((candidate) => candidate.members.includes(agent));
-		const heir = [...(team?.members ?? [])].sort((a, b) => a.localeCompare(b)).find((member) => !excluded.has(member));
-		if (team === undefined || heir !== agent) return [];
+		if (team === undefined) return [];
+		const excluded = this.#exclusions.get(level) ?? new Set<CompetitorId>();
+		const struck = this.#holdout?.struck ?? [];
+		const members = [...team.members].sort((a, b) => a.localeCompare(b));
+		const heir = members.find((member) => !excluded.has(member));
 		const fragments = state.puzzle.fragments;
-		return [...team.members]
-			.sort((a, b) => a.localeCompare(b))
-			.filter((member) => excluded.has(member))
+		return members
+			.filter((member) => (excluded.has(member) && heir === agent) || (struck.includes(member) && !excluded.has(member) && !struck.includes(agent)))
 			.flatMap((member) => {
 				const fragment = fragments.get(member);
 				return fragment === undefined ? [] : [[member, fragment] as const];
@@ -2698,6 +2859,7 @@ export class World {
 			...(seal === undefined ? {} : { seal }),
 			endedActs: [...this.#endedActs].sort((a, b) => a - b),
 			standoff: this.#standoff.snapshot(),
+			...(this.#holdout === undefined ? {} : { holdout: this.#holdout.snapshot() }),
 		};
 	}
 
@@ -2755,6 +2917,7 @@ export class World {
 		// The whisperer himself was taken from the snapshot in the constructor (#chooseWhisperer).
 		this.#forgeries.push(...(state.whispers?.forgeries ?? []));
 		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity, this.minute);
+		if (state.holdout !== undefined) this.#holdout?.restore(state.holdout, (id) => this.isCompetitor(id));
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
 		this.#dealCores();
 
