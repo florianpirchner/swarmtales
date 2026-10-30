@@ -94,9 +94,10 @@ Short stories (`pnpm novel`), chronicle: [run/digest/chronicle.md](run/digest/ch
 | 1 | Claude Sonnet | 5335 | 0.44 | [story](run/novel/story.md) | first prompts; game words, reported moves, overlapping chapters (LESSONS P57) |
 | 2 | DeepSeek V4.1 Flash | 8032 | 0.12 | [story](run/novel-deepseek/story.md) | sharpened prompts with prologue and glossary; more scenes and dialogue, keeps raw key codes, a few muddled sentences |
 | 2 | Claude Sonnet | 5656 | 0.61 | [story](run/novel-sonnet/story.md) | sharpened prompts; the tightest prose; Anthropic refused 2 of 8 translation parts, DeepSeek translated them (P56); the appendix's translation row is from the refused first try (0.18 USD were spent with `--translate-only`) |
-| 3 | DeepSeek draft, Sonnet line edit | 7626 | 0.24 (+0.26 German) | [story](run/novel-hybrid/story.md) | the default now: DeepSeek's scenes with Sonnet's sentences; no raw codes left; Anthropic refused no translation part after the context paragraph (P56) |
+| 3 | DeepSeek draft, Sonnet line edit | 7626 | 0.24 (+0.26 German) | [story](run/novel-hybrid/story.md) | DeepSeek's scenes with Sonnet's sentences; no raw codes left; Anthropic refused no translation part after the context paragraph (P56) |
+| 4 | DeepSeek draft, Sonnet line edit | 7373 | 0.23 (+0.26 German) | [story](run/novel-gamemaker/story.md) | the default now: three chapters from the Gamemaker's control room with his team (Courier, Guard, Scribe) instead of interludes, and the city's records between the chapters (LESSONS P58); the records were placed again with the reviewed code after the run and the German text translated again |
 
 USD of version 2 includes a German translation (`--translate de`), which is not kept in the repository (English only).
-All outlines and interludes are by DeepSeek. Each version's [appendix](run/novel-sonnet/appendix.md) lists the events each chapter rests on.
+All outlines, interludes (versions 1-3) and Gamemaker chapters (version 4) are by DeepSeek. Each version's [appendix](run/novel-sonnet/appendix.md) lists the events each chapter rests on.
 
 Files: [`run/`](run/) (events, transcripts, minutes, digest, [REPORT.md](run/REPORT.md)).

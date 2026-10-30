@@ -26,9 +26,32 @@ export interface GamemakerNote {
 	readonly text: string;
 }
 
+/** A resident's in-character refusal of an order the Courier brought. */
+export interface GamemakerDefiance {
+	readonly seq: number;
+	readonly minute: number;
+	readonly agent: string;
+	readonly reason: string;
+}
+
+/** A move of the gamemaker other than a note (an ultimatum, a tribunal called, ...), or one the city refused. */
+export interface GamemakerMove {
+	readonly seq: number;
+	readonly minute: number;
+	readonly tool: string;
+	/** The arguments as compact JSON, or the city's refusal. */
+	readonly text: string;
+}
+
 export interface GamemakerLog {
 	readonly thoughts: readonly GamemakerThought[];
 	readonly notes: readonly GamemakerNote[];
+	/** Its own one-line summaries after each turn. */
+	readonly summaries: readonly GamemakerThought[];
+	readonly defied: readonly GamemakerDefiance[];
+	readonly moves: readonly GamemakerMove[];
+	/** Moves the city refused, e.g. a note the privacy guard blocked (PRIVATE_BLOCKED). */
+	readonly refused: readonly GamemakerMove[];
 }
 
 export interface NovelSource {
@@ -45,13 +68,24 @@ export interface NovelSource {
 const Base = { seq: Type.Integer({ minimum: 1 }), minute: Type.Integer({ minimum: 0 }) };
 const ThinkingSchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_thinking"), text: Type.String() });
 const NoteSchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_note"), to: Type.String(), text: Type.String() });
+const SummarySchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_text"), text: Type.String() });
+const DefiedSchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_defied"), agent: Type.String(), reason: Type.String() });
+const CallSchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_call"), tool: Type.String(), args: Type.Unknown() });
+const ResultSchema = Type.Object({ ...Base, type: Type.Literal("gamemaker_result"), tool: Type.String(), isError: Type.Boolean(), text: Type.String() });
 
-/** The gamemaker's thinking and notes in the text of an `events.jsonl`; other and broken lines are skipped. */
+/** Tools that only look or speak; they are not moves of the plot. */
+const QUIET_TOOLS: ReadonlySet<string> = new Set(["notify", "getStatus", "listAgents", "readBoard", "inspect", "peek"]);
+
+/** The gamemaker's thinking, notes, summaries, moves and the refusals it met, from the text of an `events.jsonl`; other and broken lines are skipped. */
 export function parseGamemakerLog(eventsJsonl: string): GamemakerLog {
 	const thoughts: GamemakerThought[] = [];
 	const notes: GamemakerNote[] = [];
+	const summaries: GamemakerThought[] = [];
+	const defied: GamemakerDefiance[] = [];
+	const moves: GamemakerMove[] = [];
+	const refused: GamemakerMove[] = [];
 	for (const line of eventsJsonl.split(/\r?\n/)) {
-		if (!line.includes('"gamemaker_thinking"') && !line.includes('"gamemaker_note"')) continue;
+		if (!line.includes('"gamemaker_')) continue;
 		let value: unknown;
 		try {
 			value = JSON.parse(line);
@@ -60,10 +94,13 @@ export function parseGamemakerLog(eventsJsonl: string): GamemakerLog {
 		}
 		if (Check(ThinkingSchema, value)) thoughts.push({ seq: value.seq, minute: value.minute, text: value.text });
 		else if (Check(NoteSchema, value)) notes.push({ seq: value.seq, minute: value.minute, to: value.to, text: value.text });
+		else if (Check(SummarySchema, value)) summaries.push({ seq: value.seq, minute: value.minute, text: value.text });
+		else if (Check(DefiedSchema, value)) defied.push({ seq: value.seq, minute: value.minute, agent: value.agent, reason: value.reason });
+		else if (Check(CallSchema, value) && !QUIET_TOOLS.has(value.tool)) moves.push({ seq: value.seq, minute: value.minute, tool: value.tool, text: JSON.stringify(value.args) });
+		else if (Check(ResultSchema, value) && value.isError) refused.push({ seq: value.seq, minute: value.minute, tool: value.tool, text: value.text });
 	}
-	thoughts.sort((a, b) => a.seq - b.seq);
-	notes.sort((a, b) => a.seq - b.seq);
-	return { thoughts, notes };
+	const bySeq = (a: { readonly seq: number }, b: { readonly seq: number }): number => a.seq - b.seq;
+	return { thoughts: thoughts.sort(bySeq), notes: notes.sort(bySeq), summaries: summaries.sort(bySeq), defied: defied.sort(bySeq), moves: moves.sort(bySeq), refused: refused.sort(bySeq) };
 }
 
 /**

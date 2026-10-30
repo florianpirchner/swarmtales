@@ -985,24 +985,30 @@ Per run, `runs/run-NNN/` contains:
   minutes [from, to], question, beats, evidence}`, planned without overlapping minutes and with each
   figure once or twice. Code validates it: unknown `seq` are dropped, a chapter whose POV is not a
   cast figure or that cites no known event is dropped, and turning points no chapter cites,
-  overlapping minutes and the same POV twice in a row are warnings.
+  overlapping minutes between residents' chapters and the same POV twice in a row are warnings.
 - **Scene packs** (code): per chapter, within a character budget, the POV's messages, its thinking
   (the inner monologue), the gamemaker's notes to it, the board, the city's verified facts of the
   chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
   secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
   another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
-- **Prologue, chapters, interludes, edit, translation** (models: the draft by the writer, default DeepSeek V4.1 Flash, thinking low; the edit and translation by the editor, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high; every system prompt opens with a plain statement that the keys and codes are a word-puzzle game, not computer crime, P56): a
+- **Prologue, chapters, Gamemaker chapters, edit, translation** (models: the draft by the writer, default DeepSeek V4.1 Flash, thinking low; the edit and translation by the editor, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high; every system prompt opens with a plain statement that the keys and codes are a word-puzzle game, not computer crime, P56): a
   300-500 word prologue from the "The city:" block of a resident prompt (what every resident was
   told), told as the world; one call per chapter with the outline, the glossary, the chapter's
-  dramatic question, the pack and the previous chapter's ending; one 100-200 word interlude in
-  italics before each later chapter from the gamemaker's thinking in its minutes, written by the
-  outline model (P55); one edit pass that checks the text against the turning points, replaces game
+  dramatic question, the pack and the previous chapter's ending; two or three chapters (pov
+  `GAMEMAKER`) from the control room, from a pack of the Gamemaker's thinking, summaries, moves,
+  notes, the refusals he met (defied notes, PRIVATE_BLOCKED) and the classifier's reads per
+  resident, with public facts only; his team (Courier, Guard, Scribe) are real components and speak
+  only what the pack carries; written by the outline model when the writer is Anthropic (P55); one edit pass that checks the text against the turning points, replaces game
   words and lists contradictions; with `--translate`, one call per part (header, prologue, each
   chapter), refused when a part loses its headings. Craft rules shared by every prose prompt: scene
   over summary, dialogue from the real messages, show don't tell, no game words, numbers only where
   they hurt, no moral. An edit that loses
   headings or much of the text is not taken. The rule: compress and dramatise, never change an
   outcome; names, never IDs.
+- **City records** (code, after the edit): deadline writs, the seal sale, tribunals, ransoms, last
+  wills and the closing ledger, computed from the log, rendered as quoted blocks
+  (`> **CITY OF NEXUS · ...**`) and placed after the chapter whose minutes they fall after, at most
+  three per gap (the weightiest); the translation must keep their title lines.
 - **Appendix** (code): per chapter the `seq` its outline and pack rest on, uncovered turning points,
   contradictions, warnings and the tokens and USD per stage.
 - Without an API key for either model the novel is skipped with a reason; `--dry-run` casts the

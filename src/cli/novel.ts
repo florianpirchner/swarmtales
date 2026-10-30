@@ -72,7 +72,7 @@ if (args.dryRun) {
 	const request = buildOutlineRequest(source, casting, { ...DEFAULT_OUTLINE_OPTIONS, words: args.words });
 	const chars = request.system.length + request.prompt.length;
 	out(`outline prompt: ${String(chars)} characters (about ${String(Math.round(chars / 4))} tokens), ${String(chapterCount(args.words))} chapters planned for ${String(args.words)} words`);
-	out(`gamemaker thoughts for interludes: ${String(source.gamemaker.thoughts.length)}; figure texts: ${String(source.figures.size)}; chronicle: ${source.chronicle === undefined ? "none" : "yes"}`);
+	out(`gamemaker: ${String(source.gamemaker.thoughts.length)} thoughts, ${String(source.gamemaker.moves.length)} moves, ${String(source.gamemaker.defied.length)} refusals; figure texts: ${String(source.figures.size)}; chronicle: ${source.chronicle === undefined ? "none" : "yes"}`);
 	out("dry run: no model was called and nothing was written");
 	process.exit(0);
 }

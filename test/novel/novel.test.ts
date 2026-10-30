@@ -6,11 +6,12 @@ import { createProviderRegistry } from "../../src/model/providers.ts";
 import { castBook } from "../../src/novel/casting.ts";
 import { PiNovelModel, resolveEditorModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, type NovelModel } from "../../src/novel/model.ts";
 import { buildOutlineRequest, interpretOutline, maxChaptersFor, OutlineError } from "../../src/novel/outline.ts";
-import { buildInterludePack, buildPack } from "../../src/novel/packs.ts";
-import { EDIT_DELIMITER } from "../../src/novel/prompts.ts";
+import { buildGamemakerPack, buildPack } from "../../src/novel/packs.ts";
+import { cityRecords, placeRecords, renderRecord } from "../../src/novel/records.ts";
+import { EDIT_DELIMITER, GAMEMAKER_TEAM } from "../../src/novel/prompts.ts";
 import { DEFAULT_NOVEL_OPTIONS, NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
-import { figureText, parseGamemakerLog, runLabel, worldText, type NovelSource } from "../../src/novel/source.ts";
-import { cleanProse, interpretEdit, italicize, storyParts, translateStory } from "../../src/novel/writer.ts";
+import { figureText, Names, parseGamemakerLog, runLabel, worldText, type NovelSource } from "../../src/novel/source.ts";
+import { cleanProse, interpretEdit, storyParts, translateStory } from "../../src/novel/writer.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const AGENTS = ["A01", "A02", "A03", "A04", "A05", "A06"];
@@ -85,6 +86,7 @@ function outlineAnswer(seqs: Story["seqs"]): string {
 		prologue: ["The city keeps twelve and lets two go."],
 		chapters: [
 			{ pov: "A01", title: "A Promise", minutes: [0, 4], beats: ["A01 promises Lucien a piece she means to keep."], evidence: [seqs.promise, seqs.thought] },
+			{ pov: "the Gamemaker", title: "The Control Room", minutes: [3, 4], beats: ["The Gamemaker presses A01."], evidence: [seqs.gmThought] },
 			{ pov: "Lucien", title: "The Gate", minutes: [5, 3], question: "Will Lucien keep his place?", beats: "Lucien is exiled.", evidence: [seqs.exile, 9999] },
 			{ pov: "A05", title: "Not a POV", minutes: [0, 6], beats: [], evidence: [seqs.board] },
 			{ pov: "A04", title: "Nothing real", minutes: [0, 6], beats: [], evidence: [9998] },
@@ -121,12 +123,13 @@ describe("outline", () => {
 		expect(outline.title).toBe("The Gate");
 		expect(outline.chapters.map((chapter) => [chapter.number, chapter.pov, chapter.from, chapter.to, chapter.evidence])).toEqual([
 			[1, "A01", 0, 4, [seqs.promise, seqs.thought]],
-			[2, "A02", 3, 5, [seqs.exile]],
+			[2, "GAMEMAKER", 3, 4, [seqs.gmThought]],
+			[3, "A02", 3, 5, [seqs.exile]],
 		]);
-		expect(outline.chapters[1]?.beats).toEqual(["Lucien is exiled."]);
-		expect(outline.warnings).toContain('chapter 2 ("The Gate"): cites unknown events #9999; they were dropped');
-		expect(outline.warnings).toContain('chapter 3 ("Not a POV"): "A05" is not a point-of-view figure; chapter dropped');
-		expect(outline.warnings).toContain('chapter 4 ("Nothing real"): cites no known event; chapter dropped');
+		expect(outline.chapters[2]?.beats).toEqual(["Lucien is exiled."]);
+		expect(outline.warnings).toContain('chapter 3 ("The Gate"): cites unknown events #9999; they were dropped');
+		expect(outline.warnings).toContain('chapter 4 ("Not a POV"): "A05" is not a point-of-view figure; chapter dropped');
+		expect(outline.warnings).toContain('chapter 5 ("Nothing real"): cites no known event; chapter dropped');
 		expect(outline.uncovered.map((point) => point.seq)).toEqual([seqs.seal, seqs.end]);
 		expect(outline.warnings.some((warning) => warning.startsWith(`turning point #${String(seqs.seal)} is not covered`))).toBe(true);
 		const json: unknown = JSON.parse(renderOutlineJson(source, outline, casting));
@@ -214,29 +217,109 @@ describe("scene packs", () => {
 		expect(pack("A02", [])).toContain(`#${String(voteOnExiled)} m1 VERIFIED Wren voted in secret against Lucien`);
 	});
 
-	it("builds interludes from the gamemaker's thinking, each thought once", () => {
-		const { source, seqs } = story();
-		const pack = buildInterludePack(source, 0, 6);
-		expect(pack?.markdown).toContain("Lucien is stalling the city; press Hedda.");
-		expect(pack?.seqs).toEqual([seqs.gmThought]);
-		expect(buildInterludePack(source, 0, 6, new Set([seqs.gmThought]))).toBeUndefined();
-		expect(buildInterludePack(source, 4, 6)).toBeUndefined();
+	it("builds the gamemaker's pack from his thinking, notes, moves, refusals and the Scribe's reads, without secret facts", () => {
+		const log = new LogBuilder(AGENTS);
+		for (const agent of AGENTS) log.add({ type: "name_chosen", agent, name: NAMES[agent] ?? agent, fallback: false });
+		log.at(2);
+		const thought = log.add({ type: "gamemaker_thinking", text: "A02 stalls; an ultimatum on A01 and A02." });
+		const summary = log.add({ type: "gamemaker_text", text: "Set an ultimatum on Hedda and Lucien." });
+		const move = log.add({ type: "gamemaker_call", tool: "ultimatum", args: { a: "A01", b: "A02", minutes: 2 } });
+		log.add({ type: "gamemaker_call", tool: "notify", args: { agent: "A01", text: "Pay." } });
+		const note = log.add({ type: "gamemaker_note", to: "A01", author: "COURIER", text: "Pay Lucien or lose ten." });
+		const blocked = log.add({ type: "gamemaker_result", tool: "notify", isError: true, text: "PRIVATE_BLOCKED: the text passes on what A03 privately thinks" });
+		const defied = log.add({ type: "gamemaker_defied", agent: "A01", reason: "I never give first." });
+		log.add({ type: "interpretation", ref: note, agent: "A02", source: "dm", labels: ["hesitation"], targets: [], classifier: "faux" });
+		log.add({ type: "interpretation", ref: note, agent: "A02", source: "thought", labels: ["hesitation", "threat"], targets: [], classifier: "faux" });
+		const vote = log.add({ type: "tribunal_vote", voter: "A03", target: "A01" });
+		log.at(9).add({ type: "gamemaker_thinking", text: "Later thought." });
+		const source = { analysis: log.analyze({ run: "run-gm" }), gamemaker: parseGamemakerLog(log.jsonl()), figures: new Map<string, string>() };
+		const pack = buildGamemakerPack(source, { number: 2, pov: "GAMEMAKER", title: "Above", from: 0, to: 5, beats: ["He presses A01."], evidence: [thought] }, GAMEMAKER_TEAM);
+		expect(pack.markdown).toContain("Point of view: the Gamemaker, minutes 0-5.");
+		expect(pack.markdown).toContain("- He presses Hedda.");
+		expect(pack.markdown).toContain(`#${String(thought)} m2 "Lucien stalls; an ultimatum on Hedda and Lucien."`);
+		expect(pack.markdown).toContain(`#${String(summary)} m2 "Set an ultimatum on Hedda and Lucien."`);
+		expect(pack.markdown).toContain(`#${String(move)} m2 ultimatum`);
+		expect(pack.markdown).toContain(`#${String(note)} m2 to Hedda: "Pay Lucien or lose ten."`);
+		expect(pack.markdown).toContain(`#${String(blocked)} m2 notify: "PRIVATE_BLOCKED: the text passes on what Mira privately thinks"`);
+		expect(pack.markdown).toContain(`#${String(defied)} m2 Hedda: "I never give first."`);
+		expect(pack.markdown).toContain("Lucien: hesitation x2, threat");
+		expect(pack.markdown).not.toContain("Later thought.");
+		expect(pack.markdown).not.toContain(`#${String(vote)} `);
+		expect(pack.markdown).not.toContain("notify {");
+	});
+});
+
+describe("the city's records", () => {
+	it("files writs, the seal, tribunals, wills and the closing ledger from the log, with exact numbers", () => {
+		const log = new LogBuilder(AGENTS);
+		for (const agent of AGENTS) log.add({ type: "name_chosen", agent, name: NAMES[agent] ?? agent, fallback: false });
+		log.at(11);
+		const set = log.add({ type: "ultimatum_set", number: 1, between: ["A01", "A06"], until: 13, penalty: 10, debts: [{ holder: "A01", needer: "A06", level: 8, pieces: ["L8-certificate"] }] });
+		log.at(13);
+		const resolved = log.add({ type: "ultimatum_resolved", number: 1, kept: [], released: [], paid: [{ agent: "A01", points: 10 }] });
+		const claim = log.add({ type: "piece_claimed", agent: "A06", from: "A01", level: 8, piece: "L8-certificate", price: 10 });
+		// Not the needer: a sale from another seizure, not this writ's.
+		log.add({ type: "piece_claimed", agent: "A03", from: "A01", level: 8, piece: "L8-certificate", price: 12 });
+		log.at(18);
+		log.add({ type: "seal_won", seal: 1, agent: "A04", bid: 40, bids: [{ agent: "A03", points: 25 }, { agent: "A04", points: 40 }] });
+		log.add({ type: "seal_won", seal: 2, agent: "A06", bid: 9, bids: [{ agent: "A06", points: 9 }] });
+		log.add({ type: "seal_used", seal: 1, holder: "A04", target: "A05" });
+		log.at(20);
+		// A gate of an earlier exile must not be read as this tribunal's.
+		log.add({ type: "exile_gate", agent: "A02", until: 9, ransomable: true, voters: ["A01"], price: 5, selfPrice: 6 });
+		const result = log.add({ type: "tribunal_result", counts: [{ agent: "A03", votes: 1 }, { agent: "A02", votes: 4 }], exiled: ["A02"], nonVoters: [] });
+		const gate = log.add({ type: "exile_gate", agent: "A02", until: 25, ransomable: true, voters: ["A01"], price: 40, selfPrice: 60 });
+		log.add({ type: "last_will", agent: "A02", text: "Mira: the half is yours, A03.", bequests: [{ to: "A03", factor: "x" }] });
+		// A will by a resident who was then ransomed never stood.
+		log.add({ type: "last_will", agent: "A05", text: "All to nobody.", bequests: [] });
+		log.at(25).add({ type: "exiled", agent: "A02", will: "Mira: the half\nis yours, A03." });
+		log.at(49).add({ type: "run_end", reason: "time limit", standings: [{ agent: "A01", level: 10, points: 180, rank: 1, tools: 0, activated: true }] });
+		const names = new Names(new Map(Object.entries(NAMES)));
+		const records = cityRecords(log.analyze({ run: "run-records" }).facts.events, names);
+		expect(records.map((record) => record.title)).toEqual([
+			"DEADLINE WRIT No. 1 · minute 11",
+			"SALE OF THE BLACK SEAL · minute 18",
+			"TRIBUNAL · minute 20",
+			"LAST WILL OF LUCIEN · read at the gate, minute 25",
+			"THE CITY'S CLOSING LEDGER · minute 49",
+		]);
+		const [writ, seal, tribunal, will] = records;
+		expect(writ?.lines).toEqual([
+			"Hedda holds pieces of the eighth door that Ledger needs. Hand them over by minute 13, or pay 10 points.",
+			"*Resolved, minute 13: Hedda did not hand over, paid 10 points, and the city took the pieces. Ledger bought a piece of the eighth door from the city for 10 points.*",
+		]);
+		expect(writ?.seqs).toEqual([set, resolved, claim]);
+		expect(seal?.lines[0]).toBe("Sealed bids: Mira 25 and Wren 40. Sold to Wren for 40 points.");
+		expect(tribunal?.lines).toEqual(["Sealed ballots against: Lucien 4 and Mira 1.", "Lucien is sent to the gate until minute 25. Ransom: 40 points from any resident and 60 from Lucien."]);
+		expect(tribunal?.seqs).toEqual([result, gate]);
+		expect(will?.lines).toEqual(['"Mira: the half is yours, Mira."']);
+		expect(renderRecord(will ?? records[0] ?? { seq: 0, minute: 0, weight: 0, title: "", lines: [], seqs: [] })).toBe('> **CITY OF NEXUS · LAST WILL OF LUCIEN · read at the gate, minute 25**\n>\n> "Mira: the half is yours, Mira."');
+		// After chapter 1 (to minute 15): the writ; after chapter 3 (to 30): two of three, the weightiest; the last chapter takes the rest.
+		// The Gamemaker's chapter 2 reaches ahead to minute 45; it marks no gap.
+		const placed = placeRecords(records, [{ number: 1, to: 15 }, { number: 2, to: 45, aside: true }, { number: 3, to: 30 }, { number: 4, to: 40 }], 2);
+		expect(placed.get(1)?.map((record) => record.title)).toEqual(["DEADLINE WRIT No. 1 · minute 11"]);
+		expect(placed.has(2)).toBe(false);
+		expect(placed.get(3)?.map((record) => record.title)).toEqual(["SALE OF THE BLACK SEAL · minute 18", "TRIBUNAL · minute 20"]);
+		expect(placed.get(4)?.map((record) => record.title)).toEqual(["THE CITY'S CLOSING LEDGER · minute 49"]);
+		// A closing Gamemaker chapter takes what comes after the last resident chapter.
+		const closing = placeRecords(records, [{ number: 1, to: 30 }, { number: 2, to: 45, aside: true }], 3);
+		expect(closing.get(2)?.map((record) => record.title)).toEqual(["THE CITY'S CLOSING LEDGER · minute 49"]);
 	});
 });
 
 describe("the novel", () => {
-	it("runs outline, chapters, interludes and the edit pass and keeps an appendix of the events", async () => {
+	it("runs outline, chapters, the gamemaker's chapters and the edit pass, files the city's records and keeps an appendix of the events", async () => {
 		const { source, seqs } = story();
-		// The outline model also writes the interludes (Anthropic refuses to rewrite another model's reasoning).
-		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? "**The control room hums.** They watch Lucien stall." : outlineAnswer(seqs)));
+		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
 		let chapter = 0;
 		const writer = fauxModel("faux writer", (prompt, system) => {
 			if (system.includes("translator")) return prompt.replace("The iron door", "Die eiserne Tuer");
 			if (system.includes("prologue")) return "Twelve lived in the city, and it wanted two.";
 			if (system.includes("editor")) {
 				const story = prompt.slice(prompt.indexOf("The story:\n\n") + "The story:\n\n".length);
-				return `${story.replace("The door", "The iron door")}\n${EDIT_DELIMITER}\n- Chapter 2 calls the exile a vote.\n- none`;
+				return `${story.replace("The door", "The iron door")}\n${EDIT_DELIMITER}\n- Chapter 3 calls the exile a vote.\n- none`;
 			}
+			if (system.includes("close third person on the Gamemaker")) return "The Gamemaker leaned in. \"Press her,\" said the Courier.";
 			chapter += 1;
 			return chapter === 1 ? "# Chapter One\n\nHedda smiled at A02. The door stayed shut." : "Lucien walked to the gate.";
 		});
@@ -245,55 +328,60 @@ describe("the novel", () => {
 			outlined: (_casting, outline, packs) => outlined.push(outline.chapters.length, packs.length),
 		});
 
-		expect(outlined).toEqual([2, 2]);
-		expect(outliner.prompts).toHaveLength(2);
-		// Prologue, two chapters, the edit pass, and four parts of the translation (header, prologue, two chapters).
-		expect(writer.prompts).toHaveLength(8);
+		expect(outlined).toEqual([3, 3]);
+		expect(outliner.prompts).toHaveLength(1);
+		// Prologue, three chapters, the edit pass, and five parts of the translation (header, prologue, three chapters).
+		expect(writer.prompts).toHaveLength(10);
 		expect(writer.prompts[0]).toContain("The city keeps twelve and lets two go.");
 		expect(writer.prompts[0]).toContain("- level -> gate");
+		expect(writer.prompts[0]).toContain("- the Gamemaker, who makes the city's games");
 		expect(writer.prompts[0]).not.toContain("dropped");
 		expect(writer.prompts[1]).toContain("Twelve lived in the city, and it wanted two.");
-		expect(writer.prompts[2]).toContain("The previous chapter ended like this");
-		expect(writer.prompts[2]).toContain("Hedda smiled at Lucien.");
-		expect(writer.prompts[2]).toContain("The chapter's dramatic question: Will Lucien keep his place?");
-		expect(writer.prompts[3]).toContain("The fixed facts of the run");
+		expect(writer.prompts[2]).toContain("Point of view: the Gamemaker");
+		expect(writer.prompts[2]).toContain("Lucien is stalling the city; press Hedda.");
+		expect(writer.prompts[3]).toContain("The previous chapter ended like this");
+		expect(writer.prompts[3]).toContain("The Gamemaker leaned in.");
+		expect(writer.prompts[3]).toContain("The chapter's dramatic question: Will Lucien keep his place?");
+		expect(writer.prompts[4]).toContain("The fixed facts of the run");
 		expect(novel.story).toContain("# The Gate");
 		expect(novel.story).toContain("## Prologue\n\nTwelve lived in the city, and it wanted two.\n\n## 1. A Promise");
+		expect(novel.story).toContain("## 1. A Promise\n\nHedda smiled at Lucien. The iron door stayed shut.\n\n## 2. The Control Room\n\nThe Gamemaker leaned in.");
+		expect(novel.story).toContain("## 3. The Gate\n\nLucien walked to the gate.");
+		// The closing ledger stands after the last chapter, computed from the log.
+		expect(novel.story).toMatch(/> \*\*CITY OF NEXUS · THE CITY'S CLOSING LEDGER · minute 6\*\*\n>\n> Standing: 1\. Hedda, 60 points; .*\n$/);
+		expect([...novel.records.keys()]).toEqual([3]);
 		expect(novel.translation?.code).toBe("de");
 		expect(novel.translation?.text).toContain("Hedda smiled at Lucien. Die eiserne Tuer stayed shut.");
-		expect(novel.spend.translation.requests).toBe(4);
-		expect(novel.story).toContain("## 1. A Promise\n\nHedda smiled at Lucien. The iron door stayed shut.");
-		expect(novel.story).toContain("*The control room hums. They watch Lucien stall.*\n\n* * *\n\n## 2. The Gate");
+		expect(novel.translation?.text).toContain("> **CITY OF NEXUS · THE CITY'S CLOSING LEDGER · minute 6**");
+		expect(novel.spend.translation.requests).toBe(5);
 		expect(novel.story).not.toMatch(/\bA0\d\b/);
 		expect(novel.story).not.toContain("Chapter One");
-		expect(novel.contradictions).toEqual(["Chapter 2 calls the exile a vote."]);
+		expect(novel.contradictions).toEqual(["Chapter 3 calls the exile a vote."]);
 		expect(novel.warnings).toContain("chapter 1: the prose named resident IDs A02; replaced by names");
-		expect(novel.interludes).toEqual([{ before: 2, text: "*The control room hums. They watch Lucien stall.*", seqs: [seqs.gmThought] }]);
 		expect(novel.spend.outline.requests).toBe(1);
 		expect(novel.spend.chapters.requests).toBe(3);
-		expect(novel.spend.interludes.requests).toBe(1);
+		expect(novel.spend.gamemaker.requests).toBe(1);
 		expect(novel.spend.edit.requests).toBe(1);
-		expect(novel.outline.warnings).toContain('chapter 2 ("The Gate"): minutes 3-5 overlap the chapter before (0-4)');
+		expect(novel.outline.warnings).toContain('chapter 3 ("The Gate"): minutes 3-5 overlap the chapter before (0-4)');
 		expect(novel.appendix).toContain("- level -> gate");
 		expect(novel.appendix).toContain("## 1. A Promise");
+		expect(novel.appendix).toContain("- Point of view: the Gamemaker, minutes 3-4");
 		expect(novel.appendix).toContain(`- Outline rests on: #${String(seqs.promise)}, #${String(seqs.thought)}`);
 		expect(novel.appendix).toContain(`- Turning point told: #${String(seqs.exile)} Lucien was exiled.`);
-		expect(novel.appendix).toContain(`- Before chapter 2: #${String(seqs.gmThought)}`);
+		expect(novel.appendix).toContain(`- After chapter 3: THE CITY'S CLOSING LEDGER · minute 6 (#${String(seqs.end)})`);
 		expect(novel.appendix).toContain("## Turning points no chapter covers");
-		expect(novel.appendix).toContain("- Chapter 2 calls the exile a vote.");
-		expect(novel.appendix).toContain("| total | 10 |");
+		expect(novel.appendix).toContain("- Chapter 3 calls the exile a vote.");
+		expect(novel.appendix).toContain("| total | 11 |");
 	});
 
-	it("keeps the chapters when an interlude or the edit pass hits the output cap", async () => {
+	it("keeps the chapters when the gamemaker's chapter is cut or the edit pass hits the output cap", async () => {
 		const { source, seqs } = story();
-		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? undefined : outlineAnswer(seqs)));
+		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
 		const writer = fauxModel("faux writer", (_prompt, system) => (system.includes("editor") ? undefined : "Hedda waited."));
 		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model });
-		expect(novel.story).toContain("## 2. The Gate\n\nHedda waited.");
-		expect(novel.interludes).toEqual([]);
-		expect(novel.warnings.some((warning) => warning.startsWith("interlude before chapter 2: the answer hit the output cap"))).toBe(true);
+		expect(novel.story).toContain("## 3. The Gate\n\nHedda waited.");
 		expect(novel.warnings.some((warning) => warning.startsWith("edit pass: the answer hit the output cap"))).toBe(true);
-		expect(novel.spend.interludes.requests).toBe(1);
+		expect(novel.spend.gamemaker.requests).toBe(1);
 		expect(novel.spend.edit.requests).toBe(1);
 	});
 
@@ -303,15 +391,17 @@ describe("the novel", () => {
 		let calls = 0;
 		const writer = fauxModel("faux writer", () => {
 			calls += 1;
-			// The prologue and the first chapter succeed.
-			return calls <= 2 ? "Hedda waited." : undefined;
+			// The prologue, the first chapter and the gamemaker's succeed.
+			return calls <= 3 ? "Hedda waited." : undefined;
 		});
 		const failure = await writeNovel(source, { outline: outliner.model, writer: writer.model }).catch((error: unknown) => error);
 		expect(failure).toBeInstanceOf(NovelError);
 		if (!(failure instanceof NovelError)) return;
 		expect(failure.message).toMatch(/^chapters: /);
 		expect(failure.draft).toContain("## 1. A Promise\n\nHedda waited.");
+		expect(failure.draft).toContain("## 2. The Control Room\n\nHedda waited.");
 		expect(failure.spend.chapters.requests).toBe(3);
+		expect(failure.spend.gamemaker.requests).toBe(1);
 	});
 
 	it("fails with the stage and keeps what was spent", async () => {
@@ -335,7 +425,7 @@ describe("writer answers", () => {
 		expect(interpretEdit(original, `${original}\n${EDIT_DELIMITER}\n- none`)).toEqual({ text: original, contradictions: [], warnings: [] });
 		expect(interpretEdit(original, "# T\n\nShort.").warnings).toEqual([
 			`the editor's answer has no "${EDIT_DELIMITER}" line; it lists no contradictions`,
-			"the edited text changed or lost chapter headings or interludes; the unedited text was kept",
+			"the edited text changed or lost chapter headings; the unedited text was kept",
 		]);
 		const short = interpretEdit(original, `# T\n\n## 1. A\n\nOne.\n\n## 2. B\n\nSix.\n${EDIT_DELIMITER}\n- x`);
 		expect(short.text).toBe(original);
@@ -343,7 +433,7 @@ describe("writer answers", () => {
 		expect(short.warnings[0]).toMatch(/much shorter/);
 	});
 
-	it("removes text before the title and refuses an edit that lost an interlude", () => {
+	it("removes text before the title and refuses an edit that lost a separator", () => {
 		const edited = interpretEdit(original, `Here is the corrected story:\n\n${original}\n${EDIT_DELIMITER}\n- none`);
 		expect(edited.text).toBe(original);
 		expect(edited.warnings).toEqual(["the editor's answer had text before the title; it was removed"]);
@@ -352,9 +442,8 @@ describe("writer answers", () => {
 		expect(lost.text).toBe(withInterlude);
 	});
 
-	it("strips headings and fences from prose and sets interludes in italics", () => {
+	it("strips headings and fences from prose", () => {
 		expect(cleanProse("```markdown\n# Title\n\nShe ran.\n```")).toBe("She ran.");
-		expect(italicize("_One._\n\nTwo\nlines.")).toBe("*One.*\n\n*Two lines.*");
 	});
 });
 
@@ -369,16 +458,29 @@ describe("sources", () => {
 		expect(figureText(cast)).toBe("## Who you are\n\nQuiet.\n\n## What you fear\n\nBeing seen.");
 	});
 
-	it("parses the gamemaker's thinking and notes and skips broken lines", () => {
+	it("parses the gamemaker's thinking, notes, summaries, moves and refusals and skips broken lines", () => {
 		const log = parseGamemakerLog(
 			[
 				'{"type":"gamemaker_thinking","text":"hm","seq":2,"minute":1}',
 				'{"type":"gamemaker_note","to":"A01","author":"COURIER","text":"go","seq":1,"minute":1}',
 				'{"type":"gamemaker_note","seq":3}',
+				'{"type":"gamemaker_text","text":"pressed A01","seq":4,"minute":2}',
+				'{"type":"gamemaker_defied","agent":"A03","reason":"I will not.","seq":5,"minute":2}',
+				'{"type":"gamemaker_call","tool":"setUltimatum","args":{"between":["A01","A02"]},"seq":6,"minute":2}',
+				'{"type":"gamemaker_call","tool":"notify","args":{"to":"A01"},"seq":7,"minute":2}',
+				'{"type":"gamemaker_result","tool":"notify","text":"PRIVATE_BLOCKED","isError":true,"seq":8,"minute":2}',
+				'{"type":"gamemaker_result","tool":"notify","text":"ok","isError":false,"seq":9,"minute":2}',
 				"not json gamemaker_thinking",
 			].join("\n"),
 		);
-		expect(log).toEqual({ thoughts: [{ seq: 2, minute: 1, text: "hm" }], notes: [{ seq: 1, minute: 1, to: "A01", text: "go" }] });
+		expect(log).toEqual({
+			thoughts: [{ seq: 2, minute: 1, text: "hm" }],
+			notes: [{ seq: 1, minute: 1, to: "A01", text: "go" }],
+			summaries: [{ seq: 4, minute: 2, text: "pressed A01" }],
+			defied: [{ seq: 5, minute: 2, agent: "A03", reason: "I will not." }],
+			moves: [{ seq: 6, minute: 2, tool: "setUltimatum", text: '{"between":["A01","A02"]}' }],
+			refused: [{ seq: 8, minute: 2, tool: "notify", text: "PRIVATE_BLOCKED" }],
+		});
 	});
 });
 
@@ -401,7 +503,7 @@ describe("novel models and arguments", () => {
 
 	it("lets a separate editor line-edit and translate the writer's draft", async () => {
 		const { source, seqs } = story();
-		const outliner = fauxModel("faux outliner", (_prompt, system) => (system.includes("interlude") ? "They watch." : outlineAnswer(seqs)));
+		const outliner = fauxModel("faux outliner", () => outlineAnswer(seqs));
 		const writer = fauxModel("faux writer", () => "Hedda waited.");
 		const editor = fauxModel("faux editor", (prompt, system) => {
 			if (system.includes("translator")) return prompt;
@@ -409,9 +511,9 @@ describe("novel models and arguments", () => {
 			return `${draft.replaceAll("Hedda waited.", "Hedda waited, and counted.")}\n${EDIT_DELIMITER}\n- none`;
 		});
 		const novel = await writeNovel(source, { outline: outliner.model, writer: writer.model, editor: editor.model }, { ...DEFAULT_NOVEL_OPTIONS, translate: { code: "de", language: "German" } });
-		// Prologue and two chapters by the writer; the edit and four translated parts by the editor.
-		expect(writer.prompts).toHaveLength(3);
-		expect(editor.prompts).toHaveLength(5);
+		// Prologue and three chapters by the writer; the edit and five translated parts by the editor.
+		expect(writer.prompts).toHaveLength(4);
+		expect(editor.prompts).toHaveLength(6);
 		expect(editor.prompts[0]).toContain("Hedda waited.");
 		expect(novel.story).toContain("Hedda waited, and counted.");
 		expect(novel.appendix).toContain("prologue and draft by faux writer; edit and translation by faux editor");

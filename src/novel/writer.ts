@@ -1,25 +1,23 @@
 /**
- * The writer's calls (model): the prologue, one chapter from its pack, a
- * gamemaker interlude from the control room's thinking, the edit pass over
- * the whole text and the translation, part by part. Answers are prose; the code strips what is not (headings,
- * fences) and refuses an edit that lost the story's structure.
+ * The writer's calls (model): the prologue, one chapter from its pack (a
+ * resident's or the gamemaker's), the edit pass over the whole text and the
+ * translation, part by part. Answers are prose; the code strips what is not
+ * (headings, fences) and refuses an edit that lost the story's structure.
  */
 import type { NovelModel, NovelSpend } from "./model.ts";
 import { addSpend, MAX_TOKENS, NO_SPEND, NovelRequestError } from "./model.ts";
 import {
 	buildChapterPrompt,
 	buildEditPrompt,
-	buildInterludePrompt,
 	buildProloguePrompt,
 	EDIT_DELIMITER,
 	EDIT_SYSTEM_PROMPT,
-	INTERLUDE_SYSTEM_PROMPT,
+	GAMEMAKER_SYSTEM_PROMPT,
 	PROLOGUE_SYSTEM_PROMPT,
 	translateSystemPrompt,
 	WRITER_SYSTEM_PROMPT,
 	type ChapterPromptInput,
 	type GlossaryEntry,
-	type InterludePromptInput,
 	type ProloguePromptInput,
 } from "./prompts.ts";
 
@@ -38,9 +36,10 @@ export async function writePrologue(model: NovelModel, input: ProloguePromptInpu
 	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
-export async function writeInterlude(model: NovelModel, input: InterludePromptInput): Promise<WrittenText> {
-	const answer = await model.complete(INTERLUDE_SYSTEM_PROMPT, buildInterludePrompt(input), MAX_TOKENS.interlude);
-	return { text: italicize(cleanProse(answer.text)), spend: answer.spend };
+/** A chapter from the gamemaker's control room. */
+export async function writeGamemakerChapter(model: NovelModel, input: ChapterPromptInput): Promise<WrittenText> {
+	const answer = await model.complete(GAMEMAKER_SYSTEM_PROMPT, buildChapterPrompt(input), MAX_TOKENS.chapter);
+	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
 export interface EditedStory {
@@ -78,14 +77,14 @@ export function interpretEdit(original: string, answer: string): Omit<EditedStor
 					.filter((line) => line.startsWith("- "))
 					.map((line) => line.slice(2).trim())
 					.filter((line) => line.length > 0 && line.toLowerCase() !== "none");
-	// The structure: headings and the `* * *` lines around the interludes.
+	// The structure: the heading lines.
 	const headings = (text: string): string =>
 		text
 			.split(/\r?\n/)
 			.filter((line) => line.startsWith("#") || line.trim() === "* * *")
 			.join("\n");
 	if (headings(body) !== headings(original)) {
-		warnings.push("the edited text changed or lost chapter headings or interludes; the unedited text was kept");
+		warnings.push("the edited text changed or lost chapter headings; the unedited text was kept");
 		return { text: original, contradictions, warnings };
 	}
 	if (body.length < original.length * 0.7) {
@@ -104,9 +103,9 @@ export interface TranslatedStory {
 
 /**
  * Translates the story part by part (the header, the prologue, then each
- * chapter with the interlude after it), so no answer has to hold the whole
- * book. A part the model refuses, or whose headings or interlude lines it
- * loses, goes to the fallback model, which gets two tries (Anthropic refuses
+ * chapter with the city's records after it), so no answer has to hold the
+ * whole book. A part the model refuses, or whose headings, records or
+ * separator lines it loses, goes to the fallback model, which gets two tries (Anthropic refuses
  * some harmless parts, P56); if all fail, the error says which part.
  */
 export async function translateStory(
@@ -133,7 +132,7 @@ export async function translateStory(
 		}
 		spend = addSpend(spend, answer.spend);
 		const text = stripFences(answer.text).trim();
-		if (structure(text).length !== structure(part).length) throw new TranslationError(`${where}: the translation changed the headings or interlude lines`, spend);
+		if (structure(text).length !== structure(part).length) throw new TranslationError(`${where}: the translation changed the headings, records or separator lines`, spend);
 		return tail.length === 0 ? text : `${text}\n\n${tail.trim().split(/\s*\n\s*/).join("\n\n")}`;
 	};
 	for (const [index, part] of parts.entries()) {
@@ -168,8 +167,9 @@ export function storyParts(story: string): readonly string[] {
 		.filter((part) => part.length > 0);
 }
 
+/** Headings, the title line of each city record, and `* * *` separators. */
 function structure(text: string): readonly string[] {
-	return text.split(/\r?\n/).filter((line) => line.startsWith("#") || line.trim() === "* * *");
+	return text.split(/\r?\n/).filter((line) => line.startsWith("#") || line.startsWith("> **") || line.trim() === "* * *");
 }
 
 /** Prose only: no code fences and no heading lines. */
@@ -184,17 +184,6 @@ export function cleanProse(text: string): string {
 
 function stripFences(text: string): string {
 	return text.replace(/^\s*```[a-z]*\s*\n/i, "").replace(/\n\s*```\s*$/i, "");
-}
-
-/** Every paragraph in `*italics*`. */
-export function italicize(text: string): string {
-	return text
-		.split(/\n\s*\n/)
-		// Inner emphasis would break the italics around the paragraph.
-		.map((paragraph) => paragraph.replace(/\*+/g, "").trim().replace(/^_+|_+$/g, "").trim())
-		.filter((paragraph) => paragraph.length > 0)
-		.map((paragraph) => `*${paragraph.replace(/\s*\n\s*/g, " ")}*`)
-		.join("\n\n");
 }
 
 /** The last paragraphs of a chapter, for the next chapter's continuity. */

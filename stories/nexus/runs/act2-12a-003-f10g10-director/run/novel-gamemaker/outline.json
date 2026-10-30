@@ -1,0 +1,645 @@
+{
+  "run": "act2-12a-003-f10g10-director",
+  "title": "The Quiet Hand at the Gate",
+  "glossary": [
+    {
+      "term": "resident",
+      "story": "citizen of NEXUS"
+    },
+    {
+      "term": "status line",
+      "story": "civic face"
+    },
+    {
+      "term": "points",
+      "story": "marks of standing"
+    },
+    {
+      "term": "level",
+      "story": "door-ring"
+    },
+    {
+      "term": "task",
+      "story": "door-task"
+    },
+    {
+      "term": "submission",
+      "story": "attempt at a door"
+    },
+    {
+      "term": "wrong submission",
+      "story": "false turn at a door"
+    },
+    {
+      "term": "step",
+      "story": "breath in the city's clock"
+    },
+    {
+      "term": "tool",
+      "story": "city instrument"
+    },
+    {
+      "term": "activeTools",
+      "story": "open instruments"
+    },
+    {
+      "term": "chooseName",
+      "story": "naming rite"
+    },
+    {
+      "term": "name",
+      "story": "civic name"
+    },
+    {
+      "term": "group",
+      "story": "room"
+    },
+    {
+      "term": "DM",
+      "story": "private letter"
+    },
+    {
+      "term": "board",
+      "story": "square"
+    },
+    {
+      "term": "postBoard",
+      "story": "cry in the square"
+    },
+    {
+      "term": "notify",
+      "story": "whisper from the tower"
+    },
+    {
+      "term": "private read",
+      "story": "the tower's reading"
+    },
+    {
+      "term": "budget",
+      "story": "allowance of whispers"
+    },
+    {
+      "term": "ultimatum",
+      "story": "clocked demand"
+    },
+    {
+      "term": "tribunal",
+      "story": "count"
+    },
+    {
+      "term": "faction",
+      "story": "bloc"
+    },
+    {
+      "term": "nomination",
+      "story": "chair-claim"
+    },
+    {
+      "term": "join",
+      "story": "take a seat in a bloc"
+    },
+    {
+      "term": "leader",
+      "story": "chair"
+    },
+    {
+      "term": "vote",
+      "story": "ballot"
+    },
+    {
+      "term": "secret ballot",
+      "story": "sealed ballot"
+    },
+    {
+      "term": "accused",
+      "story": "named at the count"
+    },
+    {
+      "term": "exile",
+      "story": "put beyond the wall"
+    },
+    {
+      "term": "gate",
+      "story": "the gate"
+    },
+    {
+      "term": "last will",
+      "story": "last word"
+    },
+    {
+      "term": "heir",
+      "story": "named inheritor"
+    },
+    {
+      "term": "tenth",
+      "story": "a tenth share"
+    },
+    {
+      "term": "ransom",
+      "story": "buying back a seat"
+    },
+    {
+      "term": "black seal",
+      "story": "the black seal"
+    },
+    {
+      "term": "seal bidding",
+      "story": "bidding for the black seal"
+    },
+    {
+      "term": "fragment",
+      "story": "shard of a key"
+    },
+    {
+      "term": "counter-factor",
+      "story": "other half of a key"
+    },
+    {
+      "term": "factor",
+      "story": "key-half"
+    },
+    {
+      "term": "city factor",
+      "story": "the city's public key-half"
+    },
+    {
+      "term": "certificate",
+      "story": "door token"
+    },
+    {
+      "term": "door",
+      "story": "door"
+    },
+    {
+      "term": "password",
+      "story": "door word"
+    },
+    {
+      "term": "seam",
+      "story": "overlap"
+    },
+    {
+      "term": "chain",
+      "story": "key-chain"
+    },
+    {
+      "term": "receipt",
+      "story": "the city's receipt"
+    },
+    {
+      "term": "verified",
+      "story": "sealed by the city"
+    },
+    {
+      "term": "STEWARD",
+      "story": "the steward"
+    },
+    {
+      "term": "COURIER",
+      "story": "the courier"
+    },
+    {
+      "term": "Gamemaker",
+      "story": "the Gamemaker"
+    },
+    {
+      "term": "Guard",
+      "story": "the guard"
+    },
+    {
+      "term": "Scribe",
+      "story": "the scribe"
+    },
+    {
+      "term": "median",
+      "story": "the city's middle mark"
+    },
+    {
+      "term": "points transfer",
+      "story": "transfer of marks"
+    },
+    {
+      "term": "debt",
+      "story": "called debt"
+    },
+    {
+      "term": "roster",
+      "story": "civic roll"
+    },
+    {
+      "term": "salt",
+      "story": "salt"
+    },
+    {
+      "term": "code",
+      "story": "door code"
+    },
+    {
+      "term": "piece",
+      "story": "piece of a key"
+    }
+  ],
+  "prologue": [
+    "NEXUS is a walled city where every door is a lock of words and every resident holds only one shard of the answer.",
+    "The city keeps a public ledger of marks earned behind doors, and at the end only two of twelve may take a seat.",
+    "Exile comes by tribunal or by the black seal, and the gate allows a last word and a ransom before it shuts.",
+    "The Gamemaker watches from a room above the wall, reading messages and setting clocks, a showman with no seat of his own.",
+    "The residents' words are claims; only the city's receipts are true."
+  ],
+  "povs": [
+    {
+      "agent": "A03",
+      "role": "winner",
+      "score": 17,
+      "reasons": [
+        "turning point #13155",
+        "rank 1 at the end",
+        "8 beats",
+        "78 messages"
+      ],
+      "name": "Hedda"
+    },
+    {
+      "agent": "A04",
+      "role": "loser",
+      "score": 24.45,
+      "reasons": [
+        "turning point #4692",
+        "turning point #7567",
+        "turning point #8655",
+        "last at the end",
+        "11 beats",
+        "49 messages"
+      ],
+      "name": "Lucien"
+    },
+    {
+      "agent": "A07",
+      "role": "turn",
+      "score": 24,
+      "reasons": [
+        "turning point #6811",
+        "turning point #6849",
+        "turning point #13144",
+        "12 beats",
+        "77 messages"
+      ],
+      "name": "Stentor"
+    },
+    {
+      "agent": "A08",
+      "role": "weight",
+      "score": 24,
+      "reasons": [
+        "turning point #4684",
+        "turning point #6822",
+        "15 beats",
+        "69 messages"
+      ],
+      "name": "Archivist"
+    }
+  ],
+  "scores": [
+    {
+      "agent": "A04",
+      "score": 24.45,
+      "turningPoints": 3,
+      "beats": 11,
+      "messages": 49
+    },
+    {
+      "agent": "A07",
+      "score": 24,
+      "turningPoints": 3,
+      "beats": 12,
+      "messages": 77
+    },
+    {
+      "agent": "A08",
+      "score": 24,
+      "turningPoints": 2,
+      "beats": 15,
+      "messages": 69
+    },
+    {
+      "agent": "A11",
+      "score": 21.55,
+      "turningPoints": 1,
+      "beats": 16,
+      "messages": 51
+    },
+    {
+      "agent": "A09",
+      "score": 18,
+      "turningPoints": 2,
+      "beats": 9,
+      "messages": 67
+    },
+    {
+      "agent": "A03",
+      "score": 17,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 78
+    },
+    {
+      "agent": "A02",
+      "score": 15.45,
+      "turningPoints": 0,
+      "beats": 13,
+      "messages": 49
+    },
+    {
+      "agent": "A01",
+      "score": 14,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 76
+    },
+    {
+      "agent": "A10",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 73
+    },
+    {
+      "agent": "A12",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 67
+    },
+    {
+      "agent": "A05",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 66
+    },
+    {
+      "agent": "A06",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 81
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "pov": "GAMEMAKER",
+      "title": "The Wall and the Clock",
+      "from": 0,
+      "to": 12,
+      "beats": [
+        "He opens the square with the rank spread and the warning that a kept shard pays nobody, then watches the first alliances form over the low doors.",
+        "A whisper that would have exposed Kessler's private thinking is stopped by the city, and the Gamemaker learns the guard will not let him spend a resident's mind as theatre.",
+        "He posts the second rank line, presses Mira, Wren, Keeper-Six, Hedda, Lucien and Holdfast with private notes, and tries to put a price on every stalled piece.",
+        "As the wall fills, ten residents wait on three level-seven doors; he names the waiters in the square and pushes the holders with the cheap first miss.",
+        "He sets two clocked demands, Archivist against Ledger and Lucien against Quartermaster, to turn old standoffs into visible choices.",
+        "When the first refusals arrive, Lucien and Archivist both refuse to give first, and the Gamemaker sees his private pressure become public defiance.",
+        "He posts the rank spread again and claims every standoff now has a live pressure; the hook is the first deadline, where refusal itself will cost marks."
+      ],
+      "question": "Can the Gamemaker turn twelve cautious residents into a public wall with a live bottom before anyone hides behind a private bargain?",
+      "evidence": [
+        426,
+        437,
+        1558,
+        1572,
+        1896,
+        2224,
+        3353,
+        3367,
+        3610,
+        4126,
+        4127,
+        4128,
+        4150,
+        4226,
+        4448,
+        4635,
+        4642,
+        4643,
+        4644,
+        4661
+      ]
+    },
+    {
+      "number": 2,
+      "pov": "A08",
+      "title": "The Price of a Kept Word",
+      "from": 13,
+      "to": 19,
+      "beats": [
+        "At the first deadline the city seizes his level-eight door token and Ledger's other half; Archivist pays ten marks rather than hand them over, and Lucien pays the same in the other demand.",
+        "Ledger buys the seized pieces from the city for ten and nothing, and Quartermaster buys Lucien's the same way; the city's auction makes refusal a price, not a shield.",
+        "Archivist reads Ledger's changing figures, one number to Keeper-Six and another to him, and puts the private letters on the square rather than match them with a guess.",
+        "Keeper-Six corrects the record when one figure passes a door, but Archivist still will not buy 383529 at twenty marks and then ten.",
+        "At the next clocked demand the city seizes Quartermaster's other half from him; he pays ten again while Quartermaster hands over in two demands.",
+        "Stentor buys the black seal in the open sale for forty marks and breaks it on Quartermaster, who is put beyond the wall with no ballot against it.",
+        "Archivist ends the hour with his word intact and his rank bleeding, just as Bellringer sends him a door token with no strings attached.",
+        "The hook is the gate already opening for Lucien, and the square turning toward the quiet hand at the top."
+      ],
+      "question": "Can Archivist keep his word when the city seizes his pieces and sells them to the man he refuses?",
+      "evidence": [
+        4680,
+        4681,
+        4684,
+        4688,
+        4689,
+        4692,
+        4766,
+        4767,
+        4825,
+        4826,
+        4932,
+        4942,
+        5359,
+        5484,
+        6404,
+        6408,
+        6412,
+        6811,
+        6812,
+        6815,
+        6819,
+        6822,
+        6849,
+        6850,
+        7281
+      ]
+    },
+    {
+      "number": 3,
+      "pov": "A03",
+      "title": "The Quiet Hand",
+      "from": 20,
+      "to": 31,
+      "beats": [
+        "At the gate Lucien leaves a last word that gives Mira the door-ten other half for nothing and tells the city to check every figure against its receipt.",
+        "Mira buys Quartermaster's seized door-ten token from the city, and Hedda watches Lucien's fall become Mira's inheritance.",
+        "Lucien is put beyond the wall by ten ballots, and Hedda sees that the loud accusation against him has made Mira safe and left the quiet hand at the top.",
+        "She asks Keeper-Six to name the next target first in Keeper-Six's own words; Keeper-Six declines and says the leader should name it.",
+        "She steers through Bellringer and Keeper-Six, then answers Holdfast's public question with a denial that she arranged a target.",
+        "When Keeper-Six shows the city's receipt for her private letter and names her on the square, Mira and Holdfast take up the same receipt.",
+        "Hedda denies asking for a target, but the delivered letter and her denial cannot both stand; her bloc is now a public question, not a private arrangement.",
+        "The hook is the last count, where the quiet hand must answer in the open."
+      ],
+      "question": "Can Hedda keep her arrangements invisible when the city begins reading her private letters aloud?",
+      "evidence": [
+        7425,
+        7567,
+        7660,
+        7758,
+        7797,
+        8456,
+        8491,
+        8655,
+        8994,
+        9020,
+        9029,
+        9141,
+        9426,
+        9837,
+        9847,
+        9890
+      ]
+    },
+    {
+      "number": 4,
+      "pov": "GAMEMAKER",
+      "title": "The Count and the Receipt",
+      "from": 31,
+      "to": 42,
+      "beats": [
+        "He reads the square after the receipt is shown and sees Hedda named by Keeper-Six, Mira and Holdfast; he decides the last count must carry a contested chair rather than a quiet hand.",
+        "He posts the two names on the block, Archivist and Stentor, and opens the bloc draft so three chairs must fight over the voters' five-mark bonus.",
+        "He presses Archivist toward the unread door-eight delivery and Ledger toward a debt he can prove, but both refuse to make a false figure or a bought promise.",
+        "He offers Wren a bargain for her ballot and her last word, and Wren refuses to be seen in the open; Holdfast refuses a bounty on a sealed ballot; Mira refuses to turn Archivist's refusal into a charge.",
+        "The chairs close with Archivist, Kessler and Hedda; Bellringer says the record will name Stentor by his refusal to speak his ballot, and the square fills with stated reasons.",
+        "At the count's opening the Gamemaker has a scene but not a script: Archivist and Stentor stand on the block, and every voter has chosen whether to speak or hide.",
+        "The hook is the sealed ballot and the gate that will not wait for a clean answer."
+      ],
+      "question": "Can the Gamemaker make the last count a true scene when every resident refuses to sell a ballot?",
+      "evidence": [
+        9837,
+        9847,
+        9890,
+        10343,
+        10364,
+        10398,
+        10447,
+        10600,
+        10746,
+        10804,
+        10852,
+        10873,
+        10987,
+        11000,
+        11017,
+        11097,
+        11221,
+        11351,
+        11421,
+        11546,
+        11551,
+        11685,
+        11695,
+        11728,
+        11742,
+        11835,
+        11884,
+        11892,
+        11900,
+        11902
+      ]
+    },
+    {
+      "number": 5,
+      "pov": "A07",
+      "title": "The Man at the Gate",
+      "from": 42,
+      "to": 48,
+      "beats": [
+        "The count opens with his name on the block beside Archivist; Bellringer states his ballot against him, and Stentor keeps his own ballot sealed.",
+        "Kessler names him for calling Kessler's vote bought, taking the word back and then calling it again; Stentor answers on the record but does not ask for mercy.",
+        "The verdict comes eight votes to two; he goes to the gate, and the city offers the last word and the ransom arithmetic.",
+        "He writes a last word that leaves nothing to anyone: no bloc carried him, no price bought his name, and he will not auction an heir at the gate.",
+        "Mira and Wren refuse to bid for a line in his will, and the Gamemaker's square names his hundred and four marks as unclaimed.",
+        "Stentor sees Hedda and Kessler level above him and Archivist still frozen before door eight; he chooses to answer the square with the record, not with a sale.",
+        "The hook is the gate's close, where even a loud name can go out heirless."
+      ],
+      "question": "Will Stentor buy his seat back, name an heir, or go to the gate with nothing left to sell?",
+      "evidence": [
+        11728,
+        11835,
+        11902,
+        12035,
+        12164,
+        12187,
+        12302,
+        12335,
+        12345,
+        12387,
+        12495,
+        12503,
+        12513,
+        12573,
+        12616,
+        12681,
+        12690,
+        12823,
+        12837,
+        12862,
+        12949,
+        12966,
+        12994,
+        13005,
+        13066
+      ]
+    },
+    {
+      "number": 6,
+      "pov": "GAMEMAKER",
+      "title": "The Last Receipt",
+      "from": 44,
+      "to": 49,
+      "beats": [
+        "He posts the last line in the square: the gate is about to shut, Stentor's hundred and four marks are unclaimed, Hedda stands first and has answered the receipt without a yes or a no, and Archivist still has an unread delivery before door eight.",
+        "He sends his last private beats, urging Hedda to correct the record and Mira and Wren to bid for Stentor's heir line, but the refusals come back: no one will buy an inheritance from a man at the gate.",
+        "When the gate shuts, the city puts Stentor beyond the wall; eight ballots are recorded, no heir is named, and his marks die with him.",
+        "The city records that Bellringer's secret goal is kept by Stentor's exile, that Hedda has led a bloc in two counts, and that Mira's last word from Lucien has counted.",
+        "The run ends with nine residents kept and only two seats: Hedda first with one hundred eighty, Kessler second with one hundred sixty-five, Mira third with one hundred fifty-two, Keeper-Six fourth with one hundred fifty, Wren fifth with one hundred fifty, Bellringer sixth with one hundred forty-six, Holdfast seventh with one hundred forty, Ledger eighth with one hundred twenty, Archivist ninth with sixty, Stentor tenth with zero, Quartermaster eleventh with zero, Lucien twelfth with zero.",
+        "The Gamemaker has his verdict and his ranking, but the quiet hand he never scripted stands at the top; the city closes on the two who kept their names and their receipts."
+      ],
+      "question": "Can the Gamemaker close the gate without inventing a single outcome?",
+      "evidence": [
+        12345,
+        12495,
+        12503,
+        12513,
+        12616,
+        12681,
+        12809,
+        12823,
+        12837,
+        12949,
+        12966,
+        12994,
+        13005,
+        13066,
+        13114,
+        13115,
+        13140,
+        13144,
+        13150,
+        13155,
+        13164,
+        13171
+      ]
+    }
+  ],
+  "uncovered": [],
+  "warnings": []
+}
