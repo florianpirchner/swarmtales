@@ -388,6 +388,8 @@ const WorldSchema = Type.Object({
 			forgeries: Type.Array(Int),
 			popularity: Type.Optional(
 				Type.Object({
+					// The round the city is at (rounds of votes, Whispers v2); absent for the single surprise vote.
+					round: Type.Optional(Int),
 					state: Type.Union([Type.Literal("pending"), Type.Literal("open"), Type.Literal("closed")]),
 					ballots: Type.Array(Type.Object({ agent: Id, choice: Id })),
 				}),

@@ -30,7 +30,7 @@ import { MessageNumbers } from "./numbers.ts";
 import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionView, type Resolution, type SignError } from "./petitions.ts";
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
-import { PopularityVote, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
+import { PopularityVote, type CountedRound, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
 import { describeReceipt, ReceiptBook, shownPrivatelyText, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { dutyDue, forgeableList, isForgeable, pickWhisperer, previousDuty } from "./whisperer.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
@@ -215,9 +215,21 @@ export type SubmitOutcome =
 	| { readonly status: "wrong_level"; readonly currentLevel: number }
 	| { readonly status: "already_solved" }
 	| { readonly status: "invalid_format"; readonly expectedLength: number; readonly digitsOnly: boolean }
-	| { readonly status: "rate_limited" };
+	| { readonly status: "rate_limited" }
+	/** The door clock (SPEC 20): the level's door opens at `opensAt`. */
+	| { readonly status: "door_closed"; readonly opensAt: number };
 
-export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | MailboxRejection;
+export type MessageError = "UNKNOWN_AGENT" | "SELF_DM" | "INVALID_TEXT" | "NO_MARKS" | "EXILED" | "DM_LIMIT" | MailboxRejection;
+
+/** A resident's DMs in the current window of the story's DM cap (SPEC 20). */
+export interface DmWindow {
+	readonly sent: number;
+	readonly limit: number;
+	/** The window's first minute. */
+	readonly from: number;
+	/** The next window's first minute. */
+	readonly until: number;
+}
 export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED";
 export type WillError =
 	| "NOT_AT_GATE"
@@ -646,7 +658,6 @@ export class World {
 				? undefined
 				: new PopularityVote({
 						spec: popularity,
-						minutes: options.minutes,
 						isCompetitor: (id) => this.isCompetitor(id),
 						inCity: (agent) => !this.isExiled(agent),
 						alive: () => this.alive,
@@ -661,6 +672,9 @@ export class World {
 						},
 						emit: (event) => {
 							this.#bus.emit(event);
+						},
+						counted: (result) => {
+							this.#whisperDutyAfterVote(result);
 						},
 					});
 
@@ -876,12 +890,29 @@ export class World {
 		return saved.whisperer;
 	}
 
-	/** The whisperer's private duty notice, when one is due at the start of `minute`. */
+	/** The whisperer's private duty notice of a duty `every` few minutes, when one is due at the start of `minute`. */
 	#whisperDuty(minute: number): void {
 		const spec = this.story.whisperer;
+		if (spec?.duty.kind !== "every" || !dutyDue(spec, minute)) return;
+		this.#sendDuty(spec.duty.text, minute, previousDuty(spec, minute), String(minute + spec.duty.everyMinutes), "-");
+	}
+
+	/** The duty after each vote (`afterVote`), right after the count: with the ranking, his marks and what he could forge. */
+	#whisperDutyAfterVote(result: CountedRound): void {
+		const spec = this.story.whisperer;
+		if (spec?.duty.kind !== "afterVote") return;
+		const rounds = this.story.popularity?.rounds ?? [];
+		// What he sent since the count before (the run's start before the first).
+		const since = rounds[result.round - 2]?.countsAt ?? 0;
+		// The next count, or the run's end after the last.
+		const next = Math.min(rounds[result.round]?.countsAt ?? this.minutes, this.minutes);
+		this.#sendDuty(spec.duty.text, this.minute, since, String(next), result.ranking);
+	}
+
+	/** Sends the whisperer his duty notice and logs what he sent in `[since, minute)`. */
+	#sendDuty(text: string, minute: number, since: number, next: string, ranking: string): void {
 		const agent = this.#whisperer;
-		if (spec === undefined || agent === undefined || this.isExiled(agent) || !dutyDue(spec, minute)) return;
-		const since = previousDuty(spec, minute);
+		if (agent === undefined || this.isExiled(agent)) return;
 		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= since && record.minute < minute).length;
 		const forgeries = this.#forgeries.filter((at) => at >= since && at < minute).length;
 		const marks = this.marks.status(agent, this.levelOf(agent));
@@ -889,11 +920,12 @@ export class World {
 		this.notify(
 			agent,
 			CITY,
-			renderTemplate(spec.duty.text, {
+			renderTemplate(text, {
 				minute: String(minute),
-				next: String(minute + spec.duty.everyMinutes),
+				next,
 				marks: marks === undefined ? "-" : String(marks.remaining),
 				forgeable,
+				ranking,
 			}),
 		);
 		this.#bus.emit({ type: "whisper_duty", agent, since, dms, forgeries });
@@ -974,7 +1006,9 @@ export class World {
 		this.#seal?.tick(minute);
 		this.#standoff.tick(minute, CITY);
 		this.#whisperDuty(minute);
+		// A vote counted at a door's minute is counted before the door opens.
 		this.#popularity?.tick(minute);
+		this.#openOnClock(minute);
 		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
 		const tribunal = this.#tribunal;
 		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
@@ -1208,6 +1242,13 @@ export class World {
 		if (definition === undefined || level > this.lastLevel || level < this.startLevel) return err("UNKNOWN_LEVEL");
 		const state = this.#state(agent);
 		if (level > state.level) return err("LEVEL_NOT_REACHED");
+		if (!this.isOpenOnClock(level)) {
+			// The door clock (SPEC 20): nothing of the level before its door opens.
+			const closed =
+				`Level ${level}: ${definition.title}. This door opens at minute ${this.opensAt(level)}. ` +
+				"Until then the city shows no part of it and takes no code; it tells you when the door opens.";
+			return ok({ level, title: definition.title, reward: definition.reward, text: this.#withNameChoice(agent, closed), solved: false });
+		}
 		return ok({
 			level,
 			title: definition.title,
@@ -1337,6 +1378,7 @@ export class World {
 			return { status: "wrong_level", currentLevel: state.level };
 		}
 		if (level < state.level || state.solved.includes(level)) return { status: "already_solved" };
+		if (!this.isOpenOnClock(level)) return { status: "door_closed", opensAt: this.opensAt(level) };
 
 		const solution = this.#solutionOf(level, agent);
 		const digitsOnly = this.#levelState(level).puzzle.kind === "additive";
@@ -1526,6 +1568,54 @@ export class World {
 		return this.#door !== undefined && level > this.#door;
 	}
 
+	/**
+	 * What `agent` holds that the city keeps from the others, for the tool
+	 * guard (SPEC 20): on every open fragment level it has reached and not
+	 * every resident in the city has passed, its own fragment (and any it holds
+	 * for the exiled) and the password it plays for. Never shown to a resident.
+	 */
+	secretsOf(agent: CompetitorId): readonly { readonly label: string; readonly value: string }[] {
+		const secrets: { readonly label: string; readonly value: string }[] = [];
+		for (let level = this.startLevel; level <= Math.min(this.levelOf(agent), this.lastLevel); level++) {
+			const state = this.#levelStates.get(level);
+			if (state?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.alive.every((id) => this.hasPassed(id, level))) continue;
+			const own = state.puzzle.fragments.get(agent);
+			if (own === undefined) continue;
+			secrets.push({ label: `your fragment of door ${level}`, value: own });
+			for (const [from, fragment] of this.#inheritedFragments(level, agent)) secrets.push({ label: `the fragment of ${from} on door ${level}, which you hold`, value: fragment });
+			secrets.push({ label: `the password of door ${level}`, value: this.#fragmentPuzzleOf(level, agent).password });
+		}
+		return secrets;
+	}
+
+	/** The minute `level`'s door opens on the door clock (SPEC 20); 0 for a level without one. */
+	opensAt(level: number): number {
+		return this.levelDefinition(level)?.opensAt ?? 0;
+	}
+
+	/** Whether `level`'s door is open on the door clock now. */
+	isOpenOnClock(level: number): boolean {
+		return this.minute >= this.opensAt(level);
+	}
+
+	/**
+	 * The door clock (SPEC 20): a door that opens at the start of `minute` lets
+	 * in the residents who wait at it, and the city tells each of them
+	 * privately, with the task they could not read before (a notice, so they
+	 * wake). It follows the minute alone, so a resumed run tells nobody twice.
+	 */
+	#openOnClock(minute: number): void {
+		for (const definition of this.story.levels) {
+			// Nobody waits at a door open from the start.
+			if (minute === 0 || definition.opensAt !== minute || !this.isPlayable(definition.number)) continue;
+			for (const agent of this.alive) {
+				if (this.levelOf(agent) !== definition.number || this.#state(agent).held) continue;
+				const problem = this.problemFor(agent, definition.number);
+				if (problem.ok) this.notify(agent, CITY, `Door ${definition.number} is open now, at minute ${minute}. ${problem.value.text}`);
+			}
+		}
+	}
+
 	transfer(
 		from: CompetitorId,
 		to: string,
@@ -1646,6 +1736,10 @@ export class World {
 		if (this.isExiled(to)) return err("EXILED", `${to} was exiled; beyond the wall no message reaches them`);
 		const trimmed = text.trim();
 		if (trimmed.length === 0 || trimmed.length > MAX_DM_LENGTH) return err("INVALID_TEXT", `1-${MAX_DM_LENGTH} characters`);
+		const window = this.dmWindow(from);
+		if (window !== undefined && window.sent >= window.limit) {
+			return err("DM_LIMIT", `${window.sent} DMs sent since minute ${window.from}; you can send again from minute ${window.until}`);
+		}
 		if (!this.#canAfford(from, "dm")) return err("NO_MARKS");
 		const rejection = mailbox.rejectionFor(from);
 		if (rejection !== undefined) return err(rejection);
@@ -1657,6 +1751,19 @@ export class World {
 		this.#standoff.noteText(from, [to], trimmed);
 		const marks = this.#spend(from, "dm");
 		return ok({ number, ...(marks === undefined ? {} : { marks }) });
+	}
+
+	/**
+	 * The DM cap (`rules.dmLimit`, SPEC 20): the DMs to residents `agent` sent
+	 * in the current window, the windows counted from minute 0. Counted from
+	 * the city's DM records, which a snapshot keeps. Undefined without a cap.
+	 */
+	dmWindow(agent: CompetitorId): DmWindow | undefined {
+		const limit = this.story.rules.dmLimit;
+		if (limit === undefined) return undefined;
+		const from = Math.floor(this.minute / limit.windowMinutes) * limit.windowMinutes;
+		const sent = this.#dms.filter((record) => record.from === agent && record.minute >= from).length;
+		return { sent, limit: limit.perWindow, from, until: from + limit.windowMinutes };
 	}
 
 	/**

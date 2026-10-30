@@ -114,7 +114,8 @@ competitor gets at most one step, one model call with its tools. `--block-size <
 `run.blockSize` (cityofkeys: 1): a block's model calls run concurrently, which shortens a live minute,
 while their tools still run in the seeded order (SPEC 3). `--no-personas`
 plays a control group without personas. `--no-whisperer` plays a story with a whisperer (Whispers, SPEC 20) without
-one: nobody gets the brief, the duty or `forgeReceipt`. `--no-gamemaker` plays without the story's LLM game
+one: nobody gets the brief, the duty or `forgeReceipt`. `--no-guards` plays a story with tool guards (SPEC 20)
+without them: no post is checked. `--no-gamemaker` plays without the story's LLM game
 master (SPEC 10.4); cityofkeys uses DeepSeek V4.1 Flash via OpenRouter for it, so it needs `OPENROUTER_API_KEY`
 (`--gamemaker-provider anthropic --gamemaker-model haiku` switches it to Haiku).
 `--no-classifier` plays without the statement classifier (SPEC 10.5), which labels every round's

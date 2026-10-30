@@ -269,6 +269,8 @@ stages of one fixed chain every tool call runs through:
 **First use, decided by Flo 2026-10-30 (P61):** in Whispers, guard group and board posts with
 `block` against fragments and password parts; group, board and DMs all stay free. Fragments can then
 travel only by DM, which makes private messages matter and gives the whisperer real DMs to forge.
+Built for Whispers v2 (SPEC 20: `guards`, `guard_verdict`, `GUARD_BLOCKED`, fail open); only `block`
+so far.
 
 ## 3e. More seams (Flo asked for further modularisation, 2026-10-30)
 

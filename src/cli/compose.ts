@@ -17,6 +17,7 @@ import { World } from "../engine/world.ts";
 import { Gamemaker, GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
 import { gamemakerSystemPrompt } from "../gamemaker/system-prompt.ts";
 import type { StatementClassifier } from "../interpret/classifier.ts";
+import { GUARD_ID, type GuardJudge } from "../interpret/guard.ts";
 import { JUDGE_ID, type DeliveryJudge } from "../interpret/judge.ts";
 import { SOUFFLEUR_ID, type Souffleur } from "../interpret/souffleur.ts";
 import { Interpreter } from "../interpret/interpreter.ts";
@@ -26,6 +27,7 @@ import type { ModelSource, RequestLimits } from "../model/source.ts";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
 import { assertValidStory } from "../story/validate.ts";
 import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "../story/types.ts";
+import { ToolGuard } from "../tools/guard.ts";
 import { bindStory } from "../tools/index.ts";
 import { storyId } from "../../stories/index.ts";
 
@@ -67,6 +69,8 @@ export interface RunOverrides {
 	readonly budgetUsd?: number;
 	/** `false` plays without the story's whisperer, the control run (Whispers, `--no-whisperer`). */
 	readonly whisperer?: boolean;
+	/** `false` plays without the story's tool guards (`--no-guards`). */
+	readonly guards?: boolean;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -95,6 +99,8 @@ export interface EffectiveRun {
 	readonly gmDirection: DirectionLevel;
 	/** Whether the story's whisperer plays (Whispers); off in a control run. */
 	readonly whisperer: boolean;
+	/** Whether the story's tool guards check residents' calls (SPEC 20). */
+	readonly guards: boolean;
 }
 
 /** Builds the model source once the world and the per-competitor models are known. */
@@ -118,6 +124,8 @@ export interface ComposeOptions {
 	readonly classifier?: StatementClassifier | ((world: World) => StatementClassifier);
 	/** The city's judge for `blame`; without one the tool answers that the judge is absent. */
 	readonly judge?: DeliveryJudge;
+	/** The tool guard's model (SPEC 20); without one a story's guards run only the city's own check. */
+	readonly guardJudge?: GuardJudge;
 	/** Rewrites a resident's step the provider's safeguards refused (P44). */
 	readonly souffleur?: Souffleur;
 	/** The weaver's model (or a factory that needs the world); required when the run plays with the weaver. */
@@ -188,6 +196,7 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		figureDirection: overrides.figureDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.figureDirection),
 		gmDirection: overrides.gmDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.gmDirection),
 		whisperer: story.whisperer !== undefined && (overrides.whisperer ?? true),
+		guards: story.guards !== undefined && (overrides.guards ?? true),
 	};
 }
 
@@ -327,6 +336,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const source = typeof options.models === "function" ? options.models(world, assignments) : options.models;
 	const judge = options.judge === undefined ? undefined : meteredJudge(options.judge, bus);
 	const souffleur = options.souffleur === undefined ? undefined : meteredSouffleur(options.souffleur, bus);
+	const guard = createGuard(story, effective, world, bus, options.guardJudge);
 
 	const figures = story.cores?.figures;
 	// Rivals still in the city; an exiled one is no longer faced.
@@ -349,7 +359,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const storyTools = story.toolScope === "story";
 	const levelTools = new Set<string>(story.levels.flatMap((entry) => entry.tools));
 	const runners = ids.map((id) => {
-		const bound = bindStory({ self: id, world, ...(judge === undefined ? {} : { judge }) }, story);
+		const bound = bindStory({ self: id, world, ...(judge === undefined ? {} : { judge }), ...(guard === undefined ? {} : { guard }) }, story);
 		const initialTools = storyTools ? bound.filter((tool) => levelTools.has(tool.name) || tool.name === "activeTools" || world.enabledTools(id).some((name) => name === tool.name)) : bound;
 		// The whisperer's secret brief closes its own prompt; nobody else reads it.
 		const brief = world.whisperer === id ? story.whisperer?.brief.trim() : undefined;
@@ -531,6 +541,35 @@ function meteredJudge(judge: DeliveryJudge, bus: EventBus): DeliveryJudge {
 			return answer;
 		},
 	};
+}
+
+/**
+ * The story's tool guards (SPEC 20), unless the run plays without them; the
+ * guard's model spend is logged as `usage` of {@link GUARD_ID}, so budget and
+ * usage report count it.
+ */
+function createGuard(story: AnyStory, effective: EffectiveRun, world: World, bus: EventBus, judge: GuardJudge | undefined): ToolGuard | undefined {
+	const spec = story.guards;
+	if (spec === undefined || !effective.guards) return undefined;
+	const metered: GuardJudge | undefined =
+		judge === undefined
+			? undefined
+			: {
+					label: judge.label,
+					async judge(question) {
+						const answer = await judge.judge(question);
+						for (const entry of answer.usage) bus.emit({ type: "usage", agent: GUARD_ID, ...entry });
+						return answer;
+					},
+				};
+	return new ToolGuard({
+		spec,
+		...(metered === undefined ? {} : { judge: metered }),
+		secretsOf: (agent) => world.secretsOf(agent),
+		emit: (event) => {
+			bus.emit(event);
+		},
+	});
 }
 
 /** The souffleur with its spend logged as `usage` of {@link SOUFFLEUR_ID}. */

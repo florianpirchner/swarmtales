@@ -82,9 +82,13 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "whisper_duty":
 			return `  (whisper duty for ${event.agent}: ${event.dms} DMs and ${event.forgeries} forgeries since minute ${event.since})`;
 		case "popularity_opened":
-			return `  (popularity vote open until minute ${event.until}, +${event.points} for the winner)`;
+			return `  (popularity vote${event.round === undefined ? "" : ` ${event.round}`} open until minute ${event.until}, +${event.points} for the winner)`;
 		case "popularity_result":
-			return `  (popularity vote: ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}; winners: ${event.winners.join(", ") || "nobody"})`;
+			return `  (popularity vote${event.round === undefined ? "" : ` ${event.round}`}: ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}; winners: ${event.winners.join(", ") || "nobody"})`;
+		case "guard_verdict":
+			return event.allowed && event.error === undefined
+				? undefined
+				: `  (guard ${event.rule}: ${event.agent}'s ${event.tool} ${event.allowed ? `let through, ${event.error ?? ""}` : `blocked by ${event.by}: ${event.reason}`})`;
 		case "popularity_ballot":
 			return undefined;
 		case "petition_signed":

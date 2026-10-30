@@ -48,13 +48,16 @@ describe("pnpm start arguments", () => {
 		expect(effectiveRun(cityOfKeys, { agents: 48, blockSize: 4 }).blockSize).toBe(4);
 	});
 
-	it("parses --no-whisperer: the control run of a story with a whisperer", () => {
+	it("parses --no-whisperer (the control run of a story with a whisperer) and --no-guards", () => {
 		expect(parseStartArgs(["--story", "whispers", "--no-whisperer"])).toMatchObject({ overrides: { whisperer: false } });
 		expect(parseStartArgs([]).overrides).not.toHaveProperty("whisperer");
 		const whispers = findStory("whispers");
 		if (whispers === undefined) throw new Error("whispers is not registered");
 		expect(effectiveRun(whispers).whisperer).toBe(true);
 		expect(effectiveRun(whispers, { whisperer: false }).whisperer).toBe(false);
+		expect(effectiveRun(whispers).guards).toBe(true);
+		expect(effectiveRun(whispers, { guards: false }).guards).toBe(false);
+		expect(parseStartArgs(["--story", "whispers", "--no-guards"])).toMatchObject({ overrides: { guards: false } });
 	});
 
 	it("parses the judge's temper", () => {
@@ -120,6 +123,7 @@ describe("pnpm start arguments", () => {
 			figureDirection: 4,
 			gmDirection: 4,
 			whisperer: false,
+			guards: false,
 		});
 		expect(effectiveRun(cityOfKeys, { figureDirection: 9, gmDirection: 5 })).toMatchObject({ figureDirection: 8, gmDirection: 4 });
 		expect(effectiveRun(cityOfKeys, { cores: false })).toMatchObject({ cores: false });

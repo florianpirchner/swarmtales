@@ -309,17 +309,34 @@ export type ArenaEvent =
 	| { readonly type: "whisperer_chosen"; readonly agent: CompetitorId }
 	/** The whisperer's private duty notice; `dms` and `forgeries` count what it sent since the duty before. */
 	| { readonly type: "whisper_duty"; readonly agent: CompetitorId; readonly since: number; readonly dms: number; readonly forgeries: number }
-	/** The surprise popularity vote opened; ballots are taken until `until`. */
-	| { readonly type: "popularity_opened"; readonly until: number; readonly points: number }
-	/** A secret ballot (the last one counts); never shown to residents. */
-	| { readonly type: "popularity_ballot"; readonly agent: CompetitorId; readonly choice: CompetitorId }
-	/** The vote closed: every winner (all tied at the top) got `points`. */
+	/** A popularity round (`round`, from 1; absent in logs of the single surprise vote) opened; ballots are taken until `until`. */
+	| { readonly type: "popularity_opened"; readonly round?: number; readonly until: number; readonly points: number }
+	/** A secret ballot (the last one of a round counts); never shown to residents. */
+	| { readonly type: "popularity_ballot"; readonly round?: number; readonly agent: CompetitorId; readonly choice: CompetitorId }
+	/** A round was counted: every winner (all tied at the top) got `points`; `counts` ranks every resident in the city, 0 votes too. */
 	| {
 			readonly type: "popularity_result";
+			readonly round?: number;
 			readonly counts: readonly { readonly agent: CompetitorId; readonly votes: number }[];
 			readonly winners: readonly CompetitorId[];
 			readonly points: number;
 			readonly voters: readonly CompetitorId[];
+	  }
+	/**
+	 * A tool guard's verdict on a resident's call (SPEC 20): `by` the city's
+	 * own check (`check`), the guard's model (`model`), or nobody (`none`: no
+	 * model in this run). `error` marks a model that failed: the call went
+	 * through (fail open).
+	 */
+	| {
+			readonly type: "guard_verdict";
+			readonly tool: string;
+			readonly agent: CompetitorId;
+			readonly rule: string;
+			readonly allowed: boolean;
+			readonly reason: string;
+			readonly by: "check" | "model" | "none";
+			readonly error?: string;
 	  }
 	| {
 			readonly type: "petition_opened";

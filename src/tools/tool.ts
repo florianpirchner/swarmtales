@@ -13,6 +13,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import type { World } from "../engine/world.ts";
 import type { DeliveryJudge } from "../interpret/judge.ts";
 import type { ToolName } from "./catalog.ts";
+import { GUARD_BLOCKED, guardedText, type ToolGuard } from "./guard.ts";
 
 export const TOOL_LOCKED = "TOOL_LOCKED";
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
@@ -27,6 +28,8 @@ export interface ToolContext {
 	readonly world: World;
 	/** Decides `blame` claims; absent without a key or in an offline run. */
 	readonly judge?: DeliveryJudge;
+	/** Checks guarded tools' texts before they run (SPEC 20); absent in a story without guards. */
+	readonly guard?: ToolGuard;
 }
 
 /** Result of a tool: text for the model, or a structured error code. */
@@ -103,7 +106,11 @@ function gateway<N extends ToolName, S extends TSchema>(
 	} catch {
 		return failure(INVALID_ARGUMENTS);
 	}
-	return definition.execute(params, context);
+	// The tool guard (SPEC 20), a preHook: a blocked call never runs, so it posts and costs nothing.
+	const guard = context.guard;
+	const text = guard?.guards(definition.name) === true ? guardedText(definition.name, params) : undefined;
+	if (guard === undefined || text === undefined) return definition.execute(params, context);
+	return guard.review(context.self, definition.name, text).then((decision) => (decision.allowed ? definition.execute(params, context) : failure(GUARD_BLOCKED, decision.reason)));
 }
 
 /** Parameters that name a resident; each takes a name as well as an ID (v08). */

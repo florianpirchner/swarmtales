@@ -197,6 +197,7 @@ export class AgentTranscriptLog implements EventSink {
 			case "popularity_opened":
 			case "popularity_ballot":
 			case "popularity_result":
+			case "guard_verdict":
 			case "petition_opened":
 			case "petition_signed":
 			case "petition_resolved":

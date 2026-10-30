@@ -301,6 +301,7 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "popularity_opened":
 			case "popularity_ballot":
 			case "popularity_result":
+			case "guard_verdict":
 			case "fate_shift":
 				break;
 			default:

@@ -316,6 +316,7 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "popularity_opened":
 			case "popularity_ballot":
 			case "popularity_result":
+			case "guard_verdict":
 			case "fate_shift":
 				break;
 			default:

@@ -2,11 +2,11 @@
  * The whisperer (Whispers, `story.whisperer`): one resident whose only aim
  * is discord. It is fixed by the story or drawn from the seed, plays the
  * doors like everyone else and is never named to anyone. The city keeps it
- * to a rhythm: every `duty.everyMinutes` from `duty.fromMinute` a private
- * duty notice asks for at least one whisper, a rumour by DM or a forged
- * receipt (`World.forgeReceipt`). Everything here is stateless: who whispers
- * follows from the seed, the duty from the minute, so a resumed run needs
- * nothing kept.
+ * to a rhythm: a private duty notice every `duty.everyMinutes` from
+ * `duty.fromMinute`, or right after each popularity vote is counted, asks
+ * for whispers, rumours by DM or forged receipts (`World.forgeReceipt`).
+ * Everything here is stateless: who whispers follows from the seed, the duty
+ * from the minute or the count, so a resumed run needs nothing kept.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { rngFor } from "../core/random.ts";
@@ -20,15 +20,18 @@ export function pickWhisperer(spec: WhispererSpec, ids: readonly CompetitorId[],
 	return rngFor(seed, "whisperer").pick([...ids].sort((a, b) => a.localeCompare(b)));
 }
 
-/** Whether a duty notice is due at the start of `minute`. */
+/** Whether a duty `every` few minutes is due at the start of `minute`; a duty after each vote follows the count instead. */
 export function dutyDue(spec: WhispererSpec, minute: number): boolean {
-	const { everyMinutes, fromMinute } = spec.duty;
-	return minute >= fromMinute && (minute - fromMinute) % everyMinutes === 0;
+	const duty = spec.duty;
+	if (duty.kind !== "every") return false;
+	return minute >= duty.fromMinute && (minute - duty.fromMinute) % duty.everyMinutes === 0;
 }
 
-/** The minute the duty before `minute` was due (the run's start before the first). */
+/** The minute the duty before `minute` was due (the run's start before the first), for a duty `every` few minutes. */
 export function previousDuty(spec: WhispererSpec, minute: number): number {
-	return minute > spec.duty.fromMinute ? minute - spec.duty.everyMinutes : 0;
+	const duty = spec.duty;
+	if (duty.kind !== "every") return 0;
+	return minute > duty.fromMinute ? minute - duty.everyMinutes : 0;
 }
 
 /**

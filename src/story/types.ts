@@ -117,6 +117,19 @@ export interface Rules {
 	readonly ultimatum?: UltimatumRule;
 	/** How receipts read (SPEC 8); a DM receipt never carries the DM's text when omitted. */
 	readonly receipts?: ReceiptRules;
+	/** A cap on DMs per resident and window (SPEC 20); no cap when omitted. */
+	readonly dmLimit?: DmLimit;
+}
+
+/**
+ * At most `perWindow` DMs to residents per resident in each window of
+ * `windowMinutes`, the windows counted from minute 0 (Whispers: 8 every 6
+ * minutes, aligned to the door clock). A DM over the cap is refused
+ * (`DM_LIMIT`); a forged receipt is no DM.
+ */
+export interface DmLimit {
+	readonly perWindow: number;
+	readonly windowMinutes: number;
 }
 
 /** Receipt options of a story (SPEC 8). */
@@ -214,6 +227,12 @@ export interface LevelDefinition {
 	/** Task text template, see {@link TASK_PLACEHOLDERS}. */
 	readonly task: string;
 	readonly marks?: LevelMarks;
+	/**
+	 * The door clock (SPEC 20): the minute this level's door opens. Before it
+	 * the level shows no puzzle and takes no code; a resident who reaches it
+	 * early waits and is told when it opens. Open from the start when omitted.
+	 */
+	readonly opensAt?: number;
 }
 
 /** Placeholders a level task text may use. */
@@ -461,8 +480,10 @@ export interface StoryDefinition<C extends string = string> {
 	readonly seal?: SealSpec;
 	/** Optional whisperer (Whispers): one resident whose only aim is discord; none when omitted. */
 	readonly whisperer?: WhispererSpec;
-	/** Optional popularity vote near the end, announced only when it opens; none when omitted. */
+	/** Optional popularity votes, one or more rounds at fixed minutes; none when omitted. */
 	readonly popularity?: PopularitySpec;
+	/** Optional tool guards (SPEC 20): a model checks a tool's text against a rule before the tool runs; none when omitted. */
+	readonly guards?: GuardsSpec;
 	/**
 	 * Which tool schemas a resident's model sees (P46). `all` (the default):
 	 * every tool of the city, locked by its answer. `story`: the tools of the
@@ -484,11 +505,11 @@ export type ToolScope = "all" | "story";
  * The whisperer (Whispers). One resident, fixed by `agent` or drawn from the
  * seed, plays the doors like everyone else; its secret `brief` (in its own
  * system prompt only) gives it one aim: discord. Nobody else is told that a
- * whisperer exists. Every `duty.everyMinutes` from `duty.fromMinute` the city
- * reminds it privately to whisper at least once. With `forgery` it also has
- * `forgeReceipt` wherever `showReceipt` is open: a receipt of a real DM that
- * another resident sent to it, shown privately to a third resident exactly
- * like a real shown receipt, but quoting a text of its own (needs
+ * whisperer exists. Its `duty` is a private notice from the city: every few
+ * minutes, or right after each popularity vote is counted. With `forgery` it
+ * also has `forgeReceipt` wherever `showReceipt` is open: a receipt of a real
+ * DM that another resident sent to it, shown privately to a third resident
+ * exactly like a real shown receipt, but quoting a text of its own (needs
  * `rules.receipts.quoteDms`). A forgery costs what showing a receipt costs;
  * the log marks every one (`receipt_forged`), the residents never can.
  */
@@ -503,41 +524,55 @@ export interface WhispererSpec {
 	readonly core?: { readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[]; readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[] };
 }
 
-export interface WhisperDuty {
-	readonly everyMinutes: number;
-	readonly fromMinute: number;
-	/** Private notice to the whisperer; see {@link WHISPER_DUTY_PLACEHOLDERS}. */
-	readonly text: string;
-}
-
 /**
- * Placeholders of the duty notice: the minute, the next duty's minute, the
- * whisperer's marks left, and the DM receipts it could forge now
- * (`R-0007: DM #12 from A04, minute 5`, or `none yet`).
+ * When the city reminds the whisperer, privately: every `everyMinutes` from
+ * `fromMinute` (`every`), or right after each popularity vote is counted
+ * (`afterVote`, Whispers v2: nothing before the first vote). `text` is the
+ * notice; see {@link WHISPER_DUTY_PLACEHOLDERS}.
  */
-export const WHISPER_DUTY_PLACEHOLDERS = ["minute", "next", "marks", "forgeable"] as const;
+export type WhisperDuty =
+	| { readonly kind: "every"; readonly everyMinutes: number; readonly fromMinute: number; readonly text: string }
+	| { readonly kind: "afterVote"; readonly text: string };
+
+export const WHISPER_DUTY_KINDS = ["every", "afterVote"] as const satisfies readonly WhisperDuty["kind"][];
 
 /**
- * A popularity vote (Whispers), a surprise: nobody is told before it opens,
- * `opensBeforeEnd` minutes before the end of the run. The city announces it
- * on the board and to every resident, who may then name the resident it
- * likes most with `nameFavourite` until `voteMinutes` have passed (never
- * itself; the last name counts; the ballot is secret). When it closes, the
- * resident with the most votes gets `points`; a tie pays everyone tied;
- * without a single vote nobody wins. The board shows the counts, never who
- * voted for whom.
+ * Placeholders of the duty notice: the minute, the next duty's minute (after
+ * the last vote the run's end), the whisperer's marks left, the DM receipts it
+ * could forge now (`R-0007: DM #12 from A04, minute 5`, or `none yet`), and
+ * after a vote its ranking (`A02 3, A01 1, A03 0`; `-` for `every`).
+ */
+export const WHISPER_DUTY_PLACEHOLDERS = ["minute", "next", "marks", "forgeable", "ranking"] as const;
+
+/**
+ * Popularity votes (Whispers): one or more rounds at fixed minutes. Each
+ * round opens at `opensAt`: the city announces it on the board and to every
+ * resident, who may then name the resident it likes most with
+ * `nameFavourite` (never itself; the last name counts; the ballot is
+ * secret). At the start of `countsAt` the city counts: the resident with the
+ * most votes gets the round's `points`; a tie pays everyone tied; without a
+ * single vote nobody wins. The board shows the full ranking (every resident
+ * in the city with its votes, 0 too), never who voted for whom.
  */
 export interface PopularitySpec {
-	readonly opensBeforeEnd: number;
-	readonly voteMinutes: number;
-	readonly points: number;
+	/** In order: each round opens no earlier than the one before is counted. */
+	readonly rounds: readonly PopularityRound[];
 	readonly texts: PopularityTexts;
 }
 
+export interface PopularityRound {
+	readonly opensAt: number;
+	/** The minute at whose start the ballots are counted, before a door that opens in the same minute. */
+	readonly countsAt: number;
+	readonly points: number;
+	/** The round's name in the texts (`{label}`), e.g. "before door 2" or "the final vote". */
+	readonly label: string;
+}
+
 export interface PopularityTexts {
-	/** Board post and notice to every resident when the vote opens. */
+	/** Board post and notice to every resident when a round opens. */
 	readonly announcement: string;
-	/** Board post with the counts and the winners. */
+	/** Board post with the ranking and the winners. */
 	readonly result: string;
 	/** Board post when nobody voted. */
 	readonly noVotes: string;
@@ -546,10 +581,54 @@ export interface PopularityTexts {
 export const POPULARITY_TEXT_KEYS = ["announcement", "result", "noVotes"] as const satisfies readonly (keyof PopularityTexts)[];
 
 export const POPULARITY_TEXT_PLACEHOLDERS: { readonly [K in keyof PopularityTexts]: readonly string[] } = {
-	announcement: ["until", "points"],
-	result: ["counts", "winners", "points"],
-	noVotes: [],
+	announcement: ["label", "until", "points"],
+	result: ["label", "counts", "winners", "points"],
+	noVotes: ["label", "counts"],
 };
+
+// ---------------------------------------------------------------------------
+// Tool guards (SPEC 20)
+// ---------------------------------------------------------------------------
+
+/** Tools a guard may check, with the parameter that carries their text. */
+export const GUARDABLE_TOOLS = { postBoard: "message", postGroup: "message", sendDM: "message" } as const satisfies Partial<Record<ToolName, string>>;
+export type GuardableTool = keyof typeof GUARDABLE_TOOLS;
+
+/**
+ * What a broken rule does. `block`: the call is refused (`GUARD_BLOCKED`
+ * with the judge's reason); nothing is posted or charged. Planned, not
+ * built: `rewrite`, `charge`, `flag` (docs/ideas/monorepo.md §3d).
+ */
+export type GuardAction = "block";
+export const GUARD_ACTIONS = ["block"] as const satisfies readonly GuardAction[];
+
+/**
+ * Tool guards, a preHook: before a guarded tool runs, a small model judges
+ * its text against each rule that names the tool. Only residents' calls are
+ * guarded; the city's own posts never are. A model error or an answer that
+ * does not parse lets the call through (fail open), so a run never stalls.
+ */
+export interface GuardsSpec {
+	/** The judge's model (Haiku via Anthropic, thinking off, like the classifier). */
+	readonly model: ModelChoice;
+	readonly rules: readonly GuardRule[];
+}
+
+export interface GuardRule {
+	/** Logged with every verdict, e.g. "no-fragments". */
+	readonly id: string;
+	readonly tools: readonly GuardableTool[];
+	/** The rule as the judge reads it. */
+	readonly rule: string;
+	readonly on: GuardAction;
+	/**
+	 * A check without a model, first: a text that carries `minRun` or more
+	 * characters in a row (case-sensitive) of the caller's own fragment or of
+	 * a password it plays for is blocked at once. The judge also reads these
+	 * secrets. Without it the judge alone decides and sees no secrets.
+	 */
+	readonly secrets?: { readonly minRun: number };
+}
 
 // ---------------------------------------------------------------------------
 // Drama (v09): character cores, secret goals, the black seal
