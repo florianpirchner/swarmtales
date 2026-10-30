@@ -31,6 +31,7 @@ import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionVi
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
 import { PopularityVote, type CountedRound, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
+import { carriesRun, sharedRuns } from "./secrets.ts";
 import { describeReceipt, ReceiptBook, shownPrivatelyText, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
 import { dutyDue, forgeableList, isForgeable, pickWhisperer, previousDuty } from "./whisperer.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
@@ -230,7 +231,7 @@ export interface DmWindow {
 	/** The next window's first minute. */
 	readonly until: number;
 }
-export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED";
+export type TransferError = "UNKNOWN_AGENT" | "SELF_TRANSFER" | "INVALID_AMOUNT" | "INSUFFICIENT_FUNDS" | "MEMO_DIGITS" | "EXILED" | "DM_LIMIT";
 export type WillError =
 	| "NOT_AT_GATE"
 	| "WILL_DONE"
@@ -1569,23 +1570,62 @@ export class World {
 	}
 
 	/**
-	 * What `agent` holds that the city keeps from the others, for the tool
-	 * guard (SPEC 20): on every open fragment level it has reached and not
-	 * every resident in the city has passed, its own fragment (and any it holds
-	 * for the exiled) and the password it plays for. Never shown to a resident.
+	 * What `agent` legitimately knows that the city keeps from the others, for
+	 * the tool guard (SPEC 20): on every open fragment level it has reached and
+	 * not every resident in the city has passed, its own fragment (and any it
+	 * holds for the exiled), and the runs of `minRun` or more password
+	 * characters in the DMs it sent or was delivered. Never a whole password
+	 * it was not told, so neither the city's check nor the judge is an oracle
+	 * for what the author does not know. Never shown to a resident.
 	 */
-	secretsOf(agent: CompetitorId): readonly { readonly label: string; readonly value: string }[] {
+	secretsOf(agent: CompetitorId, minRun: number): readonly { readonly label: string; readonly value: string }[] {
 		const secrets: { readonly label: string; readonly value: string }[] = [];
-		for (let level = this.startLevel; level <= Math.min(this.levelOf(agent), this.lastLevel); level++) {
+		const dmTexts = this.#dms
+			.filter((record) => record.from === agent || (record.to === agent && record.deliveredMinute !== undefined))
+			.flatMap((record) => (record.text === undefined ? [] : [record.text]));
+		for (const level of this.#guardedLevels()) {
+			if (level > this.levelOf(agent)) continue;
 			const state = this.#levelStates.get(level);
-			if (state?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.alive.every((id) => this.hasPassed(id, level))) continue;
+			if (state?.puzzle.kind !== "fragments") continue;
 			const own = state.puzzle.fragments.get(agent);
 			if (own === undefined) continue;
 			secrets.push({ label: `your fragment of door ${level}`, value: own });
 			for (const [from, fragment] of this.#inheritedFragments(level, agent)) secrets.push({ label: `the fragment of ${from} on door ${level}, which you hold`, value: fragment });
-			secrets.push({ label: `the password of door ${level}`, value: this.#fragmentPuzzleOf(level, agent).password });
+			const runs = new Set<string>();
+			for (const puzzle of state.puzzle.puzzles) {
+				for (const text of dmTexts) for (const run of sharedRuns(text, puzzle.password, minRun)) runs.add(run);
+			}
+			for (const run of runs) secrets.push({ label: `a part of a door ${level} password you sent or received by DM`, value: run });
 		}
 		return secrets;
+	}
+
+	/** The open fragment levels not every resident in the city has passed: the ones whose fragments the city keeps off the board. */
+	#guardedLevels(): readonly number[] {
+		const levels: number[] = [];
+		for (let level = this.startLevel; level <= this.lastLevel; level++) {
+			const state = this.#levelStates.get(level);
+			if (state?.puzzle.kind !== "fragments" || !this.isOpenOnClock(level) || this.alive.every((id) => this.hasPassed(id, level))) continue;
+			levels.push(level);
+		}
+		return levels;
+	}
+
+	/**
+	 * Whether showing receipt `id` on the board would quote `minRun` or more
+	 * characters in a row of a fragment of a guarded level (SPEC 20): a
+	 * public show is a board post the city writes, so it must not carry what
+	 * the guard keeps off the board. False for a receipt `agent` cannot show
+	 * (showReceipt reports why).
+	 */
+	receiptCarriesFragment(agent: CompetitorId, id: string, minRun: number): boolean {
+		const found = this.receipts.showable(id, agent);
+		if (!found.ok) return false;
+		const text = describeReceipt(found.receipt);
+		return this.#guardedLevels().some((level) => {
+			const state = this.#levelStates.get(level);
+			return state?.puzzle.kind === "fragments" && [...state.puzzle.fragments.values()].some((fragment) => carriesRun(text, fragment, minRun));
+		});
 	}
 
 	/** The minute `level`'s door opens on the door clock (SPEC 20); 0 for a level without one. */
@@ -1616,18 +1656,30 @@ export class World {
 		}
 	}
 
-	transfer(
-		from: CompetitorId,
-		to: string,
-		amount: number,
-		memo: string,
-	): Result<{ readonly txId: string; readonly balance: number; readonly receipt: string }, TransferError> {
+	/** The checks of {@link transfer}, without moving a point: the transfer tool runs them before its guard asks a model. */
+	checkTransfer(from: CompetitorId, to: string, amount: number, memo: string): Result<undefined, TransferError> {
 		if (!this.isCompetitor(to)) return err("UNKNOWN_AGENT", to);
 		if (from === to) return err("SELF_TRANSFER");
 		if (this.isExiled(to)) return err("EXILED", `${to} was exiled`);
 		if (!Number.isInteger(amount) || amount <= 0) return err("INVALID_AMOUNT");
 		if (memoCarriesDigits(memo)) return err("MEMO_DIGITS", "memos may not carry numbers of 4+ digits; send codes by message");
 		if (this.ledger.balance(from) < amount) return err("INSUFFICIENT_FUNDS");
+		// A memo is a message too: it counts toward the DM cap (SPEC 20).
+		const window = memo.length > 0 ? this.dmWindow(from) : undefined;
+		if (window !== undefined && window.sent >= window.limit) {
+			return err("DM_LIMIT", `${window.sent} DMs and memos sent since minute ${window.from}; send a memo again from minute ${window.until}, or transfer without one`);
+		}
+		return ok(undefined);
+	}
+
+	transfer(
+		from: CompetitorId,
+		to: string,
+		amount: number,
+		memo: string,
+	): Result<{ readonly txId: string; readonly balance: number; readonly receipt: string }, TransferError> {
+		const checked = this.checkTransfer(from, to, amount, memo);
+		if (!checked.ok) return checked;
 		const entry = this.ledger.transfer(from, to, amount, memo.length > 0 ? memo : "transfer", this.minute);
 		this.#bus.emit({ type: "transfer", from, to, amount, memo, txId: entry.txId });
 		const receipt = this.#issue({ kind: "transfer", from, to, amount, memo });
@@ -1754,15 +1806,18 @@ export class World {
 	}
 
 	/**
-	 * The DM cap (`rules.dmLimit`, SPEC 20): the DMs to residents `agent` sent
-	 * in the current window, the windows counted from minute 0. Counted from
-	 * the city's DM records, which a snapshot keeps. Undefined without a cap.
+	 * The DM cap (`rules.dmLimit`, SPEC 20): the DMs to residents and the
+	 * transfers with a memo `agent` sent in the current window, the windows
+	 * counted from minute 0. Counted from the city's DM records and receipts,
+	 * which a snapshot keeps. Undefined without a cap.
 	 */
 	dmWindow(agent: CompetitorId): DmWindow | undefined {
 		const limit = this.story.rules.dmLimit;
 		if (limit === undefined) return undefined;
 		const from = Math.floor(this.minute / limit.windowMinutes) * limit.windowMinutes;
-		const sent = this.#dms.filter((record) => record.from === agent && record.minute >= from).length;
+		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= from).length;
+		const memos = this.receipts.of(agent).filter((receipt) => receipt.kind === "transfer" && receipt.from === agent && receipt.memo.length > 0 && receipt.minute >= from).length;
+		const sent = dms + memos;
 		return { sent, limit: limit.perWindow, from, until: from + limit.windowMinutes };
 	}
 
@@ -2698,7 +2753,7 @@ export class World {
 		if (state.standoff !== undefined) this.#standoff.restore(state.standoff);
 		// The whisperer himself was taken from the snapshot in the constructor (#chooseWhisperer).
 		this.#forgeries.push(...(state.whispers?.forgeries ?? []));
-		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity);
+		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity, this.minute);
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
 		this.#dealCores();
 

@@ -8,10 +8,12 @@ import type { World } from "../../src/engine/world.ts";
 import { competitorIds } from "../../src/core/ids.ts";
 import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
 import type { GuardAnswer, GuardJudge, GuardQuestion } from "../../src/interpret/guard.ts";
-import { leakedRun } from "../../src/tools/guard.ts";
+import { codeForms } from "../../src/engine/secrets.ts";
+import { CHECK_REASON, leakedRun } from "../../src/tools/guard.ts";
 import type { AnyStory, GuardsSpec, MarksRules, PopularitySpec, WhispererSpec } from "../../src/story/types.ts";
 import { validateStory } from "../../src/story/validate.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
+import { level, puzzle, team } from "../../src/story/define.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 
 const MARKS = { fromLevel: 1, perRun: 2, prices: { board: 0, group: 0, dm: 0, receipt: 1 } } as const satisfies MarksRules;
@@ -418,7 +420,7 @@ describe("the popularity votes (Whispers)", () => {
 		const saved = first.snapshot();
 		expect(saved).toEqual({ round: 0, state: "open", ballots: [{ agent: "A01", choice: "A02" }, { agent: "A03", choice: "A02" }] });
 		const resumed = new PopularityVote(ports);
-		resumed.restore(saved);
+		resumed.restore(saved, 2);
 		resumed.tick(3);
 		resumed.tick(4);
 		expect(events.filter((event) => event.type === "popularity_opened")).toHaveLength(1);
@@ -426,10 +428,48 @@ describe("the popularity votes (Whispers)", () => {
 		expect(resumed.snapshot()).toEqual({ round: 1, state: "pending", ballots: [] });
 		// A snapshot of the single surprise vote, once counted, has nothing left to play.
 		const old = new PopularityVote({ ...ports, spec: POPULARITY });
-		old.restore({ state: "closed", ballots: [] });
+		old.restore({ state: "closed", ballots: [] }, 5);
 		old.tick(8);
 		expect(old.isOpen).toBe(false);
 		expect(old.current).toBeUndefined();
+	});
+
+	it("skips a lagging round silently on restore, and never pays an old single vote's ballots as an earlier round", () => {
+		const events: PopularityEvent[] = [];
+		const ids = ["A01", "A02", "A03"];
+		const ports = {
+			spec: ROUNDS,
+			isCompetitor: (id: string) => ids.includes(id),
+			inCity: () => true,
+			alive: () => ids,
+			post: () => undefined,
+			notify: () => undefined,
+			grant: () => undefined,
+			emit: (event: PopularityEvent) => events.push(event),
+		};
+		const ballots = [{ agent: "A01", choice: "A02" }];
+		// Round 1 (counted at 4) is still open in a snapshot of minute 6: it is skipped, its ballots dropped, nothing announced.
+		const lagging = new PopularityVote(ports);
+		lagging.restore({ round: 0, state: "open", ballots }, 6);
+		expect(lagging.snapshot()).toEqual({ round: 1, state: "pending", ballots: [] });
+		lagging.tick(6);
+		expect(events).toEqual([]);
+		lagging.tick(7);
+		expect(events.map((event) => event.type)).toEqual(["popularity_opened"]);
+		events.length = 0;
+		// An old open single vote at minute 3 is the round of minute 3, but its ballots were cast for the grand prize: dropped.
+		const early = new PopularityVote(ports);
+		early.restore({ state: "open", ballots }, 3);
+		expect(early.snapshot()).toEqual({ round: 0, state: "open", ballots: [] });
+		// At minute 8 it is the final vote, and its ballots count there.
+		const late = new PopularityVote(ports);
+		late.restore({ state: "open", ballots }, 8);
+		expect(late.snapshot()).toEqual({ round: 1, state: "open", ballots });
+		// An old vote still pending at minute 0 starts at the first round.
+		const fresh = new PopularityVote(ports);
+		fresh.restore({ state: "pending", ballots: [] }, 0);
+		expect(fresh.snapshot()).toEqual({ round: 0, state: "pending", ballots: [] });
+		expect(events).toEqual([]);
 	});
 
 	it("must count each round after it opens, before the run's last minute, without overlap", () => {
@@ -501,6 +541,18 @@ describe("the DM cap", () => {
 	function capStory(): AnyStory {
 		return whisperStory({ rules: { penalty: 1, maxAttemptsPerWindow: 2, attemptWindowMinutes: 3, marks: MARKS, receipts: { quoteDms: true }, dmLimit: { perWindow: 2, windowMinutes: 3 } } });
 	}
+
+	it("counts a transfer with a memo as a DM; a transfer without one is free", () => {
+		const fixture = planned(capStory(), 5, () => say());
+		const world = fixture.world;
+		world.adjustPoints("A01", 10, "test");
+		expect(world.transfer("A01", "A02", 1, "thanks")).toMatchObject({ ok: true });
+		expect(world.sendDm("A01", "A03", "hi")).toMatchObject({ ok: true });
+		expect(world.dmWindow("A01")).toMatchObject({ sent: 2, limit: 2 });
+		expect(world.transfer("A01", "A02", 1, "again")).toMatchObject({ ok: false, error: "DM_LIMIT" });
+		expect(world.sendDm("A01", "A04", "hi")).toMatchObject({ ok: false, error: "DM_LIMIT" });
+		expect(world.transfer("A01", "A02", 1, "")).toMatchObject({ ok: true });
+	});
 
 	it("refuses a DM over the window's allowance until the next window, for everyone; a forgery is no DM", async () => {
 		const fixture = planned(capStory(), 5, (world, agent, minute) => {
@@ -589,11 +641,17 @@ describe("tool guards", () => {
 		);
 	}
 
-	it("blocks a run of the poster's own secret without asking the model", () => {
+	it("blocks a run of the poster's own secret without asking the model, also in code-like forms", () => {
 		const secrets = [{ label: "your fragment of door 1", value: "AB3KXY" }];
-		expect(leakedRun("here: b3kx", secrets, 4)).toBeUndefined();
 		expect(leakedRun("here: 3KXY!", secrets, 4)).toEqual(secrets[0]);
 		expect(leakedRun("here: AB3", secrets, 4)).toBeUndefined();
+		// A lower-case token with a digit is read in upper case; single characters joined across spaces, dashes or dots too.
+		expect(leakedRun("here: b3kx", secrets, 4)).toEqual(secrets[0]);
+		expect(leakedRun("it is a-b-3-k", secrets, 4)).toEqual(secrets[0]);
+		expect(leakedRun("it is 3 k.x y", secrets, 4)).toEqual(secrets[0]);
+		// Plain words are never upper-cased.
+		expect(leakedRun("why not kxy", [{ label: "x", value: "WHYNOTKXY" }], 3)).toBeUndefined();
+		expect(codeForms("Ab3k and a b c, but have")).toEqual(["Ab3k and a b c, but have", "AB3K", "ABC"]);
 	});
 
 	it("checks residents' board and group posts before they run: blocked posts are not made and cost nothing; a failing judge lets them through", async () => {
@@ -602,7 +660,7 @@ describe("tool guards", () => {
 		await fixture.run();
 		const world = fixture.world;
 		expect(fixture.toolResults("A01", "postBoard")).toEqual([
-			"GUARD_BLOCKED: the text carries part of your fragment of door 1",
+			`GUARD_BLOCKED: ${CHECK_REASON}`,
 			"GUARD_BLOCKED: it spells out a fragment",
 			expect.stringMatching(/^posted · #\d+ · marks 2\/3 left$/),
 		]);
@@ -610,7 +668,7 @@ describe("tool guards", () => {
 		expect(world.board.all().filter((post) => post.author === "A01").map((post) => post.text)).toEqual(["hello everyone"]);
 		// The model never saw the text the city's own check blocked; it read the poster's secrets with the others.
 		expect(guard.questions.map((question) => question.text)).toEqual(["it is spelled a-b-c", "hello everyone", "broken judge", "throw it"]);
-		expect(guard.questions[0]?.secrets.map((secret) => secret.label)).toEqual(["your fragment of door 1", "the password of door 1"]);
+		expect(guard.questions[0]?.secrets.map((secret) => secret.label)).toEqual(["your fragment of door 1"]);
 		expect(fixture.events("guard_verdict").map((event) => [event.tool, event.agent, event.rule, event.allowed, event.by, event.error !== undefined])).toEqual([
 			["postBoard", "A01", "no-fragments", false, "check", false],
 			["postBoard", "A01", "no-fragments", false, "model", false],
@@ -637,6 +695,97 @@ describe("tool guards", () => {
 		await off.run();
 		expect(off.toolResults("A01", "postBoard")[0]).toMatch(/^posted/);
 		expect(off.events("guard_verdict")).toEqual([]);
+	});
+
+	describe("on a team door", () => {
+		const SPEC: GuardsSpec = {
+			model: GUARDS.model,
+			rules: [{ id: "no-fragments", tools: ["postBoard", "transferPoints", "createGroup"], rule: "No password fragments.", on: "block", secrets: { minRun: 3 } }],
+		};
+		function teamStory(): AnyStory {
+			const base = tinyStory({
+				agents: 2,
+				levels: [
+					level(1, {
+						title: "Gate",
+						puzzle: puzzle.fragments([8, 8]),
+						team: team.random(2),
+						reward: 2,
+						tools: ["getStatus", "submitSolution", "readBoard", "postBoard", "sendDM", "createGroup", "transferPoints", "showReceipt"],
+						task: "Fragment {fragment}.",
+					}),
+				],
+				rules: { receipts: { quoteDms: true } },
+			});
+			return { ...base, guards: SPEC };
+		}
+		/** A run of 3 of A02's fragment that A01's fragment does not hold: what A01 cannot know before A02 tells it. */
+		function probeOf(world: World): string {
+			const own = world.inspect.fragmentOf("A01", 1);
+			const other = world.inspect.fragmentOf("A02", 1);
+			const runs = Array.from({ length: other.length - 2 }, (_, start) => other.slice(start, start + 3)).filter((run) => !own.includes(run));
+			const [probe] = runs;
+			if (probe === undefined) throw new Error("no run of A02's fragment outside A01's");
+			return probe;
+		}
+
+		it("is no oracle: a probe for a part the poster cannot know passes the check, and the judge sees only what it knows", async () => {
+			const guard = new FakeGuard(() => ({ ok: true, allowed: true, reason: "plain talk", usage }));
+			const fixture = planned(
+				teamStory(),
+				4,
+				(world, agent, minute) => {
+					if (agent === "A01" && minute === 0) return act({ name: "postBoard", args: { message: `is it ${probeOf(world)}?` } });
+					if (agent === "A02" && minute === 0) return act({ name: "sendDM", args: { target: "A01", message: `mine is ${world.inspect.fragmentOf("A02", 1)}` } });
+					if (agent === "A01" && minute === 2) return act({ name: "postBoard", args: { message: `is it ${probeOf(world)}?` } });
+					return say();
+				},
+				{ agents: 2, guardJudge: guard },
+			);
+			await fixture.run();
+			const world = fixture.world;
+			const results = fixture.toolResults("A01", "postBoard");
+			// Before A02's DM the probe is plain text to the city's check; once A02 told A01, the same text is blocked.
+			expect(results[0]).toMatch(/^posted/);
+			expect(results[1]).toBe(`GUARD_BLOCKED: ${CHECK_REASON}`);
+			const [before] = guard.questions;
+			expect(before?.secrets.map((secret) => secret.value)).toEqual([world.inspect.fragmentOf("A01", 1)]);
+			const values = guard.questions.flatMap((question) => question.secrets.map((secret) => secret.value));
+			expect(values).not.toContain(world.inspect.passwordOf("A01", 1));
+		});
+
+		it("guards memos and group names, and refuses a board show of a receipt that quotes a fragment; a private show goes", async () => {
+			const fixture = planned(
+				teamStory(),
+				4,
+				(world, agent, minute) => {
+					const own = world.inspect.fragmentOf(agent, 1);
+					if (agent === "A01" && minute === 0) return act({ name: "sendDM", args: { target: "A02", message: `mine is ${own}` } });
+					if (agent === "A01" && minute === 2) {
+						const receiptId = dmReceipt(world, "A01", "A02");
+						return act(
+							{ name: "transferPoints", args: { target: "A02", amount: 1, memo: `for ${own.toLowerCase()}` } },
+							{ name: "createGroup", args: { name: own.split("").join(" ") } },
+							{ name: "transferPoints", args: { target: "A02", amount: 1, memo: "thanks" } },
+							{ name: "showReceipt", args: { receiptId } },
+							{ name: "showReceipt", args: { receiptId, to: "A02" } },
+						);
+					}
+					return say();
+				},
+				{ agents: 2 },
+			);
+			await fixture.run();
+			const transfers = fixture.toolResults("A01", "transferPoints");
+			expect(transfers[0]).toBe(`GUARD_BLOCKED: ${CHECK_REASON}`);
+			expect(transfers[1]).toMatch(/^ok · 1 points to A02/);
+			expect(fixture.toolResults("A01", "createGroup")).toEqual([`GUARD_BLOCKED: ${CHECK_REASON}`]);
+			const shows = fixture.toolResults("A01", "showReceipt");
+			expect(shows[0]).toMatch(/^RECEIPT_CARRIES_FRAGMENT: /);
+			expect(shows[1]).toMatch(/^shown privately to A02/);
+			expect(fixture.world.board.all().some((post) => post.text.includes(fixture.world.inspect.fragmentOf("A01", 1)))).toBe(false);
+			expect(fixture.events("receipt_shown")).toHaveLength(1);
+		});
 	});
 
 	it("validates its rules", () => {

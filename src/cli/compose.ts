@@ -565,7 +565,7 @@ function createGuard(story: AnyStory, effective: EffectiveRun, world: World, bus
 	return new ToolGuard({
 		spec,
 		...(metered === undefined ? {} : { judge: metered }),
-		secretsOf: (agent) => world.secretsOf(agent),
+		secretsOf: (agent, minRun) => world.secretsOf(agent, minRun),
 		emit: (event) => {
 			bus.emit(event);
 		},

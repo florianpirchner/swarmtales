@@ -73,6 +73,8 @@ const TOOL_TEXT: Readonly<Record<string, string>> = {
 	postBoard: "a public board post, read by every resident",
 	postGroup: "a group post, read by every member of the group",
 	sendDM: "a direct message to one resident",
+	transferPoints: "the memo of a points transfer, read by the recipient and shown on its receipt",
+	createGroup: "the name of a new group, read by every member it adds",
 };
 
 export function guardPrompt(question: GuardQuestion): string {
@@ -153,7 +155,12 @@ export class ChatGuardJudge implements GuardJudge {
 			if (event.type === "message_end") collectUsage(event.message, usage);
 		});
 		const messages: AgentMessage[] = [{ role: "user", content: guardPrompt(question), timestamp: 0 }];
-		await agent.prompt(messages);
+		try {
+			await agent.prompt(messages);
+		} catch (thrown) {
+			// The spend so far still counts (SPEC 20): the usage goes back with the failure.
+			return { ok: false, error: thrown instanceof Error ? thrown.message : String(thrown), usage };
+		}
 		const error = agent.state.errorMessage;
 		if (error !== undefined && error.length > 0) return { ok: false, error, usage };
 		const [answer, ...more] = answers;

@@ -1297,29 +1297,51 @@ play as before.
 - **The DM cap** (`rules.dmLimit: { perWindow, windowMinutes }`): at most `perWindow` DMs to
   residents per resident in each window `[k * windowMinutes, (k + 1) * windowMinutes)`. Over it
   `sendDM` answers `DM_LIMIT: 8 DMs sent since minute X; you can send again from minute Y`. The
-  status line and `getStatus` show the window's count. It counts the city's DM records, which a
-  snapshot keeps. A forged receipt is no DM.
+  status line and `getStatus` show the window's count. A transfer with a memo counts as a DM (a
+  memo is a message too): over the cap `transferPoints` with a memo answers `DM_LIMIT`, one without
+  a memo still goes. It counts the city's DM records and transfer receipts, which a snapshot keeps.
+  A forged receipt is no DM.
 - **Tool guards** (`guards: { model, rules }`, each rule `{ id, tools, rule, on, secrets? }`;
   docs/ideas/monorepo.md §3d): a preHook in the tool gateway. Guardable tools are `postBoard`,
-  `postGroup` and `sendDM` (their `message`). Before a resident's guarded call runs, every rule
-  that names the tool checks its text in order: with `secrets: { minRun }` the city first blocks a
-  text that carries `minRun` characters in a row (case-sensitive) of the caller's own fragment, a
-  fragment it holds for the exiled, or the password of a door it plays for (open, reached, and not
-  passed by every resident in the city), without a model; then the guard's model (default Haiku
+  `postGroup` and `sendDM` (their `message`), `transferPoints` (its `memo`) and `createGroup` (its
+  `name`). A guarded call first runs the tool's own cheap checks (a `precheck`: unknown group, not
+  a member, unknown recipient, no funds, the DM cap), so a call that would fail anyway costs no
+  guard call. Then every rule that names the tool checks its text in order. With
+  `secrets: { minRun }` the city first blocks, without a model, a text that carries `minRun`
+  characters in a row of a secret the caller **legitimately knows**: its own fragment, a fragment
+  it holds for the exiled, and the runs of `minRun` or more password characters in the DMs it sent
+  or was delivered, each on a door that is open, reached by the caller and not passed by every
+  resident in the city. Never a whole password, and never a fragment the caller was not told, so
+  the guard is no oracle: a probe for a part the caller cannot know passes the check (LH9). The
+  text is matched as written and in its code-like forms: upper-cased tokens that hold a digit
+  (`ab3k`) and single characters joined across spaces, dashes or dots (`a-b-3`); plain words are
+  never upper-cased. The check's refusal is always the same (`GUARD_BLOCKED: the post carries part
+  of a fragment; fragments travel by DM`), whatever matched. Then the guard's model (default Haiku
   via Anthropic, thinking off; `ARENA_GUARD_PROVIDER` / `ARENA_GUARD_MODEL`) reads the rule, the
-  text and those secrets, and answers one `verdict { allowed, reason }` call, parsed with typebox.
-  `on: "block"` (the only action built; `rewrite`, `charge` and `flag` are planned) refuses a
-  broken rule with `GUARD_BLOCKED: <reason>`: nothing is posted and nothing is charged. A model
-  error or an unusable answer lets the call through (fail open). Every verdict logs
+  text and those same secrets, and answers one `verdict { allowed, reason }` call, parsed with
+  typebox. `on: "block"` (the only action built; `rewrite`, `charge` and `flag` are planned)
+  refuses a broken rule with `GUARD_BLOCKED: <reason>`: nothing is posted and nothing is charged.
+  A model error, a thrown call or an unusable answer lets the call through (fail open); the spend
+  of a failed call is still logged where the provider reported it. Every verdict logs
   `guard_verdict { tool, agent, rule, allowed, reason, by, error? }` (`by`: `check`, `model`, or
   `none` in a run without a model, offline or without a key, where only the city's own check
   runs). The model's spend is `usage` of `GD` and counts toward the budget. The city's own posts
-  never pass the gateway, so they are never guarded. `--no-guards` plays without them.
+  never pass the gateway, so they are never guarded, with one exception: `showReceipt` without
+  `to` is a board post the city writes for the resident, so where a rule with `secrets` guards
+  `postBoard`, a board show of a receipt whose line carries `minRun` characters in a row of any
+  fragment of such a door is refused with `RECEIPT_CARRIES_FRAGMENT` (no model, nothing posted or
+  charged). A private show (`to`) goes as before. `--no-guards` plays without guards; the story's
+  rule text in the tasks stays the same, so a control run's residents still read that posts with
+  fragments are refused.
 - **Snapshots:** `world.whispers { whisperer, forgeries, popularity { round, state, ballots } }`
   keeps the whisperer (`null` in a control run), the minutes of his forgeries and the votes: the
   index of the round that is pending or open (past the last when all are counted), its state and
   its ballots. A resumed run takes its whisperer from the snapshot: a control run never gains one,
   and `--no-whisperer` on a snapshot played with one is refused. An open round is not announced
-  again and keeps its ballots; a counted one stays counted. A v1 snapshot without `round` reads as
-  its single round.
+  again and keeps its ballots; a counted one stays counted. A round whose count minute is already
+  past at the snapshot's minute (a story whose rounds moved since) is skipped silently, ballots and
+  all, up to the first round counted after it: no burst of announcements. A v1 snapshot without
+  `round` was the vote for the grand prize: counted, every round is over; open, the round of the
+  snapshot's minute is open, and its ballots count only if that round is the final vote; pending,
+  the rounds start from the first.
 

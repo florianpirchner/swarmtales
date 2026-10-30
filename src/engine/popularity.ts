@@ -108,17 +108,37 @@ export class PopularityVote {
 		return { round: this.#round, state: this.#state, ballots: [...this.#ballots].map(([agent, choice]) => ({ agent, choice })) };
 	}
 
-	restore(saved: PopularitySnapshot): void {
-		const rounds = this.#ports.spec.rounds.length;
-		// A snapshot of the old single vote: its one round, or past it once counted.
-		const round = saved.round ?? (saved.state === "closed" ? 1 : 0);
-		if (!Number.isInteger(round) || round < 0 || round > rounds) throw new Error(`The snapshot's popularity round ${round} is not one of this story's ${rounds} rounds`);
-		this.#round = round;
-		this.#state = round >= rounds ? "closed" : saved.state === "closed" ? "pending" : saved.state;
-		this.#ballots.clear();
+	/**
+	 * Loads a snapshot taken at `minute` (the minute the snapshot's run last
+	 * played). A round whose count minute is already past (a story whose
+	 * rounds moved since the snapshot) is skipped silently, ballots and all,
+	 * up to the first round counted after `minute`: a resumed run announces no
+	 * burst of rounds it never played. A snapshot of the old single surprise
+	 * vote (no round) was a vote for the grand prize: counted, it closes every
+	 * round; open, it stays open as the round of `minute`, and its ballots
+	 * count only if that round is the final vote, never as an earlier round.
+	 */
+	restore(saved: PopularitySnapshot, minute: number): void {
+		const rounds = this.#ports.spec.rounds;
+		const last = rounds.length;
+		const round = saved.round ?? (saved.state === "closed" ? last : 0);
+		if (!Number.isInteger(round) || round < 0 || round > last) throw new Error(`The snapshot's popularity round ${round} is not one of this story's ${last} rounds`);
 		for (const { agent, choice } of saved.ballots) {
 			if (!this.#ports.isCompetitor(agent) || !this.#ports.isCompetitor(choice)) throw new Error(`The snapshot's popularity ballot ${agent} -> ${choice} names an unknown resident`);
-			this.#ballots.set(agent, choice);
+		}
+		const next = rounds.findIndex((candidate, index) => index >= round && candidate.countsAt > minute);
+		const at = next === -1 ? last : next;
+		this.#round = at;
+		this.#ballots.clear();
+		if (at >= last) this.#state = "closed";
+		else if (saved.round === undefined) {
+			const open = saved.state === "open" && (rounds[at]?.opensAt ?? minute + 1) <= minute;
+			this.#state = open ? "open" : "pending";
+			if (open && at === last - 1) for (const { agent, choice } of saved.ballots) this.#ballots.set(agent, choice);
+		} else if (at > round) this.#state = "pending";
+		else {
+			this.#state = saved.state === "closed" ? "pending" : saved.state;
+			for (const { agent, choice } of saved.ballots) this.#ballots.set(agent, choice);
 		}
 	}
 

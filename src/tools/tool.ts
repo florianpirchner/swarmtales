@@ -56,6 +56,8 @@ export interface ToolDefinition<N extends ToolName, S extends TSchema> {
 	readonly parameters: S;
 	/** Synchronous, except where a tool must wait for a model (the judge of `blame`). */
 	readonly execute: (params: Static<S>, context: ToolContext) => ToolOutcome | Promise<ToolOutcome>;
+	/** The tool's own cheap checks, run before a tool guard asks its model (a failure here costs no guard call). */
+	readonly precheck?: (params: Static<S>, context: ToolContext) => ToolOutcome | undefined;
 }
 
 /** The shape pi executes. */
@@ -110,6 +112,8 @@ function gateway<N extends ToolName, S extends TSchema>(
 	const guard = context.guard;
 	const text = guard?.guards(definition.name) === true ? guardedText(definition.name, params) : undefined;
 	if (guard === undefined || text === undefined) return definition.execute(params, context);
+	const refused = definition.precheck?.(params, context);
+	if (refused !== undefined) return refused;
 	return guard.review(context.self, definition.name, text).then((decision) => (decision.allowed ? definition.execute(params, context) : failure(GUARD_BLOCKED, decision.reason)));
 }
 

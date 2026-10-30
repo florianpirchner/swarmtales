@@ -84,6 +84,10 @@ export const postGroup = defineTool({
 		groupId,
 		message: Type.String({ description: "Text", minLength: 1, maxLength: MAX_GROUP_POST_LENGTH }),
 	}),
+	precheck({ groupId: id, message }, { self, world }) {
+		const checked = world.groups.checkPost(id, self, message);
+		return checked.ok ? undefined : groupFailure(checked);
+	},
 	execute({ groupId: id, message }, { self, world }) {
 		const result = world.postGroup(id, self, message);
 		if (!result.ok) return groupFailure(result);

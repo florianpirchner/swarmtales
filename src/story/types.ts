@@ -591,7 +591,7 @@ export const POPULARITY_TEXT_PLACEHOLDERS: { readonly [K in keyof PopularityText
 // ---------------------------------------------------------------------------
 
 /** Tools a guard may check, with the parameter that carries their text. */
-export const GUARDABLE_TOOLS = { postBoard: "message", postGroup: "message", sendDM: "message" } as const satisfies Partial<Record<ToolName, string>>;
+export const GUARDABLE_TOOLS = { postBoard: "message", postGroup: "message", sendDM: "message", transferPoints: "memo", createGroup: "name" } as const satisfies Partial<Record<ToolName, string>>;
 export type GuardableTool = keyof typeof GUARDABLE_TOOLS;
 
 /**

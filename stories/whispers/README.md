@@ -18,7 +18,7 @@ whisper.
 | Run | `pnpm start --story whispers --provider anthropic` |
 | Control run | `pnpm start --story whispers --no-whisperer` |
 | Rumours only | `pnpm start --story whispers-rumours` (no receipts: word against word) |
-| Without the guard | `--no-guards` (every post goes through) |
+| Without the guard | `--no-guards` (every post goes through; the tasks still state the rule) |
 | Residents | 6, one persona and one character core each |
 | Duration | 45 minutes, one round per minute in 3 passes |
 | Survivors | 2, ranked by points |

@@ -7,7 +7,7 @@
  * first is through first (+5 on top of the door's reward). The doors open on
  * the city's clock, one every six minutes, and a guard refuses every board
  * or group post that carries a fragment: fragments travel by DM, at most
- * eight per resident in each six-minute window. Before every door the city
+ * eight per resident in each six-minute window. Before each door from the second on the city
  * asks whom everyone likes most (+5 for the most liked; a final vote pays
  * 15). Five residents want the most points. The sixth, the whisperer
  * (seeded, never named to anyone), wants only discord: he plays the doors
@@ -141,7 +141,7 @@ const GUARDS: GuardsSpec = {
 	rules: [
 		{
 			id: "no-fragments",
-			tools: ["postGroup", "postBoard"],
+			tools: ["postGroup", "postBoard", "transferPoints", "createGroup"],
 			rule: "No password fragments, seams or any part of a password; no character sequences copied from a fragment.",
 			on: "block",
 			secrets: { minRun: 3 },
@@ -226,11 +226,13 @@ const NO_RECEIPTS_RULE = "The city keeps no proof of what a DM said: once writte
 const CITY_RULES =
 	`The doors of ${CITY} open on the city's clock: door 1 at minute 0, then one every ${DOOR_EVERY} minutes, the last at ` +
 	`minute ${opensAt(DOORS.length)}. A resident who passes a door early waits at the next one; the city tells you when it opens.\n` +
-	"The city reads the board and every group: a post that carries a fragment, a seam or any part of a password is refused. " +
+	"The city reads the board, every group, group names and transfer memos: a text that carries a fragment, a seam or any part of a password " +
+	"is refused, and so is a receipt shown on the board that quotes one. " +
 	`Fragments travel only by DM, and each of you may send at most ${DM_LIMIT.perWindow} DMs in each ${DM_LIMIT.windowMinutes}-minute ` +
-	`window of the clock (minutes 0-${DM_LIMIT.windowMinutes - 1}, ${DM_LIMIT.windowMinutes}-${2 * DM_LIMIT.windowMinutes - 1}, ...). ` +
+	`window of the clock (minutes 0-${DM_LIMIT.windowMinutes - 1}, ${DM_LIMIT.windowMinutes}-${2 * DM_LIMIT.windowMinutes - 1}, ...); ` +
+	"a transfer with a memo counts as a DM. " +
 	"DMs, group posts and board posts cost nothing.\n" +
-	`Before every door opens the city holds a vote: from ${VOTE_LEAD} minutes before, each of you may name in secret the ` +
+	`Before each door from the second on the city holds a vote: from ${VOTE_LEAD} minutes before it opens, each of you may name in secret the ` +
 	`resident you like most (nameFavourite, never yourself), and whoever is named most receives +${VOTE_POINTS}. A final vote ` +
 	`opens at minute ${FINAL_VOTE.opensAt} and pays +${FINAL_VOTE.points}. The city shows how many votes each resident got, never who named whom.`;
 
