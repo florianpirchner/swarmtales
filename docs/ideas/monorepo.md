@@ -389,7 +389,7 @@ value; the marked ones are my recommendation for the first migration steps.
 | 3 | **One config file instead of many flags** | flags in `cli/args.ts`, models in `agents/models.ts` | `swt.config.ts` or `.yaml` with profiles (models per role, budget, dials); flags override single values; Typebox schema |
 | 4 ★ | **Snapshot slice per module** | `snapshot/snapshot.ts` (532 lines) knows almost every part | each module carries its slice with schema, version and migration; old snapshots (`snapshot-L7.json`) migrate on load |
 | 5 | **Read and write split in `World`** | tools and roles hold the whole `World` | read-only `WorldView` for tools and roles; changes are commands the engine applies (through the tool pipeline, §3d), so every change leaves an event |
-| 6 | **Dials as data** | `engine/direction.ts` and the gamemaker prompt branch on levels 0/4/6/8/10 | profile files in `library/` (which prompt sections, which powers) |
+| 6 ★ | **Dials as data** (must survive the rewrite, Flo 2026-10-30) | `engine/direction.ts` and the gamemaker prompt branch on levels 0/4/6/8/10 | profile files in `library/` (which prompt sections, which powers); see "The two direction dials" below |
 | 7 | **`RunStore` interface** | `log/`, `digest/`, `report/`, `novel/` write files directly | one storage interface (filesystem now); tests run in memory |
 | 8 ★ | **Module conformance tests** in `testkit` | none | same seed gives same events, snapshot round trip, no forbidden imports, every option documented; a module that fails is not loaded |
 
@@ -397,6 +397,23 @@ To check before recommending: whether `report/facts.ts` and `digest/facts.ts` ho
 and whether versioned event schemas per module (instead of the one union in `engine/events.ts`,
 781 lines) are easier to maintain. Event sourcing (rebuild state from `events.jsonl`) would be the big
 step behind both and is its own topic.
+
+### The two direction dials (requirement)
+
+`--figure-direction` and `--gm-direction` (0-10, defined levels 0/4/6/8/10, other values round down,
+default 4, so f10g10 is the full-direction run) stay as they are and must behave identically after the
+rewrite:
+
+- The CLI flags and the `swt.config` keys keep their names; `swt run start --figure-direction 10
+  --gm-direction 10` is the same run as today.
+- The figure dial is a profile in `library/dials/figure/` (which prompt sections, how often the full
+  figure text repeats, whether orders and a duty are added); the gm dial is a profile in
+  `library/dials/gm/` (notes only, figure language, tendencies and rivals, scene orders). Levels are
+  data, not `if` chains. Which tools and staging power the gm dial opens (§5) is declared in the same
+  profile.
+- Both dials are written into the run's stored config and shown in `swt run show`, so a run can always
+  be reproduced.
+- The golden-run test runs at f4g4 (today's default) and at f10g10; both must match the stored events.
 
 ## 3f. Size limit per file
 
