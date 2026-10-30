@@ -144,8 +144,8 @@ pnpm start --resume runs/run-004/snapshot-L7.json --provider deepseek --minutes 
 ```
 
 A recorded Act I (Haiku, seed 7) ships with the repo, so you can skip the first step:
-`pnpm start --resume examples/cityofkeys-act1-06a-03/snapshot-L7.json --provider anthropic`
-(see [`examples/cityofkeys-act1-06a-02/`](../examples/cityofkeys-act1-06a-02/)).
+`pnpm start --resume examples/cityofkeys-act1-06a-04/snapshot-L7.json --provider anthropic`
+(see [`examples/cityofkeys-act1-06a-04/`](../examples/cityofkeys-act1-06a-04/)).
 
 `--snapshot-after <n>` shuts a door after level n. Whoever passes level n gets the reward and the
 receipt as usual but waits at the door: still on level n with its tools (to watch and help), with

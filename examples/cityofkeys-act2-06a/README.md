@@ -43,7 +43,7 @@ many private notes; Sonnet plans tribunals and otherwise stays silent (P40). See
 ## Adding a run
 
 ```bash
-pnpm start --resume examples/cityofkeys-act1-06a-03/snapshot-L7.json --provider anthropic
+pnpm start --resume examples/cityofkeys-act1-06a-04/snapshot-L7.json --provider anthropic
 ```
 
 Copy the new `runs/run-NNN/` to `vNN-<short-name>/run/`, write its `README.md` in the same shape

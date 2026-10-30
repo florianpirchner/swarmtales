@@ -132,7 +132,7 @@ const SIX = [10, 20, 30, 40, 50, 60];
 describe("tribunal pacing rules", () => {
 	const spec = halfTribunal();
 
-	it("exiles a quarter of the residents at the start of cityofkeys's Act II, half below 12 (v09), and holds no tribunal in a city too small for one", () => {
+	it("exiles a quarter of the residents at the start of the City of Keys' Act II, half below 12 (v09), and holds no tribunal in a city too small for one", () => {
 		expect([6, 11, 12, 48, 96].map((residents) => exileTarget(cityOfKeysTribunal(), residents))).toEqual([3, 5, 3, 12, 24]);
 		// Three exiles with six residents are a valid act: three remain for two seats.
 		expect(tribunalHeld(cityOfKeysTribunal(), 6, 2)).toBe(true);
