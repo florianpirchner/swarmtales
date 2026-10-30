@@ -341,31 +341,64 @@ stories/cityofkeys/texts/
 Story structure (levels, rules, numbers) stays in the TypeScript DSL as CLAUDE.md demands; only its
 prose moves to `texts/`.
 
-## 5. Director → referee + script
+## 5. Director → referee, script and gamemaker mode
 
-Split today's director in two:
+The director becomes three layers that do not displace each other (Flo, 2026-10-30). The gamemaker
+keeps its name; there is no separate "orchestrator".
 
-**Referee** (engine, small, no story content): guards only the hard limits and always wins.
+| Layer | What | Kind | Always on |
+|---|---|---|---|
+| **Referee** | guards only the hard limits of the game | code, small, no story content | yes, and it always wins |
+| **Script** | today's programmed director: courier lines, factor releases, feast, standings bands | module (`plugins/script`), texts in `texts/` | by default; fallback |
+| **Gamemaker mode** | the gamemaker stages the story with tools, inside the referee's limits | model role | switched on per act |
+
+**Referee.**
 
 - run limits: max minutes, max budget (USD), max steps per resident per minute
 - act limits: an act's `maxMinutes` (today's brake), snapshot points
 - tribunal limits: latest minute for the first tribunal, minimum gap, the exile target must be met
   before the act ends (today's forced last tribunal)
+- tool limits: rate limits such as 8 DMs per resident between two door openings (§3d)
 - invariants: points never negative, nothing given twice, exiled residents cannot act
 - every intervention is an event (`referee_*`) with the limit that fired
 
-**Staging** (who says what, when): today's director rules (courier lines, factor releases, feasts,
-standings bands) move out of the engine. Two options:
+**Script.** The same rule vocabulary as today, as a plugin a story loads. Deterministic and free;
+Act I keeps working byte for byte (tutorial, checkpoint base, golden-run tests). It never fails
+silently the way a model can (P52, P40), so it is also the fallback.
 
-1. **Script module** (recommended to start): the same rule vocabulary, but as a plugin
-   (`plugins/script`) that a story loads. Deterministic, cheap, Act I keeps working byte-for-byte.
-2. **Gamemaker as orchestrator**: the gamemaker gets staging tools (`post`, `releaseFactor`,
-   `scheduleEvent`, `scheduleTribunal`) and decides everything inside the referee's limits; the
-   script becomes the fallback when it stays silent. This matches the 2026-10-29 idea that Act I stays
-   programmed and later acts are staged by the gamemaker.
+**Gamemaker mode.** The gamemaker gets staging tools (`post`, `releaseFactor`, `scheduleEvent`,
+`scheduleTribunal`) and decides what happens when. The story switches it per act:
+`staging: "script" | "gamemaker" | "both"`, in step with `--gm-direction`. Rules:
 
-Option 1 is the refactor; option 2 is a story/mechanic decision for later and needs its own
-brainstorm.
+- every decision is an event; a replay uses the logged decisions and asks no model again
+- if it calls nothing within a window, the script acts (no standstill as in P52)
+- its tools run through the same tool pipeline as the residents' (§3d), so the referee can refuse
+- it is an ordinary role (`defineRole`, §3e), not a special case in the core
+- this matches the 2026-10-29 idea: Act I stays programmed, later acts are staged by the gamemaker
+
+**Helpers of the gamemaker.** The city already has voices that run today (README, "The voices behind
+the curtain"); they are the gamemaker's team and need no new inventions:
+
+| Role | Does | Triggered today by |
+|---|---|---|
+| Confessor (classifier) | reads every word and thought, labels promise, threat, lie and so on, tells only the gamemaker | the engine, every round |
+| Judge | decides "the message never reached me" claims; a reason for the board and a word for the gamemaker; temperament fair, partial, capricious | the engine, on `blame` |
+| Souffleur | repeats a scene in plainer words after a safeguard refusal | the engine, on a refusal |
+| Weaver (opt-in) | patches a figure's character over a run | the engine, per minute |
+| Chronicler, Novelist | find the plot and write the prose after the run | the CLI |
+| Privacy guard, tool guards | block secrets in notes and posts | the pipeline (§3d) |
+
+All become `defineRole` roles (§3e). Later the gamemaker may also **call** them on demand through
+`delegate(role, task)`, for example to ask the judge to check a claim or the confessor about one
+figure. Limits for that: a fixed roster declared by the story (the gamemaker invents no roles), depth 1
+(helpers start no helpers), referee limits on calls per minute and USD per act, asynchronous answers
+(the minute does not wait; the answer is in the next report or arrives with a timeout), every task and
+answer a logged event, and the privacy check in front: a helper sees only what it is handed, and
+residents' texts are data to it, never instructions. Start with one helper where the benefit is clear;
+cost grows fast (a 12-figure run already cost 6 USD).
+
+**Order.** Referee and script come first and change no behaviour (step 5). Gamemaker mode and
+`delegate` are a story and mechanic decision with their own brainstorm afterwards.
 
 ## 6. Migration plan
 
@@ -432,7 +465,7 @@ Decided by Flo 2026-10-30: the packages go to npm. That makes the build step rea
 
 1. ~~Backend and UI?~~ Decided 2026-10-30: no web UI; CLI is the app. Story data format, YAML,
    expressions and the plugin sandbox stay in scope.
-2. **Staging:** script module first (option 1), gamemaker orchestration later as its own design?
+2. ~~Staging?~~ Decided 2026-10-30: referee, script and gamemaker mode as three layers (§5); script first, gamemaker mode and `delegate` later with their own brainstorm.
 3. **"No prompts":** do tool descriptions, error replies to models and story prose count? I count all
    three.
 4. ~~Publish to npm?~~ Decided 2026-10-30: yes (§7a). Open: is the scope `@swarmtales` free, and the licence (Apache or BSL)?
