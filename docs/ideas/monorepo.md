@@ -295,7 +295,7 @@ step behind both and is its own topic.
 
 A hard cap on lines per code file, tests excluded, enforced by lint so it cannot drift.
 
-- Proposal: **400 lines** per file (`max-lines` in `eslint.config.js`, blank lines and comments not
+- Decided by Flo 2026-10-30: **400 lines** per file (`max-lines` in `eslint.config.js`, blank lines and comments not
   counted). Applies to `packages/*`, `plugins/*`, `apps/*` and `stories/*`; `test/` and generated
   files (`prompt-keys.ts`, `story.schema.json`) are exempt.
 - Today 18 of 152 code files are over 400 and 7 are over 600 (`engine/world.ts` 2705,
@@ -305,7 +305,7 @@ A hard cap on lines per code file, tests excluded, enforced by lint so it cannot
   entries as the files are split.
 - The cap also forces the cuts of §3: `World` into modules, prose out of `story.ts` into `texts/`,
   prompts out of code.
-- Optional second rule: functions over 60 lines warn.
+- Second rule: functions over 60 lines warn; `sonarjs/cognitive-complexity` (limit 15) is an error (§7).
 
 ## 4. No prompts in code
 
@@ -392,6 +392,12 @@ adds a snapshot version and a migration from today's flat shape.
   dependency-cruiser) for the dependency rule in §2
 - Vitest workspace, tests next to their package; `testkit` for shared fakes
 - `pnpm check` keeps its meaning across the workspace
+- `max-lines` 400 (blank lines and comments not counted) with a per-file ratchet list (§3f);
+  `max-lines-per-function` 60 as warning; `sonarjs/cognitive-complexity` 15 as error
+- `knip` in `pnpm check`: unused files, exports and dependencies; catches leftovers of every move
+- Build: none for now. Packages export TS sources (`"exports": "./src/index.ts"`) and run with tsx.
+  `tsdown` (bundler and `.d.ts` generator; successor of tsup) only when we publish to npm or ship
+  `swt` as an installable binary: then it builds each package and bundles the CLI
 - Optional later: Changesets if packages are published, Turborepo only if `check` gets slow
 
 ## 8. Open questions for Flo
@@ -409,4 +415,4 @@ adds a snapshot version and a migration from today's flat shape.
 7. **Names:** `kernel`, `roles`, `chronicle`, `referee` fine, or other names?
 9. **Guards (§3d):** does a blocked post cost anything (a mark, or a strike)? Does the guard also
    block a seam or a chain written in words? Are the city's own notices exempt (yes, I assume)?
-10. **Size limit:** 400 lines per code file (tests excluded) with a shrinking ratchet for the 18 files over it? Or another number? (§3f)
+10. ~~Size limit?~~ Decided 2026-10-30: 400 lines per code file, tests excluded, ratchet for the 18 files over it (§3f).
