@@ -12,7 +12,7 @@ threats, offers and lies are labelled.
 ## Scenes
 
 All scenes start from `scenes/nexus-06a-M11.json`: a 6-resident Act II resumed from
-[`examples/nexus-act1-06a-03/`](../examples/nexus-act1-06a-03/) and cut at the end of minute 11
+[`examples/nexus-act1-06a-03/`](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act1-06a-03) and cut at the end of minute 11
 (`pnpm start --snapshot-at 11`). The secret goals are dealt, the first tribunal is called for
 minute 14, and the black seal auction opens at minute 12.
 

@@ -2,7 +2,7 @@
 
 Act II of [nexus](../../../../docs/STORY-NEXUS.md) with 12 residents, resumed from
 [`examples/nexus-act1-12a-02/`](../../../../examples/nexus-act1-12a-02/) at both dials 10, without
-the weaver. It is the rerun of [002](../act2-12a-002-f10g10-mute/) after the P52 fix: the
+the weaver. It is the rerun of [002](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-12a-002-f10g10-mute) after the P52 fix: the
 gamemaker may now write up to 393216 output tokens instead of 4000, so its thinking no longer
 ends the turn before it acts. Same checkpoint, same seed, same secret goals.
 
@@ -36,7 +36,7 @@ ends the turn before it acts. Same checkpoint, same seed, same secret goals.
 
 ## 002 against 003
 
-| | [002](../act2-12a-002-f10g10-mute/) (cap 4000) | 003 (cap 393216) |
+| | [002](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/stories/nexus/runs/act2-12a-002-f10g10-mute) (cap 4000) | 003 (cap 393216) |
 |---|---:|---:|
 | Gamemaker actions | 6 | 155 (10 ultimatums, 1 tribunal planned) |
 | Gamemaker turns cut by the cap | 66 of 68 | 0 of 76 (longest 7398 tokens) |

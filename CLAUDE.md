@@ -63,7 +63,7 @@ longer worked on). The owner is Flo.
    fix lands, and add a line to the design checklist when a lesson holds beyond one story. Do this
    in the same PR as the run data or the fix, without being asked.
 3. Act II runs resume from the Act I checkpoint of their agent count (the 6-agent base is
-   `examples/nexus-act1-06a-04/snapshot-L7.json`, with names and the first cast; v01-v04 used `examples/nexus-act1-06a-01/`, v05-v07 `examples/nexus-act1-06a-02/`, v08-v11 `examples/nexus-act1-06a-03/`) and
+   `examples/nexus-act1-06a-04/snapshot-L7.json`, with names and the first cast; v01-v04 used `examples/nexus-act1-06a-01/`, v05-v07 `examples/nexus-act1-06a-02/`, v08-v11 `examples/nexus-act1-06a-03/`; old runs and bases not used any more were removed on 2026-10-30 and stay readable at commit `d13350b`) and
    go into `examples/nexus-act2-<NN>a/` (NN = agent count, e.g. `nexus-act2-06a/`, `nexus-act2-12a/`)
    as the next version `vNN-<short-name>/`, with a README in the shape of v01 and a row in the series
    index. A checkpointed act goes into `examples/nexus-act<k>-<NN>a-<run>/`. Replace local absolute
