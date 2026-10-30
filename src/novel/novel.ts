@@ -6,9 +6,10 @@
  * 2. the outline (model) plans the chapters, validated against the log;
  * 3. scene packs (code) gather each chapter's material;
  * 4. the prologue (model): the city and its stakes, from what every resident was told;
- * 5. chapters (model), one call each, with the previous chapter's ending;
- * 6. gamemaker interludes (model) between chapters, from its thinking;
- * 7. an edit pass (model) over the whole text;
+ * 5. chapters (model), one call each, with the previous chapter's ending: the
+ *    residents' chapters and two or three from the gamemaker's control room;
+ * 6. an edit pass (model) over the whole text;
+ * 7. the city's records (code) between the chapters: writs, the seal, tribunals, wills, the closing ledger;
  * 8. optionally a translation (model), part by part;
  * 9. the appendix (code): the events each chapter rests on.
  *
@@ -21,10 +22,12 @@ import { cite } from "../digest/timeline.ts";
 import { turningPoints } from "../digest/turning-points.ts";
 import { castBook, type Casting } from "./casting.ts";
 import { addSpend, MAX_TOKENS, NO_SPEND, NovelRequestError, type NovelModel, type NovelSpend } from "./model.ts";
-import { buildOutlineRequest, DEFAULT_OUTLINE_OPTIONS, interpretOutline, outlineSummary, type Outline, type OutlineOptions } from "./outline.ts";
-import { buildInterludePack, buildPack, DEFAULT_PACK_OPTIONS, type PackOptions, type ScenePack } from "./packs.ts";
+import { buildOutlineRequest, DEFAULT_OUTLINE_OPTIONS, interpretOutline, outlineSummary, povName, type Outline, type OutlineOptions } from "./outline.ts";
+import { buildGamemakerPack, buildPack, DEFAULT_PACK_OPTIONS, type PackOptions, type ScenePack } from "./packs.ts";
+import { GAMEMAKER_POV, GAMEMAKER_TEAM } from "./prompts.ts";
+import { cityRecords, placeRecords, renderRecord, type CityRecord } from "./records.ts";
 import { Names, type NovelSource } from "./source.ts";
-import { editStory, lastParagraphs, translateStory, writeChapter, writeInterlude, writePrologue } from "./writer.ts";
+import { editStory, lastParagraphs, translateStory, writeChapter, writeGamemakerChapter, writePrologue } from "./writer.ts";
 
 export const NOVEL_DIRECTORY = "novel";
 export const NOVEL_FILES = { story: "story.md", partial: "story.partial.md", outline: "outline.json", appendix: "appendix.md", packs: "packs" } as const;
@@ -41,24 +44,17 @@ export interface NovelOptions {
 
 export const DEFAULT_NOVEL_OPTIONS: NovelOptions = { words: DEFAULT_WORDS, outline: DEFAULT_OUTLINE_OPTIONS, pack: DEFAULT_PACK_OPTIONS };
 
-export const STAGES = ["outline", "chapters", "interludes", "edit", "translation"] as const;
+export const STAGES = ["outline", "chapters", "gamemaker", "edit", "translation"] as const;
 export type Stage = (typeof STAGES)[number];
 export type StageSpend = Readonly<Record<Stage, NovelSpend>>;
 
-export const NO_STAGE_SPEND: StageSpend = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND, translation: NO_SPEND };
+export const NO_STAGE_SPEND: StageSpend = { outline: NO_SPEND, chapters: NO_SPEND, gamemaker: NO_SPEND, edit: NO_SPEND, translation: NO_SPEND };
 
 export interface NovelModels {
 	readonly outline: NovelModel;
 	readonly writer: NovelModel;
 	/** Line-edits and translates the draft; the writer when absent. */
 	readonly editor?: NovelModel;
-}
-
-export interface Interlude {
-	/** The chapter it comes before. */
-	readonly before: number;
-	readonly text: string;
-	readonly seqs: readonly number[];
 }
 
 export interface WrittenChapter {
@@ -71,7 +67,8 @@ export interface Novel {
 	readonly outline: Outline;
 	readonly packs: readonly ScenePack[];
 	readonly chapters: readonly WrittenChapter[];
-	readonly interludes: readonly Interlude[];
+	/** The city's records after each chapter, by chapter number. */
+	readonly records: ReadonlyMap<number, readonly CityRecord[]>;
 	readonly prologue?: string;
 	readonly story: string;
 	readonly translation?: { readonly code: string; readonly text: string };
@@ -116,6 +113,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		const outline = interpretOutline(source, casting, outlineAnswer.text, { words: options.words });
 
 		const packs = outline.chapters.map((chapter) => {
+			if (chapter.pov === GAMEMAKER_POV) return buildGamemakerPack(source, chapter, GAMEMAKER_TEAM, options.pack);
 			const pov = casting.povs.find((figure) => figure.agent === chapter.pov);
 			if (pov === undefined) throw new Error(`chapter ${String(chapter.number)} has no cast figure`);
 			return buildPack(source, chapter, pov, options.pack);
@@ -133,60 +131,42 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			outline: summary,
 			beats: outline.prologue.map((beat) => names.apply(beat)),
 			...(source.world === undefined ? {} : { world: source.world }),
-			figures: casting.povs.map((pov) => `- ${names.of(pov.agent)}: ${pov.role}`),
+			figures: [...casting.povs.map((pov) => `- ${names.of(pov.agent)}: ${pov.role}`), ...(outline.chapters.some((chapter) => chapter.pov === GAMEMAKER_POV) ? ["- the Gamemaker, who makes the city's games, with his small team"] : [])],
 			glossary: outline.glossary,
 		});
 		spend.chapters = addSpend(spend.chapters, writtenPrologue.spend);
 		const prologue = withoutIds(writtenPrologue.text, names, "prologue", warnings);
-		partial = (): string => renderStory(source, outline, chapters, [], prologue);
+		partial = (): string => renderStory(source, outline, chapters, prologue);
+		// P55: Anthropic will not retell another model's reasoning, and the gamemaker thinks with DeepSeek.
+		const gamemakerWriter = models.writer.provider === "anthropic" ? models.outline : models.writer;
 		for (const chapter of outline.chapters) {
 			const pack = packs[chapter.number - 1];
 			if (pack === undefined) continue;
-			progress(`chapter ${String(chapter.number)}/${String(outline.chapters.length)}: asking ${models.writer.label} ...`);
+			const fromAbove = chapter.pov === GAMEMAKER_POV;
+			stage = fromAbove ? "gamemaker" : "chapters";
+			const writer = fromAbove ? gamemakerWriter : models.writer;
+			progress(`chapter ${String(chapter.number)}/${String(outline.chapters.length)}${fromAbove ? " (the Gamemaker)" : ""}: asking ${writer.label} ...`);
 			const previous = chapters.at(-1)?.text ?? prologue;
-			const written = await writeChapter(models.writer, {
+			const input = {
 				storyTitle: outline.title,
 				outline: summary,
 				chapterNumber: chapter.number,
 				chapterTitle: chapter.title,
-				povName: names.of(chapter.pov),
+				povName: povName(chapter.pov, names),
 				words,
 				pack: pack.markdown,
 				glossary: outline.glossary,
 				...(chapter.question === undefined ? {} : { question: names.apply(chapter.question) }),
 				previousEnding: lastParagraphs(previous),
-			});
-			spend.chapters = addSpend(spend.chapters, written.spend);
+			};
+			const written = fromAbove ? await writeGamemakerChapter(writer, input) : await writeChapter(writer, input);
+			spend[stage] = addSpend(spend[stage], written.spend);
 			chapters.push({ number: chapter.number, text: withoutIds(written.text, names, `chapter ${String(chapter.number)}`, warnings) });
-		}
-
-		stage = "interludes";
-		const interludes: Interlude[] = [];
-		const used = new Set<number>();
-		for (const chapter of outline.chapters.slice(1)) {
-			const pack = buildInterludePack(source, chapter.from, chapter.to, used);
-			if (pack === undefined) continue;
-			for (const seq of pack.seqs) used.add(seq);
-			progress(`interlude before chapter ${String(chapter.number)}: asking ${models.outline.label} ...`);
-			let written;
-			try {
-				// The outline model writes the interludes: they retell the gamemaker's own reasoning, and Anthropic
-				// refuses to rewrite another model's reasoning ("duplicating model outputs").
-				written = await writeInterlude(models.outline, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown, glossary: outline.glossary });
-			} catch (error) {
-				// An interlude is an ornament: losing one must not cost the chapters already paid for.
-				if (!(error instanceof NovelRequestError)) throw error;
-				spend.interludes = addSpend(spend.interludes, error.spend);
-				warnings.push(`interlude before chapter ${String(chapter.number)}: ${error.message}; left out`);
-				continue;
-			}
-			spend.interludes = addSpend(spend.interludes, written.spend);
-			interludes.push({ before: chapter.number, text: withoutIds(written.text, names, `interlude before chapter ${String(chapter.number)}`, warnings), seqs: pack.seqs });
 		}
 
 		stage = "edit";
 		const editor = models.editor ?? models.writer;
-		const draft = renderStory(source, outline, chapters, interludes, prologue);
+		const draft = renderStory(source, outline, chapters, prologue);
 		progress(`edit pass: asking ${editor.label} (${String(draft.length)} characters) ...`);
 		let edited;
 		try {
@@ -199,7 +179,15 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		}
 		spend.edit = addSpend(spend.edit, edited.spend);
 		warnings.push(...edited.warnings.map((warning) => `edit pass: ${warning}`));
-		const story = names.apply(edited.text);
+		// The records come from the log, exact to the point; they go in after the edit so no model touches them.
+		const filed = cityRecords(source.analysis.facts.events, names);
+		const records = placeRecords(
+			filed,
+			outline.chapters.map((chapter) => ({ ...chapter, aside: chapter.pov === GAMEMAKER_POV })),
+		);
+		const left = filed.length - [...records.values()].reduce((sum, placed) => sum + placed.length, 0);
+		if (left > 0) warnings.push(`city records: ${String(left)} of ${String(filed.length)} left out (at most three between two chapters)`);
+		const story = withRecords(names.apply(edited.text), outline, records);
 
 		let translation: { readonly code: string; readonly text: string } | undefined;
 		if (options.translate !== undefined) {
@@ -229,7 +217,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			outline,
 			packs,
 			chapters,
-			interludes,
+			records,
 			prologue,
 			story,
 			...(translation === undefined ? {} : { translation }),
@@ -252,7 +240,7 @@ function withoutIds(text: string, names: Names, where: string, warnings: string[
 	return names.apply(text);
 }
 
-export function renderStory(source: NovelSource, outline: Outline, chapters: readonly WrittenChapter[], interludes: readonly Interlude[], prologue?: string): string {
+export function renderStory(source: NovelSource, outline: Outline, chapters: readonly WrittenChapter[], prologue?: string): string {
 	const { analysis } = source;
 	const lines = [
 		`# ${outline.title}`,
@@ -264,11 +252,32 @@ export function renderStory(source: NovelSource, outline: Outline, chapters: rea
 	for (const chapter of outline.chapters) {
 		const text = chapters.find((written) => written.number === chapter.number)?.text;
 		if (text === undefined) continue;
-		const interlude = interludes.find((entry) => entry.before === chapter.number);
-		if (interlude !== undefined) lines.push("* * *", "", interlude.text, "", "* * *", "");
 		lines.push(`## ${String(chapter.number)}. ${chapter.title}`, "", text, "");
 	}
 	return `${lines.join("\n").trimEnd()}\n`;
+}
+
+/**
+ * Puts the city's records after their chapters: before the next chapter's
+ * heading, or at the end after the last one. A record whose chapter heading
+ * the text lacks is left out.
+ */
+export function withRecords(story: string, outline: Outline, records: ReadonlyMap<number, readonly CityRecord[]>): string {
+	let text = story.trimEnd();
+	const numbers = outline.chapters.map((chapter) => chapter.number).sort((a, b) => a - b);
+	// From the last chapter back, so earlier insertions do not move later headings.
+	for (const [index, number] of [...numbers.entries()].reverse()) {
+		const placed = records.get(number);
+		if (placed === undefined || placed.length === 0 || !text.includes(`\n## ${String(number)}. `)) continue;
+		const block = placed.map(renderRecord).join("\n\n");
+		// Before the next chapter heading the text still has; at the end after the last one.
+		const at = numbers
+			.slice(index + 1)
+			.map((next) => text.indexOf(`\n## ${String(next)}. `))
+			.find((position) => position >= 0) ?? -1;
+		text = at < 0 ? `${text}\n\n${block}` : `${text.slice(0, at).trimEnd()}\n\n${block}\n\n${text.slice(at + 1)}`;
+	}
+	return `${text}\n`;
 }
 
 function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, models: NovelModels): string {
@@ -279,8 +288,9 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 		`# Appendix: the events behind "${outline.title}"`,
 		"",
 		models.editor === undefined || models.editor === models.writer
-			? `Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue, prose, edit${novel.translation === undefined ? "" : " and translation"} by ${models.writer.label}.`
-			: `Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue and draft by ${models.writer.label}; edit${novel.translation === undefined ? "" : " and translation"} by ${models.editor.label}.`,
+			? `Run ${source.analysis.run}. Outline by ${models.outline.label}; prologue, prose, edit${novel.translation === undefined ? "" : " and translation"} by ${models.writer.label}.`
+			: `Run ${source.analysis.run}. Outline by ${models.outline.label}; prologue and draft by ${models.writer.label}; edit${novel.translation === undefined ? "" : " and translation"} by ${models.editor.label}.`,
+		"The Gamemaker's chapters retell his recorded thoughts, notes and moves; his team (the Courier, the Guard, the Scribe) are real parts of the city, and their lines are built from his thoughts and the records of their work. The city's records between the chapters are computed from the log, not written by a model.",
 		"Every `#seq` refers to a line of `events.jsonl`. The pack of each chapter (`packs/NN.md`) is exactly what its writer saw.",
 		"",
 		"## Point-of-view figures (cast in code)",
@@ -294,7 +304,7 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 		lines.push(
 			`## ${String(chapter.number)}. ${chapter.title}`,
 			"",
-			`- Point of view: ${names.labelled(chapter.pov)}, minutes ${String(chapter.from)}-${String(chapter.to)}`,
+			`- Point of view: ${chapter.pov === GAMEMAKER_POV ? "the Gamemaker" : names.labelled(chapter.pov)}, minutes ${String(chapter.from)}-${String(chapter.to)}`,
 			`- What changes: ${chapter.beats.map((beat) => names.apply(beat)).join(" ")}`,
 			`- Outline rests on: ${cite(chapter.evidence)}`,
 			...told.map((point) => `- Turning point told: #${String(point.seq)} ${names.apply(point.text)}`),
@@ -302,9 +312,11 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 			"",
 		);
 	}
-	if (novel.interludes.length > 0) {
-		lines.push("## Interludes (the gamemaker's thinking)", "");
-		for (const interlude of novel.interludes) lines.push(`- Before chapter ${String(interlude.before)}: ${cite(interlude.seqs)}`);
+	if (novel.records.size > 0) {
+		lines.push("## The city's records (computed from the log)", "");
+		for (const [chapter, placed] of [...novel.records].sort((a, b) => a[0] - b[0])) {
+			for (const record of placed) lines.push(`- After chapter ${String(chapter)}: ${record.title} (${cite(record.seqs)})`);
+		}
 		lines.push("");
 	}
 	if (outline.glossary.length > 0) {

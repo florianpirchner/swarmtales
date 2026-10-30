@@ -40,6 +40,8 @@ export interface NovelAnswer {
 /** A model that answers one prompt with text and says what it cost. */
 export interface NovelModel {
 	readonly label: string;
+	/** The provider's ID, e.g. "anthropic" (P55: Anthropic will not retell another model's reasoning). */
+	readonly provider?: string;
 	complete(systemPrompt: string, prompt: string, maxTokens: number): Promise<NovelAnswer>;
 }
 
@@ -72,13 +74,14 @@ export const WRITER_REQUEST: NovelRequestOptions = { timeoutMs: 900_000, reasoni
 /**
  * Output caps per call, with room for the writer's (low) thinking. The
  * outline leaves room for high thinking; a chapter of ~1,000-2,000 words is
- * ~3k tokens, an interlude ~300, the edit pass returns the whole story.
+ * ~3k tokens, the edit pass returns the whole story.
  */
-export const MAX_TOKENS = { outline: 64_000, chapter: 24_000, interlude: 32_000, edit: 64_000 } as const;
+export const MAX_TOKENS = { outline: 64_000, chapter: 24_000, edit: 64_000 } as const;
 
 /** Any pi-ai model, e.g. a real provider or the faux provider in tests. */
 export class PiNovelModel implements NovelModel {
 	readonly label: string;
+	readonly provider: string;
 	readonly #models: Models;
 	readonly #model: Model<Api>;
 	readonly #options: NovelRequestOptions;
@@ -87,6 +90,7 @@ export class PiNovelModel implements NovelModel {
 		this.#models = models;
 		this.#model = model;
 		this.label = label;
+		this.provider = model.provider;
 		this.#options = options;
 	}
 

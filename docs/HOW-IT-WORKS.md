@@ -53,7 +53,7 @@ start without replaying the earlier ones.
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
 | Novelist outline | DeepSeek V4.1 Flash, thinking high | OpenRouter | only with `pnpm novel`; `--outline-provider/--outline-model` override it |
 | Novelist writer | DeepSeek V4.1 Flash, thinking low | OpenRouter | the draft of `pnpm novel`: prologue and chapters; `--provider/--model` override it |
-| Novelist editor | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | the line edit and the translation of `pnpm novel` (the outline model writes the interludes); `--editor-provider/--editor-model` override it |
+| Novelist editor | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | the line edit and the translation of `pnpm novel` (DeepSeek writes the Gamemaker's chapters when the writer is Anthropic, P55); `--editor-provider/--editor-model` override it |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
 | Tests and offline runs | scripted provider | none | no API key, no cost |
 
@@ -327,7 +327,7 @@ words, English, rotating close third person; SPEC 15). It reuses the digest's an
 
 | File | Content |
 |---|---|
-| `story.md` | the story: a prologue, then chapters, with short gamemaker interludes (the city's game makers, in italics) between them |
+| `story.md` | the story: a prologue, then the residents' chapters and two or three from the Gamemaker's control room, with the city's records (writs, the seal, tribunals, wills, the closing ledger, computed from the log) between them |
 | `story.de.md` | with `--translate de`: the story translated by the writer model, part by part |
 | `outline.json` | the point-of-view figures with their scores, the glossary (game word -> story word), the prologue plan and the validated chapters (POV, minutes, dramatic question, what changes, evidence `seq`) |
 | `packs/NN.md` | exactly what the writer saw for chapter NN: the plan, the figure's dossier, its thinking, messages, notes from the gamemaker, the board and the city's facts |
@@ -337,12 +337,14 @@ The pipeline: casting in code (3-4 POV figures scored by turning points, beats a
 the winner, a loser and someone with a turn preferred), an outline by DeepSeek V4.1 Flash
 (validated: known `seq` only, POV must be a cast figure, uncovered turning points are warnings),
 scene packs in code, a prologue from what every resident was told about the city, one Sonnet call
-per chapter (with the previous chapter's ending), one per interlude, one edit pass over the whole
-text checked against the turning points, and optionally a translation. The writer may compress and
+per chapter (with the previous chapter's ending; the Gamemaker's chapters from his own pack of
+thoughts, notes, moves, refusals and the classifier's reads), one edit pass over the whole text
+checked against the turning points, the city's records placed between the chapters in code, and
+optionally a translation. The writer may compress and
 dramatise but never change an outcome. The prompts ask for literary fiction: scenes with dialogue
 from the real messages instead of reports, the outline's glossary instead of game words (no
-levels, counter-factors or tools), numbers only where they hurt, chapters that do not overlap and
-interludes about intent rather than machinery. The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
+levels, counter-factors or tools), numbers only where they hurt, residents' chapters that do not overlap, and a Gamemaker with
+his own arc and a team built from real components (Courier, Guard, Scribe). The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
 an API key for either model the novel is skipped with a reason. The cost of each stage is printed
 at the end and listed in the appendix.
 
@@ -614,7 +616,7 @@ src/
   story/     DSL: types, defineStory and helpers, templates, validation
   log/       event sinks, run artifacts, transcripts, minute report, usage
   digest/    event-log parsing, detectors, relationship graph, acts, timeline, chronicle
-  novel/     the novelist: casting, outline, scene packs, chapters, interludes, edit, appendix
+  novel/     the novelist: casting, outline, scene packs, chapters, gamemaker chapters, edit, city records, appendix
   report/    run reporter: computed facts, evidence pack, prompt, model, REPORT.md rendering
   snapshot/  run snapshot file: schema of state, events and model contexts; read and write
   cli/       start, validate, report, report:run, digest, novel, run composition

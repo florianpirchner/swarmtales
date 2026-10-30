@@ -65,11 +65,25 @@ becomes "the other half of a key", points become "marks on the city's ledger"); 
 With `--translate de` the writer also translates the finished story, part by part; when Anthropic
 refuses a part, DeepSeek translates it (LESSONS P56).
 
-Between the chapters stand **interludes**: short italic passages from the gamemaker's control room,
-written from its thoughts in those minutes, like the game makers in The Hunger Games. The outline
-model writes them, not Claude: the gamemaker thinks with DeepSeek, and Anthropic refuses to retell
-another model's reasoning (LESSONS P55). The chapters retell the residents' thoughts, which come from
-Claude Haiku, and pass.
+Two or three chapters are told from the **Gamemaker's control room**, like the head gamemaker and
+his staff in The Hunger Games: he wants a show, and the residents do not always play. His arc is
+planned like any figure's (a goal, an obstacle, a turn), and his chapters may show the same hours
+as a resident's chapter, from above. His small team are real parts of the city, each with traces in
+the log: the **Courier** delivers his notes (signed COURIER) and brings back the residents'
+refusals, the **Guard** stops a note that would pass on someone's private thoughts
+(PRIVATE_BLOCKED), and the **Scribe** reads every resident's words and files how they sound
+(hesitation, threat, lie). The team speaks only what the material carries; where his thinking
+weighs two courses, two of them may argue them. DeepSeek writes these chapters even when Claude
+writes the rest: the Gamemaker thinks with DeepSeek, and Anthropic refuses to retell another
+model's reasoning (LESSONS P55).
+
+Between the chapters stand the **city's records**: short official documents computed in code from
+the log, never written by a model, so every number is exact. A deadline writ says who held what,
+the deadline and the penalty, and how it ended; the sale of the black seal lists the sealed bids;
+a tribunal gives the ballots and the ransom; a last will is quoted as it was read at the gate; the
+closing ledger lists the private aims that held and the final standing. At most three stand
+between two chapters (the weightiest), and they go in after the edit pass so no model can change
+them.
 
 At the end, an **appendix** lists for every chapter the events it rests on, the turning points it
 told, the editor's contradictions and the cost of each stage.
@@ -102,14 +116,17 @@ show rather than tell, no game words, numbers only where they hurt, no moral at 
 | Step | Model | Cost in the example |
 |---|---|---:|
 | Chronicle | DeepSeek V4.1 Flash via OpenRouter, thinking high | under 0.01 USD |
-| Outline, interludes | DeepSeek V4.1 Flash via OpenRouter, thinking high | 0.01 USD |
+| Outline | DeepSeek V4.1 Flash via OpenRouter, thinking high | 0.01 USD |
 | Chapters, edit (first version) | Claude Sonnet via Anthropic, thinking low | 0.43 USD |
 | Draft (now) | DeepSeek V4.1 Flash via OpenRouter, thinking low | 0.03 USD |
 | Line edit, translation (now) | Claude Sonnet via Anthropic, thinking low | 0.19 USD, translation 0.26 USD |
 
 The second version of the example with the sharpened prompts: DeepSeek as writer, 8032 words for
 0.12 USD including the German translation, and Sonnet, 5656 words for 0.43 USD plus 0.18 for the
-translation (see the [run's README](../stories/nexus/runs/act2-12a-003-f10g10-director/)).
+translation (see the [run's README](../stories/nexus/runs/act2-12a-003-f10g10-director/)). The
+fourth version, [*The Quiet Hand at the Gate*](../stories/nexus/runs/act2-12a-003-f10g10-director/run/novel-gamemaker/story.md),
+is the first with the Gamemaker's chapters and the city's records (7373 words, 0.23 USD plus 0.26
+for German).
 
 `--provider/--model` and `--outline-provider/--outline-model` choose other models; `--out` writes to
 another folder so two writers can be compared; `--translate <lang>` adds a translation; `--words` sets

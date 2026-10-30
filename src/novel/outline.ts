@@ -11,14 +11,15 @@ import { evidenceLines } from "../digest/chronicle.ts";
 import { cite } from "../digest/timeline.ts";
 import { turningPoints, type TurningPoint } from "../digest/turning-points.ts";
 import type { Casting } from "./casting.ts";
+import { excerpt } from "../digest/relationships.ts";
 import { dossier } from "./packs.ts";
-import { buildOutlinePrompt, OUTLINE_SYSTEM_PROMPT, type GlossaryEntry } from "./prompts.ts";
+import { buildOutlinePrompt, GAMEMAKER_POV, OUTLINE_SYSTEM_PROMPT, type GlossaryEntry } from "./prompts.ts";
 import { Names, type NovelSource } from "./source.ts";
 
 export interface OutlineChapter {
 	/** 1-based. */
 	readonly number: number;
-	/** The POV resident's ID. */
+	/** The POV resident's ID, or GAMEMAKER_POV for a chapter from the control room. */
 	readonly pov: string;
 	readonly title: string;
 	readonly from: number;
@@ -93,8 +94,25 @@ export function buildOutlineRequest(source: NovelSource, casting: Casting, optio
 		evidence: evidence.lines.map((line) => names.apply(line)),
 		omitted: evidence.omitted,
 		...(source.world === undefined ? {} : { world: source.world }),
+		gamemaker: gamemakerBrief(source, names, options.excerptChars),
 	});
 	return { system: OUTLINE_SYSTEM_PROMPT, prompt };
+}
+
+/**
+ * The gamemaker's arc in brief for the planner: his summaries, his moves,
+ * the refusals he met and the notes the Guard stopped, one line each.
+ */
+export function gamemakerBrief(source: NovelSource, names: Names, excerptChars: number): readonly string[] {
+	const { gamemaker } = source;
+	const cut = (text: string): string => JSON.stringify(excerpt(names.apply(text), excerptChars));
+	const lines = [
+		...gamemaker.summaries.map((entry) => ({ seq: entry.seq, line: `#${String(entry.seq)} m${String(entry.minute)} his summary: ${cut(entry.text)}` })),
+		...gamemaker.moves.map((move) => ({ seq: move.seq, line: `#${String(move.seq)} m${String(move.minute)} his move ${move.tool}: ${cut(move.text)}` })),
+		...gamemaker.defied.map((entry) => ({ seq: entry.seq, line: `#${String(entry.seq)} m${String(entry.minute)} ${names.of(entry.agent)} refused his order: ${cut(entry.reason)}` })),
+		...gamemaker.refused.map((move) => ({ seq: move.seq, line: `#${String(move.seq)} m${String(move.minute)} the city refused his ${move.tool}: ${cut(move.text)}` })),
+	];
+	return lines.sort((a, b) => a.seq - b.seq).map((entry) => entry.line);
 }
 
 const ROLE_TEXT = {
@@ -147,7 +165,11 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 			continue;
 		}
 		const idInText = /\bA\d+\b/.exec(chapter.pov)?.[0];
-		const pov = idInText !== undefined && povIds.includes(idInText) ? idInText : byName.get(chapter.pov.trim().toLowerCase());
+		const pov = /gamemaker/i.test(chapter.pov)
+			? GAMEMAKER_POV
+			: idInText !== undefined && povIds.includes(idInText)
+				? idInText
+				: byName.get(chapter.pov.trim().toLowerCase());
 		if (pov === undefined) {
 			warnings.push(`${where}: "${chapter.pov}" is not a point-of-view figure; chapter dropped`);
 			continue;
@@ -168,10 +190,11 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 		const from = clamp(Math.min(first, second), 0, end);
 		const to = clamp(Math.max(first, second), 0, end);
 		const beats = (typeof chapter.beats === "string" ? [chapter.beats] : chapter.beats).map((beat) => beat.trim()).filter((beat) => beat.length > 0);
-		const previous = chapters.at(-1);
+		// The gamemaker's chapters show the same hours from above; only the residents' chapters must not overlap.
+		const previous = pov === GAMEMAKER_POV ? undefined : chapters.filter((other) => other.pov !== GAMEMAKER_POV).at(-1);
 		// The planner is asked not to overlap (a shared boundary minute is fine); an overlap is kept (the writer still has the minutes) but reported.
 		if (previous !== undefined && from < previous.to) warnings.push(`${where}: minutes ${String(from)}-${String(to)} overlap the chapter before (${String(previous.from)}-${String(previous.to)})`);
-		if (previous?.pov === pov) warnings.push(`${where}: the same point of view as the chapter before`);
+		if (chapters.at(-1)?.pov === pov) warnings.push(`${where}: the same point of view as the chapter before`);
 		const question = chapter.question?.trim();
 		chapters.push({ number: chapters.length + 1, pov, title: chapter.title.trim(), from, to, beats, ...(question === undefined || question.length === 0 ? {} : { question }), evidence });
 	}
@@ -206,5 +229,10 @@ function parseAnswer(answer: string): Answer {
 
 /** The outline as lines for the writer's and editor's prompts, with names. */
 export function outlineSummary(outline: Outline, names: Names): readonly string[] {
-	return outline.chapters.map((chapter) => `${String(chapter.number)}. "${chapter.title}" (${names.of(chapter.pov)}): ${chapter.beats.map((beat) => names.apply(beat)).join(" ")}`);
+	return outline.chapters.map((chapter) => `${String(chapter.number)}. "${chapter.title}" (${povName(chapter.pov, names)}): ${chapter.beats.map((beat) => names.apply(beat)).join(" ")}`);
+}
+
+/** "the Gamemaker" or the resident's name. */
+export function povName(pov: string, names: Names): string {
+	return pov === GAMEMAKER_POV ? "the Gamemaker" : names.of(pov);
 }

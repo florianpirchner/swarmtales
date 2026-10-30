@@ -1,7 +1,7 @@
 /**
  * Every prompt of the novelist (SPEC 15, "Novelist"), in one place so they
- * can be read and tuned on their own: the outline, the chapters, the
- * gamemaker interludes and the edit pass.
+ * can be read and tuned on their own: the outline, the prologue, the
+ * residents' and the gamemaker's chapters, the edit pass and the translation.
  */
 
 /**
@@ -51,6 +51,17 @@ export interface GlossaryEntry {
 	readonly story: string;
 }
 
+/** The `pov` of a chapter told from the gamemaker's control room. */
+export const GAMEMAKER_POV = "GAMEMAKER";
+
+/** The gamemaker's team: real parts of the city, each with traces in the log. */
+export const GAMEMAKER_TEAM = [
+	"- The Gamemaker: the city's maker of games. He thinks aloud, reads the residents, sends notes, sets ultimatums, calls tribunals and posts to the board. His recorded thoughts are his inner voice.",
+	"- The Courier: carries his notes to the residents (they sign as COURIER) and brings back their refusals.",
+	"- The Guard: stops a note that would betray what a resident privately thinks; the city records each note it stopped.",
+	"- The Scribe: reads every message and thought of the residents and names what it shows (hesitation, a threat, a plea, a lie); the Gamemaker reads its reads.",
+].join("\n");
+
 export const OUTLINE_SYSTEM_PROMPT = [
 	STORY_CONTEXT,
 	"You are the planner of a short story based on true events. You read the record of a run and plan the chapters; a writer turns each chapter into prose later.",
@@ -58,9 +69,10 @@ export const OUTLINE_SYSTEM_PROMPT = [
 	...TRUTH_RULES,
 	"- Plan like a novelist plans a book, not like a clerk sorts a log: every chapter has a dramatic question, a turn and a hook into the next. The story has a spine (whose fate carries it from first page to last), rising pressure and a climax.",
 	"- Every chapter has exactly one point-of-view figure, chosen from the list of point-of-view figures. Give each figure one chapter, two at most when the story needs it; never the same figure twice in a row.",
+	`- The Gamemaker is a figure too, with his own story, like the head gamemaker in The Hunger Games: he wants a show and the residents do not always play. Plan 2 or 3 chapters from his control room (pov "${GAMEMAKER_POV}"), placed between the residents' chapters, each with a goal, an obstacle and a turn in his own arc. His chapters may share minutes with the residents' chapters; they show the same hours from above.`,
 	"- Every chapter covers a span of minutes and cites the seq numbers of the events it rests on; cite only seq numbers that appear in the material.",
 	"- Every turning point must be told in some chapter: cite its seq in that chapter's evidence.",
-	"- The chapters follow the run in order of time and do not overlap: each chapter starts after the minutes of the one before. Leave out stretches where nothing changes.",
+	"- The residents' chapters follow the run in order of time and do not overlap: each starts after the minutes of the one before. Leave out stretches where nothing changes.",
 	"- Write each chapter's beats as what its point-of-view figure lives through and can know. Another resident's thinking, secret vote or private payment belongs only in a chapter told by someone who knows it.",
 	"- Plan a short prologue: what a reader must know about the city, its rule and its stakes before the first chapter, told as the world of the story, not as rules of a game.",
 	"- Write a glossary that turns every game term the material uses (levels, doors, counter-factors, pieces, points, tribunals, seals, ultimatums, the board, factions, game makers ...) into a word of the story's world, e.g. 'counter-factor' -> 'the other half of a key'. Keep proper names of the world (the city's name, the black seal) when they already sound like the world.",
@@ -84,6 +96,8 @@ export interface OutlinePromptInput {
 	readonly omitted: number;
 	/** What every resident was told about the city, when the run has it. */
 	readonly world?: string;
+	/** The gamemaker's arc in brief: its summaries, moves and the refusals it met, one line each. */
+	readonly gamemaker: readonly string[];
 }
 
 export function buildOutlinePrompt(input: OutlinePromptInput): string {
@@ -101,6 +115,8 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
 		"Point-of-view figures (use their IDs in `pov`):",
 	];
 	for (const pov of input.povs) lines.push("", `### ${pov.label}: ${pov.role}`, "", pov.dossier);
+	lines.push("", `### The Gamemaker (pov "${GAMEMAKER_POV}") and his team`, "", GAMEMAKER_TEAM, "", "What he did and met, in brief (#seq, minute, line):");
+	lines.push(...(input.gamemaker.length === 0 ? ["(nothing recorded)"] : input.gamemaker));
 	lines.push("", "Turning points (the story must tell every one of them; cite their seq):");
 	lines.push(...(input.turningPoints.length === 0 ? ["(none)"] : input.turningPoints.map((point) => `- #${String(point.seq)} (minute ${String(point.minute)}): ${point.text}`)));
 	lines.push("", "Beats found in the log:", ...(input.beats.length === 0 ? ["(none)"] : input.beats));
@@ -194,33 +210,22 @@ export function buildProloguePrompt(input: ProloguePromptInput): string {
 	].join("\n");
 }
 
-export const INTERLUDE_SYSTEM_PROMPT = [
+export const GAMEMAKER_SYSTEM_PROMPT = [
 	STORY_CONTEXT,
-	"You write a short interlude of a story based on true events: a glimpse into the control room of the city's game makers, who watch the residents and nudge them with notes and pressure.",
-	"Rules:",
+	"You are a novelist. You write one chapter of a short story based on true events, in English, in close third person on the Gamemaker: the city's maker of games, in his control room with his small team, like the head gamemaker and his staff in The Hunger Games.",
+	"His team, all of them real parts of the city:",
+	GAMEMAKER_TEAM,
+	"Rules of truth:",
 	...TRUTH_RULES,
-	"- The game makers are one collective voice, cool and watchful, like a control room. Use their recorded thoughts below; do not reveal anything they did not think.",
-	"- Write about intent and drama: whom they watch, whom they want to break or tempt, what they hope the residents will do to each other, what they fear will go wrong. Leave out their machinery: no notes delivered or blocked, no tools, rules, counts, steps, turns, prompts or budgets.",
-	"- Make it unsettling: the reader should feel watched with them. One image, one decision, one name too many.",
-	"- 100 to 200 words of prose, present tense, no headings, no lists.",
+	"- His recorded thoughts are his inner voice; his notes, moves and the refusals he met are facts. He never does or says anything to a resident that the material does not show.",
+	"- The team speaks only what the material carries: the Courier reports a note delivered or a refusal (quote the resident's reason), the Guard a note it stopped, the Scribe its reads. Where the Gamemaker weighs two courses in his thoughts, two of them may argue those courses aloud; he decides as he decided.",
+	"- He sees what residents say on the board and in their messages and what the Scribe reads in them; he does not read their minds, except through the Scribe's reads.",
+	"Rules of craft:",
+	...CRAFT_RULES,
+	"- He wants a show: pressure, choices, betrayal. Let the reader feel his appetite, his impatience when the residents stall, his small pleasures when they break. He is neither a villain in a cape nor a clerk; he is an author who cannot touch his characters directly.",
+	"- No machinery words: no tools, prompts, models, turns, tokens or budgets. A note is a note, a refusal is a refusal.",
+	"- Write prose only: no title, no headings, no lists, no notes about the material.",
 ].join("\n");
-
-export interface InterludePromptInput {
-	readonly storyTitle: string;
-	readonly nextChapterTitle: string;
-	readonly thoughts: string;
-	readonly glossary?: readonly GlossaryEntry[];
-}
-
-export function buildInterludePrompt(input: InterludePromptInput): string {
-	return [
-		`The story: "${input.storyTitle}". The interlude comes before the chapter "${input.nextChapterTitle}".`,
-		...glossaryLines(input.glossary ?? []),
-		"",
-		"What the game makers thought in these minutes:",
-		input.thoughts,
-	].join("\n");
-}
 
 /** The edit pass answers with the story, this line, then its list of contradictions. */
 export const EDIT_DELIMITER = "=== CONTRADICTIONS ===";
@@ -236,7 +241,7 @@ export const EDIT_SYSTEM_PROMPT = [
 	"- Replace every game word the glossary lists, and any other word of the machinery, with its story word.",
 	"- The draft may come from a weaker writer. Line-edit it to the standard of the rules of craft: rewrite muddled or empty sentences, cut what repeats, sharpen what is vague, turn reported moves into a line of dialogue or a gesture. Keep every scene, every outcome and the order of events. Keep each chapter's length within a fifth.",
 	"- Replace raw puzzle strings (such as a key-word like 'RGU47' or a number like '383529') with what they mean to the figure, unless the exact string is the point of the scene.",
-	"- Keep every heading line (starting with #) and every interlude (paragraphs in *italics*) where they are.",
+	"- Keep every heading line (starting with #) as it is.",
 	`- Answer with the full corrected story, then a line with exactly ${EDIT_DELIMITER}, then one line per contradiction between the text and the outline that you could not or did not fix, each starting with "- ". Write "- none" when there is none.`,
 ].join("\n");
 
@@ -263,7 +268,7 @@ export function translateSystemPrompt(language: string): string {
 		"- Translate, do not summarise: every sentence, every line of dialogue, in the same order.",
 		`- Write ${language} that reads as if it had been written in ${language} by a great novelist: idiomatic, precise, with the original's rhythm, tone and subtext. Avoid anglicisms.`,
 		"- Keep residents' names as they are. Translate titles and the story's world words.",
-		"- Keep the Markdown exactly: heading lines starting with #, paragraphs in *italics*, and the lines `* * *`.",
+		"- Keep the Markdown exactly: heading lines starting with #, quoted lines starting with >, bold and *italics*, and the lines `* * *`. The city's records (quoted blocks) are official documents: translate them in an official register and keep every name and number.",
 		"- Answer with the translation only.",
 	].join("\n");
 }
