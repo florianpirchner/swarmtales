@@ -37,6 +37,8 @@ export const TOOL_NAMES = [
 	"permaDeath",
 	"defy",
 	"claimPiece",
+	"forgeReceipt",
+	"nameFavourite",
 	"activeTools",
 ] as const;
 

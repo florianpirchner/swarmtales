@@ -310,6 +310,12 @@ export function buildFacts(events: readonly DigestEvent[]): RunFacts {
 			case "seal_won":
 			case "seal_used":
 			case "seal_expired":
+			case "receipt_forged":
+			case "whisperer_chosen":
+			case "whisper_duty":
+			case "popularity_opened":
+			case "popularity_ballot":
+			case "popularity_result":
 			case "fate_shift":
 				break;
 			default:

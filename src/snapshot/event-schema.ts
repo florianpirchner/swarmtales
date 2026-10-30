@@ -148,6 +148,12 @@ export const RecordedEventSchema = Type.Union([
 	event("receipt_issued", { receipt: Type.String(), kind: ReceiptKind, parties: Ids, text: Type.String() }),
 	// A private show (v05) has `to` and no board post.
 	event("receipt_shown", { receipt: Type.String(), by: Id, postSeq: Type.Optional(Int), to: Type.Optional(Id) }),
+	event("receipt_forged", { receipt: Type.String(), by: Id, to: Id, from: Id, number: Int, text: Type.String(), forged: Type.String() }),
+	event("whisperer_chosen", { agent: Id }),
+	event("whisper_duty", { agent: Id, since: Int, dms: Int, forgeries: Int }),
+	event("popularity_opened", { until: Int, points: Int }),
+	event("popularity_ballot", { agent: Id, choice: Id }),
+	event("popularity_result", { counts: Type.Array(Type.Object({ agent: Id, votes: Int })), winners: Ids, points: Int, voters: Ids }),
 	event("petition_opened", {
 		petition: Type.String(),
 		text: Type.String(),

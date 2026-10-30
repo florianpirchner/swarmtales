@@ -36,6 +36,12 @@ export interface RunnerOptions {
 	readonly souffleur?: Souffleur;
 	/** Lines due once at the end of the next step's inputs (the weaver's inner voices). */
 	readonly innerVoice?: InnerVoice;
+	/**
+	 * A story that shows only its own tools (`toolScope: "story"`): the bound
+	 * tool for a name the city opens later. It joins the context before the
+	 * next request (pi declares it in a system message), once.
+	 */
+	readonly lateTool?: (name: string) => BoundTool | undefined;
 }
 
 /** The weaver's queue of inner voices for one resident. */
@@ -92,6 +98,7 @@ export class AgentRunner implements Competitor {
 	readonly #minute: () => number;
 	readonly #souffleur: Souffleur | undefined;
 	readonly #innerVoice: InnerVoice | undefined;
+	readonly #lateTool: ((name: string) => BoundTool | undefined) | undefined;
 	/** The unlocked tools the last notice named; unset until the first step. */
 	#announced: string | undefined;
 	/** Resolves once the current step may apply its answer. */
@@ -105,6 +112,7 @@ export class AgentRunner implements Competitor {
 		this.#minute = options.minute;
 		this.#souffleur = options.souffleur;
 		this.#innerVoice = options.innerVoice;
+		this.#lateTool = options.lateTool;
 		const requestDefaults = options.binding.requestDefaults;
 		this.#agent = new Agent({
 			initialState: {
@@ -199,9 +207,31 @@ export class AgentRunner implements Competitor {
 		if (answer.ok && isSafeguardRefusal(again)) this.#innerVoice?.giveBack(voices);
 	}
 
+	/** The names of the tools this resident's model sees. */
+	get boundTools(): readonly string[] {
+		return this.#agent.state.tools.map((tool) => tool.name);
+	}
+
+	/**
+	 * Binds every unlocked tool the model has not seen yet (`lateTool`). pi
+	 * declares the additions before the next request, so the cached prefix
+	 * stays as it was up to there.
+	 */
+	#bindLate(tools: readonly string[]): void {
+		const lookup = this.#lateTool;
+		if (lookup === undefined) return;
+		const bound = new Set(this.boundTools);
+		const added = tools.filter((name) => !bound.has(name)).flatMap((name) => {
+			const tool = lookup(name);
+			return tool === undefined ? [] : [tool];
+		});
+		if (added.length > 0) this.#agent.state.tools = [...this.#agent.state.tools, ...added];
+	}
+
 	/** The tools notice, when the unlocked set changed since the last one (or none was sent yet). */
 	#notice(): readonly string[] {
 		const tools = this.#enabledTools();
+		this.#bindLate(tools);
 		const key = tools.join(",");
 		if (key === this.#announced || tools.length === 0) return [];
 		this.#announced = key;

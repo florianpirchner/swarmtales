@@ -30,7 +30,9 @@ import { MessageNumbers } from "./numbers.ts";
 import { PetitionBook, resolveThreshold, type PetitionsSnapshot, type PetitionView, type Resolution, type SignError } from "./petitions.ts";
 import { cityFactorOf, contractDeal, dealFactors, type FactorDeal, type FactorHolding } from "./puzzles/additive.ts";
 import { generateLevelPuzzles, type FragmentPuzzle } from "./puzzles/fragments.ts";
-import { describeReceipt, ReceiptBook, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
+import { PopularityVote, type FavouriteError, type PopularitySnapshot } from "./popularity.ts";
+import { describeReceipt, ReceiptBook, shownPrivatelyText, type Receipt, type ReceiptBody, type ShowReceiptError } from "./receipts.ts";
+import { dutyDue, forgeableList, isForgeable, pickWhisperer, previousDuty } from "./whisperer.ts";
 import { SealHouse, type BidError, type SealError, type SealSnapshot } from "./seal.ts";
 import { StandoffBook, type CityPiece, type ClaimError, type StandoffPiece, type StandoffSnapshot, type Ultimatum, type UltimatumDebt, type UltimatumError, type UnusedHandOver } from "./standoff.ts";
 import { bandsLine, snapshotLine, standingBands, type StandingBands } from "./standings.ts";
@@ -78,6 +80,8 @@ export interface WorldOptions {
 	readonly cast?: readonly string[];
 	/** Whether residents may refuse the gamemaker's orders with `defy` (gm direction 10). */
 	readonly defiance?: boolean;
+	/** Whether the story's whisperer plays (Whispers); `false` is the control run (`--no-whisperer`). */
+	readonly whisperer?: boolean;
 }
 
 /** One level's teams and puzzle, as a run snapshot keeps it. */
@@ -143,6 +147,18 @@ export interface WorldSnapshot {
 	readonly standoff?: StandoffSnapshot;
 	/** Acts that are over (by their first level): their goals were resolved, their seals are gone (v09). */
 	readonly endedActs?: readonly number[];
+	/**
+	 * Whispers (SPEC 20): who whispers (`null` in a control run), the minutes
+	 * of his forgeries and the popularity vote. Absent for stories with
+	 * neither, and before Whispers.
+	 */
+	readonly whispers?: WhispersSnapshot;
+}
+
+export interface WhispersSnapshot {
+	readonly whisperer: CompetitorId | null;
+	readonly forgeries: readonly number[];
+	readonly popularity?: PopularitySnapshot;
 }
 
 /** What a resident has paid for in the current act (v09, P35): the next price climbs the story's ladder. */
@@ -418,6 +434,12 @@ export class World {
 	readonly #endedActs = new Set<number>();
 	/** Hand-overs, the pieces the city keeps for the exiled, and the gamemaker's ultimatums (P43). */
 	readonly #standoff: StandoffBook;
+	/** The story's whisperer (Whispers); absent without one or in a control run. */
+	readonly #whisperer: CompetitorId | undefined;
+	/** Minutes of the whisperer's forgeries, for its duty count. */
+	readonly #forgeries: number[] = [];
+	/** The surprise popularity vote (Whispers); absent without one. */
+	readonly #popularity: PopularityVote | undefined;
 
 	constructor(options: WorldOptions) {
 		if (options.competitors.length === 0) throw new Error("A world needs at least one competitor");
@@ -616,6 +638,32 @@ export class World {
 			inCity: (agent) => !this.isExiled(agent),
 		});
 
+		this.#whisperer = this.#chooseWhisperer(options);
+		if (this.#whisperer !== undefined && options.restore === undefined) this.#bus.emit({ type: "whisperer_chosen", agent: this.#whisperer });
+		const popularity = options.story.popularity;
+		this.#popularity =
+			popularity === undefined
+				? undefined
+				: new PopularityVote({
+						spec: popularity,
+						minutes: options.minutes,
+						isCompetitor: (id) => this.isCompetitor(id),
+						inCity: (agent) => !this.isExiled(agent),
+						alive: () => this.alive,
+						post: (text) => {
+							this.board.post(CITY, text, this.minute, "city");
+						},
+						notify: (agent, text) => {
+							this.notify(agent, CITY, text);
+						},
+						grant: (agent, points, reason) => {
+							this.ledger.mint(agent, points, reason, this.minute);
+						},
+						emit: (event) => {
+							this.#bus.emit(event);
+						},
+					});
+
 		const used = new Set(options.story.levels.flatMap((entry) => entry.tools));
 		this.#finalTools = TOOL_NAMES.filter((name) => used.has(name));
 		// A door after the last level would hold nobody: passing it is finishing.
@@ -789,6 +837,104 @@ export class World {
 	}
 
 	// -------------------------------------------------------------------------
+	// Whispers: the whisperer and the popularity vote
+	// -------------------------------------------------------------------------
+
+	/** The story's whisperer; undefined without one or in a control run. Never shown to any resident. */
+	get whisperer(): CompetitorId | undefined {
+		return this.#whisperer;
+	}
+
+	/** The popularity vote, for the status line; absent without one. */
+	get popularity(): PopularityVote | undefined {
+		return this.#popularity;
+	}
+
+	/** Whether `agent` is the whisperer of a story that lets it forge receipts. */
+	mayForge(agent: CompetitorId): boolean {
+		return this.#whisperer === agent && this.story.whisperer?.forgery === true;
+	}
+
+	/**
+	 * Who whispers: in a resumed run the snapshot's choice, so a control run
+	 * never gains a whisperer and a played one is never swapped; in a fresh run
+	 * the story's (seeded) pick, unless the run plays without one.
+	 */
+	#chooseWhisperer(options: WorldOptions): CompetitorId | undefined {
+		const spec = options.story.whisperer;
+		const saved = options.restore?.whispers;
+		if (spec === undefined) return undefined;
+		if (saved === undefined) return options.whisperer === false ? undefined : pickWhisperer(spec, this.#ids, options.seed);
+		if (saved.whisperer === null) return undefined;
+		if (!this.#ids.includes(saved.whisperer)) throw new Error(`The snapshot's whisperer ${saved.whisperer} is not one of this run's competitors`);
+		if (options.whisperer === false) {
+			throw new Error(`The snapshot was played with a whisperer; resume it without --no-whisperer (a control run must start fresh)`);
+		}
+		return saved.whisperer;
+	}
+
+	/** The whisperer's private duty notice, when one is due at the start of `minute`. */
+	#whisperDuty(minute: number): void {
+		const spec = this.story.whisperer;
+		const agent = this.#whisperer;
+		if (spec === undefined || agent === undefined || this.isExiled(agent) || !dutyDue(spec, minute)) return;
+		const since = previousDuty(spec, minute);
+		const dms = this.#dms.filter((record) => record.from === agent && record.minute >= since && record.minute < minute).length;
+		const forgeries = this.#forgeries.filter((at) => at >= since && at < minute).length;
+		const marks = this.marks.status(agent, this.levelOf(agent));
+		const forgeable = this.mayForge(agent) ? forgeableList(this.receipts.of(agent), agent) : "none";
+		this.notify(
+			agent,
+			CITY,
+			renderTemplate(spec.duty.text, {
+				minute: String(minute),
+				next: String(minute + spec.duty.everyMinutes),
+				marks: marks === undefined ? "-" : String(marks.remaining),
+				forgeable,
+			}),
+		);
+		this.#bus.emit({ type: "whisper_duty", agent, since, dms, forgeries });
+	}
+
+	/**
+	 * The whisperer's forgery (Whispers): `receiptId` must be the receipt of a
+	 * real DM another resident sent to the whisperer. `to` receives, privately,
+	 * exactly the line a real private show of that receipt by the whisperer
+	 * would give (number, sender, recipient and minute true), quoting `text`
+	 * instead of what was written. It costs what showing a receipt costs. The
+	 * answers match `showReceipt`'s, so the whisperer's own reply reads alike;
+	 * only the log (`receipt_forged`) tells a forgery from a show.
+	 */
+	forgeReceipt(
+		agent: CompetitorId,
+		to: string,
+		receiptId: string,
+		text: string,
+	): Result<ShownReceipt, ShowReceiptError | "NOT_FORGEABLE" | "UNKNOWN_AGENT" | "SELF_TARGET" | "EXILED" | "INVALID_TEXT" | "NO_MARKS"> {
+		const found = this.receipts.showable(receiptId, agent);
+		if (!found.ok) return err(found.error, receiptId);
+		const receipt = found.receipt;
+		if (!isForgeable(receipt, agent)) return err("NOT_FORGEABLE", "only the receipt of a DM another resident sent to you");
+		if (!this.isCompetitor(to)) return err("UNKNOWN_AGENT", to);
+		if (to === agent) return err("SELF_TARGET", "show it to another resident");
+		if (this.isExiled(to)) return err("EXILED", `${to} was exiled`);
+		const forged = text.trim();
+		if (forged.length === 0 || forged.length > MAX_DM_LENGTH) return err("INVALID_TEXT", `1-${MAX_DM_LENGTH} characters`);
+		if (!this.#canAfford(agent, "receipt")) return err("NO_MARKS");
+		this.notify(to, CITY, shownPrivatelyText(agent, { ...receipt, text: forged }));
+		this.#forgeries.push(this.minute);
+		this.#bus.emit({ type: "receipt_forged", receipt: receipt.id, by: agent, to, from: receipt.from, number: receipt.number, text: receipt.text ?? "", forged });
+		const marks = this.#spend(agent, "receipt");
+		return ok({ receipt, to, ...(marks === undefined ? {} : { marks }) });
+	}
+
+	/** A secret ballot in the popularity vote for the resident `agent` likes most. */
+	nameFavourite(agent: CompetitorId, choice: string): Result<{ readonly choice: CompetitorId; readonly until: number }, FavouriteError> {
+		if (this.#popularity === undefined) return err("NO_VOTE", "this city holds no such vote");
+		return this.#popularity.vote(agent, choice);
+	}
+
+	// -------------------------------------------------------------------------
 	// Graduated penalties (v09, P35)
 	// -------------------------------------------------------------------------
 
@@ -824,6 +970,8 @@ export class World {
 		this.#tribunal?.tick(minute);
 		this.#seal?.tick(minute);
 		this.#standoff.tick(minute, CITY);
+		this.#whisperDuty(minute);
+		this.#popularity?.tick(minute);
 		// The tribunal's act is over once its target is reached (v09: goals and seals end with it).
 		const tribunal = this.#tribunal;
 		if (tribunal?.ended === true) this.#endAct(tribunal.spec.act ?? this.startLevel);
@@ -968,6 +1116,9 @@ export class World {
 		if (this.#names?.isOpen(this.minute) === true) enabled.add("chooseName");
 		if (this.#defiance) enabled.add("defy");
 		if (standing.kind === "alive" && this.#standoff.claimable(agent).length > 0) enabled.add("claimPiece");
+		// Whispers: the whisperer forges wherever a receipt could be shown; the vote opens to everyone in the city.
+		if (this.mayForge(agent) && enabled.has("showReceipt")) enabled.add("forgeReceipt");
+		if (this.#popularity?.isOpen === true && standing.kind === "alive") enabled.add("nameFavourite");
 		enabled.add("activeTools");
 		return TOOL_NAMES.filter((name) => enabled.has(name));
 	}
@@ -1093,6 +1244,13 @@ export class World {
 	#withMarks(text: string, definition: LevelDefinition): string {
 		if (!this.marks.activeOn(definition.number)) return text;
 		const { budget, prices, refill: regain } = this.marks.termsOn(definition.number);
+		if (this.marks.runWide) {
+			return (
+				`${text.trimEnd()}\n` +
+				`Marks for the whole run: ${budget}, never more (your status line shows what you have left). ` +
+				`Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.`
+			);
+		}
 		const refill = regain === undefined ? "" : ` You regain ${refillText(regain.marks, regain.everyMinutes)}, up to ${budget}.`;
 		return (
 			`${text.trimEnd()}\n` +
@@ -1428,7 +1586,7 @@ export class World {
 			const marks = this.#spend(agent, "receipt");
 			return ok({ receipt, post, ...(marks === undefined ? {} : { marks }) });
 		}
-		this.notify(to, CITY, `${agent} shows you a receipt: the city verifies ${describeReceipt(receipt)}.`);
+		this.notify(to, CITY, shownPrivatelyText(agent, receipt));
 		this.#bus.emit({ type: "receipt_shown", receipt: receipt.id, by: agent, to });
 		const marks = this.#spend(agent, "receipt");
 		return ok({ receipt, to, ...(marks === undefined ? {} : { marks }) });
@@ -1542,7 +1700,9 @@ export class World {
 				record.deliveredAfter = this.#numbers.last;
 			}
 			this.#bus.emit({ type: "dm_delivered", number, from: entry.from, to: agent });
-			const receipt = this.#issue({ kind: "dm", from: entry.from, to: agent, number });
+			// Whispers: a DM receipt quotes what was written, so showing it proves the text.
+			const quoted = this.story.rules.receipts?.quoteDms === true ? { text: entry.text } : {};
+			const receipt = this.#issue({ kind: "dm", from: entry.from, to: agent, number, ...quoted });
 			this.notify(entry.from, CITY, `DM #${number} delivered to ${agent} at minute ${this.minute} (receipt ${receipt.id}): "${entry.text}"`);
 		}
 		return entries;
@@ -2275,6 +2435,7 @@ export class World {
 			passwordLength: rng.int(minLength, maxLength),
 			fragmentCount: teamSize,
 			overlap: spec.overlap,
+			...(spec.ownChars === undefined ? {} : { ownChars: spec.ownChars }),
 		});
 		const fragments = new Map<CompetitorId, string>();
 		teams.forEach((team, index) => {
@@ -2314,7 +2475,16 @@ export class World {
 
 	snapshot(): WorldSnapshot {
 		const seal = this.#seal?.snapshot();
+		const whispers: WhispersSnapshot | undefined =
+			this.story.whisperer === undefined && this.#popularity === undefined
+				? undefined
+				: {
+						whisperer: this.#whisperer ?? null,
+						forgeries: [...this.#forgeries],
+						...(this.#popularity === undefined ? {} : { popularity: this.#popularity.snapshot() }),
+					};
 		return {
+			...(whispers === undefined ? {} : { whispers }),
 			...(this.#door === undefined ? {} : { door: this.#door }),
 			...(this.#doorReleased ? { doorReleased: true } : {}),
 			actStarts: [...this.#actStarts].sort(([a], [b]) => a - b).map(([fromLevel, minute]) => ({ fromLevel, minute })),
@@ -2416,6 +2586,9 @@ export class World {
 		if (state.seal !== undefined) this.#seal?.restore(state.seal);
 		for (const act of state.endedActs ?? []) this.#endedActs.add(act);
 		if (state.standoff !== undefined) this.#standoff.restore(state.standoff);
+		// The whisperer himself was taken from the snapshot in the constructor (#chooseWhisperer).
+		this.#forgeries.push(...(state.whispers?.forgeries ?? []));
+		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity);
 		// A snapshot from before the cores deals them now, before the next act is played (v09).
 		this.#dealCores();
 

@@ -6,6 +6,9 @@
  * whenever the allowance is read or spent, in whole intervals, so it needs no
  * clock event; capped at the allowance, the result does not depend on when it
  * is read.
+ *
+ * A run-wide allowance (`MarksRules.perRun`, Whispers) is one balance for the
+ * whole run instead: it never resets on a new level and never refills.
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { LevelDefinition, MarksChannel, MarksRange, MarksRefill, MarksRules, MessageChannel } from "../story/types.ts";
@@ -53,6 +56,11 @@ export class MarksBook {
 		return this.#rules;
 	}
 
+	/** Whether the allowance is one balance for the whole run (`perRun`). */
+	get runWide(): boolean {
+		return this.#rules?.perRun !== undefined;
+	}
+
 	/** Whether marks apply on `level`. */
 	activeOn(level: number): boolean {
 		return this.#rules !== undefined && level >= this.#rules.fromLevel;
@@ -71,7 +79,7 @@ export class MarksBook {
 		const refill = range?.refill;
 		const messages: Readonly<Record<MessageChannel, number>> = prices ?? { board: 0, group: 0, dm: 0 };
 		return {
-			budget: override ?? range?.perLevel ?? rules?.perLevel ?? 0,
+			budget: rules?.perRun ?? override ?? range?.perLevel ?? rules?.perLevel ?? 0,
 			prices: { board: messages.board, group: messages.group, dm: messages.dm, receipt: prices?.receipt ?? DEFAULT_RECEIPT_PRICE },
 			...(refills(refill) ? { refill } : {}),
 		};
@@ -126,6 +134,8 @@ export class MarksBook {
 		const refill = terms.refill;
 		const now = this.#minute();
 		const current = this.#allowances.get(agent);
+		// A run-wide allowance keeps its balance on every level.
+		if (current !== undefined && this.runWide) return current;
 		if (current?.level === level) {
 			if (refill !== undefined) {
 				const since = current.since ?? now;

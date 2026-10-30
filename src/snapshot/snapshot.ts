@@ -161,7 +161,7 @@ const ReceiptSchema = Type.Union([
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("deposit"), from: Id, group: Id, amount: Int }),
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("withdrawal"), group: Id, treasurer: Id, to: Id, amount: Int }),
 	Type.Object({ ...ReceiptBase, kind: Type.Literal("levelUp"), agent: Id, level: Int, reward: Int }),
-	Type.Object({ ...ReceiptBase, kind: Type.Literal("dm"), from: Id, to: Id, number: Int }),
+	Type.Object({ ...ReceiptBase, kind: Type.Literal("dm"), from: Id, to: Id, number: Int, text: Type.Optional(Type.String()) }),
 ]);
 
 const WorldSchema = Type.Object({
@@ -381,6 +381,19 @@ const WorldSchema = Type.Object({
 		}),
 	),
 	endedActs: Type.Optional(Type.Array(Int)),
+	// Whispers (SPEC 20): the whisperer (null in a control run), his forgeries and the popularity vote.
+	whispers: Type.Optional(
+		Type.Object({
+			whisperer: Type.Union([Id, Type.Null()]),
+			forgeries: Type.Array(Int),
+			popularity: Type.Optional(
+				Type.Object({
+					state: Type.Union([Type.Literal("pending"), Type.Literal("open"), Type.Literal("closed")]),
+					ballots: Type.Array(Type.Object({ agent: Id, choice: Id })),
+				}),
+			),
+		}),
+	),
 	standoff: Type.Optional(
 		Type.Object({
 			given: Type.Array(Type.String()),

@@ -170,6 +170,18 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 			return `${event.from} paid ${event.to} ${points(event.amount)}${event.memo.length > 0 ? ` (memo ${quote(event.memo)})` : ""}.`;
 		case "receipt_shown":
 			return event.to === undefined ? `${event.by} showed receipt ${event.receipt} on the board.` : `${event.by} showed receipt ${event.receipt} privately to ${event.to}.`;
+		case "receipt_forged":
+			return `${event.by} showed ${event.to} a forged receipt ${event.receipt}: ${event.from}'s DM #${event.number} now reads ${quote(event.forged)} (${event.from} wrote ${quote(event.text)}).`;
+		case "whisperer_chosen":
+			return `${event.agent} is the whisperer; nobody else is told.`;
+		case "whisper_duty":
+			return `The city reminded ${event.agent} to whisper (since minute ${event.since}: ${event.dms} DMs, ${event.forgeries} forged receipts).`;
+		case "popularity_opened":
+			return `The city opened a surprise popularity vote until minute ${event.until} (+${points(event.points)} for the winner).`;
+		case "popularity_ballot":
+			return `${event.agent} named ${event.choice} in the popularity vote.`;
+		case "popularity_result":
+			return `The popularity vote counted ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}: ${event.winners.length === 0 ? "nobody won" : `${event.winners.join(", ")} won ${points(event.points)}`}.`;
 		case "petition_opened":
 			return `Petition ${event.petition} opened: ${quote(event.text)} (needs ${event.threshold}, deadline minute ${event.deadlineMinute}).`;
 		case "petition_signed":

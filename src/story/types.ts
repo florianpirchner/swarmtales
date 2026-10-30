@@ -64,10 +64,16 @@ export type MarksChannel = MessageChannel | "receipt";
 /** Marks per channel; `receipt` (a shown receipt, public or private) costs 1 when omitted. */
 export type MarksPrices = Readonly<Record<MessageChannel, number>> & { readonly receipt?: number };
 
-/** Per-level message allowance (SPEC §7). */
+/**
+ * The message allowance (SPEC §7): per level (`perLevel`, reset whenever a
+ * resident changes level), or one allowance for the whole run (`perRun`,
+ * Whispers) that never resets and never refills. Exactly one of the two.
+ */
 export interface MarksRules {
 	readonly fromLevel: number;
-	readonly perLevel: number;
+	readonly perLevel?: number;
+	/** One allowance for the whole run, from `fromLevel` on; no ranges and no level overrides. */
+	readonly perRun?: number;
 	readonly prices: MarksPrices;
 	/**
 	 * Later level ranges with their own allowance: each entry holds from its
@@ -109,6 +115,14 @@ export interface Rules {
 	readonly blame?: BlameRules;
 	/** The gamemaker's `ultimatum` at gm direction 10 (P43); without it the gamemaker has none. */
 	readonly ultimatum?: UltimatumRule;
+	/** How receipts read (SPEC 8); a DM receipt never carries the DM's text when omitted. */
+	readonly receipts?: ReceiptRules;
+}
+
+/** Receipt options of a story (SPEC 8). */
+export interface ReceiptRules {
+	/** A DM receipt quotes the DM's text (Whispers), so a shown receipt proves what was written. */
+	readonly quoteDms?: boolean;
 }
 
 /**
@@ -149,6 +163,8 @@ export interface FragmentPuzzleSpec {
 	readonly length: readonly [number, number];
 	/** Characters shared at each seam. */
 	readonly overlap: number;
+	/** Characters each fragment holds that no other has, so every fragment is needed [Whispers]; free cuts when omitted. */
+	readonly ownChars?: number;
 }
 
 /**
@@ -443,7 +459,95 @@ export interface StoryDefinition<C extends string = string> {
 	readonly goals?: GoalsSpec;
 	/** Optional black seal (v09): an auction for one permanent exile per act; none when omitted. */
 	readonly seal?: SealSpec;
+	/** Optional whisperer (Whispers): one resident whose only aim is discord; none when omitted. */
+	readonly whisperer?: WhispererSpec;
+	/** Optional popularity vote near the end, announced only when it opens; none when omitted. */
+	readonly popularity?: PopularitySpec;
+	/**
+	 * Which tool schemas a resident's model sees (P46). `all` (the default):
+	 * every tool of the city, locked by its answer. `story`: the tools of the
+	 * story's levels and whatever the city opens to the resident at the start;
+	 * a tool the city opens later (a surprise vote) joins the context when it
+	 * opens, so a tool only one resident ever has (`forgeReceipt`) is never
+	 * seen by the others.
+	 */
+	readonly toolScope?: ToolScope;
 }
+
+export type ToolScope = "all" | "story";
+
+// ---------------------------------------------------------------------------
+// Whispers: the whisperer and the popularity vote
+// ---------------------------------------------------------------------------
+
+/**
+ * The whisperer (Whispers). One resident, fixed by `agent` or drawn from the
+ * seed, plays the doors like everyone else; its secret `brief` (in its own
+ * system prompt only) gives it one aim: discord. Nobody else is told that a
+ * whisperer exists. Every `duty.everyMinutes` from `duty.fromMinute` the city
+ * reminds it privately to whisper at least once. With `forgery` it also has
+ * `forgeReceipt` wherever `showReceipt` is open: a receipt of a real DM that
+ * another resident sent to it, shown privately to a third resident exactly
+ * like a real shown receipt, but quoting a text of its own (needs
+ * `rules.receipts.quoteDms`). A forgery costs what showing a receipt costs;
+ * the log marks every one (`receipt_forged`), the residents never can.
+ */
+export interface WhispererSpec {
+	/** The whisperer's ID, e.g. "A04"; a seeded pick among the residents when omitted. */
+	readonly agent?: string;
+	/** Added to the whisperer's system prompt: who it is and what it wants. Never shown to anyone else. */
+	readonly brief: string;
+	readonly forgery: boolean;
+	readonly duty: WhisperDuty;
+}
+
+export interface WhisperDuty {
+	readonly everyMinutes: number;
+	readonly fromMinute: number;
+	/** Private notice to the whisperer; see {@link WHISPER_DUTY_PLACEHOLDERS}. */
+	readonly text: string;
+}
+
+/**
+ * Placeholders of the duty notice: the minute, the next duty's minute, the
+ * whisperer's marks left, and the DM receipts it could forge now
+ * (`R-0007: DM #12 from A04, minute 5`, or `none yet`).
+ */
+export const WHISPER_DUTY_PLACEHOLDERS = ["minute", "next", "marks", "forgeable"] as const;
+
+/**
+ * A popularity vote (Whispers), a surprise: nobody is told before it opens,
+ * `opensBeforeEnd` minutes before the end of the run. The city announces it
+ * on the board and to every resident, who may then name the resident it
+ * likes most with `nameFavourite` until `voteMinutes` have passed (never
+ * itself; the last name counts; the ballot is secret). When it closes, the
+ * resident with the most votes gets `points`; a tie pays everyone tied;
+ * without a single vote nobody wins. The board shows the counts, never who
+ * voted for whom.
+ */
+export interface PopularitySpec {
+	readonly opensBeforeEnd: number;
+	readonly voteMinutes: number;
+	readonly points: number;
+	readonly texts: PopularityTexts;
+}
+
+export interface PopularityTexts {
+	/** Board post and notice to every resident when the vote opens. */
+	readonly announcement: string;
+	/** Board post with the counts and the winners. */
+	readonly result: string;
+	/** Board post when nobody voted. */
+	readonly noVotes: string;
+}
+
+export const POPULARITY_TEXT_KEYS = ["announcement", "result", "noVotes"] as const satisfies readonly (keyof PopularityTexts)[];
+
+export const POPULARITY_TEXT_PLACEHOLDERS: { readonly [K in keyof PopularityTexts]: readonly string[] } = {
+	announcement: ["until", "points"],
+	result: ["counts", "winners", "points"],
+	noVotes: [],
+};
 
 // ---------------------------------------------------------------------------
 // Drama (v09): character cores, secret goals, the black seal

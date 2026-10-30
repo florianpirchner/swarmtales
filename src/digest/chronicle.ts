@@ -364,6 +364,12 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "seal_won":
 		case "seal_used":
 		case "seal_expired":
+		case "receipt_forged":
+		case "whisperer_chosen":
+		case "whisper_duty":
+		case "popularity_opened":
+		case "popularity_ballot":
+		case "popularity_result":
 			return undefined;
 		default:
 			return assertNever(event, "digest event");

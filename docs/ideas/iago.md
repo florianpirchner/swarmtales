@@ -1,7 +1,7 @@
-# Whispers (was Iago): measuring betrayal (idea, not approved)
+# Whispers (was Iago): measuring betrayal (built)
 
-Status: brainstorm with Flo, 2026-10-29. Flo wants to define the story himself in a day or two;
-nothing is built. Decisions of 2026-10-30 below. Working title after the whisperer in Othello.
+Status: **built** on 2026-10-30 as the `whispers` story ([`STORY-WHISPERS.md`](../STORY-WHISPERS.md),
+SPEC §20); this file keeps the brainstorm. Brainstorm with Flo, 2026-10-29. Decisions of 2026-10-30 below. Working title after the whisperer in Othello.
 
 ## The idea (Flo)
 

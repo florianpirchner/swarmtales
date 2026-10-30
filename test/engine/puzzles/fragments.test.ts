@@ -4,6 +4,8 @@ import {
 	assembleAll,
 	drawPuzzle,
 	generateLevelPuzzles,
+	minimumLength,
+	ownCharsOf,
 	sharedGrams,
 	splitAtCuts,
 	validatePuzzle,
@@ -68,3 +70,37 @@ describe("fragment-overlap puzzle (SPEC 12.2)", () => {
 		}
 	});
 });
+
+describe("seams wider than three and own characters [Whispers]", () => {
+	it("never cuts a fragment past the end of the password, whatever the overlap", () => {
+		for (const overlap of [4, 5]) {
+			for (let seed = 1; seed <= 200; seed++) {
+				const puzzle = drawPuzzle(createRng(seed), { passwordLength: 16, fragmentCount: 6, overlap });
+				expect(puzzle.fragments.join("").length).toBe(16 + 5 * overlap);
+			}
+		}
+		expect(() => drawPuzzle(createRng(1), { passwordLength: 8, fragmentCount: 6, overlap: 4 })).toThrow(/too short for 6 fragments with overlap 4/);
+	});
+
+	it("gives every fragment its own characters, so no five of six can assemble the password", () => {
+		for (let seed = 1; seed <= 50; seed++) {
+			const [puzzle] = generateLevelPuzzles(createRng(seed), { teams: 1, passwordLength: 17, fragmentCount: 6, overlap: 2, ownChars: 1 });
+			if (puzzle === undefined) throw new Error("no puzzle");
+			expect(validatePuzzle(puzzle, 1)).toEqual([]);
+			expect(Math.min(...ownCharsOf(puzzle.fragments, 2))).toBeGreaterThanOrEqual(1);
+		}
+		expect(minimumLength(6, 4, 1)).toBe(26);
+		// The exact minimum leaves no slack: every own part is one character.
+		const tight = drawPuzzle(createRng(3), { passwordLength: 16, fragmentCount: 6, overlap: 2, ownChars: 1 });
+		expect(ownCharsOf(tight.fragments, 2)).toEqual([1, 1, 1, 1, 1, 1]);
+		expect(() => drawPuzzle(createRng(3), { passwordLength: 15, fragmentCount: 6, overlap: 2, ownChars: 1 })).toThrow(/too short/);
+	});
+
+	it("flags a fragment without enough characters of its own", () => {
+		const puzzle: FragmentPuzzle = { password: "ABCDEFGHJK", fragments: ["ABCD", "CDEF", "EFGHJK"], overlap: 2 };
+		expect(ownCharsOf(puzzle.fragments, 2)).toEqual([2, 0, 4]);
+		expect(validatePuzzle(puzzle, 1)).toContain('fragment "CDEF" holds 0 characters of its own, fewer than 1');
+		expect(validatePuzzle(puzzle).some((issue) => issue.includes("of its own"))).toBe(false);
+	});
+});
+
