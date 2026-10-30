@@ -1,6 +1,6 @@
 # Idea: Swarm Tales as a monorepo of packages
 
-Status: proposal (2026-10-30). Scope: CLI only (Flo, 2026-10-30). Nothing is built. Flo asked for a structure worthy of a senior
+Status: proposal (2026-10-30). Scope (Flo, 2026-10-30): CLI only, no web UI; everything else below stays in, including the story data format and sandboxed plugins. Nothing is built. Flo asked for a structure worthy of a senior
 project, extensible with custom tools and puzzles, with no prompts in code and a director that only
 guards the hard limits of the game.
 
@@ -107,8 +107,43 @@ switches.
 
 Design rule: a module touches nothing but its own state, the narrow context the host passes in, and
 the events it returns: no direct `World` access, no Node APIs, randomness and time only from the
-host. That keeps runs deterministic and resumable, and it would let the same module run in a sandbox
-later, should a web platform ever come back (out of scope for now: CLI only).
+host. That keeps runs deterministic and resumable, and it lets the same module run in the repo and in
+the plugin sandbox (§3b).
+
+## 3a. Story format: one schema, TS or YAML
+
+A story is already pure data (`000-run.json` holds `JSON.stringify(story)`, and a test checks the
+round trip). The cut:
+
+- **The canonical format is data**, described by a Typebox schema in `contracts`; every module adds
+  the schema of its options. `pnpm build:schema` writes `story.schema.json`.
+- **YAML (or JSON) stories** declare `# yaml-language-server: $schema=...` and get content assist,
+  hover docs and validation in VS Code from the standard YAML extension, with no tool of our own.
+- **The TS builder stays** for stories that compute (loops over levels, shared constants) and keeps
+  compile-time tool names; it emits the same data.
+- **A VS Code extension later** for what JSON Schema cannot do: cross-references (level exists,
+  prompt key exists, tool's module is loaded), go-to-definition into `library/prompts/`, a preview of
+  rendered prompts. It is a thin language server over `pnpm validate`.
+- **Small logic as expressions**: conditions and formulas (`penalty = 2 * offences`,
+  `atDoor >= 3`) in a small expression language (CEL or JSONLogic, to be chosen), evaluated by the
+  engine. This covers most custom rules without a plugin.
+
+CLAUDE.md's "never YAML" rule changes to "TS or YAML, both against the story schema" in the PR that
+ships YAML loading.
+
+## 3b. Plugin sandbox
+
+Full expressiveness means new mechanics too. A third-party module is TypeScript against the `sdk`,
+bundled with esbuild and run in a sandbox; first-party modules run in-process.
+
+- Requirements: no network, filesystem, clock or randomness except through host functions (seeded
+  rng, virtual minute); hard time and memory limits per call; deterministic for snapshots and resume.
+- Candidates: QuickJS in WASM (quickjs-emscripten; strong isolation, built-in limits, deterministic
+  by default, slower, which does not matter next to model calls), isolated-vm (V8 isolates, fast,
+  native addon, same process), Deno subprocess with permissions. Not `node:vm` (no security
+  boundary). Decide by a short spike that runs one real module (marks) in each.
+- The host API a sandboxed module sees is exactly the module context of §3, serialised; that is why
+  the design rule above matters from step 4 on.
 
 ## 4. No prompts in code
 
@@ -181,6 +216,9 @@ cityofkeys story, events compared to a stored file) that proves behaviour did no
 | 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` | low, mechanical |
 | 4 | Module host; carve `World` into modules one by one (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
 | 5 | Director → referee + script module | medium |
+| 6 | Story schema export, YAML loader, expression language | medium |
+| 7 | Plugin sandbox spike, then sandboxed third-party modules | medium, new dependency |
+| 8 | VS Code extension (language server over `pnpm validate`) | low, optional |
 
 Snapshot compatibility: `examples/cityofkeys-act1-06a-04/snapshot-L7.json` must keep loading. Step 4
 adds a snapshot version and a migration from today's flat shape.
@@ -196,12 +234,14 @@ adds a snapshot version and a migration from today's flat shape.
 
 ## 8. Open questions for Flo
 
-1. ~~Backend and UI?~~ Decided 2026-10-30: CLI only; no backend, no UI, no web platform for now.
+1. ~~Backend and UI?~~ Decided 2026-10-30: no web UI; CLI is the app. Story data format, YAML,
+   expressions and the plugin sandbox stay in scope.
 2. **Staging:** script module first (option 1), gamemaker orchestration later as its own design?
 3. **"No prompts":** do tool descriptions, error replies to models and story prose count? I count all
    three.
 4. **Publish to npm** (`@swarmtales/*`) or internal only for now?
-5. **Story format:** TS builder only (today's rule), or TS and YAML against the same schema?
+5. ~~Story format?~~ Decided 2026-10-30: one schema, TS builder and YAML (§3a).
+8. **Expression language:** CEL (typed, Google) or JSONLogic (plain JSON, simpler)?
 6. **Timing:** start with steps 1-3 right after Whispers is merged, or wait until the first Whispers
    run is done?
 7. **Names:** `kernel`, `roles`, `chronicle`, `referee` fine, or other names?
