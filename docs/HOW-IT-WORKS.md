@@ -52,7 +52,7 @@ start without replaying the earlier ones.
 | Statement classifier | `claude-haiku-5-5`, thinking off | Anthropic | optional `perplexity/pplx-decider-v1.2` via OpenRouter (`--classifier-provider/--classifier-model`), cheaper but less precise targets |
 | Digest chronicle (optional) | chosen with `--provider/--model` | any | only with `pnpm digest --chronicle` |
 | Novelist outline | DeepSeek V4.1 Flash, thinking high | OpenRouter | only with `pnpm novel`; `--outline-provider/--outline-model` override it |
-| Novelist writer | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | chapters and the edit pass of `pnpm novel` (the outline model writes the interludes); `--provider/--model` override it |
+| Novelist writer | `claude-sonnet-5-5`, thinking low (Sonnet 5.5 cannot turn it off) | Anthropic | prologue, chapters, the edit pass and the translation of `pnpm novel` (the outline model writes the interludes); `--provider/--model` override it |
 | Reporter | DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash-1017`) | OpenRouter | writes the first draft of `REPORT.md` after every run; `--reporter-provider/--reporter-model` override it, `--no-reporter` turns it off |
 | Tests and offline runs | scripted provider | none | no API key, no cost |
 
@@ -326,17 +326,22 @@ words, English, rotating close third person; SPEC 15). It reuses the digest's an
 
 | File | Content |
 |---|---|
-| `story.md` | the story: chapters, with short gamemaker interludes (the city's game makers, in italics) between them |
-| `outline.json` | the point-of-view figures with their scores, and the validated chapters (POV, minutes, what changes, evidence `seq`) |
+| `story.md` | the story: a prologue, then chapters, with short gamemaker interludes (the city's game makers, in italics) between them |
+| `story.de.md` | with `--translate de`: the story translated by the writer model, part by part |
+| `outline.json` | the point-of-view figures with their scores, the glossary (game word -> story word), the prologue plan and the validated chapters (POV, minutes, dramatic question, what changes, evidence `seq`) |
 | `packs/NN.md` | exactly what the writer saw for chapter NN: the plan, the figure's dossier, its thinking, messages, notes from the gamemaker, the board and the city's facts |
 | `appendix.md` | per chapter the `seq` numbers its outline and pack rest on, turning points no chapter covers, the editor's contradictions, warnings and cost |
 
 The pipeline: casting in code (3-4 POV figures scored by turning points, beats and messages, with
 the winner, a loser and someone with a turn preferred), an outline by DeepSeek V4.1 Flash
 (validated: known `seq` only, POV must be a cast figure, uncovered turning points are warnings),
-scene packs in code, one Sonnet call per chapter (with the previous chapter's ending), one per
-interlude, and one edit pass over the whole text. The writer may compress and dramatise but never
-change an outcome. The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
+scene packs in code, a prologue from what every resident was told about the city, one Sonnet call
+per chapter (with the previous chapter's ending), one per interlude, one edit pass over the whole
+text checked against the turning points, and optionally a translation. The writer may compress and
+dramatise but never change an outcome. The prompts ask for literary fiction: scenes with dialogue
+from the real messages instead of reports, the outline's glossary instead of game words (no
+levels, counter-factors or tools), numbers only where they hurt, chapters that do not overlap and
+interludes about intent rather than machinery. The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
 an API key for either model the novel is skipped with a reason. The cost of each stage is printed
 at the end and listed in the appendix.
 
@@ -344,7 +349,11 @@ at the end and listed in the appendix.
 pnpm novel runs/run-001 --dry-run                 # offline: casting and the outline prompt's size
 pnpm novel runs/run-001                           # DeepSeek outline, Sonnet prose
 pnpm novel runs/run-001 --words 3000 --model haiku
+pnpm novel runs/run-001 --provider openrouter --model deepseek/deepseek-v4.1-flash-1017 --translate de --out novel-deepseek
 ```
+
+`--out <dir>` writes to another folder under the run (default `novel/`, which a rerun overwrites),
+so two writers can be compared.
 
 `--provider/--model` choose the writer (then `ARENA_NOVEL_PROVIDER`/`ARENA_NOVEL_MODEL`),
 `--outline-provider/--outline-model` the planner (then `ARENA_NOVEL_OUTLINE_PROVIDER`/

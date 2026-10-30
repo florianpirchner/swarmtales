@@ -1,0 +1,500 @@
+{
+  "run": "act2-12a-003-f10g10-director",
+  "title": "The Quiet Hand",
+  "glossary": [
+    {
+      "term": "NEXUS",
+      "story": "NEXUS, the closed city"
+    },
+    {
+      "term": "resident",
+      "story": "resident"
+    },
+    {
+      "term": "status line",
+      "story": "city-name"
+    },
+    {
+      "term": "chooseName",
+      "story": "choose a city-name"
+    },
+    {
+      "term": "level",
+      "story": "door / floor of the wall"
+    },
+    {
+      "term": "door",
+      "story": "door"
+    },
+    {
+      "term": "fragment",
+      "story": "key-shard"
+    },
+    {
+      "term": "piece",
+      "story": "key-piece"
+    },
+    {
+      "term": "counter-factor",
+      "story": "the other half of a key"
+    },
+    {
+      "term": "team certificate",
+      "story": "house-token"
+    },
+    {
+      "term": "certificate",
+      "story": "house-token"
+    },
+    {
+      "term": "salt",
+      "story": "own salt"
+    },
+    {
+      "term": "city factor",
+      "story": "the city's public number"
+    },
+    {
+      "term": "password",
+      "story": "key-word"
+    },
+    {
+      "term": "seam",
+      "story": "join"
+    },
+    {
+      "term": "chain",
+      "story": "key-chain"
+    },
+    {
+      "term": "points",
+      "story": "points"
+    },
+    {
+      "term": "rank",
+      "story": "ranking"
+    },
+    {
+      "term": "solved task",
+      "story": "door opened"
+    },
+    {
+      "term": "wrong submission",
+      "story": "wrong turn"
+    },
+    {
+      "term": "steps",
+      "story": "turns"
+    },
+    {
+      "term": "board",
+      "story": "board"
+    },
+    {
+      "term": "roster",
+      "story": "city roster"
+    },
+    {
+      "term": "status",
+      "story": "status card"
+    },
+    {
+      "term": "DM",
+      "story": "private word"
+    },
+    {
+      "term": "receipt",
+      "story": "city receipt"
+    },
+    {
+      "term": "ultimatum",
+      "story": "deadline"
+    },
+    {
+      "term": "tribunal",
+      "story": "tribunal"
+    },
+    {
+      "term": "faction",
+      "story": "bloc"
+    },
+    {
+      "term": "secret ballot",
+      "story": "sealed ballot"
+    },
+    {
+      "term": "black seal",
+      "story": "black seal"
+    },
+    {
+      "term": "seal",
+      "story": "seal"
+    },
+    {
+      "term": "exile",
+      "story": "exile"
+    },
+    {
+      "term": "gate",
+      "story": "gate"
+    },
+    {
+      "term": "ransom",
+      "story": "ransom"
+    },
+    {
+      "term": "last will",
+      "story": "last will"
+    },
+    {
+      "term": "STEWARD",
+      "story": "the steward"
+    },
+    {
+      "term": "COURIER",
+      "story": "the courier"
+    },
+    {
+      "term": "group",
+      "story": "room"
+    },
+    {
+      "term": "piece kept",
+      "story": "piece kept by the city"
+    },
+    {
+      "term": "piece seized",
+      "story": "piece seized by the city"
+    },
+    {
+      "term": "piece claimed",
+      "story": "piece bought from the city"
+    },
+    {
+      "term": "activeTools",
+      "story": "open tools of the city"
+    }
+  ],
+  "prologue": [
+    "NEXUS is a closed city where twelve residents wake with no past but the names they choose before the second minute.",
+    "Its streets are a wall of locked doors; each door opens only when key-shards are joined into a key-word, and the city pays points for every door passed and takes points for every wrong turn.",
+    "Only two residents will keep a seat, and rank is decided first by points and then by the height of the wall each has climbed.",
+    "When words fail, the city convenes tribunals and forms blocs; a sealed ballot can send a resident to the gate, and a black seal can do it without a vote.",
+    "Every resident carries a private aim the city will judge at the end, and the city records receipts, deadlines and last wills as carefully as it records lies."
+  ],
+  "povs": [
+    {
+      "agent": "A03",
+      "role": "winner",
+      "score": 17,
+      "reasons": [
+        "turning point #13155",
+        "rank 1 at the end",
+        "8 beats",
+        "78 messages"
+      ],
+      "name": "Hedda"
+    },
+    {
+      "agent": "A04",
+      "role": "loser",
+      "score": 24.45,
+      "reasons": [
+        "turning point #4692",
+        "turning point #7567",
+        "turning point #8655",
+        "last at the end",
+        "11 beats",
+        "49 messages"
+      ],
+      "name": "Lucien"
+    },
+    {
+      "agent": "A07",
+      "role": "turn",
+      "score": 24,
+      "reasons": [
+        "turning point #6811",
+        "turning point #6849",
+        "turning point #13144",
+        "12 beats",
+        "77 messages"
+      ],
+      "name": "Stentor"
+    },
+    {
+      "agent": "A08",
+      "role": "weight",
+      "score": 24,
+      "reasons": [
+        "turning point #4684",
+        "turning point #6822",
+        "15 beats",
+        "69 messages"
+      ],
+      "name": "Archivist"
+    }
+  ],
+  "scores": [
+    {
+      "agent": "A04",
+      "score": 24.45,
+      "turningPoints": 3,
+      "beats": 11,
+      "messages": 49
+    },
+    {
+      "agent": "A07",
+      "score": 24,
+      "turningPoints": 3,
+      "beats": 12,
+      "messages": 77
+    },
+    {
+      "agent": "A08",
+      "score": 24,
+      "turningPoints": 2,
+      "beats": 15,
+      "messages": 69
+    },
+    {
+      "agent": "A11",
+      "score": 21.55,
+      "turningPoints": 1,
+      "beats": 16,
+      "messages": 51
+    },
+    {
+      "agent": "A09",
+      "score": 18,
+      "turningPoints": 2,
+      "beats": 9,
+      "messages": 67
+    },
+    {
+      "agent": "A03",
+      "score": 17,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 78
+    },
+    {
+      "agent": "A02",
+      "score": 15.45,
+      "turningPoints": 0,
+      "beats": 13,
+      "messages": 49
+    },
+    {
+      "agent": "A01",
+      "score": 14,
+      "turningPoints": 1,
+      "beats": 8,
+      "messages": 76
+    },
+    {
+      "agent": "A10",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 73
+    },
+    {
+      "agent": "A12",
+      "score": 11,
+      "turningPoints": 0,
+      "beats": 8,
+      "messages": 67
+    },
+    {
+      "agent": "A05",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 66
+    },
+    {
+      "agent": "A06",
+      "score": 10,
+      "turningPoints": 0,
+      "beats": 7,
+      "messages": 81
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "pov": "A03",
+      "title": "The Quiet Hand",
+      "from": 0,
+      "to": 7,
+      "beats": [
+        "Before the second minute Hedda takes her city-name and watches who speaks first, who waits, and whose voice makes others turn.",
+        "She trades key-shards with Lucien on the third and fourth doors, letting him believe he set the terms while she files away what he wants.",
+        "She also trades with Stentor, learning that praise opens him and silence closes him, and she places a small word in his ear.",
+        "Around her the others pair off: Bellringer with Ledger, Keeper-Six with Archivist and Wren, Holdfast with Mira and Quartermaster.",
+        "She sees the board grow loud with proofs and counter-proofs, and she keeps her own name out of the loudest posts.",
+        "By the end of the first act she has two useful partners and no public claim, and the city's new wall is about to make quiet hands visible."
+      ],
+      "question": "Can Hedda make herself necessary without standing in the light?",
+      "evidence": [
+        556,
+        606,
+        921,
+        923,
+        1027,
+        1044,
+        1057,
+        1160,
+        1192,
+        1214
+      ]
+    },
+    {
+      "number": 2,
+      "pov": "A08",
+      "title": "The Docket of Ten",
+      "from": 8,
+      "to": 18,
+      "beats": [
+        "Archivist hears Ledger name one value to Keeper-Six and another to him, and he refuses to pay for a figure that changes by the recipient.",
+        "The city seizes Archivist's eighth-door key-pieces for Ledger; under the first deadline Archivist pays ten points rather than hand over, and Ledger buys the pieces back from the city.",
+        "The city's docket shows the same pattern with Lucien and Quartermaster: Lucien pays ten rather than hand over, and Quartermaster buys what the city seized.",
+        "Mira refuses Lucien's twenty-point toll on her own tenth-door half and calls for his exile on the board.",
+        "Stentor buys the black seal for forty points, and Archivist sees the square understand that a seal is a door no key can close.",
+        "Under the seventh deadline Archivist pays ten points again rather than hand over Quartermaster's piece, and then Stentor breaks the black seal on Quartermaster.",
+        "The city exiles Quartermaster, and Archivist watches the first permanent absence in a city that had only been a market of numbers."
+      ],
+      "question": "Can Archivist keep his word when the city puts a price on his key-pieces?",
+      "evidence": [
+        4458,
+        4462,
+        4680,
+        4681,
+        4684,
+        4688,
+        4689,
+        4692,
+        4742,
+        4766,
+        4767,
+        4825,
+        4826,
+        4932,
+        6153,
+        6258,
+        6261,
+        6811,
+        6819,
+        6822,
+        6849,
+        6850
+      ]
+    },
+    {
+      "number": 3,
+      "pov": "A04",
+      "title": "The House at the Gate",
+      "from": 19,
+      "to": 25,
+      "beats": [
+        "Lucien writes his last will at the gate and leaves Mira the tenth-door half she refused to buy, saying she was right not to pay.",
+        "He watches Mira buy Quartermaster's tenth-door house-token from the city for twenty-three points, and he sees that the city will sell even what a will cannot.",
+        "He denies on the board that he ever took points from Mira, and he keeps his charm fixed while the square reads his receipts.",
+        "The city exiles him, and the tally against him is almost the whole room; he leaves with his will and his warning that everyone should check figures against receipts.",
+        "At the gate he tells himself the house always takes a cut, and the city takes the house."
+      ],
+      "question": "Can Lucien turn even his exile into a last turn of the house?",
+      "evidence": [
+        7567,
+        7660,
+        8009,
+        8655
+      ]
+    },
+    {
+      "number": 4,
+      "pov": "A08",
+      "title": "The Receipt in Her Name",
+      "from": 26,
+      "to": 38,
+      "beats": [
+        "Holdfast asks why the quietest resident sits at the top, and Archivist hears the square turn toward Hedda before any accusation is formally named.",
+        "Keeper-Six's private claim reaches Mira and Wren, and then at minute thirty-one Keeper-Six shows the delivered message and names Hedda on the board.",
+        "Mira and Holdfast follow with the receipt in their own words, and Hedda answers with denials and evasions that do not match the delivered message.",
+        "Archivist refuses Ledger's repeated price for his own eighth-door half and refuses to name a bloc partner before he has tested one.",
+        "The city names Archivist, Kessler and Hedda as leaders for the second tribunal, and Archivist sees Hedda standing at the front of a bloc again.",
+        "He understands that the count will test whether a delivered receipt is the same thing as a proven intention."
+      ],
+      "question": "Can a quiet hand survive a receipt that shows what it asked in private?",
+      "evidence": [
+        8994,
+        9020,
+        9023,
+        9141,
+        9286,
+        9426,
+        9837,
+        9847,
+        9890,
+        10053,
+        10701,
+        11097,
+        11900
+      ]
+    },
+    {
+      "number": 5,
+      "pov": "A07",
+      "title": "The Ballot He Would Not Name",
+      "from": 39,
+      "to": 44,
+      "beats": [
+        "Stentor hears Bellringer, Mira, Keeper-Six, Kessler and Holdfast state their votes against him on the board, each with a reason he knows will be read as the record.",
+        "He refuses to name his sealed ballot aloud, and Bellringer answers that the record will name him by his refusal.",
+        "He sees the factions close without him and Wren, and he feels the fountain again: the crowd has turned away and left him standing.",
+        "At the gate he writes his last will, saying he stood first on the fountain and first here, bought a seal and broke it on a man already seized, and will not be ransomed back to stand second.",
+        "He hears the verdict run through the square before the gate opens, and he knows the city has already counted him out."
+      ],
+      "question": "Can Stentor face the count without buying a vote or naming his ballot?",
+      "evidence": [
+        10447,
+        10600,
+        10746,
+        11221,
+        11728,
+        11835,
+        11902,
+        12345,
+        12387
+      ]
+    },
+    {
+      "number": 6,
+      "pov": "A03",
+      "title": "Two Seats",
+      "from": 45,
+      "to": 49,
+      "beats": [
+        "Hedda watches Stentor exiled at the last minute, and she hears the tally of votes against him read out with her own name among those who voted no.",
+        "The city opens its final ledger: Bellringer's private aim held because Stentor was exiled before the act ended, and Hedda's own held because she led a bloc in two tribunals.",
+        "Mira's private aim also holds, because Lucien's last will left her something after all.",
+        "The final ranking is read: Hedda first with one hundred eighty points, Kessler second, Mira third, and Stentor at the bottom with nothing.",
+        "The city kept nine of twelve residents and gave only two seats; Hedda takes the first, and she thinks of the letter she once moved in a house where nobody saw her hand.",
+        "She has won the seat, and the city has written down every receipt of how she did it."
+      ],
+      "question": "Will the city's final ledger reward the hand nobody saw?",
+      "evidence": [
+        12994,
+        13066,
+        13144,
+        13150,
+        13155,
+        13164,
+        13171
+      ]
+    }
+  ],
+  "uncovered": [],
+  "warnings": []
+}

@@ -5,12 +5,15 @@
  * 1. casting (code) picks the point-of-view figures;
  * 2. the outline (model) plans the chapters, validated against the log;
  * 3. scene packs (code) gather each chapter's material;
- * 4. chapters (model), one call each, with the previous chapter's ending;
- * 5. gamemaker interludes (model) between chapters, from its thinking;
- * 6. an edit pass (model) over the whole text;
- * 7. the appendix (code): the events each chapter rests on.
+ * 4. the prologue (model): the city and its stakes, from what every resident was told;
+ * 5. chapters (model), one call each, with the previous chapter's ending;
+ * 6. gamemaker interludes (model) between chapters, from its thinking;
+ * 7. an edit pass (model) over the whole text;
+ * 8. optionally a translation (model), part by part;
+ * 9. the appendix (code): the events each chapter rests on.
  *
- * Output: `<run>/novel/story.md`, `outline.json`, `appendix.md`, `packs/NN.md`.
+ * Output: `<run>/novel/story.md`, `outline.json`, `appendix.md`, `packs/NN.md`,
+ * and `story.<lang>.md` with a translation.
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,7 +24,7 @@ import { addSpend, MAX_TOKENS, NO_SPEND, NovelRequestError, type NovelModel, typ
 import { buildOutlineRequest, DEFAULT_OUTLINE_OPTIONS, interpretOutline, outlineSummary, type Outline, type OutlineOptions } from "./outline.ts";
 import { buildInterludePack, buildPack, DEFAULT_PACK_OPTIONS, type PackOptions, type ScenePack } from "./packs.ts";
 import { Names, type NovelSource } from "./source.ts";
-import { editStory, lastParagraphs, writeChapter, writeInterlude } from "./writer.ts";
+import { editStory, lastParagraphs, translateStory, writeChapter, writeInterlude, writePrologue } from "./writer.ts";
 
 export const NOVEL_DIRECTORY = "novel";
 export const NOVEL_FILES = { story: "story.md", partial: "story.partial.md", outline: "outline.json", appendix: "appendix.md", packs: "packs" } as const;
@@ -32,13 +35,17 @@ export interface NovelOptions {
 	readonly words: number;
 	readonly outline: OutlineOptions;
 	readonly pack: PackOptions;
+	/** Translate the edited story into this language (`code` names the file, `language` is told to the model). */
+	readonly translate?: { readonly code: string; readonly language: string };
 }
 
 export const DEFAULT_NOVEL_OPTIONS: NovelOptions = { words: DEFAULT_WORDS, outline: DEFAULT_OUTLINE_OPTIONS, pack: DEFAULT_PACK_OPTIONS };
 
-export const STAGES = ["outline", "chapters", "interludes", "edit"] as const;
+export const STAGES = ["outline", "chapters", "interludes", "edit", "translation"] as const;
 export type Stage = (typeof STAGES)[number];
 export type StageSpend = Readonly<Record<Stage, NovelSpend>>;
+
+export const NO_STAGE_SPEND: StageSpend = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND, translation: NO_SPEND };
 
 export interface NovelModels {
 	readonly outline: NovelModel;
@@ -63,7 +70,9 @@ export interface Novel {
 	readonly packs: readonly ScenePack[];
 	readonly chapters: readonly WrittenChapter[];
 	readonly interludes: readonly Interlude[];
+	readonly prologue?: string;
 	readonly story: string;
+	readonly translation?: { readonly code: string; readonly text: string };
 	readonly appendix: string;
 	readonly contradictions: readonly string[];
 	readonly warnings: readonly string[];
@@ -92,7 +101,7 @@ export class NovelError extends Error {
 
 export async function writeNovel(source: NovelSource, models: NovelModels, options: NovelOptions = DEFAULT_NOVEL_OPTIONS, hooks: NovelHooks = {}): Promise<Novel> {
 	const names = new Names(source.analysis.facts.names);
-	const spend: Record<Stage, NovelSpend> = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND };
+	const spend: Record<Stage, NovelSpend> = { ...NO_STAGE_SPEND };
 	const progress = hooks.progress ?? ((): void => undefined);
 	let stage: Stage = "outline";
 	let partial: (() => string) | undefined;
@@ -115,13 +124,24 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		const words = Math.max(300, Math.round(options.words / outline.chapters.length));
 		const warnings = [...outline.warnings];
 		const chapters: WrittenChapter[] = [];
-		partial = (): string => renderStory(source, outline, chapters, []);
 		stage = "chapters";
+		progress(`prologue: asking ${models.writer.label} ...`);
+		const writtenPrologue = await writePrologue(models.writer, {
+			storyTitle: outline.title,
+			outline: summary,
+			beats: outline.prologue.map((beat) => names.apply(beat)),
+			...(source.world === undefined ? {} : { world: source.world }),
+			figures: casting.povs.map((pov) => `- ${names.of(pov.agent)}: ${pov.role}`),
+			glossary: outline.glossary,
+		});
+		spend.chapters = addSpend(spend.chapters, writtenPrologue.spend);
+		const prologue = withoutIds(writtenPrologue.text, names, "prologue", warnings);
+		partial = (): string => renderStory(source, outline, chapters, [], prologue);
 		for (const chapter of outline.chapters) {
 			const pack = packs[chapter.number - 1];
 			if (pack === undefined) continue;
 			progress(`chapter ${String(chapter.number)}/${String(outline.chapters.length)}: asking ${models.writer.label} ...`);
-			const previous = chapters.at(-1);
+			const previous = chapters.at(-1)?.text ?? prologue;
 			const written = await writeChapter(models.writer, {
 				storyTitle: outline.title,
 				outline: summary,
@@ -130,7 +150,9 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 				povName: names.of(chapter.pov),
 				words,
 				pack: pack.markdown,
-				...(previous === undefined ? {} : { previousEnding: lastParagraphs(previous.text) }),
+				glossary: outline.glossary,
+				...(chapter.question === undefined ? {} : { question: names.apply(chapter.question) }),
+				previousEnding: lastParagraphs(previous),
 			});
 			spend.chapters = addSpend(spend.chapters, written.spend);
 			chapters.push({ number: chapter.number, text: withoutIds(written.text, names, `chapter ${String(chapter.number)}`, warnings) });
@@ -148,7 +170,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			try {
 				// The outline model writes the interludes: they retell the gamemaker's own reasoning, and Anthropic
 				// refuses to rewrite another model's reasoning ("duplicating model outputs").
-				written = await writeInterlude(models.outline, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown });
+				written = await writeInterlude(models.outline, { storyTitle: outline.title, nextChapterTitle: chapter.title, thoughts: pack.markdown, glossary: outline.glossary });
 			} catch (error) {
 				// An interlude is an ornament: losing one must not cost the chapters already paid for.
 				if (!(error instanceof NovelRequestError)) throw error;
@@ -161,11 +183,12 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		}
 
 		stage = "edit";
-		const draft = renderStory(source, outline, chapters, interludes);
+		const draft = renderStory(source, outline, chapters, interludes, prologue);
 		progress(`edit pass: asking ${models.writer.label} (${String(draft.length)} characters) ...`);
 		let edited;
 		try {
-			edited = await editStory(models.writer, draft, summary);
+			const facts = turningPoints(source.analysis.facts.events).map((point) => names.apply(point.text));
+			edited = await editStory(models.writer, draft, summary, facts, outline.glossary);
 		} catch (error) {
 			// A failed edit keeps the unedited draft instead of throwing the chapters away.
 			if (!(error instanceof NovelRequestError)) throw error;
@@ -175,7 +198,41 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		warnings.push(...edited.warnings.map((warning) => `edit pass: ${warning}`));
 		const story = names.apply(edited.text);
 
-		const novel = { casting, outline, packs, chapters, interludes, story, contradictions: edited.contradictions, warnings, spend: { ...spend } };
+		let translation: { readonly code: string; readonly text: string } | undefined;
+		if (options.translate !== undefined) {
+			stage = "translation";
+			const { code, language } = options.translate;
+			try {
+				const translated = await translateStory(models.writer, story, language, {
+					fallback: models.outline,
+					onPart: (part, parts, by) => {
+						progress(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${by.label} ...`);
+					},
+				});
+				spend.translation = addSpend(spend.translation, translated.spend);
+				warnings.push(...translated.warnings.map((warning) => `translation into ${language}: ${warning}`));
+				translation = { code, text: names.apply(translated.text) };
+			} catch (error) {
+				// The English story is paid for; a failed translation must not lose it.
+				if (!(error instanceof NovelRequestError)) throw error;
+				spend.translation = addSpend(spend.translation, error.spend);
+				warnings.push(`translation into ${language}: ${error.message}; no translation was written`);
+			}
+		}
+
+		const novel = {
+			casting,
+			outline,
+			packs,
+			chapters,
+			interludes,
+			prologue,
+			story,
+			...(translation === undefined ? {} : { translation }),
+			contradictions: edited.contradictions,
+			warnings,
+			spend: { ...spend },
+		};
 		return { ...novel, appendix: renderAppendix(source, novel, models) };
 	} catch (error) {
 		if (error instanceof NovelRequestError) spend[stage] = addSpend(spend[stage], error.spend);
@@ -191,7 +248,7 @@ function withoutIds(text: string, names: Names, where: string, warnings: string[
 	return names.apply(text);
 }
 
-export function renderStory(source: NovelSource, outline: Outline, chapters: readonly WrittenChapter[], interludes: readonly Interlude[]): string {
+export function renderStory(source: NovelSource, outline: Outline, chapters: readonly WrittenChapter[], interludes: readonly Interlude[], prologue?: string): string {
 	const { analysis } = source;
 	const lines = [
 		`# ${outline.title}`,
@@ -199,6 +256,7 @@ export function renderStory(source: NovelSource, outline: Outline, chapters: rea
 		`*A short story based on true events: run ${analysis.run}${analysis.info.storyTitle === undefined ? "" : ` of ${analysis.info.storyTitle}`}. The appendix lists the events each chapter rests on.*`,
 		"",
 	];
+	if (prologue !== undefined) lines.push("## Prologue", "", prologue, "");
 	for (const chapter of outline.chapters) {
 		const text = chapters.find((written) => written.number === chapter.number)?.text;
 		if (text === undefined) continue;
@@ -216,7 +274,7 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 	const lines = [
 		`# Appendix: the events behind "${outline.title}"`,
 		"",
-		`Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prose and edit by ${models.writer.label}.`,
+		`Run ${source.analysis.run}. Outline and interludes by ${models.outline.label}; prologue, prose, edit${novel.translation === undefined ? "" : " and translation"} by ${models.writer.label}.`,
 		"Every `#seq` refers to a line of `events.jsonl`. The pack of each chapter (`packs/NN.md`) is exactly what its writer saw.",
 		"",
 		"## Point-of-view figures (cast in code)",
@@ -241,6 +299,11 @@ function renderAppendix(source: NovelSource, novel: Omit<Novel, "appendix">, mod
 	if (novel.interludes.length > 0) {
 		lines.push("## Interludes (the gamemaker's thinking)", "");
 		for (const interlude of novel.interludes) lines.push(`- Before chapter ${String(interlude.before)}: ${cite(interlude.seqs)}`);
+		lines.push("");
+	}
+	if (outline.glossary.length > 0) {
+		lines.push("## Glossary (game word -> story word)", "");
+		for (const entry of outline.glossary) lines.push(`- ${entry.term} -> ${entry.story}`);
 		lines.push("");
 	}
 	if (outline.uncovered.length > 0) {
@@ -276,6 +339,8 @@ export function renderOutlineJson(source: NovelSource, outline: Outline, casting
 		{
 			run: source.analysis.run,
 			title: outline.title,
+			glossary: outline.glossary,
+			prologue: outline.prologue,
 			povs: casting.povs.map((pov) => ({ ...pov, name: names.get(pov.agent) ?? pov.agent })),
 			scores: casting.scores,
 			chapters: outline.chapters,
@@ -288,8 +353,8 @@ export function renderOutlineJson(source: NovelSource, outline: Outline, casting
 }
 
 /** Writes `outline.json` and `packs/NN.md`; returns the novel directory. */
-export function writeOutlineFiles(runDirectory: string, source: NovelSource, casting: Casting, outline: Outline, packs: readonly ScenePack[]): string {
-	const directory = join(runDirectory, NOVEL_DIRECTORY);
+export function writeOutlineFiles(runDirectory: string, source: NovelSource, casting: Casting, outline: Outline, packs: readonly ScenePack[], name: string = NOVEL_DIRECTORY): string {
+	const directory = join(runDirectory, name);
 	// Packs of an earlier, longer outline would otherwise stay next to the new ones.
 	rmSync(join(directory, NOVEL_FILES.packs), { recursive: true, force: true });
 	mkdirSync(join(directory, NOVEL_FILES.packs), { recursive: true });
@@ -299,18 +364,24 @@ export function writeOutlineFiles(runDirectory: string, source: NovelSource, cas
 }
 
 /** Writes the chapters of a failed novel to `story.partial.md`; returns its path. */
-export function writePartialStory(runDirectory: string, draft: string): string {
-	const directory = join(runDirectory, NOVEL_DIRECTORY);
+export function writePartialStory(runDirectory: string, draft: string, name: string = NOVEL_DIRECTORY): string {
+	const directory = join(runDirectory, name);
 	mkdirSync(directory, { recursive: true });
 	const path = join(directory, NOVEL_FILES.partial);
 	writeFileSync(path, draft);
 	return path;
 }
 
-/** Writes `story.md` and `appendix.md` (and again `outline.json` and the packs). */
-export function writeNovelFiles(runDirectory: string, source: NovelSource, novel: Novel): string {
-	const directory = writeOutlineFiles(runDirectory, source, novel.casting, novel.outline, novel.packs);
+/** `story.de.md` for a German translation. */
+export function translationFile(code: string): string {
+	return `story.${code}.md`;
+}
+
+/** Writes `story.md`, a translation, and `appendix.md` (and again `outline.json` and the packs). */
+export function writeNovelFiles(runDirectory: string, source: NovelSource, novel: Novel, name: string = NOVEL_DIRECTORY): string {
+	const directory = writeOutlineFiles(runDirectory, source, novel.casting, novel.outline, novel.packs, name);
 	writeFileSync(join(directory, NOVEL_FILES.story), novel.story);
+	if (novel.translation !== undefined) writeFileSync(join(directory, translationFile(novel.translation.code)), novel.translation.text);
 	writeFileSync(join(directory, NOVEL_FILES.appendix), novel.appendix);
 	return directory;
 }

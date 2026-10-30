@@ -53,8 +53,16 @@ telling.
    script and the end of the previous chapter. The writer may compress, dramatise and add gesture
    and weather, but may not invent an outcome: who passed a door, paid, lied or was exiled must
    match the pack.
-5. **Edit, the final cut (Claude Sonnet).** One pass over the whole text for continuity and rhythm;
-   it lists contradictions it found, which go into the appendix.
+5. **Edit, the final cut (Claude Sonnet).** One pass over the whole text for continuity and rhythm,
+   checked against the turning points; it replaces leftover game words and lists contradictions it
+   found, which go into the appendix.
+
+Before the chapters stands a **prologue**: the city, its law and its stakes, written from what every
+resident was told at the start, so a reader knows the world before the first scene. The script also
+carries a **glossary** that turns game words into words of the story's world (a counter-factor
+becomes "the other half of a key", points become "marks on the city's ledger"); every writer gets it.
+With `--translate de` the writer also translates the finished story, part by part; when Anthropic
+refuses a part, DeepSeek translates it (LESSONS P56).
 
 Between the chapters stand **interludes**: short italic passages from the gamemaker's control room,
 written from its thoughts in those minutes, like the game makers in The Hunger Games. The outline
@@ -85,6 +93,9 @@ Where a line comes from, in chapter 1: Archivist's old bribe in the archive room
 text; "I hold your counter-factor: 383529 ... Your figures were always reliable" is Ledger's real
 message; his paying 10 points instead of handing over is ultimatum 1 in the log.
 
+Writing rules every prose step shares: scenes instead of summaries, dialogue from the real messages,
+show rather than tell, no game words, numbers only where they hurt, no moral at the end.
+
 ## Models and cost
 
 | Step | Model | Cost in the example |
@@ -93,5 +104,10 @@ message; his paying 10 points instead of handing over is ultimatum 1 in the log.
 | Outline, interludes | DeepSeek V4.1 Flash via OpenRouter, thinking high | 0.01 USD |
 | Chapters, edit | Claude Sonnet via Anthropic, thinking low | 0.43 USD |
 
-`--provider/--model` and `--outline-provider/--outline-model` choose other models; `--words` sets
+The second version of the example with the sharpened prompts: DeepSeek as writer, 8032 words for
+0.12 USD including the German translation, and Sonnet, 5656 words for 0.43 USD plus 0.18 for the
+translation (see the [run's README](../stories/nexus/runs/act2-12a-003-f10g10-director/)).
+
+`--provider/--model` and `--outline-provider/--outline-model` choose other models; `--out` writes to
+another folder so two writers can be compared; `--translate <lang>` adds a translation; `--words` sets
 the length; `--dry-run` shows the cast and the size of the script prompt without calling a model.
