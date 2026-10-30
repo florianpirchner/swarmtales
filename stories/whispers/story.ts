@@ -68,7 +68,7 @@ const GROUP_TOOLS = ["createGroup", "addGroupMember", "removeGroupMember", "leav
 const DOOR_EVERY = 6;
 
 /** Fragments travel by DM (P61), at most 8 per resident in each window of the door clock. */
-const DM_LIMIT = { perWindow: 12, windowMinutes: DOOR_EVERY } as const satisfies DmLimit;
+const DM_LIMIT = { perWindow: 8, windowMinutes: DOOR_EVERY } as const satisfies DmLimit;
 
 /** Every resident, the whisperer too, has five marks for the whole run; only showing a receipt costs one. */
 const MARKS = { fromLevel: 1, perRun: 5, prices: { board: 0, group: 0, dm: 0, receipt: 1 } } as const satisfies MarksRules;

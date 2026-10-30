@@ -10,6 +10,9 @@ seed 11, story `whispers`, full 45 minutes. Cost 0.23 USD. The first-draft repor
 pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
 ```
 
+The run used `DM_LIMIT = { perWindow: 12, ... }` in `stories/whispers/story.ts`; the story on `main`
+keeps 8 (the tests pin it). To repeat this run, set 12 there locally.
+
 ## Result
 
 | Resident | Core | Doors | Votes won | Points |
