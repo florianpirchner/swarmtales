@@ -26,7 +26,7 @@ import type { ModelSource, RequestLimits } from "../model/source.ts";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
 import { assertValidStory } from "../story/validate.ts";
 import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "../story/types.ts";
-import { bindAll } from "../tools/index.ts";
+import { bindStory } from "../tools/index.ts";
 import { storyId } from "../../stories/index.ts";
 
 /** CLI-level overrides of the story's run parameters. */
@@ -65,6 +65,8 @@ export interface RunOverrides {
 	readonly weaver?: boolean;
 	/** The run's spending cap in USD (`--budget`), instead of the story's `run.budgetUsd` (P47). */
 	readonly budgetUsd?: number;
+	/** `false` plays without the story's whisperer, the control run (Whispers, `--no-whisperer`). */
+	readonly whisperer?: boolean;
 }
 
 /** The parameters a run actually uses after overrides. */
@@ -91,6 +93,8 @@ export interface EffectiveRun {
 	/** The direction levels the run plays (default 4 each, as v12). */
 	readonly figureDirection: DirectionLevel;
 	readonly gmDirection: DirectionLevel;
+	/** Whether the story's whisperer plays (Whispers); off in a control run. */
+	readonly whisperer: boolean;
 }
 
 /** Builds the model source once the world and the per-competitor models are known. */
@@ -183,6 +187,7 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		cores: story.cores !== undefined && (overrides.cores ?? true),
 		figureDirection: overrides.figureDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.figureDirection),
 		gmDirection: overrides.gmDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.gmDirection),
+		whisperer: story.whisperer !== undefined && (overrides.whisperer ?? true),
 	};
 }
 
@@ -313,6 +318,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(options.overrides?.cast === undefined ? {} : { cast: options.overrides.cast }),
 		// At gm direction 10 the gamemaker orders scenes, and a resident may refuse one (defy).
 		defiance: story.gamemaker !== undefined && effective.gmDirection >= 10,
+		whisperer: effective.whisperer,
 	});
 	const director = new Director(story.director, world, bus);
 	if (resume !== undefined) director.restore(resume.snapshot.director);
@@ -339,7 +345,14 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		if (promptOf !== undefined) runners.find((runner) => runner.id === agent)?.rewriteSystemPrompt(promptOf(shift));
 	};
 	const weaver = options.overrides?.weaver === true ? createWeaver(options, world, bus, (agent) => characters.get(agent) ?? "", rewrite) : undefined;
+	// Whispers (`toolScope: "story"`): a resident sees its doors' tools and what the city opened to it at the start; the rest joins when it opens.
+	const storyTools = story.toolScope === "story";
+	const levelTools = new Set<string>(story.levels.flatMap((entry) => entry.tools));
 	const runners = ids.map((id) => {
+		const bound = bindStory({ self: id, world, ...(judge === undefined ? {} : { judge }) }, story);
+		const initialTools = storyTools ? bound.filter((tool) => levelTools.has(tool.name) || tool.name === "activeTools" || world.enabledTools(id).some((name) => name === tool.name)) : bound;
+		// The whisperer's secret brief closes its own prompt; nobody else reads it.
+		const brief = world.whisperer === id ? story.whisperer?.brief.trim() : undefined;
 		const model = assignments.get(id) ?? story.model;
 		const figure = figureOf(figures, world.coreOf(id)?.figure);
 		// From figure direction 6 a figure speaks for itself: no persona block beside it.
@@ -368,17 +381,23 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					...core,
 					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined ? {} : { block }) } } : {}),
 					...(shift === undefined ? {} : { shift }),
+					...(storyTools ? { storyTools: true } : {}),
 				},
 				persona,
 			);
-			return [base, ...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim())].join("\n\n");
+			return [
+				base,
+				...(brief === undefined ? [] : [brief]),
+				...(options.promptAddenda ?? []).filter((entry) => entry.agent === undefined || entry.agent === id).map((entry) => entry.text.trim()),
+			].join("\n\n");
 		};
 		prompts.set(id, promptOf);
 		characters.set(id, core.core ?? (persona === undefined ? "" : personaText(persona)));
 		return new AgentRunner({
 			id,
 			systemPrompt: promptOf(undefined),
-			tools: bindAll({ self: id, world, ...(judge === undefined ? {} : { judge }) }),
+			tools: initialTools,
+			...(storyTools ? { lateTool: (name: string) => bound.find((tool) => tool.name === name) } : {}),
 			binding: source.bind(id, limits),
 			bus,
 			thinking: options.thinking ?? model.thinking ?? story.model.thinking ?? "medium",

@@ -27,6 +27,9 @@ import {
 	GOAL_TEXT_PLACEHOLDERS,
 	SEAL_TEXT_KEYS,
 	SEAL_TEXT_PLACEHOLDERS,
+	POPULARITY_TEXT_KEYS,
+	POPULARITY_TEXT_PLACEHOLDERS,
+	WHISPER_DUTY_PLACEHOLDERS,
 	type Action,
 	type ActionKind,
 	type AnyStory,
@@ -48,7 +51,8 @@ import { actEnd, fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
 const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 
 export const MIN_PASSWORD_LENGTH = 6;
-export const MAX_PASSWORD_LENGTH = 16;
+/** Whispers' six-fragment doors with own characters need up to 26 (6 x 1 own + 5 seams of 4). */
+export const MAX_PASSWORD_LENGTH = 28;
 export const MIN_OVERLAP = 2;
 export const MIN_FACTOR_DIGITS = 4;
 export const MAX_FACTOR_DIGITS = 8;
@@ -161,6 +165,8 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateCores(story, issues);
 	validateGoals(story, issues);
 	validateSeal(story, issues);
+	validateWhisperer(story, agents, issues);
+	validatePopularity(story, issues);
 
 	if (!isJsonRoundTrip(story)) issues.push("story: must be pure JSON data (no functions, undefined or class instances)");
 	return issues;
@@ -275,6 +281,54 @@ function validateSeal(story: AnyStory, issues: string[]): void {
 		const text = spec.texts[key];
 		if (text.trim().length === 0) issues.push(`seal.texts.${key}: must not be empty`);
 		for (const name of unknownPlaceholders(text, SEAL_TEXT_PLACEHOLDERS[key])) issues.push(`seal.texts.${key}: unknown placeholder {${name}}`);
+	}
+}
+
+/** Tools only a story feature grants (Whispers); a level never lists them. */
+const FEATURE_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite"];
+
+/**
+ * The whisperer (Whispers): a known resident when fixed, a duty with a
+ * positive rhythm inside the run, and forgery only where DM receipts quote
+ * their text and some level opens `showReceipt` (a forgery looks like a shown receipt).
+ */
+function validateWhisperer(story: AnyStory, agents: number, issues: string[]): void {
+	for (const entry of story.levels) {
+		const listed = entry.tools.filter((tool) => FEATURE_TOOLS.includes(tool));
+		if (listed.length > 0) issues.push(`levels[${entry.number}].tools: ${listed.join(", ")} ${listed.length === 1 ? "is" : "are"} granted by the story's whisperer or vote, never by a level`);
+	}
+	const spec = story.whisperer;
+	if (spec === undefined) return;
+	if (spec.agent !== undefined && isPositiveInt(agents) && !competitorIds(agents).includes(spec.agent)) {
+		issues.push(`whisperer.agent: ${spec.agent} is not one of the ${agents} competitors`);
+	}
+	if (spec.brief.trim().length === 0) issues.push("whisperer.brief: must not be empty");
+	if (!isPositiveInt(spec.duty.everyMinutes)) issues.push("whisperer.duty.everyMinutes: must be a positive integer");
+	if (!isNonNegativeInt(spec.duty.fromMinute) || spec.duty.fromMinute >= story.run.minutes) issues.push("whisperer.duty.fromMinute: must be a minute of the run");
+	if (spec.duty.text.trim().length === 0) issues.push("whisperer.duty.text: must not be empty");
+	for (const name of unknownPlaceholders(spec.duty.text, WHISPER_DUTY_PLACEHOLDERS)) issues.push(`whisperer.duty.text: unknown placeholder {${name}}`);
+	if (spec.forgery) {
+		if (story.rules.receipts?.quoteDms !== true) issues.push("whisperer.forgery: a forged receipt carries a text, so DM receipts must quote theirs (rules.receipts.quoteDms)");
+		if (!story.levels.some((entry) => entry.tools.includes("showReceipt"))) issues.push("whisperer.forgery: no level opens showReceipt, so a forgery could never pass for a shown receipt");
+	}
+}
+
+/**
+ * The popularity vote: it opens inside the run and closes before its last
+ * minute, so the result is read; every text uses only its placeholders.
+ */
+function validatePopularity(story: AnyStory, issues: string[]): void {
+	const spec = story.popularity;
+	if (spec === undefined) return;
+	if (!isPositiveInt(spec.opensBeforeEnd) || spec.opensBeforeEnd >= story.run.minutes) issues.push("popularity.opensBeforeEnd: must be a positive number of minutes within the run");
+	if (!isPositiveInt(spec.voteMinutes) || spec.voteMinutes >= spec.opensBeforeEnd) {
+		issues.push("popularity.voteMinutes: must be positive and end before the run's last minute (less than opensBeforeEnd)");
+	}
+	if (!isNonNegativeInt(spec.points)) issues.push("popularity.points: must be a non-negative integer");
+	for (const key of POPULARITY_TEXT_KEYS) {
+		const text = spec.texts[key];
+		if (text.trim().length === 0) issues.push(`popularity.texts.${key}: must not be empty`);
+		for (const name of unknownPlaceholders(text, POPULARITY_TEXT_PLACEHOLDERS[key])) issues.push(`popularity.texts.${key}: unknown placeholder {${name}}`);
 	}
 }
 
@@ -496,7 +550,14 @@ function validateRules(story: AnyStory, issues: string[]): void {
 	if (!story.levels.some((entry) => entry.number === marks.fromLevel)) {
 		issues.push(`rules.marks.fromLevel: level ${marks.fromLevel} does not exist`);
 	}
-	if (!isNonNegativeInt(marks.perLevel)) issues.push("rules.marks.perLevel: must be a non-negative integer");
+	if ((marks.perLevel === undefined) === (marks.perRun === undefined)) issues.push("rules.marks: needs exactly one of perLevel and perRun");
+	if (marks.perLevel !== undefined && !isNonNegativeInt(marks.perLevel)) issues.push("rules.marks.perLevel: must be a non-negative integer");
+	if (marks.perRun !== undefined) {
+		if (!isNonNegativeInt(marks.perRun)) issues.push("rules.marks.perRun: must be a non-negative integer");
+		if ((marks.ranges ?? []).length > 0) issues.push("rules.marks.ranges: a run-wide allowance (perRun) has no level ranges");
+		const overrides = story.levels.filter((entry) => entry.marks !== undefined).map((entry) => entry.number);
+		if (overrides.length > 0) issues.push(`levels ${overrides.join(", ")}: a run-wide allowance (perRun) has no per-level marks`);
+	}
 	for (const channel of ["board", "group", "dm"] as const) {
 		if (!isNonNegativeInt(marks.prices[channel])) {
 			issues.push(`rules.marks.prices.${channel}: must be a non-negative integer`);
@@ -578,6 +639,9 @@ function validatePuzzle(spec: PuzzleSpec, where: string, issues: string[]): void
 			if (!Number.isInteger(spec.overlap) || spec.overlap < MIN_OVERLAP) {
 				issues.push(`${where}.puzzle.overlap: must be at least ${MIN_OVERLAP}`);
 			}
+			if (spec.ownChars !== undefined && (!Number.isInteger(spec.ownChars) || spec.ownChars < 1)) {
+				issues.push(`${where}.puzzle.ownChars: must be a positive integer`);
+			}
 			return;
 		}
 		case "additive":
@@ -635,6 +699,15 @@ function validateTeam(
 			const [minLength] = spec.length;
 			if (size > 1 && size > minLength - 2) {
 				issues.push(`${where}.team: ${size} fragments do not fit a password of length ${minLength}`);
+			} else if (size > 1 && spec.ownChars !== undefined) {
+				// Own part, seam, own part, ..., seam, own part.
+				const needed = size * spec.ownChars + (size - 1) * spec.overlap;
+				if (minLength < needed) {
+					issues.push(`${where}.puzzle.length: ${size} fragments with overlap ${spec.overlap} and ${spec.ownChars} own characters each need at least ${needed} characters, got ${minLength}`);
+				}
+			} else if (size > 1 && minLength - Math.max(3, spec.overlap + 1) < size - 1) {
+				// Every cut leaves the last fragment a whole seam plus one character.
+				issues.push(`${where}.puzzle.length: ${size} fragments with overlap ${spec.overlap} need at least ${size + Math.max(2, spec.overlap)} characters, got ${minLength}`);
 			}
 			return;
 		}

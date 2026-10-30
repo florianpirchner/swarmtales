@@ -92,6 +92,8 @@ pnpm validate    # validates every registered story
 
 ```bash
 pnpm start --story cityofkeys                    # default story, 6 agents, 60 minutes, seed 7
+pnpm start --story whispers --provider anthropic   # Whispers: six residents, one secret whisperer (docs/STORY-WHISPERS.md)
+pnpm start --story whispers --no-whisperer      # its control run: the same city without the whisperer
 pnpm start --minutes 20 --seed 3            # override run parameters
 pnpm start --agents 12                      # agent count must fit every team layout
 pnpm start --only 4 --agents 3              # play only level 4 and stop when everyone passed it
@@ -105,13 +107,14 @@ pnpm start --resume runs/run-001/snapshot-L7.json     # continue from that snaps
 ```
 
 Flags override the story's run parameters: `--story --agents --minutes --seed --provider
---model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
+--model --level --only --stop-when-done --passes --block-size --no-personas --no-cores --no-whisperer --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
 --snapshot-after --stop-after-snapshot --resume --no-reporter --reporter-provider --reporter-model`.
 `--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; cityofkeys: 3): in every pass each
 competitor gets at most one step, one model call with its tools. `--block-size <n>` sets
 `run.blockSize` (cityofkeys: 1): a block's model calls run concurrently, which shortens a live minute,
 while their tools still run in the seeded order (SPEC 3). `--no-personas`
-plays a control group without personas. `--no-gamemaker` plays without the story's LLM game
+plays a control group without personas. `--no-whisperer` plays a story with a whisperer (Whispers, SPEC 20) without
+one: nobody gets the brief, the duty or `forgeReceipt`. `--no-gamemaker` plays without the story's LLM game
 master (SPEC 10.4); cityofkeys uses DeepSeek V4.1 Flash via OpenRouter for it, so it needs `OPENROUTER_API_KEY`
 (`--gamemaker-provider anthropic --gamemaker-model haiku` switches it to Haiku).
 `--no-classifier` plays without the statement classifier (SPEC 10.5), which labels every round's

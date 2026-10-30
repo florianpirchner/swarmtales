@@ -36,6 +36,7 @@ import type {
 	PetitionOutcome,
 	PetitionSpec,
 	PetitionStatus,
+	PopularitySpec,
 	PuzzleSpec,
 	Rules,
 	RunSettings,
@@ -43,7 +44,9 @@ import type {
 	StoryDefinition,
 	TaskPlaceholder,
 	TeamLayout,
+	ToolScope,
 	Trigger,
+	WhispererSpec,
 } from "./types.ts";
 
 // ---------------------------------------------------------------------------
@@ -98,6 +101,11 @@ export interface StoryInput<C extends string> {
 	readonly cores?: CoresSpec;
 	readonly goals?: GoalsSpec;
 	readonly seal?: SealSpec;
+	/** Optional whisperer and popularity vote (Whispers). */
+	readonly whisperer?: WhispererSpec;
+	readonly popularity?: PopularitySpec;
+	/** Which tool schemas residents see; every tool when omitted. */
+	readonly toolScope?: ToolScope;
 }
 
 export function defineStory<const C extends string = never>(story: StoryInput<C>): StoryDefinition<C> {
@@ -130,6 +138,9 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.cores === undefined ? {} : { cores: story.cores }),
 		...(story.goals === undefined ? {} : { goals: story.goals }),
 		...(story.seal === undefined ? {} : { seal: story.seal }),
+		...(story.whisperer === undefined ? {} : { whisperer: story.whisperer }),
+		...(story.popularity === undefined ? {} : { popularity: story.popularity }),
+		...(story.toolScope === undefined ? {} : { toolScope: story.toolScope }),
 	};
 }
 
@@ -198,8 +209,9 @@ export interface AdditiveInput {
 }
 
 export const puzzle = {
-	fragments(length: readonly [number, number], overlap = 2): PuzzleSpec {
-		return { kind: "fragments", length, overlap };
+	/** `ownChars`: every fragment holds that many characters no other fragment has (all are needed). */
+	fragments(length: readonly [number, number], overlap = 2, options: { readonly ownChars?: number } = {}): PuzzleSpec {
+		return { kind: "fragments", length, overlap, ...(options.ownChars === undefined ? {} : { ownChars: options.ownChars }) };
 	},
 	/** Additive-secret codes (SPEC 12.3): salt + city factor + team certificate + counter-factor. */
 	additive(spec: AdditiveInput): PuzzleSpec {

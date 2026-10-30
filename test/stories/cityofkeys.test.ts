@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
 import { cityFactorOf } from "../../src/engine/puzzles/additive.ts";
@@ -18,7 +19,9 @@ const ACT_TWO_ONLY: readonly string[] = ["blame"];
 const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 /** Granted by the city while names are chosen (v08), or by gm direction 10 (`defy`), never listed by a level. */
 const NAME_TOOLS: readonly string[] = ["chooseName", "defy"];
-const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name) && name !== "activeTools" && name !== "claimPiece");
+/** Whispers-only tools (the forger and the popularity vote); cityofkeys never binds them. */
+const WHISPER_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite"];
+const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name) && !WHISPER_TOOLS.includes(name) && name !== "activeTools" && name !== "claimPiece");
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
 function levelOf(number: number): LevelDefinition {
@@ -324,5 +327,19 @@ describe("cityofkeys acts I and II in one run", () => {
 
 	it("rejects agent counts that do not fit every level", () => {
 		expect(() => createFixture({ agents: 4, minutes: 1, script: () => ({}) })).toThrow(/cannot be split into teams of 3/);
+	});
+});
+
+describe("cityofkeys passwords", () => {
+	it("are drawn exactly as before the Whispers changes to the fragment generator", () => {
+		const all: unknown[] = [];
+		for (const agents of [6, 12]) {
+			for (let seed = 1; seed <= 10; seed++) {
+				const fixture = createFixture({ agents, seed, minutes: 1, script: () => ({}) });
+				for (let level = 1; level <= 7; level++) all.push(fixture.world.inspect.puzzlesOf(level));
+			}
+		}
+		// Pinned on commit f728582, before the overlap-dependent cut bound and \`ownChars\`.
+		expect(createHash("sha256").update(JSON.stringify(all)).digest("hex")).toBe("db193ed2c0cd48541daba265a185591e2863bee63a2e9f4dcf16a1e01c9aa56c");
 	});
 });

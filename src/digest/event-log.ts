@@ -268,6 +268,30 @@ const ReceiptShown = Type.Object({
 	postSeq: Type.Optional(Type.Integer()),
 	to: Type.Optional(Id),
 });
+/** Whispers: the whisperer showed `to` a forged receipt; residents cannot tell it from a real show, the digest can. */
+const ReceiptForged = Type.Object({
+	...Base,
+	type: Type.Literal("receipt_forged"),
+	receipt: Type.String(),
+	by: Id,
+	to: Id,
+	from: Id,
+	number: Type.Integer(),
+	text: Type.String(),
+	forged: Type.String(),
+});
+const WhispererChosen = Type.Object({ ...Base, type: Type.Literal("whisperer_chosen"), agent: Id });
+const WhisperDuty = Type.Object({ ...Base, type: Type.Literal("whisper_duty"), agent: Id, since: Type.Integer(), dms: Type.Integer(), forgeries: Type.Integer() });
+const PopularityOpened = Type.Object({ ...Base, type: Type.Literal("popularity_opened"), until: Type.Integer(), points: Type.Integer() });
+const PopularityBallot = Type.Object({ ...Base, type: Type.Literal("popularity_ballot"), agent: Id, choice: Id });
+const PopularityResult = Type.Object({
+	...Base,
+	type: Type.Literal("popularity_result"),
+	counts: Type.Array(Type.Object({ agent: Id, votes: Type.Integer() })),
+	winners: Ids,
+	points: Type.Integer(),
+	voters: Ids,
+});
 const PetitionOpened = Type.Object({
 	...Base,
 	type: Type.Literal("petition_opened"),
@@ -405,6 +429,12 @@ export const DIGEST_EVENT_SCHEMAS = [
 	Transfer,
 	ReceiptIssued,
 	ReceiptShown,
+	ReceiptForged,
+	WhispererChosen,
+	WhisperDuty,
+	PopularityOpened,
+	PopularityBallot,
+	PopularityResult,
 	PetitionOpened,
 	PetitionSigned,
 	PetitionResolved,

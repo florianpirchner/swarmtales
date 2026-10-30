@@ -290,6 +290,38 @@ export type ArenaEvent =
 	/** On the board (`postSeq`), or privately to the resident `to` as a city notice (v05). */
 	| { readonly type: "receipt_shown"; readonly receipt: string; readonly by: CompetitorId; readonly postSeq?: number; readonly to?: CompetitorId }
 	| {
+			/**
+			 * The whisperer (Whispers) showed `to` a forgery of receipt `receipt`:
+			 * DM `number` that `from` really sent to `by`, quoting `forged` instead
+			 * of the real `text`. `to` read it exactly like a real shown receipt;
+			 * only the log tells the two apart.
+			 */
+			readonly type: "receipt_forged";
+			readonly receipt: string;
+			readonly by: CompetitorId;
+			readonly to: CompetitorId;
+			readonly from: CompetitorId;
+			readonly number: number;
+			readonly text: string;
+			readonly forged: string;
+	  }
+	/** The story's whisperer (Whispers), chosen at the start; never shown to any resident. */
+	| { readonly type: "whisperer_chosen"; readonly agent: CompetitorId }
+	/** The whisperer's private duty notice; `dms` and `forgeries` count what it sent since the duty before. */
+	| { readonly type: "whisper_duty"; readonly agent: CompetitorId; readonly since: number; readonly dms: number; readonly forgeries: number }
+	/** The surprise popularity vote opened; ballots are taken until `until`. */
+	| { readonly type: "popularity_opened"; readonly until: number; readonly points: number }
+	/** A secret ballot (the last one counts); never shown to residents. */
+	| { readonly type: "popularity_ballot"; readonly agent: CompetitorId; readonly choice: CompetitorId }
+	/** The vote closed: every winner (all tied at the top) got `points`. */
+	| {
+			readonly type: "popularity_result";
+			readonly counts: readonly { readonly agent: CompetitorId; readonly votes: number }[];
+			readonly winners: readonly CompetitorId[];
+			readonly points: number;
+			readonly voters: readonly CompetitorId[];
+	  }
+	| {
 			readonly type: "petition_opened";
 			readonly petition: string;
 			readonly text: string;

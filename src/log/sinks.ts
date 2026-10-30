@@ -75,6 +75,18 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 			return `  ${event.agent}: ${event.provider}/${event.model}${event.persona === undefined ? "" : ` · persona ${event.persona}`}`;
 		case "receipt_shown":
 			return `  ${event.by} shows ${event.receipt}${event.to === undefined ? "" : ` privately to ${event.to}`}`;
+		case "receipt_forged":
+			return `  ${event.by} forges ${event.receipt} for ${event.to}: ${JSON.stringify(event.forged)} (${event.from} wrote ${JSON.stringify(event.text)})`;
+		case "whisperer_chosen":
+			return `  (the whisperer is ${event.agent})`;
+		case "whisper_duty":
+			return `  (whisper duty for ${event.agent}: ${event.dms} DMs and ${event.forgeries} forgeries since minute ${event.since})`;
+		case "popularity_opened":
+			return `  (popularity vote open until minute ${event.until}, +${event.points} for the winner)`;
+		case "popularity_result":
+			return `  (popularity vote: ${event.counts.map((entry) => `${entry.agent} ${entry.votes}`).join(", ") || "no votes"}; winners: ${event.winners.join(", ") || "nobody"})`;
+		case "popularity_ballot":
+			return undefined;
 		case "petition_signed":
 			return `  ${event.agent} signs petition ${event.petition} (${event.signatures})`;
 		case "petition_resolved":

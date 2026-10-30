@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseStartArgs, UsageError } from "../../src/cli/args.ts";
 import { effectiveRun, resolveBlockSize } from "../../src/cli/compose.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
+import { findStory } from "../../stories/index.ts";
 import { tinyStory } from "../helpers/stories.ts";
 
 describe("pnpm start arguments", () => {
@@ -45,6 +46,15 @@ describe("pnpm start arguments", () => {
 		expect(effectiveRun(cityOfKeys, {}).blockSize).toBe(1);
 		expect(effectiveRun(cityOfKeys, { agents: 48 }).blockSize).toBe(8);
 		expect(effectiveRun(cityOfKeys, { agents: 48, blockSize: 4 }).blockSize).toBe(4);
+	});
+
+	it("parses --no-whisperer: the control run of a story with a whisperer", () => {
+		expect(parseStartArgs(["--story", "whispers", "--no-whisperer"])).toMatchObject({ overrides: { whisperer: false } });
+		expect(parseStartArgs([]).overrides).not.toHaveProperty("whisperer");
+		const whispers = findStory("whispers");
+		if (whispers === undefined) throw new Error("whispers is not registered");
+		expect(effectiveRun(whispers).whisperer).toBe(true);
+		expect(effectiveRun(whispers, { whisperer: false }).whisperer).toBe(false);
 	});
 
 	it("parses the judge's temper", () => {
@@ -109,6 +119,7 @@ describe("pnpm start arguments", () => {
 			cores: true,
 			figureDirection: 4,
 			gmDirection: 4,
+			whisperer: false,
 		});
 		expect(effectiveRun(cityOfKeys, { figureDirection: 9, gmDirection: 5 })).toMatchObject({ figureDirection: 8, gmDirection: 4 });
 		expect(effectiveRun(cityOfKeys, { cores: false })).toMatchObject({ cores: false });

@@ -180,6 +180,14 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 				}
 				break;
 			}
+			case "receipt_forged": {
+				// Whispers: to its viewer a forgery is a private show; the digest names it for what it is.
+				const pair = note(event.by, event.to, event.seq, event.minute, "receiptShown", `forged ${event.receipt}: ${JSON.stringify(event.forged)}`);
+				if (pair === undefined) break;
+				pair.receiptsShown += 1;
+				minuteOf(pair, event.minute).receiptsShown += 1;
+				break;
+			}
 			case "group_created":
 				members.set(event.group, new Set([event.founder]));
 				break;
@@ -288,6 +296,11 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "seal_won":
 			case "seal_used":
 			case "seal_expired":
+			case "whisperer_chosen":
+			case "whisper_duty":
+			case "popularity_opened":
+			case "popularity_ballot":
+			case "popularity_result":
 			case "fate_shift":
 				break;
 			default:

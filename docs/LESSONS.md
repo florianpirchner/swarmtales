@@ -84,6 +84,10 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
     wish, an obstacle and a turn, and a team made of the real parts that act for him, each with
     traces in the log; summaries of what he did read as status reports. Numbers that must be
     exact go into documents computed in code, not into prose. [P58]
+29. **"Everyone is needed" must be true of the data, not of the text.** A middle fragment no
+    longer than two seams adds nothing its neighbours lack, so five of six can open the door; use
+    `ownChars` and draw every door for a hundred seeds in a test (an overlap-4 door crashed half
+    the seeds only when someone reached it). [Whispers review, 2026-10-30]
 
 ## Log
 

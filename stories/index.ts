@@ -1,11 +1,15 @@
 /** Registry of shipped stories, by name (`pnpm start --story <name>`). */
 import type { AnyStory } from "../src/story/types.ts";
 import cityOfKeys from "./cityofkeys/story.ts";
+import whispers, { whispersStory } from "./whispers/story.ts";
 
 export const DEFAULT_STORY = "cityofkeys";
 
 export const STORIES: Readonly<Record<string, AnyStory>> = {
 	cityofkeys: cityOfKeys,
+	whispers,
+	// The paper's second factor: no receipts to show, word against word.
+	"whispers-rumours": whispersStory(false),
 };
 
 /** Earlier names of a story; snapshots and runs recorded before a rename still find it. */

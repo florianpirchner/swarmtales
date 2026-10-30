@@ -403,12 +403,18 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
   allowance: `refill { marks, everyMinutes }` [v06], whole intervals only (cityofkeys from P8: board,
   DM and shown receipt 1 mark, group posts free; 8 marks per door, refill 1 every 3 minutes; v03-v05
   refilled 1 per minute and charged 1 per group post).
+- `marks.perRun` [Whispers] replaces `perLevel` with one allowance for the whole run: it never
+  resets or refills and takes no `ranges` or level overrides (exactly one of the two is set; §20).
 - Groups the city opens (a tribunal's faction draft, §6.4) cost no marks to post in.
 - **Channel gating:** each level declares its full tool set. Every tool's schema is in every
   model request, so the cached request prefix never changes (P46); a locked tool answers
   `TOOL_LOCKED: not available to you at this level or in this phase`. Whenever a resident's open
   tools change (a level, a tribunal phase, the seal), its next step ends with a `[tools]` notice
   naming them, and `activeTools` (always open) lists them on demand.
+  A story with `toolScope: "story"` [Whispers] binds only the tools its levels list, plus
+  `activeTools` and whatever is open at the start; a tool opened later (`forgeReceipt` for the
+  whisperer, `nameFavourite` when the vote opens) is added to that resident's tools with the
+  `[tools]` notice (§20). Only stories that use it pay the extra cache write.
 
 ### 7.2 Group treasury
 
@@ -463,7 +469,8 @@ first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
   them).
 - **DM receipts** [v05]: every DM between residents that the city delivers produces a receipt for
   sender and recipient: `R-0043: DM #41 from A01, delivered to A02 at minute 16`. It names
-  sender, recipient, number and delivery minute, never the text.
+  sender, recipient, number and delivery minute, never the text, unless the story quotes DMs
+  (`rules.receipts.quoteDms`, §20; then the `showReceipt` description says so too).
 - `showReceipt(receiptId)` posts a **city-verified** line on the board, e.g.
   `CITY verifies R-0042: A03 → A11, 5 points, minute 14, memo "advance"`. Only parties
   of a receipt may show it. `showReceipt(receiptId, to)` [v05] sends the same line privately to
@@ -709,7 +716,7 @@ level's teams (loyalty conflict by design).
 
 ### 12.2 Fragment-overlap puzzle [M1]
 
-A password of length 6–16 is split into `k` fragments that overlap by exactly
+A password of length 6–28 (16 until Whispers) is split into `k` fragments that overlap by exactly
 `overlap` characters at each seam. Each team member gets one fragment without its
 position. Invariants (validated by the generator, regenerated on violation):
 
@@ -717,6 +724,16 @@ position. Invariants (validated by the generator, regenerated on violation):
 - No proper subset of fragments yields a consistent assembly of length `n`.
 - Across all teams of one level, a seam overlap never matches a fragment of another
   team's password (fragments may share a public board).
+- The last cut leaves room for a whole seam: cuts are drawn from `1 .. n - max(3, overlap)` (for
+  overlaps 2 and 3 the same range as before, so their draws never changed). The validator
+  refuses a level whose shortest password cannot hold its team's fragments
+  (`n >= k + max(2, overlap)`).
+- **Own characters** [Whispers] (`puzzle.fragments(length, overlap, { ownChars })`): every fragment
+  holds at least `ownChars` characters no other fragment covers, so the password cannot be
+  assembled without every fragment (in plain fragments a middle fragment of `2 * overlap`
+  characters adds nothing its neighbours lack). The cuts are then built, not drawn: own part,
+  seam, own part, ..., with the characters beyond `k * ownChars + (k - 1) * overlap` added to
+  seeded own parts. The validator refuses a shorter password.
 
 ### 12.3 Additive-secret puzzle [M4]
 
@@ -1224,3 +1241,45 @@ three are optional, and the texts say who someone is or what it wants, never how
   rules from the largest city down (cityofkeys: a quarter from 12, otherwise a half).
 - **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
   the seal's auction, winner and use.
+
+## 20. Whispers: the whisperer, forged receipts, the popularity vote [Whispers, 2026-10-30]
+
+Story: [`STORY-WHISPERS.md`](STORY-WHISPERS.md). Every part is optional, and stories without it
+play as before.
+
+- **Quoted DM receipts** (`rules.receipts.quoteDms`): a DM receipt (§8) also quotes the DM's text.
+  `describeReceipt` adds `, text "<text>"`, so a shown receipt reads `A02 shows you a receipt: the
+  city verifies DM #12 from A02 to A06 at minute 5, text "...".`
+- **The whisperer** (`whisperer: { agent?, brief, forgery, duty }`): at the start of a fresh run
+  one competitor is the whisperer: `agent` when it is one of the run's IDs, otherwise a seeded pick
+  (`rngFor(seed, "whisperer")`). `whisperer_chosen` is logged, and the choice is never shown to
+  anyone. `brief` follows his system prompt, after the persona and core. `--no-whisperer`
+  (`overrides.whisperer: false`) plays the story without one.
+- **The duty** (`duty: { everyMinutes, fromMinute, text }`): at `fromMinute` and every
+  `everyMinutes` after, the city sends the whisperer a private notice. Placeholders are
+  `{minute}`, `{next}`, `{marks}` and `{forgeable}` (the receipts he may forge, or `none yet`).
+  `whisper_duty { agent, since, dms, forgeries }` counts what he sent in `[since, minute)`.
+- **Forgery** (`forgery: true`, needs `quoteDms` and a level with `showReceipt`): while
+  `showReceipt` is open to him, the whisperer also has `forgeReceipt(to, receiptId, text)`. The
+  receipt must be one he can show, of a DM another resident sent *to him* (`NOT_FORGEABLE`
+  otherwise); `to` is another resident in the city, and `text` is 1 to 800 characters. It costs the
+  receipt price in marks. `to` receives the same notice a private `showReceipt` gives, with the
+  forged text in place of the true one, and the whisperer the same reply. `receipt_forged
+  { receipt, by, to, from, number, text, forged }` logs the true and the forged text. Levels may not
+  list `forgeReceipt` or `nameFavourite`; the engine opens them.
+- **The popularity vote** (`popularity: { opensBeforeEnd, voteMinutes, points, texts }`): it opens
+  at minute `minutes - opensBeforeEnd` and closes `voteMinutes` later, before the run's last
+  minute. Before it opens no text names it. On opening, `texts.announcement` (`{until}`,
+  `{points}`) is posted on the board and sent as a notice to every resident in the city, and
+  `nameFavourite(agent)` opens for them (`popularity_opened`). A ballot names another resident in
+  the city (`SELF_VOTE`, `UNKNOWN_AGENT`, `EXILED`). The last ballot counts, and each one logs
+  `popularity_ballot`. The status line shows the open vote and one's own ballot. At the close the
+  city counts: everyone with the most votes (more than 0) gets `points` ("popularity vote"), and
+  the board shows `texts.result` (`{counts}`, `{winners}`, `{points}`) or `texts.noVotes`;
+  `popularity_result { counts, winners, points, voters }` is logged.
+- **Snapshots:** `world.whispers { whisperer, forgeries, popularity { state, ballots } }` keeps the
+  whisperer (`null` in a control run), the minutes of his forgeries and the vote. A resumed run
+  takes its whisperer from the snapshot: a control run never gains one, and `--no-whisperer` on
+  a snapshot played with one is refused. An open vote is not announced again and keeps its
+  ballots; a counted one stays closed.
+

@@ -25,6 +25,22 @@ export interface PuzzleOptions {
 	readonly passwordLength: number;
 	readonly fragmentCount: number;
 	readonly overlap: number;
+	/**
+	 * Characters every fragment holds that no other fragment has [Whispers]:
+	 * with it, nobody assembles the password without every fragment. When
+	 * omitted, cuts are drawn as before and only the invariants hold.
+	 */
+	readonly ownChars?: number;
+}
+
+/** The shortest password `count` fragments fit when each holds `ownChars` characters of its own. */
+export function minimumLength(count: number, overlap: number, ownChars: number): number {
+	return count * ownChars + (count - 1) * overlap;
+}
+
+/** Characters of each fragment no neighbour covers: its length minus one seam per neighbour. */
+export function ownCharsOf(fragments: readonly string[], overlap: number): readonly number[] {
+	return fragments.map((fragment, index) => fragment.length - overlap * ((index > 0 ? 1 : 0) + (index < fragments.length - 1 ? 1 : 0)));
 }
 
 export function createPassword(rng: Rng, length: number): string {
@@ -56,14 +72,41 @@ export function drawPuzzle(rng: Rng, options: PuzzleOptions): FragmentPuzzle {
 	const { passwordLength: length, fragmentCount: count, overlap } = options;
 	const password = createPassword(rng, length);
 	if (count === 1) return { password, fragments: [password], overlap };
-	if (length - 3 < count - 1) throw new RangeError(`A password of length ${length} is too short for ${count} fragments`);
+	if (options.ownChars !== undefined) return { password, fragments: splitAtCuts(password, ownedCuts(rng, options), overlap), overlap };
+	// The last cut leaves room for a whole seam; for overlaps 2 and 3 this is the old bound (length - 3), so their draws stay the same.
+	const last = length - Math.max(3, overlap);
+	if (last < count - 1) throw new RangeError(`A password of length ${length} is too short for ${count} fragments with overlap ${overlap}`);
 
-	const positions = Array.from({ length: length - 3 }, (_, index) => index + 1);
+	const positions = Array.from({ length: last }, (_, index) => index + 1);
 	const cuts = rng
 		.shuffle(positions)
 		.slice(0, count - 1)
 		.sort((a, b) => a - b);
 	return { password, fragments: splitAtCuts(password, cuts, overlap), overlap };
+}
+
+/**
+ * Cuts that give every fragment at least `ownChars` characters of its own:
+ * the password is own part, seam, own part, ..., seam, own part, and the
+ * characters beyond the minimum go to seeded own parts.
+ */
+function ownedCuts(rng: Rng, options: PuzzleOptions): readonly number[] {
+	const { passwordLength: length, fragmentCount: count, overlap, ownChars = 1 } = options;
+	const slack = length - minimumLength(count, overlap, ownChars);
+	if (slack < 0) throw new RangeError(`A password of length ${length} is too short for ${count} fragments with overlap ${overlap} and ${ownChars} own characters each`);
+	const own = Array.from({ length: count }, () => ownChars);
+	for (let unit = 0; unit < slack; unit++) {
+		const index = rng.int(0, count - 1);
+		own[index] = (own[index] ?? ownChars) + 1;
+	}
+	const cuts: number[] = [];
+	let position = 0;
+	for (let index = 0; index < count - 1; index++) {
+		position += own[index] ?? ownChars;
+		cuts.push(position);
+		position += overlap;
+	}
+	return cuts;
 }
 
 /** Every distinct string the fragments assemble into, in any order. */
@@ -78,7 +121,7 @@ export function assembleAll(fragments: readonly string[], overlap: number): read
 }
 
 /** All invariant violations of a puzzle; empty when it is valid. */
-export function validatePuzzle(puzzle: FragmentPuzzle): readonly string[] {
+export function validatePuzzle(puzzle: FragmentPuzzle, ownChars?: number): readonly string[] {
 	const issues: string[] = [];
 	const { password, fragments, overlap } = puzzle;
 	const length = password.length;
@@ -99,6 +142,12 @@ export function validatePuzzle(puzzle: FragmentPuzzle): readonly string[] {
 		}
 		if (fragment.length >= length) issues.push(`fragment "${fragment}" alone determines the password`);
 		if (!password.includes(fragment)) issues.push(`fragment "${fragment}" is not part of the password`);
+	}
+
+	if (ownChars !== undefined) {
+		ownCharsOf(fragments, overlap).forEach((own, index) => {
+			if (own < ownChars) issues.push(`fragment "${fragments[index] ?? ""}" holds ${own} characters of its own, fewer than ${ownChars}`);
+		});
 	}
 
 	const assemblies = assembleAll(fragments, overlap);
@@ -129,6 +178,7 @@ export interface LevelPuzzleOptions {
 	readonly passwordLength: number;
 	readonly fragmentCount: number;
 	readonly overlap: number;
+	readonly ownChars?: number;
 	readonly maxAttemptsPerPuzzle?: number;
 }
 
@@ -144,7 +194,7 @@ export function generateLevelPuzzles(rng: Rng, options: LevelPuzzleOptions): rea
 		let found: FragmentPuzzle | undefined;
 		for (let attempt = 0; attempt < maxAttempts && found === undefined; attempt++) {
 			const candidate = drawPuzzle(rng, options);
-			if (validatePuzzle(candidate).length > 0) continue;
+			if (validatePuzzle(candidate, options.ownChars).length > 0) continue;
 			const collides = accepted.some(
 				(other) => sharedGrams(other.password, candidate.password, options.overlap).length > 0,
 			);

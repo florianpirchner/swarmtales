@@ -3,7 +3,8 @@
  * level-up and delivered DM gets a short ID (`R-0042`) that its parties can
  * show as a city-verified line, on the board or privately to one resident.
  * Receipts prove what happened; the city never judges intent. A DM receipt
- * names sender, recipient, message number and delivery minute, never the text.
+ * names sender, recipient, message number and delivery minute, and the text
+ * only in a story whose receipts quote DMs (`rules.receipts.quoteDms`, Whispers).
  */
 import type { CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
@@ -20,8 +21,8 @@ export type ReceiptBody =
 			readonly amount: number;
 	  }
 	| { readonly kind: "levelUp"; readonly agent: CompetitorId; readonly level: number; readonly reward: number }
-	/** A DM the city delivered; the receipt's minute is the delivery minute. */
-	| { readonly kind: "dm"; readonly from: CompetitorId; readonly to: CompetitorId; readonly number: number };
+	/** A DM the city delivered; the receipt's minute is the delivery minute. `text` only where receipts quote DMs. */
+	| { readonly kind: "dm"; readonly from: CompetitorId; readonly to: CompetitorId; readonly number: number; readonly text?: string };
 
 export type ReceiptKind = ReceiptBody["kind"];
 
@@ -129,10 +130,19 @@ export function describeReceipt(receipt: Receipt): string {
 		case "levelUp":
 			return `${receipt.id}: ${receipt.agent} solved level ${receipt.level}, +${points(receipt.reward)}, ${tail}`;
 		case "dm":
-			return `${receipt.id}: DM #${receipt.number} from ${receipt.from}, delivered to ${receipt.to} at ${tail}`;
+			return `${receipt.id}: DM #${receipt.number} from ${receipt.from}, delivered to ${receipt.to} at ${tail}${receipt.text === undefined ? "" : `, text ${JSON.stringify(receipt.text)}`}`;
 		default:
 			return assertNever(receipt, "receipt");
 	}
+}
+
+/**
+ * The private line a resident reads when another shows it a receipt. A real
+ * show and a forgery (Whispers) go through this one function, so both read
+ * alike to the byte; a forgery differs only in the quoted text.
+ */
+export function shownPrivatelyText(by: string, receipt: Receipt): string {
+	return `${by} shows you a receipt: the city verifies ${describeReceipt(receipt)}.`;
 }
 
 function points(amount: number): string {
