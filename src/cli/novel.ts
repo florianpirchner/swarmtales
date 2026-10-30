@@ -4,17 +4,18 @@
  * two models and their API keys; without them it is skipped with a reason.
  * `--dry-run` casts the book and prints the outline prompt's size offline.
  */
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
 import { DigestError } from "../digest/digest.ts";
 import { createProviderRegistry } from "../model/providers.ts";
 import { castBook } from "../novel/casting.ts";
-import { resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
+import { NovelRequestError, resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
 import { buildOutlineRequest, chapterCount, DEFAULT_OUTLINE_OPTIONS } from "../novel/outline.ts";
 import {
 	DEFAULT_NOVEL_OPTIONS,
 	NOVEL_FILES,
+	NO_STAGE_SPEND,
 	NovelError,
 	STAGES,
 	totalSpend,
@@ -27,6 +28,7 @@ import {
 } from "../novel/novel.ts";
 import { LANGUAGES } from "../novel/prompts.ts";
 import { loadNovelSource, Names } from "../novel/source.ts";
+import { translateStory } from "../novel/writer.ts";
 import { UsageError } from "./args.ts";
 import { NOVEL_USAGE, parseNovelArgs } from "./novel-args.ts";
 
@@ -96,6 +98,29 @@ if (!writerModel.ok) {
 }
 
 const language = args.translate === undefined ? undefined : LANGUAGES[args.translate];
+if (args.translateOnly && args.translate !== undefined && language !== undefined) {
+	const storyPath = join(directory, args.out, NOVEL_FILES.story);
+	if (!existsSync(storyPath)) fail(`no story to translate: ${storyPath}`);
+	try {
+		const translated = await translateStory(writerModel.model, readFileSync(storyPath, "utf8"), language, {
+			fallback: outlineModel.model,
+			onPart: (part, parts, by) => {
+				out(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${by.label} ...`);
+			},
+		});
+		const target = join(directory, args.out, translationFile(args.translate));
+		writeFileSync(target, names.apply(translated.text));
+		for (const warning of translated.warnings) process.stderr.write(`warning: ${warning}\n`);
+		out(`translation: ${target}`);
+		printSpend({ ...NO_STAGE_SPEND, translation: translated.spend });
+	} catch (error) {
+		if (!(error instanceof NovelRequestError)) throw error;
+		out(`translation failed: ${error.message}`);
+		printSpend({ ...NO_STAGE_SPEND, translation: error.spend });
+		process.exit(1);
+	}
+	process.exit(0);
+}
 try {
 	const novel = await writeNovel(
 		source,

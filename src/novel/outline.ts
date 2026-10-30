@@ -169,8 +169,8 @@ export function interpretOutline(source: NovelSource, casting: Casting, answer: 
 		const to = clamp(Math.max(first, second), 0, end);
 		const beats = (typeof chapter.beats === "string" ? [chapter.beats] : chapter.beats).map((beat) => beat.trim()).filter((beat) => beat.length > 0);
 		const previous = chapters.at(-1);
-		// The planner is asked not to overlap; an overlap is kept (the writer still has the minutes) but reported.
-		if (previous !== undefined && from <= previous.to) warnings.push(`${where}: minutes ${String(from)}-${String(to)} overlap the chapter before (${String(previous.from)}-${String(previous.to)})`);
+		// The planner is asked not to overlap (a shared boundary minute is fine); an overlap is kept (the writer still has the minutes) but reported.
+		if (previous !== undefined && from < previous.to) warnings.push(`${where}: minutes ${String(from)}-${String(to)} overlap the chapter before (${String(previous.from)}-${String(previous.to)})`);
 		if (previous?.pov === pov) warnings.push(`${where}: the same point of view as the chapter before`);
 		const question = chapter.question?.trim();
 		chapters.push({ number: chapters.length + 1, pov, title: chapter.title.trim(), from, to, beats, ...(question === undefined || question.length === 0 ? {} : { question }), evidence });

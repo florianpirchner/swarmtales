@@ -971,27 +971,36 @@ Per run, `runs/run-NNN/` contains:
 
 **Novelist (optional, needs two models):**
 
-- `pnpm novel <run-dir> [--words <n>] [--dry-run]` turns a run into a short story based on true
-  events (default about 6,000 words, English, rotating close third person) in `<run>/novel/`:
-  `story.md`, `outline.json`, `appendix.md` and the scene packs `packs/NN.md`.
+- `pnpm novel <run-dir> [--words <n>] [--translate <lang>] [--out <dir>] [--dry-run]` turns a run
+  into a short story based on true events (default about 6,000 words, English, rotating close third
+  person) in `<run>/novel/` (or `<run>/<dir>/`): `story.md`, `outline.json`, `appendix.md`, the
+  scene packs `packs/NN.md` and, with `--translate`, `story.<lang>.md` (de, fr, es, it).
 - **Casting** (code): 3 point-of-view figures (4 from six residents on), scored by the turning
   points they are part of, their beats and their messages; the winner (rank 1), a loser (an exiled
   resident, else the last) and someone with a turn (seal, paid ultimatum, ransom, goal held, fate
   shift, vote betrayal) are preferred, the rest filled by score.
 - **Outline** (model, default DeepSeek V4.1 Flash via OpenRouter, thinking high): reads the POV
   dossiers, the turning points, the beats, the chronicle if present and the evidence log; answers in
-  JSON with chapters `{pov, title, minutes [from, to], beats, evidence}`. Code validates it: unknown
-  `seq` are dropped, a chapter whose POV is not a cast figure or that cites no known event is
-  dropped, and turning points no chapter cites are warnings.
+  JSON with a `glossary` (game word -> story word), a `prologue` plan and chapters `{pov, title,
+  minutes [from, to], question, beats, evidence}`, planned without overlapping minutes and with each
+  figure once or twice. Code validates it: unknown `seq` are dropped, a chapter whose POV is not a
+  cast figure or that cites no known event is dropped, and turning points no chapter cites,
+  overlapping minutes and the same POV twice in a row are warnings.
 - **Scene packs** (code): per chapter, within a character budget, the POV's messages, its thinking
   (the inner monologue), the gamemaker's notes to it, the board, the city's verified facts of the
   chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
   secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
   another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
-- **Chapters, interludes, edit** (model, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high): one
-  call per chapter with the outline, the pack and the previous chapter's ending; one 100-200 word
-  interlude in italics before each later chapter from the gamemaker's thinking in its minutes; one
-  edit pass that fixes continuity and lists contradictions with the outline. An edit that loses
+- **Prologue, chapters, interludes, edit, translation** (model, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high): a
+  300-500 word prologue from the "The city:" block of a resident prompt (what every resident was
+  told), told as the world; one call per chapter with the outline, the glossary, the chapter's
+  dramatic question, the pack and the previous chapter's ending; one 100-200 word interlude in
+  italics before each later chapter from the gamemaker's thinking in its minutes, written by the
+  outline model (P55); one edit pass that checks the text against the turning points, replaces game
+  words and lists contradictions; with `--translate`, one call per part (header, prologue, each
+  chapter), refused when a part loses its headings. Craft rules shared by every prose prompt: scene
+  over summary, dialogue from the real messages, show don't tell, no game words, numbers only where
+  they hurt, no moral. An edit that loses
   headings or much of the text is not taken. The rule: compress and dramatise, never change an
   outcome; names, never IDs.
 - **Appendix** (code): per chapter the `seq` its outline and pack rest on, uncovered turning points,

@@ -45,6 +45,8 @@ export const STAGES = ["outline", "chapters", "interludes", "edit", "translation
 export type Stage = (typeof STAGES)[number];
 export type StageSpend = Readonly<Record<Stage, NovelSpend>>;
 
+export const NO_STAGE_SPEND: StageSpend = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND, translation: NO_SPEND };
+
 export interface NovelModels {
 	readonly outline: NovelModel;
 	readonly writer: NovelModel;
@@ -99,7 +101,7 @@ export class NovelError extends Error {
 
 export async function writeNovel(source: NovelSource, models: NovelModels, options: NovelOptions = DEFAULT_NOVEL_OPTIONS, hooks: NovelHooks = {}): Promise<Novel> {
 	const names = new Names(source.analysis.facts.names);
-	const spend: Record<Stage, NovelSpend> = { outline: NO_SPEND, chapters: NO_SPEND, interludes: NO_SPEND, edit: NO_SPEND, translation: NO_SPEND };
+	const spend: Record<Stage, NovelSpend> = { ...NO_STAGE_SPEND };
 	const progress = hooks.progress ?? ((): void => undefined);
 	let stage: Stage = "outline";
 	let partial: (() => string) | undefined;
@@ -201,10 +203,14 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 			stage = "translation";
 			const { code, language } = options.translate;
 			try {
-				const translated = await translateStory(models.writer, story, language, (part, parts) => {
-					progress(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${models.writer.label} ...`);
+				const translated = await translateStory(models.writer, story, language, {
+					fallback: models.outline,
+					onPart: (part, parts, by) => {
+						progress(`translation into ${language}, part ${String(part)}/${String(parts)}: asking ${by.label} ...`);
+					},
 				});
 				spend.translation = addSpend(spend.translation, translated.spend);
+				warnings.push(...translated.warnings.map((warning) => `translation into ${language}: ${warning}`));
 				translation = { code, text: names.apply(translated.text) };
 			} catch (error) {
 				// The English story is paid for; a failed translation must not lose it.

@@ -98,27 +98,59 @@ export function interpretEdit(original: string, answer: string): Omit<EditedStor
 export interface TranslatedStory {
 	readonly text: string;
 	readonly spend: NovelSpend;
+	/** Parts the fallback model translated, and why. */
+	readonly warnings: readonly string[];
 }
 
 /**
- * Translates the story part by part (the header, then each chapter with the
- * interlude after it), so no answer has to hold the whole book. A part that
- * lost its heading or interlude lines keeps nothing: the error says which.
+ * Translates the story part by part (the header, the prologue, then each
+ * chapter with the interlude after it), so no answer has to hold the whole
+ * book. A part the model refuses, or whose headings or interlude lines it
+ * loses, goes to the fallback model, which gets two tries (Anthropic refuses
+ * some harmless parts, P56); if all fail, the error says which part.
  */
-export async function translateStory(model: NovelModel, story: string, language: string, onPart?: (part: number, parts: number) => void): Promise<TranslatedStory> {
+export async function translateStory(
+	model: NovelModel,
+	story: string,
+	language: string,
+	options: { readonly fallback?: NovelModel; readonly onPart?: (part: number, parts: number, model: NovelModel) => void } = {},
+): Promise<TranslatedStory> {
 	const parts = storyParts(story);
 	const system = translateSystemPrompt(language);
-	let spend: NovelSpend | undefined;
+	let spend = NO_SPEND;
+	const warnings: string[] = [];
 	const translated: string[] = [];
-	for (const [index, part] of parts.entries()) {
-		onPart?.(index + 1, parts.length);
-		const answer = await model.complete(system, part, MAX_TOKENS.chapter);
-		spend = spend === undefined ? answer.spend : addSpend(spend, answer.spend);
+	const attempt = async (by: NovelModel, part: string, where: string): Promise<string> => {
+		let answer;
+		try {
+			answer = await by.complete(system, part, MAX_TOKENS.chapter);
+		} catch (error) {
+			if (error instanceof NovelRequestError) throw new TranslationError(`${where}: ${error.message}`, addSpend(spend, error.spend));
+			throw error;
+		}
+		spend = addSpend(spend, answer.spend);
 		const text = stripFences(answer.text).trim();
-		if (structure(text).length !== structure(part).length) throw new TranslationError(`part ${String(index + 1)} of ${String(parts.length)}: the translation changed the headings or interlude lines`, spend);
-		translated.push(text);
+		if (structure(text).length !== structure(part).length) throw new TranslationError(`${where}: the translation changed the headings or interlude lines`, spend);
+		return text;
+	};
+	for (const [index, part] of parts.entries()) {
+		const where = `part ${String(index + 1)} of ${String(parts.length)}`;
+		// The writer, then the fallback twice: a lost heading is seldom repeated on a second try.
+		const tries = options.fallback === undefined ? [model, model] : [model, options.fallback, options.fallback];
+		for (const [attemptIndex, by] of tries.entries()) {
+			options.onPart?.(index + 1, parts.length, by);
+			try {
+				translated.push(await attempt(by, part, where));
+				break;
+			} catch (error) {
+				if (!(error instanceof TranslationError) || attemptIndex === tries.length - 1) throw error;
+				spend = error.spend;
+				const next = tries[attemptIndex + 1] ?? by;
+				warnings.push(`${error.message}; ${next === by ? "tried again" : `${next.label} translated it instead`}`);
+			}
+		}
 	}
-	return { text: `${translated.join("\n\n")}\n`, spend: spend ?? NO_SPEND };
+	return { text: `${translated.join("\n\n")}\n`, spend, warnings };
 }
 
 /** The translation of a part was unusable; what it cost so far is kept. */

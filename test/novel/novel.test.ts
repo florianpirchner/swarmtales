@@ -10,7 +10,7 @@ import { buildInterludePack, buildPack } from "../../src/novel/packs.ts";
 import { EDIT_DELIMITER } from "../../src/novel/prompts.ts";
 import { DEFAULT_NOVEL_OPTIONS, NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
 import { figureText, parseGamemakerLog, runLabel, worldText, type NovelSource } from "../../src/novel/source.ts";
-import { cleanProse, interpretEdit, italicize, storyParts } from "../../src/novel/writer.ts";
+import { cleanProse, interpretEdit, italicize, storyParts, translateStory } from "../../src/novel/writer.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const AGENTS = ["A01", "A02", "A03", "A04", "A05", "A06"];
@@ -84,7 +84,7 @@ function outlineAnswer(seqs: Story["seqs"]): string {
 		glossary: [{ term: "level", story: "gate" }, { term: " ", story: "dropped" }],
 		prologue: ["The city keeps twelve and lets two go."],
 		chapters: [
-			{ pov: "A01", title: "A Promise", minutes: [0, 3], beats: ["A01 promises Lucien a piece she means to keep."], evidence: [seqs.promise, seqs.thought] },
+			{ pov: "A01", title: "A Promise", minutes: [0, 4], beats: ["A01 promises Lucien a piece she means to keep."], evidence: [seqs.promise, seqs.thought] },
 			{ pov: "Lucien", title: "The Gate", minutes: [5, 3], question: "Will Lucien keep his place?", beats: "Lucien is exiled.", evidence: [seqs.exile, 9999] },
 			{ pov: "A05", title: "Not a POV", minutes: [0, 6], beats: [], evidence: [seqs.board] },
 			{ pov: "A04", title: "Nothing real", minutes: [0, 6], beats: [], evidence: [9998] },
@@ -120,7 +120,7 @@ describe("outline", () => {
 		const outline = interpretOutline(source, casting, `Here:\n${outlineAnswer(seqs)}`);
 		expect(outline.title).toBe("The Gate");
 		expect(outline.chapters.map((chapter) => [chapter.number, chapter.pov, chapter.from, chapter.to, chapter.evidence])).toEqual([
-			[1, "A01", 0, 3, [seqs.promise, seqs.thought]],
+			[1, "A01", 0, 4, [seqs.promise, seqs.thought]],
 			[2, "A02", 3, 5, [seqs.exile]],
 		]);
 		expect(outline.chapters[1]?.beats).toEqual(["Lucien is exiled."]);
@@ -273,7 +273,7 @@ describe("the novel", () => {
 		expect(novel.spend.chapters.requests).toBe(3);
 		expect(novel.spend.interludes.requests).toBe(1);
 		expect(novel.spend.edit.requests).toBe(1);
-		expect(novel.outline.warnings).toContain('chapter 2 ("The Gate"): minutes 3-5 overlap the chapter before (0-3)');
+		expect(novel.outline.warnings).toContain('chapter 2 ("The Gate"): minutes 3-5 overlap the chapter before (0-4)');
 		expect(novel.appendix).toContain("- level -> gate");
 		expect(novel.appendix).toContain("## 1. A Promise");
 		expect(novel.appendix).toContain(`- Outline rests on: #${String(seqs.promise)}, #${String(seqs.thought)}`);
@@ -404,11 +404,28 @@ describe("novel models and arguments", () => {
 		expect(storyParts("# T\n\n*x*\n\n## Prologue\n\np\n\n## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *\n\n## 2. B\n\nb\n")).toEqual(["# T\n\n*x*", "## Prologue\n\np", "## 1. A\n\na\n\n* * *\n\n*i*\n\n* * *", "## 2. B\n\nb"]);
 	});
 
+	it("hands a part the writer refuses to the fallback model and keeps what both cost", async () => {
+		let calls = 0;
+		const writer = fauxModel("faux writer", (prompt) => {
+			calls += 1;
+			return calls === 2 ? undefined : prompt.replace("door", "Tuer");
+		});
+		const fallback = fauxModel("faux fallback", (prompt) => prompt.replace("door", "Pforte"));
+		const translated = await translateStory(writer.model, "# T\n\nA door.\n\n## 1. A\n\nThe door.\n", "German", { fallback: fallback.model });
+		expect(translated.text).toBe("# T\n\nA Tuer.\n\n## 1. A\n\nThe Pforte.\n");
+		expect(translated.spend.requests).toBe(3);
+		expect(translated.warnings).toEqual(["part 2 of 2: the answer hit the output cap of 24000 tokens; faux fallback translated it instead"]);
+		const refusing = fauxModel("faux refusing", () => undefined);
+		await expect(translateStory(refusing.model, "# T\n\n## 1. A\n\nx", "German")).rejects.toThrow(/part 1 of 2/);
+	});
+
 	it("parses the command line", () => {
-		expect(parseNovelArgs(["runs/x"])).toEqual({ runDirectory: "runs/x", words: 6_000, out: "novel", dryRun: false });
-		expect(parseNovelArgs(["runs/x", "--translate", "de", "--out", "novel-deepseek"])).toEqual({ runDirectory: "runs/x", words: 6_000, translate: "de", out: "novel-deepseek", dryRun: false });
+		expect(parseNovelArgs(["runs/x"])).toEqual({ runDirectory: "runs/x", words: 6_000, out: "novel", translateOnly: false, dryRun: false });
+		expect(parseNovelArgs(["runs/x", "--translate", "de", "--out", "novel-deepseek"])).toEqual({ runDirectory: "runs/x", words: 6_000, translate: "de", out: "novel-deepseek", translateOnly: false, dryRun: false });
 		expect(() => parseNovelArgs(["runs/x", "--translate", "klingon"])).toThrow(/--translate/);
 		expect(() => parseNovelArgs(["runs/x", "--out", "../elsewhere"])).toThrow(/--out/);
+		expect(() => parseNovelArgs(["runs/x", "--translate-only"])).toThrow(/--translate-only/);
+		expect(parseNovelArgs(["runs/x", "--translate", "de", "--translate-only"]).translateOnly).toBe(true);
 		expect(parseNovelArgs(["runs/x", "--words", "3000", "--dry-run", "--provider", "anthropic", "--model", "sonnet", "--outline-provider", "deepseek", "--outline-model", "m"])).toEqual({
 			runDirectory: "runs/x",
 			provider: "anthropic",
@@ -417,6 +434,7 @@ describe("novel models and arguments", () => {
 			outlineModel: "m",
 			words: 3_000,
 			out: "novel",
+			translateOnly: false,
 			dryRun: true,
 		});
 		expect(() => parseNovelArgs([])).toThrow(UsageError);
