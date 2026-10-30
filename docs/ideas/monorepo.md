@@ -1,6 +1,6 @@
 # Idea: Swarm Tales as a monorepo of packages
 
-Status: proposal (2026-10-30). Nothing is built. Flo asked for a structure worthy of a senior
+Status: proposal (2026-10-30). Scope: CLI only (Flo, 2026-10-30). Nothing is built. Flo asked for a structure worthy of a senior
 project, extensible with custom tools and puzzles, with no prompts in code and a director that only
 guards the hard limits of the game.
 
@@ -17,7 +17,7 @@ The code is clean inside a file, but the boundaries between folders are not:
 | Prompts in code | ~2700 lines in `agents/system-prompt.ts`, `gamemaker/system-prompt.ts`, `novel/prompts.ts`, `report/prompt.ts`, `digest/chronicle-prompt.ts`, `interpret/*`, `engine/turn-input.ts`; ~80 tool descriptions; courier and city lines in `stories/cityofkeys/story.ts`; replies such as `LOCKED_DETAIL` in `tools/tool.ts` | Every prompt tweak is a code change; prompt variants (dials, temperaments) are `if` chains in TS. |
 | The director is a story interpreter | `src/engine/director.ts` runs the story's rules (courier lines, factor releases, feast, standings bands). The real hard limits sit elsewhere: act brakes in `arena.ts#applyBrakes`, tribunal deadlines in `engine/tribunal.ts`, the budget stop in `arena.ts` | "Director" means two things today: staging and referee. |
 | "City" baked into the engine | `CITY` used 60 times in `src/`; the level ladder is the only world shape | Other story shapes (open world, Whispers) fight the engine. |
-| The CLI is the composition root | `cli/compose.ts` (601 lines) and `cli/main.ts` (532 lines) wire everything | A backend would have to copy that wiring. |
+| The CLI is the composition root | `cli/compose.ts` (601 lines) and `cli/main.ts` (532 lines) wire everything | Wiring cannot be reused by tests or other entry points. |
 
 ## 2. Target layout
 
@@ -25,9 +25,7 @@ pnpm workspace, TypeScript project references, every package strict and ESM.
 
 ```
 apps/
-  cli/            today's pnpm start / report / digest / novel / validate commands
-  backend/        run server: starts runs, streams events over WebSocket, serves runs and novels (later)
-  ui/             React viewer: live run, board, timeline, relationships, novel reader (later)
+  cli/            today's pnpm start / report / digest / novel / validate commands (the only app)
 
 packages/
   contracts/      Typebox schemas + types only: events, snapshots, story shape, plugin API,
@@ -36,7 +34,7 @@ packages/
   engine/         world core (residents, levels, points, mail, board), scheduler, module host,
                   referee (hard limits), snapshot read/write
   sdk/            story builder DSL + validator; what a story or plugin author imports
-  prompts/        prompt loader and renderer; the built-in prompt files live here as .md
+  prompts/        prompt loader and renderer (code only; the prompt files live in library/)
   models/         providers, model settings, pi-agent runner, scripted offline source
   roles/          the model-backed roles: gamemaker, judge, classifier, souffleur, weaver
   chronicle/      event logs, digest, run reporter (log/, digest/, report/)
@@ -52,8 +50,12 @@ plugins/          first-party mechanics, each a package built only on sdk + cont
   standoff/       ultimatums, claimPiece, confiscation
   cast/           figures, cores, goals, names, archetypes
 
+library/          content anyone can replace or extend, no code
+  archetypes/     drives, temperaments, professions, figures (today's archetypes/)
+  prompts/        gamemaker/, judge/, competitor/, novelist/, reporter/, tools/, replies/
+
 stories/
-  cityofkeys/     story.ts + texts/*.md + README.md (+ cast/)
+  cityofkeys/     story.ts + prompts/ (overrides) + texts/*.md + README.md (+ cast/)
   whispers/       next story
 
 examples/         run data stays where it is
@@ -100,18 +102,20 @@ The pieces a plugin can contribute:
 
 Typo safety stays: `defineStory({ modules: [marks(), receipts(), tribunal()] })` infers the union of
 tool names from the modules, so a story that unlocks `"stamp"` without loading `marks` does not
-compile. The event union is built the same way, so `chronicle` and `ui` still get exhaustive
+compile. The event union is built the same way, so `chronicle` still gets exhaustive
 switches.
 
-Untrusted plugins (web platform, BYOK) never run code: they would be data stories that only combine
-installed modules. That keeps the door open for `docs/ideas/web-platform.md` without a sandbox.
+Design rule: a module touches nothing but its own state, the narrow context the host passes in, and
+the events it returns: no direct `World` access, no Node APIs, randomness and time only from the
+host. That keeps runs deterministic and resumable, and it would let the same module run in a sandbox
+later, should a web platform ever come back (out of scope for now: CLI only).
 
 ## 4. No prompts in code
 
 Every text a model reads lives in a file:
 
 ```
-packages/prompts/builtin/
+library/prompts/
   competitor/system.md
   gamemaker/system.md
   gamemaker/sections/tribunal.md
@@ -130,7 +134,7 @@ stories/cityofkeys/texts/
   is type-checked: a missing key or a wrong variable is a compile error.
 - `pnpm validate` renders every prompt with sample data and fails on unknown variables or
   leftovers.
-- Lookup order: story → plugin → built-in. A story can override any prompt; the lab can A/B test a
+- Lookup order: story (`stories/<name>/prompts/`) → plugin → `library/prompts/`. A story can override any prompt; the lab can A/B test a
   prompt variant without touching code; a German competitor prompt becomes a file.
 - A test (like today's `code-rules.test.ts`) fails when a string longer than about 120 characters
   or a template literal with prose appears in `packages/*/src`.
@@ -177,7 +181,6 @@ cityofkeys story, events compared to a stored file) that proves behaviour did no
 | 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` | low, mechanical |
 | 4 | Module host; carve `World` into modules one by one (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
 | 5 | Director → referee + script module | medium |
-| 6 | `apps/backend` + `apps/ui` | new work, own go |
 
 Snapshot compatibility: `examples/cityofkeys-act1-06a-04/snapshot-L7.json` must keep loading. Step 4
 adds a snapshot version and a migration from today's flat shape.
@@ -193,13 +196,12 @@ adds a snapshot version and a migration from today's flat shape.
 
 ## 8. Open questions for Flo
 
-1. **Backend and UI now or later?** My proposal: create `apps/cli` now and `apps/backend` +
-   `apps/ui` only after the move (step 6), with their own brainstorm.
+1. ~~Backend and UI?~~ Decided 2026-10-30: CLI only; no backend, no UI, no web platform for now.
 2. **Staging:** script module first (option 1), gamemaker orchestration later as its own design?
 3. **"No prompts":** do tool descriptions, error replies to models and story prose count? I count all
    three.
 4. **Publish to npm** (`@swarmtales/*`) or internal only for now?
-5. **Plugin trust:** code plugins only from the repo/npm, data-only stories for the web? 
+5. **Story format:** TS builder only (today's rule), or TS and YAML against the same schema?
 6. **Timing:** start with steps 1-3 right after Whispers is merged, or wait until the first Whispers
    run is done?
 7. **Names:** `kernel`, `roles`, `chronicle`, `referee` fine, or other names?
