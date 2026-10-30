@@ -170,7 +170,7 @@ Each noun is a small command module in `apps/cli/src/commands/`; options are par
 like every other untrusted input. Library: commander with extra typings, or citty; decided when
 building.
 
-## 3d. Tool guards (preHook)
+## 3d. Tool guards (preHook) and the tool pipeline
 
 Some limits are soft and hard to program: "no secrets on the board", "no threats". Today each one is
 code (word lists in `src/gamemaker/privacy.ts`, the memo's digit-run refusal). A **guard** puts the
@@ -195,6 +195,28 @@ tools: {
 - Agents will try to slip past a guard (split a fragment, spell it out, encode it). That is story
   material; the report lists attempts as loophole candidates.
 - Cost: one short model call per guarded call; only guarded tools pay it.
+
+**One tool pipeline (Flo, 2026-10-30).** Guards, rate limits and costs are not separate mechanisms but
+stages of one fixed chain every tool call runs through:
+
+| Stage | What | Who owns it |
+|---|---|---|
+| 1. `lock` | is the tool open to this resident now | engine |
+| 2. `limit` | hard limits, e.g. 8 DMs per resident between two door openings, text length | referee; a story can tighten, never lift |
+| 3. `afford` | can the caller pay (marks, points)? nothing is charged yet | cost modules (marks, ...) |
+| 4. `rule` | program-checkable rules as expressions (§3a), no model | story |
+| 5. `guard` | soft text rule checked by the guard model (above) | story |
+| 6. `execute` | the tool itself | tool |
+| 7. `settle` | charge the cost, only when `execute` succeeded; a `charge` verdict adds its mark here | cost modules |
+| 8. `after` | events, notices, labels for the gamemaker | modules |
+
+- Declared per tool in the story data: `sendDM: { limit: { max: 8, per: "door" }, guard: { ... } }`.
+- Cheap stages first: a call that hits a limit never costs a model call, and a refused or failed
+  call never costs a mark (Flo: charge only once executed).
+- Every refusal is one event `tool_refused` (stage, tool, agent, reason) with a fixed reply text from
+  `library/prompts/replies/`, so the reporter and the lab can count refusals per stage.
+- Modules plug into the stages through the same API as everything else (§3), so marks is a
+  cost module, not code in `World`.
 
 **First use, decided by Flo 2026-10-30 (P61):** in Whispers, guard group and board posts with
 `block` against fragments and password parts; group, board and DMs all stay free. Fragments can then
