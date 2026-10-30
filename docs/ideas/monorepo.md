@@ -203,7 +203,7 @@ the move).
 | Noun | Verbs |
 |---|---|
 | `swt story` | `list`, `show <name>` (acts, levels, modules, tools), `validate [name]`, `new <name>` (scaffold), `schema` (writes `story.schema.json`) |
-| `swt run` | `start <story> [--agents --cast --figure-direction --gm-direction --budget ...]`, `resume <snapshot>`, `list`, `show <run>` (result, cost, stop reason), `cost <run>` |
+| `swt run` | `start <story> [--agents --cast --figure-direction --gm-direction --budget --watch 1m ...]`, `resume <snapshot>`, `list`, `show <run>` (result, cost, stop reason), `cost <run>`, `watch <run>`, `stop <run>` (§3g) |
 | `swt report` | `run <run>` (REPORT.md), `minutes <run>`, `private <run>` |
 | `swt digest` | `build <run>`, `chronicle <run>` |
 | `swt novel` | `write <run>`, `translate <novel> --to de` |
@@ -308,6 +308,48 @@ A hard cap on lines per code file, tests excluded, enforced by lint so it cannot
 - The cap also forces the cuts of §3: `World` into modules, prose out of `story.ts` into `texts/`,
   prompts out of code.
 - Second rule: functions over 60 lines warn; `sonarjs/cognitive-complexity` (limit 15) is an error (§7).
+
+## 3g. Run watch: a cron for the run's developer
+
+Flo, 2026-10-30: the person who starts a run wants, say once per minute, a summary of how it goes,
+possibly with the recommendation to abort. This is for the **operator**, not for the game: residents
+and the gamemaker never see it, and it changes nothing in the story.
+
+**Two parts.**
+
+1. **A scheduler in the kernel.** `every("1m", job)` and `at(minute, job)`, with two clocks: the
+   *virtual* minute (a round; deterministic, the job and its output are events, so a replay needs no
+   model) and the *wall clock* (for operations: heartbeat, timeout, budget burn per real minute).
+   The watch uses the virtual minute by default. The script (§5) and modules use the same scheduler
+   instead of each keeping their own timers.
+2. **The `watch` role.** Facts are computed in code first, as the run reporter does today
+   (`report/facts.ts`), then a cheap model (Haiku via Anthropic) writes the summary and a verdict:
+
+```
+minute 23 | 6/6 alive | doors: 4 4 5 5 6 6 | 0.41 USD (+0.03/min) | 2 refusals | gamemaker: 3 actions
+Wall at door 5 for 8 minutes; Mercer and Harrow have exchanged 14 DMs without a transfer (#812-#869).
+Verdict: CONTINUE. (stop if no door moves by minute 31)
+```
+
+   Verdict is `continue`, `watch` or `stop`, with the reason and `#seq` evidence like the report.
+
+**Stop signals computed in code** (the model only phrases them): no door moves for N minutes
+(P43, P53), cost rate above the estimate or budget share used (P47), gamemaker turns ended at the
+token cap (P52), refusals or `tool_refused` spikes per stage (§3d), errors from a provider, everyone
+finished.
+
+**Delivery** is a list of sinks in `swt.config` (§3e): terminal (default), a file (`watch.md` and
+`watch.jsonl` in the run folder), and later a webhook or push message. Sending outside the machine is
+the operator's own configuration, never a default.
+
+**Stopping.** A recommendation never stops the run by itself. `swt run start --watch 1m` prints it;
+`--watch-autostop` lets the referee stop the run when the code-computed signals (not the model's
+opinion) cross a limit, and writes a snapshot first so the run can resume. `swt run stop <run>` and
+`swt run watch <run>` (follow a run started elsewhere by tailing its `events.jsonl`) are the manual
+equivalents.
+
+**Cost.** One short model call per interval; the facts block keeps it small. The calls count against
+the run budget and appear in `usage`.
 
 ## 4. No prompts in code
 
@@ -477,3 +519,4 @@ Decided by Flo 2026-10-30: the packages go to npm. That makes the build step rea
 9. **Guards (§3d):** does a blocked post cost anything (a mark, or a strike)? Does the guard also
    block a seam or a chain written in words? Are the city's own notices exempt (yes, I assume)?
 10. ~~Size limit?~~ Decided 2026-10-30: 400 lines per code file, tests excluded, ratchet for the 18 files over it (§3f).
+11. **Run watch (§3g):** virtual minute by default, wall clock only for operations: right? May `--watch-autostop` stop a run on code-computed signals, or only ever recommend? Which sinks besides terminal and file?
