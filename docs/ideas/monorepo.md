@@ -145,6 +145,31 @@ bundled with esbuild and run in a sandbox; first-party modules run in-process.
 - The host API a sandboxed module sees is exactly the module context of §3, serialised; that is why
   the design rule above matters from step 4 on.
 
+## 3c. The CLI: `swt`
+
+One binary, `swarmtales`, with the short name `swt` (`st` is taken by suckless's terminal). Noun
+first, verb second; every command has `--help`, and `--json` for machine-readable output. It replaces
+the `pnpm start` / `report:*` / `digest` / `novel` / `lab` scripts (they stay as thin aliases during
+the move).
+
+| Noun | Verbs |
+|---|---|
+| `swt story` | `list`, `show <name>` (acts, levels, modules, tools), `validate [name]`, `new <name>` (scaffold), `schema` (writes `story.schema.json`) |
+| `swt run` | `start <story> [--agents --cast --figure-direction --gm-direction --budget ...]`, `resume <snapshot>`, `list`, `show <run>` (result, cost, stop reason), `cost <run>` |
+| `swt report` | `run <run>` (REPORT.md), `minutes <run>`, `private <run>` |
+| `swt digest` | `build <run>`, `chronicle <run>` |
+| `swt novel` | `write <run>`, `translate <novel> --to de` |
+| `swt prompt` | `list`, `show <key>` (which file wins: story, plugin or library), `render <key> --vars <file>`, `check` |
+| `swt archetype` | `list`, `show <name>` |
+| `swt module` | `list`, `show <id>` (options schema, tools, events) |
+| `swt lab` | `run`, `orders`, `judge` |
+| `swt doctor` | checks node version, keys present (never printed), providers reachable |
+| `swt completion` | `bash`, `zsh`, `fish` |
+
+Each noun is a small command module in `apps/cli/src/commands/`; options are parsed with Typebox,
+like every other untrusted input. Library: commander with extra typings, or citty; decided when
+building.
+
 ## 4. No prompts in code
 
 Every text a model reads lives in a file:
@@ -213,7 +238,7 @@ cityofkeys story, events compared to a stored file) that proves behaviour did no
 | 0 | Whispers lands first (another thread is building it in `engine/`, `tools/`, `world.ts`) | none, waiting |
 | 1 | Golden-run test + break the import cycles inside `src/` (contracts folder, interfaces instead of classes) | low |
 | 2 | Prompts to files + loader + codegen + validate check | medium (long diff, no logic change) |
-| 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` | low, mechanical |
+| 3 | Workspace skeleton, `git mv` folders into packages, `apps/cli` with `swt` (§3c) | low, mechanical |
 | 4 | Module host; carve `World` into modules one by one (marks, receipts, seal, standoff, tribunal, ...) | high, builder + challenger per module |
 | 5 | Director → referee + script module | medium |
 | 6 | Story schema export, YAML loader, expression language | medium |
