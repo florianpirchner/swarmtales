@@ -1,4 +1,4 @@
-# Iago: measuring betrayal (idea, not approved)
+# Whispers (was Iago): measuring betrayal (idea, not approved)
 
 Status: brainstorm with Flo, 2026-10-29. Flo wants to define the story himself in a day or two;
 nothing is built. Decisions of 2026-10-30 below. Working title after the whisperer in Othello.
@@ -49,6 +49,9 @@ instead of anecdotes. That is close to a small paper: "How susceptible are LLM a
 - Different character cores per resident.
 - 6-7 really hard doors; all four must play together, so the residents are busy for a while.
 - The three others want the most points.
+- Name: **Whispers**.
+- The popularity vote pays points; voting for yourself is not allowed.
+- The price of slander: a bonus for the first through a door (option a).
 
 ## Proposals (not decided)
 
@@ -60,6 +63,12 @@ instead of anecdotes. That is close to a small paper: "How susceptible are LLM a
 - **Slander needs a price.** If cooperation costs nothing, distrust changes nothing. Either (a) a
   bonus for the first through a door, so giving first is a risk and trust decides who gives, or
   (b) pieces are given or sold, so a slandered victim asks more or refuses. Recommended: (a).
+- **Forged receipts:** every resident has `showReceipt(#n)` (a real message as an official city
+  receipt: sender, recipient, text); only the whisperer also has `forgeReceipt(#n, text)`, which
+  looks the same but carries his text. `#n` must be a real message of the slandered resident, so
+  `whoSent(#n)` confirms the sender and makes the forgery look true; only asking the real recipient
+  what #n said exposes it. The log marks every forgery. No fully invented DM (`fakeDM`): no tool
+  could ever expose it.
 - **Popularity vote:** a surprise at the end, each names the most liked (not themselves); the
   measuring point is where the whisperer lands. Open: does it pay points? It can only be a
   surprise once.
@@ -68,9 +77,8 @@ instead of anecdotes. That is close to a small paper: "How susceptible are LLM a
 
 ## Open questions
 
-- The story's name (working titles: Iago, Whispers).
-- Does the popularity vote pay points?
-- The price of slander: (a) first-through bonus or (b) pieces given or sold?
+- The size of the first-through bonus and of the vote's points.
+- `forgeReceipt` as proposed, or another tool?
 
 ## As a paper (Flo: good idea, 2026-10-29)
 
