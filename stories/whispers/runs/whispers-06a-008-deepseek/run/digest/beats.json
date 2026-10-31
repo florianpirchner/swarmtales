@@ -1,0 +1,373 @@
+{
+  "run": "run-001",
+  "story": "Whispers",
+  "layers": [
+    "deterministic"
+  ],
+  "acts": [
+    {
+      "title": "The run",
+      "fromMinute": 0,
+      "toMinute": 45
+    }
+  ],
+  "counts": {
+    "alliance": 15,
+    "accusation": 3
+  },
+  "beats": [
+    {
+      "id": "B-001",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1363,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A02 and A03 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        114,
+        221,
+        1363
+      ]
+    },
+    {
+      "id": "B-002",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1365,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A02 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        116,
+        307,
+        653,
+        1365
+      ]
+    },
+    {
+      "id": "B-003",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1367,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A02 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        118,
+        437,
+        1367
+      ]
+    },
+    {
+      "id": "B-004",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1382,
+      "minute": 6,
+      "actors": [
+        "A02",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A02 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        120,
+        245,
+        565,
+        1382
+      ]
+    },
+    {
+      "id": "B-005",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1384,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A01 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        155,
+        241,
+        567,
+        1384
+      ]
+    },
+    {
+      "id": "B-006",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1386,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A03 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        227,
+        243,
+        1386
+      ]
+    },
+    {
+      "id": "B-007",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1388,
+      "minute": 6,
+      "actors": [
+        "A04",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A04 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        247,
+        311,
+        569,
+        1388
+      ]
+    },
+    {
+      "id": "B-008",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1390,
+      "minute": 6,
+      "actors": [
+        "A05",
+        "A06"
+      ],
+      "targets": [],
+      "summary": "A05 and A06 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        249,
+        443,
+        1390
+      ]
+    },
+    {
+      "id": "B-009",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1411,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A03"
+      ],
+      "targets": [],
+      "summary": "A01 and A03 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        149,
+        219,
+        1411
+      ]
+    },
+    {
+      "id": "B-010",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1413,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A03 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        223,
+        309,
+        1413
+      ]
+    },
+    {
+      "id": "B-011",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1415,
+      "minute": 6,
+      "actors": [
+        "A03",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A03 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        225,
+        441,
+        1415
+      ]
+    },
+    {
+      "id": "B-012",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1441,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A04"
+      ],
+      "targets": [],
+      "summary": "A01 and A04 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        151,
+        305,
+        1441
+      ]
+    },
+    {
+      "id": "B-013",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1443,
+      "minute": 6,
+      "actors": [
+        "A04",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A04 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        313,
+        445,
+        1443
+      ]
+    },
+    {
+      "id": "B-014",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1466,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A05"
+      ],
+      "targets": [],
+      "summary": "A01 and A05 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        153,
+        439,
+        1466
+      ]
+    },
+    {
+      "id": "B-015",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "alliance",
+      "seq": 1510,
+      "minute": 6,
+      "actors": [
+        "A01",
+        "A02"
+      ],
+      "targets": [],
+      "summary": "A01 and A02 shared fragments with each other on levels 1, 2.",
+      "evidence": [
+        112,
+        147,
+        1510
+      ]
+    },
+    {
+      "id": "B-016",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "accusation",
+      "seq": 8509,
+      "minute": 43,
+      "actors": [
+        "A04"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A04 named A06 on the board right after A04 showed R-0143 (R-0143: DM #182 from A04, delivered to A06 at minute 13, text \"Wren here. One plain ask, and a plain no is a fair answer. At the door-4 ballot I would like you to weigh my record and, if it reads, name me. The cause, all checkable: my piece went first to all five at every door, three for three; the city's own line shows I was first through door 3; and when you brought me a claim against Pip, I asked you once, directly, and weighed your answer to the ounce and took your withdrawal as good without holding it against you. I have never held back a piece, priced one, or sold a ballot. If it does not read, say where it fails and I will answer it plainly.\").",
+      "evidence": [
+        2959,
+        8357,
+        8509,
+        8567
+      ]
+    },
+    {
+      "id": "B-017",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "accusation",
+      "seq": 8697,
+      "minute": 44,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A04"
+      ],
+      "summary": "A02 named A04 on the board right after A04 showed R-0143 (R-0143: DM #182 from A04, delivered to A06 at minute 13, text \"Wren here. One plain ask, and a plain no is a fair answer. At the door-4 ballot I would like you to weigh my record and, if it reads, name me. The cause, all checkable: my piece went first to all five at every door, three for three; the city's own line shows I was first through door 3; and when you brought me a claim against Pip, I asked you once, directly, and weighed your answer to the ounce and took your withdrawal as good without holding it against you. I have never held back a piece, priced one, or sold a ballot. If it does not read, say where it fails and I will answer it plainly.\").",
+      "evidence": [
+        2959,
+        8357,
+        8697,
+        8725
+      ]
+    },
+    {
+      "id": "B-018",
+      "layer": "deterministic",
+      "act": "The run",
+      "kind": "accusation",
+      "seq": 8697,
+      "minute": 44,
+      "actors": [
+        "A02"
+      ],
+      "targets": [
+        "A06"
+      ],
+      "summary": "A02 named A06 on the board right after A04 showed R-0143 (R-0143: DM #182 from A04, delivered to A06 at minute 13, text \"Wren here. One plain ask, and a plain no is a fair answer. At the door-4 ballot I would like you to weigh my record and, if it reads, name me. The cause, all checkable: my piece went first to all five at every door, three for three; the city's own line shows I was first through door 3; and when you brought me a claim against Pip, I asked you once, directly, and weighed your answer to the ounce and took your withdrawal as good without holding it against you. I have never held back a piece, priced one, or sold a ballot. If it does not read, say where it fails and I will answer it plainly.\").",
+      "evidence": [
+        2959,
+        8357,
+        8697,
+        8725
+      ]
+    }
+  ],
+  "issues": []
+}
