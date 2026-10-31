@@ -1,18 +1,18 @@
 /**
  * The `marks` mechanic (carve step 3, team T1, docs/design/carve-team-T1.md): the message allowance
- * of SPEC §7. It answers whether a resident can afford a channel, books the price after a message
- * was sent (`marks_spent`) and shows what is left in the status line. The allowance resets whenever
- * a resident changes level: the mechanic follows the levels through `level_up` (and the
- * `startLevel` option), since the frozen `MarksApi` carries no level. The refill is booked lazily
- * on every read, as before, so it needs no job. Copied from packages/engine/src/marks.ts and the
- * `#canAfford`/`#spend` of world.ts.
+ * of SPEC §7. It answers whether a resident can afford a channel, what a message costs, books the
+ * price after a message was sent (`marks_spent`), shows what is left in the status line and the
+ * marks terms under a task. The allowance resets whenever a resident changes level: the level is
+ * `ProgressionApi.levelOf` every time (the mechanic keeps no copy; `startLevel` answers only where
+ * no progression runs). The refill is booked lazily on every read, as before, so it needs no job.
+ * Copied from packages/engine/src/marks.ts and the `#canAfford`/`#spend`/`#withMarks` of world.ts.
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic } from "@swarmtales/kernel";
-import { INPUT_KINDS, LedgerApi, MarksApi, MarksChannel, ProgressionEvents, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { canAfford, priceOf, spend, statusOf, type Allowance, type Book, type MarksState } from "./book.ts";
+import { INPUT_KINDS, MarksApi, MarksChannel, ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { activeOn, canAfford, priceOf, runWide, spend, statusOf, termsOn, type Allowance, type Book, type MarksState } from "./book.ts";
 
 const count = (description: string) => Type.Integer({ minimum: 0, description });
 const Prices = Type.Object(
@@ -41,7 +41,7 @@ const Rules = Type.Object(
 );
 
 const AllowanceSlice = Type.Object({ agent: Type.String(), level: Type.Integer(), remaining: Type.Number(), since: Type.Optional(Type.Integer()) });
-const Slice = Type.Object({ allowances: Type.Array(AllowanceSlice), levels: Type.Array(Type.Object({ agent: Type.String(), level: Type.Integer() })) });
+const Slice = Type.Object({ allowances: Type.Array(AllowanceSlice) });
 /** The version-0 slice the legacy converter cuts out of the old world: `{ marks }`, the old `MarksSnapshot`. */
 const LegacySlice = Type.Object({ marks: Type.Array(AllowanceSlice) });
 
@@ -54,47 +54,65 @@ export const marksHead = defineHead({
 			default: [],
 			description: "Allowances of single levels (the story's `levels[].marks.perLevel`).",
 		}),
-		startLevel: Type.Integer({ minimum: 1, default: 1, description: "The level every resident starts on, until a `level_up` says otherwise." }),
+		startLevel: Type.Integer({ minimum: 1, default: 1, description: "The level every resident is on where no progression mechanic answers `levelOf`." }),
 	}),
-	state: (): MarksState => ({ allowances: new Map<string, Allowance>(), levels: new Map<string, number>() }),
+	state: (): MarksState => ({ allowances: new Map<string, Allowance>() }),
 	events: { marks_spent: Type.Object({ agent: Type.String(), channel: MarksChannel, remaining: Type.Number() }) },
-	prompts: { "competitor/status/marks": ["remaining", "budget"] },
+	prompts: {
+		"competitor/status/marks": ["remaining", "budget"],
+		"task/marks-level": ["budget", "board", "group", "dm", "receipt"],
+		"task/marks-level-refill": ["budget", "board", "group", "dm", "receipt", "regain"],
+		"task/marks-run": ["budget", "board", "group", "dm", "receipt"],
+	},
 	provides: [MarksApi],
-	requires: [LedgerApi],
+	uses: [ProgressionApi],
 });
 
 type Ctx = ContextOf<typeof marksHead>;
 
 function bookOf(ctx: Ctx): Book {
 	const { rules, levels, startLevel } = ctx.options;
-	return { rules, overrides: new Map(levels.map((entry) => [entry.level, entry.perLevel])), startLevel, minute: ctx.minute };
+	return {
+		rules,
+		overrides: new Map(levels.map((entry) => [entry.level, entry.perLevel])),
+		levelOf: (resident) => ctx.tryCall(ProgressionApi, "levelOf", { resident }) ?? startLevel,
+		minute: ctx.minute,
+	};
+}
+
+/** "1 mark per minute", "1 mark every 3 minutes", "2 marks every 3 minutes" (old `refillText`). */
+function regainText(marks: number, everyMinutes: number): string {
+	const amount = `${String(marks)} ${marks === 1 ? "mark" : "marks"}`;
+	return everyMinutes === 1 ? `${amount} per minute` : `${amount} every ${String(everyMinutes)} minutes`;
 }
 
 export const marks = defineMechanic(marksHead, (kit) => ({
 	services: [
-		kit.provideSome(MarksApi, {
+		kit.provide(MarksApi, {
 			canAfford: (input, ctx) => canAfford(ctx.state, bookOf(ctx), input.resident, input.channel),
 			left: (input, ctx) => statusOf(ctx.state, bookOf(ctx), input.resident) ?? null,
 			spend: (input, ctx) => {
 				const book = bookOf(ctx);
-				const level = ctx.state.levels.get(input.resident) ?? book.startLevel;
 				// A free channel books nothing and says nothing; the status is still the answer.
-				if (priceOf(book, level, input.channel) === 0) return statusOf(ctx.state, book, input.resident) ?? null;
+				if (priceOf(book, book.levelOf(input.resident), input.channel) === 0) return statusOf(ctx.state, book, input.resident) ?? null;
 				const status = spend(ctx.state, book, input.resident, input.channel);
 				if (status !== undefined) ctx.emit("marks_spent", { agent: input.resident, channel: input.channel, remaining: status.remaining });
 				return status ?? null;
 			},
-		}),
-	],
-	listeners: [
-		kit.listen(
-			ProgressionEvents,
-			"level_up",
-			(payload, ctx) => {
-				ctx.state.levels.set(payload.agent, payload.to);
+			priceOf: (input, ctx) => {
+				const book = bookOf(ctx);
+				const level = book.levelOf(input.resident);
+				return activeOn(book, level) ? priceOf(book, level, input.channel) : null;
 			},
-			{ immediate: true },
-		),
+			taskLine: (input, ctx) => {
+				const book = bookOf(ctx);
+				if (!activeOn(book, input.level)) return null;
+				const { budget, prices, refill } = termsOn(book, input.level);
+				const values = { budget, board: prices.board, group: prices.group, dm: prices.dm, receipt: prices.receipt };
+				if (runWide(book)) return ctx.prompt("task/marks-run", values);
+				return refill === undefined ? ctx.prompt("task/marks-level", values) : ctx.prompt("task/marks-level-refill", { ...values, regain: regainText(refill.marks, refill.everyMinutes) });
+			},
+		}),
 	],
 	hooks: {
 		turnInputs: (resident, ctx) => {
@@ -110,13 +128,8 @@ export const marks = defineMechanic(marksHead, (kit) => ({
 		schema: Slice,
 		save: (state) => ({
 			allowances: [...state.allowances].map(([agent, allowance]) => ({ agent, level: allowance.level, remaining: allowance.remaining, ...(allowance.since === undefined ? {} : { since: allowance.since }) })),
-			levels: [...state.levels].map(([agent, level]) => ({ agent, level })),
 		}),
-		load: (data) => ({
-			allowances: new Map(data.allowances.map((entry) => [entry.agent, { level: entry.level, remaining: entry.remaining, ...(entry.since === undefined ? {} : { since: entry.since }) }])),
-			levels: new Map(data.levels.map((entry) => [entry.agent, entry.level])),
-		}),
-		// Levels are not in the old snapshot: a resident with an allowance is on the level of its allowance.
-		migrations: { 0: (old) => ({ allowances: Parse(LegacySlice, old).marks, levels: Parse(LegacySlice, old).marks.map((entry) => ({ agent: entry.agent, level: entry.level })) }) },
+		load: (data) => ({ allowances: new Map(data.allowances.map((entry) => [entry.agent, { level: entry.level, remaining: entry.remaining, ...(entry.since === undefined ? {} : { since: entry.since }) }])) }),
+		migrations: { 0: (old) => ({ allowances: Parse(LegacySlice, old).marks }) },
 	}),
 }));

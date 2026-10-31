@@ -64,15 +64,14 @@ export interface Allowance {
 
 export interface MarksState {
 	readonly allowances: Map<string, Allowance>;
-	/** The level each resident is on, from the start level and the `level_up` events. */
-	readonly levels: Map<string, number>;
 }
 
 /** What the book reads from the options: the rules and the per-level overrides of the story's levels. */
 export interface Book {
 	readonly rules: Rules | undefined;
 	readonly overrides: ReadonlyMap<number, number>;
-	readonly startLevel: number;
+	/** The resident's level now (`ProgressionApi.levelOf`); the book keeps no copy. */
+	readonly levelOf: (agent: string) => number;
 	readonly minute: number;
 }
 
@@ -109,10 +108,6 @@ export function priceOf(book: Book, level: number, channel: Channel): number {
 	return activeOn(book, level) ? termsOn(book, level).prices[channel] : 0;
 }
 
-export function levelOf(state: MarksState, book: Book, agent: string): number {
-	return state.levels.get(agent) ?? book.startLevel;
-}
-
 function allowanceOf(state: MarksState, book: Book, agent: string, level: number): Allowance {
 	const terms = termsOn(book, level);
 	const refill = terms.refill;
@@ -136,19 +131,19 @@ function allowanceOf(state: MarksState, book: Book, agent: string, level: number
 
 /** Current allowance; `undefined` when marks do not apply on the resident's level. */
 export function statusOf(state: MarksState, book: Book, agent: string): Status | undefined {
-	const level = levelOf(state, book, agent);
+	const level = book.levelOf(agent);
 	if (!activeOn(book, level)) return undefined;
 	return { remaining: allowanceOf(state, book, agent, level).remaining, budget: termsOn(book, level).budget };
 }
 
 export function canAfford(state: MarksState, book: Book, agent: string, channel: Channel): boolean {
 	const status = statusOf(state, book, agent);
-	return status === undefined || status.remaining >= priceOf(book, levelOf(state, book, agent), channel);
+	return status === undefined || status.remaining >= priceOf(book, book.levelOf(agent), channel);
 }
 
 /** Books the price; returns the new status, or `undefined` when marks do not apply. */
 export function spend(state: MarksState, book: Book, agent: string, channel: Channel): Status | undefined {
-	const level = levelOf(state, book, agent);
+	const level = book.levelOf(agent);
 	if (!activeOn(book, level)) return undefined;
 	const price = priceOf(book, level, channel);
 	const allowance = allowanceOf(state, book, agent, level);
