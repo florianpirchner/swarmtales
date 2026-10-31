@@ -75,18 +75,28 @@ function oldLines(old: ReturnType<typeof oldStrike>): readonly string[] {
 	old.log.events.forEach((event, index) => {
 		if (index < old.from) return;
 		lines.push(...old.marks.filter((entry) => entry.at === index).map((entry) => entry.line));
-		const { seq: _seq, minute: _minute, type, ...rest } = event;
+		const type = event.type;
+		const rest = without(event, ["seq", "minute", "type"]);
 		lines.push(inside(index) ? `inside ${type}` : OWN.has(type) ? `event ${JSON.stringify({ type, ...rest })}` : `holdout ${type}`);
 	});
 	lines.push(...old.marks.filter((entry) => entry.at === old.log.events.length).map((entry) => entry.line));
 	return dropJustified(lines, (line) => line.startsWith("holdout ") || line.startsWith("inside "), "the holdout's own lines (T4b) and what the old goals write inside onExiled (T3)").kept;
 }
 
+function record(value: unknown): Readonly<Record<string, unknown>> {
+	return typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {};
+}
+
+/** The fields of an event without the envelope's keys. */
+function without(event: object, keys: readonly string[]): Readonly<Record<string, unknown>> {
+	return Object.fromEntries(Object.entries(record(event)).filter(([key]) => !keys.includes(key)));
+}
+
 function newLines(events: readonly EventEnvelope[]): readonly string[] {
 	return events.flatMap((event): string[] => {
-		const payload = typeof event.payload === "object" && event.payload !== null ? Object.fromEntries(Object.entries(event.payload)) : {};
+		const payload = record(event.payload);
 		if (event.type === "service_called") {
-			const input = typeof payload.input === "object" && payload.input !== null ? Object.fromEntries(Object.entries(payload.input)) : {};
+			const input = record(payload.input);
 			const call = `${String(payload.api)}.${String(payload.method)}`;
 			if (call === "goals.onExiled" || call === "seal.onExiled") return [`${call} ${JSON.stringify(input.resident)}`];
 			if (call.startsWith("ledger.") && call !== "ledger.balance") return [`ledger ${call}`];

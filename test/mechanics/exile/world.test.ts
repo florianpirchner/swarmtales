@@ -67,13 +67,19 @@ function oldCity(extra = 0) {
 	const goalHeir = goals.noteHeir.bind(goals);
 	const sealExiled = seal.onExiled.bind(seal);
 	goals.onExiled = (agent) => {
-		mark(`goals.onExiled ${JSON.stringify(agent)}`, () => goalExiled(agent));
+		mark(`goals.onExiled ${JSON.stringify(agent)}`, () => {
+			goalExiled(agent);
+		});
 	};
 	goals.noteHeir = (heir) => {
-		mark(`goals.noteHeir ${JSON.stringify(heir)}`, () => goalHeir(heir));
+		mark(`goals.noteHeir ${JSON.stringify(heir)}`, () => {
+			goalHeir(heir);
+		});
 	};
 	seal.onExiled = (agent) => {
-		mark(`seal.onExiled ${JSON.stringify(agent)}`, () => sealExiled(agent));
+		mark(`seal.onExiled ${JSON.stringify(agent)}`, () => {
+			sealExiled(agent);
+		});
 	};
 	const until = (last: number): void => {
 		for (; minute <= last; minute++) world.startMinute(minute);
@@ -145,7 +151,7 @@ async function playTo(host: Host, minute: number): Promise<void> {
 
 /** An event as a line: its type and fields in their order, without the envelope keys. */
 function eventLine(type: string, fields: Readonly<Record<string, unknown>>): string {
-	const { seq: _seq, minute: _minute, at: _at, type: _type, ...rest } = fields;
+	const rest = Object.fromEntries(Object.entries(fields).filter(([key]) => !["seq", "minute", "at", "type"].includes(key)));
 	return `event ${JSON.stringify({ type, ...rest })}`;
 }
 
@@ -160,7 +166,8 @@ function oldLine(event: Readonly<Record<string, unknown>>): string | undefined {
 	if (type === "ledger_entry") return `move ${JSON.stringify({ from: event.debit, to: event.credit, amount: event.amount, reason: event.reason })}`;
 	if (EVENTS.has(type)) return eventLine(type, event);
 	// The goals' and the seal's own lines (T3, T4b): the calls into them are compared as marks.
-	return legacyOwner(type) === "goals" || legacyOwner(type) === "seal" ? `${legacyOwner(type) ?? ""} ${type}` : undefined;
+	const owner = legacyOwner(type);
+	return owner === "goals" || owner === "seal" ? `${owner} ${type}` : undefined;
 }
 
 /** The old log from `from` on, with the marks at their place: one merged list. */

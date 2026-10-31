@@ -55,8 +55,7 @@ function othersOf(line: string): string | undefined {
 }
 
 function fields(event: Line): Line {
-	const { seq: _seq, minute: _minute, type: _type, ...rest } = event;
-	return rest;
+	return Object.fromEntries(Object.entries(event).filter(([key]) => !["seq", "minute", "type"].includes(key)));
 }
 
 function oldLines(lines: readonly Line[]): readonly string[] {
