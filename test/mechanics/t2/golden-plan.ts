@@ -5,7 +5,6 @@
  * the gamemaker's calls between two minutes. The lines that belong to mechanics that are really
  * loaded in the replay (names, receipts, cast, channels) are not planned: they must be produced.
  */
-import { legacyOwner } from "@swarmtales/chronicle";
 import { HOOK_ORDER, LISTENER_ORDER } from "@swarmtales/mechanic-shared";
 import { goldenTurnInputs, type GoldenTurnInput, type LegacyLine } from "@swarmtales/testkit";
 

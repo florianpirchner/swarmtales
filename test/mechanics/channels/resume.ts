@@ -202,7 +202,12 @@ export function progressionCarrying(lines: readonly Line[], levels: Record<strin
 					},
 				},
 				// The act ends with the run: the goals' notices and the board's summary come before the treasuries are settled.
-				runEnded: { order: HOOK_ORDER.runEnded.progression, run: (_reason, ctx) => replay(after, ctx) },
+				runEnded: {
+					order: HOOK_ORDER.runEnded.progression,
+					run: (_reason, ctx) => {
+						replay(after, ctx);
+					},
+				},
 			},
 			};
 		},

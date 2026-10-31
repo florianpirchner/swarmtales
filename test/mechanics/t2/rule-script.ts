@@ -7,7 +7,7 @@
  * `director_*` lines, so it is compared through the lines the T2 mechanics own.
  */
 import { Type } from "typebox";
-import type { Action, AnyStory, MechanicUse } from "@swarmtales/contracts";
+import type { Action, AnyStory, MechanicUse, NoticeTarget } from "@swarmtales/contracts";
 import { resolveCount } from "@swarmtales/kernel";
 import { defineMechanic } from "@swarmtales/kernel";
 import { CastApi, ChannelsApi, HOOK_ORDER, PetitionsApi, PetitionsEvents } from "@swarmtales/mechanic-shared";
@@ -31,6 +31,16 @@ function petitionsIn(actions: readonly Action[], into: Map<string, Opened>, rule
 	}
 }
 
+/** The one resident a notice goes to: the lottery's winner, or the single id the rule names. */
+function targetOf(target: NoticeTarget, actor: string | undefined): string {
+	if (target === "actor" && actor !== undefined) return actor;
+	if (typeof target !== "string" && !("onLevel" in target)) {
+		const [only, ...rest] = target;
+		if (only !== undefined && rest.length === 0) return only;
+	}
+	throw new Error("the script stand-in sends a notice to the winner or to one named resident");
+}
+
 export function ruleScript(story: AnyStory): MechanicUse {
 	const specs = new Map<string, Opened>();
 	for (const rule of story.director) petitionsIn(rule.actions, specs, rule.id);
@@ -46,7 +56,7 @@ export function ruleScript(story: AnyStory): MechanicUse {
 							ctx.call(ChannelsApi, "post", { author: action.author, text: render(action.text, actor) });
 							break;
 						case "notify":
-							ctx.call(ChannelsApi, "notify", { to: action.target === "actor" && actor !== undefined ? actor : String(action.target), author: CITY, text: render(action.text, actor) });
+							ctx.call(ChannelsApi, "notify", { to: targetOf(action.target, actor), author: CITY, text: render(action.text, actor) });
 							break;
 						case "escrowTransfer":
 							if (actor !== undefined) ctx.call(CastApi, "escrow", { cast: action.cast, to: actor, amount: action.points });
@@ -70,7 +80,14 @@ export function ruleScript(story: AnyStory): MechanicUse {
 							if (winner !== null) run(ctx, rule, action.then, winner);
 							break;
 						}
-						default:
+						case "dm":
+						case "fine":
+						case "grant":
+						case "publishStandings":
+						case "retireCast":
+						case "revealFactor":
+						case "setCastLevel":
+						case "unlockTools":
 							throw new Error(`the script stand-in does not run ${action.kind}`);
 					}
 				}

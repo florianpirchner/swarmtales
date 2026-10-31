@@ -15,16 +15,10 @@ export interface CastStoryOptions {
 /** The `into` of every `collectDms` in `actions`, depth first (a petition's `onPass`/`onFail`, a lottery's `then`). */
 function collectionsIn(actions: readonly Action[]): readonly string[] {
 	return actions.flatMap((action): readonly string[] => {
-		switch (action.kind) {
-			case "collectDms":
-				return [action.into];
-			case "openPetition":
-				return collectionsIn([...action.petition.onPass, ...action.petition.onFail]);
-			case "lottery":
-				return collectionsIn(action.then);
-			default:
-				return [];
-		}
+		if (action.kind === "collectDms") return [action.into];
+		if (action.kind === "openPetition") return collectionsIn([...action.petition.onPass, ...action.petition.onFail]);
+		if (action.kind === "lottery") return collectionsIn(action.then);
+		return [];
 	});
 }
 
