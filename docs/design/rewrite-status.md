@@ -15,6 +15,7 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3 | Four teams carved the mechanics; challengers found many divergences | `docs/design/challenge-wave3.md` |
 | 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
 | 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) only production code | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
+| 3.7 | Round-2 challengers (T1, T3, T4a, T4b); integrator's second pass: absent slices, `ctx.roles`, fact queries, old argument handling and `TOOL_LOCKED` text, lock-aware `access.open`/`isOpen`, `runResumed`, listener-mode check, ledger `open`/`has`/`idempotencyKey`, `PuzzlesApi.secrets`, shared `StandoffTribunalApi.taskLine`, `defy` owned by channels, converter copies, mutation helper | `docs/design/carve-decisions.md` (round 2), `docs/design/carve-round3-*.md` |
 
 ## Open, in this order
 
@@ -23,14 +24,14 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
    goldens; differential tests against the old engine for every channels tool, refusal and check order, petitions,
    cast, motives; wire cast options from the story; version-0 fixtures and legacy snapshot resume. (An attempt was
    stopped before it committed anything.)
-2. **Round 2 challengers** for T1, T3, T4a, T4b (read-only Opus reviews, prompts as in the checklist of this thread:
-   line-by-line diff old vs new, non-vacuous differential tests, snapshot resume, order numbers). Not run yet.
-3. **Integrator pass** on the round 2 requests (`docs/design/carve-requests-round2-*.md`): `LedgerApi.open` and
-   `idempotencyKey`, hand `{version: 0, data: {}}` to mechanics whose legacy slice is absent, role-presence query
-   for the blame judge order, facts that can call `uses` APIs, `defy`/`gamemaker_defied` ownership, INVALID_ARGUMENTS
-   text, `PuzzlesApi.secrets`, order entry for resume escrow, `StandoffTribunalApi.taskLine`, then switch every
-   `kit.provideSome` back to `kit.provide`.
-4. **Fix round** for what the challengers find (T3 still misses `listAgents` cast members and the holdout rule line).
+2. **Fix round 3** for T1, T3, T4a and T4b, from the round-2 challengers (`docs/design/challenge-round2.md`) and the
+   integrator's round-2 decisions (`docs/design/carve-decisions.md`, R2-D1 to R2-D24). The briefs are
+   `docs/design/carve-round3-{T1,T3,T4a,T4b}.md`. Each gate is a mutant list run with `pnpm mutants` (testkit
+   `runMutants`): every mutant listed by the review must be killed. T2 picks up its R2 items (resume `defy` lock,
+   `quoteDms` and DM text, `CastApi.active`, resume escrow and motives in `runResumed`, `NotesApi` on
+   `PuzzlesApi.secrets`) in its own thread.
+3. **Round 3 challengers** for the same teams, re-running the mutant lists first.
+4. **Story option mapping** (R2-D17) when step 18 composes the stories.
 5. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
    (`pnpm validate` refuses them until then); wire `defiance` and `direction` in the CLI.

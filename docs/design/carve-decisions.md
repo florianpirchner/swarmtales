@@ -515,7 +515,7 @@ byte-equal. **T3:** `migrateV0` reads `delivered` (`finished` per resident), and
 | `names.reserved` | `[...Object.keys(story.cast), story.city]` (old world.ts:675) |
 | `names.announcement` | `story.names.announcement`. **T1:** no `""` default; the option is required when names is loaded |
 | `receipts.minRun` | the `postBoard` guard rule's `secrets.minRun`, only when the story has a tool guard |
-| `receipts.quoteDms` | `story.quoteDms` (R2-D12) |
+| `receipts.quoteDms` | `story.rules.receipts.quoteDms` (R2-D12) |
 | `ledger.strictAccounts` | always true |
 | `channels.defiance` | R2-D5 |
 | author name (holdout, notes) | `story.gamemaker.name`, one place (T4b R2-9) |
