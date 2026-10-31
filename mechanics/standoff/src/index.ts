@@ -155,7 +155,7 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		}),
 	],
 	services: [
-		kit.provideSome(StandoffApi, {
+		kit.provide(StandoffApi, {
 			heldPieces: ({ resident }, ctx) => heldAll(ctx, resident).map((piece): HeldPiece => ({ ...piece, needers: [...piece.needers] })),
 			keep: ({ from, pieces }, ctx) => {
 				const kept: StandoffPiece[] = pieces.map((piece) => ({ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers }));
@@ -164,6 +164,11 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 			},
 			noteText: ({ author, readers, text }, ctx) => {
 				bookFor(ctx).noteText(author, readers, text);
+				return null;
+			},
+			/** A last will handed `piece` to `to` (old `#standoff.noteGiven` from the will): it counts as given. */
+			noteGiven: ({ from, to, piece }, ctx) => {
+				bookFor(ctx).noteGiven(from, to, { id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers });
 				return null;
 			},
 			cityPiecePrice: (_input, ctx) => cityPiecePrice(ctx),

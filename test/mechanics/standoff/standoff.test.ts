@@ -92,6 +92,15 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		expect(host.facts()["standoff.given"]).toBe(1);
 	});
 
+	it("counts a piece a last will handed over as given, once (StandoffApi.noteGiven, T4 request R2)", async () => {
+		const { story } = setup();
+		const host = startHost(story);
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteGiven", { from: "A01", to: "A02", piece: A01_PIECE }));
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteGiven", { from: "A01", to: "A02", piece: A01_PIECE }));
+		expect(ownLines(host, ["standoff"])).toEqual(['{"type":"piece_given","holder":"A01","needer":"A02","level":8,"piece":"L8-counter-A02","minute":0}']);
+		expect(host.facts()["standoff.given"]).toBe(1);
+	});
+
 	it("gives an ultimatum only to a pair that holds out on each other, and settles it: the giver keeps its points", async () => {
 		const { story, world } = setup();
 		const host = startHost(story);
