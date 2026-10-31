@@ -9,16 +9,18 @@
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import type { ContextOf } from "@swarmtales/contracts";
+import type { ApiOutput, ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
 import { CastApi, ChannelsApi, HOOK_ORDER, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
-import { castHead } from "./head.ts";
+import { CastExtrasApi } from "./extras.ts";
+import { castHead, castWorkHead } from "./head.ts";
 import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
 export { castHead };
+export { CastExtrasApi } from "./extras.ts";
 export { castOptionsFromStory, type CastStoryOptions } from "./from-story.ts";
 
-type Ctx = ContextOf<typeof castHead>;
+type Ctx = ContextOf<typeof castWorkHead>;
 
 /** The name the city signs its notices with. */
 const CITY = "CITY";
@@ -44,8 +46,21 @@ function shorten(ctx: Ctx, into: string, untilMinute: number): void {
 	ctx.emit("collection_shortened", { into, untilMinute: ctx.state.registry.collections.get(into)?.untilMinute ?? untilMinute });
 }
 
-/** Before every other tick of a minute (motives 50 is the first of the table): only a resumed run has anything to fund. */
-const RESUME_ESCROW_ORDER = HOOK_ORDER.minuteStarted.motives + 10;
+/**
+ * A member the story added after the snapshot gets its escrow when the run resumes (old
+ * world.ts:3089, R2-D1): an account the ledger does not know is opened and funded once, the
+ * idempotency key keeping a second resume from funding it again.
+ */
+function fundResumed(ctx: Ctx): void {
+	for (const member of ctx.state.registry.members.values()) {
+		const account = escrowAccountId(member.id);
+		if (ctx.call(LedgerApi, "has", { account })) continue;
+		ctx.call(LedgerApi, "open", { account });
+		ctx.state.funded.add(member.id);
+		const escrow = ctx.options.members[member.id]?.escrow ?? 0;
+		if (escrow > 0) ctx.call(LedgerApi, "mint", { account, amount: escrow, reason: `escrow ${member.id}`, idempotencyKey: `escrow-${member.id}` });
+	}
+}
 
 /** The names of the collections the story can start, in the story's rule order, then any other in start order. */
 function collectionOrder(ctx: Ctx): readonly string[] {
@@ -65,7 +80,7 @@ function shortenAfterSolve(ctx: Ctx): void {
 	}
 }
 
-export const cast = defineMechanic(castHead, (kit) => ({
+export const cast = defineMechanic(castWorkHead, (kit) => ({
 	services: [
 		kit.provide(CastApi, {
 			isActive: (input, ctx) => ctx.state.registry.isActive(input.cast),
@@ -92,7 +107,7 @@ export const cast = defineMechanic(castHead, (kit) => ({
 				if (changed) ctx.emit("cast_retired", { cast: input.cast });
 				return changed;
 			},
-			escrow: (input, ctx) => {
+			escrow: (input, ctx): ApiOutput<typeof CastApi, "escrow"> => {
 				if (!ctx.state.registry.has(input.cast)) return { ok: false, code: "UNKNOWN_CAST", detail: input.cast };
 				if (!ctx.residents.ids.includes(input.to)) return { ok: false, code: "UNKNOWN_AGENT", detail: input.to };
 				const account = escrowAccountId(input.cast);
@@ -112,7 +127,7 @@ export const cast = defineMechanic(castHead, (kit) => ({
 				shorten(ctx, input.into, input.untilMinute);
 				return null;
 			},
-			revealCollection: (input, ctx) => {
+			revealCollection: (input, ctx): ApiOutput<typeof CastApi, "revealCollection"> => {
 				const collection = ctx.state.registry.collections.get(input.into);
 				if (collection === undefined) return { ok: false, code: "UNKNOWN_COLLECTION", detail: input.into };
 				const lines =
@@ -133,16 +148,15 @@ export const cast = defineMechanic(castHead, (kit) => ({
 				return winner;
 			},
 		}),
+		kit.provide(CastExtrasApi, { active: (_input, ctx) => ctx.state.registry.active().map((member) => ({ id: member.id, level: member.level })) }),
 	],
 	hooks: {
 		// The escrow of every member, from the system account, after the start points (old constructor).
 		runStarted: { order: HOOK_ORDER.runStarted.cast, run: fundMissing },
-		minuteStarted: [
-			// A member the story added after a snapshot gets its escrow before anything else of the first minute (old restore).
-			{ order: RESUME_ESCROW_ORDER, run: fundMissing },
-			// Director.startMinute: after the petitions expired and every mechanic ticked, before the script's triggers.
-			{ order: HOOK_ORDER.minuteStarted.cast, run: shortenAfterSolve },
-		],
+		// A member the story added after a snapshot gets its escrow once, when the run resumes (old restore).
+		runResumed: { order: HOOK_ORDER.runResumed.cast, run: fundResumed },
+		// Director.startMinute: after the petitions expired and every mechanic ticked, before the script's triggers.
+		minuteStarted: { order: HOOK_ORDER.minuteStarted.cast, run: shortenAfterSolve },
 	},
 	facts: {
 		active: kit.fact(Type.Array(Type.Object({ id: Type.String(), level: Type.Integer() })), (view) => view.state.registry.active().map((member) => ({ id: member.id, level: member.level }))),
@@ -157,7 +171,7 @@ export const cast = defineMechanic(castHead, (kit) => ({
 			funded: [...state.funded],
 		}),
 		load: (data, setup) => {
-			const state = castHead.state(setup);
+			const state = castWorkHead.state(setup);
 			state.registry.restore(data.members, data.collections);
 			for (const id of data.funded) state.funded.add(id);
 			return state;

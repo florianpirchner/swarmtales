@@ -5,6 +5,7 @@
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
+import { CastExtrasApi } from "@swarmtales/mechanic-cast";
 import { CastApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import { reply } from "@swarmtales/kernel";
 
@@ -71,11 +72,12 @@ const Op = Type.Union([
 	Type.Object({ op: Type.Literal("revealCollection"), into: Type.String(), header: Type.Optional(Type.String()) }),
 	Type.Object({ op: Type.Literal("drawLottery"), into: Type.String(), salt: Type.String() }),
 	Type.Object({ op: Type.Literal("isActive"), cast: Type.String() }),
+	Type.Object({ op: Type.Literal("active") }),
 ]);
 
 /** The script's side: one tool, `driveCast`, with an operation per `CastApi` method that the script calls. */
 export const castDriver = defineMechanic(
-	{ id: "script", summary: "Test driver: calls CastApi.", options: Type.Object({}), state: () => undefined, events: {}, requires: [CastApi], prompts: { "tools/readBoard": [] } },
+	{ id: "script", summary: "Test driver: calls CastApi.", options: Type.Object({}), state: () => undefined, events: {}, requires: [CastApi, CastExtrasApi], prompts: { "tools/readBoard": [] } },
 	(kit) => ({
 		tools: [
 			kit.tool({
@@ -102,6 +104,8 @@ export const castDriver = defineMechanic(
 							return reply(JSON.stringify(ctx.call(CastApi, "drawLottery", { into: params.into, salt: params.salt })));
 						case "isActive":
 							return reply(JSON.stringify(ctx.call(CastApi, "isActive", { cast: params.cast })));
+						case "active":
+							return reply(JSON.stringify(ctx.call(CastExtrasApi, "active", {})));
 						default:
 							return params satisfies never;
 					}

@@ -38,19 +38,19 @@ const scriptStandIn = defineMechanic(
 	}),
 );
 
-function story(minutes = 6) {
+function story(minutes = 6, grantResolve = true) {
 	return defineCoreStory({
 		id: "t2-petitions",
 		seed: 7,
 		minutes,
 		residents: 4,
 		mechanics: [channels.with(), petitions.with(), scriptStandIn.with(), ledgerStandIn(10).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with()],
-		grants: { resident: ["signPetition", "listPetitions", "readBoard"], script: ["openPetition", "resolvePetition"] },
+		grants: { resident: ["signPetition", "listPetitions", "readBoard"], script: grantResolve ? ["openPetition", "resolvePetition"] : ["openPetition"] },
 	});
 }
 
-function city(minutes = 6): Host {
-	return hostFor({ story: story(minutes) });
+function city(minutes = 6, grantResolve = true): Host {
+	return hostFor({ story: story(minutes, grantResolve) });
 }
 
 async function open(host: Host, params: unknown): Promise<string> {
@@ -60,6 +60,23 @@ async function open(host: Host, params: unknown): Promise<string> {
 async function say(host: Host, who: string, tool: string, params: unknown): Promise<string> {
 	return textOf(await host.call(`resident:${who}`, tool, params));
 }
+
+describe("the expiry of a petition is a call of the script (R2-D17: stories grant `resolvePetition` to `script`)", () => {
+	it("resolves an expired petition with the grant, and leaves it open without it", async () => {
+		const granted = city(6);
+		await open(granted, { id: "P1", threshold: { count: 3 }, deadlineMinute: 2, visibility: "public" });
+		await granted.run(idleAgent);
+		expect(payloads(granted, "petition_resolved")).toEqual([{ petition: "P1", outcome: "failed", signatures: 0, signers: [] }]);
+
+		const bare = city(6, false);
+		await open(bare, { id: "P1", threshold: { count: 3 }, deadlineMinute: 2, visibility: "public" });
+		await bare.run(idleAgent);
+		expect(payloads(bare, "petition_resolved")).toEqual([]);
+		// The city says nothing either: only the opening is on the board, and the script was refused the call.
+		expect(bare.log.ofType("channels", "board_post")).toHaveLength(1);
+		expect(granted.log.ofType("channels", "board_post")).toHaveLength(2);
+	});
+});
 
 describe("petitions", () => {
 	it("opens a petition, tells the city and refuses a taken id", async () => {
