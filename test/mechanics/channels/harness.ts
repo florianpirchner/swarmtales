@@ -7,14 +7,14 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { EventEnvelope, Host, ToolOutcome } from "@swarmtales/contracts";
 import { createHost, defineMechanic, reply, type HostOptions } from "@swarmtales/kernel";
-import { createPromptLookup } from "@swarmtales/prompts";
+import { createPromptLookup, mechanicPromptFolders } from "@swarmtales/prompts";
 import { ChannelsApi, ExileEvents } from "@swarmtales/mechanic-shared";
 
 const MECHANICS = fileURLToPath(new URL("../../../mechanics", import.meta.url));
 
-/** The prompt folders of the T2 mechanics. */
+/** The prompt folders of every mechanic of the repository (a test may load the real mechanics of other teams). */
 export function t2Prompts() {
-	return createPromptLookup({ mechanics: { channels: `${MECHANICS}/channels/prompts`, cast: `${MECHANICS}/cast/prompts`, petitions: `${MECHANICS}/petitions/prompts`, motives: `${MECHANICS}/motives/prompts` } });
+	return createPromptLookup({ mechanics: { ...mechanicPromptFolders(), channels: `${MECHANICS}/channels/prompts`, cast: `${MECHANICS}/cast/prompts`, petitions: `${MECHANICS}/petitions/prompts`, motives: `${MECHANICS}/motives/prompts` } });
 }
 
 /** A stand-in for the exile mechanic: a tool that exiles a resident, so channels hears `exiled`. */

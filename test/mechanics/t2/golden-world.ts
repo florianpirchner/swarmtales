@@ -202,7 +202,6 @@ export function channelsOptionsOf(story: AnyStory) {
 	const gamemaker = story.gamemaker;
 	return {
 		...(cap === undefined ? {} : { dmLimit: { windowMinutes: cap.windowMinutes, perWindow: cap.perWindow } }),
-		quoteDms: story.rules.receipts?.quoteDms === true,
 		city: story.city,
 		...(gamemaker === undefined ? {} : { noteAuthor: gamemaker.author, notesPerAgent: gamemaker.notesPerAgent, boardPosts: gamemaker.boardPosts, windowMinutes: gamemaker.windowMinutes }),
 	};
@@ -276,7 +275,7 @@ export async function playGolden(name: GoldenName): Promise<GoldenRun> {
 		minutes: plan.minutes,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 		mechanics: mechanicsOf(story, plan, progress),
-		grants: { resident: CHANNEL_TOOLS, gamemaker: ["notify", "postBoard"], script: ["drive"] },
+		grants: { resident: CHANNEL_TOOLS, gamemaker: ["notify", "postBoard"], script: ["drive", "resolvePetition"] },
 		tools: guardPolicies(story),
 		turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 	});
