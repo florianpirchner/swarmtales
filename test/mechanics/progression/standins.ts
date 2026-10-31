@@ -88,6 +88,7 @@ export function channelsStandIn(notices: Notice[], feed?: StatusFeed) {
 					note: () => ({ number: 0 }),
 					deliver: () => ({ number: 0 }),
 					takeNumber: () => 0,
+					lastNumber: () => 0,
 					dmWindow: () => null,
 					pendingDms: () => feed?.unread ?? 0,
 					dmRecords: () => [],

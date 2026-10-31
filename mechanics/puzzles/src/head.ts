@@ -28,7 +28,7 @@ export const puzzlesWorkHead = defineHead({
 	id: "puzzles",
 	summary: puzzlesHead.summary,
 	options: PuzzlesOptions,
-	state: (setup): PuzzlesState => ({ levels: new Map(), cityFactors: new Map(), exclusions: new Map(), planner: freshPlanner(setup), resumed: false }),
+	state: (setup): PuzzlesState => ({ levels: new Map(), cityFactors: new Map(), exclusions: new Map(), planner: freshPlanner(setup) }),
 	events: { ...PUZZLES_EVENTS },
 	prompts: PUZZLES_PROMPTS,
 	provides: [PuzzlesApi],

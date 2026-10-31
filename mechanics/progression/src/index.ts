@@ -5,8 +5,8 @@
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { defineMechanic } from "@swarmtales/kernel";
-import { HOOK_ORDER, ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { defineMechanic, refuse } from "@swarmtales/kernel";
+import { ExileApi, HOOK_ORDER, ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { progressionWorkHead } from "./head.ts";
 import { endAct, isFinished, levelOf, noteActStarts, syncLocks } from "./levels.ts";
 import { loadState, migrateV0, ProgressionSlice, ProgressionSliceV0, saveState } from "./model.ts";
@@ -20,6 +20,13 @@ export { progressionHead } from "./head.ts";
 export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 	tools: progressionTools(kit),
 	services: [kit.provide(ProgressionApi, progressionImplementation)],
+	pipeline: {
+		// The old `enabledTools` (world.ts:1446-1448): at the gate a resident may still talk, but no longer submit.
+		lock: (call, ctx) => {
+			if (call.owner !== "progression" || call.tool !== "submitSolution" || call.resident === undefined) return undefined;
+			return ctx.tryCall(ExileApi, "standing", { resident: call.resident })?.kind === "gate" ? refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {})) : undefined;
+		},
+	},
 	hooks: {
 		runStarted: {
 			order: HOOK_ORDER.runStarted.progression,
@@ -29,18 +36,16 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 				ctx.state.locksStale = false;
 			},
 		},
-		minuteStarted: [
-			{
-				// A resumed run rebuilds the locks before anything else of the minute.
-				order: HOOK_ORDER.minuteStarted.progressionDoor - 10,
-				run: (ctx) => {
-					if (!ctx.state.locksStale) return;
-					for (const id of ctx.residents.ids) syncLocks(ctx, id);
-					ctx.state.locksStale = false;
-					// The acts the residents reached since the snapshot begin now (old `#restore`).
-					noteActStarts(ctx, Math.max(0, ...ctx.residents.ids.map((id) => levelOf(ctx, id))));
-				},
+		// The old `#restore` tail (world.ts:3118-3123): the acts the residents reached since the snapshot begin, the locks follow the levels (R2-D9).
+		runResumed: {
+			order: HOOK_ORDER.runResumed.progression,
+			run: (ctx) => {
+				for (const id of ctx.residents.ids) syncLocks(ctx, id);
+				ctx.state.locksStale = false;
+				noteActStarts(ctx, Math.max(0, ...ctx.residents.ids.map((id) => levelOf(ctx, id))));
 			},
+		},
+		minuteStarted: [
 			// The old arena opened the door only from the second minute on (`Arena#nextMinute`).
 			{
 				order: HOOK_ORDER.minuteStarted.progressionDoor,

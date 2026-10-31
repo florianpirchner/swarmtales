@@ -21,6 +21,7 @@ import {
 	opensAt,
 	syncLocks,
 } from "./levels.ts";
+import { doorIn } from "./model.ts";
 import { problemFor } from "./task.ts";
 
 const CITY = "CITY";
@@ -121,7 +122,8 @@ function notifyHolders(ctx: ProgressionCtx, agent: string, level: number): void 
 export function openDoor(ctx: ProgressionCtx): boolean {
 	const door = ctx.state.door;
 	if (door === undefined || (!ctx.state.doorReleased && !aliveResidents(ctx).every((id) => hasPassed(ctx, id, door)))) return false;
-	const holdAfter = ctx.options.holdAfter;
+	// The next door is clamped below the last level, as the first one is (old `#holdAfter`, world.ts:766).
+	const holdAfter = doorIn(ctx.options);
 	const next = holdAfter !== undefined && holdAfter > door ? holdAfter : undefined;
 	ctx.state.door = next;
 	ctx.state.doorReleased = false;

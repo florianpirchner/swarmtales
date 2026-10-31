@@ -30,8 +30,8 @@ export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
 				}
 			},
 		},
-		// A resumed run repairs its levels before the progression mechanic's door and locks (old `World#restore`).
-		minuteStarted: { order: 10, run: repairAfterResume },
+		// A resumed run repairs its levels after the door, the act starts and the locks (old `World#restore`, world.ts:3124-3135; R2-D9).
+		runResumed: { order: HOOK_ORDER.runResumed.puzzles, run: repairAfterResume },
 	},
 	guard: {
 		secrets: (resident, minRun, ctx) => secretsOf(ctx, resident, minRun),

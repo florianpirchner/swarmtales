@@ -63,11 +63,15 @@ describe("progression: the snapshot", () => {
 		const slice = host.snapshot().mechanics.progression;
 		expect(slice?.version).toBe(1);
 		const old: unknown = converted.host.mechanics.progression?.data;
-		const legacy = JSON.stringify(old);
+		expect(JSON.stringify(old).length).toBeGreaterThan(10);
 		const data: unknown = slice?.data;
-		const competitors: unknown = typeof data === "object" && data !== null ? Reflect.get(data, "competitors") : undefined;
-		expect(JSON.stringify(competitors)).toBe(JSON.stringify(typeof old === "object" && old !== null ? Reflect.get(old, "competitors") : undefined));
-		expect(legacy.length).toBeGreaterThan(10);
+		// Every field the legacy slice carries comes back unchanged (the competitors, the delivered list, the door, the locks).
+		for (const key of Object.keys(typeof old === "object" && old !== null ? old : {})) {
+			const was: unknown = typeof old === "object" && old !== null ? Reflect.get(old, key) : undefined;
+			const now: unknown = typeof data === "object" && data !== null ? Reflect.get(data, key) : undefined;
+			if (was !== undefined) expect(JSON.stringify(now), `field ${key}`).toBe(JSON.stringify(was));
+		}
+		expect(Object.keys(typeof data === "object" && data !== null ? data : {}).length).toBeGreaterThan(1);
 		await host.playMinute(idleAgent);
 		expect(host.facts()["progression.levels"]).toBeDefined();
 	});

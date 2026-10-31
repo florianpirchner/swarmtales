@@ -5,7 +5,7 @@
  * the receipt lines from the receipts, the tools the host leaves open for the resident.
  */
 import { Type } from "typebox";
-import type { MechanicKit, ShapeOf, ToolOutcome } from "@swarmtales/contracts";
+import { TOOL_NAMES, type MechanicKit, type ShapeOf, type ToolOutcome } from "@swarmtales/contracts";
 import { ChannelsApi, LedgerApi, MarksApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx, progressionWorkHead } from "./head.ts";
 import { competitorOf, isFinished, isOpenOnClock, opensAt, ranking } from "./levels.ts";
@@ -27,6 +27,16 @@ function residentOf(ctx: { readonly resident: string | undefined }): string {
 	return ctx.resident;
 }
 
+/** The tools open to the resident now, in the old order (`TOOL_NAMES`, as `enabledTools` listed them) whatever order the story grants them in. */
+function openTools(ctx: ProgressionCtx, resident: string): readonly string[] {
+	const open = ctx.access.open(resident);
+	const rank = (tool: string): number => {
+		const at = TOOL_NAMES.findIndex((name) => name === tool);
+		return at < 0 ? TOOL_NAMES.length : at;
+	};
+	return [...open].sort((a, b) => rank(a) - rank(b));
+}
+
 function statusReply(ctx: ProgressionCtx, self: string): string {
 	const entry = competitorOf(ctx, self);
 	const finished = isFinished(ctx, self);
@@ -43,7 +53,7 @@ function statusReply(ctx: ProgressionCtx, self: string): string {
 		`survivors at the end: ${ctx.options.survivors}`,
 		`unread DMs: ${ctx.call(ChannelsApi, "pendingDms", { resident: self })}`,
 		`solved levels: ${entry.solved.length === 0 ? "-" : [...entry.solved].sort((a, b) => a - b).join(", ")}`,
-		`unlocked tools: ${ctx.access.open(self).join(", ")}`,
+		`unlocked tools: ${openTools(ctx, self).join(", ")}`,
 	];
 	const marks = ctx.tryCall(MarksApi, "left", { resident: self });
 	if (marks !== undefined && marks !== null) lines.push(`marks: ${marks.remaining} of ${marks.budget}`);
@@ -66,7 +76,7 @@ export function progressionTools(kit: Kit) {
 			name: "activeTools",
 			description: "tools/activeTools",
 			parameters: Type.Object({}),
-			execute: (_params, ctx) => ok(ctx.prompt("replies/active-tools", { tools: ctx.access.open(residentOf(ctx)).join(", ") })),
+			execute: (_params, ctx) => ok(ctx.prompt("replies/active-tools", { tools: openTools(ctx, residentOf(ctx)).join(", ") })),
 		}),
 		kit.tool({
 			name: "getProblem",
