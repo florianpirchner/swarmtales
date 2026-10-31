@@ -80,10 +80,6 @@ export function quotaOf(spec: WhispererSpec | undefined, direction: Direction | 
 	return direction !== undefined && direction.level >= 10 ? spec?.quota : undefined;
 }
 
-/** Whether the whisperer may defy: figure direction 10 or more with defiance, and a story that directs its whisperer. */
-export function defies(spec: WhispererSpec | undefined, direction: Direction | undefined): boolean {
-	return direction !== undefined && direction.level >= 10 && direction.defies && spec?.quota !== undefined;
-}
 
 /** Whether a duty `every` few minutes is due at the start of `minute`. */
 export function dutyDue(spec: WhispererSpec, minute: number): boolean {

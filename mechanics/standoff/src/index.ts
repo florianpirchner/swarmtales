@@ -205,9 +205,12 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				bookFor(ctx).tick(ctx.minute, CITY);
 			},
 		},
-		/** The facts' situation at the minute's end; it writes nothing, so it needs no slot of the order table (request R2-8). */
-		minuteEnded: (ctx) => {
-			ctx.state.situation = situationOf(bookFor(ctx), (agent) => heldAll(ctx, agent), cityPiecePrice(ctx));
+		/** The facts' situation at the minute's end; it writes nothing (request R2-8, slot `minuteEnded.standoff`). */
+		minuteEnded: {
+			order: HOOK_ORDER.minuteEnded.standoff,
+			run: (ctx) => {
+				ctx.state.situation = situationOf(bookFor(ctx), (agent) => heldAll(ctx, agent), cityPiecePrice(ctx));
+			},
 		},
 		turnInputs: {
 			order: HOOK_ORDER.turnInputs.status,

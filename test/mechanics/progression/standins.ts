@@ -36,6 +36,8 @@ export function ledgerStandIn(feed?: StatusFeed) {
 				kit.provide(LedgerApi, {
 					balance: ({ account }) => (feed?.points !== undefined && account === feed.agent ? feed.points : (held.get(account) ?? 0)),
 					balances: () => Object.fromEntries(held),
+					open: () => null,
+					has: ({ account }) => held.has(account),
 					mint: ({ account, amount }) => {
 						held.set(account, (held.get(account) ?? 0) + amount);
 						return null;

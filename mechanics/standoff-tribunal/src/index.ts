@@ -8,24 +8,22 @@
 import { Type } from "typebox";
 import { defineMechanic, refuse } from "@swarmtales/kernel";
 import { HOOK_ORDER, StandoffTribunalApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { standoffTribunalWorkHead, StandoffTribunalTaskApi } from "./head.ts";
+import { standoffTribunalHead } from "./head.ts";
 import { courtFor, holdoutParts } from "./ports.ts";
 import { holdoutSnapshot } from "./slice.ts";
 import { gamemakerTools, residentTools } from "./tools.ts";
 
-export { standoffTribunalHead, StandoffTribunalTaskApi } from "./head.ts";
+export { standoffTribunalHead } from "./head.ts";
 
 const Id = Type.String();
 const Int = Type.Integer();
 
 
-export const standoffTribunal = defineMechanic(standoffTribunalWorkHead, (kit) => ({
+export const standoffTribunal = defineMechanic(standoffTribunalHead, (kit) => ({
 	tools: [...residentTools(kit), ...gamemakerTools(kit)],
 	services: [
 		kit.provide(StandoffTribunalApi, {
 			exemptFromCap: ({ from, to }, ctx) => courtFor(ctx).exemptFromCap(from, to),
-		}),
-		kit.provide(StandoffTribunalTaskApi, {
 			// The old `#withHoldoutRule`: the rule under every door's task (the mechanic plays only in a run with the gamemaker).
 			taskLine: (_input, ctx) => ctx.options.texts.rule,
 		}),

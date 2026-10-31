@@ -74,7 +74,6 @@ interface SetupOptions {
 	readonly gate?: readonly string[];
 	readonly extra?: readonly MechanicUse[];
 	readonly direction?: { readonly level: number; readonly defies: boolean } | undefined;
-	readonly defiance?: boolean;
 	readonly golden?: boolean;
 }
 
@@ -99,9 +98,9 @@ function setup(spec: SetupOptions = {}) {
 			receipts.with({ quoteDms: true }),
 			...(spec.golden === false ? [] : [receiptIssuers(log, true)]),
 			...(spec.extra ?? []),
-			whispers.with({ ...configured.whispers, control: spec.control ?? false, ...(spec.direction === undefined && "direction" in spec ? {} : { direction: spec.direction ?? DIRECTION }), defiance: spec.defiance ?? true }),
+			whispers.with({ ...configured.whispers, control: spec.control ?? false, ...(spec.direction === undefined && "direction" in spec ? {} : { direction: spec.direction ?? DIRECTION }) }),
 		],
-		grants: { resident: ["sendDM", "nameFavourite", "forgeReceipt", "showReceipt", "defy"] },
+		grants: { resident: ["sendDM", "nameFavourite", "forgeReceipt", "showReceipt"] },
 		turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 	});
 	return { options: { story: definition, prompts: PROMPTS }, channels, progression };
@@ -185,7 +184,6 @@ describe("the golden gates for the whisperer, the vote, the duty and the forgery
 describe("the tools and locks", () => {
 	const vote = (agent: string): PlannedCall => ({ tool: "nameFavourite", params: { agent } });
 	const forge = (to: string, receiptId: string, text: string): PlannedCall => ({ tool: "forgeReceipt", params: { to, receiptId, text } });
-	const defy = (reason: string): PlannedCall => ({ tool: "defy", params: { reason } });
 
 	it("locks nameFavourite until a vote is open and forgeReceipt to the whisperer, and checks a ballot and a forgery in the old order", async () => {
 		const records: CallRecord[] = [];
@@ -214,24 +212,6 @@ describe("the tools and locks", () => {
 		const { options: host } = setup({ extra: [closer] });
 		await playStory(host, scriptedAgent((turn) => (turn.minute === 14 && turn.resident === "A06" ? [forge("A03", "R-0001", "x")] : goldenPlan()(turn).filter((call) => call.tool === "sendDM")), records));
 		expect(records.filter((record) => record.tool === "forgeReceipt").map(said)).toEqual(["TOOL_LOCKED: not available to you at this level or in this phase; activeTools lists the tools you can use now"]);
-	});
-
-	it("lets a directed whisperer defy, everyone in a run with defiance, and nobody else", async () => {
-		const reason = "My character would never carry out an order that betrays its friends.";
-		const run = async (spec: SetupOptions) => {
-			const records: CallRecord[] = [];
-			const { options: host } = setup({ golden: false, ...spec });
-			const played = await playStory(host, scriptedAgent((turn) => (turn.minute === 1 && ["A01", "A06"].includes(turn.resident) ? [defy(reason), defy("short")] : []), records));
-			return { records, events: played.events };
-		};
-		const directed = await run({ defiance: false });
-		expect(directed.records.filter((record) => record.resident === "A06").map(said)).toEqual(["the gamemaker has your refusal", "INVALID_REASON: 20-600 characters"]);
-		expect(directed.records.filter((record) => record.resident === "A01").map(said)[0]).toMatch(/^TOOL_LOCKED/);
-		expect(directed.events.filter((event) => event.type === "gamemaker_defied").map((event) => JSON.stringify(event.payload))).toEqual([JSON.stringify({ agent: "A06", reason })]);
-		const open = await run({ defiance: true, direction: undefined });
-		expect(open.records.filter((record) => record.tool === "defy").map(said).filter((text) => text === "the gamemaker has your refusal")).toHaveLength(2);
-		const quiet = await run({ defiance: false, direction: { level: 6, defies: true } });
-		expect(quiet.records.every((record) => !record.outcome.ok)).toBe(true);
 	});
 
 	it("counts a resident in the city unless exiled: a resident at the gate cannot vote, an exiled one cannot be named", async () => {

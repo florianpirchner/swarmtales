@@ -260,6 +260,12 @@ type CoreEventSchemas = typeof CORE_EVENTS;
  */
 export interface MechanicHooks<M extends MechanicShape> {
 	readonly runStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
+	/**
+	 * A resumed run, once, before its first minute (round 2, R2-D9): what the old engine did while
+	 * it restored a snapshot (fill in what an old file lacks, announce what changed). The
+	 * host's minute is the snapshot's; `runStarted` never runs in a resumed run.
+	 */
+	readonly runResumed?: HookSlot<(ctx: MechanicContext<M>) => void>;
 	readonly minuteStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
 	/**
 	 * Lines for the resident's next turn (notices, inbox), plain or with a kind the turn policy
@@ -311,11 +317,12 @@ export interface MechanicBody<M extends MechanicShape, T extends readonly Mechan
 }
 
 /** The hooks that run in phases (`MechanicHooks`). */
-export type PhasedHook = "runStarted" | "minuteStarted" | "turnInputs" | "turnOpened" | "turnEnded" | "minuteEnded" | "runEnded";
+export type PhasedHook = "runStarted" | "runResumed" | "minuteStarted" | "turnInputs" | "turnOpened" | "turnEnded" | "minuteEnded" | "runEnded";
 
 /** The phases of one instance per hook, bound to its context, in the order the mechanic lists them. */
 export interface InstancePhases {
 	readonly runStarted: readonly HookPhase<() => void>[];
+	readonly runResumed: readonly HookPhase<() => void>[];
 	readonly minuteStarted: readonly HookPhase<() => void>[];
 	readonly turnInputs: readonly HookPhase<(resident: ResidentId) => readonly TurnLine[]>[];
 	readonly turnOpened: readonly HookPhase<(resident: ResidentId) => void>[];

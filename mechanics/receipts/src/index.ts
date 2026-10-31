@@ -9,7 +9,7 @@
 import { Parse } from "typebox/value";
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, INPUT_KINDS, LedgerEvents, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, HOOK_ORDER, INPUT_KINDS, LedgerEvents, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { blameTool } from "./blame-tool.ts";
 import { describeReceipt, nextId, partiesOf, receiptById, receiptsOf, toShared, type Receipt } from "./book.ts";
 import { LegacySlice, Slice, receiptsHead } from "./head.ts";
@@ -59,11 +59,14 @@ export const receipts = defineMechanic(receiptsHead, (kit) => ({
 	],
 	tools: [showTool(kit), blameTool(kit)],
 	hooks: {
-		turnInputs: (resident, ctx) => {
-			const count = receiptsOf(ctx.state.receipts, resident).length;
-			if (count === 0) return [];
-			const text = count === 1 ? ctx.prompt("competitor/status/receipt-one", {}) : ctx.prompt("competitor/status/receipts-many", { count });
-			return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.receipts, text }];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				const count = receiptsOf(ctx.state.receipts, resident).length;
+				if (count === 0) return [];
+				const text = count === 1 ? ctx.prompt("competitor/status/receipt-one", {}) : ctx.prompt("competitor/status/receipts-many", { count });
+				return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.receipts, text }];
+			},
 		},
 	},
 	facts: {

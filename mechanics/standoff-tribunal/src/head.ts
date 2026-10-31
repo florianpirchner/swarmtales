@@ -1,13 +1,11 @@
 /**
- * The heads of the holdout tribunal. `standoffTribunalHead` provides only the frozen
- * `StandoffTribunalApi` (what test/mechanics/packages.test.ts reads); `standoffTribunalWorkHead`
- * is the one the mechanic is built from: it also provides the holdout's task line on a local API
- * until `StandoffTribunalApi.taskLine` is shared (docs/design/carve-requests-round2-T4b.md, R2-3).
+ * The head of the holdout tribunal: it provides the shared `StandoffTribunalApi`, whose `taskLine`
+ * (the holdout's line under every door's task) is shared since round 2 (carve-decisions R2-D10).
  */
 import { Type } from "typebox";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
-import { defineApi, defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, NamesApi, NotesApi, OfResident, ProgressionApi, PuzzlesApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
+import { defineHead } from "@swarmtales/kernel";
+import { ChannelsApi, ExileApi, NamesApi, NotesApi, ProgressionApi, PuzzlesApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { holdoutEvents } from "./events.ts";
 import { emptyHoldout, type HoldoutData } from "./types.ts";
 
@@ -39,20 +37,6 @@ const options = Type.Object({
 		},
 		{ description: "The story's texts of the holdout tribunal (old `HoldoutTexts`)." },
 	),
-});
-
-/** The holdout's line under every door's task (D-3); local until `StandoffTribunalApi.taskLine` is shared. */
-export const StandoffTribunalTaskApi = defineApi({
-	name: "standoff-tribunal-task",
-	summary: "The holdout tribunal's rule under every door's task (request R2-3).",
-	methods: {
-		taskLine: {
-			kind: "query",
-			summary: "The holdout rule under every door's task in a run with the gamemaker (old #withHoldoutRule), else null.",
-			input: OfResident,
-			output: Type.Union([Type.String(), Type.Null()]),
-		},
-	},
 });
 
 export interface HoldoutState {
@@ -96,7 +80,5 @@ const shape = {
 
 export const standoffTribunalHead = defineHead({ ...shape, provides: [StandoffTribunalApi] });
 
-export const standoffTribunalWorkHead = defineHead({ ...shape, provides: [StandoffTribunalApi, StandoffTribunalTaskApi] });
-
-export type Ctx = ContextOf<typeof standoffTribunalWorkHead>;
-export type ToolCtx = ToolContextOf<typeof standoffTribunalWorkHead>;
+export type Ctx = ContextOf<typeof standoffTribunalHead>;
+export type ToolCtx = ToolContextOf<typeof standoffTribunalHead>;

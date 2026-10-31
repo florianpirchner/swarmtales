@@ -12,10 +12,16 @@ import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot, LEGACY_WORLD_OWNERS, toLegacySnapshot } from "@swarmtales/chronicle";
 import { HostSnapshotSchema } from "@swarmtales/contracts";
 import { createHost, defineCoreStory, defineMechanic, refuse } from "@swarmtales/kernel";
+import { names } from "@swarmtales/mechanic-names";
 import { standIn, standInsFor } from "@swarmtales/testkit";
 
 const PATH = resolve(import.meta.dirname, "../../examples/cityofkeys-act1-06a-04/snapshot-L7.json");
 const TEXT = readFileSync(PATH, "utf8");
+const EXAMPLES = ["cityofkeys-act1-06a-01", "cityofkeys-act1-06a-02", "cityofkeys-act1-06a-04", "cityofkeys-act1-12a-01", "cityofkeys-act1-12a-02"];
+
+function isJson(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 /** A carved mechanic with a tool the story locks at the start. */
 const vault = defineMechanic({ id: "vault", summary: "A locked tool.", options: Type.Object({}), state: () => undefined, events: {}, prompts: { "vault/open": [] } }, (kit) => ({
@@ -96,6 +102,27 @@ describe("the old-snapshot converter", () => {
 		expect(struck.host.mechanics["standoff-tribunal"]?.data).toMatchObject({ holdout: { struck: ["A05"], tribunals: 1 } });
 		expect(struck.host.residents.suspensions.A05).toEqual(["exile"]);
 		expect(JSON.stringify(toLegacySnapshot(struck))).toBe(JSON.stringify(JSON.parse(edited)));
+	});
+
+	it("copies the arena's delivered tasks to progression and the seen board and the notes to channels (R2-D16)", () => {
+		const raw: unknown = JSON.parse(TEXT);
+		if (!isJson(raw) || !isJson(raw.arena) || !isJson(raw.gamemaker)) throw new Error("no arena or gamemaker in the example");
+		expect(converted.host.mechanics.progression?.data).toMatchObject({ delivered: raw.arena.delivered });
+		expect(converted.host.mechanics.channels?.data).toMatchObject({ seenBoard: raw.arena.seenBoard, notes: raw.gamemaker.notes });
+	});
+
+	it.each(EXAMPLES)("writes %s back byte for byte", (name) => {
+		const text = readFileSync(resolve(import.meta.dirname, `../../examples/${name}/snapshot-L7.json`), "utf8");
+		expect(`${JSON.stringify(toLegacySnapshot(convertLegacySnapshot(JSON.parse(text), {}, name)))}\n`).toBe(text);
+	});
+
+	it("resumes the 06a-01 file, which has no names, with the names mechanic loaded (R2-D2)", () => {
+		const text = readFileSync(resolve(import.meta.dirname, "../../examples/cityofkeys-act1-06a-01/snapshot-L7.json"), "utf8");
+		const old = convertLegacySnapshot(JSON.parse(text), {}, "06a-01");
+		expect(old.host.mechanics).not.toHaveProperty("names");
+		const story = defineCoreStory({ id: old.host.story, seed: old.host.seed, minutes: 80, residents: old.host.residents.ids, mechanics: [names.with(), ...standInsFor(old.host, ["names"])], grants: {} });
+		const host = createHost({ story, resume: { snapshot: old.host, events: old.events } });
+		expect(host.snapshot().mechanics.names?.version).toBe(1);
 	});
 
 	it("refuses a file that is not an old snapshot", () => {

@@ -88,7 +88,8 @@ describe("steps (review problem 6)", () => {
 			if (turn.resident !== "A01") return;
 			for (let index = 0; index < 10; index++) {
 				await turn.call("vault", { code: 1 });
-				await turn.call("note", { text: 7 });
+				// A number would be converted to text, as the old runner did (R2-D6); an object is not.
+				await turn.call("note", { text: { bad: true } });
 			}
 		}, 1);
 		const refusals = host.log.ofType("core", "tool_refused").map((event) => (typeof event.payload === "object" && event.payload !== null && "code" in event.payload ? String(event.payload.code) : ""));

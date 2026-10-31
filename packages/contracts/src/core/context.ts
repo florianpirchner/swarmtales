@@ -4,7 +4,7 @@
  * host, another mechanic's state or any Node API: only its own state, these ports and the events.
  */
 import type { Static, TSchema } from "typebox";
-import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput } from "./api.ts";
+import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput, QueryMethodName } from "./api.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
 import type { ToolRef } from "./tools.ts";
 import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomLabel, RandomSource, ResidentId } from "./values.ts";
@@ -51,10 +51,22 @@ export interface AccessPort {
 	unlock(resident: ResidentId, tool: string): void;
 	isLocked(resident: ResidentId, tool: string): boolean;
 	/**
-	 * The tools granted to residents that are open for this resident (not locked), in the story's
-	 * grant order: what the old `enabledTools` listed once every mechanic locks its own tools.
+	 * Whether the resident could call the tool now as far as the `lock` stage goes: granted to
+	 * residents, not locked, and no mechanic's `lock` handler refuses it (round 2, R2-D13). A lock
+	 * handler asked this way must not emit; the host refuses a handler that does.
+	 */
+	isOpen(resident: ResidentId, tool: string): boolean;
+	/**
+	 * The tools granted to residents that are open for this resident (`isOpen`), in the story's
+	 * grant order: what the old `enabledTools` listed (the access locks and every mechanic's
+	 * `lock` handler, so a phase tool closed by a handler is left out).
 	 */
 	open(resident: ResidentId): readonly string[];
+}
+
+/** Which model-backed roles the run has (the host's `roles`), so a tool can answer "absent" first. */
+export interface RolesView {
+	has(role: string): boolean;
 }
 
 /** The untyped primitives the host gives one mechanic instance. */
@@ -81,6 +93,7 @@ export interface MechanicPort {
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;
+	readonly roles: RolesView;
 	readonly log: EventLogView;
 }
 
@@ -121,6 +134,10 @@ export interface FactView<M extends MechanicShape> {
 	readonly minute: number;
 	readonly residents: ResidentsView;
 	readonly log: EventLogView;
+	/** A `query` of a required API (round 2, R2-D4): live data of other mechanics, never a command. */
+	call<A extends M["requires"][number], K extends QueryMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K>;
+	/** A `query` of a used API, `undefined` when no loaded mechanic provides it. */
+	tryCall<A extends M["uses"][number], K extends QueryMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K> | undefined;
 }
 
 /** The context of hooks, listeners, jobs, services and pipeline handlers. */
@@ -136,6 +153,8 @@ export interface MechanicContext<M extends MechanicShape> {
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;
+	/** The model-backed roles of the run (round 2, R2-D3): `ctx.roles.has("judge")`. */
+	readonly roles: RolesView;
 	readonly log: EventLogView;
 	/** Only declared events, with the payload of their schema. */
 	emit<K extends keyof M["events"] & string>(type: K, payload: Static<M["events"][K]>): void;

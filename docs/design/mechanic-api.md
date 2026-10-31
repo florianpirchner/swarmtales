@@ -98,9 +98,9 @@ export const ledger = defineMechanic(head, (kit) => ({ ... }));
 |---|---|---|
 | Tool | `kit.tool({ name, description, parameters, limit?, suggest?, rule?, guardText?, execute })`; `description` is a plain prompt id or `{ prompt, variables(options) }`, where a variable may be `{ prompt }` (another plain prompt, rendered first) | through the pipeline (§4) |
 | Service | an `ApiDefinition` (`defineApi`) in a shared place; `provides` + `kit.provide(Api, impl)` (every method; `kit.provideSome` for stand-ins and unfinished carves, a missing method throws `<api>.<method> is not implemented`); `requires` + `ctx.call` | synchronously; a `command` writes `service_called` and causes the provider's events, a `query` leaves no trace |
-| Event listener | `kit.on(type, fn, options?)` (own events), `kit.listen(events, type, fn, options?)` (another mechanic's events, declared with `defineEvents(id, schemas)` in a shared module so no value import of the emitter is needed; silent when that mechanic is not loaded; the loader refuses it when the loaded emitter declares another schema object), `kit.core(type, fn, options?)` (core events); `{ immediate: true }` runs the listener inside `emit`; `{ order }` places it among the listeners of the same event (default 0, ties in load order) | after the emitting code returned, or at once when immediate (§5) |
-| Fact | `kit.fact(outputSchema, (view) => value)`: pure, over read-only state and the log | `host.facts()` for the gamemaker report and the watch role; checked against its schema |
-| Hook | `hooks: { runStarted, minuteStarted, news, turnInputs, turnOpened, turnEnded, minuteEnded, runEnded }`; each but `news` is a function, a phase `{ order, run }` or a list of phases | phases of one hook across all mechanics by `order` (a plain function is 0), ties in load order; the mechanics give their phases the numbers of `HOOK_ORDER` (`mechanics/shared/src/order.ts`); calls staged in `runEnded` run before `run_ended`; `news(resident)` says whether a resident has something new (activation `onNews`); `turnInputs` returns lines (`string` or `{ kind, text, order? }`; within a joined kind the parts sort by `order`, default 0, then load order); `turnOpened` runs when the resident's turn begins, after the block's inputs were built (mark things as seen here) |
+| Event listener | `kit.on(type, fn, options?)` (own events), `kit.listen(events, type, fn, options?)` (another mechanic's events, declared with `defineEvents(id, schemas)` in a shared module so no value import of the emitter is needed; silent when that mechanic is not loaded; the loader refuses it when the loaded emitter declares another schema object), `kit.core(type, fn, options?)` (core events); `{ immediate: true }` runs the listener inside `emit`; `{ order }` places it among the listeners of the same event (default 0, ties in load order); immediate listeners always run before deferred ones, so the loader refuses two ordered listeners of one event that differ in `immediate` (R2-D15) | after the emitting code returned, or at once when immediate (§5) |
+| Fact | `kit.fact(outputSchema, (view) => value)`: pure, over read-only state and the log; `view.call(Api, method, input)` and `view.tryCall` reach other mechanics' **queries** only (a command is a type error and throws at run time, R2-D4) | `host.facts()` for the gamemaker report and the watch role; checked against its schema |
+| Hook | `hooks: { runStarted, runResumed, minuteStarted, news, turnInputs, turnOpened, turnEnded, minuteEnded, runEnded }`; each but `news` is a function, a phase `{ order, run }` or a list of phases | phases of one hook across all mechanics by `order` (a plain function is 0), ties in load order; the mechanics give their phases the numbers of `HOOK_ORDER` (`mechanics/shared/src/order.ts`); `runResumed` runs once after a resume of an unfinished run, at the snapshot's minute, before `minute_started` (the old `#restore` tail, R2-D9); calls staged in `runEnded` run before `run_ended`; `news(resident)` says whether a resident has something new (activation `onNews`); `turnInputs` returns lines (`string` or `{ kind, text, order? }`; within a joined kind the parts sort by `order`, default 0, then load order); `turnOpened` runs when the resident's turn begins, after the block's inputs were built (mark things as seen here) |
 | Turn policy | `turns: { passes?, blockSize?, activation?, order?(view), inputs? }` in a body or the story | by the turn loop (§6) |
 | Presentation | `presentation: { resolve?(call), display?(text) }` | `resolve` rewrites raw arguments before `parse`; `display` formats every text a caller reads (replies, refusal details, turn inputs); in load order. Events keep ids |
 | Guard secrets | `guard: { secrets(resident, minRun), leaks?(text, secrets, minRun) }`; the guard model is a `GuardModel` (`core/consult.ts`) | at the `guard` stage of a resident's call (§4) |
@@ -125,7 +125,7 @@ has it as `causedBy`; a refusal is exactly one `tool_refused` (`tool`, `stage`, 
 | Stage | Who | What |
 |---|---|---|
 | `lock` | core, then mechanics | the tool exists; the story grants it to the actor's role; the resident may act (no suspension); the tool is not locked for the resident; then every mechanic's `lock` handler |
-| `parse` | core | the arguments against the tool's schema (`INVALID_ARGUMENTS`) |
+| `parse` | core | the arguments are converted as the old runner's pi-ai did (optional `null`s dropped, then `Value.Convert`), then checked against the tool's schema; a failure is the bare `INVALID_ARGUMENTS` (R2-D6) |
 | `limit` | referee | steps per resident per minute; every limit of the tool (its own and the story's add up: tighten, never lift) |
 | `afford` | mechanics | can the caller pay; nothing is charged yet |
 | `rule` | tool, story, mechanics | the tool's own `rule`, the story's rules (`maxLength`, `forbid`), the mechanics' `rule` handlers |
@@ -169,7 +169,12 @@ actor `gamemaker`. `createHost({ between })` gives the app a slot after `minuteE
 
 Grants are the story's: `grants: { resident: [...], gamemaker: [...], script: [...] }`. A tool
 only *suggests* roles (`suggest`). `locked` closes tools per resident at the start; mechanics
-lock and unlock with `ctx.access` (both are events). Calls are serialised, so a guard's wait never
+lock and unlock with `ctx.access` (both are events). `ctx.access.open(resident)` and
+`isOpen(resident, tool)` list what a resident may call now: granted, loaded, not locked, and no
+`lock` handler refuses (each handler is asked with `params: undefined`; it must not emit, and it
+asks about other tools with `isOpen`, never `open`; R2-D13). A locked tool answers `TOOL_LOCKED`
+with the old text. `ctx.roles.has(role)` says whether the host has a caller for a role, e.g. to
+answer before a consult that would be skipped (R2-D3). Calls are serialised, so a guard's wait never
 lets another call in. Limit windows are `"minute"`, `"run"`, `{ minutes: N }` (aligned blocks of N
 minutes from minute 0) or `{ resetOn: "<event type>" }`, which gives "8 DMs between two openings"
 without the core knowing the game. A limit with `key` counts into a counter shared by every tool
@@ -251,13 +256,16 @@ its rendered description (P46: locked tools are listed too).
 `host.snapshot()` (between minutes) holds the residents, locks, schedule, referee counts and one
 versioned slice per stateful mechanic. `createHost({ story, resume: { snapshot, events } })`
 parses both (untrusted input), restores, migrates old slices step by step and writes no event, so
-a resumed run logs exactly the events the uninterrupted run logs after the cut.
+a resumed run logs exactly the events the uninterrupted run logs after the cut. A mechanic with no
+slice in the file gets `load({}, 0)`: its version-0 migration reads `{}` as "the old file had
+none", or the host refuses the file (R2-D2).
 
 **Old snapshots.** `convertLegacySnapshot(raw, { locks? })` (chronicle) turns an old run snapshot
 (`examples/cityofkeys-act1-06a-04/snapshot-L7.json`) into a host snapshot with one version-0 slice
 per mechanic (`LEGACY_WORLD_OWNERS` maps every old world field to its owner; competitors split
 into `progression` and the `channels` inboxes, tribunal gates into `exile`; the arena and the
-director become `arena` and `script`), the old events, and a layout that `toLegacySnapshot` uses to
+director become `arena` and `script`; `arena.delivered` is copied to `progression`, `arena.seenBoard`
+and `gamemaker.notes` to `channels`, R2-D16), the old events, and a layout that `toLegacySnapshot` uses to
 write the old file back byte for byte. Each carved mechanic declares a migration from 0 to its
 first version. Locks are not derived from the old state: without `locks` the converted snapshot
 has none and the story's start locks hold on resume; pass `locks` to set them. A competitor field

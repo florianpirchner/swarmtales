@@ -166,7 +166,7 @@ export const seal = defineMechanic(sealHead, (kit) => ({
 			({ fromLevel, residents }, ctx) => {
 				if (fromLevel === ctx.options.act) houseFor(ctx).begin(ctx.minute, residents.length);
 			},
-			{ order: LISTENER_ORDER.act_started.seal },
+			{ immediate: true, order: LISTENER_ORDER.act_started.seal },
 		),
 		kit.listen(
 			ProgressionEvents,
@@ -174,7 +174,7 @@ export const seal = defineMechanic(sealHead, (kit) => ({
 			({ fromLevel }, ctx) => {
 				if (fromLevel === ctx.options.act) houseFor(ctx).end();
 			},
-			{ order: LISTENER_ORDER.act_ended.seal },
+			{ immediate: true, order: LISTENER_ORDER.act_ended.seal },
 		),
 	],
 	pipeline: {

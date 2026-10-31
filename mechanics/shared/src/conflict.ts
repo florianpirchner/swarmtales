@@ -84,5 +84,10 @@ export const StandoffTribunalApi = defineApi({
 	summary: "The holdout tribunal over a resident who keeps a fragment back.",
 	methods: {
 		exemptFromCap: query("The accused may always write to those who lack its fragment (old `holdout.exemptFromCap`).", Type.Object({ from: ResidentId, to: ResidentId }), Type.Boolean()),
+		taskLine: query(
+			"The holdout rule under every door's task (old `#withHoldoutRule`), or null; progression appends it between the names line and the marks line (D-3, round 2 R2-D10).",
+			OfResident,
+			Type.Union([Type.String(), Type.Null()]),
+		),
 	},
 });

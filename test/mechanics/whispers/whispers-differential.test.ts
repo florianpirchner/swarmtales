@@ -61,9 +61,9 @@ describe("the Whispers story against the old World", () => {
 				marks.with(configured.marks),
 				receipts.with({ quoteDms: true }),
 				courier(channels.log),
-				whispers.with({ ...configured.whispers, direction: { level: 10, defies: false }, defiance: false }),
+				whispers.with({ ...configured.whispers, direction: { level: 10, defies: false } }),
 			],
-			grants: { resident: ["sendDM", "nameFavourite", "forgeReceipt", "showReceipt", "defy"] },
+			grants: { resident: ["sendDM", "nameFavourite", "forgeReceipt", "showReceipt"] },
 			turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 		});
 		const fresh = await playNew({ story: definition, prompts: createPromptLookup() }, plan);

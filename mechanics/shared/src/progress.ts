@@ -59,6 +59,11 @@ export const PuzzlesApi = defineApi({
 			Type.Array(Type.Object({ from: ResidentId, fragment: Type.String() })),
 		),
 		openFragmentDoors: query("Every fragments level whose door is open on the clock, ascending (old `#openFragmentDoors`, the holdout's doors).", Type.Object({}), Type.Array(Type.Integer())),
+		secrets: query(
+			"Every secret of the dealt levels, ascending by level (old gamemaker `#secretGuard`): the passwords of fragment levels and the all-digit values of additive deals (old `dealValues`); the note desk's leak check (round 2, R2-D8).",
+			Type.Object({}),
+			Type.Object({ passwords: Type.Array(Type.String()), numbers: Type.Array(Type.String()) }),
+		),
 		isHandover: query("Whether a text hands over a dealt fragment (old `isHandover`: a run of `HANDOVER_RUN` of any fragment, in its code-like forms); the whisper tally leaves such DMs out (T1 request 13).", Type.Object({ text: Type.String() }), Type.Boolean()),
 	},
 });

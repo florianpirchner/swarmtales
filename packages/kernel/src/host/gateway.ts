@@ -8,6 +8,7 @@
  * through the mechanics' `display` (names for ids); the events keep what happened.
  */
 import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicies, ToolPolicy } from "@swarmtales/contracts";
+import { convertArguments } from "./arguments.ts";
 import { refuse } from "./define.ts";
 import { residentOf, roleOf, type AccessControl } from "./access.ts";
 import { toolFor, type ToolCatalog } from "./catalog.ts";
@@ -159,9 +160,12 @@ export class Gateway {
 			const veto = inChain(() => instance.hooks.lock(call));
 			if (veto !== undefined) return refused("lock", veto);
 		}
-		const resolved = instances.reduce((params, instance) => inChain(() => instance.resolve(name, actor, params)), raw);
+		// The old runtime converted the arguments before the tool resolved names (R2-D6).
+		const converted = convertArguments(loaded.tool.parameters, raw);
+		const resolved = instances.reduce((params, instance) => inChain(() => instance.resolve(name, actor, params)), converted);
 		const prepared = inChain(() => loaded.tool.prepare(resolved, actor, resident));
-		if (prepared === undefined) return refused("parse", this.#core(INVALID_ARGUMENTS));
+		// The bare code, as the old tool wrapper answered (no detail).
+		if (prepared === undefined) return refused("parse", refuse(INVALID_ARGUMENTS));
 		const checked: ToolCall = { ...call, params: prepared.params };
 		const limited = this.#parts.referee.admit(name, actor, this.#parts.reply);
 		if (limited !== undefined) return refused("limit", limited);

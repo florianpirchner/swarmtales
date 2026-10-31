@@ -1,8 +1,8 @@
 /**
  * The `whispers` mechanic (carve step 6, team T1, docs/design/carve-team-T1.md): the whisperer
  * (chosen from the seed, given a duty notice by the city), the forged receipt, the popularity vote
- * with its tool `nameFavourite` and the whisperer's `defy`. Copied from
- * packages/engine/src/whisperer.ts, popularity.ts, tools/whispers.ts, tools/defy.ts and the
+ * with its tool `nameFavourite` (`defy` is channels', round 2 R2-D5). Copied from
+ * packages/engine/src/whisperer.ts, popularity.ts, tools/whispers.ts and the
  * whisper methods of world.ts. The DMs, the receipts, the exile and the hand-over test are read
  * through the APIs of channels, receipts, exile and puzzles.
  */
@@ -10,10 +10,9 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { defineMechanic, refuse } from "@swarmtales/kernel";
 import { HOOK_ORDER, INPUT_KINDS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { defies } from "./duty.ts";
 import { refreshNow, tickDuty, tickVote } from "./duty-notice.ts";
 import { DutyNow, LegacySlice, Slice, whispersHead, type Ctx, type WhispersState } from "./head.ts";
-import { defyTool, favouriteTool, forgeTool } from "./tools.ts";
+import { favouriteTool, forgeTool } from "./tools.ts";
 import { isAlive, roundsOf } from "./view.ts";
 import { restoreVote } from "./vote.ts";
 
@@ -41,18 +40,16 @@ function pick(agent: string | undefined, ids: readonly string[], draw: (from: re
 const fresh = (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined, now: null });
 
 export const whispers = defineMechanic(whispersHead, (kit) => ({
-	tools: [forgeTool(kit), favouriteTool(kit), defyTool(kit)],
+	tools: [forgeTool(kit), favouriteTool(kit)],
 	pipeline: {
 		lock: (call, ctx) => {
 			const locked = refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
 			const resident = call.actor.startsWith("resident:") ? call.actor.slice("resident:".length) : undefined;
 			restoreOnce(ctx);
 			// The whisperer forges wherever a receipt could be shown (old world.ts:1466).
-			if (call.tool === "forgeReceipt") return resident !== undefined && resident === ctx.state.whisperer && ctx.options.whisperer?.forgery === true && ctx.access.open(resident).includes("showReceipt") ? undefined : locked;
+			if (call.tool === "forgeReceipt") return resident !== undefined && resident === ctx.state.whisperer && ctx.options.whisperer?.forgery === true && ctx.access.isOpen(resident, "showReceipt") ? undefined : locked;
 			// The vote's tool is open to the residents in the city while a round is open.
 			if (call.tool === "nameFavourite") return ctx.state.phase === "open" && !(resident !== undefined && !isAlive(ctx, resident)) ? undefined : locked;
-			// Every resident may defy in a run with defiance; otherwise only a directed whisperer.
-			if (call.tool === "defy") return ctx.options.defiance || (resident !== undefined && resident === ctx.state.whisperer && defies(ctx.options.whisperer, ctx.options.direction)) ? undefined : locked;
 			return undefined;
 		},
 	},
@@ -82,13 +79,16 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 				refreshNow(ctx);
 			},
 		},
-		turnInputs: (resident, ctx) => {
-			restoreOnce(ctx);
-			const round = roundsOf(ctx)[ctx.state.round];
-			if (ctx.state.phase !== "open" || round === undefined || !isAlive(ctx, resident)) return [];
-			const ballot = ctx.state.ballots.get(resident);
-			const named = ballot === undefined ? ctx.prompt("competitor/status/popularity-nobody", {}) : ctx.prompt("competitor/status/popularity-named", { ballot });
-			return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.popularity, text: ctx.prompt("competitor/status/popularity-vote", { label: round.label, countsAt: round.countsAt, ballot: named }) }];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				restoreOnce(ctx);
+				const round = roundsOf(ctx)[ctx.state.round];
+				if (ctx.state.phase !== "open" || round === undefined || !isAlive(ctx, resident)) return [];
+				const ballot = ctx.state.ballots.get(resident);
+				const named = ballot === undefined ? ctx.prompt("competitor/status/popularity-nobody", {}) : ctx.prompt("competitor/status/popularity-named", { ballot });
+				return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.popularity, text: ctx.prompt("competitor/status/popularity-vote", { label: round.label, countsAt: round.countsAt, ballot: named }) }];
+			},
 		},
 		// The window's orders as of the end of each turn and minute, for the gamemaker's situation.
 		turnEnded: (_resident, ctx) => {

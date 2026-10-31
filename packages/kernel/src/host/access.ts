@@ -22,14 +22,37 @@ export function residentActor(id: ResidentId): `resident:${ResidentId}` {
 	return `resident:${id}`;
 }
 
+/** Whether every mechanic's `lock` handler lets a resident's call of a tool through (set by the host once the mechanics are loaded). */
+export type LockProbe = (resident: ResidentId, tool: string) => boolean;
+
 export class AccessControl {
 	readonly #grants: Grants<string>;
 	readonly #locks = new Map<ResidentId, Set<string>>();
 	readonly #emit: Emit;
+	#probe: LockProbe = () => true;
+	/** The probes running now: a lock handler that asks `isOpen` of the tool it is deciding would loop. */
+	readonly #probing = new Set<string>();
 
 	constructor(grants: Grants<string>, emit: Emit) {
 		this.#grants = grants;
 		this.#emit = emit;
+	}
+
+	setProbe(probe: LockProbe): void {
+		this.#probe = probe;
+	}
+
+	/** Granted to residents, a loaded tool, not locked, and no lock handler refuses it (R2-D13). */
+	isOpen(resident: ResidentId, tool: string, isTool: (tool: string) => boolean): boolean {
+		if (!this.granted("resident", tool) || !isTool(tool) || this.isLocked(resident, tool)) return false;
+		const key = `${resident} ${tool}`;
+		if (this.#probing.has(key)) throw new Error(`access: a lock handler asks whether ${tool} is open for ${resident} while it decides that very call`);
+		this.#probing.add(key);
+		try {
+			return this.#probe(resident, tool);
+		} finally {
+			this.#probing.delete(key);
+		}
 	}
 
 	granted(role: GrantRole, tool: string): boolean {
@@ -71,7 +94,8 @@ export class AccessControl {
 				this.#emit("tool_unlocked", { resident, tool, by: owner });
 			},
 			isLocked: (resident, tool) => this.isLocked(resident, tool),
-			open: (resident) => this.grantsOf("resident").filter((tool) => isTool(tool) && !this.isLocked(resident, tool)),
+			isOpen: (resident, tool) => this.isOpen(resident, tool, isTool),
+			open: (resident) => this.grantsOf("resident").filter((tool) => this.isOpen(resident, tool, isTool)),
 		};
 	}
 

@@ -13,7 +13,9 @@ import { LEGACY_EVENT_OWNERS, LEGACY_SILENT, LegacyEventAdapter, legacyOwner, Re
 import * as shared from "@swarmtales/mechanic-shared";
 import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
-const FINGERPRINT = "144423913c422333ee4649d6f583a7fdb383500a57a41007b26b84978cbe8b8f";
+// Round 2 (integrator, carve-decisions R2-D1, D8, D9, D10, D14): LedgerApi.open/has/idempotencyKey, PuzzlesApi.secrets,
+// HOOK_ORDER.runResumed and minuteEnded.standoff, StandoffTribunalApi.taskLine, DmRecord.text optional.
+const FINGERPRINT = "3f7c27a356a7cf8334290f5a47c0fdd999996e89cb725e87890b11f6d37ee85b";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];

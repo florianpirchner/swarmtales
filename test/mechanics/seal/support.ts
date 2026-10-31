@@ -106,7 +106,7 @@ function fieldsOf(line: LegacyLine): Record<string, unknown> {
 const loose = (types: readonly string[]) => Object.fromEntries(types.map((type) => [type, Type.Object({})]));
 
 /**
- * Stand-in goals: writes its golden `goal_dealt` lines when the act begins (`LISTENER_ORDER.act_started.goals`)
+ * Stand-in goals (immediate, as the real goals; R2-D15): writes its golden `goal_dealt` lines when the act begins (`LISTENER_ORDER.act_started.goals`)
  * and its `goal_resolved` lines when it ends (`LISTENER_ORDER.act_ended.goals`).
  */
 export function goalsLinesStandIn(golden: readonly LegacyLine[], act: number) {
@@ -122,7 +122,7 @@ export function goalsLinesStandIn(golden: readonly LegacyLine[], act: number) {
 					({ fromLevel }, ctx) => {
 						if (fromLevel === act) for (const line of dealt) ctx.emit("goal_dealt", fieldsOf(line));
 					},
-					{ order: LISTENER_ORDER.act_started.goals },
+					{ immediate: true, order: LISTENER_ORDER.act_started.goals },
 				),
 				kit.listen(
 					ProgressionEvents,
@@ -130,7 +130,7 @@ export function goalsLinesStandIn(golden: readonly LegacyLine[], act: number) {
 					({ fromLevel }, ctx) => {
 						if (fromLevel === act) for (const line of resolved) ctx.emit("goal_resolved", fieldsOf(line));
 					},
-					{ order: LISTENER_ORDER.act_ended.goals },
+					{ immediate: true, order: LISTENER_ORDER.act_ended.goals },
 				),
 			],
 		}),

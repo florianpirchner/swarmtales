@@ -4,7 +4,6 @@ export const CORE_PROMPTS = {
 	"replies/core/not-granted": [],
 	"replies/core/locked": [],
 	"replies/core/inactive": [],
-	"replies/core/invalid-arguments": [],
 	"replies/core/limit": [],
 	"replies/core/steps": [],
 	"replies/core/too-long": [],

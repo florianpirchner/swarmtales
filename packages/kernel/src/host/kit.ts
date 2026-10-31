@@ -119,6 +119,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		residents: port.residents,
 		schedule: port.schedule,
 		access: port.access,
+		roles: port.roles,
 		log: port.log,
 		emit(type, payload) {
 			port.emit(type, payload);
@@ -146,7 +147,15 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 
 export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M> {
 	const { port } = parts;
+	/** A query through the port; a fact or limit never runs a command (R2-D4). */
+	const query = <A extends ApiDefinition, K extends ApiMethodName<A>>(api: A, method: K, input: unknown): ApiOutput<A, K> => {
+		const name: string = method;
+		if (entry(api.methods, method, `${api.name}.${name}`).kind !== "query") throw new Error(`${port.id}: a fact may call only queries, not ${api.name}.${name}`);
+		return parseWith(methodSchema(api, method, "output"), port.call(api.name, method, input), `${api.name}.${name} output`);
+	};
 	return {
+		call: (api, method, input) => query(api, method, input),
+		tryCall: (api, method, input) => (port.has(api.name) ? query(api, method, input) : undefined),
 		options: parts.options,
 		get state() {
 			return parts.state.value;

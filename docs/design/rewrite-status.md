@@ -15,35 +15,30 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3 | Four teams carved the mechanics; challengers found many divergences | `docs/design/challenge-wave3.md` |
 | 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
 | 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) production code and, in the proof pass, strict golden gates, differential tests and legacy resume tests | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
+| 3.7 | Round-2 challengers (T1, T3, T4a, T4b); integrator's second pass: absent slices, `ctx.roles`, fact queries, old argument handling and `TOOL_LOCKED` text, lock-aware `access.open`/`isOpen`, `runResumed`, listener-mode check, ledger `open`/`has`/`idempotencyKey`, `PuzzlesApi.secrets`, shared `StandoffTribunalApi.taskLine`, `defy` owned by channels, converter copies, mutation helper | `docs/design/carve-decisions.md` (round 2), `docs/design/carve-round3-*.md`, `docs/design/challenge-round2.md` |
 
 ## Open, in this order
 
-1. **T2 proof: done, with limits.** Strict golden gates (`test/mechanics/channels/golden.test.ts`, `test/mechanics/cast/golden.test.ts`,
-   replay in `test/mechanics/t2/golden-world.ts` with stand-ins for progression, script, seal and goals lines); differential
-   tests against the old World for all channels tools, `defy`, the gamemaker's `notify`/`postBoard` (`test/mechanics/channels/differential.test.ts`),
-   petitions and cast with the old Director (`test/mechanics/petitions/differential.test.ts`), the motives deal
-   (`test/mechanics/motives/differential.test.ts`); cast options come from the story (`castOptionsFromStory`); legacy snapshot
-   resume with version-0 fixtures (`test/mechanics/channels/resume-differential.test.ts`). Open items are the requests 9 to 13 in
-   `docs/design/carve-requests-round2-T2.md` (whispers still declares `defy`; `LedgerApi.open`; converter fields).
-2. **Round 2 challengers** for T1, T3, T4a, T4b (read-only Opus reviews, prompts as in the checklist of this thread:
-   line-by-line diff old vs new, non-vacuous differential tests, snapshot resume, order numbers). Not run yet.
-3. **Integrator pass** on the round 2 requests (`docs/design/carve-requests-round2-*.md`): `LedgerApi.open` and
-   `idempotencyKey`, hand `{version: 0, data: {}}` to mechanics whose legacy slice is absent, role-presence query
-   for the blame judge order, facts that can call `uses` APIs, `defy`/`gamemaker_defied` ownership, INVALID_ARGUMENTS
-   text, `PuzzlesApi.secrets`, order entry for resume escrow, `StandoffTribunalApi.taskLine`, then switch every
-   `kit.provideSome` back to `kit.provide`.
-4. **Fix round** for what the challengers find (T3 still misses `listAgents` cast members and the holdout rule line).
-5. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
+1. **Fix round 3** for T1, T3, T4a and T4b, from the round-2 challengers (`docs/design/challenge-round2.md`) and the
+   integrator's round-2 decisions (`docs/design/carve-decisions.md`, R2-D1 to R2-D24). The briefs are
+   `docs/design/carve-round3-{T1,T3,T4a,T4b}.md`. Each gate is a mutant list run with `pnpm mutants` (testkit
+   `runMutants`): every mutant listed by the review must be killed. T2 picks up its R2 items (resume `defy` lock,
+   `quoteDms` and DM text, `CastApi.active`, resume escrow and motives in `runResumed`, `NotesApi` on
+   `PuzzlesApi.secrets`, `channels:runStarted` order slot, grant `resolvePetition` to the script). T2's proof pass
+   (strict gates, differential and resume tests) is done; its open requests are in `docs/design/carve-requests-round2-T2.md`.
+2. **Round 3 challengers** for the same teams, re-running the mutant lists first.
+3. **Story option mapping** (R2-D17) when step 18 composes the stories.
+4. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
    (`pnpm validate` refuses them until then); wire `defiance` and `direction` in the CLI.
    **Decision point (core motive rename, `docs/design/rename-core-motive.md`):** until here the new core writes the legacy
    names through the adapter (event `core_dealt`, snapshot key `cores`, the pinned gamemaker strings that still say "core").
    At step 18 the event becomes `motive_dealt`, the snapshot key gets a migration, the pinned strings are reworded, and the golden
    files are updated once, deliberately, with the documented reason "core becomes core motive".
-6. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
+5. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
    sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
    instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).
-7. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
+6. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
 
 ## Notes for whoever continues
 

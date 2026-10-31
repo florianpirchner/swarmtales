@@ -9,10 +9,10 @@ import { Type } from "typebox";
 import type { MechanicKit, ShapeOf } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/kernel";
 import { ChannelsApi, NamesApi, NotesApi } from "@swarmtales/mechanic-shared";
-import type { ToolCtx, standoffTribunalWorkHead } from "./head.ts";
+import type { ToolCtx, standoffTribunalHead } from "./head.ts";
 import { courtFor } from "./ports.ts";
 
-type Kit = MechanicKit<ShapeOf<typeof standoffTribunalWorkHead>>;
+type Kit = MechanicKit<ShapeOf<typeof standoffTribunalHead>>;
 
 /** The old note cap of the gamemaker's texts (system-prompt.ts `MAX_NOTE_LENGTH`), for the parameter descriptions. */
 const MAX_NOTE_LENGTH = 400;

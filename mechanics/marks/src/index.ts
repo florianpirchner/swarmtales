@@ -11,7 +11,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic } from "@swarmtales/kernel";
-import { INPUT_KINDS, MarksApi, MarksChannel, ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { HOOK_ORDER, INPUT_KINDS, MarksApi, MarksChannel, ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { activeOn, canAfford, priceOf, runWide, spend, statusOf, termsOn, type Allowance, type Book, type MarksState } from "./book.ts";
 
 const count = (description: string) => Type.Integer({ minimum: 0, description });
@@ -115,9 +115,12 @@ export const marks = defineMechanic(marksHead, (kit) => ({
 		}),
 	],
 	hooks: {
-		turnInputs: (resident, ctx) => {
-			const status = statusOf(ctx.state, bookOf(ctx), resident);
-			return status === undefined ? [] : [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.marks, text: ctx.prompt("competitor/status/marks", { remaining: status.remaining, budget: status.budget }) }];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				const status = statusOf(ctx.state, bookOf(ctx), resident);
+				return status === undefined ? [] : [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.marks, text: ctx.prompt("competitor/status/marks", { remaining: status.remaining, budget: status.budget }) }];
+			},
 		},
 	},
 	facts: {

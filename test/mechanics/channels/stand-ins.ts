@@ -41,6 +41,11 @@ export function ledgerStandIn(start: number) {
 			kit.provide(LedgerApi, {
 				balance: (input, ctx) => ctx.state.balances.get(input.account) ?? 0,
 				balances: (_input, ctx) => Object.fromEntries(ctx.state.balances),
+				open: (input, ctx) => {
+					if (!ctx.state.balances.has(input.account)) ctx.state.balances.set(input.account, 0);
+					return null;
+				},
+				has: (input, ctx) => ctx.state.balances.has(input.account),
 				mint: (input, ctx) => {
 					ctx.state.balances.set(input.account, (ctx.state.balances.get(input.account) ?? 0) + input.amount);
 					entry(ctx, "SYSTEM_MINT_BURN", input.account, input.amount, input.reason);
