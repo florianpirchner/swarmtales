@@ -619,6 +619,13 @@ an empty story and a `channels` + `ledger` story; nothing is carved out of `Worl
 runs are unchanged. Open issues for the carving are listed in
 [`docs/design/mechanic-api.md`](../design/mechanic-api.md) §8.
 
+Status (2026-10-31, wave 2b): the gaps that blocked carving are closed (turn policy with passes,
+blocks and activation by news; names for ids; a `consult` stage for tools that wait for a model;
+guard secrets; staged script calls; gamemaker tools by role; input kinds; `ContextOf`), a legacy
+event adapter writes the golden logs byte for byte from envelopes, and old snapshots convert into
+version-0 slices and back. What each mechanic takes from `world.ts`, and in which order, is
+[`docs/design/carve-plan.md`](../design/carve-plan.md).
+
 | Step | What | Risk |
 |---|---|---|
 | 0 | Whispers lands first (another thread is building it in `engine/`, `tools/`, `world.ts`) | none, waiting |

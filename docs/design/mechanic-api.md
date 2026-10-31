@@ -1,19 +1,23 @@
 # The mechanic API of the new core
 
-Status: built in wave 2a (2026-10-31) as a tested skeleton next to the old engine. Nothing in the
+Status: built in wave 2a (2026-10-31) as a tested skeleton next to the old engine; wave 2b closed
+the gaps of §8 that blocked carving (turn policy, names, consult, guard secrets, staged script
+calls, gamemaker tools, input kinds, `ContextOf`, the legacy event adapter and snapshot converter). Nothing in the
 CLI uses it yet; the old `World` keeps running and the golden runs are unchanged. This is the
 contract the carving teams of wave 3 build against. The plan behind it is
-[`docs/ideas/monorepo.md`](../ideas/monorepo.md) §2a, §3, §3d and §5.
+[`docs/ideas/monorepo.md`](../ideas/monorepo.md) §2a, §3, §3d and §5; what each mechanic takes out
+of `world.ts`, and in which order, is [`carve-plan.md`](carve-plan.md).
 
 Where the code is:
 
 | Piece | Path |
 |---|---|
-| Types and schemas | `packages/contracts/src/core/` (`mechanic.ts`, `context.ts`, `api.ts`, `tools.ts`, `events.ts`, `story.ts`, `host.ts`) |
-| The host | `packages/kernel/src/host/` (`define.ts`, `kit.ts`, `loader.ts`, `gateway.ts`, `referee.ts`, `log.ts`, `residents.ts`, `scheduler.ts`, `access.ts`, `host.ts`) |
+| Types and schemas | `packages/contracts/src/core/` (`mechanic.ts`, `context.ts`, `api.ts`, `tools.ts`, `events.ts`, `story.ts`, `host.ts`, `consult.ts`, `turns.ts`) |
+| The host | `packages/kernel/src/host/` (`define.ts`, `kit.ts`, `loader.ts`, `catalog.ts`, `gateway.ts`, `waits.ts`, `staging.ts`, `turns.ts`, `referee.ts`, `log.ts`, `residents.ts`, `scheduler.ts`, `access.ts`, `host.ts`) |
+| Old shapes | `packages/chronicle/src/log/legacy-events.ts`, `legacy-owners.ts` (event adapter), `packages/chronicle/src/snapshot/legacy-snapshot.ts` (snapshot converter) |
 | Prompt lookup | `packages/prompts/src/lookup.ts` (`createPromptLookup`), core replies in `library/prompts/replies/core/` |
 | Testkit | `packages/testkit/` (scripted agents, `playStory`, conformance checks) |
-| Proof mechanics and stories | `test/host/proof/` (`ledger.ts`, `channels.ts`, `story.ts`), tests in `test/host/` |
+| Proof mechanics and stories | `test/host/proof/` (`ledger.ts`, `channels.ts`, `story.ts`), tests in `test/host/`, `test/log/legacy-events.test.ts`, `test/snapshot/legacy-snapshot.test.ts` |
 
 ## 1. The core in one paragraph
 
@@ -64,7 +68,21 @@ from the tools the body returns. Inside the body:
   `ctx.minute` the only time. `ctx.residents`, `ctx.schedule`, `ctx.access`, `ctx.log` are ports.
 
 `test/host/mechanic-types.check.ts` holds one `@ts-expect-error` per misuse, so the typing is
-itself tested. The head needs `options`, `state` and `events` even when empty (`Type.Object({})`,
+itself tested.
+
+A helper outside the body types its context from the head. Declare the head apart with
+`defineHead` (an identity that keeps the literal types) and use the helper types:
+
+```ts
+const head = defineHead({ id: "ledger", options, state, events, prompts, provides: [LedgerApi] });
+type Ctx = ContextOf<typeof head>;      // MechanicContext of this mechanic
+type ToolCtx = ToolContextOf<typeof head>;
+type View = ViewOf<typeof head>;        // FactView
+function pay(ctx: Ctx, to: string, amount: number): void { ... }
+export const ledger = defineMechanic(head, (kit) => ({ ... }));
+```
+
+`ShapeOf<H>` gives the bundled shape when another generic needs it. The head needs `options`, `state` and `events` even when empty (`Type.Object({})`,
 `() => undefined`, `{}`): optional generic values would need casts, which the rules forbid.
 
 ## 3. Extension points
@@ -75,7 +93,12 @@ itself tested. The head needs `options`, `state` and `events` even when empty (`
 | Service | an `ApiDefinition` (`defineApi`) in a shared place; `provides` + `kit.provide(Api, impl)`; `requires` + `ctx.call` | synchronously; a `command` writes `service_called` and causes the provider's events, a `query` leaves no trace |
 | Event listener | `kit.on(type, fn)` (own events), `kit.listen(otherMechanic, type, fn)` (silent when that mechanic is not loaded), `kit.core(type, fn)` (core events) | after the emitting code returned (§5) |
 | Fact | `kit.fact(outputSchema, (view) => value)`: pure, over read-only state and the log | `host.facts()` for the gamemaker report and the watch role; checked against its schema |
-| Hook | `hooks: { runStarted, minuteStarted, turnInputs, turnEnded, minuteEnded, runEnded }` | in load order |
+| Hook | `hooks: { runStarted, minuteStarted, news, turnInputs, turnOpened, turnEnded, minuteEnded, runEnded }` | in load order; `news(resident)` says whether a resident has something new (activation `onNews`); `turnInputs` returns lines (`string` or `{ kind, text }`); `turnOpened` runs when the resident's turn begins, after the block's inputs were built (mark things as seen here) |
+| Turn policy | `turns: { passes?, blockSize?, activation?, order?(view), inputs? }` in a body or the story | by the turn loop (§6) |
+| Presentation | `presentation: { resolve?(call), display?(text) }` | `resolve` rewrites raw arguments before `parse`; `display` formats every text a caller reads (replies, refusal details, turn inputs); in load order. Events keep ids |
+| Guard secrets | `guard: { secrets(resident, minRun), leaks?(text, secrets, minRun) }` | at the `guard` stage of a resident's call (§4) |
+| Consult | a tool's `consult: { role, question, answer, ask(params, ctx) }` | at the `consult` stage; `execute` gets the parsed answer as its third argument |
+| Role variant | a tool's `serves: ["gamemaker"]` | the gateway picks the variant that serves the caller's role; two tools of one name may coexist when their `serves` do not overlap |
 | Pipeline handler | `pipeline: { lock, afford, rule, settle, after }`, for every tool call | at that stage, in load order |
 | Referee limit | `kit.limit(id, summary, (view) => reason \| undefined)` | after every turn and minute; a breach ends the run |
 | Job | `jobs: { name: (ctx, data) => void }`, scheduled with `ctx.schedule.at/every` | at the start of the minute |
@@ -99,10 +122,34 @@ has it as `causedBy`; a refusal is exactly one `tool_refused` (`tool`, `stage`, 
 | `limit` | referee | steps per resident per minute; every limit of the tool (its own and the story's add up: tighten, never lift) |
 | `afford` | mechanics | can the caller pay; nothing is charged yet |
 | `rule` | tool, story, mechanics | the tool's own `rule`, the story's rules (`maxLength`, `forbid`), the mechanics' `rule` handlers |
-| `guard` | story + guard model | the story's soft rule on the tool's `guardText`; `block` only; fails open |
+| `guard` | story + guard model | the story's soft rule on the tool's `guardText`; `block` only; fails open (below) |
+| `consult` | tool + role | only for tools with `consult`: `ask` builds the question (or refuses at `consult`), the host asks the role (`role_asked`, `role_answered`, cost recorded) and parses the answer; a missing or failing role is not a refusal, `execute` gets `{ ok: false, reason: "absent" \| "failed" }` and decides |
 | `execute` | tool | synchronous; a refusal here is reported at stage `execute` |
 | `settle` | referee, mechanics | only after a successful execute: the limits count the call, cost modules charge |
 | `after` | mechanics | after every executed call, ok or not |
+
+Before `lock`, the core finds the tool's variant for the caller's role (`TOOL_NOT_GRANTED` when
+none serves it) and runs the `resolve` handlers on the raw arguments (names to ids). Replies and
+refusal details pass through `display` before the caller reads them.
+
+**Guard.** A story's guard policy (`tools.<name>.guard: { rule, on: "block", secrets?: { minRun } }`)
+runs only for resident callers. With `secrets`, every mechanic's `guard.secrets` gives what the
+caller legitimately knows; each `guard.leaks` check runs first and blocks without a model
+(`guard_verdict` with `by: "check"`); then the guard model gets the text and the secrets
+(`by: "model"`). No guard model gives `by: "none"` and lets the call through; an erring model
+lets it through too (`error` set). The judge's usage is recorded as cost.
+
+**Script calls.** `ctx.stage(tool, params, { then? })` from any mechanic code (a job, a hook, a
+listener, a tool) queues a call with actor `script`. Staged calls run through the whole pipeline
+right after the code that staged them, caused by the staging event, before the next call or turn
+begins. `then` names a job of the staging mechanic; it runs with the outcome (`StagedOutcome`:
+`{ ok, reply }` or `{ ok: false, code, detail }`) as data. Calls staged in `runEnded` are dropped.
+
+**Gamemaker tools.** The gamemaker is a role like the others: a mechanic defines tools (with
+`serves: ["gamemaker"]` when a resident tool has the same name), the story grants them
+(`grants.gamemaker`), the app calls `host.call("gamemaker", tool, params)`, and the events carry
+actor `gamemaker`. `createHost({ between })` gives the app a slot after `minuteEnded` and before
+`minute_ended`, where it can run the gamemaker's turn; it is skipped after a breach or a stop.
 
 Grants are the story's: `grants: { resident: [...], gamemaker: [...], script: [...] }`. A tool
 only *suggests* roles (`suggest`). `locked` closes tools per resident at the start; mechanics
@@ -119,6 +166,23 @@ otherwise. Dispatch is synchronous with a fixed order: events in log order; per 
 listeners of the mechanics in load order, then the sinks (log writers, the referee's window
 resets). An event emitted while code runs is queued and dispatched once that code returned, so a
 tool's events all land before anyone reacts, and the log order is the dispatch order.
+
+Core events beyond the envelope basics: `pass_started` (`pass`, `order`, `blocks`), `turn_started`
+(with `pass`, `block` and the inputs with their kinds), `turn_skipped`, `role_asked`,
+`role_answered`, `guard_verdict` (`by`, `error?`). App events (what the runner and the roles saw:
+requests, thinking, usage) are declared by the app (`createHost({ app: { events } })`, names may
+not clash with core events) and written with `host.record(actor, type, payload)`, source `app`,
+checked against their schema.
+
+**The old shape.** The golden files and every old run hold flat events (`{ "type": ..., fields...,
+"seq": n, "minute": m }`). `LegacyEventAdapter` (chronicle, `legacySink(record)` as a bus sink)
+writes that shape byte for byte from envelopes: a mechanic event becomes `{ type, ...payload }`
+(payload fields named `type`, `seq` or `minute` are refused), core events go through
+`LEGACY_CORE_TRANSLATORS` (`pass_started` becomes `round_start` on pass 1 plus `pass_start`;
+`turn_skipped` and `guard_verdict` keep their old fields) or are dropped, and `seq` is renumbered
+over what is written. `envelopeFromLegacy` reads an old line back; `LEGACY_EVENT_OWNERS` says
+which mechanic (or `app`, `core`) owns each of the 118 old event types. The test reads every
+golden log into envelopes and writes it back byte-equal; a host run writes the old shape.
 
 ## 6. Stories, the host and the turn loop
 
@@ -139,8 +203,15 @@ await host.run(agent);            // agent: (turn) => Promise<void>, turn.call(t
 Granting, locking or configuring a tool whose mechanic is not loaded does not compile. Load order
 follows `requires` (a mechanic after the providers of its APIs), ties keep the story's order. Per
 minute: `minute_started`, due jobs (`job_ran` causes their events), `minuteStarted`, then every
-resident who may act in a seeded order: `turnInputs` of all mechanics, `turn_started` with those
-inputs, one agent turn, `turnEnded`; then `minuteEnded`, `minute_ended` and the referee. The
+pass of the turn policy: `pass_started` with the order and the blocks, then per block the inputs of
+every member (`turnInputs` of all mechanics, ordered by the policy's `inputs` kinds, joined where a
+kind has `join`, formatted by `display`), then the members' turns (`turn_started`, `turnOpened`,
+the agent, `turnEnded`). Members of a block run their agents at once, but member k's calls wait
+for member k-1 (`turn.ready`), so the log is the same however fast the models answer. With
+`activation: "onNews"` a resident without news (no mechanic's `news` hook says yes, and the app's
+`awaitsAnswer` says no) gets `turn_skipped`. The default order is a seeded shuffle per minute and
+pass; a policy's `order` must return a permutation. A mechanic or the story gives the policy; the
+story's fields win. Then `minuteEnded`, the app's `between`, `minute_ended` and the referee. The
 referee always wins: it checks the cost cap and the mechanics' limits before every turn and after
 the minute, and a breach writes `referee_intervened` and `run_ended`. `host.call(actor, ...)` is
 how the gamemaker and the script use tools; `host.toolSpecs(role)` lists every granted tool with
@@ -150,6 +221,14 @@ its rendered description (P46: locked tools are listed too).
 versioned slice per stateful mechanic. `createHost({ story, resume: { snapshot, events } })`
 parses both (untrusted input), restores, migrates old slices step by step and writes no event, so
 a resumed run logs exactly the events the uninterrupted run logs after the cut.
+
+**Old snapshots.** `convertLegacySnapshot(raw, { locks? })` (chronicle) turns an old run snapshot
+(`examples/cityofkeys-act1-06a-04/snapshot-L7.json`) into a host snapshot with one version-0 slice
+per mechanic (`LEGACY_WORLD_OWNERS` maps every old world field to its owner; competitors split
+into `progression` and the `channels` inboxes, tribunal gates into `exile`; the arena and the
+director become `arena` and `script`), the old events, and a layout that `toLegacySnapshot` uses to
+write the old file back byte for byte. Each carved mechanic declares a migration from 0 to its
+first version. Locks are not derived from the old state; pass them as `locks` if a story needs them.
 
 ## 7. Proof
 
@@ -168,35 +247,21 @@ a resumed run logs exactly the events the uninterrupted run logs after the cut.
 
 ## 8. Open issues
 
-1. **Turn loop.** The old Arena has passes per minute, blocks whose model calls run concurrently
-   but land in seeded order, and `activation: "onNovelty"`. The host plays one sequential turn per
-   resident and minute. Needed: a turn policy (passes, blocks, who is activated) as an extension
-   point, without letting mechanics see the agent.
-2. **Names for ids.** Old tools accept a resident's name wherever an id goes (`withResidents`) and
-   replies show names (`world.display`). Needed: a parameter resolver and a reply formatter that a
-   `names` mechanic contributes.
-3. **Tools that wait for a model.** `blame` waits for the judge inside the tool; `execute` is
-   synchronous here. Proposal: an async `consult` step owned by roles before `execute`, or the
-   judge as a role whose verdict arrives as an event.
-4. **Guard secrets.** The guard question carries the author's secrets (fragments); the guard stage
-   passes none. Needed: mechanics contribute secrets per resident (a fact or a hook).
-5. **The script and the gamemaker as callers.** They use `host.call` from outside. A script
-   mechanic whose jobs stage things through the pipeline would need an async path from a job.
-6. **The old event shape.** The golden files hold today's flat events (`{ type, ...fields }`). The
-   envelope nests the payload and adds `source`, `actor`, `causedBy`. Wave 3 has to choose: an
-   adapter that writes the old shape byte for byte, or one deliberate golden update with reasons.
-7. **Old snapshots.** `examples/cityofkeys-act1-06a-04/snapshot-L7.json` has the flat shape; it
-   needs a converter into per-mechanic slices (version 0 of each slice).
-8. **Story rules.** `maxLength` and `forbid` stand in for the expression language (§3a), which is
+Solved in wave 2b: the turn loop (§6), names for ids (presentation), tools that wait for a model
+(`consult`), guard secrets, the script and the gamemaker as callers (`stage`, `serves`, `between`),
+the old event shape (the adapter, §5), old snapshots (the converter, §6), `ContextOf` (§2) and
+turn input kinds (§6). Still open:
+
+1. **Story rules.** `maxLength` and `forbid` stand in for the expression language (§3a), which is
    not chosen yet (CEL or JSONLogic).
-9. **Options at compile time.** `with()` takes every option as optional, because Typebox types do
+2. **Options at compile time.** `with()` takes every option as optional, because Typebox types do
    not say which options have defaults; a required option without default fails at load, not at
    compile time.
-10. **Naming the context for helpers.** A helper outside the body has to spell
-    `MechanicContext<Shape<typeof options, State, typeof events, typeof prompts, Requires, Provides>>`
-    (see `test/host/proof/ledger.ts`). A `ContextOf` helper type needs a head declared apart.
-11. **Turn input kinds.** Old turn inputs have kinds (character, status, task, dm, notice, digest)
-    that the runner orders by; a `TurnNote` has only its source mechanic.
-12. **Wall clock.** The watch role's wall clock (§3g) is not in the host; the app owns it.
-13. **Names.** `defineCoreStory`/`CoreStory` and `TurnNote` avoid clashes with the old
-    `StoryDefinition` and `TurnInput`; rename once the old engine is gone.
+3. **Wall clock.** The watch role's wall clock (§3g) is not in the host; the app owns it.
+4. **Names.** `defineCoreStory`/`CoreStory` and `TurnNote` avoid clashes with the old
+   `StoryDefinition` and `TurnInput`; rename once the old engine is gone.
+5. **Gamemaker text checks.** The old gamemaker tools check their texts (`#checked`) before
+   acting; in the new core that is a `rule` of the gamemaker mechanic's tools, not yet written.
+6. **One guard policy per tool**, and the guard covers resident callers only (as before).
+7. **Runner wiring.** App events (`host.record`), `roles` and `between` exist in the host; the CLI
+   runner does not use the new host yet.
