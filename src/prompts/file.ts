@@ -40,6 +40,7 @@ export function parsePromptFile(text: string, source: string): PromptFile {
 	} catch {
 		throw new Error(`${source}: the frontmatter needs an id and variables that are plain names`);
 	}
+	if (new Set(meta.variables).size !== meta.variables.length) throw new Error(`${source}: the frontmatter lists a variable twice`);
 	const raw = lines.slice(end + 1).join("\n");
 	return { id: meta.id, variables: meta.variables, body: raw.endsWith("\n") ? raw.slice(0, -1) : raw };
 }

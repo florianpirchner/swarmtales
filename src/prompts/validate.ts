@@ -80,8 +80,8 @@ export function validatePrompts(): readonly string[] {
 		const directory = join(REPO_ROOT, "stories", story, "prompts");
 		for (const path of filesIn(directory, ".md")) {
 			const id = idOf(directory, path);
-			if (isPromptId(id)) problems.push(...checkFile(path, id, PROMPTS[id]));
-			else problems.push(`${relative(REPO_ROOT, path)}: overrides "${id}", which is not a prompt`);
+			if (!isPromptId(id)) problems.push(`${relative(REPO_ROOT, path)}: overrides "${id}", which is not a prompt`);
+			else problems.push(...checkFile(path, id, PROMPTS[id]), `${relative(REPO_ROOT, path)}: story overrides are not applied yet (the callers do not pass the story); remove the file`);
 		}
 	}
 	return problems;

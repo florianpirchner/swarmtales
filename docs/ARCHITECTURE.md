@@ -44,7 +44,8 @@ src/
                (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
   cli/         main.ts, validate.ts, digest.ts, novel.ts, report.ts, run-report.ts
 library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role
-               prompts), one file per piece; a story may override one in `stories/<name>/prompts/`
+               prompts), one file per piece; story overrides in `stories/<name>/prompts/` are planned,
+               `pnpm validate` rejects them until the callers pass the story
 stories/       one folder per story: cityofkeys/story.ts (default) with its README; index.ts
                (registry by name)
 test/          mirrors src/; offline only (scripted provider)
