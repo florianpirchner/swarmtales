@@ -43,8 +43,8 @@ export interface Turn {
 /** An agent: the pi runner in a live run, a script in tests. */
 export type TurnTaker = (turn: Turn) => Promise<void>;
 
-/** Why a run ended. */
-export type EndReason = "minutes" | "referee" | "stopped";
+/** Why a run ended; `error` when mechanic code, a hook or an agent threw (the host refuses further use). */
+export type EndReason = "minutes" | "referee" | "stopped" | "error";
 
 export interface RunEnd {
 	readonly reason: EndReason;
@@ -99,7 +99,9 @@ export const HostSnapshotSchema = Type.Object({
 	seed: Type.Number(),
 	minute: Type.Integer({ minimum: 0 }),
 	seq: Type.Integer({ minimum: 0 }),
-	ended: Type.Optional(Type.Object({ reason: Type.Union([Type.Literal("minutes"), Type.Literal("referee"), Type.Literal("stopped")]), minute: Type.Integer(), limit: Type.Optional(Type.String()) })),
+	ended: Type.Optional(
+		Type.Object({ reason: Type.Union([Type.Literal("minutes"), Type.Literal("referee"), Type.Literal("stopped"), Type.Literal("error")]), minute: Type.Integer(), limit: Type.Optional(Type.String()) }),
+	),
 	residents: Type.Object({
 		ids: Type.Array(Type.String()),
 		attributes: Type.Record(Type.String(), Type.Record(Type.String(), Type.Record(Type.String(), Json))),

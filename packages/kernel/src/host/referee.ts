@@ -57,15 +57,22 @@ export class Referee {
 		this.#checks.push(...limits);
 	}
 
-	/** Stage `limit`. A resident's every call counts as a step, refused or not. */
-	admit(tool: string, actor: Actor, detail: (code: string) => string | undefined): Refusal | undefined {
+	/**
+	 * A resident's every call is a step, counted as the call opens, before `lock`: calls to locked
+	 * or unknown tools and calls with bad arguments count too. Over `maxStepsPerMinute` the call is
+	 * refused at stage `limit` before any other check.
+	 */
+	step(actor: Actor, detail: (code: string) => string | undefined): Refusal | undefined {
 		const max = this.#run.maxStepsPerMinute;
-		if (max !== undefined && actor.startsWith("resident:")) {
-			const key = `steps|${actor}`;
-			const steps = (this.#counts.get(key) ?? 0) + 1;
-			this.#counts.set(key, steps);
-			if (steps > max) return refuse(STEP_LIMIT, detail(STEP_LIMIT));
-		}
+		if (max === undefined || !actor.startsWith("resident:")) return undefined;
+		const key = `steps|${actor}`;
+		const steps = (this.#counts.get(key) ?? 0) + 1;
+		this.#counts.set(key, steps);
+		return steps > max ? refuse(STEP_LIMIT, detail(STEP_LIMIT)) : undefined;
+	}
+
+	/** Stage `limit`: every limit of the tool for this caller. */
+	admit(tool: string, actor: Actor, detail: (code: string) => string | undefined): Refusal | undefined {
 		const hit = this.#limitsFor(tool, actor).find((limit) => (this.#counts.get(`${limit.key}|${actor}`) ?? 0) >= limit.max);
 		return hit === undefined ? undefined : refuse(TOOL_LIMIT, detail(TOOL_LIMIT));
 	}

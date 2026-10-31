@@ -32,6 +32,8 @@ export interface GatewayParts extends WaitParts {
 	readonly access: AccessControl;
 	readonly residents: ResidentRegistry;
 	readonly staging: StagingQueue;
+	/** Told once when code of a call throws; the gateway takes no call after that. */
+	readonly failed: (error: unknown) => void;
 }
 
 function field(params: unknown, name: string): unknown {
@@ -62,6 +64,7 @@ interface Ran {
 export class Gateway {
 	readonly #parts: GatewayParts;
 	#queue: Promise<unknown> = Promise.resolve();
+	#broken = false;
 
 	constructor(parts: GatewayParts) {
 		this.#parts = parts;
@@ -87,8 +90,22 @@ export class Gateway {
 		return instances.reduce((shown, instance) => bus.run({ actor: "host" }, () => instance.display(shown)), text);
 	}
 
+	/**
+	 * Runs one call (or drain) after the previous one. When its code throws, what it staged is
+	 * dropped, the host is told (it ends the run with reason `error`) and every later call is refused.
+	 */
 	#serial<T>(code: () => Promise<T>): Promise<T> {
-		const next = this.#queue.then(code);
+		const next = this.#queue.then(async () => {
+			if (this.#broken) throw new Error("host: the run failed; no more calls");
+			try {
+				return await code();
+			} catch (error) {
+				this.#broken = true;
+				this.#parts.staging.clear();
+				this.#parts.failed(error);
+				throw error;
+			}
+		});
 		this.#queue = next.catch(() => undefined);
 		return next;
 	}
@@ -127,6 +144,8 @@ export class Gateway {
 			inChain(() => bus.emit("core", "tool_refused", payload));
 			return { outcome: refusal, seq: called.seq };
 		};
+		const overStep = this.#parts.referee.step(actor, this.#parts.reply);
+		if (overStep !== undefined) return refused("limit", overStep);
 		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
 		const role = roleOf(actor);
 		const loaded = role === undefined ? undefined : toolFor(this.#parts.tools, name, role);

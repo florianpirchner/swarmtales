@@ -95,7 +95,8 @@ export const CORE_EVENTS = {
 	tool_locked: Type.Object({ resident: Type.String(), tool: Type.String(), by: Type.String() }),
 	tool_unlocked: Type.Object({ resident: Type.String(), tool: Type.String(), by: Type.String() }),
 	referee_intervened: Type.Object({ limit: Type.String(), reason: Type.String() }),
-	run_ended: Type.Object({ reason: Type.String() }),
+	/** `detail` carries the error's message when the reason is `error`. */
+	run_ended: Type.Object({ reason: Type.String(), detail: Type.Optional(Type.String()) }),
 } as const;
 
 export type CoreEvent = EventOf<"core", typeof CORE_EVENTS>;

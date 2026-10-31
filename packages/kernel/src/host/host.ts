@@ -105,6 +105,9 @@ class CoreHost implements Host {
 	#playing = false;
 	#stopRequest: string | undefined;
 	#ended: RunEnd | undefined;
+	/** What threw; once set, the run is over (reason `error`) and the host refuses every further use. */
+	#failure: unknown;
+	#failed = false;
 
 	constructor(options: HostOptions) {
 		const story = options.story;
@@ -147,6 +150,9 @@ class CoreHost implements Host {
 			roles: options.roles ?? {},
 			staging: this.#staging,
 			reply: (code) => coreReply(this.#prompts, code),
+			failed: (error) => {
+				this.#fail(error);
+			},
 		});
 		const instances = this.#loaded.order.flatMap((id): readonly (readonly [string, MechanicInstance])[] => {
 			const instance = this.#loaded.instances.get(id);
@@ -167,6 +173,7 @@ class CoreHost implements Host {
 			display: (text) => this.#gateway.display(text),
 			settle: () => this.#gateway.settle(),
 			halted: () => {
+				if (this.#failed) return true;
 				this.#breach ??= this.#referee.breach();
 				return this.#breach !== undefined || this.#stopRequest !== undefined;
 			},
@@ -195,13 +202,19 @@ class CoreHost implements Host {
 	}
 
 	start(): void {
+		this.#usable();
 		if (this.#started) throw new Error("host: already started");
 		this.#started = true;
 		const story = this.#story;
-		this.#bus.emit("core", "run_started", { story: story.id, seed: story.seed, minutes: story.minutes, residents: [...this.residents], mechanics: [...this.mechanics] });
-		this.#each((instance) => {
-			instance.hooks.runStarted();
-		});
+		try {
+			this.#bus.emit("core", "run_started", { story: story.id, seed: story.seed, minutes: story.minutes, residents: [...this.residents], mechanics: [...this.mechanics] });
+			this.#each((instance) => {
+				instance.hooks.runStarted();
+			});
+		} catch (error) {
+			this.#fail(error);
+			throw error;
+		}
 	}
 
 	async run(agent: TurnTaker): Promise<RunEnd> {
@@ -213,12 +226,18 @@ class CoreHost implements Host {
 	}
 
 	async playMinute(agent: TurnTaker): Promise<RunEnd | undefined> {
+		this.#usable();
 		if (!this.#started) throw new Error("host: start() first");
 		if (this.#ended !== undefined) return this.#ended;
 		if (this.#playing) throw new Error("host: a minute is already being played");
 		this.#playing = true;
 		try {
 			await this.#play(agent);
+			// A call that threw inside a turn broke the run even when the agent caught the error.
+			if (this.#failed) throw this.#failureError();
+		} catch (error) {
+			this.#fail(error);
+			throw this.#failureError();
 		} finally {
 			this.#playing = false;
 		}
@@ -258,6 +277,8 @@ class CoreHost implements Host {
 			await this.#gateway.settle();
 		}
 		bus.emit("core", "minute_ended", {});
+		// Calls staged by listeners of minute_ended run inside the minute, so no snapshot cut loses them.
+		await this.#gateway.settle();
 		this.#minute = minute + 1;
 		const breach = this.#turnsBreach() ?? this.#referee.breach();
 		if (breach !== undefined) {
@@ -268,6 +289,7 @@ class CoreHost implements Host {
 	}
 
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome> {
+		if (this.#failed) return Promise.reject(this.#refusal());
 		return this.#gateway.call(actor, tool, params);
 	}
 
@@ -297,7 +319,9 @@ class CoreHost implements Host {
 	}
 
 	snapshot(): HostSnapshot {
+		this.#usable();
 		if (this.#playing) throw new Error("host: a snapshot is taken between minutes");
+		if (this.#staging.size > 0) throw new Error(`host: ${String(this.#staging.size)} staged calls have not run; a snapshot would lose them`);
 		const mechanics: Record<string, { version: number; data: unknown }> = {};
 		for (const id of this.#loaded.order) {
 			const slice = this.#loaded.instances.get(id)?.snapshot;
@@ -325,6 +349,7 @@ class CoreHost implements Host {
 	}
 
 	record(actor: Actor, type: string, payload: unknown): void {
+		this.#usable();
 		const schema = this.#app[type];
 		if (schema === undefined) throw new Error(`app: event "${type}" is not declared`);
 		if (!Check(schema, payload)) throw new Error(`app: the payload of "${type}" does not match its schema`);
@@ -362,10 +387,42 @@ class CoreHost implements Host {
 		this.#each((instance) => {
 			instance.hooks.runEnded(end.reason);
 		});
-		// The run is over: what was staged now (by runEnded hooks) never runs.
+		// The run is over: what was staged now (by runEnded hooks, by listeners of the last events) never runs.
 		this.#staging.clear();
 		this.#bus.emit("core", "run_ended", { reason: end.reason });
+		this.#staging.clear();
 		this.#ended = end;
+	}
+
+	/**
+	 * Code threw: the run ends with reason `error` at once. Nothing staged runs, no listener reacts
+	 * any more, no hook is called; `run_ended` is the log's last event and the host refuses every
+	 * further use (no minute is played twice, no call lands after the failure).
+	 */
+	#fail(error: unknown): void {
+		if (this.#failed) return;
+		this.#failed = true;
+		this.#failure = error;
+		this.#staging.clear();
+		if (this.#ended !== undefined) return;
+		const detail = error instanceof Error ? error.message : String(error);
+		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail }));
+		this.#ended = { reason: "error", minute: this.#minute };
+	}
+
+	/** What threw, as an error. */
+	#failureError(): Error {
+		return this.#failure instanceof Error ? this.#failure : new Error(String(this.#failure));
+	}
+
+	/** The error every use after a failure gets. */
+	#refusal(): Error {
+		return new Error(`host: the run failed (${this.#failureError().message}); create a new host`);
+	}
+
+	/** Throws once the run failed. */
+	#usable(): void {
+		if (this.#failed) throw this.#refusal();
 	}
 
 	#restore(snapshot: HostSnapshot): void {

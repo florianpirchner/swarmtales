@@ -27,6 +27,8 @@ export class EventBus implements EventLogView {
 	readonly #minute: () => number;
 	#depth = 0;
 	#draining = false;
+	/** After a failure: listeners are off, and once the last event is written nothing more is taken. */
+	#failed: "listeners-off" | "closed" | undefined;
 
 	/** `prefix` is the log of a resumed run; it is not dispatched again. */
 	constructor(minute: () => number, prefix: readonly EventEnvelope[] = []) {
@@ -70,17 +72,36 @@ export class EventBus implements EventLogView {
 		this.#sinks.push(sink);
 	}
 
+	/**
+	 * Ends the log after a failure: the events not dispatched yet reach only the sinks (no
+	 * listener reacts any more), then `last` writes the closing event, and every later emit throws.
+	 */
+	fail(last: () => void): void {
+		if (this.#failed !== undefined) return;
+		this.#failed = "listeners-off";
+		this.#draining = false;
+		this.#drain();
+		try {
+			last();
+		} finally {
+			this.#failed = "closed";
+		}
+	}
+
 	/** Appends an event in the current frame; dispatches at once when no code is running. */
 	emit(source: string, type: string, payload: unknown): EventEnvelope {
+		if (this.#failed === "closed") throw new Error(`event log: the run failed; ${source}.${type} is not written`);
 		const frame = this.#frames.at(-1) ?? { actor: "host" };
 		const base = { seq: this.#events.length + 1, minute: this.#minute(), type, source, actor: frame.actor, payload };
 		const event: EventEnvelope = frame.cause === undefined ? base : { ...base, causedBy: frame.cause };
 		this.#events.push(event);
 		this.#queue.push(event);
-		for (const listener of this.#immediate) {
-			if (listener.source === event.source && listener.type === event.type) this.#handle(listener, event);
+		if (this.#failed === undefined) {
+			for (const listener of this.#immediate) {
+				if (listener.source === event.source && listener.type === event.type) this.#handle(listener, event);
+			}
 		}
-		if (this.#depth === 0) this.#drain();
+		if (this.#depth === 0 || this.#failed !== undefined) this.#drain();
 		return event;
 	}
 
@@ -118,8 +139,10 @@ export class EventBus implements EventLogView {
 				dispatched += 1;
 				if (dispatched > MAX_CASCADE) throw new Error(`event bus: more than ${String(MAX_CASCADE)} events in one cascade`);
 				const current = event;
-				for (const listener of this.#listeners) {
-					if (listener.source === current.source && listener.type === current.type) this.#handle(listener, current);
+				if (this.#failed === undefined) {
+					for (const listener of this.#listeners) {
+						if (listener.source === current.source && listener.type === current.type) this.#handle(listener, current);
+					}
 				}
 				for (const sink of this.#sinks) sink(current);
 			}
