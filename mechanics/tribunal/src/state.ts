@@ -73,6 +73,12 @@ export interface TribunalState {
 	draft: Draft | undefined;
 	/** The last minute the city acted in (old `#lastTick`); the gamemaker's plans start after it. */
 	lastTick: number;
+	/**
+	 * The run's minutes, copied from the context at every minute's start for the facts, whose view
+	 * has no minutes (docs/design/carve-requests-round3-T4a.md, request 1). Not saved: a resumed
+	 * run sets it again at its first minute, before the gamemaker looks.
+	 */
+	minutes: number | undefined;
 }
 
 export function emptyTribunal(): TribunalState {
@@ -88,6 +94,7 @@ export function emptyTribunal(): TribunalState {
 		halted: false,
 		draft: undefined,
 		lastTick: -1,
+		minutes: undefined,
 	};
 }
 

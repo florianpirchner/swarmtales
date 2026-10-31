@@ -5,7 +5,6 @@
  * and what is not bequeathed burns at exile. The public text is posted when the gate closes.
  */
 import { ChannelsApi, GoalsApi, LedgerApi, PuzzlesApi, StandoffApi, TribunalApi } from "@swarmtales/mechanic-shared";
-import { TribunalExtrasApi } from "./extras.ts";
 import type { ExileCtx } from "./head.ts";
 import { CITY } from "./gone.ts";
 import type { Refused } from "./ransom.ts";
@@ -65,7 +64,7 @@ export function lastWill(ctx: ExileCtx, agent: string, text: string, bequests: r
 	}
 	const balance = ctx.call(LedgerApi, "balance", { account: agent });
 	if (points > balance) return refused("INSUFFICIENT_FUNDS", `you hold ${balance} points`);
-	const share = ctx.tryCall(TribunalExtrasApi, "bequestPerHeir", {}) ?? 0;
+	const share = ctx.tryCall(TribunalApi, "bequestPerHeir", {}) ?? 0;
 	const cap = Math.max(0, Math.floor(balance * share));
 	const over = [...perHeir].filter(([, amount]) => amount > cap).map(([heir]) => heir);
 	if (over.length > 0) {

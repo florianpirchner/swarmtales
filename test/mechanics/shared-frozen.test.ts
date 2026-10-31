@@ -15,7 +15,9 @@ import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_O
 
 // Round 2 (integrator, carve-decisions R2-D1, D8, D9, D10, D14): LedgerApi.open/has/idempotencyKey, PuzzlesApi.secrets,
 // HOOK_ORDER.runResumed and minuteEnded.standoff, StandoffTribunalApi.taskLine, DmRecord.text optional.
-const FINGERPRINT = "3f7c27a356a7cf8334290f5a47c0fdd999996e89cb725e87890b11f6d37ee85b";
+// Round 3 (T4a, R2-D18): T4a's local adapters moved into shared with their shapes: ExileApi.gates/exiled/ransomed,
+// TribunalApi.text/bequestPerHeir and TribunalViewApi (exported and in SHARED_APIS).
+const FINGERPRINT = "7902c89c3219d1569371f0551df8e0efc9fd8b0c3d385af48a6a14c44666e895";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];

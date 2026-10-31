@@ -90,11 +90,6 @@ describe("exile: the API", () => {
 });
 
 describe("exile and tribunal: conformance", () => {
-	it("keeps the two copies of the local adapters word for word", () => {
-		const here = readFileSync(new URL("../../../mechanics/exile/src/extras.ts", import.meta.url), "utf8");
-		expect(readFileSync(new URL("../../../mechanics/tribunal/src/extras.ts", import.meta.url), "utf8")).toBe(here);
-	});
-
 	it("documents every option and keeps the source rules", () => {
 		expect(checkOptionsDocumented(exile)).toEqual([]);
 		expect(checkOptionsDocumented(tribunal)).toEqual([]);

@@ -1,27 +1,14 @@
 /**
- * The heads of the tribunal mechanic. `tribunalHead` keeps the shape the wave 3.0 plan froze;
- * `tribunalWorkHead` is the one the mechanic is built from: its options (the story's `tribunal`
- * spec), state, events and prompts, and the local adapters `tribunal-extras`, `tribunal-view`
- * (provided) and `exile-extras` (required; docs/design/carve-requests-round2-T4a.md).
+ * The head of the tribunal mechanic: its options (the story's `tribunal` spec), state, events and
+ * prompts; it provides `TribunalApi` (with the texts and the will's cap) and `TribunalViewApi`
+ * (round 3, R2-D18) and reads the exile's gates and register through `ExileApi`.
  */
 import { Type } from "typebox";
-import type { ContextOf } from "@swarmtales/contracts";
+import type { ContextOf, ViewOf } from "@swarmtales/contracts";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, GoalsApi, LedgerApi, ProgressionApi, TribunalApi } from "@swarmtales/mechanic-shared";
-import { ExileExtrasApi, TribunalExtrasApi } from "./extras.ts";
+import { ChannelsApi, ExileApi, GoalsApi, LedgerApi, ProgressionApi, TribunalApi, TribunalViewApi } from "@swarmtales/mechanic-shared";
 import { TribunalOptions } from "./spec.ts";
 import { emptyTribunal, type TribunalState } from "./state.ts";
-import { TribunalViewApi } from "./view-api.ts";
-
-export const tribunalHead = defineHead({
-	id: "tribunal",
-	summary: "Tribunal sessions, votes and faction drafts.",
-	options: Type.Object({}),
-	state: () => undefined,
-	events: {},
-	provides: [TribunalApi],
-	requires: [ExileApi, ChannelsApi, LedgerApi, ProgressionApi],
-});
 
 const Id = Type.String();
 const Ids = Type.Array(Id);
@@ -62,14 +49,14 @@ export const tribunalEvents = {
 	tribunal_result: Type.Object({ counts: Type.Array(Type.Object({ agent: Id, votes: Int })), exiled: Ids, nonVoters: Ids }),
 } as const;
 
-export const tribunalWorkHead = defineHead({
+export const tribunalHead = defineHead({
 	id: "tribunal",
-	summary: tribunalHead.summary,
+	summary: "Tribunal sessions, votes and faction drafts.",
 	options: TribunalOptions,
 	state: (): TribunalState => emptyTribunal(),
 	events: tribunalEvents,
-	provides: [TribunalApi, TribunalExtrasApi, TribunalViewApi],
-	requires: [ExileApi, ExileExtrasApi, ChannelsApi, LedgerApi, ProgressionApi],
+	provides: [TribunalApi, TribunalViewApi],
+	requires: [ExileApi, ChannelsApi, LedgerApi, ProgressionApi],
 	uses: [GoalsApi],
 	prompts: {
 		"tools/vote": [],
@@ -97,4 +84,5 @@ export const tribunalWorkHead = defineHead({
 	},
 });
 
-export type TribunalCtx = ContextOf<typeof tribunalWorkHead>;
+export type TribunalCtx = ContextOf<typeof tribunalHead>;
+export type TribunalFactView = ViewOf<typeof tribunalHead>;

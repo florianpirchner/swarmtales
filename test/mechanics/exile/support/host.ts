@@ -10,9 +10,7 @@ import { createHost, defineCoreStory, defineHead, defineMechanic, reply, type Ho
 import { ownedBy, parseLegacyLog, readLegacyLog } from "@swarmtales/testkit";
 import { LegacyEventAdapter, legacyLine, type LegacyOwner } from "@swarmtales/chronicle";
 import type { EventEnvelope, Host, MechanicUse, ToolContextOf, TurnPolicy } from "@swarmtales/contracts";
-import { ExileApi, TribunalApi } from "@swarmtales/mechanic-shared";
-import { ExileExtrasApi, TribunalExtrasApi } from "@swarmtales/mechanic-exile";
-import { TribunalViewApi } from "@swarmtales/mechanic-tribunal";
+import { ExileApi, TribunalApi, TribunalViewApi } from "@swarmtales/mechanic-shared";
 
 export const SUPPORT_PROMPTS = fileURLToPath(new URL("prompts", import.meta.url));
 export const GOLDEN_DIR = join(fileURLToPath(new URL("../../../golden", import.meta.url)));
@@ -24,7 +22,7 @@ const head = defineHead({
 	options: Type.Object({}),
 	state: (): undefined => undefined,
 	events: {},
-	uses: [ExileApi, TribunalApi, ExileExtrasApi, TribunalExtrasApi, TribunalViewApi],
+	uses: [ExileApi, TribunalApi, TribunalViewApi],
 	prompts: { "probe/tools/probe": [] },
 });
 

@@ -148,6 +148,7 @@ export const tribunalSnapshot = {
 		halted: data.halted,
 		draft: data.draft === undefined ? undefined : loadDraft(data.draft),
 		lastTick: data.lastTick,
+		minutes: undefined,
 	}),
 	migrations: {
 		/** Old `Tribunal.restore`; the old file has no `#lastTick`: the next minute sets it before anything reads it. */
