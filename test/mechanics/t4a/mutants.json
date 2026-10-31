@@ -112,6 +112,20 @@
 		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
 	},
 	{
+		"id": "T4a-12",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tleave(ctx, resident, \"holdout\");\n\tctx.emit(\"exiled\", { agent: resident, by: \"holdout\" });\n\tctx.residents.suspend(resident, SUSPENSION);\n\tctx.tryCall(GoalsApi, \"onExiled\", { resident });",
+		"replace": "\tleave(ctx, resident, \"holdout\");\n\tctx.residents.suspend(resident, SUSPENSION);\n\tctx.tryCall(GoalsApi, \"onExiled\", { resident });\n\tctx.emit(\"exiled\", { agent: resident, by: \"holdout\" });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-13",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tctx.tryCall(GoalsApi, \"onExiled\", { resident });\n\tctx.tryCall(SealApi, \"onExiled\", { resident });\n\treturn { ok: true };",
+		"replace": "\tonExiled(ctx, resident, new Set());\n\treturn { ok: true };",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
 		"id": "R2-burn-before-keep",
 		"file": "mechanics/exile/src/gone.ts",
 		"find": "\tif (kept.length > 0) ctx.call(StandoffApi, \"keep\", { from: agent, pieces: kept });\n\tif (balance > 0) ctx.call(LedgerApi, \"burn\", { account: agent, amount: balance, reason: `exiled ${agent}` });",
