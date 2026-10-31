@@ -5,7 +5,10 @@
  */
 import type { Static, TSchema } from "typebox";
 import { Clone, Default, Parse } from "typebox/value";
+import { DEFAULT_ORDER } from "@swarmtales/contracts";
 import type {
+	HookPhase,
+	HookSlot,
 	ApiDefinition,
 	ApiMethods,
 	CoreStory,
@@ -61,6 +64,27 @@ export function storyData(story: CoreStory): CoreStoryData {
 	return { ...rest, mechanics: mechanics.map((use) => ({ id: use.mechanic.id, options: use.options })) };
 }
 
+/** A hook slot as phases, each bound by `bound`; a plain function is one phase of order `DEFAULT_ORDER`. */
+function phasesOf<F, G>(slot: HookSlot<F> | undefined, bound: (run: F) => G): readonly HookPhase<G>[] {
+	if (slot === undefined) return [];
+	if (isPhaseList(slot)) return slot.map((phase) => ({ order: checkedOrder(phase.order), run: bound(phase.run) }));
+	if (isPhase(slot)) return [{ order: checkedOrder(slot.order), run: bound(slot.run) }];
+	return [{ order: DEFAULT_ORDER, run: bound(slot) }];
+}
+
+function isPhaseList<F>(slot: HookSlot<F>): slot is readonly HookPhase<F>[] {
+	return Array.isArray(slot);
+}
+
+function isPhase<F>(slot: F | HookPhase<F>): slot is HookPhase<F> {
+	return typeof slot === "object" && slot !== null && "run" in slot && "order" in slot;
+}
+
+function checkedOrder(order: number): number {
+	if (!Number.isFinite(order)) throw new RangeError(`hook phase: invalid order ${String(order)}`);
+	return order;
+}
+
 function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[]>, T extends readonly MechanicTool[]>(
 	parts: InstanceParts<M>,
 	body: MechanicBody<M, T>,
@@ -101,14 +125,28 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 			run(ctx, data);
 		},
 		hooks: {
-			runStarted: () => hooks.runStarted?.(ctx),
-			minuteStarted: () => hooks.minuteStarted?.(ctx),
-			turnInputs: (resident) => hooks.turnInputs?.(resident, ctx) ?? [],
+			phases: {
+				runStarted: phasesOf(hooks.runStarted, (run) => () => {
+					run(ctx);
+				}),
+				minuteStarted: phasesOf(hooks.minuteStarted, (run) => () => {
+					run(ctx);
+				}),
+				turnInputs: phasesOf(hooks.turnInputs, (run) => (resident: string) => run(resident, ctx)),
+				turnOpened: phasesOf(hooks.turnOpened, (run) => (resident: string) => {
+					run(resident, ctx);
+				}),
+				turnEnded: phasesOf(hooks.turnEnded, (run) => (resident: string) => {
+					run(resident, ctx);
+				}),
+				minuteEnded: phasesOf(hooks.minuteEnded, (run) => () => {
+					run(ctx);
+				}),
+				runEnded: phasesOf(hooks.runEnded, (run) => (reason: string) => {
+					run(reason, ctx);
+				}),
+			},
 			news: (resident) => hooks.news?.(resident, ctx) ?? false,
-			turnOpened: (resident) => hooks.turnOpened?.(resident, ctx),
-			turnEnded: (resident) => hooks.turnEnded?.(resident, ctx),
-			minuteEnded: () => hooks.minuteEnded?.(ctx),
-			runEnded: (reason) => hooks.runEnded?.(reason, ctx),
 			lock: (call) => pipeline.lock?.(call, ctx),
 			afford: (call) => pipeline.afford?.(call, ctx),
 			rule: (call) => pipeline.rule?.(call, ctx),

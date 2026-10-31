@@ -5,10 +5,11 @@
  * order whatever the agents' timing. With `activation: "onNews"` a resident steps only when a
  * mechanic says it has news or its agent awaits an answer.
  */
-import type { Actor, InputKind, MechanicInstance, PassView, ResidentId, ToolOutcome, ToolSpec, TurnLine, TurnNote, TurnPolicy, TurnTaker } from "@swarmtales/contracts";
+import type { Actor, HookPhase, InputKind, InstancePhases, MechanicInstance, PassView, ResidentId, ToolOutcome, ToolSpec, TurnLine, TurnNote, TurnPolicy, TurnTaker } from "@swarmtales/contracts";
 import { createRng, deriveSeed, rngFor } from "../random.ts";
 import { residentActor } from "./access.ts";
 import type { EventBus } from "./log.ts";
+import { orderedPhases } from "./phases.ts";
 import type { ResidentRegistry } from "./residents.ts";
 
 export interface TurnParts {
@@ -54,7 +55,8 @@ function plain(note: OrderedNote): TurnNote {
 
 /**
  * The notes in the policy's kind order, each listed kind sorted by `order` (0 when left out; a
- * stable sort keeps load order on ties); joined kinds become one note; the rest follow in load order.
+ * stable sort keeps the phase order on ties); joined kinds become one note; the rest follow in
+ * phase order.
  */
 export function arrangeInputs(notes: readonly OrderedNote[], kinds: readonly InputKind[]): readonly TurnNote[] {
 	const listed = kinds.flatMap((spec): readonly TurnNote[] => {
@@ -138,8 +140,8 @@ export class TurnLoop {
 		let previous: Promise<void> = Promise.resolve();
 		const turns = prepared.map(({ resident, inputs, cause }) => {
 			const ready = previous.then(() => {
-				this.#each((instance) => {
-					instance.hooks.turnOpened(resident);
+				this.#phases((phases) => phases.turnOpened, (run) => {
+					run(resident);
 				});
 			});
 			const actor = residentActor(resident);
@@ -155,8 +157,8 @@ export class TurnLoop {
 			// The next member's turn comes even when this one fails; the failure is raised after the block.
 			const done = Promise.allSettled([ready, step]).then(async (results) => {
 				for (const result of results) if (result.status === "rejected") failures.push(result.reason);
-				this.#each((instance) => {
-					instance.hooks.turnEnded(resident);
+				this.#phases((phases) => phases.turnEnded, (run) => {
+					run(resident);
 				});
 				await this.#parts.settle();
 			});
@@ -170,7 +172,8 @@ export class TurnLoop {
 	/** The inputs of the resident's next turn: every mechanic's lines, arranged by the policy, formatted for reading. */
 	inputs(resident: ResidentId): readonly TurnNote[] {
 		const { bus, policy, display } = this.#parts;
-		const notes = this.#parts.instances.flatMap(([id, instance]) => bus.run({ actor: "host" }, () => instance.hooks.turnInputs(resident)).map((line) => noteOf(id, line)));
+		// In phase order: a phase that empties an inbox (and emits while doing so) runs after the phases that only read.
+		const notes = orderedPhases(this.#parts.instances, (phases) => phases.turnInputs).flatMap((phase) => bus.run({ actor: "host" }, () => phase.run(resident)).map((line) => noteOf(phase.source, line)));
 		return arrangeInputs(notes, policy.inputs ?? []).map((note) => ({ ...note, text: display(note.text) }));
 	}
 
@@ -178,10 +181,10 @@ export class TurnLoop {
 		return this.#parts.instances.some(([, instance]) => this.#parts.bus.run({ actor: "host" }, () => instance.hooks.news(resident)));
 	}
 
-	#each(code: (instance: MechanicInstance) => void): void {
-		for (const [, instance] of this.#parts.instances) {
+	#phases<F>(pick: (phases: InstancePhases) => readonly HookPhase<F>[], call: (run: F) => void): void {
+		for (const phase of orderedPhases(this.#parts.instances, pick)) {
 			this.#parts.bus.run({ actor: "host" }, () => {
-				code(instance);
+				call(phase.run);
 			});
 		}
 	}

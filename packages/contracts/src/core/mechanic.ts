@@ -122,6 +122,8 @@ export interface EventListener {
 	readonly schema: TSchema;
 	/** Runs inside the emit, depth first (`ListenOptions.immediate`). */
 	readonly immediate: boolean;
+	/** Its place among the listeners of the same event (`ListenOptions.order`). */
+	readonly order: number;
 	handle(event: EventEnvelope): void;
 }
 
@@ -133,7 +135,30 @@ export interface ListenOptions {
 	 * Default: after the emitting code returned, in log order (§5).
 	 */
 	readonly immediate?: boolean;
+	/**
+	 * Where this listener runs among every listener of the same event and mode (ascending; ties
+	 * keep load order, then declaration order). Default `DEFAULT_ORDER`. A story whose old engine
+	 * called several mechanics back in a fixed order gives each its number from one shared table.
+	 */
+	readonly order?: number;
 }
+
+/** The order of a hook phase or listener that names none: ties with each other keep load order. */
+export const DEFAULT_ORDER = 0;
+
+/**
+ * One step of a hook with its place among the steps every loaded mechanic gives for that hook:
+ * ascending `order`, ties in load order, then in the order a mechanic lists its phases. The load
+ * order follows the `requires` graph and cannot express the old engine's fixed call order (a
+ * mechanic that ticked first may load last); the order can.
+ */
+export interface HookPhase<F> {
+	readonly order: number;
+	readonly run: F;
+}
+
+/** A hook as a body gives it: a function (order `DEFAULT_ORDER`), one phase, or several (a mechanic the old engine called twice in a minute). */
+export type HookSlot<F> = F | HookPhase<F> | readonly HookPhase<F>[];
 
 /** A pure function over state and log, for the gamemaker's situation report and the watch role. */
 export interface MechanicFact {
@@ -199,19 +224,28 @@ export interface MechanicKit<M extends MechanicShape> {
 
 type CoreEventSchemas = typeof CORE_EVENTS;
 
-/** Lifecycle hooks, called in load order. */
+/**
+ * Lifecycle hooks. Every hook but `news` takes phases (`HookSlot`): the host runs the phases of all
+ * loaded mechanics for one hook sorted by `order`, ties in load order (a plain function is one
+ * phase of order `DEFAULT_ORDER`).
+ */
 export interface MechanicHooks<M extends MechanicShape> {
-	runStarted?(ctx: MechanicContext<M>): void;
-	minuteStarted?(ctx: MechanicContext<M>): void;
-	/** Lines for the resident's next turn (notices, inbox), plain or with a kind the turn policy orders by. */
-	turnInputs?(resident: ResidentId, ctx: MechanicContext<M>): readonly TurnLine[];
-	/** Whether the resident has something new (`activation: "onNews"`); any mechanic saying yes activates it. */
+	readonly runStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
+	readonly minuteStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
+	/**
+	 * Lines for the resident's next turn (notices, inbox), plain or with a kind the turn policy
+	 * orders by. The phases run in order, so a phase that changes state while it builds its lines
+	 * (and emits events doing so) runs after the phases that only read.
+	 */
+	readonly turnInputs?: HookSlot<(resident: ResidentId, ctx: MechanicContext<M>) => readonly TurnLine[]>;
+	/** Whether the resident has something new (`activation: "onNews"`); any mechanic saying yes activates it. Must not change state. */
 	news?(resident: ResidentId, ctx: MechanicContext<M>): boolean;
 	/** The resident's turn opens: every earlier member of its block has finished. */
-	turnOpened?(resident: ResidentId, ctx: MechanicContext<M>): void;
-	turnEnded?(resident: ResidentId, ctx: MechanicContext<M>): void;
-	minuteEnded?(ctx: MechanicContext<M>): void;
-	runEnded?(reason: string, ctx: MechanicContext<M>): void;
+	readonly turnOpened?: HookSlot<(resident: ResidentId, ctx: MechanicContext<M>) => void>;
+	readonly turnEnded?: HookSlot<(resident: ResidentId, ctx: MechanicContext<M>) => void>;
+	readonly minuteEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
+	/** Calls staged here run before `run_ended` when the run ends after a minute (not after a stop between minutes). */
+	readonly runEnded?: HookSlot<(reason: string, ctx: MechanicContext<M>) => void>;
 }
 
 /** Handlers a mechanic adds to stages of every tool call (a cost module uses `afford` and `settle`). */
@@ -247,16 +281,24 @@ export interface MechanicBody<M extends MechanicShape, T extends readonly Mechan
 	readonly guard?: GuardHandlers<M>;
 }
 
+/** The hooks that run in phases (`MechanicHooks`). */
+export type PhasedHook = "runStarted" | "minuteStarted" | "turnInputs" | "turnOpened" | "turnEnded" | "minuteEnded" | "runEnded";
+
+/** The phases of one instance per hook, bound to its context, in the order the mechanic lists them. */
+export interface InstancePhases {
+	readonly runStarted: readonly HookPhase<() => void>[];
+	readonly minuteStarted: readonly HookPhase<() => void>[];
+	readonly turnInputs: readonly HookPhase<(resident: ResidentId) => readonly TurnLine[]>[];
+	readonly turnOpened: readonly HookPhase<(resident: ResidentId) => void>[];
+	readonly turnEnded: readonly HookPhase<(resident: ResidentId) => void>[];
+	readonly minuteEnded: readonly HookPhase<() => void>[];
+	readonly runEnded: readonly HookPhase<(reason: string) => void>[];
+}
+
 /** Hooks and handlers of one instance, bound to its context. */
 export interface InstanceHooks {
-	runStarted(): void;
-	minuteStarted(): void;
-	turnInputs(resident: ResidentId): readonly TurnLine[];
+	readonly phases: InstancePhases;
 	news(resident: ResidentId): boolean;
-	turnOpened(resident: ResidentId): void;
-	turnEnded(resident: ResidentId): void;
-	minuteEnded(): void;
-	runEnded(reason: string): void;
 	lock(call: ToolCall): Refusal | undefined;
 	afford(call: ToolCall): Refusal | undefined;
 	rule(call: ToolCall): Refusal | undefined;

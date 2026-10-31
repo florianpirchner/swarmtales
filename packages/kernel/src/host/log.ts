@@ -1,6 +1,6 @@
 /**
  * The append-only event log and the synchronous bus. Dispatch order is fixed: events in log order;
- * for each event, the mechanics' listeners in load order (each in declaration order), then the
+ * for each event, the mechanics' listeners by their `order` (ties in load order, then declaration order), then the
  * sinks. An event emitted while code runs is queued and dispatched once that code returns, so a
  * tool's events all land before anyone reacts to them, and the log order equals the dispatch order.
  * Immediate listeners (`{ immediate: true }`) are the exception: they run inside the emit, depth
@@ -12,6 +12,13 @@ import type { Actor, EventEnvelope, EventListener, EventLogView } from "@swarmta
 export interface Frame {
 	readonly actor: Actor;
 	readonly cause?: number;
+}
+
+/** Inserts after every listener of the same or a lower order, so ties keep the order of adding. */
+function insertByOrder(list: EventListener[], listener: EventListener): void {
+	const at = list.findIndex((other) => other.order > listener.order);
+	if (at < 0) list.push(listener);
+	else list.splice(at, 0, listener);
 }
 
 /** A cascade longer than this is a loop between listeners. */
@@ -64,8 +71,9 @@ export class EventBus implements EventLogView {
 		return this.#frames.at(-1) ?? { actor: "host" };
 	}
 
+	/** Adds listeners; each list stays sorted by `order`, ties in the order they were added (load order, then declaration). */
 	listen(listeners: readonly EventListener[]): void {
-		for (const listener of listeners) (listener.immediate ? this.#immediate : this.#listeners).push(listener);
+		for (const listener of listeners) insertByOrder(listener.immediate ? this.#immediate : this.#listeners, listener);
 	}
 
 	subscribe(sink: (event: EventEnvelope) => void): void {

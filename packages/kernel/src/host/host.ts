@@ -16,8 +16,10 @@ import {
 	type EventSchemas,
 	type GrantRole,
 	type GuardModel,
+	type HookPhase,
 	type Host,
 	type HostSnapshot,
+	type InstancePhases,
 	type MechanicInstance,
 	type PromptLookup,
 	type ResidentId,
@@ -31,6 +33,7 @@ import { AccessControl } from "./access.ts";
 import { Gateway } from "./gateway.ts";
 import { toolFor } from "./catalog.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
+import { orderedPhases } from "./phases.ts";
 import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
@@ -74,6 +77,8 @@ class CoreHost implements Host {
 	readonly #staging = new StagingQueue();
 	readonly #between: ((minute: number) => Promise<void>) | undefined;
 	readonly #app: EventSchemas;
+	/** The instances in load order, with their ids. */
+	readonly #placed: readonly (readonly [string, MechanicInstance])[];
 	#minute = 0;
 	#breach: Breach | undefined;
 	#started = false;
@@ -135,6 +140,7 @@ class CoreHost implements Host {
 			const instance = this.#loaded.instances.get(id);
 			return instance === undefined ? [] : [[id, instance]];
 		});
+		this.#placed = instances;
 		this.#turns = new TurnLoop({
 			seed: story.seed,
 			bus: this.#bus,
@@ -188,8 +194,8 @@ class CoreHost implements Host {
 		const story = this.#story;
 		try {
 			this.#bus.emit("core", "run_started", { story: story.id, seed: story.seed, minutes: story.minutes, residents: [...this.residents], mechanics: [...this.mechanics] });
-			this.#each((instance) => {
-				instance.hooks.runStarted();
+			this.#phases((phases) => phases.runStarted, (run) => {
+				run();
 			});
 		} catch (error) {
 			this.#fail(error);
@@ -242,14 +248,14 @@ class CoreHost implements Host {
 			});
 			await this.#gateway.settle();
 		}
-		this.#each((instance) => {
-			instance.hooks.minuteStarted();
+		this.#phases((phases) => phases.minuteStarted, (run) => {
+			run();
 		});
 		await this.#gateway.settle();
 		this.#breach = undefined;
 		await this.#turns.play(agent, minute);
-		this.#each((instance) => {
-			instance.hooks.minuteEnded();
+		this.#phases((phases) => phases.minuteEnded, (run) => {
+			run();
 		});
 		await this.#gateway.settle();
 		if (this.#between !== undefined && this.#turnsBreach() === undefined && this.#stopRequest === undefined) {
@@ -263,9 +269,9 @@ class CoreHost implements Host {
 		const breach = this.#turnsBreach() ?? this.#referee.breach();
 		if (breach !== undefined) {
 			bus.emit("core", "referee_intervened", { limit: breach.limit, reason: breach.reason });
-			this.#end({ reason: "referee", minute: this.#minute, limit: breach.limit });
-		} else if (this.#stopRequest !== undefined) this.#end({ reason: "stopped", minute: this.#minute });
-		else if (this.#minute >= this.#story.minutes) this.#end({ reason: "minutes", minute: this.#minute });
+			await this.#finish({ reason: "referee", minute: this.#minute, limit: breach.limit });
+		} else if (this.#stopRequest !== undefined) await this.#finish({ reason: "stopped", minute: this.#minute });
+		else if (this.#minute >= this.#story.minutes) await this.#finish({ reason: "minutes", minute: this.#minute });
 	}
 
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome> {
@@ -338,18 +344,37 @@ class CoreHost implements Host {
 		});
 	}
 
-	#each(code: (instance: MechanicInstance) => void): void {
-		for (const instance of this.#instances()) this.#bus.run({ actor: "host" }, () => {
-			code(instance);
-		});
+	/** Runs every mechanic's phases of one hook in their order (`orderedPhases`), each in its own host frame. */
+	#phases<F>(pick: (phases: InstancePhases) => readonly HookPhase<F>[], call: (run: F) => void): void {
+		for (const phase of orderedPhases(this.#placed, pick)) {
+			this.#bus.run({ actor: "host" }, () => {
+				call(phase.run);
+			});
+		}
 	}
 
-	#end(end: RunEnd): void {
-		this.#each((instance) => {
-			instance.hooks.runEnded(end.reason);
+	/**
+	 * The run ends after a minute: the `runEnded` phases, then the calls they staged (a director's
+	 * last actions), then `run_ended`. What listeners of `run_ended` stage never runs.
+	 */
+	async #finish(end: RunEnd): Promise<void> {
+		this.#phases((phases) => phases.runEnded, (run) => {
+			run(end.reason);
 		});
-		// The run is over: what was staged now (by runEnded hooks, by listeners of the last events) never runs.
+		await this.#gateway.settle();
+		this.#close(end);
+	}
+
+	/** A stop between minutes: the `runEnded` phases run, but nothing they stage does (no call may wait in a stopped host). */
+	#end(end: RunEnd): void {
+		this.#phases((phases) => phases.runEnded, (run) => {
+			run(end.reason);
+		});
 		this.#staging.clear();
+		this.#close(end);
+	}
+
+	#close(end: RunEnd): void {
 		this.#bus.emit("core", "run_ended", { reason: end.reason });
 		this.#staging.clear();
 		this.#ended = end;

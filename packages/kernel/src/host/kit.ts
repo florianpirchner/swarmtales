@@ -8,6 +8,7 @@ import type { Static, TSchema } from "typebox";
 import { Check, Parse } from "typebox/value";
 import {
 	CORE_EVENTS,
+	DEFAULT_ORDER,
 	type ApiDefinition,
 	type ApiMethodName,
 	type ApiImplementation,
@@ -142,6 +143,13 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 	};
 }
 
+/** A listener's order, checked: a number from the story's table, or `DEFAULT_ORDER`. */
+function listenerOrder(order: number | undefined): number {
+	if (order === undefined) return DEFAULT_ORDER;
+	if (!Number.isFinite(order)) throw new RangeError(`listener: invalid order ${String(order)}`);
+	return order;
+}
+
 export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): MechanicKit<M> {
 	const { port } = parts;
 	const ctx = (): MechanicContext<M> => contextFor(parts);
@@ -206,6 +214,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				type,
 				schema,
 				immediate: options?.immediate === true,
+				order: listenerOrder(options?.order),
 				handle: (event) => {
 					const payload = parseWith(schema, event.payload, `${port.id}.${type}`);
 					handler(payload, ctx(), { ...event, type, payload });
@@ -219,6 +228,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				type,
 				schema,
 				immediate: options?.immediate === true,
+				order: listenerOrder(options?.order),
 				handle: (event) => {
 					const payload = parseWith(schema, event.payload, `${source.id}.${type}`);
 					handler(payload, ctx(), { ...event, type, payload });
@@ -232,6 +242,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				type,
 				schema,
 				immediate: options?.immediate === true,
+				order: listenerOrder(options?.order),
 				handle: (event) => {
 					handler(parseWith(schema, event.payload, `core.${type}`), ctx(), event);
 				},
