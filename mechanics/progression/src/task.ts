@@ -83,15 +83,19 @@ export interface InputLine {
 	readonly order?: number;
 }
 
-/** The task once per level, or the story's finished notice (kind `task`, so it stays before the DMs). */
+/** The task once per level, or the story's finished notice (kind `task`, so it stays before the DMs); only reads, `markTaskShown` records it. */
 export function taskLines(ctx: ProgressionCtx, agent: string): readonly InputLine[] {
 	const level = levelOf(ctx, agent);
 	const finished = isFinished(ctx, agent);
 	const shown = ctx.state.delivered.get(agent);
 	if (shown?.level === level && shown.finished === finished) return [];
-	ctx.state.delivered.set(agent, { level, finished });
 	const problem = currentProblem(ctx, agent);
 	return [{ kind: "task", text: problem === undefined ? ctx.prompt("competitor/input/notice", { author: CITY, text: ctx.options.finishedNotice }) : problem.text }];
+}
+
+/** The turn opened: the task it carried counts as shown (the old arena marked it once the inputs were built for a turn). */
+export function markTaskShown(ctx: ProgressionCtx, agent: string): void {
+	ctx.state.delivered.set(agent, { level: levelOf(ctx, agent), finished: isFinished(ctx, agent) });
 }
 
 function plural(count: number, singular: string, pluralForm: string): string {

@@ -12,7 +12,7 @@ import { endAct, isFinished, levelOf, noteActStarts, syncLocks } from "./levels.
 import { loadState, migrateV0, ProgressionSlice, ProgressionSliceV0, saveState } from "./model.ts";
 import { progressionImplementation } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
-import { statusParts, taskLines } from "./task.ts";
+import { markTaskShown, statusParts, taskLines } from "./task.ts";
 import { progressionTools } from "./tools.ts";
 
 export { progressionHead } from "./head.ts";
@@ -37,6 +37,8 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 					if (!ctx.state.locksStale) return;
 					for (const id of ctx.residents.ids) syncLocks(ctx, id);
 					ctx.state.locksStale = false;
+					// The acts the residents reached since the snapshot begin now (old `#restore`).
+					noteActStarts(ctx, Math.max(0, ...ctx.residents.ids.map((id) => levelOf(ctx, id))));
 				},
 			},
 			// The old arena opened the door only from the second minute on (`Arena#nextMinute`).
@@ -64,6 +66,9 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 			order: HOOK_ORDER.turnInputs.status,
 			run: (resident, ctx) => [...statusParts(ctx, resident, STATUS_ORDER), ...taskLines(ctx, resident)],
 		},
+		turnOpened: (resident, ctx) => {
+			markTaskShown(ctx, resident);
+		},
 		news: (resident, ctx) => {
 			const shown = ctx.state.delivered.get(resident);
 			return shown?.level !== levelOf(ctx, resident) || shown.finished !== isFinished(ctx, resident);
@@ -86,7 +91,7 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 		version: 1,
 		schema: ProgressionSlice,
 		save: saveState,
-		load: (data) => loadState(data),
+		load: (data, setup) => loadState(data, setup.options),
 		migrations: { 0: (old) => migrateV0(Parse(ProgressionSliceV0, old)) },
 	}),
 }));
