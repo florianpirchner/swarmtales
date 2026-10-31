@@ -6,13 +6,11 @@
 import { Type } from "typebox";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
-import { ChannelsApi, ExileApi, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
-import { heldPieces } from "./holdings.ts";
-import { ransomPrice } from "./price.ts";
 import { standoffSnapshot } from "./slice.ts";
-
+import { CityPieces, cityPiecesOf, emptySituation, Outstanding, situationOf, Ultimatums, Unused, type StandoffSituation } from "./situation.ts";
 
 const CITY = "CITY";
 
@@ -23,33 +21,39 @@ const options = Type.Object({
 			maxMinutes: Type.Integer({ minimum: 1, description: "The longest deadline the gamemaker may give, in minutes." }),
 		}, { description: "The gamemaker's ultimatum (P43); without it the gamemaker has none." }),
 	),
-	ransom: Type.Optional(
-		Type.Object({
-			share: Type.Number({ description: "Share of the city's median points that others pay for a ransom, in (0, 1]." }),
-			selfShare: Type.Number({ description: "Share of the city's median points the resident at the gate pays for itself." }),
-			minimum: Type.Number({ description: "Lower bound of the price others pay, in points." }),
-		}, { description: "The tribunal's ransom rule: a piece the city keeps costs half of what others pay for a ransom (P48); absent without a tribunal." }),
-	),
 	author: Type.String({ default: "COURIER", description: "The gamemaker's name on its notices and board posts, e.g. COURIER." }),
+	direction: Type.Integer({
+		default: 4,
+		minimum: 0,
+		maximum: 10,
+		description: "The run's gamemaker direction dial (old `direction`, default 4); the ultimatum is offered only at 10 (request R2-7: the dial has no shared source yet).",
+	}),
 });
+
+/** The gamemaker direction from which the ultimatum is offered (old `#mayGiveUltimatums`). */
+const ULTIMATUM_DIRECTION = 10;
 
 export interface StandoffState {
 	data: StandoffData;
+	/** What the facts read, taken at each minute's end (not part of the slice). */
+	situation: StandoffSituation;
 }
 
 export const standoffHead = defineHead({
 	id: "standoff",
 	summary: "Pieces residents hold for others, kept pieces and ultimatums.",
 	options,
-	state: (): StandoffState => ({ data: emptyStandoff() }),
+	state: (): StandoffState => ({ data: emptyStandoff(), situation: emptySituation() }),
 	events: standoffEvents,
 	provides: [StandoffApi],
 	requires: [PuzzlesApi, ProgressionApi, LedgerApi, ChannelsApi],
-	uses: [ExileApi, NamesApi],
+	uses: [ExileApi, NamesApi, TribunalApi],
 	prompts: {
 		"tools/claimPiece": [],
 		"replies/piece-bought": ["pieces", "price"],
 		"replies/locked": [],
+		"competitor/status/held": ["pieces"],
+		"competitor/status/held-piece": ["waiting", "level", "noun", "value"],
 		"gamemaker/tools/ultimatum": [],
 		"gamemaker/replies/ultimatum-given": ["number", "between", "until", "penalty"],
 	},
@@ -60,22 +64,19 @@ type ToolCtx = ToolContextOf<typeof standoffHead>;
 
 const NOUN: Readonly<Record<HeldPiece["kind"], string>> = { counter: "counter-factor", certificate: "team certificate", fragment: "fragment" };
 
-/** Every piece `agent` holds on the levels dealt (old `heldPieces`), read from the puzzles' deal events (request 1). */
+/** Every piece `agent` holds on the levels dealt (old `heldPieces`), needers in team-member order. */
 function heldAll(ctx: Ctx, agent: string): readonly HeldPiece[] {
-	return heldPieces(ctx.log, agent, (who, level) => ctx.call(ProgressionApi, "levelOf", { resident: who }) >= level);
+	return ctx.call(PuzzlesApi, "heldPieces", { resident: agent });
 }
 
 function isExiled(ctx: Ctx, agent: string): boolean {
 	return ctx.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false;
 }
 
-/** What a piece the city keeps costs its needer: half of what others pay for a ransom (P48). */
+/** What a piece the city keeps costs its needer: half of what others pay for a ransom, rounded up (P48); 0 without a tribunal. */
 function cityPiecePrice(ctx: Ctx): number {
-	const ransom = ctx.options.ransom;
-	if (ransom === undefined) return 0;
-	const register = ctx.residents.ids.filter((id) => ctx.tryCall(ExileApi, "standing", { resident: id })?.kind !== "exiled");
-	const points = register.map((id) => ctx.call(LedgerApi, "balance", { account: id }));
-	return Math.ceil(ransomPrice(ransom, points) / 2);
+	const prices = ctx.tryCall(TribunalApi, "ransomPrices", {});
+	return prices === undefined ? 0 : Math.ceil(prices.price / 2);
 }
 
 function portsFor(ctx: Ctx): StandoffPorts {
@@ -117,9 +118,9 @@ function heldPart(ctx: Ctx, agent: string): string | undefined {
 	const entries = heldAll(ctx, agent).flatMap((piece) => {
 		if (piece.kind === "fragment") return [];
 		const waiting = piece.needers.filter((needer) => !isExiled(ctx, needer) && ctx.call(ProgressionApi, "levelOf", { resident: needer }) === piece.level && !ctx.call(ProgressionApi, "hasPassed", { resident: needer, level: piece.level }));
-		return waiting.length === 0 ? [] : [`${waiting.join(", ")} door ${piece.level} ${NOUN[piece.kind]} ${piece.value}`];
+		return waiting.length === 0 ? [] : [ctx.prompt("competitor/status/held-piece", { waiting: waiting.join(", "), level: piece.level, noun: NOUN[piece.kind], value: piece.value })];
 	});
-	return entries.length === 0 ? undefined : `you hold for others: ${entries.join("; ")}`;
+	return entries.length === 0 ? undefined : ctx.prompt("competitor/status/held", { pieces: entries.join("; ") });
 }
 
 const UltimatumParams = Type.Object({
@@ -168,7 +169,7 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		}),
 	],
 	services: [
-		kit.provideSome(StandoffApi, {
+		kit.provide(StandoffApi, {
 			heldPieces: ({ resident }, ctx) => heldAll(ctx, resident).map((piece): HeldPiece => ({ ...piece, needers: [...piece.needers] })),
 			keep: ({ from, pieces }, ctx) => {
 				const kept: StandoffPiece[] = pieces.map((piece) => ({ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers }));
@@ -179,29 +180,61 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				bookFor(ctx).noteText(author, readers, text);
 				return null;
 			},
+			/** A last will handed `piece` to `to` (old `#standoff.noteGiven` from the will): it counts as given. */
+			noteGiven: ({ from, to, piece }, ctx) => {
+				bookFor(ctx).noteGiven(from, to, { id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers });
+				return null;
+			},
 			cityPiecePrice: (_input, ctx) => cityPiecePrice(ctx),
 		}),
 	],
 	pipeline: {
 		/** The old `enabledTools`: a resident in the city buys only while the city keeps a piece it needs. */
 		lock: (call, ctx) => {
+			// The old gamemaker offered `ultimatum` only at direction 10 in a story with ultimatums (gamemaker.ts:214, :375).
+			if (call.owner === "standoff" && call.tool === "ultimatum") return ctx.options.direction >= ULTIMATUM_DIRECTION && ctx.options.ultimatum !== undefined ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
 			if (call.owner !== "standoff" || call.tool !== "claimPiece" || call.resident === undefined) return undefined;
 			const alive = (ctx.tryCall(ExileApi, "standing", { resident: call.resident })?.kind ?? "alive") === "alive";
 			return alive && bookFor(ctx).claimable(call.resident).length > 0 ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
 		},
 	},
 	hooks: {
-		minuteStarted: (ctx) => {
-			bookFor(ctx).tick(ctx.minute, CITY);
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.standoff,
+			run: (ctx) => {
+				bookFor(ctx).tick(ctx.minute, CITY);
+			},
 		},
-		turnInputs: (resident, ctx) => {
-			const text = heldPart(ctx, resident);
-			return text === undefined ? [] : [{ kind: "status", text, order: STATUS_ORDER.held }];
+		/** The facts' situation at the minute's end; it writes nothing, so it needs no slot of the order table (request R2-8). */
+		minuteEnded: (ctx) => {
+			ctx.state.situation = situationOf(bookFor(ctx), (agent) => heldAll(ctx, agent), cityPiecePrice(ctx));
+		},
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				const text = heldPart(ctx, resident);
+				return text === undefined ? [] : [{ kind: "status", text, order: STATUS_ORDER.held }];
+			},
 		},
 	},
 	facts: {
-		cityPieces: kit.fact(Type.Integer(), (view) => view.state.data.city.length),
-		ultimatums: kit.fact(Type.Integer(), (view) => view.state.data.ultimatums.length),
+		/** D-8: the pieces holders in the city still owe residents before their door. */
+		outstanding: kit.fact(Outstanding, (view) => view.state.situation.outstanding.map((debt) => ({ ...debt, pieces: debt.pieces.map((piece) => ({ ...piece, needers: [...piece.needers] })) }))),
+		/** D-8: the pieces the city keeps or seized, who bought each, a seized piece's price. */
+		cityPieces: kit.fact(CityPieces, (view) => cityPiecesOf(view.state.data.city)),
+		/** D-8: hand-overs whose needer still stands before the door. */
+		unused: kit.fact(Unused, (view) => view.state.situation.unused.map((entry) => ({ ...entry }))),
+		/** D-8: the running ultimatums. */
+		ultimatums: kit.fact(Ultimatums, (view) =>
+			view.state.data.ultimatums.flatMap((entry) => {
+				const [a, b] = entry.between;
+				if (a === undefined || b === undefined) return [];
+				const between: [string, string] = [a, b];
+				return [{ number: entry.number, between, until: entry.until, penalty: entry.penalty }];
+			}),
+		),
+		/** D-8: what a piece the city keeps costs now. */
+		cityPiecePrice: kit.fact(Type.Number(), (view) => view.state.situation.cityPiecePrice),
 		given: kit.fact(Type.Integer(), (view) => view.state.data.given.size),
 	},
 	snapshot: kit.snapshot(standoffSnapshot),

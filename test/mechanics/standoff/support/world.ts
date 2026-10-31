@@ -5,7 +5,8 @@
  */
 import { Type, type Static } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, LedgerApi, ProgressionApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, LedgerApi, ProgressionApi, PuzzlesApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { heldPieces } from "./holdings.ts";
 import { provider } from "./provider.ts";
 
 export interface Notice {
@@ -180,8 +181,16 @@ export interface Deals {
 	readonly factors?: readonly Static<(typeof puzzleEvents)["factors_dealt"]>[];
 }
 
-/** Stand-in puzzles: writes the deal events; `burn` and `contract` write theirs; `lacking` comes from the test. */
-export function puzzlesStandIn(world: TestWorld, deals: Deals = {}, lacking: (level: number, holder: string) => readonly string[] = () => []) {
+/**
+ * Stand-in puzzles: writes the deal events; `burn` and `contract` write theirs; `lacking` comes from
+ * the test; `heldPieces` from the test when it gives `held`, else from the logged deals.
+ */
+export function puzzlesStandIn(
+	world: TestWorld,
+	deals: Deals = {},
+	lacking: (level: number, holder: string) => readonly string[] = () => [],
+	held?: (resident: string) => readonly HeldPiece[],
+) {
 	return defineMechanic(
 		{ id: "puzzles", summary: "Stand-in puzzles.", options: Type.Object({}), state: (): undefined => undefined, events: puzzleEvents, provides: [PuzzlesApi] },
 		(kit) => ({
@@ -193,6 +202,7 @@ export function puzzlesStandIn(world: TestWorld, deals: Deals = {}, lacking: (le
 					teamOf: ({ resident }) => ({ members: [resident], leader: resident }),
 					passwordPiece: () => false,
 					lacking: ({ level, holder }) => [...lacking(level, holder)],
+					heldPieces: ({ resident }, ctx) => (held?.(resident) ?? heldPieces(ctx.log, resident, (who, level) => world.levelOf(who) >= level)).map((piece) => ({ ...piece, needers: [...piece.needers] })),
 					carriesSecret: () => false,
 					burn: (input, ctx) => {
 						world.record("puzzles", "burn", input);

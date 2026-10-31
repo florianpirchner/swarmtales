@@ -1,9 +1,8 @@
 /**
- * The pieces a resident holds for others (old `World.heldPieces`), read from the deals the puzzles
- * mechanic logged: `fragments_dealt`, `factors_dealt` and `level_contracted`. This is a local
- * adapter (docs/design/carve-requests-T4.md, request 1): `PuzzlesApi` offers no way to ask for the
- * deal, so the standoff reads the three events, which carry the whole deal, until the integration
- * owner adds a method. The rules are the old ones (world.ts `heldPieces`, additive.ts `contractDeal`).
+ * What the stand-in puzzles answers for `PuzzlesApi.heldPieces` (old `World.heldPieces`): the pieces
+ * a resident holds for others, read from the deals the stand-in logged (`fragments_dealt`,
+ * `factors_dealt`, `level_contracted`) by the old rules (world.ts `heldPieces`, additive.ts
+ * `contractDeal`); needers in the deal's member order. The standoff itself asks `PuzzlesApi`.
  */
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
