@@ -14,15 +14,17 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3.0 | 12 core fixes from the challenger review, 19 empty `mechanics/*` packages, frozen `mechanics/shared` | `docs/design/core-review-2c.md` |
 | 3 | Four teams carved the mechanics; challengers found many divergences | `docs/design/challenge-wave3.md` |
 | 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
-| 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) only production code | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
+| 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) production code and, in the proof pass, strict golden gates, differential tests and legacy resume tests | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
 
 ## Open, in this order
 
-1. **T2 proof.** Replace the sorted-stream checks in `test/mechanics/channels/replay.ts` by the strict testkit gates
-   (goldenDiff with the legacy turn loop, goldenNotices, goldenTurnInputs, goldenOrder, compareReplies) for all three
-   goldens; differential tests against the old engine for every channels tool, refusal and check order, petitions,
-   cast, motives; wire cast options from the story; version-0 fixtures and legacy snapshot resume. (An attempt was
-   stopped before it committed anything.)
+1. **T2 proof: done, with limits.** Strict golden gates (`test/mechanics/channels/golden.test.ts`, `test/mechanics/cast/golden.test.ts`,
+   replay in `test/mechanics/t2/golden-world.ts` with stand-ins for progression, script, seal and goals lines); differential
+   tests against the old World for all channels tools, `defy`, the gamemaker's `notify`/`postBoard` (`test/mechanics/channels/differential.test.ts`),
+   petitions and cast with the old Director (`test/mechanics/petitions/differential.test.ts`), the motives deal
+   (`test/mechanics/motives/differential.test.ts`); cast options come from the story (`castOptionsFromStory`); legacy snapshot
+   resume with version-0 fixtures (`test/mechanics/channels/resume-differential.test.ts`). Open items are the requests 9 to 13 in
+   `docs/design/carve-requests-round2-T2.md` (whispers still declares `defy`; `LedgerApi.open`; converter fields).
 2. **Round 2 challengers** for T1, T3, T4a, T4b (read-only Opus reviews, prompts as in the checklist of this thread:
    line-by-line diff old vs new, non-vacuous differential tests, snapshot resume, order numbers). Not run yet.
 3. **Integrator pass** on the round 2 requests (`docs/design/carve-requests-round2-*.md`): `LedgerApi.open` and
