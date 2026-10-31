@@ -11,23 +11,16 @@ import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot, LEGACY_WORLD_OWNERS, toLegacySnapshot } from "@swarmtales/chronicle";
 import { HostSnapshotSchema } from "@swarmtales/contracts";
-import { createHost, defineCoreStory, defineMechanic } from "@swarmtales/kernel";
+import { createHost, defineCoreStory, defineMechanic, refuse } from "@swarmtales/kernel";
+import { standIn, standInsFor } from "@swarmtales/testkit";
 
 const PATH = resolve(import.meta.dirname, "../../examples/cityofkeys-act1-06a-04/snapshot-L7.json");
 const TEXT = readFileSync(PATH, "utf8");
 
-/** A stand-in for a wave 3 mechanic: its slice is version 1, migrated from the converter's version 0. */
-function standIn(id: string) {
-	return defineMechanic({ id, summary: `Stand-in for ${id}.`, options: Type.Object({}), state: (): { data: unknown } => ({ data: null }), events: {} }, (kit) => ({
-		snapshot: kit.snapshot({
-			version: 1,
-			schema: Type.Object({ old: Type.Unknown() }),
-			save: (state) => ({ old: state.data }),
-			load: (data) => ({ data: data.old }),
-			migrations: { 0: (old) => ({ old }) },
-		}),
-	}));
-}
+/** A carved mechanic with a tool the story locks at the start. */
+const vault = defineMechanic({ id: "vault", summary: "A locked tool.", options: Type.Object({}), state: () => undefined, events: {}, prompts: { "vault/open": [] } }, (kit) => ({
+	tools: [kit.tool({ name: "openVault", description: "vault/open", parameters: Type.Object({}), execute: () => refuse("EMPTY") })],
+}));
 
 describe("the old-snapshot converter", () => {
 	const converted = convertLegacySnapshot(JSON.parse(TEXT), {}, PATH);
@@ -61,6 +54,37 @@ describe("the old-snapshot converter", () => {
 		const snapshot = host.snapshot();
 		expect(Object.values(snapshot.mechanics).every((slice) => slice.version === 1)).toBe(true);
 		expect(snapshot.mechanics.ledger?.data).toEqual({ old: converted.host.mechanics.ledger?.data });
+	});
+
+	it("keeps the story's start locks when the old snapshot gives none (review problem 10)", async () => {
+		expect(converted.host.locks).toBeUndefined();
+		const story = defineCoreStory({
+			id: "nexus",
+			seed: 7,
+			minutes: 80,
+			residents: converted.host.residents.ids,
+			mechanics: [vault.with(), ...standInsFor(converted.host, ["vault"])],
+			grants: { resident: ["openVault"] },
+			locked: ["openVault"],
+		});
+		const host = createHost({ story, resume: { snapshot: converted.host, events: converted.events } });
+		expect(await host.call("resident:A01", "openVault", {})).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
+		const unlocked = convertLegacySnapshot(JSON.parse(TEXT), { locks: () => [] }, PATH);
+		const opened = createHost({ story, resume: { snapshot: unlocked.host, events: unlocked.events } });
+		expect(await opened.call("resident:A01", "openVault", {})).toMatchObject({ ok: false, code: "EMPTY" });
+	});
+
+	it("refuses a competitor field without an owner instead of dropping it (review problem 10)", () => {
+		const raw: unknown = JSON.parse(TEXT);
+		const edited: unknown = JSON.parse(TEXT.replace('"wrongAttempts":', '"mood":"glad","wrongAttempts":'));
+		expect(() => convertLegacySnapshot(raw)).not.toThrow();
+		expect(() => convertLegacySnapshot(edited)).toThrow(/competitor field "mood" has no owner/);
+	});
+
+	it("gives stand-ins only for the slices a partial carve does not load", () => {
+		expect(standInsFor(converted.host, ["ledger", "names"]).map((use) => use.mechanic.id)).not.toContain("ledger");
+		expect(standInsFor(converted.host, ["ledger"])).toHaveLength(Object.keys(converted.host.mechanics).length - 1);
+		expect(standIn("marks").id).toBe("marks");
 	});
 
 	it("refuses a file that is not an old snapshot", () => {

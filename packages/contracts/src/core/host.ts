@@ -112,7 +112,8 @@ export const HostSnapshotSchema = Type.Object({
 		attributes: Type.Record(Type.String(), Type.Record(Type.String(), Type.Record(Type.String(), Json))),
 		suspensions: Type.Record(Type.String(), Type.Array(Type.String())),
 	}),
-	locks: Type.Record(Type.String(), Type.Array(Type.String())),
+	/** Per resident; absent in a converted old snapshot that could not tell, and then the story's start locks hold. */
+	locks: Type.Optional(Type.Record(Type.String(), Type.Array(Type.String()))),
 	jobs: Type.Array(
 		Type.Object({
 			id: Type.Integer(),

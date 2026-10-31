@@ -114,9 +114,23 @@ export class LegacyEventAdapter {
 	}
 }
 
-/** One line of a legacy log. */
-export function legacyLine(event: LegacyEvent): string {
-	return JSON.stringify(event);
+/**
+ * One line of a legacy log. `stamp` holds what a sink wrote behind `minute` (the JSONL log's
+ * wall-clock `at`, see `legacyStamp`); it is not part of the event.
+ */
+export function legacyLine(event: LegacyEvent, stamp: Readonly<Record<string, unknown>> = {}): string {
+	return JSON.stringify({ ...event, ...stamp });
+}
+
+/**
+ * What a sink wrote behind `minute` in an old line (live logs carry the wall clock as `at`): kept
+ * beside the envelope, never in its payload, so a line reads back and writes out unchanged.
+ */
+export function legacyStamp(raw: unknown): Readonly<Record<string, unknown>> {
+	if (!isRecord(raw)) return {};
+	const keys = Object.keys(raw);
+	const at = keys.indexOf("minute");
+	return at < 0 ? {} : Object.fromEntries(keys.slice(at + 1).map((key) => [key, raw[key]]));
 }
 
 const recorded = Compile(RecordedEventSchema);
@@ -141,12 +155,14 @@ const envelope = Compile(EventEnvelopeSchema);
 
 /**
  * An old event (untrusted) as an envelope: the source from the owner table, the fields as payload
- * in their order, and for `guard_verdict` the core's payload with the author as actor.
+ * in their order, and for `guard_verdict` the core's payload with the author as actor. A sink's
+ * stamp behind `minute` (`at`) is left out; `legacyStamp` reads it.
  */
 export function envelopeFromLegacy(raw: unknown): EventEnvelope {
 	if (!LegacyLine.Check(raw) || !isRecord(raw)) throw new Error("legacy log: not an event line");
 	const { type, seq, minute } = raw;
-	const without = (...keys: readonly string[]): Record<string, unknown> => Object.fromEntries(Object.entries(raw).filter(([key]) => !keys.includes(key)));
+	const stamped = Object.keys(legacyStamp(raw));
+	const without = (...keys: readonly string[]): Record<string, unknown> => Object.fromEntries(Object.entries(raw).filter(([key]) => !keys.includes(key) && !stamped.includes(key)));
 	const fields = without("type", "seq", "minute");
 	const source = legacyOwner(type);
 	if (source === "core") {

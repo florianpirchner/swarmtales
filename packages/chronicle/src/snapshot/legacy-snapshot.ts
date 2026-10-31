@@ -64,7 +64,11 @@ export interface ConvertedSnapshot {
 }
 
 export interface ConvertOptions {
-	/** The host's locks per resident, from the old state (the story's start locks minus what it unlocked); none when left out. */
+	/**
+	 * The host's locks per resident, from the old state (the story's start locks minus what it
+	 * unlocked). Left out, the host snapshot carries no locks and a resumed host keeps the story's
+	 * start locks (never an empty set, which would open every locked tool).
+	 */
 	readonly locks?: (resident: { readonly agent: string; readonly extraTools: readonly string[] }) => readonly string[];
 }
 
@@ -106,6 +110,10 @@ export function convertLegacySnapshot(raw: unknown, options: ConvertOptions = {}
 		put(owner, key, value);
 	}
 	const competitors = records(world.competitors, `${source}: world.competitors`);
+	for (const entry of competitors) {
+		const unknown = Object.keys(entry).find((key) => !PROGRESSION_FIELDS.includes(key) && !INBOX_FIELDS.includes(key));
+		if (unknown !== undefined) throw new SnapshotError(`${source}: competitor field "${unknown}" has no owner in the carve plan`);
+	}
 	put("progression", "competitors", competitors.map((entry) => pick(entry, PROGRESSION_FIELDS)));
 	put("channels", "inboxes", competitors.map((entry) => pick(entry, INBOX_FIELDS)));
 	const ids = snapshot.world.competitors.map((entry) => entry.agent);
@@ -120,7 +128,7 @@ export function convertLegacySnapshot(raw: unknown, options: ConvertOptions = {}
 		minute: snapshot.minute + 1,
 		seq: snapshot.events.length,
 		residents: { ids, attributes: {}, suspensions: Object.fromEntries(ids.filter((id) => gone.includes(id)).map((id) => [id, ["exile"]])) },
-		locks: locks === undefined ? {} : Object.fromEntries(snapshot.world.competitors.map((entry) => [entry.agent, [...locks(entry)].sort()])),
+		...(locks === undefined ? {} : { locks: Object.fromEntries(snapshot.world.competitors.map((entry) => [entry.agent, [...locks(entry)].sort()])) }),
 		jobs: [],
 		referee: { counts: {}, costUsd: 0 },
 		mechanics: {

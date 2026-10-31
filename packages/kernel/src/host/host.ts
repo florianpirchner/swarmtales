@@ -435,7 +435,8 @@ class CoreHost implements Host {
 		if (snapshot.story !== this.#story.id || snapshot.seed !== this.#story.seed) throw new Error("snapshot: taken from another story or seed");
 		if (snapshot.seq !== this.#bus.lastSeq) throw new Error(`snapshot: taken at seq ${String(snapshot.seq)}, but the log has ${String(this.#bus.lastSeq)} events`);
 		this.#registry.load(residentsState(snapshot.residents));
-		this.#access.load(snapshot.locks);
+		// Without locks the story's start locks stay: a resume never silently opens a locked tool.
+		if (snapshot.locks !== undefined) this.#access.load(snapshot.locks);
 		this.#scheduler.load(snapshot.jobs.map((job) => {
 			if (job.data !== undefined && !isJsonValue(job.data)) throw new Error(`snapshot: data of job ${job.job} is not JSON`);
 			const { data, ...rest } = job;

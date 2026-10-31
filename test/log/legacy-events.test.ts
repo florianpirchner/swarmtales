@@ -20,7 +20,7 @@ describe("the legacy event adapter", () => {
 		const adapter = new LegacyEventAdapter();
 		const written = lines.flatMap((line) => adapter.write(envelopeFromLegacy(JSON.parse(line))));
 		expect(written).toHaveLength(lines.length);
-		expect(`${written.map(legacyLine).join("\n")}\n`).toBe(text);
+		expect(`${written.map((event) => legacyLine(event)).join("\n")}\n`).toBe(text);
 		// Every line is an event the old sinks take.
 		expect(() => written.map(toRecorded)).not.toThrow();
 		// The owners are what the carve plan says; no golden event is left to the app by accident.
@@ -64,7 +64,7 @@ describe("the legacy event adapter", () => {
 			causedBy: 6,
 			payload: { tool: "postBoard", rule: "no-fragments", allowed: false, reason: "carries a code", by: "check" },
 		};
-		expect([...adapter.write(skipped), ...adapter.write(verdict)].map(legacyLine)).toEqual([
+		expect([...adapter.write(skipped), ...adapter.write(verdict)].map((event) => legacyLine(event))).toEqual([
 			'{"type":"turn_skipped","agent":"A02","pass":2,"block":1,"seq":42,"minute":3}',
 			'{"type":"guard_verdict","tool":"postBoard","agent":"A04","rule":"no-fragments","allowed":false,"reason":"carries a code","by":"check","seq":43,"minute":3}',
 		]);
