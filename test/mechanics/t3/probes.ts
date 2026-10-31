@@ -5,9 +5,9 @@
  */
 import { Type } from "typebox";
 import { defineMechanic, reply } from "@swarmtales/kernel";
-import { GoalsApi } from "@swarmtales/mechanic-shared";
+import { GoalsApi, ProgressionApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 
-const none = { summary: "Stand-in probe.", options: Type.Object({}), state: () => undefined, events: {}, prompts: { "standin/tool": [] } } as const;
+const none = { summary: "Stand-in probe.", options: Type.Object({}), state: () => undefined, events: {}, prompts: { "gamemaker/tools/notify": [] } } as const;
 
 /** `GoalsApi`: noteLeaders, noteHeir, onExiled, goalOf. */
 export function goalsProbe() {
@@ -15,7 +15,7 @@ export function goalsProbe() {
 		tools: [
 			kit.tool({
 				name: "noteLeaders",
-				description: "standin/tool",
+				description: "gamemaker/tools/notify",
 				parameters: GoalsApi.methods.noteLeaders.input,
 				suggest: ["script"],
 				execute: (params, ctx) => {
@@ -25,7 +25,7 @@ export function goalsProbe() {
 			}),
 			kit.tool({
 				name: "noteHeir",
-				description: "standin/tool",
+				description: "gamemaker/tools/notify",
 				parameters: GoalsApi.methods.noteHeir.input,
 				suggest: ["script"],
 				execute: (params, ctx) => {
@@ -35,7 +35,7 @@ export function goalsProbe() {
 			}),
 			kit.tool({
 				name: "onExiled",
-				description: "standin/tool",
+				description: "gamemaker/tools/notify",
 				parameters: GoalsApi.methods.onExiled.input,
 				suggest: ["script"],
 				execute: (params, ctx) => {
@@ -45,10 +45,42 @@ export function goalsProbe() {
 			}),
 			kit.tool({
 				name: "goalOf",
-				description: "standin/tool",
+				description: "gamemaker/tools/notify",
 				parameters: GoalsApi.methods.goalOf.input,
 				suggest: ["script"],
 				execute: (params, ctx) => reply(JSON.stringify(ctx.call(GoalsApi, "goalOf", params))),
+			}),
+		],
+	}));
+}
+
+/** `PuzzlesApi` and `ProgressionApi` as the script, the standoff and the wills call them: held pieces, the city factor, unlocking tools. */
+export function t3Probe() {
+	return defineMechanic({ ...none, id: "t3probe", requires: [PuzzlesApi, ProgressionApi] }, (kit) => ({
+		tools: [
+			kit.tool({
+				name: "probeHeldPieces",
+				description: "gamemaker/tools/notify",
+				parameters: PuzzlesApi.methods.heldPieces.input,
+				suggest: ["script"],
+				execute: (params, ctx) => reply(JSON.stringify(ctx.call(PuzzlesApi, "heldPieces", params))),
+			}),
+			kit.tool({
+				name: "probeReveal",
+				description: "gamemaker/tools/notify",
+				parameters: PuzzlesApi.methods.revealFactor.input,
+				suggest: ["script"],
+				execute: (params, ctx) => reply(JSON.stringify(ctx.call(PuzzlesApi, "revealFactor", params))),
+			}),
+			kit.tool({
+				name: "probeUnlock",
+				description: "gamemaker/tools/notify",
+				parameters: ProgressionApi.methods.unlock.input,
+				suggest: ["script"],
+				execute: (params, ctx) => {
+					ctx.call(ProgressionApi, "unlock", params);
+					return reply("unlocked");
+				},
 			}),
 		],
 	}));
