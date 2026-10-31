@@ -237,6 +237,9 @@ importers:
 
   mechanics/goals:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -309,6 +312,9 @@ importers:
 
   mechanics/progression:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -321,6 +327,9 @@ importers:
 
   mechanics/puzzles:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
