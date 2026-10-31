@@ -250,9 +250,77 @@ describe("tribunal and exile against the old Tribunal (differential)", () => {
 					refusals: [],
 				},
 			},
-			actions: { 4: [{ nominate: ["A03", "A05"] }], 5: [{ join: ["A01", "A06"] }, { join: ["A02", "A05"] }], 8: [{ vote: ["A03", "A01"] }] },
+			// The cap the file lacks is the old one (ceil(6 / 2) = 3, its leader included): A04 finds the faction of A06 full. A01 is refused by
+			// every leader and is told so in its status.
+			actions: {
+				4: [{ nominate: ["A03", "A05"] }],
+				5: [{ join: ["A01", "A06"] }, { join: ["A02", "A05"] }, { join: ["A03", "A06"] }, { join: ["A04", "A06"] }],
+				6: [{ refuse: ["A06", "A01"] }, { join: ["A01", "A05"] }, { refuse: ["A05", "A01"] }],
+				8: [{ vote: ["A03", "A01"] }],
+			},
 		});
 		await expectSame({ points: SIX, spec: halfTribunal(), until: 40, restore: { announced: false, sessions: [], gates: [], exiled: [], ransomed: [], residents: 4 } });
+	});
+
+	it("tells only the members still in the city how their faction voted, after one of them was struck during the vote", async () => {
+		await expectSame({
+			points: SIX,
+			spec: halfTribunal(),
+			until: 37,
+			actions: {
+				30: [{ nominate: ["A01", "A06"] }, { nominate: ["A02", "A06"] }, { nominate: ["A03", "A05"] }, { nominate: ["A04", "A05"] }],
+				32: [{ join: ["A01", "A06"] }, { join: ["A02", "A06"] }, { join: ["A03", "A05"] }, { join: ["A04", "A05"] }],
+				34: [{ strike: "A02" }, { vote: ["A06", "A01"] }, { vote: ["A01", "A03"] }, { vote: ["A05", "A01"] }, { vote: ["A03", "A01"] }],
+			},
+		});
+	});
+
+	it("reports the city's own call at the fallback minute after a result, in the window and the section", async () => {
+		await expectSame({
+			points: SIX,
+			spec: halfTribunal({}, false),
+			until: 52,
+			views: [36, 37, 38, 40, 42, 44, 46, 48, 50],
+			actions: { 35: [{ vote: ["A03", "A01"] }, { vote: ["A04", "A01"] }, { vote: ["A02", "A01"] }] },
+		});
+	});
+
+	it("offers scheduleTribunal only while a resident in the city plays a director's level (old #mayScheduleTribunal)", async () => {
+		const roles = [
+			{ fromLevel: 1, role: "coach" },
+			{ fromLevel: 9, role: "director" },
+			{ fromLevel: 11, role: "keeper" },
+		];
+		const old = runOld({ points: SIX, spec: halfTribunal(), until: 40, roles, views: [37, 40] });
+		const gate = /"gates":\[\{"agent":"(A\d+)"/.exec(old.views[0] ?? "")?.[1];
+		const earliest = Number(/"window":\{"open":true,"earliest":(\d+)/.exec(old.views[1] ?? "")?.[1]);
+		if (gate === undefined || !Number.isInteger(earliest)) throw new Error("nobody at the gate at minute 37, or no open window at 40");
+		const plan = (reason: string) => ({ schedule: { minute: earliest, count: 1, reason } });
+		const scenario: Scenario = {
+			points: SIX,
+			spec: halfTribunal(),
+			until: 42,
+			roles,
+			views: [37, 38, 39, 40],
+			// 37: everyone plays a coach's level 8. 38: only the resident at the gate plays a director's level. 39: a keeper's. 40: a resident in the city plays 9.
+			flags: { 38: { levels: { [gate]: 9 } }, 39: { levels: { [gate]: 8, A06: 11 } }, 40: { levels: { A06: 9 } } },
+			actions: { 37: [plan("coach")], 38: [plan("director at the gate")], 39: [plan("keeper")], 40: [plan("director"), plan("again")] },
+		};
+		await expectSame(scenario);
+		const outcomes = runOld(scenario).outcomes;
+		expect(outcomes.map((line) => /→ ([A-Z_]+):/.exec(line)?.[1] ?? "reply")).toEqual(["TOOL_LOCKED", "TOOL_LOCKED", "TOOL_LOCKED", "reply", "NOT_NOW"]);
+	});
+
+	it("stops the run when Act II reaches its target: the stop fact's reason is the target-reached text", async () => {
+		const scenario: Scenario = { points: SIX, spec: halfTribunal({}, false), minutes: 120, until: 119, views: [44, 60, 70, 80, 90, 100, 110, 119] };
+		await expectSame(scenario);
+		const stops = runOld(scenario).views.map((view) => /"facts":\{"stop":\{"endReason":("[^"]*"|null)/.exec(view)?.[1] ?? "");
+		// Null until the third exile, then the story's targetReached text for good (both sides agree view for view above).
+		expect(stops.slice(0, 3)).toEqual(["null", "null", "null"]);
+		const values: Readonly<Record<string, string>> = { kept: "3", residents: "6", survivors: "2", exiledList: "A01, A02 and A03" };
+		const reason = JSON.stringify(cityOfKeysTribunal().texts.targetReached.replace(/\{(\w+)\}/g, (all, key: string) => values[key] ?? all));
+		expect(stops.slice(3)).toEqual(stops.slice(3).map(() => reason));
+		expect(runOld(scenario).acts).toEqual([8]);
 	});
 
 	it("reached every refusal the pipeline lets through, every event and every reason to cancel", () => {

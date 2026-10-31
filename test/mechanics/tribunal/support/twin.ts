@@ -17,6 +17,7 @@ import { exile } from "@swarmtales/mechanic-exile";
 import { tribunal } from "@swarmtales/mechanic-tribunal";
 import { TestCity, standIns } from "../../exile/support/city.ts";
 import { runProbe, storyOptions } from "../../exile/support/host.ts";
+import { sectionOfOld } from "./section.ts";
 
 export type Action =
 	| { readonly vote: readonly [string, string] }
@@ -237,6 +238,8 @@ export function runOld(scenario: Scenario): Streams {
 					missing: court.missing,
 					inSession: court.session !== undefined,
 					prices: court.ransomPrices(),
+					// The facts: the arena's stop rule (arena.ts:335-338) and the gamemaker's section (situation.ts:264-294).
+					facts: { stop: { endReason: court.endReason ?? null, busy: court.busy, pursuing: court.pursuing }, section: sectionOfOld(court) },
 				}),
 			);
 		}
@@ -393,6 +396,7 @@ export async function runNew(scenario: Scenario): Promise<Streams> {
 
 /** What the view and the other mechanics read of the tribunal now, through its APIs. */
 function viewOf(host: Host, minute: number): Promise<string> {
+	const facts = host.facts();
 	return runProbe(host, (ctx) => {
 		const window = ctx.tryCall(TribunalViewApi, "schedulingWindow", {});
 		const risk = ctx.tryCall(TribunalViewApi, "atRisk", {});
@@ -405,6 +409,7 @@ function viewOf(host: Host, minute: number): Promise<string> {
 			missing: ctx.tryCall(TribunalApi, "missing", {}),
 			inSession: ctx.tryCall(TribunalApi, "inSession", {}),
 			prices: ctx.tryCall(TribunalApi, "ransomPrices", {}),
+			facts: { stop: facts["tribunal.stop"], section: facts["tribunal.section"] },
 		});
 	});
 }
