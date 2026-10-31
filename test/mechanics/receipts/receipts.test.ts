@@ -15,37 +15,12 @@ import { ledger } from "@swarmtales/mechanic-ledger";
 import { receipts } from "@swarmtales/mechanic-receipts";
 import { ReceiptsApi } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
+import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
 import { channelsStandIn, GOLDEN_LOGS, goldenLog, ids, sourcesOf, writtenBy } from "../t1/support.ts";
-import { exileStandIn } from "../t1/stand-ins.ts";
+import { exileStandIn, receiptReplay } from "../t1/stand-ins.ts";
 
 const PROMPTS = createPromptLookup({ mechanics: { receipts: join(import.meta.dirname, "../../../mechanics/receipts/prompts") } });
 
-/** Issues, at the start of each minute, the receipts the golden run issued then: what progression (level-ups) and channels (delivered DMs) do. */
-function issuer(golden: readonly LegacyLine[]): MechanicUse {
-	const lines = golden.filter((line) => line.type === "receipt_issued");
-	return defineMechanic(
-		{ id: "issuer", summary: "Stand-in for the issuers of team T3 (progression) and T2 (channels): replays the golden receipts.", options: Type.Object({}), state: () => undefined, events: {}, requires: [ReceiptsApi] },
-		() => ({
-			hooks: {
-				minuteStarted: (ctx) => {
-					for (const line of lines) {
-						if (line.minute !== ctx.minute || typeof line.text !== "string") continue;
-						const level = /^R-\d+: (\S+) solved level (\d+), \+(\d+) points?, minute \d+$/.exec(line.text);
-						if (level?.[1] !== undefined && level[2] !== undefined && level[3] !== undefined) {
-							ctx.call(ReceiptsApi, "issue", { body: { kind: "levelUp", agent: level[1], level: Number(level[2]), reward: Number(level[3]) } });
-							continue;
-						}
-						const dm = /^R-\d+: DM #(\d+) from (\S+), delivered to (\S+) at minute \d+(?:, text (".*"))?$/.exec(line.text);
-						if (dm?.[1] === undefined || dm[2] === undefined || dm[3] === undefined) throw new Error(`a golden receipt that is neither a level-up nor a DM: ${line.text}`);
-						const text: unknown = dm[4] === undefined ? undefined : JSON.parse(dm[4]);
-						ctx.call(ReceiptsApi, "issue", { body: { kind: "dm", from: dm[2], to: dm[3], number: Number(dm[1]), ...(typeof text === "string" ? { text } : {}) } });
-					}
-				},
-			},
-		}),
-	).with();
-}
 
 describe("the golden gate for receipt_issued", () => {
 	it.each(GOLDEN_LOGS)("%s: the receipts equal the golden run's", async (name) => {
@@ -55,7 +30,7 @@ describe("the golden gate for receipt_issued", () => {
 			seed: 7,
 			minutes: 21,
 			residents: ids(6),
-			mechanics: [ledger.with(), channelsStandIn().use, receipts.with({ quoteDms: name.startsWith("whispers") }), issuer(log)],
+			mechanics: [ledger.with(), channelsStandIn().use, receipts.with({ quoteDms: name.startsWith("whispers") }), receiptReplay(log)],
 			grants: {},
 		});
 		const run = await playStory({ story: definition, prompts: PROMPTS }, idleAgent);

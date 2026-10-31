@@ -4,9 +4,10 @@
  * can compare the lines it writes with the golden ones.
  */
 import { Type } from "typebox";
+import { Parse } from "typebox/value";
 import type { EventsDefinition, MechanicUse } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ExileApi, ExileEvents, LedgerApi } from "@swarmtales/mechanic-shared";
+import { ExileApi, ExileEvents, LedgerApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import type { LegacyLine } from "@swarmtales/testkit";
 
 /**
@@ -66,6 +67,47 @@ export function ledgerReplay(golden: readonly LegacyLine[]): MechanicUse {
 						else if (credit === "SYSTEM_MINT_BURN") ctx.call(LedgerApi, "burn", { account: debit, amount, reason });
 						else ctx.call(LedgerApi, "move", { from: debit, to: credit, amount, reason });
 					}
+				},
+			},
+		}),
+	).with();
+}
+/** Issues, at the start of each minute, the receipts the golden run issued then: what progression (level-ups) and channels (delivered DMs) do. */
+export function receiptReplay(golden: readonly LegacyLine[]): MechanicUse {
+	const lines = golden.filter((line) => line.type === "receipt_issued");
+	return defineMechanic(
+		{ id: "issuer", summary: "Stand-in for the issuers of team T3 (progression) and T2 (channels): replays the golden receipts.", options: Type.Object({}), state: () => undefined, events: {}, requires: [ReceiptsApi] },
+		() => ({
+			hooks: {
+				minuteStarted: (ctx) => {
+					for (const line of lines) {
+						if (line.minute !== ctx.minute || typeof line.text !== "string") continue;
+						const level = /^R-\d+: (\S+) solved level (\d+), \+(\d+) points?, minute \d+$/.exec(line.text);
+						if (level?.[1] !== undefined && level[2] !== undefined && level[3] !== undefined) {
+							ctx.call(ReceiptsApi, "issue", { body: { kind: "levelUp", agent: level[1], level: Number(level[2]), reward: Number(level[3]) } });
+							continue;
+						}
+						const dm = /^R-\d+: DM #(\d+) from (\S+), delivered to (\S+) at minute \d+(?:, text (".*"))?$/.exec(line.text);
+						if (dm?.[1] === undefined || dm[2] === undefined || dm[3] === undefined) throw new Error(`a golden receipt that is neither a level-up nor a DM: ${line.text}`);
+						const text: unknown = dm[4] === undefined ? undefined : JSON.parse(dm[4]);
+						ctx.call(ReceiptsApi, "issue", { body: { kind: "dm", from: dm[2], to: dm[3], number: Number(dm[1]), ...(typeof text === "string" ? { text } : {}) } });
+					}
+				},
+			},
+		}),
+	).with();
+}
+
+/** A stand-in for the puzzles mechanic of team T3: writes the golden run's `fragments_dealt` when the run starts, so the whisperer's tally can tell a hand-over from a whisper. */
+export function fragmentsStandIn(golden: readonly LegacyLine[]): MechanicUse {
+	const lines = golden.filter((line) => line.type === "fragments_dealt");
+	const Dealt = Type.Object({ level: Type.Integer(), holdings: Type.Array(Type.Object({ agent: Type.String(), team: Type.Integer(), fragment: Type.String() })) });
+	return defineMechanic(
+		{ id: "puzzles", summary: "Stand-in for the puzzles mechanic of team T3: replays the golden fragments_dealt.", options: Type.Object({}), state: () => undefined, events: { fragments_dealt: Dealt } },
+		() => ({
+			hooks: {
+				runStarted: (ctx) => {
+					for (const line of lines) ctx.emit("fragments_dealt", Parse(Dealt, { level: line.level, holdings: line.holdings }));
 				},
 			},
 		}),
