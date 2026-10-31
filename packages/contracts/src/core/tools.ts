@@ -31,16 +31,22 @@ export interface ToolSuccess {
 export type ToolOutcome = ToolSuccess | Refusal;
 
 /**
- * The window a limit counts in: the current minute, the whole run, or the time since the last
- * event of a type (`{ resetOn: "<mechanic event>" }` gives "8 per resident between two such
- * events" without the core knowing what the event means).
+ * The window a limit counts in: the current minute, the whole run, aligned windows of `minutes`
+ * minutes (`{ minutes: 4 }` counts in minutes 0-3, 4-7, ...), or the time since the last event of a
+ * type (`{ resetOn: "<mechanic event>" }` gives "8 per resident between two such events" without
+ * the core knowing what the event means).
  */
-export type LimitWindow = "minute" | "run" | { readonly resetOn: string };
+export type LimitWindow = "minute" | "run" | { readonly minutes: number } | { readonly resetOn: string };
 
 /** At most `max` successful calls per actor and window. */
 export interface ToolLimit {
 	readonly max: number;
 	readonly per: LimitWindow;
+	/**
+	 * A counter shared with every other limit of the same key: one cap over several tools (messages
+	 * and transfers with a note count together). Limits of one key must have the same window; each checks its own `max`.
+	 */
+	readonly key?: string;
 }
 
 /** One call as the pipeline's stage handlers see it; `params` is raw at `lock` and checked from `limit` on. */

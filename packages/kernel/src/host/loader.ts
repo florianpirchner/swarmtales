@@ -113,8 +113,14 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 		bus.listen(instance.listeners);
 	}
 	checkListeners(order, instances);
-	const named = [...Object.values(story.grants).flat(), ...(story.locked ?? []), ...Object.keys(story.tools ?? {})];
+	const policies = Object.values(story.tools ?? {}).flatMap((byTool) => Object.keys(byTool));
+	const named = [...Object.values(story.grants).flat(), ...(story.locked ?? []), ...policies];
 	for (const name of named) if (!tools.has(name)) throw new Error(`story: tool "${name}" is granted, locked or configured, but no loaded mechanic defines it`);
+	for (const [role, byTool] of Object.entries(story.tools ?? {})) {
+		if (role === "resident") continue;
+		const guarded = Object.entries(byTool).find(([, policy]) => policy?.guard !== undefined);
+		if (guarded !== undefined) throw new Error(`story: tool "${guarded[0]}" has a guard policy for ${role}, but the guard covers residents only`);
+	}
 	return { order: order.map((use) => use.mechanic.id), instances, tools };
 }
 

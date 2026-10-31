@@ -40,11 +40,17 @@ export class Referee {
 		this.#run = run;
 	}
 
-	/** A tool limit, from the tool itself (only for the roles its variant serves) or the story's policy. */
+	/** A tool limit, from the tool itself (only for the roles its variant serves) or the story's policy (only for its role). */
 	addToolLimit(tool: string, limit: ToolLimit, serves?: readonly GrantRole[]): void {
 		if (!Number.isInteger(limit.max) || limit.max < 0) throw new RangeError(`referee: invalid limit for ${tool}`);
+		const per = limit.per;
+		if (typeof per === "object" && "minutes" in per && (!Number.isInteger(per.minutes) || per.minutes < 1)) throw new RangeError(`referee: invalid window of ${String(per.minutes)} minutes for ${tool}`);
 		const list = this.#tools.get(tool) ?? [];
-		list.push({ key: `${tool}#${String(list.length)}`, max: limit.max, per: limit.per, ...(serves === undefined ? {} : { serves }) });
+		const key = limit.key === undefined ? `${tool}#${String(list.length)}` : `shared:${limit.key}`;
+		if (list.some((other) => other.key === key)) throw new Error(`referee: ${tool} has two limits with the key "${String(limit.key)}"`);
+		const sibling = [...this.#tools.values()].flat().find((other) => other.key === key);
+		if (sibling !== undefined && JSON.stringify(sibling.per) !== JSON.stringify(per)) throw new Error(`referee: the limits with the key "${String(limit.key)}" count in different windows`);
+		list.push({ key, max: limit.max, per, ...(serves === undefined ? {} : { serves }) });
 		this.#tools.set(tool, list);
 	}
 
@@ -85,14 +91,15 @@ export class Referee {
 		}
 	}
 
-	minuteStarted(): void {
-		this.#reset((per) => per === "minute");
+	/** A new minute: minute windows end, and aligned windows end where `minute` starts the next one. */
+	minuteStarted(minute: number): void {
+		this.#reset((per) => per === "minute" || (typeof per === "object" && "minutes" in per && minute % per.minutes === 0));
 		for (const key of [...this.#counts.keys()]) if (key.startsWith("steps|")) this.#counts.delete(key);
 	}
 
 	/** Every event passes here, for windows that end with an event type. */
 	observe(type: string): void {
-		this.#reset((per) => typeof per === "object" && per.resetOn === type);
+		this.#reset((per) => typeof per === "object" && "resetOn" in per && per.resetOn === type);
 	}
 
 	recordCost(usd: number): void {

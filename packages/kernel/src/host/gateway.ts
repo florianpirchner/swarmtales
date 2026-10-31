@@ -7,7 +7,7 @@
  * after the call (or the code) that staged them, as actor `script`. Every caller reads its reply
  * through the mechanics' `display` (names for ids); the events keep what happened.
  */
-import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicy } from "@swarmtales/contracts";
+import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicies, ToolPolicy } from "@swarmtales/contracts";
 import { refuse } from "./define.ts";
 import { residentOf, roleOf, type AccessControl } from "./access.ts";
 import { toolFor, type ToolCatalog } from "./catalog.ts";
@@ -28,7 +28,8 @@ export interface GatewayParts extends WaitParts {
 	/** By name, one entry per role-disjoint variant. */
 	readonly tools: ToolCatalog;
 	readonly instanceOf: (id: string) => MechanicInstance | undefined;
-	readonly policies: Readonly<Record<string, ToolPolicy | undefined>>;
+	/** The story's policies by role, then tool. */
+	readonly policies: ToolPolicies<string>;
 	readonly access: AccessControl;
 	readonly residents: ResidentRegistry;
 	readonly staging: StagingQueue;
@@ -168,9 +169,10 @@ export class Gateway {
 			const poor = inChain(() => instance.hooks.afford(checked));
 			if (poor !== undefined) return refused("afford", poor);
 		}
-		const broken = this.#rules(prepared, checked, inChain);
+		const own = this.#policy(role, name);
+		const broken = this.#rules(prepared, checked, own, inChain);
 		if (broken !== undefined) return refused("rule", broken);
-		const policy = this.#parts.policies[name]?.guard;
+		const policy = own?.guard;
 		const blocked = policy === undefined ? undefined : await guardStage(this.#parts, policy, prepared, actor, name, chain);
 		if (blocked !== undefined) return refused("guard", blocked);
 		const declined = await consultStage(this.#parts, prepared, actor, name, chain);
@@ -205,10 +207,15 @@ export class Gateway {
 		return undefined;
 	}
 
-	#rules(prepared: PreparedCall, call: ToolCall, inChain: <T>(code: () => T) => T): Refusal | undefined {
+	/** The story's policy of a tool for the caller's role. */
+	#policy(role: GrantRole, name: string): ToolPolicy | undefined {
+		return this.#parts.policies[role]?.[name];
+	}
+
+	#rules(prepared: PreparedCall, call: ToolCall, policy: ToolPolicy | undefined, inChain: <T>(code: () => T) => T): Refusal | undefined {
 		const own = inChain(() => prepared.rule());
 		if (own !== undefined) return own;
-		for (const rule of this.#parts.policies[call.tool]?.rules ?? []) {
+		for (const rule of policy?.rules ?? []) {
 			const broken = storyRule(rule, call.params, this.#parts.reply);
 			if (broken !== undefined) return broken;
 		}

@@ -155,7 +155,7 @@ function story(mechanics: readonly MechanicUse[], extra: { readonly guard?: bool
 		residents: 4,
 		mechanics,
 		grants: { resident: ["send", "accuse", "announce"], gamemaker: ["announce", "draw"], script: ["announce"] },
-		...(extra.guard === true ? { tools: { send: { guard: { id: "no-codes", rule: "No codes.", on: "block" as const, secrets: { minRun: 3 } } } } } : {}),
+		...(extra.guard === true ? { tools: { resident: { send: { guard: { id: "no-codes", rule: "No codes.", on: "block" as const, secrets: { minRun: 3 } } } } } } : {}),
 	});
 }
 

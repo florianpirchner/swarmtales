@@ -8,6 +8,7 @@ import { Check, Clone, Parse } from "typebox/value";
 import {
 	CORE_EVENTS,
 	EventEnvelopeSchema,
+	GRANT_ROLES,
 	HostSnapshotSchema,
 	type Actor,
 	type CoreStory,
@@ -132,8 +133,10 @@ class CoreHost implements Host {
 		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging });
 		for (const [name, variants] of this.#loaded.tools) {
 			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
-			const policy = story.tools?.[name]?.limit;
-			if (policy !== undefined) this.#referee.addToolLimit(name, policy);
+			for (const role of GRANT_ROLES) {
+				const policy = story.tools?.[role]?.[name]?.limit;
+				if (policy !== undefined) this.#referee.addToolLimit(name, policy, [role]);
+			}
 		}
 		this.#referee.addRunLimits(this.#instances().flatMap((instance) => instance.limits));
 		this.#access.lockAtStart(ids, story.locked ?? []);
@@ -247,7 +250,7 @@ class CoreHost implements Host {
 	async #play(agent: TurnTaker): Promise<void> {
 		const minute = this.#minute;
 		const bus = this.#bus;
-		this.#referee.minuteStarted();
+		this.#referee.minuteStarted(minute);
 		bus.emit("core", "minute_started", {});
 		// Calls staged before the first minute (by runStarted hooks) run now.
 		await this.#gateway.settle();

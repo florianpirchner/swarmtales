@@ -132,7 +132,7 @@ export const typedStory = defineCoreStory({
 	mechanics: [ledger.with({ start: 4 }), channels.with()],
 	grants: { resident: ["transferPoints", "sendDM"], gamemaker: ["postBoard"] },
 	locked: ["sendDM"],
-	tools: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 10 }] } },
+	tools: { gamemaker: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 10 }] } } },
 });
 
 export const wrongGrant = defineCoreStory({

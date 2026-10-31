@@ -124,7 +124,7 @@ describe("the tool pipeline", () => {
 			judge: (question) =>
 				Promise.resolve(question.text === "broken" ? { ok: false, error: "offline", usage: [] } : { ok: true, allowed: !question.text.includes("secret"), reason: "names a secret", usage: [] }),
 		};
-		const host = createHost({ story: story([counter.with()], { minutes: 1, tools: { bump: { guard: { rule: "No secrets.", on: "block" } } } }), guard: judge });
+		const host = createHost({ story: story([counter.with()], { minutes: 1, tools: { resident: { bump: { guard: { rule: "No secrets.", on: "block" } } } } }), guard: judge });
 		host.start();
 		expect(await host.call("resident:A01", "bump", { text: "my secret" })).toEqual({ ok: false, code: "GUARD_BLOCKED", detail: "names a secret" });
 		expect(await host.call("resident:A02", "bump", { text: "broken" })).toEqual({ ok: true, reply: "1" });

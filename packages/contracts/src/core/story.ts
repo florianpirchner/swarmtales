@@ -13,6 +13,13 @@ export type ToolOf<Ms extends readonly MechanicUse[]> = NonNullable<Ms[number]["
 
 export type Grants<T extends string> = Partial<Readonly<Record<GrantRole, readonly T[]>>>;
 
+/**
+ * The story's tool policies, keyed by the role they bind and then the tool: a limit or a rule for
+ * residents does not touch the gamemaker's variant of the same name. A guard policy binds only
+ * residents (the guard covers resident callers), so it is refused under another role.
+ */
+export type ToolPolicies<T extends string> = Partial<Readonly<Record<GrantRole, Partial<Readonly<Record<T, ToolPolicy>>>>>>;
+
 /** The referee's own limits. The run's length is `minutes`. */
 export interface RunLimits {
 	/** Tool calls per resident per minute, refused calls included. */
@@ -32,7 +39,7 @@ export interface CoreStory<Ms extends readonly MechanicUse[] = readonly Mechanic
 	readonly grants: Grants<ToolOf<Ms>>;
 	/** Tools every resident starts with locked; mechanics unlock them. */
 	readonly locked?: readonly ToolOf<Ms>[];
-	readonly tools?: Partial<Readonly<Record<ToolOf<Ms>, ToolPolicy>>>;
+	readonly tools?: ToolPolicies<ToolOf<Ms>>;
 	readonly limits?: RunLimits;
 	/** Overrides the fields of a mechanic's turn policy; without either, one turn per resident and minute. */
 	readonly turns?: TurnPolicy;
@@ -47,6 +54,6 @@ export interface CoreStoryData {
 	readonly mechanics: readonly { readonly id: string; readonly options: unknown }[];
 	readonly grants: Grants<string>;
 	readonly locked?: readonly string[];
-	readonly tools?: Readonly<Record<string, ToolPolicy | undefined>>;
+	readonly tools?: ToolPolicies<string>;
 	readonly limits?: RunLimits;
 }

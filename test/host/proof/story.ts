@@ -18,7 +18,7 @@ export const minimal = defineCoreStory({
 	mechanics: [channels.with({ dmCost: 1 }), ledger.with({ start: 3 })],
 	grants: { resident: ["postBoard", "readBoard", "sendDM", "transferPoints"], gamemaker: ["postBoard"] },
 	locked: ["sendDM"],
-	tools: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 40 }] }, sendDM: { limit: { max: 1, per: "minute" } } },
+	tools: { resident: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 40 }] }, sendDM: { limit: { max: 1, per: "minute" } } } },
 	limits: { maxStepsPerMinute: 4 },
 });
 
