@@ -75,6 +75,12 @@ export interface Host {
 	snapshot(): HostSnapshot;
 	/** Sinks see every event after the mechanics' listeners, in log order. */
 	subscribe(sink: (event: EventEnvelope) => void): void;
+	/**
+	 * Writes an event of the app (source `app`): what the agent runner and the roles see that no
+	 * mechanic knows (a model's text, its usage, the tool call as the model wrote it). Only types
+	 * declared in `HostOptions.app` are taken, with a payload of their schema.
+	 */
+	record(actor: Actor, type: string, payload: unknown): void;
 	/** The app reports model spending; the referee stops at `maxCostUsd`. */
 	recordCost(usd: number): void;
 	stop(reason: string): void;

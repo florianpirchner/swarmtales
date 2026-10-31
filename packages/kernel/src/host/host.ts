@@ -6,11 +6,13 @@
  */
 import { Check, Clone, Parse } from "typebox/value";
 import {
+	CORE_EVENTS,
 	EventEnvelopeSchema,
 	HostSnapshotSchema,
 	type Actor,
 	type CoreStory,
 	type EventEnvelope,
+	type EventSchemas,
 	type GrantRole,
 	type GuardJudge,
 	type Host,
@@ -52,6 +54,8 @@ export interface HostOptions {
 	 * the run's state. Their calls go through `host.call`.
 	 */
 	readonly between?: (minute: number) => Promise<void>;
+	/** The events the app may write with `host.record` (source `app`). */
+	readonly app?: { readonly events: EventSchemas };
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
@@ -93,6 +97,7 @@ class CoreHost implements Host {
 	readonly #turns: TurnLoop;
 	readonly #staging = new StagingQueue();
 	readonly #between: ((minute: number) => Promise<void>) | undefined;
+	readonly #app: EventSchemas;
 	#minute = 0;
 	#breach: Breach | undefined;
 	#started = false;
@@ -117,6 +122,9 @@ class CoreHost implements Host {
 			this.#referee.observe(event.type);
 		});
 		this.#between = options.between;
+		this.#app = options.app?.events ?? {};
+		const reserved = Object.keys(this.#app).find((type) => Object.hasOwn(CORE_EVENTS, type));
+		if (reserved !== undefined) throw new Error(`app: event "${reserved}" is reserved by the core`);
 		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging });
 		for (const [name, variants] of this.#loaded.tools) {
 			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
@@ -313,6 +321,13 @@ class CoreHost implements Host {
 
 	subscribe(sink: (event: EventEnvelope) => void): void {
 		this.#bus.subscribe(sink);
+	}
+
+	record(actor: Actor, type: string, payload: unknown): void {
+		const schema = this.#app[type];
+		if (schema === undefined) throw new Error(`app: event "${type}" is not declared`);
+		if (!Check(schema, payload)) throw new Error(`app: the payload of "${type}" does not match its schema`);
+		this.#bus.run({ actor }, () => this.#bus.emit("app", type, payload));
 	}
 
 	recordCost(usd: number): void {

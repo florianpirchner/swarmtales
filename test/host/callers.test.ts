@@ -307,3 +307,20 @@ describe("the gamemaker as a role with grants", () => {
 		expect(drawn.map((entry) => entry.replace(/^\d+:/, "")).every((entry) => /^drawn: (Ada|Bea|Cyd|Dov)$/.test(entry))).toBe(true);
 	});
 });
+
+describe("app events", () => {
+	it("writes only declared app events, with their schema, as source app", () => {
+		const app = { events: { usage: Type.Object({ agent: Type.String(), costUsd: Type.Number() }) } };
+		const host = createHost({ story: story(ALL), app });
+		host.start();
+		host.record("resident:A01", "usage", { agent: "A01", costUsd: 0 });
+		expect(host.log.all().at(-1)).toMatchObject({ type: "usage", source: "app", actor: "resident:A01", payload: { agent: "A01", costUsd: 0 } });
+		expect(() => {
+			host.record("host", "usage", { agent: 1 });
+		}).toThrow(/does not match/);
+		expect(() => {
+			host.record("host", "text", {});
+		}).toThrow(/not declared/);
+		expect(() => createHost({ story: story(ALL), app: { events: { run_ended: Type.Object({}) } } })).toThrow(/reserved/);
+	});
+});
