@@ -1,19 +1,148 @@
 /**
- * The `cast` mechanic (carve step 9, team T2, docs/design/carve-team-T2.md).
- * Empty in wave 3.0: only its head, with the frozen APIs and events of
- * `@swarmtales/mechanic-shared` it provides, requires and uses. The team adds state, options,
- * events, prompts and the body (`defineMechanic(head, build)`) here.
+ * The `cast` mechanic (carve step 9, team T2, docs/design/carve-team-T2.md): named NPCs the
+ * script plays (SPEC 4). It provides `CastApi`: channels routes a resident's DM to a cast member
+ * here (`receive`), the script reveals and retires members, pays from their escrow, starts and
+ * shortens collections of DMs, publishes them and draws lotteries among their senders. A
+ * collection whose window also ends some minutes after the first solve of a level (v09) is
+ * shortened at the start of the minute, before the script's triggers (load cast before script).
+ * The input kind `character` (cues) is the script's, not written here.
  */
 import { Type } from "typebox";
-import { defineHead } from "@swarmtales/kernel";
-import { CastApi, CastEvents, ChannelsApi, LedgerApi, ProgressionApi } from "@swarmtales/mechanic-shared";
+import { Parse } from "typebox/value";
+import type { ContextOf } from "@swarmtales/contracts";
+import { defineMechanic } from "@swarmtales/kernel";
+import { CastApi, ChannelsApi, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { castHead } from "./head.ts";
+import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
-export const castHead = defineHead({
-	id: "cast",
-	summary: "The cast: figures, their escrow, collections and lotteries.",
-	options: Type.Object({}),
-	state: () => undefined,
-	events: { ...CastEvents.events },
-	provides: [CastApi],
-	requires: [ChannelsApi, ProgressionApi, LedgerApi],
-});
+export { castHead };
+
+type Ctx = ContextOf<typeof castHead>;
+
+/** The name the city signs its notices with. */
+const CITY = "CITY";
+
+const Slice = Type.Object({ members: Type.Array(MemberRecord), collections: Type.Array(CollectionRecord), funded: Type.Array(Type.String()) });
+const LegacySlice = Type.Object({ cast: Type.Object({ members: Type.Array(MemberRecord), collections: Type.Array(CollectionRecord) }) });
+
+/** Opens the escrow account of every member that has none yet and funds it from the system account. */
+function fundMissing(ctx: Ctx): void {
+	for (const member of ctx.state.registry.members.values()) {
+		if (ctx.state.funded.has(member.id)) continue;
+		ctx.state.funded.add(member.id);
+		const escrow = ctx.options.members[member.id]?.escrow ?? 0;
+		if (escrow > 0) ctx.call(LedgerApi, "mint", { account: escrowAccountId(member.id), amount: escrow, reason: `escrow ${member.id}` });
+	}
+}
+
+/** Ends a collection's window earlier, at `untilMinute` (not before this minute). */
+function shorten(ctx: Ctx, into: string, untilMinute: number): void {
+	if (!ctx.state.registry.shortenCollection(into, untilMinute, ctx.minute)) return;
+	ctx.emit("collection_shortened", { into, untilMinute: ctx.state.registry.collections.get(into)?.untilMinute ?? untilMinute });
+}
+
+export const cast = defineMechanic(castHead, (kit) => ({
+	services: [
+		kit.provide(CastApi, {
+			isActive: (input, ctx) => ctx.state.registry.isActive(input.cast),
+			receive: (input, ctx) => {
+				const collected = ctx.state.registry.collect(input.cast, { from: input.from, text: input.text, minute: ctx.minute });
+				ctx.emit("cast_dm", { from: input.from, cast: input.cast, text: input.text, collections: collected.collections, number: input.number });
+				return { collections: collected.collections, newSender: collected.newSender };
+			},
+			setLevel: (input, ctx) => {
+				if (ctx.state.registry.setLevel(input.cast, input.level)) ctx.emit("cast_level_set", { cast: input.cast, level: input.level, audit: "NPC_LEVEL_SET" });
+				return null;
+			},
+			reveal: (input, ctx) => {
+				const changed = ctx.state.registry.reveal(input.cast);
+				if (changed) ctx.emit("cast_revealed", { cast: input.cast });
+				return changed;
+			},
+			retire: (input, ctx) => {
+				const changed = ctx.state.registry.retire(input.cast);
+				if (changed) ctx.emit("cast_retired", { cast: input.cast });
+				return changed;
+			},
+			escrow: (input, ctx) => {
+				if (!ctx.state.registry.has(input.cast)) return { ok: false, code: "UNKNOWN_CAST", detail: input.cast };
+				if (!ctx.residents.ids.includes(input.to)) return { ok: false, code: "UNKNOWN_AGENT", detail: input.to };
+				const account = escrowAccountId(input.cast);
+				const balance = ctx.call(LedgerApi, "balance", { account });
+				if (!Number.isInteger(input.amount) || input.amount <= 0 || balance < input.amount) return { ok: false, code: "INSUFFICIENT_ESCROW", detail: `${String(balance)} left` };
+				ctx.call(LedgerApi, "move", { from: account, to: input.to, amount: input.amount, reason: `escrow ${input.cast}` });
+				const receipt = ctx.tryCall(ReceiptsApi, "issue", { body: { kind: "escrow", cast: input.cast, to: input.to, amount: input.amount } });
+				if (receipt !== undefined) ctx.call(ChannelsApi, "notify", { to: input.to, author: CITY, text: receipt.text });
+				return { ok: true };
+			},
+			startCollection: (input, ctx) => {
+				const started = ctx.state.registry.startCollection(input.into, input.cast, input.first, input.untilMinute, input.distinctSenders, input.afterSolve);
+				if (started) ctx.emit("collection_started", { into: input.into, cast: input.cast, first: input.first, untilMinute: input.untilMinute });
+				return started;
+			},
+			shortenCollection: (input, ctx) => {
+				shorten(ctx, input.into, input.untilMinute);
+				return null;
+			},
+			revealCollection: (input, ctx) => {
+				const collection = ctx.state.registry.collections.get(input.into);
+				if (collection === undefined) return { ok: false, code: "UNKNOWN_COLLECTION", detail: input.into };
+				const lines =
+					collection.entries.length === 0
+						? [ctx.prompt("cast/collection-empty", {})]
+						: collection.entries.map((entry, index) => ctx.prompt("cast/collection-entry", { index: index + 1, from: entry.from, minute: entry.minute, text: entry.text }));
+				const post = ctx.call(ChannelsApi, "post", { author: collection.cast, text: [...(input.header === undefined ? [] : [input.header]), ...lines].join("\n") });
+				ctx.emit("collection_revealed", { into: input.into, cast: collection.cast, entries: collection.entries.length, postSeq: post.postSeq, audit: "DIRECTOR_PRIVACY_BREACH" });
+				return { ok: true };
+			},
+			drawLottery: (input, ctx) => {
+				const collection = ctx.state.registry.collections.get(input.into);
+				if (collection === undefined) return null;
+				const candidates = [...new Set(collection.entries.map((entry) => entry.from))].sort((a, b) => a.localeCompare(b));
+				if (candidates.length === 0) return null;
+				const winner = ctx.rng("lottery", input.into, input.salt, ctx.minute).pick(candidates);
+				ctx.emit("lottery_drawn", { into: input.into, candidates, winner });
+				return winner;
+			},
+		}),
+	],
+	hooks: {
+		runStarted: fundMissing,
+		minuteStarted: (ctx) => {
+			// A cast member the story added after a snapshot gets its escrow now.
+			fundMissing(ctx);
+			for (const collection of [...ctx.state.registry.collections.values()]) {
+				const rule = collection.afterSolve;
+				if (rule === undefined || ctx.minute > collection.untilMinute) continue;
+				const solved = ctx.call(ProgressionApi, "firstSolveMinute", { level: rule.level });
+				if (solved !== null) shorten(ctx, collection.into, solved + rule.minutes);
+			}
+		},
+	},
+	facts: {
+		active: kit.fact(Type.Array(Type.Object({ id: Type.String(), level: Type.Integer() })), (view) => view.state.registry.active().map((member) => ({ id: member.id, level: member.level }))),
+		collections: kit.fact(Type.Record(Type.String(), Type.Array(Type.String())), (view) => Object.fromEntries([...view.state.registry.collections].map(([into, collection]) => [into, collection.entries.map((entry) => entry.from)]))),
+	},
+	snapshot: kit.snapshot({
+		version: 1,
+		schema: Slice,
+		save: (state) => ({
+			members: [...state.registry.members.values()].map((member) => ({ ...member })),
+			collections: [...state.registry.collections.values()].map((collection) => ({ ...collection, entries: collection.entries.map((entry) => ({ ...entry })) })),
+			funded: [...state.funded],
+		}),
+		load: (data, setup) => {
+			const state = castHead.state(setup);
+			state.registry.restore(data.members, data.collections);
+			for (const id of data.funded) state.funded.add(id);
+			return state;
+		},
+		// Version 0 is the old world field `cast`; every member it knew had its escrow opened.
+		migrations: {
+			0: (old) => {
+				const { cast: legacy } = Parse(LegacySlice, old);
+				return { members: legacy.members, collections: legacy.collections, funded: legacy.members.map((member) => member.id) };
+			},
+		},
+	}),
+}));

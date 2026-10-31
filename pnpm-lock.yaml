@@ -180,6 +180,9 @@ importers:
 
   mechanics/cast:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -192,6 +195,9 @@ importers:
 
   mechanics/channels:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -204,6 +210,9 @@ importers:
 
   mechanics/cores:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -285,6 +294,9 @@ importers:
 
   mechanics/petitions:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
