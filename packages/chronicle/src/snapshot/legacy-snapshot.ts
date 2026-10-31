@@ -9,7 +9,8 @@
  * Split world fields: a resident's `level`, `held`, `solved`, `wrongAttempts`, `extraTools` go to
  * `progression`, its `mailbox` and `notices` to `channels` (as `inboxes`); the tribunal's `gates`,
  * `exiled` and `ransomed` go to `exile`, and so does a copy of the holdout's `struck` (as
- * `holdout.struck`). Every other world field goes whole to one mechanic.
+ * `holdout.struck`). Every other world field goes whole to one mechanic. Progression gets a copy of
+ * `arena.delivered`, channels copies of `arena.seenBoard` and `gamemaker.notes`.
  */
 import type { EventEnvelope, HostSnapshot } from "@swarmtales/contracts";
 import { LegacyEventAdapter, envelopeFromLegacy, toRecorded } from "../log/legacy-events.ts";
@@ -48,6 +49,12 @@ export const LEGACY_WORLD_OWNERS: Readonly<Record<string, string>> = {
 const PROGRESSION_FIELDS = ["agent", "level", "held", "solved", "wrongAttempts", "extraTools"];
 const INBOX_FIELDS = ["agent", "mailbox", "notices"];
 const EXILE_FIELDS = ["gates", "exiled", "ransomed"];
+/** Lists of the old file outside `world` that a mechanic reads from its version-0 slice (R2-D16). */
+const COPIES: readonly { readonly from: string; readonly key: string; readonly mechanic: string }[] = [
+	{ from: "arena", key: "delivered", mechanic: "progression" },
+	{ from: "arena", key: "seenBoard", mechanic: "channels" },
+	{ from: "gamemaker", key: "notes", mechanic: "channels" },
+];
 
 type Json = Readonly<Record<string, unknown>>;
 
@@ -119,6 +126,13 @@ export function convertLegacySnapshot(raw: unknown, options: ConvertOptions = {}
 	}
 	put("progression", "competitors", competitors.map((entry) => pick(entry, PROGRESSION_FIELDS)));
 	put("channels", "inboxes", competitors.map((entry) => pick(entry, INBOX_FIELDS)));
+	// Copies of the arena's and the gamemaker's lists the mechanics took over (round 2, R2-D16); the
+	// arena and the roles keep the originals, so these copies are not written back.
+	for (const copy of COPIES) {
+		const from = raw[copy.from];
+		const value = isRecord(from) ? from[copy.key] : undefined;
+		if (Array.isArray(value)) put(copy.mechanic, copy.key, value);
+	}
 	const ids = snapshot.world.competitors.map((entry) => entry.agent);
 	const gone = [...(snapshot.world.tribunal?.exiled ?? []), ...(snapshot.world.holdout?.struck ?? [])];
 	const locks = options.locks;
@@ -185,6 +199,8 @@ export function toLegacySnapshot(converted: ConvertedSnapshot): RunSnapshot {
 			else if (key === "tribunal" && (mechanic === "tribunal" || mechanic === "exile") && isRecord(value)) Object.assign(tribunal, value);
 			// Exile's copy of the struck residents: the holdout's own slice writes `world.holdout`.
 			else if (mechanic === "exile" && key === "holdout") continue;
+			// Copies of the arena's and the gamemaker's lists: the originals are written back from there.
+			else if (COPIES.some((copy) => copy.mechanic === mechanic && copy.key === key)) continue;
 			else world[key] = value;
 		}
 	}
