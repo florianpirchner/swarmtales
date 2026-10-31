@@ -131,8 +131,8 @@ function toolHelp(ctx: ToolContextOf<typeof helperHead>): string {
 
 function viewHelp(view: ViewOf<typeof helperHead>): number {
 	// @ts-expect-error: a view has no emit
-	view.emit("helped", { n: 1 });
-	return view.state.seen;
+	const emit: unknown = view.emit;
+	return emit === undefined ? view.state.seen : 0;
 }
 
 export const helped = defineMechanic(helperHead, (kit) => ({

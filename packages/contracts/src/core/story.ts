@@ -5,6 +5,7 @@
  */
 import type { MechanicUse } from "./mechanic.ts";
 import type { ToolPolicy } from "./tools.ts";
+import type { TurnPolicy } from "./turns.ts";
 import type { GrantRole, ResidentId } from "./values.ts";
 
 /** The tool names of a list of mechanics. */
@@ -33,6 +34,8 @@ export interface CoreStory<Ms extends readonly MechanicUse[] = readonly Mechanic
 	readonly locked?: readonly ToolOf<Ms>[];
 	readonly tools?: Partial<Readonly<Record<ToolOf<Ms>, ToolPolicy>>>;
 	readonly limits?: RunLimits;
+	/** Overrides the fields of a mechanic's turn policy; without either, one turn per resident and minute. */
+	readonly turns?: TurnPolicy;
 }
 
 /** The story as data, for `000-run.json`: mechanics by id with their options. */

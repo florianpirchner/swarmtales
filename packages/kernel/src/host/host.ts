@@ -18,20 +18,21 @@ import {
 	type JsonValue,
 	type MechanicInstance,
 	type PromptLookup,
+	type ResidentId,
 	type RunEnd,
 	type ToolOutcome,
 	type ToolSpec,
 	type TurnTaker,
 } from "@swarmtales/contracts";
-import { rngFor } from "../random.ts";
-import { AccessControl, residentActor } from "./access.ts";
+import { AccessControl } from "./access.ts";
 import { Gateway } from "./gateway.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
-import { Referee } from "./referee.ts";
+import { Referee, type Breach } from "./referee.ts";
 import { ResidentRegistry, residentIds, type ResidentsState } from "./residents.ts";
 import { Scheduler } from "./scheduler.ts";
+import { mergePolicies, TurnLoop } from "./turns.ts";
 
 export interface HostOptions {
 	readonly story: CoreStory;
@@ -39,6 +40,8 @@ export interface HostOptions {
 	readonly guard?: GuardJudge;
 	/** A snapshot (untrusted, parsed here) and the log up to it. */
 	readonly resume?: { readonly snapshot: unknown; readonly events: readonly unknown[] };
+	/** Whether a resident's agent ended its last turn with results it has not answered (`activation: "onNews"`). */
+	readonly awaitsAnswer?: (resident: ResidentId) => boolean;
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
@@ -77,7 +80,9 @@ class CoreHost implements Host {
 	readonly #referee: Referee;
 	readonly #loaded: Loaded;
 	readonly #gateway: Gateway;
+	readonly #turns: TurnLoop;
 	#minute = 0;
+	#breach: Breach | undefined;
 	#started = false;
 	#playing = false;
 	#stopRequest: string | undefined;
@@ -117,6 +122,29 @@ class CoreHost implements Host {
 			referee: this.#referee,
 			guard: options.guard,
 			reply: (code) => coreReply(this.#prompts, code),
+		});
+		const instances = this.#loaded.order.flatMap((id): readonly (readonly [string, MechanicInstance])[] => {
+			const instance = this.#loaded.instances.get(id);
+			return instance === undefined ? [] : [[id, instance]];
+		});
+		this.#turns = new TurnLoop({
+			seed: story.seed,
+			bus: this.#bus,
+			residents: this.#registry,
+			instances,
+			policy: mergePolicies(
+				instances.flatMap(([id, instance]) => (instance.turns === undefined ? [] : [[id, instance.turns] as const])),
+				story.turns,
+			),
+			awaitsAnswer: options.awaitsAnswer ?? (() => false),
+			tools: () => this.toolSpecs("resident"),
+			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
+			display: (text) => text,
+			settle: () => Promise.resolve(),
+			halted: () => {
+				this.#breach ??= this.#referee.breach();
+				return this.#breach !== undefined || this.#stopRequest !== undefined;
+			},
 		});
 		if (options.resume !== undefined) this.#restore(Parse(HostSnapshotSchema, options.resume.snapshot));
 	}
@@ -190,38 +218,19 @@ class CoreHost implements Host {
 		this.#each((instance) => {
 			instance.hooks.minuteStarted();
 		});
-		const order = rngFor(this.#story.seed, "turns", minute).shuffle(this.residents.filter((id) => this.#registry.mayAct(id)));
-		let breach = this.#referee.breach();
-		for (const resident of order) {
-			if (breach !== undefined || this.#stopRequest !== undefined) break;
-			if (this.#registry.mayAct(resident)) await this.#turn(agent, resident, minute);
-			breach = this.#referee.breach();
-		}
+		this.#breach = undefined;
+		await this.#turns.play(agent, minute);
 		this.#each((instance) => {
 			instance.hooks.minuteEnded();
 		});
 		bus.emit("core", "minute_ended", {});
 		this.#minute = minute + 1;
-		breach ??= this.#referee.breach();
+		const breach = this.#turnsBreach() ?? this.#referee.breach();
 		if (breach !== undefined) {
 			bus.emit("core", "referee_intervened", { limit: breach.limit, reason: breach.reason });
 			this.#end({ reason: "referee", minute: this.#minute, limit: breach.limit });
 		} else if (this.#stopRequest !== undefined) this.#end({ reason: "stopped", minute: this.#minute });
 		else if (this.#minute >= this.#story.minutes) this.#end({ reason: "minutes", minute: this.#minute });
-	}
-
-	async #turn(agent: TurnTaker, resident: string, minute: number): Promise<void> {
-		const inputs = this.#loaded.order.flatMap((id) => {
-			const instance = this.#loaded.instances.get(id);
-			const lines = instance === undefined ? [] : this.#bus.run({ actor: "host" }, () => instance.hooks.turnInputs(resident));
-			return lines.map((text) => ({ source: id, text }));
-		});
-		const started = this.#bus.emit("core", "turn_started", { resident, inputs });
-		const actor = residentActor(resident);
-		await agent({ resident, minute, inputs, tools: this.toolSpecs("resident"), call: (tool, params) => this.#gateway.call(actor, tool, params, started.seq) });
-		this.#each((instance) => {
-			instance.hooks.turnEnded(resident);
-		});
 	}
 
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome> {
@@ -284,6 +293,11 @@ class CoreHost implements Host {
 	stop(reason: string): void {
 		this.#stopRequest = reason;
 		if (!this.#playing && this.#ended === undefined) this.#end({ reason: "stopped", minute: this.#minute });
+	}
+
+	/** The breach that ended the turns of the minute, if one did. */
+	#turnsBreach(): Breach | undefined {
+		return this.#breach;
 	}
 
 	#instances(): readonly MechanicInstance[] {

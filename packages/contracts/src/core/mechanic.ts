@@ -8,7 +8,9 @@ import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
 import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
 import type { CORE_EVENTS, EventEnvelope, EventSchemas } from "./events.ts";
+import type { TurnLine } from "./host.ts";
 import type { Refusal, ToolCall, ToolLimit, ToolOutcome, ToolSuccess } from "./tools.ts";
+import type { TurnPolicy } from "./turns.ts";
 import type { Actor, GrantRole, JsonValue, PromptKeys, ResidentId } from "./values.ts";
 
 /** Prompt ids without variables (what a tool description must be). */
@@ -156,8 +158,12 @@ type CoreEventSchemas = typeof CORE_EVENTS;
 export interface MechanicHooks<M extends MechanicShape> {
 	runStarted?(ctx: MechanicContext<M>): void;
 	minuteStarted?(ctx: MechanicContext<M>): void;
-	/** Lines for the resident's next turn (notices, inbox). */
-	turnInputs?(resident: ResidentId, ctx: MechanicContext<M>): readonly string[];
+	/** Lines for the resident's next turn (notices, inbox), plain or with a kind the turn policy orders by. */
+	turnInputs?(resident: ResidentId, ctx: MechanicContext<M>): readonly TurnLine[];
+	/** Whether the resident has something new (`activation: "onNews"`); any mechanic saying yes activates it. */
+	news?(resident: ResidentId, ctx: MechanicContext<M>): boolean;
+	/** The resident's turn opens: every earlier member of its block has finished. */
+	turnOpened?(resident: ResidentId, ctx: MechanicContext<M>): void;
 	turnEnded?(resident: ResidentId, ctx: MechanicContext<M>): void;
 	minuteEnded?(ctx: MechanicContext<M>): void;
 	runEnded?(reason: string, ctx: MechanicContext<M>): void;
@@ -188,13 +194,17 @@ export interface MechanicBody<M extends MechanicShape, T extends readonly Mechan
 	readonly jobs?: Readonly<Record<string, MechanicJob<M>>>;
 	/** Required when the initial state is not `undefined`. */
 	readonly snapshot?: SnapshotSlice;
+	/** The turn policy this mechanic supplies (at most one loaded mechanic may); the story's fields win. */
+	readonly turns?: TurnPolicy;
 }
 
 /** Hooks and handlers of one instance, bound to its context. */
 export interface InstanceHooks {
 	runStarted(): void;
 	minuteStarted(): void;
-	turnInputs(resident: ResidentId): readonly string[];
+	turnInputs(resident: ResidentId): readonly TurnLine[];
+	news(resident: ResidentId): boolean;
+	turnOpened(resident: ResidentId): void;
 	turnEnded(resident: ResidentId): void;
 	minuteEnded(): void;
 	runEnded(reason: string): void;
@@ -217,6 +227,7 @@ export interface MechanicInstance {
 	runJob(job: string, data: JsonValue | undefined): void;
 	readonly stateful: boolean;
 	readonly snapshot: SnapshotSlice | undefined;
+	readonly turns: TurnPolicy | undefined;
 }
 
 /** The input type of `with()`: every option of the outer object may be left out and is filled from its default at load. */

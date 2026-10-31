@@ -52,11 +52,17 @@ export const CORE_EVENTS = {
 	}),
 	minute_started: Type.Object({}),
 	minute_ended: Type.Object({}),
+	/** A pass of the turn policy: its seeded order cut into blocks. */
+	pass_started: Type.Object({ pass: Type.Integer(), order: Type.Array(Type.String()), blocks: Type.Array(Type.Array(Type.String())) }),
 	turn_started: Type.Object({
 		resident: Type.String(),
+		pass: Type.Integer(),
+		block: Type.Integer(),
 		/** What the turn shows, tagged with the mechanic that contributed it. */
-		inputs: Type.Array(Type.Object({ source: Type.String(), text: Type.String() })),
+		inputs: Type.Array(Type.Object({ source: Type.String(), kind: Type.Optional(Type.String()), text: Type.String() })),
 	}),
+	/** `activation: "onNews"` and nothing new for this resident. */
+	turn_skipped: Type.Object({ resident: Type.String(), pass: Type.Integer(), block: Type.Integer() }),
 	tool_called: Type.Object({ tool: Type.String(), params: Type.Unknown() }),
 	tool_refused: Type.Object({ tool: Type.String(), stage: Stage, code: Type.String(), detail: Type.Optional(Type.String()) }),
 	guard_verdict: Type.Object({ tool: Type.String(), rule: Type.String(), allowed: Type.Boolean(), reason: Type.String() }),

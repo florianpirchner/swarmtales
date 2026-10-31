@@ -7,19 +7,32 @@ import type { EventEnvelope, EventLogView } from "./events.ts";
 import type { ToolOutcome, ToolSpec } from "./tools.ts";
 import type { Actor, GrantRole, ResidentId } from "./values.ts";
 
-/** One line of a turn's inputs, tagged with the mechanic that contributed it. */
+/** One line of a turn's inputs, tagged with the mechanic that contributed it and, when given, its kind. */
 export interface TurnNote {
 	readonly source: string;
+	/** The kind the turn policy orders by (`status`, `notice`, ...); absent for plain lines. */
+	readonly kind?: string;
 	readonly text: string;
 }
+
+/** What a mechanic's `turnInputs` hook returns per line: a plain line, or one with a kind. */
+export type TurnLine = string | { readonly kind: string; readonly text: string };
 
 /** What an agent gets for one turn. */
 export interface Turn {
 	readonly resident: ResidentId;
 	readonly minute: number;
+	/** Where the turn sits in the minute, both counted from 1. */
+	readonly pass: number;
+	readonly block: number;
 	readonly inputs: readonly TurnNote[];
 	/** Every tool granted to residents, locked or not (P46). */
 	readonly tools: readonly ToolSpec[];
+	/**
+	 * Resolves once every earlier member of the block has finished its turn. The agent may call its
+	 * model before; `call` waits for it by itself, so the calls land in the pass's order.
+	 */
+	readonly ready: Promise<void>;
 	/** Runs a call through the pipeline as this resident. */
 	call(tool: string, params: unknown): Promise<ToolOutcome>;
 }

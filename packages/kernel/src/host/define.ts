@@ -76,6 +76,7 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 		jobs: Object.keys(jobs),
 		stateful,
 		snapshot: body.snapshot,
+		turns: body.turns,
 		runJob(job, data) {
 			const run = jobs[job];
 			if (run === undefined) throw new Error(`${id}: no job "${job}"`);
@@ -85,6 +86,8 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 			runStarted: () => hooks.runStarted?.(ctx),
 			minuteStarted: () => hooks.minuteStarted?.(ctx),
 			turnInputs: (resident) => hooks.turnInputs?.(resident, ctx) ?? [],
+			news: (resident) => hooks.news?.(resident, ctx) ?? false,
+			turnOpened: (resident) => hooks.turnOpened?.(resident, ctx),
 			turnEnded: (resident) => hooks.turnEnded?.(resident, ctx),
 			minuteEnded: () => hooks.minuteEnded?.(ctx),
 			runEnded: (reason) => hooks.runEnded?.(reason, ctx),
