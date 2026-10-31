@@ -5,8 +5,8 @@
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { defineApi, defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import type { MechanicContext, Shape } from "@swarmtales/contracts";
+import { defineApi, defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
+import type { ContextOf } from "@swarmtales/contracts";
 
 const Moved = Type.Union([Type.Object({ ok: Type.Literal(true), balance: Type.Integer() }), Type.Object({ ok: Type.Literal(false), reason: Type.String() })]);
 
@@ -54,7 +54,18 @@ const prompts = {
 	"ledger/transfer-ok": ["amount", "to", "balance"],
 } as const;
 
-type Ctx = MechanicContext<Shape<typeof options, LedgerState, typeof events, typeof prompts, [], [typeof LedgerApi]>>;
+/** Declared apart from the body, so the helper below can name its context. */
+const head = defineHead({
+	id: "ledger",
+	summary: "Points per resident and transfers between residents.",
+	provides: [LedgerApi],
+	options,
+	state: ({ options: chosen, residents }): LedgerState => ({ balances: new Map(residents.map((id) => [id, chosen.start])) }),
+	events,
+	prompts,
+});
+
+type Ctx = ContextOf<typeof head>;
 
 function transfer(ctx: Ctx, from: string, to: string, amount: number, memo: string): { ok: true; balance: number } | { ok: false; reason: string } {
 	const balances = ctx.state.balances;
@@ -67,60 +78,49 @@ function transfer(ctx: Ctx, from: string, to: string, amount: number, memo: stri
 	return { ok: true, balance: have - amount };
 }
 
-export const ledger = defineMechanic(
-	{
-		id: "ledger",
-		summary: "Points per resident and transfers between residents.",
-		provides: [LedgerApi],
-		options,
-		state: ({ options: chosen, residents }): LedgerState => ({ balances: new Map(residents.map((id) => [id, chosen.start])) }),
-		events,
-		prompts,
-	},
-	(kit) => ({
-		services: [
-			kit.provide(LedgerApi, {
-				balance: (input, ctx) => ctx.state.balances.get(input.resident) ?? 0,
-				transfer: (input, ctx) => transfer(ctx, input.from, input.to, input.amount, input.memo),
-				charge: (input, ctx) => {
-					const have = ctx.state.balances.get(input.resident) ?? 0;
-					if (have < input.amount) return { ok: false, reason: `only ${String(have)} points` };
-					ctx.state.balances.set(input.resident, have - input.amount);
-					ctx.emit("points_charged", { resident: input.resident, amount: input.amount, memo: input.memo });
-					return { ok: true, balance: have - input.amount };
-				},
-			}),
-		],
-		tools: [
-			kit.tool({
-				name: "transferPoints",
-				description: "ledger/tools/transferPoints",
-				parameters: Type.Object({ to: Type.String(), amount: Type.Integer({ minimum: 1 }) }),
-				limit: { max: 2, per: "minute" },
-				suggest: ["resident"],
-				rule: (params, ctx) => {
-					if (params.to === ctx.resident) return refuse("SELF_TRANSFER");
-					if (params.amount > ctx.options.maxTransfer) return refuse("TOO_MUCH", `at most ${String(ctx.options.maxTransfer)}`);
-					return undefined;
-				},
-				execute: (params, ctx) => {
-					const moved = transfer(ctx, ctx.resident ?? "", params.to, params.amount, "transferPoints");
-					return moved.ok ? reply(ctx.prompt("ledger/transfer-ok", { amount: params.amount, to: params.to, balance: moved.balance })) : refuse("INSUFFICIENT_POINTS", moved.reason);
-				},
-			}),
-		],
-		facts: {
-			balances: kit.fact(Balances, (view) => Object.fromEntries(view.state.balances)),
-			transfers: kit.fact(Type.Integer(), (view) => view.log.ofType("ledger", "points_transferred").length),
-		},
-		limits: [kit.limit("non-negative", "No balance is ever below zero.", (view) => ([...view.state.balances.values()].some((points) => points < 0) ? "a balance fell below zero" : undefined))],
-		snapshot: kit.snapshot({
-			version: 2,
-			schema: Type.Object({ balances: Balances }),
-			save: (state) => ({ balances: Object.fromEntries(state.balances) }),
-			load: (data) => ({ balances: new Map(Object.entries(data.balances)) }),
-			/** Version 1 stored pairs; version 2 a record. */
-			migrations: { 1: (old) => ({ balances: Object.fromEntries(Parse(V1, old).points) }) },
+export const ledger = defineMechanic(head, (kit) => ({
+	services: [
+		kit.provide(LedgerApi, {
+			balance: (input, ctx) => ctx.state.balances.get(input.resident) ?? 0,
+			transfer: (input, ctx) => transfer(ctx, input.from, input.to, input.amount, input.memo),
+			charge: (input, ctx) => {
+				const have = ctx.state.balances.get(input.resident) ?? 0;
+				if (have < input.amount) return { ok: false, reason: `only ${String(have)} points` };
+				ctx.state.balances.set(input.resident, have - input.amount);
+				ctx.emit("points_charged", { resident: input.resident, amount: input.amount, memo: input.memo });
+				return { ok: true, balance: have - input.amount };
+			},
 		}),
+	],
+	tools: [
+		kit.tool({
+			name: "transferPoints",
+			description: "ledger/tools/transferPoints",
+			parameters: Type.Object({ to: Type.String(), amount: Type.Integer({ minimum: 1 }) }),
+			limit: { max: 2, per: "minute" },
+			suggest: ["resident"],
+			rule: (params, ctx) => {
+				if (params.to === ctx.resident) return refuse("SELF_TRANSFER");
+				if (params.amount > ctx.options.maxTransfer) return refuse("TOO_MUCH", `at most ${String(ctx.options.maxTransfer)}`);
+				return undefined;
+			},
+			execute: (params, ctx) => {
+				const moved = transfer(ctx, ctx.resident ?? "", params.to, params.amount, "transferPoints");
+				return moved.ok ? reply(ctx.prompt("ledger/transfer-ok", { amount: params.amount, to: params.to, balance: moved.balance })) : refuse("INSUFFICIENT_POINTS", moved.reason);
+			},
+		}),
+	],
+	facts: {
+		balances: kit.fact(Balances, (view) => Object.fromEntries(view.state.balances)),
+		transfers: kit.fact(Type.Integer(), (view) => view.log.ofType("ledger", "points_transferred").length),
+	},
+	limits: [kit.limit("non-negative", "No balance is ever below zero.", (view) => ([...view.state.balances.values()].some((points) => points < 0) ? "a balance fell below zero" : undefined))],
+	snapshot: kit.snapshot({
+		version: 2,
+		schema: Type.Object({ balances: Balances }),
+		save: (state) => ({ balances: Object.fromEntries(state.balances) }),
+		load: (data) => ({ balances: new Map(Object.entries(data.balances)) }),
+		/** Version 1 stored pairs; version 2 a record. */
+		migrations: { 1: (old) => ({ balances: Object.fromEntries(Parse(V1, old).points) }) },
 	}),
-);
+}));

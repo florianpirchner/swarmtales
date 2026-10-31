@@ -4,7 +4,8 @@
  * them, and every misuse below is a type error.
  */
 import { Type } from "typebox";
-import { defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
+import { defineCoreStory, defineHead, defineMechanic, reply } from "@swarmtales/kernel";
+import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
 import { channels } from "./proof/channels.ts";
 import { LedgerApi, ledger } from "./proof/ledger.ts";
 
@@ -102,3 +103,40 @@ export const wrongOption = ledger.with({ start: "ten" });
 
 // @ts-expect-error: an option the mechanic does not have
 export const unknownOption = ledger.with({ speed: 3 });
+
+/** `ContextOf` types a helper outside the body from a head declared apart. */
+const helperHead = defineHead({
+	id: "helped",
+	summary: "A head declared apart.",
+	requires: [LedgerApi],
+	options: Type.Object({ bonus: Type.Integer({ default: 1, description: "A number." }) }),
+	state: () => ({ seen: 0 }),
+	events: { helped: Type.Object({ n: Type.Integer() }) },
+	prompts: { "helped/tool": [] },
+});
+
+function help(ctx: ContextOf<typeof helperHead>): number {
+	ctx.state.seen += ctx.options.bonus;
+	ctx.emit("helped", { n: ctx.state.seen });
+	// @ts-expect-error: an event the head did not declare
+	ctx.emit("other", { n: 1 });
+	// @ts-expect-error: no such option
+	const { gone }: { readonly gone: number } = ctx.options;
+	return ctx.call(LedgerApi, "balance", { resident: "A01" }) + gone;
+}
+
+function toolHelp(ctx: ToolContextOf<typeof helperHead>): string {
+	return ctx.resident ?? ctx.actor;
+}
+
+function viewHelp(view: ViewOf<typeof helperHead>): number {
+	// @ts-expect-error: a view has no emit
+	view.emit("helped", { n: 1 });
+	return view.state.seen;
+}
+
+export const helped = defineMechanic(helperHead, (kit) => ({
+	tools: [kit.tool({ name: "help", description: "helped/tool", parameters: Type.Object({}), execute: (_params, ctx) => reply(`${toolHelp(ctx)} ${String(help(ctx))}`) })],
+	facts: { seen: kit.fact(Type.Integer(), (view) => viewHelp(view)) },
+	snapshot: kit.snapshot({ version: 1, schema: Type.Object({ seen: Type.Integer() }), save: (state) => ({ seen: state.seen }), load: (data) => ({ seen: data.seen }) }),
+}));

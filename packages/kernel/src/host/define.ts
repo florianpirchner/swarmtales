@@ -97,6 +97,23 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 	};
 }
 
+/**
+ * A mechanic's head declared apart from `defineMechanic`, so helpers outside the body can type
+ * their context with `ContextOf<typeof head>`. The defaults of the generics are filled here.
+ */
+export function defineHead<
+	const Id extends string,
+	S,
+	O extends TSchema,
+	E extends EventSchemas,
+	// eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type -- a mechanic without prompts has an empty prompt set
+	const P extends PromptKeys = Record<never, readonly string[]>,
+	const R extends readonly ApiDefinition[] = [],
+	const Pv extends readonly ApiDefinition[] = [],
+>(head: MechanicHead<Id, O, S, E, P, R, Pv>): MechanicHead<Id, O, S, E, P, R, Pv> {
+	return head;
+}
+
 export function defineMechanic<
 	const Id extends string,
 	S,

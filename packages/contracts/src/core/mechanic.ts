@@ -6,7 +6,7 @@
  */
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
-import type { FactView, MechanicContext, MechanicPort, MechanicShape, StateSetup, ToolContext } from "./context.ts";
+import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
 import type { CORE_EVENTS, EventEnvelope, EventSchemas } from "./events.ts";
 import type { Refusal, ToolCall, ToolLimit, ToolOutcome, ToolSuccess } from "./tools.ts";
 import type { Actor, GrantRole, JsonValue, PromptKeys, ResidentId } from "./values.ts";
@@ -39,6 +39,19 @@ export interface MechanicHead<
 	readonly events: E;
 	readonly prompts?: P;
 }
+
+/** The shape of a head declared apart with `defineHead`, so helpers outside the body can name their context. */
+export type ShapeOf<H> =
+	H extends MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv> ? Shape<O, S, E, P, R, Pv> : never;
+
+/** The context of hooks, listeners, jobs and services of the mechanic with head `H`. */
+export type ContextOf<H> = MechanicContext<ShapeOf<H>>;
+
+/** The context of the tools of the mechanic with head `H`. */
+export type ToolContextOf<H> = ToolContext<ShapeOf<H>>;
+
+/** The read-only view of the facts and limits of the mechanic with head `H`. */
+export type ViewOf<H> = FactView<ShapeOf<H>>;
 
 /** A tool as its author writes it. */
 export interface ToolDefinition<M extends MechanicShape, N extends string, P extends TSchema> {
