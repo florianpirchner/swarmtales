@@ -18,6 +18,7 @@
     "knip": "knip",
     "build": "pnpm -r build",
     "smoke": "node scripts/smoke-built-cli.mjs",
+    "mutants": "tsx --conditions=development scripts/mutants.ts",
     "report:minutes": "tsx --conditions=development apps/cli/src/report.ts",
     "report:run": "tsx --conditions=development apps/cli/src/run-report.ts",
     "report:private": "tsx --conditions=development apps/cli/src/private-report.ts",
