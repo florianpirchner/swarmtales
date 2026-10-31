@@ -43,6 +43,8 @@ export const standoffHead = defineHead({
 		"tools/claimPiece": [],
 		"replies/piece-bought": ["pieces", "price"],
 		"replies/locked": [],
+		"competitor/status/held": ["pieces"],
+		"competitor/status/held-piece": ["waiting", "level", "noun", "value"],
 		"gamemaker/tools/ultimatum": [],
 		"gamemaker/replies/ultimatum-given": ["number", "between", "until", "penalty"],
 	},
@@ -107,9 +109,9 @@ function heldPart(ctx: Ctx, agent: string): string | undefined {
 	const entries = heldAll(ctx, agent).flatMap((piece) => {
 		if (piece.kind === "fragment") return [];
 		const waiting = piece.needers.filter((needer) => !isExiled(ctx, needer) && ctx.call(ProgressionApi, "levelOf", { resident: needer }) === piece.level && !ctx.call(ProgressionApi, "hasPassed", { resident: needer, level: piece.level }));
-		return waiting.length === 0 ? [] : [`${waiting.join(", ")} door ${piece.level} ${NOUN[piece.kind]} ${piece.value}`];
+		return waiting.length === 0 ? [] : [ctx.prompt("competitor/status/held-piece", { waiting: waiting.join(", "), level: piece.level, noun: NOUN[piece.kind], value: piece.value })];
 	});
-	return entries.length === 0 ? undefined : `you hold for others: ${entries.join("; ")}`;
+	return entries.length === 0 ? undefined : ctx.prompt("competitor/status/held", { pieces: entries.join("; ") });
 }
 
 const UltimatumParams = Type.Object({

@@ -11,10 +11,12 @@ import type { Host } from "@swarmtales/contracts";
 import { standoff, standoffHead } from "@swarmtales/mechanic-standoff";
 import { HOOK_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createPromptLookup } from "@swarmtales/prompts";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
 import { probe, runProbe } from "./support/probe.ts";
 import { provider } from "./support/provider.ts";
-import { compareGolden, GOLDEN_LOGS, goldenOf, ownLines, startHost, storyOptions } from "./support/host.ts";
+import { compareGolden, GOLDEN_LOGS, goldenOf, ownLines, startHost, storyOptions, SUPPORT_PROMPTS } from "./support/host.ts";
 
 const A02_PIECE: HeldPiece = { id: "L8-counter-A01", kind: "counter", level: 8, label: "the counter-factor of A01 for door 8", value: "542489", needers: ["A01"] };
 const A01_PIECE: HeldPiece = { id: "L8-counter-A02", kind: "counter", level: 8, label: "the counter-factor of A02 for door 8", value: "403343", needers: ["A02"] };
@@ -206,6 +208,20 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 			return Promise.resolve();
 		});
 		expect(seen).toEqual(["you hold for others: A02 door 8 counter-factor 403343"]);
+	});
+
+	it("writes its status part from the prompt files competitor/status/held and held-piece", async () => {
+		const { story } = setup();
+		const options = storyOptions(story);
+		const folder = fileURLToPath(new URL("support/prompts-held", import.meta.url));
+		const host = createHost({ ...options, prompts: createPromptLookup({ mechanics: { probe: SUPPORT_PROMPTS, standoff: folder } }) });
+		host.start();
+		const seen: string[] = [];
+		await host.playMinute((current) => {
+			if (current.resident === "A01") seen.push(...current.inputs.filter((note) => note.kind === "status").map((note) => note.text));
+			return Promise.resolve();
+		});
+		expect(seen).toEqual(["HELD counter-factor=403343 for A02 at 8"]);
 	});
 
 	it("takes what a resident holds, needers in team-member order, from PuzzlesApi.heldPieces (old world.ts:2689-2693)", async () => {
