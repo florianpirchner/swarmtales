@@ -98,6 +98,19 @@ export const NotesApi = defineApi({
 	},
 });
 
+/** What more the cast offers readers (round 3, T2 request 1 / T3 request 1): the cast members that may speak now. */
+export const CastExtrasApi = defineApi({
+	name: "cast-extras",
+	summary: "The active cast members and their public levels.",
+	methods: {
+		active: query(
+			"Declared, revealed and not retired cast members in the story's order, with their public level (old `cast.active()`, world.ts:1407-1413).",
+			Type.Object({}),
+			Type.Array(Type.Object({ id: ResidentId, level: Type.Integer() })),
+		),
+	},
+});
+
 /** Cast members (step 8): figures the director plays, their collections and lotteries. */
 export const CastApi = defineApi({
 	name: "cast",

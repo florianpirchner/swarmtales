@@ -43,7 +43,7 @@ describe("members", () => {
 		expect(payloads(host, "cast_retired")).toEqual([{ cast: "STEWARD" }]);
 	});
 
-	it("lists the active members with their public level, in the story's order (the local CastExtrasApi.active, request 1)", async () => {
+	it("lists the active members with their public level, in the story's order (CastExtrasApi.active)", async () => {
 		const host = castCity({ hidden: true });
 		expect(await drive(host, { op: "active" })).toBe("[]");
 		expect(await drive(host, { op: "reveal", cast: "STEWARD" })).toBe("true");

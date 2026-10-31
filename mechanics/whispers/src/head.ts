@@ -19,7 +19,7 @@ export const DutyNow = Type.Object({
 	needWhispers: Type.Integer(),
 	needRecipients: Type.Integer(),
 	met: Type.Boolean(),
-	busiest: Type.Optional(Type.Tuple([Type.String(), Type.String()])),
+	busiest: Type.Optional(Type.Object({ pair: Type.Tuple([Type.String(), Type.String()]), dms: Type.Integer() })),
 });
 export interface DutyNowValue {
 	readonly agent: string;
@@ -30,7 +30,7 @@ export interface DutyNowValue {
 	readonly needWhispers: number;
 	readonly needRecipients: number;
 	readonly met: boolean;
-	readonly busiest?: [string, string];
+	readonly busiest?: { readonly pair: [string, string]; readonly dms: number };
 }
 
 export interface WhispersState {

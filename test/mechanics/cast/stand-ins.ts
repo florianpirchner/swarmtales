@@ -5,8 +5,7 @@
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { CastExtrasApi } from "@swarmtales/mechanic-cast";
-import { CastApi, ProgressionApi } from "@swarmtales/mechanic-shared";
+import { CastApi, CastExtrasApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import { reply } from "@swarmtales/kernel";
 
 /** `solves`: the minute the first resident passed each level; seen only from the next minute on, as real receipts are. */

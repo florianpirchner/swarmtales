@@ -11,7 +11,7 @@ import { describeReceipt, ReceiptBook, refillText, type MarksBook, type Receipt 
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
 import { render } from "@swarmtales/prompts";
-import { ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { CastExtrasApi, ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
 const base = { options: Type.Object({}), prompts: {} } as const;
 
@@ -219,6 +219,17 @@ export function twinCoreMotives(world: World) {
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
 			services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => world.coreMotiveOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
+		}),
+	);
+}
+
+/** The active cast members and their levels, from the old world (`cast.active()`); the world is read when the oracle exists. */
+export function twinCast(oracle: { world: World | undefined }) {
+	return defineMechanic(
+		{ ...base, id: "cast", summary: "Twin cast.", state: () => ({}), events: {}, provides: [CastExtrasApi] },
+		(kit) => ({
+			snapshot: kit.snapshot(NO_STATE),
+			services: [kit.provideSome(CastExtrasApi, { active: () => (oracle.world?.residents() ?? []).filter((entry) => entry.id === "STEWARD") })],
 		}),
 	);
 }

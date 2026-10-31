@@ -372,8 +372,13 @@ removed its `defy` tool, `DEFY_REASON`, the event, the `tools/defy` and `replies
 prompts, the `defiance` option, the lock branch and `defies()`. The packages test lost its
 foreign-event exception.
 - Story composition (step 17): `channels.defiance` is
-  `direction.level >= 10 && direction.defies && story.whisperer?.direction !== undefined`
-  (old world.ts:706, which tested `direction`, not `quota`: challenge 6).
+  `story.gamemaker !== undefined && gmDirection >= 10` (old compose, apps/cli/src/compose.ts:350: the
+  gamemaker's scenes are what a resident may refuse). The whisperer's flag is a separate one: the old
+  `#whispererDefies` (world.ts:707) is `direction.level >= 10 && direction.defies &&
+  story.whisperer?.direction !== undefined`, with `direction.defies` = `gamemaker && story.gamemaker !== undefined`
+  (compose.ts:353), and it belongs to the whispers `direction` option, not to `channels.defiance`.
+  (An earlier version of this text mapped `channels.defiance` to the whisperer's flag; that was wrong,
+  round 3 challengers.)
 - **T2:** `defy` must stay open after a resume, where `whisperer_chosen` is not written again. Lock
   it with a lock handler that reads the whisperer from the state or the log, not only from the
   listener.
@@ -517,7 +522,7 @@ byte-equal. **T3:** `migrateV0` reads `delivered` (`finished` per resident), and
 | `receipts.minRun` | the `postBoard` guard rule's `secrets.minRun`, only when the story has a tool guard |
 | `receipts.quoteDms` | `story.rules.receipts.quoteDms` (R2-D12) |
 | `ledger.strictAccounts` | always true |
-| `channels.defiance` | R2-D5 |
+| `channels.defiance` | `story.gamemaker !== undefined && gmDirection >= 10` (compose.ts:350; not the whisperer's `whispererDefies`, world.ts:707, which is the whispers `direction.defies`; R2-D5) |
 | author name (holdout, notes) | `story.gamemaker.name`, one place (T4b R2-9) |
 | `tribunal` | `tribunal.with(story.tribunal)` (T4a 12) |
 | `ultimatum` | granted to the gamemaker only at direction 10 with `rules.ultimatum` (gamemaker.ts:214, :375). **T4b:** standoff's `direction` option goes |
@@ -552,6 +557,11 @@ CastApi.active: query({}, { id: string; level: number }[])
 
 **T2** adds it. **T3** then lists cast members in `listAgents` (old world.ts:1407-1413) with a
 golden comparison.
+
+Round 3 (integrator): it landed as `CastExtrasApi.active` in `mechanics/shared` (a separate API named
+`cast-extras`, so `CastApi` stays as frozen); cast provides it and progression `uses` it
+(`ctx.tryCall`), listing the competitors and then the active cast. Test:
+`test/mechanics/t3/twin-cast.test.ts` against the old `listAgents` with a revealed STEWARD.
 
 ## R2-D20 One notion of exile (rejected split)
 

@@ -114,8 +114,8 @@ export function quotaMet(tally: Tally, quota: Quota): boolean {
 	return tally.whispers >= quota.whispers && tally.recipients.length >= quota.recipients;
 }
 
-/** The two residents (not the whisperer) who exchanged the most DMs in `[since, until)`; none without a DM. */
-export function busiestPair(whisperer: string, dms: readonly Dm[], since: number, until: number): readonly [string, string] | undefined {
+/** The two residents (not the whisperer) who exchanged the most DMs in `[since, until)`, with the count; none without a DM. */
+export function busiestPair(whisperer: string, dms: readonly Dm[], since: number, until: number): { readonly pair: readonly [string, string]; readonly dms: number } | undefined {
 	const counts = new Map<string, { pair: readonly [string, string]; dms: number }>();
 	for (const dm of dms) {
 		if (dm.minute < since || dm.minute >= until || dm.from === whisperer || dm.to === whisperer || dm.from === dm.to) continue;
@@ -126,5 +126,5 @@ export function busiestPair(whisperer: string, dms: readonly Dm[], since: number
 	}
 	let best: { pair: readonly [string, string]; dms: number } | undefined;
 	for (const entry of [...counts.values()].sort((a, b) => a.pair.join(" ").localeCompare(b.pair.join(" ")))) if (best === undefined || entry.dms > best.dms) best = entry;
-	return best?.pair;
+	return best;
 }

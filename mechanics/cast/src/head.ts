@@ -5,8 +5,7 @@
  */
 import { Type, type Static } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { CastApi, CastEvents, ChannelsApi, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
-import { CastExtrasApi } from "./extras.ts";
+import { CastApi, CastEvents, CastExtrasApi, ChannelsApi, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import { CastRegistry } from "./registry.ts";
 
 const Id = Type.String();
@@ -60,8 +59,8 @@ const common = {
 	uses: [ReceiptsApi],
 } as const;
 
-/** The frozen shape of the carve plan: the shared API alone (test/mechanics/packages.test.ts pins it). */
-export const castHead = defineHead({ ...common, provides: [CastApi] });
+/** The shape of the carve plan (test/mechanics/packages.test.ts pins it): the shared `CastApi` and, since round 3, `CastExtrasApi`. */
+export const castHead = defineHead({ ...common, provides: [CastApi, CastExtrasApi] });
 
-/** The head the mechanic runs with: the shared API plus the local `CastExtrasApi` (request 1 of round 3). */
+/** The head the mechanic runs with (the same APIs as `castHead`). */
 export const castWorkHead = defineHead({ ...common, provides: [CastApi, CastExtrasApi] });

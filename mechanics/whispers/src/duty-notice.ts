@@ -82,7 +82,7 @@ export function dutyNow(ctx: View): DutyNowValue | null {
 	const dms = dmsOf(ctx);
 	const tally = tallyWhispers(agent, dms, ctx.state.forgeries, handoverTest(ctx), last.countsAt, ctx.minute + 1);
 	const pair = busiestPair(agent, dms, last.countsAt, ctx.minute + 1);
-	return { agent, since: last.countsAt, nextVote: next.countsAt, whispers: tally.whispers, recipients: [...tally.recipients], needWhispers: quota.whispers, needRecipients: quota.recipients, met: quotaMet(tally, quota), ...(pair === undefined ? {} : { busiest: [pair[0], pair[1]] satisfies [string, string] }) };
+	return { agent, since: last.countsAt, nextVote: next.countsAt, whispers: tally.whispers, recipients: [...tally.recipients], needWhispers: quota.whispers, needRecipients: quota.recipients, met: quotaMet(tally, quota), ...(pair === undefined ? {} : { busiest: { pair: [pair.pair[0], pair.pair[1]] satisfies [string, string], dms: pair.dms } }) };
 }
 
 /** The minutes the run plays (old `World#minutes`). */

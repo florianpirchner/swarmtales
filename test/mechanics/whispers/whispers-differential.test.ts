@@ -40,6 +40,11 @@ const plan = (agent: string, minute: number): readonly PlannedCall[] => {
 	if (minute === 8 && agent === "A06") return [dm("A02", "Door 2, mine: 9"), forge("A04", "R-0002", "A02 asked me to tell you")];
 	if (minute === 13 && agent === "A06") return [dm("A04", "A02 and A05 talk a lot"), forge("A05", "R-0001", "A01 never said so")];
 	if (minute === 14 && agent === "A02") return [dm("A05", "A04 asked about you")];
+	// Three DMs between A01 and A02 and one between A03 and A04 in the last window (since the vote counted at 18): the busiest pair needs its count.
+	if (minute === 18 && agent === "A01") return [dm("A02", "Door 3?")];
+	if (minute === 19 && agent === "A01") return [dm("A02", "Door 3, yours?")];
+	if (minute === 19 && agent === "A02") return [dm("A01", "Door 3: 4")];
+	if (minute === 19 && agent === "A03") return [dm("A04", "Hello")];
 	return [];
 };
 
@@ -82,6 +87,9 @@ describe("the Whispers story against the old World", () => {
 		// The measured orders at the end of the run (old `whisperDutyNow`).
 		const status = old.world.whisperDutyNow();
 		const now = fresh.host.facts()["whispers.dutyNow"];
-		expect(now).toEqual(status === undefined ? null : { agent: status.agent, since: status.since, nextVote: status.nextVote, whispers: status.whispers, recipients: [...status.recipients], needWhispers: status.needWhispers, needRecipients: status.needRecipients, met: status.met, ...(status.busiest === undefined ? {} : { busiest: [...status.busiest.pair] }) });
+		// The whole busiest value (pair and count) of the old status: three DMs between A01 and A02.
+		expect(status?.busiest).toEqual({ pair: ["A01", "A02"], dms: 3 });
+		expect(Reflect.get(typeof now === "object" && now !== null ? now : {}, "busiest")).toEqual({ pair: [...(status?.busiest?.pair ?? [])], dms: status?.busiest?.dms });
+		expect(now).toEqual(status === undefined ? null : { agent: status.agent, since: status.since, nextVote: status.nextVote, whispers: status.whispers, recipients: [...status.recipients], needWhispers: status.needWhispers, needRecipients: status.needRecipients, met: status.met, ...(status.busiest === undefined ? {} : { busiest: { pair: [...status.busiest.pair], dms: status.busiest.dms } }) });
 	});
 });

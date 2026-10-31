@@ -11,13 +11,11 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ApiOutput, ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { CastApi, ChannelsApi, HOOK_ORDER, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
-import { CastExtrasApi } from "./extras.ts";
+import { CastApi, CastExtrasApi, ChannelsApi, HOOK_ORDER, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import { castHead, castWorkHead } from "./head.ts";
 import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
 export { castHead };
-export { CastExtrasApi } from "./extras.ts";
 export { castOptionsFromStory, type CastStoryOptions } from "./from-story.ts";
 
 type Ctx = ContextOf<typeof castWorkHead>;

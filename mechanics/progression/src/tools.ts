@@ -6,7 +6,7 @@
  */
 import { Type } from "typebox";
 import { TOOL_NAMES, type MechanicKit, type ShapeOf, type ToolOutcome } from "@swarmtales/contracts";
-import { ChannelsApi, LedgerApi, MarksApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { CastExtrasApi, ChannelsApi, LedgerApi, MarksApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx, progressionWorkHead } from "./head.ts";
 import { competitorOf, isFinished, isOpenOnClock, opensAt, ranking } from "./levels.ts";
 import { submit } from "./submit.ts";
@@ -126,7 +126,8 @@ export function progressionTools(kit: Kit) {
 			parameters: Type.Object({}),
 			execute: (_params, ctx) => {
 				const self = residentOf(ctx);
-				return ok(ctx.residents.ids.map((id) => `${id}: level ${competitorOf(ctx, id).level}${id === self ? " (you)" : ""}`).join("\n"));
+				const listed = [...ctx.residents.ids.map((id) => ({ id, level: competitorOf(ctx, id).level })), ...(ctx.tryCall(CastExtrasApi, "active", {}) ?? [])];
+				return ok(listed.map((entry) => `${entry.id}: level ${entry.level}${entry.id === self ? " (you)" : ""}`).join("\n"));
 			},
 		}),
 	];

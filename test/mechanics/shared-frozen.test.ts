@@ -17,7 +17,8 @@ import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_O
 // HOOK_ORDER.runResumed and minuteEnded.standoff, StandoffTribunalApi.taskLine, DmRecord.text optional.
 // Round 3 (T4a, R2-D18): T4a's local adapters moved into shared with their shapes: ExileApi.gates/exiled/ransomed,
 // TribunalApi.text/bequestPerHeir and TribunalViewApi (exported and in SHARED_APIS).
-const FINGERPRINT = "7902c89c3219d1569371f0551df8e0efc9fd8b0c3d385af48a6a14c44666e895";
+// Round 3 (T2 request 1, T3 request 1): CastExtrasApi.active (exported and in SHARED_APIS), cast provides it, progression uses it.
+const FINGERPRINT = "2aa20ee1fcae8152db7ff89b2f3a1c4a6f9288ad9975dcd2d3963fd57f763b1b";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];
