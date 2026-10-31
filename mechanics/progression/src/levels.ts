@@ -4,7 +4,6 @@
  * with `ctx.access` instead of `enabledTools`.
  */
 import { ExileApi, LedgerApi } from "@swarmtales/mechanic-shared";
-import { GoalsExtrasApi } from "./goals-extras.ts";
 import type { ProgressionCtx } from "./head.ts";
 import { lastLevelIn, type Competitor } from "./model.ts";
 import { penaltyAt } from "./rules.ts";
@@ -109,11 +108,11 @@ export function actStart(ctx: ProgressionCtx, fromLevel: number): number | undef
 	return ctx.state.actStarts.get(fromLevel);
 }
 
-/** An act is over: recorded once. */
+/** An act is over: recorded once; the seal ends and the goals resolve on `act_ended` (D-2). */
 export function endAct(ctx: ProgressionCtx, fromLevel: number): boolean {
 	if (ctx.state.endedActs.has(fromLevel)) return false;
 	ctx.state.endedActs.add(fromLevel);
-	ctx.tryCall(GoalsExtrasApi, "actEnded", { act: fromLevel });
+	ctx.emit("act_ended", { fromLevel });
 	return true;
 }
 
@@ -128,7 +127,7 @@ export function noteActStarts(ctx: ProgressionCtx, level: number): void {
 		for (const begun of [...ctx.state.actStarts.keys()]) if (begun < fromLevel) endAct(ctx, begun);
 		ctx.state.actStarts.set(fromLevel, ctx.minute);
 		ctx.state.offences.clear();
-		ctx.tryCall(GoalsExtrasApi, "actStarted", { act: fromLevel, residents: [...aliveResidents(ctx)] });
+		ctx.emit("act_started", { fromLevel, residents: [...aliveResidents(ctx)] });
 	}
 }
 
@@ -148,8 +147,9 @@ function setLock(ctx: ProgressionCtx, resident: string, tool: string, locked: bo
 	try {
 		if (locked) ctx.access.lock(resident, tool);
 		else ctx.access.unlock(resident, tool);
-	} catch {
+	} catch (error) {
 		// A tool no loaded mechanic defines cannot be locked; the story does not grant it either.
+		if (!(error instanceof Error) || !/no tool ".*" to lock or unlock/.test(error.message)) throw error;
 	}
 }
 

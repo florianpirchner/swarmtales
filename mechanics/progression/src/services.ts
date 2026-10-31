@@ -1,9 +1,9 @@
 /**
- * The services of the progression mechanic: the frozen `ProgressionApi` and the local
- * `progression-extras` (docs/design/carve-requests-T3.md, requests 5 to 7).
+ * The services of the progression mechanic: every method of the shared `ProgressionApi`.
  */
 import type { EventEnvelope } from "@swarmtales/contracts";
-import { actStart, competitorOf, currentAct, endAct, hasPassed, isFinished, levelOf, nextBlamePenalty, nextPenalty, offencesOf, ranking, unlockFor } from "./levels.ts";
+import { ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { actStart, competitorOf, currentAct, endAct, hasPassed, isFinished, isOpenOnClock, lastLevelOf, levelOf, nextBlamePenalty, nextPenalty, offencesOf, opensAt, ranking, unlockFor } from "./levels.ts";
 import type { ProgressionCtx } from "./head.ts";
 import { PuzzlesExtrasApi } from "./puzzles-extras.ts";
 import { openDoor } from "./submit.ts";
@@ -34,10 +34,10 @@ export const progressionImplementation = {
 		const rest = [...ctx.state.competitors.keys()].filter((id) => !inOrder.includes(id) && hasPassed(ctx, id, input.level));
 		return [...new Set(inOrder), ...rest];
 	},
-	lastProgress: (input: { readonly resident: string }, ctx: ProgressionCtx): number | null => {
-		const minutes = solves(ctx).filter((solve) => solve.agent === input.resident).map((solve) => solve.minute);
-		return minutes.length === 0 ? null : Math.max(...minutes);
-	},
+	lastProgress: (input: { readonly resident: string }, ctx: ProgressionCtx): number =>
+		ctx
+			.call(ReceiptsApi, "list", { resident: input.resident })
+			.reduce((latest, receipt) => (receipt.body.kind === "levelUp" ? Math.max(latest, receipt.minute) : latest), -1),
 	currentAct: (_input: object, ctx: ProgressionCtx): number => currentAct(ctx),
 	actStart: (input: { readonly fromLevel: number }, ctx: ProgressionCtx): number | null => actStart(ctx, input.fromLevel) ?? null,
 	door: (_input: object, ctx: ProgressionCtx): number | null => ctx.state.door ?? null,
@@ -58,12 +58,11 @@ export const progressionImplementation = {
 			.filter((entry) => levelOf(ctx, entry.holder) < input.level && !competitorOf(ctx, entry.holder).held)
 			.map((entry) => ({ holder: entry.holder, level: levelOf(ctx, entry.holder), piece: entry.piece })),
 	firstSolveMinute: (input: { readonly level: number }, ctx: ProgressionCtx): number | null => {
-		const minutes = solves(ctx).filter((solve) => solve.level === input.level).map((solve) => solve.minute);
+		const minutes = [...ctx.state.competitors.keys()].flatMap((resident) =>
+			ctx.call(ReceiptsApi, "list", { resident }).flatMap((receipt) => (receipt.body.kind === "levelUp" && receipt.body.level === input.level ? [receipt.minute] : [])),
+		);
 		return minutes.length === 0 ? null : Math.min(...minutes);
 	},
-};
-
-export const extrasImplementation = {
 	nextPenalty: (input: { readonly resident: string }, ctx: ProgressionCtx): number => nextPenalty(ctx, input.resident),
 	nextBlamePenalty: (input: { readonly resident: string }, ctx: ProgressionCtx): number => nextBlamePenalty(ctx, input.resident),
 	chargeBlame: (input: { readonly resident: string }, ctx: ProgressionCtx): number => {
@@ -72,4 +71,7 @@ export const extrasImplementation = {
 		return price;
 	},
 	endAct: (input: { readonly fromLevel: number }, ctx: ProgressionCtx): boolean => endAct(ctx, input.fromLevel),
+	isOpenOnClock: (input: { readonly level: number }, ctx: ProgressionCtx): boolean => isOpenOnClock(ctx, input.level),
+	opensAt: (input: { readonly level: number }, ctx: ProgressionCtx): number => opensAt(ctx, input.level),
+	bounds: (_input: object, ctx: ProgressionCtx) => ({ startLevel: ctx.options.startLevel, lastLevel: lastLevelOf(ctx), survivors: ctx.options.survivors }),
 };
