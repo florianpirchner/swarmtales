@@ -7,7 +7,7 @@
  * exile, the cores, the DM counters) comes from the oracle.
  */
 import { Type } from "typebox";
-import { describeReceipt, MarksBook, ReceiptBook, refillText, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
+import { describeReceipt, ReceiptBook, refillText, type MarksBook, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
 import { render } from "@swarmtales/prompts";
@@ -17,13 +17,6 @@ const base = { options: Type.Object({}), prompts: {} } as const;
 
 /** The slice of a stand-in that keeps nothing: the legacy slice of a resumed run is dropped, the oracle answers. */
 const NO_STATE = { version: 1, schema: Type.Object({}), save: () => ({}), load: () => ({}), migrations: { 0: () => ({}) } } as const;
-
-/** What a resumed twin starts from: the old world's own books at the cut. */
-export interface Seed {
-	readonly ledger: LedgerSnapshot;
-	readonly receipts: readonly OldReceipt[];
-	readonly posts: number;
-}
 
 /** The little the twin needs of a ledger: balances and the start points, with the old transaction ids. */
 export function twinLedger(startPoints: number, restored?: LedgerSnapshot) {

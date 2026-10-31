@@ -47,7 +47,12 @@ const COMPARED = new Set(["fragments_dealt", "factors_dealt", "factor_revealed",
  * new host (their notices, board posts, dynamic tools and task rules would only differ).
  */
 function withoutOtherMechanics(story: AnyStory): AnyStory {
-	const { tribunal: _tribunal, seal: _seal, whisperer: _whisperer, popularity: _popularity, holdout: _holdout, ...rest } = story;
+	const rest: { -readonly [K in keyof AnyStory]: AnyStory[K] } = { ...story };
+	delete rest.tribunal;
+	delete rest.seal;
+	delete rest.whisperer;
+	delete rest.popularity;
+	delete rest.holdout;
 	return rest;
 }
 

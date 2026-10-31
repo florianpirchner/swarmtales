@@ -65,7 +65,7 @@ const scenarios: readonly { readonly name: string; readonly options: TwinOptions
 		options: {
 			story: cityOfKeys,
 			resume: snapshot((world) => {
-				const levels = Array.isArray(world.levels) ? world.levels : [];
+				const levels: unknown[] = Array.isArray(world.levels) ? Array.from<unknown>(world.levels) : [];
 				const last = record(levels[levels.length - 1]);
 				world.levels = [...levels, { ...last, level: 8 }];
 			}),
