@@ -48,7 +48,8 @@ export interface Spec {
 	readonly gamemaker?: (minute: number) => readonly PlannedCall[];
 	/** Mechanics beside the ones every run has (the petitions' driver, a stand-in script). */
 	readonly extra?: readonly MechanicUse[];
-	readonly grants?: readonly string[];
+	/** Resident tools beside the channels tools (`signPetition`, `listPetitions`). */
+	readonly tools?: readonly string[];
 }
 
 export interface Played {
@@ -143,7 +144,7 @@ export async function playNew(spec: Spec): Promise<NewPlayed> {
 		minutes: spec.minutes,
 		residents,
 		mechanics: [...cityMechanics(spec.story), ...(spec.extra ?? [])],
-		grants: { resident: [...TOOLS], gamemaker: ["notify", "postBoard"], script: spec.grants ?? [] },
+		grants: { resident: [...TOOLS, ...(spec.tools ?? [])], gamemaker: ["notify", "postBoard"], script: ["resolvePetition"] },
 		turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 	});
 	const host = createHost({ story: definition, prompts: createPromptLookup() });

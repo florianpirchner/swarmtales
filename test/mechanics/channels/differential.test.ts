@@ -5,50 +5,12 @@
  * and leave the same board, groups, DM records, message counter and inboxes in the snapshot.
  */
 import { describe, expect, it } from "vitest";
-import { defineStory, gamemaker } from "@swarmtales/sdk";
 import type { PlannedCall } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
 import { StandoffTribunalApi } from "@swarmtales/mechanic-shared";
-import { ownedBy } from "@swarmtales/testkit";
-import { socialLevels, tinyStory } from "../../helpers/stories.ts";
-import { writtenBy } from "../t1/support.ts";
-import { TOOLS, playNew, playOld, type Plan, type Spec } from "./differential.ts";
-import { newState, oldState } from "./differential-state.ts";
-
-const MARKS = { fromLevel: 1, perLevel: 2, prices: { board: 1, group: 1, dm: 0, receipt: 1 } };
-const OWNERS = ["channels", "cast", "receipts", "ledger", "marks"] as const;
-
-function storyWith(rules: Parameters<typeof tinyStory>[0] extends infer O ? (O extends { rules?: infer R } ? R : never) : never) {
-	const base = tinyStory({ agents: 4, levels: socialLevels(TOOLS), rules });
-	return defineStory({
-		...base,
-		cast: { STEWARD: { level: 1 } },
-		gamemaker: gamemaker({ model: base.model, brief: "Test.", author: "COURIER", notesPerAgent: 1, boardPosts: 1, windowMinutes: 3 }),
-	});
-}
-
-const call = (tool: string, params: Record<string, string | number | boolean> = {}): PlannedCall => ({ tool, params });
-const dm = (target: string, message: string): PlannedCall => call("sendDM", { target, message });
-const group = (tool: string, groupId: string, extra: Record<string, string | number> = {}): PlannedCall => call(tool, { groupId, ...extra });
-
-/** The old runner's schema complaint and the host's `INVALID_ARGUMENTS` are the kernel's wording, not channels': both count as one refusal here. */
-const normal = (reply: string): string => (reply.startsWith('true|Validation failed for tool "') ? "true|INVALID_ARGUMENTS" : reply.startsWith("true|INVALID_ARGUMENTS") ? "true|INVALID_ARGUMENTS" : reply);
-
-/** Plays a plan on both sides and compares everything. */
-async function compare(spec: Spec, seen: readonly string[] = [], minGamemaker = 0): Promise<void> {
-	const old = await playOld(spec);
-	// The plan must have hit what it claims to test: every phrase appears in some reply of the old engine.
-	const all = [...old.replies.values()].flat().concat(old.gamemaker).join("\n");
-	for (const phrase of seen) expect(all, phrase).toContain(phrase);
-	const fresh = await playNew(spec);
-	expect([...fresh.replies.keys()].sort()).toEqual([...old.replies.keys()].sort());
-	for (const [at, replies] of old.replies) expect(fresh.replies.get(at)?.map(normal), at).toEqual(replies.map(normal));
-	expect(fresh.gamemaker.map(normal)).toEqual(old.gamemaker.map(normal));
-	expect(old.gamemaker.length).toBeGreaterThanOrEqual(minGamemaker);
-	expect(writtenBy(fresh.host.log.all(), OWNERS)).toEqual(ownedBy(old.events, OWNERS));
-	expect(newState(fresh.host.snapshot())).toEqual(oldState(old.world.snapshot()));
-}
+import { playNew, type Plan } from "./differential.ts";
+import { MARKS, call, compare, dm, group, storyWith } from "./differential-support.ts";
 
 const BOARD: Plan = (agent, minute) => {
 	if (agent === "A01" && minute === 0) return [call("readBoard"), call("postBoard", { message: "  hello city  " }), call("postBoard", { message: "   " }), call("postBoard", { message: "x".repeat(1201) }), call("postBoard", { message: "second" }), call("postBoard", { message: "third, no marks left" })];
