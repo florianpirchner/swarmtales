@@ -22,6 +22,8 @@ export * from "./digest/narrative-model.ts";
 export * from "./digest/relationships.ts";
 export * from "./digest/timeline.ts";
 export * from "./digest/turning-points.ts";
+export * from "./log/legacy-events.ts";
+export * from "./log/legacy-owners.ts";
 export * from "./log/minute-report.ts";
 export * from "./log/private-files.ts";
 export * from "./log/run-artifacts.ts";
