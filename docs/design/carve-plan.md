@@ -1,6 +1,10 @@
 # Carve plan: from `world.ts` to mechanics
 
-Status: written in wave 2b (2026-10-31) for the wave 3 teams. The line numbers are those of
+Status: written in wave 2b (2026-10-31) for the wave 3 teams; corrected in wave 3.0 after the core
+review ([`core-review-2c.md`](core-review-2c.md), "Carve plan corrections"). The team briefs are
+[`carve-team-T1.md`](carve-team-T1.md) (economy), [`carve-team-T2.md`](carve-team-T2.md)
+(messages), [`carve-team-T3.md`](carve-team-T3.md) (progress) and
+[`carve-team-T4.md`](carve-team-T4.md) (conflict). The line numbers are those of
 `packages/engine/src/world.ts` (3202 lines) at commit `f154c13`. They move as soon as anything
 is carved, so a team looks a function up by its name and uses the range only to find its
 neighbours. The API is [`mechanic-api.md`](mechanic-api.md); the split comes from
@@ -8,9 +12,15 @@ neighbours. The API is [`mechanic-api.md`](mechanic-api.md); the split comes fro
 
 ## How to carve one mechanic
 
-1. Write the mechanic in `mechanics/<id>/` against the new core (`defineHead`, `defineMechanic`).
-   Move the helper class from `packages/engine/src/` (`MarksBook`, `PetitionBook`, ...) in with it
-   when nothing else uses it.
+1. Write the mechanic in its package `mechanics/<id>/` (`@swarmtales/mechanic-<id>`) against the
+   new core (`defineHead`, `defineMechanic`). The package exists since wave 3.0 with the head
+   (`<id>Head`) that names the APIs it provides, requires and uses; the APIs, the events other
+   mechanics listen to and the shared schemas are in `mechanics/shared`
+   (`@swarmtales/mechanic-shared`) and frozen. A mechanic package depends on
+   `@swarmtales/contracts`, `@swarmtales/kernel` and `@swarmtales/mechanic-shared` only, never on
+   another mechanic (`scripts/check-packages.ts`). Copy the helper class from
+   `packages/engine/src/` (`MarksBook`, `PetitionBook`, ...) in; nobody deletes engine code before
+   step 18.
 2. Its events keep their old names and fields (the owners are in
    `packages/chronicle/src/log/legacy-owners.ts`), so the legacy adapter writes the golden lines
    unchanged. A payload field may not be called `type`, `seq` or `minute`.
@@ -20,42 +30,62 @@ neighbours. The API is [`mechanic-api.md`](mechanic-api.md); the split comes fro
    `examples/cityofkeys-act1-06a-04/snapshot-L7.json`.
 4. Old tools move as tools of the mechanic; `withResidents` (names for ids) becomes the `names`
    mechanic's `presentation.resolve`, never code in the tool.
-5. The golden runs stay byte-identical. A mechanic is done when the golden story runs with it on
-   the new host and the adapter writes the same lines. Until the whole world is carved, the old
-   engine keeps running the goldens; each team proves its mechanic with its own tests and with
-   the shared golden comparison once the turn loop moves (step 18).
+5. The golden runs stay byte-identical. Until the turn loop moves (step 18) the old engine keeps
+   running the goldens, so each mechanic has its own gate: the golden lines of its event types
+   (`ownedBy(readLegacyLog(golden), ["<id>"])` from `@swarmtales/testkit`) must equal the lines its
+   mechanic writes on the new host through the legacy adapter (`compareGolden`), for the calls of
+   the golden run (`goldenCalls`). The providers it needs from other teams are stand-ins in its
+   tests (a small `defineMechanic` that provides the frozen API with fixed answers). A mechanic is
+   done when its gate is green; the whole golden comparison runs at step 18.
 
 ## Order
 
-The order follows the `requires` graph: a mechanic comes after the ones it calls. Each step is
-one PR; steps on one line can run in parallel.
+The order follows the `requires` graph: a mechanic comes after the ones it calls (hard), and
+after a loaded provider of an API it `uses` where that is possible (soft; the old engine's
+callbacks, a cycle there is allowed). Since the APIs are frozen in `mechanics/shared`, the four
+teams work at the same time; the order says in which order a team merges its steps and which
+real providers a step can test against. `test/mechanics/packages.test.ts` checks that the heads
+have no `requires` cycle and that this order respects `requires`.
 
-| Step | Mechanic | Requires | Why here |
-|---|---|---|---|
-| 1 | names | none | everything shows names; resolver and formatter |
-| 2 | ledger | none | every price and reward |
-| 3 | marks | ledger | the price of a message |
-| 4 | channels | ledger, marks, names | board, DMs, notices, groups |
-| 5 | receipts | channels, ledger | receipts of transfers and DMs, blame |
-| 6 | puzzles | names | deals and secrets; the guard's secrets |
-| 7 | progression | puzzles, ledger, channels | levels, submissions, doors, tools |
-| 8 | cast, cores, goals | channels, progression | figures, cores, goals (parallel) |
-| 9 | petitions | channels, ledger | signatures |
-| 10 | seal | ledger, progression, channels | the auction |
-| 11 | standoff | puzzles, progression, ledger, channels | pieces and ultimatums |
-| 12 | exile | progression, channels, ledger | ransom, will, gates |
-| 13 | tribunal | exile, channels, ledger | votes and factions |
-| 14 | standoff-tribunal | tribunal, standoff, puzzles, exile | the holdout tribunal |
-| 15 | whispers | receipts, channels, tribunal | the whisperer and popularity |
-| 16 | script | every mechanic it directs | the director as staged calls |
-| 17 | gamemaker tools | channels, tribunal, standoff-tribunal, standoff | tools with `serves: ["gamemaker"]` |
-| 18 | arena → turn loop | all | the old `Arena` becomes a turn policy plus the runner |
+| Step | Mechanic | Team | Requires | Uses (optional) | Why here |
+|---|---|---|---|---|---|
+| 1 | names | T1 | none | puzzles (password pieces) | everything shows names; resolver and formatter |
+| 2 | ledger | T1 | none | | every price and reward |
+| 3 | marks | T1 | ledger | | the price of a message |
+| 4 | channels | T2 | ledger, marks, names | receipts, cast, standoff, standoff-tribunal | board, DMs, notices, groups |
+| 5 | receipts | T1 | channels, ledger | | receipts of transfers and DMs, blame |
+| 6 | whispers | T1 | receipts, channels, ledger, marks | exile | the whisperer and popularity |
+| 7 | puzzles | T3 | none | | deals and secrets; the guard's secrets; exclusions |
+| 8 | progression | T3 | puzzles, ledger, channels, receipts | | levels, submissions, doors, tools, the status line |
+| 9 | cast, cores, goals | T2, T2, T3 | cast: channels, progression, ledger; cores: channels; goals: progression, channels | | figures, cores, goals (parallel) |
+| 10 | petitions | T2 | channels, ledger | | signatures |
+| 11 | standoff | T4 | puzzles, progression, ledger, channels | | pieces and ultimatums |
+| 12 | exile | T4 | progression, channels, ledger, standoff, puzzles | seal, goals | ransom, will, gates |
+| 13 | tribunal | T4 | exile, channels, ledger, progression | | votes and factions |
+| 14 | seal | T4 | ledger, progression, channels, exile, tribunal | | the auction |
+| 15 | standoff-tribunal | T4 | standoff, puzzles, exile, channels | | the holdout tribunal |
+| 16 | script | T3 | none | channels, progression, cast, petitions, ledger, puzzles | the director as staged calls |
+| 17 | gamemaker tools | each team | the mechanic each tool acts on | | tools with `serves: ["gamemaker"]` |
+| 18 | arena → turn loop | T3 | none | progression, ledger | the old `Arena` becomes a turn policy plus the runner |
+
+Corrections against wave 2b: progression requires receipts (its reply names the receipt, and
+`receipt_issued` precedes `level_up`); tribunal requires progression (`lastProgress`, `passed`,
+`doorShut`, `actStart`, `tribunal.ts:82-90`); seal comes after exile and tribunal (it needs
+`ExileApi.standing`, `strike` and `TribunalApi.missing`, `seal.ts:31-39`) and exile calls it back
+through `uses`; exile requires standoff (`heldPieces`, `keep`) and puzzles (`burn`, `contract`,
+`world.ts:2795-2819`); `level_contracted` belongs to puzzles (the exclusions are its state);
+whispers needs ledger and marks, not the tribunal (the duty follows the popularity count,
+`world.ts:988-998`), so it moves up to step 6; channels calls standoff (`noteText`),
+standoff-tribunal (`exemptFromCap`), receipts (`memoTransfers`) and cast (`isActive`, `receive`)
+through `uses`; puzzles needs no names (the display is the names mechanic's presentation).
 
 ## The mechanics
 
 Each entry lists what it takes from `world.ts` (fields 441-505, constructor 507-797, methods),
 from other engine files, its events, tools, story specs, its slice and what it provides and
-requires. API names are proposals; a team may rename them in its PR.
+requires. The APIs and their method names are those of `mechanics/shared` (frozen in wave 3.0);
+the method summaries there name the old code each one replaces. Where an entry below and the
+shared module disagree, the shared module wins.
 
 ### 1. names
 
@@ -67,8 +97,8 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Slice:** `names`.
 - **Provides:** `NamesApi` (`nameOf`, `labelOf`, `resolve`); `presentation.resolve` (a name where
   an id goes) and `presentation.display` (ids to names in every text). **Requires:** none.
-  `#isPasswordPiece` needs the puzzles' password pieces: pass them as an option or ask
-  `PuzzlesApi` later (names comes first, so make it an optional listen of `fragments_dealt`).
+  **Uses:** `PuzzlesApi.passwordPiece` for `#isPasswordPiece` (a cycle with puzzles through `uses`
+  is allowed; names loads first).
 
 ### 2. ledger
 
@@ -78,7 +108,8 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Events:** `ledger_entry`, `transfer`. **Tools:** `transferPoints` (the receipt part moves to
   receipts, step 5). **Spec:** `run.startPoints`.
 - **Slice:** `ledger`.
-- **Provides:** `LedgerApi` (`balance`, `charge`, `credit`, `transfer`, `escrow`). **Requires:** none.
+- **Provides:** `LedgerApi` (`balance`, `balances`, `mint`, `burn`, `move`); events `ledger_entry`,
+  `transfer` (`LedgerEvents`, frozen). **Requires:** none.
   `test/host/proof/ledger.ts` is the shape to follow.
 
 ### 3. marks
@@ -88,7 +119,8 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Other files:** `marks.ts` (`MarksBook`).
 - **Events:** `marks_spent`. **Tools:** none. **Spec:** `rules.marks`, `levels[].marks`.
 - **Slice:** `marks`.
-- **Provides:** `MarksApi` (`price(channel)`, `spend`), a `status` turn input part, the refill job.
+- **Provides:** `MarksApi` (`canAfford`, `left`, `spend`), a `status` part (`STATUS_ORDER.marks`),
+  the refill job.
   **Requires:** `LedgerApi`.
 
 ### 4. channels
@@ -110,9 +142,13 @@ requires. API names are proposals; a team may rename them in its PR.
   `sendDM` and `postBoard`).
 - **Slice:** `channels` (board, groups, dms, messages) and `inboxes` (per resident mailbox and
   notices, cut from the old competitor records).
-- **Provides:** `ChannelsApi` (`post`, `postAsSystem`, `notify`, `dm`, `createCityGroup`,
-  `postGroupAsCity`); turn inputs of kinds `dm`, `notice`; the `news` hook (unread mail).
-  **Requires:** `LedgerApi`, `MarksApi`, `NamesApi`.
+- **Provides:** `ChannelsApi` (`post`, `notify`, `note`, `deliver`, `takeNumber`, `dmWindow`,
+  `dmRecords`, `createCityGroup`, `removeCityGroup`, `postGroupAsCity`); events `board_post`,
+  `dm_sent` (`ChannelsEvents`, frozen); turn inputs of kinds `dm`, `notice`; the `dmWindow` status
+  part; the `news` hook (unread mail). **Requires:** `LedgerApi`, `MarksApi`, `NamesApi`.
+  **Uses:** `ReceiptsApi.memoTransfers` (the DM cap), `CastApi` (DMs to a cast member),
+  `StandoffApi.noteText` (every post and DM), `StandoffTribunalApi.exemptFromCap`. It listens to
+  `exiled` (`ExileEvents`).
 
 ### 5. receipts
 
@@ -123,11 +159,25 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Events:** `receipt_issued`, `receipt_shown`, `blame`. **Tools:** `showReceipt`, `blame`.
 - **Spec:** `rules.receipts`, `rules.blame`, the classifier/judge role.
 - **Slice:** `receipts` (receipts and blames).
-- **Provides:** `ReceiptsApi` (`issue`, `of`). **Requires:** `ChannelsApi`, `LedgerApi`; it
-  listens to `transfer` and `dm_sent`. `blame` uses the `consult` stage with role `judge`
+- **Provides:** `ReceiptsApi` (`issue`, `count`, `memoTransfers`, `describe`); the `receipts`
+  status part. **Requires:** `ChannelsApi`, `LedgerApi`; it listens to `transfer` and `dm_sent`. `blame` uses the `consult` stage with role `judge`
   (`JUDGE_ABSENT` / `JUDGE_FAILED` come from `consulted.reason`).
 
-### 6. puzzles
+### 6. whispers
+
+- **world.ts:** fields `#whisperer`, `#forgeries`, `#quota`, `#whispererDefies`, `#popularity`;
+  `whisperer` 944-946, `popularity` 949-951, `whisperQuota` 954-956, `mayForge` 959-961,
+  `#chooseWhisperer` 968-979, `#whisperDuty` 982-986, `#whisperDutyAfterVote` 989-998,
+  `#dutyReport` 1006-1030, `#tally` 1033-1036, `whisperDutyNow` 1044-1065, `#sendDuty`
+  1068-1092, `forgeReceipt` 1103-1124, `nameFavourite` 1127-1130.
+- **Files:** `whisperer.ts`, `popularity.ts` (`PopularityVote`). **Events:** `whisperer_chosen`,
+  `whisper_duty`, `popularity_opened`, `popularity_ballot`, `popularity_result`,
+  `receipt_forged`. **Tools:** `forgeReceipt`, `nameFavourite`. **Spec:** `whisperer`,
+  `popularity`. **Slice:** `whispers`.
+- **Requires:** `ReceiptsApi`, `ChannelsApi`, `LedgerApi`, `MarksApi`. **Uses:** `ExileApi` (who
+  is still in the city). Not the tribunal: the duty follows the popularity count.
+
+### 7. puzzles
 
 - **world.ts:** fields `#levelStates`, `#cityFactorHolders`, `#exclusions`; `inspect`
   2850-2870, `#dealView` 2822, `#inheritedFragments` 2831-2847, `#solutionOf` 2872,
@@ -140,10 +190,14 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Tools:** none of its own (the `getProblem` text comes from its turn input part).
 - **Spec:** `levels[].puzzle`, `levels[].team`.
 - **Slice:** `puzzles` (levels, cityFactors, exclusions).
-- **Provides:** `PuzzlesApi` (`deal`, `solutionOf`, `holds`, `teamOf`); `guard.secrets` and
-  `guard.leaks` (the old `secretsOf` and the leaked-run check). **Requires:** `NamesApi`.
+- **Events:** also `level_contracted` (moved from progression: the exclusions are this
+  mechanic's state; exile asks for it with `contract`).
+- **Provides:** `PuzzlesApi` (`deal`, `isDealt`, `solutionOf`, `teamOf`, `passwordPiece`,
+  `lacking`, `carriesSecret`, `burn`, `contract`); `guard.secrets` and `guard.leaks` (the old
+  `secretsOf` and the leaked-run check). **Requires:** none. The deal draws from
+  `ctx.rng("puzzle", level)`, the old stream.
 
-### 7. progression
+### 8. progression
 
 - **world.ts:** fields `startLevel`, `lastLevel`, `#states` (agent, level, held, solved,
   wrongAttempts, extraTools), `#planner`, `#finalTools`, `#holdAfter`, `#door`, `#doorReleased`,
@@ -160,17 +214,18 @@ requires. API names are proposals; a team may rename them in its PR.
   (`opensAt`, `isOpenOnClock`, `#openOnClock`), `levelSnapshot` 3181, `counted` 3200.
 - **Other files:** `penalties.ts`, `statusLine` in `turn-input.ts` (the status line becomes a
   `status` kind with `join`, each mechanic adding its part).
-- **Events:** `submission`, `level_up`, `tools_unlocked`, `level_contracted`.
+- **Events:** `submission`, `level_up` (`ProgressionEvents`, frozen), `tools_unlocked`.
 - **Tools:** `getStatus`, `getProblem`, `submitSolution`, `listAgents`, `activeTools`.
 - **Spec:** `levels`, `acts`, `rules.penalty`, `rules.maxAttemptsPerWindow`,
   `rules.attemptWindowMinutes`, `finishedNotice`, `run.survivors`, `toolScope`.
 - **Slice:** `progression` (door, doorReleased, actStarts, offences, endedActs and the per
   resident part of the competitor records).
-- **Provides:** `ProgressionApi` (`levelOf`, `currentAct`, `openDoor`, `unlock`, `ranking`);
-  locks with `ctx.access` instead of `enabledTools`. **Requires:** `PuzzlesApi`, `LedgerApi`,
-  `ChannelsApi`.
+- **Provides:** `ProgressionApi` (see `mechanics/shared/src/progress.ts`); locks with
+  `ctx.access` instead of `enabledTools`; the status line's frame (`minute`, `level`, `rank`,
+  `awaitsCode` parts) and the `task` input kind. **Requires:** `PuzzlesApi`, `LedgerApi`,
+  `ChannelsApi`, `ReceiptsApi` (the level-up receipt).
 
-### 8. cast, cores, goals
+### 9. cast, cores, goals
 
 - **cast. world.ts:** fields `cast`, `#cast`, `#collectListeners`; `setCastLevel` 2252,
   `revealCast` 2256, `retireCast` 2262, `castDm` 2161-2165, `#dmToCast` 2145-2158,
@@ -179,16 +234,17 @@ requires. API names are proposals; a team may rename them in its PR.
   `residents` 1408-1413. **Files:** `cast.ts`. **Events:** `cast_level_set`, `cast_revealed`,
   `cast_retired`, `cast_dm`, `collection_started`, `collection_shortened`, `collection_revealed`,
   `lottery_drawn`. **Spec:** `cast`, `personas`, `personaAssignment`. **Slice:** `cast`.
-  **Provides:** `CastApi`; turn input `character`. **Requires:** `ChannelsApi`, `ProgressionApi`.
+  **Provides:** `CastApi`, event `cast_dm` (`CastEvents`, frozen); turn input `character` (the
+  figure cues go to script). **Requires:** `ChannelsApi`, `ProgressionApi`, `LedgerApi` (escrow).
 - **cores. world.ts:** fields `#cores`, `#playsCores`; `#dealCores` 887-897, `coreOf` 900-902.
   **Files:** `cores.ts`. **Events:** `core_dealt`. **Spec:** `cores`. **Slice:** `cores`.
   **Requires:** `ChannelsApi`.
 - **goals. world.ts:** field `#goals`; `goalOf` 905-907, the goal parts of `status` and of the
   act end. **Files:** `goals.ts` (`GoalBook`). **Events:** `goal_dealt`, `goal_resolved`.
-  **Spec:** `goals`. **Slice:** `goals`. **Requires:** `ProgressionApi`, `ChannelsApi`; listens to
-  `exiled` (step 12) silently when exile is not loaded.
+  **Spec:** `goals`. **Slice:** `goals`. **Provides:** `GoalsApi.onExiled` (exile calls it in the
+  old order). **Requires:** `ProgressionApi`, `ChannelsApi`.
 
-### 9. petitions
+### 10. petitions
 
 - **world.ts:** fields `petitions`, `#petitionListeners`; `openPetition` 2332-2361,
   `signPetition` 2363-2370, `expirePetitions` 2373, `closePetitions` 2381, `#resolvePetition`
@@ -196,17 +252,8 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Files:** `petitions.ts` (`PetitionBook`). **Events:** `petition_opened`, `petition_signed`,
   `petition_resolved`. **Tools:** `signPetition`, `listPetitions`. **Spec:** the `openPetition`
   director action. **Slice:** `petitions`.
-- **Provides:** `PetitionsApi` (`open`). **Requires:** `ChannelsApi`, `LedgerApi`.
-
-### 10. seal
-
-- **world.ts:** field `#seal`; `bidForSeal` 928-931, `breakSeal` 934-937; the seal part of
-  `status` (`sealParts` in `turn-input.ts`).
-- **Files:** `seal.ts` (`SealHouse`). **Events:** `seal_auction_opened`, `seal_bid`, `seal_won`,
-  `seal_used`, `seal_expired`. **Tools:** `bid`, `permaDeath` (resident variant).
-  **Spec:** `seal`. **Slice:** `seal`.
-- **Requires:** `LedgerApi`, `ProgressionApi`, `ChannelsApi`; strikes through `ExileApi` when
-  loaded (or emits and lets exile listen).
+- **Provides:** `PetitionsApi` (`open`), event `petition_resolved` (`PetitionsEvents`, frozen;
+  the script runs `onPass`/`onFail`). **Requires:** `ChannelsApi`, `LedgerApi`.
 
 ### 11. standoff
 
@@ -217,7 +264,8 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Files:** `standoff.ts` (`StandoffBook`). **Events:** `piece_kept`, `piece_claimed`,
   `piece_given`, `ultimatum_set`, `ultimatum_resolved`. **Tools:** `claimPiece`; gamemaker
   `ultimatum` (step 17). **Spec:** `rules.ultimatum`. **Slice:** `standoff`.
-- **Requires:** `PuzzlesApi`, `ProgressionApi`, `LedgerApi`, `ChannelsApi`.
+- **Provides:** `StandoffApi` (`heldPieces`, `keep`, `noteText`, `cityPiecePrice`).
+  **Requires:** `PuzzlesApi`, `ProgressionApi`, `LedgerApi`, `ChannelsApi`.
 
 ### 12. exile
 
@@ -227,8 +275,11 @@ requires. API names are proposals; a team may rename them in its PR.
 - **Files:** the exile part of `tribunal.ts`, `tribunal-rules.ts`. **Events:** `exile_gate`,
   `ransom_paid`, `ransomed`, `exiled`, `last_will`. **Tools:** `payRansom`, `lastWill`.
   **Spec:** `tribunal` (ransom and gate numbers). **Slice:** `exile` (gates, exiled, ransomed).
-- **Provides:** `ExileApi` (`exile`, `isExiled`); a suspension `exile` per exiled resident (the
-  converter writes it). **Requires:** `ProgressionApi`, `ChannelsApi`, `LedgerApi`.
+- **Provides:** `ExileApi` (`isExiled`, `standing`, `alive`, `toGate`, `strike`), event `exiled`
+  (`ExileEvents`, frozen); a suspension per exiled resident (the converter writes it).
+  **Requires:** `ProgressionApi`, `ChannelsApi`, `LedgerApi`, `StandoffApi` (`heldPieces`,
+  `keep`), `PuzzlesApi` (`burn`, `contract`). **Uses:** `GoalsApi.onExiled`, `SealApi.onExiled`
+  (the old `#onExiled` order: pieces, burn, goal, seal, contraction).
 
 ### 13. tribunal
 
@@ -240,9 +291,20 @@ requires. API names are proposals; a team may rename them in its PR.
   `faction_refused`, `factions_formed`, `bloc_result`, `tribunal_vote`, `tribunal_result`.
   **Tools:** `vote`, `nominate`, `join`, `refuse`; gamemaker `scheduleTribunal`. **Spec:**
   `tribunal`. **Slice:** `tribunal`.
-- **Requires:** `ExileApi`, `ChannelsApi`, `LedgerApi`.
+- **Provides:** `TribunalApi` (`missing`, `inSession`). **Requires:** `ExileApi`, `ChannelsApi`,
+  `LedgerApi`, `ProgressionApi` (`lastProgress`, `passed`, `doorShut`, `actStart`).
 
-### 14. standoff-tribunal
+### 14. seal
+
+- **world.ts:** field `#seal`; `bidForSeal` 928-931, `breakSeal` 934-937; the seal part of
+  `status` (`sealParts` in `turn-input.ts`).
+- **Files:** `seal.ts` (`SealHouse`). **Events:** `seal_auction_opened`, `seal_bid`, `seal_won`,
+  `seal_used`, `seal_expired`. **Tools:** `bid`, `permaDeath` (resident variant).
+  **Spec:** `seal`. **Slice:** `seal`.
+- **Provides:** `SealApi.onExiled`. **Requires:** `LedgerApi`, `ProgressionApi`, `ChannelsApi`,
+  `ExileApi` (`standing`, `strike`), `TribunalApi` (`missing`): it comes after exile and tribunal.
+
+### 15. standoff-tribunal
 
 - **world.ts:** field `#holdout`; `holdout` 1137-1139, `lackingFragment` 1148-1158,
   `#holdsFragment` 1171-1178, `#lackingFacts` 1181-1190, `#presentAtDoors` 1193-1195,
@@ -254,21 +316,8 @@ requires. API names are proposals; a team may rename them in its PR.
   `holdout_vote_result`, `holdout_announced`, `holdout_ended`. **Tools:** `tribunalVote`;
   gamemaker `callTribunal`, `drawLot`, `announceTribunal`, `permaDeath` (step 17).
   **Spec:** `holdout`. **Slice:** `standoff-tribunal`.
-- **Requires:** `TribunalApi` (or none, if it keeps its own ballot), `StandoffApi`,
-  `PuzzlesApi`, `ExileApi`.
-
-### 15. whispers
-
-- **world.ts:** fields `#whisperer`, `#forgeries`, `#quota`, `#whispererDefies`, `#popularity`;
-  `whisperer` 944-946, `popularity` 949-951, `whisperQuota` 954-956, `mayForge` 959-961,
-  `#chooseWhisperer` 968-979, `#whisperDuty` 982-986, `#whisperDutyAfterVote` 989-998,
-  `#dutyReport` 1006-1030, `#tally` 1033-1036, `whisperDutyNow` 1044-1065, `#sendDuty`
-  1068-1092, `forgeReceipt` 1103-1124, `nameFavourite` 1127-1130.
-- **Files:** `whisperer.ts`, `popularity.ts` (`PopularityVote`). **Events:** `whisperer_chosen`,
-  `whisper_duty`, `popularity_opened`, `popularity_ballot`, `popularity_result`,
-  `receipt_forged`. **Tools:** `forgeReceipt`, `nameFavourite`. **Spec:** `whisperer`,
-  `popularity`. **Slice:** `whispers`.
-- **Requires:** `ReceiptsApi`, `ChannelsApi`, `TribunalApi` (the vote after which duty runs).
+- **Provides:** `StandoffTribunalApi.exemptFromCap`. **Requires:** `StandoffApi`, `PuzzlesApi`,
+  `ExileApi`, `ChannelsApi` (it keeps its own ballot, so no `TribunalApi`).
 
 ### 16. script
 
@@ -281,8 +330,10 @@ requires. API names are proposals; a team may rename them in its PR.
   (`DirectorRule`), the `when` triggers. **Slice:** `script` (the old `director` field).
 - Each action of `#execute` becomes a staged call (`ctx.stage`) of the mechanic that owns the
   tool, or a command of its API; triggers become listeners (`kit.listen`) and jobs.
-- **Requires:** the APIs of the mechanics its rules direct (channels, progression, cast,
-  petitions); a story without a rule for a mechanic does not need that mechanic loaded.
+- **Uses:** the APIs of the mechanics its rules direct (channels, progression, cast, petitions,
+  ledger, puzzles); a story without a rule for a mechanic does not need that mechanic loaded. It
+  reacts to `level_up` with an immediate listener (`ProgressionEvents`), so its actions land before
+  the `submission` that caused them, as in the goldens; its staged calls chain with `then`.
 
 ### 17. gamemaker tools
 
@@ -322,15 +373,57 @@ requires. API names are proposals; a team may rename them in its PR.
   `#markSeen` its `turnOpened`.
 - **Slice:** `arena` (the old arena snapshot).
 
+## Teams, gates and shared files
+
+Four teams carve at the same time (core-review-2c.md, "Recommended partition"); each has a brief:
+
+| Team | Mechanics | Brief |
+|---|---|---|
+| T1 economy | names, ledger, marks, receipts (with blame), whispers | [`carve-team-T1.md`](carve-team-T1.md) |
+| T2 messages | channels (13 tools), petitions, cast, cores | [`carve-team-T2.md`](carve-team-T2.md) |
+| T3 progress | puzzles, progression (status line, `task` kind), goals; later script and the turn loop | [`carve-team-T3.md`](carve-team-T3.md) |
+| T4 conflict | standoff, exile, tribunal, seal, standoff-tribunal | [`carve-team-T4.md`](carve-team-T4.md) |
+
+Each gamemaker tool goes to the team that owns its mechanic (step 17).
+
+**Gate per team.** A step is green when `pnpm check` is green and the mechanic's golden gate holds:
+for every golden log in `test/golden/`, `ownedBy(lines, [id])` equals what the mechanic writes for
+the replayed `goldenCalls` on the new host (stand-ins for other teams' providers, `standInsFor` for
+the slices of mechanics not carved yet). The goldens themselves and `packages/engine` stay
+unchanged (no `GOLDEN_UPDATE`).
+
+**Shared files, one owner each** (the integration owner of wave 3, the lead): nobody else edits
+`packages/engine/src/world.ts` (teams copy from it; it is cut at step 18), `turn-input.ts`,
+`packages/contracts/src/story.ts`, `tool-names.ts`, `library/prompts/competitor/status/*`,
+`packages/chronicle/src/log/legacy-owners.ts`, `LEGACY_WORLD_OWNERS`, this plan, `mechanics/shared`,
+`pnpm-workspace.yaml`, the root `tsconfig.json` and `package.json`, `knip.json`,
+`scripts/check-packages.ts` and the core (`packages/contracts/src/core`, `packages/kernel/src/host`).
+A team that needs a change there asks for it; the change lands in its own PR first.
+
+**Frozen in wave 3.0** (`mechanics/shared`, fingerprinted in `test/mechanics/shared-frozen.test.ts`):
+every API (`NamesApi` to `StandoffTribunalApi`), the events other mechanics listen to (`exiled`;
+`level_up`, `submission`; `dm_sent`, `board_post`; `ledger_entry`, `transfer`; `petition_resolved`;
+`cast_dm`), the shared schemas (`ResidentId`, `Done`, `Standing`, `ReceiptBody`, `HeldPiece`, ...),
+the turn input kinds (`INPUT_KINDS`) and the status order (`STATUS_ORDER`). The emitter spreads the
+shared declaration into its head (`events: { ...ExileEvents.events, ... }`); a listener uses
+`kit.listen(ExileEvents, "exiled", fn)`. The core's API (`mechanic-api.md`) is frozen as well.
+
 ## Risks
 
 - **Status line order.** The old status line is one function (`statusLine`, `turn-input.ts`
-  10-54); split into `status` notes, its parts follow the load order. Check the order against
-  the goldens when progression, marks, seal, standoff-tribunal and tribunal add their parts.
+  10-54); split into `status` parts, each part carries `order: STATUS_ORDER.<part>`, so the load
+  order does not matter. Check the order against the goldens when the parts arrive.
 - **The finished notice** is a `notice` placed before the DMs; grouped by kind it would move
   behind them and change every golden prompt. Give it the `task` kind.
 - **The guard covers residents only** and takes one policy per tool, as the old engine did.
-- **Locks.** The converter does not derive locks from the old state; progression must rebuild
-  them on load (migration 0 → 1) or the story passes `locks`.
-- **Staged calls in `runEnded` are dropped.** The director's last actions must run earlier.
+- **Locks.** The converter does not derive locks from the old state; without `locks` the story's
+  start locks hold on resume. Progression must rebuild them on load (migration 0 → 1) or the
+  story passes `locks`.
+- **Staged calls in `runEnded` are dropped.** The director's last actions must run earlier
+  (calls staged in `minuteEnded` run before `minute_ended`).
+- **Frozen APIs may be wrong.** They are written from `world.ts`, not from carved code. A team
+  that finds a method missing or wrong asks the integration owner; it does not work around the API
+  with an event or a second channel.
+- **Uncovered slices.** No example snapshot holds standoff, holdout, seal or whispers state; T1 and
+  T4 write their own fixtures for the migration from version 0.
 - **Blocks.** A test asserts the order of calls in a block, not the order of `turnOpened`.

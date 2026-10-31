@@ -4,6 +4,19 @@ Verdict: fix first. Problems 1-8 are core design fixes; they are cheap now and e
 mechanics are written against today's behaviour. Probe scripts that reproduce 5-8 are not kept; the
 scenarios below are exact enough to turn into tests.
 
+**Status (wave 3.0):** problems 1-12, the adapter's `at` and the carve plan corrections are fixed;
+each fix has a test that failed first: `test/host/review-ordering.test.ts` (1),
+`review-basics.test.ts` (2, 4, parts of 11), `review-uses.test.ts` (3),
+`review-lifecycle.test.ts` (5, 6, 7), `review-policies.test.ts` (8, 9),
+`test/snapshot/legacy-snapshot.test.ts` and `test/log/legacy-files.test.ts` (10 and the 12 run logs),
+`review-layering.test.ts` and `conformance.test.ts` (12). The core grew with the fixes: 3508 lines in
+`packages/contracts/src/core` and `packages/kernel/src/host` (2608 without blank and comment
+lines; 3082 before the fixes), about 1.7 times the ~1500 budget. Not trimmed in wave 3.0, since
+the teams build against it; candidates are the guard and consult waits (`waits.ts`,
+`core/consult.ts`, about 130 code lines, could be a pipeline module), the story rules stand-ins
+and facts (about 60), and the generic boilerplate of `defineHead`/`defineMechanic` (about 40).
+[`carve-plan.md`](carve-plan.md) carries the corrected order and the team briefs.
+
 ## Ranked problems
 
 1. **Event ordering cannot reproduce the golden logs** (`kernel/src/host/log.ts:195-244`,
