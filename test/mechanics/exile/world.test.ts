@@ -133,7 +133,7 @@ function newCity(world: World, gate: { readonly agent: string; readonly until: n
 		residents: IDS,
 		mechanics: [
 			...standIns(city).filter((use) => use.mechanic.id !== "standoff"),
-			standoff.with({ ultimatum: { ...rule }, author: AUTHOR, direction: 10 }),
+			standoff.with({ ultimatum: { ...rule }, author: AUTHOR }),
 			exile.with(),
 			tribunal.with({ ...spec, first: { ...spec.first, latestAfter: 1000 } }),
 		],

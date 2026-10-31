@@ -10,8 +10,8 @@
 import { describe, expect, it } from "vitest";
 import type { Host, Turn, TurnTaker } from "@swarmtales/contracts";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
-import { exile, TribunalExtrasApi } from "@swarmtales/mechanic-exile";
-import { ExileApi, StandoffApi } from "@swarmtales/mechanic-shared";
+import { exile } from "@swarmtales/mechanic-exile";
+import { ExileApi, StandoffApi, TribunalApi } from "@swarmtales/mechanic-shared";
 import { whispers } from "@swarmtales/mechanic-whispers";
 import whispersStory from "../../../stories/whispers/story.ts";
 import { provider } from "../exile/support/provider.ts";
@@ -31,7 +31,7 @@ function city(): Host {
 		mechanics: [
 			...realCity(whispersStory),
 			provider("standoff", StandoffApi, { keep: () => null, noteGiven: () => null, noteText: () => null }).with(),
-			provider("tribunal-texts", TribunalExtrasApi, { text: () => "the gate" }).with(),
+			provider("tribunal-texts", TribunalApi, { text: () => "the gate" }).with(),
 			exile.with(),
 			whispers.with({ ...configured.whispers, direction: { level: 10, defies: false } }),
 		],

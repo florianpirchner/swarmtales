@@ -36,7 +36,7 @@ function story(opening: Opening, minutes = 8) {
 		minutes,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 		mechanics: [
-			names.with(),
+			names.with({ announcement: whispersStory.names?.announcement ?? "" }),
 			ledger.with({ startPoints: 10 }),
 			channels.with({ defiance: opening.defiance === true, whispererDefies: opening.whispererDefies === true }),
 			marks.with(configured.marks),

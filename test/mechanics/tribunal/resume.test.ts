@@ -138,7 +138,7 @@ async function both(name: string) {
 			ledger.with({ startPoints: cityOfKeys.run.startPoints }),
 			...standIns(city).filter((use) => use.mechanic.id !== "ledger" && use.mechanic.id !== "standoff"),
 			// The real standoff (T4b) on its own version-0 slice: it keeps the exiled's pieces (P43) and tells their needers.
-			standoff.with({ author: cityOfKeys.gamemaker?.author ?? "COURIER", direction: 4 }),
+			standoff.with({ author: cityOfKeys.gamemaker?.author ?? "COURIER" }),
 			exile.with(),
 			tribunal.with({ ...spec }),
 			...standInsFor(converted.host, LOADED),

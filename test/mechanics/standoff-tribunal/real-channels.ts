@@ -45,6 +45,8 @@ function standIns(model: FragmentModel, passwords: Readonly<Record<string, strin
 			inherited: ({ resident, level }) => model.inherited(resident, level).map((entry) => ({ ...entry })),
 			isDealt: ({ level }) => model.doors.has(level),
 			solutionOf: ({ resident, level }) => (model.doors.has(level) ? (passwords[resident] ?? null) : null),
+			// The note desk reads the deal's secrets in one call (round 3, R2-D8): every dealt level's passwords, no numbers.
+			secrets: () => ({ passwords: [...model.doors.keys()].sort((x, y) => x - y).flatMap(() => Object.values(passwords)), numbers: [] }),
 		}),
 		provider("progression", ProgressionApi, {
 			levelOf: ({ resident }) => model.levelOf(resident),

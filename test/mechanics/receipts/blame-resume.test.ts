@@ -76,11 +76,9 @@ describe("blame after a legacy resume, on real channels", () => {
 		for (const [at, replies] of before.replies) expect(after.replies.get(at), at).toEqual(replies);
 	});
 
-	// Real channels reads a DM without text as empty (`dmRecordOf`, mechanics/channels/src/api.ts), so blame
-	// says "has not reached ... yet" where the old engine says "kept no delivery record". Request 1 of
-	// docs/design/carve-requests-round3-T1.md asks T2 to stop coercing; the day it lands this test turns red
-	// (a failing `it.fails`), and `.fails` goes. blame-records.test.ts proves the paths meanwhile.
-	it.fails("answers 'the city kept no delivery record' for an old DM without text (waits for request 1)", async () => {
+	// Real channels hands out a DM without text without one (round 3, request 1 of
+	// docs/design/carve-requests-round3-T1.md, done by T2), so blame says "kept no delivery record" like the old engine.
+	it("answers 'the city kept no delivery record' for an old DM without text", async () => {
 		const raw = withDms((dms) => dms.map((record) => (record.id === 18 ? old(record) : record)));
 		const { before, after } = await compare(raw, [true, false]);
 		expect(before.replies.get("9:A05")?.[0]).toContain("the city kept no delivery record of DM #18 (it was sent before the city numbered its messages)");

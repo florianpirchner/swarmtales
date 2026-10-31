@@ -121,7 +121,6 @@ const scenarios: readonly Scenario[] = [
 	},
 	{
 		name: "a file from before the core motives: they are dealt first, then the acts begin, then the levels are dealt again",
-		waitsFor: "T2: the motives mechanic deals at `minuteStarted.motives` (R2-D9 moves it to `runResumed.motives`), so its `core_dealt` lines come after the act starts and the re-deal, and the goals are dealt against no core motives",
 		has: ['"type":"core_dealt"'],
 		order: ["core_dealt", "goal_dealt", "factors_dealt"],
 		options: {

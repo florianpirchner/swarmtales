@@ -45,7 +45,7 @@ export function realCity(story: AnyStory): readonly MechanicUse[] {
 	const minRun = story.guards?.rules.find((rule) => rule.tools.includes("postBoard") && rule.secrets !== undefined)?.secrets?.minRun;
 	return [
 		ledger.with({ startPoints: story.run.startPoints }),
-		channels.with({ ...channelsOptionsOf(story), quoteDms }),
+		channels.with(channelsOptionsOf(story)),
 		receipts.with({ quoteDms, ...(minRun === undefined ? {} : { minRun }) }),
 		rules === undefined ? marksStandIn().with() : marks.with(rules),
 		noNames(),
