@@ -7,10 +7,10 @@
  * after the call (or the code) that staged them, as actor `script`. Every caller reads its reply
  * through the mechanics' `display` (names for ids); the events keep what happened.
  */
-import type { Actor, GrantRole, MechanicInstance, MechanicTool, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicy } from "@swarmtales/contracts";
+import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicy } from "@swarmtales/contracts";
 import { refuse } from "./define.ts";
 import { residentOf, roleOf, type AccessControl } from "./access.ts";
-import { toolFor } from "./loader.ts";
+import { toolFor, type ToolCatalog } from "./catalog.ts";
 import type { Frame } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import { stagedData, type StagingQueue } from "./staging.ts";
@@ -24,14 +24,9 @@ export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 export const TEXT_TOO_LONG = "TEXT_TOO_LONG";
 export { GUARD_BLOCKED } from "./waits.ts";
 
-export interface LoadedTool {
-	readonly owner: string;
-	readonly tool: MechanicTool;
-}
-
 export interface GatewayParts extends WaitParts {
 	/** By name, one entry per role-disjoint variant. */
-	readonly tools: ReadonlyMap<string, readonly LoadedTool[]>;
+	readonly tools: ToolCatalog;
 	readonly instanceOf: (id: string) => MechanicInstance | undefined;
 	readonly policies: Readonly<Record<string, ToolPolicy | undefined>>;
 	readonly access: AccessControl;

@@ -29,7 +29,8 @@ import {
 } from "@swarmtales/contracts";
 import { AccessControl } from "./access.ts";
 import { Gateway } from "./gateway.ts";
-import { loadMechanics, toolFor, type Loaded } from "./loader.ts";
+import { toolFor } from "./catalog.ts";
+import { loadMechanics, type Loaded } from "./loader.ts";
 import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";

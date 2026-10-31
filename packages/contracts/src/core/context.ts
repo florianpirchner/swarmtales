@@ -5,9 +5,17 @@
  */
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput } from "./api.ts";
-import type { StageOptions } from "./consult.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
 import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomSource, ResidentId } from "./values.ts";
+
+/** Options of `ctx.stage`. */
+export interface StageOptions {
+	/** A job of the staging mechanic that runs with the outcome (`StagedOutcome`) as its data. */
+	readonly then?: string;
+}
+
+/** The outcome of a staged call, as the `then` job receives it. */
+export type StagedOutcome = { readonly ok: true; readonly reply: string } | { readonly ok: false; readonly code: string; readonly detail?: string };
 
 /** Read access to the residents. */
 export interface ResidentsView {

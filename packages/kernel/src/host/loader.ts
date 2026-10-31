@@ -5,10 +5,10 @@
  * unknown tools).
  */
 import { Check } from "typebox/value";
-import { CORE_EVENTS, type CoreStory, type GrantRole, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { CORE_EVENTS, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
-import type { LoadedTool } from "./gateway.ts";
+import { servesOverlap, type LoadedTool, type ToolCatalog } from "./catalog.ts";
 import type { EventBus } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import type { Scheduler } from "./scheduler.ts";
@@ -64,18 +64,7 @@ export interface Loaded {
 	readonly order: readonly string[];
 	readonly instances: ReadonlyMap<string, MechanicInstance>;
 	/** By name; one entry per role-disjoint variant. */
-	readonly tools: ReadonlyMap<string, readonly LoadedTool[]>;
-}
-
-/** Whether two tools of one name would serve a role twice (undefined: every role). */
-function servesOverlap(a: readonly GrantRole[] | undefined, b: readonly GrantRole[] | undefined): boolean {
-	if (a === undefined || b === undefined) return true;
-	return a.some((role) => b.includes(role));
-}
-
-/** The variant of a tool that serves `role`. */
-export function toolFor(tools: ReadonlyMap<string, readonly LoadedTool[]>, name: string, role: GrantRole): LoadedTool | undefined {
-	return tools.get(name)?.find((loaded) => loaded.tool.serves === undefined || loaded.tool.serves.includes(role));
+	readonly tools: ToolCatalog;
 }
 
 export function loadMechanics(parts: LoaderParts): Loaded {

@@ -70,12 +70,3 @@ export interface GuardHandlers<M extends MechanicShape> {
 	leaks?(text: string, secrets: readonly GuardSecret[], minRun: number, ctx: MechanicContext<M>): string | undefined;
 }
 
-/** The outcome of a staged call, as the `then` job receives it. */
-export type StagedOutcome = { readonly ok: true; readonly reply: string } | { readonly ok: false; readonly code: string; readonly detail?: string };
-
-/** Options of `ctx.stage`. */
-export interface StageOptions {
-	/** A job of the staging mechanic that runs with the outcome as its data. */
-	readonly then?: string;
-}
-
