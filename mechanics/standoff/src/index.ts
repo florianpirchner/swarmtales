@@ -5,12 +5,17 @@
  */
 import { Type } from "typebox";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
+import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
 import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
 import { standoffSnapshot } from "./slice.ts";
-import { CityPieces, cityPiecesOf, emptySituation, Outstanding, situationOf, Ultimatums, Unused, type StandoffSituation } from "./situation.ts";
+import { CityPieces, cityPiecesOf, Outstanding, outstandingOf, Ultimatums, Unused, unusedOf } from "./situation.ts";
+import { cityPiecePrice, needsNow, type StandoffReads } from "./reads.ts";
+
+export { DEFAULT_DIRECTION, grantsUltimatum, ULTIMATUM_DIRECTION } from "./grants.ts";
+/** The schemas of the gamemaker's facts, for a head that renders the old "Standoffs" section. */
+export { CityPieces, Outstanding, Ultimatums, Unused } from "./situation.ts";
 
 const CITY = "CITY";
 
@@ -22,28 +27,17 @@ const options = Type.Object({
 		}, { description: "The gamemaker's ultimatum (P43); without it the gamemaker has none." }),
 	),
 	author: Type.String({ default: "COURIER", description: "The gamemaker's name on its notices and board posts, e.g. COURIER." }),
-	direction: Type.Integer({
-		default: 4,
-		minimum: 0,
-		maximum: 10,
-		description: "The run's gamemaker direction dial (old `direction`, default 4); the ultimatum is offered only at 10 (request R2-7: the dial has no shared source yet).",
-	}),
 });
-
-/** The gamemaker direction from which the ultimatum is offered (old `#mayGiveUltimatums`). */
-const ULTIMATUM_DIRECTION = 10;
 
 export interface StandoffState {
 	data: StandoffData;
-	/** What the facts read, taken at each minute's end (not part of the slice). */
-	situation: StandoffSituation;
 }
 
 export const standoffHead = defineHead({
 	id: "standoff",
 	summary: "Pieces residents hold for others, kept pieces and ultimatums.",
 	options,
-	state: (): StandoffState => ({ data: emptyStandoff(), situation: emptySituation() }),
+	state: (): StandoffState => ({ data: emptyStandoff() }),
 	events: standoffEvents,
 	provides: [StandoffApi],
 	requires: [PuzzlesApi, ProgressionApi, LedgerApi, ChannelsApi],
@@ -61,28 +55,60 @@ export const standoffHead = defineHead({
 
 type Ctx = ContextOf<typeof standoffHead>;
 type ToolCtx = ToolContextOf<typeof standoffHead>;
+type View = ViewOf<typeof standoffHead>;
 
 const NOUN: Readonly<Record<HeldPiece["kind"], string>> = { counter: "counter-factor", certificate: "team certificate", fragment: "fragment" };
 
-/** Every piece `agent` holds on the levels dealt (old `heldPieces`), needers in team-member order. */
-function heldAll(ctx: Ctx, agent: string): readonly HeldPiece[] {
-	return ctx.call(PuzzlesApi, "heldPieces", { resident: agent });
+/** The standoff's reads in a tool, hook or service. */
+function readsOfCtx(ctx: Ctx): StandoffReads {
+	return {
+		ids: ctx.residents.ids,
+		heldAll: (agent) => ctx.call(PuzzlesApi, "heldPieces", { resident: agent }),
+		levelOf: (agent) => ctx.call(ProgressionApi, "levelOf", { resident: agent }),
+		hasPassed: (agent, level) => ctx.call(ProgressionApi, "hasPassed", { resident: agent, level }),
+		isExiled: (agent) => ctx.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false,
+		ransomPrice: () => ctx.tryCall(TribunalApi, "ransomPrices", {})?.price,
+	};
 }
 
-function isExiled(ctx: Ctx, agent: string): boolean {
-	return ctx.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false;
+/** The same reads in a fact: queries only (R2-D4), computed when the fact is read. */
+function readsOfView(view: View): StandoffReads {
+	return {
+		ids: view.residents.ids,
+		heldAll: (agent) => view.call(PuzzlesApi, "heldPieces", { resident: agent }),
+		levelOf: (agent) => view.call(ProgressionApi, "levelOf", { resident: agent }),
+		hasPassed: (agent, level) => view.call(ProgressionApi, "hasPassed", { resident: agent, level }),
+		isExiled: (agent) => view.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false,
+		ransomPrice: () => view.tryCall(TribunalApi, "ransomPrices", {})?.price,
+	};
 }
 
-/** What a piece the city keeps costs its needer: half of what others pay for a ransom, rounded up (P48); 0 without a tribunal. */
-function cityPiecePrice(ctx: Ctx): number {
-	const prices = ctx.tryCall(TribunalApi, "ransomPrices", {});
-	return prices === undefined ? 0 : Math.ceil(prices.price / 2);
+/** A fact writes nothing: the book's writing ports refuse. */
+function readOnly(): never {
+	throw new Error("standoff: a fact writes nothing");
+}
+
+/** The reading ports every caller of the book shares (old world.ts:682-702). */
+function readingPorts(reads: StandoffReads): Pick<StandoffPorts, "ids" | "held" | "needsNow" | "inCity"> {
+	return {
+		ids: reads.ids,
+		held: (agent) => reads.heldAll(agent).filter((piece) => piece.kind !== "fragment"),
+		needsNow: (agent, level) => needsNow(reads, agent, level),
+		inCity: (agent) => !reads.isExiled(agent),
+	};
+}
+
+/** The book a fact reads, over the state as it is; `outstanding` and `unused` only read. */
+function factBook(view: View): { readonly book: StandoffBook; readonly reads: StandoffReads } {
+	const reads = readsOfView(view);
+	const ports: StandoffPorts = { ...readingPorts(reads), minute: () => view.minute, points: readOnly, burn: readOnly, notify: readOnly, emit: readOnly, announce: readOnly };
+	return { book: new StandoffBook(ports, view.state.data), reads };
 }
 
 function portsFor(ctx: Ctx): StandoffPorts {
 	const { ultimatum } = ctx.options;
 	return {
-		ids: ctx.residents.ids,
+		...readingPorts(readsOfCtx(ctx)),
 		...(ultimatum === undefined ? {} : { rule: ultimatum }),
 		minute: () => ctx.minute,
 		points: (agent) => ctx.call(LedgerApi, "balance", { account: agent }),
@@ -98,9 +124,6 @@ function portsFor(ctx: Ctx): StandoffPorts {
 		announce: (author, text) => {
 			ctx.call(ChannelsApi, "post", { author, text });
 		},
-		held: (agent) => heldAll(ctx, agent).filter((piece) => piece.kind !== "fragment"),
-		needsNow: (agent, level) => !isExiled(ctx, agent) && ctx.call(ProgressionApi, "levelOf", { resident: agent }) === level && !ctx.call(ProgressionApi, "hasPassed", { resident: agent, level }),
-		inCity: (agent) => !isExiled(ctx, agent),
 	};
 }
 
@@ -115,9 +138,10 @@ function resolve(ctx: Ctx, text: string): string {
 
 /** `you hold for others: A01 door 9 counter-factor 791217`, while those needers wait at their door. */
 function heldPart(ctx: Ctx, agent: string): string | undefined {
-	const entries = heldAll(ctx, agent).flatMap((piece) => {
+	const reads = readsOfCtx(ctx);
+	const entries = reads.heldAll(agent).flatMap((piece) => {
 		if (piece.kind === "fragment") return [];
-		const waiting = piece.needers.filter((needer) => !isExiled(ctx, needer) && ctx.call(ProgressionApi, "levelOf", { resident: needer }) === piece.level && !ctx.call(ProgressionApi, "hasPassed", { resident: needer, level: piece.level }));
+		const waiting = piece.needers.filter((needer) => needsNow(reads, needer, piece.level));
 		return waiting.length === 0 ? [] : [ctx.prompt("competitor/status/held-piece", { waiting: waiting.join(", "), level: piece.level, noun: NOUN[piece.kind], value: piece.value })];
 	});
 	return entries.length === 0 ? undefined : ctx.prompt("competitor/status/held", { pieces: entries.join("; ") });
@@ -144,7 +168,7 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				const agent = ctx.resident;
 				if (agent === undefined) return refuse("NO_RESIDENT");
 				const holder = resolve(ctx, from);
-				const claimed = bookFor(ctx).claim(agent, piece, holder, cityPiecePrice(ctx));
+				const claimed = bookFor(ctx).claim(agent, piece, holder, cityPiecePrice(readsOfCtx(ctx)));
 				if (!claimed.ok) return refuse(claimed.error, claimed.detail);
 				const values = claimed.value.pieces.map((entry) => `${entry.label}: ${entry.value}`).join("; ");
 				ctx.call(ChannelsApi, "notify", { to: agent, author: CITY, text: `The city hands you what ${holder} held for you: ${values}.` });
@@ -170,10 +194,10 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 	],
 	services: [
 		kit.provide(StandoffApi, {
-			heldPieces: ({ resident }, ctx) => heldAll(ctx, resident).map((piece): HeldPiece => ({ ...piece, needers: [...piece.needers] })),
+			heldPieces: ({ resident }, ctx) => readsOfCtx(ctx).heldAll(resident).map((piece): HeldPiece => ({ ...piece, needers: [...piece.needers] })),
 			keep: ({ from, pieces }, ctx) => {
 				const kept: StandoffPiece[] = pieces.map((piece) => ({ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers }));
-				bookFor(ctx).keep(from, kept, cityPiecePrice(ctx), CITY);
+				bookFor(ctx).keep(from, kept, cityPiecePrice(readsOfCtx(ctx)), CITY);
 				return null;
 			},
 			noteText: ({ author, readers, text }, ctx) => {
@@ -185,14 +209,12 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				bookFor(ctx).noteGiven(from, to, { id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers });
 				return null;
 			},
-			cityPiecePrice: (_input, ctx) => cityPiecePrice(ctx),
+			cityPiecePrice: (_input, ctx) => cityPiecePrice(readsOfCtx(ctx)),
 		}),
 	],
 	pipeline: {
 		/** The old `enabledTools`: a resident in the city buys only while the city keeps a piece it needs. */
 		lock: (call, ctx) => {
-			// The old gamemaker offered `ultimatum` only at direction 10 in a story with ultimatums (gamemaker.ts:214, :375).
-			if (call.owner === "standoff" && call.tool === "ultimatum") return ctx.options.direction >= ULTIMATUM_DIRECTION && ctx.options.ultimatum !== undefined ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
 			if (call.owner !== "standoff" || call.tool !== "claimPiece" || call.resident === undefined) return undefined;
 			const alive = (ctx.tryCall(ExileApi, "standing", { resident: call.resident })?.kind ?? "alive") === "alive";
 			return alive && bookFor(ctx).claimable(call.resident).length > 0 ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
@@ -205,13 +227,6 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				bookFor(ctx).tick(ctx.minute, CITY);
 			},
 		},
-		/** The facts' situation at the minute's end; it writes nothing (request R2-8, slot `minuteEnded.standoff`). */
-		minuteEnded: {
-			order: HOOK_ORDER.minuteEnded.standoff,
-			run: (ctx) => {
-				ctx.state.situation = situationOf(bookFor(ctx), (agent) => heldAll(ctx, agent), cityPiecePrice(ctx));
-			},
-		},
 		turnInputs: {
 			order: HOOK_ORDER.turnInputs.status,
 			run: (resident, ctx) => {
@@ -222,11 +237,14 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 	},
 	facts: {
 		/** D-8: the pieces holders in the city still owe residents before their door. */
-		outstanding: kit.fact(Outstanding, (view) => view.state.situation.outstanding.map((debt) => ({ ...debt, pieces: debt.pieces.map((piece) => ({ ...piece, needers: [...piece.needers] })) }))),
+		outstanding: kit.fact(Outstanding, (view) => {
+			const { book, reads } = factBook(view);
+			return outstandingOf(book, reads.heldAll);
+		}),
 		/** D-8: the pieces the city keeps or seized, who bought each, a seized piece's price. */
 		cityPieces: kit.fact(CityPieces, (view) => cityPiecesOf(view.state.data.city)),
 		/** D-8: hand-overs whose needer still stands before the door. */
-		unused: kit.fact(Unused, (view) => view.state.situation.unused.map((entry) => ({ ...entry }))),
+		unused: kit.fact(Unused, (view) => unusedOf(factBook(view).book)),
 		/** D-8: the running ultimatums. */
 		ultimatums: kit.fact(Ultimatums, (view) =>
 			view.state.data.ultimatums.flatMap((entry) => {
@@ -237,7 +255,7 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 			}),
 		),
 		/** D-8: what a piece the city keeps costs now. */
-		cityPiecePrice: kit.fact(Type.Number(), (view) => view.state.situation.cityPiecePrice),
+		cityPiecePrice: kit.fact(Type.Number(), (view) => cityPiecePrice(readsOfView(view))),
 		given: kit.fact(Type.Integer(), (view) => view.state.data.given.size),
 	},
 	snapshot: kit.snapshot(standoffSnapshot),

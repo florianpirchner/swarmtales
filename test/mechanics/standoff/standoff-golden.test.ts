@@ -18,6 +18,7 @@ import { compareReplies, dropJustified, goldenCalls, goldenDiff, inputPart, owne
 import { goldenLog, minutesOf, type GoldenName } from "../puzzles/harness.ts";
 import { legacyLines, storyOptions } from "./support/host.ts";
 import { probe, runProbe } from "./support/probe.ts";
+import { standoffSection } from "./support/standoffs.ts";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
 
 const LOGS = ["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"] as const;
@@ -43,6 +44,8 @@ interface Played {
 	readonly host: Host;
 	readonly parts: ReadonlyMap<string, readonly string[]>;
 	readonly replies: readonly Reply[];
+	/** After each minute (where the old gamemaker looked): the facts and the levels. */
+	readonly ends: ReadonlyMap<number, { readonly facts: Readonly<Record<string, unknown>>; readonly levels: ReadonlyMap<string, number> }>;
 }
 
 function replyText(outcome: ToolOutcome): string {
@@ -67,7 +70,7 @@ async function play(golden: readonly LegacyLine[], minutes: number): Promise<Pla
 		residents: RESIDENTS,
 		minutes,
 		mechanics: [
-			standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 }, direction: 10 }),
+			standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 } }),
 			probe.with(),
 			channelsStandIn(world).with(),
 			ledgerStandIn(world).with(),
@@ -110,8 +113,13 @@ async function play(golden: readonly LegacyLine[], minutes: number): Promise<Pla
 		// The levels the next turn's inputs see: every golden level-up before it.
 		levelsBefore(until);
 	};
-	while (host.ended === undefined) await host.playMinute(agent);
-	return { host, parts, replies };
+	const ends = new Map<number, { readonly facts: Readonly<Record<string, unknown>>; readonly levels: ReadonlyMap<string, number> }>();
+	while (host.ended === undefined) {
+		const minute = host.minute;
+		await host.playMinute(agent);
+		ends.set(minute, { facts: host.facts(), levels: new Map(world.levels) });
+	}
+	return { host, parts, replies, ends };
 }
 
 describe.each(LOGS)("standoff golden gate: %s (stand-in puzzles with the golden deals, progression, ledger, channels)", (name: GoldenName) => {
@@ -143,5 +151,28 @@ describe.each(LOGS)("standoff golden gate: %s (stand-in puzzles with the golden 
 		const shown = expected.filter((line) => line.includes(HELD)).length;
 		if (name.startsWith("whispers")) expect(shown).toBe(0);
 		else expect(shown).toBeGreaterThan(5);
+	});
+
+	it("renders the golden gamemaker's Standoffs section from the facts in every golden gamemaker turn (must-fix 6)", async () => {
+		const { ends } = await play(golden, minutesOf(name));
+		const levelUps = golden.filter((line) => line.type === "level_up");
+		const turns = golden.filter((line) => line.type === "gamemaker_turn");
+		const sectionOf = (input: string): string => {
+			const start = input.indexOf("Standoffs (");
+			return start < 0 ? "" : input.slice(start, input.indexOf("\n\n", start));
+		};
+		const expected = turns.map((line) => `${String(line.seq)} ${asIds(sectionOf(String(line.input)))}`);
+		const actual = turns.map((line) => {
+			const minute = Number(line.minute);
+			const end = ends.get(minute);
+			if (end === undefined) return `${String(line.seq)} no minute ${String(minute)}`;
+			const since = (agent: string) => levelUps.filter((up) => up.agent === agent && seqOf(up) < seqOf(line)).reduce((last, up) => Number(up.minute), 0);
+			// Nobody leaves the city in the golden runs (no exile line), and no piece goes to the city.
+			const section = standoffSection(end.facts, { minute, levelSince: since, levelOf: (agent) => end.levels.get(agent) ?? 1, hasPassed: () => false, isAlive: () => true });
+			return `${String(line.seq)} ${section.slice(0, -1).join("\n")}`;
+		});
+		expect(actual).toEqual(expected);
+		const shown = turns.filter((line) => sectionOf(String(line.input)) !== "").map((line) => seqOf(line));
+		if (name === "cityofkeys-f10g10") expect(shown).toEqual([554, 633, 704, 766]);
 	});
 });

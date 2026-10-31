@@ -22,14 +22,14 @@ const L7 = resolve(import.meta.dirname, "../../../examples/cityofkeys-act1-06a-0
 async function resumed(scenario: Scenario, cut: number, slice: (version1: { readonly version: number; readonly data: unknown } | undefined, old: unknown) => { version: number; data: unknown }) {
 	const world = worldFor(scenario);
 	const story = sealStory(scenario, world);
-	const first: NewRun = { host: startHost(story), world, replies: [] };
+	const first: NewRun = { host: startHost(story), world, replies: [], status: [] };
 	await playNew(first, scenario, cut);
 	const snapshot = first.host.snapshot();
 	const old = runOld(scenario, { until: cut }).snapshot;
 	const events = first.host.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
 	const edited = { ...snapshot, mechanics: { ...snapshot.mechanics, seal: slice(snapshot.mechanics.seal, old) } };
 	const host = createHost({ ...storyOptions(story), resume: { snapshot: structuredClone(edited), events } });
-	const second: NewRun = { host, world, replies: [...first.replies] };
+	const second: NewRun = { host, world, replies: [...first.replies], status: [...first.status] };
 	await playNew(second, scenario);
 	return { snapshot, old, record: recordOf(second) };
 }
@@ -55,9 +55,9 @@ describe("seal snapshot (stand-in exile, tribunal, progression, ledger, channels
 
 	it("resumes snapshot-L7 (no seal begun yet) and runs Act II's auction as the old seal would", async () => {
 		const converted = convertLegacySnapshot(JSON.parse(readFileSync(L7, "utf8")), {}, L7);
-		// The old world wrote no `seal` before the act began; the converter writes no slice then (request 2).
+		// The old world wrote no `seal` before the act began; the converter writes no slice, and the host hands the version-0 migration `{}` (R2-D2).
 		expect(converted.host.mechanics.seal).toBeUndefined();
-		const host = { ...converted.host, mechanics: { ...converted.host.mechanics, seal: { version: 0, data: {} } } };
+		const host = converted.host;
 		const scenario: Scenario = {
 			residents: converted.host.residents.ids,
 			points: Object.fromEntries(converted.host.residents.ids.map((id) => [id, 100])),
@@ -80,7 +80,7 @@ describe("seal snapshot (stand-in exile, tribunal, progression, ledger, channels
 		});
 		const resumedHost = createHost({ ...storyOptions(ours), story, resume: { snapshot: host, events: converted.events } });
 		expect(resumedHost.minute).toBe(9);
-		const run: NewRun = { host: resumedHost, world, replies: [] };
+		const run: NewRun = { host: resumedHost, world, replies: [], status: [] };
 		await playNew(run, scenario);
 		const old = runOld(scenario, { from: 9 }).record;
 		const record = recordOf(run);

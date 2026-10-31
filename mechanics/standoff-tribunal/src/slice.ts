@@ -85,11 +85,24 @@ function save(state: HasHoldout): Slice {
 	};
 }
 
-/** The old `restore`. */
-function load(slice: Slice): HasHoldout {
+/** Every resident the saved tribunal names (old `restore`, holdout.ts:638-643). */
+function namedIn(saved: Static<typeof Saved>): readonly string[] {
+	const session = saved.session;
+	return [
+		...saved.struck,
+		...(saved.reached ?? []).map((entry) => entry.agent),
+		...saved.blockers.flatMap((blocker) => [blocker.blocker, ...blocker.lacking]),
+		...(session === undefined ? [] : [session.accused, ...session.voters, ...session.ballots.map((ballot) => ballot.agent), ...(session.drawn === undefined ? [] : [session.drawn])]),
+	];
+}
+
+/** The old `restore`: a slice that names an unknown resident is refused (holdout.ts:644-645). */
+function load(slice: Slice, setup: { readonly residents: readonly string[] }): HasHoldout {
 	const saved = slice.holdout;
 	const data: HoldoutData = { blockers: new Map(), struck: [], reached: new Map(), lotDoors: [], tribunals: 0, lots: 0, cooldownUntil: 0, session: undefined, pending: undefined };
 	if (saved === undefined) return { data };
+	const unknown = namedIn(saved).find((id) => !setup.residents.includes(id));
+	if (unknown !== undefined) throw new Error(`The snapshot's holdout tribunal names an unknown resident ${unknown}`);
 	for (const blocker of saved.blockers) data.blockers.set(reachedKey(blocker.door, blocker.blocker), { ...blocker, lacking: [...blocker.lacking] });
 	data.struck.push(...saved.struck);
 	for (const entry of saved.reached ?? []) data.reached.set(reachedKey(entry.door, entry.agent), entry.minute);

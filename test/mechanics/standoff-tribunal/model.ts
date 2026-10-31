@@ -8,6 +8,8 @@ export class FragmentModel {
 	readonly levels = new Map<string, number>();
 	readonly passed = new Set<string>();
 	readonly exiled = new Set<string>();
+	/** Residents at the tribunal's gate (in the city, but not "alive" for the status line), with the minute it closes. */
+	readonly gate = new Map<string, number>();
 	/** Who holds whose fragment of which door: `to>holder>door`. */
 	readonly received = new Set<string>();
 	/** Posts and numbered messages so far (the city's last message number). */
@@ -36,6 +38,14 @@ export class FragmentModel {
 		this.levels.set(id, level + 1);
 	}
 
+	/** Old `standingOf`: exiled, at the gate, or in the city. */
+	standing(id: string): { readonly kind: "alive" } | { readonly kind: "exiled" } | { readonly kind: "gate"; readonly until: number } {
+		if (this.exiled.has(id)) return { kind: "exiled" };
+		const until = this.gate.get(id);
+		return until === undefined ? { kind: "alive" } : { kind: "gate", until };
+	}
+
+	/** Old `alive`: everyone not exiled for good (those at the gate count). */
 	alive(): readonly string[] {
 		return this.residents.filter((id) => !this.exiled.has(id));
 	}

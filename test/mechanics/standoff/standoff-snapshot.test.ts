@@ -87,14 +87,13 @@ async function continueBoth(file: string, standoffOf: (ids: readonly string[], a
 	const saved = standoffOf(ids, probeIds.minute);
 	const edited = saved === undefined ? raw : { ...raw, world: { ...raw.world, standoff: saved } };
 	const converted = convertLegacySnapshot(edited, {}, file);
-	// A file whose world wrote no standoff gets no slice from the converter (request R2-2); the version-0 migration takes an empty one.
-	const mechanics = converted.host.mechanics.standoff === undefined ? { ...converted.host.mechanics, standoff: { version: 0, data: {} } } : converted.host.mechanics;
-	const snapshot = { ...converted.host, mechanics };
+	// A file whose world wrote no standoff gets no slice from the converter; the host hands the version-0 migration `{}` (R2-D2).
+	const snapshot = converted.host;
 	const start = snapshot.minute;
 
 	const world = worldOf(ids);
 	const ours = [
-		standoff.with({ ultimatum: RULE, direction: 10 }),
+		standoff.with({ ultimatum: RULE }),
 		probe.with(),
 		channelsStandIn(world).with(),
 		ledgerStandIn(world).with(),
