@@ -7,16 +7,24 @@
  * action (reply or refusal code and detail, `TOOL_LOCKED` by the old `enabledTools`), the status
  * parts of every turn and who left the city.
  */
+import { readFileSync } from "node:fs";
+import { Type } from "typebox";
+import { Parse } from "typebox/value";
+import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import { competitorIds, createHost, type HostOptions } from "@swarmtales/kernel";
 import { Tribunal, type TribunalEvent, type TribunalSnapshot } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
 import type { TribunalSpec } from "@swarmtales/contracts";
 import type { Host, Turn } from "@swarmtales/contracts";
-import { ExileApi, TribunalApi } from "@swarmtales/mechanic-shared";
+import { ExileApi, TribunalApi, TribunalViewApi } from "@swarmtales/mechanic-shared";
 import { exile } from "@swarmtales/mechanic-exile";
-import { tribunal, TribunalViewApi } from "@swarmtales/mechanic-tribunal";
+import { tribunal } from "@swarmtales/mechanic-tribunal";
 import { TestCity, standIns } from "../../exile/support/city.ts";
 import { runProbe, storyOptions } from "../../exile/support/host.ts";
+import { sectionOfOld } from "./section.ts";
+
+/** The 6-agent Act I checkpoint, the file the `restore` scenarios are written into. */
+const BASE = new URL("../../../../examples/cityofkeys-act1-06a-04/snapshot-L7.json", import.meta.url);
 
 export type Action =
 	| { readonly vote: readonly [string, string] }
@@ -36,8 +44,10 @@ export interface Scenario {
 	readonly progress?: readonly number[];
 	/** The minute the act begins (0 when omitted). */
 	readonly actStart?: number;
-	/** Flags set before the tick of a minute. */
-	readonly flags?: Readonly<Record<number, { readonly doorShut?: boolean; readonly passed?: boolean }>>;
+	/** Flags set before the tick of a minute; `levels` sets residents' levels (8 until set). */
+	readonly flags?: Readonly<Record<number, { readonly doorShut?: boolean; readonly passed?: boolean; readonly levels?: Readonly<Record<string, number>> }>>;
+	/** The gamemaker's roles (story `gamemaker.roles`); a director from level 1 when omitted. */
+	readonly roles?: readonly { readonly fromLevel: number; readonly role: string }[];
 	/** Actions after the tick of a minute, in order. */
 	readonly actions?: Readonly<Record<number, readonly Action[]>>;
 	/** The last minute played. */
@@ -57,6 +67,17 @@ export interface Streams {
 	readonly views: readonly string[];
 	/** The acts ended (old world.ts: `#endAct(spec.act ?? startLevel)` once the tribunal ended). */
 	readonly acts: readonly number[];
+}
+
+function rolesOf(scenario: Scenario): readonly { readonly fromLevel: number; readonly role: string }[] {
+	return scenario.roles ?? [{ fromLevel: 1, role: "director" }];
+}
+
+/** Old `roleOn` (gamemaker.ts:285). */
+function roleOn(scenario: Scenario, level: number): string | undefined {
+	return rolesOf(scenario)
+		.filter((entry) => entry.fromLevel <= level)
+		.at(-1)?.role;
 }
 
 function lastMinute(scenario: Scenario): number {
@@ -142,6 +163,8 @@ export function runOld(scenario: Scenario): Streams {
 	const reply = <T>(result: { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: string; readonly detail?: string }, text: (value: T) => string) =>
 		result.ok ? { ok: true as const, reply: text(result.value) } : { ok: false as const, code: result.error, ...(result.detail === undefined ? {} : { detail: result.detail }) };
 	const locked = { ok: false as const, code: "TOOL_LOCKED", detail: render("replies/locked", {}) };
+	const levels = new Map<string, number>();
+	let offer: { readonly minute: number; readonly open: boolean } | undefined;
 	const act = (minute: number, action: Action): void => {
 		const label = labelOf(action);
 		if ("points" in action) {
@@ -153,6 +176,12 @@ export function runOld(scenario: Scenario): Streams {
 			return;
 		}
 		if ("schedule" in action) {
+			// The old gamemaker's look (gamemaker.ts:213, `#mayScheduleTribunal`): the tool is offered or not when the look begins.
+			if (offer?.minute !== minute) offer = { minute, open: court.schedulingWindow().open && ids.some((agent) => court.standing(agent).kind === "alive" && roleOn(scenario, levels.get(agent) ?? 8) === "director") };
+			if (!offer.open) {
+				outcomes.push(outcomeOf(minute, label, locked));
+				return;
+			}
 			const { minute: opens, count, factions, reason } = action.schedule;
 			const planned = court.schedule(opens, count, factions, reason);
 			outcomes.push(
@@ -193,7 +222,9 @@ export function runOld(scenario: Scenario): Streams {
 	};
 	// The run's minutes end it: the last minute played is `minutes - 1`.
 	for (let minute = 0; minute <= lastMinute(scenario); minute++) {
-		Object.assign(flags, scenario.flags?.[minute] ?? {});
+		const { levels: changed, ...set } = scenario.flags?.[minute] ?? {};
+		Object.assign(flags, set);
+		for (const [agent, level] of Object.entries(changed ?? {})) levels.set(agent, level);
 		court.tick(minute);
 		if (court.ended && acts.length === 0) acts.push(scenario.spec.act ?? 8);
 		// The old turn inputs: the status parts of every resident still in the city (turn-input.ts `tribunalParts`).
@@ -214,6 +245,8 @@ export function runOld(scenario: Scenario): Streams {
 					missing: court.missing,
 					inSession: court.session !== undefined,
 					prices: court.ransomPrices(),
+					// The facts: the arena's stop rule (arena.ts:335-338) and the gamemaker's section (situation.ts:264-294).
+					facts: { stop: { endReason: court.endReason ?? null, busy: court.busy, pursuing: court.pursuing }, section: sectionOfOld(court) },
 				}),
 			);
 		}
@@ -280,27 +313,31 @@ function storyOf(scenario: Scenario, ids: readonly string[], city: TestCity): Ho
 	return storyOptions({
 		residents: ids,
 		minutes: scenario.minutes ?? 60,
-		mechanics: [...standIns(city), exile.with(), tribunal.with(scenario.spec)],
+		mechanics: [...standIns(city), exile.with(), tribunal.with({ ...scenario.spec, gamemakerRoles: rolesOf(scenario) })],
 		residentTools: ["vote", "nominate", "join", "refuse", "payRansom", "lastWill"],
 		gamemakerTools: ["scheduleTribunal"],
 		turns: { passes: 1, blockSize: ids.length, order: (view) => view.residents },
 	});
 }
 
+const OldFile = Type.Object({ world: Type.Object({}, { additionalProperties: true }) }, { additionalProperties: true });
+
 /**
- * The new host resumed from the old state the way `convertLegacySnapshot` hands it over: the
- * tribunal's `gates`, `exiled` and `ransomed` as the exile's version-0 slice, the rest as the
- * tribunal's, and the exiled suspended by `exile`.
+ * The new host resumed from the old state through `convertLegacySnapshot`: the scenario's old
+ * tribunal state goes into an old run file (the 6-agent Act I checkpoint, whose residents are the
+ * scenario's), the converter splits it into the exile's and the tribunal's version-0 slices and
+ * suspends the exiled, and the new host takes those slices and suspensions over its own.
  */
 function resumed(host: Host, scenario: Scenario, options: HostOptions): Host {
 	const old = scenario.restore;
 	if (old === undefined) return host;
-	const { gates, exiled, ransomed, ...rest } = old;
+	const file = Parse(OldFile, JSON.parse(readFileSync(BASE, "utf8")));
+	const converted = convertLegacySnapshot({ ...file, world: { ...file.world, tribunal: old } }, {}, "the Act I checkpoint with the scenario's tribunal");
+	const { exile: exileSlice, tribunal: tribunalSlice } = converted.host.mechanics;
 	const snapshot = host.snapshot();
-	const mechanics = { ...snapshot.mechanics, exile: { version: 0, data: { tribunal: { gates, exiled, ransomed } } }, tribunal: { version: 0, data: { tribunal: rest } } };
-	const suspensions = Object.fromEntries(exiled.map((id) => [id, ["exile"]]));
+	const mechanics = { ...snapshot.mechanics, ...(exileSlice === undefined ? {} : { exile: exileSlice }), ...(tribunalSlice === undefined ? {} : { tribunal: tribunalSlice }) };
 	const events = host.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
-	return createHost({ ...options, resume: { snapshot: { ...snapshot, mechanics, residents: { ...snapshot.residents, suspensions } }, events } });
+	return createHost({ ...options, resume: { snapshot: { ...snapshot, mechanics, residents: { ...snapshot.residents, suspensions: converted.host.residents.suspensions } }, events } });
 }
 
 async function actNew(host: Host, city: TestCity, minute: number, action: Action, outcomes: string[]): Promise<void> {
@@ -341,6 +378,7 @@ export async function runNew(scenario: Scenario): Promise<Streams> {
 		const flags = scenario.flags?.[minute];
 		if (flags?.doorShut !== undefined) city.doorShut = flags.doorShut;
 		if (flags?.passed !== undefined) city.passed = flags.passed ? ["A01"] : [];
+		for (const [agent, level] of Object.entries(flags?.levels ?? {})) city.levels.set(agent, level);
 		let acted = false;
 		await host.playMinute(async (turn: Turn) => {
 			status.push(
@@ -369,6 +407,7 @@ export async function runNew(scenario: Scenario): Promise<Streams> {
 
 /** What the view and the other mechanics read of the tribunal now, through its APIs. */
 function viewOf(host: Host, minute: number): Promise<string> {
+	const facts = host.facts();
 	return runProbe(host, (ctx) => {
 		const window = ctx.tryCall(TribunalViewApi, "schedulingWindow", {});
 		const risk = ctx.tryCall(TribunalViewApi, "atRisk", {});
@@ -381,6 +420,7 @@ function viewOf(host: Host, minute: number): Promise<string> {
 			missing: ctx.tryCall(TribunalApi, "missing", {}),
 			inSession: ctx.tryCall(TribunalApi, "inSession", {}),
 			prices: ctx.tryCall(TribunalApi, "ransomPrices", {}),
+			facts: { stop: facts["tribunal.stop"], section: facts["tribunal.section"] },
 		});
 	});
 }

@@ -10,14 +10,14 @@ export { BoardPost, DmRecord, Done, GroupPost, HeldPiece, MarksChannel, MarksLef
 export { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";
 export { CastApi, ChannelsApi, MotivesApi, DmWindow, NoteTarget, NotesApi, PetitionsApi } from "./messages.ts";
 export { GoalsApi, ProgressionApi, PuzzlesApi, Team } from "./progress.ts";
-export { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi } from "./conflict.ts";
+export { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 export { INPUT_KINDS, STATUS_ORDER } from "./turn-input.ts";
 export { HOOK_ORDER, LISTENER_ORDER, legacyTurnOrder, legacyTurns } from "./order.ts";
 
 import { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";
 import { CastApi, ChannelsApi, MotivesApi, NotesApi, PetitionsApi } from "./messages.ts";
 import { GoalsApi, ProgressionApi, PuzzlesApi } from "./progress.ts";
-import { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi } from "./conflict.ts";
+import { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 
 /** Every shared API, in carve order. */
 export const SHARED_APIS = [
@@ -36,6 +36,7 @@ export const SHARED_APIS = [
 	StandoffApi,
 	ExileApi,
 	TribunalApi,
+	TribunalViewApi,
 	SealApi,
 	StandoffTribunalApi,
 ] as const;

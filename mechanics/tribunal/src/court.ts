@@ -5,8 +5,7 @@
  * never shown; only the exiled learns who voted against it (the exile's gate notice).
  */
 import { ExileApi, ProgressionApi } from "@swarmtales/mechanic-shared";
-import { active, actLevel, burn, endOfAct, exiledList, gateCount, lowestFirst, missing, notify, points, post, present, register, render, residentsCount, target, text } from "./city.ts";
-import { ExileExtrasApi } from "./extras.ts";
+import { active, actLevel, burn, endOfAct, exiledList, gateCount, lowestFirst, missing, notify, points, post, present, register, render, residentsCount, target, text, type Reads } from "./city.ts";
 import { dissolveDraft, formFactions, settleDraft, startDraft, tickDraft } from "./factions.ts";
 import type { TribunalCtx } from "./head.ts";
 import { accusedCount, callMinute, earliestOpening, fitsBefore, maxFactions, noDraftReason, ransomPrices, roomAfter, type RansomPrices } from "./rules.ts";
@@ -14,7 +13,7 @@ import { currentSession, previousOpening, type Plan, type Planner, type Session 
 import { namesOf } from "./template.ts";
 
 /** The ransom for a gate opening now: from the median points of every resident still in the register (old `#prices`). */
-export function prices(ctx: TribunalCtx): RansomPrices {
+export function prices(ctx: Reads): RansomPrices {
 	return ransomPrices(
 		ctx.options.ransom,
 		register(ctx).map((agent) => points(ctx, agent)),
@@ -22,17 +21,17 @@ export function prices(ctx: TribunalCtx): RansomPrices {
 }
 
 /** Whether a tribunal is under way: called and not open yet, voting, or someone at the gate (old `busy`). */
-export function busy(ctx: TribunalCtx): boolean {
+export function busy(ctx: Reads): boolean {
 	return ctx.state.plan?.called === true || currentSession(ctx.state) !== undefined || gateCount(ctx) > 0;
 }
 
 /** Whether the city still pursues its target: the act is not over and tribunals are still held (old `pursuing`). */
-export function pursuing(ctx: TribunalCtx): boolean {
+export function pursuing(ctx: Reads): boolean {
 	return active(ctx) && !ctx.state.ended && !ctx.state.halted && target(ctx) > 0;
 }
 
 /** The run's end reason once the act is over (old `endReason`). */
-export function endReason(ctx: TribunalCtx): string | undefined {
+export function endReason(ctx: Reads): string | undefined {
 	return ctx.state.ended ? text(ctx, "targetReached", { exiledList: namesOf(exiledList(ctx)) }) : undefined;
 }
 
@@ -40,6 +39,7 @@ export function endReason(ctx: TribunalCtx): string | undefined {
 export function tick(ctx: TribunalCtx): void {
 	const { state } = ctx;
 	const minute = ctx.minute;
+	state.minutes = ctx.minutes;
 	state.lastTick = minute;
 	if (state.ended) return;
 	if (state.actStart === undefined) {
@@ -229,7 +229,7 @@ function closeSession(ctx: TribunalCtx, session: Session, minute: number): void 
 			.filter((vote) => vote.target === agent)
 			.map((vote) => vote.voter)
 			.sort();
-		const ransomable = !ctx.call(ExileExtrasApi, "ransomed", { resident: agent });
+		const ransomable = !ctx.call(ExileApi, "ransomed", { resident: agent });
 		ctx.call(ExileApi, "toGate", { resident: agent, until, ransomable, voters, price: price.price, selfPrice: price.selfPrice });
 	}
 	const draft = state.draft;

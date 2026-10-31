@@ -97,6 +97,18 @@ export const TribunalOptions = Type.Object({
 	bequestPerHeir: Type.Number({ description: "Share of its points a resident at the gate may leave each heir, in (0, 1]." }),
 	factions: Type.Optional(FactionSpec),
 	texts: TribunalTexts,
+	gamemakerRoles: Type.Optional(
+		Type.Immutable(Type.Array(
+			Type.Object({
+				fromLevel: Type.Integer({ description: "First level the role applies to; it holds until the next entry's level." }),
+				role: Type.String({ description: "The gamemaker's role there: coach, director or keeper." }),
+			}),
+			{
+				description:
+					"Not part of the story's `tribunal` spec: the gamemaker's roles (story `gamemaker.roles`). The gamemaker is offered `scheduleTribunal` only while a resident in the city plays a level of the `director` role; without them (no gamemaker), never.",
+			},
+		)),
+	),
 });
 
 export type TribunalSpec = Static<typeof TribunalOptions>;

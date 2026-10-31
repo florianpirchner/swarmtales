@@ -5,22 +5,22 @@
  * `#onExiled` and `#onStruck`, and the `standing` part of the status line. The tribunal opens the
  * gates (`ExileApi.toGate`), the seal and the holdout tribunal strike (`ExileApi.strike`).
  */
-import { Type } from "typebox";
+import { Type, type Static } from "typebox";
 import { defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { ExileApi, HOOK_ORDER, STATUS_ORDER, TribunalApi } from "@swarmtales/mechanic-shared";
-import { ExileExtrasApi, GateView } from "./extras.ts";
-import { exileWorkHead, type ExileCtx } from "./head.ts";
+import { exileHead, type ExileCtx } from "./head.ts";
 import { closeGates, fillLegacyPrices, strike, toGate } from "./gone.ts";
 import { payRansom } from "./ransom.ts";
 import { exileSnapshot } from "./slice.ts";
 import { coveredPercent, gateOf, isGone, pricesOf, standingOf, tribunalExiled, type ExileState } from "./state.ts";
 import { bequestsOf, lastWill } from "./will.ts";
 
-export { exileHead, exileWorkHead } from "./head.ts";
-export { ExileExtrasApi, TribunalExtrasApi } from "./extras.ts";
+export { exileHead } from "./head.ts";
+
+const GateView = ExileApi.methods.gates.output;
 
 /** Old `Tribunal.gates()`; a gate of an old snapshot shows no price until the next minute sets it. */
-function gateViews(state: ExileState) {
+function gateViews(state: ExileState): Static<typeof GateView> {
 	return state.gates.map((gate) => {
 		const priced = gate.price !== undefined && gate.selfPrice !== undefined;
 		return {
@@ -66,7 +66,7 @@ const LastWillParams = Type.Object({
 	),
 });
 
-export const exile = defineMechanic(exileWorkHead, (kit) => ({
+export const exile = defineMechanic(exileHead,(kit) => ({
 	tools: [
 		kit.tool({
 			name: "payRansom",
@@ -111,8 +111,6 @@ export const exile = defineMechanic(exileWorkHead, (kit) => ({
 				return null;
 			},
 			strike: ({ resident, by }, ctx) => strike(ctx, resident, by),
-		}),
-		kit.provide(ExileExtrasApi, {
 			gates: (_input, ctx) => gateViews(ctx.state),
 			exiled: (_input, ctx) => [...tribunalExiled(ctx.state)],
 			ransomed: ({ resident }, ctx) => ctx.state.ransomed.includes(resident),
@@ -142,7 +140,7 @@ export const exile = defineMechanic(exileWorkHead, (kit) => ({
 		},
 	},
 	facts: {
-		gates: kit.fact(Type.Array(GateView), (view) => gateViews(view.state)),
+		gates: kit.fact(GateView, (view) => gateViews(view.state)),
 		exiled: kit.fact(Type.Array(Type.Object({ resident: Type.String(), by: Type.String() })), (view) => view.state.gone.map((entry) => ({ resident: entry.resident, by: entry.by }))),
 	},
 	snapshot: kit.snapshot(exileSnapshot),

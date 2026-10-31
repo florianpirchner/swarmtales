@@ -14,7 +14,7 @@ import { arenaHead } from "@swarmtales/mechanic-arena";
 import { castHead } from "@swarmtales/mechanic-cast";
 import { channelsHead } from "@swarmtales/mechanic-channels";
 import { motivesHead } from "@swarmtales/mechanic-motives";
-import { exileHead } from "@swarmtales/mechanic-exile";
+import { exile, exileHead } from "@swarmtales/mechanic-exile";
 import { goalsHead } from "@swarmtales/mechanic-goals";
 import { ledgerHead } from "@swarmtales/mechanic-ledger";
 import { marksHead } from "@swarmtales/mechanic-marks";
@@ -28,7 +28,7 @@ import { sealHead } from "@swarmtales/mechanic-seal";
 import { LEGACY_SILENT_EVENTS, SHARED_APIS } from "@swarmtales/mechanic-shared";
 import { standoffHead } from "@swarmtales/mechanic-standoff";
 import { standoffTribunalHead } from "@swarmtales/mechanic-standoff-tribunal";
-import { tribunalHead } from "@swarmtales/mechanic-tribunal";
+import { tribunal, tribunalHead } from "@swarmtales/mechanic-tribunal";
 import { whispersHead } from "@swarmtales/mechanic-whispers";
 
 interface Head {
@@ -99,10 +99,18 @@ describe("the mechanic packages", () => {
 		expect(requiresOrder()).toEqual(HEADS.map((head) => head.id));
 	});
 
-	it("keep optional edges where the old engine called back (channels to standoff, exile to seal and goals)", () => {
+	it("keep optional edges where the old engine called back (channels to standoff, names to puzzles, channels and exile)", () => {
 		const uses = (head: Head): readonly string[] => names(head.uses);
 		expect(uses(channelsHead)).toEqual(expect.arrayContaining(["receipts", "cast", "standoff", "standoff-tribunal"]));
-		expect(uses(exileHead)).toEqual(["seal", "goals"]);
 		expect(uses(namesHead)).toEqual(["puzzles", "channels", "exile"]);
+	});
+
+	it("pin the exile's and the tribunal's edges on the definitions the stories load (round 3, R2-D18)", () => {
+		const edges = (mechanic: Head) => ({ provides: names(mechanic.provides), requires: names(mechanic.requires), uses: names(mechanic.uses) });
+		expect(edges(exile)).toEqual({ provides: ["exile"], requires: ["progression", "channels", "ledger", "standoff", "puzzles"], uses: ["seal", "goals", "tribunal"] });
+		expect(edges(tribunal)).toEqual({ provides: ["tribunal", "tribunal-view"], requires: ["exile", "channels", "ledger", "progression"], uses: ["goals"] });
+		// The heads in HEADS are the ones the mechanics are built from, not frozen copies.
+		expect(edges(exileHead)).toEqual(edges(exile));
+		expect(edges(tribunalHead)).toEqual(edges(tribunal));
 	});
 });

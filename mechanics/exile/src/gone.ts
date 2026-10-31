@@ -5,8 +5,7 @@
  * does to the city (world.ts `#onExiled`), each in the old order.
  */
 import { ChannelsApi, GoalsApi, LedgerApi, ProgressionApi, PuzzlesApi, SealApi, StandoffApi, TribunalApi, type Done, type HeldPiece } from "@swarmtales/mechanic-shared";
-import type { Static } from "typebox";
-import { TribunalExtrasApi, type ExileTextKey } from "./extras.ts";
+import type { ApiInput } from "@swarmtales/contracts";
 import type { ExileCtx } from "./head.ts";
 import { gateOf, isGone, namesOf, type Gate, type GoneBy } from "./state.ts";
 
@@ -15,9 +14,11 @@ export const CITY = "CITY";
 /** Why the exile suspends a resident (`resident_suspended`). */
 const SUSPENSION = "exiled";
 
+type TextKey = ApiInput<typeof TribunalApi, "text">["key"];
+
 /** One of the tribunal's texts; the exile writes these only while a tribunal is loaded (gates come from it). */
-export function tribunalText(ctx: ExileCtx, key: Static<typeof ExileTextKey>, values: Readonly<Record<string, string>>): string {
-	const text = ctx.tryCall(TribunalExtrasApi, "text", { key, values });
+export function tribunalText(ctx: ExileCtx, key: TextKey, values: Readonly<Record<string, string>>): string {
+	const text = ctx.tryCall(TribunalApi, "text", { key, values });
 	if (text === undefined) throw new Error(`exile: the text "${key}" needs a loaded tribunal`);
 	return text;
 }

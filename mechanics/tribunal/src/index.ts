@@ -6,20 +6,18 @@
  */
 import { Type } from "typebox";
 import { defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import { HOOK_ORDER, ProgressionApi, STATUS_ORDER, TribunalApi } from "@swarmtales/mechanic-shared";
+import { HOOK_ORDER, ProgressionApi, STATUS_ORDER, TribunalApi, TribunalViewApi } from "@swarmtales/mechanic-shared";
 import { actLevel, missing, render } from "./city.ts";
-import { busy, endReason, prices, pursuing, tick } from "./court.ts";
-import { TribunalExtrasApi } from "./extras.ts";
-import { tribunalWorkHead, type TribunalCtx } from "./head.ts";
+import { prices, tick } from "./court.ts";
+import { tribunalHead, type TribunalCtx } from "./head.ts";
 import { atRisk, canVote, cityCall, draftPhase, draftStep, schedule, schedulingWindow, vote } from "./schedule.ts";
 import { tribunalSnapshot } from "./slice.ts";
 import { currentSession } from "./state.ts";
-import { TribunalViewApi } from "./view-api.ts";
 import { statusPart } from "./status.ts";
+import { mayScheduleTribunal, readsOf, SectionFact, sectionOf, StopFact, stopOf } from "./view.ts";
 
-export { tribunalHead, tribunalWorkHead } from "./head.ts";
+export { tribunalHead } from "./head.ts";
 export { TribunalOptions } from "./spec.ts";
-export { TribunalViewApi } from "./view-api.ts";
 
 /** The old `enabledTools` for the tribunal's tools: the vote while one is due, the draft's steps by phase. */
 function isOpen(ctx: TribunalCtx, tool: string, resident: string): boolean {
@@ -37,7 +35,7 @@ const ScheduleParams = Type.Object({
 	reason: Type.String({ description: "Why now and why this many; logged only, never shown to residents", maxLength: 500 }),
 });
 
-export const tribunal = defineMechanic(tribunalWorkHead, (kit) => ({
+export const tribunal = defineMechanic(tribunalHead,(kit) => ({
 	tools: [
 		kit.tool({
 			name: "vote",
@@ -116,19 +114,13 @@ export const tribunal = defineMechanic(tribunalWorkHead, (kit) => ({
 			missing: (_input, ctx) => missing(ctx),
 			inSession: (_input, ctx) => currentSession(ctx.state) !== undefined,
 			ransomPrices: (_input, ctx) => prices(ctx),
-		}),
-		kit.provide(TribunalExtrasApi, {
 			text: ({ key, values }, ctx) => render(ctx, ctx.options.texts[key], values),
 			bequestPerHeir: (_input, ctx) => ctx.options.bequestPerHeir,
 		}),
 		kit.provide(TribunalViewApi, {
 			schedulingWindow: (_input, ctx) => schedulingWindow(ctx),
 			cityCall: (_input, ctx) => cityCall(ctx) ?? null,
-			stop: (_input, ctx) => ({
-				endReason: endReason(ctx) ?? null,
-				busy: busy(ctx),
-				pursuing: pursuing(ctx),
-			}),
+			stop: (_input, ctx) => stopOf(ctx),
 			atRisk: (_input, ctx) => {
 				const risk = atRisk(ctx);
 				return risk === undefined ? null : { ...risk, accused: [...risk.accused] };
@@ -137,8 +129,11 @@ export const tribunal = defineMechanic(tribunalWorkHead, (kit) => ({
 	],
 	pipeline: {
 		lock: (call, ctx) => {
-			if (call.owner !== "tribunal" || call.resident === undefined) return undefined;
-			return isOpen(ctx, call.tool, call.resident) ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
+			if (call.owner !== "tribunal") return undefined;
+			const locked = refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
+			if (call.tool === "scheduleTribunal") return mayScheduleTribunal(ctx) ? undefined : locked;
+			if (call.resident === undefined) return undefined;
+			return isOpen(ctx, call.tool, call.resident) ? undefined : locked;
 		},
 	},
 	hooks: {
@@ -172,6 +167,16 @@ export const tribunal = defineMechanic(tribunalWorkHead, (kit) => ({
 		}),
 		called: kit.fact(Type.Integer(), (view) => view.state.called),
 		ended: kit.fact(Type.Boolean(), (view) => view.state.ended),
+		/** What the run's stop rule reads (old arena `#stopReason`); null before the first minute. */
+		stop: kit.fact(Type.Union([StopFact, Type.Null()]), (view) => {
+			const reads = readsOf(view);
+			return reads === undefined ? null : stopOf(reads);
+		}),
+		/** The data of the gamemaker's tribunal section (old `tribunalLines`); null when no tribunal is held or before the first minute. */
+		section: kit.fact(SectionFact, (view) => {
+			const reads = readsOf(view);
+			return reads === undefined ? null : sectionOf(reads);
+		}),
 		draft: kit.fact(Type.Union([Type.Object({ group: Type.String(), leaders: Type.Array(Type.String()) }), Type.Null()]), (view) => {
 			const draft = view.state.draft;
 			return draft === undefined ? null : { group: draft.group, leaders: [...(draft.leaders ?? [])] };

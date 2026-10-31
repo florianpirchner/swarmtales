@@ -1,0 +1,163 @@
+[
+	{
+		"id": "T4a-1",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tctx.emit(\"exiled\", { agent: gate.resident, ...(will === undefined ? {} : { will: will.text }) });\n\tctx.residents.suspend(gate.resident, SUSPENSION);\n\tonExiled(ctx, gate.resident, new Set(will?.factors ?? []));",
+		"replace": "\tctx.residents.suspend(gate.resident, SUSPENSION);\n\tonExiled(ctx, gate.resident, new Set(will?.factors ?? []));\n\tctx.emit(\"exiled\", { agent: gate.resident, ...(will === undefined ? {} : { will: will.text }) });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-2",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tctx.tryCall(GoalsApi, \"onExiled\", { resident: agent });\n\tctx.tryCall(SealApi, \"onExiled\", { resident: agent });",
+		"replace": "\tctx.tryCall(SealApi, \"onExiled\", { resident: agent });\n\tctx.tryCall(GoalsApi, \"onExiled\", { resident: agent });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-3",
+		"file": "mechanics/exile/src/ransom.ts",
+		"find": "\tctx.emit(\"ransom_paid\", { payer, target, amount: spent, paid, price, selfPrice, covered });\n\tif (!own) ctx.call(ChannelsApi, \"notify\", { to: target, author: CITY, text: ctx.prompt(\"exile/ransom-toward\", { payer, amount: spent, covered }) });",
+		"replace": "\tif (!own) ctx.call(ChannelsApi, \"notify\", { to: target, author: CITY, text: ctx.prompt(\"exile/ransom-toward\", { payer, amount: spent, covered }) });\n\tctx.emit(\"ransom_paid\", { payer, target, amount: spent, paid, price, selfPrice, covered });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-4",
+		"file": "mechanics/exile/src/will.ts",
+		"find": "\t\tagent,\n\t\ttext: trimmed,\n",
+		"replace": "\t\ttext: trimmed,\n\t\tagent,\n",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-5",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "ctx.emit(\"exiled\", { agent: gate.resident, ...(will === undefined ? {} : { will: will.text }) });",
+		"replace": "ctx.emit(\"exiled\", { agent: gate.resident });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-6",
+		"file": "mechanics/tribunal/src/schedule.ts",
+		"find": "(fallback !== undefined && minute >= fallback)",
+		"replace": "(fallback !== undefined && minute > fallback)",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-7",
+		"file": "mechanics/tribunal/src/factions.ts",
+		"find": "for (const member of faction.members) if (informed(member)) notify(",
+		"replace": "for (const member of faction.members) notify(",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-8",
+		"file": "mechanics/tribunal/src/slice.ts",
+		"find": "cap: draft.cap ?? factionCap(draft.members.length, draft.factions)",
+		"replace": "cap: draft.cap ?? 99",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-9",
+		"file": "mechanics/tribunal/src/status.ts",
+		"find": "return leaders.length === 0 ? ctx.prompt(\"competitor/status/draft-refused\", {}) : ctx.prompt(",
+		"replace": "return ctx.prompt(",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-10",
+		"file": "mechanics/tribunal/src/view.ts",
+		"find": "return { endReason: endReason(reads) ?? null, busy: busy(reads), pursuing: pursuing(reads) };",
+		"replace": "return { endReason: null, busy: false, pursuing: false };",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-10a",
+		"file": "mechanics/tribunal/src/index.ts",
+		"find": "stop: (_input, ctx) => stopOf(ctx),",
+		"replace": "stop: () => ({ endReason: null, busy: false, pursuing: false }),",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-10b",
+		"file": "mechanics/tribunal/src/index.ts",
+		"find": "return reads === undefined ? null : stopOf(reads);",
+		"replace": "return null;",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-10c",
+		"file": "mechanics/tribunal/src/index.ts",
+		"find": "return reads === undefined ? null : sectionOf(reads);",
+		"replace": "return null;",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-11",
+		"file": "mechanics/tribunal/src/view.ts",
+		"find": "export function mayScheduleTribunal(ctx: TribunalCtx): boolean {\n",
+		"replace": "export function mayScheduleTribunal(ctx: TribunalCtx): boolean {\n\tif (ctx.minute >= 0) return true;\n",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-11a",
+		"file": "mechanics/tribunal/src/view.ts",
+		"find": "roleOn(ctx, ctx.call(ProgressionApi, \"levelOf\", { resident: agent })) === \"director\"",
+		"replace": "roleOn(ctx, ctx.call(ProgressionApi, \"levelOf\", { resident: agent })) !== undefined",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-11b",
+		"file": "mechanics/tribunal/src/view.ts",
+		"find": "return present(ctx).some(",
+		"replace": "return ctx.residents.ids.some(",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-12",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tleave(ctx, resident, \"holdout\");\n\tctx.emit(\"exiled\", { agent: resident, by: \"holdout\" });\n\tctx.residents.suspend(resident, SUSPENSION);\n\tctx.tryCall(GoalsApi, \"onExiled\", { resident });",
+		"replace": "\tleave(ctx, resident, \"holdout\");\n\tctx.residents.suspend(resident, SUSPENSION);\n\tctx.tryCall(GoalsApi, \"onExiled\", { resident });\n\tctx.emit(\"exiled\", { agent: resident, by: \"holdout\" });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "T4a-13",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tctx.tryCall(GoalsApi, \"onExiled\", { resident });\n\tctx.tryCall(SealApi, \"onExiled\", { resident });\n\treturn { ok: true };",
+		"replace": "\tonExiled(ctx, resident, new Set());\n\treturn { ok: true };",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "R2-burn-before-keep",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tif (kept.length > 0) ctx.call(StandoffApi, \"keep\", { from: agent, pieces: kept });\n\tif (balance > 0) ctx.call(LedgerApi, \"burn\", { account: agent, amount: balance, reason: `exiled ${agent}` });",
+		"replace": "\tif (balance > 0) ctx.call(LedgerApi, \"burn\", { account: agent, amount: balance, reason: `exiled ${agent}` });\n\tif (kept.length > 0) ctx.call(StandoffApi, \"keep\", { from: agent, pieces: kept });",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "R2-tribunal-rng-offset",
+		"file": "mechanics/tribunal/src/city.ts",
+		"find": "ctx.rng(\"tribunal\", minute)",
+		"replace": "ctx.rng(\"tribunal\", minute + 1)",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "R2-holdout-without-goals",
+		"file": "mechanics/exile/src/gone.ts",
+		"find": "\tctx.tryCall(GoalsApi, \"onExiled\", { resident });\n",
+		"replace": "",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "R2-will-cap-rounded",
+		"file": "mechanics/exile/src/will.ts",
+		"find": "Math.floor(balance * share)",
+		"replace": "Math.round(balance * share)",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	},
+	{
+		"id": "R2-non-voters-unfiltered",
+		"file": "mechanics/tribunal/src/court.ts",
+		"find": "session.voters.filter((agent) => !voted(agent) && !gone.includes(agent))",
+		"replace": "session.voters.filter((agent) => !gone.includes(agent))",
+		"tests": ["test/mechanics/exile", "test/mechanics/tribunal"]
+	}
+]

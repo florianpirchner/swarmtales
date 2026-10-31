@@ -3,22 +3,23 @@
  * `schedulingWindow`, `cityCall`, `atRisk`, `vote`, `nominate`, `join`, `refuse`), with the old
  * checks in the old order.
  */
-import type { Static } from "typebox";
-import { ProgressionApi } from "@swarmtales/mechanic-shared";
-import { active, endOfAct, isAlive, lowestFirst, missing, present } from "./city.ts";
+import type { ApiOutput } from "@swarmtales/contracts";
+import { ProgressionApi, type TribunalViewApi } from "@swarmtales/mechanic-shared";
+import { active, endOfAct, isAlive, lowestFirst, missing, present, type Reads } from "./city.ts";
 import { planTribunal } from "./court.ts";
 import { join, nominate, phaseOf, refuseApplicant, type DraftError, type DraftPhase } from "./factions.ts";
 import type { TribunalCtx } from "./head.ts";
 import { accusedCount, callMinute, earliestOpening, fitsBefore, lastCityMinute, maxFactions, roomAfter } from "./rules.ts";
 import { currentSession, previousOpening, type Plan } from "./state.ts";
 import { err, namesOf, ok, type Result } from "./template.ts";
-import type { SchedulingWindow } from "./view-api.ts";
+
+type SchedulingWindow = ApiOutput<typeof TribunalViewApi, "schedulingWindow">;
 
 export type VoteError = "NO_TRIBUNAL" | "NOT_A_VOTER" | "ALREADY_VOTED" | "NOT_ACCUSED" | "SELF_VOTE";
 export type ScheduleError = "NO_TRIBUNAL" | "NOT_NOW" | "INVALID_COUNT" | "INVALID_FACTIONS" | "INVALID_MINUTE";
 
 /** Old `schedulingWindow`. */
-export function schedulingWindow(ctx: TribunalCtx): Static<typeof SchedulingWindow> {
+export function schedulingWindow(ctx: Reads): SchedulingWindow {
 	const { state, options: spec } = ctx;
 	if (!active(ctx) || state.ended || state.halted) return { open: false, why: "the city holds no more tribunals" };
 	if (state.actStart === undefined) return { open: false, why: "the tribunal's act has not begun" };
@@ -39,7 +40,7 @@ export function schedulingWindow(ctx: TribunalCtx): Static<typeof SchedulingWind
 	return { open: true, earliest, latestFinal: last, ...(latestWithRoom === undefined ? {} : { latestWithRoom }), missing: left, maxFactions: factions };
 }
 
-function doorShut(ctx: TribunalCtx): boolean {
+function doorShut(ctx: Reads): boolean {
 	return ctx.call(ProgressionApi, "doorShut", {});
 }
 
@@ -74,7 +75,7 @@ export function schedule(ctx: TribunalCtx, minute: number, count: number, factio
 }
 
 /** Old `cityCall`: when the city calls a tribunal itself if nobody plans one. */
-export function cityCall(ctx: TribunalCtx): { readonly calledAt: number; readonly opens: number } | undefined {
+export function cityCall(ctx: Reads): { readonly calledAt: number; readonly opens: number } | undefined {
 	const { state, options: spec } = ctx;
 	if (!active(ctx) || state.ended || state.halted || state.called === 0) return undefined;
 	if (state.plan !== undefined || currentSession(state) !== undefined || missing(ctx) === 0) return undefined;

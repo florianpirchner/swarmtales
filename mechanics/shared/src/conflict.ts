@@ -21,6 +21,22 @@ export const StandoffApi = defineApi({
 	},
 });
 
+/** A gate as the tribunal and the gamemaker see it (old `GateView`, tribunal.ts; round 3, R2-D18). */
+const GateView = Type.Object({
+	agent: ResidentId,
+	since: Type.Integer(),
+	until: Type.Integer(),
+	ransomable: Type.Boolean(),
+	price: Type.Number(),
+	selfPrice: Type.Number(),
+	paid: Type.Number(),
+	covered: Type.Integer(),
+	willDone: Type.Boolean(),
+});
+
+/** The tribunal's texts the exile writes (round 3, R2-D18). */
+const ExileTextKey = Type.Union([Type.Literal("gateNotice"), Type.Literal("gateNoticeFinal"), Type.Literal("ransomed"), Type.Literal("exiled"), Type.Literal("will")]);
+
 /** The gate, ransom, last will and exile (step 12). Seal, goals and standoff-tribunal are told through `uses`. */
 export const ExileApi = defineApi({
 	name: "exile",
@@ -51,6 +67,13 @@ export const ExileApi = defineApi({
 			Type.Object({ resident: ResidentId, by: Type.Union([Type.Literal("seal"), Type.Literal("holdout")]) }),
 			Done,
 		),
+		gates: query("Every gate in the order it opened (old `Tribunal.gates()`; round 3, R2-D18).", Type.Object({}), Type.Array(GateView)),
+		exiled: query(
+			"Who left through the gate or by the seal, in the order they left (old `Tribunal#exiled`); the holdout's struck are not in it (round 3, R2-D18).",
+			Type.Object({}),
+			Type.Array(ResidentId),
+		),
+		ransomed: query("Whether the resident was bought back from the gate once (old `Tribunal#ransomed`): a second gate takes no ransom (round 3, R2-D18).", OfResident, Type.Boolean()),
 	},
 });
 
@@ -65,6 +88,52 @@ export const TribunalApi = defineApi({
 			"The ransom an exiled resident's gate would cost now (old `ransomPrices`, the tribunal's spec): the city's median price and the resident's own; standoff reads `price` for the city's kept pieces (old `cityPiecePrice`).",
 			Type.Object({}),
 			Type.Object({ price: Type.Number(), selfPrice: Type.Number() }),
+		),
+		text: query(
+			"One of the story's tribunal texts the exile writes, rendered with the rule values and `values` (old `Tribunal#text`; round 3, R2-D18).",
+			Type.Object({ key: ExileTextKey, values: Type.Record(Type.String(), Type.String()) }),
+			Type.String(),
+		),
+		bequestPerHeir: query("The share of its points a resident at the gate may leave each heir (`tribunal.bequestPerHeir`; round 3, R2-D18).", Type.Object({}), Type.Number()),
+	},
+});
+
+/** Old `SchedulingWindow` (round 3, R2-D18). */
+const SchedulingWindow = Type.Union([
+	Type.Object({ open: Type.Literal(false), why: Type.String() }),
+	Type.Object({
+		open: Type.Literal(true),
+		earliest: Type.Integer({ description: "Earliest opening minute." }),
+		latestFinal: Type.Integer({ description: "Latest opening of a tribunal that exiles everything still missing." }),
+		latestWithRoom: Type.Optional(Type.Integer({ description: "Latest opening that leaves room for one more tribunal after it." })),
+		missing: Type.Integer({ description: "Residents still to exile: the most one tribunal may take." }),
+		maxFactions: Type.Integer({ description: "Factions allowed: 2 up to this; 0 when the tribunal has no draft." }),
+	}),
+]);
+
+/**
+ * The gamemaker's view of the tribunal and what the run's stop rule reads (old `schedulingWindow`,
+ * `cityCall`, `atRisk` and the arena's `#stopReason`), provided by the tribunal (round 3, R2-D18).
+ */
+export const TribunalViewApi = defineApi({
+	name: "tribunal-view",
+	summary: "The tribunal's guard rails and foresight for the gamemaker's view.",
+	methods: {
+		schedulingWindow: query("Whether `scheduleTribunal` is open now, and its bounds (old `schedulingWindow`).", Type.Object({}), SchedulingWindow),
+		cityCall: query(
+			"When the city calls a tribunal itself if nobody plans one, or null (old `cityCall`).",
+			Type.Object({}),
+			Type.Union([Type.Object({ calledAt: Type.Integer(), opens: Type.Integer() }), Type.Null()]),
+		),
+		stop: query(
+			"What the run's stop rule reads (old arena `#stopReason`): the end reason once the target is reached and the last gate closed, whether a tribunal is under way, and whether the city still pursues its target.",
+			Type.Object({}),
+			Type.Object({ endReason: Type.Union([Type.String(), Type.Null()]), busy: Type.Boolean(), pursuing: Type.Boolean() }),
+		),
+		atRisk: query(
+			"Who stands trial: the open session's accused, or those with the fewest points if the planned tribunal opened now, or null (old `atRisk`).",
+			Type.Object({}),
+			Type.Union([Type.Object({ opens: Type.Integer(), now: Type.Boolean(), accused: Type.Array(ResidentId) }), Type.Null()]),
 		),
 	},
 });
