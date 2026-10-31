@@ -188,7 +188,7 @@ function worldStandIn(plan: GoldenPlan, progress: Progress) {
 }
 
 /** The marks options a story gives (`rules.marks`), as the marks mechanic takes them. */
-function marksOptions(story: AnyStory) {
+export function marksOptions(story: AnyStory) {
 	const rules = story.rules.marks;
 	if (rules === undefined) return undefined;
 	const { ranges, ...base } = rules;
