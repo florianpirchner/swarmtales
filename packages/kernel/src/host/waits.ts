@@ -71,7 +71,8 @@ export async function guardStage(parts: WaitParts, policy: GuardPolicy, prepared
 }
 
 /**
- * Stage `consult`: the tool's `ask` may refuse; otherwise its role is asked (`role_asked`), the
+ * Stage `consult`: the tool's `ask` may refuse or skip the role (nothing is asked or logged);
+ * otherwise its role is asked (`role_asked`), the
  * call waits for the answer (`role_answered`, with the cost), and `read` checks it for `execute`.
  * A run without that role gives `{ ok: false, reason: "absent" }` and logs nothing.
  */
@@ -81,6 +82,10 @@ export async function consultStage(parts: WaitParts, prepared: PreparedCall, act
 	const { bus } = parts;
 	const inChain = <T>(code: () => T): T => bus.run(chain, code);
 	const asked = inChain(() => consult.ask());
+	if ("skipped" in asked) {
+		consult.skip(asked.skipped);
+		return undefined;
+	}
 	if (!("question" in asked)) return asked;
 	const caller = parts.roles[consult.role];
 	let reply: RoleReply | undefined;

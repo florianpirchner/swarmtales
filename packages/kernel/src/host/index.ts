@@ -1,5 +1,5 @@
 export { residentActor, residentOf, roleOf } from "./access.ts";
-export { defineApi, defineCoreStory, defineEvents, defineHead, defineMechanic, defineTool, refuse, reply, storyData } from "./define.ts";
+export { defineApi, defineCoreStory, defineEvents, defineHead, defineMechanic, defineTool, refuse, reply, skipConsult, storyData } from "./define.ts";
 export { GUARD_BLOCKED, INVALID_ARGUMENTS, RESIDENT_INACTIVE, TEXT_TOO_LONG, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN } from "./gateway.ts";
 export { createHost, type HostOptions } from "./host.ts";
 export { loadOrder } from "./loader.ts";

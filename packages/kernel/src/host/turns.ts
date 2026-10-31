@@ -102,7 +102,7 @@ export class TurnLoop {
 		const passes = policy.passes ?? 1;
 		for (let pass = 1; pass <= passes && !this.#parts.halted(); pass++) {
 			const may = residents.ids.filter((id) => residents.mayAct(id));
-			const order = this.#order({ seed, minute, pass, residents: may });
+			const order = this.#order({ seed, minute, pass, residents: may, roster: residents.ids });
 			const blocks = blocksOf(order, policy.blockSize ?? 1);
 			bus.emit("core", "pass_started", { pass, order: [...order], blocks: blocks.map((block) => [...block]) });
 			for (const [index, members] of blocks.entries()) {

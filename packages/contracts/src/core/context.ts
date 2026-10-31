@@ -50,6 +50,11 @@ export interface AccessPort {
 	lock(resident: ResidentId, tool: string): void;
 	unlock(resident: ResidentId, tool: string): void;
 	isLocked(resident: ResidentId, tool: string): boolean;
+	/**
+	 * The tools granted to residents that are open for this resident (not locked), in the story's
+	 * grant order: what the old `enabledTools` listed once every mechanic locks its own tools.
+	 */
+	open(resident: ResidentId): readonly string[];
 }
 
 /** The untyped primitives the host gives one mechanic instance. */

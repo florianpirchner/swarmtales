@@ -7,8 +7,10 @@
 import type { Static, TSchema } from "typebox";
 import { Check, Parse } from "typebox/value";
 import {
+	CONSULT_SKIPPED,
 	CORE_EVENTS,
 	DEFAULT_ORDER,
+	type ConsultSkip,
 	type ApiDefinition,
 	type ApiMethodName,
 	type ApiImplementation,
@@ -19,6 +21,7 @@ import {
 	type MechanicPort,
 	type MechanicShape,
 	type PromptKeys,
+	type ProvidedApi,
 	type StateSetup,
 	type ToolContext,
 	type Actor,
@@ -57,8 +60,16 @@ function methodSchema<A extends ApiDefinition, K extends ApiMethodName<A>, Part 
 	return entry(entry(entry(api, "methods", api.name), method, `${api.name}.${method}`), part, `${api.name}.${method}.${part}`);
 }
 
-function invoke<A extends ApiDefinition, Ctx, K extends ApiMethodName<A>>(api: A, implementation: ApiImplementation<A, Ctx>, method: K, input: unknown, ctx: Ctx, caller: string): ApiOutput<A, K> {
-	const run = entry(implementation, method, `${api.name}.${method}`);
+function invoke<A extends ApiDefinition, Ctx, K extends ApiMethodName<A>>(
+	api: A,
+	implementation: Partial<ApiImplementation<A, Ctx>>,
+	method: K,
+	input: unknown,
+	ctx: Ctx,
+	caller: string,
+): ApiOutput<A, K> {
+	const run = implementation[method];
+	if (run === undefined) throw new Error(`${api.name}.${method} is not implemented`);
 	return run(parseWith(methodSchema(api, method, "input"), input, `${api.name}.${method} input`), ctx, caller);
 }
 
@@ -68,6 +79,10 @@ function parseWith<T extends TSchema>(schema: T, value: unknown, what: string): 
 	} catch {
 		throw new Error(`${what} does not match its schema`);
 	}
+}
+
+function isSkip(value: unknown): value is ConsultSkip {
+	return typeof value === "object" && value !== null && CONSULT_SKIPPED in value;
 }
 
 function isRefusal(value: unknown): value is Refusal {
@@ -150,6 +165,18 @@ function listenerOrder(order: number | undefined): number {
 	return order;
 }
 
+/** A provider of `api` over a full or partial implementation. */
+function provided<A extends ApiDefinition, Ctx>(api: A, implementation: Partial<ApiImplementation<A, Ctx>>, ctx: () => Ctx): ProvidedApi {
+	return {
+		api,
+		call(method, input, caller) {
+			const name: string = method;
+			if (!isMethodOf(api, method)) throw new Error(`${api.name} has no method "${name}"`);
+			return invoke(api, implementation, method, input, ctx(), caller);
+		},
+	};
+}
+
 export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): MechanicKit<M> {
 	const { port } = parts;
 	const ctx = (): MechanicContext<M> => contextFor(parts);
@@ -183,6 +210,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 										role: consult.role,
 										ask: () => {
 											const asked = consult.ask(params, toolCtx);
+											if (isSkip(asked)) return { skipped: asked[CONSULT_SKIPPED] };
 											if (isRefusal(asked)) return asked;
 											if (!Check(consult.question, asked)) throw new Error(`${port.id}: the question of ${definition.name} does not match its schema`);
 											return { question: asked };
@@ -191,6 +219,9 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 											consulted = readReply(consult.role, consult.answer, answer);
 											return consulted;
 										},
+										skip: (reason) => {
+											consulted = { ok: false, reason: "skipped", error: reason };
+										},
 									},
 						execute: () => definition.execute(params, toolCtx, consulted),
 					};
@@ -198,14 +229,10 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 			};
 		},
 		provide(api, implementation) {
-			return {
-				api,
-				call(method, input, caller) {
-					const name: string = method;
-					if (!isMethodOf(api, method)) throw new Error(`${api.name} has no method "${name}"`);
-					return invoke(api, implementation, method, input, ctx(), caller);
-				},
-			};
+			return provided(api, implementation, ctx);
+		},
+		provideSome(api, implementation) {
+			return provided(api, implementation, ctx);
 		},
 		on(type, handler, options) {
 			const schema = entry(parts.events, type, `${port.id}.${type}`);

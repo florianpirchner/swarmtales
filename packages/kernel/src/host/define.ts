@@ -5,8 +5,9 @@
  */
 import type { Static, TSchema } from "typebox";
 import { Clone, Default, Parse } from "typebox/value";
-import { DEFAULT_ORDER } from "@swarmtales/contracts";
+import { CONSULT_SKIPPED, DEFAULT_ORDER } from "@swarmtales/contracts";
 import type {
+	ConsultSkip,
 	HookPhase,
 	HookSlot,
 	ApiDefinition,
@@ -37,6 +38,11 @@ export function refuse(code: string, detail?: string): Refusal {
 
 export function reply(text: string): ToolSuccess {
 	return { ok: true, reply: text };
+}
+
+/** What a consult's `ask` returns when the tool's own checks make the role unnecessary; `execute` gets `{ ok: false, reason: "skipped", error: reason }`. */
+export function skipConsult(reason: string): ConsultSkip {
+	return { [CONSULT_SKIPPED]: reason };
 }
 
 export function defineApi<const N extends string, const M extends ApiMethods>(api: ApiDefinition<N, M>): ApiDefinition<N, M> {

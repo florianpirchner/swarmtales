@@ -71,6 +71,7 @@ export class AccessControl {
 				this.#emit("tool_unlocked", { resident, tool, by: owner });
 			},
 			isLocked: (resident, tool) => this.isLocked(resident, tool),
+			open: (resident) => this.grantsOf("resident").filter((tool) => isTool(tool) && !this.isLocked(resident, tool)),
 		};
 	}
 

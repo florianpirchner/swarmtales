@@ -73,7 +73,7 @@ const FORBIDDEN_CODE: readonly (readonly [RegExp, string])[] = [
 const IMPORT = /(?:\bfrom\s+|\bimport\s*\(\s*|\bimport\s+)["']([^"']+)["']/g;
 
 /** What a mechanic may take from `@swarmtales/kernel`: the authoring calls, never the host, the old ledger or the random helpers. */
-export const KERNEL_AUTHORING = ["defineApi", "defineEvents", "defineHead", "defineMechanic", "defineTool", "refuse", "reply"] as const;
+export const KERNEL_AUTHORING = ["defineApi", "defineEvents", "defineHead", "defineMechanic", "defineTool", "refuse", "reply", "skipConsult"] as const;
 
 /** `import { a, type B, c as d } from "@swarmtales/kernel"` (and `export ... from`), with the names; `*` for a namespace import. */
 const KERNEL_IMPORT = /\b(?:import|export)\s+(type\s+)?(\*\s+as\s+\w+|\{[^}]*\}|\w+(?:\s*,\s*\{[^}]*\})?)\s*from\s*["']@swarmtales\/kernel(\/[^"']*)?["']/g;

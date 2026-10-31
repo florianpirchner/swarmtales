@@ -200,6 +200,12 @@ type ListenerOf<M extends MechanicShape, D extends EventsDefinition, K extends k
 export interface MechanicKit<M extends MechanicShape> {
 	tool<const N extends string, P extends TSchema, Q extends TSchema = TSchema, A extends TSchema = TSchema>(definition: ToolDefinition<M, N, P, Q, A>): MechanicTool<N>;
 	provide<A extends M["provides"][number]>(api: A, implementation: ApiImplementation<A, MechanicContext<M>>): ProvidedApi;
+	/**
+	 * Part of an API, for stand-ins in tests and for a carve that is not finished: a call of a
+	 * method left out throws (`<api>.<method> is not implemented`), which ends the run. A finished
+	 * mechanic uses `provide`, so the compiler checks every method.
+	 */
+	provideSome<A extends M["provides"][number]>(api: A, implementation: Partial<ApiImplementation<A, MechanicContext<M>>>): ProvidedApi;
 	/** Reacts to one of the mechanic's own events. */
 	on<K extends keyof M["events"] & string>(
 		type: K,

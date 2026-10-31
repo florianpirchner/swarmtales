@@ -29,28 +29,45 @@ export interface RoleCaller {
 /** What `execute` gets from the consult stage: the parsed answer, or why there is none. */
 export type Consulted<A> =
 	| { readonly ok: true; readonly answer: A }
-	/** `absent`: the run has no such role; `failed`: it erred, threw or answered off its schema. */
-	| { readonly ok: false; readonly reason: "absent" | "failed"; readonly error: string };
+	/**
+	 * `absent`: the run has no such role; `failed`: it erred, threw or answered off its schema;
+	 * `skipped`: `ask` decided the role is not needed (`skipConsult`), `error` holds its reason.
+	 */
+	| { readonly ok: false; readonly reason: "absent" | "failed" | "skipped"; readonly error: string };
+
+/** Tags what `ask` returns to skip the role (`skipConsult` in the kernel); a symbol, so no question can look like it. */
+export const CONSULT_SKIPPED: unique symbol = Symbol("consult skipped");
+
+/**
+ * `ask`'s answer when the tool's own checks settle the call without the role (a claim the tool
+ * rejects by its own rules before any judge is asked). Nothing is asked or logged; `execute` runs with
+ * `{ ok: false, reason: "skipped" }`.
+ */
+export interface ConsultSkip {
+	readonly [CONSULT_SKIPPED]: string;
+}
 
 /**
  * A tool's question to a role, asked after the guard and before `execute`. `ask` may refuse
- * (stage `consult`) before any model is called. Calls are serialised, so nothing changes between
- * `ask` and `execute`.
+ * (stage `consult`) or skip the role (`skipConsult`) before any model is called. Calls are
+ * serialised, so nothing changes between `ask` and `execute`.
  */
 export interface ConsultDefinition<M extends MechanicShape, P extends TSchema, Q extends TSchema, A extends TSchema> {
 	readonly role: string;
 	readonly question: Q;
 	readonly answer: A;
-	ask(params: Static<P>, ctx: ToolContext<M>): Static<Q> | Refusal;
+	ask(params: Static<P>, ctx: ToolContext<M>): Static<Q> | Refusal | ConsultSkip;
 }
 
 /** A tool's consult with its types erased, bound to one call. */
 export interface PreparedConsult {
 	readonly role: string;
-	/** The question, or a refusal. */
-	ask(): { readonly question: unknown } | Refusal;
+	/** The question, a refusal, or the reason to skip the role. */
+	ask(): { readonly question: unknown } | { readonly skipped: string } | Refusal;
 	/** Checks the role's raw reply (undefined: no such role) against the answer schema; `execute` gets the result. */
 	read(reply: RoleReply | undefined): Consulted<unknown>;
+	/** `ask` skipped the role: `execute` gets `{ ok: false, reason: "skipped" }`. */
+	skip(reason: string): void;
 }
 
 /** Names for ids (a `names` mechanic): how arguments are read and texts written for the caller. */

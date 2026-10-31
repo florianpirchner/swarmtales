@@ -21,6 +21,12 @@ export interface PassView {
 	readonly pass: number;
 	/** The residents who may act, in the story's order. */
 	readonly residents: readonly ResidentId[];
+	/**
+	 * Every resident of the story, in its order, also those who may not act now. The old engine
+	 * shuffled the whole roster and then left out those who had left (`activationOrder`); shuffling only
+	 * `residents` would deal another order once anyone is suspended.
+	 */
+	readonly roster: readonly ResidentId[];
 	/** A labelled stream of the run seed (`rng("order", round, pass)` gives the old engine's order). */
 	rng(...labels: readonly RandomLabel[]): RandomSource;
 }
