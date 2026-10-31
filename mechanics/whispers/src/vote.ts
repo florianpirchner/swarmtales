@@ -1,6 +1,7 @@
 /**
  * The popularity vote's pure parts (copied from packages/engine/src/popularity.ts): the count of a
- * round and the words around it. The state machine (pending, open, closed) lives in index.ts.
+ * round, the restore of a saved vote and the words around it. The state machine (pending, open,
+ * closed) lives in index.ts.
  */
 import { Type, type Static } from "typebox";
 
@@ -63,4 +64,49 @@ export function dutyTarget(counts: readonly VoteCount[], whisperer: string): str
 	let best: VoteCount | undefined;
 	for (const count of counts) if (count.agent !== whisperer && count.votes > 0 && (best === undefined || count.votes > best.votes)) best = count;
 	return best?.agent;
+}
+
+export type Phase = "pending" | "open" | "closed";
+
+/** A vote as an old snapshot kept it: the round the city was at, its state and the ballots (the single surprise vote has no round). */
+export interface SavedVote {
+	readonly round?: number | undefined;
+	readonly state: Phase;
+	readonly ballots: readonly { readonly agent: string; readonly choice: string }[];
+}
+
+/** Where a vote stands: the round index (`rounds.length` once all are counted), its phase and the ballots cast in it. */
+export interface VoteStanding {
+	readonly round: number;
+	readonly phase: Phase;
+	readonly ballots: ReadonlyMap<string, string>;
+}
+
+/**
+ * Loads a vote saved at `minute` (the minute the saved run last played), as the old
+ * `PopularityVote#restore`. A round whose count minute is already past is skipped silently, ballots
+ * and all, up to the first round counted after `minute`: a resumed run announces no burst of rounds
+ * it never played. A snapshot of the old single surprise vote (no round) was a vote for the grand
+ * prize: counted, it closes every round; open, it stays open as the round of `minute`, and its
+ * ballots count only if that round is the final vote.
+ */
+export function restoreVote(saved: SavedVote, rounds: readonly Round[], minute: number, isResident: (id: string) => boolean): VoteStanding {
+	const last = rounds.length;
+	const round = saved.round ?? (saved.state === "closed" ? last : 0);
+	if (!Number.isInteger(round) || round < 0 || round > last) throw new Error(`The snapshot's popularity round ${String(round)} is not one of this story's ${String(last)} rounds`);
+	for (const { agent, choice } of saved.ballots) {
+		if (!isResident(agent) || !isResident(choice)) throw new Error(`The snapshot's popularity ballot ${agent} -> ${choice} names an unknown resident`);
+	}
+	const next = rounds.findIndex((candidate, index) => index >= round && candidate.countsAt > minute);
+	const at = next === -1 ? last : next;
+	const ballots = new Map<string, string>();
+	if (at >= last) return { round: at, phase: "closed", ballots };
+	if (saved.round === undefined) {
+		const open = saved.state === "open" && (rounds[at]?.opensAt ?? minute + 1) <= minute;
+		if (open && at === last - 1) for (const { agent, choice } of saved.ballots) ballots.set(agent, choice);
+		return { round: at, phase: open ? "open" : "pending", ballots };
+	}
+	if (at > round) return { round: at, phase: "pending", ballots };
+	for (const { agent, choice } of saved.ballots) ballots.set(agent, choice);
+	return { round: at, phase: saved.state === "closed" ? "pending" : saved.state, ballots };
 }
