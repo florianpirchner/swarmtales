@@ -39,5 +39,6 @@ export * from "./report/render.ts";
 export * from "./report/reporter.ts";
 export * from "./report/run-log.ts";
 export * from "./snapshot/event-schema.ts";
+export * from "./snapshot/legacy-snapshot.ts";
 export * from "./snapshot/message-schema.ts";
 export * from "./snapshot/snapshot.ts";
