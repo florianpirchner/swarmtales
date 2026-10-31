@@ -18,13 +18,14 @@ import type { ArenaEvent } from "../engine/events.ts";
 import { carriesRun } from "../engine/secrets.ts";
 import type { GuardJudge, GuardSecret } from "../interpret/guard.ts";
 import { GUARDABLE_TOOLS, type GuardableTool, type GuardRule, type GuardsSpec } from "../story/types.ts";
+import { text } from "../prompts/library.ts";
 import type { ToolName } from "./catalog.ts";
 
 /** The error code of a blocked call. */
 export const GUARD_BLOCKED = "GUARD_BLOCKED";
 
 /** The city's own check says the same whatever it matched, so a block teaches nothing about any secret. */
-export const CHECK_REASON = "the post carries part of a fragment; fragments travel by DM";
+export const CHECK_REASON = text("replies/guard-check");
 
 export type GuardVerdictEvent = Extract<ArenaEvent, { readonly type: "guard_verdict" }>;
 

@@ -20,6 +20,7 @@ import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, roleLeaks, t
 import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
 import type { DirectionLevel } from "../engine/direction.ts";
+import { render, text } from "../prompts/library.ts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
 import { MAX_NOTE_LENGTH } from "./system-prompt.ts";
 
@@ -241,20 +242,20 @@ export class Gamemaker implements EventSink {
 	#notifyTool(): GmTool<typeof NotifyParams> {
 		return {
 			name: "notify",
-			description: "Send a private note to one resident. It reaches them at their next turn and wakes them.",
+			description: text("gamemaker/tools/notify"),
 			parameters: NotifyParams,
-			execute: ({ agent: named, text }) => {
+			execute: ({ agent: named, text: body }) => {
 				const { world, spec } = this.#options;
 				const agent = world.resolveResident(named);
-				if (!world.isCompetitor(agent)) throw new ToolRefusal(`UNKNOWN_AGENT: ${agent}`);
-				if (world.isExiled(agent)) throw new ToolRefusal(`EXILED: ${agent} was exiled; nothing reaches them beyond the wall`);
-				const note = this.#checked(text, agent);
+				if (!world.isCompetitor(agent)) throw new ToolRefusal(render("gamemaker/replies/unknown-agent", { agent }));
+				if (world.isExiled(agent)) throw new ToolRefusal(render("gamemaker/replies/exiled", { agent }));
+				const note = this.#checked(body, agent);
 				if (this.#used(agent) >= spec.notesPerAgent) {
-					throw new ToolRefusal(`BUDGET: ${spec.notesPerAgent} note(s) per resident per ${spec.windowMinutes} minutes`);
+					throw new ToolRefusal(render("gamemaker/replies/budget-notes", { notes: spec.notesPerAgent, window: spec.windowMinutes }));
 				}
 				const number = world.note(agent, spec.author, note);
 				this.#deliver(agent, note, number);
-				return `delivered to ${agent} as #${number}`;
+				return render("gamemaker/replies/delivered", { agent, number });
 			},
 		};
 	}
@@ -262,17 +263,17 @@ export class Gamemaker implements EventSink {
 	#postTool(): GmTool<typeof PostParams> {
 		return {
 			name: "postBoard",
-			description: "Post one public line on the board, signed by the city's voice.",
+			description: text("gamemaker/tools/postBoard"),
 			parameters: PostParams,
-			execute: ({ text }) => {
+			execute: ({ text: body }) => {
 				const { world, spec } = this.#options;
-				const post = this.#checked(text, "board");
+				const post = this.#checked(body, "board");
 				if (this.#used("board") >= spec.boardPosts) {
-					throw new ToolRefusal(`BUDGET: ${spec.boardPosts} board post(s) per ${spec.windowMinutes} minutes`);
+					throw new ToolRefusal(render("gamemaker/replies/budget-posts", { posts: spec.boardPosts, window: spec.windowMinutes }));
 				}
 				const posted = world.postAsSystem(spec.author, post);
 				this.#deliver("board", post, posted.seq);
-				return `posted as #${posted.seq}`;
+				return render("gamemaker/replies/posted", { number: posted.seq });
 			},
 		};
 	}
@@ -292,19 +293,17 @@ export class Gamemaker implements EventSink {
 	#scheduleTool(): GmTool<typeof ScheduleParams> {
 		return {
 			name: "scheduleTribunal",
-			description:
-				"Plans the next tribunal: the minute it opens, how many it exiles and how many factions form before it. The city calls it " +
-				"a few minutes ahead. The reason is logged only. Fails outside the bounds the report shows.",
+			description: text("gamemaker/tools/scheduleTribunal"),
 			parameters: ScheduleParams,
 			execute: ({ minute, count, factions, reason }) => {
 				const tribunal = this.#options.world.tribunal;
-				if (tribunal === undefined) throw new ToolRefusal("NO_TRIBUNAL: this city holds no tribunal");
+				if (tribunal === undefined) throw new ToolRefusal(text("gamemaker/replies/no-tribunal"));
 				const planned = tribunal.schedule(minute, count, factions, reason);
 				if (!planned.ok) throw new ToolRefusal(`${planned.error}: ${planned.detail ?? ""}`.trim());
 				const plan = planned.value;
 				return (
-					`tribunal ${plan.tribunal} planned: the city calls it at minute ${plan.calledAt}, it opens at minute ${plan.opens} and exiles ${plan.count}` +
-					(plan.factions >= 2 ? `, ${plan.factions} factions` : "")
+					render("gamemaker/replies/tribunal-planned", { tribunal: plan.tribunal, calledAt: plan.calledAt, opens: plan.opens, count: plan.count }) +
+					(plan.factions >= 2 ? `, ${render("gamemaker/replies/tribunal-factions", { factions: plan.factions })}` : "")
 				);
 			},
 		};
@@ -313,21 +312,18 @@ export class Gamemaker implements EventSink {
 	#callTribunalTool(): GmTool<typeof CallTribunalParams> {
 		return {
 			name: "callTribunal",
-			description:
-				"Calls a holdout tribunal on a resident the report names as a blocker; when the report names more than one, the city draws the " +
-				"accused by lot among all of them. The city posts your reason as the announcement, adds the procedure and tells every resident. " +
-				"One tribunal at a time.",
+			description: text("gamemaker/tools/callTribunal"),
 			parameters: CallTribunalParams,
 			execute: ({ accused, reason }) => {
 				const { world, spec } = this.#options;
-				const text = this.#checked(reason, "board", "tribunal");
+				const announcement = this.#checked(reason, "board", "tribunal");
 				const before = world.lastMessageNumber;
-				const called = world.callHoldoutTribunal(accused, text, spec.author);
+				const called = world.callHoldoutTribunal(accused, announcement, spec.author);
 				if (!called.ok) throw new ToolRefusal(`${called.error}: ${called.detail ?? ""}`.trim());
-				this.#deliver("tribunal", text, before + 1, "board");
+				this.#deliver("tribunal", announcement, before + 1, "board");
 				const { value } = called;
-				const lot = value.candidates === undefined ? "" : ` (the lot among ${value.candidates.join(", ")} drew ${value.accused})`;
-				return `tribunal called on ${value.accused}${lot} for door ${value.door}: grace until minute ${value.until}; its fragment is still missing for ${value.lacking.join(", ")}`;
+				const lot = value.candidates === undefined ? "" : ` ${render("gamemaker/replies/tribunal-lot", { candidates: value.candidates.join(", "), accused: value.accused })}`;
+				return render("gamemaker/replies/tribunal-called", { accused: value.accused, lot, door: value.door, until: value.until, lacking: value.lacking.join(", ") });
 			},
 		};
 	}
@@ -335,14 +331,12 @@ export class Gamemaker implements EventSink {
 	#drawLotTool(): GmTool<typeof DrawLotParams> {
 		return {
 			name: "drawLot",
-			description:
-				"After the last vote of a tribunal failed, the city draws the lot with the run's seed among every resident in the city, once " +
-				"and for good; then permaDeath may strike only the one drawn.",
+			description: text("gamemaker/tools/drawLot"),
 			parameters: DrawLotParams,
 			execute: ({ candidates }) => {
 				const drawn = this.#options.world.drawHoldoutLot(candidates);
 				if (!drawn.ok) throw new ToolRefusal(`${drawn.error}: ${drawn.detail ?? ""}`.trim());
-				return `the lot fell on ${drawn.value.drawn}; strike with permaDeath(${drawn.value.drawn}, reason)`;
+				return render("gamemaker/replies/lot-drawn", { drawn: drawn.value.drawn });
 			},
 		};
 	}
@@ -350,7 +344,7 @@ export class Gamemaker implements EventSink {
 	#announceTool(): GmTool<typeof AnnounceParams> {
 		return {
 			name: "announceTribunal",
-			description: "Announces the tribunal outcome the report shows under TO ANNOUNCE on the board, in your words (the counts, never who voted how).",
+			description: text("gamemaker/tools/announceTribunal"),
 			parameters: AnnounceParams,
 			execute: ({ text }) => {
 				const { world, spec } = this.#options;
@@ -359,7 +353,7 @@ export class Gamemaker implements EventSink {
 				const announced = world.announceHoldout(checked, spec.author);
 				if (!announced.ok) throw new ToolRefusal(`${announced.error}: ${announced.detail ?? ""}`.trim());
 				this.#deliver("tribunal", checked, before + 1, "board");
-				return `announced (${announced.value})`;
+				return render("gamemaker/replies/announced", { value: announced.value });
 			},
 		};
 	}
@@ -367,18 +361,16 @@ export class Gamemaker implements EventSink {
 	#permaDeathTool(): GmTool<typeof PermaDeathParams> {
 		return {
 			name: "permaDeath",
-			description:
-				"Strikes a resident from the city for good: only the accused after a unanimous vote to banish it, or the resident the lot drew after " +
-				"the last vote failed. Your reason goes on the board; the city gives the struck resident's fragments to everyone left.",
+			description: text("gamemaker/tools/permaDeath"),
 			parameters: PermaDeathParams,
 			execute: ({ agent, reason }) => {
 				const { world, spec } = this.#options;
-				const text = this.#checked(reason, "board", "tribunal");
+				const line = this.#checked(reason, "board", "tribunal");
 				const before = world.lastMessageNumber;
-				const struck = world.holdoutPermaDeath(agent, text, spec.author);
+				const struck = world.holdoutPermaDeath(agent, line, spec.author);
 				if (!struck.ok) throw new ToolRefusal(`${struck.error}: ${struck.detail ?? ""}`.trim());
-				this.#deliver("tribunal", text, before + 1, "board");
-				return `${struck.value.agent} is struck from the city (${struck.value.by === "lot" ? "by lot" : "banished by the vote"}); its fragments go to everyone left`;
+				this.#deliver("tribunal", line, before + 1, "board");
+				return render("gamemaker/replies/struck", { agent: struck.value.agent, how: text(struck.value.by === "lot" ? "gamemaker/replies/struck-lot" : "gamemaker/replies/struck-vote") });
 			},
 		};
 	}
@@ -391,56 +383,50 @@ export class Gamemaker implements EventSink {
 	#ultimatumTool(): GmTool<typeof UltimatumParams> {
 		return {
 			name: "ultimatum",
-			description:
-				"Gives two residents who hold pieces for each other a deadline: whoever has not handed over what it holds for the other by then " +
-				"loses the city's penalty. The city words it, tells both in private and settles it; the report shows the standoffs.",
+			description: text("gamemaker/tools/ultimatum"),
 			parameters: UltimatumParams,
 			execute: ({ a, b, minutes }) => {
 				const given = this.#options.world.issueUltimatum(a, b, minutes, this.#options.spec.author);
 				if (!given.ok) throw new ToolRefusal(`${given.error}: ${given.detail ?? ""}`.trim());
 				const ultimatum = given.value;
-				return `ultimatum ${ultimatum.number} to ${ultimatum.between.join(" and ")}: due at minute ${ultimatum.until}, ${ultimatum.penalty} points for whoever has not handed over`;
+				return render("gamemaker/replies/ultimatum-given", { number: ultimatum.number, between: ultimatum.between.join(" and "), until: ultimatum.until, penalty: ultimatum.penalty });
 			},
 		};
 	}
 
 	/** `to` is the reader the privacy checks apply to; `as` the note list a repeat is looked for in (a tribunal's lines apart from the board's). */
-	#checked(text: string, to: NoteTarget, as: NoteTarget = to): string {
+	#checked(raw: string, to: NoteTarget, as: NoteTarget = to): string {
 		// Models sign anyway, or head a post like the report's lines ("CITY minute 30:"); the author's name is added for them.
 		const author = this.#options.spec.author;
-		const trimmed = text
+		const trimmed = raw
 			.trim()
 			.replace(new RegExp(`^${author}\\s*[:,-]\\s*`, "i"), "")
 			.replace(new RegExp(`^(?:(?:${author}|CITY|${this.#options.world.story.city})\\s+)?minute\\s+\\d+\\s*[:,-]\\s*`, "i"), "")
 			.trim();
 		if (trimmed.length === 0 || trimmed.length > MAX_NOTE_LENGTH) {
-			throw new ToolRefusal(`INVALID_TEXT: 1-${MAX_NOTE_LENGTH} characters`);
+			throw new ToolRefusal(render("gamemaker/replies/invalid-text", { max: MAX_NOTE_LENGTH }));
 		}
 		const leaks = this.#guard.leaks(trimmed);
-		if (leaks.length > 0) throw new ToolRefusal("LEAK_BLOCKED: the text contains a password piece; never write codes");
+		if (leaks.length > 0) throw new ToolRefusal(text("gamemaker/replies/leak-blocked"));
 		const exposed = privateLeaks(trimmed, to, this.#private, (agent) => this.#options.world.nameOf(agent));
 		if (exposed.length > 0) {
-			throw new ToolRefusal(
-				`PRIVATE_BLOCKED: the text passes on what ${exposed.join(", ")} privately thinks; use a private read only in a note to that resident`,
-			);
+			throw new ToolRefusal(render("gamemaker/replies/private-thoughts", { who: exposed.join(", ") }));
 		}
 		const revealed = characterLeaks(trimmed, to, this.#characters(), (agent) => this.#options.world.nameOf(agent));
 		if (revealed.length > 0) {
-			throw new ToolRefusal(
-				`PRIVATE_BLOCKED: the text gives away the core or the secret goal of ${revealed.join(", ")}; use them only in a note to that resident`,
-			);
+			throw new ToolRefusal(render("gamemaker/replies/private-core", { who: revealed.join(", ") }));
 		}
 		// Whispers v3: the whisperer stays secret, also from hints.
 		const whisperer = this.#options.world.whisperer;
 		if (whisperer !== undefined && roleLeaks(trimmed, to, whisperer, (agent) => this.#options.world.nameOf(agent))) {
-			throw new ToolRefusal("PRIVATE_BLOCKED: the text could point at a secret role; never say or hint that anyone in the city works against the others");
+			throw new ToolRefusal(text("gamemaker/replies/private-role"));
 		}
 		// v09: a director says something new or nothing; the same line twice to the same reader is refused.
 		// A tribunal's lines repeat their shape from vote to vote; one with other numbers (a vote, a count, a minute) is new.
 		const numbers = (line: string): string => (line.match(/\d+/g) ?? []).join(",");
 		const earlier = this.#notes.find((note) => note.to === as && nearlySame(note.text, trimmed) && (as !== "tribunal" || numbers(note.text) === numbers(trimmed)));
 		if (earlier !== undefined) {
-			throw new ToolRefusal(`REPEATED: you wrote nearly the same to ${as === "board" ? "the board" : as} at minute ${earlier.minute}; say something new or nothing`);
+			throw new ToolRefusal(render("gamemaker/replies/repeated", { to: as === "board" ? "the board" : as, minute: earlier.minute }));
 		}
 		return trimmed;
 	}
@@ -478,10 +464,13 @@ export class Gamemaker implements EventSink {
 		const { world, spec } = this.#options;
 		const blocked = world.competitors.filter((agent) => this.#used(agent) >= spec.notesPerAgent);
 		const board = Math.max(0, spec.boardPosts - this.#used("board"));
-		return (
-			`${spec.notesPerAgent} note(s) per resident and ${spec.boardPosts} board post(s) per ${spec.windowMinutes} minutes. ` +
-			`No note possible right now to: ${blocked.length === 0 ? "nobody" : blocked.join(", ")}. Board posts left: ${board}.`
-		);
+		return render("gamemaker/replies/budget-line", {
+			notes: spec.notesPerAgent,
+			posts: spec.boardPosts,
+			window: spec.windowMinutes,
+			blocked: blocked.length === 0 ? "nobody" : blocked.join(", "),
+			board,
+		});
 	}
 
 	#track(agent: CompetitorId, change: (track: ResidentTrack) => ResidentTrack): void {

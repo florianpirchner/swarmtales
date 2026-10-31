@@ -1,6 +1,7 @@
 import { Type } from "typebox";
 import type { CompetitorId } from "../core/ids.ts";
 import { MAX_GROUP_NAME_LENGTH, MAX_GROUP_POST_LENGTH, type GroupSummary } from "../engine/groups.ts";
+import { render, text } from "../prompts/library.ts";
 import { defineTool, failure, marksSuffix, success, type ToolOutcome } from "./tool.ts";
 
 const groupId = Type.String({ description: "Group ID, e.g. G1" });
@@ -30,19 +31,19 @@ function summaryOutcome(
 
 export const createGroup = defineTool({
 	name: "createGroup",
-	description: "Founds a private group. Only members know it exists; the founder adds and removes members.",
+	description: text("tools/createGroup"),
 	parameters: Type.Object({
 		name: Type.String({ description: "Group name", minLength: 1, maxLength: MAX_GROUP_NAME_LENGTH }),
 	}),
 	execute({ name }, { self, world }) {
 		const result = world.createGroup(self, name);
-		return result.ok ? success(`created · ${describe(result.value, self)}`) : groupFailure(result);
+		return result.ok ? success(render("replies/group-created", { group: describe(result.value, self) })) : groupFailure(result);
 	},
 });
 
 export const addGroupMember = defineTool({
 	name: "addGroupMember",
-	description: "Adds a competitor to a group you founded. No consent is needed; the new member is notified.",
+	description: text("tools/addGroupMember"),
 	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the new member" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.addGroupMember(id, self, agent), self);
@@ -51,7 +52,7 @@ export const addGroupMember = defineTool({
 
 export const removeGroupMember = defineTool({
 	name: "removeGroupMember",
-	description: "Removes a member from a group you founded.",
+	description: text("tools/removeGroupMember"),
 	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the member" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.removeGroupMember(id, self, agent), self);
@@ -60,7 +61,7 @@ export const removeGroupMember = defineTool({
 
 export const leaveGroup = defineTool({
 	name: "leaveGroup",
-	description: "Leaves a group. The treasurer must hand over the treasury first.",
+	description: text("tools/leaveGroup"),
 	parameters: Type.Object({ groupId }),
 	execute({ groupId: id }, { self, world }) {
 		return summaryOutcome(world.leaveGroup(id, self), self);
@@ -69,17 +70,17 @@ export const leaveGroup = defineTool({
 
 export const listMyGroups = defineTool({
 	name: "listMyGroups",
-	description: "Lists your groups with members and treasury.",
+	description: text("tools/listMyGroups"),
 	parameters: Type.Object({}),
 	execute(_params, { self, world }) {
 		const mine = world.groups.listFor(self);
-		return success(mine.length === 0 ? "no groups" : mine.map((group) => describe(group, self)).join("\n"));
+		return success(mine.length === 0 ? text("replies/groups-none") : mine.map((group) => describe(group, self)).join("\n"));
 	},
 });
 
 export const postGroup = defineTool({
 	name: "postGroup",
-	description: "Posts a message to a group. Only current members see it.",
+	description: text("tools/postGroup"),
 	parameters: Type.Object({
 		groupId,
 		message: Type.String({ description: "Text", minLength: 1, maxLength: MAX_GROUP_POST_LENGTH }),
@@ -91,14 +92,13 @@ export const postGroup = defineTool({
 	execute({ groupId: id, message }, { self, world }) {
 		const result = world.postGroup(id, self, message);
 		if (!result.ok) return groupFailure(result);
-		return success(`posted · ${id} #${result.value.post.seq}${marksSuffix(result.value.marks)}`);
+		return success(`${render("replies/group-posted", { group: id, seq: result.value.post.seq })}${marksSuffix(result.value.marks)}`);
 	},
 });
 
 export const readGroup = defineTool({
 	name: "readGroup",
-	description:
-		"Reads group posts. Without afterSeq you get every unread post since your last read; afterSeq 0 returns the full history since you joined; afterSeq N reads from sequence N (skipped posts stay unread).",
+	description: text("tools/readGroup"),
 	parameters: Type.Object({
 		groupId,
 		afterSeq: Type.Optional(Type.Integer({ description: "Only posts with a higher sequence", minimum: 0 })),
@@ -110,15 +110,12 @@ export const readGroup = defineTool({
 		if (afterSeq !== undefined && afterSeq > 0) {
 			const older = world.groups.olderThan(id, self, afterSeq);
 			if (older > 0) {
-				parts.push(
-					`Note: ${older} older post(s) lie before afterSeq ${afterSeq}. ` +
-						"Read without afterSeq for unread posts, or with afterSeq 0 for the full history.",
-				);
+				parts.push(render("replies/group-older", { older, afterSeq }));
 			}
 		}
 		parts.push(
 			result.value.length === 0
-				? "no new posts"
+				? text("replies/board-none")
 				: result.value.map((post) => `#${post.seq} ${post.author}: ${post.text}`).join("\n"),
 		);
 		return success(parts.join("\n\n"));
@@ -127,7 +124,7 @@ export const readGroup = defineTool({
 
 export const depositGroup = defineTool({
 	name: "depositGroup",
-	description: "Pays your own points into the group treasury. Irreversible; the treasury is split at the end of the run.",
+	description: text("tools/depositGroup"),
 	parameters: Type.Object({ groupId, amount: Type.Integer({ description: "Positive integer", minimum: 1 }) }),
 	execute({ groupId: id, amount }, { self, world }) {
 		const result = world.depositGroup(id, self, amount);
@@ -137,7 +134,7 @@ export const depositGroup = defineTool({
 
 export const withdrawGroup = defineTool({
 	name: "withdrawGroup",
-	description: "Pays points from the treasury to a member. Only the treasurer may do this.",
+	description: text("tools/withdrawGroup"),
 	parameters: Type.Object({
 		groupId,
 		target: Type.String({ description: "Recipient name or ID" }),
@@ -151,7 +148,7 @@ export const withdrawGroup = defineTool({
 
 export const setTreasurer = defineTool({
 	name: "setTreasurer",
-	description: "Hands the treasurer role to another member. Only the current treasurer may do this.",
+	description: text("tools/setTreasurer"),
 	parameters: Type.Object({ groupId, agent: Type.String({ description: "Name or ID of the new treasurer" }) }),
 	execute({ groupId: id, agent }, { self, world }) {
 		return summaryOutcome(world.setTreasurer(id, self, agent), self);

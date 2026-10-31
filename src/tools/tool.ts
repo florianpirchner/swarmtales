@@ -12,13 +12,14 @@ import { Parse } from "typebox/value";
 import type { CompetitorId } from "../core/ids.ts";
 import type { World } from "../engine/world.ts";
 import type { DeliveryJudge } from "../interpret/judge.ts";
+import { render, text } from "../prompts/library.ts";
 import type { ToolName } from "./catalog.ts";
 import { GUARD_BLOCKED, guardedText, type ToolGuard } from "./guard.ts";
 
 export const TOOL_LOCKED = "TOOL_LOCKED";
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 /** Why a locked call failed, for the model: the tool exists, it is just not open to this resident now. */
-export const LOCKED_DETAIL = "not available to you at this level or in this phase; activeTools lists the tools you can use now";
+export const LOCKED_DETAIL = text("replies/locked");
 /** The full text of a locked call's reply. */
 export const LOCKED_REPLY = `${TOOL_LOCKED}: ${LOCKED_DETAIL}`;
 
@@ -140,5 +141,5 @@ function toResult(outcome: ToolOutcome, display: (text: string) => string): Agen
 
 /** Short suffix for tool replies while marks apply. */
 export function marksSuffix(marks: { readonly remaining: number; readonly budget: number } | undefined): string {
-	return marks === undefined ? "" : ` · marks ${marks.remaining}/${marks.budget} left`;
+	return marks === undefined ? "" : ` · ${render("replies/marks-left", { remaining: marks.remaining, budget: marks.budget })}`;
 }

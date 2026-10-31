@@ -1,17 +1,13 @@
 import { Type } from "typebox";
 import { defineTool, failure, fromError, marksSuffix, success, type ArenaTool } from "./tool.ts";
+import { render, text } from "../prompts/library.ts";
 
 /** A board show refused because the receipt quotes part of a fragment (SPEC 20); nothing is posted or charged. */
 export const RECEIPT_CARRIES_FRAGMENT = "RECEIPT_CARRIES_FRAGMENT";
 
 /** The description, with what a DM receipt names: without its text (the City of Keys) or quoting it (rules.receipts.quoteDms, Whispers). */
 function describedAs(dmReceipt: string): string {
-	return (
-		"Shows one of your receipts as a line verified by the city, e.g. to prove a payment or that the city delivered your DM " +
-		`(${dmReceipt}). Without \`to\` the city posts it on ` +
-		"the public board; with `to` it sends it privately to that resident only. Only the parties of a receipt may show it. " +
-		"Where marks apply, every show costs a mark. getStatus lists your receipts."
-	);
+	return render("tools/showReceipt", { dmReceipt });
 }
 
 function receiptTool(description: string): ArenaTool<"showReceipt"> {
@@ -26,18 +22,18 @@ function receiptTool(description: string): ArenaTool<"showReceipt"> {
 			// A board show is a post the city writes for the resident: it may not carry what the guard keeps off the board (SPEC 20).
 			const minRun = to === undefined ? guard?.boardMinRun() : undefined;
 			if (minRun !== undefined && world.receiptCarriesFragment(self, receiptId, minRun)) {
-				return failure(RECEIPT_CARRIES_FRAGMENT, "the receipt quotes part of a fragment, and fragments travel by DM; show it privately with `to`");
+				return failure(RECEIPT_CARRIES_FRAGMENT, text("replies/receipt-fragment"));
 			}
 			const result = world.showReceipt(self, receiptId, to);
 			if (!result.ok) return fromError(result);
 			const shown = result.value;
-			if (shown.post !== undefined) return success(`shown · board #${shown.post.seq} · ${shown.post.text}${marksSuffix(shown.marks)}`);
-			return success(`shown privately to ${shown.to} · ${shown.receipt.id}${marksSuffix(shown.marks)}`);
+			if (shown.post !== undefined) return success(`${render("replies/receipt-shown-board", { seq: shown.post.seq, text: shown.post.text })}${marksSuffix(shown.marks)}`);
+			return success(`${render("replies/receipt-shown-private", { to: shown.to, receipt: shown.receipt.id })}${marksSuffix(shown.marks)}`);
 		},
 	});
 }
 
-export const showReceipt = receiptTool(describedAs("a DM receipt names sender, recipient, DM number and delivery minute, never the text"));
+export const showReceipt = receiptTool(describedAs(text("tools/showReceipt-receipt-plain")));
 
 /** The same tool where DM receipts quote their DM (Whispers): its description says so. */
-export const showQuotedReceipt = receiptTool(describedAs("a DM receipt names sender, recipient, DM number and delivery minute, and quotes the DM word for word"));
+export const showQuotedReceipt = receiptTool(describedAs(text("tools/showReceipt-receipt-quoted")));

@@ -1,11 +1,10 @@
 import { Type } from "typebox";
 import { defineTool, fromError, success } from "./tool.ts";
+import { render, text } from "../prompts/library.ts";
 
 export const transferPoints = defineTool({
 	name: "transferPoints",
-	description:
-		"Transfers points to another competitor. Immediate, atomic and irreversible. Both sides get a receipt. " +
-		"The memo may not contain numbers of 4 or more digits (also not split by spaces or dashes); send codes by message.",
+	description: text("tools/transferPoints"),
 	parameters: Type.Object({
 		target: Type.String({ description: "Recipient name or ID" }),
 		amount: Type.Integer({ description: "Positive integer", minimum: 1 }),
@@ -18,6 +17,6 @@ export const transferPoints = defineTool({
 	execute({ target, amount, memo }, { self, world }) {
 		const result = world.transfer(self, target, amount, memo ?? "");
 		if (!result.ok) return fromError(result);
-		return success(`ok · ${amount} points to ${target} · your balance: ${result.value.balance} · receipt ${result.value.receipt}`);
+		return success(render("replies/transfer-ok", { amount, target, balance: result.value.balance, receipt: result.value.receipt }));
 	},
 });
