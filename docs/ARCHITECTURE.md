@@ -30,8 +30,11 @@ has `@swarmtales/<name>` as its name, ESM only, no native dependencies, and expo
 ```
 packages/
   contracts/   types, interfaces and closed vocabularies only: ids, tool names, the story shape
-               (story.ts), the turn/competitor contract, the judge, guard and souffleur interfaces
-  kernel/      random, ledger, clock, ids, result helpers, text templates (templates.ts, counts.ts)
+               (story.ts), the turn/competitor contract, the judge, guard and souffleur interfaces;
+               core/: the mechanic API of the new core (Typebox schemas and types)
+  kernel/      random, ledger, clock, ids, result helpers, text templates (templates.ts, counts.ts);
+               host/: the new core (mechanic host, tool pipeline, referee, event bus, turn loop), not
+               used by the CLI yet, see docs/design/mechanic-api.md
   prompts/     the prompt loader: Markdown files with `{{variable}}` placeholders, a typed registry
                (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
   engine/      world state, scheduler (Arena), director interpreter, petitions, receipts, standings,
@@ -44,6 +47,7 @@ packages/
   chronicle/   log/ (event sinks, run artifacts, transcripts, minute report, usage), snapshot/
                (SPEC 17), digest/ (detectors, relationships, timeline, chronicle), report/ (run reporter)
   novelist/    the novelist (SPEC 15): casting, outline, scene packs, writer, prompts
+  testkit/     scripted agents, story runs and module conformance checks for the new core
 apps/cli/      the `swt` / `swarmtales` binary (src/swt.ts dispatches to main.ts, validate.ts, digest.ts,
                novel.ts, report.ts, run-report.ts, ...) and the composition root compose.ts
 library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role

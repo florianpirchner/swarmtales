@@ -108,6 +108,12 @@ How it stays that small:
   written) and a minimal one (`channels` plus `ledger`) run in `testkit`; cityofkeys and Whispers are
   plain lists of plugins plus options.
 
+**Built (wave 2a, 2026-10-31), where it differs from the above:** the core lives in
+`packages/kernel/src/host/` with its types in `packages/contracts/src/core/`, not in `engine`, which
+still holds `World` until wave 3; kernel may depend only on contracts, so the core cannot reach
+`World`. The two proof stories are tests in `test/host/` with the testkit in `packages/testkit/`.
+The API as built is described in [`docs/design/mechanic-api.md`](../design/mechanic-api.md).
+
 Costs to watch: coupling between plugins (made explicit by `requires` and visible with
 `swt module graph`), load order (fixed by the dependency graph, ties broken by the story's list),
 event-bus overhead (measure in the golden run), and debugging across plugins (every service call and
@@ -118,7 +124,7 @@ piece; once Flo gives the go, everything is rewritten in one pass (§6) and `Wor
 
 ## 3. Extension points
 
-One concept: a **module**. A module is what a plugin exports. The engine knows only the module
+One concept: a **module** (built as a *mechanic*, see below). A module is what a plugin exports. The engine knows only the module
 host; marks, receipts, tribunal and seal become modules like any third-party one.
 
 ```ts
@@ -133,6 +139,12 @@ export const marks = defineModule({
   prompts: "./prompts",                        // its own prompt files
 });
 ```
+
+As built in wave 2a the call is `defineMechanic(head, build)`: the head is the static part above
+(id, `requires`, `provides`, options, state, events, prompts) and fixes the types; `build(kit)` runs
+once per run and returns tools, services, listeners, facts, hooks, pipeline handlers, referee limits,
+jobs and the snapshot slice. `requires` names APIs (`defineApi`), not module ids, so a story can swap
+the provider. See [`docs/design/mechanic-api.md`](../design/mechanic-api.md).
 
 The pieces a plugin can contribute:
 
@@ -363,6 +375,8 @@ stages of one fixed chain every tool call runs through:
 | 7. `settle` | charge the cost, only when `execute` succeeded; a `charge` verdict adds its mark here | cost modules |
 | 8. `after` | events, notices, labels for the gamemaker | modules |
 
+- Built (wave 2a) with one more stage, `parse` (the arguments against the schema), between `lock`
+  and `limit`; `"door"` windows are `{ resetOn: "<event type>" }`, so the core needs no door.
 - Declared per tool in the story data: `sendDM: { limit: { max: 8, per: "door" }, guard: { ... } }`.
 - Cheap stages first: a call that hits a limit never costs a model call, and a refused or failed
   call never costs a mark (Flo: charge only once executed).
@@ -598,6 +612,12 @@ souffleur interfaces), and the repo is a pnpm workspace with the packages `contr
 tsdown build, the `development` export condition, `pnpm check:packages` and knip. See
 `docs/ARCHITECTURE.md` §2 for the map and for what still differs from §2 above (tools and game rules
 live in `engine` until `World` is carved up; `roles` and `chronicle` read event types from `engine`).
+
+Status (2026-10-31, wave 2a): the new core of step 4 is built as a tested skeleton next to the old
+engine (`packages/kernel/src/host/`, `packages/contracts/src/core/`, `packages/testkit/`), proven by
+an empty story and a `channels` + `ledger` story; nothing is carved out of `World` yet and the golden
+runs are unchanged. Open issues for the carving are listed in
+[`docs/design/mechanic-api.md`](../design/mechanic-api.md) §8.
 
 | Step | What | Risk |
 |---|---|---|

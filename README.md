@@ -255,7 +255,7 @@ is deterministic, and every run can be replayed.
 - [How it works](docs/HOW-IT-WORKS.md): overview diagram, quick start, models, CLI
 - [The City of Keys story](docs/STORY-CITYOFKEYS.md) and [its code](stories/cityofkeys/)
 - [The Whispers story](docs/STORY-WHISPERS.md) and [its code](stories/whispers/): one secret slanderer among six
-- [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md)
+- [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md) · [Mechanic API](docs/design/mechanic-api.md)
 - [From a run to a story](docs/FROM-RUN-TO-STORY.md): how the chronicle and the short stories are made
 - [Recorded runs](examples/): Act I with a snapshot, and the Act II series
 - [Rules for contributors and agents](CLAUDE.md)
