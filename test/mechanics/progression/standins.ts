@@ -5,7 +5,10 @@
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, LedgerApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { MarksBook } from "@swarmtales/engine";
+import type { AnyStory } from "@swarmtales/contracts";
+import { ChannelsApi, LedgerApi, MarksApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { marksTermsLine } from "../t3/twin-standins.ts";
 import type { LegacyLine } from "@swarmtales/testkit";
 
 export interface Notice {
@@ -13,14 +16,25 @@ export interface Notice {
 	readonly text: string;
 }
 
-export function ledgerStandIn() {
+/** What the golden `getStatus` reply says about the caller and the other mechanics own (points, unread DMs). */
+export interface StatusFeed {
+	agent: string;
+	points: number | undefined;
+	unread: number;
+}
+
+export function createFeed(): StatusFeed {
+	return { agent: "", points: undefined, unread: 0 };
+}
+
+export function ledgerStandIn(feed?: StatusFeed) {
 	const held = new Map<string, number>();
 	return defineMechanic(
 		{ id: "ledger", summary: "Stand-in for the ledger: balances only.", options: Type.Object({}), state: () => undefined, events: {}, provides: [LedgerApi] },
 		(kit) => ({
 			services: [
 				kit.provide(LedgerApi, {
-					balance: ({ account }) => held.get(account) ?? 0,
+					balance: ({ account }) => (feed?.points !== undefined && account === feed.agent ? feed.points : (held.get(account) ?? 0)),
 					balances: () => Object.fromEntries(held),
 					mint: ({ account, amount }) => {
 						held.set(account, (held.get(account) ?? 0) + amount);
@@ -37,8 +51,28 @@ export function ledgerStandIn() {
 	);
 }
 
+/** The marks the old book computes from the story's rules: the terms under a task and the price of a message at a resident's level. */
+export function marksStandIn(story: AnyStory) {
+	const book = new MarksBook(story.rules.marks, story.levels);
+	return defineMechanic(
+		{ id: "marks", summary: "Stand-in for the marks: prices and task terms of the story.", options: Type.Object({}), state: () => undefined, events: {}, provides: [MarksApi], uses: [ProgressionApi] },
+		(kit) => ({
+			services: [
+				kit.provideSome(MarksApi, {
+					left: () => null,
+					priceOf: ({ resident, channel }, ctx) => {
+						const level = ctx.tryCall(ProgressionApi, "levelOf", { resident });
+						return level === undefined || !book.activeOn(level) ? null : book.priceOf(level, channel);
+					},
+					taskLine: ({ level }) => marksTermsLine(book, level),
+				}),
+			],
+		}),
+	);
+}
+
 /** Collects the private notices progression sends, for the tests that read them. */
-export function channelsStandIn(notices: Notice[]) {
+export function channelsStandIn(notices: Notice[], feed?: StatusFeed) {
 	return defineMechanic(
 		{ id: "channels", summary: "Stand-in for the channels: notices are recorded.", options: Type.Object({}), state: () => undefined, events: {}, provides: [ChannelsApi] },
 		(kit) => ({
@@ -53,6 +87,7 @@ export function channelsStandIn(notices: Notice[]) {
 					deliver: () => ({ number: 0 }),
 					takeNumber: () => 0,
 					dmWindow: () => null,
+					pendingDms: () => feed?.unread ?? 0,
 					dmRecords: () => [],
 					createCityGroup: () => ({ group: "" }),
 					removeCityGroup: () => null,
@@ -83,6 +118,7 @@ export function receiptsStandIn(golden: readonly LegacyLine[]) {
 				kit.provideSome(ReceiptsApi, {
 					issue: ({ body }) => ({ id: (body.kind === "levelUp" ? ids.get(`${body.agent}:${body.level}`) : undefined) ?? "R-0000", text: "" }),
 					count: () => 0,
+					list: () => [],
 					memoTransfers: () => 0,
 					describe: () => "",
 				}),

@@ -7,7 +7,7 @@
  * exile, the cores, the DM counters) comes from the oracle.
  */
 import { Type } from "typebox";
-import { describeReceipt, ReceiptBook, refillText, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
+import { describeReceipt, MarksBook, ReceiptBook, refillText, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
 import { render } from "@swarmtales/prompts";
@@ -146,17 +146,20 @@ export function twinChannels(world: World, posts = 0) {
 	);
 }
 
+/** The marks terms under a task, as the old `#withMarks` wrote them; null where marks are off. */
+export function marksTermsLine(marks: MarksBook, level: number): string | null {
+	if (!marks.activeOn(level)) return null;
+	const { budget, prices, refill } = marks.termsOn(level);
+	if (marks.runWide) {
+		return `Marks for the whole run: ${budget}, never more (your status line shows what you have left). Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.`;
+	}
+	const regain = refill === undefined ? "" : ` You regain ${refillText(refill.marks, refill.everyMinutes)}, up to ${budget}.`;
+	return `Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${regain} Unused marks expire when you change level.`;
+}
+
 /** The marks the old book computes for the resident's level. */
 export function twinMarks(world: World) {
-	const termsLine = (level: number): string | null => {
-		if (!world.marks.activeOn(level)) return null;
-		const { budget, prices, refill } = world.marks.termsOn(level);
-		if (world.marks.runWide) {
-			return `Marks for the whole run: ${budget}, never more (your status line shows what you have left). Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.`;
-		}
-		const regain = refill === undefined ? "" : ` You regain ${refillText(refill.marks, refill.everyMinutes)}, up to ${budget}.`;
-		return `Marks on this level: ${budget}. Prices: board ${prices.board}, group ${prices.group}, DM ${prices.dm}, showing a receipt ${prices.receipt}.${regain} Unused marks expire when you change level.`;
-	};
+	const termsLine = (level: number): string | null => marksTermsLine(world.marks, level);
 	return defineMechanic(
 		{ ...base, id: "marks", summary: "Twin marks.", state: () => ({}), events: {}, provides: [MarksApi] },
 		(kit) => ({

@@ -11,7 +11,7 @@ import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { goldenCalls, type GoldenCall, type LegacyLine } from "@swarmtales/testkit";
 import { GOLDEN_NAMES, goldenLog, minutesOf, puzzleOptions, RESIDENTS, SEED, storyOf, type GoldenName } from "../puzzles/harness.ts";
-import { channelsStandIn, ledgerStandIn, receiptsStandIn, type Notice } from "./standins.ts";
+import { channelsStandIn, ledgerStandIn, marksStandIn, receiptsStandIn, type Notice, type StatusFeed } from "./standins.ts";
 
 export { GOLDEN_NAMES, goldenLog, minutesOf, RESIDENTS, SEED, storyOf, type GoldenName };
 
@@ -60,18 +60,19 @@ export function promptLookup() {
 	return createPromptLookup({ mechanics: { progression: resolve(import.meta.dirname, "../../../mechanics/progression/prompts") } });
 }
 
-export function standInUses(golden: readonly LegacyLine[], notices: Notice[]) {
-	return [ledgerStandIn().with(), channelsStandIn(notices).with(), receiptsStandIn(golden).with()];
+export function standInUses(golden: readonly LegacyLine[], notices: Notice[], feed?: StatusFeed) {
+	return [ledgerStandIn(feed).with(), channelsStandIn(notices, feed).with(), receiptsStandIn(golden).with()];
 }
 
-export function progressionHost(name: GoldenName, notices: Notice[], more: readonly MechanicUse[] = [], scriptTools: readonly string[] = []): Host {
+export function progressionHost(name: GoldenName, notices: Notice[], more: readonly MechanicUse[] = [], scriptTools: readonly string[] = [], feed?: StatusFeed): Host {
 	const story = defineCoreStory({
 		id: name,
 		seed: SEED,
 		minutes: minutesOf(name),
 		residents: [...RESIDENTS],
 		mechanics: [
-			...standInUses(goldenLog(name), notices),
+			...standInUses(goldenLog(name), notices, feed),
+			marksStandIn(storyOf(name)).with(),
 			puzzles.with(puzzleOptions(storyOf(name))),
 			progression.with(progressionOptions(storyOf(name))),
 			...more,
@@ -121,4 +122,57 @@ export async function replay(host: Host, name: GoldenName, minutes?: number): Pr
 	if (minutes === undefined) await host.run(agent);
 	else for (let minute = 0; minute < minutes; minute++) await host.playMinute(agent);
 	return outcomes;
+}
+
+const ALL_TOOLS = new Set(["getStatus", "activeTools", "getProblem", "submitSolution"]);
+
+export interface StatusOutcome {
+	readonly tool: string;
+	readonly agent: string;
+	readonly golden: string;
+	readonly text: string;
+}
+
+/**
+ * Plays every golden call of the four tools of progression in the golden order. Before a
+ * `getStatus` the feed takes what the golden reply says the ledger and the channels know (points,
+ * unread DMs), so the reply's frame and the lines progression owns are what is compared.
+ */
+export async function replayStatus(host: Host, name: GoldenName, feed: StatusFeed): Promise<readonly StatusOutcome[]> {
+	const calls = goldenCalls(goldenLog(name)).filter((call) => ALL_TOOLS.has(call.tool));
+	const outcomes: StatusOutcome[] = [];
+	let done = -1;
+	const agent = async (turn: { readonly minute: number }): Promise<void> => {
+		if (done === turn.minute) return;
+		done = turn.minute;
+		for (const call of calls.filter((entry) => entry.minute === turn.minute)) {
+			const golden = call.text ?? "";
+			feed.agent = call.agent;
+			const points = Number(/^points: (-?\d+)$/m.exec(golden)?.[1]);
+			feed.points = Number.isNaN(points) ? undefined : points;
+			feed.unread = Number(/^unread DMs: (\d+)$/m.exec(golden)?.[1] ?? 0);
+			outcomes.push({ tool: call.tool, agent: call.agent, golden, text: replyText(await host.call(`resident:${call.agent}`, call.tool, call.args)) });
+		}
+	};
+	await host.run(agent);
+	return outcomes;
+}
+
+/**
+ * Plays the golden's progression calls at each resident's own turn and returns the task each turn
+ * opened with (the note of kind `task`), by `minute:resident:pass`.
+ */
+export async function replayTurns(host: Host, name: GoldenName): Promise<ReadonlyMap<string, string>> {
+	const calls = progressionCalls(name);
+	const tasks = new Map<string, string>();
+	const played = new Set<string>();
+	await host.run(async (turn) => {
+		const task = turn.inputs.find((note) => note.kind === "task");
+		if (task !== undefined) tasks.set(`${turn.minute}:${turn.resident}:${turn.pass}`, task.text);
+		const own = `${turn.minute}:${turn.resident}`;
+		if (played.has(own)) return;
+		played.add(own);
+		for (const call of calls.filter((entry) => entry.minute === turn.minute && entry.agent === turn.resident)) await turn.call(call.tool, call.args);
+	});
+	return tasks;
 }
