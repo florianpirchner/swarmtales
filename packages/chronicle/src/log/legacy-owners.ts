@@ -28,8 +28,7 @@ export type LegacyOwner =
 	| "tribunal"
 	| "standoff-tribunal"
 	| "whispers"
-	| "script"
-	| "gamemaker";
+	| "script";
 
 export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> = {
 	// The turn loop: round_start, pass_start and turn_skipped come from core events (LEGACY_CORE_TRANSLATORS).
@@ -151,8 +150,9 @@ export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> 
 	director_action: "script",
 	director_skipped: "script",
 	standings_published: "script",
-	gamemaker_note: "gamemaker",
-	gamemaker_defied: "gamemaker",
+	// The gamemaker's tools write their texts through channels (`NotesApi`, wave 3.5 T2 request 1).
+	gamemaker_note: "channels",
+	gamemaker_defied: "channels",
 };
 
 function isLegacyType(type: string): type is ArenaEventType {

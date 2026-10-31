@@ -10,7 +10,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, INPUT_KINDS, LedgerApi, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, INPUT_KINDS, LedgerApi, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER, WhispersEvents } from "@swarmtales/mechanic-shared";
 import { dutyDue, forgeableList, isForgeable, previousDuty, quotedLine, shownLine, tallyWhispers, WhispererSpec, type DmReceipt, type Dm, type Forgery } from "./duty.ts";
 import { countBallots, dutyTarget, namesList, PopularitySpec, type Counted, type Round } from "./vote.ts";
 
@@ -54,7 +54,7 @@ export const whispersHead = defineHead({
 	}),
 	state: (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>() }),
 	events: {
-		whisperer_chosen: Type.Object({ agent: Type.String() }),
+		...WhispersEvents.events,
 		whisper_duty: Type.Object({
 			agent: Type.String(),
 			since: Type.Integer(),

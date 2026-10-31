@@ -25,7 +25,7 @@ import { puzzlesHead } from "@swarmtales/mechanic-puzzles";
 import { receiptsHead } from "@swarmtales/mechanic-receipts";
 import { scriptHead } from "@swarmtales/mechanic-script";
 import { sealHead } from "@swarmtales/mechanic-seal";
-import { SHARED_APIS } from "@swarmtales/mechanic-shared";
+import { LEGACY_SILENT_EVENTS, SHARED_APIS } from "@swarmtales/mechanic-shared";
 import { standoffHead } from "@swarmtales/mechanic-standoff";
 import { standoffTribunalHead } from "@swarmtales/mechanic-standoff-tribunal";
 import { tribunalHead } from "@swarmtales/mechanic-tribunal";
@@ -66,7 +66,7 @@ describe("the mechanic packages", () => {
 	});
 
 	it("cover every mechanic owner of the old events (the gamemaker's tools go to the mechanics they act on)", () => {
-		const owners = new Set(Object.values(LEGACY_EVENT_OWNERS).filter((owner) => owner !== "app" && owner !== "core" && owner !== "gamemaker"));
+		const owners = new Set(Object.values(LEGACY_EVENT_OWNERS).filter((owner) => owner !== "app" && owner !== "core"));
 		expect([...owners].filter((owner) => !HEADS.some((head) => head.id === owner))).toEqual([]);
 	});
 
@@ -85,8 +85,14 @@ describe("the mechanic packages", () => {
 		}
 	});
 
-	it("declare only shared events they own", () => {
-		for (const head of HEADS) for (const type of Object.keys(head.events)) expect(legacyOwner(type), type).toBe(head.id);
+	it("declare only shared events they own (a silent event has no old owner: its source is the head)", () => {
+		const silent: readonly string[] = LEGACY_SILENT_EVENTS;
+		for (const head of HEADS) {
+			for (const type of Object.keys(head.events)) {
+				if (silent.includes(`${head.id}.${type}`)) continue;
+				expect(legacyOwner(type), type).toBe(head.id);
+			}
+		}
 	});
 
 	it("have no requires cycle, and the carve order respects requires", () => {

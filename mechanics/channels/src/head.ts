@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { CastApi, ChannelsApi, ChannelsEvents, LedgerApi, MarksApi, NamesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
+import { CastApi, ChannelsApi, ChannelsEvents, LedgerApi, MarksApi, NamesApi, NotesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { newState } from "./state.ts";
 
 const Id = Type.String();
@@ -86,7 +86,7 @@ export const channelsHead = defineHead({
 	state: ({ residents }) => newState(residents),
 	events,
 	prompts,
-	provides: [ChannelsApi],
+	provides: [ChannelsApi, NotesApi],
 	requires: [LedgerApi, MarksApi, NamesApi],
 	uses: [ReceiptsApi, CastApi, StandoffApi, StandoffTribunalApi],
 });

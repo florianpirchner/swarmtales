@@ -35,7 +35,7 @@ export function exileStandIn(gone: readonly string[]): MechanicUse {
 		{ id: "exile", summary: "Stand-in for the exile mechanic of team T4.", options: Type.Object({}), state: () => undefined, events: { ...ExileEvents.events }, provides: [ExileApi] },
 		(kit) => ({
 			services: [
-				kit.provide(ExileApi, {
+				kit.provideSome(ExileApi, {
 					isExiled: (input) => gone.includes(input.resident),
 					standing: (input) => (gone.includes(input.resident) ? { kind: "exiled" } : { kind: "alive" }),
 					alive: (_input, ctx) => ctx.residents.ids.filter((id) => !gone.includes(id)),

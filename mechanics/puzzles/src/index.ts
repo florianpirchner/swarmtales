@@ -18,7 +18,7 @@ export { puzzlesHead } from "./head.ts";
 export { PuzzlesExtrasApi } from "./extras.ts";
 
 export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
-	services: [kit.provide(PuzzlesApi, puzzlesImplementation), kit.provide(PuzzlesExtrasApi, extrasImplementation)],
+	services: [kit.provideSome(PuzzlesApi, puzzlesImplementation), kit.provide(PuzzlesExtrasApi, extrasImplementation)],
 	hooks: {
 		runStarted: (ctx) => {
 			const dealt = new Set(openingLevels(ctx));

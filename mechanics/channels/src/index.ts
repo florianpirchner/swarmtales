@@ -7,7 +7,7 @@
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, ExileEvents } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileEvents, NotesApi } from "@swarmtales/mechanic-shared";
 import { gamemakerTools } from "./gamemaker.ts";
 import { createCityGroup, removeCityGroup, postGroupAsCity, settleTreasuries } from "./treasury.ts";
 import { channelsHead } from "./head.ts";
@@ -20,7 +20,9 @@ export { channelsHead };
 
 export const channels = defineMechanic(channelsHead, (kit) => ({
 	services: [
-		kit.provide(ChannelsApi, {
+		// Wave 3.5 (carve-decisions.md): the note desk is T2's to write in round 2.
+		kit.provideSome(NotesApi, {}),
+		kit.provideSome(ChannelsApi, {
 			post: (input, ctx) => ({ postSeq: postToBoard(ctx, input.author, input.text, "city").seq }),
 			notify: (input, ctx) => {
 				notify(ctx, input.to, input.author, input.text);

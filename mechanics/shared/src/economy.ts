@@ -7,7 +7,7 @@
 import { Type } from "typebox";
 import { defineApi } from "@swarmtales/kernel";
 import { command, query } from "./method.ts";
-import { MarksChannel, MarksLeft, OfResident, ReceiptBody, ResidentId } from "./schemas.ts";
+import { MarksChannel, MarksLeft, OfResident, Receipt, ReceiptBody, ResidentId } from "./schemas.ts";
 
 /** Names for ids (step 1). The names mechanic also gives `presentation.resolve` and `presentation.display`. */
 export const NamesApi = defineApi({
@@ -16,8 +16,13 @@ export const NamesApi = defineApi({
 	methods: {
 		hasNames: query("Whether the story names residents at all (old `hasNames`).", Type.Object({}), Type.Boolean()),
 		nameOf: query("The chosen name, or null (old `nameOf`).", OfResident, Type.Union([Type.String(), Type.Null()])),
-		labelOf: query("The name, or the id while there is none (old `labelOf`).", OfResident, Type.String()),
+		labelOf: query("`Name (ID)` once the resident chose a name, the bare id before (old `labelOf`).", OfResident, Type.String()),
 		resolve: query("The id a name or id stands for; other text comes back unchanged (old `resolveResident`).", Type.Object({ text: Type.String() }), Type.String()),
+		taskLine: query(
+			"The choose-name line under a task (and the closed-door text) while the resident may still choose, else null (old `#withNameChoice`); progression appends it.",
+			OfResident,
+			Type.Union([Type.String(), Type.Null()]),
+		),
 	},
 });
 
@@ -49,6 +54,8 @@ export const MarksApi = defineApi({
 		canAfford: query("Whether the resident may send on the channel now (old `#canAfford`); true without marks.", Type.Object({ resident: ResidentId, channel: MarksChannel }), Type.Boolean()),
 		left: query("The resident's marks, or null when the story has none.", OfResident, Type.Union([MarksLeft, Type.Null()])),
 		spend: command("Spends the channel's price once a message was sent (old `#spend`); writes `marks_spent`; null when marks do not apply.", Type.Object({ resident: ResidentId, channel: MarksChannel }), Type.Union([MarksLeft, Type.Null()])),
+		priceOf: query("What a message on the channel costs the resident at its level now, or null when marks do not apply (the holder notice's price).", Type.Object({ resident: ResidentId, channel: MarksChannel }), Type.Union([Type.Number(), Type.Null()])),
+		taskLine: query("The marks terms under the task of `level` (old `#withMarks`), or null when marks are off there; progression appends it.", Type.Object({ level: Type.Integer({ minimum: 1 }) }), Type.Union([Type.String(), Type.Null()])),
 	},
 });
 
@@ -61,5 +68,8 @@ export const ReceiptsApi = defineApi({
 		count: query("How many receipts a resident holds (its status part).", OfResident, Type.Integer()),
 		memoTransfers: query("Transfers with a memo the resident sent from minute `since` on; they count toward the DM cap (old `dmWindow`).", Type.Object({ resident: ResidentId, since: Type.Integer() }), Type.Integer()),
 		describe: query("The receipt line of a body (old `describeReceipt`), for texts other mechanics write.", Type.Object({ body: ReceiptBody }), Type.String()),
+		get: query("A receipt by id, or null (old `receipts.get`).", Type.Object({ id: Type.String() }), Type.Union([Receipt, Type.Null()])),
+		list: query("The receipts a resident is a party of, in issue order (old `receiptsOf`; `getStatus` lists their lines).", OfResident, Type.Array(Receipt)),
+		ofTransfer: query("The id of the receipt issued for the transfer `txId`, or null (the `transferPoints` reply).", Type.Object({ txId: Type.String() }), Type.Union([Type.String(), Type.Null()])),
 	},
 });

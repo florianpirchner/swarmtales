@@ -186,7 +186,7 @@ export function puzzlesStandIn(world: TestWorld, deals: Deals = {}, lacking: (le
 		{ id: "puzzles", summary: "Stand-in puzzles.", options: Type.Object({}), state: (): undefined => undefined, events: puzzleEvents, provides: [PuzzlesApi] },
 		(kit) => ({
 			services: [
-				kit.provide(PuzzlesApi, {
+				kit.provideSome(PuzzlesApi, {
 					deal: () => null,
 					isDealt: () => true,
 					solutionOf: () => null,

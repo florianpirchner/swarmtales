@@ -83,7 +83,7 @@ function withResidents(raw: unknown, find: (value: string) => string): unknown {
 
 export const names = defineMechanic(namesHead, (kit) => ({
 	services: [
-		kit.provide(NamesApi, {
+		kit.provideSome(NamesApi, {
 			hasNames: () => true,
 			nameOf: (input, ctx) => nameOf(ctx.state, input.resident) ?? null,
 			labelOf: (input, ctx) => label(ctx.state, input.resident),

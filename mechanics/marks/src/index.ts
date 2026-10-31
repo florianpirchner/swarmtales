@@ -72,7 +72,7 @@ function bookOf(ctx: Ctx): Book {
 
 export const marks = defineMechanic(marksHead, (kit) => ({
 	services: [
-		kit.provide(MarksApi, {
+		kit.provideSome(MarksApi, {
 			canAfford: (input, ctx) => canAfford(ctx.state, bookOf(ctx), input.resident, input.channel),
 			left: (input, ctx) => statusOf(ctx.state, bookOf(ctx), input.resident) ?? null,
 			spend: (input, ctx) => {

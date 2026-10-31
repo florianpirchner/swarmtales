@@ -33,11 +33,24 @@ export const ChannelsEvents = defineEvents("channels", {
 	dm_sent: Type.Object({ from: Id, to: Id, text: Type.String(), number: Type.Optional(Type.Integer()) }),
 });
 
-/** T3 emits (progression); T3 listens (script, goals), T2 listens (cast). */
+/** T3 emits (progression); T3 listens (script, goals), T2 listens (cast), T4 listens (seal, tribunal). */
 export const ProgressionEvents = defineEvents("progression", {
 	submission: Type.Object({ agent: Id, level: Type.Integer(), outcome: Type.String(), deltaPoints: Type.Number() }),
-	/** Written inside `enterLevel`; the script reacts at once (`{ immediate: true }`), before the `submission` that caused it. */
+	/** Written inside `enterLevel`, before the holder notices; react to `level_entered`, which comes after them. */
 	level_up: Type.Object({ agent: Id, from: Type.Integer(), to: Type.Integer() }),
+	/**
+	 * Silent (no legacy line, `LEGACY_SILENT_EVENTS`): a resident entered `level`, after `level_up`
+	 * and the holder notices, where the old `#enterListeners` ran. The script's `onEnter` rules
+	 * listen to it at once (`{ immediate: true }`), so their actions land before the `submission`.
+	 */
+	level_entered: Type.Object({ agent: Id, level: Type.Integer() }),
+	/**
+	 * Silent: the act that starts at `fromLevel` began (old `#noteActStarts`); `residents` are those
+	 * still in the city. Goals deal (order `LISTENER_ORDER.act_started.goals`), then the seal begins.
+	 */
+	act_started: Type.Object({ fromLevel: Type.Integer({ minimum: 1 }), residents: Type.Array(Id) }),
+	/** Silent: the act that started at `fromLevel` is over (old `#endAct`): the seal ends, then the goals resolve. */
+	act_ended: Type.Object({ fromLevel: Type.Integer({ minimum: 1 }) }),
 });
 
 /** T4 emits (exile); T1 listens (whispers), T2 listens (channels, cast), T3 listens (goals, script). */
@@ -54,7 +67,23 @@ export const PetitionsEvents = defineEvents("petitions", {
 /** T2 emits (cast); T3 listens (script: `onCollect`, a new sender in a collection). */
 export const CastEvents = defineEvents("cast", {
 	cast_dm: Type.Object({ from: Id, cast: Id, text: Type.String(), collections: Type.Array(Id), number: Type.Optional(Type.Integer()) }),
+	/**
+	 * Silent: `from` is a new sender in the collections `into` (old `onCollect` listeners), written
+	 * by `CastApi.collected` once channels spent the DM's marks; the script listens at once.
+	 */
+	cast_collected: Type.Object({ from: Id, cast: Id, into: Type.Array(Id) }),
 });
 
+/** T1 emits (whispers); T2 listens (cores: the whisperer's own core, `story.whisperer.core`). */
+export const WhispersEvents = defineEvents("whispers", {
+	whisperer_chosen: Type.Object({ agent: Id }),
+});
+
+/**
+ * Shared events with no form in the old log: the legacy adapter writes no line for them
+ * (`LEGACY_SILENT` in packages/chronicle/src/log/legacy-events.ts holds the same list).
+ */
+export const LEGACY_SILENT_EVENTS = ["progression.level_entered", "progression.act_started", "progression.act_ended", "cast.cast_collected"] as const;
+
 /** Every shared declaration, by emitting mechanic. */
-export const SHARED_EVENTS = [LedgerEvents, ChannelsEvents, ProgressionEvents, ExileEvents, PetitionsEvents, CastEvents] as const;
+export const SHARED_EVENTS = [LedgerEvents, ChannelsEvents, ProgressionEvents, ExileEvents, PetitionsEvents, CastEvents, WhispersEvents] as const;

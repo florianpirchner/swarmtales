@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, CoresApi } from "@swarmtales/mechanic-shared";
 import type { Core } from "./deal.ts";
 import { CoreDrive, CoreTrait, CoresOptions } from "./spec.ts";
 
@@ -24,5 +24,6 @@ export const coresHead = defineHead({
 	options: CoresOptions,
 	state: (): CoresState => ({ cores: new Map() }),
 	events,
+	provides: [CoresApi],
 	requires: [ChannelsApi],
 });

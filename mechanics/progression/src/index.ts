@@ -19,7 +19,7 @@ export { progressionHead, ProgressionExtrasApi } from "./head.ts";
 
 export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 	tools: progressionTools(kit),
-	services: [kit.provide(ProgressionApi, progressionImplementation), kit.provide(ProgressionExtrasApi, extrasImplementation)],
+	services: [kit.provideSome(ProgressionApi, progressionImplementation), kit.provide(ProgressionExtrasApi, extrasImplementation)],
 	hooks: {
 		runStarted: (ctx) => {
 			noteActStarts(ctx, ctx.options.startLevel);

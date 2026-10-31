@@ -65,7 +65,7 @@ export function channelsStandIn(): { readonly use: MechanicUse; readonly log: Ch
 		},
 		(kit) => ({
 			services: [
-				kit.provide(ChannelsApi, {
+				kit.provideSome(ChannelsApi, {
 					post: (input, ctx) => {
 						ctx.state.counter += 1;
 						log.posts.push({ author: input.author, text: input.text });

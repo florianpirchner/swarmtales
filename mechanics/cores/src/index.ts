@@ -8,6 +8,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
+import { CoresApi } from "@swarmtales/mechanic-shared";
 import { coreLine, dealCores, renderCore } from "./deal.ts";
 import { coresHead } from "./head.ts";
 import { CoreRecord } from "./spec.ts";
@@ -31,6 +32,8 @@ function deal(ctx: Ctx): void {
 }
 
 export const cores = defineMechanic(coresHead, (kit) => ({
+	// Wave 3.5 (carve-decisions.md): the methods are T2's to write in round 2.
+	services: [kit.provideSome(CoresApi, {})],
 	hooks: {
 		runStarted: deal,
 		// A snapshot from before the cores deals them before the next minute is played (v09).

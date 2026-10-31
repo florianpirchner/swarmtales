@@ -21,7 +21,7 @@ export function progressionStandIn(solves: ReadonlyMap<number, number>) {
 		},
 		(kit) => ({
 			services: [
-				kit.provide(ProgressionApi, {
+				kit.provideSome(ProgressionApi, {
 					levelOf: () => 1,
 					isFinished: () => false,
 					hasPassed: () => false,

@@ -3,15 +3,17 @@
  * files"): its events are the old events field for field, each declared by the mechanic that owns
  * it, and a fingerprint over every API, event, schema and the turn input order fails when anything
  * changes. A change goes through the integration owner, who updates FINGERPRINT in the same PR.
+ * The silent events (`LEGACY_SILENT_EVENTS`, wave 3.5) have no old form: they have no owner in the
+ * old table and the legacy adapter writes no line for them.
  */
 import { createHash } from "node:crypto";
 import type { TObject } from "typebox";
 import { describe, expect, it } from "vitest";
-import { LEGACY_EVENT_OWNERS, legacyOwner, RecordedEventSchema } from "@swarmtales/chronicle";
+import { LEGACY_EVENT_OWNERS, LEGACY_SILENT, LegacyEventAdapter, legacyOwner, RecordedEventSchema } from "@swarmtales/chronicle";
 import * as shared from "@swarmtales/mechanic-shared";
-import { INPUT_KINDS, SHARED_APIS, SHARED_EVENTS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
-const FINGERPRINT = "368f7f79832d8d80dc18827d52601a97fff51866d638960ec001b2e5a06ae6b2";
+const FINGERPRINT = "104942e7dbd789109795656878eaa42047c2c3ad034a1268179cc0dbf36dfb5b";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];
@@ -36,9 +38,12 @@ function oldFields(type: string): Fields {
 }
 
 describe("the shared events", () => {
-	const declared = SHARED_EVENTS.flatMap((definition) =>
+	const all = SHARED_EVENTS.flatMap((definition) =>
 		Object.entries(definition.events).map(([type, schema]: [string, TObject]) => ({ id: definition.id, type, fields: fieldsOf(schema.properties, schema.required) })),
 	);
+	const silent: readonly string[] = LEGACY_SILENT_EVENTS;
+	const declared = all.filter((event) => !silent.includes(`${event.id}.${event.type}`));
+	const quiet = all.filter((event) => silent.includes(`${event.id}.${event.type}`));
 
 	it("hold every event the review freezes", () => {
 		expect(declared.map((event) => event.type)).toEqual(expect.arrayContaining(FROZEN));
@@ -52,6 +57,18 @@ describe("the shared events", () => {
 	it.each(declared)("$type has the old fields in the old order", ({ type, fields }) => {
 		expect(fields.keys).toEqual(oldFields(type).keys);
 		expect(fields.json).toBe(oldFields(type).json);
+	});
+
+	it("lists the same silent events as the legacy adapter, each declared", () => {
+		expect([...LEGACY_SILENT].sort()).toEqual([...silent].sort());
+		expect(quiet.map((event) => `${event.id}.${event.type}`).sort()).toEqual([...silent].sort());
+	});
+
+	it.each(quiet)("$type is silent: no old owner, no legacy line", ({ id, type }) => {
+		expect(Object.hasOwn(LEGACY_EVENT_OWNERS, type)).toBe(false);
+		const adapter = new LegacyEventAdapter();
+		expect(adapter.write({ seq: 1, minute: 0, source: id, type, actor: "host", payload: {} })).toEqual([]);
+		expect(adapter.lastSeq).toBe(0);
 	});
 });
 

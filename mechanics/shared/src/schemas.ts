@@ -49,8 +49,37 @@ export const ReceiptBody = Type.Union([
 ]);
 export type ReceiptBody = Static<typeof ReceiptBody>;
 
-/** One DM as the city records it (old `DmRecord`): blame, the whisper duty and `onUnansweredDm` read these. */
-export const DmRecord = Type.Object({ id: Type.Integer(), from: ResidentId, to: ResidentId, minute: Type.Integer(), answered: Type.Boolean(), text: Type.String() });
+/**
+ * One DM as the city records it (old `DmRecord`): blame, the whisper duty and `onUnansweredDm` read
+ * these. `deliveredMinute` and `deliveredAfter` (the city's last message number when the recipient
+ * read it, over every kind of message) are set once it was delivered (wave 3.5, T2 request 2).
+ */
+export const DmRecord = Type.Object({
+	id: Type.Integer(),
+	from: ResidentId,
+	to: ResidentId,
+	minute: Type.Integer(),
+	answered: Type.Boolean(),
+	text: Type.String(),
+	deliveredMinute: Type.Optional(Type.Integer()),
+	deliveredAfter: Type.Optional(Type.Integer()),
+});
+
+/** A receipt as the city keeps it (old `Receipt`): its body, id, minute, parties and its line (`describe`). */
+export const Receipt = Type.Object({ id: Type.String(), minute: Type.Integer(), parties: Type.Array(ResidentId), body: ReceiptBody, text: Type.String() });
+export type Receipt = Static<typeof Receipt>;
+
+/** A board post by its message number (old `board.get`). */
+export const BoardPost = Type.Object({
+	number: Type.Integer(),
+	author: Type.String(),
+	text: Type.String(),
+	kind: Type.Union([Type.Literal("player"), Type.Literal("city"), Type.Literal("system")]),
+	minute: Type.Integer(),
+});
+
+/** A group post by its message number (old `groups.postByNumber`). */
+export const GroupPost = Type.Object({ number: Type.Integer(), group: Type.String(), author: Type.String(), text: Type.String(), minute: Type.Integer() });
 
 /** A piece a resident holds that others need (old `HeldPiece`, world.ts): `L8-certificate`, `L8-counter-A02`, `L4-fragment`. */
 export const HeldPiece = Type.Object({

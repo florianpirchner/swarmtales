@@ -43,7 +43,7 @@ function shorten(ctx: Ctx, into: string, untilMinute: number): void {
 
 export const cast = defineMechanic(castHead, (kit) => ({
 	services: [
-		kit.provide(CastApi, {
+		kit.provideSome(CastApi, {
 			isActive: (input, ctx) => ctx.state.registry.isActive(input.cast),
 			receive: (input, ctx) => {
 				const collected = ctx.state.registry.collect(input.cast, { from: input.from, text: input.text, minute: ctx.minute });

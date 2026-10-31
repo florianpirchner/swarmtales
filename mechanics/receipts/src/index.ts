@@ -184,7 +184,7 @@ function checkShow(ctx: Ctx, self: string, receiptId: string, to: string | undef
 
 export const receipts = defineMechanic(receiptsHead, (kit) => ({
 	services: [
-		kit.provide(ReceiptsApi, {
+		kit.provideSome(ReceiptsApi, {
 			issue: (input, ctx) => {
 				const { receipt, text } = issue(ctx, ctx.options.quoteDms || input.body.kind !== "dm" ? input.body : { kind: "dm", from: input.body.from, to: input.body.to, number: input.body.number });
 				return { id: receipt.id, text };

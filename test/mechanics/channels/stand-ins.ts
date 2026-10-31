@@ -98,7 +98,7 @@ export function marksStandIn(script: MarksScript = NO_MARKS_SCRIPT) {
 		},
 		(kit) => ({
 			services: [
-				kit.provide(MarksApi, {
+				kit.provideSome(MarksApi, {
 					canAfford: (input) => script.canAfford(input.resident, input.channel),
 					left: (input) => script.left(input.resident),
 					spend: (input) => script.spend(input.resident, input.channel),
@@ -123,7 +123,7 @@ export function namesStandIn(names: Map<string, string>) {
 		},
 		(kit) => ({
 			services: [
-				kit.provide(NamesApi, {
+				kit.provideSome(NamesApi, {
 					hasNames: () => names.size > 0,
 					nameOf: (input) => names.get(input.resident) ?? null,
 					labelOf: (input) => names.get(input.resident) ?? input.resident,
@@ -163,7 +163,7 @@ export function receiptsStandIn(script: ReceiptsScript = { memoTransfers: () => 
 		},
 		(kit) => ({
 			services: [
-				kit.provide(ReceiptsApi, {
+				kit.provideSome(ReceiptsApi, {
 					issue: (input, ctx) => {
 						ctx.state.issued += 1;
 						const id = script.nextId?.() ?? `R-${String(ctx.state.issued).padStart(4, "0")}`;

@@ -8,6 +8,8 @@
  * - A core event is dropped unless a translator turns it into legacy events: `pass_started` gives
  *   `round_start` (first pass) and `pass_start`, `turn_skipped` and `guard_verdict` keep their
  *   names. Tool calls, service calls, jobs and locks have no legacy form.
+ * - A shared event the old engine never wrote (`LEGACY_SILENT`: signals between mechanics that
+ *   stood for a direct call) is dropped too.
  * - `seq` counts the written events, so it matches the old log where the core wrote extra events.
  *
  * `envelopeFromLegacy` reads an old line back into an envelope (source from the owner table); a
@@ -41,6 +43,13 @@ const GuardVerdict = Compile(
 		error: Type.Optional(Type.String()),
 	}),
 );
+
+/**
+ * Events of mechanics with no line in the old log, keyed `<source>.<type>`. The same list is
+ * `LEGACY_SILENT_EVENTS` in mechanics/shared (the chronicle may not import mechanics;
+ * test/mechanics/shared-frozen.test.ts keeps the two equal).
+ */
+export const LEGACY_SILENT: readonly string[] = ["progression.level_entered", "progression.act_started", "progression.act_ended", "cast.cast_collected"];
 
 function residentOf(actor: Actor): string {
 	return actor.startsWith("resident:") ? actor.slice("resident:".length) : actor;
@@ -95,7 +104,8 @@ export class LegacyEventAdapter {
 	#seq: number;
 
 	constructor(options: LegacyAdapterOptions = {}) {
-		this.#translators = { ...LEGACY_CORE_TRANSLATORS, ...options.translators };
+		const silent = Object.fromEntries(LEGACY_SILENT.map((key): [string, LegacyTranslator] => [key, () => []]));
+		this.#translators = { ...silent, ...LEGACY_CORE_TRANSLATORS, ...options.translators };
 		this.#seq = options.lastSeq ?? 0;
 	}
 

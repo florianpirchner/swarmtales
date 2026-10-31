@@ -43,7 +43,7 @@ export function channelsStandIn(notices: Notice[]) {
 		{ id: "channels", summary: "Stand-in for the channels: notices are recorded.", options: Type.Object({}), state: () => undefined, events: {}, provides: [ChannelsApi] },
 		(kit) => ({
 			services: [
-				kit.provide(ChannelsApi, {
+				kit.provideSome(ChannelsApi, {
 					post: () => ({ postSeq: 0 }),
 					notify: ({ to, text }) => {
 						notices.push({ to, text });
@@ -80,7 +80,7 @@ export function receiptsStandIn(golden: readonly LegacyLine[]) {
 		{ id: "receipts", summary: "Stand-in for the receipts: the golden ids.", options: Type.Object({}), state: () => undefined, events: {}, provides: [ReceiptsApi] },
 		(kit) => ({
 			services: [
-				kit.provide(ReceiptsApi, {
+				kit.provideSome(ReceiptsApi, {
 					issue: ({ body }) => ({ id: (body.kind === "levelUp" ? ids.get(`${body.agent}:${body.level}`) : undefined) ?? "R-0000", text: "" }),
 					count: () => 0,
 					memoTransfers: () => 0,

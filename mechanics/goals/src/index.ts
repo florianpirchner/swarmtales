@@ -18,7 +18,7 @@ export { CoresExtrasApi } from "./cores-extras.ts";
 
 export const goals = defineMechanic(goalsWorkHead, (kit) => ({
 	services: [
-		kit.provide(GoalsApi, {
+		kit.provideSome(GoalsApi, {
 			onExiled: ({ resident }, ctx) => {
 				onExiled(ctx, resident);
 				return null;

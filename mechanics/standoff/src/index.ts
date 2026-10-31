@@ -168,7 +168,7 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		}),
 	],
 	services: [
-		kit.provide(StandoffApi, {
+		kit.provideSome(StandoffApi, {
 			heldPieces: ({ resident }, ctx) => heldAll(ctx, resident).map((piece): HeldPiece => ({ ...piece, needers: [...piece.needers] })),
 			keep: ({ from, pieces }, ctx) => {
 				const kept: StandoffPiece[] = pieces.map((piece) => ({ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers }));
