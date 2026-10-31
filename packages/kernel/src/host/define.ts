@@ -4,7 +4,7 @@
  * the body returns; the result is the erased `MechanicDefinition` the host loads.
  */
 import type { Static, TSchema } from "typebox";
-import { Default, Parse } from "typebox/value";
+import { Clone, Default, Parse } from "typebox/value";
 import type {
 	ApiDefinition,
 	ApiMethods,
@@ -19,6 +19,7 @@ import type {
 	MechanicTool,
 	MechanicUse,
 	PromptKeys,
+	RandomLabel,
 	Refusal,
 	Shape,
 	ToolSuccess,
@@ -141,7 +142,8 @@ export function defineMechanic<
 	const provides: readonly ApiDefinition[] = head.provides ?? [];
 	const parseOptions = (raw: unknown): Static<O> => {
 		try {
-			return Parse(head.options, Default(head.options, raw ?? {}));
+			// Defaults go into a copy: the story's own option objects stay as the author wrote them.
+			return Parse(head.options, Default(head.options, Clone(raw ?? {})));
 		} catch {
 			throw new Error(`${head.id}: the options do not match the schema`);
 		}
@@ -157,7 +159,7 @@ export function defineMechanic<
 		parseOptions,
 		instantiate(port, raw) {
 			const options = parseOptions(raw);
-			const setup = { options, residents: port.residents.ids, random: () => port.random() };
+			const setup = { options, residents: port.residents.ids, seed: port.seed, random: () => port.random(), rng: (...labels: readonly RandomLabel[]) => port.rng(...labels) };
 			const parts: InstanceParts<M> = { port, options, state: { value: head.state(setup) }, setup, events: head.events, prompts };
 			return bind(parts, build(createKit(parts)), provides);
 		},

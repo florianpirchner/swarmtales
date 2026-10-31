@@ -6,7 +6,7 @@
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput } from "./api.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
-import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomSource, ResidentId } from "./values.ts";
+import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomLabel, RandomSource, ResidentId } from "./values.ts";
 
 /** Options of `ctx.stage`. */
 export interface StageOptions {
@@ -24,8 +24,8 @@ export interface ResidentsView {
 	has(id: string): boolean;
 	/** False while any mechanic holds a suspension (a ban, a sleep, a stay away). */
 	mayAct(id: ResidentId): boolean;
-	/** An attribute from the bag of `owner` (the calling mechanic when left out). */
-	attribute(id: ResidentId, key: string, owner?: string): JsonValue | undefined;
+	/** An attribute from the calling mechanic's own bag; another mechanic's attributes are read through its API. */
+	attribute(id: ResidentId, key: string): JsonValue | undefined;
 }
 
 /** Residents as a mechanic may change them: its own attributes and its own suspensions. */
@@ -64,6 +64,8 @@ export interface MechanicPort {
 	render(id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]): string;
 	/** A fresh stream derived from the seed, this mechanic and the position in the log. */
 	random(): RandomSource;
+	/** The labelled stream of the run seed: `rng("deal", 3)` draws what `rngFor(seed, "deal", 3)` draws, wherever it is called. */
+	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/** Queues a call by the script; it runs through the pipeline once the current code has finished. */
 	stage(tool: string, params: unknown, options?: StageOptions): void;
 	readonly residents: ResidentsPort;
@@ -105,6 +107,8 @@ export interface FactView<M extends MechanicShape> {
 /** The context of hooks, listeners, jobs, services and pipeline handlers. */
 export interface MechanicContext<M extends MechanicShape> {
 	readonly mechanic: string;
+	/** The run's seed. */
+	readonly seed: number;
 	readonly options: Static<M["options"]>;
 	readonly state: M["state"];
 	readonly minute: number;
@@ -119,6 +123,11 @@ export interface MechanicContext<M extends MechanicShape> {
 	/** One of the mechanic's own prompts. */
 	prompt<K extends keyof M["prompts"] & string>(id: K, variables: PromptVariables<M["prompts"][K]>): string;
 	random(): RandomSource;
+	/**
+	 * The labelled stream `labels` of the run seed, the same numbers as the old engine's
+	 * `rngFor(seed, ...labels)`; unlike `random()` it does not move when other events are logged.
+	 */
+	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/**
 	 * Stages a call by the script (actor `script`): it runs through the whole pipeline after the
 	 * code that staged it (a job, a hook, a listener, a tool call) has finished, before anything
@@ -138,5 +147,8 @@ export interface ToolContext<M extends MechanicShape> extends MechanicContext<M>
 export interface StateSetup<O extends TSchema> {
 	readonly options: Static<O>;
 	readonly residents: readonly ResidentId[];
+	readonly seed: number;
 	random(): RandomSource;
+	/** A labelled stream of the run seed, as `ctx.rng`. */
+	rng(...labels: readonly RandomLabel[]): RandomSource;
 }

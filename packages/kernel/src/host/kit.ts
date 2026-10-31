@@ -89,6 +89,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 	const { port, prompts } = parts;
 	return {
 		mechanic: port.id,
+		seed: port.seed,
 		actor,
 		resident,
 		options: parts.options,
@@ -114,6 +115,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 			return port.render(id, variables, declared);
 		},
 		random: () => port.random(),
+		rng: (...labels) => port.rng(...labels),
 		stage(tool, params, options) {
 			port.stage(tool, params, options);
 		},

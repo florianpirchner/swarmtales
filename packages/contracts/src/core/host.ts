@@ -15,8 +15,11 @@ export interface TurnNote {
 	readonly text: string;
 }
 
-/** What a mechanic's `turnInputs` hook returns per line: a plain line, or one with a kind. */
-export type TurnLine = string | { readonly kind: string; readonly text: string };
+/**
+ * What a mechanic's `turnInputs` hook returns per line: a plain line, or one with a kind. Within a
+ * kind, lines are sorted by `order` (ascending, a line without one counts as 0); ties keep load order.
+ */
+export type TurnLine = string | { readonly kind: string; readonly text: string; readonly order?: number };
 
 /** What an agent gets for one turn. */
 export interface Turn {

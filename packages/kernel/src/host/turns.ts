@@ -5,8 +5,8 @@
  * order whatever the agents' timing. With `activation: "onNews"` a resident steps only when a
  * mechanic says it has news or its agent awaits an answer.
  */
-import type { Actor, InputKind, MechanicInstance, ResidentId, ToolOutcome, ToolSpec, TurnLine, TurnNote, TurnPolicy, TurnTaker } from "@swarmtales/contracts";
-import { rngFor } from "../random.ts";
+import type { Actor, InputKind, MechanicInstance, PassView, ResidentId, ToolOutcome, ToolSpec, TurnLine, TurnNote, TurnPolicy, TurnTaker } from "@swarmtales/contracts";
+import { createRng, deriveSeed, rngFor } from "../random.ts";
 import { residentActor } from "./access.ts";
 import type { EventBus } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
@@ -41,16 +41,31 @@ export function mergePolicies(fromMechanics: readonly (readonly [string, TurnPol
 	return merged;
 }
 
-/** The notes in the policy's kind order; joined kinds become one note; the rest follow in load order. */
-export function arrangeInputs(notes: readonly TurnNote[], kinds: readonly InputKind[]): readonly TurnNote[] {
+/** A note with the sort key its line gave within its kind. */
+export interface OrderedNote extends TurnNote {
+	readonly order?: number;
+}
+
+function plain(note: OrderedNote): TurnNote {
+	return note.kind === undefined ? { source: note.source, text: note.text } : { source: note.source, kind: note.kind, text: note.text };
+}
+
+/**
+ * The notes in the policy's kind order, each listed kind sorted by `order` (0 when left out; a
+ * stable sort keeps load order on ties); joined kinds become one note; the rest follow in load order.
+ */
+export function arrangeInputs(notes: readonly OrderedNote[], kinds: readonly InputKind[]): readonly TurnNote[] {
 	const listed = kinds.flatMap((spec): readonly TurnNote[] => {
-		const ofKind = notes.filter((note) => note.kind === spec.kind);
+		const ofKind = notes
+			.filter((note) => note.kind === spec.kind)
+			.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+			.map(plain);
 		if (ofKind.length === 0 || spec.join === undefined) return ofKind;
 		const source = [...new Set(ofKind.map((note) => note.source))].join("+");
 		return [{ source, kind: spec.kind, text: ofKind.map((note) => note.text).join(spec.join) }];
 	});
 	const rest = notes.filter((note) => note.kind === undefined || !kinds.some((spec) => spec.kind === note.kind));
-	return [...listed, ...rest];
+	return [...listed, ...rest.map(plain)];
 }
 
 function blocksOf(order: readonly ResidentId[], size: number): readonly (readonly ResidentId[])[] {
@@ -59,8 +74,9 @@ function blocksOf(order: readonly ResidentId[], size: number): readonly (readonl
 	return blocks;
 }
 
-function noteOf(source: string, line: TurnLine): TurnNote {
-	return typeof line === "string" ? { source, text: line } : { source, kind: line.kind, text: line.text };
+function noteOf(source: string, line: TurnLine): OrderedNote {
+	if (typeof line === "string") return { source, text: line };
+	return line.order === undefined ? { source, kind: line.kind, text: line.text } : { source, kind: line.kind, text: line.text, order: line.order };
 }
 
 interface Prepared {
@@ -92,8 +108,9 @@ export class TurnLoop {
 		}
 	}
 
-	#order(view: { readonly seed: number; readonly minute: number; readonly pass: number; readonly residents: readonly ResidentId[] }): readonly ResidentId[] {
+	#order(base: Omit<PassView, "rng">): readonly ResidentId[] {
 		const policy = this.#parts.policy;
+		const view: PassView = { ...base, rng: (...labels) => createRng(deriveSeed(base.seed, ...labels)) };
 		const order = policy.order === undefined ? rngFor(view.seed, "turns", ...(view.pass === 1 ? [view.minute] : [view.minute, view.pass])).shuffle(view.residents) : policy.order(view);
 		if (order.length !== view.residents.length || new Set(order).size !== order.length || !order.every((id) => view.residents.includes(id))) {
 			throw new Error(`turn policy: the order of pass ${String(view.pass)} is not a permutation of the residents who may act`);

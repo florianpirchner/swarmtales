@@ -148,6 +148,7 @@ function portFor(
 			draws += 1;
 			return createRng(deriveSeed(story.seed, id, drawSeq, draws));
 		},
+		rng: (...labels) => createRng(deriveSeed(story.seed, ...labels)),
 		stage(tool, params, options) {
 			const then = options?.then;
 			if (then !== undefined && !jobs().includes(then)) throw new Error(`${id}: stages ${tool} with "then" job "${then}", which it does not declare`);

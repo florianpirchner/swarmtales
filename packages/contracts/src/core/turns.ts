@@ -4,7 +4,7 @@
  * Mechanics never see the agent: they only say whether a resident has news (`news` hook) and
  * what its turn shows (`turnInputs` hook).
  */
-import type { ResidentId } from "./values.ts";
+import type { RandomLabel, RandomSource, ResidentId } from "./values.ts";
 
 /** A kind of turn input, in the order the policy lists them. */
 export interface InputKind {
@@ -21,6 +21,8 @@ export interface PassView {
 	readonly pass: number;
 	/** The residents who may act, in the story's order. */
 	readonly residents: readonly ResidentId[];
+	/** A labelled stream of the run seed (`rng("order", round, pass)` gives the old engine's order). */
+	rng(...labels: readonly RandomLabel[]): RandomSource;
 }
 
 /** Who steps in a pass: everyone, or only those with news (a mechanic's `news` hook, or an agent that awaits an answer). */

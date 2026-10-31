@@ -38,6 +38,9 @@ export interface RandomSource {
 	shuffle<T>(items: readonly T[]): T[];
 }
 
+/** A label of a seeded stream (`ctx.rng("deal", 3)`). */
+export type RandomLabel = string | number;
+
 /**
  * The prompts a mechanic owns: prompt id (a path under its `prompts/` folder, without `.md`) to the
  * names of its variables. Ids and variables are checked at compile time where the mechanic renders.

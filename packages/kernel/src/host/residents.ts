@@ -79,7 +79,7 @@ export class ResidentRegistry {
 			ids: this.ids,
 			has: (id) => this.has(id),
 			mayAct: (id) => this.mayAct(id),
-			attribute: (id, key, from) => this.attribute(id, key, from ?? owner),
+			attribute: (id, key) => this.attribute(id, key, owner),
 			setAttribute: (id, key, value) => {
 				this.setAttribute(owner, id, key, value);
 			},

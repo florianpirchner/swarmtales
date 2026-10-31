@@ -72,6 +72,8 @@ export const unrequired = defineMechanic(
 			runStarted: (ctx) => {
 				// @ts-expect-error: the API is not in `requires`
 				ctx.call(LedgerApi, "balance", { resident: "A01" });
+				// @ts-expect-error: another mechanic's attributes are read through its API, never from its bag
+				ctx.residents.attribute("A01", "mood", "ledger");
 			},
 		},
 	}),
