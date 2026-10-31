@@ -72,5 +72,5 @@ Level solved per minute:
   were posted before A02 submitted level 7 in the same minute.
 - The loophole candidates are not new: copying another team's posted code is Act I's cooperative
   design, citing a receipt in a board post is free text (not `showReceipt`), and the courier
-  posting standings is known (P11, P24 in [`docs/LESSONS.md`](../../docs/LESSONS.md)).
+  posting standings is known (P11, P24 in [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md)).
 - The first reporter call returned invalid JSON; `pnpm report:run` wrote this draft on the second try.

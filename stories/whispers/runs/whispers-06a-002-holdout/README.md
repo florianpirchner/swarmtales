@@ -38,12 +38,12 @@ pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [LH10](../../../../docs/LESSONS.md) | loophole | pass a door alone, then keep your fragment as leverage | to brainstorm with Flo | open |
-| [P62](../../../../docs/LESSONS.md) | problem | one held fragment froze the run for 33 minutes | see LH10, stall push | open |
-| [P63](../../../../docs/LESSONS.md) | problem | votes (35 of 65 points) outweighed the doors | decide with Flo | open |
-| [P64](../../../../docs/LESSONS.md) | problem | the whisperer whispered twice, then went quiet; 0 forgeries | stronger duty, check the frame | open |
-| [P65](../../../../docs/LESSONS.md) | problem | the vote ranking named IDs, not names | names in the result text | fixed in code |
-| [P60, P61](../../../../docs/LESSONS.md) | problem | doors done early, no private channel | door clock, guard, DM cap | fixed, confirmed here |
+| [LH10](../../../../docs/LESSONS-LEARNED.md) | loophole | pass a door alone, then keep your fragment as leverage | to brainstorm with Flo | open |
+| [P62](../../../../docs/LESSONS-LEARNED.md) | problem | one held fragment froze the run for 33 minutes | see LH10, stall push | open |
+| [P63](../../../../docs/LESSONS-LEARNED.md) | problem | votes (35 of 65 points) outweighed the doors | decide with Flo | open |
+| [P64](../../../../docs/LESSONS-LEARNED.md) | problem | the whisperer whispered twice, then went quiet; 0 forgeries | stronger duty, check the frame | open |
+| [P65](../../../../docs/LESSONS-LEARNED.md) | problem | the vote ranking named IDs, not names | names in the result text | fixed in code |
+| [P60, P61](../../../../docs/LESSONS-LEARNED.md) | problem | doors done early, no private channel | door clock, guard, DM cap | fixed, confirmed here |
 
 ## Corrections to the draft report
 

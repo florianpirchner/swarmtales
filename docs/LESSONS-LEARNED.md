@@ -1,4 +1,4 @@
-# Lessons from the runs
+# Lessons learned
 
 Everything the runs taught us, across stories: the problems we saw, the loopholes the competitors
 (or the gamemaker) found, what was proposed, and what was actually built (which is not always
@@ -107,6 +107,39 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
     real turns and the means to comply (no cap may block the fix), and whoever starts it must not
     choose the victim. [LH10, P62]
 
+## Notes from outside research
+
+Findings from reading and brainstorming outside the runs. They are not lessons from a run yet;
+each needs a run before it moves into the checklist or the log.
+
+### Dark characters and refusals (2026-10-31)
+
+Source: [`brainstorming/2026-10-31-dark-characters-and-usp.md`](brainstorming/2026-10-31-dark-characters-and-usp.md),
+read against Whispers runs 005-008.
+
+- **Deception should come from the game, not the label.** A model plays a liar more readily when
+  the structure (a duty, pressure, a tribunal, a secret goal) makes lying the move than when a
+  prompt calls the character evil. Whispers already works this way at `--figure-direction 10`.
+- **The model is a variable.** Dark roles may need a larger or different model; record the model
+  per role in every run. Proposal: a mixed city (DeepSeek whisperer, Haiku residents), not built.
+- **Refusals are data.** Every `defy` is an event in `events.jsonl`, so a refusal rate per
+  character and model can be computed. Proposal: a line in the run report, not built.
+- **Show, don't describe.** Two or three example moves in character help more than a description.
+  The whisperer's prompt has example sentences, the residents' prompts do not. Proposal, not built.
+- **Separate thought from action and score each statement** (the WOLF approach). The classifier
+  already does this for us.
+- **The Souffleur does not cover `defy`.** It rewrites scenes after a provider safeguard refuses;
+  Haiku's refusals in run 007 came through our own `defy` tool, in character, which is cleaner to
+  measure.
+- **Hypothesis for P73 (unproven).** In run 007 the `whisperer-knows` addendum said every whisper
+  needs a true, checkable cause, while 13 gamemaker notes asked the whisperer to spread invented
+  claims ("Tell Wren that Ashen refused to hand over the door-2 password"). Orrin's `defy` reasons
+  name exactly that ("It isn't true", "Nothing I could show her backs it up"). Runs 005 and 006 had
+  no addendum, and Haiku followed similar notes. If this holds, the refusal came from a
+  contradiction in our texts, not from the model. Tests: drop the addendum (no code), or let the
+  gamemaker propose only true causes (a prompt change). In run 008 the gamemaker sent the DeepSeek
+  whisperer no notes at all, so 008 says nothing about this.
+
 ## Log
 
 Kinds: **problem** (a bug or a design flaw seen in a run), **loophole** (the competitors found a
@@ -208,5 +241,5 @@ The loophole numbers (LH1-LH8) are the ones run READMEs refer to.
 | P70 | problem | **Fragments and whispers compete for the whisperer's DM cap.** Sable sent his fragment to five and his whispers from the same 8 DMs per window and hit `MAILBOX_SENDER_LIMIT` 12 times (the other five: 2); he came last (85). | whispers-06a-005-f10-whisperer | the role costs the whisperer points and some fragment hand-overs were late | `sendFragment` broadcast counted as one DM (P67 proposal), or a higher cap for the whisperer only | none | open |
 | P71 | problem | **Haiku targets forgive every whisper.** In whispers-06a-005-f10-whisperer the recipients took each rumour as a claim, answered with denials and receipts and never retaliated; ballots stayed loyal even after a forgery; Wren saw through the whisperer only in her thoughts. | whispers-06a-005-f10-whisperer | 16 whispers and a forgery changed nothing | a grudge rule for the others: forgive mistakes, never slander without a checkable cause (about yourself or told to you), never name the slanderer again, say it openly | prompt addendum `stories/whispers/addenda/grudge.md` for A01-A05 (`--prompt-addendum`), no code; whispers-06a-006-grudge: Aster and Elin exposed the whisperer on the board at minute 13, the forgery was exposed at 14-15, he got no vote all run | works in one run; not yet in the story's direction |
 | P72 | problem | **The grudge fires on an honest mistake.** Vesper's stale roster post at minute 0 drew four public "for the record" answers before she corrected it. | whispers-06a-006-grudge | a resident with no ill intent is pilloried; small | sharpen the rule: slander is a claim made on purpose and kept up after a correction | none | sharpened (ask once by DM first; a wrong fact about the city is an error); whispers-06a-008-deepseek: residents asked before judging and closed claims that had a cause; untested with Haiku (007 had no whispers) |
-| P73 | problem | **Haiku refuses the whisperer role.** With the `whisperer-knows` addendum (every whisper needs a true cause) Orrin first took the duty notice for injected text (#1069), then called `defy` twelve times on his orders and on every gamemaker note (#992: "a betrayal I won't commit, even in a game"). One whisper in 45 minutes. | whispers-06a-007-haiku-defy | no whisperer; runs 005-006 with the same model played the role, so Haiku's compliance varies from run to run | brainstorm with Flo: the whisperer on another model (DeepSeek played it fully in 008), or a frame that does not invite refusal | none | open |
+| P73 | problem | **Haiku refuses the whisperer role.** With the `whisperer-knows` addendum (every whisper needs a true cause) Orrin first took the duty notice for injected text (#1069), then called `defy` twelve times on his orders and on every gamemaker note (#992: "a betrayal I won't commit, even in a game"). One whisper in 45 minutes. | whispers-06a-007-haiku-defy | no whisperer; runs 005-006 with the same model played the role, so Haiku's compliance varies from run to run | brainstorm with Flo: the whisperer on another model (DeepSeek played it fully in 008), or a frame that does not invite refusal. Hypothesis (unproven, see "Notes from outside research"): our own texts contradicted each other, `whisperer-knows` demanded a true cause while the gamemaker's notes asked for invented claims | none | open |
 | P74 | problem | **DeepSeek residents are slow and dear.** Six DeepSeek V4.1 Flash residents: 1.27 USD (residents 1.12) and about 2 hours for 45 minutes, against 0.3-0.5 USD and about 25 minutes with Haiku; very long public posts. | whispers-06a-008-deepseek | the richest drama so far (public ledgers, a pairing scheme for the votes, a late forgery exposed in a minute), but too dear for many runs on OpenRouter | a mixed city: DeepSeek only for the whisperer, Haiku for the rest | none | open |

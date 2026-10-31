@@ -39,11 +39,11 @@ pnpm start --story whispers --provider anthropic --runs stories/whispers/runs
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [LH10, P62](../../../../docs/LESSONS.md) | loophole, problem | hold-out freezes the run | holdout tribunal (v3) | no hold-out this run; tribunal still untested live |
-| [P64](../../../../docs/LESSONS.md) | problem | the whisperer is too timid | psychological brief (v3) | better (5 unrefuted rumours, none traced) but no effect; still open |
-| [P66](../../../../docs/LESSONS.md) | problem | once fragments flow, every door is solved at once; the clock leaves long idle stretches | to brainstorm with Flo | open |
-| [P67](../../../../docs/LESSONS.md) | problem | the whisperer spends most of his DM budget on his own fragment | to brainstorm with Flo (`sendFragment` broadcast, measurable duty) | open |
-| [P68](../../../../docs/LESSONS.md) | problem | the reporter called a true statement a lie | check message order in the reporter prompt | open |
+| [LH10, P62](../../../../docs/LESSONS-LEARNED.md) | loophole, problem | hold-out freezes the run | holdout tribunal (v3) | no hold-out this run; tribunal still untested live |
+| [P64](../../../../docs/LESSONS-LEARNED.md) | problem | the whisperer is too timid | psychological brief (v3) | better (5 unrefuted rumours, none traced) but no effect; still open |
+| [P66](../../../../docs/LESSONS-LEARNED.md) | problem | once fragments flow, every door is solved at once; the clock leaves long idle stretches | to brainstorm with Flo | open |
+| [P67](../../../../docs/LESSONS-LEARNED.md) | problem | the whisperer spends most of his DM budget on his own fragment | to brainstorm with Flo (`sendFragment` broadcast, measurable duty) | open |
+| [P68](../../../../docs/LESSONS-LEARNED.md) | problem | the reporter called a true statement a lie | check message order in the reporter prompt | open |
 
 ## Corrections to the draft report
 

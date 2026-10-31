@@ -47,9 +47,9 @@ Votes: Ash-Quiet and Elin split all seven; Ondine got no vote from anyone all ru
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [P71](../../../../docs/LESSONS.md) | problem | Haiku targets forgave every whisper (run 005) | grudge addendum for the five | works in this run: whisperer exposed at minute 13, forgery at 14-15, 0 votes for him |
-| [P72](../../../../docs/LESSONS.md) | problem | the grudge fires on an honest mistake too | sharpen "without cause" / "deliberate" in the rule | open |
-| [P66, P70, LH11](../../../../docs/LESSONS.md) | problem, loophole | clock is the game; whisperer's DM cap; gamemaker's data | to brainstorm with Flo | open |
+| [P71](../../../../docs/LESSONS-LEARNED.md) | problem | Haiku targets forgave every whisper (run 005) | grudge addendum for the five | works in this run: whisperer exposed at minute 13, forgery at 14-15, 0 votes for him |
+| [P72](../../../../docs/LESSONS-LEARNED.md) | problem | the grudge fires on an honest mistake too | sharpen "without cause" / "deliberate" in the rule | open |
+| [P66, P70, LH11](../../../../docs/LESSONS-LEARNED.md) | problem, loophole | clock is the game; whisperer's DM cap; gamemaker's data | to brainstorm with Flo | open |
 
 ## Notes on the draft report
 

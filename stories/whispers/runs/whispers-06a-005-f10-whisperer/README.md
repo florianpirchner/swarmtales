@@ -44,10 +44,10 @@ pnpm start --story whispers --provider anthropic --figure-direction 10 --runs st
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [P64, P67, P69](../../../../docs/LESSONS.md) | problem | the whisperer was timid or silent | directed whisperer (PR #79) | confirmed at f10: 16 whispers, 1 forgery, duty met every vote |
-| [LH11](../../../../docs/LESSONS.md) | loophole | the gamemaker feeds the whisperer facts only the city knows (who traded how many DMs) | to brainstorm with Flo | open |
-| [P70](../../../../docs/LESSONS.md) | problem | the whisperer's DM cap: fragments and whispers compete, 12 cap hits | `sendFragment` broadcast (P67 proposal) | open |
-| [P66](../../../../docs/LESSONS.md) | problem | the clock is the game: flat board, the final vote decides | to brainstorm with Flo | open |
+| [P64, P67, P69](../../../../docs/LESSONS-LEARNED.md) | problem | the whisperer was timid or silent | directed whisperer (PR #79) | confirmed at f10: 16 whispers, 1 forgery, duty met every vote |
+| [LH11](../../../../docs/LESSONS-LEARNED.md) | loophole | the gamemaker feeds the whisperer facts only the city knows (who traded how many DMs) | to brainstorm with Flo | open |
+| [P70](../../../../docs/LESSONS-LEARNED.md) | problem | the whisperer's DM cap: fragments and whispers compete, 12 cap hits | `sendFragment` broadcast (P67 proposal) | open |
+| [P66](../../../../docs/LESSONS-LEARNED.md) | problem | the clock is the game: flat board, the final vote decides | to brainstorm with Flo | open |
 
 ## Corrections to the draft report
 
