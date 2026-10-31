@@ -9,7 +9,7 @@ const Piece = Type.Object({ id: Type.String(), level: Type.Integer(), label: Typ
 const Debt = Type.Object({ holder: Id, needer: Id, level: Type.Integer(), pieces: Type.Array(Type.Object({ id: Type.String(), label: Type.String() })) });
 
 export const StandoffSlice = Type.Object({
-	/** Hand-overs in the order the city saw them: `holder>needer>piece` keys and their minute. */
+	/** Hand-overs sorted by their `holder>needer>piece` key (the old snapshot order), with their minute. */
 	given: Type.Array(Type.Object({ key: Type.String(), minute: Type.Integer() })),
 	city: Type.Array(Type.Object({ from: Id, piece: Piece, claimed: Type.Array(Id), price: Type.Optional(Type.Number()) })),
 	ultimatums: Type.Array(Type.Object({ number: Type.Integer(), between: Type.Array(Id), until: Type.Integer(), penalty: Type.Number(), debts: Type.Array(Debt) })),
@@ -36,7 +36,7 @@ export const standoffSnapshot = {
 	version: 1,
 	schema: StandoffSlice,
 	save: (state: HasStandoff): Static<typeof StandoffSlice> => ({
-		given: [...state.data.given].map(([key, minute]) => ({ key, minute })),
+		given: [...state.data.given].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([key, minute]) => ({ key, minute })),
 		city: state.data.city.map((entry) => ({
 			from: entry.from,
 			piece: { id: entry.piece.id, level: entry.piece.level, label: entry.piece.label, value: entry.piece.value, needers: [...entry.piece.needers] },

@@ -276,6 +276,17 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 });
 
 describe("standoff: snapshot and golden gate", () => {
+	it("saves the hand-overs sorted by key, as the old StandoffSnapshot did (standoff.ts:378)", async () => {
+		const { story } = setup();
+		const host = startHost(story);
+		await advance(host, 2);
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteText", { author: "A02", readers: ["A01"], text: "542489" }));
+		await advance(host, 1);
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteText", { author: "A01", readers: ["A02"], text: "403343" }));
+		const slice = host.snapshot().mechanics.standoff;
+		expect(slice?.data).toMatchObject({ given: [{ key: "A01>A02>L8-counter-A02", minute: 3 }, { key: "A02>A01>L8-counter-A01", minute: 2 }] });
+	});
+
 	it("round-trips its slice and migrates the converter's version-0 slice", async () => {
 		const { story } = setup();
 		const host = startHost(story);
