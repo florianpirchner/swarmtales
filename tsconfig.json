@@ -14,6 +14,7 @@
 		{ "path": "packages/roles" },
 		{ "path": "packages/chronicle" },
 		{ "path": "packages/novelist" },
+		{ "path": "packages/testkit" },
 		{ "path": "apps/cli" },
 		{ "path": "stories" }
 	]

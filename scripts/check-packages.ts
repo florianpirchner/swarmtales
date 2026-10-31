@@ -24,6 +24,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/roles": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models"],
 	"@swarmtales/chronicle": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models", "@swarmtales/roles"],
 	"@swarmtales/novelist": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/chronicle"],
+	"@swarmtales/testkit": ["@swarmtales/contracts", "@swarmtales/kernel"],
 };
 
 /** Packages whose presence in a dependency closure means a native addon or a compiler. */

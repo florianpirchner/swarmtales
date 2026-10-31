@@ -44,6 +44,7 @@
     "@swarmtales/prompts": "workspace:*",
     "@swarmtales/roles": "workspace:*",
     "@swarmtales/sdk": "workspace:*",
+    "@swarmtales/testkit": "workspace:*",
     "@types/node": "^22.10.0",
     "eslint": "^9.39.5",
     "knip": "6.44.0",

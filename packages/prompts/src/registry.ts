@@ -4,13 +4,14 @@
  * is a compile error; `pnpm validate` checks that the files agree with this list.
  */
 import { AGENT_PROMPTS } from "./keys/agents.ts";
+import { CORE_PROMPTS } from "./keys/core.ts";
 import { GAMEMAKER_PROMPTS } from "./keys/gamemaker.ts";
 import { INTERPRET_PROMPTS } from "./keys/interpret.ts";
 import { NOVEL_PROMPTS } from "./keys/novel.ts";
 import { REPORT_PROMPTS } from "./keys/report.ts";
 import { TOOL_PROMPTS } from "./keys/tools.ts";
 
-export const PROMPTS = { ...AGENT_PROMPTS, ...GAMEMAKER_PROMPTS, ...INTERPRET_PROMPTS, ...NOVEL_PROMPTS, ...REPORT_PROMPTS, ...TOOL_PROMPTS } as const;
+export const PROMPTS = { ...AGENT_PROMPTS, ...CORE_PROMPTS, ...GAMEMAKER_PROMPTS, ...INTERPRET_PROMPTS, ...NOVEL_PROMPTS, ...REPORT_PROMPTS, ...TOOL_PROMPTS } as const;
 
 export type PromptId = keyof typeof PROMPTS;
 

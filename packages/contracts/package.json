@@ -2,7 +2,7 @@
 	"name": "@swarmtales/contracts",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Types, interfaces and closed vocabularies shared by every package (no behaviour)",
+	"description": "Types, Typebox schemas, interfaces and closed vocabularies shared by every package (no behaviour)",
 	"type": "module",
 	"license": "Apache-2.0",
 	"sideEffects": false,
@@ -20,5 +20,7 @@
 	"scripts": {
 		"build": "tsdown"
 	},
-	"dependencies": {}
+	"dependencies": {
+		"typebox": "1.3.27"
+	}
 }
