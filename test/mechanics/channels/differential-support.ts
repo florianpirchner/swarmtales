@@ -7,7 +7,7 @@ import { expect } from "vitest";
 import { defineStory, gamemaker, type RuleInput } from "@swarmtales/sdk";
 import type { AnyStory } from "@swarmtales/contracts";
 import { ownedBy, type PlannedCall } from "@swarmtales/testkit";
-import { socialLevels, tinyStory } from "../../helpers/stories.ts";
+import { castStory, socialLevels, tinyStory } from "../../helpers/stories.ts";
 import { writtenBy } from "../t1/support.ts";
 import { TOOLS, playNew, playOld, type Spec } from "./differential.ts";
 import { newState, oldState } from "./differential-state.ts";
@@ -20,6 +20,7 @@ export function storyWith(rules: Parameters<typeof tinyStory>[0] extends infer O
 	return defineStory({
 		...base,
 		cast: { STEWARD: { level: 1 } },
+		director: [],
 		gamemaker: gamemaker({ model: base.model, brief: "Test.", author: "COURIER", notesPerAgent: 1, boardPosts: 1, windowMinutes: 3 }),
 	});
 }
@@ -48,9 +49,9 @@ export async function compare(spec: Spec, seen: readonly string[] = [], minGamem
 
 
 /** A city with a cast member whose escrow pays the lottery's winner, and the director rules of a society test. */
-export function societyStory(director: readonly RuleInput<"STEWARD">[], agents = 4) {
-	const base = tinyStory({ agents, levels: socialLevels([...TOOLS, "signPetition", "listPetitions"]), rules: { marks: MARKS } });
-	return defineStory({ ...base, run: { ...base.run, minutes: 10 }, cast: { STEWARD: { level: 1, escrow: 30 } }, director });
+export function societyStory(director: readonly RuleInput<"STEWARD">[], agents = 4): AnyStory {
+	const base = castStory({ cast: { STEWARD: { level: 1, escrow: 30 } }, director, levels: socialLevels([...TOOLS, "signPetition", "listPetitions"]), agents, minutes: 10 });
+	return { ...base, rules: { ...base.rules, marks: MARKS } };
 }
 
 /** The resident tools a society test adds to the channels tools. */

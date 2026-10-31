@@ -24,7 +24,7 @@ import { ids } from "../t1/support.ts";
 import { exileStandIn, progressionStandIn } from "../t1/stand-ins.ts";
 import { replyText } from "../t1/differential.ts";
 import type { MechanicUse } from "@swarmtales/contracts";
-import { channelsOptionsOf } from "../t2/golden-world.ts";
+import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { marksStandIn, namesStandIn } from "./stand-ins.ts";
 
 export type Plan = (agent: string, minute: number) => readonly PlannedCall[];
@@ -121,7 +121,7 @@ export async function playOld(spec: Spec): Promise<OldPlayed> {
 
 /** The mechanics of a plain city on the new host: channels, cast and petitions are the real ones. */
 export function cityMechanics(story: AnyStory): readonly MechanicUse[] {
-	const rules = story.rules.marks;
+	const rules = marksOptions(story);
 	return [
 		// The old compose gives every resident `defy` when the story has a gamemaker (direction 10).
 		channels.with({ ...channelsOptionsOf(story), defiance: story.gamemaker !== undefined }),
@@ -129,7 +129,7 @@ export function cityMechanics(story: AnyStory): readonly MechanicUse[] {
 		petitions.with({}),
 		receipts.with({ quoteDms: story.rules.receipts?.quoteDms === true }),
 		ledger.with({ startPoints: story.run.startPoints }),
-		rules === undefined ? marksStandIn().with() : marks.with({ rules: { ...rules, ...(rules.ranges === undefined ? {} : { ranges: rules.ranges.map((range) => ({ ...range })) }) } }),
+		rules === undefined ? marksStandIn().with() : marks.with(rules),
 		namesStandIn(new Map<string, string>()).with(),
 		exileStandIn([]),
 		progressionStandIn({}).use,

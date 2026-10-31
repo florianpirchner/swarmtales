@@ -3,7 +3,7 @@
  * petitions and collections, residents sign and write to the cast member, and both sides must answer
  * alike, write the same `petition_*`, `collection_*`, `cast_*`, `lottery_drawn`, ledger and board
  * lines in the same order (open, sign, pass, expire, `onFail` chain, run end) and leave the same state.
- * The script is a stand-in on the new side (`../t2/script-stand-in.ts`), the old Director is the real one.
+ * The script is a stand-in on the new side (`../t2/rule-script.ts`), the old Director is the real one.
  */
 import { describe, expect, it } from "vitest";
 import { act, at } from "@swarmtales/sdk";
@@ -11,7 +11,7 @@ import { ownedBy } from "@swarmtales/testkit";
 import { jsonOf, recordOf, writtenBy } from "../t1/support.ts";
 import { playNew, playOld, type Plan } from "../channels/differential.ts";
 import { SOCIETY_TOOLS, call, compare, dm, societyStory } from "../channels/differential-support.ts";
-import { scriptStandIn } from "../t2/script-stand-in.ts";
+import { ruleScript } from "../t2/rule-script.ts";
 
 const sign = (id: string) => call("signPetition", { petitionId: id });
 
@@ -25,13 +25,13 @@ const director = [
 			threshold: { count: 3 },
 			deadlineMinute: 3,
 			visibility: "secret",
-			onPass: [act.post("CITY", "The vault is shared.")],
+			onPass: [],
 			onFail: [act.openPetition({ id: "second", text: "Share the vault, please.", threshold: { count: 1 }, deadlineMinute: 7, visibility: "public", onPass: [act.post("STEWARD", "Fine, the second plea is heard.")], onFail: [] })],
 		}),
 		act.openPetition({ id: "late", text: "Never decided.", threshold: { fraction: 1 }, deadlineMinute: 9, visibility: "public", onPass: [], onFail: [act.post("CITY", "The late plea ran out.")] }),
 	], { id: "plead" }),
 	at(1, [act.revealCast("STEWARD"), act.collectDms("STEWARD", { first: 3, forMinutes: 3, into: "applicants", distinctSenders: true })], { id: "collect" }),
-	at(5, [act.revealCollection("applicants", "The letters:"), act.lottery("applicants", [act.escrowTransfer("STEWARD", "actor", 4), act.notify("actor", "Chosen, {actor}.")])], { id: "draw" }),
+	at(5, [act.revealCollection("applicants", { header: "The letters:" }), act.lottery("applicants", [act.escrowTransfer("STEWARD", "actor", 4), act.notify("actor", "Chosen, {actor}.")])], { id: "draw" }),
 ] as const;
 
 const PLAN: Plan = (agent, minute) => {
@@ -50,12 +50,12 @@ describe("petitions and cast against the old World and Director", () => {
 	it("open, sign, pass, expire, chain an onFail petition, collect, reveal and draw the lottery alike", async () => {
 		const story = societyStory(director);
 		const seen = ["UNKNOWN_PETITION", "PETITION_CLOSED", "you signed", "signatures are secret", "signed · vault"];
-		await compare({ story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [scriptStandIn(story)] }, seen);
+		await compare({ story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [ruleScript(story)] }, seen);
 	});
 
 	it("writes every petition and cast line the old engine wrote (none missing, in order)", async () => {
 		const story = societyStory(director);
-		const spec = { story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [scriptStandIn(story)] } as const;
+		const spec = { story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [ruleScript(story)] } as const;
 		const [old, fresh] = [await playOld(spec), await playNew(spec)];
 		const owners = ["petitions", "cast"] as const;
 		const lines = ownedBy(old.events, owners);
@@ -68,7 +68,7 @@ describe("petitions and cast against the old World and Director", () => {
 
 	it("leaves the same petitions, members and collections in the snapshot", async () => {
 		const story = societyStory(director);
-		const spec = { story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [scriptStandIn(story)] } as const;
+		const spec = { story, agents: 4, minutes: 10, plan: PLAN, tools: SOCIETY_TOOLS, extra: [ruleScript(story)] } as const;
 		const [old, fresh] = [await playOld(spec), await playNew(spec)];
 		const before = recordOf(JSON.stringify(old.world.snapshot()));
 		const after = fresh.host.snapshot().mechanics;
