@@ -39,17 +39,14 @@ used meanwhile and the proposed change.
 - **Proposed:** add to `StandoffTribunalApi`:
   `taskLine: query("The holdout rule under every door's task in a run with the gamemaker (old #withHoldoutRule), else null.", OfResident, Type.Union([Type.String(), Type.Null()]))`.
 
-## R2-4 Two tools named `permaDeath`
+## R2-4 Two tools named `permaDeath` (no change needed; a note for T4a)
 
-- **What:** the seal's resident tool (old tools/seal.ts) and the holdout tribunal's gamemaker tool
-  (old gamemaker.ts `#permaDeathTool`) are both called `permaDeath`; the old engine kept residents'
-  and the gamemaker's tools apart, the new host has one tool namespace. A story that loads seal and
-  standoff-tribunal together cannot start. T4a's tribunal may add a gamemaker `callTribunal` too
-  (the holdout's is `callTribunal` already).
-- **Meanwhile:** none; no story of today loads both (cityofkeys has the seal, whispers the holdout).
-- **Proposed:** either the host keys tools by role (`resident`/`gamemaker`), or the gamemaker's
-  holdout tools are renamed (`holdoutPermaDeath`, `callHoldoutTribunal`) with the gamemaker's prompt
-  files following (D-12 replies are unaffected: no golden calls them).
+- **What:** the seal's resident tool and the holdout tribunal's gamemaker tool are both called
+  `permaDeath`, as in the old engine. The host refuses only a name defined twice for the same role
+  (packages/kernel/src/host/loader.ts:108), and the two serve `resident` and `gamemaker`, so a story
+  may load both.
+- **For T4a:** a gamemaker tool `callTribunal` of the tribunal would clash with the holdout's
+  (`serves: ["gamemaker"]` both); the old gamemaker had only the holdout's.
 
 ## R2-5 Facts cannot call other mechanics
 
@@ -78,7 +75,7 @@ used meanwhile and the proposed change.
 - **What:** the old gamemaker offered `ultimatum` only at direction 10 in a story with ultimatums
   (gamemaker.ts:214, :375). The dial is a run setting (`direction`), not a story option, and no
   shared API or grant carries it.
-- **Meanwhile:** standoff has an option `direction` (default 4) and locks `ultimatum` below 10.
+- **Meanwhile:** standoff has an option `direction` (default 4) and locks `ultimatum` below 10 (or without an ultimatum rule).
 - **Proposed:** the integration owner passes the run's dial into the standoff's options when it
   builds the story, or grants `ultimatum` to the gamemaker only at direction 10 (then the option
   goes).
