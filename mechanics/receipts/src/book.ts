@@ -5,7 +5,7 @@
  * prove what happened; the city never judges intent. The functions work on the mechanic's state.
  */
 import type { Static } from "typebox";
-import type { ReceiptBody } from "@swarmtales/mechanic-shared";
+import type { Receipt as SharedReceipt, ReceiptBody } from "@swarmtales/mechanic-shared";
 
 export type Receipt = Static<typeof ReceiptBody> & {
 	readonly id: string;
@@ -15,6 +15,10 @@ export type Receipt = Static<typeof ReceiptBody> & {
 };
 
 export type ShowReceiptError = "UNKNOWN_RECEIPT" | "NOT_A_PARTY";
+
+function unreachable(body: never): never {
+	throw new Error(`a receipt of a kind nobody handles: ${JSON.stringify(body)}`);
+}
 
 export function partiesOf(body: Static<typeof ReceiptBody>): readonly string[] {
 	switch (body.kind) {
@@ -30,6 +34,8 @@ export function partiesOf(body: Static<typeof ReceiptBody>): readonly string[] {
 			return [body.agent];
 		case "dm":
 			return [body.from, body.to];
+		default:
+			return unreachable(body);
 	}
 }
 
@@ -83,14 +89,13 @@ export function describeReceipt(receipt: Receipt): string {
 			return `${receipt.id}: ${receipt.agent} solved level ${String(receipt.level)}, +${points(receipt.reward)}, ${tail}`;
 		case "dm":
 			return `${receipt.id}: DM #${String(receipt.number)} from ${receipt.from}, delivered to ${receipt.to} at ${tail}${receipt.text === undefined ? "" : `, text ${JSON.stringify(receipt.text)}`}`;
+		default:
+			return unreachable(receipt);
 	}
 }
 
-/**
- * The private line a resident reads when another shows it a receipt. A real show and a forgery
- * (Whispers) go through this one function, so both read alike to the byte; a forgery differs only
- * in the quoted text.
- */
-export function shownPrivatelyText(by: string, receipt: Receipt): string {
-	return `${by} shows you a receipt: the city verifies ${describeReceipt(receipt)}.`;
+/** A receipt as other mechanics read it (`ReceiptsApi.get`, `list`): the body apart from its id, minute and parties, and its line. */
+export function toShared(receipt: Receipt): SharedReceipt {
+	const { id, minute, parties, ...body } = receipt;
+	return { id, minute, parties: [...parties], body, text: describeReceipt(receipt) };
 }

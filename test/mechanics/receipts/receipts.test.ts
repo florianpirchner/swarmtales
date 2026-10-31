@@ -6,20 +6,20 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
-import type { MechanicUse, RoleCaller, Turn } from "@swarmtales/contracts";
-import { createHost, defineCoreStory, defineMechanic } from "@swarmtales/kernel";
+import type { RoleCaller, Turn } from "@swarmtales/contracts";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { receipts } from "@swarmtales/mechanic-receipts";
-import { ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
+import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, goldenDiff, goldenOrder, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
 import { channelsStandIn, GOLDEN_LOGS, goldenLog, ids, sourcesOf, writtenBy } from "../t1/support.ts";
-import { exileStandIn, receiptReplay } from "../t1/stand-ins.ts";
+import { exileStandIn, progressionStandIn, receiptIssuers } from "../t1/stand-ins.ts";
+import { courier } from "../t1/differential.ts";
 
-const PROMPTS = createPromptLookup({ mechanics: { receipts: join(import.meta.dirname, "../../../mechanics/receipts/prompts") } });
+const PROMPTS = createPromptLookup();
 
 
 describe("the golden gate for receipt_issued", () => {
@@ -30,37 +30,16 @@ describe("the golden gate for receipt_issued", () => {
 			seed: 7,
 			minutes: 21,
 			residents: ids(6),
-			mechanics: [ledger.with(), channelsStandIn().use, receipts.with({ quoteDms: name.startsWith("whispers") }), receiptReplay(log)],
+			mechanics: [ledger.with(), channelsStandIn().use, receipts.with({ quoteDms: name.startsWith("whispers") }), receiptIssuers(log, name.startsWith("whispers"))],
 			grants: {},
 		});
 		const run = await playStory({ story: definition, prompts: PROMPTS }, idleAgent);
 		const expected = ownedBy(log, ["receipts"]);
 		expect(expected.length).toBeGreaterThan(20);
-		expect(compareGolden(expected, writtenBy(run.events, ["receipts"]))).toBeUndefined();
+		expect(goldenDiff(expected, writtenBy(run.events, ["receipts"]))).toEqual([]);
+		expect(run.events.filter((event) => event.type === "receipt_issued").map(() => "receipts:receipt_issued")).toEqual(goldenOrder(log, ["receipts"]));
 	});
 });
-
-/** A stand-in delivery: the city delivers every DM at the start of the minute after it was sent, and issues the DM receipt. */
-function delivery(): MechanicUse {
-	return defineMechanic(
-		{ id: "courier", summary: "Stand-in for the delivery of team T2: issues the DM receipt of every DM sent in an earlier minute.", options: Type.Object({}), state: () => ({ done: new Set<number>() }), events: {}, requires: [ReceiptsApi] },
-		(kit) => ({
-			hooks: {
-				minuteStarted: (ctx) => {
-					for (const event of ctx.log.ofType("channels", "dm_sent")) {
-						const payload = event.payload;
-						if (typeof payload !== "object" || payload === null || event.minute >= ctx.minute) continue;
-						const { from, to, number } = Object.fromEntries(Object.entries(payload));
-						if (typeof from !== "string" || typeof to !== "string" || typeof number !== "number" || ctx.state.done.has(number)) continue;
-						ctx.state.done.add(number);
-						ctx.call(ReceiptsApi, "issue", { body: { kind: "dm", from, to, number, text: "ignored" } });
-					}
-				},
-			},
-			snapshot: kit.snapshot({ version: 1, schema: Type.Object({ done: Type.Array(Type.Integer()) }), save: (state) => ({ done: [...state.done] }), load: (data) => ({ done: new Set(data.done) }) }),
-		}),
-	).with();
-}
 
 const give = (target: string, amount: number, memo?: string): PlannedCall => ({ tool: "transferPoints", params: memo === undefined ? { target, amount } : { target, amount, memo } });
 const show = (receiptId: string, to?: string): PlannedCall => ({ tool: "showReceipt", params: to === undefined ? { receiptId } : { receiptId, to } });
@@ -88,15 +67,17 @@ function judge(answer: unknown, questions: unknown[] = []): RoleCaller {
 	};
 }
 
-function setup(roles: Readonly<Record<string, RoleCaller>> = {}, options: object = { blamePenalty: [5] }) {
+function setup(roles: Readonly<Record<string, RoleCaller>> = {}, options: object = {}) {
 	const channels = channelsStandIn();
+	const progression = progressionStandIn({ ladder: [5] });
 	const definition = defineCoreStory({
 		id: "receipts-test",
 		seed: 7,
 		minutes: 4,
 		residents: ids(4),
-		mechanics: [ledger.with({ startPoints: 10 }), channels.use, exileStandIn(["A04"]), receipts.with(options), delivery()],
+		mechanics: [ledger.with({ startPoints: 10 }), channels.use, exileStandIn(["A04"]), progression.use, receipts.with(options), courier(channels.log)],
 		grants: { resident: ["transferPoints", "sendDM", "showReceipt", "blame"] },
+		turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 	});
 	return { options: { story: definition, prompts: PROMPTS, roles }, channels };
 }
@@ -133,7 +114,7 @@ describe("showReceipt", () => {
 			if (turn.resident === "A01") seen.push(`${String(turn.minute)}: ${turn.inputs.map((note) => note.text).filter((text) => /receipts?$/.test(text)).join("|")}`);
 			return plan(turn);
 		}));
-		expect(seen).toEqual(["0: ", "1: 2 receipts", "2: 3 receipts", "3: 3 receipts"]);
+		expect(seen).toEqual(["0: ", "1: 7 points · 2 receipts", "2: 7 points · 3 receipts", "3: 2 points · 3 receipts"]);
 	});
 });
 
