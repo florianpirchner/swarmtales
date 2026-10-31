@@ -13,8 +13,17 @@ import ts from "typescript";
 
 const ROOT = resolve(import.meta.dirname, "..");
 
+/** The mechanic packages of `mechanics/` (docs/design/carve-plan.md); each may use the core and the shared module only. */
+const MECHANIC_IDS = [
+	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "cores", "puzzles",
+	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
+] as const;
+const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
+
 /** Which workspace packages each package may depend on (today's coarse layering; see the module README). */
 const ALLOWED: Readonly<Record<string, readonly string[]>> = {
+	...Object.fromEntries(MECHANIC_IDS.map((id) => [`@swarmtales/mechanic-${id}`, MECHANIC_DEPENDENCIES])),
+	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
 	"@swarmtales/prompts": [],
@@ -24,7 +33,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/roles": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models"],
 	"@swarmtales/chronicle": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models", "@swarmtales/roles"],
 	"@swarmtales/novelist": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/chronicle"],
-	"@swarmtales/testkit": ["@swarmtales/contracts", "@swarmtales/kernel"],
+	"@swarmtales/testkit": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/chronicle"],
 };
 
 /** Packages whose presence in a dependency closure means a native addon or a compiler. */
@@ -65,8 +74,19 @@ function manifestAt(dir: string): Manifest {
 }
 
 function workspaceManifests(): readonly Manifest[] {
-	const folders = [...readdirSync(join(ROOT, "packages")).map((name) => join(ROOT, "packages", name)), join(ROOT, "apps", "cli")];
-	return folders.filter((dir) => existsSync(join(dir, "package.json"))).map(manifestAt);
+	const folders = [
+		...readdirSync(join(ROOT, "packages")).map((name) => join(ROOT, "packages", name)),
+		...readdirSync(join(ROOT, "mechanics")).map((name) => join(ROOT, "mechanics", name)),
+		join(ROOT, "apps", "cli"),
+	];
+	const manifests = folders.filter((dir) => existsSync(join(dir, "package.json"))).map(manifestAt);
+	for (const manifest of manifests) {
+		if (ALLOWED[manifest.name] === undefined && manifest.dir.startsWith(join(ROOT, "mechanics"))) problems.push(`${manifest.name}: a mechanic package without a dependency rule (MECHANIC_IDS)`);
+	}
+	for (const id of MECHANIC_IDS) {
+		if (!manifests.some((manifest) => manifest.name === `@swarmtales/mechanic-${id}`)) problems.push(`mechanics/${id}: the package of mechanic ${id} is missing`);
+	}
+	return manifests;
 }
 
 function sourceFiles(dir: string): readonly string[] {

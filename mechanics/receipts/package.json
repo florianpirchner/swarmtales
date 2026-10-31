@@ -1,0 +1,28 @@
+{
+	"name": "@swarmtales/mechanic-receipts",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The receipts mechanic: city-verified receipts and blame.",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-shared": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

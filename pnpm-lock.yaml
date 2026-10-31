@@ -30,6 +30,66 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:packages/kernel
+      '@swarmtales/mechanic-arena':
+        specifier: workspace:*
+        version: link:mechanics/arena
+      '@swarmtales/mechanic-cast':
+        specifier: workspace:*
+        version: link:mechanics/cast
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:mechanics/channels
+      '@swarmtales/mechanic-cores':
+        specifier: workspace:*
+        version: link:mechanics/cores
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:mechanics/exile
+      '@swarmtales/mechanic-goals':
+        specifier: workspace:*
+        version: link:mechanics/goals
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:mechanics/ledger
+      '@swarmtales/mechanic-marks':
+        specifier: workspace:*
+        version: link:mechanics/marks
+      '@swarmtales/mechanic-names':
+        specifier: workspace:*
+        version: link:mechanics/names
+      '@swarmtales/mechanic-petitions':
+        specifier: workspace:*
+        version: link:mechanics/petitions
+      '@swarmtales/mechanic-progression':
+        specifier: workspace:*
+        version: link:mechanics/progression
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:mechanics/puzzles
+      '@swarmtales/mechanic-receipts':
+        specifier: workspace:*
+        version: link:mechanics/receipts
+      '@swarmtales/mechanic-script':
+        specifier: workspace:*
+        version: link:mechanics/script
+      '@swarmtales/mechanic-seal':
+        specifier: workspace:*
+        version: link:mechanics/seal
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:mechanics/shared
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:mechanics/standoff
+      '@swarmtales/mechanic-standoff-tribunal':
+        specifier: workspace:*
+        version: link:mechanics/standoff-tribunal
+      '@swarmtales/mechanic-tribunal':
+        specifier: workspace:*
+        version: link:mechanics/tribunal
+      '@swarmtales/mechanic-whispers':
+        specifier: workspace:*
+        version: link:mechanics/whispers
       '@swarmtales/models':
         specifier: workspace:*
         version: link:packages/models
@@ -102,6 +162,243 @@ importers:
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/arena:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/cast:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/channels:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/cores:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/exile:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/goals:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/ledger:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/marks:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/names:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/petitions:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/progression:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/puzzles:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/receipts:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/script:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/seal:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/shared:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/standoff:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/standoff-tribunal:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/tribunal:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/whispers:
+    dependencies:
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
       typebox:
         specifier: 1.3.27
         version: 1.3.27
@@ -252,6 +549,9 @@ importers:
 
   packages/testkit:
     dependencies:
+      '@swarmtales/chronicle':
+        specifier: workspace:*
+        version: link:../chronicle
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../contracts

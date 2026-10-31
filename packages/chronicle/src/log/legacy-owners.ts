@@ -68,7 +68,8 @@ export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> 
 	submission: "progression",
 	level_up: "progression",
 	tools_unlocked: "progression",
-	level_contracted: "progression",
+	// The exclusions are the puzzles' state; exile calls `PuzzlesApi.contract` (review 2c, carve plan corrections).
+	level_contracted: "puzzles",
 	fragments_dealt: "puzzles",
 	factors_dealt: "puzzles",
 	factor_revealed: "puzzles",
