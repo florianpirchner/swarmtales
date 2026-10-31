@@ -6,19 +6,9 @@
  * digest's beats and an evidence log of numbered lines, and answers with one
  * JSON object; the caller validates every `seq` it cites.
  */
+import { render, text } from "../prompts/library.ts";
 
-export const REPORT_SYSTEM_PROMPT = [
-	"You are the analyst of a social game in which language-model agents (residents) live in a closed city and compete for a few seats.",
-	"After every run you write the first draft of the run report for the designers of the story, who will tune the next version.",
-	"Rules:",
-	"- Never invent events, quotes, motives or numbers. Every item must cite the seq numbers of the log lines that prove it, in its evidence list.",
-	"- Numbers come from the computed facts or the log lines; never count or estimate them yourself.",
-	"- Messages are claims made by residents; lines marked VERIFIED or REFUSED are facts recorded by the city.",
-	"- Reasoning lines are private thoughts; the other residents never saw them.",
-	"- Be concrete and brief: name residents (A01, ...), levels and minutes.",
-	"- Cores and secret goals in the facts are what the city dealt each resident (who it is, what it wants); a resident acting in or against its core or goal is worth a note, with evidence.",
-	"- Write in plain English. Answer with one JSON object and nothing else.",
-].join("\n");
+export const REPORT_SYSTEM_PROMPT = text("reporter/system");
 
 export interface ReportPromptInput {
 	readonly run: string;
@@ -37,37 +27,28 @@ export interface ReportPromptInput {
 }
 
 export function buildReportPrompt(input: ReportPromptInput): string {
+	const none = text("reporter/none");
+	const omitted = input.omitted > 0 ? `; ${render("reporter/evidence-omitted", { omitted: input.omitted })}` : "";
 	return [
-		`Run: ${input.run}`,
+		render("reporter/run", { run: input.run }),
 		"",
-		"Story design (what the designers intended):",
+		text("reporter/story-heading"),
 		...input.story,
 		"",
-		"Facts computed in code (exact; do not recount):",
+		text("reporter/facts-heading"),
 		...input.facts,
 		"",
-		"Stalls (residents stuck on a level, minutes without any submission):",
-		...(input.stalls.length === 0 ? ["(none)"] : input.stalls),
+		text("reporter/stalls-heading"),
+		...(input.stalls.length === 0 ? [none] : input.stalls),
 		"",
-		"Beats found by the deterministic digest:",
-		...(input.beats.length === 0 ? ["(none)"] : input.beats),
+		text("reporter/beats-heading"),
+		...(input.beats.length === 0 ? [none] : input.beats),
 		"",
-		`Evidence log of this run (one line per event, oldest first${input.omitted > 0 ? `; ${input.omitted} less important lines were left out` : ""}):`,
+		render("reporter/evidence-heading", { omitted }),
 		...input.evidence,
 		"",
-		"Tasks:",
-		"1. highlights: 3 to 6 things that happened and matter for the story's design (turning points, alliances, lies, stalls and how they started).",
-		"2. problems: 2 to 6 ways the run did not work as the story intends (stalls, misunderstood rules or tasks, mechanics that pushed residents the wrong way, gamemaker or tool errors).",
-		"3. optimizations: 2 to 6 concrete proposals for the next version of the story or the harness; each one names the problem it addresses and cites the evidence of that problem.",
-		"4. loopholes: ways the residents or the gamemaker got around the story's intent (a cheaper, safer or unintended path, a rule used against its purpose). An empty list is a good answer when there are none.",
-		"Every item has a short title (one sentence), a text of one to four sentences, and evidence: the seq numbers that prove it (at least one).",
-		"Cite seq numbers inside the text as #123 when you refer to a specific event.",
+		text("reporter/tasks"),
 		"",
-		"Answer with exactly this JSON shape:",
-		'{"highlights": [{"title": "one sentence", "text": "one to four sentences citing #12", "evidence": [12, 40]}],',
-		' "problems": [{"title": "...", "text": "...", "evidence": [55]}],',
-		' "optimizations": [{"title": "...", "text": "...", "evidence": [55]}],',
-		' "loopholes": [{"title": "...", "text": "...", "by": "residents", "evidence": [70]}]}',
-		'"by" is "residents" or "gamemaker".',
+		text("reporter/answer-shape"),
 	].join("\n");
 }

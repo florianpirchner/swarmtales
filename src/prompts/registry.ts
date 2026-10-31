@@ -6,8 +6,9 @@
 import { AGENT_PROMPTS } from "./keys/agents.ts";
 import { GAMEMAKER_PROMPTS } from "./keys/gamemaker.ts";
 import { NOVEL_PROMPTS } from "./keys/novel.ts";
+import { REPORT_PROMPTS } from "./keys/report.ts";
 
-export const PROMPTS = { ...AGENT_PROMPTS, ...GAMEMAKER_PROMPTS, ...NOVEL_PROMPTS } as const;
+export const PROMPTS = { ...AGENT_PROMPTS, ...GAMEMAKER_PROMPTS, ...NOVEL_PROMPTS, ...REPORT_PROMPTS } as const;
 
 export type PromptId = keyof typeof PROMPTS;
 

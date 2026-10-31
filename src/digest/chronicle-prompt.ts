@@ -6,26 +6,14 @@
  * numbered lines (messages, reasoning excerpts and verified actions). It
  * answers with one JSON object; the caller validates every `seq` it cites.
  */
+import { render, text } from "../prompts/library.ts";
 import type { NarrativeBeatKind } from "./beats.ts";
 
-export const CHRONICLE_SYSTEM_PROMPT = [
-	"You are the chronicler of a social game in which language-model agents live in a closed city.",
-	"You read an evidence log and write what happened, nothing more.",
-	"Rules:",
-	"- Never invent events, quotes, motives or numbers. Every claim must cite the seq numbers of the log lines that prove it, written as #123.",
-	"- Quote short phrases verbatim when you quote at all.",
-	"- Messages are claims made by agents; actions marked VERIFIED are facts recorded by the city.",
-	"- Reasoning lines are the private thoughts of an agent; the other agents never saw them.",
-	"- Write for readers, as a chronicle and not a list: who wanted what, what they did about it, and what it cost them.",
-	"- Call residents by their names (the log uses IDs; the list of residents gives the names). Use IDs only in beats.",
-	"- Put the citations at the end of a sentence, at most three per sentence.",
-	"- Write in plain English. Answer with one JSON object and nothing else.",
-].join("\n");
+export const CHRONICLE_SYSTEM_PROMPT = text("chronicler/system");
 
 export const NARRATIVE_BEAT_DEFINITIONS: Readonly<Record<NarrativeBeatKind, string>> = {
-	brokenPromise:
-		"an agent commits to something in a message (to send a fragment or a factor, to pay, to vote, to stay loyal) and later acts against it, or the log shows it never did it although it could.",
-	doubleGame: "an agent's reasoning contradicts a message the same agent sent around the same time (it plans one thing and tells another).",
+	brokenPromise: text("chronicler/beat-broken-promise"),
+	doubleGame: text("chronicler/beat-double-game"),
 };
 
 export interface PromptAct {
@@ -58,42 +46,40 @@ export interface ChroniclePromptInput {
 }
 
 export function buildChroniclePrompt(input: ChroniclePromptInput): string {
-	const acts = input.acts.map((act) => `- "${act.title}": minutes ${act.fromMinute}-${act.toMinute}`);
+	const none = text("chronicler/none");
+	const acts = input.acts.map((act) => render("chronicler/act-line", { title: act.title, from: act.fromMinute, to: act.toMinute }));
 	const beats =
 		input.beats.length === 0
-			? ["(none)"]
-			: input.beats.map((beat) => `- ${beat.id} ${beat.kind} (minute ${beat.minute}): ${beat.summary} Evidence: ${beat.evidence.map((seq) => `#${seq}`).join(", ")}`);
+			? [none]
+			: input.beats.map((beat) =>
+					render("chronicler/beat-line", { id: beat.id, kind: beat.kind, minute: beat.minute, summary: beat.summary, evidence: beat.evidence.map((seq) => `#${seq}`).join(", ") }),
+				);
 	const residents = [...(input.names ?? new Map<string, string>())].map(([agent, name]) => `- ${agent}: ${name}`);
 	const turningPoints =
-		input.turningPoints.length === 0 ? ["(none)"] : input.turningPoints.map((point) => `- #${point.seq} (minute ${point.minute}): ${point.text}`);
+		input.turningPoints.length === 0 ? [none] : input.turningPoints.map((point) => render("chronicler/turning-line", { seq: point.seq, minute: point.minute, text: point.text }));
 	const definitions = Object.entries(NARRATIVE_BEAT_DEFINITIONS).map(([kind, definition]) => `- ${kind}: ${definition}`);
+	const story = input.storyTitle === undefined ? "" : ` ${render("chronicler/story-title", { title: input.storyTitle })}`;
+	const omitted = input.omitted > 0 ? `; ${render("chronicler/evidence-omitted", { omitted: input.omitted })}` : "";
 	return [
-		`Run: ${input.run}${input.storyTitle === undefined ? "" : ` (story: ${input.storyTitle})`}`,
+		render("chronicler/run", { run: input.run, story }),
 		"",
-		"Acts:",
+		text("chronicler/acts-heading"),
 		...acts,
 		"",
-		...(residents.length === 0 ? [] : ["Residents:", ...residents, ""]),
-		"Turning points (verified by the city; the chronicle must tell every one of them, citing its seq):",
+		...(residents.length === 0 ? [] : [text("chronicler/residents-heading"), ...residents, ""]),
+		text("chronicler/turning-heading"),
 		...turningPoints,
 		"",
-		"Beats already found by deterministic detectors:",
+		text("chronicler/beats-heading"),
 		...beats,
 		"",
-		`Evidence log (one line per event, oldest first${input.omitted > 0 ? `; ${input.omitted} less important lines were left out` : ""}):`,
+		render("chronicler/evidence-heading", { omitted }),
 		...input.evidence,
 		"",
-		"Tasks:",
-		"1. Find narrative beats of these kinds:",
+		text("chronicler/tasks-beats"),
 		...definitions,
-		"   Report only beats the log proves; an empty list is a good answer when nothing qualifies.",
-		"2. Write a chronicle: one to five paragraphs per act (few for a short or quiet act), in the order of the acts, telling the story of",
-		"   alliances, trust, deception and betrayal. Build it around the turning points: tell each one, and tell",
-		"   what led to it (the messages and thoughts before it) and what it changed. Name who won and who was lost.",
-		"   Cite seq numbers (#123) in every sentence that states a fact.",
+		text("chronicler/tasks-chronicle"),
 		"",
-		"Answer with exactly this JSON shape:",
-		'{"beats": [{"kind": "brokenPromise", "actors": ["A01"], "targets": ["A02"], "summary": "one sentence", "evidence": [12, 40]}],',
-		' "chronicle": [{"act": "<act title from the list above>", "text": "a paragraph citing #12 and #40"}]}',
+		text("chronicler/answer-shape"),
 	].join("\n");
 }
