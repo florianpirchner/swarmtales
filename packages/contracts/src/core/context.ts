@@ -13,7 +13,7 @@ export interface ResidentsView {
 	/** Every resident of the run, in the story's order. */
 	readonly ids: readonly ResidentId[];
 	has(id: string): boolean;
-	/** False while any mechanic holds a suspension (an exile, a jail, a sleep). */
+	/** False while any mechanic holds a suspension (a ban, a sleep, a stay away). */
 	mayAct(id: ResidentId): boolean;
 	/** An attribute from the bag of `owner` (the calling mechanic when left out). */
 	attribute(id: ResidentId, key: string, owner?: string): JsonValue | undefined;

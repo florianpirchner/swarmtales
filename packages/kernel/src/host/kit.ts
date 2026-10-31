@@ -2,7 +2,7 @@
  * The typed side of one mechanic instance: its contexts and the kit its `build` receives. Every
  * value that crosses into or out of the instance (tool arguments, service input and output, event
  * payloads of other mechanics, snapshot slices) is checked against its schema here, so the host
- * deals only in `unknown` and no cast is needed anywhere.
+ * deals only in `unknown` and no type assertion is needed anywhere.
  */
 import type { Static, TSchema } from "typebox";
 import { Check, Parse } from "typebox/value";

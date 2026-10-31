@@ -206,7 +206,7 @@ export interface MechanicInstance {
 	readonly snapshot: SnapshotSlice | undefined;
 }
 
-/** The input type of `with()`: every top-level option may be left out and is filled from its default at load. */
+/** The input type of `with()`: every option of the outer object may be left out and is filled from its default at load. */
 export type OptionsInput<O extends TSchema> = Partial<Static<O>>;
 
 /** A finished mechanic. `Tools` and `O` exist for typing stories; the host uses the erased members. */

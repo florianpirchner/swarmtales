@@ -31,8 +31,8 @@ export type ToolOutcome = ToolSuccess | Refusal;
 
 /**
  * The window a limit counts in: the current minute, the whole run, or the time since the last
- * event of a type (`{ resetOn: "door_opened" }` gives "8 per resident between two door openings"
- * without the core knowing what a door is).
+ * event of a type (`{ resetOn: "<mechanic event>" }` gives "8 per resident between two such
+ * events" without the core knowing what the event means).
  */
 export type LimitWindow = "minute" | "run" | { readonly resetOn: string };
 

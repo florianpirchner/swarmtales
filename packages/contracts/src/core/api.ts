@@ -1,7 +1,7 @@
 /**
  * Services between mechanics. An API is a named set of methods with schemas, declared apart from
  * any mechanic: one mechanic `provides` it, others `require` it. A story can swap the provider
- * (another ledger) without touching the mechanics that use it.
+ * (another implementation) without touching the mechanics that use it.
  */
 import type { Static, TSchema } from "typebox";
 
