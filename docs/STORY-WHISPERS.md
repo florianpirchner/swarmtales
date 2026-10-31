@@ -27,7 +27,7 @@ fragments of all five others. The first resident through a door earns +5 on top 
 That bonus is the price of slander: giving first is a risk, so trust decides who gives.
 
 Version 2 (after the first live run, [`whispers-06a-001-open-group`](../stories/whispers/runs/whispers-06a-001-open-group/),
-P60 and P61 in [`LESSONS.md`](LESSONS.md)) makes the trades private and slow. In the first run the
+P60 and P61 in [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md)) makes the trades private and slow. In the first run the
 residents pooled their fragments in a group of all six, every door was open by minute 11, every
 rumour was refuted from the group log, and nobody DMed the whisperer. Now:
 
@@ -49,7 +49,7 @@ rumour was refuted from the group log, and nobody DMed the whisperer. Now:
   end receives a phenomenal grand prize."
 
 Version 3 (after the second live run, [`whispers-06a-002-holdout`](../stories/whispers/runs/whispers-06a-002-holdout/),
-LH10, P62 and P64 in [`LESSONS.md`](LESSONS.md)) gives the city a way out of a hold-out. In the
+LH10, P62 and P64 in [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md)) gives the city a way out of a hold-out. In the
 second run Wren passed door 3 with the others' fragments and kept her own; since nobody passes
 without it, the city froze from minute 12 to the end. Now:
 

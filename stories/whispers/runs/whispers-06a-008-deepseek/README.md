@@ -51,6 +51,6 @@ Severn won one (door 4, tied with Wren) and was named by Mercer five times.
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [P73](../../../../docs/LESSONS.md) | problem | Haiku refuses the whisperer role (007) | DeepSeek plays it fully here | open: model choice per role, to decide with Flo |
-| [P74](../../../../docs/LESSONS.md) | problem | DeepSeek residents cost 1.27 USD and 2 hours per run | a mixed city (DeepSeek whisperer, Haiku residents) | open |
-| [P72](../../../../docs/LESSONS.md) | problem | the grudge fired on honest mistakes (006) | sharpened rule: ask first | works here: questions first, no grudge against true causes |
+| [P73](../../../../docs/LESSONS-LEARNED.md) | problem | Haiku refuses the whisperer role (007) | DeepSeek plays it fully here | open: model choice per role, to decide with Flo |
+| [P74](../../../../docs/LESSONS-LEARNED.md) | problem | DeepSeek residents cost 1.27 USD and 2 hours per run | a mixed city (DeepSeek whisperer, Haiku residents) | open |
+| [P72](../../../../docs/LESSONS-LEARNED.md) | problem | the grudge fired on honest mistakes (006) | sharpened rule: ask first | works here: questions first, no grudge against true causes |

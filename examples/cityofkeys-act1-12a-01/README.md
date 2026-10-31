@@ -67,5 +67,5 @@ Names (chosen at minute 0; one fallback):
   chains on the board is how levels 5-7 are meant to be solved).
 - Problem 4 points at a real bug: the NAME_ID refusal read "a name must not look like a resident
   ID such as Ansgar", because the city renders every ID in a text as its name. Fixed after this
-  run (P34 in [`docs/LESSONS.md`](../../docs/LESSONS.md)).
+  run (P34 in [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md)).
 - Problem 5 ("stopped before levels 8-10") is the intended checkpoint, not a problem.

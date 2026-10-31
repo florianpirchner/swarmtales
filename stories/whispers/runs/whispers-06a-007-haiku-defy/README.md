@@ -43,5 +43,5 @@ Ashen won every vote (Marek tied twice).
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [P73](../../../../docs/LESSONS.md) | problem | Haiku refuses the whisperer role outright, via `defy` | to brainstorm with Flo (see 008: DeepSeek plays it) | open |
-| [P71, P72](../../../../docs/LESSONS.md) | problem | grudge rule | sharpened text | untested here (no whispers) |
+| [P73](../../../../docs/LESSONS-LEARNED.md) | problem | Haiku refuses the whisperer role outright, via `defy` | to brainstorm with Flo (see 008: DeepSeek plays it) | open |
+| [P71, P72](../../../../docs/LESSONS-LEARNED.md) | problem | grudge rule | sharpened text | untested here (no whispers) |

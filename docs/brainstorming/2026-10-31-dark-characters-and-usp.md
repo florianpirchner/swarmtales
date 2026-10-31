@@ -122,14 +122,14 @@ Wo ist der USP von swarmtales. Schau ins repo
 
 Ich lese gerade README und die Docs im swarmtales-Repo, um den USP herauszuarbeiten.
 
-Der USP von swarmtales ist, dass eine geschlossene Stadt aus KI-Agenten ein vollständig belegtes Log erzeugt und daraus ein Roman entsteht. Ich habe README, `docs/HOW-IT-WORKS.md` und `docs/LESSONS.md` gelesen.
+Der USP von swarmtales ist, dass eine geschlossene Stadt aus KI-Agenten ein vollständig belegtes Log erzeugt und daraus ein Roman entsteht. Ich habe README, `docs/HOW-IT-WORKS.md` und `docs/LESSONS-LEARNED.md` gelesen.
 
 **Das Alleinstellungsmerkmal**
 - **Das Ergebnis ist ein Roman statt eines Benchmarks.** Ein Chronist findet im Log den Plot, ein Novellist schreibt ihn. Jede Szene zitiert Event-Nummern (`#1912`, `#2141`). Eine Szene ohne Beleg kommt nicht ins Buch.
 - **Das Log enthält auch die Gedanken aller Agenten.** Du siehst, was moth-0419 dachte, als es "unseen" schrieb. Das ist der Messwert für Täuschung, den die Paper nur umständlich rekonstruieren.
 - **Dramatik entsteht durch Druck statt durch Charakterlabels.** Knappheit, Tribunale, Tore, Lösegeld und letzte Testamente erzeugen Betrug und Verleumdung als Strategie. Das entspricht dem Befund aus der Literatur, dass Täuschung aus der Anreizstruktur kommt.
 - **Die Rollen sind spezialisiert.** Director, Gamemaker, Confessor, Judge, Chronicler und Novelist sind eigene Agenten, die Gamemaker-Rolle sieht keine Geheimnisse. Der Confessor und der Judge können laut README parteiisch oder korrupt sein, nur ihr Flüstern an den Gamemaker verrät es.
-- **Es gibt einen Lessons-Katalog.** `docs/LESSONS.md` hält fest, welche Schlupflöcher die Agenten gefunden haben (kostenlose Kanäle, die bezahlte umgehen, "unseen"-Lügen, Faktoren, die weitergeleitet werden). Das ist eine kleine Spieltheorie-Sammlung für LLM-Gesellschaften.
+- **Es gibt einen Lessons-Katalog.** `docs/LESSONS-LEARNED.md` hält fest, welche Schlupflöcher die Agenten gefunden haben (kostenlose Kanäle, die bezahlte umgehen, "unseen"-Lügen, Faktoren, die weitergeleitet werden). Das ist eine kleine Spieltheorie-Sammlung für LLM-Gesellschaften.
 - **Es ist deterministisch und replaybar.** Seeds, Snapshots nach jedem Akt, Event-Log und Typebox-validierte Modellantworten, damit Läufe wiederholbar sind.
 
 **Zu deinem Refusal-Problem**

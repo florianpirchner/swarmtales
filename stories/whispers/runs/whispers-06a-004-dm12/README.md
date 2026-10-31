@@ -40,9 +40,9 @@ keeps 8 (the tests pin it). To repeat this run, set 12 there locally.
 
 | Row | Kind | What | Solution | Status |
 |---|---|---|---|---|
-| [P69](../../../../docs/LESSONS.md) | problem | Haiku defuses the whisperer role itself; 0 rumours | to brainstorm with Flo | open |
-| [P66, P67](../../../../docs/LESSONS.md) | problem | the clock is the game; the DM budget was not the whisperer's limit | to brainstorm with Flo | open; P67 weakened (more DMs, fewer rumours) |
-| [LH10, P62](../../../../docs/LESSONS.md) | loophole, problem | hold-out freezes the run | holdout tribunal (v3) | no hold-out; tribunal still untested live |
+| [P69](../../../../docs/LESSONS-LEARNED.md) | problem | Haiku defuses the whisperer role itself; 0 rumours | to brainstorm with Flo | open |
+| [P66, P67](../../../../docs/LESSONS-LEARNED.md) | problem | the clock is the game; the DM budget was not the whisperer's limit | to brainstorm with Flo | open; P67 weakened (more DMs, fewer rumours) |
+| [LH10, P62](../../../../docs/LESSONS-LEARNED.md) | loophole, problem | hold-out freezes the run | holdout tribunal (v3) | no hold-out; tribunal still untested live |
 
 ## Corrections to the draft report
 

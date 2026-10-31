@@ -215,7 +215,10 @@ describe("project rules: English only", () => {
 		"README.md",
 		".env.example",
 		join(".github", "workflows", "ci.yml"),
-	].filter((file) => file !== SELF);
+	]
+		.filter((file) => file !== SELF)
+		// docs/brainstorming/ holds verbatim chat transcripts the owner adds as they were written.
+		.filter((file) => !file.startsWith(join("docs", "brainstorming") + sep));
 
 	it("scans every source, test and documentation file", () => {
 		expect(textFiles.some((file) => file.startsWith("docs"))).toBe(true);

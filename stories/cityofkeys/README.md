@@ -65,4 +65,4 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 - Act I with a snapshot to start Act II from: [`examples/cityofkeys-act1-06a-02/`](../../examples/cityofkeys-act1-06a-02/) (since v05; v01-v04 used [`examples/cityofkeys-act1-06a-01/`](../../examples/cityofkeys-act1-06a-01/))
 - Act II experiments, one version per folder: [`examples/cityofkeys-act2-06a/`](../../examples/cityofkeys-act2-06a/)
-- Lessons, problems and loopholes the agents found: [`docs/LESSONS.md`](../../docs/LESSONS.md)
+- Lessons, problems and loopholes the agents found: [`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md)

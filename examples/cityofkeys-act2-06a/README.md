@@ -38,7 +38,7 @@ Rook (melancholy above all) was exiled in all four runs, and Aurelio (narcissism
 seat in all four. GLM residents act on their goals and take risks (bids, threats, deals) but cannot
 add six-digit numbers reliably (P39); Haiku is careful and never bids (P41). DeepSeek directs with
 many private notes; Sonnet plans tribunals and otherwise stays silent (P40). See
-[`docs/LESSONS.md`](../../docs/LESSONS.md) P38-P42.
+[`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md) P38-P42.
 
 ## Adding a run
 

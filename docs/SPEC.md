@@ -1035,7 +1035,7 @@ Per run, `runs/run-NNN/` contains:
 
 - After the digest, `pnpm start` writes `<run>/REPORT.md`, the first draft of the run report;
   `pnpm report:run <run-dir> [--provider --model]` rewrites it for an existing run. A human or
-  agent reviews it and records confirmed loopholes and problems in `docs/LESSONS.md`.
+  agent reviews it and records confirmed loopholes and problems in `docs/LESSONS-LEARNED.md`.
 - Facts are computed in code, never by a model, from `events.jsonl`, `000-run.json` and
   `usage.json`: a header (date, story, seed, start: fresh, or resumed with snapshot file and
   minute; competitor, gamemaker and classifier models; end minute and reason) and a result

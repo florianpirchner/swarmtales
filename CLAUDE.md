@@ -15,7 +15,7 @@ longer worked on). The owner is Flo.
   under `docs/ideas/`.
 - Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
   with Typebox.
-- Before designing a new story or mechanic, read the design checklist in `docs/LESSONS.md`.
+- Before designing a new story or mechanic, read the design checklist in `docs/LESSONS-LEARNED.md`.
 - Stories are written in the TypeScript builder DSL (`src/story/`), never in YAML. Each story lives
   in its own folder `stories/<name>/` (`story.ts` plus a short `README.md`) and is registered in
   `stories/index.ts`.
@@ -63,7 +63,7 @@ from a run is deleted unrecorded.
    it). A human or agent reviews the draft, verifies suspicious claims against `events.jsonl`,
    corrects it and turns it into the run report.
 2. **Lessons:** every problem and every new way around the story's intent (check the draft's
-   loophole candidates) goes into the log in `docs/LESSONS.md`, as a `P` (problem) or `LH`
+   loophole candidates) goes into the log in `docs/LESSONS-LEARNED.md`, as a `P` (problem) or `LH`
    (loophole) row: what happened, the run it was seen in, its effect, what was proposed, what was
    actually built (even when it differs from the proposal) and its status. Update the rows when a
    fix lands, and add a line to the design checklist when a lesson holds beyond one story. Do this

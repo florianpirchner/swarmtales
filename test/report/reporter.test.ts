@@ -193,7 +193,7 @@ describe("run reporter (model-written sections)", () => {
 		expect(report).toContain("## Problems\n\n1. **Overdraft attempt.**");
 		expect(report).toContain("## Optimizations");
 		expect(report).toContain("## Loophole candidates\n\n1. **None really.** (residents)");
-		expect(report).toContain("docs/LESSONS.md");
+		expect(report).toContain("docs/LESSONS-LEARNED.md");
 
 		const usage: unknown = JSON.parse(readFileSync(join(directory, "usage.json"), "utf8"));
 		expect(usage).toMatchObject({ own: { totals: { costUsd: 0.9375 } }, reporter: { model: "faux reporter", requests: 1 } });
