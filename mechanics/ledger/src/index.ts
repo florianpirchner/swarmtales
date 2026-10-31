@@ -9,8 +9,8 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, INPUT_KINDS, LedgerApi, LedgerEvents, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
+import { ChannelsApi, ExileApi, HOOK_ORDER, INPUT_KINDS, LedgerApi, LedgerEvents, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { balanceOf, book, memoCarriesDigits, restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
 
 const Entry = Type.Object({
 	txId: Type.String(),
@@ -30,13 +30,17 @@ export const ledgerHead = defineHead({
 	summary: "Points per account and bookings between accounts.",
 	options: Type.Object({
 		startPoints: Type.Integer({ minimum: 0, default: 0, description: "Points every resident starts with, minted from the system account when the run starts (reason `start points`)." }),
+		strictAccounts: Type.Boolean({
+			default: false,
+			description: "Refuse a booking on an account nobody opened (old `UNKNOWN_ACCOUNT`). Off until `LedgerApi` can open accounts (docs/design/carve-requests-round2-T1.md R2-1): escrow and treasury accounts open with their first booking.",
+		}),
 	}),
-	state: ({ residents }): LedgerState => ({ balances: new Map([[SYSTEM_ACCOUNT, 0], ...residents.map((id): [string, number] => [id, 0])]), entries: [], txSeq: 0 }),
+	state: ({ residents }): LedgerState => ({ balances: new Map([[SYSTEM_ACCOUNT, 0], ...residents.map((id): [string, number] => [id, 0])]), entries: [], keys: new Map(), txSeq: 0 }),
 	events: { ...LedgerEvents.events },
-	prompts: { "tools/transferPoints": [], "replies/transfer-ok": ["amount", "target", "balance", "receipt"] },
+	prompts: { "tools/transferPoints": [], "replies/transfer-ok": ["amount", "target", "balance", "receipt"], "competitor/status/points": ["points"] },
 	provides: [LedgerApi],
-	// The exile and the DM cap are checked before a transfer (old checkTransfer).
-	uses: [ExileApi, ChannelsApi],
+	// The exile and the DM cap are checked before a transfer (old checkTransfer); the receipt's id is named in the reply.
+	uses: [ExileApi, ChannelsApi, ReceiptsApi],
 });
 
 type Ctx = ContextOf<typeof ledgerHead>;
@@ -57,19 +61,13 @@ function checkTransfer(ctx: Ctx, from: string, to: string, amount: number, memo:
 	return undefined;
 }
 
-/** The id of the receipt the receipts mechanic issued while `transfer` was written, from the log after `since`. */
-function receiptSince(ctx: Ctx, since: number): string {
-	const issued = ctx.log.since(since).find((event) => event.source === "receipts" && event.type === "receipt_issued");
-	const payload = issued?.payload;
-	const id: unknown = typeof payload === "object" && payload !== null ? Reflect.get(payload, "receipt") : undefined;
-	return typeof id === "string" ? id : "none";
-}
-
 function bookEntry(ctx: Ctx, debit: string, credit: string, amount: number, reason: string, allowNegative: boolean) {
-	return book(ctx.state, debit, credit, amount, reason, ctx.minute, allowNegative, (entry) => {
+	return book(ctx.state, debit, credit, amount, reason, ctx.minute, { allowNegative, strict: ctx.options.strictAccounts }, (entry) => {
 		ctx.emit("ledger_entry", { txId: entry.txId, debit: entry.debit, credit: entry.credit, amount: entry.amount, reason: entry.reason });
 	});
 }
+
+export { book, LedgerError, restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
 
 export const ledger = defineMechanic(ledgerHead, (kit) => ({
 	services: [
@@ -110,18 +108,22 @@ export const ledger = defineMechanic(ledgerHead, (kit) => ({
 				if (refused !== undefined) return refused;
 				const text = memo ?? "";
 				const entry = bookEntry(ctx, from, target, amount, text.length > 0 ? text : "transfer", false);
-				const before = ctx.log.length;
 				ctx.emit("transfer", { from, to: target, amount, memo: text, txId: entry.txId });
-				return reply(ctx.prompt("replies/transfer-ok", { amount, target, balance: balanceOf(ctx.state, from), receipt: receiptSince(ctx, before) }));
+				const receipt = ctx.tryCall(ReceiptsApi, "ofTransfer", { txId: entry.txId }) ?? "none";
+				return reply(ctx.prompt("replies/transfer-ok", { amount, target, balance: balanceOf(ctx.state, from), receipt }));
 			},
 		}),
 	],
 	hooks: {
-		runStarted: (ctx) => {
-			if (ctx.options.startPoints <= 0) return;
-			for (const id of ctx.residents.ids) bookEntry(ctx, SYSTEM_ACCOUNT, id, ctx.options.startPoints, "start points", true);
+		// After the whisperer is chosen, before the cast's escrow (the old constructor's order).
+		runStarted: {
+			order: HOOK_ORDER.runStarted.ledger,
+			run: (ctx) => {
+				if (ctx.options.startPoints <= 0) return;
+				for (const id of ctx.residents.ids) bookEntry(ctx, SYSTEM_ACCOUNT, id, ctx.options.startPoints, "start points", true);
+			},
 		},
-		turnInputs: (resident, ctx) => [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.points, text: `${String(balanceOf(ctx.state, resident))} points` }],
+		turnInputs: (resident, ctx) => [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.points, text: ctx.prompt("competitor/status/points", { points: balanceOf(ctx.state, resident) }) }],
 	},
 	facts: {
 		balances: kit.fact(Type.Record(Type.String(), Type.Number()), (view) => Object.fromEntries(view.residents.ids.map((id) => [id, balanceOf(view.state, id)]))),
@@ -132,7 +134,7 @@ export const ledger = defineMechanic(ledgerHead, (kit) => ({
 		version: 1,
 		schema: Slice,
 		save: (state) => ({ balances: [...state.balances].map(([account, balance]) => ({ account, balance })), entries: state.entries.map((entry) => ({ ...entry })), txSeq: state.txSeq }),
-		load: (data) => ({ balances: new Map([[SYSTEM_ACCOUNT, 0], ...data.balances.map((entry): [string, number] => [entry.account, entry.balance])]), entries: data.entries.map((entry) => ({ ...entry })), txSeq: data.txSeq }),
+		load: (data) => restored(data),
 		migrations: { 0: (old) => Parse(LegacySlice, old).ledger },
 	}),
 }));

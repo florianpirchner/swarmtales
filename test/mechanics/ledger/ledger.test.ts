@@ -6,38 +6,16 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
-import type { MechanicUse, Turn } from "@swarmtales/contracts";
-import { createHost, defineCoreStory, defineMechanic } from "@swarmtales/kernel";
+import type { Turn } from "@swarmtales/contracts";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { ledger } from "@swarmtales/mechanic-ledger";
-import { LedgerEvents } from "@swarmtales/mechanic-shared";
+import { receipts } from "@swarmtales/mechanic-receipts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
 import { channelsStandIn, GOLDEN_LOGS, goldenLog, ids, sourcesOf, writtenBy } from "../t1/support.ts";
 import { exileStandIn, ledgerReplay } from "../t1/stand-ins.ts";
-
-/** The receipt a transfer gets, as the real receipts mechanic issues it right after `transfer`. */
-function receiptStub(): MechanicUse {
-	return defineMechanic(
-		{ id: "receipts", summary: "Stand-in receipt.", options: Type.Object({}), state: () => ({ issued: 0 }), events: { receipt_issued: Type.Object({ receipt: Type.String() }) } },
-		(kit) => ({
-			listeners: [
-				kit.listen(
-					LedgerEvents,
-					"transfer",
-					(_payload, ctx) => {
-						ctx.state.issued += 1;
-						ctx.emit("receipt_issued", { receipt: `R-${String(ctx.state.issued).padStart(4, "0")}` });
-					},
-					{ immediate: true },
-				),
-			],
-			snapshot: kit.snapshot({ version: 1, schema: Type.Object({ issued: Type.Integer() }), save: (state) => ({ issued: state.issued }), load: (data) => ({ issued: data.issued }) }),
-		}),
-	).with();
-}
 
 describe("the golden gate for ledger_entry and transfer", () => {
 	it.each(GOLDEN_LOGS)("%s: the ledger writes the golden bookings for the golden calls", async (name) => {
@@ -74,7 +52,7 @@ function setup() {
 		seed: 7,
 		minutes: 3,
 		residents: ids(4),
-		mechanics: [ledger.with({ startPoints: 10 }), channels.use, exileStandIn(["A04"]), receiptStub()],
+		mechanics: [ledger.with({ startPoints: 10 }), channels.use, exileStandIn(["A04"]), receipts.with()],
 		grants: { resident: ["transferPoints", "sendDM"] },
 	});
 	return { options: { story: definition, prompts: createPromptLookup() }, channels };
