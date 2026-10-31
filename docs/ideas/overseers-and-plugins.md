@@ -128,3 +128,48 @@ Order: schema generation and `validate --json` first, then the extension and the
 3. Expression language for story rules (CEL or JSONLogic).
 4. Plugin sources (npm only or also a local folder).
 5. The API sketch of `defineOverseer` and `ctx.decide` has to be written and read before anything is built.
+
+## 9. The terminal UI and the human hand
+
+Status: idea (Flo, 2026-10-31). Open names are marked.
+
+- **Start.** `swt` without arguments in a folder opens the TUI (an alias `swtcli` is possible; open). Without a
+  terminal (pipe, CI) it prints the help; every command (`swt run`, `swt validate`, `swt watch`) works without
+  the TUI. The TUI is a client over the same commands. The package is published with `npm install -g swarmtales`
+  (it is `private` now; the first publish needs Flo's go).
+- **Layout like opencode:** a prompt line with slash commands and completion, a main area for the chosen run
+  (events, costs, residents, notes), a sidebar for stories, runs and plugins, sessions, themes, key bindings. An
+  assistant in the prompt line may use the same tools as the MCP server of §7. Spike Ink against other
+  terminal frameworks first (many log lines per second with 48 residents).
+- **Keys and providers:** keys are typed masked and stored in the OS keychain (fallback: a file with mode 0600
+  in the user folder, never in a project); environment variables win; keys never reach logs, snapshots, reports
+  or prompts. Providers and models are managed through the Pi library behind `packages/models`: list, test the
+  connection, show prices, set a model per role (residents, gamemaker, classifier, reporter, ...) in `swt.config`.
+- **Tabs and parallel runs:** a project tab, one tab per run, one for the assistant. Every run is its own
+  process (isolated crashes, own budget); the TUI attaches over a local event stream and control channel, and a
+  run keeps going when the TUI closes. A shared rate limiter and cost total cover all runs (for example 1000
+  requests per minute for Haiku).
+- **The human hand (name proposed, Flo liked it).** The human acts in a running story as an overseer without a
+  model: actor `human`, grant key `grants.human`, events `human_note` and `human_amend`. Tools:
+  `instruct(target, text, mode)` with `mode` advice or order (an order obliges the overseer to justify a
+  deviation; it does not force it), `amendDecision` with priority over other holders, pause, resume, step.
+  Instructions to residents only with an explicit switch; a run with such an intervention is marked
+  "human-influenced" in the report. All of it is logged, so the run stays replayable.
+- **Whom the human talks to.** Not the gamemaker (a story figure, a protagonist of the novels, charged per
+  minute). The TUI assistant knows the whole run (log, facts, report, cost), answers questions, and turns wishes
+  into instructions in the target's voice, shown for confirmation (switchable to automatic). `@gamemaker ...` or
+  `@terminator-2 ...` addresses an overseer directly and is marked as the exception.
+- **Who sees an instruction (audience).** An instruction goes only to its target by default; `copy: [gamemaker]`
+  also tells the gamemaker; a story may require that every intervention is reported to the gamemaker, or never,
+  and may decide whether the gamemaker knows about a human above. The gamemaker still sees consequences in the
+  public game.
+- **Standing orders.** Overseers are either long-lived (the gamemaker keeps a conversation; an instruction
+  arrives as input of its next turn) or short (the confessor, the judge or a terminator in a decision window are
+  called fresh with a prompt built from a template and the inputs, and last seconds). A running call cannot be
+  interrupted. An instruction to a short overseer is therefore stored as a standing order with a lifetime (until
+  minute N, for K calls, until revoked), rendered into `{standingOrders}` at the end of the prompt (keeps the
+  cache), applied from the next call, listed in the log (`orders_applied`) and part of the snapshot. For
+  urgent cases the human amends the open decision directly.
+
+Open: `swt` or `swtcli`; assistant from the start or slash commands first; keychain or file; advice or order
+by default; may the human change other overseers' decisions (proposal: yes, with priority); final names.
