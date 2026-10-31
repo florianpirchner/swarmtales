@@ -175,11 +175,9 @@ describe("a legacy snapshot of a run without names", () => {
 		if (typeof world !== "object" || world === null) throw new Error("no world");
 		const without = { ...raw, world: Object.fromEntries(Object.entries(world).filter(([key]) => key !== "names")) };
 		const converted = convertLegacySnapshot(without, {}, PATH);
-		// Local adapter (docs/design/carve-requests-round2-T1.md R2-2): the converter writes no slice for an absent field, and the host refuses a mechanic without one, so an empty version-0 slice stands for it.
-		const snapshot = { ...converted.host, mechanics: { ...converted.host.mechanics, names: { version: 0, data: {} } } };
 		const channels = channelsStandIn();
 		const definition = defineCoreStory({ id: "nexus", seed: 7, minutes: 80, residents: converted.host.residents.ids, mechanics: [names.with(SPEC), channels.use, ...standInsFor(converted.host, ["names", "channels"])], grants: { resident: ["chooseName"] } });
-		const host = createHost({ story: definition, prompts: createPromptLookup(), resume: { snapshot, events: converted.events } });
+		const host = createHost({ story: definition, prompts: createPromptLookup(), resume: { snapshot: converted.host, events: converted.events } });
 		expect(host.snapshot().mechanics.names).toMatchObject({ version: 1, data: { entries: [], off: true } });
 		expect(host.facts()["names.names"]).toEqual({});
 		expect(host.display("A02 asks A06")).toBe("A02 asks A06");

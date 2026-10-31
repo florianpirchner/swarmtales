@@ -32,7 +32,7 @@ export const namesHead = defineHead({
 	summary: "Names residents chose, for texts and arguments.",
 	options: Type.Object({
 		untilMinute: Type.Integer({ minimum: 0, default: 2, description: "The minute at whose start the city names whoever has not chosen." }),
-		announcement: Type.String({ default: "", description: "Added to the first task while a resident may choose; placeholder {untilMinute}." }),
+		announcement: Type.String({ description: "Added to the first task while a resident may choose; placeholder {untilMinute}. Required: the story's text (R2-D17); an empty text says nothing on purpose." }),
 		fallbackWords: Type.Array(Type.String({ minLength: 1 }), { minItems: 1, default: ["Stone", "Ash", "Reed", "Flint", "Moss", "Wren"], description: "Words of the names the city gives, letters only, so a name stays within 16 characters." }),
 		reserved: Type.Array(Type.String(), { default: [], description: "Names nobody may take besides the system authors: the cast, the city." }),
 	}),

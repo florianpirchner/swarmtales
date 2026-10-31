@@ -120,7 +120,7 @@ describe("the old-snapshot converter", () => {
 		const text = readFileSync(resolve(import.meta.dirname, "../../examples/cityofkeys-act1-06a-01/snapshot-L7.json"), "utf8");
 		const old = convertLegacySnapshot(JSON.parse(text), {}, "06a-01");
 		expect(old.host.mechanics).not.toHaveProperty("names");
-		const story = defineCoreStory({ id: old.host.story, seed: old.host.seed, minutes: 80, residents: old.host.residents.ids, mechanics: [names.with(), ...standInsFor(old.host, ["names"])], grants: {} });
+		const story = defineCoreStory({ id: old.host.story, seed: old.host.seed, minutes: 80, residents: old.host.residents.ids, mechanics: [names.with({ announcement: "Choose a name before minute {untilMinute}." }), ...standInsFor(old.host, ["names"])], grants: {} });
 		const host = createHost({ story, resume: { snapshot: old.host, events: old.events } });
 		expect(host.snapshot().mechanics.names?.version).toBe(1);
 	});
