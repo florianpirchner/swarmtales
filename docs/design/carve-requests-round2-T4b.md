@@ -38,3 +38,61 @@ used meanwhile and the proposed change.
   `kit.provide`.
 - **Proposed:** add to `StandoffTribunalApi`:
   `taskLine: query("The holdout rule under every door's task in a run with the gamemaker (old #withHoldoutRule), else null.", OfResident, Type.Union([Type.String(), Type.Null()]))`.
+
+## R2-4 Two tools named `permaDeath`
+
+- **What:** the seal's resident tool (old tools/seal.ts) and the holdout tribunal's gamemaker tool
+  (old gamemaker.ts `#permaDeathTool`) are both called `permaDeath`; the old engine kept residents'
+  and the gamemaker's tools apart, the new host has one tool namespace. A story that loads seal and
+  standoff-tribunal together cannot start. T4a's tribunal may add a gamemaker `callTribunal` too
+  (the holdout's is `callTribunal` already).
+- **Meanwhile:** none; no story of today loads both (cityofkeys has the seal, whispers the holdout).
+- **Proposed:** either the host keys tools by role (`resident`/`gamemaker`), or the gamemaker's
+  holdout tools are renamed (`holdoutPermaDeath`, `callHoldoutTribunal`) with the gamemaker's prompt
+  files following (D-12 replies are unaffected: no golden calls them).
+
+## R2-5 Facts cannot call other mechanics
+
+- **What:** a `FactView` reads options, state, minute, residents and log, never an API. The
+  gamemaker's situation needs facts made of other mechanics' data: the holdout's `lackingNow` of the
+  accused (old `holdoutLines`, `PuzzlesApi.lacking`), the standoff's `outstanding`, `unused` and
+  `cityPiecePrice` (D-8; they need `PuzzlesApi.heldPieces`, progression and `TribunalApi`).
+- **Meanwhile:** the standoff takes these into a part of its state that is not saved, at each
+  minute's end (`minuteEnded`), and its facts read that; after a resume the part is empty until the
+  first minute ends. The holdout's facts give the session; the situation (step 17) asks
+  `PuzzlesApi.lacking({ level: session.door, holder: session.accused })` itself.
+- **Proposed:** facts get the read-only `query` methods of `requires`/`uses` (no commands), or step
+  17 accepts the minute-end pattern as the rule.
+
+## R2-6 T3 methods the holdout and the standoff call
+
+- **What:** `PuzzlesApi.openFragmentDoors`, `PuzzlesApi.inherited`, `PuzzlesApi.heldPieces` and
+  `ProgressionApi.isOpenOnClock` are frozen but the puzzles and progression mechanics do not
+  implement them yet (`provideSome`). The holdout's golden gate therefore runs on stand-ins over the
+  golden's deal, levels, door clock and DMs, not on the real T3 mechanics.
+- **Proposed:** T3 implements them in its round 2; the gate then swaps the stand-ins for the real
+  mechanics replaying the golden submissions.
+
+## R2-7 The gamemaker's direction dial
+
+- **What:** the old gamemaker offered `ultimatum` only at direction 10 in a story with ultimatums
+  (gamemaker.ts:214, :375). The dial is a run setting (`direction`), not a story option, and no
+  shared API or grant carries it.
+- **Meanwhile:** standoff has an option `direction` (default 4) and locks `ultimatum` below 10.
+- **Proposed:** the integration owner passes the run's dial into the standoff's options when it
+  builds the story, or grants `ultimatum` to the gamemaker only at direction 10 (then the option
+  goes).
+
+## R2-8 A `minuteEnded` slot for the standoff
+
+- **What:** `HOOK_ORDER.minuteEnded` has only `arena`. The standoff's minute-end phase (R2-5) writes
+  no event, so it runs as a plain function (order 0).
+- **Proposed:** add `minuteEnded.standoff` if the table must name every phase.
+
+## R2-9 The gamemaker's name on the holdout's lines
+
+- **What:** the old tribunal wrote the gamemaker's name (`COURIER`) on its announcements from the
+  gamemaker spec; standoff-tribunal and standoff each carry an `author` option (default
+  `COURIER`) for it, the same value twice.
+- **Proposed:** a shared source for the gamemaker's name (the gamemaker's head, step 17), or keep the
+  options and let the story set both from one constant.
