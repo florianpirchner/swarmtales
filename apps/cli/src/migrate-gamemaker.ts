@@ -37,13 +37,15 @@ function walk(path: string, changed: string[]): void {
 	changed.push(path);
 }
 
-if (process.argv[1]?.endsWith("migrate-gamemaker.ts") === true) {
-	const directories = process.argv.slice(2);
-	if (directories.length === 0) {
+/** Migrates the given directories; `argv` is the list of directories. */
+export function main(argv: readonly string[]): void {
+	if (argv.length === 0) {
 		process.stderr.write("Usage: pnpm migrate:gamemaker <dir>...\n");
 		process.exit(2);
 	}
 	const changed: string[] = [];
-	for (const directory of directories) walk(directory, changed);
+	for (const directory of argv) walk(directory, changed);
 	process.stdout.write(`${changed.length} files migrated\n`);
 }
+
+if (process.argv[1]?.endsWith("migrate-gamemaker.ts") === true) main(process.argv.slice(2));

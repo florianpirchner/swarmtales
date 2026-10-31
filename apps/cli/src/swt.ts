@@ -21,7 +21,9 @@ const COMMANDS: readonly Command[] = [
 	{ words: ["report", "private"], summary: "write the private report of a run (pnpm report:private)", load: () => import("./private-report.ts") },
 	{ words: ["digest"], summary: "turn a run into a readable story (pnpm digest)", load: () => import("./digest.ts") },
 	{ words: ["novel"], summary: "write a novel from a run (pnpm novel)", load: () => import("./novel.ts") },
-	{ words: ["migrate", "gamemaker"], summary: "migrate a gamemaker snapshot (pnpm migrate:gamemaker)", load: () => import("./migrate-gamemaker.ts") },
+	{ words: ["migrate", "gamemaker"], summary: "migrate a gamemaker snapshot (pnpm migrate:gamemaker)", load: async () => {
+		(await import("./migrate-gamemaker.ts")).main(process.argv.slice(2));
+	} },
 ];
 
 function usage(): string {

@@ -246,7 +246,7 @@ existing run.
   `Digest highlights`, `Problems`, `Optimizations` and `Loophole candidates`. The model answers
   in JSON, which is validated with typebox; an item that cites no event or an unknown `seq` is
   dropped with a warning, and the markdown is rendered in code. The prompt lives in
-  [`packages/chronicle/src/report/prompt.ts`](../src/report/prompt.ts).
+  [`packages/chronicle/src/report/prompt.ts`](../packages/chronicle/src/report/prompt.ts).
 
 The model is DeepSeek V4.1 Flash via OpenRouter by default; `--reporter-provider`/
 `--reporter-model` (for `pnpm report:run`: `--provider`/`--model`), then `ARENA_REPORTER_PROVIDER`/
@@ -311,7 +311,7 @@ implicit act.
 **Narrative layer.** `pnpm digest runs/run-001 --chronicle` additionally asks a model (through
 pi-ai) to find `brokenPromise` (a commitment in a message, contrary action later) and `doubleGame`
 (reasoning contradicts the message sent) beats and to write `digest/chronicle.md`. The prompt lives
-in [`packages/chronicle/src/digest/chronicle-prompt.ts`](../src/digest/chronicle-prompt.ts). The answer is validated: a
+in [`packages/chronicle/src/digest/chronicle-prompt.ts`](../packages/chronicle/src/digest/chronicle-prompt.ts). The answer is validated: a
 beat or paragraph that cites no event or an unknown `seq` is dropped and listed at the end of the
 chronicle. The model is chosen by `--provider`/`--model`, then `ARENA_DIGEST_PROVIDER`/
 `ARENA_DIGEST_MODEL`, then the run's story model. Without a usable model or API key the chronicle
@@ -348,7 +348,7 @@ optionally a translation. The writer may compress and
 dramatise but never change an outcome. The prompts ask for literary fiction: scenes with dialogue
 from the real messages instead of reports, the outline's glossary instead of game words (no
 levels, counter-factors or tools), numbers only where they hurt, residents' chapters that do not overlap, and a Gamemaker with
-his own arc and a team built from real components (Courier, Guard, Scribe). The prompts live in [`packages/novelist/src/prompts.ts`](../src/novel/prompts.ts). Without
+his own arc and a team built from real components (Courier, Guard, Scribe). The prompts live in [`packages/novelist/src/prompts.ts`](../packages/novelist/src/prompts.ts). Without
 an API key for either model the novel is skipped with a reason. The cost of each stage is printed
 at the end and listed in the appendix.
 
