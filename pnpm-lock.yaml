@@ -225,6 +225,9 @@ importers:
 
   mechanics/exile:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -420,6 +423,9 @@ importers:
 
   mechanics/tribunal:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
