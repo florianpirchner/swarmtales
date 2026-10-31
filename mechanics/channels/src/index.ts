@@ -1,18 +1,23 @@
 /**
  * The `channels` mechanic (carve step 4, team T2, docs/design/carve-team-T2.md): the public board,
  * DMs with their cap and marks, private notices and groups with treasuries. It provides
- * `ChannelsApi` (the city's posts and notices, message numbers, the DM window), writes the turn
- * input kinds `dm`, `notice` and `digest` and the `dmWindow` status part, and tells the arena's
- * activation about unread mail through the `news` hook.
+ * `ChannelsApi` (the city's posts and notices, message numbers, the DM window, the records blame
+ * reads) and `NotesApi` (the gamemaker's note desk), writes the turn input kinds `dm`, `notice`
+ * and `digest` and the `dmWindow` status part, and tells the arena's activation about unread mail
+ * through the `news` hook. The turn inputs run in three phases (`HOOK_ORDER.turnInputs`): the
+ * status part reads first, the inbox is emptied after every part that only reads, the digest last.
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, ExileEvents, NotesApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileEvents, HOOK_ORDER, LISTENER_ORDER, NotesApi, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { boardPost, dmRecord, dmRecordOf, groupPost, pendingDms } from "./api.ts";
+import { defyTool } from "./defy.ts";
 import { gamemakerTools } from "./gamemaker.ts";
 import { createCityGroup, removeCityGroup, postGroupAsCity, settleTreasuries } from "./treasury.ts";
 import { channelsHead } from "./head.ts";
-import { news, turnEnded, turnInputs, turnOpened } from "./hooks.ts";
+import { digestInputs, inboxInputs, news, statusInputs, turnEnded, turnOpened } from "./hooks.ts";
 import { deliverFrom, dmWindow, notify, note, postToBoard } from "./messages.ts";
+import { checkNote, noteBudget, recordNote } from "./notes.ts";
 import { ChannelsSlice, loadState, migrateFromV0, saveState } from "./state.ts";
 import { residentTools } from "./tools.ts";
 
@@ -20,9 +25,15 @@ export { channelsHead };
 
 export const channels = defineMechanic(channelsHead, (kit) => ({
 	services: [
-		// Wave 3.5 (carve-decisions.md): the note desk is T2's to write in round 2.
-		kit.provideSome(NotesApi, {}),
-		kit.provideSome(ChannelsApi, {
+		kit.provide(NotesApi, {
+			check: (input, ctx) => checkNote(ctx, input.text, input.to, input.as),
+			budget: (input, ctx) => noteBudget(ctx, input.to),
+			record: (input, ctx) => {
+				recordNote(ctx, input.to, input.text, input.number, input.shown);
+				return null;
+			},
+		}),
+		kit.provide(ChannelsApi, {
 			post: (input, ctx) => ({ postSeq: postToBoard(ctx, input.author, input.text, "city").seq }),
 			notify: (input, ctx) => {
 				notify(ctx, input.to, input.author, input.text);
@@ -32,7 +43,13 @@ export const channels = defineMechanic(channelsHead, (kit) => ({
 			deliver: (input, ctx) => ({ number: deliverFrom(ctx, input.from, input.to, input.text) }),
 			takeNumber: (_input, ctx) => ctx.state.numbers.next(),
 			dmWindow: (input, ctx) => dmWindow(ctx, input.resident),
-			dmRecords: (_input, ctx) => ctx.state.dms.map((record) => ({ id: record.id, from: record.from, to: record.to, minute: record.minute, answered: record.answered, text: record.text })),
+			dmRecords: (_input, ctx) => ctx.state.dms.map(dmRecordOf),
+			dmRecord: (input, ctx) => dmRecord(ctx, input.number),
+			boardPost: (input, ctx) => boardPost(ctx, input.number),
+			groupPost: (input, ctx) => groupPost(ctx, input.number),
+			couldRead: (input, ctx) => ctx.state.groups.couldRead(input.group, input.reader, input.number),
+			lastNumber: (_input, ctx) => ctx.state.numbers.last,
+			pendingDms: (input, ctx) => pendingDms(ctx, input.resident),
 			createCityGroup: (input, ctx) => ({ group: createCityGroup(ctx, input.name, input.members) }),
 			removeCityGroup: (input, ctx) => {
 				removeCityGroup(ctx, input.group);
@@ -44,19 +61,40 @@ export const channels = defineMechanic(channelsHead, (kit) => ({
 			},
 		}),
 	],
-	tools: [...residentTools(kit), ...gamemakerTools(kit)],
+	tools: [...residentTools(kit), defyTool(kit), ...gamemakerTools(kit)],
 	listeners: [
-		kit.listen(ExileEvents, "exiled", (payload, ctx) => {
-			ctx.state.exiled.add(payload.agent);
+		// At once and first: code that runs right after an exile in the same call must see it (old `#exiled`).
+		kit.listen(
+			ExileEvents,
+			"exiled",
+			(payload, ctx) => {
+				ctx.state.exiled.add(payload.agent);
+			},
+			{ immediate: true, order: LISTENER_ORDER.exiled.channels },
+		),
+		// Only the whisperer of a story with a defiant whisperer may refuse the gamemaker's orders.
+		kit.listen(WhispersEvents, "whisperer_chosen", (payload, ctx) => {
+			if (ctx.options.whispererDefies) ctx.access.unlock(payload.agent, "defy");
 		}),
 	],
 	hooks: {
-		turnInputs,
+		// A fresh run starts with `defy` closed to everyone unless the story opens it to all.
+		runStarted: (ctx) => {
+			if (!ctx.options.defiance) for (const resident of ctx.residents.ids) ctx.access.lock(resident, "defy");
+		},
+		turnInputs: [
+			{ order: HOOK_ORDER.turnInputs.status, run: statusInputs },
+			{ order: HOOK_ORDER.turnInputs.channelsInbox, run: inboxInputs },
+			{ order: HOOK_ORDER.turnInputs.channelsDigest, run: digestInputs },
+		],
 		news,
 		turnOpened,
 		turnEnded,
-		runEnded: (_reason, ctx) => {
-			settleTreasuries(ctx);
+		runEnded: {
+			order: HOOK_ORDER.runEnded.channels,
+			run: (_reason, ctx) => {
+				settleTreasuries(ctx);
+			},
 		},
 	},
 	facts: {

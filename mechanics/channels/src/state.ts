@@ -24,11 +24,19 @@ export interface DmRecordState {
 	readonly to: string;
 	readonly minute: number;
 	answered: boolean;
-	readonly text: string;
+	/** Absent in a DM record of an old snapshot that kept none. */
+	readonly text?: string;
 	/** Minute the DM reached the recipient's turn input. */
 	deliveredMinute?: number;
 	/** The city's last message number at delivery: every message numbered above it came later. */
 	deliveredAfter?: number;
+}
+
+/** A note as the desk keeps it for budgets and repeats. */
+export interface NoteEntry {
+	readonly minute: number;
+	readonly to: string;
+	readonly text: string;
 }
 
 export interface Inbox {
@@ -49,6 +57,8 @@ export interface ChannelsState {
 	/** The board's newest player post when the block's inputs were built, and when the resident's turn opened. */
 	readonly blockStart: Map<string, number>;
 	readonly turnStart: Map<string, number>;
+	/** The gamemaker's notes, for budgets and repeats (see notes.ts). */
+	readonly notes: NoteEntry[];
 }
 
 export function newState(residents: readonly string[]): ChannelsState {
@@ -63,6 +73,7 @@ export function newState(residents: readonly string[]): ChannelsState {
 		seenBoard: new Map(),
 		blockStart: new Map(),
 		turnStart: new Map(),
+		notes: [],
 	};
 }
 
@@ -105,13 +116,22 @@ const DmSlice = Type.Object({
 	deliveredAfter: Type.Optional(Type.Integer()),
 });
 
-/** The version-0 slice: the old world fields as the converter cuts them. */
+const SeenSlice = Type.Object({ agent: Id, seq: Type.Integer() });
+const NoteSlice = Type.Object({ minute: Type.Integer(), to: Type.String(), text: Type.String() });
+
+/**
+ * The version-0 slice: the old world fields as the converter cuts them. Two fields live outside
+ * the old world and are copied in by the converter (docs/design/carve-requests-round2-T2.md): the
+ * arena's `seenBoard` (as `seenBoard`, a list of `{ agent, seq }`) and the gamemaker's `notes`.
+ */
 const V0 = Type.Object({
 	board: BoardSlice,
 	groups: GroupsSlice,
 	dms: Type.Array(DmSlice),
 	messages: Type.Optional(Type.Integer()),
 	inboxes: Type.Array(InboxSlice),
+	seenBoard: Type.Optional(Type.Array(SeenSlice)),
+	notes: Type.Optional(Type.Array(NoteSlice)),
 });
 
 export const ChannelsSlice = Type.Object({
@@ -122,15 +142,21 @@ export const ChannelsSlice = Type.Object({
 	messages: Type.Integer(),
 	inboxes: Type.Array(InboxSlice),
 	exiled: Type.Array(Id),
-	seen: Type.Array(Type.Object({ agent: Id, seq: Type.Integer() })),
+	seen: Type.Array(SeenSlice),
+	notes: Type.Array(NoteSlice),
 });
 export type ChannelsSlice = Static<typeof ChannelsSlice>;
 
-/** Version 0 to 1: the message counter is never below a number already in use; nobody is beyond the wall yet, nothing is seen. */
+/**
+ * Version 0 to 1: the message counter is never below a number already in use. The arena's
+ * `seenBoard` becomes `seen`, so `news()` matches the old arena after a resume. Nobody is told
+ * `exiled` here: who is beyond the wall is read from the exile mechanic (or the host's
+ * suspensions), see `isGone`.
+ */
 export function migrateFromV0(old: unknown): ChannelsSlice {
 	const slice = Parse(V0, old);
 	const used = Math.max(0, slice.board.posts.at(-1)?.seq ?? 0, slice.groups.seq, ...slice.dms.map((record) => record.id), slice.messages ?? 0);
-	return { board: slice.board, groups: slice.groups, dms: slice.dms, messages: used, inboxes: slice.inboxes, exiled: [], seen: [] };
+	return { board: slice.board, groups: slice.groups, dms: slice.dms, messages: used, inboxes: slice.inboxes, exiled: [], seen: slice.seenBoard ?? [], notes: slice.notes ?? [] };
 }
 
 export function saveState(state: ChannelsState): ChannelsSlice {
@@ -142,6 +168,7 @@ export function saveState(state: ChannelsState): ChannelsSlice {
 		inboxes: [...state.inboxes].map(([agent, inbox]) => ({ agent, mailbox: [...inbox.mailbox.snapshot()], notices: [...inbox.notices] })),
 		exiled: [...state.exiled],
 		seen: [...state.seenBoard].map(([agent, seq]) => ({ agent, seq })),
+		notes: state.notes.map((entry) => ({ ...entry })),
 	};
 }
 
@@ -151,7 +178,8 @@ export function loadState(data: ChannelsSlice, residents: readonly string[]): Ch
 	state.numbers.raiseTo(data.messages);
 	state.board.restore(data.board);
 	state.groups.restore(data.groups);
-	state.dms.push(...data.dms.map((record) => ({ ...record, text: record.text ?? "" })));
+	state.dms.push(...data.dms.map((record) => ({ ...record })));
+	state.notes.push(...data.notes.map((entry) => ({ ...entry })));
 	state.numbers.raiseTo(Math.max(0, ...state.dms.map((record) => record.id)));
 	for (const entry of data.inboxes) {
 		if (!known(entry.agent)) continue;

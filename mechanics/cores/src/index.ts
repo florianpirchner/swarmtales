@@ -8,7 +8,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { CoresApi } from "@swarmtales/mechanic-shared";
+import { CoresApi, HOOK_ORDER, WhispersEvents } from "@swarmtales/mechanic-shared";
 import { coreLine, dealCores, renderCore } from "./deal.ts";
 import { coresHead } from "./head.ts";
 import { CoreRecord } from "./spec.ts";
@@ -22,22 +22,48 @@ type Ctx = ContextOf<typeof coresHead>;
 const Slice = Type.Array(CoreRecord);
 const LegacySlice = Type.Object({ cores: Type.Optional(Slice) });
 
-/** Deals every resident's core once; a world that has them keeps them. */
+/** The story's whisperer: told by `whisperer_chosen`, or read from the log of a resumed run (it is not told again). */
+function whispererOf(ctx: Ctx): string | undefined {
+	if (ctx.state.whisperer !== undefined) return ctx.state.whisperer;
+	const chosen = ctx.log.ofType("whispers", "whisperer_chosen").at(0);
+	return chosen === undefined ? undefined : Parse(WhispersEvents.events.whisperer_chosen, chosen.payload).agent;
+}
+
+/** Deals every resident's core once; a world that has them keeps them. The whisperer plays the character the story gives it. */
 function deal(ctx: Ctx): void {
 	if (ctx.state.cores.size > 0) return;
-	for (const [agent, core] of dealCores(ctx.options, ctx.residents.ids, (...labels) => ctx.rng(...labels))) {
+	const whisperer = whispererOf(ctx);
+	const own = ctx.options.whispererCore;
+	for (const [agent, drawn] of dealCores(ctx.options, ctx.residents.ids, (...labels) => ctx.rng(...labels))) {
+		const core = own !== undefined && agent === whisperer ? own : drawn;
 		ctx.state.cores.set(agent, core);
 		ctx.emit("core_dealt", { agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) });
 	}
 }
 
 export const cores = defineMechanic(coresHead, (kit) => ({
-	// Wave 3.5 (carve-decisions.md): the methods are T2's to write in round 2.
-	services: [kit.provideSome(CoresApi, {})],
+	services: [
+		kit.provide(CoresApi, {
+			drivesOf: (input, ctx) => {
+				const core = ctx.state.cores.get(input.resident);
+				return core === undefined ? null : core.drives.map((entry) => entry.drive);
+			},
+			cuesOf: (input, ctx) => {
+				const core = ctx.state.cores.get(input.resident);
+				return (core?.drives ?? []).flatMap((entry) => ctx.options.drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
+			},
+		}),
+	],
+	listeners: [
+		kit.listen(WhispersEvents, "whisperer_chosen", (payload, ctx) => {
+			ctx.state.whisperer = payload.agent;
+		}),
+	],
 	hooks: {
-		runStarted: deal,
-		// A snapshot from before the cores deals them before the next minute is played (v09).
-		minuteStarted: deal,
+		// With the first act, after the whisperer is chosen and the start points are given, before its goals are dealt.
+		runStarted: { order: HOOK_ORDER.runStarted.cores, run: deal },
+		// A snapshot from before the cores deals them before the next minute is played (v09), before anything else of it.
+		minuteStarted: { order: HOOK_ORDER.minuteStarted.cores, run: deal },
 	},
 	facts: {
 		cores: kit.fact(Type.Record(Type.String(), Type.Object({ bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Type.String() })), drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Type.String() })), figure: Type.Optional(Type.String()) })), (view) => Object.fromEntries(view.state.cores)),

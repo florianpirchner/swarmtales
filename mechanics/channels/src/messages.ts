@@ -5,13 +5,14 @@
  */
 import type { ContextOf, ToolContextOf, ToolOutcome } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/kernel";
-import { CastApi, MarksApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
+import { CastApi, ExileApi, MarksApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import type { DmWindow } from "@swarmtales/mechanic-shared";
 import type { Static } from "typebox";
 import { MAX_BOARD_POST_LENGTH, type BoardPost, type BoardPostKind } from "./board.ts";
 import { CITY } from "./groups.ts";
 import type { channelsHead } from "./head.ts";
 import { MAX_DM_LENGTH, type MailboxEntry } from "./mailbox.ts";
+import { attempt } from "./optional.ts";
 import type { Inbox } from "./state.ts";
 
 export type Ctx = ContextOf<typeof channelsHead>;
@@ -25,9 +26,16 @@ export function selfOf(ctx: ToolCtx): string {
 	return ctx.resident ?? ctx.actor;
 }
 
-/** Whether a resident is beyond the wall: told by `exiled`, or suspended by any mechanic. */
+/**
+ * Whether a resident is beyond the wall, as the old `isExiled` counted: told by `exiled`, or
+ * exiled by the tribunal, the seal or the holdout according to the exile mechanic. A resident at
+ * the gate is still in the city. Without an exile mechanic the host's suspensions stand in (an
+ * old snapshot suspends exactly its exiled residents).
+ */
 export function isGone(ctx: Ctx, id: string): boolean {
-	return ctx.state.exiled.has(id) || !ctx.residents.mayAct(id);
+	if (ctx.state.exiled.has(id)) return true;
+	if (!ctx.has(ExileApi)) return !ctx.residents.mayAct(id);
+	return attempt(() => ctx.tryCall(ExileApi, "isExiled", { resident: id })) === true;
 }
 
 /** Residents still in the city, in the story's order. */
@@ -126,8 +134,10 @@ function dmToCast(ctx: ToolCtx, from: string, cast: string, text: string): ToolO
 	if (trimmed.length === 0 || trimmed.length > MAX_DM_LENGTH) return refuse("INVALID_TEXT", `1-${String(MAX_DM_LENGTH)} characters`);
 	if (!canAfford(ctx, from, "dm")) return refuse("NO_MARKS");
 	const number = ctx.state.numbers.next();
-	ctx.tryCall(CastApi, "receive", { from, cast, text: trimmed, number });
+	const received = ctx.tryCall(CastApi, "receive", { from, cast, text: trimmed, number });
 	const marks = spend(ctx, from, "dm");
+	// After the marks are spent (old `#dmToCast`): the script's `onCollect` rules react to a new sender, e.g. the feast seat.
+	if (received !== undefined && received.newSender.length > 0) ctx.tryCall(CastApi, "collected", { from, cast, into: received.newSender });
 	return reply(dmSent(ctx, number, cast, marks));
 }
 
