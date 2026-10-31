@@ -11,9 +11,11 @@ import { convertLegacySnapshot, legacyOwner, legacySink, parseSnapshot } from "@
 import { TOOL_NAMES, type AnyStory, type Host, type MechanicUse, type ToolName, type TurnTaker } from "@swarmtales/contracts";
 import { createHost, defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
 import { goals } from "@swarmtales/mechanic-goals";
+import { CoreMotivesOptions, motives } from "@swarmtales/mechanic-motives";
 import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { Type } from "typebox";
+import { Parse } from "typebox/value";
 import { goldenLine, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import { goalsOptionsOf, progressionOptions, promptLookup } from "../progression/harness.ts";
 import { puzzleOptions } from "../puzzles/harness.ts";
@@ -31,6 +33,8 @@ export interface TwinOptions {
 	readonly scriptTools?: readonly string[];
 	/** An old run snapshot (the parsed `snapshot-L7.json`) both sides resume from. */
 	readonly resume?: unknown;
+	/** The real core motives (T2) instead of the stand-in that reads the old world's: their `core_dealt` lines are compared too. */
+	readonly realMotives?: boolean;
 }
 
 /** The mechanics the twin loads; every other slice of a resumed snapshot gets an inert stand-in. */
@@ -39,7 +43,7 @@ const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "mo
 const OLD_TOOLS: Readonly<Record<string, ArenaTool>> = { getStatus, activeTools, getProblem, submitSolution, listAgents };
 
 /** The event types both sides write in the twin (the mechanics of T3 and the stand-ins' own lines). */
-const COMPARED = new Set(["fragments_dealt", "factors_dealt", "factor_revealed", "factor_burned", "level_contracted", "submission", "level_up", "tools_unlocked", "goal_dealt", "goal_resolved", "ledger_entry", "receipt_issued", "notice", "board_post"]);
+const BASE_COMPARED = ["fragments_dealt", "factors_dealt", "factor_revealed", "factor_burned", "level_contracted", "submission", "level_up", "tools_unlocked", "goal_dealt", "goal_resolved", "ledger_entry", "receipt_issued", "notice", "board_post"];
 
 /**
  * The story as the old world plays it in the twin: without the tribunal, the seal, the whisperer,
@@ -62,7 +66,7 @@ export interface Pair {
 }
 
 /** A tool no T3 mechanic offers, so a story can grant it: its reply is empty. */
-function dummyTools(names: readonly ToolName[]) {
+export function dummyTools(names: readonly ToolName[]) {
 	return defineMechanic({ id: "dummies", summary: "Twin tools.", options: Type.Object({}), state: () => undefined, events: {}, prompts: { "gamemaker/tools/notify": [] } }, (kit) => ({
 		tools: names.map((name) => kit.tool({ name, description: "gamemaker/tools/notify", parameters: Type.Object({}, { additionalProperties: true }), execute: () => reply("") })),
 	}));
@@ -74,6 +78,7 @@ export class Twin {
 	readonly host: Host;
 	readonly lines: LegacyLine[] = [];
 	readonly story: AnyStory;
+	readonly #compared: ReadonlySet<string>;
 	readonly ids: readonly string[];
 	#minute = 0;
 	#next = 0;
@@ -81,6 +86,7 @@ export class Twin {
 	constructor(options: TwinOptions) {
 		const { story } = options;
 		this.story = story;
+		this.#compared = new Set(options.realMotives === true ? [...BASE_COMPARED, "core_dealt"] : BASE_COMPARED);
 		this.ids = options.ids ?? ["A01", "A02", "A03", "A04", "A05", "A06"];
 		const seed = options.seed ?? 7;
 		const minutes = options.minutes ?? 30;
@@ -90,6 +96,8 @@ export class Twin {
 		if (converted !== undefined) {
 			this.ids = converted.host.residents.ids;
 			this.#next = converted.host.minute;
+			// The old world restores at the snapshot's minute, as the new host's `runResumed` phases run.
+			this.#minute = converted.host.minute;
 		}
 		this.world = new World({
 			story: withoutOtherMechanics(story),
@@ -120,7 +128,7 @@ export class Twin {
 				twinMarks(this.world).with(),
 				twinNames(this.world).with(),
 				twinExile(this.world).with(),
-				twinCoreMotives(this.world).with(),
+				options.realMotives === true ? motives.with(Parse(CoreMotivesOptions, story.coreMotives)) : twinCoreMotives(this.world).with(),
 				dummyTools(dummies).with(),
 				puzzles.with(puzzlesInput),
 				progression.with(progressionInput),
@@ -200,8 +208,8 @@ export class Twin {
 
 	/** Both logs, reduced to the compared types and the old line shape, in log order. */
 	logs(): { readonly old: readonly string[]; readonly now: readonly string[] } {
-		const old = this.oldLog.events.map((event) => Object.fromEntries(Object.entries(event))).filter((line) => typeof line.type === "string" && COMPARED.has(line.type));
-		const now = this.lines.filter((line) => typeof line.type === "string" && COMPARED.has(line.type));
+		const old = this.oldLog.events.map((event) => Object.fromEntries(Object.entries(event))).filter((line) => typeof line.type === "string" && this.#compared.has(line.type));
+		const now = this.lines.filter((line) => typeof line.type === "string" && this.#compared.has(line.type));
 		return { old: old.map(bare), now: now.map(bare) };
 	}
 
@@ -239,5 +247,6 @@ export class Twin {
 }
 
 function bare(line: LegacyLine): string {
-	return JSON.stringify(Object.fromEntries(Object.entries(line).filter(([key]) => key !== "seq" && key !== "minute" && key !== "at")));
+	// The minute stays: a line written one minute late is a difference (round 3, must-fix 8).
+	return JSON.stringify(Object.fromEntries(Object.entries(line).filter(([key]) => key !== "seq" && key !== "at")));
 }

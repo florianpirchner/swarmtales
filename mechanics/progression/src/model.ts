@@ -46,6 +46,7 @@ export const PROGRESSION_PROMPTS = {
 	"tools/submitSolution": [],
 	"tools/listAgents": [],
 	"tools/activeTools": [],
+	"replies/locked": [],
 	"replies/submit-correct": ["reward", "nextLevel", "receipt"],
 	"replies/submit-correct-held": ["reward", "receipt", "level"],
 	"replies/submit-incorrect": ["penalty", "nextPenalty", "attempts"],
@@ -126,11 +127,13 @@ const SliceFields = {
 	endedActs: Optional(Type.Array(Int)),
 };
 
-/** The old world's fields as the converter cut them out (every optional one may be absent). */
-export const ProgressionSliceV0 = Type.Object(SliceFields);
+const Delivered = Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean() }));
+
+/** The old world's fields as the converter cut them out (every optional one may be absent), and the arena's `delivered` when the file had it (R2-D16). */
+export const ProgressionSliceV0 = Type.Object({ ...SliceFields, delivered: Optional(Delivered) });
 export const ProgressionSlice = Type.Object({
 	...SliceFields,
-	delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean() })),
+	delivered: Delivered,
 	locksStale: Type.Boolean(),
 });
 export type ProgressionSliceData = Static<typeof ProgressionSlice>;
@@ -178,7 +181,8 @@ export function saveState(state: ProgressionState): ProgressionSliceData {
  * stays released only while it is the same door (old world.ts:3100-3103).
  */
 export function loadState(data: ProgressionSliceData, options: Pick<Options, "lastLevel" | "levels" | "holdAfter" | "startLevel">): ProgressionState {
-	const door = data.door ?? (data.locksStale ? doorIn(options) : undefined);
+	// A shut door stays shut; a snapshot that names none takes this run's own (old `state.door ?? holdAfter`, world.ts:3100).
+	const door = data.door ?? doorIn(options);
 	return {
 		competitors: new Map(
 			data.competitors.map((entry): [string, Competitor] => [
@@ -191,16 +195,29 @@ export function loadState(data: ProgressionSliceData, options: Pick<Options, "la
 		actStarts: new Map((data.actStarts ?? (data.locksStale ? [{ fromLevel: options.startLevel, minute: 0 }] : [])).map((entry) => [entry.fromLevel, entry.minute])),
 		endedActs: new Set(data.endedActs ?? []),
 		offences: new Map((data.offences ?? []).map((entry) => [entry.agent, { wrong: entry.wrong, blames: entry.blames }])),
-		delivered: new Map(data.delivered.map((entry) => [entry.agent, { level: entry.level, finished: entry.finished }])),
+		delivered: new Map(deliveredIn(data, options).map((entry) => [entry.agent, { level: entry.level, finished: entry.finished }])),
 		locksStale: data.locksStale,
 	};
 }
 
 /**
- * Version 0 to 1: the arena's memory of the tasks shown is not in this slice, so the task of the
- * level a resident stands on counts as shown (as it was at every cut after a round), and the locks
- * are rebuilt at the next minute (the converted snapshot carries none).
+ * The tasks the arena had told, as it restored them (arena.ts:317-322): a story with more or fewer
+ * levels than the snapshot's run, or a resident the run does not have, is told again.
+ */
+function deliveredIn(data: ProgressionSliceData, options: Pick<Options, "lastLevel" | "levels">): ProgressionSliceData["delivered"] {
+	const levels = new Map(data.competitors.map((entry) => [entry.agent, entry.level]));
+	return data.delivered.filter((entry) => {
+		const level = levels.get(entry.agent);
+		return level !== undefined && entry.finished === level > lastLevelIn(options);
+	});
+}
+
+/**
+ * Version 0 to 1: the arena's memory of the tasks shown is the converter's `delivered` (R2-D16);
+ * a file that has none (older than the arena's `delivered`) counts the task of the level a resident
+ * stands on as shown, as it was at every cut after a round. The locks are rebuilt when the run
+ * resumes (the converted snapshot carries none).
  */
 export function migrateV0(old: Static<typeof ProgressionSliceV0>): ProgressionSliceData {
-	return { ...old, delivered: old.competitors.map((entry) => ({ agent: entry.agent, level: entry.level, finished: false })), locksStale: true };
+	return { ...old, delivered: old.delivered ?? old.competitors.map((entry) => ({ agent: entry.agent, level: entry.level, finished: false })), locksStale: true };
 }

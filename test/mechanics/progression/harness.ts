@@ -2,14 +2,17 @@
  * Support of the progression tests: the options a story gives the mechanic, the host with the
  * stand-ins for ledger, channels and receipts, and the replay of a golden log's progression calls.
  */
-import { resolve } from "node:path";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
-import { createPromptLookup } from "@swarmtales/prompts";
+import { createPromptLookup, mechanicPromptFolders } from "@swarmtales/prompts";
 import type { goals } from "@swarmtales/mechanic-goals";
 import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
+import { names } from "@swarmtales/mechanic-names";
+import { standoffTribunal } from "@swarmtales/mechanic-standoff-tribunal";
+import { ExileApi, NotesApi } from "@swarmtales/mechanic-shared";
 import { goldenCalls, type GoldenCall, type LegacyLine } from "@swarmtales/testkit";
+import { provider } from "../exile/support/provider.ts";
 import { GOLDEN_NAMES, goldenLog, minutesOf, puzzleOptions, RESIDENTS, SEED, storyOf, type GoldenName } from "../puzzles/harness.ts";
 import { channelsStandIn, ledgerStandIn, marksStandIn, receiptsStandIn, type Notice, type StatusFeed } from "./standins.ts";
 
@@ -57,14 +60,30 @@ export function goalsOptionsOf(story: AnyStory): GoalsInput | undefined {
 
 /** The prompt files of the mechanic, then the library. */
 export function promptLookup() {
-	return createPromptLookup({ mechanics: { progression: resolve(import.meta.dirname, "../../../mechanics/progression/prompts") } });
+	return createPromptLookup({ mechanics: mechanicPromptFolders() });
+}
+
+/**
+ * The real mechanics a task and a status line read of other teams: the names (T1: the line under a
+ * task while a resident may choose, and the lock of `chooseName`) and the holdout tribunal (T4b: the
+ * rule under every task). Their own surroundings are stand-ins: an exile that keeps everybody in the
+ * city and a notes desk that lets every text through.
+ */
+export function realParts(story: AnyStory, withExile = true, withNames = true): readonly MechanicUse[] {
+	const spec = withNames ? story.names : undefined;
+	return [
+		...(withExile ? [provider("exile", ExileApi, { alive: () => [...RESIDENTS], standing: () => ({ kind: "alive" as const }), isExiled: () => false }).with()] : []),
+		provider("notes", NotesApi, { check: ({ text }) => ({ ok: true as const, text: text.trim() }), record: () => null }).with(),
+		...(spec === undefined ? [] : [names.with({ untilMinute: spec.untilMinute, announcement: spec.announcement, fallbackWords: [...spec.fallbackWords], reserved: [...Object.keys(story.cast), story.city] })]),
+		...(story.holdout === undefined ? [] : [standoffTribunal.with(story.holdout)]),
+	];
 }
 
 export function standInUses(golden: readonly LegacyLine[], notices: Notice[], feed?: StatusFeed) {
 	return [ledgerStandIn(feed).with(), channelsStandIn(notices, feed).with(), receiptsStandIn(golden).with()];
 }
 
-export function progressionHost(name: GoldenName, notices: Notice[], more: readonly MechanicUse[] = [], scriptTools: readonly string[] = [], feed?: StatusFeed): Host {
+export function progressionHost(name: GoldenName, notices: Notice[], more: readonly MechanicUse[] = [], scriptTools: readonly string[] = [], feed?: StatusFeed, grantMore: readonly string[] = []): Host {
 	const story = defineCoreStory({
 		id: name,
 		seed: SEED,
@@ -73,11 +92,13 @@ export function progressionHost(name: GoldenName, notices: Notice[], more: reado
 		mechanics: [
 			...standInUses(goldenLog(name), notices, feed),
 			marksStandIn(storyOf(name)).with(),
+			// The Whispers golden was recorded without the names (the story declares them, the run turned them off).
+			...realParts(storyOf(name), !more.some((use) => use.mechanic.id === "exile"), goldenLog(name).some((line) => line.type === "name_chosen")),
 			puzzles.with(puzzleOptions(storyOf(name))),
 			progression.with(progressionOptions(storyOf(name))),
 			...more,
 		],
-		grants: { resident: ["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"], script: [...scriptTools] },
+		grants: { resident: ["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools", ...grantMore], script: [...scriptTools] },
 	});
 	const host = createHost({ story, prompts: promptLookup() });
 	host.start();
@@ -158,21 +179,28 @@ export async function replayStatus(host: Host, name: GoldenName, feed: StatusFee
 	return outcomes;
 }
 
-/**
- * Plays the golden's progression calls at each resident's own turn and returns the task each turn
- * opened with (the note of kind `task`), by `minute:resident:pass`.
- */
-export async function replayTurns(host: Host, name: GoldenName): Promise<ReadonlyMap<string, string>> {
+export interface TurnParts {
+	/** The task each turn opened with (the note of kind `task`), by `minute:resident:pass`. */
+	readonly tasks: ReadonlyMap<string, string>;
+	/** The status parts progression wrote in each turn, in order, by the same key. */
+	readonly status: ReadonlyMap<string, readonly string[]>;
+}
+
+/** Plays the golden's progression calls at each resident's own turn and returns what progression put in each turn's inputs. */
+export async function replayTurns(host: Host, name: GoldenName): Promise<TurnParts> {
 	const calls = progressionCalls(name);
 	const tasks = new Map<string, string>();
+	const status = new Map<string, readonly string[]>();
 	const played = new Set<string>();
 	await host.run(async (turn) => {
+		const key = `${turn.minute}:${turn.resident}:${turn.pass}`;
 		const task = turn.inputs.find((note) => note.kind === "task");
-		if (task !== undefined) tasks.set(`${turn.minute}:${turn.resident}:${turn.pass}`, task.text);
+		if (task !== undefined) tasks.set(key, task.text);
+		status.set(key, turn.inputs.filter((note) => note.kind === "status" && note.source === "progression").map((note) => note.text));
 		const own = `${turn.minute}:${turn.resident}`;
 		if (played.has(own)) return;
 		played.add(own);
 		for (const call of calls.filter((entry) => entry.minute === turn.minute && entry.agent === turn.resident)) await turn.call(call.tool, call.args);
 	});
-	return tasks;
+	return { tasks, status };
 }

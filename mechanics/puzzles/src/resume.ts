@@ -2,8 +2,8 @@
  * What a resumed run does with the levels of its snapshot (old `World#restore` of
  * packages/engine/src/world.ts): a level nobody reached yet is dealt again from the story, and
  * announced when it differs from the saved deal; a level somebody reached must still match the
- * story; a level not saved and not behind a shut door is dealt. The host writes no event on resume,
- * so this runs in the first `minuteStarted` after it.
+ * story; a level not saved and not behind a shut door is dealt. It runs in `runResumed`, after the
+ * progression mechanic's door, act starts and locks, at the snapshot's minute.
  */
 import { ProgressionApi } from "@swarmtales/mechanic-shared";
 import { announceDeal, drawLevel, lastLevelOf } from "./deal.ts";
@@ -24,8 +24,6 @@ function checkReached(ctx: PuzzlesCtx, level: number): void {
 }
 
 export function repairAfterResume(ctx: PuzzlesCtx): void {
-	if (!ctx.state.resumed) return;
-	ctx.state.resumed = false;
 	const reached = Math.max(0, ...ctx.residents.ids.map((resident) => ctx.tryCall(ProgressionApi, "levelOf", { resident }) ?? 0));
 	const door = ctx.tryCall(ProgressionApi, "door", {}) ?? null;
 	for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) {

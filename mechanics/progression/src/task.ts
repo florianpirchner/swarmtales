@@ -1,10 +1,10 @@
 /**
  * The task of a level and the status line's frame (old `problemFor`, `#renderTask`, `statusLine` and
  * `Arena#inputsFor` of packages/engine). The task text is the story's template filled with the
- * puzzle's values; names, marks and the holdout rule are not appended here (docs/design/
- * carve-requests-T3.md, request 9).
+ * puzzle's values, then the names line, the holdout tribunal's rule and the marks terms, in that order
+ * (old `#renderTask`, world.ts:1588; D-3, R2-D10).
  */
-import { MarksApi, NamesApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
+import { MarksApi, NamesApi, PuzzlesApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx } from "./head.ts";
 import { competitorOf, definitionOf, isFinished, isOpenOnClock, isPlayable, levelOf, nextBlamePenalty, nextPenalty, opensAt, ranking } from "./levels.ts";
 import { renderTemplate } from "./rules.ts";
@@ -40,7 +40,7 @@ function renderTask(ctx: ProgressionCtx, agent: string, level: number): string {
 		penalty: String(nextPenalty(ctx, agent)),
 		blamePenalty: String(nextBlamePenalty(ctx, agent)),
 	});
-	return withAddenda(text, [nameLine(ctx, agent), marksLine(ctx, level)]);
+	return withAddenda(text, [nameLine(ctx, agent), holdoutLine(ctx, agent), marksLine(ctx, level)]);
 }
 
 /** The line a mechanic of the run appends under a task, or null. */
@@ -48,11 +48,16 @@ function nameLine(ctx: ProgressionCtx, agent: string): string | null {
 	return ctx.tryCall(NamesApi, "taskLine", { resident: agent }) ?? null;
 }
 
+/** The holdout tribunal's rule under every task while it plays (old `#withHoldoutRule`). */
+function holdoutLine(ctx: ProgressionCtx, agent: string): string | null {
+	return ctx.tryCall(StandoffTribunalApi, "taskLine", { resident: agent }) ?? null;
+}
+
 function marksLine(ctx: ProgressionCtx, level: number): string | null {
 	return ctx.tryCall(MarksApi, "taskLine", { level }) ?? null;
 }
 
-/** Appends each line under the text, each after a `trimEnd` (D-3; the holdout rule is request 1 of round 2). */
+/** Appends each line under the text, each after a `trimEnd` (D-3). */
 function withAddenda(text: string, lines: readonly (string | null)[]): string {
 	return lines.reduce<string>((joined, line) => (line === null ? joined : `${joined.trimEnd()}\n${line}`), text);
 }

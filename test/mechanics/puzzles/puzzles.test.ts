@@ -19,8 +19,9 @@ describe("puzzles: the golden gate", () => {
 		const host = createHost({ story });
 		const lines = collect(host);
 		host.start();
-		await host.playMinute(idleAgent);
-		const expected = ownedBy(goldenLog(name), ["puzzles"]).filter((line) => line.includes('"minute":0}'));
+		await host.run(idleAgent);
+		// Every puzzles line of the golden except the factor reveals, which the script drives (next test).
+		const expected = ownedBy(goldenLog(name), ["puzzles"]).filter((line) => !line.includes("factor_revealed"));
 		expect(expected.length).toBeGreaterThan(0);
 		expect(compareGolden(expected, lines.owned("puzzles"))).toBeUndefined();
 	});

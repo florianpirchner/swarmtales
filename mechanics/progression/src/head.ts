@@ -6,7 +6,7 @@
 import { Type } from "typebox";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, LedgerApi, MarksApi, NamesApi, ProgressionApi, ReceiptsApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, LedgerApi, MarksApi, NamesApi, ProgressionApi, PuzzlesApi, ReceiptsApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { doorIn, freshState, PROGRESSION_EVENTS, PROGRESSION_PROMPTS, ProgressionOptions, type ProgressionState } from "./model.ts";
 
 export const progressionHead = defineHead({
@@ -17,7 +17,7 @@ export const progressionHead = defineHead({
 	events: { ...PROGRESSION_EVENTS },
 	provides: [ProgressionApi],
 	requires: [PuzzlesApi, LedgerApi, ChannelsApi, ReceiptsApi],
-	uses: [ExileApi, MarksApi, NamesApi],
+	uses: [ExileApi, MarksApi, NamesApi, StandoffTribunalApi],
 });
 
 export const progressionWorkHead = defineHead({
@@ -29,7 +29,7 @@ export const progressionWorkHead = defineHead({
 	prompts: PROGRESSION_PROMPTS,
 	provides: [ProgressionApi],
 	requires: [PuzzlesApi, LedgerApi, ChannelsApi, ReceiptsApi],
-	uses: [ExileApi, MarksApi, NamesApi],
+	uses: [ExileApi, MarksApi, NamesApi, StandoffTribunalApi],
 });
 
 export type ProgressionCtx = ContextOf<typeof progressionWorkHead>;

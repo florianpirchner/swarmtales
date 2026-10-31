@@ -99,8 +99,6 @@ export interface PuzzlesState {
 	/** Per level, the exiled whose roles pass on. */
 	readonly exclusions: Map<number, Set<string>>;
 	readonly planner: TeamPlanner;
-	/** True for a state loaded from a snapshot until the first minute repaired its levels (not saved). */
-	resumed: boolean;
 }
 
 const TeamSchema = Type.Object({ members: Ids, leader: Id });
@@ -150,5 +148,5 @@ export function loadLevels(data: PuzzlesSliceData, planner: TeamPlanner): Puzzle
 		}
 	}
 	const sets = (list: Static<typeof Agents>): Map<number, Set<string>> => new Map(list.map((entry) => [entry.level, new Set(entry.agents)]));
-	return { levels, cityFactors: sets(data.cityFactors), exclusions: sets(data.exclusions), planner, resumed: true };
+	return { levels, cityFactors: sets(data.cityFactors), exclusions: sets(data.exclusions), planner };
 }
