@@ -120,7 +120,9 @@ export function blameTool(kit: Kit) {
 			question: Question,
 			answer: Answer,
 			// The city's own checks settle a blame without the judge: nothing is asked, nothing is logged.
+			// A run without a judge answers before any check, so a blame costs nothing there (old blame.ts:20, R2-D3).
 			ask: ({ dm, accused, claim }, ctx) => {
+				if (!ctx.roles.has("judge")) return refuse("JUDGE_ABSENT", ctx.prompt("replies/judge-absent", {}));
 				const self = ctx.resident;
 				if (self === undefined) return refuse("UNKNOWN_AGENT");
 				const opened = open(ctx, self, accused, dm, claim);
@@ -141,7 +143,7 @@ export function blameTool(kit: Kit) {
 			const opened = open(ctx, caller, accused, dm, claim);
 			if (!isChecked(opened)) return opened;
 			if (opened.kind === "rejected") return reject(ctx, caller, accused, dm, claim, opened.reason, {});
-			if (!consulted.ok) return refuse(consulted.reason === "absent" ? "JUDGE_ABSENT" : "JUDGE_FAILED", ctx.prompt(consulted.reason === "absent" ? "replies/judge-absent" : "replies/judge-failed", {}));
+			if (!consulted.ok) return refuse("JUDGE_FAILED", ctx.prompt("replies/judge-failed", {}));
 			const said = judgeSays(consulted.answer);
 			if (!consulted.answer.deniesReceipt) {
 				const reason = `the city's judge finds that ${claimPlace(opened.claim)} by ${accused} does not deny receiving DM #${String(opened.delivered.number)}`;

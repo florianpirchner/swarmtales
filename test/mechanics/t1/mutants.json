@@ -1,0 +1,93 @@
+[
+	{
+		"id": "T1-1",
+		"file": "mechanics/receipts/src/blame.ts",
+		"find": "if (claim <= record.deliveredAfter)",
+		"replace": "if (claim < record.deliveredAfter)",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-2",
+		"file": "mechanics/receipts/src/blame.ts",
+		"find": "if (!facts.couldRead(group.group, caller, number))",
+		"replace": "if (false as boolean)",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-3",
+		"file": "mechanics/receipts/src/blame.ts",
+		"find": "if (dm.deliveredMinute === undefined) return",
+		"replace": "if (false as boolean) return",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-4",
+		"file": "mechanics/receipts/src/blame-tool.ts",
+		"find": "if (found !== undefined) return { points: found.points, rank: found.rank };",
+		"replace": "if (found !== undefined) return { points: found.points + 7, rank: found.rank + 1 };",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-5",
+		"file": "mechanics/receipts/src/issue.ts",
+		"find": "if (minRun !== undefined && found.ok &&",
+		"replace": "if (false as boolean && minRun !== undefined && found.ok &&",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-6",
+		"file": "mechanics/whispers/src/view.ts",
+		"find": "ctx.tryCall(ExileApi, \"isExiled\", { resident }) !== true;",
+		"replace": "(ctx.tryCall(ExileApi, \"standing\", { resident })?.kind ?? \"alive\") === \"alive\";",
+		"tests": ["test/mechanics/whispers"]
+	},
+	{
+		"id": "T1-7",
+		"file": "mechanics/whispers/src/duty-notice.ts",
+		"find": "typeof agent !== \"string\" || spec === undefined || !inCity(ctx, agent)) return;",
+		"replace": "typeof agent !== \"string\" || spec === undefined) return;",
+		"tests": ["test/mechanics/whispers"]
+	},
+	{
+		"id": "T1-8",
+		"file": "mechanics/whispers/src/index.ts",
+		"find": "roundsOf(ctx), ctx.minute - 1,",
+		"replace": "roundsOf(ctx), ctx.minute,",
+		"tests": ["test/mechanics/whispers"]
+	},
+	{
+		"id": "T1-9",
+		"file": "mechanics/whispers/src/vote.ts",
+		"find": "if (saved.round === undefined) {",
+		"replace": "if (false as boolean) {",
+		"tests": ["test/mechanics/whispers"]
+	},
+	{
+		"id": "T1-10",
+		"file": "mechanics/names/src/index.ts",
+		"find": "if (!ctx.state.active || ctx.tryCall(ExileApi, \"isExiled\", { resident }) === true) return [];",
+		"replace": "if (!ctx.state.active) return [];",
+		"tests": ["test/mechanics/names"]
+	},
+	{
+		"id": "T1-11",
+		"file": "mechanics/names/src/book.ts",
+		"find": "name === undefined || keep(token) ||",
+		"replace": "name === undefined ||",
+		"tests": ["test/mechanics/names"]
+	},
+	{
+		"id": "T1-12",
+		"file": "mechanics/receipts/src/blame-tool.ts",
+		"find": "if (!ctx.roles.has(\"judge\")) return refuse(\"JUDGE_ABSENT\", ctx.prompt(\"replies/judge-absent\", {}));",
+		"replace": "",
+		"tests": ["test/mechanics/receipts"]
+	},
+	{
+		"id": "T1-14",
+		"file": "mechanics/receipts/src/blame.ts",
+		"find": "if (record.text === undefined) return",
+		"replace": "if (false as boolean) return",
+		"tests": ["test/mechanics/receipts"]
+	}
+]

@@ -8,19 +8,16 @@
 import { describe, expect, it } from "vitest";
 import type { RoleCaller } from "@swarmtales/contracts";
 import { defineCoreStory } from "@swarmtales/kernel";
-import { ledger } from "@swarmtales/mechanic-ledger";
-import { marks } from "@swarmtales/mechanic-marks";
-import { receipts } from "@swarmtales/mechanic-receipts";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import type { DeliveryJudge, DenialQuestion } from "@swarmtales/roles";
 import { socialLevels, tinyStory } from "../../helpers/stories.ts";
-import { channelsStandIn, ids, jsonOf, recordOf } from "../t1/support.ts";
-import { courier, newOwned, oldNotices, oldOwned, playNew, playOld } from "../t1/differential.ts";
-import { exileStandIn, progressionStandIn } from "../t1/stand-ins.ts";
+import { ids, jsonOf, recordOf } from "../t1/support.ts";
+import { newOwned, oldNotices, oldOwned, playNew, playOld } from "../t1/differential.ts";
+import { realCity } from "../t1/city.ts";
 
-const LEVELS = socialLevels(["transferPoints", "showReceipt", "sendDM", "readBoard", "blame"]);
+const LEVELS = socialLevels(["transferPoints", "showReceipt", "sendDM", "readBoard", "postBoard", "blame"]);
 const MARKS = { fromLevel: 1, perLevel: 2, prices: { board: 1, group: 1, dm: 0, receipt: 1 } };
 
 const give = (target: string, amount: number, memo?: string): PlannedCall => ({ tool: "transferPoints", params: memo === undefined ? { target, amount } : { target, amount, memo } });
@@ -71,21 +68,18 @@ describe.each([
 		const story = tinyStory({ agents: 4, levels: LEVELS, rules: { blame: { penalty: [5, 8] }, marks: MARKS } });
 		const judge = oldJudge(answers);
 		const old = await playOld({ story, agents: 4, minutes: 5, plan, judge });
-		const channels = channelsStandIn();
 		const questions: unknown[] = [];
 		const definition = defineCoreStory({
 			id: "receipts-differential",
 			seed: 3,
 			minutes: 5,
 			residents: ids(4),
-			mechanics: [ledger.with({ startPoints: 10 }), channels.use, exileStandIn([]), progressionStandIn({ ladder: [5, 8] }).use, marks.with({ rules: MARKS }), receipts.with(), courier(channels.log)],
-			grants: { resident: ["transferPoints", "sendDM", "showReceipt", "blame"] },
+			mechanics: realCity(story),
+			grants: { resident: ["transferPoints", "sendDM", "showReceipt", "blame", "readBoard", "postBoard"] },
 			turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 		});
 		const fresh = await playNew({ story: definition, prompts: createPromptLookup(), roles: { judge: newJudge(answers, questions) } }, plan);
-		// `sendDM` is channels' (team T2) and answered by a stand-in here: only its acknowledgement is compared.
-		const ack = (reply: string): string => (reply.startsWith("false|sent") ? "false|sent" : reply);
-		for (const [at, replies] of old.replies) expect(fresh.replies.get(at)?.map(ack), at).toEqual(replies.map(ack));
+		for (const [at, replies] of old.replies) expect(fresh.replies.get(at), at).toEqual(replies);
 		expect([...fresh.replies.keys()].sort()).toEqual([...old.replies.keys()].sort());
 		expect(newOwned(fresh, ["receipts"])).toEqual(oldOwned(old, ["receipts"]));
 		expect(newOwned(fresh, ["ledger"])).toEqual(oldOwned(old, ["ledger"]));

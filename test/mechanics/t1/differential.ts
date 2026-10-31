@@ -54,7 +54,7 @@ export function replyText(outcome: CallRecord["outcome"]): string {
 }
 
 /** Plays the plan through the old engine: one scripted model response per resident and minute. */
-export async function playOld(spec: { readonly story: AnyStory; readonly agents: number; readonly minutes: number; readonly plan: PlanFn; readonly judge?: DeliveryJudge; readonly names?: boolean; readonly figureDirection?: number; readonly seed?: number }): Promise<OldSide> {
+export async function playOld(spec: { readonly story: AnyStory; readonly agents: number; readonly minutes: number; readonly plan: PlanFn; readonly judge?: DeliveryJudge; readonly names?: boolean; readonly figureDirection?: number; readonly seed?: number; readonly blockSize?: number }): Promise<OldSide> {
 	const ids = Array.from({ length: spec.agents }, (_unused, index) => `A${String(index + 1).padStart(2, "0")}`);
 	const fixture = createFixture({
 		story: spec.story,
@@ -64,6 +64,7 @@ export async function playOld(spec: { readonly story: AnyStory; readonly agents:
 		...(spec.names === undefined ? {} : { names: spec.names }),
 		...(spec.figureDirection === undefined ? {} : { figureDirection: spec.figureDirection }),
 		...(spec.seed === undefined ? {} : { seed: spec.seed }),
+		...(spec.blockSize === undefined ? {} : { blockSize: spec.blockSize }),
 		script: () =>
 			Object.fromEntries(
 				ids.map((agent) => [

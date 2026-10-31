@@ -109,7 +109,7 @@ describe("showReceipt", () => {
 
 	it("shows how many receipts a resident holds in its status line", async () => {
 		const seen: string[] = [];
-		const { options } = setup();
+		const { options } = setup({ judge: judge({ deniesReceipt: true }) });
 		await playStory(options, scriptedAgent((turn) => {
 			if (turn.resident === "A01") seen.push(`${String(turn.minute)}: ${turn.inputs.map((note) => note.text).filter((text) => /receipts?$/.test(text)).join("|")}`);
 			return plan(turn);
