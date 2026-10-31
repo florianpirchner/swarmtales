@@ -7,6 +7,10 @@
  * action (reply or refusal code and detail, `TOOL_LOCKED` by the old `enabledTools`), the status
  * parts of every turn and who left the city.
  */
+import { readFileSync } from "node:fs";
+import { Type } from "typebox";
+import { Parse } from "typebox/value";
+import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import { competitorIds, createHost, type HostOptions } from "@swarmtales/kernel";
 import { Tribunal, type TribunalEvent, type TribunalSnapshot } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
@@ -18,6 +22,9 @@ import { tribunal } from "@swarmtales/mechanic-tribunal";
 import { TestCity, standIns } from "../../exile/support/city.ts";
 import { runProbe, storyOptions } from "../../exile/support/host.ts";
 import { sectionOfOld } from "./section.ts";
+
+/** The 6-agent Act I checkpoint, the file the `restore` scenarios are written into. */
+const BASE = new URL("../../../../examples/cityofkeys-act1-06a-04/snapshot-L7.json", import.meta.url);
 
 export type Action =
 	| { readonly vote: readonly [string, string] }
@@ -313,20 +320,24 @@ function storyOf(scenario: Scenario, ids: readonly string[], city: TestCity): Ho
 	});
 }
 
+const OldFile = Type.Object({ world: Type.Object({}, { additionalProperties: true }) }, { additionalProperties: true });
+
 /**
- * The new host resumed from the old state the way `convertLegacySnapshot` hands it over: the
- * tribunal's `gates`, `exiled` and `ransomed` as the exile's version-0 slice, the rest as the
- * tribunal's, and the exiled suspended by `exile`.
+ * The new host resumed from the old state through `convertLegacySnapshot`: the scenario's old
+ * tribunal state goes into an old run file (the 6-agent Act I checkpoint, whose residents are the
+ * scenario's), the converter splits it into the exile's and the tribunal's version-0 slices and
+ * suspends the exiled, and the new host takes those slices and suspensions over its own.
  */
 function resumed(host: Host, scenario: Scenario, options: HostOptions): Host {
 	const old = scenario.restore;
 	if (old === undefined) return host;
-	const { gates, exiled, ransomed, ...rest } = old;
+	const file = Parse(OldFile, JSON.parse(readFileSync(BASE, "utf8")));
+	const converted = convertLegacySnapshot({ ...file, world: { ...file.world, tribunal: old } }, {}, "the Act I checkpoint with the scenario's tribunal");
+	const { exile: exileSlice, tribunal: tribunalSlice } = converted.host.mechanics;
 	const snapshot = host.snapshot();
-	const mechanics = { ...snapshot.mechanics, exile: { version: 0, data: { tribunal: { gates, exiled, ransomed } } }, tribunal: { version: 0, data: { tribunal: rest } } };
-	const suspensions = Object.fromEntries(exiled.map((id) => [id, ["exile"]]));
+	const mechanics = { ...snapshot.mechanics, ...(exileSlice === undefined ? {} : { exile: exileSlice }), ...(tribunalSlice === undefined ? {} : { tribunal: tribunalSlice }) };
 	const events = host.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
-	return createHost({ ...options, resume: { snapshot: { ...snapshot, mechanics, residents: { ...snapshot.residents, suspensions } }, events } });
+	return createHost({ ...options, resume: { snapshot: { ...snapshot, mechanics, residents: { ...snapshot.residents, suspensions: converted.host.residents.suspensions } }, events } });
 }
 
 async function actNew(host: Host, city: TestCity, minute: number, action: Action, outcomes: string[]): Promise<void> {

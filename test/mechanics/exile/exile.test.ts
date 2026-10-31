@@ -163,9 +163,8 @@ describe("exile and tribunal: snapshots", () => {
 			mechanics: [...standIns(city, "-stand-in"), ...standInsFor(converted.host, ["exile", "tribunal"], { events: SHARED_EVENTS }), exile.with(), tribunal.with(spec())],
 		});
 		// A file written before the tribunal (06a-01) has no `world.tribunal`, and the converter then gives neither the exile nor
-		// the tribunal a slice; the old world started a fresh tribunal. Until request 5 lands, the test adds the empty version-0 slices.
-		const mechanics = { exile: { version: 0, data: {} }, tribunal: { version: 0, data: {} }, ...converted.host.mechanics };
-		const host = createHost({ ...options, resume: { snapshot: { ...converted.host, mechanics }, events: converted.events } });
+		// the tribunal a slice; the old world started a fresh tribunal, and the host loads both from the empty version-0 slice (R2-D2).
+		const host = createHost({ ...options, resume: { snapshot: converted.host, events: converted.events } });
 		expect(converted.host.mechanics.tribunal === undefined).toBe(name === "cityofkeys-act1-06a-01");
 		const before = host.snapshot().mechanics;
 		expect(before.exile?.data).toEqual({ gates: [], gone: [], ransomed: [] });
