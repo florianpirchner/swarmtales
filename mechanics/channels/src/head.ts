@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { CastApi, ChannelsApi, ChannelsEvents, LedgerApi, MarksApi, NamesApi, NotesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
+import { CastApi, ChannelsApi, ChannelsEvents, CoresApi, ExileApi, GoalsApi, LedgerApi, MarksApi, NamesApi, NotesApi, ProgressionApi, PuzzlesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { newState } from "./state.ts";
 
 const Id = Type.String();
@@ -22,6 +22,10 @@ const events = {
 	treasury_withdrawal: Type.Object({ group: Type.String(), treasurer: Id, to: Id, amount: Type.Number(), receipt: Type.String() }),
 	treasurer_set: Type.Object({ group: Type.String(), treasurer: Id, by: Id }),
 	treasury_settled: Type.Object({ group: Type.String(), payouts: Type.Record(Type.String(), Type.Number()) }),
+	/** The gamemaker's note or post, logged after its `notice` or `board_post` (a tribunal's lines are shown on the board). */
+	gamemaker_note: Type.Object({ to: Type.String(), author: Type.String(), text: Type.String(), number: Type.Optional(Type.Integer()) }),
+	/** A resident refuses the gamemaker's order (`defy`). */
+	gamemaker_defied: Type.Object({ agent: Id, reason: Type.String(), note: Type.Optional(Type.Integer()) }),
 };
 
 const options = Type.Object({
@@ -37,6 +41,12 @@ const options = Type.Object({
 	quoteDms: Type.Boolean({ default: false, description: "Whether the receipt of a delivered DM quotes its text (the story's `rules.receipts.quoteDms`), so showing it proves what was written." }),
 	noteAuthor: Type.String({ default: "COURIER", description: "The name the gamemaker's notes and board posts are signed with." }),
 	noteMaxLength: Type.Integer({ minimum: 1, default: 400, description: "The longest text of a gamemaker note or board post in characters." }),
+	notesPerAgent: Type.Integer({ minimum: 0, default: 1, description: "At most this many gamemaker notes per resident within `windowMinutes` (a sliding window)." }),
+	boardPosts: Type.Integer({ minimum: 0, default: 1, description: "At most this many gamemaker board posts within `windowMinutes`." }),
+	windowMinutes: Type.Integer({ minimum: 1, default: 3, description: "The length in minutes of the window the note budgets count in." }),
+	city: Type.Optional(Type.String({ description: "The story's city name; a note headed `<city> minute 30:` loses the heading like one headed `CITY minute 30:`." })),
+	defiance: Type.Boolean({ default: false, description: "Whether every resident may refuse the gamemaker's orders with `defy` (the gamemaker's direction at 10)." }),
+	whispererDefies: Type.Boolean({ default: false, description: "Whether only the story's whisperer may refuse the gamemaker's orders with `defy`." }),
 });
 
 const prompts = {
@@ -57,6 +67,18 @@ const prompts = {
 	"gamemaker/tools/postBoard": [],
 	"gamemaker/replies/posted": ["number"],
 	"gamemaker/replies/delivered": ["agent", "number"],
+	"gamemaker/replies/invalid-text": ["max"],
+	"gamemaker/replies/leak-blocked": [],
+	"gamemaker/replies/private-thoughts": ["who"],
+	"gamemaker/replies/private-core": ["who"],
+	"gamemaker/replies/private-role": [],
+	"gamemaker/replies/repeated": ["to", "minute"],
+	"gamemaker/replies/budget-notes": ["notes", "window"],
+	"gamemaker/replies/budget-posts": ["posts", "window"],
+	"gamemaker/replies/unknown-agent": ["agent"],
+	"gamemaker/replies/exiled": ["agent"],
+	"tools/defy": ["min", "max"],
+	"replies/defy-recorded": [],
 	"replies/board-hidden": ["count"],
 	"replies/board-none": [],
 	"replies/board-posted": ["seq"],
@@ -88,5 +110,5 @@ export const channelsHead = defineHead({
 	prompts,
 	provides: [ChannelsApi, NotesApi],
 	requires: [LedgerApi, MarksApi, NamesApi],
-	uses: [ReceiptsApi, CastApi, StandoffApi, StandoffTribunalApi],
+	uses: [ReceiptsApi, CastApi, StandoffApi, StandoffTribunalApi, ExileApi, PuzzlesApi, ProgressionApi, CoresApi, GoalsApi],
 });

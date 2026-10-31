@@ -8,8 +8,8 @@
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
-import { defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import { ChannelsApi, PetitionsApi } from "@swarmtales/mechanic-shared";
+import { defineMechanic, defineTool, refuse, reply } from "@swarmtales/kernel";
+import { ChannelsApi, HOOK_ORDER, PetitionsApi } from "@swarmtales/mechanic-shared";
 import { PetitionBook, PetitionRecord, resolveThreshold, type PetitionView, type Resolution } from "./book.ts";
 import { petitionsHead } from "./head.ts";
 
@@ -38,9 +38,22 @@ function describe(ctx: ToolCtx, petition: PetitionView, self: string): string {
 function resolve(ctx: Ctx, resolution: Resolution): void {
 	const { petition, outcome } = resolution;
 	ctx.emit("petition_resolved", { petition: petition.id, outcome, signatures: petition.signatures, signers: [...petition.signers] });
-	const signers = petition.visibility === "public" && petition.signers.length > 0 ? ` Signed by ${petition.signers.join(", ")}.` : "";
+	// The line ends with the signers when the signatures are public (the leading space joins the sentences).
+	const signers = petition.visibility === "public" && petition.signers.length > 0 ? ` ${ctx.prompt("petitions/signed-by", { signers: petition.signers.join(", ") })}` : "";
 	const text = ctx.prompt("petitions/resolved", { id: petition.id, outcome, signatures: petition.signatures, threshold: petition.threshold, signers });
 	ctx.call(ChannelsApi, "post", { author: CITY, text });
+}
+
+/**
+ * The resolution of an expired petition, as a call of the script: a staged call runs together with
+ * what its listeners stage, one petition after the other, as the old director did (resolved, post,
+ * actions, then the next petition). Stories grant it to `script`.
+ */
+const ResolvePetition = defineTool("resolvePetition", Type.Object({ petition: Type.String(), outcome: Type.Union([Type.Literal("passed"), Type.Literal("failed")]) }));
+
+/** All petitions are failed at once (as `expire` did); each one is resolved in its own chain. */
+function stageResolutions(ctx: Ctx, resolutions: readonly Resolution[]): void {
+	for (const { petition, outcome } of resolutions) ctx.stage(ResolvePetition, { petition: petition.id, outcome });
 }
 
 const PetitionSlice = Type.Array(PetitionRecord);
@@ -61,12 +74,12 @@ export const petitions = defineMechanic(petitionsHead, (kit) => ({
 					visibility: petition.visibility,
 					against: [...(input.against ?? [])],
 				});
-				const visibility = petition.visibility === "public" ? "public" : "secret, only the count is shown";
+				const visibility = ctx.prompt(petition.visibility === "public" ? "petitions/visibility-public" : "petitions/visibility-secret", {});
 				const text = ctx.prompt("petitions/opened", {
 					id: petition.id,
 					text: petition.text,
 					threshold: petition.threshold,
-					noun: petition.threshold === 1 ? "signature" : "signatures",
+					noun: ctx.prompt(petition.threshold === 1 ? "petitions/noun-one" : "petitions/noun-many", {}),
 					deadline: petition.deadlineMinute,
 					visibility,
 				});
@@ -76,6 +89,18 @@ export const petitions = defineMechanic(petitionsHead, (kit) => ({
 		}),
 	],
 	tools: [
+		kit.tool({
+			...ResolvePetition,
+			description: "tools/resolvePetition",
+			suggest: ["script"],
+			serves: ["script"],
+			execute: ({ petition, outcome }, ctx) => {
+				const found = ctx.state.get(petition);
+				if (found?.status !== outcome) return refuse("UNKNOWN_PETITION", petition);
+				resolve(ctx, { petition: found, outcome });
+				return reply(outcome);
+			},
+		}),
 		kit.tool({
 			name: "signPetition",
 			description: "tools/signPetition",
@@ -105,11 +130,19 @@ export const petitions = defineMechanic(petitionsHead, (kit) => ({
 		}),
 	],
 	hooks: {
-		minuteStarted: (ctx) => {
-			for (const resolution of ctx.state.expire(ctx.minute)) resolve(ctx, resolution);
+		// `Director.startMinute` starts with `expirePetitions`, after every mechanic's tick of the minute.
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.petitions,
+			run: (ctx) => {
+				stageResolutions(ctx, ctx.state.expire(ctx.minute));
+			},
 		},
-		runEnded: (_reason, ctx) => {
-			for (const resolution of ctx.state.expire(ctx.minute, true)) resolve(ctx, resolution);
+		// `closePetitions` after the acts closed, before the treasuries are settled; the script's `onFail` actions run before `run_ended`.
+		runEnded: {
+			order: HOOK_ORDER.runEnded.petitions,
+			run: (_reason, ctx) => {
+				stageResolutions(ctx, ctx.state.expire(ctx.minute, true));
+			},
 		},
 	},
 	facts: {

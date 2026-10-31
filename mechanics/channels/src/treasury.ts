@@ -47,7 +47,8 @@ export function withdrawGroup(ctx: ToolCtx, groupId: string, target: string, amo
 	if (failed !== undefined) return groupFailure(failed);
 	const receipt = issueReceipt(ctx, { kind: "withdrawal", group: groupId, treasurer: actor, to: target, amount });
 	ctx.emit("treasury_withdrawal", { group: groupId, treasurer: actor, to: target, amount, receipt: receipt.id });
-	if (target !== actor) notify(ctx, target, CITY, receipt.text);
+	// Without a receipts mechanic there is no receipt line to tell the recipient (an empty notice would be noise).
+	if (target !== actor && receipt.text !== "") notify(ctx, target, CITY, receipt.text);
 	return reply(withReceipt(ctx, group.value, actor, receipt.id));
 }
 

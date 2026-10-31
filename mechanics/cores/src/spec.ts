@@ -49,6 +49,9 @@ const Figure = Type.Object({
 	direction: Type.Optional(Type.Unknown({ description: "What the direction dial adds; read by the persona, not by the deal." })),
 });
 
+const CoreTraitSpec = Type.Object({ axis: Type.String(), level: Level });
+const CoreDriveSpec = Type.Object({ drive: Type.String(), intensity: Intensity });
+
 /** The options of the cores mechanic: the old `CoresSpec` plus the figures the run names. */
 export const CoresOptions = Type.Object({
 	heading: Type.String({ description: "The heading the core is written under in the system prompt." }),
@@ -66,6 +69,7 @@ export const CoresOptions = Type.Object({
 	figures: Type.Optional(Type.Array(Figure, { description: "Finished figures of the story's cast; residents get a figure instead of a drawn core." })),
 	frame: Type.Optional(Type.String({ description: "A frame said to every resident with a core, at the top of its system prompt." })),
 	cast: Type.Optional(Type.Array(Type.String(), { description: "The figures the run names, at most one per resident; without it a seeded pick plays." })),
+	whispererCore: Type.Optional(Type.Object({ bigFive: Type.Array(CoreTraitSpec, { description: "The whisperer's level per axis." }), drives: Type.Array(CoreDriveSpec, { description: "The whisperer's drives." }), figure: Type.Optional(Type.String({ description: "The id of the figure the whisperer plays, when it plays one." })) }, { description: "The character the story gives its whisperer (the story's `whisperer.core`) instead of the drawn one." })),
 });
 export type CoresOptions = Static<typeof CoresOptions>;
 

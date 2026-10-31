@@ -24,19 +24,32 @@ function digestLine(ctx: Ctx, agent: string): string {
 	return parts.length > 0 ? ctx.prompt("competitor/input/unread", { parts: parts.join(" · ") }) : ctx.prompt("competitor/input/unread-nothing", {});
 }
 
-/** The lines of one resident's turn, in the old order: window, DMs (delivered now), notices, digest. */
-export function turnInputs(resident: string, ctx: Ctx): readonly TurnLine[] {
-	// Taken before any member of the block acts: what the block's start looked like.
+/**
+ * The window part of the status line, read before anything is emptied (`HOOK_ORDER.turnInputs.status`).
+ * It also takes the board's newest player post the block starts from, before any member acts.
+ */
+export function statusInputs(resident: string, ctx: Ctx): readonly TurnLine[] {
 	ctx.state.blockStart.set(resident, ctx.state.board.lastPlayerSeq());
-	const lines: TurnLine[] = [];
 	const window = dmWindow(ctx, resident);
-	if (window !== null) {
-		lines.push({ kind: "status", order: STATUS_ORDER.dmWindow, text: ctx.prompt("competitor/status/dm-window", { sent: window.sent, limit: window.limit, from: window.from, until: window.until }) });
-	}
+	if (window === null) return [];
+	return [{ kind: "status", order: STATUS_ORDER.dmWindow, text: ctx.prompt("competitor/status/dm-window", { sent: window.sent, limit: window.limit, from: window.from, until: window.until }) }];
+}
+
+/**
+ * The inbox, emptied after every part that only reads (`HOOK_ORDER.turnInputs.channelsInbox`):
+ * delivering a DM issues its receipts and writes the sender's notice, so the status line must be
+ * built before (golden f10g10 seq 251: "2 receipts", not 3).
+ */
+export function inboxInputs(resident: string, ctx: Ctx): readonly TurnLine[] {
+	const lines: TurnLine[] = [];
 	for (const entry of drainMailbox(ctx, resident)) lines.push({ kind: "dm", text: dmLine(ctx, entry.from, entry.text, entry.number) });
 	for (const notice of inboxOf(ctx, resident).notices.splice(0)) lines.push({ kind: "notice", text: noticeLine(ctx, notice.author, notice.text, notice.number) });
-	lines.push({ kind: "digest", text: digestLine(ctx, resident) });
 	return lines;
+}
+
+/** The digest of unread board and group posts (`channelsDigest`), last of the turn's inputs. */
+export function digestInputs(resident: string, ctx: Ctx): readonly TurnLine[] {
+	return [{ kind: "digest", text: digestLine(ctx, resident) }];
 }
 
 /**

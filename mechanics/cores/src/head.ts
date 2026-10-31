@@ -16,6 +16,8 @@ const events = {
 export interface CoresState {
 	/** Dealt once, kept for good; in roster order. */
 	readonly cores: Map<string, Core>;
+	/** The story's whisperer, once told (not kept: a resumed run reads it from the log). */
+	whisperer?: string;
 }
 
 export const coresHead = defineHead({

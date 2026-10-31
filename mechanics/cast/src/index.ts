@@ -11,7 +11,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { CastApi, ChannelsApi, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { CastApi, ChannelsApi, HOOK_ORDER, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import { castHead } from "./head.ts";
 import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
@@ -41,14 +41,39 @@ function shorten(ctx: Ctx, into: string, untilMinute: number): void {
 	ctx.emit("collection_shortened", { into, untilMinute: ctx.state.registry.collections.get(into)?.untilMinute ?? untilMinute });
 }
 
+/** Before every other tick of a minute (cores 50 is the first of the table): only a resumed run has anything to fund. */
+const RESUME_ESCROW_ORDER = HOOK_ORDER.minuteStarted.cores + 10;
+
+/** The names of the collections the story can start, in the story's rule order, then any other in start order. */
+function collectionOrder(ctx: Ctx): readonly string[] {
+	const known = ctx.state.registry.collections;
+	const named = ctx.options.collections.filter((into) => known.has(into));
+	return [...new Set([...named, ...known.keys()])];
+}
+
+/** A collection whose window also ends some minutes after the first solve of a level (v09) is shortened (old `#endCollectionsAfterSolve`). */
+function shortenAfterSolve(ctx: Ctx): void {
+	for (const into of collectionOrder(ctx)) {
+		const collection = ctx.state.registry.collections.get(into);
+		const rule = collection?.afterSolve;
+		if (collection === undefined || rule === undefined || ctx.minute > collection.untilMinute) continue;
+		const solved = ctx.call(ProgressionApi, "firstSolveMinute", { level: rule.level });
+		if (solved !== null) shorten(ctx, into, solved + rule.minutes);
+	}
+}
+
 export const cast = defineMechanic(castHead, (kit) => ({
 	services: [
-		kit.provideSome(CastApi, {
+		kit.provide(CastApi, {
 			isActive: (input, ctx) => ctx.state.registry.isActive(input.cast),
 			receive: (input, ctx) => {
 				const collected = ctx.state.registry.collect(input.cast, { from: input.from, text: input.text, minute: ctx.minute });
 				ctx.emit("cast_dm", { from: input.from, cast: input.cast, text: input.text, collections: collected.collections, number: input.number });
 				return { collections: collected.collections, newSender: collected.newSender };
+			},
+			collected: (input, ctx) => {
+				ctx.emit("cast_collected", { from: input.from, cast: input.cast, into: [...input.into] });
+				return null;
 			},
 			setLevel: (input, ctx) => {
 				if (ctx.state.registry.setLevel(input.cast, input.level)) ctx.emit("cast_level_set", { cast: input.cast, level: input.level, audit: "NPC_LEVEL_SET" });
@@ -107,17 +132,14 @@ export const cast = defineMechanic(castHead, (kit) => ({
 		}),
 	],
 	hooks: {
-		runStarted: fundMissing,
-		minuteStarted: (ctx) => {
-			// A cast member the story added after a snapshot gets its escrow now.
-			fundMissing(ctx);
-			for (const collection of [...ctx.state.registry.collections.values()]) {
-				const rule = collection.afterSolve;
-				if (rule === undefined || ctx.minute > collection.untilMinute) continue;
-				const solved = ctx.call(ProgressionApi, "firstSolveMinute", { level: rule.level });
-				if (solved !== null) shorten(ctx, collection.into, solved + rule.minutes);
-			}
-		},
+		// The escrow of every member, from the system account, after the start points (old constructor).
+		runStarted: { order: HOOK_ORDER.runStarted.cast, run: fundMissing },
+		minuteStarted: [
+			// A member the story added after a snapshot gets its escrow before anything else of the first minute (old restore).
+			{ order: RESUME_ESCROW_ORDER, run: fundMissing },
+			// Director.startMinute: after the petitions expired and every mechanic ticked, before the script's triggers.
+			{ order: HOOK_ORDER.minuteStarted.cast, run: shortenAfterSolve },
+		],
 	},
 	facts: {
 		active: kit.fact(Type.Array(Type.Object({ id: Type.String(), level: Type.Integer() })), (view) => view.state.registry.active().map((member) => ({ id: member.id, level: member.level }))),
