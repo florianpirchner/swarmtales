@@ -37,6 +37,7 @@ export const ledger = defineMechanic(
     summary: "Points per resident and transfers between residents.",
     provides: [LedgerApi],              // APIs it implements
     requires: [],                       // APIs it calls; it loads after their providers
+    uses: [],                           // APIs it calls when their provider is loaded (ctx.has, ctx.tryCall)
     options: Type.Object({ start: Type.Integer({ default: 10, description: "..." }) }),
     state: ({ options, residents }) => ({ balances: new Map(residents.map((id) => [id, options.start])) }),
     events: { points_transferred: Type.Object({ from: Type.String(), to: Type.String(), amount: Type.Integer() }) },
@@ -61,11 +62,17 @@ from the tools the body returns. Inside the body:
 - `ctx.emit(type, payload)` accepts only declared events with the payload of their schema; the host
   checks the payload again at run time.
 - `ctx.call(Api, method, input)` accepts only APIs in `requires`, typed input and output; the
-  output is checked against the method's schema.
+  output is checked against the method's schema. An API in `uses` is optional: `ctx.has(Api)`
+  says whether a loaded mechanic provides it, `ctx.tryCall(Api, method, input)` returns
+  `{ ok: true, value }` or `{ ok: false }` when none does.
 - `ctx.prompt(id, variables)` accepts only declared prompts with exactly their variables.
 - A tool's `description` must be a declared prompt without variables.
-- `ctx.random()` is the only randomness (derived from the seed, the mechanic and the log position);
-  `ctx.minute` the only time. `ctx.residents`, `ctx.schedule`, `ctx.access`, `ctx.log` are ports.
+- `ctx.random()` is randomness derived from the seed, the mechanic and the log position;
+  `ctx.rng(...labels)` is a labelled stream that equals the old engine's `rngFor(seed, ...labels)`
+  (a fresh generator per call, so `ctx.rng("puzzle", level)` deals the same as before). `state`
+  gets `seed` and `rng` too. `ctx.minute` is the only time. `ctx.residents`, `ctx.schedule`,
+  `ctx.access`, `ctx.log` are ports; `residents.attribute(id, key)` reads only the calling
+  mechanic's own attributes (another mechanic's go through its API).
 
 `test/host/mechanic-types.check.ts` holds one `@ts-expect-error` per misuse, so the typing is
 itself tested.
@@ -91,12 +98,12 @@ export const ledger = defineMechanic(head, (kit) => ({ ... }));
 |---|---|---|
 | Tool | `kit.tool({ name, description, parameters, limit?, suggest?, rule?, guardText?, execute })` | through the pipeline (§4) |
 | Service | an `ApiDefinition` (`defineApi`) in a shared place; `provides` + `kit.provide(Api, impl)`; `requires` + `ctx.call` | synchronously; a `command` writes `service_called` and causes the provider's events, a `query` leaves no trace |
-| Event listener | `kit.on(type, fn)` (own events), `kit.listen(otherMechanic, type, fn)` (silent when that mechanic is not loaded), `kit.core(type, fn)` (core events) | after the emitting code returned (§5) |
+| Event listener | `kit.on(type, fn, options?)` (own events), `kit.listen(events, type, fn, options?)` (another mechanic's events, declared with `defineEvents(id, schemas)` in a shared module so no value import of the emitter is needed; silent when that mechanic is not loaded; the loader refuses it when the loaded emitter declares another schema object), `kit.core(type, fn, options?)` (core events); `{ immediate: true }` runs the listener inside `emit` | after the emitting code returned, or at once when immediate (§5) |
 | Fact | `kit.fact(outputSchema, (view) => value)`: pure, over read-only state and the log | `host.facts()` for the gamemaker report and the watch role; checked against its schema |
-| Hook | `hooks: { runStarted, minuteStarted, news, turnInputs, turnOpened, turnEnded, minuteEnded, runEnded }` | in load order; `news(resident)` says whether a resident has something new (activation `onNews`); `turnInputs` returns lines (`string` or `{ kind, text }`); `turnOpened` runs when the resident's turn begins, after the block's inputs were built (mark things as seen here) |
+| Hook | `hooks: { runStarted, minuteStarted, news, turnInputs, turnOpened, turnEnded, minuteEnded, runEnded }` | in load order; `news(resident)` says whether a resident has something new (activation `onNews`); `turnInputs` returns lines (`string` or `{ kind, text, order? }`; within a joined kind the parts sort by `order`, default 0, then load order); `turnOpened` runs when the resident's turn begins, after the block's inputs were built (mark things as seen here) |
 | Turn policy | `turns: { passes?, blockSize?, activation?, order?(view), inputs? }` in a body or the story | by the turn loop (§6) |
 | Presentation | `presentation: { resolve?(call), display?(text) }` | `resolve` rewrites raw arguments before `parse`; `display` formats every text a caller reads (replies, refusal details, turn inputs); in load order. Events keep ids |
-| Guard secrets | `guard: { secrets(resident, minRun), leaks?(text, secrets, minRun) }` | at the `guard` stage of a resident's call (§4) |
+| Guard secrets | `guard: { secrets(resident, minRun), leaks?(text, secrets, minRun) }`; the guard model is a `GuardModel` (`core/consult.ts`) | at the `guard` stage of a resident's call (§4) |
 | Consult | a tool's `consult: { role, question, answer, ask(params, ctx) }` | at the `consult` stage; `execute` gets the parsed answer as its third argument |
 | Role variant | a tool's `serves: ["gamemaker"]` | the gateway picks the variant that serves the caller's role; two tools of one name may coexist when their `serves` do not overlap |
 | Pipeline handler | `pipeline: { lock, afford, rule, settle, after }`, for every tool call | at that stage, in load order |
@@ -128,9 +135,11 @@ has it as `causedBy`; a refusal is exactly one `tool_refused` (`tool`, `stage`, 
 | `settle` | referee, mechanics | only after a successful execute: the limits count the call, cost modules charge |
 | `after` | mechanics | after every executed call, ok or not |
 
-Before `lock`, the core finds the tool's variant for the caller's role (`TOOL_NOT_GRANTED` when
-none serves it) and runs the `resolve` handlers on the raw arguments (names to ids). Replies and
-refusal details pass through `display` before the caller reads them.
+Before `lock`, the core counts the call as a step of the minute (`STEP_LIMIT` at stage `limit`,
+so a refused step still counts) and finds the tool's variant for the caller's role
+(`TOOL_NOT_GRANTED` when none serves it). After the `lock` stage and before `parse` it runs the
+`resolve` handlers on the raw arguments (names to ids). Replies and refusal details pass through
+`display` before the caller reads them.
 
 **Guard.** A story's guard policy (`tools.<name>.guard: { rule, on: "block", secrets?: { minRun } }`)
 runs only for resident callers. With `secrets`, every mechanic's `guard.secrets` gives what the
@@ -140,10 +149,17 @@ caller legitimately knows; each `guard.leaks` check runs first and blocks withou
 lets it through too (`error` set). The judge's usage is recorded as cost.
 
 **Script calls.** `ctx.stage(tool, params, { then? })` from any mechanic code (a job, a hook, a
-listener, a tool) queues a call with actor `script`. Staged calls run through the whole pipeline
-right after the code that staged them, caused by the staging event, before the next call or turn
-begins. `then` names a job of the staging mechanic; it runs with the outcome (`StagedOutcome`:
-`{ ok, reply }` or `{ ok: false, code, detail }`) as data. Calls staged in `runEnded` are dropped.
+listener, a tool) queues a call with actor `script`. `tool` is a `ToolRef` (`defineTool(name,
+parameters)`, declared beside the tool), so the parameters are type-checked; the loader checks
+that the serving variant uses the same parameter schema. Staged calls run through the whole
+pipeline right after the code that staged them, caused by the staging event, before the next call
+or turn begins, one at a time and depth first: a call staged while a staged call runs goes before
+the ones queued behind it. `then` names a job of the staging mechanic; it runs with the outcome
+(`StagedOutcome`: `{ ok, reply }` or `{ ok: false, code, detail }`) as data, before the next
+queued call, so chained actions keep their order. Calls staged in `minuteEnded` or `between` run
+before `minute_ended`; `host.snapshot()` refuses while a staged call waits. Calls staged in
+`runEnded` are dropped. The legacy adapter writes no line for a staged call's refusal (the old
+director logged none); a script that needs it reads the outcome in `then`.
 
 **Gamemaker tools.** The gamemaker is a role like the others: a mechanic defines tools (with
 `serves: ["gamemaker"]` when a resident tool has the same name), the story grants them
@@ -154,8 +170,16 @@ actor `gamemaker`. `createHost({ between })` gives the app a slot after `minuteE
 Grants are the story's: `grants: { resident: [...], gamemaker: [...], script: [...] }`. A tool
 only *suggests* roles (`suggest`). `locked` closes tools per resident at the start; mechanics
 lock and unlock with `ctx.access` (both are events). Calls are serialised, so a guard's wait never
-lets another call in. Limit windows are `"minute"`, `"run"` or `{ resetOn: "<event type>" }`,
-which gives "8 DMs between two door openings" without the core knowing doors.
+lets another call in. Limit windows are `"minute"`, `"run"`, `{ minutes: N }` (aligned blocks of N
+minutes from minute 0) or `{ resetOn: "<event type>" }`, which gives "8 DMs between two openings"
+without the core knowing the game. A limit with `key` counts into a counter shared by every tool
+with that key (and the same window). The story's tool policies are keyed by role:
+`tools: { resident: { sendDM: { limit } }, gamemaker: { postBoard: { rules } } }`; a guard policy
+is allowed for `resident` only.
+
+**Errors.** A mechanic that throws ends the run: staged calls are dropped, `run_ended` is written
+with reason `error` (the bus drains to the sinks, listeners no longer run), and every later call,
+turn or snapshot is refused ("the run failed").
 
 ## 5. Events, bus and log
 
@@ -165,14 +189,19 @@ Event names are unique across the loaded mechanics and may not take a core name;
 otherwise. Dispatch is synchronous with a fixed order: events in log order; per event, the
 listeners of the mechanics in load order, then the sinks (log writers, the referee's window
 resets). An event emitted while code runs is queued and dispatched once that code returned, so a
-tool's events all land before anyone reacts, and the log order is the dispatch order.
+tool's events all land before anyone reacts, and the log order is the dispatch order. An
+immediate listener (`{ immediate: true }`) runs inside `emit`, before the emitting code goes on;
+its own events land right after the event that caused them (the old engine's synchronous
+callbacks, e.g. the director reacting to `level_up` before `submission` is written).
 
 Core events beyond the envelope basics: `pass_started` (`pass`, `order`, `blocks`), `turn_started`
 (with `pass`, `block` and the inputs with their kinds), `turn_skipped`, `role_asked`,
 `role_answered`, `guard_verdict` (`by`, `error?`). App events (what the runner and the roles saw:
 requests, thinking, usage) are declared by the app (`createHost({ app: { events } })`, names may
 not clash with core events) and written with `host.record(actor, type, payload)`, source `app`,
-checked against their schema.
+checked against their schema. A runner records what a resident's model said with
+`turn.record(type, payload)`, which waits for the turn's `ready` like `turn.call`, so the log does
+not depend on how fast models answer.
 
 **The old shape.** The golden files and every old run hold flat events (`{ "type": ..., fields...,
 "seq": n, "minute": m }`). `LegacyEventAdapter` (chronicle, `legacySink(record)` as a bus sink)
@@ -192,7 +221,7 @@ const minimal = defineCoreStory({
   mechanics: [channels.with({ dmCost: 1 }), ledger.with({ start: 3 })],
   grants: { resident: ["postBoard", "readBoard", "sendDM", "transferPoints"], gamemaker: ["postBoard"] },
   locked: ["sendDM"],
-  tools: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 40 }] }, sendDM: { limit: { max: 1, per: "minute" } } },
+  tools: { resident: { postBoard: { rules: [{ kind: "maxLength", param: "text", max: 40 }] }, sendDM: { limit: { max: 1, per: "minute" } } } },
   limits: { maxStepsPerMinute: 4 },
 });
 const host = createHost({ story: minimal, prompts: createPromptLookup({ mechanics: { ... } }), guard });
@@ -201,7 +230,9 @@ await host.run(agent);            // agent: (turn) => Promise<void>, turn.call(t
 ```
 
 Granting, locking or configuring a tool whose mechanic is not loaded does not compile. Load order
-follows `requires` (a mechanic after the providers of its APIs), ties keep the story's order. Per
+follows `requires` (a mechanic after the providers of its APIs) and, where possible, `uses` (after
+a loaded provider of an optional API), ties keep the story's order. A `requires` cycle fails the
+load; a cycle through `uses` is broken by loading the first open mechanic in story order. Per
 minute: `minute_started`, due jobs (`job_ran` causes their events), `minuteStarted`, then every
 pass of the turn policy: `pass_started` with the order and the blocks, then per block the inputs of
 every member (`turnInputs` of all mechanics, ordered by the policy's `inputs` kinds, joined where a
@@ -228,7 +259,12 @@ per mechanic (`LEGACY_WORLD_OWNERS` maps every old world field to its owner; com
 into `progression` and the `channels` inboxes, tribunal gates into `exile`; the arena and the
 director become `arena` and `script`), the old events, and a layout that `toLegacySnapshot` uses to
 write the old file back byte for byte. Each carved mechanic declares a migration from 0 to its
-first version. Locks are not derived from the old state; pass them as `locks` if a story needs them.
+first version. Locks are not derived from the old state: without `locks` the converted snapshot
+has none and the story's start locks hold on resume; pass `locks` to set them. A competitor field
+without an owner fails the conversion. The testkit's `standInsFor(snapshot, loaded)` fills every
+slice whose mechanic is not carved yet, so a team resumes `snapshot-L7` with a partial carve.
+Live run logs carry the sink's wall clock `at` after `minute`; `legacyStamp(raw)` keeps it beside
+the envelope and `legacyLine(event, stamp)` writes it back (all 12 run logs round-trip).
 
 ## 7. Proof
 
