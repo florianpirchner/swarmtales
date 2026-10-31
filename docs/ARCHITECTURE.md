@@ -40,7 +40,11 @@ src/
                reporter.ts validates the model's JSON and writes the file
   snapshot/    run snapshots (SPEC 17): typebox schemas of the file, its events and the
                model contexts; read, check and write
+  prompts/     the prompt loader: Markdown files with `{{variable}}` placeholders, a typed registry
+               (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
   cli/         main.ts, validate.ts, digest.ts, novel.ts, report.ts, run-report.ts
+library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role
+               prompts), one file per piece; a story may override one in `stories/<name>/prompts/`
 stories/       one folder per story: cityofkeys/story.ts (default) with its README; index.ts
                (registry by name)
 test/          mirrors src/; offline only (scripted provider)
