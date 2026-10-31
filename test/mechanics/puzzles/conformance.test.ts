@@ -5,11 +5,13 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { checkOptionsDocumented, checkSourceRules } from "@swarmtales/testkit";
 
 const MECHANICS = [
 	{ id: "puzzles", definition: puzzles },
+	{ id: "progression", definition: progression },
 ] as const;
 
 function sources(id: string): readonly { readonly path: string; readonly text: string }[] {
