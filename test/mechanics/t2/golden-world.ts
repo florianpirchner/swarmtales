@@ -28,12 +28,12 @@ import { dropJustified, goldenCalls, type GoldenCall, type LegacyLine, type Repl
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import whispers from "../../../stories/whispers/story.ts";
 import { namesStandIn, marksStandIn } from "../channels/stand-ins.ts";
-import { goldenLog, minutesOf, puzzleOptions, type GoldenName } from "../puzzles/harness.ts";
+import { goldenLog, puzzleOptions, type GoldenName } from "../puzzles/harness.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
 import { linesOf } from "../t1/support.ts";
 import { planOf, turnKey, type GoldenPlan, type Placed } from "./golden-plan.ts";
 
-export { goldenLog, minutesOf, type GoldenName };
+export { goldenLog, type GoldenName };
 
 export const CHANNEL_TOOLS = ["readBoard", "postBoard", "sendDM", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"] as const;
 const DELIVERY = /^DM #\d+ delivered to /;
