@@ -4,6 +4,7 @@
  * with `ctx.access` instead of `enabledTools`.
  */
 import { ExileApi, LedgerApi } from "@swarmtales/mechanic-shared";
+import { GoalsExtrasApi } from "./goals-extras.ts";
 import type { ProgressionCtx } from "./head.ts";
 import { lastLevelIn, type Competitor } from "./model.ts";
 import { penaltyAt } from "./rules.ts";
@@ -112,6 +113,7 @@ export function actStart(ctx: ProgressionCtx, fromLevel: number): number | undef
 export function endAct(ctx: ProgressionCtx, fromLevel: number): boolean {
 	if (ctx.state.endedActs.has(fromLevel)) return false;
 	ctx.state.endedActs.add(fromLevel);
+	ctx.tryCall(GoalsExtrasApi, "actEnded", { act: fromLevel });
 	return true;
 }
 
@@ -126,6 +128,7 @@ export function noteActStarts(ctx: ProgressionCtx, level: number): void {
 		for (const begun of [...ctx.state.actStarts.keys()]) if (begun < fromLevel) endAct(ctx, begun);
 		ctx.state.actStarts.set(fromLevel, ctx.minute);
 		ctx.state.offences.clear();
+		ctx.tryCall(GoalsExtrasApi, "actStarted", { act: fromLevel, residents: [...aliveResidents(ctx)] });
 	}
 }
 

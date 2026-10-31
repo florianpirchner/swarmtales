@@ -228,6 +228,9 @@ importers:
 
   mechanics/goals:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel

@@ -3,7 +3,7 @@
  * stand-ins for ledger, channels and receipts, and the replay of a golden log's progression calls.
  */
 import { resolve } from "node:path";
-import type { AnyStory, Host } from "@swarmtales/contracts";
+import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { progression } from "@swarmtales/mechanic-progression";
@@ -46,7 +46,7 @@ export function standInUses(golden: readonly LegacyLine[], notices: Notice[]) {
 	return [ledgerStandIn().with(), channelsStandIn(notices).with(), receiptsStandIn(golden).with()];
 }
 
-export function progressionHost(name: GoldenName, notices: Notice[]): Host {
+export function progressionHost(name: GoldenName, notices: Notice[], more: readonly MechanicUse[] = [], scriptTools: readonly string[] = []): Host {
 	const story = defineCoreStory({
 		id: name,
 		seed: SEED,
@@ -56,8 +56,9 @@ export function progressionHost(name: GoldenName, notices: Notice[]): Host {
 			...standInUses(goldenLog(name), notices),
 			puzzles.with(puzzleOptions(storyOf(name))),
 			progression.with(progressionOptions(storyOf(name))),
+			...more,
 		],
-		grants: { resident: ["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"] },
+		grants: { resident: ["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"], script: [...scriptTools] },
 	});
 	const host = createHost({ story, prompts: promptLookup() });
 	host.start();
@@ -85,20 +86,21 @@ function replyText(outcome: { readonly ok: true; readonly reply: string } | { re
 
 /**
  * Plays the golden log's progression calls on a host, minute by minute and in the golden order (the
- * old turn order was shuffled by the arena; the turn loop is not moved yet); returns every reply.
+ * old turn order was shuffled by the arena; the turn loop is not moved yet), to the end of the run;
+ * returns every reply.
  */
-export async function replay(host: Host, name: GoldenName, upTo: number = minutesOf(name)): Promise<readonly Outcome[]> {
+export async function replay(host: Host, name: GoldenName, minutes?: number): Promise<readonly Outcome[]> {
 	const calls = progressionCalls(name);
 	const outcomes: Outcome[] = [];
 	let done = -1;
-	for (let minute = 0; minute < upTo; minute++) {
-		await host.playMinute(async () => {
-			if (done === minute) return;
-			done = minute;
-			for (const call of calls.filter((entry) => entry.minute === minute)) {
-				outcomes.push({ minute, agent: call.agent, text: replyText(await host.call(`resident:${call.agent}`, call.tool, call.args)) });
-			}
-		});
-	}
+	const agent = async (turn: { readonly minute: number }): Promise<void> => {
+		if (done === turn.minute) return;
+		done = turn.minute;
+		for (const call of calls.filter((entry) => entry.minute === turn.minute)) {
+			outcomes.push({ minute: turn.minute, agent: call.agent, text: replyText(await host.call(`resident:${call.agent}`, call.tool, call.args)) });
+		}
+	};
+	if (minutes === undefined) await host.run(agent);
+	else for (let minute = 0; minute < minutes; minute++) await host.playMinute(agent);
 	return outcomes;
 }

@@ -9,6 +9,7 @@ import type { ContextOf } from "@swarmtales/contracts";
 import { defineApi, defineHead } from "@swarmtales/kernel";
 import { ChannelsApi, ExileApi, LedgerApi, MarksApi, ProgressionApi, ReceiptsApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { doorIn, freshState, PROGRESSION_EVENTS, PROGRESSION_PROMPTS, ProgressionOptions, type ProgressionState } from "./model.ts";
+import { GoalsExtrasApi } from "./goals-extras.ts";
 import { PuzzlesExtrasApi } from "./puzzles-extras.ts";
 
 export const progressionHead = defineHead({
@@ -63,7 +64,7 @@ export const progressionWorkHead = defineHead({
 	prompts: PROGRESSION_PROMPTS,
 	provides: [ProgressionApi, ProgressionExtrasApi],
 	requires: [PuzzlesApi, PuzzlesExtrasApi, LedgerApi, ChannelsApi, ReceiptsApi],
-	uses: [ExileApi, MarksApi],
+	uses: [ExileApi, MarksApi, GoalsExtrasApi],
 });
 
 export type ProgressionCtx = ContextOf<typeof progressionWorkHead>;

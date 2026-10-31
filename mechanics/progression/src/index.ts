@@ -8,7 +8,7 @@ import { Parse } from "typebox/value";
 import { defineMechanic } from "@swarmtales/kernel";
 import { ProgressionApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { ProgressionExtrasApi, progressionWorkHead } from "./head.ts";
-import { isFinished, levelOf, noteActStarts, syncLocks } from "./levels.ts";
+import { endAct, isFinished, levelOf, noteActStarts, syncLocks } from "./levels.ts";
 import { loadState, migrateV0, ProgressionSlice, ProgressionSliceV0, saveState } from "./model.ts";
 import { extrasImplementation, progressionImplementation } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
@@ -41,7 +41,7 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 		},
 		runEnded: (reason, ctx) => {
 			if (reason === "stopped") return;
-			for (const fromLevel of ctx.state.actStarts.keys()) ctx.state.endedActs.add(fromLevel);
+			for (const fromLevel of [...ctx.state.actStarts.keys()].sort((a, b) => a - b)) endAct(ctx, fromLevel);
 		},
 	},
 	facts: {
