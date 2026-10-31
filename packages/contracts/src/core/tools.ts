@@ -42,7 +42,7 @@ export interface ToolLimit {
 	readonly per: LimitWindow;
 }
 
-/** One call as the pipeline's stage handlers see it; `params` is already checked by `parse`. */
+/** One call as the pipeline's stage handlers see it; `params` is raw at `lock` and checked from `limit` on. */
 export interface ToolCall {
 	readonly tool: string;
 	/** The mechanic that owns the tool. */
