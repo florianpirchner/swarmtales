@@ -66,6 +66,8 @@ function payOut(ctx: Ctx, groupId: string): Readonly<Record<string, number>> | u
 /** A group the city founds with `members` (the tribunal's); every member hears of it. Returns its id. */
 export function createCityGroup(ctx: Ctx, name: string, members: readonly string[]): string {
 	const group = ctx.state.groups.createForCity(name, members);
+	// Old groups.ts:145: the treasury account opens with the group (R2-D1).
+	ctx.call(LedgerApi, "open", { account: groupAccountId(group.id) });
 	ctx.emit("group_created", { group: group.id, founder: CITY, name: group.name });
 	for (const agent of members) {
 		ctx.emit("group_membership", { group: group.id, agent, change: "added", by: CITY });

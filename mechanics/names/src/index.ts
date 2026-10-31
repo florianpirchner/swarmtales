@@ -140,9 +140,12 @@ export const names = defineMechanic(namesHead, (kit) => ({
 	},
 	hooks: {
 		minuteStarted: { order: HOOK_ORDER.minuteStarted.names, run: settle },
-		turnInputs: (resident, ctx) => {
-			if (!ctx.state.active || ctx.tryCall(ExileApi, "isExiled", { resident }) === true) return [];
-			return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.youAre, text: ctx.prompt("competitor/status/you-are", { agent: resident }) }];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				if (!ctx.state.active || ctx.tryCall(ExileApi, "isExiled", { resident }) === true) return [];
+				return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.youAre, text: ctx.prompt("competitor/status/you-are", { agent: resident }) }];
+			},
 		},
 	},
 	presentation: {

@@ -44,6 +44,8 @@ export function createGroup(ctx: ToolCtx, name: string): ToolOutcome {
 	const founder = selfOf(ctx);
 	const result = ctx.state.groups.create(founder, name);
 	if (!result.ok) return groupFailure(result);
+	// Old groups.ts:127: the treasury account opens with the group (the ledger refuses unopened accounts, R2-D1).
+	ctx.call(LedgerApi, "open", { account: groupAccountId(result.value.id) });
 	ctx.emit("group_created", { group: result.value.id, founder, name: result.value.name });
 	return reply(ctx.prompt("replies/group-created", { group: describe(ctx, result.value, founder) }));
 }

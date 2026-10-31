@@ -1,13 +1,12 @@
 /**
  * The holdout tribunal's own surface (team T4b): the rule under every door's task (D-3, the old
- * `#withHoldoutRule`, on the local `StandoffTribunalTaskApi` until request R2-3 shares it), the DM
+ * `#withHoldoutRule`, on the shared `StandoffTribunalApi.taskLine` since round 2), the DM
  * cap exemption through the frozen `StandoffTribunalApi`, and the lock of `tribunalVote`.
  */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { createHost, defineCoreStory, defineHead, defineMechanic, reply } from "@swarmtales/kernel";
 import { StandoffTribunalApi } from "@swarmtales/mechanic-shared";
-import { StandoffTribunalTaskApi } from "@swarmtales/mechanic-standoff-tribunal";
 import { storyOptions } from "../standoff/support/host.ts";
 import { lot, newRun, playNew, recordOf } from "./differential.ts";
 import { HOLDOUT_RULE } from "./rule.ts";
@@ -22,7 +21,7 @@ const reader = defineMechanic(
 		options: Type.Object({}),
 		state: (): undefined => undefined,
 		events: {},
-		uses: [StandoffTribunalTaskApi, StandoffTribunalApi],
+		uses: [StandoffTribunalApi],
 		prompts: { "probe/tools/probe": [] },
 	}),
 	(kit) => ({
@@ -34,7 +33,7 @@ const reader = defineMechanic(
 				suggest: ["script"],
 				execute: (_params, ctx) => {
 					seen = [
-						ctx.tryCall(StandoffTribunalTaskApi, "taskLine", { resident: "A01" }),
+						ctx.tryCall(StandoffTribunalApi, "taskLine", { resident: "A01" }),
 						ctx.tryCall(StandoffTribunalApi, "exemptFromCap", { from: "A02", to: "A01" }),
 						ctx.tryCall(StandoffTribunalApi, "exemptFromCap", { from: "A01", to: "A02" }),
 					];

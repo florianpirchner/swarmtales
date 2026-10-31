@@ -31,8 +31,8 @@ export const ledgerHead = defineHead({
 	options: Type.Object({
 		startPoints: Type.Integer({ minimum: 0, default: 0, description: "Points every resident starts with, minted from the system account when the run starts (reason `start points`)." }),
 		strictAccounts: Type.Boolean({
-			default: false,
-			description: "Refuse a booking on an account nobody opened (old `UNKNOWN_ACCOUNT`). Off until `LedgerApi` can open accounts (docs/design/carve-requests-round2-T1.md R2-1): escrow and treasury accounts open with their first booking.",
+			default: true,
+			description: "Refuse a booking on an account nobody opened (old `UNKNOWN_ACCOUNT`, always on in the old ledger); accounts open with `LedgerApi.open` (round 2, R2-D1).",
 		}),
 	}),
 	state: ({ residents }): LedgerState => ({ balances: new Map([[SYSTEM_ACCOUNT, 0], ...residents.map((id): [string, number] => [id, 0])]), entries: [], keys: new Map(), txSeq: 0 }),
@@ -61,8 +61,8 @@ function checkTransfer(ctx: Ctx, from: string, to: string, amount: number, memo:
 	return undefined;
 }
 
-function bookEntry(ctx: Ctx, debit: string, credit: string, amount: number, reason: string, allowNegative: boolean) {
-	return book(ctx.state, debit, credit, amount, reason, ctx.minute, { allowNegative, strict: ctx.options.strictAccounts }, (entry) => {
+function bookEntry(ctx: Ctx, debit: string, credit: string, amount: number, reason: string, allowNegative: boolean, idempotencyKey?: string) {
+	return book(ctx.state, debit, credit, amount, reason, ctx.minute, { allowNegative, strict: ctx.options.strictAccounts, idempotencyKey }, (entry) => {
 		ctx.emit("ledger_entry", { txId: entry.txId, debit: entry.debit, credit: entry.credit, amount: entry.amount, reason: entry.reason });
 	});
 }
@@ -74,17 +74,25 @@ export const ledger = defineMechanic(ledgerHead, (kit) => ({
 		kit.provide(LedgerApi, {
 			balance: (input, ctx) => balanceOf(ctx.state, input.account),
 			balances: (_input, ctx) => Object.fromEntries(ctx.residents.ids.map((id) => [id, balanceOf(ctx.state, id)])),
+			// Old `ledger.open`: an account at 0, an open one untouched; no event (the old ledger wrote none).
+			open: (input, ctx) => {
+				if (!ctx.state.balances.has(input.account)) ctx.state.balances.set(input.account, 0);
+				return null;
+			},
+			has: (input, ctx) => ctx.state.balances.has(input.account),
 			mint: (input, ctx) => {
-				bookEntry(ctx, SYSTEM_ACCOUNT, input.account, input.amount, input.reason, true);
+				bookEntry(ctx, SYSTEM_ACCOUNT, input.account, input.amount, input.reason, true, input.idempotencyKey);
 				return null;
 			},
 			burn: (input, ctx) => {
-				bookEntry(ctx, input.account, SYSTEM_ACCOUNT, input.amount, input.reason, true);
+				bookEntry(ctx, input.account, SYSTEM_ACCOUNT, input.amount, input.reason, true, input.idempotencyKey);
 				return null;
 			},
 			move: (input, ctx) => {
+				const repeated = input.idempotencyKey === undefined ? undefined : ctx.state.keys.get(input.idempotencyKey);
+				if (repeated !== undefined) return { ok: true, txId: repeated.txId };
 				if (balanceOf(ctx.state, input.from) < input.amount) return { ok: false, code: "INSUFFICIENT_FUNDS" };
-				const entry = bookEntry(ctx, input.from, input.to, input.amount, input.reason, false);
+				const entry = bookEntry(ctx, input.from, input.to, input.amount, input.reason, false, input.idempotencyKey);
 				return { ok: true, txId: entry.txId };
 			},
 		}),
@@ -123,7 +131,7 @@ export const ledger = defineMechanic(ledgerHead, (kit) => ({
 				for (const id of ctx.residents.ids) bookEntry(ctx, SYSTEM_ACCOUNT, id, ctx.options.startPoints, "start points", true);
 			},
 		},
-		turnInputs: (resident, ctx) => [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.points, text: ctx.prompt("competitor/status/points", { points: balanceOf(ctx.state, resident) }) }],
+		turnInputs: { order: HOOK_ORDER.turnInputs.status, run: (resident, ctx) => [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.points, text: ctx.prompt("competitor/status/points", { points: balanceOf(ctx.state, resident) }) }] },
 	},
 	facts: {
 		balances: kit.fact(Type.Record(Type.String(), Type.Number()), (view) => Object.fromEntries(view.residents.ids.map((id) => [id, balanceOf(view.state, id)]))),

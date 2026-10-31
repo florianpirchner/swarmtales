@@ -60,7 +60,8 @@ export const DmRecord = Type.Object({
 	to: ResidentId,
 	minute: Type.Integer(),
 	answered: Type.Boolean(),
-	text: Type.String(),
+	/** Absent for a DM of an old file that kept no text (old `DmRecord.text?`; round 2, R2-D14): blame answers "kept no delivery record". */
+	text: Type.Optional(Type.String()),
 	deliveredMinute: Type.Optional(Type.Integer()),
 	deliveredAfter: Type.Optional(Type.Integer()),
 });

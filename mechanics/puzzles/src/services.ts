@@ -3,7 +3,7 @@
  */
 import type { Static } from "typebox";
 import { ChannelsApi, ExileApi, ProgressionApi, type PuzzlesApi } from "@swarmtales/mechanic-shared";
-import { cityFactorOf } from "./additive.ts";
+import { cityFactorOf, dealValues } from "./additive.ts";
 import { dealLevel, inheritedFragments, isPasswordPiece, lastLevelOf, solutionOf } from "./deal.ts";
 import type { PuzzlesCtx } from "./head.ts";
 import { carriesGuardedFragment } from "./guard.ts";
@@ -18,7 +18,7 @@ function holdsFragment(ctx: PuzzlesCtx, agent: string, level: number, holder: st
 	const plain = (text: string): string => text.toUpperCase().replace(/[^A-Z0-9]/g, "");
 	const wanted = plain(fragment);
 	if (wanted.length === 0) return true;
-	const received = (ctx.tryCall(ChannelsApi, "dmRecords", {}) ?? []).flatMap((record) => (record.to === agent ? [plain(record.text)] : [])).join("");
+	const received = (ctx.tryCall(ChannelsApi, "dmRecords", {}) ?? []).flatMap((record) => (record.to === agent ? [plain(record.text ?? "")] : [])).join("");
 	return received.includes(wanted);
 }
 
@@ -69,6 +69,19 @@ export function revealFactor(ctx: PuzzlesCtx, level: number, target: "board" | r
 	return { ok: true, agents: recipients };
 }
 
+/** The old gamemaker's `#secretGuard` inputs: every dealt level from the first to the last, passwords and deal values (R2-D8). */
+function secretsOfDeal(ctx: PuzzlesCtx): { passwords: string[]; numbers: string[] } {
+	const passwords: string[] = [];
+	const numbers: string[] = [];
+	for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) {
+		const state = ctx.state.levels.get(level);
+		if (state === undefined) continue;
+		if (state.puzzle.kind === "fragments") passwords.push(...state.puzzle.puzzles.map((puzzle) => puzzle.password));
+		else numbers.push(...dealValues(state.puzzle.deal));
+	}
+	return { passwords, numbers };
+}
+
 export const puzzlesImplementation = {
 	deal: (input: { readonly level: number }, ctx: PuzzlesCtx): null => {
 		dealLevel(ctx, input.level);
@@ -105,4 +118,5 @@ export const puzzlesImplementation = {
 		inheritedFragments(ctx, input.level, input.resident).map(([from, fragment]) => ({ from, fragment })),
 	openFragmentDoors: (_input: object, ctx: PuzzlesCtx): number[] => [...openFragmentDoors(ctx)],
 	isHandover: (input: { readonly text: string }, ctx: PuzzlesCtx): boolean => isHandover(ctx, input.text),
+	secrets: (_input: object, ctx: PuzzlesCtx) => secretsOfDeal(ctx),
 };

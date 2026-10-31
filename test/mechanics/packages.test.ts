@@ -87,11 +87,9 @@ describe("the mechanic packages", () => {
 
 	it("declare only shared events they own (a silent event has no old owner: its source is the head)", () => {
 		const silent: readonly string[] = LEGACY_SILENT_EVENTS;
-		// The `defy` tool is the whisperer's, but the old owner table (core) names channels for its line (request R2-5 of T1).
-		const foreign: readonly string[] = ["whispers.gamemaker_defied"];
 		for (const head of HEADS) {
 			for (const type of Object.keys(head.events)) {
-				if (silent.includes(`${head.id}.${type}`) || foreign.includes(`${head.id}.${type}`)) continue;
+				if (silent.includes(`${head.id}.${type}`)) continue;
 				expect(legacyOwner(type), type).toBe(head.id);
 			}
 		}

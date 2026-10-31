@@ -33,9 +33,23 @@ export const HOOK_ORDER = {
 		/** `run_start`, after everything the world wrote. */
 		arena: 1000,
 	},
+	/**
+	 * The old `World#restore` after the slices were read, in its order (world.ts:3083-3125); the
+	 * host runs these once before the first minute of a resumed run (round 2, R2-D9).
+	 */
+	runResumed: {
+		/** `#dealCoreMotives`: a file from before the core motives gets them first. */
+		motives: 100,
+		/** A cast member the story added after the snapshot gets its escrow (`LedgerApi.has`, `open`, `mint`). */
+		cast: 200,
+		/** The door (`state.door ?? holdAfter`, clamped), act starts, `#noteActStarts` (`act_started`), the locks. */
+		progression: 300,
+		/** Levels not in the file are dealt; a re-deal that differs is announced (after the door: none behind it). */
+		puzzles: 400,
+	},
 	/** `Arena#nextMinute`: openDoor, `World.startMinute`, openDoor, `Director.startMinute`. */
 	minuteStarted: {
-		/** An old snapshot without core motives gets them before anything else of the minute. */
+		/** An old snapshot without core motives gets them before anything else of the minute (until motives moves to `runResumed.motives`, R2-D9). */
 		motives: 50,
 		/** `openDoor` before the ticks (not at minute 0: the first minute had none). */
 		progressionDoor: 100,
@@ -77,6 +91,8 @@ export const HOOK_ORDER = {
 	},
 	/** The end of a round. */
 	minuteEnded: {
+		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */
+		standoff: 500,
 		/** `round_end`, after every mechanic's own end of the minute. */
 		arena: 1000,
 	},

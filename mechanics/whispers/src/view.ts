@@ -19,7 +19,7 @@ export const roundsOf = (ctx: Ctx): readonly Round[] => ctx.options.popularity?.
 
 /** Every DM the city recorded, with the minute it was sent. */
 export function dmsOf(ctx: Ctx): readonly Dm[] {
-	return (ctx.call(ChannelsApi, "dmRecords", {})).map((record) => ({ from: record.from, to: record.to, text: record.text, minute: record.minute }));
+	return (ctx.call(ChannelsApi, "dmRecords", {})).map((record) => ({ from: record.from, to: record.to, text: record.text ?? "", minute: record.minute }));
 }
 
 /** Whether a DM text hands over a fragment of a door (a hand-over is no whisper). */

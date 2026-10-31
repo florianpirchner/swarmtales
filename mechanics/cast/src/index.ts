@@ -31,6 +31,8 @@ function fundMissing(ctx: Ctx): void {
 		if (ctx.state.funded.has(member.id)) continue;
 		ctx.state.funded.add(member.id);
 		const escrow = ctx.options.members[member.id]?.escrow ?? 0;
+		// Old world.ts:784: the escrow account opens even without escrow (the ledger refuses unopened accounts, R2-D1).
+		ctx.call(LedgerApi, "open", { account: escrowAccountId(member.id) });
 		if (escrow > 0) ctx.call(LedgerApi, "mint", { account: escrowAccountId(member.id), amount: escrow, reason: `escrow ${member.id}` });
 	}
 }

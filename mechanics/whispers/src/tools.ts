@@ -1,7 +1,7 @@
 /**
- * The tools of the whispers mechanic: the whisperer's `forgeReceipt`, the popularity vote's
- * `nameFavourite` and the `defy` of a resident that may refuse the gamemaker's order. Copied from
- * packages/engine/src/tools/whispers.ts, tools/defy.ts and the whisper methods of world.ts.
+ * The tools of the whispers mechanic: the whisperer's `forgeReceipt` and the popularity vote's
+ * `nameFavourite`. Copied from packages/engine/src/tools/whispers.ts and the whisper methods of
+ * world.ts. `defy` and `gamemaker_defied` belong to channels (round 2, R2-D5).
  */
 import { Type } from "typebox";
 import type { MechanicKit, ShapeOf } from "@swarmtales/contracts";
@@ -15,8 +15,6 @@ type Kit = MechanicKit<ShapeOf<typeof whispersHead>>;
 
 const CITY = "CITY";
 const MAX_DM_LENGTH = 800;
-/** The length of a refusal's reason (old `DEFY_REASON`, world.ts). */
-export const DEFY_REASON = { min: 20, max: 600 } as const;
 
 export function forgeTool(kit: Kit) {
 	return kit.tool({
@@ -70,26 +68,6 @@ export function favouriteTool(kit: Kit) {
 			ctx.state.ballots.set(voter, choice);
 			ctx.emit("popularity_ballot", { round: ctx.state.round + 1, agent: voter, choice });
 			return reply(ctx.prompt("replies/ballot-favourite", { choice, until: round.countsAt }));
-		},
-	});
-}
-
-export function defyTool(kit: Kit) {
-	return kit.tool({
-		name: "defy",
-		description: { prompt: "tools/defy", variables: () => ({ min: DEFY_REASON.min, max: DEFY_REASON.max }) },
-		parameters: Type.Object({
-			reason: Type.String({ description: "Why your character refuses, in its own voice", minLength: 1, maxLength: 1_000 }),
-			note: Type.Optional(Type.Integer({ description: "The number of the gamemaker's note you refuse, e.g. 312", minimum: 1 })),
-		}),
-		suggest: ["resident"],
-		execute: ({ reason, note }, ctx: ToolCtx) => {
-			const agent = ctx.resident;
-			if (agent === undefined) return refuse("UNKNOWN_AGENT");
-			const text = reason.trim();
-			if (text.length < DEFY_REASON.min || text.length > DEFY_REASON.max) return refuse("INVALID_REASON", `${String(DEFY_REASON.min)}-${String(DEFY_REASON.max)} characters`);
-			ctx.emit("gamemaker_defied", { agent, reason: text, ...(note === undefined ? {} : { note }) });
-			return reply(ctx.prompt("replies/defy-recorded", {}));
 		},
 	});
 }

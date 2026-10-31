@@ -79,7 +79,6 @@ export const whispersHead = defineHead({
 		popularity: Type.Optional(PopularitySpec),
 		control: Type.Boolean({ default: false, description: "A control run: the story's whisperer does not play." }),
 		direction: Type.Optional(Direction),
-		defiance: Type.Boolean({ default: false, description: "Every resident may refuse the gamemaker's order with `defy` (the run's gamemaker direction)." }),
 	}),
 	state: (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined, now: null }),
 	events: {
@@ -104,15 +103,12 @@ export const whispersHead = defineHead({
 			voters: Type.Array(Type.String()),
 		}),
 		receipt_forged: Type.Object({ receipt: Type.String(), by: Type.String(), to: Type.String(), from: Type.String(), number: Type.Integer(), text: Type.String(), forged: Type.String() }),
-		gamemaker_defied: Type.Object({ agent: Type.String(), reason: Type.String(), note: Type.Optional(Type.Integer()) }),
 	},
 	prompts: {
 		"tools/forgeReceipt": [],
 		"tools/nameFavourite": [],
-		"tools/defy": ["min", "max"],
 		"replies/receipt-shown-private": ["to", "receipt"],
 		"replies/ballot-favourite": ["choice", "until"],
-		"replies/defy-recorded": [],
 		"replies/locked": [],
 		"replies/marks-left": ["remaining", "budget"],
 		"competitor/status/popularity-nobody": [],

@@ -28,6 +28,8 @@ export const NamesApi = defineApi({
 
 const Account = Type.String({ description: "A resident id or a system account of the old Ledger (escrow, treasury, SYSTEM_MINT_BURN)." });
 const Amount = Type.Number({ exclusiveMinimum: 0 });
+/** A booking repeated with the same key books once and returns the first entry (old `TransferOptions.idempotencyKey`; round 2, R2-D1). */
+const Key = Type.Optional(Type.String({ description: "Books once per key; a repeat returns the first booking." }));
 
 /** Points (step 2). */
 export const LedgerApi = defineApi({
@@ -36,11 +38,13 @@ export const LedgerApi = defineApi({
 	methods: {
 		balance: query("An account's points (old `ledger.balance`).", Type.Object({ account: Account }), Type.Number()),
 		balances: query("Every resident's points, for rankings and standings.", Type.Object({}), Type.Record(Type.String(), Type.Number())),
-		mint: command("Creates points: start points, rewards, director grants (old `ledger.mint`, `adjustPoints` > 0); writes `ledger_entry`.", Type.Object({ account: Account, amount: Amount, reason: Type.String() }), Type.Null()),
-		burn: command("Destroys points: fines, penalties, an exile (old `ledger.burn`, `adjustPoints` < 0); writes `ledger_entry`.", Type.Object({ account: Account, amount: Amount, reason: Type.String() }), Type.Null()),
+		open: command("Opens an account at 0; an open account is left as it is (old `ledger.open`); writes no event of its own.", Type.Object({ account: Account }), Type.Null()),
+		has: query("Whether the account is open (old `ledger.has`).", Type.Object({ account: Account }), Type.Boolean()),
+		mint: command("Creates points: start points, rewards, director grants (old `ledger.mint`, `adjustPoints` > 0); writes `ledger_entry`.", Type.Object({ account: Account, amount: Amount, reason: Type.String(), idempotencyKey: Key }), Type.Null()),
+		burn: command("Destroys points: fines, penalties, an exile (old `ledger.burn`, `adjustPoints` < 0); writes `ledger_entry`.", Type.Object({ account: Account, amount: Amount, reason: Type.String(), idempotencyKey: Key }), Type.Null()),
 		move: command(
 			"Books points between accounts without the resident checks: escrow, treasuries, ransom, bids (old `ledger.transfer`); writes `ledger_entry` only, never `transfer`.",
-			Type.Object({ from: Account, to: Account, amount: Amount, reason: Type.String() }),
+			Type.Object({ from: Account, to: Account, amount: Amount, reason: Type.String(), idempotencyKey: Key }),
 			Type.Union([Type.Object({ ok: Type.Literal(true), txId: Type.String() }), Type.Object({ ok: Type.Literal(false), code: Type.Literal("INSUFFICIENT_FUNDS") })]),
 		),
 	},

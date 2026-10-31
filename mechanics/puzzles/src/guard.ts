@@ -39,7 +39,7 @@ export function secretsOf(ctx: PuzzlesCtx, agent: string, minRun: number): reado
 	const secrets: GuardedSecret[] = [];
 	const records = ctx.tryCall(ChannelsApi, "dmRecords", {}) ?? [];
 	// A DM counts for the recipient once it was delivered (old `secretsOf`); the sender knows its own at once.
-	const dmTexts = records.filter((record) => record.from === agent || (record.to === agent && record.deliveredMinute !== undefined)).map((record) => record.text);
+	const dmTexts = records.filter((record) => record.from === agent || (record.to === agent && record.deliveredMinute !== undefined)).map((record) => record.text ?? "");
 	const reached = ctx.tryCall(ProgressionApi, "levelOf", { resident: agent }) ?? 0;
 	for (const level of guardedLevels(ctx)) {
 		if (level > reached) continue;
