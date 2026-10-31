@@ -5,7 +5,7 @@
  */
 import { Type, type Static } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, GoalsApi, LedgerApi, ProgressionApi, PuzzlesApi, SealApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, LedgerApi, ProgressionApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { provider } from "./provider.ts";
 
 export interface Notice {
@@ -216,22 +216,3 @@ export function puzzlesStandIn(world: TestWorld, deals: Deals = {}, lacking: (le
 	);
 }
 
-/** Stand-in goals: records that a resident left. */
-export function goalsStandIn(world: TestWorld) {
-	return provider("goals", GoalsApi, {
-		onExiled: ({ resident }) => {
-			world.record("goals", "onExiled", { resident });
-			return null;
-		},
-	});
-}
-
-/** Stand-in seal: records that a resident left. */
-export function sealStandIn(world: TestWorld) {
-	return provider("seal", SealApi, {
-		onExiled: ({ resident }) => {
-			world.record("seal", "onExiled", { resident });
-			return null;
-		},
-	});
-}
