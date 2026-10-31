@@ -62,8 +62,8 @@ export const PetitionsApi = defineApi({
 });
 
 /** Character cores (step 9): what the goals and the gamemaker's privacy check read of a core. */
-export const CoresApi = defineApi({
-	name: "cores",
+export const MotivesApi = defineApi({
+	name: "motives",
 	summary: "The character core of each resident.",
 	methods: {
 		drivesOf: query("The drive ids of the resident's core, the strongest first, or null without a core (the goals deal follows them).", OfResident, Type.Union([Type.Array(Type.String()), Type.Null()])),

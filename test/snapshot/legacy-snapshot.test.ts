@@ -30,7 +30,7 @@ describe("the old-snapshot converter", () => {
 		expect(converted.host).toMatchObject({ story: "nexus", seed: 7, minute: 9, seq: 1722 });
 		expect(converted.host.residents.ids).toEqual(["A01", "A02", "A03", "A04", "A05", "A06"]);
 		expect(Object.keys(converted.host.mechanics).sort()).toEqual(
-			["arena", "cast", "channels", "cores", "goals", "ledger", "marks", "names", "petitions", "progression", "puzzles", "receipts", "script", "tribunal", "exile"].sort(),
+			["arena", "cast", "channels", "motives", "goals", "ledger", "marks", "names", "petitions", "progression", "puzzles", "receipts", "script", "tribunal", "exile"].sort(),
 		);
 		expect(Object.values(converted.host.mechanics).every((slice) => slice.version === 0)).toBe(true);
 		expect(converted.events).toHaveLength(1722);

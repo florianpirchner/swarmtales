@@ -15,7 +15,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 
 /** The mechanic packages of `mechanics/` (docs/design/carve-plan.md); each may use the core and the shared module only. */
 const MECHANIC_IDS = [
-	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "cores", "puzzles",
+	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;

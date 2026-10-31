@@ -8,16 +8,16 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { CoresApi, HOOK_ORDER, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { MotivesApi, HOOK_ORDER, WhispersEvents } from "@swarmtales/mechanic-shared";
 import { coreLine, dealCores, renderCore } from "./deal.ts";
-import { coresHead } from "./head.ts";
+import { motivesHead } from "./head.ts";
 import { CoreRecord } from "./spec.ts";
 
-export { coresHead };
+export { motivesHead };
 export { coreLine, dealCores, renderCore };
 export { CoreRecord, CoresOptions } from "./spec.ts";
 
-type Ctx = ContextOf<typeof coresHead>;
+type Ctx = ContextOf<typeof motivesHead>;
 
 const Slice = Type.Array(CoreRecord);
 const LegacySlice = Type.Object({ cores: Type.Optional(Slice) });
@@ -41,9 +41,9 @@ function deal(ctx: Ctx): void {
 	}
 }
 
-export const cores = defineMechanic(coresHead, (kit) => ({
+export const motives = defineMechanic(motivesHead, (kit) => ({
 	services: [
-		kit.provide(CoresApi, {
+		kit.provide(MotivesApi, {
 			drivesOf: (input, ctx) => {
 				const core = ctx.state.cores.get(input.resident);
 				return core === undefined ? null : core.drives.map((entry) => entry.drive);
@@ -61,9 +61,9 @@ export const cores = defineMechanic(coresHead, (kit) => ({
 	],
 	hooks: {
 		// With the first act, after the whisperer is chosen and the start points are given, before its goals are dealt.
-		runStarted: { order: HOOK_ORDER.runStarted.cores, run: deal },
+		runStarted: { order: HOOK_ORDER.runStarted.motives, run: deal },
 		// A snapshot from before the cores deals them before the next minute is played (v09), before anything else of it.
-		minuteStarted: { order: HOOK_ORDER.minuteStarted.cores, run: deal },
+		minuteStarted: { order: HOOK_ORDER.minuteStarted.motives, run: deal },
 	},
 	facts: {
 		cores: kit.fact(Type.Record(Type.String(), Type.Object({ bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Type.String() })), drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Type.String() })), figure: Type.Optional(Type.String()) })), (view) => Object.fromEntries(view.state.cores)),

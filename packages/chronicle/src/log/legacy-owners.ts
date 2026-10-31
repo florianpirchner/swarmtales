@@ -19,7 +19,7 @@ export type LegacyOwner =
 	| "receipts"
 	| "names"
 	| "cast"
-	| "cores"
+	| "motives"
 	| "goals"
 	| "petitions"
 	| "seal"
@@ -98,7 +98,7 @@ export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> 
 	collection_shortened: "cast",
 	collection_revealed: "cast",
 	lottery_drawn: "cast",
-	core_dealt: "cores",
+	core_dealt: "motives",
 	goal_dealt: "goals",
 	goal_resolved: "goals",
 	petition_opened: "petitions",

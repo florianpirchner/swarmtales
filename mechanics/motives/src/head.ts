@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, CoresApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, MotivesApi } from "@swarmtales/mechanic-shared";
 import type { Core } from "./deal.ts";
 import { CoreDrive, CoreTrait, CoresOptions } from "./spec.ts";
 
@@ -20,12 +20,12 @@ export interface CoresState {
 	whisperer?: string;
 }
 
-export const coresHead = defineHead({
-	id: "cores",
+export const motivesHead = defineHead({
+	id: "motives",
 	summary: "The private cores dealt to residents.",
 	options: CoresOptions,
 	state: (): CoresState => ({ cores: new Map() }),
 	events,
-	provides: [CoresApi],
+	provides: [MotivesApi],
 	requires: [ChannelsApi],
 });

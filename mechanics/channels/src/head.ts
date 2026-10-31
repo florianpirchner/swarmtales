@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { CastApi, ChannelsApi, ChannelsEvents, CoresApi, ExileApi, GoalsApi, LedgerApi, MarksApi, NamesApi, NotesApi, ProgressionApi, PuzzlesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
+import { CastApi, ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, GoalsApi, LedgerApi, MarksApi, NamesApi, NotesApi, ProgressionApi, PuzzlesApi, ReceiptsApi, StandoffApi, StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { newState } from "./state.ts";
 
 const Id = Type.String();
@@ -70,7 +70,7 @@ const prompts = {
 	"gamemaker/replies/invalid-text": ["max"],
 	"gamemaker/replies/leak-blocked": [],
 	"gamemaker/replies/private-thoughts": ["who"],
-	"gamemaker/replies/private-core": ["who"],
+	"gamemaker/replies/private-core-motive": ["who"],
 	"gamemaker/replies/private-role": [],
 	"gamemaker/replies/repeated": ["to", "minute"],
 	"gamemaker/replies/budget-notes": ["notes", "window"],
@@ -110,5 +110,5 @@ export const channelsHead = defineHead({
 	prompts,
 	provides: [ChannelsApi, NotesApi],
 	requires: [LedgerApi, MarksApi, NamesApi],
-	uses: [ReceiptsApi, CastApi, StandoffApi, StandoffTribunalApi, ExileApi, PuzzlesApi, ProgressionApi, CoresApi, GoalsApi],
+	uses: [ReceiptsApi, CastApi, StandoffApi, StandoffTribunalApi, ExileApi, PuzzlesApi, ProgressionApi, MotivesApi, GoalsApi],
 });

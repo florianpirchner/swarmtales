@@ -34,7 +34,7 @@ export interface TwinOptions {
 }
 
 /** The mechanics the twin loads; every other slice of a resumed snapshot gets an inert stand-in. */
-const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "cores", "dummies", "puzzles", "progression", "goals"];
+const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "motives", "dummies", "puzzles", "progression", "goals"];
 
 const OLD_TOOLS: Readonly<Record<string, ArenaTool>> = { getStatus, activeTools, getProblem, submitSolution, listAgents };
 

@@ -27,7 +27,7 @@ export const HOOK_ORDER = {
 		/** Every playable level dealt up front, the teams behind a door. */
 		puzzles: 400,
 		/** The cores, with the first act. */
-		cores: 500,
+		motives: 500,
 		/** `#noteActStarts(startLevel)`: `act_started` (goals dealt, the seal begun), then the locks. */
 		progression: 600,
 		/** `run_start`, after everything the world wrote. */
@@ -36,7 +36,7 @@ export const HOOK_ORDER = {
 	/** `Arena#nextMinute`: openDoor, `World.startMinute`, openDoor, `Director.startMinute`. */
 	minuteStarted: {
 		/** An old snapshot without cores gets them before anything else of the minute. */
-		cores: 50,
+		motives: 50,
 		/** `openDoor` before the ticks (not at minute 0: the first minute had none). */
 		progressionDoor: 100,
 		/** `#names.settle`: names chosen in time are given. */

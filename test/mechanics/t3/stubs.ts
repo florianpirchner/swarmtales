@@ -5,7 +5,7 @@
  */
 import { Type } from "typebox";
 import { defineMechanic, reply } from "@swarmtales/kernel";
-import { ChannelsApi, CoresApi, ExileApi, LedgerApi, ProgressionApi, ProgressionEvents } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, MotivesApi, ExileApi, LedgerApi, ProgressionApi, ProgressionEvents } from "@swarmtales/mechanic-shared";
 
 export interface Notice {
 	readonly to: string;
@@ -86,8 +86,8 @@ export function exileStub(exiled: Set<string>, residents: readonly string[]) {
 
 /** Cores that only know their drives. */
 export function coresStub(drives: ReadonlyMap<string, readonly string[]>) {
-	return defineMechanic({ ...none, id: "cores", summary: "Stand-in: drives per resident.", provides: [CoresApi] }, (kit) => ({
-		services: [kit.provideSome(CoresApi, { drivesOf: ({ resident }) => (drives.get(resident) === undefined ? null : [...(drives.get(resident) ?? [])]) })],
+	return defineMechanic({ ...none, id: "motives", summary: "Stand-in: drives per resident.", provides: [MotivesApi] }, (kit) => ({
+		services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => (drives.get(resident) === undefined ? null : [...(drives.get(resident) ?? [])]) })],
 	}));
 }
 

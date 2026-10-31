@@ -13,7 +13,7 @@ import { LEGACY_EVENT_OWNERS, legacyOwner } from "@swarmtales/chronicle";
 import { arenaHead } from "@swarmtales/mechanic-arena";
 import { castHead } from "@swarmtales/mechanic-cast";
 import { channelsHead } from "@swarmtales/mechanic-channels";
-import { coresHead } from "@swarmtales/mechanic-cores";
+import { motivesHead } from "@swarmtales/mechanic-motives";
 import { exileHead } from "@swarmtales/mechanic-exile";
 import { goalsHead } from "@swarmtales/mechanic-goals";
 import { ledgerHead } from "@swarmtales/mechanic-ledger";
@@ -41,7 +41,7 @@ interface Head {
 
 /** In the corrected carve order (docs/design/carve-plan.md, "Order"). */
 const HEADS: readonly Head[] = [
-	namesHead, ledgerHead, marksHead, channelsHead, receiptsHead, whispersHead, puzzlesHead, progressionHead, castHead, coresHead,
+	namesHead, ledgerHead, marksHead, channelsHead, receiptsHead, whispersHead, puzzlesHead, progressionHead, castHead, motivesHead,
 	goalsHead, petitionsHead, standoffHead, exileHead, tribunalHead, sealHead, standoffTribunalHead, scriptHead, arenaHead,
 ];
 

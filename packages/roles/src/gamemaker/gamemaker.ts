@@ -410,7 +410,7 @@ export class Gamemaker implements EventSink {
 		}
 		const revealed = characterLeaks(trimmed, to, this.#characters(), (agent) => this.#options.world.nameOf(agent));
 		if (revealed.length > 0) {
-			throw new ToolRefusal(render("gamemaker/replies/private-core", { who: revealed.join(", ") }));
+			throw new ToolRefusal(render("gamemaker/replies/private-core-motive", { who: revealed.join(", ") }));
 		}
 		// Whispers v3: the whisperer stays secret, also from hints.
 		const whisperer = this.#options.world.whisperer;

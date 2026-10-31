@@ -25,7 +25,7 @@ import { type AnyStory, type LevelDefinition, type MarksChannel, TOOL_NAMES, typ
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
 import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
-import { dealCores, type Core } from "./cores.ts";
+import { dealCores, type Core } from "./motives.ts";
 import type { EventBus } from "./events.ts";
 import { GoalBook, type GoalsSnapshot, type HeldGoal } from "./goals.ts";
 import { HoldoutTribunal, type AnnounceError, type BlockerFact, type CallError, type HoldoutSnapshot, type LotError, type StrikeError, type TribunalVoteError } from "./holdout.ts";

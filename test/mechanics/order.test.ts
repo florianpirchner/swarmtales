@@ -34,7 +34,7 @@ const MECHANIC_OF: Readonly<Record<string, string>> = {
 	ledger: "ledger",
 	cast: "cast",
 	puzzles: "puzzles",
-	cores: "cores",
+	motives: "motives",
 	progression: "progression",
 	arena: "arena",
 	names: "names",
@@ -59,7 +59,7 @@ function driverSlot(line: LegacyLine, where: "pre" | "minute" | "end"): Slot | "
 		case "factors_dealt":
 			return { hook: "runStarted", key: "puzzles" };
 		case "core_dealt":
-			return { hook: "runStarted", key: "cores" };
+			return { hook: "runStarted", key: "motives" };
 		case "run_start":
 			return { hook: "runStarted", key: "arena" };
 		case "name_chosen":
@@ -213,7 +213,7 @@ function standInFor(id: string, placed: readonly Placed[], ordered: boolean) {
 }
 
 /** The old order of the mechanics' constructors and ticks, reversed: the load order must not matter. */
-const REVERSED = ["arena", "goals", "script", "cast", "standoff-tribunal", "whispers", "seal", "names", "progression", "cores", "puzzles", "ledger"];
+const REVERSED = ["arena", "goals", "script", "cast", "standoff-tribunal", "whispers", "seal", "names", "progression", "motives", "puzzles", "ledger"];
 
 async function replay(lines: readonly LegacyLine[], placed: readonly Placed[], ordered: boolean): Promise<readonly string[]> {
 	const kept = placed.filter((entry) => entry.slot !== "gamemaker");

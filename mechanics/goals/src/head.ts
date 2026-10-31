@@ -2,12 +2,12 @@
  * The heads of the goals mechanic. `goalsHead` has the shape the wave 3.0 plan froze (what
  * `test/mechanics/packages.test.ts` reads); `goalsWorkHead` is the one the mechanic is built from:
  * the real options and state, the points it pays (`LedgerApi`), the exile it asks (`ExileApi`) and the
- * cores it reads (`CoresApi.drivesOf`).
+ * cores it reads (`MotivesApi.drivesOf`).
  */
 import { Type } from "typebox";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, CoresApi, ExileApi, GoalsApi, LedgerApi, ProgressionApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, MotivesApi, ExileApi, GoalsApi, LedgerApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import { freshGoals, GOALS_EVENTS, GoalsOptions } from "./model.ts";
 
 export const goalsHead = defineHead({
@@ -28,7 +28,7 @@ export const goalsWorkHead = defineHead({
 	events: { ...GOALS_EVENTS },
 	provides: [GoalsApi],
 	requires: [ProgressionApi, ChannelsApi, LedgerApi],
-	uses: [ExileApi, CoresApi],
+	uses: [ExileApi, MotivesApi],
 });
 
 export type GoalsCtx = ContextOf<typeof goalsWorkHead>;

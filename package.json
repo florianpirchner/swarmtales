@@ -42,7 +42,7 @@
     "@swarmtales/mechanic-arena": "workspace:*",
     "@swarmtales/mechanic-cast": "workspace:*",
     "@swarmtales/mechanic-channels": "workspace:*",
-    "@swarmtales/mechanic-cores": "workspace:*",
+    "@swarmtales/mechanic-motives": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
     "@swarmtales/mechanic-goals": "workspace:*",
     "@swarmtales/mechanic-ledger": "workspace:*",

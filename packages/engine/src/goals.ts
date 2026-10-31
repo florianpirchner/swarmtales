@@ -21,7 +21,7 @@
  */
 import { type CompetitorId, renderTemplate, type Rng, rngFor } from "@swarmtales/kernel";
 import { GOAL_KINDS, type GoalKind, type GoalsSpec } from "@swarmtales/contracts";
-import type { Core } from "./cores.ts";
+import type { Core } from "./motives.ts";
 import type { ArenaEvent, Goal } from "./events.ts";
 
 export type GoalEvent = Extract<ArenaEvent, { readonly type: "goal_dealt" | "goal_resolved" }>;

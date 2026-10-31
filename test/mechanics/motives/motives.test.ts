@@ -12,7 +12,7 @@ import { LegacyEventAdapter, convertLegacySnapshot } from "@swarmtales/chronicle
 import type { CoresSpec, Host } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { channels } from "@swarmtales/mechanic-channels";
-import { CoreRecord, CoresOptions, coreLine, cores, renderCore } from "@swarmtales/mechanic-cores";
+import { CoreRecord, CoresOptions, coreLine, motives, renderCore } from "@swarmtales/mechanic-motives";
 
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, goldenLine, idleAgent, ownedBy, readLegacyLog, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
@@ -35,11 +35,11 @@ function options(source: CoresSpec, cast?: readonly string[], withoutFigures = f
 
 function story(spec: CoresOptions, residents = 6, minutes = 3) {
 	return defineCoreStory({
-		id: "t2-cores",
+		id: "t2-motives",
 		seed: 7,
 		minutes,
 		residents,
-		mechanics: [cores.with(spec), channels.with(), ledgerStandIn(10).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with(), exileStandIn.with()],
+		mechanics: [motives.with(spec), channels.with(), ledgerStandIn(10).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with(), exileStandIn.with()],
 		grants: {},
 	});
 }
@@ -68,11 +68,11 @@ describe("golden gate: cores (channels and the providers around it stand in)", (
 			const skip = (line: LegacyLine): boolean => whisperer !== undefined && line.agent === whisperer;
 			const expected = ownedBy(
 				golden.filter((line) => !skip(line)),
-				["cores"],
+				["motives"],
 			);
 			const actual = ownedBy(
 				written.filter((line) => !skip(line)),
-				["cores"],
+				["motives"],
 			);
 			expect(expected).toHaveLength(whisperer === undefined ? 6 : 5);
 			expect(compareGolden(expected, actual)).toBeUndefined();
@@ -133,8 +133,8 @@ describe("the deal", () => {
 	it("renders a core as prose and in a line, and shows both as facts", () => {
 		const host = city(KEYS);
 		const facts = host.facts();
-		const prose = facts["cores.prose"];
-		const lines = facts["cores.lines"];
+		const prose = facts["motives.prose"];
+		const lines = facts["motives.lines"];
 		expect(typeof prose === "object" && prose !== null && "A01" in prose).toBe(true);
 		const [event] = payloads(host, "core_dealt").map((entry) => Parse(CoreRecord, entry));
 		if (event === undefined) throw new Error("no core dealt");
@@ -146,9 +146,9 @@ describe("the deal", () => {
 
 describe("conformance and snapshot", () => {
 	it("documents its options and keeps to the source rules", () => {
-		expect(checkOptionsDocumented(cores)).toEqual([]);
-		const dir = join(ROOT, "mechanics", "cores", "src");
-		const files = readdirSync(dir).map((name) => ({ path: `mechanics/cores/src/${name}`, text: readFileSync(join(dir, name), "utf8") }));
+		expect(checkOptionsDocumented(motives)).toEqual([]);
+		const dir = join(ROOT, "mechanics", "motives", "src");
+		const files = readdirSync(dir).map((name) => ({ path: `mechanics/motives/src/${name}`, text: readFileSync(join(dir, name), "utf8") }));
 		expect(checkSourceRules(files)).toEqual([]);
 	});
 
@@ -161,7 +161,7 @@ describe("conformance and snapshot", () => {
 	describe("the legacy checkpoint", () => {
 		const path = join(ROOT, "examples", "cityofkeys-act1-06a-04", "snapshot-L7.json");
 		const converted = convertLegacySnapshot(JSON.parse(readFileSync(path, "utf8")), {}, path);
-		const loaded = ["cores", "channels", "ledger", "marks", "names", "receipts", "exile"];
+		const loaded = ["motives", "channels", "ledger", "marks", "names", "receipts", "exile"];
 
 		function resume(snapshot: typeof converted.host) {
 			const resumed = defineCoreStory({
@@ -169,7 +169,7 @@ describe("conformance and snapshot", () => {
 				seed: 7,
 				minutes: 80,
 				residents: converted.host.residents.ids,
-				mechanics: [cores.with(KEYS), channels.with(), ledgerStandIn(0).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with(), exileStandIn.with(), ...standInsFor(snapshot, loaded)],
+				mechanics: [motives.with(KEYS), channels.with(), ledgerStandIn(0).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with(), exileStandIn.with(), ...standInsFor(snapshot, loaded)],
 				grants: {},
 			});
 			return createHost({ story: resumed, prompts: t2Prompts(), resume: { snapshot, events: converted.events } });
@@ -177,17 +177,17 @@ describe("conformance and snapshot", () => {
 
 		it("migrates the dealt cores from version 0 and does not deal again", async () => {
 			const host = resume(converted.host);
-			const old: unknown = converted.host.mechanics.cores?.data;
+			const old: unknown = converted.host.mechanics.motives?.data;
 			const wanted = Parse(LegacyCores, old).cores;
 			expect(wanted).toHaveLength(6);
-			expect(host.snapshot().mechanics.cores).toMatchObject({ version: 1, data: wanted });
+			expect(host.snapshot().mechanics.motives).toMatchObject({ version: 1, data: wanted });
 			const before = host.log.length;
 			await host.playMinute(idleAgent);
 			expect(host.log.all().slice(before).filter((event) => event.type === "core_dealt")).toEqual([]);
 		});
 
 		it("deals them before the next minute when the snapshot has none (v09)", async () => {
-			const bare = { ...converted.host, mechanics: { ...converted.host.mechanics, cores: { version: 0, data: {} } } };
+			const bare = { ...converted.host, mechanics: { ...converted.host.mechanics, motives: { version: 0, data: {} } } };
 			const host = resume(bare);
 			const before = host.log.length;
 			await host.playMinute(idleAgent);

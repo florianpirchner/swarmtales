@@ -11,7 +11,7 @@ import { describeReceipt, ReceiptBook, refillText, type MarksBook, type Receipt 
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
 import { render } from "@swarmtales/prompts";
-import { ChannelsApi, ChannelsEvents, CoresApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
 const base = { options: Type.Object({}), prompts: {} } as const;
 
@@ -215,10 +215,10 @@ export function twinExile(world: World) {
 /** The drives of the cores the old world dealt. */
 export function twinCores(world: World) {
 	return defineMechanic(
-		{ ...base, id: "cores", summary: "Twin cores.", state: () => ({}), events: {}, provides: [CoresApi] },
+		{ ...base, id: "motives", summary: "Twin cores.", state: () => ({}), events: {}, provides: [MotivesApi] },
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
-			services: [kit.provideSome(CoresApi, { drivesOf: ({ resident }) => world.coreOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
+			services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => world.coreOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
 		}),
 	);
 }
