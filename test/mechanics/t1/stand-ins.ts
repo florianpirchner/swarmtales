@@ -4,10 +4,29 @@
  * can compare the lines it writes with the golden ones.
  */
 import { Type } from "typebox";
-import type { MechanicUse } from "@swarmtales/contracts";
+import type { EventsDefinition, MechanicUse } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
 import { ExileApi, ExileEvents, LedgerApi } from "@swarmtales/mechanic-shared";
 import type { LegacyLine } from "@swarmtales/testkit";
+
+/**
+ * The testkit's `standIn` for a mechanic that declares shared events others listen to: a loaded
+ * emitter must declare the very schemas its listeners read, so the stand-in spreads them in.
+ */
+export function standInWithEvents(events: EventsDefinition): MechanicUse {
+	return defineMechanic(
+		{ id: events.id, summary: `Stand-in for ${events.id}: keeps its old snapshot slice.`, options: Type.Object({}), state: (): { data: unknown } => ({ data: null }), events: { ...events.events } },
+		(kit) => ({
+			snapshot: kit.snapshot({
+				version: 1,
+				schema: Type.Object({ old: Type.Unknown() }),
+				save: (state) => ({ old: state.data }),
+				load: (data) => ({ data: data.old }),
+				migrations: { 0: (old) => ({ old }) },
+			}),
+		}),
+	).with();
+}
 
 /** A stand-in provider of `ExileApi` for the residents in `gone` (fixed answers; team T4 carves the real one). */
 export function exileStandIn(gone: readonly string[]): MechanicUse {
