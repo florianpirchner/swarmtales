@@ -41,7 +41,7 @@ import {
 	FigureCues,
 	figureOf,
 	MemorySink,
-	renderCore,
+	renderCoreMotive,
 	ToolGuard,
 	World,
 } from "@swarmtales/engine";
@@ -76,8 +76,8 @@ export interface RunOverrides {
 	readonly classifier?: boolean;
 	/** `false` keeps IDs although the story has names (v08); a resumed run keeps the snapshot's. */
 	readonly names?: boolean;
-	/** `false` plays without character cores although the story has them (v09, `--no-cores`). */
-	readonly cores?: boolean;
+	/** `false` plays without core motives although the story has them (v09, `--no-core-motives`). */
+	readonly coreMotives?: boolean;
 	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
 	readonly cast?: readonly string[];
 	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, packages/engine/src/direction.ts). */
@@ -113,8 +113,8 @@ export interface EffectiveRun {
 	readonly classifier: boolean;
 	/** Whether residents choose names: the story has them and the run starts on its first level (v08). */
 	readonly names: boolean;
-	/** Whether residents have character cores: the story has them and the run does not turn them off (v09). */
-	readonly cores: boolean;
+	/** Whether residents have core motives: the story has them and the run does not turn them off (v09). */
+	readonly coreMotives: boolean;
 	/** The direction levels the run plays (default 4 each, as v12). */
 	readonly figureDirection: DirectionLevel;
 	readonly gmDirection: DirectionLevel;
@@ -213,7 +213,7 @@ export function effectiveRun(story: AnyStory, overrides: RunOverrides = {}): Eff
 		gamemaker: overrides.gamemaker === true && story.gamemaker !== undefined,
 		classifier: overrides.classifier === true && story.classifier !== undefined,
 		names: story.names !== undefined && startLevel === 1 && (overrides.names ?? true),
-		cores: story.cores !== undefined && (overrides.cores ?? true),
+		coreMotives: story.coreMotives !== undefined && (overrides.coreMotives ?? true),
 		figureDirection: overrides.figureDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.figureDirection),
 		gmDirection: overrides.gmDirection === undefined ? DEFAULT_DIRECTION : directionLevel(overrides.gmDirection),
 		whisperer: story.whisperer !== undefined && (overrides.whisperer ?? true),
@@ -230,19 +230,19 @@ function namesFact(world: World): Pick<PromptFacts, "names"> {
 	return untilMinute === undefined ? {} : { names: { untilMinute } };
 }
 
-/** The resident's core in prose for its system prompt (v09); dealt by the world, kept in its snapshot. */
-function coreFact(world: World, agent: CompetitorId): Pick<PromptFacts, "core" | "frame"> {
-	const spec = world.story.cores;
-	const core = world.coreOf(agent);
-	if (spec === undefined || core === undefined) return {};
-	return { core: renderCore(spec, core), ...(spec.frame === undefined ? {} : { frame: spec.frame }) };
+/** The resident's core motive in prose for its system prompt (v09); dealt by the world, kept in its snapshot. */
+function coreMotiveFact(world: World, agent: CompetitorId): Pick<PromptFacts, "coreMotive" | "frame"> {
+	const spec = world.story.coreMotives;
+	const coreMotive = world.coreMotiveOf(agent);
+	if (spec === undefined || coreMotive === undefined) return {};
+	return { coreMotive: renderCoreMotive(spec, coreMotive), ...(spec.frame === undefined ? {} : { frame: spec.frame }) };
 }
 
 /** The figures a run names (`--cast`): the story has a cast with each of them, and there are no more than residents. */
 function assertCast(story: AnyStory, effective: EffectiveRun, cast: readonly string[] | undefined): void {
 	if (cast === undefined) return;
-	const figures = story.cores?.figures ?? [];
-	if (!effective.cores || figures.length === 0) throw new SnapshotError(`The story ${story.id} has no cast to play`);
+	const figures = story.coreMotives?.figures ?? [];
+	if (!effective.coreMotives || figures.length === 0) throw new SnapshotError(`The story ${story.id} has no cast to play`);
 	const unknown = cast.filter((id) => !figures.some((figure) => figure.id === id));
 	if (unknown.length > 0) throw new SnapshotError(`Unknown figures ${unknown.join(", ")}; the cast has ${figures.map((figure) => figure.id).join(", ")}`);
 	if (cast.length > effective.agents) throw new SnapshotError(`The cast names ${cast.length} figures for ${effective.agents} residents`);
@@ -250,8 +250,8 @@ function assertCast(story: AnyStory, effective: EffectiveRun, cast: readonly str
 
 /** A cast figure plays the persona of its profession, so its voice and its figure agree. */
 function figurePersona(world: World, agent: CompetitorId): Persona | undefined {
-	const id = world.coreOf(agent)?.figure;
-	const profession = id === undefined ? undefined : world.story.cores?.figures?.find((figure) => figure.id === id)?.profession;
+	const id = world.coreMotiveOf(agent)?.figure;
+	const profession = id === undefined ? undefined : world.story.coreMotives?.figures?.find((figure) => figure.id === id)?.profession;
 	return profession === undefined ? undefined : world.story.personas.find((persona) => persona.name.toLowerCase() === profession.toLowerCase());
 }
 
@@ -295,7 +295,7 @@ export function resumeOverrides(snapshot: RunSnapshot, overrides: RunOverrides =
 		throw new SnapshotError(`The snapshot was taken ${snapshot.run.personas ? "with" : "without"} personas; a resumed run keeps them`);
 	}
 	if (overrides.cast !== undefined && (snapshot.world.cores ?? []).length > 0) {
-		throw new SnapshotError("The snapshot's residents already have their cores; --cast applies only to a fresh run");
+		throw new SnapshotError("The snapshot's residents already have their core motives; --cast applies only to a fresh run");
 	}
 	return { ...overrides, agents: snapshot.agents, seed: snapshot.seed, level: snapshot.run.startLevel, personas: snapshot.run.personas };
 }
@@ -344,7 +344,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		...(request === undefined ? {} : { holdAfter: request.afterLevel }),
 		...(resume === undefined ? {} : { restore: resume.snapshot.world }),
 		names: effective.names,
-		cores: effective.cores,
+		coreMotives: effective.coreMotives,
 		...(options.overrides?.cast === undefined ? {} : { cast: options.overrides.cast }),
 		// At gm direction 10 the gamemaker orders scenes, and a resident may refuse one (defy).
 		defiance: story.gamemaker !== undefined && effective.gmDirection >= 10,
@@ -363,9 +363,9 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 	const souffleur = options.souffleur === undefined ? undefined : meteredSouffleur(options.souffleur, bus);
 	const guard = createGuard(story, effective, world, bus, options.guardJudge);
 
-	const figures = story.cores?.figures;
+	const figures = story.coreMotives?.figures;
 	// Rivals still in the city; an exiled one is no longer faced.
-	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
+	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreMotiveOf(agent)?.figure === figure);
 	// Residents follow the notes as orders only when the director gives orders (gm direction 10).
 	// Without a live gamemaker (the lab), its orders come from the scene as notes in its name.
 	const author = effective.gmDirection >= 10 ? story.gamemaker?.author : undefined;
@@ -390,7 +390,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		const whispers = world.whisperer === id ? story.whisperer : undefined;
 		const brief = whispers?.brief.trim();
 		const model = assignments.get(id) ?? story.model;
-		const figure = figureOf(figures, world.coreOf(id)?.figure);
+		const figure = figureOf(figures, world.coreMotiveOf(id)?.figure);
 		// The whisperer is directed like a cast figure (after P64, P67, P69); its orders follow its secret brief, last in the prompt.
 		const direction = figure?.direction ?? whispers?.direction;
 		// From figure direction 6 a figure speaks for itself: no persona block beside it.
@@ -400,10 +400,10 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 		const authorOf = whispers === undefined ? author : effective.gamemaker ? story.gamemaker?.author : undefined;
 		const block = directed === undefined ? undefined : directionBlock(directed, (text) => world.display(text), authorOf);
 		const whispererBlock = whispers === undefined ? undefined : block;
-		const core = coreFact(world, id);
-		if (directed !== undefined && core.core !== undefined) {
+		const coreMotive = coreMotiveFact(world, id);
+		if (directed !== undefined && coreMotive.coreMotive !== undefined) {
 			const brief = briefLine(directed);
-			cues.set(id, { ...(brief === undefined ? {} : { brief }), full: [core.core, ...(block === undefined ? [] : [block])].join("\n\n") });
+			cues.set(id, { ...(brief === undefined ? {} : { brief }), full: [coreMotive.coreMotive, ...(block === undefined ? [] : [block])].join("\n\n") });
 		}
 		const persona = effective.personas && !led ? (figurePersona(world, id) ?? personas.get(id)) : undefined;
 		profiles.push({ agent: id, model, ...(persona === undefined ? {} : { persona }) });
@@ -419,7 +419,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 					agents: ids.length,
 					passesPerMinute: effective.passesPerMinute,
 					...namesFact(world),
-					...core,
+					...coreMotive,
 					...(led ? { direction: { level: effective.figureDirection, ...(block === undefined || whispererBlock !== undefined ? {} : { block }) } } : {}),
 					...(shift === undefined ? {} : { shift }),
 					...(storyTools ? { storyTools: true } : {}),
@@ -434,7 +434,7 @@ export function composeRun(options: ComposeOptions): ComposedRun {
 			].join("\n\n");
 		};
 		prompts.set(id, promptOf);
-		characters.set(id, core.core ?? (persona === undefined ? "" : personaText(persona)));
+		characters.set(id, coreMotive.coreMotive ?? (persona === undefined ? "" : personaText(persona)));
 		return new AgentRunner({
 			id,
 			systemPrompt: promptOf(undefined),
@@ -638,7 +638,7 @@ function createWeaver(
 	return weaver;
 }
 
-/** A persona as the weaver reads it, for a resident without a core. */
+/** A persona as the weaver reads it, for a resident without a core motive. */
 function personaText(persona: Persona): string {
 	return `Temperament: ${persona.temperament}. Values: ${persona.values}. Voice: ${persona.voice}.`;
 }
@@ -679,7 +679,7 @@ function createGamemaker(options: ComposeOptions, world: World, bus: EventBus, a
 			spec,
 			labels,
 			...(story.tribunal === undefined || !spec.roles.some((entry) => entry.role === "director") ? {} : { tribunal: { factions: story.tribunal.factions !== undefined } }),
-			characters: story.goals !== undefined || world.competitors.some((agent) => world.coreOf(agent) !== undefined),
+			characters: story.goals !== undefined || world.competitors.some((agent) => world.coreMotiveOf(agent) !== undefined),
 			seal: world.seal !== undefined,
 			direction,
 			...(story.holdout === undefined ? {} : { holdout: story.holdout }),

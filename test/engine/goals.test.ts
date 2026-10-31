@@ -1,16 +1,16 @@
 /**
  * Secret goals (v09, spec section 4): dealing (everyone, crossing, never on
- * oneself, matched to the core), the private notice and status line,
+ * oneself, matched to the core motive), the private notice and status line,
  * resolution with the bonus, the readout of an exiled resident and of the
  * act, and the snapshot.
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds, type CompetitorId } from "@swarmtales/kernel";
-import { type Core, dealCores, dealGoals, type Goal, GoalBook, type GoalEvent } from "@swarmtales/engine";
+import { type CoreMotive, dealCoreMotives, dealGoals, type Goal, GoalBook, type GoalEvent } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const spec = cityOfKeys.goals;
-const cores = cityOfKeys.cores;
+const coreMotives = cityOfKeys.coreMotives;
 
 function targetOf(goal: Goal): CompetitorId | undefined {
 	return "target" in goal ? goal.target : undefined;
@@ -18,10 +18,10 @@ function targetOf(goal: Goal): CompetitorId | undefined {
 
 describe("dealing goals", () => {
 	it.each([6, 12, 48, 96])("gives each of %i residents a goal on someone else, and crosses protect with exile", (agents) => {
-		if (spec === undefined || cores === undefined) throw new Error("cityofkeys has no goals");
+		if (spec === undefined || coreMotives === undefined) throw new Error("cityofkeys has no goals");
 		const ids = competitorIds(agents);
-		const dealt = dealCores(cores, ids, 7);
-		const goals = dealGoals(spec, ids, { seed: 7, act: 8, factions: true, core: (agent) => dealt.get(agent) });
+		const dealt = dealCoreMotives(coreMotives, ids, 7);
+		const goals = dealGoals(spec, ids, { seed: 7, act: 8, factions: true, coreMotive: (agent) => dealt.get(agent) });
 		expect([...goals.keys()]).toEqual(ids);
 		for (const [holder, goal] of goals) expect(targetOf(goal)).not.toBe(holder);
 		// Every protect has a matching exile in other hands (a city of six has room for it).
@@ -39,18 +39,18 @@ describe("dealing goals", () => {
 		expect(Math.max(0, ...targeted.values())).toBeLessThanOrEqual(Math.max(3, Math.ceil(agents / 6)));
 	});
 
-	it("follows the core most of the time, deals lead only with factions, and is seeded", () => {
-		if (spec === undefined || cores === undefined) throw new Error("cityofkeys has no goals");
+	it("follows the core motive most of the time, deals lead only with factions, and is seeded", () => {
+		if (spec === undefined || coreMotives === undefined) throw new Error("cityofkeys has no goals");
 		const ids = competitorIds(96);
-		const leaders: Core = { bigFive: [], drives: [{ drive: "leadership", intensity: "aboveAll" }] };
-		const goals = dealGoals(spec, ids, { seed: 3, act: 8, factions: true, core: () => leaders });
+		const leaders: CoreMotive = { bigFive: [], drives: [{ drive: "leadership", intensity: "aboveAll" }] };
+		const goals = dealGoals(spec, ids, { seed: 3, act: 8, factions: true, coreMotive: () => leaders });
 		const lead = [...goals.values()].filter((goal) => goal.kind === "lead").length;
-		// About three in four follow the core; crossing turns a few into exiles.
+		// About three in four follow the core motive; crossing turns a few into exiles.
 		expect(lead).toBeGreaterThan(96 / 2);
 		expect(lead).toBeLessThan(96);
-		const without = dealGoals(spec, ids, { seed: 3, act: 8, factions: false, core: () => leaders });
+		const without = dealGoals(spec, ids, { seed: 3, act: 8, factions: false, coreMotive: () => leaders });
 		expect([...without.values()].some((goal) => goal.kind === "lead")).toBe(false);
-		expect([...dealGoals(spec, ids, { seed: 3, act: 8, factions: true, core: () => leaders })]).toEqual([...goals]);
+		expect([...dealGoals(spec, ids, { seed: 3, act: 8, factions: true, coreMotive: () => leaders })]).toEqual([...goals]);
 	});
 });
 
@@ -76,7 +76,7 @@ function harness(): Harness {
 		spec,
 		seed: 7,
 		factions: true,
-		core: () => undefined,
+		coreMotive: () => undefined,
 		isExiled: (agent) => exiled.has(agent),
 		points: (agent) => points.get(agent) ?? 0,
 		post: (text) => posts.push(text),

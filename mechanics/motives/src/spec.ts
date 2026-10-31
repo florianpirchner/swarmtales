@@ -1,11 +1,11 @@
 /**
- * The story's catalog of character cores (v09) as the mechanic's options: the same fields as the
- * old `CoresSpec` (packages/contracts/src/story.ts), checked with Typebox since they come from a
+ * The story's catalog of core motives (v09) as the mechanic's options: the same fields as the
+ * old `CoreMotivesSpec` (packages/contracts/src/story.ts), checked with Typebox since they come from a
  * story file. Every property carries a description (the options are documented).
  */
 import { Type, type Static } from "typebox";
 
-export const CORE_LEVELS = ["low", "middle", "high"] as const;
+export const CORE_MOTIVE_LEVELS = ["low", "middle", "high"] as const;
 
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")], { description: "A level of a temperament axis." });
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")], { description: "How strongly a drive drives." });
@@ -45,16 +45,16 @@ const Figure = Type.Object({
 	tone: Tone,
 	bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Level }), { description: "The figure's level per axis." }),
 	drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Intensity }), { description: "The figure's drives." }),
-	text: Type.String({ description: "The text that replaces the core's sentences in the system prompt." }),
+	text: Type.String({ description: "The text that replaces the core motive's sentences in the system prompt." }),
 	direction: Type.Optional(Type.Unknown({ description: "What the direction dial adds; read by the persona, not by the deal." })),
 });
 
-const CoreTraitSpec = Type.Object({ axis: Type.String(), level: Level });
-const CoreDriveSpec = Type.Object({ drive: Type.String(), intensity: Intensity });
+const CoreMotiveTraitSpec = Type.Object({ axis: Type.String(), level: Level });
+const CoreMotiveDriveSpec = Type.Object({ drive: Type.String(), intensity: Intensity });
 
-/** The options of the cores mechanic: the old `CoresSpec` plus the figures the run names. */
-export const CoresOptions = Type.Object({
-	heading: Type.String({ description: "The heading the core is written under in the system prompt." }),
+/** The options of the motives mechanic: the old `CoreMotivesSpec` plus the figures the run names. */
+export const CoreMotivesOptions = Type.Object({
+	heading: Type.String({ description: "The heading the core motive is written under in the system prompt." }),
 	axes: Type.Array(Axis, { description: "The temperament axes (the Big Five), one level each per resident." }),
 	drives: Type.Array(Drive, { description: "The catalog of drives and shadows." }),
 	perResident: Type.Object(
@@ -66,21 +66,21 @@ export const CoresOptions = Type.Object({
 	),
 	lightShare: Type.Number({ minimum: 0, maximum: 1, description: "The share of residents (rounded) with a light drive above all." }),
 	spreadPer: Type.Integer({ minimum: 1, description: "No drive is above all for more than one resident in this many (rounded up)." }),
-	figures: Type.Optional(Type.Array(Figure, { description: "Finished figures of the story's cast; residents get a figure instead of a drawn core." })),
-	frame: Type.Optional(Type.String({ description: "A frame said to every resident with a core, at the top of its system prompt." })),
+	figures: Type.Optional(Type.Array(Figure, { description: "Finished figures of the story's cast; residents get a figure instead of a drawn core motive." })),
+	frame: Type.Optional(Type.String({ description: "A frame said to every resident with a core motive, at the top of its system prompt." })),
 	cast: Type.Optional(Type.Array(Type.String(), { description: "The figures the run names, at most one per resident; without it a seeded pick plays." })),
-	whispererCore: Type.Optional(Type.Object({ bigFive: Type.Array(CoreTraitSpec, { description: "The whisperer's level per axis." }), drives: Type.Array(CoreDriveSpec, { description: "The whisperer's drives." }), figure: Type.Optional(Type.String({ description: "The id of the figure the whisperer plays, when it plays one." })) }, { description: "The character the story gives its whisperer (the story's `whisperer.core`) instead of the drawn one." })),
+	whispererCoreMotive: Type.Optional(Type.Object({ bigFive: Type.Array(CoreMotiveTraitSpec, { description: "The whisperer's level per axis." }), drives: Type.Array(CoreMotiveDriveSpec, { description: "The whisperer's drives." }), figure: Type.Optional(Type.String({ description: "The id of the figure the whisperer plays, when it plays one." })) }, { description: "The character the story gives its whisperer (the story's `whisperer.coreMotive`) instead of the drawn one." })),
 });
-export type CoresOptions = Static<typeof CoresOptions>;
+export type CoreMotivesOptions = Static<typeof CoreMotivesOptions>;
 
-export const CoreTrait = Type.Object({ axis: Type.String(), level: Level });
-export const CoreDrive = Type.Object({ drive: Type.String(), intensity: Intensity });
+export const CoreMotiveTrait = Type.Object({ axis: Type.String(), level: Level });
+export const CoreMotiveDrive = Type.Object({ drive: Type.String(), intensity: Intensity });
 
-/** A resident's core as events and the snapshot slice keep it. */
-export const CoreRecord = Type.Object({
+/** A resident's core motive as events and the snapshot slice keep it. */
+export const CoreMotiveRecord = Type.Object({
 	agent: Type.String(),
-	bigFive: Type.Array(CoreTrait),
-	drives: Type.Array(CoreDrive),
+	bigFive: Type.Array(CoreMotiveTrait),
+	drives: Type.Array(CoreMotiveDrive),
 	figure: Type.Optional(Type.String()),
 });
-export type CoreRecord = Static<typeof CoreRecord>;
+export type CoreMotiveRecord = Static<typeof CoreMotiveRecord>;

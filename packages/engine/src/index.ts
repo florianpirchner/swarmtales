@@ -2,7 +2,7 @@ export * from "./arena.ts";
 export * from "./blame.ts";
 export * from "./board.ts";
 export * from "./cast.ts";
-export * from "./cores.ts";
+export * from "./motives.ts";
 export * from "./direction.ts";
 export * from "./director.ts";
 export * from "./events.ts";

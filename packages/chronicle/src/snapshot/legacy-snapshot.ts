@@ -37,7 +37,7 @@ export const LEGACY_WORLD_OWNERS: Readonly<Record<string, string>> = {
 	exclusions: "puzzles",
 	tribunal: "tribunal",
 	names: "names",
-	cores: "cores",
+	cores: "motives",
 	goals: "goals",
 	seal: "seal",
 	standoff: "standoff",

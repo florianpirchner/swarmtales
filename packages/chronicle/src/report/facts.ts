@@ -7,7 +7,7 @@
  * only the events after `run_resumed` belong to the run and are counted.
  * Levels and standings at the start come from the prefix's last `round_end`.
  */
-import { coreLine, type RecordedEvent, type StandingRow, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/engine";
+import { coreMotiveLine, type RecordedEvent, type StandingRow, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/engine";
 import { CLASSIFIER_ID, GAMEMAKER_ID } from "@swarmtales/roles";
 import { ofType, parseFullEventLog, parseMetadata, parseUsageFile, type RunFiles, type RunMetadata } from "./run-log.ts";
 
@@ -51,8 +51,8 @@ export interface ResidentResult {
 	readonly points?: number;
 	readonly rank?: number;
 	readonly survivor: boolean;
-	/** The character core in a line (v09), from `core_dealt` (also in a resumed run's prefix). */
-	readonly core?: string;
+	/** The core motive in a line (v09), from `core_dealt` (also in a resumed run's prefix). */
+	readonly coreMotive?: string;
 }
 
 /** A secret goal of an act (v09): its text and how it ended; `open` while the act runs. */
@@ -206,8 +206,8 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 	const levelUps = ofType(events, "level_up");
 	const prefixUps = ofType(prefix, "level_up");
 	const names = new Map(ofType(all, "name_chosen").map((entry) => [entry.agent, entry.name]));
-	// Cores are dealt once, maybe in the snapshot's prefix: read them from the whole log.
-	const cores = new Map(ofType(all, "core_dealt").map((entry) => [entry.agent, coreLine(entry)]));
+	// Core motives are dealt once, maybe in the snapshot's prefix: read them from the whole log.
+	const coreMotives = new Map(ofType(all, "core_dealt").map((entry) => [entry.agent, coreMotiveLine(entry)]));
 	const residents = [...agentIds].sort().map((agent): ResidentResult => {
 		const before = standingsBefore.find((row) => row.agent === agent);
 		const ups = levelUps.filter((up) => up.agent === agent).map((up) => ({ seq: up.seq, minute: up.minute, from: up.from, to: up.to }));
@@ -217,11 +217,11 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		const final: StandingRow | undefined = finalStandings.find((row) => row.agent === agent);
 		const profile = profiles.find((entry) => entry.agent === agent);
 		const name = names.get(agent);
-		const core = cores.get(agent);
+		const coreMotive = coreMotives.get(agent);
 		return {
 			agent,
 			...(name === undefined ? {} : { name }),
-			...(core === undefined ? {} : { core }),
+			...(coreMotive === undefined ? {} : { coreMotive }),
 			...(profile?.persona === undefined || profile.persona === null ? {} : { persona: profile.persona }),
 			...(profile === undefined ? {} : { model: profile.model }),
 			startLevel: first,

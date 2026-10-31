@@ -4,14 +4,14 @@
  * answering from the old `World` that runs beside the host (the oracle). The ledger and the receipts
  * keep real books (the old `PointsLedger`, the old receipt lines) so the points and the receipt
  * ids T3's code produces are compared, not copied; everything T3 only reads (marks, names, the
- * exile, the cores, the DM counters) comes from the oracle.
+ * exile, the core motives, the DM counters) comes from the oracle.
  */
 import { Type } from "typebox";
 import { describeReceipt, ReceiptBook, refillText, type MarksBook, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
 import { render } from "@swarmtales/prompts";
-import { ChannelsApi, ChannelsEvents, CoresApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
 const base = { options: Type.Object({}), prompts: {} } as const;
 
@@ -212,13 +212,13 @@ export function twinExile(world: World) {
 	);
 }
 
-/** The drives of the cores the old world dealt. */
-export function twinCores(world: World) {
+/** The drives of the core motives the old world dealt. */
+export function twinCoreMotives(world: World) {
 	return defineMechanic(
-		{ ...base, id: "cores", summary: "Twin cores.", state: () => ({}), events: {}, provides: [CoresApi] },
+		{ ...base, id: "motives", summary: "Twin core motives.", state: () => ({}), events: {}, provides: [MotivesApi] },
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
-			services: [kit.provideSome(CoresApi, { drivesOf: ({ resident }) => world.coreOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
+			services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => world.coreMotiveOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
 		}),
 	);
 }

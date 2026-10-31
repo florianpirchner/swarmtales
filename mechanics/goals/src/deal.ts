@@ -1,7 +1,7 @@
 /**
  * Dealing the goals of one act (old `dealGoals` of packages/engine/src/goals.ts): pure and seeded.
- * A resident's kind follows its core most of the time, against it for about `againstCore` of them, at
- * random without a core. For every `protect(X)` an `exile(X)` is held by another resident when the
+ * A resident's kind follows its core motive most of the time, against it for about `againstCoreMotive` of them, at
+ * random without a core motive. For every `protect(X)` an `exile(X)` is held by another resident when the
  * city is large enough; targets spread over the residents and are never the holder itself.
  */
 import type { RandomSource } from "@swarmtales/contracts";
@@ -9,7 +9,7 @@ import { GOAL_KINDS, type Goal, type GoalKind } from "./model.ts";
 
 export interface DealSpec {
 	readonly leadTribunals: number;
-	readonly againstCore: number;
+	readonly againstCoreMotive: number;
 	readonly matches: Readonly<Partial<Record<GoalKind, readonly string[] | undefined>>>;
 }
 
@@ -18,9 +18,9 @@ export function dealableKinds(factions: boolean, residents: number): readonly Go
 	return GOAL_KINDS.filter((kind) => (kind === "lead" ? factions : kind === "heir" || residents >= 2));
 }
 
-/** The kind its core suggests (the strongest drive the story maps), against it now and then, at random without one. */
+/** The kind its core motive suggests (the strongest drive the story maps), against it now and then, at random without one. */
 function kindFor(spec: DealSpec, allowed: readonly GoalKind[], drives: readonly string[] | null, rng: RandomSource): GoalKind {
-	const against = rng.next() < spec.againstCore;
+	const against = rng.next() < spec.againstCoreMotive;
 	const matched = drives
 		?.map((drive) => allowed.find((kind) => spec.matches[kind]?.includes(drive) === true))
 		.find((kind): kind is GoalKind => kind !== undefined);

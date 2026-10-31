@@ -8,7 +8,7 @@
  */
 import { type CompetitorId, placeholdersOf } from "@swarmtales/kernel";
 import {
-	coreLine,
+	coreMotiveLine,
 	directFigure,
 	type DirectionLevel,
 	type FateTrigger,
@@ -125,19 +125,19 @@ function residentLine(input: SituationInput, agent: CompetitorId, points: number
 }
 
 /**
- * Who each resident is and what it secretly wants (v09): its core and its
+ * Who each resident is and what it secretly wants (v09): its core motive and its
  * goal of the running act. Private: the engine refuses any text that gives
  * them away to someone else or on the board.
  */
 export function characterLines(world: World, direction: DirectionLevel): readonly string[] {
-	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreOf(agent)?.figure === figure);
+	const playedBy = (figure: string): CompetitorId | undefined => world.alive.find((agent) => world.coreMotiveOf(agent)?.figure === figure);
 	const lines = world.alive.flatMap((agent) => {
-		const core = world.coreOf(agent);
+		const coreMotive = world.coreMotiveOf(agent);
 		const goal = world.goalOf(agent);
-		if (core === undefined && goal === undefined) return [];
-		const parts = [...(core === undefined ? [] : [`core: ${coreLine(core)}`]), ...(goal === undefined ? [] : [`secret goal: ${goal.text}`])];
+		if (coreMotive === undefined && goal === undefined) return [];
+		const parts = [...(coreMotive === undefined ? [] : [`core: ${coreMotiveLine(coreMotive)}`]), ...(goal === undefined ? [] : [`secret goal: ${goal.text}`])];
 		// From direction 8 the director stages with the figure's own material (packages/engine/src/direction.ts).
-		const directed = direction < 8 ? undefined : directFigure(direction, figureOf(world.story.cores?.figures, core?.figure)?.direction, playedBy);
+		const directed = direction < 8 ? undefined : directFigure(direction, figureOf(world.story.coreMotives?.figures, coreMotive?.figure)?.direction, playedBy);
 		if (directed !== undefined) {
 			if (directed.tendencies.length > 0) parts.push(`tendencies: ${directed.tendencies.join(" ")}`);
 			if (directed.rivals.length > 0) parts.push(`rivals: ${directed.rivals.map((rival) => `${rival.agent} (${rival.text})`).join(" ")}`);

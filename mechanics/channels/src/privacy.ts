@@ -1,6 +1,6 @@
 /**
  * The privacy checks of the gamemaker's notes, copied from packages/roles/src/gamemaker/privacy.ts
- * (SPEC 10.5, v09, Whispers v3): what a resident thinks, its core and goal, and the secret role
+ * (SPEC 10.5, v09, Whispers v3): what a resident thinks, its core motive and goal, and the secret role
  * may be used only in a note to that resident; the board and every other reader get none of it.
  */
 
@@ -80,7 +80,7 @@ export interface CharacterFacts {
 	readonly goal?: { readonly kind: string; readonly target?: string };
 }
 
-/** Words that talk about a core or a goal, whoever it belongs to (direction 8 and 10 show private material too). */
+/** Words that talk about a core motive or a goal, whoever it belongs to (direction 8 and 10 show private material too). */
 const CHARACTER = /\b(goals?|cores?|drives?|secretly|deep down|at heart|above all|longs? to|yearns? to|orders?|dut(?:y|ies)|rivals?|tendenc\w*|sworn)\b/;
 
 /** A wish, for the goal cues: exiles, ranks and wills are public, only wanting them is private. */
@@ -96,8 +96,8 @@ const GOAL_CUES: Readonly<Record<string, RegExp>> = {
 };
 
 /**
- * Residents whose core or goal `text` would reveal to `to`: one sentence names them and talks about
- * a core or a goal, uses a cue word of one of their drives, or uses a cue of their goal together
+ * Residents whose core motive or goal `text` would reveal to `to`: one sentence names them and talks about
+ * a core motive or a goal, uses a cue word of one of their drives, or uses a cue of their goal together
  * with its target. A note to the resident itself is always allowed.
  */
 export function characterLeaks(text: string, to: string, residents: readonly CharacterFacts[], nameOf: (agent: string) => string | undefined): readonly string[] {

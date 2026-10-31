@@ -8,7 +8,7 @@ import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
 
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
-const FIGURES = cityOfKeys.cores?.figures ?? [];
+const FIGURES = cityOfKeys.coreMotives?.figures ?? [];
 const CAST = ["banner", "second-chair", "house", "believer", "crier", "old-wound"];
 
 function compose(overrides: RunOverrides, log = new MemorySink()) {
@@ -60,8 +60,8 @@ describe("the direction dial", () => {
 
 	it("plays figure direction 10: the figure first, no persona, orders last, rivals by resident", () => {
 		const run = compose({ figureDirection: 10 });
-		const house = run.world.competitors.find((agent) => run.world.coreOf(agent)?.figure === "house");
-		const believer = run.world.competitors.find((agent) => run.world.coreOf(agent)?.figure === "believer");
+		const house = run.world.competitors.find((agent) => run.world.coreMotiveOf(agent)?.figure === "house");
+		const believer = run.world.competitors.find((agent) => run.world.coreMotiveOf(agent)?.figure === "believer");
 		const prompt = run.runners.find((runner) => runner.id === house)?.systemPrompt ?? "";
 		expect(prompt).not.toContain("Your character:");
 		expect(prompt.indexOf("Who you are, deep inside")).toBeLessThan(prompt.indexOf("The city:"));

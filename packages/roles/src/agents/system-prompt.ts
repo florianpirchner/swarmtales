@@ -1,8 +1,8 @@
 /**
  * Base system prompt (SPEC §5.4): the facts of the world and nothing else.
  * No goals, no strategy hints; a persona block is appended when present, and
- * after it the resident's character core as prose (v09), who it is, never
- * what to do; a story's frame for the cores comes first (who the resident
+ * after it the resident's core motive as prose (v09), who it is, never
+ * what to do; a story's frame for the core motives comes first (who the resident
  * plays and how seriously). From figure direction 6 on the figure leads and
  * its direction closes the prompt (packages/engine/src/direction.ts). The prompt is built once per run from facts a resume keeps, so
  * it stays identical across a resume (prompt caching); the weaver (`--weaver`) rebuilds it with who the
@@ -22,9 +22,9 @@ export interface PromptFacts {
 	readonly passesPerMinute: number;
 	/** Resident names (v08): chosen before `untilMinute`. */
 	readonly names?: { readonly untilMinute: number };
-	/** The character core in prose (v09), heading and sentences. */
-	readonly core?: string;
-	/** The story's frame for residents with a core: what they play and how seriously, first in the prompt. */
+	/** The core motive in prose (v09), heading and sentences. */
+	readonly coreMotive?: string;
+	/** The story's frame for residents with a core motive: what they play and how seriously, first in the prompt. */
 	readonly frame?: string;
 	/**
 	 * A cast figure's direction (`--figure-direction`): from 6 the figure comes
@@ -34,7 +34,7 @@ export interface PromptFacts {
 	readonly direction?: { readonly level: DirectionLevel; readonly block?: string };
 	/**
 	 * Who the story has made of the resident so far (the weaver, `--weaver`):
-	 * follows its core, which it shifts and never replaces. Kept in the run
+	 * follows its core motive, which it shifts and never replaces. Kept in the run
 	 * snapshot, so a resumed run builds the same prompt.
 	 */
 	readonly shift?: string;
@@ -67,12 +67,12 @@ export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string 
 	const direction = facts.direction;
 	const shift = facts.shift?.trim() ?? "";
 	const shiftBlock = shift.length === 0 ? [] : ["", SHIFT_HEADING, shift];
-	if (direction !== undefined && direction.level >= 6 && facts.core !== undefined) {
+	if (direction !== undefined && direction.level >= 6 && facts.coreMotive !== undefined) {
 		// Who the resident is comes before the city, and what it must do comes last, nearest to its answers.
-		const head = [...(frame.length === 0 ? [] : [frame, ""]), facts.core, ...shiftBlock, "", VOICE_RULE, "", text("competitor/system/city-heading")];
+		const head = [...(frame.length === 0 ? [] : [frame, ""]), facts.coreMotive, ...shiftBlock, "", VOICE_RULE, "", text("competitor/system/city-heading")];
 		return [...head, ...lines, ...(direction.block === undefined ? [] : ["", direction.block])].join("\n");
 	}
-	if (facts.core !== undefined) lines.push("", facts.core);
+	if (facts.coreMotive !== undefined) lines.push("", facts.coreMotive);
 	lines.push(...shiftBlock);
 	return frame.length === 0 ? lines.join("\n") : [frame, "", ...lines].join("\n");
 }

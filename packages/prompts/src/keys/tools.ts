@@ -127,7 +127,7 @@ export const TOOL_PROMPTS = {
 	"gamemaker/replies/invalid-text": ["max"],
 	"gamemaker/replies/leak-blocked": [],
 	"gamemaker/replies/private-thoughts": ["who"],
-	"gamemaker/replies/private-core": ["who"],
+	"gamemaker/replies/private-core-motive": ["who"],
 	"gamemaker/replies/private-role": [],
 	"gamemaker/replies/repeated": ["to", "minute"],
 	"gamemaker/replies/budget-line": ["notes", "posts", "window", "blocked", "board"],

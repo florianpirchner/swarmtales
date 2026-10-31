@@ -14,7 +14,7 @@ const MECHANICS = fileURLToPath(new URL("../../../mechanics", import.meta.url));
 
 /** The prompt folders of the T2 mechanics. */
 export function t2Prompts() {
-	return createPromptLookup({ mechanics: { channels: `${MECHANICS}/channels/prompts`, cast: `${MECHANICS}/cast/prompts`, petitions: `${MECHANICS}/petitions/prompts`, cores: `${MECHANICS}/cores/prompts` } });
+	return createPromptLookup({ mechanics: { channels: `${MECHANICS}/channels/prompts`, cast: `${MECHANICS}/cast/prompts`, petitions: `${MECHANICS}/petitions/prompts`, motives: `${MECHANICS}/motives/prompts` } });
 }
 
 /** A stand-in for the exile mechanic: a tool that exiles a resident, so channels hears `exiled`. */

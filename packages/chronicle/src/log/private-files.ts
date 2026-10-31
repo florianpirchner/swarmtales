@@ -3,7 +3,7 @@
  * 2026-10-29):
  *
  * ```
- * <run>/cast/A01-house.md      who A01 is: name, figure, core, the text of its system prompt
+ * <run>/cast/A01-house.md      who A01 is: name, figure, core motive, the text of its system prompt
  * <run>/acts/act-2/private.md  per act: secret goals and their outcome, the black seal, the gamemaker's private notes and its thinking
  * ```
  *
@@ -15,13 +15,13 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { coreLine, renderCore, type Core } from "@swarmtales/engine";
+import { coreMotiveLine, renderCoreMotive, type CoreMotive } from "@swarmtales/engine";
 import type { AnyStory, FigureDirection } from "@swarmtales/contracts";
 
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
 const Base = { seq: Type.Integer(), minute: Type.Integer() };
-const CoreDealt = Type.Object({
+const CoreMotiveDealt = Type.Object({
 	...Base,
 	type: Type.Literal("core_dealt"),
 	agent: Type.String(),
@@ -50,7 +50,7 @@ const Note = Type.Object({ ...Base, type: Type.Literal("gamemaker_note"), to: Ty
 const Thinking = Type.Object({ ...Base, type: Type.Literal("gamemaker_thinking"), text: Type.String() });
 const Defied = Type.Object({ ...Base, type: Type.Literal("gamemaker_defied"), agent: Type.String(), note: Type.Optional(Type.Integer()), reason: Type.String() });
 
-const PrivateEvent = Type.Union([CoreDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking, Defied]);
+const PrivateEvent = Type.Union([CoreMotiveDealt, NameChosen, LevelUp, GoalDealt, GoalResolved, SealOpened, SealBid, SealWon, SealUsed, SealExpired, Note, Thinking, Defied]);
 type PrivateEvent = Static<typeof PrivateEvent>;
 type Of<T extends PrivateEvent["type"]> = Extract<PrivateEvent, { type: T }>;
 
@@ -77,25 +77,25 @@ function ofType<T extends PrivateEvent["type"]>(events: readonly PrivateEvent[],
 /** One resident as its cast file shows it. */
 export interface CastEntry {
 	readonly agent: string;
-	readonly core: Core;
+	readonly coreMotive: CoreMotive;
 	readonly name?: string;
 }
 
-/** Writes `cast/<ID>[-<figure>].md` for every resident with a core; the folder is rewritten as a whole. */
+/** Writes `cast/<ID>[-<figure>].md` for every resident with a core motive; the folder is rewritten as a whole. */
 export function writeCastFiles(directory: string, story: AnyStory, entries: readonly CastEntry[]): void {
-	const spec = story.cores;
+	const spec = story.coreMotives;
 	if (spec === undefined || entries.length === 0) return;
 	const folder = join(directory, "cast");
 	rmSync(folder, { recursive: true, force: true });
 	mkdirSync(folder, { recursive: true });
 	for (const entry of entries) {
-		const figure = entry.core.figure === undefined ? undefined : spec.figures?.find((candidate) => candidate.id === entry.core.figure);
+		const figure = entry.coreMotive.figure === undefined ? undefined : spec.figures?.find((candidate) => candidate.id === entry.coreMotive.figure);
 		const rows = [
 			["Resident", entry.agent],
 			["Name", entry.name ?? "not chosen yet"],
-			["Figure", figure === undefined ? "drawn core (no cast figure)" : `${figure.title} (\`${figure.id}\`)`],
+			["Figure", figure === undefined ? "drawn core motive (no cast figure)" : `${figure.title} (\`${figure.id}\`)`],
 			...(figure === undefined ? [] : [["Profession", figure.profession]]),
-			["Core", coreLine(entry.core)],
+			["Core motive", coreMotiveLine(entry.coreMotive)],
 		];
 		const title = [entry.agent, entry.name, figure?.title].filter((part) => part !== undefined).join(" · ");
 		const text = [
@@ -107,7 +107,7 @@ export function writeCastFiles(directory: string, story: AnyStory, entries: read
 			"",
 			"## In the system prompt",
 			"",
-			renderCore(spec, entry.core),
+			renderCoreMotive(spec, entry.coreMotive),
 			"",
 			...directionPart(figure?.direction),
 		].join("\n");
@@ -139,8 +139,8 @@ export function writePrivateFiles(directory: string, story: AnyStory): void {
 		story,
 		ofType(events, "core_dealt").map((event) => {
 			const name = names.get(event.agent);
-			const core: Core = { bigFive: event.bigFive, drives: event.drives, ...(event.figure === undefined ? {} : { figure: event.figure }) };
-			return { agent: event.agent, core, ...(name === undefined ? {} : { name }) };
+			const coreMotive: CoreMotive = { bigFive: event.bigFive, drives: event.drives, ...(event.figure === undefined ? {} : { figure: event.figure }) };
+			return { agent: event.agent, coreMotive, ...(name === undefined ? {} : { name }) };
 		}),
 	);
 	const label = (agent: string): string => {

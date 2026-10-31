@@ -60,7 +60,7 @@ export interface WeaverOptions {
 	readonly model: WeaverModel;
 	readonly bus: EventBus;
 	readonly city: WeaverCity;
-	/** The character part of a resident's prompt without any change: its core in prose, or its persona. */
+	/** The character part of a resident's prompt without any change: its core motive in prose, or its persona. */
 	readonly characterOf: (agent: CompetitorId) => string;
 	/** Rebuilds the resident's system prompt with `shift` as who the story has made of it. */
 	readonly rewrite: (agent: CompetitorId, shift: string) => void;

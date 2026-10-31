@@ -440,9 +440,9 @@ writeCastFiles(
 	allocated.directory,
 	story,
 	run.world.competitors.flatMap((agent) => {
-		const core = run.world.coreOf(agent);
+		const coreMotive = run.world.coreMotiveOf(agent);
 		const name = run.world.nameOf(agent);
-		return core === undefined ? [] : [{ agent, core, ...(name === undefined ? {} : { name }) }];
+		return coreMotive === undefined ? [] : [{ agent, coreMotive, ...(name === undefined ? {} : { name }) }];
 	}),
 );
 

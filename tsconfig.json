@@ -24,7 +24,7 @@
 		{ "path": "mechanics/channels" },
 		{ "path": "mechanics/petitions" },
 		{ "path": "mechanics/cast" },
-		{ "path": "mechanics/cores" },
+		{ "path": "mechanics/motives" },
 		{ "path": "mechanics/puzzles" },
 		{ "path": "mechanics/progression" },
 		{ "path": "mechanics/goals" },

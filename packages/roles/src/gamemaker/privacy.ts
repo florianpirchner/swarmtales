@@ -84,7 +84,7 @@ export interface CharacterFacts {
 	readonly goal?: { readonly kind: GoalKind; readonly target?: CompetitorId };
 }
 
-/** Words that talk about a core or a goal, whoever it belongs to. */
+/** Words that talk about a core motive or a goal, whoever it belongs to. */
 // Direction 8 and 10 show the figures' tendencies, rivals, orders and duty in the report: private material too.
 const CHARACTER = /\b(goals?|cores?|drives?|secretly|deep down|at heart|above all|longs? to|yearns? to|orders?|dut(?:y|ies)|rivals?|tendenc\w*|sworn)\b/;
 
@@ -110,8 +110,8 @@ function names(text: string, agent: CompetitorId, name: string | undefined): boo
 }
 
 /**
- * Residents whose core or goal `text` would reveal to `to` (a resident ID or
- * `board`, v09): one sentence names them and talks about a core or a goal,
+ * Residents whose core motive or goal `text` would reveal to `to` (a resident ID or
+ * `board`, v09): one sentence names them and talks about a core motive or a goal,
  * uses a cue word of one of their drives, or uses a cue of their goal
  * together with its target. A note to the resident itself is always allowed.
  */

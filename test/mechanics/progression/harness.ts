@@ -48,7 +48,7 @@ export function goalsOptionsOf(story: AnyStory): GoalsInput | undefined {
 		acts: [...spec.acts],
 		bonus: spec.bonus,
 		leadTribunals: spec.leadTribunals,
-		againstCore: spec.againstCore,
+		againstCoreMotive: spec.againstCoreMotive,
 		matches: Object.fromEntries(Object.entries(spec.matches).map(([kind, drives]) => [kind, [...drives]])),
 		factions: story.tribunal?.factions !== undefined,
 		texts: { ...spec.texts },

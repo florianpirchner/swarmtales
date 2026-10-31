@@ -74,7 +74,7 @@ export const CastEvents = defineEvents("cast", {
 	cast_collected: Type.Object({ from: Id, cast: Id, into: Type.Array(Id) }),
 });
 
-/** T1 emits (whispers); T2 listens (cores: the whisperer's own core, `story.whisperer.core`). */
+/** T1 emits (whispers); T2 listens (core motives: the whisperer's own core motive, `story.whisperer.coreMotive`). */
 export const WhispersEvents = defineEvents("whispers", {
 	whisperer_chosen: Type.Object({ agent: Id }),
 });

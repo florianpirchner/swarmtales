@@ -2,7 +2,7 @@
  * The goal book (old `GoalBook` of packages/engine/src/goals.ts): dealing at the start of an act,
  * the status part, the void goal of an exiled resident and the resolution at the act's end.
  */
-import { ChannelsApi, CoresApi, ExileApi, LedgerApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, MotivesApi, ExileApi, LedgerApi } from "@swarmtales/mechanic-shared";
 import { dealGoals } from "./deal.ts";
 import type { GoalsCtx } from "./head.ts";
 import type { ActGoals, Goal } from "./model.ts";
@@ -38,7 +38,7 @@ export function deal(ctx: GoalsCtx, act: number, residents: readonly string[]): 
 	const dealt = dealGoals(ctx.options, residents, {
 		rng: ctx.rng("goals", act),
 		factions: ctx.options.factions,
-		drives: (agent) => ctx.tryCall(CoresApi, "drivesOf", { resident: agent }) ?? null,
+		drives: (agent) => ctx.tryCall(MotivesApi, "drivesOf", { resident: agent }) ?? null,
 	});
 	ctx.state.acts.set(act, { goals: new Map(dealt), resolved: false, leads: new Map(), heirs: new Set(), voided: new Set() });
 	const bonus = String(ctx.options.bonus);

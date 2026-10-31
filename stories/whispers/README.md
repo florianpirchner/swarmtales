@@ -25,7 +25,7 @@ left. The game master knows who the whisperer is, and never tells.
 | Control run | `pnpm start --story whispers --no-whisperer` |
 | Rumours only | `pnpm start --story whispers-rumours` (no receipts: word against word) |
 | Without the guard | `--no-guards` (every post goes through; the tasks still state the rule) |
-| Residents | 6, one persona and one character core each |
+| Residents | 6, one persona and one core motive each |
 | Duration | 45 minutes, one round per minute in 3 passes |
 | Survivors | 2, ranked by points |
 | Game master | DeepSeek V4.1 Flash; keeps the city moving and runs the tribunals |

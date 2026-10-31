@@ -61,12 +61,12 @@ export const PetitionsApi = defineApi({
 	},
 });
 
-/** Character cores (step 9): what the goals and the gamemaker's privacy check read of a core. */
-export const CoresApi = defineApi({
-	name: "cores",
-	summary: "The character core of each resident.",
+/** Core motives (step 9): what the goals and the gamemaker's privacy check read of a core motive. */
+export const MotivesApi = defineApi({
+	name: "motives",
+	summary: "The core motive of each resident.",
 	methods: {
-		drivesOf: query("The drive ids of the resident's core, the strongest first, or null without a core (the goals deal follows them).", OfResident, Type.Union([Type.Array(Type.String()), Type.Null()])),
+		drivesOf: query("The drive ids of the resident's core motive, the strongest first, or null without a core motive (the goals deal follows them).", OfResident, Type.Union([Type.Array(Type.String()), Type.Null()])),
 		cuesOf: query("The lower-case cue words of the resident's drives (the gamemaker's `characterLeaks` check).", OfResident, Type.Array(Type.String())),
 	},
 });
@@ -85,7 +85,7 @@ export const NotesApi = defineApi({
 	summary: "The gamemaker's notes: text checks, budgets and the note log.",
 	methods: {
 		check: query(
-			"Old `#checked`: trims the text, strips a signature or `<author|CITY|city> minute N:` heading, and refuses an empty or long text, a dealt secret, a private thought, a core or goal, the whisperer's role, or a repeat to `as` (default `to`).",
+			"Old `#checked`: trims the text, strips a signature or `<author|CITY|city> minute N:` heading, and refuses an empty or long text, a dealt secret, a private thought, a core motive or goal, the whisperer's role, or a repeat to `as` (default `to`).",
 			Type.Object({ text: Type.String(), to: NoteTarget, as: Type.Optional(NoteTarget) }),
 			Type.Union([Type.Object({ ok: Type.Literal(true), text: Type.String() }), Type.Object({ ok: Type.Literal(false), code: Type.String(), detail: Type.String() })]),
 		),

@@ -3,14 +3,14 @@
  * gamemaker.ts (`#checked`, `#deliver`, `#used`): the text checks in their old order, the budgets as
  * a sliding window per recipient (not a host limit: a note at minute 9 and one at minute 10 to the
  * same resident fall in one 10-minute window, a note to A01 and one to A02 do not), and the
- * `gamemaker_note` line. The checks read other mechanics through their APIs (secrets, cores, goals)
+ * `gamemaker_note` line. The checks read other mechanics through their APIs (secrets, core motives, goals)
  * and the app's `interpretation` events through the log.
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { Refusal } from "@swarmtales/contracts";
 import { refuse } from "@swarmtales/kernel";
-import { CoresApi, GoalsApi, NamesApi, ProgressionApi, PuzzlesApi, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { MotivesApi, GoalsApi, NamesApi, ProgressionApi, PuzzlesApi, WhispersEvents } from "@swarmtales/mechanic-shared";
 import type { Ctx } from "./messages.ts";
 import { attempt } from "./optional.ts";
 import { characterLeaks, nearlySame, privateLeaks, roleLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
@@ -69,7 +69,7 @@ function secretGuard(ctx: Ctx): SecretGuard {
 /** Every resident's drive cues and running goal, for the privacy guard (v09). */
 function characters(ctx: Ctx): readonly CharacterFacts[] {
 	return ctx.residents.ids.map((agent) => {
-		const cues = attempt(() => ctx.tryCall(CoresApi, "cuesOf", { resident: agent })) ?? [];
+		const cues = attempt(() => ctx.tryCall(MotivesApi, "cuesOf", { resident: agent })) ?? [];
 		const goal = attempt(() => ctx.tryCall(GoalsApi, "goalOf", { resident: agent })) ?? null;
 		return { agent, cues, ...(goal === null ? {} : { goal: { kind: goal.kind, ...(goal.target === undefined ? {} : { target: goal.target }) } }) };
 	});
@@ -98,7 +98,7 @@ function fail(text: string): Checked {
 
 /**
  * Old `#checked`: trims the text, strips a signature or `<author|CITY|city> minute N:` heading, and
- * refuses an empty or long text, a dealt secret, a private thought, a core or goal, the whisperer's
+ * refuses an empty or long text, a dealt secret, a private thought, a core motive or goal, the whisperer's
  * role, or a repeat to `as` (default `to`). `to` is the reader the privacy checks apply to.
  */
 export function checkNote(ctx: Ctx, raw: string, to: string, as: string = to): Checked {
@@ -115,7 +115,7 @@ export function checkNote(ctx: Ctx, raw: string, to: string, as: string = to): C
 	const exposed = privateLeaks(trimmed, to, privateLabels(ctx), nameOf);
 	if (exposed.length > 0) return fail(ctx.prompt("gamemaker/replies/private-thoughts", { who: exposed.join(", ") }));
 	const revealed = characterLeaks(trimmed, to, characters(ctx), nameOf);
-	if (revealed.length > 0) return fail(ctx.prompt("gamemaker/replies/private-core", { who: revealed.join(", ") }));
+	if (revealed.length > 0) return fail(ctx.prompt("gamemaker/replies/private-core-motive", { who: revealed.join(", ") }));
 	// Whispers v3: the whisperer stays secret, also from hints.
 	const whisperer = whispererOf(ctx);
 	if (whisperer !== undefined && roleLeaks(trimmed, to, whisperer, nameOf)) return fail(ctx.prompt("gamemaker/replies/private-role", {}));

@@ -15,7 +15,7 @@ import { Compile } from "typebox/compile";
 import type { ContextMessage, GamemakerSnapshot, InterpreterSnapshot, WeaverSnapshot } from "@swarmtales/roles";
 import { type ArenaSnapshot, type DirectorSnapshot, type RecordedEvent, STATEMENT_SOURCES, type WorldSnapshot } from "@swarmtales/engine";
 import { TOOL_NAMES } from "@swarmtales/contracts";
-import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
+import { CoreMotiveDriveSchema, CoreMotiveTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
 
 export const SNAPSHOT_FORMAT = "agent-arena-snapshot";
@@ -340,9 +340,9 @@ const WorldSchema = Type.Object({
 	levels: Type.Array(LevelSchema),
 	// Since v09: wrong codes and lost blames per resident in the current act.
 	offences: Type.Optional(Type.Array(Type.Object({ agent: Id, wrong: Int, blames: Int }))),
-	// Since v09: character cores (permanent), secret goals per act, the black seal, acts that are over.
+	// Since v09: core motives (permanent), secret goals per act, the black seal, acts that are over.
 	cores: Type.Optional(
-		Type.Array(Type.Object({ agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema), figure: Type.Optional(Type.String()) })),
+		Type.Array(Type.Object({ agent: Id, bigFive: Type.Array(CoreMotiveTraitSchema), drives: Type.Array(CoreMotiveDriveSchema), figure: Type.Optional(Type.String()) })),
 	),
 	goals: Type.Optional(
 		Type.Object({

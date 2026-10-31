@@ -1,7 +1,7 @@
 /**
  * The golden gate of the goals mechanic (docs/design/carve-team-T3.md): the golden log's progression
  * calls replayed on the new host (puzzles and progression are real; ledger, channels, receipts and
- * the cores are stand-ins) make the goals write the lines of their event types
+ * the core motives are stand-ins) make the goals write the lines of their event types
  * (`ownedBy(..., ["goals"])`): the deal when the first resident enters the act, the resolution when
  * the run ends. A resident's exile (void goal) and the snapshot resume are tested apart.
  */
@@ -16,16 +16,16 @@ import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { compareGolden, ownedBy, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import { puzzleOptions } from "../puzzles/harness.ts";
 import { GOLDEN_NAMES, goalsOptionsOf, goldenLog, progressionHost, progressionOptions, promptLookup, replay, SEED, standInUses, storyOf, type GoldenName } from "../progression/harness.ts";
-import { coresStandIn, exileStandIn } from "./standins.ts";
+import { motivesStandIn, exileStandIn } from "./standins.ts";
 
 function goalsOptions(name: GoldenName) {
 	return goalsOptionsOf(storyOf(name));
 }
 
-describe("goals: the golden gate (cores are a stand-in)", () => {
+describe("goals: the golden gate (core motives are a stand-in)", () => {
 	it.each(GOLDEN_NAMES.filter((name) => goalsOptions(name) !== undefined))("deals and resolves the goals of %s as the old engine did", async (name) => {
 		const options = goalsOptions(name);
-		const host = progressionHost(name, [], [coresStandIn(goldenLog(name)).with(), goals.with(options)]);
+		const host = progressionHost(name, [], [motivesStandIn(goldenLog(name)).with(), goals.with(options)]);
 		const records: LegacyLine[] = [];
 		host.subscribe(legacySink((event) => records.push(Object.fromEntries(Object.entries(event)))));
 		await replay(host, name);
@@ -36,7 +36,7 @@ describe("goals: the golden gate (cores are a stand-in)", () => {
 
 	it("voids the goal of a resident who is exiled and reads it out (the exile is a stand-in)", async () => {
 		const name = "cityofkeys-f4g4";
-		const host = progressionHost(name, [], [coresStandIn(goldenLog(name)).with(), exileStandIn().with(), goals.with(goalsOptions(name))], ["exileOne"]);
+		const host = progressionHost(name, [], [motivesStandIn(goldenLog(name)).with(), exileStandIn().with(), goals.with(goalsOptions(name))], ["exileOne"]);
 		const records: LegacyLine[] = [];
 		host.subscribe(legacySink((event) => records.push(Object.fromEntries(Object.entries(event)))));
 		await replay(host, name, 9);

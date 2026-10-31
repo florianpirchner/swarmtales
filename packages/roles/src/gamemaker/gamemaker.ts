@@ -410,7 +410,7 @@ export class Gamemaker implements EventSink {
 		}
 		const revealed = characterLeaks(trimmed, to, this.#characters(), (agent) => this.#options.world.nameOf(agent));
 		if (revealed.length > 0) {
-			throw new ToolRefusal(render("gamemaker/replies/private-core", { who: revealed.join(", ") }));
+			throw new ToolRefusal(render("gamemaker/replies/private-core-motive", { who: revealed.join(", ") }));
 		}
 		// Whispers v3: the whisperer stays secret, also from hints.
 		const whisperer = this.#options.world.whisperer;
@@ -430,10 +430,10 @@ export class Gamemaker implements EventSink {
 	/** Every resident's drive cues and running goal, for the privacy guard (v09). */
 	#characters(): readonly CharacterFacts[] {
 		const world = this.#options.world;
-		const drives = world.story.cores?.drives ?? [];
+		const drives = world.story.coreMotives?.drives ?? [];
 		return world.competitors.map((agent) => {
-			const core = world.coreOf(agent);
-			const cues = (core?.drives ?? []).flatMap((entry) => drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
+			const coreMotive = world.coreMotiveOf(agent);
+			const cues = (coreMotive?.drives ?? []).flatMap((entry) => drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
 			const goal = world.goalOf(agent)?.goal;
 			return {
 				agent,

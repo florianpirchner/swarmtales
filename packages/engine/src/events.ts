@@ -701,12 +701,12 @@ export type ArenaEvent =
 			readonly fallback: boolean;
 	  }
 	| {
-			/** A resident's character core (v09), dealt once and kept for the whole story; known only to it, the gamemaker and the reports. */
+			/** A resident's core motive (v09), dealt once and kept for the whole story; known only to it, the gamemaker and the reports. */
 			readonly type: "core_dealt";
 			readonly agent: CompetitorId;
-			readonly bigFive: readonly CoreTrait[];
-			readonly drives: readonly CoreDrive[];
-			/** The cast figure the core comes from, when the story has a cast. */
+			readonly bigFive: readonly CoreMotiveTrait[];
+			readonly drives: readonly CoreMotiveDrive[];
+			/** The cast figure the core motive comes from, when the story has a cast. */
 			readonly figure?: string;
 	  }
 	| {
@@ -770,14 +770,14 @@ export type FateShiftKind = "soft" | "hard" | "act";
 export const FATE_TRIGGERS = ["blame", "accusation", "tribunal", "gate", "ransom", "ally_exiled", "ultimatum", "seized", "act_end"] as const;
 export type FateTrigger = (typeof FATE_TRIGGERS)[number];
 
-/** One Big Five axis of a core (v09). */
-export interface CoreTrait {
+/** One Big Five axis of a core motive (v09). */
+export interface CoreMotiveTrait {
 	readonly axis: string;
 	readonly level: "low" | "middle" | "high";
 }
 
-/** One drive of a core and how strongly it drives (v09). */
-export interface CoreDrive {
+/** One drive of a core motive and how strongly it drives (v09). */
+export interface CoreMotiveDrive {
 	readonly drive: string;
 	readonly intensity: "aboveAll" | "clearly" | "atTimes";
 }

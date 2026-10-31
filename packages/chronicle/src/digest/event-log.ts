@@ -407,10 +407,10 @@ const InterpretationRound = Type.Object({
 /** A resident's name (v08). */
 const NameChosen = Type.Object({ ...Base, type: Type.Literal("name_chosen"), agent: Id, name: Type.String(), fallback: Type.Boolean() });
 
-/** v09: character cores, secret goals and the black seal. */
+/** v09: core motives, secret goals and the black seal. */
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
-const CoreDealt = Type.Object({
+const CoreMotiveDealt = Type.Object({
 	...Base,
 	type: Type.Literal("core_dealt"),
 	agent: Id,
@@ -528,7 +528,7 @@ export const DIGEST_EVENT_SCHEMAS = [
 	LevelContracted,
 	Interpretation,
 	InterpretationRound,
-	CoreDealt,
+	CoreMotiveDealt,
 	GoalDealt,
 	GoalResolved,
 	SealAuctionOpened,

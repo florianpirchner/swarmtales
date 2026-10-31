@@ -17,7 +17,7 @@ import { Type } from "typebox";
 import { goldenLine, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import { goalsOptionsOf, progressionOptions, promptLookup } from "../progression/harness.ts";
 import { puzzleOptions } from "../puzzles/harness.ts";
-import { twinChannels, twinCores, twinExile, twinLedger, twinMarks, twinNames, twinReceipts } from "./twin-standins.ts";
+import { twinChannels, twinCoreMotives, twinExile, twinLedger, twinMarks, twinNames, twinReceipts } from "./twin-standins.ts";
 
 export interface TwinOptions {
 	readonly story: AnyStory;
@@ -34,7 +34,7 @@ export interface TwinOptions {
 }
 
 /** The mechanics the twin loads; every other slice of a resumed snapshot gets an inert stand-in. */
-const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "cores", "dummies", "puzzles", "progression", "goals"];
+const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "motives", "dummies", "puzzles", "progression", "goals"];
 
 const OLD_TOOLS: Readonly<Record<string, ArenaTool>> = { getStatus, activeTools, getProblem, submitSolution, listAgents };
 
@@ -120,7 +120,7 @@ export class Twin {
 				twinMarks(this.world).with(),
 				twinNames(this.world).with(),
 				twinExile(this.world).with(),
-				twinCores(this.world).with(),
+				twinCoreMotives(this.world).with(),
 				dummyTools(dummies).with(),
 				puzzles.with(puzzlesInput),
 				progression.with(progressionInput),

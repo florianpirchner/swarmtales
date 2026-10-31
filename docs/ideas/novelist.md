@@ -12,7 +12,7 @@ first novella is a test of the pipeline, not the book.
   ultimatums, city pieces, fate shifts), relationships per pair, a timeline.
 - **The chronicle** (`pnpm digest --chronicle`): a factual summary per act with `#seq` evidence,
   written by a model (018: about 800 words). It is a record, not prose.
-- **Characters:** the cast figures (memory, fear, secret, voice lines), cores, secret goals, and
+- **Characters:** the cast figures (memory, fear, secret, voice lines), core motives, secret goals, and
   with the weaver the changes they went through.
 
 ## The pipeline (proposal)
@@ -87,7 +87,7 @@ SPEC 15 "Novelist") writes `<run>/novel/story.md`, `outline.json`, `appendix.md`
    results, faction refusals, payments, privately shown receipts and city factors, secret
    signatures, and another resident's fate shifts. The dossier
    holds the figure text from `cast/<ID>-<figure>.md` (from "Who you are" up to the direction), the
-   core, the secret goals and the fate shifts so far. IDs become names.
+   core motive, the secret goals and the fate shifts so far. IDs become names.
 4. **Chapters** (`writer.ts`, Sonnet via Anthropic, thinking low, 24k output per call): outline,
    pack, the previous chapter's last paragraphs. Headings and IDs that slip into the prose are
    removed (IDs replaced by names, with a warning).
