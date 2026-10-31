@@ -8,9 +8,9 @@ import { describe, expect, it } from "vitest";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
 import { checkOptionsDocumented, checkSourceRules, idleAgent } from "@swarmtales/testkit";
 import type { Host } from "@swarmtales/contracts";
-import { standoff, standoffHead } from "@swarmtales/mechanic-standoff";
+import { DEFAULT_DIRECTION, grantsUltimatum, standoff, standoffHead } from "@swarmtales/mechanic-standoff";
 import { HOOK_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
@@ -48,7 +48,7 @@ function setup(extra: { ransom?: number; held?: (resident: string) => readonly H
 	world.points.set("A03", 40);
 	world.points.set("A04", 40);
 	for (const id of ["A01", "A02", "A03", "A04"]) world.levels.set(id, 8);
-	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 }, direction: 10 });
+	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 } });
 	const price = extra.ransom;
 	const tribunal = price === undefined ? [] : [provider("tribunal", TribunalApi, { ransomPrices: () => ({ price, selfPrice: price }) }).with()];
 	return {
@@ -143,19 +143,33 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		expect(minute13.map((event) => `${event.source}:${event.type}`)).toEqual(["before:mark_before", "standoff:ultimatum_resolved", "after:mark_after"]);
 	});
 
-	it("offers the ultimatum only at gamemaker direction 10 in a story with ultimatums (old gamemaker.ts:214, :375)", async () => {
+	it("grants the ultimatum only at gamemaker direction 10 in a story with ultimatums, and offers it only where granted (R2-D17, old gamemaker.ts:214, :375)", async () => {
 		const world = new TestWorld(["A01", "A02"]);
-		const tryUltimatum = async (options: Parameters<typeof standoff.with>[0]) => {
-			const host = startHost({ residents: ["A01", "A02"], mechanics: [standoff.with(options), probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world).with()], gamemakerTools: ["ultimatum"] });
+		const rule = { penalty: 10, maxMinutes: 5 };
+		/** The story as the mapping composes it: `ultimatum` granted by `grantsUltimatum`, never locked by the mechanic. */
+		const mapped = (direction: number | undefined, withRule: boolean) => {
+			const host = startHost({
+				residents: ["A01", "A02"],
+				mechanics: [standoff.with(withRule ? { ultimatum: rule } : {}), probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world).with()],
+				gamemakerTools: grantsUltimatum(direction, withRule) ? ["ultimatum"] : [],
+			});
+			return { host, offered: host.toolSpecs("gamemaker").map((spec) => spec.name) };
+		};
+		const code = async (host: Host) => {
 			const outcome = await host.call("gamemaker", "ultimatum", { a: "A01", b: "A02", minutes: 2 });
 			return outcome.ok ? "ok" : outcome.code;
 		};
-		const rule = { penalty: 10, maxMinutes: 5 };
-		expect(await tryUltimatum({ ultimatum: rule })).toBe("TOOL_LOCKED");
-		expect(await tryUltimatum({ ultimatum: rule, direction: 9 })).toBe("TOOL_LOCKED");
-		expect(await tryUltimatum({ direction: 10 })).toBe("TOOL_LOCKED");
-		// Allowed: the book answers (no standoff between the two here).
-		expect(await tryUltimatum({ ultimatum: rule, direction: 10 })).toBe("NO_STANDOFF");
+		// The old default dial (4), a dial below 10, and a story without ultimatums: no tool at all.
+		for (const [direction, withRule] of [[undefined, true], [9, true], [10, false], [undefined, false]] as const) {
+			const { host, offered } = mapped(direction, withRule);
+			expect(offered, `direction ${String(direction)}, rule ${String(withRule)}`).not.toContain("ultimatum");
+			expect(await code(host)).toBe("TOOL_NOT_GRANTED");
+		}
+		// Direction 10 with ultimatums: offered, and the book answers (no standoff between the two here).
+		const { host, offered } = mapped(10, true);
+		expect(offered).toContain("ultimatum");
+		expect(await code(host)).toBe("NO_STANDOFF");
+		expect(DEFAULT_DIRECTION).toBe(4);
 	});
 
 	it("seizes what a holdout kept back and sells it to the one who waited for the penalty (P50)", async () => {
@@ -333,10 +347,12 @@ describe("standoff: snapshot and golden gate", () => {
 		expect(migrated.facts()["standoff.cityPieces"]).toEqual([{ from: "A02", piece: { id: "L8-counter-A01", kind: "counter", level: 8, label: "x", value: "542489", needers: ["A01"] }, claimed: [] }]);
 	});
 
-
 	it("documents its options and imports only what a mechanic may", () => {
 		expect(checkOptionsDocumented(standoff)).toEqual([]);
-		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "result.ts", "situation.ts", "slice.ts"].map((name) => {
+		// Every source file, so a new one cannot slip past the rules.
+		const names = readdirSync(new URL("../../../mechanics/standoff/src/", import.meta.url)).filter((name) => name.endsWith(".ts"));
+		expect(names).toEqual(expect.arrayContaining(["index.ts", "grants.ts", "reads.ts", "situation.ts"]));
+		const files = names.map((name) => {
 			const path = new URL(`../../../mechanics/standoff/src/${name}`, import.meta.url);
 			return { path: name, text: readFileSync(path, "utf8") };
 		});
