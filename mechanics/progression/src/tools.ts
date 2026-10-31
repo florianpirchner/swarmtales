@@ -1,14 +1,14 @@
 /**
  * The progression tools (old packages/engine/src/tools/status.ts): `getStatus`, `activeTools`,
  * `getProblem`, `submitSolution` and `listAgents`. The reply texts and error codes are the old ones.
- * `getStatus` lists what this mechanic and its dependencies know; the unread DM count and the
- * receipt lines have no frozen query (docs/design/carve-requests-T3.md, request 10).
+ * `getStatus` lists what this mechanic and its dependencies know: the unread DMs from the channels,
+ * the receipt lines from the receipts, the tools the host leaves open for the resident.
  */
 import { Type } from "typebox";
 import type { MechanicKit, ShapeOf, ToolOutcome } from "@swarmtales/contracts";
 import { ChannelsApi, LedgerApi, MarksApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx, progressionWorkHead } from "./head.ts";
-import { competitorOf, isFinished, isOpenOnClock, opensAt, openTools, ranking } from "./levels.ts";
+import { competitorOf, isFinished, isOpenOnClock, opensAt, ranking } from "./levels.ts";
 import { submit } from "./submit.ts";
 import { problemFor } from "./task.ts";
 
@@ -32,7 +32,7 @@ function statusReply(ctx: ProgressionCtx, self: string): string {
 	const finished = isFinished(ctx, self);
 	const rank = ranking(ctx).find((candidate) => candidate.agent === self)?.rank ?? ctx.residents.ids.length;
 	const levelNote = `${finished ? ` ${ctx.prompt("replies/status-all-solved", {})}` : ""}${
-		entry.held ? ` ${ctx.prompt("replies/status-passed", { level: entry.level - 1 })}` : ""
+		entry.held ? ` ${ctx.prompt("replies/status-passed", { level: entry.level })}` : ""
 	}${finished || isOpenOnClock(ctx, entry.level) ? "" : ` ${ctx.prompt("replies/status-door", { level: entry.level, minute: opensAt(ctx, entry.level) })}`}`;
 	const lines = [
 		`you: ${self}`,
@@ -41,14 +41,16 @@ function statusReply(ctx: ProgressionCtx, self: string): string {
 		`points: ${ctx.call(LedgerApi, "balance", { account: self })}`,
 		`rank: ${rank} of ${ctx.residents.ids.length}`,
 		`survivors at the end: ${ctx.options.survivors}`,
+		`unread DMs: ${ctx.call(ChannelsApi, "pendingDms", { resident: self })}`,
 		`solved levels: ${entry.solved.length === 0 ? "-" : [...entry.solved].sort((a, b) => a - b).join(", ")}`,
-		`unlocked tools: ${[...openTools(ctx, self)].join(", ")}`,
+		`unlocked tools: ${ctx.access.open(self).join(", ")}`,
 	];
 	const marks = ctx.tryCall(MarksApi, "left", { resident: self });
 	if (marks !== undefined && marks !== null) lines.push(`marks: ${marks.remaining} of ${marks.budget}`);
 	const window = ctx.call(ChannelsApi, "dmWindow", { resident: self });
 	if (window !== null) lines.push(ctx.prompt("replies/status-dm-window", { sent: window.sent, limit: window.limit, from: window.from, until: window.until }));
-	lines.push(`receipts: ${ctx.call(ReceiptsApi, "count", { resident: self })}`);
+	const receipts = ctx.call(ReceiptsApi, "list", { resident: self });
+	lines.push(receipts.length === 0 ? "receipts: -" : `receipts:\n${receipts.map((receipt) => `  ${receipt.text}`).join("\n")}`);
 	return lines.join("\n");
 }
 
@@ -64,7 +66,7 @@ export function progressionTools(kit: Kit) {
 			name: "activeTools",
 			description: "tools/activeTools",
 			parameters: Type.Object({}),
-			execute: (_params, ctx) => ok(ctx.prompt("replies/active-tools", { tools: [...openTools(ctx, residentOf(ctx))].join(", ") })),
+			execute: (_params, ctx) => ok(ctx.prompt("replies/active-tools", { tools: ctx.access.open(residentOf(ctx)).join(", ") })),
 		}),
 		kit.tool({
 			name: "getProblem",

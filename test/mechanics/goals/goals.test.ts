@@ -15,24 +15,11 @@ import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { compareGolden, ownedBy, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import { puzzleOptions } from "../puzzles/harness.ts";
-import { GOLDEN_NAMES, goldenLog, progressionHost, progressionOptions, promptLookup, replay, SEED, standInUses, storyOf, type GoldenName } from "../progression/harness.ts";
+import { GOLDEN_NAMES, goalsOptionsOf, goldenLog, progressionHost, progressionOptions, promptLookup, replay, SEED, standInUses, storyOf, type GoldenName } from "../progression/harness.ts";
 import { coresStandIn, exileStandIn } from "./standins.ts";
 
-type GoalsInput = NonNullable<Parameters<typeof goals.with>[0]>;
-
-/** The options a story gives the goals mechanic; undefined when the story deals none. */
-function goalsOptions(name: GoldenName): GoalsInput | undefined {
-	const spec = storyOf(name).goals;
-	if (spec === undefined) return undefined;
-	return {
-		acts: [...spec.acts],
-		bonus: spec.bonus,
-		leadTribunals: spec.leadTribunals,
-		againstCore: spec.againstCore,
-		matches: Object.fromEntries(Object.entries(spec.matches).map(([kind, drives]) => [kind, [...drives]])),
-		factions: storyOf(name).tribunal?.factions !== undefined,
-		texts: { ...spec.texts },
-	};
+function goalsOptions(name: GoldenName) {
+	return goalsOptionsOf(storyOf(name));
 }
 
 describe("goals: the golden gate (cores are a stand-in)", () => {

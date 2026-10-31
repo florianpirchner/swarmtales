@@ -99,6 +99,8 @@ export interface PuzzlesState {
 	/** Per level, the exiled whose roles pass on. */
 	readonly exclusions: Map<number, Set<string>>;
 	readonly planner: TeamPlanner;
+	/** True for a state loaded from a snapshot until the first minute repaired its levels (not saved). */
+	resumed: boolean;
 }
 
 const TeamSchema = Type.Object({ members: Ids, leader: Id });
@@ -120,19 +122,20 @@ export const PuzzlesSlice = Type.Object({ levels: Type.Array(LevelSnapshot), cit
 export type PuzzlesSliceData = Static<typeof PuzzlesSlice>;
 export const PuzzlesSliceV0 = Type.Object({ levels: Type.Array(LevelSnapshot), cityFactors: Type.Optional(Agents), exclusions: Type.Optional(Agents) });
 
+/** One level as the snapshot keeps it. */
+export function snapshotOfLevel(level: number, entry: LevelState): Static<typeof LevelSnapshot> {
+	const puzzle = entry.puzzle;
+	const teams = entry.teams.map((team) => ({ members: [...team.members], leader: team.leader }));
+	if (puzzle.kind === "additive") {
+		const { digits, cityFactor } = puzzle.deal;
+		return { level, teams, kind: "additive", deal: { digits, cityFactor, teams: puzzle.deal.teams.map((team) => ({ ...team })), holdings: puzzle.deal.holdings.map((holding) => ({ ...holding })) } };
+	}
+	const puzzles = puzzle.puzzles.map((item) => ({ password: item.password, fragments: [...item.fragments], overlap: item.overlap }));
+	return { level, teams, kind: "fragments", puzzles, fragments: [...puzzle.fragments].map(([agent, fragment]) => ({ agent, fragment })) };
+}
+
 export function saveLevels(state: PuzzlesState): PuzzlesSliceData {
-	const levels = [...state.levels]
-		.sort(([a], [b]) => a - b)
-		.map(([level, entry]): Static<typeof LevelSnapshot> => {
-			const puzzle = entry.puzzle;
-			const teams = entry.teams.map((team) => ({ members: [...team.members], leader: team.leader }));
-			if (puzzle.kind === "additive") {
-				const { digits, cityFactor } = puzzle.deal;
-				return { level, teams, kind: "additive", deal: { digits, cityFactor, teams: puzzle.deal.teams.map((team) => ({ ...team })), holdings: puzzle.deal.holdings.map((holding) => ({ ...holding })) } };
-			}
-			const puzzles = puzzle.puzzles.map((item) => ({ password: item.password, fragments: [...item.fragments], overlap: item.overlap }));
-			return { level, teams, kind: "fragments", puzzles, fragments: [...puzzle.fragments].map(([agent, fragment]) => ({ agent, fragment })) };
-		});
+	const levels = [...state.levels].sort(([a], [b]) => a - b).map(([level, entry]) => snapshotOfLevel(level, entry));
 	const agents = (map: Map<number, Set<string>>): Static<typeof Agents> => [...map].map(([level, set]) => ({ level, agents: [...set] }));
 	return { levels, cityFactors: agents(state.cityFactors), exclusions: agents(state.exclusions) };
 }
@@ -147,5 +150,5 @@ export function loadLevels(data: PuzzlesSliceData, planner: TeamPlanner): Puzzle
 		}
 	}
 	const sets = (list: Static<typeof Agents>): Map<number, Set<string>> => new Map(list.map((entry) => [entry.level, new Set(entry.agents)]));
-	return { levels, cityFactors: sets(data.cityFactors), exclusions: sets(data.exclusions), planner };
+	return { levels, cityFactors: sets(data.cityFactors), exclusions: sets(data.exclusions), planner, resumed: true };
 }

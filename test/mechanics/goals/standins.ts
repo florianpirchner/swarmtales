@@ -1,11 +1,10 @@
 /**
- * A stand-in for the cores (team T2, still a head): it answers `cores-extras` from the cores the
- * golden log dealt, so the goals follow them as they did.
+ * A stand-in for the cores (team T2): it answers `CoresApi.drivesOf` from the cores the golden log
+ * dealt, so the goals follow them as they did.
  */
 import { Type } from "typebox";
 import { defineMechanic, reply } from "@swarmtales/kernel";
-import { CoresExtrasApi } from "@swarmtales/mechanic-goals";
-import { GoalsApi } from "@swarmtales/mechanic-shared";
+import { CoresApi, GoalsApi } from "@swarmtales/mechanic-shared";
 import type { LegacyLine } from "@swarmtales/testkit";
 
 function drivesIn(lines: readonly LegacyLine[]): ReadonlyMap<string, readonly string[]> {
@@ -25,8 +24,8 @@ function drivesIn(lines: readonly LegacyLine[]): ReadonlyMap<string, readonly st
 export function coresStandIn(golden: readonly LegacyLine[]) {
 	const drives = drivesIn(golden);
 	return defineMechanic(
-		{ id: "cores", summary: "Stand-in for the cores: the golden drives.", options: Type.Object({}), state: () => undefined, events: {}, provides: [CoresExtrasApi] },
-		(kit) => ({ services: [kit.provide(CoresExtrasApi, { drivesOf: ({ resident }) => [...(drives.get(resident) ?? [])] })] }),
+		{ id: "cores", summary: "Stand-in for the cores: the golden drives.", options: Type.Object({}), state: () => undefined, events: {}, provides: [CoresApi] },
+		(kit) => ({ services: [kit.provideSome(CoresApi, { drivesOf: ({ resident }) => [...(drives.get(resident) ?? [])] })] }),
 	);
 }
 

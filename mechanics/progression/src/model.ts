@@ -74,6 +74,8 @@ export const PROGRESSION_PROMPTS = {
 	"progression/needs-counter": ["value"],
 	"progression/needs-certificate": ["value"],
 	"progression/cost-free": [],
+	"progression/cost-one-mark": [],
+	"progression/cost-marks": ["price"],
 	"progression/door-open": ["level", "minute", "task"],
 	"progression/door-closed": ["level", "title", "opensAt"],
 } as const;
@@ -169,7 +171,14 @@ export function saveState(state: ProgressionState): ProgressionSliceData {
 	};
 }
 
-export function loadState(data: ProgressionSliceData): ProgressionState {
+/**
+ * A slice loads as the old `World#restore` took its snapshot. `locksStale` marks a slice that came
+ * from the old engine (the converter's version 0): a door it does not name is this run's own
+ * `holdAfter`, a snapshot without act starts began its first act at minute 0, and a released door
+ * stays released only while it is the same door (old world.ts:3100-3103).
+ */
+export function loadState(data: ProgressionSliceData, options: Pick<Options, "lastLevel" | "levels" | "holdAfter" | "startLevel">): ProgressionState {
+	const door = data.door ?? (data.locksStale ? doorIn(options) : undefined);
 	return {
 		competitors: new Map(
 			data.competitors.map((entry): [string, Competitor] => [
@@ -177,9 +186,9 @@ export function loadState(data: ProgressionSliceData): ProgressionState {
 				{ level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: new Set(entry.extraTools) },
 			]),
 		),
-		door: data.door,
-		doorReleased: data.doorReleased === true,
-		actStarts: new Map((data.actStarts ?? []).map((entry) => [entry.fromLevel, entry.minute])),
+		door,
+		doorReleased: data.doorReleased === true && door === data.door,
+		actStarts: new Map((data.actStarts ?? (data.locksStale ? [{ fromLevel: options.startLevel, minute: 0 }] : [])).map((entry) => [entry.fromLevel, entry.minute])),
 		endedActs: new Set(data.endedActs ?? []),
 		offences: new Map((data.offences ?? []).map((entry) => [entry.agent, { wrong: entry.wrong, blames: entry.blames }])),
 		delivered: new Map(data.delivered.map((entry) => [entry.agent, { level: entry.level, finished: entry.finished }])),

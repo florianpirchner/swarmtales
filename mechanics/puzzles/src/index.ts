@@ -10,24 +10,28 @@ import { dealLevel, lastLevelOf, openingLevels } from "./deal.ts";
 import { leakOf, secretsOf } from "./guard.ts";
 import { freshPlanner, puzzlesWorkHead } from "./head.ts";
 import { loadLevels, PuzzlesSlice, PuzzlesSliceV0, saveLevels } from "./model.ts";
-import { extrasImplementation, puzzlesImplementation } from "./services.ts";
-import { PuzzlesApi } from "@swarmtales/mechanic-shared";
-import { PuzzlesExtrasApi } from "./extras.ts";
+import { puzzlesImplementation } from "./services.ts";
+import { HOOK_ORDER, PuzzlesApi } from "@swarmtales/mechanic-shared";
+import { repairAfterResume } from "./resume.ts";
 
 export { puzzlesHead } from "./head.ts";
-export { PuzzlesExtrasApi } from "./extras.ts";
 
 export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
-	services: [kit.provideSome(PuzzlesApi, puzzlesImplementation), kit.provide(PuzzlesExtrasApi, extrasImplementation)],
+	services: [kit.provide(PuzzlesApi, puzzlesImplementation)],
 	hooks: {
-		runStarted: (ctx) => {
-			const dealt = new Set(openingLevels(ctx));
-			for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) {
-				// Behind a door only the teams are planned, so layout errors surface at the start.
-				if (dealt.has(level)) dealLevel(ctx, level);
-				else ctx.state.planner.teamsOf(level);
-			}
+		runStarted: {
+			order: HOOK_ORDER.runStarted.puzzles,
+			run: (ctx) => {
+				const dealt = new Set(openingLevels(ctx));
+				for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) {
+					// Behind a door only the teams are planned, so layout errors surface at the start.
+					if (dealt.has(level)) dealLevel(ctx, level);
+					else ctx.state.planner.teamsOf(level);
+				}
+			},
 		},
+		// A resumed run repairs its levels before the progression mechanic's door and locks (old `World#restore`).
+		minuteStarted: { order: 10, run: repairAfterResume },
 	},
 	guard: {
 		secrets: (resident, minRun, ctx) => secretsOf(ctx, resident, minRun),

@@ -4,10 +4,9 @@
  * puzzle's values; names, marks and the holdout rule are not appended here (docs/design/
  * carve-requests-T3.md, request 9).
  */
-import { PuzzlesApi } from "@swarmtales/mechanic-shared";
+import { MarksApi, NamesApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx } from "./head.ts";
 import { competitorOf, definitionOf, isFinished, isOpenOnClock, isPlayable, levelOf, nextBlamePenalty, nextPenalty, opensAt, ranking } from "./levels.ts";
-import { PuzzlesExtrasApi } from "./puzzles-extras.ts";
 import { renderTemplate } from "./rules.ts";
 
 const CITY = "CITY";
@@ -27,8 +26,8 @@ function renderTask(ctx: ProgressionCtx, agent: string, level: number): string {
 	if (definition === undefined) throw new Error(`Unknown level ${level}`);
 	const team = ctx.call(PuzzlesApi, "teamOf", { resident: agent, level });
 	const members = [...team.members].sort((a, b) => a.localeCompare(b));
-	return renderTemplate(definition.task, {
-		...ctx.call(PuzzlesExtrasApi, "taskValues", { resident: agent, level }),
+	const text = renderTemplate(definition.task, {
+		...ctx.call(PuzzlesApi, "taskValues", { resident: agent, level }),
 		level: String(level),
 		title: definition.title,
 		reward: String(definition.reward),
@@ -41,6 +40,21 @@ function renderTask(ctx: ProgressionCtx, agent: string, level: number): string {
 		penalty: String(nextPenalty(ctx, agent)),
 		blamePenalty: String(nextBlamePenalty(ctx, agent)),
 	});
+	return withAddenda(text, [nameLine(ctx, agent), marksLine(ctx, level)]);
+}
+
+/** The line a mechanic of the run appends under a task, or null. */
+function nameLine(ctx: ProgressionCtx, agent: string): string | null {
+	return ctx.tryCall(NamesApi, "taskLine", { resident: agent }) ?? null;
+}
+
+function marksLine(ctx: ProgressionCtx, level: number): string | null {
+	return ctx.tryCall(MarksApi, "taskLine", { level }) ?? null;
+}
+
+/** Appends each line under the text, each after a `trimEnd` (D-3; the holdout rule is request 1 of round 2). */
+function withAddenda(text: string, lines: readonly (string | null)[]): string {
+	return lines.reduce<string>((joined, line) => (line === null ? joined : `${joined.trimEnd()}\n${line}`), text);
 }
 
 export function problemFor(ctx: ProgressionCtx, agent: string, level: number): ProblemResult {
@@ -50,7 +64,7 @@ export function problemFor(ctx: ProgressionCtx, agent: string, level: number): P
 	if (level > entry.level) return { ok: false, error: "LEVEL_NOT_REACHED" };
 	if (!isOpenOnClock(ctx, level)) {
 		// The door clock: nothing of the level before its door opens.
-		const text = ctx.prompt("progression/door-closed", { level, title: definition.title, opensAt: opensAt(ctx, level) });
+		const text = withAddenda(ctx.prompt("progression/door-closed", { level, title: definition.title, opensAt: opensAt(ctx, level) }), [nameLine(ctx, agent)]);
 		return { ok: true, value: { level, title: definition.title, reward: definition.reward, text, solved: false } };
 	}
 	return { ok: true, value: { level, title: definition.title, reward: definition.reward, text: renderTask(ctx, agent, level), solved: entry.solved.includes(level) } };
@@ -69,15 +83,19 @@ export interface InputLine {
 	readonly order?: number;
 }
 
-/** The task once per level, or the story's finished notice (kind `task`, so it stays before the DMs). */
+/** The task once per level, or the story's finished notice (kind `task`, so it stays before the DMs); only reads, `markTaskShown` records it. */
 export function taskLines(ctx: ProgressionCtx, agent: string): readonly InputLine[] {
 	const level = levelOf(ctx, agent);
 	const finished = isFinished(ctx, agent);
 	const shown = ctx.state.delivered.get(agent);
 	if (shown?.level === level && shown.finished === finished) return [];
-	ctx.state.delivered.set(agent, { level, finished });
 	const problem = currentProblem(ctx, agent);
 	return [{ kind: "task", text: problem === undefined ? ctx.prompt("competitor/input/notice", { author: CITY, text: ctx.options.finishedNotice }) : problem.text }];
+}
+
+/** The turn opened: the task it carried counts as shown (the old arena marked it once the inputs were built for a turn). */
+export function markTaskShown(ctx: ProgressionCtx, agent: string): void {
+	ctx.state.delivered.set(agent, { level: levelOf(ctx, agent), finished: isFinished(ctx, agent) });
 }
 
 function plural(count: number, singular: string, pluralForm: string): string {
@@ -112,5 +130,5 @@ export function statusParts(ctx: ProgressionCtx, agent: string, order: { readonl
 /** Whether the resident stands before a door of personal codes it has not passed (additive level, not waiting). */
 export function awaitsCode(ctx: ProgressionCtx, agent: string): boolean {
 	const entry = competitorOf(ctx, agent);
-	return !isFinished(ctx, agent) && !entry.held && ctx.call(PuzzlesExtrasApi, "kindOf", { level: entry.level }) === "additive";
+	return !isFinished(ctx, agent) && !entry.held && ctx.call(PuzzlesApi, "kindOf", { level: entry.level }) === "additive";
 }
