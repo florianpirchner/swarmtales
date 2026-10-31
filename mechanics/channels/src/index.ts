@@ -8,10 +8,10 @@
  * status part reads first, the inbox is emptied after every part that only reads, the digest last.
  */
 import { Type } from "typebox";
-import { defineMechanic } from "@swarmtales/kernel";
-import { ChannelsApi, ExileEvents, HOOK_ORDER, LISTENER_ORDER, NotesApi, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { defineMechanic, refuse } from "@swarmtales/kernel";
+import { ChannelsApi, ExileEvents, HOOK_ORDER, LISTENER_ORDER, NotesApi } from "@swarmtales/mechanic-shared";
 import { boardPost, dmRecord, dmRecordOf, groupPost, pendingDms } from "./api.ts";
-import { defyTool } from "./defy.ts";
+import { defyOpen, defyTool } from "./defy.ts";
 import { gamemakerTools } from "./gamemaker.ts";
 import { createCityGroup, removeCityGroup, postGroupAsCity, settleTreasuries } from "./treasury.ts";
 import { channelsHead } from "./head.ts";
@@ -72,16 +72,12 @@ export const channels = defineMechanic(channelsHead, (kit) => ({
 			},
 			{ immediate: true, order: LISTENER_ORDER.exiled.channels },
 		),
-		// Only the whisperer of a story with a defiant whisperer may refuse the gamemaker's orders.
-		kit.listen(WhispersEvents, "whisperer_chosen", (payload, ctx) => {
-			if (ctx.options.whispererDefies) ctx.access.unlock(payload.agent, "defy");
-		}),
 	],
+	// `defy` is open to all (`defiance`) or to the whisperer alone (`whispererDefies`); asked live, so a resume keeps it (R2-D5).
+	pipeline: {
+		lock: (call, ctx) => (call.owner === "channels" && call.tool === "defy" && call.resident !== undefined && !defyOpen(ctx, call.resident) ? refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {})) : undefined),
+	},
 	hooks: {
-		// A fresh run starts with `defy` closed to everyone unless the story opens it to all.
-		runStarted: (ctx) => {
-			if (!ctx.options.defiance) for (const resident of ctx.residents.ids) ctx.access.lock(resident, "defy");
-		},
 		turnInputs: [
 			{ order: HOOK_ORDER.turnInputs.status, run: statusInputs },
 			{ order: HOOK_ORDER.turnInputs.channelsInbox, run: inboxInputs },

@@ -3,9 +3,10 @@
  * collections and lotteries. Declared apart so the helpers in the other files can type their
  * context with it.
  */
-import { Type } from "typebox";
+import { Type, type Static } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
 import { CastApi, CastEvents, ChannelsApi, LedgerApi, ProgressionApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { CastExtrasApi } from "./extras.ts";
 import { CastRegistry } from "./registry.ts";
 
 const Id = Type.String();
@@ -47,14 +48,20 @@ export interface CastState {
 	readonly funded: Set<string>;
 }
 
-export const castHead = defineHead({
+/** What both heads share. */
+const common = {
 	id: "cast",
 	summary: "The cast: figures, their escrow, collections and lotteries.",
 	options,
-	state: ({ options: given }): CastState => ({ registry: new CastRegistry(given.members), funded: new Set() }),
+	state: ({ options: given }: { readonly options: Static<typeof options> }): CastState => ({ registry: new CastRegistry(given.members), funded: new Set() }),
 	events,
 	prompts,
-	provides: [CastApi],
 	requires: [ChannelsApi, ProgressionApi, LedgerApi],
 	uses: [ReceiptsApi],
-});
+} as const;
+
+/** The frozen shape of the carve plan: the shared API alone (test/mechanics/packages.test.ts pins it). */
+export const castHead = defineHead({ ...common, provides: [CastApi] });
+
+/** The head the mechanic runs with: the shared API plus the local `CastExtrasApi` (request 1 of round 3). */
+export const castWorkHead = defineHead({ ...common, provides: [CastApi, CastExtrasApi] });

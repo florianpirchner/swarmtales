@@ -6,15 +6,26 @@
  * (`whispererDefies`) use it.
  */
 import { Type } from "typebox";
-import type { MechanicKit, ShapeOf } from "@swarmtales/contracts";
+import type { ContextOf, MechanicKit, ShapeOf } from "@swarmtales/contracts";
 import { refuse, reply } from "@swarmtales/kernel";
 import type { channelsHead } from "./head.ts";
 import { selfOf } from "./messages.ts";
+import { whispererOf } from "./whisperer.ts";
 
 type Kit = MechanicKit<ShapeOf<typeof channelsHead>>;
 
 /** The length of a reason, in characters, after trimming. */
 export const DEFY_REASON = { min: 20, max: 600 } as const;
+
+/**
+ * Whether `defy` is open to the resident: to everyone with `defiance`, else only to the story's
+ * whisperer when `whispererDefies`. The whisperer is read from the log on every ask, so the tool
+ * stays open after a resume, where `whisperer_chosen` is not written again (R2-D5).
+ */
+export function defyOpen(ctx: ContextOf<typeof channelsHead>, resident: string): boolean {
+	if (ctx.options.defiance) return true;
+	return ctx.options.whispererDefies && whispererOf(ctx) === resident;
+}
 
 export function defyTool(kit: Kit) {
 	return kit.tool({

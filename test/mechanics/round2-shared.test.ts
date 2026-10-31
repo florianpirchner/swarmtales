@@ -112,7 +112,7 @@ describe("the puzzles' secrets (R2-D8)", () => {
 describe("the order rule of D-1 (R2-D11)", () => {
 	const root = resolve(import.meta.dirname, "../../mechanics");
 	/** Plain functions the round-3 briefs still have to give a slot: owner and hook. */
-	const PENDING = ["channels:runStarted"];
+	const PENDING: readonly string[] = [];
 
 	it("gives every phase of a hook the order table covers its slot (a plain function is order 0)", () => {
 		const plain = readdirSync(root).flatMap((id) => {

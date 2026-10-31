@@ -62,8 +62,8 @@ export const motives = defineMechanic(motivesHead, (kit) => ({
 	hooks: {
 		// With the first act, after the whisperer is chosen and the start points are given, before its goals are dealt.
 		runStarted: { order: HOOK_ORDER.runStarted.motives, run: deal },
-		// A snapshot from before the core motives deals them before the next minute is played (v09), before anything else of it.
-		minuteStarted: { order: HOOK_ORDER.minuteStarted.motives, run: deal },
+		// A snapshot from before the core motives deals them when the run resumes (v09), before the next act is played.
+		runResumed: { order: HOOK_ORDER.runResumed.motives, run: deal },
 	},
 	facts: {
 		coreMotives: kit.fact(Type.Record(Type.String(), Type.Object({ bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Type.String() })), drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Type.String() })), figure: Type.Optional(Type.String()) })), (view) => Object.fromEntries(view.state.coreMotives)),

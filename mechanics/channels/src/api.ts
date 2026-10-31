@@ -20,8 +20,8 @@ export function dmRecordOf(record: DmRecordState): DmRecord {
 		to: record.to,
 		minute: record.minute,
 		answered: record.answered,
-		// The shared shape has no absent text; a record of an old snapshot that kept none reads as empty.
-		text: record.text ?? "",
+		// A record of an old snapshot may have kept no text; it stays absent (R2-D14), so blame answers "kept no delivery record".
+		...(record.text === undefined ? {} : { text: record.text }),
 		...(record.deliveredMinute === undefined ? {} : { deliveredMinute: record.deliveredMinute }),
 		...(record.deliveredAfter === undefined ? {} : { deliveredAfter: record.deliveredAfter }),
 	};

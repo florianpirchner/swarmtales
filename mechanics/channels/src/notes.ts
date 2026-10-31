@@ -10,11 +10,12 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { Refusal } from "@swarmtales/contracts";
 import { refuse } from "@swarmtales/kernel";
-import { MotivesApi, GoalsApi, NamesApi, ProgressionApi, PuzzlesApi, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { MotivesApi, GoalsApi, NamesApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import type { Ctx } from "./messages.ts";
 import { attempt } from "./optional.ts";
 import { characterLeaks, nearlySame, privateLeaks, roleLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
 import { SecretGuard } from "./secret-guard.ts";
+import { whispererOf } from "./whisperer.ts";
 
 export type Checked = { readonly ok: true; readonly text: string } | { readonly ok: false; readonly code: string; readonly detail: string };
 
@@ -45,25 +46,10 @@ function privateLabels(ctx: Ctx): PrivateLabels {
 	return labels;
 }
 
-/** Every dealt password, fragment and factor, as far as the puzzles API shows them. */
+/** Every dealt password and all-digit value, as the puzzles name them (old gamemaker `#secretGuard`; R2-D8). */
 function secretGuard(ctx: Ctx): SecretGuard {
-	const passwords: string[] = [];
-	const numbers: string[] = [];
-	const bounds = attempt(() => ctx.tryCall(ProgressionApi, "bounds", {}));
-	for (let level = bounds?.startLevel ?? 1; level <= (bounds?.lastLevel ?? 0); level++) {
-		if (attempt(() => ctx.tryCall(PuzzlesApi, "isDealt", { level })) !== true) continue;
-		for (const resident of ctx.residents.ids) {
-			const solution = attempt(() => ctx.tryCall(PuzzlesApi, "solutionOf", { resident, level }));
-			if (typeof solution === "string") passwords.push(solution);
-			const values = attempt(() => ctx.tryCall(PuzzlesApi, "taskValues", { resident, level }));
-			if (values !== undefined) {
-				if (values.fragment !== "") passwords.push(values.fragment);
-				numbers.push(...(`${values.digits} ${values.factors}`.match(/\d+/g) ?? []));
-			}
-			for (const held of attempt(() => ctx.tryCall(PuzzlesApi, "holders", { resident, level })) ?? []) numbers.push(...(held.value.match(/\d+/g) ?? []));
-		}
-	}
-	return new SecretGuard(passwords, numbers);
+	const secrets = ctx.tryCall(PuzzlesApi, "secrets", {});
+	return new SecretGuard(secrets?.passwords ?? [], secrets?.numbers ?? []);
 }
 
 /** Every resident's drive cues and running goal, for the privacy guard (v09). */
@@ -73,12 +59,6 @@ function characters(ctx: Ctx): readonly CharacterFacts[] {
 		const goal = attempt(() => ctx.tryCall(GoalsApi, "goalOf", { resident: agent })) ?? null;
 		return { agent, cues, ...(goal === null ? {} : { goal: { kind: goal.kind, ...(goal.target === undefined ? {} : { target: goal.target }) } }) };
 	});
-}
-
-/** The whisperer of the run, told by `whisperer_chosen` in the log. */
-function whispererOf(ctx: Ctx): string | undefined {
-	const chosen = ctx.log.ofType("whispers", "whisperer_chosen").at(0);
-	return chosen === undefined ? undefined : Parse(WhispersEvents.events.whisperer_chosen, chosen.payload).agent;
 }
 
 /** `CODE: detail` of a prompt, as the refusal's two fields. */

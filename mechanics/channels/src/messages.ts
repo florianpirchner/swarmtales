@@ -188,9 +188,8 @@ export function drainMailbox(ctx: Ctx, agent: string): readonly MailboxEntry[] {
 			record.deliveredAfter = ctx.state.numbers.last;
 		}
 		ctx.emit("dm_delivered", { number, from: entry.from, to: agent });
-		// Whispers: a DM receipt quotes what was written, so showing it proves the text.
-		const quoted = ctx.options.quoteDms ? { text: entry.text } : {};
-		const receipt = ctx.tryCall(ReceiptsApi, "issue", { body: { kind: "dm", from: entry.from, to: agent, number, ...quoted } });
+		// The text always goes to receipts, which owns the story flag (R2-D12): only a quoting book keeps it.
+		const receipt = ctx.tryCall(ReceiptsApi, "issue", { body: { kind: "dm", from: entry.from, to: agent, number, text: entry.text } });
 		const variables = { number, agent, minute: ctx.minute, text: entry.text };
 		notify(ctx, entry.from, CITY, receipt === undefined ? ctx.prompt("channels/dm-delivered-plain", variables) : ctx.prompt("channels/dm-delivered", { ...variables, receipt: receipt.id }));
 	}

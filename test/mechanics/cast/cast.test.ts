@@ -1,18 +1,23 @@
 /**
- * The cast mechanic on the new host. Channels is the real one; progression (team T3), the ledger,
- * marks, names, receipts and exile are stand-ins (test/mechanics/cast/stand-ins.ts and
+ * The cast mechanic on the new host. Channels is the real one, and the ledger of the resume tests;
+ * progression (team T3), marks, names, receipts and exile are stand-ins (test/mechanics/cast/stand-ins.ts and
  * test/mechanics/channels/stand-ins.ts); a driver stands in for the script.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { Type } from "typebox";
+import type { Host } from "@swarmtales/contracts";
+import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import { createHost, defineCoreStory, rngFor } from "@swarmtales/kernel";
 import { cast } from "@swarmtales/mechanic-cast";
 import { channels } from "@swarmtales/mechanic-channels";
+import { ledger } from "@swarmtales/mechanic-ledger";
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, idleAgent, scriptedAgent, standInsFor } from "@swarmtales/testkit";
 import { exileStandIn, payloads, t2Prompts } from "../channels/harness.ts";
-import { ledgerStandIn, marksStandIn, namesStandIn, receiptsStandIn } from "../channels/stand-ins.ts";
+import { marksStandIn, namesStandIn, receiptsStandIn } from "../channels/stand-ins.ts";
+import { beforeTheMember } from "../t2/old-file.ts";
 import { castCity, castStory, drive, say } from "./city.ts";
 import { castDriver, progressionStandIn } from "./stand-ins.ts";
 
@@ -36,6 +41,18 @@ describe("members", () => {
 		expect(payloads(host, "cast_revealed")).toEqual([{ cast: "STEWARD" }]);
 		expect(payloads(host, "cast_level_set")).toEqual([{ cast: "STEWARD", level: 11, audit: "NPC_LEVEL_SET" }]);
 		expect(payloads(host, "cast_retired")).toEqual([{ cast: "STEWARD" }]);
+	});
+
+	it("lists the active members with their public level, in the story's order (the local CastExtrasApi.active, request 1)", async () => {
+		const host = castCity({ hidden: true });
+		expect(await drive(host, { op: "active" })).toBe("[]");
+		expect(await drive(host, { op: "reveal", cast: "STEWARD" })).toBe("true");
+		expect(await drive(host, { op: "active" })).toBe(JSON.stringify([{ id: "STEWARD", level: 10 }]));
+		expect(await drive(host, { op: "setLevel", cast: "STEWARD", level: 11 })).toBe("null");
+		expect(await drive(host, { op: "active" })).toBe(JSON.stringify([{ id: "STEWARD", level: 11 }]));
+		expect(await drive(host, { op: "retire", cast: "STEWARD" })).toBe("true");
+		expect(await drive(host, { op: "active" })).toBe("[]");
+		expect(await drive(host, { op: "active" })).toBe(JSON.stringify(host.facts()["cast.active"]));
 	});
 
 	it("records a resident's DM with the number channels took, and says so in the old words", async () => {
@@ -186,7 +203,7 @@ describe("conformance and snapshot", () => {
 		const converted = convertLegacySnapshot(JSON.parse(readFileSync(path, "utf8")), {}, path);
 		const loaded = ["cast", "channels", "ledger", "marks", "names", "receipts", "exile", "progression", "script"];
 
-		function resume(snapshot: typeof converted.host, escrow: number) {
+		function resume(snapshot: typeof converted.host, escrow: number, events: typeof converted.events = converted.events) {
 			const story = defineCoreStory({
 				id: "nexus",
 				seed: 7,
@@ -196,7 +213,7 @@ describe("conformance and snapshot", () => {
 					cast.with({ members: { STEWARD: { level: 10, hidden: true, escrow } } }),
 					channels.with(),
 					progressionStandIn(new Map<number, number>()).with(),
-					ledgerStandIn(0).with(),
+					ledger.with(),
 					marksStandIn().with(),
 					namesStandIn(new Map<string, string>()).with(),
 					receiptsStandIn().with(),
@@ -206,7 +223,7 @@ describe("conformance and snapshot", () => {
 				],
 				grants: { script: ["driveCast"] },
 			});
-			return createHost({ story, prompts: t2Prompts(), resume: { snapshot, events: converted.events } });
+			return createHost({ story, prompts: t2Prompts(), resume: { snapshot, events } });
 		}
 
 		it("migrates the members and collections from version 0 and does not fund them again", async () => {
@@ -215,15 +232,33 @@ describe("conformance and snapshot", () => {
 			const before = host.log.length;
 			await host.playMinute(idleAgent);
 			expect(host.log.all().slice(before).filter((event) => event.type === "ledger_entry")).toEqual([]);
+			expect(booked(host)).toEqual([]);
 		});
 
-		it("funds a member the story added after the snapshot at the next minute", async () => {
-			const bare = { ...converted.host, mechanics: { ...converted.host.mechanics, cast: { version: 0, data: { cast: { members: [], collections: [] } } } } };
-			const host = resume(bare, 10);
-			const before = host.log.length;
+		/** The bookings the resumed host wrote itself (the carried log's own are not counted). */
+		const booked = (host: Host) => host.log.all().slice(converted.events.length).filter((event) => event.type === "ledger_entry");
+
+		it("funds a member the story added after the snapshot when the run resumes, before the first minute starts", async () => {
+			const host = resume(beforeTheMember(converted.host, "STEWARD"), 10);
 			await host.playMinute(idleAgent);
-			expect(payloads(host, "ledger_entry").slice(-1)).toEqual([{ txId: "TX1", debit: "SYSTEM_MINT_BURN", credit: "ESCROW:STEWARD", amount: 10, reason: "escrow STEWARD" }]);
-			expect(host.log.length).toBeGreaterThan(before);
+			const written = host.log.all().slice(converted.events.length);
+			const funding = written.filter((event) => event.type === "ledger_entry");
+			expect(funding.map((event) => event.payload)).toMatchObject([{ debit: "SYSTEM_MINT_BURN", credit: "ESCROW:STEWARD", amount: 10, reason: "escrow STEWARD" }]);
+			// At the snapshot's minute, ahead of everything the minute starts.
+			expect(funding[0]?.minute).toBe(converted.host.minute);
+			expect(written.findIndex((event) => event.type === "ledger_entry")).toBeLessThan(written.findIndex((event) => event.type === "minute_started"));
+		});
+
+		it("opens the account of a member without escrow, and funds it once however often the run resumes", async () => {
+			const first = resume(beforeTheMember(converted.host, "STEWARD"), 0);
+			await first.playMinute(idleAgent);
+			expect(booked(first)).toEqual([]);
+			expect(Parse(Type.Object({ balances: Type.Array(Type.Object({ account: Type.String(), balance: Type.Number() })) }), first.snapshot().mechanics.ledger?.data).balances).toContainEqual({ account: "ESCROW:STEWARD", balance: 0 });
+			const second = resume(beforeTheMember(converted.host, "STEWARD"), 10);
+			await second.playMinute(idleAgent);
+			const again = resume(second.snapshot(), 10, second.log.all());
+			await again.playMinute(idleAgent);
+			expect(booked(again).length).toBe(1);
 		});
 	});
 });
