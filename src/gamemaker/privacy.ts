@@ -7,7 +7,7 @@
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { RecordedEvent } from "../engine/events.ts";
-import { isPrivateSource, type StatementLabel } from "../interpret/labels.ts";
+import { isPrivateSource, type StatementLabel } from "../engine/labels.ts";
 import type { GoalKind } from "../story/types.ts";
 
 /** Private labels per resident, from the events of one look. */

@@ -10,7 +10,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
 import type { RoundObserver } from "../engine/arena.ts";
 import { CLASSIFIER_ID, conversationKey, type Classification, type StatementClassifier, type Verdict } from "./classifier.ts";
-import { isStatementLabel, STATEMENT_LABELS, type StatementLabel } from "./labels.ts";
+import { isStatementLabel, STATEMENT_LABELS, type StatementLabel } from "../engine/labels.ts";
 import { statementOf, type Statement } from "./statements.ts";
 
 /** Earlier messages kept per conversation (DM pair or group) as context for its replies. */

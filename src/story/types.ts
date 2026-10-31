@@ -4,8 +4,8 @@
  * A story is pure, deeply readonly, JSON-serializable data. The engine
  * interprets it; nothing in here executes.
  */
-import type { SystemAuthor } from "../core/ids.ts";
-import type { ToolName } from "../tools/catalog.ts";
+import type { SystemAuthor } from "../contracts/ids.ts";
+import type { ToolName } from "../contracts/tool-names.ts";
 
 // ---------------------------------------------------------------------------
 // Run, model and rules

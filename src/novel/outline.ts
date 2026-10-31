@@ -11,25 +11,13 @@ import { evidenceLines } from "../digest/chronicle.ts";
 import { cite } from "../digest/timeline.ts";
 import { turningPoints, type TurningPoint } from "../digest/turning-points.ts";
 import type { Casting } from "./casting.ts";
+import type { OutlineChapter } from "./chapter.ts";
 import { excerpt } from "../digest/relationships.ts";
 import { dossier } from "./packs.ts";
 import { buildOutlinePrompt, GAMEMAKER_POV, OUTLINE_SYSTEM_PROMPT, type GlossaryEntry } from "./prompts.ts";
 import { Names, type NovelSource } from "./source.ts";
 
-export interface OutlineChapter {
-	/** 1-based. */
-	readonly number: number;
-	/** The POV resident's ID, or GAMEMAKER_POV for a chapter from the control room. */
-	readonly pov: string;
-	readonly title: string;
-	readonly from: number;
-	readonly to: number;
-	readonly beats: readonly string[];
-	/** The chapter's dramatic question, when the planner gave one. */
-	readonly question?: string;
-	/** Known `seq` numbers, ascending. */
-	readonly evidence: readonly number[];
-}
+export type { OutlineChapter };
 
 export interface Outline {
 	readonly title: string;

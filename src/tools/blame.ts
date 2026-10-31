@@ -1,7 +1,7 @@
 import { Type } from "typebox";
 import type { CompetitorId } from "../core/ids.ts";
 import type { World } from "../engine/world.ts";
-import type { DenialQuestion, Standing } from "../interpret/judge.ts";
+import type { DenialQuestion, JudgeStanding } from "../contracts/roles.ts";
 import { render, text } from "../prompts/library.ts";
 import { defineTool, failure, fromError, success, type ToolOutcome } from "./tool.ts";
 
@@ -49,7 +49,7 @@ function wrong(verdict: { readonly reason: string; readonly penalty: number; rea
 
 /** Points and rank of both parties, for a judge whose temper weighs them. */
 function standingOf(world: World, sender: CompetitorId, accused: CompetitorId): NonNullable<DenialQuestion["standing"]> {
-	const at = (agent: CompetitorId): Standing => {
+	const at = (agent: CompetitorId): JudgeStanding => {
 		const status = world.status(agent);
 		return { points: status.points, rank: status.rank };
 	};

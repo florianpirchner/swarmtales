@@ -27,7 +27,7 @@
 import type { CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
 import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
-import { isPrivateSource } from "./labels.ts";
+import { isPrivateSource } from "../engine/labels.ts";
 import { render, text } from "../prompts/library.ts";
 
 /** A resident a hard fact touched: what happened, as a sentence, what kind of event it was, and its number. */

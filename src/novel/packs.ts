@@ -11,7 +11,7 @@ import type { DigestEvent } from "../digest/event-log.ts";
 import { excerpt } from "../digest/relationships.ts";
 import { cite } from "../digest/timeline.ts";
 import type { PovFigure } from "./casting.ts";
-import type { OutlineChapter } from "./outline.ts";
+import type { OutlineChapter } from "./chapter.ts";
 import { Names, type NovelSource } from "./source.ts";
 
 export interface PackOptions {

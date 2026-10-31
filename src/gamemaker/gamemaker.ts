@@ -10,7 +10,7 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type, type Static, type TSchema } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { CompetitorId } from "../core/ids.ts";
 import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";

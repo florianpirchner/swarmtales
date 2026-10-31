@@ -13,10 +13,10 @@
  */
 import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
 import type { CompetitorId } from "../core/ids.ts";
-import type { Competitor, StepSlot } from "../engine/arena.ts";
+import type { Competitor, StepSlot, TurnInput } from "../contracts/turn.ts";
 import type { EventBus } from "../engine/events.ts";
-import type { TurnInput } from "../engine/turn-input.ts";
-import type { Souffleur } from "../interpret/souffleur.ts";
+import type { Souffleur } from "../contracts/roles.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { ModelBinding } from "../model/source.ts";
 import { render, text } from "../prompts/library.ts";
 import type { ThinkingLevel } from "../story/types.ts";
@@ -283,14 +283,4 @@ export class AgentRunner implements Competitor {
 			this.#bus.emit({ type: "tool_result", agent: this.id, tool: message.toolName, isError: message.isError, text });
 		}
 	}
-}
-
-/** Merges fixed request fields (e.g. OpenRouter routing) over the provider payload. */
-export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<string, unknown>> | undefined): unknown {
-	if (defaults === undefined || !isRecord(payload)) return payload;
-	return { ...payload, ...defaults };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null;
 }

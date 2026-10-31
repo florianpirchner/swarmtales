@@ -13,7 +13,7 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
 import type { ClassifierUsage } from "./classifier.ts";

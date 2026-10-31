@@ -5,7 +5,7 @@
  * of the offending field so a story author can fix it without reading code.
  */
 import { competitorIds, isSystemAuthor, SYSTEM_AUTHORS } from "../core/ids.ts";
-import { isToolName } from "../tools/catalog.ts";
+import { isToolName } from "../contracts/tool-names.ts";
 import { placeholdersOf, unknownPlaceholders } from "./templates.ts";
 import {
 	FACTION_RULE_PLACEHOLDERS,

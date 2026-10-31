@@ -7,7 +7,7 @@ import { assertNever } from "../core/result.ts";
 import type { ActMap } from "./acts.ts";
 import type { Beat } from "./beats.ts";
 import { eventsOfType, type DigestEvent, type DigestEventOf } from "./event-log.ts";
-import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
+import { isPrivateSource, LABEL_TEXT } from "../engine/labels.ts";
 import { agentLabel, labelsOf, type RunFacts } from "./facts.ts";
 import { excerpt } from "./relationships.ts";
 

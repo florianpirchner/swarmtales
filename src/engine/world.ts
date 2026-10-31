@@ -14,7 +14,7 @@ import { renderTemplate } from "../story/templates.ts";
 import { penaltyAt } from "../story/penalties.ts";
 import { bequestCap } from "../story/tribunal.ts";
 import type { AnyStory, LevelDefinition, MarksChannel, WhisperQuota } from "../story/types.ts";
-import { TOOL_NAMES, type ToolName } from "../tools/catalog.ts";
+import { TOOL_NAMES, type ToolName } from "../contracts/tool-names.ts";
 import { type LedgerSnapshot } from "../core/ledger.ts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";

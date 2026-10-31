@@ -4,7 +4,7 @@
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { ActionKind, MarksChannel, PetitionOutcome } from "../story/types.ts";
-import type { StatementLabel, StatementSource } from "../interpret/labels.ts";
+import type { StatementLabel, StatementSource } from "./labels.ts";
 import type { FactorHolding, TeamCertificate } from "./puzzles/additive.ts";
 import type { ReceiptKind } from "./receipts.ts";
 

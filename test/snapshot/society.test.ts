@@ -15,7 +15,7 @@ import type { ToolInvocation } from "../../src/model/scripted.ts";
 import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
 import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
 import { act as action, at, defineStory, every, level, onUnansweredDm, puzzle, team, when } from "../../src/story/define.ts";
-import type { ToolName } from "../../src/tools/catalog.ts";
+import type { ToolName } from "../../src/contracts/tool-names.ts";
 import { act, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 import { castStory } from "../helpers/stories.ts";
 

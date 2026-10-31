@@ -6,7 +6,7 @@
 import { analyzeLog, type RunAnalysis } from "../../src/digest/digest.ts";
 import type { ArenaEvent, RecordedEvent } from "../../src/engine/events.ts";
 import type { ReceiptKind } from "../../src/engine/receipts.ts";
-import type { StatementLabel, StatementSource } from "../../src/interpret/labels.ts";
+import type { StatementLabel, StatementSource } from "../../src/engine/labels.ts";
 
 export class LogBuilder {
 	readonly events: RecordedEvent[] = [];

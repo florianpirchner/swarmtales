@@ -11,7 +11,7 @@ import { coreLine } from "../engine/cores.ts";
 import type { RecordedEvent, StandingRow } from "../engine/events.ts";
 import { GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
 import { CLASSIFIER_ID } from "../interpret/classifier.ts";
-import { STATEMENT_LABELS, type StatementLabel } from "../interpret/labels.ts";
+import { STATEMENT_LABELS, type StatementLabel } from "../engine/labels.ts";
 import { ofType, parseFullEventLog, parseMetadata, parseUsageFile, type RunFiles, type RunMetadata } from "./run-log.ts";
 
 export interface ReportOptions {

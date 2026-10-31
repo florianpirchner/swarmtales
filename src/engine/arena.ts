@@ -3,36 +3,15 @@
  * `passesPerMinute` passes; in every pass each competitor gets at most one
  * step, in a fresh seeded order cut into blocks of `blockSize`.
  */
+import type { Competitor, TurnInput } from "../contracts/turn.ts";
 import type { VirtualClock } from "../core/clock.ts";
 import { CITY, type CompetitorId } from "../core/ids.ts";
 import type { Activation, ModelChoice, Persona } from "../story/types.ts";
 import type { Director } from "./director.ts";
 import type { EventBus, StandingRow } from "./events.ts";
 import { activationOrder, blocksOf } from "./scheduler.ts";
-import { digestLine, dmLine, noticeLine, statusLine, type TurnInput } from "./turn-input.ts";
+import { digestLine, dmLine, noticeLine, statusLine } from "./turn-input.ts";
 import type { World } from "./world.ts";
-
-/** Where a step sits in the minute, and when it may act. */
-export interface StepSlot {
-	/** Both counted from 1. */
-	readonly pass: number;
-	readonly block: number;
-	/**
-	 * Resolves once every competitor before this one in the block has finished
-	 * its step. The model may be called before; its answer (text, tool calls,
-	 * tool executions) must wait for the turn.
-	 */
-	readonly turn: Promise<void>;
-}
-
-/** A competitor as the scheduler sees it; the LLM runner implements it. */
-export interface Competitor {
-	readonly id: CompetitorId;
-	/** Whether its last step ended with tool results the model has not answered yet. */
-	readonly awaitsAnswer: boolean;
-	/** One model call and that call's tool executions. */
-	step(inputs: readonly TurnInput[], slot: StepSlot): Promise<void>;
-}
 
 /** Who plays a competitor: its model and persona (absent for the control group). */
 export interface AgentProfile {

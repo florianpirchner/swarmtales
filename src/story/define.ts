@@ -5,7 +5,7 @@
  * that names an undeclared cast member does not compile. Tool names are the
  * literal union {@link ToolName}. All helpers return plain data.
  */
-import type { ToolName } from "../tools/catalog.ts";
+import type { ToolName } from "../contracts/tool-names.ts";
 import type { CheckedTemplate } from "./templates.ts";
 import type {
 	Action,

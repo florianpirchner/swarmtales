@@ -6,7 +6,7 @@
  * someone who needs it.
  */
 import { assertNever } from "../core/result.ts";
-import { isStatementLabel, isStatementSource, type StatementLabel, type StatementSource } from "../interpret/labels.ts";
+import { isStatementLabel, isStatementSource, type StatementLabel, type StatementSource } from "../engine/labels.ts";
 import { eventsOfType, type DigestEvent, type DigestEventOf } from "./event-log.ts";
 
 export type MessageChannel = "dm" | "group" | "board" | "cast";

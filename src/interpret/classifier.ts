@@ -14,11 +14,14 @@ import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/
 import type { ClassifierApi, ClassifierModel, ClassifierQuestion, Models } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { CompetitorId } from "../core/ids.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
-import { LABEL_MEANINGS, STATEMENT_LABELS } from "./labels.ts";
+import type { ClassifierUsage } from "../contracts/roles.ts";
+
+export type { ClassifierUsage };
+import { LABEL_MEANINGS, STATEMENT_LABELS } from "../engine/labels.ts";
 import { statementLine, type Statement } from "./statements.ts";
 import { render, text } from "../prompts/library.ts";
 
@@ -41,16 +44,6 @@ export interface Verdict {
 	readonly seq: number;
 	readonly labels: readonly string[];
 	readonly targets: readonly string[];
-}
-
-export interface ClassifierUsage {
-	readonly provider: string;
-	readonly model: string;
-	readonly input: number;
-	readonly output: number;
-	readonly cacheRead: number;
-	readonly cacheWrite: number;
-	readonly costUsd: number;
 }
 
 export interface Classification {

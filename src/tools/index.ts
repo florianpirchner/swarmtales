@@ -1,4 +1,4 @@
-import { TOOL_NAMES, type ToolName } from "./catalog.ts";
+import { TOOL_NAMES, type ToolName } from "../contracts/tool-names.ts";
 import { blame } from "./blame.ts";
 import { postBoard, readBoard } from "./board.ts";
 import { sendDM } from "./dm.ts";
@@ -27,7 +27,7 @@ import { join, lastWill, nominate, payRansom, refuse, vote } from "./tribunal.ts
 import { forgeReceipt, nameFavourite, tribunalVote } from "./whispers.ts";
 import type { AnyStory } from "../story/types.ts";
 
-export { TOOL_NAMES, isToolName, type ToolName } from "./catalog.ts";
+export { TOOL_NAMES, isToolName, type ToolName } from "../contracts/tool-names.ts";
 export { INVALID_ARGUMENTS, LOCKED_REPLY, TOOL_LOCKED, type ArenaTool, type BoundTool, type ToolContext } from "./tool.ts";
 
 /** One implementation per catalog name; a missing tool is a compile error. */

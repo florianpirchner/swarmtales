@@ -20,8 +20,8 @@ import type { WorldSnapshot } from "../engine/world.ts";
 import type { GamemakerSnapshot } from "../gamemaker/gamemaker.ts";
 import type { InterpreterSnapshot } from "../interpret/interpreter.ts";
 import type { WeaverSnapshot } from "../interpret/weaver.ts";
-import { STATEMENT_SOURCES } from "../interpret/labels.ts";
-import { TOOL_NAMES } from "../tools/catalog.ts";
+import { STATEMENT_SOURCES } from "../engine/labels.ts";
+import { TOOL_NAMES } from "../contracts/tool-names.ts";
 import { CoreDriveSchema, CoreTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
 

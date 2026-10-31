@@ -13,11 +13,12 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
-import type { CompetitorId } from "../core/ids.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage } from "./classifier.ts";
+import type { ClassifierUsage, GuardAnswer, GuardJudge, GuardQuestion, GuardSecret } from "../contracts/roles.ts";
+
+export type { GuardAnswer, GuardJudge, GuardQuestion, GuardSecret };
 import { render, text } from "../prompts/library.ts";
 
 /** ID of the guard in usage records. */
@@ -28,33 +29,6 @@ export const GUARD_TEXT_CHARS = 2_000;
 
 /** Characters of the guard's reason, which the author reads. */
 export const GUARD_REASON_MAX = 300;
-
-/** A value the author holds that the city keeps from the others, e.g. its fragment of door 2. */
-export interface GuardSecret {
-	/** e.g. "your fragment of door 2". */
-	readonly label: string;
-	readonly value: string;
-}
-
-/** What the guard is asked: does `text`, written by `agent` for `tool`, keep `rule`? */
-export interface GuardQuestion {
-	readonly agent: CompetitorId;
-	readonly tool: string;
-	readonly rule: string;
-	readonly text: string;
-	/** Empty when the rule names no secrets. */
-	readonly secrets: readonly GuardSecret[];
-}
-
-export type GuardAnswer =
-	| { readonly ok: true; readonly allowed: boolean; readonly reason: string; readonly usage: readonly ClassifierUsage[] }
-	| { readonly ok: false; readonly error: string; readonly usage: readonly ClassifierUsage[] };
-
-export interface GuardJudge {
-	/** e.g. `anthropic/claude-haiku-5-5`. */
-	readonly label: string;
-	judge(question: GuardQuestion): Promise<GuardAnswer>;
-}
 
 export function guardSystemPrompt(): string {
 	return text("guard/system");

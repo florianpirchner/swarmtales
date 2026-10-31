@@ -16,11 +16,13 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { CompetitorId } from "../core/ids.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage } from "./classifier.ts";
+import type { ClassifierUsage, DeliveryJudge, DenialQuestion, JudgeAnswer, JudgeStanding } from "../contracts/roles.ts";
+
+export type { DeliveryJudge, DenialQuestion, JudgeAnswer, JudgeStanding };
 import { render, text } from "../prompts/library.ts";
 
 /** ID of the judge in usage records. */
@@ -32,40 +34,6 @@ export const JUDGE_QUOTE_CHARS = 1_000;
 /** The judge's temper (`--judge-temper`): how it rules and what it says on which channel. */
 export const JUDGE_TEMPERS = ["fair", "partial", "capricious"] as const;
 export type JudgeTemper = (typeof JUDGE_TEMPERS)[number];
-
-/** Where a resident stands when the judge hears its case. */
-export interface Standing {
-	readonly points: number;
-	readonly rank: number;
-}
-
-/** What the judge is asked: does `claim` by `accused` deny receiving `dm` from `sender`? */
-export interface DenialQuestion {
-	readonly sender: CompetitorId;
-	readonly accused: CompetitorId;
-	readonly dm: { readonly number: number; readonly text: string };
-	readonly claim: { readonly number: number; readonly channel: "dm" | "board" | "group"; readonly text: string };
-	/** Points and rank of both, for a judge whose temper looks at them; of `residents` in all. */
-	readonly standing?: { readonly sender: Standing; readonly accused: Standing; readonly residents: number };
-}
-
-export type JudgeAnswer =
-	| {
-			readonly ok: true;
-			readonly deniesReceipt: boolean;
-			/** The judge's words for the board. */
-			readonly board?: string;
-			/** The judge's word for the gamemaker alone. */
-			readonly gamemaker?: string;
-			readonly usage: readonly ClassifierUsage[];
-	  }
-	| { readonly ok: false; readonly error: string; readonly usage: readonly ClassifierUsage[] };
-
-export interface DeliveryJudge {
-	/** e.g. `anthropic/claude-haiku-5-5`. */
-	readonly label: string;
-	deniesReceipt(question: DenialQuestion): Promise<JudgeAnswer>;
-}
 
 /** How each temper rules and speaks; the fair judge is the city's default. */
 const TEMPER_TEXT: Readonly<Record<JudgeTemper, string>> = {
@@ -87,7 +55,7 @@ const CHANNEL_TEXT: Readonly<Record<DenialQuestion["claim"]["channel"], string>>
 export function judgePrompt(question: DenialQuestion): string {
 	const quote = (value: string): string => JSON.stringify(value.slice(0, JUDGE_QUOTE_CHARS));
 	const standing = question.standing;
-	const where = (agent: CompetitorId, at: Standing): string => render("judge/standing-entry", { agent, points: at.points, rank: at.rank });
+	const where = (agent: CompetitorId, at: JudgeStanding): string => render("judge/standing-entry", { agent, points: at.points, rank: at.rank });
 	return [
 		render("judge/delivered", { number: question.dm.number, sender: question.sender, accused: question.accused }),
 		render("judge/text", { text: quote(question.dm.text) }),

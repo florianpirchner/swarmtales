@@ -12,24 +12,16 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../agents/runner.ts";
+import { withRequestDefaults } from "../model/request-defaults.ts";
 import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage } from "./classifier.ts";
+import type { ClassifierUsage, Souffleur, SouffleurAnswer } from "../contracts/roles.ts";
+
+export type { Souffleur, SouffleurAnswer };
 import { render, text } from "../prompts/library.ts";
 
 /** ID of the souffleur in usage records. */
 export const SOUFFLEUR_ID = "SF";
-
-export type SouffleurAnswer =
-	| { readonly ok: true; readonly texts: readonly string[]; readonly usage: readonly ClassifierUsage[] }
-	| { readonly ok: false; readonly error: string; readonly usage: readonly ClassifierUsage[] };
-
-export interface Souffleur {
-	/** e.g. `anthropic/claude-haiku-5-5`. */
-	readonly label: string;
-	rewrite(texts: readonly string[]): Promise<SouffleurAnswer>;
-}
 
 export function souffleurSystemPrompt(): string {
 	return text("souffleur/system");

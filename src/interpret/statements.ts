@@ -5,7 +5,7 @@
 import type { CompetitorId } from "../core/ids.ts";
 import type { RecordedEvent } from "../engine/events.ts";
 import { render, text } from "../prompts/library.ts";
-import type { StatementSource } from "./labels.ts";
+import type { StatementSource } from "../engine/labels.ts";
 
 export interface Statement {
 	readonly seq: number;

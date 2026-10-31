@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toolsNotice, withRequestDefaults } from "../../src/agents/runner.ts";
+import { toolsNotice } from "../../src/agents/runner.ts";
+import { withRequestDefaults } from "../../src/model/request-defaults.ts";
 import { allTools, bindAll, INVALID_ARGUMENTS, LOCKED_REPLY, TOOL_NAMES, TOOLS } from "../../src/tools/index.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

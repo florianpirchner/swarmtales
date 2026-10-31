@@ -7,13 +7,6 @@ import type { CompetitorId } from "../core/ids.ts";
 import { render, text } from "../prompts/library.ts";
 import type { HeldPiece, World } from "./world.ts";
 
-export type TurnInputKind = "character" | "status" | "task" | "dm" | "notice" | "digest";
-
-export interface TurnInput {
-	readonly kind: TurnInputKind;
-	readonly text: string;
-}
-
 export function statusLine(world: World, agent: CompetitorId): string {
 	const status = world.status(agent);
 	// The city keeps no clock for its residents: they see the minute, never the time left (v06).

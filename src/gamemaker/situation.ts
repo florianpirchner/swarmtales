@@ -9,7 +9,7 @@
 import type { CompetitorId } from "../core/ids.ts";
 import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
 import type { World } from "../engine/world.ts";
-import { isPrivateSource, LABEL_TEXT } from "../interpret/labels.ts";
+import { isPrivateSource, LABEL_TEXT } from "../engine/labels.ts";
 import { placeholdersOf } from "../story/templates.ts";
 import { coreLine } from "../engine/cores.ts";
 import { directFigure, figureOf, type DirectionLevel } from "../engine/direction.ts";

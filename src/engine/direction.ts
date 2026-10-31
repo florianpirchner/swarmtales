@@ -16,7 +16,7 @@
 import type { CompetitorId } from "../core/ids.ts";
 import { render, text } from "../prompts/library.ts";
 import type { FigureDirection, FigureSpec } from "../story/types.ts";
-import type { TurnInput } from "./turn-input.ts";
+import type { TurnInput } from "../contracts/turn.ts";
 
 export const DIRECTION_LEVELS = [0, 4, 6, 8, 10] as const;
 export type DirectionLevel = (typeof DIRECTION_LEVELS)[number];

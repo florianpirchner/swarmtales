@@ -8,7 +8,7 @@
  */
 import { Type, type Static } from "typebox";
 import { FATE_TRIGGERS, type ArenaEventType, type RecordedEvent } from "../engine/events.ts";
-import { STATEMENT_LABELS, STATEMENT_SOURCES } from "../interpret/labels.ts";
+import { STATEMENT_LABELS, STATEMENT_SOURCES } from "../engine/labels.ts";
 import { ACTION_KINDS } from "../story/types.ts";
 import type { Writable } from "./message-schema.ts";
 

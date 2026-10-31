@@ -6,7 +6,7 @@
  */
 import { CITY, COURIER } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
-import type { StatementLabel } from "../interpret/labels.ts";
+import type { StatementLabel } from "../engine/labels.ts";
 import type { Beat } from "./beats.ts";
 import { PIECE_TEXT, type RunFacts } from "./facts.ts";
 import { pairKey, sortedPair } from "./detectors/pairs.ts";
