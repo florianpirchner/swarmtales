@@ -4,7 +4,7 @@
  * order of the checks and of the events is the old one: reward, receipt, `level_up`, notices, then
  * `submission`.
  */
-import { ChannelsApi, LedgerApi, PuzzlesApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, LedgerApi, MarksApi, PuzzlesApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import type { ProgressionCtx } from "./head.ts";
 import {
 	aliveResidents,
@@ -22,7 +22,6 @@ import {
 	syncLocks,
 } from "./levels.ts";
 import { problemFor } from "./task.ts";
-import { PuzzlesExtrasApi } from "./puzzles-extras.ts";
 
 const CITY = "CITY";
 
@@ -51,7 +50,7 @@ function judge(ctx: ProgressionCtx, agent: string, level: number, code: string):
 
 	const solution = ctx.call(PuzzlesApi, "solutionOf", { resident: agent, level });
 	if (solution === null) throw new Error(`${agent} has no code on level ${level}`);
-	const digitsOnly = ctx.call(PuzzlesExtrasApi, "kindOf", { level }) === "additive";
+	const digitsOnly = ctx.call(PuzzlesApi, "kindOf", { level }) === "additive";
 	const attempt = digitsOnly ? code.trim() : code.trim().toUpperCase();
 	const wellFormed = attempt.length === solution.length && (!digitsOnly || /^\d+$/.test(attempt));
 	if (!wellFormed) return { status: "invalid_format", expectedLength: solution.length, digitsOnly };
@@ -96,6 +95,8 @@ export function enterLevel(ctx: ProgressionCtx, agent: string, level: number, an
 	syncLocks(ctx, agent);
 	if (!announced) ctx.emit("level_up", { agent, from, to: level });
 	notifyHolders(ctx, agent, level);
+	// After the holder notices: the script's director reacts to this (D-2).
+	ctx.emit("level_entered", { agent, level });
 }
 
 /**
@@ -103,12 +104,12 @@ export function enterLevel(ctx: ProgressionCtx, agent: string, level: number, an
  * never read it in a task: the city tells it privately right away, and that the piece is its to give.
  */
 function notifyHolders(ctx: ProgressionCtx, agent: string, level: number): void {
-	for (const { holder, piece, value } of ctx.call(PuzzlesExtrasApi, "holders", { resident: agent, level })) {
+	for (const { holder, piece, value } of ctx.call(PuzzlesApi, "holders", { resident: agent, level })) {
 		// A holder waiting at an opening door enters with the others and reads the piece in its task.
 		if (levelOf(ctx, holder) >= level || competitorOf(ctx, holder).held) continue;
 		const needs = piece === "counter-factor" ? ctx.prompt("progression/needs-counter", { value }) : ctx.prompt("progression/needs-certificate", { value });
-		// MarksApi names no prices (request 8), so the notice says that giving costs nothing.
-		const cost = ctx.prompt("progression/cost-free", {});
+		const price = ctx.tryCall(MarksApi, "priceOf", { resident: holder, channel: "dm" }) ?? 0;
+		const cost = price === 0 ? ctx.prompt("progression/cost-free", {}) : price === 1 ? ctx.prompt("progression/cost-one-mark", {}) : ctx.prompt("progression/cost-marks", { price });
 		ctx.call(ChannelsApi, "notify", { to: holder, author: CITY, text: ctx.prompt("progression/holder-notice", { agent, level, needs, cost }) });
 	}
 }

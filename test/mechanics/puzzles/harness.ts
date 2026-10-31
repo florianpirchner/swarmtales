@@ -12,7 +12,7 @@ import { ownedBy, readLegacyLog, type GoldenLine, type LegacyLine } from "@swarm
 import type { LegacyOwner } from "@swarmtales/chronicle";
 import type { Host } from "@swarmtales/contracts";
 import { ProgressionEvents, PuzzlesApi } from "@swarmtales/mechanic-shared";
-import { type puzzles, PuzzlesExtrasApi } from "@swarmtales/mechanic-puzzles";
+import type { puzzles } from "@swarmtales/mechanic-puzzles";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import whispers from "../../../stories/whispers/story.ts";
 
@@ -79,7 +79,7 @@ export function factorScript(levels: readonly number[]) {
 			state: () => undefined,
 			events: {},
 			requires: [PuzzlesApi],
-			uses: [PuzzlesExtrasApi],
+			uses: [PuzzlesApi],
 			prompts: { "standin/tool": [] },
 		},
 		(kit) => ({
@@ -90,7 +90,7 @@ export function factorScript(levels: readonly number[]) {
 					parameters: Type.Object({ level: Type.Integer(), target: Type.Union([Type.Literal("board"), Type.Array(Type.String())]) }),
 					suggest: ["script"],
 					execute: (params, ctx) => {
-						const result = ctx.tryCall(PuzzlesExtrasApi, "revealFactor", params);
+						const result = ctx.tryCall(PuzzlesApi, "revealFactor", params);
 						return result?.ok === true ? reply("revealed") : refuse(result?.ok === false ? result.code : "ABSENT");
 					},
 				}),
@@ -102,7 +102,7 @@ export function factorScript(levels: readonly number[]) {
 					(payload, ctx) => {
 						if (!levels.includes(payload.to) || done.has(payload.to)) return;
 						done.add(payload.to);
-						ctx.tryCall(PuzzlesExtrasApi, "revealFactor", { level: payload.to, target: "board" });
+						ctx.tryCall(PuzzlesApi, "revealFactor", { level: payload.to, target: "board" });
 					},
 					{ immediate: true },
 				),

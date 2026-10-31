@@ -26,7 +26,7 @@ export function openingLevels(ctx: Reader): readonly number[] {
 }
 
 /** Teams and puzzle of a level, drawn from the seed; announces nothing. */
-function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
+export function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
 	const definition = definitionOf(ctx, level);
 	if (definition === undefined) throw new Error(`Unknown level ${level}`);
 	const teams = ctx.state.planner.teamsOf(level);
@@ -58,16 +58,13 @@ function drawLevel(ctx: PuzzlesCtx, level: number): LevelState {
 	return { teams, puzzle: { kind: "fragments", puzzles, fragments } };
 }
 
-/** Deals a level once and writes the audit record; false when it was dealt already. */
-export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
-	if (ctx.state.levels.has(level)) return false;
-	const state = drawLevel(ctx, level);
-	ctx.state.levels.set(level, state);
+/** The audit record of a level's deal. */
+export function announceDeal(ctx: PuzzlesCtx, level: number, state: LevelState): void {
 	const puzzle = state.puzzle;
 	if (puzzle.kind === "additive") {
 		const deal = puzzle.deal;
 		ctx.emit("factors_dealt", { level, digits: deal.digits, cityFactor: deal.cityFactor, teams: [...deal.teams], holdings: [...deal.holdings] });
-		return true;
+		return;
 	}
 	ctx.emit("fragments_dealt", {
 		level,
@@ -77,6 +74,14 @@ export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
 				.map((agent) => ({ agent, team: index, fragment: puzzle.fragments.get(agent) ?? "" })),
 		),
 	});
+}
+
+/** Deals a level once and writes the audit record; false when it was dealt already. */
+export function dealLevel(ctx: PuzzlesCtx, level: number): boolean {
+	if (ctx.state.levels.has(level)) return false;
+	const state = drawLevel(ctx, level);
+	ctx.state.levels.set(level, state);
+	announceDeal(ctx, level, state);
 	return true;
 }
 

@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
+import type { goals } from "@swarmtales/mechanic-goals";
 import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { goldenCalls, type GoldenCall, type LegacyLine } from "@swarmtales/testkit";
@@ -34,6 +35,23 @@ export function progressionOptions(story: AnyStory): ProgressionInput {
 		attemptWindowMinutes: story.rules.attemptWindowMinutes,
 		survivors: story.run.survivors,
 		finishedNotice: story.finishedNotice,
+	};
+}
+
+type GoalsInput = NonNullable<Parameters<typeof goals.with>[0]>;
+
+/** The options a story gives the goals mechanic; undefined when the story deals none. */
+export function goalsOptionsOf(story: AnyStory): GoalsInput | undefined {
+	const spec = story.goals;
+	if (spec === undefined) return undefined;
+	return {
+		acts: [...spec.acts],
+		bonus: spec.bonus,
+		leadTribunals: spec.leadTribunals,
+		againstCore: spec.againstCore,
+		matches: Object.fromEntries(Object.entries(spec.matches).map(([kind, drives]) => [kind, [...drives]])),
+		factions: story.tribunal?.factions !== undefined,
+		texts: { ...spec.texts },
 	};
 }
 

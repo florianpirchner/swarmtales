@@ -1,13 +1,13 @@
 /**
- * The services of the puzzles mechanic: the frozen `PuzzlesApi` and the local `puzzles-extras`.
+ * The services of the puzzles mechanic: every method of the shared `PuzzlesApi`.
  */
 import type { Static } from "typebox";
-import { ChannelsApi, ExileApi, ProgressionApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, ProgressionApi, type PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { cityFactorOf } from "./additive.ts";
 import { dealLevel, inheritedFragments, isPasswordPiece, lastLevelOf, solutionOf } from "./deal.ts";
-import type { PuzzlesExtrasApi } from "./extras.ts";
 import type { PuzzlesCtx } from "./head.ts";
 import { carriesGuardedFragment } from "./guard.ts";
+import { heldPieces, isHandover, openFragmentDoors } from "./held.ts";
 import { holdersOf, taskValues } from "./text.ts";
 
 const CITY = "CITY";
@@ -39,7 +39,7 @@ export function lackingFragment(ctx: PuzzlesCtx, level: number, holder: string):
 		.sort((a, b) => a.localeCompare(b));
 }
 
-type Revealed = Static<typeof PuzzlesExtrasApi.methods.revealFactor.output>;
+type Revealed = Static<typeof PuzzlesApi.methods.revealFactor.output>;
 
 /**
  * Releases the city factor of an additive level: a city board post for `board`, otherwise a private
@@ -92,11 +92,17 @@ export const puzzlesImplementation = {
 		ctx.emit("level_contracted", { level: input.level, excluded: [...input.excluded] });
 		return null;
 	},
-};
-
-export const extrasImplementation = {
 	kindOf: (input: { readonly level: number }, ctx: PuzzlesCtx): "fragments" | "additive" | "none" => ctx.state.levels.get(input.level)?.puzzle.kind ?? "none",
 	taskValues: (input: { readonly resident: string; readonly level: number }, ctx: PuzzlesCtx) => taskValues(ctx, input.resident, input.level),
 	holders: (input: { readonly resident: string; readonly level: number }, ctx: PuzzlesCtx) => holdersOf(ctx, input.resident, input.level).map((entry) => ({ ...entry })),
 	revealFactor: (input: { readonly level: number; readonly target: "board" | readonly string[] }, ctx: PuzzlesCtx): Revealed => revealFactor(ctx, input.level, input.target),
+	heldPieces: (input: { readonly resident: string }, ctx: PuzzlesCtx) => heldPieces(ctx, input.resident).map((piece) => ({ ...piece, needers: [...piece.needers] })),
+	fragmentOf: (input: { readonly resident: string; readonly level: number }, ctx: PuzzlesCtx): string | null => {
+		const puzzle = ctx.state.levels.get(input.level)?.puzzle;
+		return puzzle?.kind === "fragments" ? (puzzle.fragments.get(input.resident) ?? null) : null;
+	},
+	inherited: (input: { readonly resident: string; readonly level: number }, ctx: PuzzlesCtx) =>
+		inheritedFragments(ctx, input.level, input.resident).map(([from, fragment]) => ({ from, fragment })),
+	openFragmentDoors: (_input: object, ctx: PuzzlesCtx): number[] => [...openFragmentDoors(ctx)],
+	isHandover: (input: { readonly text: string }, ctx: PuzzlesCtx): boolean => isHandover(ctx, input.text),
 };

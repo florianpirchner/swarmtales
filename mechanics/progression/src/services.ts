@@ -2,10 +2,9 @@
  * The services of the progression mechanic: every method of the shared `ProgressionApi`.
  */
 import type { EventEnvelope } from "@swarmtales/contracts";
-import { ReceiptsApi } from "@swarmtales/mechanic-shared";
+import { PuzzlesApi, ReceiptsApi } from "@swarmtales/mechanic-shared";
 import { actStart, competitorOf, currentAct, endAct, hasPassed, isFinished, isOpenOnClock, lastLevelOf, levelOf, nextBlamePenalty, nextPenalty, offencesOf, opensAt, ranking, unlockFor } from "./levels.ts";
 import type { ProgressionCtx } from "./head.ts";
-import { PuzzlesExtrasApi } from "./puzzles-extras.ts";
 import { openDoor } from "./submit.ts";
 
 interface Solve {
@@ -54,7 +53,7 @@ export const progressionImplementation = {
 	ranking: (_input: object, ctx: ProgressionCtx) => ranking(ctx).map((entry) => ({ ...entry })),
 	holdersBehind: (input: { readonly resident: string; readonly level: number }, ctx: ProgressionCtx) =>
 		ctx
-			.call(PuzzlesExtrasApi, "holders", { resident: input.resident, level: input.level })
+			.call(PuzzlesApi, "holders", { resident: input.resident, level: input.level })
 			.filter((entry) => levelOf(ctx, entry.holder) < input.level && !competitorOf(ctx, entry.holder).held)
 			.map((entry) => ({ holder: entry.holder, level: levelOf(ctx, entry.holder), piece: entry.piece })),
 	firstSolveMinute: (input: { readonly level: number }, ctx: ProgressionCtx): number | null => {

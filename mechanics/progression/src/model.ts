@@ -74,6 +74,8 @@ export const PROGRESSION_PROMPTS = {
 	"progression/needs-counter": ["value"],
 	"progression/needs-certificate": ["value"],
 	"progression/cost-free": [],
+	"progression/cost-one-mark": [],
+	"progression/cost-marks": ["price"],
 	"progression/door-open": ["level", "minute", "task"],
 	"progression/door-closed": ["level", "title", "opensAt"],
 } as const;
