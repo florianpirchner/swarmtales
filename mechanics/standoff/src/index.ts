@@ -9,7 +9,7 @@ import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
 import { ChannelsApi, ExileApi, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
-import { heldPieces } from "./holdings.ts";
+
 import { ransomPrice } from "./price.ts";
 import { standoffSnapshot } from "./slice.ts";
 
@@ -60,9 +60,9 @@ type ToolCtx = ToolContextOf<typeof standoffHead>;
 
 const NOUN: Readonly<Record<HeldPiece["kind"], string>> = { counter: "counter-factor", certificate: "team certificate", fragment: "fragment" };
 
-/** Every piece `agent` holds on the levels dealt (old `heldPieces`), read from the puzzles' deal events (request 1). */
+/** Every piece `agent` holds on the levels dealt (old `heldPieces`), needers in team-member order. */
 function heldAll(ctx: Ctx, agent: string): readonly HeldPiece[] {
-	return heldPieces(ctx.log, agent, (who, level) => ctx.call(ProgressionApi, "levelOf", { resident: who }) >= level);
+	return ctx.call(PuzzlesApi, "heldPieces", { resident: agent });
 }
 
 function isExiled(ctx: Ctx, agent: string): boolean {

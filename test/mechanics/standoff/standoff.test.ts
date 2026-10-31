@@ -36,7 +36,7 @@ const DEAL = {
 };
 
 /** Door 8: A01 holds A02's counter-factor and the other way round; A03 holds nothing. */
-function setup(extra: { ransom?: boolean } = {}) {
+function setup(extra: { ransom?: boolean; held?: (resident: string) => readonly HeldPiece[] } = {}) {
 	const world = new TestWorld(["A01", "A02", "A03", "A04"]);
 	world.points.set("A01", 50);
 	world.points.set("A02", 6);
@@ -48,7 +48,7 @@ function setup(extra: { ransom?: boolean } = {}) {
 		world,
 		story: {
 			residents: ["A01", "A02", "A03", "A04"],
-			mechanics: [use, probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world, { factors: [DEAL] }).with()],
+			mechanics: [use, probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world, { factors: [DEAL] }, undefined, extra.held).with()],
 			residentTools: ["claimPiece"],
 			gamemakerTools: ["ultimatum"],
 		},
@@ -169,6 +169,19 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		expect(seen).toEqual(["you hold for others: A02 door 8 counter-factor 403343"]);
 	});
 
+	it("takes what a resident holds, needers in team-member order, from PuzzlesApi.heldPieces (old world.ts:2689-2693)", async () => {
+		const teamOrder: HeldPiece = { ...CERTIFICATE, needers: ["A02", "A01"] };
+		const { story } = setup({ held: (resident) => (resident === "A04" ? [teamOrder] : []) });
+		const host = startHost(story);
+		const seen: string[] = [];
+		await host.playMinute((current) => {
+			if (current.resident === "A04") seen.push(...current.inputs.filter((note) => note.kind === "status").map((note) => note.text));
+			return Promise.resolve();
+		});
+		expect(seen).toEqual(["you hold for others: A02, A01 door 8 team certificate 323122"]);
+		expect(await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "heldPieces", { resident: "A04" }))).toEqual([teamOrder]);
+	});
+
 	it("answers heldPieces and cityPiecePrice through its API", async () => {
 		const { story } = setup({ ransom: true });
 		const host = startHost(story);
@@ -218,7 +231,7 @@ describe("standoff: snapshot and golden gate", () => {
 
 	it("documents its options and imports only what a mechanic may", () => {
 		expect(checkOptionsDocumented(standoff)).toEqual([]);
-		const files = ["index.ts", "book.ts", "carries.ts", "holdings.ts", "events.ts", "price.ts", "result.ts", "slice.ts"].map((name) => {
+		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "price.ts", "result.ts", "slice.ts"].map((name) => {
 			const path = new URL(`../../../mechanics/standoff/src/${name}`, import.meta.url);
 			return { path: name, text: readFileSync(path, "utf8") };
 		});
