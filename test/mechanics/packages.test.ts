@@ -97,6 +97,6 @@ describe("the mechanic packages", () => {
 		const uses = (head: Head): readonly string[] => names(head.uses);
 		expect(uses(channelsHead)).toEqual(expect.arrayContaining(["receipts", "cast", "standoff", "standoff-tribunal"]));
 		expect(uses(exileHead)).toEqual(["seal", "goals"]);
-		expect(uses(namesHead)).toEqual(["puzzles"]);
+		expect(uses(namesHead)).toEqual(["puzzles", "channels", "exile"]);
 	});
 });

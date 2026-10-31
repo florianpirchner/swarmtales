@@ -240,6 +240,9 @@ importers:
 
   mechanics/ledger:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -252,6 +255,9 @@ importers:
 
   mechanics/marks:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -264,6 +270,9 @@ importers:
 
   mechanics/names:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -312,6 +321,9 @@ importers:
 
   mechanics/receipts:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -393,6 +405,9 @@ importers:
 
   mechanics/whispers:
     dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
