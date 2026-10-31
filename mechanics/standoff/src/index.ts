@@ -10,6 +10,7 @@ import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi,
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
 import { standoffSnapshot } from "./slice.ts";
+import { CityPieces, cityPiecesOf, emptySituation, Outstanding, situationOf, Ultimatums, Unused, type StandoffSituation } from "./situation.ts";
 
 const CITY = "CITY";
 
@@ -25,13 +26,15 @@ const options = Type.Object({
 
 export interface StandoffState {
 	data: StandoffData;
+	/** What the facts read, taken at each minute's end (not part of the slice). */
+	situation: StandoffSituation;
 }
 
 export const standoffHead = defineHead({
 	id: "standoff",
 	summary: "Pieces residents hold for others, kept pieces and ultimatums.",
 	options,
-	state: (): StandoffState => ({ data: emptyStandoff() }),
+	state: (): StandoffState => ({ data: emptyStandoff(), situation: emptySituation() }),
 	events: standoffEvents,
 	provides: [StandoffApi],
 	requires: [PuzzlesApi, ProgressionApi, LedgerApi, ChannelsApi],
@@ -189,6 +192,10 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 				bookFor(ctx).tick(ctx.minute, CITY);
 			},
 		},
+		/** The facts' situation at the minute's end; it writes nothing, so it needs no slot of the order table (request R2-8). */
+		minuteEnded: (ctx) => {
+			ctx.state.situation = situationOf(bookFor(ctx), (agent) => heldAll(ctx, agent), cityPiecePrice(ctx));
+		},
 		turnInputs: {
 			order: HOOK_ORDER.turnInputs.status,
 			run: (resident, ctx) => {
@@ -198,8 +205,23 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		},
 	},
 	facts: {
-		cityPieces: kit.fact(Type.Integer(), (view) => view.state.data.city.length),
-		ultimatums: kit.fact(Type.Integer(), (view) => view.state.data.ultimatums.length),
+		/** D-8: the pieces holders in the city still owe residents before their door. */
+		outstanding: kit.fact(Outstanding, (view) => view.state.situation.outstanding.map((debt) => ({ ...debt, pieces: debt.pieces.map((piece) => ({ ...piece, needers: [...piece.needers] })) }))),
+		/** D-8: the pieces the city keeps or seized, who bought each, a seized piece's price. */
+		cityPieces: kit.fact(CityPieces, (view) => cityPiecesOf(view.state.data.city)),
+		/** D-8: hand-overs whose needer still stands before the door. */
+		unused: kit.fact(Unused, (view) => view.state.situation.unused.map((entry) => ({ ...entry }))),
+		/** D-8: the running ultimatums. */
+		ultimatums: kit.fact(Ultimatums, (view) =>
+			view.state.data.ultimatums.flatMap((entry) => {
+				const [a, b] = entry.between;
+				if (a === undefined || b === undefined) return [];
+				const between: [string, string] = [a, b];
+				return [{ number: entry.number, between, until: entry.until, penalty: entry.penalty }];
+			}),
+		),
+		/** D-8: what a piece the city keeps costs now. */
+		cityPiecePrice: kit.fact(Type.Number(), (view) => view.state.situation.cityPiecePrice),
 		given: kit.fact(Type.Integer(), (view) => view.state.data.given.size),
 	},
 	snapshot: kit.snapshot(standoffSnapshot),

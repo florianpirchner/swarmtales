@@ -120,9 +120,9 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 
 		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteText", { author: "A01", readers: ["A02"], text: "403343" }));
 		await advance(host, 3);
-		expect(host.facts()["standoff.ultimatums"]).toBe(1);
+		expect(host.facts()["standoff.ultimatums"]).toEqual([{ number: 1, between: ["A01", "A02"], until: 13, penalty: 10 }]);
 		await advance(host, 1);
-		expect(host.facts()["standoff.ultimatums"]).toBe(0);
+		expect(host.facts()["standoff.ultimatums"]).toEqual([]);
 		expect(world.balance("A01")).toBe(50);
 		// A02 held out and pays what it has, at most the penalty.
 		expect(world.balance("A02")).toBe(0);
@@ -221,6 +221,27 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		expect(await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "heldPieces", { resident: "A04" }))).toEqual([teamOrder]);
 	});
 
+	it("gives the gamemaker's situation its facts with the D-8 schemas after each minute", async () => {
+		const { story } = setup({ ransom: 40 });
+		const host = startHost(story);
+		await advance(host, 2);
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "noteText", { author: "A04", readers: ["A01"], text: "323122" }));
+		await host.call("gamemaker", "ultimatum", { a: "A01", b: "A02", minutes: 3 });
+		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "keep", { from: "A03", pieces: [{ ...CERTIFICATE, id: "L8-certificate-x" }] }));
+		await advance(host, 1);
+		const facts = host.facts();
+		expect(facts["standoff.outstanding"]).toEqual([
+			{ holder: "A01", needer: "A02", level: 8, pieces: [A01_PIECE] },
+			{ holder: "A02", needer: "A01", level: 8, pieces: [A02_PIECE] },
+			// A04 wrote the certificate to A01 only; A02 still waits for it.
+			{ holder: "A04", needer: "A02", level: 8, pieces: [{ ...CERTIFICATE, needers: ["A01", "A02"] }] },
+		]);
+		expect(facts["standoff.cityPieces"]).toEqual([{ from: "A03", piece: { ...CERTIFICATE, id: "L8-certificate-x" }, claimed: [] }]);
+		expect(facts["standoff.unused"]).toEqual([{ holder: "A04", needer: "A01", label: CERTIFICATE.label, level: 8, minute: 2 }]);
+		expect(facts["standoff.ultimatums"]).toEqual([{ number: 1, between: ["A01", "A02"], until: 5, penalty: 10 }]);
+		expect(facts["standoff.cityPiecePrice"]).toBe(20);
+	});
+
 	it("answers heldPieces and cityPiecePrice through its API", async () => {
 		const { story } = setup({ ransom: 40 });
 		const host = startHost(story);
@@ -267,7 +288,7 @@ describe("standoff: snapshot and golden gate", () => {
 			version: 1,
 			data: { given: [{ key: "A01>A02>L8-counter-A02", minute: 10 }], city: old.standoff.city, ultimatums: [], last: 3 },
 		});
-		expect(migrated.facts()["standoff.cityPieces"]).toBe(1);
+		expect(migrated.facts()["standoff.cityPieces"]).toEqual([{ from: "A02", piece: { id: "L8-counter-A01", kind: "counter", level: 8, label: "x", value: "542489", needers: ["A01"] }, claimed: [] }]);
 	});
 
 	it.each(GOLDEN_LOGS)("writes the lines of %s that the old standoff wrote (none: the scripted goldens hold no standoff event)", (name) => {
@@ -278,7 +299,7 @@ describe("standoff: snapshot and golden gate", () => {
 
 	it("documents its options and imports only what a mechanic may", () => {
 		expect(checkOptionsDocumented(standoff)).toEqual([]);
-		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "result.ts", "slice.ts"].map((name) => {
+		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "result.ts", "situation.ts", "slice.ts"].map((name) => {
 			const path = new URL(`../../../mechanics/standoff/src/${name}`, import.meta.url);
 			return { path: name, text: readFileSync(path, "utf8") };
 		});

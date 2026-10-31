@@ -2,6 +2,7 @@
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
 import type { StandoffData } from "./book.ts";
+import { emptySituation, type StandoffSituation } from "./situation.ts";
 
 const Id = Type.String();
 const Piece = Type.Object({ id: Type.String(), level: Type.Integer(), label: Type.String(), value: Type.String(), needers: Type.Array(Id) });
@@ -28,6 +29,7 @@ const Old = Type.Object({
 
 export interface HasStandoff {
 	data: StandoffData;
+	situation: StandoffSituation;
 }
 
 export const standoffSnapshot = {
@@ -57,6 +59,8 @@ export const standoffSnapshot = {
 			ultimatums: data.ultimatums.map((ultimatum) => ({ ...ultimatum })),
 			last: data.last,
 		},
+		// Taken again at the end of the first minute played.
+		situation: emptySituation(),
 	}),
 	migrations: {
 		0: (old: unknown): Static<typeof StandoffSlice> => {
