@@ -89,7 +89,25 @@ export const passing = (): Scenario =>
 		7: [{ kind: "vote", agent: "A02", yes: true }, { kind: "pass", agent: "A01" }],
 	});
 
+/**
+ * carve-round3-T4b.md must-fix 4: only A01 holds back. In the vote A03 goes to the gate after its
+ * ballot (the status line shows it nothing more, and its yes still counts: the gate is in the city),
+ * A04 leaves the city before it votes (its missing ballot is not a no); the next tribunal may be
+ * called exactly at the cool-down's end, not a minute before.
+ */
+export const gateAndLeaving = (): Scenario =>
+	scenario(14, {
+		0: [...shares("A02"), ...shares("A03"), ...shares("A04")],
+		4: [{ kind: "call", accused: ["A01"], reason: "A01 keeps its fragment." }],
+		7: [{ kind: "vote", agent: "A02", yes: true }, { kind: "vote", agent: "A03", yes: true }, { kind: "gate", agent: "A03", until: 30 }],
+		8: [{ kind: "exile", agent: "A04" }],
+		9: [{ kind: "permaDeath", agent: "A01", reason: "A01 leaves the city." }],
+		11: [{ kind: "call", accused: ["A02"], reason: "A minute too soon." }],
+		12: [{ kind: "call", accused: ["A02"], reason: "At the cool-down's end." }],
+	});
+
 export const SCENARIOS: readonly (readonly [string, () => Scenario])[] = [
+	["gate and leaving", gateAndLeaving],
 	["lot strikes", lotStrikes],
 	["dropped", dropped],
 	["banished", banished],

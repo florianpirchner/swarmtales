@@ -3,7 +3,10 @@
  * who lacks whose fragment, inherited fragments), progression (levels, passes, the door clock),
  * exile (standings and the strike), channels (posts, notices, the last message number) and the
  * gamemaker's note desk (every text passes trimmed; `record` is logged). What they write is in the
- * `Recorder` in the old record's shapes.
+ * `Recorder` in the old record's shapes. The note desk passes everything here because this
+ * harness's old side wires no `#checked` either; the refusals (leak, repeat, length) and the
+ * stripped signature are proven with the real channels' `NotesApi` against the old `Gamemaker` in
+ * holdout-world.test.ts.
  */
 import { ChannelsApi, ExileApi, NotesApi, ProgressionApi, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { provider } from "../standoff/support/provider.ts";
@@ -31,7 +34,7 @@ export function holdoutStandIns(model: FragmentModel, recorder: Recorder) {
 		}),
 		provider("exile", ExileApi, {
 			alive: () => [...model.alive()],
-			standing: ({ resident }) => (model.exiled.has(resident) ? { kind: "exiled" as const } : { kind: "alive" as const }),
+			standing: ({ resident }) => model.standing(resident),
 			isExiled: ({ resident }) => model.exiled.has(resident),
 			strike: ({ resident, by }) => {
 				recorder.strikes.push(`${resident} ${by}`);

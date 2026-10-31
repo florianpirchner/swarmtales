@@ -62,9 +62,9 @@ describe("standoff-tribunal snapshot (stand-in puzzles, progression, exile, chan
 
 	it("resumes snapshot-L7 (no holdout yet) and runs a tribunal as the old one would", async () => {
 		const converted = convertLegacySnapshot(JSON.parse(readFileSync(L7, "utf8")), {}, L7);
-		// The old world wrote no `holdout` without a tribunal; the converter writes no slice then (request R2-2).
+		// The old world wrote no `holdout` without a tribunal; the converter writes no slice, and the host hands the version-0 migration `{}` (R2-D2).
 		expect(converted.host.mechanics["standoff-tribunal"]).toBeUndefined();
-		const saved = { ...converted.host, mechanics: { ...converted.host.mechanics, "standoff-tribunal": { version: 0, data: {} } } };
+		const saved = converted.host;
 		const residents = converted.host.residents.ids;
 		const accused = residents.slice(0, 3);
 		const scenario: Scenario = {
@@ -95,6 +95,30 @@ describe("standoff-tribunal snapshot (stand-in puzzles, progression, exile, chan
 		const record = recordOf(run);
 		expect(record.events.some((line) => line.includes("holdout_ended"))).toBe(true);
 		expect(record).toEqual(old);
+	});
+
+	it("refuses a slice that names an unknown resident, with the old restore's words (holdout.ts:637-645)", async () => {
+		const scenario = banished();
+		const first = newRun(scenario);
+		await playNew(first, scenario, 9);
+		const snapshot = first.host.snapshot();
+		const old = runOld(scenario, { until: 9 }).snapshot;
+		const session = old.session;
+		if (session === undefined) throw new Error("no session at the cut");
+		const forged = { ...old, session: { ...session, voters: [...session.voters, "Z99"] } };
+		const message = "The snapshot's holdout tribunal names an unknown resident Z99";
+		expect(() => runOld(scenario, { restore: forged, from: 9 })).toThrow(message);
+		const events = first.host.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
+		for (const slice of [
+			{ version: 1, data: { holdout: forged } },
+			{ version: 0, data: { holdout: forged } },
+		]) {
+			const edited = { ...snapshot, mechanics: { ...snapshot.mechanics, "standoff-tribunal": slice } };
+			expect(() => createHost({ ...storyOptions(holdoutStory(scenario, first.model, first.recorder)), resume: { snapshot: edited, events } })).toThrow(message);
+		}
+		// The same file with known residents only loads.
+		const plain = { ...snapshot, mechanics: { ...snapshot.mechanics, "standoff-tribunal": { version: 0, data: { holdout: old } } } };
+		expect(() => createHost({ ...storyOptions(holdoutStory(scenario, first.model, first.recorder)), resume: { snapshot: plain, events } })).not.toThrow();
 	});
 
 	it("documents its options and imports only what a mechanic may", () => {

@@ -21,6 +21,10 @@ import { holdoutStandIns, type Recorder } from "./stand-ins.ts";
 export type Action =
 	| { readonly kind: "give"; readonly to: string; readonly holder: string; readonly door: number }
 	| { readonly kind: "pass"; readonly agent: string }
+	/** The resident goes to the gate (another mechanic's doing: in the city, not "alive" for the status line). */
+	| { readonly kind: "gate"; readonly agent: string; readonly until: number }
+	/** The resident leaves the city by another mechanic's strike (the seal, say): the holdout only sees it gone. */
+	| { readonly kind: "exile"; readonly agent: string }
 	| { readonly kind: "vote"; readonly agent: string; readonly yes: boolean }
 	| { readonly kind: "call"; readonly accused: readonly string[]; readonly reason: string }
 	| { readonly kind: "drawLot"; readonly candidates: readonly string[] }
@@ -55,7 +59,7 @@ function failure(result: { readonly error: string; readonly detail?: string }): 
 /** The old `holdoutParts` (turn-input.ts:54-69) over the old tribunal. */
 function oldParts(court: HoldoutTribunal, model: FragmentModel, agent: string): readonly string[] {
 	const session = court.session;
-	if (session === undefined || model.exiled.has(agent)) return [];
+	if (session === undefined || model.standing(agent).kind !== "alive") return [];
 	const accused = session.accused === agent ? "you" : session.accused;
 	if (session.stage === "grace" || session.stage === "vote") {
 		const owed = session.accused === agent ? ` · ${render("competitor/status/holdout-owed", { door: session.door, lacking: court.lackingNow().join(", ") })}` : "";
@@ -132,6 +136,12 @@ export function runOld(scenario: Scenario, options: { readonly restore?: Holdout
 					break;
 				case "pass":
 					model.pass(action.agent);
+					break;
+				case "gate":
+					model.gate.set(action.agent, action.until);
+					break;
+				case "exile":
+					model.exiled.add(action.agent);
 					break;
 				case "vote": {
 					if (!court.canVote(action.agent)) {
@@ -254,6 +264,12 @@ export async function playNew(run: NewRun, scenario: Scenario, until?: number): 
 					break;
 				case "pass":
 					model.pass(action.agent);
+					break;
+				case "gate":
+					model.gate.set(action.agent, action.until);
+					break;
+				case "exile":
+					model.exiled.add(action.agent);
 					break;
 				case "vote":
 					replies.push(replyText(await host.call(`resident:${action.agent}`, "tribunalVote", { yes: action.yes })));

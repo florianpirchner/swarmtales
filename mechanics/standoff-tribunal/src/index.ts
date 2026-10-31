@@ -7,7 +7,7 @@
  */
 import { Type } from "typebox";
 import { defineMechanic, refuse } from "@swarmtales/kernel";
-import { HOOK_ORDER, StandoffTribunalApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { HOOK_ORDER, PuzzlesApi, StandoffTribunalApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { standoffTribunalHead } from "./head.ts";
 import { courtFor, holdoutParts } from "./ports.ts";
 import { holdoutSnapshot } from "./slice.ts";
@@ -17,7 +17,6 @@ export { standoffTribunalHead } from "./head.ts";
 
 const Id = Type.String();
 const Int = Type.Integer();
-
 
 export const standoffTribunal = defineMechanic(standoffTribunalHead, (kit) => ({
 	tools: [...residentTools(kit), ...gamemakerTools(kit)],
@@ -64,6 +63,8 @@ export const standoffTribunal = defineMechanic(standoffTribunalHead, (kit) => ({
 					until: Int,
 					vote: Int,
 					maxVotes: Int,
+					/** Who still lacks the accused's fragment of its door (old `lackingNow`), read when the fact is. */
+					lacking: Type.Array(Id),
 					lastResult: Type.Optional(Type.Object({ vote: Int, yes: Int, no: Int })),
 					drawn: Type.Optional(Id),
 				}),
@@ -80,6 +81,7 @@ export const standoffTribunal = defineMechanic(standoffTribunalHead, (kit) => ({
 					until: session.until,
 					vote: session.vote,
 					maxVotes: view.options.maxVotes,
+					lacking: [...view.call(PuzzlesApi, "lacking", { level: session.door, holder: session.accused })],
 					...(session.lastResult === undefined ? {} : { lastResult: { ...session.lastResult } }),
 					...(session.drawn === undefined ? {} : { drawn: session.drawn }),
 				};

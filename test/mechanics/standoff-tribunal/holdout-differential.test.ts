@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { newRun, playNew, recordOf, runOld, type HoldoutRecord } from "./differential.ts";
-import { SCENARIOS } from "./scenarios.ts";
+import { gateAndLeaving, SCENARIOS } from "./scenarios.ts";
 
 async function runNew(scenario: Parameters<typeof newRun>[0]): Promise<HoldoutRecord> {
 	const run = newRun(scenario);
@@ -45,5 +45,16 @@ describe("standoff-tribunal against the old HoldoutTribunal (stand-in puzzles, p
 		for (const part of ["tribunal on you: vote", "grace until", "your ballot: no", "you have not voted", "about to strike"]) expect(status.some((line) => line.includes(part)), part).toBe(true);
 		expect(records.flatMap((record) => record.notes).length).toBeGreaterThan(0);
 		expect(records.flatMap((record) => record.notices).some((line) => line.includes("You now hold its fragment"))).toBe(true);
+	});
+
+	it("gate and leaving: the gate hides the tribunal but keeps the ballot, a leaver's missing ballot is no no, the cool-down ends exactly at its minute", async () => {
+		const old = runOld(gateAndLeaving()).record;
+		// The scenario reaches what it is for, on the old side (the test above makes the new side equal).
+		expect(old.status).toContain("8 A03 []");
+		expect(old.status.some((line) => line.startsWith("8 A04 ") && line.includes("you have not voted"))).toBe(true);
+		expect(old.events.some((line) => line.includes('"type":"holdout_vote_result"') && line.includes('"voters":["A02","A03"],"unanimous":true'))).toBe(true);
+		expect(old.replies.at(-2)).toMatch(/^NOT_NOW: .*from minute 12$/);
+		expect(old.replies.at(-1)).toMatch(/^NOT_A_BLOCKER: /);
+		expect(await runNew(gateAndLeaving())).toEqual(old);
 	});
 });
