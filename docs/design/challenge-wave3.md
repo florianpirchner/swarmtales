@@ -287,7 +287,7 @@ How I checked (in a scratch copy at `/tmp/claude-0/-home-user/7f9ccba9-1ee5-5fb7
    - Golden seq 835 has `seal_expired` before the goal ledger entry and `goal_resolved` (836-837). The seal mechanic requires progression, so it loads later and its `runEnded` runs after the goals resolve: wrong order.
    - T4's R5 (act-start/act-end signal) is unanswered. Progression should emit act started/ended, or call one hook in the old order.
 7. **Wiring nobody provides.**
-   - No mechanic provides `cores-extras` (`mechanics/cores` has no reference to it). Once integrated, goals fall back to random kinds, and the 6 `goal_dealt` golden lines change.
+   - No mechanic provides `cores-extras` (`mechanics/motives` has no reference to it). Once integrated, goals fall back to random kinds, and the 6 `goal_dealt` golden lines change.
    - Nobody calls `progression-extras` (`endAct`, `chargeBlame`) or `goals-extras` (`noteLeaders`, `noteHeir`). Tribunal-driven act ends (old `world.ts:1321`) and `lead`/`heir` goals are unwired.
 8. **The door does not get a second chance to open in a minute.** `index.ts:29-31` runs `openDoor` once, in progression's `minuteStarted`. Old `arena.ts:240-244` runs it again after the tribunal ticks.
    - Case: door 7, A06 the only laggard, the tribunal exiles A06 at the start of minute M. Old: the door opens in M. New: in M+1, because the tribunal loads after progression.

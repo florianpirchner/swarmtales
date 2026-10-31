@@ -14,14 +14,14 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3.0 | 12 core fixes from the challenger review, 19 empty `mechanics/*` packages, frozen `mechanics/shared` | `docs/design/core-review-2c.md` |
 | 3 | Four teams carved the mechanics; challengers found many divergences | `docs/design/challenge-wave3.md` |
 | 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
-| 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, cores) only production code | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
+| 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) only production code | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
 
 ## Open, in this order
 
 1. **T2 proof.** Replace the sorted-stream checks in `test/mechanics/channels/replay.ts` by the strict testkit gates
    (goldenDiff with the legacy turn loop, goldenNotices, goldenTurnInputs, goldenOrder, compareReplies) for all three
    goldens; differential tests against the old engine for every channels tool, refusal and check order, petitions,
-   cast, cores; wire cast options from the story; version-0 fixtures and legacy snapshot resume. (An attempt was
+   cast, motives; wire cast options from the story; version-0 fixtures and legacy snapshot resume. (An attempt was
    stopped before it committed anything.)
 2. **Round 2 challengers** for T1, T3, T4a, T4b (read-only Opus reviews, prompts as in the checklist of this thread:
    line-by-line diff old vs new, non-vacuous differential tests, snapshot resume, order numbers). Not run yet.
@@ -34,6 +34,10 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 5. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
    (`pnpm validate` refuses them until then); wire `defiance` and `direction` in the CLI.
+   **Decision point (core motive rename, `docs/design/rename-core-motive.md`):** until here the new core writes the legacy
+   names through the adapter (event `core_dealt`, snapshot key `cores`, the pinned gamemaker strings that still say "core").
+   At step 18 the event becomes `motive_dealt`, the snapshot key gets a migration, the pinned strings are reworded, and the golden
+   files are updated once, deliberately, with the documented reason "core becomes core motive".
 6. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
    sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
    instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).

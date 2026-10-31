@@ -89,7 +89,7 @@ Each line is a lesson that cost us a run. The log entries behind it are in brack
     `ownChars` and draw every door for a hundred seeds in a test (an overlap-4 door crashed half
     the seeds only when someone reached it). [Whispers review, 2026-10-30]
 30. **A role needs a fitting character.** A secret role (a whisperer, a traitor) with a randomly
-    drawn core can contradict itself; give the role its own core and draw only the others. [P59]
+    drawn core motive can contradict itself; give the role its own core motive and draw only the others. [P59]
 31. **A secret needs a private channel.** If one public log can refute every rumour, slander has
     nothing to bite on; if every trade is public, nobody writes to the liar. Keep the goods that
     trust decides about in private messages, and give the agents a reason to send them. [P61]

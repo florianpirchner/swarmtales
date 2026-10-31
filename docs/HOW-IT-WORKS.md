@@ -107,7 +107,7 @@ pnpm start --resume runs/run-001/snapshot-L7.json     # continue from that snaps
 ```
 
 Flags override the story's run parameters: `--story --agents --minutes --seed --provider
---model --level --only --stop-when-done --passes --block-size --no-personas --no-cores --no-whisperer --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
+--model --level --only --stop-when-done --passes --block-size --no-personas --no-core-motives --no-whisperer --no-gamemaker --gamemaker-provider --gamemaker-model --no-classifier --weaver --runs
 --snapshot-after --stop-after-snapshot --resume --no-reporter --reporter-provider --reporter-model`.
 `--passes <n>` sets the story's `run.passesPerMinute` (1 to 5; cityofkeys: 3): in every pass each
 competitor gets at most one step, one model call with its tools. `--block-size <n>` sets
@@ -216,7 +216,7 @@ Every run creates `runs/run-NNN/`:
 | `events.jsonl` | every event with `seq`, virtual `minute` and wall-clock time `at`; `pass_start` gives each pass's order and blocks, `turn_input`, `request` and `turn_skipped` carry `pass` and `block` (absent in logs written before passes) |
 | `NNN-minute/events.jsonl` | the events of one virtual minute |
 | `agents/A01.md` | transcript per competitor, one section per step (minute and pass): inputs, reasoning, text, tool calls and results |
-| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
+| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core motive and the text of its system prompt; written before the first step, again at the end |
 | `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the gamemaker's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, in total and per competitor; split into `prefix` and `own` spend |
@@ -480,16 +480,16 @@ Two puzzle kinds exist (SPEC 12):
   chunks of 60 statements. `test/scale/whole-story.test.ts` plays cityofkeys offline with 12 and 48
   oracle residents through the tribunal target (a few seconds, in the normal suite).
 
-- **Drama** (v09, SPEC 19): `cores`, `goals` and `seal` on the story (cityofkeys:
-  `stories/cityofkeys/characters.ts`). `packages/engine/src/cores.ts` deals the cores (`dealCores`, seeded,
-  mixing caps) and renders them (`renderCore` for the prompt, `coreLine` for reports);
+- **Drama** (v09, SPEC 19): `coreMotives`, `goals` and `seal` on the story (cityofkeys:
+  `stories/cityofkeys/characters.ts`). `packages/engine/src/motives.ts` deals the core motives (`dealCoreMotives`, seeded,
+  mixing caps) and renders them (`renderCoreMotive` for the prompt, `coreMotiveLine` for reports);
   `packages/engine/src/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
   end; `packages/engine/src/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
   `bid` and `permaDeath` are in `packages/engine/src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
   and ends each act once (`#endAct`: at the tribunal's end, the next act's start, or
   `closeActs()` at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
   are read by `packages/engine/src/penalties.ts`; the world counts offences per act. The gamemaker's
-  guard (`packages/roles/src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
+  guard (`packages/roles/src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked core motives and
   goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
   optional fields, so older snapshots resume.
 
@@ -542,7 +542,7 @@ most 10% of its points) and a ransom of a third of the city's median points (hal
 pays for itself), once per resident; the run ends when the quarter is gone. Since v08 everyone
 votes, the accused too (never against themselves), a faction holds at most its share of those
 present, and residents choose names in the first two minutes. Residents see the minute,
-never the time left. Since v09 every resident has a character core, the wall deals secret goals
+never the time left. Since v09 every resident has a core motive, the wall deals secret goals
 and auctions the black seal, and wrong codes and lost blames cost 2, 4, 6, then 8 points within an
 act. See [`STORY-CITYOFKEYS.md`](STORY-CITYOFKEYS.md).
 

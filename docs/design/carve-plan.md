@@ -57,7 +57,7 @@ have no `requires` cycle and that this order respects `requires`.
 | 6 | whispers | T1 | receipts, channels, ledger, marks | exile | the whisperer and popularity |
 | 7 | puzzles | T3 | none | | deals and secrets; the guard's secrets; exclusions |
 | 8 | progression | T3 | puzzles, ledger, channels, receipts | | levels, submissions, doors, tools, the status line |
-| 9 | cast, cores, goals | T2, T2, T3 | cast: channels, progression, ledger; cores: channels; goals: progression, channels | | figures, cores, goals (parallel) |
+| 9 | cast, motives, goals | T2, T2, T3 | cast: channels, progression, ledger; motives: channels; goals: progression, channels | | figures, motives, goals (parallel) |
 | 10 | petitions | T2 | channels, ledger | | signatures |
 | 11 | standoff | T4 | puzzles, progression, ledger, channels | | pieces and ultimatums |
 | 12 | exile | T4 | progression, channels, ledger, standoff, puzzles | seal, goals | ransom, will, gates |
@@ -225,7 +225,7 @@ shared module disagree, the shared module wins.
   `awaitsCode` parts) and the `task` input kind. **Requires:** `PuzzlesApi`, `LedgerApi`,
   `ChannelsApi`, `ReceiptsApi` (the level-up receipt).
 
-### 9. cast, cores, goals
+### 9. cast, motives, goals
 
 - **cast. world.ts:** fields `cast`, `#cast`, `#collectListeners`; `setCastLevel` 2252,
   `revealCast` 2256, `retireCast` 2262, `castDm` 2161-2165, `#dmToCast` 2145-2158,
@@ -236,8 +236,8 @@ shared module disagree, the shared module wins.
   `lottery_drawn`. **Spec:** `cast`, `personas`, `personaAssignment`. **Slice:** `cast`.
   **Provides:** `CastApi`, event `cast_dm` (`CastEvents`, frozen); turn input `character` (the
   figure cues go to script). **Requires:** `ChannelsApi`, `ProgressionApi`, `LedgerApi` (escrow).
-- **cores. world.ts:** fields `#cores`, `#playsCores`; `#dealCores` 887-897, `coreOf` 900-902.
-  **Files:** `cores.ts`. **Events:** `core_dealt`. **Spec:** `cores`. **Slice:** `cores`.
+- **motives (was cores). world.ts:** fields `#coreMotives`, `#playsCoreMotives`; `#dealCoreMotives` 887-897, `coreMotiveOf` 900-902.
+  **Files:** `motives.ts`. **Events:** `core_dealt` (legacy name, see rename-core-motive.md). **Spec:** `coreMotives`. **Slice:** `motives`.
   **Requires:** `ChannelsApi`.
 - **goals. world.ts:** field `#goals`; `goalOf` 905-907, the goal parts of `status` and of the
   act end. **Files:** `goals.ts` (`GoalBook`). **Events:** `goal_dealt`, `goal_resolved`.
@@ -380,7 +380,7 @@ Four teams carve at the same time (core-review-2c.md, "Recommended partition"); 
 | Team | Mechanics | Brief |
 |---|---|---|
 | T1 economy | names, ledger, marks, receipts (with blame), whispers | [`carve-team-T1.md`](carve-team-T1.md) |
-| T2 messages | channels (13 tools), petitions, cast, cores | [`carve-team-T2.md`](carve-team-T2.md) |
+| T2 messages | channels (13 tools), petitions, cast, motives | [`carve-team-T2.md`](carve-team-T2.md) |
 | T3 progress | puzzles, progression (status line, `task` kind), goals; later script and the turn loop | [`carve-team-T3.md`](carve-team-T3.md) |
 | T4 conflict | standoff, exile, tribunal, seal, standoff-tribunal | [`carve-team-T4.md`](carve-team-T4.md) |
 

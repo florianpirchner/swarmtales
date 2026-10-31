@@ -11,7 +11,7 @@ mechanic", the entries of steps 4, 9, 10 and 17, "Teams, gates and shared files"
 |---|---|---|---|---|---|
 | 4 | `mechanics/channels` | `ChannelsApi`, `ChannelsEvents`; input kinds `dm`, `notice`; `dmWindow` status part; the `news` hook; 13 tools | `LedgerApi`, `MarksApi`, `NamesApi` | `ReceiptsApi`, `CastApi`, `StandoffApi`, `StandoffTribunalApi` | `board_post`, `dm_sent`, `dm_delivered`, `notice`, `group_created`, `group_removed`, `group_membership`, `group_post`, `treasury_deposit`, `treasury_withdrawal`, `treasurer_set`, `treasury_settled` |
 | 9 | `mechanics/cast` | `CastApi`, `CastEvents`; input kind `character` (the cues are the script's) | `ChannelsApi`, `ProgressionApi`, `LedgerApi` | | `cast_level_set`, `cast_revealed`, `cast_retired`, `cast_dm`, `collection_started`, `collection_shortened`, `collection_revealed`, `lottery_drawn` |
-| 9 | `mechanics/cores` | the cores deal | `ChannelsApi` | | `core_dealt` |
+| 9 | `mechanics/motives` | the cores deal | `ChannelsApi` | | `core_dealt` |
 | 10 | `mechanics/petitions` | `PetitionsApi`, `PetitionsEvents`; tools `signPetition`, `listPetitions` | `ChannelsApi`, `LedgerApi` | | `petition_opened`, `petition_signed`, `petition_resolved` |
 | 17 | channels | gamemaker tools `notify`, `postBoard` (`serves: ["gamemaker"]`), `defy` | | | `gamemaker_note`, `gamemaker_defied` (owner `gamemaker`: filter with `["channels", "gamemaker"]`) |
 

@@ -52,7 +52,7 @@ plugins/          first-party mechanics, each a package built only on sdk + cont
   tribunal/       tribunal, blame, factions; `standoff-tribunal` for Whispers (§3h)
   seal/           black seal
   standoff/       ultimatums, claimPiece, confiscation
-  cast/           figures, cores, goals, names, archetypes
+  cast/           figures, motives, goals, names, archetypes
   script/         the programmed director: courier lines, feast, standings (§5)
 
 library/          content anyone can replace or extend, no code
@@ -89,7 +89,7 @@ contains no game word. No door, point, DM, board, tribunal, mark or level appear
 | append-only event log and the typed event bus | board, DM, groups (`channels`) |
 | module host: load order, `requires`, services, hooks, state and snapshot slices | marks, receipts, tribunal, exile, seal, standoff |
 | tool gateway and the pipeline (§3d): lock, limit, afford, rule, guard, execute, settle, after | puzzles (fragments, additive) |
-| agent turn loop (who acts when, what a turn sees) | cast, cores, goals, names |
+| agent turn loop (who acts when, what a turn sees) | cast, motives, goals, names |
 | referee: run limits (time, budget, steps) and the registry of limits that modules add | the script director, gamemaker mode, model roles |
 | prompt and asset lookup (story, plugin, library) | everything else |
 
