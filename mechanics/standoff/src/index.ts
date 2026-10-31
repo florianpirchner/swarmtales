@@ -6,13 +6,10 @@
 import { Type } from "typebox";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
-import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
-
-import { ransomPrice } from "./price.ts";
 import { standoffSnapshot } from "./slice.ts";
-
 
 const CITY = "CITY";
 
@@ -22,13 +19,6 @@ const options = Type.Object({
 			penalty: Type.Integer({ minimum: 0, description: "Points whoever has not handed over by the deadline loses (at most what it holds)." }),
 			maxMinutes: Type.Integer({ minimum: 1, description: "The longest deadline the gamemaker may give, in minutes." }),
 		}, { description: "The gamemaker's ultimatum (P43); without it the gamemaker has none." }),
-	),
-	ransom: Type.Optional(
-		Type.Object({
-			share: Type.Number({ description: "Share of the city's median points that others pay for a ransom, in (0, 1]." }),
-			selfShare: Type.Number({ description: "Share of the city's median points the resident at the gate pays for itself." }),
-			minimum: Type.Number({ description: "Lower bound of the price others pay, in points." }),
-		}, { description: "The tribunal's ransom rule: a piece the city keeps costs half of what others pay for a ransom (P48); absent without a tribunal." }),
 	),
 	author: Type.String({ default: "COURIER", description: "The gamemaker's name on its notices and board posts, e.g. COURIER." }),
 });
@@ -45,7 +35,7 @@ export const standoffHead = defineHead({
 	events: standoffEvents,
 	provides: [StandoffApi],
 	requires: [PuzzlesApi, ProgressionApi, LedgerApi, ChannelsApi],
-	uses: [ExileApi, NamesApi],
+	uses: [ExileApi, NamesApi, TribunalApi],
 	prompts: {
 		"tools/claimPiece": [],
 		"replies/piece-bought": ["pieces", "price"],
@@ -69,13 +59,10 @@ function isExiled(ctx: Ctx, agent: string): boolean {
 	return ctx.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false;
 }
 
-/** What a piece the city keeps costs its needer: half of what others pay for a ransom (P48). */
+/** What a piece the city keeps costs its needer: half of what others pay for a ransom, rounded up (P48); 0 without a tribunal. */
 function cityPiecePrice(ctx: Ctx): number {
-	const ransom = ctx.options.ransom;
-	if (ransom === undefined) return 0;
-	const register = ctx.residents.ids.filter((id) => ctx.tryCall(ExileApi, "standing", { resident: id })?.kind !== "exiled");
-	const points = register.map((id) => ctx.call(LedgerApi, "balance", { account: id }));
-	return Math.ceil(ransomPrice(ransom, points) / 2);
+	const prices = ctx.tryCall(TribunalApi, "ransomPrices", {});
+	return prices === undefined ? 0 : Math.ceil(prices.price / 2);
 }
 
 function portsFor(ctx: Ctx): StandoffPorts {

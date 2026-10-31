@@ -8,11 +8,12 @@ import { describe, expect, it } from "vitest";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
 import { checkOptionsDocumented, checkSourceRules, idleAgent } from "@swarmtales/testkit";
 import type { Host } from "@swarmtales/contracts";
-import { standoff } from "@swarmtales/mechanic-standoff";
-import { HOOK_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { standoff, standoffHead } from "@swarmtales/mechanic-standoff";
+import { HOOK_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { readFileSync } from "node:fs";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
 import { probe, runProbe } from "./support/probe.ts";
+import { provider } from "./support/provider.ts";
 import { compareGolden, GOLDEN_LOGS, goldenOf, ownLines, startHost, storyOptions } from "./support/host.ts";
 
 const A02_PIECE: HeldPiece = { id: "L8-counter-A01", kind: "counter", level: 8, label: "the counter-factor of A01 for door 8", value: "542489", needers: ["A01"] };
@@ -37,19 +38,22 @@ const DEAL = {
 };
 
 /** Door 8: A01 holds A02's counter-factor and the other way round; A03 holds nothing. */
-function setup(extra: { ransom?: boolean; held?: (resident: string) => readonly HeldPiece[] } = {}) {
+/** `ransom`: what others pay for a ransom at the stand-in tribunal; without it no tribunal is loaded. */
+function setup(extra: { ransom?: number; held?: (resident: string) => readonly HeldPiece[] } = {}) {
 	const world = new TestWorld(["A01", "A02", "A03", "A04"]);
 	world.points.set("A01", 50);
 	world.points.set("A02", 6);
 	world.points.set("A03", 40);
 	world.points.set("A04", 40);
 	for (const id of ["A01", "A02", "A03", "A04"]) world.levels.set(id, 8);
-	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 }, ...(extra.ransom === true ? { ransom: { share: 1, selfShare: 1, minimum: 40 } } : {}) });
+	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 } });
+	const price = extra.ransom;
+	const tribunal = price === undefined ? [] : [provider("tribunal", TribunalApi, { ransomPrices: () => ({ price, selfPrice: price }) }).with()];
 	return {
 		world,
 		story: {
 			residents: ["A01", "A02", "A03", "A04"],
-			mechanics: [use, probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world, { factors: [DEAL] }, undefined, extra.held).with()],
+			mechanics: [use, probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world, { factors: [DEAL] }, undefined, extra.held).with(), ...tribunal],
 			residentTools: ["claimPiece"],
 			gamemakerTools: ["ultimatum"],
 		},
@@ -150,7 +154,7 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 	});
 
 	it("keeps an exiled's pieces and sells them once, one price per door, to the one who needs them", async () => {
-		const { story, world } = setup({ ransom: true });
+		const { story, world } = setup({ ransom: 40 });
 		const host = startHost(story);
 		await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "keep", { from: "A02", pieces: [A02_PIECE, CERTIFICATE] }));
 		// One notice for the door, naming both pieces; half of the ransom of 40.
@@ -209,11 +213,19 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 	});
 
 	it("answers heldPieces and cityPiecePrice through its API", async () => {
-		const { story } = setup({ ransom: true });
+		const { story } = setup({ ransom: 40 });
 		const host = startHost(story);
 		const held = await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "heldPieces", { resident: "A01" }));
 		expect(held).toEqual([A01_PIECE]);
 		expect(await runProbe(host, (ctx) => ctx.tryCall(StandoffApi, "cityPiecePrice", {}))).toBe(20);
+	});
+
+	it("prices a kept piece at half the tribunal's ransom, rounded up, and at 0 without a tribunal (P48)", async () => {
+		const odd = startHost(setup({ ransom: 41 }).story);
+		expect(await runProbe(odd, (ctx) => ctx.tryCall(StandoffApi, "cityPiecePrice", {}))).toBe(21);
+		const none = startHost(setup().story);
+		expect(await runProbe(none, (ctx) => ctx.tryCall(StandoffApi, "cityPiecePrice", {}))).toBe(0);
+		expect(Object.keys(standoffHead.options.properties)).not.toContain("ransom");
 	});
 });
 
@@ -257,7 +269,7 @@ describe("standoff: snapshot and golden gate", () => {
 
 	it("documents its options and imports only what a mechanic may", () => {
 		expect(checkOptionsDocumented(standoff)).toEqual([]);
-		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "price.ts", "result.ts", "slice.ts"].map((name) => {
+		const files = ["index.ts", "book.ts", "carries.ts", "events.ts", "result.ts", "slice.ts"].map((name) => {
 			const path = new URL(`../../../mechanics/standoff/src/${name}`, import.meta.url);
 			return { path: name, text: readFileSync(path, "utf8") };
 		});
