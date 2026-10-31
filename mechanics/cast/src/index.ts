@@ -16,6 +16,7 @@ import { castHead } from "./head.ts";
 import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
 export { castHead };
+export { castOptionsFromStory, type CastStoryOptions } from "./from-story.ts";
 
 type Ctx = ContextOf<typeof castHead>;
 

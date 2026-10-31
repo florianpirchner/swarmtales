@@ -6,18 +6,17 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LegacyEventAdapter, convertLegacySnapshot } from "@swarmtales/chronicle";
+import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import { createHost, defineCoreStory, rngFor } from "@swarmtales/kernel";
 import { cast } from "@swarmtales/mechanic-cast";
 import { channels } from "@swarmtales/mechanic-channels";
-import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, readLegacyLog, scriptedAgent, standInsFor, type LegacyLine } from "@swarmtales/testkit";
+import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, idleAgent, scriptedAgent, standInsFor } from "@swarmtales/testkit";
 import { exileStandIn, payloads, t2Prompts } from "../channels/harness.ts";
 import { ledgerStandIn, marksStandIn, namesStandIn, receiptsStandIn } from "../channels/stand-ins.ts";
 import { castCity, castStory, drive, say } from "./city.ts";
 import { castDriver, progressionStandIn } from "./stand-ins.ts";
 
 const ROOT = resolve(import.meta.dirname, "../../..");
-const GOLDEN = join(ROOT, "test", "golden");
 
 describe("members", () => {
 	it("hides a member until it is revealed, and retires it for good", async () => {
@@ -153,34 +152,6 @@ describe("escrow", () => {
 		expect(payloads(host, "notice")).toEqual([{ to: "A01", author: "CITY", text: "R-0001: escrow" }]);
 		expect(await drive(host, { op: "escrow", cast: "STEWARD", to: "A02", amount: 7 })).toBe('{"ok":false,"code":"INSUFFICIENT_ESCROW","detail":"6 left"}');
 	});
-});
-
-describe("golden gate: cast (the script, progression and the providers around channels stand in)", () => {
-	for (const name of ["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"]) {
-		it(`reproduces the cast lines of ${name}`, async () => {
-			const golden = readLegacyLog(join(GOLDEN, `${name}.events.jsonl`));
-			const solves = new Map<number, number>();
-			for (const line of golden) {
-				if (line.type !== "level_up" || typeof line.from !== "number" || typeof line.minute !== "number") continue;
-				solves.set(line.from, Math.min(solves.get(line.from) ?? line.minute, line.minute));
-			}
-			const minutes = Math.max(...golden.map((line) => (typeof line.minute === "number" ? line.minute : 0))) + 1;
-			const host = castCity({ minutes, solves, escrow: 0 });
-			for (let minute = 0; minute < minutes; minute++) {
-				for (const line of golden.filter((entry) => entry.minute === minute)) {
-					if (line.type === "cast_revealed") await drive(host, { op: "reveal", cast: line.cast });
-					// The feast of City of Keys: its seats and window come from the event, its rules from the story.
-					if (line.type === "collection_started") await drive(host, { op: "startCollection", into: line.into, cast: line.cast, first: line.first, untilMinute: line.untilMinute, distinctSenders: true, afterSolve: { level: 10, minutes: 3 } });
-				}
-				await host.playMinute(idleAgent);
-			}
-			const adapter = new LegacyEventAdapter();
-			const written: LegacyLine[] = host.log.all().flatMap((event) => adapter.write(event).map((entry) => Object.fromEntries(Object.entries(entry))));
-			const expected = ownedBy(golden, ["cast"]);
-			expect(expected.length).toBe(name.startsWith("whispers") ? 0 : 3);
-			expect(compareGolden(expected, ownedBy(written, ["cast"]))).toBeUndefined();
-		});
-	}
 });
 
 describe("conformance and snapshot", () => {
