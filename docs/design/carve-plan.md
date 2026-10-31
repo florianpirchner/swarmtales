@@ -389,7 +389,9 @@ Each gamemaker tool goes to the team that owns its mechanic (step 17).
 **Gate per team.** A step is green when `pnpm check` is green and the mechanic's golden gate holds:
 for every golden log in `test/golden/`, `ownedBy(lines, [id])` equals what the mechanic writes for
 the replayed `goldenCalls` on the new host (stand-ins for other teams' providers, `standInsFor` for
-the slices of mechanics not carved yet). The goldens themselves and `packages/engine` stay
+the slices of mechanics not carved yet). From round 2 the gate also compares the replies
+(`compareReplies`), notices (`goldenNotices`), turn inputs (`goldenTurnInputs`) and the order
+across mechanics (`goldenOrder`), and leaves lines out only through `dropJustified`. The goldens themselves and `packages/engine` stay
 unchanged (no `GOLDEN_UPDATE`).
 
 **Shared files, one owner each** (the integration owner of wave 3, the lead): nobody else edits
@@ -399,6 +401,12 @@ unchanged (no `GOLDEN_UPDATE`).
 `pnpm-workspace.yaml`, the root `tsconfig.json` and `package.json`, `knip.json`,
 `scripts/check-packages.ts` and the core (`packages/contracts/src/core`, `packages/kernel/src/host`).
 A team that needs a change there asks for it; the change lands in its own PR first.
+
+**Wave 3.5** (`carve-decisions.md`) answered every request and challenger finding: the order
+table `HOOK_ORDER`/`LISTENER_ORDER` (proved on the goldens by `test/mechanics/order.test.ts`), the
+silent events, the new shared methods, `CoresApi` and `NotesApi`, and the strict gate helpers of
+the testkit. Round 2 of each team follows `carve-round2-T1.md` to `-T4.md`; T4 splits into T4a
+(exile, tribunal) and T4b (seal, standoff-tribunal, standoff).
 
 **Frozen in wave 3.0** (`mechanics/shared`, fingerprinted in `test/mechanics/shared-frozen.test.ts`):
 every API (`NamesApi` to `StandoffTribunalApi`), the events other mechanics listen to (`exiled`;
