@@ -36,6 +36,16 @@ const OLD_TOOLS: Readonly<Record<string, ArenaTool>> = { getStatus, activeTools,
 /** The event types both sides write in the twin (the mechanics of T3 and the stand-ins' own lines). */
 const COMPARED = new Set(["fragments_dealt", "factors_dealt", "factor_revealed", "factor_burned", "level_contracted", "submission", "level_up", "tools_unlocked", "goal_dealt", "goal_resolved", "ledger_entry", "receipt_issued", "notice", "board_post"]);
 
+/**
+ * The story as the old world plays it in the twin: without the tribunal, the seal, the whisperer,
+ * the popularity vote and the holdout tribunal, which are other teams' mechanics and are not on the
+ * new host (their notices, board posts, dynamic tools and task rules would only differ).
+ */
+function withoutOtherMechanics(story: AnyStory): AnyStory {
+	const { tribunal: _tribunal, seal: _seal, whisperer: _whisperer, popularity: _popularity, holdout: _holdout, ...rest } = story;
+	return rest;
+}
+
 export interface Pair {
 	readonly old: string;
 	readonly now: string;
@@ -65,10 +75,10 @@ export class Twin {
 		const seed = options.seed ?? 7;
 		const minutes = options.minutes ?? 30;
 		const bus = new EventBus([this.oldLog], () => this.#minute);
-		this.world = new World({ story, competitors: this.ids, seed, minutes, bus, minute: () => this.#minute, ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }), names: false });
+		this.world = new World({ story: withoutOtherMechanics(story), competitors: this.ids, seed, minutes, bus, minute: () => this.#minute, ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }), names: false });
 		const levelTools = new Set(story.levels.flatMap((level) => level.tools));
 		const dummies = TOOL_NAMES.filter((name) => (levelTools.has(name) || name === "activeTools") && OLD_TOOLS[name] === undefined);
-		const goalsOptions = goalsOptionsOf(story);
+		const goalsOptions = goalsOptionsOf(withoutOtherMechanics(story));
 		const progressionInput = { ...progressionOptions(story), ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }) };
 		const puzzlesInput = { ...puzzleOptions(story), ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }) };
 		const granted = TOOL_NAMES.filter((name) => levelTools.has(name) || name === "activeTools");
