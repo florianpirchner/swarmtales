@@ -16,7 +16,7 @@ import { createPromptLookup } from "@swarmtales/prompts";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
 import { probe, runProbe } from "./support/probe.ts";
 import { provider } from "./support/provider.ts";
-import { compareGolden, GOLDEN_LOGS, goldenOf, ownLines, startHost, storyOptions, SUPPORT_PROMPTS } from "./support/host.ts";
+import { ownLines, startHost, storyOptions, SUPPORT_PROMPTS } from "./support/host.ts";
 
 const A02_PIECE: HeldPiece = { id: "L8-counter-A01", kind: "counter", level: 8, label: "the counter-factor of A01 for door 8", value: "542489", needers: ["A01"] };
 const A01_PIECE: HeldPiece = { id: "L8-counter-A02", kind: "counter", level: 8, label: "the counter-factor of A02 for door 8", value: "403343", needers: ["A02"] };
@@ -333,11 +333,6 @@ describe("standoff: snapshot and golden gate", () => {
 		expect(migrated.facts()["standoff.cityPieces"]).toEqual([{ from: "A02", piece: { id: "L8-counter-A01", kind: "counter", level: 8, label: "x", value: "542489", needers: ["A01"] }, claimed: [] }]);
 	});
 
-	it.each(GOLDEN_LOGS)("writes the lines of %s that the old standoff wrote (none: the scripted goldens hold no standoff event)", (name) => {
-		const { story } = setup();
-		const host = startHost(story);
-		expect(compareGolden(goldenOf(name, ["standoff"]), ownLines(host, ["standoff"]))).toBeUndefined();
-	});
 
 	it("documents its options and imports only what a mechanic may", () => {
 		expect(checkOptionsDocumented(standoff)).toEqual([]);

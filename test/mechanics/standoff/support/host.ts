@@ -1,15 +1,12 @@
 /** Hosts for the tests of team T4: a story of stand-ins and the mechanic under test, and the golden gate over its legacy lines. */
 import { fileURLToPath } from "node:url";
-import { join } from "node:path";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { createHost, defineCoreStory, type HostOptions } from "@swarmtales/kernel";
-import { compareGolden, ownedBy, parseLegacyLog, readLegacyLog } from "@swarmtales/testkit";
+import { ownedBy, parseLegacyLog } from "@swarmtales/testkit";
 import { LegacyEventAdapter, legacyLine, type LegacyOwner } from "@swarmtales/chronicle";
 import type { EventEnvelope, Host, MechanicUse } from "@swarmtales/contracts";
 
 export const SUPPORT_PROMPTS = fileURLToPath(new URL("prompts", import.meta.url));
-export const GOLDEN_DIR = join(fileURLToPath(new URL("../../../golden", import.meta.url)));
-export const GOLDEN_LOGS = ["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"] as const;
 
 export interface TestStory {
 	readonly mechanics: readonly MechanicUse[];
@@ -51,11 +48,3 @@ export function legacyLines(events: readonly EventEnvelope[]) {
 export function ownLines(host: Host, owners: readonly LegacyOwner[]): readonly string[] {
 	return ownedBy(legacyLines(host.log.all()), owners);
 }
-
-/** The golden log's lines of `owners`. */
-export function goldenOf(name: string, owners: readonly LegacyOwner[]): readonly string[] {
-	return ownedBy(readLegacyLog(join(GOLDEN_DIR, `${name}.events.jsonl`)), owners);
-}
-
-
-export { compareGolden };

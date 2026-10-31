@@ -16,15 +16,17 @@ export const StandoffSlice = Type.Object({
 	last: Type.Integer(),
 });
 
-/** The old `StandoffSnapshot` (world.ts `standoff`): `givenAt` is absent in older files. */
+/** The old `StandoffSnapshot` (world.ts `standoff`): `givenAt` is absent in older files, the whole field in files of worlds that wrote none. */
 const Old = Type.Object({
-	standoff: Type.Object({
-		given: Type.Array(Type.String()),
-		givenAt: Type.Optional(Type.Record(Type.String(), Type.Integer())),
-		city: StandoffSlice.properties.city,
-		ultimatums: StandoffSlice.properties.ultimatums,
-		lastUltimatum: Type.Integer(),
-	}),
+	standoff: Type.Optional(
+		Type.Object({
+			given: Type.Array(Type.String()),
+			givenAt: Type.Optional(Type.Record(Type.String(), Type.Integer())),
+			city: StandoffSlice.properties.city,
+			ultimatums: StandoffSlice.properties.ultimatums,
+			lastUltimatum: Type.Integer(),
+		}),
+	),
 });
 
 export interface HasStandoff {
@@ -65,6 +67,7 @@ export const standoffSnapshot = {
 	migrations: {
 		0: (old: unknown): Static<typeof StandoffSlice> => {
 			const { standoff } = Parse(Old, old);
+			if (standoff === undefined) return { given: [], city: [], ultimatums: [], last: 0 };
 			return {
 				given: standoff.given.map((key) => ({ key, minute: standoff.givenAt?.[key] ?? 0 })),
 				city: standoff.city,
