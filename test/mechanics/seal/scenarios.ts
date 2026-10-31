@@ -1,5 +1,5 @@
 /** The scripted seal scenarios (team T4b), run on the old SealHouse and on the new host. */
-import { oldDraw, type Scenario } from "./differential.ts";
+import { oldDraw, type Action, type Scenario } from "./differential.ts";
 
 const SIX = ["A01", "A02", "A03", "A04", "A05", "A06"];
 const points = (ids: readonly string[], value: number, extra: Readonly<Record<string, number>> = {}) => ({ ...Object.fromEntries(ids.map((id) => [id, value])), ...extra });
@@ -100,7 +100,44 @@ export function noSeal(): Scenario {
 	};
 }
 
+const EIGHT = ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08"];
+
+/** The winner of `seal` among `bidders` who bid alike and hold alike: the old seeded draw `rngFor(seed, "seal", seal)`. */
+export const drawn = (seal: number, bidders: readonly string[]): string => oldDraw(seal, bidders)[0] ?? "";
+
+/**
+ * Three seals, each won on a tie the seeded draw decides (four, three and three bidders with equal
+ * bids and points); the first bearer and a bystander go to the gate while the second auction runs;
+ * the target is reached and the second bearer breaks its seal on the resident at the gate.
+ */
+export function tiesAndTheGate(): Scenario {
+	const first = ["A01", "A02", "A03", "A04"];
+	const second = ["A05", "A07", "A08"];
+	const one = drawn(1, first);
+	const two = drawn(2, second);
+	const losers = first.filter((id) => id !== one);
+	return {
+		residents: EIGHT,
+		points: points(EIGHT, 40),
+		rule: { act: 8, announceAfter: 0, bidMinutes: 2, perResidents: 3, spacing: 3 },
+		minutes: 12,
+		actStartAt: 1,
+		missing: 3,
+		steps: {
+			1: first.map((agent) => ({ kind: "bid", agent, points: 5 })),
+			3: [
+				{ kind: "gate", agent: one, until: 30 },
+				{ kind: "gate", agent: "A06", until: 30 },
+			],
+			4: [...second.map((agent): Action => ({ kind: "bid", agent, points: 6 })), { kind: "bid", agent: "A06", points: 6 }, { kind: "bid", agent: one, points: 6 }],
+			7: [...losers.map((agent): Action => ({ kind: "bid", agent, points: 4 })), { kind: "missing", value: 0 }],
+			8: [{ kind: "use", agent: two, target: "A06" }],
+		},
+	};
+}
+
 export const SCENARIOS: readonly (readonly [string, () => Scenario])[] = [
+	["three ties the seeded draw decides, a bearer and a bystander at the gate during an auction, the seal on a gate target at missing 0", tiesAndTheGate],
 	["a seal won on a tie and used, every refusal, a strike at the gate, the target reached", wonAndUsed],
 	["seals that end every other way: holder exiled, a bid of 0, still open at the act's end", endedEveryWay],
 	["the only seal held unused at the act's end", heldAtTheEnd],

@@ -3,12 +3,17 @@
  * `SealHouse` (packages/engine, read only) wired as the old `World` wired it (its ports, the old
  * `enabledTools` and the tools' replies), and on the new host with the `seal` mechanic and the
  * stand-ins. Both sides record the seal's events (with their minute), the city's posts and
- * notices, the points burnt, the strikes and every reply, so a test compares them field for field.
+ * notices, the points burnt, the strikes, every reply and every resident's seal status parts each
+ * minute, so a test compares them field for field.
+ *
+ * The old side copies three pieces of the old `World` (world.ts:636-661 ports, `enabledTools`
+ * world.ts:1459-1461, `sealParts` turn-input.ts:72-83); `seal-world.test.ts` checks those copies
+ * against the old `World` itself.
  */
 import { SealHouse as OldSealHouse, type SealSnapshot } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
 import { rngFor } from "@swarmtales/kernel";
-import type { Host, ToolOutcome } from "@swarmtales/contracts";
+import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
 import { seal } from "@swarmtales/mechanic-seal";
 import { probe, runProbe } from "../standoff/support/probe.ts";
@@ -46,9 +51,11 @@ export interface SealRecord {
 	readonly burns: readonly string[];
 	readonly strikes: readonly string[];
 	readonly replies: readonly string[];
+	/** `minute agent [parts]`: the seal's status parts every resident reads at the minute's start. */
+	readonly status: readonly string[];
 }
 
-const SEED = 7;
+export const SEED = 7;
 
 function replyText(outcome: ToolOutcome): string {
 	return outcome.ok ? outcome.reply : `${outcome.code}: ${outcome.detail ?? ""}`;
@@ -69,7 +76,7 @@ export function runOld(scenario: Scenario, options: OldRun = {}): { readonly rec
 	const standing = new Map<string, "alive" | "exiled" | { until: number }>((scenario.exiled ?? []).map((id) => [id, "exiled"]));
 	let missing = scenario.missing;
 	let minute = 0;
-	const record: { readonly [K in keyof SealRecord]: string[] } = { events: [], posts: [], notices: [], burns: [], strikes: [], replies: [] };
+	const record: { readonly [K in keyof SealRecord]: string[] } = { events: [], posts: [], notices: [], burns: [], strikes: [], replies: [], status: [] };
 	const standingOf = (agent: string) => {
 		const found = standing.get(agent) ?? "alive";
 		return found === "alive" ? { kind: "alive" as const } : found === "exiled" ? { kind: "exiled" as const } : { kind: "gate" as const, until: found.until };
@@ -101,11 +108,24 @@ export function runOld(scenario: Scenario, options: OldRun = {}): { readonly rec
 	if (restore !== undefined) house.restore(restore);
 	const enabled = (tool: "bid" | "permaDeath", agent: string): boolean =>
 		tool === "bid" ? house.auction !== undefined && standingOf(agent).kind === "alive" : house.holds(agent);
+	// The old `sealParts` (turn-input.ts:72-83) over the old house and the standings.
+	const parts = (agent: string): readonly string[] => {
+		if (standingOf(agent).kind === "exiled") return [];
+		const found: string[] = [];
+		const auction = house.auction;
+		if (auction !== undefined && standingOf(agent).kind === "alive") {
+			const bid = house.bidOf(agent);
+			found.push(render("competitor/status/seal-auction", { until: auction.until, bid: bid === undefined ? "" : ` ${render("competitor/status/seal-bid", { bid })}` }));
+		}
+		if (house.holds(agent)) found.push(render("competitor/status/seal-bearer", {}));
+		return found;
+	};
 	const locked = `TOOL_LOCKED: ${render("replies/locked", {})}`;
 	for (minute = from; minute < until; minute++) {
 		if (scenario.actEndAt === minute) house.end();
 		if (scenario.actStartAt === minute) house.begin(minute, scenario.residents.filter((id) => standingOf(id).kind !== "exiled").length);
 		house.tick(minute);
+		for (const agent of scenario.residents) record.status.push(`${String(minute)} ${agent} ${JSON.stringify(parts(agent))}`);
 		for (const action of scenario.steps[minute] ?? []) {
 			switch (action.kind) {
 				case "bid": {
@@ -180,21 +200,26 @@ export function worldFor(scenario: Scenario): ConflictWorld {
 	return world;
 }
 
-/** A new-side run: the host, the world of its stand-ins and the replies so far. */
+/** A new-side run: the host, the world of its stand-ins, the replies and status parts so far. */
 export interface NewRun {
 	readonly host: Host;
 	readonly world: ConflictWorld;
 	readonly replies: string[];
+	readonly status: string[];
 }
 
-/** Plays the scenario's minutes on `run.host` until `until` (exclusive), or to the run's end. */
+/**
+ * Plays the scenario's minutes on `run.host` until `until` (exclusive), or to the run's end. Every
+ * turn's seal inputs are read before anyone acts (the stand-in exile leaves every resident a turn),
+ * and the minute's actions run in its last turn, so they see the state the old loop's actions see.
+ */
 export async function playNew(run: NewRun, scenario: Scenario, until?: number): Promise<void> {
 	const { host, world, replies } = run;
-	let done = -1;
-	const agent = async (turn: { readonly minute: number }): Promise<void> => {
-		if (done === turn.minute) return;
-		done = turn.minute;
-		for (const action of scenario.steps[turn.minute] ?? []) {
+	let parts = new Map<string, string>();
+	const act = async (minute: number): Promise<void> => {
+		for (const id of scenario.residents) run.status.push(`${String(minute)} ${id} ${parts.get(id) ?? "missing"}`);
+		parts = new Map();
+		for (const action of scenario.steps[minute] ?? []) {
 			switch (action.kind) {
 				case "bid":
 					replies.push(replyText(await host.call(`resident:${action.agent}`, "bid", { points: action.points })));
@@ -214,6 +239,10 @@ export async function playNew(run: NewRun, scenario: Scenario, until?: number): 
 			}
 		}
 	};
+	const agent: TurnTaker = async (turn) => {
+		parts.set(turn.resident, JSON.stringify(turn.inputs.filter((note) => note.source === "seal").map((note) => note.text)));
+		if (parts.size === scenario.residents.length) await act(turn.minute);
+	};
 	if (until === undefined) await host.run(agent);
 	else while (host.minute < until) await host.playMinute(agent);
 }
@@ -228,13 +257,14 @@ export function recordOf(run: NewRun): SealRecord {
 		burns: world.calls.filter((call) => call.api === "ledger" && call.method === "burn").map((call) => burnLine(call.input)),
 		strikes: world.strikes.map((strike) => `${strike.resident} ${strike.by}`),
 		replies: [...replies],
+		status: [...run.status],
 	};
 }
 
 /** The new host: the same scenario through the tools, the API and the stand-ins, to the run's end. */
 export async function runNew(scenario: Scenario): Promise<{ readonly record: SealRecord; readonly host: Host; readonly world: ConflictWorld }> {
 	const world = worldFor(scenario);
-	const run: NewRun = { host: startHost(sealStory(scenario, world)), world, replies: [] };
+	const run: NewRun = { host: startHost(sealStory(scenario, world)), world, replies: [], status: [] };
 	await playNew(run, scenario);
 	return { record: recordOf(run), host: run.host, world };
 }
