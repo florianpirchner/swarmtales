@@ -9,7 +9,7 @@ import { join, resolve } from "node:path";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { LegacyEventAdapter, legacyOwner, type LegacyOwner } from "@swarmtales/chronicle";
-import type { EventEnvelope, Host, MechanicUse } from "@swarmtales/contracts";
+import type { EventEnvelope, MechanicUse } from "@swarmtales/contracts";
 import { defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { ChannelsApi, ChannelsEvents } from "@swarmtales/mechanic-shared";
 import { goldenLine, readLegacyLog, type GoldenLine } from "@swarmtales/testkit";
@@ -34,15 +34,6 @@ export function writtenBy(events: readonly EventEnvelope[], owners: readonly Leg
 		.flatMap((event) => adapter.write(event))
 		.filter((line) => owners.includes(legacyOwner(line.type)))
 		.map((line) => goldenLine(line));
-}
-
-export function payloadOf(event: EventEnvelope | undefined): Readonly<Record<string, unknown>> {
-	const value = event?.payload;
-	return typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {};
-}
-
-export function eventsOf(host: Host, type: string): readonly EventEnvelope[] {
-	return host.log.all().filter((event) => event.type === type);
 }
 
 export const ids = (count: number): readonly string[] => Array.from({ length: count }, (_unused, index) => `A${String(index + 1).padStart(2, "0")}`);

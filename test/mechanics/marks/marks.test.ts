@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
-import type { MechanicUse } from "@swarmtales/contracts";
+import type { MarksRules, MechanicUse } from "@swarmtales/contracts";
 import { createHost, defineCoreStory, defineMechanic } from "@swarmtales/kernel";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { marks } from "@swarmtales/mechanic-marks";
@@ -58,10 +58,12 @@ function replay(log: readonly LegacyLine[], seen: Seen): MechanicUse {
 	).with();
 }
 
-function marksOptions(story: typeof cityOfKeys) {
+function marksOptions(story: { readonly rules: { readonly marks?: MarksRules }; readonly levels: readonly { readonly number: number; readonly marks?: { readonly perLevel?: number } }[] }) {
 	const rules = story.rules.marks;
 	if (rules === undefined) throw new Error("the story has marks");
-	return { rules, levels: story.levels.flatMap((level) => (level.marks?.perLevel === undefined ? [] : [{ level: level.number, perLevel: level.marks.perLevel }])) };
+	const { ranges, ...base } = rules;
+	const copied = ranges === undefined ? base : { ...base, ranges: ranges.map((range) => ({ ...range })) };
+	return { rules: copied, levels: story.levels.flatMap((level) => (level.marks?.perLevel === undefined ? [] : [{ level: level.number, perLevel: level.marks.perLevel }])) };
 }
 
 describe("the golden gate for marks_spent", () => {
