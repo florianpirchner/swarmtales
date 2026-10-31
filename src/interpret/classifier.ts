@@ -20,6 +20,7 @@ import type { ModelBinding } from "../model/source.ts";
 import type { ThinkingLevel } from "../story/types.ts";
 import { LABEL_MEANINGS, STATEMENT_LABELS } from "./labels.ts";
 import { statementLine, type Statement } from "./statements.ts";
+import { render, text } from "../prompts/library.ts";
 
 /** ID of the classifier in usage records. */
 export const CLASSIFIER_ID = "CL";
@@ -70,45 +71,25 @@ export const DEFAULT_STATEMENT_CHARS = 1_500;
 
 export function classifierSystemPrompt(): string {
 	const labels = STATEMENT_LABELS.map((label) => `- ${label}: ${LABEL_MEANINGS[label]}`).join("\n");
-	return `You label what residents of a game city write and think. Residents (A01, A02, ...) climb levels whose
-doors open with passwords; on team levels every member holds a fragment of the password and has to share it.
-Points decide who survives. You receive every statement of one round: private thoughts, private asides,
-direct messages, board posts and group posts, each with its reference number. Earlier messages of the same
-conversations come first as context, so a short reply such as "no" or "deal" can be read as the answer it is.
-
-Labels (a statement can have several or none):
-${labels}
-
-How to label:
-- Label the stance the statement itself takes, not what others did. Most statements get no label; plain
-  information, greetings and plans without a stance get none.
-- Thoughts count: a thought that decides to hold a fragment back is a refusal; a thought that fears the
-  penalty of a wrong code and waits is hesitation.
-- lie needs evidence in this round: a message that contradicts the speaker's own thought, or a claim that
-  other statements of this round show to be false.
-- Label only the statements of this round, never the context.
-- targets are the residents a label is about: whom a promise or offer is made to, whom a threat, refusal
-  or accusation is aimed at, whom help is asked of. Leave targets empty when nobody is meant.
-
-Call the tool label exactly once with every statement that has at least one label. Do not answer in text.`;
+	return render("classifier/system", { labels });
 }
 
 /** `A03 (called Mira)`: messages name residents by name, targets use the ID. */
 function residentLine(agent: CompetitorId, names: ReadonlyMap<CompetitorId, string> | undefined): string {
 	const name = names?.get(agent);
-	return name === undefined ? agent : `${agent} (called ${name})`;
+	return name === undefined ? agent : render("classifier/resident-named", { agent, name });
 }
 
 export function classifierPrompt(batch: StatementBatch, maxChars: number): string {
 	const context =
 		batch.context.length === 0
 			? []
-			: ["Earlier messages of these conversations (context only, do not label):", ...batch.context.map((statement) => statementLine(statement, maxChars)), ""];
+			: [text("classifier/context-heading"), ...batch.context.map((statement) => statementLine(statement, maxChars)), ""];
 	return [
-		`Round ${batch.round} (minute ${batch.minute}). Residents: ${batch.agents.map((agent) => residentLine(agent, batch.names)).join(", ")}.`,
+		render("classifier/round", { round: batch.round, minute: batch.minute, residents: batch.agents.map((agent) => residentLine(agent, batch.names)).join(", ") }),
 		"",
 		...context,
-		"Statements of this round:",
+		text("classifier/statements-heading"),
 		...batch.statements.map((statement) => statementLine(statement, maxChars)),
 	].join("\n");
 }
@@ -263,7 +244,7 @@ export class DeciderStatementClassifier implements StatementClassifier {
 			model,
 			{
 				state: {
-					game: "Residents climb levels; team doors open only when every member shares a password fragment. Points decide who survives.",
+					game: text("classifier/game"),
 					speaker: statement.agent,
 					where: statement.source,
 					to: [...statement.to],
@@ -319,8 +300,8 @@ function deciderQuestions(): Record<string, ClassifierQuestion> {
 	for (const label of STATEMENT_LABELS) {
 		questions[label] = {
 			type: "bool",
-			instructions: `Does the speaker's text take this stance: ${LABEL_MEANINGS[label]}?`,
-			criteria: { true: `The text ${LABEL_MEANINGS[label]}.`, false: "The text does not take this stance." },
+			instructions: render("classifier/question-instructions", { meaning: LABEL_MEANINGS[label] }),
+			criteria: { true: render("classifier/question-true", { meaning: LABEL_MEANINGS[label] }), false: text("classifier/question-false") },
 		};
 	}
 	return questions;

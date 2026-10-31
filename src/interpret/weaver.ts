@@ -28,13 +28,14 @@ import { FATE_TRIGGERS, type EventBus, type EventSink, type FateShiftKind, type 
 import type { RoundObserver } from "../engine/arena.ts";
 import { FateTriggers, type FateHit } from "./fate-triggers.ts";
 import { WEAVER_ID, type Weave, type WeaverAnswer, type WeaverModel, type WeaverQuestion } from "./weaver-model.ts";
+import { render } from "../prompts/library.ts";
 
 /** Inner voices per resident and act. */
 export const MAX_SOFT = 6;
 /** Rewrites of the character per resident and act (the act's end does not count). */
 export const MAX_HARD = 2;
 /** How an inner voice opens in a step's inputs. */
-export const INNER_VOICE_HEAD = "[inner voice] ";
+export const INNER_VOICE_HEAD = render("weaver/inner-voice", { text: "\u0000" }).split("\u0000")[0] ?? "";
 
 /** The city as the weaver reads it; the world provides all of it. */
 export interface WeaverCity {

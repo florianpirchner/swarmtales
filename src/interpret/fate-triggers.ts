@@ -28,6 +28,7 @@ import type { CompetitorId } from "../core/ids.ts";
 import { assertNever } from "../core/result.ts";
 import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
 import { isPrivateSource } from "./labels.ts";
+import { render, text } from "../prompts/library.ts";
 
 /** A resident a hard fact touched: what happened, as a sentence, what kind of event it was, and its number. */
 export interface FateHit {
@@ -101,8 +102,8 @@ export class FateTriggers {
 		const hit = (agent: CompetitorId, trigger: FateTrigger, text: string): FateHit => ({ agent, seq: event.seq, text, trigger });
 		if (event.type === "blame") {
 			return event.outcome === "upheld"
-				? [hit(event.accused, "blame", `${event.caller} blamed ${event.accused} for denying DM #${event.dm}; the city upheld it: ${event.accused} was branded a liar on the board and paid ${event.penalty} points.`)]
-				: [hit(event.caller, "blame", `${event.caller} blamed ${event.accused} for denying DM #${event.dm}; the city rejected it: ${event.caller} was branded a false accuser and paid ${event.penalty} points.`)];
+				? [hit(event.accused, "blame", render("weaver/hit-blame-upheld", { caller: event.caller, accused: event.accused, dm: event.dm, penalty: event.penalty }))]
+				: [hit(event.caller, "blame", render("weaver/hit-blame-rejected", { caller: event.caller, accused: event.accused, dm: event.dm, penalty: event.penalty }))];
 		}
 		if (event.type === "interpretation") {
 			if (isPrivateSource(event.source) || !event.labels.includes("accusation")) return [];
@@ -110,23 +111,23 @@ export class FateTriggers {
 			const sawIt = (target: CompetitorId): boolean => (event.source === "dm" || event.source === "group" ? readers?.has(target) === true : true);
 			return event.targets
 				.filter((target) => target !== event.agent && this.#isCompetitor(target) && sawIt(target))
-				.map((target) => hit(target, "accusation", `${event.agent} accused ${target} in a ${sourceText(event.source)} (#${event.ref}).`));
+				.map((target) => hit(target, "accusation", render("weaver/hit-accusation", { agent: event.agent, target, source: sourceText(event.source), ref: event.ref })));
 		}
 		if (event.type === "tribunal_opened") {
-			return event.accused.map((agent) => hit(agent, "tribunal", `The tribunal opened with ${agent} among the accused (${event.accused.join(", ")}).`));
+			return event.accused.map((agent) => hit(agent, "tribunal", render("weaver/hit-tribunal", { agent, accused: event.accused.join(", ") })));
 		}
-		if (event.type === "exile_gate") return [hit(event.agent, "gate", `The tribunal sent ${event.agent} to the gate.`)];
-		if (event.type === "ransomed") return [hit(event.agent, "ransom", `${event.payers.join(", ")} bought ${event.agent} back from the gate.`)];
+		if (event.type === "exile_gate") return [hit(event.agent, "gate", render("weaver/hit-gate", { agent: event.agent }))];
+		if (event.type === "ransomed") return [hit(event.agent, "ransom", render("weaver/hit-ransom", { payers: event.payers.join(", "), agent: event.agent }))];
 		if (event.type === "exiled") {
 			return this.alliesOf(event.agent).map((ally) =>
-				hit(ally, "ally_exiled", `${ally}'s ally ${event.agent} ${event.by === "seal" ? "was struck from the register by the black seal" : event.by === "holdout" ? "was struck from the city by the holdout tribunal" : "was exiled"}.`),
+				hit(ally, "ally_exiled", render(event.by === "seal" ? "weaver/hit-ally-seal" : event.by === "holdout" ? "weaver/hit-ally-holdout" : "weaver/hit-ally-exiled", { ally, agent: event.agent })),
 			);
 		}
 		if (event.type === "ultimatum_resolved") {
-			return event.paid.map((entry) => hit(entry.agent, "ultimatum", `${entry.agent} let ultimatum ${event.number} run out without handing over and paid ${entry.points} points.`));
+			return event.paid.map((entry) => hit(entry.agent, "ultimatum", render("weaver/hit-ultimatum", { agent: entry.agent, number: event.number, points: entry.points })));
 		}
 		if (event.type === "piece_kept" && event.cause === "ultimatum") {
-			return [hit(event.agent, "seized", `The city seized a piece ${event.agent} held for ${event.needers.join(", ")}, after an ultimatum ran out.`)];
+			return [hit(event.agent, "seized", render("weaver/hit-seized", { agent: event.agent, needers: event.needers.join(", ") }))];
 		}
 		return [];
 	}
@@ -135,16 +136,16 @@ export class FateTriggers {
 function sourceText(source: Extract<RecordedEvent, { type: "interpretation" }>["source"]): string {
 	switch (source) {
 		case "dm":
-			return "direct message";
+			return text("weaver/source-dm");
 		case "board":
-			return "board post";
+			return text("weaver/source-board");
 		case "group":
-			return "group post";
+			return text("weaver/source-group");
 		case "cast":
-			return "message to the city";
+			return text("weaver/source-cast");
 		case "thought":
 		case "aside":
-			return "private note";
+			return text("weaver/source-private");
 		default:
 			return assertNever(source, "statement source");
 	}

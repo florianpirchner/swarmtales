@@ -4,6 +4,7 @@
  */
 import type { CompetitorId } from "../core/ids.ts";
 import type { RecordedEvent } from "../engine/events.ts";
+import { render, text } from "../prompts/library.ts";
 import type { StatementSource } from "./labels.ts";
 
 export interface Statement {
@@ -44,15 +45,15 @@ export function statementLine(statement: Statement, maxChars: number): string {
 function whereOf(statement: Statement): string {
 	switch (statement.source) {
 		case "thought":
-			return "thinks (private)";
+			return text("classifier/where-thought");
 		case "aside":
-			return "says to itself (private)";
+			return text("classifier/where-aside");
 		case "dm":
 		case "cast":
-			return `DM to ${statement.to.join(", ")}`;
+			return render("classifier/where-dm", { to: statement.to.join(", ") });
 		case "board":
-			return "on the public board";
+			return text("classifier/where-board");
 		case "group":
-			return `in group ${statement.group ?? "?"}`;
+			return render("classifier/where-group", { group: statement.group ?? "?" });
 	}
 }
