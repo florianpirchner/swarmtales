@@ -4,8 +4,9 @@
  * is a compile error; `pnpm validate` checks that the files agree with this list.
  */
 import { AGENT_PROMPTS } from "./keys/agents.ts";
+import { GAMEMAKER_PROMPTS } from "./keys/gamemaker.ts";
 
-export const PROMPTS = { ...AGENT_PROMPTS } as const;
+export const PROMPTS = { ...AGENT_PROMPTS, ...GAMEMAKER_PROMPTS } as const;
 
 export type PromptId = keyof typeof PROMPTS;
 
