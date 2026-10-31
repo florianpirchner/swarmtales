@@ -4,7 +4,7 @@
  * due jobs, `minuteStarted`, then every resident who may act in a seeded order (inputs from the
  * mechanics, one agent turn), then `minuteEnded` and the referee's checks.
  */
-import { Check, Clone, Parse } from "typebox/value";
+import { Check, Parse } from "typebox/value";
 import {
 	CORE_EVENTS,
 	EventEnvelopeSchema,
@@ -18,7 +18,6 @@ import {
 	type GuardModel,
 	type Host,
 	type HostSnapshot,
-	type JsonValue,
 	type MechanicInstance,
 	type PromptLookup,
 	type ResidentId,
@@ -36,8 +35,9 @@ import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
 import { Referee, type Breach } from "./referee.ts";
-import { ResidentRegistry, residentIds, type ResidentsState } from "./residents.ts";
+import { ResidentRegistry, residentIds } from "./residents.ts";
 import { Scheduler } from "./scheduler.ts";
+import { restoreHost, saveHost, type SnapshotParts } from "./snapshots.ts";
 import { mergePolicies, TurnLoop } from "./turns.ts";
 
 export interface HostOptions {
@@ -58,32 +58,6 @@ export interface HostOptions {
 	readonly between?: (minute: number) => Promise<void>;
 	/** The events the app may write with `host.record` (source `app`). */
 	readonly app?: { readonly events: EventSchemas };
-}
-
-function isJsonValue(value: unknown): value is JsonValue {
-	if (value === null || typeof value === "string" || typeof value === "boolean") return true;
-	if (typeof value === "number") return Number.isFinite(value);
-	if (Array.isArray(value)) return value.every((item: unknown) => isJsonValue(item));
-	if (typeof value === "object") return Object.values(value).every((item: unknown) => isJsonValue(item));
-	return false;
-}
-
-function copyLists(lists: Readonly<Record<string, readonly string[]>>): Record<string, string[]> {
-	return Object.fromEntries(Object.entries(lists).map(([key, list]) => [key, [...list]]));
-}
-
-function residentsState(saved: HostSnapshot["residents"]): ResidentsState {
-	const attributes: Record<string, Record<string, Record<string, JsonValue>>> = {};
-	for (const [id, byOwner] of Object.entries(saved.attributes)) {
-		for (const [owner, bag] of Object.entries(byOwner)) {
-			for (const [key, value] of Object.entries(bag)) {
-				if (!isJsonValue(value)) throw new Error(`snapshot: attribute ${owner}.${key} of ${id} is not JSON`);
-				const forId = (attributes[id] ??= {});
-				(forId[owner] ??= {})[key] = value;
-			}
-		}
-	}
-	return { ids: saved.ids, attributes, suspensions: saved.suspensions };
 }
 
 class CoreHost implements Host {
@@ -328,26 +302,7 @@ class CoreHost implements Host {
 		this.#usable();
 		if (this.#playing) throw new Error("host: a snapshot is taken between minutes");
 		if (this.#staging.size > 0) throw new Error(`host: ${String(this.#staging.size)} staged calls have not run; a snapshot would lose them`);
-		const mechanics: Record<string, { version: number; data: unknown }> = {};
-		for (const id of this.#loaded.order) {
-			const slice = this.#loaded.instances.get(id)?.snapshot;
-			if (slice !== undefined) mechanics[id] = { version: slice.version, data: Clone(slice.save()) };
-		}
-		const residents = this.#registry.save();
-		const base = {
-			format: "swarmtales.host" as const,
-			version: 1 as const,
-			story: this.#story.id,
-			seed: this.#story.seed,
-			minute: this.#minute,
-			seq: this.#bus.lastSeq,
-			residents: { ids: [...residents.ids], attributes: residents.attributes, suspensions: copyLists(residents.suspensions) },
-			locks: copyLists(this.#access.save()),
-			jobs: [...this.#scheduler.save()],
-			referee: this.#referee.save(),
-			mechanics,
-		};
-		return this.#ended === undefined ? base : { ...base, ended: this.#ended };
+		return saveHost(this.#parts(), this.#minute, this.#ended);
 	}
 
 	subscribe(sink: (event: EventEnvelope) => void): void {
@@ -431,27 +386,12 @@ class CoreHost implements Host {
 		if (this.#failed) throw this.#refusal();
 	}
 
+	#parts(): SnapshotParts {
+		return { story: this.#story, bus: this.#bus, registry: this.#registry, access: this.#access, scheduler: this.#scheduler, referee: this.#referee, loaded: this.#loaded };
+	}
+
 	#restore(snapshot: HostSnapshot): void {
-		if (snapshot.story !== this.#story.id || snapshot.seed !== this.#story.seed) throw new Error("snapshot: taken from another story or seed");
-		if (snapshot.seq !== this.#bus.lastSeq) throw new Error(`snapshot: taken at seq ${String(snapshot.seq)}, but the log has ${String(this.#bus.lastSeq)} events`);
-		this.#registry.load(residentsState(snapshot.residents));
-		// Without locks the story's start locks stay: a resume never silently opens a locked tool.
-		if (snapshot.locks !== undefined) this.#access.load(snapshot.locks);
-		this.#scheduler.load(snapshot.jobs.map((job) => {
-			if (job.data !== undefined && !isJsonValue(job.data)) throw new Error(`snapshot: data of job ${job.job} is not JSON`);
-			const { data, ...rest } = job;
-			return data === undefined || !isJsonValue(data) ? rest : { ...rest, data };
-		}));
-		this.#referee.load(snapshot.referee);
-		for (const id of this.#loaded.order) {
-			const slice = this.#loaded.instances.get(id)?.snapshot;
-			const saved = snapshot.mechanics[id];
-			if (slice === undefined) continue;
-			if (saved === undefined) throw new Error(`snapshot: no slice for mechanic "${id}"`);
-			slice.load(saved.data, saved.version);
-		}
-		const unknown = Object.keys(snapshot.mechanics).find((id) => !this.#loaded.order.includes(id));
-		if (unknown !== undefined) throw new Error(`snapshot: slice of mechanic "${unknown}", which the story does not load`);
+		restoreHost(this.#parts(), snapshot);
 		this.#minute = snapshot.minute;
 		this.#started = true;
 		this.#ended = snapshot.ended;
