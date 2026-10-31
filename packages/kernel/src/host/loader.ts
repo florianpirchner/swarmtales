@@ -8,7 +8,7 @@ import { Check } from "typebox/value";
 import { CORE_EVENTS, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
-import { servesOverlap, type LoadedTool, type ToolCatalog } from "./catalog.ts";
+import { servesOverlap, toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
 import type { EventBus } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import type { Scheduler } from "./scheduler.ts";
@@ -83,7 +83,7 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 			owners.set(type, definition.id);
 		}
 		let jobs: readonly string[] = [];
-		const port = portFor(parts, definition.id, use, services, () => jobs, (tool) => tools.has(tool));
+		const port = portFor(parts, definition.id, use, services, () => jobs, tools);
 		const instance = definition.instantiate(port, use.options);
 		jobs = instance.jobs;
 		for (const service of instance.services) services.set(service.api.name, service);
@@ -96,9 +96,24 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 		instances.set(definition.id, instance);
 		bus.listen(instance.listeners);
 	}
+	checkListeners(order, instances);
 	const named = [...Object.values(story.grants).flat(), ...(story.locked ?? []), ...Object.keys(story.tools ?? {})];
 	for (const name of named) if (!tools.has(name)) throw new Error(`story: tool "${name}" is granted, locked or configured, but no loaded mechanic defines it`);
 	return { order: order.map((use) => use.mechanic.id), instances, tools };
+}
+
+/** A listener of a loaded mechanic's event must read it with the schema that mechanic declares (the frozen shared one). */
+function checkListeners(order: readonly MechanicUse[], instances: ReadonlyMap<string, MechanicInstance>): void {
+	const declared = new Map(order.map((use) => [use.mechanic.id, use.mechanic.events]));
+	for (const [id, instance] of instances) {
+		for (const listener of instance.listeners) {
+			const events = declared.get(listener.source);
+			if (events === undefined) continue;
+			const schema = events[listener.type];
+			if (schema === undefined) throw new Error(`${id}: listens to ${listener.source}.${listener.type}, which ${listener.source} does not declare`);
+			if (schema !== listener.schema) throw new Error(`${id}: listens to ${listener.source}.${listener.type} with another schema than ${listener.source} declares; both must use the shared declaration`);
+		}
+	}
 }
 
 function portFor(
@@ -107,8 +122,9 @@ function portFor(
 	use: MechanicUse,
 	services: ReadonlyMap<string, ProvidedApi>,
 	jobs: () => readonly string[],
-	isTool: (tool: string) => boolean,
+	tools: ToolCatalog,
 ): MechanicPort {
+	const isTool = (tool: string): boolean => tools.has(tool);
 	const { bus, story } = parts;
 	const definition = use.mechanic;
 	let drawSeq = -1;
@@ -149,10 +165,13 @@ function portFor(
 			return createRng(deriveSeed(story.seed, id, drawSeq, draws));
 		},
 		rng: (...labels) => createRng(deriveSeed(story.seed, ...labels)),
-		stage(tool, params, options) {
+		stage(ref, params, options) {
+			const tool = ref.name;
 			const then = options?.then;
 			if (then !== undefined && !jobs().includes(then)) throw new Error(`${id}: stages ${tool} with "then" job "${then}", which it does not declare`);
 			if (!isTool(tool)) throw new Error(`${id}: stages "${tool}", which no loaded mechanic defines`);
+			const variant = toolFor(tools, tool, "script");
+			if (variant !== undefined && variant.tool.parameters !== ref.parameters) throw new Error(`${id}: stages "${tool}" with another parameter schema than ${variant.owner} defines; both must use the shared declaration`);
 			parts.staging.push({ owner: id, tool, params, cause: bus.frame().cause, then });
 		},
 		residents: parts.residents.portFor(id),

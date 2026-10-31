@@ -56,6 +56,16 @@ export interface ToolCall {
 	readonly seq: number;
 }
 
+/**
+ * A tool's name and parameter schema, declared apart from the mechanic that defines it
+ * (`defineTool`), so another mechanic can stage it typed (`ctx.stage(ref, params)`) without a value
+ * import of that mechanic. Every `MechanicTool` is one; the loaded tool must use the same schema.
+ */
+export interface ToolRef<N extends string = string, P extends TSchema = TSchema> {
+	readonly name: N;
+	readonly parameters: P;
+}
+
 /** What an agent runner binds: every granted tool, locked or not, so the request prefix stays stable (P46). */
 export interface ToolSpec {
 	readonly name: string;

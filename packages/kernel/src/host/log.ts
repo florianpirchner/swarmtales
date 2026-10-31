@@ -3,6 +3,8 @@
  * for each event, the mechanics' listeners in load order (each in declaration order), then the
  * sinks. An event emitted while code runs is queued and dispatched once that code returns, so a
  * tool's events all land before anyone reacts to them, and the log order equals the dispatch order.
+ * Immediate listeners (`{ immediate: true }`) are the exception: they run inside the emit, depth
+ * first, so their events land right behind the event they react to (the old engine's callbacks).
  */
 import type { Actor, EventEnvelope, EventListener, EventLogView } from "@swarmtales/contracts";
 
@@ -20,6 +22,7 @@ export class EventBus implements EventLogView {
 	readonly #queue: EventEnvelope[] = [];
 	readonly #frames: Frame[] = [];
 	readonly #listeners: EventListener[] = [];
+	readonly #immediate: EventListener[] = [];
 	readonly #sinks: ((event: EventEnvelope) => void)[] = [];
 	readonly #minute: () => number;
 	#depth = 0;
@@ -60,7 +63,7 @@ export class EventBus implements EventLogView {
 	}
 
 	listen(listeners: readonly EventListener[]): void {
-		this.#listeners.push(...listeners);
+		for (const listener of listeners) (listener.immediate ? this.#immediate : this.#listeners).push(listener);
 	}
 
 	subscribe(sink: (event: EventEnvelope) => void): void {
@@ -74,6 +77,9 @@ export class EventBus implements EventLogView {
 		const event: EventEnvelope = frame.cause === undefined ? base : { ...base, causedBy: frame.cause };
 		this.#events.push(event);
 		this.#queue.push(event);
+		for (const listener of this.#immediate) {
+			if (listener.source === event.source && listener.type === event.type) this.#handle(listener, event);
+		}
 		if (this.#depth === 0) this.#drain();
 		return event;
 	}
@@ -91,6 +97,18 @@ export class EventBus implements EventLogView {
 		}
 	}
 
+	/** One listener in the frame of the event it reacts to; what it emits is queued behind. */
+	#handle(listener: EventListener, event: EventEnvelope): void {
+		this.#frames.push({ actor: event.actor, cause: event.seq });
+		this.#depth += 1;
+		try {
+			listener.handle(event);
+		} finally {
+			this.#depth -= 1;
+			this.#frames.pop();
+		}
+	}
+
 	#drain(): void {
 		if (this.#draining) return;
 		this.#draining = true;
@@ -101,15 +119,7 @@ export class EventBus implements EventLogView {
 				if (dispatched > MAX_CASCADE) throw new Error(`event bus: more than ${String(MAX_CASCADE)} events in one cascade`);
 				const current = event;
 				for (const listener of this.#listeners) {
-					if (listener.source !== current.source || listener.type !== current.type) continue;
-					this.#frames.push({ actor: current.actor, cause: current.seq });
-					this.#depth += 1;
-					try {
-						listener.handle(current);
-					} finally {
-						this.#depth -= 1;
-						this.#frames.pop();
-					}
+					if (listener.source === current.source && listener.type === current.type) this.#handle(listener, current);
 				}
 				for (const sink of this.#sinks) sink(current);
 			}

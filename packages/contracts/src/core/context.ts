@@ -6,6 +6,7 @@
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput } from "./api.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
+import type { ToolRef } from "./tools.ts";
 import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomLabel, RandomSource, ResidentId } from "./values.ts";
 
 /** Options of `ctx.stage`. */
@@ -67,7 +68,7 @@ export interface MechanicPort {
 	/** The labelled stream of the run seed: `rng("deal", 3)` draws what `rngFor(seed, "deal", 3)` draws, wherever it is called. */
 	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/** Queues a call by the script; it runs through the pipeline once the current code has finished. */
-	stage(tool: string, params: unknown, options?: StageOptions): void;
+	stage(tool: ToolRef, params: unknown, options?: StageOptions): void;
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;
@@ -131,9 +132,12 @@ export interface MechanicContext<M extends MechanicShape> {
 	/**
 	 * Stages a call by the script (actor `script`): it runs through the whole pipeline after the
 	 * code that staged it (a job, a hook, a listener, a tool call) has finished, before anything
-	 * else happens. `then` names a job of this mechanic that gets the outcome as its data.
+	 * else happens. `then` names a job of this mechanic that gets the outcome as its data. Calls
+	 * staged while a staged call (or its `then` job) runs go first, depth first, so a chain of
+	 * one-at-a-time actions finishes before the next queued call. `tool` is a `ToolRef`
+	 * (`defineTool`, or the tool itself), so the parameters are typed.
 	 */
-	stage(tool: string, params: unknown, options?: StageOptions): void;
+	stage<P extends TSchema>(tool: ToolRef<string, P>, params: Static<P>, options?: StageOptions): void;
 }
 
 /** A tool's context: the mechanic context plus who calls. */

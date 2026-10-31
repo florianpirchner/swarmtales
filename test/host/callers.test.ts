@@ -6,7 +6,7 @@
  */
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { createHost, defineCoreStory, defineMechanic, refuse, reply } from "@swarmtales/kernel";
+import { createHost, defineCoreStory, defineMechanic, defineTool, refuse, reply } from "@swarmtales/kernel";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory, scriptedAgent } from "@swarmtales/testkit";
 import type { EventEnvelope, GuardJudge, GuardQuestion, Host, MechanicUse, RoleCaller, RoleQuestion } from "@swarmtales/contracts";
 
@@ -67,6 +67,9 @@ const mail = defineMechanic(
 	}),
 );
 
+/** The gamemaker's and script's `announce`, declared apart so the script stages it typed. */
+const Announce = defineTool("announce", Type.Object({ text: Type.String() }));
+
 /** A tool that waits for the judge, and the gamemaker's and script's `announce` and `draw`. */
 const court = defineMechanic(
 	{
@@ -95,7 +98,7 @@ const court = defineMechanic(
 					return reply(consulted.answer.guilty ? `${params.to} is guilty` : `${params.to} is cleared`);
 				},
 			}),
-			kit.tool({ name: "announce", description: "court/announce", serves: ["gamemaker", "script"], parameters: Type.Object({ text: Type.String() }), execute: (params, ctx) => {
+			kit.tool({ name: "announce", description: "court/announce", serves: ["gamemaker", "script"], parameters: Announce.parameters, execute: (params, ctx) => {
 				ctx.emit("proclaimed", { by: ctx.actor, text: params.text });
 				return reply("proclaimed");
 			} }),
@@ -126,7 +129,7 @@ const script = defineMechanic(
 		},
 		jobs: {
 			herald: (ctx) => {
-				ctx.stage("announce", { text: "minute one" }, { then: "noted" });
+				ctx.stage(Announce, { text: "minute one" }, { then: "noted" });
 			},
 			noted: (ctx, data) => {
 				const outcome = JSON.stringify(data);
@@ -136,7 +139,7 @@ const script = defineMechanic(
 		},
 		listeners: [
 			kit.listen(mail, "mail_sent", (payload, ctx) => {
-				ctx.stage("announce", { text: `${payload.from} wrote` });
+				ctx.stage(Announce, { text: `${payload.from} wrote` });
 			}),
 		],
 		facts: { outcomes: kit.fact(Type.Array(Type.String()), (view) => [...view.state.outcomes]) },
@@ -259,7 +262,7 @@ describe("the script as a caller", () => {
 	it("refuses to stage an unknown tool or then job, and stays deterministic and resumable", async () => {
 		const careless = defineMechanic({ id: "careless", summary: "Stages nonsense.", options: Type.Object({}), state: () => undefined, events: {} }, () => ({
 			hooks: { runStarted: (ctx) => {
-				ctx.stage("fly", {});
+				ctx.stage(defineTool("fly", Type.Object({})), {});
 			} },
 		}));
 		expect(() => {

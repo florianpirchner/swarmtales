@@ -4,7 +4,7 @@
  * them, and every misuse below is a type error.
  */
 import { Type } from "typebox";
-import { defineCoreStory, defineHead, defineMechanic, reply } from "@swarmtales/kernel";
+import { defineCoreStory, defineEvents, defineHead, defineMechanic, defineTool, reply } from "@swarmtales/kernel";
 import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
 import { channels } from "./proof/channels.ts";
 import { LedgerApi, ledger } from "./proof/ledger.ts";
@@ -65,6 +65,27 @@ export const probe = defineMechanic(
 	}),
 );
 
+const Poke = defineTool("poke", Type.Object({ who: Type.String() }));
+const Shared = defineEvents("ledger", { points_transferred: Type.Object({ amount: Type.Integer() }) });
+
+export const sharedListener = defineMechanic(
+	{ id: "shared", summary: "Listens to declared events.", options: Type.Object({}), state: () => undefined, events: { noted: Type.Object({ n: Type.Integer() }) } },
+	(kit) => ({
+		listeners: [
+			kit.listen(
+				Shared,
+				"points_transferred",
+				(payload, ctx) => {
+					ctx.emit("noted", { n: payload.amount });
+				},
+				{ immediate: true },
+			),
+			// @ts-expect-error: the declaration has no such event
+			kit.listen(Shared, "points_stolen", () => undefined),
+		],
+	}),
+);
+
 export const unrequired = defineMechanic(
 	{ id: "unrequired", summary: "Calls an API it does not require.", options: Type.Object({}), state: () => undefined, events: {} },
 	() => ({
@@ -74,6 +95,11 @@ export const unrequired = defineMechanic(
 				ctx.call(LedgerApi, "balance", { resident: "A01" });
 				// @ts-expect-error: another mechanic's attributes are read through its API, never from its bag
 				ctx.residents.attribute("A01", "mood", "ledger");
+				ctx.stage(Poke, { who: "A01" });
+				// @ts-expect-error: staged parameters are typed by the tool's declaration
+				ctx.stage(Poke, { who: 1 });
+				// @ts-expect-error: a tool is staged by its declaration, not by a bare name
+				ctx.stage("poke", { who: "A01" });
 			},
 		},
 	}),

@@ -9,7 +9,7 @@ import type { GuardSecret } from "../roles.ts";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
 import type { ConsultDefinition, Consulted, GuardHandlers, PreparedConsult, PresentationHandlers } from "./consult.ts";
 import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
-import type { CORE_EVENTS, EventEnvelope, EventSchemas } from "./events.ts";
+import type { CORE_EVENTS, EventEnvelope, EventSchemas, EventsDefinition } from "./events.ts";
 import type { TurnLine } from "./host.ts";
 import type { Refusal, ToolCall, ToolLimit, ToolOutcome, ToolSuccess } from "./tools.ts";
 import type { TurnPolicy } from "./turns.ts";
@@ -111,7 +111,21 @@ export interface MechanicTool<N extends string = string> {
 export interface EventListener {
 	readonly source: string;
 	readonly type: string;
+	/** The payload schema the listener reads with; the declaring mechanic must use the same one. */
+	readonly schema: TSchema;
+	/** Runs inside the emit, depth first (`ListenOptions.immediate`). */
+	readonly immediate: boolean;
 	handle(event: EventEnvelope): void;
+}
+
+/** How a listener is dispatched. */
+export interface ListenOptions {
+	/**
+	 * Run inside the emit, depth first, before the emitting code goes on (the old engine's
+	 * synchronous callbacks: a reaction to `B` lands between `B` and the emitter's next event).
+	 * Default: after the emitting code returned, in log order (§5).
+	 */
+	readonly immediate?: boolean;
 }
 
 /** A pure function over state and log, for the gamemaker's situation report and the watch role. */
@@ -144,7 +158,7 @@ export interface SnapshotSlice {
 	load(data: unknown, version: number): void;
 }
 
-type ListenerOf<M extends MechanicShape, D extends MechanicDefinition, K extends keyof D["events"] & string> = (
+type ListenerOf<M extends MechanicShape, D extends EventsDefinition, K extends keyof D["events"] & string> = (
 	payload: Static<D["events"][K]>,
 	ctx: MechanicContext<M>,
 	event: EventEnvelope<K, Static<D["events"][K]>>,
@@ -158,11 +172,19 @@ export interface MechanicKit<M extends MechanicShape> {
 	on<K extends keyof M["events"] & string>(
 		type: K,
 		handler: (payload: Static<M["events"][K]>, ctx: MechanicContext<M>, event: EventEnvelope<K, Static<M["events"][K]>>) => void,
+		options?: ListenOptions,
 	): EventListener;
-	/** Reacts to another mechanic's event without requiring it; silent when that mechanic is not loaded. */
-	listen<D extends MechanicDefinition, K extends keyof D["events"] & string>(source: D, type: K, handler: ListenerOf<M, D, K>): EventListener;
+	/**
+	 * Reacts to another mechanic's event without requiring it; silent when that mechanic is not
+	 * loaded. `source` is the events' declaration (`defineEvents`) or the mechanic itself.
+	 */
+	listen<D extends EventsDefinition, K extends keyof D["events"] & string>(source: D, type: K, handler: ListenerOf<M, D, K>, options?: ListenOptions): EventListener;
 	/** Reacts to an event the core writes (`run_started`, `tool_refused`, ...). */
-	core<K extends keyof CoreEventSchemas>(type: K, handler: (payload: Static<CoreEventSchemas[K]>, ctx: MechanicContext<M>, event: EventEnvelope) => void): EventListener;
+	core<K extends keyof CoreEventSchemas>(
+		type: K,
+		handler: (payload: Static<CoreEventSchemas[K]>, ctx: MechanicContext<M>, event: EventEnvelope) => void,
+		options?: ListenOptions,
+	): EventListener;
 	fact<F extends TSchema>(output: F, compute: (view: FactView<M>) => Static<F>): MechanicFact;
 	limit(id: string, summary: string, breached: (view: FactView<M>) => string | undefined): RunLimit;
 	snapshot<Snap extends TSchema>(definition: SnapshotDefinition<M, Snap>): SnapshotSlice;

@@ -11,6 +11,7 @@ import type {
 	CoreStory,
 	CoreStoryData,
 	EventSchemas,
+	EventsDefinition,
 	MechanicBody,
 	MechanicDefinition,
 	MechanicHead,
@@ -22,6 +23,7 @@ import type {
 	RandomLabel,
 	Refusal,
 	Shape,
+	ToolRef,
 	ToolSuccess,
 } from "@swarmtales/contracts";
 import { contextFor, createKit, type InstanceParts } from "./kit.ts";
@@ -36,6 +38,16 @@ export function reply(text: string): ToolSuccess {
 
 export function defineApi<const N extends string, const M extends ApiMethods>(api: ApiDefinition<N, M>): ApiDefinition<N, M> {
 	return api;
+}
+
+/** Events declared apart from their mechanic, for listeners that should not import it (and for its head). */
+export function defineEvents<const Id extends string, const E extends EventSchemas>(id: Id, events: E): EventsDefinition<Id, E> {
+	return { id, events };
+}
+
+/** A tool's name and parameters declared apart from its mechanic, for typed `ctx.stage` (and for the tool itself). */
+export function defineTool<const N extends string, P extends TSchema>(name: N, parameters: P): ToolRef<N, P> {
+	return { name, parameters };
 }
 
 /** Checks the story's tool names against its mechanics at compile time; the host checks the rest at load. */

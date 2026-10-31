@@ -27,6 +27,15 @@ export class StagingQueue {
 		return this.#calls.shift();
 	}
 
+	/** Takes every queued call; `restore` puts them back behind what was staged meanwhile (depth first). */
+	takeAll(): readonly StagedCall[] {
+		return this.#calls.splice(0);
+	}
+
+	restore(calls: readonly StagedCall[]): void {
+		this.#calls.push(...calls);
+	}
+
 	get size(): number {
 		return this.#calls.length;
 	}

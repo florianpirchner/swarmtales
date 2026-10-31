@@ -24,6 +24,17 @@ export interface EventEnvelope<T extends string = string, P = unknown> {
 /** The events a mechanic declares: event type to payload schema. */
 export type EventSchemas = Readonly<Record<string, TSchema>>;
 
+/**
+ * Events declared apart from the mechanic that emits them (`defineEvents`), in a shared place like
+ * an API: listeners take this, not the mechanic, so they need no value import of it. A loaded
+ * mechanic whose `id` is `id` must declare each of these events with the very same schema.
+ * Every `MechanicDefinition` is one too.
+ */
+export interface EventsDefinition<Id extends string = string, E extends EventSchemas = EventSchemas> {
+	readonly id: Id;
+	readonly events: E;
+}
+
 /** The typed envelopes of one mechanic's events, for exhaustive consumers (chronicle, reporter). */
 export type EventOf<Source extends string, E extends EventSchemas> = {
 	readonly [K in keyof E & string]: EventEnvelope<K, Static<E[K]>> & { readonly source: Source };

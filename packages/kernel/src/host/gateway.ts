@@ -101,14 +101,18 @@ export class Gateway {
 	async #drain(): Promise<void> {
 		const { staging, bus } = this.#parts;
 		for (let staged = staging.take(); staged !== undefined; staged = staging.take()) {
+			// Depth first: what this call and its `then` job stage runs before the calls queued behind it.
+			const behind = staging.takeAll();
 			const { outcome, seq } = await this.#run("script", staged.tool, staged.params, staged.cause);
 			const then = staged.then;
-			if (then === undefined) continue;
-			const instance = this.#parts.instanceOf(staged.owner);
-			if (instance === undefined) throw new Error(`staging: unknown mechanic "${staged.owner}"`);
-			bus.run({ actor: "script", cause: seq }, () => {
-				instance.runJob(then, stagedData(outcome));
-			});
+			if (then !== undefined) {
+				const instance = this.#parts.instanceOf(staged.owner);
+				if (instance === undefined) throw new Error(`staging: unknown mechanic "${staged.owner}"`);
+				bus.run({ actor: "script", cause: seq }, () => {
+					instance.runJob(then, stagedData(outcome));
+				});
+			}
+			staging.restore(behind);
 		}
 	}
 

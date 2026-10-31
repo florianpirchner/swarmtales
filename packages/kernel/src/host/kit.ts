@@ -194,33 +194,39 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				},
 			};
 		},
-		on(type, handler) {
+		on(type, handler, options) {
 			const schema = entry(parts.events, type, `${port.id}.${type}`);
 			return {
 				source: port.id,
 				type,
+				schema,
+				immediate: options?.immediate === true,
 				handle: (event) => {
 					const payload = parseWith(schema, event.payload, `${port.id}.${type}`);
 					handler(payload, ctx(), { ...event, type, payload });
 				},
 			};
 		},
-		listen(source, type, handler) {
+		listen(source, type, handler, options) {
 			const schema = entry(entry(source, "events", source.id), type, `${source.id}.${type}`);
 			return {
 				source: source.id,
 				type,
+				schema,
+				immediate: options?.immediate === true,
 				handle: (event) => {
 					const payload = parseWith(schema, event.payload, `${source.id}.${type}`);
 					handler(payload, ctx(), { ...event, type, payload });
 				},
 			};
 		},
-		core(type, handler) {
+		core(type, handler, options) {
 			const schema = CORE_EVENTS[type];
 			return {
 				source: "core",
 				type,
+				schema,
+				immediate: options?.immediate === true,
 				handle: (event) => {
 					handler(parseWith(schema, event.payload, `core.${type}`), ctx(), event);
 				},
