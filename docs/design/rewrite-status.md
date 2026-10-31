@@ -32,18 +32,19 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
    (`test/mechanics/tribunal/support/section.ts`) into the repo as a gate; `--no-guards` must also drop `receipts.minRun`;
    a story without `names` needs an off switch; resumed runs write `run_resumed` and the motive deals one minute late and
    lose the whisperer when the file has no `whisperer_chosen` (L1, L2).
-2. **Story option mapping** (R2-D17) when step 18 composes the stories.
-3. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
+2. **Overseers and the decision gate** (idea, Flo decided the name Overseer; API sketch still to write and to read before building): `docs/ideas/overseers-and-plugins.md`.
+3. **Story option mapping** (R2-D17) when step 18 composes the stories.
+4. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
    (`pnpm validate` refuses them until then); wire `defiance` and `direction` in the CLI.
    **Decision point (core motive rename, `docs/design/rename-core-motive.md`):** until here the new core writes the legacy
    names through the adapter (event `core_dealt`, snapshot key `cores`, the pinned gamemaker strings that still say "core").
    At step 18 the event becomes `motive_dealt`, the snapshot key gets a migration, the pinned strings are reworded, and the golden
    files are updated once, deliberately, with the documented reason "core becomes core motive".
-4. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
+5. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
    sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
    instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).
-5. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
+6. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
 
 ## Notes for whoever continues
 
