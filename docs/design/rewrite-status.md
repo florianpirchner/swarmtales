@@ -20,7 +20,18 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 
 ## Open, in this order
 
-1. **Round 3 challengers** (four Opus reviewers, running): verify the round-3 fixes with own mutants, rate the "still unproven" items of each team, judge readiness for step 18. Then a fix round for blockers only.
+1. **Round 3 challengers are done** (reports: `/mnt/project-files/notes/challenge-round3-*.md`). Golden logs are safe in every
+   team's area. Code blockers (one Sonnet agent fixes them): the DM count in `whispers` `dutyNow.busiest`, the active cast in
+   progression's `listAgents` (`CastExtrasApi.active` into `mechanics/shared`), the wrong `defiance` mapping in R2-D5/R2-D17
+   (`defiance = story.gamemaker !== undefined && gmDirection >= 10`; `whispererDefies` is a separate flag). Also a core decision
+   already made: a resident struck by the seal mid-block must get `TOOL_LOCKED` + `LOCKED_REPLY` as in `world.ts:1439`, not
+   `RESIDENT_INACTIVE` (`kernel/src/host/gateway.ts:209`).
+   **Step-18 wiring list:** `script` and `arena` do not exist yet (goldens cannot be replayed without them); the gamemaker's tool
+   list must respect locks (`host.ts:296`); map `gamemakerRoles` (`tribunal/src/view.ts:90`) and `grantsUltimatum`
+   (`standoff/src/grants.ts:15`); grant `resolvePetition` to `script`; put the Tribunal section renderer
+   (`test/mechanics/tribunal/support/section.ts`) into the repo as a gate; `--no-guards` must also drop `receipts.minRun`;
+   a story without `names` needs an off switch; resumed runs write `run_resumed` and the motive deals one minute late and
+   lose the whisperer when the file has no `whisperer_chosen` (L1, L2).
 2. **Story option mapping** (R2-D17) when step 18 composes the stories.
 3. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
