@@ -11,9 +11,8 @@
  * At figure direction 10 the city measures the whisperer's orders
  * (`direction.quota`): what counts as a whisper is {@link tallyWhispers}.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import type { WhispererSpec, WhisperQuota } from "../story/types.ts";
+import { type CompetitorId, rngFor } from "@swarmtales/kernel";
+import type { WhispererSpec, WhisperQuota } from "@swarmtales/contracts";
 import type { VoteCount } from "./popularity.ts";
 import type { Receipt } from "./receipts.ts";
 import { carriesRun } from "./secrets.ts";

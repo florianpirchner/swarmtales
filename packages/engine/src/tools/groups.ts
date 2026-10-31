@@ -1,7 +1,7 @@
 import { Type } from "typebox";
-import type { CompetitorId } from "../core/ids.ts";
-import { MAX_GROUP_NAME_LENGTH, MAX_GROUP_POST_LENGTH, type GroupSummary } from "../engine/groups.ts";
-import { render, text } from "../prompts/library.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { MAX_GROUP_NAME_LENGTH, MAX_GROUP_POST_LENGTH, type GroupSummary } from "../groups.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, failure, marksSuffix, success, type ToolOutcome } from "./tool.ts";
 
 const groupId = Type.String({ description: "Group ID, e.g. G1" });

@@ -11,7 +11,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureDirection, type FigureSpec } from "../story/index.ts";
+import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureDirection, type FigureSpec } from "@swarmtales/contracts";
 
 const Level = Type.Union(CORE_LEVELS.map((level) => Type.Literal(level)));
 const Tone = Type.Union([Type.Literal("light"), Type.Literal("dark")]);

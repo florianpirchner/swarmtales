@@ -19,10 +19,8 @@
  * resident's goal is void: the city reads it out as it leaves, and every goal
  * at the act's end. The city never confirms a goal to anyone else.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor, type Rng } from "../core/random.ts";
-import { renderTemplate } from "../story/templates.ts";
-import { GOAL_KINDS, type GoalKind, type GoalsSpec } from "../story/types.ts";
+import { type CompetitorId, renderTemplate, type Rng, rngFor } from "@swarmtales/kernel";
+import { GOAL_KINDS, type GoalKind, type GoalsSpec } from "@swarmtales/contracts";
 import type { Core } from "./cores.ts";
 import type { ArenaEvent, Goal } from "./events.ts";
 

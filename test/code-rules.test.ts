@@ -8,8 +8,8 @@ import { join, relative, sep } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { STORIES } from "../stories/index.ts";
-import { assertNever } from "../src/core/result.ts";
-import type { Action } from "../src/story/types.ts";
+import { assertNever } from "@swarmtales/kernel";
+import type { Action } from "@swarmtales/contracts";
 
 const ROOT = process.cwd();
 /** This file lists the forbidden patterns and words and is therefore exempt from the text scan. */
@@ -25,7 +25,10 @@ function filesIn(directory: string, extensions: readonly string[]): readonly str
 	return found;
 }
 
-const typescriptFiles = [...filesIn("src", [".ts"]), ...filesIn("stories", [".ts"]), ...filesIn("test", [".ts"])];
+/** The code folders of the workspace: every package's and the app's `src`. */
+const sourceDirectories = [...readdirSync("packages").map((name) => join("packages", name, "src")), join("apps", "cli", "src")];
+const sourceFiles = sourceDirectories.flatMap((directory) => filesIn(directory, [".ts"]));
+const typescriptFiles = [...sourceFiles, ...filesIn("stories", [".ts"]), ...filesIn("test", [".ts"])];
 
 interface Offence {
 	readonly file: string;
@@ -72,7 +75,7 @@ describe("project rules: types", () => {
 
 	it("keeps engine code deterministic", () => {
 		// The digest must give the same beats for the same log, so it is held to the same rule.
-		const engineDirectories = [...["core", "engine", "story", "tools", "digest"].map((name) => join("src", name)), "stories"];
+		const engineDirectories = [...["kernel", "engine", "contracts", "sdk"].map((name) => join("packages", name, "src")), join("packages", "chronicle", "src", "digest"), "stories"];
 		const engineFiles = typescriptFiles.filter((file) => engineDirectories.some((directory) => file.startsWith(directory + sep)));
 		expect(engineFiles.length).toBeGreaterThan(10);
 		const offences = engineFiles.flatMap((file) =>
@@ -91,7 +94,7 @@ describe("project rules: types", () => {
 	});
 
 	it("keeps story content out of the engine", () => {
-		const engineFiles = typescriptFiles.filter((file) => ["core", "engine", "tools", "story"].some((name) => file.startsWith(join("src", name) + sep)));
+		const engineFiles = typescriptFiles.filter((file) => ["kernel", "engine", "contracts", "sdk"].some((name) => file.startsWith(join("packages", name, "src") + sep)));
 		const offences = engineFiles.flatMap((file) =>
 			scanAst(file, (node, report) => {
 				if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text.includes("/stories/")) {
@@ -103,7 +106,7 @@ describe("project rules: types", () => {
 	});
 
 	it("keeps no story text in engine code (texts live in stories/ only)", () => {
-		const nonStory = typescriptFiles.filter((file) => file.startsWith("src" + sep));
+		const nonStory = typescriptFiles.filter((file) => sourceFiles.includes(file));
 		expect(nonStory.length).toBeGreaterThan(20);
 		const sources = nonStory.map((file) => ({ file, text: readFileSync(file, "utf8") }));
 		const directorTexts = (actions: readonly Action[]): readonly string[] =>
@@ -208,7 +211,7 @@ const GERMAN = new RegExp(`(?<![\\p{L}\\d_])(${GERMAN_WORDS.join("|")})(?![\\p{L
 
 describe("project rules: English only", () => {
 	const textFiles = [
-		...filesIn("src", [".ts"]),
+		...sourceFiles,
 		...filesIn("stories", [".ts", ".md"]),
 		...filesIn("test", [".ts"]),
 		...filesIn("docs", [".md"]),

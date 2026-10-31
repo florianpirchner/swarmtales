@@ -3,8 +3,8 @@
  * (SPEC 17) keeps the prefix's spend apart from its own: the budget counts
  * only its own, the file and the console show both.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { EventSink, RecordedEvent } from "../engine/events.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { EventSink, RecordedEvent } from "@swarmtales/engine";
 
 export interface UsageTotals {
 	readonly requests: number;

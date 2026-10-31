@@ -13,10 +13,9 @@
  * Other values round down to the next defined level. Up to 4 the promise
  * "who, not what" holds; from 8 on a run breaks it on purpose and says so.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { render, text } from "../prompts/library.ts";
-import type { FigureDirection, FigureSpec } from "../story/types.ts";
-import type { TurnInput } from "../contracts/turn.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { render, text } from "@swarmtales/prompts";
+import type { FigureDirection, FigureSpec, TurnInput } from "@swarmtales/contracts";
 
 export const DIRECTION_LEVELS = [0, 4, 6, 8, 10] as const;
 export type DirectionLevel = (typeof DIRECTION_LEVELS)[number];

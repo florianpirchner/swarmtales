@@ -7,8 +7,7 @@
  * is a state of the city at the act's end.
  */
 import { fileURLToPath } from "node:url";
-import { figureSpec, readFigures } from "../../src/cast/figures.ts";
-import type { CoresSpec, DriveSpec, GoalsSpec, SealSpec } from "../../src/story/index.ts";
+import { type CoresSpec, type DriveSpec, figureSpec, type GoalsSpec, readFigures, type SealSpec } from "@swarmtales/sdk";
 
 /** A drive of the catalog: its sentence "above all", "clearly" and "at times". */
 function drive(

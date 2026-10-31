@@ -4,40 +4,60 @@
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { allocateRunDirectory, MinuteEventLog, writeRunMetadata, writeSystemPrompts } from "../log/run-artifacts.ts";
-import { writeMinuteReport } from "../log/minute-report.ts";
-import { writeCastFiles, writePrivateFiles } from "../log/private-files.ts";
-import { analyzeRun, writeDigest } from "../digest/digest.ts";
-import { ConsoleReporter, JsonlEventLog } from "../log/sinks.ts";
-import { AgentTranscriptLog } from "../log/transcripts.ts";
-import { WEAVER_FILE, WeaverLog } from "../log/weaver-log.ts";
-import { UsageCollector } from "../log/usage.ts";
-import { createProviderRegistry, customProviderSpec, SCRIPTED_PROVIDER_ID, type ProviderSpec } from "../model/providers.ts";
-import { oracleScript } from "../model/scripted.ts";
 import {
+	AgentTranscriptLog,
+	allocateRunDirectory,
+	analyzeRun,
+	ConsoleReporter,
+	JsonlEventLog,
+	MinuteEventLog,
+	readSnapshot,
+	type ReporterChoice,
+	reportSummary,
+	resolveReporterModel,
+	type RunSnapshot,
+	type SnapshotBrake,
+	SnapshotError,
+	UsageCollector,
+	WEAVER_FILE,
+	WeaverLog,
+	writeCastFiles,
+	writeDigest,
+	writeMinuteReport,
+	writePrivateFiles,
+	writeRunMetadata,
+	writeRunReport,
+	writeSnapshot,
+	writeSystemPrompts,
+} from "@swarmtales/chronicle";
+import {
+	createModelSource,
+	createProviderRegistry,
+	customProviderSpec,
 	describeModel,
 	missingApiKeys,
 	ModelConfigError,
-	resolveModelSettings,
-	settingsFromStory,
 	type ModelEnv,
 	type ModelOverrides,
 	type ModelSettings,
-} from "../model/settings.ts";
-import { createModelSource, RoutedModelSource, ScriptedModelSource, type ModelSource } from "../model/source.ts";
-import { assignModels } from "../agents/models.ts";
-import { createDeliveryJudge, createGuardJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "../interpret/sources.ts";
-import type { ModelChoice } from "../story/types.ts";
-import { findStory, storyNames } from "../../stories/index.ts";
+	type ModelSource,
+	oracleScript,
+	type ProviderSpec,
+	resolveModelSettings,
+	RoutedModelSource,
+	SCRIPTED_PROVIDER_ID,
+	ScriptedModelSource,
+	settingsFromStory,
+} from "@swarmtales/models";
+import { assignModels, createDeliveryJudge, createGuardJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "@swarmtales/roles";
+import type { ModelChoice } from "@swarmtales/contracts";
+import { findStory, storyNames } from "../../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
 import { assertPlayable, composeRun, DEFAULT_LIMITS, effectiveRun, resumeOverrides } from "./compose.ts";
-import { readSnapshot, SnapshotError, writeSnapshot, type RunSnapshot, type SnapshotBrake } from "../snapshot/snapshot.ts";
-import { StoryValidationError } from "../story/validate.ts";
+import { StoryValidationError } from "@swarmtales/sdk";
 import { worldOracle } from "./oracle.ts";
 import { runMetadata } from "./metadata.ts";
-import { competitorIds } from "../core/ids.ts";
-import { resolveReporterModel, type ReporterChoice } from "../report/model.ts";
-import { reportSummary, writeRunReport } from "../report/reporter.ts";
+import { competitorIds } from "@swarmtales/kernel";
 
 const envFile = join(process.cwd(), ".env");
 // Existing environment variables win; the file only fills gaps.

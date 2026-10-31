@@ -6,11 +6,17 @@
  * `seq`; the log stays append-only. It runs before the gamemaker's look,
  * so the gamemaker reads the labels of the round it looks at.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
-import type { RoundObserver } from "../engine/arena.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import {
+	type EventBus,
+	type EventSink,
+	isStatementLabel,
+	type RecordedEvent,
+	type RoundObserver,
+	STATEMENT_LABELS,
+	type StatementLabel,
+} from "@swarmtales/engine";
 import { CLASSIFIER_ID, conversationKey, type Classification, type StatementClassifier, type Verdict } from "./classifier.ts";
-import { isStatementLabel, STATEMENT_LABELS, type StatementLabel } from "../engine/labels.ts";
 import { statementOf, type Statement } from "./statements.ts";
 
 /** Earlier messages kept per conversation (DM pair or group) as context for its replies. */

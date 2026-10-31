@@ -1,6 +1,6 @@
 import { Type } from "typebox";
-import { MAX_BOARD_POST_LENGTH } from "../engine/board.ts";
-import { render, text } from "../prompts/library.ts";
+import { MAX_BOARD_POST_LENGTH } from "../board.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, fromError, marksSuffix, success } from "./tool.ts";
 
 export const readBoard = defineTool({

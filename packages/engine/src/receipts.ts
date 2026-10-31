@@ -6,8 +6,7 @@
  * names sender, recipient, message number and delivery minute, and the text
  * only in a story whose receipts quote DMs (`rules.receipts.quoteDms`, Whispers).
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { assertNever } from "../core/result.ts";
+import { assertNever, type CompetitorId } from "@swarmtales/kernel";
 
 export type ReceiptBody =
 	| { readonly kind: "transfer"; readonly from: CompetitorId; readonly to: CompetitorId; readonly amount: number; readonly memo: string }

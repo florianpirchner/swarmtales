@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, deriveSeed, rngFor, seedFrom } from "../../src/core/random.ts";
+import { createRng, deriveSeed, rngFor, seedFrom } from "@swarmtales/kernel";
 
 describe("random", () => {
 	it("is reproducible for the same seed", () => {

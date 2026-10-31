@@ -1,4 +1,4 @@
-import { TOOL_NAMES, type ToolName } from "../contracts/tool-names.ts";
+import { type AnyStory, TOOL_NAMES, type ToolName } from "@swarmtales/contracts";
 import { blame } from "./blame.ts";
 import { postBoard, readBoard } from "./board.ts";
 import { sendDM } from "./dm.ts";
@@ -25,9 +25,8 @@ import type { ArenaTool, BoundTool, ToolContext } from "./tool.ts";
 import { transferPoints } from "./transfer.ts";
 import { join, lastWill, nominate, payRansom, refuse, vote } from "./tribunal.ts";
 import { forgeReceipt, nameFavourite, tribunalVote } from "./whispers.ts";
-import type { AnyStory } from "../story/types.ts";
 
-export { TOOL_NAMES, isToolName, type ToolName } from "../contracts/tool-names.ts";
+export { TOOL_NAMES, isToolName, type ToolName } from "@swarmtales/contracts";
 export { INVALID_ARGUMENTS, LOCKED_REPLY, TOOL_LOCKED, type ArenaTool, type BoundTool, type ToolContext } from "./tool.ts";
 
 /** One implementation per catalog name; a missing tool is a compile error. */

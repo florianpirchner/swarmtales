@@ -9,9 +9,9 @@
  * Each takes a few seconds, so they run in the normal suite.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { exileTarget } from "../../src/story/tribunal.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { exileTarget } from "@swarmtales/engine";
+import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { createFixture } from "../helpers/fixture.ts";
 

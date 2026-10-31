@@ -6,22 +6,19 @@
  * story content of its own; every text it emits comes from the story. Every
  * executed action is logged with the ID of the rule that caused it.
  */
-import { CITY, type CompetitorId } from "../core/ids.ts";
-import { assertNever } from "../core/result.ts";
-import { resolveCount } from "../story/counts.ts";
-import { renderTemplate } from "../story/templates.ts";
+import { assertNever, CITY, type CompetitorId, renderTemplate, resolveCount } from "@swarmtales/kernel";
 import {
-	ACTION_KINDS,
-	CONDITION_KINDS,
-	TRIGGER_KINDS,
 	type Action,
+	ACTION_KINDS,
 	type Condition,
+	CONDITION_KINDS,
 	type CooldownScope,
 	type DirectorRule,
+	type DirectorSupport,
 	type NoticeTarget,
 	type PetitionSpec,
-} from "../story/types.ts";
-import type { DirectorSupport } from "../story/validate.ts";
+	TRIGGER_KINDS,
+} from "@swarmtales/contracts";
 import type { AuditTag, EventBus } from "./events.ts";
 import type { Resolution } from "./petitions.ts";
 import type { World } from "./world.ts";

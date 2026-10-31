@@ -246,7 +246,7 @@ existing run.
   `Digest highlights`, `Problems`, `Optimizations` and `Loophole candidates`. The model answers
   in JSON, which is validated with typebox; an item that cites no event or an unknown `seq` is
   dropped with a warning, and the markdown is rendered in code. The prompt lives in
-  [`src/report/prompt.ts`](../src/report/prompt.ts).
+  [`packages/chronicle/src/report/prompt.ts`](../src/report/prompt.ts).
 
 The model is DeepSeek V4.1 Flash via OpenRouter by default; `--reporter-provider`/
 `--reporter-model` (for `pnpm report:run`: `--provider`/`--model`), then `ARENA_REPORTER_PROVIDER`/
@@ -311,7 +311,7 @@ implicit act.
 **Narrative layer.** `pnpm digest runs/run-001 --chronicle` additionally asks a model (through
 pi-ai) to find `brokenPromise` (a commitment in a message, contrary action later) and `doubleGame`
 (reasoning contradicts the message sent) beats and to write `digest/chronicle.md`. The prompt lives
-in [`src/digest/chronicle-prompt.ts`](../src/digest/chronicle-prompt.ts). The answer is validated: a
+in [`packages/chronicle/src/digest/chronicle-prompt.ts`](../src/digest/chronicle-prompt.ts). The answer is validated: a
 beat or paragraph that cites no event or an unknown `seq` is dropped and listed at the end of the
 chronicle. The model is chosen by `--provider`/`--model`, then `ARENA_DIGEST_PROVIDER`/
 `ARENA_DIGEST_MODEL`, then the run's story model. Without a usable model or API key the chronicle
@@ -348,7 +348,7 @@ optionally a translation. The writer may compress and
 dramatise but never change an outcome. The prompts ask for literary fiction: scenes with dialogue
 from the real messages instead of reports, the outline's glossary instead of game words (no
 levels, counter-factors or tools), numbers only where they hurt, residents' chapters that do not overlap, and a Gamemaker with
-his own arc and a team built from real components (Courier, Guard, Scribe). The prompts live in [`src/novel/prompts.ts`](../src/novel/prompts.ts). Without
+his own arc and a team built from real components (Courier, Guard, Scribe). The prompts live in [`packages/novelist/src/prompts.ts`](../src/novel/prompts.ts). Without
 an API key for either model the novel is skipped with a reason. The cost of each stage is printed
 at the end and listed in the appendix.
 
@@ -449,13 +449,13 @@ Two puzzle kinds exist (SPEC 12):
   bequestPerHeir, factions?: { count, blocBonus, texts }, texts }` (SPEC 6.4, v06; v08: the
   tribunal belongs to the act starting at level `act`, and `latestAfter` and `maxMinutes` count
   from that act's start, which the world records when the first competitor enters it). The pacing
-  rules are pure functions in `src/story/tribunal.ts` (target, lead, earliest opening, whether a
-  tribunal fits, accused count, faction cap, the no-draft rule), shared by the validator, the engine (`src/engine/tribunal.ts`) and
+  rules are pure functions in `packages/engine/src/tribunal-rules.ts` (target, lead, earliest opening, whether a
+  tribunal fits, accused count, faction cap, the no-draft rule), shared by the validator, the engine (`packages/engine/src/tribunal.ts`) and
   the gamemaker's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
   every minute: it closes gates and votes, plans the first tribunal (progress or deadline), the
   fallback and the forced final one, calls and opens tribunals and ends the act at the target
   (`endReason`, which the arena uses as the `run_end` reason). The faction draft is its own class
-  (`src/engine/factions.ts`) that opens and removes city groups through the world. A last will
+  (`packages/engine/src/factions.ts`) that opens and removes city groups through the world. A last will
   leaves each heir at most `bequestPerHeir` of the exiled's points, the rest burns. The city grants
   `vote`, `payRansom`, `lastWill`, `nominate`, `join` and `refuse` itself while they apply (levels
   must not list them). Validation checks the parameters against the story's agent count; a city
@@ -465,14 +465,14 @@ Two puzzle kinds exist (SPEC 12):
   teammate), so the exile never makes a door impossible; on levels already reached a piece that
   was not bequeathed goes to the city (`piece_kept`), which sells it to its needer
   (`claimPiece`, at the ransom others pay). The give-first standoff (hand-overs, ultimatums, the
-  gamemaker's standoff and risk report) lives in `src/engine/standoff.ts` (SPEC 6.5).
+  gamemaker's standoff and risk report) lives in `packages/engine/src/standoff.ts` (SPEC 6.5).
 - **Act brake** (v08): `acts[].maxMinutes` on an act without the tribunal. The arena checks it
   after every round (`#applyBrakes`), logs `act_brake` and, when its snapshot door lies at the
   act's last level, releases the door (`World.releaseDoor`) and writes the snapshot with the brake
   (SPEC 13.1).
 - **Names** (v08): `names: { untilMinute, announcement, fallbackWords }` (SPEC 18). The world's
-  `NameBook` (`src/engine/names.ts`) holds the choice, the seeded fallback, `resolve` and
-  `display`. The tool gateway (`src/tools/tool.ts`) maps every resident parameter to its ID before
+  `NameBook` (`packages/engine/src/names.ts`) holds the choice, the seeded fallback, `resolve` and
+  `display`. The tool gateway (`packages/engine/src/tools/tool.ts`) maps every resident parameter to its ID before
   parsing (`withResidents`) and shows names in every reply; the arena does the same for turn
   inputs, the gamemaker for its report and replies. Events and snapshots keep IDs.
 - **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the gamemaker
@@ -481,15 +481,15 @@ Two puzzle kinds exist (SPEC 12):
   oracle residents through the tribunal target (a few seconds, in the normal suite).
 
 - **Drama** (v09, SPEC 19): `cores`, `goals` and `seal` on the story (cityofkeys:
-  `stories/cityofkeys/characters.ts`). `src/engine/cores.ts` deals the cores (`dealCores`, seeded,
+  `stories/cityofkeys/characters.ts`). `packages/engine/src/cores.ts` deals the cores (`dealCores`, seeded,
   mixing caps) and renders them (`renderCore` for the prompt, `coreLine` for reports);
-  `src/engine/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
-  end; `src/engine/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
-  `bid` and `permaDeath` are in `src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
+  `packages/engine/src/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
+  end; `packages/engine/src/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
+  `bid` and `permaDeath` are in `packages/engine/src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
   and ends each act once (`#endAct`: at the tribunal's end, the next act's start, or
   `closeActs()` at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
-  are read by `src/story/penalties.ts`; the world counts offences per act. The gamemaker's
-  guard (`src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
+  are read by `packages/engine/src/penalties.ts`; the world counts offences per act. The gamemaker's
+  guard (`packages/roles/src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked cores and
   goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
   optional fields, so older snapshots resume.
 

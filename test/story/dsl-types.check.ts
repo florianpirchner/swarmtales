@@ -5,7 +5,7 @@
  * stops catching the mistake, tsc reports the directive as unused and fails.
  * The file is never executed.
  */
-import { act, at, defineStory, level, onFirstEnter, onPetitionResolved, puzzle, team, when } from "../../src/story/index.ts";
+import { act, at, defineStory, level, onFirstEnter, onPetitionResolved, puzzle, team, when } from "@swarmtales/sdk";
 
 const base = {
 	id: "typing",

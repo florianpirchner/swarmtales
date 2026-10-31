@@ -1,7 +1,6 @@
 /** Command-line parsing for `pnpm novel`. Pure, so it is testable offline. */
 import { parseArgs } from "node:util";
-import { DEFAULT_WORDS, NOVEL_DIRECTORY } from "../novel/novel.ts";
-import { LANGUAGES } from "../novel/prompts.ts";
+import { DEFAULT_WORDS, LANGUAGES, NOVEL_DIRECTORY } from "@swarmtales/novelist";
 import { UsageError } from "./args.ts";
 
 export interface NovelArgs {

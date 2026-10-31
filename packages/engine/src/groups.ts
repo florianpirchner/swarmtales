@@ -9,9 +9,7 @@
  * the city removes them again. A removed group keeps its id and its posts
  * (for blames), but nobody sees it any more.
  */
-import { CITY, type CompetitorId } from "../core/ids.ts";
-import { LedgerError, type PointsLedger } from "../core/ledger.ts";
-import { err, ok, type Result } from "../core/result.ts";
+import { CITY, type CompetitorId, err, LedgerError, ok, type PointsLedger, type Result } from "@swarmtales/kernel";
 import { MessageNumbers } from "./numbers.ts";
 
 export const MAX_GROUP_NAME_LENGTH = 60;

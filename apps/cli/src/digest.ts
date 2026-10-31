@@ -6,11 +6,8 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { writeChronicle } from "../digest/chronicle.ts";
-import { analyzeRun, DigestError, DIGEST_DIRECTORY, DIGEST_FILES, writeDigest } from "../digest/digest.ts";
-import { resolveNarrativeModel } from "../digest/narrative-model.ts";
-import type { Beat } from "../digest/beats.ts";
-import { createProviderRegistry } from "../model/providers.ts";
+import { analyzeRun, type Beat, DIGEST_DIRECTORY, DIGEST_FILES, DigestError, resolveNarrativeModel, writeChronicle, writeDigest } from "@swarmtales/chronicle";
+import { createProviderRegistry } from "@swarmtales/models";
 import { UsageError } from "./args.ts";
 import { DIGEST_USAGE, parseDigestArgs } from "./digest-args.ts";
 

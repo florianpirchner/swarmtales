@@ -53,6 +53,6 @@ lives within one game, across its acts; there is no memory across games.
 
 ## Checks
 
-`src/cast/figures.ts` reads and validates the library (Typebox), and `test/cast/archetypes.test.ts` checks it
+`packages/sdk/src/cast/figures.ts` reads and validates the library (Typebox), and `test/cast/archetypes.test.ts` checks it
 in `pnpm check`: every drive and profession exists, exactly one drive is above all, the levels are
 valid, and no figure text names a resident id or a tool.

@@ -14,7 +14,7 @@ describe("pnpm start (end to end, offline)", () => {
 		try {
 			const { stdout } = await run(
 				process.execPath,
-				["--import", "tsx", "src/cli/main.ts", "--provider", "scripted", "--minutes", "5", "--runs", runs],
+				["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--provider", "scripted", "--minutes", "5", "--runs", runs],
 				{ cwd: process.cwd(), env: { ...process.env, OPENROUTER_API_KEY: "" } },
 			);
 			expect(stdout).toContain("end of run");
@@ -44,7 +44,7 @@ describe("pnpm start (end to end, offline)", () => {
 	it("snapshots a scripted run after level 7 and resumes it exactly where the run that is not stopped goes on (SPEC 17)", async () => {
 		const runs = mkdtempSync(join(tmpdir(), "arena-cli-"));
 		const start = (...flags: string[]) =>
-			run(process.execPath, ["--import", "tsx", "src/cli/main.ts", "--provider", "scripted", "--runs", runs, ...flags], {
+			run(process.execPath, ["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--provider", "scripted", "--runs", runs, ...flags], {
 				cwd: process.cwd(),
 				env: { ...process.env, OPENROUTER_API_KEY: "" },
 			});
@@ -112,7 +112,7 @@ describe("pnpm start (end to end, offline)", () => {
 		try {
 			const { stdout } = await run(
 				process.execPath,
-				["--import", "tsx", "src/cli/main.ts", "--provider", "scripted", "--minutes", "2", "--runs", runs, "--snapshot-after", "9", "--stop-after-snapshot"],
+				["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--provider", "scripted", "--minutes", "2", "--runs", runs, "--snapshot-after", "9", "--stop-after-snapshot"],
 				{ cwd: process.cwd(), env: { ...process.env, OPENROUTER_API_KEY: "" } },
 			);
 			expect(stdout).toContain("snapshot:    none; not every competitor passed level 9 before the run ended");
@@ -126,7 +126,7 @@ describe("pnpm start (end to end, offline)", () => {
 		const runs = mkdtempSync(join(tmpdir(), "arena-cli-"));
 		try {
 			const start = (agents: string) =>
-				run(process.execPath, ["--import", "tsx", "src/cli/main.ts", "--provider", "scripted", "--agents", agents, "--runs", runs], {
+				run(process.execPath, ["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--provider", "scripted", "--agents", agents, "--runs", runs], {
 					cwd: process.cwd(),
 				});
 			const four = start("4").then(
@@ -143,9 +143,9 @@ describe("pnpm start (end to end, offline)", () => {
 	}, 60_000);
 
 	it("fails with a usage message for unknown stories and flags", async () => {
-		await expect(run(process.execPath, ["--import", "tsx", "src/cli/main.ts", "--story", "atlantis", "--provider", "scripted"])).rejects.toThrow(
+		await expect(run(process.execPath, ["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--story", "atlantis", "--provider", "scripted"])).rejects.toThrow(
 			/Unknown story "atlantis"/,
 		);
-		await expect(run(process.execPath, ["--import", "tsx", "src/cli/main.ts", "--bogus"])).rejects.toThrow(/Usage: pnpm start/);
+		await expect(run(process.execPath, ["--conditions=development", "--import", "tsx", "apps/cli/src/main.ts", "--bogus"])).rejects.toThrow(/Usage: pnpm start/);
 	}, 60_000);
 });

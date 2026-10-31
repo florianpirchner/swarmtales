@@ -2,9 +2,16 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { describeEvent, JsonlEventLog } from "../../src/log/sinks.ts";
-import { readNames, readRunEnd, readSnapshots, renderMinuteReport, writeMinuteReport } from "../../src/log/minute-report.ts";
-import { UsageCollector } from "../../src/log/usage.ts";
+import {
+	describeEvent,
+	JsonlEventLog,
+	readNames,
+	readRunEnd,
+	readSnapshots,
+	renderMinuteReport,
+	UsageCollector,
+	writeMinuteReport,
+} from "@swarmtales/chronicle";
 import { createFixture, say, submit } from "../helpers/fixture.ts";
 
 describe("minute report, usage and console", () => {

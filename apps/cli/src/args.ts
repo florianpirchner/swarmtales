@@ -1,7 +1,7 @@
 /** Command-line parsing for `pnpm start`. Pure, so it is testable offline. */
 import { parseArgs } from "node:util";
-import { MAX_PASSES_PER_MINUTE } from "../story/validate.ts";
-import { JUDGE_TEMPERS, type JudgeTemper } from "../interpret/judge.ts";
+import { MAX_PASSES_PER_MINUTE } from "@swarmtales/sdk";
+import { JUDGE_TEMPERS, type JudgeTemper } from "@swarmtales/roles";
 import type { RunOverrides } from "./compose.ts";
 
 export class UsageError extends Error {
@@ -255,7 +255,7 @@ function optionalInt<K extends string>(name: K, raw: string | undefined, minimum
 	return result;
 }
 
-/** A dial from 0 to 10 (src/engine/direction.ts). */
+/** A dial from 0 to 10 (packages/engine/src/direction.ts). */
 function direction<K extends "figureDirection" | "gmDirection">(flag: string, key: K, raw: string | undefined): Partial<Record<K, number>> {
 	if (raw === undefined) return {};
 	const value = Number(raw);

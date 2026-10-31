@@ -1,7 +1,7 @@
 /** Tools of the black seal (v09): a secret bid while an auction runs, and the seal itself for its bearer. */
 import { Type } from "typebox";
 import { defineTool, fromError, success } from "./tool.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 export const bid = defineTool({
 	name: "bid",

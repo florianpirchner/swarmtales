@@ -2,9 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { hasStrayBraces, parsePromptFile, placeholders, renderBody } from "../../src/prompts/file.ts";
-import { loadPrompt, render, text } from "../../src/prompts/library.ts";
-import { validatePrompts } from "../../src/prompts/validate.ts";
+import { hasStrayBraces, loadPrompt, parsePromptFile, placeholders, render, renderBody, text, validatePrompts } from "@swarmtales/prompts";
 
 const FILE = "---\nid: demo/greeting\nvariables: name, city\n---\nHello {{name}} of {{ city }}.\n";
 

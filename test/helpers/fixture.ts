@@ -7,21 +7,25 @@
  * model call each), so a script reads as "one message per minute".
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import { composeRun, DEFAULT_LIMITS, type ComposedRun, type ComposeOptions, type RunOverrides } from "../../src/cli/compose.ts";
-import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
-import type { GuardJudge } from "../../src/interpret/guard.ts";
-import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "../../src/interpret/judge.ts";
-import { ChatWeaver, WEAVER_ID } from "../../src/interpret/weaver-model.ts";
-import { MemorySink, type EventSink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
+import { composeRun, DEFAULT_LIMITS, type ComposedRun, type ComposeOptions, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import {
+	ChatDeliveryJudge,
+	ChatStatementClassifier,
+	ChatWeaver,
+	CLASSIFIER_ID,
+	type DeliveryJudge,
+	GAMEMAKER_ID,
+	type GuardJudge,
+	JUDGE_ID,
+	WEAVER_ID,
+} from "@swarmtales/roles";
+import { type EventSink, MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { act, type Script, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import type { AnyStory } from "@swarmtales/contracts";
 
-import { act } from "../../src/model/scripted.ts";
 
-export { act, say } from "../../src/model/scripted.ts";
+export { act, say } from "@swarmtales/models";
 
 export interface FixtureOptions extends RunOverrides {
 	readonly story?: AnyStory;

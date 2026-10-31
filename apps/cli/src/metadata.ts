@@ -1,6 +1,6 @@
 /** Contents of `000-run.json` (SPEC §14): run metadata and the full serialized story. */
-import type { AgentProfile } from "../engine/arena.ts";
-import type { AnyStory } from "../story/types.ts";
+import type { AgentProfile } from "@swarmtales/engine";
+import type { AnyStory } from "@swarmtales/contracts";
 import type { EffectiveRun } from "./compose.ts";
 
 export interface RunMetadataInput {

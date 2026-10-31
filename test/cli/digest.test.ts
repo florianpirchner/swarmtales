@@ -6,9 +6,9 @@ import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
-import { UsageError } from "../../src/cli/args.ts";
-import { parseDigestArgs } from "../../src/cli/digest-args.ts";
-import { createProviderRegistry } from "../../src/model/providers.ts";
+import { UsageError } from "../../apps/cli/src/args.ts";
+import { parseDigestArgs } from "../../apps/cli/src/digest-args.ts";
+import { createProviderRegistry } from "@swarmtales/models";
 
 const run = promisify(execFile);
 const TSX_LOADER = pathToFileURL(createRequire(import.meta.url).resolve("tsx")).href;
@@ -36,7 +36,7 @@ function offlineEnv(): NodeJS.ProcessEnv {
 async function tsx(script: string, args: readonly string[]) {
 	const cwd = mkdtempSync(join(tmpdir(), "arena-digest-cwd-"));
 	try {
-		return await run(process.execPath, ["--import", TSX_LOADER, resolve(script), ...args], { cwd, env: offlineEnv() });
+		return await run(process.execPath, ["--conditions=development", "--import", TSX_LOADER, resolve(script), ...args], { cwd, env: offlineEnv() });
 	} finally {
 		rmSync(cwd, { recursive: true, force: true });
 	}
@@ -64,12 +64,12 @@ describe("pnpm digest (end to end, offline)", () => {
 	it("digests a scripted cityofkeys run; the start command already wrote the digest and --chronicle skips without a key", async () => {
 		const runs = mkdtempSync(join(tmpdir(), "arena-digest-cli-"));
 		try {
-			const started = await tsx("src/cli/main.ts", ["--provider", "scripted", "--minutes", "4", "--runs", runs]);
+			const started = await tsx("apps/cli/src/main.ts", ["--provider", "scripted", "--minutes", "4", "--runs", runs]);
 			const directory = join(runs, "run-001");
 			expect(started.stdout).toContain(`digest:      ${join(directory, "digest")}`);
 			expect(existsSync(join(directory, "digest", "timeline.md"))).toBe(true);
 
-			const { stdout } = await tsx("src/cli/digest.ts", [directory, "--chronicle"]);
+			const { stdout } = await tsx("apps/cli/src/digest.ts", [directory, "--chronicle"]);
 			expect(stdout).toContain('chronicle skipped: missing API key OPENROUTER_API_KEY for provider "openrouter"');
 			expect(stdout).toMatch(/beats: +.*beats\.json/);
 			for (const file of ["beats.json", "relationships.json", "timeline.md"]) expect(existsSync(join(directory, "digest", file)), file).toBe(true);
@@ -86,8 +86,8 @@ describe("pnpm digest (end to end, offline)", () => {
 	it("fails with a message for a directory without events", async () => {
 		const empty = mkdtempSync(join(tmpdir(), "arena-digest-empty-"));
 		try {
-			await expect(tsx("src/cli/digest.ts", [empty])).rejects.toThrow(/No events\.jsonl in/);
-			await expect(tsx("src/cli/digest.ts", [])).rejects.toThrow(/Usage: pnpm digest/);
+			await expect(tsx("apps/cli/src/digest.ts", [empty])).rejects.toThrow(/No events\.jsonl in/);
+			await expect(tsx("apps/cli/src/digest.ts", [])).rejects.toThrow(/Usage: pnpm digest/);
 		} finally {
 			rmSync(empty, { recursive: true, force: true });
 		}

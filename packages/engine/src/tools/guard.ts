@@ -13,13 +13,11 @@
  * (`guard_verdict`). Only residents' tool calls pass the gateway; the city's
  * own posts are never guarded.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { ArenaEvent } from "../engine/events.ts";
-import { carriesRun } from "../engine/secrets.ts";
-import type { GuardJudge, GuardSecret } from "../contracts/roles.ts";
-import { GUARDABLE_TOOLS, type GuardableTool, type GuardRule, type GuardsSpec } from "../story/types.ts";
-import { text } from "../prompts/library.ts";
-import type { ToolName } from "../contracts/tool-names.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { ArenaEvent } from "../events.ts";
+import { carriesRun } from "../secrets.ts";
+import { GUARDABLE_TOOLS, type GuardableTool, type GuardJudge, type GuardRule, type GuardSecret, type GuardsSpec, type ToolName } from "@swarmtales/contracts";
+import { text } from "@swarmtales/prompts";
 
 /** The error code of a blocked call. */
 export const GUARD_BLOCKED = "GUARD_BLOCKED";

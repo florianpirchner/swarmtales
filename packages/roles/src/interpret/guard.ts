@@ -2,7 +2,7 @@
  * The tool guard's judge (SPEC 20, docs/ideas/monorepo.md §3d): one question
  * per guarded call, asked of a small chat model (Haiku by default). Does this
  * text keep the city's rule? The city's own checks run first
- * (src/tools/guard.ts); the judge reads the rule, the text and, where the
+ * (packages/engine/src/tools/guard.ts); the judge reads the rule, the text and, where the
  * rule names them, the secrets the author holds, and answers with one
  * `verdict` call.
  *
@@ -13,13 +13,11 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage, GuardAnswer, GuardJudge, GuardQuestion, GuardSecret } from "../contracts/roles.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { ClassifierUsage, GuardAnswer, GuardJudge, GuardQuestion, GuardSecret, ThinkingLevel } from "@swarmtales/contracts";
 
 export type { GuardAnswer, GuardJudge, GuardQuestion, GuardSecret };
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** ID of the guard in usage records. */
 export const GUARD_ID = "GD";

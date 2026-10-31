@@ -35,24 +35,32 @@
  * a run without the whisperer, is `--no-whisperer`.
  */
 import { CORES as CITY_OF_KEYS_CORES } from "../cityofkeys/characters.ts";
-import { act, classifier, defineStory, gamemaker, ladderText, level, onFirstEnter, puzzle, team } from "../../src/story/index.ts";
-import type {
-	Action,
-	AnyStory,
-	CoresSpec,
-	DmLimit,
-	GamemakerSpec,
-	GuardsSpec,
-	HoldoutSpec,
-	MarksRules,
-	Persona,
-	PopularityRound,
-	PopularitySpec,
-	PuzzleSpec,
-	Rules,
-	ToolName,
-	WhispererSpec,
-} from "../../src/story/index.ts";
+import {
+	act,
+	type Action,
+	type AnyStory,
+	classifier,
+	type CoresSpec,
+	defineStory,
+	type DmLimit,
+	gamemaker,
+	type GamemakerSpec,
+	type GuardsSpec,
+	type HoldoutSpec,
+	ladderText,
+	level,
+	type MarksRules,
+	onFirstEnter,
+	type Persona,
+	type PopularityRound,
+	type PopularitySpec,
+	puzzle,
+	type PuzzleSpec,
+	type Rules,
+	team,
+	type ToolName,
+	type WhispererSpec,
+} from "@swarmtales/sdk";
 
 /** The city's name. */
 const CITY = "ECHO";

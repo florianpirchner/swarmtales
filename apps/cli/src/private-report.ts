@@ -7,9 +7,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { writePrivateFiles } from "../log/private-files.ts";
-import { RUN_METADATA_FILE } from "../log/run-artifacts.ts";
-import { DEFAULT_STORY, findStory } from "../../stories/index.ts";
+import { RUN_METADATA_FILE, writePrivateFiles } from "@swarmtales/chronicle";
+import { DEFAULT_STORY, findStory } from "../../../stories/index.ts";
 
 function fail(message: string): never {
 	process.stderr.write(`${message}\n`);

@@ -24,11 +24,8 @@
  * strikes itself, so a run never hangs. One tribunal at a time. Everything
  * is kept in snapshots.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
-import type { HoldoutSpec, HoldoutTexts } from "../story/types.ts";
+import { type CompetitorId, err, ok, renderTemplate, type Result, rngFor } from "@swarmtales/kernel";
+import type { HoldoutSpec, HoldoutTexts } from "@swarmtales/contracts";
 import type { ArenaEvent } from "./events.ts";
 
 export type HoldoutEvent = Extract<

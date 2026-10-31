@@ -7,9 +7,8 @@
  * accept stops compiling.
  */
 import { Type, type Static } from "typebox";
-import { FATE_TRIGGERS, type ArenaEventType, type RecordedEvent } from "../engine/events.ts";
-import { STATEMENT_LABELS, STATEMENT_SOURCES } from "../engine/labels.ts";
-import { ACTION_KINDS } from "../story/types.ts";
+import { type ArenaEventType, FATE_TRIGGERS, type RecordedEvent, STATEMENT_LABELS, STATEMENT_SOURCES } from "@swarmtales/engine";
+import { ACTION_KINDS } from "@swarmtales/contracts";
 import type { Writable } from "./message-schema.ts";
 
 const Id = Type.String();

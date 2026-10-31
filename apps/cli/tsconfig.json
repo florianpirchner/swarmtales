@@ -1,0 +1,22 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+	},
+	"include": ["src"],
+	"references": [
+		{ "path": "../../packages/contracts" },
+		{ "path": "../../packages/kernel" },
+		{ "path": "../../packages/prompts" },
+		{ "path": "../../packages/engine" },
+		{ "path": "../../packages/sdk" },
+		{ "path": "../../packages/models" },
+		{ "path": "../../packages/roles" },
+		{ "path": "../../packages/chronicle" },
+		{ "path": "../../packages/novelist" },
+		{ "path": "../../stories" }
+	]
+}

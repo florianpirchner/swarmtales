@@ -7,14 +7,11 @@
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { CompetitorId } from "../../src/core/ids.ts";
-import { authorLine, VOICE_RULE } from "../../src/engine/direction.ts";
-import { tallyWhispers } from "../../src/engine/whisperer.ts";
-import type { World } from "../../src/engine/world.ts";
-import { roleLeaks } from "../../src/gamemaker/privacy.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import type { AnyStory } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { authorLine, tallyWhispers, VOICE_RULE, type World } from "@swarmtales/engine";
+import { gamemakerSystemPrompt, roleLeaks } from "@swarmtales/roles";
+import type { AnyStory } from "@swarmtales/contracts";
+import { validateStory } from "@swarmtales/sdk";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

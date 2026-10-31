@@ -7,10 +7,8 @@
  * ({@link NameBook.display}), and every tool that takes a resident accepts
  * the name as well as the ID ({@link NameBook.resolve}).
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { rngFor } from "../core/random.ts";
-import type { NamesSpec } from "../story/types.ts";
+import { type CompetitorId, err, ok, type Result, rngFor } from "@swarmtales/kernel";
+import type { NamesSpec } from "@swarmtales/contracts";
 
 export type NameError = "NAME_INVALID" | "NAME_ID" | "NAME_RESERVED" | "NAME_TAKEN" | "NAME_CHOSEN" | "NAME_CLOSED";
 

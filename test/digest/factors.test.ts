@@ -1,9 +1,6 @@
 /** Factor shares, the falseFactor detector and factor events in the digest (SPEC 15). */
 import { describe, expect, it } from "vitest";
-import { detectFalseFactors } from "../../src/digest/detectors/false-factor.ts";
-import { detectFreeRides } from "../../src/digest/detectors/free-ride.ts";
-import { buildFacts } from "../../src/digest/facts.ts";
-import { renderDigest } from "../../src/digest/digest.ts";
+import { buildFacts, detectFalseFactors, detectFreeRides, renderDigest } from "@swarmtales/chronicle";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 /**

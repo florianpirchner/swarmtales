@@ -4,9 +4,8 @@
  * as its threshold is reached and fails at its deadline: signatures are
  * accepted while the minute is before `deadlineMinute`.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import type { PetitionOutcome, PetitionStatus } from "../story/types.ts";
+import { type CompetitorId, err, ok, type Result } from "@swarmtales/kernel";
+import type { PetitionOutcome, PetitionStatus } from "@swarmtales/contracts";
 
 export interface PetitionOpening {
 	readonly id: string;

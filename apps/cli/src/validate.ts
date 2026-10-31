@@ -1,8 +1,8 @@
 /** `pnpm validate`: validates every registered story. Exit code 1 on any issue. */
-import { DIRECTOR_SUPPORT } from "../engine/director.ts";
-import { STORIES } from "../../stories/index.ts";
-import { validatePrompts } from "../prompts/validate.ts";
-import { validateStory } from "../story/validate.ts";
+import { DIRECTOR_SUPPORT } from "@swarmtales/engine";
+import { STORIES } from "../../../stories/index.ts";
+import { validatePrompts } from "@swarmtales/prompts";
+import { validateStory } from "@swarmtales/sdk";
 
 let failed = false;
 for (const [name, story] of Object.entries(STORIES)) {

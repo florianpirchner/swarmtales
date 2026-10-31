@@ -11,11 +11,11 @@ import {
 	buildEditPrompt,
 	buildProloguePrompt,
 	EDIT_DELIMITER,
-	EDIT_SYSTEM_PROMPT,
-	GAMEMAKER_SYSTEM_PROMPT,
-	PROLOGUE_SYSTEM_PROMPT,
+	editSystemPrompt,
+	gamemakerSystemPrompt,
+	prologueSystemPrompt,
 	translateSystemPrompt,
-	WRITER_SYSTEM_PROMPT,
+	writerSystemPrompt,
 	type ChapterPromptInput,
 	type GlossaryEntry,
 	type ProloguePromptInput,
@@ -27,18 +27,18 @@ export interface WrittenText {
 }
 
 export async function writeChapter(model: NovelModel, input: ChapterPromptInput): Promise<WrittenText> {
-	const answer = await model.complete(WRITER_SYSTEM_PROMPT, buildChapterPrompt(input), MAX_TOKENS.chapter);
+	const answer = await model.complete(writerSystemPrompt(), buildChapterPrompt(input), MAX_TOKENS.chapter);
 	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
 export async function writePrologue(model: NovelModel, input: ProloguePromptInput): Promise<WrittenText> {
-	const answer = await model.complete(PROLOGUE_SYSTEM_PROMPT, buildProloguePrompt(input), MAX_TOKENS.chapter);
+	const answer = await model.complete(prologueSystemPrompt(), buildProloguePrompt(input), MAX_TOKENS.chapter);
 	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
 /** A chapter from the gamemaker's control room. */
 export async function writeGamemakerChapter(model: NovelModel, input: ChapterPromptInput): Promise<WrittenText> {
-	const answer = await model.complete(GAMEMAKER_SYSTEM_PROMPT, buildChapterPrompt(input), MAX_TOKENS.chapter);
+	const answer = await model.complete(gamemakerSystemPrompt(), buildChapterPrompt(input), MAX_TOKENS.chapter);
 	return { text: cleanProse(answer.text), spend: answer.spend };
 }
 
@@ -51,7 +51,7 @@ export interface EditedStory {
 }
 
 export async function editStory(model: NovelModel, story: string, outline: readonly string[], facts: readonly string[] = [], glossary: readonly GlossaryEntry[] = []): Promise<EditedStory> {
-	const answer = await model.complete(EDIT_SYSTEM_PROMPT, buildEditPrompt(story, outline, facts, glossary), MAX_TOKENS.edit);
+	const answer = await model.complete(editSystemPrompt(), buildEditPrompt(story, outline, facts, glossary), MAX_TOKENS.edit);
 	return { ...interpretEdit(story, answer.text), spend: answer.spend };
 }
 

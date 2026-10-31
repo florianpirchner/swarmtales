@@ -4,9 +4,8 @@
  * transfer, shown receipt and shared group, as totals and per minute; and
  * the tribunal's ties: a secret vote, a ransom paid, a bequest, a blame.
  */
-import { CITY, COURIER } from "../core/ids.ts";
-import { assertNever } from "../core/result.ts";
-import type { StatementLabel } from "../engine/labels.ts";
+import { assertNever, CITY, COURIER } from "@swarmtales/kernel";
+import type { StatementLabel } from "@swarmtales/engine";
 import type { Beat } from "./beats.ts";
 import { PIECE_TEXT, type RunFacts } from "./facts.ts";
 import { pairKey, sortedPair } from "./detectors/pairs.ts";

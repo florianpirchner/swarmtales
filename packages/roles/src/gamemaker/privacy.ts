@@ -5,10 +5,9 @@
  * the resident together with a word giving away one of its private labels
  * is blocked.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { RecordedEvent } from "../engine/events.ts";
-import { isPrivateSource, type StatementLabel } from "../engine/labels.ts";
-import type { GoalKind } from "../story/types.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { isPrivateSource, type RecordedEvent, type StatementLabel } from "@swarmtales/engine";
+import type { GoalKind } from "@swarmtales/contracts";
 
 /** Private labels per resident, from the events of one look. */
 export type PrivateLabels = ReadonlyMap<CompetitorId, ReadonlySet<StatementLabel>>;

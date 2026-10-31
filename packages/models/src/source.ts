@@ -3,7 +3,7 @@
  */
 import type { StreamFn } from "@earendil-works/pi-agent-core";
 import { createModels, fauxProvider, type Api, type Model, type Models, type FauxResponseStep } from "@earendil-works/pi-ai";
-import type { CompetitorId } from "../core/ids.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
 import { ModelConfigError, type ModelSettings } from "./settings.ts";
 import {
 	openRouterProviderPreferences,
@@ -11,7 +11,7 @@ import {
 	type ProviderRegistry,
 	type ProviderSpec,
 } from "./providers.ts";
-import type { OpenRouterRouting } from "../story/types.ts";
+import type { OpenRouterRouting } from "@swarmtales/contracts";
 
 export interface RequestLimits {
 	readonly maxOutputTokens: number;

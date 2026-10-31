@@ -13,11 +13,10 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { ThinkingLevel } from "../story/types.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { ThinkingLevel } from "@swarmtales/contracts";
 import type { ClassifierUsage } from "./classifier.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** ID of the weaver in usage records. */
 export const WEAVER_ID = "WV";

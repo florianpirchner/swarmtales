@@ -591,6 +591,14 @@ order of work inside that pass, not separate releases; the golden-run test (scri
 cityofkeys story, events compared to a stored file) is the gate for the whole pass and proves
 behaviour did not change.
 
+Status (2026-10-31): steps 1 and 3 are built in a coarse form (wave 1). The import cycles inside `src/`
+are gone (a `contracts` layer holds ids, tool names, the turn contract and the judge, guard and
+souffleur interfaces), and the repo is a pnpm workspace with the packages `contracts`, `kernel`,
+`prompts`, `engine`, `sdk`, `models`, `roles`, `chronicle`, `novelist` and `apps/cli` (`swt`), a
+tsdown build, the `development` export condition, `pnpm check:packages` and knip. See
+`docs/ARCHITECTURE.md` §2 for the map and for what still differs from §2 above (tools and game rules
+live in `engine` until `World` is carved up; `roles` and `chronicle` read event types from `engine`).
+
 | Step | What | Risk |
 |---|---|---|
 | 0 | Whispers lands first (another thread is building it in `engine/`, `tools/`, `world.ts`) | none, waiting |

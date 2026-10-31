@@ -6,12 +6,13 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { hasStrayBraces, parsePromptFile, placeholders, renderBody } from "./file.ts";
-import { LIBRARY_DIR, REPO_ROOT } from "./library.ts";
+import { libraryDir, libraryRoot } from "./library.ts";
 import { PROMPTS, type PromptId } from "./registry.ts";
 
 function filesIn(directory: string, extension: string): readonly string[] {
 	if (!existsSync(directory)) return [];
 	return readdirSync(directory).flatMap((entry) => {
+		if (entry === "node_modules" || entry === "dist" || entry === "dist-types") return [];
 		const path = join(directory, entry);
 		if (statSync(path).isDirectory()) return filesIn(path, extension);
 		return path.endsWith(extension) ? [path] : [];
@@ -28,7 +29,7 @@ function isPromptId(id: string): id is PromptId {
 
 /** Problems found in one prompt file against the variables it must declare. */
 function checkFile(path: string, id: string, expected: readonly string[]): readonly string[] {
-	const where = relative(REPO_ROOT, path);
+	const where = relative(libraryRoot(), path);
 	let file;
 	try {
 		file = parsePromptFile(readFileSync(path, "utf8"), where);
@@ -56,8 +57,11 @@ function checkFile(path: string, id: string, expected: readonly string[]): reado
 
 /** The registered ids the code never mentions (as a quoted string outside the registry). */
 function unreferenced(ids: readonly string[]): readonly string[] {
-	const sources = [...filesIn(join(REPO_ROOT, "src"), ".ts"), ...filesIn(join(REPO_ROOT, "stories"), ".ts"), ...filesIn(join(REPO_ROOT, "lab"), ".ts")]
-		.filter((path) => !path.includes(`${sep}prompts${sep}keys${sep}`))
+	const root = libraryRoot();
+	const registry = join(root, "packages", "prompts", "src", "keys");
+	const sources = ["packages", "apps", "stories", "lab"]
+		.flatMap((folder) => filesIn(join(root, folder), ".ts"))
+		.filter((path) => !path.startsWith(registry))
 		.map((path) => readFileSync(path, "utf8"));
 	return ids.filter((id) => !sources.some((source) => source.includes(`"${id}"`)));
 }
@@ -65,23 +69,25 @@ function unreferenced(ids: readonly string[]): readonly string[] {
 export function validatePrompts(): readonly string[] {
 	const problems: string[] = [];
 	const ids = Object.keys(PROMPTS);
-	const files = filesIn(LIBRARY_DIR, ".md");
-	const present = new Set(files.map((path) => idOf(LIBRARY_DIR, path)));
+	const library = libraryDir();
+	const root = libraryRoot();
+	const files = filesIn(library, ".md");
+	const present = new Set(files.map((path) => idOf(library, path)));
 	for (const id of ids) {
 		if (!present.has(id)) problems.push(`library/prompts/${id}.md is registered but missing`);
 	}
 	for (const path of files) {
-		const id = idOf(LIBRARY_DIR, path);
+		const id = idOf(library, path);
 		if (isPromptId(id)) problems.push(...checkFile(path, id, PROMPTS[id]));
-		else problems.push(`${relative(REPO_ROOT, path)}: no code uses this file (it is not registered)`);
+		else problems.push(`${relative(root, path)}: no code uses this file (it is not registered)`);
 	}
 	for (const id of unreferenced(ids)) problems.push(`prompt "${id}" is registered but no code mentions it`);
-	for (const story of readdirSync(join(REPO_ROOT, "stories"))) {
-		const directory = join(REPO_ROOT, "stories", story, "prompts");
+	for (const story of readdirSync(join(root, "stories"))) {
+		const directory = join(root, "stories", story, "prompts");
 		for (const path of filesIn(directory, ".md")) {
 			const id = idOf(directory, path);
-			if (!isPromptId(id)) problems.push(`${relative(REPO_ROOT, path)}: overrides "${id}", which is not a prompt`);
-			else problems.push(...checkFile(path, id, PROMPTS[id]), `${relative(REPO_ROOT, path)}: story overrides are not applied yet (the callers do not pass the story); remove the file`);
+			if (!isPromptId(id)) problems.push(`${relative(root, path)}: overrides "${id}", which is not a prompt`);
+			else problems.push(...checkFile(path, id, PROMPTS[id]), `${relative(root, path)}: story overrides are not applied yet (the callers do not pass the story); remove the file`);
 		}
 	}
 	return problems;

@@ -6,16 +6,22 @@
  * The world knows mechanics only. All texts that reach competitors come from
  * the story (task templates, notices) or describe a mechanic (status, codes).
  */
-import { CITY, SYSTEM_AUTHORS, type CompetitorId } from "../core/ids.ts";
-import { PointsLedger } from "../core/ledger.ts";
-import { rngFor } from "../core/random.ts";
-import { assertNever, err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
-import { penaltyAt } from "../story/penalties.ts";
-import { bequestCap } from "../story/tribunal.ts";
-import type { AnyStory, LevelDefinition, MarksChannel, WhisperQuota } from "../story/types.ts";
-import { TOOL_NAMES, type ToolName } from "../contracts/tool-names.ts";
-import { type LedgerSnapshot } from "../core/ledger.ts";
+import {
+	assertNever,
+	CITY,
+	type CompetitorId,
+	err,
+	type LedgerSnapshot,
+	ok,
+	PointsLedger,
+	renderTemplate,
+	type Result,
+	rngFor,
+	SYSTEM_AUTHORS,
+} from "@swarmtales/kernel";
+import { penaltyAt } from "./penalties.ts";
+import { bequestCap } from "./tribunal-rules.ts";
+import { type AnyStory, type LevelDefinition, type MarksChannel, TOOL_NAMES, type ToolName, type WhisperQuota } from "@swarmtales/contracts";
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
 import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
@@ -1023,7 +1029,7 @@ export class World {
 		};
 	}
 
-	/** The whisperer's whispers in `[since, until)` (src/engine/whisperer.ts): fragment-free DMs to residents, and forgeries. */
+	/** The whisperer's whispers in `[since, until)` (packages/engine/src/whisperer.ts): fragment-free DMs to residents, and forgeries. */
 	#tally(agent: CompetitorId, since: number, until: number): WhisperTally {
 		const fragments = [...this.#levelStates.values()].flatMap((state) => (state.puzzle.kind === "fragments" ? [...state.puzzle.fragments.values()] : []));
 		return tallyWhispers(agent, this.#dms, this.#forgeries, fragments, since, until);

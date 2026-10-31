@@ -7,8 +7,16 @@
  * OpenRouter, thinking high.
  */
 import { createModels, type Api, type Model, type Models, type ThinkingLevel } from "@earendil-works/pi-ai";
-import { OPENROUTER_DEEPSEEK_FLASH, SCRIPTED_PROVIDER_ID, type ProviderRegistry } from "../model/providers.ts";
-import { describeModel, missingApiKeys, ModelConfigError, resolveModelSettings, type ModelSettings } from "../model/settings.ts";
+import {
+	describeModel,
+	missingApiKeys,
+	ModelConfigError,
+	type ModelSettings,
+	OPENROUTER_DEEPSEEK_FLASH,
+	type ProviderRegistry,
+	resolveModelSettings,
+	SCRIPTED_PROVIDER_ID,
+} from "@swarmtales/models";
 import type { NarrativeModel } from "./chronicle.ts";
 
 export interface NarrativeRequestOptions {

@@ -12,15 +12,11 @@
  * they do back into the seeded order.
  */
 import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
-import type { CompetitorId } from "../core/ids.ts";
-import type { Competitor, StepSlot, TurnInput } from "../contracts/turn.ts";
-import type { EventBus } from "../engine/events.ts";
-import type { Souffleur } from "../contracts/roles.ts";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { ModelBinding } from "../model/source.ts";
-import { render, text } from "../prompts/library.ts";
-import type { ThinkingLevel } from "../story/types.ts";
-import type { BoundTool } from "../tools/tool.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { Competitor, Souffleur, StepSlot, ThinkingLevel, TurnInput } from "@swarmtales/contracts";
+import type { BoundTool, EventBus } from "@swarmtales/engine";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import { render, text } from "@swarmtales/prompts";
 
 export interface RunnerOptions {
 	readonly id: CompetitorId;

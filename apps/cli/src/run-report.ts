@@ -7,9 +7,8 @@
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { createProviderRegistry } from "../model/providers.ts";
-import { resolveReporterModel } from "../report/model.ts";
-import { reportSummary, writeRunReport } from "../report/reporter.ts";
+import { createProviderRegistry } from "@swarmtales/models";
+import { reportSummary, resolveReporterModel, writeRunReport } from "@swarmtales/chronicle";
 import { UsageError } from "./args.ts";
 import { parseRunReportArgs, RUN_REPORT_USAGE } from "./run-report-args.ts";
 

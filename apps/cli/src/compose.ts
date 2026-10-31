@@ -2,34 +2,55 @@
  * Wires a story into a playable run: clock, event bus, world, director,
  * competitors and scheduler. Used by the CLI and by the tests.
  */
-import { assignModels } from "../agents/models.ts";
-import { assignPersonas } from "../agents/personas.ts";
-import { baseSystemPrompt, type PromptFacts } from "../agents/system-prompt.ts";
-import { renderCore } from "../engine/cores.ts";
-import { DEFAULT_DIRECTION, briefLine, directFigure, directionBlock, directionLevel, figureOf, FigureCues, type DirectionLevel, type FigureCue } from "../engine/direction.ts";
-import { AgentRunner } from "../agents/runner.ts";
-import { VirtualClock } from "../core/clock.ts";
-import { competitorIds, type CompetitorId } from "../core/ids.ts";
-import { Arena, type AgentProfile, type Budget } from "../engine/arena.ts";
-import { Director, DIRECTOR_SUPPORT } from "../engine/director.ts";
-import { EventBus, MemorySink, type EventSink } from "../engine/events.ts";
-import { World } from "../engine/world.ts";
-import { Gamemaker, GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
-import { gamemakerSystemPrompt } from "../gamemaker/system-prompt.ts";
-import type { StatementClassifier } from "../interpret/classifier.ts";
-import { GUARD_ID, type GuardJudge } from "../interpret/guard.ts";
-import { JUDGE_ID, type DeliveryJudge } from "../interpret/judge.ts";
-import { SOUFFLEUR_ID, type Souffleur } from "../interpret/souffleur.ts";
-import { Interpreter } from "../interpret/interpreter.ts";
-import { Weaver } from "../interpret/weaver.ts";
-import type { WeaverModel } from "../interpret/weaver-model.ts";
-import type { ModelSource, RequestLimits } from "../model/source.ts";
-import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "../snapshot/snapshot.ts";
-import { assertValidStory } from "../story/validate.ts";
-import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "../story/types.ts";
-import { ToolGuard } from "../tools/guard.ts";
-import { bindStory } from "../tools/index.ts";
-import { storyId } from "../../stories/index.ts";
+import {
+	AgentRunner,
+	assignModels,
+	assignPersonas,
+	baseSystemPrompt,
+	type DeliveryJudge,
+	Gamemaker,
+	GAMEMAKER_ID,
+	gamemakerSystemPrompt,
+	GUARD_ID,
+	type GuardJudge,
+	Interpreter,
+	JUDGE_ID,
+	type PromptFacts,
+	type Souffleur,
+	SOUFFLEUR_ID,
+	type StatementClassifier,
+	Weaver,
+	type WeaverModel,
+} from "@swarmtales/roles";
+import {
+	type AgentProfile,
+	Arena,
+	bindStory,
+	briefLine,
+	type Budget,
+	DEFAULT_DIRECTION,
+	directFigure,
+	directionBlock,
+	directionLevel,
+	type DirectionLevel,
+	Director,
+	DIRECTOR_SUPPORT,
+	EventBus,
+	type EventSink,
+	type FigureCue,
+	FigureCues,
+	figureOf,
+	MemorySink,
+	renderCore,
+	ToolGuard,
+	World,
+} from "@swarmtales/engine";
+import { type CompetitorId, competitorIds, VirtualClock } from "@swarmtales/kernel";
+import type { ModelSource, RequestLimits } from "@swarmtales/models";
+import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "@swarmtales/chronicle";
+import { assertValidStory } from "@swarmtales/sdk";
+import type { Activation, AnyStory, ModelChoice, Persona, ThinkingLevel } from "@swarmtales/contracts";
+import { storyId } from "../../../stories/index.ts";
 
 /** CLI-level overrides of the story's run parameters. */
 export interface RunOverrides {
@@ -59,7 +80,7 @@ export interface RunOverrides {
 	readonly cores?: boolean;
 	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
 	readonly cast?: readonly string[];
-	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, src/engine/direction.ts). */
+	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, packages/engine/src/direction.ts). */
 	readonly figureDirection?: number;
 	/** How strongly the gamemaker steers, 0-10 (`--gm-direction`). */
 	readonly gmDirection?: number;

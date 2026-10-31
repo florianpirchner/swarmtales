@@ -1,6 +1,6 @@
 import { Type } from "typebox";
-import { DEFY_REASON } from "../engine/world.ts";
-import { render, text } from "../prompts/library.ts";
+import { DEFY_REASON } from "../world.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, fromError, success } from "./tool.ts";
 
 /** Gm direction 10: a resident may refuse the gamemaker's order, for a reason of its own character. */

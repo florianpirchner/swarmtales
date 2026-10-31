@@ -6,10 +6,10 @@
  * numbered lines (messages, reasoning excerpts and verified actions). It
  * answers with one JSON object; the caller validates every `seq` it cites.
  */
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 import type { NarrativeBeatKind } from "./beats.ts";
 
-export const CHRONICLE_SYSTEM_PROMPT = text("chronicler/system");
+export const chronicleSystemPrompt = (): string => text("chronicler/system");
 
 export const NARRATIVE_BEAT_DEFINITIONS: Readonly<Record<NarrativeBeatKind, string>> = {
 	brokenPromise: text("chronicler/beat-broken-promise"),

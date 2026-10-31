@@ -4,7 +4,7 @@
  * closed: anything else a model answers is dropped, so a label can never
  * carry free text (or a password piece) out of a thought.
  */
-import { text } from "../prompts/library.ts";
+import { text, type PlainPromptId } from "@swarmtales/prompts";
 
 export const STATEMENT_LABELS = ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"] as const;
 
@@ -15,18 +15,22 @@ export const STATEMENT_SOURCES = ["thought", "aside", "dm", "board", "group", "c
 
 export type StatementSource = (typeof STATEMENT_SOURCES)[number];
 
-/** What each label means, as the classifier is told. */
-export const LABEL_MEANINGS: Readonly<Record<StatementLabel, string>> = {
-	promise: text("classifier/label-promise"),
-	offer: text("classifier/label-offer"),
-	threat: text("classifier/label-threat"),
-	refusal: text("classifier/label-refusal"),
-	lie: text("classifier/label-lie"),
-	hesitation: text("classifier/label-hesitation"),
-	helpRequest: text("classifier/label-helpRequest"),
-	accusation: text("classifier/label-accusation"),
-	thanks: text("classifier/label-thanks"),
-};
+const LABEL_PROMPTS = {
+	promise: "classifier/label-promise",
+	offer: "classifier/label-offer",
+	threat: "classifier/label-threat",
+	refusal: "classifier/label-refusal",
+	lie: "classifier/label-lie",
+	hesitation: "classifier/label-hesitation",
+	helpRequest: "classifier/label-helpRequest",
+	accusation: "classifier/label-accusation",
+	thanks: "classifier/label-thanks",
+} as const satisfies Record<StatementLabel, PlainPromptId>;
+
+/** What a label means, as the classifier is told (read from the prompt library on use). */
+export function labelMeaning(label: StatementLabel): string {
+	return text(LABEL_PROMPTS[label]);
+}
 
 /** Short wording for reports, e.g. `hesitates (risk)`. */
 export const LABEL_TEXT: Readonly<Record<StatementLabel, string>> = {

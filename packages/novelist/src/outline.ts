@@ -7,14 +7,11 @@
  */
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { evidenceLines } from "../digest/chronicle.ts";
-import { cite } from "../digest/timeline.ts";
-import { turningPoints, type TurningPoint } from "../digest/turning-points.ts";
+import { cite, evidenceLines, excerpt, type TurningPoint, turningPoints } from "@swarmtales/chronicle";
 import type { Casting } from "./casting.ts";
 import type { OutlineChapter } from "./chapter.ts";
-import { excerpt } from "../digest/relationships.ts";
 import { dossier } from "./packs.ts";
-import { buildOutlinePrompt, GAMEMAKER_POV, OUTLINE_SYSTEM_PROMPT, type GlossaryEntry } from "./prompts.ts";
+import { buildOutlinePrompt, GAMEMAKER_POV, outlineSystemPrompt, type GlossaryEntry } from "./prompts.ts";
 import { Names, type NovelSource } from "./source.ts";
 
 export type { OutlineChapter };
@@ -84,7 +81,7 @@ export function buildOutlineRequest(source: NovelSource, casting: Casting, optio
 		...(source.world === undefined ? {} : { world: source.world }),
 		gamemaker: gamemakerBrief(source, names, options.excerptChars),
 	});
-	return { system: OUTLINE_SYSTEM_PROMPT, prompt };
+	return { system: outlineSystemPrompt(), prompt };
 }
 
 /**

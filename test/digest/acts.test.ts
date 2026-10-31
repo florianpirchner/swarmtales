@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { IMPLICIT_ACT, mapActs } from "../../src/digest/acts.ts";
+import { IMPLICIT_ACT, mapActs } from "@swarmtales/chronicle";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 describe("acts in the digest", () => {

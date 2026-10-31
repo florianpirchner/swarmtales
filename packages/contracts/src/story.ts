@@ -4,8 +4,8 @@
  * A story is pure, deeply readonly, JSON-serializable data. The engine
  * interprets it; nothing in here executes.
  */
-import type { SystemAuthor } from "../contracts/ids.ts";
-import type { ToolName } from "../contracts/tool-names.ts";
+import type { SystemAuthor } from "./ids.ts";
+import type { ToolName } from "./tool-names.ts";
 
 // ---------------------------------------------------------------------------
 // Run, model and rules
@@ -1392,3 +1392,20 @@ export const TRIGGER_KINDS: Complete<TriggerKind, typeof TRIGGER_KIND_LIST> = TR
 export const CONDITION_KINDS: Complete<Condition["kind"], typeof CONDITION_KIND_LIST> = CONDITION_KIND_LIST;
 /** Every action kind of SPEC 10.3. */
 export const ACTION_KINDS: Complete<ActionKind, typeof ACTION_KIND_LIST> = ACTION_KIND_LIST;
+
+// ---------------------------------------------------------------------------
+// Limits shared by the validator and the engine
+// ---------------------------------------------------------------------------
+
+export const MIN_PASSWORD_LENGTH = 6;
+/** Whispers' six-fragment doors with own characters need up to 26 (6 x 1 own + 5 seams of 4). */
+export const MAX_PASSWORD_LENGTH = 28;
+export const MIN_FACTOR_DIGITS = 4;
+export const MAX_FACTOR_DIGITS = 8;
+
+/** Director primitives the engine can execute. Anything else is reported. */
+export interface DirectorSupport {
+	readonly triggers: readonly TriggerKind[];
+	readonly actions: readonly ActionKind[];
+	readonly conditions: readonly Condition["kind"][];
+}

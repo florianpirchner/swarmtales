@@ -11,10 +11,15 @@
  * `ARENA_NOVEL_PROVIDER`/`_MODEL`, `ARENA_NOVEL_EDITOR_PROVIDER`/`_MODEL`) > default.
  */
 import type { Api, Model, Models, ThinkingLevel } from "@earendil-works/pi-ai";
-import { bindPiModel } from "../digest/narrative-model.ts";
-import { ANTHROPIC_SONNET, OPENROUTER_DEEPSEEK_FLASH, type ProviderRegistry } from "../model/providers.ts";
-import { ModelConfigError, resolveModelSettings, type ModelSettings } from "../model/settings.ts";
-import type { ReporterSpend } from "../report/render.ts";
+import { bindPiModel, type ReporterSpend } from "@swarmtales/chronicle";
+import {
+	ANTHROPIC_SONNET,
+	ModelConfigError,
+	type ModelSettings,
+	OPENROUTER_DEEPSEEK_FLASH,
+	type ProviderRegistry,
+	resolveModelSettings,
+} from "@swarmtales/models";
 
 /** Tokens and USD of one or more requests. */
 export type NovelSpend = ReporterSpend;

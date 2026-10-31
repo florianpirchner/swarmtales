@@ -10,17 +10,13 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type, type Static, type TSchema } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { CompetitorId } from "../core/ids.ts";
-import type { EventBus, EventSink, RecordedEvent } from "../engine/events.ts";
-import type { World } from "../engine/world.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { GamemakerSpec, ThinkingLevel } from "../story/types.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { dealValues, type DirectionLevel, type EventBus, type EventSink, type RecordedEvent, type World } from "@swarmtales/engine";
+import type { GamemakerSpec, ThinkingLevel } from "@swarmtales/contracts";
 import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, roleLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
-import { dealValues } from "../engine/puzzles/additive.ts";
 import { SecretGuard } from "./secrets.ts";
-import type { DirectionLevel } from "../engine/direction.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
 import { MAX_NOTE_LENGTH } from "./system-prompt.ts";
 

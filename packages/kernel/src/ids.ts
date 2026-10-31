@@ -1,4 +1,4 @@
-import type { CompetitorId, SystemAuthor } from "../contracts/ids.ts";
+import type { CompetitorId, SystemAuthor } from "@swarmtales/contracts";
 
 export type { CompetitorId, SystemAuthor };
 

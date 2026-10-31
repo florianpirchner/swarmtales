@@ -17,7 +17,7 @@
  */
 import { draft, type BeatDraft } from "../beats.ts";
 import { eventsOfType } from "../event-log.ts";
-import { isPrivateSource } from "../../engine/labels.ts";
+import { isPrivateSource } from "@swarmtales/engine";
 import { PIECE_TEXT, reachedAfter, sameTeam, type RunFacts, type SharedPiece } from "../facts.ts";
 import { generousGifts, isGenerous } from "./generous.ts";
 

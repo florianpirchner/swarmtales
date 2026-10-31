@@ -20,7 +20,7 @@ import { excerpt } from "../digest/relationships.ts";
 import { buildEvidence } from "./evidence.ts";
 import { computeFacts, DEFAULT_REPORT_OPTIONS, type ReportFacts, type ReportOptions } from "./facts.ts";
 import { ReporterRequestError, type ReporterChoice, type ReporterModel } from "./model.ts";
-import { buildReportPrompt, REPORT_SYSTEM_PROMPT } from "./prompt.ts";
+import { buildReportPrompt, reportSystemPrompt } from "./prompt.ts";
 import { factsMarkdown, renderReport, SECTION_TITLES, type Narrative, type ReportItem, type ReportSections, type ReporterSpend } from "./render.ts";
 import { readRunFiles, type RunFiles } from "./run-log.ts";
 
@@ -102,7 +102,7 @@ export interface InterpretedAnswer {
 }
 
 /** Validates the model's answer against the log. Throws {@link ReportError} when it is not the expected JSON. */
-export function interpretAnswer(answer: string, seqs: ReadonlySet<number>, maxItems = DEFAULT_REPORTER_OPTIONS.maxItems): InterpretedAnswer {
+export function interpretReporterAnswer(answer: string, seqs: ReadonlySet<number>, maxItems = DEFAULT_REPORTER_OPTIONS.maxItems): InterpretedAnswer {
 	const parsed = parseAnswer(answer);
 	const warnings: string[] = [];
 	const section = (key: keyof ReportSections, items: readonly AnswerItem[], withBy: boolean): readonly ReportItem[] => {
@@ -211,7 +211,7 @@ async function askModel(facts: ReportFacts, files: RunFiles, model: ReporterMode
 	for (let attempt = 1; ; attempt++) {
 		let answer;
 		try {
-			answer = await model.complete(REPORT_SYSTEM_PROMPT, prompt);
+			answer = await model.complete(reportSystemPrompt(), prompt);
 		} catch (error) {
 			const reason = error instanceof Error ? error.message : String(error);
 			const spend = error instanceof ReporterRequestError ? addSpend(spent, error.spend) : spent;
@@ -219,7 +219,7 @@ async function askModel(facts: ReportFacts, files: RunFiles, model: ReporterMode
 		}
 		spent = addSpend(spent, answer.spend);
 		try {
-			const interpreted = interpretAnswer(answer.text, facts.seqs, options.maxItems);
+			const interpreted = interpretReporterAnswer(answer.text, facts.seqs, options.maxItems);
 			return { kind: "written", label: model.label, sections: interpreted.sections, warnings: interpreted.warnings, spend: spent };
 		} catch (error) {
 			if (!(error instanceof ReportError)) throw error;

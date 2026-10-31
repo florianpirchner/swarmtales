@@ -5,33 +5,29 @@
  * that names an undeclared cast member does not compile. Tool names are the
  * literal union {@link ToolName}. All helpers return plain data.
  */
-import type { ToolName } from "../contracts/tool-names.ts";
-import type { CheckedTemplate } from "./templates.ts";
 import type {
-	Action,
 	ActDefinition,
+	Action,
 	CastMember,
-	Condition,
-	CooldownScope,
-	DirectorPlaceholder,
 	CityFactorRelease,
 	CityFactorScope,
-	DirectorRule,
 	ClassifierSpec,
-	NamesSpec,
-	TribunalSpec,
+	Condition,
+	CooldownScope,
 	CoresSpec,
-	GoalsSpec,
-	SealSpec,
+	DirectorPlaceholder,
+	DirectorRule,
 	FactorTarget,
 	FactorTopology,
 	GamemakerSpec,
+	GoalsSpec,
 	GuardsSpec,
 	HoldoutSpec,
 	LevelDefinition,
 	LevelMarks,
 	ModelAssignment,
 	ModelChoice,
+	NamesSpec,
 	NoticeTarget,
 	Persona,
 	PersonaAssignment,
@@ -43,13 +39,17 @@ import type {
 	Rules,
 	RunSettings,
 	ScaledCount,
+	SealSpec,
 	StoryDefinition,
 	TaskPlaceholder,
 	TeamLayout,
+	ToolName,
 	ToolScope,
+	TribunalSpec,
 	Trigger,
 	WhispererSpec,
-} from "./types.ts";
+} from "@swarmtales/contracts";
+import type { CheckedTemplate } from "@swarmtales/kernel";
 
 // ---------------------------------------------------------------------------
 // Story

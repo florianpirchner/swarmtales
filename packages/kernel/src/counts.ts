@@ -1,5 +1,5 @@
 /** Counts that grow with the city (v09): shared by the validator and the engine. */
-import type { ScaledCount } from "./types.ts";
+import type { ScaledCount } from "@swarmtales/contracts";
 
 /** The count for a city of `residents`: the fixed number, or its share rounded up, at least the minimum. */
 export function resolveCount(count: ScaledCount, residents: number): number {

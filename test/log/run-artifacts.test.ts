@@ -2,9 +2,16 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { EventBus } from "../../src/engine/events.ts";
-import { allocateRunDirectory, minuteDirectoryName, MinuteEventLog, runDirectoryName, writeRunMetadata, writeSystemPrompts } from "../../src/log/run-artifacts.ts";
-import { JsonlEventLog } from "../../src/log/sinks.ts";
+import { EventBus } from "@swarmtales/engine";
+import {
+	allocateRunDirectory,
+	JsonlEventLog,
+	minuteDirectoryName,
+	MinuteEventLog,
+	runDirectoryName,
+	writeRunMetadata,
+	writeSystemPrompts,
+} from "@swarmtales/chronicle";
 
 const directories: string[] = [];
 

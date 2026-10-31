@@ -4,7 +4,7 @@
  * drive above all, and its text says who it is, never what to do in the game.
  */
 import { describe, expect, it } from "vitest";
-import { parseFigure, readArchetypes, readFigures, type FigureFile } from "../../src/cast/figures.ts";
+import { parseFigure, readArchetypes, readFigures, type FigureFile } from "@swarmtales/sdk";
 import { CORES } from "../../stories/cityofkeys/characters.ts";
 
 const library = readArchetypes("archetypes");

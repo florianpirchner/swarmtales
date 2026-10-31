@@ -5,14 +5,14 @@
  * characters at each seam. Generated puzzles are validated against the
  * invariants and redrawn on violation.
  */
-import type { Rng } from "../../core/random.ts";
-import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "../../story/validate.ts";
+import type { Rng } from "@swarmtales/kernel";
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@swarmtales/contracts";
 
 export const MIN_FRAGMENT_LENGTH = 3;
 /** Without easily confused characters (0/O, 1/I). */
 export const PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 // One source of truth: the story validator checks the same bounds.
-export { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "../../story/validate.ts";
+export { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@swarmtales/contracts";
 
 export interface FragmentPuzzle {
 	readonly password: string;

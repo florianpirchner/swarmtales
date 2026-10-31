@@ -19,8 +19,7 @@
  * messages are kept generic (`delivered`) so that a board or group post can
  * later be the blamed message too.
  */
-import { CITY, type CompetitorId } from "../core/ids.ts";
-import { err, ok, type Result } from "../core/result.ts";
+import { CITY, type CompetitorId, err, ok, type Result } from "@swarmtales/kernel";
 
 /** Characters of each message the city record quotes. */
 export const RECORD_QUOTE_CHARS = 60;

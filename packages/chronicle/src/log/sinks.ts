@@ -3,8 +3,8 @@
  */
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { assertNever } from "../core/result.ts";
-import type { EventSink, RecordedEvent } from "../engine/events.ts";
+import { assertNever } from "@swarmtales/kernel";
+import type { EventSink, RecordedEvent } from "@swarmtales/engine";
 
 /** `events.jsonl`: every event with `seq`, virtual minute and wall-clock time. */
 export class JsonlEventLog implements EventSink {

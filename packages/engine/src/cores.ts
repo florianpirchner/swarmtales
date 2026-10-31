@@ -18,9 +18,8 @@
  * the ones the run names, or a seeded pick with the same light share. A
  * figure's core is its own; residents beyond the cast keep a drawn core.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor, type Rng } from "../core/random.ts";
-import { CORE_LEVELS, type CoresSpec, type DriveSpec, type FigureSpec } from "../story/types.ts";
+import { type CompetitorId, type Rng, rngFor } from "@swarmtales/kernel";
+import { CORE_LEVELS, type CoresSpec, type DriveSpec, type FigureSpec } from "@swarmtales/contracts";
 import type { CoreDrive, CoreTrait } from "./events.ts";
 
 export interface Core {

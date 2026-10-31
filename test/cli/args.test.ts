@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseStartArgs, UsageError } from "../../src/cli/args.ts";
-import { effectiveRun, resolveBlockSize } from "../../src/cli/compose.ts";
+import { parseStartArgs, UsageError } from "../../apps/cli/src/args.ts";
+import { effectiveRun, resolveBlockSize } from "../../apps/cli/src/compose.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { findStory } from "../../stories/index.ts";
 import { tinyStory } from "../helpers/stories.ts";

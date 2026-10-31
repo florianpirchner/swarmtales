@@ -9,7 +9,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { analyzeRun, DIGEST_DIRECTORY, DIGEST_FILES, type RunAnalysis } from "../digest/digest.ts";
+import { analyzeRun, DIGEST_DIRECTORY, DIGEST_FILES, type RunAnalysis } from "@swarmtales/chronicle";
 
 /** A thought of the gamemaker (the city's game makers). */
 export interface GamemakerThought {

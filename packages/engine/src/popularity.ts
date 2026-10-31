@@ -10,10 +10,8 @@
  * whom; the log keeps every ballot. Rounds run one after another, each with
  * fresh ballots.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
-import type { PopularityRound, PopularitySpec } from "../story/types.ts";
+import { type CompetitorId, err, ok, renderTemplate, type Result } from "@swarmtales/kernel";
+import type { PopularityRound, PopularitySpec } from "@swarmtales/contracts";
 import type { ArenaEvent } from "./events.ts";
 
 export type PopularityEvent = Extract<ArenaEvent, { readonly type: "popularity_opened" | "popularity_ballot" | "popularity_result" }>;

@@ -6,14 +6,19 @@
  * passwords never appear. Teams that a level's task hides are marked, so
  * the gamemaker knows not to reveal them.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
-import type { World } from "../engine/world.ts";
-import { isPrivateSource, LABEL_TEXT } from "../engine/labels.ts";
-import { placeholdersOf } from "../story/templates.ts";
-import { coreLine } from "../engine/cores.ts";
-import { directFigure, figureOf, type DirectionLevel } from "../engine/direction.ts";
-import { ladderText } from "../story/penalties.ts";
+import { type CompetitorId, placeholdersOf } from "@swarmtales/kernel";
+import {
+	coreLine,
+	directFigure,
+	type DirectionLevel,
+	type FateTrigger,
+	figureOf,
+	isPrivateSource,
+	LABEL_TEXT,
+	ladderText,
+	type RecordedEvent,
+	type World,
+} from "@swarmtales/engine";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the gamemaker. */
@@ -131,7 +136,7 @@ export function characterLines(world: World, direction: DirectionLevel): readonl
 		const goal = world.goalOf(agent);
 		if (core === undefined && goal === undefined) return [];
 		const parts = [...(core === undefined ? [] : [`core: ${coreLine(core)}`]), ...(goal === undefined ? [] : [`secret goal: ${goal.text}`])];
-		// From direction 8 the director stages with the figure's own material (src/engine/direction.ts).
+		// From direction 8 the director stages with the figure's own material (packages/engine/src/direction.ts).
 		const directed = direction < 8 ? undefined : directFigure(direction, figureOf(world.story.cores?.figures, core?.figure)?.direction, playedBy);
 		if (directed !== undefined) {
 			if (directed.tendencies.length > 0) parts.push(`tendencies: ${directed.tendencies.join(" ")}`);

@@ -6,7 +6,7 @@
  * ultimatum and how it ended, the sale and use of the black seal, a
  * tribunal's count, a last will, a ransom, or the closing ledger.
  */
-import type { DigestEvent } from "../digest/event-log.ts";
+import type { DigestEvent } from "@swarmtales/chronicle";
 import type { Names } from "./source.ts";
 
 export interface CityRecord {

@@ -5,7 +5,7 @@
  * from the city, the courier or cast members; `system` posts are status lines
  * that read tools skip.
  */
-import type { CompetitorId } from "../core/ids.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
 import type { BoardPostKind } from "./events.ts";
 import { MessageNumbers } from "./numbers.ts";
 

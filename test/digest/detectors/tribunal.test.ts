@@ -1,7 +1,6 @@
 /** The tribunal's beats on synthetic logs: exile, voteBetrayal, ransomPaid / ransomFailed, lastWill, burnedFactor. */
 import { describe, expect, it } from "vitest";
-import { detectBurnedFactors, detectExiles, detectLastWills, detectRansoms, detectVoteBetrayals } from "../../../src/digest/detectors/tribunal.ts";
-import { buildFacts } from "../../../src/digest/facts.ts";
+import { buildFacts, detectBurnedFactors, detectExiles, detectLastWills, detectRansoms, detectVoteBetrayals } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 const facts = (log: LogBuilder) => buildFacts(log.analyze().facts.events);

@@ -15,8 +15,8 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { coreLine, renderCore, type Core } from "../engine/cores.ts";
-import type { AnyStory, FigureDirection } from "../story/types.ts";
+import { coreLine, renderCore, type Core } from "@swarmtales/engine";
+import type { AnyStory, FigureDirection } from "@swarmtales/contracts";
 
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
@@ -115,7 +115,7 @@ export function writeCastFiles(directory: string, story: AnyStory, entries: read
 	}
 }
 
-/** A figure's direction sections, which reach the prompt only from a direction level on (src/engine/direction.ts). */
+/** A figure's direction sections, which reach the prompt only from a direction level on (packages/engine/src/direction.ts). */
 function directionPart(direction: FigureDirection | undefined): readonly string[] {
 	if (direction === undefined) return [];
 	const list = (title: string, lines: readonly string[]): readonly string[] => (lines.length === 0 ? [] : [`**${title}**`, "", ...lines.map((line) => `- ${line}`), ""]);

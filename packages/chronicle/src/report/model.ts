@@ -9,8 +9,7 @@
  */
 import type { Api, Model, Models } from "@earendil-works/pi-ai";
 import { bindPiModel } from "../digest/narrative-model.ts";
-import { OPENROUTER_DEEPSEEK_FLASH, type ProviderRegistry } from "../model/providers.ts";
-import { ModelConfigError, resolveModelSettings, type ModelSettings } from "../model/settings.ts";
+import { ModelConfigError, type ModelSettings, OPENROUTER_DEEPSEEK_FLASH, type ProviderRegistry, resolveModelSettings } from "@swarmtales/models";
 import type { ReporterSpend } from "./render.ts";
 
 export const DEFAULT_REPORTER_MODEL: ModelSettings = { provider: "openrouter", modelId: OPENROUTER_DEEPSEEK_FLASH };

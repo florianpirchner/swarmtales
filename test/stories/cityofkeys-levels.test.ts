@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "../../src/tools/index.ts";
+import { LOCKED_REPLY } from "@swarmtales/engine";
 import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 
 describe("cityofkeys level 1: the first door (solo)", () => {

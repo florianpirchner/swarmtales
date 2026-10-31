@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "../../src/tools/index.ts";
-import { act as directorAct, at, every, onAllPast, onEnter, onFirstEnter, onUnansweredDm, when } from "../../src/story/define.ts";
+import { LOCKED_REPLY } from "@swarmtales/engine";
+import { act as directorAct, at, every, onAllPast, onEnter, onFirstEnter, onUnansweredDm, when } from "@swarmtales/sdk";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { tinyStory } from "../helpers/stories.ts";
 

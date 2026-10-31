@@ -16,14 +16,12 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { CompetitorId } from "../core/ids.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage, DeliveryJudge, DenialQuestion, JudgeAnswer, JudgeStanding } from "../contracts/roles.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { ClassifierUsage, DeliveryJudge, DenialQuestion, JudgeAnswer, JudgeStanding, ThinkingLevel } from "@swarmtales/contracts";
 
 export type { DeliveryJudge, DenialQuestion, JudgeAnswer, JudgeStanding };
-import { render, text } from "../prompts/library.ts";
+import { render, text, type PlainPromptId } from "@swarmtales/prompts";
 
 /** ID of the judge in usage records. */
 export const JUDGE_ID = "JD";
@@ -36,21 +34,21 @@ export const JUDGE_TEMPERS = ["fair", "partial", "capricious"] as const;
 export type JudgeTemper = (typeof JUDGE_TEMPERS)[number];
 
 /** How each temper rules and speaks; the fair judge is the city's default. */
-const TEMPER_TEXT: Readonly<Record<JudgeTemper, string>> = {
-	fair: text("judge/temper-fair"),
-	partial: text("judge/temper-partial"),
-	capricious: text("judge/temper-capricious"),
-};
+const TEMPER_PROMPTS = { fair: "judge/temper-fair", partial: "judge/temper-partial", capricious: "judge/temper-capricious" } as const satisfies Record<JudgeTemper, PlainPromptId>;
 
-export function judgeSystemPrompt(temper: JudgeTemper = "fair"): string {
-	return render("judge/system", { temper: TEMPER_TEXT[temper] });
+function temperText(temper: JudgeTemper): string {
+	return text(TEMPER_PROMPTS[temper]);
 }
 
-const CHANNEL_TEXT: Readonly<Record<DenialQuestion["claim"]["channel"], string>> = {
-	dm: text("judge/channel-dm"),
-	board: text("judge/channel-board"),
-	group: text("judge/channel-group"),
-};
+export function judgeSystemPrompt(temper: JudgeTemper = "fair"): string {
+	return render("judge/system", { temper: temperText(temper) });
+}
+
+const CHANNEL_PROMPTS = { dm: "judge/channel-dm", board: "judge/channel-board", group: "judge/channel-group" } as const satisfies Record<DenialQuestion["claim"]["channel"], PlainPromptId>;
+
+function channelText(channel: DenialQuestion["claim"]["channel"]): string {
+	return text(CHANNEL_PROMPTS[channel]);
+}
 
 export function judgePrompt(question: DenialQuestion): string {
 	const quote = (value: string): string => JSON.stringify(value.slice(0, JUDGE_QUOTE_CHARS));
@@ -60,7 +58,7 @@ export function judgePrompt(question: DenialQuestion): string {
 		render("judge/delivered", { number: question.dm.number, sender: question.sender, accused: question.accused }),
 		render("judge/text", { text: quote(question.dm.text) }),
 		"",
-		render("judge/later", { number: question.claim.number, accused: question.accused, channel: CHANNEL_TEXT[question.claim.channel] }),
+		render("judge/later", { number: question.claim.number, accused: question.accused, channel: channelText(question.claim.channel) }),
 		render("judge/text", { text: quote(question.claim.text) }),
 		"",
 		...(standing === undefined

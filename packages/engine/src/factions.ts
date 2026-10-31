@@ -21,12 +21,9 @@
  * Nominations, applications and votes are in the log for the digest; the
  * gamemaker's view never shows them.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
-import { factionCap } from "../story/tribunal.ts";
-import type { FactionSpec, FactionTexts } from "../story/types.ts";
+import { type CompetitorId, err, ok, renderTemplate, type Result, rngFor } from "@swarmtales/kernel";
+import { factionCap } from "./tribunal-rules.ts";
+import type { FactionSpec, FactionTexts } from "@swarmtales/contracts";
 import type { ArenaEvent } from "./events.ts";
 
 export type FactionEvent = Extract<

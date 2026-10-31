@@ -23,12 +23,19 @@
  * Every change is a `fate_shift` event. The hard texts are in the run
  * snapshot, so a resumed run builds the same system prompts.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { FATE_TRIGGERS, type EventBus, type EventSink, type FateShiftKind, type FateTrigger, type RecordedEvent } from "../engine/events.ts";
-import type { RoundObserver } from "../engine/arena.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import {
+	type EventBus,
+	type EventSink,
+	FATE_TRIGGERS,
+	type FateShiftKind,
+	type FateTrigger,
+	type RecordedEvent,
+	type RoundObserver,
+} from "@swarmtales/engine";
 import { FateTriggers, type FateHit } from "./fate-triggers.ts";
 import { WEAVER_ID, type Weave, type WeaverAnswer, type WeaverModel, type WeaverQuestion } from "./weaver-model.ts";
-import { render } from "../prompts/library.ts";
+import { render } from "@swarmtales/prompts";
 
 /** Inner voices per resident and act. */
 export const MAX_SOFT = 6;

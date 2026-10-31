@@ -2,8 +2,8 @@
  * Typed events (ARCHITECTURE §1.5). Every state change emits one; logs,
  * reports and the digest consume events and never reach into world internals.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { ActionKind, MarksChannel, PetitionOutcome } from "../story/types.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { ActionKind, MarksChannel, PetitionOutcome } from "@swarmtales/contracts";
 import type { StatementLabel, StatementSource } from "./labels.ts";
 import type { FactorHolding, TeamCertificate } from "./puzzles/additive.ts";
 import type { ReceiptKind } from "./receipts.ts";

@@ -12,10 +12,8 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { JUDGE_TEMPERS, type DenialQuestion, type JudgeTemper, type JudgeStanding } from "../src/interpret/judge.ts";
-import { createDeliveryJudge } from "../src/interpret/sources.ts";
-import { createProviderRegistry } from "../src/model/providers.ts";
-import { resolveModelSettings, settingsFromStory } from "../src/model/settings.ts";
+import { createDeliveryJudge, type DenialQuestion, JUDGE_TEMPERS, type JudgeStanding, type JudgeTemper } from "@swarmtales/roles";
+import { createProviderRegistry, resolveModelSettings, settingsFromStory } from "@swarmtales/models";
 import { findStory } from "../stories/index.ts";
 
 const OUT = "lab/out/judge";

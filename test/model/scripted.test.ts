@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { oracleScript } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
-import { worldOracle } from "../../src/cli/oracle.ts";
+import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
 import { createFixture } from "../helpers/fixture.ts";
 
 describe("oracle script (offline runs)", () => {

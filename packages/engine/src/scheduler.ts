@@ -2,8 +2,7 @@
  * Fair activation order (SPEC §3): a fresh seeded permutation in every pass
  * of every round, so nobody is systematically first or last.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
+import { type CompetitorId, rngFor } from "@swarmtales/kernel";
 
 export function activationOrder(seed: number, round: number, pass: number, competitors: readonly CompetitorId[]): readonly CompetitorId[] {
 	return rngFor(seed, "order", round, pass).shuffle(competitors);

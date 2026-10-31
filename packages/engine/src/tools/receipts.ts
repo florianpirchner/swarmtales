@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { defineTool, failure, fromError, marksSuffix, success, type ArenaTool } from "./tool.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** A board show refused because the receipt quotes part of a fragment (SPEC 20); nothing is posted or charged. */
 export const RECEIPT_CARRIES_FRAGMENT = "RECEIPT_CARRIES_FRAGMENT";

@@ -1,6 +1,6 @@
 /** `pnpm report:minutes runs/run-001`: rebuilds `minutes.md` from `events.jsonl`. */
 import { resolve } from "node:path";
-import { writeMinuteReport } from "../log/minute-report.ts";
+import { writeMinuteReport } from "@swarmtales/chronicle";
 
 const directory = process.argv[2];
 if (directory === undefined) {

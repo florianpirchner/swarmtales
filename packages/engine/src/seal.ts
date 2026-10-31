@@ -16,11 +16,8 @@
  * act's end or when its holder leaves the city. Never on oneself, never
  * passed on. The gamemaker learns that a seal exists, never who holds it.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
-import type { SealSpec, SealTexts } from "../story/types.ts";
+import { type CompetitorId, err, ok, renderTemplate, type Result, rngFor } from "@swarmtales/kernel";
+import type { SealSpec, SealTexts } from "@swarmtales/contracts";
 import type { ArenaEvent } from "./events.ts";
 import type { Standing } from "./tribunal.ts";
 

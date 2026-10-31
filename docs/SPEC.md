@@ -359,7 +359,7 @@ from the act's start (P28).
 ### 6.5 The give-first standoff [P43, 2026-10-29]
 
 A door that needs pieces from someone else freezes when both sides wait for the other to give
-first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
+first (P43). Three parts work against it; `packages/engine/src/standoff.ts` holds them.
 
 - **Hand-overs.** The city notes, silently, when a holder writes the value of a piece it holds for
   someone to that resident: in a DM, a group post the needer is in, or the board, or as a
@@ -1198,7 +1198,7 @@ three are optional, and the texts say who someone is or what it wants, never how
   the persona of its `profession`; `core_dealt` and the snapshot carry its `figure` ID. Residents
   beyond the cast get a drawn core. `frame`, when set, comes first in the system prompt of every
   resident with a core.
-- **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; src/engine/direction.ts):
+- **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; packages/engine/src/direction.ts):
   how strongly a run steers what its residents do. Defined levels are 0, 4, 6, 8 and 10; other
   values round down. Up to 4 the prompts are built as before (v12). A figure's file may hold the
   sections `## In brief`, `## Tendencies`, `## Orders`, `## Duty` and `## Rivals`
@@ -1266,7 +1266,7 @@ play as before.
   `[since, minute)`; after a vote `since` is the count before (0 before the first).
 - **The directed whisperer** (`direction: { brief?, tendencies, orders, duty?, rivals: [], quota? }`,
   after P64, P67, P69): `--figure-direction` steers the whisperer as it steers a cast figure (§19,
-  "Direction"; src/engine/direction.ts): 6 the voice rule, no persona block and the brief in every
+  "Direction"; packages/engine/src/direction.ts): 6 the voice rule, no persona block and the brief in every
   step; 8 the tendencies; 10 the orders and the duty, after his secret brief at the end of his
   prompt, and with a gamemaker the author's line and `defy` (for him alone, whatever
   `--gm-direction`). He faces no figures, so `rivals` stays empty. At 10 the city also measures

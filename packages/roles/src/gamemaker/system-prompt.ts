@@ -5,11 +5,9 @@
  * come from the story's spec. The text lives in `library/prompts/gamemaker/`;
  * this file chooses the pieces (dial variants are files of their own) and joins them.
  */
-import type { DirectionLevel } from "../engine/direction.ts";
-import { render, text } from "../prompts/library.ts";
-import type { PromptId } from "../prompts/registry.ts";
-import { ladderText } from "../story/penalties.ts";
-import type { GamemakerRole, GamemakerSpec, HoldoutSpec, Rules } from "../story/types.ts";
+import { type DirectionLevel, ladderText } from "@swarmtales/engine";
+import { type PromptId, render, text } from "@swarmtales/prompts";
+import type { GamemakerRole, GamemakerSpec, HoldoutSpec, Rules } from "@swarmtales/contracts";
 
 /** Characters a note or board post of the gamemaker may have; longer ones are refused. */
 export const MAX_NOTE_LENGTH = 400;
@@ -28,7 +26,7 @@ export interface GamemakerPromptInput {
 	readonly characters?: boolean;
 	/** Whether the city auctions a black seal (v09). */
 	readonly seal?: boolean;
-	/** How strongly the director steers (`--gm-direction`, src/engine/direction.ts); 4 when omitted. */
+	/** How strongly the director steers (`--gm-direction`, packages/engine/src/direction.ts); 4 when omitted. */
 	readonly direction?: DirectionLevel;
 	/** The city's holdout tribunal (Whispers v3), which the gamemaker calls and announces. */
 	readonly holdout?: HoldoutSpec;
@@ -68,7 +66,7 @@ interface RoleText {
 	readonly write: string;
 }
 
-/** The director at gm direction 10: an author who orders scenes (src/engine/direction.ts). */
+/** The director at gm direction 10: an author who orders scenes (packages/engine/src/direction.ts). */
 function authorText(survivors: number, agents: number): RoleText {
 	return {
 		job: render("gamemaker/roles/author-job", { survivors, agents }),

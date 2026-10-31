@@ -3,10 +3,8 @@
  * `passesPerMinute` passes; in every pass each competitor gets at most one
  * step, in a fresh seeded order cut into blocks of `blockSize`.
  */
-import type { Competitor, TurnInput } from "../contracts/turn.ts";
-import type { VirtualClock } from "../core/clock.ts";
-import { CITY, type CompetitorId } from "../core/ids.ts";
-import type { Activation, ModelChoice, Persona } from "../story/types.ts";
+import type { Activation, Competitor, ModelChoice, Persona, TurnInput } from "@swarmtales/contracts";
+import { CITY, type CompetitorId, type VirtualClock } from "@swarmtales/kernel";
 import type { Director } from "./director.ts";
 import type { EventBus, StandingRow } from "./events.ts";
 import { activationOrder, blocksOf } from "./scheduler.ts";

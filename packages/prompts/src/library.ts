@@ -8,9 +8,35 @@ import { fileURLToPath } from "node:url";
 import { parsePromptFile, renderBody, type PromptFile } from "./file.ts";
 import { PROMPTS, type PlainPromptId, type PromptId, type PromptVariables } from "./registry.ts";
 
-export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-export const STORIES_DIR = join(REPO_ROOT, "stories");
-export const LIBRARY_DIR = join(REPO_ROOT, "library", "prompts");
+let root: string | undefined;
+
+/**
+ * The directory that holds `library/prompts/`: found by walking up from this module, so it is the
+ * same from the sources (`packages/prompts/src`), from a build (`packages/prompts/dist`) and from an
+ * installed package (which carries its own `library/`). Resolved on first use, never at import.
+ */
+export function libraryRoot(): string {
+	if (root !== undefined) return root;
+	const start = dirname(fileURLToPath(import.meta.url));
+	let directory = start;
+	while (!existsSync(join(directory, "library", "prompts"))) {
+		const parent = dirname(directory);
+		if (parent === directory) throw new Error(`No library/prompts found above ${start}`);
+		directory = parent;
+	}
+	root = directory;
+	return directory;
+}
+
+/** `library/prompts/`, where the prompt files live. */
+export function libraryDir(): string {
+	return join(libraryRoot(), "library", "prompts");
+}
+
+/** The repository's `stories/` folder, the default place for story overrides. */
+export function storiesDir(): string {
+	return join(libraryRoot(), "stories");
+}
 
 export interface RenderOptions {
 	/** The story whose `prompts/` folder may override the library's file. */
@@ -24,10 +50,10 @@ const cache = new Map<string, PromptFile>();
 /** The file that supplies `id`: the story's override when there is one, else the library's. */
 export function promptPath(id: PromptId, options: RenderOptions = {}): string {
 	if (options.story !== undefined) {
-		const override = join(options.storiesDir ?? STORIES_DIR, options.story, "prompts", `${id}.md`);
+		const override = join(options.storiesDir ?? storiesDir(), options.story, "prompts", `${id}.md`);
 		if (existsSync(override)) return override;
 	}
-	return join(LIBRARY_DIR, `${id}.md`);
+	return join(libraryDir(), `${id}.md`);
 }
 
 export function loadPrompt(id: PromptId, options: RenderOptions = {}): PromptFile {

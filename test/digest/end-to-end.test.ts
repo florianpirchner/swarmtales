@@ -2,10 +2,8 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { runMetadata } from "../../src/cli/metadata.ts";
-import { analyzeRun, writeDigest } from "../../src/digest/digest.ts";
-import { writeRunMetadata } from "../../src/log/run-artifacts.ts";
-import { JsonlEventLog } from "../../src/log/sinks.ts";
+import { runMetadata } from "../../apps/cli/src/metadata.ts";
+import { analyzeRun, JsonlEventLog, writeDigest, writeRunMetadata } from "@swarmtales/chronicle";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 
 describe("digest of a scripted cityofkeys run (end to end, offline)", () => {

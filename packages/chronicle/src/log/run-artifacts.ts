@@ -16,7 +16,7 @@
  */
 import { appendFileSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { EventSink, RecordedEvent } from "../engine/events.ts";
+import type { EventSink, RecordedEvent } from "@swarmtales/engine";
 
 export const RUN_METADATA_FILE = "000-run.json";
 

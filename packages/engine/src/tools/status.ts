@@ -1,7 +1,7 @@
 import { Type } from "typebox";
-import { assertNever } from "../core/result.ts";
-import { describeReceipt } from "../engine/receipts.ts";
-import { render, text } from "../prompts/library.ts";
+import { assertNever } from "@swarmtales/kernel";
+import { describeReceipt } from "../receipts.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, failure, fromError, success } from "./tool.ts";
 
 export const getStatus = defineTool({

@@ -4,7 +4,7 @@
  * Free of pi imports so resolution is pure and testable offline. Precedence:
  * CLI overrides > environment (ARENA_*) > story default.
  */
-import type { ModelChoice, OpenRouterRouting } from "../story/types.ts";
+import type { ModelChoice, OpenRouterRouting } from "@swarmtales/contracts";
 import type { ProviderRegistry } from "./providers.ts";
 
 export interface ModelSettings {

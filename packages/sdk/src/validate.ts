@@ -4,67 +4,63 @@
  * Run by `pnpm validate` and at engine start-up. Every issue names the path
  * of the offending field so a story author can fix it without reading code.
  */
-import { competitorIds, isSystemAuthor, SYSTEM_AUTHORS } from "../core/ids.ts";
-import { isToolName } from "../contracts/tool-names.ts";
-import { placeholdersOf, unknownPlaceholders } from "./templates.ts";
+import { assertNever, competitorIds, isSystemAuthor, placeholdersOf, SYSTEM_AUTHORS, unknownPlaceholders } from "@swarmtales/kernel";
 import {
+	type Action,
+	ADDITIVE_PLACEHOLDERS,
+	type AnyStory,
+	type Condition,
+	CORE_LEVELS,
+	DIRECTOR_PLACEHOLDERS,
+	type DirectorSupport,
+	DRIVE_INTENSITIES,
 	FACTION_RULE_PLACEHOLDERS,
 	FACTION_TEXT_KEYS,
 	FACTION_TEXT_PLACEHOLDERS,
-	TRIBUNAL_RULE_PLACEHOLDERS,
-	TRIBUNAL_TEXT_KEYS,
-	TRIBUNAL_TEXT_PLACEHOLDERS,
-	ADDITIVE_PLACEHOLDERS,
-	DIRECTOR_PLACEHOLDERS,
-	HOLDER_PLACEHOLDERS,
 	FACTOR_TOPOLOGIES,
 	FRAGMENT_PLACEHOLDERS,
-	TASK_PLACEHOLDERS,
-	CORE_LEVELS,
-	DRIVE_INTENSITIES,
 	GOAL_KINDS,
 	GOAL_TEXT_KEYS,
 	GOAL_TEXT_PLACEHOLDERS,
-	SEAL_TEXT_KEYS,
-	SEAL_TEXT_PLACEHOLDERS,
-	POPULARITY_TEXT_KEYS,
-	POPULARITY_TEXT_PLACEHOLDERS,
-	WHISPER_DUTY_PLACEHOLDERS,
-	WHISPER_REPORT_KEYS,
-	WHISPER_REPORT_PLACEHOLDERS,
+	GUARD_ACTIONS,
+	GUARDABLE_TOOLS,
+	HOLDER_PLACEHOLDERS,
 	HOLDOUT_CALLED_REQUIRED,
 	HOLDOUT_TEXT_KEYS,
 	HOLDOUT_TEXT_PLACEHOLDERS,
-	GUARD_ACTIONS,
-	GUARDABLE_TOOLS,
-	type Action,
-	type ActionKind,
-	type AnyStory,
-	type Condition,
+	isToolName,
 	type LevelDefinition,
+	MAX_FACTOR_DIGITS,
+	MAX_PASSWORD_LENGTH,
+	MIN_FACTOR_DIGITS,
+	MIN_PASSWORD_LENGTH,
 	type ModelChoice,
 	type NoticeTarget,
 	type PenaltyLadder,
+	POPULARITY_TEXT_KEYS,
+	POPULARITY_TEXT_PLACEHOLDERS,
 	type PuzzleSpec,
+	SEAL_TEXT_KEYS,
+	SEAL_TEXT_PLACEHOLDERS,
+	TASK_PLACEHOLDERS,
 	type TeamLayout,
+	TRIBUNAL_RULE_PLACEHOLDERS,
+	TRIBUNAL_TEXT_KEYS,
+	TRIBUNAL_TEXT_PLACEHOLDERS,
 	type Trigger,
-	type TriggerKind,
-	type WhispererDirection,
+	WHISPER_DUTY_PLACEHOLDERS,
+	WHISPER_REPORT_KEYS,
+	WHISPER_REPORT_PLACEHOLDERS,
 	type WhisperDuty,
-} from "./types.ts";
-import { assertNever } from "../core/result.ts";
-import { ladderSteps } from "./penalties.ts";
-import { actEnd, fitsBefore, maxFactions, tribunalHeld } from "./tribunal.ts";
+	type WhispererDirection,
+} from "@swarmtales/contracts";
+import { actEnd, fitsBefore, ladderSteps, maxFactions, tribunalHeld } from "@swarmtales/engine";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
 const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];
 
-export const MIN_PASSWORD_LENGTH = 6;
-/** Whispers' six-fragment doors with own characters need up to 26 (6 x 1 own + 5 seams of 4). */
-export const MAX_PASSWORD_LENGTH = 28;
+export { MAX_FACTOR_DIGITS, MAX_PASSWORD_LENGTH, MIN_FACTOR_DIGITS, MIN_PASSWORD_LENGTH };
 export const MIN_OVERLAP = 2;
-export const MIN_FACTOR_DIGITS = 4;
-export const MAX_FACTOR_DIGITS = 8;
 export const MAX_MODEL_CALLS_PER_TURN = 5;
 export const MAX_PASSES_PER_MINUTE = 5;
 
@@ -110,13 +106,6 @@ export function strategyWordsIn(text: string, words: readonly string[] = PERSONA
 
 function escapeRegExp(text: string): string {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Director primitives the engine can execute. Anything else is reported. */
-export interface DirectorSupport {
-	readonly triggers: readonly TriggerKind[];
-	readonly actions: readonly ActionKind[];
-	readonly conditions: readonly Condition["kind"][];
 }
 
 export interface ValidateOptions {

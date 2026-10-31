@@ -9,11 +9,10 @@
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Static, TSchema } from "typebox";
 import { Parse } from "typebox/value";
-import type { CompetitorId } from "../core/ids.ts";
-import type { World } from "../engine/world.ts";
-import type { DeliveryJudge } from "../contracts/roles.ts";
-import { render, text } from "../prompts/library.ts";
-import type { ToolName } from "../contracts/tool-names.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { World } from "../world.ts";
+import type { DeliveryJudge, ToolName } from "@swarmtales/contracts";
+import { render, text } from "@swarmtales/prompts";
 import { GUARD_BLOCKED, guardedText, type ToolGuard } from "./guard.ts";
 
 export const TOOL_LOCKED = "TOOL_LOCKED";

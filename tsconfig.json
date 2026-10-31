@@ -1,17 +1,20 @@
 {
-  "compilerOptions": {
-    "target": "ES2023",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "verbatimModuleSyntax": true,
-    "allowImportingTsExtensions": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "types": ["node"]
-  },
-  "include": ["src", "stories", "test", "lab"]
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true
+	},
+	"include": ["test", "lab", "scripts", "*.ts"],
+	"references": [
+		{ "path": "packages/contracts" },
+		{ "path": "packages/kernel" },
+		{ "path": "packages/prompts" },
+		{ "path": "packages/engine" },
+		{ "path": "packages/sdk" },
+		{ "path": "packages/models" },
+		{ "path": "packages/roles" },
+		{ "path": "packages/chronicle" },
+		{ "path": "packages/novelist" },
+		{ "path": "apps/cli" },
+		{ "path": "stories" }
+	]
 }

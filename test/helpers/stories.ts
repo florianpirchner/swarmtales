@@ -1,7 +1,6 @@
 /** Small stories for mechanics tests, independent of the City of Keys text. */
-import { act, at, defineStory, level, puzzle, team, type RuleInput } from "../../src/story/define.ts";
-import type { AnyStory, CastMember, CityFactorRelease, CityFactorScope, FactorTopology, LevelDefinition, Rules } from "../../src/story/types.ts";
-import type { ToolName } from "../../src/contracts/tool-names.ts";
+import { act, at, defineStory, level, puzzle, team, type RuleInput } from "@swarmtales/sdk";
+import type { AnyStory, CastMember, CityFactorRelease, CityFactorScope, FactorTopology, LevelDefinition, Rules, ToolName } from "@swarmtales/contracts";
 
 export function soloLevels(count: number): readonly LevelDefinition[] {
 	return Array.from({ length: count }, (_, index) =>

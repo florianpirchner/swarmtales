@@ -7,28 +7,35 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
-import { DigestError } from "../digest/digest.ts";
-import { createProviderRegistry } from "../model/providers.ts";
-import { castBook } from "../novel/casting.ts";
-import { NovelRequestError, resolveEditorModel, resolveOutlineModel, resolveWriterModel, type NovelSpend } from "../novel/model.ts";
-import { buildOutlineRequest, chapterCount, DEFAULT_OUTLINE_OPTIONS } from "../novel/outline.ts";
+import { DigestError } from "@swarmtales/chronicle";
+import { createProviderRegistry } from "@swarmtales/models";
 import {
+	buildOutlineRequest,
+	castBook,
+	chapterCount,
 	DEFAULT_NOVEL_OPTIONS,
-	NOVEL_FILES,
+	DEFAULT_OUTLINE_OPTIONS,
+	LANGUAGES,
+	loadNovelSource,
+	Names,
 	NO_STAGE_SPEND,
+	NOVEL_FILES,
 	NovelError,
+	NovelRequestError,
+	type NovelSpend,
+	resolveEditorModel,
+	resolveOutlineModel,
+	resolveWriterModel,
 	STAGES,
+	type StageSpend,
 	totalSpend,
+	translateStory,
 	translationFile,
 	writeNovel,
 	writeNovelFiles,
 	writeOutlineFiles,
 	writePartialStory,
-	type StageSpend,
-} from "../novel/novel.ts";
-import { LANGUAGES } from "../novel/prompts.ts";
-import { loadNovelSource, Names } from "../novel/source.ts";
-import { translateStory } from "../novel/writer.ts";
+} from "@swarmtales/novelist";
 import { UsageError } from "./args.ts";
 import { NOVEL_USAGE, parseNovelArgs } from "./novel-args.ts";
 

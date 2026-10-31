@@ -7,9 +7,9 @@
  */
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { assertNever } from "../core/result.ts";
+import { assertNever } from "@swarmtales/kernel";
 import { NARRATIVE_BEAT_KINDS, draft, numberBeats, type Beat, type BeatDraft, type NarrativeBeatKind } from "./beats.ts";
-import { buildChroniclePrompt, CHRONICLE_SYSTEM_PROMPT } from "./chronicle-prompt.ts";
+import { buildChroniclePrompt, chronicleSystemPrompt } from "./chronicle-prompt.ts";
 import type { RunAnalysis } from "./digest.ts";
 import type { DigestEvent } from "./event-log.ts";
 import { excerpt } from "./relationships.ts";
@@ -75,12 +75,12 @@ export async function writeChronicle(analysis: RunAnalysis, model: NarrativeMode
 		evidence: evidence.lines,
 		omitted: evidence.omitted,
 	});
-	const answer = await model.complete(CHRONICLE_SYSTEM_PROMPT, prompt);
-	return interpretAnswer(analysis, answer, model.label);
+	const answer = await model.complete(chronicleSystemPrompt(), prompt);
+	return interpretChronicleAnswer(analysis, answer, model.label);
 }
 
 /** Validates the model's answer against the log. Exported for tests. */
-export function interpretAnswer(analysis: RunAnalysis, answer: string, label: string): Chronicle {
+export function interpretChronicleAnswer(analysis: RunAnalysis, answer: string, label: string): Chronicle {
 	const parsed = parseAnswer(answer);
 	const warnings: string[] = [];
 	const residents = new Set([...analysis.facts.agents, ...analysis.facts.messages.flatMap((message) => [message.from, ...message.recipients])]);

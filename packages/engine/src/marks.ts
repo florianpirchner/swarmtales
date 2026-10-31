@@ -10,8 +10,8 @@
  * A run-wide allowance (`MarksRules.perRun`, Whispers) is one balance for the
  * whole run instead: it never resets on a new level and never refills.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { LevelDefinition, MarksChannel, MarksRange, MarksRefill, MarksRules, MessageChannel } from "../story/types.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { LevelDefinition, MarksChannel, MarksRange, MarksRefill, MarksRules, MessageChannel } from "@swarmtales/contracts";
 
 /** Marks a shown receipt costs where marks apply and the story sets no `prices.receipt` (v05). */
 export const DEFAULT_RECEIPT_PRICE = 1;

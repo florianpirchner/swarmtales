@@ -12,13 +12,11 @@
 import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage, Souffleur, SouffleurAnswer } from "../contracts/roles.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { ClassifierUsage, Souffleur, SouffleurAnswer, ThinkingLevel } from "@swarmtales/contracts";
 
 export type { Souffleur, SouffleurAnswer };
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** ID of the souffleur in usage records. */
 export const SOUFFLEUR_ID = "SF";

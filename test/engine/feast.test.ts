@@ -5,7 +5,7 @@
  * `collectionOpen`.
  */
 import { describe, expect, it } from "vitest";
-import { act as directorAct, at, onCollect, onCollectionEnd, onEnter, when } from "../../src/story/define.ts";
+import { act as directorAct, at, onCollect, onCollectionEnd, onEnter, when } from "@swarmtales/sdk";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { castStory, soloLevels, socialLevels } from "../helpers/stories.ts";
 

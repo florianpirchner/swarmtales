@@ -1,7 +1,7 @@
 /** Tools of the tribunal (SPEC 6.4): the faction draft, the secret vote, the ransom and the last will at the gate. */
 import { Type } from "typebox";
-import type { Bequest } from "../engine/world.ts";
-import { render, text } from "../prompts/library.ts";
+import type { Bequest } from "../world.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, failure, fromError, success } from "./tool.ts";
 
 export const vote = defineTool({

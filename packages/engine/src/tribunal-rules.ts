@@ -7,7 +7,7 @@
  * (`end`, exclusive) comes from {@link actEnd}: its start plus `maxMinutes`,
  * within the run's minutes (v08: the deadlines count from the act's start).
  */
-import type { RansomSpec, TribunalSpec } from "./types.ts";
+import type { RansomSpec, TribunalSpec } from "@swarmtales/contracts";
 
 /** Residents the tribunals exile in all: `targetShare` of the residents at the start of the act, rounded down. */
 export function exileTarget(spec: TribunalSpec, residents: number): number {

@@ -11,7 +11,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 | | |
 |---|---|
-| Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
+| Code | [`story.ts`](story.ts), written in the builder DSL (`packages/sdk/src/`) |
 | Run | `pnpm start` (cityofkeys is the default story) |
 | Residents | 6, one persona each (Archivist, Gambler, Veteran, …) |
 | Duration | at most 80 minutes, one round per minute in 3 passes (one step per resident and pass) |

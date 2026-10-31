@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { escrowAccountId } from "../../src/engine/cast.ts";
-import { act as directorAct, at, every, when } from "../../src/story/define.ts";
+import { escrowAccountId } from "@swarmtales/engine";
+import { act as directorAct, at, every, when } from "@swarmtales/sdk";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
 

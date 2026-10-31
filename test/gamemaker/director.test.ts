@@ -6,10 +6,9 @@
  * or repeats an earlier line to the same reader.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { characterLeaks, nearlySame } from "../../src/gamemaker/privacy.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { characterLeaks, gamemakerSystemPrompt, nearlySame } from "@swarmtales/roles";
+import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PointsLedger } from "../../src/core/ledger.ts";
-import { groupAccountId, GroupRegistry, MAX_FOUNDED_GROUPS, type GroupResult } from "../../src/engine/groups.ts";
+import { PointsLedger } from "@swarmtales/kernel";
+import { groupAccountId, GroupRegistry, MAX_FOUNDED_GROUPS, type GroupResult } from "@swarmtales/engine";
 
 function setup() {
 	const ledger = new PointsLedger();

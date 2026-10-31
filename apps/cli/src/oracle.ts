@@ -1,6 +1,6 @@
 /** Observer view for `--provider scripted`: competitors that know their solution. */
-import type { World } from "../engine/world.ts";
-import type { OracleView } from "../model/scripted.ts";
+import type { World } from "@swarmtales/engine";
+import type { OracleView } from "@swarmtales/models";
 
 export function worldOracle(world: World): OracleView {
 	return {

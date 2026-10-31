@@ -3,7 +3,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-	{ ignores: ["node_modules/", "runs/", ".claude/", "lab/out/"] },
+	{ ignores: ["**/node_modules/", "**/dist/", "**/dist-types/", "runs/", ".claude/", "lab/out/"] },
 	eslint.configs.recommended,
 	tseslint.configs.strictTypeChecked,
 	tseslint.configs.stylisticTypeChecked,
@@ -32,8 +32,8 @@ export default tseslint.config(
 		},
 	},
 	{
-		// This config is plain JavaScript outside every tsconfig: lint it without type information.
-		files: ["eslint.config.js"],
+		// Plain JavaScript and per-package build configs sit outside every tsconfig: lint them without type information.
+		files: ["eslint.config.js", "scripts/**/*.mjs", "**/tsdown.config.ts"],
 		extends: [tseslint.configs.disableTypeChecked],
 	},
 );

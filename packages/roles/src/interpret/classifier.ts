@@ -14,16 +14,14 @@ import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/
 import type { ClassifierApi, ClassifierModel, ClassifierQuestion, Models } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { withRequestDefaults } from "../model/request-defaults.ts";
-import type { CompetitorId } from "../core/ids.ts";
-import type { ModelBinding } from "../model/source.ts";
-import type { ThinkingLevel } from "../story/types.ts";
-import type { ClassifierUsage } from "../contracts/roles.ts";
+import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { ClassifierUsage, ThinkingLevel } from "@swarmtales/contracts";
 
 export type { ClassifierUsage };
-import { LABEL_MEANINGS, STATEMENT_LABELS } from "../engine/labels.ts";
+import { labelMeaning, STATEMENT_LABELS } from "@swarmtales/engine";
 import { statementLine, type Statement } from "./statements.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** ID of the classifier in usage records. */
 export const CLASSIFIER_ID = "CL";
@@ -63,7 +61,7 @@ export interface StatementClassifier {
 export const DEFAULT_STATEMENT_CHARS = 1_500;
 
 export function classifierSystemPrompt(): string {
-	const labels = STATEMENT_LABELS.map((label) => `- ${label}: ${LABEL_MEANINGS[label]}`).join("\n");
+	const labels = STATEMENT_LABELS.map((label) => `- ${label}: ${labelMeaning(label)}`).join("\n");
 	return render("classifier/system", { labels });
 }
 
@@ -293,8 +291,8 @@ function deciderQuestions(): Record<string, ClassifierQuestion> {
 	for (const label of STATEMENT_LABELS) {
 		questions[label] = {
 			type: "bool",
-			instructions: render("classifier/question-instructions", { meaning: LABEL_MEANINGS[label] }),
-			criteria: { true: render("classifier/question-true", { meaning: LABEL_MEANINGS[label] }), false: text("classifier/question-false") },
+			instructions: render("classifier/question-instructions", { meaning: labelMeaning(label) }),
+			criteria: { true: render("classifier/question-true", { meaning: labelMeaning(label) }), false: text("classifier/question-false") },
 		};
 	}
 	return questions;

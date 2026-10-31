@@ -16,10 +16,10 @@ longer worked on). The owner is Flo.
 - Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
   with Typebox.
 - Before designing a new story or mechanic, read the design checklist in `docs/LESSONS.md`.
-- Stories are written in the TypeScript builder DSL (`src/story/`), never in YAML. Each story lives
+- Stories are written in the TypeScript builder DSL (`packages/sdk/src/`), never in YAML. Each story lives
   in its own folder `stories/<name>/` (`story.ts` plus a short `README.md`) and is registered in
   `stories/index.ts`.
-- `pnpm check` (typecheck, lint, test, validate) must be green before a push. Tests run offline;
+- `pnpm check` (typecheck, lint, package rules, knip, test, validate, build, smoke) must be green before a push. Tests run offline;
   never call live models in tests.
 - Big refactors: a builder agent writes, a challenger agent reviews.
 

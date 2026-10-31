@@ -24,11 +24,9 @@
  * Secret events (votes, nominations, seal bids and the seal's winner) never
  * trigger, and no hit's text names a voter.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { assertNever } from "../core/result.ts";
-import type { FateTrigger, RecordedEvent } from "../engine/events.ts";
-import { isPrivateSource } from "../engine/labels.ts";
-import { render, text } from "../prompts/library.ts";
+import { assertNever, type CompetitorId } from "@swarmtales/kernel";
+import { type FateTrigger, isPrivateSource, type RecordedEvent } from "@swarmtales/engine";
+import { render, text } from "@swarmtales/prompts";
 
 /** A resident a hard fact touched: what happened, as a sentence, what kind of event it was, and its number. */
 export interface FateHit {

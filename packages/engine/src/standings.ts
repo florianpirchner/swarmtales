@@ -3,7 +3,7 @@
  * oneself; others' points stay hidden unless the director publishes bands
  * (IDs per band, no points) or a full snapshot.
  */
-import type { CompetitorId } from "../core/ids.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
 
 export interface RankedCompetitor {
 	readonly agent: CompetitorId;

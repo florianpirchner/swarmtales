@@ -5,10 +5,9 @@
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { BlameDesk, recordQuote, type BlameDeskPorts } from "../../src/engine/blame.ts";
-import type { World } from "../../src/engine/world.ts";
-import { judgePrompt, judgeSystemPrompt, type DeliveryJudge, type DenialQuestion } from "../../src/interpret/judge.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import { BlameDesk, type BlameDeskPorts, recordQuote, type World } from "@swarmtales/engine";
+import { judgePrompt, judgeSystemPrompt, type DeliveryJudge, type DenialQuestion } from "@swarmtales/roles";
+import { validateStory } from "@swarmtales/sdk";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 

@@ -2,7 +2,7 @@
  * Graduated penalties (v09, P35): a price ladder per offence within an act.
  * Shared by the validator, the engine and the story texts.
  */
-import type { PenaltyLadder } from "./types.ts";
+import type { PenaltyLadder } from "@swarmtales/contracts";
 
 /** The steps of a ladder; a plain number is a ladder of one step. */
 export function ladderSteps(ladder: PenaltyLadder): readonly number[] {

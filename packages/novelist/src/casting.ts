@@ -5,9 +5,7 @@
  * winner, a loser (exiled, or last) and someone with a turn, then fills up by
  * score.
  */
-import type { RunAnalysis } from "../digest/digest.ts";
-import type { DigestEvent } from "../digest/event-log.ts";
-import { turningPoints } from "../digest/turning-points.ts";
+import { type DigestEvent, type RunAnalysis, turningPoints } from "@swarmtales/chronicle";
 
 export type CastRole = "winner" | "loser" | "turn" | "weight";
 

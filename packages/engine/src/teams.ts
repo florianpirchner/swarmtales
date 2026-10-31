@@ -4,10 +4,8 @@
  * Every layout is drawn from a seed derived from the run seed and the level
  * number, so a level's teams do not depend on which levels were computed first.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { assertNever } from "../core/result.ts";
-import { rngFor } from "../core/random.ts";
-import type { LevelDefinition } from "../story/types.ts";
+import { assertNever, type CompetitorId, rngFor } from "@swarmtales/kernel";
+import type { LevelDefinition } from "@swarmtales/contracts";
 
 export interface Team {
 	readonly members: readonly CompetitorId[];

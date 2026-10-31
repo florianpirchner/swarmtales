@@ -30,10 +30,7 @@
  * Votes are never shown: not on the board, not to the gamemaker, not to
  * other residents. Only the exiled learns who voted against it.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import { renderTemplate } from "../story/templates.ts";
+import { type CompetitorId, err, ok, renderTemplate, type Result, rngFor } from "@swarmtales/kernel";
 import {
 	accusedCount,
 	actEnd,
@@ -49,8 +46,8 @@ import {
 	tribunalHeld,
 	tribunalRuleValues,
 	type RansomPrices,
-} from "../story/tribunal.ts";
-import type { TribunalSpec, TribunalTexts } from "../story/types.ts";
+} from "./tribunal-rules.ts";
+import type { TribunalSpec, TribunalTexts } from "@swarmtales/contracts";
 import type { ArenaEvent, TribunalPlanner } from "./events.ts";
 import { FactionDraft, namesOf, type DraftError, type DraftPhase, type DraftSnapshot, type FactionEvent } from "./factions.ts";
 

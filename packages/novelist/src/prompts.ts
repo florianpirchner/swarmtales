@@ -4,14 +4,14 @@
  * lives in `library/prompts/novelist/`, where it can be read and tuned on its own; this file
  * joins the pieces with the run's material.
  */
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /**
  * What the material is, said plainly at the top of every system prompt: the
  * keys, codes and seizures are a word-puzzle game, not computer crime.
  * Anthropic blocked harmless parts as "cyber content" without it (P56).
  */
-export const STORY_CONTEXT = text("novelist/context");
+export const storyContext = (): string => text("novelist/context");
 
 /** The glossary lines for a prompt, or nothing when the outline has none. */
 function glossaryLines(glossary: readonly GlossaryEntry[]): readonly string[] {
@@ -29,7 +29,7 @@ export interface GlossaryEntry {
 export const GAMEMAKER_POV = "GAMEMAKER";
 
 /** The gamemaker's team: real parts of the city, each with traces in the log. */
-export const GAMEMAKER_TEAM = text("novelist/gamemaker-team");
+export const gamemakerTeam = (): string => text("novelist/gamemaker-team");
 
 /** What every stage shares: the story is based on true events and may not change them. */
 const truth = (): string => text("novelist/truth-rules");
@@ -40,7 +40,7 @@ const truth = (): string => text("novelist/truth-rules");
  */
 const craft = (): string => text("novelist/craft-rules");
 
-export const OUTLINE_SYSTEM_PROMPT = render("novelist/outline-system", { context: STORY_CONTEXT, truth: truth(), pov: GAMEMAKER_POV });
+export const outlineSystemPrompt = (): string => render("novelist/outline-system", { context: storyContext(), truth: truth(), pov: GAMEMAKER_POV });
 
 export interface OutlinePromptInput {
 	readonly run: string;
@@ -82,7 +82,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
 		text("novelist/outline/povs-heading"),
 	];
 	for (const pov of input.povs) lines.push("", render("novelist/outline/pov-heading", { label: pov.label, role: pov.role }), "", pov.dossier);
-	lines.push("", render("novelist/outline/gamemaker-heading", { pov: GAMEMAKER_POV }), "", GAMEMAKER_TEAM, "", text("novelist/outline/gamemaker-moves-heading"));
+	lines.push("", render("novelist/outline/gamemaker-heading", { pov: GAMEMAKER_POV }), "", gamemakerTeam(), "", text("novelist/outline/gamemaker-moves-heading"));
 	lines.push(...(input.gamemaker.length === 0 ? [text("novelist/outline/gamemaker-none")] : input.gamemaker));
 	lines.push("", text("novelist/outline/turning-heading"));
 	lines.push(
@@ -98,7 +98,7 @@ export function buildOutlinePrompt(input: OutlinePromptInput): string {
 	return lines.join("\n");
 }
 
-export const WRITER_SYSTEM_PROMPT = render("novelist/writer-system", { context: STORY_CONTEXT, truth: truth(), craft: craft() });
+export const writerSystemPrompt = (): string => render("novelist/writer-system", { context: storyContext(), truth: truth(), craft: craft() });
 
 export interface ChapterPromptInput {
 	readonly storyTitle: string;
@@ -129,7 +129,7 @@ export function buildChapterPrompt(input: ChapterPromptInput): string {
 	return lines.join("\n");
 }
 
-export const PROLOGUE_SYSTEM_PROMPT = render("novelist/prologue-system", { context: STORY_CONTEXT, truth: truth(), craft: craft() });
+export const prologueSystemPrompt = (): string => render("novelist/prologue-system", { context: storyContext(), truth: truth(), craft: craft() });
 
 export interface ProloguePromptInput {
 	readonly storyTitle: string;
@@ -156,12 +156,12 @@ export function buildProloguePrompt(input: ProloguePromptInput): string {
 	].join("\n");
 }
 
-export const GAMEMAKER_SYSTEM_PROMPT = render("novelist/gamemaker-system", { context: STORY_CONTEXT, team: GAMEMAKER_TEAM, truth: truth(), craft: craft() });
+export const gamemakerSystemPrompt = (): string => render("novelist/gamemaker-system", { context: storyContext(), team: gamemakerTeam(), truth: truth(), craft: craft() });
 
 /** The edit pass answers with the story, this line, then its list of contradictions. */
 export const EDIT_DELIMITER = "=== CONTRADICTIONS ===";
 
-export const EDIT_SYSTEM_PROMPT = render("novelist/edit-system", { context: STORY_CONTEXT, truth: truth(), craft: craft(), delimiter: EDIT_DELIMITER });
+export const editSystemPrompt = (): string => render("novelist/edit-system", { context: storyContext(), truth: truth(), craft: craft(), delimiter: EDIT_DELIMITER });
 
 export function buildEditPrompt(story: string, outline: readonly string[], facts: readonly string[] = [], glossary: readonly GlossaryEntry[] = []): string {
 	return [
@@ -180,5 +180,5 @@ export function buildEditPrompt(story: string, outline: readonly string[], facts
 export const LANGUAGES: Readonly<Record<string, string>> = { de: "German", fr: "French", es: "Spanish", it: "Italian" };
 
 export function translateSystemPrompt(language: string): string {
-	return render("novelist/translate-system", { context: STORY_CONTEXT, language });
+	return render("novelist/translate-system", { context: storyContext(), language });
 }

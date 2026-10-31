@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Director } from "../../src/engine/director.ts";
-import { bandsLine, snapshotLine, standingBands } from "../../src/engine/standings.ts";
-import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "../../src/story/define.ts";
+import { bandsLine, Director, snapshotLine, standingBands } from "@swarmtales/engine";
+import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "@swarmtales/sdk";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { castStory, socialLevels, tinyStory } from "../helpers/stories.ts";
 

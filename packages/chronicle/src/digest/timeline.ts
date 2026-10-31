@@ -3,11 +3,11 @@
  * minute. Every line cites the `seq` of its event; beats appear right after
  * the event that completed them.
  */
-import { assertNever } from "../core/result.ts";
+import { assertNever } from "@swarmtales/kernel";
 import type { ActMap } from "./acts.ts";
 import type { Beat } from "./beats.ts";
 import { eventsOfType, type DigestEvent, type DigestEventOf } from "./event-log.ts";
-import { isPrivateSource, LABEL_TEXT } from "../engine/labels.ts";
+import { isPrivateSource, LABEL_TEXT } from "@swarmtales/engine";
 import { agentLabel, labelsOf, type RunFacts } from "./facts.ts";
 import { excerpt } from "./relationships.ts";
 

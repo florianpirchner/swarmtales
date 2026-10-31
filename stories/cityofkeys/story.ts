@@ -25,7 +25,10 @@ import {
 	defineStory,
 	every,
 	gamemaker,
+	ladderText,
 	level,
+	type MarksRange,
+	type MarksRules,
 	onCollect,
 	onCollectionEnd,
 	onEnter,
@@ -33,12 +36,14 @@ import {
 	onHolderBehind,
 	onTeamSplit,
 	onUnansweredDm,
-	ladderText,
+	type Persona,
 	puzzle,
+	type Rules,
 	team,
+	type ToolName,
+	type TribunalSpec,
 	when,
-} from "../../src/story/index.ts";
-import type { MarksRange, MarksRules, Persona, Rules, ToolName, TribunalSpec } from "../../src/story/index.ts";
+} from "@swarmtales/sdk";
 import { CORES, GOALS, SEAL } from "./characters.ts";
 
 const BASE_TOOLS = ["getStatus", "getProblem", "submitSolution", "listAgents"] as const satisfies readonly ToolName[];

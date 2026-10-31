@@ -18,13 +18,12 @@
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { cite } from "../digest/timeline.ts";
-import { turningPoints } from "../digest/turning-points.ts";
+import { cite, turningPoints } from "@swarmtales/chronicle";
 import { castBook, type Casting } from "./casting.ts";
 import { addSpend, MAX_TOKENS, NO_SPEND, NovelRequestError, type NovelModel, type NovelSpend } from "./model.ts";
 import { buildOutlineRequest, DEFAULT_OUTLINE_OPTIONS, interpretOutline, outlineSummary, povName, type Outline, type OutlineOptions } from "./outline.ts";
 import { buildGamemakerPack, buildPack, DEFAULT_PACK_OPTIONS, type PackOptions, type ScenePack } from "./packs.ts";
-import { GAMEMAKER_POV, GAMEMAKER_TEAM } from "./prompts.ts";
+import { GAMEMAKER_POV, gamemakerTeam } from "./prompts.ts";
 import { cityRecords, placeRecords, renderRecord, type CityRecord } from "./records.ts";
 import { Names, type NovelSource } from "./source.ts";
 import { editStory, lastParagraphs, translateStory, writeChapter, writeGamemakerChapter, writePrologue } from "./writer.ts";
@@ -113,7 +112,7 @@ export async function writeNovel(source: NovelSource, models: NovelModels, optio
 		const outline = interpretOutline(source, casting, outlineAnswer.text, { words: options.words });
 
 		const packs = outline.chapters.map((chapter) => {
-			if (chapter.pov === GAMEMAKER_POV) return buildGamemakerPack(source, chapter, GAMEMAKER_TEAM, options.pack);
+			if (chapter.pov === GAMEMAKER_POV) return buildGamemakerPack(source, chapter, gamemakerTeam(), options.pack);
 			const pov = casting.povs.find((figure) => figure.agent === chapter.pov);
 			if (pov === undefined) throw new Error(`chapter ${String(chapter.number)} has no cast figure`);
 			return buildPack(source, chapter, pov, options.pack);

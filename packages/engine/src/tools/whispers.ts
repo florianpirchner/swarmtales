@@ -4,8 +4,8 @@
  * `forgeReceipt`, and `nameFavourite` reaches the residents when the vote opens.
  */
 import { Type } from "typebox";
-import { MAX_DM_LENGTH } from "../engine/mailbox.ts";
-import { render, text } from "../prompts/library.ts";
+import { MAX_DM_LENGTH } from "../mailbox.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, fromError, marksSuffix, success } from "./tool.ts";
 
 export const forgeReceipt = defineTool({

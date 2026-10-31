@@ -6,9 +6,9 @@
  * digest's beats and an evidence log of numbered lines, and answers with one
  * JSON object; the caller validates every `seq` it cites.
  */
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
-export const REPORT_SYSTEM_PROMPT = text("reporter/system");
+export const reportSystemPrompt = (): string => text("reporter/system");
 
 export interface ReportPromptInput {
 	readonly run: string;

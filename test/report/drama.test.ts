@@ -7,12 +7,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
-import { writeMinuteReport } from "../../src/log/minute-report.ts";
-import { writePrivateFiles } from "../../src/log/private-files.ts";
-import { JsonlEventLog } from "../../src/log/sinks.ts";
-import { computeFacts } from "../../src/report/facts.ts";
-import { factsMarkdown } from "../../src/report/render.ts";
+import { analyzeLog, computeFacts, factsMarkdown, JsonlEventLog, renderDigest, writeMinuteReport, writePrivateFiles } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

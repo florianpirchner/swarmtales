@@ -1,7 +1,7 @@
 import { Type } from "typebox";
-import type { CompetitorId } from "../core/ids.ts";
-import type { PetitionView } from "../engine/petitions.ts";
-import { render, text } from "../prompts/library.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { PetitionView } from "../petitions.ts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, fromError, success } from "./tool.ts";
 
 function describe(petition: PetitionView, self: CompetitorId): string {

@@ -4,10 +4,10 @@
  * gamemaker.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds } from "../../src/core/ids.ts";
-import { aboveAllCap, coreLine, dealCores, lightCount, renderCore } from "../../src/engine/cores.ts";
-import { baseSystemPrompt } from "../../src/agents/system-prompt.ts";
-import type { CoresSpec } from "../../src/story/types.ts";
+import { competitorIds } from "@swarmtales/kernel";
+import { aboveAllCap, coreLine, dealCores, lightCount, renderCore } from "@swarmtales/engine";
+import { baseSystemPrompt } from "@swarmtales/roles";
+import type { CoresSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 // The drawn cores, without the story's cast.

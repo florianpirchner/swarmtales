@@ -4,10 +4,8 @@
  * models round-robin over a seeded order, so every model gets an equal share.
  * An override (CLI `--model`) replaces every assignment.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { assertNever } from "../core/result.ts";
-import type { AnyStory, ModelChoice } from "../story/types.ts";
+import { assertNever, type CompetitorId, rngFor } from "@swarmtales/kernel";
+import type { AnyStory, ModelChoice } from "@swarmtales/contracts";
 
 export function assignModels(
 	story: AnyStory,

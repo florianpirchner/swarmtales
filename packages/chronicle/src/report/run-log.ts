@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import type { RecordedEvent } from "../engine/events.ts";
+import type { RecordedEvent } from "@swarmtales/engine";
 import { RecordedEventSchema } from "../snapshot/event-schema.ts";
 
 export interface FullEventLog {

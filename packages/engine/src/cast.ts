@@ -4,8 +4,8 @@
  * public level. DMs sent to a cast member are recorded, never answered by a
  * model; while a collection is active they are collected into it.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { CastMember } from "../story/types.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { CastMember } from "@swarmtales/contracts";
 
 export interface CastView {
 	readonly id: string;

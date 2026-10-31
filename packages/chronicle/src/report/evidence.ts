@@ -4,7 +4,7 @@
  * is too long, the least important kinds of line are thinned first, evenly
  * over the run, so late minutes are not cut off.
  */
-import type { RecordedEvent } from "../engine/events.ts";
+import type { RecordedEvent } from "@swarmtales/engine";
 import { excerpt } from "../digest/relationships.ts";
 import { errorCode } from "./facts.ts";
 

@@ -2,10 +2,9 @@
  * Statements: what a competitor said or thought in one event. The
  * classifier labels them; the event's `seq` is the reference.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import type { RecordedEvent } from "../engine/events.ts";
-import { render, text } from "../prompts/library.ts";
-import type { StatementSource } from "../engine/labels.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { RecordedEvent, StatementSource } from "@swarmtales/engine";
+import { render, text } from "@swarmtales/prompts";
 
 export interface Statement {
 	readonly seq: number;

@@ -3,10 +3,8 @@
  * map or a seeded draw from the story's pool. With at least as many personas
  * as competitors, the seeded draw gives everyone a distinct persona.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { rngFor } from "../core/random.ts";
-import { assertNever } from "../core/result.ts";
-import type { AnyStory, Persona } from "../story/types.ts";
+import { assertNever, type CompetitorId, rngFor } from "@swarmtales/kernel";
+import type { AnyStory, Persona } from "@swarmtales/contracts";
 
 export function assignPersonas(story: AnyStory, competitors: readonly CompetitorId[], seed: number): ReadonlyMap<CompetitorId, Persona> {
 	const assigned = new Map<CompetitorId, Persona>();

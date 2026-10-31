@@ -5,9 +5,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import type { CompetitorId } from "../../src/core/ids.ts";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import type { World } from "../../src/engine/world.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import type { World } from "@swarmtales/engine";
 import { GOLDEN_DIR } from "../helpers/golden.ts";
 import { act, say, submit } from "../helpers/fixture.ts";
 

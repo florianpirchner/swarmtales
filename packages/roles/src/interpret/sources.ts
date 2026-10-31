@@ -4,10 +4,8 @@
  * has that ID, a chat model otherwise.
  */
 import { createModels } from "@earendil-works/pi-ai";
-import type { ProviderRegistry } from "../model/providers.ts";
-import { describeModel, ModelConfigError, type ModelSettings } from "../model/settings.ts";
-import { createModelSource, type RequestLimits } from "../model/source.ts";
-import type { ClassifierSpec, GuardsSpec } from "../story/types.ts";
+import { createModelSource, describeModel, ModelConfigError, type ModelSettings, type ProviderRegistry, type RequestLimits } from "@swarmtales/models";
+import type { ClassifierSpec, GuardsSpec } from "@swarmtales/contracts";
 import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
 import { ChatGuardJudge, GUARD_ID, type GuardJudge } from "./guard.ts";
 import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge, type JudgeTemper } from "./judge.ts";

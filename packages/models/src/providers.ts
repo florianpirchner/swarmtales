@@ -14,7 +14,7 @@ import { ANTHROPIC_MODELS } from "@earendil-works/pi-ai/providers/anthropic.mode
 import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
 import { openrouterProvider } from "@earendil-works/pi-ai/providers/openrouter";
 import { zaiProvider } from "@earendil-works/pi-ai/providers/zai";
-import type { OpenRouterRouting } from "../story/types.ts";
+import type { OpenRouterRouting } from "@swarmtales/contracts";
 
 /** OpenRouter model ID of DeepSeek V4.1 Flash (1017). */
 export const OPENROUTER_DEEPSEEK_FLASH = "deepseek/deepseek-v4.1-flash-1017";

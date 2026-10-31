@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "../../src/tools/index.ts";
-import { PetitionBook, resolveThreshold } from "../../src/engine/petitions.ts";
-import { act as directorAct, at, every, onPetitionResolved, when } from "../../src/story/define.ts";
+import { LOCKED_REPLY, PetitionBook, resolveThreshold } from "@swarmtales/engine";
+import { act as directorAct, at, every, onPetitionResolved, when } from "@swarmtales/sdk";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
 

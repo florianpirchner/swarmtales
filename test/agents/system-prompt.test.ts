@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { baseSystemPrompt, SHIFT_HEADING } from "../../src/agents/system-prompt.ts";
-import { PERSONA_STRATEGY_WORDS } from "../../src/story/validate.ts";
+import { baseSystemPrompt, SHIFT_HEADING } from "@swarmtales/roles";
+import { PERSONA_STRATEGY_WORDS } from "@swarmtales/sdk";
 
 describe("base system prompt (SPEC 5.4)", () => {
 	const prompt = baseSystemPrompt({ id: "A07", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 3 });

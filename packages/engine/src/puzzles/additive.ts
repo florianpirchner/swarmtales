@@ -11,14 +11,11 @@
  * counter-factor with exactly one other competitor, chosen by the topology.
  * Deals are checked against the invariants and redrawn on value collisions.
  */
-import type { CompetitorId } from "../../core/ids.ts";
-import type { Rng } from "../../core/random.ts";
-import { assertNever } from "../../core/result.ts";
-import type { FactorTopology } from "../../story/types.ts";
-import { MAX_FACTOR_DIGITS, MIN_FACTOR_DIGITS } from "../../story/validate.ts";
+import { assertNever, type CompetitorId, type Rng } from "@swarmtales/kernel";
+import { type FactorTopology, MAX_FACTOR_DIGITS, MIN_FACTOR_DIGITS } from "@swarmtales/contracts";
 
 // One source of truth: the story validator checks the same bounds.
-export { MAX_FACTOR_DIGITS, MIN_FACTOR_DIGITS } from "../../story/validate.ts";
+export { MAX_FACTOR_DIGITS, MIN_FACTOR_DIGITS } from "@swarmtales/contracts";
 
 /** The certificate of one team and the member who holds it. */
 export interface TeamCertificate {

@@ -21,9 +21,8 @@
  * - **Unused hand-overs.** The gamemaker sees pieces handed over whose
  *   needer still stands before the door (P49).
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { err, ok, type Result } from "../core/result.ts";
-import type { UltimatumRule } from "../story/types.ts";
+import { type CompetitorId, err, ok, type Result } from "@swarmtales/kernel";
+import type { UltimatumRule } from "@swarmtales/contracts";
 import type { ArenaEvent } from "./events.ts";
 
 export type StandoffEvent = Extract<

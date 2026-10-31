@@ -14,7 +14,7 @@ import {
 	type FauxResponseStep,
 	type JsonObject,
 } from "@earendil-works/pi-ai";
-import type { CompetitorId } from "../core/ids.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
 import type { Script } from "./source.ts";
 
 export interface ToolInvocation {

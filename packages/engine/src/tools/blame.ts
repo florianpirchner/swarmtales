@@ -1,8 +1,8 @@
 import { Type } from "typebox";
-import type { CompetitorId } from "../core/ids.ts";
-import type { World } from "../engine/world.ts";
-import type { DenialQuestion, JudgeStanding } from "../contracts/roles.ts";
-import { render, text } from "../prompts/library.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import type { World } from "../world.ts";
+import type { DenialQuestion, JudgeStanding } from "@swarmtales/contracts";
+import { render, text } from "@swarmtales/prompts";
 import { defineTool, failure, fromError, success, type ToolOutcome } from "./tool.ts";
 
 /** The tool's error when the run has no judge (no key, or an offline run). */

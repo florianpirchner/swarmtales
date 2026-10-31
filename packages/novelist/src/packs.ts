@@ -6,10 +6,7 @@
  * character budget. IDs are replaced by names. Packs are written to
  * `novel/packs/NN.md` so a reader can audit what the writer saw.
  */
-import { evidenceLines } from "../digest/chronicle.ts";
-import type { DigestEvent } from "../digest/event-log.ts";
-import { excerpt } from "../digest/relationships.ts";
-import { cite } from "../digest/timeline.ts";
+import { cite, type DigestEvent, evidenceLines, excerpt } from "@swarmtales/chronicle";
 import type { PovFigure } from "./casting.ts";
 import type { OutlineChapter } from "./chapter.ts";
 import { Names, type NovelSource } from "./source.ts";

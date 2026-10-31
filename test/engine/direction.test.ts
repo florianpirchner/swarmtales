@@ -1,13 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { splitDirection } from "../../src/cast/figures.ts";
-import { composeRun, type RunOverrides } from "../../src/cli/compose.ts";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { directFigure, directionLevel, FigureCues } from "../../src/engine/direction.ts";
-import { MemorySink } from "../../src/engine/events.ts";
-import { characterLines } from "../../src/gamemaker/situation.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
+import { splitDirection } from "@swarmtales/sdk";
+import { composeRun, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { directFigure, directionLevel, FigureCues, MemorySink } from "@swarmtales/engine";
+import { characterLines, gamemakerSystemPrompt } from "@swarmtales/roles";
+import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
 
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 

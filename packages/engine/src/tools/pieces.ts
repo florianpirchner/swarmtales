@@ -1,6 +1,6 @@
 import { Type } from "typebox";
 import { defineTool, fromError, success } from "./tool.ts";
-import { render, text } from "../prompts/library.ts";
+import { render, text } from "@swarmtales/prompts";
 
 /** P43/P48/P50: pieces the city keeps from the exiled or seized at an ultimatum, sold to whoever needs them. */
 export const claimPiece = defineTool({

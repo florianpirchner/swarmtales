@@ -3,7 +3,7 @@
  * `maxPerSender` unread messages per sender. There is no queue; a delivery
  * that does not fit is rejected immediately.
  */
-import type { CompetitorId } from "../core/ids.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
 
 export const MAX_DM_LENGTH = 800;
 export const DEFAULT_MAILBOX_CAPACITY = 5;

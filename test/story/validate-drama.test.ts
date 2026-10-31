@@ -1,9 +1,9 @@
 /** Validation of the v09 story specs: cores, goals, the black seal, the scaled feast and the exile share per size. */
 import { describe, expect, it } from "vitest";
-import { exileTarget } from "../../src/story/tribunal.ts";
-import { resolveCount } from "../../src/story/counts.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import type { AnyStory, CoresSpec, GoalsSpec, SealSpec } from "../../src/story/types.ts";
+import { exileTarget } from "@swarmtales/engine";
+import { resolveCount } from "@swarmtales/kernel";
+import { validateStory } from "@swarmtales/sdk";
+import type { AnyStory, CoresSpec, GoalsSpec, SealSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 function specs(): { readonly cores: CoresSpec; readonly goals: GoalsSpec; readonly seal: SealSpec } {

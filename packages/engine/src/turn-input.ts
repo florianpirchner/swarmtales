@@ -3,8 +3,8 @@
  * a status line, delivered items (task, DMs, notices) and a digest that only
  * counts unread content. Contents must be fetched with read tools.
  */
-import type { CompetitorId } from "../core/ids.ts";
-import { render, text } from "../prompts/library.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { render, text } from "@swarmtales/prompts";
 import type { HeldPiece, World } from "./world.ts";
 
 export function statusLine(world: World, agent: CompetitorId): string {
