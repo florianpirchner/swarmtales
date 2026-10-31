@@ -27,6 +27,9 @@ export interface ApiDefinition<N extends string = string, M extends ApiMethods =
 /** The method names of an API. */
 export type ApiMethodName<A extends ApiDefinition> = keyof A["methods"] & string;
 
+/** The names of an API's `query` methods: what a fact may call (round 2, decision R2-D4). */
+export type QueryMethodName<A extends ApiDefinition> = { [K in ApiMethodName<A>]: A["methods"][K]["kind"] extends "query" ? K : never }[ApiMethodName<A>];
+
 export type ApiInput<A extends ApiDefinition, K extends ApiMethodName<A>> = Static<A["methods"][K]["input"]>;
 
 export type ApiOutput<A extends ApiDefinition, K extends ApiMethodName<A>> = Static<A["methods"][K]["output"]>;

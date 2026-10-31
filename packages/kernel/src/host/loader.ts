@@ -5,7 +5,7 @@
  * unknown tools).
  */
 import { Check } from "typebox/value";
-import { CORE_EVENTS, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
 import { servesOverlap, toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
@@ -73,6 +73,8 @@ export interface LoaderParts {
 	readonly prompts: PromptLookup | undefined;
 	readonly minute: () => number;
 	readonly staging: StagingQueue;
+	/** The model-backed roles of the run, by name (`ctx.roles.has`). */
+	readonly roles: ReadonlySet<string>;
 }
 
 export interface Loaded {
@@ -124,9 +126,26 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 	return { order: order.map((use) => use.mechanic.id), instances, tools };
 }
 
-/** A listener of a loaded mechanic's event must read it with the schema that mechanic declares (the frozen shared one). */
+/**
+ * A listener of a loaded mechanic's event must read it with the schema that mechanic declares (the
+ * frozen shared one). Listeners of one event that give orders must share their mode: the bus runs
+ * every immediate listener inside the emit, before any deferred one, so an order across the two
+ * modes would be ignored (R2-D15).
+ */
 function checkListeners(order: readonly MechanicUse[], instances: ReadonlyMap<string, MechanicInstance>): void {
 	const declared = new Map(order.map((use) => [use.mechanic.id, use.mechanic.events]));
+	const modes = new Map<string, { readonly id: string; readonly immediate: boolean }>();
+	for (const [id, instance] of instances) {
+		for (const listener of instance.listeners) {
+			if (listener.order === DEFAULT_ORDER) continue;
+			const event = `${listener.source}.${listener.type}`;
+			const other = modes.get(event);
+			if (other === undefined) modes.set(event, { id, immediate: listener.immediate });
+			else if (other.immediate !== listener.immediate) {
+				throw new Error(`story: ${other.id} and ${id} order their listeners of ${event}, but only one is immediate; an order across modes is ignored, so both must be immediate or both deferred`);
+			}
+		}
+	}
 	for (const [id, instance] of instances) {
 		for (const listener of instance.listeners) {
 			const events = declared.get(listener.source);
@@ -202,6 +221,7 @@ function portFor(
 		residents: parts.residents.portFor(id),
 		schedule: parts.scheduler.portFor(id, { has: (job) => jobs().includes(job) }, parts.minute),
 		access: parts.access.portFor(id, isTool),
+		roles: { has: (role) => parts.roles.has(role) },
 		log: bus,
 	};
 }

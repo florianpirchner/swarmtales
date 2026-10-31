@@ -92,8 +92,16 @@ export function restoreHost(parts: SnapshotParts, snapshot: HostSnapshot): void 
 		const slice = loaded.instances.get(id)?.snapshot;
 		const saved = snapshot.mechanics[id];
 		if (slice === undefined) continue;
-		if (saved === undefined) throw new Error(`snapshot: no slice for mechanic "${id}"`);
-		slice.load(saved.data, saved.version);
+		if (saved !== undefined) {
+			slice.load(saved.data, saved.version);
+			continue;
+		}
+		// An old file without the mechanic's field (R2-D2): the empty version-0 slice, which its migration from 0 reads as "the old world had none".
+		try {
+			slice.load({}, 0);
+		} catch (error) {
+			throw new Error(`snapshot: no slice for mechanic "${id}", and it does not take an empty version-0 slice (${error instanceof Error ? error.message : String(error)})`);
+		}
 	}
 	const unknown = Object.keys(snapshot.mechanics).find((id) => !loaded.order.includes(id));
 	if (unknown !== undefined) throw new Error(`snapshot: slice of mechanic "${unknown}", which the story does not load`);

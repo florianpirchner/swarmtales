@@ -35,6 +35,7 @@ import { Gateway } from "./gateway.ts";
 import { toolFor } from "./catalog.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
 import { orderedPhases } from "./phases.ts";
+import { lockProbe } from "./probe.ts";
 import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
@@ -85,6 +86,8 @@ class CoreHost implements Host {
 	#started = false;
 	#playing = false;
 	#stopRequest: string | undefined;
+	/** A resumed run whose `runResumed` phases have not run yet. */
+	#resumePending = false;
 	#ended: RunEnd | undefined;
 	/** What threw; once set, the run is over (reason `error`) and the host refuses every further use. */
 	#failure: unknown;
@@ -110,7 +113,9 @@ class CoreHost implements Host {
 		this.#app = options.app?.events ?? {};
 		const reserved = Object.keys(this.#app).find((type) => Object.hasOwn(CORE_EVENTS, type));
 		if (reserved !== undefined) throw new Error(`app: event "${reserved}" is reserved by the core`);
-		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging });
+		const roles = new Set(Object.keys(options.roles ?? {}));
+		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging, roles });
+		this.#access.setProbe(lockProbe(this.#bus, this.#loaded.tools, () => this.#instances()));
 		for (const [name, variants] of this.#loaded.tools) {
 			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
 			for (const role of GRANT_ROLES) {
@@ -235,6 +240,14 @@ class CoreHost implements Host {
 		const minute = this.#minute;
 		const bus = this.#bus;
 		this.#referee.minuteStarted(minute);
+		if (this.#resumePending) {
+			// The old engine's restore work, once, before the first minute of a resumed run (R2-D9).
+			this.#resumePending = false;
+			this.#phases((phases) => phases.runResumed, (run) => {
+				run();
+			});
+			await this.#gateway.settle();
+		}
 		bus.emit("core", "minute_started", {});
 		// Calls staged before the first minute (by runStarted hooks) run now.
 		await this.#gateway.settle();
@@ -432,6 +445,7 @@ class CoreHost implements Host {
 		this.#minute = snapshot.minute;
 		this.#started = true;
 		this.#ended = snapshot.ended;
+		this.#resumePending = snapshot.ended === undefined;
 	}
 }
 

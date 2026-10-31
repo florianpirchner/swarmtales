@@ -24,7 +24,7 @@ describe("the layered prompt lookup", () => {
 		const lookup = createPromptLookup({ story, mechanics: { m: mechanic } });
 		expect(lookup.render("m", "m/hello", { name: "A01" }, ["name"])).toBe("hello A01 from the story");
 		expect(lookup.render("m", "m/only", {}, [])).toBe("mechanic only");
-		expect(lookup.render("core", "replies/core/locked", {}, [])).toBe("this tool is closed to you for now");
+		expect(lookup.render("core", "replies/core/locked", {}, [])).toBe("not available to you at this level or in this phase; activeTools lists the tools you can use now");
 		expect(createPromptLookup({ mechanics: { m: mechanic } }).render("m", "m/hello", { name: "A02" }, ["name"])).toBe("hello A02 from the mechanic");
 	});
 

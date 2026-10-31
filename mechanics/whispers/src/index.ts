@@ -48,7 +48,7 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 			const resident = call.actor.startsWith("resident:") ? call.actor.slice("resident:".length) : undefined;
 			restoreOnce(ctx);
 			// The whisperer forges wherever a receipt could be shown (old world.ts:1466).
-			if (call.tool === "forgeReceipt") return resident !== undefined && resident === ctx.state.whisperer && ctx.options.whisperer?.forgery === true && ctx.access.open(resident).includes("showReceipt") ? undefined : locked;
+			if (call.tool === "forgeReceipt") return resident !== undefined && resident === ctx.state.whisperer && ctx.options.whisperer?.forgery === true && ctx.access.isOpen(resident, "showReceipt") ? undefined : locked;
 			// The vote's tool is open to the residents in the city while a round is open.
 			if (call.tool === "nameFavourite") return ctx.state.phase === "open" && !(resident !== undefined && !isAlive(ctx, resident)) ? undefined : locked;
 			// Every resident may defy in a run with defiance; otherwise only a directed whisperer.

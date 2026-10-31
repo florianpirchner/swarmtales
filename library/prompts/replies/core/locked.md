@@ -2,4 +2,4 @@
 id: replies/core/locked
 variables: 
 ---
-this tool is closed to you for now
+not available to you at this level or in this phase; activeTools lists the tools you can use now
