@@ -1,5 +1,5 @@
 /**
- * A stand-in for the cores (team T2): it answers `MotivesApi.drivesOf` from the cores the golden log
+ * A stand-in for the core motives (team T2): it answers `MotivesApi.drivesOf` from the core motives the golden log
  * dealt, so the goals follow them as they did.
  */
 import { Type } from "typebox";
@@ -21,10 +21,10 @@ function drivesIn(lines: readonly LegacyLine[]): ReadonlyMap<string, readonly st
 	return drives;
 }
 
-export function coresStandIn(golden: readonly LegacyLine[]) {
+export function motivesStandIn(golden: readonly LegacyLine[]) {
 	const drives = drivesIn(golden);
 	return defineMechanic(
-		{ id: "motives", summary: "Stand-in for the cores: the golden drives.", options: Type.Object({}), state: () => undefined, events: {}, provides: [MotivesApi] },
+		{ id: "motives", summary: "Stand-in for the core motives: the golden drives.", options: Type.Object({}), state: () => undefined, events: {}, provides: [MotivesApi] },
 		(kit) => ({ services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => [...(drives.get(resident) ?? [])] })] }),
 	);
 }

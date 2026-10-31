@@ -10,7 +10,7 @@ import {
 	ADDITIVE_PLACEHOLDERS,
 	type AnyStory,
 	type Condition,
-	CORE_LEVELS,
+	CORE_MOTIVE_LEVELS,
 	DIRECTOR_PLACEHOLDERS,
 	type DirectorSupport,
 	DRIVE_INTENSITIES,
@@ -160,7 +160,7 @@ export function validateStory(story: AnyStory, options: ValidateOptions = {}): r
 	validateClassifier(story, issues);
 	validateTribunal(story, agents, issues);
 	validateNames(story, issues);
-	validateCores(story, issues);
+	validateCoreMotives(story, issues);
 	validateGoals(story, issues);
 	validateSeal(story, issues);
 	validateWhisperer(story, agents, issues);
@@ -179,45 +179,45 @@ function actStartsAt(story: AnyStory, level: number): boolean {
 }
 
 /**
- * Character cores (v09): every axis and drive says something at every level
+ * Core motives (v09): every axis and drive says something at every level
  * and intensity, drive IDs are unique, both tones exist, and the mixing rules
  * fit (1-3 drives, a light share in [0, 1], a positive spread).
  */
-function validateCores(story: AnyStory, issues: string[]): void {
-	const spec = story.cores;
+function validateCoreMotives(story: AnyStory, issues: string[]): void {
+	const spec = story.coreMotives;
 	if (spec === undefined) return;
-	if (spec.heading.trim().length === 0) issues.push("cores.heading: must not be empty");
-	if (spec.drives.length === 0) issues.push("cores.drives: the catalog needs at least one drive");
+	if (spec.heading.trim().length === 0) issues.push("coreMotives.heading: must not be empty");
+	if (spec.drives.length === 0) issues.push("coreMotives.drives: the catalog needs at least one drive");
 	const ids = new Set<string>();
 	for (const drive of spec.drives) {
-		if (!/^[a-z][a-zA-Z]*$/.test(drive.id)) issues.push(`cores.drives.${drive.id}: an ID is a camelCase word`);
-		if (ids.has(drive.id)) issues.push(`cores.drives.${drive.id}: IDs must be unique`);
+		if (!/^[a-z][a-zA-Z]*$/.test(drive.id)) issues.push(`coreMotives.drives.${drive.id}: an ID is a camelCase word`);
+		if (ids.has(drive.id)) issues.push(`coreMotives.drives.${drive.id}: IDs must be unique`);
 		ids.add(drive.id);
-		for (const intensity of DRIVE_INTENSITIES) if (drive.texts[intensity].trim().length === 0) issues.push(`cores.drives.${drive.id}.texts.${intensity}: must not be empty`);
-		if (drive.cues.length === 0) issues.push(`cores.drives.${drive.id}.cues: name at least one word that would give the drive away`);
+		for (const intensity of DRIVE_INTENSITIES) if (drive.texts[intensity].trim().length === 0) issues.push(`coreMotives.drives.${drive.id}.texts.${intensity}: must not be empty`);
+		if (drive.cues.length === 0) issues.push(`coreMotives.drives.${drive.id}.cues: name at least one word that would give the drive away`);
 	}
-	for (const tone of ["light", "dark"] as const) if (!spec.drives.some((drive) => drive.tone === tone)) issues.push(`cores.drives: needs at least one ${tone} drive`);
+	for (const tone of ["light", "dark"] as const) if (!spec.drives.some((drive) => drive.tone === tone)) issues.push(`coreMotives.drives: needs at least one ${tone} drive`);
 	const axes = new Set<string>();
 	for (const axis of spec.axes) {
-		if (axes.has(axis.id)) issues.push(`cores.axes.${axis.id}: IDs must be unique`);
+		if (axes.has(axis.id)) issues.push(`coreMotives.axes.${axis.id}: IDs must be unique`);
 		axes.add(axis.id);
-		if (CORE_LEVELS.every((level) => axis.texts[level].trim().length === 0)) issues.push(`cores.axes.${axis.id}: says nothing at any level`);
+		if (CORE_MOTIVE_LEVELS.every((level) => axis.texts[level].trim().length === 0)) issues.push(`coreMotives.axes.${axis.id}: says nothing at any level`);
 	}
 	const { min, max } = spec.perResident;
-	if (!isPositiveInt(min) || !isPositiveInt(max) || min > max || max > 3) issues.push("cores.perResident: 1 to 3 drives, min <= max");
-	if (max > spec.drives.length) issues.push(`cores.perResident.max: the catalog has only ${spec.drives.length} drives`);
-	if (!(spec.lightShare >= 0 && spec.lightShare <= 1)) issues.push("cores.lightShare: must be a share between 0 and 1");
-	if (!isPositiveInt(spec.spreadPer)) issues.push("cores.spreadPer: must be a positive integer");
+	if (!isPositiveInt(min) || !isPositiveInt(max) || min > max || max > 3) issues.push("coreMotives.perResident: 1 to 3 drives, min <= max");
+	if (max > spec.drives.length) issues.push(`coreMotives.perResident.max: the catalog has only ${spec.drives.length} drives`);
+	if (!(spec.lightShare >= 0 && spec.lightShare <= 1)) issues.push("coreMotives.lightShare: must be a share between 0 and 1");
+	if (!isPositiveInt(spec.spreadPer)) issues.push("coreMotives.spreadPer: must be a positive integer");
 	validateFigures(story, ids, axes, issues);
 }
 
 /** Cast figures: unique IDs, catalog drives within the per-resident range, exactly one above all, of its tone, every axis, a known persona, a text. */
 function validateFigures(story: AnyStory, drives: ReadonlySet<string>, axes: ReadonlySet<string>, issues: string[]): void {
-	const spec = story.cores;
+	const spec = story.coreMotives;
 	if (spec?.figures === undefined) return;
 	const seen = new Set<string>();
 	for (const figure of spec.figures) {
-		const at = `cores.figures.${figure.id}`;
+		const at = `coreMotives.figures.${figure.id}`;
 		if (seen.has(figure.id)) issues.push(`${at}: IDs must be unique`);
 		seen.add(figure.id);
 		if (figure.text.trim().length === 0) issues.push(`${at}.text: must not be empty`);
@@ -239,7 +239,7 @@ function validateFigures(story: AnyStory, drives: ReadonlySet<string>, axes: Rea
 
 /**
  * Secret goals (v09): dealt in acts that exist, a non-negative bonus, a
- * positive lead count, a share against the core, matches that name kinds and
+ * positive lead count, a share against the core motive, matches that name kinds and
  * catalog drives, and every text with only its own placeholders.
  */
 function validateGoals(story: AnyStory, issues: string[]): void {
@@ -248,8 +248,8 @@ function validateGoals(story: AnyStory, issues: string[]): void {
 	for (const act of spec.acts) if (!actStartsAt(story, act)) issues.push(`goals.acts: no act starts at level ${act}`);
 	if (!isNonNegativeInt(spec.bonus)) issues.push("goals.bonus: must be a non-negative integer");
 	if (!isPositiveInt(spec.leadTribunals)) issues.push("goals.leadTribunals: must be a positive integer");
-	if (!(spec.againstCore >= 0 && spec.againstCore <= 1)) issues.push("goals.againstCore: must be a share between 0 and 1");
-	const drives = new Set((story.cores?.drives ?? []).map((drive) => drive.id));
+	if (!(spec.againstCoreMotive >= 0 && spec.againstCoreMotive <= 1)) issues.push("goals.againstCoreMotive: must be a share between 0 and 1");
+	const drives = new Set((story.coreMotives?.drives ?? []).map((drive) => drive.id));
 	for (const [kind, ids] of Object.entries(spec.matches)) {
 		if (!GOAL_KINDS.some((known) => known === kind)) issues.push(`goals.matches.${kind}: unknown goal kind`);
 		for (const id of ids) if (!drives.has(id)) issues.push(`goals.matches.${kind}: unknown drive ${id}`);
@@ -340,13 +340,13 @@ function validateWhisperer(story: AnyStory, agents: number, issues: string[]): v
 	}
 	if (spec.duty.text.trim().length === 0) issues.push("whisperer.duty.text: must not be empty");
 	for (const name of unknownPlaceholders(spec.duty.text, WHISPER_DUTY_PLACEHOLDERS)) issues.push(`whisperer.duty.text: unknown placeholder {${name}}`);
-	if (spec.core !== undefined) {
-		const drives = new Set((story.cores?.drives ?? []).map((drive) => drive.id));
-		const axes = new Set((story.cores?.axes ?? []).map((axis) => axis.id));
-		if (story.cores === undefined) issues.push("whisperer.core: the story deals no cores");
-		for (const entry of spec.core.drives) if (!drives.has(entry.drive)) issues.push(`whisperer.core: unknown drive "${entry.drive}"`);
-		for (const entry of spec.core.bigFive) if (!axes.has(entry.axis)) issues.push(`whisperer.core: unknown axis "${entry.axis}"`);
-		if (spec.core.drives.filter((entry) => entry.intensity === "aboveAll").length !== 1) issues.push("whisperer.core: exactly one drive must be above all");
+	if (spec.coreMotive !== undefined) {
+		const drives = new Set((story.coreMotives?.drives ?? []).map((drive) => drive.id));
+		const axes = new Set((story.coreMotives?.axes ?? []).map((axis) => axis.id));
+		if (story.coreMotives === undefined) issues.push("whisperer.coreMotive: the story deals no core motives");
+		for (const entry of spec.coreMotive.drives) if (!drives.has(entry.drive)) issues.push(`whisperer.coreMotive: unknown drive "${entry.drive}"`);
+		for (const entry of spec.coreMotive.bigFive) if (!axes.has(entry.axis)) issues.push(`whisperer.coreMotive: unknown axis "${entry.axis}"`);
+		if (spec.coreMotive.drives.filter((entry) => entry.intensity === "aboveAll").length !== 1) issues.push("whisperer.coreMotive: exactly one drive must be above all");
 	}
 	if (spec.direction !== undefined) validateWhispererDirection(spec.direction, spec.duty, issues);
 	if (spec.forgery) {

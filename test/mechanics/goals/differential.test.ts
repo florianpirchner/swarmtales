@@ -1,20 +1,20 @@
 /**
- * Differential test of the goals (docs/design/carve-round2-T3.md): the same seeds, residents, cores,
+ * Differential test of the goals (docs/design/carve-round2-T3.md): the same seeds, residents, core motives,
  * leaders, heirs, exiles and points are given to the old `GoalBook` and to the goals mechanic on the
- * new host (progression, ledger, channels, exile and cores are stand-ins that hold the same facts).
+ * new host (progression, ledger, channels, exile and core motives are stand-ins that hold the same facts).
  * The events, the private notices, the board posts, the paid bonus, the status part and `goalOf` of
  * every resident must be equal after every step. This reaches `lead`, `heir`, `exile` and the void
  * goal, which the golden logs do not deal.
  */
 import { describe, expect, it } from "vitest";
-import { GoalBook, type Core, type GoalEvent } from "@swarmtales/engine";
+import { GoalBook, type CoreMotive, type GoalEvent } from "@swarmtales/engine";
 import { legacySink } from "@swarmtales/chronicle";
 import type { GoalsSpec } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { goals } from "@swarmtales/mechanic-goals";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { goalsProbe } from "../t3/probes.ts";
-import { actAnnouncer, coresStub, exileStub, newDesk, recordingChannels, settableLedger } from "../t3/stubs.ts";
+import { actAnnouncer, motivesStub, exileStub, newDesk, recordingChannels, settableLedger } from "../t3/stubs.ts";
 
 const IDS = ["A01", "A02", "A03", "A04", "A05", "A06"];
 const SPEC: GoalsSpec = cityOfKeys.goals ?? (() => { throw new Error("cityofkeys has no goals"); })();
@@ -26,14 +26,14 @@ function optionsOf(spec: GoalsSpec, factions: boolean): GoalsInput {
 		acts: [...spec.acts],
 		bonus: spec.bonus,
 		leadTribunals: spec.leadTribunals,
-		againstCore: spec.againstCore,
+		againstCoreMotive: spec.againstCoreMotive,
 		matches: Object.fromEntries(Object.entries(spec.matches).map(([kind, drives]) => [kind, [...drives]])),
 		factions,
 		texts: { ...spec.texts },
 	};
 }
 
-function coreOf(drives: readonly string[]): Core {
+function coreMotiveOf(drives: readonly string[]): CoreMotive {
 	return { bigFive: [], drives: drives.map((drive) => ({ drive, intensity: "aboveAll" as const })) };
 }
 
@@ -45,12 +45,12 @@ interface Variant {
 }
 
 const ALL_DRIVES = Object.values(SPEC.matches).flat();
-const withCores = new Map(IDS.map((id, index): [string, readonly string[]] => [id, [ALL_DRIVES[index % ALL_DRIVES.length] ?? "x"]]));
+const withCoreMotives = new Map(IDS.map((id, index): [string, readonly string[]] => [id, [ALL_DRIVES[index % ALL_DRIVES.length] ?? "x"]]));
 const VARIANTS: readonly Variant[] = [
-	{ name: "cityofkeys without factions, no cores", spec: SPEC, factions: false, drives: new Map() },
-	{ name: "with factions, no cores (lead and heir are dealt)", spec: SPEC, factions: true, drives: new Map() },
-	{ name: "with factions and cores that go against 60%", spec: { ...SPEC, againstCore: 0.6, leadTribunals: 2 }, factions: true, drives: withCores },
-	{ name: "against the core every time", spec: { ...SPEC, againstCore: 1 }, factions: true, drives: withCores },
+	{ name: "cityofkeys without factions, no core motives", spec: SPEC, factions: false, drives: new Map() },
+	{ name: "with factions, no core motives (lead and heir are dealt)", spec: SPEC, factions: true, drives: new Map() },
+	{ name: "with factions and core motives that go against 60%", spec: { ...SPEC, againstCoreMotive: 0.6, leadTribunals: 2 }, factions: true, drives: withCoreMotives },
+	{ name: "against the core motive every time", spec: { ...SPEC, againstCoreMotive: 1 }, factions: true, drives: withCoreMotives },
 ];
 
 interface Side {
@@ -66,12 +66,12 @@ function bare(line: Readonly<Record<string, unknown>>): string {
 
 function oldSide(variant: Variant, seed: number, exiled: ReadonlySet<string>, points: ReadonlyMap<string, number>) {
 	const side: Side = { events: [], notices: [], posts: [], grants: [] };
-	const cores = new Map([...variant.drives].map(([id, drives]) => [id, coreOf(drives)]));
+	const coreMotives = new Map([...variant.drives].map(([id, drives]) => [id, coreMotiveOf(drives)]));
 	const book = new GoalBook({
 		spec: variant.spec,
 		seed,
 		factions: variant.factions,
-		core: (agent) => cores.get(agent),
+		coreMotive: (agent) => coreMotives.get(agent),
 		isExiled: (agent) => exiled.has(agent),
 		points: (agent) => points.get(agent) ?? 0,
 		post: (text) => side.posts.push(text),
@@ -91,7 +91,7 @@ function newSide(variant: Variant, seed: number, exiled: Set<string>, points: Ma
 		seed,
 		minutes: 4,
 		residents: IDS,
-		mechanics: [actAnnouncer().with(), ledger.with(), recordingChannels(desk).with(), exileStub(exiled, IDS).with(), coresStub(variant.drives).with(), goals.with(optionsOf(variant.spec, variant.factions)), goalsProbe().with()],
+		mechanics: [actAnnouncer().with(), ledger.with(), recordingChannels(desk).with(), exileStub(exiled, IDS).with(), motivesStub(variant.drives).with(), goals.with(optionsOf(variant.spec, variant.factions)), goalsProbe().with()],
 		grants: { script: ["startAct", "endAct", "noteLeaders", "noteHeir", "onExiled", "goalOf"] },
 	});
 	const host = createHost({ story });

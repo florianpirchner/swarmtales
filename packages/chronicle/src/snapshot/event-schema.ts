@@ -47,8 +47,8 @@ export const FactorHoldingSchema = Type.Object({
 	code: Type.String(),
 });
 
-export const CoreTraitSchema = Type.Object({ axis: Type.String(), level: Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]) });
-export const CoreDriveSchema = Type.Object({
+export const CoreMotiveTraitSchema = Type.Object({ axis: Type.String(), level: Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]) });
+export const CoreMotiveDriveSchema = Type.Object({
 	drive: Type.String(),
 	intensity: Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]),
 });
@@ -280,7 +280,7 @@ export const RecordedEventSchema = Type.Union([
 		snapshot: Type.Optional(Type.Boolean()),
 	}),
 	event("name_chosen", { agent: Id, name: Type.String(), fallback: Type.Boolean() }),
-	event("core_dealt", { agent: Id, bigFive: Type.Array(CoreTraitSchema), drives: Type.Array(CoreDriveSchema), figure: Type.Optional(Type.String()) }),
+	event("core_dealt", { agent: Id, bigFive: Type.Array(CoreMotiveTraitSchema), drives: Type.Array(CoreMotiveDriveSchema), figure: Type.Optional(Type.String()) }),
 	event("goal_dealt", { act: Int, agent: Id, goal: GoalSchema, text: Type.String() }),
 	event("goal_resolved", { act: Int, agent: Id, goal: GoalSchema, fulfilled: Type.Boolean(), void: Type.Optional(Type.Boolean()), bonus: Int }),
 	event("seal_auction_opened", { seal: Int, until: Int }),

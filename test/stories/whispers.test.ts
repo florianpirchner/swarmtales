@@ -196,10 +196,10 @@ describe("whispers in one scripted run", () => {
 		if (cast === undefined) throw new Error("the script was not built");
 		const { whisperer, sender, victim, favourite } = cast;
 		expect(fixture.events("whisperer_chosen")).toEqual([expect.objectContaining({ agent: whisperer })]);
-		// The whisperer plays with the story's own core (cold, envious), the others with drawn ones.
-		const cores = fixture.events("core_dealt");
-		expect(cores).toHaveLength(6);
-		expect(cores.find((core) => core.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.core?.drives, bigFive: whispers.whisperer?.core?.bigFive });
+		// The whisperer plays with the story's own core motive (cold, envious), the others with drawn ones.
+		const coreMotives = fixture.events("core_dealt");
+		expect(coreMotives).toHaveLength(6);
+		expect(coreMotives.find((coreMotive) => coreMotive.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.coreMotive?.drives, bigFive: whispers.whisperer?.coreMotive?.bigFive });
 		await fixture.run();
 		const world = fixture.world;
 

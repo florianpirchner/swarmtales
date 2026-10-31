@@ -11,9 +11,9 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
-import { CORE_LEVELS, DRIVE_INTENSITIES, type CoreLevel, type DriveIntensity, type FigureDirection, type FigureSpec } from "@swarmtales/contracts";
+import { CORE_MOTIVE_LEVELS, DRIVE_INTENSITIES, type CoreMotiveLevel, type DriveIntensity, type FigureDirection, type FigureSpec } from "@swarmtales/contracts";
 
-const Level = Type.Union(CORE_LEVELS.map((level) => Type.Literal(level)));
+const Level = Type.Union(CORE_MOTIVE_LEVELS.map((level) => Type.Literal(level)));
 const Tone = Type.Union([Type.Literal("light"), Type.Literal("dark")]);
 
 const FigureHeader = Type.Object({
@@ -60,7 +60,7 @@ export interface FigureFile {
 	readonly profession: string;
 	readonly tone: "light" | "dark";
 	readonly drives: readonly CastDrive[];
-	readonly temperament: Readonly<Record<"openness" | "conscientiousness" | "extraversion" | "agreeableness" | "neuroticism", CoreLevel>>;
+	readonly temperament: Readonly<Record<"openness" | "conscientiousness" | "extraversion" | "agreeableness" | "neuroticism", CoreMotiveLevel>>;
 	/** The body without its direction sections: who the figure is. */
 	readonly body: string;
 	readonly direction?: FigureDirection;
@@ -214,7 +214,7 @@ export function readFigures(directory: string): FigureFile[] {
 	return readAll(directory, parseFigure);
 }
 
-/** A figure file as the story's cast holds it: the core in the engine's shape and the body as its text. */
+/** A figure file as the story's cast holds it: the core motive in the engine's shape and the body as its text. */
 export function figureSpec(file: FigureFile): FigureSpec {
 	return {
 		id: file.id,

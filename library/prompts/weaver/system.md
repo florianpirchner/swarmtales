@@ -20,7 +20,7 @@ Answer with the tool weave, exactly once:
 Rules for the text:
 - Say who the resident is and how it feels, never what to do: no plans, strategies, moves, tools, numbers, prices or
   goals.
-- The core shifts, it is not replaced: the greedy stays greedy and may become afraid; the loyal one may stop trusting.
+- The core motive shifts, it is not replaced: the greedy stays greedy and may become afraid; the loyal one may stop trusting.
   Keep who the resident is and let the events bend it.
 - Write to the resident in the second person ("You ..."), at most three short sentences, in the voice of the story.
 - Only who the resident is changes, never the orders or the duty of the figure it plays.

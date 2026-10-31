@@ -84,8 +84,8 @@ export function exileStub(exiled: Set<string>, residents: readonly string[]) {
 	}));
 }
 
-/** Cores that only know their drives. */
-export function coresStub(drives: ReadonlyMap<string, readonly string[]>) {
+/** Core motives that only know their drives. */
+export function motivesStub(drives: ReadonlyMap<string, readonly string[]>) {
 	return defineMechanic({ ...none, id: "motives", summary: "Stand-in: drives per resident.", provides: [MotivesApi] }, (kit) => ({
 		services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => (drives.get(resident) === undefined ? null : [...(drives.get(resident) ?? [])]) })],
 	}));

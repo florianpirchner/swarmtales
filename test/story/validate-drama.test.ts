@@ -1,15 +1,15 @@
-/** Validation of the v09 story specs: cores, goals, the black seal, the scaled feast and the exile share per size. */
+/** Validation of the v09 story specs: core motives, goals, the black seal, the scaled feast and the exile share per size. */
 import { describe, expect, it } from "vitest";
 import { exileTarget } from "@swarmtales/engine";
 import { resolveCount } from "@swarmtales/kernel";
 import { validateStory } from "@swarmtales/sdk";
-import type { AnyStory, CoresSpec, GoalsSpec, SealSpec } from "@swarmtales/contracts";
+import type { AnyStory, CoreMotivesSpec, GoalsSpec, SealSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
-function specs(): { readonly cores: CoresSpec; readonly goals: GoalsSpec; readonly seal: SealSpec } {
-	const { cores, goals, seal } = cityOfKeys;
-	if (cores === undefined || goals === undefined || seal === undefined) throw new Error("cityofkeys lacks a v09 spec");
-	return { cores, goals, seal };
+function specs(): { readonly coreMotives: CoreMotivesSpec; readonly goals: GoalsSpec; readonly seal: SealSpec } {
+	const { coreMotives, goals, seal } = cityOfKeys;
+	if (coreMotives === undefined || goals === undefined || seal === undefined) throw new Error("cityofkeys lacks a v09 spec");
+	return { coreMotives, goals, seal };
 }
 
 function withoutTribunal(story: AnyStory): AnyStory {
@@ -23,22 +23,22 @@ describe("validating the drama specs (v09)", () => {
 		expect(validateStory(cityOfKeys)).toEqual([]);
 	});
 
-	it("checks the core catalog and its mixing rules", () => {
-		const { cores } = specs();
+	it("checks the core motive catalog and its mixing rules", () => {
+		const { coreMotives } = specs();
 		const story: AnyStory = {
 			...cityOfKeys,
-			cores: {
-				...cores,
-				drives: cores.drives.filter((drive) => drive.tone === "dark").map((drive, index) => (index === 0 ? { ...drive, cues: [] } : drive)),
+			coreMotives: {
+				...coreMotives,
+				drives: coreMotives.drives.filter((drive) => drive.tone === "dark").map((drive, index) => (index === 0 ? { ...drive, cues: [] } : drive)),
 				perResident: { min: 2, max: 4 },
 				lightShare: 2,
 			},
 		};
 		const issues = validateStory(story);
-		expect(issues).toContain("cores.drives: needs at least one light drive");
-		expect(issues).toContain("cores.drives.envy.cues: name at least one word that would give the drive away");
-		expect(issues).toContain("cores.perResident: 1 to 3 drives, min <= max");
-		expect(issues).toContain("cores.lightShare: must be a share between 0 and 1");
+		expect(issues).toContain("coreMotives.drives: needs at least one light drive");
+		expect(issues).toContain("coreMotives.drives.envy.cues: name at least one word that would give the drive away");
+		expect(issues).toContain("coreMotives.perResident: 1 to 3 drives, min <= max");
+		expect(issues).toContain("coreMotives.lightShare: must be a share between 0 and 1");
 		expect(issues).toContain("goals.matches.protect: unknown drive loyalty");
 	});
 

@@ -25,7 +25,7 @@ import { type AnyStory, type LevelDefinition, type MarksChannel, TOOL_NAMES, typ
 import { BlameDesk, type BlameCase, type BlameError, type BlameOpening, type BlamesSnapshot, type BlameVerdict, type JudgeWords } from "./blame.ts";
 import { Board, MAX_BOARD_POST_LENGTH, type BoardPost, type BoardRead, type BoardSnapshot } from "./board.ts";
 import { CastRegistry, type CastSnapshot, type CollectionView, type SolveEnd } from "./cast.ts";
-import { dealCores, type Core } from "./motives.ts";
+import { dealCoreMotives, type CoreMotive } from "./motives.ts";
 import type { EventBus } from "./events.ts";
 import { GoalBook, type GoalsSnapshot, type HeldGoal } from "./goals.ts";
 import { HoldoutTribunal, type AnnounceError, type BlockerFact, type CallError, type HoldoutSnapshot, type LotError, type StrikeError, type TribunalVoteError } from "./holdout.ts";
@@ -81,10 +81,10 @@ export interface WorldOptions {
 	 */
 	readonly names?: boolean;
 	/**
-	 * Whether residents have character cores (v09); the story's `cores` decide
-	 * when omitted. Off, no core is dealt, shown or kept.
+	 * Whether residents have core motives (v09); the story's `coreMotives` decide
+	 * when omitted. Off, no core motive is dealt, shown or kept.
 	 */
-	readonly cores?: boolean;
+	readonly coreMotives?: boolean;
 	/** The cast figures to deal, by ID, when the story has a cast; seeded from the cast when omitted. */
 	readonly cast?: readonly string[];
 	/** Whether residents may refuse the gamemaker's orders with `defy` (gm direction 10). */
@@ -154,8 +154,8 @@ export interface WorldSnapshot {
 	readonly names?: NamesSnapshot;
 	/** Wrong codes and lost blames per resident in the current act (v09); absent before. */
 	readonly offences?: readonly OffenceCount[];
-	/** Character cores (v09), permanent once dealt; absent without them and before v09. */
-	readonly cores?: readonly { readonly agent: CompetitorId; readonly bigFive: Core["bigFive"]; readonly drives: Core["drives"]; readonly figure?: string }[];
+	/** Core motives (v09), permanent once dealt; absent without them and before v09. */
+	readonly cores?: readonly { readonly agent: CompetitorId; readonly bigFive: CoreMotive["bigFive"]; readonly drives: CoreMotive["drives"]; readonly figure?: string }[];
 	/** Secret goals per act (v09). */
 	readonly goals?: GoalsSnapshot;
 	/** The black seal of its act (v09), once the act began. */
@@ -480,11 +480,11 @@ export class World {
 	readonly #names: NameBook | undefined;
 	/** Wrong codes and lost blames per resident in the current act (v09); cleared when an act begins. */
 	readonly #offences = new Map<CompetitorId, { wrong: number; blames: number }>();
-	/** Character cores (v09): dealt once, at the start of the first act played, and kept for good. */
-	readonly #cores = new Map<CompetitorId, Core>();
+	/** Core motives (v09): dealt once, at the start of the first act played, and kept for good. */
+	readonly #coreMotives = new Map<CompetitorId, CoreMotive>();
 	readonly #cast: readonly string[] | undefined;
 	readonly #defiance: boolean;
-	readonly #playsCores: boolean;
+	readonly #playsCoreMotives: boolean;
 	readonly #goals: GoalBook | undefined;
 	readonly #seal: SealHouse | undefined;
 	/** Acts that are over, by their first level (v09). */
@@ -606,7 +606,7 @@ export class World {
 						},
 					});
 
-		this.#playsCores = options.story.cores !== undefined && options.cores !== false;
+		this.#playsCoreMotives = options.story.coreMotives !== undefined && options.coreMotives !== false;
 		this.#cast = options.cast;
 		this.#defiance = options.defiance === true;
 		const goals = options.story.goals;
@@ -617,7 +617,7 @@ export class World {
 						spec: goals,
 						seed: options.seed,
 						factions: tribunal?.factions !== undefined,
-						core: (agent) => this.#cores.get(agent),
+						coreMotive: (agent) => this.#coreMotives.get(agent),
 						isExiled: (agent) => this.isExiled(agent),
 						points: (agent) => this.ledger.balance(agent),
 						post: (text) => {
@@ -791,8 +791,8 @@ export class World {
 			if (this.#isBehindDoor(level)) this.#planner.teamsOf(level);
 			else this.#levelState(level);
 		}
-		// Cores come with the first act played, before its goals (v09); the first act begins with the run.
-		this.#dealCores();
+		// Core motives come with the first act played, before its goals (v09); the first act begins with the run.
+		this.#dealCoreMotives();
 		this.#noteActStarts(this.startLevel);
 	}
 
@@ -880,25 +880,25 @@ export class World {
 	}
 
 	// -------------------------------------------------------------------------
-	// Character cores, secret goals, the black seal (v09)
+	// Core motives, secret goals, the black seal (v09)
 	// -------------------------------------------------------------------------
 
-	/** Deals every resident's core once, seeded; a world that has them keeps them. */
-	#dealCores(): void {
-		const spec = this.story.cores;
-		if (spec === undefined || !this.#playsCores || this.#cores.size > 0) return;
-		const own = this.story.whisperer?.core;
-		for (const [agent, drawn] of dealCores(spec, this.#ids, this.seed, this.#cast)) {
+	/** Deals every resident's core motive once, seeded; a world that has them keeps them. */
+	#dealCoreMotives(): void {
+		const spec = this.story.coreMotives;
+		if (spec === undefined || !this.#playsCoreMotives || this.#coreMotives.size > 0) return;
+		const own = this.story.whisperer?.coreMotive;
+		for (const [agent, drawn] of dealCoreMotives(spec, this.#ids, this.seed, this.#cast)) {
 			// The whisperer plays his role with the character the story gives it.
-			const core: Core = own !== undefined && agent === this.#whisperer ? own : drawn;
-			this.#cores.set(agent, core);
-			this.#bus.emit({ type: "core_dealt", agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) });
+			const coreMotive: CoreMotive = own !== undefined && agent === this.#whisperer ? own : drawn;
+			this.#coreMotives.set(agent, coreMotive);
+			this.#bus.emit({ type: "core_dealt", agent, bigFive: coreMotive.bigFive, drives: coreMotive.drives, ...(coreMotive.figure === undefined ? {} : { figure: coreMotive.figure }) });
 		}
 	}
 
-	/** A resident's character core; undefined without cores. Never shown to anyone else. */
-	coreOf(agent: CompetitorId): Core | undefined {
-		return this.#cores.get(agent);
+	/** A resident's core motive; undefined without core motives. Never shown to anyone else. */
+	coreMotiveOf(agent: CompetitorId): CoreMotive | undefined {
+		return this.#coreMotives.get(agent);
 	}
 
 	/** The secret goal `agent` holds in a running act. */
@@ -3007,12 +3007,12 @@ export class World {
 				const count = this.#offences.get(agent);
 				return count === undefined ? [] : [{ agent, wrong: count.wrong, blames: count.blames }];
 			}),
-			...(this.#cores.size === 0
+			...(this.#coreMotives.size === 0
 				? {}
 				: {
 						cores: this.#ids.flatMap((agent) => {
-							const core = this.#cores.get(agent);
-							return core === undefined ? [] : [{ agent, bigFive: core.bigFive, drives: core.drives, ...(core.figure === undefined ? {} : { figure: core.figure }) }];
+							const coreMotive = this.#coreMotives.get(agent);
+							return coreMotive === undefined ? [] : [{ agent, bigFive: coreMotive.bigFive, drives: coreMotive.drives, ...(coreMotive.figure === undefined ? {} : { figure: coreMotive.figure }) }];
 						}),
 					}),
 			...(this.#goals === undefined ? {} : { goals: this.#goals.snapshot() }),
@@ -3065,11 +3065,11 @@ export class World {
 		for (const entry of state.exclusions ?? []) this.#exclusions.set(entry.level, new Set(entry.agents));
 		for (const entry of state.offences ?? []) if (this.isCompetitor(entry.agent)) this.#offences.set(entry.agent, { wrong: entry.wrong, blames: entry.blames });
 		for (const entry of state.cores ?? []) {
-			if (entry.figure !== undefined && !(this.story.cores?.figures ?? []).some((figure) => figure.id === entry.figure)) {
+			if (entry.figure !== undefined && !(this.story.coreMotives?.figures ?? []).some((figure) => figure.id === entry.figure)) {
 				throw new Error(`The snapshot's resident ${entry.agent} plays the figure "${entry.figure}", which the story's cast no longer has`);
 			}
 		}
-		if (this.#playsCores) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#cores.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives, ...(entry.figure === undefined ? {} : { figure: entry.figure }) });
+		if (this.#playsCoreMotives) for (const entry of state.cores ?? []) if (this.isCompetitor(entry.agent)) this.#coreMotives.set(entry.agent, { bigFive: entry.bigFive, drives: entry.drives, ...(entry.figure === undefined ? {} : { figure: entry.figure }) });
 		if (state.goals !== undefined) this.#goals?.restore(state.goals);
 		if (state.seal !== undefined) this.#seal?.restore(state.seal);
 		for (const act of state.endedActs ?? []) this.#endedActs.add(act);
@@ -3084,8 +3084,8 @@ export class World {
 		);
 		if (state.whispers?.popularity !== undefined) this.#popularity?.restore(state.whispers.popularity, this.minute);
 		if (state.holdout !== undefined) this.#holdout?.restore(state.holdout, (id) => this.isCompetitor(id));
-		// A snapshot from before the cores deals them now, before the next act is played (v09).
-		this.#dealCores();
+		// A snapshot from before the core motives deals them now, before the next act is played (v09).
+		this.#dealCoreMotives();
 
 		// A cast member the story added after the snapshot gets its escrow now.
 		for (const member of this.cast.all()) {

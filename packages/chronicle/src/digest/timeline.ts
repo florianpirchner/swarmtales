@@ -67,19 +67,19 @@ export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: Ac
 	return `${lines.join("\n").trimEnd()}\n`;
 }
 
-/** The Cores and Goals tables (v09): who each resident is and what it secretly wanted; nothing without them. */
+/** The Core motives and Goals tables (v09): who each resident is and what it secretly wanted; nothing without them. */
 function characterTables(facts: RunFacts): readonly string[] {
 	const words: Readonly<Record<string, string>> = { aboveAll: "above all", clearly: "clearly", atTimes: "at times" };
-	const cores = eventsOfType(facts.events, "core_dealt");
+	const coreMotives = eventsOfType(facts.events, "core_dealt");
 	const goals = eventsOfType(facts.events, "goal_dealt");
 	const resolved = eventsOfType(facts.events, "goal_resolved");
 	const lines: string[] = [];
-	if (cores.length > 0) {
-		lines.push("## Cores", "", "| Resident | Drives | Temperament |", "|---|---|---|");
-		for (const core of cores) {
-			const list = core.drives.map((entry) => `${words[entry.intensity] ?? entry.intensity} ${entry.drive}`).join("; ");
-			const drives = core.figure === undefined ? list : `${core.figure}: ${list}`;
-			lines.push(`| ${agentLabel(facts, core.agent)} | ${drives} | ${core.bigFive.map((trait) => `${trait.axis} ${trait.level}`).join(", ")} |`);
+	if (coreMotives.length > 0) {
+		lines.push("## Core motives", "", "| Resident | Drives | Temperament |", "|---|---|---|");
+		for (const coreMotive of coreMotives) {
+			const list = coreMotive.drives.map((entry) => `${words[entry.intensity] ?? entry.intensity} ${entry.drive}`).join("; ");
+			const drives = coreMotive.figure === undefined ? list : `${coreMotive.figure}: ${list}`;
+			lines.push(`| ${agentLabel(facts, coreMotive.agent)} | ${drives} | ${coreMotive.bigFive.map((trait) => `${trait.axis} ${trait.level}`).join(", ")} |`);
 		}
 		lines.push("");
 	}

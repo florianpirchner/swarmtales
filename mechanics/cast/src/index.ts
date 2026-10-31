@@ -41,7 +41,7 @@ function shorten(ctx: Ctx, into: string, untilMinute: number): void {
 	ctx.emit("collection_shortened", { into, untilMinute: ctx.state.registry.collections.get(into)?.untilMinute ?? untilMinute });
 }
 
-/** Before every other tick of a minute (cores 50 is the first of the table): only a resumed run has anything to fund. */
+/** Before every other tick of a minute (motives 50 is the first of the table): only a resumed run has anything to fund. */
 const RESUME_ESCROW_ORDER = HOOK_ORDER.minuteStarted.motives + 10;
 
 /** The names of the collections the story can start, in the story's rule order, then any other in start order. */

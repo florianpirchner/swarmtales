@@ -48,7 +48,7 @@ export interface WeaverQuestion {
 	/** The resident, by the name the city knows it (or its ID). */
 	readonly resident: string;
 	readonly minute: number;
-	/** The character part of its prompt: its core in prose (or its persona). */
+	/** The character part of its prompt: its core motive in prose (or its persona). */
 	readonly character: string;
 	/** What the story has made of it so far: its last hard text, if any. */
 	readonly shift?: string;

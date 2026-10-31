@@ -14,7 +14,7 @@ import type {
 	ClassifierSpec,
 	Condition,
 	CooldownScope,
-	CoresSpec,
+	CoreMotivesSpec,
 	DirectorPlaceholder,
 	DirectorRule,
 	FactorTarget,
@@ -99,8 +99,8 @@ export interface StoryInput<C extends string> {
 	readonly tribunal?: TribunalSpec;
 	/** Optional resident names (v08). */
 	readonly names?: NamesSpec;
-	/** Optional character cores, secret goals and black seal (v09). */
-	readonly cores?: CoresSpec;
+	/** Optional core motives, secret goals and black seal (v09). */
+	readonly coreMotives?: CoreMotivesSpec;
 	readonly goals?: GoalsSpec;
 	readonly seal?: SealSpec;
 	/** Optional whisperer and popularity vote (Whispers). */
@@ -141,7 +141,7 @@ export function defineStory<const C extends string = never>(story: StoryInput<C>
 		...(story.classifier === undefined ? {} : { classifier: story.classifier }),
 		...(story.tribunal === undefined ? {} : { tribunal: story.tribunal }),
 		...(story.names === undefined ? {} : { names: story.names }),
-		...(story.cores === undefined ? {} : { cores: story.cores }),
+		...(story.coreMotives === undefined ? {} : { coreMotives: story.coreMotives }),
 		...(story.goals === undefined ? {} : { goals: story.goals }),
 		...(story.seal === undefined ? {} : { seal: story.seal }),
 		...(story.whisperer === undefined ? {} : { whisperer: story.whisperer }),

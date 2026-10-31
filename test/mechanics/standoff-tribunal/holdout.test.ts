@@ -50,7 +50,7 @@ describe("standoff-tribunal surface (stand-in puzzles, progression, exile, chann
 		const scenario = lotStrikes();
 		const run = newRun(scenario, (story) => {
 			const options = storyOptions(story);
-			const core = defineCoreStory({
+			const coreMotive = defineCoreStory({
 				id: "t4-test",
 				seed: 7,
 				minutes: scenario.minutes,
@@ -58,7 +58,7 @@ describe("standoff-tribunal surface (stand-in puzzles, progression, exile, chann
 				mechanics: [...story.mechanics, reader.with()],
 				grants: { resident: ["tribunalVote"], gamemaker: ["callTribunal", "drawLot", "announceTribunal", "permaDeath"], script: ["probe", "read"] },
 			});
-			const host = createHost({ ...options, story: core });
+			const host = createHost({ ...options, story: coreMotive });
 			host.start();
 			return host;
 		});

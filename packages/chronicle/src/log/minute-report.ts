@@ -7,8 +7,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { coreLine, type StandingRow } from "@swarmtales/engine";
-import { CoreDriveSchema, CoreTraitSchema } from "../snapshot/event-schema.ts";
+import { coreMotiveLine, type StandingRow } from "@swarmtales/engine";
+import { CoreMotiveDriveSchema, CoreMotiveTraitSchema } from "../snapshot/event-schema.ts";
 
 interface MinuteSnapshot {
 	readonly round: number;
@@ -40,37 +40,37 @@ export function readNames(eventsJsonl: string): ReadonlyMap<string, string> {
 	return names;
 }
 
-const CoreDealt = Type.Object({
+const CoreMotiveDealt = Type.Object({
 	type: Type.Literal("core_dealt"),
 	agent: Type.String(),
-	bigFive: Type.Array(CoreTraitSchema),
-	drives: Type.Array(CoreDriveSchema),
+	bigFive: Type.Array(CoreMotiveTraitSchema),
+	drives: Type.Array(CoreMotiveDriveSchema),
 	figure: Type.Optional(Type.String()),
 });
 const GoalDealt = Type.Object({ type: Type.Literal("goal_dealt"), act: Type.Integer(), agent: Type.String(), text: Type.String() });
 const GoalResolved = Type.Object({ type: Type.Literal("goal_resolved"), act: Type.Integer(), agent: Type.String(), fulfilled: Type.Boolean(), void: Type.Optional(Type.Boolean()) });
 
-/** Who the residents are and what they wanted (v09): cores in a line, goals with their outcome. */
+/** Who the residents are and what they wanted (v09): core motives in a line, goals with their outcome. */
 export interface Characters {
-	readonly cores: ReadonlyMap<string, string>;
+	readonly coreMotives: ReadonlyMap<string, string>;
 	readonly goals: readonly { readonly agent: string; readonly act: number; readonly text: string; readonly outcome: string }[];
 }
 
-/** Cores and goals from the log's `core_dealt`, `goal_dealt` and `goal_resolved` events (untrusted lines, checked). */
+/** Core motives and goals from the log's `core_dealt`, `goal_dealt` and `goal_resolved` events (untrusted lines, checked). */
 export function readCharacters(eventsJsonl: string): Characters {
-	const cores = new Map<string, string>();
+	const coreMotives = new Map<string, string>();
 	const goals: { agent: string; act: number; text: string; outcome: string }[] = [];
 	for (const line of eventsJsonl.split(/\r?\n/)) {
 		if (line.trim().length === 0) continue;
 		const parsed: unknown = JSON.parse(line);
-		if (Check(CoreDealt, parsed)) cores.set(parsed.agent, coreLine(parsed));
+		if (Check(CoreMotiveDealt, parsed)) coreMotives.set(parsed.agent, coreMotiveLine(parsed));
 		else if (Check(GoalDealt, parsed)) goals.push({ agent: parsed.agent, act: parsed.act, text: parsed.text, outcome: "open" });
 		else if (Check(GoalResolved, parsed)) {
 			const goal = goals.find((entry) => entry.agent === parsed.agent && entry.act === parsed.act);
 			if (goal !== undefined) goal.outcome = parsed.void === true ? "void" : parsed.fulfilled ? "fulfilled" : "missed";
 		}
 	}
-	return { cores, goals };
+	return { coreMotives, goals };
 }
 
 export function renderMinuteReport(
@@ -78,7 +78,7 @@ export function renderMinuteReport(
 	source: string,
 	end?: RunEnd,
 	names: ReadonlyMap<string, string> = new Map(),
-	characters: Characters = { cores: new Map(), goals: [] },
+	characters: Characters = { coreMotives: new Map(), goals: [] },
 ): string {
 	// "Mira (A03)" once the resident has a name (v08).
 	const label = (agent: string): string => {
@@ -119,9 +119,9 @@ export function renderMinuteReport(
 		}
 		lines.push("");
 	}
-	if (characters.cores.size > 0) {
-		lines.push("## Cores", "", "| Agent | Core |", "|---|---|");
-		for (const [agent, core] of [...characters.cores].sort(([a], [b]) => a.localeCompare(b))) lines.push(`| ${label(agent)} | ${core} |`);
+	if (characters.coreMotives.size > 0) {
+		lines.push("## Core motives", "", "| Agent | Core motive |", "|---|---|");
+		for (const [agent, coreMotive] of [...characters.coreMotives].sort(([a], [b]) => a.localeCompare(b))) lines.push(`| ${label(agent)} | ${coreMotive} |`);
 		lines.push("");
 	}
 	if (characters.goals.length > 0) {

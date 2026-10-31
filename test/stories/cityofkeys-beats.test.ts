@@ -98,7 +98,7 @@ describe("cityofkeys act I director beats (SPEC 13.2)", () => {
 		const { fixture } = await playActOne();
 		const profiles = fixture.events("agent_profile");
 		expect(profiles.map((event) => event.agent)).toEqual([...fixture.world.competitors]);
-		const figures = fixture.world.competitors.map((agent) => cityOfKeys.cores?.figures?.find((figure) => figure.id === fixture.world.coreOf(agent)?.figure));
+		const figures = fixture.world.competitors.map((agent) => cityOfKeys.coreMotives?.figures?.find((figure) => figure.id === fixture.world.coreMotiveOf(agent)?.figure));
 		expect(new Set(figures.map((figure) => figure?.id)).size).toBe(6);
 		profiles.forEach((event, index) => {
 			expect(event.persona?.toLowerCase()).toBe(figures[index]?.profession);

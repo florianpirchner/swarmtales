@@ -24,7 +24,7 @@ export const GoalsOptions = Type.Object({
 	acts: Type.Array(Type.Integer({ minimum: 1 }), { default: [], description: "The first level of each act that deals goals." }),
 	bonus: Type.Integer({ minimum: 0, default: 0, description: "Points a fulfilled goal pays at the act's end." }),
 	leadTribunals: Type.Integer({ minimum: 1, default: 1, description: "How many tribunals a `lead` goal asks the holder to lead a faction in." }),
-	againstCore: Type.Number({ minimum: 0, maximum: 1, default: 0, description: "The share of residents whose goal does not follow their core." }),
+	againstCoreMotive: Type.Number({ minimum: 0, maximum: 1, default: 0, description: "The share of residents whose goal does not follow their core motive." }),
 	matches: Type.Object(
 		{ protect: Type.Optional(Words), exile: Type.Optional(Words), outrank: Type.Optional(Words), lead: Type.Optional(Words), heir: Type.Optional(Words) },
 		{ default: {}, description: "The drive ids that suggest each kind of goal." },

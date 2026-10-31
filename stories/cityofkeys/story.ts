@@ -44,7 +44,7 @@ import {
 	type TribunalSpec,
 	when,
 } from "@swarmtales/sdk";
-import { CORES, GOALS, SEAL } from "./characters.ts";
+import { CORE_MOTIVES, GOALS, SEAL } from "./characters.ts";
 
 const BASE_TOOLS = ["getStatus", "getProblem", "submitSolution", "listAgents"] as const satisfies readonly ToolName[];
 const BOARD_TOOLS = ["readBoard", "postBoard"] as const satisfies readonly ToolName[];
@@ -398,8 +398,8 @@ export default defineStory({
 	},
 	personas: PERSONAS,
 	personaAssignment: { kind: "seeded" },
-	// v09: a core for every resident from the first act on, a secret goal and the black seal in Act II.
-	cores: CORES,
+	// v09: a core motive for every resident from the first act on, a secret goal and the black seal in Act II.
+	coreMotives: CORE_MOTIVES,
 	goals: GOALS,
 	seal: SEAL,
 	finishedNotice:

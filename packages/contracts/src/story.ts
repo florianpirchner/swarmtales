@@ -472,8 +472,8 @@ export interface StoryDefinition<C extends string = string> {
 	readonly tribunal?: TribunalSpec;
 	/** Optional resident names (v08): chosen in the first minutes of a fresh run; IDs only when omitted. */
 	readonly names?: NamesSpec;
-	/** Optional character cores (v09): who each resident is inside, dealt once; none when omitted. */
-	readonly cores?: CoresSpec;
+	/** Optional core motives (v09): who each resident is inside, dealt once; none when omitted. */
+	readonly coreMotives?: CoreMotivesSpec;
 	/** Optional secret goals per act (v09); none when omitted. */
 	readonly goals?: GoalsSpec;
 	/** Optional black seal (v09): an auction for one permanent exile per act; none when omitted. */
@@ -526,8 +526,8 @@ export interface WhispererSpec {
 	readonly brief: string;
 	readonly forgery: boolean;
 	readonly duty: WhisperDuty;
-	/** The whisperer's own character core, in place of a drawn one (a role needs a fitting character); drawn when omitted. */
-	readonly core?: { readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[]; readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[] };
+	/** The whisperer's own core motive, in place of a drawn one (a role needs a fitting character); drawn when omitted. */
+	readonly coreMotive?: { readonly bigFive: readonly { readonly axis: string; readonly level: CoreMotiveLevel }[]; readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[] };
 	/** What `--figure-direction` adds above level 4, as for a cast figure; absent for a whisperer without it. */
 	readonly direction?: WhispererDirection;
 }
@@ -783,19 +783,19 @@ export interface GuardRule {
 }
 
 // ---------------------------------------------------------------------------
-// Drama (v09): character cores, secret goals, the black seal
+// Drama (v09): core motives, secret goals, the black seal
 // ---------------------------------------------------------------------------
 
-export type CoreLevel = "low" | "middle" | "high";
-export const CORE_LEVELS = ["low", "middle", "high"] as const satisfies readonly CoreLevel[];
+export type CoreMotiveLevel = "low" | "middle" | "high";
+export const CORE_MOTIVE_LEVELS = ["low", "middle", "high"] as const satisfies readonly CoreMotiveLevel[];
 /** How strongly a drive drives: exactly one is "above all" per resident. */
 export type DriveIntensity = "aboveAll" | "clearly" | "atTimes";
 export const DRIVE_INTENSITIES = ["aboveAll", "clearly", "atTimes"] as const satisfies readonly DriveIntensity[];
 
 /** One temperament axis (the Big Five): a sentence per level, said to the resident in the second person. */
-export interface CoreAxis {
+export interface CoreMotiveAxis {
 	readonly id: string;
-	readonly texts: Readonly<Record<CoreLevel, string>>;
+	readonly texts: Readonly<Record<CoreMotiveLevel, string>>;
 }
 
 /**
@@ -814,42 +814,42 @@ export interface DriveSpec {
 }
 
 /**
- * Character cores (v09). Each resident gets one at the start of the first
+ * Core motives (v09). Each resident gets one at the start of the first
  * act it plays, seeded and kept for the whole story: a level per axis and
  * `drives.min`-`drives.max` drives, exactly one of them "above all". About
  * `lightShare` of the residents (rounded) have a light drive above all, the
  * others a dark one; no drive is above all for more than one resident in
- * `spreadPer` (rounded up). Contradictions are allowed. The core is written
+ * `spreadPer` (rounded up). Contradictions are allowed. The core motive is written
  * into the resident's system prompt, after its persona, under `heading`.
  */
-export interface CoresSpec {
+export interface CoreMotivesSpec {
 	readonly heading: string;
-	readonly axes: readonly CoreAxis[];
+	readonly axes: readonly CoreMotiveAxis[];
 	readonly drives: readonly DriveSpec[];
 	readonly perResident: { readonly min: number; readonly max: number };
 	readonly lightShare: number;
 	readonly spreadPer: number;
 	/**
 	 * Finished figures of the story's cast (stories/<story>/cast/): when
-	 * present, residents get a figure instead of a drawn core, seeded or as
-	 * the run names them; residents beyond the cast get a drawn core.
+	 * present, residents get a figure instead of a drawn core motive, seeded or as
+	 * the run names them; residents beyond the cast get a drawn core motive.
 	 */
 	readonly figures?: readonly FigureSpec[];
-	/** A frame said to every resident with a core, at the top of its system prompt (who it plays, how seriously). */
+	/** A frame said to every resident with a core motive, at the top of its system prompt (who it plays, how seriously). */
 	readonly frame?: string;
 }
 
 /**
- * A finished figure (stories/<story>/cast/): its core (drives and Big Five,
- * as a drawn core has them), its profession (the persona it plays) and its
- * text, which replaces the core's sentences in the system prompt.
+ * A finished figure (stories/<story>/cast/): its core motive (drives and Big Five,
+ * as a drawn core motive has them), its profession (the persona it plays) and its
+ * text, which replaces the core motive's sentences in the system prompt.
  */
 export interface FigureSpec {
 	readonly id: string;
 	readonly title: string;
 	readonly profession: string;
 	readonly tone: "light" | "dark";
-	readonly bigFive: readonly { readonly axis: string; readonly level: CoreLevel }[];
+	readonly bigFive: readonly { readonly axis: string; readonly level: CoreMotiveLevel }[];
 	readonly drives: readonly { readonly drive: string; readonly intensity: DriveIntensity }[];
 	readonly text: string;
 	/** What the direction dial adds above level 4 (`--figure-direction`); absent for a figure without it. */
@@ -884,8 +884,8 @@ export const GOAL_KINDS = ["protect", "exile", "outrank", "lead", "heir"] as con
  * a faction in `leadTribunals` tribunals; only with factions), `heir` (a last
  * will leaves something). Goals cross: for every protect there is an exile of
  * the same target held by another resident when possible. They are matched to
- * the core by `matches` (drive ids per kind), against it for about
- * `againstCore` of the residents. A fulfilled goal pays `bonus` at the act's
+ * the core motive by `matches` (drive ids per kind), against it for about
+ * `againstCoreMotive` of the residents. A fulfilled goal pays `bonus` at the act's
  * end; an exiled resident's goal is void, and the city reads it out as it
  * leaves; all goals are read out at the act's end.
  */
@@ -893,7 +893,7 @@ export interface GoalsSpec {
 	readonly acts: readonly number[];
 	readonly bonus: number;
 	readonly leadTribunals: number;
-	readonly againstCore: number;
+	readonly againstCoreMotive: number;
 	readonly matches: Readonly<Partial<Record<GoalKind, readonly string[]>>>;
 	readonly texts: GoalTexts;
 }

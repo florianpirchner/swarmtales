@@ -3,7 +3,7 @@
  * gamemaker.ts (`#checked`, `#deliver`, `#used`): the text checks in their old order, the budgets as
  * a sliding window per recipient (not a host limit: a note at minute 9 and one at minute 10 to the
  * same resident fall in one 10-minute window, a note to A01 and one to A02 do not), and the
- * `gamemaker_note` line. The checks read other mechanics through their APIs (secrets, cores, goals)
+ * `gamemaker_note` line. The checks read other mechanics through their APIs (secrets, core motives, goals)
  * and the app's `interpretation` events through the log.
  */
 import { Type } from "typebox";
@@ -98,7 +98,7 @@ function fail(text: string): Checked {
 
 /**
  * Old `#checked`: trims the text, strips a signature or `<author|CITY|city> minute N:` heading, and
- * refuses an empty or long text, a dealt secret, a private thought, a core or goal, the whisperer's
+ * refuses an empty or long text, a dealt secret, a private thought, a core motive or goal, the whisperer's
  * role, or a repeat to `as` (default `to`). `to` is the reader the privacy checks apply to.
  */
 export function checkNote(ctx: Ctx, raw: string, to: string, as: string = to): Checked {

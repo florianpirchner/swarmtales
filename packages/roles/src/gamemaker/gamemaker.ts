@@ -430,10 +430,10 @@ export class Gamemaker implements EventSink {
 	/** Every resident's drive cues and running goal, for the privacy guard (v09). */
 	#characters(): readonly CharacterFacts[] {
 		const world = this.#options.world;
-		const drives = world.story.cores?.drives ?? [];
+		const drives = world.story.coreMotives?.drives ?? [];
 		return world.competitors.map((agent) => {
-			const core = world.coreOf(agent);
-			const cues = (core?.drives ?? []).flatMap((entry) => drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
+			const coreMotive = world.coreMotiveOf(agent);
+			const cues = (coreMotive?.drives ?? []).flatMap((entry) => drives.find((drive) => drive.id === entry.drive)?.cues ?? []).map((word) => word.toLowerCase());
 			const goal = world.goalOf(agent)?.goal;
 			return {
 				agent,

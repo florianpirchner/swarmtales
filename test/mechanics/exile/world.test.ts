@@ -18,10 +18,10 @@ import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { standIns, TestCity } from "./support/city.ts";
 import { runProbe, startHost } from "./support/host.ts";
 
-/** The City of Keys without the mechanics of other teams that would act on an exile here (goals, the seal, names, cores). */
+/** The City of Keys without the mechanics of other teams that would act on an exile here (goals, the seal, names, core motives). */
 function withoutOthers(story: AnyStory): { readonly story: AnyStory; readonly left: readonly unknown[] } {
-	const { goals, seal, names, cores, ...rest } = story;
-	return { story: rest, left: [goals, seal, names, cores] };
+	const { goals, seal, names, coreMotives, ...rest } = story;
+	return { story: rest, left: [goals, seal, names, coreMotives] };
 }
 
 const { story: STORY, left: LEFT_OUT } = withoutOthers(cityOfKeys);
@@ -149,7 +149,7 @@ async function compare(calls: readonly Call[], close = true) {
 }
 
 describe("exile against the old World (differential)", () => {
-	it("plays the City of Keys without goals, seal, names and cores, which it has", () => {
+	it("plays the City of Keys without goals, seal, names and core motives, which it has", () => {
 		expect(LEFT_OUT.every((part) => part !== undefined)).toBe(true);
 	});
 

@@ -2,7 +2,7 @@
 	"name": "@swarmtales/mechanic-motives",
 	"version": "0.1.0",
 	"private": true,
-	"description": "The cores mechanic: the private cores dealt to residents.",
+	"description": "The motives mechanic: the private core motives dealt to residents.",
 	"type": "module",
 	"license": "Apache-2.0",
 	"sideEffects": false,

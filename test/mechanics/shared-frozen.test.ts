@@ -13,7 +13,7 @@ import { LEGACY_EVENT_OWNERS, LEGACY_SILENT, LegacyEventAdapter, legacyOwner, Re
 import * as shared from "@swarmtales/mechanic-shared";
 import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 
-const FINGERPRINT = "e425c01ed92b3b42f61e4bf4ef0580947a7a711f6c6451c8704c0a5a1e1081ff";
+const FINGERPRINT = "144423913c422333ee4649d6f583a7fdb383500a57a41007b26b84978cbe8b8f";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];

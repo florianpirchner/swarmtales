@@ -5,9 +5,9 @@
  * tells it when an act starts or ends, who led a faction, who inherited and
  * who was exiled.
  *
- * Dealing (seeded): a resident's kind follows its core most of the time (the
- * story maps drives to kinds), against it for about `againstCore` of them, and
- * at random without a core. Goals cross: for every `protect(X)` an `exile(X)`
+ * Dealing (seeded): a resident's kind follows its core motive most of the time (the
+ * story maps drives to kinds), against it for about `againstCoreMotive` of them, and
+ * at random without a core motive. Goals cross: for every `protect(X)` an `exile(X)`
  * is held by another resident when the city is large enough, turning a
  * resident's goal into that exile if nobody holds one yet. Targets spread
  * over the residents, and a target is never the holder itself.
@@ -21,7 +21,7 @@
  */
 import { type CompetitorId, renderTemplate, type Rng, rngFor } from "@swarmtales/kernel";
 import { GOAL_KINDS, type GoalKind, type GoalsSpec } from "@swarmtales/contracts";
-import type { Core } from "./motives.ts";
+import type { CoreMotive } from "./motives.ts";
 import type { ArenaEvent, Goal } from "./events.ts";
 
 export type GoalEvent = Extract<ArenaEvent, { readonly type: "goal_dealt" | "goal_resolved" }>;
@@ -31,7 +31,7 @@ export interface GoalPorts {
 	readonly seed: number;
 	/** Whether the city holds faction drafts: `lead` goals need them. */
 	readonly factions: boolean;
-	readonly core: (agent: CompetitorId) => Core | undefined;
+	readonly coreMotive: (agent: CompetitorId) => CoreMotive | undefined;
 	readonly isExiled: (agent: CompetitorId) => boolean;
 	readonly points: (agent: CompetitorId) => number;
 	readonly post: (text: string) => void;
@@ -76,13 +76,13 @@ export function dealableKinds(factions: boolean, residents: number): readonly Go
 export function dealGoals(
 	spec: GoalsSpec,
 	residents: readonly CompetitorId[],
-	options: { readonly seed: number; readonly act: number; readonly factions: boolean; readonly core: (agent: CompetitorId) => Core | undefined },
+	options: { readonly seed: number; readonly act: number; readonly factions: boolean; readonly coreMotive: (agent: CompetitorId) => CoreMotive | undefined },
 ): ReadonlyMap<CompetitorId, Goal> {
 	const rng = rngFor(options.seed, "goals", options.act);
 	const order = rng.shuffle([...residents]);
 	const allowed = dealableKinds(options.factions, residents.length);
 	const kinds = new Map<CompetitorId, GoalKind>();
-	for (const agent of order) kinds.set(agent, kindFor(spec, allowed, options.core(agent), rng));
+	for (const agent of order) kinds.set(agent, kindFor(spec, allowed, options.coreMotive(agent), rng));
 	const targeted = new Map<CompetitorId, number>();
 	const goals = new Map<CompetitorId, Goal>();
 	const pickTarget = (holder: CompetitorId, exclude: readonly CompetitorId[] = []): CompetitorId | undefined => {
@@ -121,10 +121,10 @@ export function dealGoals(
 	}));
 }
 
-/** The kind its core suggests (the strongest drive the story maps), against it now and then, at random without one. */
-function kindFor(spec: GoalsSpec, allowed: readonly GoalKind[], core: Core | undefined, rng: Rng): GoalKind {
-	const against = rng.next() < spec.againstCore;
-	const matched = core?.drives
+/** The kind its core motive suggests (the strongest drive the story maps), against it now and then, at random without one. */
+function kindFor(spec: GoalsSpec, allowed: readonly GoalKind[], coreMotive: CoreMotive | undefined, rng: Rng): GoalKind {
+	const against = rng.next() < spec.againstCoreMotive;
+	const matched = coreMotive?.drives
 		.map((entry) => allowed.find((kind) => spec.matches[kind]?.includes(entry.drive) === true))
 		.find((kind): kind is GoalKind => kind !== undefined);
 	if (matched === undefined) return rng.pick(allowed);
@@ -153,7 +153,7 @@ export class GoalBook {
 	/** Deals the act's goals to `residents` (once per act), privately. */
 	deal(act: number, residents: readonly CompetitorId[]): void {
 		if (!this.dealsIn(act) || this.#acts.has(act)) return;
-		const dealt = dealGoals(this.#ports.spec, residents, { seed: this.#ports.seed, act, factions: this.#ports.factions, core: this.#ports.core });
+		const dealt = dealGoals(this.#ports.spec, residents, { seed: this.#ports.seed, act, factions: this.#ports.factions, coreMotive: this.#ports.coreMotive });
 		this.#acts.set(act, { goals: new Map(dealt), resolved: false, leads: new Map(), heirs: new Set(), voided: new Set() });
 		const bonus = String(this.#ports.spec.bonus);
 		for (const [agent, goal] of dealt) {

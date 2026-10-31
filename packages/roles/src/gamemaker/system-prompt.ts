@@ -22,7 +22,7 @@ export interface GamemakerPromptInput {
 	readonly labels?: boolean;
 	/** Whether the city holds tribunals the gamemaker plans (SPEC 6.4); `factions` when each has a faction draft. */
 	readonly tribunal?: { readonly factions: boolean };
-	/** Whether the report shows the residents' cores or secret goals (v09). */
+	/** Whether the report shows the residents' core motives or secret goals (v09). */
 	readonly characters?: boolean;
 	/** Whether the city auctions a black seal (v09). */
 	readonly seal?: boolean;
@@ -51,7 +51,7 @@ function holdoutSection(spec: HoldoutSpec): string {
 	});
 }
 
-/** The cores section for the report's level of detail: from 8 the figures' tendencies, at 10 orders too. */
+/** The core motives section for the report's level of detail: from 8 the figures' tendencies, at 10 orders too. */
 function charactersSection(direction: DirectionLevel): string {
 	return text(direction >= 10 ? "gamemaker/sections/characters.d10" : direction >= 8 ? "gamemaker/sections/characters.d8" : "gamemaker/sections/characters.d0");
 }

@@ -182,7 +182,7 @@ function mentions(event: DigestEvent, agent: string): boolean {
 }
 
 /**
- * Who a figure is up to `minute`: its figure text, character core, secret
+ * Who a figure is up to `minute`: its figure text, core motive, secret
  * goals, the weaver's changes, and the outcomes already recorded.
  */
 export function dossier(source: NovelSource, pov: PovFigure, minute: number, figureChars: number): string {
@@ -199,7 +199,7 @@ export function dossier(source: NovelSource, pov: PovFigure, minute: number, fig
 	for (const event of facts.events) {
 		if (event.type === "core_dealt" && event.agent === agent) {
 			lines.push(
-				`- Character core${event.figure === undefined ? "" : ` (${event.figure})`}: ${event.drives.map((drive) => `${drive.drive} ${drive.intensity}`).join(", ")}; ${event.bigFive.map((axis) => `${axis.axis} ${axis.level}`).join(", ")}.`,
+				`- Core motive${event.figure === undefined ? "" : ` (${event.figure})`}: ${event.drives.map((drive) => `${drive.drive} ${drive.intensity}`).join(", ")}; ${event.bigFive.map((axis) => `${axis.axis} ${axis.level}`).join(", ")}.`,
 			);
 		} else if (event.type === "goal_dealt" && event.agent === agent) {
 			lines.push(`- Secret goal (act ${String(event.act)}, known only to ${names.of(agent)}): ${names.apply(event.text)}`);

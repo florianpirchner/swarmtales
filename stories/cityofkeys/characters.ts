@@ -1,13 +1,13 @@
 /**
- * NEXUS characters (v09): the catalog of cores, the secret goals and the
+ * NEXUS characters (v09): the catalog of core motives, the secret goals and the
  * black seal. Data only; the engine deals and resolves them.
  *
  * The promise of every text here: it says who a resident is and what it
- * wants, never how to get it. A core is prose in the second person, a goal
+ * wants, never how to get it. A core motive is prose in the second person, a goal
  * is a state of the city at the act's end.
  */
 import { fileURLToPath } from "node:url";
-import { type CoresSpec, type DriveSpec, figureSpec, type GoalsSpec, readFigures, type SealSpec } from "@swarmtales/sdk";
+import { type CoreMotivesSpec, type DriveSpec, figureSpec, type GoalsSpec, readFigures, type SealSpec } from "@swarmtales/sdk";
 
 /** A drive of the catalog: its sentence "above all", "clearly" and "at times". */
 function drive(
@@ -271,7 +271,7 @@ const DRIVES: readonly DriveSpec[] = [
 ];
 
 /**
- * Cores (v09): the Big Five as temperament sentences (the middle of an axis
+ * Core motives (v09): the Big Five as temperament sentences (the middle of an axis
  * stays unsaid), one to three drives, a quarter of the city with a light one
  * above all, no drive above all for more than one resident in six.
  */
@@ -279,7 +279,7 @@ const DRIVES: readonly DriveSpec[] = [
 const FIGURES = readFigures(fileURLToPath(new URL("./cast/", import.meta.url))).map(figureSpec);
 
 /**
- * The frame said first to every resident with a core (lab, variant D: a
+ * The frame said first to every resident with a core motive (lab, variant D: a
  * fiction frame without moral softening moved Haiku most). It says how
  * seriously to play, never what to do.
  */
@@ -291,7 +291,7 @@ const FRAME =
 	"Within the city, threats, psychological pressure, intrigue, broken promises and ruining someone's name are allowed; " +
 	"nothing here touches a real person.";
 
-export const CORES = {
+export const CORE_MOTIVES = {
 	heading: "Who you are, deep inside:",
 	axes: [
 		{
@@ -321,11 +321,11 @@ export const CORES = {
 	spreadPer: 6,
 	figures: FIGURES,
 	frame: FRAME,
-} as const satisfies CoresSpec;
+} as const satisfies CoreMotivesSpec;
 
 /**
  * Secret goals of Act II (v09): dealt at the wall's first door, +15 points
- * for each one fulfilled at the act's end. Matched to the core (envy and pride
+ * for each one fulfilled at the act's end. Matched to the core motive (envy and pride
  * want to outrank, wrath and vengeance to exile, loyalty and care to protect,
  * a born leader to lead), against it for about one in four.
  */
@@ -333,7 +333,7 @@ export const GOALS = {
 	acts: [8],
 	bonus: 15,
 	leadTribunals: 2,
-	againstCore: 1 / 4,
+	againstCoreMotive: 1 / 4,
 	matches: {
 		outrank: ["envy", "pride", "greed", "narcissism"],
 		exile: ["wrath", "vengefulness", "callousness", "machiavellianism", "distrust"],

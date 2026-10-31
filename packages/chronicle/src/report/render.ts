@@ -113,12 +113,12 @@ export function factsMarkdown(facts: ReportFacts): readonly string[] {
 	return [...header(facts), "", ...result(facts), "", ...residents(facts), "", ...drama(facts)];
 }
 
-/** The Cores and Goals tables (v09); nothing for a run without them. */
+/** The Core motives and Goals tables (v09); nothing for a run without them. */
 function drama(facts: ReportFacts): readonly string[] {
 	const lines: string[] = [];
-	const cored = facts.residents.filter((resident) => resident.core !== undefined);
+	const cored = facts.residents.filter((resident) => resident.coreMotive !== undefined);
 	if (cored.length > 0) {
-		lines.push("## Cores", "", "| Resident | Core |", "|---|---|", ...cored.map((resident) => `| ${residentLabel(resident)} | ${cell(resident.core ?? "")} |`), "");
+		lines.push("## Core motives", "", "| Resident | Core motive |", "|---|---|", ...cored.map((resident) => `| ${residentLabel(resident)} | ${cell(resident.coreMotive ?? "")} |`), "");
 	}
 	if (facts.goals.length > 0) {
 		const label = (agent: string): string => {

@@ -2,7 +2,7 @@
  * The heads of the goals mechanic. `goalsHead` has the shape the wave 3.0 plan froze (what
  * `test/mechanics/packages.test.ts` reads); `goalsWorkHead` is the one the mechanic is built from:
  * the real options and state, the points it pays (`LedgerApi`), the exile it asks (`ExileApi`) and the
- * cores it reads (`MotivesApi.drivesOf`).
+ * core motives it reads (`MotivesApi.drivesOf`).
  */
 import { Type } from "typebox";
 import type { ContextOf } from "@swarmtales/contracts";

@@ -61,7 +61,7 @@ export const START_USAGE = [
 	"  --block-size <n>     competitors per block; a block's model calls run concurrently (story default; \"auto\" = agents / 6)",
 	"  --no-personas        play without personas (control group)",
 	"  --no-names           keep resident IDs; nobody chooses a name",
-	"  --no-cores           play without character cores",
+	"  --no-core-motives    play without core motives (the old name --no-cores still works)",
 	"  --no-whisperer       play without the story's whisperer (Whispers: the control run)",
 	"  --no-guards          play without the story's tool guards (no post is checked)",
 	"  --cast <ids>         the story's cast figures to play, comma-separated (default: a seeded pick)",
@@ -108,6 +108,7 @@ function parseValues(argv: readonly string[]) {
 				"block-size": { type: "string" },
 				"no-personas": { type: "boolean" },
 				"no-names": { type: "boolean" },
+				"no-core-motives": { type: "boolean" },
 				"no-cores": { type: "boolean" },
 				"no-whisperer": { type: "boolean" },
 				"no-guards": { type: "boolean" },
@@ -171,7 +172,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["stop-when-done"] === true ? { stopWhenDone: true } : {}),
 		...(values["no-personas"] === true ? { personas: false } : {}),
 		...(values["no-names"] === true ? { names: false } : {}),
-		...(values["no-cores"] === true ? { cores: false } : {}),
+		...(values["no-core-motives"] === true || values["no-cores"] === true ? { coreMotives: false } : {}),
 		...(values["no-whisperer"] === true ? { whisperer: false } : {}),
 		...(values["no-guards"] === true ? { guards: false } : {}),
 		...(values.cast === undefined ? {} : { cast: castList(values.cast) }),
@@ -185,8 +186,8 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	if (values.weaver !== true && (values["weaver-provider"] !== undefined || values["weaver-model"] !== undefined)) {
 		throw new UsageError("--weaver-provider and --weaver-model need --weaver");
 	}
-	if (overrides.cast !== undefined && overrides.cores === false) throw new UsageError("--cast needs character cores; drop --no-cores");
-	if (overrides.figureDirection !== undefined && overrides.cores === false) throw new UsageError("--figure-direction steers cast figures and the whisperer by their cores; drop --no-cores");
+	if (overrides.cast !== undefined && overrides.coreMotives === false) throw new UsageError("--cast needs core motives; drop --no-core-motives");
+	if (overrides.figureDirection !== undefined && overrides.coreMotives === false) throw new UsageError("--figure-direction steers cast figures and the whisperer by their core motives; drop --no-core-motives");
 	if (overrides.level !== undefined && overrides.only !== undefined) {
 		throw new UsageError("Use either --level or --only, not both");
 	}
