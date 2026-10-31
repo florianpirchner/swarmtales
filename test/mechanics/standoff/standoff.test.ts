@@ -48,7 +48,7 @@ function setup(extra: { ransom?: number; held?: (resident: string) => readonly H
 	world.points.set("A03", 40);
 	world.points.set("A04", 40);
 	for (const id of ["A01", "A02", "A03", "A04"]) world.levels.set(id, 8);
-	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 } });
+	const use = standoff.with({ ultimatum: { penalty: 10, maxMinutes: 5 }, direction: 10 });
 	const price = extra.ransom;
 	const tribunal = price === undefined ? [] : [provider("tribunal", TribunalApi, { ransomPrices: () => ({ price, selfPrice: price }) }).with()];
 	return {
@@ -141,6 +141,21 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		await advance(host, 4);
 		const minute13 = host.log.all().filter((event) => event.minute === 13 && ["mark_before", "mark_after", "ultimatum_resolved"].includes(event.type));
 		expect(minute13.map((event) => `${event.source}:${event.type}`)).toEqual(["before:mark_before", "standoff:ultimatum_resolved", "after:mark_after"]);
+	});
+
+	it("offers the ultimatum only at gamemaker direction 10 in a story with ultimatums (old gamemaker.ts:214, :375)", async () => {
+		const world = new TestWorld(["A01", "A02"]);
+		const tryUltimatum = async (options: Parameters<typeof standoff.with>[0]) => {
+			const host = startHost({ residents: ["A01", "A02"], mechanics: [standoff.with(options), probe.with(), channelsStandIn(world).with(), ledgerStandIn(world).with(), progressionStandIn(world).with(), puzzlesStandIn(world).with()], gamemakerTools: ["ultimatum"] });
+			const outcome = await host.call("gamemaker", "ultimatum", { a: "A01", b: "A02", minutes: 2 });
+			return outcome.ok ? "ok" : outcome.code;
+		};
+		const rule = { penalty: 10, maxMinutes: 5 };
+		expect(await tryUltimatum({ ultimatum: rule })).toBe("TOOL_LOCKED");
+		expect(await tryUltimatum({ ultimatum: rule, direction: 9 })).toBe("TOOL_LOCKED");
+		expect(await tryUltimatum({ direction: 10 })).toBe("TOOL_LOCKED");
+		// Allowed: the book answers (no standoff between the two here).
+		expect(await tryUltimatum({ ultimatum: rule, direction: 10 })).toBe("NO_STANDOFF");
 	});
 
 	it("seizes what a holdout kept back and sells it to the one who waited for the penalty (P50)", async () => {

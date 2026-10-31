@@ -22,7 +22,16 @@ const options = Type.Object({
 		}, { description: "The gamemaker's ultimatum (P43); without it the gamemaker has none." }),
 	),
 	author: Type.String({ default: "COURIER", description: "The gamemaker's name on its notices and board posts, e.g. COURIER." }),
+	direction: Type.Integer({
+		default: 4,
+		minimum: 0,
+		maximum: 10,
+		description: "The run's gamemaker direction dial (old `direction`, default 4); the ultimatum is offered only at 10 (request R2-7: the dial has no shared source yet).",
+	}),
 });
+
+/** The gamemaker direction from which the ultimatum is offered (old `#mayGiveUltimatums`). */
+const ULTIMATUM_DIRECTION = 10;
 
 export interface StandoffState {
 	data: StandoffData;
@@ -182,6 +191,8 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 	pipeline: {
 		/** The old `enabledTools`: a resident in the city buys only while the city keeps a piece it needs. */
 		lock: (call, ctx) => {
+			// The old gamemaker offered `ultimatum` only at direction 10 in a story with ultimatums (gamemaker.ts:214, :375).
+			if (call.owner === "standoff" && call.tool === "ultimatum") return ctx.options.direction >= ULTIMATUM_DIRECTION && ctx.options.ultimatum !== undefined ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
 			if (call.owner !== "standoff" || call.tool !== "claimPiece" || call.resident === undefined) return undefined;
 			const alive = (ctx.tryCall(ExileApi, "standing", { resident: call.resident })?.kind ?? "alive") === "alive";
 			return alive && bookFor(ctx).claimable(call.resident).length > 0 ? undefined : refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {}));
