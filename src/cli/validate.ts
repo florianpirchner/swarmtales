@@ -1,6 +1,7 @@
 /** `pnpm validate`: validates every registered story. Exit code 1 on any issue. */
 import { DIRECTOR_SUPPORT } from "../engine/director.ts";
 import { STORIES } from "../../stories/index.ts";
+import { validatePrompts } from "../prompts/validate.ts";
 import { validateStory } from "../story/validate.ts";
 
 let failed = false;
@@ -13,5 +14,12 @@ for (const [name, story] of Object.entries(STORIES)) {
 		failed = true;
 		process.stdout.write(`FAIL ${name}\n${issues.map((issue) => `  - ${issue}`).join("\n")}\n`);
 	}
+}
+const promptIssues = validatePrompts();
+if (promptIssues.length === 0) {
+	process.stdout.write("ok   prompts: library/prompts and story overrides agree with the registry\n");
+} else {
+	failed = true;
+	process.stdout.write(`FAIL prompts\n${promptIssues.map((issue) => `  - ${issue}`).join("\n")}\n`);
 }
 if (failed) process.exit(1);

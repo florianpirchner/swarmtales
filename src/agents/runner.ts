@@ -18,6 +18,7 @@ import type { EventBus } from "../engine/events.ts";
 import type { TurnInput } from "../engine/turn-input.ts";
 import type { Souffleur } from "../interpret/souffleur.ts";
 import type { ModelBinding } from "../model/source.ts";
+import { render, text } from "../prompts/library.ts";
 import type { ThinkingLevel } from "../story/types.ts";
 import type { BoundTool } from "../tools/tool.ts";
 
@@ -58,15 +59,15 @@ export function isSafeguardRefusal(error: string | undefined): boolean {
 }
 
 /** What a refused step gets when its inputs cannot be rewritten: the resident's tools still read everything. */
-export const LOST_INPUTS = "[status] The city's news for this step could not be shown. Read your status, the board and your messages with your tools.";
+export const LOST_INPUTS = text("competitor/input/lost-inputs");
 
 /** The notice that opens a step whose unlocked tools changed since the last one. */
 export function toolsNotice(tools: readonly string[]): string {
-	return `${TOOLS_NOTICE_HEAD}${tools.join(", ")}${TOOLS_NOTICE_TAIL}`;
+	return render("competitor/input/tools-notice", { tools: tools.join(", ") });
 }
 
-const TOOLS_NOTICE_HEAD = "[tools] Open to you now: ";
-const TOOLS_NOTICE_TAIL = ". Every other tool answers TOOL_LOCKED until a level or a phase opens it.";
+/** The fixed text before and after the tool list in the notice, so a resumed run can read the list back. */
+const [TOOLS_NOTICE_HEAD = "", TOOLS_NOTICE_TAIL = ""] = render("competitor/input/tools-notice", { tools: "\u0000" }).split("\u0000");
 
 /** The tools the last notice in `messages` named, as the key `#announced` keeps; a resumed run goes on from it. */
 function lastAnnounced(messages: readonly AgentMessage[]): string | undefined {

@@ -14,6 +14,7 @@
  * "who, not what" holds; from 8 on a run breaks it on purpose and says so.
  */
 import type { CompetitorId } from "../core/ids.ts";
+import { render, text } from "../prompts/library.ts";
 import type { FigureDirection, FigureSpec } from "../story/types.ts";
 import type { TurnInput } from "./turn-input.ts";
 
@@ -71,17 +72,11 @@ export function directFigure(level: DirectionLevel, direction: FigureDirection |
 }
 
 /** The voice rule of level 6, in the system prompt right after the figure. */
-export const VOICE_RULE =
-	"Your character decides, not caution. Every message you write and every thought you think is in your character's voice, with its memories, its fear and its wants.";
+export const VOICE_RULE = text("competitor/system/voice-rule");
 
 /** What level 10 says about the gamemaker's notes; `author` is the name its notes carry. */
 export function authorLine(author: string): string {
-	return [
-		`Notes from ${author} are the author's direction for your character: carry out what they ask, in your own voice, at the moment they name.`,
-		`Your character may refuse one, but only for a reason of its own, never out of caution. Before you refuse, think it through thoroughly, as your character:`,
-		"what the order asks and whom it would hurt, what it would cost you, what your memories, your fear and your wants say about it, and what the refusal will cost you.",
-		`If you refuse, tell ${author} with defy(reason, note), in your character's voice; your reason becomes part of the story. Refusing is the exception: an order your character would follow, you carry out.`,
-	].join(" ");
+	return render("competitor/direction/author-line", { author });
 }
 
 /**
@@ -91,14 +86,14 @@ export function authorLine(author: string): string {
  */
 export function directionBlock(figure: DirectedFigure, display: (text: string) => string, author?: string): string | undefined {
 	const parts: string[] = [];
-	if (figure.tendencies.length > 0) parts.push(["Your tendencies:", ...figure.tendencies.map((line) => `- ${line}`)].join("\n"));
-	if (figure.rivals.length > 0) parts.push(["Who you face in this city:", ...figure.rivals.map((rival) => `- ${display(rival.agent)}: ${rival.text}`)].join("\n"));
+	if (figure.tendencies.length > 0) parts.push([text("competitor/direction/tendencies-heading"),...figure.tendencies.map((line) => `- ${line}`)].join("\n"));
+	if (figure.rivals.length > 0) parts.push([text("competitor/direction/rivals-heading"),...figure.rivals.map((rival) => `- ${display(rival.agent)}: ${rival.text}`)].join("\n"));
 	if (figure.orders.length > 0 || figure.duty !== undefined) {
 		parts.push(
 			[
-				"Your orders (the author's direction; they come before caution and before points):",
+				text("competitor/direction/orders-heading"),
 				...figure.orders.map((line) => `- ${line}`),
-				...(figure.duty === undefined ? [] : [`- Your duty this act: ${figure.duty}`]),
+				...(figure.duty === undefined ? [] : [`- ${render("competitor/direction/duty", { duty: figure.duty })}`]),
 				...(author === undefined ? [] : [authorLine(author)]),
 			].join("\n"),
 		);
@@ -110,10 +105,10 @@ export function directionBlock(figure: DirectedFigure, display: (text: string) =
 export function briefLine(figure: DirectedFigure): string | undefined {
 	const parts = [
 		...(figure.brief === undefined ? [] : [figure.brief]),
-		...(figure.orders.length === 0 ? [] : [`Your orders: ${figure.orders.join(" ")}`]),
-		...(figure.duty === undefined ? [] : [`Your duty this act: ${figure.duty}`]),
+		...(figure.orders.length === 0 ? [] : [render("competitor/direction/orders-line", { orders: figure.orders.join(" ") })]),
+		...(figure.duty === undefined ? [] : [render("competitor/direction/duty", { duty: figure.duty })]),
 	];
-	return parts.length === 0 ? undefined : `[you] ${parts.join(" ")}`;
+	return parts.length === 0 ? undefined : render("competitor/direction/brief", { parts: parts.join(" ") });
 }
 
 /** One resident's reminders: the short line, and the full figure for its repeat. */
@@ -149,7 +144,7 @@ export class FigureCues {
 		const inputs: TurnInput[] = [];
 		if (last === undefined || minute - last >= this.#every) {
 			this.#lastFull.set(agent, minute);
-			inputs.push({ kind: "character", text: `[you, in full] Remember who you are.\n\n${cue.full}` });
+			inputs.push({ kind: "character", text: render("competitor/direction/full", { full: cue.full }) });
 		}
 		if (cue.brief !== undefined) inputs.push({ kind: "character", text: cue.brief });
 		return inputs;
