@@ -40,6 +40,25 @@ describe("the conformance checks themselves", () => {
 		expect(checkOptionsDocumented(loose)).toEqual(['loose: option "a" has no description', 'loose: option "b.c" has no description']);
 	});
 
+	it("allow only the authoring calls of the kernel (review problem 12)", () => {
+		const text = [
+			'import { defineMechanic, refuse, reply, type MechanicUse } from "@swarmtales/kernel";',
+			'import { createHost, rngFor as roll } from "@swarmtales/kernel";',
+			'import type { Ledger } from "@swarmtales/kernel";',
+			'import * as kernel from "@swarmtales/kernel";',
+			'export { defineApi } from "@swarmtales/kernel";',
+			'import { x } from "@swarmtales/kernel/host";',
+		].join("\n");
+		expect(checkSourceRules([{ path: "m.ts", text }])).toEqual([
+			"m.ts: imports MechanicUse from @swarmtales/kernel",
+			"m.ts: imports createHost from @swarmtales/kernel",
+			"m.ts: imports rngFor from @swarmtales/kernel",
+			"m.ts: imports Ledger from @swarmtales/kernel",
+			"m.ts: imports * from @swarmtales/kernel",
+			"m.ts: imports @swarmtales/kernel/host",
+		]);
+	});
+
 	it("find forbidden imports and globals", () => {
 		const text = ['import { readFileSync } from "node:fs";', 'import { World } from "@swarmtales/engine";', "const roll = Math.random();", "const now = Date.now();"].join("\n");
 		expect(checkSourceRules([{ path: "bad.ts", text }])).toEqual(["bad.ts: imports node:fs", "bad.ts: imports @swarmtales/engine", "bad.ts: uses Math.random", "bad.ts: uses Date.now"]);

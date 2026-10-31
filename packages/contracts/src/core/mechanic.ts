@@ -5,9 +5,8 @@
  * Everything the host holds is the erased form below; the generics live only in the author's code.
  */
 import type { Static, TSchema } from "typebox";
-import type { GuardSecret } from "../roles.ts";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
-import type { ConsultDefinition, Consulted, GuardHandlers, PreparedConsult, PresentationHandlers } from "./consult.ts";
+import type { ConsultDefinition, Consulted, GuardedSecret, GuardHandlers, PreparedConsult, PresentationHandlers } from "./consult.ts";
 import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
 import type { CORE_EVENTS, EventEnvelope, EventSchemas, EventsDefinition } from "./events.ts";
 import type { TurnLine } from "./host.ts";
@@ -281,8 +280,8 @@ export interface MechanicInstance {
 	resolve(tool: string, actor: Actor, params: unknown): unknown;
 	display(text: string): string;
 	/** Empty without guard handlers. */
-	guardSecrets(resident: ResidentId, minRun: number): readonly GuardSecret[];
-	guardLeak(text: string, secrets: readonly GuardSecret[], minRun: number): string | undefined;
+	guardSecrets(resident: ResidentId, minRun: number): readonly GuardedSecret[];
+	guardLeak(text: string, secrets: readonly GuardedSecret[], minRun: number): string | undefined;
 }
 
 /** The input type of `with()`: every option of the outer object may be left out and is filled from its default at load. */

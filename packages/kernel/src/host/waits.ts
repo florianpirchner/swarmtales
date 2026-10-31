@@ -4,7 +4,7 @@
  * for example). Both log what they asked and what came back; both record the model's cost with the
  * referee; the guard fails open, a failed consult reaches `execute` as `{ ok: false }`.
  */
-import type { Actor, GuardJudge, GuardPolicy, GuardSecret, MechanicInstance, PreparedCall, Refusal, RoleCaller, RoleReply } from "@swarmtales/contracts";
+import type { Actor, GuardedSecret, GuardModel, GuardPolicy, MechanicInstance, PreparedCall, Refusal, RoleCaller, RoleReply } from "@swarmtales/contracts";
 import { refuse } from "./define.ts";
 import { residentOf } from "./access.ts";
 import type { EventBus, Frame } from "./log.ts";
@@ -20,7 +20,7 @@ export interface WaitParts {
 	/** In load order. */
 	readonly instances: readonly MechanicInstance[];
 	readonly referee: Referee;
-	readonly guard: GuardJudge | undefined;
+	readonly guard: GuardModel | undefined;
 	readonly roles: Readonly<Record<string, RoleCaller | undefined>>;
 	readonly reply: (code: string) => string | undefined;
 }
@@ -50,7 +50,7 @@ export async function guardStage(parts: WaitParts, policy: GuardPolicy, prepared
 		return allowed ? undefined : refuse(GUARD_BLOCKED, reason);
 	};
 	const minRun = policy.secrets?.minRun;
-	const secrets: readonly GuardSecret[] = minRun === undefined ? [] : instances.flatMap((instance) => inChain(() => instance.guardSecrets(resident, minRun)));
+	const secrets: readonly GuardedSecret[] = minRun === undefined ? [] : instances.flatMap((instance) => inChain(() => instance.guardSecrets(resident, minRun)));
 	if (minRun !== undefined) {
 		for (const instance of instances) {
 			const leak = inChain(() => instance.guardLeak(text, secrets, minRun));
@@ -61,7 +61,7 @@ export async function guardStage(parts: WaitParts, policy: GuardPolicy, prepared
 	if (judge === undefined) return minRun === undefined ? undefined : verdict(true, parts.reply(GUARD_NONE) ?? "no guard model in this run; only the check ran", "none");
 	const failed = parts.reply(GUARD_FAILED) ?? "the guard could not decide; let through";
 	try {
-		const answer = await judge.judge({ agent: resident, tool, rule: policy.rule, text, secrets });
+		const answer = await judge.judge({ resident, tool, rule: policy.rule, text, secrets });
 		parts.referee.recordCost(costOf(answer.usage));
 		if (!answer.ok) return verdict(true, failed, "model", answer.error);
 		return verdict(answer.allowed, answer.reason, "model");

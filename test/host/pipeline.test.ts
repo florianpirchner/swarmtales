@@ -7,7 +7,7 @@ import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { createHost, defineApi, defineCoreStory, defineMechanic, loadOrder, refuse, reply } from "@swarmtales/kernel";
 import { playMinutes, playStory, scriptedAgent, type CallRecord } from "@swarmtales/testkit";
-import type { CoreStory, GuardJudge, MechanicUse } from "@swarmtales/contracts";
+import type { CoreStory, GuardModel, MechanicUse } from "@swarmtales/contracts";
 
 /** A counter with a `bump` tool; its pipeline handlers record which stages ran. */
 const counter = defineMechanic(
@@ -119,7 +119,7 @@ describe("the tool pipeline", () => {
 	});
 
 	it("blocks at the guard stage before execute, and fails open when the guard errs", async () => {
-		const judge: GuardJudge = {
+		const judge: GuardModel = {
 			label: "test",
 			judge: (question) =>
 				Promise.resolve(question.text === "broken" ? { ok: false, error: "offline", usage: [] } : { ok: true, allowed: !question.text.includes("secret"), reason: "names a secret", usage: [] }),

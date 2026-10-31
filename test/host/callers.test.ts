@@ -8,7 +8,7 @@ import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { createHost, defineCoreStory, defineMechanic, defineTool, refuse, reply } from "@swarmtales/kernel";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory, scriptedAgent } from "@swarmtales/testkit";
-import type { EventEnvelope, GuardJudge, GuardQuestion, Host, MechanicUse, RoleCaller, RoleQuestion } from "@swarmtales/contracts";
+import type { EventEnvelope, GuardModel, GuardModelQuestion, Host, MechanicUse, RoleCaller, RoleQuestion } from "@swarmtales/contracts";
 
 const NAMES: Readonly<Record<string, string>> = { A01: "Ada", A02: "Bea", A03: "Cyd", A04: "Dov" };
 
@@ -217,15 +217,15 @@ describe("tools that wait for a role", () => {
 
 describe("guard secrets", () => {
 	it("puts the author's secrets into the question, blocks a run of one without a model, and says when no model ran", async () => {
-		const questions: GuardQuestion[] = [];
-		const guard: GuardJudge = { label: "test", judge: (question) => {
+		const questions: GuardModelQuestion[] = [];
+		const guard: GuardModel = { label: "test", judge: (question) => {
 			questions.push(question);
 			return Promise.resolve({ ok: true, allowed: true, reason: "fine", usage: [{ provider: "t", model: "t", input: 1, output: 1, cacheRead: 0, cacheWrite: 0, costUsd: 0.5 }] });
 		} };
 		const host = createHost({ story: story(ALL, { guard: true }), guard });
 		host.start();
 		expect(await host.call("resident:A01", "send", { to: "A02", text: "hello" })).toMatchObject({ ok: true });
-		expect(questions).toEqual([{ agent: "A01", tool: "send", rule: "No codes.", text: "hello", secrets: [{ label: "your code", value: "CODEA01" }] }]);
+		expect(questions).toEqual([{ resident: "A01", tool: "send", rule: "No codes.", text: "hello", secrets: [{ label: "your code", value: "CODEA01" }] }]);
 		expect(await host.call("resident:A01", "send", { to: "A02", text: "mine is DEA0" })).toEqual({ ok: false, code: "GUARD_BLOCKED", detail: "carries a code" });
 		expect(questions).toHaveLength(1);
 		expect(host.log.ofType("core", "guard_verdict").map(payloadOf)).toEqual([

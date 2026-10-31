@@ -3,7 +3,6 @@
  * guard question, and calls a mechanic stages. The host runs them; mechanics only declare them.
  */
 import type { Static, TSchema } from "typebox";
-import type { GuardSecret } from "../roles.ts";
 import type { MechanicContext, MechanicShape, ToolContext } from "./context.ts";
 import type { Refusal } from "./tools.ts";
 import type { Actor, ResidentId } from "./values.ts";
@@ -62,11 +61,39 @@ export interface PresentationHandlers<M extends MechanicShape> {
 	display?(text: string, ctx: MechanicContext<M>): string;
 }
 
+/** A value the caller legitimately knows that the guard keeps off a guarded text. */
+export interface GuardedSecret {
+	/** What the value is, for the guard question ("your part of the code"). */
+	readonly label: string;
+	readonly value: string;
+}
+
 /** What a mechanic adds to the guard question of a resident's call (its own pieces of a secret, say). */
 export interface GuardHandlers<M extends MechanicShape> {
 	/** Values the resident legitimately knows that the guard must keep off the guarded text. */
-	secrets(resident: ResidentId, minRun: number, ctx: MechanicContext<M>): readonly GuardSecret[];
+	secrets(resident: ResidentId, minRun: number, ctx: MechanicContext<M>): readonly GuardedSecret[];
 	/** A check without a model: the reason to block when `text` carries a run of a secret, else undefined. */
-	leaks?(text: string, secrets: readonly GuardSecret[], minRun: number, ctx: MechanicContext<M>): string | undefined;
+	leaks?(text: string, secrets: readonly GuardedSecret[], minRun: number, ctx: MechanicContext<M>): string | undefined;
+}
+
+/** What the guard model is asked: does `text`, written by `resident` for `tool`, keep `rule`? */
+export interface GuardModelQuestion {
+	readonly resident: ResidentId;
+	readonly tool: string;
+	readonly rule: string;
+	readonly text: string;
+	/** Empty when the policy names no secrets. */
+	readonly secrets: readonly GuardedSecret[];
+}
+
+/** The guard model's verdict; `usage` carries what each request cost. */
+export type GuardModelAnswer =
+	| { readonly ok: true; readonly allowed: boolean; readonly reason: string; readonly usage: readonly { readonly costUsd: number }[] }
+	| { readonly ok: false; readonly error: string; readonly usage: readonly { readonly costUsd: number }[] };
+
+/** The model-backed guard as the host calls it; the app adapts its guard role to it. */
+export interface GuardModel {
+	readonly label: string;
+	judge(question: GuardModelQuestion): Promise<GuardModelAnswer>;
 }
 

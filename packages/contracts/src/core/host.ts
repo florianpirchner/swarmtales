@@ -38,6 +38,11 @@ export interface Turn {
 	readonly ready: Promise<void>;
 	/** Runs a call through the pipeline as this resident. */
 	call(tool: string, params: unknown): Promise<ToolOutcome>;
+	/**
+	 * Writes an app event (`Host.record`) as this resident, once `ready` resolved: what a runner
+	 * records on a model's arrival lands in the pass's order, whatever the models' timing.
+	 */
+	record(type: string, payload: unknown): Promise<void>;
 }
 
 /** An agent: the pi runner in a live run, a script in tests. */

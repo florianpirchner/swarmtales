@@ -15,7 +15,7 @@ import {
 	type EventEnvelope,
 	type EventSchemas,
 	type GrantRole,
-	type GuardJudge,
+	type GuardModel,
 	type Host,
 	type HostSnapshot,
 	type JsonValue,
@@ -43,7 +43,7 @@ import { mergePolicies, TurnLoop } from "./turns.ts";
 export interface HostOptions {
 	readonly story: CoreStory;
 	readonly prompts?: PromptLookup;
-	readonly guard?: GuardJudge;
+	readonly guard?: GuardModel;
 	/** A snapshot (untrusted, parsed here) and the log up to it. */
 	readonly resume?: { readonly snapshot: unknown; readonly events: readonly unknown[] };
 	/** Whether a resident's agent ended its last turn with results it has not answered (`activation: "onNews"`). */
@@ -173,6 +173,9 @@ class CoreHost implements Host {
 			awaitsAnswer: options.awaitsAnswer ?? (() => false),
 			tools: () => this.toolSpecs("resident"),
 			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
+			record: (actor, type, payload) => {
+				this.record(actor, type, payload);
+			},
 			display: (text) => this.#gateway.display(text),
 			settle: () => this.#gateway.settle(),
 			halted: () => {

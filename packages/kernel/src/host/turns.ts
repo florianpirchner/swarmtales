@@ -22,6 +22,8 @@ export interface TurnParts {
 	readonly awaitsAnswer: (resident: ResidentId) => boolean;
 	readonly tools: () => readonly ToolSpec[];
 	readonly call: (actor: Actor, tool: string, params: unknown, cause: number) => Promise<ToolOutcome>;
+	/** `Host.record`. */
+	readonly record: (actor: Actor, type: string, payload: unknown) => void;
 	/** Formats every text a resident reads (names for ids). */
 	readonly display: (text: string) => string;
 	/** Runs the calls mechanics staged meanwhile. */
@@ -145,7 +147,11 @@ export class TurnLoop {
 				await ready;
 				return this.#parts.call(actor, tool, params, cause);
 			};
-			const step = agent({ resident, minute, pass, block, inputs, tools: this.#parts.tools(), ready, call });
+			const record = async (type: string, payload: unknown): Promise<void> => {
+				await ready;
+				this.#parts.record(actor, type, payload);
+			};
+			const step = agent({ resident, minute, pass, block, inputs, tools: this.#parts.tools(), ready, call, record });
 			// The next member's turn comes even when this one fails; the failure is raised after the block.
 			const done = Promise.allSettled([ready, step]).then(async (results) => {
 				for (const result of results) if (result.status === "rejected") failures.push(result.reason);

@@ -7,7 +7,7 @@
  *   after the cut as the uninterrupted run, and its snapshot reads back unchanged)
  * - every option documented (a `description` on every option property, at any depth)
  * - no forbidden imports or globals in a mechanic's sources (no Node APIs, no engine internals,
- *   no wall clock, no `Math.random`)
+ *   nothing of `@swarmtales/kernel` but the authoring calls, no wall clock, no `Math.random`)
  */
 import { Type, type TSchema } from "typebox";
 import type { MechanicDefinition, TurnTaker } from "@swarmtales/contracts";
@@ -72,12 +72,35 @@ const FORBIDDEN_CODE: readonly (readonly [RegExp, string])[] = [
 ];
 const IMPORT = /(?:\bfrom\s+|\bimport\s*\(\s*|\bimport\s+)["']([^"']+)["']/g;
 
+/** What a mechanic may take from `@swarmtales/kernel`: the authoring calls, never the host, the old ledger or the random helpers. */
+export const KERNEL_AUTHORING = ["defineApi", "defineEvents", "defineHead", "defineMechanic", "defineTool", "refuse", "reply"] as const;
+
+/** `import { a, type B, c as d } from "@swarmtales/kernel"` (and `export ... from`), with the names; `*` for a namespace import. */
+const KERNEL_IMPORT = /\b(?:import|export)\s+(type\s+)?(\*\s+as\s+\w+|\{[^}]*\}|\w+(?:\s*,\s*\{[^}]*\})?)\s*from\s*["']@swarmtales\/kernel(\/[^"']*)?["']/g;
+
+function kernelNames(clause: string): readonly string[] {
+	if (clause.trim().startsWith("*")) return ["*"];
+	const braces = /\{([^}]*)\}/.exec(clause)?.[1];
+	const named = (braces ?? "").split(",").map((part) => part.trim().replace(/^type\s+/, "").split(/\s+as\s+/)[0]?.trim() ?? "").filter((name) => name.length > 0);
+	const fallback = braces === undefined ? [clause.trim()] : clause.slice(0, clause.indexOf("{")).replace(",", "").trim().length > 0 ? ["default"] : [];
+	return [...named, ...fallback];
+}
+
+/** Imports from the kernel beyond the authoring calls (subpaths, namespaces, the host, the old engine helpers). */
+function kernelProblems(path: string, text: string): readonly string[] {
+	return [...text.matchAll(KERNEL_IMPORT)].flatMap((match) => {
+		if (match[3] !== undefined) return [`${path}: imports @swarmtales/kernel${match[3]}`];
+		const allowed: readonly string[] = KERNEL_AUTHORING;
+		return kernelNames(match[2] ?? "").filter((name) => !allowed.includes(name)).map((name) => `${path}: imports ${name} from @swarmtales/kernel`);
+	});
+}
+
 /** Imports and globals a mechanic's source may not use: randomness and time come only from the host. */
 export function checkSourceRules(files: readonly { readonly path: string; readonly text: string }[]): readonly string[] {
 	return files.flatMap((file) => {
 		const imports = [...file.text.matchAll(IMPORT)].map((match) => match[1] ?? "");
 		const badImports = imports.filter((specifier) => FORBIDDEN_IMPORTS.some((pattern) => pattern.test(specifier))).map((specifier) => `${file.path}: imports ${specifier}`);
 		const badCode = FORBIDDEN_CODE.filter(([pattern]) => pattern.test(file.text)).map(([, name]) => `${file.path}: uses ${name}`);
-		return [...badImports, ...badCode];
+		return [...badImports, ...kernelProblems(file.path, file.text), ...badCode];
 	});
 }
