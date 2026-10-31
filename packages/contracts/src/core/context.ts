@@ -60,8 +60,10 @@ export interface MechanicPort {
 	minute(): number;
 	/** Appends an event of this mechanic; the host checks the payload against the declared schema. */
 	emit(type: string, payload: unknown): void;
-	/** Calls a method of a required API. */
+	/** Calls a method of a required API, or of a used API that is loaded (throws otherwise). */
 	call(api: string, method: string, input: unknown): unknown;
+	/** Whether a loaded mechanic provides the API (known for the whole story from the start). */
+	has(api: string): boolean;
 	render(id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]): string;
 	/** A fresh stream derived from the seed, this mechanic and the position in the log. */
 	random(): RandomSource;
@@ -83,16 +85,25 @@ export interface MechanicShape {
 	readonly prompts: PromptKeys;
 	readonly requires: readonly ApiDefinition[];
 	readonly provides: readonly ApiDefinition[];
+	readonly uses: readonly ApiDefinition[];
 }
 
-export interface Shape<O extends TSchema, S, E extends EventSchemas, P extends PromptKeys, R extends readonly ApiDefinition[], Pv extends readonly ApiDefinition[]>
-	extends MechanicShape {
+export interface Shape<
+	O extends TSchema,
+	S,
+	E extends EventSchemas,
+	P extends PromptKeys,
+	R extends readonly ApiDefinition[],
+	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[] = [],
+> extends MechanicShape {
 	readonly options: O;
 	readonly state: S;
 	readonly events: E;
 	readonly prompts: P;
 	readonly requires: R;
 	readonly provides: Pv;
+	readonly uses: U;
 }
 
 /** Read-only view for facts and referee limits: no emit, no commands. */
@@ -119,8 +130,12 @@ export interface MechanicContext<M extends MechanicShape> {
 	readonly log: EventLogView;
 	/** Only declared events, with the payload of their schema. */
 	emit<K extends keyof M["events"] & string>(type: K, payload: Static<M["events"][K]>): void;
-	/** A method of a required API; the output is checked against the method's schema. */
+	/** A method of a required API (or of a used one that is loaded); the output is checked against the method's schema. */
 	call<A extends M["requires"][number], K extends ApiMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K>;
+	/** Whether a loaded mechanic provides `api` (always true for a required one). */
+	has(api: M["requires"][number] | M["uses"][number]): boolean;
+	/** A method of an API the mechanic `uses`: its output when a loaded mechanic provides it, `undefined` otherwise. */
+	tryCall<A extends M["uses"][number], K extends ApiMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K> | undefined;
 	/** One of the mechanic's own prompts. */
 	prompt<K extends keyof M["prompts"] & string>(id: K, variables: PromptVariables<M["prompts"][K]>): string;
 	random(): RandomSource;

@@ -86,6 +86,23 @@ export const sharedListener = defineMechanic(
 	}),
 );
 
+export const optional = defineMechanic(
+	{ id: "optional", summary: "Uses the ledger when it is loaded.", uses: [LedgerApi], options: Type.Object({}), state: () => undefined, events: {} },
+	() => ({
+		hooks: {
+			runStarted: (ctx) => {
+				const balance: number | undefined = ctx.tryCall(LedgerApi, "balance", { resident: "A01" });
+				const loaded: boolean = ctx.has(LedgerApi);
+				// @ts-expect-error: a used API may be absent, so it is called with tryCall
+				ctx.call(LedgerApi, "balance", { resident: "A01" });
+				// @ts-expect-error: the output of tryCall may be undefined
+				const sure: number = ctx.tryCall(LedgerApi, "balance", { resident: "A01" });
+				return loaded ? (balance ?? sure) : undefined;
+			},
+		},
+	}),
+);
+
 export const unrequired = defineMechanic(
 	{ id: "unrequired", summary: "Calls an API it does not require.", options: Type.Object({}), state: () => undefined, events: {} },
 	() => ({
@@ -95,6 +112,8 @@ export const unrequired = defineMechanic(
 				ctx.call(LedgerApi, "balance", { resident: "A01" });
 				// @ts-expect-error: another mechanic's attributes are read through its API, never from its bag
 				ctx.residents.attribute("A01", "mood", "ledger");
+				// @ts-expect-error: tryCall is for APIs in `uses`
+				ctx.tryCall(LedgerApi, "balance", { resident: "A01" });
 				ctx.stage(Poke, { who: "A01" });
 				// @ts-expect-error: staged parameters are typed by the tool's declaration
 				ctx.stage(Poke, { who: 1 });

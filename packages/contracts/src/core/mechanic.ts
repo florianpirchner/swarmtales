@@ -27,14 +27,22 @@ export interface MechanicHead<
 	P extends PromptKeys,
 	R extends readonly ApiDefinition[],
 	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[] = [],
 > {
 	readonly id: Id;
 	/** One line for `swt module show`. */
 	readonly summary: string;
-	/** APIs this mechanic calls; it loads after their providers. */
+	/** APIs this mechanic calls; it loads after their providers, and a story without one does not load. */
 	readonly requires?: R;
 	/** APIs this mechanic implements (`kit.provide` in the body). */
 	readonly provides?: Pv;
+	/**
+	 * APIs this mechanic calls when a loaded mechanic provides them (`ctx.has`, `ctx.tryCall`): a
+	 * story without the provider still loads. A used provider loads first, unless used APIs form a
+	 * cycle (two mechanics use each other): then the first of them in the story's order loads
+	 * first. Cycles of `requires` stay errors.
+	 */
+	readonly uses?: U;
 	/** Typebox schema of the options (`Type.Object({})` for none); every property carries a `description` (conformance). */
 	readonly options: O;
 	/** The initial state of a fresh run; a mechanic without state returns `undefined`. */
@@ -46,7 +54,7 @@ export interface MechanicHead<
 
 /** The shape of a head declared apart with `defineHead`, so helpers outside the body can name their context. */
 export type ShapeOf<H> =
-	H extends MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv> ? Shape<O, S, E, P, R, Pv> : never;
+	H extends MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U> ? Shape<O, S, E, P, R, Pv, U> : never;
 
 /** The context of hooks, listeners, jobs and services of the mechanic with head `H`. */
 export type ContextOf<H> = MechanicContext<ShapeOf<H>>;
@@ -286,6 +294,7 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
 	readonly summary: string;
 	readonly requires: readonly ApiDefinition[];
 	readonly provides: readonly ApiDefinition[];
+	readonly uses: readonly ApiDefinition[];
 	readonly options: O;
 	readonly events: E;
 	readonly prompts: PromptKeys;

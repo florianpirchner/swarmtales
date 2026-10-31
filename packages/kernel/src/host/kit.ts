@@ -109,6 +109,11 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		call(api, method, input) {
 			return parseWith(methodSchema(api, method, "output"), port.call(api.name, method, input), `${api.name}.${method} output`);
 		},
+		has: (api) => port.has(api.name),
+		tryCall(api, method, input) {
+			if (!port.has(api.name)) return undefined;
+			return parseWith(methodSchema(api, method, "output"), port.call(api.name, method, input), `${api.name}.${method} output`);
+		},
 		prompt(id, variables) {
 			const declared = prompts[id];
 			if (declared === undefined) throw new Error(`${port.id}: prompt "${id}" is not declared`);

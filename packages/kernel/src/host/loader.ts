@@ -14,7 +14,12 @@ import type { ResidentRegistry } from "./residents.ts";
 import type { Scheduler } from "./scheduler.ts";
 import type { StagingQueue } from "./staging.ts";
 
-/** Sorts the uses so every mechanic comes after the providers of the APIs it requires. */
+/**
+ * Sorts the story's mechanics so each comes after the providers of the APIs it requires and of
+ * the loaded APIs it uses. When only `uses` edges hold the rest back (a cycle of optional uses),
+ * the first of them in the story's order whose requires are placed loads next. A cycle of
+ * `requires` is an error.
+ */
 export function loadOrder(uses: readonly MechanicUse[]): readonly MechanicUse[] {
 	const ids = uses.map((use) => use.mechanic.id);
 	const doubled = ids.find((id, index) => ids.indexOf(id) !== index);
@@ -38,11 +43,21 @@ export function loadOrder(uses: readonly MechanicUse[]): readonly MechanicUse[] 
 			}),
 		);
 	}
+	const wants = new Map<string, readonly string[]>();
+	for (const use of uses) {
+		const loaded = use.mechanic.uses.flatMap((api) => providers.get(api.name) ?? []);
+		wants.set(use.mechanic.id, loaded.filter((id) => id !== use.mechanic.id));
+	}
 	const placed: MechanicUse[] = [];
 	const done = new Set<string>();
+	const placedAll = (edges: ReadonlyMap<string, readonly string[]>, id: string): boolean => (edges.get(id) ?? []).every((other) => done.has(other));
 	while (placed.length < uses.length) {
-		const ready = uses.find((use) => !done.has(use.mechanic.id) && (needs.get(use.mechanic.id) ?? []).every((id) => done.has(id)));
-		if (ready === undefined) throw new Error(`story: the requires of ${uses.filter((use) => !done.has(use.mechanic.id)).map((use) => use.mechanic.id).join(", ")} form a cycle`);
+		const open = uses.filter((use) => !done.has(use.mechanic.id));
+		const ready =
+			open.find((use) => placedAll(needs, use.mechanic.id) && placedAll(wants, use.mechanic.id)) ??
+			// Only optional uses block: they form a cycle, and the story's order breaks it.
+			open.find((use) => placedAll(needs, use.mechanic.id));
+		if (ready === undefined) throw new Error(`story: the requires of ${open.map((use) => use.mechanic.id).join(", ")} form a cycle`);
 		placed.push(ready);
 		done.add(ready.mechanic.id);
 	}
@@ -70,6 +85,7 @@ export interface Loaded {
 export function loadMechanics(parts: LoaderParts): Loaded {
 	const { story, bus } = parts;
 	const order = loadOrder(story.mechanics);
+	const provided = new Set(order.flatMap((use) => use.mechanic.provides.map((api) => api.name)));
 	const instances = new Map<string, MechanicInstance>();
 	const services = new Map<string, ProvidedApi>();
 	const tools = new Map<string, readonly LoadedTool[]>();
@@ -83,7 +99,7 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 			owners.set(type, definition.id);
 		}
 		let jobs: readonly string[] = [];
-		const port = portFor(parts, definition.id, use, services, () => jobs, tools);
+		const port = portFor(parts, definition.id, use, { services, provided }, () => jobs, tools);
 		const instance = definition.instantiate(port, use.options);
 		jobs = instance.jobs;
 		for (const service of instance.services) services.set(service.api.name, service);
@@ -120,10 +136,11 @@ function portFor(
 	parts: LoaderParts,
 	id: string,
 	use: MechanicUse,
-	services: ReadonlyMap<string, ProvidedApi>,
+	apis: { readonly services: ReadonlyMap<string, ProvidedApi>; readonly provided: ReadonlySet<string> },
 	jobs: () => readonly string[],
 	tools: ToolCatalog,
 ): MechanicPort {
+	const { services, provided } = apis;
 	const isTool = (tool: string): boolean => tools.has(tool);
 	const { bus, story } = parts;
 	const definition = use.mechanic;
@@ -139,9 +156,10 @@ function portFor(
 			if (!Check(schema, payload)) throw new Error(`${id}: the payload of "${type}" does not match its schema`);
 			bus.emit(id, type, payload);
 		},
+		has: (apiName) => provided.has(apiName),
 		call(apiName, method, input) {
-			const api = definition.requires.find((required) => required.name === apiName);
-			if (api === undefined) throw new Error(`${id}: calls "${apiName}" without requiring it`);
+			const api = [...definition.requires, ...definition.uses].find((required) => required.name === apiName);
+			if (api === undefined) throw new Error(`${id}: calls "${apiName}" without requiring or using it`);
 			const provider = services.get(apiName);
 			const spec = api.methods[method];
 			if (provider === undefined || spec === undefined) throw new Error(`${id}: "${apiName}.${method}" is not available`);

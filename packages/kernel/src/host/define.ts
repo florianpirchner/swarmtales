@@ -61,7 +61,7 @@ export function storyData(story: CoreStory): CoreStoryData {
 	return { ...rest, mechanics: mechanics.map((use) => ({ id: use.mechanic.id, options: use.options })) };
 }
 
-function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[]>, T extends readonly MechanicTool[]>(
+function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[]>, T extends readonly MechanicTool[]>(
 	parts: InstanceParts<M>,
 	body: MechanicBody<M, T>,
 	provides: readonly ApiDefinition[],
@@ -131,7 +131,8 @@ export function defineHead<
 	const P extends PromptKeys = Record<never, readonly string[]>,
 	const R extends readonly ApiDefinition[] = [],
 	const Pv extends readonly ApiDefinition[] = [],
->(head: MechanicHead<Id, O, S, E, P, R, Pv>): MechanicHead<Id, O, S, E, P, R, Pv> {
+	const U extends readonly ApiDefinition[] = [],
+>(head: MechanicHead<Id, O, S, E, P, R, Pv, U>): MechanicHead<Id, O, S, E, P, R, Pv, U> {
 	return head;
 }
 
@@ -144,12 +145,13 @@ export function defineMechanic<
 	const P extends PromptKeys = Record<never, readonly string[]>,
 	const R extends readonly ApiDefinition[] = [],
 	const Pv extends readonly ApiDefinition[] = [],
+	const U extends readonly ApiDefinition[] = [],
 	T extends readonly MechanicTool[] = [],
 >(
-	head: MechanicHead<Id, O, S, E, P, R, Pv>,
-	build: (kit: MechanicKit<Shape<O, S, E, P, R, Pv>>) => MechanicBody<Shape<O, S, E, P, R, Pv>, T>,
+	head: MechanicHead<Id, O, S, E, P, R, Pv, U>,
+	build: (kit: MechanicKit<Shape<O, S, E, P, R, Pv, U>>) => MechanicBody<Shape<O, S, E, P, R, Pv, U>, T>,
 ): MechanicDefinition<Id, O, E, T[number]["name"]> {
-	type M = Shape<O, S, E, P, R, Pv>;
+	type M = Shape<O, S, E, P, R, Pv, U>;
 	const prompts: PromptKeys = head.prompts ?? {};
 	const provides: readonly ApiDefinition[] = head.provides ?? [];
 	const parseOptions = (raw: unknown): Static<O> => {
@@ -165,6 +167,7 @@ export function defineMechanic<
 		summary: head.summary,
 		requires: head.requires ?? [],
 		provides,
+		uses: head.uses ?? [],
 		options: head.options,
 		events: head.events,
 		prompts,
