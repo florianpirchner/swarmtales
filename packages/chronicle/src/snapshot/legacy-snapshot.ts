@@ -8,7 +8,8 @@
  *
  * Split world fields: a resident's `level`, `held`, `solved`, `wrongAttempts`, `extraTools` go to
  * `progression`, its `mailbox` and `notices` to `channels` (as `inboxes`); the tribunal's `gates`,
- * `exiled` and `ransomed` go to `exile`. Every other world field goes whole to one mechanic.
+ * `exiled` and `ransomed` go to `exile`, and so does a copy of the holdout's `struck` (as
+ * `holdout.struck`). Every other world field goes whole to one mechanic.
  */
 import type { EventEnvelope, HostSnapshot } from "@swarmtales/contracts";
 import { LegacyEventAdapter, envelopeFromLegacy, toRecorded } from "../log/legacy-events.ts";
@@ -107,6 +108,8 @@ export function convertLegacySnapshot(raw: unknown, options: ConvertOptions = {}
 			if (Object.keys(exile).length > 0) put("exile", "tribunal", exile);
 			continue;
 		}
+		// The holdout's struck residents are exiled too: exile keeps them (`by: "holdout"`, wave 3.5 T4 R6).
+		if (key === "holdout" && isRecord(value) && Array.isArray(value.struck)) put("exile", "holdout", { struck: value.struck });
 		put(owner, key, value);
 	}
 	const competitors = records(world.competitors, `${source}: world.competitors`);
@@ -180,6 +183,8 @@ export function toLegacySnapshot(converted: ConvertedSnapshot): RunSnapshot {
 			if (mechanic === "progression" && key === "competitors") progression = records(value, "progression.competitors");
 			else if (mechanic === "channels" && key === "inboxes") inboxes = records(value, "channels.inboxes");
 			else if (key === "tribunal" && (mechanic === "tribunal" || mechanic === "exile") && isRecord(value)) Object.assign(tribunal, value);
+			// Exile's copy of the struck residents: the holdout's own slice writes `world.holdout`.
+			else if (mechanic === "exile" && key === "holdout") continue;
 			else world[key] = value;
 		}
 	}

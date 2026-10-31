@@ -87,6 +87,17 @@ describe("the old-snapshot converter", () => {
 		expect(standIn("marks").id).toBe("marks");
 	});
 
+	it("gives exile a copy of the holdout's struck residents and writes the holdout back once (wave 3.5, T4 R6)", () => {
+		const holdout = '"holdout":{"blockers":[],"struck":["A05"],"tribunals":1,"lots":0},';
+		const edited = TEXT.replace(/"world":\s*\{/, (head) => `${head}${holdout}`);
+		expect(edited).not.toBe(TEXT);
+		const struck = convertLegacySnapshot(JSON.parse(edited), {}, PATH);
+		expect(struck.host.mechanics.exile?.data).toMatchObject({ holdout: { struck: ["A05"] } });
+		expect(struck.host.mechanics["standoff-tribunal"]?.data).toMatchObject({ holdout: { struck: ["A05"], tribunals: 1 } });
+		expect(struck.host.residents.suspensions.A05).toEqual(["exile"]);
+		expect(JSON.stringify(toLegacySnapshot(struck))).toBe(JSON.stringify(JSON.parse(edited)));
+	});
+
 	it("refuses a file that is not an old snapshot", () => {
 		expect(() => convertLegacySnapshot({ format: "agent-arena-snapshot", version: 1 })).toThrow(/version 1/);
 		expect(() => convertLegacySnapshot("nothing")).toThrow(/not a run snapshot/);
