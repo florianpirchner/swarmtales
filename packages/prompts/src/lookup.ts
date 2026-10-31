@@ -3,15 +3,15 @@
  * (a mechanic id, or `core`) and prompt id, the story's file wins, then the owner's own folder,
  * then `library/prompts/`. The file must declare exactly the variables its owner declared.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parsePromptFile, renderBody, type PromptFile } from "./file.ts";
-import { libraryDir } from "./library.ts";
+import { libraryDir, libraryRoot } from "./library.ts";
 
 export interface PromptLookupOptions {
 	/** The story's prompt folder (`stories/<name>/prompts`). */
 	readonly story?: string;
-	/** Each mechanic's prompt folder, by mechanic id. */
+	/** Each mechanic's prompt folder, by mechanic id; defaults to `mechanicPromptFolders()`. */
 	readonly mechanics?: Readonly<Record<string, string>>;
 	/** Defaults to the repository's `library/prompts`. */
 	readonly library?: string;
@@ -23,10 +23,25 @@ export interface LayeredPrompts {
 	pathOf(owner: string, id: string): string | undefined;
 }
 
+/**
+ * The prompt folder of every mechanic package of the repository (`mechanics/<id>/prompts`), by
+ * mechanic id; empty where the repository's mechanics are not around (an installed package).
+ */
+export function mechanicPromptFolders(): Readonly<Record<string, string>> {
+	const mechanics = join(libraryRoot(), "mechanics");
+	if (!existsSync(mechanics)) return {};
+	return Object.fromEntries(
+		readdirSync(mechanics, { withFileTypes: true })
+			.filter((entry) => entry.isDirectory() && existsSync(join(mechanics, entry.name, "prompts")))
+			.map((entry) => [entry.name, join(mechanics, entry.name, "prompts")]),
+	);
+}
+
 export function createPromptLookup(options: PromptLookupOptions = {}): LayeredPrompts {
 	const cache = new Map<string, PromptFile>();
+	const mechanics = options.mechanics ?? mechanicPromptFolders();
 	const pathOf = (owner: string, id: string): string | undefined => {
-		const folders = [options.story, options.mechanics?.[owner], options.library ?? libraryDir()];
+		const folders = [options.story, mechanics[owner], options.library ?? libraryDir()];
 		return folders.flatMap((folder) => (folder === undefined ? [] : [join(folder, `${id}.md`)])).find((path) => existsSync(path));
 	};
 	const load = (owner: string, id: string, declared: readonly string[]): PromptFile => {

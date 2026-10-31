@@ -62,6 +62,8 @@ export interface MechanicPort {
 	/** The mechanic's id. */
 	readonly id: string;
 	readonly seed: number;
+	/** The minutes the story plays (`story.minutes`). */
+	readonly minutes: number;
 	minute(): number;
 	/** Appends an event of this mechanic; the host checks the payload against the declared schema. */
 	emit(type: string, payload: unknown): void;
@@ -129,6 +131,8 @@ export interface MechanicContext<M extends MechanicShape> {
 	readonly options: Static<M["options"]>;
 	readonly state: M["state"];
 	readonly minute: number;
+	/** The minutes the story plays: the last minute is `minutes - 1` (wave 3.5, T4 request R7). */
+	readonly minutes: number;
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;

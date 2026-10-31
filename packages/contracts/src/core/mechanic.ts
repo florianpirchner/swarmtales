@@ -17,6 +17,26 @@ import type { Actor, GrantRole, JsonValue, PromptKeys, ResidentId } from "./valu
 /** Prompt ids without variables (what a tool description must be). */
 export type PlainPromptId<P extends PromptKeys> = { [K in keyof P]: P[K] extends readonly [] ? K : never }[keyof P] & string;
 
+/** A variable of a tool description: a value, or another variable-less prompt of the mechanic, rendered first. */
+export type DescriptionValue<P extends PromptKeys> = string | number | { readonly prompt: PlainPromptId<P> };
+
+/**
+ * A tool description with variables (wave 3.5, T1 request 11): the prompt and its variables are
+ * picked from the mechanic's options once, when the mechanic is bound (an option may choose
+ * between two variable-less texts that the description quotes).
+ */
+export interface ToolDescription<M extends MechanicShape> {
+	readonly prompt: keyof M["prompts"] & string;
+	variables(options: Static<M["options"]>): Readonly<Record<string, DescriptionValue<M["prompts"]>>>;
+}
+
+/** What a host renders for a tool's description: a prompt id, its variables and the variables its owner declared. */
+export interface DescriptionPrompt {
+	readonly id: string;
+	readonly variables: Readonly<Record<string, string | number | { readonly prompt: string }>>;
+	readonly declared: readonly string[];
+}
+
 /** The static part of a mechanic. */
 export interface MechanicHead<
 	Id extends string,
@@ -67,8 +87,8 @@ export type ViewOf<H> = FactView<ShapeOf<H>>;
 /** A tool as its author writes it. */
 export interface ToolDefinition<M extends MechanicShape, N extends string, P extends TSchema, Q extends TSchema = TSchema, A extends TSchema = TSchema> {
 	readonly name: N;
-	/** A prompt id of this mechanic, without variables. */
-	readonly description: PlainPromptId<M["prompts"]>;
+	/** A prompt id of this mechanic without variables, or one with variables taken from the options. */
+	readonly description: PlainPromptId<M["prompts"]> | ToolDescription<M>;
 	readonly parameters: P;
 	/** The mechanic's own limit (stage `limit`); a story can add a tighter one. */
 	readonly limit?: ToolLimit;
@@ -105,7 +125,10 @@ export interface PreparedCall {
 /** A tool with its types erased, as the host holds it. */
 export interface MechanicTool<N extends string = string> {
 	readonly name: N;
+	/** The description's prompt id. */
 	readonly description: string;
+	/** Its variables, when it has any (`ToolDescription`); the host renders nested prompts first. */
+	readonly descriptionPrompt?: DescriptionPrompt;
 	readonly parameters: TSchema;
 	readonly limit: ToolLimit | undefined;
 	readonly suggest: readonly GrantRole[];

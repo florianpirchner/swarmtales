@@ -155,6 +155,7 @@ function portFor(
 	return {
 		id,
 		seed: story.seed,
+		minutes: story.minutes,
 		minute: parts.minute,
 		emit(type, payload) {
 			const schema = definition.events[type];

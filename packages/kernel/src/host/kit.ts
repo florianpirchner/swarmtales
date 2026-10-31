@@ -115,6 +115,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		get minute() {
 			return port.minute();
 		},
+		minutes: port.minutes,
 		residents: port.residents,
 		schedule: port.schedule,
 		access: port.access,
@@ -182,9 +183,15 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 	const ctx = (): MechanicContext<M> => contextFor(parts);
 	return {
 		tool(definition) {
+			const described = definition.description;
+			const prompt =
+				typeof described === "string"
+					? undefined
+					: { id: described.prompt, variables: described.variables(parts.options), declared: parts.prompts[described.prompt] ?? [] };
 			return {
 				name: definition.name,
-				description: definition.description,
+				description: typeof described === "string" ? described : described.prompt,
+				...(prompt === undefined ? {} : { descriptionPrompt: prompt }),
 				parameters: definition.parameters,
 				limit: definition.limit,
 				suggest: definition.suggest ?? [],

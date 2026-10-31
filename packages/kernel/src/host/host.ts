@@ -21,6 +21,7 @@ import {
 	type HostSnapshot,
 	type InstancePhases,
 	type MechanicInstance,
+	type MechanicTool,
 	type PromptLookup,
 	type ResidentId,
 	type RoleCaller,
@@ -283,9 +284,20 @@ class CoreHost implements Host {
 		return this.#access.grantsOf(role).flatMap((name) => {
 			const loaded = toolFor(this.#loaded.tools, name, role);
 			if (loaded === undefined) return [];
-			const description = this.#prompts?.render(loaded.owner, loaded.tool.description, {}, []) ?? loaded.tool.description;
-			return [{ name, description, parameters: loaded.tool.parameters }];
+			return [{ name, description: this.#description(loaded.owner, loaded.tool), parameters: loaded.tool.parameters }];
 		});
+	}
+
+	/** A tool's description, its variables rendered (a nested prompt first); the prompt id without a lookup. */
+	#description(owner: string, tool: MechanicTool): string {
+		const prompts = this.#prompts;
+		if (prompts === undefined) return tool.description;
+		const described = tool.descriptionPrompt;
+		if (described === undefined) return prompts.render(owner, tool.description, {}, []);
+		const variables = Object.fromEntries(
+			Object.entries(described.variables).map(([name, value]) => [name, typeof value === "object" ? prompts.render(owner, value.prompt, {}, []) : value]),
+		);
+		return prompts.render(owner, described.id, variables, described.declared);
 	}
 
 	display(text: string): string {
