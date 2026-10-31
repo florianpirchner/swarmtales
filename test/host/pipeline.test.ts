@@ -132,9 +132,9 @@ describe("the tool pipeline", () => {
 		expect(await host.call("resident:A02", "bump", {})).toMatchObject({ ok: false, code: "TOOL_LIMIT" });
 		expect(await host.call("resident:A01", "bump", { text: "hello" })).toEqual({ ok: true, reply: "2" });
 		expect(host.log.ofType("core", "guard_verdict").map((event) => event.payload)).toEqual([
-			{ tool: "bump", rule: "No secrets.", allowed: false, reason: "names a secret" },
-			{ tool: "bump", rule: "No secrets.", allowed: true, reason: "guard failed: offline" },
-			{ tool: "bump", rule: "No secrets.", allowed: true, reason: "names a secret" },
+			{ tool: "bump", rule: "No secrets.", allowed: false, reason: "names a secret", by: "model" },
+			{ tool: "bump", rule: "No secrets.", allowed: true, reason: "the guard could not decide; let through", by: "model", error: "offline" },
+			{ tool: "bump", rule: "No secrets.", allowed: true, reason: "names a secret", by: "model" },
 		]);
 	});
 

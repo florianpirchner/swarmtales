@@ -5,6 +5,7 @@
  */
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput } from "./api.ts";
+import type { StageOptions } from "./consult.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
 import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomSource, ResidentId } from "./values.ts";
 
@@ -55,6 +56,8 @@ export interface MechanicPort {
 	render(id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]): string;
 	/** A fresh stream derived from the seed, this mechanic and the position in the log. */
 	random(): RandomSource;
+	/** Queues a call by the script; it runs through the pipeline once the current code has finished. */
+	stage(tool: string, params: unknown, options?: StageOptions): void;
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;
@@ -108,6 +111,12 @@ export interface MechanicContext<M extends MechanicShape> {
 	/** One of the mechanic's own prompts. */
 	prompt<K extends keyof M["prompts"] & string>(id: K, variables: PromptVariables<M["prompts"][K]>): string;
 	random(): RandomSource;
+	/**
+	 * Stages a call by the script (actor `script`): it runs through the whole pipeline after the
+	 * code that staged it (a job, a hook, a listener, a tool call) has finished, before anything
+	 * else happens. `then` names a job of this mechanic that gets the outcome as its data.
+	 */
+	stage(tool: string, params: unknown, options?: StageOptions): void;
 }
 
 /** A tool's context: the mechanic context plus who calls. */

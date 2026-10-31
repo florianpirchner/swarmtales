@@ -1,27 +1,20 @@
 /**
  * The tool gateway: every call runs through the fixed pipeline lock, parse, limit, afford, rule,
- * guard, execute, settle, after (docs/ideas/monorepo.md §3d). Cheap stages first; only `guard` may
- * wait for a model. A refusal at any stage is one `tool_refused` event; the cost is settled only
- * after `execute` succeeded. Calls are serialised, so a guard's wait never lets another call in.
+ * guard, consult, execute, settle, after (docs/ideas/monorepo.md §3d). Cheap stages first; only
+ * `guard` and `consult` may wait for a model (`waits.ts`). A refusal at any stage is one
+ * `tool_refused` event; the cost is settled only after `execute` succeeded. Calls are serialised,
+ * so a model's wait never lets another call in; the calls mechanics staged meanwhile run right
+ * after the call (or the code) that staged them, as actor `script`. Every caller reads its reply
+ * through the mechanics' `display` (names for ids); the events keep what happened.
  */
-import type {
-	Actor,
-	GuardJudge,
-	MechanicInstance,
-	MechanicTool,
-	PipelineStage,
-	PreparedCall,
-	Refusal,
-	StoryRule,
-	ToolCall,
-	ToolOutcome,
-	ToolPolicy,
-} from "@swarmtales/contracts";
+import type { Actor, GrantRole, MechanicInstance, MechanicTool, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicy } from "@swarmtales/contracts";
 import { refuse } from "./define.ts";
 import { residentOf, roleOf, type AccessControl } from "./access.ts";
-import type { EventBus, Frame } from "./log.ts";
-import type { Referee } from "./referee.ts";
+import { toolFor } from "./loader.ts";
+import type { Frame } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
+import { stagedData, type StagingQueue } from "./staging.ts";
+import { consultStage, guardStage, type WaitParts } from "./waits.ts";
 
 export const TOOL_UNKNOWN = "TOOL_UNKNOWN";
 export const TOOL_NOT_GRANTED = "TOOL_NOT_GRANTED";
@@ -29,25 +22,21 @@ export const TOOL_LOCKED = "TOOL_LOCKED";
 export const RESIDENT_INACTIVE = "RESIDENT_INACTIVE";
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 export const TEXT_TOO_LONG = "TEXT_TOO_LONG";
-export const GUARD_BLOCKED = "GUARD_BLOCKED";
+export { GUARD_BLOCKED } from "./waits.ts";
 
 export interface LoadedTool {
 	readonly owner: string;
 	readonly tool: MechanicTool;
 }
 
-export interface GatewayParts {
-	readonly bus: EventBus;
-	readonly tools: ReadonlyMap<string, LoadedTool>;
-	/** In load order. */
-	readonly instances: readonly MechanicInstance[];
+export interface GatewayParts extends WaitParts {
+	/** By name, one entry per role-disjoint variant. */
+	readonly tools: ReadonlyMap<string, readonly LoadedTool[]>;
+	readonly instanceOf: (id: string) => MechanicInstance | undefined;
 	readonly policies: Readonly<Record<string, ToolPolicy | undefined>>;
 	readonly access: AccessControl;
 	readonly residents: ResidentRegistry;
-	readonly referee: Referee;
-	readonly guard: GuardJudge | undefined;
-	/** The fixed reply text of a core refusal code. */
-	readonly reply: (code: string) => string | undefined;
+	readonly staging: StagingQueue;
 }
 
 function field(params: unknown, name: string): unknown {
@@ -69,6 +58,12 @@ function storyRule(rule: StoryRule, params: unknown, reply: (code: string) => st
 	}
 }
 
+interface Ran {
+	readonly outcome: ToolOutcome;
+	/** The `tool_called` event that opened the call. */
+	readonly seq: number;
+}
+
 export class Gateway {
 	readonly #parts: GatewayParts;
 	#queue: Promise<unknown> = Promise.resolve();
@@ -77,35 +72,76 @@ export class Gateway {
 		this.#parts = parts;
 	}
 
-	/** `cause` is the event the call answers (the turn it belongs to). */
+	/** `cause` is the event the call answers (the turn it belongs to). The reply is formatted for the caller. */
 	call(actor: Actor, tool: string, raw: unknown, cause?: number): Promise<ToolOutcome> {
-		const next = this.#queue.then(() => this.#run(actor, tool, raw, cause));
+		return this.#serial(async () => {
+			const { outcome } = await this.#run(actor, tool, raw, cause);
+			await this.#drain();
+			return this.#shown(outcome);
+		});
+	}
+
+	/** Runs the calls staged outside any call (by jobs, hooks, listeners). */
+	settle(): Promise<void> {
+		return this.#serial(() => this.#drain());
+	}
+
+	/** A text as a caller reads it: every mechanic's `display`, in load order. */
+	display(text: string): string {
+		const { bus, instances } = this.#parts;
+		return instances.reduce((shown, instance) => bus.run({ actor: "host" }, () => instance.display(shown)), text);
+	}
+
+	#serial<T>(code: () => Promise<T>): Promise<T> {
+		const next = this.#queue.then(code);
 		this.#queue = next.catch(() => undefined);
 		return next;
 	}
 
-	async #run(actor: Actor, name: string, raw: unknown, cause: number | undefined): Promise<ToolOutcome> {
+	#shown(outcome: ToolOutcome): ToolOutcome {
+		if (outcome.ok) return { ok: true, reply: this.display(outcome.reply) };
+		return outcome.detail === undefined ? outcome : { ok: false, code: outcome.code, detail: this.display(outcome.detail) };
+	}
+
+	async #drain(): Promise<void> {
+		const { staging, bus } = this.#parts;
+		for (let staged = staging.take(); staged !== undefined; staged = staging.take()) {
+			const { outcome, seq } = await this.#run("script", staged.tool, staged.params, staged.cause);
+			const then = staged.then;
+			if (then === undefined) continue;
+			const instance = this.#parts.instanceOf(staged.owner);
+			if (instance === undefined) throw new Error(`staging: unknown mechanic "${staged.owner}"`);
+			bus.run({ actor: "script", cause: seq }, () => {
+				instance.runJob(then, stagedData(outcome));
+			});
+		}
+	}
+
+	async #run(actor: Actor, name: string, raw: unknown, cause: number | undefined): Promise<Ran> {
 		const { bus, instances } = this.#parts;
 		const opened: Frame = cause === undefined ? { actor } : { actor, cause };
 		const called = bus.run(opened, () => bus.emit("core", "tool_called", { tool: name, params: raw }));
 		const chain: Frame = { actor, cause: called.seq };
 		const inChain = <T>(code: () => T): T => bus.run(chain, code);
-		const refused = (stage: PipelineStage, refusal: Refusal): Refusal => {
+		const refused = (stage: PipelineStage, refusal: Refusal): Ran => {
 			const payload = refusal.detail === undefined ? { tool: name, stage, code: refusal.code } : { tool: name, stage, code: refusal.code, detail: refusal.detail };
 			inChain(() => bus.emit("core", "tool_refused", payload));
-			return refusal;
+			return { outcome: refusal, seq: called.seq };
 		};
-		const loaded = this.#parts.tools.get(name);
-		if (loaded === undefined) return refused("lock", this.#core(TOOL_UNKNOWN));
+		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
+		const role = roleOf(actor);
+		const loaded = role === undefined ? undefined : toolFor(this.#parts.tools, name, role);
+		if (role === undefined || loaded === undefined) return refused("lock", this.#core(TOOL_NOT_GRANTED));
 		const resident = residentOf(actor);
-		const locked = this.#lock(actor, name, resident);
+		const locked = this.#lock(role, name, resident);
 		if (locked !== undefined) return refused("lock", locked);
 		const call: ToolCall = { tool: name, owner: loaded.owner, actor, resident, params: raw, seq: called.seq };
 		for (const instance of instances) {
 			const veto = inChain(() => instance.hooks.lock(call));
 			if (veto !== undefined) return refused("lock", veto);
 		}
-		const prepared = inChain(() => loaded.tool.prepare(raw, actor, resident));
+		const resolved = instances.reduce((params, instance) => inChain(() => instance.resolve(name, actor, params)), raw);
+		const prepared = inChain(() => loaded.tool.prepare(resolved, actor, resident));
 		if (prepared === undefined) return refused("parse", this.#core(INVALID_ARGUMENTS));
 		const checked: ToolCall = { ...call, params: prepared.params };
 		const limited = this.#parts.referee.admit(name, actor, this.#parts.reply);
@@ -116,8 +152,11 @@ export class Gateway {
 		}
 		const broken = this.#rules(prepared, checked, inChain);
 		if (broken !== undefined) return refused("rule", broken);
-		const blocked = await this.#guard(prepared, actor, name, chain);
+		const policy = this.#parts.policies[name]?.guard;
+		const blocked = policy === undefined ? undefined : await guardStage(this.#parts, policy, prepared, actor, name, chain);
 		if (blocked !== undefined) return refused("guard", blocked);
+		const declined = await consultStage(this.#parts, prepared, actor, name, chain);
+		if (declined !== undefined) return refused("consult", declined);
 		const outcome = inChain(() => prepared.execute());
 		if (!outcome.ok) refused("execute", outcome);
 		else {
@@ -133,16 +172,15 @@ export class Gateway {
 				instance.hooks.after(checked, outcome);
 			});
 		}
-		return outcome;
+		return { outcome, seq: called.seq };
 	}
 
 	#core(code: string): Refusal {
 		return refuse(code, this.#parts.reply(code));
 	}
 
-	#lock(actor: Actor, name: string, resident: string | undefined): Refusal | undefined {
-		const role = roleOf(actor);
-		if (role === undefined || !this.#parts.access.granted(role, name)) return this.#core(TOOL_NOT_GRANTED);
+	#lock(role: GrantRole, name: string, resident: string | undefined): Refusal | undefined {
+		if (!this.#parts.access.granted(role, name)) return this.#core(TOOL_NOT_GRANTED);
 		if (resident === undefined) return undefined;
 		if (!this.#parts.residents.mayAct(resident)) return this.#core(RESIDENT_INACTIVE);
 		if (this.#parts.access.isLocked(resident, name)) return this.#core(TOOL_LOCKED);
@@ -161,20 +199,5 @@ export class Gateway {
 			if (broken !== undefined) return broken;
 		}
 		return undefined;
-	}
-
-	/** Fails open: a guard that errs lets the call pass and says so in its verdict. */
-	async #guard(prepared: PreparedCall, actor: Actor, name: string, chain: Frame): Promise<Refusal | undefined> {
-		const policy = this.#parts.policies[name]?.guard;
-		const judge = this.#parts.guard;
-		if (policy === undefined || judge === undefined) return undefined;
-		const text = prepared.guardText();
-		if (text === undefined) return undefined;
-		const answer = await judge.judge({ agent: residentOf(actor) ?? actor, tool: name, rule: policy.rule, text, secrets: [] });
-		const allowed = !answer.ok || answer.allowed;
-		const reason = answer.ok ? answer.reason : `guard failed: ${answer.error}`;
-		const { bus } = this.#parts;
-		bus.run(chain, () => bus.emit("core", "guard_verdict", { tool: name, rule: policy.rule, allowed, reason }));
-		return allowed ? undefined : refuse(GUARD_BLOCKED, reason);
 	}
 }

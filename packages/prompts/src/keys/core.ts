@@ -8,4 +8,6 @@ export const CORE_PROMPTS = {
 	"replies/core/limit": [],
 	"replies/core/steps": [],
 	"replies/core/too-long": [],
+	"replies/core/guard-none": [],
+	"replies/core/guard-failed": [],
 } as const;

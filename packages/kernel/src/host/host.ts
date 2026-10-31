@@ -19,6 +19,7 @@ import {
 	type MechanicInstance,
 	type PromptLookup,
 	type ResidentId,
+	type RoleCaller,
 	type RunEnd,
 	type ToolOutcome,
 	type ToolSpec,
@@ -26,7 +27,8 @@ import {
 } from "@swarmtales/contracts";
 import { AccessControl } from "./access.ts";
 import { Gateway } from "./gateway.ts";
-import { loadMechanics, type Loaded } from "./loader.ts";
+import { loadMechanics, toolFor, type Loaded } from "./loader.ts";
+import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
 import { Referee, type Breach } from "./referee.ts";
@@ -42,6 +44,14 @@ export interface HostOptions {
 	readonly resume?: { readonly snapshot: unknown; readonly events: readonly unknown[] };
 	/** Whether a resident's agent ended its last turn with results it has not answered (`activation: "onNews"`). */
 	readonly awaitsAnswer?: (resident: ResidentId) => boolean;
+	/** The model-backed roles tools consult (stage `consult`), by name. */
+	readonly roles?: Readonly<Record<string, RoleCaller>>;
+	/**
+	 * Runs after the minute's turns and `minuteEnded` hooks, before `minute_ended`, unless the
+	 * referee or a stop ended the turns: where the gamemaker, the classifier and the weaver look at
+	 * the run's state. Their calls go through `host.call`.
+	 */
+	readonly between?: (minute: number) => Promise<void>;
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
@@ -81,6 +91,8 @@ class CoreHost implements Host {
 	readonly #loaded: Loaded;
 	readonly #gateway: Gateway;
 	readonly #turns: TurnLoop;
+	readonly #staging = new StagingQueue();
+	readonly #between: ((minute: number) => Promise<void>) | undefined;
 	#minute = 0;
 	#breach: Breach | undefined;
 	#started = false;
@@ -104,9 +116,10 @@ class CoreHost implements Host {
 		this.#bus.subscribe((event) => {
 			this.#referee.observe(event.type);
 		});
-		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute });
-		for (const [name, { tool }] of this.#loaded.tools) {
-			if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit);
+		this.#between = options.between;
+		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging });
+		for (const [name, variants] of this.#loaded.tools) {
+			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
 			const policy = story.tools?.[name]?.limit;
 			if (policy !== undefined) this.#referee.addToolLimit(name, policy);
 		}
@@ -116,11 +129,14 @@ class CoreHost implements Host {
 			bus: this.#bus,
 			tools: this.#loaded.tools,
 			instances: this.#instances(),
+			instanceOf: (id) => this.#loaded.instances.get(id),
 			policies: story.tools ?? {},
 			access: this.#access,
 			residents: this.#registry,
 			referee: this.#referee,
 			guard: options.guard,
+			roles: options.roles ?? {},
+			staging: this.#staging,
 			reply: (code) => coreReply(this.#prompts, code),
 		});
 		const instances = this.#loaded.order.flatMap((id): readonly (readonly [string, MechanicInstance])[] => {
@@ -139,8 +155,8 @@ class CoreHost implements Host {
 			awaitsAnswer: options.awaitsAnswer ?? (() => false),
 			tools: () => this.toolSpecs("resident"),
 			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
-			display: (text) => text,
-			settle: () => Promise.resolve(),
+			display: (text) => this.#gateway.display(text),
+			settle: () => this.#gateway.settle(),
 			halted: () => {
 				this.#breach ??= this.#referee.breach();
 				return this.#breach !== undefined || this.#stopRequest !== undefined;
@@ -205,6 +221,8 @@ class CoreHost implements Host {
 		const bus = this.#bus;
 		this.#referee.minuteStarted();
 		bus.emit("core", "minute_started", {});
+		// Calls staged before the first minute (by runStarted hooks) run now.
+		await this.#gateway.settle();
 		for (const job of this.#scheduler.take(minute)) {
 			const instance = this.#loaded.instances.get(job.owner);
 			if (instance === undefined) throw new Error(`scheduler: job of unknown mechanic "${job.owner}"`);
@@ -214,15 +232,22 @@ class CoreHost implements Host {
 					instance.runJob(job.job, job.data);
 				});
 			});
+			await this.#gateway.settle();
 		}
 		this.#each((instance) => {
 			instance.hooks.minuteStarted();
 		});
+		await this.#gateway.settle();
 		this.#breach = undefined;
 		await this.#turns.play(agent, minute);
 		this.#each((instance) => {
 			instance.hooks.minuteEnded();
 		});
+		await this.#gateway.settle();
+		if (this.#between !== undefined && this.#turnsBreach() === undefined && this.#stopRequest === undefined) {
+			await this.#between(minute);
+			await this.#gateway.settle();
+		}
 		bus.emit("core", "minute_ended", {});
 		this.#minute = minute + 1;
 		const breach = this.#turnsBreach() ?? this.#referee.breach();
@@ -239,11 +264,15 @@ class CoreHost implements Host {
 
 	toolSpecs(role: GrantRole): readonly ToolSpec[] {
 		return this.#access.grantsOf(role).flatMap((name) => {
-			const loaded = this.#loaded.tools.get(name);
+			const loaded = toolFor(this.#loaded.tools, name, role);
 			if (loaded === undefined) return [];
 			const description = this.#prompts?.render(loaded.owner, loaded.tool.description, {}, []) ?? loaded.tool.description;
 			return [{ name, description, parameters: loaded.tool.parameters }];
 		});
+	}
+
+	display(text: string): string {
+		return this.#gateway.display(text);
 	}
 
 	facts(): Readonly<Record<string, unknown>> {
@@ -317,6 +346,8 @@ class CoreHost implements Host {
 		this.#each((instance) => {
 			instance.hooks.runEnded(end.reason);
 		});
+		// The run is over: what was staged now (by runEnded hooks) never runs.
+		this.#staging.clear();
 		this.#bus.emit("core", "run_ended", { reason: end.reason });
 		this.#ended = end;
 	}

@@ -8,9 +8,10 @@ import type { Actor, ResidentId } from "./values.ts";
 
 /**
  * The stages in their fixed order. `parse` (the arguments against the tool's schema) sits between
- * `lock` and `limit`; the paper folded it into the gateway.
+ * `lock` and `limit`, after the presentation's `resolve`; the paper folded it into the gateway.
+ * `consult` asks a role (a judge) and waits for it, after the guard and before `execute`.
  */
-export const PIPELINE_STAGES = ["lock", "parse", "limit", "afford", "rule", "guard", "execute", "settle", "after"] as const;
+export const PIPELINE_STAGES = ["lock", "parse", "limit", "afford", "rule", "guard", "consult", "execute", "settle", "after"] as const;
 
 export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
@@ -70,8 +71,16 @@ export type StoryRule =
 
 /** A soft rule checked by the guard model (stage `guard`). Only `block` exists so far. */
 export interface GuardPolicy {
+	/** Names the rule in `guard_verdict`; the rule's text when left out. */
+	readonly id?: string;
 	readonly rule: string;
 	readonly on: "block";
+	/**
+	 * Keep the author's secrets off the text: mechanics contribute them per resident (`guard`
+	 * handlers), their check without a model blocks a run of `minRun` characters, and the model is
+	 * asked with the secrets in the question.
+	 */
+	readonly secrets?: { readonly minRun: number };
 }
 
 /** What a story sets per tool. Limits add to the mechanic's own: a story can tighten, never lift. */

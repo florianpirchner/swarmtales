@@ -58,6 +58,7 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 	const pipeline = body.pipeline ?? {};
 	const jobs = body.jobs ?? {};
 	const services = body.services ?? [];
+	const presentation = body.presentation ?? {};
 	const id = parts.port.id;
 	for (const api of provides) {
 		if (services.filter((service) => service.api.name === api.name).length !== 1) throw new Error(`${id}: provides "${api.name}" but implements it ${String(services.filter((service) => service.api.name === api.name).length)} times`);
@@ -77,6 +78,10 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 		stateful,
 		snapshot: body.snapshot,
 		turns: body.turns,
+		resolve: (tool, actor, params) => (presentation.resolve === undefined ? params : presentation.resolve({ tool, actor, params }, ctx)),
+		display: (text) => presentation.display?.(text, ctx) ?? text,
+		guardSecrets: (resident, minRun) => body.guard?.secrets(resident, minRun, ctx) ?? [],
+		guardLeak: (text, secrets, minRun) => body.guard?.leaks?.(text, secrets, minRun, ctx),
 		runJob(job, data) {
 			const run = jobs[job];
 			if (run === undefined) throw new Error(`${id}: no job "${job}"`);

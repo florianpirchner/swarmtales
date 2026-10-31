@@ -21,7 +21,10 @@ import {
 	type StateSetup,
 	type ToolContext,
 	type Actor,
+	type Consulted,
+	type Refusal,
 	type ResidentId,
+	type RoleReply,
 } from "@swarmtales/contracts";
 
 /** Where an instance keeps its state; a snapshot load replaces the value. */
@@ -66,6 +69,21 @@ function parseWith<T extends TSchema>(schema: T, value: unknown, what: string): 
 	}
 }
 
+function isRefusal(value: unknown): value is Refusal {
+	return typeof value === "object" && value !== null && "ok" in value && value.ok === false && "code" in value && typeof value.code === "string";
+}
+
+/** A role's untrusted reply, checked against the tool's answer schema. */
+function readReply<A extends TSchema>(role: string, schema: A, reply: RoleReply | undefined): Consulted<Static<A>> {
+	if (reply === undefined) return { ok: false, reason: "absent", error: `no role "${role}" in this run` };
+	if (!reply.ok) return { ok: false, reason: "failed", error: reply.error };
+	try {
+		return { ok: true, answer: Parse(schema, reply.answer) };
+	} catch {
+		return { ok: false, reason: "failed", error: `the answer of ${role} does not match its schema` };
+	}
+}
+
 /** The context of tools (with the caller) and of everything else (actor `host`). */
 export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor: Actor = "host", resident?: ResidentId): ToolContext<M> {
 	const { port, prompts } = parts;
@@ -96,6 +114,9 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 			return port.render(id, variables, declared);
 		},
 		random: () => port.random(),
+		stage(tool, params, options) {
+			port.stage(tool, params, options);
+		},
 	};
 }
 
@@ -125,6 +146,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				parameters: definition.parameters,
 				limit: definition.limit,
 				suggest: definition.suggest ?? [],
+				serves: definition.serves,
 				prepare(raw, actor, resident) {
 					let params: Static<typeof definition.parameters>;
 					try {
@@ -133,11 +155,29 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 						return undefined;
 					}
 					const toolCtx = contextFor(parts, actor, resident);
+					const consult = definition.consult;
+					let consulted: Consulted<Static<NonNullable<typeof consult>["answer"]>> = { ok: false, reason: "absent", error: "the tool consults no role" };
 					return {
 						params,
 						rule: () => definition.rule?.(params, toolCtx),
 						guardText: () => definition.guardText?.(params),
-						execute: () => definition.execute(params, toolCtx),
+						consult:
+							consult === undefined
+								? undefined
+								: {
+										role: consult.role,
+										ask: () => {
+											const asked = consult.ask(params, toolCtx);
+											if (isRefusal(asked)) return asked;
+											if (!Check(consult.question, asked)) throw new Error(`${port.id}: the question of ${definition.name} does not match its schema`);
+											return { question: asked };
+										},
+										read: (answer) => {
+											consulted = readReply(consult.role, consult.answer, answer);
+											return consulted;
+										},
+									},
+						execute: () => definition.execute(params, toolCtx, consulted),
 					};
 				},
 			};

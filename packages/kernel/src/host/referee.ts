@@ -4,7 +4,8 @@
  * after every minute whatever the hooks did. Limits only add up, so a story can tighten a mechanic's
  * limit but never lift it.
  */
-import type { Actor, LimitWindow, Refusal, RunLimit, RunLimits, ToolLimit } from "@swarmtales/contracts";
+import type { Actor, GrantRole, LimitWindow, Refusal, RunLimit, RunLimits, ToolLimit } from "@swarmtales/contracts";
+import { roleOf } from "./access.ts";
 import { refuse } from "./define.ts";
 
 export const STEP_LIMIT = "STEP_LIMIT";
@@ -14,6 +15,8 @@ interface CountedLimit {
 	readonly key: string;
 	readonly max: number;
 	readonly per: LimitWindow;
+	/** Only callers in these roles count (a tool variant's own limit). */
+	readonly serves?: readonly GrantRole[];
 }
 
 export interface RefereeState {
@@ -37,12 +40,17 @@ export class Referee {
 		this.#run = run;
 	}
 
-	/** A tool limit, from the tool itself or the story's policy. */
-	addToolLimit(tool: string, limit: ToolLimit): void {
+	/** A tool limit, from the tool itself (only for the roles its variant serves) or the story's policy. */
+	addToolLimit(tool: string, limit: ToolLimit, serves?: readonly GrantRole[]): void {
 		if (!Number.isInteger(limit.max) || limit.max < 0) throw new RangeError(`referee: invalid limit for ${tool}`);
 		const list = this.#tools.get(tool) ?? [];
-		list.push({ key: `${tool}#${String(list.length)}`, max: limit.max, per: limit.per });
+		list.push({ key: `${tool}#${String(list.length)}`, max: limit.max, per: limit.per, ...(serves === undefined ? {} : { serves }) });
 		this.#tools.set(tool, list);
+	}
+
+	#limitsFor(tool: string, actor: Actor): readonly CountedLimit[] {
+		const role = roleOf(actor);
+		return (this.#tools.get(tool) ?? []).filter((limit) => limit.serves === undefined || (role !== undefined && limit.serves.includes(role)));
 	}
 
 	addRunLimits(limits: readonly RunLimit[]): void {
@@ -58,13 +66,13 @@ export class Referee {
 			this.#counts.set(key, steps);
 			if (steps > max) return refuse(STEP_LIMIT, detail(STEP_LIMIT));
 		}
-		const hit = (this.#tools.get(tool) ?? []).find((limit) => (this.#counts.get(`${limit.key}|${actor}`) ?? 0) >= limit.max);
+		const hit = this.#limitsFor(tool, actor).find((limit) => (this.#counts.get(`${limit.key}|${actor}`) ?? 0) >= limit.max);
 		return hit === undefined ? undefined : refuse(TOOL_LIMIT, detail(TOOL_LIMIT));
 	}
 
 	/** Stage `settle`: a successful call counts against the tool's limits. */
 	count(tool: string, actor: Actor): void {
-		for (const limit of this.#tools.get(tool) ?? []) {
+		for (const limit of this.#limitsFor(tool, actor)) {
 			const key = `${limit.key}|${actor}`;
 			this.#counts.set(key, (this.#counts.get(key) ?? 0) + 1);
 		}

@@ -65,7 +65,18 @@ export const CORE_EVENTS = {
 	turn_skipped: Type.Object({ resident: Type.String(), pass: Type.Integer(), block: Type.Integer() }),
 	tool_called: Type.Object({ tool: Type.String(), params: Type.Unknown() }),
 	tool_refused: Type.Object({ tool: Type.String(), stage: Stage, code: Type.String(), detail: Type.Optional(Type.String()) }),
-	guard_verdict: Type.Object({ tool: Type.String(), rule: Type.String(), allowed: Type.Boolean(), reason: Type.String() }),
+	guard_verdict: Type.Object({
+		tool: Type.String(),
+		/** The policy's id, or its text. */
+		rule: Type.String(),
+		allowed: Type.Boolean(),
+		reason: Type.String(),
+		/** `check`: a mechanic's check without a model; `model`: the guard model; `none`: no model in this run. */
+		by: Type.Union([Type.Literal("check"), Type.Literal("model"), Type.Literal("none")]),
+		error: Type.Optional(Type.String()),
+	}),
+	role_asked: Type.Object({ role: Type.String(), tool: Type.String(), question: Type.Unknown() }),
+	role_answered: Type.Object({ role: Type.String(), ok: Type.Boolean(), answer: Type.Optional(Type.Unknown()), error: Type.Optional(Type.String()), costUsd: Type.Number() }),
 	service_called: Type.Object({ api: Type.String(), method: Type.String(), caller: Type.String(), input: Type.Unknown() }),
 	job_ran: Type.Object({ owner: Type.String(), job: Type.String() }),
 	resident_suspended: Type.Object({ resident: Type.String(), by: Type.String(), reason: Type.String() }),

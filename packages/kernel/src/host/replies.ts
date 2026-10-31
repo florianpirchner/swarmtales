@@ -5,6 +5,7 @@
 import type { PromptLookup } from "@swarmtales/contracts";
 import { INVALID_ARGUMENTS, RESIDENT_INACTIVE, TEXT_TOO_LONG, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN } from "./gateway.ts";
 import { STEP_LIMIT, TOOL_LIMIT } from "./referee.ts";
+import { GUARD_FAILED, GUARD_NONE } from "./waits.ts";
 
 const REPLIES: Readonly<Record<string, string>> = {
 	[TOOL_UNKNOWN]: "replies/core/unknown-tool",
@@ -15,6 +16,8 @@ const REPLIES: Readonly<Record<string, string>> = {
 	[TOOL_LIMIT]: "replies/core/limit",
 	[STEP_LIMIT]: "replies/core/steps",
 	[TEXT_TOO_LONG]: "replies/core/too-long",
+	[GUARD_NONE]: "replies/core/guard-none",
+	[GUARD_FAILED]: "replies/core/guard-failed",
 };
 
 export function coreReply(prompts: PromptLookup | undefined, code: string): string | undefined {

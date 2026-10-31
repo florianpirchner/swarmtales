@@ -1,4 +1,5 @@
 export * from "./api.ts";
+export * from "./consult.ts";
 export * from "./context.ts";
 export * from "./events.ts";
 export * from "./host.ts";

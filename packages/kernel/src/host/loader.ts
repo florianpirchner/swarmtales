@@ -5,13 +5,14 @@
  * unknown tools).
  */
 import { Check } from "typebox/value";
-import { CORE_EVENTS, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { CORE_EVENTS, type CoreStory, type GrantRole, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
 import type { LoadedTool } from "./gateway.ts";
 import type { EventBus } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import type { Scheduler } from "./scheduler.ts";
+import type { StagingQueue } from "./staging.ts";
 
 /** Sorts the uses so every mechanic comes after the providers of the APIs it requires. */
 export function loadOrder(uses: readonly MechanicUse[]): readonly MechanicUse[] {
@@ -56,12 +57,25 @@ export interface LoaderParts {
 	readonly access: AccessControl;
 	readonly prompts: PromptLookup | undefined;
 	readonly minute: () => number;
+	readonly staging: StagingQueue;
 }
 
 export interface Loaded {
 	readonly order: readonly string[];
 	readonly instances: ReadonlyMap<string, MechanicInstance>;
-	readonly tools: ReadonlyMap<string, LoadedTool>;
+	/** By name; one entry per role-disjoint variant. */
+	readonly tools: ReadonlyMap<string, readonly LoadedTool[]>;
+}
+
+/** Whether two tools of one name would serve a role twice (undefined: every role). */
+function servesOverlap(a: readonly GrantRole[] | undefined, b: readonly GrantRole[] | undefined): boolean {
+	if (a === undefined || b === undefined) return true;
+	return a.some((role) => b.includes(role));
+}
+
+/** The variant of a tool that serves `role`. */
+export function toolFor(tools: ReadonlyMap<string, readonly LoadedTool[]>, name: string, role: GrantRole): LoadedTool | undefined {
+	return tools.get(name)?.find((loaded) => loaded.tool.serves === undefined || loaded.tool.serves.includes(role));
 }
 
 export function loadMechanics(parts: LoaderParts): Loaded {
@@ -69,7 +83,7 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 	const order = loadOrder(story.mechanics);
 	const instances = new Map<string, MechanicInstance>();
 	const services = new Map<string, ProvidedApi>();
-	const tools = new Map<string, LoadedTool>();
+	const tools = new Map<string, readonly LoadedTool[]>();
 	const owners = new Map<string, string>();
 	for (const use of order) {
 		const definition = use.mechanic;
@@ -85,9 +99,10 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 		jobs = instance.jobs;
 		for (const service of instance.services) services.set(service.api.name, service);
 		for (const tool of instance.tools) {
-			const other = tools.get(tool.name);
-			if (other !== undefined) throw new Error(`${definition.id}: tool "${tool.name}" is defined by "${other.owner}" too`);
-			tools.set(tool.name, { owner: definition.id, tool });
+			const others = tools.get(tool.name) ?? [];
+			const clash = others.find((other) => servesOverlap(other.tool.serves, tool.serves));
+			if (clash !== undefined) throw new Error(`${definition.id}: tool "${tool.name}" is defined by "${clash.owner}" too, for the same role`);
+			tools.set(tool.name, [...others, { owner: definition.id, tool }]);
 		}
 		instances.set(definition.id, instance);
 		bus.listen(instance.listeners);
@@ -143,6 +158,12 @@ function portFor(
 			}
 			draws += 1;
 			return createRng(deriveSeed(story.seed, id, drawSeq, draws));
+		},
+		stage(tool, params, options) {
+			const then = options?.then;
+			if (then !== undefined && !jobs().includes(then)) throw new Error(`${id}: stages ${tool} with "then" job "${then}", which it does not declare`);
+			if (!isTool(tool)) throw new Error(`${id}: stages "${tool}", which no loaded mechanic defines`);
+			parts.staging.push({ owner: id, tool, params, cause: bus.frame().cause, then });
 		},
 		residents: parts.residents.portFor(id),
 		schedule: parts.scheduler.portFor(id, { has: (job) => jobs().includes(job) }, parts.minute),

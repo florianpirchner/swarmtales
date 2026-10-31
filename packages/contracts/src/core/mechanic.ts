@@ -5,7 +5,9 @@
  * Everything the host holds is the erased form below; the generics live only in the author's code.
  */
 import type { Static, TSchema } from "typebox";
+import type { GuardSecret } from "../roles.ts";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
+import type { ConsultDefinition, Consulted, GuardHandlers, PreparedConsult, PresentationHandlers } from "./consult.ts";
 import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
 import type { CORE_EVENTS, EventEnvelope, EventSchemas } from "./events.ts";
 import type { TurnLine } from "./host.ts";
@@ -56,7 +58,7 @@ export type ToolContextOf<H> = ToolContext<ShapeOf<H>>;
 export type ViewOf<H> = FactView<ShapeOf<H>>;
 
 /** A tool as its author writes it. */
-export interface ToolDefinition<M extends MechanicShape, N extends string, P extends TSchema> {
+export interface ToolDefinition<M extends MechanicShape, N extends string, P extends TSchema, Q extends TSchema = TSchema, A extends TSchema = TSchema> {
 	readonly name: N;
 	/** A prompt id of this mechanic, without variables. */
 	readonly description: PlainPromptId<M["prompts"]>;
@@ -65,12 +67,22 @@ export interface ToolDefinition<M extends MechanicShape, N extends string, P ext
 	readonly limit?: ToolLimit;
 	/** The roles the mechanic suggests; only the story's `grants` decide. */
 	readonly suggest?: readonly GrantRole[];
+	/**
+	 * The roles this tool serves (all when left out). Two tools may share a name when the roles they
+	 * serve do not overlap: a resident's `post` and the gamemaker's may be two tools.
+	 */
+	readonly serves?: readonly GrantRole[];
 	/** The tool's own program-checkable rule (stage `rule`). */
 	rule?(params: Static<P>, ctx: ToolContext<M>): Refusal | undefined;
 	/** The text a story guard checks (stage `guard`); without it a guard does not apply. */
 	guardText?(params: Static<P>): string | undefined;
-	/** Synchronous; emits events and returns the reply. A refusal here is reported at stage `execute`. */
-	execute(params: Static<P>, ctx: ToolContext<M>): ToolOutcome;
+	/** A question to a role (stage `consult`, after the guard); its answer reaches `execute`. */
+	readonly consult?: ConsultDefinition<M, P, Q, A>;
+	/**
+	 * Synchronous; emits events and returns the reply. A refusal here is reported at stage `execute`.
+	 * `consulted` is the role's checked answer when the tool consults one.
+	 */
+	execute(params: Static<P>, ctx: ToolContext<M>, consulted: Consulted<Static<A>>): ToolOutcome;
 }
 
 /** A tool after its arguments were checked, bound to one call. */
@@ -78,6 +90,8 @@ export interface PreparedCall {
 	readonly params: unknown;
 	rule(): Refusal | undefined;
 	guardText(): string | undefined;
+	readonly consult: PreparedConsult | undefined;
+	/** Runs the tool with the answer `consult.read` took, if any. */
 	execute(): ToolOutcome;
 }
 
@@ -88,6 +102,8 @@ export interface MechanicTool<N extends string = string> {
 	readonly parameters: TSchema;
 	readonly limit: ToolLimit | undefined;
 	readonly suggest: readonly GrantRole[];
+	/** Undefined: every role. */
+	readonly serves: readonly GrantRole[] | undefined;
 	/** Undefined when the arguments do not match the schema. */
 	prepare(raw: unknown, actor: Actor, resident: ResidentId | undefined): PreparedCall | undefined;
 }
@@ -136,7 +152,7 @@ type ListenerOf<M extends MechanicShape, D extends MechanicDefinition, K extends
 
 /** Typed constructors, bound to one instance. */
 export interface MechanicKit<M extends MechanicShape> {
-	tool<const N extends string, P extends TSchema>(definition: ToolDefinition<M, N, P>): MechanicTool<N>;
+	tool<const N extends string, P extends TSchema, Q extends TSchema = TSchema, A extends TSchema = TSchema>(definition: ToolDefinition<M, N, P, Q, A>): MechanicTool<N>;
 	provide<A extends M["provides"][number]>(api: A, implementation: ApiImplementation<A, MechanicContext<M>>): ProvidedApi;
 	/** Reacts to one of the mechanic's own events. */
 	on<K extends keyof M["events"] & string>(
@@ -196,6 +212,10 @@ export interface MechanicBody<M extends MechanicShape, T extends readonly Mechan
 	readonly snapshot?: SnapshotSlice;
 	/** The turn policy this mechanic supplies (at most one loaded mechanic may); the story's fields win. */
 	readonly turns?: TurnPolicy;
+	/** Names for ids: argument resolving and text formatting for every caller. */
+	readonly presentation?: PresentationHandlers<M>;
+	/** Secrets of a resident for the guard question, and a check without a model. */
+	readonly guard?: GuardHandlers<M>;
 }
 
 /** Hooks and handlers of one instance, bound to its context. */
@@ -228,6 +248,11 @@ export interface MechanicInstance {
 	readonly stateful: boolean;
 	readonly snapshot: SnapshotSlice | undefined;
 	readonly turns: TurnPolicy | undefined;
+	resolve(tool: string, actor: Actor, params: unknown): unknown;
+	display(text: string): string;
+	/** Empty without guard handlers. */
+	guardSecrets(resident: ResidentId, minRun: number): readonly GuardSecret[];
+	guardLeak(text: string, secrets: readonly GuardSecret[], minRun: number): string | undefined;
 }
 
 /** The input type of `with()`: every option of the outer object may be left out and is filled from its default at load. */

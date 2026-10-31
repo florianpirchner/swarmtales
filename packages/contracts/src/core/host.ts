@@ -67,6 +67,8 @@ export interface Host {
 	/** A call by any actor (gamemaker, script) through the same pipeline. */
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome>;
 	toolSpecs(role: GrantRole): readonly ToolSpec[];
+	/** A text as callers read it: every mechanic's `display` (names for ids), for role inputs the app builds. */
+	display(text: string): string;
 	/** Every fact, keyed `<mechanic>.<fact>`. */
 	facts(): Readonly<Record<string, unknown>>;
 	/** Only between minutes. */
