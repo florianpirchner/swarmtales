@@ -6,7 +6,7 @@
 import { Type } from "typebox";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
-import { ChannelsApi, ExileApi, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
 
@@ -191,12 +191,18 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		},
 	},
 	hooks: {
-		minuteStarted: (ctx) => {
-			bookFor(ctx).tick(ctx.minute, CITY);
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.standoff,
+			run: (ctx) => {
+				bookFor(ctx).tick(ctx.minute, CITY);
+			},
 		},
-		turnInputs: (resident, ctx) => {
-			const text = heldPart(ctx, resident);
-			return text === undefined ? [] : [{ kind: "status", text, order: STATUS_ORDER.held }];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.status,
+			run: (resident, ctx) => {
+				const text = heldPart(ctx, resident);
+				return text === undefined ? [] : [{ kind: "status", text, order: STATUS_ORDER.held }];
+			},
 		},
 	},
 	facts: {

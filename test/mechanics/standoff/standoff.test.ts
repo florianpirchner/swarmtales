@@ -3,12 +3,13 @@
  * are stand-ins of the other teams ("stand-in" in a test name); the book's own
  * rules are the old ones (test/engine/standoff.test.ts), here seen through the tools and the API.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { createHost } from "@swarmtales/kernel";
+import { createHost, defineMechanic } from "@swarmtales/kernel";
 import { checkOptionsDocumented, checkSourceRules, idleAgent } from "@swarmtales/testkit";
 import type { Host } from "@swarmtales/contracts";
 import { standoff } from "@swarmtales/mechanic-standoff";
-import { StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { HOOK_ORDER, StandoffApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { readFileSync } from "node:fs";
 import { channelsStandIn, ledgerStandIn, progressionStandIn, puzzlesStandIn, TestWorld } from "./support/world.ts";
 import { probe, runProbe } from "./support/probe.ts";
@@ -53,6 +54,20 @@ function setup(extra: { ransom?: boolean; held?: (resident: string) => readonly 
 			gamemakerTools: ["ultimatum"],
 		},
 	};
+}
+
+/** A mechanic that writes `mark` first thing in the minute at its place in the minute's order. */
+function marker(id: string, order: number) {
+	return defineMechanic({ id, summary: "Marks its place in the minute.", options: Type.Object({}), state: (): undefined => undefined, events: { [`mark_${id}`]: Type.Object({ order: Type.Integer() }) } }, () => ({
+		hooks: {
+			minuteStarted: {
+				order,
+				run: (ctx) => {
+					ctx.emit(`mark_${id}`, { order });
+				},
+			},
+		},
+	}));
 }
 
 async function advance(host: Host, minutes: number): Promise<void> {
@@ -100,6 +115,17 @@ describe("standoff (stand-in ledger, channels, progression, puzzles and deals)",
 		expect(world.balance("A02")).toBe(0);
 		expect(ownLines(host, ["standoff"]).at(-1)).toBe('{"type":"ultimatum_resolved","number":1,"kept":["A01"],"released":[],"paid":[{"agent":"A02","points":6}],"minute":13}');
 		expect(world.noticesOf("A02").at(-1)).toBe("The ultimatum of minute 13 is up: A01 handed over; A02 did not and loses 6 points.");
+	});
+
+	it("settles its ultimatums in its slot of the minute's start (HOOK_ORDER.minuteStarted.standoff, after the seal, before the cast)", async () => {
+		const { story } = setup();
+		const slot = HOOK_ORDER.minuteStarted.standoff;
+		const host = startHost({ ...story, mechanics: [...story.mechanics, marker("before", slot - 1).with(), marker("after", slot + 1).with()] });
+		await advance(host, 10);
+		await host.call("gamemaker", "ultimatum", { a: "A01", b: "A02", minutes: 3 });
+		await advance(host, 4);
+		const minute13 = host.log.all().filter((event) => event.minute === 13 && ["mark_before", "mark_after", "ultimatum_resolved"].includes(event.type));
+		expect(minute13.map((event) => `${event.source}:${event.type}`)).toEqual(["before:mark_before", "standoff:ultimatum_resolved", "after:mark_after"]);
 	});
 
 	it("seizes what a holdout kept back and sells it to the one who waited for the penalty (P50)", async () => {
