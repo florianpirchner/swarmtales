@@ -32,6 +32,7 @@ const options = Type.Object({
 		}),
 		{ default: {}, description: "The story's cast members by id (the story's `cast`)." },
 	),
+	collections: Type.Array(Type.String(), { default: [], description: "The collections the story's rules can start, in the order of the rules: windows that end after a solve are shortened in this order (otherwise in the order they started)." }),
 });
 
 const prompts = {

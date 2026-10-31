@@ -45,7 +45,7 @@ function story(minutes = 6) {
 		minutes,
 		residents: 4,
 		mechanics: [channels.with(), petitions.with(), scriptStandIn.with(), ledgerStandIn(10).with(), marksStandIn().with(), namesStandIn(new Map<string, string>()).with(), receiptsStandIn().with()],
-		grants: { resident: ["signPetition", "listPetitions", "readBoard"], script: ["openPetition"] },
+		grants: { resident: ["signPetition", "listPetitions", "readBoard"], script: ["openPetition", "resolvePetition"] },
 	});
 }
 

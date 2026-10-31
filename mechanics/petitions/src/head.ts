@@ -33,6 +33,12 @@ const prompts = {
 	"replies/petition-you-not-signed": [],
 	"replies/petition-signed": ["petition"],
 	"replies/petitions-none": [],
+	"tools/resolvePetition": [],
+	"petitions/signed-by": ["signers"],
+	"petitions/visibility-public": [],
+	"petitions/visibility-secret": [],
+	"petitions/noun-one": [],
+	"petitions/noun-many": [],
 	"petitions/opened": ["id", "text", "threshold", "noun", "deadline", "visibility"],
 	"petitions/resolved": ["id", "outcome", "signatures", "threshold", "signers"],
 } as const;
