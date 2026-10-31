@@ -11,9 +11,12 @@ import type { Turn } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { names } from "@swarmtales/mechanic-names";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, compareGolden, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
+import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, goldenDiff, goldenNotices, goldenOrder, idleAgent, ownedBy, playStory, scriptedAgent, standInsFor, type CallRecord, type PlannedCall } from "@swarmtales/testkit";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
-import { channelsStandIn, GOLDEN_LOGS, goldenLog, ids, sourcesOf, writtenBy } from "../t1/support.ts";
+import { channelsStandIn, GOLDEN_LOGS, goldenLog, ids, recordOf, sourcesOf, writtenBy } from "../t1/support.ts";
+import { NamesApi } from "@swarmtales/mechanic-shared";
+import { defineMechanic } from "@swarmtales/kernel";
+import { Type } from "typebox";
 
 const SPEC = { untilMinute: 2, announcement: "Choose before minute {untilMinute}.", fallbackWords: ["Stone", "Ash"], reserved: ["STEWARD", "NEXUS"] };
 
@@ -40,13 +43,16 @@ describe("the golden gate for name_chosen", () => {
 		const mechanics = expected.length === 0 ? [channels.use] : [names.with({ ...spec, fallbackWords: [...spec.fallbackWords], reserved: ["STEWARD", cityOfKeys.city] }), channels.use];
 		const definition = defineCoreStory({ id: "golden", seed: 7, minutes: 4, residents: ids(6), mechanics, grants: {} });
 		const run = await playStory({ story: definition, prompts: createPromptLookup() }, idleAgent);
-		expect(compareGolden(expected, writtenBy(run.events, ["names"]))).toBeUndefined();
+		expect(goldenDiff(expected, writtenBy(run.events, ["names"]))).toEqual([]);
+		// The order of the lines (name_chosen only; its place among the other mechanics' lines is the integration test's).
+		const eventTypes = run.events.filter((event) => event.type === "name_chosen").map(() => "names:name_chosen");
+		expect(eventTypes).toEqual(goldenOrder(log, ["names"]));
 		// The golden board carries one announcement per name (the board is channels', here a stand-in).
 		const announced = log.filter((line) => line.type === "board_post" && String(line.text).includes(" is now called ")).map((line) => line.text);
 		expect(channels.log.posts.map((post) => post.text)).toEqual(announced);
 		// Every resident the city named reads it privately, in the golden order.
-		const notices = log.filter((line) => line.type === "notice" && String(line.text).startsWith("You chose no name in time")).map((line) => line.text);
-		expect(channels.log.notices.map((notice) => notice.text)).toEqual(notices);
+		const notices = goldenNotices(log).filter((line) => line.includes("You chose no name in time")).map((line) => { const parsed = recordOf(line); return `${String(parsed.to)}|${String(parsed.author)}|${String(parsed.text)}`; });
+		expect(channels.log.notices.map((notice) => `${notice.to}|${notice.author}|${notice.text}`)).toEqual(notices);
 	});
 });
 
@@ -129,5 +135,53 @@ describe("the legacy snapshot", () => {
 		expect(host.snapshot().mechanics.names).toMatchObject({ version: 1, data: { settled: true } });
 		expect(JSON.stringify(host.snapshot().mechanics.names?.data)).toContain(`{"agent":"A01","name":"Mercer","fallback":false}`);
 		expect(host.display("A02 asks A06")).toBe("Herald asks Harrow");
+	});
+});
+
+describe("the task line while a resident may choose", () => {
+	function lines(minutes: number, resident: string, chosenAt?: number) {
+		const seen: string[] = [];
+		const probe = defineMechanic(
+			{ id: "probe", summary: "Asks names for the task line.", options: Type.Object({}), state: () => undefined, events: {}, requires: [NamesApi] },
+			() => ({
+				hooks: {
+					turnInputs: (who, ctx) => {
+						if (who === resident) seen.push(`${String(ctx.minute)}:${ctx.call(NamesApi, "taskLine", { resident: who }) ?? "none"}`);
+						return [];
+					},
+				},
+			}),
+		).with();
+		const channels = channelsStandIn();
+		const definition = defineCoreStory({ id: "task-line", seed: 7, minutes, residents: ids(2), mechanics: [names.with(SPEC), channels.use, probe], grants: { resident: ["chooseName"] } });
+		const plan = (turn: Turn): readonly PlannedCall[] => (turn.minute === chosenAt && turn.resident === resident ? [{ tool: "chooseName", params: { name: "Mira" } }] : []);
+		return playStory({ story: definition, prompts: createPromptLookup() }, scriptedAgent(plan, [])).then(() => seen);
+	}
+
+	it("shows the announcement with {untilMinute} filled in until the choice closes, then nothing", async () => {
+		expect(await lines(4, "A01")).toEqual(["0:Choose before minute 2.", "1:Choose before minute 2.", "2:none", "3:none"]);
+	});
+
+	it("shows nothing to a resident that has chosen", async () => {
+		expect(await lines(3, "A01", 0)).toEqual(["0:Choose before minute 2.", "1:none", "2:none"]);
+	});
+});
+
+describe("a legacy snapshot of a run without names", () => {
+	const PATH = join(import.meta.dirname, "../../../examples/cityofkeys-act1-06a-04/snapshot-L7.json");
+	it("plays on without names: no name tool, no announcements, no status line", () => {
+		const raw = recordOf(readFileSync(PATH, "utf8"));
+		const world = raw.world;
+		if (typeof world !== "object" || world === null) throw new Error("no world");
+		const without = { ...raw, world: Object.fromEntries(Object.entries(world).filter(([key]) => key !== "names")) };
+		const converted = convertLegacySnapshot(without, {}, PATH);
+		// Local adapter (docs/design/carve-requests-round2-T1.md R2-2): the converter writes no slice for an absent field, and the host refuses a mechanic without one, so an empty version-0 slice stands for it.
+		const snapshot = { ...converted.host, mechanics: { ...converted.host.mechanics, names: { version: 0, data: {} } } };
+		const channels = channelsStandIn();
+		const definition = defineCoreStory({ id: "nexus", seed: 7, minutes: 80, residents: converted.host.residents.ids, mechanics: [names.with(SPEC), channels.use, ...standInsFor(converted.host, ["names", "channels"])], grants: { resident: ["chooseName"] } });
+		const host = createHost({ story: definition, prompts: createPromptLookup(), resume: { snapshot, events: converted.events } });
+		expect(host.snapshot().mechanics.names).toMatchObject({ version: 1, data: { entries: [], off: true } });
+		expect(host.facts()["names.names"]).toEqual({});
+		expect(host.display("A02 asks A06")).toBe("A02 asks A06");
 	});
 });

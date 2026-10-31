@@ -10,8 +10,8 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, INPUT_KINDS, NamesApi, PuzzlesApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { display, isOpen, label, nameOf, refusal, resolve, type NameEntry, type NamesState } from "./book.ts";
+import { ChannelsApi, ExileApi, HOOK_ORDER, INPUT_KINDS, NamesApi, PuzzlesApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { canChoose, display, isOpen, label, nameOf, refusal, resolve, type NameEntry, type NamesState } from "./book.ts";
 
 /** The city's author name (kernel `CITY`, copied: a mechanic takes only the authoring calls from the kernel). */
 const CITY = "CITY";
@@ -20,9 +20,12 @@ const COURIER = "COURIER";
 const RESIDENT_PARAMS: readonly string[] = ["target", "agent", "accused", "leader", "to"];
 
 const Entry = Type.Object({ agent: Type.String(), name: Type.String(), fallback: Type.Boolean() });
-const Slice = Type.Object({ entries: Type.Array(Entry), settled: Type.Boolean() });
-/** The version-0 slice the legacy converter cuts out of the old world: `{ names }`. */
-const LegacySlice = Type.Object({ names: Slice });
+const Slice = Type.Object({ entries: Type.Array(Entry), settled: Type.Boolean(), off: Type.Optional(Type.Boolean()) });
+/**
+ * The version-0 slice the legacy converter cuts out of the old world: `{ names }`. A snapshot of a
+ * run without names has none (`{}`): the old world played on without names, and so does the mechanic.
+ */
+const LegacySlice = Type.Object({ names: Type.Optional(Type.Object({ entries: Type.Array(Entry), settled: Type.Boolean() })) });
 
 export const namesHead = defineHead({
 	id: "names",
@@ -33,9 +36,16 @@ export const namesHead = defineHead({
 		fallbackWords: Type.Array(Type.String({ minLength: 1 }), { minItems: 1, default: ["Stone", "Ash", "Reed", "Flint", "Moss", "Wren"], description: "Words of the names the city gives, letters only, so a name stays within 16 characters." }),
 		reserved: Type.Array(Type.String(), { default: [], description: "Names nobody may take besides the system authors: the cast, the city." }),
 	}),
-	state: ({ residents }): NamesState => ({ ids: residents, entries: new Map<string, NameEntry>(), settled: false }),
+	state: ({ residents }): NamesState => ({ ids: residents, entries: new Map<string, NameEntry>(), settled: false, active: true }),
 	events: { name_chosen: Type.Object({ agent: Type.String(), name: Type.String(), fallback: Type.Boolean() }) },
-	prompts: { "tools/chooseName": [], "replies/name-chosen": ["name"], "replies/locked": [], "competitor/status/you-are": ["agent"] },
+	prompts: {
+		"tools/chooseName": [],
+		"replies/name-chosen": ["name"],
+		"replies/locked": [],
+		"competitor/status/you-are": ["agent"],
+		"notices/name-announced": ["agent", "name"],
+		"notices/name-fallback": ["name"],
+	},
 	provides: [NamesApi],
 	uses: [PuzzlesApi, ChannelsApi, ExileApi],
 });
@@ -50,16 +60,16 @@ function reservedOf(ctx: Ctx): ReadonlySet<string> {
 function give(ctx: Ctx, entry: NameEntry): NameEntry {
 	ctx.state.entries.set(entry.agent, entry);
 	ctx.emit("name_chosen", { agent: entry.agent, name: entry.name, fallback: entry.fallback });
-	ctx.tryCall(ChannelsApi, "post", { author: CITY, text: `${entry.agent} is now called ${entry.name}.` });
+	ctx.tryCall(ChannelsApi, "post", { author: CITY, text: ctx.prompt("notices/name-announced", { agent: entry.agent, name: entry.name }) });
 	// A resident the city names reads its own name privately: its system prompt knows only its ID.
-	if (entry.fallback) ctx.tryCall(ChannelsApi, "notify", { to: entry.agent, author: CITY, text: `You chose no name in time; the city calls you ${entry.name}.` });
+	if (entry.fallback) ctx.tryCall(ChannelsApi, "notify", { to: entry.agent, author: CITY, text: ctx.prompt("notices/name-fallback", { name: entry.name }) });
 	return entry;
 }
 
 /** At the start of `minute`: once the choice closes, the city names every resident without a name (stream `names`). */
 function settle(ctx: Ctx): void {
 	const state = ctx.state;
-	if (state.settled || ctx.minute < ctx.options.untilMinute) return;
+	if (!state.active || state.settled || ctx.minute < ctx.options.untilMinute) return;
 	state.settled = true;
 	const rng = ctx.rng("names");
 	const reserved = reservedOf(ctx);
@@ -81,13 +91,28 @@ function withResidents(raw: unknown, find: (value: string) => string): unknown {
 	return Object.fromEntries(Object.entries(raw).map(([key, value]: [string, unknown]) => [key, typeof value === "string" && RESIDENT_PARAMS.includes(key) ? find(value) : withResidents(value, find)]));
 }
 
+/** Fills the `{placeholders}` of a story text (kernel `renderTemplate`, copied: a mechanic takes only the authoring calls from the kernel). */
+function renderTemplate(template: string, values: Readonly<Partial<Record<string, string>>>): string {
+	return template.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (_match: string, name: string) => {
+		const value = values[name];
+		if (value === undefined) throw new Error(`Unknown placeholder {${name}}`);
+		return value;
+	});
+}
+
 export const names = defineMechanic(namesHead, (kit) => ({
 	services: [
-		kit.provideSome(NamesApi, {
-			hasNames: () => true,
+		kit.provide(NamesApi, {
+			hasNames: (_input, ctx) => ctx.state.active,
 			nameOf: (input, ctx) => nameOf(ctx.state, input.resident) ?? null,
 			labelOf: (input, ctx) => label(ctx.state, input.resident),
 			resolve: (input, ctx) => resolve(ctx.state, input.text) ?? input.text,
+			// The choose-name line under a task (and under the closed-door text) while the resident may still choose (old `#withNameChoice`).
+			taskLine: (input, ctx) => {
+				const line = ctx.options.announcement;
+				if (line === "" || !canChoose(ctx.state, ctx.options.untilMinute, ctx.minute, input.resident)) return null;
+				return renderTemplate(line, { untilMinute: String(ctx.options.untilMinute) });
+			},
 		}),
 	],
 	tools: [
@@ -114,9 +139,9 @@ export const names = defineMechanic(namesHead, (kit) => ({
 		lock: (call, ctx) => (call.tool === "chooseName" && !isOpen(ctx.state, ctx.options.untilMinute, ctx.minute) ? refuse("TOOL_LOCKED", ctx.prompt("replies/locked", {})) : undefined),
 	},
 	hooks: {
-		minuteStarted: settle,
+		minuteStarted: { order: HOOK_ORDER.minuteStarted.names, run: settle },
 		turnInputs: (resident, ctx) => {
-			if (ctx.tryCall(ExileApi, "isExiled", { resident }) === true) return [];
+			if (!ctx.state.active || ctx.tryCall(ExileApi, "isExiled", { resident }) === true) return [];
 			return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.youAre, text: ctx.prompt("competitor/status/you-are", { agent: resident }) }];
 		},
 	},
@@ -130,8 +155,18 @@ export const names = defineMechanic(namesHead, (kit) => ({
 	snapshot: kit.snapshot({
 		version: 1,
 		schema: Slice,
-		save: (state) => ({ entries: [...state.entries.values()].map((entry) => ({ agent: entry.agent, name: entry.name, fallback: entry.fallback })), settled: state.settled }),
-		load: (data, setup) => ({ ids: setup.residents, entries: new Map(data.entries.map((entry) => [entry.agent, entry])), settled: data.settled }),
-		migrations: { 0: (old) => Parse(LegacySlice, old).names },
+		save: (state) => ({
+			entries: [...state.entries.values()].map((entry) => ({ agent: entry.agent, name: entry.name, fallback: entry.fallback })),
+			settled: state.settled,
+			...(state.active ? {} : { off: true }),
+		}),
+		load: (data, setup) => ({ ids: setup.residents, entries: new Map(data.entries.map((entry) => [entry.agent, entry])), settled: data.settled, active: data.off !== true }),
+		migrations: {
+			// A snapshot without names plays without names (old `playsNames`); one with names plays on with them.
+			0: (old) => {
+				const { names: legacy } = Parse(LegacySlice, old);
+				return legacy ?? { entries: [], settled: false, off: true };
+			},
+		},
 	}),
 }));

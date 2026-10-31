@@ -17,6 +17,8 @@ export interface NamesState {
 	readonly ids: readonly string[];
 	readonly entries: Map<string, NameEntry>;
 	settled: boolean;
+	/** False in a run that plays without names (a resumed run whose snapshot kept none): nothing is named, shown or chosen. */
+	readonly active: boolean;
 }
 
 /** 3 to 16 characters: letters, digits and hyphens, starting with a letter. */
@@ -40,7 +42,12 @@ function holderOf(state: NamesState, name: string): string | undefined {
 
 /** Whether the choice is open: the city offers `chooseName`. */
 export function isOpen(state: NamesState, untilMinute: number, minute: number): boolean {
-	return !state.settled && minute < untilMinute;
+	return state.active && !state.settled && minute < untilMinute;
+}
+
+/** Whether `agent` may still choose: it has no name and the choice is open. */
+export function canChoose(state: NamesState, untilMinute: number, minute: number, agent: string): boolean {
+	return isOpen(state, untilMinute, minute) && !state.entries.has(agent) && state.ids.includes(agent);
 }
 
 /** Why `name` is not available to anyone; undefined when it is. */
@@ -56,6 +63,7 @@ export function refusal(state: NamesState, reserved: ReadonlySet<string>, name: 
 
 /** The resident a name or an ID stands for (any case); undefined when nobody is called so. */
 export function resolve(state: NamesState, nameOrId: string): string | undefined {
+	if (!state.active) return undefined;
 	const trimmed = nameOrId.trim().toLowerCase();
 	return holderOf(state, trimmed) ?? state.ids.find((id) => id.toLowerCase() === trimmed);
 }
