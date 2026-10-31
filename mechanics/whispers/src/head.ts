@@ -3,7 +3,7 @@
  * shape. The state machine of the vote and the whisperer's duty live in index.ts and duty-notice.ts.
  */
 import { Type } from "typebox";
-import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
+import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
 import { defineHead } from "@swarmtales/kernel";
 import { ChannelsApi, ExileApi, LedgerApi, MarksApi, NamesApi, PuzzlesApi, ReceiptsApi, WhispersEvents } from "@swarmtales/mechanic-shared";
 import { Direction, WhispererSpec, type Forgery } from "./duty.ts";
@@ -42,8 +42,6 @@ export interface WhispersState {
 	ballots: Map<string, string>;
 	/** A vote saved by the old engine, waiting for the first minute of the resumed run to be restored (it needs that minute). */
 	pending: SavedVote | undefined;
-	/** The window's orders as of the last hook (recomputed, never saved): the fact `dutyNow`. */
-	now: DutyNowValue | null;
 }
 
 const Ballots = Type.Array(Type.Object({ agent: Type.String(), choice: Type.String() }));
@@ -80,7 +78,7 @@ export const whispersHead = defineHead({
 		control: Type.Boolean({ default: false, description: "A control run: the story's whisperer does not play." }),
 		direction: Type.Optional(Direction),
 	}),
-	state: (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined, now: null }),
+	state: (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined }),
 	events: {
 		...WhispersEvents.events,
 		whisper_duty: Type.Object({
@@ -129,4 +127,6 @@ export const whispersHead = defineHead({
 });
 
 export type Ctx = ContextOf<typeof whispersHead>;
+/** What a fact may read: the state, the options, the minute and the queries of the APIs. */
+export type View = ViewOf<typeof whispersHead>;
 export type ToolCtx = ToolContextOf<typeof whispersHead>;

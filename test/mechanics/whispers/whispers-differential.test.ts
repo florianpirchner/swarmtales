@@ -4,25 +4,28 @@
  * in the old order) answer alike, write the same whisperer, duty, vote and forgery events and the
  * same notices and board posts of the city, and leave the same whisperer, forgeries and vote in the
  * snapshot. Both sides run at figure direction 10 (the quota is measured). The old side is the
- * composed run of the CLI with scripted competitors, the new one the mechanics on the host with
- * stand-ins for channels, exile, puzzles and progression.
+ * composed run of the CLI with scripted competitors, the new one the mechanics on the host with the
+ * real channels, ledger, marks, receipts, puzzles and progression (test/mechanics/t1/city.ts). The
+ * story grants what the old arena offered (`storyToolNames`, R2-D7); the exile is not loaded here
+ * (whispers-exile.test.ts has the real one).
  */
 import { describe, expect, it } from "vitest";
+import { storyToolNames } from "@swarmtales/engine";
 import { defineCoreStory } from "@swarmtales/kernel";
-import { ledger } from "@swarmtales/mechanic-ledger";
-import { marks } from "@swarmtales/mechanic-marks";
-import { receipts } from "@swarmtales/mechanic-receipts";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { whispers } from "@swarmtales/mechanic-whispers";
 import { createPromptLookup } from "@swarmtales/prompts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import whispersStory from "../../../stories/whispers/story.ts";
-import { channelsStandIn, ids, recordOf } from "../t1/support.ts";
-import { courier, newOwned, oldNotices, oldOwned, payloadOf, playNew, playOld } from "../t1/differential.ts";
-import { exileStandIn, progressionStandIn, puzzlesStandIn } from "../t1/stand-ins.ts";
+import { ids, recordOf } from "../t1/support.ts";
+import { newOwned, oldNotices, oldOwned, payloadOf, playNew, playOld } from "../t1/differential.ts";
+import { realCity } from "../t1/city.ts";
 import { options as storyOptions } from "../t1/whispers-options.ts";
 
 const MINUTES = 20;
+/** The tools of the mechanics this city loads (channels, ledger, receipts, whispers, progression). */
+const PROVIDED: ReadonlySet<string> = new Set(["readBoard", "postBoard", "sendDM", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "defy", "transferPoints", "showReceipt", "blame", "forgeReceipt", "nameFavourite", "getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"]);
+
 const dm = (target: string, message: string): PlannedCall => ({ tool: "sendDM", params: { target, message } });
 const vote = (agent: string): PlannedCall => ({ tool: "nameFavourite", params: { agent } });
 const forge = (to: string, receiptId: string, text: string): PlannedCall => ({ tool: "forgeReceipt", params: { to, receiptId, text } });
@@ -31,7 +34,6 @@ const forge = (to: string, receiptId: string, text: string): PlannedCall => ({ t
 const plan = (agent: string, minute: number): readonly PlannedCall[] => {
 	if (minute === 0 && agent !== "A06") return [dm("A06", `Hello from ${agent}`)];
 	if (minute === 1 && agent === "A06") return [dm("A02", "Have you seen how A03 votes?"), dm("A03", "A02 says things about you")];
-	if (minute === 2 && agent === "A01") return [forge("A02", "R-0001", "hello")];
 	if (minute === 2 && agent === "A06") return [forge("A03", "R-0099", "x"), forge("A03", "R-0002", "x"), forge("A03", "R-0001", "   "), forge("A06", "R-0001", "x"), forge("Z99", "R-0001", "x"), forge("A03", "r-1", "A01 wrote that A02 cheats")];
 	if ([4, 5, 10, 11, 16, 17].includes(minute) && agent !== "A06") return [vote(agent === "A01" ? "A03" : "A01"), vote("A06")];
 	if ([4, 5, 10, 11, 16, 17].includes(minute) && agent === "A06") return [vote("A06"), vote("Z99"), vote("A03")];
@@ -43,38 +45,19 @@ const plan = (agent: string, minute: number): readonly PlannedCall[] => {
 
 describe("the Whispers story against the old World", () => {
 	it("answers every vote and forgery alike and writes the same events, notices and posts", async () => {
-		const story = { ...whispersStory };
-		const old = await playOld({ story, agents: 6, minutes: MINUTES, plan, figureDirection: 10, seed: 7 });
+		const old = await playOld({ story: { ...whispersStory }, agents: 6, minutes: MINUTES, plan, figureDirection: 10, seed: 7 });
 		const configured = storyOptions(whispersStory);
-		const channels = channelsStandIn();
 		const definition = defineCoreStory({
 			id: "whispers-differential",
 			seed: 7,
 			minutes: MINUTES,
 			residents: ids(6),
-			mechanics: [
-				ledger.with({ startPoints: 10 }),
-				channels.use,
-				exileStandIn([]),
-				puzzlesStandIn([]),
-				progressionStandIn().use,
-				marks.with(configured.marks),
-				receipts.with({ quoteDms: true }),
-				courier(channels.log),
-				whispers.with({ ...configured.whispers, direction: { level: 10, defies: false } }),
-			],
-			grants: { resident: ["sendDM", "nameFavourite", "forgeReceipt", "showReceipt"] },
+			mechanics: [...realCity(whispersStory), whispers.with({ ...configured.whispers, direction: { level: 10, defies: false } })],
+			grants: { resident: storyToolNames(whispersStory).filter((name) => PROVIDED.has(name)) },
 			turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 		});
 		const fresh = await playNew({ story: definition, prompts: createPromptLookup() }, plan);
-		// `sendDM` is channels' (a stand-in answers it): only its acknowledgement is compared.
-		// A tool that is not enabled: the old runner says "Tool X not found", the host TOOL_LOCKED (the same refusal).
-	const ack = (reply: string): string => {
-		if (reply.startsWith("false|sent")) return "false|sent";
-		if (/^true\|Tool \w+ not found$/.test(reply) || reply.startsWith("true|TOOL_LOCKED")) return "true|locked";
-		return reply;
-	};
-		for (const [at, replies] of old.replies) expect(fresh.replies.get(at)?.map(ack), at).toEqual(replies.map(ack));
+		for (const [at, replies] of old.replies) expect(fresh.replies.get(at), at).toEqual(replies);
 		const events = newOwned(fresh, ["whispers"]);
 		expect(events.length).toBeGreaterThan(30);
 		expect(events).toEqual(oldOwned(old, ["whispers"]));
@@ -85,9 +68,11 @@ describe("the Whispers story against the old World", () => {
 		};
 		const wanted = oldNotices(old).map(notice).filter((line) => mark(line.slice(line.indexOf("|") + 1)));
 		expect(wanted.length).toBeGreaterThan(12);
-		expect(channels.log.notices.filter((entry) => mark(entry.text)).map((entry) => `${entry.to}|${entry.text}`)).toEqual(wanted);
+		const channelLines = newOwned(fresh, ["channels"]);
+		expect(channelLines.filter((line) => line.includes('"type":"notice"')).map(notice).filter((line) => mark(line.slice(line.indexOf("|") + 1)))).toEqual(wanted);
 		const posts = (text: string): boolean => text.startsWith("THE CITY ASKS") || text.startsWith("The city has counted the vote");
-		expect(channels.log.posts.filter((post) => posts(post.text)).map((post) => post.text)).toEqual(old.lines.filter((line) => line.type === "board_post" && line.author === "CITY" && posts(String(line.text))).map((line) => String(line.text)));
+		const cityPosts = channelLines.map(recordOf).filter((line) => line.type === "board_post" && line.author === "CITY" && posts(String(line.text))).map((line) => String(line.text));
+		expect(cityPosts).toEqual(old.lines.filter((line) => line.type === "board_post" && line.author === "CITY" && posts(String(line.text))).map((line) => String(line.text)));
 		// The state: the whisperer, the forgeries and the vote.
 		const legacy = old.world.snapshot().whispers;
 		const saved = fresh.host.snapshot().mechanics.whispers?.data;

@@ -10,7 +10,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { defineMechanic, refuse } from "@swarmtales/kernel";
 import { HOOK_ORDER, INPUT_KINDS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
-import { refreshNow, tickDuty, tickVote } from "./duty-notice.ts";
+import { dutyNow, tickDuty, tickVote } from "./duty-notice.ts";
 import { DutyNow, LegacySlice, Slice, whispersHead, type Ctx, type WhispersState } from "./head.ts";
 import { favouriteTool, forgeTool } from "./tools.ts";
 import { isAlive, roundsOf } from "./view.ts";
@@ -37,7 +37,7 @@ function pick(agent: string | undefined, ids: readonly string[], draw: (from: re
 	return draw([...ids].sort((a, b) => a.localeCompare(b)));
 }
 
-const fresh = (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined, now: null });
+const fresh = (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined });
 
 export const whispers = defineMechanic(whispersHead, (kit) => ({
 	tools: [forgeTool(kit), favouriteTool(kit)],
@@ -76,7 +76,6 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 				restoreOnce(ctx);
 				tickDuty(ctx);
 				tickVote(ctx);
-				refreshNow(ctx);
 			},
 		},
 		turnInputs: {
@@ -90,19 +89,13 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 				return [{ kind: INPUT_KINDS[1].kind, order: STATUS_ORDER.popularity, text: ctx.prompt("competitor/status/popularity-vote", { label: round.label, countsAt: round.countsAt, ballot: named }) }];
 			},
 		},
-		// The window's orders as of the end of each turn and minute, for the gamemaker's situation.
-		turnEnded: (_resident, ctx) => {
-			refreshNow(ctx);
-		},
-		minuteEnded: (ctx) => {
-			refreshNow(ctx);
-		},
 	},
 	facts: {
 		whisperer: kit.fact(Type.Union([Type.String(), Type.Null()]), (view) => view.state.whisperer ?? null),
 		round: kit.fact(Type.Integer(), (view) => view.state.round),
+		// Computed live from the DMs, the exile and the hand-over test (R2-D4): a strike or a DM of this turn shows at once.
 		dutyNow: kit.fact(Type.Union([DutyNow, Type.Null()]), (view) => {
-			const now = view.state.now;
+			const now = dutyNow(view);
 			return now === null ? null : { ...now, recipients: [...now.recipients] };
 		}),
 	},

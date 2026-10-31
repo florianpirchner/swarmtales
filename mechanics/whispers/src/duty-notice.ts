@@ -4,7 +4,7 @@
  */
 import { ChannelsApi, ExileApi, LedgerApi, MarksApi } from "@swarmtales/mechanic-shared";
 import { busiestPair, dutyDue, isForgeable, previousDuty, quotaMet, quotaOf, tallyWhispers, type Quota } from "./duty.ts";
-import type { Ctx, DutyNowValue } from "./head.ts";
+import type { Ctx, DutyNowValue, View } from "./head.ts";
 import { countBallots, dutyTarget, namesList, type Counted } from "./vote.ts";
 import { dmReceiptsOf, dmsOf, handoverTest, inCity, labelOf, roundsOf } from "./view.ts";
 
@@ -19,7 +19,7 @@ export function renderTemplate(template: string, values: Readonly<Partial<Record
 	});
 }
 
-const quotaIn = (ctx: Ctx): Quota | undefined => quotaOf(ctx.options.whisperer, ctx.options.direction);
+const quotaIn = (ctx: View): Quota | undefined => quotaOf(ctx.options.whisperer, ctx.options.direction);
 
 function counted(ctx: Ctx, count: number, noun: "whispers" | "residents"): string {
 	if (noun === "whispers") return count === 1 ? ctx.prompt("duty/whispers-one", {}) : ctx.prompt("duty/whispers-many", { count });
@@ -71,7 +71,7 @@ export function sendDuty(ctx: Ctx, text: string, since: number, next: string, ra
 }
 
 /** The whisperer's measured orders in the running window, from the last vote counted to the next, with the minute so far (old `whisperDutyNow`). */
-export function dutyNow(ctx: Ctx): DutyNowValue | null {
+export function dutyNow(ctx: View): DutyNowValue | null {
 	const quota = quotaIn(ctx);
 	const agent = ctx.state.whisperer;
 	const rounds = roundsOf(ctx);
@@ -83,11 +83,6 @@ export function dutyNow(ctx: Ctx): DutyNowValue | null {
 	const tally = tallyWhispers(agent, dms, ctx.state.forgeries, handoverTest(ctx), last.countsAt, ctx.minute + 1);
 	const pair = busiestPair(agent, dms, last.countsAt, ctx.minute + 1);
 	return { agent, since: last.countsAt, nextVote: next.countsAt, whispers: tally.whispers, recipients: [...tally.recipients], needWhispers: quota.whispers, needRecipients: quota.recipients, met: quotaMet(tally, quota), ...(pair === undefined ? {} : { busiest: [pair[0], pair[1]] satisfies [string, string] }) };
-}
-
-/** Recomputes the fact `dutyNow` (a fact reads state only; the orders need the DMs of channels). */
-export function refreshNow(ctx: Ctx): void {
-	ctx.state.now = dutyNow(ctx);
 }
 
 /** The minutes the run plays (old `World#minutes`). */

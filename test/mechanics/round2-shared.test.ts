@@ -71,7 +71,7 @@ describe("the Whispers mechanics together (R2-D5)", () => {
 			seed: 7,
 			minutes: 2,
 			residents: 6,
-			mechanics: [names.with(), ledger.with({ startPoints: 10 }), channels.with({ defiance: true }), marks.with(), receipts.with({ quoteDms: true }), whispers.with()],
+			mechanics: [names.with({ announcement: "Choose a name before minute {untilMinute}." }), ledger.with({ startPoints: 10 }), channels.with({ defiance: true }), marks.with(), receipts.with({ quoteDms: true }), whispers.with()],
 			grants: { resident: ["sendDM", "defy", "forgeReceipt", "nameFavourite", "showReceipt"] },
 		});
 		const host = createHost({ story });
@@ -112,7 +112,7 @@ describe("the puzzles' secrets (R2-D8)", () => {
 describe("the order rule of D-1 (R2-D11)", () => {
 	const root = resolve(import.meta.dirname, "../../mechanics");
 	/** Plain functions the round-3 briefs still have to give a slot: owner and hook. */
-	const PENDING = ["channels:runStarted", "whispers:minuteEnded"];
+	const PENDING = ["channels:runStarted"];
 
 	it("gives every phase of a hook the order table covers its slot (a plain function is order 0)", () => {
 		const plain = readdirSync(root).flatMap((id) => {

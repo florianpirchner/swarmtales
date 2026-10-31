@@ -4,26 +4,26 @@
  */
 import { ChannelsApi, ExileApi, MarksApi, NamesApi, PuzzlesApi, ReceiptsApi, type Receipt } from "@swarmtales/mechanic-shared";
 import type { Dm, DmReceipt } from "./duty.ts";
-import type { Ctx } from "./head.ts";
+import type { Ctx, View } from "./head.ts";
 import type { Round } from "./vote.ts";
 
 /** Whether a resident is in the city: not exiled (old `inCity`, world.ts:701, 716, 1070). */
-export const inCity = (ctx: Ctx, resident: string): boolean => ctx.tryCall(ExileApi, "isExiled", { resident }) !== true;
+export const inCity = (ctx: View, resident: string): boolean => ctx.tryCall(ExileApi, "isExiled", { resident }) !== true;
 
 /** Whether a resident stands in the city and may vote: alive, not at a gate (old `standingOf(agent).kind === "alive"`). */
 export const isAlive = (ctx: Ctx, resident: string): boolean => (ctx.tryCall(ExileApi, "standing", { resident })?.kind ?? "alive") === "alive";
 
 export const labelOf = (ctx: Ctx, resident: string): string => ctx.tryCall(NamesApi, "labelOf", { resident }) ?? resident;
 
-export const roundsOf = (ctx: Ctx): readonly Round[] => ctx.options.popularity?.rounds ?? [];
+export const roundsOf = (ctx: View): readonly Round[] => ctx.options.popularity?.rounds ?? [];
 
 /** Every DM the city recorded, with the minute it was sent. */
-export function dmsOf(ctx: Ctx): readonly Dm[] {
+export function dmsOf(ctx: View): readonly Dm[] {
 	return (ctx.call(ChannelsApi, "dmRecords", {})).map((record) => ({ from: record.from, to: record.to, text: record.text ?? "", minute: record.minute }));
 }
 
 /** Whether a DM text hands over a fragment of a door (a hand-over is no whisper). */
-export const handoverTest = (ctx: Ctx): ((text: string) => boolean) => (text) => ctx.tryCall(PuzzlesApi, "isHandover", { text }) === true;
+export const handoverTest = (ctx: View): ((text: string) => boolean) => (text) => ctx.tryCall(PuzzlesApi, "isHandover", { text }) === true;
 
 /** A receipt as a forgeable DM receipt, or undefined for any other kind. */
 export function dmReceiptOf(receipt: Receipt): DmReceipt | undefined {
