@@ -89,6 +89,11 @@ function argsOf(params: unknown): Record<string, string | number | boolean> {
 }
 
 const run = cityOfKeys.run;
+/**
+ * Below what Act I spent before the checkpoint (the file's `usage` lines): a resumed run counts only
+ * its own spend (old `usage.own()`), so neither side stops for the replayed prefix.
+ */
+const BUDGET = 0.05;
 const passes = run.passesPerMinute;
 const blockSize = resolveBlockSize(run.blockSize, 6);
 
@@ -107,7 +112,7 @@ async function resumeOld(minutes: number): Promise<OldResumed> {
 	const log = new MemorySink();
 	const composed = composeRun({
 		story: WITHOUT_SEAL,
-		overrides: { minutes: start + minutes, gamemaker: false, classifier: false, ...resumeOverrides(snapshot) },
+		overrides: { minutes: start + minutes, gamemaker: false, classifier: false, budgetUsd: BUDGET, ...resumeOverrides(snapshot) },
 		models: (world) => {
 			const codeOf: CodeOf = (agent, level) => world.inspect.codeOf(agent, level);
 			const awaiting = new Set<string>();
@@ -150,7 +155,7 @@ function resumedHost(minutes: number): Host {
 		blockSize,
 		stopWhenDone: run.stopWhenDone ?? false,
 		stopWhenSeatsDecided: run.stopWhenSeatsDecided ?? false,
-		...(run.budgetUsd === undefined ? {} : { budgetUsd: run.budgetUsd }),
+		budgetUsd: BUDGET,
 	});
 	const mechanics: MechanicUse[] = [
 		ledger.with({ startPoints: story.run.startPoints }),
@@ -225,6 +230,9 @@ describe("the run resumed from the L7 checkpoint", () => {
 		expect([...replies.keys()].sort()).toEqual([...old.replies.keys()].sort());
 		for (const [at, expected] of old.replies) expect(replies.get(at), at).toEqual(expected);
 
+		const spentBefore = parseSnapshot(raw()).events.reduce((total, event) => total + (event.type === "usage" ? event.costUsd : 0), 0);
+		expect(spentBefore).toBeGreaterThan(BUDGET);
+		expect(lines.find((line) => line.type === "run_end")?.reason).toBeUndefined();
 		const arenaLines = ownedBy(old.lines, ["arena"]);
 		expect(arenaLines.filter((line) => line.startsWith('{"type":"round_end"'))).toHaveLength(minutes);
 		expect(arenaLines.some((line) => line.startsWith('{"type":"turn_skipped"'))).toBe(true);

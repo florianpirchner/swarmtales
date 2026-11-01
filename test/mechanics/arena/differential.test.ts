@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
 import { EndingApi } from "@swarmtales/mechanic-shared";
-import { act, at, defineStory, level, puzzle, team } from "@swarmtales/sdk";
+import { act, at, defineStory, level, onFirstEnter, puzzle, team } from "@swarmtales/sdk";
 import type { AnyStory, LevelDefinition, ToolName } from "@swarmtales/contracts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import { tinyStory, type TinyStoryOptions } from "../../helpers/stories.ts";
@@ -226,14 +226,23 @@ describe("the arena against the old Arena: novelty, passes and blocks", () => {
 		return [];
 	};
 
+	/**
+	 * Grants move points without a notice (the script's `adjust`): at minute 5 to A03, and when A01
+	 * enters door 2 (minute 0, in A01's turn) to A02, who follows A01 in the same block when blocks
+	 * hold two or three: what moved before A02's turn but after the block's start is still new to it.
+	 */
+	const SILENT = [at(5, [act.grant(["A03"], 3, "a quiet gift")], { id: "quiet" }), onFirstEnter(2, [act.grant(["A02"], 3, "a quiet share")], { id: "share" })];
+
 	it.each([
 		{ passesPerMinute: 1, blockSize: 1 },
 		{ passesPerMinute: 2, blockSize: 2 },
 		{ passesPerMinute: 3, blockSize: 3 },
 	])("onNovelty with $passesPerMinute passes and blocks of $blockSize", async ({ passesPerMinute, blockSize }) => {
-		const spec: Spec = { story: storyOf({ count: 3, agents: 4 }), agents: 4, minutes: 10, tools: TOOLS, plan: busy, settings: { activation: "onNovelty", passesPerMinute, blockSize } };
+		const spec: Spec = { story: storyOf({ count: 3, agents: 4, director: SILENT }), agents: 4, minutes: 10, tools: TOOLS, plan: busy, settings: { activation: "onNovelty", passesPerMinute, blockSize } };
 		const { old } = await compare(spec);
 		expect(old.lines.filter((line) => line.type === "turn_skipped").length).toBeGreaterThan(5);
+		// The silent grant is the only news A03 has at minute 5: only the points part of the novelty wakes it.
+		expect(old.lines.some((line) => line.type === "turn_input" && line.agent === "A03" && line.minute === 5)).toBe(true);
 		const resumed = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level), { resumeAfter: 5 });
 		expect(compared(resumed)).toEqual(compared(old));
 	}, 60_000);
