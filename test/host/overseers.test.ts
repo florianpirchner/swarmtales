@@ -310,7 +310,16 @@ describe("fail open", () => {
 
 describe("limits", () => {
 	it("skips calls over maxCalls, the story's limit tightening the head's", async () => {
-		const spec: WatcherSpec = { triggers: [{ hook: "between" }], calls: () => 2, limits: { maxCalls: 5 } };
+		// The body's calls() is not asked once the limit is reached (minute 2).
+		const asked: number[] = [];
+		const spec: WatcherSpec = {
+			triggers: [{ hook: "between" }],
+			calls: (_fired, minute) => {
+				asked.push(minute);
+				return 2;
+			},
+			limits: { maxCalls: 5 },
+		};
 		const { events } = await run({ story: storyOf([use(spec, "w-1", { limits: { maxCalls: 3 } })], { minutes: 3 }), overseers: scriptedOverseer({ "w-1": always("x") }) });
 		expect(lines(events).filter((entry) => /called|skipped/.test(entry))).toEqual([
 			'0 called "w-1" "hook:between" 0',
@@ -319,6 +328,7 @@ describe("limits", () => {
 			'1 called "w-1" "hook:between" 0',
 			'2 skipped "w-1" "maxCalls"',
 		]);
+		expect(asked).toEqual([0, 1]);
 	});
 
 	it("skips once the cost reached maxCostUsd and records every cost with the referee", async () => {

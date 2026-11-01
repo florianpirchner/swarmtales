@@ -343,6 +343,27 @@ describe("safe stops", () => {
 		expect(host.ended?.reason).toBe("minutes");
 	});
 
+	it("halt in the between slot too while paused, before the overseers' between calls", async () => {
+		const host = started(options({}, storyOf({ minutes: 2, turns: { blockSize: 2 } })));
+		const hand = handOf(host);
+		const paused = hand.pause();
+		let done = false;
+		const playing = host.playMinute(idleAgent).then(() => {
+			done = true;
+		});
+		expect((await paused).ok).toBe(true);
+		expect((await hand.step()).ok).toBe(true);
+		await until(() => core(host, "turn_started").length === 2);
+		await new Promise((resolve) => {
+			setTimeout(resolve, 20);
+		});
+		expect(done).toBe(false);
+		expect([core(host, "minute_ended").length, core(host, "overseer_called").length]).toEqual([0, 0]);
+		expect((await hand.resume()).ok).toBe(true);
+		await playing;
+		expect(core(host, "overseer_called").map((event) => event.minute)).toEqual([0, 0]);
+	});
+
 	it("give calls that never reached a safe stop RUN_ENDED once the run ends", async () => {
 		const host = started(options({}, storyOf({ minutes: 1 })));
 		await host.run(idleAgent);
