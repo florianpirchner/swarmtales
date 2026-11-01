@@ -231,3 +231,25 @@ Prerequisites: the expression language for conditions (CEL or JSONLogic, open); 
 verdict can complete a quest. Existing mechanics are not rewritten while the golden logs hold; `quests` is new
 and serves new stories. Open: where flags live, who may read them (audiences), how endings are declared in the
 story, and whether `goals` and the seal auction move onto `quests` later.
+
+## 12. More models for quests and world rules (Flo 2026-11-01: Kingdom Come Deliverance 2, Cyberpunk 2077, GTA V)
+
+Taken from general knowledge of the games, not from a source check. Each line is a pattern, then what it would be in
+swarmtales. All of it is idea level; none is approved.
+
+| Pattern | Seen in | Here |
+|---|---|---|
+| One objective, several approaches (talk, sneak, bribe, force) with checks on skill, character or items | KCD2, Cyberpunk | `approaches` of a quest: alternative ways to reach the objective, each with a condition and a cost; the figure's drives and archetype decide what is open |
+| Reputation per region or faction, crime needs witnesses, fines and consequences | KCD2 | `reputation` mechanic (per group, decays) fed by events; witnesses map to who could read what, like receipts and blame |
+| Origin changes the options (life path) | Cyberpunk | the archetype or core motive of a resident opens extra options in a quest, never forces them |
+| Recorded memory replay as evidence (braindance) | Cyberpunk | an `evidence` view: an overseer or resident can replay recorded events of a scene, built on the log and receipts |
+| Fixers hand out contracts, street cred gates them | Cyberpunk | overseers as quest givers; a level or rank gates quests |
+| Relationship flags shape the ending, points of no return | Cyberpunk, Witcher 3 | flags plus the ending evaluator; a `lock` that closes a path for good |
+| Heist: plan, prepare, execute, with crew, cuts and risk | GTA V | a quest preset `heist` (plan, prep, act phases; roles and shares among the team); fits teams, standoff, seal |
+| Wanted level that escalates and decays | GTA V | a `heat` meter: thresholds trigger responses (gamemaker notes, tribunal pressure, locks) |
+| Three protagonists, switch at will | GTA V | POV switching in the TUI, the replay viewer and the novel chapters |
+| Strangers and freaks, random events, ambient news | GTA V | a seeded event deck the gamemaker may draw from; a city news feed (the courier already is a seed of it) |
+| NPC schedules and needs, time pressure | KCD2 | scheduled jobs per resident or group; deadlines in quests |
+
+Candidate new mechanics: `quests` (see §11), `reputation`, `heat`, `evidence`, an event deck, a news feed. The
+common basis is the same: events in, state, events out, audiences for who sees what.
