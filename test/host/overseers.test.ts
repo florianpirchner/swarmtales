@@ -207,6 +207,15 @@ describe("event triggers and nested calls", () => {
 		expect(marking.asked[0]?.call.tools.map((tool) => tool.name)).toEqual(["mark", "poke"]);
 	});
 
+	it("fire only for events their when accepts", async () => {
+		const story = storyOf([use(onPoke)], { minutes: 1, residents: 2 });
+		const everyone: TurnTaker = async (turn) => {
+			await turn.call("poke", {});
+		};
+		const { events } = await run({ story, overseers: scriptedOverseer({ "w-1": always("p") }) }, everyone);
+		expect(lines(events).filter((entry) => /poked|called/.test(entry))).toEqual(["0 poked resident:A02", "0 poked resident:A01", '0 called "w-1" "event:tally.poked" 0']);
+	});
+
 	it("start the requests of one event at once and apply the answers in story order, whatever the models' speed", async () => {
 		const both = [use(onPoke, "a"), quietWatcher({ ...onPoke, id: "watch-b" }).as("b")];
 		const story = storyOf(both, { minutes: 1, residents: 1 });
@@ -338,7 +347,7 @@ describe("the consult trigger", () => {
 				summary: "Judges claims.",
 				options: Type.Object({}),
 				state: () => undefined,
-				events: {},
+				events: { ruled: Type.Object({ upheld: Type.Boolean() }) },
 				prompts: { "court/system": [], "court/claim": ["claim", "standingOrders"], "court/tools/verdict": [] },
 				system: "court/system",
 				input: "court/claim",
@@ -350,6 +359,9 @@ describe("the consult trigger", () => {
 			},
 			() => ({
 				calls: (fired) => (fired.kind === "consult" && typeof fired.question === "object" && fired.question !== null && "claim" in fired.question && typeof fired.question.claim === "number" ? [{ claim: fired.question.claim }] : []),
+				settle: (output, _call, ctx) => {
+					ctx.emit("ruled", { upheld: output.upheld });
+				},
 				fallback: () => undefined,
 			}),
 		);
@@ -371,9 +383,10 @@ describe("the consult trigger", () => {
 		const { events } = await run({ story, overseers: runtime }, agent);
 		expect(rolesSeen).toBe(true);
 		expect(events.some((event) => event.type === "overseer_called" || event.type === "overseer_answered")).toBe(false);
-		expect(events.filter((event) => event.type === "role_asked" || event.type === "role_answered" || event.type === "judged").map((event) => [event.type, event.payload])).toEqual([
+		expect(events.filter((event) => event.type === "role_asked" || event.type === "role_answered" || event.type === "ruled" || event.type === "judged").map((event) => [event.type, event.payload])).toEqual([
 			["role_asked", { role: "judge", tool: "accuse", question: { claim: 4 } }],
 			["role_answered", { role: "judge", ok: true, answer: { upheld: true }, costUsd: 0.01 }],
+			["ruled", { upheld: true }],
 			["judged", { verdict: "upheld" }],
 			["role_asked", { role: "judge", tool: "accuse", question: { claim: 5 } }],
 			["role_answered", { role: "judge", ok: false, error: "down", costUsd: 0 }],
