@@ -5,7 +5,7 @@
 import { Type, type Static } from "typebox";
 import { DecisionSnapshotSchema } from "./decision.ts";
 import type { EventEnvelope, EventLogView } from "./events.ts";
-import type { HumanHand } from "./overseer.ts";
+import type { HumanHand } from "./human.ts";
 import type { ToolOutcome, ToolSpec } from "./tools.ts";
 import type { Actor, GrantRole, ResidentId } from "./values.ts";
 
