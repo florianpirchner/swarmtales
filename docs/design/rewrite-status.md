@@ -56,3 +56,11 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 - Do not run `pnpm lab:*` scripts to test `--help`: they ignore it and spend money.
 - One PR at the end: say in its body that CI did not run (Actions disabled), squash-merge after `pnpm check`.
 - Whispers runs 005-007 as further golden runs are planned but not built.
+
+## Licence change on main (2026-11-01, PR #86 in swarmtales)
+
+`main` now carries the Sustainable Use License plus Additional Terms (`LICENSE`, `LICENSE-FAQ.md`, `CONTRIBUTING.md` with CLA).
+When this branch is merged into `main`: set `"license": "SEE LICENSE IN LICENSE"` in every `package.json`, except
+`packages/contracts` and `packages/sdk`, which get `"Apache-2.0"` and their own copy of the Apache text as `LICENSE`.
+Resolve conflicts in `LICENSE`, the README licence section and `package.json` in favour of `main`. Then look for docs that
+still say Apache (`docs/ideas/monorepo.md` is already adapted). New packages (overseers, plugins, mechanics) follow the same rule.
