@@ -7,13 +7,6 @@ import type { AccessPort, Actor, GrantRole, Grants, ResidentId } from "@swarmtal
 
 type Emit = (type: "tool_locked" | "tool_unlocked", payload: Readonly<Record<string, string>>) => void;
 
-/** The role an actor acts in; `host` holds no grants. */
-export function roleOf(actor: Actor): GrantRole | undefined {
-	if (actor.startsWith("resident:")) return "resident";
-	if (actor === "gamemaker" || actor === "script") return actor;
-	return undefined;
-}
-
 export function residentOf(actor: Actor): ResidentId | undefined {
 	return actor.startsWith("resident:") ? actor.slice("resident:".length) : undefined;
 }
@@ -26,14 +19,14 @@ export function residentActor(id: ResidentId): `resident:${ResidentId}` {
 export type LockProbe = (resident: ResidentId, tool: string) => boolean;
 
 export class AccessControl {
-	readonly #grants: Grants<string>;
+	readonly #grants: Grants<string, string>;
 	readonly #locks = new Map<ResidentId, Set<string>>();
 	readonly #emit: Emit;
 	#probe: LockProbe = () => true;
 	/** The probes running now: a lock handler that asks `isOpen` of the tool it is deciding would loop. */
 	readonly #probing = new Set<string>();
 
-	constructor(grants: Grants<string>, emit: Emit) {
+	constructor(grants: Grants<string, string>, emit: Emit) {
 		this.#grants = grants;
 		this.#emit = emit;
 	}
@@ -55,11 +48,12 @@ export class AccessControl {
 		}
 	}
 
+	/** Whether the story grants the tool to the grant name. */
 	granted(role: GrantRole, tool: string): boolean {
 		return (this.#grants[role] ?? []).includes(tool);
 	}
 
-	/** Tools granted to a role, in grant order. */
+	/** Tools granted to a grant name, in grant order. */
 	grantsOf(role: GrantRole): readonly string[] {
 		return this.#grants[role] ?? [];
 	}

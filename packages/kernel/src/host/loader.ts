@@ -8,8 +8,11 @@ import { Check } from "typebox/value";
 import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
-import { servesOverlap, toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
+import { toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
+import { CORE_OWNER, type DecisionGate } from "./decisions.ts";
 import type { EventBus } from "./log.ts";
+import { checkNames, checkOverseerNames } from "./name-checks.ts";
+import type { Names } from "./names.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import type { Scheduler } from "./scheduler.ts";
 import type { StagingQueue } from "./staging.ts";
@@ -75,6 +78,10 @@ export interface LoaderParts {
 	readonly staging: StagingQueue;
 	/** The model-backed roles of the run, by name (`ctx.roles.has`). */
 	readonly roles: ReadonlySet<string>;
+	/** The story's grant names and callers. */
+	readonly names: Names;
+	/** The decision gate: `ctx.decide`, `ctx.decisions` and the core tool `amendDecision`. */
+	readonly gate: DecisionGate;
 }
 
 export interface Loaded {
@@ -86,14 +93,17 @@ export interface Loaded {
 
 export function loadMechanics(parts: LoaderParts): Loaded {
 	const { story, bus } = parts;
+	checkOverseerNames(story);
 	const order = loadOrder(story.mechanics);
 	const provided = new Set(order.flatMap((use) => use.mechanic.provides.map((api) => api.name)));
 	const instances = new Map<string, MechanicInstance>();
 	const services = new Map<string, ProvidedApi>();
-	const tools = new Map<string, readonly LoadedTool[]>();
+	// The core's own tools come first; a mechanic that defines one of their names for the same callers fails below.
+	const tools = new Map<string, readonly LoadedTool[]>([[parts.gate.tool().name, [{ owner: CORE_OWNER, tool: parts.gate.tool() }]]]);
 	const owners = new Map<string, string>();
 	for (const use of order) {
 		const definition = use.mechanic;
+		if (definition.id === CORE_OWNER) throw new Error(`story: a mechanic may not be called "${CORE_OWNER}"`);
 		for (const type of Object.keys(definition.events)) {
 			if (Object.hasOwn(CORE_EVENTS, type)) throw new Error(`${definition.id}: event "${type}" is reserved by the core`);
 			const owner = owners.get(type);
@@ -101,13 +111,13 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 			owners.set(type, definition.id);
 		}
 		let jobs: readonly string[] = [];
-		const port = portFor(parts, definition.id, use, { services, provided }, () => jobs, tools);
+		const port = portFor(parts, definition.id, use, { services, provided }, () => jobs, tools, () => instances.get(definition.id));
 		const instance = definition.instantiate(port, use.options);
 		jobs = instance.jobs;
 		for (const service of instance.services) services.set(service.api.name, service);
 		for (const tool of instance.tools) {
 			const others = tools.get(tool.name) ?? [];
-			const clash = others.find((other) => servesOverlap(other.tool.serves, tool.serves));
+			const clash = others.find((other) => parts.names.overlap(other.tool.serves, tool.serves));
 			if (clash !== undefined) throw new Error(`${definition.id}: tool "${tool.name}" is defined by "${clash.owner}" too, for the same role`);
 			tools.set(tool.name, [...others, { owner: definition.id, tool }]);
 		}
@@ -115,12 +125,13 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 		bus.listen(instance.listeners);
 	}
 	checkListeners(order, instances);
-	const policies = Object.values(story.tools ?? {}).flatMap((byTool) => Object.keys(byTool));
-	const named = [...Object.values(story.grants).flat(), ...(story.locked ?? []), ...policies];
+	checkNames({ story, names: parts.names, tools, events: owners, roles: parts.roles, prompts: parts.prompts });
+	const policies = Object.values(story.tools ?? {}).flatMap((byTool) => Object.keys(byTool ?? {}));
+	const named = [...Object.values(story.grants).flatMap((tools) => tools ?? []), ...(story.locked ?? []), ...policies];
 	for (const name of named) if (!tools.has(name)) throw new Error(`story: tool "${name}" is granted, locked or configured, but no loaded mechanic defines it`);
 	for (const [role, byTool] of Object.entries(story.tools ?? {})) {
 		if (role === "resident") continue;
-		const guarded = Object.entries(byTool).find(([, policy]) => policy?.guard !== undefined);
+		const guarded = Object.entries(byTool ?? {}).find(([, policy]) => policy?.guard !== undefined);
 		if (guarded !== undefined) throw new Error(`story: tool "${guarded[0]}" has a guard policy for ${role}, but the guard covers residents only`);
 	}
 	return { order: order.map((use) => use.mechanic.id), instances, tools };
@@ -164,6 +175,7 @@ function portFor(
 	apis: { readonly services: ReadonlyMap<string, ProvidedApi>; readonly provided: ReadonlySet<string> },
 	jobs: () => readonly string[],
 	tools: ToolCatalog,
+	self: () => MechanicInstance | undefined,
 ): MechanicPort {
 	const { services, provided } = apis;
 	const isTool = (tool: string): boolean => tools.has(tool);
@@ -214,10 +226,15 @@ function portFor(
 			const then = options?.then;
 			if (then !== undefined && !jobs().includes(then)) throw new Error(`${id}: stages ${tool} with "then" job "${then}", which it does not declare`);
 			if (!isTool(tool)) throw new Error(`${id}: stages "${tool}", which no loaded mechanic defines`);
-			const variant = toolFor(tools, tool, "script");
+			const variant = toolFor(tools, tool, { name: "script" });
 			if (variant !== undefined && variant.tool.parameters !== ref.parameters) throw new Error(`${id}: stages "${tool}" with another parameter schema than ${variant.owner} defines; both must use the shared declaration`);
 			parts.staging.push({ owner: id, tool, params, cause: bus.frame().cause, then });
 		},
+		decide(kind, proposal, options, commit) {
+			if (self() === undefined) throw new Error(`${id}: decides "${kind}" before it is loaded`);
+			return parts.gate.decide(id, kind, proposal, options, commit);
+		},
+		decisions: parts.gate,
 		residents: parts.residents.portFor(id),
 		schedule: parts.scheduler.portFor(id, { has: (job) => jobs().includes(job) }, parts.minute),
 		access: parts.access.portFor(id, isTool),

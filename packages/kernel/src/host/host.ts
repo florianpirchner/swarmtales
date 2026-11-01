@@ -8,7 +8,6 @@ import { Check, Parse } from "typebox/value";
 import {
 	CORE_EVENTS,
 	EventEnvelopeSchema,
-	GRANT_ROLES,
 	HostSnapshotSchema,
 	type Actor,
 	type CoreStory,
@@ -31,9 +30,11 @@ import {
 	type TurnTaker,
 } from "@swarmtales/contracts";
 import { AccessControl } from "./access.ts";
+import { CORE_OWNER, DecisionGate } from "./decisions.ts";
 import { Gateway } from "./gateway.ts";
 import { toolFor } from "./catalog.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
+import { Names } from "./names.ts";
 import { orderedPhases } from "./phases.ts";
 import { lockProbe } from "./probe.ts";
 import { StagingQueue } from "./staging.ts";
@@ -63,6 +64,11 @@ export interface HostOptions {
 	readonly between?: (minute: number) => Promise<void>;
 	/** The events the app may write with `host.record` (source `app`). */
 	readonly app?: { readonly events: EventSchemas };
+	/**
+	 * A control channel for the human is attached (docs/design/overseer-api.md §5): only then does
+	 * `human` hold decisions. The human hand itself (`host.hand()`) comes with step 18's step 6.
+	 */
+	readonly human?: boolean;
 }
 
 class CoreHost implements Host {
@@ -76,6 +82,8 @@ class CoreHost implements Host {
 	readonly #loaded: Loaded;
 	readonly #gateway: Gateway;
 	readonly #turns: TurnLoop;
+	readonly #names: Names;
+	readonly #gate: DecisionGate;
 	readonly #staging = new StagingQueue();
 	readonly #between: ((minute: number) => Promise<void>) | undefined;
 	readonly #app: EventSchemas;
@@ -105,7 +113,9 @@ class CoreHost implements Host {
 		const ids = typeof story.residents === "number" ? residentIds(story.residents) : story.residents;
 		this.#registry = new ResidentRegistry(ids, emitCore);
 		this.#access = new AccessControl(story.grants, emitCore);
-		this.#referee = new Referee(story.limits);
+		const names = new Names(story);
+		this.#names = names;
+		this.#referee = new Referee(story.limits, (actor) => names.callerOf(actor));
 		this.#bus.subscribe((event) => {
 			this.#referee.observe(event.type);
 		});
@@ -114,15 +124,18 @@ class CoreHost implements Host {
 		const reserved = Object.keys(this.#app).find((type) => Object.hasOwn(CORE_EVENTS, type));
 		if (reserved !== undefined) throw new Error(`app: event "${reserved}" is reserved by the core`);
 		const roles = new Set(Object.keys(options.roles ?? {}));
-		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging, roles });
+		this.#gate = this.#decisionGate(options, names);
+		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging, roles, names, gate: this.#gate });
 		this.#access.setProbe(lockProbe(this.#bus, this.#loaded.tools, () => this.#instances()));
 		for (const [name, variants] of this.#loaded.tools) {
 			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
-			for (const role of GRANT_ROLES) {
+			// Built-ins first in the old order, then `human`, then the overseers: today's counter keys stay (§2).
+			for (const role of names.all) {
 				const policy = story.tools?.[role]?.[name]?.limit;
 				if (policy !== undefined) this.#referee.addToolLimit(name, policy, [role]);
 			}
 		}
+		this.#interventions(story);
 		this.#referee.addRunLimits(this.#instances().flatMap((instance) => instance.limits));
 		this.#access.lockAtStart(ids, story.locked ?? []);
 		this.#gateway = new Gateway({
@@ -133,6 +146,7 @@ class CoreHost implements Host {
 			policies: story.tools ?? {},
 			access: this.#access,
 			residents: this.#registry,
+			names,
 			referee: this.#referee,
 			guard: options.guard,
 			roles: options.roles ?? {},
@@ -251,7 +265,13 @@ class CoreHost implements Host {
 		bus.emit("core", "minute_started", {});
 		// Calls staged before the first minute (by runStarted hooks) run now.
 		await this.#gateway.settle();
-		for (const job of this.#scheduler.take(minute)) {
+		const due = this.#scheduler.take(minute);
+		// Open decisions whose deadline came settle first, in the order they were opened (§3.2 rule 6).
+		for (const job of due.filter((entry) => entry.owner === CORE_OWNER)) {
+			this.#gate.settle(job.data);
+			await this.#gateway.settle();
+		}
+		for (const job of due.filter((entry) => entry.owner !== CORE_OWNER)) {
 			const instance = this.#loaded.instances.get(job.owner);
 			if (instance === undefined) throw new Error(`scheduler: job of unknown mechanic "${job.owner}"`);
 			bus.run({ actor: "host" }, () => {
@@ -294,8 +314,9 @@ class CoreHost implements Host {
 	}
 
 	toolSpecs(role: GrantRole): readonly ToolSpec[] {
+		const caller = this.#names.caller(role);
 		return this.#access.grantsOf(role).flatMap((name) => {
-			const loaded = toolFor(this.#loaded.tools, name, role);
+			const loaded = toolFor(this.#loaded.tools, name, caller);
 			if (loaded === undefined) return [];
 			return [{ name, description: this.#description(loaded.owner, loaded.tool), parameters: loaded.tool.parameters }];
 		});
@@ -355,6 +376,51 @@ class CoreHost implements Host {
 	stop(reason: string): void {
 		this.#stopRequest = reason;
 		if (!this.#playing && this.#ended === undefined) this.#end({ reason: "stopped", minute: this.#minute });
+	}
+
+	/**
+	 * The gate's view of this host: who is reachable (a declared overseer, the gamemaker when the app
+	 * drives one through `between` or an overseer of that name, the human when a channel is attached),
+	 * the heads' schemas and the instances' commits.
+	 */
+	#decisionGate(options: HostOptions, names: Names): DecisionGate {
+		const story = options.story;
+		const declared = new Set((story.overseers ?? []).map((use) => use.name));
+		const prompts = this.#prompts;
+		return new DecisionGate({
+			bus: this.#bus,
+			scheduler: this.#scheduler,
+			minute: () => this.#minute,
+			names,
+			access: this.#access,
+			policies: story.decisions ?? {},
+			reachable: (name) => declared.has(name) || (name === "gamemaker" && options.between !== undefined) || (name === "human" && options.human === true),
+			schemaOf: (owner, kind) => story.mechanics.find((use) => use.mechanic.id === owner)?.mechanic.decisions[kind],
+			commit: (owner, commit, proposal, settled) => {
+				const instance = this.#loaded.instances.get(owner);
+				if (instance === undefined) throw new Error(`decisions: commit of unknown mechanic "${owner}"`);
+				instance.commit(commit, proposal, settled);
+			},
+			reply: (code) => coreReply(prompts, code),
+			amended: (decision, proposal) => prompts?.render(CORE_OWNER, "core/replies/decision-amended", { decision, proposal }, ["decision", "proposal"]),
+		});
+	}
+
+	/**
+	 * An overseer's `maxInterventions` (its head's, and the story's on top: tighten, never lift) counts
+	 * its successful calls of every tool granted to its name under the key `overseer:<name>`.
+	 */
+	#interventions(story: CoreStory): void {
+		for (const use of story.overseers ?? []) {
+			const limits = [
+				[use.overseer.limits?.maxInterventions, `overseer:${use.name}`],
+				[use.limits?.maxInterventions, `overseer:${use.name}/story`],
+			] as const;
+			for (const [limit, key] of limits) {
+				if (limit === undefined) continue;
+				for (const tool of this.#access.grantsOf(use.name)) this.#referee.addToolLimit(tool, { ...limit, key }, [use.name]);
+			}
+		}
 	}
 
 	/** The breach that ended the turns of the minute, if one did. */
@@ -437,7 +503,7 @@ class CoreHost implements Host {
 	}
 
 	#parts(): SnapshotParts {
-		return { story: this.#story, bus: this.#bus, registry: this.#registry, access: this.#access, scheduler: this.#scheduler, referee: this.#referee, loaded: this.#loaded };
+		return { story: this.#story, bus: this.#bus, registry: this.#registry, access: this.#access, scheduler: this.#scheduler, referee: this.#referee, loaded: this.#loaded, gate: this.#gate };
 	}
 
 	#restore(snapshot: HostSnapshot): void {

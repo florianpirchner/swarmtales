@@ -8,7 +8,7 @@ import { Type } from "typebox";
 import { defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER, ProgressionApi, STATUS_ORDER, TribunalApi, TribunalViewApi } from "@swarmtales/mechanic-shared";
 import { actLevel, missing, render } from "./city.ts";
-import { prices, tick } from "./court.ts";
+import { commitVerdict, prices, tick } from "./court.ts";
 import { tribunalHead, type TribunalCtx } from "./head.ts";
 import { atRisk, canVote, cityCall, draftPhase, draftStep, schedule, schedulingWindow, vote } from "./schedule.ts";
 import { tribunalSnapshot } from "./slice.ts";
@@ -127,6 +127,7 @@ export const tribunal = defineMechanic(tribunalHead,(kit) => ({
 			},
 		}),
 	],
+	commits: { verdict: commitVerdict },
 	pipeline: {
 		lock: (call, ctx) => {
 			if (call.owner !== "tribunal") return undefined;

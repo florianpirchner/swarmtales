@@ -11,7 +11,7 @@ import type { EventBus } from "./log.ts";
 
 export function lockProbe(bus: EventBus, tools: ToolCatalog, instances: () => readonly MechanicInstance[]): LockProbe {
 	return (resident, tool) => {
-		const loaded = toolFor(tools, tool, "resident");
+		const loaded = toolFor(tools, tool, { name: "resident" });
 		if (loaded === undefined) return false;
 		const before = bus.lastSeq;
 		const call: ToolCall = { tool, owner: loaded.owner, actor: residentActor(resident), resident, params: undefined, seq: before };

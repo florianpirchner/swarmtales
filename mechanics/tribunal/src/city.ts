@@ -4,7 +4,7 @@
  * the exiled are the exile's (`ExileApi`). The functions that only read take `Reads`, which a
  * mechanic context and the facts' view both give, so the facts compute what the API answers.
  */
-import type { ApiInput, ApiOutput, QueryMethodName, ShapeOf } from "@swarmtales/contracts";
+import type { ApiInput, ApiOutput, DecisionsView, QueryMethodName, ShapeOf } from "@swarmtales/contracts";
 import { ChannelsApi, ExileApi, LedgerApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import type { tribunalHead, TribunalCtx } from "./head.ts";
 import { actEnd, exileTarget, tribunalHeld, tribunalRuleValues } from "./rules.ts";
@@ -22,6 +22,8 @@ export interface Reads {
 	readonly options: TribunalSpec;
 	readonly minutes: number;
 	readonly residents: { readonly ids: readonly string[] };
+	/** The decision gate: a verdict still open there keeps the tribunal busy. */
+	readonly decisions: DecisionsView;
 	call<A extends Required, K extends QueryMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K>;
 }
 

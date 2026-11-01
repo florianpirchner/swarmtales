@@ -18,6 +18,11 @@ export interface EventEnvelope<T extends string = string, P = unknown> {
 	readonly actor: Actor;
 	/** The event this one is a consequence of (a tool call, a service call, an event a listener reacted to). */
 	readonly causedBy?: number;
+	/**
+	 * The grant names that may read the event (docs/design/overseer-api.md §4.1); absent: everyone.
+	 * Mechanics, the human and the reporter read every event; an overseer only those for it.
+	 */
+	readonly audience?: readonly string[];
 	readonly payload: P;
 }
 
@@ -97,6 +102,57 @@ export const CORE_EVENTS = {
 	referee_intervened: Type.Object({ limit: Type.String(), reason: Type.String() }),
 	/** `detail` carries the error's message when the reason is `error`. */
 	run_ended: Type.Object({ reason: Type.String(), detail: Type.Optional(Type.String()) }),
+	/**
+	 * A decision opened a window (docs/design/overseer-api.md §3): `decision` is this event's seq,
+	 * `kind` is `<mechanic>.<kind>`, `holders` the grant names that may amend it until `deadline`.
+	 */
+	decision_proposed: Type.Object({
+		decision: Type.Integer(),
+		kind: Type.String(),
+		owner: Type.String(),
+		proposal: Type.Unknown(),
+		schema: Type.Optional(Type.Unknown()),
+		deadline: Type.Integer(),
+		holders: Type.Array(Type.String()),
+	}),
+	/** The deadline came: the proposal that stood commits; `by` and `reason` are the amendment's that won. */
+	decision_settled: Type.Object({
+		decision: Type.Integer(),
+		kind: Type.String(),
+		changed: Type.Boolean(),
+		by: Type.Optional(Type.String()),
+		reason: Type.Optional(Type.String()),
+		proposal: Type.Unknown(),
+		amendments: Type.Array(Type.Object({ by: Type.String(), seq: Type.Integer() })),
+	}),
+	/** An overseer is asked (one model request with its tool loop); `index` counts the calls of one firing. */
+	overseer_called: Type.Object({ overseer: Type.String(), trigger: Type.String(), index: Type.Integer() }),
+	/** What came back, and from where; the answer fails open (`fallback`, `none`), never a refusal. */
+	overseer_answered: Type.Object({
+		overseer: Type.String(),
+		ok: Type.Boolean(),
+		by: Type.Union([Type.Literal("model"), Type.Literal("fallback-model"), Type.Literal("fallback"), Type.Literal("none")]),
+		output: Type.Optional(Type.Unknown()),
+		error: Type.Optional(Type.String()),
+		costUsd: Type.Number(),
+		/** The overseer's account of each order it carried (an order obliges one). */
+		orders: Type.Optional(Type.Array(Type.Object({ order: Type.Integer(), followed: Type.Boolean(), reason: Type.String() }))),
+	}),
+	/** A trigger fired, but a limit (`maxCalls`, `maxCostUsd`) held the overseer back. */
+	overseer_skipped: Type.Object({ overseer: Type.String(), reason: Type.String() }),
+	/** The standing orders a call carries, by the seq of their `human_note`. */
+	orders_applied: Type.Object({ overseer: Type.String(), orders: Type.Array(Type.Integer()) }),
+	/** The human's instruction (`instruct`): a standing order to `target`, copied to `copy`. */
+	human_note: Type.Object({
+		order: Type.Integer(),
+		target: Type.String(),
+		text: Type.String(),
+		mode: Type.Union([Type.Literal("advice"), Type.Literal("order")]),
+		lifetime: Type.Unknown(),
+		copy: Type.Array(Type.String()),
+	}),
+	/** The human amended an open decision; only the human may change it again. */
+	human_amend: Type.Object({ decision: Type.Integer(), proposal: Type.Unknown(), reason: Type.String() }),
 } as const;
 
 export type CoreEvent = EventOf<"core", typeof CORE_EVENTS>;
@@ -107,7 +163,16 @@ export const EventEnvelopeSchema = Type.Object({
 	minute: Type.Integer({ minimum: 0 }),
 	type: Type.String(),
 	source: Type.String(),
-	actor: Type.Union([Type.TemplateLiteral("resident:${string}"), Type.Literal("gamemaker"), Type.Literal("script"), Type.Literal("host")]),
+	actor: Type.Union([
+		Type.TemplateLiteral("resident:${string}"),
+		Type.TemplateLiteral("overseer:${string}"),
+		Type.Literal("gamemaker"),
+		Type.Literal("script"),
+		Type.Literal("human"),
+		Type.Literal("host"),
+	]),
 	causedBy: Type.Optional(Type.Integer({ minimum: 1 })),
+	/** Absent in every old file and in the legacy shape. */
+	audience: Type.Optional(Type.Array(Type.String())),
 	payload: Type.Unknown(),
 });

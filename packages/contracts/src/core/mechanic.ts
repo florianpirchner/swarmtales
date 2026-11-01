@@ -8,6 +8,7 @@ import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiImplementation, ProvidedApi } from "./api.ts";
 import type { ConsultDefinition, Consulted, GuardedSecret, GuardHandlers, PreparedConsult, PresentationHandlers } from "./consult.ts";
 import type { FactView, MechanicContext, MechanicPort, MechanicShape, Shape, StateSetup, ToolContext } from "./context.ts";
+import type { DecisionSchemas, Settlement } from "./decision.ts";
 import type { CORE_EVENTS, EventEnvelope, EventSchemas, EventsDefinition } from "./events.ts";
 import type { TurnLine } from "./host.ts";
 import type { Refusal, ToolCall, ToolLimit, ToolOutcome, ToolSuccess } from "./tools.ts";
@@ -47,6 +48,8 @@ export interface MechanicHead<
 	R extends readonly ApiDefinition[],
 	Pv extends readonly ApiDefinition[],
 	U extends readonly ApiDefinition[] = [],
+	// eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type -- a mechanic without decisions has an empty set
+	D extends DecisionSchemas = Record<never, TSchema>,
 > {
 	readonly id: Id;
 	/** One line for `swt module show`. */
@@ -68,12 +71,16 @@ export interface MechanicHead<
 	readonly state: (setup: StateSetup<O>) => S;
 	/** Event type to payload schema (`{}` for none). */
 	readonly events: E;
+	/** Per event type, who may read it (docs/design/overseer-api.md §4.1); absent: everyone. */
+	readonly audiences?: Partial<Readonly<Record<keyof E & string, readonly string[]>>>;
 	readonly prompts?: P;
+	/** Decision kinds to the schemas of their proposals (`ctx.decide`, §3); the full kind is `<id>.<kind>`. */
+	readonly decisions?: D;
 }
 
 /** The shape of a head declared apart with `defineHead`, so helpers outside the body can name their context. */
 export type ShapeOf<H> =
-	H extends MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U> ? Shape<O, S, E, P, R, Pv, U> : never;
+	H extends MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> ? Shape<O, S, E, P, R, Pv, U, D> : never;
 
 /** The context of hooks, listeners, jobs and services of the mechanic with head `H`. */
 export type ContextOf<H> = MechanicContext<ShapeOf<H>>;
@@ -92,11 +99,12 @@ export interface ToolDefinition<M extends MechanicShape, N extends string, P ext
 	readonly parameters: P;
 	/** The mechanic's own limit (stage `limit`); a story can add a tighter one. */
 	readonly limit?: ToolLimit;
-	/** The roles the mechanic suggests; only the story's `grants` decide. */
+	/** The grant names the mechanic suggests; only the story's `grants` decide. */
 	readonly suggest?: readonly GrantRole[];
 	/**
-	 * The roles this tool serves (all when left out). Two tools may share a name when the roles they
-	 * serve do not overlap: a resident's `post` and the gamemaker's may be two tools.
+	 * The grant names this tool serves (all when left out); an entry also matches the definition id of
+	 * a calling overseer (`acme/terminator` serves `terminator-1`). Two tools may share a name when no
+	 * caller is served by both: a resident's `post` and the gamemaker's may be two tools.
 	 */
 	readonly serves?: readonly GrantRole[];
 	/** The tool's own program-checkable rule (stage `rule`). */
@@ -132,8 +140,10 @@ export interface MechanicTool<N extends string = string> {
 	readonly parameters: TSchema;
 	readonly limit: ToolLimit | undefined;
 	readonly suggest: readonly GrantRole[];
-	/** Undefined: every role. */
+	/** Undefined: every caller. */
 	readonly serves: readonly GrantRole[] | undefined;
+	/** The role its `consult` asks and the answer schema it reads, for the loader's checks. */
+	readonly consult?: { readonly role: string; readonly answer: TSchema };
 	/** Undefined when the arguments do not match the schema. */
 	prepare(raw: unknown, actor: Actor, resident: ResidentId | undefined): PreparedCall | undefined;
 }
@@ -296,6 +306,14 @@ export interface PipelineHandlers<M extends MechanicShape> {
 
 export type MechanicJob<M extends MechanicShape> = (ctx: MechanicContext<M>, data: JsonValue | undefined) => void;
 
+/**
+ * What runs with the proposal that stood (docs/design/overseer-api.md §3), by decision kind. It runs
+ * against the world as it is then, so it re-checks what may have changed since the proposal.
+ */
+export type MechanicCommits<M extends MechanicShape> = {
+	readonly [K in keyof M["decisions"] & string]?: (proposal: Static<M["decisions"][K]>, settled: Settlement, ctx: MechanicContext<M>) => void;
+};
+
 /** What `build(kit)` returns. */
 export interface MechanicBody<M extends MechanicShape, T extends readonly MechanicTool[]> {
 	readonly tools?: T;
@@ -306,6 +324,8 @@ export interface MechanicBody<M extends MechanicShape, T extends readonly Mechan
 	readonly pipeline?: PipelineHandlers<M>;
 	readonly limits?: readonly RunLimit[];
 	readonly jobs?: Readonly<Record<string, MechanicJob<M>>>;
+	/** The commits of the head's decision kinds. */
+	readonly commits?: MechanicCommits<M>;
 	/** Required when the initial state is not `undefined`. */
 	readonly snapshot?: SnapshotSlice;
 	/** The turn policy this mechanic supplies (at most one loaded mechanic may); the story's fields win. */
@@ -352,6 +372,8 @@ export interface MechanicInstance {
 	readonly limits: readonly RunLimit[];
 	readonly jobs: readonly string[];
 	runJob(job: string, data: JsonValue | undefined): void;
+	/** Runs the commit of a decision kind with a proposal checked against the kind's schema. */
+	commit(kind: string, proposal: unknown, settled: Settlement): void;
 	readonly stateful: boolean;
 	readonly snapshot: SnapshotSlice | undefined;
 	readonly turns: TurnPolicy | undefined;
@@ -375,6 +397,8 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
 	readonly options: O;
 	readonly events: E;
 	readonly prompts: PromptKeys;
+	/** Decision kinds to their proposal schemas. */
+	readonly decisions: DecisionSchemas;
 	/** Phantom, never set: the names of the mechanic's tools. */
 	readonly toolNames?: Tools;
 	/** Fills defaults and checks the options; throws with the mechanic's id on a bad value. */

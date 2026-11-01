@@ -97,6 +97,14 @@ export const TribunalOptions = Type.Object({
 	bequestPerHeir: Type.Number({ description: "Share of its points a resident at the gate may leave each heir, in (0, 1]." }),
 	factions: Type.Optional(FactionSpec),
 	texts: TribunalTexts,
+	decisionWindow: Type.Optional(
+		Type.Integer({
+			minimum: 0,
+			default: 0,
+			description:
+				"Not part of the story's `tribunal` spec: minutes the verdict stays open at the decision gate for the names that hold `tribunal.verdict` (docs/design/overseer-api.md §3.3); 0 commits it at once, as every story did before.",
+		}),
+	),
 	gamemakerRoles: Type.Optional(
 		Type.Immutable(Type.Array(
 			Type.Object({
