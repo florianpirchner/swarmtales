@@ -46,6 +46,17 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 5. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
    sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
    instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).
+5a. **Signed event log** (Flo's requirement 2026-11-01, priority: right after the wave C golden compare, before the final PR and
+   before any ISTAnt run). Every run gets its own Ed25519 key pair (node:crypto, no new dependency); the public key is stored with
+   the run, the private key lives only in memory and is gone when the run ends. Each event carries `hash = sha256(previousHash,
+   canonical JSON (RFC 8785) of the event)`; a genesis entry holds public key, code commit, story hash, seed and models (ISTAnt:
+   also a hash of the treatment assignment); the run end is signed over the head hash. `swt log verify <run>` checks any chain
+   against its public key. Resumed runs chain from the snapshot's head hash. **Golden fit:** the golden logs must stay byte-equal,
+   so the first form is a sidecar (`events.chain.jsonl` + `run.pub`) over the unchanged `events.jsonl` lines; the goldens compare
+   with the sidecar off or ignore it. Limit to state in the docs: without an external anchor of the public key (timestamp) an
+   operator could re-sign a fake log with a fresh key, so the chain proves integrity after publication, not authenticity.
+   Where: `packages/kernel/src/host/log.ts` (a log sink after the legacy adapter), verify in `apps/cli`, tests with a tampered
+   line, a deleted line, a swapped order and a resume.
 6. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
 
 ## Notes for whoever continues
