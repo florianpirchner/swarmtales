@@ -93,7 +93,6 @@ export const Action = Type.Cyclic(
 	"Action",
 );
 export type Action = Static<typeof Action>;
-export type ActionKind = Action["kind"];
 export type PetitionSpec = Extract<Action, { readonly kind: "openPetition" }>["petition"];
 
 export const Rule = Type.Object({ id: Type.String(), trigger: Trigger, when: Type.Array(Condition), actions: Type.Array(Action) });
