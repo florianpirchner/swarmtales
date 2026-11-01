@@ -265,3 +265,16 @@ common basis is the same: events in, state, events out, audiences for who sees w
 | A leader whose plans keep failing and whose trust erodes | the gamemaker or a faction leader as an overseer with a `trust` score per follower; low trust triggers defections |
 | A doomed arc with an epilogue: the structure is a decline, the epilogue shows the consequences | a story-level arc (acts with a planned direction) and an epilogue from the flags, written by the novelist |
 | Optional bonus objectives per mission | quest `bonus` objectives with their own reward |
+
+## 13. Decision: the expression language is CEL (Flo, 2026-11-01)
+
+Story rules, quest objectives and conditions are CEL strings (Common Expression Language: C-like, typed, no loops,
+no side effects, always terminates). The old story rules map onto it (`maxLength` becomes `size(params.text) <= 280`).
+`swt validate` and the editor type-check expressions against the schemas of events, facts and tool parameters, and the
+graphical designer builds CEL text from boxes for simple cases. A structured matcher (`when: { event: ..., facts: ... }`)
+stays as a short form that is translated to CEL.
+
+TypeScript implementations (npm) found by a quick search, not yet tried: `@marcbachmann/cel-js` (zero dependencies, types,
+claims broad coverage), `cel-js` (Chevrotain based, gaps in some macros), `cel-javascript` (early stage). A spike must
+check macros (`exists`, `all`, `filter`, `map`), custom functions, error messages and speed before one is chosen; a
+thin wrapper keeps the choice replaceable.
