@@ -13,11 +13,13 @@ export { GoalsApi, ProgressionApi, PuzzlesApi, Team } from "./progress.ts";
 export { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 export { INPUT_KINDS, STATUS_ORDER } from "./turn-input.ts";
 export { HOOK_ORDER, LISTENER_ORDER, legacyTurnOrder, legacyTurns } from "./order.ts";
+export { Ending, EndingApi } from "./ending.ts";
 
 import { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";
 import { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, NotesApi, PetitionsApi } from "./messages.ts";
 import { GoalsApi, ProgressionApi, PuzzlesApi } from "./progress.ts";
 import { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
+import { EndingApi } from "./ending.ts";
 
 /** Every shared API, in carve order. */
 export const SHARED_APIS = [
@@ -40,4 +42,5 @@ export const SHARED_APIS = [
 	TribunalViewApi,
 	SealApi,
 	StandoffTribunalApi,
+	EndingApi,
 ] as const;
