@@ -47,6 +47,13 @@ const HEADS: readonly Head[] = [
 
 const names = (apis: readonly ApiDefinition[] | undefined): readonly string[] => (apis ?? []).map((api) => api.name);
 
+/**
+ * Shared APIs declared ahead of their provider: a head may only `use` them (never require them),
+ * and each must get its provider in a later step, which removes it here. `ending`: the arena asks
+ * it at the run's end (step 18, docs/design/step18-requests-A1.md); no mechanic provides it yet.
+ */
+const UNPROVIDED: readonly string[] = ["ending"];
+
 /** `requires` order: a head after the providers of its required APIs (Kahn, ties by HEADS order). */
 function requiresOrder(): readonly string[] {
 	const provider = new Map(HEADS.flatMap((head) => names(head.provides).map((api) => [api, head.id] as const)));
@@ -72,13 +79,15 @@ describe("the mechanic packages", () => {
 
 	it("give every shared API exactly one provider", () => {
 		const provided = HEADS.flatMap((head) => names(head.provides));
-		expect([...provided].sort()).toEqual(SHARED_APIS.map((api) => api.name).sort());
+		expect(provided.filter((api) => UNPROVIDED.includes(api))).toEqual([]);
+		expect([...provided, ...UNPROVIDED].sort()).toEqual(SHARED_APIS.map((api) => api.name).sort());
 	});
 
 	it("require and use only provided APIs, never their own", () => {
 		const provided = new Set(HEADS.flatMap((head) => names(head.provides)));
 		for (const head of HEADS) {
-			for (const api of [...names(head.requires), ...names(head.uses)]) {
+			for (const api of names(head.requires)) expect(UNPROVIDED, `${head.id} requires ${api}`).not.toContain(api);
+			for (const api of [...names(head.requires), ...names(head.uses).filter((name) => !UNPROVIDED.includes(name))]) {
 				expect(provided.has(api), `${head.id} -> ${api}`).toBe(true);
 				expect(names(head.provides), `${head.id} -> ${api}`).not.toContain(api);
 			}
