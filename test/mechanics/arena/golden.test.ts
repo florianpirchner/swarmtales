@@ -16,8 +16,8 @@
  *   figure's cues are the app's.
  */
 import { describe, expect, it } from "vitest";
-import { legacyOwner } from "@swarmtales/chronicle";
-import { dropJustified, goldenDiff, goldenOrder, ownedBy, type LegacyLine, type LegacyOwner } from "@swarmtales/testkit";
+import { legacyOwner, type LegacyOwner } from "@swarmtales/chronicle";
+import { dropJustified, goldenDiff, goldenOrder, ownedBy, type LegacyLine } from "@swarmtales/testkit";
 import { GOLDEN_NAMES } from "../puzzles/harness.ts";
 import { replayArena } from "./golden-host.ts";
 
