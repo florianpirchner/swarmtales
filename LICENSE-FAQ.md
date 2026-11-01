@@ -21,4 +21,8 @@ rebrand it or offer it as your own product.
 **Can I sell a plugin?** Yes. Plugins written against `packages/contracts` and `packages/sdk` are yours
 to license as you like. Those two packages are Apache 2.0.
 
+**Can someone rewrite it in Rust or Python and sell that?** Not if the rewrite is a port or translation of
+our code, prompts, stories or docs: that is a derivative work under `LICENSE`. A truly independent
+implementation that uses none of our code or text is not covered by any license. The name stays protected.
+
 **Will it ever become open source?** Not planned. Contact the owner if you need other terms.

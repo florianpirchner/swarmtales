@@ -115,5 +115,9 @@ they apply.
 7. **Contributions.** Contributions are accepted under the terms in `CONTRIBUTING.md`.
 8. **Commercial licenses.** The licensor may grant commercial licenses with other terms. Write to the
    owner of the repository.
-9. **No legal advice.** `LICENSE-FAQ.md` explains these terms. If it differs from this file, this file
+9. **Ports and rewrites.** A translation, port or rewrite of the software, or of any part of its code,
+   prompts, stories or documentation, into another programming or natural language is a derivative work and
+   falls under these terms, even if it is not copied line by line. This does not cover an independent
+   implementation that uses none of the licensor's code or text.
+10. **No legal advice.** `LICENSE-FAQ.md` explains these terms. If it differs from this file, this file
    applies.
