@@ -10,6 +10,9 @@
  * arena's fields, and the snapshot cut.
  */
 import { describe, expect, it } from "vitest";
+import { Type } from "typebox";
+import { defineMechanic } from "@swarmtales/kernel";
+import { EndingApi } from "@swarmtales/mechanic-shared";
 import { act, at, defineStory, level, puzzle, team } from "@swarmtales/sdk";
 import type { AnyStory, LevelDefinition, ToolName } from "@swarmtales/contracts";
 import type { PlannedCall } from "@swarmtales/testkit";
@@ -233,5 +236,59 @@ describe("the arena against the old Arena: novelty, passes and blocks", () => {
 		expect(old.lines.filter((line) => line.type === "turn_skipped").length).toBeGreaterThan(5);
 		const resumed = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level), { resumeAfter: 5 });
 		expect(compared(resumed)).toEqual(compared(old));
+	}, 60_000);
+});
+
+/** A provider of the ending evaluator: it names an ending from the stop reason it is handed and keeps every question. */
+function endingProbe(asked: (string | null)[], answer: "ending" | "none") {
+	return defineMechanic(
+		{ id: "ending-probe", summary: "Test provider of the ending evaluator.", options: Type.Object({}), state: () => undefined, events: {}, provides: [EndingApi] },
+		(kit) => ({
+			services: [
+				kit.provide(EndingApi, {
+					evaluate: ({ reason }) => {
+						asked.push(reason);
+						return answer === "none" ? null : { id: reason === null ? "clock" : "early", title: reason === null ? "The clock ran out" : "Everyone made it", summary: "Asked at the run's end." };
+					},
+				}),
+			],
+		}),
+	);
+}
+
+describe("the arena's ending evaluator (EndingApi)", () => {
+	const spec = (minutes: number): Spec => ({
+		story: storyOf({ count: 2, agents: 2 }),
+		agents: 2,
+		minutes,
+		tools: TOOLS,
+		settings: { stopWhenDone: true },
+		plan: (agent, minute, codeOf) => climb(1, 2)(minute, (door) => codeOf(agent, door)),
+	});
+
+	it("asks the provider once at the run's end with the stop reason and writes its ending into run_end", async () => {
+		const asked: (string | null)[] = [];
+		const { old, fresh } = await playBoth(spec(9), { extra: [endingProbe(asked, "ending").with()] });
+		expect(asked).toEqual(["every competitor has passed the last level"]);
+		expect(endOf(fresh)).toMatchObject({ reason: endOf(old)?.reason, standings: endOf(old)?.standings, ending: { id: "early", title: "Everyone made it", summary: "Asked at the run's end." } });
+		// Nothing but run_end changes: the old engine had no ending.
+		const others = (side: { readonly lines: readonly Record<string, unknown>[] }) => compared({ replies: new Map(), lines: side.lines.filter((line) => line.type !== "run_end") });
+		expect(others(fresh)).toEqual(others(old));
+	}, 60_000);
+
+	it("hands null as the reason at the natural end of the minutes", async () => {
+		const asked: (string | null)[] = [];
+		const { fresh } = await playBoth({ ...spec(3), settings: {} }, { extra: [endingProbe(asked, "ending").with()] });
+		expect(asked).toEqual([null]);
+		expect(endOf(fresh)?.reason).toBeUndefined();
+		expect(endOf(fresh)?.ending).toEqual({ id: "clock", title: "The clock ran out", summary: "Asked at the run's end." });
+	}, 60_000);
+
+	it("writes run_end as the old engine did when the provider names no ending", async () => {
+		const asked: (string | null)[] = [];
+		const { old, fresh } = await playBoth(spec(3), { extra: [endingProbe(asked, "none").with()] });
+		expect(asked).toHaveLength(1);
+		expect(endOf(fresh)).not.toHaveProperty("ending");
+		expect(compared(fresh)).toEqual(compared(old));
 	}, 60_000);
 });

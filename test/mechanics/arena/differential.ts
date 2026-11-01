@@ -204,14 +204,14 @@ export const USAGE = {
 	usage: Type.Object({ agent: Type.String(), provider: Type.String(), model: Type.String(), input: Type.Integer(), output: Type.Integer(), cacheRead: Type.Integer(), cacheWrite: Type.Integer(), costUsd: Type.Number() }),
 };
 
-export function definitionOf(spec: Spec) {
+export function definitionOf(spec: Spec, extra: readonly MechanicUse[] = []) {
 	const { options, turns } = arenaFromStory(spec.story, arenaRunOf(spec));
 	return defineCoreStory({
 		id: "arena-differential",
 		seed: spec.story.run.seed,
 		minutes: spec.minutes,
 		residents: idsOf(spec.agents),
-		mechanics: [...cityOf(spec, settingsOf(spec).snapshot?.afterLevel), cast.with(castOptionsFromStory(spec.story)), petitions.with({}), script.with(scriptOptionsFromStory(spec.story)), arena.with(options)],
+		mechanics: [...cityOf(spec, settingsOf(spec).snapshot?.afterLevel), cast.with(castOptionsFromStory(spec.story)), petitions.with({}), script.with(scriptOptionsFromStory(spec.story)), ...extra, arena.with(options)],
 		// The old world always offered `activeTools` besides the level's tools.
 		grants: { resident: [...spec.tools, "activeTools"], script: SCRIPT_GRANTS },
 		turns,
@@ -242,13 +242,13 @@ const Cut = Type.Object({ stop: Type.Boolean() });
 export interface NewOptions {
 	/** Snapshot the host after this many minutes and play the rest on a host resumed from it. */
 	readonly resumeAfter?: number;
-	/** Resume a second host from the snapshot the arena asked for (the run stopped there). */
-	readonly resumeTaken?: boolean;
+	/** More mechanics on the new host (an `EndingApi` provider). */
+	readonly extra?: readonly MechanicUse[];
 }
 
 /** The plan on the new host; the app takes the snapshot the arena says is due and stops the host when it ends the run. */
 export async function playNew(spec: Spec, codeOf: CodeOf, options: NewOptions = {}): Promise<NewPlayed> {
-	const definition = definitionOf(spec);
+	const definition = definitionOf(spec, options.extra);
 	const lines: LegacyLine[] = [];
 	const replies = new Map<string, string[]>();
 	const awaiting = new Set<string>();
