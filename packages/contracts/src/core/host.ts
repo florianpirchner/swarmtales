@@ -5,6 +5,7 @@
 import { Type, type Static } from "typebox";
 import { DecisionSnapshotSchema } from "./decision.ts";
 import type { EventEnvelope, EventLogView } from "./events.ts";
+import type { HumanHand } from "./overseer.ts";
 import type { ToolOutcome, ToolSpec } from "./tools.ts";
 import type { Actor, GrantRole, ResidentId } from "./values.ts";
 
@@ -90,6 +91,11 @@ export interface Host {
 	 * declared in `HostOptions.app` are taken, with a payload of their schema.
 	 */
 	record(actor: Actor, type: string, payload: unknown): void;
+	/**
+	 * The human's hand (docs/design/overseer-api.md §5), present when a human is attached
+	 * (`HostOptions.human`): each call waits in an inbox and runs at the next safe stop.
+	 */
+	hand(): HumanHand | undefined;
 	/** The app reports model spending; the referee stops at `maxCostUsd`. */
 	recordCost(usd: number): void;
 	stop(reason: string): void;
@@ -146,6 +152,20 @@ export const HostSnapshotSchema = Type.Object({
 	decisions: Type.Optional(Type.Array(DecisionSnapshotSchema)),
 	/** The active standing orders (§4.2); written only while one is active. */
 	orders: Type.Optional(Type.Array(StandingOrderSchema)),
+	/**
+	 * Per overseer name, what it used of its limits and its state's slice (§1); written only for an
+	 * overseer that was called or keeps state, so the files of stories without overseers keep their bytes.
+	 */
+	overseers: Type.Optional(
+		Type.Record(
+			Type.String(),
+			Type.Object({
+				calls: Type.Integer({ minimum: 0 }),
+				costUsd: Type.Number({ minimum: 0 }),
+				slice: Type.Optional(Type.Object({ version: Type.Integer({ minimum: 0 }), data: Json })),
+			}),
+		),
+	),
 });
 
 export type HostSnapshot = Static<typeof HostSnapshotSchema>;

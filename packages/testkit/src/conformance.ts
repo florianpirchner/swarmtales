@@ -8,9 +8,15 @@
  * - every option documented (a `description` on every option property, at any depth)
  * - no forbidden imports or globals in a mechanic's sources (no Node APIs, no engine internals,
  *   nothing of `@swarmtales/kernel` but the authoring calls, no wall clock, no `Math.random`)
+ * - no draw that depends on the log's position (`ctx.random()`, `setup.random()`) in the sources of
+ *   mechanics whose golden logs must not move when the core writes new events (overseers, §7 risk 1)
+ *
+ * The first two take the host options, or a function that makes them fresh for every run (a
+ * scripted overseer runtime records what it was asked), so they check stories with overseers too;
+ * `checkOptionsDocumented` takes a mechanic's or an overseer's definition.
  */
 import { Type, type TSchema } from "typebox";
-import type { MechanicDefinition, TurnTaker } from "@swarmtales/contracts";
+import type { TurnTaker } from "@swarmtales/contracts";
 import { createHost, type HostOptions } from "@swarmtales/kernel";
 import { playMinutes, playStory } from "./agents.ts";
 
@@ -26,22 +32,29 @@ function differences(label: string, left: readonly unknown[], right: readonly un
 	return problems;
 }
 
+/** Host options, or a function that makes them fresh for every run. */
+export type OptionsSource = HostOptions | (() => HostOptions);
+
+function fresh(options: OptionsSource): HostOptions {
+	return typeof options === "function" ? options() : options;
+}
+
 /** Same seed, same events. `agent` is called once per run, so a stateful script starts fresh. */
-export async function checkDeterminism(options: HostOptions, agent: () => TurnTaker): Promise<readonly string[]> {
-	const first = await playStory(options, agent());
-	const second = await playStory(options, agent());
+export async function checkDeterminism(options: OptionsSource, agent: () => TurnTaker): Promise<readonly string[]> {
+	const first = await playStory(fresh(options), agent());
+	const second = await playStory(fresh(options), agent());
 	return differences("determinism", first.events, second.events);
 }
 
 /** A cut after `cut` minutes, through JSON, resumed: the events after the cut must equal the uninterrupted run's. */
-export async function checkSnapshotRoundTrip(options: HostOptions, agent: () => TurnTaker, cut: number): Promise<readonly string[]> {
-	const whole = await playStory(options, agent());
-	const cutHost = await playMinutes(options, agent(), cut);
+export async function checkSnapshotRoundTrip(options: OptionsSource, agent: () => TurnTaker, cut: number): Promise<readonly string[]> {
+	const whole = await playStory(fresh(options), agent());
+	const cutHost = await playMinutes(fresh(options), agent(), cut);
 	const snapshot: unknown = JSON.parse(JSON.stringify(cutHost.snapshot()));
 	const prefix: unknown[] = cutHost.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
-	const resumed = await playStory({ ...options, resume: { snapshot, events: prefix } }, agent());
+	const resumed = await playStory({ ...fresh(options), resume: { snapshot, events: prefix } }, agent());
 	const problems = [...differences("snapshot round trip", whole.events, resumed.events)];
-	const restored = createHost({ ...options, resume: { snapshot, events: prefix } }).snapshot();
+	const restored = createHost({ ...fresh(options), resume: { snapshot, events: prefix } }).snapshot();
 	if (JSON.stringify(restored) !== JSON.stringify(snapshot)) problems.push("snapshot: a restored host writes a different snapshot");
 	if (JSON.stringify(whole.host.facts()) !== JSON.stringify(resumed.host.facts())) problems.push("snapshot: the facts differ after the resumed run");
 	return problems;
@@ -56,8 +69,8 @@ function describedProperties(schema: TSchema, path: string): readonly string[] {
 	});
 }
 
-/** Every option property, at any depth, carries a description. */
-export function checkOptionsDocumented(definition: MechanicDefinition): readonly string[] {
+/** Every option property, at any depth, carries a description; for a mechanic or an overseer. */
+export function checkOptionsDocumented(definition: { readonly id: string; readonly options: TSchema }): readonly string[] {
 	return describedProperties(definition.options, "").map((problem) => `${definition.id}: ${problem}`);
 }
 
@@ -92,6 +105,21 @@ function kernelProblems(path: string, text: string): readonly string[] {
 		if (match[3] !== undefined) return [`${path}: imports @swarmtales/kernel${match[3]}`];
 		const allowed: readonly string[] = KERNEL_AUTHORING;
 		return kernelNames(match[2] ?? "").filter((name) => !allowed.includes(name)).map((name) => `${path}: imports ${name} from @swarmtales/kernel`);
+	});
+}
+
+/** `ctx.random()` and `setup.random()` (not `Math.random`, which `checkSourceRules` forbids anyway). */
+const LOG_RANDOM = /(?<!\bMath)\.random\s*\(/;
+
+/**
+ * Draws that depend on the log's position: `random()` derives its stream from `bus.lastSeq`, which
+ * every new core event moves (an overseer's `overseer_called`, a human's note). Mechanics in golden
+ * runs must draw with `ctx.rng(labels)` instead, or their golden logs move with the core.
+ */
+export function checkNoLogRandom(files: readonly { readonly path: string; readonly text: string }[]): readonly string[] {
+	return files.flatMap((file) => {
+		const lines = file.text.split("\n");
+		return lines.flatMap((line, index) => (LOG_RANDOM.test(line.replace(/\/\/.*$/, "")) ? [`${file.path}:${String(index + 1)}: draws with random(), which depends on the log's position`] : []));
 	});
 }
 

@@ -50,6 +50,11 @@ export class Scheduler {
 		return due;
 	}
 
+	/** Drops the jobs that match (a decision's deadline once the run's end settled it). */
+	cancel(matches: (job: ScheduledJob) => boolean): void {
+		this.#entries = this.#entries.filter((entry) => !matches(entry));
+	}
+
 	save(): readonly ScheduledJob[] {
 		return this.#entries;
 	}

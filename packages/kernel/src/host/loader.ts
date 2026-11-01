@@ -5,7 +5,7 @@
  * unknown tools).
  */
 import { Check } from "typebox/value";
-import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicTool, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
 import { toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
@@ -76,8 +76,12 @@ export interface LoaderParts {
 	readonly prompts: PromptLookup | undefined;
 	readonly minute: () => number;
 	readonly staging: StagingQueue;
-	/** The model-backed roles of the run, by name (`ctx.roles.has`). */
+	/** The app's model-backed roles of the run, by name (`ctx.roles.has`). */
 	readonly roles: ReadonlySet<string>;
+	/** The overseers that answer a consult role (`ctx.roles.has` finds them too). */
+	readonly overseerRoles?: ReadonlySet<string>;
+	/** The core's tools besides `amendDecision` (the human's, docs/design/overseer-api.md §5). */
+	readonly coreTools?: readonly MechanicTool[];
 	/** The story's grant names and callers. */
 	readonly names: Names;
 	/** The decision gate: `ctx.decide`, `ctx.decisions` and the core tool `amendDecision`. */
@@ -99,7 +103,7 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 	const instances = new Map<string, MechanicInstance>();
 	const services = new Map<string, ProvidedApi>();
 	// The core's own tools come first; a mechanic that defines one of their names for the same callers fails below.
-	const tools = new Map<string, readonly LoadedTool[]>([[parts.gate.tool().name, [{ owner: CORE_OWNER, tool: parts.gate.tool() }]]]);
+	const tools = new Map<string, readonly LoadedTool[]>([parts.gate.tool(), ...(parts.coreTools ?? [])].map((tool) => [tool.name, [{ owner: CORE_OWNER, tool }]]));
 	const owners = new Map<string, string>();
 	for (const use of order) {
 		const definition = use.mechanic;
@@ -238,7 +242,7 @@ function portFor(
 		residents: parts.residents.portFor(id),
 		schedule: parts.scheduler.portFor(id, { has: (job) => jobs().includes(job) }, parts.minute),
 		access: parts.access.portFor(id, isTool),
-		roles: { has: (role) => parts.roles.has(role) },
+		roles: { has: (role) => parts.roles.has(role) || parts.overseerRoles?.has(role) === true },
 		log: bus,
 	};
 }

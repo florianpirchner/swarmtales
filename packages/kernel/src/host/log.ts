@@ -5,6 +5,8 @@
  * tool's events all land before anyone reacts to them, and the log order equals the dispatch order.
  * Immediate listeners (`{ immediate: true }`) are the exception: they run inside the emit, depth
  * first, so their events land right behind the event they react to (the old engine's callbacks).
+ * An event may carry an audience (docs/design/overseer-api.md §4.1): the grant names that may read
+ * it; the field is written only when one is set, so the logs of today's stories keep their bytes.
  */
 import type { Actor, EventEnvelope, EventListener, EventLogView } from "@swarmtales/contracts";
 
@@ -32,14 +34,17 @@ export class EventBus implements EventLogView {
 	readonly #immediate: EventListener[] = [];
 	readonly #sinks: ((event: EventEnvelope) => void)[] = [];
 	readonly #minute: () => number;
+	/** The audience an event of a source and type gets when its emitter names none (the story's and the heads' defaults). */
+	readonly #audienceOf: (source: string, type: string) => readonly string[] | undefined;
 	#depth = 0;
 	#draining = false;
 	/** After a failure: listeners are off, and once the last event is written nothing more is taken. */
 	#failed: "listeners-off" | "closed" | undefined;
 
 	/** `prefix` is the log of a resumed run; it is not dispatched again. */
-	constructor(minute: () => number, prefix: readonly EventEnvelope[] = []) {
+	constructor(minute: () => number, prefix: readonly EventEnvelope[] = [], audienceOf: (source: string, type: string) => readonly string[] | undefined = () => undefined) {
 		this.#minute = minute;
+		this.#audienceOf = audienceOf;
 		this.#events = [...prefix];
 		prefix.forEach((event, index) => {
 			if (event.seq !== index + 1) throw new Error(`event log: seq ${String(event.seq)} at position ${String(index + 1)}`);
@@ -96,12 +101,14 @@ export class EventBus implements EventLogView {
 		}
 	}
 
-	/** Appends an event in the current frame; dispatches at once when no code is running. */
-	emit(source: string, type: string, payload: unknown): EventEnvelope {
+	/** Appends an event in the current frame; dispatches at once when no code is running. `audience` overrides the defaults. */
+	emit(source: string, type: string, payload: unknown, audience?: readonly string[]): EventEnvelope {
 		if (this.#failed === "closed") throw new Error(`event log: the run failed; ${source}.${type} is not written`);
 		const frame = this.#frames.at(-1) ?? { actor: "host" };
 		const base = { seq: this.#events.length + 1, minute: this.#minute(), type, source, actor: frame.actor, payload };
-		const event: EventEnvelope = frame.cause === undefined ? base : { ...base, causedBy: frame.cause };
+		const caused: EventEnvelope = frame.cause === undefined ? base : { ...base, causedBy: frame.cause };
+		const readers = audience ?? this.#audienceOf(source, type);
+		const event: EventEnvelope = readers === undefined ? caused : { ...caused, audience: [...readers] };
 		this.#events.push(event);
 		this.#queue.push(event);
 		if (this.#failed === undefined) {

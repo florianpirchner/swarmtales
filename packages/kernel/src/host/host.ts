@@ -2,7 +2,8 @@
  * `createHost`: the slim core assembled. It owns the clock, the log, the residents, the scheduler,
  * the referee and the gateway, loads the story's mechanics and plays the turn loop: per minute the
  * due jobs, `minuteStarted`, then every resident who may act in a seeded order (inputs from the
- * mechanics, one agent turn), then `minuteEnded` and the referee's checks.
+ * mechanics, one agent turn), then `minuteEnded` and the referee's checks. Overseers run in their
+ * slots and on their events (`overseers.ts`), the human's calls at safe stops (`human.ts`).
  */
 import { Check, Parse } from "typebox/value";
 import {
@@ -18,9 +19,12 @@ import {
 	type HookPhase,
 	type Host,
 	type HostSnapshot,
+	type HumanChannel,
+	type HumanHand,
 	type InstancePhases,
 	type MechanicInstance,
 	type MechanicTool,
+	type OverseerRuntime,
 	type PromptLookup,
 	type ResidentId,
 	type RoleCaller,
@@ -36,6 +40,9 @@ import { toolFor } from "./catalog.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
 import { Names } from "./names.ts";
 import { orderedPhases } from "./phases.ts";
+import { checkHumanGrants, HumanDesk } from "./human.ts";
+import { OrderBook, residentNote } from "./orders.ts";
+import { OverseerRunner, type OverseerSlot } from "./overseers.ts";
 import { lockProbe } from "./probe.ts";
 import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
@@ -65,10 +72,32 @@ export interface HostOptions {
 	/** The events the app may write with `host.record` (source `app`). */
 	readonly app?: { readonly events: EventSchemas };
 	/**
-	 * A control channel for the human is attached (docs/design/overseer-api.md §5): only then does
-	 * `human` hold decisions. The human hand itself (`host.hand()`) comes with step 18's step 6.
+	 * A human is attached (docs/design/overseer-api.md §5): only then does `human` hold decisions and
+	 * `host.hand()` give the hand, whose calls run at safe stops. `true` attaches a live hand; a
+	 * channel with `next` also feeds recorded calls back (a replay, `scriptedHuman`).
 	 */
-	readonly human?: boolean;
+	readonly human?: boolean | HumanChannel;
+	/** Asks the overseers' models; without one every overseer answers through its body's `fallback` (`by: "none"`). */
+	readonly overseers?: OverseerRuntime;
+}
+
+/** The story's audiences, then the heads' defaults, by `<source>.<type>`; undefined when nothing sets one. */
+function audienceResolver(story: CoreStory, names: Names): ((source: string, type: string) => readonly string[] | undefined) | undefined {
+	const own = story.audiences ?? {};
+	for (const [event, readers] of Object.entries(own)) {
+		const unknown = readers.find((name) => !names.has(name));
+		if (unknown !== undefined) throw new Error(`story: the audience of ${event} names "${unknown}", which is neither built in nor an overseer of the story`);
+	}
+	const defaults = new Map<string, Partial<Readonly<Record<string, readonly string[]>>>>();
+	for (const use of story.mechanics) if (use.mechanic.audiences !== undefined) defaults.set(use.mechanic.id, use.mechanic.audiences);
+	for (const use of story.overseers ?? []) if (use.overseer.audiences !== undefined) defaults.set(use.overseer.id, use.overseer.audiences);
+	if (Object.keys(own).length === 0 && defaults.size === 0) return undefined;
+	return (source, type) => own[`${source}.${type}`] ?? defaults.get(source)?.[type];
+}
+
+function channelOf(human: HostOptions["human"]): HumanChannel | undefined {
+	if (human === undefined || human === false) return undefined;
+	return human === true ? {} : human;
 }
 
 class CoreHost implements Host {
@@ -84,6 +113,9 @@ class CoreHost implements Host {
 	readonly #turns: TurnLoop;
 	readonly #names: Names;
 	readonly #gate: DecisionGate;
+	readonly #orders = new OrderBook();
+	readonly #desk: HumanDesk;
+	readonly #runner: OverseerRunner;
 	readonly #staging = new StagingQueue();
 	readonly #between: ((minute: number) => Promise<void>) | undefined;
 	readonly #app: EventSchemas;
@@ -106,15 +138,15 @@ class CoreHost implements Host {
 		this.#story = story;
 		this.#prompts = options.prompts;
 		const events = (options.resume?.events ?? []).map((event) => Parse(EventEnvelopeSchema, event));
-		this.#bus = new EventBus(() => this.#minute, events);
+		const names = new Names(story);
+		this.#names = names;
+		this.#bus = new EventBus(() => this.#minute, events, audienceResolver(story, names));
 		const emitCore = (type: string, payload: unknown): void => {
 			this.#bus.emit("core", type, payload);
 		};
 		const ids = typeof story.residents === "number" ? residentIds(story.residents) : story.residents;
 		this.#registry = new ResidentRegistry(ids, emitCore);
 		this.#access = new AccessControl(story.grants, emitCore);
-		const names = new Names(story);
-		this.#names = names;
 		this.#referee = new Referee(story.limits, (actor) => names.callerOf(actor));
 		this.#bus.subscribe((event) => {
 			this.#referee.observe(event.type);
@@ -125,7 +157,39 @@ class CoreHost implements Host {
 		if (reserved !== undefined) throw new Error(`app: event "${reserved}" is reserved by the core`);
 		const roles = new Set(Object.keys(options.roles ?? {}));
 		this.#gate = this.#decisionGate(options, names);
-		this.#loaded = loadMechanics({ story, bus: this.#bus, residents: this.#registry, scheduler: this.#scheduler, access: this.#access, prompts: this.#prompts, minute: () => this.#minute, staging: this.#staging, roles, names, gate: this.#gate });
+		checkHumanGrants(story);
+		const channel = channelOf(options.human);
+		this.#desk = new HumanDesk(
+			{
+				story,
+				bus: this.#bus,
+				minute: () => this.#minute,
+				orders: this.#orders,
+				prompts: this.#prompts,
+				residents: ids,
+				gamemakerDriven: options.between !== undefined,
+				call: (tool, params) => this.#gateway.call("human", tool, params),
+				reply: (code) => coreReply(this.#prompts, code),
+			},
+			channel,
+		);
+		const consults = new Set((story.overseers ?? []).filter((use) => use.overseer.triggers.some((trigger) => "consult" in trigger)).map((use) => use.name));
+		this.#loaded = loadMechanics({
+			story,
+			bus: this.#bus,
+			residents: this.#registry,
+			scheduler: this.#scheduler,
+			access: this.#access,
+			prompts: this.#prompts,
+			minute: () => this.#minute,
+			staging: this.#staging,
+			roles,
+			overseerRoles: consults,
+			coreTools: this.#desk.tools(),
+			names,
+			gate: this.#gate,
+		});
+		this.#runner = this.#overseerRunner(options);
 		this.#access.setProbe(lockProbe(this.#bus, this.#loaded.tools, () => this.#instances()));
 		for (const [name, variants] of this.#loaded.tools) {
 			for (const { tool } of variants) if (tool.limit !== undefined) this.#referee.addToolLimit(name, tool.limit, tool.serves);
@@ -150,11 +214,13 @@ class CoreHost implements Host {
 			referee: this.#referee,
 			guard: options.guard,
 			roles: options.roles ?? {},
+			consultant: (role) => this.#runner.consultant(role),
 			staging: this.#staging,
 			reply: (code) => coreReply(this.#prompts, code),
 			failed: (error) => {
 				this.#fail(error);
 			},
+			...(this.#runner.hasEvents() ? { after: () => this.#runner.flush() } : {}),
 		});
 		const instances = this.#loaded.order.flatMap((id): readonly (readonly [string, MechanicInstance])[] => {
 			const instance = this.#loaded.instances.get(id);
@@ -183,6 +249,15 @@ class CoreHost implements Host {
 				this.#breach ??= this.#referee.breach();
 				return this.#breach !== undefined || this.#stopRequest !== undefined;
 			},
+			...(channel === undefined
+				? {}
+				: {
+						safeStop: (at: "beforeBlock" | "afterBlock", pass: number, block: number) => this.#desk.safeStop(at, pass, block),
+						coreInputs: {
+							has: (resident: ResidentId) => this.#orders.pending(resident, this.#minute),
+							take: (resident: ResidentId) => this.#orders.carry(resident, this.#minute).map((order) => ({ source: "core", kind: "human", text: residentNote(this.#prompts, order.text) })),
+						},
+					}),
 		});
 		if (options.resume !== undefined) this.#restore(Parse(HostSnapshotSchema, options.resume.snapshot));
 	}
@@ -286,15 +361,21 @@ class CoreHost implements Host {
 			run();
 		});
 		await this.#gateway.settle();
+		await this.#slot("minuteStarted", minute);
 		this.#breach = undefined;
 		await this.#turns.play(agent, minute);
 		this.#phases((phases) => phases.minuteEnded, (run) => {
 			run();
 		});
 		await this.#gateway.settle();
-		if (this.#between !== undefined && this.#turnsBreach() === undefined && this.#stopRequest === undefined) {
-			await this.#between(minute);
-			await this.#gateway.settle();
+		if (this.#turnsBreach() === undefined && this.#stopRequest === undefined) {
+			// The between slot: the human's safe stop, the overseers (classifier, weaver, gamemaker once they are overseers), then the app's roles.
+			if (this.#desk.attached) await this.#desk.safeStop("between");
+			await this.#slot("between", minute);
+			if (this.#between !== undefined) {
+				await this.#between(minute);
+				await this.#gateway.settle();
+			}
 		}
 		bus.emit("core", "minute_ended", {});
 		// Calls staged by listeners of minute_ended run inside the minute, so no snapshot cut loses them.
@@ -369,6 +450,10 @@ class CoreHost implements Host {
 		this.#bus.run({ actor }, () => this.#bus.emit("app", type, payload));
 	}
 
+	hand(): HumanHand | undefined {
+		return this.#desk.attached ? this.#desk.hand() : undefined;
+	}
+
 	recordCost(usd: number): void {
 		this.#referee.recordCost(usd);
 	}
@@ -394,7 +479,7 @@ class CoreHost implements Host {
 			names,
 			access: this.#access,
 			policies: story.decisions ?? {},
-			reachable: (name) => declared.has(name) || (name === "gamemaker" && options.between !== undefined) || (name === "human" && options.human === true),
+			reachable: (name) => declared.has(name) || (name === "gamemaker" && options.between !== undefined) || (name === "human" && channelOf(options.human) !== undefined),
 			schemaOf: (owner, kind) => story.mechanics.find((use) => use.mechanic.id === owner)?.mechanic.decisions[kind],
 			commit: (owner, commit, proposal, settled) => {
 				const instance = this.#loaded.instances.get(owner);
@@ -423,6 +508,44 @@ class CoreHost implements Host {
 		}
 	}
 
+	#overseerRunner(options: HostOptions): OverseerRunner {
+		const loaded = this.#loaded;
+		const overseerEvents = new Map((options.story.overseers ?? []).map((use) => [use.overseer.id, use.overseer.events]));
+		return new OverseerRunner({
+			story: options.story,
+			bus: this.#bus,
+			runtime: options.overseers,
+			prompts: this.#prompts,
+			referee: this.#referee,
+			orders: this.#orders,
+			minute: () => this.#minute,
+			residents: this.#registry,
+			decisions: this.#gate,
+			facts: () => this.facts(),
+			hasFact: (key) => {
+				const dot = key.indexOf(".");
+				return dot > 0 && Object.hasOwn(loaded.instances.get(key.slice(0, dot))?.facts ?? {}, key.slice(dot + 1));
+			},
+			declares: (source, type) => {
+				const events = loaded.order.includes(source) ? options.story.mechanics.find((use) => use.mechanic.id === source)?.mechanic.events : overseerEvents.get(source);
+				return events !== undefined && Object.hasOwn(events, type);
+			},
+			display: (text) => this.#gateway.display(text),
+			tools: (name) => this.toolSpecs(name),
+			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
+			admit: (actors, code) => this.#gateway.admit(actors, code),
+			drain: () => this.#gateway.drain(),
+			failed: () => this.#failed,
+		});
+	}
+
+	/** An overseer slot: skipped without a trigger in it, so stories without overseers never wait for the line. */
+	async #slot(slot: OverseerSlot, minute: number): Promise<void> {
+		if (!this.#runner.has(slot) || this.#failed) return;
+		await this.#gateway.exclusive(() => this.#runner.slot(slot, minute));
+		await this.#gateway.settle();
+	}
+
 	/** The breach that ended the turns of the minute, if one did. */
 	#turnsBreach(): Breach | undefined {
 		return this.#breach;
@@ -449,15 +572,21 @@ class CoreHost implements Host {
 	 * last actions), then `run_ended`. What listeners of `run_ended` stage never runs.
 	 */
 	async #finish(end: RunEnd): Promise<void> {
+		if (this.#gate.pending().length > 0) {
+			this.#gate.settleAll();
+			await this.#gateway.settle();
+		}
 		this.#phases((phases) => phases.runEnded, (run) => {
 			run(end.reason);
 		});
 		await this.#gateway.settle();
+		await this.#slot("runEnded", end.minute);
 		this.#close(end);
 	}
 
-	/** A stop between minutes: the `runEnded` phases run, but nothing they stage does (no call may wait in a stopped host). */
+	/** A stop between minutes: open decisions settle and the `runEnded` phases run, but nothing they stage does (no call may wait in a stopped host). */
 	#end(end: RunEnd): void {
+		this.#gate.settleAll();
 		this.#phases((phases) => phases.runEnded, (run) => {
 			run(end.reason);
 		});
@@ -469,6 +598,7 @@ class CoreHost implements Host {
 		this.#bus.emit("core", "run_ended", { reason: end.reason });
 		this.#staging.clear();
 		this.#ended = end;
+		this.#desk.close();
 	}
 
 	/**
@@ -481,6 +611,7 @@ class CoreHost implements Host {
 		this.#failed = true;
 		this.#failure = error;
 		this.#staging.clear();
+		this.#desk.close();
 		if (this.#ended !== undefined) return;
 		const detail = error instanceof Error ? error.message : String(error);
 		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail }));
@@ -503,7 +634,18 @@ class CoreHost implements Host {
 	}
 
 	#parts(): SnapshotParts {
-		return { story: this.#story, bus: this.#bus, registry: this.#registry, access: this.#access, scheduler: this.#scheduler, referee: this.#referee, loaded: this.#loaded, gate: this.#gate };
+		return {
+			story: this.#story,
+			bus: this.#bus,
+			registry: this.#registry,
+			access: this.#access,
+			scheduler: this.#scheduler,
+			referee: this.#referee,
+			loaded: this.#loaded,
+			gate: this.#gate,
+			orders: this.#orders,
+			overseers: this.#runner,
+		};
 	}
 
 	#restore(snapshot: HostSnapshot): void {

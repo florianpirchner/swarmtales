@@ -12,7 +12,26 @@ export const CORE_PROMPTS = {
 	"replies/core/decision-closed": [],
 	"replies/core/decision-not-held": [],
 	"replies/core/decision-human": [],
-	/** The core's own tools and their replies (docs/design/overseer-api.md §3). */
+	"replies/core/target-unknown": [],
+	"replies/core/residents-off": [],
+	"replies/core/copy-not-allowed": [],
+	"replies/core/order-unknown": [],
+	"replies/core/instruction-empty": [],
+	/** The core's own tools and their replies (docs/design/overseer-api.md §3, §5). */
 	"core/tools/amendDecision": [],
 	"core/replies/decision-amended": ["decision", "proposal"],
+	"core/tools/instruct": [],
+	"core/tools/pause": [],
+	"core/tools/resume": [],
+	"core/tools/step": [],
+	"core/replies/instructed": ["order", "target"],
+	"core/replies/revoked": ["order"],
+	"core/replies/paused": [],
+	"core/replies/resumed": [],
+	"core/replies/stepped": [],
+	/** `{{standingOrders}}` of every overseer input (§4.2), one line per order, and the human's line in a resident's turn (§5). */
+	"core/standing-orders": ["orders"],
+	"core/standing-order-advice": ["order", "text"],
+	"core/standing-order-order": ["order", "text"],
+	"core/inputs/human": ["text"],
 } as const;
