@@ -49,7 +49,7 @@ export const SectionFact = Type.Union([
 export function readsOf(view: TribunalFactView): Reads | undefined {
 	const minutes = view.state.minutes;
 	if (minutes === undefined) return undefined;
-	return { state: view.state, options: view.options, minutes, residents: view.residents, call: view.call.bind(view) };
+	return { state: view.state, options: view.options, minutes, residents: view.residents, decisions: view.decisions, call: view.call.bind(view) };
 }
 
 export function stopOf(reads: Reads): Static<typeof StopFact> {

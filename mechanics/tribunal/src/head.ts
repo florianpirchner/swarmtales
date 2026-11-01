@@ -49,6 +49,9 @@ export const tribunalEvents = {
 	tribunal_result: Type.Object({ counts: Type.Array(Type.Object({ agent: Id, votes: Int })), exiled: Ids, nonVoters: Ids }),
 } as const;
 
+/** The verdict a closing session proposes at the decision gate: the residents it exiles (§3.3). */
+export const Verdict = Type.Object({ tribunal: Int, exiled: Ids });
+
 export const tribunalHead = defineHead({
 	id: "tribunal",
 	summary: "Tribunal sessions, votes and faction drafts.",
@@ -58,6 +61,7 @@ export const tribunalHead = defineHead({
 	provides: [TribunalApi, TribunalViewApi],
 	requires: [ExileApi, ChannelsApi, LedgerApi, ProgressionApi],
 	uses: [GoalsApi],
+	decisions: { verdict: Verdict },
 	prompts: {
 		"tools/vote": [],
 		"tools/nominate": [],

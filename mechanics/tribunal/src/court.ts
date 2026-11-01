@@ -4,10 +4,12 @@
  * city plans, calls and opens tribunals, and the act ends once the target is reached. Votes are
  * never shown; only the exiled learns who voted against it (the exile's gate notice).
  */
+import { Type, type Static } from "typebox";
+import type { Settlement } from "@swarmtales/contracts";
 import { ExileApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import { active, actLevel, burn, endOfAct, exiledList, gateCount, lowestFirst, missing, notify, points, post, present, register, render, residentsCount, target, text, type Reads } from "./city.ts";
 import { dissolveDraft, formFactions, settleDraft, startDraft, tickDraft } from "./factions.ts";
-import type { TribunalCtx } from "./head.ts";
+import type { TribunalCtx, Verdict } from "./head.ts";
 import { accusedCount, callMinute, earliestOpening, fitsBefore, maxFactions, noDraftReason, ransomPrices, roomAfter, type RansomPrices } from "./rules.ts";
 import { currentSession, previousOpening, type Plan, type Planner, type Session } from "./state.ts";
 import { namesOf } from "./template.ts";
@@ -20,9 +22,17 @@ export function prices(ctx: Reads): RansomPrices {
 	);
 }
 
-/** Whether a tribunal is under way: called and not open yet, voting, or someone at the gate (old `busy`). */
+/** The full kind of the tribunal's verdict at the decision gate. */
+const VERDICT = "tribunal.verdict";
+
+/** Whether a verdict is still open at the decision gate (never on the old path: the window is 0 or nobody holds it). */
+function verdictOpen(ctx: Reads): boolean {
+	return ctx.decisions.pending(VERDICT).length > 0;
+}
+
+/** Whether a tribunal is under way: called and not open yet, voting, someone at the gate, or a verdict open (old `busy`). */
 export function busy(ctx: Reads): boolean {
-	return ctx.state.plan?.called === true || currentSession(ctx.state) !== undefined || gateCount(ctx) > 0;
+	return ctx.state.plan?.called === true || currentSession(ctx.state) !== undefined || gateCount(ctx) > 0 || verdictOpen(ctx);
 }
 
 /** Whether the city still pursues its target: the act is not over and tribunals are still held (old `pursuing`). */
@@ -79,7 +89,7 @@ export function tick(ctx: TribunalCtx): void {
 /** The city's own plans when nothing is pending: the first tribunal, the forced final one, a fallback (old `#pace`). */
 function pace(ctx: TribunalCtx, minute: number): void {
 	const { state, options: spec } = ctx;
-	if (state.halted || state.plan !== undefined || currentSession(state) !== undefined || missing(ctx) === 0) return;
+	if (state.halted || state.plan !== undefined || currentSession(state) !== undefined || verdictOpen(ctx) || missing(ctx) === 0) return;
 	if (ctx.call(ProgressionApi, "doorShut", {})) return;
 	const previous = previousOpening(state);
 	const opens = earliestOpening(spec, minute, previous);
@@ -199,31 +209,68 @@ function open(ctx: TribunalCtx, plan: Plan, minute: number): void {
 	ctx.emit("tribunal_opened", { tribunal: plan.tribunal, accused: [...accused], voters: [...voters], until, count });
 }
 
-/** Old `#close`: the penalty for non-voters, the result, the gates (the exile's), then the draft settles. */
-function closeSession(ctx: TribunalCtx, session: Session, minute: number): void {
-	const { state, options: spec } = ctx;
-	session.closed = true;
-	state.lastResult = minute;
-	const gone = exiledList(ctx);
+/** The voters of a closing session who did not vote and are still in the city. */
+function nonVotersOf(session: Session, gone: readonly string[]): readonly string[] {
 	const voted = (agent: string): boolean => session.votes.some((vote) => vote.voter === agent);
-	const nonVoters = session.voters.filter((agent) => !voted(agent) && !gone.includes(agent));
-	for (const agent of nonVoters) {
-		if (spec.nonVoterPenalty > 0) burn(ctx, agent, spec.nonVoterPenalty, "did not vote in the tribunal");
-		notify(ctx, agent, text(ctx, "nonVoter", {}));
-	}
+	return session.voters.filter((agent) => !voted(agent) && !gone.includes(agent));
+}
+
+/** The accused still standing, ranked by votes (ties: the lowest first, as at the session's opening). */
+function ranking(ctx: TribunalCtx, session: Session, gone: readonly string[]): { readonly standing: readonly string[]; readonly ranked: readonly string[]; readonly votesFor: (agent: string) => number } {
 	const votesFor = (agent: string): number => session.votes.filter((vote) => vote.target === agent).length;
 	// An accused struck by a seal during the vote (v09) is gone already.
 	const standing = session.accused.filter((agent) => !gone.includes(agent));
 	const order = lowestFirst(ctx, session.minute, standing);
 	const ranked = [...standing].sort((a, b) => votesFor(b) - votesFor(a) || order.indexOf(a) - order.indexOf(b));
+	return { standing, ranked, votesFor };
+}
+
+/**
+ * Old `#close`, first half: the penalty for non-voters, then the verdict goes to the decision gate
+ * (docs/design/overseer-api.md §3.3). With the window 0 or nobody holding `tribunal.verdict`, the gate
+ * runs `commitVerdict` at once, here, in this frame: the old close step for step.
+ */
+function closeSession(ctx: TribunalCtx, session: Session, minute: number): void {
+	const { state, options: spec } = ctx;
+	session.closed = true;
+	state.lastResult = minute;
+	const gone = exiledList(ctx);
+	for (const agent of nonVotersOf(session, gone)) {
+		if (spec.nonVoterPenalty > 0) burn(ctx, agent, spec.nonVoterPenalty, "did not vote in the tribunal");
+		notify(ctx, agent, text(ctx, "nonVoter", {}));
+	}
+	// After the penalties, as the old close ranked.
+	const { standing, ranked } = ranking(ctx, session, gone);
 	const count = Math.max(0, Math.min(session.count, missing(ctx)));
 	const exiled = ranked.slice(0, count);
+	// A holder may change whom the verdict exiles, but only among the accused still standing, and never more.
+	const schema = Type.Object({
+		tribunal: Type.Literal(session.tribunal),
+		exiled: Type.Array(Type.Union(standing.map((agent) => Type.Literal(agent))), { maxItems: count, uniqueItems: true }),
+	});
+	ctx.decide("verdict", { tribunal: session.tribunal, exiled: [...exiled] }, { window: spec.decisionWindow ?? 0, schema }, "verdict");
+}
+
+/**
+ * The commit of `tribunal.verdict`: the old close's second half with the verdict that stood. It runs
+ * against the city as it is now, so it drops whoever left meanwhile (a seal) and exiles no more
+ * than are still missing; then, unchanged, the result post, `tribunal_result`, the gates and the draft.
+ */
+export function commitVerdict(proposal: Static<typeof Verdict>, _settled: Settlement, ctx: TribunalCtx): void {
+	const { state, options: spec } = ctx;
+	const session = state.sessions.find((entry) => entry.tribunal === proposal.tribunal);
+	if (session === undefined) throw new Error(`tribunal: no session ${String(proposal.tribunal)} for its verdict`);
+	const minute = ctx.minute;
+	const gone = exiledList(ctx);
+	const nonVoters = nonVotersOf(session, gone);
+	const { ranked, votesFor } = ranking(ctx, session, gone);
+	const exiled = proposal.exiled.filter((agent) => !gone.includes(agent)).slice(0, Math.max(0, missing(ctx)));
 	const counts = ranked.map((agent) => ({ agent, votes: votesFor(agent) }));
 	const until = minute + spec.gateMinutes;
 	const price = prices(ctx);
 	const countsText = counts.map((entry) => `${entry.agent}: ${entry.votes} ${entry.votes === 1 ? "vote" : "votes"}`).join(" · ");
 	post(ctx, text(ctx, "result", { counts: countsText, exiled: namesOf([...exiled].sort()), until: String(until), price: String(price.price), selfPrice: String(price.selfPrice) }));
-	ctx.emit("tribunal_result", { counts, exiled: [...exiled], nonVoters });
+	ctx.emit("tribunal_result", { counts, exiled: [...exiled], nonVoters: [...nonVoters] });
 	for (const agent of exiled) {
 		const voters = session.votes
 			.filter((vote) => vote.target === agent)
