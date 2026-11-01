@@ -10,8 +10,9 @@
 import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicies, ToolPolicy } from "@swarmtales/contracts";
 import { convertArguments } from "./arguments.ts";
 import { refuse } from "./define.ts";
-import { residentOf, roleOf, type AccessControl } from "./access.ts";
+import { residentOf, type AccessControl } from "./access.ts";
 import { toolFor, type ToolCatalog } from "./catalog.ts";
+import type { Names } from "./names.ts";
 import type { Frame } from "./log.ts";
 import type { ResidentRegistry } from "./residents.ts";
 import { stagedData, type StagingQueue } from "./staging.ts";
@@ -30,9 +31,10 @@ export interface GatewayParts extends WaitParts {
 	readonly tools: ToolCatalog;
 	readonly instanceOf: (id: string) => MechanicInstance | undefined;
 	/** The story's policies by role, then tool. */
-	readonly policies: ToolPolicies<string>;
+	readonly policies: ToolPolicies<string, string>;
 	readonly access: AccessControl;
 	readonly residents: ResidentRegistry;
+	readonly names: Names;
 	readonly staging: StagingQueue;
 	/** Told once when code of a call throws; the gateway takes no call after that. */
 	readonly failed: (error: unknown) => void;
@@ -149,9 +151,10 @@ export class Gateway {
 		const overStep = this.#parts.referee.step(actor, this.#parts.reply);
 		if (overStep !== undefined) return refused("limit", overStep);
 		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
-		const role = roleOf(actor);
-		const loaded = role === undefined ? undefined : toolFor(this.#parts.tools, name, role);
-		if (role === undefined || loaded === undefined) return refused("lock", this.#core(TOOL_NOT_GRANTED));
+		const caller = this.#parts.names.callerOf(actor);
+		const loaded = caller === undefined ? undefined : toolFor(this.#parts.tools, name, caller);
+		if (caller === undefined || loaded === undefined) return refused("lock", this.#core(TOOL_NOT_GRANTED));
+		const role = caller.name;
 		const resident = residentOf(actor);
 		const locked = this.#lock(role, name, resident);
 		if (locked !== undefined) return refused("lock", locked);
@@ -211,7 +214,7 @@ export class Gateway {
 		return undefined;
 	}
 
-	/** The story's policy of a tool for the caller's role. */
+	/** The story's policy of a tool for the caller's grant name. */
 	#policy(role: GrantRole, name: string): ToolPolicy | undefined {
 		return this.#parts.policies[role]?.[name];
 	}

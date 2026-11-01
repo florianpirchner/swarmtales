@@ -3,6 +3,7 @@
  * and a story can override them; without a prompt lookup (tests) a refusal carries only its code.
  */
 import type { PromptLookup } from "@swarmtales/contracts";
+import { DECISION_CLOSED, DECISION_HUMAN, DECISION_NOT_HELD } from "./decisions.ts";
 import { RESIDENT_INACTIVE, TEXT_TOO_LONG, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN } from "./gateway.ts";
 import { STEP_LIMIT, TOOL_LIMIT } from "./referee.ts";
 import { GUARD_FAILED, GUARD_NONE } from "./waits.ts";
@@ -17,6 +18,9 @@ const REPLIES: Readonly<Record<string, string>> = {
 	[TEXT_TOO_LONG]: "replies/core/too-long",
 	[GUARD_NONE]: "replies/core/guard-none",
 	[GUARD_FAILED]: "replies/core/guard-failed",
+	[DECISION_CLOSED]: "replies/core/decision-closed",
+	[DECISION_NOT_HELD]: "replies/core/decision-not-held",
+	[DECISION_HUMAN]: "replies/core/decision-human",
 };
 
 export function coreReply(prompts: PromptLookup | undefined, code: string): string | undefined {

@@ -3,6 +3,7 @@
  * kernel implements it (`createHost`).
  */
 import { Type, type Static } from "typebox";
+import { DecisionSnapshotSchema } from "./decision.ts";
 import type { EventEnvelope, EventLogView } from "./events.ts";
 import type { ToolOutcome, ToolSpec } from "./tools.ts";
 import type { Actor, GrantRole, ResidentId } from "./values.ts";
@@ -96,6 +97,17 @@ export interface Host {
 
 const Json = Type.Unknown();
 
+/** A standing order (`StandingOrder`, overseer.ts) in the snapshot. */
+export const StandingOrderSchema = Type.Object({
+	id: Type.Integer({ minimum: 1 }),
+	target: Type.String(),
+	text: Type.String(),
+	mode: Type.Union([Type.Literal("advice"), Type.Literal("order")]),
+	lifetime: Type.Union([Type.Object({ untilMinute: Type.Integer() }), Type.Object({ calls: Type.Integer({ minimum: 1 }) }), Type.Literal("untilRevoked")]),
+	issued: Type.Integer({ minimum: 0 }),
+	used: Type.Integer({ minimum: 0 }),
+});
+
 /** The host's snapshot file; parse it before resuming. Mechanic slices are checked by their own schemas. */
 export const HostSnapshotSchema = Type.Object({
 	format: Type.Literal("swarmtales.host"),
@@ -130,6 +142,10 @@ export const HostSnapshotSchema = Type.Object({
 		costUsd: Type.Number({ minimum: 0 }),
 	}),
 	mechanics: Type.Record(Type.String(), Type.Object({ version: Type.Integer({ minimum: 0 }), data: Json })),
+	/** The open decisions (docs/design/overseer-api.md §3.2); written only while one is open, so older files stay byte-equal. */
+	decisions: Type.Optional(Type.Array(DecisionSnapshotSchema)),
+	/** The active standing orders (§4.2); written only while one is active. */
+	orders: Type.Optional(Type.Array(StandingOrderSchema)),
 });
 
 export type HostSnapshot = Static<typeof HostSnapshotSchema>;

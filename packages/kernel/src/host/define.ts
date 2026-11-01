@@ -14,6 +14,7 @@ import type {
 	ApiMethods,
 	CoreStory,
 	CoreStoryData,
+	DecisionSchemas,
 	EventSchemas,
 	EventsDefinition,
 	MechanicBody,
@@ -23,6 +24,7 @@ import type {
 	MechanicKit,
 	MechanicTool,
 	MechanicUse,
+	OverseerUse,
 	PromptKeys,
 	RandomLabel,
 	Refusal,
@@ -30,7 +32,7 @@ import type {
 	ToolRef,
 	ToolSuccess,
 } from "@swarmtales/contracts";
-import { contextFor, createKit, type InstanceParts } from "./kit.ts";
+import { commitOf, contextFor, createKit, type InstanceParts } from "./kit.ts";
 
 export function refuse(code: string, detail?: string): Refusal {
 	return detail === undefined ? { ok: false, code } : { ok: false, code, detail };
@@ -59,15 +61,16 @@ export function defineTool<const N extends string, P extends TSchema>(name: N, p
 	return { name, parameters };
 }
 
-/** Checks the story's tool names against its mechanics at compile time; the host checks the rest at load. */
-export function defineCoreStory<const Ms extends readonly MechanicUse[]>(story: CoreStory<Ms>): CoreStory<Ms> {
+/** Checks the story's tool and grant names against its mechanics and overseers at compile time; the host checks the rest at load. */
+export function defineCoreStory<const Ms extends readonly MechanicUse[], const Os extends readonly OverseerUse[] = readonly []>(story: CoreStory<Ms, Os>): CoreStory<Ms, Os> {
 	return story;
 }
 
-/** The story as JSON data: mechanics by id and options. */
+/** The story as JSON data: mechanics and overseers by id and options. */
 export function storyData(story: CoreStory): CoreStoryData {
-	const { mechanics, ...rest } = story;
-	return { ...rest, mechanics: mechanics.map((use) => ({ id: use.mechanic.id, options: use.options })) };
+	const { mechanics, overseers, ...rest } = story;
+	const data = { ...rest, mechanics: mechanics.map((use) => ({ id: use.mechanic.id, options: use.options })) };
+	return overseers === undefined ? data : { ...data, overseers: overseers.map((use) => ({ name: use.name, id: use.overseer.id, options: use.options })) };
 }
 
 /** A hook slot as phases, each bound by `bound`; a plain function is one phase of order `DEFAULT_ORDER`. */
@@ -91,7 +94,7 @@ function checkedOrder(order: number): number {
 	return order;
 }
 
-function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[]>, T extends readonly MechanicTool[]>(
+function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas>, T extends readonly MechanicTool[]>(
 	parts: InstanceParts<M>,
 	body: MechanicBody<M, T>,
 	provides: readonly ApiDefinition[],
@@ -102,6 +105,7 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 	const jobs = body.jobs ?? {};
 	const services = body.services ?? [];
 	const presentation = body.presentation ?? {};
+	const commits = body.commits ?? {};
 	const id = parts.port.id;
 	for (const api of provides) {
 		if (services.filter((service) => service.api.name === api.name).length !== 1) throw new Error(`${id}: provides "${api.name}" but implements it ${String(services.filter((service) => service.api.name === api.name).length)} times`);
@@ -109,6 +113,10 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 	for (const service of services) {
 		if (!provides.some((api) => api.name === service.api.name)) throw new Error(`${id}: implements "${service.api.name}" without declaring it in provides`);
 	}
+	const missingCommit = Object.keys(parts.decisions).find((kind) => !Object.hasOwn(commits, kind));
+	if (missingCommit !== undefined) throw new Error(`${id}: declares the decision "${missingCommit}" but no commit for it`);
+	const strayCommit = Object.keys(commits).find((kind) => !Object.hasOwn(parts.decisions, kind));
+	if (strayCommit !== undefined) throw new Error(`${id}: commits "${strayCommit}", which it does not declare as a decision`);
 	const stateful = parts.state.value !== undefined;
 	if (stateful && body.snapshot === undefined) throw new Error(`${id}: has state but no snapshot slice`);
 	return {
@@ -129,6 +137,9 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 			const run = jobs[job];
 			if (run === undefined) throw new Error(`${id}: no job "${job}"`);
 			run(ctx, data);
+		},
+		commit(kind, proposal, settled) {
+			commitOf(parts, commits, kind)(proposal, settled, ctx);
 		},
 		hooks: {
 			phases: {
@@ -179,8 +190,15 @@ export function defineHead<
 	const R extends readonly ApiDefinition[] = [],
 	const Pv extends readonly ApiDefinition[] = [],
 	const U extends readonly ApiDefinition[] = [],
->(head: MechanicHead<Id, O, S, E, P, R, Pv, U>): MechanicHead<Id, O, S, E, P, R, Pv, U> {
+	// eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type -- a mechanic without decisions has an empty set
+	const D extends DecisionSchemas = Record<never, TSchema>,
+>(head: MechanicHead<Id, O, S, E, P, R, Pv, U, D>): MechanicHead<Id, O, S, E, P, R, Pv, U, D> {
 	return head;
+}
+
+/** The head's decision kinds, typed per kind (a missing field is the empty set). */
+function decisionsOf<D extends DecisionSchemas>(head: { readonly decisions?: D }): Partial<D> {
+	return head.decisions ?? {};
 }
 
 export function defineMechanic<
@@ -193,13 +211,16 @@ export function defineMechanic<
 	const R extends readonly ApiDefinition[] = [],
 	const Pv extends readonly ApiDefinition[] = [],
 	const U extends readonly ApiDefinition[] = [],
+	// eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type -- a mechanic without decisions has an empty set
+	const D extends DecisionSchemas = Record<never, TSchema>,
 	T extends readonly MechanicTool[] = [],
 >(
-	head: MechanicHead<Id, O, S, E, P, R, Pv, U>,
-	build: (kit: MechanicKit<Shape<O, S, E, P, R, Pv, U>>) => MechanicBody<Shape<O, S, E, P, R, Pv, U>, T>,
+	head: MechanicHead<Id, O, S, E, P, R, Pv, U, D>,
+	build: (kit: MechanicKit<Shape<O, S, E, P, R, Pv, U, D>>) => MechanicBody<Shape<O, S, E, P, R, Pv, U, D>, T>,
 ): MechanicDefinition<Id, O, E, T[number]["name"]> {
-	type M = Shape<O, S, E, P, R, Pv, U>;
+	type M = Shape<O, S, E, P, R, Pv, U, D>;
 	const prompts: PromptKeys = head.prompts ?? {};
+	const decisions = decisionsOf(head);
 	const provides: readonly ApiDefinition[] = head.provides ?? [];
 	const parseOptions = (raw: unknown): Static<O> => {
 		try {
@@ -218,11 +239,12 @@ export function defineMechanic<
 		options: head.options,
 		events: head.events,
 		prompts,
+		decisions: head.decisions ?? {},
 		parseOptions,
 		instantiate(port, raw) {
 			const options = parseOptions(raw);
 			const setup = { options, residents: port.residents.ids, seed: port.seed, random: () => port.random(), rng: (...labels: readonly RandomLabel[]) => port.rng(...labels) };
-			const parts: InstanceParts<M> = { port, options, state: { value: head.state(setup) }, setup, events: head.events, prompts };
+			const parts: InstanceParts<M> = { port, options, state: { value: head.state(setup) }, setup, events: head.events, prompts, decisions };
 			return bind(parts, build(createKit(parts)), provides);
 		},
 		with(options) {

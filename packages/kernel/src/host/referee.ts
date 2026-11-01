@@ -5,8 +5,8 @@
  * limit but never lift it.
  */
 import type { Actor, GrantRole, LimitWindow, Refusal, RunLimit, RunLimits, ToolLimit } from "@swarmtales/contracts";
-import { roleOf } from "./access.ts";
 import { refuse } from "./define.ts";
+import { roleOf, serves, type Caller } from "./names.ts";
 
 export const STEP_LIMIT = "STEP_LIMIT";
 export const TOOL_LIMIT = "TOOL_LIMIT";
@@ -15,7 +15,7 @@ interface CountedLimit {
 	readonly key: string;
 	readonly max: number;
 	readonly per: LimitWindow;
-	/** Only callers in these roles count (a tool variant's own limit). */
+	/** Only these callers count (a tool variant's own limit, a policy of one grant name); entries as a tool's `serves`. */
 	readonly serves?: readonly GrantRole[];
 }
 
@@ -35,12 +35,18 @@ export class Referee {
 	readonly #checks: RunLimit[] = [];
 	readonly #counts = new Map<string, number>();
 	#costUsd = 0;
+	readonly #callerOf: (actor: Actor) => Caller | undefined;
 
-	constructor(run: RunLimits = {}) {
+	/** `callerOf` names an actor's grant name and, for an overseer, its definition id. */
+	constructor(run: RunLimits = {}, callerOf: (actor: Actor) => Caller | undefined = (actor) => {
+		const name = roleOf(actor);
+		return name === undefined ? undefined : { name };
+	}) {
 		this.#run = run;
+		this.#callerOf = callerOf;
 	}
 
-	/** A tool limit, from the tool itself (only for the roles its variant serves) or the story's policy (only for its role). */
+	/** A tool limit, from the tool itself (only for the callers its variant serves) or the story's policy (only for its grant name). */
 	addToolLimit(tool: string, limit: ToolLimit, serves?: readonly GrantRole[]): void {
 		if (!Number.isInteger(limit.max) || limit.max < 0) throw new RangeError(`referee: invalid limit for ${tool}`);
 		const per = limit.per;
@@ -55,8 +61,8 @@ export class Referee {
 	}
 
 	#limitsFor(tool: string, actor: Actor): readonly CountedLimit[] {
-		const role = roleOf(actor);
-		return (this.#tools.get(tool) ?? []).filter((limit) => limit.serves === undefined || (role !== undefined && limit.serves.includes(role)));
+		const caller = this.#callerOf(actor);
+		return (this.#tools.get(tool) ?? []).filter((limit) => limit.serves === undefined || (caller !== undefined && serves(limit.serves, caller)));
 	}
 
 	addRunLimits(limits: readonly RunLimit[]): void {

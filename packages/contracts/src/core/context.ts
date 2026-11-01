@@ -5,6 +5,7 @@
  */
 import type { Static, TSchema } from "typebox";
 import type { ApiDefinition, ApiInput, ApiMethodName, ApiOutput, QueryMethodName } from "./api.ts";
+import type { DecideOptions, DecisionOutcome, DecisionSchemas, DecisionsView } from "./decision.ts";
 import type { EventLogView, EventSchemas } from "./events.ts";
 import type { ToolRef } from "./tools.ts";
 import type { Actor, JsonValue, PromptKeys, PromptVariables, RandomLabel, RandomSource, ResidentId } from "./values.ts";
@@ -90,6 +91,9 @@ export interface MechanicPort {
 	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/** Queues a call by the script; it runs through the pipeline once the current code has finished. */
 	stage(tool: ToolRef, params: unknown, options?: StageOptions): void;
+	/** Proposes a decision of one of the mechanic's kinds; `commit` names the commit that runs with the proposal that stands. */
+	decide(kind: string, proposal: unknown, options: DecideOptions, commit: string): DecisionOutcome;
+	readonly decisions: DecisionsView;
 	readonly residents: ResidentsPort;
 	readonly schedule: SchedulePort;
 	readonly access: AccessPort;
@@ -106,6 +110,8 @@ export interface MechanicShape {
 	readonly requires: readonly ApiDefinition[];
 	readonly provides: readonly ApiDefinition[];
 	readonly uses: readonly ApiDefinition[];
+	/** Decision kind to the schema of its proposal (docs/design/overseer-api.md §3). */
+	readonly decisions: DecisionSchemas;
 }
 
 export interface Shape<
@@ -116,6 +122,8 @@ export interface Shape<
 	R extends readonly ApiDefinition[],
 	Pv extends readonly ApiDefinition[],
 	U extends readonly ApiDefinition[] = [],
+	// eslint-disable-next-line @typescript-eslint/no-generated-empty-object-type -- a mechanic without decisions has an empty set
+	D extends DecisionSchemas = Record<never, TSchema>,
 > extends MechanicShape {
 	readonly options: O;
 	readonly state: S;
@@ -124,6 +132,7 @@ export interface Shape<
 	readonly requires: R;
 	readonly provides: Pv;
 	readonly uses: U;
+	readonly decisions: D;
 }
 
 /** Read-only view for facts and referee limits: no emit, no commands. */
@@ -134,6 +143,8 @@ export interface FactView<M extends MechanicShape> {
 	readonly minute: number;
 	readonly residents: ResidentsView;
 	readonly log: EventLogView;
+	/** What is pending at the decision gate: facts and limits may see it. */
+	readonly decisions: DecisionsView;
 	/** A `query` of a required API (round 2, R2-D4): live data of other mechanics, never a command. */
 	call<A extends M["requires"][number], K extends QueryMethodName<A>>(api: A, method: K, input: ApiInput<A, K>): ApiOutput<A, K>;
 	/** A `query` of a used API, `undefined` when no loaded mechanic provides it. */
@@ -181,6 +192,15 @@ export interface MechanicContext<M extends MechanicShape> {
 	 * (`defineTool`, or the tool itself), so the parameters are typed.
 	 */
 	stage<P extends TSchema>(tool: ToolRef<string, P>, params: Static<P>, options?: StageOptions): void;
+	/**
+	 * Proposes a decision (docs/design/overseer-api.md §3): when nobody holds the right or the window
+	 * is 0, `commit` (a name of the body's `commits`, so an open decision survives a snapshot) runs
+	 * at once, here, in the caller's frame, and nothing is logged; otherwise the decision opens and
+	 * commits at its deadline with the proposal that stands then.
+	 */
+	decide<K extends keyof M["decisions"] & string>(kind: K, proposal: Static<M["decisions"][K]>, options: DecideOptions, commit: K): DecisionOutcome;
+	/** Open decisions, of every mechanic. */
+	readonly decisions: DecisionsView;
 }
 
 /** A tool's context: the mechanic context plus who calls. */

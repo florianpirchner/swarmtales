@@ -5,6 +5,7 @@
 import { Clone } from "typebox/value";
 import type { CoreStory, HostSnapshot, JsonValue, RunEnd } from "@swarmtales/contracts";
 import type { AccessControl } from "./access.ts";
+import type { DecisionGate } from "./decisions.ts";
 import type { Loaded } from "./loader.ts";
 import type { EventBus } from "./log.ts";
 import type { Referee } from "./referee.ts";
@@ -20,6 +21,7 @@ export interface SnapshotParts {
 	readonly scheduler: Scheduler;
 	readonly referee: Referee;
 	readonly loaded: Loaded;
+	readonly gate: DecisionGate;
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
@@ -69,7 +71,10 @@ export function saveHost(parts: SnapshotParts, minute: number, ended: RunEnd | u
 		referee: parts.referee.save(),
 		mechanics,
 	};
-	return ended === undefined ? base : { ...base, ended };
+	// Written only while a decision is open, so the files of today's stories keep their bytes.
+	const decisions = parts.gate.save();
+	const open = decisions.length === 0 ? base : { ...base, decisions: [...decisions] };
+	return ended === undefined ? open : { ...open, ended };
 }
 
 /** Loads a parsed snapshot into the parts; the host sets its minute and end from it. */
@@ -88,6 +93,7 @@ export function restoreHost(parts: SnapshotParts, snapshot: HostSnapshot): void 
 		}),
 	);
 	parts.referee.load(snapshot.referee);
+	parts.gate.load(snapshot.decisions ?? []);
 	for (const id of loaded.order) {
 		const slice = loaded.instances.get(id)?.snapshot;
 		const saved = snapshot.mechanics[id];

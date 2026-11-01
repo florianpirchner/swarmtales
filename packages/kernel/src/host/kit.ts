@@ -16,6 +16,7 @@ import {
 	type ApiImplementation,
 	type ApiOutput,
 	type FactView,
+	type MechanicCommits,
 	type MechanicContext,
 	type MechanicKit,
 	type MechanicPort,
@@ -29,6 +30,7 @@ import {
 	type Refusal,
 	type ResidentId,
 	type RoleReply,
+	type Settlement,
 } from "@swarmtales/contracts";
 
 /** Where an instance keeps its state; a snapshot load replaces the value. */
@@ -43,6 +45,8 @@ export interface InstanceParts<M extends MechanicShape> {
 	readonly setup: StateSetup<M["options"]>;
 	readonly events: M["events"];
 	readonly prompts: PromptKeys;
+	/** The head's decision kinds (absent ones are not declared). */
+	readonly decisions: Partial<M["decisions"]>;
 }
 
 function isMethodOf<A extends ApiDefinition>(api: A, method: string): method is ApiMethodName<A> {
@@ -142,6 +146,31 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		stage(tool, params, options) {
 			port.stage(tool, params, options);
 		},
+		decide(kind, proposal, options, commit) {
+			return port.decide(kind, proposal, options, commit);
+		},
+		decisions: port.decisions,
+	};
+}
+
+function isDecisionOf<M extends MechanicShape>(decisions: Partial<M["decisions"]>, kind: string): kind is keyof M["decisions"] & string {
+	return Object.hasOwn(decisions, kind);
+}
+
+/** The commit of one decision kind, its proposal checked against the kind's schema first. */
+export function commitOf<M extends MechanicShape>(
+	parts: InstanceParts<M>,
+	commits: MechanicCommits<M>,
+	kind: string,
+): (proposal: unknown, settled: Settlement, ctx: MechanicContext<M>) => void {
+	const id = parts.port.id;
+	const asked: string = kind;
+	if (!isDecisionOf<M>(parts.decisions, kind)) throw new Error(`${id}: no decision "${asked}"`);
+	const schema = parts.decisions[kind];
+	const run = commits[kind];
+	if (schema === undefined || run === undefined) throw new Error(`${id}: no commit for the decision "${kind}"`);
+	return (proposal, settled, ctx) => {
+		run(parseWith(schema, proposal, `${id}.${kind} proposal`), settled, ctx);
 	};
 }
 
@@ -165,6 +194,7 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 		},
 		residents: port.residents,
 		log: port.log,
+		decisions: port.decisions,
 	};
 }
 
@@ -205,6 +235,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				limit: definition.limit,
 				suggest: definition.suggest ?? [],
 				serves: definition.serves,
+				...(definition.consult === undefined ? {} : { consult: { role: definition.consult.role, answer: definition.consult.answer } }),
 				prepare(raw, actor, resident) {
 					let params: Static<typeof definition.parameters>;
 					try {
