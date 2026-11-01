@@ -9,11 +9,12 @@
 import { describe, expect, it } from "vitest";
 import { competitorIds, createHost, type HostOptions } from "@swarmtales/kernel";
 import type { EventEnvelope, Host, TribunalSpec } from "@swarmtales/contracts";
+import { ExileApi } from "@swarmtales/mechanic-shared";
 import { exile } from "@swarmtales/mechanic-exile";
 import { tribunal } from "@swarmtales/mechanic-tribunal";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { standIns, TestCity } from "../exile/support/city.ts";
-import { storyOptions } from "../exile/support/host.ts";
+import { runProbe, storyOptions } from "../exile/support/host.ts";
 
 const SIX = [10, 20, 30, 40, 50, 60];
 const IDS = competitorIds(SIX.length);
@@ -38,7 +39,7 @@ interface Run {
 }
 
 /** Plays the scenario; `hold` is the scripted holder, called in the first turn of every minute. */
-async function play(window: number, holder: boolean, hold?: (host: Host, minute: number) => Promise<string | undefined>): Promise<Run> {
+async function play(window: number, holder: boolean, hold?: (host: Host, minute: number) => Promise<string | undefined>, until = 48): Promise<Run> {
 	const city = new TestCity(IDS, SIX);
 	const base = storyOptions({
 		residents: IDS,
@@ -52,7 +53,7 @@ async function play(window: number, holder: boolean, hold?: (host: Host, minute:
 	const host = createHost(options);
 	host.start();
 	const replies: string[] = [];
-	for (let minute = 0; minute <= 48; minute++) {
+	for (let minute = 0; minute <= until; minute++) {
 		let acted = false;
 		await host.playMinute(async () => {
 			if (acted) return;
@@ -128,5 +129,39 @@ describe("tribunal verdict at the decision gate", () => {
 		expect(fields(late)).toEqual(fields(old));
 		expect(fields(of(run.host, "core", "decision_settled")[0])).toMatchObject({ changed: false, amendments: [] });
 		expect(of(run.host, "exile", "exile_gate").map((event) => fields(event).agent)).toEqual(["A01"]);
+	});
+
+	it("re-checks the city at the commit: a resident struck meanwhile is not sent to the gate", async () => {
+		const run = await play(1, true, async (host, minute) => {
+			if (host.log.ofType("core", "decision_proposed").some((event) => event.minute === minute)) await runProbe(host, (ctx) => ctx.tryCall(ExileApi, "strike", { resident: "A01", by: "seal" }));
+			return undefined;
+		});
+		expect(fields(of(run.host, "tribunal", "tribunal_result")[0])).toMatchObject({ exiled: [] });
+		expect(of(run.host, "exile", "exile_gate")).toEqual([]);
+	});
+
+	it("exiles no more than are still missing at the commit", async () => {
+		const run = await play(1, true, async (host, minute) => {
+			if (!host.log.ofType("core", "decision_proposed").some((event) => event.minute === minute)) return undefined;
+			// The target is three: three strikes leave nobody missing.
+			for (const resident of ["A04", "A05", "A06"]) await runProbe(host, (ctx) => ctx.tryCall(ExileApi, "strike", { resident, by: "seal" }));
+			return undefined;
+		});
+		expect(fields(of(run.host, "tribunal", "tribunal_result")[0])).toMatchObject({ exiled: [] });
+		expect(of(run.host, "exile", "exile_gate")).toEqual([]);
+	});
+
+	it("plans nothing while a verdict is open, though the fallback gap has passed", async () => {
+		const window = 12;
+		const run = await play(window, true, undefined, 58);
+		const proposed = of(run.host, "core", "decision_proposed")[0]?.minute ?? -1;
+		const settled = of(run.host, "core", "decision_settled")[0]?.minute ?? -1;
+		expect(settled).toBe(proposed + window);
+		const scheduled = of(run.host, "tribunal", "tribunal_scheduled").map((event) => event.minute);
+		expect(scheduled.filter((minute) => minute >= proposed && minute < settled)).toEqual([]);
+		// Without a verdict open, the city plans in that very stretch (the fallback after the result).
+		const free = await play(0, false, undefined, 58);
+		const planned = of(free.host, "tribunal", "tribunal_scheduled").map((event) => event.minute);
+		expect(planned.filter((minute) => minute >= proposed && minute < settled).length).toBeGreaterThan(0);
 	});
 });
