@@ -6,6 +6,10 @@
  * so a model's wait never lets another call in; the calls mechanics staged meanwhile run right
  * after the call (or the code) that staged them, as actor `script`. Every caller reads its reply
  * through the mechanics' `display` (names for ids); the events keep what happened.
+ *
+ * Overseers (docs/design/overseer-api.md §1.3): after every call and every drain the gateway runs
+ * the overseers that events queued (`after`), still holding the line. While an overseer runs, its
+ * own world-tool calls are let in (nested, like staged calls, `admit`); every other caller waits.
  */
 import type { Actor, GrantRole, MechanicInstance, PipelineStage, PreparedCall, Refusal, StoryRule, ToolCall, ToolOutcome, ToolPolicies, ToolPolicy } from "@swarmtales/contracts";
 import { convertArguments } from "./arguments.ts";
@@ -38,6 +42,8 @@ export interface GatewayParts extends WaitParts {
 	readonly staging: StagingQueue;
 	/** Told once when code of a call throws; the gateway takes no call after that. */
 	readonly failed: (error: unknown) => void;
+	/** Runs the overseers that events queued, after a call or a drain (holding the line). */
+	readonly after?: () => Promise<void>;
 }
 
 function field(params: unknown, name: string): unknown {
@@ -68,6 +74,10 @@ interface Ran {
 export class Gateway {
 	readonly #parts: GatewayParts;
 	#queue: Promise<unknown> = Promise.resolve();
+	/** Nested calls of the running overseers, one after the other. */
+	#nested: Promise<unknown> = Promise.resolve();
+	/** The actors whose calls are let in while an overseer runs. */
+	readonly #admitted = new Set<Actor>();
 	#broken = false;
 
 	constructor(parts: GatewayParts) {
@@ -76,16 +86,65 @@ export class Gateway {
 
 	/** `cause` is the event the call answers (the turn it belongs to). The reply is formatted for the caller. */
 	call(actor: Actor, tool: string, raw: unknown, cause?: number): Promise<ToolOutcome> {
+		if (this.#admitted.has(actor)) return this.#inside(actor, tool, raw, cause);
 		return this.#serial(async () => {
 			const { outcome } = await this.#run(actor, tool, raw, cause);
 			await this.#drain();
-			return this.#shown(outcome);
+			const shown = this.#shown(outcome);
+			const after = this.#parts.after;
+			if (after !== undefined) await after();
+			return shown;
 		});
 	}
 
 	/** Runs the calls staged outside any call (by jobs, hooks, listeners). */
 	settle(): Promise<void> {
-		return this.#serial(() => this.#drain());
+		const after = this.#parts.after;
+		if (after === undefined) return this.#serial(() => this.#drain());
+		return this.#serial(async () => {
+			await this.#drain();
+			await after();
+		});
+	}
+
+	/** Runs code holding the line, after the calls before it (the host's overseer slots). */
+	exclusive(code: () => Promise<void>): Promise<void> {
+		return this.#serial(code);
+	}
+
+	/** Lets the calls of `actors` in while `code` runs; the caller holds the line. */
+	async admit<T>(actors: readonly Actor[], code: () => Promise<T>): Promise<T> {
+		const added = actors.filter((actor) => !this.#admitted.has(actor));
+		for (const actor of added) this.#admitted.add(actor);
+		try {
+			return await code();
+		} finally {
+			for (const actor of added) this.#admitted.delete(actor);
+		}
+	}
+
+	/** Runs the staged calls now; the caller holds the line. */
+	drain(): Promise<void> {
+		return this.#drain();
+	}
+
+	/** A nested call of a running overseer: the pipeline and the drain, without waiting for the line it holds already. */
+	#inside(actor: Actor, tool: string, raw: unknown, cause: number | undefined): Promise<ToolOutcome> {
+		const next = this.#nested.then(async () => {
+			if (this.#broken) throw new Error("host: the run failed; no more calls");
+			try {
+				const { outcome } = await this.#run(actor, tool, raw, cause);
+				await this.#drain();
+				return this.#shown(outcome);
+			} catch (error) {
+				this.#broken = true;
+				this.#parts.staging.clear();
+				this.#parts.failed(error);
+				throw error;
+			}
+		});
+		this.#nested = next.catch(() => undefined);
+		return next;
 	}
 
 	/** A text as a caller reads it: every mechanic's `display`, in load order. */

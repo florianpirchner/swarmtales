@@ -399,6 +399,8 @@ export interface MechanicDefinition<Id extends string = string, O extends TSchem
 	readonly prompts: PromptKeys;
 	/** Decision kinds to their proposal schemas. */
 	readonly decisions: DecisionSchemas;
+	/** Per event type, the default audience of its events (§4.1); absent: everyone. */
+	readonly audiences?: Partial<Readonly<Record<string, readonly string[]>>>;
 	/** Phantom, never set: the names of the mechanic's tools. */
 	readonly toolNames?: Tools;
 	/** Fills defaults and checks the options; throws with the mechanic's id on a bad value. */

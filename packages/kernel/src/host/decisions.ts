@@ -7,7 +7,9 @@
  * pipeline (every mechanic's `lock` handler sees it). At the start of the deadline's minute,
  * before the mechanics' jobs, the host writes `decision_settled` and runs the commit with the
  * proposal that stands: the human's last amendment, else the last of any other holder, else the
- * original. Open decisions are part of the snapshot.
+ * original. Open decisions are part of the snapshot. A decision still open when the run ends
+ * settles at `runEnded` with its original proposal (step 18 decision): no amendment stands, since
+ * its holders' window did not close.
  */
 import type { TSchema } from "typebox";
 import { Check, Clone, Errors, Parse } from "typebox/value";
@@ -172,12 +174,26 @@ export class DecisionGate implements DecisionsView {
 
 	/** A deadline job: writes `decision_settled` and runs the commit caused by it, with the proposal that stands. */
 	settle(data: JsonValue | undefined): void {
-		const { bus } = this.#parts;
 		const id = typeof data === "object" && data !== null && "decision" in data ? data.decision : undefined;
 		const decision = this.#open.find((entry) => entry.id === id);
 		if (decision === undefined) throw new Error(`decisions: a deadline of decision ${JSON.stringify(id)}, which is not open`);
+		this.#close(decision, standing(decision));
+	}
+
+	/**
+	 * The run ends: every decision still open settles now, in the order it was opened, with its
+	 * original proposal (`changed: false`; the amendments are listed). Its deadline job is dropped.
+	 */
+	settleAll(): void {
+		for (const decision of [...this.#open]) {
+			this.#parts.scheduler.cancel((job) => job.owner === CORE_OWNER && job.job === DEADLINE_JOB && typeof job.data === "object" && job.data !== null && "decision" in job.data && job.data.decision === decision.id);
+			this.#close(decision, undefined);
+		}
+	}
+
+	#close(decision: Decision, winner: Amendment | undefined): void {
+		const { bus } = this.#parts;
 		this.#open = this.#open.filter((entry) => entry !== decision);
-		const winner = standing(decision);
 		const proposal = winner?.proposal ?? decision.proposal;
 		const changed = winner !== undefined && !sameJson(winner.proposal, decision.proposal);
 		const by = winner === undefined ? {} : { by: winner.by, reason: winner.reason };

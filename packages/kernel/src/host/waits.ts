@@ -8,6 +8,7 @@ import type { Actor, GuardedSecret, GuardModel, GuardPolicy, MechanicInstance, P
 import { refuse } from "./define.ts";
 import { residentOf } from "./access.ts";
 import type { EventBus, Frame } from "./log.ts";
+import type { Consultant } from "./overseers.ts";
 import type { Referee } from "./referee.ts";
 
 export const GUARD_BLOCKED = "GUARD_BLOCKED";
@@ -22,6 +23,8 @@ export interface WaitParts {
 	readonly referee: Referee;
 	readonly guard: GuardModel | undefined;
 	readonly roles: Readonly<Record<string, RoleCaller | undefined>>;
+	/** An overseer with a consult trigger under the role's name (docs/design/overseer-api.md §1.4), when the app has no caller for it. */
+	readonly consultant?: (role: string) => Consultant | undefined;
 	readonly reply: (code: string) => string | undefined;
 }
 
@@ -88,18 +91,28 @@ export async function consultStage(parts: WaitParts, prepared: PreparedCall, act
 	}
 	if (!("question" in asked)) return asked;
 	const caller = parts.roles[consult.role];
+	const overseer = caller === undefined ? parts.consultant?.(consult.role) : undefined;
 	let reply: RoleReply | undefined;
-	if (caller !== undefined) {
+	let settle: ((answered: number) => void) | undefined;
+	if (caller !== undefined || overseer !== undefined) {
 		inChain(() => bus.emit("core", "role_asked", { role: consult.role, tool, question: asked.question }));
-		try {
-			reply = await caller.ask({ role: consult.role, tool, actor, question: asked.question });
-		} catch (error) {
-			reply = { ok: false, error: message(error), costUsd: 0 };
+		const question = { role: consult.role, tool, actor, question: asked.question };
+		if (overseer !== undefined) {
+			// Fails open inside; only the overseer's own code throwing ends the run.
+			({ reply, settle } = await overseer.ask(question, chain));
+		} else if (caller !== undefined) {
+			try {
+				reply = await caller.ask(question);
+			} catch (error) {
+				reply = { ok: false, error: message(error), costUsd: 0 };
+			}
 		}
+		if (reply === undefined) throw new Error(`consult: no reply of ${consult.role}`);
 		const costUsd = Number.isFinite(reply.costUsd) && reply.costUsd > 0 ? reply.costUsd : 0;
 		parts.referee.recordCost(costUsd);
 		const answered = reply.ok ? { role: consult.role, ok: true, answer: reply.answer, costUsd } : { role: consult.role, ok: false, error: reply.error, costUsd };
-		inChain(() => bus.emit("core", "role_answered", answered));
+		const written = inChain(() => bus.emit("core", "role_answered", answered));
+		settle?.(written.seq);
 	}
 	inChain(() => consult.read(reply));
 	return undefined;

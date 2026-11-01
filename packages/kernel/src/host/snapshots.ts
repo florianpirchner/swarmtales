@@ -7,6 +7,8 @@ import type { CoreStory, HostSnapshot, JsonValue, RunEnd } from "@swarmtales/con
 import type { AccessControl } from "./access.ts";
 import type { DecisionGate } from "./decisions.ts";
 import type { Loaded } from "./loader.ts";
+import type { OrderBook } from "./orders.ts";
+import type { OverseerRunner } from "./overseers.ts";
 import type { EventBus } from "./log.ts";
 import type { Referee } from "./referee.ts";
 import type { ResidentRegistry, ResidentsState } from "./residents.ts";
@@ -22,6 +24,8 @@ export interface SnapshotParts {
 	readonly referee: Referee;
 	readonly loaded: Loaded;
 	readonly gate: DecisionGate;
+	readonly orders: OrderBook;
+	readonly overseers: OverseerRunner;
 }
 
 function isJsonValue(value: unknown): value is JsonValue {
@@ -71,9 +75,16 @@ export function saveHost(parts: SnapshotParts, minute: number, ended: RunEnd | u
 		referee: parts.referee.save(),
 		mechanics,
 	};
-	// Written only while a decision is open, so the files of today's stories keep their bytes.
+	// Written only while a decision is open, an order active or an overseer used, so the files of today's stories keep their bytes.
 	const decisions = parts.gate.save();
-	const open = decisions.length === 0 ? base : { ...base, decisions: [...decisions] };
+	const orders = parts.orders.save(minute);
+	const overseers = parts.overseers.save();
+	const open = {
+		...base,
+		...(decisions.length === 0 ? {} : { decisions: [...decisions] }),
+		...(orders.length === 0 ? {} : { orders: orders.map((order) => ({ ...order })) }),
+		...(Object.keys(overseers).length === 0 ? {} : { overseers: Clone(overseers) }),
+	};
 	return ended === undefined ? open : { ...open, ended };
 }
 
@@ -94,6 +105,7 @@ export function restoreHost(parts: SnapshotParts, snapshot: HostSnapshot): void 
 	);
 	parts.referee.load(snapshot.referee);
 	parts.gate.load(snapshot.decisions ?? []);
+	parts.orders.load(snapshot.orders ?? []);
 	for (const id of loaded.order) {
 		const slice = loaded.instances.get(id)?.snapshot;
 		const saved = snapshot.mechanics[id];
@@ -111,4 +123,5 @@ export function restoreHost(parts: SnapshotParts, snapshot: HostSnapshot): void 
 	}
 	const unknown = Object.keys(snapshot.mechanics).find((id) => !loaded.order.includes(id));
 	if (unknown !== undefined) throw new Error(`snapshot: slice of mechanic "${unknown}", which the story does not load`);
+	parts.overseers.load(snapshot.overseers ?? {});
 }

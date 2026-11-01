@@ -240,6 +240,7 @@ export function defineMechanic<
 		events: head.events,
 		prompts,
 		decisions: head.decisions ?? {},
+		...(head.audiences === undefined ? {} : { audiences: head.audiences }),
 		parseOptions,
 		instantiate(port, raw) {
 			const options = parseOptions(raw);

@@ -10,7 +10,7 @@ import type { ResidentsView, StateSetup } from "./context.ts";
 import type { DecisionsView } from "./decision.ts";
 import type { EventEnvelope, EventLogView, EventSchemas, EventsDefinition } from "./events.ts";
 import type { OptionsInput, PlainPromptId, SnapshotSlice } from "./mechanic.ts";
-import type { ToolLimit, ToolSpec } from "./tools.ts";
+import type { ToolLimit, ToolOutcome, ToolSpec } from "./tools.ts";
 import type { Actor, PromptKeys, RandomLabel, RandomSource } from "./values.ts";
 
 /** The variable every overseer input prompt ends with; the runtime fills it (§4.2). */
@@ -172,6 +172,12 @@ export interface OverseerDefinition<Id extends string = string, O extends TSchem
 	readonly triggers: readonly OverseerTrigger[];
 	readonly needs: readonly string[];
 	readonly limits: OverseerLimits | undefined;
+	/** Per event type, the default audience of its events. */
+	readonly audiences?: Partial<Readonly<Record<string, readonly string[]>>>;
+	/** Fills defaults and checks the options; throws with the overseer's id on a bad value. */
+	parseOptions(raw: unknown): Static<O>;
+	/** The body bound to one story name (`defineOverseer`); the host holds the instance. */
+	instantiate(port: OverseerPort, options: unknown): OverseerInstance;
 	/** The definition under a story name; a story's `limits` tighten the head's, never lift them. */
 	as<const N extends string>(name: N, options?: OptionsInput<O> & { readonly limits?: OverseerLimits }): OverseerUse<N, this>;
 }
@@ -187,15 +193,55 @@ export interface OverseerUse<N extends string = string, D extends OverseerDefini
 /** The names of a story's overseers. */
 export type NameOf<Os extends readonly OverseerUse[]> = Os[number]["name"];
 
+/** What the host hands one overseer instance: its own view of the run, nothing of the host itself. */
+export interface OverseerPort {
+	/** The story name. */
+	readonly name: string;
+	readonly seed: number;
+	minute(): number;
+	readonly residents: ResidentsView;
+	/** Filtered by audience (§4.1). */
+	readonly log: EventLogView;
+	facts(): Readonly<Record<string, unknown>>;
+	readonly decisions: DecisionsView;
+	display(text: string): string;
+	/** An event of the definition (source = its id), checked against its schema. */
+	emit(type: string, payload: unknown): void;
+	render(prompt: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]): string;
+	rng(...labels: readonly RandomLabel[]): RandomSource;
+}
+
+/** One overseer under its story name, with its types erased, as the host runs it. */
+export interface OverseerInstance {
+	/** Whether the state is not `undefined`; such an overseer needs a snapshot slice. */
+	readonly stateful: boolean;
+	readonly snapshot: SnapshotSlice | undefined;
+	/** The variables of each call one firing makes (without `standingOrders`). */
+	calls(fired: Fired): readonly Readonly<Record<string, string | number>>[];
+	/** Runs `settle` with an output already checked against the head's `output`. */
+	settle(output: unknown, call: { readonly index: number; readonly fired: Fired }): void;
+	/** The body's fail-open answer, checked against `output`; `undefined`: do nothing. */
+	fallback(fired: Fired): { readonly output: unknown } | undefined;
+}
+
 /** One model request the host hands the app's runtime. */
 export interface OverseerCall {
 	readonly definition: string;
 	readonly name: string;
+	/** The model slot to use: the head's `model.slot`, or its `model.fallback` on the second try. */
+	readonly slot: string;
 	readonly system: string;
 	readonly input: string;
 	/** The world tools granted to the name, as `host.toolSpecs` lists them. */
 	readonly tools: readonly ToolSpec[];
+	/** The head's `output`; with an active order of mode `order` an object output gains the field `orders` (§4.2). */
 	readonly answerSchema: TSchema;
+	/**
+	 * Runs a world tool as this overseer through the full pipeline (nested: nothing else runs
+	 * meanwhile). Several calls of one firing ask at once, but each one's tool calls wait until the
+	 * calls before it are answered, so the log does not depend on the models' speed.
+	 */
+	call(tool: string, params: unknown): Promise<ToolOutcome>;
 }
 
 export type OverseerReply =

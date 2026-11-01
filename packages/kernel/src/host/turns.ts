@@ -31,6 +31,10 @@ export interface TurnParts {
 	readonly settle: () => Promise<void>;
 	/** True once the referee or a stop request ends the minute's turns. */
 	readonly halted: () => boolean;
+	/** The human's safe stops before and after each block (docs/design/overseer-api.md §5); absent without a human. */
+	readonly safeStop?: (at: "beforeBlock" | "afterBlock", pass: number, block: number) => Promise<void>;
+	/** Lines the core adds to a resident's next turn (the human's instruction, kind `human`); taken once. */
+	readonly coreInputs?: { has(resident: ResidentId): boolean; take(resident: ResidentId): readonly OrderedNote[] };
 }
 
 /** One policy from the mechanics' (at most one) and the story's, field by field; the story's win. */
@@ -106,8 +110,11 @@ export class TurnLoop {
 			const blocks = blocksOf(order, policy.blockSize ?? 1);
 			bus.emit("core", "pass_started", { pass, order: [...order], blocks: blocks.map((block) => [...block]) });
 			for (const [index, members] of blocks.entries()) {
+				const safeStop = this.#parts.safeStop;
+				if (safeStop !== undefined) await safeStop("beforeBlock", pass, index + 1);
 				if (this.#parts.halted()) break;
 				await this.#block(agent, minute, pass, index + 1, members);
+				if (safeStop !== undefined) await safeStop("afterBlock", pass, index + 1);
 			}
 		}
 	}
@@ -128,7 +135,7 @@ export class TurnLoop {
 		// No await in this loop: every member's inputs show the block's start.
 		for (const resident of members) {
 			if (!residents.mayAct(resident)) continue;
-			if (policy.activation === "onNews" && !this.#news(resident) && !this.#parts.awaitsAnswer(resident)) {
+			if (policy.activation === "onNews" && !this.#news(resident) && !this.#parts.awaitsAnswer(resident) && this.#parts.coreInputs?.has(resident) !== true) {
 				bus.emit("core", "turn_skipped", { resident, pass, block });
 				continue;
 			}
@@ -174,7 +181,8 @@ export class TurnLoop {
 		const { bus, policy, display } = this.#parts;
 		// In phase order: a phase that empties an inbox (and emits while doing so) runs after the phases that only read.
 		const notes = orderedPhases(this.#parts.instances, (phases) => phases.turnInputs).flatMap((phase) => bus.run({ actor: "host" }, () => phase.run(resident)).map((line) => noteOf(phase.source, line)));
-		return arrangeInputs(notes, policy.inputs ?? []).map((note) => ({ ...note, text: display(note.text) }));
+		const added = this.#parts.coreInputs?.take(resident) ?? [];
+		return arrangeInputs(added.length === 0 ? notes : [...notes, ...added], policy.inputs ?? []).map((note) => ({ ...note, text: display(note.text) }));
 	}
 
 	#news(resident: ResidentId): boolean {

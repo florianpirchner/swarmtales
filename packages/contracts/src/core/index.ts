@@ -4,6 +4,7 @@ export * from "./context.ts";
 export * from "./decision.ts";
 export * from "./events.ts";
 export * from "./host.ts";
+export * from "./human.ts";
 export * from "./mechanic.ts";
 export * from "./overseer.ts";
 export * from "./story.ts";
