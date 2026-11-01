@@ -12,7 +12,7 @@ import type { AnyStory } from "@swarmtales/contracts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import { additiveStory, castStory, socialLevels, soloLevels, tinyStory } from "../../helpers/stories.ts";
 import { MARKS } from "../channels/differential-support.ts";
-import { compared, playBoth, scriptSlice, type Plan, type Spec } from "./differential.ts";
+import { compared, playBoth, playNewResumed, scriptSlice, type NewPlayed, type Plan, type Spec } from "./differential.ts";
 
 const TOOLS = ["getStatus", "submitSolution", "sendDM", "postBoard", "readBoard", "signPetition", "listPetitions"] as const;
 
@@ -21,12 +21,17 @@ const dm = (target: string, message: string): PlannedCall => call("sendDM", { ta
 const solve = (level: number, code: string): PlannedCall => call("submitSolution", { level, code });
 
 /** Plays a spec on both sides and compares everything; returns the old side's compared lines (to show what the plan reached). */
-async function compare(spec: Spec): Promise<readonly string[]> {
+async function compare(spec: Spec, resumeAfter: readonly number[] = []): Promise<readonly string[]> {
 	const { old, fresh } = await playBoth(spec);
-	expect([...fresh.replies.keys()].sort()).toEqual([...old.replies.keys()].sort());
-	for (const [at, replies] of old.replies) expect(fresh.replies.get(at), at).toEqual(replies);
-	expect(compared(fresh)).toEqual(compared(old));
-	expect(JSON.stringify(scriptSlice(fresh))).toBe(JSON.stringify(old.director));
+	const same = (side: NewPlayed, where: string): void => {
+		expect([...side.replies.keys()].sort(), where).toEqual([...old.replies.keys()].sort());
+		for (const [at, replies] of old.replies) expect(side.replies.get(at), `${where} ${at}`).toEqual(replies);
+		expect(compared(side), where).toEqual(compared(old));
+		expect(JSON.stringify(scriptSlice(side)), where).toBe(JSON.stringify(old.director));
+	};
+	same(fresh, "uninterrupted");
+	// The new host snapshotted after `minutes` minutes and resumed from its own snapshot continues as the old run did.
+	for (const minutes of resumeAfter) same(await playNewResumed(spec, (agent, level) => old.world.inspect.codeOf(agent, level), minutes), `resumed after ${String(minutes)} minutes`);
 	return compared(old);
 }
 
@@ -57,7 +62,7 @@ describe("the script against the old Director", () => {
 	it("time triggers, standings, points, notices, cast and the level conditions", async () => {
 		const story = storyOf([
 			at(0, [act.post("CITY", "Welcome, {agents} residents; {survivors} survive."), act.notify("all", "Minute {minute}.")], { id: "hello" }),
-			at(1, [act.post("HERALD", "The herald is not here yet.")], { id: "early-herald" }),
+			at(1, [act.post("HERALD", "The herald is not here yet."), act.notify(["A02", "A03"], "This is for you, {actor}."), act.dm("STEWARD", ["A04"], "A word for {actor}.")], { id: "early-herald" }),
 			every(3, { from: 2, until: 8 }, [act.publishStandings("bands", { edgeSize: 1 })], { id: "bands" }),
 			at(4, [act.publishStandings("snapshot")], { id: "snap" }),
 			at(3, [act.dm("STEWARD", "all", "The steward greets you at minute {minute}."), act.revealCast("HERALD")], { id: "greet" }),
@@ -73,9 +78,9 @@ describe("the script against the old Director", () => {
 			onAllPast(1, [act.post("CITY", "Everyone left the square at {minute}.")], { id: "allpast" }),
 			onUnansweredDm(2, [act.notify("actor", "{other} has not answered you.")], { id: "unanswered", when: [when.cooldown(4, "pair")] }),
 		]);
-		const director = await compare({ story, agents: 4, minutes: 10, plan: CLIMB, tools: TOOLS });
+		const director = await compare({ story, agents: 4, minutes: 10, plan: CLIMB, tools: TOOLS }, [3, 6]);
 		const seen = director.join("\n");
-		for (const phrase of ['"rule":"bands"', '"rule":"snap"', '"rule":"first2"', '"rule":"enter2"', '"rule":"allpast"', '"rule":"unanswered"', '"rule":"two"', '"type":"director_skipped"']) expect(seen, phrase).toContain(phrase);
+		for (const phrase of ['"rule":"bands"', '"rule":"snap"', '"rule":"first2"', '"rule":"enter2"', '"rule":"allpast"', '"rule":"unanswered"', '"rule":"two"', '"type":"director_skipped"', "This is for you, A03.", "A word for A04."]) expect(seen, phrase).toContain(phrase);
 		expect(seen).not.toContain('"rule":"never"');
 	});
 
@@ -102,6 +107,8 @@ describe("the script against the old Director", () => {
 			onPetitionResolved("gate", "passed", [act.notify("all", "The gate petition passed.")], { id: "gate-passed" }),
 			onPetitionResolved("vault", "failed", [act.post("CITY", "The vault stays closed.")], { id: "vault-failed" }),
 			at(4, [act.post("CITY", "The gate petition passed before minute 4.")], { id: "status", when: [when.petitionStatus("gate", "passed")] }),
+			// The vault expires at minute 3: the old director resolved it before the minute's rules, so its status is already failed.
+			at(3, [act.post("CITY", "The vault plea failed this minute.")], { id: "expired-first", when: [when.petitionStatus("vault", "failed")] }),
 			at(4, [act.post("CITY", "The second plea is still open.")], { id: "status-open", when: [when.petitionStatus("second", "open"), when.castActive("STEWARD")] }),
 			at(1, [act.revealCast("STEWARD"), act.collectDms("STEWARD", { first: 3, forMinutes: 3, into: "applicants", distinctSenders: true })], { id: "collect" }),
 			onCollect("applicants", [act.notify("actor", "Letter {seats} seats, {actor}.")], { id: "collected" }),
@@ -123,9 +130,10 @@ describe("the script against the old Director", () => {
 			if (minute === 4 && agent === "A03") return [sign("second"), call("listPetitions")];
 			return [];
 		};
-		const director = await compare({ story, agents: 4, minutes: 10, plan, tools: TOOLS });
+		// After minute 3 the director holds the open `second` petition it opened through `vault`'s onFail; after 5 the collection has ended.
+		const director = await compare({ story, agents: 4, minutes: 10, plan, tools: TOOLS }, [1, 4, 6]);
 		const seen = director.join("\n");
-		for (const phrase of ['"rule":"gate-passed"', '"rule":"vault-failed"', '"rule":"status"', '"rule":"collected"', '"rule":"open"', '"rule":"closed"', '"rule":"draw","action":"lottery"', '"via":"petition vault failed"', '"via":"lottery applicants"']) expect(seen, phrase).toContain(phrase);
+		for (const phrase of ['"rule":"gate-passed"', '"rule":"vault-failed"', '"rule":"status"', '"rule":"collected"', '"rule":"open"', '"rule":"closed"', '"rule":"draw","action":"lottery"', '"via":"petition vault failed"', '"via":"lottery applicants"', '"rule":"expired-first"']) expect(seen, phrase).toContain(phrase);
 		for (const reason of ["petition again was already opened", "collection empty already exists", "collection empty has no senders", "no competitor to target", "A01: INSUFFICIENT_ESCROW"]) expect(seen, reason).toContain(reason);
 	});
 
@@ -158,7 +166,7 @@ describe("the script against the old Director", () => {
 			if (minute === 6 && agent === "A04") return [solve(1, codeOf(agent, 1))];
 			return [];
 		};
-		const director = await compare({ story, agents: 4, minutes: 10, plan, tools: [...TOOLS, "getProblem"] });
+		const director = await compare({ story, agents: 4, minutes: 10, plan, tools: [...TOOLS, "getProblem"] }, [3]);
 		const seen = director.join("\n");
 		for (const phrase of ['"rule":"split"', '"rule":"behind"', '"rule":"factor-first"', '"rule":"factor-some"', "already holds it"]) expect(seen, phrase).toContain(phrase);
 	});
@@ -185,7 +193,7 @@ describe("the script against the old Director", () => {
 			if (minute === 5 && agent === "A05") return [dm("STEWARD", "Too late for A05?")];
 			return [];
 		};
-		const director = await compare({ story, agents: 6, minutes: 10, plan, tools: ["getStatus", "getProblem", "submitSolution", "sendDM", "postBoard", "readBoard"] });
+		const director = await compare({ story, agents: 6, minutes: 10, plan, tools: ["getStatus", "getProblem", "submitSolution", "sendDM", "postBoard", "readBoard"] }, [2, 4]);
 		const seen = director.join("\n");
 		for (const phrase of ['"rule":"city-factor"', '"type":"factor_revealed"', '"rule":"factor-twice"','"rule":"seat"', '"rule":"feast-end"', '"type":"collection_shortened"', "One of 3 seats is yours"]) expect(seen, phrase).toContain(phrase);
 	});

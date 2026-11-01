@@ -99,28 +99,54 @@ export async function playOld(spec: Spec): Promise<OldPlayed> {
 	return { replies, lines: fixture.log.events.map((event) => ({ ...event })), world: fixture.world, director: fixture.director.snapshot() };
 }
 
-export async function playNew(spec: Spec, codeOf: CodeOf): Promise<NewPlayed> {
-	const residents = ids(spec.agents);
-	const definition = defineCoreStory({
+function definitionOf(spec: Spec) {
+	return defineCoreStory({
 		id: "script-differential",
 		seed: spec.story.run.seed,
 		minutes: spec.minutes,
-		residents,
+		residents: ids(spec.agents),
 		mechanics: [...realCity(spec.story), cast.with(castOptionsFromStory(spec.story)), petitions.with({}), script.with(scriptOptionsFromStory(spec.story))],
 		grants: { resident: [...spec.tools], gamemaker: ["notify", "postBoard"], script: SCRIPT_GRANTS },
 		turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
 	});
-	const lines: LegacyLine[] = [];
-	const host = createHost({ story: definition, prompts: createPromptLookup() });
-	host.subscribe(legacySink((event) => lines.push(Object.fromEntries(Object.entries(event)))));
-	host.start();
-	const replies = new Map<string, string[]>();
-	const agent: TurnTaker = async (turn) => {
+}
+
+/** The plan's turns on the new host, recording the replies. */
+function agentOf(spec: Spec, codeOf: CodeOf, replies: Map<string, string[]>): TurnTaker {
+	return async (turn) => {
 		for (const call of spec.plan(turn.resident, turn.minute, codeOf)) {
 			const outcome = await turn.call(call.tool, call.params);
 			replies.set(key(turn.minute, turn.resident), [...(replies.get(key(turn.minute, turn.resident)) ?? []), replyText(outcome)]);
 		}
 	};
+}
+
+function record(lines: LegacyLine[]): Parameters<Host["subscribe"]>[0] {
+	return legacySink((event) => lines.push(Object.fromEntries(Object.entries(event))));
+}
+
+export async function playNew(spec: Spec, codeOf: CodeOf): Promise<NewPlayed> {
+	const lines: LegacyLine[] = [];
+	const host = createHost({ story: definitionOf(spec), prompts: createPromptLookup() });
+	host.subscribe(record(lines));
+	host.start();
+	const replies = new Map<string, string[]>();
+	await host.run(agentOf(spec, codeOf, replies));
+	return { replies, lines, host };
+}
+
+/** Plays the first `minutes` minutes, snapshots the host, resumes a second host from it and plays the rest there. */
+export async function playNewResumed(spec: Spec, codeOf: CodeOf, minutes: number): Promise<NewPlayed> {
+	const definition = definitionOf(spec);
+	const lines: LegacyLine[] = [];
+	const replies = new Map<string, string[]>();
+	const agent = agentOf(spec, codeOf, replies);
+	const first = createHost({ story: definition, prompts: createPromptLookup() });
+	first.subscribe(record(lines));
+	first.start();
+	for (let played = 0; played < minutes; played++) await first.playMinute(agent);
+	const host = createHost({ story: definition, prompts: createPromptLookup(), resume: { snapshot: structuredClone(first.snapshot()), events: first.log.all() } });
+	host.subscribe(record(lines));
 	await host.run(agent);
 	return { replies, lines, host };
 }

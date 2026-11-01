@@ -18,7 +18,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import { convertLegacySnapshot, legacySink, parseSnapshot, toLegacySnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, legacySink, parseSnapshot, toLegacySnapshot, type ConvertedSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
 import { Director, MemorySink, EventBus, type World } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
@@ -119,7 +119,10 @@ async function resumeOld(file: unknown, story: AnyStory, minutes: number, plan: 
 
 /** The real city with the real script on the converted snapshot. */
 function resumedHost(file: unknown, story: AnyStory, minutes: number): Host {
-	const converted = convertLegacySnapshot(JSON.parse(JSON.stringify(file)), {}, "snapshot-L7");
+	return resumedHostOf(convertLegacySnapshot(JSON.parse(JSON.stringify(file)), {}, "snapshot-L7"), story, minutes);
+}
+
+function resumedHostOf(converted: ConvertedSnapshot, story: AnyStory, minutes: number): Host {
 	const rules = marksOptions(story);
 	const naming = story.names;
 	const mechanics: MechanicUse[] = [
@@ -162,6 +165,14 @@ describe("the script's slice of the L7 checkpoint", () => {
 		expect(host.snapshot().mechanics.script?.version).toBe(1);
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(director.snapshot()));
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(directorOf(file)));
+	});
+
+	it("starts fresh from an empty version-0 slice (a file without director state, R2-D2)", () => {
+		const converted = convertLegacySnapshot(raw(), {}, "snapshot-L7");
+		const snapshot = { ...converted.host, mechanics: { ...converted.host.mechanics, script: { version: 0, data: {} } } };
+		const host = resumedHostOf({ ...converted, host: snapshot }, cityOfKeys, 1);
+		const empty = new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0)).snapshot();
+		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(empty));
 	});
 
 	it("is written back into the old file's director field (version 1 keeps the version-0 shape)", () => {
