@@ -642,4 +642,4 @@ Enforced by `tsc`, ESLint and [`test/code-rules.test.ts`](../test/code-rules.tes
 
 ## License
 
-[Apache License 2.0](../LICENSE)
+[Sustainable Use License with additional terms](../LICENSE)
