@@ -193,3 +193,41 @@ mechanics and overseers would make it worse. Measures, strongest first:
 5. **Tools for overview:** `swt story explain` shows the effective story (defaults, presets, overrides) with the
    origin of every value; `swt story diff a b`; folding in the editor; a summary view in the TUI.
 6. **Shared typed parts** in the TypeScript way (cities, figures, dial profiles) are defined once and imported.
+
+## 11. Quests (idea, Flo 2026-11-01, model: The Witcher 3)
+
+We have no quest concept; the pieces exist under other names (levels and doors = main chain, `goals` = personal
+secret quests, seal auction, holdout, feast, petitions = loose side quests). Proposal: a `quests` mechanic and a few
+concepts taken from the structure of The Witcher 3.
+
+What the Witcher 3 does that we lack:
+
+1. **Quest states and a journal:** available, active, completed, failed, expired; the player (here: every resident
+   and overseer) sees a quest log.
+2. **Prerequisites and hubs:** a quest graph (quest B opens after A, after a level, after a flag), with places where
+   several quests start.
+3. **Choices with delayed consequences:** a decision in one quest is stored as a *flag* and changes a later quest or
+   the world, often hours later and without announcement (the Bloody Baron chain is the example).
+4. **Several endings computed from flags:** the end of the main quest depends on counters built by earlier choices,
+   not on one last decision. For us: an *ending evaluator* the arena asks when the run stops; it feeds the report and
+   the novel.
+5. **Side minigames** (Gwent): a contest with its own rules whose prize is something (the terminator dice game, the
+   seal auction).
+6. **Contracts:** short repeatable jobs with an investigate, prepare, act shape; for us offered by the gamemaker.
+
+Mapping to our design: a quest is a small state machine (offered, active, done, failed, expired) with who (resident,
+team, all, overseers), an objective (a condition over events and facts, or the verdict of an overseer), a deadline,
+effects (points, a tool, a lock, a decision right, a flag) and an audience (public, private, team). The story
+declares fixed quests; the gamemaker or another overseer offers quests at run time (`offerQuest`). A `flags`
+store (or a part of `quests`) records choices with their later consequences; consequence rules fire on events
+(`when flag X and event Y then effect Z`). The main quest only decides when the run ends and how the ending is
+named; side quests are optional.
+
+The difference from the game: the Witcher has one human player, we have many autonomous model agents. The
+dramaturgy tool is therefore the gamemaker (and other overseers) as quest giver, and the human hand as the one
+who may change the course.
+
+Prerequisites: the expression language for conditions (CEL or JSONLogic, open); until then only an overseer's
+verdict can complete a quest. Existing mechanics are not rewritten while the golden logs hold; `quests` is new
+and serves new stories. Open: where flags live, who may read them (audiences), how endings are declared in the
+story, and whether `goals` and the seal auction move onto `quests` later.
