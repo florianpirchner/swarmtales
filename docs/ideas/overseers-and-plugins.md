@@ -253,3 +253,15 @@ swarmtales. All of it is idea level; none is approved.
 
 Candidate new mechanics: `quests` (see §11), `reputation`, `heat`, `evidence`, an event deck, a news feed. The
 common basis is the same: events in, state, events out, audiences for who sees what.
+
+### 12.1 Red Dead Redemption 2
+
+| Pattern | Here |
+|---|---|
+| Honor meter: deeds move a moral score that changes dialogue, prices, outcomes and the ending | `honor` mechanic: a per-resident score fed by events (help, lies, betrayals); it shapes quest options and the ending evaluator |
+| The camp: a shared place, a shared pool of money and supplies, members donate or take, leaders spend | `camp` / common pool mechanic: contributions, withdrawals, and resentment when the pool is misused (the feast table is a first version) |
+| Loyalty between companions | pairwise `bonds` (strength, history); bonds open or close quest approaches and drive betrayal |
+| Witnesses and reports: a crime is only punished when someone reports it, and witnesses can be silenced | like `reputation`/`evidence` (§12): knowledge spreads through who saw what |
+| A leader whose plans keep failing and whose trust erodes | the gamemaker or a faction leader as an overseer with a `trust` score per follower; low trust triggers defections |
+| A doomed arc with an epilogue: the structure is a decline, the epilogue shows the consequences | a story-level arc (acts with a planned direction) and an epilogue from the flags, written by the novelist |
+| Optional bonus objectives per mission | quest `bonus` objectives with their own reward |
