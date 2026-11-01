@@ -101,9 +101,12 @@ function sameJson(a: unknown, b: unknown): boolean {
 	return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** The amendment that stands (§3.2 rule 5): the human's last, else the last of any other holder. */
+/**
+ * The amendment that stands (§3.2 rule 5): the human's last, else the last of any other holder.
+ * Both are the last amendment, because once the human amended, `DECISION_HUMAN` refuses every other holder.
+ */
 function standing(decision: Decision): Amendment | undefined {
-	return decision.amendments.findLast((amendment) => amendment.by === "human") ?? decision.amendments.at(-1);
+	return decision.amendments.at(-1);
 }
 
 function proposalOf(decision: Decision): unknown {
