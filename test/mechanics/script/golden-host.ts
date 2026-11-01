@@ -73,11 +73,12 @@ function guardPolicies(story: AnyStory) {
 export function cityOf(story: AnyStory, withNames: boolean): readonly MechanicUse[] {
 	const rules = marksOptions(story);
 	const naming = withNames ? story.names : undefined;
+	const minRun = minRunOf(story);
 	return [
 		...whispersOf(story),
 		ledger.with({ startPoints: story.run.startPoints }),
 		channels.with(channelsOptionsOf(story)),
-		receipts.with({ quoteDms: story.rules.receipts?.quoteDms === true, ...(minRunOf(story) === undefined ? {} : { minRun: minRunOf(story) }) }),
+		receipts.with({ quoteDms: story.rules.receipts?.quoteDms === true, ...(minRun === undefined ? {} : { minRun }) }),
 		rules === undefined ? marksStandIn().with() : marks.with(rules),
 		naming === undefined ? noNames() : names.with({ ...naming, fallbackWords: [...naming.fallbackWords], reserved: [...Object.keys(story.cast), story.city] }),
 		cast.with(castOptionsFromStory(story)),

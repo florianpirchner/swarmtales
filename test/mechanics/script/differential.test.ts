@@ -7,7 +7,7 @@
  * against the old `director` field.
  */
 import { describe, expect, it } from "vitest";
-import { act, at, every, level, onAllPast, onCollect, onCollectionEnd, onEnter, onFirstEnter, onHolderBehind, onPetitionResolved, onTeamSplit, onUnansweredDm, puzzle, team, when } from "@swarmtales/sdk";
+import { act, at, defineStory, every, level, onAllPast, onCollect, onCollectionEnd, onEnter, onFirstEnter, onHolderBehind, onPetitionResolved, onTeamSplit, onUnansweredDm, puzzle, team, when } from "@swarmtales/sdk";
 import type { AnyStory } from "@swarmtales/contracts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import { additiveStory, castStory, socialLevels, soloLevels, tinyStory } from "../../helpers/stories.ts";
@@ -164,10 +164,12 @@ describe("the script against the old Director", () => {
 	});
 
 	it("the city factor on the board, a scaled collection shortened after a solve, and {seats}", async () => {
-		const base = additiveStory({
-			topology: "cycle",
-			size: 3,
-			agents: 6,
+		const base = additiveStory({ topology: "cycle", size: 3, agents: 6, director: [] });
+		const story = defineStory({
+			...base,
+			cast: { STEWARD: { level: 1 } },
+			run: { ...base.run, minutes: 10 },
+			rules: { ...base.rules, marks: MARKS },
 			director: [
 				at(0, [act.revealFactor("board", 1)], { id: "city-factor" }),
 				at(2, [act.revealFactor("board", 1)], { id: "factor-twice" }),
@@ -176,7 +178,6 @@ describe("the script against the old Director", () => {
 				onCollectionEnd("feast", [act.post("CITY", "The feast closes at {minute} with {seats} seats.")], { id: "feast-end" }),
 			],
 		});
-		const story: AnyStory = { ...base, cast: { STEWARD: { level: 1 } }, run: { ...base.run, minutes: 10 }, rules: { ...base.rules, marks: MARKS } };
 		const plan: Plan = (agent, minute, codeOf) => {
 			if (minute === 1 && agent === "A02") return [dm("STEWARD", "A seat for A02, please.")];
 			if (minute === 3 && agent === "A01") return [solve(1, codeOf(agent, 1))];
