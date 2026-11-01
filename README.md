@@ -262,4 +262,4 @@ is deterministic, and every run can be replayed.
 
 ## License
 
-[Apache License 2.0](LICENSE)
+Swarm Tales is source-available under the [Sustainable Use License](LICENSE) with additional terms: you may run and change it for free, but not offer it as a hosted service or sell it as your own product. The plugin interface (`contracts`, `sdk`) is Apache 2.0. See the [license FAQ](LICENSE-FAQ.md).

@@ -648,7 +648,7 @@ Decided by Flo 2026-10-30: the packages go to npm. That makes the build step rea
   boundary rule (§2) keep the rest private. `knip` and an API report (api-extractor or a snapshot of
   the `.d.ts`) make accidental API changes visible in review.
 - **Before the first publish (needs Flo, cannot be undone):** the npm scope `@swarmtales` and the
-  name `swarmtales` must be free and owned, and the licence must be settled (Apache today; BSL was
+  name `swarmtales` must be free and owned, and the licence is settled (2026-11-01: Sustainable Use License plus additional terms; Apache 2.0 for contracts and sdk; BSL was
   discussed, no decision). A published version cannot be unpublished in practice.
 
 ## 8. Open questions for Flo
@@ -658,7 +658,7 @@ Decided by Flo 2026-10-30: the packages go to npm. That makes the build step rea
 2. ~~Staging?~~ Decided 2026-10-30: referee, script and gamemaker mode as three layers (§5); script first, gamemaker mode and `delegate` later with their own brainstorm.
 3. **"No prompts":** do tool descriptions, error replies to models and story prose count? I count all
    three.
-4. ~~Publish to npm?~~ Decided 2026-10-30: yes (§7a). Open: is the scope `@swarmtales` free, and the licence (Apache or BSL)?
+4. ~~Publish to npm?~~ Decided 2026-10-30: yes (§7a). Open: is the scope `@swarmtales` free, (the licence is decided, see `LICENSE`).
 5. ~~Story format?~~ Decided 2026-10-30: one schema, TS builder and YAML (§3a).
 8. **Expression language:** CEL (typed, Google) or JSONLogic (plain JSON, simpler)?
 6. **Timing:** start with steps 1-3 right after Whispers is merged, or wait until the first Whispers
