@@ -33,6 +33,8 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
    a story without `names` needs an off switch; resumed runs write `run_resumed` and the motive deals one minute late and
    lose the whisperer when the file has no `whisperer_chosen` (L1, L2).
 2. **Overseers and the decision gate** (idea, Flo decided the name Overseer; API sketch still to write and to read before building): `docs/ideas/overseers-and-plugins.md`.
+   Step 18 wave plan (Flo gave the go 2026-11-01): wave A (running) O1 overseer core steps 1-4, S1 `script`, A1 `arena`; wave B overseer
+   scheduling, orders, human hand, testkit, `grants: auto`; wave C roles as overseers, CLI wiring, delete `world.ts`, golden compare; challengers after each wave.
 3. **Story option mapping** (R2-D17) when step 18 composes the stories.
 4. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
    `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there

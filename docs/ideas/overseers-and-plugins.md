@@ -173,3 +173,23 @@ Status: idea (Flo, 2026-10-31). Open names are marked.
 
 Open: `swt` or `swtcli`; assistant from the start or slash commands first; keychain or file; advice or order
 by default; may the human change other overseers' decisions (proposal: yes, with priority); final names.
+
+## 10. Keeping stories short (story composition)
+
+Stories are already long (`stories/cityofkeys/story.ts` 678 lines, `stories/whispers/story.ts` 511); more
+mechanics and overseers would make it worse. Measures, strongest first:
+
+1. **Defaults per mechanic:** options, suggested grants (`suggest`), typical locks and texts ship with the
+   mechanic; a story names only deviations (`tribunal: {}` when the default fits).
+2. **Presets:** a plugin may offer a ready bundle (`preset: "tribunal-city"`: tribunal, seal, ransom, grants, texts);
+   a story `extends` it and overrides single parts. The dial profiles in `library/dials/` are such presets.
+3. **A folder per story** with small files: `story.yaml` (the frame only), `overseers/`, `cast/`, `prompts/`,
+   `addenda/`.
+4. **`grants: auto` (decided by Flo to go into step 18):** the grants are derived from the `suggest` roles of the
+   loaded mechanics and overseers; the story lists only exceptions (removals and additions). `swt validate`
+   prints the derived grants so nothing is hidden. It must not change the grants of the existing stories: the
+   derived set for cityofkeys and whispers has to equal their explicit lists (golden `request` lines), proven by a
+   test before the stories switch over.
+5. **Tools for overview:** `swt story explain` shows the effective story (defaults, presets, overrides) with the
+   origin of every value; `swt story diff a b`; folding in the editor; a summary view in the TUI.
+6. **Shared typed parts** in the TypeScript way (cities, figures, dial profiles) are defined once and imported.
