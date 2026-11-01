@@ -1,0 +1,166 @@
+[
+	{
+		"id": "G1-1",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "\t\t\tif (owner === CORE_OWNER) continue;\n",
+		"replace": "",
+		"tests": [
+			"test/host/auto-grants.test.ts",
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-2",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "if (!list.includes(name)) list.push(name);",
+		"replace": "list.push(name);",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-3",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "return names.has(entry) ? [entry,",
+		"replace": "return true ? [entry,",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-4",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "...byDefinition.filter((name) => name !== entry)] : byDefinition;",
+		"replace": "...byDefinition.filter((name) => name !== entry)] : [];",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-5",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "const dropped = new Set(tweak?.drop ?? []);",
+		"replace": "const dropped = new Set<string>();",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-6",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "(tweak?.set ?? derived ?? [])",
+		"replace": "(derived ?? [])",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-7",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "(tweak?.add ?? []).filter((tool) => !base.includes(tool))",
+		"replace": "(tweak?.add ?? [])",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-8",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "if (story.grantTweaks !== undefined) throw",
+		"replace": "if (false) throw",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-9",
+		"file": "packages/kernel/src/host/auto-grants.ts",
+		"find": "const keys = [...new Set([...Object.keys(derived), ...Object.keys(tweaks)])];",
+		"replace": "const keys = Object.keys(derived);",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-10",
+		"file": "packages/kernel/src/host/loader.ts",
+		"find": "\tparts.access.setGrants(grants);\n",
+		"replace": "",
+		"tests": [
+			"test/host/auto-grants.test.ts",
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-11",
+		"file": "packages/kernel/src/host/loader.ts",
+		"find": "[...Object.values(grants).flatMap",
+		"replace": "[...Object.values({}).flatMap",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-12",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\tif (story.grants === \"auto\") checkHumanGrants(this.#loaded.grants);\n",
+		"replace": "",
+		"tests": [
+			"test/host/auto-grants.test.ts"
+		]
+	},
+	{
+		"id": "G1-13",
+		"file": "mechanics/progression/src/tools.ts",
+		"find": "description: \"tools/getStatus\",\n\t\t\tsuggest: [\"resident\"],",
+		"replace": "description: \"tools/getStatus\",",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-14",
+		"file": "mechanics/channels/src/gamemaker.ts",
+		"find": "\t\t\tsuggest: [\"gamemaker\"],\n\t\t\tserves: [\"gamemaker\"],\n\t\t\texecute: (params, ctx) => {\n\t\t\t\tif (!ctx.residents.has(params.agent))",
+		"replace": "\t\t\tsuggest: [\"resident\"],\n\t\t\tserves: [\"gamemaker\"],\n\t\t\texecute: (params, ctx) => {\n\t\t\t\tif (!ctx.residents.has(params.agent))",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-15",
+		"file": "mechanics/petitions/src/index.ts",
+		"find": "suggest: [\"script\"],",
+		"replace": "suggest: [\"gamemaker\"],",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-16",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "description: \"tools/permaDeath\",\n\t\t\tparameters: Type.Object({ target: Type.String({ description: \"A resident, by name or ID, e.g. A03\" }) }),\n\t\t\tsuggest: [\"resident\"],",
+		"replace": "description: \"tools/permaDeath\",\n\t\t\tparameters: Type.Object({ target: Type.String({ description: \"A resident, by name or ID, e.g. A03\" }) }),\n\t\t\tsuggest: [],",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-17",
+		"file": "mechanics/whispers/src/tools.ts",
+		"find": "}),\n\t\tsuggest: [\"resident\"],\n\t\texecute: ({ to, receiptId, text }, ctx: ToolCtx) => {",
+		"replace": "}),\n\t\tsuggest: [],\n\t\texecute: ({ to, receiptId, text }, ctx: ToolCtx) => {",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	},
+	{
+		"id": "G1-18",
+		"file": "mechanics/script/src/index.ts",
+		"find": "suggest: [\"script\"],",
+		"replace": "suggest: [\"resident\"],",
+		"tests": [
+			"test/mechanics/auto-grants-equality.test.ts"
+		]
+	}
+]

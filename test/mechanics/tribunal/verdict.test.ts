@@ -49,7 +49,7 @@ async function play(window: number, holder: boolean, hold?: (host: Host, minute:
 		gamemakerTools: ["scheduleTribunal"],
 		turns: { passes: 1, blockSize: IDS.length, order: (view) => view.residents },
 	});
-	const options: HostOptions = holder ? { ...base, story: { ...base.story, grants: { ...base.story.grants, human: ["amendDecision"] } }, human: true } : base;
+	const options: HostOptions = holder ? { ...base, story: { ...base.story, grants: { ...(base.story.grants === "auto" ? {} : base.story.grants), human: ["amendDecision"] } }, human: true } : base;
 	const host = createHost(options);
 	host.start();
 	const replies: string[] = [];

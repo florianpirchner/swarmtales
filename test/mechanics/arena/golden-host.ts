@@ -101,12 +101,11 @@ export function arenaOf(story: AnyStory, run: ArenaRun): { readonly use: Mechani
 	return { use: arena.with(options), turns };
 }
 
-/** Plays a golden log on the host of the real city with the arena. */
-export async function replayArena(name: GoldenName): Promise<ArenaReplay> {
+/** The core story of a golden run, with the grants written out (`explicit`, as the replay uses them) or derived (`auto`). */
+export function arenaStoryOf(name: GoldenName, grants: "explicit" | "auto") {
 	const story = storyOf(name);
 	const golden = goldenLog(name);
 	const plan = planOf(golden);
-	const lines: LegacyLine[] = [];
 	const { use, turns } = arenaOf(story, goldenRun());
 	const definition = defineCoreStory({
 		id: `arena-golden-${name}`,
@@ -114,10 +113,20 @@ export async function replayArena(name: GoldenName): Promise<ArenaReplay> {
 		minutes: plan.minutes,
 		residents: [...RESIDENTS],
 		mechanics: [...realCityOf(name, story, plan.namesChosen), ...sealOf(story), use],
-		grants: { resident: [...offeredTools(golden), ...(story.seal === undefined ? [] : ["permaDeath"])], gamemaker: ["notify", "postBoard"], script: SCRIPT_GRANTS },
+		grants:
+			grants === "auto"
+				? "auto"
+				: { resident: [...offeredTools(golden), ...(story.seal === undefined ? [] : ["permaDeath"])], gamemaker: ["notify", "postBoard"], script: SCRIPT_GRANTS },
 		tools: guardPolicies(story),
 		turns,
 	});
+	return { definition, story, golden, plan };
+}
+
+/** Plays a golden log on the host of the real city with the arena. */
+export async function replayArena(name: GoldenName): Promise<ArenaReplay> {
+	const { definition, golden, plan } = arenaStoryOf(name, "explicit");
+	const lines: LegacyLine[] = [];
 	const between = async (minute: number): Promise<void> => {
 		for (const line of plan.between.get(minute) ?? []) {
 			if (line.type !== "gamemaker_call") continue;

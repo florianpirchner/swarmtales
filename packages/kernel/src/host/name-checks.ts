@@ -5,7 +5,7 @@
  * consult role served twice or with another answer schema, and an input prompt that does not end
  * with `{{standingOrders}}`. Each fails the load with the story's own words.
  */
-import { BUILT_IN_NAMES, CORE_EVENTS, DECISION_TOOL, STANDING_ORDERS, type CoreStory, type OverseerDefinition, type PromptLookup } from "@swarmtales/contracts";
+import { BUILT_IN_NAMES, CORE_EVENTS, DECISION_TOOL, STANDING_ORDERS, type CoreStory, type Grants, type OverseerDefinition, type PromptLookup } from "@swarmtales/contracts";
 import type { ToolCatalog } from "./catalog.ts";
 import type { Names } from "./names.ts";
 
@@ -15,6 +15,8 @@ const SENTINEL = "\u0000standing-orders\u0000";
 
 export interface NameCheckParts {
 	readonly story: CoreStory;
+	/** The story's grants as loaded (`grants: "auto"` resolved). */
+	readonly grants: Grants<string, string>;
 	readonly names: Names;
 	readonly tools: ToolCatalog;
 	/** Event type to the mechanic that declares it. */
@@ -44,16 +46,16 @@ export function checkOverseerNames(story: CoreStory): void {
 
 /** Everything else, once the mechanics are loaded. */
 export function checkNames(parts: NameCheckParts): void {
-	const { story, names } = parts;
+	const { story, names, grants } = parts;
 	const overseers = story.overseers ?? [];
-	const grantKeys = Object.keys(story.grants);
+	const grantKeys = Object.keys(grants);
 	const policyKeys = Object.keys(story.tools ?? {});
 	const decisionHolders = Object.values(story.decisions ?? {}).flatMap((policy) => policy?.holders ?? []);
 	for (const [what, list] of [["grants", grantKeys], ["tools", policyKeys], ["decisions", decisionHolders]] as const) {
 		const unknown = list.find((name) => !names.has(name));
 		if (unknown !== undefined) throw new Error(`story: ${what} name "${unknown}", which is neither built in nor an overseer of the story`);
 	}
-	const granted = (name: string): readonly string[] => story.grants[name] ?? [];
+	const granted = (name: string): readonly string[] => grants[name] ?? [];
 	if (granted("resident").includes(DECISION_TOOL)) throw new Error(`story: ${DECISION_TOOL} is granted to residents, but residents never hold a decision`);
 	for (const [kind, policy] of Object.entries(story.decisions ?? {})) {
 		const holder = (policy?.holders ?? []).find((name) => !granted(name).includes(DECISION_TOOL));

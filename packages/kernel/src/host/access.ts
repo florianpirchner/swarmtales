@@ -19,7 +19,7 @@ export function residentActor(id: ResidentId): `resident:${ResidentId}` {
 export type LockProbe = (resident: ResidentId, tool: string) => boolean;
 
 export class AccessControl {
-	readonly #grants: Grants<string, string>;
+	#grants: Grants<string, string>;
 	readonly #locks = new Map<ResidentId, Set<string>>();
 	readonly #emit: Emit;
 	#probe: LockProbe = () => true;
@@ -29,6 +29,11 @@ export class AccessControl {
 	constructor(grants: Grants<string, string>, emit: Emit) {
 		this.#grants = grants;
 		this.#emit = emit;
+	}
+
+	/** The story's grants once the mechanics are loaded (`grants: "auto"` derives them from the tools). */
+	setGrants(grants: Grants<string, string>): void {
+		this.#grants = grants;
 	}
 
 	setProbe(probe: LockProbe): void {

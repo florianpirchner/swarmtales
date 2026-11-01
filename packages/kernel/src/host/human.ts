@@ -15,7 +15,7 @@
  */
 import { Type, type Static, type TSchema } from "typebox";
 import { Parse } from "typebox/value";
-import type { CoreStory, HumanCall, HumanChannel, HumanHand, MechanicTool, PreparedCall, PromptLookup, Refusal, SafeStop, StandingOrder, ToolOutcome } from "@swarmtales/contracts";
+import type { CoreStory, Grants, HumanCall, HumanChannel, HumanHand, MechanicTool, PreparedCall, PromptLookup, Refusal, SafeStop, StandingOrder, ToolOutcome } from "@swarmtales/contracts";
 import { refuse } from "./define.ts";
 import type { EventBus } from "./log.ts";
 import type { OrderBook } from "./orders.ts";
@@ -92,8 +92,8 @@ function coreTool<S extends TSchema>(name: string, description: string, schema: 
 }
 
 /** Only `human` may hold the human's tools. */
-export function checkHumanGrants(story: CoreStory): void {
-	for (const [name, tools] of Object.entries(story.grants)) {
+export function checkHumanGrants(grants: Grants<string, string>): void {
+	for (const [name, tools] of Object.entries(grants)) {
 		if (name === "human") continue;
 		const tool = (tools ?? []).find((granted) => HUMAN_TOOLS.some((own) => own === granted));
 		if (tool !== undefined) throw new Error(`story: ${tool} is granted to "${name}", but only the human uses it`);

@@ -146,7 +146,7 @@ class CoreHost implements Host {
 		};
 		const ids = typeof story.residents === "number" ? residentIds(story.residents) : story.residents;
 		this.#registry = new ResidentRegistry(ids, emitCore);
-		this.#access = new AccessControl(story.grants, emitCore);
+		this.#access = new AccessControl(story.grants === "auto" ? {} : story.grants, emitCore);
 		this.#referee = new Referee(story.limits, (actor) => names.callerOf(actor));
 		this.#bus.subscribe((event) => {
 			this.#referee.observe(event.type);
@@ -157,7 +157,7 @@ class CoreHost implements Host {
 		if (reserved !== undefined) throw new Error(`app: event "${reserved}" is reserved by the core`);
 		const roles = new Set(Object.keys(options.roles ?? {}));
 		this.#gate = this.#decisionGate(options, names);
-		checkHumanGrants(story);
+		checkHumanGrants(story.grants === "auto" ? {} : story.grants);
 		const channel = channelOf(options.human);
 		this.#desk = new HumanDesk(
 			{
@@ -189,6 +189,7 @@ class CoreHost implements Host {
 			names,
 			gate: this.#gate,
 		});
+		if (story.grants === "auto") checkHumanGrants(this.#loaded.grants);
 		this.#runner = this.#overseerRunner(options);
 		this.#access.setProbe(lockProbe(this.#bus, this.#loaded.tools, () => this.#instances()));
 		for (const [name, variants] of this.#loaded.tools) {

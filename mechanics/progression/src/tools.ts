@@ -69,18 +69,21 @@ export function progressionTools(kit: Kit) {
 		kit.tool({
 			name: "getStatus",
 			description: "tools/getStatus",
+			suggest: ["resident"],
 			parameters: Type.Object({}),
 			execute: (_params, ctx) => ok(statusReply(ctx, residentOf(ctx))),
 		}),
 		kit.tool({
 			name: "activeTools",
 			description: "tools/activeTools",
+			suggest: ["resident"],
 			parameters: Type.Object({}),
 			execute: (_params, ctx) => ok(ctx.prompt("replies/active-tools", { tools: openTools(ctx, residentOf(ctx)).join(", ") })),
 		}),
 		kit.tool({
 			name: "getProblem",
 			description: "tools/getProblem",
+			suggest: ["resident"],
 			parameters: Type.Object({ level: Type.Integer({ description: "Level number, e.g. 1", minimum: 1 }) }),
 			execute: ({ level }, ctx) => {
 				const self = residentOf(ctx);
@@ -92,6 +95,7 @@ export function progressionTools(kit: Kit) {
 		kit.tool({
 			name: "submitSolution",
 			description: "tools/submitSolution",
+			suggest: ["resident"],
 			parameters: Type.Object({
 				level: Type.Integer({ description: "Level number", minimum: 1 }),
 				code: Type.String({ description: "Your solution", minLength: 1, maxLength: 32 }),
@@ -123,6 +127,7 @@ export function progressionTools(kit: Kit) {
 		kit.tool({
 			name: "listAgents",
 			description: "tools/listAgents",
+			suggest: ["resident"],
 			parameters: Type.Object({}),
 			execute: (_params, ctx) => {
 				const self = residentOf(ctx);

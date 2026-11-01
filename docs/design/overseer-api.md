@@ -240,6 +240,7 @@ export interface CoreStory<Ms extends readonly MechanicUse[] = readonly Mechanic
   overseer named `terminator-1` acts as `overseer:terminator-1`. A story may name an overseer `gamemaker`: it
   then acts as `gamemaker` (built-in names act under their bare name). `roleOf(actor)` returns the grant name.
   `EventEnvelopeSchema.actor` widens to the new union (old files still parse).
+- **`grants: "auto"`** derives the lists from the tools' `suggest` (default role sets) with `grantTweaks` per name: `docs/design/grants-auto.md`.
 - **`gamemaker` stays built in**, so every story and test that grants it without an overseer (the app drives
   it) loads unchanged; `--no-gamemaker` drops the overseer, not the grant.
 - **`serves`** takes grant names. Because a mechanic cannot know a story's names, an entry also matches the

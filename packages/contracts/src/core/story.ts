@@ -17,6 +17,19 @@ export type ToolOf<Ms extends readonly MechanicUse[]> = NonNullable<Ms[number]["
 export type Grants<T extends string, N extends string = never> = Partial<Readonly<Record<GrantName<N>, readonly T[]>>>;
 
 /**
+ * What a story changes in the grants derived by `grants: "auto"` for one name: `set` replaces the derived
+ * list, then `drop` removes tools and `add` appends tools not yet in the list (docs/design/grants-auto.md).
+ */
+export interface GrantTweak<T extends string> {
+	readonly set?: readonly T[];
+	readonly drop?: readonly T[];
+	readonly add?: readonly T[];
+}
+
+/** The tweaks per grant name, for a story with `grants: "auto"`. */
+export type GrantTweaks<T extends string, N extends string = never> = Partial<Readonly<Record<GrantName<N>, GrantTweak<T>>>>;
+
+/**
  * The story's tool policies, keyed by the grant name they bind and then the tool: a limit or a rule
  * for residents does not touch the gamemaker's variant of the same name. A guard policy binds only
  * residents (the guard covers resident callers), so it is refused under another name.
@@ -41,7 +54,13 @@ export interface CoreStory<Ms extends readonly MechanicUse[] = readonly Mechanic
 	readonly mechanics: Ms;
 	/** Model-backed roles under their story names (docs/design/overseer-api.md §1); their names take grants. */
 	readonly overseers?: Os;
-	readonly grants: Grants<ToolOf<Ms> | CoreTool, NameOf<Os>>;
+	/**
+	 * The tools per grant name, or `"auto"`: every tool a loaded mechanic suggests (`suggest` of the tool) goes to the
+	 * names it suggests, in load order (docs/design/grants-auto.md). The core's own tools stay explicit (`grantTweaks`).
+	 */
+	readonly grants: Grants<ToolOf<Ms> | CoreTool, NameOf<Os>> | "auto";
+	/** With `grants: "auto"` only: per name, replace (`set`), remove (`drop`) or extend (`add`) the derived list. */
+	readonly grantTweaks?: GrantTweaks<ToolOf<Ms> | CoreTool, NameOf<Os>>;
 	/** Tools every resident starts with locked; mechanics unlock them. */
 	readonly locked?: readonly ToolOf<Ms>[];
 	readonly tools?: ToolPolicies<ToolOf<Ms> | CoreTool, NameOf<Os>>;
@@ -64,7 +83,8 @@ export interface CoreStoryData {
 	readonly residents: number | readonly ResidentId[];
 	readonly mechanics: readonly { readonly id: string; readonly options: unknown }[];
 	readonly overseers?: readonly { readonly name: string; readonly id: string; readonly options: unknown }[];
-	readonly grants: Grants<string, string>;
+	readonly grants: Grants<string, string> | "auto";
+	readonly grantTweaks?: GrantTweaks<string, string>;
 	readonly locked?: readonly string[];
 	readonly tools?: ToolPolicies<string, string>;
 	readonly limits?: RunLimits;

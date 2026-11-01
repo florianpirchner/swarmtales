@@ -5,12 +5,13 @@
  * unknown tools).
  */
 import { Check } from "typebox/value";
-import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type MechanicInstance, type MechanicPort, type MechanicTool, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type Grants, type MechanicInstance, type MechanicPort, type MechanicTool, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
 import { createRng, deriveSeed } from "../random.ts";
 import type { AccessControl } from "./access.ts";
 import { toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
 import { CORE_OWNER, type DecisionGate } from "./decisions.ts";
 import type { EventBus } from "./log.ts";
+import { resolveGrants } from "./auto-grants.ts";
 import { checkNames, checkOverseerNames } from "./name-checks.ts";
 import type { Names } from "./names.ts";
 import type { ResidentRegistry } from "./residents.ts";
@@ -93,6 +94,8 @@ export interface Loaded {
 	readonly instances: ReadonlyMap<string, MechanicInstance>;
 	/** By name; one entry per role-disjoint variant. */
 	readonly tools: ToolCatalog;
+	/** The story's grants: its own, or the ones `grants: "auto"` derived. */
+	readonly grants: Grants<string, string>;
 }
 
 export function loadMechanics(parts: LoaderParts): Loaded {
@@ -129,16 +132,18 @@ export function loadMechanics(parts: LoaderParts): Loaded {
 		bus.listen(instance.listeners);
 	}
 	checkListeners(order, instances);
-	checkNames({ story, names: parts.names, tools, events: owners, roles: parts.roles, prompts: parts.prompts });
+	const grants = resolveGrants(story, tools, parts.names);
+	parts.access.setGrants(grants);
+	checkNames({ story, grants, names: parts.names, tools, events: owners, roles: parts.roles, prompts: parts.prompts });
 	const policies = Object.values(story.tools ?? {}).flatMap((byTool) => Object.keys(byTool ?? {}));
-	const named = [...Object.values(story.grants).flatMap((tools) => tools ?? []), ...(story.locked ?? []), ...policies];
+	const named = [...Object.values(grants).flatMap((tools) => tools ?? []), ...(story.locked ?? []), ...policies];
 	for (const name of named) if (!tools.has(name)) throw new Error(`story: tool "${name}" is granted, locked or configured, but no loaded mechanic defines it`);
 	for (const [role, byTool] of Object.entries(story.tools ?? {})) {
 		if (role === "resident") continue;
 		const guarded = Object.entries(byTool ?? {}).find(([, policy]) => policy?.guard !== undefined);
 		if (guarded !== undefined) throw new Error(`story: tool "${guarded[0]}" has a guard policy for ${role}, but the guard covers residents only`);
 	}
-	return { order: order.map((use) => use.mechanic.id), instances, tools };
+	return { order: order.map((use) => use.mechanic.id), instances, tools, grants };
 }
 
 /**
