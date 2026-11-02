@@ -1,11 +1,11 @@
 /**
- * The run log's event types moved to `@swarmtales/contracts` (step 18, item 7c); the old engine's
+ * The run log's event types moved to `@swarmtales/legacy-log` (step 18, item 7c); the old engine's
  * own bus stays here until the engine goes.
  */
-import type { ArenaEvent, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { ArenaEvent, EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 
-export { FATE_TRIGGERS } from "@swarmtales/contracts";
-export type { ArenaEvent, ArenaEventType, AuditTag, BoardPostKind, CoreMotiveDrive, CoreMotiveTrait, EventSink, FateShiftKind, FateTrigger, FragmentHolding, Goal, RecordedEvent, StandingRow, TribunalPlanner } from "@swarmtales/contracts";
+export { FATE_TRIGGERS } from "@swarmtales/legacy-log";
+export type { ArenaEvent, ArenaEventType, AuditTag, BoardPostKind, CoreMotiveDrive, CoreMotiveTrait, EventSink, FateShiftKind, FateTrigger, FragmentHolding, Goal, RecordedEvent, StandingRow, TribunalPlanner } from "@swarmtales/legacy-log";
 
 /** Numbers events and fans them out to sinks. */
 export class EventBus {

@@ -18,6 +18,7 @@
 	"dependencies": {
 		"@swarmtales/chronicle": "workspace:*",
 		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/legacy-log": "workspace:*",
 		"@swarmtales/engine": "workspace:*",
 		"@swarmtales/kernel": "workspace:*",
 		"@swarmtales/mechanic-arena": "workspace:*",

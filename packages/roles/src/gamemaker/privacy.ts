@@ -6,7 +6,8 @@
  * is blocked.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import { type GoalKind, isPrivateSource, type RecordedEvent, type StatementLabel } from "@swarmtales/contracts";
+import { isPrivateSource, type RecordedEvent, type StatementLabel } from "@swarmtales/legacy-log";
+import type { GoalKind } from "@swarmtales/contracts";
 
 /** Private labels per resident, from the events of one look. */
 export type PrivateLabels = ReadonlyMap<CompetitorId, ReadonlySet<StatementLabel>>;

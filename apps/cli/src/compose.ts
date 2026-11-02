@@ -27,7 +27,8 @@ import { type CompetitorId, competitorIds, VirtualClock } from "@swarmtales/kern
 import type { ModelSource, RequestLimits } from "@swarmtales/models";
 import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import { assertPlayable, DEFAULT_LIMITS, effectiveRun, type EffectiveRun, type RunOverrides } from "./run-options.ts";
-import type { AnyStory, ModelChoice, Persona, ThinkingLevel, EventSink } from "@swarmtales/contracts";
+import type { EventSink } from "@swarmtales/legacy-log";
+import type { AnyStory, ModelChoice, Persona, ThinkingLevel } from "@swarmtales/contracts";
 import { storyId } from "../../../stories/index.ts";
 
 export { DEFAULT_LIMITS, effectiveRun, resolveBlockSize, type EffectiveRun, type RunOverrides } from "./run-options.ts";

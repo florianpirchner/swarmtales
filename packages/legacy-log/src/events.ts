@@ -4,8 +4,7 @@
  * the same lines from the mechanics' envelopes, so logs, reports and the digest read one format.
  * Moved here from `packages/engine/src/events.ts` (step 18, item 7c), types only.
  */
-import type { CompetitorId } from "../ids.ts";
-import type { ActionKind, MarksChannel, PetitionOutcome } from "../story.ts";
+import type { ActionKind, CompetitorId, MarksChannel, PetitionOutcome } from "@swarmtales/contracts";
 import type { StatementLabel, StatementSource } from "./labels.ts";
 
 /** What a receipt records (SPEC 8). */

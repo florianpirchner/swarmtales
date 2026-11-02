@@ -14,7 +14,7 @@
  * which the hand-built side alone covers ("ties and the gate" in seal-differential.test.ts).
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { describe, expect, it } from "vitest";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { SEAL } from "../../../stories/cityofkeys/characters.ts";

@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides, type ComposedRun, type RunOverrides } from "../../apps/cli/src/compose.ts";
 import { worldOracle } from "../../apps/cli/src/oracle.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
 import { parseSnapshot, readSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";

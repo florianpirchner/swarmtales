@@ -37,9 +37,12 @@ packages/
                the CLI runs every run on it, see docs/design/mechanic-api.md
   prompts/     the prompt loader: Markdown files with `{{variable}}` placeholders, a typed registry
                (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
+  legacy-log/  the old run log's event types (`RecordedEvent`, `ArenaEvent`, `EventSink`) and the
+               statement labels, which the CLI, roles and chronicle read and write; depends on
+               contracts only
   engine/      the old engine (world state, Arena, director, tribunal and penalty rules, tools/),
-               no longer used by the CLI; kept as the other side of the differential tests and for
-               the event types (`RecordedEvent`, sinks) until step 18 item 7 deletes it
+               no longer used by the CLI; kept as the other side of the differential tests until
+               step 18 item 7 deletes it
 mechanics/     the game rules of the new core, one package each (names, ledger, marks, receipts,
                channels, petitions, cast, motives, puzzles, progression, goals, whispers, exile,
                tribunal, seal, standoff, standoff-tribunal, script, arena) and the frozen `shared` APIs

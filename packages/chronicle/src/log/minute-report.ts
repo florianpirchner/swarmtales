@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import type { StandingRow } from "@swarmtales/contracts";
+import type { StandingRow } from "@swarmtales/legacy-log";
 import { coreMotiveLine } from "@swarmtales/roles";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema } from "../snapshot/event-schema.ts";
 

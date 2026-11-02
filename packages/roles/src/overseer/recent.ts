@@ -9,7 +9,8 @@
  */
 import { Type, type Static } from "typebox";
 import { Compile } from "typebox/compile";
-import { type EventEnvelope, type EventLogView, FATE_TRIGGERS, STATEMENT_LABELS, STATEMENT_SOURCES, type RecordedEvent } from "@swarmtales/contracts";
+import { FATE_TRIGGERS, STATEMENT_LABELS, STATEMENT_SOURCES, type RecordedEvent } from "@swarmtales/legacy-log";
+import type { EventEnvelope, EventLogView } from "@swarmtales/contracts";
 
 const Id = Type.String();
 const Ids = Type.Array(Type.String());

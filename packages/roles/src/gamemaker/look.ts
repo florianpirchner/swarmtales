@@ -4,7 +4,7 @@
  * it keeps per resident from the events, the note budget line and the secret guard of the dealt
  * levels. One copy of the code, so the two cannot write different reports.
  */
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { dealValues, type World } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
 import { SecretGuard } from "./secrets.ts";

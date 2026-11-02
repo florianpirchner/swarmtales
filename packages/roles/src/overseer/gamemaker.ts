@@ -26,7 +26,8 @@
 import { Type, type Static } from "typebox";
 import { defineOverseer } from "@swarmtales/kernel";
 import type { World } from "@swarmtales/engine";
-import { DIRECTION_LEVELS, type DirectionLevel, type EventEnvelope, type EventLogView, type OverseerDefinition, type RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { DIRECTION_LEVELS, type DirectionLevel, type EventEnvelope, type EventLogView, type OverseerDefinition } from "@swarmtales/contracts";
 import { budgetLine, dealtLevels, secretGuardOf, trackAfter, trackedAgent } from "../gamemaker/look.ts";
 import type { SecretGuard } from "../gamemaker/secrets.ts";
 import { describeSituation, type Note, type ResidentTrack } from "../gamemaker/situation.ts";

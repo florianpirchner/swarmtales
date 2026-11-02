@@ -12,7 +12,8 @@ import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
 import type { World } from "@swarmtales/engine";
 import { act, say, type Script, ScriptedModelSource } from "@swarmtales/models";
 import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
-import type { AnyStory, RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { AnyStory } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const MINUTES = 24;

@@ -6,6 +6,7 @@
 	"include": ["test", "lab", "scripts", "*.ts"],
 	"references": [
 		{ "path": "packages/contracts" },
+		{ "path": "packages/legacy-log" },
 		{ "path": "packages/kernel" },
 		{ "path": "packages/prompts" },
 		{ "path": "packages/engine" },

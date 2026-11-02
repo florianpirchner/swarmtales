@@ -22,6 +22,7 @@
 	},
 	"dependencies": {
 		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/legacy-log": "workspace:*",
 		"@swarmtales/kernel": "workspace:*",
 		"@swarmtales/prompts": "workspace:*",
 		"@swarmtales/engine": "workspace:*",

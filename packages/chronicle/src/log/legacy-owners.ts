@@ -4,7 +4,7 @@
  * written with `host.record`) or `core` (a core event the legacy adapter translates). The table is
  * typed by the engine's event union, so a new event type without an owner does not compile.
  */
-import type { ArenaEventType } from "@swarmtales/contracts";
+import type { ArenaEventType } from "@swarmtales/legacy-log";
 
 /** The overseers that write old events under their own source (step 18, C1 request 5); they are not mechanics. */
 export const LEGACY_OVERSEERS = ["classifier", "weaver"] as const;

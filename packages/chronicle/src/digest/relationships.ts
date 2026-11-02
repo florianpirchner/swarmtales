@@ -5,7 +5,7 @@
  * the tribunal's ties: a secret vote, a ransom paid, a bequest, a blame.
  */
 import { assertNever, CITY, COURIER } from "@swarmtales/kernel";
-import type { StatementLabel } from "@swarmtales/contracts";
+import type { StatementLabel } from "@swarmtales/legacy-log";
 import type { Beat } from "./beats.ts";
 import { PIECE_TEXT, type RunFacts } from "./facts.ts";
 import { pairKey, sortedPair } from "./detectors/pairs.ts";

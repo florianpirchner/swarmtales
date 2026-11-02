@@ -4,7 +4,7 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { assertNever } from "@swarmtales/kernel";
-import type { ArenaEventType, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { ArenaEventType, EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 
 /** Keeps every event in memory; for tests and in-process consumers (moved from the engine, step 18). */
 export class MemorySink implements EventSink {

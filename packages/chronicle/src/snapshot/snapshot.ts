@@ -13,7 +13,8 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Compile } from "typebox/compile";
 import type { ContextMessage, GamemakerSnapshot, InterpreterSnapshot, WeaverSnapshot } from "@swarmtales/roles";
-import { TOOL_NAMES, type RecordedEvent, STATEMENT_SOURCES } from "@swarmtales/contracts";
+import { type RecordedEvent, STATEMENT_SOURCES } from "@swarmtales/legacy-log";
+import { TOOL_NAMES } from "@swarmtales/contracts";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
 

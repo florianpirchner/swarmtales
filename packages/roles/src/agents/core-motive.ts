@@ -4,7 +4,8 @@
  * (step 18, item 7c); the dealing itself is the motives mechanic's (`@swarmtales/mechanic-motives`,
  * which renders the same prose for the prompts).
  */
-import type { CoreMotiveDrive, CoreMotivesSpec, CoreMotiveTrait } from "@swarmtales/contracts";
+import type { CoreMotiveDrive, CoreMotiveTrait } from "@swarmtales/legacy-log";
+import type { CoreMotivesSpec } from "@swarmtales/contracts";
 
 /** What `core_dealt` records of a resident. */
 export interface CoreMotive {

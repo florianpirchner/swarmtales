@@ -7,7 +7,7 @@
  * only the events after `run_resumed` belong to the run and are counted.
  * Levels and standings at the start come from the prefix's last `round_end`.
  */
-import { type RecordedEvent, type StandingRow, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/contracts";
+import { type RecordedEvent, type StandingRow, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/legacy-log";
 import { CLASSIFIER_ID, GAMEMAKER_ID, coreMotiveLine } from "@swarmtales/roles";
 import { ofType, parseFullEventLog, parseMetadata, parseUsageFile, type RunFiles, type RunMetadata } from "./run-log.ts";
 

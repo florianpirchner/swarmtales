@@ -23,7 +23,8 @@ import { MemorySink } from "@swarmtales/chronicle";
 import type { World } from "@swarmtales/engine";
 import { act, type Script, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
+import type { AnyStory } from "@swarmtales/contracts";
 
 
 export { act, say } from "@swarmtales/models";

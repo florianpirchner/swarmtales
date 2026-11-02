@@ -23,7 +23,7 @@ import {
 	type WeaverQuestion,
 } from "@swarmtales/roles";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { MemorySink } from "@swarmtales/chronicle";
 import { EventBus } from "@swarmtales/engine";
 

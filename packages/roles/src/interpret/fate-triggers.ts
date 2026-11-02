@@ -25,7 +25,7 @@
  * trigger, and no hit's text names a voter.
  */
 import { assertNever, type CompetitorId } from "@swarmtales/kernel";
-import { type FateTrigger, isPrivateSource, type RecordedEvent } from "@swarmtales/contracts";
+import { type FateTrigger, isPrivateSource, type RecordedEvent } from "@swarmtales/legacy-log";
 import { render, text } from "@swarmtales/prompts";
 
 /** A resident a hard fact touched: what happened, as a sentence, what kind of event it was, and its number. */

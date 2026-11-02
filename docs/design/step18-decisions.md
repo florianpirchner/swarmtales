@@ -192,3 +192,37 @@ declarations for every one of its 53 dial combinations, with no exception. S18-7
 11. One runtime per definition: **Decided**: a router (definition id to runtime) in `apps/cli`. **To build**.
 12. CLI wiring: **To build** (see rewrite-status).
 13. Standing orders end to end: **To build** (a host test with `host.hand()` instructing the gamemaker).
+
+## Team D1 (step 18 items 7 and 8, 2026-11-02)
+
+No test was deleted, and no assertion was weakened or dropped. The golden files are unchanged, and `GOLDEN_UPDATE` was
+not used. What remains is listed in `rewrite-status.md` ("Step 18 items 7 and 8: state after team D1").
+
+1. `Host.fact(key)`: **Built**. It computes a single mechanic fact and checks it against its schema. It returns
+   `undefined` for a key that no mechanic declares. `facts()` computes every fact on every call; the oracle and the
+   tests need one fact per turn.
+2. Event types and labels: **Built** in a new leaf package, `@swarmtales/legacy-log` (`packages/legacy-log`, which
+   depends only on contracts). They cannot go into contracts: the core has no game words
+   (`test/host/core-words.test.ts`, whose legacy list may only shrink). They cannot go into chronicle either, because
+   the engine and roles need them and chronicle depends on roles. The engine's `events.ts` and `labels.ts` stay as
+   re-export shims until the engine is deleted. Once the run log is read from the host's own lines, the package can be
+   merged into chronicle. `EventBus` stays in the engine, because only `World` uses it.
+3. `MemorySink`: **Built** in `packages/chronicle/src/log/sinks.ts`. `labelMeaning` and `LABEL_PROMPTS` go with the
+   classifier, in `packages/roles/src/interpret/classifier.ts`.
+4. `CoreMotive` helpers: **Built** in `packages/roles/src/agents/core-motive.ts` (the system prompt and the gamemaker use
+   them).
+5. Legacy snapshot shapes: **Built** as Typebox schemas in chronicle, so chronicle no longer depends on the engine. The
+   types are `Frozen<Static<...>>`. `compose.ts` checks them against the engine's types in both directions, so the two
+   cannot drift apart while both exist.
+6. The old side of a differential: **Built** as a recorded file (`test/fixtures/old-engine/`, read through `recordedOld`).
+   It is recorded by the test's own `playOld`, unchanged, at a named commit and never regenerated. The motives
+   differential is the first one. Its "not vacuous" check now also covers the new side.
+7. Tests kept on the old fixture, each with a comment in the test: two tests in `test/engine/arena.test.ts` (they write
+   into the `World` before the run), one in `test/engine/director-society.test.ts` (it drives the `Director` by hand),
+   and the full run of one test in `test/engine/petitions.test.ts` (see 8).
+8. End-of-run petitions after `run_end`: **To build** (new, close to S1-7). The host resolves a petition that is still
+   open at the end after `run_end`; the old engine resolved it before.
+9. The arena budget test (`test/engine/arena.test.ts`): the scripted provider reports no cost, so the test records a
+   second `usage` app event of 0.3 USD per reply through `host.record`. The budget reads only `usage`, which is the
+   path a real model takes.
+10. `test/report/drama.test.ts` no longer calls `closeActs()` itself, because the host's `runEnded` closes the acts.

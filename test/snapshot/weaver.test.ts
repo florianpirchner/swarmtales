@@ -14,7 +14,7 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { ChatStatementClassifier, ChatWeaver, CLASSIFIER_ID, GAMEMAKER_ID, INNER_VOICE_HEAD, SHIFT_HEADING, WEAVER_ID } from "@swarmtales/roles";
 import { composeRun, DEFAULT_LIMITS, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import type { World } from "@swarmtales/engine";
 import { parseSnapshot, type RunSnapshot, WeaverLog, MemorySink } from "@swarmtales/chronicle";
 import { act, say, type Script, ScriptedModelSource } from "@swarmtales/models";

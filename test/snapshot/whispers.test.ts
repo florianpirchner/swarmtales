@@ -8,7 +8,7 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import type { World } from "@swarmtales/engine";
 import { ScriptedModelSource, type Script } from "@swarmtales/models";
 import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";

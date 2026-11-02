@@ -13,7 +13,8 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check, Parse } from "typebox/value";
 import { ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
-import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema, type RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { ContextMessage } from "@swarmtales/roles";
 
 export const RUN_FILE_FORMAT = "swarmtales-run";

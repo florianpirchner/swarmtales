@@ -8,7 +8,8 @@
  * minute".
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
-import type { AnyStory, GuardJudge, Host, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
+import type { AnyStory, GuardJudge, Host } from "@swarmtales/contracts";
 import { MemorySink } from "@swarmtales/chronicle";
 import { type Script, ScriptedModelSource } from "@swarmtales/models";
 import { boundBackend, GAMEMAKER_ID, overseers, type HostResidentRunner } from "@swarmtales/roles";

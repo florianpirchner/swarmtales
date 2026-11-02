@@ -6,7 +6,8 @@
  */
 import { Type } from "typebox";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
-import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
+import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { idleAgent } from "@swarmtales/testkit";
 import { Parse } from "typebox/value";

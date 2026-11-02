@@ -25,7 +25,8 @@ import { ChatDeliveryJudge, GAMEMAKER_ID, JUDGE_ID } from "@swarmtales/roles";
 import { ScriptedModelSource } from "@swarmtales/models";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
 import { analyzeLog, parseSnapshot, readSnapshot, renderDigest, MemorySink } from "@swarmtales/chronicle";
-import type { AnyStory, RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { AnyStory } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 

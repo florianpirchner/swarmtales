@@ -7,7 +7,7 @@
  * so the gamemaker reads the labels of the round it looks at.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import { type EventSink, isStatementLabel, type RecordedEvent, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/contracts";
+import { type EventSink, isStatementLabel, type RecordedEvent, STATEMENT_LABELS, type StatementLabel } from "@swarmtales/legacy-log";
 import type { EventBus, RoundObserver } from "@swarmtales/engine";
 import { CLASSIFIER_ID, conversationKey, type Classification, type StatementClassifier, type Verdict } from "./classifier.ts";
 import { statementOf, type Statement } from "./statements.ts";

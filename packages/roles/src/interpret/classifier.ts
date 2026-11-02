@@ -16,7 +16,8 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
 import type { CompetitorId } from "@swarmtales/kernel";
-import { STATEMENT_LABELS, type ClassifierUsage, type StatementLabel, type ThinkingLevel } from "@swarmtales/contracts";
+import { STATEMENT_LABELS, type StatementLabel } from "@swarmtales/legacy-log";
+import type { ClassifierUsage, ThinkingLevel } from "@swarmtales/contracts";
 
 export type { ClassifierUsage };
 import { statementLine, type Statement } from "./statements.ts";

@@ -2,7 +2,7 @@ import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { AgentRunner, isSafeguardRefusal, LOST_INPUTS, rewriteProblem, type Souffleur } from "@swarmtales/roles";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { EventBus } from "@swarmtales/engine";
 import { say, ScriptedModelSource } from "@swarmtales/models";
 

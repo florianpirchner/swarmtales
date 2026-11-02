@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
-import type { RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import type { World } from "@swarmtales/engine";
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { oracleScript, type Script, ScriptedModelSource } from "@swarmtales/models";

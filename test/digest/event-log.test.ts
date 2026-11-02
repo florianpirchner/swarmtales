@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DIGEST_EVENT_TYPES, parseEventLog, parseRunMetadata, MemorySink } from "@swarmtales/chronicle";
-import type { ArenaEventType } from "@swarmtales/contracts";
+import type { ArenaEventType } from "@swarmtales/legacy-log";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 import { fragmentOf, submit } from "../helpers/host-inspect.ts";

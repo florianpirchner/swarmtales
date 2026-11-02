@@ -21,6 +21,79 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 | 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
 
+## Step 18 items 7 and 8: state after team D1 (2026-11-02)
+
+Item 7 is **partly done**, item 8 (the core motive rename) is **not started**: it stays the last commit, after the engine
+is gone. Goldens are unchanged, `GOLDEN_UPDATE` was not used, and no test was deleted (`step18-decisions.md`, "Team D1").
+
+**Done:**
+
+- (a) About 30 test files play the host through `test/helpers/host-fixture.ts` now, and every assertion was kept. The
+  ported files are `test/model/scripted`, `test/engine/{tribunal-stop,arena,cast,director,director-society,feast,passes,
+  penalties,numbers,petitions}`, `test/tools/status`, `test/scale/whole-story`, `test/log/{transcripts,minute-report}`,
+  `test/digest/{end-to-end,event-log}`, `test/stories/{cityofkeys,cityofkeys-beats,cityofkeys-levels,cityofkeys-wall,
+  whispers,whispers-direction}`, `test/report/{drama,reporter}` and `test/agents/personas`.
+  - The white-box readers they need are in `test/helpers/host-inspect.ts`. They read facts (`host.fact(key)`, new in
+    `Host`), slices (`host.snapshot().mechanics[id].data`, parsed with the mechanic's schema) or log lines.
+  - `hostOracle` reads its two facts with `host.fact`, which made the 48-agent whole-story test about 5 times faster.
+- (b) The pattern for recording the old side is built: `recordedOld(name, scenario, schema)` in
+  `test/helpers/old-engine.ts`, which reads the files in `test/fixtures/old-engine/` (a README table lists each file and
+  the commit it was recorded on). One differential uses it so far: `test/mechanics/motives/differential.test.ts`.
+- (c) The event types moved to a new leaf package, `@swarmtales/legacy-log` (`packages/legacy-log/src/{events,labels}.ts`,
+  which depends only on contracts; the core may not contain game words). `packages/engine/src/events.ts`
+  and `labels.ts` are re-export shims; the engine keeps only `EventBus`.
+  - `MemorySink` moved to `packages/chronicle/src/log/sinks.ts`, and `labelMeaning`/`LABEL_PROMPTS` to
+    `packages/roles/src/interpret/classifier.ts`.
+  - `CoreMotive`, `renderCoreMotive` and `coreMotiveLine` moved to `packages/roles/src/agents/core-motive.ts`.
+  - **`packages/chronicle` no longer depends on the engine.** The legacy snapshot shapes are Typebox schemas in
+    `chronicle/src/snapshot/snapshot.ts` (`LegacyArenaSnapshot`, `LegacyWorldSnapshot`, `LegacyDirectorSnapshot`), and
+    `compose.ts` checks the engine types against them in both directions.
+
+**New open item, found while porting:** at the end of a run the host writes `petition_resolved` and its board posts
+**after** `run_end`; the old engine wrote them before it. This is close to S1-7, the order of treasuries and the
+petitions' last resolutions. Because of it, the full run in `test/engine/petitions.test.ts` "fails a petition still open
+when the run ends" stays on the old fixture. Fix the order of the host's `runEnded` (or decide that the new order is
+right), then port that test.
+
+**What remains, in this order:**
+
+1. **Port the remaining users of the old fixture or `composeRun`** (about 50 files). Port each one to the host fixture;
+   where a test needs the old side, record that side once with `recordedOld`.
+   - Not ported yet: `test/engine/{direction,factors,marks,names,receipts,seal,standoff-world,whispers,world}`,
+     `test/stories/cityofkeys-tribunal` (resumes from a legacy snapshot, heavily white-box), `test/tools/{blame,gateway}`,
+     `test/gamemaker/{director,gamemaker,holdout,privacy,situation}`, `test/interpret/interpreter`, all of
+     `test/snapshot/*` (they need recorded legacy snapshots and a host resume), and `test/golden/scripts.ts`.
+   - Tests kept on the old fixture on purpose, each with a comment in the test (move them when their reason is gone):
+     - in `test/engine/arena.test.ts`, "does not wake ... group posts while readGroup is locked" and "... board posts
+       while readBoard is locked" (their setup writes into the `World` before the run; the host needs a pre-run hook or
+       a scripted minute 0);
+     - in `test/engine/director-society.test.ts`, "skips listed IDs that are not competitors" (it drives the old
+       `Director` by hand with a script the validator refuses);
+     - in `test/engine/petitions.test.ts`, the full run of "fails a petition still open ..." (the order difference above).
+2. **Record the old side of the remaining differentials** with `recordedOld`, using the test's own `playOld` unchanged,
+   at a commit where the engine still runs, and write that commit in the README table. These are
+   `test/mechanics/{arena,channels,script,seal,standoff-tribunal,t1,t3,tribunal,whispers,goals,marks,exile,standoff}/**`,
+   `test/mechanics/auto-grants-equality`, `test/roles/gamemaker-overseer/{differential,host,shadow}` and
+   `test/cli/host-{gamemaker,residents,runner}-differential`, `host-resume`, `host-weaver`, `host-gamemaker-golden` and
+   `test/cli/support/report-replay.ts`.
+3. **Unit tests of the old engine modules** (`test/engine/{board,scheduler,mailbox,groups,teams,goals,standoff,motives,
+   holdout,tribunal,puzzles/*,direction}` and the old-module parts of the files above): delete them when the engine
+   goes. Before deleting each file, name in `step18-decisions.md` the mechanic test that covers each of its cases; port
+   any case that no mechanic test covers.
+4. **Move what the apps and the SDK still import from the engine.**
+   - `apps/cli` (`compose.ts`, `host/{report,residents,run}.ts`, `oracle.ts`, `run-options.ts`, `validate.ts`):
+     `DIRECTOR_SUPPORT`, `directFigure`, `figureOf`, `DirectionLevel`, `worldOracle`.
+   - `packages/sdk` (`index.ts`, `validate.ts`): `ladderSteps`, `ladderText`, `penaltyAt`, `actEnd`, `fitsBefore`,
+     `maxFactions`, `tribunalHeld`.
+   - Test helpers that use pure engine helpers or constants (`LOCKED_REPLY`, `PetitionBook`, ...): see
+     `grep -rl @swarmtales/engine test`.
+5. **Delete the old roles**: `roles/src/gamemaker/{gamemaker,look,situation,system-prompt}.ts` (look at what the overseer
+   gamemaker still imports first), `agents/runner.ts`, `interpret/{interpreter,weaver}.ts` and
+   `roles/src/overseer/gamemaker.ts`'s engine imports. Then delete `apps/cli/src/compose.ts`, `test/helpers/fixture.ts`,
+   `packages/engine`, its `check-packages` row and its tsconfig references.
+6. **Item 8, the core motive rename** (`rename-core-motive.md`): a separate last commit. Run `GOLDEN_UPDATE=1` once, and
+   show that the golden diff contains only the rename.
+
 ## Step 18: state after the final integrator pass (2026-11-02)
 
 **Done in this pass** (decisions S18-13..S18-22 and the R1/R2/R3 answers in `step18-decisions.md`):
@@ -42,7 +115,7 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 
 **What remains (not started in this pass):**
 
-1. **Item 7, delete `world.ts` and the engine game code.** Not done: about 70 test files still play the old engine through
+1. **Item 7, delete `world.ts` and the engine game code.** (Partly done since: see "state after team D1" above.) Not done: about 70 test files still play the old engine through
    `composeRun` (`test/helpers/fixture.ts` and its users, `test/snapshot/*`, `test/engine/*`, `test/gamemaker/*`,
    `test/stories/*`, `test/mechanics/**` differentials, `test/cli/host-*-differential.test.ts`), and `packages/chronicle` and
    `packages/roles` (old `Gamemaker`, `AgentRunner`, interpreter, weaver, `describeSituation`) import engine types

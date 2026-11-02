@@ -12,7 +12,8 @@
  * `gamemaker_note` is caused by the first call without a result yet (the old loop runs the calls
  * of a message one after the other), as the host's note desk line is caused by its tool call.
  */
-import type { EventEnvelope, EventLogView, OverseerInstance, EventSink, RecordedEvent } from "@swarmtales/contracts";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
+import type { EventEnvelope, EventLogView, OverseerInstance } from "@swarmtales/contracts";
 import { createRng } from "@swarmtales/kernel";
 import type { World } from "@swarmtales/engine";
 import { createPromptLookup } from "@swarmtales/prompts";

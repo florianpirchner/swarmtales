@@ -21,7 +21,8 @@
  */
 import { Type, type Static } from "typebox";
 import { Compile } from "typebox/compile";
-import { EventEnvelopeSchema, type Actor, type EventEnvelope, type RecordedEvent } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { EventEnvelopeSchema, type Actor, type EventEnvelope } from "@swarmtales/contracts";
 import { RecordedEventSchema } from "../snapshot/event-schema.ts";
 import { legacyOwner } from "./legacy-owners.ts";
 
