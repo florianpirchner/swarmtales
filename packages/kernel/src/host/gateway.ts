@@ -25,7 +25,6 @@ import { consultStage, guardStage, type WaitParts } from "./waits.ts";
 export const TOOL_UNKNOWN = "TOOL_UNKNOWN";
 export const TOOL_NOT_GRANTED = "TOOL_NOT_GRANTED";
 export const TOOL_LOCKED = "TOOL_LOCKED";
-export const RESIDENT_INACTIVE = "RESIDENT_INACTIVE";
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 export const TEXT_TOO_LONG = "TEXT_TOO_LONG";
 export { GUARD_BLOCKED } from "./waits.ts";
@@ -268,8 +267,9 @@ export class Gateway {
 	#lock(role: GrantRole, name: string, resident: string | undefined): Refusal | undefined {
 		if (!this.#parts.access.granted(role, name)) return this.#core(TOOL_NOT_GRANTED);
 		if (resident === undefined) return undefined;
-		if (!this.#parts.residents.mayAct(resident)) return this.#core(RESIDENT_INACTIVE);
-		if (this.#parts.access.isLocked(resident, name)) return this.#core(TOOL_LOCKED);
+		// A resident who may not act (suspended mid-block) is answered as the old engine answered a
+		// resident with no open tools: the call is locked (docs/design/step18-decisions.md S18-1).
+		if (!this.#parts.residents.mayAct(resident) || this.#parts.access.isLocked(resident, name)) return this.#core(TOOL_LOCKED);
 		return undefined;
 	}
 

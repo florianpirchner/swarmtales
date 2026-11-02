@@ -190,11 +190,11 @@ describe("the event bus", () => {
 });
 
 describe("residents and the referee", () => {
-	it("skips a suspended resident and refuses its calls", async () => {
+	it("skips a suspended resident and answers its calls as locked (as the old engine answered an exiled resident)", async () => {
 		const host = await playMinutes({ story: story([warden.with(), counter.with()]) }, bumpEveryTurn, 1);
 		const turns = host.log.ofType("core", "turn_started").map((event) => event.payload);
 		expect(turns).not.toContainEqual(expect.objectContaining({ resident: "A01" }));
-		expect(await host.call("resident:A01", "bump", {})).toMatchObject({ ok: false, code: "RESIDENT_INACTIVE" });
+		expect(await host.call("resident:A01", "bump", {})).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
 		expect(host.log.ofType("core", "resident_suspended").map((event) => event.payload)).toEqual([{ resident: "A01", by: "warden", reason: "asleep" }]);
 	});
 

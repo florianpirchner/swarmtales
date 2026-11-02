@@ -3,7 +3,6 @@ export const CORE_PROMPTS = {
 	"replies/core/unknown-tool": [],
 	"replies/core/not-granted": [],
 	"replies/core/locked": [],
-	"replies/core/inactive": [],
 	"replies/core/limit": [],
 	"replies/core/steps": [],
 	"replies/core/too-long": [],
