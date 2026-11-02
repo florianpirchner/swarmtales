@@ -22,6 +22,10 @@ import { ChannelsSlice, loadState, migrateFromV0, saveState } from "./state.ts";
 import { residentTools } from "./tools.ts";
 
 export { channelsHead };
+export { Board } from "./board.ts";
+export { Mailbox } from "./mailbox.ts";
+export { MessageNumbers } from "./numbers.ts";
+export { groupAccountId, GroupRegistry, MAX_FOUNDED_GROUPS, type GroupResult } from "./groups.ts";
 
 export const channels = defineMechanic(channelsHead, (kit) => ({
 	services: [

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Mailbox } from "@swarmtales/engine";
+import { Mailbox } from "@swarmtales/mechanic-channels";
 
 const entry = (text: string, from = "A01") => ({ from, text, minute: 0 });
 
