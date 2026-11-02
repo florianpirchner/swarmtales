@@ -179,9 +179,53 @@ function ordered(entries: Json, keys: readonly string[], what: string): Record<s
 function sliceData(host: HostSnapshot, mechanic: string): Json {
 	const slice = host.mechanics[mechanic];
 	if (slice === undefined) return {};
-	if (slice.version !== 0) throw new SnapshotError(`${mechanic}: only version-0 slices are written back in the old shape`);
+	if (slice.version !== 0) throw new SnapshotError(`${mechanic}: only version-0 slices are written back in the old shape (no writer for version ${String(slice.version)})`);
 	if (!isRecord(slice.data)) throw new SnapshotError(`${mechanic}: the slice is not an object`);
 	return slice.data;
+}
+
+/** The version of the slices of the arena, progression, channels and script that have a writer back to the old shape (S1-5, A1-5). */
+const CURRENT_SLICE = 1;
+
+/** The data of a slice that is either version 0 (the converter's) or the current version of a mechanic with a writer. */
+function dataOf(host: HostSnapshot, mechanic: string): { readonly version: number; readonly data: Json } | undefined {
+	const slice = host.mechanics[mechanic];
+	if (slice === undefined) return undefined;
+	if (slice.version !== 0 && slice.version !== CURRENT_SLICE) throw new SnapshotError(`${mechanic}: no writer back to the old shape for version ${String(slice.version)}`);
+	if (!isRecord(slice.data)) throw new SnapshotError(`${mechanic}: the slice is not an object`);
+	return { version: slice.version, data: slice.data };
+}
+
+function listOf(value: unknown, what: string): readonly Json[] {
+	return value === undefined ? [] : records(value, what);
+}
+
+/**
+ * The old file's `arena` field from the host's slices. Version 0 holds it whole (the converter's
+ * copy). From version 1 on the three owners each hold their part: the arena `seenPoints` and
+ * `braked`, progression `delivered`, channels `seen` (the old `seenBoard`).
+ */
+function arenaField(host: HostSnapshot): Json {
+	const arena = dataOf(host, "arena");
+	if (arena === undefined) return {};
+	if (arena.version === 0) return arena.data;
+	const progression = dataOf(host, "progression");
+	const channels = dataOf(host, "channels");
+	const delivered = progression === undefined ? [] : listOf(progression.data.delivered, "progression.delivered");
+	const seenBoard = channels === undefined ? [] : listOf(channels.version === 0 ? channels.data.seenBoard : channels.data.seen, "channels.seen");
+	return { delivered, seenPoints: listOf(arena.data.seenPoints, "arena.seenPoints"), seenBoard, braked: arena.data.braked ?? [] };
+}
+
+/** Fields a current slice adds that the old world has no field for (they went to the arena, to the roles, or are new). */
+const CURRENT_ONLY: Readonly<Record<string, readonly string[]>> = { progression: ["delivered", "locksStale"], channels: ["exiled", "seen", "notes"] };
+
+/** The world fields a progression or channels slice writes: version 0 as it is, the current version without what it added. */
+function worldFields(host: HostSnapshot, mechanic: string, layout: ConvertedSnapshot["layout"]): Json {
+	const slice = dataOf(host, mechanic);
+	if (slice === undefined || slice.version === 0) return slice?.data ?? {};
+	const added = CURRENT_ONLY[mechanic] ?? [];
+	// A current slice names fields the old file may have left out (`messages`, `offences`): they stay out as they were.
+	return Object.fromEntries(Object.entries(slice.data).filter(([key]) => !added.includes(key) && (key === "competitors" || key === "inboxes" || layout.world.includes(key))));
 }
 
 /** The old file from a converted snapshot, in the old key order; checked with the old schema. */
@@ -193,7 +237,8 @@ export function toLegacySnapshot(converted: ConvertedSnapshot): RunSnapshot {
 	const tribunal: Record<string, unknown> = {};
 	for (const mechanic of Object.keys(host.mechanics)) {
 		if (mechanic === "arena" || mechanic === "script") continue;
-		for (const [key, value] of Object.entries(sliceData(host, mechanic))) {
+		const fields = mechanic === "progression" || mechanic === "channels" ? worldFields(host, mechanic, layout) : sliceData(host, mechanic);
+		for (const [key, value] of Object.entries(fields)) {
 			if (mechanic === "progression" && key === "competitors") progression = records(value, "progression.competitors");
 			else if (mechanic === "channels" && key === "inboxes") inboxes = records(value, "channels.inboxes");
 			else if (key === "tribunal" && (mechanic === "tribunal" || mechanic === "exile") && isRecord(value)) Object.assign(tribunal, value);
@@ -208,6 +253,6 @@ export function toLegacySnapshot(converted: ConvertedSnapshot): RunSnapshot {
 	world.competitors = progression.map((entry, index) => ordered({ ...entry, ...inboxes[index] }, layout.competitor, "world.competitors"));
 	const legacy = new LegacyEventAdapter();
 	const events = converted.events.flatMap((event) => legacy.write(event)).map((event) => toRecorded(event));
-	const whole: Json = { ...converted.app, ...converted.roles, events, arena: sliceData(host, "arena"), director: sliceData(host, "script"), world: ordered(world, layout.world, "world") };
+	const whole: Json = { ...converted.app, ...converted.roles, events, arena: arenaField(host), director: dataOf(host, "script")?.data ?? {}, world: ordered(world, layout.world, "world") };
 	return parseSnapshot(ordered(whole, layout.top, "snapshot"), "converted snapshot");
 }

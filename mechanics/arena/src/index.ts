@@ -87,7 +87,7 @@ export const arena = defineMechanic(arenaHead, (kit) => ({
 			return points !== undefined && points !== ctx.call(LedgerApi, "balance", { account: resident });
 		},
 		minuteEnded: { order: HOOK_ORDER.minuteEnded.arena, run: minuteEnded },
-		runEnded: { order: HOOK_ORDER.runEnded.arena, run: (_reason, ctx) => { runEnded(ctx); } },
+		runEnded: { order: HOOK_ORDER.runEnded.arena, run: (_reason, ctx, detail) => { runEnded(ctx, detail); } },
 	},
 	limits: [
 		kit.limit("stop", "The run stops where the old arena stopped it: every resident finished, seats decided, or the tribunal's act over.", (view) =>

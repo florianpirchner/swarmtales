@@ -290,7 +290,7 @@ export interface MechanicHooks<M extends MechanicShape> {
 	readonly turnEnded?: HookSlot<(resident: ResidentId, ctx: MechanicContext<M>) => void>;
 	readonly minuteEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
 	/** Calls staged here run before `run_ended` when the run ends after a minute (not after a stop between minutes). */
-	readonly runEnded?: HookSlot<(reason: string, ctx: MechanicContext<M>) => void>;
+	readonly runEnded?: HookSlot<(reason: string, ctx: MechanicContext<M>, detail?: string) => void>;
 }
 
 /** Handlers a mechanic adds to stages of every tool call (a cost module uses `afford` and `settle`). */
@@ -348,7 +348,7 @@ export interface InstancePhases {
 	readonly turnOpened: readonly HookPhase<(resident: ResidentId) => void>[];
 	readonly turnEnded: readonly HookPhase<(resident: ResidentId) => void>[];
 	readonly minuteEnded: readonly HookPhase<() => void>[];
-	readonly runEnded: readonly HookPhase<(reason: string) => void>[];
+	readonly runEnded: readonly HookPhase<(reason: string, detail?: string) => void>[];
 }
 
 /** Hooks and handlers of one instance, bound to its context. */

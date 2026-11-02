@@ -162,8 +162,8 @@ function bind<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readon
 				minuteEnded: phasesOf(hooks.minuteEnded, (run) => () => {
 					run(ctx);
 				}),
-				runEnded: phasesOf(hooks.runEnded, (run) => (reason: string) => {
-					run(reason, ctx);
+				runEnded: phasesOf(hooks.runEnded, (run) => (reason: string, detail?: string) => {
+					run(reason, ctx, detail);
 				}),
 			},
 			news: (resident) => hooks.news?.(resident, ctx) ?? false,

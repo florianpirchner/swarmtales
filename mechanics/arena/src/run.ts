@@ -125,8 +125,9 @@ export function minuteClosed(ctx: ArenaCtx): void {
 	if (ctx.minute >= ctx.minutes - 1) state.reason = stopReason(ctx);
 }
 
-export function runEnded(ctx: ArenaCtx): void {
-	const reason = ctx.state.reason;
+/** `detail` is the text of the app's `host.stop(reason)`; the arena's own reason wins. */
+export function runEnded(ctx: ArenaCtx, detail?: string): void {
+	const reason = ctx.state.reason ?? detail;
 	const ending = ctx.tryCall(EndingApi, "evaluate", { reason: reason ?? null }) ?? null;
 	ctx.emit("run_end", { ...(reason === undefined ? {} : { reason }), standings: standings(ctx, new Set()), ...(ending === null ? {} : { ending }) });
 }

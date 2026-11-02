@@ -100,11 +100,13 @@ export class TurnLoop {
 		this.#parts = parts;
 	}
 
-	/** Every pass of `minute`; stops between blocks once halted. */
-	async play(agent: TurnTaker, minute: number): Promise<void> {
+	/** Every pass of `minute`; stops between blocks once halted. Returns how many passes started. */
+	async play(agent: TurnTaker, minute: number): Promise<number> {
 		const { policy, bus, residents, seed } = this.#parts;
 		const passes = policy.passes ?? 1;
+		let started = 0;
 		for (let pass = 1; pass <= passes && !this.#parts.halted(); pass++) {
+			started += 1;
 			const may = residents.ids.filter((id) => residents.mayAct(id));
 			const order = this.#order({ seed, minute, pass, residents: may, roster: residents.ids });
 			const blocks = blocksOf(order, policy.blockSize ?? 1);
@@ -117,6 +119,7 @@ export class TurnLoop {
 				if (safeStop !== undefined) await safeStop("afterBlock", pass, index + 1);
 			}
 		}
+		return started;
 	}
 
 	#order(base: Omit<PassView, "rng">): readonly ResidentId[] {

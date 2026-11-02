@@ -180,8 +180,8 @@ describe("the script's slice of the L7 checkpoint", () => {
 		const converted = convertLegacySnapshot(JSON.parse(JSON.stringify(file)), {}, "snapshot-L7");
 		const slice = resumedHost(file, cityOfKeys, 1).snapshot().mechanics.script;
 		expect(slice?.version).toBe(1);
-		// `toLegacySnapshot` writes back version-0 slices only (docs/design/step18-requests-S1.md, request 5): the script's data goes in as one.
-		const host = { ...converted.host, mechanics: { ...converted.host.mechanics, script: { version: 0, data: slice?.data } } };
+		// `toLegacySnapshot` writes the script's version-1 slice back as the director field (step 18, S1-5).
+		const host = { ...converted.host, mechanics: { ...converted.host.mechanics, ...(slice === undefined ? {} : { script: slice }) } };
 		expect(JSON.stringify(toLegacySnapshot({ ...converted, host }).director)).toBe(JSON.stringify(directorOf(file)));
 	});
 });

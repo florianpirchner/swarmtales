@@ -17,11 +17,11 @@ function isExiled(view: ArenaView, resident: string): boolean {
 	return view.tryCall(ExileApi, "isExiled", { resident }) ?? false;
 }
 
-/** Current points plus the rewards of every played level the resident has not passed yet (old `#reachablePoints`). */
+/** Current points plus the rewards of every played level the resident has not solved yet (old `#reachablePoints`: `solved`, not `hasPassed`). */
 function reachablePoints(view: ArenaView, resident: string, startLevel: number, lastLevel: number): number {
 	let open = 0;
 	for (let level = startLevel; level <= lastLevel; level++) {
-		if (!view.call(ProgressionApi, "hasPassed", { resident, level })) open += view.options.rewards.find((entry) => entry.level === level)?.reward ?? 0;
+		if (!view.call(ProgressionApi, "hasSolved", { resident, level })) open += view.options.rewards.find((entry) => entry.level === level)?.reward ?? 0;
 	}
 	return view.call(LedgerApi, "balance", { account: resident }) + open;
 }
