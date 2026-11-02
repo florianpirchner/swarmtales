@@ -15,7 +15,7 @@ import { Type } from "typebox";
 import { Check } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { parseSnapshot, type RunSnapshot, MemorySink, RecordedEventSchema } from "@swarmtales/chronicle";
-import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 import type { Host } from "@swarmtales/contracts";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
 import { boundBackend, CLASSIFIER_ID, GAMEMAKER_ID, overseers } from "@swarmtales/roles";
@@ -134,7 +134,7 @@ function playOld(extra: OldExtra = {}): Promise<Played<RunSnapshot>> {
 	return Promise.resolve({ events: played.events, ...(played.snapshot === undefined ? {} : { snapshot: parseSnapshot(played.snapshot) }) });
 }
 
-async function playNew(extra: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: ResumePoint } = {}): Promise<Played<ResumePoint>> {
+async function playNew(extra: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: ResumePoint; readonly sinks?: readonly EventSink[] } = {}): Promise<Played<ResumePoint>> {
 	const log = new MemorySink();
 	let taken: ResumePoint | undefined;
 	const resume = extra.resume;
@@ -144,7 +144,7 @@ async function playNew(extra: { readonly snapshotAfter?: number; readonly stop?:
 		models: (host) => new ScriptedModelSource(chattyScript(hostView(host))),
 		gamemakerModels: (host) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(hostView(host)) }),
 		classifier: boundBackend("scripted/classifier", new ScriptedModelSource({ [CLASSIFIER_ID]: classifierScript() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS), "off", overseers.classifierRuntime),
-		sinks: [log],
+		sinks: [log, ...(extra.sinks ?? [])],
 		meta: { run: resume === undefined ? "first" : "resumed" },
 		...(extra.snapshotAfter === undefined
 			? {}
@@ -200,7 +200,19 @@ describe("run snapshots on the host", () => {
 		if (snapshot === undefined) throw new Error("no snapshot was taken");
 		expect(first.events.at(-1)).toMatchObject({ type: "run_end", reason: "snapshot after level 7 written to memory; stopped there" });
 		expect(snapshot.competitors.every((entry) => entry.messages.length > 0)).toBe(true);
-		const resumed = await playNew({ resume: snapshot });
+		// A sink that tells a replayed line from a recorded one: the CLI hands it the prefix through `replay` and every later line through `record` (F3).
+		const split: { readonly replayed: RecordedEvent[]; readonly recorded: RecordedEvent[] } = { replayed: [], recorded: [] };
+		const splitting: EventSink = {
+			record: (event) => {
+				split.recorded.push(event);
+			},
+			replay: (event) => {
+				split.replayed.push(event);
+			},
+		};
+		const resumed = await playNew({ resume: snapshot, sinks: [splitting] });
+		expect(split.replayed).toEqual(first.events.slice(0, first.events.length - 1));
+		expect([...split.replayed, ...split.recorded]).toEqual(resumed.events);
 		// The resumed gamemaker builds its system prompt from the probe's facts: the same prompt as the uninterrupted run's (F3).
 		expect(whole.gamemakerPrompt).toContain("Labels:");
 		expect(resumed.gamemakerPrompt).toBe(whole.gamemakerPrompt);
