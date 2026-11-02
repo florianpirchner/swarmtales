@@ -7,7 +7,6 @@
  * puzzles deal the same codes (T3's gates). Replies, the lines of the compared owners (in log order)
  * and the script's snapshot slice against the old `director` field are then compared by the tests.
  */
-import type { JsonObject } from "@earendil-works/pi-ai";
 import { legacySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, TurnTaker } from "@swarmtales/contracts";
 import { Type } from "typebox";
@@ -18,9 +17,7 @@ import { script, scriptOptionsFromStory } from "@swarmtales/mechanic-script";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { ownedBy, type GoldenLine, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
-import { act, createFixture, say } from "../../helpers/fixture.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { replyText } from "../t1/differential.ts";
 import { realCity } from "../t1/city.ts";
@@ -63,16 +60,6 @@ export const OWNERS = ["script", "channels", "cast", "petitions", "ledger", "rec
 
 const key = (minute: number, agent: string): string => `${String(minute)}:${agent}`;
 
-function argsOf(params: unknown): JsonObject {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([name, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${name}`);
-			return [name, value];
-		}),
-	);
-}
-
 const OldRecord = Type.Object({
 	fingerprint: Type.String(),
 	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
@@ -91,47 +78,12 @@ function fingerprint(spec: Spec, world: RecordedWorld): string {
  * The plan played through the old engine, as it was recorded once before the engine went (step 18,
  * item 7b; `test/fixtures/old-engine/`).
  */
-export async function playOld(spec: Spec): Promise<OldPlayed> {
+export function playOld(spec: Spec): Promise<OldPlayed> {
 	const { name, scenario } = currentScenario();
-	if (RECORDING) {
-		const live = await playOldLive(spec);
-		const world = recordWorld(live.world);
-		recordOld(name, scenario, { fingerprint: fingerprint(spec, new RecordedWorld(world)), replies: [...live.replies], lines: live.lines, world, director: live.director });
-	}
 	const recorded = recordedOld(name, scenario, OldRecord);
 	const world = new RecordedWorld(recorded.world);
 	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(spec, world));
-	return { replies: new Map(recorded.replies), lines: recorded.lines, world, director: recorded.director };
-}
-
-/** The live old side (recording only; deleted with the engine). */
-async function playOldLive(spec: Spec) {
-	const residents = ids(spec.agents);
-	const fixture = createFixture({
-		story: spec.story,
-		agents: spec.agents,
-		minutes: spec.minutes,
-		script: (world) => {
-			const codeOf: CodeOf = (agent, level) => world.inspect.codeOf(agent, level);
-			return Object.fromEntries(
-				residents.map((agent) => [
-					agent,
-					Array.from({ length: spec.minutes }, (_unused, minute) => {
-						const calls = spec.plan(agent, minute, codeOf);
-						return calls.length === 0 ? say() : act(...calls.map((call) => ({ name: call.tool, args: argsOf(call.params) })));
-					}),
-				]),
-			);
-		},
-	});
-	await fixture.run();
-	const replies = new Map<string, string[]>();
-	for (const event of fixture.log.events) {
-		if (event.type !== "tool_result") continue;
-		const at = key(event.minute, event.agent);
-		replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
-	}
-	return { replies, lines: fixture.log.events.map((event) => ({ ...event })), world: fixture.world, director: fixture.director.snapshot() };
+	return Promise.resolve({ replies: new Map(recorded.replies), lines: recorded.lines, world, director: recorded.director });
 }
 
 function definitionOf(spec: Spec) {

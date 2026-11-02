@@ -18,10 +18,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Type } from "typebox";
-import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import { convertLegacySnapshot, legacySink, parseSnapshot, toLegacySnapshot, type ConvertedSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, legacySink, parseSnapshot, toLegacySnapshot, type ConvertedSnapshot } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
-import { Director, EventBus, type World } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";
 import { channels } from "@swarmtales/mechanic-channels";
@@ -34,14 +32,11 @@ import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { receipts } from "@swarmtales/mechanic-receipts";
 import { script, scriptOptionsFromStory } from "@swarmtales/mechanic-script";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
-import { ScriptedModelSource } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { ownedBy, standInsFor, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
-import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
-import { act, say } from "../../helpers/fixture.ts";
-import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { oldValue, RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { resolveBlockSize } from "../../../apps/cli/src/run-options.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld, recordedValue } from "../../helpers/old-engine.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
@@ -66,16 +61,6 @@ const TOOLS = ["getStatus", "getProblem", "submitSolution", "sendDM", "postBoard
 
 /** The mechanics a resumed city loads for real; every other slice gets an inert stand-in. */
 const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "cast", "petitions", "puzzles", "progression", "script"];
-
-function argsOf(params: unknown): Record<string, string | number | boolean> {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([key, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${key}`);
-			return [key, value];
-		}),
-	);
-}
 
 interface OldResumed {
 	readonly replies: ReadonlyMap<string, readonly string[]>;
@@ -103,54 +88,12 @@ function fingerprint(file: unknown, story: AnyStory, minutes: number, plan: Plan
  * Continues the old run for `minutes` more minutes, as it was recorded once before the engine went
  * (step 18, item 7b; `test/fixtures/old-engine/`).
  */
-async function resumeOld(file: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<OldResumed> {
+function resumeOld(file: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<OldResumed> {
 	const { name, scenario } = currentScenario();
-	if (RECORDING) {
-		const live = await resumeOldLive(file, story, minutes, plan);
-		const world = recordWorld(live.world);
-		recordOld(name, scenario, { fingerprint: fingerprint(file, story, minutes, plan, new RecordedWorld(world)), replies: [...live.replies], lines: live.lines, director: live.director, world });
-	}
 	const recorded = recordedOld(name, scenario, OldRecord);
 	const world = new RecordedWorld(recorded.world);
 	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(file, story, minutes, plan, world));
-	return { replies: new Map(recorded.replies), lines: recorded.lines, director: recorded.director, world };
-}
-
-/** The live old continuation; the plan's calls are built when the turn comes (a level is dealt when the door opens). Recording only; deleted with the engine. */
-async function resumeOldLive(file: unknown, story: AnyStory, minutes: number, plan: Plan) {
-	const snapshot: RunSnapshot = parseSnapshot(JSON.parse(JSON.stringify(file)));
-	const start = snapshot.minute + 1;
-	const log = new MemorySink();
-	const run = composeRun({
-		story,
-		overrides: { minutes: start + minutes, gamemaker: false, classifier: false, activation: "always", passesPerMinute: 1, ...resumeOverrides(snapshot) },
-		models: (world) => {
-			const codeOf: CodeOf = (agent, level) => world.inspect.codeOf(agent, level);
-			return new ScriptedModelSource(
-				Object.fromEntries(
-					world.competitors.map((agent) => [
-						agent,
-						Array.from({ length: minutes }, (_unused, index): FauxResponseStep => (): AssistantMessage => {
-							const calls = plan(agent, start + index, codeOf);
-							return calls.length === 0 ? say() : act(...calls.map((call: PlannedCall) => ({ name: call.tool, args: argsOf(call.params) })));
-						}),
-					]),
-				),
-			);
-		},
-		sinks: [log],
-		meta: { run: "resumed" },
-		resume: { snapshot, name: "snapshot-L7.json" },
-	});
-	await run.arena.run();
-	const replies = new Map<string, string[]>();
-	for (const event of log.events) {
-		if (event.type !== "tool_result" || event.minute < start) continue;
-		const key = `${String(event.minute)}:${event.agent}`;
-		replies.set(key, [...(replies.get(key) ?? []), `${String(event.isError)}|${event.text}`]);
-	}
-	const lines = log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event }));
-	return { replies, lines, director: run.director.snapshot(), world: run.world };
+	return Promise.resolve({ replies: new Map(recorded.replies), lines: recorded.lines, director: recorded.director, world });
 }
 
 /** The real city with the real script on the converted snapshot. */
@@ -194,13 +137,8 @@ const scriptData = (host: Host): unknown => host.snapshot().mechanics.script?.da
 describe("the script's slice of the L7 checkpoint", () => {
 	it("loads the old director field through the version-0 migration, as the old Director keeps it", () => {
 		const file = raw();
-		const old = parseSnapshot(raw()).director;
-		// The old Director's snapshot after `restore(old)`, recorded once (step 18, item 7b).
-		const restored = oldValue(() => {
-			const director = new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0));
-			director.restore(old);
-			return director.snapshot();
-		});
+		// The old Director's snapshot after `restore` of the file's director field, recorded once (step 18, item 7b).
+		const restored = recordedValue();
 		const host = resumedHost(file, cityOfKeys, 1);
 		expect(host.snapshot().mechanics.script?.version).toBe(1);
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(restored));
@@ -212,7 +150,7 @@ describe("the script's slice of the L7 checkpoint", () => {
 		const snapshot = { ...converted.host, mechanics: { ...converted.host.mechanics, script: { version: 0, data: {} } } };
 		const host = resumedHostOf({ ...converted, host: snapshot }, cityOfKeys, 1);
 		// A fresh old Director's snapshot, recorded once (step 18, item 7b).
-		const empty = oldValue(() => new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0)).snapshot());
+		const empty = recordedValue();
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(empty));
 	});
 
@@ -275,13 +213,3 @@ describe("the run resumed from the L7 checkpoint", () => {
 	}, 120_000);
 });
 
-/** The old Director reads the world only when a rule fires; `restore` and `snapshot` need none. */
-function worldStub(): World {
-	const fixture = composeRun({
-		story: cityOfKeys,
-		overrides: { gamemaker: false, classifier: false, names: false },
-		models: () => new ScriptedModelSource({}),
-		sinks: [],
-	});
-	return fixture.world;
-}
