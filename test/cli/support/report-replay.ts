@@ -12,17 +12,18 @@ import type { FauxResponseStep, JsonObject, JsonValue } from "@earendil-works/pi
 import { Type } from "typebox";
 import { legacyOwner, legacySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse, OverseerUse } from "@swarmtales/contracts";
-import { directionLevel } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { act, say, ScriptedModelSource } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { defineGamemaker, GAMEMAKER_APP_EVENTS, GAMEMAKER_ID, gamemakerRuntime } from "@swarmtales/roles";
 import type { LegacyLine } from "@swarmtales/testkit";
-import { DEFAULT_LIMITS } from "../../../apps/cli/src/compose.ts";
+import { directionLevel } from "@swarmtales/contracts";
+import { DEFAULT_LIMITS } from "../../../apps/cli/src/run-options.ts";
 import { hostGamemakerReport } from "../../../apps/cli/src/host/report.ts";
 import { hostStoryOf, type HostRun } from "../../../apps/cli/src/host/story.ts";
 import { createFixture, type FixtureOptions } from "../../helpers/fixture.ts";
 import { normaliseEvents } from "../../helpers/golden.ts";
+import { oldRunAsync } from "../../helpers/old-engine-recorder.ts";
 import { goldenTurnInputs } from "@swarmtales/testkit";
 import { turnKey } from "../../mechanics/t2/golden-plan.ts";
 
@@ -98,8 +99,19 @@ export interface OldRun {
 	readonly residents: readonly string[];
 }
 
-/** Plays an old run and keeps its log as the golden files hold it, with its gamemaker's system prompt. */
+const OldRunSchema = Type.Object({ minutes: Type.Number(), lines: Type.Array(Type.Record(Type.String(), Type.Unknown())), system: Type.String(), residents: Type.Array(Type.String()) });
+
+/**
+ * An old run's log as the golden files hold it, with its gamemaker's system prompt, as it was recorded
+ * once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). The fingerprint holds the
+ * options' data; the scripts are code of the test file.
+ */
 export async function recordOld(options: FixtureOptions): Promise<OldRun> {
+	return oldRunAsync(options, OldRunSchema, () => recordOldLive(options));
+}
+
+/** The live old run (recording only; deleted with the engine). */
+async function recordOldLive(options: FixtureOptions): Promise<OldRun> {
 	const fixture = createFixture(options);
 	const system = fixture.gamemaker?.systemPrompt;
 	if (system === undefined) throw new Error("the old run has no gamemaker");

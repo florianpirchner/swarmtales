@@ -13,9 +13,11 @@
  *   `_result`, the `usage` of `GM` with its token counts, which pin the bytes of the system prompt,
  *   the tool list and the input the model saw) equals the golden's, in order.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import type { LegacyLine } from "@swarmtales/testkit";
 import { goldenLog, minutesOf, RESIDENTS, SEED, storyOf, type GoldenName } from "../mechanics/puzzles/harness.ts";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { isGamemakerLine, looksOf, outsideApp, placed, replayOnHost, type Dials } from "./support/report-replay.ts";
 
 /** The golden runs' dials (test/golden/golden.test.ts). */
@@ -25,8 +27,16 @@ const DIALS: Readonly<Record<GoldenName, Dials>> = {
 	"whispers-f10-grudge": { figureDirection: 10, gmDirection: 4, names: false },
 };
 
-/** The old system prompt of the golden run's gamemaker (the old composer's, from the story and the dials). */
+/**
+ * The old system prompt of the golden run's gamemaker (the old composer's, from the story and the dials),
+ * as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 async function oldSystemPrompt(name: GoldenName): Promise<string> {
+	return oldRunAsync({ name, story: storyOf(name), dials: DIALS[name] }, Type.String(), () => oldSystemPromptLive(name));
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+async function oldSystemPromptLive(name: GoldenName): Promise<string> {
 	const { createFixture } = await import("../helpers/fixture.ts");
 	const dials = DIALS[name];
 	const fixture = createFixture({

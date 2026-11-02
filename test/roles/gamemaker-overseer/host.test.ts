@@ -18,15 +18,16 @@
 import type { FauxResponseStep, JsonObject, JsonValue } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { legacyOwner, legacySink } from "@swarmtales/chronicle";
-import type { Host } from "@swarmtales/contracts";
+import { directionLevel, type Host } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { act, say, ScriptedModelSource } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { defineGamemaker, GAMEMAKER_APP_EVENTS, GAMEMAKER_ID, gamemakerRuntime, type GamemakerLook, type GamemakerReport } from "@swarmtales/roles";
 import type { LegacyLine } from "@swarmtales/testkit";
 import { fileURLToPath } from "node:url";
-import { directionLevel } from "@swarmtales/engine";
-import { DEFAULT_LIMITS } from "../../../apps/cli/src/compose.ts";
+import { Type } from "typebox";
+import { DEFAULT_LIMITS } from "../../../apps/cli/src/run-options.ts";
+import { oldRunAsync } from "../../helpers/old-engine-recorder.ts";
 import { arenaStoryOf } from "../../mechanics/arena/golden-host.ts";
 import { storyOf, type GoldenName } from "../../mechanics/puzzles/harness.ts";
 import { turnKey } from "../../mechanics/t2/golden-plan.ts";
@@ -101,8 +102,16 @@ function steps(minutes: number, minute: () => number, plan: (minute: number) => 
 	});
 }
 
-/** The old system prompt of the golden run's gamemaker (the old composer's, from the story and the direction). */
+/**
+ * The old system prompt of the golden run's gamemaker (the old composer's, from the story and the direction),
+ * as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 async function oldSystemPrompt(name: GoldenName, direction: number): Promise<string> {
+	return oldRunAsync({ name, story: storyOf(name), direction }, Type.String(), () => oldSystemPromptLive(name, direction));
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+async function oldSystemPromptLive(name: GoldenName, direction: number): Promise<string> {
 	const { createFixture } = await import("../../helpers/fixture.ts");
 	const story = storyOf(name);
 	const fixture = createFixture({

@@ -12,10 +12,12 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
-import { MemorySink } from "@swarmtales/chronicle";
+import { MemorySink, RecordedEventSchema } from "@swarmtales/chronicle";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
 import { boundBackend, ChatStatementClassifier, ChatWeaver, CLASSIFIER_ID, GAMEMAKER_ID, overseers, WEAVER_ID } from "@swarmtales/roles";
+import { Type } from "typebox";
 import { composeRun } from "../../apps/cli/src/compose.ts";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { composeHostRun } from "../../apps/cli/src/host/run.ts";
 import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
 import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
@@ -75,7 +77,13 @@ function gamemakerSteps(): readonly FauxResponseStep[] {
 	return Array.from({ length: MINUTES * 2 }, () => say("Watching."));
 }
 
+/** The old engine's weaver run, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 async function playOld(): Promise<Played> {
+	return oldRunAsync({ story: cityOfKeys, overrides: { ...BASE, level: 2 } }, Type.Object({ events: Type.Array(RecordedEventSchema), prompts: Type.Array(Type.String()) }), playOldLive);
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+async function playOldLive(): Promise<Played> {
 	const log = new MemorySink();
 	const prompts: string[] = [];
 	const run = composeRun({

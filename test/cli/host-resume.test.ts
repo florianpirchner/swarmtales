@@ -14,7 +14,7 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { parseSnapshot, type RunSnapshot, MemorySink, RecordedEventSchema } from "@swarmtales/chronicle";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import type { Host } from "@swarmtales/contracts";
 import type { World } from "@swarmtales/engine";
@@ -26,6 +26,8 @@ import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/
 import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { codeOf } from "../helpers/host-inspect.ts";
+import { fingerprintOf } from "../helpers/old-engine.ts";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 
 const MINUTES = 26;
 
@@ -134,7 +136,17 @@ interface Played<S> {
 
 const BASE: RunOverrides = { minutes: MINUTES, gamemaker: true, classifier: true };
 
-async function playOld(extra: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: RunSnapshot } = {}): Promise<Played<RunSnapshot>> {
+interface OldExtra { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: RunSnapshot }
+
+/** The old engine's run, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+async function playOld(extra: OldExtra = {}): Promise<Played<RunSnapshot>> {
+	const input = { story: cityOfKeys, overrides: BASE, snapshotAfter: extra.snapshotAfter ?? null, stop: extra.stop ?? null, resume: extra.resume === undefined ? null : fingerprintOf(extra.resume) };
+	const played = await oldRunAsync(input, Type.Object({ events: Type.Array(RecordedEventSchema), snapshot: Type.Optional(Type.Unknown()) }), () => playOldLive(extra));
+	return { events: played.events, ...(played.snapshot === undefined ? {} : { snapshot: parseSnapshot(played.snapshot) }) };
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+async function playOldLive(extra: OldExtra): Promise<Played<RunSnapshot>> {
 	const log = new MemorySink();
 	let taken: RunSnapshot | undefined;
 	const resume = extra.resume;

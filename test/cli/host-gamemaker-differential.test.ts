@@ -24,7 +24,7 @@ import type { World } from "@swarmtales/engine";
 import type { LegacyLine } from "@swarmtales/testkit";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
-import { act, say } from "../helpers/fixture.ts";
+import { act, say } from "@swarmtales/models";
 import { cityScript, gamemakerSteps } from "../golden/scripts.ts";
 import { looksOf, outsideApp, placed, recordOld, replayOnHost, type OldRun, type Replayed } from "./support/report-replay.ts";
 
