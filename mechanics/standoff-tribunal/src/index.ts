@@ -15,7 +15,7 @@ import { gamemakerTools, residentTools } from "./tools.ts";
 import { BlockersFact, blockersOf, computeHoldoutSection, HoldoutSectionFact, PendingFact, pendingOf, SessionFact, sessionOf } from "./section.ts";
 
 export { standoffTribunalHead } from "./head.ts";
-export { HoldoutSectionFact, holdoutSectionOf, renderHoldoutSection, type HoldoutSection } from "./section.ts";
+export { BlockersFact, HoldoutSectionFact, holdoutSectionOf, PendingFact, renderHoldoutSection, SessionFact, type HoldoutSection } from "./section.ts";
 
 export const standoffTribunal = defineMechanic(standoffTribunalHead, (kit) => ({
 	tools: [...residentTools(kit), ...gamemakerTools(kit)],

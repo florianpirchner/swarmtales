@@ -436,6 +436,61 @@ differentials and twins and `test/mechanics/progression/standins.ts`. Goldens un
      `test/cli/host-*` differentials and `test/roles/gamemaker-overseer/host.test.ts`) and `test/helpers/old-world.ts`.
    - Outside this group: `test/overseers/runtime-chat` and `runtime-host` still import `compose.ts`.
 
+## Team D4 (step 18 items 7 and 8, the engine deleted, 2026-11-02)
+
+Goldens byte-identical until the rename commit, `GOLDEN_UPDATE` used only there (item 6).
+
+1. **The last two engine unit tests ported** (P2's item 5), every case kept unless named here.
+   - `test/engine/tribunal.test.ts` plays the tribunal and the exile mechanics on a host over the stand-ins of
+     `test/mechanics/exile/support/city.ts` (the old ports' successors); a call comes between two minutes, after the
+     minute's hooks, where the old calls fell. The old fields are read through the mechanics: `session`, `ended`, the
+     draft's group and leaders from the facts; `gates`, `exiled`, `standing`, `isExiled` from `ExileApi`; `missing` from
+     `TribunalApi`; `schedulingWindow`, `endReason`, `busy` from `TribunalViewApi` (`stop`); `snapshot()` is the tribunal
+     slice (`TribunalSlice`, exported), `draftPhase` the mechanic's `phaseOf` over the slice's draft (exported). Changed
+     assertions (same intent, the host's place for it):
+     - `announced` false: no `tribunal_announced` event; `active` false: `stop.pursuing` false.
+     - `actEnd` 60 and 68: the act ends (`tribunal.ended`) with every `exile_gate` closing before minute 60 or 68.
+     - Refusals the host's tool locks answer first, so the call is `TOOL_LOCKED` and the test also checks which tools
+       are open: `scheduleTribunal` before the first call and during a vote (old `NOT_NOW`; the window's `why` is
+       checked), a second `vote` (old `ALREADY_VOTED`), `join` during the nominations and `nominate` after them (old
+       `NO_DRAFT`), `join` by a leader (old `IS_LEADER`), `refuse` by a non-leader (old `NOT_A_LEADER`), every draft
+       tool once the factions are formed (old `NOT_A_LEADER`, `NOT_IN_DRAFT`).
+     - Below a schema minimum the gateway answers `INVALID_ARGUMENTS` before the mechanic: `count: 0` (old
+       `INVALID_COUNT`), `factions: 1` (old `INVALID_FACTIONS`), a ransom of 0 (old `INVALID_AMOUNT`). `count: 1.5` is
+       dropped: the gateway converts arguments to the schema as the model layer does, so it arrives as 1 (old
+       `INVALID_COUNT` from the direct call). The mechanics' own range checks stay (`INVALID_COUNT` for 3,
+       `INVALID_FACTIONS` for 3, the minute checks).
+     - `schedule` and `payRansom` values are the `tribunal_scheduled` and `ransom_paid` payloads (`freed`: a `ransomed`
+       event followed).
+     - The seal strike after a will: old `onExiled(agent, ["F1"])`; now the city keeps only the piece the will did not
+       bequeath (the stand-in standoff's `keep`).
+     - Restore: the resumed host's tribunal and exile slices equal the original's. The pre-v06 part (an old
+       `TribunalSnapshot` without numbers) is covered by `test/mechanics/tribunal/differential.test.ts` ("continues an
+       old file from before v06 like the old restore ...").
+     - **Deleted cases** (the old `World` at the gate): "caps the points each heir receives ..." and "leaves factors free
+       of the cap". Coverage: `test/mechanics/exile/world.test.ts`, "refuses wills in the old order with the old details"
+       (`BEQUEST_CAP` with the old detail, two bequests to one heir counted together) and "executes a will at once and,
+       when the gate closes, ..." (five heirs at the cap of 5 of 50 points plus a factor, the burn of the rest at exile),
+       both against the recorded old `World`. "states the cap in the announcement" runs on the host harness.
+   - `test/engine/holdout.test.ts` plays Whispers on a bare host with every real mechanic (`hostStoryOf`, names off) and a
+     probe for the puzzles' `lacking` and the exile's `alive`; it holds each played minute open in its `between` slot,
+     so the residents' and the gamemaker's calls fall in that minute, as the old ones did. Changed assertions:
+     - The host counts a DM's fragment when it is sent (`dmRecords`); a mailbox still holds one unread DM per sender, so
+       where the old test sent one reader two DMs of one sender in a minute (reading each at once) the second goes a
+       minute later: A02's forwards after minute 1; in the DM-cap case A01's eight DMs go to four readers over minutes 3
+       and 4 (old: eight to A02 at minute 4), A02's three more to A04-A06 and its refused one to A03 (old A05).
+     - `dmWindow` is read from `getStatus` ("DMs: 8 of 8 sent since minute 0"); `holdout.blockers`, `session`,
+       `pending`, `cooldownUntil`, `lackingNow` from the standoff-tribunal facts (`BlockersFact`, `SessionFact`,
+       `PendingFact` exported); `ballotOf` from the slice; the call's and the lot's values from the session fact and
+       `holdout_called`; `isExiled` from the `struck` fact and `exiled`; `ranking().at(-1)` from the minute's last
+       `round_end`; `enabledTools` / `isToolEnabled` from `host.openTools`; `currentProblem` from `getProblem`;
+       `isFinished` as a level past the last door.
+     - `callTribunal` with no accused: `INVALID_ARGUMENTS` (schema `minItems: 1`; old `INVALID_ACCUSED`); the accused's
+       own `tribunalVote`: `TOOL_LOCKED` (old `NOT_A_VOTER`).
+     - The second tribunal's reason is reworded: the gamemaker's note desk refuses a text nearly the same as an earlier
+       one (`REPEATED`), which the old direct call bypassed.
+     - `holdout: false`: a run without the gamemaker, since `hostStoryOf` loads the holdout tribunal only with one.
+
 ## H1 (signed event log, rewrite-status item 5a)
 
 Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).
