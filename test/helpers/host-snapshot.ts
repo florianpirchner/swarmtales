@@ -38,7 +38,7 @@ type Snapshotted = Pick<ResumePoint, "host">;
 /** A mechanic's slice in a snapshot, parsed; throws when it is missing or has another shape. */
 export function sliceIn<T extends TSchema>(snapshot: Snapshotted, mechanic: string, schema: T): Static<T> {
 	const data = snapshot.host.mechanics[mechanic]?.data;
-	if (!Check(schema, data)) throw new Error(`slice ${mechanic} is missing or has an unexpected shape: ${JSON.stringify(data)?.slice(0, 300) ?? "undefined"}`);
+	if (!Check(schema, data)) throw new Error(`slice ${mechanic} is missing or has an unexpected shape: ${JSON.stringify(data ?? null).slice(0, 300)}`);
 	return data;
 }
 

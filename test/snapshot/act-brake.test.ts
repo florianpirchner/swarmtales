@@ -10,6 +10,7 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import type { AnyStory, Host } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { prefixLines, type ResumePoint } from "../../apps/cli/src/host/snapshot.ts";
 import { resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
@@ -57,7 +58,7 @@ async function play(options: { readonly snapshotAfter?: number; readonly stop?: 
 	});
 	await run.run();
 	const snapshot: TakenSnapshot | undefined = taker?.taken();
-	return { events: run.log.events, ofType: run.events, host: run.host, nameOf: (agent: string) => factOf(run.host, "names.names", Names)[agent], ...(snapshot === undefined ? {} : { snapshot }) };
+	return { events: run.log.events, ofType: <T extends RecordedEvent["type"]>(type: T) => run.events(type), host: run.host, nameOf: (agent: string) => factOf(run.host, "names.names", Names)[agent], ...(snapshot === undefined ? {} : { snapshot }) };
 }
 
 describe("the brake of a tribunal-free act (v08)", () => {
