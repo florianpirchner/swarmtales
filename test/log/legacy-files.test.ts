@@ -1,6 +1,6 @@
 /**
  * Every real old file reads into the new core's shapes and writes back byte for byte (review 2c,
- * "Adapter and converter"): the 12 run logs of `examples/` and `stories/*\/runs/` (live logs carry
+ * "Adapter and converter"): the 14 run logs of `examples/` and `stories/*\/runs/` (live logs carry
  * the sink's wall clock `at` behind `minute`, which stays beside the envelope) and the 5 example
  * snapshots, which also resume a host whose mechanics are all testkit stand-ins.
  */
@@ -30,7 +30,7 @@ describe("the real run logs", () => {
 	const logs = runLogs();
 
 	it("are all found", () => {
-		expect(logs).toHaveLength(12);
+		expect(logs).toHaveLength(14);
 	});
 
 	it.each(logs)("%s reads into envelopes and writes back byte for byte", (path) => {
