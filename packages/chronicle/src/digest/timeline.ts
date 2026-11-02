@@ -70,7 +70,7 @@ export function renderTimeline(header: TimelineHeader, facts: RunFacts, acts: Ac
 /** The Core motives and Goals tables (v09): who each resident is and what it secretly wanted; nothing without them. */
 function characterTables(facts: RunFacts): readonly string[] {
 	const words: Readonly<Record<string, string>> = { aboveAll: "above all", clearly: "clearly", atTimes: "at times" };
-	const coreMotives = eventsOfType(facts.events, "core_dealt");
+	const coreMotives = eventsOfType(facts.events, "motive_dealt");
 	const goals = eventsOfType(facts.events, "goal_dealt");
 	const resolved = eventsOfType(facts.events, "goal_resolved");
 	const lines: string[] = [];
@@ -321,7 +321,7 @@ function describe(event: DigestEvent, facts: RunFacts): string | undefined {
 		case "name_chosen":
 			return `${event.agent} is called ${event.name}${event.fallback ? " (named by the city)" : ""}.`;
 		case "interpretation_round":
-		case "core_dealt":
+		case "motive_dealt":
 		case "dm_delivered":
 		case "standings_published":
 		case "thinking":

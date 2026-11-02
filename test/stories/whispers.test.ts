@@ -198,7 +198,7 @@ describe("whispers in one scripted run", () => {
 		const { whisperer, sender, victim, favourite } = cast;
 		expect(fixture.events("whisperer_chosen")).toEqual([expect.objectContaining({ agent: whisperer })]);
 		// The whisperer plays with the story's own core motive (cold, envious), the others with drawn ones.
-		const coreMotives = fixture.events("core_dealt");
+		const coreMotives = fixture.events("motive_dealt");
 		expect(coreMotives).toHaveLength(6);
 		expect(coreMotives.find((coreMotive) => coreMotive.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.coreMotive?.drives, bigFive: whispers.whisperer?.coreMotive?.bigFive });
 		await fixture.run();

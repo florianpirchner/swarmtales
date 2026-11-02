@@ -173,6 +173,8 @@ function comparable(events: readonly RecordedEvent[]): readonly unknown[] {
 		if (event.type !== "usage") return event;
 		// The classifier reads the host log's numbers (S18-3), so its prompt and answer differ from the old in digits: its token counts are not compared.
 		if (event.agent === CLASSIFIER_ID) return { ...event, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+		// The gamemaker's system prompt and report say "core motive" since the rename (step 18), after the recording: its prompt size is not compared (the goldens pin it).
+		if (event.agent === GAMEMAKER_ID) return { ...event, input: 0, cacheRead: 0, cacheWrite: 0 };
 		return { ...event, input: event.input + event.cacheRead, cacheRead: 0, cacheWrite: 0 };
 	});
 }

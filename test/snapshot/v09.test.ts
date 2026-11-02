@@ -97,7 +97,7 @@ describe("v09 state in snapshots", () => {
 		}
 		await resumed.run.run();
 		const cut = prefixLines(snapshot);
-		expect(after(resumed.run.log.events, "core_dealt", cut)).toEqual([]);
+		expect(after(resumed.run.log.events, "motive_dealt", cut)).toEqual([]);
 		expect(after(resumed.run.log.events, "goal_dealt", cut)).toHaveLength(6);
 		expect(after(resumed.run.log.events, "seal_auction_opened", cut)).toHaveLength(1);
 	}, 120_000);
@@ -132,7 +132,7 @@ describe("v09 state in snapshots", () => {
 		const cut = prefixLines(snapshot);
 		const resumedAt = resumed.run.log.events.findIndex((event) => event.type === "run_resumed");
 		expect(resumedAt).toBe(cut);
-		expect(after(resumed.run.log.events, "core_dealt", cut)).toHaveLength(snapshot.agents);
+		expect(after(resumed.run.log.events, "motive_dealt", cut)).toHaveLength(snapshot.agents);
 		expect(after(resumed.run.log.events, "goal_dealt", cut)).toHaveLength(snapshot.agents);
 	}, 120_000);
 });

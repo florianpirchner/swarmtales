@@ -55,7 +55,7 @@ export function characterLines(story: AnyStory, look: Pick<GamemakerLook, "facts
 		const line = lines[agent];
 		const goal = goals[agent];
 		if (line === undefined && goal === undefined) return [];
-		const parts = [...(line === undefined ? [] : [`core: ${line}`]), ...(goal === undefined ? [] : [`secret goal: ${goal}`])];
+		const parts = [...(line === undefined ? [] : [`core motive: ${line}`]), ...(goal === undefined ? [] : [`secret goal: ${goal}`])];
 		const directed = direction < 8 ? undefined : directFigure(direction, figureOf(story.coreMotives?.figures, figures[agent]?.figure)?.direction, playedBy);
 		if (directed !== undefined) {
 			if (directed.tendencies.length > 0) parts.push(`tendencies: ${directed.tendencies.join(" ")}`);
@@ -66,7 +66,7 @@ export function characterLines(story: AnyStory, look: Pick<GamemakerLook, "facts
 		return [`- ${agent}: ${parts.join(" · ")}`];
 	});
 	if (entries.length === 0) return [];
-	return ["Who they are (private: use a resident's core or goal only in a note to that same resident, never on the board or to anyone else):", ...entries, ""];
+	return ["Who they are (private: use a resident's core motive or goal only in a note to that same resident, never on the board or to anyone else):", ...entries, ""];
 }
 
 /** The lines under "Who waits on whom" (old `waitLines`): a resident's dependencies still on a lower level; a level that hides its teams names nobody. */

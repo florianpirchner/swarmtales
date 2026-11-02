@@ -58,7 +58,7 @@ function driverSlot(line: LegacyLine, where: "pre" | "minute" | "end"): Slot | "
 		case "fragments_dealt":
 		case "factors_dealt":
 			return { hook: "runStarted", key: "puzzles" };
-		case "core_dealt":
+		case "motive_dealt":
 			return { hook: "runStarted", key: "motives" };
 		case "run_start":
 			return { hook: "runStarted", key: "arena" };

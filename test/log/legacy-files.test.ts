@@ -7,7 +7,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { convertLegacySnapshot, envelopeFromLegacy, LegacyEventAdapter, legacyLine, legacyStamp, toLegacySnapshot } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, envelopeFromLegacy, eventsOfType, LegacyEventAdapter, legacyLine, legacyStamp, parseEventLog, readCharacters, toLegacySnapshot } from "@swarmtales/chronicle";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { standInsFor } from "@swarmtales/testkit";
 
@@ -48,6 +48,16 @@ describe("the real run logs", () => {
 		const first: unknown = JSON.parse(lines[0] ?? "{}");
 		expect(Object.keys(legacyStamp(first))).toEqual(["at"]);
 		expect(envelopeFromLegacy(first).payload).not.toHaveProperty("at");
+	});
+});
+
+describe("the old event names", () => {
+	it("read under the current names: an old log's core_dealt lines are motive_dealt to the readers (core becomes core motive)", () => {
+		const text = readFileSync(join(ROOT, "examples", "cityofkeys-act1-06a-04", "run", "events.jsonl"), "utf8");
+		expect(text).toContain('"type":"core_dealt"');
+		const log = parseEventLog(text);
+		expect(eventsOfType(log.events, "motive_dealt")).toHaveLength(6);
+		expect([...readCharacters(text).coreMotives.keys()]).toEqual(["A01", "A02", "A03", "A04", "A05", "A06"]);
 	});
 });
 

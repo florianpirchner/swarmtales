@@ -179,6 +179,7 @@ export class AgentTranscriptLog implements EventSink {
 			case "collection_started":
 			case "collection_shortened":
 			case "collection_revealed":
+			case "motive_dealt":
 			case "core_dealt":
 			case "goal_dealt":
 			case "goal_resolved":

@@ -1190,12 +1190,12 @@ three are optional, and the texts say who someone is or what it wants, never how
   above all and up to `perResident.max - 1` more (`clearly`, `atTimes`) plus a level on every axis.
   `round(n * lightShare)` residents have a light drive above all, and no drive is above all for
   more than `ceil(n / spreadPer)`. The rendered core motive follows the persona in the system prompt;
-  `core_dealt` logs it. `--no-core-motives` (old name `--no-cores`) deals none. In a named city the system prompt never names the
+  `motive_dealt` logs it (logs before step 18 wrote `core_dealt`, which the readers read as `motive_dealt`). `--no-core-motives` (old name `--no-cores`) deals none. In a named city the system prompt never names the
   resident's ID, so it is the same before and after a resume.
   With `figures` (a story's cast) residents get finished figures instead, as many as the cast has:
   the ones the run names (`--cast`), or a seeded pick with `round(count * lightShare)` light ones.
   A figure's core motive is its own drives and axes, its text replaces the core motive's sentences, and it plays
-  the persona of its `profession`; `core_dealt` and the snapshot carry its `figure` ID. Residents
+  the persona of its `profession`; `motive_dealt` and the snapshot carry its `figure` ID. Residents
   beyond the cast get a drawn core motive. `frame`, when set, comes first in the system prompt of every
   resident with a core motive.
 - **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; packages/engine/src/direction.ts):

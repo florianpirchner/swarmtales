@@ -81,11 +81,11 @@ describe("golden gate: core motives (channels and the providers around it stand 
 
 	it("writes the events in the old key order", () => {
 		const host = city(KEYS);
-		const [first] = host.log.all().filter((event) => event.type === "core_dealt");
+		const [first] = host.log.all().filter((event) => event.type === "motive_dealt");
 		expect(Object.keys(first?.payload ?? {})).toEqual(["agent", "bigFive", "drives", "figure"]);
 		const adapter = new LegacyEventAdapter();
 		const line = first === undefined ? undefined : adapter.write(first)[0];
-		expect(line === undefined ? "" : goldenLine(Object.fromEntries(Object.entries(line)))).toMatch(/^\{"type":"core_dealt","agent":"A01","bigFive":\[\{"axis":/);
+		expect(line === undefined ? "" : goldenLine(Object.fromEntries(Object.entries(line)))).toMatch(/^\{"type":"motive_dealt","agent":"A01","bigFive":\[\{"axis":/);
 	});
 });
 
@@ -94,7 +94,7 @@ describe("the deal", () => {
 
 	it("gives every resident one core motive with exactly one drive above all", () => {
 		const host = city(plain, 8);
-		const dealt = payloads(host, "core_dealt").map((event) => Parse(CoreMotiveRecord, event));
+		const dealt = payloads(host, "motive_dealt").map((event) => Parse(CoreMotiveRecord, event));
 		expect(dealt.map((coreMotive) => coreMotive.agent)).toEqual(["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08"]);
 		for (const coreMotive of dealt) {
 			expect(coreMotive.drives.filter((drive) => drive.intensity === "aboveAll")).toHaveLength(1);
@@ -108,17 +108,17 @@ describe("the deal", () => {
 	});
 
 	it("deals the same core motives from the same seed, and keeps them for good", async () => {
-		const first = payloads(city(plain), "core_dealt");
+		const first = payloads(city(plain), "motive_dealt");
 		const host = city(plain);
-		expect(payloads(host, "core_dealt")).toEqual(first);
+		expect(payloads(host, "motive_dealt")).toEqual(first);
 		await host.run(idleAgent);
-		expect(payloads(host, "core_dealt")).toEqual(first);
+		expect(payloads(host, "motive_dealt")).toEqual(first);
 	});
 
 	it("plays the figures a run names, one per resident, and draws for the rest", () => {
 		const ids = (CATALOG.figures ?? []).map((figure) => figure.id).slice(0, 2);
 		const host = city(options(CATALOG, ids), 6);
-		const dealt = payloads(host, "core_dealt").map((event) => Parse(CoreMotiveRecord, event));
+		const dealt = payloads(host, "motive_dealt").map((event) => Parse(CoreMotiveRecord, event));
 		expect(dealt.filter((coreMotive) => coreMotive.figure !== undefined).map((coreMotive) => coreMotive.figure).sort()).toEqual([...ids].sort());
 		expect(dealt.filter((coreMotive) => coreMotive.figure === undefined)).toHaveLength(4);
 	});
@@ -136,7 +136,7 @@ describe("the deal", () => {
 		const prose = facts["motives.prose"];
 		const lines = facts["motives.lines"];
 		expect(typeof prose === "object" && prose !== null && "A01" in prose).toBe(true);
-		const [event] = payloads(host, "core_dealt").map((entry) => Parse(CoreMotiveRecord, entry));
+		const [event] = payloads(host, "motive_dealt").map((entry) => Parse(CoreMotiveRecord, entry));
 		if (event === undefined) throw new Error("no core motive dealt");
 		const coreMotive = { bigFive: event.bigFive, drives: event.drives, ...(event.figure === undefined ? {} : { figure: event.figure }) };
 		expect(renderCoreMotive(KEYS, coreMotive).startsWith(KEYS.heading)).toBe(true);
@@ -183,7 +183,7 @@ describe("conformance and snapshot", () => {
 			expect(host.snapshot().mechanics.motives).toMatchObject({ version: 1, data: wanted });
 			const before = host.log.length;
 			await host.playMinute(idleAgent);
-			expect(host.log.all().slice(before).filter((event) => event.type === "core_dealt")).toEqual([]);
+			expect(host.log.all().slice(before).filter((event) => event.type === "motive_dealt")).toEqual([]);
 		});
 
 		it("deals them before the next minute when the snapshot has none (v09)", async () => {
@@ -191,7 +191,7 @@ describe("conformance and snapshot", () => {
 			const host = resume(bare);
 			const before = host.log.length;
 			await host.playMinute(idleAgent);
-			expect(host.log.all().slice(before).filter((event) => event.type === "core_dealt")).toHaveLength(6);
+			expect(host.log.all().slice(before).filter((event) => event.type === "motive_dealt")).toHaveLength(6);
 		});
 	});
 });

@@ -84,8 +84,8 @@ describe("the director's report and refusals (scripted)", () => {
 		expect(results[2]).toMatch(/^REPEATED: you wrote nearly the same to A02 at minute \d+; say something new or nothing$/);
 		const inputs = fixture.events("gamemaker_turn").map((event) => event.input);
 		const first = inputs[0] ?? "";
-		expect(first).toContain("Who they are (private: use a resident's core or goal only in a note to that same resident");
-		expect(first).toMatch(/- A01: core: [a-z-]+: above all \w+/);
+		expect(first).toContain("Who they are (private: use a resident's core motive or goal only in a note to that same resident");
+		expect(first).toMatch(/- A01: core motive: [a-z-]+: above all \w+/);
 		const dealt = fixture.events("goal_dealt").find((event) => event.agent === "A01");
 		expect(first).toContain(`secret goal: ${dealt?.text ?? "-"}`);
 		expect(first).toMatch(/next wrong code costs 2\)/);
@@ -123,7 +123,7 @@ describe("the director's report and refusals (scripted)", () => {
 		expect(prompt).toContain("Your craft is dramaturgy: rising tension, turning points, dilemmas");
 		expect(prompt).toContain("A quiet act is a failed act.");
 		expect(prompt).toContain("the climax at the last");
-		expect(prompt).toContain("Use a resident's core or goal only in a private note to that same resident");
+		expect(prompt).toContain("Use a resident's core motive or goal only in a private note to that same resident");
 		expect(prompt).toContain("never who\n  bears it");
 		expect(prompt).toContain("(REPEATED)");
 		expect(prompt).toContain("2, 4, 6, then 8 points");

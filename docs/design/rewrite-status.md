@@ -26,8 +26,9 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 Item 7 is **done**: `packages/engine` is deleted with its `check-packages` row, tsconfig references, manifest and
 lockfile entries; `apps/cli/src/compose.ts`, `test/helpers/fixture.ts`, `test/helpers/old-engine-recorder.ts`,
 `test/golden/scripts.ts`, the old `Gamemaker` role and the `World`-based `describeSituation` are gone, and no test runs
-an old engine side live. Item 8 (the core motive rename) is the last commit of D4. Details, every changed assertion and
-every deleted file with its covering test: `step18-decisions.md`, "Team D4".
+an old engine side live. Item 8 (the core motive rename) is **done**, as the last commit of D4 (`rename-core-motive.md`,
+"Done at step 18"); the goldens were regenerated there, once. Details, every changed assertion and every deleted file
+with its covering test: `step18-decisions.md`, "Team D4".
 
 **What remains:**
 

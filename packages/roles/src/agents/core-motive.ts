@@ -7,7 +7,7 @@
 import type { CoreMotiveDrive, CoreMotiveTrait } from "@swarmtales/legacy-log";
 import type { CoreMotivesSpec } from "@swarmtales/contracts";
 
-/** What `core_dealt` records of a resident. */
+/** What `motive_dealt` records of a resident. */
 export interface CoreMotive {
 	readonly bigFive: readonly CoreMotiveTrait[];
 	readonly drives: readonly CoreMotiveDrive[];

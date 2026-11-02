@@ -121,8 +121,8 @@ const scenarios: readonly Scenario[] = [
 	},
 	{
 		name: "a file from before the core motives: they are dealt first, then the acts begin, then the levels are dealt again",
-		has: ['"type":"core_dealt"'],
-		order: ["core_dealt", "goal_dealt", "factors_dealt"],
+		has: ['"type":"motive_dealt"'],
+		order: ["motive_dealt", "goal_dealt", "factors_dealt"],
 		options: {
 			story: cityOfKeys,
 			realMotives: true,

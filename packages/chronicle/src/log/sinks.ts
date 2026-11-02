@@ -206,6 +206,7 @@ export function describeEvent(event: RecordedEvent): string | undefined {
 		case "faction_applied":
 		case "faction_refused":
 		case "seal_bid":
+		case "motive_dealt":
 		case "core_dealt":
 		case "goal_dealt":
 			return undefined;

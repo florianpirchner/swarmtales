@@ -280,6 +280,8 @@ export const RecordedEventSchema = Type.Union([
 		snapshot: Type.Optional(Type.Boolean()),
 	}),
 	event("name_chosen", { agent: Id, name: Type.String(), fallback: Type.Boolean() }),
+	event("motive_dealt", { agent: Id, bigFive: Type.Array(CoreMotiveTraitSchema), drives: Type.Array(CoreMotiveDriveSchema), figure: Type.Optional(Type.String()) }),
+	// The old name of `motive_dealt` ("core becomes core motive", step 18): old snapshots keep it.
 	event("core_dealt", { agent: Id, bigFive: Type.Array(CoreMotiveTraitSchema), drives: Type.Array(CoreMotiveDriveSchema), figure: Type.Optional(Type.String()) }),
 	event("goal_dealt", { act: Int, agent: Id, goal: GoalSchema, text: Type.String() }),
 	event("goal_resolved", { act: Int, agent: Id, goal: GoalSchema, fulfilled: Type.Boolean(), void: Type.Optional(Type.Boolean()), bonus: Int }),

@@ -8,9 +8,9 @@ import { ChannelsApi, MotivesApi, WhispersApi } from "@swarmtales/mechanic-share
 import type { CoreMotive } from "./deal.ts";
 import { CoreMotiveDrive, CoreMotiveTrait, CoreMotivesOptions } from "./spec.ts";
 
-/** `core_dealt`, payload in the golden key order. */
+/** `motive_dealt`, payload in the golden key order. */
 const events = {
-	core_dealt: Type.Object({ agent: Type.String(), bigFive: Type.Array(CoreMotiveTrait), drives: Type.Array(CoreMotiveDrive), figure: Type.Optional(Type.String()) }),
+	motive_dealt: Type.Object({ agent: Type.String(), bigFive: Type.Array(CoreMotiveTrait), drives: Type.Array(CoreMotiveDrive), figure: Type.Optional(Type.String()) }),
 };
 
 export interface CoreMotivesState {

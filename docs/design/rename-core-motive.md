@@ -80,6 +80,30 @@ Changed although model-visible, because no golden file covers them: `library/pro
   the 12 real run logs round-trip byte-equal (`test/log/legacy-files.test.ts`), and the new mechanic migrates the
   legacy `cores` field (`test/mechanics/motives/motives.test.ts`, "migrates the dealt core motives from version 0").
 
+## Done at step 18 (team D4, 2026-11-02)
+
+The cut-over below was made in one commit, the last of D4, after the engine was deleted:
+
+- **Event.** The `motives` mechanic emits `motive_dealt`, and every reader and writer of the log uses it. The old name
+  stays readable: `core_dealt` is a variant of the legacy event union and of the snapshot's event schema (old
+  snapshots keep it and write back byte for byte), `RENAMED_EVENT_TYPES` and `withCurrentType` in
+  `@swarmtales/legacy-log` read an old log line under the current name (minute report, private files, run log, digest),
+  and a resume (`apps/cli/src/host/snapshot.ts`) replays an old file's events under the current names. The 14 real run
+  logs and the 5 example snapshots still convert and write back byte for byte (`test/log/legacy-files.test.ts`, with a
+  case for the old name).
+- **Snapshot key.** The motives slice is version 1 (the list of core motives) and migrates the version-0 shape, the old
+  world field `cores` (`mechanics/motives/src/index.ts`); the old file format keeps `cores`.
+- **Pinned strings** of section C reworded: the report line `core motive: ...` and "use a resident's core motive or
+  goal" (`apps/cli/src/host/report.ts`, the successor of `situation.ts`), `characters.d{0,8,10}.md`, `director-when.md`,
+  the cityofkeys Act II text. The privacy regex is unchanged (it matches both).
+- **Goldens** regenerated once with `GOLDEN_UPDATE=1`: the diff is the rename (`motive_dealt`, the reworded report and
+  system prompt) and the gamemaker's `usage` token counts, which pin those bytes; nothing else.
+- **Old recordings** (`test/fixtures/old-engine/`) keep the old names; `test/helpers/old-engine.ts` reads them under the
+  current names and fingerprints the inputs under the old ones. The two run differentials (`test/cli/host-resume`,
+  `host-weaver`) no longer compare the gamemaker's prompt size with the recording (its bytes changed after the
+  recording; the goldens pin it).
+- Left as they are: the rng label `"cores"` (the seed stream), `--no-cores` (parses), `examples/` and `stories/*/runs/`.
+
 ## Decision point for step 18
 
 Until the final cut-over the new core writes the legacy names through the adapter: the `motives` mechanic emits

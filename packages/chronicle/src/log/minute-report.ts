@@ -7,7 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import type { StandingRow } from "@swarmtales/legacy-log";
+import { type StandingRow, withCurrentType } from "@swarmtales/legacy-log";
 import { coreMotiveLine } from "@swarmtales/roles";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema } from "../snapshot/event-schema.ts";
 
@@ -42,7 +42,7 @@ export function readNames(eventsJsonl: string): ReadonlyMap<string, string> {
 }
 
 const CoreMotiveDealt = Type.Object({
-	type: Type.Literal("core_dealt"),
+	type: Type.Literal("motive_dealt"),
 	agent: Type.String(),
 	bigFive: Type.Array(CoreMotiveTraitSchema),
 	drives: Type.Array(CoreMotiveDriveSchema),
@@ -57,13 +57,13 @@ export interface Characters {
 	readonly goals: readonly { readonly agent: string; readonly act: number; readonly text: string; readonly outcome: string }[];
 }
 
-/** Core motives and goals from the log's `core_dealt`, `goal_dealt` and `goal_resolved` events (untrusted lines, checked). */
+/** Core motives and goals from the log's `motive_dealt`, `goal_dealt` and `goal_resolved` events (untrusted lines, checked). */
 export function readCharacters(eventsJsonl: string): Characters {
 	const coreMotives = new Map<string, string>();
 	const goals: { agent: string; act: number; text: string; outcome: string }[] = [];
 	for (const line of eventsJsonl.split(/\r?\n/)) {
 		if (line.trim().length === 0) continue;
-		const parsed: unknown = JSON.parse(line);
+		const parsed: unknown = withCurrentType(JSON.parse(line));
 		if (Check(CoreMotiveDealt, parsed)) coreMotives.set(parsed.agent, coreMotiveLine(parsed));
 		else if (Check(GoalDealt, parsed)) goals.push({ agent: parsed.agent, act: parsed.act, text: parsed.text, outcome: "open" });
 		else if (Check(GoalResolved, parsed)) {

@@ -33,7 +33,7 @@ export interface TwinOptions {
 	readonly scriptTools?: readonly string[];
 	/** An old run snapshot (the parsed `snapshot-L7.json`) both sides resume from. */
 	readonly resume?: unknown;
-	/** The real core motives (T2) instead of the stand-in that reads the old world's: their `core_dealt` lines are compared too. */
+	/** The real core motives (T2) instead of the stand-in that reads the old world's: their `motive_dealt` lines are compared too. */
 	readonly realMotives?: boolean;
 }
 
@@ -87,7 +87,7 @@ export class Twin {
 	constructor(options: TwinOptions) {
 		const { story } = options;
 		this.story = story;
-		this.#compared = new Set(options.realMotives === true ? [...BASE_COMPARED, "core_dealt"] : BASE_COMPARED);
+		this.#compared = new Set(options.realMotives === true ? [...BASE_COMPARED, "motive_dealt"] : BASE_COMPARED);
 		this.ids = options.ids ?? ["A01", "A02", "A03", "A04", "A05", "A06"];
 		const seed = options.seed ?? 7;
 		const minutes = options.minutes ?? 30;

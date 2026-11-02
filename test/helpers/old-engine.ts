@@ -29,6 +29,52 @@ export function recordingPath(name: string): string {
 	return existsSync(plain) ? plain : `${plain}.gz`;
 }
 
+/**
+ * The rename "core becomes core motive" (step 18, docs/design/rename-core-motive.md) came after the
+ * recordings: they keep the old names, and a test reads them under the current ones. The event
+ * `core_dealt` is `motive_dealt`; the model-visible texts that said "core" say "core motive"
+ * (pairs of old and current wording, applied to every recorded string).
+ */
+const RENAMED_TYPES: Readonly<Record<string, string>> = { core_dealt: "motive_dealt" };
+const REWORDED: readonly (readonly [RegExp, string])[] = [
+	[/^(- [^:\n]+: )core: /gm, "$1core motive: "],
+	[/use a resident's core or goal only in a note/g, "use a resident's core motive or goal only in a note"],
+	[/\(its core: temperament/g, "(its core motive: temperament"],
+	[/Use a resident's core or goal/g, "Use a resident's core motive or goal"],
+	[/a resident's core or secret goal/g, "a resident's core motive or secret goal"],
+	[/Every resident has a core \(who it is/g, "Every resident has a core motive (who it is"],
+	[/"type":"core_dealt"/g, '"type":"motive_dealt"'],
+];
+
+/** The rewording undone, for the fingerprint of an input (the inputs were recorded under the old names). */
+const UNDONE: readonly (readonly [RegExp, string])[] = [
+	[/^(- [^:\n]+: )core motive: /gm, "$1core: "],
+	[/use a resident's core motive or goal only in a note/g, "use a resident's core or goal only in a note"],
+	[/\(its core motive: temperament/g, "(its core: temperament"],
+	[/Use a resident's core motive or goal/g, "Use a resident's core or goal"],
+	[/a resident's core motive or secret goal/g, "a resident's core or secret goal"],
+	[/Every resident has a core motive \(who it is/g, "Every resident has a core (who it is"],
+	[/"type":"motive_dealt"/g, '"type":"core_dealt"'],
+];
+
+/** A value under the old names. */
+function underOldNames(value: unknown): unknown {
+	if (typeof value === "string") return UNDONE.reduce((text, [current, old]) => text.replace(current, old), value);
+	if (Array.isArray(value)) return value.map(underOldNames);
+	if (typeof value !== "object" || value === null) return value;
+	return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, key === "type" && entry === "motive_dealt" ? "core_dealt" : underOldNames(entry)]));
+}
+
+/** A recorded value under the current names. */
+function underCurrentNames(value: unknown): unknown {
+	if (typeof value === "string") return REWORDED.reduce((text, [old, current]) => text.replace(old, current), value);
+	if (Array.isArray(value)) return value.map(underCurrentNames);
+	if (typeof value !== "object" || value === null) return value;
+	return Object.fromEntries(
+		Object.entries(value).map(([key, entry]) => [key, key === "type" && typeof entry === "string" ? (RENAMED_TYPES[entry] ?? entry) : underCurrentNames(entry)]),
+	);
+}
+
 /** The scenarios of a recorded file, parsed once per test file (a large file is read by many tests). */
 function scenariosOf(name: string): Readonly<Record<string, unknown>> {
 	const path = recordingPath(name);
@@ -36,7 +82,7 @@ function scenariosOf(name: string): Readonly<Record<string, unknown>> {
 	const known = cache.get(name);
 	if (known?.modified === modified) return known.scenarios;
 	const bytes = readFileSync(path);
-	const parsed: unknown = JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8"));
+	const parsed: unknown = underCurrentNames(JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8")));
 	if (!Check(Scenarios, parsed)) throw new Error(`${path} is not an object of scenarios`);
 	cache.set(name, { modified, scenarios: parsed });
 	return parsed;
@@ -69,7 +115,9 @@ export function currentScenario(): { readonly name: string; readonly scenario: s
 
 /** A short digest of a scenario's inputs, so a recorded old side refuses a test whose inputs changed since. */
 export function fingerprintOf(value: unknown): string {
-	return createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 16);
+	// The inputs were recorded under the old names (the rename above), a recorded snapshot that a later scenario resumes too.
+	const recorded = JSON.stringify(underOldNames(value));
+	return createHash("sha256").update(recorded).digest("hex").slice(0, 16);
 }
 
 /** Throws when a recorded scenario was played from other inputs than the test gives now. */

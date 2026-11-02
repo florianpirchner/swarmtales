@@ -287,7 +287,7 @@ export function buildRelationships(facts: RunFacts, beats: readonly Beat[]): Rel
 			case "lottery_drawn":
 			case "collection_revealed":
 			case "name_chosen":
-			case "core_dealt":
+			case "motive_dealt":
 			case "goal_dealt":
 			case "goal_resolved":
 			case "seal_auction_opened":

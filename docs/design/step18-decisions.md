@@ -529,6 +529,12 @@ Goldens byte-identical until the rename commit, `GOLDEN_UPDATE` used only there 
    `packages/roles` no longer touch the engine but are still the old side of seven test files
    (`test/agents/{host-runner,souffleur}`, `test/interpret/{interpreter,weaver}`, `test/overseers/{classifier,
    runtime-decider,weaver}`); they go once those old sides are recorded like the engine's.
+6. **Item 8, "core becomes core motive"**, the last commit: as `rename-core-motive.md`, "Done at step 18", describes.
+   Changed assertions: `test/gamemaker/director.test.ts` expects the reworded report line and system prompt;
+   `test/cli/host-resume.test.ts` and `test/cli/host-weaver.test.ts` leave the gamemaker's prompt size out of the
+   comparison with the recording (as they did for the classifier's and the weaver's), since its bytes changed after the
+   recording; `test/cli/host-gamemaker-golden.test.ts` still pins the gamemaker's token counts against the regenerated
+   goldens. Added: `test/log/legacy-files.test.ts`, "the old event names". No test was deleted.
 
 ## H1 (signed event log, rewrite-status item 5a)
 

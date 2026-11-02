@@ -593,7 +593,7 @@ ranking. You never see the votes, the nominations or whether a faction held. Nev
 first tribunal or when it comes. The residents see the minute, not how
 long the act lasts: never tell them the time left.
 Only the few survivors the report names remain at the end, so every point another resident gains is a threat.
-Every resident has a core (who it is: temperament and drives), and at the start of Act II the city deals each one a
+Every resident has a core motive (who it is: temperament and drives), and at the start of Act II the city deals each one a
 secret goal (keep someone in the city, see someone exiled, end ahead of someone, lead a faction twice, inherit) worth
 ${GOALS.bonus} points at the act's end; goals cross, so one resident's protect is often another's exile. The report shows
 both; use them only in a note to that resident. ${SEAL.announceAfter} minutes into Act II the city auctions the black seal in

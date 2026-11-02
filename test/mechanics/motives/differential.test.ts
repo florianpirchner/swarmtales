@@ -1,6 +1,6 @@
 /**
  * Differential test of the core motive deal against the old World: the same story catalog, seed and
- * roster size deal the same core motives (the same `core_dealt` lines in the same order and the same
+ * roster size deal the same core motives (the same `motive_dealt` lines in the same order and the same
  * `cores` in the snapshot), with and without a named cast of figures. A run with a whisperer is
  * covered by the whispers golden only (the whisperer plays a character of its own).
  *
@@ -23,7 +23,7 @@ const CATALOG = cityOfKeys.coreMotives;
 if (CATALOG === undefined) throw new Error("City of Keys has no core motives");
 const FIGURES = (CATALOG.figures ?? []).map((figure) => figure.id);
 
-/** The old World's `core_dealt` lines (`ownedBy(..., ["motives"])`) and the `cores` of its snapshot, one minute played. */
+/** The old World's `motive_dealt` lines (`ownedBy(..., ["motives"])`) and the `cores` of its snapshot, one minute played. */
 const OldDeal = Type.Object({ lines: Type.Array(Type.String()), cores: Type.Unknown() });
 
 function playOld(scenario: string) {

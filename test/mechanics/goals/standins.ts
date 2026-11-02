@@ -11,7 +11,7 @@ function drivesIn(lines: readonly LegacyLine[]): ReadonlyMap<string, readonly st
 	const drives = new Map<string, readonly string[]>();
 	for (const line of lines) {
 		const entries: unknown = line.drives;
-		if (line.type !== "core_dealt" || typeof line.agent !== "string" || !Array.isArray(entries)) continue;
+		if (line.type !== "motive_dealt" || typeof line.agent !== "string" || !Array.isArray(entries)) continue;
 		const names: readonly unknown[] = entries.map((entry: unknown): unknown => (typeof entry === "object" && entry !== null ? Reflect.get(entry, "drive") : undefined));
 		drives.set(
 			line.agent,

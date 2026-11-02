@@ -197,7 +197,7 @@ export function dossier(source: NovelSource, pov: PovFigure, minute: number, fig
 		lines.push("Its figure, as its own prompt describes it:", "", text, "");
 	}
 	for (const event of facts.events) {
-		if (event.type === "core_dealt" && event.agent === agent) {
+		if (event.type === "motive_dealt" && event.agent === agent) {
 			lines.push(
 				`- Core motive${event.figure === undefined ? "" : ` (${event.figure})`}: ${event.drives.map((drive) => `${drive.drive} ${drive.intensity}`).join(", ")}; ${event.bigFive.map((axis) => `${axis.axis} ${axis.level}`).join(", ")}.`,
 			);

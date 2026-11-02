@@ -103,6 +103,8 @@ export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> 
 	collection_shortened: "cast",
 	collection_revealed: "cast",
 	lottery_drawn: "cast",
+	motive_dealt: "motives",
+	// The old name of `motive_dealt` ("core becomes core motive", step 18), in old files and snapshots.
 	core_dealt: "motives",
 	goal_dealt: "goals",
 	goal_resolved: "goals",

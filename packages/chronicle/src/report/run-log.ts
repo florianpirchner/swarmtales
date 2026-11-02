@@ -9,7 +9,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { type RecordedEvent, withCurrentType } from "@swarmtales/legacy-log";
 import { RecordedEventSchema } from "../snapshot/event-schema.ts";
 
 export interface FullEventLog {
@@ -30,7 +30,7 @@ export function parseFullEventLog(text: string): FullEventLog {
 		const where = `line ${index + 1}`;
 		let value: unknown;
 		try {
-			value = JSON.parse(line);
+			value = withCurrentType(JSON.parse(line));
 		} catch {
 			issues.push(`${where}: not valid JSON`);
 			return;

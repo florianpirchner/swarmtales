@@ -1,6 +1,6 @@
 /**
  * The `motives` mechanic (carve step 9, team T2, docs/design/carve-team-T2.md): every resident gets
- * a core motive once, seeded, and keeps it. The deal writes `core_dealt` per resident in roster
+ * a core motive once, seeded, and keeps it. The deal writes `motive_dealt` per resident in roster
  * order. Nobody else reads a core motive: the facts `motives.coreMotives`, `motives.prose` and `motives.lines` are
  * for the app (system prompt), the gamemaker and the reports.
  */
@@ -39,7 +39,7 @@ function deal(ctx: Ctx): void {
 	for (const [agent, drawn] of dealCoreMotives(ctx.options, ctx.residents.ids, (...labels) => ctx.rng(...labels))) {
 		const coreMotive = own !== undefined && agent === whisperer ? own : drawn;
 		ctx.state.coreMotives.set(agent, coreMotive);
-		ctx.emit("core_dealt", { agent, bigFive: coreMotive.bigFive, drives: coreMotive.drives, ...(coreMotive.figure === undefined ? {} : { figure: coreMotive.figure }) });
+		ctx.emit("motive_dealt", { agent, bigFive: coreMotive.bigFive, drives: coreMotive.drives, ...(coreMotive.figure === undefined ? {} : { figure: coreMotive.figure }) });
 	}
 }
 

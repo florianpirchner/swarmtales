@@ -356,7 +356,7 @@ function evidenceLine(event: DigestEvent, chars: number): { readonly text: strin
 		case "exile_gate":
 		case "level_contracted":
 		case "name_chosen":
-		case "core_dealt":
+		case "motive_dealt":
 		case "goal_dealt":
 		case "goal_resolved":
 		case "seal_auction_opened":

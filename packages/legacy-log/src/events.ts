@@ -725,11 +725,23 @@ export type ArenaEvent =
 	  }
 	| {
 			/** A resident's core motive (v09), dealt once and kept for the whole story; known only to it, the gamemaker and the reports. */
-			readonly type: "core_dealt";
+			readonly type: "motive_dealt";
 			readonly agent: CompetitorId;
 			readonly bigFive: readonly CoreMotiveTrait[];
 			readonly drives: readonly CoreMotiveDrive[];
 			/** The cast figure the core motive comes from, when the story has a cast. */
+			readonly figure?: string;
+	  }
+	| {
+			/**
+			 * The old name of `motive_dealt` ("core becomes core motive", step 18), kept as old files and
+			 * snapshots wrote it: a reader of a log line reads it as `motive_dealt` (`withCurrentType`), a
+			 * resume replays it under the new name. Nothing writes it any more.
+			 */
+			readonly type: "core_dealt";
+			readonly agent: CompetitorId;
+			readonly bigFive: readonly CoreMotiveTrait[];
+			readonly drives: readonly CoreMotiveDrive[];
 			readonly figure?: string;
 	  }
 	| {
@@ -823,4 +835,19 @@ export interface EventSink {
 	 * without this method record it like a new event.
 	 */
 	replay?(event: RecordedEvent): void;
+}
+
+/**
+ * Event types an older log wrote under another name ("core becomes core motive", step 18:
+ * `core_dealt` is `motive_dealt` now). Old files keep their bytes; a reader of a log line or of
+ * a snapshot's events reads them through {@link withCurrentType}.
+ */
+export const RENAMED_EVENT_TYPES: Readonly<Record<string, string>> = { core_dealt: "motive_dealt" };
+
+/** An untrusted log line or event with its type under the current name; anything else comes back unchanged. */
+export function withCurrentType(value: unknown): unknown {
+	if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
+	const type: unknown = Reflect.get(value, "type");
+	const renamed = typeof type === "string" ? RENAMED_EVENT_TYPES[type] : undefined;
+	return renamed === undefined ? value : { ...value, type: renamed };
 }

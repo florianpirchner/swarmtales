@@ -44,7 +44,7 @@ describe.each([6, 12, 48])("cityofkeys with %i oracle residents", (agents) => {
 		expect(names.filter((event) => event.fallback && event.minute === 2)).toHaveLength(agents);
 		expect(new Set(names.map((event) => event.name.toLowerCase())).size).toBe(agents);
 		// v09: a core motive for everyone, a goal for everyone at the wall, one seal per 12 residents, none sold.
-		expect(fixture.events("core_dealt")).toHaveLength(agents);
+		expect(fixture.events("motive_dealt")).toHaveLength(agents);
 		expect(fixture.events("goal_dealt")).toHaveLength(agents);
 		expect(fixture.events("goal_resolved")).toHaveLength(agents);
 		expect(fixture.events("seal_auction_opened")).toHaveLength(Math.ceil(agents / 12));

@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check, Parse } from "typebox/value";
 import { ChainCheckpointSchema, ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
-import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { type RecordedEvent, RENAMED_EVENT_TYPES } from "@swarmtales/legacy-log";
 import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { ContextMessage } from "@swarmtales/roles";
 import { storyId } from "../../../../stories/index.ts";
@@ -83,6 +83,12 @@ export interface ResumePoint {
 	readonly chain?: RunFile["chain"];
 }
 
+/** An event of an older file under its current name (`core_dealt` is `motive_dealt` since step 18): a resumed run goes on with today's names. */
+function currentEnvelope(envelope: EventEnvelope): EventEnvelope {
+	const renamed = RENAMED_EVENT_TYPES[envelope.type];
+	return renamed === undefined ? envelope : { ...envelope, type: renamed };
+}
+
 function fromLegacy(raw: unknown, path: string): ResumePoint {
 	const snapshot: RunSnapshot = parseSnapshot(raw, path);
 	const converted = convertLegacySnapshot(raw, {}, path);
@@ -96,7 +102,7 @@ function fromLegacy(raw: unknown, path: string): ResumePoint {
 		run: snapshot.run,
 		// An old file may name the story by its old name (`nexus`); the host checks the snapshot against the story's id.
 		host: { ...converted.host, story: storyId(converted.host.story) },
-		events: converted.events,
+		events: converted.events.map(currentEnvelope),
 		competitors: snapshot.competitors.map((entry) => ({ agent: entry.agent, messages: entry.messages.map((message) => Parse(ContextMessageSchema, message)) })),
 		coresDealt: (snapshot.world.cores ?? []).length > 0,
 		legacyLines: snapshot.events,
@@ -118,7 +124,7 @@ function fromRunFile(raw: unknown, path: string): ResumePoint {
 		minute: file.minute,
 		run: file.run,
 		host: file.host,
-		events: file.events,
+		events: file.events.map(currentEnvelope),
 		competitors: file.competitors,
 		coresDealt: Array.isArray(motives) && motives.length > 0,
 		...(file.weaver === undefined ? {} : { weaver: file.weaver }),

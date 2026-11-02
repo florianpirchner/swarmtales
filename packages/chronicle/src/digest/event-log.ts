@@ -8,6 +8,7 @@
  */
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
+import { withCurrentType } from "@swarmtales/legacy-log";
 
 const Base = { seq: Type.Integer({ minimum: 1 }), minute: Type.Integer({ minimum: 0 }) };
 const Id = Type.String();
@@ -412,7 +413,7 @@ const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Lite
 const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"), Type.Literal("atTimes")]);
 const CoreMotiveDealt = Type.Object({
 	...Base,
-	type: Type.Literal("core_dealt"),
+	type: Type.Literal("motive_dealt"),
 	agent: Id,
 	bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Level })),
 	drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Intensity })),
@@ -577,7 +578,7 @@ export function parseEventLog(text: string): EventLog {
 		const where = `line ${index + 1}`;
 		let value: unknown;
 		try {
-			value = JSON.parse(line);
+			value = withCurrentType(JSON.parse(line));
 		} catch {
 			issues.push(`${where}: not valid JSON`);
 			return;

@@ -80,7 +80,7 @@ describe("what a resumed run does before its first minute", () => {
 		await host.playMinute(idleAgent);
 		const written = host.log.all().slice(converted.events.length);
 		const kinds = written.map((event) => event.type);
-		const dealt = kinds.flatMap((type, index) => (type === "core_dealt" ? [index] : []));
+		const dealt = kinds.flatMap((type, index) => (type === "motive_dealt" ? [index] : []));
 		const funded = kinds.indexOf("ledger_entry");
 		const started = kinds.indexOf("minute_started");
 		expect(dealt).toHaveLength(6);
@@ -95,7 +95,7 @@ describe("what a resumed run does before its first minute", () => {
 		const host = resume(converted.host);
 		await host.playMinute(idleAgent);
 		const kinds = host.log.all().slice(converted.events.length).map((event) => event.type);
-		expect(kinds).not.toContain("core_dealt");
+		expect(kinds).not.toContain("motive_dealt");
 		expect(kinds).not.toContain("ledger_entry");
 	});
 });

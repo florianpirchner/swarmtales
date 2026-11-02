@@ -15,6 +15,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
+import { withCurrentType } from "@swarmtales/legacy-log";
 import { coreMotiveLine, renderCoreMotive, type CoreMotive } from "@swarmtales/roles";
 import type { AnyStory, FigureDirection } from "@swarmtales/contracts";
 
@@ -23,7 +24,7 @@ const Intensity = Type.Union([Type.Literal("aboveAll"), Type.Literal("clearly"),
 const Base = { seq: Type.Integer(), minute: Type.Integer() };
 const CoreMotiveDealt = Type.Object({
 	...Base,
-	type: Type.Literal("core_dealt"),
+	type: Type.Literal("motive_dealt"),
 	agent: Type.String(),
 	bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Level })),
 	drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Intensity })),
@@ -61,7 +62,7 @@ export function privateEvents(text: string): readonly PrivateEvent[] {
 		if (line.trim().length === 0) continue;
 		let value: unknown;
 		try {
-			value = JSON.parse(line);
+			value = withCurrentType(JSON.parse(line));
 		} catch {
 			continue;
 		}
@@ -137,7 +138,7 @@ export function writePrivateFiles(directory: string, story: AnyStory): void {
 	writeCastFiles(
 		directory,
 		story,
-		ofType(events, "core_dealt").map((event) => {
+		ofType(events, "motive_dealt").map((event) => {
 			const name = names.get(event.agent);
 			const coreMotive: CoreMotive = { bigFive: event.bigFive, drives: event.drives, ...(event.figure === undefined ? {} : { figure: event.figure }) };
 			return { agent: event.agent, coreMotive, ...(name === undefined ? {} : { name }) };

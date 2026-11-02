@@ -51,7 +51,7 @@ export interface ResidentResult {
 	readonly points?: number;
 	readonly rank?: number;
 	readonly survivor: boolean;
-	/** The core motive in a line (v09), from `core_dealt` (also in a resumed run's prefix). */
+	/** The core motive in a line (v09), from `motive_dealt` (also in a resumed run's prefix). */
 	readonly coreMotive?: string;
 }
 
@@ -207,7 +207,7 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 	const prefixUps = ofType(prefix, "level_up");
 	const names = new Map(ofType(all, "name_chosen").map((entry) => [entry.agent, entry.name]));
 	// Core motives are dealt once, maybe in the snapshot's prefix: read them from the whole log.
-	const coreMotives = new Map(ofType(all, "core_dealt").map((entry) => [entry.agent, coreMotiveLine(entry)]));
+	const coreMotives = new Map(ofType(all, "motive_dealt").map((entry) => [entry.agent, coreMotiveLine(entry)]));
 	const residents = [...agentIds].sort().map((agent): ResidentResult => {
 		const before = standingsBefore.find((row) => row.agent === agent);
 		const ups = levelUps.filter((up) => up.agent === agent).map((up) => ({ seq: up.seq, minute: up.minute, from: up.from, to: up.to }));
