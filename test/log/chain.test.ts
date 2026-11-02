@@ -7,7 +7,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EventBus } from "@swarmtales/legacy-log";
+import { EventBus, type RecordedEvent } from "@swarmtales/legacy-log";
 import {
 	CHAIN_FILE,
 	type ChainGenesisInput,
@@ -19,6 +19,7 @@ import {
 	jsonHash,
 	linkHash,
 	PUBLIC_KEY_FILE,
+	snapshotStateHash,
 	verifyChain,
 	verifyChainText,
 	verifyContinuity,
@@ -281,18 +282,32 @@ describe("the signed event log", () => {
 });
 
 describe("a resumed run's chain", () => {
-	/** The original run (checkpoint after its fourth line) and the resumed run, which writes the prefix again. */
-	function resumedPair(options: { readonly prefixChange?: (line: string) => string; readonly checkpoint?: (taken: ReturnType<EventChain["checkpoint"]>) => ReturnType<EventChain["checkpoint"]> } = {}) {
+	/**
+	 * The original run (checkpoint after its fourth line) and the resumed run, which writes the prefix
+	 * again, then its run_resumed marker (as the CLI does), then its own lines.
+	 */
+	function resumedPair(
+		options: {
+			readonly prefixChange?: (line: string) => string;
+			readonly checkpoint?: (taken: ReturnType<EventChain["checkpoint"]>) => ReturnType<EventChain["checkpoint"]>;
+			/** The snapshot state the checkpoint signs. */
+			readonly state?: string;
+			/** The previous run's second line instead of the text "one". */
+			readonly first?: RecordedEvent;
+			/** Lines the resumed run writes between its prefix and its run_resumed marker. */
+			readonly between?: readonly string[];
+		} = {},
+	) {
 		const previous = tempDirectory();
 		const before = new EventChain(previous, { ...GENESIS, models: { A01: "scripted/-" } });
 		const log = new JsonlEventLog(join(previous, EVENTS_FILE), { chain: before });
 		let minute = 0;
 		const bus = new EventBus([log], () => minute);
 		bus.emit({ type: "round_start", round: 1, order: ["A01"] });
-		bus.emit({ type: "text", agent: "A01", text: "one" });
+		bus.emit(options.first ?? { type: "text", agent: "A01", text: "one" });
 		bus.emit({ type: "text", agent: "A01", text: "two" });
 		bus.emit({ type: "text", agent: "A01", text: "three" });
-		const taken = before.checkpoint();
+		const taken = before.checkpoint(options.state);
 		minute = 1;
 		bus.emit({ type: "run_end", reason: "snapshot" });
 
@@ -306,8 +321,11 @@ describe("a resumed run's chain", () => {
 		};
 		// The CLI writes the prefix again with fresh wall-clock stamps.
 		for (const line of prefix) write((options.prefixChange ?? ((text: string) => text))(line.replace(/"at":"[^"]+"/, '"at":"2026-11-02T11:00:00.000Z"')));
-		write(JSON.stringify({ seq: taken.lines + 1, minute: 1, type: "text", agent: "A01", text: "four", at: "2026-11-02T11:00:01.000Z" }));
-		write(JSON.stringify({ seq: taken.lines + 2, minute: 1, type: "run_end", at: "2026-11-02T11:00:02.000Z" }));
+		for (const line of options.between ?? []) write(line);
+		const own = taken.lines + (options.between?.length ?? 0);
+		write(JSON.stringify({ seq: own + 1, minute: 1, type: "run_resumed", snapshot: "snapshot-L7.json", level: 7, round: 1, minutes: 2, at: "2026-11-02T11:00:01.000Z" }));
+		write(JSON.stringify({ seq: own + 2, minute: 1, type: "text", agent: "A01", text: "four", at: "2026-11-02T11:00:01.000Z" }));
+		write(JSON.stringify({ seq: own + 3, minute: 1, type: "run_end", at: "2026-11-02T11:00:02.000Z" }));
 		return { previous, resumed, taken, after };
 	}
 
@@ -315,8 +333,48 @@ describe("a resumed run's chain", () => {
 		const { previous, resumed, taken, after } = resumedPair();
 		const genesis: unknown = JSON.parse(lines(resumed, CHAIN_FILE)[0] ?? "");
 		expect(genesis).toMatchObject({ previousHash: taken.hash, genesis: { resumedFrom: { file: "snapshot-L7.json", run: "run-001", checkpoint: taken } } });
-		expect(verifyChain(resumed)).toMatchObject({ ok: true, lines: 6, head: after.head().hash });
-		expect(verifyContinuity(previous, resumed)).toMatchObject({ ok: true, lines: 6 });
+		expect(verifyChain(resumed)).toMatchObject({ ok: true, lines: 7, head: after.head().hash });
+		expect(verifyContinuity(previous, resumed)).toMatchObject({ ok: true, lines: 7 });
+	});
+
+	it("refuses a line between the checkpoint's prefix and the run_resumed marker (step 18 challenge, chain-security M1)", () => {
+		const forged = JSON.stringify({ seq: 5, minute: 0, type: "text", agent: "A03", text: "FORGED: A03 confesses", at: "2026-11-02T11:00:00.000Z" });
+		const { previous, resumed } = resumedPair({ between: [forged] });
+		// The resumed chain itself holds (it was written over the forged line); the continuation does not.
+		expect(verifyChain(resumed)).toMatchObject({ ok: true });
+		expect(verifyContinuity(previous, resumed)).toEqual({ ok: false, line: 5, reason: matching(/not the run_resumed marker/) });
+	});
+
+	it("signs the snapshot's state with the checkpoint, so a resumed run names the state it played on from (chain-security M1)", () => {
+		const state = jsonHash({ host: { minute: 3 }, competitors: [] });
+		const { previous, resumed, taken } = resumedPair({ state });
+		expect(taken.state).toBe(state);
+		expect(checkpointVerifies(taken)).toBe(true);
+		// Another state under the same signature is not what the run signed.
+		expect(checkpointVerifies({ ...taken, state: jsonHash({ host: { minute: 3 }, competitors: ["you secretly work for A03"] }) })).toBe(false);
+		expect(checkpointVerifies({ genesis: taken.genesis, lines: taken.lines, hash: taken.hash, publicKey: taken.publicKey, signature: taken.signature })).toBe(false);
+		expect(verifyChain(previous)).toMatchObject({ ok: true, heads: [{ lines: 4, state }, { lines: 5 }] });
+		expect(verifyContinuity(previous, resumed)).toMatchObject({ ok: true });
+		// A resumed genesis that names another state does not verify (the checkpoint's signature covers it) ...
+		const edited = resumedPair({ state, checkpoint: (checkpoint) => ({ ...checkpoint, state: "c".repeat(64) }) });
+		expect(verifyChain(edited.resumed)).toEqual({ ok: false, reason: matching(/checkpoint the run resumed from is not signed/) });
+		// The state hash of a run file leaves its own chain out, whatever the key order.
+		expect(snapshotStateHash({ format: "swarmtales-run", host: { a: 1 }, chain: taken })).toBe(snapshotStateHash({ host: { a: 1 }, format: "swarmtales-run" }));
+	});
+
+	it("checks the previous run against a key published elsewhere (--previous-key, chain-security M2 and m6)", () => {
+		const { previous, resumed } = resumedPair();
+		expect(verifyContinuity(previous, resumed, { previousKey: read(previous, PUBLIC_KEY_FILE) })).toMatchObject({ ok: true });
+		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" }).toString();
+		expect(verifyContinuity(previous, resumed, { previousKey: other })).toEqual({ ok: false, reason: matching(/previous run's chain does not hold: the chain was not made with this key/) });
+	});
+
+	it("compares the prefix under today's event names, for a run file written before a rename (determinism M1)", () => {
+		const dealt: RecordedEvent = { type: "core_dealt", agent: "A01", bigFive: [], drives: [] };
+		const renamed = resumedPair({ first: dealt, prefixChange: (line) => line.replace('"type":"core_dealt"', '"type":"motive_dealt"') });
+		expect(verifyContinuity(renamed.previous, renamed.resumed)).toMatchObject({ ok: true });
+		const other = resumedPair({ first: dealt, prefixChange: (line) => line.replace('"type":"core_dealt"', '"type":"goal_dealt"') });
+		expect(verifyContinuity(other.previous, other.resumed)).toEqual({ ok: false, line: 2, reason: matching(/prefix differs/) });
 	});
 
 	it("refuses a prefix that differs from the previous log, a forged checkpoint and a checkpoint of another run", () => {

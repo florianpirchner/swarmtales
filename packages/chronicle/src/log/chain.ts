@@ -20,6 +20,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
+import { withCurrentType } from "@swarmtales/legacy-log";
 import { canonicalJson, iJsonIssue } from "./canonical.ts";
 
 export const EVENTS_FILE = "events.jsonl";
@@ -47,6 +48,13 @@ export const ChainCheckpointSchema = Type.Object(
 		publicKey: Type.String(),
 		/** Ed25519 over the canonical head message (base64). */
 		signature: Type.String(),
+		/**
+		 * sha256 of the canonical JSON of the snapshot the checkpoint was taken for, without its `chain`
+		 * (`snapshotStateHash`): the host state, the envelopes and the residents' contexts a resumed run
+		 * plays on from. Signed with the head; absent for a checkpoint written before it was (step 18
+		 * challenge, chain-security M1).
+		 */
+		state: Type.Optional(Hash),
 	},
 	{ additionalProperties: false },
 );
@@ -75,6 +83,14 @@ export const ChainGenesisSchema = Type.Object(
 		publicKey: Type.String(),
 		/** The code's commit, when the run knew it. */
 		commit: Type.Optional(Type.String()),
+		/** The run's name (`run-004`), so a renamed run directory shows. */
+		run: Type.Optional(Type.String()),
+		/**
+		 * sha256 of a document registered outside before the run (`--preregistration <file>`, e.g. the
+		 * ISTAnt replica's pre-registration with its nonce and declared run count): ties the run to a
+		 * statement fixed before it started. See "The limit" in docs/design/event-log-signing.md.
+		 */
+		preregistration: Type.Optional(Hash),
 		story: Type.String(),
 		/** sha256 of the canonical JSON of the serialised story (`story` in `000-run.json`). */
 		storyHash: Hash,
@@ -94,7 +110,7 @@ export type ChainGenesisInput = Omit<ChainGenesis, "format" | "version" | "algor
 
 const GenesisEntry = Type.Object({ kind: Type.Literal("genesis"), seq: Type.Literal(0), previousHash: Hash, hash: Hash, genesis: ChainGenesisSchema }, { additionalProperties: false });
 const LineEntry = Type.Object({ seq: Type.Integer({ minimum: 1 }), hash: Hash }, { additionalProperties: false });
-const HeadEntry = Type.Object({ kind: Type.Literal("head"), seq: Lines, hash: Hash, signature: Type.String() }, { additionalProperties: false });
+const HeadEntry = Type.Object({ kind: Type.Literal("head"), seq: Lines, hash: Hash, state: Type.Optional(Hash), signature: Type.String() }, { additionalProperties: false });
 
 /** One link: `sha256(previous + text)`, hex. */
 export function linkHash(previous: string, text: string): string {
@@ -106,9 +122,20 @@ export function jsonHash(value: unknown): string {
 	return createHash("sha256").update(canonicalJson(value), "utf8").digest("hex");
 }
 
-/** The bytes a head signature is made over. */
-function headMessage(genesis: string, lines: number, hash: string): Buffer {
-	return Buffer.from(canonicalJson({ format: HEAD_FORMAT, genesis, lines, hash }), "utf8");
+/** The bytes a head signature is made over; a checkpoint's head also signs its snapshot's state. */
+function headMessage(genesis: string, lines: number, hash: string, state?: string): Buffer {
+	return Buffer.from(canonicalJson({ format: HEAD_FORMAT, genesis, lines, hash, ...(state === undefined ? {} : { state }) }), "utf8");
+}
+
+/**
+ * The state hash of a snapshot file (a parsed run file, untrusted): sha256 of its canonical JSON
+ * without its `chain`. What a checkpoint signs as `state` and what a resume and `swt log verify
+ * --snapshot` compare against.
+ */
+export function snapshotStateHash(file: unknown): string {
+	const value: unknown = JSON.parse(JSON.stringify(file));
+	if (typeof value !== "object" || value === null || Array.isArray(value)) return jsonHash(value);
+	return jsonHash(Object.fromEntries(Object.entries(value).filter(([key]) => key !== "chain")));
 }
 
 function derOf(key: KeyObject): string {
@@ -140,7 +167,7 @@ function verifies(key: KeyObject, message: Buffer, signature: string): boolean {
 /** Whether a checkpoint's signature holds under the key it names. */
 export function checkpointVerifies(checkpoint: ChainCheckpoint): boolean {
 	const key = publicKeyOf(checkpoint.publicKey, "der");
-	return key !== undefined && verifies(key, headMessage(checkpoint.genesis, checkpoint.lines, checkpoint.hash), checkpoint.signature);
+	return key !== undefined && verifies(key, headMessage(checkpoint.genesis, checkpoint.lines, checkpoint.hash, checkpoint.state), checkpoint.signature);
 }
 
 function isRunEnd(value: unknown): boolean {
@@ -196,9 +223,12 @@ export class EventChain {
 		return { lines: this.#lines, hash: this.#head };
 	}
 
-	/** Signs the head now (a snapshot's checkpoint) and returns it; a resumed run's genesis chains from it. */
-	checkpoint(): ChainCheckpoint {
-		return this.#sign();
+	/**
+	 * Signs the head now (a snapshot's checkpoint) and returns it; a resumed run's genesis chains from
+	 * it. `state` is the snapshot's `snapshotStateHash`, signed with the head.
+	 */
+	checkpoint(state?: string): ChainCheckpoint {
+		return this.#sign(state);
 	}
 
 	/** Signs the head when lines came after the last signature. Call once the run's last line is written. */
@@ -206,12 +236,12 @@ export class EventChain {
 		if (this.#signed !== this.#lines) this.#sign();
 	}
 
-	#sign(): ChainCheckpoint {
-		if (this.#signed === this.#lines && this.#checkpoint !== undefined) return this.#checkpoint;
-		const signature = sign(null, headMessage(this.genesisHash, this.#lines, this.#head), this.#privateKey).toString("base64");
-		appendFileSync(this.#path, `${JSON.stringify({ kind: "head", seq: this.#lines, hash: this.#head, signature })}\n`);
+	#sign(state?: string): ChainCheckpoint {
+		if (this.#signed === this.#lines && this.#checkpoint !== undefined && (state === undefined || this.#checkpoint.state === state)) return this.#checkpoint;
+		const signature = sign(null, headMessage(this.genesisHash, this.#lines, this.#head, state), this.#privateKey).toString("base64");
+		appendFileSync(this.#path, `${JSON.stringify({ kind: "head", seq: this.#lines, hash: this.#head, ...(state === undefined ? {} : { state }), signature })}\n`);
 		this.#signed = this.#lines;
-		this.#checkpoint = { genesis: this.genesisHash, lines: this.#lines, hash: this.#head, publicKey: this.publicKey, signature };
+		this.#checkpoint = { genesis: this.genesisHash, lines: this.#lines, hash: this.#head, publicKey: this.publicKey, signature, ...(state === undefined ? {} : { state }) };
 		return this.#checkpoint;
 	}
 }
@@ -224,8 +254,8 @@ export type ChainVerdict =
 			readonly head: string;
 			readonly genesisHash: string;
 			readonly genesis: ChainGenesis;
-			/** The signed heads, in chain order (the last covers every line). */
-			readonly heads: readonly { readonly lines: number; readonly hash: string }[];
+			/** The signed heads, in chain order (the last covers every line); a checkpoint's head names its snapshot's state. */
+			readonly heads: readonly { readonly lines: number; readonly hash: string; readonly state?: string }[];
 	  }
 	| {
 			readonly ok: false;
@@ -283,7 +313,7 @@ export function verifyChainText(events: string, chain: string, publicKeyPem: str
 
 	const lines = linesOf(events);
 	const chained = chainLines(entries);
-	const heads: { lines: number; hash: string }[] = [];
+	const heads: { lines: number; hash: string; state?: string }[] = [];
 	let head = genesisHash;
 	let covered = 0;
 	let signedLast = false;
@@ -293,8 +323,8 @@ export function verifyChainText(events: string, chain: string, publicKeyPem: str
 		const entry = parsed.ok ? parsed.value : undefined;
 		if (Check(HeadEntry, entry)) {
 			if (entry.seq !== covered || entry.hash !== head) return { ok: false, line: covered, reason: `${CHAIN_FILE} line ${String(index + 1)}: the signed head does not match the chain before it` };
-			if (!verifies(key, headMessage(genesisHash, entry.seq, entry.hash), entry.signature)) return { ok: false, line: covered, reason: `${CHAIN_FILE} line ${String(index + 1)}: the head's signature does not verify` };
-			heads.push({ lines: entry.seq, hash: entry.hash });
+			if (!verifies(key, headMessage(genesisHash, entry.seq, entry.hash, entry.state), entry.signature)) return { ok: false, line: covered, reason: `${CHAIN_FILE} line ${String(index + 1)}: the head's signature does not verify` };
+			heads.push({ lines: entry.seq, hash: entry.hash, ...(entry.state === undefined ? {} : { state: entry.state }) });
 			signedLast = true;
 			continue;
 		}
@@ -349,28 +379,45 @@ function withoutStamp(value: unknown): unknown {
 	return Object.fromEntries(Object.entries(value).filter(([key]) => key !== "at"));
 }
 
+/** A line as a continuity check compares it: without `at`, its type under today's name (a run file from before a rename). */
+function comparable(text: string): string | undefined {
+	const parsed = parseJson(text);
+	return parsed.ok ? canonicalJson(withoutStamp(withCurrentType(parsed.value))) : undefined;
+}
+
+export interface ContinuityOptions {
+	/** The previous run's public key (PEM) published elsewhere, instead of its own `run.pub`. */
+	readonly previousKey?: string;
+}
+
 /**
- * Checks that a resumed run continues a previous one: both chains hold, the resumed genesis
- * chains from a head the previous run signed, and the resumed log's prefix repeats the previous
- * log's lines up to that head (all but their wall-clock stamps).
+ * Checks that a resumed run continues a previous one: both chains hold (the previous one against
+ * `previousKey` when given), the resumed genesis chains from a head the previous run signed (with
+ * the same snapshot state, when the checkpoint names one), the resumed log's prefix repeats the
+ * previous log's lines up to that head (all but their wall-clock stamps), and the line right after
+ * the prefix is the resume's `run_resumed`, so nothing stands between them (step 18 challenge,
+ * chain-security M1).
  */
-export function verifyContinuity(previous: string, resumed: string): ChainVerdict {
-	const before = verifyChain(previous);
+export function verifyContinuity(previous: string, resumed: string, options: ContinuityOptions = {}): ChainVerdict {
+	const before = verifyChain(previous, options.previousKey);
 	if (!before.ok) return { ok: false, reason: `the previous run's chain does not hold: ${before.line === undefined ? "" : `line ${String(before.line)}: `}${before.reason}` };
 	const after = verifyChain(resumed);
 	if (!after.ok) return after;
 	const anchor = after.genesis.resumedFrom?.checkpoint;
 	if (anchor === undefined) return { ok: false, reason: "the run does not chain from a snapshot checkpoint" };
 	if (anchor.publicKey !== before.genesis.publicKey || anchor.genesis !== before.genesisHash) return { ok: false, reason: "the snapshot checkpoint belongs to another chain than the previous run's" };
-	if (!before.heads.some((entry) => entry.lines === anchor.lines && entry.hash === anchor.hash)) return { ok: false, reason: `the previous run signed no head over line ${String(anchor.lines)} with the checkpoint's hash` };
+	if (!before.heads.some((entry) => entry.lines === anchor.lines && entry.hash === anchor.hash && entry.state === anchor.state)) {
+		return { ok: false, reason: `the previous run signed no head over line ${String(anchor.lines)} with the checkpoint's hash${anchor.state === undefined ? "" : " and snapshot state"}` };
+	}
 	const old = linesOf(readFileSync(join(previous, EVENTS_FILE), "utf8"));
 	const now = linesOf(readFileSync(join(resumed, EVENTS_FILE), "utf8"));
 	for (let index = 0; index < anchor.lines; index += 1) {
-		const left = parseJson(old[index] ?? "");
-		const right = parseJson(now[index] ?? "");
-		if (!left.ok || !right.ok || canonicalJson(withoutStamp(left.value)) !== canonicalJson(withoutStamp(right.value))) {
-			return { ok: false, line: index + 1, reason: "the resumed run's prefix differs from the previous run's line" };
-		}
+		const left = comparable(old[index] ?? "");
+		if (left === undefined || left !== comparable(now[index] ?? "")) return { ok: false, line: index + 1, reason: "the resumed run's prefix differs from the previous run's line" };
+	}
+	const marker = parseJson(now[anchor.lines] ?? "");
+	if (!marker.ok || typeof marker.value !== "object" || marker.value === null || Reflect.get(marker.value, "type") !== "run_resumed") {
+		return { ok: false, line: anchor.lines + 1, reason: "the line after the resumed prefix is not the run_resumed marker (a line between the checkpoint and the resume is not the previous run's)" };
 	}
 	return after;
 }
