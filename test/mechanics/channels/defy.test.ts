@@ -104,6 +104,23 @@ describe("who may defy the gamemaker", () => {
 		expect(await defiances(resumed)).toEqual(withheld([WHISPERER]));
 	});
 
+	it("the whisperer alone after a resume from a file without a whispers slice and without whisperer_chosen (round-3 challenge L2)", async () => {
+		const first = createHost({ story: story({ whispererDefies: true }), prompts: t2Prompts() });
+		first.start();
+		await first.playMinute(idleAgent);
+		// An old file from before the whisperer: no whispers slice (version 0, nothing in it) and no `whisperer_chosen` line.
+		const events = first.log
+			.all()
+			.filter((event) => event.type !== "whisperer_chosen")
+			.map((event, index) => ({ ...event, seq: index + 1 }));
+		const saved = first.snapshot();
+		const old = Parse(HostSnapshotSchema, { ...saved, seq: events.length, mechanics: { ...saved.mechanics, whispers: { version: 0, data: {} } } });
+		const resumed = createHost({ story: story({ whispererDefies: true }), prompts: t2Prompts(), resume: { snapshot: old, events } });
+		expect(resumed.log.ofType("whispers", "whisperer_chosen")).toHaveLength(0);
+		// The whispers mechanic chose again (the story names the whisperer); channels asks it instead of the log.
+		expect(await defiances(resumed)).toEqual(withheld([WHISPERER]));
+	});
+
 	it("is shown to the whisperer in the open tools only, and the reason is recorded", async () => {
 		const host = createHost({ story: story({ whispererDefies: true }), prompts: t2Prompts() });
 		host.start();

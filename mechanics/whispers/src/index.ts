@@ -9,7 +9,7 @@
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { defineMechanic, refuse } from "@swarmtales/kernel";
-import { HOOK_ORDER, INPUT_KINDS, STATUS_ORDER } from "@swarmtales/mechanic-shared";
+import { HOOK_ORDER, INPUT_KINDS, STATUS_ORDER, WhispersApi } from "@swarmtales/mechanic-shared";
 import { dutyNow, tickDuty, tickVote } from "./duty-notice.ts";
 import { DutyNow, LegacySlice, Slice, whispersHead, type Ctx, type WhispersState } from "./head.ts";
 import { favouriteTool, forgeTool } from "./tools.ts";
@@ -40,6 +40,8 @@ function pick(agent: string | undefined, ids: readonly string[], draw: (from: re
 const fresh = (): WhispersState => ({ whisperer: undefined, forgeries: [], round: 0, phase: "pending", ballots: new Map<string, string>(), pending: undefined });
 
 export const whispers = defineMechanic(whispersHead, (kit) => ({
+	// Also in a resumed run that chose the whisperer again without writing `whisperer_chosen` (L2).
+	services: [kit.provide(WhispersApi, { whisperer: (_input, ctx) => ctx.state.whisperer ?? null })],
 	tools: [forgeTool(kit), favouriteTool(kit)],
 	pipeline: {
 		lock: (call, ctx) => {

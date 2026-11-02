@@ -61,6 +61,19 @@ export const PetitionsApi = defineApi({
 	},
 });
 
+/**
+ * The whisperer (step 18, round-3 challenge L2): whom the whispers mechanic chose. A resumed run
+ * whose file holds no whispers slice chooses again without writing `whisperer_chosen`, so readers
+ * ask this query first and read the log only when whispers is not loaded.
+ */
+export const WhispersApi = defineApi({
+	name: "whispers",
+	summary: "The story's whisperer.",
+	methods: {
+		whisperer: query("The resident the whispers mechanic chose as the whisperer, or null when none plays (a control run, a story without one).", Type.Object({}), Type.Union([ResidentId, Type.Null()])),
+	},
+});
+
 /** Core motives (step 9): what the goals and the gamemaker's privacy check read of a core motive. */
 export const MotivesApi = defineApi({
 	name: "motives",

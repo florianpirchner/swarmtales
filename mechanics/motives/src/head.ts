@@ -4,7 +4,7 @@
  */
 import { Type } from "typebox";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, MotivesApi } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, MotivesApi, WhispersApi } from "@swarmtales/mechanic-shared";
 import type { CoreMotive } from "./deal.ts";
 import { CoreMotiveDrive, CoreMotiveTrait, CoreMotivesOptions } from "./spec.ts";
 
@@ -27,5 +27,6 @@ export const motivesHead = defineHead({
 	state: (): CoreMotivesState => ({ coreMotives: new Map() }),
 	events,
 	provides: [MotivesApi],
+	uses: [WhispersApi],
 	requires: [ChannelsApi],
 });

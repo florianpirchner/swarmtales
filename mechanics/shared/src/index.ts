@@ -8,7 +8,7 @@
 export { ChannelsEvents, CastEvents, ExileEvents, LEGACY_SILENT_EVENTS, LedgerEvents, PetitionsEvents, ProgressionEvents, SHARED_EVENTS, WhispersEvents } from "./events.ts";
 export { BoardPost, DmRecord, Done, GroupPost, HeldPiece, MarksChannel, MarksLeft, NoticeTarget, OfResident, PenaltyLadder, RankEntry, Receipt, ReceiptBody, ResidentId, Standing } from "./schemas.ts";
 export { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";
-export { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, DmWindow, NoteTarget, NotesApi, PetitionsApi } from "./messages.ts";
+export { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, DmWindow, NoteTarget, NotesApi, PetitionsApi, WhispersApi } from "./messages.ts";
 export { GoalsApi, ProgressionApi, PuzzlesApi, Team } from "./progress.ts";
 export { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 export { INPUT_KINDS, STATUS_ORDER } from "./turn-input.ts";
@@ -16,7 +16,7 @@ export { HOOK_ORDER, LISTENER_ORDER, OVERSEER_ORDER, legacyTurnOrder, legacyTurn
 export { Ending, EndingApi } from "./ending.ts";
 
 import { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";
-import { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, NotesApi, PetitionsApi } from "./messages.ts";
+import { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, NotesApi, PetitionsApi, WhispersApi } from "./messages.ts";
 import { GoalsApi, ProgressionApi, PuzzlesApi } from "./progress.ts";
 import { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 import { EndingApi } from "./ending.ts";
@@ -43,4 +43,5 @@ export const SHARED_APIS = [
 	SealApi,
 	StandoffTribunalApi,
 	EndingApi,
+	WhispersApi,
 ] as const;

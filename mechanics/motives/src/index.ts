@@ -8,7 +8,7 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import type { ContextOf } from "@swarmtales/contracts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { MotivesApi, HOOK_ORDER, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { MotivesApi, HOOK_ORDER, WhispersApi, WhispersEvents } from "@swarmtales/mechanic-shared";
 import { coreMotiveLine, dealCoreMotives, renderCoreMotive } from "./deal.ts";
 import { motivesHead } from "./head.ts";
 import { CoreMotiveRecord } from "./spec.ts";
@@ -22,9 +22,10 @@ type Ctx = ContextOf<typeof motivesHead>;
 const Slice = Type.Array(CoreMotiveRecord);
 const LegacySlice = Type.Object({ cores: Type.Optional(Slice) });
 
-/** The story's whisperer: told by `whisperer_chosen`, or read from the log of a resumed run (it is not told again). */
+/** The story's whisperer: told by `whisperer_chosen`, asked of whispers (a resumed run is not told again, L2), else read from the log. */
 function whispererOf(ctx: Ctx): string | undefined {
 	if (ctx.state.whisperer !== undefined) return ctx.state.whisperer;
+	if (ctx.has(WhispersApi)) return ctx.tryCall(WhispersApi, "whisperer", {}) ?? undefined;
 	const chosen = ctx.log.ofType("whispers", "whisperer_chosen").at(0);
 	return chosen === undefined ? undefined : Parse(WhispersEvents.events.whisperer_chosen, chosen.payload).agent;
 }

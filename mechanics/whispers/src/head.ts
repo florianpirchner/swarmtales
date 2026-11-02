@@ -5,7 +5,7 @@
 import { Type } from "typebox";
 import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
 import { defineHead } from "@swarmtales/kernel";
-import { ChannelsApi, ExileApi, LedgerApi, MarksApi, NamesApi, PuzzlesApi, ReceiptsApi, WhispersEvents } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, LedgerApi, MarksApi, NamesApi, PuzzlesApi, ReceiptsApi, WhispersEvents, WhispersApi } from "@swarmtales/mechanic-shared";
 import { Direction, WhispererSpec, type Forgery } from "./duty.ts";
 import { PopularitySpec, type Phase, type SavedVote } from "./vote.ts";
 
@@ -123,6 +123,7 @@ export const whispersHead = defineHead({
 		"duty/residents-many": ["count"],
 	},
 	requires: [ReceiptsApi, ChannelsApi, LedgerApi, MarksApi],
+	provides: [WhispersApi],
 	uses: [ExileApi, NamesApi, PuzzlesApi],
 });
 
