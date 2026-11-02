@@ -87,8 +87,8 @@ describe("what a resumed run does before its first minute", () => {
 		expect(funded).toBeGreaterThan(-1);
 		expect(Math.max(...dealt)).toBeLessThan(funded);
 		expect(funded).toBeLessThan(started);
-		// All at the snapshot's minute: the referee started it, nothing of it has begun.
-		expect(new Set(written.slice(0, started).map((event) => event.minute))).toEqual(new Set([converted.host.minute]));
+		// All at the old file's minute, one before the host's next (the old restore's clock, L1): nothing of the next minute has begun.
+		expect(new Set(written.slice(0, started).map((event) => event.minute))).toEqual(new Set([converted.host.minute - 1]));
 	});
 
 	it("does neither for a file that has both", async () => {

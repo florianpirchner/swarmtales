@@ -332,12 +332,19 @@ class CoreHost implements Host {
 		const bus = this.#bus;
 		this.#referee.minuteStarted(minute);
 		if (this.#resumePending) {
-			// The old engine's restore work, once, before the first minute of a resumed run (R2-D9).
+			// The old engine's restore work, once, before the first minute of a resumed run (R2-D9). It
+			// belongs to the snapshot's last played minute, as the old restore wrote it (`run_resumed`,
+			// the late core motives and escrows at the snapshot's minute, not one later: challenge L1).
 			this.#resumePending = false;
-			this.#phases((phases) => phases.runResumed, (run) => {
-				run();
-			});
-			await this.#gateway.settle();
+			this.#minute = Math.max(0, minute - 1);
+			try {
+				this.#phases((phases) => phases.runResumed, (run) => {
+					run();
+				});
+				await this.#gateway.settle();
+			} finally {
+				this.#minute = minute;
+			}
 		}
 		bus.emit("core", "minute_started", {});
 		// Calls staged before the first minute (by runStarted hooks) run now.

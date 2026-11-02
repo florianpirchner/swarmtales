@@ -185,7 +185,7 @@ describe("tools closed by a lock handler (R2-D13)", () => {
 });
 
 describe("the resume hook (R2-D9)", () => {
-	it("runs once in a resumed run, at the snapshot's minute, before the minute starts; never in a fresh run", async () => {
+	it("runs once in a resumed run, at the snapshot's last played minute, before the next minute starts; never in a fresh run", async () => {
 		const host = createHost({ story: story() });
 		host.start();
 		await host.playMinute(idleAgent);
@@ -194,8 +194,9 @@ describe("the resume hook (R2-D9)", () => {
 		await resumed.playMinute(idleAgent);
 		await resumed.playMinute(idleAgent);
 		const after = resumed.log.since(host.log.all().length).map((event) => `${event.type}@${String(event.minute)}`);
-		expect(after.filter((entry) => entry.startsWith("resumed"))).toEqual(["resumed@1"]);
-		expect(after.indexOf("resumed@1")).toBeLessThan(after.indexOf("minute_started@1"));
+		// At the snapshot's last played minute (the old restore's clock, challenge L1), before the next minute starts.
+		expect(after.filter((entry) => entry.startsWith("resumed"))).toEqual(["resumed@0"]);
+		expect(after.indexOf("resumed@0")).toBeLessThan(after.indexOf("minute_started@1"));
 	});
 });
 

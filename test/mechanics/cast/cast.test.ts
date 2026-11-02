@@ -244,8 +244,8 @@ describe("conformance and snapshot", () => {
 			const written = host.log.all().slice(converted.events.length);
 			const funding = written.filter((event) => event.type === "ledger_entry");
 			expect(funding.map((event) => event.payload)).toMatchObject([{ debit: "SYSTEM_MINT_BURN", credit: "ESCROW:STEWARD", amount: 10, reason: "escrow STEWARD" }]);
-			// At the snapshot's minute, ahead of everything the minute starts.
-			expect(funding[0]?.minute).toBe(converted.host.minute);
+			// At the old file's minute (the host's next minute less one), as the old restore booked it (L1), ahead of everything the minute starts.
+			expect(funding[0]?.minute).toBe(converted.host.minute - 1);
 			expect(written.findIndex((event) => event.type === "ledger_entry")).toBeLessThan(written.findIndex((event) => event.type === "minute_started"));
 		});
 

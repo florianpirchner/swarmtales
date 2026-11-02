@@ -96,8 +96,8 @@ export class Twin {
 		if (converted !== undefined) {
 			this.ids = converted.host.residents.ids;
 			this.#next = converted.host.minute;
-			// The old world restores at the snapshot's minute, as the new host's `runResumed` phases run.
-			this.#minute = converted.host.minute;
+			// The old world restores at the file's minute (composeRun's clock), one before the host's next minute, where the host's `runResumed` phases run (L1).
+			this.#minute = converted.host.minute - 1;
 		}
 		this.world = new World({
 			story: withoutOtherMechanics(story),
