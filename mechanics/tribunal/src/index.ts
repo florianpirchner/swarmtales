@@ -18,6 +18,7 @@ import { mayScheduleTribunal, readsOf, SectionFact, sectionOf, StopFact, stopOf 
 
 export { tribunalHead } from "./head.ts";
 export { TribunalOptions } from "./spec.ts";
+export { renderTribunalSection, tribunalSectionOf, type TribunalSection } from "./section.ts";
 
 /** The old `enabledTools` for the tribunal's tools: the vote while one is due, the draft's steps by phase. */
 function isOpen(ctx: TribunalCtx, tool: string, resident: string): boolean {

@@ -4,7 +4,9 @@
  * standoff, seal, motives, goals included; no stand-in), the derived grants, and the golden
  * residents' and gamemaker's calls made in their golden turns (as test/mechanics/arena/golden-host.ts).
  *
- * On the City of Keys every line the old engine wrote outside the app equals the golden's in order.
+ * Every line the old engine wrote outside the app equals the golden's in order, and the gamemaker's
+ * "Tribunal:" section rendered from the tribunal's `section` fact (mechanics/tribunal/src/section.ts)
+ * equals the section of every golden gamemaker look (the repo gate of the step-18 wiring list).
  * The app's lines (runner, gamemaker, usage) are not written by a host; they are the CLI's part of
  * step 18 (docs/design/rewrite-status.md).
  */
@@ -15,7 +17,9 @@ import type { Host } from "@swarmtales/contracts";
 import { createHost } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import type { LegacyLine } from "@swarmtales/testkit";
+import { renderTribunalSection, tribunalSectionOf } from "@swarmtales/mechanic-tribunal";
 import { hostStoryOf, type HostRun } from "../../apps/cli/src/host/story.ts";
+import { sectionLines } from "../mechanics/tribunal/support/section.ts";
 import { goldenLog, RESIDENTS, SEED, storyOf, type GoldenName } from "../mechanics/puzzles/harness.ts";
 import { planOf, turnKey } from "../mechanics/t2/golden-plan.ts";
 
@@ -29,7 +33,14 @@ const DIALS: Readonly<Record<GoldenName, Pick<HostRun, "figureDirection" | "gmDi
 	"whispers-f10-grudge": { figureDirection: 10, gmDirection: 4, names: false },
 };
 
-async function replay(name: GoldenName): Promise<{ readonly golden: readonly LegacyLine[]; readonly lines: readonly LegacyLine[] }> {
+interface Replay {
+	readonly golden: readonly LegacyLine[];
+	readonly lines: readonly LegacyLine[];
+	/** The gamemaker's tribunal section rendered from the host's `tribunal.section` fact in each minute's between slot. */
+	readonly sections: ReadonlyMap<number, readonly string[]>;
+}
+
+async function replay(name: GoldenName): Promise<Replay> {
 	const story = storyOf(name);
 	const golden = goldenLog(name);
 	const plan = planOf(golden);
@@ -47,7 +58,10 @@ async function replay(name: GoldenName): Promise<{ readonly golden: readonly Leg
 	};
 	const { definition } = hostStoryOf(story, run);
 	const ref: { host?: Host } = {};
+	const sections = new Map<number, readonly string[]>();
 	const between = async (minute: number): Promise<void> => {
+		// The look is written before the gamemaker's calls of the minute.
+		if (ref.host !== undefined) sections.set(minute, renderTribunalSection(tribunalSectionOf(ref.host.facts()["tribunal.section"])));
 		for (const line of plan.between.get(minute) ?? []) {
 			if (line.type !== "gamemaker_call" || ref.host === undefined) continue;
 			const outcome = await ref.host.call("gamemaker", String(line.tool), line.args);
@@ -64,7 +78,7 @@ async function replay(name: GoldenName): Promise<{ readonly golden: readonly Leg
 		if (window === undefined) throw new Error(`no golden turn for ${turn.resident} at minute ${String(turn.minute)}`);
 		for (const line of window.lines) if (line.type === "tool_call" && REPLAYED.has(String(line.tool))) await turn.call(String(line.tool), line.args);
 	});
-	return { golden, lines };
+	return { golden, lines, sections };
 }
 
 /** A line without its log position. */
@@ -80,5 +94,18 @@ describe.each(["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"] as
 		const expected = run.golden.filter(outsideApp).map(placed);
 		expect(expected.length).toBeGreaterThan(250);
 		expect(run.lines.filter(outsideApp).map(placed)).toEqual(expected);
+	}, 120_000);
+
+	it("renders the gamemaker's Tribunal section from the tribunal's fact as every golden look shows it (the section gate)", async () => {
+		const run = await replay(name);
+		const looks = run.golden.filter((line) => line.type === "gamemaker_turn");
+		expect(looks.length).toBeGreaterThan(10);
+		const story = storyOf(name);
+		for (const look of looks) {
+			const minute = Number(look.round) - 1;
+			const want = sectionLines(String(look.input));
+			if (story.tribunal !== undefined) expect(want.length).toBeGreaterThan(2);
+			expect({ minute, lines: run.sections.get(minute) }).toEqual({ minute, lines: want });
+		}
 	}, 120_000);
 });
