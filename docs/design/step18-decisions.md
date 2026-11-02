@@ -300,6 +300,79 @@ The golden files are unchanged, and `GOLDEN_UPDATE` was not used. What remains i
    No other test was deleted. With it, the `World`-typed `grudgeAddenda`, `whispersCast` and `whispersScript` in
    `test/golden/scripts.ts` lost their last users and were removed (the host copies live in `test/golden/host-scripts.ts`).
 
+## Team P1 (step 18 item 7, the snapshot and story group, 2026-11-02)
+
+Group: `test/stories/cityofkeys-tribunal`, `test/snapshot/{act-brake,components,file,legacy-writeback,resume,society,v09,weaver,whispers}`,
+`test/stories/{cityofkeys,cityofkeys-levels,cityofkeys-wall,whispers,whispers-direction,registry}`, `test/scale/whole-story`,
+`test/golden/scripts.ts`.
+
+1. **Ported.** Every test of the group runs on `createHostFixture` and reads the host's run file through the new
+   `test/helpers/host-snapshot.ts` (`snapshotTaker` keeps what the run writes, through JSON and `RunFileSchema`;
+   `sliceIn` / `overseerSliceIn` parse a mechanic's or overseer's slice; `resumeMarkers`, `comparable`). The story tests
+   take their constants from contracts and the mechanics (`TOOL_NAMES`, `DIRECTOR_SUPPORT`, `LOCKED_REPLY`,
+   `addFactors` / `ownCharsOf` / `validatePuzzle`, `exileTarget`, `tallyWhispers`, `render("competitor/direction/author-line")`);
+   `legacy-writeback` takes `resolveBlockSize` from `run-options.ts`. Small additive exports for this:
+   `exileTarget` (mechanic-tribunal), `tallyWhispers` (mechanic-whispers), `Board`, `GroupRegistry`, `GroupResult`,
+   `Mailbox`, `MessageNumbers` (mechanic-channels), `CastRegistry` (mechanic-cast).
+2. **Production fixes the ports found** (each in its own commit):
+   - The whispers mechanic's resume refusal named "without control" again instead of "without --no-whisperer (a
+     control run must start fresh)": the old words are back.
+   - A resumed pre-v09 checkpoint dealt its late core motives only in the run's first minute, after the residents'
+     prompts were built, so the prompts lacked them. `Host.start()` on a resumed host now runs the resume work at once
+     (kernel; `#play` no longer runs it a second time); the app's probe host always starts, and a resumed run builds
+     its prompts from the probe's facts (`hostResidents` option `promptHost`).
+   - A run resumed without the weaver was refused ("overseer weaver, which the story does not declare"); the app now
+     passes the host only the slices of the run's own overseers (`onlyDeclared` in `apps/cli/src/host/run.ts`), as the
+     old engine ignored a role the resumed run left out.
+3. **Changed assertions** (same intent, new place of the state):
+   - `snapshot.world.*`, `snapshot.director`, `snapshot.gamemaker`, `snapshot.interpreter` are read from the run file's
+     slices (`progression`, `puzzles`, `names`, `channels`, `receipts`, `petitions`, `cast`, `goals`, `seal`, `motives`,
+     `whispers`, `script`, `tribunal`, `standoff`; overseers `gamemaker`, `classifier`). The brake is the run file's `brake`.
+   - Resume cut: `prefixLines(point)` instead of `snapshot.events.length`; a resumed run's lines after the cut are
+     compared with `comparable(…, resumeMarkers(point))` (the `run_resumed` and `agent_profile` lines move the numbers).
+   - Whispers: the slice keeps `forgeries: [{ minute, to }]`, `round` and `phase` instead of `forgeries: [3]`,
+     `forgedTo` and `popularity.{round,state}`; the "older snapshot" case removes `to` from the forgeries.
+   - v09: a checkpoint from before v09 says `coresDealt: false` instead of `world.cores` undefined.
+   - Weaver: the gamemaker's "(after #N)" uses host numbers (S18-3), so the evidence is compared with the host log's
+     `weaver` `fate_shift` events, not the legacy line numbers.
+   - File: the schema checks of the old file (`agent-arena-snapshot` v2, still read by `--resume`) run on the old
+     engine's snapshot of the tiny run, recorded once by the test's live old side
+     (`test/fixtures/old-engine/snapshot-file.json.gz`; the live side goes with the engine). The write case uses the
+     host's `writeRunFile` / `readResumePoint` / `runFileName`.
+   - Tribunal: a DM receipt is found by its text (`R-…: DM #id from A01, delivered to A02 at minute m`; the shared
+     receipt has no `number` / `from`); `world.lastWill` outside the gate is `host.call(… "lastWill")` with code
+     `TOOL_LOCKED` (the tool is not open there; `NOT_AT_GATE` itself is covered by
+     `test/mechanics/tribunal/differential.test.ts`, "reached every refusal"); factor deals are read contracted
+     (`contractDeal` of the `level_contracted` exclusions); the act start comes from progression's `actStarts`; the
+     city's pieces from the standoff slice's `city`; a removed draft group is the channels slice's `removed` flag;
+     `sendDm` / `ranking` / `enabledTools` / `ledger.*` are `host.call("sendDM")` (code `EXILED`), `rankingOf`,
+     `host.openTools`, `balanceOf` / `ledgerTotal`; the mid-draft snapshot is the run's own snapshot at minute 31,
+     parsed back through `parseResumePoint`.
+   - Components: the store classes are the mechanics' (`Board` and `GroupRegistry` take a `MessageNumbers`, posts take
+     their kind; a `PetitionBook` round-trips `records()`, a sign answers `{ ok, code }` / `{ ok, passed }`; the
+     `CastRegistry` restores `(members, collections)`; a group deposit is the treasury's, the registry checks it with
+     `checkDeposit`; `inspect()` became `info("G1")`). The world, director and context cases run a host and resume it:
+     an unchanged story's resumed run logs exactly what the run that went on logged and ends with the same host
+     snapshot (its counter ahead by the resume's lines); a changed level nobody reached is dealt anew, one
+     `fragments_dealt` more than an unchanged resume logs; a reached level whose teams changed is refused; the script
+     slice keeps `fired` / `enteredLevels` and drops a petition its rules no longer hold; the resident contexts are the
+     run file's `competitors`, the gamemaker's notes and tracks and the classifier's history its overseer slices,
+     carried into a resumed run. Receipts are checked the same way: the slice runs R-0001, …, a resumed run numbers on
+     like the run that went on, and a file whose first receipt is `R-0007` is refused (`expected R-0001`).
+4. **Deleted** (with the test that covers it):
+   - Components "marks: the allowance of the level in play" (`MarksBook` is gone; the allowance is the marks slice):
+     `test/mechanics/marks/marks.test.ts` ("is deterministic and survives snapshot round trips"; "is free below its
+     first level, and a level change gives a fresh allowance of the new level").
+   - Components "event bus: a replayed prefix reaches sinks once and numbering continues after it" (the engine's
+     `EventBus`; the host rebuilds the prefix from the run file's own events, so no foreign prefix can be replayed):
+     `test/snapshot/resume.test.ts` (the prefix lines equal the first run's, `run_resumed` has seq `cut + 1`) and the
+     world cases above. The two refusals of a misnumbered prefix belong to the old bus only; the old file's own
+     numbering check stays in `test/snapshot/file.test.ts` (`event 1 has seq 2`).
+   No other test was deleted.
+5. **Left as it is:** `test/golden/scripts.ts`. Its `World`-typed `cityScript` / `gamemakerSteps` serve only the live
+   old side of `test/cli/host-gamemaker-differential.test.ts` (outside this group) and go with the engine (step 5).
+   `test/snapshot/file.test.ts` keeps its live old side for recording (D2 pattern) until then.
+
 ## H1 (signed event log, rewrite-status item 5a)
 
 Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).
