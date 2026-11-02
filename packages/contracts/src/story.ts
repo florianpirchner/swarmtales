@@ -33,7 +33,7 @@ export interface RunSettings {
 	readonly stopWhenDone?: boolean;
 	/**
 	 * End the run at a round boundary once open rewards can no longer change
-	 * who survives (`World.seatsDecided`); the reason is "seats decided".
+	 * who survives (the arena mechanic's `seatsDecided` fact); the reason is "seats decided".
 	 */
 	readonly stopWhenSeatsDecided?: boolean;
 	/** Abort the run cleanly once this cost is exceeded. */

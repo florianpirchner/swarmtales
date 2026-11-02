@@ -339,6 +339,16 @@ describe("limits", () => {
 		const capped = await run({ story: storyOf([use({ triggers: [{ hook: "between" }] })], { minutes: 4, limits: { maxCostUsd: 0.05 } }), overseers: scriptedOverseer({ "w-1": () => answer("x", { costUsd: 0.03 }) }) });
 		expect(capped.host.ended).toEqual({ reason: "referee", minute: 2, limit: "core.maxCostUsd" });
 	});
+
+	it("runs the calls of a cost-capped overseer one after the other and stops at the cap (F2 M1)", async () => {
+		// Five calls in one firing, 0.03 USD each, a 0.05 cap: two calls are made (the second reaches the cap), not five.
+		const spec: WatcherSpec = { triggers: [{ hook: "between" }], calls: () => 5, limits: { maxCostUsd: 0.05 } };
+		const runtime = scriptedOverseer({ "w-1": () => answer("x", { costUsd: 0.03 }) });
+		const { events } = await run({ story: storyOf([use(spec)], { minutes: 2, limits: { maxCostUsd: 1 } }), overseers: runtime });
+		expect(lines(events).filter((entry) => /called|skipped/.test(entry))).toEqual(['0 called "w-1" "hook:between" 0', '0 called "w-1" "hook:between" 1', '0 skipped "w-1" "maxCostUsd"', '1 skipped "w-1" "maxCostUsd"']);
+		const spent = events.filter((event) => event.type === "overseer_answered").length;
+		expect(spent).toBe(2);
+	});
 });
 
 describe("the consult trigger", () => {

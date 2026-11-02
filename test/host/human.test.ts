@@ -364,6 +364,26 @@ describe("safe stops", () => {
 		expect(core(host, "overseer_called").map((event) => event.minute)).toEqual([0, 0]);
 	});
 
+	it("let a stop end a run the human paused (F2 M2)", async () => {
+		const host = started(options({}, storyOf({ minutes: 3 })));
+		const hand = handOf(host);
+		const paused = hand.pause();
+		const playing = host.playMinute(idleAgent);
+		expect((await paused).ok).toBe(true);
+		host.stop("operator stop");
+		const raced = await Promise.race([
+			playing.then(() => "ended"),
+			new Promise<string>((resolve) => {
+				setTimeout(() => {
+					resolve("hung");
+				}, 500);
+			}),
+		]);
+		expect(raced).toBe("ended");
+		expect(host.ended).toMatchObject({ reason: "stopped" });
+		expect(core(host, "turn_started")).toEqual([]);
+	});
+
 	it("give calls that never reached a safe stop RUN_ENDED once the run ends", async () => {
 		const host = started(options({}, storyOf({ minutes: 1 })));
 		await host.run(idleAgent);
@@ -416,6 +436,16 @@ describe("decisions still open when the run ends", () => {
 		const snapshot = host.snapshot();
 		expect(snapshot.decisions).toBeUndefined();
 		expect(snapshot.jobs.filter((job) => job.owner === "core")).toEqual([]);
+	});
+
+	it("say so in the reply when an amendment's decision outlasts the run (F2 m5)", async () => {
+		const host = started(options({}, storyOf({ minutes: 2, mechanics: [tally.with(), pot.with({ window: 5 })] })));
+		await host.playMinute(async (turn) => {
+			if (turn.resident === "A01") await turn.call("propose", { value: 2 });
+		});
+		const decision = core(host, "decision_proposed")[0]?.seq ?? 0;
+		const amended = await host.call("human", "amendDecision", { decision, proposal: { value: 5 }, reason: "five" });
+		expect(amended).toEqual({ ok: true, reply: `amended decision ${String(decision)}, but its deadline (minute 5) lies after the run's last minute (1): the original proposal settles at the run's end` });
 	});
 
 	it("settle on a stop between minutes too", async () => {

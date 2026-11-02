@@ -1,5 +1,5 @@
 /**
- * Who writes each event of today's log once `World` is carved into mechanics
+ * Who writes each event of today's log now that `World` is carved into mechanics
  * (docs/design/carve-plan.md): a mechanic id, `app` (the agent runner and the model-backed roles,
  * written with `host.record`) or `core` (a core event the legacy adapter translates). The table is
  * typed by the engine's event union, so a new event type without an owner does not compile.

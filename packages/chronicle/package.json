@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Event logs, snapshots, digest and the run reporter",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

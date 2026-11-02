@@ -4,7 +4,8 @@
  * transfer, shown receipt and shared group, as totals and per minute; and
  * the tribunal's ties: a secret vote, a ransom paid, a bequest, a blame.
  */
-import { assertNever, CITY, COURIER } from "@swarmtales/kernel";
+import type { SystemAuthor } from "@swarmtales/contracts";
+import { assertNever } from "@swarmtales/kernel";
 import type { StatementLabel } from "@swarmtales/legacy-log";
 import type { Beat } from "./beats.ts";
 import { PIECE_TEXT, type RunFacts } from "./facts.ts";
@@ -83,7 +84,7 @@ export interface RelationshipGraph {
 	readonly pairs: readonly Relationship[];
 }
 
-const SYSTEM = new Set<string>([CITY, COURIER]);
+const SYSTEM = new Set<string>(["CITY", "COURIER"] satisfies readonly SystemAuthor[]);
 
 type FlowField = "dms" | "groupPosts" | "fragmentShares" | "points";
 

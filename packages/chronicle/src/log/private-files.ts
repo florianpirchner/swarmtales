@@ -116,7 +116,7 @@ export function writeCastFiles(directory: string, story: AnyStory, entries: read
 	}
 }
 
-/** A figure's direction sections, which reach the prompt only from a direction level on (packages/engine/src/direction.ts). */
+/** A figure's direction sections, which reach the prompt only from a direction level on (apps/cli/src/host/direction.ts). */
 function directionPart(direction: FigureDirection | undefined): readonly string[] {
 	if (direction === undefined) return [];
 	const list = (title: string, lines: readonly string[]): readonly string[] => (lines.length === 0 ? [] : [`**${title}**`, "", ...lines.map((line) => `- ${line}`), ""]);

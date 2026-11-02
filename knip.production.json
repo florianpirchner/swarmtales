@@ -1,0 +1,36 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"ignoreExportsUsedInFile": true,
+	"workspaces": {
+		".": {
+			"entry": [
+				"stories/index.ts!",
+				"lab/*.ts!",
+				"scripts/*.{ts,mjs}!"
+			],
+			"project": [
+				"stories/**!",
+				"lab/**!",
+				"scripts/**!"
+			],
+			"ignoreDependencies": [
+				"@earendil-works/pi-ai",
+				"typebox"
+			],
+			"ignoreBinaries": [
+				"tsx"
+			]
+		},
+		"apps/cli": {
+			"entry": [
+				"src/*.ts!"
+			],
+			"project": [
+				"src/**!"
+			]
+		}
+	},
+	"ignoreWorkspaces": [
+		"packages/testkit"
+	]
+}

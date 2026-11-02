@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The arena mechanic: the old arena's run events and turn policy.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

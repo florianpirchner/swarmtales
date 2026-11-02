@@ -77,12 +77,17 @@ export interface Host {
 	playMinute(agent: TurnTaker): Promise<RunEnd | undefined>;
 	/** Plays until the end. */
 	run(agent: TurnTaker): Promise<RunEnd>;
-	/** A call by any actor (gamemaker, script) through the same pipeline. */
+	/**
+	 * A call by any actor (gamemaker, script) through the same pipeline. A trusted entry of the app:
+	 * it takes any actor, `human` and `overseer:<name>` too, at once and outside safe stops and
+	 * overseer calls (no `overseer_called`, no `maxCalls`, not replayed). The human's calls that
+	 * count go through `hand()`, an overseer's through its runtime.
+	 */
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome>;
 	toolSpecs(role: GrantRole): readonly ToolSpec[];
 	/**
 	 * The resident tools open to `resident` now (granted, not locked, no `lock` handler refuses
-	 * them), in grant order: what the old `World.enabledTools` listed, read by the agent runner for
+	 * them), in grant order: what the old engine's `enabledTools` listed, read by the agent runner for
 	 * its `request` line and its tools notice. Asks the lock handlers without a call; writes nothing.
 	 */
 	openTools(resident: ResidentId): readonly string[];
@@ -108,8 +113,8 @@ export interface Host {
 	 */
 	hand(): HumanHand | undefined;
 	/**
-	 * What an overseer keeps for its snapshot, read-only (the weaver's queued inner voices and hard
-	 * texts, which the app builds the resident's inputs and prompt from): the slice as `host.snapshot()`
+	 * What an overseer keeps for its snapshot, read-only (for example texts an overseer queued
+	 * for a resident, which the app builds the resident's inputs and prompt from): the slice as `host.snapshot()`
 	 * would hold it, or `undefined` for a name the story does not declare and for an overseer without state.
 	 */
 	overseerSlice(name: string): { readonly version: number; readonly data: unknown } | undefined;

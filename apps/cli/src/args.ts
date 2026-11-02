@@ -262,7 +262,7 @@ function optionalInt<K extends string>(name: K, raw: string | undefined, minimum
 	return result;
 }
 
-/** A dial from 0 to 10 (packages/engine/src/direction.ts). */
+/** A dial from 0 to 10 (apps/cli/src/host/direction.ts). */
 function direction<K extends "figureDirection" | "gmDirection">(flag: string, key: K, raw: string | undefined): Partial<Record<K, number>> {
 	if (raw === undefined) return {};
 	const value = Number(raw);

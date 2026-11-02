@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The receipts mechanic: city-verified receipts and blame.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

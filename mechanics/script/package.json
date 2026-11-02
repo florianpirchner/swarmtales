@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The script mechanic: the director's rules as staged calls.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

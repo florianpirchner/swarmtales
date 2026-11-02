@@ -1,6 +1,11 @@
 # The overseer API, the decision gate and the human hand
 
-Status: design for step 18 (2026-10-31). Nothing here is built. It turns the idea paper
+Status: design for step 18 (2026-10-31), **built at step 18** (packages/kernel/src/host/: `overseers.ts`,
+`decisions.ts`, `human.ts`, `orders.ts`, `define-overseer.ts`, `auto-grants.ts`). Where the build differs from the
+text below, `step18-decisions.md` (O1, O2, G1, F2) records it; the main deviations: the story's `maxInterventions`
+counts under the key `overseer:<name>/story`; a decision still open at the run's end settles with its original
+proposal (§3.2 rule 5); `HostOptions.human` is `boolean | HumanChannel`; `HostOptions.between` and `roles` stay
+(F2 m2; §6 row 9 is not done); a cost-capped overseer's calls run one after the other (§1.3). It turns the idea paper
 [`../ideas/overseers-and-plugins.md`](../ideas/overseers-and-plugins.md) (names decided by Flo: Mechanic,
 Overseer, Plugin) into signatures that builder teams can implement. It extends the core described in
 [`mechanic-api.md`](mechanic-api.md) and follows [`../ideas/monorepo.md`](../ideas/monorepo.md) §2a (slim core),
@@ -134,6 +139,9 @@ typing tricks (`defineHead`, `ShapeOf`, one `@ts-expect-error` per misuse in a n
    **Event** triggers queue the overseer; it runs right after the code or call that wrote the event (after the
    staged calls drain), before the next call or turn begins. **Consult** runs inside the consult stage, as today.
 2. Over a limit (`maxCalls`, `maxCostUsd`)? The host writes `overseer_skipped { overseer, reason }` and goes on.
+   `maxCalls` cuts a firing's calls exactly. A cost is known only when its answer is in, so once an overseer in the
+   batch has `maxCostUsd`, the host runs that batch's calls one after the other and checks the cap before each call
+   (built at step 18, F2 M1); the last call can still overshoot by its own cost.
 3. `calls(fired, ctx)` gives the variables; the runtime fills `standingOrders` (§4.2) and writes
    `orders_applied` when it holds any.
 4. The host writes `overseer_called { overseer, trigger, index }` and hands `{ definition, name, system, input,
@@ -314,6 +322,10 @@ decision ("only these accused, at most N"); Typebox schemas are plain JSON, so i
    stores the amendment and answers with the proposal now standing. A holder may amend more than once.
 5. **Priority of the human.** The proposal that commits is the human's last amendment if there is one, else the
    last amendment of any other holder, else the original.
+   This holds at the deadline. A decision still open when the run ends (its deadline lies after the last
+   minute, or the run stopped early) settles at `runEnded` with its **original** proposal, the amendments listed
+   (step 18 decision O2-3). An amendment of a decision whose deadline lies after the run's last minute is kept,
+   but its reply says that it cannot stand (`core/replies/decision-outlasts-run`; built at step 18, F2 m5).
 6. **Deadline.** At the start of minute `deadline`, before the mechanics' due jobs, open decisions settle in the
    order they were opened: the host writes `decision_settled { decision, kind, changed, by?, reason?, proposal,
    amendments: [{ by, seq }] }` and runs `commit(proposal, settlement)` caused by it. `commit` runs against the

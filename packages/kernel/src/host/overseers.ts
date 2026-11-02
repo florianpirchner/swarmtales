@@ -391,8 +391,16 @@ export class OverseerRunner {
 		};
 	}
 
-	/** One batch: every call opened in order, all requests at once, answers applied in order. */
+	/**
+	 * One batch: every call opened in order, all requests at once, answers applied in order. A batch
+	 * with a cost-capped overseer runs one call after the other instead, so the cap is checked
+	 * before each call (a cost is known only once its answer is in; one call can still overshoot).
+	 */
 	async #batch(firings: readonly Firing[]): Promise<void> {
+		if (firings.some((firing) => firing.placed.maxCostUsd !== undefined)) {
+			await this.#oneByOne(firings);
+			return;
+		}
 		const { bus } = this.#parts;
 		const calls: Prepared[] = [];
 		for (const firing of firings) {
@@ -424,6 +432,25 @@ export class OverseerRunner {
 			const [failure] = failures;
 			if (failures.length > 0) throw failure instanceof Error ? failure : new Error(message(failure));
 		});
+	}
+
+	async #oneByOne(firings: readonly Firing[]): Promise<void> {
+		const { bus } = this.#parts;
+		for (const firing of firings) {
+			const { placed } = firing;
+			for (const [index, variables] of this.#callsOf(firing).entries()) {
+				if (this.#parts.failed()) return;
+				const over = index === 0 ? undefined : this.#over(placed);
+				if (over !== undefined) {
+					this.#skip(placed, over, firing.cause);
+					break;
+				}
+				const opened = (): number => bus.run(this.#frame(placed, firing.cause), () => bus.emit("core", "overseer_called", { overseer: placed.name, trigger: firing.trigger, index })).seq;
+				const call = this.#prepare(firing, index, variables, opened);
+				const answer = await this.#parts.admit([placed.actor], () => this.#request(call, Promise.resolve()));
+				if (!this.#parts.failed()) this.#apply(call, answer);
+			}
+		}
 	}
 
 	/** The model request of one call: the head's slot, then its fallback slot. Never rejects. */

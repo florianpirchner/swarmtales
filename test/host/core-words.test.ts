@@ -15,7 +15,7 @@ const GAME_WORDS = [
 	"door", "doors", "tribunal", "tribunals", "ransom", "point", "points", "level", "levels", "board", "boards", "dm", "dms",
 	"exile", "exiled", "receipt", "receipts", "fragment", "fragments", "puzzle", "puzzles", "city", "courier", "vote", "votes",
 	"seal", "petition", "petitions", "mark", "marks", "password", "passwords", "ledger", "figure", "figures", "faction", "factions",
-	"whisper", "whisperer", "standoff", "feast", "escrow", "treasurer",
+	"whisper", "whisperer", "standoff", "feast", "escrow", "escrows", "treasurer", "motive", "motives", "classifier", "weaver",
 ];
 
 /** Old-engine files in the core packages, as of wave 2a. Shrink only. */
@@ -26,9 +26,6 @@ const LEGACY = [
 	"packages/contracts/src/tool-names.ts",
 	"packages/contracts/src/turn.ts",
 	"packages/kernel/src/counts.ts",
-	"packages/kernel/src/ids.ts",
-	"packages/kernel/src/index.ts",
-	"packages/kernel/src/ledger.ts",
 	"packages/kernel/src/random.ts",
 ];
 

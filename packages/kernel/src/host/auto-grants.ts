@@ -53,6 +53,13 @@ export function resolveGrants(story: CoreStory, tools: ToolCatalog, names: Names
 	}
 	const derived = deriveGrants(story, tools, names);
 	const tweaks = story.grantTweaks ?? {};
+	// A dropped or set tool may never reach the grant check, so a typo would keep or lose a tool silently (`add` lands in the grants and is checked there).
+	for (const [name, tweak] of Object.entries(tweaks)) {
+		for (const field of ["set", "drop"] as const) {
+			const unknown = (tweak?.[field] ?? []).find((tool) => !tools.has(tool));
+			if (unknown !== undefined) throw new Error(`story: grantTweaks.${name}.${field} names tool "${unknown}", which no loaded mechanic defines`);
+		}
+	}
 	const keys = [...new Set([...Object.keys(derived), ...Object.keys(tweaks)])];
 	return Object.fromEntries(keys.map((name) => [name, tweaked(derived[name], tweaks[name])]));
 }

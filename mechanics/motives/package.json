@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The motives mechanic: the private core motives dealt to residents.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

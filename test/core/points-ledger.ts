@@ -1,5 +1,7 @@
 /**
- * Double-entry points ledger.
+ * Double-entry points ledger: the old kernel's `PointsLedger`, kept as the reference the ledger
+ * differential and the old-side tests book against (moved out of the kernel at step 18, F2 M4; the
+ * mechanic `@swarmtales/mechanic-ledger` keeps the book that runs).
  *
  * Invariant: transfers between accounts are zero-sum. Rewards and penalties
  * flow through {@link SYSTEM_ACCOUNT}, which may go negative. The sum of all

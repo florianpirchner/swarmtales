@@ -2,7 +2,7 @@
  * The legacy event adapter (wave 2b): the new core's envelope stays the truth inside the run, and
  * this log sink writes today's flat events (`{ type, ...fields, seq, minute }`) from it, byte for
  * byte, so the golden runs and every reader of `events.jsonl` (digest, reporter, novelist) keep
- * working while `World` is carved into mechanics.
+ * working now that `World` is carved into mechanics and the engine is gone (step 18).
  *
  * - An event of a mechanic or of the app is flattened: its payload's fields after `type`.
  * - A core event is dropped unless a translator turns it into legacy events: `pass_started` gives

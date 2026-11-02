@@ -19,6 +19,7 @@ export const CORE_PROMPTS = {
 	/** The core's own tools and their replies (docs/design/overseer-api.md §3, §5). */
 	"core/tools/amendDecision": [],
 	"core/replies/decision-amended": ["decision", "proposal"],
+	"core/replies/decision-outlasts-run": ["decision", "deadline", "last"],
 	"core/tools/instruct": [],
 	"core/tools/pause": [],
 	"core/tools/resume": [],

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { competitorIds, isSystemAuthor, VirtualClock } from "@swarmtales/kernel";
+import { competitorIds } from "@swarmtales/kernel";
+import { isSystemAuthor } from "@swarmtales/sdk";
 
-describe("ids and clock", () => {
+describe("ids", () => {
 	it("creates neutral competitor IDs", () => {
 		expect(competitorIds(3)).toEqual(["A01", "A02", "A03"]);
 		expect(competitorIds(120)[119]).toBe("A120");
@@ -12,13 +13,5 @@ describe("ids and clock", () => {
 		expect(isSystemAuthor("CITY")).toBe(true);
 		expect(isSystemAuthor("COURIER")).toBe(true);
 		expect(isSystemAuthor("ORION")).toBe(false);
-	});
-
-	it("advances one virtual minute per call", () => {
-		const clock = new VirtualClock(3);
-		expect(clock.minute).toBe(0);
-		expect(clock.advance()).toBe(1);
-		expect(clock.remainingMinutes).toBe(2);
-		expect(() => new VirtualClock(0)).toThrow(RangeError);
 	});
 });

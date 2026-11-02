@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "Providers, model settings, model sources and the scripted offline source",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

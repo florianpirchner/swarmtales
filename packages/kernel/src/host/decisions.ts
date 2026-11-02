@@ -9,7 +9,8 @@
  * proposal that stands: the human's last amendment, else the last of any other holder, else the
  * original. Open decisions are part of the snapshot. A decision still open when the run ends
  * settles at `runEnded` with its original proposal (step 18 decision): no amendment stands, since
- * its holders' window did not close.
+ * its holders' window did not close; an amendment of a decision whose deadline lies after the run's
+ * last minute is kept, and its reply says that it cannot stand.
  */
 import type { TSchema } from "typebox";
 import { Check, Clone, Errors, Parse } from "typebox/value";
@@ -84,8 +85,10 @@ export interface GateParts {
 	/** Runs a mechanic's commit (its instance checks the proposal against the kind's schema). */
 	readonly commit: (owner: string, commit: string, proposal: unknown, settled: Settlement) => void;
 	readonly reply: (code: string) => string | undefined;
-	/** The amended reply, or undefined without a prompt lookup. */
-	readonly amended: (decision: number, proposal: string) => string | undefined;
+	/** A core reply prompt (`core/replies/decision-amended`, `...-outlasts-run`) rendered, or undefined without a prompt lookup. */
+	readonly render: (id: string, variables: Readonly<Record<string, string | number>>) => string | undefined;
+	/** The run's length: a deadline at or after it never comes, so the decision settles at the run's end. */
+	readonly minutes: number;
 }
 
 function isSchema(value: unknown): value is TSchema {
@@ -262,8 +265,14 @@ export class DecisionGate implements DecisionsView {
 		const seq = bus.frame().cause ?? bus.lastSeq;
 		decision.amendments.push({ by, seq, proposal: Clone(proposal), reason });
 		if (by === "human") bus.emit("core", "human_amend", { decision: decision.id, proposal: Clone(proposal), reason });
+		if (decision.deadline >= this.#parts.minutes) {
+			// The amendment is kept and listed, but cannot stand: the run's end settles with the original (F2 m5).
+			const last = this.#parts.minutes - 1;
+			const plain = `amended decision ${String(decision.id)}, but its deadline (minute ${String(decision.deadline)}) lies after the run's last minute (${String(last)}): the original proposal settles at the run's end`;
+			return { ok: true, reply: this.#parts.render("core/replies/decision-outlasts-run", { decision: decision.id, deadline: decision.deadline, last }) ?? plain };
+		}
 		const shown = JSON.stringify(proposalOf(decision));
-		return { ok: true, reply: this.#parts.amended(decision.id, shown) ?? `amended decision ${String(decision.id)}: ${shown}` };
+		return { ok: true, reply: this.#parts.render("core/replies/decision-amended", { decision: decision.id, proposal: shown }) ?? `amended decision ${String(decision.id)}: ${shown}` };
 	}
 
 	#refusal(code: string): Refusal {
