@@ -627,18 +627,22 @@ class CoreHost implements Host {
 	}
 
 	/**
-	 * The run ends after a minute: the `runEnded` phases, then the calls they staged (a director's
-	 * last actions), then `run_ended`. What listeners of `run_ended` stage never runs.
+	 * The run ends after a minute: each `runEnded` phase in its order, each followed by the calls it
+	 * staged (a director's last actions), then `run_ended`. The calls run before the next phase, so
+	 * what a phase stages lands before what later phases write, as the old engine ordered its end of
+	 * the run (step 18, team D2). What listeners of `run_ended` stage never runs.
 	 */
 	async #finish(end: RunEnd, detail?: string): Promise<void> {
 		if (this.#gate.pending().length > 0) {
 			this.#gate.settleAll();
 			await this.#gateway.settle();
 		}
-		this.#phases((phases) => phases.runEnded, (run) => {
-			run(end.reason, detail);
-		});
-		await this.#gateway.settle();
+		for (const phase of orderedPhases(this.#placed, (phases) => phases.runEnded)) {
+			this.#bus.run({ actor: "host" }, () => {
+				phase.run(end.reason, detail);
+			});
+			await this.#gateway.settle();
+		}
 		await this.#slot("runEnded", end.minute);
 		this.#close(end);
 	}

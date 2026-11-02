@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LOCKED_REPLY, PetitionBook, resolveThreshold } from "@swarmtales/engine";
 import { act as directorAct, at, every, onPetitionResolved, when } from "@swarmtales/sdk";
-import { createFixture } from "../helpers/fixture.ts";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 import { castActive, petitionStatus } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
@@ -194,17 +193,16 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 				onPetitionResolved("last-call", "failed", [directorAct.post("COURIER", "Too late.")], { id: "late" }),
 			],
 		});
-		// The full run: the deadline equals the last minute, no startMinute runs at it.
-		// Kept on the old fixture (step 18, open item): the host writes the end-of-run
-		// `petition_resolved` and its posts AFTER `run_end`, the old engine before it.
-		const full = createFixture({ story, minutes: 6, script: () => ({ A01: idle(6), A02: idle(6) }) });
+		// The full run: the deadline equals the last minute, no startMinute runs at it. The petition
+		// resolves, with its posts, before `run_end`, as the old engine wrote it (step 18, team D2).
+		const full = createHostFixture({ story, minutes: 6, script: () => ({ A01: idle(6), A02: idle(6) }) });
 		await full.run();
 		expect(full.events("petition_resolved")).toMatchObject([{ petition: "last-call", outcome: "failed", minute: 6 }]);
 		expect(full.events("board_post").slice(-2).map((post) => [post.author, post.text])).toEqual([
 			["ORION", "Still open."],
 			["COURIER", "Too late."],
 		]);
-		expect(full.world.petitions.status("last-call")).toBe("failed");
+		expect(petitionStatus(full.host, "last-call")).toBe("failed");
 		const runEnd = full.log.events.findIndex((event) => event.type === "run_end");
 		const resolved = full.log.events.findIndex((event) => event.type === "petition_resolved");
 		expect(resolved).toBeGreaterThan(-1);

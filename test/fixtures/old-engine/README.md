@@ -33,4 +33,4 @@ that asks something else.
 | File | Test | Recorded on | What a scenario holds |
 | --- | --- | --- | --- |
 | `motives-differential.json` | `test/mechanics/motives/differential.test.ts` | `fa9ba71` (the test's own `playOld`, unchanged) | the `core_dealt` lines (`ownedBy(log, ["motives"])`) and the snapshot's `cores` after one minute of City of Keys, per `<agents>-<seed>` (`6-5-cast`: three named figures) |
-| `mechanics-*.json.gz`, `overseers-*.json.gz`, ... | the test file the name gives | the commit that added the file | see above |
+| `mechanics-*.json.gz`, `overseers-*.json.gz`, `cli-*.json.gz`, `roles-*.json.gz` | the test file the name gives | the commit that added the file | see above |

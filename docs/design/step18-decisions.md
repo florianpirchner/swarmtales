@@ -220,12 +220,41 @@ not used. What remains is listed in `rewrite-status.md` ("Step 18 items 7 and 8:
 7. Tests kept on the old fixture, each with a comment in the test: two tests in `test/engine/arena.test.ts` (they write
    into the `World` before the run), one in `test/engine/director-society.test.ts` (it drives the `Director` by hand),
    and the full run of one test in `test/engine/petitions.test.ts` (see 8).
-8. End-of-run petitions after `run_end`: **To build** (new, close to S1-7). The host resolves a petition that is still
+8. End-of-run petitions after `run_end`: **Built** by team D2 (see there; new, close to S1-7). The host resolves a petition that is still
    open at the end after `run_end`; the old engine resolved it before.
 9. The arena budget test (`test/engine/arena.test.ts`): the scripted provider reports no cost, so the test records a
    second `usage` app event of 0.3 USD per reply through `host.record`. The budget reads only `usage`, which is the
    path a real model takes.
 10. `test/report/drama.test.ts` no longer calls `closeActs()` itself, because the host's `runEnded` closes the acts.
+
+## Team D2 (step 18 items 7 and 8, continued, 2026-11-02)
+
+No test was deleted, and no assertion was weakened or dropped. The golden files are unchanged, and `GOLDEN_UPDATE` was
+not used. What remains is listed in `rewrite-status.md` ("Step 18 items 7 and 8: state after team D2").
+
+1. The old side of every differential that compares old and new answers is **recorded** (`test/fixtures/old-engine/`,
+   gzipped, one scenario per line; the README there describes the format). Each test keeps its old code as a "live"
+   function that runs only with `OLD_ENGINE_RECORD=1` (`test/helpers/old-engine-recorder.ts`); without it the test reads
+   the recording, and the fingerprint of the inputs (plan table, story, overrides, snapshot digest) must match.
+   - Whole old runs or values: `oldRun` / `oldRunAsync` (the value, or the error the old code threw).
+   - Old worlds read after a run: `recordWorld` / `RecordedWorld` (`test/helpers/old-world.ts`), with the old method names.
+   - Tests that drive the old world step by step beside the host (the T3 twin, the goals differential): `OldTrace`, every
+     answer with the question it answered, in order; a replay that asks something else fails.
+   - A fingerprint leaves out what the faux model helpers draw fresh on every call (tool call ids, timestamps):
+     `stableScript` in `test/cli/host-runner-differential.test.ts`.
+2. `test/roles/gamemaker-overseer/{differential.test.ts,shadow.ts}` is **not recorded**: its new side is
+   `worldReport(world)`, the overseer reading the live old `World`, so it cannot run without the engine. When the
+   engine goes, it is deleted with this coverage (to be confirmed by the deleting commit): the three golden runs' looks
+   byte for byte on the host-backed report (`test/cli/host-gamemaker-golden.test.ts`), the overseer's notes and budget
+   line against the goldens (`test/roles/gamemaker-overseer/host.test.ts`), and the holdout tribunal of Whispers with its
+   tribunal notes (`test/cli/host-gamemaker-differential.test.ts`, third case). The slice round trip of its third case
+   ("a resumed overseer makes the very look the running one makes") has no host counterpart yet and must be ported
+   before the deletion.
+3. End-of-run petitions after `run_end` (D1 item 8): **Built**, the old order is the reference. The kernel's `#finish`
+   now settles the calls each `runEnded` phase stages before the next phase runs, so `closePetitions`' resolutions,
+   their board posts and the director's `onFail` / `onPetitionResolved` answers come before the treasuries settle and
+   before `run_end`, as in the old `Arena.run`. The goldens did not change. The full run of "fails a petition still open
+   when the run ends" in `test/engine/petitions.test.ts` is ported to the host fixture and checks the order.
 
 ## H1 (signed event log, rewrite-status item 5a)
 

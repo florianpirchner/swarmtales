@@ -21,6 +21,58 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 | 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
 
+## Step 18 items 7 and 8: state after team D2 (2026-11-02)
+
+Item 7 is still **partly done**; item 8 (the core motive rename) is **not started** and stays the last commit, after the
+engine is gone. Goldens are unchanged, `GOLDEN_UPDATE` was not used, and no test was deleted
+(`step18-decisions.md`, "Team D2"). Team D2 did D1's step 2 (record the old side) and the petitions order; steps 1 and 3
+to 6 below are open, in this order.
+
+**Done by D2:**
+
+- **The old side of the differentials is recorded** (D1's list, item 2 below, except the shadow test): the
+  `test/mechanics/**` differentials and twins (arena, channels, script, seal, standoff-tribunal, t1, t3, tribunal, goals,
+  marks, exile, standoff, holdout), `test/overseers` (judge), `test/cli/host-{runner,residents,gamemaker}-differential`,
+  `host-resume`, `host-weaver`, `host-direction`, `host-gamemaker-golden`, `test/cli/support/report-replay.ts` and
+  `test/roles/gamemaker-overseer/host.test.ts`. The recordings are `test/fixtures/old-engine/*.json.gz` (README there).
+  Each test still holds its old code as a live function, run only with `OLD_ENGINE_RECORD=1` through
+  `test/helpers/old-engine-recorder.ts`; the replay (`test/helpers/old-engine.ts`, `old-world.ts`) needs no engine.
+- **Petitions at the end of the run** come before `run_end` again (the kernel settles each `runEnded` phase's staged
+  calls before the next phase). `test/engine/petitions.test.ts` runs fully on the host fixture.
+
+**What remains, in this order:**
+
+1. **Port the remaining users of the old fixture or `composeRun`** to `test/helpers/host-fixture.ts`, keeping every
+   assertion (D1's list below, unchanged except petitions): `test/engine/{direction,factors,marks,names,receipts,seal,
+   standoff-world,whispers,world}`, `test/stories/cityofkeys-tribunal`, `test/tools/{blame,gateway}`,
+   `test/gamemaker/{director,gamemaker,holdout,privacy,situation}`, `test/interpret/interpreter`, `test/snapshot/*`,
+   `test/golden/scripts.ts` (its `World`-typed script helpers feed the recorded old runs of report-replay and the
+   overseer tests: they become dead code with the engine), and the two kept tests in `test/engine/arena.test.ts` and the
+   one in `test/engine/director-society.test.ts`. Find them with
+   `grep -rlE "@swarmtales/engine|compose\.ts|helpers/fixture" test`.
+2. **One differential is not recorded:** `test/roles/gamemaker-overseer/{differential.test.ts,shadow.ts}` (the overseer
+   reads the live old `World` through `worldReport`). Port the slice round trip of its third case to a host test, then
+   delete it with the coverage named in `step18-decisions.md` (Team D2, item 2).
+3. **Unit tests of the old engine modules** (`test/engine/{board,scheduler,mailbox,groups,teams,goals,standoff,motives,
+   holdout,tribunal,puzzles/*,direction}` and the old-module parts of the files above): delete each only after naming
+   its covering mechanic test in `step18-decisions.md`; port any case that nothing covers.
+4. **Move what the apps, the SDK and the tests still import from the engine:** apps/cli (`compose.ts`,
+   `host/{report,residents,run}.ts`, `oracle.ts`, `run-options.ts`, `validate.ts`), packages/sdk (`index.ts`,
+   `validate.ts`), packages/roles (`agents/runner.ts`, `gamemaker/*`, `interpret/{interpreter,weaver}.ts`,
+   `overseer/gamemaker.ts`), and the pure helpers tests use: `storyToolNames`, `LOCKED_REPLY`, `MarksBook`
+   (`test/mechanics/progression/standins.ts`), `ReceiptBook`, `describeReceipt`, `refillText` (the T3 twin's receipts
+   stand-in), `exileTarget`, `DIRECTION_LEVELS`, `EventBus` (`test/log/*`, `test/agents/*`, `test/overseers/harness.ts`),
+   `BoundTool`, `DEFAULT_LIMITS` (import it from `run-options.ts`), `resolveBlockSize` / `effectiveRun` (`test/cli/args`).
+5. **Delete** the old roles, `apps/cli/src/compose.ts`, `test/helpers/fixture.ts`, `packages/engine` (its
+   `check-packages` row, tsconfig references), and with them `test/helpers/old-engine-recorder.ts` and every test's
+   live old function (`playOldLive`, `oldSideLive`, `recordOldLive`, `oldSystemPromptLive`, the `RECORDING` branches
+   of the twins): the tests then call `replayOld`, `recordedOld` and a replay-only `OldTrace`. Keep
+   `LegacyWorldSnapshotSchema` (chronicle) and `RecordedWorld`. Update `docs/ARCHITECTURE.md` and
+   `docs/HOW-IT-WORKS.md` where they still describe the engine.
+6. **Item 8, the core motive rename** (`rename-core-motive.md`): a separate last commit, `GOLDEN_UPDATE=1` once, a golden
+   diff of only the rename; the 14 real run logs and the legacy snapshots must still convert. Recordings in
+   `test/fixtures/old-engine/` hold old names (`core_dealt`, `cores`) and stay as recorded; the replaying tests map them.
+
 ## Step 18 items 7 and 8: state after team D1 (2026-11-02)
 
 Item 7 is **partly done**, item 8 (the core motive rename) is **not started**: it stays the last commit, after the engine
