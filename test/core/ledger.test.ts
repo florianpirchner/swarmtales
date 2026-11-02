@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LedgerError, PointsLedger, SYSTEM_ACCOUNT, type LedgerEntry } from "@swarmtales/kernel";
+import { LedgerError, PointsLedger, SYSTEM_ACCOUNT, type LedgerEntry } from "./points-ledger.ts";
 
 function ledgerWith(...accounts: readonly string[]): PointsLedger {
 	const ledger = new PointsLedger();

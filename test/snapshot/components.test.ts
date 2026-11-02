@@ -1,7 +1,7 @@
 /**
  * Snapshot and restore of every serialized component (SPEC 17): a restored
  * copy reports the same state and keeps behaving like the original. Since
- * step 18 the components are the kernel's and the mechanics' (`PointsLedger`,
+ * step 18 the components are the mechanics' and the old `PointsLedger` (test/core),
  * the channels' `Board`, `Mailbox` and `GroupRegistry`, the `PetitionBook`,
  * the `CastRegistry`), and the world, the director and the contexts are
  * checked through the host's run file and a resumed run.
@@ -9,7 +9,7 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { PointsLedger, SYSTEM_ACCOUNT, VirtualClock } from "@swarmtales/kernel";
+import { PointsLedger, SYSTEM_ACCOUNT } from "../core/points-ledger.ts";
 import { Board, GroupRegistry, type GroupResult, Mailbox, MessageNumbers } from "@swarmtales/mechanic-channels";
 import { CastRegistry } from "@swarmtales/mechanic-cast";
 import { PetitionBook } from "@swarmtales/mechanic-petitions";
@@ -149,13 +149,6 @@ describe("snapshot: core and mechanic components", () => {
 		expect(restored.unreadCount("G1", "A02")).toBe(1);
 		expect(value(restored.create("A03", "Other")).id).toBe("G2");
 		expect(value(restored.post("G1", "A02", "mine", 1)).seq).toBe(3);
-	});
-
-	it("clock: a resumed run starts at its snapshot's minute", () => {
-		const clock = new VirtualClock(10, 6);
-		expect(clock.minute).toBe(6);
-		expect(clock.advance()).toBe(7);
-		expect(() => new VirtualClock(10, -1)).toThrow(RangeError);
 	});
 });
 

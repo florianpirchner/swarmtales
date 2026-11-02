@@ -5,7 +5,7 @@
  * order, the events, the receipt notice and the snapshot).
  */
 import { describe, expect, it } from "vitest";
-import { PointsLedger, LedgerError } from "@swarmtales/kernel";
+import { PointsLedger, LedgerError } from "../../core/points-ledger.ts";
 import { defineCoreStory } from "@swarmtales/kernel";
 import { book, ledger, LedgerError as NewLedgerError, restored, SYSTEM_ACCOUNT, type LedgerState } from "@swarmtales/mechanic-ledger";
 import { receipts } from "@swarmtales/mechanic-receipts";

@@ -26,9 +26,6 @@ const LEGACY = [
 	"packages/contracts/src/tool-names.ts",
 	"packages/contracts/src/turn.ts",
 	"packages/kernel/src/counts.ts",
-	"packages/kernel/src/ids.ts",
-	"packages/kernel/src/index.ts",
-	"packages/kernel/src/ledger.ts",
 	"packages/kernel/src/random.ts",
 ];
 

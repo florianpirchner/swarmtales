@@ -2,7 +2,7 @@
 	"name": "@swarmtales/kernel",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Ids, seeded randomness, virtual clock, points ledger, result helpers and text templates",
+	"description": "The host (mechanics, overseers, decisions, the human hand) with ids, seeded randomness, counts, result helpers and text templates",
 	"type": "module",
 	"license": "Apache-2.0",
 	"sideEffects": false,

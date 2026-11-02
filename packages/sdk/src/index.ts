@@ -8,3 +8,4 @@ export * from "./cast/figures.ts";
 export * from "@swarmtales/contracts";
 export { placeholdersOf, renderTemplate, resolveCount, TemplateError, unknownPlaceholders, type CheckedTemplate, type PlaceholdersOf } from "@swarmtales/kernel";
 export { ladderSteps, ladderText, penaltyAt } from "./rules.ts";
+export { isSystemAuthor, SYSTEM_AUTHORS } from "./authors.ts";

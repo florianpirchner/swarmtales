@@ -14,7 +14,7 @@ import type { RecordedTrace } from "../../helpers/old-engine.ts";
 import { HeldPiece } from "../../helpers/old-world.ts";
 import { describeReceipt, nextId, partiesOf, receiptsOf, type Receipt } from "@swarmtales/mechanic-receipts";
 import { defineMechanic } from "@swarmtales/kernel";
-import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
+import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "../../core/points-ledger.ts";
 import { render } from "@swarmtales/prompts";
 import { CastExtrasApi, ChannelsApi, ChannelsEvents, MotivesApi, ExileApi, HOOK_ORDER, LedgerApi, LedgerEvents, MarksApi, NamesApi, ReceiptsApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 

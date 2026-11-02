@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LedgerError, PointsLedger } from "@swarmtales/kernel";
+import { LedgerError, PointsLedger } from "../core/points-ledger.ts";
 import { groupAccountId, GroupRegistry, MAX_FOUNDED_GROUPS, MessageNumbers, type GroupResult } from "@swarmtales/mechanic-channels";
 
 /**

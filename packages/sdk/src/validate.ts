@@ -4,7 +4,8 @@
  * Run by `pnpm validate` and at engine start-up. Every issue names the path
  * of the offending field so a story author can fix it without reading code.
  */
-import { assertNever, competitorIds, isSystemAuthor, placeholdersOf, SYSTEM_AUTHORS, unknownPlaceholders } from "@swarmtales/kernel";
+import { assertNever, competitorIds, placeholdersOf, unknownPlaceholders } from "@swarmtales/kernel";
+import { isSystemAuthor, SYSTEM_AUTHORS } from "./authors.ts";
 import {
 	type Action,
 	ADDITIVE_PLACEHOLDERS,
