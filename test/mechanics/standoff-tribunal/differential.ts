@@ -7,10 +7,8 @@
  * replies, every resident's status part each minute and the DM cap exemptions.
  */
 import { Type, type Static } from "typebox";
-import { Parse } from "typebox/value";
 import { replayOld } from "../../helpers/old-engine.ts";
-import { renderTemplate, rngFor } from "@swarmtales/kernel";
-import { render, text } from "@swarmtales/prompts";
+import { rngFor } from "@swarmtales/kernel";
 import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
 import { StandoffTribunalApi } from "@swarmtales/mechanic-shared";
 import { standoffTribunal } from "@swarmtales/mechanic-standoff-tribunal";
@@ -53,10 +51,6 @@ export interface HoldoutRecord {
 
 export const SEED = 7;
 const AUTHOR = "COURIER";
-
-function failure(result: { readonly error: string; readonly detail?: string }): string {
-	return `${result.error}: ${result.detail ?? ""}`.trim();
-}
 
 const exemptions = (scenario: Scenario, minute: number, exempt: (from: string, to: string) => boolean): readonly string[] =>
 	scenario.residents.flatMap((from) => scenario.residents.filter((to) => to !== from && exempt(from, to)).map((to) => `${String(minute)} ${from}>${to}`));

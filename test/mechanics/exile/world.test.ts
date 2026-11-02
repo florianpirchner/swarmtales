@@ -9,20 +9,15 @@
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds } from "@swarmtales/kernel";
-import { dropJustified } from "@swarmtales/testkit";
-import { legacyOwner, MemorySink } from "@swarmtales/chronicle";
-import { EventBus, lastWill, payRansom, World } from "@swarmtales/engine";
-import { render } from "@swarmtales/prompts";
-import { describeSituation, SecretGuard } from "@swarmtales/roles";
 import type { AnyStory, EventEnvelope, Host } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
 import { exile } from "@swarmtales/mechanic-exile";
 import { standoff } from "@swarmtales/mechanic-standoff";
 import { tribunal } from "@swarmtales/mechanic-tribunal";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
-import { renderSection, sectionLines, sectionOfOld } from "../tribunal/support/section.ts";
+import { renderSection } from "../tribunal/support/section.ts";
 import { standIns, TestCity } from "./support/city.ts";
-import { oldRun, oldRunAsync } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { HeldPiece } from "../../helpers/old-world.ts";
 import { Type, type Static } from "typebox";
 import { runProbe, startHost } from "./support/host.ts";
@@ -43,73 +38,6 @@ interface Call {
 	readonly params: Record<string, unknown>;
 }
 
-interface Mark {
-	readonly at: number;
-	/** The log length after the call: what the old goals or seal wrote in between is theirs. */
-	end: number;
-	readonly line: string;
-}
-
-function oldCity(extra = 0) {
-	let minute = 0;
-	const log = new MemorySink();
-	const bus = new EventBus([log], () => minute);
-	const world = new World({ story: STORY, competitors: IDS, seed: 7, minutes: 60, bus, minute: () => minute, startLevel: 8 });
-	// The old world's calls into goals and the seal, at their place in the log (the new side's stand-ins record the same calls).
-	const marks: Mark[] = [];
-	const mark = (line: string, call: () => void): void => {
-		const entry: Mark = { at: log.events.length, end: log.events.length, line };
-		marks.push(entry);
-		call();
-		entry.end = log.events.length;
-	};
-	const goals = world.goals;
-	const seal = world.seal;
-	if (goals === undefined || seal === undefined) throw new Error("the City of Keys has goals and a seal");
-	const goalExiled = goals.onExiled.bind(goals);
-	const goalHeir = goals.noteHeir.bind(goals);
-	const sealExiled = seal.onExiled.bind(seal);
-	goals.onExiled = (agent) => {
-		mark(`goals.onExiled ${JSON.stringify(agent)}`, () => {
-			goalExiled(agent);
-		});
-	};
-	goals.noteHeir = (heir) => {
-		mark(`goals.noteHeir ${JSON.stringify(heir)}`, () => {
-			goalHeir(heir);
-		});
-	};
-	seal.onExiled = (agent) => {
-		mark(`seal.onExiled ${JSON.stringify(agent)}`, () => {
-			sealExiled(agent);
-		});
-	};
-	const until = (last: number): void => {
-		for (; minute <= last; minute++) world.startMinute(minute);
-		minute = last;
-	};
-	until(24);
-	const gate = world.tribunal?.gates()[0];
-	if (gate === undefined) throw new Error("nobody at the gate");
-	if (extra !== 0) world.adjustPoints(gate.agent, extra, "test");
-	return { world, log, marks, until, gate, from: log.events.length };
-}
-
-async function oldReply(world: World, call: Call): Promise<string> {
-	if (call.tool === "ultimatum") {
-		const { a, b, minutes } = call.params;
-		// The old gamemaker's tool (packages/roles gamemaker.ts #ultimatumTool) on the old World.
-		const given = world.issueUltimatum(String(a), String(b), Number(minutes), AUTHOR);
-		return given.ok
-			? render("gamemaker/replies/ultimatum-given", { number: given.value.number, between: given.value.between.join(" and "), until: given.value.until, penalty: given.value.penalty })
-			: `${given.error}: ${given.detail ?? ""}`.trim();
-	}
-	const tool = call.tool === "lastWill" ? lastWill : payRansom;
-	const result = await tool.bind({ self: call.agent, world }).execute("t", call.params);
-	const first = result.content[0];
-	return first?.type === "text" ? first.text : "";
-}
-
 async function newReply(host: Host, call: Call): Promise<string> {
 	const outcome = await host.call(call.tool === "ultimatum" ? "gamemaker" : `resident:${call.agent}`, call.tool, call.params);
 	return outcome.ok ? outcome.reply : outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;
@@ -126,20 +54,9 @@ const OldCityRecord = Type.Object({
 });
 type OldCityRecord = Static<typeof OldCityRecord>;
 
-function cityRecordOf(old: ReturnType<typeof oldCity>): OldCityRecord {
-	const { world, gate } = old;
-	return {
-		gate: { agent: gate.agent, until: gate.until, ransomable: gate.ransomable, price: gate.price, selfPrice: gate.selfPrice },
-		balances: Object.fromEntries(IDS.map((id) => [id, world.ledger.balance(id)])),
-		levels: Object.fromEntries(IDS.map((id) => [id, world.levelOf(id)])),
-		held: Object.fromEntries(IDS.map((id) => [id, world.heldPieces(id).map((piece) => ({ ...piece, needers: [...piece.needers] }))])),
-		passed: Object.fromEntries(IDS.map((id) => [id, [8, 9, 10].filter((level) => world.hasPassed(id, level))])),
-	};
-}
-
 /** The old city at the gate (minute 24, `extra` points to the resident there), as it was recorded once (step 18, item 7b; `test/fixtures/old-engine/`). */
 function oldGateCity(extra = 0): OldCityRecord {
-	return oldRun({ extra }, OldCityRecord, () => cityRecordOf(oldCity(extra)));
+	return replayOld({ extra }, OldCityRecord);
 }
 
 /** The new city as the old one stands at the gate: points, levels, held pieces and passes copied over, the real standoff. */
@@ -188,38 +105,6 @@ function eventLine(type: string, fields: Readonly<Record<string, unknown>>): str
 
 const EVENTS = new Set(["exiled", "last_will", "ransom_paid", "ransomed", "factor_burned", "level_contracted", "piece_kept", "piece_given", "ultimatum_resolved"]);
 
-function oldLine(event: Readonly<Record<string, unknown>>): string | undefined {
-	const type = String(event.type);
-	if (type === "board_post") return `post ${JSON.stringify(event.text)}`;
-	if (type === "notice") return `notice ${JSON.stringify({ agent: event.to, text: event.text })}`;
-	if (type === "ledger_entry" && event.credit === "SYSTEM_MINT_BURN") return `burn ${JSON.stringify({ agent: event.debit, amount: event.amount, reason: event.reason })}`;
-	if (type === "ledger_entry" && event.debit === "SYSTEM_MINT_BURN") return `mint ${JSON.stringify({ agent: event.credit, amount: event.amount, reason: event.reason })}`;
-	if (type === "ledger_entry") return `move ${JSON.stringify({ from: event.debit, to: event.credit, amount: event.amount, reason: event.reason })}`;
-	if (EVENTS.has(type)) return eventLine(type, event);
-	// The goals' and the seal's own lines (T3, T4b): the calls into them are compared as marks.
-	const owner = legacyOwner(type);
-	return owner === "goals" || owner === "seal" ? `${owner} ${type}` : undefined;
-}
-
-/** The old log from `from` on, with the marks at their place: one merged list. */
-function oldLines(old: ReturnType<typeof oldCity>): readonly string[] {
-	const lines: string[] = [];
-	const marksAt = (at: number) => old.marks.filter((entry) => entry.at === at && at >= old.from).map((entry) => entry.line);
-	const inside = (index: number) => old.marks.some((entry) => entry.at <= index && index < entry.end);
-	old.log.events.forEach((event, index) => {
-		lines.push(...marksAt(index));
-		if (index < old.from) return;
-		const line = oldLine(event);
-		if (line !== undefined) lines.push(inside(index) ? `inside ${line}` : line);
-	});
-	lines.push(...marksAt(old.log.events.length));
-	const theirs = (line: string) => line.startsWith("goals ") || line.startsWith("seal ") || line.startsWith("inside ");
-	// A scenario that never closes a gate writes none of them.
-	return lines.some(theirs)
-		? dropJustified(lines, theirs, "the goals' and the seal's own lines and what their onExiled and noteHeir write (their mechanics, T3 and T4b): the calls into them are compared").kept
-		: lines;
-}
-
 function record(value: unknown): Readonly<Record<string, unknown>> {
 	return typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {};
 }
@@ -260,14 +145,7 @@ const OldCompared = Type.Object({ city: OldCityRecord, replies: Type.Array(Type.
 
 /** The old side of `compare`, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 async function oldCompared(calls: readonly Call[], options: { readonly close?: boolean; readonly extra?: number }) {
-	return oldRunAsync({ calls, options }, OldCompared, async () => {
-		const old = oldCity(options.extra ?? 0);
-		const city = cityRecordOf(old);
-		const replies: string[] = [];
-		for (const call of calls) replies.push(await oldReply(old.world, resolved(call, old.gate.agent)));
-		if (options.close !== false) old.until(29);
-		return { city, replies, lines: oldLines(old) };
-	});
+	return Promise.resolve(replayOld({ calls, options }, OldCompared));
 }
 
 async function compare(calls: readonly Call[], options: { readonly close?: boolean; readonly extra?: number } = {}) {
@@ -383,15 +261,7 @@ describe("exile against the old World (differential, one merged list)", () => {
 	it("gives the gamemaker's tribunal section of the old describeSituation from the section data (the renderer of the differential)", () => {
 		const minutes = [24, 25, 27, 29, 30, 34, 36, 40];
 		// The old gamemaker's section and the old tribunal's data at each minute, recorded once (step 18, item 7b).
-		const sections = oldRun({ minutes }, Type.Array(Type.Object({ want: Type.Array(Type.String()), section: Type.Unknown() })), () => {
-			const old = oldCity();
-			const situation = (): string =>
-				describeSituation({ world: old.world, round: old.world.minute, tracks: new Map(), recent: [], notes: [], guard: new SecretGuard([]), budget: "" });
-			return minutes.map((minute) => {
-				old.until(minute);
-				return { want: sectionLines(situation()), section: sectionOfOld(old.world.tribunal) };
-			});
-		});
+		const sections = replayOld({ minutes }, Type.Array(Type.Object({ want: Type.Array(Type.String()), section: Type.Unknown() })));
 		expect(sections).toHaveLength(minutes.length);
 		const seen: string[] = [];
 		for (const { want, section } of sections) {

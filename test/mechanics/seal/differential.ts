@@ -11,9 +11,7 @@
  * against the old `World` itself.
  */
 import { Type, type Static } from "typebox";
-import { Parse } from "typebox/value";
 import { replayOld } from "../../helpers/old-engine.ts";
-import { render } from "@swarmtales/prompts";
 import { rngFor } from "@swarmtales/kernel";
 import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
