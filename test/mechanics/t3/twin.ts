@@ -1,13 +1,12 @@
 /**
- * The twin: the old engine's `World` and the new host with puzzles, progression and goals, driven by
- * the same calls and the same minutes (docs/design/carve-round2-T3.md, "differential tests"). The
+ * The twin: the old engine's `World` (as it was recorded once before the engine went, step 18, item
+ * 7b) and the new host with puzzles, progression and goals, driven by the same calls and the same minutes (docs/design/carve-round2-T3.md, "differential tests"). The
  * mechanics of the other teams are the stand-ins of `twin-standins.ts`. After any step the replies,
  * the event lines of the types the twin implements (in log order) and the state the snapshot keeps
  * can be compared.
  */
 import { expect } from "vitest";
-import { EventBus, activeTools, getProblem, getStatus, listAgents, submitSolution, World, type ArenaTool } from "@swarmtales/engine";
-import { convertLegacySnapshot, legacyOwner, legacySink, parseSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, legacyOwner, legacySink, parseSnapshot } from "@swarmtales/chronicle";
 import { TOOL_NAMES, type AnyStory, type Host, type MechanicUse, type ToolName, type TurnTaker } from "@swarmtales/contracts";
 import { createHost, defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
 import { goals } from "@swarmtales/mechanic-goals";
@@ -20,7 +19,7 @@ import { goldenLine, standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import { goalsOptionsOf, progressionOptions, promptLookup } from "../progression/harness.ts";
 import { puzzleOptions } from "../puzzles/harness.ts";
 import { OldWorld, twinChannels, twinCoreMotives, twinExile, twinLedger, twinMarks, twinNames, twinReceipts } from "./twin-standins.ts";
-import { OldTrace, RECORDING } from "../../helpers/old-engine-recorder.ts";
+import { RecordedTrace } from "../../helpers/old-engine.ts";
 
 export interface TwinOptions {
 	readonly story: AnyStory;
@@ -41,7 +40,6 @@ export interface TwinOptions {
 /** The mechanics the twin loads; every other slice of a resumed snapshot gets an inert stand-in. */
 const LOADED = ["ledger", "channels", "receipts", "marks", "names", "exile", "motives", "dummies", "puzzles", "progression", "goals"];
 
-const OLD_TOOLS: Readonly<Record<string, ArenaTool>> = { getStatus, activeTools, getProblem, submitSolution, listAgents };
 const T3_TOOLS: readonly string[] = ["getStatus", "activeTools", "getProblem", "submitSolution", "listAgents"];
 
 /** The event types both sides write in the twin (the mechanics of T3 and the stand-ins' own lines). */
@@ -77,7 +75,6 @@ export function dummyTools(names: readonly ToolName[]) {
 export class Twin {
 	/** The old world beside the host, as the old engine answered it (recorded once, step 18, item 7b). */
 	readonly world: OldWorld;
-	readonly #oldLog = new MemorySink();
 	readonly #oldSeen = new Map<string, readonly string[]>();
 	readonly host: Host;
 	readonly lines: LegacyLine[] = [];
@@ -94,7 +91,6 @@ export class Twin {
 		this.ids = options.ids ?? ["A01", "A02", "A03", "A04", "A05", "A06"];
 		const seed = options.seed ?? 7;
 		const minutes = options.minutes ?? 30;
-		const bus = new EventBus([this.#oldLog], () => this.#minute);
 		const saved = options.resume === undefined ? undefined : parseSnapshot(options.resume);
 		const converted = options.resume === undefined ? undefined : convertLegacySnapshot(options.resume, {}, "twin snapshot");
 		if (converted !== undefined) {
@@ -103,22 +99,9 @@ export class Twin {
 			// The old world restores at the file's minute (composeRun's clock), one before the host's next minute, where the host's `runResumed` phases run (L1).
 			this.#minute = converted.host.minute - 1;
 		}
-		const live = RECORDING
-			? new World({
-					story: withoutOtherMechanics(story),
-					competitors: this.ids,
-					seed,
-					minutes,
-					bus,
-					minute: () => this.#minute,
-					...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }),
-					...(saved === undefined ? {} : { restore: saved.world }),
-					names: false,
-				})
-			: undefined;
-		this.world = new OldWorld(new OldTrace(), live, story);
+		this.world = new OldWorld(new RecordedTrace(), story);
 		const levelTools = new Set(story.levels.flatMap((level) => level.tools));
-		const dummies = TOOL_NAMES.filter((name) => (levelTools.has(name) || name === "activeTools") && OLD_TOOLS[name] === undefined);
+		const dummies = TOOL_NAMES.filter((name) => (levelTools.has(name) || name === "activeTools") && !T3_TOOLS.includes(name));
 		const goalsOptions = goalsOptionsOf(withoutOtherMechanics(story));
 		const progressionInput = { ...progressionOptions(story), ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }) };
 		const puzzlesInput = { ...puzzleOptions(story), ...(options.holdAfter === undefined ? {} : { holdAfter: options.holdAfter }) };
@@ -165,14 +148,7 @@ export class Twin {
 		this.#minute = this.#next;
 		this.#next += 1;
 		// The old arena (`#nextMinute`) opens doors and ticks the city from the second minute on.
-		if (this.#minute > 0) {
-			const minute = this.#minute;
-			this.world.step(`minute ${String(minute)}`, (world) => {
-				world.openDoor();
-				world.startMinute(minute);
-				world.openDoor();
-			});
-		}
+		if (this.#minute > 0) this.world.step(`minute ${String(this.#minute)}`);
 		let ran = false;
 		const agent: TurnTaker = async () => {
 			if (ran) return;
@@ -190,7 +166,7 @@ export class Twin {
 	/** The same call on both sides. */
 	async call(agent: string, tool: string, args: unknown): Promise<Pair> {
 		if (!T3_TOOLS.includes(tool)) throw new Error(`the twin calls only the tools of T3, not ${tool}`);
-		const result = await this.#oldCall(agent, tool, args);
+		const result = this.#oldCall(agent, tool, args);
 		// A resumed world keeps the names its residents chose; the twin's new side has no names mechanic, so ids stand for them.
 		const old = this.ids.reduce((text, id) => {
 			const name = this.world.nameOf(id);
@@ -203,16 +179,8 @@ export class Twin {
 	}
 
 	/** The old tool's reply: its text and whether it was an error. */
-	async #oldCall(agent: string, tool: string, args: unknown): Promise<{ readonly text: string; readonly isError: boolean }> {
-		let reply: unknown;
-		if (RECORDING) {
-			const oldTool = OLD_TOOLS[tool];
-			if (oldTool === undefined) throw new Error(`no old tool ${tool}`);
-			const result = await oldTool.bind({ self: agent, world: this.world.live() }).execute("twin", args);
-			const first = result.content[0];
-			reply = { text: first?.type === "text" ? first.text : "", isError: result.isError === true };
-		}
-		return this.world.read(`call ${agent} ${tool} ${JSON.stringify(args)}`, Type.Object({ text: Type.String(), isError: Type.Boolean() }), () => reply);
+	#oldCall(agent: string, tool: string, args: unknown): { readonly text: string; readonly isError: boolean } {
+		return this.world.read(`call ${agent} ${tool} ${JSON.stringify(args)}`, Type.Object({ text: Type.String(), isError: Type.Boolean() }));
 	}
 
 	/** The same call on both sides, replies equal; returns the reply. */
@@ -228,16 +196,10 @@ export class Twin {
 	}
 
 	/** The old log's lines (as plain records) that `keep` keeps. */
-	#oldLines(label: string, keep: (line: Record<string, unknown>) => boolean, shape: (line: Record<string, unknown>) => string): readonly string[] {
+	#oldLines(label: string): readonly string[] {
 		// The trace holds only what was added since the last read of the same lines.
 		const known = this.#oldSeen.get(label) ?? [];
-		const added = this.world.read(`old log ${label} from ${String(known.length)}`, Type.Array(Type.String()), () =>
-			this.#oldLog.events
-				.map((event) => Object.fromEntries(Object.entries(event)))
-				.filter(keep)
-				.map(shape)
-				.slice(known.length),
-		);
+		const added = this.world.read(`old log ${label} from ${String(known.length)}`, Type.Array(Type.String()));
 		const lines = [...known, ...added];
 		this.#oldSeen.set(label, lines);
 		return lines;
@@ -245,7 +207,7 @@ export class Twin {
 
 	/** Both logs, reduced to the compared types and the old line shape, in log order. */
 	logs(): { readonly old: readonly string[]; readonly now: readonly string[] } {
-		const old = this.#oldLines("compared", (line) => typeof line.type === "string" && this.#compared.has(line.type), bare);
+		const old = this.#oldLines("compared");
 		const now = this.lines.filter((line) => typeof line.type === "string" && this.#compared.has(line.type));
 		return { old, now: now.map(bare) };
 	}
@@ -258,7 +220,7 @@ export class Twin {
 	/** The compared lines owned by one mechanic of T3, as golden lines. */
 	ownedLines(): { readonly old: readonly string[]; readonly now: readonly string[] } {
 		const owned = (line: LegacyLine): boolean => ["puzzles", "progression", "goals"].includes(legacyOwner(typeof line.type === "string" ? line.type : ""));
-		const old = this.#oldLines("owned", owned, (line) => goldenLine(line));
+		const old = this.#oldLines("owned");
 		return { old, now: this.lines.filter(owned).map((line) => goldenLine(line)) };
 	}
 
