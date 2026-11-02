@@ -10,7 +10,7 @@
  * (whispers-exile.test.ts has the real one).
  */
 import { describe, expect, it } from "vitest";
-import { storyToolNames } from "@swarmtales/engine";
+import { storyToolNames } from "../../helpers/old-catalog.ts";
 import { defineCoreStory } from "@swarmtales/kernel";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { whispers } from "@swarmtales/mechanic-whispers";

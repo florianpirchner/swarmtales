@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import { Type } from "typebox";
 import { createHost, defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
-import { LOCKED_REPLY } from "@swarmtales/engine";
+import { LOCKED_REPLY } from "../../helpers/host-fixture.ts";
 import type { Host } from "@swarmtales/contracts";
 import { exile } from "@swarmtales/mechanic-exile";
 import { progression } from "@swarmtales/mechanic-progression";
