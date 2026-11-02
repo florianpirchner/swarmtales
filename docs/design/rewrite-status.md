@@ -1,4 +1,4 @@
-# Rewrite status (2026-10-31) and how to continue
+# Rewrite status (2026-11-02) and how to continue
 
 Branch `claude/project-thread-b71bdz`, nothing is on `main` yet (Flo: everything lands in one pass).
 `pnpm check` is green on this branch (1509 tests; lint needs a 12 GB heap, the whole check takes about 7 minutes).
@@ -16,7 +16,48 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
 | 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) production code and, in the proof pass, strict golden gates, differential tests and legacy resume tests | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
 | 3.7 | Round-2 challengers (T1, T3, T4a, T4b); integrator's second pass: absent slices, `ctx.roles`, fact queries, old argument handling and `TOOL_LOCKED` text, lock-aware `access.open`/`isOpen`, `runResumed`, listener-mode check, ledger `open`/`has`/`idempotencyKey`, `PuzzlesApi.secrets`, shared `StandoffTribunalApi.taskLine`, `defy` owned by channels, converter copies, mutation helper | `docs/design/carve-decisions.md` (round 2), `docs/design/carve-round3-*.md`, `docs/design/challenge-round2.md` |
+| 3.9 | Step 18 waves A-C1/C2: `script`, `arena`, overseer core, scheduling, orders, human hand, `grants: "auto"`, judge, classifier, weaver and gamemaker as overseers | `docs/design/step18-requests-*.md` |
+| 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
+
+## Step 18: what remains (after integrator pass 1, 2026-11-02)
+
+`world.ts` still runs the product: `apps/cli` (`compose.ts`, `main.ts`) composes the old `World`, and `test/golden/golden.test.ts`
+records the goldens through `composeRun`. What the new host already does is proven by `test/cli/host-story-golden.test.ts`:
+on the production mapping (`hostStoryOf`) every golden line outside the app (every mechanic line, the arena's standings, the
+order) is equal for all three goldens, and the gamemaker's Tribunal section from the `tribunal.section` fact equals every golden
+look. What is missing are the **app lines** (runner, gamemaker, usage, `turn_input`'s app parts) and the CLI around them.
+In order:
+
+1. **A host-backed resident runner** in `apps/cli` (replaces `Arena` + `AgentRunner` on `World`): `host.run(turn => ...)` drives
+   the model per turn and writes the old app lines through `host.record` exactly as today: `turn_input` (the mechanics' inputs
+   plus the runner's `[tools]` notice and the figure cues of `packages/engine/src/direction.ts`, which move into the CLI),
+   `request` (open tools sorted by `TOOL_NAMES`, G1-5), `text`, `thinking`, `tool_call`, `tool_result`, `turn_error`,
+   `usage`, `agent_profile`, `souffleur_rewrite`; the residents' system prompts (`roles/agents/system-prompt.ts`, today fed by
+   `World`: names, core motive prose from `motives.prose`, goals, personas, addenda). Gate: the golden `prompts.json` and every
+   app line of the three goldens.
+2. **The host-backed gamemaker report** (C2-4): facts and renderers per owner, each gated against the golden
+   `gamemaker_turn.input` like the tribunal section (S18-8). Then the gamemaker overseer with `gamemakerRuntime` replaces the app
+   `between` gamemaker; a definition-id router for runtimes (C2-11).
+3. **Classifier, weaver, judge runtimes** in the CLI (C1-6 `usage`, C1-7 decider, C1-8 last minute, C1-9 `overseerSlice`,
+   C1-13 cursor at legacy conversion, C1-14 400 characters, C2-9 `seen` at resume).
+4. **Kernel and shared items** (decided, small): A1-1 `run_end` at the breach minute, A1-4 stop text, A1-7 breach on
+   `minute_ended`, A1-6 `hasSolved`, S1-1/2/3 shared queries, S1-5 per-slice write-back to the old snapshot shape, S1-6/S1-7
+   cast and treasury order, O2-10 loader refusal.
+5. **Switch the CLI** (`main.ts`, `compose.ts`, `oracle.ts`, lab scripts' engine imports) to `hostStoryOf` + the host runner;
+   `--figure-direction`/`--gm-direction`/defiance are already mapped in `hostStoryOf`; resume converts the legacy snapshot
+   (`convertLegacySnapshot`) and writes `run_resumed` from the CLI.
+6. **Golden proof on the new host**: `test/golden/golden.test.ts` runs the host path; byte-identical for all three goldens,
+   the 14 real run logs and the legacy snapshots still round-trip (`test/log/legacy-files.test.ts`, `test/snapshot/*`).
+7. **Delete** `world.ts` and the engine game code the mechanics replaced (`packages/engine/src/{world,arena,director,tribunal,
+   holdout,standoff,seal,...}.ts`), port the differential tests (`test/mechanics/**` compare old `World` against the mechanics:
+   they become golden-gated tests of the mechanic or are dropped with a note when a golden gate covers them), keep what the
+   apps still need (event types, `MemorySink`, sinks, `RecordedEvent` until the readers move).
+8. **Last commit: the core motive rename** (`rename-core-motive.md`, decision S18-12): `motive_dealt`, the snapshot key
+   migration, the pinned strings; `GOLDEN_UPDATE=1` once, and show that the golden diff is only the rename.
+
+Still open from the round-3 challengers (not re-checked in pass 1): the DM count in `whispers` `dutyNow.busiest`; A1-12 goals on
+resume after S18-10.
 
 ## Open, in this order
 
@@ -26,12 +67,11 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
    (`defiance = story.gamemaker !== undefined && gmDirection >= 10`; `whispererDefies` is a separate flag). Also a core decision
    already made: a resident struck by the seal mid-block must get `TOOL_LOCKED` + `LOCKED_REPLY` as in `world.ts:1439`, not
    `RESIDENT_INACTIVE` (`kernel/src/host/gateway.ts:209`).
-   **Step-18 wiring list:** `script` and `arena` do not exist yet (goldens cannot be replayed without them); the gamemaker's tool
-   list must respect locks (`host.ts:296`); map `gamemakerRoles` (`tribunal/src/view.ts:90`) and `grantsUltimatum`
-   (`standoff/src/grants.ts:15`); grant `resolvePetition` to `script`; put the Tribunal section renderer
-   (`test/mechanics/tribunal/support/section.ts`) into the repo as a gate; `--no-guards` must also drop `receipts.minRun`;
-   a story without `names` needs an off switch; resumed runs write `run_resumed` and the motive deals one minute late and
-   lose the whisperer when the file has no `whisperer_chosen` (L1, L2).
+   **Step-18 wiring list: done in integrator pass 1** (`step18-decisions.md`): `script` and `arena` exist; the overseers' tool
+   lists respect locks (C2-2); `gamemakerRoles` and `grantsUltimatum` are mapped (`hostStoryOf`); `resolvePetition` is granted
+   to `script` by `suggest`; the Tribunal section renderer is production code with a golden gate; `--no-guards` drops
+   `receipts.minRun`; names has an off switch; resume work is written at the old minute (L1) and the whisperer survives a file
+   without `whisperer_chosen` (L2); `TOOL_LOCKED` instead of `RESIDENT_INACTIVE`; the defiance mapping is `hostStoryOf`'s.
 2. **Overseers and the decision gate** (idea, Flo decided the name Overseer; API sketch still to write and to read before building): `docs/ideas/overseers-and-plugins.md`.
    Step 18 wave plan (Flo gave the go 2026-11-01): wave A (running) O1 overseer core steps 1-4, S1 `script`, A1 `arena`; wave B overseer
    scheduling, orders, human hand, testkit, `grants: auto`; wave C roles as overseers, CLI wiring, delete `world.ts`, golden compare; challengers after each wave.
