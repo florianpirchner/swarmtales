@@ -19,6 +19,7 @@ import { computeWhispererSection, WhispererSectionFact } from "./section.ts";
 
 export { whispersHead };
 export { renderWhispererSection, WhispererSectionFact, whispererSectionOf, type WhispererSection } from "./section.ts";
+export { restoreVote, type SavedVote } from "./vote.ts";
 
 /** Loads the vote an old snapshot saved, once: it needs the minute the saved run last played, which the resumed run knows from its first hook on. */
 function restoreOnce(ctx: Ctx): void {

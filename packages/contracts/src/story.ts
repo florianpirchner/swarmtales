@@ -1410,6 +1410,9 @@ export interface DirectorSupport {
 	readonly conditions: readonly Condition["kind"][];
 }
 
+/** Everything the director can execute (the script mechanic plays every primitive); moved here from the old engine (step 18, item 8). */
+export const DIRECTOR_SUPPORT: DirectorSupport = { triggers: TRIGGER_KINDS, conditions: CONDITION_KINDS, actions: ACTION_KINDS };
+
 /**
  * The direction dial (2026-10-29, Flo): how strongly a run steers what its residents do, on two
  * dials from 0 to 10, one for the residents' own prompts and one for the gamemaker. The defined

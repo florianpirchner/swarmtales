@@ -15,7 +15,7 @@ import { HOOK_ORDER, INPUT_KINDS, MarksApi, MarksChannel, ProgressionApi, STATUS
 import { activeOn, canAfford, priceOf, runWide, spend, statusOf, termsOn, type Allowance, type Book, type MarksState } from "./book.ts";
 
 /** The allowance's rules as functions over the state, for tests of the rules alone. */
-export { canAfford, priceOf, spend, statusOf, termsOn, type Book, type MarksState, type Rules as MarksBookRules } from "./book.ts";
+export { canAfford, priceOf, runWide, spend, statusOf, termsOn, type Book, type MarksState, type Rules as MarksBookRules } from "./book.ts";
 
 const count = (description: string) => Type.Integer({ minimum: 0, description });
 const Prices = Type.Object(

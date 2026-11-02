@@ -60,6 +60,8 @@ export function residentTools(kit: Kit) {
 			description: "tools/createGroup",
 			parameters: Type.Object({ name: Type.String({ description: "Group name", minLength: 1, maxLength: MAX_GROUP_NAME_LENGTH }) }),
 			suggest: ["resident"],
+			// A group name is guarded like a post (GUARDABLE_TOOLS: createGroup guards `name`).
+			guardText: ({ name }) => name,
 			execute: ({ name }, ctx) => createGroup(ctx, name),
 		}),
 		kit.tool({
