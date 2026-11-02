@@ -4,7 +4,7 @@
  * only its own, the file and the console show both.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import type { EventSink, RecordedEvent } from "@swarmtales/engine";
+import type { EventSink, RecordedEvent } from "@swarmtales/contracts";
 
 export interface UsageTotals {
 	readonly requests: number;

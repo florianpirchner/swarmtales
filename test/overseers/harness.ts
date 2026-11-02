@@ -6,13 +6,12 @@
  */
 import { Type } from "typebox";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
-import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse } from "@swarmtales/contracts";
+import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse, EventSink, RecordedEvent } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { idleAgent } from "@swarmtales/testkit";
 import { Parse } from "typebox/value";
-import { RecordedEventSchema } from "@swarmtales/chronicle";
-import type { EventSink, RecordedEvent } from "@swarmtales/engine";
-import { EventBus, MemorySink } from "@swarmtales/engine";
+import { RecordedEventSchema, MemorySink } from "@swarmtales/chronicle";
+import { EventBus } from "@swarmtales/engine";
 
 /** An event the old roles read, flat as in the old log, to be written in a minute. */
 export type Fields = Readonly<Record<string, unknown>>;

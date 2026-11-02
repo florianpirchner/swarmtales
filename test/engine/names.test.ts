@@ -6,9 +6,9 @@
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
-import { MemorySink, NameBook, withResidents } from "@swarmtales/engine";
+import { NameBook, withResidents } from "@swarmtales/engine";
 import { ScriptedModelSource } from "@swarmtales/models";
-import { readSnapshot } from "@swarmtales/chronicle";
+import { readSnapshot, MemorySink } from "@swarmtales/chronicle";
 import { validateStory } from "@swarmtales/sdk";
 import type { AnyStory, NamesSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";

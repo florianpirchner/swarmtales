@@ -9,7 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Type } from "typebox";
 import { Value } from "typebox/value";
-import type { RecordedEvent } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
 
 export const GOLDEN_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../golden");
 const REPO_ROOT = resolve(GOLDEN_DIR, "../..");

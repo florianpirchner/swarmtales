@@ -4,7 +4,20 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { assertNever } from "@swarmtales/kernel";
-import type { EventSink, RecordedEvent } from "@swarmtales/engine";
+import type { ArenaEventType, EventSink, RecordedEvent } from "@swarmtales/contracts";
+
+/** Keeps every event in memory; for tests and in-process consumers (moved from the engine, step 18). */
+export class MemorySink implements EventSink {
+	readonly events: RecordedEvent[] = [];
+
+	record(event: RecordedEvent): void {
+		this.events.push(event);
+	}
+
+	ofType<T extends ArenaEventType>(type: T): readonly Extract<RecordedEvent, { type: T }>[] {
+		return this.events.filter((event): event is Extract<RecordedEvent, { type: T }> => event.type === type);
+	}
+}
 
 /** `events.jsonl`: every event with `seq`, virtual minute and wall-clock time. */
 export class JsonlEventLog implements EventSink {

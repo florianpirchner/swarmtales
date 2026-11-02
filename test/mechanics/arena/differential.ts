@@ -12,9 +12,9 @@
 import type { AssistantMessage, FauxResponseStep, JsonObject } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { legacySink, parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import { legacySink, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, HostSnapshot, MechanicUse, TurnTaker } from "@swarmtales/contracts";
-import { MemorySink, type World } from "@swarmtales/engine";
+import type { World } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { arena, arenaFromStory, type ArenaRun } from "@swarmtales/mechanic-arena";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";

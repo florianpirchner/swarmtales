@@ -9,7 +9,8 @@
  * passes the door at minute 1 and keeps its own, so from minute 3 A01 blocks the door for the five.
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import type { RecordedEvent, World } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
+import type { World } from "@swarmtales/engine";
 import type { Script } from "@swarmtales/models";
 import whispers from "../../../stories/whispers/story.ts";
 import { act, createFixture, say } from "../../helpers/fixture.ts";

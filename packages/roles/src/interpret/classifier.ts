@@ -16,12 +16,28 @@ import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
 import type { CompetitorId } from "@swarmtales/kernel";
-import type { ClassifierUsage, ThinkingLevel } from "@swarmtales/contracts";
+import { STATEMENT_LABELS, type ClassifierUsage, type StatementLabel, type ThinkingLevel } from "@swarmtales/contracts";
 
 export type { ClassifierUsage };
-import { labelMeaning, STATEMENT_LABELS } from "@swarmtales/engine";
 import { statementLine, type Statement } from "./statements.ts";
-import { render, text } from "@swarmtales/prompts";
+import { render, text, type PlainPromptId } from "@swarmtales/prompts";
+
+const LABEL_PROMPTS = {
+	promise: "classifier/label-promise",
+	offer: "classifier/label-offer",
+	threat: "classifier/label-threat",
+	refusal: "classifier/label-refusal",
+	lie: "classifier/label-lie",
+	hesitation: "classifier/label-hesitation",
+	helpRequest: "classifier/label-helpRequest",
+	accusation: "classifier/label-accusation",
+	thanks: "classifier/label-thanks",
+} as const satisfies Record<StatementLabel, PlainPromptId>;
+
+/** What a label means, as the classifier is told (read from the prompt library on use; moved from the engine, step 18). */
+export function labelMeaning(label: StatementLabel): string {
+	return text(LABEL_PROMPTS[label]);
+}
 
 /** ID of the classifier in usage records. */
 export const CLASSIFIER_ID = "CL";

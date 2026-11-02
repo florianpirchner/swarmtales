@@ -6,8 +6,8 @@
  * can be compared.
  */
 import { expect } from "vitest";
-import { EventBus, MemorySink, activeTools, getProblem, getStatus, listAgents, submitSolution, World, type ArenaTool } from "@swarmtales/engine";
-import { convertLegacySnapshot, legacyOwner, legacySink, parseSnapshot } from "@swarmtales/chronicle";
+import { EventBus, activeTools, getProblem, getStatus, listAgents, submitSolution, World, type ArenaTool } from "@swarmtales/engine";
+import { convertLegacySnapshot, legacyOwner, legacySink, parseSnapshot, MemorySink } from "@swarmtales/chronicle";
 import { TOOL_NAMES, type AnyStory, type Host, type MechanicUse, type ToolName, type TurnTaker } from "@swarmtales/contracts";
 import { createHost, defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
 import { goals } from "@swarmtales/mechanic-goals";

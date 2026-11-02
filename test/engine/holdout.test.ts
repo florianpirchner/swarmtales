@@ -6,7 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { type CompetitorId, competitorIds, rngFor } from "@swarmtales/kernel";
-import { EventBus, MemorySink, World, type WorldSnapshot } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import { EventBus, World, type WorldSnapshot } from "@swarmtales/engine";
 import { validateStory } from "@swarmtales/sdk";
 import type { AnyStory } from "@swarmtales/contracts";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";

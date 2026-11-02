@@ -9,9 +9,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { fauxAssistantMessage, fauxText, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
-import { legacySink } from "@swarmtales/chronicle";
+import { legacySink, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host } from "@swarmtales/contracts";
-import { MemorySink } from "@swarmtales/engine";
 import { ScriptedModelSource } from "@swarmtales/models";
 import type { LegacyLine } from "@swarmtales/testkit";
 import { composeRun, type RunOverrides } from "../../apps/cli/src/compose.ts";

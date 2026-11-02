@@ -6,7 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { composeRun } from "../../apps/cli/src/compose.ts";
-import { MemorySink, type World } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import type { World } from "@swarmtales/engine";
 import { worldOracle } from "../../apps/cli/src/oracle.ts";
 import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";

@@ -7,7 +7,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { coreMotiveLine, type StandingRow } from "@swarmtales/engine";
+import type { StandingRow } from "@swarmtales/contracts";
+import { coreMotiveLine } from "@swarmtales/engine";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema } from "../snapshot/event-schema.ts";
 
 interface MinuteSnapshot {

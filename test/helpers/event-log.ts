@@ -4,7 +4,8 @@
  * minute, so a test reads like a script of the run.
  */
 import { analyzeLog, type RunAnalysis } from "@swarmtales/chronicle";
-import type { ArenaEvent, ReceiptKind, RecordedEvent, StatementLabel, StatementSource } from "@swarmtales/engine";
+import type { ArenaEvent, RecordedEvent, StatementLabel, StatementSource } from "@swarmtales/contracts";
+import type { ReceiptKind } from "@swarmtales/engine";
 
 export class LogBuilder {
 	readonly events: RecordedEvent[] = [];

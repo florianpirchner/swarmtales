@@ -6,7 +6,7 @@
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { CompetitorId } from "@swarmtales/kernel";
-import type { EventSink, FateShiftKind, RecordedEvent } from "@swarmtales/engine";
+import type { EventSink, FateShiftKind, RecordedEvent } from "@swarmtales/contracts";
 
 /** The file's name in the run directory. */
 export const WEAVER_FILE = "weaver.md";

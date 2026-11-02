@@ -12,9 +12,9 @@
  * `gamemaker_note` is caused by the first call without a result yet (the old loop runs the calls
  * of a message one after the other), as the host's note desk line is caused by its tool call.
  */
-import type { EventEnvelope, EventLogView, OverseerInstance } from "@swarmtales/contracts";
+import type { EventEnvelope, EventLogView, OverseerInstance, EventSink, RecordedEvent } from "@swarmtales/contracts";
 import { createRng } from "@swarmtales/kernel";
-import type { EventSink, RecordedEvent, World } from "@swarmtales/engine";
+import type { World } from "@swarmtales/engine";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { defineGamemaker, GAMEMAKER_NAME, worldReport, type GamemakerOverseerOptions } from "@swarmtales/roles";
 import { createFixture, type FixtureOptions } from "../../helpers/fixture.ts";

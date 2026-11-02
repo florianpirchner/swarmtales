@@ -74,11 +74,6 @@ export function balanceOf(host: FactsHost, agent: ResidentId): number {
 	return factOf(host, "ledger.balances", Balances)[agent] ?? 0;
 }
 
-/** The points of every resident together (old `world.ledger.total`). */
-export function totalPoints(host: FactsHost): number {
-	return Object.values(factOf(host, "ledger.balances", Balances)).reduce((sum, points) => sum + points, 0);
-}
-
 /** Whether a resident has passed the run's last level (old `world.isFinished`). */
 export function isFinished(run: { readonly host: FactsHost; readonly effective: { readonly lastLevel: number } }, agent: ResidentId): boolean {
 	return levelOf(run.host, agent) > run.effective.lastLevel;

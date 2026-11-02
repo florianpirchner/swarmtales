@@ -10,8 +10,8 @@
 import { describe, expect, it } from "vitest";
 import { competitorIds } from "@swarmtales/kernel";
 import { dropJustified } from "@swarmtales/testkit";
-import { legacyOwner } from "@swarmtales/chronicle";
-import { EventBus, lastWill, MemorySink, payRansom, World } from "@swarmtales/engine";
+import { legacyOwner, MemorySink } from "@swarmtales/chronicle";
+import { EventBus, lastWill, payRansom, World } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
 import { describeSituation, SecretGuard } from "@swarmtales/roles";
 import type { AnyStory, EventEnvelope, Host } from "@swarmtales/contracts";

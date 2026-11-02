@@ -6,7 +6,7 @@
  * someone who needs it.
  */
 import { assertNever } from "@swarmtales/kernel";
-import { isStatementLabel, isStatementSource, type StatementLabel, type StatementSource } from "@swarmtales/engine";
+import { isStatementLabel, isStatementSource, type StatementLabel, type StatementSource } from "@swarmtales/contracts";
 import { eventsOfType, type DigestEvent, type DigestEventOf } from "./event-log.ts";
 
 export type MessageChannel = "dm" | "group" | "board" | "cast";

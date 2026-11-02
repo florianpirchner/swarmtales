@@ -1,6 +1,6 @@
 /** The gamemaker's situation stays bounded at scale (v08, spec section 3). */
 import { describe, expect, it } from "vitest";
-import type { RecordedEvent } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
 import { describeSituation, fateLine, MAX_RECENT_LINES, SecretGuard } from "@swarmtales/roles";
 import { createFixture } from "../helpers/fixture.ts";
 

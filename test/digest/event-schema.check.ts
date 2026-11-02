@@ -8,7 +8,7 @@
  * this file stops compiling instead of the digest silently dropping those
  * events as "does not match its schema".
  */
-import type { ArenaEventType, RecordedEvent } from "@swarmtales/engine";
+import type { ArenaEventType, RecordedEvent } from "@swarmtales/contracts";
 import type { DigestEventOf, DigestEventType } from "@swarmtales/chronicle";
 
 type DeepReadonly<T> = T extends readonly (infer Item)[]

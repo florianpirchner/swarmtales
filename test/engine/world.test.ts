@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EventBus, memoCarriesDigits, MemorySink, World } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import { EventBus, memoCarriesDigits, World } from "@swarmtales/engine";
 import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 import { soloLevels, tinyStory } from "../helpers/stories.ts";
 

@@ -23,7 +23,9 @@ import {
 	type WeaverQuestion,
 } from "@swarmtales/roles";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
-import { EventBus, MemorySink, type RecordedEvent } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
+import { MemorySink } from "@swarmtales/chronicle";
+import { EventBus } from "@swarmtales/engine";
 
 /** A step the provider's safeguards refused. */
 const refused = (): FauxResponseStep => fauxAssistantMessage("", { stopReason: "error", errorMessage: "This request triggered cyber-related safeguards." });

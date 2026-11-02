@@ -5,7 +5,7 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { assertNever, type CompetitorId } from "@swarmtales/kernel";
-import type { EventSink, RecordedEvent } from "@swarmtales/engine";
+import type { EventSink, RecordedEvent } from "@swarmtales/contracts";
 
 /** Transcript file of the gamemaker (`agents/GM.md`). */
 const GAMEMAKER_FILE = "GM";

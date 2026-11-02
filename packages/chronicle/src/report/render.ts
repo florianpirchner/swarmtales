@@ -3,7 +3,7 @@
  * from the deterministic facts; the model-written sections only from items
  * that survived validation. Rendering is code, never model output.
  */
-import { LABEL_TEXT } from "@swarmtales/engine";
+import { LABEL_TEXT } from "@swarmtales/contracts";
 import type { GoalResult, ReportFacts, ResidentResult, SealResult, Stall } from "./facts.ts";
 
 export interface ReportItem {

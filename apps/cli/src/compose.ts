@@ -22,31 +22,12 @@ import {
 	Weaver,
 	type WeaverModel,
 } from "@swarmtales/roles";
-import {
-	type AgentProfile,
-	Arena,
-	bindStory,
-	briefLine,
-	type Budget,
-	directFigure,
-	directionBlock,
-	type DirectionLevel,
-	Director,
-	EventBus,
-	type EventSink,
-	type FigureCue,
-	FigureCues,
-	figureOf,
-	MemorySink,
-	renderCoreMotive,
-	ToolGuard,
-	World,
-} from "@swarmtales/engine";
+import { type AgentProfile, Arena, bindStory, briefLine, type Budget, directFigure, directionBlock, type DirectionLevel, Director, EventBus, type FigureCue, FigureCues, figureOf, renderCoreMotive, ToolGuard, World } from "@swarmtales/engine";
 import { type CompetitorId, competitorIds, VirtualClock } from "@swarmtales/kernel";
 import type { ModelSource, RequestLimits } from "@swarmtales/models";
-import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot } from "@swarmtales/chronicle";
+import { SNAPSHOT_FORMAT, SNAPSHOT_VERSION, SnapshotError, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import { assertPlayable, DEFAULT_LIMITS, effectiveRun, type EffectiveRun, type RunOverrides } from "./run-options.ts";
-import type { AnyStory, ModelChoice, Persona, ThinkingLevel } from "@swarmtales/contracts";
+import type { AnyStory, ModelChoice, Persona, ThinkingLevel, EventSink } from "@swarmtales/contracts";
 import { storyId } from "../../../stories/index.ts";
 
 export { DEFAULT_LIMITS, effectiveRun, resolveBlockSize, type EffectiveRun, type RunOverrides } from "./run-options.ts";

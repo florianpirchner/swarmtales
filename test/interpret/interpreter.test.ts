@@ -1,6 +1,7 @@
 import { fauxAssistantMessage, fauxThinking, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { EventBus, MemorySink } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import { EventBus } from "@swarmtales/engine";
 import {
 	type Classification,
 	classifierPrompt,

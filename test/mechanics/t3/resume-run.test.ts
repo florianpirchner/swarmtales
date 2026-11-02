@@ -7,7 +7,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { convertLegacySnapshot } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { EventEnvelope, Host, HostSnapshot } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { createPromptLookup, mechanicPromptFolders } from "@swarmtales/prompts";
@@ -15,7 +15,7 @@ import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import type { AnyStory } from "@swarmtales/contracts";
-import { World, MemorySink, EventBus } from "@swarmtales/engine";
+import { World, EventBus } from "@swarmtales/engine";
 import { parseSnapshot } from "@swarmtales/chronicle";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { progressionOptions, SEED } from "../progression/harness.ts";

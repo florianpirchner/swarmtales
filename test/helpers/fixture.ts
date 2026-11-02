@@ -19,10 +19,11 @@ import {
 	JUDGE_ID,
 	WEAVER_ID,
 } from "@swarmtales/roles";
-import { type EventSink, MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import type { World } from "@swarmtales/engine";
 import { act, type Script, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory } from "@swarmtales/contracts";
+import type { AnyStory, EventSink, RecordedEvent } from "@swarmtales/contracts";
 
 
 export { act, say } from "@swarmtales/models";
@@ -124,11 +125,4 @@ export function wrongCodeOf(password: string): string {
 /** One assistant message that submits the competitor's own solution (password or code) for `level`. */
 export function submit(world: World, agent: string, level: number): AssistantMessage {
 	return act({ name: "submitSolution", args: { level, code: world.inspect.codeOf(agent, level) } });
-}
-
-/** Every competitor submits its own solution, one level per minute. */
-export function solveEveryLevel(world: World, levels: readonly number[]): Script {
-	const script: Record<string, AssistantMessage[]> = {};
-	for (const id of world.competitors) script[id] = levels.map((level) => submit(world, id, level));
-	return script;
 }

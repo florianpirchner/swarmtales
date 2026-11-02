@@ -11,7 +11,8 @@
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { MemorySink, type RecordedEvent } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
+import { MemorySink } from "@swarmtales/chronicle";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
 import { boundBackend, ChatStatementClassifier, ChatWeaver, CLASSIFIER_ID, GAMEMAKER_ID, overseers, WEAVER_ID } from "@swarmtales/roles";
 import { composeRun } from "../../apps/cli/src/compose.ts";

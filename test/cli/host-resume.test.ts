@@ -14,9 +14,9 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
-import type { Host } from "@swarmtales/contracts";
-import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import type { Host, RecordedEvent } from "@swarmtales/contracts";
+import type { World } from "@swarmtales/engine";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
 import { boundBackend, ChatStatementClassifier, CLASSIFIER_ID, GAMEMAKER_ID, overseers } from "@swarmtales/roles";
 import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
@@ -24,7 +24,7 @@ import { composeHostRun } from "../../apps/cli/src/host/run.ts";
 import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
 import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { codeOf } from "../golden/host-scripts.ts";
+import { codeOf } from "../helpers/host-inspect.ts";
 
 const MINUTES = 26;
 

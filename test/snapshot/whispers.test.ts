@@ -8,9 +8,10 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { composeRun, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
-import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
+import type { World } from "@swarmtales/engine";
 import { ScriptedModelSource, type Script } from "@swarmtales/models";
-import { parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import whispers from "../../stories/whispers/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 

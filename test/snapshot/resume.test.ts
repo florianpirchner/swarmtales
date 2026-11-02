@@ -7,11 +7,11 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { composeRun, DEFAULT_LIMITS, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
-import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
-import type { AnyStory } from "@swarmtales/contracts";
+import type { World } from "@swarmtales/engine";
+import type { AnyStory, RecordedEvent } from "@swarmtales/contracts";
 import { ChatStatementClassifier, CLASSIFIER_ID, GAMEMAKER_ID } from "@swarmtales/roles";
 import { ScriptedModelSource, type Script } from "@swarmtales/models";
-import { parseSnapshot, SnapshotError, type RunSnapshot } from "@swarmtales/chronicle";
+import { parseSnapshot, SnapshotError, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 

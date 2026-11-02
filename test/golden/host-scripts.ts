@@ -30,7 +30,6 @@ function neighbour(host: Host, id: ResidentId, offset = 1): ResidentId {
 	return host.residents[(index + offset) % host.residents.length] ?? id;
 }
 
-export { codeOf, fragmentOf, submit } from "../helpers/host-inspect.ts";
 
 /**
  * City of Keys: each resident opens the doors one by one (the oracle), and on fixed minutes

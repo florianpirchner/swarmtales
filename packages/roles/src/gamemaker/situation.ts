@@ -7,18 +7,8 @@
  * the gamemaker knows not to reveal them.
  */
 import { type CompetitorId, placeholdersOf } from "@swarmtales/kernel";
-import {
-	coreMotiveLine,
-	directFigure,
-	type DirectionLevel,
-	type FateTrigger,
-	figureOf,
-	isPrivateSource,
-	LABEL_TEXT,
-	ladderText,
-	type RecordedEvent,
-	type World,
-} from "@swarmtales/engine";
+import { type FateTrigger, isPrivateSource, LABEL_TEXT, type RecordedEvent } from "@swarmtales/contracts";
+import { coreMotiveLine, directFigure, type DirectionLevel, figureOf, ladderText, type World } from "@swarmtales/engine";
 import type { SecretGuard } from "./secrets.ts";
 
 /** Longest message excerpt shown to the gamemaker. */

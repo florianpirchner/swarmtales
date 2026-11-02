@@ -10,7 +10,8 @@
 import { describe, expect, it } from "vitest";
 import { competitorIds } from "@swarmtales/kernel";
 import { dropJustified } from "@swarmtales/testkit";
-import { EventBus, MemorySink, World } from "@swarmtales/engine";
+import { MemorySink } from "@swarmtales/chronicle";
+import { EventBus, World } from "@swarmtales/engine";
 import type { EventEnvelope } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
 import { exile } from "@swarmtales/mechanic-exile";

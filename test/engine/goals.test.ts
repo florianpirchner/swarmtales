@@ -6,7 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds, type CompetitorId } from "@swarmtales/kernel";
-import { type CoreMotive, dealCoreMotives, dealGoals, type Goal, GoalBook, type GoalEvent } from "@swarmtales/engine";
+import type { Goal } from "@swarmtales/contracts";
+import { type CoreMotive, dealCoreMotives, dealGoals, GoalBook, type GoalEvent } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const spec = cityOfKeys.goals;

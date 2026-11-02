@@ -10,9 +10,8 @@
  */
 import { Parse } from "typebox/value";
 import { Type } from "typebox";
-import { convertLegacySnapshot, parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, RoleCaller } from "@swarmtales/contracts";
-import { MemorySink } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { ScriptedModelSource, type Script } from "@swarmtales/models";
 import { channels } from "@swarmtales/mechanic-channels";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RecordedEvent } from "@swarmtales/engine";
+import type { RecordedEvent } from "@swarmtales/contracts";
 import { privateLabelsOf, privateLeaks } from "@swarmtales/roles";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

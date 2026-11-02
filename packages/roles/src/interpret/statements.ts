@@ -3,7 +3,7 @@
  * classifier labels them; the event's `seq` is the reference.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import type { RecordedEvent, StatementSource } from "@swarmtales/engine";
+import type { RecordedEvent, StatementSource } from "@swarmtales/contracts";
 import { render, text } from "@swarmtales/prompts";
 
 export interface Statement {
