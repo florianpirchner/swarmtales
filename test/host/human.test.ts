@@ -364,6 +364,26 @@ describe("safe stops", () => {
 		expect(core(host, "overseer_called").map((event) => event.minute)).toEqual([0, 0]);
 	});
 
+	it("let a stop end a run the human paused (F2 M2)", async () => {
+		const host = started(options({}, storyOf({ minutes: 3 })));
+		const hand = handOf(host);
+		const paused = hand.pause();
+		const playing = host.playMinute(idleAgent);
+		expect((await paused).ok).toBe(true);
+		host.stop("operator stop");
+		const raced = await Promise.race([
+			playing.then(() => "ended"),
+			new Promise<string>((resolve) => {
+				setTimeout(() => {
+					resolve("hung");
+				}, 500);
+			}),
+		]);
+		expect(raced).toBe("ended");
+		expect(host.ended).toMatchObject({ reason: "stopped" });
+		expect(core(host, "turn_started")).toEqual([]);
+	});
+
 	it("give calls that never reached a safe stop RUN_ENDED once the run ends", async () => {
 		const host = started(options({}, storyOf({ minutes: 1 })));
 		await host.run(idleAgent);

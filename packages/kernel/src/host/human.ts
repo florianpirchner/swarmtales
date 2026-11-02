@@ -107,6 +107,7 @@ export class HumanDesk {
 	#paused = false;
 	#steps = 0;
 	#closed = false;
+	#released = false;
 	#wake: (() => void) | undefined;
 
 	/** `channel` undefined: no human is attached; the tools exist, but no hand and no safe stop. */
@@ -229,7 +230,7 @@ export class HumanDesk {
 	async safeStop(at: SafeStop["at"], pass?: number, block?: number): Promise<void> {
 		for (;;) {
 			await this.#runWaiting(at, pass, block);
-			if (!this.#paused || this.#closed || at === "afterBlock") return;
+			if (!this.#paused || this.#closed || this.#released || at === "afterBlock") return;
 			if (this.#steps > 0) {
 				// A step plays one block: it is spent before the block, and a `between` lets it pass to the next one.
 				if (at === "beforeBlock") this.#steps -= 1;
@@ -261,6 +262,12 @@ export class HumanDesk {
 				throw error;
 			}
 		}
+	}
+
+	/** A stop was asked for: a halted host is let go, and no later safe stop halts (the inbox still runs). */
+	release(): void {
+		this.#released = true;
+		this.#wake?.();
 	}
 
 	/** The run ended: what still waits gets `RUN_ENDED`, and a halted host is let go. */

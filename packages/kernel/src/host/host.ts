@@ -548,6 +548,8 @@ class CoreHost implements Host {
 
 	stop(reason: string): void {
 		this.#stopRequest = reason;
+		// A minute the human paused waits at a safe stop; the stop lets it go on to its end.
+		this.#desk.release();
 		if (!this.#playing && this.#ended === undefined) this.#end({ reason: "stopped", minute: this.#minute }, reason);
 	}
 
