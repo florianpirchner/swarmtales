@@ -11,15 +11,21 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
+import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { ChatStatementClassifier, ChatWeaver, CLASSIFIER_ID, GAMEMAKER_ID, INNER_VOICE_HEAD, SHIFT_HEADING, WEAVER_ID } from "@swarmtales/roles";
-import { composeRun, DEFAULT_LIMITS, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import type { Host } from "@swarmtales/contracts";
+import { boundBackend, CLASSIFIER_ID, GAMEMAKER_ID, INNER_VOICE_HEAD, overseers, SHIFT_HEADING, WEAVER_ID } from "@swarmtales/roles";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
-import type { World } from "@swarmtales/engine";
-import { parseSnapshot, type RunSnapshot, WeaverLog, MemorySink } from "@swarmtales/chronicle";
+import { WeaverLog, MemorySink } from "@swarmtales/chronicle";
 import { act, say, type Script, ScriptedModelSource } from "@swarmtales/models";
+import { composeHostRun } from "../../apps/cli/src/host/run.ts";
+import { prefixLines, type ResumePoint } from "../../apps/cli/src/host/snapshot.ts";
+import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { createFixture, submit } from "../helpers/fixture.ts";
+import { createHostFixture } from "../helpers/host-fixture.ts";
+import { sliceIn, snapshotTaker } from "../helpers/host-snapshot.ts";
+import { submit } from "../helpers/host-inspect.ts";
 
 const MINUTES = 8;
 const CUT = 4;
@@ -30,12 +36,12 @@ function textOf(content: unknown): string {
 }
 
 /** A01 accuses A02 on the board every minute; everyone else waits. A02 notes the system prompt of every request. */
-function residents(world: World, prompts: string[]): Script {
+function residents(host: Host, prompts: string[]): Script {
 	const script: Record<string, FauxResponseStep[]> = {};
-	for (const agent of world.competitors) {
+	for (const agent of host.residents) {
 		const step: FauxResponseStep = (context) => {
 			if (agent === "A02") prompts.push(textOf(context.messages[0]?.content));
-			if (agent === "A01" && context.messages.at(-1)?.role !== "toolResult") return act({ name: "postBoard", args: { message: `A02 cheated me at minute ${String(world.minute)}.` } });
+			if (agent === "A01" && context.messages.at(-1)?.role !== "toolResult") return act({ name: "postBoard", args: { message: `A02 cheated me at minute ${String(host.minute)}.` } });
 			return say(`${agent} waits.`);
 		};
 		script[agent] = Array.from({ length: MINUTES * 2 }, () => step);
@@ -69,22 +75,23 @@ interface Played {
 	readonly events: readonly RecordedEvent[];
 	readonly prompts: readonly string[];
 	readonly systemPrompts: readonly string[];
-	readonly snapshot?: RunSnapshot;
+	readonly snapshot?: ResumePoint;
 	readonly directory: string;
+	/** The weaver's changes as the host logged them: their evidence is in host numbers, as the gamemaker reads it (S18-3). */
+	readonly hostShifts: readonly { readonly kind: string; readonly evidence: readonly number[] }[];
 }
 
 interface PlayOptions {
 	readonly weaver?: boolean;
 	readonly classifier?: boolean;
 	readonly snapshot?: { readonly stop: boolean };
-	readonly resume?: RunSnapshot;
+	readonly resume?: ResumePoint;
 }
 
 async function play(options: PlayOptions = {}): Promise<Played> {
 	const log = new MemorySink();
 	const directory = mkdtempSync(join(tmpdir(), "weaver-"));
 	const prompts: string[] = [];
-	let taken: RunSnapshot | undefined;
 	const base: RunOverrides = {
 		minutes: MINUTES,
 		names: false,
@@ -97,38 +104,23 @@ async function play(options: PlayOptions = {}): Promise<Played> {
 		...(options.weaver === true ? { weaver: true } : {}),
 	};
 	const resume = options.resume;
-	const run = composeRun({
+	const taker = options.snapshot === undefined ? undefined : snapshotTaker({ afterLevel: 2, atMinute: CUT, stop: options.snapshot.stop });
+	const run = composeHostRun({
 		story: cityOfKeys,
-		overrides: resume === undefined ? { ...base, level: 2 } : resumeOverrides(resume, base),
-		models: (world) => new ScriptedModelSource(residents(world, prompts)),
+		overrides: resume === undefined ? { ...base, level: 2 } : resumedOverrides(resume, base),
+		models: (host) => new ScriptedModelSource(residents(host, prompts)),
 		gamemakerModels: () => new ScriptedModelSource({ [GAMEMAKER_ID]: Array.from({ length: MINUTES * 2 }, () => say("Watching.")) }),
-		classifier: () =>
-			new ChatStatementClassifier({
-				binding: new ScriptedModelSource({ [CLASSIFIER_ID]: classifierSteps() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS),
-				label: "scripted/classifier",
-				thinking: "off",
-			}),
-		...(options.weaver === true
-			? { weaver: new ChatWeaver({ binding: new ScriptedModelSource({ [WEAVER_ID]: weaverSteps() }).bind(WEAVER_ID, DEFAULT_LIMITS), label: "scripted/weaver", thinking: "off" }) }
-			: {}),
+		classifier: boundBackend("scripted/classifier", new ScriptedModelSource({ [CLASSIFIER_ID]: classifierSteps() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS), "off", overseers.classifierRuntime),
+		...(options.weaver === true ? { weaver: boundBackend("scripted/weaver", new ScriptedModelSource({ [WEAVER_ID]: weaverSteps() }).bind(WEAVER_ID, DEFAULT_LIMITS), "off", overseers.weaverRuntime) } : {}),
 		sinks: [log, new WeaverLog(join(directory, "weaver.md"))],
-		...(options.snapshot === undefined
-			? {}
-			: {
-					snapshot: {
-						afterLevel: 2,
-						atMinute: CUT,
-						stop: options.snapshot.stop,
-						write: (snapshot) => {
-							taken = parseSnapshot(JSON.parse(JSON.stringify(snapshot)));
-							return "memory";
-						},
-					},
-				}),
-		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot-M4.json" } }),
+		...(taker === undefined ? {} : { snapshot: taker.request }),
+		...(resume === undefined ? {} : { resume: { point: resume, name: "snapshot-M4.json" } }),
 	});
-	await run.arena.run();
-	return { events: log.events, prompts, systemPrompts: run.runners.map((runner) => runner.systemPrompt), directory, ...(taken === undefined ? {} : { snapshot: taken }) };
+	await run.run();
+	const systemPrompts = run.host.residents.map((id) => run.residents.runner(id)?.systemPrompt ?? "");
+	const snapshot = taker?.taken()?.point;
+	const hostShifts = run.host.log.ofType("weaver", "fate_shift").map((event) => Parse(HostShift, event.payload));
+	return { events: log.events, prompts, systemPrompts, directory, hostShifts, ...(snapshot === undefined ? {} : { snapshot }) };
 }
 
 function ofType<T extends RecordedEvent["type"]>(events: readonly RecordedEvent[], type: T): readonly Extract<RecordedEvent, { type: T }>[] {
@@ -148,6 +140,11 @@ function comparable(events: readonly RecordedEvent[], shift = 0, from = Number.P
 		return { ...event, seq };
 	});
 }
+
+const HostShift = Type.Object({ kind: Type.String(), evidence: Type.Array(Type.Integer()) }, { additionalProperties: true });
+
+/** The acts the progression ended and began (old `world.isActOver`, `world.currentAct`). */
+const Acts = Type.Object({ endedActs: Type.Array(Type.Integer()), actStarts: Type.Array(Type.Object({ fromLevel: Type.Integer(), minute: Type.Integer() })) }, { additionalProperties: true });
 
 describe("the weaver in a run", () => {
 	it("changes A02 after the accusations: an inner voice at the end of its inputs, a rewritten prompt, a line for the gamemaker", async () => {
@@ -175,7 +172,10 @@ describe("the weaver in a run", () => {
 		// The gamemaker reads what kind of event moved A02, built in code: never the text, never the model's reason.
 		const look = ofType(played.events, "gamemaker_turn").find((event) => event.seq > hard.seq);
 		expect(hard.triggers).toEqual(["accusation"]);
-		expect(look?.input).toContain(`A02 has changed (hard): after an accusation (after #${String(Math.max(...hard.evidence))})`);
+		// The gamemaker names the evidence by its host number (S18-3): that of the same change in the host's log.
+		const hostHard = played.hostShifts.find((shift) => shift.kind === "hard");
+		expect(hostHard?.evidence.length).toBe(hard.evidence.length);
+		expect(look?.input).toContain(`A02 has changed (hard): after an accusation (after #${String(Math.max(...(hostHard?.evidence ?? [])))})`);
 		expect(look?.input).not.toContain(hard.text);
 		expect(look?.input).not.toContain(hard.reason);
 
@@ -191,8 +191,8 @@ describe("the weaver in a run", () => {
 		const snapshot = first.snapshot;
 		if (snapshot === undefined) throw new Error("no snapshot was taken");
 		expect(snapshot.weaver?.shifts.map((entry) => entry.agent)).toEqual(["A02"]);
-		const cut = snapshot.events.length;
-		expect(comparable(snapshot.events)).toEqual(comparable(whole.events.slice(0, cut)));
+		const cut = prefixLines(snapshot);
+		expect(comparable(first.events.slice(0, cut))).toEqual(comparable(whole.events.slice(0, cut)));
 
 		const resumed = await play({ weaver: true, resume: snapshot });
 		const markers = 1 + snapshot.agents;
@@ -223,18 +223,18 @@ describe("the weaver in a run", () => {
 	}, 60_000);
 
 	it("writes A02's character for Act II once Act I is over, from the act's changes", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			level: 7,
 			minutes: 5,
-			script: (world) => {
+			script: (host) => {
 				const script: Record<string, FauxResponseStep[]> = {};
-				for (const agent of world.competitors) {
+				for (const agent of host.residents) {
 					const accuse = act({ name: "postBoard", args: { message: "A02 cheated me." } });
-					script[agent] = [...(agent === "A01" ? [accuse] : [say()]), submit(world, agent, 7), ...Array.from({ length: 4 }, () => say())];
+					script[agent] = [...(agent === "A01" ? [accuse] : [say()]), submit(host, agent, 7), ...Array.from({ length: 4 }, () => say())];
 				}
 				return script;
 			},
-			classifierScript: () => classifierSteps(),
+			classifierScript: classifierSteps(),
 			weaverScript: Array.from({ length: 6 }, (): FauxResponseStep => (context) => {
 				const text = textOf(context.messages.findLast((message) => message.role === "user")?.content);
 				return text.includes("is over.")
@@ -243,12 +243,13 @@ describe("the weaver in a run", () => {
 			}),
 		});
 		await fixture.run();
-		expect(fixture.world.isActOver(7)).toBe(true);
-		expect(fixture.world.currentAct).toBe(8);
+		const acts = sliceIn({ host: fixture.host.snapshot() }, "progression", Acts);
+		expect(acts.endedActs).toContain(7);
+		expect(Math.max(7, ...acts.actStarts.map((start) => start.fromLevel))).toBe(8);
 		const shifts = fixture.events("fate_shift");
 		expect(shifts.map((event) => event.kind)).toEqual(["hard", "act"]);
 		expect(shifts[1]).toMatchObject({ agent: "A02", text: "You enter the wall alone, and you like it.", evidence: [shifts[0]?.seq] });
-		expect(fixture.runners[1]?.systemPrompt).toContain(`${SHIFT_HEADING}\nYou enter the wall alone, and you like it.`);
-		expect(fixture.runners[1]?.systemPrompt).not.toContain("You trust no one.");
+		expect(fixture.runners()[1]?.systemPrompt).toContain(`${SHIFT_HEADING}\nYou enter the wall alone, and you like it.`);
+		expect(fixture.runners()[1]?.systemPrompt).not.toContain("You trust no one.");
 	}, 30_000);
 });

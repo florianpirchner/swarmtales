@@ -266,6 +266,18 @@ function probeHost(definition: ReturnType<typeof hostStoryOf>["definition"], res
 	return probe;
 }
 
+/**
+ * The snapshot with the slices of this run's overseers only: a run resumed without the weaver (or
+ * the gamemaker, the classifier) plays on without it, as the old engine did; the app keeps what the
+ * weaver changed (the run file's desk).
+ */
+function onlyDeclared(snapshot: HostSnapshot, uses: readonly OverseerUse[]): HostSnapshot {
+	const saved = snapshot.overseers;
+	if (saved === undefined) return snapshot;
+	const names = new Set(uses.map((use) => use.name));
+	return { ...snapshot, overseers: Object.fromEntries(Object.entries(saved).filter(([name]) => names.has(name))) };
+}
+
 /** The snapshot without the overseers' slices, for the probe host that loads none. */
 function withoutOverseers(snapshot: HostSnapshot): HostSnapshot {
 	const copy = { ...snapshot };
@@ -392,7 +404,7 @@ export function composeHostRun(options: HostComposeOptions): HostComposedRun {
 		awaitsAnswer: (resident) => ref.residents?.awaitsAnswer(resident) ?? false,
 		...(Object.keys(routes).length === 0 ? {} : { overseers: overseerRouter(routes) }),
 		...(options.guardJudge === undefined || !effective.guards ? {} : { guard: hostGuard(options.guardJudge, hostOf) }),
-		...(resumed === undefined ? {} : { resume: resumed }),
+		...(resumed === undefined ? {} : { resume: { snapshot: onlyDeclared(resumed.snapshot, uses), events: resumed.events } }),
 	});
 	ref.host = host;
 
