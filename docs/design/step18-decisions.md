@@ -586,8 +586,9 @@ no golden changed, no test was weakened. Deleted tests: the two `VirtualClock` c
    `AgentRunner`, `Interpreter` and `Weaver` (rewrite-status open item 1) and the mechanics' test-only helpers.
 6. **m2, `HostOptions.between` and `roles`: Not deleted, recorded.** `roles` is the app's consult role caller that
    seven test files use, among them the receipts and blame differentials that replay recorded judge answers
-   (`test/mechanics/receipts/receipts-differential.test.ts`, `test/mechanics/t1/blame-*`); a consult overseer writes
-   `overseer_called`/`role_asked` events in another order, so the recordings would need a new old side. `between`
+   (`test/mechanics/receipts/receipts-differential.test.ts`, `test/mechanics/t1/blame-*`); a consult overseer answers
+   through the overseer runtime instead of the role caller, so each of them needs a scripted overseer fed from the
+   recordings and a new check that the logs stay equal. `between`
    holds a minute open at the old calls' place in `test/engine/holdout.test.ts` and drives the gamemaker in
    `test/host/callers.test.ts`, and the gate and the human desk count a `between`-driven gamemaker as reachable
    (`decisions.test.ts`, `human.test.ts`). Porting all of that is beyond F2's scope; §6 row 9 stays open. The CLI
