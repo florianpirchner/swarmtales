@@ -13,7 +13,7 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check, Parse } from "typebox/value";
 import { ChainCheckpointSchema, ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
-import { type RecordedEvent, RENAMED_EVENT_TYPES } from "@swarmtales/legacy-log";
+import { currentEventType, type RecordedEvent } from "@swarmtales/legacy-log";
 import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { ContextMessage } from "@swarmtales/roles";
 import { storyId } from "../../../../stories/index.ts";
@@ -85,8 +85,8 @@ export interface ResumePoint {
 
 /** An event of an older file under its current name (`core_dealt` is `motive_dealt` since step 18): a resumed run goes on with today's names. */
 function currentEnvelope(envelope: EventEnvelope): EventEnvelope {
-	const renamed = RENAMED_EVENT_TYPES[envelope.type];
-	return renamed === undefined ? envelope : { ...envelope, type: renamed };
+	const renamed = currentEventType(envelope.type);
+	return renamed === envelope.type ? envelope : { ...envelope, type: renamed };
 }
 
 function fromLegacy(raw: unknown, path: string): ResumePoint {

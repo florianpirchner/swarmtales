@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot, envelopeFromLegacy, eventsOfType, LegacyEventAdapter, legacyLine, legacyStamp, parseEventLog, readCharacters, toLegacySnapshot } from "@swarmtales/chronicle";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { standInsFor } from "@swarmtales/testkit";
+import { currentEventType, withCurrentType } from "@swarmtales/legacy-log";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 
@@ -58,6 +59,12 @@ describe("the old event names", () => {
 		const log = parseEventLog(text);
 		expect(eventsOfType(log.events, "motive_dealt")).toHaveLength(6);
 		expect([...readCharacters(text).coreMotives.keys()]).toEqual(["A01", "A02", "A03", "A04", "A05", "A06"]);
+	});
+
+	it.each(["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"])("leave a type named like an Object member (%s) as it is (step 18 challenge, determinism m4)", (type) => {
+		expect(currentEventType(type)).toBe(type);
+		expect(withCurrentType({ type, agent: "A01" })).toEqual({ type, agent: "A01" });
+		expect(currentEventType("core_dealt")).toBe("motive_dealt");
 	});
 });
 

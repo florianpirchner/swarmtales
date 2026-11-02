@@ -844,10 +844,19 @@ export interface EventSink {
  */
 export const RENAMED_EVENT_TYPES: Readonly<Record<string, string>> = { core_dealt: "motive_dealt" };
 
+/**
+ * An event type under its current name. Only the table's own keys count: an untrusted type such as
+ * `constructor` or `__proto__` must not find an `Object.prototype` member (step 18 challenge, m4).
+ */
+export function currentEventType(type: string): string {
+	return Object.hasOwn(RENAMED_EVENT_TYPES, type) ? (RENAMED_EVENT_TYPES[type] ?? type) : type;
+}
+
 /** An untrusted log line or event with its type under the current name; anything else comes back unchanged. */
 export function withCurrentType(value: unknown): unknown {
 	if (typeof value !== "object" || value === null || Array.isArray(value)) return value;
 	const type: unknown = Reflect.get(value, "type");
-	const renamed = typeof type === "string" ? RENAMED_EVENT_TYPES[type] : undefined;
-	return renamed === undefined ? value : { ...value, type: renamed };
+	if (typeof type !== "string") return value;
+	const renamed = currentEventType(type);
+	return renamed === type ? value : { ...value, type: renamed };
 }
