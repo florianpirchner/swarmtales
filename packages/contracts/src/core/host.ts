@@ -68,7 +68,10 @@ export interface Host {
 	readonly log: EventLogView;
 	/** Mechanics in load order. */
 	readonly mechanics: readonly string[];
-	/** Writes `run_started` and runs `runStarted` hooks; a resumed host is started already. */
+	/**
+	 * Writes `run_started` and runs `runStarted` hooks. A resumed host is started already: there it runs
+	 * the `runResumed` phases now instead of before its first minute (once; a host that only deals).
+	 */
 	start(): void;
 	/** Plays one minute; returns the end once the run is over. */
 	playMinute(agent: TurnTaker): Promise<RunEnd | undefined>;

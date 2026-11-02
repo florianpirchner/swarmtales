@@ -37,6 +37,12 @@ export interface HostResidentsOptions {
 	readonly run: HostRun;
 	/** Started (or resumed): the motives are dealt and the whisperer is chosen. */
 	readonly host: Host;
+	/**
+	 * Where the prompts' facts are read, when not from `host`: a resumed host does its resume work
+	 * (the core motives a snapshot from before v09 lacks) only in its first minute, so a resumed run
+	 * reads them from the app's probe host, which did it at once.
+	 */
+	readonly promptHost?: Host;
 	/** Left out (the app's probe host) only prompts, profiles and characters are built, no runners. */
 	readonly models?: ModelSource;
 	/** Replaces every per-resident model (CLI `--model`). */
@@ -119,7 +125,7 @@ function catalogTools(host: Host): readonly ToolSpec[] {
 export function hostResidents(options: HostResidentsOptions): HostResidents {
 	const { story, run, host } = options;
 	const ids = host.residents;
-	const facts = promptFacts(host);
+	const facts = promptFacts(options.promptHost ?? host);
 	const figureDirection = directionLevel(run.figureDirection);
 	const gmDirection = directionLevel(run.gmDirection);
 	const assignments = assignModels(story, ids, run.seed, options.modelOverride);

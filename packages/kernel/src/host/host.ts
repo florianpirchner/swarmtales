@@ -286,6 +286,15 @@ class CoreHost implements Host {
 
 	start(): void {
 		this.#usable();
+		if (this.#resumePending) {
+			try {
+				this.#resumeNow();
+			} catch (error) {
+				this.#fail(error);
+				throw error;
+			}
+			return;
+		}
 		if (this.#started) throw new Error("host: already started");
 		this.#started = true;
 		const story = this.#story;
@@ -297,6 +306,26 @@ class CoreHost implements Host {
 		} catch (error) {
 			this.#fail(error);
 			throw error;
+		}
+	}
+
+	/**
+	 * The old engine's restore work, once, before the first minute of a resumed run (R2-D9): the
+	 * `runResumed` phases. It belongs to the snapshot's last played minute, as the old restore wrote it
+	 * (`run_resumed`, the late core motives and escrows at the snapshot's minute, not one later:
+	 * challenge L1). The first minute runs it; `start()` on a resumed host runs it at once (the app's
+	 * probe host, which only deals), and the calls it stages wait for the first minute.
+	 */
+	#resumeNow(): void {
+		this.#resumePending = false;
+		const minute = this.#minute;
+		this.#minute = Math.max(0, minute - 1);
+		try {
+			this.#phases((phases) => phases.runResumed, (run) => {
+				run();
+			});
+		} finally {
+			this.#minute = minute;
 		}
 	}
 
@@ -332,15 +361,10 @@ class CoreHost implements Host {
 		const bus = this.#bus;
 		this.#referee.minuteStarted(minute);
 		if (this.#resumePending) {
-			// The old engine's restore work, once, before the first minute of a resumed run (R2-D9). It
-			// belongs to the snapshot's last played minute, as the old restore wrote it (`run_resumed`,
-			// the late core motives and escrows at the snapshot's minute, not one later: challenge L1).
-			this.#resumePending = false;
+			this.#resumeNow();
+			// Its staged calls belong to that minute too.
 			this.#minute = Math.max(0, minute - 1);
 			try {
-				this.#phases((phases) => phases.runResumed, (run) => {
-					run();
-				});
 				await this.#gateway.settle();
 			} finally {
 				this.#minute = minute;

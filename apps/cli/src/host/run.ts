@@ -258,10 +258,11 @@ function gamemakerUse(story: AnyStory, effective: EffectiveRun, facts: StartFact
 	return defineGamemaker(hostGamemakerReport(story)).as(NAMES.gamemaker, options);
 }
 
-/** A host that only deals: the story without overseers, started or resumed. */
+/** A host that only deals: the story without overseers, started, or resumed with its resume work done. */
 function probeHost(definition: ReturnType<typeof hostStoryOf>["definition"], resume: { readonly snapshot: HostSnapshot; readonly events: readonly EventEnvelope[] } | undefined): Host {
 	const probe = createHost({ story: definition, prompts: createPromptLookup(), app: { events: RESIDENT_APP_EVENTS }, ...(resume === undefined ? {} : { resume }) });
-	if (resume === undefined) probe.start();
+	// A resumed probe runs its resume work now: a snapshot from before the core motives deals them there (v09).
+	probe.start();
 	return probe;
 }
 
@@ -325,7 +326,8 @@ export function composeHostRun(options: HostComposeOptions): HostComposedRun {
 
 	// The probe loads no overseers, so it gets the snapshot without their slices.
 	const probeResume = resume === undefined ? undefined : { snapshot: withoutOverseers(resume.point.host), events: resume.point.events };
-	const facts = startFacts(probeHost(base, probeResume), story, run, options, effective.personas);
+	const probe = probeHost(base, probeResume);
+	const facts = startFacts(probe, story, run, options, effective.personas);
 	const startLevel = effective.startLevel;
 	const uses: OverseerUse[] = [
 		...(classifier === undefined ? [] : [overseers.classifierOverseer.as(NAMES.classifier, { label: classifier.label, ...(classifier.maxChars === undefined ? {} : { maxChars: classifier.maxChars }) })]),
@@ -430,6 +432,8 @@ export function composeHostRun(options: HostComposeOptions): HostComposedRun {
 		story,
 		run,
 		host,
+		// The probe did the resume work the run's host does in its first minute (the late core motives).
+		...(resume === undefined ? {} : { promptHost: probe }),
 		models: source,
 		personas: effective.personas,
 		...(options.modelOverride === undefined ? {} : { modelOverride: options.modelOverride }),
