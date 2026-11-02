@@ -8,7 +8,7 @@
  */
 
 const PATTERNS: readonly (readonly [RegExp, string])[] = [
-	// scheme://user:password@host, scheme://token@host
+	// scheme://user:secret@host, scheme://token@host
 	[/\b([a-z][a-z0-9+.-]*:\/\/)[^\s/@]+@/gi, "$1[redacted]@"],
 	// API keys shaped like sk-..., sk-ant-..., sk-or-v1-...
 	[/\bsk-[A-Za-z0-9_-]{16,}/g, "sk-[redacted]"],
