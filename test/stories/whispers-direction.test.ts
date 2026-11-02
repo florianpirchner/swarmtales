@@ -8,8 +8,8 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import type { CompetitorId } from "@swarmtales/kernel";
-import { authorLine, tallyWhispers, VOICE_RULE, type World } from "@swarmtales/engine";
-import { gamemakerSystemPrompt, roleLeaks } from "@swarmtales/roles";
+import { authorLine, tallyWhispers, type World } from "@swarmtales/engine";
+import { gamemakerSystemPrompt, roleLeaks, VOICE_RULE } from "@swarmtales/roles";
 import type { AnyStory } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";

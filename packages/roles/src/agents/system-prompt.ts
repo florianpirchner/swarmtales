@@ -4,14 +4,16 @@
  * after it the resident's core motive as prose (v09), who it is, never
  * what to do; a story's frame for the core motives comes first (who the resident
  * plays and how seriously). From figure direction 6 on the figure leads and
- * its direction closes the prompt (packages/engine/src/direction.ts). The prompt is built once per run from facts a resume keeps, so
+ * its direction closes the prompt (apps/cli/src/host/direction.ts). The prompt is built once per run from facts a resume keeps, so
  * it stays identical across a resume (prompt caching); the weaver (`--weaver`) rebuilds it with who the
  * story has made of the resident, a text the snapshot keeps as well.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import { VOICE_RULE, type DirectionLevel } from "@swarmtales/engine";
+import type { DirectionLevel, Persona } from "@swarmtales/contracts";
 import { render, text } from "@swarmtales/prompts";
-import type { Persona } from "@swarmtales/contracts";
+
+/** The voice rule of figure direction 6, in the system prompt right after the figure (moved from the old engine, R1-8). */
+export const VOICE_RULE = text("competitor/system/voice-rule");
 
 export interface PromptFacts {
 	readonly id: CompetitorId;

@@ -17,22 +17,11 @@ import type { CompetitorId } from "@swarmtales/kernel";
 import { render, text } from "@swarmtales/prompts";
 import type { FigureDirection, FigureSpec, TurnInput } from "@swarmtales/contracts";
 
-export const DIRECTION_LEVELS = [0, 4, 6, 8, 10] as const;
-export type DirectionLevel = (typeof DIRECTION_LEVELS)[number];
-
-/** The default of both dials: the run as v12 played it. */
-export const DEFAULT_DIRECTION: DirectionLevel = 4;
+export { DEFAULT_DIRECTION, DIRECTION_LEVELS, directionLevel, type DirectionLevel } from "@swarmtales/contracts";
+import type { DirectionLevel } from "@swarmtales/contracts";
 
 /** Minutes between two repeats of a figure's full text from level 6. */
 export const FULL_FIGURE_EVERY = 10;
-
-/** A dial value 0-10 as the defined level it plays (rounded down). */
-export function directionLevel(value: number): DirectionLevel {
-	if (!Number.isInteger(value) || value < 0 || value > 10) throw new RangeError(`A direction is an integer from 0 to 10, got ${value}`);
-	let level: DirectionLevel = 0;
-	for (const candidate of DIRECTION_LEVELS) if (candidate <= value) level = candidate;
-	return level;
-}
 
 /** A rival line with the resident who plays that figure in this run. */
 export interface RivalLine {
@@ -69,9 +58,6 @@ export function directFigure(level: DirectionLevel, direction: FigureDirection |
 		...(level < 10 || direction.duty === undefined ? {} : { duty: direction.duty }),
 	};
 }
-
-/** The voice rule of level 6, in the system prompt right after the figure. */
-export const VOICE_RULE = text("competitor/system/voice-rule");
 
 /** What level 10 says about the gamemaker's notes; `author` is the name its notes carry. */
 export function authorLine(author: string): string {

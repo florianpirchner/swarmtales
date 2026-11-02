@@ -37,7 +37,8 @@ export interface HostResidentsOptions {
 	readonly run: HostRun;
 	/** Started (or resumed): the motives are dealt and the whisperer is chosen. */
 	readonly host: Host;
-	readonly models: ModelSource;
+	/** Left out (the app's probe host) only prompts, profiles and characters are built, no runners. */
+	readonly models?: ModelSource;
 	/** Replaces every per-resident model (CLI `--model`). */
 	readonly modelOverride?: ModelChoice;
 	readonly limits?: RequestLimits;
@@ -197,6 +198,7 @@ export function hostResidents(options: HostResidentsOptions): HostResidents {
 		const limits = options.limits ?? { ...RESIDENT_LIMITS, ...(maxOutputTokens === undefined ? {} : { maxOutputTokens }) };
 		const actor = residentActor(id);
 		const voice = options.innerVoice?.(id);
+		if (options.models === undefined) continue;
 		runners.set(
 			id,
 			new HostResidentRunner({

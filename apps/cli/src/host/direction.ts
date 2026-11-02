@@ -14,21 +14,13 @@
  * Other values round down to the next defined level.
  */
 import { render, text } from "@swarmtales/prompts";
-import type { FigureDirection, FigureSpec, ResidentId } from "@swarmtales/contracts";
+import type { DirectionLevel, FigureDirection, FigureSpec, ResidentId } from "@swarmtales/contracts";
 
-const DIRECTION_LEVELS = [0, 4, 6, 8, 10] as const;
-export type DirectionLevel = (typeof DIRECTION_LEVELS)[number];
+export { DEFAULT_DIRECTION, directionLevel, type DirectionLevel } from "@swarmtales/contracts";
 
 /** Minutes between two repeats of a figure's full text from level 6. */
 export const FULL_FIGURE_EVERY = 10;
 
-/** A dial value 0-10 as the defined level it plays (rounded down). */
-export function directionLevel(value: number): DirectionLevel {
-	if (!Number.isInteger(value) || value < 0 || value > 10) throw new RangeError(`A direction is an integer from 0 to 10, got ${String(value)}`);
-	let level: DirectionLevel = 0;
-	for (const candidate of DIRECTION_LEVELS) if (candidate <= value) level = candidate;
-	return level;
-}
 
 /** A figure's direction as a run plays it: what its level shows, rivals resolved to residents. */
 export interface DirectedFigure {

@@ -13,11 +13,11 @@ import { loadLevels, PuzzlesSlice, PuzzlesSliceV0, saveLevels } from "./model.ts
 import { puzzlesImplementation } from "./services.ts";
 import { HOOK_ORDER, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { repairAfterResume } from "./resume.ts";
-import { NeedsFact, needsOf, SecretsFact } from "./report.ts";
+import { NeedsFact, needsOf, SecretsFact, SolutionsFact, solutionsOf } from "./report.ts";
 import { secretsOfDeal } from "./services.ts";
 
 export { puzzlesHead } from "./head.ts";
-export { NeedsFact, needsFrom, SecretsFact, secretsFrom, type Needs } from "./report.ts";
+export { NeedsFact, needsFrom, SecretsFact, secretsFrom, SolutionsFact, solutionsFrom, type Needs, type Solutions } from "./report.ts";
 
 export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
 	services: [kit.provide(PuzzlesApi, puzzlesImplementation)],
@@ -49,6 +49,8 @@ export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
 		needs: kit.fact(NeedsFact, (view) => needsOf(view)),
 		/** The secrets of the dealt levels, for the gamemaker report's guard (old `secretGuardOf`; never shown). */
 		secrets: kit.fact(SecretsFact, (view) => secretsOfDeal(view)),
+		/** Each resident's code and fragment per dealt level, for the scripted oracle and white-box tests (never shown). */
+		solutions: kit.fact(SolutionsFact, (view) => solutionsOf(view)),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

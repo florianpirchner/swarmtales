@@ -7,7 +7,7 @@
 import { Type, type Static } from "typebox";
 import { Parse } from "typebox/value";
 import { ExileApi, ProgressionApi } from "@swarmtales/mechanic-shared";
-import { dealView, lastLevelOf } from "./deal.ts";
+import { dealView, lastLevelOf, solutionOf } from "./deal.ts";
 import type { PuzzlesView } from "./head.ts";
 
 const Id = Type.String();
@@ -27,6 +27,35 @@ export const NeedsFact = Type.Array(
 export type Needs = Static<typeof NeedsFact>;
 
 export const SecretsFact = Type.Object({ passwords: Type.Array(Type.String()), numbers: Type.Array(Type.String()) });
+
+/**
+ * Each resident's code and own fragment on every dealt level (old `world.inspect.codeOf` and
+ * `fragmentOf`): what the scripted provider's oracle (`--provider scripted`) and white-box tests
+ * read. Like `secrets` it is never shown to a model (R2-4).
+ */
+export const SolutionsFact = Type.Array(Type.Object({ level: Int, agent: Id, code: Type.Union([Type.String(), Type.Null()]), fragment: Type.Union([Type.String(), Type.Null()]) }));
+
+export type Solutions = Static<typeof SolutionsFact>;
+
+/** The solutions of every dealt level, level by level, residents in roster order. */
+export function solutionsOf(view: PuzzlesView): Solutions {
+	return [...view.state.levels.keys()]
+		.sort((a, b) => a - b)
+		.flatMap((level) => {
+			const puzzle = view.state.levels.get(level)?.puzzle;
+			return view.residents.ids.map((agent) => ({
+				level,
+				agent,
+				code: solutionOf(view, level, agent),
+				fragment: puzzle?.kind === "fragments" ? (puzzle.fragments.get(agent) ?? null) : null,
+			}));
+		});
+}
+
+/** The solutions from an untrusted fact value. */
+export function solutionsFrom(value: unknown): Solutions {
+	return Parse(SolutionsFact, value);
+}
 
 /** Who must reach `level` before `agent` can open it (old `dependenciesOf`). */
 function dependenciesOf(view: PuzzlesView, level: number, agent: string): readonly string[] {

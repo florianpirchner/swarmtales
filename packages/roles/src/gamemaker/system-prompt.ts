@@ -5,7 +5,8 @@
  * come from the story's spec. The text lives in `library/prompts/gamemaker/`;
  * this file chooses the pieces (dial variants are files of their own) and joins them.
  */
-import { type DirectionLevel, ladderText } from "@swarmtales/engine";
+import type { DirectionLevel } from "@swarmtales/contracts";
+import { ladderText } from "@swarmtales/engine";
 import { type PromptId, render, text } from "@swarmtales/prompts";
 import type { GamemakerRole, GamemakerSpec, HoldoutSpec, Rules } from "@swarmtales/contracts";
 
