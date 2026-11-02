@@ -28,10 +28,10 @@ const clerk = defineMechanic(
 				ctx.emit("noted", { text: params.text });
 				return reply("noted");
 			} }),
-			kit.tool({ name: "explode", description: "clerk/explode", parameters: Type.Object({}), execute: (_params, ctx) => {
+			kit.tool({ name: "explode", description: "clerk/explode", parameters: Type.Object({ message: Type.Optional(Type.String()) }), execute: (params, ctx) => {
 				ctx.stage(Note, { text: "after the explosion" });
 				ctx.emit("exploding", {});
-				throw new Error("boom");
+				throw new Error(params.message ?? "boom");
 			} }),
 			kit.tool({ name: "vault", description: "clerk/locked", parameters: Type.Object({ code: Type.Integer() }), execute: () => refuse("NEVER") }),
 		],
@@ -110,6 +110,11 @@ describe("a thrown error (review problem 7)", () => {
 		expect(last).toMatchObject({ type: "run_ended", payload: { reason: "error", detail: "boom" } });
 		expect(types(host.log.all())).toEqual(["run_started", "tool_called", "exploding", "run_ended"]);
 		await expect(host.call("gamemaker", "note", { text: "next" })).rejects.toThrow(/the run failed \(boom\)/);
+		// What threw goes into the signed log without the credentials of a URL (step 18 challenge, chain-security m7).
+		const leaky = createHost({ story: story() });
+		leaky.start();
+		await expect(leaky.call("gamemaker", "explode", { message: "fetch failed: https://user:sekret@gateway.example/v1" })).rejects.toThrow("sekret");
+		expect(leaky.log.all().at(-1)).toMatchObject({ type: "run_ended", payload: { reason: "error", detail: "fetch failed: https://[redacted]@gateway.example/v1" } });
 		await expect(host.playMinute(idleAgent)).rejects.toThrow(/the run failed/);
 		expect(() => host.snapshot()).toThrow(/the run failed/);
 		expect(host.log.ofType("clerk", "noted")).toHaveLength(0);

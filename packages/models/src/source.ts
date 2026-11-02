@@ -2,8 +2,8 @@
  * Model sources: which model and stream function each competitor talks to.
  */
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { createModels, fauxProvider, type Api, type Model, type Models, type FauxResponseStep } from "@earendil-works/pi-ai";
-import type { CompetitorId } from "@swarmtales/kernel";
+import { type AssistantMessage, createAssistantMessageEventStream, createModels, fauxProvider, type Api, type Model, type Models, type FauxResponseStep } from "@earendil-works/pi-ai";
+import { type CompetitorId, redactSecrets } from "@swarmtales/kernel";
 import { ModelConfigError, type ModelSettings } from "./settings.ts";
 import {
 	openRouterProviderPreferences,
@@ -34,6 +34,28 @@ function limitedStream(models: Models, limits: RequestLimits): StreamFn {
 		models.streamSimple(model, context, { ...options, maxTokens: limits.maxOutputTokens, timeoutMs: limits.timeoutMs });
 }
 
+function redacted(message: AssistantMessage): AssistantMessage {
+	return message.errorMessage === undefined ? message : { ...message, errorMessage: redactSecrets(message.errorMessage) };
+}
+
+/**
+ * A real provider's stream with secrets taken out of its error text (step 18 challenge,
+ * chain-security m7): every role records a failed call's `errorMessage` into the signed log, where a
+ * URL with credentials or an echoed key could not be removed again. Scripted sources keep the plain
+ * stream (their errors are the script's).
+ */
+function redactingStream(inner: StreamFn): StreamFn {
+	return async (model, context, options) => {
+		const source = await inner(model, context, options);
+		const out = createAssistantMessageEventStream();
+		void (async () => {
+			for await (const event of source) out.push(event.type === "error" ? { ...event, error: redacted(event.error) } : event);
+			out.end();
+		})();
+		return out;
+	};
+}
+
 /** A real provider, chosen through the registry. */
 export class PiModelSource implements ModelSource {
 	readonly #models = createModels();
@@ -61,7 +83,7 @@ export class PiModelSource implements ModelSource {
 			this.#spec.id === "openrouter" && this.#routing !== undefined ? openRouterProviderPreferences(this.#routing) : undefined;
 		return {
 			model,
-			streamFn: limitedStream(this.#models, limits),
+			streamFn: redactingStream(limitedStream(this.#models, limits)),
 			...(requestDefaults === undefined ? {} : { requestDefaults }),
 		};
 	}

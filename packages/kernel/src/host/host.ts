@@ -52,6 +52,7 @@ import { ResidentRegistry, residentIds } from "./residents.ts";
 import { Scheduler } from "./scheduler.ts";
 import { restoreHost, saveHost, type SnapshotParts } from "./snapshots.ts";
 import { mergePolicies, TurnLoop } from "./turns.ts";
+import { redactSecrets } from "../redact.ts";
 
 export interface HostOptions {
 	readonly story: CoreStory;
@@ -712,7 +713,8 @@ class CoreHost implements Host {
 		this.#staging.clear();
 		this.#desk.close();
 		if (this.#ended !== undefined) return;
-		const detail = error instanceof Error ? error.message : String(error);
+		// The signed log keeps what threw for good: no URL credentials or keys in it (chain-security m7).
+		const detail = redactSecrets(error instanceof Error ? error.message : String(error));
 		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail }));
 		this.#ended = { reason: "error", minute: this.#minute };
 	}
