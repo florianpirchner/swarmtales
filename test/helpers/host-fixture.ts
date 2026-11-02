@@ -11,6 +11,8 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 import type { AnyStory, GuardJudge, Host } from "@swarmtales/contracts";
 import { MemorySink } from "@swarmtales/chronicle";
+import { TOOL_LOCKED } from "@swarmtales/kernel";
+import { text } from "@swarmtales/prompts";
 import { type Script, ScriptedModelSource } from "@swarmtales/models";
 import { boundBackend, GAMEMAKER_ID, overseers, type HostResidentRunner } from "@swarmtales/roles";
 import { composeHostRun, type HostComposedRun, type HostComposeOptions } from "../../apps/cli/src/host/run.ts";
@@ -18,6 +20,9 @@ import { DEFAULT_LIMITS, type RunOverrides } from "../../apps/cli/src/run-option
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 export { act, say } from "@swarmtales/models";
+
+/** What a resident reads when it calls a tool it may not use (the old engine's `LOCKED_REPLY`; the prompt `replies/core/locked`). */
+export const LOCKED_REPLY = `${TOOL_LOCKED}: ${text("replies/core/locked")}`;
 
 export interface HostFixtureOptions extends RunOverrides {
 	readonly story?: AnyStory;

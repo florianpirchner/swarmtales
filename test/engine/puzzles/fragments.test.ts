@@ -10,7 +10,7 @@ import {
 	splitAtCuts,
 	validatePuzzle,
 	type FragmentPuzzle,
-} from "@swarmtales/engine";
+} from "@swarmtales/mechanic-puzzles";
 
 function validPuzzle(seed: number, passwordLength: number, fragmentCount: number, overlap = 2): FragmentPuzzle {
 	const [puzzle] = generateLevelPuzzles(createRng(seed), { teams: 1, passwordLength, fragmentCount, overlap });

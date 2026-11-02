@@ -25,7 +25,7 @@ import type { LegacyLine } from "@swarmtales/testkit";
 import { hostResidents, type HostResidents } from "../../apps/cli/src/host/residents.ts";
 import { hostStoryOf, type HostRun } from "../../apps/cli/src/host/story.ts";
 import { GOLDEN_DIR } from "../helpers/golden.ts";
-import { grudgeAddenda } from "../golden/scripts.ts";
+import { grudgeAddenda } from "../golden/host-scripts.ts";
 import { goldenLog, RESIDENTS, SEED, storyOf, type GoldenName } from "../mechanics/puzzles/harness.ts";
 import { planOf } from "../mechanics/t2/golden-plan.ts";
 

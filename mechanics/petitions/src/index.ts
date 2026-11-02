@@ -14,6 +14,7 @@ import { PetitionBook, PetitionRecord, resolveThreshold, type PetitionView, type
 import { petitionsHead } from "./head.ts";
 
 export { petitionsHead };
+export { PetitionBook, resolveThreshold } from "./book.ts";
 
 type Ctx = ContextOf<typeof petitionsHead>;
 type ToolCtx = ToolContextOf<typeof petitionsHead>;

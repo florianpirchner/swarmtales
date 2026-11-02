@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY, PetitionBook, resolveThreshold } from "@swarmtales/engine";
+import { PetitionBook, resolveThreshold } from "@swarmtales/mechanic-petitions";
 import { act as directorAct, at, every, onPetitionResolved, when } from "@swarmtales/sdk";
-import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { act, createHostFixture, LOCKED_REPLY, say } from "../helpers/host-fixture.ts";
 import { castActive, petitionStatus } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
 
@@ -10,18 +10,17 @@ const sign = (petitionId: string) => act({ name: "signPetition", args: { petitio
 const list = () => act({ name: "listPetitions" });
 
 describe("petition book (SPEC 11)", () => {
+	// The petitions mechanic's book (old `PetitionBook`): `open` answers the petition or undefined for a taken id; a refusal carries `code`.
 	it("passes as soon as the threshold is reached and refuses double, unknown and late signatures", () => {
 		const book = new PetitionBook();
-		expect(book.open({ id: "P1", text: "Close it.", threshold: 2, deadlineMinute: 5, visibility: "public", openedAt: 0 }).ok).toBe(true);
-		expect(book.open({ id: "P1", text: "Again.", threshold: 1, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toMatchObject({
-			ok: false,
-			error: "DUPLICATE_PETITION",
-		});
-		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: true, value: { passed: false, petition: { signatures: 1, status: "open" } } });
-		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: false, error: "ALREADY_SIGNED" });
-		expect(book.sign("P9", "A01", 1)).toMatchObject({ ok: false, error: "UNKNOWN_PETITION" });
-		expect(book.sign("P1", "A02", 2)).toMatchObject({ ok: true, value: { passed: true, petition: { status: "passed", resolvedAt: 2 } } });
-		expect(book.sign("P1", "A03", 2)).toMatchObject({ ok: false, error: "PETITION_CLOSED" });
+		expect(book.open({ id: "P1", text: "Close it.", threshold: 2, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toBeDefined();
+		// A taken id (old: DUPLICATE_PETITION).
+		expect(book.open({ id: "P1", text: "Again.", threshold: 1, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toBeUndefined();
+		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: true, passed: false, petition: { signatures: 1, status: "open" } });
+		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: false, code: "ALREADY_SIGNED" });
+		expect(book.sign("P9", "A01", 1)).toMatchObject({ ok: false, code: "UNKNOWN_PETITION" });
+		expect(book.sign("P1", "A02", 2)).toMatchObject({ ok: true, passed: true, petition: { status: "passed", resolvedAt: 2 } });
+		expect(book.sign("P1", "A03", 2)).toMatchObject({ ok: false, code: "PETITION_CLOSED" });
 		expect(book.expire(10)).toEqual([]);
 	});
 
@@ -29,10 +28,10 @@ describe("petition book (SPEC 11)", () => {
 		const book = new PetitionBook();
 		book.open({ id: "P2", text: "Close it.", threshold: 3, deadlineMinute: 4, visibility: "secret", openedAt: 0 });
 		expect(book.expire(3)).toEqual([]);
-		expect(book.sign("P2", "A01", 4)).toMatchObject({ ok: false, error: "PETITION_CLOSED" });
+		expect(book.sign("P2", "A01", 4)).toMatchObject({ ok: false, code: "PETITION_CLOSED" });
 		expect(book.expire(4)).toMatchObject([{ outcome: "failed", petition: { id: "P2", status: "failed", resolvedAt: 4 } }]);
-		expect(book.status("P2")).toBe("failed");
-		expect(book.status("P3")).toBeUndefined();
+		expect(book.get("P2")?.status).toBe("failed");
+		expect(book.get("P3")).toBeUndefined();
 	});
 
 	it("turns fractions of active competitors into absolute thresholds, rounding up", () => {

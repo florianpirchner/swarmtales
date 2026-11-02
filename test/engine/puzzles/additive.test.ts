@@ -10,7 +10,7 @@ import {
 	formatFactor,
 	validateDeal,
 	type FactorDeal,
-} from "@swarmtales/engine";
+} from "@swarmtales/mechanic-puzzles";
 import type { FactorTopology } from "@swarmtales/contracts";
 
 /** Consecutive teams of `size` over `agents` competitors. */

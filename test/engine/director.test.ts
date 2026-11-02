@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "@swarmtales/engine";
 import { act as directorAct, at, every, onAllPast, onEnter, onFirstEnter, onUnansweredDm, when } from "@swarmtales/sdk";
-import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { act, createHostFixture, LOCKED_REPLY, say } from "../helpers/host-fixture.ts";
 import { fragmentOf, levelOf, balanceOf, submit, ledgerTotal } from "../helpers/host-inspect.ts";
 import { tinyStory } from "../helpers/stories.ts";
 
