@@ -26,6 +26,9 @@ import { createPromptLookup } from "@swarmtales/prompts";
 import { standInsFor, type PlannedCall } from "@swarmtales/testkit";
 import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
 import { act, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
 import { namesStandIn } from "./stand-ins.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
@@ -46,11 +49,38 @@ export interface Resumed {
 }
 
 export interface ResumedOld extends Resumed {
-	readonly world: World;
+	readonly world: RecordedWorld;
 }
 
-/** Continues the old run for `minutes` more minutes. */
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	lines: Type.Array(Type.Intersect([Type.Object({ type: Type.String() }), Type.Record(Type.String(), Type.Unknown())])),
+	world: OldWorldRecord,
+});
+
+/** The old continuation's inputs: the snapshot, the story, the minutes and every call of the plan from the snapshot's next minute. */
+function fingerprint(raw: unknown, story: AnyStory, minutes: number, plan: Plan): string {
+	const snapshot = parseSnapshot(JSON.parse(JSON.stringify(raw)));
+	const start = snapshot.minute + 1;
+	return fingerprintOf({ snapshot: fingerprintOf(raw), story, minutes, calls: planTable(snapshot.agents, minutes, (agent, index) => plan(agent, start + index)) });
+}
+
+/**
+ * Continues the old run for `minutes` more minutes, as it was recorded once before the engine went
+ * (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 export async function resumeOld(raw: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<ResumedOld> {
+	const { name, scenario } = currentScenario();
+	const now = fingerprint(raw, story, minutes, plan);
+	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await resumeOldLive(raw, story, minutes, plan)) });
+	const recorded = recordedOld(name, scenario, OldRecord);
+	expectFingerprint(name, scenario, recorded.fingerprint, now);
+	return { replies: new Map(recorded.replies), lines: recorded.lines, world: new RecordedWorld(recorded.world) };
+}
+
+/** The live old continuation (recording only; deleted with the engine). */
+async function resumeOldLive(raw: unknown, story: AnyStory, minutes: number, plan: Plan) {
 	const snapshot: RunSnapshot = parseSnapshot(JSON.parse(JSON.stringify(raw)));
 	const start = snapshot.minute + 1;
 	const log = new MemorySink();
@@ -69,7 +99,7 @@ export async function resumeOld(raw: unknown, story: AnyStory, minutes: number, 
 		const key = `${String(event.minute)}:${event.agent}`;
 		replies.set(key, [...(replies.get(key) ?? []), `${String(event.isError)}|${event.text}`]);
 	}
-	return { replies, lines: log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event })), world: run.world };
+	return { replies: [...replies], lines: log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event })), world: recordWorld(run.world) };
 }
 
 function scriptOf(world: World, start: number, minutes: number, plan: Plan): Script {

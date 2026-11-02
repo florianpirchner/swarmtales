@@ -22,6 +22,9 @@ import { tribunal } from "@swarmtales/mechanic-tribunal";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { renderSection, sectionLines, sectionOfOld } from "../tribunal/support/section.ts";
 import { standIns, TestCity } from "./support/city.ts";
+import { oldRun, oldRunAsync } from "../../helpers/old-engine-recorder.ts";
+import { HeldPiece } from "../../helpers/old-world.ts";
+import { Type, type Static } from "typebox";
 import { runProbe, startHost } from "./support/host.ts";
 
 /** The City of Keys without names and core motives (labels and cues of other teams); goals and the seal stay, their calls are compared. */
@@ -112,19 +115,47 @@ async function newReply(host: Host, call: Call): Promise<string> {
 	return outcome.ok ? outcome.reply : outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;
 }
 
+const Gate = Type.Object({ agent: Type.String(), until: Type.Number(), ransomable: Type.Boolean(), price: Type.Number(), selfPrice: Type.Number() });
+/** The old city at the gate: who is at the gate, and each resident's points, level, held pieces and passed doors. */
+const OldCityRecord = Type.Object({
+	gate: Gate,
+	balances: Type.Record(Type.String(), Type.Number()),
+	levels: Type.Record(Type.String(), Type.Number()),
+	held: Type.Record(Type.String(), Type.Array(HeldPiece)),
+	passed: Type.Record(Type.String(), Type.Array(Type.Number())),
+});
+type OldCityRecord = Static<typeof OldCityRecord>;
+
+function cityRecordOf(old: ReturnType<typeof oldCity>): OldCityRecord {
+	const { world, gate } = old;
+	return {
+		gate: { agent: gate.agent, until: gate.until, ransomable: gate.ransomable, price: gate.price, selfPrice: gate.selfPrice },
+		balances: Object.fromEntries(IDS.map((id) => [id, world.ledger.balance(id)])),
+		levels: Object.fromEntries(IDS.map((id) => [id, world.levelOf(id)])),
+		held: Object.fromEntries(IDS.map((id) => [id, world.heldPieces(id).map((piece) => ({ ...piece, needers: [...piece.needers] }))])),
+		passed: Object.fromEntries(IDS.map((id) => [id, [8, 9, 10].filter((level) => world.hasPassed(id, level))])),
+	};
+}
+
+/** The old city at the gate (minute 24, `extra` points to the resident there), as it was recorded once (step 18, item 7b; `test/fixtures/old-engine/`). */
+function oldGateCity(extra = 0): OldCityRecord {
+	return oldRun({ extra }, OldCityRecord, () => cityRecordOf(oldCity(extra)));
+}
+
 /** The new city as the old one stands at the gate: points, levels, held pieces and passes copied over, the real standoff. */
-function newCity(world: World, gate: { readonly agent: string; readonly until: number; readonly ransomable: boolean; readonly price: number; readonly selfPrice: number }) {
+function newCity(old: OldCityRecord) {
+	const gate = old.gate;
 	const city = new TestCity(
 		IDS,
-		IDS.map((id) => world.ledger.balance(id)),
+		IDS.map((id) => old.balances[id] ?? 0),
 	);
 	for (const id of IDS) {
-		city.levels.set(id, world.levelOf(id));
+		city.levels.set(id, old.levels[id] ?? 0);
 		city.held.set(
 			id,
-			world.heldPieces(id).map((piece) => ({ ...piece, needers: [...piece.needers] })),
+			(old.held[id] ?? []).map((piece) => ({ ...piece, needers: [...piece.needers] })),
 		);
-		city.passedLevels.set(id, new Set([8, 9, 10].filter((level) => world.hasPassed(id, level))));
+		city.passedLevels.set(id, new Set(old.passed[id] ?? []));
 	}
 	const spec = STORY.tribunal;
 	const rule = STORY.rules.ultimatum;
@@ -218,27 +249,40 @@ function newLines(events: readonly EventEnvelope[]): readonly string[] {
 	});
 }
 
+/** A call with the resident at the gate filled in. */
+function resolved(call: Call, gate: string): Call {
+	const agent = call.agent === "gate" ? gate : call.agent;
+	const params = call.tool === "ultimatum" ? { ...call.params, a: call.params.a === "gate" ? gate : call.params.a } : call.params;
+	return { ...call, agent, params };
+}
+
+const OldCompared = Type.Object({ city: OldCityRecord, replies: Type.Array(Type.String()), lines: Type.Array(Type.String()) });
+
+/** The old side of `compare`, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+async function oldCompared(calls: readonly Call[], options: { readonly close?: boolean; readonly extra?: number }) {
+	return oldRunAsync({ calls, options }, OldCompared, async () => {
+		const old = oldCity(options.extra ?? 0);
+		const city = cityRecordOf(old);
+		const replies: string[] = [];
+		for (const call of calls) replies.push(await oldReply(old.world, resolved(call, old.gate.agent)));
+		if (options.close !== false) old.until(29);
+		return { city, replies, lines: oldLines(old) };
+	});
+}
+
 async function compare(calls: readonly Call[], options: { readonly close?: boolean; readonly extra?: number } = {}) {
-	const old = oldCity(options.extra ?? 0);
-	const now = newCity(old.world, old.gate);
+	const old = await oldCompared(calls, options);
+	const now = newCity(old.city);
 	// The new host at the old one's minute (nothing happens before: the tribunal never calls), then the same gate.
 	await playTo(now.host, 23);
 	await now.open();
 	const since = now.host.log.length;
-	const replies: { readonly old: string[]; readonly now: string[] } = { old: [], now: [] };
-	for (const call of calls) {
-		const agent = call.agent === "gate" ? old.gate.agent : call.agent;
-		const params = call.tool === "ultimatum" ? { ...call.params, a: call.params.a === "gate" ? old.gate.agent : call.params.a } : call.params;
-		replies.old.push(await oldReply(old.world, { ...call, agent, params }));
-		replies.now.push(await newReply(now.host, { ...call, agent, params }));
-	}
-	if (options.close !== false) {
-		old.until(29);
-		await playTo(now.host, 29);
-	}
+	const replies: { readonly old: readonly string[]; readonly now: string[] } = { old: old.replies, now: [] };
+	for (const call of calls) replies.now.push(await newReply(now.host, resolved(call, old.city.gate.agent)));
+	if (options.close !== false) await playTo(now.host, 29);
 	const lines = newLines(now.host.log.all().slice(since));
 	expect(replies.now).toEqual(replies.old);
-	expect(lines).toEqual(oldLines(old));
+	expect(lines).toEqual(old.lines);
 	return { old, now, replies, lines };
 }
 
@@ -248,8 +292,8 @@ describe("exile against the old World (differential, one merged list)", () => {
 	});
 
 	it("refuses wills in the old order with the old details", async () => {
-		const old = oldCity();
-		const [piece = "none"] = old.world.heldPieces(old.gate.agent).map((entry) => entry.id);
+		const old = oldGateCity();
+		const [piece = "none"] = (old.held[old.gate.agent] ?? []).map((entry) => entry.id);
 		const other = IDS.find((id) => id !== old.gate.agent) ?? "A01";
 		const { replies } = await compare(
 			[
@@ -283,9 +327,9 @@ describe("exile against the old World (differential, one merged list)", () => {
 	});
 
 	it("executes a will at once and, when the gate closes, writes `exiled` with the will first, then keeps, burns, voids the goal, tells the seal and contracts", async () => {
-		const old = oldCity(43);
+		const old = oldGateCity(43);
 		const heirs = IDS.filter((id) => id !== old.gate.agent);
-		const first = old.world.heldPieces(old.gate.agent)[0];
+		const first = (old.held[old.gate.agent] ?? [])[0];
 		const bequests = [...heirs.map((to) => ({ to, points: 5 })), ...(first === undefined ? [] : [{ to: first.needers[0] ?? "A01", factor: first.id }])];
 		const { lines } = await compare([{ tool: "lastWill", agent: "gate", params: { text: "A tenth to each of you.", bequests } }], { extra: 43 });
 		// The paths this test is about were reached, in this order: the will's bequests and event, the posts at the gate's close, `exiled` with
@@ -305,7 +349,7 @@ describe("exile against the old World (differential, one merged list)", () => {
 
 	it("takes ransoms through the tool with the old refusals and replies, tells the target after `ransom_paid`, and frees the resident", async () => {
 		const other = (gate: string) => IDS.find((id) => id !== gate) ?? "A01";
-		const old = oldCity();
+		const old = oldGateCity();
 		const { lines, replies } = await compare([
 			{ tool: "payRansom", agent: other(old.gate.agent), params: { target: "A99", amount: 1 } },
 			{ tool: "payRansom", agent: other(old.gate.agent), params: { target: other(old.gate.agent), amount: 1 } },
@@ -323,9 +367,9 @@ describe("exile against the old World (differential, one merged list)", () => {
 	});
 
 	it("closes a gate while an ultimatum on its holder is due: the exile at 300 first, so the debt lapses at the standoff's 500 (T4 #4)", async () => {
-		const old = oldCity();
+		const old = oldGateCity();
 		const holder = old.gate.agent;
-		const piece = old.world.heldPieces(holder).find((entry) => entry.kind !== "fragment" && entry.needers.length > 0);
+		const piece = (old.held[holder] ?? []).find((entry) => entry.kind !== "fragment" && entry.needers.length > 0);
 		const needer = piece?.needers[0];
 		if (needer === undefined) throw new Error("the resident at the gate holds no piece for anyone");
 		const { lines, replies } = await compare([{ tool: "ultimatum", agent: "gate", params: { a: "gate", b: needer, minutes: old.gate.until - 24 } }]);
@@ -337,14 +381,21 @@ describe("exile against the old World (differential, one merged list)", () => {
 	});
 
 	it("gives the gamemaker's tribunal section of the old describeSituation from the section data (the renderer of the differential)", () => {
-		const old = oldCity();
-		const situation = (): string =>
-			describeSituation({ world: old.world, round: old.world.minute, tracks: new Map(), recent: [], notes: [], guard: new SecretGuard([]), budget: "" });
+		const minutes = [24, 25, 27, 29, 30, 34, 36, 40];
+		// The old gamemaker's section and the old tribunal's data at each minute, recorded once (step 18, item 7b).
+		const sections = oldRun({ minutes }, Type.Array(Type.Object({ want: Type.Array(Type.String()), section: Type.Unknown() })), () => {
+			const old = oldCity();
+			const situation = (): string =>
+				describeSituation({ world: old.world, round: old.world.minute, tracks: new Map(), recent: [], notes: [], guard: new SecretGuard([]), budget: "" });
+			return minutes.map((minute) => {
+				old.until(minute);
+				return { want: sectionLines(situation()), section: sectionOfOld(old.world.tribunal) };
+			});
+		});
+		expect(sections).toHaveLength(minutes.length);
 		const seen: string[] = [];
-		for (const minute of [24, 25, 27, 29, 30, 34, 36, 40]) {
-			old.until(minute);
-			const want = sectionLines(situation());
-			expect(renderSection(sectionOfOld(old.world.tribunal))).toEqual(want);
+		for (const { want, section } of sections) {
+			expect(renderSection(section)).toEqual(want);
 			seen.push(...want);
 		}
 		// The states this proves on: a gate, an exiled resident, the window and the planned or called tribunal.

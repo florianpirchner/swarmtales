@@ -7,6 +7,9 @@
  * replies, every resident's status part each minute and the DM cap exemptions.
  */
 import { HoldoutTribunal, type HoldoutSnapshot } from "@swarmtales/engine";
+import { Type, type Static } from "typebox";
+import { Parse } from "typebox/value";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
 import { renderTemplate, rngFor } from "@swarmtales/kernel";
 import { render, text } from "@swarmtales/prompts";
 import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
@@ -76,7 +79,23 @@ function oldParts(court: HoldoutTribunal, model: FragmentModel, agent: string): 
 const exemptions = (scenario: Scenario, minute: number, exempt: (from: string, to: string) => boolean): readonly string[] =>
 	scenario.residents.flatMap((from) => scenario.residents.filter((to) => to !== from && exempt(from, to)).map((to) => `${String(minute)} ${from}>${to}`));
 
-export function runOld(scenario: Scenario, options: { readonly restore?: HoldoutSnapshot; readonly from?: number; readonly until?: number } = {}) {
+const Lines = Type.Array(Type.String());
+/** A recorded old holdout run: its record and the old `HoldoutSnapshot` at its end (the session's voters typed, the rest kept). */
+const OldHoldoutRun = Type.Object({
+	record: Type.Object({ events: Lines, posts: Lines, notices: Lines, notes: Lines, strikes: Lines, replies: Lines, status: Lines, exempt: Lines }),
+	snapshot: Type.Object({ session: Type.Optional(Type.Object({ voters: Lines })) }),
+});
+
+/** The old holdout tribunal's run of a scenario, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+export function runOld(scenario: Scenario, options: { readonly restore?: unknown; readonly from?: number; readonly until?: number } = {}): Static<typeof OldHoldoutRun> {
+	return oldRun({ scenario: { ...scenario, model: scenario.model() }, options }, OldHoldoutRun, () => {
+		const { record, snapshot } = runOldLive(scenario, options);
+		return { record, snapshot };
+	});
+}
+
+/** The live old holdout tribunal (recording only; deleted with the engine). */
+function runOldLive(scenario: Scenario, options: { readonly restore?: unknown; readonly from?: number; readonly until?: number } = {}) {
 	const { from = 0, until = scenario.minutes } = options;
 	const model = scenario.model();
 	let minute = 0;
@@ -121,7 +140,7 @@ export function runOld(scenario: Scenario, options: { readonly restore?: Holdout
 			}
 		},
 	});
-	if (options.restore !== undefined) court.restore(options.restore, (id) => scenario.residents.includes(id));
+	if (options.restore !== undefined) court.restore(Parse(Type.Unsafe<HoldoutSnapshot>(Type.Unknown()), options.restore), (id) => scenario.residents.includes(id));
 	const known = (names: readonly string[]) => names.map((name) => name.trim()).find((id) => !scenario.residents.includes(id));
 	const deliver = (body: string, before: number) => record.notes.push(`tribunal ${String(before + 1)} board ${body}`);
 	const locked = `TOOL_LOCKED: ${text("replies/locked")}`;

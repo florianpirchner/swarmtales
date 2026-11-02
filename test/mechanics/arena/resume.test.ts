@@ -21,7 +21,7 @@ import { describe, expect, it } from "vitest";
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { convertLegacySnapshot, legacySink, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
-import type { World } from "@swarmtales/engine";
+import { Type } from "typebox";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { arena, arenaFromStory } from "@swarmtales/mechanic-arena";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";
@@ -40,6 +40,9 @@ import { dropJustified, ownedBy, standInsFor, type LegacyLine, type PlannedCall 
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
 import { act, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
 import { replyText } from "../t1/differential.ts";
@@ -102,11 +105,43 @@ interface OldResumed {
 	readonly lines: readonly LegacyLine[];
 	readonly restored: unknown;
 	readonly arena: unknown;
-	readonly world: World;
+	readonly world: RecordedWorld;
 }
 
-/** The old run resumed for `minutes` more minutes with the story's own activation; a turn after a turn with calls answers them. */
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	lines: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	restored: Type.Unknown(),
+	arena: Type.Unknown(),
+	world: OldWorldRecord,
+});
+
+/** The old continuation's inputs: the checkpoint, the minutes and every call of the plan on the old world's codes. */
+function fingerprint(minutes: number, world: RecordedWorld): string {
+	const start = parseSnapshot(raw()).minute + 1;
+	return fingerprintOf({ snapshot: fingerprintOf(raw()), minutes, calls: planTable(6, minutes, (agent, index) => PLAN(agent, start + index, (who, level) => world.knownCode(who, level))) });
+}
+
+/**
+ * The old run resumed for `minutes` more minutes, as it was recorded once before the engine went
+ * (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 async function resumeOld(minutes: number): Promise<OldResumed> {
+	const { name, scenario } = currentScenario();
+	if (RECORDING) {
+		const live = await resumeOldLive(minutes);
+		const world = recordWorld(live.world);
+		recordOld(name, scenario, { fingerprint: fingerprint(minutes, new RecordedWorld(world)), replies: [...live.replies], lines: live.lines, restored: live.restored, arena: live.arena, world });
+	}
+	const recorded = recordedOld(name, scenario, OldRecord);
+	const world = new RecordedWorld(recorded.world);
+	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(minutes, world));
+	return { replies: new Map(recorded.replies), lines: recorded.lines, restored: recorded.restored, arena: recorded.arena, world };
+}
+
+/** The live old continuation with the story's own activation; a turn after a turn with calls answers them (recording only; deleted with the engine). */
+async function resumeOldLive(minutes: number) {
 	const snapshot: RunSnapshot = parseSnapshot(raw());
 	const start = snapshot.minute + 1;
 	const log = new MemorySink();

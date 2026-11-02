@@ -19,6 +19,8 @@ import whispers from "../../../stories/whispers/story.ts";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { standIns, TestCity } from "./support/city.ts";
 import { runProbe, startHost } from "./support/host.ts";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
+import { Type } from "typebox";
 
 const IDS = competitorIds(6);
 const AUTHOR = "COURIER";
@@ -107,9 +109,27 @@ function newLines(events: readonly EventEnvelope[]): readonly string[] {
 	});
 }
 
+/** What the test reads of the old strike: the balances before, the lines, A01's points after, and who is exiled, alive and listed. */
+const OldStrike = Type.Object({
+	balances: Type.Array(Type.Number()),
+	lines: Type.Array(Type.String()),
+	pointsAfter: Type.Number(),
+	gone: Type.Boolean(),
+	alive: Type.Array(Type.String()),
+	listed: Type.Array(Type.String()),
+});
+
+/** The old strike, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+function recordedStrike() {
+	return oldRun({ ids: IDS, seed: 11 }, OldStrike, () => {
+		const old = oldStrike();
+		return { balances: old.balances, lines: oldLines(old), pointsAfter: old.world.ledger.balance("A01"), gone: old.world.isExiled("A01"), alive: [...old.world.alive], listed: [...(old.world.tribunal?.exiled ?? [])] };
+	});
+}
+
 describe("the holdout strike against the old World#onStruck (differential)", () => {
 	it("strikes once: `exiled` by the holdout, then the goal is void; no gate, no burn, no pieces kept, no level contracted, the points stay", async () => {
-		const old = oldStrike();
+		const old = recordedStrike();
 		const city = new TestCity(IDS, old.balances);
 		// No seal: the old World has none without a tribunal; its call is absent on both sides.
 		const host = startHost({ residents: IDS, mechanics: [...standIns(city).filter((use) => use.mechanic.id !== "seal"), exile.with()], residentTools: [], gamemakerTools: [] });
@@ -117,13 +137,13 @@ describe("the holdout strike against the old World#onStruck (differential)", () 
 		const first = await runProbe(host, (ctx) => ctx.tryCall(ExileApi, "strike", { resident: "A01", by: "holdout" }));
 		const second = await runProbe(host, (ctx) => ctx.tryCall(ExileApi, "strike", { resident: "A01", by: "holdout" }));
 		const lines = newLines(host.log.all().slice(since));
-		expect(lines).toEqual(oldLines(old));
+		expect(lines).toEqual(old.lines);
 		expect(lines).toEqual(['event {"type":"exiled","agent":"A01","by":"holdout"}', 'goals.onExiled "A01"']);
 		expect(first).toEqual({ ok: true });
 		expect(second).toMatchObject({ ok: false, code: "ALREADY_EXILED" });
-		expect(old.world.ledger.balance("A01")).toBe(old.balances[0]);
+		expect(old.pointsAfter).toBe(old.balances[0]);
 		// Gone like the old `isExiled` and `alive`, but not on the tribunal's list (old `tribunal.exiled` held only the gate and the seal).
 		const after = await runProbe(host, (ctx) => ({ gone: ctx.tryCall(ExileApi, "isExiled", { resident: "A01" }), alive: ctx.tryCall(ExileApi, "alive", {}), listed: ctx.tryCall(ExileApi, "exiled", {}) }));
-		expect(after).toEqual({ gone: old.world.isExiled("A01"), alive: [...old.world.alive], listed: [...(old.world.tribunal?.exiled ?? [])] });
+		expect(after).toEqual({ gone: old.gone, alive: old.alive, listed: old.listed });
 	});
 });

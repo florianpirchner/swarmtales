@@ -14,7 +14,6 @@ import { Type } from "typebox";
 import { Check } from "typebox/value";
 import { legacySink, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, HostSnapshot, MechanicUse, TurnTaker } from "@swarmtales/contracts";
-import type { World } from "@swarmtales/engine";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { arena, arenaFromStory, type ArenaRun } from "@swarmtales/mechanic-arena";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";
@@ -27,6 +26,9 @@ import { createPromptLookup } from "@swarmtales/prompts";
 import { ownedBy, type GoldenLine, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
 import { composeRun } from "../../../apps/cli/src/compose.ts";
 import { act, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { progressionOptions } from "../progression/harness.ts";
 import { puzzleOptions } from "../puzzles/harness.ts";
 import { SCRIPT_GRANTS } from "../script/golden-host.ts";
@@ -68,7 +70,7 @@ export interface Played {
 }
 
 export interface OldPlayed extends Played {
-	readonly world: World;
+	readonly world: RecordedWorld;
 	/** The old arena's snapshot after the run (`ArenaSnapshot`). */
 	readonly arena: unknown;
 	/** The snapshot the run took, if any. */
@@ -122,7 +124,41 @@ function repliesOf(lines: readonly LegacyLine[]): ReadonlyMap<string, readonly s
 	return replies;
 }
 
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	lines: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	world: OldWorldRecord,
+	arena: Type.Unknown(),
+	taken: Type.Optional(Type.Unknown()),
+});
+
+/** The old side's inputs: the spec without its plan, and every call the plan makes on the old world's codes. */
+function fingerprint(spec: Spec, codeOf: CodeOf): string {
+	const { plan, ...rest } = spec;
+	return fingerprintOf({ ...rest, calls: planTable(spec.agents, spec.minutes, (agent, minute) => plan(agent, minute, codeOf)) });
+}
+
+/**
+ * The plan played through the old engine, as it was recorded once before the engine went (step 18,
+ * item 7b; `test/fixtures/old-engine/`).
+ */
 export async function playOld(spec: Spec): Promise<OldPlayed> {
+	const { name, scenario } = currentScenario();
+	if (RECORDING) {
+		const live = await playOldLive(spec);
+		const world = recordWorld(live.world);
+		const codes = new RecordedWorld(world);
+		recordOld(name, scenario, { fingerprint: fingerprint(spec, (agent, level) => codes.knownCode(agent, level)), lines: live.lines, world, arena: live.arena, ...(live.taken === undefined ? {} : { taken: live.taken }) });
+	}
+	const recorded = recordedOld(name, scenario, OldRecord);
+	const world = new RecordedWorld(recorded.world);
+	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(spec, (agent, level) => world.knownCode(agent, level)));
+	const lines = recorded.lines;
+	return { replies: repliesOf(lines), lines, world, arena: recorded.arena, ...(recorded.taken === undefined ? {} : { taken: parseSnapshot(recorded.taken) }) };
+}
+
+/** The live old side (recording only; deleted with the engine). */
+async function playOldLive(spec: Spec) {
 	const settings = settingsOf(spec);
 	const log = new MemorySink();
 	let taken: RunSnapshot | undefined;

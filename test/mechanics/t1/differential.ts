@@ -8,8 +8,7 @@
 import type { JsonObject } from "@earendil-works/pi-ai";
 import type { EventEnvelope, MechanicUse, TurnTaker } from "@swarmtales/contracts";
 import type { AnyStory } from "@swarmtales/contracts";
-import { type DeliveryJudge } from "@swarmtales/roles";
-import type { World } from "@swarmtales/engine";
+import type { DeliveryJudge, DenialQuestion } from "@swarmtales/roles";
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
 import { HOOK_ORDER, ReceiptsApi, ChannelsApi } from "@swarmtales/mechanic-shared";
@@ -17,6 +16,9 @@ import type { LegacyOwner } from "@swarmtales/chronicle";
 import { goldenLine, ownedBy, playStory, scriptedAgent, type CallRecord, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
 import type { HostOptions } from "@swarmtales/kernel";
 import { act, createFixture, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { DenialQuestionRecord, OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { writtenBy } from "./support.ts";
 import type { ChannelsLog } from "./channels.ts";
 
@@ -41,8 +43,17 @@ export interface Side {
 	readonly lines: readonly LegacyLine[];
 }
 
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	/** The questions the old run asked its judge, in order. */
+	asked: Type.Array(DenialQuestionRecord),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	lines: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	world: OldWorldRecord,
+});
+
 export interface OldSide extends Side {
-	readonly world: World;
+	readonly world: RecordedWorld;
 }
 
 const key = (minute: number, agent: string): string => `${String(minute)}:${agent}`;
@@ -53,14 +64,42 @@ export function replyText(outcome: CallRecord["outcome"]): string {
 	return `true|${outcome.detail === undefined || outcome.detail === "" ? outcome.code : `${outcome.code}: ${outcome.detail}`}`;
 }
 
-/** Plays the plan through the old engine: one scripted model response per resident and minute. */
-export async function playOld(spec: { readonly story: AnyStory; readonly agents: number; readonly minutes: number; readonly plan: PlanFn; readonly judge?: DeliveryJudge; readonly names?: boolean; readonly figureDirection?: number; readonly seed?: number; readonly blockSize?: number }): Promise<OldSide> {
-	const ids = Array.from({ length: spec.agents }, (_unused, index) => `A${String(index + 1).padStart(2, "0")}`);
+interface OldSpec { readonly story: AnyStory; readonly agents: number; readonly minutes: number; readonly plan: PlanFn; readonly judge?: DeliveryJudge; readonly names?: boolean; readonly figureDirection?: number; readonly seed?: number; readonly blockSize?: number }
+
+const residentIds = (agents: number): readonly string[] => Array.from({ length: agents }, (_unused, index) => `A${String(index + 1).padStart(2, "0")}`);
+
+/** The inputs of an old side: the spec without the plan and judge, and every call the plan makes. */
+function fingerprint(spec: OldSpec): string {
+	const { plan, judge, ...rest } = spec;
+	const calls = residentIds(spec.agents).map((agent) => Array.from({ length: spec.minutes }, (_unused, minute) => plan(agent, minute)));
+	return fingerprintOf({ ...rest, judge: judge !== undefined, calls });
+}
+
+/**
+ * The plan played through the old engine (one scripted model response per resident and minute),
+ * as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
+export async function playOld(spec: OldSpec): Promise<OldSide> {
+	const { name, scenario } = currentScenario();
+	const now = fingerprint(spec);
+	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await playOldLive(spec)) });
+	const recorded = recordedOld(name, scenario, OldRecord);
+	expectFingerprint(name, scenario, recorded.fingerprint, now);
+	// The test's judge hears the old run's questions again, in order (its answers are in the recording).
+	for (const question of recorded.asked) await spec.judge?.deniesReceipt(question);
+	return { replies: new Map(recorded.replies), lines: recorded.lines, world: new RecordedWorld(recorded.world) };
+}
+
+/** RECORDING ONLY */
+async function playOldLive(spec: OldSpec) {
+	const ids = residentIds(spec.agents);
+	const asked: DenialQuestion[] = [];
+	const judge = spec.judge;
 	const fixture = createFixture({
 		story: spec.story,
 		agents: spec.agents,
 		minutes: spec.minutes,
-		...(spec.judge === undefined ? {} : { judge: spec.judge }),
+		...(judge === undefined ? {} : { judge: { label: judge.label, deniesReceipt: (question: DenialQuestion) => { asked.push(question); return judge.deniesReceipt(question); } } }),
 		...(spec.names === undefined ? {} : { names: spec.names }),
 		...(spec.figureDirection === undefined ? {} : { figureDirection: spec.figureDirection }),
 		...(spec.seed === undefined ? {} : { seed: spec.seed }),
@@ -83,7 +122,12 @@ export async function playOld(spec: { readonly story: AnyStory; readonly agents:
 		const at = key(event.minute, event.agent);
 		replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
 	}
-	return { replies, lines: fixture.log.events.map((event) => ({ ...event })), world: fixture.world };
+	return {
+		asked,
+		replies: [...replies],
+		lines: fixture.log.events.map((event) => ({ ...event })),
+		world: recordWorld(fixture.world),
+	};
 }
 
 export interface NewSide extends Side {

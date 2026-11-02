@@ -75,7 +75,7 @@ function holdoutChannels(lines: readonly string[]): readonly string[] {
 }
 
 async function bothRuns() {
-	const old = await runWorld({ calls: (world) => notesPlan(world.inspect.fragmentOf("A01", 1)), voteAt: 6 });
+	const old = await runWorld({ calls: (fragments) => notesPlan(fragments.A01 ?? ""), voteAt: 6 });
 	const legacy = parseLegacyLog(old.events.map((event) => JSON.stringify(event)).join("\n"));
 	const model = new FragmentModel(WORLD_IDS, new Map([[1, { teams: [[...WORLD_IDS]], fragments: old.fragments }]]));
 	const run = await playRealChannels({

@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { Type } from "typebox";
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { convertLegacySnapshot, legacySink, parseSnapshot, toLegacySnapshot, type ConvertedSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
@@ -39,6 +40,9 @@ import { ownedBy, standInsFor, type LegacyLine, type PlannedCall } from "@swarmt
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
 import { act, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { oldValue, RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
 import { replyText } from "../t1/differential.ts";
@@ -77,11 +81,43 @@ interface OldResumed {
 	readonly replies: ReadonlyMap<string, readonly string[]>;
 	readonly lines: readonly LegacyLine[];
 	readonly director: unknown;
-	readonly world: World;
+	readonly world: RecordedWorld;
 }
 
-/** Continues the old run for `minutes` more minutes; the plan's calls are built when the turn comes (a level is dealt when the door opens). */
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	lines: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	director: Type.Unknown(),
+	world: OldWorldRecord,
+});
+
+/** The old continuation's inputs: the snapshot, the story, the minutes and every call of the plan on the old world's codes. */
+function fingerprint(file: unknown, story: AnyStory, minutes: number, plan: Plan, world: RecordedWorld): string {
+	const snapshot = parseSnapshot(JSON.parse(JSON.stringify(file)));
+	const start = snapshot.minute + 1;
+	return fingerprintOf({ snapshot: fingerprintOf(file), story, minutes, calls: planTable(snapshot.agents, minutes, (agent, index) => plan(agent, start + index, (who, level) => world.knownCode(who, level))) });
+}
+
+/**
+ * Continues the old run for `minutes` more minutes, as it was recorded once before the engine went
+ * (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 async function resumeOld(file: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<OldResumed> {
+	const { name, scenario } = currentScenario();
+	if (RECORDING) {
+		const live = await resumeOldLive(file, story, minutes, plan);
+		const world = recordWorld(live.world);
+		recordOld(name, scenario, { fingerprint: fingerprint(file, story, minutes, plan, new RecordedWorld(world)), replies: [...live.replies], lines: live.lines, director: live.director, world });
+	}
+	const recorded = recordedOld(name, scenario, OldRecord);
+	const world = new RecordedWorld(recorded.world);
+	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(file, story, minutes, plan, world));
+	return { replies: new Map(recorded.replies), lines: recorded.lines, director: recorded.director, world };
+}
+
+/** The live old continuation; the plan's calls are built when the turn comes (a level is dealt when the door opens). Recording only; deleted with the engine. */
+async function resumeOldLive(file: unknown, story: AnyStory, minutes: number, plan: Plan) {
 	const snapshot: RunSnapshot = parseSnapshot(JSON.parse(JSON.stringify(file)));
 	const start = snapshot.minute + 1;
 	const log = new MemorySink();
@@ -159,11 +195,15 @@ describe("the script's slice of the L7 checkpoint", () => {
 	it("loads the old director field through the version-0 migration, as the old Director keeps it", () => {
 		const file = raw();
 		const old = parseSnapshot(raw()).director;
-		const director = new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0));
-		director.restore(old);
+		// The old Director's snapshot after `restore(old)`, recorded once (step 18, item 7b).
+		const restored = oldValue(() => {
+			const director = new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0));
+			director.restore(old);
+			return director.snapshot();
+		});
 		const host = resumedHost(file, cityOfKeys, 1);
 		expect(host.snapshot().mechanics.script?.version).toBe(1);
-		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(director.snapshot()));
+		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(restored));
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(directorOf(file)));
 	});
 
@@ -171,7 +211,8 @@ describe("the script's slice of the L7 checkpoint", () => {
 		const converted = convertLegacySnapshot(raw(), {}, "snapshot-L7");
 		const snapshot = { ...converted.host, mechanics: { ...converted.host.mechanics, script: { version: 0, data: {} } } };
 		const host = resumedHostOf({ ...converted, host: snapshot }, cityOfKeys, 1);
-		const empty = new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0)).snapshot();
+		// A fresh old Director's snapshot, recorded once (step 18, item 7b).
+		const empty = oldValue(() => new Director(cityOfKeys.director, worldStub(), new EventBus([new MemorySink()], () => 0)).snapshot());
 		expect(JSON.stringify(scriptData(host))).toBe(JSON.stringify(empty));
 	});
 

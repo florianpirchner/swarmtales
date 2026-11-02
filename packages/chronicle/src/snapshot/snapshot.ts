@@ -480,6 +480,8 @@ const DirectorSchema = Type.Object({
 export type LegacyArenaSnapshot = Frozen<Static<typeof ArenaSchema>>;
 export type LegacyWorldSnapshot = Frozen<Static<typeof WorldSchema>>;
 export type LegacyDirectorSnapshot = Frozen<Static<typeof DirectorSchema>>;
+/** The schema of the old engine's world part of a snapshot file (the tests read recorded old worlds with it). */
+export const LegacyWorldSnapshotSchema = WorldSchema;
 
 /** `T` read-only all the way down, as the old engine's snapshot types were (the inverse of `Writable`). */
 type Frozen<T> = T extends string | number | boolean | null | undefined

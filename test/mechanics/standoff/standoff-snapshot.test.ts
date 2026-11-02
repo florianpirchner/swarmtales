@@ -10,6 +10,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { StandoffBook as OldStandoffBook, type StandoffSnapshot } from "@swarmtales/engine";
+import { Type } from "typebox";
+import { Parse } from "typebox/value";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import type { ToolOutcome } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
@@ -79,7 +82,7 @@ function replyText(outcome: ToolOutcome): string {
 }
 
 /** Converts `file` (its `world.standoff` replaced by `standoffOf`), resumes it and plays `minutes`; the old book continues from the same file. */
-async function continueBoth(file: string, standoffOf: (ids: readonly string[], at: number) => StandoffSnapshot | undefined, minutes: number) {
+async function continueBoth(file: string, standoffOf: (ids: readonly string[], at: number) => unknown, minutes: number) {
 	const raw: unknown = JSON.parse(readFileSync(resolve(EXAMPLES, file), "utf8"));
 	if (typeof raw !== "object" || raw === null || !("world" in raw) || typeof raw.world !== "object" || raw.world === null) throw new Error(`${file}: no world`);
 	const probeIds = convertLegacySnapshot(raw, {}, file).host;
@@ -126,11 +129,26 @@ async function continueBoth(file: string, standoffOf: (ids: readonly string[], a
 	now.notices.push(...world.notices.map((notice) => `${notice.to} ${notice.author} ${notice.text}`));
 	now.posts.push(...world.posts.map((post) => `${post.author} ${post.text}`));
 
+	const old = oldBookRun(ids, saved, start, minutes);
+	return { now, old, slice: host.snapshot().mechanics.standoff, converted };
+}
+
+const Lines = Type.Array(Type.String());
+const BookRecordSchema = Type.Object({ events: Lines, burns: Lines, notices: Lines, posts: Lines, replies: Lines });
+
+/** The old book continuing from `saved` for `minutes`, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+function oldBookRun(ids: readonly string[], saved: unknown, start: number, minutes: number): BookRecord {
+	const recorded = oldRun({ ids, saved: saved ?? null, start, minutes }, BookRecordSchema, () => oldBookRunLive(ids, saved, start, minutes));
+	return { events: [...recorded.events], burns: [...recorded.burns], notices: [...recorded.notices], posts: [...recorded.posts], replies: [...recorded.replies] };
+}
+
+/** The live old book (recording only; deleted with the engine). */
+function oldBookRunLive(ids: readonly string[], saved: unknown, start: number, minutes: number): BookRecord {
 	const oldWorld = worldOf(ids);
 	const old = empty();
 	let minute = start;
 	const book = oldBook(oldWorld, ids, () => minute, old);
-	if (saved !== undefined) book.restore(saved);
+	if (saved !== undefined) book.restore(Parse(Type.Unsafe<StandoffSnapshot>(Type.Unknown()), saved));
 	for (; minute < start + minutes; minute++) {
 		book.tick(minute, "CITY");
 		if (minute === start + 1 && book.claimable("A01").length === 0) old.replies.push(`TOOL_LOCKED: ${text("replies/locked")}`);
@@ -140,11 +158,16 @@ async function continueBoth(file: string, standoffOf: (ids: readonly string[], a
 			if (claimed.ok) old.notices.push(`A01 CITY The city hands you what A04 held for you: ${claimed.value.pieces.map((piece) => `${piece.label}: ${piece.value}`).join("; ")}.`);
 		}
 	}
-	return { now, old, slice: host.snapshot().mechanics.standoff, converted };
+	return old;
 }
 
-/** The old book's own state just before the file was written: A01 handed over, an ultimatum runs, the city keeps A04's certificate. */
-function filled(ids: readonly string[], at: number): StandoffSnapshot {
+/** The old book's own state just before the file was written, as it was recorded once (step 18, item 7b). */
+function filled(ids: readonly string[], at: number): unknown {
+	return oldRun({ ids, at }, Type.Unknown(), () => filledLive(ids, at));
+}
+
+/** The live old book: A01 handed over, an ultimatum runs, the city keeps A04's certificate (recording only; deleted with the engine). */
+function filledLive(ids: readonly string[], at: number): StandoffSnapshot {
 	const record = empty();
 	const book = oldBook(worldOf(ids), ids, () => at - 1, record);
 	const given = book.issue("A01", "A02", 3, "COURIER");

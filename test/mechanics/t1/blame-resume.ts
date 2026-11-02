@@ -25,6 +25,9 @@ import { standInsFor, type PlannedCall } from "@swarmtales/testkit";
 import type { DeliveryJudge, DenialQuestion } from "@swarmtales/roles";
 import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
 import { act, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld } from "../../helpers/old-engine-recorder.ts";
+import { DenialQuestionRecord } from "../../helpers/old-world.ts";
 import { namesStandIn } from "../channels/stand-ins.ts";
 import { progressionForBlame } from "./progression-carrying.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
@@ -60,8 +63,30 @@ export function blameStory(story: AnyStory): AnyStory {
 	};
 }
 
-/** Continues the old run for `minutes` more minutes; the judge answers `answers` in order. */
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	lines: Type.Array(Type.Intersect([Type.Object({ type: Type.String() }), Type.Record(Type.String(), Type.Unknown())])),
+	questions: Type.Array(DenialQuestionRecord),
+});
+
+/**
+ * Continues the old run for `minutes` more minutes; the judge answers `answers` in order. As it was
+ * recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+ */
 export async function resumeOld(raw: unknown, story: AnyStory, minutes: number, plan: PlanFn, answers: readonly boolean[]): Promise<ResumedSide & { readonly questions: readonly DenialQuestion[] }> {
+	const { name, scenario } = currentScenario();
+	const start = parseSnapshot(JSON.parse(JSON.stringify(raw))).minute + 1;
+	const agents = parseSnapshot(JSON.parse(JSON.stringify(raw))).agents;
+	const now = fingerprintOf({ snapshot: fingerprintOf(raw), story, minutes, answers, calls: planTable(agents, minutes, (agent, index) => plan(agent, start + index)) });
+	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await resumeOldLive(raw, story, minutes, plan, answers)) });
+	const recorded = recordedOld(name, scenario, OldRecord);
+	expectFingerprint(name, scenario, recorded.fingerprint, now);
+	return { replies: new Map(recorded.replies), lines: recorded.lines, asked: recorded.questions, questions: recorded.questions };
+}
+
+/** The live old continuation (recording only; deleted with the engine). */
+async function resumeOldLive(raw: unknown, story: AnyStory, minutes: number, plan: PlanFn, answers: readonly boolean[]) {
 	const snapshot: RunSnapshot = parseSnapshot(JSON.parse(JSON.stringify(raw)));
 	const start = snapshot.minute + 1;
 	const log = new MemorySink();
@@ -101,7 +126,7 @@ export async function resumeOld(raw: unknown, story: AnyStory, minutes: number, 
 		const at = `${String(event.minute)}:${event.agent}`;
 		replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
 	}
-	return { replies, lines: log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event })), asked: questions, questions };
+	return { replies: [...replies], lines: log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event })), questions };
 }
 
 const WorldFields = Type.Object({ world: Type.Object({ competitors: Type.Array(Type.Object({ agent: Type.String(), level: Type.Integer() })) }) });

@@ -63,7 +63,7 @@ export function sectionOfOld(tribunal: Tribunal | undefined): Section | null {
 }
 
 /** The old lines, word for word, from the section's data (the production renderer, mechanics/tribunal/src/section.ts). */
-export function renderSection(section: Section | null): readonly string[] {
+export function renderSection(section: unknown): readonly string[] {
 	return renderTribunalSection(tribunalSectionOf(section));
 }
 

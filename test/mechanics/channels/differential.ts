@@ -19,7 +19,11 @@ import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import type { PlannedCall } from "@swarmtales/testkit";
 import type { World } from "@swarmtales/engine";
+import { Type } from "typebox";
 import { act, createFixture, say } from "../../helpers/fixture.ts";
+import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
+import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { ids } from "../t1/support.ts";
 import { exileStandIn, progressionStandIn } from "../t1/stand-ins.ts";
 import { replyText } from "../t1/differential.ts";
@@ -60,9 +64,18 @@ export interface Played {
 }
 
 export interface OldPlayed extends Played {
-	readonly world: World;
+	/** What the tests read from the old World after its run. */
+	readonly world: RecordedWorld;
 	readonly events: readonly { readonly type: string; readonly [field: string]: unknown }[];
 }
+
+const OldRecord = Type.Object({
+	fingerprint: Type.String(),
+	replies: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+	gamemaker: Type.Array(Type.String()),
+	world: OldWorldRecord,
+	events: Type.Array(Type.Intersect([Type.Object({ type: Type.String() }), Type.Record(Type.String(), Type.Unknown())])),
+});
 
 export interface NewPlayed extends Played {
 	readonly host: Host;
@@ -73,7 +86,27 @@ export const TOOLS = ["readBoard", "postBoard", "sendDM", "createGroup", "addGro
 
 const key = (minute: number, agent: string): string => `${String(minute)}:${agent}`;
 
+/** The old side's inputs: the story, the roster, every resident call and every gamemaker call. */
+function fingerprint(spec: Spec): string {
+	const gm = spec.gamemaker;
+	return fingerprintOf({ story: spec.story, agents: spec.agents, minutes: spec.minutes, calls: planTable(spec.agents, spec.minutes, spec.plan), gamemaker: gm === undefined ? null : Array.from({ length: spec.minutes }, (_unused, minute) => gm(minute)) });
+}
+
+/**
+ * The plan played through the old engine, as it was recorded once before the engine went (step 18,
+ * item 7b; `test/fixtures/old-engine/`).
+ */
 export async function playOld(spec: Spec): Promise<OldPlayed> {
+	const { name, scenario } = currentScenario();
+	const now = fingerprint(spec);
+	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await playOldLive(spec)) });
+	const recorded = recordedOld(name, scenario, OldRecord);
+	expectFingerprint(name, scenario, recorded.fingerprint, now);
+	return { replies: new Map(recorded.replies), gamemaker: recorded.gamemaker, world: new RecordedWorld(recorded.world), events: recorded.events };
+}
+
+/** The live old side (recording only; deleted with the engine). */
+async function playOldLive(spec: Spec) {
 	const residents = ids(spec.agents);
 	const gm = spec.gamemaker;
 	const fixture = createFixture({
@@ -116,7 +149,7 @@ export async function playOld(spec: Spec): Promise<OldPlayed> {
 			replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
 		} else if (event.type === "gamemaker_result") gamemaker.push(`${String(event.isError)}|${event.text}`);
 	}
-	return { replies, gamemaker, world: fixture.world, events: fixture.log.events.map((event) => ({ ...event })) };
+	return { replies: [...replies], gamemaker, world: recordWorld(fixture.world), events: fixture.log.events.map((event) => ({ ...event })) };
 }
 
 /** The mechanics of a plain city on the new host: channels, cast and petitions are the real ones. */

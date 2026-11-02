@@ -11,6 +11,9 @@
  * against the old `World` itself.
  */
 import { SealHouse as OldSealHouse, type SealSnapshot } from "@swarmtales/engine";
+import { Type, type Static } from "typebox";
+import { Parse } from "typebox/value";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
 import { render } from "@swarmtales/prompts";
 import { rngFor } from "@swarmtales/kernel";
 import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
@@ -63,14 +66,30 @@ function replyText(outcome: ToolOutcome): string {
 
 /** The old engine: `SealHouse` with the ports of world.ts:636-661, `enabledTools` (world.ts:1459-1461) and the tools of tools/seal.ts. */
 export interface OldRun {
-	readonly restore?: SealSnapshot;
+	readonly restore?: unknown;
 	/** The first minute to play (a resumed run). */
 	readonly from?: number;
 	/** Stops before this minute, the act still running, and returns the old snapshot there. */
 	readonly until?: number;
 }
 
-export function runOld(scenario: Scenario, options: OldRun = {}): { readonly record: SealRecord; readonly house: OldSealHouse; readonly snapshot: SealSnapshot | undefined } {
+const Lines = Type.Array(Type.String());
+/** A recorded old seal run: its record and the old `SealSnapshot` at its end. */
+const OldSealRun = Type.Object({
+	record: Type.Object({ events: Lines, posts: Lines, notices: Lines, burns: Lines, strikes: Lines, replies: Lines, status: Lines }),
+	snapshot: Type.Unknown(),
+});
+
+/** The old seal's run of a scenario, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
+export function runOld(scenario: Scenario, options: OldRun = {}): Static<typeof OldSealRun> {
+	return oldRun({ scenario, options }, OldSealRun, () => {
+		const { record, snapshot } = runOldLive(scenario, options);
+		return { record, snapshot };
+	});
+}
+
+/** The live old seal (recording only; deleted with the engine). */
+function runOldLive(scenario: Scenario, options: OldRun = {}): { readonly record: SealRecord; readonly house: OldSealHouse; readonly snapshot: SealSnapshot | undefined } {
 	const { restore, from = 0, until = scenario.minutes } = options;
 	const points = new Map(Object.entries(scenario.points));
 	const standing = new Map<string, "alive" | "exiled" | { until: number }>((scenario.exiled ?? []).map((id) => [id, "exiled"]));
@@ -105,7 +124,7 @@ export function runOld(scenario: Scenario, options: OldRun = {}): { readonly rec
 			house.onExiled(target);
 		},
 	});
-	if (restore !== undefined) house.restore(restore);
+	if (restore !== undefined) house.restore(Parse(Type.Unsafe<SealSnapshot>(Type.Unknown()), restore));
 	const enabled = (tool: "bid" | "permaDeath", agent: string): boolean =>
 		tool === "bid" ? house.auction !== undefined && standingOf(agent).kind === "alive" : house.holds(agent);
 	// The old `sealParts` (turn-input.ts:72-83) over the old house and the standings.

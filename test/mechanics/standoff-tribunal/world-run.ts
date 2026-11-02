@@ -14,6 +14,10 @@ import type { World } from "@swarmtales/engine";
 import type { Script } from "@swarmtales/models";
 import whispers from "../../../stories/whispers/story.ts";
 import { act, createFixture, say } from "../../helpers/fixture.ts";
+import { RecordedEventSchema } from "@swarmtales/chronicle";
+import { Type } from "typebox";
+import { currentScenario, fingerprintOf, recordedOld, replayAt } from "../../helpers/old-engine.ts";
+import { RECORDING, recordOld } from "../../helpers/old-engine-recorder.ts";
 
 export const WORLD_IDS = ["A01", "A02", "A03", "A04", "A05", "A06"] as const;
 export const WORLD_MINUTES = 10;
@@ -27,7 +31,8 @@ export type GamemakerCall =
 
 /** What the scenario does per minute: the gamemaker's calls after the residents' turns, the five's ballots. */
 export interface WorldPlan {
-	readonly calls: (world: World) => Readonly<Record<number, readonly GamemakerCall[]>>;
+	/** The calls, from the fragments of door 1 the old world dealt. */
+	readonly calls: (fragments: Readonly<Record<string, string>>) => Readonly<Record<number, readonly GamemakerCall[]>>;
 	/** The minute the five vote yes (the first vote opens at minute 6). */
 	readonly voteAt?: number;
 }
@@ -64,24 +69,39 @@ function gamemaker(world: World, calls: Readonly<Record<number, readonly Gamemak
 }
 
 export interface WorldRun {
-	readonly world: World;
 	readonly events: readonly RecordedEvent[];
 	/** The fragments and passwords of door 1, as the old world dealt them. */
 	readonly fragments: Readonly<Record<string, string>>;
 	readonly passwords: Readonly<Record<string, string>>;
 }
 
+const Texts = Type.Record(Type.String(), Type.String());
+const Recorded = Type.Object({ events: Type.Array(RecordedEventSchema), fragments: Texts, passwords: Texts });
+
+/** The old engine's run of the plan, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 export async function runWorld(plan: WorldPlan): Promise<WorldRun> {
+	const { name, scenario } = currentScenario();
+	const input = (fragments: Readonly<Record<string, string>>) => ({ story: whispers, voteAt: plan.voteAt ?? null, calls: plan.calls(fragments) });
+	if (RECORDING) {
+		const live = await runWorldLive(plan);
+		recordOld(name, scenario, { fingerprint: fingerprintOf(input(live.fragments)), value: live });
+	}
+	const fragments = recordedOld(name, scenario, Type.Object({ value: Type.Object({ fragments: Texts }) })).value.fragments;
+	return replayAt(name, scenario, input(fragments), Recorded);
+}
+
+/** The live old run (recording only; deleted with the engine). */
+async function runWorldLive(plan: WorldPlan): Promise<WorldRun> {
 	const fixture = createFixture({
 		story: whispers,
 		agents: WORLD_IDS.length,
 		minutes: WORLD_MINUTES,
 		script: (world) => residents(world, plan.voteAt),
-		gamemakerScript: (world) => gamemaker(world, plan.calls(world)),
+		gamemakerScript: (world) => gamemaker(world, plan.calls(Object.fromEntries(WORLD_IDS.map((id) => [id, world.inspect.fragmentOf(id, 1)])))),
 	});
 	const world = fixture.world;
 	const fragments = Object.fromEntries(WORLD_IDS.map((id) => [id, world.inspect.fragmentOf(id, 1)]));
 	const passwords = Object.fromEntries(WORLD_IDS.map((id) => [id, world.inspect.passwordOf(id, 1)]));
 	await fixture.run();
-	return { world, events: fixture.log.events, fragments, passwords };
+	return { events: fixture.log.events, fragments, passwords };
 }
