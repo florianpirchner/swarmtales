@@ -13,6 +13,8 @@ import { Parse } from "typebox/value";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import { competitorIds, createHost, type HostOptions } from "@swarmtales/kernel";
 import { Tribunal, type TribunalEvent, type TribunalSnapshot } from "@swarmtales/engine";
+import type { LegacyWorldSnapshot } from "@swarmtales/chronicle";
+import { oldRun } from "../../../helpers/old-engine-recorder.ts";
 import { render } from "@swarmtales/prompts";
 import type { TribunalSpec } from "@swarmtales/contracts";
 import type { Host, Turn } from "@swarmtales/contracts";
@@ -53,7 +55,7 @@ export interface Scenario {
 	/** The last minute played. */
 	readonly until: number;
 	/** An old `TribunalSnapshot` both sides start from: the old `restore`, the converter's version-0 slices on the new host. */
-	readonly restore?: TribunalSnapshot;
+	readonly restore?: NonNullable<LegacyWorldSnapshot["tribunal"]>;
 	/** Minutes after whose actions both sides report what the gamemaker's view and the other mechanics read. */
 	readonly views?: readonly number[];
 }
@@ -95,7 +97,16 @@ function labelOf(action: Action): string {
 }
 
 /** The old side: `Tribunal` over ports, the old tool replies and the old `enabledTools` and `tribunalParts`. */
+const Lines = Type.Array(Type.String());
+const StreamsSchema = Type.Object({ effects: Lines, events: Lines, outcomes: Lines, status: Lines, gone: Lines, views: Lines, acts: Type.Array(Type.Number()) });
+
+/** The scenario through the old `Tribunal`, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 export function runOld(scenario: Scenario): Streams {
+	return oldRun(scenario, StreamsSchema, () => runOldLive(scenario));
+}
+
+/** The live old `Tribunal` (recording only; deleted with the engine). */
+function runOldLive(scenario: Scenario): Streams {
 	const ids = competitorIds(scenario.points.length);
 	const balances = new Map(ids.map((id, index) => [id, scenario.points[index] ?? 0]));
 	const effects: string[] = [];
@@ -148,7 +159,7 @@ export function runOld(scenario: Scenario): Streams {
 			}
 		},
 	});
-	if (scenario.restore !== undefined) court.restore(scenario.restore);
+	if (scenario.restore !== undefined) court.restore(Parse(Type.Unsafe<TribunalSnapshot>(Type.Unknown()), scenario.restore));
 	const enabled = (agent: string, tool: string): boolean => {
 		const standing = court.standing(agent);
 		if (standing.kind === "exiled") return false;

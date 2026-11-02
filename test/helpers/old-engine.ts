@@ -9,7 +9,8 @@
  * the code that wrote it is gone, and a changed file would mean the comparison lost its anchor.
  */
 import { createHash } from "node:crypto";
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect } from "vitest";
@@ -22,13 +23,20 @@ const TEST_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const Scenarios = Type.Record(Type.String(), Type.Unknown());
 const cache = new Map<string, { readonly modified: number; readonly scenarios: Readonly<Record<string, unknown>> }>();
 
+/** The file of a recording: `<name>.json.gz` (gzipped JSON), or `<name>.json` for the first recording (motives). */
+export function recordingPath(name: string): string {
+	const plain = resolve(OLD_ENGINE_DIR, `${name}.json`);
+	return existsSync(plain) ? plain : `${plain}.gz`;
+}
+
 /** The scenarios of a recorded file, parsed once per test file (a large file is read by many tests). */
 function scenariosOf(name: string): Readonly<Record<string, unknown>> {
-	const path = resolve(OLD_ENGINE_DIR, `${name}.json`);
+	const path = recordingPath(name);
 	const modified = statSync(path).mtimeMs;
 	const known = cache.get(name);
 	if (known?.modified === modified) return known.scenarios;
-	const parsed: unknown = JSON.parse(readFileSync(path, "utf8"));
+	const bytes = readFileSync(path);
+	const parsed: unknown = JSON.parse((path.endsWith(".gz") ? gunzipSync(bytes) : bytes).toString("utf8"));
 	if (!Check(Scenarios, parsed)) throw new Error(`${path} is not an object of scenarios`);
 	cache.set(name, { modified, scenarios: parsed });
 	return parsed;

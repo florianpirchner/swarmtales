@@ -1,3 +1,0 @@
-{
-"the holdout strike against the old World#onStruck (differential) > strikes once: `exiled` by the holdout, then the goal is void; no gate, no burn, no pieces kept, no level contracted, the points stay #1": {"fingerprint":"72aefc7a38bb6e74","value":{"balances":[20,10,10,10,10,10],"lines":["event {\"type\":\"exiled\",\"agent\":\"A01\",\"by\":\"holdout\"}","goals.onExiled \"A01\""],"pointsAfter":20,"gone":true,"alive":["A02","A03","A04","A05","A06"],"listed":[]}}
-}

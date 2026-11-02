@@ -4,14 +4,14 @@
  * through `CastExtrasApi.active` and lists the same lines in the same order.
  */
 import { describe, expect, it } from "vitest";
-import type { World } from "@swarmtales/engine";
+import type { OldWorld } from "./twin-standins.ts";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { Twin } from "./twin.ts";
 import { twinCast } from "./twin-standins.ts";
 
 describe("twin: listAgents with the active cast", () => {
 	it("lists the revealed STEWARD after the competitors, as the old world does, and not before the reveal or after the retirement", async () => {
-		const oracle: { world: World | undefined } = { world: undefined };
+		const oracle: { world: OldWorld | undefined } = { world: undefined };
 		const twin = new Twin({ story: cityOfKeys, extra: [twinCast(oracle).with()] });
 		oracle.world = twin.world;
 		await twin.minuteWith(async () => {

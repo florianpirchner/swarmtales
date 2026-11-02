@@ -6,7 +6,11 @@
  * ids T3's code produces are compared, not copied; everything T3 only reads (marks, names, the
  * exile, the core motives, the DM counters) comes from the oracle.
  */
-import { Type } from "typebox";
+import { Type, type Static, type TSchema } from "typebox";
+import { LegacyWorldSnapshotSchema } from "@swarmtales/chronicle";
+import type { AnyStory, ToolName } from "@swarmtales/contracts";
+import type { OldTrace } from "../../helpers/old-engine-recorder.ts";
+import { HeldPiece } from "../../helpers/old-world.ts";
 import { describeReceipt, ReceiptBook, refillText, type MarksBook, type Receipt as OldReceipt, type World } from "@swarmtales/engine";
 import { defineMechanic } from "@swarmtales/kernel";
 import { PointsLedger, SYSTEM_ACCOUNT, type LedgerSnapshot } from "@swarmtales/kernel";
@@ -111,10 +115,139 @@ export function twinReceipts(restored: readonly OldReceipt[] = []) {
 	);
 }
 
+/** The old world's revealFactor answer. */
+const Revealed = Type.Union([Type.Object({ ok: Type.Literal(true), value: Type.Array(Type.String()) }), Type.Object({ ok: Type.Literal(false), error: Type.String(), detail: Type.Optional(Type.String()) })]);
+
+/**
+ * The old `World` beside the twin's host, as the old engine answered it: every question the tests
+ * and the stand-ins ask goes through the trace (recorded once before the engine went, step 18, item
+ * 7b; `test/fixtures/old-engine/`), in the order they ask it. The live world exists only while
+ * recording.
+ */
+export class OldWorld {
+	readonly #trace: OldTrace;
+	readonly #world: World | undefined;
+	readonly names: AnyStory["names"];
+
+	constructor(trace: OldTrace, world: World | undefined, story: AnyStory) {
+		this.#trace = trace;
+		this.#world = world;
+		this.names = story.names;
+	}
+
+	/** The live old world (recording only). */
+	live(): World {
+		if (this.#world === undefined) throw new Error("the old world runs only while recording");
+		return this.#world;
+	}
+
+	read<T extends TSchema>(label: string, schema: T, live: (world: World) => unknown): Static<T> {
+		return this.#trace.read(label, schema, () => live(this.live()));
+	}
+
+	step(label: string, live: (world: World) => void): void {
+		this.#trace.step(label, () => {
+			live(this.live());
+		});
+	}
+
+	heldPieces(agent: string): readonly Static<typeof HeldPiece>[] {
+		return this.read(`heldPieces ${agent}`, Type.Array(HeldPiece), (world) => world.heldPieces(agent));
+	}
+
+	isFinished(agent: string): boolean {
+		return this.read(`isFinished ${agent}`, Type.Boolean(), (world) => world.isFinished(agent));
+	}
+
+	levelOf(agent: string): number {
+		return this.read(`levelOf ${agent}`, Type.Number(), (world) => world.levelOf(agent));
+	}
+
+	nameOf(agent: string): string | undefined {
+		return this.read(`nameOf ${agent}`, Type.Union([Type.String(), Type.Undefined()]), (world) => world.nameOf(agent));
+	}
+
+	codeOf(agent: string, level: number): string {
+		return this.read(`codeOf ${agent} ${String(level)}`, Type.String(), (world) => world.inspect.codeOf(agent, level));
+	}
+
+	revealFactor(level: number, target: "board" | readonly string[]): Static<typeof Revealed> {
+		return this.read(`revealFactor ${String(level)} ${JSON.stringify(target)}`, Revealed, (world) => world.revealFactor(level, target));
+	}
+
+	unlockTools(agent: string, tools: readonly ToolName[]): void {
+		this.step(`unlockTools ${agent} ${tools.join(",")}`, (world) => {
+			world.unlockTools(agent, tools);
+		});
+	}
+
+	revealCast(cast: string): boolean {
+		return this.read(`revealCast ${cast}`, Type.Boolean(), (world) => world.revealCast(cast));
+	}
+
+	retireCast(cast: string): boolean {
+		return this.read(`retireCast ${cast}`, Type.Boolean(), (world) => world.retireCast(cast));
+	}
+
+	snapshot(): Static<typeof LegacyWorldSnapshotSchema> {
+		return this.read("snapshot", LegacyWorldSnapshotSchema, (world) => world.snapshot());
+	}
+
+	pendingDms(resident: string): number {
+		return this.read(`pendingDms ${resident}`, ChannelsApi.methods.pendingDms.output, (world) => world.pendingDms(resident));
+	}
+
+	dmWindow(resident: string): Static<typeof ChannelsApi.methods.dmWindow.output> {
+		return this.read(`dmWindow ${resident}`, ChannelsApi.methods.dmWindow.output, (world) => world.dmWindow(resident) ?? null);
+	}
+
+	dmRecords(): Static<typeof ChannelsApi.methods.dmRecords.output> {
+		return this.read("dmRecords", ChannelsApi.methods.dmRecords.output, (world) =>
+			world.dmRecords().map((record) => ({ id: record.id, from: record.from, to: record.to, minute: record.minute, answered: record.answered, text: record.text ?? "", ...(record.deliveredMinute === undefined ? {} : { deliveredMinute: record.deliveredMinute }) })),
+		);
+	}
+
+	marksLeft(resident: string): Static<typeof MarksApi.methods.left.output> {
+		return this.read(`marks.left ${resident}`, MarksApi.methods.left.output, (world) => world.marks.status(resident, world.levelOf(resident)) ?? null);
+	}
+
+	marksPriceOf(resident: string, channel: Static<typeof MarksApi.methods.priceOf.input>["channel"]): Static<typeof MarksApi.methods.priceOf.output> {
+		return this.read(`marks.priceOf ${resident} ${channel}`, MarksApi.methods.priceOf.output, (world) => world.marks.priceOf(world.levelOf(resident), channel));
+	}
+
+	marksTaskLine(level: number): string | null {
+		return this.read(`marks.taskLine ${String(level)}`, MarksApi.methods.taskLine.output, (world) => marksTermsLine(world.marks, level));
+	}
+
+	canChooseName(resident: string): boolean {
+		return this.read(`canChooseName ${resident}`, Type.Boolean(), (world) => world.canChooseName(resident));
+	}
+
+	isExiled(resident: string): boolean {
+		return this.read(`isExiled ${resident}`, ExileApi.methods.isExiled.output, (world) => world.isExiled(resident));
+	}
+
+	standingOf(resident: string): Static<typeof ExileApi.methods.standing.output> {
+		return this.read(`standingOf ${resident}`, ExileApi.methods.standing.output, (world) => world.standingOf(resident));
+	}
+
+	get alive(): string[] {
+		return this.read("alive", ExileApi.methods.alive.output, (world) => [...world.alive]);
+	}
+
+	drivesOf(resident: string): string[] | null {
+		return this.read(`drivesOf ${resident}`, MotivesApi.methods.drivesOf.output, (world) => world.coreMotiveOf(resident)?.drives.map((entry) => entry.drive) ?? null);
+	}
+
+	castActive(): Static<typeof CastExtrasApi.methods.active.output> {
+		return this.read("cast.active", CastExtrasApi.methods.active.output, (world) => world.residents().filter((entry) => entry.id === "STEWARD"));
+	}
+}
+
 const Notice = Type.Object({ to: Type.String(), author: Type.String(), text: Type.String(), number: Type.Optional(Type.Integer()) });
 
 /** Channels that write `notice` and `board_post` in the old shape; the counters of the DMs come from the oracle. */
-export function twinChannels(world: World, posts = 0) {
+export function twinChannels(world: OldWorld, posts = 0) {
 	return defineMechanic(
 		{ ...base, id: "channels", summary: "Twin channels.", state: () => ({ posts }), events: { ...ChannelsEvents.events, notice: Notice }, provides: [ChannelsApi] },
 		(kit) => ({
@@ -131,8 +264,8 @@ export function twinChannels(world: World, posts = 0) {
 						return null;
 					},
 					pendingDms: ({ resident }) => world.pendingDms(resident),
-					dmWindow: ({ resident }) => world.dmWindow(resident) ?? null,
-					dmRecords: () => world.dmRecords().map((record) => ({ id: record.id, from: record.from, to: record.to, minute: record.minute, answered: record.answered, text: record.text ?? "", ...(record.deliveredMinute === undefined ? {} : { deliveredMinute: record.deliveredMinute }) })),
+					dmWindow: ({ resident }) => world.dmWindow(resident),
+					dmRecords: () => world.dmRecords(),
 				}),
 			],
 		}),
@@ -151,25 +284,24 @@ export function marksTermsLine(marks: MarksBook, level: number): string | null {
 }
 
 /** The marks the old book computes for the resident's level. */
-export function twinMarks(world: World) {
-	const termsLine = (level: number): string | null => marksTermsLine(world.marks, level);
+export function twinMarks(world: OldWorld) {
 	return defineMechanic(
 		{ ...base, id: "marks", summary: "Twin marks.", state: () => ({}), events: {}, provides: [MarksApi] },
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
 			services: [
 				kit.provideSome(MarksApi, {
-					left: ({ resident }) => world.marks.status(resident, world.levelOf(resident)) ?? null,
-					priceOf: ({ resident, channel }) => world.marks.priceOf(world.levelOf(resident), channel),
-					taskLine: ({ level }) => termsLine(level),
+					left: ({ resident }) => world.marksLeft(resident),
+					priceOf: ({ resident, channel }) => world.marksPriceOf(resident, channel),
+					taskLine: ({ level }) => world.marksTaskLine(level),
 				}),
 			],
 			hooks: {
 				turnInputs: {
 					order: HOOK_ORDER.turnInputs.status,
 					run: (resident) => {
-						const marks = world.marks.status(resident, world.levelOf(resident));
-						return marks === undefined ? [] : [{ kind: "status", text: render("competitor/status/marks", { remaining: marks.remaining, budget: marks.budget }), order: STATUS_ORDER.marks }];
+						const marks = world.marksLeft(resident);
+						return marks === null ? [] : [{ kind: "status", text: render("competitor/status/marks", { remaining: marks.remaining, budget: marks.budget }), order: STATUS_ORDER.marks }];
 					},
 				},
 			},
@@ -178,7 +310,7 @@ export function twinMarks(world: World) {
 }
 
 /** The choose-name line, from the old world. */
-export function twinNames(world: World) {
+export function twinNames(world: OldWorld) {
 	return defineMechanic(
 		{ ...base, id: "names", summary: "Twin names.", state: () => ({}), events: {}, provides: [NamesApi] },
 		(kit) => ({
@@ -186,7 +318,7 @@ export function twinNames(world: World) {
 			services: [
 				kit.provideSome(NamesApi, {
 					taskLine: ({ resident }) => {
-						const spec = world.story.names;
+						const spec = world.names;
 						return spec === undefined || !world.canChooseName(resident) ? null : spec.announcement.replace("{untilMinute}", String(spec.untilMinute));
 					},
 				}),
@@ -196,7 +328,7 @@ export function twinNames(world: World) {
 }
 
 /** Who is exiled, from the old world. */
-export function twinExile(world: World) {
+export function twinExile(world: OldWorld) {
 	return defineMechanic(
 		{ ...base, id: "exile", summary: "Twin exile.", state: () => ({}), events: {}, provides: [ExileApi] },
 		(kit) => ({
@@ -205,7 +337,7 @@ export function twinExile(world: World) {
 				kit.provideSome(ExileApi, {
 					isExiled: ({ resident }) => world.isExiled(resident),
 					standing: ({ resident }) => world.standingOf(resident),
-					alive: () => [...world.alive],
+					alive: () => world.alive,
 				}),
 			],
 		}),
@@ -213,23 +345,23 @@ export function twinExile(world: World) {
 }
 
 /** The drives of the core motives the old world dealt. */
-export function twinCoreMotives(world: World) {
+export function twinCoreMotives(world: OldWorld) {
 	return defineMechanic(
 		{ ...base, id: "motives", summary: "Twin core motives.", state: () => ({}), events: {}, provides: [MotivesApi] },
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
-			services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => world.coreMotiveOf(resident)?.drives.map((entry) => entry.drive) ?? null })],
+			services: [kit.provideSome(MotivesApi, { drivesOf: ({ resident }) => world.drivesOf(resident) })],
 		}),
 	);
 }
 
 /** The active cast members and their levels, from the old world (`cast.active()`); the world is read when the oracle exists. */
-export function twinCast(oracle: { world: World | undefined }) {
+export function twinCast(oracle: { world: OldWorld | undefined }) {
 	return defineMechanic(
 		{ ...base, id: "cast", summary: "Twin cast.", state: () => ({}), events: {}, provides: [CastExtrasApi] },
 		(kit) => ({
 			snapshot: kit.snapshot(NO_STATE),
-			services: [kit.provideSome(CastExtrasApi, { active: () => (oracle.world?.residents() ?? []).filter((entry) => entry.id === "STEWARD") })],
+			services: [kit.provideSome(CastExtrasApi, { active: () => oracle.world?.castActive() ?? [] })],
 		}),
 	);
 }
