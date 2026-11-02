@@ -1,6 +1,6 @@
 /**
  * The differential harness of the host-backed gamemaker report (step 18, item 2): an old run (the
- * old engine through `createFixture`, the composer of the golden runs) is recorded in memory, then
+ * old engine through the composer of the golden runs, recorded once in `test/fixtures/old-engine/`) is read back, then
  * replayed on the production story mapping (`hostStoryOf`) with the gamemaker overseer reading the
  * city through `hostGamemakerReport`, the old run's gamemaker calls made by its runtime at their
  * minutes and the residents' calls made in their turns (the runner's `text` and `tool_call` lines
@@ -21,9 +21,7 @@ import { directionLevel } from "@swarmtales/contracts";
 import { DEFAULT_LIMITS } from "../../../apps/cli/src/run-options.ts";
 import { hostGamemakerReport } from "../../../apps/cli/src/host/report.ts";
 import { hostStoryOf, type HostRun } from "../../../apps/cli/src/host/story.ts";
-import { createFixture, type FixtureOptions } from "../../helpers/fixture.ts";
-import { normaliseEvents } from "../../helpers/golden.ts";
-import { oldRunAsync } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { goldenTurnInputs } from "@swarmtales/testkit";
 import { turnKey } from "../../mechanics/t2/golden-plan.ts";
 
@@ -43,10 +41,6 @@ function isJsonObject(value: unknown): value is JsonObject {
 	return typeof value === "object" && value !== null && !Array.isArray(value) && Object.values(value).every(isJsonValue);
 }
 
-function isLine(value: unknown): value is LegacyLine {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 type Calls = ReadonlyMap<number, readonly { readonly name: string; readonly args: JsonObject }[]>;
 
 /** The old gamemaker's calls by the minute it made them. */
@@ -60,7 +54,7 @@ export function gamemakerCalls(lines: readonly LegacyLine[]): Calls {
 	return calls;
 }
 
-/** The old gamemaker's answers by the host's minute (test/golden/scripts.ts `gamemakerSteps`). */
+/** The old gamemaker's answers by the host's minute (test/golden/host-scripts.ts `gamemakerSteps`). */
 function steps(minutes: number, minute: () => number, calls: Calls): readonly FauxResponseStep[] {
 	let answered = true;
 	return Array.from({ length: 3 * minutes }, (): FauxResponseStep => () => {
@@ -101,24 +95,24 @@ export interface OldRun {
 
 const OldRunSchema = Type.Object({ minutes: Type.Number(), lines: Type.Array(Type.Record(Type.String(), Type.Unknown())), system: Type.String(), residents: Type.Array(Type.String()) });
 
+/** The data of an old run's options, which its recording's fingerprint holds (the old scripts were functions, which it never held). */
+export interface OldOptions {
+	readonly story: AnyStory;
+	readonly agents: number;
+	readonly minutes: number;
+	readonly seed: number;
+	readonly names?: boolean;
+	readonly figureDirection?: number;
+	readonly gmDirection?: number;
+}
+
 /**
  * An old run's log as the golden files hold it, with its gamemaker's system prompt, as it was recorded
  * once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). The fingerprint holds the
- * options' data; the scripts are code of the test file.
+ * options' data; the scripts were code of the test file and are described there.
  */
-export async function recordOld(options: FixtureOptions): Promise<OldRun> {
-	return oldRunAsync(options, OldRunSchema, () => recordOldLive(options));
-}
-
-/** The live old run (recording only; deleted with the engine). */
-async function recordOldLive(options: FixtureOptions): Promise<OldRun> {
-	const fixture = createFixture(options);
-	const system = fixture.gamemaker?.systemPrompt;
-	if (system === undefined) throw new Error("the old run has no gamemaker");
-	await fixture.run();
-	const minutes = options.minutes;
-	if (minutes === undefined) throw new Error("an old run for the replay needs its minutes");
-	return { minutes, lines: normaliseEvents(fixture.log.events).flatMap((line) => (isLine(line) ? [line] : [])), system, residents: [...fixture.world.competitors] };
+export async function recordOld(options: OldOptions): Promise<OldRun> {
+	return Promise.resolve(replayOld(options, OldRunSchema));
 }
 
 export interface Replayed {

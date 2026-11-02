@@ -11,9 +11,8 @@ import type { AnyStory } from "@swarmtales/contracts";
 import { ScriptedModelSource } from "@swarmtales/models";
 import { competitorIds } from "@swarmtales/kernel";
 import { Type } from "typebox";
-import { composeRun } from "../../apps/cli/src/compose.ts";
 import { effectiveRun, type RunOverrides } from "../../apps/cli/src/run-options.ts";
-import { oldRun } from "../helpers/old-engine-recorder.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 import { hostResidents } from "../../apps/cli/src/host/residents.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
@@ -68,29 +67,10 @@ const overridesOf = (entry: Case): RunOverrides => ({ stopWhenDone: false, stopW
 function oldSide(entry: Case) {
 	const effective = effectiveRun(entry.story, overridesOf(entry));
 	const ids = competitorIds(effective.agents);
-	const old = oldRun({ story: entry.story, overrides: overridesOf(entry), addenda: entry.addenda ?? null }, OldSide, () => oldSideLive(entry));
+	const old = replayOld({ story: entry.story, overrides: overridesOf(entry), addenda: entry.addenda ?? null }, OldSide);
 	expect(JSON.parse(JSON.stringify(effective))).toEqual(old.effective);
 	expect([...ids]).toEqual(old.ids);
 	return { ...old, effective, ids };
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-function oldSideLive(entry: Case) {
-	const composed = composeRun({
-		story: entry.story,
-		overrides: overridesOf(entry),
-		models: noModels,
-		gamemakerModels: noModels,
-		sinks: [],
-		...(entry.addenda === undefined ? {} : { promptAddenda: entry.addenda }),
-	});
-	return {
-		effective: composed.effective,
-		ids: composed.world.competitors,
-		prompts: composed.runners.map((runner) => [runner.id, runner.systemPrompt]),
-		profiles: composed.profiles.map((profile) => ({ agent: profile.agent, model: profile.model, persona: profile.persona?.name })),
-		tools: composed.runners.map((runner) => [runner.id, runner.boundTools]),
-	};
 }
 
 function newSide(entry: Case, old: ReturnType<typeof oldSide>) {

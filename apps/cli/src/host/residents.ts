@@ -22,7 +22,7 @@ import { Parse } from "typebox/value";
 import { briefLine, directFigure, directionBlock, directionLevel, FigureCues, figureOf, type FigureCue } from "./direction.ts";
 import type { HostRun } from "./story.ts";
 
-/** The request limits of a resident's model unless the run sets its own (compose.ts `DEFAULT_LIMITS`). */
+/** The request limits of a resident's model unless the run sets its own (run-options.ts `DEFAULT_LIMITS`). */
 export const RESIDENT_LIMITS: RequestLimits = { maxOutputTokens: 4_000, timeoutMs: 120_000 };
 
 /** Who plays a resident: its model and persona (absent for the control group), as `agent_profile` logs it. */

@@ -2,19 +2,8 @@
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import type { Host } from "@swarmtales/contracts";
-import type { World } from "@swarmtales/engine";
 import type { OracleView } from "@swarmtales/models";
 import { solutionsFrom } from "@swarmtales/mechanic-puzzles";
-
-export function worldOracle(world: World): OracleView {
-	return {
-		solutionFor(agent) {
-			if (world.isFinished(agent) || world.waitingAfter(agent) !== undefined) return undefined;
-			const level = world.levelOf(agent);
-			return { level, code: world.inspect.codeOf(agent, level) };
-		},
-	};
-}
 
 const Ranking = Type.Object(
 	{
@@ -23,7 +12,7 @@ const Ranking = Type.Object(
 	{ additionalProperties: true },
 );
 
-/** The same view on the new host: progression's section tells the level, puzzles' solutions the code. */
+/** The view on the host: progression's section tells the level, puzzles' solutions the code. */
 export function hostOracle(host: Pick<Host, "fact">): OracleView {
 	return {
 		solutionFor(agent) {

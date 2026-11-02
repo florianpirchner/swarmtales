@@ -114,7 +114,7 @@ export function replayOld<T extends TSchema>(input: unknown, schema: T): Static<
 const TraceEntry = Type.Object({ label: Type.String(), value: Type.Optional(Type.Unknown()), error: Type.Optional(Type.String()) });
 
 /**
- * The replay of an `OldTrace` (old-engine-recorder.ts) without the old engine: every answer the old
+ * The replay of an `OldTrace` (written by the old recorder, deleted with the engine in step 18) without the old engine: every answer the old
  * engine gave a test that drove it step by step beside the new host, in order. A read names what it
  * asks (`label`); the replay refuses a test that asks something else or in another order.
  */

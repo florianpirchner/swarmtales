@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import type { EventEnvelope, EventLogView, Fired, OverseerInstance } from "@swarmtales/contracts";
 import { createRng } from "@swarmtales/kernel";
-import { DIRECTION_LEVELS } from "@swarmtales/engine";
+import { DIRECTION_LEVELS } from "@swarmtales/contracts";
 import { OVERSEER_ORDER } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import {

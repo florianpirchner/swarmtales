@@ -18,14 +18,10 @@
  * - The holdout tribunal of Whispers: grace, the vote, the unanimous verdict, the strike, the struck
  *   and the exiled resident's line.
  */
-import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { World } from "@swarmtales/engine";
 import type { LegacyLine } from "@swarmtales/testkit";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
-import { act, say } from "@swarmtales/models";
-import { cityScript, gamemakerSteps } from "../golden/scripts.ts";
 import { looksOf, outsideApp, placed, recordOld, replayOnHost, type OldRun, type Replayed } from "./support/report-replay.ts";
 
 const SEED = 7;
@@ -60,25 +56,9 @@ function expectSame(old: OldRun, host: Replayed): void {
 	expect(host.lines.filter(outsideApp).map((line) => comparable(line, exiled))).toEqual(old.lines.filter(outsideApp).map((line) => comparable(line, exiled)));
 }
 
-/** The base script with `override` answering first where it returns a message. */
-function overridden(base: (world: World) => Record<string, FauxResponseStep[]>, override: (world: World, id: string) => AssistantMessage | undefined): (world: World) => Record<string, FauxResponseStep[]> {
-	return (world) => {
-		const script = base(world);
-		return Object.fromEntries(
-			Object.entries(script).map(([id, steps]) => [
-				id,
-				steps.map((step): FauxResponseStep => (...args) => {
-					const answer = (): AssistantMessage | Promise<AssistantMessage> => (typeof step === "function" ? step(...args) : step);
-					if (args[0].messages.at(-1)?.role === "toolResult") return answer();
-					return override(world, id) ?? answer();
-				}),
-			]),
-		);
-	};
-}
-
 describe("the host-backed gamemaker report against the old describeSituation", () => {
 	it("City of Keys over 30 minutes at direction 10: tribunals, gates, exiles, the risk lines, the city's pieces and the seal", async () => {
+		// Recorded with the golden city script and the golden gamemaker's steps over 30 minutes.
 		const old = await recordOld({
 			story: cityOfKeys,
 			agents: 6,
@@ -87,8 +67,6 @@ describe("the host-backed gamemaker report against the old describeSituation", (
 			names: true,
 			figureDirection: 10,
 			gmDirection: 10,
-			script: cityScript,
-			gamemakerScript: (world) => gamemakerSteps(world, 30, () => undefined),
 		});
 		const host = await replayOnHost(cityOfKeys, old, SEED, { figureDirection: 10, gmDirection: 10, names: true });
 		expectSame(old, host);
@@ -113,32 +91,10 @@ describe("the host-backed gamemaker report against the old describeSituation", (
 	}, 120_000);
 
 	it("a standoff in Act II: pieces held back, handed over but not used, an ultimatum and a borne seal", async () => {
-		const bids = new Set<string>();
-		const script = overridden(cityScript, (world, id) => {
-			const minute = world.minute;
-			// A01 stands before door 8 until minute 20, and tries a wrong code once.
-			if (id === "A01" && world.levelOf(id) >= 8 && minute === 14) return act({ name: "submitSolution", args: { level: 8, code: "000000" } });
-			if (id === "A01" && world.levelOf(id) >= 8 && minute < 20) return say("I wait at the wall.");
-			// At minute 12 every holder of A01's pieces writes them to it; A01 does not use them yet.
-			if (minute === 12 && id !== "A01") {
-				const pieces = world.heldPieces(id).filter((piece) => piece.kind !== "fragment" && piece.needers.includes("A01"));
-				if (pieces.length > 0) return act({ name: "sendDM", args: { target: "A01", message: pieces.map((piece) => `${piece.label}: ${piece.value}`).join("; ") } });
-			}
-			const auction = world.seal?.auction;
-			if (id === "A03" && auction !== undefined && !bids.has(String(auction.seal))) {
-				bids.add(String(auction.seal));
-				return act({ name: "bid", args: { points: 5 } });
-			}
-			return undefined;
-		});
-		const gamemaker = (world: World): readonly FauxResponseStep[] =>
-			gamemakerSteps(world, 30, (minute) => {
-				if (minute !== 10) return undefined;
-				const debts = world.outstandingPieces();
-				const mutual = debts.find((debt) => debts.some((other) => other.holder === debt.needer && other.needer === debt.holder)) ?? debts[0];
-				return mutual === undefined ? undefined : act({ name: "ultimatum", args: { a: mutual.holder, b: mutual.needer, minutes: 4 } });
-			});
-		const old = await recordOld({ story: cityOfKeys, agents: 6, minutes: 30, seed: SEED, names: true, figureDirection: 10, gmDirection: 10, script, gamemakerScript: gamemaker });
+		// Recorded with the golden city script, overridden: A01 stood before door 8 until minute 20 and tried a
+		// wrong code once (minute 14); at minute 12 every holder of A01's pieces wrote them to it, unused; A03
+		// bid 5 on each seal's auction; at minute 10 the gamemaker set an ultimatum of 4 minutes on a mutual debt.
+		const old = await recordOld({ story: cityOfKeys, agents: 6, minutes: 30, seed: SEED, names: true, figureDirection: 10, gmDirection: 10 });
 		const host = await replayOnHost(cityOfKeys, old, SEED, { figureDirection: 10, gmDirection: 10, names: true });
 		expectSame(old, host);
 		const seen = reached(looksOf(old.lines), ["Handed over but not used", "- ultimatum ", "unused seal", "has not handed", "Standoffs", "1 wrong on this level (next wrong code costs 4)"]);
@@ -146,31 +102,10 @@ describe("the host-backed gamemaker report against the old describeSituation", (
 	}, 120_000);
 
 	it("the holdout tribunal of Whispers on the whisperer: grace, vote, the verdict, the strike, the struck and the whisperer's lines gone", async () => {
-		// The whisperer holds door 1 and is struck.
-		const holder = (world: World): string => world.whisperer ?? "A01";
-		const residents = (world: World): Record<string, FauxResponseStep[]> => {
-			const opens = world.opensAt(1);
-			const blocker = holder(world);
-			const script: Record<string, FauxResponseStep[]> = {};
-			for (const id of world.competitors) {
-				script[id] = Array.from({ length: 30 }, (): FauxResponseStep => () => {
-					const minute = world.minute;
-					const others = world.competitors.filter((other) => other !== id);
-					if (minute === opens && id !== blocker) return act(...others.map((target) => ({ name: "sendDM", args: { target, message: `Door 1, mine: ${world.inspect.fragmentOf(id, 1)}` } })));
-					if (minute === opens + 1 && id === blocker) return act({ name: "submitSolution", args: { level: 1, code: world.inspect.passwordOf(id, 1) } });
-					if (minute === opens + 6 && id !== blocker) return act({ name: "tribunalVote", args: { yes: true } });
-					return say();
-				});
-			}
-			return script;
-		};
-		const plan = (minute: number, blocker: string): AssistantMessage | undefined => {
-			if (minute === 3) return act({ name: "callTribunal", args: { accused: [blocker], reason: `${blocker} passed door 1 and keeps the city waiting.` } });
-			if (minute === 6) return act({ name: "announceTribunal", args: { text: `${blocker} let the grace pass. The vote is open.` } });
-			if (minute === 8) return act({ name: "permaDeath", args: { agent: blocker, reason: `Every voter said yes. ${blocker} leaves the city.` } });
-			return undefined;
-		};
-		const old = await recordOld({ story: whispers, agents: 6, minutes: 12, seed: SEED, script: residents, gamemakerScript: (world) => gamemakerSteps(world, 12, (minute) => plan(minute, holder(world))) });
+		// Recorded with the whisperer holding door 1: the others wrote it their fragments when it opened, the
+		// whisperer passed it a minute later, and the others voted yes six minutes after it opened; the gamemaker
+		// called the tribunal at minute 3, announced the vote at 6 and struck the whisperer at 8.
+		const old = await recordOld({ story: whispers, agents: 6, minutes: 12, seed: SEED });
 		const host = await replayOnHost(whispers, old, SEED, { figureDirection: 4, gmDirection: 4, names: false });
 		expectSame(old, host);
 		const looks = looksOf(old.lines);

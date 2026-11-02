@@ -1,6 +1,6 @@
 /**
  * The old `World` after a recorded run (step 18, item 7b): what the differential tests read from
- * the old engine's world once its run was over, recorded with the run (`old-engine-recorder.ts`)
+ * the old engine's world once its run was over, recorded with the run (by the old recorder, deleted with the engine in step 18)
  * and read back here with the old method names, so a test reads `old.world.levelOf(id)` as it did.
  */
 import { LegacyWorldSnapshotSchema } from "@swarmtales/chronicle";

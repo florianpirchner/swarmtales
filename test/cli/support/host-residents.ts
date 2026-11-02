@@ -7,7 +7,7 @@ import type { AnyStory, Host } from "@swarmtales/contracts";
 import { createHost } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { RESIDENT_APP_EVENTS } from "@swarmtales/roles";
-import type { EffectiveRun } from "../../../apps/cli/src/compose.ts";
+import type { EffectiveRun } from "../../../apps/cli/src/run-options.ts";
 import { hostStoryOf, type HostRun } from "../../../apps/cli/src/host/story.ts";
 
 /** The old composer's effective run as the host mapping's run. */

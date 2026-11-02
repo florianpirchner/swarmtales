@@ -17,17 +17,14 @@ import { describe, expect, it } from "vitest";
 import { parseSnapshot, type RunSnapshot, MemorySink, RecordedEventSchema } from "@swarmtales/chronicle";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import type { Host } from "@swarmtales/contracts";
-import type { World } from "@swarmtales/engine";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
-import { boundBackend, ChatStatementClassifier, CLASSIFIER_ID, GAMEMAKER_ID, overseers } from "@swarmtales/roles";
-import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
+import { boundBackend, CLASSIFIER_ID, GAMEMAKER_ID, overseers } from "@swarmtales/roles";
 import { composeHostRun } from "../../apps/cli/src/host/run.ts";
 import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
 import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { codeOf } from "../helpers/host-inspect.ts";
-import { fingerprintOf } from "../helpers/old-engine.ts";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
+import { fingerprintOf, replayOld } from "../helpers/old-engine.ts";
 
 const MINUTES = 26;
 
@@ -38,16 +35,6 @@ interface CityView {
 	finished(agent: string): boolean;
 	level(agent: string): number;
 	code(agent: string, level: number): string;
-}
-
-function worldView(world: World): CityView {
-	return {
-		residents: world.competitors,
-		minute: () => world.minute,
-		finished: (agent) => world.isFinished(agent),
-		level: (agent) => world.levelOf(agent),
-		code: (agent, level) => world.inspect.codeOf(agent, level),
-	};
 }
 
 const Ranking = Type.Object({ ranking: Type.Array(Type.Object({ agent: Type.String(), level: Type.Integer(), finished: Type.Boolean() }, { additionalProperties: true })) }, { additionalProperties: true });
@@ -139,41 +126,10 @@ const BASE: RunOverrides = { minutes: MINUTES, gamemaker: true, classifier: true
 interface OldExtra { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: RunSnapshot }
 
 /** The old engine's run, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
-async function playOld(extra: OldExtra = {}): Promise<Played<RunSnapshot>> {
+function playOld(extra: OldExtra = {}): Promise<Played<RunSnapshot>> {
 	const input = { story: cityOfKeys, overrides: BASE, snapshotAfter: extra.snapshotAfter ?? null, stop: extra.stop ?? null, resume: extra.resume === undefined ? null : fingerprintOf(extra.resume) };
-	const played = await oldRunAsync(input, Type.Object({ events: Type.Array(RecordedEventSchema), snapshot: Type.Optional(Type.Unknown()) }), () => playOldLive(extra));
-	return { events: played.events, ...(played.snapshot === undefined ? {} : { snapshot: parseSnapshot(played.snapshot) }) };
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function playOldLive(extra: OldExtra): Promise<Played<RunSnapshot>> {
-	const log = new MemorySink();
-	let taken: RunSnapshot | undefined;
-	const resume = extra.resume;
-	const run = composeRun({
-		story: cityOfKeys,
-		overrides: resume === undefined ? BASE : resumeOverrides(resume, BASE),
-		models: (world) => new ScriptedModelSource(chattyScript(worldView(world))),
-		gamemakerModels: (world) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(worldView(world)) }),
-		classifier: () => new ChatStatementClassifier({ binding: new ScriptedModelSource({ [CLASSIFIER_ID]: classifierScript() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS), label: "scripted/classifier", thinking: "off" }),
-		sinks: [log],
-		meta: { run: resume === undefined ? "first" : "resumed" },
-		...(extra.snapshotAfter === undefined
-			? {}
-			: {
-					snapshot: {
-						afterLevel: extra.snapshotAfter,
-						stop: extra.stop ?? false,
-						write: (snapshot) => {
-							taken = parseSnapshot(JSON.parse(JSON.stringify(snapshot)));
-							return "memory";
-						},
-					},
-				}),
-		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot-L7.json" } }),
-	});
-	await run.arena.run();
-	return { events: log.events, ...(taken === undefined ? {} : { snapshot: taken }) };
+	const played = replayOld(input, Type.Object({ events: Type.Array(RecordedEventSchema), snapshot: Type.Optional(Type.Unknown()) }));
+	return Promise.resolve({ events: played.events, ...(played.snapshot === undefined ? {} : { snapshot: parseSnapshot(played.snapshot) }) });
 }
 
 async function playNew(extra: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: ResumePoint } = {}): Promise<Played<ResumePoint>> {

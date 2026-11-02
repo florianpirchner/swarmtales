@@ -3,7 +3,7 @@
  * city with the arena (test/mechanics/arena/golden-host.ts), where the gamemaker is no longer
  * driven by the app's `between` but runs as the overseer `gamemaker` with its real runtime
  * (`gamemakerRuntime`) on the golden run's scripted model (the same faux steps as
- * test/golden/scripts.ts, `gamemakerSteps`). The report's city part is the golden's own
+ * test/golden/host-scripts.ts, `gamemakerSteps`). The report's city part is the golden's own
  * `gamemaker_turn.input` of that round (no old `World` exists on this host); what the overseer adds
  * to it (its notes, the budget line) is checked against the golden text.
  *
@@ -27,7 +27,7 @@ import type { LegacyLine } from "@swarmtales/testkit";
 import { fileURLToPath } from "node:url";
 import { Type } from "typebox";
 import { DEFAULT_LIMITS } from "../../../apps/cli/src/run-options.ts";
-import { oldRunAsync } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { arenaStoryOf } from "../../mechanics/arena/golden-host.ts";
 import { storyOf, type GoldenName } from "../../mechanics/puzzles/harness.ts";
 import { turnKey } from "../../mechanics/t2/golden-plan.ts";
@@ -88,7 +88,7 @@ function goldenReport(golden: readonly LegacyLine[]): GamemakerReport & { readon
 	};
 }
 
-/** The golden's gamemaker steps by the host's minute (test/golden/scripts.ts `gamemakerSteps`). */
+/** The golden's gamemaker steps by the host's minute (test/golden/host-scripts.ts `gamemakerSteps`). */
 function steps(minutes: number, minute: () => number, plan: (minute: number) => ReturnType<typeof act> | undefined): readonly FauxResponseStep[] {
 	let answered = true;
 	return Array.from({ length: 3 * minutes }, (): FauxResponseStep => () => {
@@ -107,23 +107,7 @@ function steps(minutes: number, minute: () => number, plan: (minute: number) => 
  * as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
  */
 async function oldSystemPrompt(name: GoldenName, direction: number): Promise<string> {
-	return oldRunAsync({ name, story: storyOf(name), direction }, Type.String(), () => oldSystemPromptLive(name, direction));
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function oldSystemPromptLive(name: GoldenName, direction: number): Promise<string> {
-	const { createFixture } = await import("../../helpers/fixture.ts");
-	const story = storyOf(name);
-	const fixture = createFixture({
-		story,
-		seed: 7,
-		...(name.startsWith("cityofkeys") ? { agents: 6, minutes: 12, names: true, gmDirection: direction, figureDirection: direction } : { minutes: 20, figureDirection: 10 }),
-		script: () => ({}),
-		gamemakerScript: () => [],
-	});
-	const prompt = fixture.gamemaker?.systemPrompt;
-	if (prompt === undefined) throw new Error("no gamemaker");
-	return prompt;
+	return Promise.resolve(replayOld({ name, story: storyOf(name), direction }, Type.String()));
 }
 
 const isGamemakerLine = (line: LegacyLine): boolean => String(line.type).startsWith("gamemaker_") || (line.type === "usage" && line.agent === GAMEMAKER_ID);

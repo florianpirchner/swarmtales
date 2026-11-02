@@ -6,13 +6,12 @@
  * went (step 18, item 7b; `test/fixtures/old-engine/`).
  */
 import { describe, expect, it } from "vitest";
-import * as old from "@swarmtales/engine";
 import { Type } from "typebox";
 import type { FigureDirection } from "@swarmtales/contracts";
 import * as moved from "../../apps/cli/src/host/direction.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
-import { oldRun } from "../helpers/old-engine-recorder.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 
 const DIRECTIONS: readonly (readonly [string, FigureDirection])[] = [
 	...[cityOfKeys, whispers].flatMap((story) => (story.coreMotives?.figures ?? []).flatMap((figure) => (figure.direction === undefined ? [] : [[`${story.id}/${figure.id}`, figure.direction] as const]))),
@@ -44,16 +43,7 @@ describe("the direction texts moved into the CLI", () => {
 	});
 
 	it.each(Array.from({ length: 11 }, (_, value) => value))("dial %i: the same level, directed figure, block and brief line", (value) => {
-		const recorded = oldRun({ value, directions: DIRECTIONS }, OldDial, () => {
-			const level = old.directionLevel(value);
-			return {
-				level,
-				figures: DIRECTIONS.map(([, direction]) => {
-					const before = old.directFigure(level, direction, playedBy);
-					return before === undefined ? null : { figure: before, blocks: AUTHORS.map((author) => old.directionBlock(before, display, author)), brief: old.briefLine(before) };
-				}),
-			};
-		});
+		const recorded = replayOld({ value, directions: DIRECTIONS }, OldDial);
 		expect(moved.directionLevel(value)).toBe(recorded.level);
 		const level = moved.directionLevel(value);
 		DIRECTIONS.forEach(([, direction], at) => {
@@ -70,16 +60,7 @@ describe("the direction texts moved into the CLI", () => {
 
 	it("refuses the same dial values", () => {
 		const values = [-1, 11, 2.5];
-		const refused = oldRun({ values }, Type.Array(Type.String()), () =>
-			values.map((value) => {
-				try {
-					old.directionLevel(value);
-					return "accepted";
-				} catch (error) {
-					return error instanceof Error ? error.name : "thrown";
-				}
-			}),
-		);
+		const refused = replayOld({ values }, Type.Array(Type.String()));
 		values.forEach((value, at) => {
 			expect(() => moved.directionLevel(value)).toThrow(RangeError);
 			expect(refused[at]).toBe("RangeError");
@@ -94,14 +75,7 @@ describe("the direction texts moved into the CLI", () => {
 		const minutes = [0, 1, 3, 9, 10, 11, 19, 20, 21, 33];
 		// A02 joins late: its first step shows the full text whatever the minute.
 		const steps = ["A01", "A02", "A03"].flatMap((agent) => (agent === "A02" ? minutes.slice(3) : minutes).map((minute) => [agent, minute] as const));
-		const recorded = oldRun({ cues: [...cues], steps }, OldCues, () => {
-			const before = new old.FigureCues(cues);
-			return {
-				size: before.size,
-				lines: steps.map(([agent, minute]) => before.inputsFor(agent, minute).map((input) => input.text)),
-				characterOnly: before.inputsFor("A01", 50).every((input) => input.kind === "character"),
-			};
-		});
+		const recorded = replayOld({ cues: [...cues], steps }, OldCues);
 		const after = new moved.FigureCues(cues);
 		expect(after.size).toBe(recorded.size);
 		steps.forEach(([agent, minute], at) => {
@@ -113,7 +87,7 @@ describe("the direction texts moved into the CLI", () => {
 	it("finds the same figure", () => {
 		const figures = cityOfKeys.coreMotives?.figures;
 		const ids = [...FIGURE_IDS, "nobody", undefined];
-		const recorded = oldRun({ figures, ids: ids.map((id) => id ?? null) }, Type.Array(Type.Unknown()), () => ids.map((id) => old.figureOf(figures, id) ?? null));
+		const recorded = replayOld({ figures, ids: ids.map((id) => id ?? null) }, Type.Array(Type.Unknown()));
 		ids.forEach((id, at) => {
 			expect(moved.figureOf(figures, id) ?? null).toEqual(recorded[at]);
 		});

@@ -1,6 +1,6 @@
 /**
  * Test harness on the new host (step 18): a composed run (`composeHostRun`) with scripted
- * residents, the successor of `fixture.ts` on the old `World`.
+ * residents, the successor of the old `World` fixture (deleted with the engine in step 18).
  *
  * The script receives the host so tests can look up fragments and codes through the host's facts
  * (white-box tests). Defaults differ from the story on purpose: every resident is activated each

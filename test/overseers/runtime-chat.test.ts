@@ -23,7 +23,7 @@ import {
 	type StatementBatch,
 	type WeaverQuestion,
 } from "@swarmtales/roles";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 
 /** A scripted model that remembers every request it got, as the provider would see it. */
 function model(agent: string, steps: readonly ((context: TranscriptContext) => AssistantMessage)[]) {

@@ -14,7 +14,7 @@ import { defineMechanic } from "@swarmtales/kernel";
 import type { Actor, Host, OverseerCall, OverseerReply, OverseerRuntime } from "@swarmtales/contracts";
 import { overseers } from "@swarmtales/roles";
 import { scriptedOverseer } from "@swarmtales/testkit";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import { newHost, playInputs, type Input, type NewSpec } from "./harness.ts";
 
 const at = (minute: number, type: string, fields: Record<string, unknown>): Input => ({ minute, type, fields });

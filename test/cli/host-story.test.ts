@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { AnyStory, MechanicUse } from "@swarmtales/contracts";
-import { storyToolNames } from "@swarmtales/engine";
+import { storyToolNames } from "../helpers/old-catalog.ts";
 import { createHost } from "@swarmtales/kernel";
 import { STORIES } from "../../stories/index.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";

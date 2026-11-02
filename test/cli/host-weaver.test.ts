@@ -14,10 +14,9 @@ import { describe, expect, it } from "vitest";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { MemorySink, RecordedEventSchema } from "@swarmtales/chronicle";
 import { act, say, ScriptedModelSource, type Script } from "@swarmtales/models";
-import { boundBackend, ChatStatementClassifier, ChatWeaver, CLASSIFIER_ID, GAMEMAKER_ID, overseers, WEAVER_ID } from "@swarmtales/roles";
+import { boundBackend, CLASSIFIER_ID, GAMEMAKER_ID, overseers, WEAVER_ID } from "@swarmtales/roles";
 import { Type } from "typebox";
-import { composeRun } from "../../apps/cli/src/compose.ts";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 import { composeHostRun } from "../../apps/cli/src/host/run.ts";
 import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
 import { DEFAULT_LIMITS, resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
@@ -79,24 +78,7 @@ function gamemakerSteps(): readonly FauxResponseStep[] {
 
 /** The old engine's weaver run, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 async function playOld(): Promise<Played> {
-	return oldRunAsync({ story: cityOfKeys, overrides: { ...BASE, level: 2 } }, Type.Object({ events: Type.Array(RecordedEventSchema), prompts: Type.Array(Type.String()) }), playOldLive);
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function playOldLive(): Promise<Played> {
-	const log = new MemorySink();
-	const prompts: string[] = [];
-	const run = composeRun({
-		story: cityOfKeys,
-		overrides: { ...BASE, level: 2 },
-		models: (world) => new ScriptedModelSource(residents(world.competitors, () => world.minute, prompts)),
-		gamemakerModels: () => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerSteps() }),
-		classifier: () => new ChatStatementClassifier({ binding: new ScriptedModelSource({ [CLASSIFIER_ID]: classifierSteps() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS), label: "scripted/classifier", thinking: "off" }),
-		weaver: new ChatWeaver({ binding: new ScriptedModelSource({ [WEAVER_ID]: weaverSteps() }).bind(WEAVER_ID, DEFAULT_LIMITS), label: "scripted/weaver", thinking: "off" }),
-		sinks: [log],
-	});
-	await run.arena.run();
-	return { events: log.events, prompts };
+	return Promise.resolve(replayOld({ story: cityOfKeys, overrides: { ...BASE, level: 2 } }, Type.Object({ events: Type.Array(RecordedEventSchema), prompts: Type.Array(Type.String()) })));
 }
 
 async function playNew(extra: { readonly cut?: boolean; readonly resume?: ResumePoint } = {}): Promise<Played & { readonly snapshot?: ResumePoint }> {

@@ -11,11 +11,8 @@ import { describe, expect, it } from "vitest";
 import { parseSnapshot, SnapshotError, type RunSnapshot } from "@swarmtales/chronicle";
 import type { Host } from "@swarmtales/contracts";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
-import { oracleScript, type Script, ScriptedModelSource } from "@swarmtales/models";
-import type { World } from "@swarmtales/engine";
-import { composeRun } from "../../apps/cli/src/compose.ts";
-import { submit as oldSubmit } from "../helpers/fixture.ts";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
+import { oracleScript, type Script } from "@swarmtales/models";
+import { replayOld } from "../helpers/old-engine.ts";
 import { hostOracle } from "../../apps/cli/src/oracle.ts";
 import { parseResumePoint, prefixLines, readResumePoint, runFileName, writeRunFile, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
 import { resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
@@ -70,33 +67,8 @@ const TINY_RUN = { story, overrides: { lastLevel: 2 }, snapshotAfter: 2 };
  * The old engine's snapshot of the tiny run (`agent-arena-snapshot` version 2, the file `--resume`
  * still reads), recorded once before the engine went (step 18; `test/fixtures/old-engine/`).
  */
-async function oldSnapshotOfTinyRun(): Promise<RunSnapshot> {
-	return parseSnapshot(await oldRunAsync(TINY_RUN, Type.Unknown(), liveOldSnapshot));
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function liveOldSnapshot(): Promise<unknown> {
-	const step =
-		(world: World, agent: string): FauxResponseStep =>
-		() =>
-			world.isFinished(agent) || (agent === "A02" && world.minute < 3) ? say() : oldSubmit(world, agent, world.levelOf(agent));
-	let taken: unknown;
-	const run = composeRun({
-		story,
-		overrides: TINY_RUN.overrides,
-		models: (world) => new ScriptedModelSource({ A01: Array.from({ length: 10 }, () => step(world, "A01")), A02: Array.from({ length: 10 }, () => step(world, "A02")) }),
-		sinks: [],
-		snapshot: {
-			afterLevel: TINY_RUN.snapshotAfter,
-			stop: true,
-			write: (snapshot) => {
-				taken = snapshot;
-				return "memory";
-			},
-		},
-	});
-	await run.arena.run();
-	return taken;
+function oldSnapshotOfTinyRun(): Promise<RunSnapshot> {
+	return Promise.resolve(parseSnapshot(replayOld(TINY_RUN, Type.Unknown())));
 }
 
 /** A JSON copy whose `change` edits the raw object, as a hand-edited or damaged file would. */

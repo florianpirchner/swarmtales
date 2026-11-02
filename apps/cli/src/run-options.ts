@@ -1,6 +1,6 @@
 /**
  * The run's parameters after the CLI's overrides (`--agents`, `--minutes`, `--level`, the dials,
- * ...): what the old composer and the host path share. Moved out of compose.ts (step 18) so the
+ * ...): what the old composer and the host path share. Moved out of the old composer (step 18, deleted with the engine) so the
  * host path needs nothing of the old `World`.
  */
 import { DIRECTOR_SUPPORT } from "@swarmtales/engine";

@@ -9,15 +9,14 @@
  */
 import { describe, expect, it } from "vitest";
 import { fauxAssistantMessage, fauxText, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
-import { legacySink, MemorySink } from "@swarmtales/chronicle";
+import { legacySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host } from "@swarmtales/contracts";
 import { ScriptedModelSource } from "@swarmtales/models";
 import type { LegacyLine } from "@swarmtales/testkit";
-import { composeRun } from "../../apps/cli/src/compose.ts";
 import { effectiveRun, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import { competitorIds } from "@swarmtales/kernel";
 import { Type } from "typebox";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 import { hostResidents, type HostResidents } from "../../apps/cli/src/host/residents.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
@@ -72,15 +71,7 @@ const BASE: RunOverrides = { agents: 6, minutes: 6, seed: 7, activation: "always
 
 /** The old composer's log, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 async function playOld(entry: Case): Promise<readonly LegacyLine[]> {
-	return oldRunAsync({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, script: stableScript() }, Type.Array(Type.Record(Type.String(), Type.Unknown())), () => playOldLive(entry));
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function playOldLive(entry: Case): Promise<readonly LegacyLine[]> {
-	const sink = new MemorySink();
-	const composed = composeRun({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, models: new ScriptedModelSource(script()), sinks: [sink] });
-	await composed.arena.run();
-	return sink.events.map((event) => Object.fromEntries(Object.entries(event)));
+	return Promise.resolve(replayOld({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, script: stableScript() }, Type.Array(Type.Record(Type.String(), Type.Unknown()))));
 }
 
 async function playNew(entry: Case): Promise<readonly LegacyLine[]> {

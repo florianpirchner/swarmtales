@@ -3,7 +3,7 @@
  * production story mapping (step 18, item 2): the three golden runs replayed on `hostStoryOf` with
  * every mechanic real, the gamemaker no longer driven by the app's `between` but run as the overseer
  * `gamemaker` with its real runtime on the golden run's scripted model (the golden gamemaker's calls
- * at their minutes, as `gamemakerSteps` of test/golden/scripts.ts made them). Nothing of the old
+ * at their minutes, as `gamemakerSteps` of test/golden/host-scripts.ts made them). Nothing of the old
  * `World` takes part: the report is written from the mechanics' facts and the overseer's log reads
  * (support/report-replay.ts).
  *
@@ -17,7 +17,7 @@ import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import type { LegacyLine } from "@swarmtales/testkit";
 import { goldenLog, minutesOf, RESIDENTS, SEED, storyOf, type GoldenName } from "../mechanics/puzzles/harness.ts";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 import { isGamemakerLine, looksOf, outsideApp, placed, replayOnHost, type Dials } from "./support/report-replay.ts";
 
 /** The golden runs' dials (test/golden/golden.test.ts). */
@@ -32,23 +32,7 @@ const DIALS: Readonly<Record<GoldenName, Dials>> = {
  * as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
  */
 async function oldSystemPrompt(name: GoldenName): Promise<string> {
-	return oldRunAsync({ name, story: storyOf(name), dials: DIALS[name] }, Type.String(), () => oldSystemPromptLive(name));
-}
-
-/** The live old composer (recording only; deleted with the engine). */
-async function oldSystemPromptLive(name: GoldenName): Promise<string> {
-	const { createFixture } = await import("../helpers/fixture.ts");
-	const dials = DIALS[name];
-	const fixture = createFixture({
-		story: storyOf(name),
-		seed: SEED,
-		...(name.startsWith("cityofkeys") ? { agents: 6, minutes: 12, names: true, gmDirection: dials.gmDirection, figureDirection: dials.figureDirection } : { minutes: 20, figureDirection: 10 }),
-		script: () => ({}),
-		gamemakerScript: () => [],
-	});
-	const prompt = fixture.gamemaker?.systemPrompt;
-	if (prompt === undefined) throw new Error("no gamemaker");
-	return prompt;
+	return Promise.resolve(replayOld({ name, story: storyOf(name), dials: DIALS[name] }, Type.String()));
 }
 
 describe.each(["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"] as const)("the host-backed gamemaker report on golden %s", (name) => {
