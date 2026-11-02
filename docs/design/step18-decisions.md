@@ -546,3 +546,74 @@ Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/muta
 4. A resumed run's log repeats its prefix with fresh `at` stamps, so its chain covers those lines too and its genesis chains from the checkpoint; `--previous` checks the prefix against the previous run without `at`: **Decided**.
 5. No CLI flag turns the chain off; only library callers (tests) build a `JsonlEventLog` without one: **Decided**.
 6. External anchor of the public key: **Open** (publishing needs Flo's go).
+
+## Team F2 (challenger report "architecture and spec fit", 2026-11-02)
+
+Fixes for `challenge-step18-architecture.md` (M1-M4, m1-m8). Every fixed item has a test that failed before the fix;
+no golden changed, no test was weakened. Deleted tests: the two `VirtualClock` cases (`test/core/ids.test.ts`,
+`test/snapshot/components.test.ts`) went with the class (M4).
+
+1. **M1, `maxCostUsd` overshot by a batch: Fixed.** A batch in which an overseer has `maxCostUsd` runs its calls one
+   after the other (`overseers.ts` `#oneByOne`) and checks the cap before each call after the first; the cut writes
+   `overseer_skipped { reason: "maxCostUsd" }`. A cost is known only when its answer is in, so the last call can still
+   overshoot by its own cost (`overseer-api.md` §1.3 step 2 says so). Batches without a cost cap (every production
+   story today) keep the parallel path, so no log changes. Test: `overseers.test.ts` "runs the calls of a cost-capped
+   overseer one after the other" (5 calls at 0.03 against 0.05: 2 calls, was 5).
+2. **M2, `host.stop()` hangs a paused run: Fixed.** `host.stop()` calls `HumanDesk.release()`, which wakes a halted
+   safe stop and lets no later one halt (the inbox still runs); the minute then ends as a stop does. Test:
+   `human.test.ts` "let a stop end a run the human paused".
+3. **M3, kernel size and file cap: Decided, ratchet built.** Measured (code lines, no blanks or comments, eslint's
+   count) after F2: `packages/kernel/src/host` 3996, `packages/kernel/src` 4106 (4248 before M4), `packages/contracts/src/core`
+   1086; together about 5190, against the budget of about 1500 in `docs/ideas/monorepo.md` §3f. Decision: the
+   per-file cap of 400 code lines is enforced now (`eslint.config.js`, `max-lines` for `packages/kernel/src/**` and
+   `packages/contracts/src/core/**`), with the two files over it held at today's size: `host.ts` 639, `overseers.ts`
+   476 (a smaller number when they shrink, the entry goes once under 400). F2's own changes kept `host.ts` at 639.
+   The total budget is **open for Flo**: lift it to the measured size or trim. Trim plan: the overseer and gate wiring
+   of `host.ts` (`#decisionGate`, `#overseerRunner`, `#interventions`, the audience resolver, about 120 lines) into its
+   own module; `HostOptions.between` and `roles` once their tests are ported (item 10).
+4. **M4, game code in the kernel: Fixed.** `PointsLedger` (with `SYSTEM_ACCOUNT`, `LedgerError`) moved to
+   `test/core/points-ledger.ts`, next to the tests that use it as the reference (the ledger differential, the t3
+   stand-ins, the old group tests); `VirtualClock` is deleted; the kernel's `ids.ts` keeps `competitorIds` only:
+   `SYSTEM_AUTHORS` and `isSystemAuthor` moved to `packages/sdk/src/authors.ts` (the validator's), the chronicle keeps
+   its own `CITY`/`COURIER` set (typed by the contracts' `SystemAuthor`). `core-words.test.ts` LEGACY lost
+   `kernel/src/ids.ts`, `kernel/src/ledger.ts` and `kernel/src/index.ts` (clean now). The kernel package description
+   names the host instead of the clock and the ledger.
+5. **m1, knip cannot see test-only production code: Built.** `pnpm knip:production` (`scripts/check-production-exports.ts`,
+   `knip.production.json`, part of `pnpm check`) runs knip from the production entries only (CLI, stories, lab,
+   scripts; the testkit is test-only and left out) with entry exports included, and compares the result with
+   `scripts/production-exports.json`: 218 exports only tests use today. The list may only shrink: a new entry fails,
+   and so does a listed one that became used (`--write` rewrites it after a deliberate change). It lists the old
+   `AgentRunner`, `Interpreter` and `Weaver` (rewrite-status open item 1) and the mechanics' test-only helpers.
+6. **m2, `HostOptions.between` and `roles`: Not deleted, recorded.** `roles` is the app's consult role caller that
+   seven test files use, among them the receipts and blame differentials that replay recorded judge answers
+   (`test/mechanics/receipts/receipts-differential.test.ts`, `test/mechanics/t1/blame-*`); a consult overseer writes
+   `overseer_called`/`role_asked` events in another order, so the recordings would need a new old side. `between`
+   holds a minute open at the old calls' place in `test/engine/holdout.test.ts` and drives the gamemaker in
+   `test/host/callers.test.ts`, and the gate and the human desk count a `between`-driven gamemaker as reachable
+   (`decisions.test.ts`, `human.test.ts`). Porting all of that is beyond F2's scope; §6 row 9 stays open. The CLI
+   passes neither.
+7. **m3, `grantTweaks` `drop` and `set` unchecked: Fixed.** `resolveGrants` refuses a `set` or `drop` entry that no
+   loaded mechanic defines (`story: grantTweaks.<name>.<set|drop> names tool "x", ...`); `add` lands in the grants
+   and keeps its old check and message. Tests: `auto-grants.test.ts`, two new rows of "refuses".
+8. **m4, `story.decisions` keys unchecked: Fixed.** `checkNames` refuses a key that is not `<loaded mechanic>.<declared
+   decision kind>`. Test: `decisions.test.ts` "refuses a story policy for a kind no loaded mechanic declares".
+9. **m5, an amendment that cannot stand gets a plain success: Fixed by saying so.** Refusing it would change the
+   end-of-run test of O2-3 and refuse a holder that a longer resumed run might still serve; instead the amendment is
+   kept and listed as before, and its reply says that the deadline lies after the run's last minute and the original
+   settles (`core/replies/decision-outlasts-run`, plain text without a lookup). `overseer-api.md` §3.2 rule 5 now
+   states the settle-at-end rule. Tests: `decisions.test.ts` and `human.test.ts`, "(F2 m5)".
+10. **m6, `host.call` takes `human` and `overseer:*`: Documented as a trusted entry.** The app is the only caller and
+    passes neither (its human goes through `hand()`); refusing them would rewrite the `amend(host, ...)` helpers of
+    the decision and human tests. `Host.call` (contracts) and `mechanic-api.md` say that it bypasses safe stops,
+    `overseer_called`, `maxCalls` and the replay.
+11. **m7, game words in the core: Fixed.** `GAME_WORDS` gained `motive`, `motives`, `escrows`, `classifier`, `weaver`;
+    the comments in `kernel/src/host/host.ts` and `contracts/src/core/host.ts` are reworded.
+12. **m8, stale docs: Fixed.** `overseer-api.md`'s status names what is built and the deviations; the deleted engine's
+    `direction.ts` and `tools/guard.ts`, "while `World` is carved" and `World.seatsDecided`/`World.enabledTools` are
+    reworded in `apps/cli` (`host/direction.ts`, `run-options.ts`, `args.ts`), `packages/chronicle`
+    (`private-files.ts`, `legacy-events.ts`, `legacy-owners.ts`), `packages/roles` (`gamemaker/system-prompt.ts`,
+    `interpret/guard.ts`) and `packages/contracts` (`story.ts`, `core/host.ts`); provenance notes ("moved from
+    packages/engine/...") stay. Licences as `rewrite-status.md` asks: 29 packages `"SEE LICENSE IN LICENSE"`,
+    `contracts` and `sdk` `"Apache-2.0"` with the Apache 2.0 text as `LICENSE`. Not done: a legacy translator for
+    `human_note` and `human_amend` (the human-influenced flag stays deferred; a reporter needs the host log or a
+    translator for it).
