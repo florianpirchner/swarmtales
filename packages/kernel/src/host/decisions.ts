@@ -85,12 +85,10 @@ export interface GateParts {
 	/** Runs a mechanic's commit (its instance checks the proposal against the kind's schema). */
 	readonly commit: (owner: string, commit: string, proposal: unknown, settled: Settlement) => void;
 	readonly reply: (code: string) => string | undefined;
-	/** The amended reply, or undefined without a prompt lookup. */
-	readonly amended: (decision: number, proposal: string) => string | undefined;
+	/** A core reply prompt (`core/replies/decision-amended`, `...-outlasts-run`) rendered, or undefined without a prompt lookup. */
+	readonly render: (id: string, variables: Readonly<Record<string, string | number>>) => string | undefined;
 	/** The run's length: a deadline at or after it never comes, so the decision settles at the run's end. */
 	readonly minutes: number;
-	/** The reply to an amendment whose decision outlasts the run, or undefined without a prompt lookup. */
-	readonly outlasts: (decision: number, deadline: number, last: number) => string | undefined;
 }
 
 function isSchema(value: unknown): value is TSchema {
@@ -271,10 +269,10 @@ export class DecisionGate implements DecisionsView {
 			// The amendment is kept and listed, but cannot stand: the run's end settles with the original (F2 m5).
 			const last = this.#parts.minutes - 1;
 			const plain = `amended decision ${String(decision.id)}, but its deadline (minute ${String(decision.deadline)}) lies after the run's last minute (${String(last)}): the original proposal settles at the run's end`;
-			return { ok: true, reply: this.#parts.outlasts(decision.id, decision.deadline, last) ?? plain };
+			return { ok: true, reply: this.#parts.render("core/replies/decision-outlasts-run", { decision: decision.id, deadline: decision.deadline, last }) ?? plain };
 		}
 		const shown = JSON.stringify(proposalOf(decision));
-		return { ok: true, reply: this.#parts.amended(decision.id, shown) ?? `amended decision ${String(decision.id)}: ${shown}` };
+		return { ok: true, reply: this.#parts.render("core/replies/decision-amended", { decision: decision.id, proposal: shown }) ?? `amended decision ${String(decision.id)}: ${shown}` };
 	}
 
 	#refusal(code: string): Refusal {

@@ -561,7 +561,6 @@ class CoreHost implements Host {
 	#decisionGate(options: HostOptions, names: Names): DecisionGate {
 		const story = options.story;
 		const declared = new Set((story.overseers ?? []).map((use) => use.name));
-		const prompts = this.#prompts;
 		return new DecisionGate({
 			bus: this.#bus,
 			scheduler: this.#scheduler,
@@ -576,10 +575,9 @@ class CoreHost implements Host {
 				if (instance === undefined) throw new Error(`decisions: commit of unknown mechanic "${owner}"`);
 				instance.commit(commit, proposal, settled);
 			},
-			reply: (code) => coreReply(prompts, code),
-			amended: (decision, proposal) => prompts?.render(CORE_OWNER, "core/replies/decision-amended", { decision, proposal }, ["decision", "proposal"]),
+			reply: (code) => coreReply(this.#prompts, code),
+			render: (id, variables) => this.#prompts?.render(CORE_OWNER, id, variables, Object.keys(variables)),
 			minutes: story.minutes,
-			outlasts: (decision, deadline, last) => prompts?.render(CORE_OWNER, "core/replies/decision-outlasts-run", { decision, deadline, last }, ["decision", "deadline", "last"]),
 		});
 	}
 
