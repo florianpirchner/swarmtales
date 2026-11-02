@@ -7,10 +7,10 @@ import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { parseEventLog, parseFullEventLog } from "@swarmtales/chronicle";
 import { activationOrder } from "@swarmtales/engine";
-import { act, createFixture, say, type Fixture } from "../helpers/fixture.ts";
+import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
 
 /** The passes in which `agent` stepped during `minute`. */
-function passesOf(fixture: Fixture, agent: string, minute = 0): readonly (number | undefined)[] {
+function passesOf(fixture: HostFixture, agent: string, minute = 0): readonly (number | undefined)[] {
 	return fixture
 		.events("turn_input")
 		.filter((event) => event.agent === agent && event.minute === minute)
@@ -18,7 +18,7 @@ function passesOf(fixture: Fixture, agent: string, minute = 0): readonly (number
 }
 
 /** Whether `first` comes before `second` in `pass` of the first minute. */
-function before(fixture: Fixture, first: string, second: string, pass = 1): boolean {
+function before(fixture: HostFixture, first: string, second: string, pass = 1): boolean {
 	const order = fixture.events("pass_start").find((event) => event.minute === 0 && event.pass === pass)?.order ?? [];
 	return order.indexOf(first) < order.indexOf(second);
 }
@@ -31,7 +31,7 @@ const sleep = (ms: number): Promise<void> =>
 describe("passes of a minute (SPEC 3)", () => {
 	it("reshuffles the order in every pass, the same way for the same seed", async () => {
 		const play = async (seed: number) => {
-			const fixture = createFixture({ seed, agents: 6, minutes: 3, only: 1, passesPerMinute: 3, script: () => ({}) });
+			const fixture = createHostFixture({ seed, agents: 6, minutes: 3, only: 1, passesPerMinute: 3, script: () => ({}) });
 			await fixture.run();
 			return fixture.events("pass_start").map((event) => [event.round, event.pass, event.order.join(" ")]);
 		};
@@ -53,7 +53,7 @@ describe("passes of a minute (SPEC 3)", () => {
 	});
 
 	it.each([1, 2, 3, 4, 5, 6, 7, 8])("wakes the recipient of a DM within the same minute (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 2,
 			minutes: 1,
@@ -69,7 +69,7 @@ describe("passes of a minute (SPEC 3)", () => {
 	});
 
 	it.each([1, 2, 3, 4])("shows every member of a block the block's start (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 2,
 			minutes: 1,
@@ -85,7 +85,7 @@ describe("passes of a minute (SPEC 3)", () => {
 	});
 
 	it.each([1, 2, 3, 4])("keeps what another member of the block did new for the next pass (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 2,
 			minutes: 1,
@@ -104,7 +104,7 @@ describe("passes of a minute (SPEC 3)", () => {
 	});
 
 	it("lets a competitor answer its own tool results in the next pass without anything new", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 1,
 			only: 1,
@@ -126,7 +126,7 @@ describe("passes of a minute (SPEC 3)", () => {
 	});
 
 	it("logs every pass with its order and blocks, and the pass and block of every step", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 3,
 			minutes: 2,
 			only: 1,
@@ -171,7 +171,7 @@ describe("blocks of a pass (SPEC 3)", () => {
 			answered.push(agent);
 			return act({ name: "postBoard", args: { message: `${agent} was here` } });
 		};
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed: 7,
 			agents: 4,
 			minutes: 1,
@@ -189,7 +189,7 @@ describe("blocks of a pass (SPEC 3)", () => {
 		expect(fixture.events("turn_input").map((event) => event.agent)).toEqual(order);
 		expect(fixture.events("tool_call").map((event) => event.agent)).toEqual(order);
 		expect(fixture.events("tool_result").map((event) => event.agent)).toEqual(order);
-		expect(fixture.world.board.all().filter((post) => post.kind === "player").map((post) => post.author)).toEqual(order);
+		expect(fixture.boardPosts().filter((post) => post.kind === "player").map((post) => post.author)).toEqual(order);
 		const steps = fixture.log.events.filter((event) => event.type === "tool_call" || event.type === "tool_result" || event.type === "usage");
 		expect(steps.map((event) => ("agent" in event ? event.agent : ""))).toEqual(order.flatMap((agent) => [agent, agent, agent]));
 	});

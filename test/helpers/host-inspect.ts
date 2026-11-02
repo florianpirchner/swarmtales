@@ -95,6 +95,19 @@ export function dmReceiptOf(host: Pick<Host, "log">, from: ResidentId, to: Resid
 	return undefined;
 }
 
+/** The receipts a resident is a party of, in issue order (old `world.receiptsOf`), from the log's `receipt_issued` lines. */
+export function receiptsOf(host: Pick<Host, "log">, agent: ResidentId): readonly Static<typeof Receipt>[] {
+	return host.log
+		.ofType("receipts", "receipt_issued")
+		.map((event) => event.payload)
+		.filter((payload): payload is Static<typeof Receipt> => Check(Receipt, payload) && payload.parties.includes(agent));
+}
+
+/** The final standings' order (old `world.ranking()`): the last `round_end` line's rows. */
+export function rankingOf(run: { readonly events: (type: "round_end") => readonly { readonly standings: readonly { readonly agent: string }[] }[] }): readonly string[] {
+	return run.events("round_end").at(-1)?.standings.map((row) => row.agent) ?? [];
+}
+
 /** The whisperer (old `world.whisperer`); `undefined` without one. */
 export function whispererOf(host: FactsHost): ResidentId | undefined {
 	const value = host.fact("whispers.whisperer");
@@ -176,6 +189,27 @@ const ChannelsSlice = Type.Object(
 	{ additionalProperties: true },
 );
 
+const GroupState = Type.Object(
+	{
+		id: Type.String(),
+		members: Type.Array(Type.Object({ agent: Type.String(), joinedAtSeq: Type.Integer() })),
+		reads: Type.Array(Type.Object({ agent: Type.String(), seq: Type.Integer() })),
+		posts: Type.Array(Type.Object({ seq: Type.Integer(), author: Type.String() }, { additionalProperties: true })),
+		removed: Type.Optional(Type.Literal(true)),
+	},
+	{ additionalProperties: true },
+);
+const GroupsState = Type.Object({ groups: Type.Object({ groups: Type.Array(GroupState) }, { additionalProperties: true }) }, { additionalProperties: true });
+
+/** Unread posts by others in a group (old `world.groups.unreadCount`): 0 for a removed group or a non-member. */
+export function groupUnread(host: Pick<Host, "snapshot">, groupId: string, reader: ResidentId): number {
+	const group = sliceOf(host, "channels", GroupsState).groups.groups.find((entry) => entry.id === groupId);
+	const joinedAt = group?.members.find((member) => member.agent === reader)?.joinedAtSeq;
+	if (group === undefined || group.removed === true || joinedAt === undefined) return 0;
+	const cursor = Math.max(joinedAt, group.reads.find((read) => read.agent === reader)?.seq ?? 0);
+	return group.posts.filter((post) => post.seq > cursor && post.author !== reader).length;
+}
+
 /** Every group, a removed one included, with its members (old `world.groups.inspect()`). */
 export function groupsOf(host: Pick<Host, "snapshot">): readonly { readonly id: string; readonly members: readonly string[] }[] {
 	return sliceOf(host, "channels", ChannelsSlice)
@@ -209,6 +243,19 @@ export function solvedLevels(host: Pick<Host, "snapshot">, agent: ResidentId): r
 }
 
 const LedgerSlice = Type.Object({ balances: Type.Array(Type.Object({ account: Type.String(), balance: Type.Number() })) }, { additionalProperties: true });
+
+const Collection = Type.Object({ into: Type.String(), cast: Type.String(), entries: Type.Array(Type.Object({ from: Type.String(), text: Type.String(), minute: Type.Integer() })) }, { additionalProperties: true });
+const CastSlice = Type.Object({ collections: Type.Array(Collection) }, { additionalProperties: true });
+
+/** A cast member's collection of DMs (old `world.collection(into)`); `undefined` when it never started. */
+export function collectionOf(host: Pick<Host, "snapshot">, into: string): Static<typeof Collection> | undefined {
+	return sliceOf(host, "cast", CastSlice).collections.find((entry) => entry.into === into);
+}
+
+/** Any account's balance, an escrow or the city's included (old `world.ledger.balance` on a non-resident account). */
+export function accountBalance(host: Pick<Host, "snapshot">, account: string): number {
+	return sliceOf(host, "ledger", LedgerSlice).balances.find((entry) => entry.account === account)?.balance ?? 0;
+}
 
 /** The sum over every account, the city's included (old `world.ledger.total`, always 0). */
 export function ledgerTotal(host: Pick<Host, "snapshot">): number {

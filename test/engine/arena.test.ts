@@ -1,15 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { act, createFixture, say, submit, type Fixture } from "../helpers/fixture.ts";
+import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
+import { balanceOf, groupUnread, levelOf, submit } from "../helpers/host-inspect.ts";
+import { createFixture } from "../helpers/fixture.ts";
+import type { Host } from "@swarmtales/contracts";
 
 /** Whether `first` was activated before `second` in the first pass. */
-function firstBefore(fixture: Fixture, first: string, second: string): boolean {
+function firstBefore(fixture: HostFixture, first: string, second: string): boolean {
 	const order = fixture.events("pass_start")[0]?.order ?? [];
 	return order.indexOf(first) < order.indexOf(second);
 }
 
 describe("arena: activation policy onNovelty (SPEC 3)", () => {
 	it("skips competitors without anything new", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 3,
 			only: 1,
@@ -22,20 +25,20 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 	});
 
 	it("does not wake anyone through level-ups of others or courier lines", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 3,
 			lastLevel: 2,
 			activation: "onNovelty",
-			script: (world) => ({ A01: [submit(world, "A01", 1), say(), say()], A02: [say(), say(), say()] }),
+			script: (host) => ({ A01: [submit(host, "A01", 1), say(), say()], A02: [say(), say(), say()] }),
 		});
 		await fixture.run();
-		expect(fixture.world.board.all().some((post) => post.author === "COURIER")).toBe(true);
+		expect(fixture.boardPosts().some((post) => post.author === "COURIER")).toBe(true);
 		expect(fixture.events("turn_input").filter((event) => event.agent === "A02")).toHaveLength(1);
 	});
 
 	it.each([1, 2, 3, 4, 5, 6, 7, 8])("wakes a competitor for a new DM and delivers it (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 2,
 			minutes: 2,
@@ -51,7 +54,7 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 	});
 
 	it.each([1, 2, 3, 4, 5, 6, 7, 8])("wakes a competitor for a new player post on the board (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 2,
 			minutes: 3,
@@ -72,7 +75,7 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 	});
 
 	it("wakes a competitor whose points changed", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 2,
 			only: 3,
@@ -85,11 +88,11 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 		await fixture.run();
 		const expected = firstBefore(fixture, "A01", "A02") ? 2 : 1;
 		expect(fixture.events("turn_input").filter((event) => event.agent === "A01")).toHaveLength(expected);
-		expect(fixture.world.ledger.balance("A01")).toBe(16);
+		expect(balanceOf(fixture.host, "A01")).toBe(16);
 	});
 
 	it.each([1, 2, 3, 4])("keeps a competitor awake while group posts are unread (seed %i)", async (seed) => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			seed,
 			agents: 3,
 			minutes: 4,
@@ -122,9 +125,11 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 		// minute 2 (its own readGroup results are unanswered), then nothing new.
 		expect(a02.map((event) => event.minute)).toEqual([0, 1, 2]);
 		expect(fixture.toolResults("A02", "readGroup").join("\n")).toContain("fragment of A01");
-		expect(fixture.world.groups.unreadCount("G1", "A02")).toBe(0);
+		expect(groupUnread(fixture.host, "G1", "A02")).toBe(0);
 	});
 
+	// The next two stay on the old fixture (step 18, item 7): their setup writes into the World
+	// before the run (a group, a board post the tools would refuse), and the host has no door for that.
 	it("does not wake a competitor for group posts while readGroup is locked", async () => {
 		const fixture = createFixture({
 			agents: 2,
@@ -160,7 +165,7 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 
 describe("arena: turns and inputs (SPEC 5.1)", () => {
 	it("answers tool results in the next pass of the same minute", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 1,
 			only: 1,
@@ -173,7 +178,7 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 	});
 
 	it("makes exactly one model call per step, whatever the model asks for", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 1,
 			only: 1,
@@ -186,7 +191,7 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 	});
 
 	it("delivers the task text without getProblem, then status and digest", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 1, only: 2, script: () => ({ A01: [say()], A02: [say()] }) });
+		const fixture = createHostFixture({ agents: 2, minutes: 1, only: 2, script: () => ({ A01: [say()], A02: [say()] }) });
 		await fixture.run();
 		const inputs = fixture.inputsOf("A01");
 		expect(inputs[0]).toMatch(/^\[status\] minute 0 · level 2 · 15 points · rank \d of 2$/);
@@ -198,7 +203,7 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 	});
 
 	it("counts unread content in the digest without revealing it", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 2,
 			only: 2,
@@ -213,13 +218,13 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 	});
 
 	it("logs usage once per model response", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 1, only: 1, script: () => ({ A01: [say()], A02: [say()] }) });
+		const fixture = createHostFixture({ agents: 2, minutes: 1, only: 1, script: () => ({ A01: [say()], A02: [say()] }) });
 		await fixture.run();
 		expect(fixture.events("usage")).toHaveLength(2);
 	});
 
 	it("activates competitors in the seeded order of each pass", async () => {
-		const fixture = createFixture({ agents: 6, minutes: 3, passesPerMinute: 2, script: () => ({}) });
+		const fixture = createHostFixture({ agents: 6, minutes: 3, passesPerMinute: 2, script: () => ({}) });
 		await fixture.run();
 		const passes = fixture.events("pass_start");
 		expect(passes).toHaveLength(6);
@@ -235,49 +240,58 @@ describe("arena: turns and inputs (SPEC 5.1)", () => {
 
 describe("arena: ending a run", () => {
 	it("stops once every competitor passed the last level", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 6,
 			only: 1,
-			script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: [submit(world, "A02", 1), say()] }),
+			script: (host) => ({ A01: [submit(host, "A01", 1), say()], A02: [submit(host, "A02", 1), say()] }),
 		});
 		await fixture.run();
 		expect(fixture.events("round_start")).toHaveLength(1);
 		expect(fixture.events("run_end")[0]?.reason).toBe("every competitor has passed the last level");
-		expect(fixture.world.ledger.balance("A01")).toBe(20);
+		expect(balanceOf(fixture.host, "A01")).toBe(20);
 	});
 
 	it("runs until the minute limit when not everyone finishes", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 3,
 			only: 1,
-			script: (world) => ({ A01: [submit(world, "A01", 1), say(), say()], A02: [say(), say(), say()] }),
+			script: (host) => ({ A01: [submit(host, "A01", 1), say(), say()], A02: [say(), say(), say()] }),
 		});
 		await fixture.run();
 		expect(fixture.events("round_start")).toHaveLength(3);
 		expect(fixture.events("run_end")[0]?.reason).toBeUndefined();
-		expect(fixture.world.levelOf("A02")).toBe(1);
+		expect(levelOf(fixture.host, "A02")).toBe(1);
 	});
 
 	it("aborts cleanly once the budget is exceeded", async () => {
-		let spent = 0;
-		const fixture = createFixture({
+		// Each model call costs 0.30 USD. The scripted provider reports no cost, so a sink books it as a
+		// second `usage` line of the same resident (the old test counted it through the composer's `budget`).
+		const charged: { host?: Host } = {};
+		const fixture = createHostFixture({
 			story: { ...(await import("../../stories/cityofkeys/story.ts")).default, run: { ...(await import("../../stories/cityofkeys/story.ts")).default.run, budgetUsd: 0.5 } },
 			agents: 2,
 			minutes: 5,
 			only: 1,
-			budgetSpent: () => spent,
+			budget: true,
 			script: () => ({ A01: [say(), say()], A02: [say(), say()] }),
-			sinks: [{ record: (event) => { if (event.type === "usage") spent += 0.3; } }],
+			sinks: [
+				{
+					record: (event) => {
+						if (event.type === "usage" && event.costUsd === 0) charged.host?.record(`resident:${event.agent}`, "usage", { agent: event.agent, provider: event.provider, model: event.model, input: event.input, output: event.output, cacheRead: event.cacheRead, cacheWrite: event.cacheWrite, costUsd: 0.3 });
+					},
+				},
+			],
 		});
+		charged.host = fixture.host;
 		await fixture.run();
 		expect(fixture.events("turn_input")).toHaveLength(2);
 		expect(fixture.events("run_end")[0]?.reason).toMatch(/^budget exceeded/);
 	});
 
 	it("writes a standings snapshot at the end of every minute", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 2, only: 1, script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: [say(), say()] }) });
+		const fixture = createHostFixture({ agents: 2, minutes: 2, only: 1, script: (host) => ({ A01: [submit(host, "A01", 1), say()], A02: [say(), say()] }) });
 		await fixture.run();
 		const snapshots = fixture.events("round_end");
 		expect(snapshots.map((event) => event.minute)).toEqual([0, 1]);

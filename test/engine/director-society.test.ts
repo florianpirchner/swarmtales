@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { bandsLine, Director, snapshotLine, standingBands } from "@swarmtales/engine";
 import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "@swarmtales/sdk";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { createFixture } from "../helpers/fixture.ts";
+import { balanceOf, submit, ledgerTotal } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels, tinyStory } from "../helpers/stories.ts";
 
 const idle = (count: number) => Array.from({ length: count }, () => say());
@@ -36,18 +38,18 @@ describe("lottery (SPEC 10.3)", () => {
 	});
 
 	it("draws one distinct sender by seed and runs `then` with the winner as actor", async () => {
-		const fixture = createFixture({ story, agents: 3, minutes: 4, script });
+		const fixture = createHostFixture({ story, agents: 3, minutes: 4, script });
 		await fixture.run();
 		const [draw] = fixture.events("lottery_drawn");
 		expect(draw?.candidates).toEqual(["A01", "A02"]);
 		const winner = draw?.winner ?? "";
 		expect(["A01", "A02"]).toContain(winner);
-		expect(fixture.world.ledger.balance(winner)).toBe(10 + 9);
-		expect(fixture.world.ledger.total()).toBe(0);
+		expect(balanceOf(fixture.host, winner)).toBe(10 + 9);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 		expect(fixture.events("notice").filter((notice) => notice.text.startsWith("You were chosen"))).toMatchObject([
 			{ to: winner, text: `You were chosen, ${winner}.` },
 		]);
-		expect(fixture.world.board.all().map((post) => post.text)).toContain(`${winner} was chosen.`);
+		expect(fixture.boardPosts().map((post) => post.text)).toContain(`${winner} was chosen.`);
 		const nested = fixture.events("director_action").filter((event) => event.via === "lottery applicants");
 		expect(nested.map((event) => [event.rule, event.action, event.actor])).toEqual([
 			["draw", "escrowTransfer", winner],
@@ -56,7 +58,7 @@ describe("lottery (SPEC 10.3)", () => {
 		]);
 		expect(fixture.events("director_skipped")).toMatchObject([{ rule: "draw-empty", action: "lottery", reason: "collection empty has no senders" }]);
 
-		const again = createFixture({ story, agents: 3, minutes: 4, script });
+		const again = createHostFixture({ story, agents: 3, minutes: 4, script });
 		await again.run();
 		expect(again.events("lottery_drawn")[0]?.winner).toBe(winner);
 	});
@@ -93,11 +95,11 @@ describe("standings (SPEC 9)", () => {
 				at(2, [directorAct.publishStandings("snapshot")], { id: "snapshot" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			agents: 4,
 			minutes: 3,
-			script: (world) => ({ A01: idle(3), A02: idle(3), A03: [submit(world, "A03", 1), say(), say()], A04: idle(3) }),
+			script: (host) => ({ A01: idle(3), A02: idle(3), A03: [submit(host, "A03", 1), say(), say()], A04: idle(3) }),
 		});
 		await fixture.run();
 		const posts = fixture.events("board_post");
@@ -128,10 +130,10 @@ describe("onTeamSplit (SPEC 10.1)", () => {
 			levels: [pair(1), pair(2)],
 			director: [onTeamSplit(1, 2, [directorAct.notify("actor", "Your partner moved on, {actor}.")], { id: "split" })],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 6,
-			script: (world) => ({ A01: [submit(world, "A01", 1), ...idle(5)], A02: idle(6) }),
+			script: (host) => ({ A01: [submit(host, "A01", 1), ...idle(5)], A02: idle(6) }),
 		});
 		await fixture.run();
 		expect(fixture.events("notice")).toMatchObject([{ to: "A02", text: "Your partner moved on, A02.", minute: 3 }]);
@@ -145,7 +147,7 @@ describe("director text templates (SPEC 10.3)", () => {
 			agents: 3,
 			director: [at(1, [directorAct.notify("all", "Minute {minute}: {survivors} of {agents} remain; you are on level {level}, {actor}.")], { id: "facts" })],
 		});
-		const fixture = createFixture({ story, agents: 3, minutes: 2, script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: idle(2), A03: idle(2) }) });
+		const fixture = createHostFixture({ story, agents: 3, minutes: 2, script: (host) => ({ A01: [submit(host, "A01", 1), say()], A02: idle(2), A03: idle(2) }) });
 		await fixture.run();
 		expect(fixture.inputsOf("A01")).toContain("[CITY] Minute 1: 1 of 3 remain; you are on level 2, A01.");
 		expect(fixture.inputsOf("A02")).toContain("[CITY] Minute 1: 1 of 3 remain; you are on level 1, A02.");
@@ -153,6 +155,8 @@ describe("director text templates (SPEC 10.3)", () => {
 });
 
 describe("director targets (SPEC 10.3)", () => {
+	// Stays on the old fixture (step 18, item 7): it drives the old `Director` by hand with a script the
+	// validator refuses, so no host run can carry it.
 	it("skips listed IDs that are not competitors of this run and actions that reach nobody", () => {
 		// The run has 2 competitors; a script written for more names A05 (validation would reject it).
 		const fixture = createFixture({ story: tinyStory(), minutes: 2, script: () => ({ A01: idle(2), A02: idle(2) }) });
