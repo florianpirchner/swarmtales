@@ -93,7 +93,7 @@
 	{
 		"id": "A14-reachable-ignores-open-rewards",
 		"file": "mechanics/arena/src/rules.ts",
-		"find": "if (!view.call(ProgressionApi, \"hasPassed\", { resident, level })) open +=",
+		"find": "if (!view.call(ProgressionApi, \"hasSolved\", { resident, level })) open +=",
 		"replace": "if (level < 0) open +=",
 		"tests": ["test/mechanics/arena/differential.test.ts"]
 	},

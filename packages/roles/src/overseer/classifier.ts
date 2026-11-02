@@ -26,8 +26,8 @@ import { OVERSEER_ORDER } from "./order.ts";
 import { conversationKey, statementOf, StatementSchema, type Statement } from "./statements.ts";
 
 /** The closed set of labels (SPEC 10.5); anything else a model answers is dropped. */
-const LABELS = ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"] as const;
-type Label = (typeof LABELS)[number];
+export const LABELS = ["promise", "offer", "threat", "refusal", "lie", "hesitation", "helpRequest", "accusation", "thanks"] as const;
+export type Label = (typeof LABELS)[number];
 
 /** Earlier messages kept per conversation (DM pair or group) as context for its replies. */
 const CONTEXT_MESSAGES = 4;

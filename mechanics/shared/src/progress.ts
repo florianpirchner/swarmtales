@@ -76,6 +76,7 @@ export const ProgressionApi = defineApi({
 		levelOf: query("Old `levelOf`.", OfResident, Type.Integer()),
 		isFinished: query("Old `isFinished`.", OfResident, Type.Boolean()),
 		hasPassed: query("Old `hasPassed`.", Type.Object({ resident: ResidentId, level: Level }), Type.Boolean()),
+		hasSolved: query("Whether the resident solved `level` itself (old `solved.includes(level)`); `hasPassed` is also true beyond it or at a shut door without a solve (A1-6, the seats rule).", Type.Object({ resident: ResidentId, level: Level }), Type.Boolean()),
 		passed: query("Who passed a level, in the order they passed (the tribunal's `passed`).", Type.Object({ level: Level }), Type.Array(ResidentId)),
 		lastProgress: query("The minute the resident last passed a level, or null (the tribunal's `lastProgress`).", OfResident, Type.Union([Type.Integer(), Type.Null()])),
 		currentAct: query("Old `currentAct`.", Type.Object({}), Type.Integer()),

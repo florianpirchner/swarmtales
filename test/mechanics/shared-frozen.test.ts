@@ -21,7 +21,8 @@ import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_O
 // Step 18 (A1, the arena's brief): EndingApi and Ending (exported and in SHARED_APIS); nothing provides it yet.
 // Step 18 (integrator, step18-decisions.md S18-2): OVERSEER_ORDER exported (the overseers' between-slot order table).
 // Step 18 (integrator, step18-decisions.md S18-11): WhispersApi (the whisperer by query, round-3 challenge L2), whispers provides it.
-const FINGERPRINT = "d2cca2f611446dae2e47d2acbbaae1a9f635943f87b4a3e45d6a154ae94e53d6";
+// Step 18 (R3, A1-6): ProgressionApi.hasSolved (the seats rule counts solved levels, not passed ones).
+const FINGERPRINT = "ae4f4820aa5f3b32489bd251e0be8b108d64384297d07d4b09555481b31fb7ce";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];

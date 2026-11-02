@@ -521,6 +521,12 @@ export class OverseerRunner {
 		return { reply: { ok: false, error: answer.kind === "failed" ? answer.error : "no model and no fallback answer", costUsd }, settle: undefined };
 	}
 
+	/** The state's slice of one overseer as a snapshot would hold it; `undefined` for an unknown name or one without state. */
+	slice(name: string): { readonly version: number; readonly data: unknown } | undefined {
+		const snapshot = this.#placed.find((candidate) => candidate.name === name)?.instance.snapshot;
+		return snapshot === undefined ? undefined : { version: snapshot.version, data: structuredClone(snapshot.save()) };
+	}
+
 	/** Per name, the limits used and the state's slice; only names that were called or keep state. */
 	save(): Readonly<Record<string, { readonly calls: number; readonly costUsd: number; readonly slice?: { readonly version: number; readonly data: unknown } }>> {
 		const saved: Record<string, { calls: number; costUsd: number; slice?: { version: number; data: unknown } }> = {};

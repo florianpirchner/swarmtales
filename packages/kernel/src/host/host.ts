@@ -372,7 +372,7 @@ class CoreHost implements Host {
 		await this.#gateway.settle();
 		await this.#slot("minuteStarted", minute);
 		this.#breach = undefined;
-		await this.#turns.play(agent, minute);
+		const passes = await this.#turns.play(agent, minute);
 		this.#phases((phases) => phases.minuteEnded, (run) => {
 			run();
 		});
@@ -389,12 +389,14 @@ class CoreHost implements Host {
 		bus.emit("core", "minute_ended", {});
 		// Calls staged by listeners of minute_ended run inside the minute, so no snapshot cut loses them.
 		await this.#gateway.settle();
-		this.#minute = minute + 1;
 		const breach = this.#turnsBreach() ?? this.#referee.breach();
+		// A stop noticed at a minute's start, before any pass began, ends the run at that minute: the clock stays (the old `#nextMinute` wrote `run_end` there).
+		const idle = passes === 0 && (breach !== undefined || this.#stopRequest !== undefined);
+		if (!idle) this.#minute = minute + 1;
 		if (breach !== undefined) {
 			bus.emit("core", "referee_intervened", { limit: breach.limit, reason: breach.reason });
 			await this.#finish({ reason: "referee", minute: this.#minute, limit: breach.limit });
-		} else if (this.#stopRequest !== undefined) await this.#finish({ reason: "stopped", minute: this.#minute });
+		} else if (this.#stopRequest !== undefined) await this.#finish({ reason: "stopped", minute: this.#minute }, this.#stopRequest);
 		else if (this.#minute >= this.#story.minutes) await this.#finish({ reason: "minutes", minute: this.#minute });
 	}
 
@@ -478,13 +480,17 @@ class CoreHost implements Host {
 		return this.#desk.attached ? this.#desk.hand() : undefined;
 	}
 
+	overseerSlice(name: string): { readonly version: number; readonly data: unknown } | undefined {
+		return this.#runner.slice(name);
+	}
+
 	recordCost(usd: number): void {
 		this.#referee.recordCost(usd);
 	}
 
 	stop(reason: string): void {
 		this.#stopRequest = reason;
-		if (!this.#playing && this.#ended === undefined) this.#end({ reason: "stopped", minute: this.#minute });
+		if (!this.#playing && this.#ended === undefined) this.#end({ reason: "stopped", minute: this.#minute }, reason);
 	}
 
 	/**
@@ -595,13 +601,13 @@ class CoreHost implements Host {
 	 * The run ends after a minute: the `runEnded` phases, then the calls they staged (a director's
 	 * last actions), then `run_ended`. What listeners of `run_ended` stage never runs.
 	 */
-	async #finish(end: RunEnd): Promise<void> {
+	async #finish(end: RunEnd, detail?: string): Promise<void> {
 		if (this.#gate.pending().length > 0) {
 			this.#gate.settleAll();
 			await this.#gateway.settle();
 		}
 		this.#phases((phases) => phases.runEnded, (run) => {
-			run(end.reason);
+			run(end.reason, detail);
 		});
 		await this.#gateway.settle();
 		await this.#slot("runEnded", end.minute);
@@ -609,13 +615,20 @@ class CoreHost implements Host {
 	}
 
 	/** A stop between minutes: open decisions settle and the `runEnded` phases run, but nothing they stage does (no call may wait in a stopped host). */
-	#end(end: RunEnd): void {
-		this.#gate.settleAll();
-		this.#phases((phases) => phases.runEnded, (run) => {
-			run(end.reason);
-		});
-		this.#staging.clear();
-		this.#close(end);
+	#end(end: RunEnd, detail?: string): void {
+		// The minute is over: its events (`run_end` included) belong to the minute just played, as the old arena wrote them when the app stopped after a round.
+		const clock = this.#minute;
+		this.#minute = Math.max(0, clock - 1);
+		try {
+			this.#gate.settleAll();
+			this.#phases((phases) => phases.runEnded, (run) => {
+				run(end.reason, detail);
+			});
+			this.#staging.clear();
+			this.#close(end);
+		} finally {
+			this.#minute = clock;
+		}
 	}
 
 	#close(end: RunEnd): void {

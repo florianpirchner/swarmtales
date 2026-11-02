@@ -152,7 +152,7 @@ const STOPPING = "arena.stopping";
  * Old arena.ts:206: no look after the last round or once the run stops, since nobody would read it
  * (the classifier still labels them; the weaver keeps the same rule).
  */
-function worthALook(round: number, log: EventLogView, facts: () => Readonly<Record<string, unknown>>): boolean {
+export function worthALook(round: number, log: EventLogView, facts: () => Readonly<Record<string, unknown>>): boolean {
 	const minutes = runMinutes(log);
 	if (minutes !== undefined && round >= minutes) return false;
 	const stopping = facts()[STOPPING];

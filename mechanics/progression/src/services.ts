@@ -28,6 +28,7 @@ export const progressionImplementation = {
 	levelOf: (input: { readonly resident: string }, ctx: ProgressionCtx): number => levelOf(ctx, input.resident),
 	isFinished: (input: { readonly resident: string }, ctx: ProgressionCtx): boolean => isFinished(ctx, input.resident),
 	hasPassed: (input: { readonly resident: string; readonly level: number }, ctx: ProgressionCtx): boolean => hasPassed(ctx, input.resident, input.level),
+	hasSolved: (input: { readonly resident: string; readonly level: number }, ctx: ProgressionCtx): boolean => competitorOf(ctx, input.resident).solved.includes(input.level),
 	passed: (input: { readonly level: number }, ctx: ProgressionCtx): string[] => {
 		const inOrder = solves(ctx).filter((solve) => solve.level === input.level).map((solve) => solve.agent);
 		const rest = [...ctx.state.competitors.keys()].filter((id) => !inOrder.includes(id) && hasPassed(ctx, id, input.level));

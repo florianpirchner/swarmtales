@@ -18,7 +18,7 @@ import type { AnyStory, LevelDefinition, ToolName } from "@swarmtales/contracts"
 import type { PlannedCall } from "@swarmtales/testkit";
 import { tinyStory, type TinyStoryOptions } from "../../helpers/stories.ts";
 import { MARKS } from "../channels/differential-support.ts";
-import { arenaSlice, compared, FILE, oldArenaFields, playBoth, playNew, type NewOptions, type NewPlayed, type OldPlayed, type Spec } from "./differential.ts";
+import { arenaSlice, compared, FILE, oldArenaFields, playBoth, playNew, playOld, type NewOptions, type NewPlayed, type OldPlayed, type Spec } from "./differential.ts";
 
 const TOOLS: readonly ToolName[] = ["getStatus", "submitSolution", "sendDM", "postBoard", "readBoard", "transferPoints"];
 
@@ -66,25 +66,13 @@ function objectOf(value: unknown): object {
 	return value;
 }
 
-/** A side's compared lines with `run_end`'s minute taken out (see `endShift`). */
-function withoutEndMinute(lines: readonly string[]): readonly string[] {
-	return lines.map((line) => (line.startsWith('{"type":"run_end"') ? JSON.stringify(Object.fromEntries(Object.entries(objectOf(JSON.parse(line))).filter(([name]) => name !== "minute"))) : line));
-}
-
-/**
- * Plays a spec on both sides and compares everything; returns both. `endShift` is the known core
- * divergence of a run that stops at a minute's start (the stop limit) or by `host.stop` between
- * minutes: the host writes `run_end` one minute later than the old `#nextMinute` (request 1 in
- * docs/design/step18-requests-A1.md); the shift itself is asserted, every other field stays exact.
- */
-async function compare(spec: Spec, options: NewOptions & { readonly endShift?: number } = {}): Promise<{ readonly old: OldPlayed; readonly fresh: NewPlayed }> {
+/** Plays a spec on both sides and compares everything (`run_end` included, its minute too); returns both. */
+async function compare(spec: Spec, options: NewOptions = {}): Promise<{ readonly old: OldPlayed; readonly fresh: NewPlayed }> {
 	const { old, fresh } = await playBoth(spec, options);
 	expect([...fresh.replies.keys()].sort()).toEqual([...old.replies.keys()].sort());
 	for (const [where, replies] of old.replies) expect(fresh.replies.get(where), where).toEqual(replies);
-	const shift = options.endShift ?? 0;
-	expect(Number(endOf(fresh)?.minute)).toBe(Number(endOf(old)?.minute) + shift);
-	if (shift === 0) expect(compared(fresh)).toEqual(compared(old));
-	else expect(withoutEndMinute(compared(fresh))).toEqual(withoutEndMinute(compared(old)));
+	expect(Number(endOf(fresh)?.minute)).toBe(Number(endOf(old)?.minute));
+	expect(compared(fresh)).toEqual(compared(old));
 	expect(JSON.stringify(arenaSlice(fresh.host))).toBe(JSON.stringify(oldArenaFields(old.arena)));
 	return { old, fresh };
 }
@@ -100,7 +88,7 @@ describe("the arena against the old Arena: the early stops", () => {
 			settings: { stopWhenDone: true },
 			plan: (agent, minute, codeOf) => climb(agent === "A03" ? 3 : 1, 2)(minute, (door) => codeOf(agent, door)),
 		};
-		const { old } = await compare(spec, { endShift: 1 });
+		const { old } = await compare(spec);
 		expect(endOf(old)?.reason).toBe("every competitor has passed the last level");
 		// The run ended at the start of minute 6, before its round_start (A03 passed door 2 at minute 5).
 		expect(old.lines.filter((line) => line.type === "round_start").map((line) => line.round)).toEqual([1, 2, 3, 4, 5, 6]);
@@ -120,7 +108,7 @@ describe("the arena against the old Arena: the early stops", () => {
 				return minute === 1 ? [solve(1, wrongOf(codeOf(agent, 1)))] : [];
 			},
 		};
-		const { old } = await compare(spec, { endShift: 1 });
+		const { old } = await compare(spec);
 		expect(endOf(old)?.reason).toBe("seats decided");
 	}, 60_000);
 
@@ -140,6 +128,27 @@ describe("the arena against the old Arena: the early stops", () => {
 	}, 60_000);
 });
 
+describe("the app's own stop (A1-4)", () => {
+	const plan = (agent: string, minute: number, codeOf: (agent: string, level: number) => string): readonly PlannedCall[] => climb(1, 4)(minute, (door) => codeOf(agent, door));
+
+	it("hands the text of host.stop to run_end when the arena has no reason of its own, at the minute just played", async () => {
+		const spec: Spec = { story: storyOf({ count: 4, agents: 2 }), agents: 2, minutes: 9, tools: TOOLS, plan };
+		const old = await playOld(spec);
+		const fresh = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level), { stopAfter: { minutes: 3, text: "operator stop" } });
+		const end = endOf(fresh);
+		expect(end?.reason).toBe("operator stop");
+		expect(end?.minute).toBe(2);
+		expect(fresh.lines.filter((line) => line.type === "round_end")).toHaveLength(3);
+	}, 60_000);
+
+	it("keeps the arena's own reason over the app's text", async () => {
+		const spec: Spec = { story: storyOf({ count: 4, agents: 3, maxMinutes: 4 }), agents: 3, minutes: 9, tools: TOOLS, plan, settings: { snapshot: { afterLevel: 2, stop: true } } };
+		const old = await playOld(spec);
+		const fresh = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level));
+		expect(endOf(fresh)?.reason).toContain("written to");
+	}, 60_000);
+});
+
 describe("the arena against the old Arena: the act brakes and the snapshot cut", () => {
 	/** A01 and A02 climb, A03 stays at door 1: Act I (doors 1-2) brakes after 4 minutes. */
 	const stuck = (agent: string, minute: number, codeOf: (agent: string, level: number) => string): readonly PlannedCall[] =>
@@ -155,7 +164,7 @@ describe("the arena against the old Arena: the act brakes and the snapshot cut",
 
 	it("writes the checkpoint at the brake and stops there (snapshot after the act's last level)", async () => {
 		const spec: Spec = { story: storyOf({ count: 4, agents: 3, maxMinutes: 4 }), agents: 3, minutes: 9, tools: TOOLS, plan: stuck, settings: { snapshot: { afterLevel: 2, stop: true } } };
-		const { old, fresh } = await compare(spec, { endShift: 1 });
+		const { old, fresh } = await compare(spec);
 		expect(old.lines.filter((line) => line.type === "act_brake")).toMatchObject([{ snapshot: true, minute: 3 }]);
 		expect(endOf(old)?.reason).toBe(`the brake of Act I fired after 4 minutes; snapshot after level 2 written to ${FILE}; stopped there`);
 		expect(endOf(fresh)?.reason).toBe(endOf(old)?.reason);
@@ -177,7 +186,7 @@ describe("the arena against the old Arena: the act brakes and the snapshot cut",
 
 	it("takes the snapshot once everyone passed the level and stops there", async () => {
 		const spec: Spec = { story: storyOf({ count: 4, agents: 2 }), agents: 2, minutes: 9, tools: TOOLS, plan: (agent, minute, codeOf) => climb(agent === "A01" ? 1 : 3, 1)(minute, (door) => codeOf(agent, door)), settings: { snapshot: { afterLevel: 1, stop: true } } };
-		const { old, fresh } = await compare(spec, { endShift: 1 });
+		const { old, fresh } = await compare(spec);
 		expect(endOf(old)?.reason).toBe(`snapshot after level 1 written to ${FILE}; stopped there`);
 		expect(fresh.cut).toEqual({ round: old.taken?.round, minute: old.taken?.minute, label: "after level 1", stop: true });
 	}, 60_000);

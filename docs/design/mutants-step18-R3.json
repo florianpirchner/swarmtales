@@ -1,0 +1,378 @@
+[
+	{
+		"id": "R3-K1",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "if (!idle) this.#minute = minute + 1;",
+		"replace": "this.#minute = minute + 1;",
+		"tests": [
+			"test/host/run-end.test.ts",
+			"test/mechanics/arena/differential.test.ts"
+		]
+	},
+	{
+		"id": "R3-K2",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "const idle = passes === 0 && (breach !== undefined || this.#stopRequest !== undefined);",
+		"replace": "const idle = passes === 0 && breach !== undefined;",
+		"tests": [
+			"test/host/run-end.test.ts"
+		]
+	},
+	{
+		"id": "R3-K3",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "this.#end({ reason: \"stopped\", minute: this.#minute }, reason);",
+		"replace": "this.#end({ reason: \"stopped\", minute: this.#minute });",
+		"tests": [
+			"test/host/run-end.test.ts",
+			"test/mechanics/arena/differential.test.ts"
+		]
+	},
+	{
+		"id": "R3-K4",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "await this.#finish({ reason: \"stopped\", minute: this.#minute }, this.#stopRequest);",
+		"replace": "await this.#finish({ reason: \"stopped\", minute: this.#minute });",
+		"tests": [
+			"test/host/run-end.test.ts"
+		]
+	},
+	{
+		"id": "R3-K5",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "this.#minute = Math.max(0, clock - 1);",
+		"replace": "this.#minute = clock;",
+		"tests": [
+			"test/host/run-end.test.ts",
+			"test/mechanics/arena/differential.test.ts"
+		]
+	},
+	{
+		"id": "R3-K6",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\t\trun(end.reason, detail);\n\t\t});\n\t\tawait this.#gateway.settle();",
+		"replace": "\t\t\trun(end.reason);\n\t\t});\n\t\tawait this.#gateway.settle();",
+		"tests": [
+			"test/host/run-end.test.ts"
+		]
+	},
+	{
+		"id": "R3-K7",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "return this.#runner.slice(name);",
+		"replace": "return undefined;",
+		"tests": [
+			"test/overseers/runtime-host.test.ts"
+		]
+	},
+	{
+		"id": "R3-K8",
+		"file": "packages/kernel/src/host/turns.ts",
+		"find": "\t\t\tstarted += 1;\n",
+		"replace": "",
+		"tests": [
+			"test/host/run-end.test.ts"
+		]
+	},
+	{
+		"id": "R3-K9",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "const reason = ctx.state.reason ?? detail;",
+		"replace": "const reason = detail ?? ctx.state.reason;",
+		"tests": [
+			"test/mechanics/arena/differential.test.ts"
+		]
+	},
+	{
+		"id": "R3-K10",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "const reason = ctx.state.reason ?? detail;",
+		"replace": "const reason = ctx.state.reason;",
+		"tests": [
+			"test/mechanics/arena/differential.test.ts"
+		]
+	},
+	{
+		"id": "R3-K11",
+		"file": "mechanics/progression/src/services.ts",
+		"find": "competitorOf(ctx, input.resident).solved.includes(input.level),",
+		"replace": "hasPassed(ctx, input.resident, input.level),",
+		"tests": [
+			"test/mechanics/progression/solved.test.ts"
+		]
+	},
+	{
+		"id": "R3-K12",
+		"file": "mechanics/progression/src/services.ts",
+		"find": "competitorOf(ctx, input.resident).solved.includes(input.level),",
+		"replace": "false,",
+		"tests": [
+			"test/mechanics/progression/solved.test.ts"
+		]
+	},
+	{
+		"id": "R3-K13",
+		"file": "packages/chronicle/src/snapshot/legacy-snapshot.ts",
+		"find": "const delivered = progression === undefined ? [] : listOf(progression.data.delivered, \"progression.delivered\");",
+		"replace": "const delivered: readonly Json[] = [];",
+		"tests": [
+			"test/snapshot/legacy-writeback.test.ts"
+		]
+	},
+	{
+		"id": "R3-K14",
+		"file": "packages/chronicle/src/snapshot/legacy-snapshot.ts",
+		"find": "channels.version === 0 ? channels.data.seenBoard : channels.data.seen",
+		"replace": "channels.data.seenBoard",
+		"tests": [
+			"test/snapshot/legacy-writeback.test.ts"
+		]
+	},
+	{
+		"id": "R3-K15",
+		"file": "packages/chronicle/src/snapshot/legacy-snapshot.ts",
+		"find": "braked: arena.data.braked ?? []",
+		"replace": "braked: []",
+		"tests": [
+			"test/snapshot/legacy-writeback.test.ts"
+		]
+	},
+	{
+		"id": "R3-K17",
+		"file": "packages/chronicle/src/snapshot/legacy-snapshot.ts",
+		"find": "seenPoints: listOf(arena.data.seenPoints, \"arena.seenPoints\")",
+		"replace": "seenPoints: []",
+		"tests": [
+			"test/snapshot/legacy-writeback.test.ts"
+		]
+	},
+	{
+		"id": "R3-K18",
+		"file": "packages/chronicle/src/snapshot/legacy-snapshot.ts",
+		"find": "const CURRENT_SLICE = 1;",
+		"replace": "const CURRENT_SLICE = 2;",
+		"tests": [
+			"test/snapshot/legacy-writeback.test.ts"
+		]
+	},
+	{
+		"id": "R3-C1",
+		"file": "packages/roles/src/overseer/chat-answer.ts",
+		"find": "finishTurn: () => ({ action: \"end\" }),",
+		"replace": "finishTurn: () => ({ action: \"continue\" }),",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C2",
+		"file": "packages/roles/src/overseer/chat-answer.ts",
+		"find": "timestamp: request.minute * 60_000",
+		"replace": "timestamp: 0",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C3",
+		"file": "packages/roles/src/overseer/chat-answer.ts",
+		"find": "\trecordUsage(host, name, agent, result.usage);\n",
+		"replace": "",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts",
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C4",
+		"file": "packages/roles/src/overseer/chat-answer.ts",
+		"find": "(more.length > 0 && !many)",
+		"replace": "false",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C5",
+		"file": "packages/roles/src/overseer/chat-answer.ts",
+		"find": "if (error !== undefined && error.length > 0) return { answer: undefined, error, usage };",
+		"replace": "",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C6",
+		"file": "packages/roles/src/overseer/judge-runtime.ts",
+		"find": "board: Type.Optional(Type.String({ maxLength: JUDGE_WORDS_MAX, ",
+		"replace": "board: Type.Optional(Type.String({ ",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C7",
+		"file": "packages/roles/src/overseer/judge-runtime.ts",
+		"find": "\t\t\t\tminute: 0,",
+		"replace": "\t\t\t\tminute: host.minute,",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C8",
+		"file": "packages/roles/src/overseer/weaver-runtime.ts",
+		"find": "minute: host.minute,",
+		"replace": "minute: 0,",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C9",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "const items = answers.flatMap((answer) => (Check(Items, answer) ? answer.items : []));",
+		"replace": "const items = answers.slice(0, 1).flatMap((answer) => (Check(Items, answer) ? answer.items : []));",
+		"tests": [
+			"test/overseers/runtime-chat.test.ts"
+		]
+	},
+	{
+		"id": "R3-C10",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "answer.probability >= DECIDER_THRESHOLD",
+		"replace": "answer.probability > DECIDER_THRESHOLD",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C11",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "if (errors.length > 0) return { ok: false, error: errors.join(\"; \"), costUsd };",
+		"replace": "",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C12",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "targets: statement.source === \"dm\" ? [...statement.to] : []",
+		"replace": "targets: []",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C13",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "other.agent === statement.agent && other.seq !== statement.seq && other.source === \"thought\"",
+		"replace": "other.agent === statement.agent && other.source === \"thought\"",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C14",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "conversationOf(statement, [...batch.context, ...batch.statements.filter((other) => other.seq < statement.seq)])",
+		"replace": "conversationOf(statement, [...batch.statements.filter((other) => other.seq < statement.seq)])",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-C15",
+		"file": "packages/roles/src/overseer/classifier-runtime.ts",
+		"find": "contextAt >= 0 && contextAt < at ? read(lines.slice(contextAt + 1, at)) : []",
+		"replace": "[]",
+		"tests": [
+			"test/overseers/runtime-decider.test.ts"
+		]
+	},
+	{
+		"id": "R3-W1",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const asking = worthALook(ctx.minute + 1, ctx.log, () => ctx.facts());",
+		"replace": "const asking = true;",
+		"tests": [
+			"test/overseers/weaver.test.ts",
+			"test/overseers/runtime-host.test.ts"
+		]
+	},
+	{
+		"id": "R3-W2",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const asking = worthALook(ctx.minute + 1, ctx.log, () => ctx.facts());",
+		"replace": "const asking = worthALook(ctx.minute, ctx.log, () => ctx.facts());",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "R3-W3",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "\t\t\tif (!asking) return [];\n\t\t\tconst hits = state.pending;",
+		"replace": "\t\t\tconst hits = state.pending;",
+		"tests": [
+			"test/overseers/weaver.test.ts",
+			"test/overseers/runtime-host.test.ts"
+		]
+	},
+	{
+		"id": "R3-W4",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "\t\t\tstate.cursor = Math.max(state.cursor, state.observed);\n\t\t\tif (!asking) return [];",
+		"replace": "\t\t\tif (!asking) return [];\n\t\t\tstate.cursor = Math.max(state.cursor, state.observed);",
+		"tests": [
+			"test/overseers/weaver.test.ts",
+			"test/overseers/runtime-host.test.ts"
+		]
+	},
+	{
+		"id": "R3-R1",
+		"file": "packages/roles/src/overseer/resume.ts",
+		"find": "Math.max(0, first - 1)",
+		"replace": "first",
+		"tests": [
+			"test/overseers/resume.test.ts"
+		]
+	},
+	{
+		"id": "R3-R2",
+		"file": "packages/roles/src/overseer/resume.ts",
+		"find": "cursor: first === undefined ? lastSeq : Math.max(0, first - 1)",
+		"replace": "cursor: first === undefined ? 0 : Math.max(0, first - 1)",
+		"tests": [
+			"test/overseers/resume.test.ts"
+		]
+	},
+	{
+		"id": "R3-R3",
+		"file": "packages/roles/src/overseer/resume.ts",
+		"find": "entry({ cursor: lastSeq, ...legacy.weaver })",
+		"replace": "entry({ cursor: 0, ...legacy.weaver })",
+		"tests": [
+			"test/overseers/resume.test.ts"
+		]
+	},
+	{
+		"id": "R3-R4",
+		"file": "packages/roles/src/overseer/resume.ts",
+		"find": "seen: lastSeq }",
+		"replace": "seen: 0 }",
+		"tests": [
+			"test/overseers/resume.test.ts"
+		]
+	},
+	{
+		"id": "R3-R5",
+		"file": "packages/roles/src/overseer/resume.ts",
+		"find": "history: legacy.interpreter.history }",
+		"replace": "history: [] }",
+		"tests": [
+			"test/overseers/resume.test.ts"
+		]
+	}
+]

@@ -6,9 +6,9 @@
  */
 import { Type } from "typebox";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
-import type { EventEnvelope, Host, OverseerUse } from "@swarmtales/contracts";
+import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { idleAgent, type ScriptedRuntime } from "@swarmtales/testkit";
+import { idleAgent } from "@swarmtales/testkit";
 import { Parse } from "typebox/value";
 import { RecordedEventSchema } from "@swarmtales/chronicle";
 import type { EventSink, RecordedEvent } from "@swarmtales/engine";
@@ -61,11 +61,13 @@ export interface NewSpec {
 	readonly minutes: number;
 	readonly residents?: number;
 	readonly overseers: readonly OverseerUse[];
-	readonly runtime?: ScriptedRuntime;
+	readonly runtime?: OverseerRuntime;
 	readonly names?: boolean;
+	/** Further app events the host declares (the `usage` line of a model runtime). */
+	readonly appEvents?: EventSchemas;
 }
 
-export function newHost(spec: NewSpec, resume?: { readonly snapshot: unknown; readonly events: readonly unknown[] }): Host {
+export function newHost(spec: NewSpec, resume?: { readonly snapshot: unknown; readonly events: readonly unknown[] }, more: readonly MechanicUse[] = []): Host {
 	const grants = Object.fromEntries(spec.overseers.map((use) => [use.name, []]));
 	return createHost({
 		story: {
@@ -73,12 +75,12 @@ export function newHost(spec: NewSpec, resume?: { readonly snapshot: unknown; re
 			seed: 5,
 			minutes: spec.minutes,
 			residents: spec.residents ?? 4,
-			mechanics: spec.names === true ? [nameplate.with()] : [],
+			mechanics: [...(spec.names === true ? [nameplate.with()] : []), ...more],
 			overseers: spec.overseers,
 			grants,
 		},
 		prompts: createPromptLookup(),
-		app: { events: Object.fromEntries(INPUT_TYPES.map((type) => [type, OPEN])) },
+		app: { events: { ...Object.fromEntries(INPUT_TYPES.map((type) => [type, OPEN])), ...spec.appEvents } },
 		...(spec.runtime === undefined ? {} : { overseers: spec.runtime }),
 		...(resume === undefined ? {} : { resume }),
 	});

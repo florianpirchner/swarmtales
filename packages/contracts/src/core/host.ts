@@ -102,6 +102,12 @@ export interface Host {
 	 * (`HostOptions.human`): each call waits in an inbox and runs at the next safe stop.
 	 */
 	hand(): HumanHand | undefined;
+	/**
+	 * What an overseer keeps for its snapshot, read-only (the weaver's queued inner voices and hard
+	 * texts, which the app builds the resident's inputs and prompt from): the slice as `host.snapshot()`
+	 * would hold it, or `undefined` for a name the story does not declare and for an overseer without state.
+	 */
+	overseerSlice(name: string): { readonly version: number; readonly data: unknown } | undefined;
 	/** The app reports model spending; the referee stops at `maxCostUsd`. */
 	recordCost(usd: number): void;
 	stop(reason: string): void;
