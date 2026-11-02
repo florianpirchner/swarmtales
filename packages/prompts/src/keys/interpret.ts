@@ -1,6 +1,9 @@
 /** Prompts of the interpreting roles: classifier, judge, souffleur, weaver and guard. */
 export const INTERPRET_PROMPTS = {
 	"classifier/system": ["labels"],
+	"classifier/system-plain": [],
+	"classifier/input": ["batch", "standingOrders"],
+	"classifier/tool-label": [],
 	"classifier/label-promise": [],
 	"classifier/label-offer": [],
 	"classifier/label-threat": [],
@@ -27,6 +30,10 @@ export const INTERPRET_PROMPTS = {
 	"judge/temper-partial": [],
 	"judge/temper-capricious": [],
 	"judge/system": ["temper"],
+	"judge/system-fair": [],
+	"judge/system-partial": [],
+	"judge/system-capricious": [],
+	"judge/input": ["question", "standingOrders"],
 	"judge/channel-dm": [],
 	"judge/channel-board": [],
 	"judge/channel-group": [],
@@ -41,6 +48,7 @@ export const INTERPRET_PROMPTS = {
 	"souffleur/head": ["count"],
 	"souffleur/tool-rewrite": [],
 	"weaver/system": [],
+	"weaver/input": ["dossier", "standingOrders"],
 	"weaver/resident": ["resident", "minute"],
 	"weaver/character-heading": [],
 	"weaver/character-none": [],

@@ -5,7 +5,7 @@
  * packages/engine/src/tools/blame.ts and BlameDesk in blame.ts.
  */
 import { Type } from "typebox";
-import type { MechanicKit, ShapeOf } from "@swarmtales/contracts";
+import { JudgeVerdict, type MechanicKit, type ShapeOf } from "@swarmtales/contracts";
 import { refuse, reply, skipConsult } from "@swarmtales/kernel";
 import { ChannelsApi, ExileApi, LedgerApi, ProgressionApi } from "@swarmtales/mechanic-shared";
 import { check, claimPlace, ClaimChannel, judgeSays, recordQuote, type Checked, type Claim, type Delivered, type Facts } from "./blame.ts";
@@ -22,7 +22,8 @@ const Question = Type.Object({
 	claim: Type.Object({ number: Type.Integer(), channel: ClaimChannel, text: Type.String() }),
 	standing: Type.Object({ sender: Standing, accused: Standing, residents: Type.Integer() }),
 });
-const Answer = Type.Object({ deniesReceipt: Type.Boolean(), board: Type.Optional(Type.String()), gamemaker: Type.Optional(Type.String()) });
+// The judge overseer answers with this very object (the loader checks it).
+const Answer = JudgeVerdict;
 
 /** What the city can look up, all through the channels (the old `BlameDeskPorts`). */
 function factsOf(ctx: Ctx): Facts {

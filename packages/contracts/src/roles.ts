@@ -1,7 +1,8 @@
 /**
  * The interfaces the model-backed roles (judge, guard, souffleur) offer to the rest of the city
- * (types only). Tools and the runner depend on these, never on the classes that implement them.
+ * (types, and the one schema the judge shares with the blame tool). Tools and the runner depend on these, never on the classes that implement them.
  */
+import { Type, type Static } from "typebox";
 import type { CompetitorId } from "./ids.ts";
 
 /** What a model-backed role spent on one request. */
@@ -85,3 +86,15 @@ export interface Souffleur {
 	readonly label: string;
 	rewrite(texts: readonly string[]): Promise<SouffleurAnswer>;
 }
+
+/**
+ * The judge's ruling as the `blame` tool's consult declares it and the judge overseer answers it.
+ * One schema object serves both: the loader refuses a consult overseer whose `output` is another
+ * object than the tool's `answer` (docs/design/overseer-api.md section 1.4).
+ */
+export const JudgeVerdict = Type.Object({
+	deniesReceipt: Type.Boolean({ description: "Your ruling: true upholds the blame (the later message denies receipt)" }),
+	board: Type.Optional(Type.String({ description: "Your words for the board, one or two sentences; the city's record quotes them" })),
+	gamemaker: Type.Optional(Type.String({ description: "Your word for the gamemaker alone, one or two sentences" })),
+});
+export type JudgeVerdict = Static<typeof JudgeVerdict>;

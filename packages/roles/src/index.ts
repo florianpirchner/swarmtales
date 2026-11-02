@@ -17,3 +17,4 @@ export * from "./interpret/sources.ts";
 export * from "./interpret/statements.ts";
 export * from "./interpret/weaver-model.ts";
 export * from "./interpret/weaver.ts";
+export * as overseers from "./overseer/index.ts";
