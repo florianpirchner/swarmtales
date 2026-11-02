@@ -317,6 +317,10 @@ decision ("only these accused, at most N"); Typebox schemas are plain JSON, so i
    stores the amendment and answers with the proposal now standing. A holder may amend more than once.
 5. **Priority of the human.** The proposal that commits is the human's last amendment if there is one, else the
    last amendment of any other holder, else the original.
+   This holds at the deadline. A decision still open when the run ends (its deadline lies after the last
+   minute, or the run stopped early) settles at `runEnded` with its **original** proposal, the amendments listed
+   (step 18 decision O2-3). An amendment of a decision whose deadline lies after the run's last minute is kept,
+   but its reply says that it cannot stand (`core/replies/decision-outlasts-run`; built at step 18, F2 m5).
 6. **Deadline.** At the start of minute `deadline`, before the mechanics' due jobs, open decisions settle in the
    order they were opened: the host writes `decision_settled { decision, kind, changed, by?, reason?, proposal,
    amendments: [{ by, seq }] }` and runs `commit(proposal, settlement)` caused by it. `commit` runs against the

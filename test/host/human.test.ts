@@ -438,6 +438,16 @@ describe("decisions still open when the run ends", () => {
 		expect(snapshot.jobs.filter((job) => job.owner === "core")).toEqual([]);
 	});
 
+	it("say so in the reply when an amendment's decision outlasts the run (F2 m5)", async () => {
+		const host = started(options({}, storyOf({ minutes: 2, mechanics: [tally.with(), pot.with({ window: 5 })] })));
+		await host.playMinute(async (turn) => {
+			if (turn.resident === "A01") await turn.call("propose", { value: 2 });
+		});
+		const decision = core(host, "decision_proposed")[0]?.seq ?? 0;
+		const amended = await host.call("human", "amendDecision", { decision, proposal: { value: 5 }, reason: "five" });
+		expect(amended).toEqual({ ok: true, reply: `amended decision ${String(decision)}, but its deadline (minute 5) lies after the run's last minute (1): the original proposal settles at the run's end` });
+	});
+
 	it("settle on a stop between minutes too", async () => {
 		const host = started(options({}, storyOf({ minutes: 5, mechanics: [tally.with(), pot.with({ window: 5 })] })));
 		await host.playMinute(async (turn) => {

@@ -262,6 +262,16 @@ describe("amendDecision refusals", () => {
 		expect(picked(host)).toEqual([{ value: 9, minute: 1, changed: true, by: "t-2", decision: id }]);
 	});
 
+	it("says so when an amended decision outlasts the run, without a lookup too (F2 m5)", async () => {
+		const host = hostOf({ window: 4, minutes: 3 });
+		await host.playMinute(proposer({ 0: 7 }));
+		const id = openId(host);
+		expect(await amend(host, "human", id, 8)).toEqual({ ok: true, reply: `amended decision ${String(id)}, but its deadline (minute 4) lies after the run's last minute (2): the original proposal settles at the run's end` });
+		const inTime = hostOf({ window: 2, minutes: 3 });
+		await inTime.playMinute(proposer({ 0: 7 }));
+		expect(await amend(inTime, "human", openId(inTime), 8)).toEqual({ ok: true, reply: `amended decision ${String(openId(inTime))}: {"value":8}` });
+	});
+
 	it("renders the replies from library/prompts when the host has a lookup", async () => {
 		const host = hostOf({ window: 1 }, { prompts: createPromptLookup({ mechanics: { "acme/terminator": PROOF_PROMPTS, pot: PROOF_PROMPTS } }) });
 		await host.playMinute(proposer({ 0: 7 }));

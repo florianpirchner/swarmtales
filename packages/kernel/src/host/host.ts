@@ -578,6 +578,8 @@ class CoreHost implements Host {
 			},
 			reply: (code) => coreReply(prompts, code),
 			amended: (decision, proposal) => prompts?.render(CORE_OWNER, "core/replies/decision-amended", { decision, proposal }, ["decision", "proposal"]),
+			minutes: story.minutes,
+			outlasts: (decision, deadline, last) => prompts?.render(CORE_OWNER, "core/replies/decision-outlasts-run", { decision, deadline, last }, ["decision", "deadline", "last"]),
 		});
 	}
 
