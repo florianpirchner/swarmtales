@@ -32,6 +32,17 @@ export default tseslint.config(
 		},
 	},
 	{
+		// The core's file cap (docs/ideas/monorepo.md §3f): at most 400 code lines per file.
+		files: ["packages/kernel/src/**/*.ts", "packages/contracts/src/core/**/*.ts"],
+		rules: { "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }] },
+	},
+	// The ratchet: the files over the cap at step 18 (docs/design/step18-decisions.md, F2 M3), each held at
+	// its size then. Lower a number when the file shrinks; drop the entry once it is under 400.
+	...Object.entries({
+		"packages/kernel/src/host/host.ts": 639,
+		"packages/kernel/src/host/overseers.ts": 476,
+	}).map(([file, max]) => ({ files: [file], rules: { "max-lines": ["error", { max, skipBlankLines: true, skipComments: true }] } })),
+	{
 		// Plain JavaScript and per-package build configs sit outside every tsconfig: lint them without type information.
 		files: ["eslint.config.js", "scripts/**/*.mjs", "**/tsdown.config.ts"],
 		extends: [tseslint.configs.disableTypeChecked],
