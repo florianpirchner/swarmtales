@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { DIGEST_EVENT_TYPES, parseEventLog, parseRunMetadata } from "@swarmtales/chronicle";
 import { MemorySink, type ArenaEventType } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { fragmentOf, submit } from "../helpers/host-inspect.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 describe("digest event log (untrusted input)", () => {
@@ -37,24 +38,24 @@ describe("digest event log (untrusted input)", () => {
 
 	it("accepts every event a real run emits, without issues", async () => {
 		const sink = new MemorySink();
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 3,
 			minutes: 3,
 			only: 4,
 			sinks: [sink],
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					act(
 						{ name: "createGroup", args: { name: "Vault" } },
 						{ name: "addGroupMember", args: { groupId: "G1", agent: "A02" } },
 						{ name: "depositGroup", args: { groupId: "G1", amount: 3 } },
-						{ name: "postGroup", args: { groupId: "G1", message: `mine: ${world.inspect.fragmentOf("A01", 4)}` } },
+						{ name: "postGroup", args: { groupId: "G1", message: `mine: ${fragmentOf(host, "A01", 4)}` } },
 					),
 					act({ name: "withdrawGroup", args: { groupId: "G1", target: "A01", amount: 2 } }, { name: "sendDM", args: { target: "A03", message: "hi" } }),
 					act({ name: "removeGroupMember", args: { groupId: "G1", agent: "A02" } }),
 				],
 				A02: [say(), act({ name: "transferPoints", args: { target: "A01", amount: 1 } }), say()],
-				A03: [submit(world, "A03", 4), act({ name: "postBoard", args: { message: "A01 is busy" } }), say()],
+				A03: [submit(host, "A03", 4), act({ name: "postBoard", args: { message: "A01 is busy" } }), say()],
 			}),
 		});
 		await fixture.run();

@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { runMetadata } from "../../apps/cli/src/metadata.ts";
 import { analyzeRun, JsonlEventLog, writeDigest, writeRunMetadata } from "@swarmtales/chronicle";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { fragmentOf, submit } from "../helpers/host-inspect.ts";
 
 describe("digest of a scripted cityofkeys run (end to end, offline)", () => {
 	it("digests the artifacts of a run into beats, relationships and a timeline", async () => {
@@ -12,21 +13,21 @@ describe("digest of a scripted cityofkeys run (end to end, offline)", () => {
 		try {
 			// Level 3 of the City of Keys: two partners, DMs and transfers. A02 pays an advance, A01 pays back and
 			// sends its fragment; A02 solves with it and never writes back.
-			const fixture = createFixture({
+			const fixture = createHostFixture({
 				agents: 2,
 				minutes: 3,
 				only: 3,
 				sinks: [new JsonlEventLog(join(directory, "events.jsonl"))],
-				script: (world) => ({
+				script: (host) => ({
 					A01: [
 						say(),
 						act(
-							{ name: "sendDM", args: { target: "A02", message: `My fragment is ${world.inspect.fragmentOf("A01", 3)}. Yours?` } },
+							{ name: "sendDM", args: { target: "A02", message: `My fragment is ${fragmentOf(host, "A01", 3)}. Yours?` } },
 							{ name: "transferPoints", args: { target: "A02", amount: 2 } },
 						),
 						say(),
 					],
-					A02: [act({ name: "transferPoints", args: { target: "A01", amount: 1, memo: "advance" } }), say(), submit(world, "A02", 3)],
+					A02: [act({ name: "transferPoints", args: { target: "A01", amount: 1, memo: "advance" } }), say(), submit(host, "A02", 3)],
 				}),
 			});
 			writeRunMetadata(

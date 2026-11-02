@@ -24,15 +24,14 @@ const Ranking = Type.Object(
 );
 
 /** The same view on the new host: progression's section tells the level, puzzles' solutions the code. */
-export function hostOracle(host: Pick<Host, "facts">): OracleView {
+export function hostOracle(host: Pick<Host, "fact">): OracleView {
 	return {
 		solutionFor(agent) {
-			const facts = host.facts();
-			const section = facts["progression.section"];
+			const section = host.fact("progression.section");
 			if (!Check(Ranking, section)) return undefined;
 			const entry = section.ranking.find((row) => row.agent === agent);
 			if (entry === undefined || entry.finished || entry.waiting !== null) return undefined;
-			const code = solutionsFrom(facts["puzzles.solutions"]).find((row) => row.agent === agent && row.level === entry.level)?.code;
+			const code = solutionsFrom(host.fact("puzzles.solutions")).find((row) => row.agent === agent && row.level === entry.level)?.code;
 			return code === undefined || code === null ? undefined : { level: entry.level, code };
 		},
 	};

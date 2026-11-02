@@ -1,18 +1,18 @@
 /** The run's early ends never cut a tribunal short (SPEC 6.3, 6.4; P18). */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { hostOracle } from "../../apps/cli/src/oracle.ts";
 import { oracleScript } from "@swarmtales/models";
-import { createFixture } from "../helpers/fixture.ts";
+import { createHostFixture } from "../helpers/host-fixture.ts";
 
 describe("early ends and the tribunal", () => {
 	it("does not end on 'every competitor has passed the last level' while the city still pursues its target (v06)", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 6,
 			level: 10,
 			minutes: 60,
 			stopWhenDone: true,
 			stopWhenSeatsDecided: true,
-			script: (world) => oracleScript(world.competitors, () => worldOracle(world), 60),
+			script: (host) => oracleScript(host.residents, () => hostOracle(host), 60),
 		});
 		await fixture.run();
 		// Everyone passes door 10 within minutes; the first passer calls tribunal 1, and the city goes on.

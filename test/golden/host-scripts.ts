@@ -12,8 +12,8 @@ import { Type } from "typebox";
 import { Check } from "typebox/value";
 import type { Host, ResidentId } from "@swarmtales/contracts";
 import { act, say } from "@swarmtales/models";
-import { solutionsFrom } from "@swarmtales/mechanic-puzzles";
 import { hostOracle } from "../../apps/cli/src/oracle.ts";
+import { fragmentOf, submit } from "../helpers/host-inspect.ts";
 import { GOLDEN_DIR } from "../helpers/golden.ts";
 
 /** Steps per resident; far more than a golden run's minutes need (a minute has one pass, one tool turn and one closing answer). */
@@ -30,24 +30,7 @@ function neighbour(host: Host, id: ResidentId, offset = 1): ResidentId {
 	return host.residents[(index + offset) % host.residents.length] ?? id;
 }
 
-/** A resident's own fragment of a dealt fragments level (old `world.inspect.fragmentOf`). */
-export function fragmentOf(host: Host, agent: ResidentId, level: number): string {
-	const fragment = solutionsFrom(host.facts()["puzzles.solutions"]).find((entry) => entry.agent === agent && entry.level === level)?.fragment;
-	if (fragment === undefined || fragment === null) throw new Error(`${agent} has no fragment on level ${String(level)}`);
-	return fragment;
-}
-
-/** A resident's code of a dealt level (old `world.inspect.codeOf`). */
-export function codeOf(host: Host, agent: ResidentId, level: number): string {
-	const code = solutionsFrom(host.facts()["puzzles.solutions"]).find((entry) => entry.agent === agent && entry.level === level)?.code;
-	if (code === undefined || code === null) throw new Error(`${agent} has no code on level ${String(level)}`);
-	return code;
-}
-
-/** One assistant message that submits the resident's own solution for `level`. */
-export function submit(host: Host, agent: ResidentId, level: number): AssistantMessage {
-	return act({ name: "submitSolution", args: { level, code: codeOf(host, agent, level) } });
-}
+export { codeOf, fragmentOf, submit } from "../helpers/host-inspect.ts";
 
 /**
  * City of Keys: each resident opens the doors one by one (the oracle), and on fixed minutes
@@ -92,7 +75,7 @@ const Whisperer = Type.String();
 
 /** Who plays which part, by the order of the seeded cast. */
 export function whispersCast(host: Host): WhispersCast {
-	const whisperer = host.facts()["whispers.whisperer"];
+	const whisperer = host.fact("whispers.whisperer");
 	if (!Check(Whisperer, whisperer)) throw new Error("whispers needs a whisperer");
 	const [sender, victim, favourite] = host.residents.filter((id) => id !== whisperer);
 	if (sender === undefined || victim === undefined || favourite === undefined) throw new Error("whispers needs three more residents");

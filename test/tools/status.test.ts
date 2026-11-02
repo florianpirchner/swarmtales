@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { submit } from "../helpers/host-inspect.ts";
 
 describe("status tools", () => {
 	it("getStatus shows own facts only", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 3,
 			minutes: 1,
 			only: 1,
@@ -20,12 +21,12 @@ describe("status tools", () => {
 	});
 
 	it("getProblem returns reached levels and refuses future ones", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 2,
 			lastLevel: 2,
-			script: (world) => ({
-				A01: [submit(world, "A01", 1), act({ name: "getProblem", args: { level: 1 } }, { name: "getProblem", args: { level: 2 } }, { name: "getProblem", args: { level: 5 } })],
+			script: (host) => ({
+				A01: [submit(host, "A01", 1), act({ name: "getProblem", args: { level: 1 } }, { name: "getProblem", args: { level: 2 } }, { name: "getProblem", args: { level: 5 } })],
 				A02: [act({ name: "getProblem", args: { level: 2 } }), say()],
 			}),
 		});
@@ -38,7 +39,7 @@ describe("status tools", () => {
 	});
 
 	it("listAgents shows every competitor with level", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 1, only: 1, script: () => ({ A01: [act({ name: "listAgents" })], A02: [say()] }) });
+		const fixture = createHostFixture({ agents: 2, minutes: 1, only: 1, script: () => ({ A01: [act({ name: "listAgents" })], A02: [say()] }) });
 		await fixture.run();
 		expect(fixture.toolResults("A01", "listAgents")).toEqual(["A01: level 1 (you)\nA02: level 1"]);
 	});

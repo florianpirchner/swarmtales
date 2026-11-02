@@ -9,24 +9,24 @@
  * Each takes a few seconds, so they run in the normal suite.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { hostOracle } from "../../apps/cli/src/oracle.ts";
 import { exileTarget } from "@swarmtales/engine";
 import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { createFixture } from "../helpers/fixture.ts";
+import { createHostFixture } from "../helpers/host-fixture.ts";
 
 const tribunal = cityOfKeys.tribunal;
 
 describe.each([6, 12, 48])("cityofkeys with %i oracle residents", (agents) => {
 	it("plays Act I, the wall and every tribunal up to the target", async () => {
 		if (tribunal === undefined) throw new Error("cityofkeys has no tribunal");
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents,
 			story: cityOfKeys,
 			names: true,
 			stopWhenDone: true,
 			stopWhenSeatsDecided: true,
-			script: (world) => oracleScript(world.competitors, () => worldOracle(world), 200),
+			script: (host) => oracleScript(host.residents, () => hostOracle(host), 200),
 		});
 		await fixture.run();
 		const [end] = fixture.events("run_end");

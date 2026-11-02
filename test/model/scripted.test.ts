@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
-import { worldOracle } from "../../apps/cli/src/oracle.ts";
-import { createFixture } from "../helpers/fixture.ts";
+import { hostOracle } from "../../apps/cli/src/oracle.ts";
+import { createHostFixture } from "../helpers/host-fixture.ts";
+import { isFinished } from "../helpers/host-inspect.ts";
 
 describe("oracle script (offline runs)", () => {
 	it("lets every competitor submit its own solution and finish the story", async () => {
-		const fixture = createFixture({ minutes: 11, passesPerMinute: 3, script: (world) => oracleScript(world.competitors, () => worldOracle(world), 40) });
+		const fixture = createHostFixture({ minutes: 11, passesPerMinute: 3, script: (host) => oracleScript(host.residents, () => hostOracle(host), 40) });
 		await fixture.run();
-		for (const id of fixture.world.competitors) expect(fixture.world.isFinished(id)).toBe(true);
+		for (const id of fixture.host.residents) expect(isFinished(fixture, id)).toBe(true);
 		expect(fixture.events("turn_error")).toEqual([]);
 	});
 

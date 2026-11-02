@@ -457,6 +457,20 @@ class CoreHost implements Host {
 		return facts;
 	}
 
+	fact(key: string): unknown {
+		const dot = key.indexOf(".");
+		if (dot <= 0) return undefined;
+		const id = key.slice(0, dot);
+		const facts = this.#loaded.instances.get(id)?.facts ?? {};
+		const name = key.slice(dot + 1);
+		if (!Object.hasOwn(facts, name)) return undefined;
+		const fact = facts[name];
+		if (fact === undefined) return undefined;
+		const value = fact.compute();
+		if (!Check(fact.output, value)) throw new Error(`${key}: the fact does not match its schema`);
+		return value;
+	}
+
 	snapshot(): HostSnapshot {
 		this.#usable();
 		if (this.#playing) throw new Error("host: a snapshot is taken between minutes");

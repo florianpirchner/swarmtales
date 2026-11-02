@@ -87,6 +87,8 @@ export interface Host {
 	display(text: string): string;
 	/** Every fact, keyed `<mechanic>.<fact>`. */
 	facts(): Readonly<Record<string, unknown>>;
+	/** One fact, keyed `<mechanic>.<fact>`, computed alone (`undefined` when no mechanic declares it). */
+	fact(key: string): unknown;
 	/** Only between minutes. */
 	snapshot(): HostSnapshot;
 	/** Sinks see every event after the mechanics' listeners, in log order. */
