@@ -327,6 +327,12 @@ describe("decisions as a mechanic declares them", () => {
 		expect(load(stray.with())).toThrow(/stray: commits "pick", which it does not declare as a decision/);
 	});
 
+	it("refuses a story policy for a kind no loaded mechanic declares (F2 m4)", () => {
+		expect(() => createHost({ story: storyOf({ decisions: { "pot.pik": { holders: ["t-1"], window: 0 } } }) })).toThrow(/story: decisions kind "pot.pik", which no loaded mechanic declares/);
+		expect(() => createHost({ story: storyOf({ decisions: { "pat.pick": { window: 1 } } }) })).toThrow(/story: decisions kind "pat.pick", which no loaded mechanic declares/);
+		expect(() => createHost({ story: storyOf({ decisions: { "pot.pick": { holders: ["t-1"], window: 1 } } }) })).not.toThrow();
+	});
+
 	it("ends the run when a mechanic proposes off its own schema", async () => {
 		const host = hostOf({ window: 1, max: 5 });
 		await expect(host.playMinute(proposer({ 0: 7 }))).rejects.toThrow(/pot: the proposal of pot.pick does not match its schema \(\/value must be <= 5\)/);

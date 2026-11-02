@@ -55,6 +55,9 @@ export function checkNames(parts: NameCheckParts): void {
 		const unknown = list.find((name) => !names.has(name));
 		if (unknown !== undefined) throw new Error(`story: ${what} name "${unknown}", which is neither built in nor an overseer of the story`);
 	}
+	const declared = new Set(story.mechanics.flatMap((use) => Object.keys(use.mechanic.decisions).map((kind) => `${use.mechanic.id}.${kind}`)));
+	const stray = Object.keys(story.decisions ?? {}).find((kind) => !declared.has(kind));
+	if (stray !== undefined) throw new Error(`story: decisions kind "${stray}", which no loaded mechanic declares`);
 	const granted = (name: string): readonly string[] => grants[name] ?? [];
 	if (granted("resident").includes(DECISION_TOOL)) throw new Error(`story: ${DECISION_TOOL} is granted to residents, but residents never hold a decision`);
 	for (const [kind, policy] of Object.entries(story.decisions ?? {})) {
