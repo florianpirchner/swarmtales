@@ -126,7 +126,7 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 				whisperer = options.whisperer === undefined || options.control ? null : pick(options.whisperer.agent, residents, (from) => setup.rng("whisperer").pick(from));
 			} else if (whisperer !== null) {
 				if (!residents.includes(whisperer)) throw new Error(`The snapshot's whisperer ${whisperer} is not one of this run's competitors`);
-				if (options.control) throw new Error("The snapshot was played with a whisperer; resume it without control (a control run must start fresh)");
+				if (options.control) throw new Error("The snapshot was played with a whisperer; resume it without --no-whisperer (a control run must start fresh)");
 			}
 			return {
 				...fresh(),
