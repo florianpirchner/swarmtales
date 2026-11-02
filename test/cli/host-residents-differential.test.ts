@@ -9,7 +9,11 @@
 import { describe, expect, it } from "vitest";
 import type { AnyStory } from "@swarmtales/contracts";
 import { ScriptedModelSource } from "@swarmtales/models";
-import { composeRun, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import { competitorIds } from "@swarmtales/kernel";
+import { Type } from "typebox";
+import { composeRun } from "../../apps/cli/src/compose.ts";
+import { effectiveRun, type RunOverrides } from "../../apps/cli/src/run-options.ts";
+import { oldRun } from "../helpers/old-engine-recorder.ts";
 import { hostResidents } from "../../apps/cli/src/host/residents.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
@@ -46,10 +50,35 @@ const CASES: readonly Case[] = [
 
 const noModels = new ScriptedModelSource({});
 
+const OldSide = Type.Object({
+	effective: Type.Unknown(),
+	ids: Type.Array(Type.String()),
+	prompts: Type.Array(Type.Tuple([Type.String(), Type.String()])),
+	profiles: Type.Array(Type.Object({ agent: Type.String(), model: Type.Unknown(), persona: Type.Optional(Type.String()) })),
+	tools: Type.Array(Type.Tuple([Type.String(), Type.Array(Type.String())])),
+});
+
+const overridesOf = (entry: Case): RunOverrides => ({ stopWhenDone: false, stopWhenSeatsDecided: false, ...entry.overrides });
+
+/**
+ * The old composer's residents, as they were recorded once before the engine went (step 18, item 7b;
+ * `test/fixtures/old-engine/`), with the run the new side derives the same way: the old composer's
+ * effective run and competitors are recorded too and must match.
+ */
 function oldSide(entry: Case) {
+	const effective = effectiveRun(entry.story, overridesOf(entry));
+	const ids = competitorIds(effective.agents);
+	const old = oldRun({ story: entry.story, overrides: overridesOf(entry), addenda: entry.addenda ?? null }, OldSide, () => oldSideLive(entry));
+	expect(JSON.parse(JSON.stringify(effective))).toEqual(old.effective);
+	expect([...ids]).toEqual(old.ids);
+	return { ...old, effective, ids };
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+function oldSideLive(entry: Case) {
 	const composed = composeRun({
 		story: entry.story,
-		overrides: { stopWhenDone: false, stopWhenSeatsDecided: false, ...entry.overrides },
+		overrides: overridesOf(entry),
 		models: noModels,
 		gamemakerModels: noModels,
 		sinks: [],

@@ -8,6 +8,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { GoalBook, type CoreMotive, type GoalEvent } from "@swarmtales/engine";
+import { Type, type Static, type TSchema } from "typebox";
+import { OldTrace, RECORDING } from "../../helpers/old-engine-recorder.ts";
 import { legacySink } from "@swarmtales/chronicle";
 import type { GoalsSpec } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
@@ -59,6 +61,8 @@ interface Side {
 	readonly posts: string[];
 	readonly grants: string[];
 }
+
+const SideSchema = Type.Object({ events: Type.Array(Type.String()), notices: Type.Array(Type.String()), posts: Type.Array(Type.String()), grants: Type.Array(Type.String()) });
 
 function bare(line: Readonly<Record<string, unknown>>): string {
 	return JSON.stringify(Object.fromEntries(Object.entries(line).filter(([key]) => key !== "seq" && key !== "minute" && key !== "at")));
@@ -118,68 +122,93 @@ describe("goals: the mechanic equals the old GoalBook", () => {
 	it.each(VARIANTS.flatMap((variant) => [7, 8, 9].map((seed) => ({ name: variant.name, variant, seed }))))("$name, seed $seed: deal, leaders, heirs, exile, resolve", async ({ variant, seed }) => {
 		const exiled = new Set<string>();
 		const points = new Map(IDS.map((id, index): [string, number] => [id, 20 + index * 3]));
-		const old = oldSide(variant, seed, exiled, points);
+		// The old GoalBook's answers, recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+		const trace = new OldTrace();
+		const book = RECORDING ? oldSide(variant, seed, exiled, points) : undefined;
+		const live = (): ReturnType<typeof oldSide> => {
+			if (book === undefined) throw new Error("the old GoalBook runs only while recording");
+			return book;
+		};
+		const oldStep = (label: string, run: (old: ReturnType<typeof oldSide>) => void): void => {
+			trace.step(label, () => {
+				run(live());
+			});
+		};
+		const oldRead = <T extends TSchema>(label: string, schema: T, read: (old: ReturnType<typeof oldSide>) => unknown): Static<T> => trace.read(label, schema, () => read(live()));
+		const oldSideNow = () => oldRead("side", SideSchema, (old) => old.side);
+		const oldGoals = () =>
+			oldRead("goalOf", Type.Array(Type.Unknown()), (old) =>
+				IDS.map((id) => {
+					const held = old.book.goalOf(id);
+					if (held === undefined) return null;
+					const goal = held.goal;
+					return "target" in goal ? { act: held.act, kind: goal.kind, target: goal.target, text: held.text } : { act: held.act, kind: goal.kind, text: held.text };
+				}),
+			);
 		const exiledNew = new Set<string>();
 		const pointsNew = new Map(points);
 		const twin = newSide(variant, seed, exiledNew, pointsNew);
 		const act = SPEC.acts[0] ?? 8;
 		const sync = (): void => {
-			expect(twin.side.events).toEqual(old.side.events);
-			expect(twin.desk.notices.map((notice) => `${notice.to}|${notice.text}`)).toEqual(old.side.notices);
-			expect(twin.desk.posts.map((post) => post.text)).toEqual(old.side.posts);
+			const side = oldSideNow();
+			expect(twin.side.events).toEqual(side.events);
+			expect(twin.desk.notices.map((notice) => `${notice.to}|${notice.text}`)).toEqual(side.notices);
+			expect(twin.desk.posts.map((post) => post.text)).toEqual(side.posts);
 		};
 
 		// An act the story deals no goals in changes nothing.
-		old.book.deal(3, IDS);
+		oldStep("deal 3", (old) => {
+			old.book.deal(3, IDS);
+		});
 		await twin.host.call("script", "startAct", { fromLevel: 3, residents: IDS });
 		sync();
 		expect(twin.side.events).toEqual([]);
 
-		old.book.deal(act, IDS);
+		oldStep(`deal ${String(act)}`, (old) => {
+			old.book.deal(act, IDS);
+		});
 		await twin.host.call("script", "startAct", { fromLevel: act, residents: IDS });
 		sync();
 		expect(twin.side.events.length).toBe(IDS.length);
 		const goalsNow = await goalOfAll(twin.host);
-		expect(goalsNow).toEqual(
-			IDS.map((id) => {
-				const held = old.book.goalOf(id);
-				if (held === undefined) return null;
-				const goal = held.goal;
-				return "target" in goal ? { act: held.act, kind: goal.kind, target: goal.target, text: held.text } : { act: held.act, kind: goal.kind, text: held.text };
-			}),
-		);
+		expect(goalsNow).toEqual(oldGoals());
 
 		// A second deal of the same act changes nothing.
-		old.book.deal(act, IDS);
+		oldStep(`deal ${String(act)}`, (old) => {
+			old.book.deal(act, IDS);
+		});
 		await twin.host.call("script", "startAct", { fromLevel: act, residents: IDS });
 		sync();
 
 		// Leaders (one tribunal twice for A02), an heir, and the exile of A04 (void goal read out once).
-		old.book.noteLeaders(["A01", "A02"]);
-		old.book.noteLeaders(["A02"]);
+		oldStep("leaders A01 A02, A02", (old) => {
+			old.book.noteLeaders(["A01", "A02"]);
+			old.book.noteLeaders(["A02"]);
+		});
 		await twin.host.call("script", "noteLeaders", { leaders: ["A01", "A02"] });
 		await twin.host.call("script", "noteLeaders", { leaders: ["A02"] });
-		old.book.noteHeir("A03");
+		oldStep("heir A03", (old) => {
+			old.book.noteHeir("A03");
+		});
 		await twin.host.call("script", "noteHeir", { heir: "A03" });
-		old.book.noteHeir("A05");
+		oldStep("heir A05", (old) => {
+			old.book.noteHeir("A05");
+		});
 		await twin.host.call("script", "noteHeir", { heir: "A05" });
 		exiled.add("A04");
 		exiledNew.add("A04");
-		old.book.onExiled("A04");
+		oldStep("exiled A04", (old) => {
+			old.book.onExiled("A04");
+		});
 		await twin.host.call("script", "onExiled", { resident: "A04" });
-		old.book.onExiled("A04");
+		oldStep("exiled A04", (old) => {
+			old.book.onExiled("A04");
+		});
 		await twin.host.call("script", "onExiled", { resident: "A04" });
 		sync();
-		const statusOld = IDS.map((id) => old.book.statusOf(id));
-		expect(await goalOfAll(twin.host)).toEqual(
-			IDS.map((id) => {
-				const held = old.book.goalOf(id);
-				if (held === undefined) return null;
-				const goal = held.goal;
-				return "target" in goal ? { act: held.act, kind: goal.kind, target: goal.target, text: held.text } : { act: held.act, kind: goal.kind, text: held.text };
-			}),
-		);
-		expect(statusOld.filter((status) => status !== undefined).length).toBe(IDS.length - 1);
+		const statusOld = oldRead("statusOf", Type.Array(Type.Boolean()), (old) => IDS.map((id) => old.book.statusOf(id) !== undefined));
+		expect(await goalOfAll(twin.host)).toEqual(oldGoals());
+		expect(statusOld.filter((status) => status).length).toBe(IDS.length - 1);
 
 		// More points for some, so `outrank` goes both ways; then the act ends.
 		points.set("A02", 99);
@@ -187,17 +216,22 @@ describe("goals: the mechanic equals the old GoalBook", () => {
 		points.set("A06", 1);
 		pointsNew.set("A06", 1);
 		const before = new Map(pointsNew);
-		old.book.resolve(act);
+		oldStep(`resolve ${String(act)}`, (old) => {
+			old.book.resolve(act);
+		});
 		await twin.host.call("script", "endAct", { fromLevel: act });
 		sync();
 		expect(twin.side.events.length).toBe(IDS.length * 2);
-		const paid = (agent: string): number => old.side.grants.filter((grant) => grant.startsWith(`${agent}|`)).reduce((sum, grant) => sum + Number(grant.split("|")[1]), 0);
+		const grants = oldSideNow().grants;
+		const paid = (agent: string): number => grants.filter((grant) => grant.startsWith(`${agent}|`)).reduce((sum, grant) => sum + Number(grant.split("|")[1]), 0);
 		for (const agent of IDS) expect(pointsNew.get(agent)).toBe((before.get(agent) ?? 0) + paid(agent));
 
 		// A resolved act takes nothing more.
-		old.book.noteHeir("A06");
-		old.book.onExiled("A01");
-		old.book.resolve(act);
+		oldStep("heir A06, exiled A01, resolve again", (old) => {
+			old.book.noteHeir("A06");
+			old.book.onExiled("A01");
+			old.book.resolve(act);
+		});
 		await twin.host.call("script", "noteHeir", { heir: "A06" });
 		await twin.host.call("script", "onExiled", { resident: "A01" });
 		await twin.host.call("script", "endAct", { fromLevel: act });

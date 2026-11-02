@@ -16,6 +16,9 @@ import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import type { AnyStory } from "@swarmtales/contracts";
 import { World, EventBus } from "@swarmtales/engine";
+import { Type } from "typebox";
+import { fingerprintOf } from "../../helpers/old-engine.ts";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
 import { parseSnapshot } from "@swarmtales/chronicle";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { progressionOptions, SEED } from "../progression/harness.ts";
@@ -152,9 +155,15 @@ describe("a reached level that changed its puzzle", () => {
 		const changed: AnyStory = { ...cityOfKeys, levels: cityOfKeys.levels.map((level) => (level.number === 7 ? { ...level, puzzle: level8.puzzle } : level)) };
 		const message = "Level 7 changed its puzzle since the snapshot, and competitors have reached it already";
 
-		const saved = parseSnapshot(legacy());
-		const bus = new EventBus([new MemorySink()], () => 0);
-		expect(() => new World({ story: changed, competitors: ["A01", "A02", "A03", "A04", "A05", "A06"], seed: SEED, minutes: 80, bus, minute: () => 0, restore: saved.world, names: false })).toThrow(message);
+		// The old World's restore of the changed story, recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+		expect(() =>
+			oldRun({ story: changed, snapshot: fingerprintOf(legacy()) }, Type.Null(), () => {
+				const saved = parseSnapshot(legacy());
+				const bus = new EventBus([new MemorySink()], () => 0);
+				new World({ story: changed, competitors: ["A01", "A02", "A03", "A04", "A05", "A06"], seed: SEED, minutes: 80, bus, minute: () => 0, restore: saved.world, names: false });
+				return null;
+			}),
+		).toThrow(message);
 
 		const host = resume(fromLegacy(legacy()), changed);
 		await expect(host.playMinute(() => Promise.resolve())).rejects.toThrow(message);

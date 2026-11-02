@@ -16,6 +16,7 @@ import { idleAgent, playStory } from "@swarmtales/testkit";
 import { level, puzzle, team } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { ids } from "../t1/support.ts";
+import { oldRun } from "../../helpers/old-engine-recorder.ts";
 import { payloadOf } from "../t1/differential.ts";
 import { progressionStandIn } from "../t1/stand-ins.ts";
 
@@ -98,7 +99,19 @@ describe.each(RULES)("the allowance against MarksBook: %s", (_name, rules) => {
 			if (event.type !== "turn_started") continue;
 			turnOrder.set(event.minute, [...(turnOrder.get(event.minute) ?? []), String(payloadOf(event).resident)]);
 		}
-		// The old side: MarksBook with the world's wrappers.
+		// The old side: MarksBook with the world's wrappers, recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
+		const old = oldRun({ rules, plan, turnOrder: [...turnOrder], last }, OldBook, () => playOldBook(rules, plan, turnOrder, last));
+		expect(newReplies).toEqual(old.replies);
+		expect(run.events.filter((event) => event.type === "marks_spent").map((event) => `${String(payloadOf(event).agent)}|${String(payloadOf(event).channel)}|${String(payloadOf(event).remaining)}`)).toEqual(old.events);
+		const saved = run.host.snapshot().mechanics.marks?.data;
+		expect(JSON.parse(JSON.stringify(saved))).toEqual({ allowances: old.allowances });
+	});
+});
+
+const OldBook = Type.Object({ replies: Type.Array(Type.String()), events: Type.Array(Type.String()), allowances: Type.Array(Type.Unknown()) });
+
+/** The live old MarksBook (recording only; deleted with the engine). */
+function playOldBook(rules: MarksRules, plan: readonly Step[], turnOrder: ReadonlyMap<number, readonly string[]>, last: number) {
 		let minute = 0;
 		const book = new MarksBook(rules, LEVELS, () => minute);
 		const levels = new Map<string, number>(ids(3).map((id) => [id, 1]));
@@ -129,12 +142,8 @@ describe.each(RULES)("the allowance against MarksBook: %s", (_name, rules) => {
 		}
 		for (; minute <= last; minute++) reads();
 		minute = last;
-		expect(newReplies).toEqual(oldReplies);
-		expect(run.events.filter((event) => event.type === "marks_spent").map((event) => `${String(payloadOf(event).agent)}|${String(payloadOf(event).channel)}|${String(payloadOf(event).remaining)}`)).toEqual(oldEvents);
-		const saved = run.host.snapshot().mechanics.marks?.data;
-		expect(JSON.parse(JSON.stringify(saved))).toEqual({ allowances: book.snapshot().map((entry) => ({ ...entry })) });
-	});
-});
+		return { replies: oldReplies, events: oldEvents, allowances: book.snapshot().map((entry) => ({ ...entry })) };
+}
 
 describe("the task line against the old #withMarks text", () => {
 	async function lineOf(rules: MarksRules, levelNumber: number): Promise<string | null> {

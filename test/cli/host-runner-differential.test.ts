@@ -13,7 +13,11 @@ import { legacySink, MemorySink } from "@swarmtales/chronicle";
 import type { AnyStory, Host } from "@swarmtales/contracts";
 import { ScriptedModelSource } from "@swarmtales/models";
 import type { LegacyLine } from "@swarmtales/testkit";
-import { composeRun, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import { composeRun } from "../../apps/cli/src/compose.ts";
+import { effectiveRun, type RunOverrides } from "../../apps/cli/src/run-options.ts";
+import { competitorIds } from "@swarmtales/kernel";
+import { Type } from "typebox";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { hostResidents, type HostResidents } from "../../apps/cli/src/host/residents.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
@@ -42,6 +46,11 @@ function script(): Record<string, FauxResponseStep[]> {
 	return Object.fromEntries(IDS.map((id, seat) => [id, Array.from({ length: 80 }, (_, step) => answer(seat, step))]));
 }
 
+/** The script without what the faux helpers draw fresh each time (tool call ids, timestamps): the script's part of a fingerprint. */
+function stableScript(): unknown {
+	return JSON.parse(JSON.stringify(script(), (key, value: unknown) => (key === "id" || key === "timestamp" ? undefined : value)));
+}
+
 interface Case {
 	readonly name: string;
 	readonly story: AnyStory;
@@ -61,7 +70,13 @@ const CASES: readonly Case[] = [
 
 const BASE: RunOverrides = { agents: 6, minutes: 6, seed: 7, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false };
 
+/** The old composer's log, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 async function playOld(entry: Case): Promise<readonly LegacyLine[]> {
+	return oldRunAsync({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, script: stableScript() }, Type.Array(Type.Record(Type.String(), Type.Unknown())), () => playOldLive(entry));
+}
+
+/** The live old composer (recording only; deleted with the engine). */
+async function playOldLive(entry: Case): Promise<readonly LegacyLine[]> {
 	const sink = new MemorySink();
 	const composed = composeRun({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, models: new ScriptedModelSource(script()), sinks: [sink] });
 	await composed.arena.run();
@@ -69,14 +84,14 @@ async function playOld(entry: Case): Promise<readonly LegacyLine[]> {
 }
 
 async function playNew(entry: Case): Promise<readonly LegacyLine[]> {
-	const composed = composeRun({ story: entry.story, overrides: { ...BASE, ...entry.overrides }, models: new ScriptedModelSource({}), sinks: [] });
-	const run = hostRunOf(composed.effective, composed.world.competitors);
+	const effective = effectiveRun(entry.story, { ...BASE, ...entry.overrides });
+	const run = hostRunOf(effective, competitorIds(effective.agents));
 	const ref: { residents?: HostResidents; host?: Host } = {};
 	const lines: LegacyLine[] = [];
 	const host = startedHost(entry.story, run, (resident) => ref.residents?.awaitsAnswer(resident) ?? false, (subscribed) => {
 		subscribed.subscribe(legacySink((event) => lines.push(Object.fromEntries(Object.entries(event)))));
 	});
-	const residents = hostResidents({ story: entry.story, run, host, models: new ScriptedModelSource(script()), personas: composed.effective.personas });
+	const residents = hostResidents({ story: entry.story, run, host, models: new ScriptedModelSource(script()), personas: effective.personas });
 	ref.residents = residents;
 	residents.recordProfiles();
 	await host.run(residents.take);
@@ -85,7 +100,8 @@ async function playNew(entry: Case): Promise<readonly LegacyLine[]> {
 
 describe.each(CASES.map((entry) => [entry.name, entry] as const))("old against new, %s", (_name, entry) => {
 	it("writes the same log, app lines included", async () => {
-		const [old, fresh] = await Promise.all([playOld(entry), playNew(entry)]);
+		const old = await playOld(entry);
+		const fresh = await playNew(entry);
 		expect(old.filter((line) => line.type === "turn_input").length).toBeGreaterThan(20);
 		expect(fresh).toEqual(old);
 	}, 120_000);
