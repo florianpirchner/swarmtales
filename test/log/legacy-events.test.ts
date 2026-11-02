@@ -82,3 +82,38 @@ describe("the legacy event adapter", () => {
 		}).toThrow(/does not match/);
 	});
 });
+
+describe("the legacy adapter's seq references (step 18, C1 request 4)", () => {
+	const at = (seq: number, source: string, type: string, payload: Readonly<Record<string, unknown>>): EventEnvelope => ({ seq, minute: 1, type, source, actor: "host", payload });
+
+	it("points interpretation.ref and fate_shift.evidence at the legacy lines, across dropped core events", () => {
+		const adapter = new LegacyEventAdapter();
+		const written = [
+			at(1, "core", "tool_called", { tool: "postBoard", params: {} }),
+			at(2, "channels", "board_post", { agent: "A01", text: "hello" }),
+			at(3, "core", "tool_called", { tool: "sendDm", params: {} }),
+			at(4, "core", "service_called", { service: "x" }),
+			at(5, "channels", "dm_sent", { from: "A02", to: "A01", text: "hi" }),
+			at(6, "classifier", "interpretation", { ref: 5, agent: "A02", source: "dm", labels: ["threat"], targets: ["A01"], model: "m" }),
+			at(7, "weaver", "fate_shift", { agent: "A01", kind: "soft", text: "t", reason: "r", evidence: [2, 5, 4, 99], triggers: ["accusation"] }),
+		].flatMap((event) => adapter.write(event));
+		expect(written.map((event) => [event.type, event.seq])).toEqual([
+			["board_post", 1],
+			["dm_sent", 2],
+			["interpretation", 3],
+			["fate_shift", 4],
+		]);
+		expect(written[2]).toMatchObject({ ref: 2 });
+		// A dropped envelope points at the last line before it; a seq the adapter never saw is kept.
+		expect(written[3]).toMatchObject({ evidence: [1, 2, 1, 99] });
+		expect(Object.keys(written[2] ?? {})).toEqual(["type", "ref", "agent", "source", "labels", "targets", "model", "seq", "minute"]);
+		expect(adapter.legacySeqOf(5)).toBe(2);
+		expect(adapter.legacySeqOf(42)).toBeUndefined();
+	});
+
+	it("reads interpretation and fate_shift lines back as the overseers' events", () => {
+		const line = { type: "fate_shift", agent: "A01", kind: "soft", text: "t", reason: "r", evidence: [1], triggers: ["accusation"], seq: 2, minute: 1 };
+		expect(envelopeFromLegacy(line).source).toBe("weaver");
+		expect(envelopeFromLegacy({ type: "interpretation_round", round: 1, statements: 0, seq: 1, minute: 0 }).source).toBe("classifier");
+	});
+});

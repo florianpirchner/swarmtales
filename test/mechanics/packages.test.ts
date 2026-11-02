@@ -9,7 +9,7 @@ import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ApiDefinition } from "@swarmtales/contracts";
-import { LEGACY_EVENT_OWNERS, legacyOwner } from "@swarmtales/chronicle";
+import { LEGACY_EVENT_OWNERS, LEGACY_OVERSEERS, legacyOwner } from "@swarmtales/chronicle";
 import { arenaHead } from "@swarmtales/mechanic-arena";
 import { castHead } from "@swarmtales/mechanic-cast";
 import { channelsHead } from "@swarmtales/mechanic-channels";
@@ -73,7 +73,8 @@ describe("the mechanic packages", () => {
 	});
 
 	it("cover every mechanic owner of the old events (the gamemaker's tools go to the mechanics they act on)", () => {
-		const owners = new Set(Object.values(LEGACY_EVENT_OWNERS).filter((owner) => owner !== "app" && owner !== "core"));
+		const overseers: readonly string[] = LEGACY_OVERSEERS;
+		const owners = new Set(Object.values(LEGACY_EVENT_OWNERS).filter((owner) => owner !== "app" && owner !== "core" && !overseers.includes(owner)));
 		expect([...owners].filter((owner) => !HEADS.some((head) => head.id === owner))).toEqual([]);
 	});
 

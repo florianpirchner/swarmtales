@@ -6,7 +6,7 @@
  */
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LEGACY_EVENT_OWNERS, type LegacyOwner } from "@swarmtales/chronicle";
+import { LEGACY_EVENT_OWNERS, LEGACY_OVERSEERS, type LegacyOwner } from "@swarmtales/chronicle";
 import {
 	compareGolden,
 	compareReplies,
@@ -25,7 +25,8 @@ import {
 
 const GOLDEN = join(resolve(import.meta.dirname, "../.."), "test", "golden");
 const NAMES = ["cityofkeys-f4g4", "cityofkeys-f10g10", "whispers-f10-grudge"];
-const MECHANICS: readonly LegacyOwner[] = [...new Set(Object.values(LEGACY_EVENT_OWNERS))].filter((owner) => owner !== "app" && owner !== "core");
+const OVERSEERS: readonly string[] = LEGACY_OVERSEERS;
+const MECHANICS: readonly LegacyOwner[] = [...new Set(Object.values(LEGACY_EVENT_OWNERS))].filter((owner) => owner !== "app" && owner !== "core" && !OVERSEERS.includes(owner));
 
 function withLine(lines: readonly LegacyLine[], index: number, line: LegacyLine): readonly LegacyLine[] {
 	return [...lines.slice(0, index), line, ...lines.slice(index + 1)];

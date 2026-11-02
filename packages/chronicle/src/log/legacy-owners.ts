@@ -6,10 +6,14 @@
  */
 import type { ArenaEventType } from "@swarmtales/engine";
 
-/** The mechanics of the carve plan, plus the app and the core. */
+/** The overseers that write old events under their own source (step 18, C1 request 5); they are not mechanics. */
+export const LEGACY_OVERSEERS = ["classifier", "weaver"] as const;
+
+/** The mechanics of the carve plan, the overseers that write old events, plus the app and the core. */
 export type LegacyOwner =
 	| "app"
 	| "core"
+	| (typeof LEGACY_OVERSEERS)[number]
 	| "arena"
 	| "ledger"
 	| "puzzles"
@@ -57,10 +61,11 @@ export const LEGACY_EVENT_OWNERS: Readonly<Record<ArenaEventType, LegacyOwner>> 
 	gamemaker_call: "app",
 	gamemaker_result: "app",
 	gamemaker_error: "app",
-	interpretation: "app",
-	interpretation_round: "app",
-	interpretation_error: "app",
-	fate_shift: "app",
+	// The classifier and the weaver are overseers (step 18, C1): they write these under their own source.
+	interpretation: "classifier",
+	interpretation_round: "classifier",
+	interpretation_error: "classifier",
+	fate_shift: "weaver",
 	guard_verdict: "core",
 	ledger_entry: "ledger",
 	transfer: "ledger",

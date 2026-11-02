@@ -11,6 +11,10 @@
  * - A shared event the old engine never wrote (`LEGACY_SILENT`: signals between mechanics that
  *   stood for a direct call) is dropped too.
  * - `seq` counts the written events, so it matches the old log where the core wrote extra events.
+ *   Fields that name another event by its seq (`LEGACY_SEQ_FIELDS`: the classifier's
+ *   `interpretation.ref`, the weaver's `fate_shift.evidence`) are translated from the envelope's
+ *   seq to the legacy seq of the line that envelope became (or, for a dropped envelope, the last
+ *   legacy line before it); a seq the adapter has not seen (a resumed run's prefix) is kept.
  *
  * `envelopeFromLegacy` reads an old line back into an envelope (source from the owner table); a
  * round trip through it and the adapter gives the same bytes (test/log/legacy-events.test.ts).
@@ -50,6 +54,16 @@ const GuardVerdict = Compile(
  * test/mechanics/shared-frozen.test.ts keeps the two equal).
  */
 export const LEGACY_SILENT: readonly string[] = ["progression.level_entered", "progression.act_started", "progression.act_ended", "cast.cast_collected"];
+
+/**
+ * Payload fields that hold the seq of another event, keyed `<source>.<type>`: an integer or a list
+ * of integers (step 18, C1 request 4). The models see envelope numbers (the host log is what the
+ * overseers read); the written legacy log points at its own lines.
+ */
+export const LEGACY_SEQ_FIELDS: Readonly<Record<string, readonly string[]>> = {
+	"classifier.interpretation": ["ref"],
+	"weaver.fate_shift": ["evidence"],
+};
 
 function residentOf(actor: Actor): string {
 	return actor.startsWith("resident:") ? actor.slice("resident:".length) : actor;
@@ -101,6 +115,8 @@ export interface LegacyEvent extends LegacyFields {
 
 export class LegacyEventAdapter {
 	readonly #translators: Readonly<Record<string, LegacyTranslator>>;
+	/** Envelope seq to the legacy seq it became (or the last legacy seq before it, when dropped). */
+	readonly #legacySeq = new Map<number, number>();
 	#seq: number;
 
 	constructor(options: LegacyAdapterOptions = {}) {
@@ -113,14 +129,33 @@ export class LegacyEventAdapter {
 		return this.#seq;
 	}
 
+	/** The legacy seq an envelope seq became; `undefined` for a seq this adapter has not seen. */
+	legacySeqOf(seq: number): number | undefined {
+		return this.#legacySeq.get(seq);
+	}
+
 	/** The legacy events one envelope becomes (none for most core events). */
 	write(event: EventEnvelope): readonly LegacyEvent[] {
-		const translator = this.#translators[`${event.source}.${event.type}`];
+		const key = `${event.source}.${event.type}`;
+		const translator = this.#translators[key];
 		const fields = translator === undefined ? (event.source === "core" ? [] : [flatten(event)]) : translator(event);
+		const references = LEGACY_SEQ_FIELDS[key] ?? [];
+		this.#legacySeq.set(event.seq, fields.length === 0 ? this.#seq : this.#seq + 1);
 		return fields.map((entry) => {
 			this.#seq += 1;
-			return { ...entry, seq: this.#seq, minute: event.minute };
+			return { ...this.#translated(entry, references), seq: this.#seq, minute: event.minute };
 		});
+	}
+
+	#translated(entry: LegacyFields, references: readonly string[]): LegacyFields {
+		if (references.length === 0) return entry;
+		const map = (value: unknown): unknown => (typeof value === "number" ? (this.#legacySeq.get(value) ?? value) : value);
+		const out: Record<string, unknown> = { ...entry };
+		for (const field of references) {
+			const value = out[field];
+			if (value !== undefined) out[field] = Array.isArray(value) ? value.map(map) : map(value);
+		}
+		return { ...out, type: entry.type };
 	}
 }
 
