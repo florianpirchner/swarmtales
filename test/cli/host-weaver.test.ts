@@ -114,13 +114,16 @@ async function playNew(extra: { readonly cut?: boolean; readonly resume?: Resume
 	return { events: log.events, prompts, ...(taken === undefined ? {} : { snapshot: taken }) };
 }
 
-/** Usage lines with the prompt size instead of its cache split; the classifier's and weaver's token counts left out (their prompts carry host seqs, S18-3). */
-function comparable(events: readonly RecordedEvent[]): readonly unknown[] {
+/**
+ * Usage lines with the prompt size instead of its cache split; the classifier's and weaver's token counts left out (their prompts carry host seqs, S18-3).
+ * `recording` marks a comparison with the old engine's recording, which also leaves out the gamemaker's prompt size.
+ */
+function comparable(events: readonly RecordedEvent[], recording: boolean): readonly unknown[] {
 	return events.map((event) => {
 		if (event.type !== "usage") return event;
 		if (event.agent === CLASSIFIER_ID || event.agent === WEAVER_ID) return { ...event, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-		// The gamemaker's system prompt and report say "core motive" since the rename (step 18), after the recording: its prompt size is not compared (the goldens pin it).
-		if (event.agent === GAMEMAKER_ID) return { ...event, input: 0, cacheRead: 0, cacheWrite: 0 };
+		// The gamemaker's system prompt and report say "core motive" since the rename (step 18), after the recording: against the recording its prompt size is not compared (the goldens pin it); new against new it is (F3).
+		if (recording && event.agent === GAMEMAKER_ID) return { ...event, input: 0, cacheRead: 0, cacheWrite: 0 };
 		return { ...event, input: event.input + event.cacheRead, cacheRead: 0, cacheWrite: 0 };
 	});
 }
@@ -131,7 +134,7 @@ describe("the weaver on the host", () => {
 		const fresh = await playNew();
 		// The gamemaker reads a fate shift's evidence from the host log, so its "(after #n)" is a host number (S18-3); only that number differs.
 		const unnumbered = (events: readonly RecordedEvent[]): readonly unknown[] =>
-			comparable(events).map((event) => {
+			comparable(events, true).map((event) => {
 				const input: unknown = typeof event === "object" && event !== null ? Reflect.get(event, "input") : undefined;
 				return typeof input === "string" && typeof event === "object" ? { ...event, input: input.replace(/\(after #\d+\)/g, "(after #n)") } : event;
 			});
@@ -156,7 +159,7 @@ describe("the weaver on the host", () => {
 		const boundary = Number(resumed.events[cut]?.seq);
 		const moved = (seq: number, by: number): number => (seq >= boundary + by ? seq - by : seq);
 		const shift = (events: readonly RecordedEvent[], by: number): readonly unknown[] =>
-			comparable(events).map((event) => {
+			comparable(events, false).map((event) => {
 				if (typeof event !== "object" || event === null) return event;
 				const ref: unknown = Reflect.get(event, "ref");
 				const evidence: unknown = Reflect.get(event, "evidence");

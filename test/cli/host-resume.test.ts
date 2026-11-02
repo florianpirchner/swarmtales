@@ -119,6 +119,8 @@ function classifierScript(): readonly FauxResponseStep[] {
 interface Played<S> {
 	readonly events: readonly RecordedEvent[];
 	readonly snapshot?: S;
+	/** The gamemaker's system prompt (new runs only). */
+	readonly gamemakerPrompt?: string;
 }
 
 const BASE: RunOverrides = { minutes: MINUTES, gamemaker: true, classifier: true };
@@ -161,20 +163,21 @@ async function playNew(extra: { readonly snapshotAfter?: number; readonly stop?:
 		...(resume === undefined ? {} : { resume: { point: resume, name: "snapshot-L7.json" } }),
 	});
 	await run.run();
-	return { events: log.events, ...(taken === undefined ? {} : { snapshot: taken }) };
+	return { events: log.events, ...(taken === undefined ? {} : { snapshot: taken }), ...(run.gamemakerPrompt === undefined ? {} : { gamemakerPrompt: run.gamemakerPrompt }) };
 }
 
 /**
  * Events as compared across runs and processes: with the prompt size instead of its split into
  * input and cache tokens, since the scripted provider's prompt cache starts cold in a new run.
+ * `recording` marks a comparison with the old engine's recording, which leaves out the token counts whose bytes changed after it.
  */
-function comparable(events: readonly RecordedEvent[]): readonly unknown[] {
+function comparable(events: readonly RecordedEvent[], recording: boolean): readonly unknown[] {
 	return events.map((event) => {
 		if (event.type !== "usage") return event;
 		// The classifier reads the host log's numbers (S18-3), so its prompt and answer differ from the old in digits: its token counts are not compared.
-		if (event.agent === CLASSIFIER_ID) return { ...event, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
-		// The gamemaker's system prompt and report say "core motive" since the rename (step 18), after the recording: its prompt size is not compared (the goldens pin it).
-		if (event.agent === GAMEMAKER_ID) return { ...event, input: 0, cacheRead: 0, cacheWrite: 0 };
+		if (recording && event.agent === CLASSIFIER_ID) return { ...event, input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+		// The gamemaker's system prompt and report say "core motive" since the rename (step 18), after the recording: against the recording its prompt size is not compared (the goldens pin it); new against new it is (F3).
+		if (recording && event.agent === GAMEMAKER_ID) return { ...event, input: 0, cacheRead: 0, cacheWrite: 0 };
 		return { ...event, input: event.input + event.cacheRead, cacheRead: 0, cacheWrite: 0 };
 	});
 }
@@ -187,7 +190,7 @@ describe("run snapshots on the host", () => {
 		expect(fresh.events.filter((event) => event.type === "interpretation").length).toBeGreaterThan(0);
 		expect(fresh.events.filter((event) => event.type === "gamemaker_note").length).toBeGreaterThan(0);
 		expect(fresh.snapshot?.round).toBe(old.snapshot?.round);
-		expect(comparable(fresh.events)).toEqual(comparable(old.events));
+		expect(comparable(fresh.events, true)).toEqual(comparable(old.events, true));
 	}, 120_000);
 
 	it("resumes its own snapshot so that the run continues exactly like the uninterrupted one", async () => {
@@ -198,6 +201,9 @@ describe("run snapshots on the host", () => {
 		expect(first.events.at(-1)).toMatchObject({ type: "run_end", reason: "snapshot after level 7 written to memory; stopped there" });
 		expect(snapshot.competitors.every((entry) => entry.messages.length > 0)).toBe(true);
 		const resumed = await playNew({ resume: snapshot });
+		// The resumed gamemaker builds its system prompt from the probe's facts: the same prompt as the uninterrupted run's (F3).
+		expect(whole.gamemakerPrompt).toContain("Labels:");
+		expect(resumed.gamemakerPrompt).toBe(whole.gamemakerPrompt);
 		const cut = first.events.length - 1;
 		// The prefix is the first run's up to its end line, then `run_resumed` and the profiles at the snapshot's minute.
 		expect(resumed.events.slice(0, cut)).toEqual(first.events.slice(0, cut));
@@ -208,7 +214,7 @@ describe("run snapshots on the host", () => {
 		const boundary = Number(resumed.events[cut]?.seq);
 		const moved = (seq: number, by: number): number => (seq >= boundary + by ? seq - by : seq);
 		const shift = (events: readonly RecordedEvent[], by: number): readonly unknown[] =>
-			comparable(events).map((event) => {
+			comparable(events, false).map((event) => {
 				if (typeof event !== "object" || event === null) return event;
 				const ref: unknown = Reflect.get(event, "ref");
 				return { ...event, seq: Number(Reflect.get(event, "seq")) - by, ...(typeof ref === "number" ? { ref: moved(ref, by) } : {}) };
@@ -225,7 +231,10 @@ describe("run snapshots on the host", () => {
 		const old = await playOld({ resume: snapshot });
 		const fresh = await playNew({ resume: parseResumePoint(JSON.parse(JSON.stringify(snapshot))) });
 		expect(fresh.events.length).toBeGreaterThan(snapshot.events.length + 200);
-		expect(comparable(fresh.events)).toEqual(comparable(old.events));
+		// Against the recording the gamemaker's prompt size is not compared, so the resumed prompt is checked against a run that was not cut (F3).
+		const whole = await playNew({ snapshotAfter: 7 });
+		expect(fresh.gamemakerPrompt).toBe(whole.gamemakerPrompt);
+		expect(comparable(fresh.events, true)).toEqual(comparable(old.events, true));
 	}, 120_000);
 
 	it("plays the same run twice for the same seed", async () => {
