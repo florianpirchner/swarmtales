@@ -17,6 +17,7 @@
     "validate": "tsx --conditions=development apps/cli/src/validate.ts",
     "check:packages": "tsx scripts/check-packages.ts",
     "knip": "knip",
+    "knip:production": "tsx scripts/check-production-exports.ts",
     "build": "pnpm -r build",
     "smoke": "node scripts/smoke-built-cli.mjs",
     "mutants": "tsx --conditions=development scripts/mutants.ts",
@@ -30,7 +31,7 @@
     "lab": "tsx --conditions=development lab/lab.ts",
     "lab:orders": "tsx --conditions=development lab/orders.ts",
     "lab:judge": "tsx --conditions=development lab/judge.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm check:packages && pnpm knip && pnpm test && pnpm validate && pnpm build && pnpm smoke"
+    "check": "pnpm typecheck && pnpm lint && pnpm check:packages && pnpm knip && pnpm knip:production && pnpm test && pnpm validate && pnpm build && pnpm smoke"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "1.4.0",
