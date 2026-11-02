@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The goals mechanic: secret goals per resident.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

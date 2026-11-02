@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The swt command line: play stories, report on runs, build digests and novels",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"bin": {
 		"swarmtales": "./dist/swt.js",
 		"swt": "./dist/swt.js"

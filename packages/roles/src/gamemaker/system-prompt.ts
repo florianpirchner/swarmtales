@@ -35,7 +35,7 @@ export interface GamemakerPromptInput {
 	readonly characters?: boolean;
 	/** Whether the city auctions a black seal (v09). */
 	readonly seal?: boolean;
-	/** How strongly the director steers (`--gm-direction`, packages/engine/src/direction.ts); 4 when omitted. */
+	/** How strongly the director steers (`--gm-direction`); 4 when omitted. */
 	readonly direction?: DirectionLevel;
 	/** The city's holdout tribunal (Whispers v3), which the gamemaker calls and announces. */
 	readonly holdout?: HoldoutSpec;
@@ -75,7 +75,7 @@ interface RoleText {
 	readonly write: string;
 }
 
-/** The director at gm direction 10: an author who orders scenes (packages/engine/src/direction.ts). */
+/** The director at gm direction 10: an author who orders scenes. */
 function authorText(survivors: number, agents: number): RoleText {
 	return {
 		job: render("gamemaker/roles/author-job", { survivors, agents }),

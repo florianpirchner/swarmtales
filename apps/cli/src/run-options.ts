@@ -36,7 +36,7 @@ export interface RunOverrides {
 	readonly coreMotives?: boolean;
 	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
 	readonly cast?: readonly string[];
-	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, packages/engine/src/direction.ts). */
+	/** How strongly a figure's prompt steers it, 0-10 (`--figure-direction`, apps/cli/src/host/direction.ts). */
 	readonly figureDirection?: number;
 	/** How strongly the gamemaker steers, 0-10 (`--gm-direction`). */
 	readonly gmDirection?: number;

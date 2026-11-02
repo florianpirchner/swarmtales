@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The host (mechanics, overseers, decisions, the human hand) with ids, seeded randomness, counts, result helpers and text templates",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

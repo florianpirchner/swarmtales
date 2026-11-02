@@ -87,7 +87,7 @@ export interface Host {
 	toolSpecs(role: GrantRole): readonly ToolSpec[];
 	/**
 	 * The resident tools open to `resident` now (granted, not locked, no `lock` handler refuses
-	 * them), in grant order: what the old `World.enabledTools` listed, read by the agent runner for
+	 * them), in grant order: what the old engine's `enabledTools` listed, read by the agent runner for
 	 * its `request` line and its tools notice. Asks the lock handlers without a call; writes nothing.
 	 */
 	openTools(resident: ResidentId): readonly string[];

@@ -1,6 +1,11 @@
 # The overseer API, the decision gate and the human hand
 
-Status: design for step 18 (2026-10-31). Nothing here is built. It turns the idea paper
+Status: design for step 18 (2026-10-31), **built at step 18** (packages/kernel/src/host/: `overseers.ts`,
+`decisions.ts`, `human.ts`, `orders.ts`, `define-overseer.ts`, `auto-grants.ts`). Where the build differs from the
+text below, `step18-decisions.md` (O1, O2, G1, F2) records it; the main deviations: the story's `maxInterventions`
+counts under the key `overseer:<name>/story`; a decision still open at the run's end settles with its original
+proposal (§3.2 rule 5); `HostOptions.human` is `boolean | HumanChannel`; `HostOptions.between` and `roles` stay
+(F2 m2; §6 row 9 is not done); a cost-capped overseer's calls run one after the other (§1.3). It turns the idea paper
 [`../ideas/overseers-and-plugins.md`](../ideas/overseers-and-plugins.md) (names decided by Flo: Mechanic,
 Overseer, Plugin) into signatures that builder teams can implement. It extends the core described in
 [`mechanic-api.md`](mechanic-api.md) and follows [`../ideas/monorepo.md`](../ideas/monorepo.md) §2a (slim core),

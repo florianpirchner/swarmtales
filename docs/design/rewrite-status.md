@@ -352,3 +352,6 @@ When this branch is merged into `main`: set `"license": "SEE LICENSE IN LICENSE"
 `packages/contracts` and `packages/sdk`, which get `"Apache-2.0"` and their own copy of the Apache text as `LICENSE`.
 Resolve conflicts in `LICENSE`, the README licence section and `package.json` in favour of `main`. Then look for docs that
 still say Apache (`docs/ideas/monorepo.md` is already adapted). New packages (overseers, plugins, mechanics) follow the same rule.
+
+**Done (step 18, team F2 m8, 2026-11-02):** 29 workspace packages say `"SEE LICENSE IN LICENSE"`; `contracts` and `sdk` keep
+`"Apache-2.0"` and carry the Apache 2.0 text as `LICENSE`. No other doc still says Apache for the rest.

@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The frozen APIs, events, schemas and turn input order more than one mechanic shares",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

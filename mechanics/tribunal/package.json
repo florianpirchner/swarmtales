@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The tribunal mechanic: tribunal sessions, votes and faction drafts.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

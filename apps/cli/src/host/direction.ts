@@ -1,7 +1,7 @@
 /**
  * The direction dial's resident side on the new host (step 18, team R1): moved here from
- * packages/engine/src/direction.ts (the old file stays until the integrator deletes the engine's
- * game code; test/cli/host-direction.test.ts proves both give the same texts). The figure cues are
+ * packages/engine/src/direction.ts, which went with the engine (step 18, item 8;
+ * test/cli/host-direction.test.ts pins the texts). The figure cues are
  * the app's (S1-8): the runner puts them before the mechanics' turn inputs, as the old arena did.
  *
  * | Level | Figure prompt |

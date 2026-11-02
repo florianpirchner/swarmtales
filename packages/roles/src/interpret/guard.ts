@@ -2,7 +2,7 @@
  * The tool guard's judge (SPEC 20, docs/ideas/monorepo.md §3d): one question
  * per guarded call, asked of a small chat model (Haiku by default). Does this
  * text keep the city's rule? The city's own checks run first
- * (packages/engine/src/tools/guard.ts); the judge reads the rule, the text and, where the
+ * (the mechanics' guards, e.g. mechanics/puzzles/src/guard.ts); the judge reads the rule, the text and, where the
  * rule names them, the secrets the author holds, and answers with one
  * `verdict` call.
  *

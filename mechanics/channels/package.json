@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The channels mechanic: the board, direct messages, notices and groups.",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

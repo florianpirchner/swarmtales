@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The model-backed roles: competitor runner, gamemaker, judge, guard, classifier, souffleur and weaver",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {

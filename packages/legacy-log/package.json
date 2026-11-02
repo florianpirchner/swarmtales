@@ -4,7 +4,7 @@
 	"private": true,
 	"description": "The old run log's event types (RecordedEvent, ArenaEvent, EventSink) and statement labels, shared by the engine, roles, chronicle and the CLI until the run log moves to the host's own lines",
 	"type": "module",
-	"license": "Apache-2.0",
+	"license": "SEE LICENSE IN LICENSE",
 	"sideEffects": false,
 	"exports": {
 		".": {
