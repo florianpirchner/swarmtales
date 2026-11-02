@@ -9,11 +9,9 @@ import { readFileSync } from "node:fs";
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { resolve } from "node:path";
-import { convertLegacySnapshot, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, parseSnapshot } from "@swarmtales/chronicle";
 import type { AnyStory, MechanicUse } from "@swarmtales/contracts";
-import type { World } from "@swarmtales/engine";
 import { createHost, defineCoreStory, defineMechanic } from "@swarmtales/kernel";
-import { ScriptedModelSource, type Script } from "@swarmtales/models";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";
 import { channels } from "@swarmtales/mechanic-channels";
 import { ledger } from "@swarmtales/mechanic-ledger";
@@ -23,11 +21,9 @@ import { petitions } from "@swarmtales/mechanic-petitions";
 import { receipts } from "@swarmtales/mechanic-receipts";
 import { ChannelsApi, HOOK_ORDER, legacyTurns, ProgressionApi, ProgressionEvents } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { standInsFor, type PlannedCall } from "@swarmtales/testkit";
-import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
-import { act, say } from "../../helpers/fixture.ts";
+import { standInsFor } from "@swarmtales/testkit";
+import { resolveBlockSize } from "../../../apps/cli/src/run-options.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
 import { namesStandIn } from "./stand-ins.ts";
@@ -70,58 +66,12 @@ function fingerprint(raw: unknown, story: AnyStory, minutes: number, plan: Plan)
  * Continues the old run for `minutes` more minutes, as it was recorded once before the engine went
  * (step 18, item 7b; `test/fixtures/old-engine/`).
  */
-export async function resumeOld(raw: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<ResumedOld> {
+export function resumeOld(raw: unknown, story: AnyStory, minutes: number, plan: Plan): Promise<ResumedOld> {
 	const { name, scenario } = currentScenario();
 	const now = fingerprint(raw, story, minutes, plan);
-	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await resumeOldLive(raw, story, minutes, plan)) });
 	const recorded = recordedOld(name, scenario, OldRecord);
 	expectFingerprint(name, scenario, recorded.fingerprint, now);
-	return { replies: new Map(recorded.replies), lines: recorded.lines, world: new RecordedWorld(recorded.world) };
-}
-
-/** The live old continuation (recording only; deleted with the engine). */
-async function resumeOldLive(raw: unknown, story: AnyStory, minutes: number, plan: Plan) {
-	const snapshot: RunSnapshot = parseSnapshot(JSON.parse(JSON.stringify(raw)));
-	const start = snapshot.minute + 1;
-	const log = new MemorySink();
-	const run = composeRun({
-		story,
-		overrides: { minutes: start + minutes, gamemaker: false, classifier: false, activation: "always", passesPerMinute: 1, ...resumeOverrides(snapshot) },
-		models: (world) => new ScriptedModelSource(scriptOf(world, start, minutes, plan)),
-		sinks: [log],
-		meta: { run: "resumed" },
-		resume: { snapshot, name: "snapshot-L7.json" },
-	});
-	await run.arena.run();
-	const replies = new Map<string, string[]>();
-	for (const event of log.events) {
-		if (event.type !== "tool_result" || event.minute < start) continue;
-		const key = `${String(event.minute)}:${event.agent}`;
-		replies.set(key, [...(replies.get(key) ?? []), `${String(event.isError)}|${event.text}`]);
-	}
-	return { replies: [...replies], lines: log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event })), world: recordWorld(run.world) };
-}
-
-function scriptOf(world: World, start: number, minutes: number, plan: Plan): Script {
-	return Object.fromEntries(
-		world.competitors.map((agent) => [
-			agent,
-			Array.from({ length: minutes }, (_unused, index) => {
-				const calls = plan(agent, start + index);
-				return calls.length === 0 ? say() : act(...calls.map((call: PlannedCall) => ({ name: call.tool, args: argsOf(call.params) })));
-			}),
-		]),
-	);
-}
-
-function argsOf(params: unknown): Record<string, string | number | boolean> {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([key, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${key}`);
-			return [key, value];
-		}),
-	);
+	return Promise.resolve({ replies: new Map(recorded.replies), lines: recorded.lines, world: new RecordedWorld(recorded.world) });
 }
 
 const WorldFields = Type.Object({

@@ -1,6 +1,6 @@
 /** Validation of additive levels and the feast primitives (SPEC 10, 12.3). */
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "@swarmtales/engine";
+import { DIRECTOR_SUPPORT } from "@swarmtales/contracts";
 import { act, at, level, onCollect, onFirstEnter, puzzle, team, validateStory } from "@swarmtales/sdk";
 import type { AnyStory, TeamLayout } from "@swarmtales/contracts";
 import { additiveStory, castStory, soloLevels } from "../helpers/stories.ts";

@@ -17,6 +17,8 @@ import { goalsWorkHead } from "./head.ts";
 import { GoalsSlice, GoalsSliceV0, loadGoals, saveGoals } from "./model.ts";
 
 export { goalsHead } from "./head.ts";
+export { dealGoals } from "./deal.ts";
+export { GoalSchema } from "./model.ts";
 
 export const goals = defineMechanic(goalsWorkHead, (kit) => ({
 	services: [

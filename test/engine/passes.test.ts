@@ -6,8 +6,14 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { parseEventLog, parseFullEventLog } from "@swarmtales/chronicle";
-import { activationOrder } from "@swarmtales/engine";
+import { rngFor } from "@swarmtales/kernel";
+import { legacyTurnOrder } from "@swarmtales/mechanic-shared";
 import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
+
+/** The old `activationOrder`: the host's `legacyTurnOrder` with the run seed's streams (round = minute + 1). */
+function activationOrder(seed: number, round: number, pass: number, ids: readonly string[]): readonly string[] {
+	return legacyTurnOrder({ seed, minute: round - 1, pass, residents: ids, roster: ids, rng: (...labels) => rngFor(seed, ...labels) });
+}
 
 /** The passes in which `agent` stepped during `minute`. */
 function passesOf(fixture: HostFixture, agent: string, minute = 0): readonly (number | undefined)[] {

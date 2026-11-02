@@ -6,17 +6,15 @@
  * and within one (a door level). The task line is compared with the old `#withMarks` text.
  */
 import { describe, expect, it } from "vitest";
-import { MarksBook } from "@swarmtales/engine";
 import type { MarksChannel, MarksRules } from "@swarmtales/contracts";
 import { defineCoreStory, defineMechanic } from "@swarmtales/kernel";
 import { marks } from "@swarmtales/mechanic-marks";
 import { legacyTurns, MarksApi } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { idleAgent, playStory } from "@swarmtales/testkit";
-import { level, puzzle, team } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { ids } from "../t1/support.ts";
-import { oldRun } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { payloadOf } from "../t1/differential.ts";
 import { progressionStandIn } from "../t1/stand-ins.ts";
 
@@ -30,7 +28,6 @@ function lcg(seed: number): () => number {
 	};
 }
 
-const LEVELS = [1, 2, 3, 4, 5, 6].map((number) => level(number, { title: `Door ${String(number)}`, puzzle: puzzle.fragments([6, 8]), team: team.solo(), reward: 2, tools: ["getStatus"], task: "x", ...(number === 4 ? { marks: { perLevel: 3 } } : {}) }));
 const OVERRIDES = [{ level: 4, perLevel: 3 }];
 
 const RULES: readonly (readonly [string, MarksRules])[] = [
@@ -100,7 +97,7 @@ describe.each(RULES)("the allowance against MarksBook: %s", (_name, rules) => {
 			turnOrder.set(event.minute, [...(turnOrder.get(event.minute) ?? []), String(payloadOf(event).resident)]);
 		}
 		// The old side: MarksBook with the world's wrappers, recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
-		const old = oldRun({ rules, plan, turnOrder: [...turnOrder], last }, OldBook, () => playOldBook(rules, plan, turnOrder, last));
+		const old = replayOld({ rules, plan, turnOrder: [...turnOrder], last }, OldBook);
 		expect(newReplies).toEqual(old.replies);
 		expect(run.events.filter((event) => event.type === "marks_spent").map((event) => `${String(payloadOf(event).agent)}|${String(payloadOf(event).channel)}|${String(payloadOf(event).remaining)}`)).toEqual(old.events);
 		const saved = run.host.snapshot().mechanics.marks?.data;
@@ -109,41 +106,6 @@ describe.each(RULES)("the allowance against MarksBook: %s", (_name, rules) => {
 });
 
 const OldBook = Type.Object({ replies: Type.Array(Type.String()), events: Type.Array(Type.String()), allowances: Type.Array(Type.Unknown()) });
-
-/** The live old MarksBook (recording only; deleted with the engine). */
-function playOldBook(rules: MarksRules, plan: readonly Step[], turnOrder: ReadonlyMap<number, readonly string[]>, last: number) {
-		let minute = 0;
-		const book = new MarksBook(rules, LEVELS, () => minute);
-		const levels = new Map<string, number>(ids(3).map((id) => [id, 1]));
-		const oldReplies: string[] = [];
-		const oldEvents: string[] = [];
-				const reads = (): void => {
-			// Each resident's turn reads its status line (the host's turn inputs) after the minute's start.
-			for (const id of turnOrder.get(minute) ?? []) book.status(id, levels.get(id) ?? 1);
-		};
-		for (const step of plan) {
-			while (minute < step.minute) {
-				reads();
-				minute += 1;
-			}
-			minute = step.minute;
-			const at = levels.get(step.agent) ?? 1;
-			if (step.op === "up") {
-				levels.set(step.agent, step.to);
-				oldReplies.push("up");
-			} else if (step.op === "left") oldReplies.push(show(book.status(step.agent, at)));
-			else if (step.op === "afford") oldReplies.push(String(book.canAfford(step.agent, at, step.channel)));
-			else if (step.op === "price") oldReplies.push(book.activeOn(at) ? String(book.priceOf(at, step.channel)) : "none");
-			else {
-				const status = book.priceOf(at, step.channel) === 0 ? book.status(step.agent, at) : book.spend(step.agent, at, step.channel);
-				if (status !== undefined && book.priceOf(at, step.channel) !== 0) oldEvents.push(`${step.agent}|${step.channel}|${String(status.remaining)}`);
-				oldReplies.push(show(status));
-			}
-		}
-		for (; minute <= last; minute++) reads();
-		minute = last;
-		return { replies: oldReplies, events: oldEvents, allowances: book.snapshot().map((entry) => ({ ...entry })) };
-}
 
 describe("the task line against the old #withMarks text", () => {
 	async function lineOf(rules: MarksRules, levelNumber: number): Promise<string | null> {

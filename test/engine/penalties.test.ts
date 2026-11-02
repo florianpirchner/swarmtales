@@ -4,7 +4,7 @@
  * survive a snapshot, and every text naming a penalty names the next price.
  */
 import { describe, expect, it } from "vitest";
-import { ladderText, penaltyAt } from "@swarmtales/engine";
+import { ladderText, penaltyAt } from "@swarmtales/sdk";
 import { defineStory, validateStory } from "@swarmtales/sdk";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 import { codeOf, submit, wrongCodeOf, nextPenaltyOf, offencesOf } from "../helpers/host-inspect.ts";

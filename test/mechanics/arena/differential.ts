@@ -9,10 +9,9 @@
  * new side, `budget.spentUsd` on the old), and the snapshot the arena says is due
  * (`arena.snapshot`), with `host.stop` when it ends the run.
  */
-import type { AssistantMessage, FauxResponseStep, JsonObject } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import { legacySink, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { legacySink, parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
 import type { AnyStory, Host, HostSnapshot, MechanicUse, TurnTaker } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { arena, arenaFromStory, type ArenaRun } from "@swarmtales/mechanic-arena";
@@ -21,13 +20,9 @@ import { petitions } from "@swarmtales/mechanic-petitions";
 import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { script, scriptOptionsFromStory } from "@swarmtales/mechanic-script";
-import { ScriptedModelSource } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { ownedBy, type GoldenLine, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
-import { composeRun } from "../../../apps/cli/src/compose.ts";
-import { act, say } from "../../helpers/fixture.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { progressionOptions } from "../progression/harness.ts";
 import { puzzleOptions } from "../puzzles/harness.ts";
@@ -86,16 +81,6 @@ export interface NewPlayed extends Played {
 
 const key = (minute: number, agent: string): string => `${String(minute)}:${agent}`;
 
-function argsOf(params: unknown): JsonObject {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([name, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${name}`);
-			return [name, value];
-		}),
-	);
-}
-
 function idsOf(agents: number): readonly string[] {
 	return Array.from({ length: agents }, (_unused, index) => `A${String(index + 1).padStart(2, "0")}`);
 }
@@ -142,73 +127,13 @@ function fingerprint(spec: Spec, codeOf: CodeOf): string {
  * The plan played through the old engine, as it was recorded once before the engine went (step 18,
  * item 7b; `test/fixtures/old-engine/`).
  */
-export async function playOld(spec: Spec): Promise<OldPlayed> {
+export function playOld(spec: Spec): Promise<OldPlayed> {
 	const { name, scenario } = currentScenario();
-	if (RECORDING) {
-		const live = await playOldLive(spec);
-		const world = recordWorld(live.world);
-		const codes = new RecordedWorld(world);
-		recordOld(name, scenario, { fingerprint: fingerprint(spec, (agent, level) => codes.knownCode(agent, level)), lines: live.lines, world, arena: live.arena, ...(live.taken === undefined ? {} : { taken: live.taken }) });
-	}
 	const recorded = recordedOld(name, scenario, OldRecord);
 	const world = new RecordedWorld(recorded.world);
 	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(spec, (agent, level) => world.knownCode(agent, level)));
 	const lines = recorded.lines;
-	return { replies: repliesOf(lines), lines, world, arena: recorded.arena, ...(recorded.taken === undefined ? {} : { taken: parseSnapshot(recorded.taken) }) };
-}
-
-/** The live old side (recording only; deleted with the engine). */
-async function playOldLive(spec: Spec) {
-	const settings = settingsOf(spec);
-	const log = new MemorySink();
-	let taken: RunSnapshot | undefined;
-	const snapshot = settings.snapshot;
-	const run = composeRun({
-		story: spec.story,
-		overrides: {
-			agents: spec.agents,
-			minutes: spec.minutes,
-			names: false,
-			gamemaker: false,
-			classifier: false,
-			activation: settings.activation,
-			passesPerMinute: settings.passesPerMinute,
-			blockSize: settings.blockSize,
-			stopWhenDone: settings.stopWhenDone,
-			stopWhenSeatsDecided: settings.stopWhenSeatsDecided,
-			...(settings.budgetUsd === undefined ? {} : { budgetUsd: settings.budgetUsd }),
-		},
-		models: (world) => {
-			const codeOf: CodeOf = (agent, level) => world.inspect.codeOf(agent, level);
-			// One step per turn: the old runner ends a turn after its tool results, so the turn after a turn with calls answers them.
-			const awaiting = new Set<string>();
-			const step =
-				(agent: string): FauxResponseStep =>
-				(): AssistantMessage => {
-					if (awaiting.delete(agent)) return say("Answered.");
-					const calls = spec.plan(agent, world.minute, codeOf);
-					if (calls.length > 0) awaiting.add(agent);
-					return calls.length === 0 ? say() : act(...calls.map((call) => ({ name: call.tool, args: argsOf(call.params) })));
-				};
-			return new ScriptedModelSource(Object.fromEntries(world.competitors.map((agent) => [agent, Array.from({ length: spec.minutes * settings.passesPerMinute + 2 }, () => step(agent))])));
-		},
-		sinks: [log],
-		budget: { spentUsd: () => settings.costPerRequest * log.events.filter((event) => event.type === "request").length },
-		...(snapshot === undefined
-			? {}
-			: {
-					snapshot: {
-						...snapshot,
-						write: (file: RunSnapshot) => {
-							taken = parseSnapshot(JSON.parse(JSON.stringify(file)));
-							return FILE;
-						},
-					},
-				}),
-	});
-	await run.arena.run();
-	const lines = log.events.map((event) => ({ ...event }));
-	return { replies: repliesOf(lines), lines, world: run.world, arena: run.arena.snapshot(), ...(taken === undefined ? {} : { taken }) };
+	return Promise.resolve({ replies: repliesOf(lines), lines, world, arena: recorded.arena, ...(recorded.taken === undefined ? {} : { taken: parseSnapshot(recorded.taken) }) });
 }
 
 /** The real city with the old door when a snapshot is requested (the composer's `holdAfter`). */

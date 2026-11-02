@@ -9,90 +9,18 @@
  */
 import { describe, expect, it } from "vitest";
 import { competitorIds } from "@swarmtales/kernel";
-import { dropJustified } from "@swarmtales/testkit";
-import { MemorySink } from "@swarmtales/chronicle";
-import { EventBus, World } from "@swarmtales/engine";
 import type { EventEnvelope } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
 import { exile } from "@swarmtales/mechanic-exile";
-import whispers from "../../../stories/whispers/story.ts";
-import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { standIns, TestCity } from "./support/city.ts";
 import { runProbe, startHost } from "./support/host.ts";
-import { oldRun } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { Type } from "typebox";
 
 const IDS = competitorIds(6);
-const AUTHOR = "COURIER";
-
-/** The old Whispers city of the engine's holdout test (test/engine/holdout.test.ts `calledOnA01`), struck at minute 8. */
-function oldStrike() {
-	let minute = 0;
-	const log = new MemorySink();
-	const bus = new EventBus([log], () => minute);
-	const goalsSpec = cityOfKeys.goals;
-	if (goalsSpec === undefined) throw new Error("the City of Keys has goals");
-	const world = new World({ story: { ...whispers, goals: goalsSpec }, competitors: IDS, seed: 11, minutes: 45, bus, minute: () => minute, names: false });
-	const marks: { readonly at: number; end: number; readonly line: string }[] = [];
-	const goals = world.goals;
-	if (goals === undefined) throw new Error("the goals were added");
-	const goalExiled = goals.onExiled.bind(goals);
-	goals.onExiled = (agent) => {
-		const entry = { at: log.events.length, end: log.events.length, line: `goals.onExiled ${JSON.stringify(agent)}` };
-		marks.push(entry);
-		goalExiled(agent);
-		entry.end = log.events.length;
-	};
-	const at = (last: number): void => {
-		while (minute < last) {
-			minute += 1;
-			world.startMinute(minute);
-		}
-	};
-	world.startMinute(0);
-	const others = IDS.filter((id) => id !== "A01");
-	for (const from of others) {
-		for (const to of IDS.filter((id) => id !== from)) {
-			if (!world.sendDm(from, to, `My door 1 fragment: ${world.inspect.fragmentOf(from, 1)}`).ok) throw new Error("dm refused");
-			world.drainMailbox(to);
-		}
-	}
-	at(1);
-	if (world.submit("A01", 1, world.inspect.passwordOf("A01", 1)).status !== "correct") throw new Error("A01 did not pass");
-	at(3);
-	if (!world.callHoldoutTribunal(["A01"], "A01 keeps the city waiting.", AUTHOR).ok) throw new Error("no tribunal");
-	at(6);
-	for (const agent of others) world.tribunalVote(agent, true);
-	at(8);
-	const balances = IDS.map((id) => world.ledger.balance(id));
-	const from = log.events.length;
-	if (!world.holdoutPermaDeath("A01", "The city has spoken: A01 is banished.", AUTHOR).ok) throw new Error("not struck");
-	return { world, log, marks, from, balances };
-}
-
-const OWN = new Set(["exiled", "level_contracted", "piece_kept", "factor_burned", "ledger_entry"]);
-
-function oldLines(old: ReturnType<typeof oldStrike>): readonly string[] {
-	const lines: string[] = [];
-	const inside = (index: number) => old.marks.some((entry) => entry.at <= index && index < entry.end);
-	old.log.events.forEach((event, index) => {
-		if (index < old.from) return;
-		lines.push(...old.marks.filter((entry) => entry.at === index).map((entry) => entry.line));
-		const type = event.type;
-		const rest = without(event, ["seq", "minute", "type"]);
-		lines.push(inside(index) ? `inside ${type}` : OWN.has(type) ? `event ${JSON.stringify({ type, ...rest })}` : `holdout ${type}`);
-	});
-	lines.push(...old.marks.filter((entry) => entry.at === old.log.events.length).map((entry) => entry.line));
-	return dropJustified(lines, (line) => line.startsWith("holdout ") || line.startsWith("inside "), "the holdout's own lines (T4b) and what the old goals write inside onExiled (T3)").kept;
-}
 
 function record(value: unknown): Readonly<Record<string, unknown>> {
 	return typeof value === "object" && value !== null ? Object.fromEntries(Object.entries(value)) : {};
-}
-
-/** The fields of an event without the envelope's keys. */
-function without(event: object, keys: readonly string[]): Readonly<Record<string, unknown>> {
-	return Object.fromEntries(Object.entries(record(event)).filter(([key]) => !keys.includes(key)));
 }
 
 function newLines(events: readonly EventEnvelope[]): readonly string[] {
@@ -121,10 +49,7 @@ const OldStrike = Type.Object({
 
 /** The old strike, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 function recordedStrike() {
-	return oldRun({ ids: IDS, seed: 11 }, OldStrike, () => {
-		const old = oldStrike();
-		return { balances: old.balances, lines: oldLines(old), pointsAfter: old.world.ledger.balance("A01"), gone: old.world.isExiled("A01"), alive: [...old.world.alive], listed: [...(old.world.tribunal?.exiled ?? [])] };
-	});
+	return replayOld({ ids: IDS, seed: 11 }, OldStrike);
 }
 
 describe("the holdout strike against the old World#onStruck (differential)", () => {

@@ -22,10 +22,10 @@ import {
 	weaverPrompt,
 	type WeaverQuestion,
 } from "@swarmtales/roles";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { MemorySink } from "@swarmtales/chronicle";
-import { EventBus } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
 
 /** A step the provider's safeguards refused. */
 const refused = (): FauxResponseStep => fauxAssistantMessage("", { stopReason: "error", errorMessage: "This request triggered cyber-related safeguards." });

@@ -22,9 +22,8 @@ import { ChannelsSlice, loadState, migrateFromV0, saveState } from "./state.ts";
 import { residentTools } from "./tools.ts";
 
 export { channelsHead };
-/** The channels' stores, for tests of their snapshot and restore alone (step 18, old `components` test). */
 export { Board } from "./board.ts";
-export { GroupRegistry, type GroupResult } from "./groups.ts";
+export { groupAccountId, GroupRegistry, MAX_FOUNDED_GROUPS, type GroupResult } from "./groups.ts";
 export { Mailbox } from "./mailbox.ts";
 export { MessageNumbers } from "./numbers.ts";
 

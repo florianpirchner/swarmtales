@@ -5,7 +5,7 @@
  */
 import { analyzeLog, type RunAnalysis } from "@swarmtales/chronicle";
 import type { ArenaEvent, RecordedEvent, StatementLabel, StatementSource } from "@swarmtales/legacy-log";
-import type { ReceiptKind } from "@swarmtales/engine";
+import type { ReceiptKind } from "@swarmtales/legacy-log";
 
 export class LogBuilder {
 	readonly events: RecordedEvent[] = [];

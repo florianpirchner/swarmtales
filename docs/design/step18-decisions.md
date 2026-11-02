@@ -373,6 +373,69 @@ Group: `test/stories/cityofkeys-tribunal`, `test/snapshot/{act-brake,components,
    old side of `test/cli/host-gamemaker-differential.test.ts` (outside this group) and go with the engine (step 5).
    `test/snapshot/file.test.ts` keeps its live old side for recording (D2 pattern) until then.
 
+## Team P2 (step 18, D3 remaining items 2 and 3, 2026-11-02)
+
+Scope: the old engine unit tests (`test/engine/{board,mailbox,groups,cast,goals,motives,passes,scheduler,penalties,standoff,holdout,tribunal}`)
+and the engine and `compose.ts` importers of `test/story/validate*`, `test/overseers/harness.ts`, `test/log/*`, `test/agents/*`,
+`test/cli/args`, `test/interpret/{guard,weaver}`, `test/host/conformance`, `test/helpers/event-log.ts`, the `test/mechanics/**`
+differentials and twins and `test/mechanics/progression/standins.ts`. Goldens unchanged, no `GOLDEN_UPDATE`.
+
+1. **Production moves (additive):** the old `EventBus` moved to `packages/legacy-log/src/bus.ts`;
+   `packages/engine/src/events.ts` re-exports it, so the engine is unchanged for its users. The mechanic indexes export the
+   copies the tests now use: channels (`Board`, `Mailbox`, `MessageNumbers`, `GroupRegistry`, `groupAccountId`,
+   `MAX_FOUNDED_GROUPS`), cast (`escrowAccountId`), motives (`aboveAllCap`, `lightCount`), goals (`dealGoals`,
+   `GoalSchema`), standoff (`StandoffBook`, `emptyStandoff`, `carriesValue`, `standoffSnapshot`), tribunal (the pacing
+   rules of `rules.ts`), marks (`activeOn`). **Decided.**
+2. **Replay only:** every live old side in `test/mechanics/**` (the `RECORDING` branches, `recordOld` / `recordWorld`, the
+   composed old runs, the old `Director` and `World` constructions) is gone; each harness reads its recording from
+   `test/fixtures/old-engine/` and still checks the fingerprint of its inputs. The t3 twin and the goals differential read
+   their question-by-question trace through the new replay-only `RecordedTrace` (`test/helpers/old-engine.ts`); the twin's
+   receipts stand-in keeps its book with the receipts mechanic's `nextId` / `partiesOf` / `receiptsOf` / `describeReceipt`
+   (the old `ReceiptBook.restore` id check kept inline). A recording can no longer be re-made from these files: the
+   fixtures are final once the engine goes. **Decided** (step 18, item 7b).
+3. **Assertions that changed with the port** (same intent, a different API; nothing loosened):
+   - `test/engine/groups`: `groups.isRemoved("G1")` became `expect(groups.liveIds()).not.toContain("G1")` (the mechanic's
+     registry has no `isRemoved`); the treasury cases book a kernel `PointsLedger` the way `treasury.ts` and
+     `group-actions.ts` do.
+   - `test/engine/board`, `mailbox`: the board takes `new Board(new MessageNumbers())` and an explicit `"player"` kind.
+   - `test/engine/goals`: the dealing cases call the mechanic's `dealGoals` with the old stream `rngFor(seed, "goals", act)`;
+     the goal-book cases run on a host (t3 stand-ins): the status line is read from `playMinute`'s turn inputs, the
+     `grants` from the stand-in balances, and the snapshot case compares the resumed host's goals slice and the
+     `goals.running` fact (with a new `toHaveLength(5)`).
+   - `test/engine/standoff`: on the mechanic's `StandoffBook`; events are compared in the mechanic's
+     `{ type, ...payload }` shape, snapshot and restore go through `standoffSnapshot.save` / `load`.
+   - `test/engine/scheduler`, `passes`: the order is the host's `legacyTurnOrder` (the old `activationOrder`, round =
+     minute + 1); a new case checks that those who may not act are left out. The block cases run through the host
+     fixture (`tinyStory({ agents: 5 })` at block sizes 1, 2 and 9, read from `pass_start`).
+   - `test/engine/motives`, `tribunal` (pacing), `test/story/validate-drama`: the story spec is parsed into the
+     mechanic's options (`Parse(CoreMotivesOptions, ...)`, `Parse(TribunalOptions, ...)`) before the mechanic's copy runs.
+   - `test/host/conformance`: the example of a forbidden import is now `@swarmtales/roles`; the expected message is
+     `"bad.ts: imports @swarmtales/roles"` (was the engine, which goes).
+   - `test/engine/penalties`, `cast`, `test/story/validate*`, `test/helpers/event-log.ts`, `test/log/*`, `test/agents/*`,
+     `test/interpret/*`, `test/overseers/harness.ts`, `test/cli/args`: imports only (`@swarmtales/sdk`,
+     `@swarmtales/contracts` `DIRECTOR_SUPPORT`, `@swarmtales/legacy-log`, `apps/cli/src/run-options.ts`).
+   - `test/mechanics/progression/standins.ts`: the marks stand-in uses the marks mechanic's book functions with a local
+     copy of the old `#withMarks` terms line.
+4. **Deleted checks** (no test file deleted):
+   - `test/engine/scheduler`: `blocksOf(order, 0)` throwing a `RangeError`. Coverage: `test/host/turns.test.ts` ("refuses
+     bad policies"); a block size of 0 is refused by story validation before a host exists.
+   - `test/engine/scheduler`: `blocksOf([], 2)` returning `[]`. The host has no public block splitter and never plays a
+     pass with nobody in it; no direct counterpart. **Open** for the reviewer.
+5. **Remaining on the engine** (not ported in this pass; they read the old `Tribunal` and `World` classes directly):
+   - `test/engine/tribunal.test.ts`: the `harness()` cases on the old `Tribunal` (first tribunal, scheduleTribunal, the
+     city's own tribunals, tribunal, faction draft) and the last-will cases on the old `World`. Most are mirrored by
+     `test/mechanics/tribunal/differential.test.ts`, but not assertion for assertion (e.g. the ransom's median, mix and
+     cap; the draft's seeded tie-break), so deleting them would weaken the suite. Port: on the host with the tribunal and
+     exile mechanics and the stand-ins of `test/mechanics/tribunal/support/twin.ts`.
+   - `test/engine/holdout.test.ts`: the old `World` with the holdout tribunal (blockers, calling, rules, snapshot,
+     story). Partly mirrored by `test/mechanics/standoff-tribunal/holdout*.test.ts`; same reason and plan.
+   - With their last users gone, `recordWorld`, `oldValue` and `OldTrace` left `test/helpers/old-engine-recorder.ts` (so it
+     no longer imports the engine), and `apps/cli/src/compose.ts` no longer re-exports `effectiveRun` (its importers read
+     `run-options.ts`; knip).
+   - Shared helpers kept for other groups: `test/helpers/old-engine-recorder.ts` (`oldRun` / `oldRunAsync`, still imported by the
+     `test/cli/host-*` differentials and `test/roles/gamemaker-overseer/host.test.ts`) and `test/helpers/old-world.ts`.
+   - Outside this group: `test/overseers/runtime-chat` and `runtime-host` still import `compose.ts`.
+
 ## H1 (signed event log, rewrite-status item 5a)
 
 Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).

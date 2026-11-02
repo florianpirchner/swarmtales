@@ -1,6 +1,7 @@
 /** Validation of the v09 story specs: core motives, goals, the black seal, the scaled feast and the exile share per size. */
 import { describe, expect, it } from "vitest";
-import { exileTarget } from "@swarmtales/engine";
+import { Parse } from "typebox/value";
+import { exileTarget, TribunalOptions } from "@swarmtales/mechanic-tribunal";
 import { resolveCount } from "@swarmtales/kernel";
 import { validateStory } from "@swarmtales/sdk";
 import type { AnyStory, CoreMotivesSpec, GoalsSpec, SealSpec } from "@swarmtales/contracts";
@@ -69,7 +70,7 @@ describe("validating the drama specs (v09)", () => {
 		expect(resolveCount(5, 48)).toBe(5);
 		const tribunal = cityOfKeys.tribunal;
 		if (tribunal === undefined) throw new Error("cityofkeys has no tribunal");
-		expect([6, 8, 12, 48, 96].map((residents) => exileTarget(tribunal, residents))).toEqual([3, 4, 3, 12, 24]);
+		expect([6, 8, 12, 48, 96].map((residents) => exileTarget(Parse(TribunalOptions, tribunal), residents))).toEqual([3, 4, 3, 12, 24]);
 		expect(validateStory({ ...cityOfKeys, tribunal: { ...tribunal, targetShare: [{ share: 1 / 2 }, { from: 12, share: 1 / 4 }] } })).toContain(
 			"tribunal.targetShare[1]: rules go from the largest city down, and only the last one may leave out from",
 		);

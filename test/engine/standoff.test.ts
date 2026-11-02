@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ArenaEvent } from "@swarmtales/legacy-log";
-import { carriesValue, StandoffBook, type StandoffPiece } from "@swarmtales/engine";
+import { carriesValue, emptyStandoff, StandoffBook, standoffSnapshot, type StandoffPiece } from "@swarmtales/mechanic-standoff";
 
 /** Door 8: A01 holds A02's counter-factor, A02 holds A01's; A03 holds nothing. */
 const PIECES: Readonly<Record<string, readonly StandoffPiece[]>> = {
@@ -16,11 +15,14 @@ function book() {
 		["A02", 6],
 		["A03", 40],
 	]);
-	const events: ArenaEvent[] = [];
+	// The mechanic's book emits a type and a payload; the old book emitted one event object.
+	const events: (Readonly<Record<string, unknown>> & { readonly type: string })[] = [];
 	const notices: { agent: string; text: string }[] = [];
 	const board: string[] = [];
 	const passed = new Set<string>();
 	const exiled = new Set<string>();
+	// The mechanic's book works on state the mechanic owns; the old book held its own.
+	const data = emptyStandoff();
 	const standoff = new StandoffBook({
 		ids: ["A01", "A02", "A03"],
 		rule: { penalty: 10, maxMinutes: 5 },
@@ -28,13 +30,18 @@ function book() {
 		points: (agent) => points.get(agent) ?? 0,
 		burn: (agent, amount) => points.set(agent, (points.get(agent) ?? 0) - amount),
 		notify: (agent, _author, text) => notices.push({ agent, text }),
-		emit: (event) => events.push(event),
+		emit: (type, payload) => events.push({ type, ...payload }),
 		announce: (_author, text) => board.push(text),
 		held: (agent) => (exiled.has(agent) ? [] : (PIECES[agent] ?? [])),
 		needsNow: (agent, level) => level === 8 && !passed.has(agent) && !exiled.has(agent),
 		inCity: (agent) => !exiled.has(agent),
-	});
-	return { standoff, events, notices, board, points, passed, exiled, at: (next: number) => (minute = next) };
+	}, data);
+	// The old book's `snapshot` / `restore`: the mechanic's slice of the same state.
+	const snapshot = () => standoffSnapshot.save({ data });
+	const restore = (saved: ReturnType<typeof snapshot>): void => {
+		Object.assign(data, standoffSnapshot.load(structuredClone(saved)).data);
+	};
+	return { standoff, snapshot, restore, events, notices, board, points, passed, exiled, at: (next: number) => (minute = next) };
 }
 
 describe("the give-first standoff (P43)", () => {
@@ -195,10 +202,10 @@ describe("the give-first standoff (P43)", () => {
 		const piece = PIECES.A03?.[0] ?? PIECES.A01?.[0];
 		if (piece === undefined) throw new Error("fixture");
 		first.standoff.keep("A01", [piece], 20, "CITY");
-		const saved = first.standoff.snapshot();
+		const saved = first.snapshot();
 		const second = book();
-		second.standoff.restore(saved);
-		expect(second.standoff.snapshot()).toEqual(saved);
+		second.restore(saved);
+		expect(second.snapshot()).toEqual(saved);
 		expect(second.standoff.isGiven("A01", "A02", "L8-counter-A02")).toBe(true);
 		expect(second.standoff.issue("A01", "A02", 3, "Courier")).toMatchObject({ ok: false, error: "ALREADY_SET" });
 	});

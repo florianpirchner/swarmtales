@@ -12,7 +12,7 @@
  *
  * Tool lists are compared as sets: the old engine orders tools by its catalog, whatever order the story grants them in.
  */
-import { storyToolNames } from "@swarmtales/engine";
+import { storyToolNames } from "../helpers/old-catalog.ts";
 import { createHost } from "@swarmtales/kernel";
 import { describe, expect, it } from "vitest";
 import { arenaStoryOf, offeredTools } from "./arena/golden-host.ts";

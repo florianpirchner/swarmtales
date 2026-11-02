@@ -5,8 +5,6 @@
  * host (progression, names and exile are stand-ins). Replies, the lines each side wrote, the notices
  * and the snapshot state are then compared by the tests.
  */
-import type { FauxResponseStep } from "@earendil-works/pi-ai";
-import type { JsonObject } from "@earendil-works/pi-ai";
 import type { AnyStory, Host, TurnTaker } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { cast, castOptionsFromStory } from "@swarmtales/mechanic-cast";
@@ -18,11 +16,8 @@ import { receipts } from "@swarmtales/mechanic-receipts";
 import { legacyTurns } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import type { PlannedCall } from "@swarmtales/testkit";
-import type { World } from "@swarmtales/engine";
 import { Type } from "typebox";
-import { act, createFixture, say } from "../../helpers/fixture.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { ids } from "../t1/support.ts";
 import { exileStandIn, progressionStandIn } from "../t1/stand-ins.ts";
@@ -32,16 +27,6 @@ import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { marksStandIn, namesStandIn } from "./stand-ins.ts";
 
 export type Plan = (agent: string, minute: number) => readonly PlannedCall[];
-
-function argsOf(params: unknown): JsonObject {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([key, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${key}: ${JSON.stringify(value)}`);
-			return [key, value];
-		}),
-	);
-}
 
 export interface Spec {
 	readonly story: AnyStory;
@@ -96,60 +81,12 @@ function fingerprint(spec: Spec): string {
  * The plan played through the old engine, as it was recorded once before the engine went (step 18,
  * item 7b; `test/fixtures/old-engine/`).
  */
-export async function playOld(spec: Spec): Promise<OldPlayed> {
+export function playOld(spec: Spec): Promise<OldPlayed> {
 	const { name, scenario } = currentScenario();
 	const now = fingerprint(spec);
-	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await playOldLive(spec)) });
 	const recorded = recordedOld(name, scenario, OldRecord);
 	expectFingerprint(name, scenario, recorded.fingerprint, now);
-	return { replies: new Map(recorded.replies), gamemaker: recorded.gamemaker, world: new RecordedWorld(recorded.world), events: recorded.events };
-}
-
-/** The live old side (recording only; deleted with the engine). */
-async function playOldLive(spec: Spec) {
-	const residents = ids(spec.agents);
-	const gm = spec.gamemaker;
-	const fixture = createFixture({
-		story: spec.story,
-		agents: spec.agents,
-		minutes: spec.minutes,
-		script: () =>
-			Object.fromEntries(
-				residents.map((agent) => [
-					agent,
-					Array.from({ length: spec.minutes }, (_unused, minute) => {
-						const calls = spec.plan(agent, minute);
-						return calls.length === 0 ? say() : act(...calls.map((call) => ({ name: call.tool, args: argsOf(call.params) })));
-					}),
-				]),
-			),
-		...(gm === undefined
-			? {}
-			: {
-					gamemakerScript: (world: World): readonly FauxResponseStep[] => {
-						let answered = true;
-						return Array.from({ length: 3 * spec.minutes }, (): FauxResponseStep => () => {
-							if (!answered) {
-								answered = true;
-								return say("Done.");
-							}
-							const calls = gm(world.minute);
-							answered = calls.length === 0;
-							return calls.length === 0 ? say("Nothing to add.") : act(...calls.map((call) => ({ name: call.tool, args: argsOf(call.params) })));
-						});
-					},
-				}),
-	});
-	await fixture.run();
-	const replies = new Map<string, string[]>();
-	const gamemaker: string[] = [];
-	for (const event of fixture.log.events) {
-		if (event.type === "tool_result") {
-			const at = key(event.minute, event.agent);
-			replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
-		} else if (event.type === "gamemaker_result") gamemaker.push(`${String(event.isError)}|${event.text}`);
-	}
-	return { replies: [...replies], gamemaker, world: recordWorld(fixture.world), events: fixture.log.events.map((event) => ({ ...event })) };
+	return Promise.resolve({ replies: new Map(recorded.replies), gamemaker: recorded.gamemaker, world: new RecordedWorld(recorded.world), events: recorded.events });
 }
 
 /** The mechanics of a plain city on the new host: channels, cast and petitions are the real ones. */

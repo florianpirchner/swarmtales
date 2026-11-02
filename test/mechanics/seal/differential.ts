@@ -10,11 +10,8 @@
  * world.ts:1459-1461, `sealParts` turn-input.ts:72-83); `seal-world.test.ts` checks those copies
  * against the old `World` itself.
  */
-import { SealHouse as OldSealHouse, type SealSnapshot } from "@swarmtales/engine";
 import { Type, type Static } from "typebox";
-import { Parse } from "typebox/value";
-import { oldRun } from "../../helpers/old-engine-recorder.ts";
-import { render } from "@swarmtales/prompts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { rngFor } from "@swarmtales/kernel";
 import type { Host, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
 import { ExileApi } from "@swarmtales/mechanic-shared";
@@ -82,112 +79,7 @@ const OldSealRun = Type.Object({
 
 /** The old seal's run of a scenario, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 export function runOld(scenario: Scenario, options: OldRun = {}): Static<typeof OldSealRun> {
-	return oldRun({ scenario, options }, OldSealRun, () => {
-		const { record, snapshot } = runOldLive(scenario, options);
-		return { record, snapshot };
-	});
-}
-
-/** The live old seal (recording only; deleted with the engine). */
-function runOldLive(scenario: Scenario, options: OldRun = {}): { readonly record: SealRecord; readonly house: OldSealHouse; readonly snapshot: SealSnapshot | undefined } {
-	const { restore, from = 0, until = scenario.minutes } = options;
-	const points = new Map(Object.entries(scenario.points));
-	const standing = new Map<string, "alive" | "exiled" | { until: number }>((scenario.exiled ?? []).map((id) => [id, "exiled"]));
-	let missing = scenario.missing;
-	let minute = 0;
-	const record: { readonly [K in keyof SealRecord]: string[] } = { events: [], posts: [], notices: [], burns: [], strikes: [], replies: [], status: [] };
-	const standingOf = (agent: string) => {
-		const found = standing.get(agent) ?? "alive";
-		return found === "alive" ? { kind: "alive" as const } : found === "exiled" ? { kind: "exiled" as const } : { kind: "gate" as const, until: found.until };
-	};
-	const house: OldSealHouse = new OldSealHouse({
-		spec: { ...scenario.rule, texts: SEAL_TEXTS },
-		seed: SEED,
-		ids: scenario.residents,
-		points: (agent) => points.get(agent) ?? 0,
-		standing: standingOf,
-		missing: () => missing,
-		burn: (agent, amount, reason) => {
-			points.set(agent, (points.get(agent) ?? 0) - amount);
-			record.burns.push(`${agent} ${String(amount)} ${reason}`);
-		},
-		post: (text) => record.posts.push(`CITY ${text}`),
-		notify: (agent, text) => record.notices.push(`${agent} CITY ${text}`),
-		emit: (event) => {
-			const { type, ...payload } = event;
-			record.events.push(JSON.stringify({ type, ...payload, minute }));
-		},
-		strike: (target) => {
-			// The old tribunal's strike: exiled at once, then `#onExiled` tells the seal.
-			record.strikes.push(`${target} seal`);
-			standing.set(target, "exiled");
-			house.onExiled(target);
-		},
-	});
-	if (restore !== undefined) house.restore(Parse(Type.Unsafe<SealSnapshot>(Type.Unknown()), restore));
-	const enabled = (tool: "bid" | "permaDeath", agent: string): boolean =>
-		tool === "bid" ? house.auction !== undefined && standingOf(agent).kind === "alive" : house.holds(agent);
-	// The old `sealParts` (turn-input.ts:72-83) over the old house and the standings.
-	const parts = (agent: string): readonly string[] => {
-		if (standingOf(agent).kind === "exiled") return [];
-		const found: string[] = [];
-		const auction = house.auction;
-		if (auction !== undefined && standingOf(agent).kind === "alive") {
-			const bid = house.bidOf(agent);
-			found.push(render("competitor/status/seal-auction", { until: auction.until, bid: bid === undefined ? "" : ` ${render("competitor/status/seal-bid", { bid })}` }));
-		}
-		if (house.holds(agent)) found.push(render("competitor/status/seal-bearer", {}));
-		return found;
-	};
-	const locked = `TOOL_LOCKED: ${render("replies/locked", {})}`;
-	for (minute = from; minute < until; minute++) {
-		if (scenario.actEndAt === minute) house.end();
-		if (scenario.actStartAt === minute) house.begin(minute, scenario.residents.filter((id) => standingOf(id).kind !== "exiled").length);
-		house.tick(minute);
-		for (const agent of scenario.residents) record.status.push(`${String(minute)} ${agent} ${JSON.stringify(parts(agent))}`);
-		for (const action of scenario.steps[minute] ?? []) {
-			switch (action.kind) {
-				case "bid": {
-					if (!enabled("bid", action.agent)) {
-						record.replies.push(locked);
-						break;
-					}
-					const result = house.bid(action.agent, action.points);
-					record.replies.push(
-						result.ok
-							? result.value.points === 0
-								? render("replies/bid-none", { until: result.value.until })
-								: render("replies/bid-stands", { points: result.value.points, until: result.value.until })
-							: `${result.error}: ${result.detail ?? ""}`,
-					);
-					break;
-				}
-				case "use": {
-					if (!enabled("permaDeath", action.agent)) {
-						record.replies.push(locked);
-						break;
-					}
-					const result = house.use(action.agent, action.target);
-					record.replies.push(result.ok ? render("replies/seal-broken", { target: result.value }) : `${result.error}: ${result.detail ?? ""}`);
-					break;
-				}
-				case "exile":
-					record.strikes.push(`${action.agent} seal`);
-					standing.set(action.agent, "exiled");
-					house.onExiled(action.agent);
-					break;
-				case "missing":
-					missing = action.value;
-					break;
-				case "gate":
-					standing.set(action.agent, { until: action.until });
-					break;
-			}
-		}
-	}
-	if (until < scenario.minutes) return { record, house, snapshot: house.snapshot() };
-	if (scenario.actEndAt === undefined || scenario.actEndAt >= scenario.minutes) house.end();
-	return { record, house, snapshot: house.snapshot() };
+	return replayOld({ scenario, options }, OldSealRun);
 }
 
 /** The story of the new side: the seal and its stand-ins. */

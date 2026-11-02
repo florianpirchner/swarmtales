@@ -12,7 +12,7 @@ import { createPromptLookup } from "@swarmtales/prompts";
 import { idleAgent } from "@swarmtales/testkit";
 import { Parse } from "typebox/value";
 import { RecordedEventSchema, MemorySink } from "@swarmtales/chronicle";
-import { EventBus } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
 
 /** An event the old roles read, flat as in the old log, to be written in a minute. */
 export type Fields = Readonly<Record<string, unknown>>;

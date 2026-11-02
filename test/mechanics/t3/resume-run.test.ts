@@ -7,7 +7,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { convertLegacySnapshot, MemorySink } from "@swarmtales/chronicle";
+import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import type { EventEnvelope, Host, HostSnapshot } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { createPromptLookup, mechanicPromptFolders } from "@swarmtales/prompts";
@@ -15,11 +15,8 @@ import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { standInsFor, type LegacyLine } from "@swarmtales/testkit";
 import type { AnyStory } from "@swarmtales/contracts";
-import { World, EventBus } from "@swarmtales/engine";
 import { Type } from "typebox";
-import { fingerprintOf } from "../../helpers/old-engine.ts";
-import { oldRun } from "../../helpers/old-engine-recorder.ts";
-import { parseSnapshot } from "@swarmtales/chronicle";
+import { fingerprintOf, replayOld } from "../../helpers/old-engine.ts";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { progressionOptions, SEED } from "../progression/harness.ts";
 import { channelsStandIn, ledgerStandIn, receiptsStandIn } from "../progression/standins.ts";
@@ -156,14 +153,7 @@ describe("a reached level that changed its puzzle", () => {
 		const message = "Level 7 changed its puzzle since the snapshot, and competitors have reached it already";
 
 		// The old World's restore of the changed story, recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`).
-		expect(() =>
-			oldRun({ story: changed, snapshot: fingerprintOf(legacy()) }, Type.Null(), () => {
-				const saved = parseSnapshot(legacy());
-				const bus = new EventBus([new MemorySink()], () => 0);
-				new World({ story: changed, competitors: ["A01", "A02", "A03", "A04", "A05", "A06"], seed: SEED, minutes: 80, bus, minute: () => 0, restore: saved.world, names: false });
-				return null;
-			}),
-		).toThrow(message);
+		expect(() => replayOld({ story: changed, snapshot: fingerprintOf(legacy()) }, Type.Null())).toThrow(message);
 
 		const host = resume(fromLegacy(legacy()), changed);
 		await expect(host.playMinute(() => Promise.resolve())).rejects.toThrow(message);

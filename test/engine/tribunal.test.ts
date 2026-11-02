@@ -7,7 +7,11 @@
 import { describe, expect, it } from "vitest";
 import { type CompetitorId, competitorIds, createRng, rngFor } from "@swarmtales/kernel";
 import { MemorySink } from "@swarmtales/chronicle";
-import { accusedCount, contractDeal, dealFactors, earliestOpening, EventBus, exileTarget, factionCap, leadFor, noDraftReason, Tribunal, type TribunalEvent, tribunalHeld, World } from "@swarmtales/engine";
+import { Tribunal, type TribunalEvent, World } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
+import { contractDeal, dealFactors } from "@swarmtales/mechanic-puzzles";
+import { accusedCount, earliestOpening, exileTarget as exileTargetOf, factionCap, leadFor as leadOf, noDraftReason, tribunalHeld as heldIn, TribunalOptions } from "@swarmtales/mechanic-tribunal";
+import { Parse } from "typebox/value";
 import type { AnyStory, TribunalSpec } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
@@ -125,6 +129,16 @@ function runUntil(h: Harness, from: number, to: number): void {
 
 const SIX = [10, 20, 30, 40, 50, 60];
 
+/**
+ * The pacing rules are the tribunal mechanic's copies (`mechanics/tribunal/src/rules.ts`) over its
+ * options: the story's spec as `apps/cli/src/host/story.ts` passes it.
+ */
+const optionsOf = (spec: TribunalSpec) => Parse(TribunalOptions, spec);
+const exileTarget = (spec: TribunalSpec, residents: number): number => exileTargetOf(optionsOf(spec), residents);
+const tribunalHeld = (spec: TribunalSpec, residents: number, survivors: number): boolean => heldIn(optionsOf(spec), residents, survivors);
+const leadFor = (spec: TribunalSpec, opens: number, previous: number | undefined): number => leadOf(optionsOf(spec), opens, previous);
+const earliest = (spec: TribunalSpec, now: number, previous: number | undefined): number => earliestOpening(optionsOf(spec), now, previous);
+
 describe("tribunal pacing rules", () => {
 	const spec = halfTribunal();
 
@@ -143,9 +157,9 @@ describe("tribunal pacing rules", () => {
 		expect(leadFor(spec, 46, 34)).toBe(4);
 		expect(leadFor(spec, 64, 34)).toBe(10);
 		// The gap rules: 6 after the previous opening, then the call must not be in the past.
-		expect(earliestOpening(spec, 30, 34)).toBe(40);
-		expect(earliestOpening(spec, 37, 34)).toBe(41);
-		expect(earliestOpening(spec, 47, 34)).toBe(53);
+		expect(earliest(spec, 30, 34)).toBe(40);
+		expect(earliest(spec, 37, 34)).toBe(41);
+		expect(earliest(spec, 47, 34)).toBe(53);
 	});
 
 	it("accuses one more than it exiles, keeping one resident safe, and none in a city of fewer than three (v08)", () => {

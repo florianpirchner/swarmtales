@@ -5,35 +5,22 @@
  * events a team owns and the snapshot state are compared. A plan decides, for a resident and a
  * minute, which calls it makes; the old engine's activation order is `legacyTurns` on the new host.
  */
-import type { JsonObject } from "@earendil-works/pi-ai";
 import type { EventEnvelope, MechanicUse, TurnTaker } from "@swarmtales/contracts";
 import type { AnyStory } from "@swarmtales/contracts";
-import type { DeliveryJudge, DenialQuestion } from "@swarmtales/roles";
+import type { DeliveryJudge } from "@swarmtales/roles";
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
 import { HOOK_ORDER, ReceiptsApi, ChannelsApi } from "@swarmtales/mechanic-shared";
 import type { LegacyOwner } from "@swarmtales/chronicle";
 import { goldenLine, ownedBy, playStory, scriptedAgent, type CallRecord, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
 import type { HostOptions } from "@swarmtales/kernel";
-import { act, createFixture, say } from "../../helpers/fixture.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { DenialQuestionRecord, OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { writtenBy } from "./support.ts";
 import type { ChannelsLog } from "./channels.ts";
 
 
 /** A planned call's parameters as the scripted model's arguments (plans use strings, numbers and booleans). */
-function argsOf(params: unknown): JsonObject {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([key, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${key}`);
-			return [key, value];
-		}),
-	);
-}
-
 /** Which calls a resident makes in a minute. */
 export type PlanFn = (agent: string, minute: number) => readonly PlannedCall[];
 
@@ -82,52 +69,11 @@ function fingerprint(spec: OldSpec): string {
 export async function playOld(spec: OldSpec): Promise<OldSide> {
 	const { name, scenario } = currentScenario();
 	const now = fingerprint(spec);
-	if (RECORDING) recordOld(name, scenario, { fingerprint: now, ...(await playOldLive(spec)) });
 	const recorded = recordedOld(name, scenario, OldRecord);
 	expectFingerprint(name, scenario, recorded.fingerprint, now);
 	// The test's judge hears the old run's questions again, in order (its answers are in the recording).
 	for (const question of recorded.asked) await spec.judge?.deniesReceipt(question);
 	return { replies: new Map(recorded.replies), lines: recorded.lines, world: new RecordedWorld(recorded.world) };
-}
-
-/** RECORDING ONLY */
-async function playOldLive(spec: OldSpec) {
-	const ids = residentIds(spec.agents);
-	const asked: DenialQuestion[] = [];
-	const judge = spec.judge;
-	const fixture = createFixture({
-		story: spec.story,
-		agents: spec.agents,
-		minutes: spec.minutes,
-		...(judge === undefined ? {} : { judge: { label: judge.label, deniesReceipt: (question: DenialQuestion) => { asked.push(question); return judge.deniesReceipt(question); } } }),
-		...(spec.names === undefined ? {} : { names: spec.names }),
-		...(spec.figureDirection === undefined ? {} : { figureDirection: spec.figureDirection }),
-		...(spec.seed === undefined ? {} : { seed: spec.seed }),
-		...(spec.blockSize === undefined ? {} : { blockSize: spec.blockSize }),
-		script: () =>
-			Object.fromEntries(
-				ids.map((agent) => [
-					agent,
-					Array.from({ length: spec.minutes }, (_unused, minute) => {
-						const calls = spec.plan(agent, minute);
-						return calls.length === 0 ? say() : act(...calls.map((call) => ({ name: call.tool, args: argsOf(call.params) })));
-					}),
-				]),
-			),
-	});
-	await fixture.run();
-	const replies = new Map<string, string[]>();
-	for (const event of fixture.log.events) {
-		if (event.type !== "tool_result") continue;
-		const at = key(event.minute, event.agent);
-		replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
-	}
-	return {
-		asked,
-		replies: [...replies],
-		lines: fixture.log.events.map((event) => ({ ...event })),
-		world: recordWorld(fixture.world),
-	};
 }
 
 export interface NewSide extends Side {

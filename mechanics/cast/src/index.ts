@@ -17,8 +17,7 @@ import { CollectionRecord, escrowAccountId, MemberRecord } from "./registry.ts";
 
 export { castHead };
 export { castOptionsFromStory, type CastStoryOptions } from "./from-story.ts";
-/** The cast's store, for tests of its restore alone (step 18, old `components` test). */
-export { CastRegistry } from "./registry.ts";
+export { CastRegistry, escrowAccountId } from "./registry.ts";
 
 type Ctx = ContextOf<typeof castWorkHead>;
 

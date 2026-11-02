@@ -7,7 +7,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EventBus } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
 import {
 	CHAIN_FILE,
 	type ChainGenesisInput,

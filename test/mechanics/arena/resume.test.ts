@@ -18,8 +18,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import { convertLegacySnapshot, legacySink, parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { convertLegacySnapshot, legacySink, parseSnapshot } from "@swarmtales/chronicle";
 import type { AnyStory, Host, MechanicUse } from "@swarmtales/contracts";
 import { Type } from "typebox";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
@@ -34,14 +33,11 @@ import { progression } from "@swarmtales/mechanic-progression";
 import { puzzles } from "@swarmtales/mechanic-puzzles";
 import { receipts } from "@swarmtales/mechanic-receipts";
 import { script, scriptOptionsFromStory } from "@swarmtales/mechanic-script";
-import { ScriptedModelSource } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { dropJustified, ownedBy, standInsFor, type LegacyLine, type PlannedCall } from "@swarmtales/testkit";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
-import { composeRun, resolveBlockSize, resumeOverrides } from "../../../apps/cli/src/compose.ts";
-import { act, say } from "../../helpers/fixture.ts";
+import { resolveBlockSize } from "../../../apps/cli/src/run-options.ts";
 import { currentScenario, expectFingerprint, fingerprintOf, planTable, recordedOld } from "../../helpers/old-engine.ts";
-import { RECORDING, recordOld, recordWorld } from "../../helpers/old-engine-recorder.ts";
 import { OldWorldRecord, RecordedWorld } from "../../helpers/old-world.ts";
 import { channelsOptionsOf, marksOptions } from "../t2/golden-world.ts";
 import { exileStandIn } from "../t1/stand-ins.ts";
@@ -81,16 +77,6 @@ const PLAN: Plan = (agent, minute, codeOf) => {
 	return [];
 };
 
-function argsOf(params: unknown): Record<string, string | number | boolean> {
-	if (typeof params !== "object" || params === null) return {};
-	return Object.fromEntries(
-		Object.entries(params).map(([name, value]): [string, string | number | boolean] => {
-			if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") throw new Error(`unsupported plan parameter ${name}`);
-			return [name, value];
-		}),
-	);
-}
-
 const run = cityOfKeys.run;
 /**
  * Below what Act I spent before the checkpoint (the file's `usage` lines): a resumed run counts only
@@ -127,54 +113,12 @@ function fingerprint(minutes: number, world: RecordedWorld): string {
  * The old run resumed for `minutes` more minutes, as it was recorded once before the engine went
  * (step 18, item 7b; `test/fixtures/old-engine/`).
  */
-async function resumeOld(minutes: number): Promise<OldResumed> {
+function resumeOld(minutes: number): Promise<OldResumed> {
 	const { name, scenario } = currentScenario();
-	if (RECORDING) {
-		const live = await resumeOldLive(minutes);
-		const world = recordWorld(live.world);
-		recordOld(name, scenario, { fingerprint: fingerprint(minutes, new RecordedWorld(world)), replies: [...live.replies], lines: live.lines, restored: live.restored, arena: live.arena, world });
-	}
 	const recorded = recordedOld(name, scenario, OldRecord);
 	const world = new RecordedWorld(recorded.world);
 	expectFingerprint(name, scenario, recorded.fingerprint, fingerprint(minutes, world));
-	return { replies: new Map(recorded.replies), lines: recorded.lines, restored: recorded.restored, arena: recorded.arena, world };
-}
-
-/** The live old continuation with the story's own activation; a turn after a turn with calls answers them (recording only; deleted with the engine). */
-async function resumeOldLive(minutes: number) {
-	const snapshot: RunSnapshot = parseSnapshot(raw());
-	const start = snapshot.minute + 1;
-	const log = new MemorySink();
-	const composed = composeRun({
-		story: WITHOUT_SEAL,
-		overrides: { minutes: start + minutes, gamemaker: false, classifier: false, budgetUsd: BUDGET, ...resumeOverrides(snapshot) },
-		models: (world) => {
-			const codeOf: CodeOf = (agent, level) => world.inspect.codeOf(agent, level);
-			const awaiting = new Set<string>();
-			const step =
-				(agent: string): FauxResponseStep =>
-				(): AssistantMessage => {
-					if (awaiting.delete(agent)) return say("Answered.");
-					const calls = PLAN(agent, world.minute, codeOf);
-					if (calls.length > 0) awaiting.add(agent);
-					return calls.length === 0 ? say() : act(...calls.map((planned) => ({ name: planned.tool, args: argsOf(planned.params) })));
-				};
-			return new ScriptedModelSource(Object.fromEntries(world.competitors.map((agent) => [agent, Array.from({ length: minutes * passes + 2 }, () => step(agent))])));
-		},
-		sinks: [log],
-		meta: { run: "resumed" },
-		resume: { snapshot, name: "snapshot-L7.json" },
-	});
-	const restored = composed.arena.snapshot();
-	await composed.arena.run();
-	const replies = new Map<string, string[]>();
-	for (const event of log.events) {
-		if (event.type !== "tool_result" || event.minute < start) continue;
-		const at = `${String(event.minute)}:${event.agent}`;
-		replies.set(at, [...(replies.get(at) ?? []), `${String(event.isError)}|${event.text}`]);
-	}
-	const lines = log.events.filter((event) => event.minute >= start && event.type !== "run_resumed").map((event) => ({ ...event }));
-	return { replies, lines, restored, arena: composed.arena.snapshot(), world: composed.world };
+	return Promise.resolve({ replies: new Map(recorded.replies), lines: recorded.lines, restored: recorded.restored, arena: recorded.arena, world });
 }
 
 /** The real city with the real script and the real arena on the converted snapshot. */

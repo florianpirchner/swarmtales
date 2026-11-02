@@ -13,15 +13,13 @@
  * needs the old tribunal's own nomination and vote, which this short scripted run does not play),
  * which the hand-built side alone covers ("ties and the gate" in seal-differential.test.ts).
  */
-import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { RecordedEventSchema } from "@swarmtales/chronicle";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import cityOfKeys from "../../../stories/cityofkeys/story.ts";
 import { SEAL } from "../../../stories/cityofkeys/characters.ts";
-import { act, createFixture, say } from "../../helpers/fixture.ts";
-import { oldRunAsync } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { runNew, runOld, type Action, type Scenario, type SealRecord } from "./differential.ts";
 
 const IDS = ["A01", "A02", "A03", "A04", "A05", "A06"] as const;
@@ -39,34 +37,8 @@ function planned(minute: number, id: string): { readonly name: "bid"; readonly a
 const WorldRun = Type.Object({ events: Type.Array(RecordedEventSchema), points: Type.Record(Type.String(), Type.Number()), missing: Type.Number() });
 
 /** The World's run, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
-async function worldRun() {
-	return oldRunAsync({ story: cityOfKeys, ids: IDS, minutes: MINUTES, calls: IDS.map((id) => Array.from({ length: MINUTES }, (_unused, minute) => planned(minute, id) ?? null)) }, WorldRun, worldRunLive);
-}
-
-/** The live World's run (recording only; deleted with the engine). */
-async function worldRunLive() {
-	let missing: number | undefined;
-	const fixture = createFixture({
-		story: cityOfKeys,
-		agents: IDS.length,
-		minutes: MINUTES,
-		level: SEAL.act,
-		script: (world) =>
-			Object.fromEntries(
-				IDS.map((id) => [
-					id,
-					Array.from({ length: MINUTES + 2 }, (): FauxResponseStep => () => {
-						// The tribunal's count of residents still to leave, as the seal reads it when its auction opens.
-						if (world.minute === 4) missing ??= world.tribunal?.missing;
-						const call = planned(world.minute, id);
-						return call === undefined ? say() : act({ name: call.name, args: { ...call.args } });
-					}),
-				]),
-			),
-	});
-	const points = Object.fromEntries(IDS.map((id) => [id, fixture.world.ledger.balance(id)]));
-	await fixture.run();
-	return { events: fixture.log.events, points, missing: missing ?? 0 };
+function worldRun() {
+	return Promise.resolve(replayOld({ story: cityOfKeys, ids: IDS, minutes: MINUTES, calls: IDS.map((id) => Array.from({ length: MINUTES }, (_unused, minute) => planned(minute, id) ?? null)) }, WorldRun));
 }
 
 const template = (text: string): RegExp => new RegExp(`^${text.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{\w+\}/g, "[\\s\\S]*?")}$`);
