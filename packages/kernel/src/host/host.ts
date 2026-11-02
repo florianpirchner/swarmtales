@@ -65,8 +65,8 @@ export interface HostOptions {
 	readonly roles?: Readonly<Record<string, RoleCaller>>;
 	/**
 	 * Runs after the minute's turns and `minuteEnded` hooks, before `minute_ended`, unless the
-	 * referee or a stop ended the turns: where the gamemaker, the classifier and the weaver look at
-	 * the run's state. Their calls go through `host.call`.
+	 * referee or a stop ended the turns: where the app's roles look at the run's state. Their calls
+	 * go through `host.call`.
 	 */
 	readonly between?: (minute: number) => Promise<void>;
 	/** The events the app may write with `host.record` (source `app`). */
@@ -312,7 +312,7 @@ class CoreHost implements Host {
 	/**
 	 * The old engine's restore work, once, before the first minute of a resumed run (R2-D9): the
 	 * `runResumed` phases. It belongs to the snapshot's last played minute, as the old restore wrote it
-	 * (`run_resumed`, the late core motives and escrows at the snapshot's minute, not one later:
+	 * (`run_resumed` and the mechanics' late restore events at the snapshot's minute, not one later:
 	 * challenge L1). The first minute runs it; `start()` on a resumed host runs it at once (the app's
 	 * probe host, which only deals), and the calls it stages wait for the first minute.
 	 */
@@ -398,14 +398,14 @@ class CoreHost implements Host {
 		this.#breach = undefined;
 		const passes = await this.#turns.play(agent, minute);
 		// The turns check the limits before each block; a limit the last block broke counts here, so the
-		// between slot's paid calls (the classifier) are skipped as the old arena skipped them.
+		// between slot's paid overseer calls are skipped as the old arena skipped them.
 		if (!this.#failed) this.#breach ??= this.#referee.breach();
 		this.#phases((phases) => phases.minuteEnded, (run) => {
 			run();
 		});
 		await this.#gateway.settle();
 		if (this.#turnsBreach() === undefined && this.#stopRequest === undefined) {
-			// The between slot: the human's safe stop, the overseers (classifier, weaver, gamemaker once they are overseers), then the app's roles.
+			// The between slot: the human's safe stop, the story's between overseers in slot order, then the app's roles.
 			if (this.#desk.attached) await this.#desk.safeStop("between");
 			await this.#slot("between", minute);
 			if (this.#between !== undefined) {
