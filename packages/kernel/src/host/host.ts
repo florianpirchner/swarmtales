@@ -715,8 +715,7 @@ class CoreHost implements Host {
 		this.#staging.clear();
 		this.#desk.close();
 		if (this.#ended !== undefined) return;
-		const detail = redactSecrets(error instanceof Error ? error.message : String(error));
-		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail }));
+		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail: redactSecrets(error instanceof Error ? error.message : String(error)) }));
 		this.#ended = { reason: "error", minute: this.#minute };
 	}
 
