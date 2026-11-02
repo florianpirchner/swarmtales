@@ -25,6 +25,9 @@
 		},
 		{
 			"path": "../models"
+		},
+		{
+			"path": "../../mechanics/shared"
 		}
 	]
 }

@@ -30,13 +30,14 @@ import { budgetLine, dealtLevels, secretGuardOf, trackAfter, trackedAgent } from
 import type { SecretGuard } from "../gamemaker/secrets.ts";
 import { describeSituation, type Note, type ResidentTrack } from "../gamemaker/situation.ts";
 import { gamemakerSystemPrompt, type GamemakerPromptInput } from "../gamemaker/system-prompt.ts";
+import { OVERSEER_ORDER } from "@swarmtales/mechanic-shared";
 import { causingTool, noteOf, recentOf, runMinutes } from "./recent.ts";
 
 /** The definition id; a story uses it under this name, so it acts as the bare `gamemaker` (overseer-api.md §2). */
 export const GAMEMAKER_NAME = "gamemaker";
 
-/** Its place in the `between` slot: after the classifier and the weaver (overseer-api.md §6, risk 2). */
-export const GAMEMAKER_ORDER = 30;
+/** Its place in the `between` slot: after the classifier and the weaver (the shared `OVERSEER_ORDER`; it was 30, before both, a bug). */
+export const GAMEMAKER_ORDER = OVERSEER_ORDER.gamemaker;
 
 /** Tools whose note is a tribunal's line, shown on the board but counted apart (old `#deliver("tribunal", ..., "board")`). */
 export const TRIBUNAL_LINE_TOOLS: readonly string[] = ["callTribunal", "announceTribunal", "permaDeath"];

@@ -582,6 +582,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../../mechanics/shared
       '@swarmtales/models':
         specifier: workspace:*
         version: link:../models

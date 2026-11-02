@@ -19,7 +19,8 @@ import { INPUT_KINDS, LEGACY_SILENT_EVENTS, SHARED_APIS, SHARED_EVENTS, STATUS_O
 // TribunalApi.text/bequestPerHeir and TribunalViewApi (exported and in SHARED_APIS).
 // Round 3 (T2 request 1, T3 request 1): CastExtrasApi.active (exported and in SHARED_APIS), cast provides it, progression uses it.
 // Step 18 (A1, the arena's brief): EndingApi and Ending (exported and in SHARED_APIS); nothing provides it yet.
-const FINGERPRINT = "75612fa70dfdfcc91dd6206f8ff88c8144568c12dbb77438abf890df4ea72e59";
+// Step 18 (integrator, step18-decisions.md S18-2): OVERSEER_ORDER exported (the overseers' between-slot order table).
+const FINGERPRINT = "87679392f1e94818d0cf256bd0bd7a3a7a93982a58bfc17033a4f780a716935b";
 
 /** The events the review asks to freeze in wave 3.0 (core-review-2c.md, last paragraph). */
 const FROZEN = ["exiled", "level_up", "submission", "dm_sent", "board_post", "ledger_entry", "transfer"];

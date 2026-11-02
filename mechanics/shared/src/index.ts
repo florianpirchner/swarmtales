@@ -12,7 +12,7 @@ export { CastApi, CastExtrasApi, ChannelsApi, MotivesApi, DmWindow, NoteTarget, 
 export { GoalsApi, ProgressionApi, PuzzlesApi, Team } from "./progress.ts";
 export { ExileApi, SealApi, StandoffApi, StandoffTribunalApi, TribunalApi, TribunalViewApi } from "./conflict.ts";
 export { INPUT_KINDS, STATUS_ORDER } from "./turn-input.ts";
-export { HOOK_ORDER, LISTENER_ORDER, legacyTurnOrder, legacyTurns } from "./order.ts";
+export { HOOK_ORDER, LISTENER_ORDER, OVERSEER_ORDER, legacyTurnOrder, legacyTurns } from "./order.ts";
 export { Ending, EndingApi } from "./ending.ts";
 
 import { LedgerApi, MarksApi, NamesApi, ReceiptsApi } from "./economy.ts";

@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { EventEnvelope, EventLogView, Fired, OverseerInstance } from "@swarmtales/contracts";
 import { createRng } from "@swarmtales/kernel";
 import { DIRECTION_LEVELS } from "@swarmtales/engine";
+import { OVERSEER_ORDER } from "@swarmtales/mechanic-shared";
 import { createPromptLookup } from "@swarmtales/prompts";
 import {
 	defineGamemaker,
@@ -164,5 +165,15 @@ describe("the story mapping of the gamemaker", () => {
 		const spec = cityOfKeys.gamemaker;
 		if (spec === undefined) throw new Error("no gamemaker");
 		expect(tribunalGamemakerRoles(spec.roles)).toEqual(spec.roles.map(({ fromLevel, role }) => ({ fromLevel, role })));
+	});
+});
+
+describe("the gamemaker overseer's place in the between slot", () => {
+	it("looks after the classifier and the weaver (the shared OVERSEER_ORDER)", () => {
+		const head = defineGamemaker({ situation: () => "" });
+		const orders = head.triggers.map((trigger) => ("order" in trigger ? trigger.order : undefined) ?? 0);
+		expect(orders).toEqual([OVERSEER_ORDER.gamemaker]);
+		expect(Math.min(...orders)).toBeGreaterThan(OVERSEER_ORDER.weaver + 1);
+		expect(OVERSEER_ORDER.classifier).toBeLessThan(OVERSEER_ORDER.weaver);
 	});
 });

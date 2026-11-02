@@ -109,6 +109,15 @@ export const HOOK_ORDER = {
 	},
 } as const;
 
+/**
+ * The overseers' order in the `between` slot (step 18, C1 request 1, C2 request 5, O2 request 1):
+ * the classifier first (the gamemaker reads the labels of the round it looks at), then the weaver
+ * (it reads the classifier's labels and the round's hard facts; its act ends at `weaver`, its hits
+ * at `weaver + 1`), then the gamemaker, as the old observers ran (Arena.run: interpret, weave,
+ * observe). A trigger without an order sorts at 0, before all three.
+ */
+export const OVERSEER_ORDER = { classifier: 100, weaver: 200, gamemaker: 300 } as const;
+
 /** Listener orders where the old engine called several mechanics back in a fixed order. */
 export const LISTENER_ORDER = {
 	/** `#noteActStarts`: the goals are dealt, then the seal begins. */
