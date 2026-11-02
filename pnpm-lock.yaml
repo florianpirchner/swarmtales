@@ -192,9 +192,6 @@ importers:
       '@swarmtales/mechanic-seal':
         specifier: workspace:*
         version: link:../../mechanics/seal
-      '@swarmtales/mechanic-shared':
-        specifier: workspace:*
-        version: link:../../mechanics/shared
       '@swarmtales/mechanic-standoff':
         specifier: workspace:*
         version: link:../../mechanics/standoff

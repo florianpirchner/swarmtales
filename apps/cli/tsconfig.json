@@ -96,9 +96,6 @@
 		},
 		{
 			"path": "../../mechanics/whispers"
-		},
-		{
-			"path": "../../mechanics/shared"
 		}
 	]
 }

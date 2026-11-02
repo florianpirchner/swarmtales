@@ -35,7 +35,6 @@
 		"@swarmtales/mechanic-receipts": "workspace:*",
 		"@swarmtales/mechanic-script": "workspace:*",
 		"@swarmtales/mechanic-seal": "workspace:*",
-		"@swarmtales/mechanic-shared": "workspace:*",
 		"@swarmtales/mechanic-standoff": "workspace:*",
 		"@swarmtales/mechanic-standoff-tribunal": "workspace:*",
 		"@swarmtales/mechanic-tribunal": "workspace:*",
