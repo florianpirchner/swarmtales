@@ -134,6 +134,9 @@ typing tricks (`defineHead`, `ShapeOf`, one `@ts-expect-error` per misuse in a n
    **Event** triggers queue the overseer; it runs right after the code or call that wrote the event (after the
    staged calls drain), before the next call or turn begins. **Consult** runs inside the consult stage, as today.
 2. Over a limit (`maxCalls`, `maxCostUsd`)? The host writes `overseer_skipped { overseer, reason }` and goes on.
+   `maxCalls` cuts a firing's calls exactly. A cost is known only when its answer is in, so once an overseer in the
+   batch has `maxCostUsd`, the host runs that batch's calls one after the other and checks the cap before each call
+   (built at step 18, F2 M1); the last call can still overshoot by its own cost.
 3. `calls(fired, ctx)` gives the variables; the runtime fills `standingOrders` (§4.2) and writes
    `orders_applied` when it holds any.
 4. The host writes `overseer_called { overseer, trigger, index }` and hands `{ definition, name, system, input,
