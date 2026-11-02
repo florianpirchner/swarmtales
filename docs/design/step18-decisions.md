@@ -356,7 +356,10 @@ differentials and twins and `test/mechanics/progression/standins.ts`. Goldens un
      exile mechanics and the stand-ins of `test/mechanics/tribunal/support/twin.ts`.
    - `test/engine/holdout.test.ts`: the old `World` with the holdout tribunal (blockers, calling, rules, snapshot,
      story). Partly mirrored by `test/mechanics/standoff-tribunal/holdout*.test.ts`; same reason and plan.
-   - Shared helpers kept for other groups: `test/helpers/old-engine-recorder.ts` (still imported by the
+   - With their last users gone, `recordWorld`, `oldValue` and `OldTrace` left `test/helpers/old-engine-recorder.ts` (so it
+     no longer imports the engine), and `apps/cli/src/compose.ts` no longer re-exports `effectiveRun` (its importers read
+     `run-options.ts`; knip).
+   - Shared helpers kept for other groups: `test/helpers/old-engine-recorder.ts` (`oldRun` / `oldRunAsync`, still imported by the
      `test/cli/host-*` differentials and `test/roles/gamemaker-overseer/host.test.ts`) and `test/helpers/old-world.ts`.
    - Outside this group: `test/overseers/runtime-chat` and `runtime-host` still import `compose.ts`.
 

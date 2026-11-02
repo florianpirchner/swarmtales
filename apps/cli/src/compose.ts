@@ -31,7 +31,7 @@ import type { EventSink } from "@swarmtales/legacy-log";
 import type { AnyStory, ModelChoice, Persona, ThinkingLevel } from "@swarmtales/contracts";
 import { storyId } from "../../../stories/index.ts";
 
-export { DEFAULT_LIMITS, effectiveRun, resolveBlockSize, type EffectiveRun, type RunOverrides } from "./run-options.ts";
+export { DEFAULT_LIMITS, resolveBlockSize, type EffectiveRun, type RunOverrides } from "./run-options.ts";
 
 /** Builds the model source once the world and the per-competitor models are known. */
 export type ModelSourceFactory = (world: World, assignments: ReadonlyMap<CompetitorId, ModelChoice>) => ModelSource;
