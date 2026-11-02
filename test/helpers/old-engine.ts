@@ -43,6 +43,7 @@ const REWORDED: readonly (readonly [RegExp, string])[] = [
 	[/Use a resident's core or goal/g, "Use a resident's core motive or goal"],
 	[/a resident's core or secret goal/g, "a resident's core motive or secret goal"],
 	[/Every resident has a core \(who it is/g, "Every resident has a core motive (who it is"],
+	[/^Cores and secret goals:/gm, "Core motives and secret goals:"],
 	[/"type":"core_dealt"/g, '"type":"motive_dealt"'],
 ];
 
@@ -54,6 +55,7 @@ const UNDONE: readonly (readonly [RegExp, string])[] = [
 	[/Use a resident's core motive or goal/g, "Use a resident's core or goal"],
 	[/a resident's core motive or secret goal/g, "a resident's core or secret goal"],
 	[/Every resident has a core motive \(who it is/g, "Every resident has a core (who it is"],
+	[/^Core motives and secret goals:/gm, "Cores and secret goals:"],
 	[/"type":"motive_dealt"/g, '"type":"core_dealt"'],
 ];
 

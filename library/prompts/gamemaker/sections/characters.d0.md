@@ -2,7 +2,7 @@
 id: gamemaker/sections/characters.d0
 variables: 
 ---
-Cores and secret goals:
+Core motives and secret goals:
 - The report shows who each resident is (its core motive: temperament and drives) and the secret goal the city dealt
   it for the act. They are the material of drama: a goal that collides with a fear, a loyalty that costs points.
 - Use a resident's core motive or goal only in a private note to that same resident, e.g. to set a dilemma between
