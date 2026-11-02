@@ -167,6 +167,8 @@ describe("grants: auto", () => {
 	const refused: readonly (readonly [string, Parts, RegExp])[] = [
 		["a tweak for an unknown name", { grantTweaks: { terminater: { add: ["look"] } } }, /grants name "terminater", which is neither built in nor an overseer/],
 		["a tweak for a tool no mechanic defines", { grantTweaks: { resident: { add: ["missing"] } } }, /tool "missing" is granted, locked or configured, but no loaded mechanic defines it/],
+		["a drop of a tool no mechanic defines (F2 m3)", { grantTweaks: { resident: { drop: ["shuot"] } } }, /grantTweaks\.resident\.drop names tool "shuot", which no loaded mechanic defines/],
+		["a set with a tool no mechanic defines (F2 m3)", { grantTweaks: { resident: { set: ["look", "shuot"] } } }, /grantTweaks\.resident\.set names tool "shuot", which no loaded mechanic defines/],
 		["tweaks with an explicit list", { grants: { resident: ["look"] }, grantTweaks: { resident: { add: ["shout"] } } }, /grantTweaks only apply with grants: "auto"/],
 	];
 	it.each(refused)("refuses %s", (_what, parts, error) => {
