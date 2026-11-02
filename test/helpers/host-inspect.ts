@@ -247,6 +247,57 @@ export function collectionOf(host: Pick<Host, "snapshot">, into: string): Static
 	return sliceOf(host, "cast", CastSlice).collections.find((entry) => entry.into === into);
 }
 
+const PenaltyRows = Type.Object({ ranking: Type.Array(Type.Object({ agent: Type.String(), nextPenalty: Type.Number() }, { additionalProperties: true })) }, { additionalProperties: true });
+
+/** What a resident's next wrong code costs (old `world.nextPenalty`). */
+export function nextPenaltyOf(host: FactsHost, agent: ResidentId): number | undefined {
+	return factOf(host, "progression.section", PenaltyRows).ranking.find((row) => row.agent === agent)?.nextPenalty;
+}
+
+const Offences = Type.Object({ offences: Type.Array(Type.Object({ agent: Type.String(), wrong: Type.Integer(), blames: Type.Integer() })) }, { additionalProperties: true });
+
+/** The act's wrong codes and blames per resident (old `world.snapshot().offences`). */
+export function offencesOf(host: Pick<Host, "snapshot">): readonly { readonly agent: string; readonly wrong: number; readonly blames: number }[] {
+	return sliceOf(host, "progression", Offences).offences;
+}
+
+const DmRecord = Type.Object(
+	{
+		id: Type.Integer(),
+		from: Type.String(),
+		to: Type.String(),
+		minute: Type.Integer(),
+		answered: Type.Boolean(),
+		text: Type.Optional(Type.String()),
+		deliveredMinute: Type.Optional(Type.Integer()),
+		deliveredAfter: Type.Optional(Type.Integer()),
+	},
+	{ additionalProperties: true },
+);
+const Dms = Type.Object({ dms: Type.Array(DmRecord) }, { additionalProperties: true });
+
+/** Every DM with its delivery (old `world.dmRecords()`). */
+export function dmRecordsOf(host: Pick<Host, "snapshot">): readonly Static<typeof DmRecord>[] {
+	return sliceOf(host, "channels", Dms).dms;
+}
+
+/** The last message number the city gave out (old `world.lastMessageNumber`). */
+export function lastMessageNumber(host: FactsHost): number {
+	return factOf(host, "channels.messages", Type.Integer());
+}
+
+/** Whether a cast member is active (old `world.cast.isActive`). */
+export function castActive(host: FactsHost, cast: string): boolean {
+	return factOf(host, "cast.active", Type.Array(Type.Object({ id: Type.String() }, { additionalProperties: true }))).some((member) => member.id === cast);
+}
+
+const Petitions = Type.Array(Type.Object({ id: Type.String(), status: Type.String() }, { additionalProperties: true }));
+
+/** A petition's status (old `world.petitions.status`); `undefined` for a petition never opened. */
+export function petitionStatus(host: Pick<Host, "snapshot">, petition: string): string | undefined {
+	return sliceOf(host, "petitions", Petitions).find((entry) => entry.id === petition)?.status;
+}
+
 /** Any account's balance, an escrow or the city's included (old `world.ledger.balance` on a non-resident account). */
 export function accountBalance(host: Pick<Host, "snapshot">, account: string): number {
 	return sliceOf(host, "ledger", LedgerSlice).balances.find((entry) => entry.account === account)?.balance ?? 0;

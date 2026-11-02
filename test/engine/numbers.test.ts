@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { dmRecordsOf, lastMessageNumber } from "../helpers/host-inspect.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 
 const story = tinyStory({ agents: 3, levels: socialLevels(["sendDM", "postBoard", "readBoard", "createGroup", "addGroupMember", "postGroup", "readGroup"]) });
 
 describe("city message numbers and DM receipts (SPEC 7)", () => {
 	it("number board posts, DMs and group posts in one space, shown to every reader", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			agents: 3,
 			minutes: 3,
@@ -34,11 +35,11 @@ describe("city message numbers and DM receipts (SPEC 7)", () => {
 		expect(fixture.toolResults("A02", "readBoard")).toEqual(["#1 A01: hello city"]);
 		expect(fixture.toolResults("A02", "readGroup")).toEqual(["#3 A01: in the group"]);
 		expect(fixture.events("dm_sent").map((event) => event.number)).toEqual([2]);
-		expect(fixture.world.lastMessageNumber).toBe(3);
+		expect(lastMessageNumber(fixture.host)).toBe(3);
 	});
 
 	it("send the sender a receipt with the full text once the DM reaches the recipient", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			agents: 3,
 			minutes: 3,
@@ -53,13 +54,13 @@ describe("city message numbers and DM receipts (SPEC 7)", () => {
 		expect(delivered).toHaveLength(1);
 		const minute = delivered[0]?.minute ?? -1;
 		expect(fixture.inputsOf("A01")).toContain(`[CITY] DM #1 delivered to A02 at minute ${minute} (receipt R-0001): "counter-factor 123456"`);
-		const record = fixture.world.dmRecords()[0];
+		const record = dmRecordsOf(fixture.host)[0];
 		expect(record).toMatchObject({ id: 1, from: "A01", to: "A02", text: "counter-factor 123456", deliveredMinute: minute });
 		expect(record?.deliveredAfter).toBeGreaterThanOrEqual(1);
 	});
 
 	it("number the gamemaker's notes in the same space", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 2,
 			only: 2,
