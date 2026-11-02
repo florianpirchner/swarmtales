@@ -373,6 +373,9 @@ class CoreHost implements Host {
 		await this.#slot("minuteStarted", minute);
 		this.#breach = undefined;
 		const passes = await this.#turns.play(agent, minute);
+		// The turns check the limits before each block; a limit the last block broke counts here, so the
+		// between slot's paid calls (the classifier) are skipped as the old arena skipped them.
+		if (!this.#failed) this.#breach ??= this.#referee.breach();
 		this.#phases((phases) => phases.minuteEnded, (run) => {
 			run();
 		});
