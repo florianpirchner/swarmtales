@@ -163,6 +163,28 @@ describe("the turn policy", () => {
 		expect(seen).toContain("skipped A03");
 	});
 
+	it("plays a pass with nobody in it as an empty pass: no blocks, no turns (old `blocksOf([], 2)`, F3)", async () => {
+		const sleepAll = defineMechanic(
+			{ id: "sleep", summary: "A test mechanic: suspends every resident.", options: Type.Object({}), state: () => undefined, events: {} },
+			() => ({
+				hooks: {
+					runStarted: (ctx) => {
+						for (const id of ctx.residents.ids) ctx.residents.suspend(id, "asleep");
+					},
+				},
+			}),
+		);
+		const run = await playStory({ story: story({ blockSize: 2, passes: 2 }, [talk.with(), sleepAll.with()]) }, slowFirst({}));
+		const passes = run.events.filter((event) => event.type === "pass_started").map(payloadOf);
+		expect(passes).toEqual([
+			{ pass: 1, order: [], blocks: [] },
+			{ pass: 2, order: [], blocks: [] },
+			{ pass: 1, order: [], blocks: [] },
+			{ pass: 2, order: [], blocks: [] },
+		]);
+		expect(run.events.filter((event) => event.type === "turn_started" || event.type === "said")).toEqual([]);
+	});
+
 	it("is deterministic and resumable with blocks and passes", async () => {
 		const options = { story: story({ blockSize: 2, passes: 2 }) };
 		const agent = () => slowFirst({ A01: 3, A02: 2, A03: 1 });
