@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fauxAssistantMessage, fauxThinking, fauxToolCall } from "@earendil-works/pi-ai";
 import { afterEach, describe, expect, it } from "vitest";
-import { EventBus } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
 import { AgentTranscriptLog } from "@swarmtales/chronicle";
 import { createHostFixture, say } from "../helpers/host-fixture.ts";
 import { fragmentOf } from "../helpers/host-inspect.ts";

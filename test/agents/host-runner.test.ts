@@ -11,10 +11,10 @@ import { fauxAssistantMessage, fauxText, fauxThinking, fauxToolCall, type FauxRe
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import type { ClassifierUsage, Souffleur, ToolOutcome, ToolSpec, Turn, TurnInputKind } from "@swarmtales/contracts";
-import { type BoundTool, EventBus } from "@swarmtales/engine";
+import { EventBus } from "@swarmtales/legacy-log";
 import { ScriptedModelSource, say } from "@swarmtales/models";
 import { AgentRunner, HostResidentRunner, inCatalogOrder, type InnerVoice, outcomeText, toolsNotice } from "@swarmtales/roles";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import { RESIDENT_LIMITS } from "../../apps/cli/src/host/residents.ts";
 
 const SPECS: readonly ToolSpec[] = [
@@ -30,6 +30,9 @@ function answer(tool: string, params: unknown): ToolOutcome {
 	const code = typeof params === "object" && params !== null && "code" in params ? params.code : undefined;
 	return code === "OPEN" ? { ok: true, reply: "correct · +5 points" } : { ok: false, code: "INCORRECT" };
 }
+
+/** A tool as the old runner binds it (the engine's `BoundTool`). */
+type BoundTool = ConstructorParameters<typeof AgentRunner>[0]["tools"][number];
 
 function oldResult(outcome: ToolOutcome): Awaited<ReturnType<BoundTool["execute"]>> {
 	return { content: [{ type: "text", text: outcomeText(outcome) }], details: undefined, ...(outcome.ok ? {} : { isError: true }) };

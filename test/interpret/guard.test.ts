@@ -1,6 +1,6 @@
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import { ChatGuardJudge, guardPrompt, type GuardQuestion } from "@swarmtales/roles";
 import { act, ScriptedModelSource } from "@swarmtales/models";
 
