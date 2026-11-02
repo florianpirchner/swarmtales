@@ -147,6 +147,66 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/mechanic-arena':
+        specifier: workspace:*
+        version: link:../../mechanics/arena
+      '@swarmtales/mechanic-cast':
+        specifier: workspace:*
+        version: link:../../mechanics/cast
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../../mechanics/channels
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../../mechanics/exile
+      '@swarmtales/mechanic-goals':
+        specifier: workspace:*
+        version: link:../../mechanics/goals
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:../../mechanics/ledger
+      '@swarmtales/mechanic-marks':
+        specifier: workspace:*
+        version: link:../../mechanics/marks
+      '@swarmtales/mechanic-motives':
+        specifier: workspace:*
+        version: link:../../mechanics/motives
+      '@swarmtales/mechanic-names':
+        specifier: workspace:*
+        version: link:../../mechanics/names
+      '@swarmtales/mechanic-petitions':
+        specifier: workspace:*
+        version: link:../../mechanics/petitions
+      '@swarmtales/mechanic-progression':
+        specifier: workspace:*
+        version: link:../../mechanics/progression
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:../../mechanics/puzzles
+      '@swarmtales/mechanic-receipts':
+        specifier: workspace:*
+        version: link:../../mechanics/receipts
+      '@swarmtales/mechanic-script':
+        specifier: workspace:*
+        version: link:../../mechanics/script
+      '@swarmtales/mechanic-seal':
+        specifier: workspace:*
+        version: link:../../mechanics/seal
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../../mechanics/shared
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:../../mechanics/standoff
+      '@swarmtales/mechanic-standoff-tribunal':
+        specifier: workspace:*
+        version: link:../../mechanics/standoff-tribunal
+      '@swarmtales/mechanic-tribunal':
+        specifier: workspace:*
+        version: link:../../mechanics/tribunal
+      '@swarmtales/mechanic-whispers':
+        specifier: workspace:*
+        version: link:../../mechanics/whispers
       '@swarmtales/models':
         specifier: workspace:*
         version: link:../../packages/models

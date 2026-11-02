@@ -33,6 +33,11 @@ export const ProgressionOptions = Type.Object({
 	attemptWindowMinutes: Type.Integer({ minimum: 1, default: 5, description: "Length of the window for wrong codes, in minutes." }),
 	survivors: Type.Integer({ minimum: 0, default: 0, description: "How many residents survive to the end (a seat in the ranking)." }),
 	finishedNotice: Type.String({ default: "", description: "The notice a resident gets once it has solved every level." }),
+	managed: Type.Array(Type.String(), {
+		default: [],
+		description:
+			"Tools no level lists that stay locked until the director unlocks them (`unlockTools`), as the old engine kept every tool closed that neither the level nor an unlock opened; the tools a feature's own mechanic opens (votes, the seal, defy) are not listed.",
+	}),
 });
 
 export const PROGRESSION_EVENTS = {

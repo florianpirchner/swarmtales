@@ -131,15 +131,20 @@ export function noteActStarts(ctx: ProgressionCtx, level: number): void {
 	}
 }
 
-/** Every tool some level offers: the tools progression opens and closes. */
-export function managedTools(ctx: ProgressionCtx): readonly string[] {
+/** Every tool some level offers (old `#finalTools`). */
+function levelTools(ctx: ProgressionCtx): readonly string[] {
 	return [...new Set(ctx.options.levels.flatMap((entry) => entry.tools))];
 }
 
-/** The managed tools the resident may use now: its level's set and what was unlocked for it; every one once it is finished. */
+/** The tools progression opens and closes: every tool some level offers, and the story's other closed tools (`managed`). */
+export function managedTools(ctx: ProgressionCtx): readonly string[] {
+	return [...new Set([...levelTools(ctx), ...ctx.options.managed])];
+}
+
+/** The managed tools the resident may use now: its level's set and what was unlocked for it; every level's once it is finished. */
 export function openTools(ctx: ProgressionCtx, resident: string): ReadonlySet<string> {
 	const entry = competitorOf(ctx, resident);
-	if (entry.level > lastLevelOf(ctx)) return new Set(managedTools(ctx));
+	if (entry.level > lastLevelOf(ctx)) return new Set([...levelTools(ctx), ...entry.extraTools]);
 	return new Set([...(definitionOf(ctx, entry.level)?.tools ?? []), ...entry.extraTools]);
 }
 
