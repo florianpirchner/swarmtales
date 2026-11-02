@@ -715,7 +715,6 @@ class CoreHost implements Host {
 		this.#staging.clear();
 		this.#desk.close();
 		if (this.#ended !== undefined) return;
-		// The signed log keeps what threw for good: no URL credentials or keys in it (chain-security m7).
 		const detail = redactSecrets(error instanceof Error ? error.message : String(error));
 		this.#bus.fail(() => this.#bus.emit("core", "run_ended", { reason: "error", detail }));
 		this.#ended = { reason: "error", minute: this.#minute };
