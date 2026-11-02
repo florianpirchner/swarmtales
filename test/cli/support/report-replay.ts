@@ -195,12 +195,3 @@ export function placed(line: LegacyLine): string {
 export function looksOf(lines: readonly LegacyLine[]): readonly { readonly round: number; readonly input: string }[] {
 	return lines.filter((line) => line.type === "gamemaker_turn").map((line) => ({ round: Number(line.round), input: String(line.input) }));
 }
-
-/** The look's section that starts with `heading` (up to the next blank line), for the assertions that a scenario reached it. */
-export function sectionOf(input: string, heading: string): readonly string[] {
-	const lines = input.split("\n");
-	const start = lines.findIndex((line) => line.startsWith(heading));
-	if (start < 0) return [];
-	const end = lines.indexOf("", start);
-	return lines.slice(start, end < 0 ? undefined : end);
-}
