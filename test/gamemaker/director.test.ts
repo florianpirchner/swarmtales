@@ -6,11 +6,13 @@
  * or repeats an earlier line to the same reader.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { Type } from "typebox";
+import { hostOracle } from "../../apps/cli/src/oracle.ts";
 import { characterLeaks, gamemakerSystemPrompt, nearlySame } from "@swarmtales/roles";
 import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { factOf } from "../helpers/host-inspect.ts";
 
 describe("the character guard", () => {
 	const residents = [
@@ -65,10 +67,10 @@ describe("the director's report and refusals (scripted)", () => {
 			level: 8,
 			minutes: 12,
 			script: () => ({ A01: [say(), say(), say(), say(), act({ name: "bid", args: { points: 3 } })] }),
-			gamemakerScript: (world) => [
+			gamemakerScript: (host) => [
 				act(
 					{ name: "notify", args: { agent: "A02", text: "A02, the wall is climbed in pairs, and yours waits." } },
-					{ name: "notify", args: { agent: "A03", text: `A03, ${world.goalOf("A01")?.text ?? ""}: that is what A01 wants.` } },
+					{ name: "notify", args: { agent: "A03", text: `A03, ${factOf(host, "goals.texts", Type.Record(Type.String(), Type.String())).A01 ?? ""}: that is what A01 wants.` } },
 				),
 				say("Done."),
 				act({ name: "notify", args: { agent: "A02", text: "A02: the wall is climbed in pairs, and yours waits!" } }),
@@ -99,7 +101,7 @@ describe("the director's report and refusals (scripted)", () => {
 			agents: 6,
 			level: 10,
 			minutes: 40,
-			script: (world) => oracleScript(world.competitors, () => worldOracle(world), 40),
+			script: (host) => oracleScript(host.residents, () => hostOracle(host), 40),
 			gamemakerScript: () => Array.from({ length: 80 }, () => say("Quiet.")),
 		});
 		await fixture.run();

@@ -3,18 +3,21 @@
  * blockers, the whisperer and the tribunal's moves; its tools call the
  * tribunal, announce outcomes and strike only where the rules allow; its
  * guards refuse fragments and any hint at the whisperer; a tribunal survives
- * a run snapshot in the middle of a vote.
+ * a run snapshot in the middle of a vote. On the host (step 18).
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
+import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import type { Host } from "@swarmtales/contracts";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
-import type { World } from "@swarmtales/engine";
-import { GAMEMAKER_ID, roleLeaks } from "@swarmtales/roles";
-import { ScriptedModelSource, type Script } from "@swarmtales/models";
-import { parseSnapshot, type RunSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { roleLeaks } from "@swarmtales/roles";
+import type { Script } from "@swarmtales/models";
+import { parseResumePoint, type ResumePoint, type RunFileOut } from "../../apps/cli/src/host/snapshot.ts";
+import { resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import whispers from "../../stories/whispers/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { codeOf, fragmentOf, isExiled, whispererOf } from "../helpers/host-inspect.ts";
 
 const MINUTES = 10;
 /** The snapshot's run holds out at door 2 (a run snapshot names a door everyone has passed). */
@@ -25,18 +28,18 @@ const SNAPSHOT_MINUTES = 16;
  * own; six minutes after the opening (the first vote of a tribunal called at the third) the five vote yes. Before door 2
  * everyone shares door 1 and passes it at minute 1. With `fixAt`, A01 sends its fragment to all at that minute instead.
  */
-function residents(world: World, door = 1, fixAt?: number): Script {
-	const opens = world.opensAt(door);
+function residents(host: Host, door = 1, fixAt?: number): Script {
+	const opens = whispers.levels[door - 1]?.opensAt ?? 0;
 	const script: Record<string, FauxResponseStep[]> = {};
-	for (const id of world.competitors) {
+	for (const id of host.residents) {
 		script[id] = Array.from({ length: SNAPSHOT_MINUTES + 2 }, (): FauxResponseStep => () => {
-			const minute = world.minute;
-			const others = world.competitors.filter((other) => other !== id);
-			const share = (level: number) => act(...others.map((target) => ({ name: "sendDM", args: { target, message: `Door ${level}, mine: ${world.inspect.fragmentOf(id, level)}` } })));
+			const minute = host.minute;
+			const others = host.residents.filter((other) => other !== id);
+			const share = (level: number) => act(...others.map((target) => ({ name: "sendDM", args: { target, message: `Door ${String(level)}, mine: ${fragmentOf(host, id, level)}` } })));
 			if (door > 1 && minute === 0) return share(1);
-			if (door > 1 && minute === 1) return act({ name: "submitSolution", args: { level: 1, code: world.inspect.passwordOf(id, 1) } });
+			if (door > 1 && minute === 1) return act({ name: "submitSolution", args: { level: 1, code: codeOf(host, id, 1) } });
 			if (minute === opens && id !== "A01") return share(door);
-			if (minute === opens + 1 && id === "A01") return act({ name: "submitSolution", args: { level: door, code: world.inspect.passwordOf(id, door) } });
+			if (minute === opens + 1 && id === "A01") return act({ name: "submitSolution", args: { level: door, code: codeOf(host, id, door) } });
 			if (minute === fixAt && id === "A01") return share(door);
 			if (minute === opens + 6 && id !== "A01") return act({ name: "tribunalVote", args: { yes: true } });
 			return say();
@@ -49,36 +52,33 @@ function residents(world: World, door = 1, fixAt?: number): Script {
  * The gamemaker's looks, by minute: `plan` gives the calls of a look's first
  * step; a step after calls (the tool loop's second model call) only answers.
  */
-function gamemakerSteps(world: World, plan: (minute: number) => AssistantMessage | undefined): readonly FauxResponseStep[] {
+function gamemakerSteps(host: Host, plan: (minute: number) => AssistantMessage | undefined): readonly FauxResponseStep[] {
 	let answered = true;
 	return Array.from({ length: 3 * SNAPSHOT_MINUTES }, (): FauxResponseStep => () => {
 		if (!answered) {
 			answered = true;
 			return say("Done.");
 		}
-		const planned = plan(world.minute);
+		const planned = plan(host.minute);
 		answered = planned === undefined;
 		return planned ?? say("Nothing to add.");
 	});
 }
 
 /** A resident who is not the whisperer, A01 or A02. */
-function bystander(world: World): string {
-	return world.competitors.find((id) => id !== world.whisperer && id !== "A01" && id !== "A02") ?? "A03";
+function bystander(host: Host): string {
+	return host.residents.find((id) => id !== whispererOf(host) && id !== "A01" && id !== "A02") ?? "A03";
 }
 
-function plan(world: World) {
+function plan(host: Host) {
 	return (minute: number): AssistantMessage | undefined => {
-		const whisperer = world.whisperer ?? "A06";
+		const whisperer = whispererOf(host) ?? "A06";
 		if (minute === 2) {
-			return act(
-				{ name: "notify", args: { agent: "A02", text: `A02, try ${world.inspect.fragmentOf("A01", 1)}.` } },
-				{ name: "postBoard", args: { text: "Someone among you is a whisperer." } },
-			);
+			return act({ name: "notify", args: { agent: "A02", text: `A02, try ${fragmentOf(host, "A01", 1)}.` } }, { name: "postBoard", args: { text: "Someone among you is a whisperer." } });
 		}
 		if (minute === 3) {
 			return act(
-				{ name: "notify", args: { agent: bystander(world), text: `${whisperer} lies to you, do not believe him.` } },
+				{ name: "notify", args: { agent: bystander(host), text: `${whisperer} lies to you, do not believe him.` } },
 				{ name: "callTribunal", args: { accused: ["A02"], reason: "A02 holds the city." } },
 				{ name: "callTribunal", args: { accused: ["A01"], reason: "A01 passed door 1 and keeps the city waiting." } },
 			);
@@ -96,13 +96,13 @@ function results(events: readonly RecordedEvent[]): readonly string[] {
 
 describe("the gamemaker in Whispers v3", () => {
 	it("sees the blockers and the whisperer, calls the tribunal, announces and strikes only as the rules allow", async () => {
-		const fixture = createFixture({ story: whispers, agents: 6, minutes: MINUTES, script: (world) => residents(world), gamemakerScript: (world) => gamemakerSteps(world, plan(world)) });
+		const fixture = createFixture({ story: whispers, agents: 6, minutes: MINUTES, script: (host) => residents(host), gamemakerScript: (host) => gamemakerSteps(host, plan(host)) });
 		await fixture.run();
 		const turns = fixture.events("gamemaker_turn");
 		const atThree = turns.find((turn) => turn.minute === 3)?.input ?? "";
 		expect(atThree).toContain("door 1: A01 passed it and holds back its fragment from A02, A03, A04, A05, A06 (a blocker since minute 3)");
 		expect(atThree).toContain("YOUR MOVE if a blocker holds the city: callTribunal on A01");
-		expect(atThree).toContain(`The whisperer (secret: only you and he know; never reveal it or hint at it, to anyone): ${fixture.world.whisperer ?? "?"}`);
+		expect(atThree).toContain(`The whisperer (secret: only you and he know; never reveal it or hint at it, to anyone): ${whispererOf(fixture.host) ?? "?"}`);
 		expect(turns.find((turn) => turn.minute === 6)?.input).toContain("TO ANNOUNCE (announceTribunal; otherwise the city posts a plain line at minute 7)");
 		expect(turns.find((turn) => turn.minute === 8)?.input).toContain("YOUR MOVE: permaDeath(A01, reason)");
 		// The report never shows a ballot.
@@ -127,18 +127,17 @@ describe("the gamemaker in Whispers v3", () => {
 			"A01 let the grace pass. The vote is open.",
 			"Every voter said yes. A01 leaves the city.",
 		]);
-		expect(fixture.world.isExiled("A01")).toBe(true);
+		expect(isExiled(fixture.host, "A01")).toBe(true);
 	});
 
 	it("gives the accused its whole grace in turns: a fix in the grace's last minute drops the tribunal before any vote", async () => {
-		const callOnly = (minute: number): AssistantMessage | undefined =>
-			minute === 3 ? act({ name: "callTribunal", args: { accused: ["A01"], reason: "A01 keeps the city waiting." } }) : undefined;
+		const callOnly = (minute: number): AssistantMessage | undefined => (minute === 3 ? act({ name: "callTribunal", args: { accused: ["A01"], reason: "A01 keeps the city waiting." } }) : undefined);
 		const fixture = createFixture({
 			story: whispers,
 			agents: 6,
 			minutes: MINUTES,
-			script: (world) => residents(world, 1, 5),
-			gamemakerScript: (world) => gamemakerSteps(world, callOnly),
+			script: (host) => residents(host, 1, 5),
+			gamemakerScript: (host) => gamemakerSteps(host, callOnly),
 		});
 		await fixture.run();
 		// Called after the residents' turns of minute 3; A01 hears it in minute 4 and still acts in minute 5.
@@ -146,7 +145,7 @@ describe("the gamemaker in Whispers v3", () => {
 		expect(fixture.inputsOf("A01").filter((input) => input.includes("THE TRIBUNAL: A01")).length).toBeGreaterThan(0);
 		expect(fixture.events("holdout_vote_opened")).toEqual([]);
 		expect(fixture.events("holdout_ended")).toMatchObject([{ minute: 6, outcome: "dropped" }]);
-		expect(fixture.world.isExiled("A01")).toBe(false);
+		expect(isExiled(fixture.host, "A01")).toBe(false);
 	});
 
 	it("names the whisperer's role nowhere and casts no doubt on him by name", () => {
@@ -166,25 +165,27 @@ describe("the gamemaker in Whispers v3", () => {
 
 const OVERRIDES: RunOverrides = { minutes: SNAPSHOT_MINUTES, passesPerMinute: 1, activation: "always", names: false, gamemaker: true, classifier: false, stopWhenDone: false, stopWhenSeatsDecided: false };
 
+/** The holdout tribunal's part of a run snapshot (old `snapshot.world.holdout`). */
+const HoldoutSession = Type.Object({ accused: Type.String(), door: Type.Integer(), stage: Type.String(), vote: Type.Integer(), until: Type.Integer(), ballots: Type.Array(Type.Unknown()) }, { additionalProperties: true });
+const HoldoutSlice = Type.Object({ holdout: Type.Optional(Type.Object({ session: Type.Optional(HoldoutSession) }, { additionalProperties: true })) }, { additionalProperties: true });
+
 /** The run with its gamemaker, holding out at door 2 (open at 6): it calls the tribunal at minute 9 (grace 10-11, vote 12-13) and strikes at 14. */
-async function play(extra: { readonly snapshotAt?: number; readonly resume?: RunSnapshot }): Promise<{ readonly events: readonly RecordedEvent[]; readonly world: World; readonly snapshot?: RunSnapshot }> {
-	const log = new MemorySink();
-	let taken: RunSnapshot | undefined;
+async function play(extra: { readonly snapshotAt?: number; readonly resume?: ResumePoint }): Promise<{ readonly events: readonly RecordedEvent[]; readonly host: Host; readonly snapshot?: ResumePoint }> {
+	let taken: ResumePoint | undefined;
 	const { resume, snapshotAt } = extra;
-	const steps = (world: World) =>
-		gamemakerSteps(world, (minute) =>
+	const steps = (host: Host) =>
+		gamemakerSteps(host, (minute) =>
 			minute === 9
 				? act({ name: "callTribunal", args: { accused: ["A01"], reason: "A01 keeps the city waiting." } })
 				: minute === 14
 					? act({ name: "permaDeath", args: { agent: "A01", reason: "The vote was unanimous." } })
 					: undefined,
 		);
-	const run = composeRun({
+	const run = createFixture({
 		story: whispers,
-		overrides: resume === undefined ? OVERRIDES : { ...OVERRIDES, ...resumeOverrides(resume, OVERRIDES) },
-		models: (world) => new ScriptedModelSource(residents(world, 2)),
-		gamemakerModels: (world) => new ScriptedModelSource({ [GAMEMAKER_ID]: steps(world) }),
-		sinks: [log],
+		...(resume === undefined ? OVERRIDES : resumedOverrides(resume, OVERRIDES)),
+		script: (host) => residents(host, 2),
+		gamemakerScript: steps,
 		...(snapshotAt === undefined
 			? {}
 			: {
@@ -192,16 +193,18 @@ async function play(extra: { readonly snapshotAt?: number; readonly resume?: Run
 						afterLevel: 1,
 						atMinute: snapshotAt,
 						stop: true,
-						write: (snapshot) => {
-							taken = parseSnapshot(JSON.parse(JSON.stringify(snapshot)));
+						file: "memory",
+						write: (snapshot: RunFileOut) => {
+							// Through JSON and the schema, as a file would go.
+							taken = parseResumePoint(JSON.parse(JSON.stringify(snapshot)));
 							return "memory";
 						},
 					},
 				}),
-		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot.json" } }),
+		...(resume === undefined ? {} : { resume: { point: resume, name: "snapshot.json" } }),
 	});
-	await run.arena.run();
-	return { events: log.events, world: run.world, ...(taken === undefined ? {} : { snapshot: taken }) };
+	await run.run();
+	return { events: run.log.events, host: run.host, ...(taken === undefined ? {} : { snapshot: taken }) };
 }
 
 describe("the holdout tribunal across a run snapshot", () => {
@@ -209,13 +212,14 @@ describe("the holdout tribunal across a run snapshot", () => {
 		const first = await play({ snapshotAt: 13 });
 		const snapshot = first.snapshot;
 		if (snapshot === undefined) throw new Error("no snapshot was taken");
-		expect(snapshot.world.holdout?.session).toMatchObject({ accused: "A01", door: 2, stage: "vote", vote: 1, until: 14 });
-		expect(snapshot.world.holdout?.session?.ballots).toHaveLength(5);
+		const session = Parse(HoldoutSlice, snapshot.host.mechanics["standoff-tribunal"]?.data).holdout?.session;
+		expect(session).toMatchObject({ accused: "A01", door: 2, stage: "vote", vote: 1, until: 14 });
+		expect(session?.ballots).toHaveLength(5);
 		const resumed = await play({ resume: snapshot });
 		const late = resumed.events.filter((event) => event.minute > snapshot.minute);
 		expect(late.filter((event) => event.type === "holdout_called" || event.type === "holdout_vote_opened")).toEqual([]);
 		expect(late.filter((event) => event.type === "holdout_vote_result")).toMatchObject([{ vote: 1, yes: 5, no: 0, unanimous: true }]);
 		expect(late.filter((event) => event.type === "holdout_ended")).toMatchObject([{ outcome: "banished", struck: "A01", by: "gamemaker" }]);
-		expect(resumed.world.isExiled("A01")).toBe(true);
+		expect(isExiled(resumed.host, "A01")).toBe(true);
 	});
 });

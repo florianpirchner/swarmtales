@@ -30,11 +30,15 @@ function lookWindow(ctx: Ctx): ReturnType<Ctx["log"]["all"]> {
 	return ctx.log.since(previous?.seq ?? 0).filter((event) => event.seq < last.seq);
 }
 
-/** Labels of thoughts and asides, plus every lie (read against a thought): old `privateLabelsOf`. */
+/**
+ * Labels of thoughts and asides, plus every lie (read against a thought): old `privateLabelsOf`.
+ * The classifier overseer writes its interpretations under its own name, a resumed old log under
+ * the app's; both count (a host run with the classifier read none before, step 18).
+ */
 function privateLabels(ctx: Ctx): PrivateLabels {
 	const labels = new Map<string, Set<string>>();
 	for (const event of lookWindow(ctx)) {
-		if (event.source !== "app" || event.type !== "interpretation") continue;
+		if (event.type !== "interpretation" || (event.source !== "app" && event.source !== "classifier")) continue;
 		const read = Parse(Interpretation, event.payload);
 		for (const label of read.labels) {
 			if (read.source !== "thought" && read.source !== "aside" && label !== "lie") continue;
