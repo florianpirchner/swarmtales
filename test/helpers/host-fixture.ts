@@ -70,6 +70,11 @@ function scarceFor(story: AnyStory, agents: number | undefined): AnyStory {
 	return { ...story, run: { ...story.run, survivors: agents - 1 } };
 }
 
+/** The story's own run dials, which undo the fixture's test defaults (the old `composeRun` played them). */
+export function storyDefaults(story: AnyStory): Pick<RunOverrides, "activation" | "passesPerMinute" | "stopWhenDone" | "stopWhenSeatsDecided"> {
+	return { activation: story.run.activation, passesPerMinute: story.run.passesPerMinute, stopWhenDone: story.run.stopWhenDone ?? false, stopWhenSeatsDecided: story.run.stopWhenSeatsDecided ?? false };
+}
+
 const scripted = (id: string, steps: readonly FauxResponseStep[]) => new ScriptedModelSource({ [id]: steps }).bind(id, DEFAULT_LIMITS);
 
 export function createHostFixture(options: HostFixtureOptions): HostFixture {

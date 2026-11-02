@@ -84,7 +84,8 @@ export const GoalsSlice = Type.Object({
 type GoalsSliceData = Static<typeof GoalsSlice>;
 
 /** The converter's version-0 slice: the old `GoalsSnapshot` under the mechanic's key. */
-export const GoalsSliceV0 = Type.Object({ goals: GoalsSlice });
+/** An old file written before goals (v08 and older) has none: the book starts empty, as the old world's did (`state.goals` absent). */
+export const GoalsSliceV0 = Type.Object({ goals: Type.Optional(GoalsSlice) });
 
 export function saveGoals(state: GoalsState): GoalsSliceData {
 	return {

@@ -16,6 +16,7 @@ import { ChainCheckpointSchema, ContextMessageSchema, convertLegacySnapshot, Leg
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { ContextMessage } from "@swarmtales/roles";
+import { storyId } from "../../../../stories/index.ts";
 
 export const RUN_FILE_FORMAT = "swarmtales-run";
 export const RUN_FILE_VERSION = 1;
@@ -93,7 +94,8 @@ function fromLegacy(raw: unknown, path: string): ResumePoint {
 		round: snapshot.round,
 		minute: snapshot.minute,
 		run: snapshot.run,
-		host: converted.host,
+		// An old file may name the story by its old name (`nexus`); the host checks the snapshot against the story's id.
+		host: { ...converted.host, story: storyId(converted.host.story) },
 		events: converted.events,
 		competitors: snapshot.competitors.map((entry) => ({ agent: entry.agent, messages: entry.messages.map((message) => Parse(ContextMessageSchema, message)) })),
 		coresDealt: (snapshot.world.cores ?? []).length > 0,

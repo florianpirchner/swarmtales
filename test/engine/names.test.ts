@@ -1,40 +1,76 @@
 /**
  * Resident names (v08, SPEC 18): chosen once in the first minutes, a seeded
  * fallback for the rest, names in every text a resident reads, names as
- * aliases in every tool, and IDs in events and snapshots.
+ * aliases in every tool, and IDs in events and snapshots. The rules run on
+ * the names mechanic (its book functions, or a host with a channels
+ * stand-in); the runs play on the host (step 18).
  */
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
-import { NameBook, withResidents } from "@swarmtales/engine";
-import { ScriptedModelSource } from "@swarmtales/models";
-import { readSnapshot, MemorySink } from "@swarmtales/chronicle";
+import { Type } from "typebox";
+import { Check } from "typebox/value";
+import type { AnyStory, EventEnvelope, HostSnapshot, NamesSpec } from "@swarmtales/contracts";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
+import { displayNames, nameLabel, nameRefusal, names, resolveName, withResidents, type NamesState } from "@swarmtales/mechanic-names";
+import { createPromptLookup } from "@swarmtales/prompts";
 import { validateStory } from "@swarmtales/sdk";
-import type { AnyStory, NamesSpec } from "@swarmtales/contracts";
+import { idleAgent } from "@swarmtales/testkit";
+import { readResumePoint } from "../../apps/cli/src/host/snapshot.ts";
+import { resumedOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say, storyDefaults } from "../helpers/host-fixture.ts";
+import { factOf, sliceOf } from "../helpers/host-inspect.ts";
+import { channelsStandIn } from "../mechanics/t1/support.ts";
 
 const SPEC: NamesSpec = { untilMinute: 2, announcement: "Choose before minute {untilMinute}.", fallbackWords: ["Stone", "Ash"] };
+const RESERVED = ["CITY", "COURIER", "STEWARD", "NEXUS"];
+const IDS = ["A01", "A02", "A03", "A04"];
+const NamesSlice = Type.Object({ entries: Type.Array(Type.Unknown()), settled: Type.Boolean(), off: Type.Optional(Type.Boolean()) });
+const Chosen = Type.Object({ agent: Type.String(), name: Type.String(), fallback: Type.Boolean() });
 
-function book(seed = 7): { readonly names: NameBook; readonly announced: string[] } {
-	const announced: string[] = [];
-	const names = new NameBook({
-		spec: SPEC,
-		ids: ["A01", "A02", "A03", "A04"],
+/** The names book's rules over a state with the given names (the old `NameBook` without a clock). */
+function stateWith(entries: Readonly<Record<string, string>>): NamesState {
+	return { ids: IDS, entries: new Map(Object.entries(entries).map(([agent, name]) => [agent, { agent, name, fallback: false }])), settled: false, active: true };
+}
+
+const reserved = new Set(RESERVED.map((name) => name.toLowerCase()));
+
+/** The names mechanic on a host of four residents (a stand-in for channels), with what it announced. */
+function book(seed = 7, resume?: { readonly snapshot: HostSnapshot; readonly events: readonly EventEnvelope[] }) {
+	const channels = channelsStandIn();
+	const definition = defineCoreStory({
+		id: "names-test",
 		seed,
-		reserved: ["CITY", "COURIER", "STEWARD", "NEXUS"],
-		announce: (entry) => announced.push(`${entry.agent}=${entry.name}${entry.fallback ? "*" : ""}`),
+		minutes: 8,
+		residents: IDS,
+		mechanics: [names.with({ ...SPEC, fallbackWords: [...SPEC.fallbackWords], reserved: RESERVED }), channels.use],
+		grants: { resident: ["chooseName", "sendDM"] },
 	});
-	return { names, announced };
+	const host = createHost({ story: definition, prompts: createPromptLookup(), ...(resume === undefined ? {} : { resume }) });
+	if (resume === undefined) host.start();
+	const from = host.log.all().length;
+	return {
+		host,
+		channels: channels.log,
+		/** The names given since this host started (old `announce` callback), `*` for the city's fallback. */
+		announced: (): string[] =>
+			host.log
+				.all()
+				.slice(from)
+				.flatMap((event) => (event.type === "name_chosen" && Check(Chosen, event.payload) ? [`${event.payload.agent}=${event.payload.name}${event.payload.fallback ? "*" : ""}`] : [])),
+		choose: (agent: string, name: string) => host.call(`resident:${agent}`, "chooseName", { name }),
+		/** Plays minutes until `minute` has started (old `settle(minute)`). */
+		settle: async (minute: number): Promise<void> => {
+			while (host.minute <= minute) await host.playMinute(idleAgent);
+		},
+		nameOf: (agent: string): string | undefined => factOf(host, "names.names", Type.Record(Type.String(), Type.String()))[agent],
+	};
 }
 
 describe("choosing a name", () => {
 	it("refuses names that break a rule, with clear codes", () => {
-		const { names } = book();
-		const refused = (name: string) => {
-			const result = names.choose("A01", name, 0);
-			return result.ok ? "ok" : result.error;
-		};
+		const state = stateWith({});
+		const refused = (name: string) => nameRefusal(state, reserved, name)?.error ?? "ok";
 		expect(["Mo", "7even", "Mira Bell", "M".repeat(17), "Mira!"].map(refused)).toEqual(["NAME_INVALID", "NAME_INVALID", "NAME_INVALID", "NAME_INVALID", "NAME_INVALID"]);
 		expect(["A07", "a99", "Stone-A12", "GT1", "R-0042"].map(refused)).toEqual(["NAME_ID", "NAME_ID", "NAME_ID", "NAME_ID", "NAME_ID"]);
 		expect(["city", "Courier", "STEWARD", "Nexus"].map(refused)).toEqual(["NAME_RESERVED", "NAME_RESERVED", "NAME_RESERVED", "NAME_RESERVED"]);
@@ -42,64 +78,65 @@ describe("choosing a name", () => {
 	});
 
 	it("names no resident ID in a refusal, since the city renders IDs as names (v08 Act I run: 'such as Ansgar')", () => {
-		const result = book().names.choose("A01", "A07", 0);
-		expect(result.ok ? "" : result.detail).not.toMatch(/A\d/);
+		expect(nameRefusal(stateWith({}), reserved, "A07")?.detail ?? "").not.toMatch(/A\d/);
 	});
 
-	it("is unique without case, permanent, and closes at its minute", () => {
-		const { names, announced } = book();
-		expect(names.choose("A01", "Mira", 0).ok).toBe(true);
-		expect(names.choose("A02", "MIRA", 0)).toMatchObject({ ok: false, error: "NAME_TAKEN" });
-		expect(names.choose("A01", "Ilse", 1)).toMatchObject({ ok: false, error: "NAME_CHOSEN", detail: "you are called Mira; a name is chosen once" });
-		expect(names.canChoose("A02", 1)).toBe(true);
-		expect(names.canChoose("A02", 2)).toBe(false);
-		expect(names.choose("A02", "Ilse", 2)).toMatchObject({ ok: false, error: "NAME_CLOSED" });
-		expect(announced).toEqual(["A01=Mira"]);
+	it("is unique without case, permanent, and closes at its minute", async () => {
+		const { host, announced, choose } = book();
+		expect((await choose("A01", "Mira")).ok).toBe(true);
+		expect(await choose("A02", "MIRA")).toMatchObject({ ok: false, code: "NAME_TAKEN" });
+		await host.playMinute(idleAgent);
+		expect(await choose("A01", "Ilse")).toMatchObject({ ok: false, code: "NAME_CHOSEN", detail: "you are called Mira; a name is chosen once" });
+		expect(host.openTools("A02")).toContain("chooseName");
+		await host.playMinute(idleAgent);
+		// At minute 2 the choice is closed: the tool is locked (the book's NAME_CLOSED is behind the lock).
+		expect(host.openTools("A02")).not.toContain("chooseName");
+		expect(await choose("A02", "Ilse")).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
+		expect(announced()).toEqual(["A01=Mira"]);
 	});
 
-	it("names whoever has none when the choice closes: seeded, unique, in the word-and-digits style", () => {
+	it("names whoever has none when the choice closes: seeded, unique, in the word-and-digits style", async () => {
 		const first = book();
-		first.names.choose("A02", "Ilse", 0);
-		first.names.settle(1);
-		expect(first.announced).toEqual(["A02=Ilse"]);
-		first.names.settle(2);
-		expect(first.announced).toHaveLength(4);
-		const given = ["A01", "A03", "A04"].map((agent) => first.names.nameOf(agent) ?? "");
+		await first.choose("A02", "Ilse");
+		await first.settle(1);
+		expect(first.announced()).toEqual(["A02=Ilse"]);
+		await first.settle(2);
+		expect(first.announced()).toHaveLength(4);
+		const given = ["A01", "A03", "A04"].map((agent) => first.nameOf(agent) ?? "");
 		for (const name of given) expect(name).toMatch(/^(Stone|Ash)-\d{4}$/);
 		expect(new Set(given).size).toBe(3);
-		expect(first.announced.slice(1).every((entry) => entry.endsWith("*"))).toBe(true);
+		expect(first.announced().slice(1).every((entry) => entry.endsWith("*"))).toBe(true);
 		// The same seed gives the same names; settling twice changes nothing.
 		const second = book();
-		second.names.choose("A02", "Ilse", 0);
-		second.names.settle(2);
-		second.names.settle(3);
-		expect(second.announced).toEqual(first.announced);
+		await second.choose("A02", "Ilse");
+		await second.settle(2);
+		await second.settle(3);
+		expect(second.announced()).toEqual(first.announced());
 	});
 
 	it("resolves names and IDs without case, and shows names in texts", () => {
-		const { names } = book();
-		names.choose("A01", "Mira", 0);
-		names.choose("A02", "Ilse", 0);
-		expect(["mira", " MIRA ", "a02", "A03", "Nobody"].map((value) => names.resolve(value))).toEqual(["A01", "A01", "A02", "A03", undefined]);
-		expect(names.display("A01 pays A02; A03 waits")).toBe("Mira pays Ilse; A03 waits");
+		const state = stateWith({ A01: "Mira", A02: "Ilse" });
+		expect(["mira", " MIRA ", "a02", "A03", "Nobody"].map((value) => resolveName(state, value))).toEqual(["A01", "A01", "A02", "A03", undefined]);
+		const display = (text: string, keep: (token: string) => boolean = () => false) => displayNames(state, text, keep);
+		expect(display("A01 pays A02; A03 waits")).toBe("Mira pays Ilse; A03 waits");
 		// The city's announcement, piece references and codes keep their IDs; a password fragment too.
-		expect(names.display("A01 is now called Mira.")).toBe("A01 is now called Mira.");
-		expect(names.display("L8-counter-A02 and XA01 and A01x")).toBe("L8-counter-A02 and XA01 and A01x");
-		expect(names.display("fragment A02, from A02", (token) => token === "A02")).toBe("fragment A02, from A02");
-		expect(names.label("A01")).toBe("Mira (A01)");
-		expect(names.label("A03")).toBe("A03");
+		expect(display("A01 is now called Mira.")).toBe("A01 is now called Mira.");
+		expect(display("L8-counter-A02 and XA01 and A01x")).toBe("L8-counter-A02 and XA01 and A01x");
+		expect(display("fragment A02, from A02", (token) => token === "A02")).toBe("fragment A02, from A02");
+		expect(nameLabel(state, "A01")).toBe("Mira (A01)");
+		expect(nameLabel(state, "A03")).toBe("A03");
 	});
 
-	it("restores from a snapshot", () => {
-		const { names } = book();
-		names.choose("A01", "Mira", 0);
-		names.settle(2);
-		const copy = book();
-		copy.names.restore(names.snapshot());
-		expect(copy.announced).toEqual([]);
-		expect(copy.names.snapshot()).toEqual(names.snapshot());
-		expect(copy.names.resolve("mira")).toBe("A01");
-		expect(copy.names.canChoose("A01", 0)).toBe(false);
+	it("restores from a snapshot", async () => {
+		const original = book();
+		await original.choose("A01", "Mira");
+		await original.settle(2);
+		const copy = book(7, { snapshot: original.host.snapshot(), events: original.host.log.all() });
+		expect(copy.announced()).toEqual([]);
+		expect(copy.host.snapshot().mechanics.names).toEqual(original.host.snapshot().mechanics.names);
+		expect((await copy.host.call("resident:A02", "sendDM", { target: "mira", message: "hello" })).ok).toBe(true);
+		expect(copy.channels.dms.map((dm) => dm.to)).toEqual(["A01"]);
+		expect(copy.host.openTools("A01")).not.toContain("chooseName");
 	});
 
 	it("maps resident parameters at any depth and leaves the rest", () => {
@@ -152,7 +189,7 @@ describe("names in a run", () => {
 		await fixture.run();
 		// The first task and the system prompt announce the choice; chooseName is gone at minute 2.
 		expect(fixture.inputsOf("A01")[1]).toContain('chooseName(name="..."), before minute 2');
-		expect(fixture.runners[0]?.systemPrompt).toContain("Before minute 2 you choose the name the city knows you by, once, with chooseName");
+		expect(fixture.runners()[0]?.systemPrompt).toContain("Before minute 2 you choose the name the city knows you by, once, with chooseName");
 		expect(fixture.events("request").filter((event) => event.agent === "A03").map((event) => event.tools.includes("chooseName"))).toEqual([true, true, false, false]);
 
 		expect(fixture.toolResults("A01", "chooseName")).toEqual(["you are now called Mira · the board announces it", "NAME_CHOSEN: you are called Mira; a name is chosen once"]);
@@ -196,25 +233,26 @@ describe("names in a run", () => {
 	it("keeps IDs in a run without names", async () => {
 		const fixture = createFixture({ agents: 6, minutes: 1, lastLevel: 1, script: () => ({}) });
 		await fixture.run();
-		expect(fixture.world.hasNames).toBe(false);
+		// The names book plays switched off (old `hasNames` false).
+		expect(sliceOf(fixture.host, "names", NamesSlice).off).toBe(true);
 		expect(fixture.events("request").every((event) => !event.tools.includes("chooseName"))).toBe(true);
-		expect(fixture.runners[0]?.systemPrompt).not.toContain("chooseName");
+		expect(fixture.runners()[0]?.systemPrompt).not.toContain("chooseName");
 		expect(fixture.inputsOf("A01")[1]).not.toContain("chooseName");
 	});
 
 	it("resumes a snapshot from before names with IDs and no choice", () => {
-		const snapshot = readSnapshot(join(process.cwd(), "examples", "cityofkeys-act1-06a-02", "snapshot-L7.json"));
-		const run = composeRun({
+		const point = readResumePoint(join(process.cwd(), "examples", "cityofkeys-act1-06a-02", "snapshot-L7.json"));
+		const run = createFixture({
 			story: cityOfKeys,
-			overrides: resumeOverrides(snapshot, { gamemaker: false, classifier: false }),
-			models: new ScriptedModelSource({}),
-			sinks: [new MemorySink()],
-			resume: { snapshot, name: "snapshot-L7.json" },
+			...storyDefaults(cityOfKeys),
+			...resumedOverrides(point, { gamemaker: false, classifier: false }),
+			script: () => ({}),
+			resume: { point, name: "snapshot-L7.json" },
 		});
-		expect(run.world.hasNames).toBe(false);
-		expect(run.world.enabledTools("A01")).not.toContain("chooseName");
-		expect(run.world.display("A01 pays A02")).toBe("A01 pays A02");
-		expect(run.world.snapshot().names).toBeUndefined();
-		expect(run.runners[0]?.systemPrompt).not.toContain("chooseName");
+		// The names book plays switched off: no names, no choice (old `hasNames` false, no `names` in the old snapshot).
+		expect(sliceOf(run.host, "names", NamesSlice)).toEqual({ entries: [], settled: false, off: true });
+		expect(run.host.openTools("A01")).not.toContain("chooseName");
+		expect(run.host.display("A01 pays A02")).toBe("A01 pays A02");
+		expect(run.runners()[0]?.systemPrompt).not.toContain("chooseName");
 	});
 });

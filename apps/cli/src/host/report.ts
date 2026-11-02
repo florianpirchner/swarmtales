@@ -22,8 +22,8 @@
  * without the feature. Every fact value is parsed with its owner's schema (untrusted input).
  * Gate: test/cli/host-gamemaker-golden.test.ts (every golden look, byte for byte).
  */
-import type { AnyStory } from "@swarmtales/contracts";
-import { directFigure, figureOf, type DirectionLevel } from "@swarmtales/engine";
+import type { AnyStory, DirectionLevel } from "@swarmtales/contracts";
+import { directFigure, figureOf } from "./direction.ts";
 import { progressionSectionOf, renderProgressionHeader, renderResidents, type ProgressionSection } from "@swarmtales/mechanic-progression";
 import { needsFrom, secretsFrom, type Needs } from "@swarmtales/mechanic-puzzles";
 import { renderSealSection, sealSectionOf } from "@swarmtales/mechanic-seal";
@@ -45,7 +45,7 @@ function factOr<T>(facts: Readonly<Record<string, unknown>>, name: string, parse
 }
 
 /** The "Who they are" block (old `characterLines`): core motive, goal and, from direction 8, the figure's material. */
-function characterLines(story: AnyStory, look: GamemakerLook, alive: readonly string[]): readonly string[] {
+export function characterLines(story: AnyStory, look: Pick<GamemakerLook, "facts" | "direction">, alive: readonly string[]): readonly string[] {
 	const lines = factOr(look.facts, "motives.lines", (value) => Parse(Lines, value), {});
 	const figures = factOr(look.facts, "motives.coreMotives", (value) => Parse(Figures, value), {});
 	const goals = factOr(look.facts, "goals.texts", (value) => Parse(Lines, value), {});

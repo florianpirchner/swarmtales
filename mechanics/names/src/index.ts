@@ -13,6 +13,9 @@ import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { ChannelsApi, ExileApi, HOOK_ORDER, INPUT_KINDS, NamesApi, PuzzlesApi, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { canChoose, display, isOpen, label, nameOf, refusal, resolve, type NameEntry, type NamesState } from "./book.ts";
 
+/** The rules of names as functions over the state, for tests of the rules alone. */
+export { display as displayNames, label as nameLabel, refusal as nameRefusal, resolve as resolveName, type NamesState } from "./book.ts";
+
 /** The city's author name (kernel `CITY`, copied: a mechanic takes only the authoring calls from the kernel). */
 const CITY = "CITY";
 const COURIER = "COURIER";
@@ -89,7 +92,7 @@ function settle(ctx: Ctx): void {
 }
 
 /** `raw` with every resident parameter, at any depth (a will's bequests), replaced by the ID it stands for. */
-function withResidents(raw: unknown, find: (value: string) => string): unknown {
+export function withResidents(raw: unknown, find: (value: string) => string): unknown {
 	if (Array.isArray(raw)) return raw.map((item: unknown) => withResidents(item, find));
 	if (typeof raw !== "object" || raw === null) return raw;
 	return Object.fromEntries(Object.entries(raw).map(([key, value]: [string, unknown]) => [key, typeof value === "string" && RESIDENT_PARAMS.includes(key) ? find(value) : withResidents(value, find)]));

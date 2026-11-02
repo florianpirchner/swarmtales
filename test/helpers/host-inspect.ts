@@ -307,3 +307,37 @@ export function accountBalance(host: Pick<Host, "snapshot">, account: string): n
 export function ledgerTotal(host: Pick<Host, "snapshot">): number {
 	return sliceOf(host, "ledger", LedgerSlice).balances.reduce((sum, entry) => sum + entry.balance, 0);
 }
+
+const Exiled = Type.Array(Type.Object({ resident: Type.String(), by: Type.String() }));
+
+/** Whether a resident has left the city for good (old `world.isExiled`). */
+export function isExiled(host: FactsHost, agent: ResidentId): boolean {
+	return factOf(host, "exile.exiled", Exiled).some((entry) => entry.resident === agent);
+}
+
+const TribunalSection = Type.Object({ exiled: Type.Array(Type.String()), missing: Type.Integer(), target: Type.Integer() }, { additionalProperties: true });
+
+/** The tribunal's count (old `world.tribunal`): who left, how many the city still has to exile; `undefined` without a tribunal. */
+export function tribunalOf(host: FactsHost): Static<typeof TribunalSection> | undefined {
+	const value = host.fact("tribunal.section");
+	if (value === undefined || value === null) return undefined;
+	if (!Check(TribunalSection, value)) throw new Error("fact tribunal.section has an unexpected shape");
+	return value;
+}
+
+/**
+ * The value of a piece a resident holds for others on an additive level (old `world.heldPieces(holder)`
+ * by id): `L<level>-certificate` (the team certificate it keeps) or `L<level>-counter-<needer>`.
+ */
+export function pieceValue(host: Pick<Host, "snapshot">, holder: ResidentId, id: string): string {
+	const match = /^L(\d+)-(certificate|counter-(.+))$/.exec(id);
+	const deal = match === null ? undefined : factorsOf(host, Number(match[1]));
+	if (match === null || deal === undefined) throw new Error(`${holder} holds no ${id}`);
+	const needer = match[3];
+	const value =
+		needer === undefined
+			? deal.teams.find((team) => team.certificateHolder === holder)?.certificate
+			: deal.holdings.find((holding) => holding.agent === needer && holding.counterHolder === holder)?.counterFactor;
+	if (value === undefined) throw new Error(`${holder} holds no ${id}`);
+	return value;
+}

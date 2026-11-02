@@ -17,6 +17,8 @@ import { sealSnapshot } from "./slice.ts";
 import { SealSectionFact } from "./section.ts";
 
 export { renderSealSection, SealSectionFact, sealSectionOf, type SealSection } from "./section.ts";
+/** The auction's rules over a state of its own, for tests of the rules alone. */
+export { auctionOf, bidOf, borne, emptySeal, holds, SealHouse, sealCount, type SealData, type SealPorts } from "./house.ts";
 
 const CITY = "CITY";
 const Int = Type.Integer();

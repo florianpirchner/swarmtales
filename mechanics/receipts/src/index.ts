@@ -16,6 +16,8 @@ import { LegacySlice, Slice, receiptsHead } from "./head.ts";
 import { CITY, issue, showTool } from "./issue.ts";
 
 export { receiptsHead };
+/** The receipt book's rules as functions over a list of receipts, for tests of the rules alone. */
+export { describeReceipt, nextId, normalizeReceiptId, partiesOf, receiptsOf, showable, type Receipt } from "./book.ts";
 
 /** The snapshot's receipts must run R-0001, R-0002, ... as issued (old `restore`). */
 function inOrder(receipts: readonly Receipt[]): Receipt[] {

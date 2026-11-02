@@ -90,6 +90,6 @@ export const goals = defineMechanic(goalsWorkHead, (kit) => ({
 		save: saveGoals,
 		load: (data) => loadGoals(data),
 		// The converter's version-0 slice is the old `GoalsSnapshot` under the key `goals`.
-		migrations: { 0: (old) => Parse(GoalsSliceV0, old).goals },
+		migrations: { 0: (old) => Parse(GoalsSliceV0, old).goals ?? { acts: [] } },
 	}),
 }));

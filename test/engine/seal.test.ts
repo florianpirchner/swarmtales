@@ -6,15 +6,43 @@
  * in which the seal is won and broken.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds, type CompetitorId } from "@swarmtales/kernel";
-import { sealCount, type SealEvent, SealHouse, type Standing } from "@swarmtales/engine";
+import { competitorIds, rngFor, type CompetitorId } from "@swarmtales/kernel";
+import { auctionOf, bidOf, borne, emptySeal, holds, SealHouse, sealCount as sealsFor, type SealData } from "@swarmtales/mechanic-seal";
+import type { SealSpec } from "@swarmtales/contracts";
+import type { Standing } from "@swarmtales/mechanic-shared";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, isExiled, ledgerTotal, tribunalOf } from "../helpers/host-inspect.ts";
 
 const spec = cityOfKeys.seal;
 
-interface Harness {
+/** Seals of an act with `residents` (old `sealCount(spec, residents)`). */
+const sealCount = (seal: SealSpec, residents: number): number => sealsFor(seal.perResidents, residents);
+
+/** One seal event as the old `SealHouse` emitted it: its type and payload. */
+interface SealEvent {
+	readonly type: string;
+	readonly [field: string]: unknown;
+}
+
+/** The seal mechanic's `SealHouse` over its own state, read as the old house was (`auction`, `bidOf`, `holds`, `borne`, `snapshot`). */
+interface House {
 	readonly house: SealHouse;
+	readonly data: SealData;
+	readonly auction: { readonly seal: number; readonly until: number } | undefined;
+	readonly borne: number;
+	begin(actStart: number, residents: number): void;
+	tick(minute: number): void;
+	bid: SealHouse["bid"];
+	use: SealHouse["use"];
+	end(): void;
+	onExiled(agent: string): void;
+	bidOf(agent: string): number | undefined;
+	holds(agent: string): boolean;
+}
+
+interface Harness {
+	readonly house: House;
 	readonly events: SealEvent[];
 	readonly posts: string[];
 	readonly notices: { readonly to: string; readonly text: string }[];
@@ -25,7 +53,7 @@ interface Harness {
 	readonly struck: CompetitorId[];
 }
 
-function harness(agents = 6): Harness {
+function harness(agents = 6, data: SealData = emptySeal()): Harness {
 	if (spec === undefined) throw new Error("cityofkeys has no seal");
 	const ids = competitorIds(agents);
 	const events: SealEvent[] = [];
@@ -40,27 +68,50 @@ function harness(agents = 6): Harness {
 		city: { missing: 3 },
 		struck,
 	};
-	const house = new SealHouse({
-		spec,
-		seed: 7,
-		ids,
-		points: (agent) => state.points.get(agent) ?? 0,
-		standing: (agent): Standing => {
-			const kind = state.standing.get(agent) ?? "alive";
-			return kind === "gate" ? { kind, until: 99 } : { kind };
+	const { texts, ...rule } = spec;
+	const house = new SealHouse(
+		{ announceAfter: rule.announceAfter, bidMinutes: rule.bidMinutes, perResidents: rule.perResidents, spacing: rule.spacing, texts },
+		{
+			ids,
+			points: (agent) => state.points.get(agent) ?? 0,
+			standing: (agent): Standing => {
+				const kind = state.standing.get(agent) ?? "alive";
+				return kind === "gate" ? { kind, until: 99 } : { kind };
+			},
+			missing: () => state.city.missing,
+			burn: (agent, points) => state.points.set(agent, (state.points.get(agent) ?? 0) - points),
+			post: (text) => state.posts.push(text),
+			notify: (to, text) => state.notices.push({ to, text }),
+			emit: (type, payload) => state.events.push({ type, ...payload }),
+			strike: (target) => {
+				state.struck.push(target);
+				state.standing.set(target, "exiled");
+				state.city.missing -= 1;
+			},
+			// The mechanic's seeded draw (`ctx.rng("seal", seal)`) of the story's seed.
+			shuffle: (seal, agents) => rngFor(7, "seal", seal).shuffle(agents),
 		},
-		missing: () => state.city.missing,
-		burn: (agent, points) => state.points.set(agent, (state.points.get(agent) ?? 0) - points),
-		post: (text) => state.posts.push(text),
-		notify: (to, text) => state.notices.push({ to, text }),
-		emit: (event) => state.events.push(event),
-		strike: (target) => {
-			state.struck.push(target);
-			state.standing.set(target, "exiled");
-			state.city.missing -= 1;
+		data,
+	);
+	const view: House = {
+		house,
+		data,
+		get auction() {
+			return auctionOf(data);
 		},
-	});
-	return { ...state, house };
+		get borne() {
+			return borne(data);
+		},
+		begin: (actStart, residents) => house.begin(actStart, residents),
+		tick: (minute) => house.tick(minute),
+		bid: (agent, points) => house.bid(agent, points),
+		use: (holder, target) => house.use(holder, target),
+		end: () => house.end(),
+		onExiled: (agent) => house.onExiled(agent),
+		bidOf: (agent) => bidOf(data, agent),
+		holds: (agent) => holds(data, agent),
+	};
+	return { ...state, house: view };
 }
 
 describe("the seal auction", () => {
@@ -187,11 +238,9 @@ describe("breaking the seal", () => {
 		h.house.begin(0, 6);
 		h.house.tick(4);
 		h.house.bid("A02", 5);
-		const copy = harness();
-		const state = h.house.snapshot();
-		if (state === undefined) throw new Error("no seal state");
-		copy.house.restore(structuredClone(state));
-		expect(copy.house.snapshot()).toEqual(h.house.snapshot());
+		// The mechanic's state is the snapshot (its slice is a copy of it, test/mechanics/seal).
+		const copy = harness(6, structuredClone(h.house.data));
+		expect(copy.house.data).toEqual(h.house.data);
 		expect(copy.house.bidOf("A02")).toBe(5);
 	});
 });
@@ -209,27 +258,27 @@ describe("the black seal in a cityofkeys run (scripted)", () => {
 			}),
 		});
 		await fixture.run();
-		const world = fixture.world;
+		const host = fixture.host;
 		expect(fixture.events("seal_auction_opened")).toMatchObject([{ seal: 1, until: 7, minute: 4 }]);
 		expect(fixture.events("seal_won")).toMatchObject([{ agent: "A01", bid: 6, bids: [{ agent: "A01", points: 6 }, { agent: "A03", points: 2 }] }]);
 		expect(fixture.toolResults("A01", "bid")).toEqual(["your bid of 6 points stands in secret · the bidding closes at minute 7"]);
 		// While the auction runs, every resident's status line says so; the board never names the bearer.
 		expect(fixture.inputsOf("A05").some((input) => input.startsWith("[status]") && input.includes("black seal auction: secret bids with bid(points) until minute 7"))).toBe(true);
-		expect(world.board.all().some((post) => post.text === "Someone now bears the black seal.")).toBe(true);
-		expect(world.board.all().filter((post) => post.text.includes("broke the black seal")).map((post) => post.text)).toEqual(["A01 broke the black seal on A02."]);
+		expect(fixture.boardPosts().some((post) => post.text === "Someone now bears the black seal.")).toBe(true);
+		expect(fixture.boardPosts().filter((post) => post.text.includes("broke the black seal")).map((post) => post.text)).toEqual(["A01 broke the black seal on A02."]);
 		// Broken at minute 8: A02 leaves without gate, its points burn, its goal is read out, and the tribunal counts it.
 		expect(fixture.events("seal_used")).toMatchObject([{ holder: "A01", target: "A02", minute: 8 }]);
 		expect(fixture.events("exiled")).toMatchObject([{ agent: "A02", by: "seal" }]);
 		expect(fixture.events("exile_gate")).toEqual([]);
-		expect(world.isExiled("A02")).toBe(true);
-		expect(world.ledger.balance("A02")).toBe(0);
-		expect(world.enabledTools("A02")).toEqual([]);
-		expect(world.tribunal?.exiled).toEqual(["A02"]);
-		expect(world.tribunal?.missing).toBe(2);
-		expect(world.board.all().some((post) => post.text.startsWith("A02 leaves the city. Its secret goal was: "))).toBe(true);
+		expect(isExiled(host, "A02")).toBe(true);
+		expect(balanceOf(host, "A02")).toBe(0);
+		expect(host.openTools("A02")).toEqual([]);
+		expect(tribunalOf(host)?.exiled).toEqual(["A02"]);
+		expect(tribunalOf(host)?.missing).toBe(2);
+		expect(fixture.boardPosts().some((post) => post.text.startsWith("A02 leaves the city. Its secret goal was: "))).toBe(true);
 		expect(fixture.events("goal_resolved").find((event) => event.agent === "A02")).toMatchObject({ void: true });
-		expect(world.isToolEnabled("A01", "permaDeath")).toBe(false);
+		expect(host.openTools("A01")).not.toContain("permaDeath");
 		expect(fixture.toolResults("A01", "permaDeath")).toEqual(["you broke the black seal · A02 has left the city"]);
-		expect(world.ledger.total()).toBe(0);
+		expect(ledgerTotal(host)).toBe(0);
 	});
 });

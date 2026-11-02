@@ -416,6 +416,8 @@ class CoreHost implements Host {
 
 	openTools(resident: ResidentId): readonly string[] {
 		if (!this.#registry.ids.includes(resident)) throw new Error(`host: ${resident} is no resident of this run`);
+		// A resident who may not act (suspended) has no open tool: every call of it is locked (S18-1), as the old `enabledTools` listed none.
+		if (!this.#registry.mayAct(resident)) return [];
 		const isTool = (tool: string): boolean => this.#loaded.tools.has(tool);
 		return this.#bus.run({ actor: "host" }, () => this.#access.grantsOf("resident").filter((tool) => this.#access.isOpen(resident, tool, isTool)));
 	}
