@@ -35,8 +35,12 @@ export const namesHead = defineHead({
 		announcement: Type.String({ description: "Added to the first task while a resident may choose; placeholder {untilMinute}. Required: the story's text (R2-D17); an empty text says nothing on purpose." }),
 		fallbackWords: Type.Array(Type.String({ minLength: 1 }), { minItems: 1, default: ["Stone", "Ash", "Reed", "Flint", "Moss", "Wren"], description: "Words of the names the city gives, letters only, so a name stays within 16 characters." }),
 		reserved: Type.Array(Type.String(), { default: [], description: "Names nobody may take besides the system authors: the cast, the city." }),
+		off: Type.Boolean({
+			default: false,
+			description: "The off switch: a run that keeps IDs (a story without names, `--no-names`, a run that starts past the first level). The book provides NamesApi with no names, `chooseName` stays locked, nothing is announced.",
+		}),
 	}),
-	state: ({ residents }): NamesState => ({ ids: residents, entries: new Map<string, NameEntry>(), settled: false, active: true }),
+	state: ({ residents, options }): NamesState => ({ ids: residents, entries: new Map<string, NameEntry>(), settled: false, active: !options.off }),
 	events: { name_chosen: Type.Object({ agent: Type.String(), name: Type.String(), fallback: Type.Boolean() }) },
 	prompts: {
 		"tools/chooseName": [],
@@ -173,3 +177,8 @@ export const names = defineMechanic(namesHead, (kit) => ({
 		},
 	}),
 }));
+
+/** The names book switched off: residents keep their IDs (step 18, the off switch of a story without names). */
+export function namesOff() {
+	return names.with({ announcement: "", off: true });
+}
