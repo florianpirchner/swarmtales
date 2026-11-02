@@ -1,0 +1,34 @@
+{
+	"name": "@swarmtales/chronicle",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Event logs, snapshots, digest and the run reporter",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/prompts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/models": "workspace:*",
+		"@swarmtales/roles": "workspace:*",
+		"typebox": "1.3.27",
+		"@earendil-works/pi-agent-core": "1.4.0",
+		"@earendil-works/pi-ai": "1.4.0"
+	}
+}

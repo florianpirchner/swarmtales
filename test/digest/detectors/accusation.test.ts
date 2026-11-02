@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectAccusations } from "../../../src/digest/detectors/accusation.ts";
+import { buildFacts, detectAccusations } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 function shownReceipt(log: LogBuilder): { issued: number; shown: number } {

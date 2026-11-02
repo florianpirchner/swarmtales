@@ -6,9 +6,8 @@
  * in which the seal is won and broken.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
-import { SealHouse, sealCount, type SealEvent } from "../../src/engine/seal.ts";
-import type { Standing } from "../../src/engine/tribunal.ts";
+import { competitorIds, type CompetitorId } from "@swarmtales/kernel";
+import { sealCount, type SealEvent, SealHouse, type Standing } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

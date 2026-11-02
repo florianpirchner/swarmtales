@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { act, at, defineStory, every, onFirstEnter, onTeamSplit, team, when } from "../../src/story/define.ts";
-import { placeholdersOf, renderTemplate, TemplateError, unknownPlaceholders } from "../../src/story/templates.ts";
+import { act, at, defineStory, every, onFirstEnter, onTeamSplit, team, when } from "@swarmtales/sdk";
+import { placeholdersOf, renderTemplate, TemplateError, unknownPlaceholders } from "@swarmtales/kernel";
 import { tinyStory } from "../helpers/stories.ts";
 
 describe("story DSL", () => {

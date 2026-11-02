@@ -1,0 +1,135 @@
+[
+	{
+		"id": "S1-enter-deferred",
+		"file": "mechanics/script/src/index.ts",
+		"find": "{ immediate: true, order: LISTENER_ORDER.level_entered.script }",
+		"replace": "{ order: LISTENER_ORDER.level_entered.script }",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S2-minute-unstaged",
+		"file": "mechanics/script/src/index.ts",
+		"find": "ctx.stage(DirectorMinute, {}, { then: \"minuteRan\" });",
+		"replace": "startMinute(ctx);",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S3-first-enter-every-time",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "trigger.kind === \"onFirstEnter\" && trigger.level === level && first",
+		"replace": "trigger.kind === \"onFirstEnter\" && trigger.level === level",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S4-cooldown-actor-as-rule",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "return `${rule.id}|${occasion.actor ?? \"-\"}`;",
+		"replace": "return rule.id;",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S5-cooldown-pair-as-actor",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "return `${rule.id}|${occasion.actor ?? \"-\"}|${occasion.other ?? \"-\"}`;",
+		"replace": "return `${rule.id}|${occasion.actor ?? \"-\"}`;",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S6-split-straggler-highest",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "levelOf(ctx, a) - levelOf(ctx, b) || a.localeCompare(b)",
+		"replace": "levelOf(ctx, b) - levelOf(ctx, a) || a.localeCompare(b)",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S7-notice-not-personal",
+		"file": "mechanics/script/src/actions.ts",
+		"find": "need(ctx, ChannelsApi, \"notify\", { to: agent, author: CITY, text: render(ctx, action.text, personal(occasion, agent)) });",
+		"replace": "need(ctx, ChannelsApi, \"notify\", { to: agent, author: CITY, text: render(ctx, action.text, occasion) });",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S8-factor-holders-quiet",
+		"file": "mechanics/script/src/actions.ts",
+		"find": "const holders = revealed.agents.length > 0 ? [] : recipients;",
+		"replace": "const holders: string[] = [];",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S9-post-inactive-cast",
+		"file": "mechanics/script/src/actions.ts",
+		"find": "if (ctx.options.cast.includes(action.author) && !need(ctx, CastApi, \"isActive\", { cast: action.author }))",
+		"replace": "if (ctx.options.cast.includes(action.author) && !ctx.options.cast.includes(action.author))",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S10-migrate-empty",
+		"file": "mechanics/script/src/state.ts",
+		"find": "if (typeof old === \"object\" && old !== null && Object.keys(old).length === 0) return new FiringState([]).save();",
+		"replace": "",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S11-petition-status-open",
+		"file": "mechanics/script/src/city.ts",
+		"find": "if (Check(Resolved, resolved)) return resolved.outcome;",
+		"replace": "",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S12-collection-open-when-full",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "&& collection.entries < collection.first;",
+		"replace": ";",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S13-seats-of-named",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "return named === undefined ? undefined : collectionOf(ctx, named)?.first;",
+		"replace": "return undefined;",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S14-audit-dropped",
+		"file": "mechanics/script/src/actions.ts",
+		"find": "if (action.kind === \"revealCollection\") return \"DIRECTOR_PRIVACY_BREACH\";",
+		"replace": "",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S15-collection-shortened-ignored",
+		"file": "mechanics/script/src/city.ts",
+		"find": "untilMinute: Check(Shortened, shortened) ? shortened.untilMinute : started.untilMinute,",
+		"replace": "untilMinute: started.untilMinute,",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S16-petition-chain-not-run",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "runActions(ctx, { rule: opened.origin.rule, via }, outcome === \"passed\" ? opened.spec.onPass : opened.spec.onFail, {});",
+		"replace": "",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S17-restore-drops-petitions",
+		"file": "mechanics/script/src/state.ts",
+		"find": "this.petitions.set(entry.petition, { origin: { rule: entry.rule, ...(entry.via === undefined ? {} : { via: entry.via }) }, spec });",
+		"replace": "",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S18-split-key-without-team",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "const key = `${rule.id}:${String(index)}`;",
+		"replace": "const key = rule.id;",
+		"tests": ["test/mechanics/script"]
+	},
+	{
+		"id": "S19-unanswered-window",
+		"file": "mechanics/script/src/triggers.ts",
+		"find": "minute - record.minute < afterMinutes",
+		"replace": "minute - record.minute < afterMinutes - 1",
+		"tests": ["test/mechanics/script"]
+	}
+]

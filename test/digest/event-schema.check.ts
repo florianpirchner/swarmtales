@@ -8,8 +8,8 @@
  * this file stops compiling instead of the digest silently dropping those
  * events as "does not match its schema".
  */
-import type { ArenaEventType, RecordedEvent } from "../../src/engine/events.ts";
-import type { DigestEventOf, DigestEventType } from "../../src/digest/event-log.ts";
+import type { ArenaEventType, RecordedEvent } from "@swarmtales/engine";
+import type { DigestEventOf, DigestEventType } from "@swarmtales/chronicle";
 
 type DeepReadonly<T> = T extends readonly (infer Item)[]
 	? readonly DeepReadonly<Item>[]

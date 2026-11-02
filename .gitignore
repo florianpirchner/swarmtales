@@ -8,3 +8,8 @@ lab/out/
 # The template is versioned.
 !.env.example
 .claude/worktrees/
+
+# Build output
+dist/
+dist-types/
+*.tsbuildinfo

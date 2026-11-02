@@ -29,7 +29,7 @@ telling.
 - **Turning points** are the bigger moments that change who stays in the city and who wins: the
   black seal won and broken, an ultimatum someone paid rather than hand over, an exile, a ransom, a
   last will, a secret goal that held, the final ranking. Code reads them from the log
-  ([`src/digest/turning-points.ts`](../src/digest/turning-points.ts)), so the list is always
+  ([`packages/chronicle/src/digest/turning-points.ts`](../packages/chronicle/src/digest/turning-points.ts)), so the list is always
   complete, costs nothing and is the same every time. Both the chronicle and the story must tell
   every one of them, and code checks that they did.
 

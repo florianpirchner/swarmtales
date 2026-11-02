@@ -1,7 +1,7 @@
 /** The run's early ends never cut a tribunal short (SPEC 6.3, 6.4; P18). */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { oracleScript } from "@swarmtales/models";
 import { createFixture } from "../helpers/fixture.ts";
 
 describe("early ends and the tribunal", () => {

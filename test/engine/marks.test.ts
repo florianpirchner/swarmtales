@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MarksBook } from "../../src/engine/marks.ts";
-import type { MarksRules } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import { MarksBook } from "@swarmtales/engine";
+import type { MarksRules } from "@swarmtales/contracts";
+import { validateStory } from "@swarmtales/sdk";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { tinyStory } from "../helpers/stories.ts";
 

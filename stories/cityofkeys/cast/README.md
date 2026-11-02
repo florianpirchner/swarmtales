@@ -9,8 +9,8 @@ of the story, a figure says who someone is and what they want, never how to get 
 The cast has 24 figures, one per archetype. The game gives every resident one figure at the start
 of the first act (a seeded pick with the story's quarter of light figures, or the ones the run names
 with `--cast banner,house,...`), and the resident keeps it for all acts of that game. A figure plays
-the persona of its profession; residents beyond the cast get a drawn core. Every resident with a
-core also gets the story's frame first in its system prompt: a fictional city, played by AI agents,
+the persona of its profession; residents beyond the cast get a drawn core motive. Every resident with a
+core motive also gets the story's frame first in its system prompt: a fictional city, played by AI agents,
 where dark sides are played without softening (`stories/cityofkeys/characters.ts`). The resident still chooses its own name in Act I; the title is
 not a name.
 

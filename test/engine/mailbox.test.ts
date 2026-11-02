@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Mailbox } from "../../src/engine/mailbox.ts";
+import { Mailbox } from "@swarmtales/engine";
 
 const entry = (text: string, from = "A01") => ({ from, text, minute: 0 });
 

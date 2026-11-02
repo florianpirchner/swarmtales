@@ -3,10 +3,8 @@
  * emits them (`ArenaEvent`), numbered in order and stamped with the current
  * minute, so a test reads like a script of the run.
  */
-import { analyzeLog, type RunAnalysis } from "../../src/digest/digest.ts";
-import type { ArenaEvent, RecordedEvent } from "../../src/engine/events.ts";
-import type { ReceiptKind } from "../../src/engine/receipts.ts";
-import type { StatementLabel, StatementSource } from "../../src/interpret/labels.ts";
+import { analyzeLog, type RunAnalysis } from "@swarmtales/chronicle";
+import type { ArenaEvent, ReceiptKind, RecordedEvent, StatementLabel, StatementSource } from "@swarmtales/engine";
 
 export class LogBuilder {
 	readonly events: RecordedEvent[] = [];

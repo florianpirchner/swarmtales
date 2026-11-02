@@ -5,14 +5,12 @@
  */
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink } from "../../src/engine/events.ts";
-import { NameBook } from "../../src/engine/names.ts";
-import { withResidents } from "../../src/tools/tool.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
-import { readSnapshot } from "../../src/snapshot/snapshot.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import type { AnyStory, NamesSpec } from "../../src/story/types.ts";
+import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
+import { MemorySink, NameBook, withResidents } from "@swarmtales/engine";
+import { ScriptedModelSource } from "@swarmtales/models";
+import { readSnapshot } from "@swarmtales/chronicle";
+import { validateStory } from "@swarmtales/sdk";
+import type { AnyStory, NamesSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 

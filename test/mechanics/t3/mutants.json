@@ -1,0 +1,200 @@
+[
+	{
+		"id": "M5",
+		"file": "mechanics/progression/src/model.ts",
+		"find": "doorReleased: data.doorReleased === true && door === data.door,",
+		"replace": "doorReleased: data.doorReleased === true,",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M6",
+		"file": "mechanics/progression/src/index.ts",
+		"find": "noteActStarts(ctx, Math.max(0, ...ctx.residents.ids.map((id) => levelOf(ctx, id))));",
+		"replace": "",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M7",
+		"file": "mechanics/progression/src/index.ts",
+		"find": "if (ctx.minute > 0) openDoor(ctx);\n\t\t\t\t},\n\t\t\t},\n\t\t],",
+		"replace": "if (ctx.minute < 0) openDoor(ctx);\n\t\t\t\t},\n\t\t\t},\n\t\t],",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M8",
+		"file": "mechanics/puzzles/src/guard.ts",
+		"find": "(record.to === agent && record.deliveredMinute !== undefined)",
+		"replace": "record.to === agent",
+		"tests": [
+			"test/mechanics/puzzles",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M10",
+		"file": "mechanics/progression/src/model.ts",
+		"find": "delivered: old.delivered ?? old.competitors.map(",
+		"replace": "delivered: old.competitors.map(",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M11",
+		"file": "mechanics/puzzles/src/resume.ts",
+		"find": "checkReached(ctx, level);\n\t\t\tcontinue;",
+		"replace": "continue;",
+		"tests": [
+			"test/mechanics/puzzles",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M15",
+		"file": "mechanics/progression/src/submit.ts",
+		"find": "minute - at < ctx.options.attemptWindowMinutes",
+		"replace": "minute - at <= ctx.options.attemptWindowMinutes",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M16",
+		"file": "mechanics/progression/src/levels.ts",
+		"find": "residents: [...aliveResidents(ctx)] }",
+		"replace": "residents: [...ctx.residents.ids] }",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M17",
+		"file": "mechanics/progression/src/index.ts",
+		"find": "if (reason === \"stopped\") return;",
+		"replace": "",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M21",
+		"file": "mechanics/progression/src/task.ts",
+		"find": "[nameLine(ctx, agent), holdoutLine(ctx, agent), marksLine(ctx, level)]",
+		"replace": "[marksLine(ctx, level), holdoutLine(ctx, agent), nameLine(ctx, agent)]",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M23",
+		"file": "mechanics/progression/src/levels.ts",
+		"find": "const firsts = [ctx.options.startLevel, ...ctx.options.acts].sort((a, b) => a - b);",
+		"replace": "const firsts = [ctx.options.startLevel, ...ctx.options.acts];",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M25",
+		"file": "mechanics/puzzles/src/resume.ts",
+		"find": "if (saved === undefined || JSON.stringify",
+		"replace": "if (true || JSON.stringify",
+		"tests": [
+			"test/mechanics/puzzles",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M26",
+		"file": "mechanics/progression/src/services.ts",
+		"find": ": latest), -1),",
+		"replace": ": latest), 0),",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "M27",
+		"file": "mechanics/goals/src/index.ts",
+		"find": "{ immediate: true, order: LISTENER_ORDER.act_ended.goals }",
+		"replace": "{ order: LISTENER_ORDER.act_ended.goals }",
+		"tests": [
+			"test/mechanics/t3/real-order.test.ts"
+		]
+	},
+	{
+		"id": "T3-A1",
+		"file": "mechanics/shared/src/order.ts",
+		"find": "act_ended: { seal: 100, goals: 200 },",
+		"replace": "act_ended: { seal: 200, goals: 100 },",
+		"tests": [
+			"test/mechanics/t3/real-order.test.ts"
+		]
+	},
+	{
+		"id": "T3-A2",
+		"file": "mechanics/progression/src/index.ts",
+		"find": "return ctx.tryCall(ExileApi, \"standing\", { resident: call.resident })?.kind === \"gate\" ? refuse(\"TOOL_LOCKED\", ctx.prompt(\"replies/locked\", {})) : undefined;",
+		"replace": "return undefined;",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "T3-A2b-sort",
+		"file": "mechanics/progression/src/tools.ts",
+		"find": "return [...open].sort((a, b) => rank(a) - rank(b));",
+		"replace": "return [...open];",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "T3-A3",
+		"file": "mechanics/progression/src/model.ts",
+		"find": "const door = data.door ?? doorIn(options);",
+		"replace": "const door = data.door ?? (data.locksStale ? doorIn(options) : undefined);",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "T3-A4",
+		"file": "mechanics/progression/src/submit.ts",
+		"find": "const holdAfter = doorIn(ctx.options);",
+		"replace": "const holdAfter = ctx.options.holdAfter;",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	},
+	{
+		"id": "T3-A5",
+		"file": "mechanics/progression/src/task.ts",
+		"find": "holdoutLine(ctx, agent), ",
+		"replace": "",
+		"tests": [
+			"test/mechanics/progression",
+			"test/mechanics/t3"
+		]
+	}
+]

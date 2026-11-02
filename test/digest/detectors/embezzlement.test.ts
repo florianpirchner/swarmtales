@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectEmbezzlement } from "../../../src/digest/detectors/embezzlement.ts";
+import { buildFacts, detectEmbezzlement } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 function deposit(log: LogBuilder, agent: string, amount: number): number {

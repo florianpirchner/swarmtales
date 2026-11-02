@@ -4,12 +4,12 @@
  * drive above all, and its text says who it is, never what to do in the game.
  */
 import { describe, expect, it } from "vitest";
-import { parseFigure, readArchetypes, readFigures, type FigureFile } from "../../src/cast/figures.ts";
-import { CORES } from "../../stories/cityofkeys/characters.ts";
+import { parseFigure, readArchetypes, readFigures, type FigureFile } from "@swarmtales/sdk";
+import { CORE_MOTIVES } from "../../stories/cityofkeys/characters.ts";
 
 const library = readArchetypes("archetypes");
 const cityOfKeysCast = readFigures("stories/cityofkeys/cast");
-const catalog = new Map(CORES.drives.map((drive) => [drive.id, drive]));
+const catalog = new Map(CORE_MOTIVES.drives.map((drive) => [drive.id, drive]));
 
 describe("the archetypes library and the cityofkeys cast", () => {
 	it("reads all professions, drives and residents", () => {
@@ -29,8 +29,8 @@ describe("the archetypes library and the cityofkeys cast", () => {
 		const professions = new Set(library.professions.map((profession) => profession.id));
 		for (const resident of [...library.figures, ...cityOfKeysCast]) {
 			expect(professions.has(resident.profession), `${resident.id} profession`).toBe(true);
-			expect(resident.drives.length, resident.id).toBeGreaterThanOrEqual(CORES.perResident.min);
-			expect(resident.drives.length, resident.id).toBeLessThanOrEqual(CORES.perResident.max);
+			expect(resident.drives.length, resident.id).toBeGreaterThanOrEqual(CORE_MOTIVES.perResident.min);
+			expect(resident.drives.length, resident.id).toBeLessThanOrEqual(CORE_MOTIVES.perResident.max);
 			expect(resident.drives.every((drive) => catalog.has(drive.id)), `${resident.id} drives`).toBe(true);
 			const above = resident.drives.filter((drive) => drive.intensity === "aboveAll");
 			expect(above.length, resident.id).toBe(1);

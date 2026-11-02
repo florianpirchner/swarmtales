@@ -1,13 +1,10 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { World } from "../../src/engine/world.ts";
-import type { CompetitorId } from "../../src/core/ids.ts";
-import { ownCharsOf, validatePuzzle } from "../../src/engine/puzzles/fragments.ts";
-import { puzzle } from "../../src/story/define.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import { bindStory, TOOLS } from "../../src/tools/index.ts";
+import { bindStory, ownCharsOf, TOOLS, validatePuzzle, type World } from "@swarmtales/engine";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { puzzle, validateStory } from "@swarmtales/sdk";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import type { AnyStory } from "@swarmtales/contracts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
@@ -199,10 +196,10 @@ describe("whispers in one scripted run", () => {
 		if (cast === undefined) throw new Error("the script was not built");
 		const { whisperer, sender, victim, favourite } = cast;
 		expect(fixture.events("whisperer_chosen")).toEqual([expect.objectContaining({ agent: whisperer })]);
-		// The whisperer plays with the story's own core (cold, envious), the others with drawn ones.
-		const cores = fixture.events("core_dealt");
-		expect(cores).toHaveLength(6);
-		expect(cores.find((core) => core.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.core?.drives, bigFive: whispers.whisperer?.core?.bigFive });
+		// The whisperer plays with the story's own core motive (cold, envious), the others with drawn ones.
+		const coreMotives = fixture.events("core_dealt");
+		expect(coreMotives).toHaveLength(6);
+		expect(coreMotives.find((coreMotive) => coreMotive.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.coreMotive?.drives, bigFive: whispers.whisperer?.coreMotive?.bigFive });
 		await fixture.run();
 		const world = fixture.world;
 

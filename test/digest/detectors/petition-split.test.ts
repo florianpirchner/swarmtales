@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectPetitionSplits } from "../../../src/digest/detectors/petition-split.ts";
+import { buildFacts, detectPetitionSplits } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 function open(log: LogBuilder, against: readonly string[] = ["ORION"]): number {

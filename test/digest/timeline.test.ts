@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderDigest } from "../../src/digest/digest.ts";
-import { namedAgents } from "../../src/digest/facts.ts";
+import { namedAgents, renderDigest } from "@swarmtales/chronicle";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 describe("timeline.md", () => {

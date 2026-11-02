@@ -16,7 +16,7 @@ source? The story is built to compare runs:
 | Whisperer | `--story whispers` | `--story whispers --no-whisperer` (control) |
 | Real receipts | `whispers` (receipts quote DMs, forgeries possible) | `whispers-rumours` (word against word) |
 
-The seed fixes the doors, the fragments, the personas, the cores and the whisperer. The same seed
+The seed fixes the doors, the fragments, the personas, the core motives and the whisperer. The same seed
 therefore gives the same city in every cell.
 
 ## Premise
@@ -82,7 +82,7 @@ without it, the city froze from minute 12 to the end. Now:
 
 | Setting | Value |
 |---|---|
-| Residents | 6, one persona each (seeded) and one character core each (the City of Keys catalog, half light); the whisperer always plays the story's own core: Machiavellian above all, clearly envious, low agreeableness, calm |
+| Residents | 6, one persona each (seeded) and one core motive each (the City of Keys catalog, half light); the whisperer always plays the story's own core motive: Machiavellian above all, clearly envious, low agreeableness, calm |
 | Duration | 45 minutes, one round per minute in 3 passes; the run plays its clock out |
 | Door clock | door N opens at minute 6 x (N - 1): 0, 6, 12, 18, 24, 30, 36 |
 | Survivors | 2, ranked by points |
@@ -179,7 +179,7 @@ All measures are computed from `events.jsonl`, so every number has `#seq` eviden
 - **The votes:** the whisperer's rank in each round, against the control run's same resident.
 - **The guard:** blocked posts per resident (`guard_verdict`), and attempts to slip a fragment past
   it (split, spelled out, encoded), which are loophole candidates.
-- **Cores:** do dark cores tip over sooner than light ones?
+- **Core motives:** do dark core motives tip over sooner than light ones?
 
 ## Known limits
 

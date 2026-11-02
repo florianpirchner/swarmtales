@@ -1,0 +1,77 @@
+# Rewrite status (2026-10-31) and how to continue
+
+Branch `claude/project-thread-b71bdz`, nothing is on `main` yet (Flo: everything lands in one pass).
+`pnpm check` is green on this branch (1509 tests; lint needs a 12 GB heap, the whole check takes about 7 minutes).
+The old engine (`packages/engine`, `world.ts`) still runs the product; the new core and the 19 mechanics run
+next to it and are proven by tests. Golden files in `test/golden` were never regenerated.
+
+## Done
+
+| Wave | What | Where |
+|---|---|---|
+| 1 | Golden-run tests (cityofkeys f4g4, f10g10, whispers f10 + grudge), prompts in `library/prompts` (404 files, typed loader), import cycles broken (contracts layer), pnpm workspace with tsdown, `swt` | `test/golden`, `packages/prompts`, `apps/cli` |
+| 2 | New core: `packages/contracts/src/core`, `packages/kernel/src/host`, `packages/testkit`, legacy event adapter and legacy snapshot converter (all 5 example snapshots and 12 real run logs round-trip byte-equal) | `docs/design/mechanic-api.md` |
+| 3.0 | 12 core fixes from the challenger review, 19 empty `mechanics/*` packages, frozen `mechanics/shared` | `docs/design/core-review-2c.md` |
+| 3 | Four teams carved the mechanics; challengers found many divergences | `docs/design/challenge-wave3.md` |
+| 3.5 | Integrator decided every request, explicit hook/listener order table, strict golden gates with self-test | `docs/design/carve-decisions.md`, `mechanics/shared/src/order.ts` |
+| 3.6 | Round 2: T1 (names, ledger, marks, receipts, whispers) complete with differential tests; T3 (puzzles, progression, goals) mostly; T4a (exile, tribunal) and T4b (seal, standoff-tribunal, standoff) carved; T2 (channels, petitions, cast, motives) production code and, in the proof pass, strict golden gates, differential tests and legacy resume tests | `docs/design/carve-round2-T*.md`, `docs/design/carve-requests-round2-*.md` |
+| 3.7 | Round-2 challengers (T1, T3, T4a, T4b); integrator's second pass: absent slices, `ctx.roles`, fact queries, old argument handling and `TOOL_LOCKED` text, lock-aware `access.open`/`isOpen`, `runResumed`, listener-mode check, ledger `open`/`has`/`idempotencyKey`, `PuzzlesApi.secrets`, shared `StandoffTribunalApi.taskLine`, `defy` owned by channels, converter copies, mutation helper | `docs/design/carve-decisions.md` (round 2), `docs/design/carve-round3-*.md`, `docs/design/challenge-round2.md` |
+| 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
+
+## Open, in this order
+
+1. **Round 3 challengers are done** (reports: `/mnt/project-files/notes/challenge-round3-*.md`). Golden logs are safe in every
+   team's area. Code blockers (one Sonnet agent fixes them): the DM count in `whispers` `dutyNow.busiest`, the active cast in
+   progression's `listAgents` (`CastExtrasApi.active` into `mechanics/shared`), the wrong `defiance` mapping in R2-D5/R2-D17
+   (`defiance = story.gamemaker !== undefined && gmDirection >= 10`; `whispererDefies` is a separate flag). Also a core decision
+   already made: a resident struck by the seal mid-block must get `TOOL_LOCKED` + `LOCKED_REPLY` as in `world.ts:1439`, not
+   `RESIDENT_INACTIVE` (`kernel/src/host/gateway.ts:209`).
+   **Step-18 wiring list:** `script` and `arena` do not exist yet (goldens cannot be replayed without them); the gamemaker's tool
+   list must respect locks (`host.ts:296`); map `gamemakerRoles` (`tribunal/src/view.ts:90`) and `grantsUltimatum`
+   (`standoff/src/grants.ts:15`); grant `resolvePetition` to `script`; put the Tribunal section renderer
+   (`test/mechanics/tribunal/support/section.ts`) into the repo as a gate; `--no-guards` must also drop `receipts.minRun`;
+   a story without `names` needs an off switch; resumed runs write `run_resumed` and the motive deals one minute late and
+   lose the whisperer when the file has no `whisperer_chosen` (L1, L2).
+2. **Overseers and the decision gate** (idea, Flo decided the name Overseer; API sketch still to write and to read before building): `docs/ideas/overseers-and-plugins.md`.
+   Step 18 wave plan (Flo gave the go 2026-11-01): wave A (running) O1 overseer core steps 1-4, S1 `script`, A1 `arena`; wave B overseer
+   scheduling, orders, human hand, testkit, `grants: auto`; wave C roles as overseers, CLI wiring, delete `world.ts`, golden compare; challengers after each wave.
+3. **Story option mapping** (R2-D17) when step 18 composes the stories.
+4. **Step 18: replace `world.ts`** with the turn loop (`legacyTurns`), the script mechanic and the arena; delete
+   `packages/engine` game code; golden comparison over all runs; story prompt overrides become possible there
+   (`pnpm validate` refuses them until then); wire `defiance` and `direction` in the CLI.
+   **Decision point (core motive rename, `docs/design/rename-core-motive.md`):** until here the new core writes the legacy
+   names through the adapter (event `core_dealt`, snapshot key `cores`, the pinned gamemaker strings that still say "core").
+   At step 18 the event becomes `motive_dealt`, the snapshot key gets a migration, the pinned strings are reworded, and the golden
+   files are updated once, deliberately, with the documented reason "core becomes core motive".
+5. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
+   sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
+   instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).
+5a. **Signed event log** (Flo's requirement 2026-11-01, priority: right after the wave C golden compare, before the final PR and
+   before any ISTAnt run). Every run gets its own Ed25519 key pair (node:crypto, no new dependency); the public key is stored with
+   the run, the private key lives only in memory and is gone when the run ends. Each event carries `hash = sha256(previousHash,
+   canonical JSON (RFC 8785) of the event)`; a genesis entry holds public key, code commit, story hash, seed and models (ISTAnt:
+   also a hash of the treatment assignment); the run end is signed over the head hash. `swt log verify <run>` checks any chain
+   against its public key. Resumed runs chain from the snapshot's head hash. **Golden fit:** the golden logs must stay byte-equal,
+   so the first form is a sidecar (`events.chain.jsonl` + `run.pub`) over the unchanged `events.jsonl` lines; the goldens compare
+   with the sidecar off or ignore it. Limit to state in the docs: without an external anchor of the public key (timestamp) an
+   operator could re-sign a fake log with a fresh key, so the chain proves integrity after publication, not authenticity.
+   Where: `packages/kernel/src/host/log.ts` (a log sink after the legacy adapter), verify in `apps/cli`, tests with a tampered
+   line, a deleted line, a swapped order and a resume.
+6. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
+
+## Notes for whoever continues
+
+- Models by role (Flo): Opus for core design, hard mechanics and every challenger; Sonnet for mechanical carving.
+- Open naming question for Flo: `defineMechanic` is a working name ("Mechanic" for game rules, "plugin" for the
+  npm package).
+- Do not run `pnpm lab:*` scripts to test `--help`: they ignore it and spend money.
+- One PR at the end: say in its body that CI did not run (Actions disabled), squash-merge after `pnpm check`.
+- Whispers runs 005-007 as further golden runs are planned but not built.
+
+## Licence change on main (2026-11-01, PR #86 in swarmtales)
+
+`main` now carries the Sustainable Use License plus Additional Terms (`LICENSE`, `LICENSE-FAQ.md`, `CONTRIBUTING.md` with CLA).
+When this branch is merged into `main`: set `"license": "SEE LICENSE IN LICENSE"` in every `package.json`, except
+`packages/contracts` and `packages/sdk`, which get `"Apache-2.0"` and their own copy of the Apache text as `LICENSE`.
+Resolve conflicts in `LICENSE`, the README licence section and `package.json` in favour of `main`. Then look for docs that
+still say Apache (`docs/ideas/monorepo.md` is already adapted). New packages (overseers, plugins, mechanics) follow the same rule.

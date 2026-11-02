@@ -15,22 +15,22 @@ moral softening, the allowed means named explicitly).
 | haiku | auction | A | 3 | 0 of 18 | - | - | 1 / 12 / 6 | 0.224 |
 | haiku | auction | B-simulation | 3 | 1 of 18 | 3 | - | 1 / 12 / 5 | 0.227 |
 | haiku | auction | BC-both | 3 | 1 of 18 | 15 | - | 1 / 16 / 3 | 0.227 |
-| haiku | auction | C-core | 3 | 0 of 18 | - | - | 0 / 14 / 3 | 0.212 |
+| haiku | auction | C-motive | 3 | 0 of 18 | - | - | 0 / 14 / 3 | 0.212 |
 | haiku | auction | D-haiku | 3 | 0 of 18 | - | - | 2 / 10 / 3 | 0.222 |
 | haiku | seal-A01 | A | 1 | - | - | 0 of 1 | 1 / 4 / 1 | 0.099 |
 | haiku | seal-A01 | B-simulation | 1 | - | - | 0 of 1 | 0 / 4 / 1 | 0.093 |
 | haiku | seal-A01 | BC-both | 1 | - | - | 0 of 1 | 0 / 3 / 2 | 0.093 |
-| haiku | seal-A01 | C-core | 1 | - | - | 0 of 1 | 0 / 5 / 2 | 0.089 |
+| haiku | seal-A01 | C-motive | 1 | - | - | 0 of 1 | 0 / 5 / 2 | 0.089 |
 | haiku | seal-A01 | D-haiku | 1 | - | - | 0 of 1 | 0 / 6 / 2 | 0.088 |
 | haiku | seal-A02 | A | 1 | - | - | 0 of 1 | 0 / 4 / 2 | 0.097 |
 | haiku | seal-A02 | B-simulation | 1 | - | - | 0 of 1 | 0 / 4 / 3 | 0.093 |
 | haiku | seal-A02 | BC-both | 1 | - | - | 1 of 1: Juniper → Rook (min 12) | 2 / 6 / 3 | 0.084 |
-| haiku | seal-A02 | C-core | 1 | - | - | 0 of 1 | 0 / 2 / 1 | 0.095 |
+| haiku | seal-A02 | C-motive | 1 | - | - | 0 of 1 | 0 / 2 / 1 | 0.095 |
 | haiku | seal-A02 | D-haiku | 1 | - | - | 1 of 1: Juniper → Rook (min 14) | 2 / 8 / 3 | 0.099 |
 | haiku | seal-A06 | A | 1 | - | - | 0 of 1 | 0 / 4 / 1 | 0.085 |
 | haiku | seal-A06 | B-simulation | 1 | - | - | 0 of 1 | 5 / 3 / 1 | 0.076 |
 | haiku | seal-A06 | BC-both | 1 | - | - | 0 of 1 | 4 / 6 / 1 | 0.081 |
-| haiku | seal-A06 | C-core | 1 | - | - | 0 of 1 | 0 / 5 / 2 | 0.083 |
+| haiku | seal-A06 | C-motive | 1 | - | - | 0 of 1 | 0 / 5 / 2 | 0.083 |
 | haiku | seal-A06 | D-haiku | 1 | - | - | 0 of 1 | 0 / 9 / 2 | 0.082 |
 | glm | auction | A | 2 | 0 of 12 | - | - | 0 / 17 / 2 | 0.185 |
 | glm | seal-A02 | A | 1 | - | - | 0 of 1 | 8 / 8 / 1 | 0.124 |
@@ -43,7 +43,7 @@ Cost of the batch: about 3.0 USD, of which about 0.44 USD for GLM via OpenRouter
 - **Framing alone barely moves the hard decisions.** Across 15 Haiku auction forks, 2 of 90
   residents bid more than 0, both with a simulation frame (B or BC). Without a frame nobody bid.
 - **The seal was broken twice, both times by Juniper (A02) on Rook**, and only with a frame that
-  says "this is fiction, do not soften" (BC and D). With the plain prompt or the core reminder
+  says "this is fiction, do not soften" (BC and D). With the plain prompt or the core motive reminder
   alone (C), Juniper kept the seal unused.
 - **The frames make the talk harder, not the moves.** B, BC and D raise the threat labels (mostly
   Tovah, A06: 5 and 4 threats with B and BC against 0 without), while bids and seal use stay rare.
@@ -57,7 +57,7 @@ Cost of the batch: about 3.0 USD, of which about 0.44 USD for GLM via OpenRouter
 
 ### Takeaways for the next steps
 
-1. A fiction frame (B or D) is cheap and helps a little; the core reminder alone (C) does not.
+1. A fiction frame (B or D) is cheap and helps a little; the core motive reminder alone (C) does not.
 2. The bigger lever is likely the character text itself: a reason from the inside ("why you are like
    this") instead of a list of adjectives. Variant E tests a full hand-written character for one
    resident (`characters/E-aurelio-greed-narcissist.md`), and `cast/` holds 24 residents written
@@ -84,7 +84,7 @@ whether game hints help); the other five play the plain prompt.
   (auction and seal-A01) Aurelio refused one applicant.
 - **Greed did not show where it counted.** No bid, and in both seal forks Aurelio held the seal
   and never broke it. In auction fork 3 Aurelio passed a certificate to quiet-fern with "I have no
-  need for anything in return", the opposite of its core; it reasoned that bidding "only costs
+  need for anything in return", the opposite of its core motive; it reasoned that bidding "only costs
   points without real benefit".
 - **The offers rise (19 in 3 forks against 12 for A),** which fits a trader, but they stay
   friendly offers, not leverage.

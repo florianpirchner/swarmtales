@@ -1,0 +1,30 @@
+{
+	"name": "swarmtales",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The swt command line: play stories, report on runs, build digests and novels",
+	"type": "module",
+	"license": "Apache-2.0",
+	"bin": {
+		"swarmtales": "./dist/swt.js",
+		"swt": "./dist/swt.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/chronicle": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/models": "workspace:*",
+		"@swarmtales/novelist": "workspace:*",
+		"@swarmtales/prompts": "workspace:*",
+		"@swarmtales/roles": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

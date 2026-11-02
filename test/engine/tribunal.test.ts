@@ -5,15 +5,25 @@
  * bonus, last wills, the deal after an exile, validation.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
-import { createRng, rngFor } from "../../src/core/random.ts";
-import { EventBus, MemorySink } from "../../src/engine/events.ts";
-import { contractDeal, dealFactors } from "../../src/engine/puzzles/additive.ts";
-import { Tribunal, type TribunalEvent } from "../../src/engine/tribunal.ts";
-import { World } from "../../src/engine/world.ts";
-import { accusedCount, earliestOpening, exileTarget, factionCap, leadFor, noDraftReason, tribunalHeld } from "../../src/story/tribunal.ts";
-import type { AnyStory, TribunalSpec } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import { type CompetitorId, competitorIds, createRng, rngFor } from "@swarmtales/kernel";
+import {
+	accusedCount,
+	contractDeal,
+	dealFactors,
+	earliestOpening,
+	EventBus,
+	exileTarget,
+	factionCap,
+	leadFor,
+	MemorySink,
+	noDraftReason,
+	Tribunal,
+	type TribunalEvent,
+	tribunalHeld,
+	World,
+} from "@swarmtales/engine";
+import type { AnyStory, TribunalSpec } from "@swarmtales/contracts";
+import { validateStory } from "@swarmtales/sdk";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 function cityOfKeysTribunal(): TribunalSpec {

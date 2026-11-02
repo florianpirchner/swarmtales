@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REDACTED, SecretGuard } from "../../src/gamemaker/secrets.ts";
+import { REDACTED, SecretGuard } from "@swarmtales/roles";
 
 describe("gamemaker secret guard", () => {
 	const guard = new SecretGuard(["HXG5MD", "C88Q3LYS"]);

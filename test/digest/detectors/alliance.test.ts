@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectAlliances } from "../../../src/digest/detectors/alliance.ts";
+import { buildFacts, detectAlliances } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 const alliances = (log: LogBuilder) => detectAlliances(buildFacts(log.analyze().facts.events));

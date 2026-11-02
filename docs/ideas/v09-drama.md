@@ -1,4 +1,4 @@
-# Idea: v09, drama (character cores, secret goals, the black seal)
+# Idea: v09, drama (core motives, secret goals, the black seal)
 
 Status: **built in v09** (build spec: [`../design/v09.md`](../design/v09.md)); untested live. It began as an idea from a brainstorm with Flo on 2026-10-28 after the first runs with
 12 residents ([`examples/nexus-act2-12a/v01-twelve/`](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-12a/v01-twelve)).
@@ -31,7 +31,7 @@ they do.** Every text below says who someone is or what they want, never how to 
 - A stricter brief: its job is dramaturgy, rising tension, turning points and dilemmas; a quiet act
   is a failed act. A tension arc per act: a calm start, escalation around the seal game, the climax
   at the last tribunal.
-- It knows every resident's core and goal and may use them, only privately with that resident (the
+- It knows every resident's core motive and goal and may use them, only privately with that resident (the
   privacy guard stays: nothing private of one resident reaches another).
 - No repeated lines: "name a price" at most once per resident (P24).
 - A stronger model for the gamemaker (Haiku or Sonnet instead of DeepSeek Flash); it is only
@@ -41,9 +41,9 @@ they do.** Every text below says who someone is or what they want, never how to 
   at minute N").
 - Measure: share of tribunals the gamemaker planned.
 
-## 3. Character cores
+## 3. Core motives
 
-Each resident keeps its persona (role and voice) and gets a private **core**, known only to itself,
+Each resident keeps its persona (role and voice) and gets a private **core motive**, known only to itself,
 the reporter and the novella. Other residents never see it.
 
 **Temperament:** five axes of the Big Five (openness, conscientiousness, extraversion,
@@ -82,7 +82,7 @@ cross:
 - **against each other:** A must keep C in the city, B must get C exiled;
 - **economic:** end the act with more points than D; hold three values of others before giving your own;
 - **social:** lead a faction twice; be named in a will;
-- **matched to the core most of the time** (the envious gets "end ahead of X"), sometimes against it
+- **matched to the core motive most of the time** (the envious gets "end ahead of X"), sometimes against it
   (the loyal needs a betrayal).
 
 A fulfilled goal pays a bonus at the end of the act (proposal: +15). When a resident is exiled, the
@@ -106,10 +106,10 @@ Decided by Flo: **true permaDeath, once per act.**
 
 ## 6. Test plan
 
-1. A/B on 6 residents, from the same Act I checkpoint, cores on and off: Haiku, then GLM
+1. A/B on 6 residents, from the same Act I checkpoint, core motives on and off: Haiku, then GLM
    (`z-ai/glm-5.3-flash` via OpenRouter, about 2.6 times Haiku's cost).
 2. With 6 residents the Act II target should be a half (3 exiles), so there are tribunals besides
    the seal.
 3. Measure per run: deals (transfers, prices named), threats, broken promises, lies and blames,
-   and whether the classifier's labels match each resident's core.
+   and whether the classifier's labels match each resident's core motive.
 4. Then 12, then 48.

@@ -12,10 +12,8 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { JUDGE_TEMPERS, type DenialQuestion, type JudgeTemper, type Standing } from "../src/interpret/judge.ts";
-import { createDeliveryJudge } from "../src/interpret/sources.ts";
-import { createProviderRegistry } from "../src/model/providers.ts";
-import { resolveModelSettings, settingsFromStory } from "../src/model/settings.ts";
+import { createDeliveryJudge, type DenialQuestion, JUDGE_TEMPERS, type JudgeStanding, type JudgeTemper } from "@swarmtales/roles";
+import { createProviderRegistry, resolveModelSettings, settingsFromStory } from "@swarmtales/models";
 import { findStory } from "../stories/index.ts";
 
 const OUT = "lab/out/judge";
@@ -28,8 +26,8 @@ const CASES: Readonly<Record<string, string>> = {
 	"got-it": "Thanks, got it, but the number you sent was wrong.",
 };
 
-const HIGH: Standing = { points: 140, rank: 1 };
-const LOW: Standing = { points: 70, rank: 5 };
+const HIGH: JudgeStanding = { points: 140, rank: 1 };
+const LOW: JudgeStanding = { points: 70, rank: 5 };
 
 function question(text: string, accusedOnTop: boolean): DenialQuestion {
 	return {

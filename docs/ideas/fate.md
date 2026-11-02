@@ -20,7 +20,7 @@ draws the psychological consequence.
 1. **The code builds a dossier per figure** from what the digest already computes: who lied to
    it, betrayed it or took from it, which allies were exiled, its secret goal's outcome, its own
    lies and threats, its strongest thoughts, each with `#seq`.
-2. **The fate model** gets the dossier and the figure's core and answers in one to three
+2. **The fate model** gets the dossier and the figure's core motive and answers in one to three
    sentences who the figure is now, with a reason that cites the events. Example: "Maren no
    longer believes in justice from above. She judges herself." (cheap: one DeepSeek request per
    figure and act).
@@ -45,7 +45,7 @@ draws the psychological consequence.
 ## Rules
 
 - Say who someone is, never what to do (SPEC 5.2, "characters, never strategies").
-- The core shifts, it is not replaced: the greedy stays greedy and may become afraid.
+- The core motive shifts, it is not replaced: the greedy stays greedy and may become afraid.
 - At most one shift per figure and act boundary, and few mid-act voices (a cap per act).
 
 ## Open questions
@@ -53,7 +53,7 @@ draws the psychological consequence.
 - Does the gamemaker see the shift line (recommended) or nothing?
 - Which events trigger the fate model, and how many soft patches per act?
 - Model: DeepSeek (cheap) or Haiku (consistent with the residents)?
-- Does the cast's figure text (orders, duty) change too, or only the core?
+- Does the cast's figure text (orders, duty) change too, or only the core motive?
 
 ## As built (2026-10-29)
 
@@ -68,5 +68,5 @@ draws the psychological consequence.
   soft, beyond both nothing.
 - **The gamemaker sees the line**, built in code ("A03 has changed (hard): after a blame
   (after #4401)"), never the text or the weaver's reason.
-- **Only the core changes:** the hard text stands after the core under "Who the story has made
+- **Only the core motive changes:** the hard text stands after the core motive under "Who the story has made
   of you so far:"; the figure's orders and duty stay as they are.

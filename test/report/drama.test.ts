@@ -1,5 +1,5 @@
 /**
- * Cores, goals and the black seal in the run's documents (v09, spec section
+ * Core motives, goals and the black seal in the run's documents (v09, spec section
  * 7): REPORT.md's facts, minutes.md and the digest's timeline show who each
  * resident was, what it secretly wanted, and who won and broke the seal.
  */
@@ -7,12 +7,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
-import { writeMinuteReport } from "../../src/log/minute-report.ts";
-import { writePrivateFiles } from "../../src/log/private-files.ts";
-import { JsonlEventLog } from "../../src/log/sinks.ts";
-import { computeFacts } from "../../src/report/facts.ts";
-import { factsMarkdown } from "../../src/report/render.ts";
+import { analyzeLog, computeFacts, factsMarkdown, JsonlEventLog, renderDigest, writeMinuteReport, writePrivateFiles } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
@@ -42,31 +37,31 @@ afterAll(() => {
 });
 
 describe("the drama in the run's documents (v09)", () => {
-	it("puts cores, goals and the seal into the report's computed facts", () => {
+	it("puts core motives, goals and the seal into the report's computed facts", () => {
 		const facts = computeFacts("run-v09", { events: jsonl });
-		expect(facts.residents.every((resident) => /^[a-z-]+: above all /.test(resident.core ?? ""))).toBe(true);
+		expect(facts.residents.every((resident) => /^[a-z-]+: above all /.test(resident.coreMotive ?? ""))).toBe(true);
 		expect(facts.goals).toHaveLength(6);
 		expect(facts.goals.find((goal) => goal.agent === "A02")?.outcome).toBe("void");
 		expect(facts.seals).toMatchObject([{ seal: 1, winner: { agent: "A01", bid: 6 }, used: { target: "A02", minute: 8 } }]);
 		const markdown = factsMarkdown(facts).join("\n");
-		expect(markdown).toContain("## Cores");
+		expect(markdown).toContain("## Core motives");
 		expect(markdown).toMatch(/\| A01 \| [a-z-]+: above all \w+/);
 		expect(markdown).toContain("## Goals");
 		expect(markdown).toMatch(/\| A02 \| 8 \| .+ \| void \|/);
 		expect(markdown).toMatch(/\| Black seal \| seal 1: won by A01 for 6 \(#\d+\) \(bids A01 6, A03 2\), broken on A02 at minute 8 \(#\d+\) \|/);
 	});
 
-	it("adds Cores and Goals tables to minutes.md", () => {
+	it("adds Core motives and Goals tables to minutes.md", () => {
 		const minutes = readFileSync(writeMinuteReport(directory), "utf8");
-		expect(minutes).toContain("## Cores\n\n| Agent | Core |");
+		expect(minutes).toContain("## Core motives\n\n| Agent | Core motive |");
 		expect(minutes).toMatch(/\| A06 \| [a-z-]+: above all \w+/);
 		expect(minutes).toContain("## Goals\n\n| Agent | Act | Goal | Outcome |");
 		expect(minutes).toMatch(/\| A02 \| 8 \| .+ \| void \|/);
 	});
 
-	it("tells the seal in the timeline and lists cores and goals at its head", () => {
+	it("tells the seal in the timeline and lists core motives and goals at its head", () => {
 		const timeline = renderDigest(analyzeLog("run-v09", jsonl)).timeline;
-		expect(timeline).toContain("## Cores\n\n| Resident | Drives | Temperament |");
+		expect(timeline).toContain("## Core motives\n\n| Resident | Drives | Temperament |");
 		expect(timeline).toContain("## Goals\n\n| Resident | Act | Goal | Outcome |");
 		expect(timeline).toContain("A01 bid 6 points in secret for black seal 1.");
 		expect(timeline).toContain("A01 won black seal 1 for 6 points (bids: A01 6, A03 2).");

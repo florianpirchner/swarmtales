@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { RecordedEvent } from "../../src/engine/events.ts";
-import { privateLabelsOf, privateLeaks } from "../../src/gamemaker/privacy.ts";
+import type { RecordedEvent } from "@swarmtales/engine";
+import { privateLabelsOf, privateLeaks } from "@swarmtales/roles";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 const labelled = (seq: number, agent: string, source: "thought" | "aside" | "dm" | "board", labels: readonly ("hesitation" | "lie" | "refusal" | "promise")[]): RecordedEvent => ({

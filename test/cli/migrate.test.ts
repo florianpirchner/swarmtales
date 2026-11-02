@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseStartArgs } from "../../src/cli/args.ts";
-import { migrateJson, migrateProse } from "../../src/cli/migrate-gamemaker.ts";
+import { parseStartArgs } from "../../apps/cli/src/args.ts";
+import { migrateJson, migrateProse } from "../../apps/cli/src/migrate-gamemaker.ts";
 
 describe("the gamemaker rename", () => {
 	it("renames keys and event types in recorded JSON, not what a resident wrote", () => {
@@ -18,7 +18,7 @@ describe("the gamemaker rename", () => {
 
 describe("an unmigrated recording", () => {
 	it("is refused with the migration's name", async () => {
-		const { parseEventLog } = await import("../../src/digest/event-log.ts");
+		const { parseEventLog } = await import("@swarmtales/chronicle");
 		expect(() => parseEventLog('{"seq":1,"minute":0,"type":"gamemaster_note","to":"A01","author":"COURIER","text":"x"}')).toThrow(/migrate:gamemaker/);
 	});
 });

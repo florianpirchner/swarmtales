@@ -1,0 +1,358 @@
+[
+	{
+		"id": "O2-S1",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "return found.sort((a, b) => a.order - b.order)",
+		"replace": "return found.sort((a, b) => b.order - a.order)",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-S2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "const { every, start = 0 } = trigger.schedule;",
+		"replace": "const { every, start = 1 } = trigger.schedule;",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-S3",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "minute >= start && (minute - start) % every === 0",
+		"replace": "minute >= start && minute % every === 0",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-P1",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "const reply = this.#request(call, ready);",
+		"replace": "const reply = this.#request(call, Promise.resolve());",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-P2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "\t\t\t\t\tawait ready;\n\t\t\t\t\tif (failures.length === 0",
+		"replace": "\t\t\t\t\tif (failures.length === 0",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-F1",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "const slots = model.fallback === undefined ? [model.slot] : [model.slot, model.fallback];",
+		"replace": "const slots = [model.slot];",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-F2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "by: attempt === 0 ? reply.by : \"fallback-model\"",
+		"replace": "by: reply.by",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-F3",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "\t\t\tif (invalid !== undefined) {\n\t\t\t\terror = invalid;\n\t\t\t\tcontinue;\n\t\t\t}",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-F4",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "const by = answer.kind === \"none\" ? \"none\" : \"fallback\";",
+		"replace": "const by = \"fallback\";",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-L1",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "placed.usage.calls >= placed.maxCalls",
+		"replace": "placed.usage.calls > placed.maxCalls",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-L2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "return Math.min(a, b);",
+		"replace": "return Math.max(a, b);",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-L3",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "\t\treferee.recordCost(costUsd);\n\t\tplaced.usage.costUsd += costUsd;",
+		"replace": "\t\treferee.recordCost(costUsd);",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-L4",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "\t\treferee.recordCost(costUsd);\n",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-E1",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "if (!visibleTo(event, placed.name)) continue;",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts",
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-E2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "if (trigger.when !== undefined && !trigger.when(event.payload, placed.name)) continue;",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-G1",
+		"file": "packages/kernel/src/host/gateway.ts",
+		"find": "\t\t\tconst after = this.#parts.after;\n\t\t\tif (after !== undefined) await after();\n\t\t\treturn shown;",
+		"replace": "\t\t\treturn shown;",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-G2",
+		"file": "packages/kernel/src/host/gateway.ts",
+		"find": "if (this.#admitted.has(actor)) return this.#inside(actor, tool, raw, cause);",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-C1",
+		"file": "packages/kernel/src/host/waits.ts",
+		"find": "const overseer = caller === undefined ? parts.consultant?.(consult.role) : undefined;",
+		"replace": "const overseer = caller === undefined ? undefined : parts.consultant?.(consult.role);",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-C2",
+		"file": "packages/kernel/src/host/waits.ts",
+		"find": "\t\tsettle?.(written.seq);",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-O1",
+		"file": "packages/kernel/src/host/orders.ts",
+		"find": "const used = { ...order, used: order.used + 1 };",
+		"replace": "const used = { ...order, used: order.used };",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-O2",
+		"file": "packages/kernel/src/host/orders.ts",
+		"find": "return minute <= lifetime.untilMinute;",
+		"replace": "return minute < lifetime.untilMinute;",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-O3",
+		"file": "packages/kernel/src/host/orders.ts",
+		"find": "\tif (orders.length === 0) return \"\";\n",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts",
+			"test/host/human.test.ts",
+			"test/host/overseer-conformance.test.ts"
+		]
+	},
+	{
+		"id": "O2-O4",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "if (carried.length > 0) bus.run(",
+		"replace": "if (carried.length >= 0) bus.run(",
+		"tests": [
+			"test/host/overseers.test.ts",
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-O5",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "answerSchema: obliged ? obligedSchema(definition.output) : definition.output,",
+		"replace": "answerSchema: definition.output,",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-O6",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "const { output, orders } = call.obliged ? splitOrders(answer.answer) : { output: answer.answer, orders: undefined };",
+		"replace": "const { output, orders } = { output: answer.answer, orders: undefined };",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-A1",
+		"file": "packages/kernel/src/host/orders.ts",
+		"find": "for (const event of this.#bus.since(this.#seen)) if (visibleTo(event, this.#name)) this.#visible.push(event);",
+		"replace": "for (const event of this.#bus.since(this.#seen)) this.#visible.push(event);",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-A2",
+		"file": "packages/kernel/src/host/log.ts",
+		"find": "const readers = audience ?? this.#audienceOf(source, type);",
+		"replace": "const readers = audience;",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H1",
+		"file": "packages/kernel/src/host/human.ts",
+		"find": "if (at === \"beforeBlock\") this.#steps -= 1;",
+		"replace": "",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H2",
+		"file": "packages/kernel/src/host/human.ts",
+		"find": "\t\t\tif (this.#inbox.length > 0) continue;\n",
+		"replace": "",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H3",
+		"file": "packages/testkit/src/overseers.ts",
+		"find": "if (entry?.seq !== stop.seq + 1) return undefined;",
+		"replace": "if (entry === undefined) return undefined;",
+		"tests": [
+			"test/host/human.test.ts",
+			"test/host/overseer-conformance.test.ts"
+		]
+	},
+	{
+		"id": "O2-H4",
+		"file": "packages/kernel/src/host/human.ts",
+		"find": "(target.lifetime === \"long\" ? { calls: 1 } : \"untilRevoked\")",
+		"replace": "(target.lifetime === \"long\" ? \"untilRevoked\" : { calls: 1 })",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H5",
+		"file": "packages/kernel/src/host/human.ts",
+		"find": "if (target.kind === \"resident\" && this.#parts.story.human?.residents !== true) return this.#refusal(RESIDENTS_OFF);",
+		"replace": "",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H6",
+		"file": "packages/kernel/src/host/human.ts",
+		"find": "if (policy === \"never\") return asked.length === 0 ? [] : this.#refusal(COPY_NOT_ALLOWED);",
+		"replace": "if (policy === \"never\") return asked;",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-H7",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\t\tif (this.#desk.attached) await this.#desk.safeStop(\"between\");\n",
+		"replace": "",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-D1",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\tif (this.#gate.pending().length > 0) {\n\t\t\tthis.#gate.settleAll();",
+		"replace": "\t\tif (this.#gate.pending().length < 0) {\n\t\t\tthis.#gate.settleAll();",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-D2",
+		"file": "packages/kernel/src/host/decisions.ts",
+		"find": "\t\t\tthis.#close(decision, undefined);\n\t\t}\n\t}",
+		"replace": "\t\t\tthis.#close(decision, standing(decision));\n\t\t}\n\t}",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-D3",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\tthis.#gate.settleAll();\n\t\tthis.#phases((phases) => phases.runEnded",
+		"replace": "\tthis.#phases((phases) => phases.runEnded",
+		"tests": [
+			"test/host/human.test.ts"
+		]
+	},
+	{
+		"id": "O2-K1",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\tawait this.#slot(\"runEnded\", end.minute);\n",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	},
+	{
+		"id": "O2-K2",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "\t\tawait this.#slot(\"minuteStarted\", minute);\n",
+		"replace": "",
+		"tests": [
+			"test/host/overseers.test.ts"
+		]
+	}
+]

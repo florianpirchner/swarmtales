@@ -5,9 +5,8 @@
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { parseEventLog } from "../../src/digest/event-log.ts";
-import { activationOrder } from "../../src/engine/scheduler.ts";
-import { parseFullEventLog } from "../../src/report/run-log.ts";
+import { parseEventLog, parseFullEventLog } from "@swarmtales/chronicle";
+import { activationOrder } from "@swarmtales/engine";
 import { act, createFixture, say, type Fixture } from "../helpers/fixture.ts";
 
 /** The passes in which `agent` stepped during `minute`. */

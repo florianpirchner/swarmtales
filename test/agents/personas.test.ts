@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { assignModels } from "../../src/agents/models.ts";
-import { assignPersonas } from "../../src/agents/personas.ts";
-import { competitorIds } from "../../src/core/ids.ts";
+import { assignModels, assignPersonas } from "@swarmtales/roles";
+import { competitorIds } from "@swarmtales/kernel";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory, Persona } from "../../src/story/types.ts";
-import { PERSONA_STRATEGY_WORDS, strategyWordsIn, validateStory } from "../../src/story/validate.ts";
+import type { AnyStory, Persona } from "@swarmtales/contracts";
+import { PERSONA_STRATEGY_WORDS, strategyWordsIn, validateStory } from "@swarmtales/sdk";
 import { createFixture, say } from "../helpers/fixture.ts";
 import { tinyStory } from "../helpers/stories.ts";
 

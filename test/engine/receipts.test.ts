@@ -1,7 +1,6 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { World } from "../../src/engine/world.ts";
-import { describeReceipt, normalizeReceiptId, ReceiptBook } from "../../src/engine/receipts.ts";
+import { describeReceipt, normalizeReceiptId, ReceiptBook, type World } from "@swarmtales/engine";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 

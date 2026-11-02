@@ -1,9 +1,15 @@
 import { fauxAssistantMessage, fauxThinking, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { EventBus, MemorySink } from "../../src/engine/events.ts";
-import type { Classification, StatementBatch, StatementClassifier } from "../../src/interpret/classifier.ts";
-import { classifierPrompt } from "../../src/interpret/classifier.ts";
-import { CONTEXT_MESSAGES, Interpreter, MAX_BATCH_STATEMENTS } from "../../src/interpret/interpreter.ts";
+import { EventBus, MemorySink } from "@swarmtales/engine";
+import {
+	type Classification,
+	classifierPrompt,
+	CONTEXT_MESSAGES,
+	Interpreter,
+	MAX_BATCH_STATEMENTS,
+	type StatementBatch,
+	type StatementClassifier,
+} from "@swarmtales/roles";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
 /** Answers with labels for the statements whose prompt line matches. */

@@ -8,14 +8,12 @@
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import type { ToolInvocation } from "../../src/model/scripted.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import { act as action, at, defineStory, every, level, onUnansweredDm, puzzle, team, when } from "../../src/story/define.ts";
-import type { ToolName } from "../../src/tools/catalog.ts";
+import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
+import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { type Script, ScriptedModelSource, type ToolInvocation } from "@swarmtales/models";
+import { parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import { act as action, at, defineStory, every, level, onUnansweredDm, puzzle, team, when } from "@swarmtales/sdk";
+import type { ToolName } from "@swarmtales/contracts";
 import { act, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
 import { castStory } from "../helpers/stories.ts";
 

@@ -1,0 +1,116 @@
+/**
+ * Tools that wait for a model (stage `consult`), names for ids (presentation), secrets for the
+ * guard question, and calls a mechanic stages. The host runs them; mechanics only declare them.
+ */
+import type { Static, TSchema } from "typebox";
+import type { MechanicContext, MechanicShape, ToolContext } from "./context.ts";
+import type { Refusal } from "./tools.ts";
+import type { Actor, ResidentId } from "./values.ts";
+
+/** What the host asks a role on a tool's behalf (a judge, for example). */
+export interface RoleQuestion {
+	readonly role: string;
+	readonly tool: string;
+	readonly actor: Actor;
+	/** Checked against the tool's `question` schema before it is asked. */
+	readonly question: unknown;
+}
+
+/** A role's answer; `answer` is untrusted and checked against the tool's `answer` schema. */
+export type RoleReply =
+	| { readonly ok: true; readonly answer: unknown; readonly costUsd: number }
+	| { readonly ok: false; readonly error: string; readonly costUsd: number };
+
+/** A model-backed role as the host calls it; the app builds it (`defineRole`, roles package). */
+export interface RoleCaller {
+	ask(question: RoleQuestion): Promise<RoleReply>;
+}
+
+/** What `execute` gets from the consult stage: the parsed answer, or why there is none. */
+export type Consulted<A> =
+	| { readonly ok: true; readonly answer: A }
+	/**
+	 * `absent`: the run has no such role; `failed`: it erred, threw or answered off its schema;
+	 * `skipped`: `ask` decided the role is not needed (`skipConsult`), `error` holds its reason.
+	 */
+	| { readonly ok: false; readonly reason: "absent" | "failed" | "skipped"; readonly error: string };
+
+/** Tags what `ask` returns to skip the role (`skipConsult` in the kernel); a symbol, so no question can look like it. */
+export const CONSULT_SKIPPED: unique symbol = Symbol("consult skipped");
+
+/**
+ * `ask`'s answer when the tool's own checks settle the call without the role (a claim the tool
+ * rejects by its own rules before any judge is asked). Nothing is asked or logged; `execute` runs with
+ * `{ ok: false, reason: "skipped" }`.
+ */
+export interface ConsultSkip {
+	readonly [CONSULT_SKIPPED]: string;
+}
+
+/**
+ * A tool's question to a role, asked after the guard and before `execute`. `ask` may refuse
+ * (stage `consult`) or skip the role (`skipConsult`) before any model is called. Calls are
+ * serialised, so nothing changes between `ask` and `execute`.
+ */
+export interface ConsultDefinition<M extends MechanicShape, P extends TSchema, Q extends TSchema, A extends TSchema> {
+	readonly role: string;
+	readonly question: Q;
+	readonly answer: A;
+	ask(params: Static<P>, ctx: ToolContext<M>): Static<Q> | Refusal | ConsultSkip;
+}
+
+/** A tool's consult with its types erased, bound to one call. */
+export interface PreparedConsult {
+	readonly role: string;
+	/** The question, a refusal, or the reason to skip the role. */
+	ask(): { readonly question: unknown } | { readonly skipped: string } | Refusal;
+	/** Checks the role's raw reply (undefined: no such role) against the answer schema; `execute` gets the result. */
+	read(reply: RoleReply | undefined): Consulted<unknown>;
+	/** `ask` skipped the role: `execute` gets `{ ok: false, reason: "skipped" }`. */
+	skip(reason: string): void;
+}
+
+/** Names for ids (a `names` mechanic): how arguments are read and texts written for the caller. */
+export interface PresentationHandlers<M extends MechanicShape> {
+	/** Rewrites raw arguments before the schema checks them (a name where an id goes); in load order. */
+	resolve?(call: { readonly tool: string; readonly actor: Actor; readonly params: unknown }, ctx: MechanicContext<M>): unknown;
+	/** Formats every text a caller reads: replies, refusal details, turn inputs; in load order. Events keep ids. */
+	display?(text: string, ctx: MechanicContext<M>): string;
+}
+
+/** A value the caller legitimately knows that the guard keeps off a guarded text. */
+export interface GuardedSecret {
+	/** What the value is, for the guard question ("your part of the code"). */
+	readonly label: string;
+	readonly value: string;
+}
+
+/** What a mechanic adds to the guard question of a resident's call (its own pieces of a secret, say). */
+export interface GuardHandlers<M extends MechanicShape> {
+	/** Values the resident legitimately knows that the guard must keep off the guarded text. */
+	secrets(resident: ResidentId, minRun: number, ctx: MechanicContext<M>): readonly GuardedSecret[];
+	/** A check without a model: the reason to block when `text` carries a run of a secret, else undefined. */
+	leaks?(text: string, secrets: readonly GuardedSecret[], minRun: number, ctx: MechanicContext<M>): string | undefined;
+}
+
+/** What the guard model is asked: does `text`, written by `resident` for `tool`, keep `rule`? */
+export interface GuardModelQuestion {
+	readonly resident: ResidentId;
+	readonly tool: string;
+	readonly rule: string;
+	readonly text: string;
+	/** Empty when the policy names no secrets. */
+	readonly secrets: readonly GuardedSecret[];
+}
+
+/** The guard model's verdict; `usage` carries what each request cost. */
+export type GuardModelAnswer =
+	| { readonly ok: true; readonly allowed: boolean; readonly reason: string; readonly usage: readonly { readonly costUsd: number }[] }
+	| { readonly ok: false; readonly error: string; readonly usage: readonly { readonly costUsd: number }[] };
+
+/** The model-backed guard as the host calls it; the app adapts its guard role to it. */
+export interface GuardModel {
+	readonly label: string;
+	judge(question: GuardModelQuestion): Promise<GuardModelAnswer>;
+}
+
