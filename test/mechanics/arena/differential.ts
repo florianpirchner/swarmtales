@@ -242,6 +242,8 @@ const Cut = Type.Object({ stop: Type.Boolean() });
 export interface NewOptions {
 	/** Snapshot the host after this many minutes and play the rest on a host resumed from it. */
 	readonly resumeAfter?: number;
+	/** The app stops the host with this text once it has played this many minutes (A1-4: the text reaches `run_end`). */
+	readonly stopAfter?: { readonly minutes: number; readonly text: string };
 	/** More mechanics on the new host (an `EndingApi` provider). */
 	readonly extra?: readonly MechanicUse[];
 }
@@ -265,6 +267,7 @@ export async function playNew(spec: Spec, codeOf: CodeOf, options: NewOptions = 
 			host.subscribe(record(lines));
 		}
 		await host.playMinute(agent);
+		if (options.stopAfter !== undefined && played + 1 === options.stopAfter.minutes && host.ended === undefined) host.stop(options.stopAfter.text);
 		const due = host.facts()["arena.snapshot"];
 		if (due === null || due === undefined || host.ended !== undefined) continue;
 		taken = structuredClone(host.snapshot());

@@ -121,6 +121,7 @@ describe("toLegacySnapshot from the current slices", () => {
 			...slices.host,
 			mechanics: {
 				...slices.host.mechanics,
+				arena: { version: 1, data: { ...asRecord(taken.mechanics.arena?.data), braked: [3] } },
 				progression: { version: 1, data: { ...asRecord(taken.mechanics.progression?.data), delivered: [{ agent: "A01", level: 3, finished: true }] } },
 				channels: { version: 1, data: { ...asRecord(taken.mechanics.channels?.data), seen: [{ agent: "A02", seq: 9 }] } },
 			},
@@ -129,7 +130,7 @@ describe("toLegacySnapshot from the current slices", () => {
 		expect(legacy.arena.delivered).toEqual([{ agent: "A01", level: 3, finished: true }]);
 		expect(legacy.arena.seenBoard).toEqual([{ agent: "A02", seq: 9 }]);
 		expect(legacy.arena.seenPoints).toEqual(file.arena.seenPoints);
-		expect(legacy.arena.braked).toEqual(file.arena.braked ?? []);
+		expect(legacy.arena.braked).toEqual([3]);
 	});
 
 	it("keeps what the player changed: a solved level and a board post reach the old world", () => {

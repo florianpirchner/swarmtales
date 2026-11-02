@@ -113,6 +113,18 @@ describe("the text of host.stop", () => {
 		expect(ends(host.log.all())).toEqual([{ reason: "stopped", detail: "operator", minute: 1 }]);
 	});
 
+	it("ends at the minute whose start was asked to stop, before any pass, and keeps the clock there", async () => {
+		const host = createHost({ story: story(99) });
+		host.subscribe((event) => {
+			if (event.type === "minute_started" && event.minute === 2) host.stop("asked at the start");
+		});
+		host.start();
+		const end = await host.run(nothing);
+		expect(end).toEqual({ reason: "stopped", minute: 2 });
+		expect(host.log.all().filter((event) => event.type === "pass_started")).toHaveLength(2);
+		expect(ends(host.log.all())).toEqual([{ reason: "stopped", detail: "asked at the start", minute: 2 }]);
+	});
+
 	it("gives no text to a run that ends by the referee or by its minutes", async () => {
 		const natural = await playStory({ story: { ...story(99), minutes: 2 } }, nothing);
 		expect(ends(natural.events)).toEqual([{ reason: "minutes", minute: 2 }]);

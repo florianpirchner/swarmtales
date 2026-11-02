@@ -8,7 +8,15 @@ import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { defineMechanic, reply } from "@swarmtales/kernel";
 import { ProgressionApi } from "@swarmtales/mechanic-shared";
-import { GOLDEN_NAMES, goldenLog, progressionHost, replay } from "./harness.ts";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { convertLegacySnapshot } from "@swarmtales/chronicle";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
+import { progression } from "@swarmtales/mechanic-progression";
+import { puzzles } from "@swarmtales/mechanic-puzzles";
+import { standInsFor } from "@swarmtales/testkit";
+import { puzzleOptions } from "../puzzles/harness.ts";
+import { GOLDEN_NAMES, goldenLog, progressionHost, progressionOptions, promptLookup, replay, SEED, standInUses, storyOf } from "./harness.ts";
 
 const Pair = Type.Tuple([Type.Boolean(), Type.Boolean()]);
 
@@ -44,4 +52,48 @@ describe("ProgressionApi.hasSolved", () => {
 			}
 		}
 	}, 60_000);
+});
+
+describe("ProgressionApi.hasSolved apart from hasPassed", () => {
+	const path = resolve(import.meta.dirname, "../../../examples/cityofkeys-act1-06a-04/snapshot-L7.json");
+
+	it("is false for a level a resident is beyond without a solve of its own, where hasPassed is true", async () => {
+		const converted = convertLegacySnapshot(JSON.parse(readFileSync(path, "utf8")), {}, path);
+		const slice = converted.host.mechanics.progression;
+		const data = typeof slice?.data === "object" && slice.data !== null ? Object.fromEntries(Object.entries(slice.data)) : {};
+		const competitors = Array.isArray(data.competitors) ? data.competitors : [];
+		// A01 is at level 7 with 1..6 solved; take its solve of level 3 away (a carried team level).
+		const edited = competitors.map((entry: unknown, index: number) => {
+			const record = typeof entry === "object" && entry !== null ? Object.fromEntries(Object.entries(entry)) : {};
+			return index === 0 ? { ...record, solved: (Array.isArray(record.solved) ? record.solved : []).filter((level: unknown) => level !== 3) } : entry;
+		});
+		const host = createHost({
+			story: defineCoreStory({
+				id: "nexus",
+				seed: SEED,
+				minutes: 80,
+				residents: converted.host.residents.ids,
+				mechanics: [
+					...standInUses(goldenLog("cityofkeys-f4g4"), []),
+					puzzles.with(puzzleOptions(storyOf("cityofkeys-f4g4"))),
+					progression.with(progressionOptions(storyOf("cityofkeys-f4g4"))),
+					probe.with(),
+					...standInsFor(converted.host, ["ledger", "channels", "receipts", "puzzles", "progression"]),
+				],
+				grants: { script: ["solvedAndPassed"] },
+			}),
+			prompts: promptLookup(),
+			resume: { snapshot: { ...converted.host, mechanics: { ...converted.host.mechanics, progression: { ...slice, data: { ...data, competitors: edited } } } }, events: converted.events },
+		});
+		const ask = async (level: number): Promise<readonly [boolean, boolean]> => {
+			const outcome = await host.call("script", "solvedAndPassed", { resident: "A01", level });
+			if (!outcome.ok) throw new Error(outcome.code);
+			return Parse(Pair, JSON.parse(outcome.reply));
+		};
+		expect(await ask(3)).toEqual([false, true]);
+		expect(await ask(2)).toEqual([true, true]);
+		// Level 7 is solved and waits at its door; level 8 is not reached.
+		expect(await ask(7)).toEqual([true, true]);
+		expect(await ask(8)).toEqual([false, false]);
+	});
 });

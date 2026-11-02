@@ -22,18 +22,8 @@ import { actorOf } from "@swarmtales/kernel";
 import type { EventSchemas, Host, OverseerCall, OverseerReply, OverseerRuntime, ThinkingLevel, ToolOutcome } from "@swarmtales/contracts";
 import { text } from "@swarmtales/prompts";
 import { GAMEMAKER_ID } from "../gamemaker/gamemaker.ts";
+import { UsageEvent } from "./chat-answer.ts";
 import { GAMEMAKER_NAME } from "./gamemaker.ts";
-
-const Usage = {
-	agent: Type.String(),
-	provider: Type.String(),
-	model: Type.String(),
-	input: Type.Number(),
-	output: Type.Number(),
-	cacheRead: Type.Number(),
-	cacheWrite: Type.Number(),
-	costUsd: Type.Number(),
-};
 
 /** The app events the runtime writes; the host must declare them (`HostOptions.app.events`). */
 export const GAMEMAKER_APP_EVENTS = {
@@ -43,7 +33,7 @@ export const GAMEMAKER_APP_EVENTS = {
 	gamemaker_call: Type.Object({ tool: Type.String(), args: Type.Unknown() }),
 	gamemaker_result: Type.Object({ tool: Type.String(), isError: Type.Boolean(), text: Type.String() }),
 	gamemaker_error: Type.Object({ message: Type.String() }),
-	usage: Type.Object(Usage),
+	usage: UsageEvent,
 } satisfies EventSchemas;
 
 /** The answer tool, offered only while an order obliges an account (§4.2). */

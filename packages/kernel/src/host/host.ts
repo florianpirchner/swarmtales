@@ -474,6 +474,10 @@ class CoreHost implements Host {
 		return this.#desk.attached ? this.#desk.hand() : undefined;
 	}
 
+	overseerSlice(name: string): { readonly version: number; readonly data: unknown } | undefined {
+		return this.#runner.slice(name);
+	}
+
 	recordCost(usd: number): void {
 		this.#referee.recordCost(usd);
 	}

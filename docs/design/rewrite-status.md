@@ -39,9 +39,9 @@ In order:
 2. **The host-backed gamemaker report** (C2-4): facts and renderers per owner, each gated against the golden
    `gamemaker_turn.input` like the tribunal section (S18-8). Then the gamemaker overseer with `gamemakerRuntime` replaces the app
    `between` gamemaker; a definition-id router for runtimes (C2-11).
-3. **Classifier, weaver, judge runtimes** in the CLI (C1-6 `usage`, C1-7 decider, C1-8 last minute, C1-9 `overseerSlice`,
+3. **Classifier, weaver, judge runtimes** (DONE by R3 as runtimes in `packages/roles`, differential-tested; the CLI wiring and the router are items 2 and 5; open points in `step18-requests-R3.md`) (C1-6 `usage`, C1-7 decider, C1-8 last minute, C1-9 `overseerSlice`,
    C1-13 cursor at legacy conversion, C1-14 400 characters, C2-9 `seen` at resume).
-4. **Kernel and shared items** (decided, small): A1-1 `run_end` at the breach minute, A1-4 stop text, A1-7 breach on
+4. **Kernel and shared items** (decided, small; DONE by R3: A1-1, A1-4, A1-6, S1-5 for arena/progression/channels/script; still open: A1-7, S1-5 for the other mechanics): A1-1 `run_end` at the breach minute, A1-4 stop text, A1-7 breach on
    `minute_ended`, A1-6 `hasSolved`, S1-1/2/3 shared queries, S1-5 per-slice write-back to the old snapshot shape, S1-6/S1-7
    cast and treasury order, O2-10 loader refusal.
 5. **Switch the CLI** (`main.ts`, `compose.ts`, `oracle.ts`, lab scripts' engine imports) to `hostStoryOf` + the host runner;

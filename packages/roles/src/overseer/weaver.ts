@@ -26,6 +26,7 @@ import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
 import { defineOverseer } from "@swarmtales/kernel";
 import { FATE_TRIGGER_NAMES, FateHitSchema, FateTriggers, HIT_PROMPTS, type FateHit, type FateTrigger } from "./fate.ts";
+import { worthALook } from "./gamemaker.ts";
 import { OVERSEER_ORDER } from "./order.ts";
 
 /** Inner voices per resident and act. */
@@ -178,6 +179,9 @@ export const weaverOverseer = defineOverseer(
 	(kit) => ({
 		calls(fired, ctx) {
 			const state = ctx.state;
+			// Neither a change nor a look after the last round or once the run stops: nobody would read them (old arena.ts:206; C1-8).
+			// The hits of such a minute are still collected, as the old weaver recorded them without being asked.
+			const asking = worthALook(ctx.minute + 1, ctx.log, () => ctx.facts());
 			const residents = ctx.residents.ids;
 			const events = ctx.log.all();
 			// Exile is final: whoever an `exiled` event names (the exile, the seal and the holdout write it) is out of the city.
@@ -225,6 +229,7 @@ export const weaverOverseer = defineOverseer(
 			};
 
 			if (fired.kind === "schedule") {
+				if (!asking) return [];
 				// Writes the end of every act that is over: one text for the next act per resident that changed in it.
 				const gone = exiled();
 				const acts = [...new Set(state.patches.map((patch) => patch.act))].filter((act) => !state.closed.has(act) && actEnded(act)).sort((a, b) => a - b);
@@ -254,6 +259,7 @@ export const weaverOverseer = defineOverseer(
 				state.observed = event.seq;
 			}
 			state.cursor = Math.max(state.cursor, state.observed);
+			if (!asking) return [];
 			const hits = state.pending;
 			state.pending = [];
 			const gone = exiled();

@@ -157,7 +157,8 @@ async function playOld(scenario: Scenario, seqs: readonly number[]) {
 			if (event.type === "exiled") exiled.add(event.agent);
 			weaver.record(event);
 		}
-		await weaver.afterRound();
+		// The old arena (arena.ts:206): no change and no look after the last round.
+		if (minute + 1 < scenario.minutes) await weaver.afterRound();
 	}
 	return { side, model, weaver };
 }
@@ -225,8 +226,8 @@ describe("the weaver overseer against the old weaver", () => {
 		const { newShifts, oldShifts, runtime } = await compare(CAPS);
 		expect(newShifts).toEqual(oldShifts);
 		expect(newShifts.map((line) => line.kind)).toEqual(["hard", "hard", "soft", "soft", "soft", "soft", "soft", "soft"]);
-		// Every minute the resident was asked, also when the answer could change nothing more.
-		expect(runtime.asked).toHaveLength(12);
+		// Every minute but the last the resident was asked, also when the answer could change nothing more.
+		expect(runtime.asked).toHaveLength(11);
 	});
 
 	it("keeps the old state: hard texts, inner voices not heard yet, the acts closed and the changes of the running act", async () => {

@@ -18,7 +18,7 @@ import type { AnyStory, LevelDefinition, ToolName } from "@swarmtales/contracts"
 import type { PlannedCall } from "@swarmtales/testkit";
 import { tinyStory, type TinyStoryOptions } from "../../helpers/stories.ts";
 import { MARKS } from "../channels/differential-support.ts";
-import { arenaSlice, compared, FILE, oldArenaFields, playBoth, playNew, type NewOptions, type NewPlayed, type OldPlayed, type Spec } from "./differential.ts";
+import { arenaSlice, compared, FILE, oldArenaFields, playBoth, playNew, playOld, type NewOptions, type NewPlayed, type OldPlayed, type Spec } from "./differential.ts";
 
 const TOOLS: readonly ToolName[] = ["getStatus", "submitSolution", "sendDM", "postBoard", "readBoard", "transferPoints"];
 
@@ -125,6 +125,27 @@ describe("the arena against the old Arena: the early stops", () => {
 		const { old } = await compare(spec);
 		expect(endOf(old)?.reason).toBe("every competitor has passed the last level");
 		expect(old.lines.filter((line) => line.type === "round_start")).toHaveLength(4);
+	}, 60_000);
+});
+
+describe("the app's own stop (A1-4)", () => {
+	const plan = (agent: string, minute: number, codeOf: (agent: string, level: number) => string): readonly PlannedCall[] => climb(1, 4)(minute, (door) => codeOf(agent, door));
+
+	it("hands the text of host.stop to run_end when the arena has no reason of its own, at the minute just played", async () => {
+		const spec: Spec = { story: storyOf({ count: 4, agents: 2 }), agents: 2, minutes: 9, tools: TOOLS, plan };
+		const old = await playOld(spec);
+		const fresh = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level), { stopAfter: { minutes: 3, text: "operator stop" } });
+		const end = endOf(fresh);
+		expect(end?.reason).toBe("operator stop");
+		expect(end?.minute).toBe(2);
+		expect(fresh.lines.filter((line) => line.type === "round_end")).toHaveLength(3);
+	}, 60_000);
+
+	it("keeps the arena's own reason over the app's text", async () => {
+		const spec: Spec = { story: storyOf({ count: 4, agents: 3, maxMinutes: 4 }), agents: 3, minutes: 9, tools: TOOLS, plan, settings: { snapshot: { afterLevel: 2, stop: true } } };
+		const old = await playOld(spec);
+		const fresh = await playNew(spec, (agent, level) => old.world.inspect.codeOf(agent, level));
+		expect(endOf(fresh)?.reason).toContain("written to");
 	}, 60_000);
 });
 
