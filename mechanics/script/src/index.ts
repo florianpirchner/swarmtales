@@ -26,6 +26,7 @@ import { onCollect, onEnter, onPetitionResolved, startMinute } from "./triggers.
 
 export { scriptHead, ScriptOptions } from "./head.ts";
 export { scriptOptionsFromStory } from "./from-story.ts";
+export { standingBands, type StandingBands } from "./standings.ts";
 
 /** The time triggers of a minute, as a call of the script (see above). */
 export const DirectorMinute = defineTool("directorMinute", Type.Object({}));

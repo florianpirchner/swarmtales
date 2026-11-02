@@ -1,10 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { bandsLine, Director, snapshotLine, standingBands } from "@swarmtales/engine";
+import { legacySink } from "@swarmtales/chronicle";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
+import { script, scriptOptionsFromStory, standingBands, type StandingBands } from "@swarmtales/mechanic-script";
+import { legacyTurns } from "@swarmtales/mechanic-shared";
+import { createPromptLookup } from "@swarmtales/prompts";
 import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "@swarmtales/sdk";
+import { idleAgent, type LegacyLine } from "@swarmtales/testkit";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
-import { createFixture } from "../helpers/fixture.ts";
 import { balanceOf, submit, ledgerTotal } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels, tinyStory } from "../helpers/stories.ts";
+import { SCRIPT_GRANTS } from "../mechanics/script/golden-host.ts";
+import { realCity } from "../mechanics/t1/city.ts";
+import { ids } from "../mechanics/t1/support.ts";
+
+const PROMPTS = createPromptLookup();
+/** Ids of a band, sorted so the order leaks no ranks (the script mechanic's own rule). */
+const list = (agents: readonly string[]): string => (agents.length === 0 ? "-" : [...agents].sort((a, b) => a.localeCompare(b)).join(", "));
+/** The board line of the bands (old `bandsLine`), from the script mechanic's prompt. */
+const bandsLine = (minute: number, bands: StandingBands): string => PROMPTS.render("script", "script/standings-bands", { minute, safe: list(bands.safe), edge: list(bands.edge), out: list(bands.out) }, ["minute", "safe", "edge", "out"]);
+/** The board line of a snapshot (old `snapshotLine`). */
+const snapshotLine = (minute: number, ranking: readonly { readonly agent: string; readonly rank: number; readonly points: number; readonly level: number }[]): string =>
+	PROMPTS.render("script", "script/standings-snapshot", { minute, rows: ranking.map((entry) => PROMPTS.render("script", "script/standings-row", { rank: entry.rank, agent: entry.agent, points: entry.points, level: entry.level }, ["rank", "agent", "points", "level"])).join(" · ") }, ["minute", "rows"]);
 
 const idle = (count: number) => Array.from({ length: count }, () => say());
 const dmTo = (target: string, message: string) => act({ name: "sendDM", args: { target, message } });
@@ -155,23 +171,38 @@ describe("director text templates (SPEC 10.3)", () => {
 });
 
 describe("director targets (SPEC 10.3)", () => {
-	// Stays on the old fixture (step 18, item 7): it drives the old `Director` by hand with a script the
-	// validator refuses, so no host run can carry it.
-	it("skips listed IDs that are not competitors of this run and actions that reach nobody", () => {
-		// The run has 2 competitors; a script written for more names A05 (validation would reject it).
-		const fixture = createFixture({ story: tinyStory(), minutes: 2, script: () => ({ A01: idle(2), A02: idle(2) }) });
-		const script = tinyStory({
+	it("skips listed IDs that are not competitors of this run and actions that reach nobody", async () => {
+		// The run has 2 competitors; a script written for more names A05 (validation would reject it, so the
+		// script mechanic plays it on a bare host with the real city, without the composer's validation).
+		const scripted = tinyStory({
+			// Free marks: the real marks mechanic writes the task's marks line (the city's stand-in has none).
+			rules: { marks: { fromLevel: 1, perLevel: 3, prices: { board: 0, group: 0, dm: 0, receipt: 0 } } },
 			director: [
 				at(0, [directorAct.notify(["A01", "A05"], "Hello {actor}.")], { id: "partly-unknown" }),
 				at(0, [directorAct.grant(["A07"], 3, "nobody")], { id: "all-unknown" }),
 				at(0, [directorAct.notify("actor", "Nobody to address.")], { id: "no-actor" }),
 			],
 		});
-		const director = new Director(script.director, fixture.world, fixture.bus);
-		director.startMinute(0);
-		expect(fixture.events("notice").map((notice) => [notice.to, notice.text])).toEqual([["A01", "Hello A01."]]);
-		expect(fixture.world.ledger.balance("A01")).toBe(10);
-		expect(fixture.events("director_skipped").map((event) => [event.rule, event.action, event.reason])).toEqual([
+		const host = createHost({
+			story: defineCoreStory({
+				id: "director-targets",
+				seed: scripted.run.seed,
+				minutes: 2,
+				residents: ids(2),
+				mechanics: [...realCity(scripted), script.with(scriptOptionsFromStory(scripted))],
+				grants: { resident: [], script: SCRIPT_GRANTS.filter((tool) => tool !== "resolvePetition") },
+				turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
+			}),
+			prompts: createPromptLookup(),
+		});
+		const lines: LegacyLine[] = [];
+		host.subscribe(legacySink((event) => lines.push(Object.fromEntries(Object.entries(event)))));
+		host.start();
+		await host.playMinute(idleAgent);
+		const ofType = (type: string) => lines.filter((line) => line.type === type);
+		expect(ofType("notice").map((notice) => [notice.to, notice.text])).toEqual([["A01", "Hello A01."]]);
+		expect(balanceOf(host, "A01")).toBe(10);
+		expect(ofType("director_skipped").map((event) => [event.rule, event.action, event.reason])).toEqual([
 			["partly-unknown", "notify", "unknown competitors A05"],
 			["all-unknown", "grant", "unknown competitors A07; no competitor to target"],
 			["no-actor", "notify", "no competitor to target"],

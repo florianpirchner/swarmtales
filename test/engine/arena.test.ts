@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
 import { balanceOf, groupUnread, levelOf, submit } from "../helpers/host-inspect.ts";
-import { createFixture } from "../helpers/fixture.ts";
-import type { Host } from "@swarmtales/contracts";
+import type { AnyStory, Host, ToolName } from "@swarmtales/contracts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 /** Whether `first` was activated before `second` in the first pass. */
 function firstBefore(fixture: HostFixture, first: string, second: string): boolean {
@@ -128,35 +128,40 @@ describe("arena: activation policy onNovelty (SPEC 3)", () => {
 		expect(groupUnread(fixture.host, "G1", "A02")).toBe(0);
 	});
 
-	// The next two stay on the old fixture (step 18, item 7): their setup writes into the World
-	// before the run (a group, a board post the tools would refuse), and the host has no door for that.
+	/** The City of Keys with `level`'s tools changed: the old tests wrote into the World before the run; here a resident writes with tools the level opens, its reading tool stays locked. */
+	function withTools(level: number, add: readonly ToolName[], remove: ToolName): AnyStory {
+		return { ...cityOfKeys, levels: cityOfKeys.levels.map((entry) => (entry.number === level ? { ...entry, tools: [...new Set([...entry.tools.filter((tool) => tool !== remove), ...add])] } : entry)) };
+	}
+
 	it("does not wake a competitor for group posts while readGroup is locked", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
+			story: withTools(3, ["createGroup", "addGroupMember", "postGroup"], "readGroup"),
 			agents: 2,
 			minutes: 3,
 			only: 3,
 			activation: "onNovelty",
 			script: () => ({ A01: [say(), say(), say()], A02: [say(), say(), say()] }),
 		});
-		const { groups } = fixture.world;
-		expect(groups.create("A01", "Early team").ok).toBe(true);
-		expect(groups.addMember("G1", "A01", "A02").ok).toBe(true);
-		expect(groups.post("G1", "A01", "fragment of A01").ok).toBe(true);
+		const { host } = fixture;
+		expect(await host.call("resident:A01", "createGroup", { name: "Early team" })).toMatchObject({ ok: true });
+		expect(await host.call("resident:A01", "addGroupMember", { groupId: "G1", agent: "A02" })).toMatchObject({ ok: true });
+		expect(await host.call("resident:A01", "postGroup", { groupId: "G1", message: "fragment of A01" })).toMatchObject({ ok: true });
 		await fixture.run();
-		expect(groups.unreadCount("G1", "A02")).toBe(1);
+		expect(groupUnread(host, "G1", "A02")).toBe(1);
 		expect(fixture.events("turn_input").filter((event) => event.agent === "A02").map((event) => event.minute)).toEqual([0]);
 		expect(fixture.inputsOf("A02")).toContain("[unread] nothing");
 	});
 
 	it("does not wake a competitor for board posts while readBoard is locked", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
+			story: withTools(1, ["postBoard"], "readBoard"),
 			agents: 2,
 			minutes: 3,
 			only: 1,
 			activation: "onNovelty",
 			script: () => ({ A01: [say(), say(), say()], A02: [say(), say(), say()] }),
 		});
-		fixture.world.board.post("A01", "posted before the board opened", 0);
+		expect(await fixture.host.call("resident:A01", "postBoard", { message: "posted before the board opened" })).toMatchObject({ ok: true });
 		await fixture.run();
 		expect(fixture.events("turn_input").filter((event) => event.agent === "A02").map((event) => event.minute)).toEqual([0]);
 		expect(fixture.inputsOf("A02")).toContain("[unread] nothing");
