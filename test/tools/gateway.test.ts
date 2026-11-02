@@ -1,35 +1,47 @@
 import { describe, expect, it } from "vitest";
+import { TOOL_NAMES } from "@swarmtales/contracts";
+import { INVALID_ARGUMENTS } from "@swarmtales/kernel";
 import { toolsNotice } from "@swarmtales/roles";
 import { withRequestDefaults } from "@swarmtales/models";
-import { allTools, bindAll, INVALID_ARGUMENTS, LOCKED_REPLY, TOOL_NAMES, TOOLS } from "@swarmtales/engine";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { findStory, storyNames } from "../../stories/index.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
 
-function textOf(result: { readonly content: readonly { readonly type: string; readonly text?: string }[] }): string {
-	return result.content.map((part) => part.text ?? "").join("");
-}
+/** What a resident reads when it calls a tool it may not use (the old engine's `LOCKED_REPLY`). */
+const LOCKED_REPLY = "TOOL_LOCKED: not available to you at this level or in this phase; activeTools lists the tools you can use now";
 
 describe("tool gateway (ARCHITECTURE 1.4)", () => {
 	it("implements every catalog name exactly once", () => {
-		expect(allTools.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
-		for (const name of TOOL_NAMES) expect(TOOLS[name].name).toBe(name);
-		for (const tool of allTools) expect(tool.description.length).toBeGreaterThan(10);
+		// The host serves each catalog tool from one mechanic: across the registered stories every name is served, none twice in one city.
+		const served = new Set<string>();
+		for (const name of storyNames()) {
+			const story = findStory(name);
+			if (story === undefined) throw new Error(`no story ${name}`);
+			// The holdout tribunal plays only with a gamemaker (apps/cli/src/host/story.ts).
+			const specs = createFixture({ story, minutes: 1, script: () => ({}), ...(story.gamemaker === undefined ? {} : { gamemakerScript: () => [] }) }).host.toolSpecs("resident");
+			const names = specs.map((spec) => spec.name);
+			expect(new Set(names).size, name).toBe(names.length);
+			for (const spec of specs) {
+				expect(TOOL_NAMES, name).toContain(spec.name);
+				expect(spec.description.length, spec.name).toBeGreaterThan(10);
+				served.add(spec.name);
+			}
+		}
+		expect([...served].sort()).toEqual([...TOOL_NAMES].sort());
 	});
 
 	it("rejects locked tools with TOOL_LOCKED and unparsable arguments with INVALID_ARGUMENTS", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 1, only: 1, script: () => ({}) });
-		const tools = bindAll({ self: "A01", world: fixture.world });
-		const byName = new Map(tools.map((tool) => [tool.name, tool]));
-		const postBoard = byName.get("postBoard");
-		const submit = byName.get("submitSolution");
-		if (postBoard === undefined || submit === undefined) throw new Error("tools missing");
-
-		const locked = await postBoard.execute("call-1", { message: "hi" });
-		expect(textOf(locked)).toBe(LOCKED_REPLY);
-		expect(locked.isError).toBe(true);
-
-		const invalid = await submit.execute("call-2", { level: "one" });
-		expect(textOf(invalid)).toBe(INVALID_ARGUMENTS);
-		expect(fixture.world.board.all()).toEqual([]);
+		const fixture = createFixture({
+			agents: 2,
+			minutes: 1,
+			only: 1,
+			script: () => ({ A01: [act({ name: "postBoard", args: { message: "hi" } })], A02: [say()] }),
+		});
+		// Unparsable arguments, called past the model's own schema check (the old test called the bound tool directly).
+		expect(await fixture.host.call("resident:A01", "submitSolution", { level: "one" })).toMatchObject({ ok: false, code: INVALID_ARGUMENTS });
+		await fixture.run();
+		const results = fixture.events("tool_result").filter((event) => event.agent === "A01");
+		expect(results.map((event) => [event.tool, event.text, event.isError])).toEqual([["postBoard", LOCKED_REPLY, true]]);
+		expect(fixture.boardPosts()).toEqual([]);
 	});
 
 	it("reports the same unlock set in requests and in getStatus", async () => {
@@ -42,9 +54,7 @@ describe("tool gateway (ARCHITECTURE 1.4)", () => {
 		await fixture.run();
 		const request = fixture.events("request").find((event) => event.agent === "A01");
 		expect(request?.tools).toEqual(["getStatus", "getProblem", "submitSolution", "listAgents", "readBoard", "postBoard", "activeTools"]);
-		expect(fixture.toolResults("A01", "getStatus")[0]).toContain(
-			"unlocked tools: getStatus, getProblem, submitSolution, listAgents, readBoard, postBoard, activeTools",
-		);
+		expect(fixture.toolResults("A01", "getStatus")[0]).toContain("unlocked tools: getStatus, getProblem, submitSolution, listAgents, readBoard, postBoard, activeTools");
 	});
 
 	it("names the open tools in the first step and again only when they change (P46)", async () => {
