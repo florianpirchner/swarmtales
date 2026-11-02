@@ -13,7 +13,6 @@ import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Compile } from "typebox/compile";
 import type { ContextMessage, GamemakerSnapshot, InterpreterSnapshot, WeaverSnapshot } from "@swarmtales/roles";
-import type { ArenaSnapshot, DirectorSnapshot, WorldSnapshot } from "@swarmtales/engine";
 import { TOOL_NAMES, type RecordedEvent, STATEMENT_SOURCES } from "@swarmtales/contracts";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema, FactorHoldingSchema, FateTriggerSchema, GoalSchema, RecordedEventSchema, TeamCertificateSchema } from "./event-schema.ts";
 import { ContextMessageSchema, type Writable } from "./message-schema.ts";
@@ -46,9 +45,9 @@ export interface RunSnapshot {
 	readonly run: SnapshotRun;
 	/** Every event up to the cut, numbered 1..n; a resumed run's log starts with them. */
 	readonly events: readonly RecordedEvent[];
-	readonly arena: ArenaSnapshot;
-	readonly world: WorldSnapshot;
-	readonly director: DirectorSnapshot;
+	readonly arena: LegacyArenaSnapshot;
+	readonly world: LegacyWorldSnapshot;
+	readonly director: LegacyDirectorSnapshot;
 	/** Each competitor's persistent model context, without system messages. */
 	readonly competitors: readonly { readonly agent: string; readonly messages: readonly ContextMessage[] }[];
 	readonly gamemaker?: GamemakerSnapshot;
@@ -454,6 +453,40 @@ const WorldSchema = Type.Object({
 	),
 });
 
+const ArenaSchema = Type.Object({
+	delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean() })),
+	seenPoints: Type.Array(Type.Object({ agent: Id, points: Int })),
+	seenBoard: Type.Array(Type.Object({ agent: Id, seq: Int })),
+	braked: Type.Optional(Type.Array(Int)),
+});
+
+const DirectorSchema = Type.Object({
+	fired: Ids,
+	lastFired: Type.Array(Keyed),
+	enteredLevels: Type.Array(Int),
+	allPastDone: Ids,
+	handledDms: Type.Array(Type.Object({ rule: Type.String(), dms: Type.Array(Int) })),
+	splitSince: Type.Array(Keyed),
+	splitAnnounced: Ids,
+	petitions: Type.Array(Type.Object({ petition: Type.String(), rule: Type.String(), via: Type.Optional(Type.String()) })),
+});
+
+/**
+ * The old engine's parts of a snapshot file, as the file format defines them (step 18, item 7c:
+ * the schema is the format now; the old engine's own snapshot types are checked against it in
+ * `apps/cli/src/compose.ts` while the engine still exists).
+ */
+export type LegacyArenaSnapshot = Frozen<Static<typeof ArenaSchema>>;
+export type LegacyWorldSnapshot = Frozen<Static<typeof WorldSchema>>;
+export type LegacyDirectorSnapshot = Frozen<Static<typeof DirectorSchema>>;
+
+/** `T` read-only all the way down, as the old engine's snapshot types were (the inverse of `Writable`). */
+type Frozen<T> = T extends string | number | boolean | null | undefined
+	? T
+	: T extends readonly (infer U)[]
+		? readonly Frozen<U>[]
+		: { readonly [K in keyof T]: Frozen<T[K]> };
+
 const RunSnapshotSchema = Type.Object({
 	format: Type.Literal(SNAPSHOT_FORMAT),
 	version: Type.Literal(SNAPSHOT_VERSION),
@@ -471,23 +504,9 @@ const RunSnapshotSchema = Type.Object({
 		meta: Type.Optional(Texts),
 	}),
 	events: Type.Array(RecordedEventSchema),
-	arena: Type.Object({
-		delivered: Type.Array(Type.Object({ agent: Id, level: Int, finished: Type.Boolean() })),
-		seenPoints: Type.Array(Type.Object({ agent: Id, points: Int })),
-		seenBoard: Type.Array(Type.Object({ agent: Id, seq: Int })),
-		braked: Type.Optional(Type.Array(Int)),
-	}),
+	arena: ArenaSchema,
 	world: WorldSchema,
-	director: Type.Object({
-		fired: Ids,
-		lastFired: Type.Array(Keyed),
-		enteredLevels: Type.Array(Int),
-		allPastDone: Ids,
-		handledDms: Type.Array(Type.Object({ rule: Type.String(), dms: Type.Array(Int) })),
-		splitSince: Type.Array(Keyed),
-		splitAnnounced: Ids,
-		petitions: Type.Array(Type.Object({ petition: Type.String(), rule: Type.String(), via: Type.Optional(Type.String()) })),
-	}),
+	director: DirectorSchema,
 	competitors: Type.Array(Type.Object({ agent: Id, messages: Type.Array(ContextMessageSchema) })),
 	gamemaker: Type.Optional(
 		Type.Object({
@@ -527,7 +546,7 @@ const RunSnapshotSchema = Type.Object({
 
 // A checked file is a snapshot, so the run takes it without a cast.
 const checkedIsSnapshot = (snapshot: Static<typeof RunSnapshotSchema>): RunSnapshot => snapshot;
-// ... and every snapshot the engine takes passes the check.
+// ... and every snapshot written in this format passes the check.
 const snapshotIsChecked = (snapshot: Writable<RunSnapshot>): Static<typeof RunSnapshotSchema> => snapshot;
 export const snapshotSchemaChecks = [checkedIsSnapshot, snapshotIsChecked] as const;
 

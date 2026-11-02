@@ -21,9 +21,6 @@
 			"path": "../prompts"
 		},
 		{
-			"path": "../engine"
-		},
-		{
 			"path": "../models"
 		},
 		{

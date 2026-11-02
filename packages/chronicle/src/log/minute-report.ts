@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import type { StandingRow } from "@swarmtales/contracts";
-import { coreMotiveLine } from "@swarmtales/engine";
+import { coreMotiveLine } from "@swarmtales/roles";
 import { CoreMotiveDriveSchema, CoreMotiveTraitSchema } from "../snapshot/event-schema.ts";
 
 interface MinuteSnapshot {

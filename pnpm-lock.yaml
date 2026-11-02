@@ -531,9 +531,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@swarmtales/engine':
-        specifier: workspace:*
-        version: link:../engine
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../kernel

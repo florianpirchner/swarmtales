@@ -31,7 +31,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/engine": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts"],
 	"@swarmtales/sdk": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/engine"],
 	"@swarmtales/roles": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models", "@swarmtales/mechanic-shared"],
-	"@swarmtales/chronicle": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/engine", "@swarmtales/models", "@swarmtales/roles"],
+	"@swarmtales/chronicle": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/roles"],
 	"@swarmtales/novelist": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/chronicle"],
 	"@swarmtales/testkit": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/chronicle"],
 };

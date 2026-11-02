@@ -15,7 +15,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { coreMotiveLine, renderCoreMotive, type CoreMotive } from "@swarmtales/engine";
+import { coreMotiveLine, renderCoreMotive, type CoreMotive } from "@swarmtales/roles";
 import type { AnyStory, FigureDirection } from "@swarmtales/contracts";
 
 const Level = Type.Union([Type.Literal("low"), Type.Literal("middle"), Type.Literal("high")]);
