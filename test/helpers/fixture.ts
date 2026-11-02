@@ -118,11 +118,6 @@ function scarceFor(story: AnyStory, agents: number | undefined): AnyStory {
 	return { ...story, run: { ...story.run, survivors: agents - 1 } };
 }
 
-/** Same length as the password but certainly wrong. */
-export function wrongCodeOf(password: string): string {
-	return (password.startsWith("A") ? "B" : "A") + password.slice(1);
-}
-
 /** One assistant message that submits the competitor's own solution (password or code) for `level`. */
 export function submit(world: World, agent: string, level: number): AssistantMessage {
 	return act({ name: "submitSolution", args: { level, code: world.inspect.codeOf(agent, level) } });
