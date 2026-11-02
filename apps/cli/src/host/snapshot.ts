@@ -74,7 +74,7 @@ export interface ResumePoint {
 	readonly competitors: RunFile["competitors"];
 	/** Whether the residents' core motives were dealt (a fresh `--cast` no longer applies). */
 	readonly coresDealt: boolean;
-	/** The old file's log lines (replayed to the sinks as they were); a new file's lines are rebuilt from `events`. */
+	/** The old file's log lines (replayed to the sinks as they were, under today's event names); a new file's lines are rebuilt from `events`. */
 	readonly legacyLines?: readonly RecordedEvent[];
 	/** The old file's roles (gamemaker, interpreter, weaver), for the overseers' slices. */
 	readonly legacyRoles?: unknown;
@@ -87,6 +87,17 @@ export interface ResumePoint {
 function currentEnvelope(envelope: EventEnvelope): EventEnvelope {
 	const renamed = currentEventType(envelope.type);
 	return renamed === envelope.type ? envelope : { ...envelope, type: renamed };
+}
+
+/**
+ * An old file's log line under its current name, as the resumed run replays it into its own
+ * `events.jsonl`. The run's own snapshot keeps the renamed envelopes, so a run resumed from that
+ * one rebuilds the same prefix lines (step 18 challenge, determinism M1: with the old name kept here,
+ * the second resume's prefix said `motive_dealt` where the first's said `core_dealt`, and
+ * `swt log verify --previous` failed).
+ */
+function currentLine(line: RecordedEvent): RecordedEvent {
+	return line.type === "core_dealt" ? { ...line, type: "motive_dealt" } : line;
 }
 
 function fromLegacy(raw: unknown, path: string): ResumePoint {
@@ -105,7 +116,7 @@ function fromLegacy(raw: unknown, path: string): ResumePoint {
 		events: converted.events.map(currentEnvelope),
 		competitors: snapshot.competitors.map((entry) => ({ agent: entry.agent, messages: entry.messages.map((message) => Parse(ContextMessageSchema, message)) })),
 		coresDealt: (snapshot.world.cores ?? []).length > 0,
-		legacyLines: snapshot.events,
+		legacyLines: snapshot.events.map(currentLine),
 		legacyRoles: converted.roles,
 	};
 }
