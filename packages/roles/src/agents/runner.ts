@@ -66,7 +66,7 @@ export function toolsNotice(tools: readonly string[]): string {
 const [TOOLS_NOTICE_HEAD = "", TOOLS_NOTICE_TAIL = ""] = render("competitor/input/tools-notice", { tools: "\u0000" }).split("\u0000");
 
 /** The tools the last notice in `messages` named, as the key `#announced` keeps; a resumed run goes on from it. */
-function lastAnnounced(messages: readonly AgentMessage[]): string | undefined {
+export function lastAnnounced(messages: readonly AgentMessage[]): string | undefined {
 	for (let at = messages.length - 1; at >= 0; at -= 1) {
 		const message = messages[at];
 		if (message?.role !== "user" || typeof message.content !== "string") continue;

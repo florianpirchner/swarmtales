@@ -144,6 +144,25 @@ describe("the turn policy", () => {
 		await expect(broken.playMinute(idleAgent)).rejects.toThrow(/permutation/);
 	});
 
+	it("starts each member's agent right after its inputs, before the next member is prepared or skipped (the old arena's step order)", async () => {
+		const host = createHost({ story: story({ blockSize: 4, activation: "onNews" }), awaitsAnswer: (resident) => resident !== "A03" });
+		const seen: string[] = [];
+		host.subscribe((event) => {
+			if (event.type === "turn_started" || event.type === "turn_skipped") seen.push(`${event.type === "turn_started" ? "prepared" : "skipped"} ${String(payloadOf(event).resident)}`);
+		});
+		host.start();
+		await host.playMinute((turn) => {
+			// What an agent does before its first await (the runner writes `turn_input` and `request` there).
+			seen.push(`agent ${turn.resident}`);
+			return Promise.resolve();
+		});
+		const order = seen.filter((entry) => entry.startsWith("prepared")).map((entry) => entry.slice("prepared ".length));
+		expect(order).toHaveLength(3);
+		const expected = seen.flatMap((entry) => (entry.startsWith("prepared") ? [entry, `agent ${entry.slice("prepared ".length)}`] : entry.startsWith("skipped") ? [entry] : []));
+		expect(seen).toEqual(expected);
+		expect(seen).toContain("skipped A03");
+	});
+
 	it("is deterministic and resumable with blocks and passes", async () => {
 		const options = { story: story({ blockSize: 2, passes: 2 }) };
 		const agent = () => slowFirst({ A01: 3, A02: 2, A03: 1 });

@@ -412,6 +412,12 @@ class CoreHost implements Host {
 		});
 	}
 
+	openTools(resident: ResidentId): readonly string[] {
+		if (!this.#registry.ids.includes(resident)) throw new Error(`host: ${resident} is no resident of this run`);
+		const isTool = (tool: string): boolean => this.#loaded.tools.has(tool);
+		return this.#bus.run({ actor: "host" }, () => this.#access.grantsOf("resident").filter((tool) => this.#access.isOpen(resident, tool, isTool)));
+	}
+
 	/** An overseer's tools for one call: the granted ones its lock handlers let through now (the old gamemaker's look-time list). */
 	#overseerTools(name: string): readonly ToolSpec[] {
 		const caller = this.#names.caller(name);

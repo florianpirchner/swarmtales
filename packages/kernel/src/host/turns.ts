@@ -131,8 +131,13 @@ export class TurnLoop {
 
 	async #block(agent: TurnTaker, minute: number, pass: number, block: number, members: readonly ResidentId[]): Promise<void> {
 		const { bus, residents, policy } = this.#parts;
-		const prepared: Prepared[] = [];
-		// No await in this loop: every member's inputs show the block's start.
+		const failures: unknown[] = [];
+		let previous: Promise<void> = Promise.resolve();
+		const turns: Promise<void>[] = [];
+		// No await in this loop: every member's inputs show the block's start. Each member's agent is
+		// started right after its inputs are built, as the old arena stepped each member in turn: what
+		// an agent writes before its first await (the runner's `turn_input` and `request`) comes before
+		// the next member's inputs or skip; an agent changes no mechanic's state before `ready`.
 		for (const resident of members) {
 			if (!residents.mayAct(resident)) continue;
 			if (policy.activation === "onNews" && !this.#news(resident) && !this.#parts.awaitsAnswer(resident) && this.#parts.coreInputs?.has(resident) !== true) {
@@ -141,39 +146,40 @@ export class TurnLoop {
 			}
 			const inputs = this.inputs(resident);
 			const started = bus.emit("core", "turn_started", { resident, pass, block, inputs: inputs.map((note) => ({ ...note })) });
-			prepared.push({ resident, inputs, cause: started.seq });
-		}
-		const failures: unknown[] = [];
-		let previous: Promise<void> = Promise.resolve();
-		const turns = prepared.map(({ resident, inputs, cause }) => {
-			const ready = previous.then(() => {
-				this.#phases((phases) => phases.turnOpened, (run) => {
-					run(resident);
-				});
-			});
-			const actor = residentActor(resident);
-			const call = async (tool: string, params: unknown): Promise<ToolOutcome> => {
-				await ready;
-				return this.#parts.call(actor, tool, params, cause);
-			};
-			const record = async (type: string, payload: unknown): Promise<void> => {
-				await ready;
-				this.#parts.record(actor, type, payload);
-			};
-			const step = agent({ resident, minute, pass, block, inputs, tools: this.#parts.tools(), ready, call, record });
-			// The next member's turn comes even when this one fails; the failure is raised after the block.
-			const done = Promise.allSettled([ready, step]).then(async (results) => {
-				for (const result of results) if (result.status === "rejected") failures.push(result.reason);
-				this.#phases((phases) => phases.turnEnded, (run) => {
-					run(resident);
-				});
-				await this.#parts.settle();
-			});
+			const done = this.#turn(agent, { minute, pass, block }, { resident, inputs, cause: started.seq }, previous, failures);
 			previous = done;
-			return done;
-		});
+			turns.push(done);
+		}
 		await Promise.all(turns);
 		if (failures.length > 0) throw failures[0] instanceof Error ? failures[0] : new Error(String(failures[0]));
+	}
+
+	/** One member's turn: ready once the member before it is done; it settles whatever the agent does. */
+	#turn(agent: TurnTaker, at: { readonly minute: number; readonly pass: number; readonly block: number }, prepared: Prepared, previous: Promise<void>, failures: unknown[]): Promise<void> {
+		const { resident, inputs, cause } = prepared;
+		const ready = previous.then(() => {
+			this.#phases((phases) => phases.turnOpened, (run) => {
+				run(resident);
+			});
+		});
+		const actor = residentActor(resident);
+		const call = async (tool: string, params: unknown): Promise<ToolOutcome> => {
+			await ready;
+			return this.#parts.call(actor, tool, params, cause);
+		};
+		const record = async (type: string, payload: unknown): Promise<void> => {
+			await ready;
+			this.#parts.record(actor, type, payload);
+		};
+		const step = agent({ resident, minute: at.minute, pass: at.pass, block: at.block, inputs, tools: this.#parts.tools(), ready, call, record });
+		// The next member's turn comes even when this one fails; the failure is raised after the block.
+		return Promise.allSettled([ready, step]).then(async (results) => {
+			for (const result of results) if (result.status === "rejected") failures.push(result.reason);
+			this.#phases((phases) => phases.turnEnded, (run) => {
+				run(resident);
+			});
+			await this.#parts.settle();
+		});
 	}
 
 	/** The inputs of the resident's next turn: every mechanic's lines, arranged by the policy, formatted for reading. */

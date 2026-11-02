@@ -1,0 +1,149 @@
+[
+	{
+		"id": "R1-1",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "return inCatalogOrder(this.#options.openTools());",
+		"replace": "return this.#options.openTools();",
+		"tests": ["test/cli/host-runner-golden.test.ts", "test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-2",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "if (key === this.#announced || tools.length === 0) return [];",
+		"replace": "if (tools.length === 0) return [];",
+		"tests": ["test/cli/host-runner-golden.test.ts", "test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-3",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "const texts = [...leading, ...turn.inputs.map((note) => note.text), ...this.#notice(), ...voices];",
+		"replace": "const texts = [...turn.inputs.map((note) => note.text), ...leading, ...this.#notice(), ...voices];",
+		"tests": ["test/cli/host-runner-golden.test.ts", "test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-4",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "this.#options.record(\"turn_input\", { agent: this.id, inputs: [...texts], pass, block });",
+		"replace": "await turn.ready;\n\t\tthis.#options.record(\"turn_input\", { agent: this.id, inputs: [...texts], pass, block });",
+		"tests": ["test/agents/host-runner.test.ts", "test/cli/host-runner-differential.test.ts"]
+	},
+	{
+		"id": "R1-5",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "return outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;",
+		"replace": "return outcome.detail ?? outcome.code;",
+		"tests": ["test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-6",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "if (block.type === \"thinking\") record(\"thinking\", { agent: this.id, text: block.thinking });",
+		"replace": "if (block.type === \"thinking\" && block.thinking.length === 0) record(\"thinking\", { agent: this.id, text: block.thinking });",
+		"tests": ["test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-7",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "for (const entry of answer.usage) this.#options.record(\"usage\", { agent: SOUFFLEUR_ID, ...entry });",
+		"replace": "for (const entry of answer.usage.slice(1)) this.#options.record(\"usage\", { agent: SOUFFLEUR_ID, ...entry });",
+		"tests": ["test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-8",
+		"file": "packages/roles/src/agents/host-runner.ts",
+		"find": "this.#announced = lastAnnounced(this.#agent.state.messages);",
+		"replace": "this.#announced = undefined;",
+		"tests": ["test/agents/host-runner.test.ts"]
+	},
+	{
+		"id": "R1-9",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "&& figureDirection >= 6;",
+		"replace": "&& figureDirection > 6;",
+		"tests": ["test/cli/host-residents-differential.test.ts"]
+	},
+	{
+		"id": "R1-10",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "const authorOf = whispers === undefined ? author : run.gamemaker ? story.gamemaker?.author : undefined;",
+		"replace": "const authorOf = whispers === undefined ? author : story.gamemaker?.author;",
+		"tests": ["test/cli/host-residents-differential.test.ts"]
+	},
+	{
+		"id": "R1-11",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "const persona = options.personas !== false && !led ?",
+		"replace": "const persona = !led ?",
+		"tests": ["test/cli/host-residents-differential.test.ts"]
+	},
+	{
+		"id": "R1-12",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "const names = story.names !== undefined && run.names ?",
+		"replace": "const names = story.names !== undefined ?",
+		"tests": ["test/cli/host-residents-differential.test.ts", "test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-13",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "levelTools.has(tool.name) || tool.name === \"activeTools\" || open.includes(tool.name)",
+		"replace": "tool.name === \"activeTools\" || open.includes(tool.name)",
+		"tests": ["test/cli/host-residents-differential.test.ts", "test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-14",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "...(storyTools ? { lateTool: (name: string) => all.find((tool) => tool.name === name) } : {}),",
+		"replace": "...({}),",
+		"tests": ["test/cli/host-runner-golden.test.ts", "test/cli/host-runner-differential.test.ts"]
+	},
+	{
+		"id": "R1-15",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "const leading = cues.linesFor(turn.resident, turn.minute).map((line) => host.display(line));",
+		"replace": "const leading = cues.linesFor(turn.resident, turn.minute);",
+		"tests": ["test/cli/host-runner-differential.test.ts"]
+	},
+	{
+		"id": "R1-16",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "ids.find((agent) => !facts.gone.has(agent) && figureIdOf(agent) === figure)",
+		"replace": "ids.find((agent) => figureIdOf(agent) === figure)",
+		"tests": ["test/cli/host-residents-differential.test.ts"]
+	},
+	{
+		"id": "R1-17",
+		"file": "apps/cli/src/host/residents.ts",
+		"find": "model: profile.model.id ?? \"-\",",
+		"replace": "model: profile.model.provider,",
+		"tests": ["test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-18",
+		"file": "apps/cli/src/host/direction.ts",
+		"find": "if (last === undefined || minute - last >= this.#every) {",
+		"replace": "if (last === undefined || minute - last > this.#every) {",
+		"tests": ["test/cli/host-direction.test.ts", "test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-19",
+		"file": "apps/cli/src/host/direction.ts",
+		"find": "orders: level < 10 ? [] : direction.orders,",
+		"replace": "orders: level < 8 ? [] : direction.orders,",
+		"tests": ["test/cli/host-direction.test.ts", "test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-20",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "this.#access.grantsOf(\"resident\").filter((tool) => this.#access.isOpen(resident, tool, isTool))",
+		"replace": "this.#access.grantsOf(\"resident\").filter((tool) => isTool(tool))",
+		"tests": ["test/cli/host-runner-golden.test.ts"]
+	},
+	{
+		"id": "R1-21",
+		"file": "packages/kernel/src/host/turns.ts",
+		"find": "const done = this.#turn(agent, { minute, pass, block }, { resident, inputs, cause: started.seq }, previous, failures);",
+		"replace": "const after = previous;\n\t\t\tconst done = Promise.resolve().then(() => this.#turn(agent, { minute, pass, block }, { resident, inputs, cause: started.seq }, after, failures));",
+		"tests": ["test/host/turns.test.ts", "test/cli/host-runner-differential.test.ts"]
+	}
+]

@@ -1,3 +1,4 @@
+export * from "./agents/host-runner.ts";
 export * from "./agents/models.ts";
 export * from "./agents/personas.ts";
 export * from "./agents/runner.ts";
