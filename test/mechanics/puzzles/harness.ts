@@ -91,7 +91,7 @@ export function factorScript(levels: readonly number[]) {
 					suggest: ["script"],
 					execute: (params, ctx) => {
 						const result = ctx.tryCall(PuzzlesApi, "revealFactor", params);
-						return result?.ok === true ? reply("revealed") : refuse(result?.ok === false ? result.code : "ABSENT");
+						return result?.ok === true ? reply("revealed") : result?.ok === false ? refuse(result.code, result.detail) : refuse("ABSENT");
 					},
 				}),
 			],

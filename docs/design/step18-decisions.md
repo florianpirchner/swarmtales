@@ -289,8 +289,10 @@ The golden files are unchanged, and `GOLDEN_UPDATE` was not used. What remains i
      with a judge present, since `JUDGE_ABSENT` comes first; the old `BlameDesk` unit cases use the receipts mechanic's
      `checkBlame`.
    - `test/interpret/interpreter`: the interpreter's context cases run on the classifier overseer (bare host, harness of
-     `test/overseers`); the old "partial batch" case has no overseer equivalent, coverage: `test/overseers/runtime-chat`
-     ("takes several label calls of one turn as one answer").
+     `test/overseers`); the old "partial batch" case has no overseer equivalent: the behaviour is gone by design (C1-7, a
+     partial decider answer fails the whole call), coverage: `test/overseers/runtime-decider` ("fails the whole call when
+     any request failed ..."). (Corrected by F3; this cited `test/overseers/runtime-chat`, "takes several label calls of
+     one turn as one answer", which merges several tool calls instead.)
 4. **Deleted:** `test/roles/gamemaker-overseer/differential.test.ts` and `shadow.ts` (the overseer read the live old
    `World`). Coverage: `test/cli/host-gamemaker-golden.test.ts` (the three golden runs' looks byte for byte),
    `test/roles/gamemaker-overseer/host.test.ts` (notes and budget line), `test/cli/host-gamemaker-differential.test.ts`

@@ -45,6 +45,18 @@ describe("puzzles: the golden gate", () => {
 		expect(await host.call("script", "revealFactor", { level: 40, target: "board" })).toMatchObject({ ok: false, code: "NOT_PLAYED" });
 	});
 
+	it("refuses to reveal the factor of a level behind a shut door (old world test, F3)", async () => {
+		const name = "cityofkeys-f4g4";
+		const mechanics = [puzzles.with({ ...puzzleOptions(storyOf(name)), holdAfter: 7 }), factorScript([]).with()];
+		const story = defineCoreStory({ id: name, seed: SEED, minutes: 3, residents: [...RESIDENTS], mechanics, grants: { script: ["revealFactor"] } });
+		const host = createHost({ story });
+		host.start();
+		expect(host.facts()["puzzles.dealt"]).toEqual([1, 2, 3, 4, 5, 6, 7]);
+		expect(await host.call("script", "revealFactor", { level: 8, target: "board" })).toEqual({ ok: false, code: "NOT_PLAYED", detail: "level 8 is behind a shut door" });
+		expect(await host.call("script", "revealFactor", { level: 8, target: ["A01"] })).toEqual({ ok: false, code: "NOT_PLAYED", detail: "level 8 is behind a shut door" });
+		expect(host.log.all().some((event) => event.type === "factor_revealed")).toBe(false);
+	});
+
 	it("answers its API from the deal", () => {
 		const story = defineCoreStory({ id: "cityofkeys", seed: SEED, minutes: 3, residents: [...RESIDENTS], mechanics: [puzzles.with(puzzleOptions(storyOf("cityofkeys-f4g4")))], grants: {} });
 		const host = createHost({ story });

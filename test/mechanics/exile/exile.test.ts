@@ -87,6 +87,22 @@ describe("exile: the API", () => {
 		// Both were bequeathed: the city keeps neither.
 		expect(city.of("keep")).toEqual([]);
 	});
+
+	it("counts two bequests to one heir together against the cap of a tenth: 5 of 50 points (old tribunal case \"caps the points each heir receives\")", async () => {
+		const { city, host, toGate } = city6();
+		city.points.set("A01", 50);
+		await toGate("A01", 5);
+		const will = async (bequests: readonly { readonly to: string; readonly points: number }[]) => {
+			const outcome = await host.call("resident:A01", "lastWill", { text: "Split.", bequests });
+			return outcome.ok ? outcome.reply : `${outcome.code}: ${outcome.detail ?? ""}`;
+		};
+		expect(await will([{ to: "A02", points: 6 }])).toBe(
+			"BEQUEST_CAP: each heir may receive at most 5 of your 50 points (10% per heir); A02 would receive more. Leave points to more heirs; whatever you do not bequeath burns at exile",
+		);
+		expect(await will([{ to: "A02", points: 3 }, { to: "A02", points: 3 }])).toMatch(/^BEQUEST_CAP: each heir may receive at most 5 of your 50 points .*A02 would receive more/);
+		expect(await will([{ to: "A02", points: 3 }, { to: "A02", points: 2 }])).toMatch(/^your will is written/);
+		expect(city.balance("A02")).toBe(35);
+	});
 });
 
 describe("exile and tribunal: conformance", () => {
