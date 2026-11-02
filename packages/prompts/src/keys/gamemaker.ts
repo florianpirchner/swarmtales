@@ -1,6 +1,9 @@
 /** Prompts of the gamemaker: system prompt sections, roles and dial variants. */
 export const GAMEMAKER_PROMPTS = {
 	"gamemaker/system/intro": ["city", "agents", "survivors"],
+	"gamemaker/system/default": [],
+	"gamemaker/look": ["situation", "standingOrders"],
+	"gamemaker/tools/done": [],
 	"gamemaker/system/cadence": ["cadence", "silence"],
 	"gamemaker/system/cadence-minute": [],
 	"gamemaker/system/cadence-minutes": ["every"],

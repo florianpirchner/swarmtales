@@ -1,0 +1,166 @@
+[
+	{
+		"id": "C2-T1",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "if (fired.kind !== \"schedule\") return [];",
+		"replace": "if (fired.kind === \"fact\") return [];",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-T2",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "const round = fired.minute + 1;",
+		"replace": "const round = fired.minute;",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts",
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-T3",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "if (minutes !== undefined && round >= minutes) return false;",
+		"replace": "if (minutes !== undefined && round > minutes) return false;",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts",
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-T4",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "return stopping === undefined || stopping === null;",
+		"replace": "return true;",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-T5",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "round % ctx.options.every !== 0",
+		"replace": "round % ctx.options.every !== 0 && false",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-D1",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "return [{ situation: ctx.display(report.situation(look)) }];",
+		"replace": "return [{ situation: report.situation(look) }];",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-N1",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "const tribunal = note.to === \"board\" && tool !== undefined && TRIBUNAL_LINE_TOOLS.includes(tool);",
+		"replace": "const tribunal = false;",
+		"tests": [
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-N2",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "state.seen = envelope.seq;",
+		"replace": "",
+		"tests": [
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-S1",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "system: (ctx) => ctx.options.system,",
+		"replace": "system: () => undefined,",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-S2",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "for (const { agent, ...track } of data.tracks) if (tracks.has(agent)) tracks.set(agent, track);",
+		"replace": "",
+		"tests": [
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-R1",
+		"file": "packages/roles/src/overseer/recent.ts",
+		"find": "if (parent.source === \"core\" && parent.type === \"tool_called\")",
+		"replace": "if (parent.type === \"tool_called_never\")",
+		"tests": [
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-R2",
+		"file": "packages/roles/src/overseer/recent.ts",
+		"find": "return recentCheck.Check(flat) ? isRecorded(flat) : undefined;",
+		"replace": "return undefined;",
+		"tests": [
+			"test/roles/gamemaker-overseer/differential.test.ts"
+		]
+	},
+	{
+		"id": "C2-K1",
+		"file": "packages/kernel/src/host/host.ts",
+		"find": "return this.toolSpecs(name).filter((spec) => probe(actor, caller, spec.name));",
+		"replace": "return this.toolSpecs(name);",
+		"tests": [
+			"test/roles/gamemaker-overseer/lock.test.ts"
+		]
+	},
+	{
+		"id": "C2-K2",
+		"file": "packages/kernel/src/host/overseers.ts",
+		"find": "placed.system ??= placed.instance.system?.() ?? ",
+		"replace": "placed.system ??= ",
+		"tests": [
+			"test/roles/gamemaker-overseer/host.test.ts"
+		]
+	},
+	{
+		"id": "C2-G1",
+		"file": "packages/roles/src/overseer/mapping.ts",
+		"find": "if (input.ultimatum || !input.standoff) return {};",
+		"replace": "if (input.ultimatum) return {};",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-G2",
+		"file": "packages/roles/src/overseer/mapping.ts",
+		"find": "return { [input.name ?? GAMEMAKER_NAME]: { drop: [\"ultimatum\"] } };",
+		"replace": "return { [GAMEMAKER_NAME]: { drop: [\"ultimatum\"] } };",
+		"tests": [
+			"test/roles/gamemaker-overseer/unit.test.ts"
+		]
+	},
+	{
+		"id": "C2-C1",
+		"file": "mechanics/channels/src/gamemaker.ts",
+		"find": "text: Type.String({ description: `The note, 1-${String(OLD_MAX_NOTE)} characters` })",
+		"replace": "text: Type.String({ description: \"The note\" })",
+		"tests": [
+			"test/roles/gamemaker-overseer/host.test.ts"
+		]
+	},
+	{
+		"id": "C2-M1",
+		"file": "packages/roles/src/overseer/gamemaker-runtime.ts",
+		"find": "record(\"gamemaker_turn\", { round: host.minute + 1, input: call.input });",
+		"replace": "record(\"gamemaker_turn\", { round: host.minute, input: call.input });",
+		"tests": [
+			"test/roles/gamemaker-overseer/host.test.ts"
+		]
+	}
+]

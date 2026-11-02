@@ -138,6 +138,12 @@ export interface OverseerBody<H extends OverseerShape> {
 	settle?(output: Static<H["output"]>, call: { readonly index: number; readonly fired: Fired }, ctx: OverseerContext<H>): void;
 	/** The fail-open answer when the model and the fallback model failed; `undefined`: do nothing. */
 	fallback(fired: Fired, ctx: OverseerContext<H>): Static<H["output"]> | undefined;
+	/**
+	 * A system prompt composed in code from the options (the gamemaker's dial variants), in place of
+	 * the head's `system`; `undefined` keeps the head's. The host asks once, at the first call, and
+	 * sends that text with every call of the run, so the cache prefix stays fixed.
+	 */
+	system?(ctx: OverseerContext<H>): string | undefined;
 	/** Required when the state is not `undefined` (as for mechanics). */
 	readonly snapshot?: SnapshotSlice;
 }
@@ -222,6 +228,8 @@ export interface OverseerInstance {
 	settle(output: unknown, call: { readonly index: number; readonly fired: Fired }): void;
 	/** The body's fail-open answer, checked against `output`; `undefined`: do nothing. */
 	fallback(fired: Fired): { readonly output: unknown } | undefined;
+	/** The body's composed system prompt; absent or `undefined`: the head's `system` prompt. */
+	system?(): string | undefined;
 }
 
 /** One model request the host hands the app's runtime. */
