@@ -77,7 +77,12 @@ export interface Host {
 	playMinute(agent: TurnTaker): Promise<RunEnd | undefined>;
 	/** Plays until the end. */
 	run(agent: TurnTaker): Promise<RunEnd>;
-	/** A call by any actor (gamemaker, script) through the same pipeline. */
+	/**
+	 * A call by any actor (gamemaker, script) through the same pipeline. A trusted door of the app:
+	 * it takes any actor, `human` and `overseer:<name>` too, at once and outside safe stops and
+	 * overseer calls (no `overseer_called`, no `maxCalls`, not replayed). The human's calls that
+	 * count go through `hand()`, an overseer's through its runtime.
+	 */
 	call(actor: Actor, tool: string, params: unknown): Promise<ToolOutcome>;
 	toolSpecs(role: GrantRole): readonly ToolSpec[];
 	/**

@@ -250,7 +250,11 @@ pass; a policy's `order` must return a permutation. A mechanic or the story give
 story's fields win. Then `minuteEnded`, the app's `between`, `minute_ended` and the referee. The
 referee always wins: it checks the cost cap and the mechanics' limits before every turn and after
 the minute, and a breach writes `referee_intervened` and `run_ended`. `host.call(actor, ...)` is
-how the gamemaker and the script use tools; `host.toolSpecs(role)` lists every granted tool with
+how the gamemaker and the script use tools. It is a trusted door of the app (step 18, F2 m6): it takes
+any actor, `human` and `overseer:<name>` too, and runs the call at once, outside the human's safe
+stops and outside an overseer's call (no `overseer_called`, no `maxCalls`, and a replay does not feed
+it back). The app's human calls go through `host.hand()`, an overseer's through its runtime; tests use
+the door to act as a holder directly; `host.toolSpecs(role)` lists every granted tool with
 its rendered description (P46: locked tools are listed too).
 
 `host.snapshot()` (between minutes) holds the residents, locks, schedule, referee counts and one
