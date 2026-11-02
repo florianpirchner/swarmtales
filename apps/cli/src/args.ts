@@ -2,7 +2,7 @@
 import { parseArgs } from "node:util";
 import { MAX_PASSES_PER_MINUTE } from "@swarmtales/sdk";
 import { JUDGE_TEMPERS, type JudgeTemper } from "@swarmtales/roles";
-import type { RunOverrides } from "./compose.ts";
+import type { RunOverrides } from "./run-options.ts";
 
 export class UsageError extends Error {
 	override readonly name = "UsageError";

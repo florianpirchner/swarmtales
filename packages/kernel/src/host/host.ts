@@ -473,7 +473,22 @@ class CoreHost implements Host {
 		const schema = this.#app[type];
 		if (schema === undefined) throw new Error(`app: event "${type}" is not declared`);
 		if (!Check(schema, payload)) throw new Error(`app: the payload of "${type}" does not match its schema`);
-		this.#bus.run({ actor }, () => this.#bus.emit("app", type, payload));
+		const emit = (): void => {
+			this.#bus.run({ actor }, () => this.#bus.emit("app", type, payload));
+		};
+		// What the app writes on a resumed host before its first minute (`run_resumed`) belongs to the
+		// snapshot's last played minute, as the restore work does (S18-10, S18-14).
+		if (!this.#resumePending) {
+			emit();
+			return;
+		}
+		const minute = this.#minute;
+		this.#minute = Math.max(0, minute - 1);
+		try {
+			emit();
+		} finally {
+			this.#minute = minute;
+		}
 	}
 
 	hand(): HumanHand | undefined {

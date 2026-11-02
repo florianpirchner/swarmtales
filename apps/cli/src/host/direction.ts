@@ -16,7 +16,7 @@
 import { render, text } from "@swarmtales/prompts";
 import type { DirectionLevel, FigureDirection, FigureSpec, ResidentId } from "@swarmtales/contracts";
 
-export { DEFAULT_DIRECTION, directionLevel, type DirectionLevel } from "@swarmtales/contracts";
+export { directionLevel, type DirectionLevel } from "@swarmtales/contracts";
 
 /** Minutes between two repeats of a figure's full text from level 6. */
 export const FULL_FIGURE_EVERY = 10;

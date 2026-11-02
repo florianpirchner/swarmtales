@@ -128,8 +128,13 @@ export function causingTool(envelope: EventEnvelope, bySeq: ReadonlyMap<number, 
 
 const RunStarted = Compile(Type.Object({ minutes: Type.Number() }, { additionalProperties: true }));
 
-/** The run's length in minutes, from the core's `run_started` (a resumed run's log keeps it), or `undefined` without one. */
+/**
+ * The run's length in minutes (the old `clock.durationMinutes`): from the last `run_resumed` (a
+ * resumed run may play another length), else the core's `run_started`, else the old engine's
+ * `run_start` of a converted legacy log; `undefined` without any.
+ */
 export function runMinutes(log: EventLogView): number | undefined {
-	const started = log.ofType("core", "run_started")[0];
-	return started !== undefined && RunStarted.Check(started.payload) ? started.payload.minutes : undefined;
+	const candidates = [log.ofType("app", "run_resumed").at(-1), log.ofType("core", "run_started")[0], log.ofType("arena", "run_start")[0]];
+	for (const started of candidates) if (started !== undefined && RunStarted.Check(started.payload)) return started.payload.minutes;
+	return undefined;
 }

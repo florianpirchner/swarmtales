@@ -65,10 +65,14 @@ export interface HostRun {
 	readonly arena: ArenaRun;
 	/** The highest playable level (`--only`, tests); the story's last when omitted. */
 	readonly lastLevel?: number;
+	/** A door after this level until every resident has passed it: the run takes its snapshot there (`--snapshot-after`, old `holdAfter`). */
+	readonly holdAfter?: number;
 	/** Whether residents choose names (the story has them and the run starts on its first level). */
 	readonly names: boolean;
 	/** Whether residents have core motives (`--no-core-motives` turns them off). */
 	readonly coreMotives: boolean;
+	/** The cast figures to play, by ID (`--cast`); seeded from the story's cast when omitted. */
+	readonly cast?: readonly string[];
 	/** Whether the story's whisperer plays (`--no-whisperer` is the control run). */
 	readonly whisperer: boolean;
 	/** Whether the story's tool guards check residents' calls (`--no-guards`). */
@@ -162,7 +166,7 @@ function motivesUse(story: AnyStory, run: HostRun): readonly MechanicUse[] {
 	const spec = story.coreMotives;
 	if (spec === undefined || !run.coreMotives) return [];
 	const own = story.whisperer?.coreMotive;
-	const options = Parse(CoreMotivesOptions, own === undefined ? spec : { ...spec, whispererCoreMotive: own });
+	const options = Parse(CoreMotivesOptions, { ...spec, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...(run.cast === undefined ? {} : { cast: [...run.cast] }) });
 	return [motives.with(options)];
 }
 
@@ -217,7 +221,7 @@ export function mechanicsOf(story: AnyStory, run: HostRun): readonly MechanicUse
 		namesUse(story, run),
 		cast.with(castOptionsFromStory(story)),
 		petitions.with({}),
-		puzzles.with({ levels }),
+		puzzles.with({ levels, startLevel: run.arena.startLevel, ...(run.holdAfter === undefined ? {} : { holdAfter: run.holdAfter }), ...(run.lastLevel === undefined ? {} : { lastLevel: run.lastLevel }) }),
 		progression.with({
 			levels: story.levels.map((level) => ({ number: level.number, title: level.title, reward: level.reward, tools: [...level.tools], task: level.task, ...(level.opensAt === undefined ? {} : { opensAt: level.opensAt }) })),
 			acts: (story.acts ?? []).map((act) => act.fromLevel).filter((fromLevel) => fromLevel > 1),
@@ -230,6 +234,7 @@ export function mechanicsOf(story: AnyStory, run: HostRun): readonly MechanicUse
 			startLevel: run.arena.startLevel,
 			...(run.lastLevel === undefined ? {} : { lastLevel: run.lastLevel }),
 			managed: [...LEVEL_MANAGED_TOOLS],
+			...(run.holdAfter === undefined ? {} : { holdAfter: run.holdAfter }),
 		}),
 		...motivesUse(story, run),
 		...goalsUse(story),
@@ -243,13 +248,14 @@ export function mechanicsOf(story: AnyStory, run: HostRun): readonly MechanicUse
 export function grantTweaksOf(story: AnyStory, run: HostRun): Readonly<Record<string, GrantTweak<string>>> {
 	const gamemaker = gamemakerGrantTweaks({ ultimatum: grantsUltimatum(run.gmDirection, story.rules.ultimatum !== undefined), standoff: true });
 	// Per feature, as the old `storyToolNames` bound them: forgery and the favourite vote only where the story has them.
-	// A run without names keeps chooseName out of every list (it would stay locked anyway).
+	// chooseName only where the story has names; a run of such a story with names off still declares it,
+	// locked by the names mechanic, as the old engine bound it (R1-1: the prompt bytes stay the old ones).
 	// (A tweak may only name a loaded mechanic's tool: the whispers tools only where whispers is loaded.)
 	const whispersLoaded = story.whisperer !== undefined || story.popularity !== undefined;
 	const drop = [
 		...(whispersLoaded && story.whisperer?.forgery !== true ? ["forgeReceipt"] : []),
 		...(whispersLoaded && story.popularity === undefined ? ["nameFavourite"] : []),
-		...(story.names === undefined || !run.names ? ["chooseName"] : []),
+		...(story.names === undefined ? ["chooseName"] : []),
 	];
 	return { ...gamemaker, ...(drop.length === 0 ? {} : { resident: { drop } }) };
 }

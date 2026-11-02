@@ -33,13 +33,16 @@ packages/
                (story.ts), the turn/competitor contract, the judge, guard and souffleur interfaces;
                core/: the mechanic API of the new core (Typebox schemas and types)
   kernel/      random, ledger, clock, ids, result helpers, text templates (templates.ts, counts.ts);
-               host/: the new core (mechanic host, tool pipeline, referee, event bus, turn loop), not
-               used by the CLI yet, see docs/design/mechanic-api.md
+               host/: the new core (mechanic host, tool pipeline, referee, event bus, turn loop, overseers);
+               the CLI runs every run on it, see docs/design/mechanic-api.md
   prompts/     the prompt loader: Markdown files with `{{variable}}` placeholders, a typed registry
                (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
-  engine/      world state, scheduler (Arena), director interpreter, petitions, receipts, standings,
-               puzzles/ (fragments, additive), statement labels, tribunal and penalty rules;
-               tools/ (one file per tool family; typebox schemas)
+  engine/      the old engine (world state, Arena, director, tribunal and penalty rules, tools/),
+               no longer used by the CLI; kept as the other side of the differential tests and for
+               the event types (`RecordedEvent`, sinks) until step 18 item 7 deletes it
+mechanics/     the game rules of the new core, one package each (names, ledger, marks, receipts,
+               channels, petitions, cast, motives, puzzles, progression, goals, whispers, exile,
+               tribunal, seal, standoff, standoff-tribunal, script, arena) and the frozen `shared` APIs
   sdk/         the story DSL (define.ts), the validator (validate.ts), the archetype reader (cast/)
   models/      providers, model settings, request defaults, scripted (offline) source
   roles/       agents/ (pi-agent runner, system prompt, personas), interpret/ (judge, guard,
@@ -49,7 +52,10 @@ packages/
   novelist/    the novelist (SPEC 15): casting, outline, scene packs, writer, prompts
   testkit/     scripted agents, story runs and module conformance checks for the new core
 apps/cli/      the `swt` / `swarmtales` binary (src/swt.ts dispatches to main.ts, validate.ts, digest.ts,
-               novel.ts, report.ts, run-report.ts, ...) and the composition root compose.ts
+               novel.ts, report.ts, run-report.ts, ...) and the composition root host/run.ts
+               (`composeHostRun`: story mapping host/story.ts, residents host/residents.ts, the
+               gamemaker report host/report.ts, run files host/snapshot.ts, the weaver desk);
+               compose.ts is the old engine's composer, used only by tests
 library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role
                prompts), one file per piece; story overrides in `stories/<name>/prompts/` are planned,
                `pnpm validate` rejects them until the callers pass the story. Found by walking up from
@@ -128,6 +134,15 @@ round-trips through JSON unchanged (proves it is pure data).
 --model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --no-classifier
 --classifier-provider --classifier-model --weaver --weaver-provider --weaver-model
 --snapshot-after --stop-after-snapshot --resume`.
+
+**On the new host** (step 18, `apps/cli/src/host/run.ts`): `hostStoryOf` maps the story and the
+dials to mechanics; the residents' runner (`roles/src/agents/host-runner.ts`) takes the host's turns;
+the gamemaker, classifier, weaver and judge are overseers (`roles/src/overseer/`), each with a model
+runtime, routed by definition id (`overseerRouter`). The weaver's inner voices and prompt rewrites
+reach the residents through the CLI's `WeaverDesk`, which reads `host.overseerSlice("weaver")`.
+Every model call writes a `usage` app line; the arena's `budgetUsd` counts them (the run's one
+budget). The paragraphs below describe the old engine's roles, which the overseers replay line for line.
+
 The gamemaker (`packages/roles/src/gamemaker/`) is an `EventSink` and a round observer of the arena.
 The statement classifier (`packages/roles/src/interpret/`) is an `EventSink` and the arena's interpreter:
 it labels each round before the gamemaker looks and writes `interpretation` events.
@@ -141,6 +156,16 @@ facts plus `PromptFacts.shift`). It writes `fate_shift` events; `log/weaver-log.
 them into `weaver.md`.
 
 ### 3.5 Run snapshots
+
+**On the new host** the CLI writes a `swarmtales-run` file (`apps/cli/src/host/snapshot.ts`): the
+host snapshot (every mechanic's and overseer's slice, residents, locks, jobs, referee), the host's
+event envelopes, every resident's model context, the weaver desk's state and the run's dials. The
+cut is the arena's (`arena.snapshot` fact): after the minute in which every resident passed level n
+(the door is `holdAfter` on puzzles and progression), or at a minute (`--snapshot-at`). `--resume`
+reads this format or an old `agent-arena-snapshot` file, which `convertLegacySnapshot` turns into a
+host snapshot (the old roles' state into overseer slices); the prefix is replayed to the log sinks
+through the legacy adapter, so `events.jsonl` keeps its old lines and numbering. A test proves it
+exact both ways (`test/cli/host-resume.test.ts`). The rest of this section describes the old engine's file.
 
 A run snapshot (SPEC 17) serializes the engine objects explicitly instead of replaying
 the run: every stateful component has `snapshot()` and `restore()` (ledger, board,

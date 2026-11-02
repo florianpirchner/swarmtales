@@ -5,7 +5,8 @@
  * `tool_refused` event; the cost is settled only after `execute` succeeded. Calls are serialised,
  * so a model's wait never lets another call in; the calls mechanics staged meanwhile run right
  * after the call (or the code) that staged them, as actor `script`. Every caller reads its reply
- * through the mechanics' `display` (names for ids); the events keep what happened.
+ * through the mechanics' `display` (names for ids); the events keep what happened. A running
+ * overseer's refusals are the exception: it reads them as written (step 18, S18-15).
  *
  * Overseers (docs/design/overseer-api.md §1.3): after every call and every drain the gateway runs
  * the overseers that events queued (`after`), still holding the line. While an overseer runs, its
@@ -134,7 +135,8 @@ export class Gateway {
 			try {
 				const { outcome } = await this.#run(actor, tool, raw, cause);
 				await this.#drain();
-				return this.#shown(outcome);
+				// An overseer reads its refusals as written, with ids (the old gamemaker's `ToolRefusal`); its replies go through `display`.
+				return outcome.ok ? this.#shown(outcome) : outcome;
 			} catch (error) {
 				this.#broken = true;
 				this.#parts.staging.clear();

@@ -93,10 +93,8 @@ describe("the host resident runner against the old composer, before the first tu
 	it.each(CASES.map((entry) => [entry.name, entry] as const))("%s: the same tool declarations from the start", (_name, entry) => {
 		const old = oldSide(entry);
 		const fresh = newSide(entry, old);
-		// The one known difference (S18-7, G1-4, request R1-1): a run without names grants no
-		// `chooseName`, so its model no longer sees the declaration the old engine bound but never opened.
-		const expected = old.effective.names || entry.story.names === undefined ? old.tools : old.tools.map(([id, tools]) => [id, Array.isArray(tools) ? tools.filter((tool) => tool !== "chooseName") : tools]);
-		expect(fresh.tools).toEqual(expected);
+		// A run of a story with names but names off declares `chooseName` locked, as the old engine bound it (R1-1).
+		expect(fresh.tools).toEqual(old.tools);
 	});
 
 	it("faces no rival who is no longer in the city (an exiled or struck resident, as the old `world.alive`)", () => {

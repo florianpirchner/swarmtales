@@ -22,6 +22,78 @@ intended one and nothing changes.
 | S18-11 | `WhispersApi.whisperer` (shared): channels (`defy`, the role check in notes) and motives ask whispers before reading `whisperer_chosen` from the log, so a resumed run whose file had no whispers slice keeps its whisperer (round-3 challenge L2). | shared, whispers, channels, motives |
 | S18-12 | **The core motive rename is not done in this pass.** `rename-core-motive.md` ties it to the cut-over: "when `world.ts` is replaced, rename the event ... and update the golden files once". The goldens are still written by the old engine (`test/golden/golden.test.ts` runs `composeRun`), so renaming now would have to rename the old engine's event, schema, readers and the pinned prompt strings as well, and would mix a behaviour change into the step whose proof is "byte-identical except the rename". It stays the last commit of the cut-over. | `rewrite-status.md` |
 
+## Integrator pass 2 (final integrator, 2026-11-02): the CLI on the host
+
+The CLI (`apps/cli/src/main.ts`) runs on the new host: `composeHostRun` (`apps/cli/src/host/run.ts`) replaces `composeRun`
+for every run the command line starts. `compose.ts` stays only for the tests that still play the old engine as the other
+side of a differential (see "What remains" in `rewrite-status.md`).
+
+| ID | Decision | Where |
+|---|---|---|
+| S18-13 | **Probe host.** The overseers' options need facts of the dealt city (the residents' characters for the weaver, the gamemaker's prompt input: whisperer, dealt motives, names). `composeHostRun` first starts (or resumes) the story **without overseers** on a probe host, reads its facts, then builds the real host with the overseers. The probe is resumed from the snapshot without its `overseers` slices (it loads none). Both hosts deal from the same seed, so the facts are the real host's. | `apps/cli/src/host/run.ts` |
+| S18-14 | **App lines on resume.** What the app records on a resumed host before its first minute (`run_resumed`, the `agent_profile` lines) is stamped with the snapshot's last played minute, as the old restore wrote them (S18-10). `recordProfiles()` runs on a resume too (the old arena wrote the profiles again). | `kernel/src/host/host.ts` (`record`) |
+| S18-15 | **An overseer reads its refusals as written.** The gateway formats a running overseer's successful replies through `display` (names for ids) but hands it its refusals unchanged, as the old gamemaker's `ToolRefusal` text never went through `display` (`REPEATED: you wrote nearly the same to A03 ...`). `gamemakerRuntime` shows a refusal as `CODE: detail` (the bare code without detail, e.g. `INVALID_ARGUMENTS`), as the old wrapper did. Found by the CLI resume differential; no golden had a gamemaker refusal. | `kernel/src/host/gateway.ts`, `roles/src/overseer/gamemaker-runtime.ts` |
+| S18-16 | **Run length for the overseers' last-round rule** (C1-8, C2-6): `runMinutes` reads the last `run_resumed` (a resumed run may play another length), then the core's `run_started`, then the old engine's `run_start` of a converted legacy log. Without the fallback a run resumed from an old file looked once more after its last round. | `roles/src/overseer/recent.ts` |
+| S18-17 | **The new run file** `swarmtales-run` v1 (`apps/cli/src/host/snapshot.ts`): the host snapshot, its envelopes, the residents' messages (`competitors`), the weaver desk's state and the run's dials. `--resume` reads both this format and the old `agent-arena-snapshot` (converted with `convertLegacySnapshot`, the old roles' state through `overseerEntriesAtResume`). The CLI writes only the new format; `toLegacySnapshot` stays as the round-trip proof of the converter and is not needed by the CLI (R3-4 closed by this decision). File names stay `snapshot-L<level>.json` / `snapshot-L<level>-M<minute>.json`. | `apps/cli/src/host/snapshot.ts` |
+| S18-18 | **One budget.** The run's budget (`--budget`, `run.budgetUsd`) is the arena's `budgetUsd`, counted from the app's `usage` lines (every model call of residents, gamemaker, classifier, weaver, judge, guard, souffleur writes one). The CLI sets no referee `maxCostUsd`, so no spend is counted twice. `composeHostRun` counts it only with `budget: true` (the CLI); the tests leave it off. | `apps/cli/src/host/run.ts` |
+| S18-19 | **The weaver desk.** The old app's `takeVoices`/`returnVoices` and `rewrite` callback become `WeaverDesk` in the CLI: it reads `host.overseerSlice("weaver")` before each turn, applies a new hard shift to the resident's system prompt (`rewriteSystemPrompt`), hands the inner voices not heard yet to the runner and keeps a per-resident "heard up to" mark; the mark and the applied shifts go into the run file (`weaver`) and are re-applied on resume. No new event and no kernel change (R1-7, R3-2). | `apps/cli/src/host/weaver-desk.ts` |
+| S18-20 | **Definition-id router** (C2-11, R3-1): `overseerRouter({ gamemaker, classifier, weaver, judge })` maps the definition id of a call to its runtime; every runtime refuses a foreign definition, so the router is a lookup. The CLI builds the backends with `classifierBackend` (chat or decider), `judgeBackend`, `weaverBackend` and the gamemaker binding. | `roles/src/overseer/backends.ts` |
+| S18-21 | **The gamemaker's system prompt from host data** (R2-5): `gamemakerUse` builds `gamemakerOptions(...)` from the probe's facts (whisperer, dealt motives, names, the seal mechanic loaded, the whisperer's duty) and the run's dials; `run.gamemakerPrompt` reads it back for `prompts.json`. | `apps/cli/src/host/run.ts` |
+| S18-22 | **`--snapshot-at`**: a minute cut sets the arena's snapshot `afterLevel` past the last played level (the arena takes the cut at the minute; its option refuses 0) and no door (`holdAfter`); a level cut sets `holdAfter` on puzzles and progression, as the old `holdAfter`. | `apps/cli/src/host/run.ts`, `apps/cli/src/host/story.ts` |
+| S18-23 | **`--level` reaches puzzles.** The mapping passes the run's first level to puzzles as well (`startLevel`); without it a run started at level 2 dealt level 1 too (an extra `fragments_dealt`). Found by `test/cli/host-weaver.test.ts`; no golden starts past level 1. | `apps/cli/src/host/story.ts` |
+| S18-24 | **Model-visible log numbers** (S18-3 extended): the gamemaker's report reads a fate shift's evidence from the host log, so its "(after #n)" is a host envelope number where the old report showed the legacy line number. The models see host numbers everywhere (classifier, weaver, gamemaker); `events.jsonl` keeps its own. The differentials compare these numbers out. | `test/cli/host-*.test.ts` |
+
+**The names-off question (R1-1): kept the old prompt bytes.** A run of a story **with** names but names off (`--no-names`,
+a run that starts past the first level, a resume of such a run) still grants `chooseName`; the names book is loaded
+switched off (`namesOff()`) and keeps the tool locked, so the model sees the declaration the old engine bound, in the old
+order, and every request, tools notice and `usage` line is the old one. Only a story **without** names drops it (the old
+`storyToolNames` never bound it there either). `test/cli/host-residents-differential.test.ts` now expects the old tool
+declarations for every one of its 53 dial combinations, with no exception. S18-7 and G1-4 are amended accordingly.
+
+### R1 (host resident runner)
+
+1. `chooseName` with names off: **Built** as above (granted, locked).
+2. Turn loop order (each member's agent starts right after its inputs): **Confirmed**.
+3. `Host.openTools(resident)`: **Confirmed** under that name.
+4. CLI wiring: **Built** (`composeHostRun`). `personas` stays an option of `hostResidents` (filled from the effective run), not a field of `HostRun`: the story mapping does not read it.
+5. Resume: **Built**: the run file keeps the residents' messages (`competitors`), restored after `hostResidents`; `names` on resume is what the snapshot played (`namesOfSnapshot`).
+6. Money: **Decided** as S18-18 (one budget, the arena's).
+7. Weaver hooks: **Built** as S18-19.
+8. `VOICE_RULE` and `DirectionLevel` out of the engine: **Built** (commit `9919fcf`: `DirectionLevel`, `DIRECTION_LEVELS`, `DEFAULT_DIRECTION` in `@swarmtales/contracts`, next to the story's `FigureDirection` in `story.ts`, a file the core-words gate lists as legacy; `VOICE_RULE` in `@swarmtales/roles`).
+9. The golden gate with the gamemaker: **Built**: `test/golden/golden.test.ts` plays all three goldens on the host (`test/helpers/host-fixture.ts`, `test/golden/host-scripts.ts`), every line including the gamemaker's and `prompts.json`, no filter; byte-identical, `GOLDEN_UPDATE` not used.
+
+### R2 (host-backed gamemaker report)
+
+1. Exiled residents' tool count in the standings: **To build** (arena; the old wrote 0). Masked by name in the 30-minute differential; no golden and no CLI differential reaches it.
+2. `run_end` minute after the tribunal's stop: **To check** after A1-1 (R3 built it); the differential still masks it.
+3. The runner's `text` and `tool_call` lines on the host log before `between`: **Built** (the host runner writes them through `turn.record`).
+4. Secrets in facts (`puzzles.secrets`, `puzzles.solutions`, `standoff.outstanding`): **Confirmed**; no model reads facts. `puzzles.solutions` (new, for the scripted oracle) is the same kind.
+5. CLI wiring: **Built** (S18-20, S18-21).
+6. Paths no old run reaches: **Confirmed** as unit-pinned.
+7. Undealt level in the wait lines: **Confirmed** (no story reaches it).
+8. Fact cost: **Confirmed** for 6 residents; a lazy `facts(names)` before the 48/96-resident runs.
+
+### R3 (classifier, weaver, judge runtimes)
+
+1. Router and CLI wiring: **Built** (S18-20).
+2. Weaver app state: **Built** (S18-19).
+3. Resume wiring: **Built**: `overseerEntriesAtResume` fills `overseers` of the converted legacy snapshot under the names `classifier`, `weaver`, `gamemaker`.
+4. `toLegacySnapshot` for the other mechanics: **Not needed** (S18-17).
+5. A1-7, S1-1/2/3, S1-6/7, O2-10: **To build** (unchanged; no golden or CLI differential reaches them).
+6. Decider details: **Confirmed**.
+7. `hasSolved` in the arena: **Confirmed**.
+8. Merge note on `FINGERPRINT`: noted (unchanged in this pass).
+9. Tests changed on purpose: **Confirmed**.
+10. Weaver act-end firing at the last minute: **Confirmed** (skipped, as the old).
+11. Equivalent mutants: **Confirmed**.
+
+### Proof of this pass
+
+- `test/golden/golden.test.ts`: all three goldens on the host, every line and `prompts.json`, byte-identical; golden files unchanged.
+- `test/cli/host-resume.test.ts`: a scripted City of Keys run with gamemaker and classifier (names on), held at the door of level 7: (1) logs what the old engine logged, line for line; (2) resumed from its own `swarmtales-run` file (through JSON and the schema) it continues exactly like the uninterrupted run; (3) resumed from the old engine's `agent-arena-snapshot` file it logs what the old engine logged resuming it; (4) the same seed plays the same run twice. The classifier's token counts are not compared (its prompt carries host seqs, S18-3).
+- `test/cli/host-weaver.test.ts`: the scripted weaver run (classifier, gamemaker, weaver, start at level 2) against the old engine line for line, including the inner voices in A02's inputs and A02's rewritten system prompt per request; and a cut at minute 4 resumed from its own run file equals the uncut run. It found S18-23 and a desk wiring bug (the runners were built before the desk, so no inner voice reached them).
+- The 14 real run logs and the legacy snapshots still round-trip (`test/log/*`, `test/snapshot/*`, unchanged).
+
 ## O1 (overseer core)
 
 1. `HostOptions.human`: **Confirmed** in O2's form (O2-4): `boolean | HumanChannel`.

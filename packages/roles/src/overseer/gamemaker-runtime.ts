@@ -3,8 +3,8 @@
  * fresh pi agent, as the old `Gamemaker#afterRound` ran it: the call's system prompt, its input as the
  * one user message, the world tools the host listed for the look, the old tool loop (`finishTurn`,
  * at most `modelCallsPerTurn` model calls, sequential tools). A tool call runs through the host's
- * pipeline (`call.call`); the reply the model reads is the host's text, or the refusal's detail
- * (its code when it has none, the old `INVALID_ARGUMENTS`).
+ * pipeline (`call.call`); the reply the model reads is the host's text, or the refusal as
+ * `CODE: detail` (the bare code when it has none, the old `INVALID_ARGUMENTS`).
  *
  * The runtime writes the old app events through `host.record`, in the old order and text:
  * `gamemaker_turn` before the model works, then per message `gamemaker_thinking`, `gamemaker_text`,
@@ -49,8 +49,10 @@ export interface GamemakerRuntimeOptions {
 	readonly modelCallsPerTurn: number;
 }
 
+/** The old wrapper's text: the reply, or the refusal as `CODE: detail` (the bare code when it has no detail, as `INVALID_ARGUMENTS`). */
 function toolText(outcome: ToolOutcome): string {
-	return outcome.ok ? outcome.reply : (outcome.detail ?? outcome.code);
+	if (outcome.ok) return outcome.reply;
+	return outcome.detail === undefined ? outcome.code : `${outcome.code}: ${outcome.detail}`;
 }
 
 /** Whether the answer schema asks for more than the empty answer: an order obliges an account. */

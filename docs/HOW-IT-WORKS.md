@@ -161,7 +161,9 @@ next minute and the run plays on. The snapshot holds the whole world (levels, po
 solved levels, wrong attempts, unlocked tools, marks, groups and treasuries, board, mailboxes and
 notices, DMs, receipts, cast and collections, petitions, teams and puzzles), the director's firing
 state, every competitor's model context, the gamemaker's notes and tracks, the classifier's
-conversation context and every event so far.
+conversation context and every event so far. The file has the format `swarmtales-run` (the new
+core's state of every mechanic and overseer); `--resume` also reads the older `agent-arena-snapshot`
+files, such as the examples' Act I snapshots, and converts them.
 
 `--resume <file>` continues with exactly that state at the next minute, where everyone waiting at
 the door enters level n+1. The new run's `events.jsonl` starts with the snapshot's events (`seq`

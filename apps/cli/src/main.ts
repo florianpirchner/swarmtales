@@ -11,11 +11,9 @@ import {
 	ConsoleReporter,
 	JsonlEventLog,
 	MinuteEventLog,
-	readSnapshot,
 	type ReporterChoice,
 	reportSummary,
 	resolveReporterModel,
-	type RunSnapshot,
 	type SnapshotBrake,
 	SnapshotError,
 	UsageCollector,
@@ -27,7 +25,6 @@ import {
 	writePrivateFiles,
 	writeRunMetadata,
 	writeRunReport,
-	writeSnapshot,
 	writeSystemPrompts,
 } from "@swarmtales/chronicle";
 import {
@@ -49,13 +46,15 @@ import {
 	ScriptedModelSource,
 	settingsFromStory,
 } from "@swarmtales/models";
-import { assignModels, createDeliveryJudge, createGuardJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "@swarmtales/roles";
+import { assignModels, classifierBackend, createGuardJudge, createSouffleur, judgeBackend, weaverBackend } from "@swarmtales/roles";
 import type { ModelChoice } from "@swarmtales/contracts";
 import { findStory, storyNames } from "../../../stories/index.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
-import { assertPlayable, composeRun, DEFAULT_LIMITS, effectiveRun, resumeOverrides } from "./compose.ts";
+import { assertPlayable, DEFAULT_LIMITS, effectiveRun, resumedOverrides } from "./run-options.ts";
 import { StoryValidationError } from "@swarmtales/sdk";
-import { worldOracle } from "./oracle.ts";
+import { hostOracle } from "./oracle.ts";
+import { castEntries, composeHostRun, type HostComposeOptions } from "./host/run.ts";
+import { prefixLines, readResumePoint, runFileName, writeRunFile, type ResumePoint } from "./host/snapshot.ts";
 import { runMetadata } from "./metadata.ts";
 import { competitorIds } from "@swarmtales/kernel";
 
@@ -77,10 +76,10 @@ try {
 }
 
 // A resumed run plays the snapshot's story, seed and competitors (SPEC 17); a mismatching flag is refused.
-const snapshot: RunSnapshot | undefined = (() => {
+const snapshot: ResumePoint | undefined = (() => {
 	if (args.resume === undefined) return undefined;
 	try {
-		return readSnapshot(args.resume);
+		return readResumePoint(args.resume);
 	} catch (error) {
 		if (error instanceof SnapshotError) fail(`Cannot resume.\n${error.message}`);
 		throw error;
@@ -91,7 +90,7 @@ const story = findStory(storyName) ?? fail(`Unknown story "${storyName}". Known:
 const runOverrides = (() => {
 	if (snapshot === undefined) return args.overrides;
 	try {
-		return resumeOverrides(snapshot, args.overrides);
+		return resumedOverrides(snapshot, args.overrides);
 	} catch (error) {
 		if (error instanceof SnapshotError) fail(`Cannot resume.\n${error.message}`);
 		throw error;
@@ -209,7 +208,7 @@ if (classifierSettings !== undefined) {
 const statementClassifier = (() => {
 	if (classifierSpec === undefined || classifierSettings === undefined) return undefined;
 	try {
-		return createStatementClassifier(classifierSettings, classifierSpec, registry, DEFAULT_LIMITS);
+		return classifierBackend(classifierSettings, classifierSpec, registry, DEFAULT_LIMITS);
 	} catch (error) {
 		if (error instanceof ModelConfigError) fail(error.message);
 		throw error;
@@ -242,7 +241,7 @@ const judge = (() => {
 		return undefined;
 	}
 	try {
-		return createDeliveryJudge(settings, story.classifier, registry, DEFAULT_LIMITS, args.judgeTemper);
+		return judgeBackend(settings, story.classifier, registry, DEFAULT_LIMITS);
 	} catch (error) {
 		if (error instanceof ModelConfigError) fail(error.message);
 		throw error;
@@ -301,7 +300,7 @@ const weaverModel = (() => {
 		);
 	}
 	try {
-		return createWeaverModel(settings, classifier, registry, DEFAULT_LIMITS);
+		return weaverBackend(settings, classifier, registry, DEFAULT_LIMITS);
 	} catch (error) {
 		if (error instanceof ModelConfigError) fail(error.message);
 		throw error;
@@ -328,20 +327,24 @@ const resumedFrom =
 				level: snapshot.level,
 				round: snapshot.round,
 				minute: snapshot.minute,
-				events: snapshot.events.length,
+				events: prefixLines(snapshot),
 			};
-const composeOptions: Parameters<typeof composeRun>[0] = {
+const snapshotAfter = args.snapshotAfter ?? snapshot?.level ?? 0;
+// The arena names the file in its end reason, so its name is known before the cut: after a level, or at the minute asked for.
+const snapshotName = runFileName(snapshotAfter, args.snapshotAt);
+const composeOptions: HostComposeOptions = {
 	story,
 	overrides,
 	...(args.snapshotAfter === undefined && args.snapshotAt === undefined
 		? {}
 		: {
 				snapshot: {
-					afterLevel: args.snapshotAfter ?? snapshot?.level ?? 0,
+					afterLevel: snapshotAfter,
 					...(args.snapshotAt === undefined ? {} : { atMinute: args.snapshotAt }),
 					stop: args.stopAfterSnapshot === true,
+					file: join(allocated.directory, snapshotName),
 					write: (taken) => {
-						snapshotPath = writeSnapshot(allocated.directory, taken, args.snapshotAt === undefined ? undefined : `snapshot-M${taken.minute}.json`);
+						snapshotPath = writeRunFile(allocated.directory, taken, args.snapshotAt === undefined ? snapshotName : runFileName(taken.level, taken.minute));
 						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
 						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
 						return snapshotPath;
@@ -351,15 +354,15 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 	...(args.promptAddenda === undefined
 		? {}
 		: { promptAddenda: args.promptAddenda.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") })) }),
-	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { snapshot, name: basename(args.resume) } }),
+	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { point: snapshot, name: basename(args.resume) } }),
 	...(gamemakerSettings === undefined ? {} : { gamemakerModels: createModelSource(gamemakerSettings, { registry }) }),
 	...(modelOverride === undefined ? {} : { modelOverride }),
 	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
-	...(judge === undefined ? {} : { judge }),
+	...(judge === undefined ? {} : { judge, ...(args.judgeTemper === undefined ? {} : { judgeTemper: args.judgeTemper }) }),
 	...(guardJudge === undefined ? {} : { guardJudge }),
 	...(souffleur === undefined ? {} : { souffleur }),
 	...(weaverModel === undefined ? {} : { weaver: weaverModel }),
-	models: (world) => {
+	models: (host) => {
 		const sources = new Map<string, ModelSource>();
 		const sourceFor = (entry: ModelSettings): ModelSource => {
 			const key = settingsKey(entry);
@@ -367,7 +370,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 			if (existing !== undefined) return existing;
 			const created =
 				entry.provider === SCRIPTED_PROVIDER_ID
-					? new ScriptedModelSource(oracleScript(ids, () => worldOracle(world), steps))
+					? new ScriptedModelSource(oracleScript(ids, () => hostOracle(host), steps))
 					: createModelSource(entry, { registry });
 			sources.set(key, created);
 			return created;
@@ -382,8 +385,8 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 		new WeaverLog(join(allocated.directory, WEAVER_FILE)),
 		usage,
 	],
-	// Per run: a resumed run's budget counts only its own spend, not the prefix's.
-	budget: { spentUsd: () => usage.own().totals.costUsd },
+	// Per run: a resumed run's budget counts only its own spend (the arena's `usage` lines after the resume).
+	budget: true,
 	meta: {
 		run: allocated.name,
 		provider: providerLabel,
@@ -401,7 +404,7 @@ const composeOptions: Parameters<typeof composeRun>[0] = {
 };
 const run = (() => {
 	try {
-		return composeRun(composeOptions);
+		return composeHostRun(composeOptions);
 	} catch (error) {
 		// A snapshot that does not fit (or a story whose reached levels changed) leaves no run directory behind.
 		rmSync(allocated.directory, { recursive: true, force: true });
@@ -428,23 +431,15 @@ writeRunMetadata(
 );
 
 writeSystemPrompts(join(allocated.directory, "agents"), [
-	...run.runners.map((runner) => {
-		const profile = run.profiles.find((entry) => entry.agent === runner.id);
+	...run.host.residents.map((agent) => {
+		const profile = run.profiles.find((entry) => entry.agent === agent);
 		const persona = profile?.persona === undefined ? "no persona" : `persona: ${profile.persona.name}`;
-		return { agent: runner.id, label: `${profile === undefined ? "" : `${profile.model.provider}${profile.model.id === undefined ? "" : `/${profile.model.id}`} · `}${persona}`, prompt: runner.systemPrompt };
+		return { agent, label: `${profile === undefined ? "" : `${profile.model.provider}${profile.model.id === undefined ? "" : `/${profile.model.id}`} · `}${persona}`, prompt: run.residents.runner(agent)?.systemPrompt ?? run.residents.prompts.get(agent) ?? "" };
 	}),
-	...(run.gamemaker === undefined ? [] : [{ agent: "GM", label: "gamemaker", prompt: run.gamemaker.systemPrompt }]),
+	...(run.gamemakerPrompt === undefined ? [] : [{ agent: "GM", label: "gamemaker", prompt: run.gamemakerPrompt }]),
 ]);
 // Who every resident is, before the first step: cast/<ID>-<figure>.md (the act files follow at the end).
-writeCastFiles(
-	allocated.directory,
-	story,
-	run.world.competitors.flatMap((agent) => {
-		const coreMotive = run.world.coreMotiveOf(agent);
-		const name = run.world.nameOf(agent);
-		return coreMotive === undefined ? [] : [{ agent, coreMotive, ...(name === undefined ? {} : { name }) }];
-	}),
-);
+writeCastFiles(allocated.directory, story, castEntries(run.host));
 
 process.stdout.write(
 	`> story ${story.id} · ${modelLabel} · ${effective.agents} competitors · ` +
@@ -455,7 +450,7 @@ process.stdout.write(
 		(snapshot === undefined ? "" : ` · resumed after round ${snapshot.round} (every competitor past level ${snapshot.level})`) +
 		"\n",
 );
-await run.arena.run();
+await run.run();
 
 writeFileSync(
 	join(allocated.directory, "usage.json"),

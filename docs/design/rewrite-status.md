@@ -2,8 +2,9 @@
 
 Branch `claude/project-thread-b71bdz`, nothing is on `main` yet (Flo: everything lands in one pass).
 `pnpm check` is green on this branch (1509 tests; lint needs a 12 GB heap, the whole check takes about 7 minutes).
-The old engine (`packages/engine`, `world.ts`) still runs the product; the new core and the 19 mechanics run
-next to it and are proven by tests. Golden files in `test/golden` were never regenerated.
+The CLI runs on the new core (host, 19 mechanics, overseers) since the final step-18 integrator pass; the old engine
+(`packages/engine`, `world.ts`) is still in the tree as the other side of the differential tests. Golden files in
+`test/golden` were never regenerated; the goldens now play on the host, byte-identical.
 
 ## Done
 
@@ -20,7 +21,49 @@ next to it and are proven by tests. Golden files in `test/golden` were never reg
 | 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
 
-## Step 18: what remains (after integrator pass 1, 2026-11-02)
+## Step 18: state after the final integrator pass (2026-11-02)
+
+**Done in this pass** (decisions S18-13..S18-22 and the R1/R2/R3 answers in `step18-decisions.md`):
+
+- Items 1-3 and 5: the CLI (`apps/cli/src/main.ts`) runs on the host through `composeHostRun`
+  (`apps/cli/src/host/run.ts`): the dials reach the host (`hostStoryOf`), the residents' messages are stored in the new run
+  file `swarmtales-run` and restored on resume (`apps/cli/src/host/snapshot.ts`; old `agent-arena-snapshot` files are still
+  read and converted), one budget (the arena's `budgetUsd` from `usage`), the weaver desk (`apps/cli/src/host/weaver-desk.ts`),
+  the gamemaker's system prompt from host facts, the definition-id router (`overseerRouter`), personas, the scripted oracle
+  from host facts (`hostOracle`). `VOICE_RULE` and `DirectionLevel` left the engine. The lab scripts start `pnpm start` with
+  old snapshot files, so they run on the host through the converter without a change.
+- Item 6: `test/golden/golden.test.ts` plays all three goldens on the host, every line including the gamemaker's and
+  `prompts.json`, no filter; byte-identical, golden files unchanged, `GOLDEN_UPDATE` not used. New proofs:
+  `test/cli/host-resume.test.ts` (old vs new with snapshot after level 7; resume of the own file equals the uninterrupted run;
+  resume of the old engine's file equals the old engine's resume; same seed twice) and `test/cli/host-weaver.test.ts` (the
+  weaver run line for line against the old, and its cut-and-resume). The real run logs and legacy snapshots round-trip as
+  before (`test/log/legacy-files.test.ts`, `test/snapshot/legacy-*.test.ts`).
+- R1-1: a story with names but names off keeps `chooseName` granted and locked, so the prompt bytes are the old ones.
+
+**What remains (not started in this pass):**
+
+1. **Item 7, delete `world.ts` and the engine game code.** Not done: about 70 test files still play the old engine through
+   `composeRun` (`test/helpers/fixture.ts` and its users, `test/snapshot/*`, `test/engine/*`, `test/gamemaker/*`,
+   `test/stories/*`, `test/mechanics/**` differentials, `test/cli/host-*-differential.test.ts`), and `packages/chronicle` and
+   `packages/roles` (old `Gamemaker`, `AgentRunner`, interpreter, weaver, `describeSituation`) import engine types
+   (`RecordedEvent`, `World`, `EventBus`). The order to do it: (a) port `test/helpers/fixture.ts` users to
+   `test/helpers/host-fixture.ts` (same defaults; scripts get the host), file by file, keeping each assertion; (b) turn the
+   old-vs-new differentials into golden or recorded-log comparisons (record the old side's logs once into
+   `test/fixtures/` before the engine goes, then compare the mechanic against the recorded file); (c) move `RecordedEvent`,
+   the event types, `MemorySink` and the sinks from `packages/engine` into `packages/chronicle` (or contracts); (d) delete the
+   old roles (`roles/src/gamemaker/gamemaker.ts`, `agents/runner.ts`, `interpret/{interpreter,weaver,classifier}.ts`) and
+   `compose.ts`; (e) delete `packages/engine/src/{world,arena,director,tribunal,holdout,standoff,seal,...}.ts`. No test was
+   deleted in this pass.
+2. **Item 8, the core motive rename** (`rename-core-motive.md`): still the last commit, after item 7. While the old engine
+   runs as the other side of the differentials, renaming `core_dealt` would have to rename the old engine's event too.
+3. Open requests that stay **To build**: R2-1 (exiled residents' tool count 0 in the standings), R2-2 (`run_end` minute after
+   the tribunal's stop, check after A1-1), A1-7, S1-1/2/3, S1-6/7, O2-10, C1-7 per-statement decider errors, O2-12 the
+   reporter's human-influenced flag.
+4. **Docs**: `docs/ARCHITECTURE.md` (layout, CLI on the host, run files) and `docs/HOW-IT-WORKS.md` (the run file format)
+   describe the host path now; their paragraphs on the old engine's `World`, `Arena` and roles stay, marked as the old
+   engine's, and are rewritten with item 7.
+
+## Step 18: what remains (after integrator pass 1, 2026-11-02; items 1-3, 5 and 6 done in the final pass above)
 
 `world.ts` still runs the product: `apps/cli` (`compose.ts`, `main.ts`) composes the old `World`, and `test/golden/golden.test.ts`
 records the goldens through `composeRun`. What the new host already does is proven by `test/cli/host-story-golden.test.ts`:

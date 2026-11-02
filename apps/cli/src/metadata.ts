@@ -1,7 +1,7 @@
 /** Contents of `000-run.json` (SPEC §14): run metadata and the full serialized story. */
-import type { AgentProfile } from "@swarmtales/engine";
+import type { ResidentProfile } from "./host/residents.ts";
 import type { AnyStory } from "@swarmtales/contracts";
-import type { EffectiveRun } from "./compose.ts";
+import type { EffectiveRun } from "./run-options.ts";
 
 export interface RunMetadataInput {
 	readonly run: string;
@@ -12,7 +12,7 @@ export interface RunMetadataInput {
 	readonly story: AnyStory;
 	readonly effective: EffectiveRun;
 	/** Model and persona per competitor. */
-	readonly profiles: readonly AgentProfile[];
+	readonly profiles: readonly ResidentProfile[];
 	/** The snapshot a resumed run continues (SPEC 17). */
 	readonly resumedFrom?: ResumedFrom;
 }

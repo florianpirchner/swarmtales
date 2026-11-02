@@ -93,11 +93,15 @@ describe("the dials", () => {
 		expect(receipts(false)).not.toHaveProperty("minRun");
 	});
 
-	it("switch the names book off and keep chooseName out of the lists for a run without names", () => {
+	it("switch the names book off for a run without names, and keep chooseName granted (locked) as the old engine bound it (R1-1)", () => {
 		const off = mechanicsOf(cityOfKeys, runOf({ names: false })).find((use) => use.mechanic.id === "names")?.options;
 		expect(off).toMatchObject({ off: true });
-		expect(toolsOf(cityOfKeys, runOf({ names: false }), "resident")).not.toContain("chooseName");
+		expect(toolsOf(cityOfKeys, runOf({ names: false }), "resident")).toContain("chooseName");
 		expect(toolsOf(cityOfKeys, runOf(), "resident")).toContain("chooseName");
+		// A story without names never grants it.
+		const nameless = { ...cityOfKeys };
+		delete nameless.names;
+		expect(toolsOf(nameless, runOf({ names: false }), "resident")).not.toContain("chooseName");
 	});
 
 	it("load the holdout tribunal only with a playing gamemaker, the core motives only when they are on", () => {
