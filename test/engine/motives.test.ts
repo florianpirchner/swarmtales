@@ -4,14 +4,32 @@
  * gamemaker.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds } from "@swarmtales/kernel";
-import { aboveAllCap, coreMotiveLine, dealCoreMotives, lightCount, renderCoreMotive } from "@swarmtales/engine";
+import type { Static } from "typebox";
+import { Parse } from "typebox/value";
+import { competitorIds, rngFor } from "@swarmtales/kernel";
+import { aboveAllCap, coreMotiveLine, CoreMotivesOptions, dealCoreMotives as dealWith, lightCount, renderCoreMotive } from "@swarmtales/mechanic-motives";
 import { baseSystemPrompt } from "@swarmtales/roles";
 import type { CoreMotivesSpec } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
+/**
+ * The motives mechanic's dealing with the old call shape: the seed's streams (`rngFor(seed, ...)`,
+ * what the host's `ctx.rng` draws) and the run's named figures as the options' `cast`, as
+ * `apps/cli/src/host/story.ts` passes them.
+ */
+function dealCoreMotives(spec: Options, ids: readonly string[], seed: number, cast?: readonly string[]) {
+	return dealWith(cast === undefined ? spec : { ...spec, cast: [...cast] }, ids, (...labels) => rngFor(seed, ...labels));
+}
+
+type Options = Static<typeof CoreMotivesOptions>;
+
+/** The story's spec as the mechanic's options (`apps/cli/src/host/story.ts`). */
+function optionsOf(spec: CoreMotivesSpec | undefined): Options | undefined {
+	return spec === undefined ? undefined : Parse(CoreMotivesOptions, spec);
+}
+
 // The drawn core motives, without the story's cast.
-const spec: CoreMotivesSpec | undefined = cityOfKeys.coreMotives === undefined ? undefined : { ...cityOfKeys.coreMotives, figures: [] };
+const spec = optionsOf(cityOfKeys.coreMotives === undefined ? undefined : { ...cityOfKeys.coreMotives, figures: [] });
 
 describe("dealing core motives", () => {
 	it.each([6, 12, 48, 96])("follows the mixing rules with %i residents", (agents) => {
@@ -49,7 +67,7 @@ describe("dealing core motives", () => {
 
 	it("writes the core motive as prose after the persona, never as an instruction", () => {
 		if (spec === undefined) throw new Error("cityofkeys has no core motives");
-		const coreMotive = {
+		const coreMotive: Parameters<typeof renderCoreMotive>[1] = {
 			bigFive: [
 				{ axis: "openness", level: "high" },
 				{ axis: "agreeableness", level: "middle" },
@@ -59,7 +77,7 @@ describe("dealing core motives", () => {
 				{ drive: "envy", intensity: "clearly" },
 				{ drive: "anxiety", intensity: "atTimes" },
 			],
-		} as const;
+		};
 		const prose = renderCoreMotive(spec, coreMotive);
 		expect(prose).toBe(
 			"Who you are, deep inside:\nYou are curious; a new idea pulls at you. Above all you want to lead; others follow you, and you need them to. " +
@@ -85,7 +103,7 @@ describe("the system prompt of a named city (v09)", () => {
 });
 
 describe("the story's cast (stories/cityofkeys/cast/)", () => {
-	const cast = cityOfKeys.coreMotives;
+	const cast = optionsOf(cityOfKeys.coreMotives);
 
 	it("deals every figure once to a city of the cast's size, seeded, in roster order", () => {
 		if (cast?.figures === undefined) throw new Error("cityofkeys has no cast");

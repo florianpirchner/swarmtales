@@ -15,6 +15,7 @@ import { CoreMotiveRecord } from "./spec.ts";
 
 export { motivesHead };
 export { coreMotiveLine, dealCoreMotives, renderCoreMotive };
+export { aboveAllCap, lightCount } from "./deal.ts";
 export { CoreMotiveRecord, CoreMotivesOptions } from "./spec.ts";
 
 type Ctx = ContextOf<typeof motivesHead>;

@@ -15,6 +15,9 @@ import { cityPiecePrice, needsNow, type StandoffReads } from "./reads.ts";
 import { computeStandoffSection, StandoffSectionFact, type SectionReads } from "./section.ts";
 
 export { DEFAULT_DIRECTION, grantsUltimatum, ULTIMATUM_DIRECTION } from "./grants.ts";
+export { emptyStandoff, StandoffBook, type StandoffPiece } from "./book.ts";
+export { carriesValue } from "./carries.ts";
+export { standoffSnapshot } from "./slice.ts";
 /** The schemas of the gamemaker's facts, for a head that renders the old "Standoffs" section. */
 export { CityPieces, Outstanding, Ultimatums, Unused } from "./situation.ts";
 export { computeStandoffSection, renderRiskSection, renderStandoffSection, StandoffSectionFact, standoffSectionOf, type SectionReads, type StandoffSection } from "./section.ts";

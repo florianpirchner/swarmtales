@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escrowAccountId } from "@swarmtales/engine";
+import { escrowAccountId } from "@swarmtales/mechanic-cast";
 import { act as directorAct, at, every, when } from "@swarmtales/sdk";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 import { balanceOf, ledgerTotal, receiptsOf, rankingOf, accountBalance } from "../helpers/host-inspect.ts";
