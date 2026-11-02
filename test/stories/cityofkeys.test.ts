@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { allTools, DIRECTOR_SUPPORT } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { placeholdersOf } from "@swarmtales/kernel";
-import { TASK_PLACEHOLDERS, type LevelDefinition } from "@swarmtales/contracts";
+import { DIRECTOR_SUPPORT, TASK_PLACEHOLDERS, TOOL_NAMES, type LevelDefinition } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
 import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 import { balanceOf, cityFactorOf, codeOf, factorsOf, isFinished, ledgerTotal, levelOf as levelReached, puzzlesOf, solveEveryLevel, solvedLevels, teamsOf } from "../helpers/host-inspect.ts";
@@ -20,7 +19,7 @@ const TRIBUNAL_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nom
 const NAME_TOOLS: readonly string[] = ["chooseName", "defy"];
 /** Whispers-only tools (the forger, the popularity vote and the holdout ballot); cityofkeys never binds them. */
 const WHISPER_TOOLS: readonly string[] = ["forgeReceipt", "nameFavourite", "tribunalVote"];
-const ACT_ONE_TOOLS = allTools.map((tool) => tool.name).filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name) && !WHISPER_TOOLS.includes(name) && name !== "activeTools" && name !== "claimPiece");
+const ACT_ONE_TOOLS = TOOL_NAMES.filter((name) => !PETITION_TOOLS.includes(name) && !ACT_TWO_ONLY.includes(name) && !TRIBUNAL_TOOLS.includes(name) && !NAME_TOOLS.includes(name) && !WHISPER_TOOLS.includes(name) && name !== "activeTools" && name !== "claimPiece");
 const GROUP = ["createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer"];
 
 function levelOf(number: number): LevelDefinition {

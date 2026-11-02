@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { hostOracle } from "../../apps/cli/src/oracle.ts";
-import { exileTarget } from "@swarmtales/engine";
+import { exileTarget } from "@swarmtales/mechanic-tribunal";
 import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { createHostFixture } from "../helpers/host-fixture.ts";

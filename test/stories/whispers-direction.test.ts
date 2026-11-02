@@ -8,7 +8,9 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import type { CompetitorId } from "@swarmtales/kernel";
-import { authorLine, tallyWhispers } from "@swarmtales/engine";
+import { carriesRun } from "@swarmtales/mechanic-puzzles";
+import { tallyWhispers } from "@swarmtales/mechanic-whispers";
+import { render } from "@swarmtales/prompts";
 import { gamemakerSystemPrompt, roleLeaks, VOICE_RULE } from "@swarmtales/roles";
 import type { AnyStory, Host } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
@@ -18,6 +20,15 @@ import { dmReceiptOf, fragmentOf, whispererOf } from "../helpers/host-inspect.ts
 
 const RUMOURS = whispersStory(false);
 const AUTHOR = whispers.gamemaker?.author ?? "the city";
+
+/** What level 10 says about the gamemaker's notes (old engine `authorLine`, the prompt the host's direction renders). */
+const authorLine = (author: string): string => render("competitor/direction/author-line", { author });
+
+/** The puzzles mechanic's hand-over test over fixed fragments (old engine `isHandover`: a run of 3 of any fragment). */
+const handoverOf =
+	(fragments: readonly string[]) =>
+	(text: string): boolean =>
+		fragments.some((fragment) => fragment.length > 0 && carriesRun(text, fragment, Math.min(3, fragment.length)));
 
 /** The whisperer's and everyone else's system prompts at a figure direction, after one silent minute. */
 function prompts(story: AnyStory, figureDirection: number, gamemaker = false): { readonly whisperer: string; readonly others: readonly string[]; readonly host: Host } {
@@ -120,10 +131,10 @@ describe("the whisperer's measured orders", () => {
 			{ from: "A02", to: "A03", minute: 8, text: "A rumour, but not his." },
 			{ from: "A01", to: "A03", minute: 12, text: "Too late for this window." },
 		];
-		expect(tallyWhispers("A01", dms, [], ["QX7K"], 6, 12)).toEqual({ whispers: 2, recipients: ["A02"] });
+		expect(tallyWhispers("A01", dms, [], handoverOf(["QX7K"]), 6, 12)).toEqual({ whispers: 2, recipients: ["A02"] });
 		// A fragment written apart still hands it over.
-		expect(tallyWhispers("A01", [{ from: "A01", to: "A04", minute: 6, text: "here: q-x-7-k" }], [], ["QX7K"], 6, 12).whispers).toBe(0);
-		expect(tallyWhispers("A01", dms, [{ minute: 9, to: "A04" }, { minute: 13, to: "A05" }], ["QX7K"], 6, 12)).toEqual({ whispers: 3, recipients: ["A02", "A04"] });
+		expect(tallyWhispers("A01", [{ from: "A01", to: "A04", minute: 6, text: "here: q-x-7-k" }], [], handoverOf(["QX7K"]), 6, 12).whispers).toBe(0);
+		expect(tallyWhispers("A01", dms, [{ minute: 9, to: "A04" }, { minute: 13, to: "A05" }], handoverOf(["QX7K"]), 6, 12)).toEqual({ whispers: 3, recipients: ["A02", "A04"] });
 	});
 
 	it("reports met or behind after every vote from the second, aims him at the leader, and pushes him through the gamemaker", async () => {

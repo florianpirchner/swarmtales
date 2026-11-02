@@ -13,7 +13,7 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { analyzeLog } from "@swarmtales/chronicle";
-import { addFactors } from "@swarmtales/engine";
+import { addFactors } from "@swarmtales/mechanic-puzzles";
 import type { Host } from "@swarmtales/contracts";
 import type { Script, ToolInvocation } from "@swarmtales/models";
 import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";

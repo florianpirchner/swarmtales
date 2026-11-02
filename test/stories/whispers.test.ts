@@ -1,6 +1,6 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { ownCharsOf, validatePuzzle } from "@swarmtales/engine";
+import { ownCharsOf, validatePuzzle } from "@swarmtales/mechanic-puzzles";
 import type { CompetitorId } from "@swarmtales/kernel";
 import { puzzle, validateStory } from "@swarmtales/sdk";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";

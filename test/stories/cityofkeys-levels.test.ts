@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "@swarmtales/engine";
-import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { act, createHostFixture, LOCKED_REPLY, say } from "../helpers/host-fixture.ts";
 import { fragmentOf, codeOf, levelOf, isFinished, balanceOf, submit, wrongCodeOf, problemText, rewardOf, teamOf, groupsOf } from "../helpers/host-inspect.ts";
 
 describe("cityofkeys level 1: the first door (solo)", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "@swarmtales/engine";
+import { DIRECTOR_SUPPORT } from "@swarmtales/contracts";
 import { DEFAULT_STORY, findStory, STORIES, storyNames } from "../../stories/index.ts";
 import { validateStory } from "@swarmtales/sdk";
 
