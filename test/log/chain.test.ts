@@ -222,6 +222,49 @@ describe("the signed event log", () => {
 		expect(heads()).toBe(1);
 	});
 
+	it("refuses a line with a duplicate key or a lone surrogate, which JSON parsers read differently (I-JSON, step 18 challenge chain-security m2)", () => {
+		const { directory } = playRun();
+		const events = lines(directory, EVENTS_FILE);
+		// The last value wins in JSON.parse, so the hash is the original's; a parser that keeps the first reads a run_end.
+		const doubled = [...events];
+		doubled[0] = (events[0] ?? "").replace(/^\{/, '{"type":"run_end","round":99,');
+		expect(verifyWith(directory, { events: doubled })).toEqual({ ok: false, line: 1, reason: matching(/duplicate key "type"/) });
+		// Escaped the same key is the same key.
+		const escaped = [...events];
+		escaped[1] = (events[1] ?? "").replace(/^\{/, '{"\\u0074ext":"forged",');
+		expect(verifyWith(directory, { events: escaped })).toEqual({ ok: false, line: 2, reason: matching(/duplicate key "text"/) });
+
+		const lone = tempDirectory();
+		const chain = new EventChain(lone, GENESIS);
+		const written = ['{"seq":1,"minute":0,"type":"text","agent":"A01","text":"half \\ud83d"}', '{"seq":2,"minute":0,"type":"run_end","reason":"done"}'];
+		writeFileSync(join(lone, EVENTS_FILE), `${written.join("\n")}\n`);
+		for (const line of written) chain.append(line);
+		expect(verifyChain(lone)).toEqual({ ok: false, line: 1, reason: matching(/lone surrogate/) });
+	});
+
+	it("writes a lone surrogate as U+FFFD, so a run's own text never breaks its chain", () => {
+		const directory = tempDirectory();
+		const chain = new EventChain(directory, GENESIS);
+		const bus = new EventBus([new JsonlEventLog(join(directory, EVENTS_FILE), { chain })], () => 0);
+		// A text cut inside a surrogate pair (e.g. a summary sliced through an emoji).
+		bus.emit({ type: "text", agent: "A01", text: "😀".slice(0, 1) + " and " + "😀" });
+		bus.emit({ type: "run_end", reason: "done" });
+		const first: unknown = JSON.parse(lines(directory, EVENTS_FILE)[0] ?? "");
+		expect(first).toMatchObject({ text: "� and 😀" });
+		expect(verifyChain(directory)).toMatchObject({ ok: true });
+	});
+
+	it("refuses a run_end before the log's last line (step 18 challenge chain-security m3)", () => {
+		const directory = tempDirectory();
+		const chain = new EventChain(directory, GENESIS);
+		const bus = new EventBus([new JsonlEventLog(join(directory, EVENTS_FILE), { chain })], () => 0);
+		bus.emit({ type: "text", agent: "A01", text: "one" });
+		bus.emit({ type: "run_end", reason: "done" });
+		bus.emit({ type: "text", agent: "A01", text: "after the end" });
+		bus.emit({ type: "run_end", reason: "done" });
+		expect(verifyChain(directory)).toEqual({ ok: false, line: 2, reason: matching(/run_end before the log's last line/) });
+	});
+
 	it("refuses a log cut back to a signed checkpoint", () => {
 		const directory = tempDirectory();
 		const chain = new EventChain(directory, GENESIS);

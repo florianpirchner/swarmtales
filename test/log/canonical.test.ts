@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalJson, CanonicalJsonError } from "@swarmtales/chronicle";
+import { canonicalJson, CanonicalJsonError, iJsonIssue, wellFormed } from "@swarmtales/chronicle";
 
 describe("canonical JSON (RFC 8785)", () => {
 	it("matches the RFC's example of numbers, strings and literals (§3.2.2)", () => {
@@ -34,5 +34,17 @@ describe("canonical JSON (RFC 8785)", () => {
 		expect(() => canonicalJson(undefined)).toThrow(CanonicalJsonError);
 		expect(() => canonicalJson({ a: undefined })).toThrow(CanonicalJsonError);
 		expect(() => canonicalJson(1n)).toThrow(CanonicalJsonError);
+	});
+
+	it("tells what is not I-JSON: duplicate keys in any object, lone surrogates in keys and values (RFC 7493)", () => {
+		const issue = (text: string): string | undefined => iJsonIssue(text, JSON.parse(text));
+		expect(issue(String.raw`{"a":1,"b":[{"a":2,"c":"}{\"a\":"},{"a":3}],"d":{"a":4}}`)).toBeUndefined();
+		expect(issue('{"a":1,"b":{"x":1,"y":{"x":2}},"a":2}')).toBe('duplicate key "a"');
+		expect(issue('[{"x":1},{"y":{"z":1,"z":2}}]')).toBe('duplicate key "z"');
+		expect(issue(String.raw`{"t":1,"t":2}`)).toBe('duplicate key "t"');
+		expect(issue(String.raw`{"text":"😀"}`)).toBeUndefined();
+		expect(issue(String.raw`{"text":"\ud83d"}`)).toBe("a lone surrogate in a string");
+		expect(issue(String.raw`{"\udc00":1}`)).toBe("a lone surrogate in a string");
+		expect(wellFormed(`a${"😀".slice(0, 1)}😀`)).toBe("a�😀");
 	});
 });

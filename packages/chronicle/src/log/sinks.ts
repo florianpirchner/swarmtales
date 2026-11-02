@@ -5,6 +5,7 @@ import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { assertNever } from "@swarmtales/kernel";
 import type { ArenaEventType, EventSink, RecordedEvent } from "@swarmtales/legacy-log";
+import { wellFormed } from "./canonical.ts";
 import type { EventChain } from "./chain.ts";
 
 /** Keeps every event in memory; for tests and in-process consumers (moved from the engine, step 18). */
@@ -41,7 +42,8 @@ export class JsonlEventLog implements EventSink {
 	}
 
 	record(event: RecordedEvent): void {
-		const line = JSON.stringify({ ...event, at: new Date().toISOString() });
+		// A lone surrogate (a text sliced through an emoji) becomes U+FFFD: the line stays I-JSON, which the chain's verify requires.
+		const line = JSON.stringify({ ...event, at: new Date().toISOString() }, (_key, value: unknown) => (typeof value === "string" ? wellFormed(value) : value));
 		appendFileSync(this.path, `${line}\n`);
 		this.#chain?.append(line);
 	}

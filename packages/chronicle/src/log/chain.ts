@@ -20,7 +20,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { canonicalJson } from "./canonical.ts";
+import { canonicalJson, iJsonIssue } from "./canonical.ts";
 
 export const EVENTS_FILE = "events.jsonl";
 export const CHAIN_FILE = "events.chain.jsonl";
@@ -249,13 +249,16 @@ function parseJson(text: string): { readonly ok: true; readonly value: unknown }
 	}
 }
 
-function hashOfLine(previous: string, text: string): string | undefined {
+/** A line's link hash and value, or why it cannot be hashed: not JSON, or not I-JSON (step 18 challenge, m2). */
+function hashOfLine(previous: string, text: string): { readonly hash: string; readonly value: unknown } | { readonly reason: string } {
 	const parsed = parseJson(text);
-	if (!parsed.ok) return undefined;
+	if (!parsed.ok) return { reason: "not a JSON line" };
+	const issue = iJsonIssue(text, parsed.value);
+	if (issue !== undefined) return { reason: `not I-JSON (${issue}): JSON parsers may read the line differently` };
 	try {
-		return linkHash(previous, canonicalJson(parsed.value));
+		return { hash: linkHash(previous, canonicalJson(parsed.value)), value: parsed.value };
 	} catch {
-		return undefined;
+		return { reason: "not a JSON line" };
 	}
 }
 
@@ -279,6 +282,7 @@ export function verifyChainText(events: string, chain: string, publicKeyPem: str
 	if (first.value.hash !== genesisHash) return { ok: false, reason: "the genesis entry's hash does not match its content" };
 
 	const lines = linesOf(events);
+	const chained = chainLines(entries);
 	const heads: { lines: number; hash: string }[] = [];
 	let head = genesisHash;
 	let covered = 0;
@@ -299,11 +303,13 @@ export function verifyChainText(events: string, chain: string, publicKeyPem: str
 		signedLast = false;
 		if (entry.seq !== covered) return { ok: false, line: covered, reason: `${CHAIN_FILE} line ${String(index + 1)}: expected seq ${String(covered)}, found ${String(entry.seq)}` };
 		const line = lines[covered - 1];
-		if (line === undefined) return { ok: false, line: covered, reason: `missing from ${EVENTS_FILE} (it has ${String(lines.length)} lines, the chain covers ${String(chainLines(entries))})` };
-		const hash = hashOfLine(head, line);
-		if (hash === undefined) return { ok: false, line: covered, reason: "not a JSON line" };
-		if (hash !== entry.hash) return { ok: false, line: covered, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" };
-		head = hash;
+		if (line === undefined) return { ok: false, line: covered, reason: `missing from ${EVENTS_FILE} (it has ${String(lines.length)} lines, the chain covers ${String(chained)})` };
+		const linked = hashOfLine(head, line);
+		if ("reason" in linked) return { ok: false, line: covered, reason: linked.reason };
+		if (linked.hash !== entry.hash) return { ok: false, line: covered, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" };
+		// A run has one end: a log with lines after a run_end was cut back to it or grew past it (step 18 challenge, m3).
+		if (isRunEnd(linked.value) && covered < chained) return { ok: false, line: covered, reason: "a run_end before the log's last line (a run ends once)" };
+		head = linked.hash;
 	}
 	if (lines.length > covered) return { ok: false, line: covered + 1, reason: `not in the chain (the chain ends after line ${String(covered)})` };
 	if (!signedLast) {

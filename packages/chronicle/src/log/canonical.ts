@@ -18,6 +18,71 @@ function byCodeUnits(left: string, right: string): number {
 	return left < right ? -1 : 1;
 }
 
+/** A lone (unpaired) UTF-16 surrogate: under the `u` flag a string is read by code points, so only an unpaired half is `Cs`. */
+const LONE_SURROGATE = /\p{Cs}/u;
+
+/** The first object key that occurs twice in one object of a JSON text (escapes decoded); the text is valid JSON. */
+function duplicateKey(text: string): string | undefined {
+	// One entry per open object (its keys so far) or array (undefined).
+	const open: (Set<string> | undefined)[] = [];
+	let expectKey = false;
+	let index = 0;
+	while (index < text.length) {
+		const char = text[index];
+		if (char === '"') {
+			let end = index + 1;
+			while (end < text.length && text[end] !== '"') end += text[end] === "\\" ? 2 : 1;
+			const keys = open.at(-1);
+			if (expectKey && keys !== undefined) {
+				const key: unknown = JSON.parse(text.slice(index, end + 1));
+				if (typeof key === "string") {
+					if (keys.has(key)) return key;
+					keys.add(key);
+				}
+			}
+			expectKey = false;
+			index = end + 1;
+			continue;
+		}
+		if (char === "{") {
+			open.push(new Set());
+			expectKey = true;
+		} else if (char === "[") {
+			open.push(undefined);
+		} else if (char === "}" || char === "]") {
+			open.pop();
+		} else if (char === ",") {
+			expectKey = open.at(-1) !== undefined;
+		}
+		index += 1;
+	}
+	return undefined;
+}
+
+function hasLoneSurrogate(value: unknown): boolean {
+	if (typeof value === "string") return LONE_SURROGATE.test(value);
+	if (Array.isArray(value)) return value.some((entry: unknown) => hasLoneSurrogate(entry));
+	if (isRecord(value)) return Object.entries(value).some(([key, entry]) => LONE_SURROGATE.test(key) || hasLoneSurrogate(entry));
+	return false;
+}
+
+/**
+ * Why a JSON text is not I-JSON (RFC 7493), which RFC 8785 assumes: a duplicate key (parsers differ
+ * in which value they keep) or a lone surrogate (not UTF-8 encodable, so another JCS implementation
+ * cannot hash it). `undefined` when it is I-JSON. `value` is `JSON.parse(text)`.
+ */
+export function iJsonIssue(text: string, value: unknown): string | undefined {
+	const key = duplicateKey(text);
+	if (key !== undefined) return `duplicate key ${JSON.stringify(key)}`;
+	if (hasLoneSurrogate(value)) return "a lone surrogate in a string";
+	return undefined;
+}
+
+/** A string with every lone surrogate replaced by U+FFFD, so what a run writes is always I-JSON. */
+export function wellFormed(text: string): string {
+	return text.replace(/\p{Cs}/gu, "�");
+}
+
 export function canonicalJson(value: unknown): string {
 	if (value === null) return "null";
 	switch (typeof value) {
