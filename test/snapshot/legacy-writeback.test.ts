@@ -25,7 +25,7 @@ import { script, scriptOptionsFromStory } from "@swarmtales/mechanic-script";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { standInsFor } from "@swarmtales/testkit";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { resolveBlockSize } from "../../apps/cli/src/compose.ts";
+import { resolveBlockSize } from "../../apps/cli/src/run-options.ts";
 import { channelsOptionsOf, marksOptions } from "../mechanics/t2/golden-world.ts";
 import { exileStandIn } from "../mechanics/t1/stand-ins.ts";
 import { progressionOptions } from "../mechanics/progression/harness.ts";
