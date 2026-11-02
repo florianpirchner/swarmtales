@@ -7,7 +7,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { redactSecrets } from "@swarmtales/kernel";
-import { type Api, type AssistantMessage, type AssistantMessageEventStream, createAssistantMessageEventStream, createProvider, envApiKeyAuth, type Model } from "@earendil-works/pi-ai";
+import { type Api, type AssistantMessage, type AssistantMessageEventStream, createAssistantMessageEventStream, createProvider, envApiKeyAuth, type Model, normalizeContext } from "@earendil-works/pi-ai";
 import { createModelSource, createProviderRegistry, customProviderSpec } from "@swarmtales/models";
 
 const KEY_ENV = "SWARMTALES_TEST_REDACT_KEY";
@@ -61,7 +61,7 @@ describe("redacting secrets from error texts", () => {
 		};
 		const source = createModelSource({ provider: "gateway", modelId: "m" }, { registry: createProviderRegistry([spec]) });
 		const binding = source.bind("A01", { maxOutputTokens: 16, timeoutMs: 5_000 });
-		const stream = await binding.streamFn(binding.model, { messages: [{ role: "user", content: "hello", timestamp: 0 }] });
+		const stream = await binding.streamFn(binding.model, normalizeContext({ messages: [{ role: "user", content: "hello", timestamp: 0 }] }));
 		const seen: string[] = [];
 		for await (const event of stream) if (event.type === "error") seen.push(event.error.errorMessage ?? "");
 		const message = await stream.result();
