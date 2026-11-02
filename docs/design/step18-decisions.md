@@ -226,3 +226,14 @@ not used. What remains is listed in `rewrite-status.md` ("Step 18 items 7 and 8:
    second `usage` app event of 0.3 USD per reply through `host.record`. The budget reads only `usage`, which is the
    path a real model takes.
 10. `test/report/drama.test.ts` no longer calls `closeActs()` itself, because the host's `runEnded` closes the acts.
+
+## H1 (signed event log, rewrite-status item 5a)
+
+Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).
+
+1. Sidecar, not a field in `events.jsonl`: **Decided** (the goldens and every reader keep their bytes).
+2. The chain hashes the lines `JsonlEventLog` writes (after the legacy adapter, `at` included), not the host's envelopes: **Decided**; the chain proves what the published file holds.
+3. Heads are signed at `run_end`, at every snapshot (the run file's `chain` checkpoint) and at close; `verify` refuses a log that does not end with `run_end`, so a cut back to a checkpoint shows: **Decided**.
+4. A resumed run's log repeats its prefix with fresh `at` stamps, so its chain covers those lines too and its genesis chains from the checkpoint; `--previous` checks the prefix against the previous run without `at`: **Decided**.
+5. No CLI flag turns the chain off; only library callers (tests) build a `JsonlEventLog` without one: **Decided**.
+6. External anchor of the public key: **Open** (publishing needs Flo's go).

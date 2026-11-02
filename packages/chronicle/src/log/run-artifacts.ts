@@ -5,6 +5,8 @@
  * runs/run-NNN/
  *   000-run.json          run metadata and the serialized story
  *   events.jsonl          every event
+ *   events.chain.jsonl    the signed hash chain over events.jsonl (docs/design/event-log-signing.md)
+ *   run.pub               the run's Ed25519 public key
  *   NNN-minute/events.jsonl  events of one virtual minute
  *   agents/A01.md         transcript per competitor
  *   cast/A01-house.md     who each resident is (name, figure, core motive), before the run starts

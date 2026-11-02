@@ -24,6 +24,7 @@
     "report:run": "tsx --conditions=development apps/cli/src/run-report.ts",
     "report:private": "tsx --conditions=development apps/cli/src/private-report.ts",
     "migrate:gamemaker": "tsx --conditions=development apps/cli/src/migrate-gamemaker.ts",
+    "log:verify": "tsx --conditions=development apps/cli/src/log-verify.ts",
     "digest": "tsx --conditions=development apps/cli/src/digest.ts",
     "novel": "tsx --conditions=development apps/cli/src/novel.ts",
     "lab": "tsx --conditions=development lab/lab.ts",

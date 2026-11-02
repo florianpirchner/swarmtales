@@ -1,12 +1,14 @@
 import { execFile } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
+import { jsonHash, verifyChain, verifyContinuity } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const run = promisify(execFile);
+const swt = (...args: string[]) => run(process.execPath, ["--conditions=development", "--import", "tsx", "apps/cli/src/swt.ts", ...args], { cwd: process.cwd() });
 
 describe("pnpm start (end to end, offline)", () => {
 	it("plays a scripted cityofkeys run and writes every artifact including the serialized story", async () => {
@@ -36,6 +38,25 @@ describe("pnpm start (end to end, offline)", () => {
 			// Three passes a minute: the oracle passes the last level in minute 3 and the run stops there.
 			expect(readFileSync(join(directory, "minutes.md"), "utf8")).toContain("## Minute 3 (round 4)");
 			expect(readFileSync(join(directory, "agents", "A01.md"), "utf8")).toContain("## Minute 0, pass 1");
+
+			// The signed event log: the chain holds, its genesis names the story, seed and models, and no private key is written.
+			expect(verifyChain(directory)).toMatchObject({
+				ok: true,
+				genesis: { story: "cityofkeys", storyHash: jsonHash(JSON.parse(JSON.stringify(cityOfKeys))), seed: 7, models: { A01: "scripted/-", gamemaker: "off" } },
+			});
+			expect(stdout).toContain("chain:       ");
+			for (const name of readdirSync(directory)) {
+				if (/\.(json|jsonl|pub|md)$/.test(name)) expect(readFileSync(join(directory, name), "utf8"), name).not.toMatch(/PRIVATE KEY/);
+			}
+			const verified = await swt("log", "verify", directory);
+			expect(verified.stdout).toMatch(/^ok {3}.*: \d+ lines, head [0-9a-f]{64}\n/);
+			// A changed line is found and named.
+			const tampered = join(runs, "tampered");
+			cpSync(directory, tampered, { recursive: true });
+			const lines = readFileSync(join(tampered, "events.jsonl"), "utf8").split("\n");
+			lines[41] = (lines[41] ?? "").replace('"minute":', '"minute":9');
+			writeFileSync(join(tampered, "events.jsonl"), lines.join("\n"));
+			await expect(swt("log", "verify", tampered)).rejects.toThrow(/broken .*tampered: events\.jsonl line 42: does not match the chain/);
 		} finally {
 			rmSync(runs, { recursive: true, force: true });
 		}
@@ -97,6 +118,16 @@ describe("pnpm start (end to end, offline)", () => {
 			const metadata: unknown = JSON.parse(readFileSync(join(runs, "run-003", "000-run.json"), "utf8"));
 			expect(metadata).toMatchObject({ resumedFrom: { run: "run-002", level: 7, events: cut }, effective: { seed: 7, agents: 6 } });
 			expect(readFileSync(join(runs, "run-003", "agents", "A01.md"), "utf8")).toContain("_Resumed from snapshot-L7.json after round");
+
+			// The resumed chain continues the snapshot's signed checkpoint, which covers the prefix the resumed log repeats.
+			const runFile: unknown = JSON.parse(readFileSync(file, "utf8"));
+			expect(runFile).toHaveProperty("chain.lines", cut);
+			const before = verifyChain(join(runs, "run-002"));
+			expect(before.ok && before.heads.some((entry) => entry.lines === cut)).toBe(true);
+			expect(verifyContinuity(join(runs, "run-002"), join(runs, "run-003"))).toMatchObject({ ok: true, genesis: { resumedFrom: { file: "snapshot-L7.json", run: "run-002", checkpoint: { lines: cut } } } });
+			expect((await swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-002"))).stdout).toMatch(/resumed from snapshot-L7\.json of run-002 after line \d+/);
+			// run-001 played the same lines up to the cut, but its chain is not the one run-003 continues.
+			await expect(swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-001"))).rejects.toThrow(/another chain/);
 
 			// A snapshot that does not fit is refused before anything is played, and no run directory stays behind.
 			await expect(start("--resume", file, "--seed", "8")).rejects.toThrow(/Cannot resume\.\nThe snapshot was taken with seed 7/);

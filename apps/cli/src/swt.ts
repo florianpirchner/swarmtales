@@ -19,6 +19,7 @@ const COMMANDS: readonly Command[] = [
 	{ words: ["report", "minutes"], summary: "rebuild minutes.md of a run (pnpm report:minutes)", load: () => import("./report.ts") },
 	{ words: ["report", "run"], summary: "write REPORT.md of a run (pnpm report:run)", load: () => import("./run-report.ts") },
 	{ words: ["report", "private"], summary: "write the private report of a run (pnpm report:private)", load: () => import("./private-report.ts") },
+	{ words: ["log", "verify"], summary: "check the signed event log of a run (pnpm log:verify)", load: () => import("./log-verify.ts") },
 	{ words: ["digest"], summary: "turn a run into a readable story (pnpm digest)", load: () => import("./digest.ts") },
 	{ words: ["novel"], summary: "write a novel from a run (pnpm novel)", load: () => import("./novel.ts") },
 	{ words: ["migrate", "gamemaker"], summary: "migrate a gamemaker snapshot (pnpm migrate:gamemaker)", load: async () => {

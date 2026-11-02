@@ -202,7 +202,14 @@ resume after S18-10.
 5. **Wave 4:** `swt` commands (noun-verb, Ink TUI, `watch`), story schema and YAML loader, expression language,
    sandbox spike, VS Code extension; first npm publish needs Flo's go; `library/` copy at publish; curated public API
    instead of `export *` barrels; `max-lines` ratchet; reduce lint memory (typed linting over 30+ packages).
-5a. **Signed event log** (Flo's requirement 2026-11-01, priority: right after the wave C golden compare, before the final PR and
+5a. **Signed event log: built (step 18, team H1, `docs/design/event-log-signing.md`).** Sidecar `events.chain.jsonl` + `run.pub`
+   beside the unchanged `events.jsonl` (`EventChain` in `packages/chronicle/src/log/chain.ts`, fed by `JsonlEventLog`); signed
+   heads at `run_end`, at every snapshot (the run file's `chain` checkpoint, which a resumed run's genesis chains from) and at
+   close; `swt log verify <run> [--key] [--previous]`; tests in `test/log/chain.test.ts`, `test/log/canonical.test.ts`,
+   `test/golden/golden-chain.test.ts`, `test/cli/log-verify.test.ts`, `test/cli/main.test.ts`; mutants
+   `docs/design/mutants-step18-H1.json`. Open: an external anchor of the public key (publishing it needs Flo's go); the ISTAnt
+   treatment commitment goes into `commitments` when the replica is built. The original brief follows.
+   (Flo's requirement 2026-11-01, priority: right after the wave C golden compare, before the final PR and
    before any ISTAnt run). Every run gets its own Ed25519 key pair (node:crypto, no new dependency); the public key is stored with
    the run, the private key lives only in memory and is gone when the run ends. Each event carries `hash = sha256(previousHash,
    canonical JSON (RFC 8785) of the event)`; a genesis entry holds public key, code commit, story hash, seed and models (ISTAnt:
