@@ -13,8 +13,9 @@
  *   kept it.
  * - **Input.** `gamemaker/look`: the report and `{{standingOrders}}`, so the input is the old
  *   `gamemaker_turn.input` byte for byte when no order is active. The report of the city comes from
- *   a `GamemakerReport` (the old `describeSituation` on the old `World` today, `worldReport`); the
- *   overseer hands it the look's tracks, events, notes and budget line.
+ *   a `GamemakerReport`: the old `describeSituation` on the old `World` (`worldReport`), or the
+ *   host-backed report from the mechanics' facts (`hostGamemakerReport`, apps/cli/src/host/report.ts);
+ *   the overseer hands it the look's facts, tracks, events, notes and budget line.
  * - **System prompt.** The story's, composed by `gamemakerSystemPrompt` with the direction's
  *   profile (`gamemakerOptions`), sent unchanged with every look (`system`).
  * - **Tools.** The world tools granted to its name, those the mechanics' `lock` handlers refuse it
@@ -77,6 +78,8 @@ interface GamemakerState {
 /** What a look hands the report besides the city: the old `SituationInput` without the world and the guard. */
 export interface GamemakerLook {
 	readonly round: number;
+	/** The host's facts at the look (`ctx.facts()`): what a host-backed report reads of the city (apps/cli/src/host/report.ts). */
+	readonly facts: Readonly<Record<string, unknown>>;
 	readonly tracks: ReadonlyMap<string, ResidentTrack>;
 	/** The events since the last look, in log order. */
 	readonly recent: readonly RecordedEvent[];
@@ -182,7 +185,7 @@ export function defineGamemaker(report: GamemakerReport): OverseerDefinition<typ
 				const state = ctx.state;
 				const recent = absorb(state, ctx.log.since(state.seen), () => ctx.log.all());
 				const budget = budgetLine(ctx.options, ctx.residents.ids, state.notes, ctx.minute);
-				const look: GamemakerLook = { round, tracks: state.tracks, recent, notes: state.notes, budget, direction: ctx.options.direction };
+				const look: GamemakerLook = { round, facts: ctx.facts(), tracks: state.tracks, recent, notes: state.notes, budget, direction: ctx.options.direction };
 				// The gamemaker reads names, as the residents do (v08).
 				return [{ situation: ctx.display(report.situation(look)) }];
 			},

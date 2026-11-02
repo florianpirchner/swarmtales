@@ -14,8 +14,10 @@ import { progressionImplementation } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
 import { markTaskShown, statusParts, taskLines } from "./task.ts";
 import { progressionTools } from "./tools.ts";
+import { computeProgressionSection, ProgressionSectionFact } from "./section.ts";
 
 export { progressionHead } from "./head.ts";
+export { ladderText, ProgressionSectionFact, progressionSectionOf, renderProgressionHeader, renderResidents, type ProgressionSection, type ResidentTrackView } from "./section.ts";
 
 export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 	tools: progressionTools(kit),
@@ -91,6 +93,8 @@ export const progression = defineMechanic(progressionWorkHead, (kit) => ({
 			[...view.state.competitors].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held })),
 		),
 		door: kit.fact(Type.Union([Type.Integer(), Type.Null()]), (view) => view.state.door ?? null),
+		/** The gamemaker's header, "Residents:" and the input of its wait lines (old `describeSituation`; step 18, item 2). */
+		section: kit.fact(ProgressionSectionFact, (view) => computeProgressionSection(view)),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

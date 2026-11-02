@@ -13,8 +13,11 @@ import { loadLevels, PuzzlesSlice, PuzzlesSliceV0, saveLevels } from "./model.ts
 import { puzzlesImplementation } from "./services.ts";
 import { HOOK_ORDER, PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { repairAfterResume } from "./resume.ts";
+import { NeedsFact, needsOf, SecretsFact } from "./report.ts";
+import { secretsOfDeal } from "./services.ts";
 
 export { puzzlesHead } from "./head.ts";
+export { NeedsFact, needsFrom, SecretsFact, secretsFrom, type Needs } from "./report.ts";
 
 export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
 	services: [kit.provide(PuzzlesApi, puzzlesImplementation)],
@@ -42,6 +45,10 @@ export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({
 		exclusions: kit.fact(Type.Array(Type.Object({ level: Type.Integer(), excluded: Type.Array(Type.String()) })), (view) =>
 			[...view.state.exclusions].map(([level, excluded]) => ({ level, excluded: [...excluded] })),
 		),
+		/** The gamemaker's "Who waits on whom": each resident's dependencies at its level (step 18, item 2). */
+		needs: kit.fact(NeedsFact, (view) => needsOf(view)),
+		/** The secrets of the dealt levels, for the gamemaker report's guard (old `secretGuardOf`; never shown). */
+		secrets: kit.fact(SecretsFact, (view) => secretsOfDeal(view)),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

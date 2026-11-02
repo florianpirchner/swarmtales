@@ -87,7 +87,7 @@ export function describeSituation(input: SituationInput): string {
 		...standoffLines(input),
 		...riskLines(world),
 		`Since your last look:`,
-		...recentLines(input),
+		...recentLines(input.recent, input.guard),
 		"",
 		...labelLines(input.recent),
 		"Your earlier notes (newest last):",
@@ -420,8 +420,9 @@ function dependenciesOf(world: World, level: number, agent: CompetitorId): reado
 	return [...new Set([certificate, own?.counterHolder])].filter((member): member is CompetitorId => member !== undefined && member !== agent).sort();
 }
 
-function recentLines(input: SituationInput): readonly string[] {
-	const lines = input.recent.flatMap((event) => recentLine(event, input.guard));
+/** The lines under "Since your last look:" (also the host-backed report's, apps/cli/src/host/report.ts). */
+export function recentLines(recent: readonly RecordedEvent[], guard: SecretGuard): readonly string[] {
+	const lines = recent.flatMap((event) => recentLine(event, guard));
 	if (lines.length === 0) return ["- nothing happened"];
 	if (lines.length <= MAX_RECENT_LINES) return lines;
 	return [`- (${lines.length - MAX_RECENT_LINES} earlier lines left out)`, ...lines.slice(-MAX_RECENT_LINES)];
@@ -468,7 +469,7 @@ function recentLine(event: RecordedEvent, guard: SecretGuard): readonly string[]
  * stand apart and name nobody, since a thought about a teammate would give
  * away a team the level hides. The thought itself is never shown.
  */
-function labelLines(recent: readonly RecordedEvent[]): readonly string[] {
+export function labelLines(recent: readonly RecordedEvent[]): readonly string[] {
 	const visible = new Map<string, string[]>();
 	const hidden = new Map<string, string[]>();
 	for (const event of recent) {

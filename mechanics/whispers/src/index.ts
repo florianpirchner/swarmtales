@@ -15,8 +15,10 @@ import { DutyNow, LegacySlice, Slice, whispersHead, type Ctx, type WhispersState
 import { favouriteTool, forgeTool } from "./tools.ts";
 import { isAlive, roundsOf } from "./view.ts";
 import { restoreVote } from "./vote.ts";
+import { computeWhispererSection, WhispererSectionFact } from "./section.ts";
 
 export { whispersHead };
+export { renderWhispererSection, WhispererSectionFact, whispererSectionOf, type WhispererSection } from "./section.ts";
 
 /** Loads the vote an old snapshot saved, once: it needs the minute the saved run last played, which the resumed run knows from its first hook on. */
 function restoreOnce(ctx: Ctx): void {
@@ -100,6 +102,8 @@ export const whispers = defineMechanic(whispersHead, (kit) => ({
 			const now = dutyNow(view);
 			return now === null ? null : { ...now, recipients: [...now.recipients] };
 		}),
+		/** The gamemaker's whisperer lines (old `whispererLines`; step 18, item 2). */
+		section: kit.fact(WhispererSectionFact, (view) => computeWhispererSection(view)),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

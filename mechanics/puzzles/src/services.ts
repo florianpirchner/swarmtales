@@ -5,7 +5,7 @@ import type { Static } from "typebox";
 import { ChannelsApi, ExileApi, ProgressionApi, type PuzzlesApi } from "@swarmtales/mechanic-shared";
 import { cityFactorOf, dealValues } from "./additive.ts";
 import { dealLevel, inheritedFragments, isPasswordPiece, lastLevelOf, solutionOf } from "./deal.ts";
-import type { PuzzlesCtx } from "./head.ts";
+import type { PuzzlesCtx, PuzzlesView } from "./head.ts";
 import { carriesGuardedFragment } from "./guard.ts";
 import { heldPieces, isHandover, openFragmentDoors } from "./held.ts";
 import { holdersOf, taskValues } from "./text.ts";
@@ -70,7 +70,7 @@ export function revealFactor(ctx: PuzzlesCtx, level: number, target: "board" | r
 }
 
 /** The old gamemaker's `#secretGuard` inputs: every dealt level from the first to the last, passwords and deal values (R2-D8). */
-function secretsOfDeal(ctx: PuzzlesCtx): { passwords: string[]; numbers: string[] } {
+export function secretsOfDeal(ctx: PuzzlesCtx | PuzzlesView): { passwords: string[]; numbers: string[] } {
 	const passwords: string[] = [];
 	const numbers: string[] = [];
 	for (let level = ctx.options.startLevel; level <= lastLevelOf(ctx); level++) {

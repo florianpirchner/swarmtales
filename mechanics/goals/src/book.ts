@@ -10,6 +10,9 @@ import { renderTemplate } from "./template.ts";
 
 const CITY = "CITY";
 
+/** What reading a goal needs: a fact's view reads it as a hook's context does. */
+type GoalReader = Pick<GoalsCtx, "options"> & { readonly state: Readonly<GoalsCtx["state"]> };
+
 export interface HeldGoal {
 	readonly act: number;
 	readonly goal: Goal;
@@ -18,7 +21,7 @@ export interface HeldGoal {
 }
 
 /** The goal in the story's words. */
-export function textOf(ctx: GoalsCtx, goal: Goal): string {
+export function textOf(ctx: GoalReader, goal: Goal): string {
 	const texts = ctx.options.texts;
 	switch (goal.kind) {
 		case "protect":
@@ -50,7 +53,7 @@ export function deal(ctx: GoalsCtx, act: number, residents: readonly string[]): 
 }
 
 /** The goal `agent` holds in an act that is still running, if any. */
-export function goalOf(ctx: GoalsCtx, agent: string): HeldGoal | undefined {
+export function goalOf(ctx: GoalReader, agent: string): HeldGoal | undefined {
 	for (const [act, state] of ctx.state.acts) {
 		const goal = state.goals.get(agent);
 		if (state.resolved || goal === undefined || state.voided.has(agent)) continue;

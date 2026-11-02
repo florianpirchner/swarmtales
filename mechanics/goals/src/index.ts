@@ -76,6 +76,13 @@ export const goals = defineMechanic(goalsWorkHead, (kit) => ({
 				.filter(([, state]) => !state.resolved)
 				.flatMap(([act, state]) => [...state.goals].filter(([agent]) => !state.voided.has(agent)).map(([agent, goal]) => ({ act, agent, kind: goal.kind }))),
 		),
+		/** Each resident's goal of a running act in the story's words (old `goalOf`, the gamemaker's "secret goal"; step 18, item 2). */
+		texts: kit.fact(Type.Record(Type.String(), Type.String()), (view) =>
+			Object.fromEntries(view.residents.ids.flatMap((agent) => {
+				const held = goalOf(view, agent);
+				return held === undefined ? [] : [[agent, held.text]];
+			})),
+		),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

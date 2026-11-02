@@ -1,0 +1,206 @@
+[
+	{
+		"id": "R2-P1",
+		"file": "mechanics/progression/src/section.ts",
+		"find": "open: levels.filter((level) => level >= entry.level)",
+		"replace": "open: levels.filter((level) => level > entry.level)",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-P2",
+		"file": "mechanics/progression/src/section.ts",
+		"find": ".sort((a, b) => exiledRank(a.agent) - exiledRank(b.agent) || b.points - a.points",
+		"replace": ".sort((a, b) => b.points - a.points",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-P3",
+		"file": "mechanics/progression/src/section.ts",
+		"find": "nextPenalty: penaltyAt(ladder, (state.offences.get(agent)?.wrong ?? 0) + 1),",
+		"replace": "nextPenalty: penaltyAt(ladder, 1),",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts",
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-P4",
+		"file": "mechanics/progression/src/section.ts",
+		"find": "return [{ agent, level: entry.level, teamPlaceholders: named }];",
+		"replace": "return [{ agent, level: entry.level, teamPlaceholders: true }];",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-Z1",
+		"file": "mechanics/puzzles/src/report.ts",
+		"find": "return [{ agent, level, fragments: definition.puzzle.kind === \"fragments\", on: [...dependenciesOf(view, level, agent)] }];",
+		"replace": "return [{ agent, level, fragments: definition.puzzle.kind === \"fragments\", on: [...dependenciesOf(view, level, agent)].slice(0, 1) }];",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts",
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-Z2",
+		"file": "apps/cli/src/host/report.ts",
+		"find": "...recentLines(look.recent, new SecretGuard(secrets.passwords, secrets.numbers)),",
+		"replace": "...recentLines(look.recent, new SecretGuard([], [])),",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-W1",
+		"file": "mechanics/whispers/src/section.ts",
+		"find": "const left = duty.nextVote - section.minute;",
+		"replace": "const left = duty.nextVote - section.minute - 1;",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts",
+			"test/cli/host-gamemaker-sections.test.ts"
+		]
+	},
+	{
+		"id": "R2-W2",
+		"file": "mechanics/whispers/src/section.ts",
+		"find": "if (agent === undefined || agent === null || view.tryCall(ExileApi, \"isExiled\", { resident: agent }) === true) return null;",
+		"replace": "if (agent === undefined || agent === null) return null;",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-H1",
+		"file": "mechanics/standoff-tribunal/src/section.ts",
+		"find": "(accusable.length > 1 ? ",
+		"replace": "(accusable.length > 5 ? ",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-H2",
+		"file": "mechanics/standoff-tribunal/src/section.ts",
+		"find": ": section.minute < section.cooldownUntil",
+		"replace": ": section.minute <= section.cooldownUntil",
+		"tests": [
+			"test/cli/host-gamemaker-sections.test.ts"
+		]
+	},
+	{
+		"id": "R2-S1",
+		"file": "mechanics/seal/src/section.ts",
+		"find": "...(section.pending > open ? ",
+		"replace": "...(section.pending >= open ? ",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts",
+			"test/cli/host-gamemaker-sections.test.ts"
+		]
+	},
+	{
+		"id": "R2-D1",
+		"file": "mechanics/standoff/src/section.ts",
+		"find": "&& reads.levelOf(needer) === entry.piece.level && !reads.hasPassed(needer, entry.piece.level))",
+		"replace": "&& !reads.hasPassed(needer, entry.piece.level))",
+		"tests": [
+			"test/cli/host-gamemaker-sections.test.ts",
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-D2",
+		"file": "mechanics/standoff/src/section.ts",
+		"find": ".sort((a, b) => levelSince(a.needer) - levelSince(b.needer))",
+		"replace": ".sort((a, b) => levelSince(b.needer) - levelSince(a.needer))",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts",
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-D3",
+		"file": "mechanics/standoff/src/section.ts",
+		"find": "const why = entry.gate === null ? trial : `at the gate until minute ${String(entry.gate)}`;",
+		"replace": "const why = trial;",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-D4",
+		"file": "mechanics/standoff/src/index.ts",
+		"find": "atRisk: () => view.tryCall(TribunalViewApi, \"atRisk\", {}) ?? null,",
+		"replace": "atRisk: () => null,",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-C1",
+		"file": "apps/cli/src/host/report.ts",
+		"find": "if (directed.orders.length > 0) parts.push(`orders: ${directed.orders.join(\" \")}`);",
+		"replace": "",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-C2",
+		"file": "mechanics/goals/src/index.ts",
+		"find": "return held === undefined ? [] : [[agent, held.text]];",
+		"replace": "return [];",
+		"tests": [
+			"test/cli/host-gamemaker-differential.test.ts"
+		]
+	},
+	{
+		"id": "R2-C3",
+		"file": "apps/cli/src/host/report.ts",
+		"find": "need.fragments && !entry.teamPlaceholders",
+		"replace": "need.fragments",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-C4",
+		"file": "apps/cli/src/host/report.ts",
+		"find": "const behind = need.on.filter((member) => level(member) < entry.level);",
+		"replace": "const behind = need.on.filter((member) => level(member) <= entry.level);",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-L1",
+		"file": "packages/roles/src/overseer/gamemaker.ts",
+		"find": "const look: GamemakerLook = { round, facts: ctx.facts(),",
+		"replace": "const look: GamemakerLook = { round, facts: {},",
+		"tests": [
+			"test/cli/host-gamemaker-golden.test.ts"
+		]
+	},
+	{
+		"id": "R2-D5",
+		"file": "mechanics/standoff/src/section.ts",
+		"find": ".flatMap((piece) => piece.needers.filter((needer) => !reads.isExiled(needer) && !reads.hasPassed(needer, piece.level))",
+		"replace": ".flatMap((piece) => piece.needers.filter((needer) => !reads.hasPassed(needer, piece.level))",
+		"tests": [
+			"test/cli/host-gamemaker-sections.test.ts"
+		]
+	},
+	{
+		"id": "R2-D6",
+		"file": "mechanics/standoff/src/section.ts",
+		"find": "!entry.claimed.includes(needer) && reads.standing(needer).kind === \"alive\" &&",
+		"replace": "!entry.claimed.includes(needer) &&",
+		"tests": [
+			"test/cli/host-gamemaker-sections.test.ts"
+		]
+	}
+]

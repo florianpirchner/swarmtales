@@ -14,6 +14,9 @@ import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, LISTENER_ORDER, Progressi
 import { auctionOf, bidOf, borne, emptySeal, holds, pendingSeals, SealHouse, type SealData, type SealPorts } from "./house.ts";
 import { sealEvents } from "./events.ts";
 import { sealSnapshot } from "./slice.ts";
+import { SealSectionFact } from "./section.ts";
+
+export { renderSealSection, SealSectionFact, sealSectionOf, type SealSection } from "./section.ts";
 
 const CITY = "CITY";
 const Int = Type.Integer();
@@ -200,6 +203,8 @@ export const seal = defineMechanic(sealHead, (kit) => ({
 		auction: kit.fact(Type.Union([Type.Object({ seal: Int, until: Int }), Type.Null()]), (view) => auctionOf(view.state.data) ?? null),
 		borne: kit.fact(Int, (view) => borne(view.state.data)),
 		pending: kit.fact(Int, (view) => pendingSeals(view.state.data)),
+		/** The three together, the gamemaker's "Black seal" lines (`renderSealSection`; step 18, item 2). */
+		section: kit.fact(SealSectionFact, (view) => ({ auction: auctionOf(view.state.data) ?? null, borne: borne(view.state.data), pending: pendingSeals(view.state.data) })),
 	},
 	snapshot: kit.snapshot(sealSnapshot),
 }));
