@@ -38,7 +38,7 @@ function fakeDecider() {
 					classify: (model, context): Promise<ClassifierResult> => {
 						seen.push(context);
 						const base = { api: model.api, provider: model.provider, model: model.id, timestamp: 0, usage: { input: 11, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 14, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0.001 } } };
-						const text = String(context.state.text);
+						const text = typeof context.state.text === "string" ? context.state.text : "";
 						if (text === "boom") return Promise.resolve({ ...base, answers: {}, stopReason: "error", errorMessage: "boom" });
 						const probabilities: Record<string, number> = text === "No." ? { refusal: 0.9, lie: 0.2 } : text === "deal" ? { offer: 0.5, promise: 0.49 } : { hesitation: 0.7 };
 						const answers: ClassifierResult["answers"] = {};

@@ -267,7 +267,7 @@ export async function playNew(spec: Spec, codeOf: CodeOf, options: NewOptions = 
 			host.subscribe(record(lines));
 		}
 		await host.playMinute(agent);
-		if (options.stopAfter !== undefined && played + 1 === options.stopAfter.minutes && host.ended === undefined) host.stop(options.stopAfter.text);
+		if (options.stopAfter?.minutes === played + 1 && host.ended === undefined) host.stop(options.stopAfter.text);
 		const due = host.facts()["arena.snapshot"];
 		if (due === null || due === undefined || host.ended !== undefined) continue;
 		taken = structuredClone(host.snapshot());
