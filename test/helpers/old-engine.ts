@@ -110,3 +110,37 @@ export function replayOld<T extends TSchema>(input: unknown, schema: T): Static<
 	const { name, scenario } = currentScenario();
 	return replayAt(name, scenario, input, schema);
 }
+
+const TraceEntry = Type.Object({ label: Type.String(), value: Type.Optional(Type.Unknown()), error: Type.Optional(Type.String()) });
+
+/**
+ * The replay of an `OldTrace` (old-engine-recorder.ts) without the old engine: every answer the old
+ * engine gave a test that drove it step by step beside the new host, in order. A read names what it
+ * asks (`label`); the replay refuses a test that asks something else or in another order.
+ */
+export class RecordedTrace {
+	readonly #entries: readonly Static<typeof TraceEntry>[];
+	readonly #where: string;
+	#at = 0;
+
+	constructor() {
+		const { name, scenario } = currentScenario();
+		this.#where = `test/fixtures/old-engine/${name}.json: ${scenario}`;
+		this.#entries = recordedOld(name, scenario, Type.Array(TraceEntry));
+	}
+
+	/** The old engine's next answer, to the question `label`. */
+	read<T extends TSchema>(label: string, schema: T): Static<T> {
+		const entry = this.#entries[this.#at];
+		this.#at += 1;
+		if (entry?.label !== label) throw new Error(`${this.#where}: answer ${String(this.#at)} was recorded for ${entry?.label ?? "nothing"}, not ${label}`);
+		if (entry.error !== undefined) throw new Error(entry.error);
+		if (!Check(schema, entry.value)) throw new Error(`${this.#where}: answer ${String(this.#at)} (${label}) does not have the recorded shape`);
+		return entry.value;
+	}
+
+	/** An old step without an answer (a mutation of the old world). */
+	step(label: string): void {
+		this.read(label, Type.Undefined());
+	}
+}

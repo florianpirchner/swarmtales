@@ -9,16 +9,13 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { StandoffBook as OldStandoffBook, type StandoffSnapshot } from "@swarmtales/engine";
 import { Type } from "typebox";
-import { Parse } from "typebox/value";
-import { oldRun } from "../../helpers/old-engine-recorder.ts";
+import { replayOld } from "../../helpers/old-engine.ts";
 import { convertLegacySnapshot } from "@swarmtales/chronicle";
 import type { ToolOutcome } from "@swarmtales/contracts";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
 import { SHARED_EVENTS, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { standoff } from "@swarmtales/mechanic-standoff";
-import { text } from "@swarmtales/prompts";
 import { standInsFor } from "@swarmtales/testkit";
 import { ownLines, storyOptions } from "./support/host.ts";
 import { probe } from "./support/probe.ts";
@@ -36,7 +33,6 @@ const PIECES: Readonly<Record<string, readonly HeldPiece[]>> = {
 	A04: [{ id: "L8-certificate", kind: "certificate", level: 8, label: "the team certificate of door 8", value: "323122", needers: ["A01", "A02"] }],
 };
 const held = (agent: string): readonly HeldPiece[] => PIECES[agent] ?? [];
-const plain = (agent: string) => held(agent).map((piece) => ({ id: piece.id, level: piece.level, label: piece.label, value: piece.value, needers: piece.needers }));
 
 interface BookRecord {
 	readonly events: string[];
@@ -50,29 +46,6 @@ function worldOf(ids: readonly string[]): TestWorld {
 	const world = new TestWorld(ids, 30);
 	for (const id of ids) world.levels.set(id, 8);
 	return world;
-}
-
-/** The old book with the ports world.ts gave it, over a world like the new side's. */
-function oldBook(world: TestWorld, ids: readonly string[], minute: () => number, record: BookRecord): OldStandoffBook {
-	return new OldStandoffBook({
-		ids,
-		rule: RULE,
-		minute,
-		points: (agent) => world.balance(agent),
-		burn: (agent, points, reason) => {
-			world.add(agent, -points);
-			record.burns.push(JSON.stringify({ account: agent, amount: points, reason }));
-		},
-		notify: (agent, author, text) => record.notices.push(`${agent} ${author} ${text}`),
-		emit: (event) => {
-			const { type, ...payload } = event;
-			record.events.push(JSON.stringify({ type, ...payload, minute: minute() }));
-		},
-		announce: (author, text) => record.posts.push(`${author} ${text}`),
-		held: plain,
-		needsNow: (agent, level) => world.levelOf(agent) === level && !world.hasPassed(agent, level),
-		inCity: () => true,
-	});
 }
 
 const empty = (): BookRecord => ({ events: [], burns: [], notices: [], posts: [], replies: [] });
@@ -138,45 +111,13 @@ const BookRecordSchema = Type.Object({ events: Lines, burns: Lines, notices: Lin
 
 /** The old book continuing from `saved` for `minutes`, as it was recorded once before the engine went (step 18, item 7b; `test/fixtures/old-engine/`). */
 function oldBookRun(ids: readonly string[], saved: unknown, start: number, minutes: number): BookRecord {
-	const recorded = oldRun({ ids, saved: saved ?? null, start, minutes }, BookRecordSchema, () => oldBookRunLive(ids, saved, start, minutes));
+	const recorded = replayOld({ ids, saved: saved ?? null, start, minutes }, BookRecordSchema);
 	return { events: [...recorded.events], burns: [...recorded.burns], notices: [...recorded.notices], posts: [...recorded.posts], replies: [...recorded.replies] };
-}
-
-/** The live old book (recording only; deleted with the engine). */
-function oldBookRunLive(ids: readonly string[], saved: unknown, start: number, minutes: number): BookRecord {
-	const oldWorld = worldOf(ids);
-	const old = empty();
-	let minute = start;
-	const book = oldBook(oldWorld, ids, () => minute, old);
-	if (saved !== undefined) book.restore(Parse(Type.Unsafe<StandoffSnapshot>(Type.Unknown()), saved));
-	for (; minute < start + minutes; minute++) {
-		book.tick(minute, "CITY");
-		if (minute === start + 1 && book.claimable("A01").length === 0) old.replies.push(`TOOL_LOCKED: ${text("replies/locked")}`);
-		else if (minute === start + 1) {
-			const claimed = book.claim("A01", "L8-certificate", "A04", Math.ceil(RANSOM / 2));
-			old.replies.push(claimed.ok ? `bought ${claimed.value.pieces.map((piece) => piece.id).join(", ")} for ${String(claimed.value.price)} points; the city sends you the values` : `${claimed.error}: ${claimed.detail ?? ""}`);
-			if (claimed.ok) old.notices.push(`A01 CITY The city hands you what A04 held for you: ${claimed.value.pieces.map((piece) => `${piece.label}: ${piece.value}`).join("; ")}.`);
-		}
-	}
-	return old;
 }
 
 /** The old book's own state just before the file was written, as it was recorded once (step 18, item 7b). */
 function filled(ids: readonly string[], at: number): unknown {
-	return oldRun({ ids, at }, Type.Unknown(), () => filledLive(ids, at));
-}
-
-/** The live old book: A01 handed over, an ultimatum runs, the city keeps A04's certificate (recording only; deleted with the engine). */
-function filledLive(ids: readonly string[], at: number): StandoffSnapshot {
-	const record = empty();
-	const book = oldBook(worldOf(ids), ids, () => at - 1, record);
-	const given = book.issue("A01", "A02", 3, "COURIER");
-	if (!given.ok) throw new Error(`no ultimatum: ${given.error}`);
-	book.noteGiven("A01", "A02", plain("A01")[0] ?? { id: "", level: 0, label: "", value: "", needers: [] });
-	book.keep("A04", plain("A04"), Math.ceil(RANSOM / 2), "CITY");
-	const written = book.snapshot();
-	// The oldest files carry no `givenAt`: every hand-over then counts from minute 0.
-	return { given: written.given, city: written.city, ultimatums: written.ultimatums, lastUltimatum: written.lastUltimatum };
+	return replayOld({ ids, at }, Type.Unknown());
 }
 
 describe("standoff resumed from real old snapshot files (stand-in T4 world, standInsFor the rest)", () => {
