@@ -13,7 +13,7 @@ import { Check } from "typebox/value";
 import type { Host, ResidentId } from "@swarmtales/contracts";
 import { act, say } from "@swarmtales/models";
 import { hostOracle } from "../../apps/cli/src/oracle.ts";
-import { fragmentOf, submit } from "../helpers/host-inspect.ts";
+import { dmReceiptOf, fragmentOf, submit } from "../helpers/host-inspect.ts";
 import { GOLDEN_DIR } from "../helpers/golden.ts";
 
 /** Steps per resident; far more than a golden run's minutes need (a minute has one pass, one tool turn and one closing answer). */
@@ -82,17 +82,6 @@ export function whispersCast(host: Host): WhispersCast {
 	return { whisperer, sender, victim, favourite };
 }
 
-const Receipt = Type.Object({ receipt: Type.String(), kind: Type.String(), parties: Type.Array(Type.String()) }, { additionalProperties: true });
-
-/** The receipt of the DM `from` sent `to` (old `world.receiptsOf`). */
-function dmReceipt(host: Host, from: ResidentId, to: ResidentId): string | undefined {
-	for (const event of host.log.ofType("receipts", "receipt_issued")) {
-		const payload = event.payload;
-		if (Check(Receipt, payload) && payload.kind === "dm" && payload.parties[0] === from && payload.parties[1] === to) return payload.receipt;
-	}
-	return undefined;
-}
-
 /**
  * Whispers: everyone names the favourite in every vote (the favourite names the victim), the
  * sender greets the whisperer, and the whisperer hands the victim a fragment, rumours to it,
@@ -111,7 +100,7 @@ export function whispersScript(host: Host): Record<string, FauxResponseStep[]> {
 			if (id === whisperer) {
 				if (minute === 7) return act({ name: "sendDM", args: { target: victim, message: `Door 2, mine: ${fragmentOf(host, whisperer, 2)}` } });
 				if (minute === 9 || minute === 11 || minute === 13) return act({ name: "sendDM", args: { target: victim, message: `Have you noticed how ${favourite} always sends last? (${String(minute)})` } });
-				if (minute === 14) return act({ name: "forgeReceipt", args: { to: favourite, receiptId: dmReceipt(host, sender, whisperer) ?? "R-none", text: "I will hold my fragment until the very end." } });
+				if (minute === 14) return act({ name: "forgeReceipt", args: { to: favourite, receiptId: dmReceiptOf(host, sender, whisperer) ?? "R-none", text: "I will hold my fragment until the very end." } });
 				return say();
 			}
 			if (id === sender && minute === 6) return act({ name: "postBoard", args: { message: `Mine for door 2: ${fragmentOf(host, id, 2)}` } });

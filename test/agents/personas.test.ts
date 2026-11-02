@@ -4,7 +4,7 @@ import { competitorIds } from "@swarmtales/kernel";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import type { AnyStory, Persona } from "@swarmtales/contracts";
 import { PERSONA_STRATEGY_WORDS, strategyWordsIn, validateStory } from "@swarmtales/sdk";
-import { createFixture, say } from "../helpers/fixture.ts";
+import { createHostFixture, say } from "../helpers/host-fixture.ts";
 import { tinyStory } from "../helpers/stories.ts";
 
 const POOL: readonly Persona[] = [
@@ -53,9 +53,9 @@ describe("persona assignment (SPEC 5.2)", () => {
 
 	it("appends the persona to the base system prompt and logs it, unless personas are switched off", async () => {
 		const story = withPersonas(tinyStory({ agents: 3 }), POOL);
-		const fixture = createFixture({ story, agents: 3, minutes: 1, script: () => ({ A01: [say()], A02: [say()], A03: [say()] }) });
+		const fixture = createHostFixture({ story, agents: 3, minutes: 1, script: () => ({ A01: [say()], A02: [say()], A03: [say()] }) });
 		await fixture.run();
-		for (const runner of fixture.runners) {
+		for (const runner of fixture.runners()) {
 			const profile = fixture.profiles.find((entry) => entry.agent === runner.id);
 			expect(profile?.persona).toBeDefined();
 			expect(runner.systemPrompt).toContain(`- Temperament: ${profile?.persona?.temperament ?? "?"}`);
@@ -67,9 +67,9 @@ describe("persona assignment (SPEC 5.2)", () => {
 			fixture.profiles.map((profile) => [profile.agent, profile.persona?.name]),
 		);
 
-		const control = createFixture({ story, agents: 3, minutes: 1, personas: false, script: () => ({ A01: [say()], A02: [say()], A03: [say()] }) });
+		const control = createHostFixture({ story, agents: 3, minutes: 1, personas: false, script: () => ({ A01: [say()], A02: [say()], A03: [say()] }) });
 		await control.run();
-		for (const runner of control.runners) expect(runner.systemPrompt).not.toContain("Your character");
+		for (const runner of control.runners()) expect(runner.systemPrompt).not.toContain("Your character");
 		expect(control.events("agent_profile").every((event) => event.persona === undefined)).toBe(true);
 	});
 });
@@ -166,7 +166,7 @@ describe("model assignment (SPEC 5.3)", () => {
 
 	it("binds every competitor to its assigned model and logs it", async () => {
 		const story: AnyStory = { ...tinyStory({ agents: 2 }), models: { kind: "explicit", map: { A02: { provider: "scripted", id: "second" } } } };
-		const fixture = createFixture({ story, minutes: 1, script: () => ({ A01: [say()], A02: [say()] }) });
+		const fixture = createHostFixture({ story, minutes: 1, script: () => ({ A01: [say()], A02: [say()] }) });
 		await fixture.run();
 		expect(fixture.events("agent_profile").map((event) => [event.agent, event.provider, event.model])).toEqual([
 			["A01", "scripted", "-"],

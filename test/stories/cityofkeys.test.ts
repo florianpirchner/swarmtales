@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { allTools, cityFactorOf, DIRECTOR_SUPPORT } from "@swarmtales/engine";
+import { allTools, DIRECTOR_SUPPORT } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { placeholdersOf } from "@swarmtales/kernel";
 import { TASK_PLACEHOLDERS, type LevelDefinition } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
-import { act, createFixture, say, solveEveryLevel } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, cityFactorOf, codeOf, factorsOf, isFinished, ledgerTotal, levelOf as levelReached, puzzlesOf, solveEveryLevel, solvedLevels, teamsOf } from "../helpers/host-inspect.ts";
 
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 const BASE = ["getStatus", "getProblem", "submitSolution", "listAgents"];
@@ -200,37 +201,36 @@ describe("cityofkeys story definition (SPEC 13.1, 13.3)", () => {
 
 describe("cityofkeys acts I and II in one run", () => {
 	it("plays all ten levels with six competitors", async () => {
-		const fixture = createFixture({ minutes: LEVELS.length, script: (world) => solveEveryLevel(world, LEVELS) });
+		const fixture = createHostFixture({ minutes: LEVELS.length, script: (host) => solveEveryLevel(host, LEVELS) });
 		await fixture.run();
 		// v09: every resident got a secret goal at the wall, resolved when the run ends; nobody is exiled, so protect holds.
 		const resolved = fixture.events("goal_resolved");
-		expect(resolved.map((event) => event.agent).sort()).toEqual([...fixture.world.competitors]);
+		expect(resolved.map((event) => event.agent).sort()).toEqual([...fixture.host.residents]);
 		for (const event of resolved) expect(event.fulfilled).toBe(event.goal.kind === "protect");
-		for (const id of fixture.world.competitors) {
-			const status = fixture.world.status(id);
-			expect(status.level).toBe(11);
-			expect(status.finished).toBe(true);
-			expect(status.solvedLevels).toEqual([...LEVELS]);
+		for (const id of fixture.host.residents) {
+			expect(levelReached(fixture.host, id)).toBe(11);
+			expect(isFinished(fixture, id)).toBe(true);
+			expect(solvedLevels(fixture.host, id)).toEqual([...LEVELS]);
 			// 15 start + 5 + 5 + 4 x 10 + 15 + 20 + 20 + 25, and the bonus of a goal that held
-			expect(status.points).toBe(145 + (resolved.find((event) => event.agent === id)?.bonus ?? 0));
-			expect([...fixture.world.enabledTools(id)].sort()).toEqual([...ACT_ONE_TOOLS, ...ACT_TWO_ONLY, "activeTools"].sort());
+			expect(balanceOf(fixture.host, id)).toBe(145 + (resolved.find((event) => event.agent === id)?.bonus ?? 0));
+			expect([...fixture.host.openTools(id)].sort()).toEqual([...ACT_ONE_TOOLS, ...ACT_TWO_ONLY, "activeTools"].sort());
 		}
-		expect(fixture.world.ledger.total()).toBe(0);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 	});
 
 	it("keeps one session per competitor across all levels", async () => {
-		const fixture = createFixture({ minutes: LEVELS.length, script: (world) => solveEveryLevel(world, LEVELS) });
-		const before = [...fixture.runners];
+		const fixture = createHostFixture({ minutes: LEVELS.length, script: (host) => solveEveryLevel(host, LEVELS) });
+		const before = [...fixture.runners()];
 		await fixture.run();
-		expect([...fixture.runners]).toEqual(before);
-		for (const runner of fixture.runners) expect(runner.contextSize, runner.id).toBeGreaterThan(LEVELS.length * 3);
+		expect([...fixture.runners()]).toEqual(before);
+		for (const runner of fixture.runners()) expect(runner.contextSize, runner.id).toBeGreaterThan(LEVELS.length * 3);
 	});
 
 	it("delivers the matching task text on every level and the finished notice afterwards", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			minutes: LEVELS.length + 1,
-			script: (world) => {
-				const script = solveEveryLevel(world, LEVELS);
+			script: (host) => {
+				const script = solveEveryLevel(host, LEVELS);
 				return Object.fromEntries(Object.entries(script).map(([id, steps]) => [id, [...(steps ?? []), say()]]));
 			},
 		});
@@ -241,19 +241,19 @@ describe("cityofkeys acts I and II in one run", () => {
 	});
 
 	it("separates level 4 teammates on level 7", () => {
-		const fixture = createFixture({ agents: 12, minutes: 1, script: () => ({}) });
+		const fixture = createHostFixture({ agents: 12, minutes: 1, script: () => ({}) });
 		const home = new Map<string, number>();
-		fixture.world.teamsOf(4).forEach((team, index) => {
+		teamsOf(fixture.host, 4).forEach((team, index) => {
 			for (const member of team.members) home.set(member, index);
 		});
-		for (const team of fixture.world.teamsOf(7)) {
+		for (const team of teamsOf(fixture.host, 7)) {
 			const origins = team.members.map((member) => home.get(member));
 			expect(new Set(origins).size).toBe(team.members.length);
 		}
 	});
 
 	it("posts the city factor at once in a run that starts on the wall", async () => {
-		const fixture = createFixture({ level: 8, minutes: 1, script: (world) => Object.fromEntries(world.competitors.map((id) => [id, [say()]])) });
+		const fixture = createHostFixture({ level: 8, minutes: 1, script: (host) => Object.fromEntries(host.residents.map((id) => [id, [say()]])) });
 		await fixture.run();
 		expect(fixture.events("factor_revealed")).toMatchObject([{ level: 8, target: "board" }]);
 		expect(fixture.events("director_action").map((event) => event.rule)).toContain("city-factor-8-start");
@@ -261,24 +261,24 @@ describe("cityofkeys acts I and II in one run", () => {
 	});
 
 	it("opens the feast at once in a run that starts on the crossing and clears the table when its window ends", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			level: 10,
 			minutes: 14,
-			script: (world) =>
+			script: (host) =>
 				Object.fromEntries(
-					world.competitors.map((id) => [id, [id === "A02" ? act({ name: "sendDM", args: { target: "STEWARD", message: "A seat, please." } }) : say(), ...Array.from({ length: 13 }, () => say())]]),
+					host.residents.map((id) => [id, [id === "A02" ? act({ name: "sendDM", args: { target: "STEWARD", message: "A seat, please." } }) : say(), ...Array.from({ length: 13 }, () => say())]]),
 				),
 		});
 		await fixture.run();
 		expect(fixture.events("collection_started")).toMatchObject([{ into: "feast-start", cast: "STEWARD", untilMinute: 12 }]);
 		const reveals = fixture.events("factor_revealed").filter((event) => event.level === 10);
 		// A02 sat at the table; when it is cleared everyone else on the crossing receives its own team's factor, privately.
-		const others = fixture.world.competitors.filter((id) => id !== "A02");
+		const others = fixture.host.residents.filter((id) => id !== "A02");
 		expect(reveals).toMatchObject([{ target: "notice", agents: ["A02"] }, { target: "notice", minute: 12, agents: others }]);
 		expect(fixture.events("board_post").some((post) => post.text.startsWith("City factor of level 10"))).toBe(false);
-		const deal = fixture.world.inspect.factorsOf(10);
+		const deal = factorsOf(fixture.host, 10);
 		if (deal === undefined) throw new Error("level 10 was not dealt");
-		for (const id of fixture.world.competitors) {
+		for (const id of fixture.host.residents) {
 			const own = cityFactorOf(deal, id);
 			expect(fixture.inputsOf(id).join("\n")).toContain(`City factor of level 10: ${own}.`);
 			// Nobody hears another team's city factor from the city.
@@ -288,20 +288,20 @@ describe("cityofkeys acts I and II in one run", () => {
 		}
 		// Everyone on the crossing hears of the table privately when it opens.
 		const notices = fixture.events("notice").filter((notice) => notice.text.startsWith("STEWARD's table is open"));
-		expect(notices.map((notice) => notice.to).sort()).toEqual([...fixture.world.competitors].sort());
+		expect(notices.map((notice) => notice.to).sort()).toEqual([...fixture.host.residents].sort());
 		expect(fixture.events("director_skipped")).toEqual([]);
 	});
 
 	it("opens the feast on the first arrival at the crossing, not at the start of a run on the ring or the wall", async () => {
 		for (const level of [8, 9]) {
-			const fixture = createFixture({ level, minutes: 1, script: (world) => Object.fromEntries(world.competitors.map((id) => [id, [say()]])) });
+			const fixture = createHostFixture({ level, minutes: 1, script: (host) => Object.fromEntries(host.residents.map((id) => [id, [say()]])) });
 			await fixture.run();
 			expect(fixture.events("collection_started"), `level ${level}`).toEqual([]);
 		}
-		const ring = createFixture({
+		const ring = createHostFixture({
 			level: 9,
 			minutes: 3,
-			script: (world) => ({ A01: [act({ name: "submitSolution", args: { level: 9, code: world.inspect.codeOf("A01", 9) } }), say(), say()] }),
+			script: (host) => ({ A01: [act({ name: "submitSolution", args: { level: 9, code: codeOf(host, "A01", 9) } }), say(), say()] }),
 		});
 		await ring.run();
 		expect(ring.events("collection_started")).toMatchObject([{ into: "feast", cast: "STEWARD", minute: 0, untilMinute: 12 }]);
@@ -310,7 +310,7 @@ describe("cityofkeys acts I and II in one run", () => {
 
 	it("says plainly on every door of the wall that the city never confirms a received value (P25)", async () => {
 		for (const level of [8, 9, 10]) expect(levelOf(level).task).toContain("The city never confirms a value you received from another resident: only the door tests it");
-		const wall = createFixture({ level: 8, minutes: 1, script: () => ({ A01: [say()] }) });
+		const wall = createHostFixture({ level: 8, minutes: 1, script: () => ({ A01: [say()] }) });
 		await wall.run();
 		const status = wall.inputsOf("A01").find((input) => input.startsWith("[status]"));
 		expect(status).toContain("the city never confirms a value you received; only the door tests your code (your next wrong code costs 2 points)");
@@ -318,13 +318,13 @@ describe("cityofkeys acts I and II in one run", () => {
 		expect(status).toMatch(/^\[status\] minute 0 · level 8 · /);
 		expect(status).not.toMatch(/left|of 1 /);
 		// Act I has no personal codes, so no such line.
-		const early = createFixture({ level: 7, minutes: 1, script: () => ({ A01: [say()] }) });
+		const early = createHostFixture({ level: 7, minutes: 1, script: () => ({ A01: [say()] }) });
 		await early.run();
 		expect(early.inputsOf("A01").find((input) => input.startsWith("[status]"))).not.toContain("never confirms");
 	});
 
 	it("rejects agent counts that do not fit every level", () => {
-		expect(() => createFixture({ agents: 4, minutes: 1, script: () => ({}) })).toThrow(/cannot be split into teams of 3/);
+		expect(() => createHostFixture({ agents: 4, minutes: 1, script: () => ({}) })).toThrow(/cannot be split into teams of 3/);
 	});
 });
 
@@ -333,8 +333,8 @@ describe("cityofkeys passwords", () => {
 		const all: unknown[] = [];
 		for (const agents of [6, 12]) {
 			for (let seed = 1; seed <= 10; seed++) {
-				const fixture = createFixture({ agents, seed, minutes: 1, script: () => ({}) });
-				for (let level = 1; level <= 7; level++) all.push(fixture.world.inspect.puzzlesOf(level));
+				const fixture = createHostFixture({ agents, seed, minutes: 1, script: () => ({}) });
+				for (let level = 1; level <= 7; level++) all.push(puzzlesOf(fixture.host, level));
 			}
 		}
 		// Pinned on commit f728582, before the overlap-dependent cut bound and \`ownChars\`.

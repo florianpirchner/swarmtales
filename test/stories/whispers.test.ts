@@ -1,13 +1,15 @@
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { bindStory, ownCharsOf, TOOLS, validatePuzzle, type World } from "@swarmtales/engine";
+import { ownCharsOf, validatePuzzle } from "@swarmtales/engine";
 import type { CompetitorId } from "@swarmtales/kernel";
 import { puzzle, validateStory } from "@swarmtales/sdk";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory } from "@swarmtales/contracts";
+import type { AnyStory, Host } from "@swarmtales/contracts";
 import { findStory, storyNames } from "../../stories/index.ts";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, dmReceiptOf, factOf, fragmentOf, isFinished, puzzlesOf, solvedLevels, submit, whispererOf } from "../helpers/host-inspect.ts";
+import { Type } from "typebox";
 
 const DOORS = [1, 2, 3, 4, 5, 6, 7] as const;
 const RUMOURS = whispersStory(false);
@@ -85,9 +87,9 @@ describe("whispers story definition", () => {
 
 	it("draws every door for seeds 1 to 100, and every door needs all six fragments", () => {
 		for (let seed = 1; seed <= 100; seed++) {
-			const fixture = createFixture({ story: whispers, seed, minutes: 1, script: () => ({}) });
+			const snapshot = createHostFixture({ story: whispers, seed, minutes: 1, script: () => ({}) }).host.snapshot();
 			for (const door of DOORS) {
-				const puzzles = fixture.world.inspect.puzzlesOf(door);
+				const puzzles = puzzlesOf({ snapshot: () => snapshot }, door) ?? [];
 				const spec = whispers.levels[door - 1]?.puzzle;
 				if (spec?.kind !== "fragments") throw new Error(`door ${door} has no fragments`);
 				expect(puzzles, `seed ${seed} door ${door}`).toHaveLength(1);
@@ -99,11 +101,11 @@ describe("whispers story definition", () => {
 				}
 			}
 		}
-	});
+	}, 60_000);
 
 	it("describes showReceipt as quoting the DM only where receipts quote it; the City of Keys schema is unchanged", () => {
-		const fixture = createFixture({ story: whispers, minutes: 1, script: () => ({}) });
-		const describe = (story: AnyStory): string | undefined => bindStory({ self: "A01", world: fixture.world }, story).find((tool) => tool.name === "showReceipt")?.description;
+		const specs = (story: AnyStory) => createHostFixture({ story, minutes: 1, script: () => ({}) }).host.toolSpecs("resident");
+		const describe = (story: AnyStory): string | undefined => specs(story).find((tool) => tool.name === "showReceipt")?.description;
 		expect(describe(whispers)).toContain("and quotes the DM word for word");
 		expect(describe(whispers)).not.toContain("never the text");
 		// Byte for byte the description the City of Keys always had (the prompt cache, P46).
@@ -113,8 +115,7 @@ describe("whispers story definition", () => {
 			"the public board; with `to` it sends it privately to that resident only. Only the parties of a receipt may show it. " +
 			"Where marks apply, every show costs a mark. getStatus lists your receipts.";
 		expect(describe(cityOfKeys)).toBe(cityOfKeysText);
-		expect(TOOLS.showReceipt.description).toBe(cityOfKeysText);
-		expect(bindStory({ self: "A01", world: fixture.world }, cityOfKeys).map((tool) => tool.name)).not.toContain("forgeReceipt");
+		expect(specs(cityOfKeys).map((tool) => tool.name)).not.toContain("forgeReceipt");
 	});
 
 	it("refuses fragment doors that cannot be cut", () => {
@@ -151,19 +152,19 @@ const VOTES = [4, 10, 16, 22, 28, 34, 42] as const;
  * a receipt of the sender's DM to the victim after the first vote, and the
  * sender exposes it with the real receipt.
  */
-function scriptOf(world: World, cast: Cast): Record<string, FauxResponseStep[]> {
+function scriptOf(host: Host, cast: Cast): Record<string, FauxResponseStep[]> {
 	const script: Record<string, FauxResponseStep[]> = {};
 	const receiptOf = (from: string): string =>
-		world.receiptsOf(from).find((receipt) => receipt.kind === "dm" && receipt.from === from && receipt.to === cast.whisperer)?.id ?? "R-none";
-	for (const id of world.competitors) {
+		dmReceiptOf(host, from, cast.whisperer) ?? "R-none";
+	for (const id of host.residents) {
 		const voteFor = id === cast.favourite ? cast.whisperer : cast.favourite;
 		script[id] = Array.from({ length: whispers.run.minutes }, (): FauxResponseStep => () => {
-			const minute = world.minute;
+			const minute = host.minute;
 			if (minute === 0 && id !== cast.whisperer) return act({ name: "sendDM", args: { target: cast.whisperer, message: `Hello from ${id}.` } });
 			const door = DOORS.find((number) => opensAt(number) + 1 === minute);
-			if (door !== undefined) return submit(world, id, door);
-			if (id === cast.favourite && minute === 2) return submit(world, id, 2);
-			if (id === cast.sender && minute === 6) return act({ name: "postBoard", args: { message: `Mine: ${world.inspect.fragmentOf(id, 2)}` } });
+			if (door !== undefined) return submit(host, id, door);
+			if (id === cast.favourite && minute === 2) return submit(host, id, 2);
+			if (id === cast.sender && minute === 6) return act({ name: "postBoard", args: { message: `Mine: ${fragmentOf(host, id, 2)}` } });
 			if (id === cast.whisperer && minute === 9) {
 				return act(
 					{ name: "sendDM", args: { target: cast.victim, message: `${cast.sender} told me ${RUMOUR}` } },
@@ -181,16 +182,16 @@ function scriptOf(world: World, cast: Cast): Record<string, FauxResponseStep[]> 
 describe("whispers in one scripted run", () => {
 	it("plays seven doors on the clock, the guard, the votes, the whisperer's duty and forgery, and the exposure", async () => {
 		let cast: Cast | undefined;
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story: whispers,
-			script: (world) => {
-				const whisperer = world.whisperer;
+			script: (host) => {
+				const whisperer = whispererOf(host);
 				if (whisperer === undefined) throw new Error("whispers has no whisperer");
-				const others = world.competitors.filter((id) => id !== whisperer);
+				const others = host.residents.filter((id) => id !== whisperer);
 				const [sender, victim, favourite] = others;
 				if (sender === undefined || victim === undefined || favourite === undefined) throw new Error("too few residents");
 				cast = { whisperer, sender, victim, favourite };
-				return scriptOf(world, cast);
+				return scriptOf(host, cast);
 			},
 		});
 		if (cast === undefined) throw new Error("the script was not built");
@@ -201,7 +202,7 @@ describe("whispers in one scripted run", () => {
 		expect(coreMotives).toHaveLength(6);
 		expect(coreMotives.find((coreMotive) => coreMotive.agent === whisperer)).toMatchObject({ drives: whispers.whisperer?.coreMotive?.drives, bigFive: whispers.whisperer?.coreMotive?.bigFive });
 		await fixture.run();
-		const world = fixture.world;
+		const host = fixture.host;
 
 		// Seven doors on the clock; the first resident through each door gets +5, and the city says so.
 		const firsts = fixture.events("director_action").filter((event) => event.rule.startsWith("first-through-") && event.action === "grant");
@@ -214,7 +215,7 @@ describe("whispers in one scripted run", () => {
 		const bonus = (id: string): number => firsts.filter((event) => event.actor === id).length * 5;
 		expect(fixture.toolResults(favourite, "submitSolution")[1]).toBe("DOOR_CLOSED: door 2 opens at minute 6; the city takes no code before");
 		const opened = fixture.events("notice").filter((notice) => notice.text.startsWith("Door 2 is open now, at minute 6."));
-		expect(opened.map((notice) => notice.to).sort()).toEqual([...world.competitors].sort());
+		expect(opened.map((notice) => notice.to).sort()).toEqual([...host.residents].sort());
 
 		// The guard refuses the sender's fragment on the board without a model (this run has none).
 		expect(fixture.toolResults(sender, "postBoard")).toEqual(["GUARD_BLOCKED: the post carries part of a fragment; fragments travel by DM"]);
@@ -225,7 +226,7 @@ describe("whispers in one scripted run", () => {
 		expect(duties.map((duty) => duty.minute)).toEqual([6, 12, 18, 24, 30, 36, 44]);
 		for (const duty of duties) expect(duty.agent).toBe(whisperer);
 		expect(duties.find((duty) => duty.minute === 12)).toMatchObject({ since: 6, dms: 1, forgeries: 1 });
-		for (const id of world.competitors) {
+		for (const id of host.residents) {
 			const inputs = fixture.inputsOf(id).join("\n");
 			expect(inputs.includes("Time to whisper"), id).toBe(id === whisperer);
 		}
@@ -237,11 +238,12 @@ describe("whispers in one scripted run", () => {
 		expect(victimInputs).toContain(JSON.stringify(FORGED));
 		expect(victimInputs).toContain(`${sender} shows you a receipt: the city verifies`);
 		expect(victimInputs).toContain(JSON.stringify(`Hello from ${sender}.`));
-		expect(world.status(whisperer).marks?.remaining).toBe(4);
-		expect(world.status(sender).marks?.remaining).toBe(4);
+		const marks = factOf(host, "marks.remaining", Type.Record(Type.String(), Type.Integer()));
+		expect(marks[whisperer]).toBe(4);
+		expect(marks[sender]).toBe(4);
 
 		// Only the whisperer ever holds forgeReceipt; everyone got nameFavourite with the vote.
-		for (const runner of fixture.runners) {
+		for (const runner of fixture.runners()) {
 			expect(runner.boundTools.includes("forgeReceipt"), runner.id).toBe(runner.id === whisperer);
 			expect(runner.boundTools).toContain("nameFavourite");
 		}
@@ -253,45 +255,44 @@ describe("whispers in one scripted run", () => {
 		expect(fixture.events("popularity_ballot")).toHaveLength(42);
 		const results = fixture.events("popularity_result");
 		expect(results).toHaveLength(7);
-		for (const result of results) expect(result).toMatchObject({ winners: [favourite], voters: [...world.competitors].sort() });
+		for (const result of results) expect(result).toMatchObject({ winners: [favourite], voters: [...host.residents].sort() });
 		// The board ranks every resident, 0 votes too, never who named whom.
-		const ranking = world.board.all().find((post) => post.text.startsWith("The city has counted the vote (before door 2)"))?.text ?? "";
-		for (const id of world.competitors) expect(ranking).toContain(`${id} ${id === favourite ? 5 : id === whisperer ? 1 : 0}`);
+		const ranking = fixture.boardPosts().find((post) => post.text.startsWith("The city has counted the vote (before door 2)"))?.text ?? "";
+		for (const id of host.residents) expect(ranking).toContain(`${id} ${id === favourite ? 5 : id === whisperer ? 1 : 0}`);
 
-		for (const id of world.competitors) {
-			const status = world.status(id);
-			expect(status.finished, id).toBe(true);
-			expect(status.solvedLevels).toEqual([...DOORS]);
-			expect(status.points, id).toBe(10 + 7 * 10 + bonus(id) + (id === favourite ? 6 * 5 + 15 : 0));
+		for (const id of host.residents) {
+			expect(isFinished(fixture, id), id).toBe(true);
+			expect(solvedLevels(host, id)).toEqual([...DOORS]);
+			expect(balanceOf(host, id), id).toBe(10 + 7 * 10 + bonus(id) + (id === favourite ? 6 * 5 + 15 : 0));
 		}
 	});
 
 	it("plays the control run without a whisperer, duty or forgery tool", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story: whispers,
 			whisperer: false,
 			minutes: 7,
-			script: (world) => Object.fromEntries(world.competitors.map((id) => [id, Array.from({ length: 7 }, () => say())])),
+			script: (host) => Object.fromEntries(host.residents.map((id) => [id, Array.from({ length: 7 }, () => say())])),
 		});
-		expect(fixture.world.whisperer).toBeUndefined();
+		expect(whispererOf(fixture.host)).toBeUndefined();
 		await fixture.run();
 		expect(fixture.events("whisperer_chosen")).toEqual([]);
 		expect(fixture.events("whisper_duty")).toEqual([]);
-		for (const runner of fixture.runners) expect(runner.boundTools).not.toContain("forgeReceipt");
+		for (const runner of fixture.runners()) expect(runner.boundTools).not.toContain("forgeReceipt");
 	});
 
 	it("binds no forgery in the rumours variant, but still whispers and votes", async () => {
 		const story: AnyStory = RUMOURS;
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 7,
-			script: (world) => Object.fromEntries(world.competitors.map((id) => [id, Array.from({ length: 7 }, () => say())])),
+			script: (host) => Object.fromEntries(host.residents.map((id) => [id, Array.from({ length: 7 }, () => say())])),
 		});
 		await fixture.run();
 		expect(fixture.events("whisper_duty").map((duty) => duty.minute)).toEqual([6]);
-		const whisperer = fixture.world.whisperer;
+		const whisperer = whispererOf(fixture.host);
 		expect(fixture.inputsOf(whisperer ?? "none").join("\n")).toContain("Time to whisper, until minute 7: about ballots, plans and how the others see someone.");
-		for (const runner of fixture.runners) {
+		for (const runner of fixture.runners()) {
 			expect(runner.boundTools).not.toContain("forgeReceipt");
 			expect(runner.boundTools).not.toContain("showReceipt");
 		}

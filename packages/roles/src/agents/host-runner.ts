@@ -150,6 +150,11 @@ export class HostResidentRunner {
 		return this.#agent.state.messages.at(-1)?.role === "toolResult";
 	}
 
+	/** Number of messages in this resident's context. */
+	get contextSize(): number {
+		return this.#agent.state.messages.length;
+	}
+
 	/** The names of the tools this resident's model sees. */
 	get boundTools(): readonly string[] {
 		return this.#agent.state.tools.map((tool) => tool.name);

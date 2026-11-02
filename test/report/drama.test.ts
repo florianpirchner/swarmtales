@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { analyzeLog, computeFacts, factsMarkdown, JsonlEventLog, renderDigest, writeMinuteReport, writePrivateFiles } from "@swarmtales/chronicle";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
 
 let directory = "";
 let jsonl = "";
@@ -17,7 +17,7 @@ let jsonl = "";
 beforeAll(async () => {
 	directory = mkdtempSync(join(tmpdir(), "arena-drama-"));
 	// Act II from minute 0: the auction runs minutes 4-7; A01 wins with 6 and breaks the seal on A02 at minute 8.
-	const fixture = createFixture({
+	const fixture = createHostFixture({
 		agents: 6,
 		level: 8,
 		minutes: 10,
@@ -28,7 +28,6 @@ beforeAll(async () => {
 		}),
 	});
 	await fixture.run();
-	fixture.world.closeActs();
 	jsonl = readFileSync(join(directory, "events.jsonl"), "utf8");
 });
 

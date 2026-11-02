@@ -62,6 +62,13 @@ export function levelOf(host: FactsHost, agent: ResidentId): number {
 
 const Balances = Type.Record(Type.String(), Type.Number());
 
+const Rewards = Type.Object({ rules: Type.Object({ rewards: Type.Array(Type.Object({ level: Type.Integer(), reward: Type.Number() })) }, { additionalProperties: true }) }, { additionalProperties: true });
+
+/** A level's reward (old `world.currentProblem(agent).reward`). */
+export function rewardOf(host: FactsHost, level: number): number | undefined {
+	return factOf(host, "progression.section", Rewards).rules.rewards.find((entry) => entry.level === level)?.reward;
+}
+
 /** A resident's points (old `world.ledger.balance`). */
 export function balanceOf(host: FactsHost, agent: ResidentId): number {
 	return factOf(host, "ledger.balances", Balances)[agent] ?? 0;
@@ -75,4 +82,135 @@ export function totalPoints(host: FactsHost): number {
 /** Whether a resident has passed the run's last level (old `world.isFinished`). */
 export function isFinished(run: { readonly host: FactsHost; readonly effective: { readonly lastLevel: number } }, agent: ResidentId): boolean {
 	return levelOf(run.host, agent) > run.effective.lastLevel;
+}
+
+const Receipt = Type.Object({ receipt: Type.String(), kind: Type.String(), parties: Type.Array(Type.String()) }, { additionalProperties: true });
+
+/** The receipt of the first DM `from` sent `to` (old `world.receiptsOf`). */
+export function dmReceiptOf(host: Pick<Host, "log">, from: ResidentId, to: ResidentId): string | undefined {
+	for (const event of host.log.ofType("receipts", "receipt_issued")) {
+		const payload = event.payload;
+		if (Check(Receipt, payload) && payload.kind === "dm" && payload.parties[0] === from && payload.parties[1] === to) return payload.receipt;
+	}
+	return undefined;
+}
+
+/** The whisperer (old `world.whisperer`); `undefined` without one. */
+export function whispererOf(host: FactsHost): ResidentId | undefined {
+	const value = host.fact("whispers.whisperer");
+	return typeof value === "string" ? value : undefined;
+}
+
+const CoreMotiveFact = Type.Record(
+	Type.String(),
+	Type.Object(
+		{
+			bigFive: Type.Array(Type.Object({ axis: Type.String(), level: Type.String() })),
+			drives: Type.Array(Type.Object({ drive: Type.String(), intensity: Type.String() })),
+			figure: Type.Optional(Type.String()),
+		},
+		{ additionalProperties: true },
+	),
+);
+
+/** A resident's dealt core motive (old `world.coreMotiveOf`); `undefined` without one. */
+export function coreMotiveOf(host: FactsHost, agent: ResidentId): Static<typeof CoreMotiveFact>[string] | undefined {
+	const value = host.fact("motives.coreMotives");
+	return Check(CoreMotiveFact, value) ? value[agent] : undefined;
+}
+
+/**
+ * The task text of a resident's current level (old `world.currentProblem(agent).text`), asked through
+ * its own `getProblem` call (which writes the call to the log): `undefined` when the call is refused.
+ */
+export async function problemText(host: Pick<Host, "fact" | "call">, agent: ResidentId, level = levelOf(host, agent)): Promise<string | undefined> {
+	const outcome = await host.call(`resident:${agent}`, "getProblem", { level });
+	return outcome.ok ? outcome.reply : undefined;
+}
+
+/** A mechanic's snapshot slice (between minutes only): the white-box state the old `World` showed through `inspect`. */
+export function sliceOf<T extends TSchema>(host: Pick<Host, "snapshot">, mechanic: string, schema: T): Static<T> {
+	const data = host.snapshot().mechanics[mechanic]?.data;
+	if (!Check(schema, data)) throw new Error(`slice ${mechanic} is missing or has an unexpected shape`);
+	return data;
+}
+
+const Team = Type.Object({ members: Type.Array(Type.String()), leader: Type.String() });
+const FragmentPuzzle = Type.Object({ password: Type.String(), fragments: Type.Array(Type.String()), overlap: Type.Integer() });
+const FactorDealSchema = Type.Object({
+	digits: Type.Integer(),
+	cityFactor: Type.String(),
+	teams: Type.Array(Type.Object({ team: Type.Integer(), certificate: Type.String(), certificateHolder: Type.String(), cityFactor: Type.Optional(Type.String()) })),
+	holdings: Type.Array(Type.Object({ agent: Type.String(), team: Type.Integer(), salt: Type.String(), counterFactor: Type.String(), counterHolder: Type.String(), code: Type.String() })),
+});
+export type FactorDeal = Static<typeof FactorDealSchema>;
+const PuzzleLevel = Type.Object(
+	{ level: Type.Integer(), teams: Type.Array(Team), kind: Type.String(), puzzles: Type.Optional(Type.Array(FragmentPuzzle)), deal: Type.Optional(FactorDealSchema) },
+	{ additionalProperties: true },
+);
+const PuzzlesSlice = Type.Object({ levels: Type.Array(PuzzleLevel) }, { additionalProperties: true });
+
+function puzzleLevel(host: Pick<Host, "snapshot">, level: number): Static<typeof PuzzleLevel> | undefined {
+	return sliceOf(host, "puzzles", PuzzlesSlice).levels.find((entry) => entry.level === level);
+}
+
+/** The teams of a dealt level (old `world.teamsOf`). */
+export function teamsOf(host: Pick<Host, "snapshot">, level: number): readonly Static<typeof Team>[] {
+	return puzzleLevel(host, level)?.teams ?? [];
+}
+
+/** The team of a resident on a dealt level (old `world.teamOf`). */
+export function teamOf(host: Pick<Host, "snapshot">, level: number, agent: ResidentId): Static<typeof Team> {
+	const team = teamsOf(host, level).find((entry) => entry.members.includes(agent));
+	if (team === undefined) throw new Error(`${agent} has no team on level ${String(level)}`);
+	return team;
+}
+
+const ChannelsSlice = Type.Object(
+	{
+		groups: Type.Object(
+			{ groups: Type.Array(Type.Object({ id: Type.String(), members: Type.Array(Type.Object({ agent: Type.String() }, { additionalProperties: true })), removed: Type.Optional(Type.Literal(true)) }, { additionalProperties: true })) },
+			{ additionalProperties: true },
+		),
+	},
+	{ additionalProperties: true },
+);
+
+/** Every group, a removed one included, with its members (old `world.groups.inspect()`). */
+export function groupsOf(host: Pick<Host, "snapshot">): readonly { readonly id: string; readonly members: readonly string[] }[] {
+	return sliceOf(host, "channels", ChannelsSlice)
+		.groups.groups.map((group) => ({ id: group.id, members: group.members.map((member) => member.agent) }));
+}
+
+/** The fragment puzzles of a dealt level (old `world.inspect.puzzlesOf`). */
+export function puzzlesOf(host: Pick<Host, "snapshot">, level: number): readonly Static<typeof FragmentPuzzle>[] | undefined {
+	return puzzleLevel(host, level)?.puzzles;
+}
+
+/** The factor deal of an additive level (old `world.inspect.factorsOf`). */
+export function factorsOf(host: Pick<Host, "snapshot">, level: number): FactorDeal | undefined {
+	return puzzleLevel(host, level)?.deal;
+}
+
+/** The city factor a resident's team works with (old `cityFactorOf`). */
+export function cityFactorOf(deal: FactorDeal, agent: ResidentId): string {
+	const team = deal.holdings.find((holding) => holding.agent === agent)?.team;
+	return (team === undefined ? undefined : deal.teams[team]?.cityFactor) ?? deal.cityFactor;
+}
+
+const ProgressionSlice = Type.Object(
+	{ competitors: Type.Array(Type.Object({ agent: Type.String(), level: Type.Integer(), held: Type.Boolean(), solved: Type.Array(Type.Integer()) }, { additionalProperties: true })) },
+	{ additionalProperties: true },
+);
+
+/** The levels a resident has solved (old `world.status(id).solvedLevels`). */
+export function solvedLevels(host: Pick<Host, "snapshot">, agent: ResidentId): readonly number[] {
+	return sliceOf(host, "progression", ProgressionSlice).competitors.find((entry) => entry.agent === agent)?.solved ?? [];
+}
+
+const LedgerSlice = Type.Object({ balances: Type.Array(Type.Object({ account: Type.String(), balance: Type.Number() })) }, { additionalProperties: true });
+
+/** The sum over every account, the city's included (old `world.ledger.total`, always 0). */
+export function ledgerTotal(host: Pick<Host, "snapshot">): number {
+	return sliceOf(host, "ledger", LedgerSlice).balances.reduce((sum, entry) => sum + entry.balance, 0);
 }

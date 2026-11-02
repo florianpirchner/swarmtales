@@ -7,7 +7,8 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say, submit, type Fixture } from "../helpers/fixture.ts";
+import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
+import { submit, teamsOf, coreMotiveOf, factorsOf } from "../helpers/host-inspect.ts";
 
 const MINUTES = 31;
 const LEVELS = [1, 2, 3, 4, 5, 6, 7];
@@ -16,19 +17,19 @@ const WALL_RULES = ["courier-8", "city-factor-8", "holder-behind-8"];
 /** Act II rules for levels 9 and 10, which nobody reaches in this run, and those of runs started on the wall. */
 const LATER_RULES = ["courier-9", "city-factor-9", "feast", "feast-seat", "courier-10", "city-factor-8-start", "city-factor-9-start", "feast-start", "feast-start-seat", "table-cleared", "feast-notice", "table-cleared-start", "late-guest", "late-guest-start", "holder-behind-9", "holder-behind-10"];
 
-async function playActOne(): Promise<{ readonly fixture: Fixture; readonly laggard: string }> {
+async function playActOne(): Promise<{ readonly fixture: HostFixture; readonly laggard: string }> {
 	let laggard = "";
-	const fixture = createFixture({
+	const fixture = createHostFixture({
 		minutes: MINUTES,
-		script: (world) => {
+		script: (host) => {
 			// One member of the first level 4 team stops after level 3; its teammates move on.
-			laggard = world.teamsOf(4)[0]?.members[0] ?? "A01";
-			const sender = world.competitors.find((id) => id !== laggard) ?? "A01";
-			const silent = world.competitors.find((id) => id !== laggard && id !== sender) ?? "A02";
+			laggard = teamsOf(host, 4)[0]?.members[0] ?? "A01";
+			const sender = host.residents.find((id) => id !== laggard) ?? "A01";
+			const silent = host.residents.find((id) => id !== laggard && id !== sender) ?? "A02";
 			const script: Record<string, AssistantMessage[]> = {};
-			for (const id of world.competitors) {
+			for (const id of host.residents) {
 				const levels = id === laggard ? LEVELS.slice(0, 3) : LEVELS;
-				const steps: AssistantMessage[] = levels.map((level) => submit(world, id, level));
+				const steps: AssistantMessage[] = levels.map((level) => submit(host, id, level));
 				while (steps.length < MINUTES) steps.push(say());
 				script[id] = steps;
 			}
@@ -61,7 +62,7 @@ describe("cityofkeys act I director beats (SPEC 13.2)", () => {
 		expect(city.find((post) => post.text === "A door stays shut while a team is split.")?.minute).toBe(7);
 
 		// The city factor of the wall goes on the board when the first resident arrives.
-		const factor = fixture.world.inspect.factorsOf(8)?.cityFactor;
+		const factor = factorsOf(fixture.host, 8)?.cityFactor;
 		expect(city.find((post) => post.text === `City factor of level 8: ${factor}.`)?.minute).toBe(6);
 
 		// Standing bands every 6 minutes from minute 12; the laggard is out.
@@ -97,12 +98,12 @@ describe("cityofkeys act I director beats (SPEC 13.2)", () => {
 	it("gives every competitor a figure of the cast and the persona of its profession", async () => {
 		const { fixture } = await playActOne();
 		const profiles = fixture.events("agent_profile");
-		expect(profiles.map((event) => event.agent)).toEqual([...fixture.world.competitors]);
-		const figures = fixture.world.competitors.map((agent) => cityOfKeys.coreMotives?.figures?.find((figure) => figure.id === fixture.world.coreMotiveOf(agent)?.figure));
+		expect(profiles.map((event) => event.agent)).toEqual([...fixture.host.residents]);
+		const figures = fixture.host.residents.map((agent) => cityOfKeys.coreMotives?.figures?.find((figure) => figure.id === coreMotiveOf(fixture.host, agent)?.figure));
 		expect(new Set(figures.map((figure) => figure?.id)).size).toBe(6);
 		profiles.forEach((event, index) => {
 			expect(event.persona?.toLowerCase()).toBe(figures[index]?.profession);
 		});
-		for (const runner of fixture.runners) expect(runner.systemPrompt).toContain("Your character:");
+		for (const runner of fixture.runners()) expect(runner.systemPrompt).toContain("Your character:");
 	}, 30_000);
 });

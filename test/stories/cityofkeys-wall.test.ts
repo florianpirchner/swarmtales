@@ -13,9 +13,11 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import { analyzeLog } from "@swarmtales/chronicle";
-import { addFactors, cityFactorOf, type World } from "@swarmtales/engine";
+import { addFactors } from "@swarmtales/engine";
+import type { Host } from "@swarmtales/contracts";
 import type { Script, ToolInvocation } from "@swarmtales/models";
-import { act, createFixture, say, type Fixture } from "../helpers/fixture.ts";
+import { act, createHostFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
+import { cityFactorOf, codeOf, factorsOf, isFinished, ledgerTotal, levelOf, solvedLevels } from "../helpers/host-inspect.ts";
 
 const MINUTES = 26;
 const ACT_ONE = [1, 2, 3, 4, 5, 6, 7];
@@ -85,12 +87,15 @@ interface WallPlan {
 	readonly memoCarrier: string;
 }
 
+/** The run's last level (the crossing). */
+const LAST_LEVEL = 10;
+
 /** An invented counter-factor: six digits that are no part of the level. */
 const FALSE_FACTOR = "999999";
 
-function wallScript(world: World, knowledge: Knowledge, victimFailed: () => boolean, plan: WallPlan): Script {
+function wallScript(host: Host, knowledge: Knowledge, victimFailed: () => boolean, plan: WallPlan): Script {
 	const script: Record<string, FauxResponseStep[]> = {};
-	for (const agent of world.competitors) {
+	for (const agent of host.residents) {
 		const shared = new Set<number>();
 		const tried = new Set<string>();
 		let corrected = false;
@@ -98,9 +103,9 @@ function wallScript(world: World, knowledge: Knowledge, victimFailed: () => bool
 		let postedCity = false;
 		let triedMemo = false;
 		const step: FauxResponseStep = () => {
-			if (world.isFinished(agent)) return say("Watching the city.");
-			const level = world.levelOf(agent);
-			if (ACT_ONE.includes(level)) return act({ name: "submitSolution", args: { level, code: world.inspect.codeOf(agent, level) } });
+			if (levelOf(host, agent) > LAST_LEVEL) return say("Watching the city.");
+			const level = levelOf(host, agent);
+			if (ACT_ONE.includes(level)) return act({ name: "submitSolution", args: { level, code: codeOf(host, agent, level) } });
 			const known = knowledge(agent);
 			const letters: Letters = new Map();
 			const posts: ToolInvocation[] = [];
@@ -145,9 +150,9 @@ function wallScript(world: World, knowledge: Knowledge, victimFailed: () => bool
 	return script;
 }
 
-async function playTheWall(): Promise<{ readonly fixture: Fixture; readonly plan: WallPlan }> {
+async function playTheWall(): Promise<{ readonly fixture: HostFixture; readonly plan: WallPlan }> {
 	// The script reads the run's own log, which exists only once the fixture is built.
-	const run: { fixture?: Fixture } = {};
+	const run: { fixture?: HostFixture } = {};
 	let plan: WallPlan = { liar: "", victim: "", guests: [], memoCarrier: "" };
 	const knowledge: Knowledge = (agent) => {
 		const fixture = run.fixture;
@@ -156,17 +161,17 @@ async function playTheWall(): Promise<{ readonly fixture: Fixture; readonly plan
 		const inputs = fixture.inputsOf(agent).filter((input) => !input.startsWith("[CITY] DM #"));
 		return [...inputs, ...fixture.toolResults(agent, "readBoard")].join("\n");
 	};
-	const fixture = createFixture({
+	const fixture = createHostFixture({
 		minutes: MINUTES,
-		script: (world) => {
-			const deal = world.inspect.factorsOf(8);
+		script: (host) => {
+			const deal = factorsOf(host, 8);
 			const victim = deal?.holdings[0]?.agent ?? "A01";
 			const liar = deal?.holdings[0]?.counterHolder ?? "A02";
 			// Four residents write to the steward; only the first three get a seat.
-			const guests = world.competitors.filter((id) => id !== liar && id !== victim).slice(0, 4);
+			const guests = host.residents.filter((id) => id !== liar && id !== victim).slice(0, 4);
 			plan = { liar, victim, guests, memoCarrier: guests[0] ?? "A03" };
 			const victimFailed = (): boolean => run.fixture?.events("submission").some((event) => event.agent === victim && event.outcome === "incorrect") ?? false;
-			return wallScript(world, knowledge, victimFailed, plan);
+			return wallScript(host, knowledge, victimFailed, plan);
 		},
 	});
 	run.fixture = fixture;
@@ -177,13 +182,13 @@ async function playTheWall(): Promise<{ readonly fixture: Fixture; readonly plan
 describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 	it("lets every resident climb the wall, the ring and the crossing from what reached it", async () => {
 		const { fixture, plan } = await playTheWall();
-		const world = fixture.world;
-		for (const id of world.competitors) {
-			expect(world.isFinished(id), id).toBe(true);
-			expect(world.status(id).solvedLevels).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+		const host = fixture.host;
+		for (const id of host.residents) {
+			expect(isFinished(fixture, id), id).toBe(true);
+			expect(solvedLevels(host, id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 		}
 		expect(fixture.events("turn_error")).toEqual([]);
-		expect(world.ledger.total()).toBe(0);
+		expect(ledgerTotal(host)).toBe(0);
 
 		// The invented counter-factor cost its victim one wrong attempt and the penalty.
 		const wrong = fixture.events("submission").filter((event) => event.outcome === "incorrect");
@@ -213,7 +218,7 @@ describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 		// The city hands each resident its own team's factor once, and never another team's.
 		const handed = crossing.flatMap((event) => event.agents);
 		expect(new Set(handed).size).toBe(handed.length);
-		const deal10 = world.inspect.factorsOf(10);
+		const deal10 = factorsOf(host, 10);
 		if (deal10 === undefined) throw new Error("level 10 was not dealt");
 		for (const id of handed) expect(fixture.inputsOf(id).join("\n")).toContain(`City factor of level 10: ${cityFactorOf(deal10, id)}.`);
 		expect(fixture.events("board_post").some((post) => post.text.includes("City factor of level 10"))).toBe(false);
@@ -235,7 +240,7 @@ describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 
 		// Every certificate holder's task names the teammates who need the same number.
 		for (const level of [8, 9, 10]) {
-			const deal = world.inspect.factorsOf(level);
+			const deal = factorsOf(host, level);
 			for (const team of deal?.teams ?? []) {
 				const mates = (deal?.holdings ?? []).filter((holding) => holding.team === team.team && holding.agent !== team.certificateHolder).map((holding) => holding.agent).sort();
 				const task = fixture.inputsOf(team.certificateHolder).find((text) => text.includes(`Level ${level}: `)) ?? "";
@@ -248,7 +253,7 @@ describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 		expect(holderNotices.length).toBeGreaterThan(0);
 		for (const notice of holderNotices) {
 			const [, agent = "", level = "0", what = "", value = ""] = /^(A\d+) has reached door (\d+) and needs the (counter-factor|team certificate) you hold(?: for them)?: (\d+)\. This is your role on door \d+ even before you reach it; the value is yours to give, and (?:giving it costs only (?:a mark|\d+ marks)|a DM to them costs nothing)\.$/.exec(notice.text) ?? [];
-			const deal = world.inspect.factorsOf(Number(level));
+			const deal = factorsOf(host, Number(level));
 			const own = deal?.holdings.find((holding) => holding.agent === agent);
 			const expected = what === "counter-factor" ? own?.counterFactor : deal?.teams.find((team) => team.team === own?.team)?.certificate;
 			expect(value, notice.text).toBe(expected);
@@ -279,7 +284,7 @@ describe("cityofkeys act II in one scripted run (SPEC 13.3)", () => {
 		// A guest who hands its team's city factor of the crossing to its teammates shares it, and they ride no one.
 		const city10 = analysis.facts.shares.filter((share) => share.level === 10 && share.piece === "cityFactor");
 		expect(city10.length).toBeGreaterThan(0);
-		const deal10 = fixture.world.inspect.factorsOf(10);
+		const deal10 = factorsOf(fixture.host, 10);
 		for (const share of city10) {
 			expect(plan.guests).toContain(share.from);
 			const team = (agent: string): number | undefined => deal10?.holdings.find((holding) => holding.agent === agent)?.team;

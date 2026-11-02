@@ -22,7 +22,8 @@ import {
 	writeRunReport,
 } from "@swarmtales/chronicle";
 import { createProviderRegistry, OPENROUTER_DEEPSEEK_FLASH } from "@swarmtales/models";
-import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { codeOf, submit, wrongCodeOf } from "../helpers/host-inspect.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const directories: string[] = [];
@@ -70,18 +71,18 @@ function usageFile(own: Readonly<Record<string, number>>, prefix: Readonly<Recor
  */
 async function scriptedRun(): Promise<string> {
 	const directory = runDirectory();
-	const fixture = createFixture({
+	const fixture = createHostFixture({
 		agents: 2,
 		minutes: 3,
 		only: 3,
 		sinks: [new JsonlEventLog(join(directory, "events.jsonl"))],
-		script: (world) => ({
+		script: (host) => ({
 			A01: [
 				act({ name: "transferPoints", args: { target: "A02", amount: 9_999 } }),
-				act({ name: "submitSolution", args: { level: 3, code: wrongCodeOf(world.inspect.codeOf("A01", 3)) } }),
-				submit(world, "A01", 3),
+				act({ name: "submitSolution", args: { level: 3, code: wrongCodeOf(codeOf(host, "A01", 3)) } }),
+				submit(host, "A01", 3),
 			],
-			A02: [act({ name: "sendDM", args: { target: "A01", message: "Good luck." } }), say(), submit(world, "A02", 3)],
+			A02: [act({ name: "sendDM", args: { target: "A01", message: "Good luck." } }), say(), submit(host, "A02", 3)],
 		}),
 	});
 	writeRunMetadata(

@@ -11,7 +11,7 @@ import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import type { AnyStory, GuardJudge, Host } from "@swarmtales/contracts";
 import { MemorySink, type EventSink, type RecordedEvent } from "@swarmtales/engine";
 import { type Script, ScriptedModelSource } from "@swarmtales/models";
-import { boundBackend, GAMEMAKER_ID, overseers } from "@swarmtales/roles";
+import { boundBackend, GAMEMAKER_ID, overseers, type HostResidentRunner } from "@swarmtales/roles";
 import { composeHostRun, type HostComposedRun, type HostComposeOptions } from "../../apps/cli/src/host/run.ts";
 import { DEFAULT_LIMITS, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
@@ -40,8 +40,20 @@ export interface HostFixtureOptions extends RunOverrides {
 	readonly meta?: HostComposeOptions["meta"];
 }
 
+export interface BoardPostLine {
+	readonly seq: number;
+	readonly author: string;
+	readonly text: string;
+	readonly minute: number;
+	readonly kind: Extract<RecordedEvent, { type: "board_post" }>["kind"];
+}
+
 export interface HostFixture extends HostComposedRun {
 	readonly log: MemorySink;
+	/** Each resident's runner, in roster order (old `ComposedRun.runners`). */
+	runners(): readonly HostResidentRunner[];
+	/** The board's posts, from the log's `board_post` lines (old `world.board.all()`). */
+	boardPosts(): readonly BoardPostLine[];
 	toolResults(agent: string, tool: string): readonly string[];
 	inputsOf(agent: string): readonly string[];
 	events<T extends RecordedEvent["type"]>(type: T): readonly Extract<RecordedEvent, { type: T }>[];
@@ -91,6 +103,8 @@ export function createHostFixture(options: HostFixtureOptions): HostFixture {
 	return {
 		...composed,
 		log,
+		runners: () => composed.host.residents.flatMap((id) => composed.residents.runner(id) ?? []),
+		boardPosts: () => log.ofType("board_post").map((event) => ({ seq: event.postSeq, author: event.author, text: event.text, minute: event.minute, kind: event.kind })),
 		toolResults: (agent, tool) =>
 			log
 				.ofType("tool_result")
