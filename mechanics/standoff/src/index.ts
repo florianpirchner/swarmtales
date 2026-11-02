@@ -6,16 +6,18 @@
 import { Type } from "typebox";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import type { ContextOf, ToolContextOf, ViewOf } from "@swarmtales/contracts";
-import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, TribunalApi, type HeldPiece } from "@swarmtales/mechanic-shared";
+import { ChannelsApi, ExileApi, HOOK_ORDER, LedgerApi, NamesApi, ProgressionApi, PuzzlesApi, STATUS_ORDER, StandoffApi, TribunalApi, TribunalViewApi, type HeldPiece } from "@swarmtales/mechanic-shared";
 import { emptyStandoff, StandoffBook, type StandoffData, type StandoffPiece, type StandoffPorts } from "./book.ts";
 import { standoffEvents } from "./events.ts";
 import { standoffSnapshot } from "./slice.ts";
 import { CityPieces, cityPiecesOf, Outstanding, outstandingOf, Ultimatums, Unused, unusedOf } from "./situation.ts";
 import { cityPiecePrice, needsNow, type StandoffReads } from "./reads.ts";
+import { computeStandoffSection, StandoffSectionFact, type SectionReads } from "./section.ts";
 
 export { DEFAULT_DIRECTION, grantsUltimatum, ULTIMATUM_DIRECTION } from "./grants.ts";
 /** The schemas of the gamemaker's facts, for a head that renders the old "Standoffs" section. */
 export { CityPieces, Outstanding, Ultimatums, Unused } from "./situation.ts";
+export { computeStandoffSection, renderRiskSection, renderStandoffSection, StandoffSectionFact, standoffSectionOf, type SectionReads, type StandoffSection } from "./section.ts";
 
 const CITY = "CITY";
 
@@ -41,7 +43,7 @@ export const standoffHead = defineHead({
 	events: standoffEvents,
 	provides: [StandoffApi],
 	requires: [PuzzlesApi, ProgressionApi, LedgerApi, ChannelsApi],
-	uses: [ExileApi, NamesApi, TribunalApi],
+	uses: [ExileApi, NamesApi, TribunalApi, TribunalViewApi],
 	prompts: {
 		"tools/claimPiece": [],
 		"replies/piece-bought": ["pieces", "price"],
@@ -80,6 +82,32 @@ function readsOfView(view: View): StandoffReads {
 		hasPassed: (agent, level) => view.call(ProgressionApi, "hasPassed", { resident: agent, level }),
 		isExiled: (agent) => view.tryCall(ExileApi, "isExiled", { resident: agent }) ?? false,
 		ransomPrice: () => view.tryCall(TribunalApi, "ransomPrices", {})?.price,
+	};
+}
+
+/** The running ultimatums (old `ultimatums()`). */
+function ultimatumsOf(view: View): { number: number; between: [string, string]; until: number; penalty: number }[] {
+	return view.state.data.ultimatums.flatMap((entry) => {
+		const [a, b] = entry.between;
+		if (a === undefined || b === undefined) return [];
+		const between: [string, string] = [a, b];
+		return [{ number: entry.number, between, until: entry.until, penalty: entry.penalty }];
+	});
+}
+
+/** What the gamemaker's section reads besides the standoff's book. */
+function sectionReads(view: View, reads: StandoffReads): SectionReads {
+	return {
+		minute: view.minute,
+		alive: view.tryCall(ExileApi, "alive", {}) ?? view.residents.ids,
+		standing: (agent) => view.tryCall(ExileApi, "standing", { resident: agent }) ?? { kind: "alive" },
+		levelOf: reads.levelOf,
+		hasPassed: reads.hasPassed,
+		isExiled: reads.isExiled,
+		points: (agent) => view.call(LedgerApi, "balance", { account: agent }),
+		held: reads.heldAll,
+		atRisk: () => view.tryCall(TribunalViewApi, "atRisk", {}) ?? null,
+		cityPiecePrice: () => cityPiecePrice(reads),
 	};
 }
 
@@ -246,17 +274,18 @@ export const standoff = defineMechanic(standoffHead, (kit) => ({
 		/** D-8: hand-overs whose needer still stands before the door. */
 		unused: kit.fact(Unused, (view) => unusedOf(factBook(view).book)),
 		/** D-8: the running ultimatums. */
-		ultimatums: kit.fact(Ultimatums, (view) =>
-			view.state.data.ultimatums.flatMap((entry) => {
-				const [a, b] = entry.between;
-				if (a === undefined || b === undefined) return [];
-				const between: [string, string] = [a, b];
-				return [{ number: entry.number, between, until: entry.until, penalty: entry.penalty }];
-			}),
-		),
+		ultimatums: kit.fact(Ultimatums, (view) => ultimatumsOf(view)),
 		/** D-8: what a piece the city keeps costs now. */
 		cityPiecePrice: kit.fact(Type.Number(), (view) => cityPiecePrice(readsOfView(view))),
 		given: kit.fact(Type.Integer(), (view) => view.state.data.given.size),
+		/** The gamemaker's "Standoffs" and "At risk" lines (old `standoffLines`, `riskLines`; step 18, item 2). */
+		section: kit.fact(StandoffSectionFact, (view) => {
+			const { book, reads } = factBook(view);
+			return computeStandoffSection(
+				{ outstanding: outstandingOf(book, reads.heldAll), cityPieces: cityPiecesOf(view.state.data.city), ultimatums: ultimatumsOf(view), unused: unusedOf(book) },
+				sectionReads(view, reads),
+			);
+		}),
 	},
 	snapshot: kit.snapshot(standoffSnapshot),
 }));
