@@ -256,6 +256,50 @@ not used. What remains is listed in `rewrite-status.md` ("Step 18 items 7 and 8:
    before `run_end`, as in the old `Arena.run`. The goldens did not change. The full run of "fails a petition still open
    when the run ends" in `test/engine/petitions.test.ts` is ported to the host fixture and checks the order.
 
+## Team D3 (step 18 items 7 and 8, continued, 2026-11-02)
+
+The golden files are unchanged, and `GOLDEN_UPDATE` was not used. What remains is listed in `rewrite-status.md` ("Step
+18 items 7 and 8: state after team D3").
+
+1. **Ported to the host fixture** (`test/helpers/host-fixture.ts`, `host-inspect.ts`), every assertion kept unless named
+   in item 3: `test/engine/{direction,standoff-world,marks,names,receipts,seal,factors,world,whispers}`,
+   `test/tools/{blame,gateway}`, `test/gamemaker/{situation,privacy,director,gamemaker,holdout}`,
+   `test/interpret/interpreter`, the two kept tests of `test/engine/arena` and the director-targets test of
+   `test/engine/director-society` (a bare host with the real city and the script mechanic, since validation rejects its
+   unknown ids). `test/engine/{puzzles/additive,puzzles/fragments,teams,petitions}` now test the mechanics' own copies
+   (`@swarmtales/mechanic-puzzles` `TeamPlanner`, `@swarmtales/mechanic-petitions` `PetitionBook`). The fixture exports
+   `LOCKED_REPLY` (the prompt `replies/core/locked` behind `TOOL_LOCKED`).
+2. **Three production bugs found by the ports, fixed:**
+   - `createGroup` never ran the tool guard on the group name (`mechanics/channels/src/tools.ts`: `guardText` added).
+   - The privacy guard read only interpretations with source `"app"`; the host's classifier writes `"classifier"`, so
+     `PRIVATE_BLOCKED` never fired on the host (`mechanics/channels/src/notes.ts`, `privateLabels`).
+   - A budget breach in the last turn block of a minute let the between-slot classifier run anyway
+     (`packages/kernel/src/host/host.ts`: the referee's breach is read after the last block, too).
+3. **Assertions that changed with the port** (the host answers differently on purpose, or the old value was an engine
+   internal):
+   - `test/engine/whispers`: naming a favourite between rounds answers `TOOL_LOCKED` (old `NO_VOTE`); the DM window is
+     read from `getStatus` ("DMs: 2 of 2 sent since minute 0"); `mayForge` is checked as the run's whisperer;
+     `PopularityVote` unit cases now use the mechanic's `restoreVote` and a host label run with names.
+   - `test/engine/world`: `world.revealFactor(2, "board")` and `world.teamsOf(2).length > 0` (old `World` internals)
+     have no host call; coverage: `NOT_ADDITIVE` / `NOT_PLAYED` in `test/mechanics/puzzles/puzzles.test.ts` and the door
+     cases of `test/mechanics/t3` (twin-basic, edges).
+   - `test/tools/gateway`: `INVALID_ARGUMENTS` is checked through `host.call`, since the model layer validates the
+     schema before a tool runs; the catalog is every registered story's `host.toolSpecs("resident")`.
+   - `test/tools/blame`: the judge is a scripted chat judge (`judgeScript`); `SELF_BLAME` / `UNKNOWN_AGENT` are checked
+     with a judge present, since `JUDGE_ABSENT` comes first; the old `BlameDesk` unit cases use the receipts mechanic's
+     `checkBlame`.
+   - `test/interpret/interpreter`: the interpreter's context cases run on the classifier overseer (bare host, harness of
+     `test/overseers`); the old "partial batch" case has no overseer equivalent, coverage: `test/overseers/runtime-chat`
+     ("takes several label calls of one turn as one answer").
+4. **Deleted:** `test/roles/gamemaker-overseer/differential.test.ts` and `shadow.ts` (the overseer read the live old
+   `World`). Coverage: `test/cli/host-gamemaker-golden.test.ts` (the three golden runs' looks byte for byte),
+   `test/roles/gamemaker-overseer/host.test.ts` (notes and budget line), `test/cli/host-gamemaker-differential.test.ts`
+   (third case, the holdout tribunal of Whispers), and the new `test/roles/gamemaker-overseer/resume.test.ts`, which ports
+   the slice round trip of the old third case: the holdout run cut at minute 7 and resumed from the snapshot file makes
+   the very looks the uninterrupted run makes after the cut, and the snapshot's overseer slice holds the tribunal notes.
+   No other test was deleted. With it, the `World`-typed `grudgeAddenda`, `whispersCast` and `whispersScript` in
+   `test/golden/scripts.ts` lost their last users and were removed (the host copies live in `test/golden/host-scripts.ts`).
+
 ## H1 (signed event log, rewrite-status item 5a)
 
 Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).

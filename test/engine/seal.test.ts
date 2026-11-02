@@ -102,12 +102,20 @@ function harness(agents = 6, data: SealData = emptySeal()): Harness {
 		get borne() {
 			return borne(data);
 		},
-		begin: (actStart, residents) => house.begin(actStart, residents),
-		tick: (minute) => house.tick(minute),
+		begin: (actStart, residents) => {
+			house.begin(actStart, residents);
+		},
+		tick: (minute) => {
+			house.tick(minute);
+		},
 		bid: (agent, points) => house.bid(agent, points),
 		use: (holder, target) => house.use(holder, target),
-		end: () => house.end(),
-		onExiled: (agent) => house.onExiled(agent),
+		end: () => {
+			house.end();
+		},
+		onExiled: (agent) => {
+			house.onExiled(agent);
+		},
 		bidOf: (agent) => bidOf(data, agent),
 		holds: (agent) => holds(data, agent),
 	};

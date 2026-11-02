@@ -339,7 +339,9 @@ describe("world: the door of a snapshot run (SPEC 17)", () => {
 		expect(run.events("level_up")).toHaveLength(2);
 		await host.playMinute(idleAgent);
 		expect(entered(run)).toHaveLength(2);
-		expect(await submitOwn(run, "A01", 2)).toMatchObject({ ok: true, reply: expect.stringContaining("now on level 3") });
+		const second = await submitOwn(run, "A01", 2);
+		expect(second.ok).toBe(true);
+		expect(second.ok ? second.reply : "").toContain("now on level 3");
 		expect(levelOf(host, "A01")).toBe(3);
 	});
 });

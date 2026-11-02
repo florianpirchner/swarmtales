@@ -21,6 +21,45 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 | 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
 
+## Step 18 items 7 and 8: state after team D3 (2026-11-02)
+
+Item 7 is still **partly done**; item 8 (the core motive rename) is **not started** and stays the last commit, after the
+engine is gone. Goldens are unchanged, `GOLDEN_UPDATE` was not used. Details: `step18-decisions.md`, "Team D3".
+
+**Done by D3:** D2's steps 1 and 2 below in large part (ports to the host fixture, three production bugs fixed, the
+gamemaker-overseer differential replaced by `test/roles/gamemaker-overseer/resume.test.ts` and deleted), and of step 3
+the puzzles, teams and petitions unit tests (now on the mechanics' copies).
+
+**What remains, in this order** (find the importers with
+`grep -rlE "@swarmtales/engine|compose\.ts|helpers/fixture" test` and
+`grep -rlE "@swarmtales/engine" apps/cli/src packages/sdk/src packages/roles/src`):
+
+1. **Port the last users of the old fixture or `composeRun`:** `test/stories/cityofkeys-tribunal.test.ts` (reads
+   `world.tribunal` internals mid-minute; read the log or facts instead), `test/snapshot/{act-brake,components,file,
+   legacy-writeback,resume,society,v09,weaver,whispers}`, `test/stories/{cityofkeys,cityofkeys-levels,cityofkeys-wall,
+   whispers,whispers-direction,registry}`, `test/scale/whole-story`, `test/golden/scripts.ts` (its `World`-typed helpers
+   feed `test/cli/support/report-replay.ts`'s live old side and become dead code with the engine).
+2. **Old engine unit tests** still importing the engine: `test/engine/{board,mailbox,groups,cast,goals,motives,passes,
+   scheduler,penalties,standoff,holdout,tribunal}`. Point each at the mechanic's copy where one exists (channels
+   `Board` takes `new MessageNumbers()` and an explicit post kind; channels `Mailbox`, `GroupRegistry(numbers)`;
+   cast `escrowAccountId`; goals `dealGoals`; motives `aboveAllCap`, `lightCount` need exports from
+   `mechanics/motives/src/deal.ts`; `ladderText` / `penaltyAt` in `@swarmtales/sdk`; standoff `StandoffBook`,
+   `carriesValue`), export what is needed from the mechanic's `index.ts`, and name a covering test in
+   `step18-decisions.md` before deleting a case with no copy (`activationOrder` / `blocksOf` exist only in the engine;
+   the kernel's turns use `rngFor(seed, "turns", minute[, pass])`).
+3. **Other test importers:** `test/story/validate*.test.ts` (`DIRECTOR_SUPPORT` is now in `@swarmtales/contracts`),
+   `test/overseers/harness.ts`, `test/log/*`, `test/agents/*` (`EventBus`), `test/cli/args` (`resolveBlockSize`,
+   `effectiveRun`), `test/interpret/{guard,weaver}`, `test/host/conformance`, `test/helpers/event-log.ts`, the
+   `test/mechanics/**` differentials and twins (their live old functions go in step 5) and
+   `test/mechanics/progression/standins.ts` (`MarksBook`).
+4. **Move what production still imports from the engine:** `apps/cli/src/{oracle,run-options,validate}.ts`,
+   `packages/sdk/src/{index,validate}.ts`, `packages/roles/src/{agents/runner,gamemaker/gamemaker,gamemaker/look,
+   gamemaker/situation,gamemaker/system-prompt,interpret/interpreter,interpret/weaver,overseer/gamemaker}.ts`.
+5. **Delete** as D2's step 5 says (old roles, `apps/cli/src/compose.ts`, `test/helpers/fixture.ts`,
+   `test/helpers/old-engine-recorder.ts`, `packages/engine` with its `check-packages` row and tsconfig references, every
+   live old function); update `docs/ARCHITECTURE.md` and `docs/HOW-IT-WORKS.md`.
+6. **Item 8, the core motive rename**, unchanged (D2's step 6).
+
 ## Step 18 items 7 and 8: state after team D2 (2026-11-02)
 
 Item 7 is still **partly done**; item 8 (the core motive rename) is **not started** and stays the last commit, after the
