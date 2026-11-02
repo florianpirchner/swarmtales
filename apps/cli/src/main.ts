@@ -1,6 +1,7 @@
 /**
  * `pnpm start`: plays one run of a story and writes its artifacts.
  */
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { loadEnvFile } from "node:process";
@@ -56,9 +57,9 @@ import { assertPlayable, DEFAULT_LIMITS, effectiveRun, resumedOverrides } from "
 import { StoryValidationError } from "@swarmtales/sdk";
 import { hostOracle } from "./oracle.ts";
 import { castEntries, composeHostRun, type HostComposeOptions } from "./host/run.ts";
-import { prefixLines, readResumePoint, runFileName, writeRunFile, type ResumePoint } from "./host/snapshot.ts";
+import { prefixLines, readResumePoint, runFileName, withCheckpoint, writeRunFile, type ResumePoint } from "./host/snapshot.ts";
 import { runMetadata } from "./metadata.ts";
-import { codeCommit, runGenesis } from "./host/chain.ts";
+import { codeCommit, inputCommitments, runGenesis } from "./host/chain.ts";
 import { competitorIds } from "@swarmtales/kernel";
 
 const envFile = join(process.cwd(), ".env");
@@ -88,6 +89,7 @@ const snapshot: ResumePoint | undefined = (() => {
 		throw error;
 	}
 })();
+if (args.preregistration !== undefined && !existsSync(args.preregistration)) fail(`No pre-registration file ${args.preregistration}`);
 const storyName = args.story ?? snapshot?.story ?? "cityofkeys";
 const story = findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}`);
 const runOverrides = (() => {
@@ -351,6 +353,9 @@ const runMeta: Readonly<Record<string, string>> = {
 };
 // The signed event log (docs/design/event-log-signing.md): always on; the private key lives only in this process.
 const commit = codeCommit();
+// Read once: the run plays these texts and its genesis commits to their hash.
+const promptAddenda = args.promptAddenda?.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") }));
+const preregistration = args.preregistration === undefined ? undefined : createHash("sha256").update(readFileSync(args.preregistration)).digest("hex");
 const chain = new EventChain(
 	allocated.directory,
 	runGenesis({
@@ -366,6 +371,9 @@ const chain = new EventChain(
 			...(runMeta.weaver === undefined ? {} : { weaver: runMeta.weaver }),
 		},
 		...(commit === undefined ? {} : { commit }),
+		run: allocated.name,
+		...(preregistration === undefined ? {} : { preregistration }),
+		commitments: inputCommitments({ overrides, ...(args.judgeTemper === undefined ? {} : { judgeTemper: args.judgeTemper }), ...(promptAddenda === undefined ? {} : { promptAddenda }) }),
 		...(snapshot === undefined || args.resume === undefined ? {} : { resume: { point: snapshot, name: basename(args.resume) } }),
 	}),
 );
@@ -381,16 +389,14 @@ const composeOptions: HostComposeOptions = {
 					stop: args.stopAfterSnapshot === true,
 					file: join(allocated.directory, snapshotName),
 					write: (taken) => {
-						snapshotPath = writeRunFile(allocated.directory, { ...taken, chain: chain.checkpoint() }, args.snapshotAt === undefined ? snapshotName : runFileName(taken.level, taken.minute));
+						snapshotPath = writeRunFile(allocated.directory, withCheckpoint(taken, chain), args.snapshotAt === undefined ? snapshotName : runFileName(taken.level, taken.minute));
 						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
 						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
 						return snapshotPath;
 					},
 				},
 			}),
-	...(args.promptAddenda === undefined
-		? {}
-		: { promptAddenda: args.promptAddenda.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") })) }),
+	...(promptAddenda === undefined ? {} : { promptAddenda }),
 	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { point: snapshot, name: basename(args.resume) } }),
 	...(gamemakerSettings === undefined ? {} : { gamemakerModels: createModelSource(gamemakerSettings, { registry }) }),
 	...(modelOverride === undefined ? {} : { modelOverride }),

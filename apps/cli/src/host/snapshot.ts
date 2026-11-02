@@ -8,11 +8,26 @@
  * keep) and the app's weaver desk. The old format is no longer written: writing it would need a writer
  * back to the old shape for every mechanic's slice (R3-4), and nothing reads it but `--resume`.
  */
-import { readFileSync, renameSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { createPublicKey } from "node:crypto";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check, Parse } from "typebox/value";
-import { ChainCheckpointSchema, ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
+import {
+	type ChainCheckpoint,
+	ChainCheckpointSchema,
+	checkpointVerifies,
+	ContextMessageSchema,
+	convertLegacySnapshot,
+	keyFingerprint,
+	LegacyEventAdapter,
+	parseSnapshot,
+	PUBLIC_KEY_FILE,
+	type RunSnapshot,
+	SnapshotError,
+	snapshotFileName,
+	snapshotStateHash,
+} from "@swarmtales/chronicle";
 import { currentEventType, type RecordedEvent } from "@swarmtales/legacy-log";
 import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { ContextMessage } from "@swarmtales/roles";
@@ -121,9 +136,23 @@ function fromLegacy(raw: unknown, path: string): ResumePoint {
 	};
 }
 
+/**
+ * Refuses a run file whose checkpoint does not hold: its signature fails under the key it names, or
+ * the file's state (all but `chain`) is not the state the checkpoint signed, i.e. the host, the
+ * envelopes or a resident's context were edited after the cut (step 18 challenge, chain-security M1
+ * and M2). A checkpoint written before it signed the state (no `state`) is only checked for its signature.
+ */
+function checkCheckpoint(raw: unknown, chain: ChainCheckpoint, path: string): void {
+	if (!checkpointVerifies(chain)) throw new SnapshotError(`${path}: its chain checkpoint is not signed by the key it names (key ${keyFingerprint(chain.publicKey)}); the file was edited or its checkpoint comes from elsewhere`);
+	if (chain.state !== undefined && snapshotStateHash(raw) !== chain.state) {
+		throw new SnapshotError(`${path}: the snapshot's state is not the one its checkpoint signed (the file was edited after the cut)`);
+	}
+}
+
 function fromRunFile(raw: unknown, path: string): ResumePoint {
 	if (!Check(RunFileSchema, raw)) throw new SnapshotError(`${path} is not a ${RUN_FILE_FORMAT} file of version ${String(RUN_FILE_VERSION)}`);
 	const file = Parse(RunFileSchema, raw);
+	if (file.chain !== undefined) checkCheckpoint(raw, file.chain, path);
 	// The motives' slice is the list of dealt core motives.
 	const motives = file.host.mechanics.motives?.data;
 	return {
@@ -169,7 +198,26 @@ export function readResumePoint(path: string): ResumePoint {
 	} catch (error) {
 		throw new SnapshotError(`Snapshot ${path} is not JSON: ${error instanceof Error ? error.message : String(error)}`);
 	}
-	return parseResumePoint(raw, path);
+	const point = parseResumePoint(raw, path);
+	// A snapshot in a run directory belongs to that run: its checkpoint must be signed by the run's key (chain-security M2).
+	const beside = join(dirname(path), PUBLIC_KEY_FILE);
+	if (point.chain !== undefined && existsSync(beside)) {
+		let own: string;
+		try {
+			own = createPublicKey(readFileSync(beside, "utf8")).export({ type: "spki", format: "der" }).toString("base64");
+		} catch (error) {
+			throw new SnapshotError(`${path}: the run's ${PUBLIC_KEY_FILE} beside it is not a public key (${error instanceof Error ? error.message : String(error)})`);
+		}
+		if (own !== point.chain.publicKey) {
+			throw new SnapshotError(`${path}: its chain checkpoint names key ${keyFingerprint(point.chain.publicKey)}, but the run beside it signed with key ${keyFingerprint(own)}`);
+		}
+	}
+	return point;
+}
+
+/** A run file with its chain's checkpoint, signed over the file's state (what `--snapshot-*` writes). */
+export function withCheckpoint(file: RunFileOut, chain: { checkpoint(state?: string): ChainCheckpoint }): RunFileOut {
+	return { ...file, chain: chain.checkpoint(snapshotStateHash(file)) };
 }
 
 /** The file name of a snapshot: after a level, or at a minute. */

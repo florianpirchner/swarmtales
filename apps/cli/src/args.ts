@@ -38,6 +38,8 @@ export interface StartArgs {
 	readonly promptAddenda?: readonly PromptAddendumFile[];
 	/** Snapshot file to continue from. */
 	readonly resume?: string;
+	/** A document registered outside before the run; the genesis commits to its sha256 (docs/design/event-log-signing.md). */
+	readonly preregistration?: string;
 }
 
 export interface PromptAddendumFile {
@@ -88,6 +90,8 @@ export const START_USAGE = [
 	"  --prompt-addendum [<ID>=]<file>  append the file's text to every competitor's system prompt, or to <ID>'s; repeatable (lab/)",
 	"  --resume <file>      continue from a snapshot: its story, seed and agents; models may differ,",
 	"                       --minutes counts from minute 0 of the snapshot's run",
+	"  --preregistration <file>  a document registered outside before the run (its nonce, the declared runs);",
+	"                       the signed log's genesis commits to its sha256 (docs/design/event-log-signing.md)",
 ].join("\n");
 
 function parseValues(argv: readonly string[]) {
@@ -139,6 +143,7 @@ function parseValues(argv: readonly string[]) {
 				"snapshot-at": { type: "string" },
 				"prompt-addendum": { type: "string", multiple: true },
 				resume: { type: "string" },
+				preregistration: { type: "string" },
 			},
 			allowPositionals: false,
 			strict: true,
@@ -228,6 +233,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values["prompt-addendum"] === undefined ? {} : { promptAddenda: values["prompt-addendum"].map(addendumFile) }),
 		...(values["stop-after-snapshot"] === true ? { stopAfterSnapshot: true } : {}),
 		...(resume === undefined ? {} : { resume }),
+		...(values.preregistration === undefined ? {} : { preregistration: values.preregistration }),
 	};
 }
 

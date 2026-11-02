@@ -7,7 +7,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EventBus, type RecordedEvent } from "@swarmtales/legacy-log";
+import { type ArenaEvent, EventBus } from "@swarmtales/legacy-log";
 import {
 	CHAIN_FILE,
 	type ChainGenesisInput,
@@ -293,7 +293,7 @@ describe("a resumed run's chain", () => {
 			/** The snapshot state the checkpoint signs. */
 			readonly state?: string;
 			/** The previous run's second line instead of the text "one". */
-			readonly first?: RecordedEvent;
+			readonly first?: ArenaEvent;
 			/** Lines the resumed run writes between its prefix and its run_resumed marker. */
 			readonly between?: readonly string[];
 		} = {},
@@ -370,7 +370,7 @@ describe("a resumed run's chain", () => {
 	});
 
 	it("compares the prefix under today's event names, for a run file written before a rename (determinism M1)", () => {
-		const dealt: RecordedEvent = { type: "core_dealt", agent: "A01", bigFive: [], drives: [] };
+		const dealt: ArenaEvent = { type: "core_dealt", agent: "A01", bigFive: [], drives: [] };
 		const renamed = resumedPair({ first: dealt, prefixChange: (line) => line.replace('"type":"core_dealt"', '"type":"motive_dealt"') });
 		expect(verifyContinuity(renamed.previous, renamed.resumed)).toMatchObject({ ok: true });
 		const other = resumedPair({ first: dealt, prefixChange: (line) => line.replace('"type":"core_dealt"', '"type":"goal_dealt"') });

@@ -162,6 +162,11 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--resume", "s.json", "--level", "8"])).toThrow(/--level and --only do not apply/);
 	});
 
+	it("parses a pre-registration file for the signed log's genesis (step 18 challenge, chain-security M3)", () => {
+		expect(parseStartArgs(["--preregistration", "istant/prereg.md"])).toMatchObject({ preregistration: "istant/prereg.md" });
+		expect(parseStartArgs([])).not.toHaveProperty("preregistration");
+	});
+
 	it("parses a snapshot at a minute and a prompt addendum (lab/)", () => {
 		expect(
 			parseStartArgs(["--resume", "s.json", "--snapshot-at", "11", "--stop-after-snapshot", "--prompt-addendum", "lab/variants/B.md", "--prompt-addendum", "A01=lab/characters/verena.md"]),

@@ -1,7 +1,8 @@
 /**
  * The genesis a CLI run states in its signed event log (docs/design/event-log-signing.md): the
- * code's commit, the story's hash, the seed, the models and, for a resumed run, the snapshot's
- * checkpoint it chains from.
+ * code's commit, the run's name, the story's hash, the seed, the models, hashes of the run's options
+ * and prompt addenda, an optional pre-registration and, for a resumed run, the snapshot's checkpoint
+ * it chains from.
  */
 import { execFileSync } from "node:child_process";
 import { type ChainGenesisInput, jsonHash } from "@swarmtales/chronicle";
@@ -32,9 +33,32 @@ export function storyHash(story: AnyStory): string {
 	return jsonHash(serialised);
 }
 
+/**
+ * What steers a run beyond the story, the seed and the models, as hashes for the genesis's
+ * `commitments` (step 18 challenge, chain-security m4): `runOptions` (the command line's overrides,
+ * e.g. `--no-guards`, the dials, `--no-personas`, and the judge's temper) and `promptAddenda` (each
+ * `--prompt-addendum` text with the resident it is for). The system prompts are built from these,
+ * the story, the seed and the code (`commit`), so the genesis commits to them through their inputs;
+ * they themselves are written after the chain starts and are not hashed.
+ */
+export function inputCommitments(input: {
+	readonly overrides: unknown;
+	readonly judgeTemper?: string;
+	readonly promptAddenda?: readonly { readonly agent?: string; readonly text: string }[];
+}): Readonly<Record<string, string>> {
+	return {
+		runOptions: jsonHash(JSON.parse(JSON.stringify({ overrides: input.overrides, ...(input.judgeTemper === undefined ? {} : { judgeTemper: input.judgeTemper }) }))),
+		...(input.promptAddenda === undefined ? {} : { promptAddenda: jsonHash(input.promptAddenda.map((entry) => ({ agent: entry.agent ?? null, text: entry.text }))) }),
+	};
+}
+
 export interface RunGenesisInput {
 	readonly story: AnyStory;
 	readonly seed: number;
+	/** The run's name (`run-004`). */
+	readonly run?: string;
+	/** sha256 of the pre-registration document (`--preregistration <file>`). */
+	readonly preregistration?: string;
 	/** Model per resident (`A01`) and per role (`gamemaker`, `classifier`, ...). */
 	readonly models: Readonly<Record<string, string>>;
 	readonly commit?: string;
@@ -47,6 +71,8 @@ export function runGenesis(input: RunGenesisInput): ChainGenesisInput {
 	const previousRun = resume?.point.run.meta?.run;
 	return {
 		...(input.commit === undefined ? {} : { commit: input.commit }),
+		...(input.run === undefined ? {} : { run: input.run }),
+		...(input.preregistration === undefined ? {} : { preregistration: input.preregistration }),
 		story: input.story.id,
 		storyHash: storyHash(input.story),
 		seed: input.seed,

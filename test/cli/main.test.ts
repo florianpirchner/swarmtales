@@ -128,6 +128,18 @@ describe("pnpm start (end to end, offline)", () => {
 			expect((await swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-002"))).stdout).toMatch(/resumed from snapshot-L7\.json of run-002 after line \d+/);
 			// run-001 played the same lines up to the cut, but its chain is not the one run-003 continues.
 			await expect(swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-001"))).rejects.toThrow(/another chain/);
+			// Plain verify says it did not check the continuation; --previous-key checks the previous run against a key given;
+			// --snapshot checks the file is the state the checkpoint signed (step 18 challenge, chain-security M1, M2).
+			expect((await swt("log", "verify", join(runs, "run-003"))).stdout).toContain("(continuation not checked: pass --previous <run>)");
+			expect((await swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-002"), "--previous-key", join(runs, "run-002", "run.pub"), "--snapshot", file)).stdout).toMatch(
+				/snapshot state [0-9a-f]{16} \(the file given\) \(continuation checked, previous run against the key given\)/,
+			);
+			await expect(swt("log", "verify", join(runs, "run-003"), "--previous", join(runs, "run-002"), "--previous-key", join(runs, "run-001", "run.pub"))).rejects.toThrow(/not made with this key/);
+			expect(runFile).toHaveProperty("run.meta.run", "run-002");
+			const edited = join(runs, "run-002", "edited-snapshot.json");
+			writeFileSync(edited, readFileSync(file, "utf8").replace('"meta":{"run":"run-002"', '"meta":{"run":"run-009"'));
+			await expect(swt("log", "verify", join(runs, "run-003"), "--snapshot", edited)).rejects.toThrow(/not the state the checkpoint signed/);
+			await expect(start("--resume", edited)).rejects.toThrow(/Cannot resume\.\n.*the snapshot's state is not the one its checkpoint signed/);
 
 			// A snapshot that does not fit is refused before anything is played, and no run directory stays behind.
 			await expect(start("--resume", file, "--seed", "8")).rejects.toThrow(/Cannot resume\.\nThe snapshot was taken with seed 7/);
