@@ -24,8 +24,7 @@
  * snapshot, so a resumed run builds the same system prompts.
  */
 import type { CompetitorId } from "@swarmtales/kernel";
-import { type EventSink, FATE_TRIGGERS, type FateShiftKind, type FateTrigger, type RecordedEvent } from "@swarmtales/legacy-log";
-import type { EventBus, RoundObserver } from "@swarmtales/engine";
+import { type EventBus, type EventSink, FATE_TRIGGERS, type FateShiftKind, type FateTrigger, type RecordedEvent } from "@swarmtales/legacy-log";
 import { FateTriggers, type FateHit } from "./fate-triggers.ts";
 import { WEAVER_ID, type Weave, type WeaverAnswer, type WeaverModel, type WeaverQuestion } from "./weaver-model.ts";
 import { render } from "@swarmtales/prompts";
@@ -86,7 +85,7 @@ export interface WeaverSnapshot {
 	readonly closed: readonly number[];
 }
 
-export class Weaver implements EventSink, RoundObserver {
+export class Weaver implements EventSink {
 	readonly #options: WeaverOptions;
 	readonly #triggers: FateTriggers;
 	#pending: FateHit[] = [];

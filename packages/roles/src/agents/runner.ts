@@ -11,12 +11,22 @@
  * within a block the model calls run concurrently, and the turn puts what
  * they do back into the seeded order.
  */
-import { Agent, type AgentMessage } from "@earendil-works/pi-agent-core";
+import { Agent, type AgentMessage, type AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { CompetitorId } from "@swarmtales/kernel";
 import type { Competitor, Souffleur, StepSlot, ThinkingLevel, TurnInput } from "@swarmtales/contracts";
-import type { BoundTool, EventBus } from "@swarmtales/engine";
+import type { TSchema } from "typebox";
+import type { EventBus } from "@swarmtales/legacy-log";
 import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
 import { render, text } from "@swarmtales/prompts";
+
+/** A tool in the shape pi executes (the old engine's `BoundTool`, deleted with it in step 18, item 8). */
+interface BoundTool {
+	readonly name: string;
+	readonly label: string;
+	readonly description: string;
+	readonly parameters: TSchema;
+	readonly execute: (toolCallId: string, params: unknown) => Promise<AgentToolResult<undefined>>;
+}
 
 export interface RunnerOptions {
 	readonly id: CompetitorId;

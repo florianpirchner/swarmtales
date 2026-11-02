@@ -1,13 +1,10 @@
 /**
- * What one look of the gamemaker is made of besides the city's state, shared by the old role
- * (`Gamemaker`, gamemaker.ts) and the overseer (`../overseer/gamemaker.ts`, step 18): the tracks
- * it keeps per resident from the events, the note budget line and the secret guard of the dealt
- * levels. One copy of the code, so the two cannot write different reports.
+ * What one look of the gamemaker overseer (`../overseer/gamemaker.ts`, step 18) is made of besides
+ * the city's state: the tracks it keeps per resident from the events and the note budget line (the
+ * old role's code; the secret guard of the dealt levels is the puzzles mechanic's now).
  */
 import type { RecordedEvent } from "@swarmtales/legacy-log";
-import { dealValues, type World } from "@swarmtales/engine";
 import { render } from "@swarmtales/prompts";
-import { SecretGuard } from "./secrets.ts";
 import type { Note, NoteTarget, ResidentTrack } from "./situation.ts";
 
 /** The budget a look reports: the story's `gamemaker` spec (`notesPerAgent`, `boardPosts`, `windowMinutes`). */
@@ -46,24 +43,4 @@ export function budgetLine(budget: NoteBudget, residents: readonly string[], not
 		blocked: blocked.length === 0 ? "nobody" : blocked.join(", "),
 		board,
 	});
-}
-
-/** How many of the world's levels are dealt; a door that opens deals more (SPEC 17). */
-export function dealtLevels(world: World): number {
-	let dealt = 0;
-	for (let level = world.startLevel; level <= world.lastLevel; level++) if (world.isDealt(level)) dealt += 1;
-	return dealt;
-}
-
-/** Guards the secrets of every dealt level; levels behind a shut door have none yet (old `#secretGuard`). */
-export function secretGuardOf(world: World): SecretGuard {
-	const passwords: string[] = [];
-	const numbers: string[] = [];
-	for (let level = world.startLevel; level <= world.lastLevel; level++) {
-		if (!world.isDealt(level)) continue;
-		for (const puzzle of world.inspect.puzzlesOf(level)) passwords.push(puzzle.password);
-		const deal = world.inspect.factorsOf(level);
-		if (deal !== undefined) numbers.push(...dealValues(deal));
-	}
-	return new SecretGuard(passwords, numbers);
 }

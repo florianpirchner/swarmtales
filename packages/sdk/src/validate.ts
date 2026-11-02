@@ -54,7 +54,7 @@ import {
 	type WhisperDuty,
 	type WhispererDirection,
 } from "@swarmtales/contracts";
-import { actEnd, fitsBefore, ladderSteps, maxFactions, tribunalHeld } from "@swarmtales/engine";
+import { actEnd, fitsBefore, ladderSteps, maxFactions, tribunalHeld } from "./rules.ts";
 
 /** Tools the tribunal grants while they apply (SPEC 6.4). */
 const CITY_GRANTED_TOOLS: readonly string[] = ["vote", "payRansom", "lastWill", "nominate", "join", "refuse", "bid", "permaDeath"];

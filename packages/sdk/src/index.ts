@@ -7,4 +7,4 @@ export * from "./validate.ts";
 export * from "./cast/figures.ts";
 export * from "@swarmtales/contracts";
 export { placeholdersOf, renderTemplate, resolveCount, TemplateError, unknownPlaceholders, type CheckedTemplate, type PlaceholdersOf } from "@swarmtales/kernel";
-export { ladderSteps, ladderText, penaltyAt } from "@swarmtales/engine";
+export { ladderSteps, ladderText, penaltyAt } from "./rules.ts";

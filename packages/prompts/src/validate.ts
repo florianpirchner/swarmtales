@@ -59,7 +59,7 @@ function checkFile(path: string, id: string, expected: readonly string[]): reado
 function unreferenced(ids: readonly string[]): readonly string[] {
 	const root = libraryRoot();
 	const registry = join(root, "packages", "prompts", "src", "keys");
-	const sources = ["packages", "apps", "stories", "lab"]
+	const sources = ["packages", "mechanics", "apps", "stories", "lab"]
 		.flatMap((folder) => filesIn(join(root, folder), ".ts"))
 		.filter((path) => !path.startsWith(registry))
 		.map((path) => readFileSync(path, "utf8"));

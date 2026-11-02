@@ -113,7 +113,6 @@ export const TOOL_PROMPTS = {
 	"gamemaker/replies/exiled": ["agent"],
 	"gamemaker/replies/budget-notes": ["notes", "window"],
 	"gamemaker/replies/budget-posts": ["posts", "window"],
-	"gamemaker/replies/no-tribunal": [],
 	"gamemaker/replies/tribunal-planned": ["tribunal", "calledAt", "opens", "count"],
 	"gamemaker/replies/tribunal-factions": ["factions"],
 	"gamemaker/replies/tribunal-called": ["accused", "lot", "door", "until", "lacking"],

@@ -5,10 +5,18 @@
  * come from the story's spec. The text lives in `library/prompts/gamemaker/`;
  * this file chooses the pieces (dial variants are files of their own) and joins them.
  */
-import type { DirectionLevel } from "@swarmtales/contracts";
-import { ladderText } from "@swarmtales/engine";
+import type { DirectionLevel, PenaltyLadder } from "@swarmtales/contracts";
 import { type PromptId, render, text } from "@swarmtales/prompts";
 import type { GamemakerRole, GamemakerSpec, HoldoutSpec, Rules } from "@swarmtales/contracts";
+
+
+/** "2, 4, 6, then 8 points" or "8 points": the ladder in words (the sdk's `ladderText`; roles may not import the sdk). */
+function ladderText(ladder: PenaltyLadder): string {
+	const steps = typeof ladder === "number" ? [ladder] : ladder;
+	const last = steps.at(-1) ?? 0;
+	if (steps.length <= 1) return `${last} ${last === 1 ? "point" : "points"}`;
+	return `${steps.slice(0, -1).join(", ")}, then ${last} points`;
+}
 
 /** Characters a note or board post of the gamemaker may have; longer ones are refused. */
 export const MAX_NOTE_LENGTH = 400;

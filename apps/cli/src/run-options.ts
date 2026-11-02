@@ -3,11 +3,10 @@
  * ...): what the old composer and the host path share. Moved out of the old composer (step 18, deleted with the engine) so the
  * host path needs nothing of the old `World`.
  */
-import { DIRECTOR_SUPPORT } from "@swarmtales/engine";
 import type { RequestLimits } from "@swarmtales/models";
 import { SnapshotError } from "@swarmtales/chronicle";
 import { assertValidStory } from "@swarmtales/sdk";
-import { DEFAULT_DIRECTION, directionLevel, type Activation, type AnyStory, type DirectionLevel } from "@swarmtales/contracts";
+import { DEFAULT_DIRECTION, DIRECTOR_SUPPORT, directionLevel, type Activation, type AnyStory, type DirectionLevel } from "@swarmtales/contracts";
 
 /** CLI-level overrides of the story's run parameters. */
 export interface RunOverrides {

@@ -1,6 +1,6 @@
 /**
  * The gamemaker as a long-lived overseer (step 18, team C2; docs/design/overseer-api.md §1.5): the
- * old `Gamemaker` (../gamemaker/gamemaker.ts) without its tools and its model loop.
+ * old `Gamemaker` role (deleted with the engine, step 18 item 8) without its tools and its model loop.
  *
  * - **Trigger.** Every `between` slot (`schedule: { every: 1 }`); `calls` makes the look only
  *   after round `minute + 1` with `round % every === 0`, the old `afterRound` test, so `every` is an
@@ -13,8 +13,8 @@
  *   kept it.
  * - **Input.** `gamemaker/look`: the report and `{{standingOrders}}`, so the input is the old
  *   `gamemaker_turn.input` byte for byte when no order is active. The report of the city comes from
- *   a `GamemakerReport`: the old `describeSituation` on the old `World` (`worldReport`), or the
- *   host-backed report from the mechanics' facts (`hostGamemakerReport`, apps/cli/src/host/report.ts);
+ *   a `GamemakerReport`: the host-backed report from the mechanics' facts (`hostGamemakerReport`,
+ *   apps/cli/src/host/report.ts; the old `describeSituation` on the old `World` went with the engine);
  *   the overseer hands it the look's facts, tracks, events, notes and budget line.
  * - **System prompt.** The story's, composed by `gamemakerSystemPrompt` with the direction's
  *   profile (`gamemakerOptions`), sent unchanged with every look (`system`).
@@ -25,12 +25,10 @@
  */
 import { Type, type Static } from "typebox";
 import { defineOverseer } from "@swarmtales/kernel";
-import type { World } from "@swarmtales/engine";
 import type { RecordedEvent } from "@swarmtales/legacy-log";
 import { DIRECTION_LEVELS, type DirectionLevel, type EventEnvelope, type EventLogView, type OverseerDefinition } from "@swarmtales/contracts";
-import { budgetLine, dealtLevels, secretGuardOf, trackAfter, trackedAgent } from "../gamemaker/look.ts";
-import type { SecretGuard } from "../gamemaker/secrets.ts";
-import { describeSituation, type Note, type ResidentTrack } from "../gamemaker/situation.ts";
+import { budgetLine, trackAfter, trackedAgent } from "../gamemaker/look.ts";
+import type { Note, ResidentTrack } from "../gamemaker/situation.ts";
 import { gamemakerSystemPrompt, type GamemakerPromptInput } from "../gamemaker/system-prompt.ts";
 import { OVERSEER_ORDER } from "@swarmtales/mechanic-shared";
 import { causingTool, noteOf, recentOf, runMinutes } from "./recent.ts";
@@ -92,26 +90,6 @@ export interface GamemakerLook {
 /** The city's part of the report. */
 export interface GamemakerReport {
 	situation(look: GamemakerLook): string;
-}
-
-/**
- * The report from the old `World` (`describeSituation`), with the old guard: rebuilt when a door
- * that opens deals more levels, kept otherwise, as `Gamemaker#secretGuard`. The text is not yet
- * shown with names: the overseer applies the host's `display`, as the old look applied the world's.
- */
-export function worldReport(world: World): GamemakerReport {
-	let guard: SecretGuard = secretGuardOf(world);
-	let guarded = dealtLevels(world);
-	return {
-		situation(look) {
-			const dealt = dealtLevels(world);
-			if (dealt !== guarded) {
-				guard = secretGuardOf(world);
-				guarded = dealt;
-			}
-			return describeSituation({ world, round: look.round, tracks: look.tracks, recent: look.recent, notes: look.notes, guard, budget: look.budget, direction: look.direction });
-		},
-	};
 }
 
 /** The options of a story's gamemaker: its spec's budgets and cadence, the direction, and the system prompt composed for that direction. */

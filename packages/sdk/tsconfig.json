@@ -16,9 +16,6 @@
 		},
 		{
 			"path": "../kernel"
-		},
-		{
-			"path": "../engine"
 		}
 	]
 }
