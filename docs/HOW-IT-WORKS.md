@@ -451,13 +451,14 @@ Two puzzle kinds exist (SPEC 12):
   bequestPerHeir, factions?: { count, blocBonus, texts }, texts }` (SPEC 6.4, v06; v08: the
   tribunal belongs to the act starting at level `act`, and `latestAfter` and `maxMinutes` count
   from that act's start, which the world records when the first competitor enters it). The pacing
-  rules are pure functions in `packages/engine/src/tribunal-rules.ts` (target, lead, earliest opening, whether a
-  tribunal fits, accused count, faction cap, the no-draft rule), shared by the validator, the engine (`packages/engine/src/tribunal.ts`) and
-  the gamemaker's `scheduleTribunal` tool. The engine's `Tribunal.tick` runs at the start of
+  rules are pure functions in `mechanics/tribunal/src/rules.ts` (target, lead, earliest opening, whether a
+  tribunal fits, accused count, faction cap, the no-draft rule), played by the tribunal mechanic and its
+  `scheduleTribunal` tool; the validator checks a story with its copy in `packages/sdk/src/rules.ts`. The
+  tribunal mechanic's minute hook runs at the start of
   every minute: it closes gates and votes, plans the first tribunal (progress or deadline), the
   fallback and the forced final one, calls and opens tribunals and ends the act at the target
   (`endReason`, which the arena uses as the `run_end` reason). The faction draft is its own class
-  (`packages/engine/src/factions.ts`) that opens and removes city groups through the world. A last will
+  (`mechanics/tribunal/src/factions.ts`) that opens and removes city groups through the channels mechanic. A last will
   leaves each heir at most `bequestPerHeir` of the exiled's points, the rest burns. The city grants
   `vote`, `payRansom`, `lastWill`, `nominate`, `join` and `refuse` itself while they apply (levels
   must not list them). Validation checks the parameters against the story's agent count; a city
@@ -467,14 +468,14 @@ Two puzzle kinds exist (SPEC 12):
   teammate), so the exile never makes a door impossible; on levels already reached a piece that
   was not bequeathed goes to the city (`piece_kept`), which sells it to its needer
   (`claimPiece`, at the ransom others pay). The give-first standoff (hand-overs, ultimatums, the
-  gamemaker's standoff and risk report) lives in `packages/engine/src/standoff.ts` (SPEC 6.5).
+  gamemaker's standoff and risk report) is the standoff mechanic (`mechanics/standoff`, SPEC 6.5).
 - **Act brake** (v08): `acts[].maxMinutes` on an act without the tribunal. The arena checks it
   after every round (`#applyBrakes`), logs `act_brake` and, when its snapshot door lies at the
-  act's last level, releases the door (`World.releaseDoor`) and writes the snapshot with the brake
+  act's last level, releases the door (the arena mechanic, `mechanics/arena/src/run.ts`) and writes the snapshot with the brake
   (SPEC 13.1).
-- **Names** (v08): `names: { untilMinute, announcement, fallbackWords }` (SPEC 18). The world's
-  `NameBook` (`packages/engine/src/names.ts`) holds the choice, the seeded fallback, `resolve` and
-  `display`. The tool gateway (`packages/engine/src/tools/tool.ts`) maps every resident parameter to its ID before
+- **Names** (v08): `names: { untilMinute, announcement, fallbackWords }` (SPEC 18). The names
+  mechanic's `NameBook` (`mechanics/names/src/book.ts`) holds the choice, the seeded fallback, `resolve` and
+  `display`. The host's tool gateway (`packages/kernel/src/host`) maps every resident parameter to its ID before
   parsing (`withResidents`) and shows names in every reply; the arena does the same for turn
   inputs, the gamemaker for its report and replies. Events and snapshots keep IDs.
 - **Scale** (v08): `run.blockSize: "auto"` gives one block per six residents; the gamemaker
@@ -483,17 +484,18 @@ Two puzzle kinds exist (SPEC 12):
   oracle residents through the tribunal target (a few seconds, in the normal suite).
 
 - **Drama** (v09, SPEC 19): `coreMotives`, `goals` and `seal` on the story (cityofkeys:
-  `stories/cityofkeys/characters.ts`). `packages/engine/src/motives.ts` deals the core motives (`dealCoreMotives`, seeded,
+  `stories/cityofkeys/characters.ts`). The motives mechanic (`mechanics/motives/src/deal.ts`) deals the core motives (`dealCoreMotives`, seeded,
   mixing caps) and renders them (`renderCoreMotive` for the prompt, `coreMotiveLine` for reports);
-  `packages/engine/src/goals.ts` (`GoalBook`) deals goals at an act's start and resolves them once at its
-  end; `packages/engine/src/seal.ts` (`SealHouse`) runs the auctions, the bearer and its expiry; the tools
-  `bid` and `permaDeath` are in `packages/engine/src/tools/seal.ts`. The world notes act starts (`#noteActStarts`)
-  and ends each act once (`#endAct`: at the tribunal's end, the next act's start, or
-  `closeActs()` at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
-  are read by `packages/engine/src/penalties.ts`; the world counts offences per act. The gamemaker's
+  the goals mechanic (`mechanics/goals/src/book.ts`, `GoalBook`) deals goals at an act's start and resolves them once at its
+  end; the seal mechanic (`mechanics/seal/src/house.ts`, `SealHouse`) runs the auctions, the bearer and its expiry, with
+  the tools `bid` and `permaDeath`. The progression mechanic notes act starts and ends each act once (at the
+  tribunal's end, the next act's start, or at the run's end). Penalty ladders (`rules.penalty`, `blame.penalty` as a list)
+  are read by `mechanics/progression/src/rules.ts` (the validator's copy is in `packages/sdk/src/rules.ts`); offences
+  count per act. The gamemaker's
   guard (`packages/roles/src/gamemaker/privacy.ts`, `characterLeaks`, `nearlySame`) refuses leaked core motives and
-  goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`). All new state is in the world snapshot as
-  optional fields, so older snapshots resume.
+  goals (`PRIVATE_BLOCKED`) and repeats (`REPEATED`); the channels mechanic's note desk applies it
+  (`mechanics/channels/src/notes.ts`). Every mechanic's state is a versioned slice of the host snapshot,
+  and older snapshot files convert (`convertLegacySnapshot`), so they resume.
 
 ### Acts I and II of cityofkeys
 
@@ -611,25 +613,10 @@ is configurable through `validateStory(story, { strategyWords })`).
 
 ## Layout
 
-```
-src/
-  core/      random, ledger, clock, ids, result helpers
-  engine/    world, scheduler (Arena), director, cast, petitions, receipts, standings, board,
-             mailbox, groups, marks, message numbers, blame, tribunal, teams, puzzles/
-  tools/     tool catalog and gateway, one file per tool family
-  agents/    pi agent runner, base system prompt, persona and model assignment
-  model/     providers, model settings, model sources, scripted helpers
-  story/     DSL: types, defineStory and helpers, templates, validation
-  log/       event sinks, run artifacts, transcripts, minute report, usage
-  digest/    event-log parsing, detectors, relationship graph, acts, timeline, chronicle
-  novel/     the novelist: casting, outline, scene packs, chapters, gamemaker chapters, edit, city records, appendix
-  report/    run reporter: computed facts, evidence pack, prompt, model, REPORT.md rendering
-  snapshot/  run snapshot file: schema of state, events and model contexts; read and write
-  cli/       start, validate, report, report:run, digest, novel, run composition
-stories/     one folder per story (cityofkeys is the default) and the registry index.ts
-test/        mirrors src/; offline only
-docs/        SPEC.md, ARCHITECTURE.md, MODELS.md
-```
+The packages and folders are listed in [`ARCHITECTURE.md`](ARCHITECTURE.md), section 2: the new core
+(`packages/contracts`, `packages/kernel`), one package per game mechanic under `mechanics/`, the story
+DSL (`packages/sdk`), models, roles and overseers, the chronicle (logs, snapshots, digest, reporter),
+the novelist, and the CLI in `apps/cli`. The old engine (`packages/engine`) was deleted in step 18.
 
 ## Coding rules
 
@@ -638,8 +625,8 @@ Enforced by `tsc`, ESLint and [`test/code-rules.test.ts`](../test/code-rules.tes
 - English only in code, comments, strings, prompts, tests and docs.
 - Strict TypeScript; no `any`, no type assertions except `as const`, no double casts, no
   non-null assertions; exhaustive `switch` statements with a `never` check.
-- The engine knows mechanics only; story text lives in stories.
-- Determinism: all randomness flows from the run seed; engine code never reads the wall clock.
+- The core and the mechanics know mechanics only; story text lives in stories.
+- Determinism: all randomness flows from the run seed; game code never reads the wall clock.
 - Errors returned to agents are structured codes (`TOOL_LOCKED`, `NO_MARKS`, ...).
 
 ## License

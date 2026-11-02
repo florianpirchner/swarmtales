@@ -490,6 +490,45 @@ Goldens byte-identical until the rename commit, `GOLDEN_UPDATE` used only there 
      - The second tribunal's reason is reworded: the gamemaker's note desk refuses a text nearly the same as an earlier
        one (`REPEATED`), which the old direct call bypassed.
      - `holdout: false`: a run without the gamemaker, since `hostStoryOf` loads the holdout tribunal only with one.
+2. **Every live old side dropped from the tests** (P2's item 5). The old side of every differential is the recording in
+   `test/fixtures/old-engine/` (`replayOld`); the fingerprints did not change (they hold the inputs' data, never the
+   script functions). Removed live functions: `oldSideLive` (host-residents-differential), `playOldLive` (host-resume,
+   host-runner-differential, host-weaver), `recordOldLive` (`test/cli/support/report-replay.ts`, whose `recordOld` now
+   takes a data-only `OldOptions`), `oldSystemPromptLive` (host-gamemaker-golden, `test/roles/gamemaker-overseer/host.test.ts`),
+   `liveOldSnapshot` (`test/snapshot/file.test.ts`), the `old.*` live bodies of `test/cli/host-direction.test.ts`, and
+   the `World`-typed scripts of `test/cli/host-gamemaker-differential.test.ts` (what each recorded run did is now a
+   comment there). No assertion changed; every test of these files still runs.
+3. **Deleted files** (none is a test file; no test case was deleted in this step):
+   - `test/helpers/fixture.ts` (the old `World` fixture): its users were ported to `test/helpers/host-fixture.ts` by
+     D1-D3; nothing imported it any more.
+   - `test/helpers/old-engine-recorder.ts` (`oldRun`, `oldRunAsync`, which ran the old side live and checked it against
+     the recording): replaced by `replayOld` (`test/helpers/old-engine.ts`), which every former caller uses.
+   - `test/golden/scripts.ts` (the `World`-typed golden scripts): only the live old sides used it; the goldens play the
+     host copy `test/golden/host-scripts.ts`.
+   - `apps/cli/src/compose.ts` (`composeRun`): the CLI composes with `apps/cli/src/host/run.ts`; `DEFAULT_LIMITS`,
+     `effectiveRun` and the rest were already in `run-options.ts` (`test/overseers/runtime-{chat,host}.test.ts` import
+     it from there). `worldOracle` (`apps/cli/src/oracle.ts`) went with it; `hostOracle` stays.
+   - `packages/engine` (all of it), with its `check-packages` row, the tsconfig references (root, `stories`, `apps/cli`,
+     `packages/sdk`, `packages/roles`), the manifests' dependencies and the lockfile entries.
+   - In `packages/roles`: the old `Gamemaker` role (gamemaker.ts keeps `GAMEMAKER_ID` and `GamemakerSnapshot`, which
+     the legacy snapshot reader types), `worldReport`, `dealtLevels`, `secretGuardOf` and the `World`-based
+     `describeSituation` with its section helpers (`characterLines`, `holdoutLines`, `standoffLines`, `riskLines`, ...).
+     Nothing instantiated the role since the CLI switched; the host-backed report (`apps/cli/src/host/report.ts`)
+     replaces the rest and is proven against the old one by `test/cli/host-gamemaker-golden.test.ts` and
+     `test/cli/host-gamemaker-differential.test.ts` (recorded old looks, byte for byte).
+   - The prompt `gamemaker/replies/no-tribunal` (only the old role used it; the tribunal mechanic answers `NO_TRIBUNAL`
+     with its own text). The prompt validator's scan for code that mentions a prompt now reads `mechanics/` too:
+     before, the engine's mentions hid that the mechanics' prompts were not scanned.
+4. **What moved instead of the engine's imports:** `DIRECTOR_SUPPORT` from `@swarmtales/contracts` (CLI validate and
+   run options); the penalty ladder (`ladderSteps`, `penaltyAt`, `ladderText`) and the tribunal pacing the validator
+   checks (`tribunalHeld`, `actEnd`, `fitsBefore`, `maxFactions`) into `packages/sdk/src/rules.ts` (the sdk depends on
+   contracts and kernel only, and the core may name no points, so it is a copy beside the mechanics' copies); the
+   gamemaker system prompt keeps a private `ladderText` (roles may not import the sdk); `EventBus` from
+   `@swarmtales/legacy-log` in the old runner, interpreter and weaver; the runner's `BoundTool` is a local type.
+5. **Not done here (see rewrite-status.md):** the old `AgentRunner`, `Interpreter` and `Weaver` classes in
+   `packages/roles` no longer touch the engine but are still the old side of seven test files
+   (`test/agents/{host-runner,souffleur}`, `test/interpret/{interpreter,weaver}`, `test/overseers/{classifier,
+   runtime-decider,weaver}`); they go once those old sides are recorded like the engine's.
 
 ## H1 (signed event log, rewrite-status item 5a)
 

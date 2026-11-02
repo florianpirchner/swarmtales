@@ -40,9 +40,6 @@ packages/
   legacy-log/  the old run log's event types (`RecordedEvent`, `ArenaEvent`, `EventSink`) and the
                statement labels, which the CLI, roles and chronicle read and write; depends on
                contracts only
-  engine/      the old engine (world state, Arena, director, tribunal and penalty rules, tools/),
-               no longer used by the CLI; kept as the other side of the differential tests until
-               step 18 item 7 deletes it
 mechanics/     the game rules of the new core, one package each (names, ledger, marks, receipts,
                channels, petitions, cast, motives, puzzles, progression, goals, whispers, exile,
                tribunal, seal, standoff, standoff-tribunal, script, arena) and the frozen `shared` APIs
@@ -57,8 +54,7 @@ mechanics/     the game rules of the new core, one package each (names, ledger, 
 apps/cli/      the `swt` / `swarmtales` binary (src/swt.ts dispatches to main.ts, validate.ts, digest.ts,
                novel.ts, report.ts, run-report.ts, ...) and the composition root host/run.ts
                (`composeHostRun`: story mapping host/story.ts, residents host/residents.ts, the
-               gamemaker report host/report.ts, run files host/snapshot.ts, the weaver desk);
-               compose.ts is the old engine's composer, used only by tests
+               gamemaker report host/report.ts, run files host/snapshot.ts, the weaver desk)
 library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role
                prompts), one file per piece; story overrides in `stories/<name>/prompts/` are planned,
                `pnpm validate` rejects them until the callers pass the story. Found by walking up from
@@ -71,12 +67,13 @@ scripts/       check-packages.ts (dependency rule, import cycles, no native depe
 docs/          SPEC.md, ARCHITECTURE.md, MODELS.md
 ```
 
-Dependencies point downwards only: `contracts` < `kernel` < `engine` < `sdk`; `models` < `roles` <
-`chronicle` < `novelist`; `apps/cli` wires everything. `pnpm check:packages` enforces the allowed
-dependencies per package and fails on an import cycle between the files of a package or on a native
-runtime dependency. Two places differ from the plan in `docs/ideas/monorepo.md` §2 until `World` is
-carved into modules: the engine still holds the competitors' tools and the game rules (tribunal,
-penalties), and `roles`/`chronicle` read the event types from `engine` instead of `contracts`.
+Dependencies point downwards only: `contracts` < `kernel` < `mechanics/*` and `sdk`; `legacy-log` <
+`models` < `roles` < `chronicle` < `novelist`; `apps/cli` wires everything. `pnpm check:packages`
+enforces the allowed dependencies per package and fails on an import cycle between the files of a
+package or on a native runtime dependency. The old engine (`packages/engine`, the `World`) was deleted
+in step 18; the old side of every differential test is a recording in `test/fixtures/old-engine/`.
+The sdk keeps its own copy of the penalty ladder and the tribunal pacing its validator checks
+(`packages/sdk/src/rules.ts`); the mechanics hold the rules they play.
 
 Commands: `pnpm check` (typecheck, lint, package rules, knip, tests, validate, build, smoke),
 `pnpm build` (dist of every package and the CLI), `pnpm smoke` (runs the built `swt --help`).
@@ -144,19 +141,19 @@ the gamemaker, classifier, weaver and judge are overseers (`roles/src/overseer/`
 runtime, routed by definition id (`overseerRouter`). The weaver's inner voices and prompt rewrites
 reach the residents through the CLI's `WeaverDesk`, which reads `host.overseerSlice("weaver")`.
 Every model call writes a `usage` app line; the arena's `budgetUsd` counts them (the run's one
-budget). The paragraphs below describe the old engine's roles, which the overseers replay line for line.
+budget). The overseers replay the old roles line for line.
 
-The gamemaker (`packages/roles/src/gamemaker/`) is an `EventSink` and a round observer of the arena.
-The statement classifier (`packages/roles/src/interpret/`) is an `EventSink` and the arena's interpreter:
-it labels each round before the gamemaker looks and writes `interpretation` events.
-The weaver (`--weaver`, SPEC 10.6) is an `EventSink` and the arena's `weaver` observer,
-between the two: `interpret/fate-triggers.ts` picks the residents a round's events touched
-(code, no model), `interpret/weaver-model.ts` asks the chat model (`weave` tool, typebox),
-and `interpret/weaver.ts` applies the answer within the caps: an inner voice the runner
-appends after the tools notice (`RunnerOptions.innerVoice`), or a rewrite of the leading
-system message (`AgentRunner.rewriteSystemPrompt`, rebuilt by `composeRun` from the prompt
-facts plus `PromptFacts.shift`). It writes `fate_shift` events; `log/weaver-log.ts` turns
-them into `weaver.md`.
+The gamemaker overseer (`roles/src/overseer/gamemaker.ts`) looks after every `every` rounds; the
+city's part of its report is the host-backed report from the mechanics' facts (`apps/cli/src/host/report.ts`),
+the log's part (events since the last look, classifier labels, the weaver's changes) is
+`roles/src/gamemaker/situation.ts`; the channels mechanic's note desk enforces its budgets. The
+classifier labels each round before the gamemaker looks and writes `interpretation` events. The
+weaver (`--weaver`, SPEC 10.6) sits between the two: its triggers pick the residents a round's events
+touched (code, no model), its runtime asks the chat model (`weave` tool, typebox), and the answer is
+applied within the caps: an inner voice the runner appends after the tools notice, or a rewrite of the
+leading system message from the prompt facts plus `PromptFacts.shift`. It writes `fate_shift` events;
+`log/weaver-log.ts` turns them into `weaver.md`. The old role classes `AgentRunner`, `Interpreter` and
+`Weaver` are still in `roles` as the old side of a few tests (rewrite-status.md, "state after team D4").
 
 ### 3.5 Run snapshots
 
@@ -168,33 +165,15 @@ cut is the arena's (`arena.snapshot` fact): after the minute in which every resi
 reads this format or an old `agent-arena-snapshot` file, which `convertLegacySnapshot` turns into a
 host snapshot (the old roles' state into overseer slices); the prefix is replayed to the log sinks
 through the legacy adapter, so `events.jsonl` keeps its old lines and numbering. A test proves it
-exact both ways (`test/cli/host-resume.test.ts`). The rest of this section describes the old engine's file.
+exact both ways (`test/cli/host-resume.test.ts`).
 
-A run snapshot (SPEC 17) serializes the engine objects explicitly instead of replaying
-the run: every stateful component has `snapshot()` and `restore()` (ledger, board,
-mailbox, marks, receipts, petitions, cast, groups, world with its level states,
-director, arena, agent runner, gamemaker, interpreter, weaver), and `composeRun` assembles
-them into one versioned file (`packages/chronicle/src/snapshot/snapshot.ts`). Restoring emits nothing; the
-bus replays the recorded prefix to the log sinks (`EventSink.replay`) and numbering
-continues after it. Replaying a live run would need every model answer again and would
-break with any engine change; explicit state does not, and a test proves it exact: a
-resumed scripted run logs, after the cut, the same events as the uninterrupted run with
-the same `--snapshot-after` that is not stopped.
-
-The cut is a door in the world (`WorldOptions.holdAfter`): a competitor who passes
-level n is marked `held` and stays on level n; levels behind the door are never dealt
-(`#levelState` refuses them, teams come from the planner). `Arena` takes the snapshot
-once `world.hasPassed` holds for everyone, and `#nextMinute` calls `world.openDoor()`
-after the clock advances and before the director's minute triggers. A resumed run starts
-with `#nextMinute`, so it opens the door at the same point as the run that goes on, and
-deals the later levels from the story it was given. The gamemaker rebuilds its secret
-guard whenever more levels are dealt. `UsageCollector` keeps the replayed prefix's usage
-apart (`replay`), so the budget counts only the run's own spend.
-
-The file is untrusted input. `parseSnapshot` checks it against typebox schemas whose
-static types are assignable to the engine's snapshot types (no casts); the event schema
-and the pi message schema carry compile-time checks against the engine's event union
-and pi's message type, so a new event type or field that the schema misses stops the build.
+The old file (`agent-arena-snapshot`, version 2) serialized the old engine's objects (ledger, board,
+mailbox, marks, receipts, petitions, cast, groups, world, director, arena, runner, gamemaker,
+interpreter, weaver) and cut at a door in the world. The engine is gone; the format stays readable:
+`packages/chronicle/src/snapshot/snapshot.ts` defines it as typebox schemas (`parseSnapshot`, the file
+is untrusted input) and `convertLegacySnapshot` maps it to the mechanics' and overseers' slices. The
+five `examples/*/snapshot-L7.json` files load and resume (`test/snapshot/legacy-snapshot.test.ts`,
+`test/snapshot/v09.test.ts`).
 
 ## 4. Coding rules
 

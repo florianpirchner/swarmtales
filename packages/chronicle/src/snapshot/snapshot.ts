@@ -474,8 +474,7 @@ const DirectorSchema = Type.Object({
 
 /**
  * The old engine's parts of a snapshot file, as the file format defines them (step 18, item 7c:
- * the schema is the format now; the old engine's own snapshot types are checked against it in
- * `apps/cli/src/compose.ts` while the engine still exists).
+ * the schema is the format now; the engine itself was deleted in item 8).
  */
 export type LegacyArenaSnapshot = Frozen<Static<typeof ArenaSchema>>;
 export type LegacyWorldSnapshot = Frozen<Static<typeof WorldSchema>>;

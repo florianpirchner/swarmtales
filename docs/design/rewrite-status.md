@@ -2,9 +2,9 @@
 
 Branch `claude/project-thread-b71bdz`, nothing is on `main` yet (Flo: everything lands in one pass).
 `pnpm check` is green on this branch (1509 tests; lint needs a 12 GB heap, the whole check takes about 7 minutes).
-The CLI runs on the new core (host, 19 mechanics, overseers) since the final step-18 integrator pass; the old engine
-(`packages/engine`, `world.ts`) is still in the tree as the other side of the differential tests. Golden files in
-`test/golden` were never regenerated; the goldens now play on the host, byte-identical.
+The CLI runs on the new core (host, 19 mechanics, overseers) since the final step-18 integrator pass. The old engine
+(`packages/engine`) was deleted by team D4; the old side of every differential test is a recording in
+`test/fixtures/old-engine/`. Golden files in `test/golden` were regenerated once, in the core motive rename commit.
 
 ## Done
 
@@ -20,6 +20,28 @@ The CLI runs on the new core (host, 19 mechanics, overseers) since the final ste
 | 3.9 | Step 18 waves A-C1/C2: `script`, `arena`, overseer core, scheduling, orders, human hand, `grants: "auto"`, judge, classifier, weaver and gamemaker as overseers | `docs/design/step18-requests-*.md` |
 | 3.10 | Step-18 integrator pass 1 (2026-11-02): every wave request decided; `TOOL_LOCKED` for a resident who may not act, `OVERSEER_ORDER` in shared, seq translation and owners of the overseers' old events, names off switch, the production story mapping `apps/cli/src/host/story.ts` (proven: all three goldens replayed on it, every line outside the app equal in order), progression's `managed` tools, Tribunal section renderer as a gate, `--no-guards` drops `minRun`, resume at the old minute (L1), `WhispersApi` (L2) | `docs/design/step18-decisions.md` |
 | 3.8 | Fix round 3 for all five teams (T1, T2, T3, T4a, T4b): every listed mutant killed (`pnpm mutants` over `test/mechanics/t1/mutants.json`, `test/mechanics/t4b/mutants.json`, `docs/design/mutants-round3-T3.json` and the T2 list), differentials against the old World, legacy L7 resumes; merged with an integration commit that aligns the teams' tests (removed options, moved APIs) | `docs/design/carve-requests-round3-*.md` |
+
+## Step 18 items 7 and 8: state after team D4 (2026-11-02)
+
+Item 7 is **done**: `packages/engine` is deleted with its `check-packages` row, tsconfig references, manifest and
+lockfile entries; `apps/cli/src/compose.ts`, `test/helpers/fixture.ts`, `test/helpers/old-engine-recorder.ts`,
+`test/golden/scripts.ts`, the old `Gamemaker` role and the `World`-based `describeSituation` are gone, and no test runs
+an old engine side live. Item 8 (the core motive rename) is the last commit of D4. Details, every changed assertion and
+every deleted file with its covering test: `step18-decisions.md`, "Team D4".
+
+**What remains:**
+
+1. **The old role classes the overseers and the host runner replaced:** `AgentRunner` (`packages/roles/src/agents/
+   runner.ts`; `host-runner.ts` still imports its helpers `isSafeguardRefusal`, `lastAnnounced`, `LOST_INPUTS`,
+   `toolsNotice`, `ContextMessage`, `InnerVoice`, which move into `host-runner.ts`), `Interpreter`
+   (`interpret/interpreter.ts`; `CONTEXT_MESSAGES` and `InterpreterSnapshot` stay) and `Weaver`
+   (`interpret/weaver.ts`; `MAX_SOFT`, `MAX_HARD`, `WeaverSnapshot` stay). They no longer touch the engine, but they
+   are the live old side of `test/agents/{host-runner,souffleur}`, `test/interpret/{interpreter,weaver}` and
+   `test/overseers/{classifier,runtime-decider,weaver}`. Record those old sides into `test/fixtures/old-engine/` (a
+   recorder like the deleted `old-engine-recorder.ts`, run once at the commit before the deletion), switch the tests to
+   the replay, then delete the classes and list the files in `step18-decisions.md`.
+2. **Comments** in `mechanics/**` and `test/mechanics/**` still name `packages/engine/src/*.ts` as the origin of a
+   ported rule; they are history, readable at the commit before D4's deletion (`git log -- packages/engine`).
 
 ## Step 18 items 7 and 8: state after team D3 (2026-11-02)
 
