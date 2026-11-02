@@ -17,6 +17,11 @@ import { NeedsFact, needsOf, SecretsFact, SolutionsFact, solutionsOf } from "./r
 import { secretsOfDeal } from "./services.ts";
 
 export { puzzlesHead } from "./head.ts";
+/** The puzzles' rules as pure functions (the deal of factors and fragments, the team planner), for tests of the rules alone. */
+export { addFactors, cityFactorOf, contractDeal, counterHolders, dealFactors, dealValues, FactorDealError, formatFactor, validateDeal, type FactorDeal } from "./additive.ts";
+export { assembleAll, drawPuzzle, generateLevelPuzzles, minimumLength, ownCharsOf, sharedGrams, splitAtCuts, validatePuzzle, type FragmentPuzzle } from "./fragments.ts";
+export { codeForms } from "./secrets.ts";
+export { TeamLayoutError, TeamPlanner } from "./teams.ts";
 export { NeedsFact, needsFrom, SecretsFact, secretsFrom, SolutionsFact, solutionsFrom, type Needs, type Solutions } from "./report.ts";
 
 export const puzzles = defineMechanic(puzzlesWorkHead, (kit) => ({

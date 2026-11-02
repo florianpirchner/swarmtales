@@ -3,18 +3,26 @@
  * submissions of personal codes, the audit event and the city factor release.
  */
 import { describe, expect, it } from "vitest";
-import { addFactors, type World } from "@swarmtales/engine";
+import type { Host } from "@swarmtales/contracts";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
+import { addFactors, puzzles } from "@swarmtales/mechanic-puzzles";
+import { factorScript, puzzleOptions } from "../mechanics/puzzles/harness.ts";
+import { Outstanding } from "@swarmtales/mechanic-standoff";
+import { Type } from "typebox";
 import { act as directorAct, at, gamemaker, level, onHolderBehind, puzzle, type RuleInput, team, validateStory } from "@swarmtales/sdk";
 import type { FactorTopology } from "@swarmtales/contracts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, codeOf, factOf, factorsOf, problemText, sliceOf, submit } from "../helpers/host-inspect.ts";
 import { additiveStory, soloLevels, tinyStory } from "../helpers/stories.ts";
+
+const CityFactors = Type.Object({ cityFactors: Type.Array(Type.Object({ level: Type.Integer(), agents: Type.Array(Type.String()) })) }, { additionalProperties: true });
 
 const submitCode = (code: string) => act({ name: "submitSolution", args: { level: 1, code } });
 
-function taskOf(world: World, agent: string): string {
-	const problem = world.problemFor(agent, 1);
-	if (!problem.ok) throw new Error(problem.error);
-	return problem.value.text;
+async function taskOf(host: Pick<Host, "fact" | "call">, agent: string): Promise<string> {
+	const text = await problemText(host, agent, 1);
+	if (text === undefined) throw new Error(`${agent} has no task on level 1`);
+	return text;
 }
 
 function match(pattern: RegExp, text: string): string | undefined {
@@ -22,13 +30,13 @@ function match(pattern: RegExp, text: string): string | undefined {
 }
 
 describe("additive levels in the world (SPEC 12.3)", () => {
-	it("names who holds what each competitor needs and whose counter-factor it holds", () => {
+	it("names who holds what each competitor needs and whose counter-factor it holds", async () => {
 		const fixture = createFixture({ story: additiveStory({ topology: "mutual", size: 2, agents: 4 }), minutes: 1, script: () => ({}) });
-		const world = fixture.world;
-		const deal = world.inspect.factorsOf(1);
+		const host = fixture.host;
+		const deal = factorsOf(host, 1);
 		if (deal === undefined) throw new Error("no deal");
 		for (const holding of deal.holdings) {
-			const text = taskOf(world, holding.agent);
+			const text = await taskOf(host, holding.agent);
 			const certificate = deal.teams[holding.team];
 			expect(text).toContain("Level 1: Wall, 6 digits.");
 			expect(text).toContain(`Your salt: ${holding.salt}\n`);
@@ -53,14 +61,14 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 		]);
 	});
 
-	it("names every teammate who needs the holder's certificate", () => {
+	it("names every teammate who needs the holder's certificate", async () => {
 		const fixture = createFixture({ story: additiveStory({ topology: "cycle", size: 3, agents: 6 }), minutes: 1, script: () => ({}) });
-		const deal = fixture.world.inspect.factorsOf(1);
+		const deal = factorsOf(fixture.host, 1);
 		if (deal === undefined) throw new Error("no deal");
 		for (const team of deal.teams) {
 			const mates = deal.holdings.filter((holding) => holding.team === team.team && holding.agent !== team.certificateHolder).map((holding) => holding.agent).sort();
 			expect(mates).toHaveLength(2);
-			expect(taskOf(fixture.world, team.certificateHolder)).toContain(
+			expect(await taskOf(fixture.host, team.certificateHolder)).toContain(
 				`Team certificate: you hold it: ${team.certificate}. ${mates.join(" and ")} need this same number for their own codes; it is not only yours.`,
 			);
 		}
@@ -70,19 +78,19 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 		["mutual", 2, 4],
 		["cycle", 3, 6],
 		["crossTeam", 3, 6],
-	])("%s: the tasks of the reader and its holders, plus the city factor, give every code", (topology, size, agents) => {
+	])("%s: the tasks of the reader and its holders, plus the city factor, give every code", async (topology, size, agents) => {
 		const fixture = createFixture({ story: additiveStory({ topology, size, agents }), minutes: 1, script: () => ({}) });
-		const world = fixture.world;
-		const deal = world.inspect.factorsOf(1);
+		const host = fixture.host;
+		const deal = factorsOf(host, 1);
 		if (deal === undefined) throw new Error("no deal");
-		for (const agent of world.competitors) {
-			const own = taskOf(world, agent);
+		for (const agent of host.residents) {
+			const own = await taskOf(host, agent);
 			const salt = match(/Your salt: (\d+)/, own) ?? "";
 			const counterHolder = match(/Your counter-factor: held by (A\d+)\./, own) ?? "";
-			const counter = match(new RegExp(`You hold the counter-factor of ${agent}: (\\d+)\\.`), taskOf(world, counterHolder)) ?? "";
+			const counter = match(new RegExp(`You hold the counter-factor of ${agent}: (\\d+)\\.`), await taskOf(host, counterHolder)) ?? "";
 			const certificateHolder = match(/Team certificate: held by (A\d+)\./, own) ?? agent;
-			const certificate = match(/Team certificate: you hold it: (\d+)\./, taskOf(world, certificateHolder)) ?? "";
-			expect(addFactors([salt, deal.cityFactor, certificate, counter], 6)).toBe(world.inspect.codeOf(agent, 1));
+			const certificate = match(/Team certificate: you hold it: (\d+)\./, await taskOf(host, certificateHolder)) ?? "";
+			expect(addFactors([salt, deal.cityFactor, certificate, counter], 6)).toBe(codeOf(host, agent, 1));
 		}
 	});
 
@@ -90,14 +98,14 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 		const fixture = createFixture({
 			story: additiveStory({ topology: "mutual", size: 2, agents: 2 }),
 			minutes: 2,
-			script: (world) => {
-				const deal = world.inspect.factorsOf(1);
+			script: (host) => {
+				const deal = factorsOf(host, 1);
 				const holding = deal?.holdings.find((entry) => entry.agent === "A01");
 				const certificate = deal?.teams[0]?.certificate ?? "000000";
 				const faked = addFactors([holding?.salt ?? "0", deal?.cityFactor ?? "0", certificate, "123456"], 6);
 				return {
 					A01: [act({ name: "submitSolution", args: { level: 1, code: "12345" } }, { name: "submitSolution", args: { level: 1, code: "12345a" } }), submitCode(faked)],
-					A02: [submit(world, "A02", 1), say()],
+					A02: [submit(host, "A02", 1), say()],
 				};
 			},
 			passesPerMinute: 1,
@@ -109,14 +117,14 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 			expect.stringMatching(/^INCORRECT: -1 points/),
 		]);
 		expect(fixture.toolResults("A02", "submitSolution")[0]).toMatch(/^correct · \+4 points · now on level 2/);
-		expect(fixture.world.status("A01").points).toBe(9);
-		expect(fixture.world.status("A02").points).toBe(14);
+		expect(balanceOf(fixture.host, "A01")).toBe(9);
+		expect(balanceOf(fixture.host, "A02")).toBe(14);
 	});
 
 	it("posts a board city factor as CITY and sends a private one only to its targets", async () => {
 		const board = createFixture({ story: additiveStory({ topology: "mutual", size: 2, agents: 2 }), minutes: 1, script: () => ({ A01: [say()], A02: [say()] }) });
 		await board.run();
-		const factor = board.world.inspect.factorsOf(1)?.cityFactor;
+		const factor = factorsOf(board.host, 1)?.cityFactor;
 		expect(board.events("board_post").map((post) => [post.author, post.text, post.kind])).toEqual([["CITY", `City factor of level 1: ${factor}.`, "city"]]);
 		expect(board.events("factor_revealed")).toMatchObject([{ level: 1, target: "board", agents: [] }]);
 		expect(board.events("director_action")).toMatchObject([{ rule: "city-factor", action: "revealFactor" }]);
@@ -127,12 +135,12 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 			script: () => ({ A01: [say()], A02: [say()] }),
 		});
 		await feast.run();
-		const secret = feast.world.inspect.factorsOf(1)?.cityFactor ?? "-";
+		const secret = factorsOf(feast.host, 1)?.cityFactor ?? "-";
 		expect(feast.events("board_post")).toEqual([]);
 		expect(feast.inputsOf("A01")).toContain(`[CITY] City factor of level 1: ${secret}.`);
 		expect(feast.inputsOf("A02").join("\n")).not.toContain(secret);
 		expect(feast.events("factor_revealed")).toMatchObject([{ level: 1, target: "notice", agents: ["A01"] }]);
-		expect(taskOf(feast.world, "A02")).toContain("City factor: the city sends it privately to the residents it chooses.");
+		expect(await taskOf(feast.host, "A02")).toContain("City factor: the city sends it privately to the residents it chooses.");
 	});
 
 	it("sends each resident its own team's city factor once on a level with one per team, and never posts it", async () => {
@@ -149,9 +157,9 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 			],
 		});
 		const fixture = createFixture({ story, minutes: 3, script: () => ({ A01: [say(), say(), say()], A02: [say(), say(), say()], A03: [say(), say(), say()], A04: [say(), say(), say()] }) });
-		const world = fixture.world;
+		const host = fixture.host;
 		await fixture.run();
-		const deal = world.inspect.factorsOf(1);
+		const deal = factorsOf(host, 1);
 		if (deal === undefined) throw new Error("no deal");
 		expect(new Set(deal.teams.map((entry) => entry.cityFactor)).size).toBe(deal.teams.length);
 		expect(fixture.events("factor_revealed")).toMatchObject([
@@ -163,14 +171,20 @@ describe("additive levels in the world (SPEC 12.3)", () => {
 			const inputs = fixture.inputsOf(holding.agent);
 			expect(inputs.filter((input) => input === `[CITY] City factor of level 1: ${own}.`)).toHaveLength(1);
 			for (const other of deal.teams) if (other.team !== holding.team) expect(inputs.join("\n")).not.toContain(other.cityFactor ?? "-");
-			expect(taskOf(world, holding.agent)).toContain("City factor: every team has its own; the city sends yours privately to the residents it chooses.");
+			expect(await taskOf(host, holding.agent)).toContain("City factor: every team has its own; the city sends yours privately to the residents it chooses.");
 		}
 		// Everyone holds it by minute 2, so the third release reaches nobody new.
 		expect(fixture.events("director_skipped")).toMatchObject([{ rule: "again", reason: "A01, A02, A03, A04 already hold it" }]);
-		// The board would show one team's factor to every other team, so the city refuses it.
-		expect(world.revealFactor(1, "board")).toMatchObject({ ok: false, error: "PER_TEAM" });
 		expect(fixture.events("board_post")).toEqual([]);
-		expect(world.snapshot().cityFactors).toEqual([{ level: 1, agents: ["A01", "A02", "A03", "A04"] }]);
+		expect(sliceOf(host, "puzzles", CityFactors).cityFactors).toEqual([{ level: 1, agents: ["A01", "A02", "A03", "A04"] }]);
+		// The board would show one team's factor to every other team, so the city refuses it: the validator refuses such a rule,
+		// and the puzzles answer a board release with PER_TEAM (asked by a stand-in script).
+		const onBoard = additiveStory({ topology: "crossTeam", size: 2, agents: 4, cityFactor: "feast", cityFactorPer: "team", director: [at(0, [directorAct.revealFactor("board", 1)], { id: "board" })] });
+		expect(validateStory(onBoard)).toContain('level 1: every team has its own city factor, so revealFactor("board", 1) cannot post one');
+		const definition = defineCoreStory({ id: "per-team", seed: 7, minutes: 2, residents: ["A01", "A02", "A03", "A04"], mechanics: [puzzles.with(puzzleOptions(onBoard)), factorScript([]).with()], grants: { script: ["revealFactor"] } });
+		const probe = createHost({ story: definition });
+		probe.start();
+		expect(await probe.call("script", "revealFactor", { level: 1, target: "board" })).toMatchObject({ ok: false, code: "PER_TEAM" });
 	});
 
 	it("skips a city factor of a level the run does not play", async () => {
@@ -211,16 +225,16 @@ describe("holders who are behind (SPEC 12.3)", () => {
 		const fixture = createFixture({
 			story,
 			minutes: 3,
-			script: (world) => {
-				const deal = world.inspect.factorsOf(2);
+			script: (host) => {
+				const deal = factorsOf(host, 2);
 				first = "A01";
 				partner = deal?.holdings.find((holding) => holding.agent === first)?.counterHolder ?? "";
 				// A01 arrives first, its partner a minute later.
-				return { A01: [submit(world, "A01", 1), say(), say()], [partner]: [say(), submit(world, partner, 1), say()] };
+				return { A01: [submit(host, "A01", 1), say(), say()], [partner]: [say(), submit(host, partner, 1), say()] };
 			},
 		});
 		await fixture.run();
-		const deal = fixture.world.inspect.factorsOf(2);
+		const deal = factorsOf(fixture.host, 2);
 		const mine = deal?.holdings.find((holding) => holding.agent === first);
 		const team = deal?.teams.find((entry) => entry.team === mine?.team);
 		const notices = fixture.events("notice").filter((notice) => notice.text.includes("has reached door 2"));
@@ -239,11 +253,11 @@ describe("holders who are behind (SPEC 12.3)", () => {
 		const fixture = createFixture({
 			story: { ...story, gamemaker: gamemaker({ model: story.model, brief: "Test." }) },
 			minutes: 3,
-			script: (world) => {
-				const partner = world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "A02";
-				leaked = world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterFactor ?? "";
+			script: (host) => {
+				const partner = factorsOf(host, 2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "A02";
+				leaked = factorsOf(host, 2)?.holdings.find((holding) => holding.agent === "A01")?.counterFactor ?? "";
 				return {
-					A01: [submit(world, "A01", 1), say(), say()],
+					A01: [submit(host, "A01", 1), say(), say()],
 					[partner]: [say(), act({ name: "sendDM", args: { target: "A01", message: `Here: ${leaked}` } }), say()],
 				};
 			},
@@ -283,12 +297,12 @@ describe("help your holder (v05, P22)", () => {
 		const fixture = createFixture({
 			story,
 			minutes: 4,
-			script: (world) => {
-				partner = world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "";
+			script: (host) => {
+				partner = factorsOf(host, 2)?.holdings.find((holding) => holding.agent === "A01")?.counterHolder ?? "";
 				// A01 arrives at door 2 first, its partner a minute later; A01 passes door 2 at minute 2.
 				return {
-					A01: [submit(world, "A01", 1), say(), submit(world, "A01", 2), say()],
-					[partner]: [say(), submit(world, partner, 1), say(), say()],
+					A01: [submit(host, "A01", 1), say(), submit(host, "A01", 2), say()],
+					[partner]: [say(), submit(host, partner, 1), say(), say()],
 				};
 			},
 		});
@@ -298,7 +312,7 @@ describe("help your holder (v05, P22)", () => {
 
 	it("tells the needer privately where its holder is stuck, only while the holder is on a lower level", async () => {
 		const { fixture, partner } = await play();
-		const deal = fixture.world.inspect.factorsOf(2);
+		const deal = factorsOf(fixture.host, 2);
 		const mine = deal?.holdings.find((holding) => holding.agent === "A01");
 		const certificateHolder = deal?.teams.find((entry) => entry.team === mine?.team)?.certificateHolder;
 		const expected = [`Your counter-factor for door 2 sits with ${partner}, who is still stuck on door 1.`];
@@ -313,13 +327,14 @@ describe("help your holder (v05, P22)", () => {
 
 	it("shows the held piece in the holder's status line while the needer waits, and drops it once the needer has passed", async () => {
 		const { fixture, partner } = await play();
-		const counter = fixture.world.inspect.factorsOf(2)?.holdings.find((holding) => holding.agent === "A01")?.counterFactor ?? "-";
+		const counter = factorsOf(fixture.host, 2)?.holdings.find((holding) => holding.agent === "A01")?.counterFactor ?? "-";
 		const statusAt = (minute: number): string =>
 			fixture.events("turn_input").find((turn) => turn.agent === partner && turn.minute === minute)?.inputs.find((input) => input.startsWith("[status]")) ?? "";
 		expect(statusAt(1)).toContain("you hold for others: ");
 		expect(statusAt(1)).toContain(`A01 door 2 counter-factor ${counter}`);
 		expect(statusAt(3)).not.toContain(`A01 door 2 counter-factor`);
-		expect(fixture.world.piecesAwaited(partner).filter((piece) => piece.waiting.includes("A01"))).toEqual([]);
+		// Nothing the partner holds is awaited by A01 any more (old `piecesAwaited`): the standoff owes it nothing.
+		expect(factOf(fixture.host, "standoff.outstanding", Outstanding).filter((debt) => debt.holder === partner && debt.needer === "A01")).toEqual([]);
 	});
 
 	it("validates the trigger and its placeholders", () => {

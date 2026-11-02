@@ -67,7 +67,7 @@ function bookEntry(ctx: Ctx, debit: string, credit: string, amount: number, reas
 	});
 }
 
-export { book, LedgerError, restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
+export { book, LedgerError, memoCarriesDigits, restored, SYSTEM_ACCOUNT, type LedgerState } from "./book.ts";
 
 export const ledger = defineMechanic(ledgerHead, (kit) => ({
 	services: [

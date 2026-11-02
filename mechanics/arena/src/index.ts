@@ -21,7 +21,7 @@ import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/kernel";
 import { HOOK_ORDER, INPUT_KINDS, LedgerApi, legacyTurnOrder } from "@swarmtales/mechanic-shared";
 import { arenaHead } from "./head.ts";
-import { budgetReason, stopReason } from "./rules.ts";
+import { budgetReason, seatsDecided, stopReason } from "./rules.ts";
 import { minuteClosed, minuteEnded, runEnded, runResumed, runStarted } from "./run.ts";
 import { ArenaSlice, migrateV0, restored, SnapshotCut } from "./state.ts";
 
@@ -98,6 +98,8 @@ export const arena = defineMechanic(arenaHead, (kit) => ({
 	facts: {
 		snapshot: kit.fact(Type.Union([SnapshotCut, Type.Null()]), (view) => view.state.cut ?? null),
 		stopping: kit.fact(Type.Union([Type.String(), Type.Null()]), (view) => view.state.reason ?? budgetReason(view) ?? stopReason(view) ?? null),
+		/** Whether no open reward can change who survives (old `world.seatsDecided()`), whatever `stopWhenSeatsDecided` says. */
+		seatsDecided: kit.fact(Type.Boolean(), (view) => seatsDecided(view)),
 	},
 	snapshot: kit.snapshot({
 		version: 1,

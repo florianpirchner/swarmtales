@@ -308,6 +308,15 @@ export function ledgerTotal(host: Pick<Host, "snapshot">): number {
 	return sliceOf(host, "ledger", LedgerSlice).balances.reduce((sum, entry) => sum + entry.balance, 0);
 }
 
+const Waiting = Type.Object({ ranking: Type.Array(Type.Object({ agent: Type.String(), waiting: Type.Union([Type.Integer(), Type.Null()]) }, { additionalProperties: true })) }, { additionalProperties: true });
+
+/** The level a resident passed and waits after while the door is shut (old `world.waitingAfter`), or null. */
+export function waitingAfter(host: FactsHost, agent: ResidentId): number | null {
+	const entry = factOf(host, "progression.section", Waiting).ranking.find((row) => row.agent === agent);
+	if (entry === undefined) throw new Error(`${agent} is not ranked`);
+	return entry.waiting;
+}
+
 const Exiled = Type.Array(Type.Object({ resident: Type.String(), by: Type.String() }));
 
 /** Whether a resident has left the city for good (old `world.isExiled`). */

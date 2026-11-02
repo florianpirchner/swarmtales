@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { MemorySink } from "@swarmtales/chronicle";
-import { EventBus, memoCarriesDigits, World } from "@swarmtales/engine";
-import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
+import { Type } from "typebox";
+import { memoCarriesDigits } from "@swarmtales/mechanic-ledger";
+import { idleAgent } from "@swarmtales/testkit";
+
+import { act, createHostFixture as createFixture, say, type HostFixture } from "../helpers/host-fixture.ts";
+import { balanceOf, codeOf, factOf, fragmentOf, groupUnread, isFinished, ledgerTotal, levelOf, receiptsOf, solvedLevels, submit, waitingAfter, wrongCodeOf } from "../helpers/host-inspect.ts";
 import { soloLevels, tinyStory } from "../helpers/stories.ts";
 
 describe("world: submissions and points (SPEC 6)", () => {
@@ -10,10 +13,10 @@ describe("world: submissions and points (SPEC 6)", () => {
 		const fixture = createFixture({
 			story,
 			minutes: 4,
-			script: (world) => {
-				const wrong = wrongCodeOf(world.inspect.passwordOf("A01", 1));
+			script: (host) => {
+				const wrong = wrongCodeOf(codeOf(host, "A01", 1));
 				const attempt = act({ name: "submitSolution", args: { level: 1, code: wrong } });
-				return { A01: [attempt, attempt, attempt, submit(world, "A01", 1)], A02: [say(), say(), say(), say()] };
+				return { A01: [attempt, attempt, attempt, submit(host, "A01", 1)], A02: [say(), say(), say(), say()] };
 			},
 		});
 		await fixture.run();
@@ -23,20 +26,20 @@ describe("world: submissions and points (SPEC 6)", () => {
 		expect(results[2]).toBe("RATE_LIMITED: too many wrong attempts in this window");
 		// The window of 3 minutes has passed for the first attempt at minute 3.
 		expect(results[3]).toBe("correct · +2 points · now on level 2 · receipt R-0001");
-		expect(fixture.world.ledger.balance("A01")).toBe(10);
+		expect(balanceOf(fixture.host, "A01")).toBe(10);
 	});
 
 	it("answers wrong levels, solved levels and wrong lengths without a penalty", async () => {
 		const fixture = createFixture({
 			story: tinyStory(),
 			minutes: 2,
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					act(
 						{ name: "submitSolution", args: { level: 2, code: "AAAAAA" } },
 						{ name: "submitSolution", args: { level: 1, code: "A" } },
 					),
-					act(submitArgs(world.inspect.passwordOf("A01", 1)), submitArgs(world.inspect.passwordOf("A01", 1))),
+					act(submitArgs(codeOf(host, "A01", 1)), submitArgs(codeOf(host, "A01", 1))),
 				],
 				A02: [say(), say()],
 			}),
@@ -46,17 +49,17 @@ describe("world: submissions and points (SPEC 6)", () => {
 		expect(results[0]).toBe("WRONG_LEVEL: your current level is 1");
 		expect(results[1]).toMatch(/^INVALID_FORMAT: expected exactly \d+ characters$/);
 		expect(results[3]).toBe("ALREADY_SOLVED");
-		expect(fixture.world.ledger.balance("A01")).toBe(12);
+		expect(balanceOf(fixture.host, "A01")).toBe(12);
 	});
 
 	it("accepts lower-case codes", async () => {
 		const fixture = createFixture({
 			story: tinyStory(),
 			minutes: 1,
-			script: (world) => ({ A01: [act(submitArgs(world.inspect.passwordOf("A01", 1).toLowerCase()))], A02: [say()] }),
+			script: (host) => ({ A01: [act(submitArgs(codeOf(host, "A01", 1).toLowerCase()))], A02: [say()] }),
 		});
 		await fixture.run();
-		expect(fixture.world.levelOf("A01")).toBe(2);
+		expect(levelOf(fixture.host, "A01")).toBe(2);
 	});
 
 	it("validates transfers", async () => {
@@ -111,7 +114,7 @@ describe("world: submissions and points (SPEC 6)", () => {
 			agents: 3,
 			minutes: 3,
 			only: 4,
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					act(
 						{ name: "createGroup", args: { name: "Vault" } },
@@ -122,25 +125,26 @@ describe("world: submissions and points (SPEC 6)", () => {
 					act({ name: "withdrawGroup", args: { groupId: "G1", target: "A02", amount: 3 } }),
 					say(),
 				],
-				A02: [act({ name: "submitSolution", args: { level: 4, code: wrongCodeOf(world.inspect.passwordOf("A02", 4)) } }), say(), say()],
-				A03: [submit(world, "A03", 4), say(), say()],
+				A02: [act({ name: "submitSolution", args: { level: 4, code: wrongCodeOf(codeOf(host, "A02", 4)) } }), say(), say()],
+				A03: [submit(host, "A03", 4), say(), say()],
 			}),
 		});
 		await fixture.run();
-		expect(fixture.world.ledger.total()).toBe(0);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 		// 4 left in the treasury is split between A01 and A02 at the end.
 		expect(fixture.events("treasury_settled")).toEqual([expect.objectContaining({ group: "G1", payouts: { A01: 2, A02: 2 } })]);
-		expect(fixture.world.ledger.balance("A01")).toBe(15 - 7 - 2 + 2);
-		expect(fixture.world.ledger.balance("A02")).toBe(15 - 2 + 3 + 2);
+		expect(balanceOf(fixture.host, "A01")).toBe(15 - 7 - 2 + 2);
+		expect(balanceOf(fixture.host, "A02")).toBe(15 - 2 + 3 + 2);
 	});
 
 	it("unlocks every tool of the story once the last level is passed", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 2, only: 1, script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: [say(), say()] }) });
+		const fixture = createFixture({ agents: 2, minutes: 2, only: 1, script: (host) => ({ A01: [submit(host, "A01", 1), say()], A02: [say(), say()] }) });
 		await fixture.run();
 		const storyTools = new Set([...fixture.story.levels.flatMap((entry) => entry.tools), "activeTools"]);
-		expect(new Set(fixture.world.enabledTools("A01"))).toEqual(storyTools);
-		expect(fixture.world.enabledTools("A02")).toEqual(["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"]);
-		expect(fixture.world.isFinished("A01")).toBe(true);
+		expect(new Set(fixture.host.openTools("A01"))).toEqual(storyTools);
+		// As sets: the host lists open tools in grant order, the old engine in catalog order (the request line sorts them, G1-5).
+		expect(new Set(fixture.host.openTools("A02"))).toEqual(new Set(["getStatus", "getProblem", "submitSolution", "listAgents", "activeTools"]));
+		expect(isFinished(fixture, "A01")).toBe(true);
 	});
 });
 
@@ -172,7 +176,7 @@ describe("world: communication limits (SPEC 7)", () => {
 			"MAILBOX_SENDER_LIMIT",
 		]);
 		expect(fixture.toolResults("A01", "postBoard")[0]).toMatch(/^Validation failed for tool "postBoard"/);
-		expect(fixture.world.board.all()).toEqual([]);
+		expect(fixture.boardPosts()).toEqual([]);
 	});
 
 	it("warns about older group posts on a targeted read and leaves skipped posts unread", async () => {
@@ -200,7 +204,7 @@ describe("world: communication limits (SPEC 7)", () => {
 		expect(a02).toContain("1 older post(s) lie before afterSeq 1");
 		expect(a02).toContain("#2 A01: second");
 		expect(fixture.toolResults("A03", "readGroup").join("\n")).toContain("no new posts");
-		expect(fixture.world.groups.unreadCount("G1", "A03")).toBe(2);
+		expect(groupUnread(fixture.host, "G1", "A03")).toBe(2);
 	});
 
 	it("hides foreign groups behind GROUP_NOT_VISIBLE without details", async () => {
@@ -266,66 +270,77 @@ describe("world: audit events for the digest (SPEC 15)", () => {
 	});
 
 	it("records once per level who holds which fragment", async () => {
-		const fixture = createFixture({ agents: 2, minutes: 2, only: 3, script: (world) => ({ A01: [submit(world, "A01", 3), say()], A02: [say(), say()] }) });
+		const fixture = createFixture({ agents: 2, minutes: 2, only: 3, script: (host) => ({ A01: [submit(host, "A01", 3), say()], A02: [say(), say()] }) });
 		await fixture.run();
 		const dealt = fixture.events("fragments_dealt");
 		expect(dealt.map((event) => event.level)).toEqual([3]);
 		expect(dealt[0]?.holdings).toEqual([
-			{ agent: "A01", team: 0, fragment: fixture.world.inspect.fragmentOf("A01", 3) },
-			{ agent: "A02", team: 0, fragment: fixture.world.inspect.fragmentOf("A02", 3) },
+			{ agent: "A01", team: 0, fragment: fragmentOf(fixture.host, "A01", 3) },
+			{ agent: "A02", team: 0, fragment: fragmentOf(fixture.host, "A02", 3) },
 		]);
 	});
 });
 
 describe("world: the door of a snapshot run (SPEC 17)", () => {
-	function heldWorld() {
-		const log = new MemorySink();
-		const bus = new EventBus([log], () => 0);
-		const story = tinyStory({ levels: soloLevels(3) });
-		const world = new World({ story, competitors: ["A01", "A02"], seed: 3, minutes: 6, bus, minute: () => 0, holdAfter: 1 });
-		const entered: string[] = [];
-		world.onLevelEnter((agent, level) => entered.push(`${agent}:${level}`));
-		return { world, log, entered };
+	/** Two residents on three solo doors, held after level 1 (a snapshot after level 1 that plays on). */
+	function heldRun(levels = soloLevels(3)): HostFixture {
+		return createFixture({
+			story: tinyStory({ levels }),
+			agents: 2,
+			minutes: 6,
+			snapshot: { afterLevel: 1, stop: false, file: "snapshot-L1.json", write: () => "snapshot-L1.json" },
+			script: () => ({}),
+		});
 	}
+	const submitOwn = (run: HostFixture, agent: string, level: number) => run.host.call(`resident:${agent}`, "submitSolution", { level, code: codeOf(run.host, agent, level) });
+	const entered = (run: HostFixture) => run.host.log.ofType("progression", "level_entered").map((event) => `${String(Reflect.get(Object(event.payload), "agent"))}:${String(Reflect.get(Object(event.payload), "level"))}`);
+	const door = (run: HostFixture) => factOf(run.host, "progression.door", Type.Union([Type.Integer(), Type.Null()]));
 
-	it("pays a competitor who passes the door level and holds it there, with level 2 not dealt", () => {
-		const { world, log, entered } = heldWorld();
-		const outcome = world.submit("A01", 1, world.inspect.codeOf("A01", 1));
-		expect(outcome).toMatchObject({ status: "correct", reward: 2, nextLevel: 2, held: true });
-		expect(world.levelOf("A01")).toBe(1);
-		expect(world.waitingAfter("A01")).toBe(1);
-		expect(world.hasPassed("A01", 1)).toBe(true);
-		expect(world.status("A01")).toMatchObject({ waitingAfter: 1, solvedLevels: [1], finished: false });
-		expect(world.receiptsOf("A01").map((receipt) => receipt.kind)).toEqual(["levelUp"]);
-		expect(world.drainNotices("A01").map((notice) => notice.text)).toEqual(["Level 1 passed. The next door opens once every resident has passed level 1."]);
-		expect(world.submit("A01", 1, world.inspect.codeOf("A01", 1))).toEqual({ status: "already_solved" });
-		expect(world.isDealt(2)).toBe(false);
-		expect(() => world.inspect.codeOf("A01", 2)).toThrow(/behind a shut door/);
-		expect(world.revealFactor(2, "board")).toMatchObject({ ok: false });
-		expect(world.teamsOf(2).length).toBeGreaterThan(0);
-		expect(log.ofType("fragments_dealt").map((event) => event.level)).toEqual([1]);
-		expect(log.ofType("level_up")).toMatchObject([{ agent: "A01", from: 1, to: 2 }]);
-		expect(entered).toEqual([]);
-		expect(world.snapshot()).toMatchObject({ door: 1, competitors: [{ agent: "A01", held: true }, { agent: "A02", held: false }] });
+	it("pays a competitor who passes the door level and holds it there, with level 2 not dealt", async () => {
+		const run = heldRun();
+		const { host } = run;
+		expect(await submitOwn(run, "A01", 1)).toEqual({ ok: true, reply: "correct · +2 points · receipt R-0001 · the next door opens once every resident has passed level 1" });
+		expect(levelOf(host, "A01")).toBe(1);
+		expect(waitingAfter(host, "A01")).toBe(1);
+		expect(solvedLevels(host, "A01")).toEqual([1]);
+		expect(isFinished(run, "A01")).toBe(false);
+		expect(receiptsOf(host, "A01").map((receipt) => receipt.kind)).toEqual(["levelUp"]);
+		expect(run.events("notice").filter((notice) => notice.to === "A01").map((notice) => notice.text)).toEqual(["Level 1 passed. The next door opens once every resident has passed level 1."]);
+		expect(await submitOwn(run, "A01", 1)).toMatchObject({ ok: false, code: "ALREADY_SOLVED" });
+		expect(factOf(host, "puzzles.dealt", Type.Array(Type.Integer()))).toEqual([1]);
+		// Behind the shut door level 2 has no code yet (old: "behind a shut door").
+		expect(() => codeOf(host, "A01", 2)).toThrow(/no code on level 2/);
+		expect(run.events("fragments_dealt").map((event) => event.level)).toEqual([1]);
+		expect(run.events("level_up")).toMatchObject([{ agent: "A01", from: 1, to: 2 }]);
+		expect(entered(run)).toEqual([]);
+		expect(door(run)).toBe(1);
+		expect(factOf(host, "progression.levels", Type.Array(Type.Object({ agent: Type.String(), held: Type.Boolean() }, { additionalProperties: true })))).toMatchObject([
+			{ agent: "A01", held: true },
+			{ agent: "A02", held: false },
+		]);
 	});
 
-	it("opens only once every competitor has passed, then deals the rest and lets them in together", () => {
-		const { world, log, entered } = heldWorld();
-		world.submit("A01", 1, world.inspect.codeOf("A01", 1));
-		expect(world.openDoor()).toBe(false);
-		world.submit("A02", 1, world.inspect.codeOf("A02", 1));
-		expect(entered).toEqual([]);
-		expect(world.openDoor()).toBe(true);
-		expect(world.door).toBeUndefined();
-		expect(entered).toEqual(["A01:2", "A02:2"]);
-		expect([world.levelOf("A01"), world.levelOf("A02")]).toEqual([2, 2]);
-		expect(world.waitingAfter("A01")).toBeUndefined();
-		expect(log.ofType("fragments_dealt").map((event) => event.level)).toEqual([1, 2, 3]);
+	it("opens only once every competitor has passed, then deals the rest and lets them in together", async () => {
+		const run = heldRun();
+		const { host } = run;
+		await submitOwn(run, "A01", 1);
+		await host.playMinute(idleAgent);
+		expect(door(run)).toBe(1);
+		await submitOwn(run, "A02", 1);
+		expect(entered(run)).toEqual([]);
+		// The door opens at the next minute's start.
+		await host.playMinute(idleAgent);
+		expect(door(run)).toBeNull();
+		expect(entered(run)).toEqual(["A01:2", "A02:2"]);
+		expect([levelOf(host, "A01"), levelOf(host, "A02")]).toEqual([2, 2]);
+		expect(waitingAfter(host, "A01")).toBeNull();
+		expect(run.events("fragments_dealt").map((event) => event.level)).toEqual([1, 2, 3]);
 		// The entry was logged at the pass; the door adds no second level_up.
-		expect(log.ofType("level_up")).toHaveLength(2);
-		expect(world.openDoor()).toBe(false);
-		expect(world.submit("A01", 2, world.inspect.codeOf("A01", 2))).toMatchObject({ status: "correct", nextLevel: 3 });
-		expect(world.levelOf("A01")).toBe(3);
+		expect(run.events("level_up")).toHaveLength(2);
+		await host.playMinute(idleAgent);
+		expect(entered(run)).toHaveLength(2);
+		expect(await submitOwn(run, "A01", 2)).toMatchObject({ ok: true, reply: expect.stringContaining("now on level 3") });
+		expect(levelOf(host, "A01")).toBe(3);
 	});
 });
 
@@ -335,9 +350,9 @@ describe("world: seats decided (SPEC 6)", () => {
 			story: tinyStory(),
 			minutes: 5,
 			stopWhenSeatsDecided,
-			script: (world) => ({
-				A01: [submit(world, "A01", 1), submit(world, "A01", 2), say(), say(), say()],
-				A02: [act({ name: "submitSolution", args: { level: 1, code: wrongCodeOf(world.inspect.passwordOf("A02", 1)) } }), say(), say(), say(), say()],
+			script: (host) => ({
+				A01: [submit(host, "A01", 1), submit(host, "A01", 2), say(), say(), say()],
+				A02: [act({ name: "submitSolution", args: { level: 1, code: wrongCodeOf(codeOf(host, "A02", 1)) } }), say(), say(), say(), say()],
 			}),
 		});
 
@@ -347,7 +362,7 @@ describe("world: seats decided (SPEC 6)", () => {
 		// After minute 0: A01 12 (2 open), A02 9 with 4 open = 13, which could still pass 12.
 		// After minute 1: A01 14, A02 at most 13, so the single seat is decided.
 		expect(fixture.events("run_end")).toMatchObject([{ minute: 2, reason: "seats decided" }]);
-		expect(fixture.world.seatsDecided()).toBe(true);
+		expect(factOf(fixture.host, "arena.seatsDecided", Type.Boolean())).toBe(true);
 	});
 
 	it("plays on without the option, and never decides while a resident can still catch up", async () => {
@@ -357,21 +372,33 @@ describe("world: seats decided (SPEC 6)", () => {
 		expect(fixture.events("run_end")[0]?.reason).toBeUndefined();
 
 		const level = createFixture({ story: tinyStory(), minutes: 1, script: () => ({ A01: [say()], A02: [say()] }) });
-		expect(level.world.seatsDecided()).toBe(false);
+		expect(factOf(level.host, "arena.seatsDecided", Type.Boolean())).toBe(false);
 	});
 
-	it("never decides behind a shut snapshot door", () => {
-		const log = new MemorySink();
-		const world = new World({ story: tinyStory({ levels: soloLevels(3) }), competitors: ["A01", "A02"], seed: 3, minutes: 6, bus: new EventBus([log], () => 0), minute: () => 0, holdAfter: 1 });
-		world.submit("A01", 1, world.inspect.codeOf("A01", 1));
-		world.submit("A02", 1, wrongCodeOf(world.inspect.codeOf("A02", 1)));
-		// Push A01 far ahead of anything A02 could still reach.
-		world.ledger.mint("A01", 20, "test", 0);
-		expect(world.door).toBe(1);
-		expect(world.seatsDecided()).toBe(false);
+	it("never decides behind a shut snapshot door", async () => {
+		// Three solo doors with transfers on the first, held after level 1.
+		const levels = soloLevels(3).map((entry) => (entry.number === 1 ? { ...entry, tools: [...entry.tools, "transferPoints" as const] } : entry));
+		const run = createFixture({
+			story: tinyStory({ levels }),
+			agents: 2,
+			minutes: 6,
+			snapshot: { afterLevel: 1, stop: false, file: "snapshot-L1.json", write: () => "snapshot-L1.json" },
+			script: () => ({}),
+		});
+		const { host } = run;
+		const decided = () => factOf(host, "arena.seatsDecided", Type.Boolean());
+		await host.call("resident:A01", "submitSolution", { level: 1, code: codeOf(host, "A01", 1) });
+		await host.call("resident:A02", "submitSolution", { level: 1, code: wrongCodeOf(codeOf(host, "A02", 1)) });
+		// Push A01 far ahead of anything A02 could still reach (old: 20 points minted).
+		expect(await host.call("resident:A02", "transferPoints", { target: "A01", amount: 8 })).toMatchObject({ ok: true });
+		expect(factOf(host, "progression.door", Type.Union([Type.Integer(), Type.Null()]))).toBe(1);
+		expect(decided()).toBe(false);
 		// Once everyone passed and the door opened, the same standings decide the seat.
-		world.submit("A02", 1, world.inspect.codeOf("A02", 1));
-		expect(world.openDoor()).toBe(true);
-		expect(world.seatsDecided()).toBe(true);
+		await host.call("resident:A02", "submitSolution", { level: 1, code: codeOf(host, "A02", 1) });
+		// The snapshot is taken at the minute's end, the door opens at the next minute's start.
+		await host.playMinute(idleAgent);
+		await host.playMinute(idleAgent);
+		expect(factOf(host, "progression.door", Type.Union([Type.Integer(), Type.Null()]))).toBeNull();
+		expect(decided()).toBe(true);
 	});
 });
