@@ -7,21 +7,25 @@
  * model call each), so a script reads as "one message per minute".
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
-import { composeRun, DEFAULT_LIMITS, type ComposedRun, type RunOverrides } from "../../src/cli/compose.ts";
-import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
-import type { GuardJudge } from "../../src/interpret/guard.ts";
-import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge } from "../../src/interpret/judge.ts";
-import { ChatWeaver, WEAVER_ID } from "../../src/interpret/weaver-model.ts";
-import { MemorySink, type EventSink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
+import { composeRun, DEFAULT_LIMITS, type ComposedRun, type ComposeOptions, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import {
+	ChatDeliveryJudge,
+	ChatStatementClassifier,
+	ChatWeaver,
+	CLASSIFIER_ID,
+	type DeliveryJudge,
+	GAMEMAKER_ID,
+	type GuardJudge,
+	JUDGE_ID,
+	WEAVER_ID,
+} from "@swarmtales/roles";
+import { type EventSink, MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { act, type Script, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import type { AnyStory } from "@swarmtales/contracts";
 
-import { act } from "../../src/model/scripted.ts";
 
-export { act, say } from "../../src/model/scripted.ts";
+export { act, say } from "@swarmtales/models";
 
 export interface FixtureOptions extends RunOverrides {
 	readonly story?: AnyStory;
@@ -40,6 +44,8 @@ export interface FixtureOptions extends RunOverrides {
 	readonly guardJudge?: GuardJudge;
 	/** Scripted answers of the weaver (`--weaver`), one per question; plays without it when omitted. */
 	readonly weaverScript?: readonly FauxResponseStep[];
+	/** Texts appended to the system prompt of every competitor, or of `agent` alone (`--prompt-addendum`). */
+	readonly promptAddenda?: ComposeOptions["promptAddenda"];
 }
 
 export interface Fixture extends ComposedRun {
@@ -52,7 +58,7 @@ export interface Fixture extends ComposedRun {
 
 export function createFixture(options: FixtureOptions): Fixture {
 	const log = new MemorySink();
-	const { story, script, sinks, budgetSpent, gamemakerScript, classifierScript, judge, judgeScript, weaverScript, guardJudge, ...overrides } = options;
+	const { story, script, sinks, budgetSpent, gamemakerScript, classifierScript, judge, judgeScript, weaverScript, guardJudge, promptAddenda, ...overrides } = options;
 	const cityJudge =
 		judge ??
 		(judgeScript === undefined
@@ -68,6 +74,7 @@ export function createFixture(options: FixtureOptions): Fixture {
 		sinks: [log, ...(sinks ?? [])],
 		...(cityJudge === undefined ? {} : { judge: cityJudge }),
 		...(guardJudge === undefined ? {} : { guardJudge }),
+		...(promptAddenda === undefined ? {} : { promptAddenda }),
 		...(budgetSpent === undefined ? {} : { budget: { spentUsd: budgetSpent } }),
 		...(gamemakerScript === undefined ? {} : { gamemakerModels: (world: World) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }) }),
 		...(classifierScript === undefined

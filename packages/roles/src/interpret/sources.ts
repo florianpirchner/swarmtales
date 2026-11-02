@@ -1,0 +1,113 @@
+/**
+ * Builds the statement classifier for a resolved model: a structured
+ * classifier model of the provider (e.g. OpenRouter's pplx-decider) when one
+ * has that ID, a chat model otherwise.
+ */
+import { createModels } from "@earendil-works/pi-ai";
+import { createModelSource, describeModel, ModelConfigError, type ModelSettings, type ProviderRegistry, type RequestLimits } from "@swarmtales/models";
+import type { ClassifierSpec, GuardsSpec } from "@swarmtales/contracts";
+import { ChatStatementClassifier, CLASSIFIER_ID, DeciderStatementClassifier, type StatementClassifier } from "./classifier.ts";
+import { ChatGuardJudge, GUARD_ID, type GuardJudge } from "./guard.ts";
+import { ChatDeliveryJudge, JUDGE_ID, type DeliveryJudge, type JudgeTemper } from "./judge.ts";
+import { ChatSouffleur, SOUFFLEUR_ID, type Souffleur } from "./souffleur.ts";
+import { ChatWeaver, WEAVER_ID, type WeaverModel } from "./weaver-model.ts";
+
+export function createStatementClassifier(
+	settings: ModelSettings,
+	spec: ClassifierSpec,
+	registry: ProviderRegistry,
+	limits: RequestLimits,
+): StatementClassifier {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const label = `${provider.id}/${modelId}`;
+	const models = createModels();
+	models.setProvider(provider.create());
+	const decider = models.getModelOfType("classifier", provider.id, modelId);
+	if (decider !== undefined) {
+		return new DeciderStatementClassifier({ models, model: decider, label, maxChars: spec.maxChars, timeoutMs: limits.timeoutMs });
+	}
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Classifier model "${modelId}" does not exist at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatStatementClassifier({
+		binding: createModelSource(settings, { registry }).bind(CLASSIFIER_ID, limits),
+		label,
+		thinking: spec.model.thinking ?? "off",
+		maxChars: spec.maxChars,
+	});
+}
+
+/**
+ * Builds the city's judge for `blame` from the classifier's model: always a
+ * chat model, since it answers one free question rather than a label.
+ */
+export function createDeliveryJudge(
+	settings: ModelSettings,
+	spec: ClassifierSpec,
+	registry: ProviderRegistry,
+	limits: RequestLimits,
+	temper: JudgeTemper = "fair",
+): DeliveryJudge {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Judge model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatDeliveryJudge({
+		binding: createModelSource(settings, { registry }).bind(JUDGE_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+		temper,
+	});
+}
+
+/** Builds the weaver's model (`--weaver`): a chat model, the classifier's unless its own flags choose another. */
+export function createWeaverModel(settings: ModelSettings, spec: ClassifierSpec, registry: ProviderRegistry, limits: RequestLimits): WeaverModel {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Weaver model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatWeaver({
+		binding: createModelSource(settings, { registry }).bind(WEAVER_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+	});
+}
+
+/** Builds the souffleur (P44) from the classifier's model: a chat model, like the judge. */
+export function createSouffleur(settings: ModelSettings, spec: ClassifierSpec, registry: ProviderRegistry, limits: RequestLimits): Souffleur {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Souffleur model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatSouffleur({
+		binding: createModelSource(settings, { registry }).bind(SOUFFLEUR_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+	});
+}
+
+/** Builds the tool guard's judge (SPEC 20) from the story's guard model: a chat model, like the judge. */
+export function createGuardJudge(settings: ModelSettings, spec: GuardsSpec, registry: ProviderRegistry, limits: RequestLimits): GuardJudge {
+	const provider = registry.require(settings.provider);
+	const modelId = settings.modelId ?? provider.defaultModelId;
+	const models = createModels();
+	models.setProvider(provider.create());
+	if (models.getModel(provider.id, modelId) === undefined) {
+		throw new ModelConfigError(`Guard model "${modelId}" is no chat model at provider "${provider.id}" (${describeModel(settings, registry)})`);
+	}
+	return new ChatGuardJudge({
+		binding: createModelSource(settings, { registry }).bind(GUARD_ID, limits),
+		label: `${provider.id}/${modelId}`,
+		thinking: spec.model.thinking ?? "off",
+	});
+}

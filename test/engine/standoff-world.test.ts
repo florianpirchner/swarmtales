@@ -5,12 +5,10 @@
  * snapshot.
  */
 import { describe, expect, it } from "vitest";
-import { composeRun } from "../../src/cli/compose.ts";
-import { MemorySink } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
+import { composeRun } from "../../apps/cli/src/compose.ts";
+import { MemorySink, type World } from "@swarmtales/engine";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { oracleScript, ScriptedModelSource } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 function wall(): { readonly world: World; readonly log: MemorySink } {

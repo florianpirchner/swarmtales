@@ -1,5 +1,5 @@
 /** Registry of shipped stories, by name (`pnpm start --story <name>`). */
-import type { AnyStory } from "../src/story/types.ts";
+import type { AnyStory } from "@swarmtales/contracts";
 import cityOfKeys from "./cityofkeys/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 

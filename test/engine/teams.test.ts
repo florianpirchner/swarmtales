@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { competitorIds } from "../../src/core/ids.ts";
-import { sharedPairs, TeamLayoutError, TeamPlanner } from "../../src/engine/teams.ts";
-import { level, puzzle, team } from "../../src/story/define.ts";
-import type { LevelDefinition, TeamLayout } from "../../src/story/types.ts";
+import { competitorIds } from "@swarmtales/kernel";
+import { sharedPairs, TeamLayoutError, TeamPlanner } from "@swarmtales/engine";
+import { level, puzzle, team } from "@swarmtales/sdk";
+import type { LevelDefinition, TeamLayout } from "@swarmtales/contracts";
 
 function levelsWith(...layouts: readonly TeamLayout[]): readonly LevelDefinition[] {
 	return layouts.map((layout, index) =>

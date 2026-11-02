@@ -2,28 +2,32 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { AgentRunner, toolsNotice } from "../../src/agents/runner.ts";
-import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { EventBus, MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import { INNER_VOICE_HEAD, MAX_HARD, MAX_SOFT, Weaver, type WeaverCity } from "../../src/interpret/weaver.ts";
-import type { Souffleur } from "../../src/interpret/souffleur.ts";
 import {
+	AgentRunner,
 	ChatWeaver,
 	clip,
+	INNER_VOICE_HEAD,
+	MAX_HARD,
+	MAX_SOFT,
+	type Souffleur,
+	toolsNotice,
+	type Weave,
+	Weaver,
 	WEAVER_ID,
 	WEAVER_REASON_MAX,
 	WEAVER_TEXT_MAX,
-	weaverPrompt,
-	type Weave,
 	type WeaverAnswer,
+	type WeaverCity,
 	type WeaverModel,
+	weaverPrompt,
 	type WeaverQuestion,
-} from "../../src/interpret/weaver-model.ts";
+} from "@swarmtales/roles";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { EventBus, MemorySink, type RecordedEvent } from "@swarmtales/engine";
 
 /** A step the provider's safeguards refused. */
 const refused = (): FauxResponseStep => fauxAssistantMessage("", { stopReason: "error", errorMessage: "This request triggered cyber-related safeguards." });
-import { act, say } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
+import { act, say, ScriptedModelSource } from "@swarmtales/models";
 
 const USAGE = { provider: "test", model: "weaver", input: 10, output: 2, cacheRead: 0, cacheWrite: 0, costUsd: 0.001 };
 

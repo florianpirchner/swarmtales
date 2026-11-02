@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ArenaEvent } from "../../src/engine/events.ts";
-import { carriesValue, StandoffBook, type StandoffPiece } from "../../src/engine/standoff.ts";
+import { type ArenaEvent, carriesValue, StandoffBook, type StandoffPiece } from "@swarmtales/engine";
 
 /** Door 8: A01 holds A02's counter-factor, A02 holds A01's; A03 holds nothing. */
 const PIECES: Readonly<Record<string, readonly StandoffPiece[]>> = {

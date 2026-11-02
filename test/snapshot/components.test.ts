@@ -3,20 +3,24 @@
  * copy reports the same state and keeps behaving like the original.
  */
 import { describe, expect, it } from "vitest";
-import { PointsLedger, SYSTEM_ACCOUNT } from "../../src/core/ledger.ts";
-import { VirtualClock } from "../../src/core/clock.ts";
-import { Board } from "../../src/engine/board.ts";
-import { CastRegistry } from "../../src/engine/cast.ts";
-import { Director } from "../../src/engine/director.ts";
-import { EventBus, MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import { GroupRegistry, type GroupResult } from "../../src/engine/groups.ts";
-import { Mailbox } from "../../src/engine/mailbox.ts";
-import { MarksBook } from "../../src/engine/marks.ts";
-import { PetitionBook } from "../../src/engine/petitions.ts";
-import { ReceiptBook } from "../../src/engine/receipts.ts";
-import { World } from "../../src/engine/world.ts";
-import { act as directorAct, at, onFirstEnter, puzzle, team, when } from "../../src/story/define.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import { PointsLedger, SYSTEM_ACCOUNT, VirtualClock } from "@swarmtales/kernel";
+import {
+	Board,
+	CastRegistry,
+	Director,
+	EventBus,
+	GroupRegistry,
+	type GroupResult,
+	Mailbox,
+	MarksBook,
+	MemorySink,
+	PetitionBook,
+	ReceiptBook,
+	type RecordedEvent,
+	World,
+} from "@swarmtales/engine";
+import { act as directorAct, at, onFirstEnter, puzzle, team, when } from "@swarmtales/sdk";
+import type { AnyStory } from "@swarmtales/contracts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { soloLevels, tinyStory } from "../helpers/stories.ts";
 

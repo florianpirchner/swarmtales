@@ -1,15 +1,14 @@
 /**
  * The gamemaker as director (v09, spec section 2): its report says plainly
  * when scheduleTribunal is its move and when the city calls one itself, shows
- * cores and secret goals and whether a black seal is borne (never by whom),
- * and the engine refuses a note that gives a core or goal away to anyone else
+ * core motives and secret goals and whether a black seal is borne (never by whom),
+ * and the engine refuses a note that gives a core motive or goal away to anyone else
  * or repeats an earlier line to the same reader.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { characterLeaks, nearlySame } from "../../src/gamemaker/privacy.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { characterLeaks, gamemakerSystemPrompt, nearlySame } from "@swarmtales/roles";
+import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, createFixture, say } from "../helpers/fixture.ts";
 
@@ -20,7 +19,7 @@ describe("the character guard", () => {
 	] as const;
 	const nameOf = (agent: string) => (agent === "A01" ? "Mira" : undefined);
 
-	it("blocks a core or goal of one resident in a text to another or on the board", () => {
+	it("blocks a core motive or goal of one resident in a text to another or on the board", () => {
 		expect(characterLeaks("A02, A01 is jealous of your rank.", "A02", residents)).toEqual(["A01"]);
 		expect(characterLeaks("Mira is jealous of everyone ahead of her.", "board", residents, nameOf)).toEqual(["A01"]);
 		expect(characterLeaks("A01 wants A03 exiled before the act ends.", "A04", residents)).toEqual(["A01"]);
@@ -60,7 +59,7 @@ describe("the character guard", () => {
 });
 
 describe("the director's report and refusals (scripted)", () => {
-	it("shows cores, goals and the seal without its bearer, refuses a repeated note and a leaked goal", async () => {
+	it("shows core motives, goals and the seal without its bearer, refuses a repeated note and a leaked goal", async () => {
 		const fixture = createFixture({
 			agents: 6,
 			level: 8,
@@ -79,7 +78,7 @@ describe("the director's report and refusals (scripted)", () => {
 		await fixture.run();
 		const results = fixture.events("gamemaker_result").map((event) => event.text);
 		expect(results[0]).toMatch(/^delivered to A02 as #\d+$/);
-		expect(results[1]).toMatch(/^PRIVATE_BLOCKED: the text gives away the core or the secret goal of A01/);
+		expect(results[1]).toMatch(/^PRIVATE_BLOCKED: the text gives away the core motive or the secret goal of A01/);
 		expect(results[2]).toMatch(/^REPEATED: you wrote nearly the same to A02 at minute \d+; say something new or nothing$/);
 		const inputs = fixture.events("gamemaker_turn").map((event) => event.input);
 		const first = inputs[0] ?? "";
@@ -115,7 +114,7 @@ describe("the director's report and refusals (scripted)", () => {
 		expect(own.map((event) => event.calledAt)).toContain(named);
 	}, 60_000);
 
-	it("tells the director its craft, and what it may do with cores, goals and the seal", () => {
+	it("tells the director its craft, and what it may do with core motives, goals and the seal", () => {
 		const spec = cityOfKeys.gamemaker;
 		if (spec === undefined) throw new Error("cityofkeys has no gamemaker");
 		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec, tribunal: { factions: true }, characters: true, seal: true });

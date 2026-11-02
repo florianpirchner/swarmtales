@@ -1,0 +1,29 @@
+{
+	"name": "@swarmtales/testkit",
+	"version": "0.1.0",
+	"private": true,
+	"description": "Scripted agents, story runs, module conformance checks, snapshot stand-ins and per-mechanic golden gates for mechanics on the new core",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/chronicle": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

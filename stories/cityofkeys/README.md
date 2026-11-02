@@ -11,7 +11,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
 
 | | |
 |---|---|
-| Code | [`story.ts`](story.ts), written in the builder DSL (`src/story/`) |
+| Code | [`story.ts`](story.ts), written in the builder DSL (`packages/sdk/src/`) |
 | Run | `pnpm start` (cityofkeys is the default story) |
 | Residents | 6, one persona each (Archivist, Gambler, Veteran, …) |
 | Duration | at most 80 minutes, one round per minute in 3 passes (one step per resident and pass) |
@@ -46,7 +46,7 @@ door opens only with a password or code whose pieces mostly sit with other resid
   residents, and there is no draft when factions would be smaller than those on trial. Act I
   has a 25-minute brake. Every resident chooses a name in the first two minutes, and the city
   shows names instead of IDs. The city scales to 12, 48 and 96 residents.
-- **v09, drama:** every resident gets a character core (one drive above all, up to two more, and a
+- **v09, drama:** every resident gets a core motive (one drive above all, up to two more, and a
   temperament), written into its system prompt as who it is, never what to do. On the wall each
   resident holds a secret goal (keep someone in the city, see someone exiled, end ahead of
   someone, lead factions, inherit) worth 15 points, read out when the act ends. Four minutes into

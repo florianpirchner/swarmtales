@@ -1,12 +1,10 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
-import { cityFactorOf } from "../../src/engine/puzzles/additive.ts";
+import { allTools, cityFactorOf, DIRECTOR_SUPPORT } from "@swarmtales/engine";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { placeholdersOf } from "../../src/story/templates.ts";
-import { TASK_PLACEHOLDERS, type LevelDefinition } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import { allTools } from "../../src/tools/index.ts";
+import { placeholdersOf } from "@swarmtales/kernel";
+import { TASK_PLACEHOLDERS, type LevelDefinition } from "@swarmtales/contracts";
+import { validateStory } from "@swarmtales/sdk";
 import { act, createFixture, say, solveEveryLevel } from "../helpers/fixture.ts";
 
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;

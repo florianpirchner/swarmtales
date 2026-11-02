@@ -12,11 +12,9 @@
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { analyzeLog } from "../../src/digest/digest.ts";
-import { addFactors, cityFactorOf } from "../../src/engine/puzzles/additive.ts";
-import type { World } from "../../src/engine/world.ts";
-import type { ToolInvocation } from "../../src/model/scripted.ts";
-import type { Script } from "../../src/model/source.ts";
+import { analyzeLog } from "@swarmtales/chronicle";
+import { addFactors, cityFactorOf, type World } from "@swarmtales/engine";
+import type { Script, ToolInvocation } from "@swarmtales/models";
 import { act, createFixture, say, type Fixture } from "../helpers/fixture.ts";
 
 const MINUTES = 26;

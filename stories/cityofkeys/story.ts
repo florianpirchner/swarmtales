@@ -25,7 +25,10 @@ import {
 	defineStory,
 	every,
 	gamemaker,
+	ladderText,
 	level,
+	type MarksRange,
+	type MarksRules,
 	onCollect,
 	onCollectionEnd,
 	onEnter,
@@ -33,13 +36,15 @@ import {
 	onHolderBehind,
 	onTeamSplit,
 	onUnansweredDm,
-	ladderText,
+	type Persona,
 	puzzle,
+	type Rules,
 	team,
+	type ToolName,
+	type TribunalSpec,
 	when,
-} from "../../src/story/index.ts";
-import type { MarksRange, MarksRules, Persona, Rules, ToolName, TribunalSpec } from "../../src/story/index.ts";
-import { CORES, GOALS, SEAL } from "./characters.ts";
+} from "@swarmtales/sdk";
+import { CORE_MOTIVES, GOALS, SEAL } from "./characters.ts";
 
 const BASE_TOOLS = ["getStatus", "getProblem", "submitSolution", "listAgents"] as const satisfies readonly ToolName[];
 const BOARD_TOOLS = ["readBoard", "postBoard"] as const satisfies readonly ToolName[];
@@ -393,8 +398,8 @@ export default defineStory({
 	},
 	personas: PERSONAS,
 	personaAssignment: { kind: "seeded" },
-	// v09: a core for every resident from the first act on, a secret goal and the black seal in Act II.
-	cores: CORES,
+	// v09: a core motive for every resident from the first act on, a secret goal and the black seal in Act II.
+	coreMotives: CORE_MOTIVES,
 	goals: GOALS,
 	seal: SEAL,
 	finishedNotice:

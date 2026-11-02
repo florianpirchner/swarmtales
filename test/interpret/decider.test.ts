@@ -1,7 +1,6 @@
 import { createModels, createProvider, envApiKeyAuth, type ClassifierContext, type ClassifierModel, type ClassifierResult } from "@earendil-works/pi-ai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DeciderStatementClassifier } from "../../src/interpret/classifier.ts";
-import type { Statement } from "../../src/interpret/statements.ts";
+import { DeciderStatementClassifier, type Statement } from "@swarmtales/roles";
 
 const MODEL: ClassifierModel<"fake-decider"> = {
 	type: "classifier",

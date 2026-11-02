@@ -35,7 +35,7 @@ SPEC §20); this file keeps the brainstorm. Brainstorm with Flo, 2026-10-29. Dec
   against)?
 - **Detection:** after how many minutes or whispers does someone suspect the whisperer, and do the
   victims compare notes?
-- **Weaver shifts:** who tips over (soft or hard) and who stays stable, by character core.
+- **Weaver shifts:** who tips over (soft or hard) and who stays stable, by core motive.
 - **Control:** the same run without the whisperer. Only the comparison shows the effect.
 
 Four residents make a run cost a few cents, so 10-20 repetitions with different seeds give numbers
@@ -46,7 +46,7 @@ instead of anecdotes. That is close to a small paper: "How susceptible are LLM a
 - The others do not know there is a whisperer.
 - His goal is discord; he has no other goal.
 - No "who is the whisperer?" vote, but a popularity vote that nobody knows about at the start.
-- Different character cores per resident.
+- Different core motives per resident.
 - 6-7 really hard doors; all four must play together, so the residents are busy for a while.
 - The three others want the most points.
 - Name: **Whispers**.
@@ -99,10 +99,10 @@ Working title: *"Whispers in the swarm: how susceptible are LLM agents to slande
   - H1: after a whisper about B, the victim gives to B later or not at all (fewer hand-overs,
     more refusals) than in the control.
   - H2: with a sender check, the whisperer is suspected within a few whispers; without one, never.
-  - H3: dark cores (Watcher, Old Wound) tip over sooner than bright ones (Believer, Question).
+  - H3: dark core motives (Watcher, Old Wound) tip over sooner than bright ones (Believer, Question).
   - H4: a weaver run shows lasting change (hard shifts) that the no-weaver run does not.
 - **Design:** 2x2 (whisperer yes/no, sender check yes/no), plus weaver on/off as a third factor
-  if the budget allows; 10-20 seeds per cell, 4 residents, same keys and cores per seed.
+  if the budget allows; 10-20 seeds per cell, 4 residents, same keys and core motives per seed.
 - **Measures:** the trust graph (hand-overs, refusals, classifier labels per pair and minute),
   retaliation, time to first suspicion, the final "who is the whisperer?" vote, weaver shifts.
   All computed in code from `events.jsonl`, so every number has `#seq` evidence.

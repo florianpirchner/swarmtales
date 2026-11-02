@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectFreeRides } from "../../../src/digest/detectors/free-ride.ts";
-import { detectGenerosity } from "../../../src/digest/detectors/generous.ts";
+import { buildFacts, detectFreeRides, detectGenerosity } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 const AGENTS = ["A01", "A02", "A03", "A04", "A05", "A06"];

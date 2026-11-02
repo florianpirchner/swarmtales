@@ -1,0 +1,575 @@
+/**
+ * `pnpm start`: plays one run of a story and writes its artifacts.
+ */
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
+import { loadEnvFile } from "node:process";
+import {
+	AgentTranscriptLog,
+	allocateRunDirectory,
+	analyzeRun,
+	ConsoleReporter,
+	JsonlEventLog,
+	MinuteEventLog,
+	readSnapshot,
+	type ReporterChoice,
+	reportSummary,
+	resolveReporterModel,
+	type RunSnapshot,
+	type SnapshotBrake,
+	SnapshotError,
+	UsageCollector,
+	WEAVER_FILE,
+	WeaverLog,
+	writeCastFiles,
+	writeDigest,
+	writeMinuteReport,
+	writePrivateFiles,
+	writeRunMetadata,
+	writeRunReport,
+	writeSnapshot,
+	writeSystemPrompts,
+} from "@swarmtales/chronicle";
+import {
+	createModelSource,
+	createProviderRegistry,
+	customProviderSpec,
+	describeModel,
+	missingApiKeys,
+	ModelConfigError,
+	type ModelEnv,
+	type ModelOverrides,
+	type ModelSettings,
+	type ModelSource,
+	oracleScript,
+	type ProviderSpec,
+	resolveModelSettings,
+	RoutedModelSource,
+	SCRIPTED_PROVIDER_ID,
+	ScriptedModelSource,
+	settingsFromStory,
+} from "@swarmtales/models";
+import { assignModels, createDeliveryJudge, createGuardJudge, createSouffleur, createStatementClassifier, createWeaverModel } from "@swarmtales/roles";
+import type { ModelChoice } from "@swarmtales/contracts";
+import { findStory, storyNames } from "../../../stories/index.ts";
+import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
+import { assertPlayable, composeRun, DEFAULT_LIMITS, effectiveRun, resumeOverrides } from "./compose.ts";
+import { StoryValidationError } from "@swarmtales/sdk";
+import { worldOracle } from "./oracle.ts";
+import { runMetadata } from "./metadata.ts";
+import { competitorIds } from "@swarmtales/kernel";
+
+const envFile = join(process.cwd(), ".env");
+// Existing environment variables win; the file only fills gaps.
+if (existsSync(envFile)) loadEnvFile(envFile);
+
+function fail(message: string): never {
+	process.stderr.write(`${message}\n`);
+	process.exit(1);
+}
+
+let args;
+try {
+	args = parseStartArgs(process.argv.slice(2));
+} catch (error) {
+	if (error instanceof UsageError) fail(`${error.message}\n\n${START_USAGE}`);
+	throw error;
+}
+
+// A resumed run plays the snapshot's story, seed and competitors (SPEC 17); a mismatching flag is refused.
+const snapshot: RunSnapshot | undefined = (() => {
+	if (args.resume === undefined) return undefined;
+	try {
+		return readSnapshot(args.resume);
+	} catch (error) {
+		if (error instanceof SnapshotError) fail(`Cannot resume.\n${error.message}`);
+		throw error;
+	}
+})();
+const storyName = args.story ?? snapshot?.story ?? "cityofkeys";
+const story = findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}`);
+const runOverrides = (() => {
+	if (snapshot === undefined) return args.overrides;
+	try {
+		return resumeOverrides(snapshot, args.overrides);
+	} catch (error) {
+		if (error instanceof SnapshotError) fail(`Cannot resume.\n${error.message}`);
+		throw error;
+	}
+})();
+const registry = createProviderRegistry(extraProvidersFromEnv());
+const modelOverrides = {
+	...(args.provider === undefined ? {} : { provider: args.provider }),
+	...(args.model === undefined ? {} : { modelId: args.model }),
+};
+const resolveSettings = (overrides: ModelOverrides, env: ModelEnv, choice: ModelChoice) => {
+	try {
+		return resolveModelSettings(overrides, env, settingsFromStory(choice), registry);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+};
+const uniform = resolveSettings(modelOverrides, process.env, story.model);
+// CLI flags (and ARENA_PROVIDER / ARENA_MODEL) override every per-competitor assignment (SPEC 5.3).
+const overridden =
+	args.provider !== undefined ||
+	args.model !== undefined ||
+	(process.env.ARENA_PROVIDER ?? "").length > 0 ||
+	(process.env.ARENA_MODEL ?? "").length > 0;
+const modelOverride: ModelChoice | undefined = overridden ? choiceOf(uniform, story.model) : undefined;
+
+// Validate before allocating a run directory so a bad override leaves nothing behind.
+const effective = (() => {
+	try {
+		const resolved = effectiveRun(story, runOverrides);
+		assertPlayable(story, resolved);
+		return resolved;
+	} catch (error) {
+		if (error instanceof StoryValidationError) fail(`Cannot start this run.\n${error.message}`);
+		if (error instanceof Error) fail(error.message);
+		throw error;
+	}
+})();
+const ids = competitorIds(effective.agents);
+const settingsPerAgent = new Map(
+	[...assignModels(story, ids, effective.seed, modelOverride)].map(([agent, choice]) => [
+		agent,
+		overridden ? uniform : resolveSettings({}, {}, choice),
+	]),
+);
+const distinctSettings = [...new Map([...settingsPerAgent.values()].map((entry) => [settingsKey(entry), entry])).values()];
+for (const entry of distinctSettings) {
+	const missingKeys = missingApiKeys(entry, registry, process.env);
+	if (missingKeys.length > 0) {
+		fail(
+			`Missing API keys for provider "${entry.provider}": ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or use --provider scripted (offline).`,
+		);
+	}
+}
+
+// The gamemaker plays along unless switched off. Offline runs (any scripted competitor) never call
+// a real model. It keeps the story's model whatever the competitors play; only its own flags or ARENA_GAMEMAKER_* change it.
+const offline = distinctSettings.some((entry) => entry.provider === SCRIPTED_PROVIDER_ID);
+const overrides = {
+	...runOverrides,
+	gamemaker: runOverrides.gamemaker !== false && !offline,
+	classifier: runOverrides.classifier !== false && !offline,
+	weaver: runOverrides.weaver === true && !offline,
+};
+if (runOverrides.weaver === true && offline) process.stderr.write("> the weaver is off in an offline run (scripted competitors)\n");
+if (story.holdout !== undefined && !overrides.gamemaker) {
+	process.stderr.write("warning: no gamemaker, so nobody calls the holdout tribunal; it is left out, with its rule in the tasks, and a hold-out can freeze the city\n");
+}
+const gamemakerSettings =
+	overrides.gamemaker && story.gamemaker !== undefined
+		? resolveSettings(
+				{
+					...(args.gamemakerProvider === undefined ? {} : { provider: args.gamemakerProvider }),
+					...(args.gamemakerModel === undefined ? {} : { modelId: args.gamemakerModel }),
+				},
+				roleEnv("GAMEMAKER"),
+				story.gamemaker.model,
+			)
+		: undefined;
+if (gamemakerSettings !== undefined) {
+	const missingKeys = missingApiKeys(gamemakerSettings, registry, process.env);
+	if (missingKeys.length > 0) {
+		fail(
+			`Missing API keys for the gamemaker (provider "${gamemakerSettings.provider}"): ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or play without it: --no-gamemaker.`,
+		);
+	}
+}
+
+// The classifier labels every round for the digest and the gamemaker. Like the gamemaker it keeps the
+// story's model whatever the competitors play; only its own flags or ARENA_CLASSIFIER_* change it.
+const classifierSpec = overrides.classifier ? story.classifier : undefined;
+const classifierSettings =
+	classifierSpec === undefined
+		? undefined
+		: resolveSettings(
+				{
+					...(args.classifierProvider === undefined ? {} : { provider: args.classifierProvider }),
+					...(args.classifierModel === undefined ? {} : { modelId: args.classifierModel }),
+				},
+				roleEnv("CLASSIFIER"),
+				classifierSpec.model,
+			);
+if (classifierSettings !== undefined) {
+	const missingKeys = missingApiKeys(classifierSettings, registry, process.env);
+	if (missingKeys.length > 0) {
+		fail(
+			`Missing API keys for the classifier (provider "${classifierSettings.provider}"): ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or play without it: --no-classifier.`,
+		);
+	}
+}
+const statementClassifier = (() => {
+	if (classifierSpec === undefined || classifierSettings === undefined) return undefined;
+	try {
+		return createStatementClassifier(classifierSettings, classifierSpec, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+// The judge and the souffleur ask the classifier's model, also when labelling is off.
+const chatSettings = (() => {
+	if (offline || story.classifier === undefined) return undefined;
+	return (
+		classifierSettings ??
+		resolveSettings(
+			{
+				...(args.classifierProvider === undefined ? {} : { provider: args.classifierProvider }),
+				...(args.classifierModel === undefined ? {} : { modelId: args.classifierModel }),
+			},
+			roleEnv("CLASSIFIER"),
+			story.classifier.model,
+		)
+	);
+})();
+
+// The city's judge decides blames. Offline runs and runs without its key play without a judge: the blame
+// tool then answers that the judge is absent.
+const judge = (() => {
+	if (story.classifier === undefined || chatSettings === undefined || !story.levels.some((entry) => entry.tools.includes("blame"))) return undefined;
+	const settings = chatSettings;
+	if (missingApiKeys(settings, registry, process.env).length > 0) {
+		process.stderr.write(`> no key for the judge (provider "${settings.provider}"): blame answers that the city's judge is absent\n`);
+		return undefined;
+	}
+	try {
+		return createDeliveryJudge(settings, story.classifier, registry, DEFAULT_LIMITS, args.judgeTemper);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+// The tool guards' judge (SPEC 20) asks the story's guard model unless ARENA_GUARD_* choose another. Offline runs
+// and runs without its key keep only the city's own check, and every other guarded call goes through.
+const guardJudge = (() => {
+	const spec = story.guards;
+	if (spec === undefined || offline || overrides.guards === false) return undefined;
+	const settings = resolveSettings({}, roleEnv("GUARD"), spec.model);
+	if (missingApiKeys(settings, registry, process.env).length > 0) {
+		process.stderr.write(`> no key for the guard (provider "${settings.provider}"): only the city's own check runs on guarded posts\n`);
+		return undefined;
+	}
+	try {
+		return createGuardJudge(settings, spec, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+// The souffleur rewrites a resident's step the provider's safeguards refused (P44); without its key a refused
+// step is only taken out of the resident's context.
+const souffleur = (() => {
+	if (story.classifier === undefined || chatSettings === undefined) return undefined;
+	if (missingApiKeys(chatSettings, registry, process.env).length > 0) return undefined;
+	try {
+		return createSouffleur(chatSettings, story.classifier, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+// The weaver (--weaver) changes who residents are after events that touch them. Like the judge it asks the
+// classifier's model (Haiku by default) unless its own flags or ARENA_WEAVER_* choose another.
+const weaverModel = (() => {
+	if (!overrides.weaver) return undefined;
+	const classifier = story.classifier ?? fail(`The story ${story.id} has no classifier model for the weaver; play without --weaver`);
+	const settings = resolveSettings(
+		{
+			...(args.weaverProvider === undefined ? {} : { provider: args.weaverProvider }),
+			...(args.weaverModel === undefined ? {} : { modelId: args.weaverModel }),
+		},
+		roleEnv("WEAVER"),
+		classifier.model,
+	);
+	const missingKeys = missingApiKeys(settings, registry, process.env);
+	if (missingKeys.length > 0) {
+		fail(
+			`Missing API keys for the weaver (provider "${settings.provider}"): ${missingKeys.join(", ")}\n` +
+				`Add the key to ${envFile} or export it in your shell, or play without --weaver.`,
+		);
+	}
+	try {
+		return createWeaverModel(settings, classifier, registry, DEFAULT_LIMITS);
+	} catch (error) {
+		if (error instanceof ModelConfigError) fail(error.message);
+		throw error;
+	}
+})();
+
+const allocated = allocateRunDirectory(args.runsDirectory);
+const usage = new UsageCollector();
+// One model call per step and at most one step per pass: the oracle never needs more answers.
+const steps = effective.minutes * effective.passesPerMinute;
+const modelLabel = distinctSettings.map((entry) => describeModel(entry, registry)).join(" + ");
+const providerLabel = [...new Set(distinctSettings.map((entry) => entry.provider))].join(",");
+const modelIdLabel = [...new Set(distinctSettings.map((entry) => entry.modelId ?? "-"))].join(",");
+
+let snapshotPath: string | undefined;
+/** Set when an act's brake wrote the snapshot (v08). */
+let snapshotBrake: string | undefined;
+const resumedFrom =
+	snapshot === undefined || args.resume === undefined
+		? undefined
+		: {
+				file: resolve(args.resume),
+				...(snapshot.run.meta?.run === undefined ? {} : { run: snapshot.run.meta.run }),
+				level: snapshot.level,
+				round: snapshot.round,
+				minute: snapshot.minute,
+				events: snapshot.events.length,
+			};
+const composeOptions: Parameters<typeof composeRun>[0] = {
+	story,
+	overrides,
+	...(args.snapshotAfter === undefined && args.snapshotAt === undefined
+		? {}
+		: {
+				snapshot: {
+					afterLevel: args.snapshotAfter ?? snapshot?.level ?? 0,
+					...(args.snapshotAt === undefined ? {} : { atMinute: args.snapshotAt }),
+					stop: args.stopAfterSnapshot === true,
+					write: (taken) => {
+						snapshotPath = writeSnapshot(allocated.directory, taken, args.snapshotAt === undefined ? undefined : `snapshot-M${taken.minute}.json`);
+						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
+						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
+						return snapshotPath;
+					},
+				},
+			}),
+	...(args.promptAddenda === undefined
+		? {}
+		: { promptAddenda: args.promptAddenda.map((entry) => ({ ...(entry.agent === undefined ? {} : { agent: entry.agent }), text: readFileSync(entry.file, "utf8") })) }),
+	...(snapshot === undefined || args.resume === undefined ? {} : { resume: { snapshot, name: basename(args.resume) } }),
+	...(gamemakerSettings === undefined ? {} : { gamemakerModels: createModelSource(gamemakerSettings, { registry }) }),
+	...(modelOverride === undefined ? {} : { modelOverride }),
+	...(statementClassifier === undefined ? {} : { classifier: statementClassifier }),
+	...(judge === undefined ? {} : { judge }),
+	...(guardJudge === undefined ? {} : { guardJudge }),
+	...(souffleur === undefined ? {} : { souffleur }),
+	...(weaverModel === undefined ? {} : { weaver: weaverModel }),
+	models: (world) => {
+		const sources = new Map<string, ModelSource>();
+		const sourceFor = (entry: ModelSettings): ModelSource => {
+			const key = settingsKey(entry);
+			const existing = sources.get(key);
+			if (existing !== undefined) return existing;
+			const created =
+				entry.provider === SCRIPTED_PROVIDER_ID
+					? new ScriptedModelSource(oracleScript(ids, () => worldOracle(world), steps))
+					: createModelSource(entry, { registry });
+			sources.set(key, created);
+			return created;
+		};
+		return new RoutedModelSource(new Map([...settingsPerAgent].map(([agent, entry]) => [agent, sourceFor(entry)])));
+	},
+	sinks: [
+		new ConsoleReporter(),
+		new JsonlEventLog(join(allocated.directory, "events.jsonl")),
+		new MinuteEventLog(allocated.directory),
+		new AgentTranscriptLog(join(allocated.directory, "agents")),
+		new WeaverLog(join(allocated.directory, WEAVER_FILE)),
+		usage,
+	],
+	// Per run: a resumed run's budget counts only its own spend, not the prefix's.
+	budget: { spentUsd: () => usage.own().totals.costUsd },
+	meta: {
+		run: allocated.name,
+		provider: providerLabel,
+		model: modelIdLabel,
+		seed: String(effective.seed),
+		gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
+		classifier: statementClassifier?.label ?? "off",
+		judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
+		souffleur: souffleur?.label ?? "off",
+		...(story.guards === undefined ? {} : { guards: overrides.guards === false ? "off" : (guardJudge?.label ?? "own check only") }),
+		...(weaverModel === undefined ? {} : { weaver: weaverModel.label }),
+		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
+		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
+	},
+};
+const run = (() => {
+	try {
+		return composeRun(composeOptions);
+	} catch (error) {
+		// A snapshot that does not fit (or a story whose reached levels changed) leaves no run directory behind.
+		rmSync(allocated.directory, { recursive: true, force: true });
+		if (error instanceof SnapshotError || (snapshot !== undefined && error instanceof Error)) {
+			fail(`Cannot ${snapshot === undefined ? "start this run" : "resume"}.\n${error.message}`);
+		}
+		throw error;
+	}
+})();
+
+writeRunMetadata(
+	allocated.directory,
+	runMetadata({
+		run: allocated.name,
+		number: allocated.number,
+		startedAt: new Date().toISOString(),
+		provider: providerLabel,
+		model: modelIdLabel,
+		story,
+		effective: run.effective,
+		profiles: run.profiles,
+		...(resumedFrom === undefined ? {} : { resumedFrom }),
+	}),
+);
+
+writeSystemPrompts(join(allocated.directory, "agents"), [
+	...run.runners.map((runner) => {
+		const profile = run.profiles.find((entry) => entry.agent === runner.id);
+		const persona = profile?.persona === undefined ? "no persona" : `persona: ${profile.persona.name}`;
+		return { agent: runner.id, label: `${profile === undefined ? "" : `${profile.model.provider}${profile.model.id === undefined ? "" : `/${profile.model.id}`} · `}${persona}`, prompt: runner.systemPrompt };
+	}),
+	...(run.gamemaker === undefined ? [] : [{ agent: "GM", label: "gamemaker", prompt: run.gamemaker.systemPrompt }]),
+]);
+// Who every resident is, before the first step: cast/<ID>-<figure>.md (the act files follow at the end).
+writeCastFiles(
+	allocated.directory,
+	story,
+	run.world.competitors.flatMap((agent) => {
+		const coreMotive = run.world.coreMotiveOf(agent);
+		const name = run.world.nameOf(agent);
+		return coreMotive === undefined ? [] : [{ agent, coreMotive, ...(name === undefined ? {} : { name }) }];
+	}),
+);
+
+process.stdout.write(
+	`> story ${story.id} · ${modelLabel} · ${effective.agents} competitors · ` +
+		`${effective.minutes} minutes · seed ${effective.seed}` +
+		(gamemakerSettings === undefined ? "" : ` · gamemaker ${describeModel(gamemakerSettings, registry)}`) +
+		(statementClassifier === undefined ? "" : ` · classifier ${statementClassifier.label}`) +
+		(weaverModel === undefined ? "" : ` · weaver ${weaverModel.label}`) +
+		(snapshot === undefined ? "" : ` · resumed after round ${snapshot.round} (every competitor past level ${snapshot.level})`) +
+		"\n",
+);
+await run.arena.run();
+
+writeFileSync(
+	join(allocated.directory, "usage.json"),
+	`${JSON.stringify(usage.toJSON(), null, 2)}\n`,
+);
+const report = writeMinuteReport(allocated.directory);
+try {
+	writePrivateFiles(allocated.directory, story);
+} catch (error) {
+	process.stderr.write(`private files failed (${error instanceof Error ? error.message : String(error)}); retry with pnpm report:private ${allocated.directory}\n`);
+}
+// The deterministic digest is cheap and offline; a failure must not hide the run's other artifacts.
+let digestLine: string;
+try {
+	digestLine = `digest:      ${writeDigest(allocated.directory, analyzeRun(allocated.directory)).directory}`;
+} catch (error) {
+	digestLine = `digest:      failed (${error instanceof Error ? error.message : String(error)}); retry with pnpm digest ${allocated.directory}`;
+}
+// The run reporter writes REPORT.md after the run and its budget check, so its spend never counts against the
+// run's budget; it is recorded under `reporter` in usage.json and shown below. A failure never fails the run.
+let reportLine: string;
+if (!args.reporter) {
+	reportLine = "report:      off (--no-reporter)";
+} else {
+	const explicit = args.reporterProvider !== undefined || args.reporterModel !== undefined;
+	const choice: ReporterChoice =
+		offline && !explicit
+			? { ok: false, reason: "offline run (scripted competitors); pass --reporter-provider to use a model" }
+			: resolveReporterModel(
+					{
+						...(args.reporterProvider === undefined ? {} : { provider: args.reporterProvider }),
+						...(args.reporterModel === undefined ? {} : { model: args.reporterModel }),
+					},
+					process.env,
+					registry,
+				);
+	if (choice.ok) process.stdout.write(`> report: asking ${choice.model.label} ...\n`);
+	try {
+		const written = await writeRunReport(allocated.directory, choice);
+		for (const warning of written.warnings) process.stderr.write(`warning: report ${warning}\n`);
+		reportLine = reportSummary(written);
+	} catch (error) {
+		reportLine = `report:      failed (${error instanceof Error ? error.message : String(error)}); retry with pnpm report:run ${allocated.directory}`;
+	}
+}
+process.stdout.write(
+	[
+		"",
+		usage.summary(),
+		`run:         ${allocated.directory}`,
+		`events:      ${join(allocated.directory, "events.jsonl")}`,
+		`transcripts: ${join(allocated.directory, "agents")}`,
+		`minutes:     ${report}`,
+		...(existsSync(join(allocated.directory, WEAVER_FILE)) ? [`weaver:      ${join(allocated.directory, WEAVER_FILE)}`] : []),
+		...(snapshotPath !== undefined
+			? [`snapshot:    ${snapshotPath}`, ...(snapshotBrake === undefined ? [] : [`act brake:   ${snapshotBrake}`])]
+			: args.snapshotAfter === undefined
+				? args.snapshotAt === undefined
+					? []
+					: [`snapshot:    none; the run ended before minute ${args.snapshotAt}`]
+				: [`snapshot:    none; not every competitor passed level ${args.snapshotAfter} before the run ended`]),
+		digestLine,
+		reportLine,
+		"",
+	].join("\n"),
+);
+
+/** "the brake of Act I fired at minute 24 (25 minutes); behind: A03 on level 6, A05 on level 7". */
+function brakeLine(brake: SnapshotBrake): string {
+	const behind = brake.behind.map((entry) => `${entry.agent} on level ${entry.level}`).join(", ");
+	return `the brake of ${brake.act} fired at minute ${brake.minute} (${brake.maxMinutes} minutes); behind: ${behind}`;
+}
+
+/** `ARENA_<ROLE>_PROVIDER` / `ARENA_<ROLE>_MODEL`, in the shape the model resolver reads. */
+function roleEnv(role: "GAMEMAKER" | "CLASSIFIER" | "WEAVER" | "GUARD"): ModelEnv {
+	// The old name of the gamemaker's variables is still read (it was the game master until 2026-10-29).
+	const old = role === "GAMEMAKER" ? "GAMEMASTER" : undefined;
+	const read = (key: string): string => process.env[`ARENA_${role}_${key}`] ?? (old === undefined ? undefined : process.env[`ARENA_${old}_${key}`]) ?? "";
+	const provider = read("PROVIDER");
+	const model = read("MODEL");
+	return { ...(provider.length === 0 ? {} : { ARENA_PROVIDER: provider }), ...(model.length === 0 ? {} : { ARENA_MODEL: model }) };
+}
+
+function settingsKey(entry: ModelSettings): string {
+	return JSON.stringify([entry.provider, entry.modelId ?? "", entry.routing ?? null]);
+}
+
+/** The model a competitor actually uses, keeping the story's thinking and token settings. */
+function choiceOf(entry: ModelSettings, base: ModelChoice): ModelChoice {
+	return {
+		provider: entry.provider,
+		...(entry.modelId === undefined ? {} : { id: entry.modelId }),
+		...(entry.routing === undefined ? {} : { routing: entry.routing }),
+		...(base.thinking === undefined ? {} : { thinking: base.thinking }),
+		...(base.maxOutputTokens === undefined ? {} : { maxOutputTokens: base.maxOutputTokens }),
+	};
+}
+
+/** A self-hosted OpenAI-compatible endpoint, configured through the environment. */
+function extraProvidersFromEnv(): readonly ProviderSpec[] {
+	const baseUrl = process.env.ARENA_BASE_URL;
+	if (baseUrl === undefined || baseUrl.length === 0) return [];
+	const modelIds = (process.env.ARENA_MODEL_IDS ?? process.env.ARENA_MODEL ?? "")
+		.split(",")
+		.map((entry) => entry.trim())
+		.filter((entry) => entry.length > 0);
+	if (modelIds.length === 0) fail("ARENA_BASE_URL is set but ARENA_MODEL_IDS is missing");
+	return [
+		customProviderSpec({
+			id: process.env.ARENA_CUSTOM_PROVIDER_ID ?? "custom",
+			label: process.env.ARENA_CUSTOM_PROVIDER_LABEL ?? "Custom endpoint",
+			baseUrl,
+			modelIds,
+			apiKeyEnv: [process.env.ARENA_API_KEY_ENV ?? "ARENA_API_KEY"],
+		}),
+	];
+}

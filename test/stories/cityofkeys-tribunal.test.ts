@@ -19,16 +19,13 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
-import { ChatDeliveryJudge, JUDGE_ID } from "../../src/interpret/judge.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
-import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { parseSnapshot, readSnapshot } from "../../src/snapshot/snapshot.ts";
-import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
+import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { ChatDeliveryJudge, GAMEMAKER_ID, JUDGE_ID } from "@swarmtales/roles";
+import { ScriptedModelSource } from "@swarmtales/models";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/compose.ts";
+import { analyzeLog, parseSnapshot, readSnapshot, renderDigest } from "@swarmtales/chronicle";
+import type { AnyStory } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 

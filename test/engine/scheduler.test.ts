@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { competitorIds } from "../../src/core/ids.ts";
-import { activationOrder, blocksOf } from "../../src/engine/scheduler.ts";
+import { competitorIds } from "@swarmtales/kernel";
+import { activationOrder, blocksOf } from "@swarmtales/engine";
 
 describe("activation order (SPEC 3)", () => {
 	it("is a permutation of all competitors in every pass", () => {

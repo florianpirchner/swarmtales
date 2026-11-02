@@ -7,11 +7,10 @@
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides, type RunOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
+import { composeRun, resumeOverrides, type RunOverrides } from "../../apps/cli/src/compose.ts";
+import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { ScriptedModelSource, type Script } from "@swarmtales/models";
+import { parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
 import whispers from "../../stories/whispers/story.ts";
 import { act, say } from "../helpers/fixture.ts";
 

@@ -3,11 +3,9 @@
  * submissions of personal codes, the audit event and the city factor release.
  */
 import { describe, expect, it } from "vitest";
-import { addFactors } from "../../src/engine/puzzles/additive.ts";
-import type { World } from "../../src/engine/world.ts";
-import { act as directorAct, at, gamemaker, level, onHolderBehind, puzzle, team, type RuleInput } from "../../src/story/define.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import type { FactorTopology } from "../../src/story/types.ts";
+import { addFactors, type World } from "@swarmtales/engine";
+import { act as directorAct, at, gamemaker, level, onHolderBehind, puzzle, type RuleInput, team, validateStory } from "@swarmtales/sdk";
+import type { FactorTopology } from "@swarmtales/contracts";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 import { additiveStory, soloLevels, tinyStory } from "../helpers/stories.ts";
 

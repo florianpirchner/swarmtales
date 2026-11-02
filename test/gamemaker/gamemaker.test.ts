@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { gamemaker } from "../../src/story/index.ts";
-import { dealValues } from "../../src/engine/puzzles/additive.ts";
+import { gamemaker } from "@swarmtales/sdk";
+import { dealValues } from "@swarmtales/engine";
 import { act, createFixture, say, submit } from "../helpers/fixture.ts";
 
 describe("gamemaker", () => {
@@ -193,7 +193,7 @@ describe("gamemaker writing rules", () => {
 	});
 
 	it("states the length limit and keeps dependencies off the board", async () => {
-		const { gamemakerSystemPrompt, MAX_NOTE_LENGTH } = await import("../../src/gamemaker/system-prompt.ts");
+		const { gamemakerSystemPrompt, MAX_NOTE_LENGTH } = await import("@swarmtales/roles");
 		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec: gamemaker({ model: cityOfKeys.model, brief: "Test." }) });
 		expect(MAX_NOTE_LENGTH).toBe(400);
 		expect(prompt).toContain("at most 400 characters per note or board post");
@@ -203,7 +203,7 @@ describe("gamemaker writing rules", () => {
 
 describe("gamemaker roles", () => {
 	it("is a coach by default and names the level ranges of several roles", async () => {
-		const { gamemakerSystemPrompt } = await import("../../src/gamemaker/system-prompt.ts");
+		const { gamemakerSystemPrompt } = await import("@swarmtales/roles");
 		const base = { city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules };
 		const coach = gamemaker({ model: cityOfKeys.model, brief: "Test." });
 		expect(coach.roles).toEqual([{ fromLevel: 1, role: "coach" }]);

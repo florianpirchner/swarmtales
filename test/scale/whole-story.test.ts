@@ -4,14 +4,14 @@
  * submits its own solution every minute and never votes, so every tribunal
  * closes on non-voters; the run must still reach the target within the act.
  * Nobody chooses a name, so the city names everyone. v09: every resident gets a
- * core at the start and a goal at the wall; the oracle never bids, so every
+ * core motive at the start and a goal at the wall; the oracle never bids, so every
  * black seal goes unsold.
  * Each takes a few seconds, so they run in the normal suite.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { exileTarget } from "../../src/story/tribunal.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { worldOracle } from "../../apps/cli/src/oracle.ts";
+import { exileTarget } from "@swarmtales/engine";
+import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { createFixture } from "../helpers/fixture.ts";
 
@@ -43,7 +43,7 @@ describe.each([6, 12, 48])("cityofkeys with %i oracle residents", (agents) => {
 		const names = fixture.events("name_chosen");
 		expect(names.filter((event) => event.fallback && event.minute === 2)).toHaveLength(agents);
 		expect(new Set(names.map((event) => event.name.toLowerCase())).size).toBe(agents);
-		// v09: a core for everyone, a goal for everyone at the wall, one seal per 12 residents, none sold.
+		// v09: a core motive for everyone, a goal for everyone at the wall, one seal per 12 residents, none sold.
 		expect(fixture.events("core_dealt")).toHaveLength(agents);
 		expect(fixture.events("goal_dealt")).toHaveLength(agents);
 		expect(fixture.events("goal_resolved")).toHaveLength(agents);

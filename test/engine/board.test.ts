@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Board } from "../../src/engine/board.ts";
+import { Board } from "@swarmtales/engine";
 
 const texts = (posts: readonly { readonly text: string }[]) => posts.map((post) => post.text);
 

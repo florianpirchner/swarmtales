@@ -1,0 +1,253 @@
+/**
+ * Loading a story's mechanics: the load order from the `requires` graph (ties keep the story's
+ * order), one port per mechanic, and the checks that make a bad combination fail at start instead
+ * of in the middle of a run (missing or doubled providers, clashing tool or event names, grants of
+ * unknown tools).
+ */
+import { Check } from "typebox/value";
+import { CORE_EVENTS, DEFAULT_ORDER, type CoreStory, type Grants, type MechanicInstance, type MechanicPort, type MechanicTool, type MechanicUse, type PromptLookup, type ProvidedApi } from "@swarmtales/contracts";
+import { createRng, deriveSeed } from "../random.ts";
+import type { AccessControl } from "./access.ts";
+import { toolFor, type LoadedTool, type ToolCatalog } from "./catalog.ts";
+import { CORE_OWNER, type DecisionGate } from "./decisions.ts";
+import type { EventBus } from "./log.ts";
+import { resolveGrants } from "./auto-grants.ts";
+import { checkNames, checkOverseerNames } from "./name-checks.ts";
+import type { Names } from "./names.ts";
+import type { ResidentRegistry } from "./residents.ts";
+import type { Scheduler } from "./scheduler.ts";
+import type { StagingQueue } from "./staging.ts";
+
+/**
+ * Sorts the story's mechanics so each comes after the providers of the APIs it requires and of
+ * the loaded APIs it uses. When only `uses` edges hold the rest back (a cycle of optional uses),
+ * the first of them in the story's order whose requires are placed loads next. A cycle of
+ * `requires` is an error.
+ */
+export function loadOrder(uses: readonly MechanicUse[]): readonly MechanicUse[] {
+	const ids = uses.map((use) => use.mechanic.id);
+	const doubled = ids.find((id, index) => ids.indexOf(id) !== index);
+	if (doubled !== undefined) throw new Error(`story: mechanic "${doubled}" is loaded twice`);
+	const providers = new Map<string, string>();
+	for (const use of uses) {
+		for (const api of use.mechanic.provides) {
+			const other = providers.get(api.name);
+			if (other !== undefined) throw new Error(`story: "${other}" and "${use.mechanic.id}" both provide "${api.name}"; load only one`);
+			providers.set(api.name, use.mechanic.id);
+		}
+	}
+	const needs = new Map<string, readonly string[]>();
+	for (const use of uses) {
+		needs.set(
+			use.mechanic.id,
+			use.mechanic.requires.map((api) => {
+				const provider = providers.get(api.name);
+				if (provider === undefined) throw new Error(`story: "${use.mechanic.id}" requires "${api.name}", which no loaded mechanic provides`);
+				return provider;
+			}),
+		);
+	}
+	const wants = new Map<string, readonly string[]>();
+	for (const use of uses) {
+		const loaded = use.mechanic.uses.flatMap((api) => providers.get(api.name) ?? []);
+		wants.set(use.mechanic.id, loaded.filter((id) => id !== use.mechanic.id));
+	}
+	const placed: MechanicUse[] = [];
+	const done = new Set<string>();
+	const placedAll = (edges: ReadonlyMap<string, readonly string[]>, id: string): boolean => (edges.get(id) ?? []).every((other) => done.has(other));
+	while (placed.length < uses.length) {
+		const open = uses.filter((use) => !done.has(use.mechanic.id));
+		const ready =
+			open.find((use) => placedAll(needs, use.mechanic.id) && placedAll(wants, use.mechanic.id)) ??
+			// Only optional uses block: they form a cycle, and the story's order breaks it.
+			open.find((use) => placedAll(needs, use.mechanic.id));
+		if (ready === undefined) throw new Error(`story: the requires of ${open.map((use) => use.mechanic.id).join(", ")} form a cycle`);
+		placed.push(ready);
+		done.add(ready.mechanic.id);
+	}
+	return placed;
+}
+
+export interface LoaderParts {
+	readonly story: CoreStory;
+	readonly bus: EventBus;
+	readonly residents: ResidentRegistry;
+	readonly scheduler: Scheduler;
+	readonly access: AccessControl;
+	readonly prompts: PromptLookup | undefined;
+	readonly minute: () => number;
+	readonly staging: StagingQueue;
+	/** The app's model-backed roles of the run, by name (`ctx.roles.has`). */
+	readonly roles: ReadonlySet<string>;
+	/** The overseers that answer a consult role (`ctx.roles.has` finds them too). */
+	readonly overseerRoles?: ReadonlySet<string>;
+	/** The core's tools besides `amendDecision` (the human's, docs/design/overseer-api.md §5). */
+	readonly coreTools?: readonly MechanicTool[];
+	/** The story's grant names and callers. */
+	readonly names: Names;
+	/** The decision gate: `ctx.decide`, `ctx.decisions` and the core tool `amendDecision`. */
+	readonly gate: DecisionGate;
+}
+
+export interface Loaded {
+	readonly order: readonly string[];
+	readonly instances: ReadonlyMap<string, MechanicInstance>;
+	/** By name; one entry per role-disjoint variant. */
+	readonly tools: ToolCatalog;
+	/** The story's grants: its own, or the ones `grants: "auto"` derived. */
+	readonly grants: Grants<string, string>;
+}
+
+export function loadMechanics(parts: LoaderParts): Loaded {
+	const { story, bus } = parts;
+	checkOverseerNames(story);
+	const order = loadOrder(story.mechanics);
+	const provided = new Set(order.flatMap((use) => use.mechanic.provides.map((api) => api.name)));
+	const instances = new Map<string, MechanicInstance>();
+	const services = new Map<string, ProvidedApi>();
+	// The core's own tools come first; a mechanic that defines one of their names for the same callers fails below.
+	const tools = new Map<string, readonly LoadedTool[]>([parts.gate.tool(), ...(parts.coreTools ?? [])].map((tool) => [tool.name, [{ owner: CORE_OWNER, tool }]]));
+	const owners = new Map<string, string>();
+	for (const use of order) {
+		const definition = use.mechanic;
+		if (definition.id === CORE_OWNER) throw new Error(`story: a mechanic may not be called "${CORE_OWNER}"`);
+		for (const type of Object.keys(definition.events)) {
+			if (Object.hasOwn(CORE_EVENTS, type)) throw new Error(`${definition.id}: event "${type}" is reserved by the core`);
+			const owner = owners.get(type);
+			if (owner !== undefined) throw new Error(`${definition.id}: event "${type}" is declared by "${owner}" too`);
+			owners.set(type, definition.id);
+		}
+		let jobs: readonly string[] = [];
+		const port = portFor(parts, definition.id, use, { services, provided }, () => jobs, tools, () => instances.get(definition.id));
+		const instance = definition.instantiate(port, use.options);
+		jobs = instance.jobs;
+		for (const service of instance.services) services.set(service.api.name, service);
+		for (const tool of instance.tools) {
+			const others = tools.get(tool.name) ?? [];
+			const clash = others.find((other) => parts.names.overlap(other.tool.serves, tool.serves));
+			if (clash !== undefined) throw new Error(`${definition.id}: tool "${tool.name}" is defined by "${clash.owner}" too, for the same role`);
+			tools.set(tool.name, [...others, { owner: definition.id, tool }]);
+		}
+		instances.set(definition.id, instance);
+		bus.listen(instance.listeners);
+	}
+	checkListeners(order, instances);
+	const grants = resolveGrants(story, tools, parts.names);
+	parts.access.setGrants(grants);
+	checkNames({ story, grants, names: parts.names, tools, events: owners, roles: parts.roles, prompts: parts.prompts });
+	const policies = Object.values(story.tools ?? {}).flatMap((byTool) => Object.keys(byTool ?? {}));
+	const named = [...Object.values(grants).flatMap((tools) => tools ?? []), ...(story.locked ?? []), ...policies];
+	for (const name of named) if (!tools.has(name)) throw new Error(`story: tool "${name}" is granted, locked or configured, but no loaded mechanic defines it`);
+	for (const [role, byTool] of Object.entries(story.tools ?? {})) {
+		if (role === "resident") continue;
+		const guarded = Object.entries(byTool ?? {}).find(([, policy]) => policy?.guard !== undefined);
+		if (guarded !== undefined) throw new Error(`story: tool "${guarded[0]}" has a guard policy for ${role}, but the guard covers residents only`);
+	}
+	return { order: order.map((use) => use.mechanic.id), instances, tools, grants };
+}
+
+/**
+ * A listener of a loaded mechanic's event must read it with the schema that mechanic declares (the
+ * frozen shared one). Listeners of one event that give orders must share their mode: the bus runs
+ * every immediate listener inside the emit, before any deferred one, so an order across the two
+ * modes would be ignored (R2-D15).
+ */
+function checkListeners(order: readonly MechanicUse[], instances: ReadonlyMap<string, MechanicInstance>): void {
+	const declared = new Map(order.map((use) => [use.mechanic.id, use.mechanic.events]));
+	const modes = new Map<string, { readonly id: string; readonly immediate: boolean }>();
+	for (const [id, instance] of instances) {
+		for (const listener of instance.listeners) {
+			if (listener.order === DEFAULT_ORDER) continue;
+			const event = `${listener.source}.${listener.type}`;
+			const other = modes.get(event);
+			if (other === undefined) modes.set(event, { id, immediate: listener.immediate });
+			else if (other.immediate !== listener.immediate) {
+				throw new Error(`story: ${other.id} and ${id} order their listeners of ${event}, but only one is immediate; an order across modes is ignored, so both must be immediate or both deferred`);
+			}
+		}
+	}
+	for (const [id, instance] of instances) {
+		for (const listener of instance.listeners) {
+			const events = declared.get(listener.source);
+			if (events === undefined) continue;
+			const schema = events[listener.type];
+			if (schema === undefined) throw new Error(`${id}: listens to ${listener.source}.${listener.type}, which ${listener.source} does not declare`);
+			if (schema !== listener.schema) throw new Error(`${id}: listens to ${listener.source}.${listener.type} with another schema than ${listener.source} declares; both must use the shared declaration`);
+		}
+	}
+}
+
+function portFor(
+	parts: LoaderParts,
+	id: string,
+	use: MechanicUse,
+	apis: { readonly services: ReadonlyMap<string, ProvidedApi>; readonly provided: ReadonlySet<string> },
+	jobs: () => readonly string[],
+	tools: ToolCatalog,
+	self: () => MechanicInstance | undefined,
+): MechanicPort {
+	const { services, provided } = apis;
+	const isTool = (tool: string): boolean => tools.has(tool);
+	const { bus, story } = parts;
+	const definition = use.mechanic;
+	let drawSeq = -1;
+	let draws = 0;
+	return {
+		id,
+		seed: story.seed,
+		minutes: story.minutes,
+		minute: parts.minute,
+		emit(type, payload) {
+			const schema = definition.events[type];
+			if (schema === undefined) throw new Error(`${id}: event "${type}" is not declared`);
+			if (!Check(schema, payload)) throw new Error(`${id}: the payload of "${type}" does not match its schema`);
+			bus.emit(id, type, payload);
+		},
+		has: (apiName) => provided.has(apiName),
+		call(apiName, method, input) {
+			const api = [...definition.requires, ...definition.uses].find((required) => required.name === apiName);
+			if (api === undefined) throw new Error(`${id}: calls "${apiName}" without requiring or using it`);
+			const provider = services.get(apiName);
+			const spec = api.methods[method];
+			if (provider === undefined || spec === undefined) throw new Error(`${id}: "${apiName}.${method}" is not available`);
+			if (spec.kind === "query") return provider.call(method, input, id);
+			const frame = bus.frame();
+			return bus.run(frame, () => {
+				const called = bus.emit("core", "service_called", { api: apiName, method, caller: id, input });
+				return bus.run({ actor: frame.actor, cause: called.seq }, () => provider.call(method, input, id));
+			});
+		},
+		render(prompt, variables, declared) {
+			if (parts.prompts === undefined) throw new Error(`${id}: renders "${prompt}" but the host has no prompt lookup`);
+			return parts.prompts.render(id, prompt, variables, declared);
+		},
+		random() {
+			if (drawSeq !== bus.lastSeq) {
+				drawSeq = bus.lastSeq;
+				draws = 0;
+			}
+			draws += 1;
+			return createRng(deriveSeed(story.seed, id, drawSeq, draws));
+		},
+		rng: (...labels) => createRng(deriveSeed(story.seed, ...labels)),
+		stage(ref, params, options) {
+			const tool = ref.name;
+			const then = options?.then;
+			if (then !== undefined && !jobs().includes(then)) throw new Error(`${id}: stages ${tool} with "then" job "${then}", which it does not declare`);
+			if (!isTool(tool)) throw new Error(`${id}: stages "${tool}", which no loaded mechanic defines`);
+			const variant = toolFor(tools, tool, { name: "script" });
+			if (variant !== undefined && variant.tool.parameters !== ref.parameters) throw new Error(`${id}: stages "${tool}" with another parameter schema than ${variant.owner} defines; both must use the shared declaration`);
+			parts.staging.push({ owner: id, tool, params, cause: bus.frame().cause, then });
+		},
+		decide(kind, proposal, options, commit) {
+			if (self() === undefined) throw new Error(`${id}: decides "${kind}" before it is loaded`);
+			return parts.gate.decide(id, kind, proposal, options, commit);
+		},
+		decisions: parts.gate,
+		residents: parts.residents.portFor(id),
+		schedule: parts.scheduler.portFor(id, { has: (job) => jobs().includes(job) }, parts.minute),
+		access: parts.access.portFor(id, isTool),
+		roles: { has: (role) => parts.roles.has(role) || parts.overseerRoles?.has(role) === true },
+		log: bus,
+	};
+}

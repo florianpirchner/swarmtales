@@ -8,13 +8,11 @@
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { act, say } from "../../src/model/scripted.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import { composeRun, resumeOverrides } from "../../apps/cli/src/compose.ts";
+import { MemorySink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { act, say, type Script, ScriptedModelSource } from "@swarmtales/models";
+import { parseSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
+import type { AnyStory } from "@swarmtales/contracts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const MINUTES = 24;

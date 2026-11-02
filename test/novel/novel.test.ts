@@ -1,17 +1,42 @@
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText, type FauxResponseFactory } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { UsageError } from "../../src/cli/args.ts";
-import { parseNovelArgs } from "../../src/cli/novel-args.ts";
-import { createProviderRegistry } from "../../src/model/providers.ts";
-import { castBook } from "../../src/novel/casting.ts";
-import { PiNovelModel, resolveEditorModel, resolveOutlineModel, resolveWriterModel, WRITER_REQUEST, type NovelModel } from "../../src/novel/model.ts";
-import { buildOutlineRequest, interpretOutline, maxChaptersFor, OutlineError } from "../../src/novel/outline.ts";
-import { buildGamemakerPack, buildPack } from "../../src/novel/packs.ts";
-import { cityRecords, placeRecords, renderRecord } from "../../src/novel/records.ts";
-import { EDIT_DELIMITER, GAMEMAKER_TEAM } from "../../src/novel/prompts.ts";
-import { DEFAULT_NOVEL_OPTIONS, NovelError, renderOutlineJson, writeNovel } from "../../src/novel/novel.ts";
-import { figureText, Names, parseGamemakerLog, runLabel, worldText, type NovelSource } from "../../src/novel/source.ts";
-import { cleanProse, interpretEdit, storyParts, translateStory } from "../../src/novel/writer.ts";
+import { UsageError } from "../../apps/cli/src/args.ts";
+import { parseNovelArgs } from "../../apps/cli/src/novel-args.ts";
+import { createProviderRegistry } from "@swarmtales/models";
+import {
+	buildGamemakerPack,
+	buildOutlineRequest,
+	buildPack,
+	castBook,
+	cityRecords,
+	cleanProse,
+	DEFAULT_NOVEL_OPTIONS,
+	EDIT_DELIMITER,
+	figureText,
+	gamemakerTeam,
+	interpretEdit,
+	interpretOutline,
+	maxChaptersFor,
+	Names,
+	NovelError,
+	type NovelModel,
+	type NovelSource,
+	OutlineError,
+	parseGamemakerLog,
+	PiNovelModel,
+	placeRecords,
+	renderOutlineJson,
+	renderRecord,
+	resolveEditorModel,
+	resolveOutlineModel,
+	resolveWriterModel,
+	runLabel,
+	storyParts,
+	translateStory,
+	worldText,
+	writeNovel,
+	WRITER_REQUEST,
+} from "@swarmtales/novelist";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const AGENTS = ["A01", "A02", "A03", "A04", "A05", "A06"];
@@ -233,7 +258,7 @@ describe("scene packs", () => {
 		const vote = log.add({ type: "tribunal_vote", voter: "A03", target: "A01" });
 		log.at(9).add({ type: "gamemaker_thinking", text: "Later thought." });
 		const source = { analysis: log.analyze({ run: "run-gm" }), gamemaker: parseGamemakerLog(log.jsonl()), figures: new Map<string, string>() };
-		const pack = buildGamemakerPack(source, { number: 2, pov: "GAMEMAKER", title: "Above", from: 0, to: 5, beats: ["He presses A01."], evidence: [thought] }, GAMEMAKER_TEAM);
+		const pack = buildGamemakerPack(source, { number: 2, pov: "GAMEMAKER", title: "Above", from: 0, to: 5, beats: ["He presses A01."], evidence: [thought] }, gamemakerTeam());
 		expect(pack.markdown).toContain("Point of view: the Gamemaker, minutes 0-5.");
 		expect(pack.markdown).toContain("- He presses Hedda.");
 		expect(pack.markdown).toContain(`#${String(thought)} m2 "Lucien stalls; an ultimatum on Hedda and Lucien."`);

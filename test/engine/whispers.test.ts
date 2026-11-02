@@ -1,19 +1,22 @@
 import { getCurrentTools, type AssistantMessage, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { MarksBook } from "../../src/engine/marks.ts";
-import { PopularityVote, type PopularityEvent } from "../../src/engine/popularity.ts";
-import { shownPrivatelyText } from "../../src/engine/receipts.ts";
-import { pickWhisperer } from "../../src/engine/whisperer.ts";
-import type { World } from "../../src/engine/world.ts";
-import { competitorIds } from "../../src/core/ids.ts";
-import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
-import type { GuardAnswer, GuardJudge, GuardQuestion } from "../../src/interpret/guard.ts";
-import { codeForms } from "../../src/engine/secrets.ts";
-import { CHECK_REASON, leakedRun } from "../../src/tools/guard.ts";
-import type { AnyStory, GuardsSpec, MarksRules, PopularitySpec, WhispererSpec } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import {
+	CHECK_REASON,
+	codeForms,
+	DIRECTOR_SUPPORT,
+	leakedRun,
+	MarksBook,
+	pickWhisperer,
+	type PopularityEvent,
+	PopularityVote,
+	shownPrivatelyText,
+	type World,
+} from "@swarmtales/engine";
+import { competitorIds } from "@swarmtales/kernel";
+import type { GuardAnswer, GuardJudge, GuardQuestion } from "@swarmtales/roles";
+import type { AnyStory, GuardsSpec, MarksRules, PopularitySpec, WhispererSpec } from "@swarmtales/contracts";
+import { level, puzzle, team, validateStory } from "@swarmtales/sdk";
 import { act, createFixture, say } from "../helpers/fixture.ts";
-import { level, puzzle, team } from "../../src/story/define.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 
 const MARKS = { fromLevel: 1, perRun: 2, prices: { board: 0, group: 0, dm: 0, receipt: 1 } } as const satisfies MarksRules;

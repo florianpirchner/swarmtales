@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fauxAssistantMessage, fauxThinking, fauxToolCall } from "@earendil-works/pi-ai";
 import { afterEach, describe, expect, it } from "vitest";
-import { EventBus } from "../../src/engine/events.ts";
-import { AgentTranscriptLog } from "../../src/log/transcripts.ts";
+import { EventBus } from "@swarmtales/engine";
+import { AgentTranscriptLog } from "@swarmtales/chronicle";
 import { createFixture, say } from "../helpers/fixture.ts";
 
 const directories: string[] = [];

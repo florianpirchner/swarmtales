@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { competitorIds, isSystemAuthor } from "../../src/core/ids.ts";
-import { VirtualClock } from "../../src/core/clock.ts";
+import { competitorIds, isSystemAuthor, VirtualClock } from "@swarmtales/kernel";
 
 describe("ids and clock", () => {
 	it("creates neutral competitor IDs", () => {

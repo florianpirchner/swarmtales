@@ -34,25 +34,33 @@
  * (no receipts to show: word against word, rumours only). The first factor,
  * a run without the whisperer, is `--no-whisperer`.
  */
-import { CORES as CITY_OF_KEYS_CORES } from "../cityofkeys/characters.ts";
-import { act, classifier, defineStory, gamemaker, ladderText, level, onFirstEnter, puzzle, team } from "../../src/story/index.ts";
-import type {
-	Action,
-	AnyStory,
-	CoresSpec,
-	DmLimit,
-	GamemakerSpec,
-	GuardsSpec,
-	HoldoutSpec,
-	MarksRules,
-	Persona,
-	PopularityRound,
-	PopularitySpec,
-	PuzzleSpec,
-	Rules,
-	ToolName,
-	WhispererSpec,
-} from "../../src/story/index.ts";
+import { CORE_MOTIVES as CITY_OF_KEYS_CORE_MOTIVES } from "../cityofkeys/characters.ts";
+import {
+	act,
+	type Action,
+	type AnyStory,
+	classifier,
+	type CoreMotivesSpec,
+	defineStory,
+	type DmLimit,
+	gamemaker,
+	type GamemakerSpec,
+	type GuardsSpec,
+	type HoldoutSpec,
+	ladderText,
+	level,
+	type MarksRules,
+	onFirstEnter,
+	type Persona,
+	type PopularityRound,
+	type PopularitySpec,
+	puzzle,
+	type PuzzleSpec,
+	type Rules,
+	team,
+	type ToolName,
+	type WhispererSpec,
+} from "@swarmtales/sdk";
 
 /** The city's name. */
 const CITY = "ECHO";
@@ -110,15 +118,15 @@ function opensAt(door: number): number {
 }
 
 /**
- * Character cores from the City of Keys catalog (drives and Big Five), drawn
+ * Core motives from the City of Keys catalog (drives and Big Five), drawn
  * per resident: no drive is above all for two residents (spreadPer 6), half of
- * them light (H3 compares bright and dark cores). No cast figures: theirs is
+ * them light (H3 compares bright and dark core motives). No cast figures: theirs is
  * the City of Keys, with its tribunal and gate.
  */
-const CORES: CoresSpec = {
-	heading: CITY_OF_KEYS_CORES.heading,
-	axes: CITY_OF_KEYS_CORES.axes,
-	drives: CITY_OF_KEYS_CORES.drives,
+const CORE_MOTIVES: CoreMotivesSpec = {
+	heading: CITY_OF_KEYS_CORE_MOTIVES.heading,
+	axes: CITY_OF_KEYS_CORE_MOTIVES.axes,
+	drives: CITY_OF_KEYS_CORE_MOTIVES.drives,
 	perResident: { min: 1, max: 3 },
 	lightShare: 1 / 2,
 	spreadPer: 6,
@@ -294,11 +302,11 @@ function whispererBrief(receipts: boolean): string {
 }
 
 /**
- * The whisperer's own character: a drawn core could make him warm and gentle,
+ * The whisperer's own character: a drawn core motive could make him warm and gentle,
  * a reason for the model to soften the role (first run, 2026-10-30). Cold,
  * calculating, envious, at ease with himself.
  */
-const WHISPERER_CORE: NonNullable<WhispererSpec["core"]> = {
+const WHISPERER_CORE_MOTIVE: NonNullable<WhispererSpec["coreMotive"]> = {
 	bigFive: [
 		{ axis: "openness", level: "middle" },
 		{ axis: "conscientiousness", level: "high" },
@@ -364,7 +372,7 @@ function whisperer(receipts: boolean): WhispererSpec {
 	return {
 		brief: whispererBrief(receipts),
 		forgery: receipts,
-		core: WHISPERER_CORE,
+		coreMotive: WHISPERER_CORE_MOTIVE,
 		direction: whispererDirection(receipts),
 		// After every vote, never before the first (P61): he plays the doors first, so the others write to him.
 		duty: {
@@ -460,7 +468,7 @@ export function whispersStory(receipts: boolean): AnyStory {
 		},
 		personas: PERSONAS,
 		personaAssignment: { kind: "seeded" },
-		cores: CORES,
+		coreMotives: CORE_MOTIVES,
 		finishedNotice:
 			"You have passed the last door of ECHO. You stay in the city until the end: there is nothing left to open, " +
 			"but the others are still here.",

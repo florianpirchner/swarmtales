@@ -22,32 +22,57 @@ rules; the spec is normative for game behavior.
 
 ## 2. Layout
 
+A pnpm workspace (`pnpm-workspace.yaml`) with TypeScript project references (`tsc -b`). Every package
+has `@swarmtales/<name>` as its name, ESM only, no native dependencies, and exports from its
+`src/index.ts` (the `development` condition, used by tsx, Vitest and the editor) or from its built
+`dist/` (the default condition, built with tsdown). The plan behind it is `docs/ideas/monorepo.md`.
+
 ```
-src/
-  core/        random, ledger, clock, ids, result helpers
-  engine/      world state, scheduler (Arena), tool gateway, director interpreter,
-               petitions, receipts, standings, puzzles/ (fragments, additive)
-  tools/       one file per tool family; typebox schemas; English descriptions
-  agents/      pi-agent runner, system prompt, personas, model binding
-  model/       providers, model settings, scripted (offline) source
-  story/       DSL: types.ts, define.ts, validate.ts, templates.ts
-  log/         event sinks, run artifacts, transcripts, minute report, usage
-  digest/      [M3] detectors, relationship graph, timeline, chronicle
-  novel/       the novelist (SPEC 15): casting, outline, scene packs, writer, prompts,
-               novel.ts runs the pipeline and writes <run>/novel/
-  report/      run reporter (SPEC 15): facts computed from the run's files (facts.ts,
-               run-log.ts), evidence pack, prompt, model binding, REPORT.md rendering;
-               reporter.ts validates the model's JSON and writes the file
-  snapshot/    run snapshots (SPEC 17): typebox schemas of the file, its events and the
-               model contexts; read, check and write
-  cli/         main.ts, validate.ts, digest.ts, novel.ts, report.ts, run-report.ts
+packages/
+  contracts/   types, interfaces and closed vocabularies only: ids, tool names, the story shape
+               (story.ts), the turn/competitor contract, the judge, guard and souffleur interfaces;
+               core/: the mechanic API of the new core (Typebox schemas and types)
+  kernel/      random, ledger, clock, ids, result helpers, text templates (templates.ts, counts.ts);
+               host/: the new core (mechanic host, tool pipeline, referee, event bus, turn loop), not
+               used by the CLI yet, see docs/design/mechanic-api.md
+  prompts/     the prompt loader: Markdown files with `{{variable}}` placeholders, a typed registry
+               (`keys/`) of ids and their variables, lookup story -> library, checks for `pnpm validate`
+  engine/      world state, scheduler (Arena), director interpreter, petitions, receipts, standings,
+               puzzles/ (fragments, additive), statement labels, tribunal and penalty rules;
+               tools/ (one file per tool family; typebox schemas)
+  sdk/         the story DSL (define.ts), the validator (validate.ts), the archetype reader (cast/)
+  models/      providers, model settings, request defaults, scripted (offline) source
+  roles/       agents/ (pi-agent runner, system prompt, personas), interpret/ (judge, guard,
+               classifier, souffleur, weaver), gamemaker/
+  chronicle/   log/ (event sinks, run artifacts, transcripts, minute report, usage), snapshot/
+               (SPEC 17), digest/ (detectors, relationships, timeline, chronicle), report/ (run reporter)
+  novelist/    the novelist (SPEC 15): casting, outline, scene packs, writer, prompts
+  testkit/     scripted agents, story runs and module conformance checks for the new core
+apps/cli/      the `swt` / `swarmtales` binary (src/swt.ts dispatches to main.ts, validate.ts, digest.ts,
+               novel.ts, report.ts, run-report.ts, ...) and the composition root compose.ts
+library/prompts/  every text a model reads (system prompts, tool descriptions and replies, role
+               prompts), one file per piece; story overrides in `stories/<name>/prompts/` are planned,
+               `pnpm validate` rejects them until the callers pass the story. Found by walking up from
+               the prompts package, so it resolves from the sources and from a build.
 stories/       one folder per story: cityofkeys/story.ts (default) with its README; index.ts
-               (registry by name)
-test/          mirrors src/; offline only (scripted provider)
+               (registry by name); its own tsconfig project
+test/          offline only (scripted provider); imports the packages by name
+scripts/       check-packages.ts (dependency rule, import cycles, no native dependencies),
+               smoke-built-cli.mjs (runs the built `swt`)
 docs/          SPEC.md, ARCHITECTURE.md, MODELS.md
 ```
 
-Old directories (`arena/`, `game/`, `tutorial/`, `scenarios/`, `scripts/`,
+Dependencies point downwards only: `contracts` < `kernel` < `engine` < `sdk`; `models` < `roles` <
+`chronicle` < `novelist`; `apps/cli` wires everything. `pnpm check:packages` enforces the allowed
+dependencies per package and fails on an import cycle between the files of a package or on a native
+runtime dependency. Two places differ from the plan in `docs/ideas/monorepo.md` §2 until `World` is
+carved into modules: the engine still holds the competitors' tools and the game rules (tribunal,
+penalties), and `roles`/`chronicle` read the event types from `engine` instead of `contracts`.
+
+Commands: `pnpm check` (typecheck, lint, package rules, knip, tests, validate, build, smoke),
+`pnpm build` (dist of every package and the CLI), `pnpm smoke` (runs the built `swt --help`).
+
+Old directories (`arena/`, `game/`, `tutorial/`, `scenarios/`,
 `arena-configs/`) disappear.
 
 ## 3. Story DSL
@@ -55,7 +80,7 @@ Old directories (`arena/`, `game/`, `tutorial/`, `scenarios/`, `scripts/`,
 ### 3.1 Shape
 
 ```ts
-import { defineStory, level, at, onFirstEnter, act, team } from "../story/index.ts";
+import { defineStory, level, at, onFirstEnter, act, team } from "@swarmtales/sdk";
 
 export default defineStory({
 	id: "cityofkeys",
@@ -103,8 +128,8 @@ round-trips through JSON unchanged (proves it is pure data).
 --model --level --only --stop-when-done --passes --block-size --no-personas --no-gamemaker --no-classifier
 --classifier-provider --classifier-model --weaver --weaver-provider --weaver-model
 --snapshot-after --stop-after-snapshot --resume`.
-The gamemaker (`src/gamemaker/`) is an `EventSink` and a round observer of the arena.
-The statement classifier (`src/interpret/`) is an `EventSink` and the arena's interpreter:
+The gamemaker (`packages/roles/src/gamemaker/`) is an `EventSink` and a round observer of the arena.
+The statement classifier (`packages/roles/src/interpret/`) is an `EventSink` and the arena's interpreter:
 it labels each round before the gamemaker looks and writes `interpretation` events.
 The weaver (`--weaver`, SPEC 10.6) is an `EventSink` and the arena's `weaver` observer,
 between the two: `interpret/fate-triggers.ts` picks the residents a round's events touched
@@ -121,7 +146,7 @@ A run snapshot (SPEC 17) serializes the engine objects explicitly instead of rep
 the run: every stateful component has `snapshot()` and `restore()` (ledger, board,
 mailbox, marks, receipts, petitions, cast, groups, world with its level states,
 director, arena, agent runner, gamemaker, interpreter, weaver), and `composeRun` assembles
-them into one versioned file (`src/snapshot/snapshot.ts`). Restoring emits nothing; the
+them into one versioned file (`packages/chronicle/src/snapshot/snapshot.ts`). Restoring emits nothing; the
 bus replays the recorded prefix to the log sinks (`EventSink.replay`) and numbering
 continues after it. Replaying a live run would need every model answer again and would
 break with any engine change; explicit state does not, and a test proves it exact: a

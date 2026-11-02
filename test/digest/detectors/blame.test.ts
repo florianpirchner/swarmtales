@@ -5,9 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { deniesReceipt, detectBlames, detectDeniedDeliveries } from "../../../src/digest/detectors/blame.ts";
-import { parseEventLog } from "../../../src/digest/event-log.ts";
-import { buildFacts } from "../../../src/digest/facts.ts";
+import { buildFacts, deniesReceipt, detectBlames, detectDeniedDeliveries, parseEventLog } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 /** run_start and every DM, board and group post of minutes 15-24 of examples/cityofkeys-act2-06a/v02-no-memo-codes. */

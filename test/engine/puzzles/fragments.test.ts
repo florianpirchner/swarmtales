@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng } from "../../../src/core/random.ts";
+import { createRng } from "@swarmtales/kernel";
 import {
 	assembleAll,
 	drawPuzzle,
@@ -10,7 +10,7 @@ import {
 	splitAtCuts,
 	validatePuzzle,
 	type FragmentPuzzle,
-} from "../../../src/engine/puzzles/fragments.ts";
+} from "@swarmtales/engine";
 
 function validPuzzle(seed: number, passwordLength: number, fragmentCount: number, overlap = 2): FragmentPuzzle {
 	const [puzzle] = generateLevelPuzzles(createRng(seed), { teams: 1, passwordLength, fragmentCount, overlap });

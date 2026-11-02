@@ -1,8 +1,6 @@
 /** The weaver's changes in the digest: the timeline, the `fateShift` beat and a log that carries less. */
 import { describe, expect, it } from "vitest";
-import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
-import { detectFateShifts } from "../../src/digest/detectors/fate.ts";
-import { buildFacts } from "../../src/digest/facts.ts";
+import { analyzeLog, buildFacts, detectFateShifts, renderDigest } from "@swarmtales/chronicle";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 function changedLog(): { readonly log: LogBuilder; readonly blame: number; readonly soft: number; readonly hard: number; readonly act: number } {

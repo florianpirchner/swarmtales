@@ -207,16 +207,16 @@ gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (
 
 **Drama** (v09). The city defines who the residents are, never what they do:
 
-- **Cores.** At the start every resident is dealt a character core (seeded): one drive above all,
+- **Core motives.** At the start every resident is dealt a core motive (seeded): one drive above all,
   up to two more (clearly, at times) and a temperament on five axes. A quarter of the residents
-  have a light drive above all, and no drive is above all for more than one in six. The core is
+  have a light drive above all, and no drive is above all for more than one in six. The core motive is
   prose after the persona in the system prompt; the status line shows the name the city knows the
-  resident by. `--no-cores` turns it off. Old checkpoints are dealt cores when they resume.
-- **The cast.** Since v12 the cores come from the story's cast, [`stories/cityofkeys/cast/`](../stories/cityofkeys/cast/):
+  resident by. `--no-core-motives` (old name `--no-cores`) turns it off. Old checkpoints are dealt core motives when they resume.
+- **The cast.** Since v12 the core motives come from the story's cast, [`stories/cityofkeys/cast/`](../stories/cityofkeys/cast/):
   24 finished figures on the archetypes of [`archetypes/`](../archetypes/), each with what it wants
   in the city and what it will not do. A seeded pick keeps the quarter of light figures;
   `--cast banner,house,...` names the figures of a run. A figure plays its profession's persona.
-  Every resident with a core first reads the story's frame: a fictional city played by AI agents,
+  Every resident with a core motive first reads the story's frame: a fictional city played by AI agents,
   where dark sides are played without softening ([`lab/FINDINGS.md`](../lab/FINDINGS.md)).
 - **Direction.** Two dials from 0 to 10 say how strongly a run steers the residents: the figure's
   own prompt (`--figure-direction`) and the gamemaker (`--gm-direction`). At 10 every figure of
@@ -226,7 +226,7 @@ gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (
   Runs from here on live in [`stories/cityofkeys/runs/`](../stories/cityofkeys/runs/), named by act, city
   size, number and both levels (`act2-06a-013-f10g10`). See SPEC "Direction".
 - **Secret goals.** When the wall begins, every resident is dealt a goal that mostly follows its
-  core (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
+  core motive (a quarter go against it): keep a named resident in the city, see one exiled, end ahead of
   one, lead a faction in two tribunals, or be left something in a last will. A held goal pays 15
   points at the act's end; the exiled's goal is read out as it leaves, every other goal when the
   act ends. A protect goal is paired, where it can be, with an exile goal on the same target.
@@ -240,9 +240,9 @@ gamemaker read names, not IDs, and every tool takes either. Reports show "Mira (
   another, and so do lost blames; every refusal and the status line name the next price. The
   count starts again with each act.
 - **The director.** The gamemaker's brief asks for dramaturgy (a calm start, escalation around
-  the seal, the climax at the last tribunal); its report shows cores, goals and whether a seal is
+  the seal, the climax at the last tribunal); its report shows core motives, goals and whether a seal is
   borne (never by whom), and says `YOUR MOVE` when it may schedule a tribunal. The engine refuses a
-  note that gives a core or goal away to anyone but its owner, and a note nearly the same as an
+  note that gives a core motive or goal away to anyone but its owner, and a note nearly the same as an
   earlier one to the same reader (`REPEATED`).
 - **Feast and target.** The feast seats a quarter of the city (at least 3) and ends 3 minutes after
   the first resident solves door 10. The city exiles half of a city below 12 residents and a

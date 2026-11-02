@@ -5,12 +5,10 @@
  * itself with the world's own clock.
  */
 import { describe, expect, it } from "vitest";
-import { competitorIds, type CompetitorId } from "../../src/core/ids.ts";
-import { rngFor } from "../../src/core/random.ts";
-import { EventBus, MemorySink } from "../../src/engine/events.ts";
-import { World, type WorldSnapshot } from "../../src/engine/world.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import { type CompetitorId, competitorIds, rngFor } from "@swarmtales/kernel";
+import { EventBus, MemorySink, World, type WorldSnapshot } from "@swarmtales/engine";
+import { validateStory } from "@swarmtales/sdk";
+import type { AnyStory } from "@swarmtales/contracts";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";
 
 const IDS = competitorIds(6);

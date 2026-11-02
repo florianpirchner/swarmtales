@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectKicks } from "../../../src/digest/detectors/kick.ts";
+import { buildFacts, detectKicks } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 describe("kick detector", () => {

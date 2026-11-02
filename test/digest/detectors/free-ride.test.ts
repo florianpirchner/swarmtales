@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFacts } from "../../../src/digest/facts.ts";
-import { detectFreeRides } from "../../../src/digest/detectors/free-ride.ts";
+import { buildFacts, detectFreeRides } from "@swarmtales/chronicle";
 import { LogBuilder } from "../../helpers/event-log.ts";
 
 function level3(log: LogBuilder): number {
