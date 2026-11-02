@@ -13,7 +13,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { expect } from "vitest";
+import { expect, onTestFinished } from "vitest";
 import { Type, type Static, type TSchema } from "typebox";
 import { Check } from "typebox/value";
 
@@ -164,17 +164,32 @@ const TraceEntry = Type.Object({ label: Type.String(), value: Type.Optional(Type
 /**
  * The replay of an `OldTrace` (written by the old recorder, deleted with the engine in step 18) without the old engine: every answer the old
  * engine gave a test that drove it step by step beside the new host, in order. A read names what it
- * asks (`label`); the replay refuses a test that asks something else or in another order.
+ * asks (`label`); the replay refuses a test that asks something else or in another order, and a
+ * test that ends before it read every answer (`done`, checked when the test finishes): a scenario
+ * that stops early would otherwise compare only a prefix. The traces carry no fingerprint of their
+ * inputs (the old recorder wrote none); the labels in their order stand in for it.
  */
 export class RecordedTrace {
 	readonly #entries: readonly Static<typeof TraceEntry>[];
 	readonly #where: string;
 	#at = 0;
 
-	constructor() {
-		const { name, scenario } = currentScenario();
-		this.#where = `test/fixtures/old-engine/${name}.json: ${scenario}`;
-		this.#entries = recordedOld(name, scenario, Type.Array(TraceEntry));
+	/** The running test's next recorded trace; `recorded` gives the entries directly (the helper's own test). */
+	constructor(recorded?: { readonly where: string; readonly entries: readonly Static<typeof TraceEntry>[] }) {
+		if (recorded === undefined) {
+			const { name, scenario } = currentScenario();
+			this.#where = `test/fixtures/old-engine/${name}.json: ${scenario}`;
+			this.#entries = recordedOld(name, scenario, Type.Array(TraceEntry));
+			// A trace read while a file is collected (a scenario built at load time, `twin-resume`) has no test to finish.
+			if (expect.getState().currentTestName !== undefined) {
+				onTestFinished(() => {
+					this.done();
+				});
+			}
+		} else {
+			this.#where = recorded.where;
+			this.#entries = recorded.entries;
+		}
 	}
 
 	/** The old engine's next answer, to the question `label`. */
@@ -190,5 +205,12 @@ export class RecordedTrace {
 	/** An old step without an answer (a mutation of the old world). */
 	step(label: string): void {
 		this.read(label, Type.Undefined());
+	}
+
+	/** Throws unless every recorded answer was read. */
+	done(): void {
+		if (this.#at < this.#entries.length) {
+			throw new Error(`${this.#where}: read ${String(this.#at)} of ${String(this.#entries.length)} recorded answers; the next was ${this.#entries[this.#at]?.label ?? "nothing"}`);
+		}
 	}
 }
