@@ -8,7 +8,9 @@ import {
 	AgentTranscriptLog,
 	allocateRunDirectory,
 	analyzeRun,
+	CHAIN_FILE,
 	ConsoleReporter,
+	EventChain,
 	JsonlEventLog,
 	MinuteEventLog,
 	type ReporterChoice,
@@ -56,6 +58,7 @@ import { hostOracle } from "./oracle.ts";
 import { castEntries, composeHostRun, type HostComposeOptions } from "./host/run.ts";
 import { prefixLines, readResumePoint, runFileName, writeRunFile, type ResumePoint } from "./host/snapshot.ts";
 import { runMetadata } from "./metadata.ts";
+import { codeCommit, runGenesis } from "./host/chain.ts";
 import { competitorIds } from "@swarmtales/kernel";
 
 const envFile = join(process.cwd(), ".env");
@@ -332,6 +335,40 @@ const resumedFrom =
 const snapshotAfter = args.snapshotAfter ?? snapshot?.level ?? 0;
 // The arena names the file in its end reason, so its name is known before the cut: after a level, or at the minute asked for.
 const snapshotName = runFileName(snapshotAfter, args.snapshotAt);
+const runMeta: Readonly<Record<string, string>> = {
+	run: allocated.name,
+	provider: providerLabel,
+	model: modelIdLabel,
+	seed: String(effective.seed),
+	gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
+	classifier: statementClassifier?.label ?? "off",
+	judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
+	souffleur: souffleur?.label ?? "off",
+	...(story.guards === undefined ? {} : { guards: overrides.guards === false ? "off" : (guardJudge?.label ?? "own check only") }),
+	...(weaverModel === undefined ? {} : { weaver: weaverModel.label }),
+	direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
+	...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
+};
+// The signed event log (docs/design/event-log-signing.md): always on; the private key lives only in this process.
+const commit = codeCommit();
+const chain = new EventChain(
+	allocated.directory,
+	runGenesis({
+		story,
+		seed: effective.seed,
+		models: {
+			...Object.fromEntries([...settingsPerAgent].map(([agent, entry]) => [agent, `${entry.provider}/${entry.modelId ?? "-"}`])),
+			gamemaker: runMeta.gamemaker ?? "off",
+			classifier: runMeta.classifier ?? "off",
+			judge: runMeta.judge ?? "off",
+			souffleur: runMeta.souffleur ?? "off",
+			...(runMeta.guards === undefined ? {} : { guards: runMeta.guards }),
+			...(runMeta.weaver === undefined ? {} : { weaver: runMeta.weaver }),
+		},
+		...(commit === undefined ? {} : { commit }),
+		...(snapshot === undefined || args.resume === undefined ? {} : { resume: { point: snapshot, name: basename(args.resume) } }),
+	}),
+);
 const composeOptions: HostComposeOptions = {
 	story,
 	overrides,
@@ -344,7 +381,7 @@ const composeOptions: HostComposeOptions = {
 					stop: args.stopAfterSnapshot === true,
 					file: join(allocated.directory, snapshotName),
 					write: (taken) => {
-						snapshotPath = writeRunFile(allocated.directory, taken, args.snapshotAt === undefined ? snapshotName : runFileName(taken.level, taken.minute));
+						snapshotPath = writeRunFile(allocated.directory, { ...taken, chain: chain.checkpoint() }, args.snapshotAt === undefined ? snapshotName : runFileName(taken.level, taken.minute));
 						if (taken.brake !== undefined) snapshotBrake = brakeLine(taken.brake);
 						process.stdout.write(`> snapshot after level ${taken.level} (round ${taken.round}): ${snapshotPath}${snapshotBrake === undefined ? "" : ` (${snapshotBrake})`}\n`);
 						return snapshotPath;
@@ -379,7 +416,7 @@ const composeOptions: HostComposeOptions = {
 	},
 	sinks: [
 		new ConsoleReporter(),
-		new JsonlEventLog(join(allocated.directory, "events.jsonl")),
+		new JsonlEventLog(join(allocated.directory, "events.jsonl"), { chain }),
 		new MinuteEventLog(allocated.directory),
 		new AgentTranscriptLog(join(allocated.directory, "agents")),
 		new WeaverLog(join(allocated.directory, WEAVER_FILE)),
@@ -387,20 +424,7 @@ const composeOptions: HostComposeOptions = {
 	],
 	// Per run: a resumed run's budget counts only its own spend (the arena's `usage` lines after the resume).
 	budget: true,
-	meta: {
-		run: allocated.name,
-		provider: providerLabel,
-		model: modelIdLabel,
-		seed: String(effective.seed),
-		gamemaker: gamemakerSettings === undefined ? "off" : `${gamemakerSettings.provider}/${gamemakerSettings.modelId ?? "-"}`,
-		classifier: statementClassifier?.label ?? "off",
-		judge: judge === undefined ? "off" : `${judge.label} (${args.judgeTemper ?? "fair"})`,
-		souffleur: souffleur?.label ?? "off",
-		...(story.guards === undefined ? {} : { guards: overrides.guards === false ? "off" : (guardJudge?.label ?? "own check only") }),
-		...(weaverModel === undefined ? {} : { weaver: weaverModel.label }),
-		direction: `figure ${effective.figureDirection}, gamemaker ${effective.gmDirection}`,
-		...(resumedFrom === undefined ? {} : { resumedFrom: resumedFrom.file }),
-	},
+	meta: runMeta,
 };
 const run = (() => {
 	try {
@@ -450,7 +474,11 @@ process.stdout.write(
 		(snapshot === undefined ? "" : ` · resumed after round ${snapshot.round} (every competitor past level ${snapshot.level})`) +
 		"\n",
 );
-await run.run();
+try {
+	await run.run();
+} finally {
+	chain.close();
+}
 
 writeFileSync(
 	join(allocated.directory, "usage.json"),
@@ -502,6 +530,7 @@ process.stdout.write(
 		usage.summary(),
 		`run:         ${allocated.directory}`,
 		`events:      ${join(allocated.directory, "events.jsonl")}`,
+		`chain:       ${join(allocated.directory, CHAIN_FILE)} (signed; check with swt log verify ${allocated.directory})`,
 		`transcripts: ${join(allocated.directory, "agents")}`,
 		`minutes:     ${report}`,
 		...(existsSync(join(allocated.directory, WEAVER_FILE)) ? [`weaver:      ${join(allocated.directory, WEAVER_FILE)}`] : []),

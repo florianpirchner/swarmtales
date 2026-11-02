@@ -5,15 +5,32 @@ import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { assertNever } from "@swarmtales/kernel";
 import type { EventSink, RecordedEvent } from "@swarmtales/engine";
+import type { EventChain } from "./chain.ts";
+
+export interface JsonlEventLogOptions {
+	/**
+	 * The signed sidecar (`events.chain.jsonl`, `run.pub`; docs/design/event-log-signing.md): it
+	 * chains every line exactly as written. The CLI always passes one; only tests leave it out.
+	 */
+	readonly chain?: EventChain;
+}
 
 /** `events.jsonl`: every event with `seq`, virtual minute and wall-clock time. */
 export class JsonlEventLog implements EventSink {
-	constructor(readonly path: string) {
+	readonly #chain: EventChain | undefined;
+
+	constructor(
+		readonly path: string,
+		options: JsonlEventLogOptions = {},
+	) {
 		mkdirSync(dirname(path), { recursive: true });
+		this.#chain = options.chain;
 	}
 
 	record(event: RecordedEvent): void {
-		appendFileSync(this.path, `${JSON.stringify({ ...event, at: new Date().toISOString() })}\n`);
+		const line = JSON.stringify({ ...event, at: new Date().toISOString() });
+		appendFileSync(this.path, `${line}\n`);
+		this.#chain?.append(line);
 	}
 }
 

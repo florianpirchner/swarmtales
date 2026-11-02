@@ -12,7 +12,7 @@ import { readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Type, type Static } from "typebox";
 import { Check, Parse } from "typebox/value";
-import { ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
+import { ChainCheckpointSchema, ContextMessageSchema, convertLegacySnapshot, LegacyEventAdapter, parseSnapshot, type RunSnapshot, SnapshotError, snapshotFileName } from "@swarmtales/chronicle";
 import { EventEnvelopeSchema, type EventEnvelope, type HostSnapshot, HostSnapshotSchema } from "@swarmtales/contracts";
 import type { RecordedEvent } from "@swarmtales/engine";
 import type { ContextMessage } from "@swarmtales/roles";
@@ -46,6 +46,8 @@ export const RunFileSchema = Type.Object({
 	weaver: Type.Optional(Type.Object({ heard: Type.Array(AgentText), shifts: Type.Array(AgentText) })),
 	/** Set when an act's brake wrote the snapshot (v08). */
 	brake: Type.Optional(Brake),
+	/** The signed head of the run's event chain at the cut; a resumed run's chain continues from it. */
+	chain: Type.Optional(ChainCheckpointSchema),
 });
 
 export type RunFile = Static<typeof RunFileSchema>;
@@ -76,6 +78,8 @@ export interface ResumePoint {
 	/** The old file's roles (gamemaker, interpreter, weaver), for the overseers' slices. */
 	readonly legacyRoles?: unknown;
 	readonly weaver?: RunFile["weaver"];
+	/** The signed head of the event chain at the cut (a new file written since the signed log). */
+	readonly chain?: RunFile["chain"];
 }
 
 function fromLegacy(raw: unknown, path: string): ResumePoint {
@@ -116,6 +120,7 @@ function fromRunFile(raw: unknown, path: string): ResumePoint {
 		competitors: file.competitors,
 		coresDealt: Array.isArray(motives) && motives.length > 0,
 		...(file.weaver === undefined ? {} : { weaver: file.weaver }),
+		...(file.chain === undefined ? {} : { chain: file.chain }),
 	};
 }
 
