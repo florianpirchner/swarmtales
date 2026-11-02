@@ -4,10 +4,14 @@
  * through a handler (a window of time, a phase) is not listed as open. A handler asked
  * this way gets a call with no arguments and the log's last seq, and must not emit.
  */
-import type { MechanicInstance, ToolCall } from "@swarmtales/contracts";
+import type { Actor, MechanicInstance, ToolCall } from "@swarmtales/contracts";
 import { residentActor, type LockProbe } from "./access.ts";
 import { toolFor, type ToolCatalog } from "./catalog.ts";
 import type { EventBus } from "./log.ts";
+import type { Caller } from "./names.ts";
+
+/** Whether every `lock` handler lets a call of the tool by a caller who is no resident through. */
+export type ActorLockProbe = (actor: Actor, caller: Caller, tool: string) => boolean;
 
 export function lockProbe(bus: EventBus, tools: ToolCatalog, instances: () => readonly MechanicInstance[]): LockProbe {
 	return (resident, tool) => {
@@ -17,6 +21,24 @@ export function lockProbe(bus: EventBus, tools: ToolCatalog, instances: () => re
 		const call: ToolCall = { tool, owner: loaded.owner, actor: residentActor(resident), resident, params: undefined, seq: before };
 		const open = instances().every((instance) => instance.hooks.lock(call) === undefined);
 		if (bus.lastSeq !== before) throw new Error(`access: a lock handler must not emit while it is only asked whether ${tool} is open for ${resident}`);
+		return open;
+	};
+}
+
+/**
+ * The same question for an overseer (the gamemaker): its tool list holds only the granted tools
+ * that no `lock` handler refuses it now, as the old engine offered a phase-bound tool only while its
+ * phase was open (roles/src/gamemaker/gamemaker.ts:213). A tool the list leaves
+ * out can still be called; the gateway refuses it at stage `lock`, as before.
+ */
+export function actorLockProbe(bus: EventBus, tools: ToolCatalog, instances: () => readonly MechanicInstance[]): ActorLockProbe {
+	return (actor, caller, tool) => {
+		const loaded = toolFor(tools, tool, caller);
+		if (loaded === undefined) return false;
+		const before = bus.lastSeq;
+		const call: ToolCall = { tool, owner: loaded.owner, actor, resident: undefined, params: undefined, seq: before };
+		const open = instances().every((instance) => instance.hooks.lock(call) === undefined);
+		if (bus.lastSeq !== before) throw new Error(`access: a lock handler must not emit while it is only asked whether ${tool} is open for ${actor}`);
 		return open;
 	};
 }

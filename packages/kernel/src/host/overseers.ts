@@ -91,6 +91,8 @@ interface Placed {
 	readonly maxCalls: number | undefined;
 	readonly maxCostUsd: number | undefined;
 	readonly usage: Usage;
+	/** The system prompt, rendered (or composed by the body) at the first call and sent unchanged with every call. */
+	system?: string;
 }
 
 interface Firing {
@@ -373,7 +375,8 @@ export class OverseerRunner {
 		const all = { ...variables, standingOrders: renderOrders(prompts, carried) };
 		const declared = definition.prompts[definition.input] ?? [];
 		const input = prompts === undefined ? `${definition.input} ${JSON.stringify(all)}` : prompts.render(definition.id, definition.input, all, declared);
-		const system = prompts === undefined ? definition.system : prompts.render(definition.id, definition.system, {}, []);
+		placed.system ??= placed.instance.system?.() ?? (prompts === undefined ? definition.system : prompts.render(definition.id, definition.system, {}, []));
+		const system = placed.system;
 		const obliged = carried.some((order) => order.mode === "order");
 		return {
 			placed,

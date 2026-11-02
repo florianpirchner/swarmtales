@@ -14,12 +14,19 @@ import { budgetRefusal, checkNote, recordNote, refusalFor, refusalOf } from "./n
 
 type Kit = MechanicKit<ShapeOf<typeof channelsHead>>;
 
+/**
+ * The old tools' longest text (`MAX_NOTE_LENGTH`), as their parameters described it. The schemas
+ * reach the model with the tool list, so their words are pinned bytes (step 18, C2: the gamemaker
+ * overseer's golden replay counts them in the scripted model's usage); `noteMaxLength` still decides.
+ */
+const OLD_MAX_NOTE = 400;
+
 export function gamemakerTools(kit: Kit) {
 	return [
 		kit.tool({
 			name: "notify",
 			description: "gamemaker/tools/notify",
-			parameters: Type.Object({ agent: Type.String({ description: "Resident name or ID, e.g. A04" }), text: Type.String({ description: "The note" }) }),
+			parameters: Type.Object({ agent: Type.String({ description: "Resident name or ID, e.g. A04" }), text: Type.String({ description: `The note, 1-${String(OLD_MAX_NOTE)} characters` }) }),
 			suggest: ["gamemaker"],
 			serves: ["gamemaker"],
 			execute: (params, ctx) => {
@@ -37,7 +44,7 @@ export function gamemakerTools(kit: Kit) {
 		kit.tool({
 			name: "postBoard",
 			description: "gamemaker/tools/postBoard",
-			parameters: Type.Object({ text: Type.String({ description: "The post" }) }),
+			parameters: Type.Object({ text: Type.String({ description: `The post, 1-${String(OLD_MAX_NOTE)} characters` }) }),
 			suggest: ["gamemaker"],
 			serves: ["gamemaker"],
 			execute: (params, ctx) => {

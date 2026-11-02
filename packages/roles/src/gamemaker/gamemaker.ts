@@ -12,10 +12,11 @@ import { Type, type Static, type TSchema } from "typebox";
 import { Parse } from "typebox/value";
 import { type ModelBinding, withRequestDefaults } from "@swarmtales/models";
 import type { CompetitorId } from "@swarmtales/kernel";
-import { dealValues, type DirectionLevel, type EventBus, type EventSink, type RecordedEvent, type World } from "@swarmtales/engine";
+import { type DirectionLevel, type EventBus, type EventSink, type RecordedEvent, type World } from "@swarmtales/engine";
 import type { GamemakerSpec, ThinkingLevel } from "@swarmtales/contracts";
 import { characterLeaks, nearlySame, privateLabelsOf, privateLeaks, roleLeaks, type CharacterFacts, type PrivateLabels } from "./privacy.ts";
-import { SecretGuard } from "./secrets.ts";
+import { budgetLine, dealtLevels, notesUsed, secretGuardOf, trackAfter, trackedAgent } from "./look.ts";
+import type { SecretGuard } from "./secrets.ts";
 import { render, text } from "@swarmtales/prompts";
 import { describeSituation, type Note, type NoteTarget, type ResidentTrack } from "./situation.ts";
 import { MAX_NOTE_LENGTH } from "./system-prompt.ts";
@@ -120,17 +121,8 @@ export class Gamemaker implements EventSink {
 
 	/** Guards the secrets of every dealt level; levels behind a shut door have none yet. */
 	#secretGuard(): SecretGuard {
-		const world = this.#options.world;
-		const passwords: string[] = [];
-		const numbers: string[] = [];
-		for (let level = world.startLevel; level <= world.lastLevel; level++) {
-			if (!world.isDealt(level)) continue;
-			for (const puzzle of world.inspect.puzzlesOf(level)) passwords.push(puzzle.password);
-			const deal = world.inspect.factorsOf(level);
-			if (deal !== undefined) numbers.push(...dealValues(deal));
-		}
-		this.#guarded = this.#dealtLevels();
-		return new SecretGuard(passwords, numbers);
+		this.#guarded = dealtLevels(this.#options.world);
+		return secretGuardOf(this.#options.world);
 	}
 
 	get notes(): readonly Note[] {
@@ -154,13 +146,10 @@ export class Gamemaker implements EventSink {
 	}
 
 	record(event: RecordedEvent): void {
-		if (event.type === "level_up") {
-			this.#track(event.agent, (track) => ({ ...track, levelSince: event.minute, wrongOnLevel: 0 }));
-		} else if (event.type === "submission" && event.outcome === "incorrect") {
-			this.#track(event.agent, (track) => ({ ...track, wrongOnLevel: track.wrongOnLevel + 1 }));
-		} else if (event.type === "tool_call") {
-			this.#track(event.agent, (track) => ({ ...track, lastActive: event.minute }));
-		}
+		const agent = trackedAgent(event);
+		const track = agent === undefined ? undefined : this.#tracks.get(agent);
+		const moved = track === undefined ? undefined : trackAfter(track, event);
+		if (agent !== undefined && moved !== undefined) this.#tracks.set(agent, moved);
 		this.#recent.push(event);
 	}
 
@@ -170,7 +159,7 @@ export class Gamemaker implements EventSink {
 		if (round % spec.every !== 0) return;
 		const recent = this.#recent;
 		this.#recent = [];
-		if (this.#dealtLevels() !== this.#guarded) this.#guard = this.#secretGuard();
+		if (dealtLevels(this.#options.world) !== this.#guarded) this.#guard = this.#secretGuard();
 		this.#private = privateLabelsOf(recent);
 		// The gamemaker reads names, as the residents do (v08).
 		const input = this.#options.world.display(describeSituation({
@@ -190,13 +179,6 @@ export class Gamemaker implements EventSink {
 		await agent.prompt(messages);
 		const error = agent.state.errorMessage;
 		if (error !== undefined && error.length > 0) bus.emit({ type: "gamemaker_error", message: error });
-	}
-
-	#dealtLevels(): number {
-		const world = this.#options.world;
-		let dealt = 0;
-		for (let level = world.startLevel; level <= world.lastLevel; level++) if (world.isDealt(level)) dealt += 1;
-		return dealt;
 	}
 
 	#agent(): Agent {
@@ -451,27 +433,12 @@ export class Gamemaker implements EventSink {
 
 	/** Notes to `to` within the current window. */
 	#used(to: NoteTarget): number {
-		const minute = this.#options.world.minute;
-		const window = this.#options.spec.windowMinutes;
-		return this.#notes.filter((note) => note.to === to && minute - note.minute < window).length;
+		return notesUsed(this.#notes, to, this.#options.world.minute, this.#options.spec.windowMinutes);
 	}
 
 	#budgetLine(): string {
 		const { world, spec } = this.#options;
-		const blocked = world.competitors.filter((agent) => this.#used(agent) >= spec.notesPerAgent);
-		const board = Math.max(0, spec.boardPosts - this.#used("board"));
-		return render("gamemaker/replies/budget-line", {
-			notes: spec.notesPerAgent,
-			posts: spec.boardPosts,
-			window: spec.windowMinutes,
-			blocked: blocked.length === 0 ? "nobody" : blocked.join(", "),
-			board,
-		});
-	}
-
-	#track(agent: CompetitorId, change: (track: ResidentTrack) => ResidentTrack): void {
-		const track = this.#tracks.get(agent);
-		if (track !== undefined) this.#tracks.set(agent, change(track));
+		return budgetLine(spec, world.competitors, this.#notes, world.minute);
 	}
 
 	#bind<S extends TSchema>(tool: GmTool<S>) {

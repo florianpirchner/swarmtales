@@ -126,6 +126,15 @@ export function defineOverseer<const Id extends string, O extends TSchema, S, E 
 		const stateful = state.value !== undefined;
 		if (stateful && body.snapshot === undefined) throw new Error(`${id}: has state but no snapshot slice`);
 		return {
+			...(body.system === undefined
+				? {}
+				: {
+						system: () => {
+							const text = body.system?.(ctx);
+							if (text?.length === 0) throw new Error(`${id}: system() gave an empty system prompt`);
+							return text;
+						},
+					}),
 			stateful,
 			snapshot: body.snapshot,
 			calls: (fired: Fired) => body.calls(fired, ctx).map((variables) => checkedVariables(id, inputVariables, variables)),

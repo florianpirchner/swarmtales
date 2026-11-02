@@ -38,12 +38,12 @@ import { CORE_OWNER, DecisionGate } from "./decisions.ts";
 import { Gateway } from "./gateway.ts";
 import { toolFor } from "./catalog.ts";
 import { loadMechanics, type Loaded } from "./loader.ts";
-import { Names } from "./names.ts";
+import { actorOf, Names } from "./names.ts";
 import { orderedPhases } from "./phases.ts";
 import { checkHumanGrants, HumanDesk } from "./human.ts";
 import { OrderBook, residentNote } from "./orders.ts";
 import { OverseerRunner, type OverseerSlot } from "./overseers.ts";
-import { lockProbe } from "./probe.ts";
+import { actorLockProbe, lockProbe, type ActorLockProbe } from "./probe.ts";
 import { StagingQueue } from "./staging.ts";
 import { EventBus } from "./log.ts";
 import { coreReply } from "./replies.ts";
@@ -112,6 +112,7 @@ class CoreHost implements Host {
 	readonly #gateway: Gateway;
 	readonly #turns: TurnLoop;
 	readonly #names: Names;
+	#actorProbe: ActorLockProbe | undefined;
 	readonly #gate: DecisionGate;
 	readonly #orders = new OrderBook();
 	readonly #desk: HumanDesk;
@@ -404,6 +405,15 @@ class CoreHost implements Host {
 		});
 	}
 
+	/** An overseer's tools for one call: the granted ones its lock handlers let through now (the old gamemaker's look-time list). */
+	#overseerTools(name: string): readonly ToolSpec[] {
+		const caller = this.#names.caller(name);
+		const actor = actorOf(name);
+		this.#actorProbe ??= actorLockProbe(this.#bus, this.#loaded.tools, () => this.#instances());
+		const probe: ActorLockProbe = this.#actorProbe;
+		return this.toolSpecs(name).filter((spec) => probe(actor, caller, spec.name));
+	}
+
 	/** A tool's description, its variables rendered (a nested prompt first); the prompt id without a lookup. */
 	#description(owner: string, tool: MechanicTool): string {
 		const prompts = this.#prompts;
@@ -532,7 +542,7 @@ class CoreHost implements Host {
 				return events !== undefined && Object.hasOwn(events, type);
 			},
 			display: (text) => this.#gateway.display(text),
-			tools: (name) => this.toolSpecs(name),
+			tools: (name) => this.#overseerTools(name),
 			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
 			admit: (actors, code) => this.#gateway.admit(actors, code),
 			drain: () => this.#gateway.drain(),
