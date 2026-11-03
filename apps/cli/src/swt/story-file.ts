@@ -8,7 +8,7 @@
  * it was already in the lockfile through vite, and a story file needs nothing it does not do.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { extname, relative, resolve } from "node:path";
+import { extname, relative, resolve, sep } from "node:path";
 import { parse, stringify } from "yaml";
 import type { AnyStory } from "@swarmtales/contracts";
 import { parseStoryData, type StoryParse } from "@swarmtales/sdk";
@@ -49,7 +49,8 @@ export function resolveStory(reference: string): ResolvedStory {
 
 /** A story as a YAML file whose first line points an editor at the schema file. */
 export function storyToYaml(story: AnyStory, schemaFile: string, from: string): string {
-	const schema = relative(resolve(from), resolve(schemaFile)) || schemaFile;
+	// The `$schema` value is a URL reference, so its separators are `/` also on Windows.
+	const schema = (relative(resolve(from), resolve(schemaFile)) || schemaFile).split(sep).join("/");
 	// JSON first: a story is plain data, and this drops anything YAML would write as a tag.
 	return `# yaml-language-server: $schema=${schema}\n${stringify(JSON.parse(JSON.stringify(story)), { lineWidth: 0 })}`;
 }

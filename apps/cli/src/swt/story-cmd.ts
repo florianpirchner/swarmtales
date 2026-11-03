@@ -1,6 +1,6 @@
 /** `swt story list|show|validate|schema`: the stories of the registry, and story files. */
 import { writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, sep } from "node:path";
 import { DIRECTOR_SUPPORT, storyJsonSchema, type AnyStory } from "@swarmtales/contracts";
 import { validateStory } from "@swarmtales/sdk";
 import { STORIES } from "../../../../stories/index.ts";
@@ -110,7 +110,7 @@ const schema: CommandRun = (argv, io) => {
 		return 0;
 	}
 	writeFileSync(resolve(out), text);
-	io.out(`wrote ${out} (point a YAML story at it with "# yaml-language-server: $schema=${dirname(out) === "." ? "" : `${dirname(out)}/`}story.schema.json")`);
+	io.out(`wrote ${out} (point a YAML story at it with "# yaml-language-server: $schema=${dirname(out) === "." ? "" : `${dirname(out).split(sep).join("/")}/`}story.schema.json")`);
 	return 0;
 };
 
