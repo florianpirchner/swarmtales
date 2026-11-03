@@ -1,0 +1,31 @@
+{
+	"name": "@swarmtales/mechanic-grid-game",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The grid-game mechanic: a tic-tac-toe style board game between two teams.",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src",
+		"prompts"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-consensus": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

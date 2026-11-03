@@ -69,7 +69,9 @@ function requiresOrder(): readonly string[] {
 describe("the mechanic packages", () => {
 	it("are one folder per head, plus shared", () => {
 		const folders = readdirSync(resolve(import.meta.dirname, "../../mechanics")).sort();
-		expect(folders).toEqual([...HEADS.map((head) => head.id), "shared"].sort());
+		// Not carved from the old engine: new mechanics written for the core (no legacy event owner, no head above).
+		const newMechanics = ["consensus", "grid-game", "optimal-referee", "strategy-brain", "team-channel"];
+		expect(folders).toEqual([...HEADS.map((head) => head.id), ...newMechanics, "shared"].sort());
 	});
 
 	it("cover every mechanic owner of the old events (the gamemaker's tools go to the mechanics they act on)", () => {

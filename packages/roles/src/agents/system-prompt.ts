@@ -42,12 +42,41 @@ export interface PromptFacts {
 	readonly shift?: string;
 	/** The story shows only its own tools (`toolScope: "story"`); a tool the city opens later may appear. */
 	readonly storyTools?: boolean;
+	/**
+	 * The frame of the base text. `"city"` (the default, every shipped story) is the closed city with
+	 * survivors and points. `"neutral"` only says who the resident is, gives the story's `briefing` and
+	 * the mechanics of its turns: no city, no survival, no points, no claims about other residents.
+	 */
+	readonly world?: "city" | "neutral";
+	/** `world: "neutral"` only: the story's own briefing of the resident (what it is, where it is, what is asked of it). */
+	readonly briefing?: string;
 }
 
 /** The heading of the weaver's text in a resident's prompt. */
 export const SHIFT_HEADING = text("competitor/system/shift-heading");
 
+/** What the neutral base needs of {@link PromptFacts}. */
+export type NeutralPromptFacts = Pick<PromptFacts, "id" | "passesPerMinute" | "briefing" | "frame" | "coreMotive" | "shift">;
+
+/** The neutral base: who the resident is, the story's briefing, the turn mechanics and the speech rule. */
+export function neutralSystemPrompt(facts: NeutralPromptFacts, persona?: Persona): string {
+	const briefing = facts.briefing?.trim() ?? "";
+	const frame = facts.frame?.trim() ?? "";
+	const shift = facts.shift?.trim() ?? "";
+	return [
+		...(frame.length === 0 ? [] : [frame, ""]),
+		render("competitor/system/header-neutral", { id: facts.id }),
+		...(briefing.length === 0 ? [] : [briefing]),
+		render("competitor/system/steps", { passes: facts.passesPerMinute, step: facts.passesPerMinute === 1 ? "step" : "steps", tools: text("competitor/system/tools-neutral") }),
+		text("competitor/system/speak"),
+		...(persona === undefined ? [] : ["", render("competitor/system/persona", { temperament: persona.temperament, values: persona.values, voice: persona.voice })]),
+		...(facts.coreMotive === undefined ? [] : ["", facts.coreMotive]),
+		...(shift.length === 0 ? [] : ["", SHIFT_HEADING, shift]),
+	].join("\n");
+}
+
 export function baseSystemPrompt(facts: PromptFacts, persona?: Persona): string {
+	if (facts.world === "neutral") return neutralSystemPrompt(facts, persona);
 	const lines = [
 		// v09: in a city of names the resident is never "A03"; its status line shows the name the city knows it by.
 		facts.names === undefined ? render("competitor/system/header-id", { id: facts.id, city: facts.city }) : render("competitor/system/header-named", { city: facts.city }),
