@@ -10,9 +10,10 @@ longer worked on). The owner is Flo.
 ## Conventions
 
 - Everything in the repository is in English.
-- The README tells the story of the project for readers, with nothing technical. Technical docs go
-  under `docs/` and are linked from its "For builders" section. Ideas that are not approved yet go
-  under `docs/ideas/`.
+- The README is the overview of the platform for a first-time reader: what it is, the building
+  blocks (mechanics, overseers, residents), the shipped stories as references only, how to install
+  and run, the honest limits. Deep technical docs go under `docs/` and are linked from its "For
+  builders" section. Ideas that are not approved yet go under `docs/ideas/`.
 - Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
   with Typebox.
 - Before designing a new story or mechanic, read the design checklist in `docs/LESSONS-LEARNED.md`.
