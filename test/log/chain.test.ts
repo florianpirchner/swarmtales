@@ -169,7 +169,7 @@ describe("the signed event log", () => {
 
 	it("refuses a wrong key, a forged head and a rewritten genesis", () => {
 		const { directory } = playRun();
-		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" }).toString();
+		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
 		expect(verifyWith(directory, { key: other })).toEqual({ ok: false, reason: matching(/not made with this key/) });
 		expect(verifyWith(directory, { key: "not a key" })).toEqual({ ok: false, reason: matching(/not an Ed25519 public key/) });
 		const chain = lines(directory, CHAIN_FILE);
@@ -365,7 +365,7 @@ describe("a resumed run's chain", () => {
 	it("checks the previous run against a key published elsewhere (--previous-key, chain-security M2 and m6)", () => {
 		const { previous, resumed } = resumedPair();
 		expect(verifyContinuity(previous, resumed, { previousKey: read(previous, PUBLIC_KEY_FILE) })).toMatchObject({ ok: true });
-		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" }).toString();
+		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
 		expect(verifyContinuity(previous, resumed, { previousKey: other })).toEqual({ ok: false, reason: matching(/previous run's chain does not hold: the chain was not made with this key/) });
 	});
 

@@ -215,7 +215,7 @@ export class OldWorld {
 	}
 
 	isExiled(resident: string): boolean {
-		return this.read(`isExiled ${resident}`, ExileApi.methods.isExiled.output);
+		return this.#trace.readUnordered("isExiled ", `isExiled ${resident}`, ExileApi.methods.isExiled.output);
 	}
 
 	standingOf(resident: string): Static<typeof ExileApi.methods.standing.output> {

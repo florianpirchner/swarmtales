@@ -15,7 +15,7 @@ if (list === undefined) {
 const root = resolve(import.meta.dirname, "..");
 const all = parseMutations(readFileSync(resolve(list), "utf8"), list);
 const mutations = only.length === 0 ? all : all.filter((mutation) => only.includes(mutation.id));
-const results = runMutants({ root, mutations });
+const results = await runMutants({ root, mutations });
 for (const result of results) {
 	console.log(`${result.verdict.padEnd(8)} ${result.id}`);
 	if (result.verdict !== "killed") console.log(result.detail.replace(/^/gm, "         "));

@@ -514,6 +514,9 @@ export function composeHostRun(options: HostComposeOptions): HostComposedRun {
 			for (;;) {
 				const end = await host.playMinute(take);
 				if (end !== undefined) return end;
+				// A scripted minute settles in microtasks only; one macrotask turn per minute lets timers,
+				// signals and a test worker's messages through during a long offline run.
+				await new Promise((resolve) => setImmediate(resolve));
 				const due = host.facts()["arena.snapshot"];
 				if (request === undefined || due === null || due === undefined || !Check(Cut, due)) continue;
 				request.write(snapshotFile(due));

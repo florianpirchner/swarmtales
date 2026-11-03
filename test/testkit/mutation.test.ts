@@ -28,9 +28,9 @@ describe("parseMutations", () => {
 });
 
 describe("runMutants", () => {
-	it("says killed, survived or broken and leaves the repository's file as it was", () => {
+	it("says killed, survived or broken and leaves the repository's file as it was", async () => {
 		const before = readFileSync(resolve(ROOT, LEDGER), "utf8");
-		const results = runMutants({
+		const results = await runMutants({
 			root: ROOT,
 			mutations: [
 				{ id: "open does nothing", file: LEDGER, find: "if (!ctx.state.balances.has(input.account)) ctx.state.balances.set(input.account, 0);", replace: "", tests: TESTS },

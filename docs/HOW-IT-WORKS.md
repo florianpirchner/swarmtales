@@ -70,7 +70,7 @@ start without replaying the earlier ones.
 
 ## Quick start
 
-Requires Node 22 or newer and pnpm.
+Requires Node 26 (the current LTS) and pnpm; `.node-version` pins it for fnm.
 
 ```bash
 pnpm install

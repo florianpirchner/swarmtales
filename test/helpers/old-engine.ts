@@ -108,7 +108,7 @@ const ordinals = new Map<string, number>();
 export function currentScenario(): { readonly name: string; readonly scenario: string } {
 	const state = expect.getState();
 	const path = state.testPath ?? "unknown";
-	const name = relative(TEST_DIR, path).replace(/\.test\.ts$/, "").replace(/\.ts$/, "").replaceAll("/", "-");
+	const name = relative(TEST_DIR, path).replace(/\.test\.ts$/, "").replace(/\.ts$/, "").replaceAll(/[\\/]/g, "-");
 	const test = state.currentTestName ?? "(outside a test)";
 	const ordinal = (ordinals.get(test) ?? 0) + 1;
 	ordinals.set(test, ordinal);
@@ -194,8 +194,45 @@ export class RecordedTrace {
 		}
 	}
 
+	/** The open run of unordered answers: where it ends, its label prefix and its answers by label. */
+	#run: { readonly end: number; readonly prefix: string; readonly answers: ReadonlyMap<string, Static<typeof TraceEntry>> } | undefined;
+
+	/**
+	 * An answer to a pure question (`prefix` plus its argument) asked inside a sort comparator: V8
+	 * calls a comparator in an order and as often as its version decides (Node 26 differs from 22 and
+	 * 24), so the replay answers from the whole run of consecutive entries with this prefix, in any
+	 * order and any number of times, and skips the run at the next ordered read. Two entries of the
+	 * run with the same label must agree.
+	 */
+	readUnordered<T extends TSchema>(prefix: string, label: string, schema: T): Static<T> {
+		if (this.#run?.prefix !== prefix) {
+			this.#closeRun();
+			const answers = new Map<string, Static<typeof TraceEntry>>();
+			let end = this.#at;
+			for (let entry = this.#entries[end]; entry?.label.startsWith(prefix) === true; entry = this.#entries[end]) {
+				const known = answers.get(entry.label);
+				if (known !== undefined && JSON.stringify(known) !== JSON.stringify(entry)) throw new Error(`${this.#where}: answer ${String(end + 1)} (${entry.label}) differs from an earlier answer in its run`);
+				answers.set(entry.label, entry);
+				end += 1;
+			}
+			this.#run = { end, prefix, answers };
+		}
+		const entry = this.#run.answers.get(label);
+		if (entry === undefined) throw new Error(`${this.#where}: the run of answers from ${String(this.#at + 1)} holds no ${label}`);
+		if (entry.error !== undefined) throw new Error(entry.error);
+		if (!Check(schema, entry.value)) throw new Error(`${this.#where}: an answer to ${label} does not have the recorded shape`);
+		return entry.value;
+	}
+
+	#closeRun(): void {
+		if (this.#run === undefined) return;
+		this.#at = this.#run.end;
+		this.#run = undefined;
+	}
+
 	/** The old engine's next answer, to the question `label`. */
 	read<T extends TSchema>(label: string, schema: T): Static<T> {
+		this.#closeRun();
 		const entry = this.#entries[this.#at];
 		this.#at += 1;
 		if (entry?.label !== label) throw new Error(`${this.#where}: answer ${String(this.#at)} was recorded for ${entry?.label ?? "nothing"}, not ${label}`);
@@ -211,6 +248,7 @@ export class RecordedTrace {
 
 	/** Throws unless every recorded answer was read. */
 	done(): void {
+		this.#closeRun();
 		if (this.#at < this.#entries.length) {
 			throw new Error(`${this.#where}: read ${String(this.#at)} of ${String(this.#entries.length)} recorded answers; the next was ${this.#entries[this.#at]?.label ?? "nothing"}`);
 		}
