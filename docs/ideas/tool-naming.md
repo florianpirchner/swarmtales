@@ -60,8 +60,17 @@ name must therefore always be restricted to that alphabet and length, whatever t
    keeps the map alias → canonical per run and translates incoming tool calls back before the
    pipeline runs.
 
-The event log records the **canonical** name, plus the alias in the `tool_called` payload (so a
-transcript read next to the log shows what the model actually saw). Golden runs compare canonical names.
+**Event header (decided by Flo, 2026-11-03).** The original canonical name is logged together with the
+alias in the **header** of every tool event (`tool_called` and the events that follow from the call), so
+each carries both what the kernel means and what the model saw:
+
+```json
+{ "seq": 412, "type": "tool_called", "tool": "@swarmtales/bidding/place_bid", "alias": "bid", "actor": "R3", "params": { } }
+```
+
+`tool` is always the canonical name, `alias` is the name the model was shown (the story override if set,
+else the derived one). Both are inside the signed event, so the chain covers the mapping. Golden runs
+compare the canonical `tool`; the `alias` field is compared too, since it is part of the format.
 
 ### 3.2 Canonical form
 
@@ -104,14 +113,14 @@ choosing tools. That is the reason for 3.4 below.
   the *same canonical name* (two mechanics both claiming it, or two loaded versions of one package) is
   a **load-time error** that names both owners. Different canonical names never clash, even if the last
   segment is equal: `@a/chat/say` and `@b/whisper/say` can live in one story.
-- **Short names in stories (open question 1).** A story grant would be unbearable if it had to spell
+- **Short names in stories (decided, see §7 question 1).** A story grant would be unbearable if it had to spell
   `@swarmtales/mechanic-channels/postToBoard` everywhere. Option: a story-level `aliases` table
   (`bid: "@swarmtales/bidding/place_bid"`) used in grants, locks, limits, rules and as the
   **model-facing name** (the model then sees `bid`, nothing long). Uniqueness of aliases inside one
   story is checked at load time; an unambiguous bare name (`say` while only one loaded tool ends in
   `/say`) may resolve implicitly, while an ambiguous bare name is a load error with the candidates
-  listed. Flo has not decided whether stories may define short aliases; both variants are costed
-  in the table below.
+  listed. **Decided by Flo (2026-11-03): a story may override the alias**, per tool, via the
+  `aliases` table; the table's value is the model-facing name and replaces the derived one.
 
 ## 4. Decision table
 
@@ -169,8 +178,7 @@ noise.
 2. Give every first-party mechanic a package and mechanic id; derive canonical names in `loadMechanics`.
    Duplicate canonical name = load error with both owners.
 3. Gateway: translate model-facing name back to canonical before `lock`; log both.
-4. Story schema: grants and policies accept canonical names, suffix-unique bare names, and (if Flo says
-   yes) a story `aliases` table. Run `swt story schema` and commit `story.schema.json`.
+4. Story schema: grants and policies accept canonical names, suffix-unique bare names, and a story `aliases` table. Run `swt story schema` and commit `story.schema.json`.
 5. Update shipped stories and the human hand; keep old names working with a warning for one release.
 6. Goldens: regenerate once, reviewed as a names-only diff.
 7. Provider layer: one assertion that every outgoing tool name matches `^[a-zA-Z0-9_-]{1,64}$`.
@@ -181,8 +189,7 @@ loader. No new dependency.
 
 ## 7. Open questions for Flo
 
-1. **Short aliases in stories** (3.4): allowed (`bid` for `@swarmtales/bidding/place_bid`) or only
-   canonical names and unambiguous suffixes? My recommendation: allowed, per story, checked at load.
+1. ~~Short aliases in stories~~ **Decided (Flo, 2026-11-03): yes, a story may override the alias**; canonical name and alias are both logged in the event header (3.3).
 2. **Decision A / B / C** (table in §4). Recommendation: A.
 3. **Do events get the same treatment** (mechanic-scoped event types)? Probably yes, but separate paper.
 4. **Old bare names**: one release of warnings, or a hard cut together with the monorepo release?
