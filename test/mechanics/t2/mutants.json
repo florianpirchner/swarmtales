@@ -1,0 +1,173 @@
+[
+	{
+		"id": "R3-T2-C1 whisperer cannot defy",
+		"file": "mechanics/channels/src/defy.ts",
+		"find": "return ctx.options.whispererDefies && whispererOf(ctx) === resident;",
+		"replace": "return false;",
+		"tests": [
+			"test/mechanics/channels/defy.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-C2 whisperer known only in the minute it was chosen (what a listener-set lock is after a resume)",
+		"file": "mechanics/channels/src/whisperer.ts",
+		"find": "const chosen = ctx.log.ofType(\"whispers\", \"whisperer_chosen\").at(0);",
+		"replace": "const chosen = ctx.log.ofType(\"whispers\", \"whisperer_chosen\").filter((event) => event.minute === ctx.minute).at(0);",
+		"tests": [
+			"test/mechanics/channels/defy.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-C3 defiance does not open defy to all",
+		"file": "mechanics/channels/src/defy.ts",
+		"find": "if (ctx.options.defiance) return true;",
+		"replace": "if (ctx.options.defiance && resident.length < 0) return true;",
+		"tests": [
+			"test/mechanics/channels/defy.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-C4 the lock handler leaves defy open to everybody",
+		"file": "mechanics/channels/src/index.ts",
+		"find": "call.owner === \"channels\" && call.tool === \"defy\" &&",
+		"replace": "call.owner === \"channels\" && call.tool === \"defyNever\" &&",
+		"tests": [
+			"test/mechanics/channels/defy.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-C5 the locked reply loses its words",
+		"file": "mechanics/channels/src/index.ts",
+		"find": "refuse(\"TOOL_LOCKED\", ctx.prompt(\"replies/locked\", {}))",
+		"replace": "refuse(\"TOOL_LOCKED\")",
+		"tests": [
+			"test/mechanics/channels/defy.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-C6 a hook that locks defy at the start of a run (plain function, order 0)",
+		"file": "mechanics/channels/src/index.ts",
+		"find": "\thooks: {\n\t\tturnInputs: [",
+		"replace": "\thooks: {\n\t\trunStarted: (ctx) => {\n\t\t\tfor (const resident of ctx.residents.ids) ctx.access.lock(resident, \"defy\");\n\t\t},\n\t\tturnInputs: [",
+		"tests": [
+			"test/mechanics/round2-shared.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-Q1 channels keeps the DM text from receipts",
+		"file": "mechanics/channels/src/messages.ts",
+		"find": "number, text: entry.text } });",
+		"replace": "number } });",
+		"tests": [
+			"test/mechanics/channels/dm-records.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-D1 a DM record without text reads as empty",
+		"file": "mechanics/channels/src/api.ts",
+		"find": "...(record.text === undefined ? {} : { text: record.text }),",
+		"replace": "text: record.text ?? \"\",",
+		"tests": [
+			"test/mechanics/channels/dm-records.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-N1 the note desk ignores the dealt passwords",
+		"file": "mechanics/channels/src/notes.ts",
+		"find": "secrets?.passwords ?? []",
+		"replace": "[]",
+		"tests": [
+			"test/mechanics/channels/notes-secrets.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-N2 the note desk ignores the dealt numbers",
+		"file": "mechanics/channels/src/notes.ts",
+		"find": "secrets?.numbers ?? []",
+		"replace": "[]",
+		"tests": [
+			"test/mechanics/channels/notes-secrets.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K1 resume funds a member whose account exists",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "if (ctx.call(LedgerApi, \"has\", { account })) continue;",
+		"replace": "",
+		"tests": [
+			"test/mechanics/cast/cast.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K2 resume does not open the account",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "\t\tctx.call(LedgerApi, \"open\", { account });\n\t\tctx.state.funded.add(member.id);",
+		"replace": "\t\tctx.state.funded.add(member.id);",
+		"tests": [
+			"test/mechanics/cast/cast.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K3 no resume escrow at all",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "runResumed: { order: HOOK_ORDER.runResumed.cast, run: fundResumed },",
+		"replace": "",
+		"tests": [
+			"test/mechanics/cast/cast.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K4 resume escrow runs before the core motives are dealt",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "runResumed: { order: HOOK_ORDER.runResumed.cast, run: fundResumed },",
+		"replace": "runResumed: { order: HOOK_ORDER.runResumed.motives - 1, run: fundResumed },",
+		"tests": [
+			"test/mechanics/t2/resume-order.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K5 the active cast lists hidden members",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "active: (_input, ctx) => ctx.state.registry.active().map(",
+		"replace": "active: (_input, ctx) => [...ctx.state.registry.members.values()].map(",
+		"tests": [
+			"test/mechanics/cast/cast.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-K6 the active cast leaves out the level",
+		"file": "mechanics/cast/src/index.ts",
+		"find": "ctx.state.registry.active().map((member) => ({ id: member.id, level: member.level })) }),",
+		"replace": "ctx.state.registry.active().map((member) => ({ id: member.id, level: 0 })) }),",
+		"tests": [
+			"test/mechanics/cast/cast.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-M1 motives are not dealt for a resumed file without them",
+		"file": "mechanics/motives/src/index.ts",
+		"find": "runResumed: { order: HOOK_ORDER.runResumed.motives, run: deal },",
+		"replace": "",
+		"tests": [
+			"test/mechanics/motives/motives.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-M2 motives are dealt after the cast escrow",
+		"file": "mechanics/motives/src/index.ts",
+		"find": "runResumed: { order: HOOK_ORDER.runResumed.motives, run: deal },",
+		"replace": "runResumed: { order: HOOK_ORDER.runResumed.cast + 1, run: deal },",
+		"tests": [
+			"test/mechanics/t2/resume-order.test.ts"
+		]
+	},
+	{
+		"id": "R3-T2-P1 the script is not served resolvePetition",
+		"file": "mechanics/petitions/src/index.ts",
+		"find": "serves: [\"script\"],",
+		"replace": "serves: [\"gamemaker\"],",
+		"tests": [
+			"test/mechanics/petitions/petitions.test.ts"
+		]
+	}
+]

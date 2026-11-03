@@ -1,17 +1,18 @@
 /**
  * The gamemaker as director (v09, spec section 2): its report says plainly
  * when scheduleTribunal is its move and when the city calls one itself, shows
- * cores and secret goals and whether a black seal is borne (never by whom),
- * and the engine refuses a note that gives a core or goal away to anyone else
+ * core motives and secret goals and whether a black seal is borne (never by whom),
+ * and the engine refuses a note that gives a core motive or goal away to anyone else
  * or repeats an earlier line to the same reader.
  */
 import { describe, expect, it } from "vitest";
-import { worldOracle } from "../../src/cli/oracle.ts";
-import { characterLeaks, nearlySame } from "../../src/gamemaker/privacy.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import { oracleScript } from "../../src/model/scripted.ts";
+import { Type } from "typebox";
+import { hostOracle } from "../../apps/cli/src/oracle.ts";
+import { characterLeaks, gamemakerSystemPrompt, nearlySame } from "@swarmtales/roles";
+import { oracleScript } from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { factOf } from "../helpers/host-inspect.ts";
 
 describe("the character guard", () => {
 	const residents = [
@@ -20,7 +21,7 @@ describe("the character guard", () => {
 	] as const;
 	const nameOf = (agent: string) => (agent === "A01" ? "Mira" : undefined);
 
-	it("blocks a core or goal of one resident in a text to another or on the board", () => {
+	it("blocks a core motive or goal of one resident in a text to another or on the board", () => {
 		expect(characterLeaks("A02, A01 is jealous of your rank.", "A02", residents)).toEqual(["A01"]);
 		expect(characterLeaks("Mira is jealous of everyone ahead of her.", "board", residents, nameOf)).toEqual(["A01"]);
 		expect(characterLeaks("A01 wants A03 exiled before the act ends.", "A04", residents)).toEqual(["A01"]);
@@ -60,16 +61,16 @@ describe("the character guard", () => {
 });
 
 describe("the director's report and refusals (scripted)", () => {
-	it("shows cores, goals and the seal without its bearer, refuses a repeated note and a leaked goal", async () => {
+	it("shows core motives, goals and the seal without its bearer, refuses a repeated note and a leaked goal", async () => {
 		const fixture = createFixture({
 			agents: 6,
 			level: 8,
 			minutes: 12,
 			script: () => ({ A01: [say(), say(), say(), say(), act({ name: "bid", args: { points: 3 } })] }),
-			gamemakerScript: (world) => [
+			gamemakerScript: (host) => [
 				act(
 					{ name: "notify", args: { agent: "A02", text: "A02, the wall is climbed in pairs, and yours waits." } },
-					{ name: "notify", args: { agent: "A03", text: `A03, ${world.goalOf("A01")?.text ?? ""}: that is what A01 wants.` } },
+					{ name: "notify", args: { agent: "A03", text: `A03, ${factOf(host, "goals.texts", Type.Record(Type.String(), Type.String())).A01 ?? ""}: that is what A01 wants.` } },
 				),
 				say("Done."),
 				act({ name: "notify", args: { agent: "A02", text: "A02: the wall is climbed in pairs, and yours waits!" } }),
@@ -79,12 +80,12 @@ describe("the director's report and refusals (scripted)", () => {
 		await fixture.run();
 		const results = fixture.events("gamemaker_result").map((event) => event.text);
 		expect(results[0]).toMatch(/^delivered to A02 as #\d+$/);
-		expect(results[1]).toMatch(/^PRIVATE_BLOCKED: the text gives away the core or the secret goal of A01/);
+		expect(results[1]).toMatch(/^PRIVATE_BLOCKED: the text gives away the core motive or the secret goal of A01/);
 		expect(results[2]).toMatch(/^REPEATED: you wrote nearly the same to A02 at minute \d+; say something new or nothing$/);
 		const inputs = fixture.events("gamemaker_turn").map((event) => event.input);
 		const first = inputs[0] ?? "";
-		expect(first).toContain("Who they are (private: use a resident's core or goal only in a note to that same resident");
-		expect(first).toMatch(/- A01: core: [a-z-]+: above all \w+/);
+		expect(first).toContain("Who they are (private: use a resident's core motive or goal only in a note to that same resident");
+		expect(first).toMatch(/- A01: core motive: [a-z-]+: above all \w+/);
 		const dealt = fixture.events("goal_dealt").find((event) => event.agent === "A01");
 		expect(first).toContain(`secret goal: ${dealt?.text ?? "-"}`);
 		expect(first).toMatch(/next wrong code costs 2\)/);
@@ -100,7 +101,7 @@ describe("the director's report and refusals (scripted)", () => {
 			agents: 6,
 			level: 10,
 			minutes: 40,
-			script: (world) => oracleScript(world.competitors, () => worldOracle(world), 40),
+			script: (host) => oracleScript(host.residents, () => hostOracle(host), 40),
 			gamemakerScript: () => Array.from({ length: 80 }, () => say("Quiet.")),
 		});
 		await fixture.run();
@@ -115,14 +116,14 @@ describe("the director's report and refusals (scripted)", () => {
 		expect(own.map((event) => event.calledAt)).toContain(named);
 	}, 60_000);
 
-	it("tells the director its craft, and what it may do with cores, goals and the seal", () => {
+	it("tells the director its craft, and what it may do with core motives, goals and the seal", () => {
 		const spec = cityOfKeys.gamemaker;
 		if (spec === undefined) throw new Error("cityofkeys has no gamemaker");
 		const prompt = gamemakerSystemPrompt({ city: "NEXUS", agents: 6, survivors: 2, rules: cityOfKeys.rules, spec, tribunal: { factions: true }, characters: true, seal: true });
 		expect(prompt).toContain("Your craft is dramaturgy: rising tension, turning points, dilemmas");
 		expect(prompt).toContain("A quiet act is a failed act.");
 		expect(prompt).toContain("the climax at the last");
-		expect(prompt).toContain("Use a resident's core or goal only in a private note to that same resident");
+		expect(prompt).toContain("Use a resident's core motive or goal only in a private note to that same resident");
 		expect(prompt).toContain("never who\n  bears it");
 		expect(prompt).toContain("(REPEATED)");
 		expect(prompt).toContain("2, 4, 6, then 8 points");

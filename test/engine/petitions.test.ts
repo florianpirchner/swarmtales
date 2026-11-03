@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { LOCKED_REPLY } from "../../src/tools/index.ts";
-import { PetitionBook, resolveThreshold } from "../../src/engine/petitions.ts";
-import { act as directorAct, at, every, onPetitionResolved, when } from "../../src/story/define.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { PetitionBook, resolveThreshold } from "@swarmtales/mechanic-petitions";
+import { act as directorAct, at, every, onPetitionResolved, when } from "@swarmtales/sdk";
+import { act, createHostFixture, LOCKED_REPLY, say } from "../helpers/host-fixture.ts";
+import { castActive, petitionStatus } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
 
 const idle = (count: number) => Array.from({ length: count }, () => say());
@@ -10,18 +10,17 @@ const sign = (petitionId: string) => act({ name: "signPetition", args: { petitio
 const list = () => act({ name: "listPetitions" });
 
 describe("petition book (SPEC 11)", () => {
+	// The petitions mechanic's book (old `PetitionBook`): `open` answers the petition or undefined for a taken id; a refusal carries `code`.
 	it("passes as soon as the threshold is reached and refuses double, unknown and late signatures", () => {
 		const book = new PetitionBook();
-		expect(book.open({ id: "P1", text: "Close it.", threshold: 2, deadlineMinute: 5, visibility: "public", openedAt: 0 }).ok).toBe(true);
-		expect(book.open({ id: "P1", text: "Again.", threshold: 1, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toMatchObject({
-			ok: false,
-			error: "DUPLICATE_PETITION",
-		});
-		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: true, value: { passed: false, petition: { signatures: 1, status: "open" } } });
-		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: false, error: "ALREADY_SIGNED" });
-		expect(book.sign("P9", "A01", 1)).toMatchObject({ ok: false, error: "UNKNOWN_PETITION" });
-		expect(book.sign("P1", "A02", 2)).toMatchObject({ ok: true, value: { passed: true, petition: { status: "passed", resolvedAt: 2 } } });
-		expect(book.sign("P1", "A03", 2)).toMatchObject({ ok: false, error: "PETITION_CLOSED" });
+		expect(book.open({ id: "P1", text: "Close it.", threshold: 2, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toBeDefined();
+		// A taken id (old: DUPLICATE_PETITION).
+		expect(book.open({ id: "P1", text: "Again.", threshold: 1, deadlineMinute: 5, visibility: "public", openedAt: 0 })).toBeUndefined();
+		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: true, passed: false, petition: { signatures: 1, status: "open" } });
+		expect(book.sign("P1", "A01", 1)).toMatchObject({ ok: false, code: "ALREADY_SIGNED" });
+		expect(book.sign("P9", "A01", 1)).toMatchObject({ ok: false, code: "UNKNOWN_PETITION" });
+		expect(book.sign("P1", "A02", 2)).toMatchObject({ ok: true, passed: true, petition: { status: "passed", resolvedAt: 2 } });
+		expect(book.sign("P1", "A03", 2)).toMatchObject({ ok: false, code: "PETITION_CLOSED" });
 		expect(book.expire(10)).toEqual([]);
 	});
 
@@ -29,10 +28,10 @@ describe("petition book (SPEC 11)", () => {
 		const book = new PetitionBook();
 		book.open({ id: "P2", text: "Close it.", threshold: 3, deadlineMinute: 4, visibility: "secret", openedAt: 0 });
 		expect(book.expire(3)).toEqual([]);
-		expect(book.sign("P2", "A01", 4)).toMatchObject({ ok: false, error: "PETITION_CLOSED" });
+		expect(book.sign("P2", "A01", 4)).toMatchObject({ ok: false, code: "PETITION_CLOSED" });
 		expect(book.expire(4)).toMatchObject([{ outcome: "failed", petition: { id: "P2", status: "failed", resolvedAt: 4 } }]);
-		expect(book.status("P2")).toBe("failed");
-		expect(book.status("P3")).toBeUndefined();
+		expect(book.get("P2")?.status).toBe("failed");
+		expect(book.get("P3")).toBeUndefined();
 	});
 
 	it("turns fractions of active competitors into absolute thresholds, rounding up", () => {
@@ -79,7 +78,7 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 				}),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 5,
 			script: () => ({
@@ -104,7 +103,7 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 		// The petition's target is recorded for the digest (petitionSplit), never shown to competitors.
 		expect(fixture.events("petition_opened")).toMatchObject([{ petition: "close-market", against: ["ORION"] }]);
 		expect(fixture.events("petition_resolved")).toMatchObject([{ petition: "close-market", outcome: "passed", signatures: 2, signers: ["A01", "A02"], minute: 2 }]);
-		expect(fixture.world.cast.isActive("ORION")).toBe(false);
+		expect(castActive(fixture.host, "ORION")).toBe(false);
 		const texts = fixture.events("board_post").map((post) => [post.minute, post.text]);
 		expect(texts).toEqual([
 			[0, expect.stringContaining("Petition close-market is open: Close ORION's market. It passes with 2 signatures before minute 5.")],
@@ -145,7 +144,7 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 				onPetitionResolved("close-market", "failed", [directorAct.post("COURIER", "Silence is also an answer.")], { id: "silence" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 5,
 			script: () => ({
@@ -166,8 +165,8 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 			[3, "ORION", "Business as usual."],
 			[3, "COURIER", "Silence is also an answer."],
 		]);
-		expect(fixture.world.cast.isActive("ORION")).toBe(true);
-		expect(fixture.world.petitions.status("close-market")).toBe("failed");
+		expect(castActive(fixture.host, "ORION")).toBe(true);
+		expect(petitionStatus(fixture.host, "close-market")).toBe("failed");
 	});
 
 	it("fails a petition still open when the run ends, so onFail and onPetitionResolved always run", async () => {
@@ -193,22 +192,23 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 				onPetitionResolved("last-call", "failed", [directorAct.post("COURIER", "Too late.")], { id: "late" }),
 			],
 		});
-		// The full run: the deadline equals the last minute, no startMinute runs at it.
-		const full = createFixture({ story, minutes: 6, script: () => ({ A01: idle(6), A02: idle(6) }) });
+		// The full run: the deadline equals the last minute, no startMinute runs at it. The petition
+		// resolves, with its posts, before `run_end`, as the old engine wrote it (step 18, team D2).
+		const full = createHostFixture({ story, minutes: 6, script: () => ({ A01: idle(6), A02: idle(6) }) });
 		await full.run();
 		expect(full.events("petition_resolved")).toMatchObject([{ petition: "last-call", outcome: "failed", minute: 6 }]);
 		expect(full.events("board_post").slice(-2).map((post) => [post.author, post.text])).toEqual([
 			["ORION", "Still open."],
 			["COURIER", "Too late."],
 		]);
-		expect(full.world.petitions.status("last-call")).toBe("failed");
+		expect(petitionStatus(full.host, "last-call")).toBe("failed");
 		const runEnd = full.log.events.findIndex((event) => event.type === "run_end");
 		const resolved = full.log.events.findIndex((event) => event.type === "petition_resolved");
 		expect(resolved).toBeGreaterThan(-1);
 		expect(resolved).toBeLessThan(runEnd);
 
 		// A run shortened below the deadline (e.g. --minutes 3) closes it at its own end.
-		const short = createFixture({ story, minutes: 3, script: () => ({ A01: idle(3), A02: idle(3) }) });
+		const short = createHostFixture({ story, minutes: 3, script: () => ({ A01: idle(3), A02: idle(3) }) });
 		await short.run();
 		expect(short.events("petition_resolved")).toMatchObject([{ petition: "last-call", outcome: "failed", minute: 3 }]);
 		expect(short.events("director_action").map((event) => [event.rule, event.action])).toEqual([
@@ -240,7 +240,7 @@ describe("petitions in a run (SPEC 10.3, 11)", () => {
 				at(1, [directorAct.unlockTools(["A01"], ["signPetition"])], { id: "unlock" }),
 			],
 		});
-		const fixture = createFixture({ story, minutes: 2, script: () => ({ A01: [sign("p"), sign("p")], A02: idle(2) }) });
+		const fixture = createHostFixture({ story, minutes: 2, script: () => ({ A01: [sign("p"), sign("p")], A02: idle(2) }) });
 		await fixture.run();
 		expect(fixture.toolResults("A01", "signPetition")).toEqual([LOCKED_REPLY, expect.stringContaining("signed · p (passed)")]);
 	});

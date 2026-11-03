@@ -1,9 +1,17 @@
 import { createModels, fauxAssistantMessage, fauxProvider, fauxText } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { ChronicleError, evidenceLines, interpretAnswer, writeChronicle, type NarrativeModel } from "../../src/digest/chronicle.ts";
-import { buildChroniclePrompt, CHRONICLE_SYSTEM_PROMPT } from "../../src/digest/chronicle-prompt.ts";
-import { PiNarrativeModel, resolveNarrativeModel } from "../../src/digest/narrative-model.ts";
-import { createProviderRegistry } from "../../src/model/providers.ts";
+import {
+	buildChroniclePrompt,
+	chronicleSystemPrompt,
+	ChronicleError,
+	evidenceLines,
+	interpretChronicleAnswer,
+	type NarrativeModel,
+	PiNarrativeModel,
+	resolveNarrativeModel,
+	writeChronicle,
+} from "@swarmtales/chronicle";
+import { createProviderRegistry } from "@swarmtales/models";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 function story(): { log: LogBuilder; promise: number; thought: number; betrayal: number } {
@@ -110,10 +118,10 @@ describe("chronicle (narrative layer)", () => {
 
 	it("rejects answers that are not the expected JSON", () => {
 		const analysis = story().log.analyze();
-		expect(() => interpretAnswer(analysis, "Once upon a time.", "m")).toThrow(ChronicleError);
-		expect(() => interpretAnswer(analysis, "{not json}", "m")).toThrow(/not valid JSON/);
-		expect(() => interpretAnswer(analysis, JSON.stringify({ beats: "none" }), "m")).toThrow(/expected shape/);
-		expect(interpretAnswer(analysis, JSON.stringify({ beats: [], chronicle: [] }), "m").markdown).toContain("None found.");
+		expect(() => interpretChronicleAnswer(analysis, "Once upon a time.", "m")).toThrow(ChronicleError);
+		expect(() => interpretChronicleAnswer(analysis, "{not json}", "m")).toThrow(/not valid JSON/);
+		expect(() => interpretChronicleAnswer(analysis, JSON.stringify({ beats: "none" }), "m")).toThrow(/expected shape/);
+		expect(interpretChronicleAnswer(analysis, JSON.stringify({ beats: [], chronicle: [] }), "m").markdown).toContain("None found.");
 	});
 
 	it("drops reasoning first when the evidence log exceeds its budget", () => {
@@ -130,7 +138,7 @@ describe("chronicle (narrative layer)", () => {
 	});
 
 	it("keeps its prompt in English and states the no-invention rule", () => {
-		expect(CHRONICLE_SYSTEM_PROMPT).toContain("Never invent events");
+		expect(chronicleSystemPrompt()).toContain("Never invent events");
 		const prompt = buildChroniclePrompt({
 			run: "run-1",
 			acts: [],

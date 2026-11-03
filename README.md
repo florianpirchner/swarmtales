@@ -178,8 +178,9 @@ is deterministic, and every run can be replayed.
 - [How it works](docs/HOW-IT-WORKS.md): overview diagram, quick start, models, CLI
 - [The City of Keys story](docs/STORY-CITYOFKEYS.md) and [its code](stories/cityofkeys/)
 - [The Whispers story](docs/STORY-WHISPERS.md) and [its code](stories/whispers/): one secret slanderer among six
-- [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md)
+- [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md) · [Mechanic API](docs/design/mechanic-api.md) · [Carve plan](docs/design/carve-plan.md) (teams [T1](docs/design/carve-team-T1.md), [T2](docs/design/carve-team-T2.md), [T3](docs/design/carve-team-T3.md), [T4](docs/design/carve-team-T4.md))
 - [From a run to a story](docs/FROM-RUN-TO-STORY.md): how the chronicle and the short stories are made
+- [The signed event log](docs/design/event-log-signing.md): every run's log is hash-chained and signed; `swt log verify` checks it
 - [Recorded runs](examples/): Act I with a snapshot, and the Act II series
 - [Related work](docs/RELATED-WORK.md): Swarm Tales next to Generative Agents, Concordia and Sotopia
 - [Rules for contributors and agents](CLAUDE.md)

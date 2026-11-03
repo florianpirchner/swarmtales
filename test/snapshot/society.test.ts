@@ -8,15 +8,16 @@
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import type { ToolInvocation } from "../../src/model/scripted.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import { parseSnapshot, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
-import { act as action, at, defineStory, every, level, onUnansweredDm, puzzle, team, when } from "../../src/story/define.ts";
-import type { ToolName } from "../../src/tools/catalog.ts";
-import { act, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
+import { Type } from "typebox";
+import { type Script, type ToolInvocation } from "@swarmtales/models";
+import { act as action, at, defineStory, every, level, onUnansweredDm, puzzle, team, when } from "@swarmtales/sdk";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { Host, ToolName } from "@swarmtales/contracts";
+import { prefixLines, type ResumePoint } from "../../apps/cli/src/host/snapshot.ts";
+import { resumedOverrides } from "../../apps/cli/src/run-options.ts";
+import { act, createHostFixture, say, storyDefaults } from "../helpers/host-fixture.ts";
+import { codeOf, isFinished, levelOf, submit, waitingAfter, wrongCodeOf } from "../helpers/host-inspect.ts";
+import { ChannelsSlice, ProgressionSlice, resumeMarkers, sliceIn, snapshotTaker } from "../helpers/host-snapshot.ts";
 import { castStory } from "../helpers/stories.ts";
 
 const MINUTES = 14;
@@ -78,10 +79,10 @@ type Plan = () => AssistantMessage;
  * door, or waits while held at the door of level 1. The steps are built when
  * they run: level 2 is not dealt before the door opens.
  */
-function plans(world: World): Readonly<Record<string, readonly Plan[]>> {
-	const solve = (agent: string, number: number) => () => submit(world, agent, number);
+function plans(host: Host): Readonly<Record<string, readonly Plan[]>> {
+	const solve = (agent: string, number: number) => () => submit(host, agent, number);
 	const wrong = (agent: string, number: number) => () =>
-		act({ name: "submitSolution", args: { level: number, code: wrongCodeOf(world.inspect.codeOf(agent, number)) } });
+		act({ name: "submitSolution", args: { level: number, code: wrongCodeOf(codeOf(host, agent, number)) } });
 	const call = (invocation: ToolInvocation) => () => act(invocation);
 	return {
 		// Passes first and waits at the door, looks around, then signs and reads the group.
@@ -122,46 +123,39 @@ function plans(world: World): Readonly<Record<string, readonly Plan[]>> {
 	};
 }
 
-function script(world: World): Script {
-	const byAgent = plans(world);
+function script(host: Host): Script {
+	const byAgent = plans(host);
 	const script: Record<string, FauxResponseStep[]> = {};
-	for (const agent of world.competitors) {
+	for (const agent of host.residents) {
 		const step: FauxResponseStep = () => {
-			const planned = byAgent[agent]?.[world.minute];
+			const planned = byAgent[agent]?.[host.minute];
 			if (planned !== undefined) return planned();
-			return world.isFinished(agent) || world.waitingAfter(agent) !== undefined ? say() : submit(world, agent, world.levelOf(agent));
+			return isFinished({ host, effective: { lastLevel: 3 } }, agent) || waitingAfter(host, agent) !== null ? say() : submit(host, agent, levelOf(host, agent));
 		};
 		script[agent] = Array.from({ length: MINUTES }, () => step);
 	}
 	return script;
 }
 
-async function play(options: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: RunSnapshot } = {}) {
-	const log = new MemorySink();
-	let taken: RunSnapshot | undefined;
+async function play(options: { readonly snapshotAfter?: number; readonly stop?: boolean; readonly resume?: ResumePoint } = {}) {
 	const resume = options.resume;
-	const run = composeRun({
+	const taker = options.snapshotAfter === undefined ? undefined : snapshotTaker({ afterLevel: options.snapshotAfter, stop: options.stop ?? false });
+	const run = createHostFixture({
 		story,
-		overrides: resume === undefined ? {} : resumeOverrides(resume),
-		models: (world) => new ScriptedModelSource(script(world)),
-		sinks: [log],
-		...(options.snapshotAfter === undefined
-			? {}
-			: {
-					snapshot: {
-						afterLevel: options.snapshotAfter,
-						stop: options.stop ?? false,
-						write: (snapshot) => {
-							taken = parseSnapshot(JSON.parse(JSON.stringify(snapshot)));
-							return "memory";
-						},
-					},
-				}),
-		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot-L1.json" } }),
+		...storyDefaults(story),
+		names: true,
+		...(resume === undefined ? {} : resumedOverrides(resume)),
+		script,
+		...(taker === undefined ? {} : { snapshot: taker.request }),
+		...(resume === undefined ? {} : { resume: { point: resume, name: "snapshot-L1.json" } }),
 	});
-	await run.arena.run();
-	return { events: log.events, snapshot: taken };
+	await run.run();
+	return { events: run.log.events, snapshot: taker?.taken()?.point };
 }
+
+const Petitions = Type.Array(Type.Object({ id: Type.String(), status: Type.String(), signers: Type.Array(Type.String()) }, { additionalProperties: true }));
+const CastSlice = Type.Object({ collections: Type.Array(Type.Object({ entries: Type.Array(Type.Unknown()) }, { additionalProperties: true })) }, { additionalProperties: true });
+const ScriptFired = Type.Object({ lastFired: Type.Array(Type.Unknown()) }, { additionalProperties: true });
 
 /** Numbered as in the uninterrupted run, with the prompt size instead of its cache split. */
 function comparable(events: readonly RecordedEvent[], shift = 0): readonly unknown[] {
@@ -178,18 +172,18 @@ describe("run snapshots across the society mechanics", () => {
 		const whole = await play({ snapshotAfter: 1 });
 		const { snapshot } = await play({ snapshotAfter: 1, stop: true });
 		if (snapshot === undefined) throw new Error("no snapshot was taken");
-		const cut = snapshot.events.length;
+		const cut = prefixLines(snapshot);
 		const before = whole.events.slice(0, cut);
 		const after = whole.events.slice(cut);
 		const types = (events: readonly RecordedEvent[]) => new Set(events.map((event) => event.type));
 
 		// The cut falls in the middle of everything.
 		expect(snapshot.round).toBe(4);
-		expect(snapshot.world.petitions).toMatchObject([{ id: "plea", status: "open", signers: ["A03"] }]);
-		expect(snapshot.world.cast.collections.map((collection) => collection.entries.length)).toEqual([2]);
-		expect(snapshot.world.groups.groups).toMatchObject([{ id: "G1", members: [{ agent: "A02" }] }]);
-		expect(snapshot.world.competitors.map((entry) => [entry.level, entry.held])).toEqual([[1, true], [1, true], [1, true]]);
-		expect(snapshot.director.lastFired.length).toBeGreaterThan(0);
+		expect(sliceIn(snapshot, "petitions", Petitions)).toMatchObject([{ id: "plea", status: "open", signers: ["A03"] }]);
+		expect(sliceIn(snapshot, "cast", CastSlice).collections.map((collection) => collection.entries.length)).toEqual([2]);
+		expect(sliceIn(snapshot, "channels", ChannelsSlice).groups.groups).toMatchObject([{ id: "G1", members: [{ agent: "A02" }] }]);
+		expect(sliceIn(snapshot, "progression", ProgressionSlice).competitors.map((entry) => [entry.level, entry.held])).toEqual([[1, true], [1, true], [1, true]]);
+		expect(sliceIn(snapshot, "script", ScriptFired).lastFired.length).toBeGreaterThan(0);
 		for (const type of ["petition_signed", "cast_dm", "treasury_deposit", "group_post", "submission"] as const) expect(types(before)).toContain(type);
 		for (const type of ["petition_signed", "petition_resolved", "cast_dm", "lottery_drawn", "treasury_withdrawal", "group_post", "transfer", "treasury_settled"] as const) {
 			expect(types(after)).toContain(type);
@@ -198,7 +192,7 @@ describe("run snapshots across the society mechanics", () => {
 		expect(after.filter((event) => event.type === "submission" && event.agent === "A03" && event.outcome === "incorrect")).toHaveLength(2);
 
 		const resumed = await play({ resume: snapshot });
-		const markers = 1 + snapshot.agents;
+		const markers = resumeMarkers(snapshot);
 		expect(comparable(resumed.events.slice(cut + markers), markers)).toEqual(comparable(after));
 	});
 });

@@ -17,7 +17,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { readSnapshot, type RunSnapshot } from "../src/snapshot/snapshot.ts";
+import { readSnapshot, type RunSnapshot } from "@swarmtales/chronicle";
 
 const BASE = "examples/cityofkeys-act1-06a-04/snapshot-L7.json";
 const OUT = "lab/out/orders";

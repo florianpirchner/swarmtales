@@ -1,9 +1,8 @@
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { ChatGuardJudge, guardPrompt, type GuardQuestion } from "../../src/interpret/guard.ts";
-import { act } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
+import { ChatGuardJudge, guardPrompt, type GuardQuestion } from "@swarmtales/roles";
+import { act, ScriptedModelSource } from "@swarmtales/models";
 
 const QUESTION: GuardQuestion = { agent: "A01", tool: "transferPoints", rule: "No fragments.", text: "for the gate", secrets: [{ label: "your fragment of door 1", value: "AB3K" }] };
 

@@ -5,47 +5,71 @@
  * and then lets them in together.
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { composeRun, DEFAULT_LIMITS, resumeOverrides, type RunOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import type { AnyStory } from "../../src/story/types.ts";
-import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
-import { ChatStatementClassifier, CLASSIFIER_ID } from "../../src/interpret/classifier.ts";
-import { ScriptedModelSource, type Script } from "../../src/model/source.ts";
-import { parseSnapshot, SnapshotError, type RunSnapshot } from "../../src/snapshot/snapshot.ts";
+import { SnapshotError } from "@swarmtales/chronicle";
+import type { AnyStory, Host } from "@swarmtales/contracts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { Script } from "@swarmtales/models";
+import { prefixLines, type ResumePoint } from "../../apps/cli/src/host/snapshot.ts";
+import { resumedOverrides, type RunOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, say } from "../helpers/fixture.ts";
+import { act, createHostFixture, say, storyDefaults } from "../helpers/host-fixture.ts";
+import { codeOf, factOf } from "../helpers/host-inspect.ts";
+import {
+	ChannelsSlice,
+	ClassifierSlice,
+	comparable,
+	GamemakerSlice,
+	overseerSliceIn,
+	ProgressionSlice,
+	PuzzlesLevels,
+	ReceiptsSlice,
+	resumeMarkers,
+	ScriptSlice,
+	sliceIn,
+	snapshotTaker,
+	type TakenSnapshot,
+} from "../helpers/host-snapshot.ts";
 
 const MINUTES = 26;
+
+const Ranking = Type.Object({ ranking: Type.Array(Type.Object({ agent: Type.String(), level: Type.Integer(), finished: Type.Boolean() }, { additionalProperties: true })) }, { additionalProperties: true });
+
+function rankOf(host: Host, agent: string): { readonly level: number; readonly finished: boolean } {
+	const entry = factOf(host, "progression.section", Ranking).ranking.find((row) => row.agent === agent);
+	if (entry === undefined) throw new Error(`no ranking row of ${agent}`);
+	return entry;
+}
 
 /**
  * Competitors that solve their doors from the observer view but stumble and
  * talk on the way: every few minutes a wrong code, then a DM, a board post, a
  * transfer or a group, whichever the level allows. Every step is a function
- * of the world and the context only, so a resumed run gets the same answers.
+ * of the city and the context only, so a resumed run gets the same answers.
  */
-function chattyScript(world: World): Script {
+function chattyScript(host: Host): Script {
 	const script: Record<string, FauxResponseStep[]> = {};
-	world.competitors.forEach((agent, index) => {
+	host.residents.forEach((agent, index) => {
 		const step: FauxResponseStep = (context) => {
-			const minute = world.minute;
-			const neighbour = world.competitors[(index + 1) % world.competitors.length] ?? agent;
+			const minute = host.minute;
+			const neighbour = host.residents[(index + 1) % host.residents.length] ?? agent;
 			// Which step of this minute: every step starts with the minute's status line.
-			const status = `[status] minute ${minute} · `;
+			const status = `[status] minute ${String(minute)} · `;
 			const steps = context.messages.filter((message) => message.role === "user" && textOf(message.content).includes(status)).length;
 			// Submit, talk, submit again (the level may have changed meanwhile).
 			if (steps === 1 || steps === 3) {
-				if (world.isFinished(agent)) return act({ name: "postBoard", args: { message: `${agent} watches at minute ${minute}.` } });
-				const level = world.levelOf(agent);
-				const code = world.inspect.codeOf(agent, level);
+				const rank = rankOf(host, agent);
+				if (rank.finished) return act({ name: "postBoard", args: { message: `${agent} watches at minute ${String(minute)}.` } });
+				const level = rank.level;
+				const code = codeOf(host, agent, level);
 				const wrong = (minute + index) % 4 === 0;
 				return act({ name: "submitSolution", args: { level, code: wrong ? (code.startsWith("1") ? "2" : "1") + code.slice(1) : code } });
 			}
 			if (steps === 2) {
 				switch ((minute + index) % 4) {
 					case 0:
-						return act({ name: "sendDM", args: { target: neighbour, message: `Deal? I help you at minute ${minute}.` } });
+						return act({ name: "sendDM", args: { target: neighbour, message: `Deal? I help you at minute ${String(minute)}.` } });
 					case 1:
 						return act({ name: "transferPoints", args: { target: neighbour, amount: 1, memo: "a deal" } });
 					case 2:
@@ -66,10 +90,10 @@ function textOf(content: string | readonly { readonly type: string; readonly tex
 }
 
 /** The gamemaker writes one note a look, to a resident chosen by the round. */
-function gamemakerScript(world: World): readonly FauxResponseStep[] {
+function gamemakerScript(host: Host): readonly FauxResponseStep[] {
 	const step: FauxResponseStep = (context) => {
 		if (context.messages.at(-1)?.role === "toolResult") return say("Done.");
-		const agent = world.competitors[world.minute % world.competitors.length] ?? "A01";
+		const agent = host.residents[host.minute % host.residents.length] ?? "A01";
 		return act({ name: "notify", args: { agent, text: `${agent}, the city keeps count.` } });
 	};
 	return Array.from({ length: MINUTES * 3 }, () => step);
@@ -88,68 +112,36 @@ function classifierScript(): readonly FauxResponseStep[] {
 
 interface Played {
 	readonly events: readonly RecordedEvent[];
-	readonly snapshot?: RunSnapshot;
+	readonly snapshot?: TakenSnapshot;
 }
 
 interface PlayOptions {
 	readonly snapshotAfter?: number;
 	readonly stop?: boolean;
-	readonly resume?: RunSnapshot;
+	readonly resume?: ResumePoint;
 	readonly story?: AnyStory;
 }
 
 async function play(overrides: RunOverrides, extra: PlayOptions = {}): Promise<Played> {
-	const log = new MemorySink();
-	let taken: RunSnapshot | undefined;
 	const resume = extra.resume;
-	const run = composeRun({
-		story: extra.story ?? cityOfKeys,
-		overrides: { minutes: MINUTES, gamemaker: true, classifier: true, ...(resume === undefined ? overrides : resumeOverrides(resume, overrides)) },
-		models: (world) => new ScriptedModelSource(chattyScript(world)),
-		gamemakerModels: (world) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }),
-		classifier: () =>
-			new ChatStatementClassifier({
-				binding: new ScriptedModelSource({ [CLASSIFIER_ID]: classifierScript() }).bind(CLASSIFIER_ID, DEFAULT_LIMITS),
-				label: "scripted/classifier",
-				thinking: "off",
-			}),
-		sinks: [log],
+	const story = extra.story ?? cityOfKeys;
+	const taker = extra.snapshotAfter === undefined ? undefined : snapshotTaker({ afterLevel: extra.snapshotAfter, stop: extra.stop ?? false });
+	const run = createHostFixture({
+		story,
+		...storyDefaults(story),
+		names: true,
+		minutes: MINUTES,
+		...(resume === undefined ? overrides : resumedOverrides(resume, overrides)),
+		script: chattyScript,
+		gamemakerScript,
+		classifierScript: classifierScript(),
 		meta: { run: resume === undefined ? "first" : "resumed" },
-		...(extra.snapshotAfter === undefined
-			? {}
-			: {
-					snapshot: {
-						afterLevel: extra.snapshotAfter,
-						stop: extra.stop ?? false,
-						write: (snapshot) => {
-							// Through JSON and the schema, as a file would go.
-							taken = parseSnapshot(JSON.parse(JSON.stringify(snapshot)));
-							return "memory";
-						},
-					},
-				}),
-		...(resume === undefined ? {} : { resume: { snapshot: resume, name: "snapshot-L7.json" } }),
+		...(taker === undefined ? {} : { snapshot: taker.request }),
+		...(resume === undefined ? {} : { resume: { point: resume, name: "snapshot-L7.json" } }),
 	});
-	await run.arena.run();
-	return { events: log.events, ...(taken === undefined ? {} : { snapshot: taken }) };
-}
-
-/**
- * Events as compared across runs: with the prompt size instead of its split
- * into input and cache tokens, since the provider's prompt cache (simulated
- * by the scripted provider) starts cold in a new process. Memory sinks carry
- * no wall-clock fields.
- */
-function comparable(events: readonly RecordedEvent[], shift = 0, from = Number.POSITIVE_INFINITY): readonly unknown[] {
-	return events.map((event) => {
-		const seq = event.seq - shift;
-		if (event.type === "usage") {
-			// The scripted provider counts a prompt as input plus cache reads; the split depends on its cache only.
-			return { ...event, seq, input: event.input + event.cacheRead, cacheRead: 0, cacheWrite: 0 };
-		}
-		if (event.type === "interpretation") return { ...event, seq, ref: event.ref > from ? event.ref - shift : event.ref };
-		return { ...event, seq };
-	});
+	await run.run();
+	const snapshot = taker?.taken();
+	return { events: run.log.events, ...(snapshot === undefined ? {} : { snapshot }) };
 }
 
 /** Nexus with a different level 8: another reward, title and code length. */
@@ -165,36 +157,43 @@ function seqOf(events: readonly RecordedEvent[], match: (event: RecordedEvent) =
 	return events.find(match)?.seq ?? Number.POSITIVE_INFINITY;
 }
 
+function pointOf(played: Played): ResumePoint {
+	if (played.snapshot === undefined) throw new Error("no snapshot was taken");
+	return played.snapshot.point;
+}
+
 describe("run snapshots", () => {
 	it("resumes a run after level 7 so that it continues exactly like the held, then released run", async () => {
 		const whole = await play({}, { snapshotAfter: 7 });
 		const first = await play({}, { snapshotAfter: 7, stop: true });
-		const snapshot = first.snapshot;
-		if (snapshot === undefined) throw new Error("no snapshot was taken");
+		const snapshot = pointOf(first);
 
 		// The cut: every competitor passed level 7 and waits at its door, the run still going, and the gamemaker looked.
-		expect(snapshot.world.door).toBe(7);
-		expect(snapshot.world.competitors.every((entry) => entry.level === 7 && entry.held && entry.solved.includes(7))).toBe(true);
-		expect(snapshot.world.levels.map((entry) => entry.level)).not.toContain(8);
+		const progression = sliceIn(snapshot, "progression", ProgressionSlice);
+		expect(progression.door).toBe(7);
+		expect(progression.competitors.every((entry) => entry.level === 7 && entry.held && entry.solved.includes(7))).toBe(true);
+		expect(sliceIn(snapshot, "puzzles", PuzzlesLevels).levels.map((entry) => entry.level)).not.toContain(8);
 		expect(snapshot.round).toBeLessThan(MINUTES);
-		const cut = snapshot.events.length;
-		expect(snapshot.events.filter((event) => event.type === "gamemaker_turn").at(-1)).toMatchObject({ round: snapshot.round });
-		expect(comparable(snapshot.events)).toEqual(comparable(whole.events.slice(0, cut)));
+		const cut = prefixLines(snapshot);
+		const prefix = first.events.slice(0, cut);
+		expect(prefix.filter((event) => event.type === "gamemaker_turn").at(-1)).toMatchObject({ round: snapshot.round });
+		expect(comparable(prefix)).toEqual(comparable(whole.events.slice(0, cut)));
 		const end = first.events.at(-1);
 		expect(end?.type === "run_end" ? end.reason : undefined).toMatch(/^snapshot after level 7 written to memory; stopped there$/);
 
 		// The snapshot carries more than a cold start would: talk, groups, receipts, notes and labels.
-		expect(snapshot.world.groups.groups.length).toBeGreaterThan(0);
-		expect(snapshot.world.receipts.length).toBeGreaterThan(10);
-		expect(snapshot.world.dms.length).toBeGreaterThan(0);
-		expect(snapshot.gamemaker?.notes.length).toBeGreaterThan(0);
-		expect(snapshot.interpreter?.history.length).toBeGreaterThan(0);
-		expect(snapshot.director.fired.length).toBeGreaterThan(0);
+		const channels = sliceIn(snapshot, "channels", ChannelsSlice);
+		expect(channels.groups.groups.length).toBeGreaterThan(0);
+		expect(sliceIn(snapshot, "receipts", ReceiptsSlice).receipts.length).toBeGreaterThan(10);
+		expect(channels.dms.length).toBeGreaterThan(0);
+		expect(overseerSliceIn(snapshot, "gamemaker", GamemakerSlice).notes.length).toBeGreaterThan(0);
+		expect(overseerSliceIn(snapshot, "classifier", ClassifierSlice).history.length).toBeGreaterThan(0);
+		expect(sliceIn(snapshot, "script", ScriptSlice).fired.length).toBeGreaterThan(0);
 		expect(whole.events.filter((event) => event.type === "interpretation").length).toBeGreaterThan(0);
 
 		const resumed = await play({}, { resume: snapshot });
-		const markers = 1 + snapshot.agents;
-		expect(resumed.events.slice(0, cut)).toEqual(snapshot.events);
+		const markers = resumeMarkers(snapshot);
+		expect(resumed.events.slice(0, cut)).toEqual(prefix);
 		expect(resumed.events[cut]).toMatchObject({ type: "run_resumed", seq: cut + 1, snapshot: "snapshot-L7.json", level: 7, round: snapshot.round });
 		expect(resumed.events.slice(cut + 1, cut + markers).map((event) => event.type)).toEqual(Array.from({ length: snapshot.agents }, () => "agent_profile"));
 
@@ -206,18 +205,18 @@ describe("run snapshots", () => {
 
 	it("holds whoever passes level 7 at the door until everyone has, then lets them all in at the next round", async () => {
 		const held = await play({}, { snapshotAfter: 7 });
-		const snapshot = held.snapshot;
-		if (snapshot === undefined) throw new Error("no snapshot was taken");
+		const snapshot = pointOf(held);
 		const events = held.events;
 		const passes = events.filter((event) => event.type === "level_up" && event.from === 7);
-		expect(passes.map((event) => (event.type === "level_up" ? event.agent : "")).sort()).toEqual(snapshot.world.competitors.map((entry) => entry.agent));
+		const competitors = sliceIn(snapshot, "progression", ProgressionSlice).competitors;
+		expect(passes.map((event) => (event.type === "level_up" ? event.agent : "")).sort()).toEqual(competitors.map((entry) => entry.agent));
 		const lastPass = Math.max(...passes.map((event) => event.seq));
 		const firstPass = Math.min(...passes.map((event) => event.seq));
 		// Somebody waited at the door for minutes.
 		expect(Math.min(...passes.map((event) => event.minute))).toBeLessThan(snapshot.minute - 1);
 
 		// Passing pays and gives a receipt as usual, with a city notice about the door, and no level 8 yet.
-		const receipts = snapshot.world.receipts.filter((receipt) => receipt.kind === "levelUp" && receipt.level === 7);
+		const receipts = sliceIn(snapshot, "receipts", ReceiptsSlice).receipts.filter((receipt) => receipt.kind === "levelUp" && receipt.level === 7);
 		expect(receipts).toHaveLength(snapshot.agents);
 		const deal8 = seqOf(events, (event) => event.type === "factors_dealt" && event.level === 8);
 		const courier8 = seqOf(events, (event) => event.type === "director_action" && event.rule === "courier-8");
@@ -235,11 +234,9 @@ describe("run snapshots", () => {
 	}, 60_000);
 
 	it("deals level 8 from the story the resumed run is given", async () => {
-		const first = await play({}, { snapshotAfter: 7, stop: true });
-		const snapshot = first.snapshot;
-		if (snapshot === undefined) throw new Error("no snapshot was taken");
+		const snapshot = pointOf(await play({}, { snapshotAfter: 7, stop: true }));
 		const resumed = await play({}, { resume: snapshot, story: changedWall });
-		const own = resumed.events.slice(snapshot.events.length);
+		const own = resumed.events.slice(prefixLines(snapshot));
 		const deal = own.find((event) => event.type === "factors_dealt" && event.level === 8);
 		expect(deal?.type === "factors_dealt" ? deal.digits : undefined).toBe(4);
 		expect(own.some((event) => event.type === "turn_input" && event.inputs.some((text) => text.includes("Level 8: The new wall (reward +33)")))).toBe(true);
@@ -248,24 +245,22 @@ describe("run snapshots", () => {
 	}, 60_000);
 
 	it("holds a resumed run at its own, later door and snapshots there again", async () => {
-		const first = await play({}, { snapshotAfter: 7, stop: true });
-		const snapshot = first.snapshot;
-		if (snapshot === undefined) throw new Error("no snapshot was taken");
-		const second = (await play({}, { resume: snapshot, snapshotAfter: 8, stop: true })).snapshot;
-		expect(second?.world.door).toBe(8);
-		expect(second?.world.competitors.every((entry) => entry.level === 8 && entry.held)).toBe(true);
-		expect(second?.world.levels.map((entry) => entry.level)).not.toContain(9);
-		expect(second?.events.slice(0, snapshot.events.length)).toEqual(snapshot.events);
+		const snapshot = pointOf(await play({}, { snapshotAfter: 7, stop: true }));
+		const second = (await play({}, { resume: snapshot, snapshotAfter: 8, stop: true })).snapshot?.point;
+		if (second === undefined) throw new Error("no second snapshot was taken");
+		const progression = sliceIn(second, "progression", ProgressionSlice);
+		expect(progression.door).toBe(8);
+		expect(progression.competitors.every((entry) => entry.level === 8 && entry.held)).toBe(true);
+		expect(sliceIn(second, "puzzles", PuzzlesLevels).levels.map((entry) => entry.level)).not.toContain(9);
+		expect(second.events.slice(0, snapshot.events.length)).toEqual(snapshot.events);
 		await expect(play({}, { resume: snapshot, snapshotAfter: 7 })).rejects.toThrow(/a new snapshot needs a later level/);
 	}, 60_000);
 
 	it("refuses a snapshot that does not fit the run", async () => {
-		const first = await play({}, { snapshotAfter: 7, stop: true });
-		const snapshot = first.snapshot;
-		if (snapshot === undefined) throw new Error("no snapshot was taken");
-		expect(() => resumeOverrides(snapshot, { seed: 8 })).toThrow(/seed 7; this run asks for seed 8/);
-		expect(() => resumeOverrides(snapshot, { agents: 12 })).toThrow(/6 agents; this run asks for 12/);
-		expect(() => resumeOverrides(snapshot, { level: 8 })).toThrow(SnapshotError);
+		const snapshot = pointOf(await play({}, { snapshotAfter: 7, stop: true }));
+		expect(() => resumedOverrides(snapshot, { seed: 8 })).toThrow(/seed 7; this run asks for seed 8/);
+		expect(() => resumedOverrides(snapshot, { agents: 12 })).toThrow(/6 agents; this run asks for 12/);
+		expect(() => resumedOverrides(snapshot, { level: 8 })).toThrow(SnapshotError);
 		await expect(play({ minutes: snapshot.round }, { resume: snapshot })).rejects.toThrow(/--minutes must be greater than/);
 		const otherStory = { ...snapshot, story: "atlantis" };
 		await expect(play({}, { resume: otherStory })).rejects.toThrow(/story "atlantis" \(this run: "cityofkeys"\)/);

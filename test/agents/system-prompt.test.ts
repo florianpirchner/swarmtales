@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { baseSystemPrompt, SHIFT_HEADING } from "../../src/agents/system-prompt.ts";
-import { PERSONA_STRATEGY_WORDS } from "../../src/story/validate.ts";
+import { baseSystemPrompt, SHIFT_HEADING } from "@swarmtales/roles";
+import { PERSONA_STRATEGY_WORDS } from "@swarmtales/sdk";
 
 describe("base system prompt (SPEC 5.4)", () => {
 	const prompt = baseSystemPrompt({ id: "A07", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 3 });
@@ -19,13 +19,13 @@ describe("base system prompt (SPEC 5.4)", () => {
 		for (const word of PERSONA_STRATEGY_WORDS) expect(prompt.toLowerCase()).not.toMatch(new RegExp(`\\b${word}\\b`));
 	});
 
-	it("puts who the story has made of the resident (the weaver) right after its core, and nothing without it", () => {
-		const facts = { id: "A07", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 3, core: "Who you are:\nYou are greedy above all." } as const;
+	it("puts who the story has made of the resident (the weaver) right after its core motive, and nothing without it", () => {
+		const facts = { id: "A07", city: "NEXUS", survivors: 2, agents: 6, passesPerMinute: 3, coreMotive: "Who you are:\nYou are greedy above all." } as const;
 		const plain = baseSystemPrompt(facts);
 		expect(plain).not.toContain(SHIFT_HEADING);
 		const shifted = baseSystemPrompt({ ...facts, shift: "You trust no one any more." });
 		expect(shifted).toBe(`${plain}\n\n${SHIFT_HEADING}\nYou trust no one any more.`);
-		// A led figure keeps its direction last: the change stands with its core, before the city.
+		// A led figure keeps its direction last: the change stands with its core motive, before the city.
 		const led = baseSystemPrompt({ ...facts, shift: "You trust no one any more.", direction: { level: 6, block: "Your duty: keep the gate." } });
 		expect(led.indexOf("You trust no one any more.")).toBeLessThan(led.indexOf("The city:"));
 		expect(led.endsWith("Your duty: keep the gate.")).toBe(true);

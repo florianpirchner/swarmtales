@@ -1,11 +1,10 @@
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { AgentRunner, isSafeguardRefusal, LOST_INPUTS } from "../../src/agents/runner.ts";
-import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { EventBus, type RecordedEvent } from "../../src/engine/events.ts";
-import { rewriteProblem, type Souffleur } from "../../src/interpret/souffleur.ts";
-import { say } from "../../src/model/scripted.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
+import { AgentRunner, isSafeguardRefusal, LOST_INPUTS, rewriteProblem, type Souffleur } from "@swarmtales/roles";
+import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { EventBus } from "@swarmtales/legacy-log";
+import { say, ScriptedModelSource } from "@swarmtales/models";
 
 const REFUSAL = "This request triggered cyber-related safeguards. To learn about the Cyber Verification Program ...";
 

@@ -1,0 +1,26 @@
+{
+	"name": "@swarmtales/legacy-log",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The old run log's event types (RecordedEvent, ArenaEvent, EventSink) and statement labels, shared by the engine, roles, chronicle and the CLI until the run log moves to the host's own lines",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*"
+	}
+}

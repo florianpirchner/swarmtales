@@ -359,7 +359,7 @@ from the act's start (P28).
 ### 6.5 The give-first standoff [P43, 2026-10-29]
 
 A door that needs pieces from someone else freezes when both sides wait for the other to give
-first (P43). Three parts work against it; `src/engine/standoff.ts` holds them.
+first (P43). Three parts work against it; `packages/engine/src/standoff.ts` holds them.
 
 - **Hand-overs.** The city notes, silently, when a holder writes the value of a piece it holds for
   someone to that resident: in a DM, a group post the needer is in, or the board, or as a
@@ -653,7 +653,7 @@ never hear of it, and it never steers the game.
   act, which moves on as soon as the first (leading) resident enters the next act's first
   level, even while others are still in the act before. Caps and the act's end follow it.
 - **The question.** One request per touched resident, with a dossier: the round's events as
-  sentences with their `#seq`, the character part of its prompt (its core in prose, or its
+  sentences with their `#seq`, the character part of its prompt (its core motive in prose, or its
   persona), what the weaver made of it so far, and its earlier changes in this act. The model
   answers with one `weave` call `{ kind: "none" | "soft" | "hard", text, reason }`, parsed
   with typebox; anything else counts as `none`. A text over 600 or a reason over 200
@@ -663,7 +663,7 @@ never hear of it, and it never steers the game.
   leave the context again (refused by the provider's safeguards, or lost by the souffleur)
   gives its voices back for the next step.
 - **Hard** rewrites the character part of the resident's system prompt: under "Who the story
-  has made of you so far:" right after its core (before the city's facts when a figure leads,
+  has made of you so far:" right after its core motive (before the city's facts when a figure leads,
   §5.4), replacing the weaver's earlier hard text. The figure's orders and duty never change.
   The resident's next request misses the prompt cache once.
 - **Caps** per resident and act: at most 6 soft and 2 hard changes. A hard change beyond its
@@ -673,7 +673,7 @@ never hear of it, and it never steers the game.
   a hard rewrite; `none` keeps the resident as it is). The act's inner voices not heard yet are
   dropped, and the caps start again. The last act of a run has no end to write.
 - **Rules of its prompt:** say who someone is, never what to do (no plans, moves, tools or
-  numbers); the core shifts, it is not replaced; second person, at most three short sentences;
+  numbers); the core motive shifts, it is not replaced; second person, at most three short sentences;
   the reason in at most twelve words, citing what happened.
 - **Record.** Every change is a `fate_shift` event (`agent`, `kind` soft, hard or act,
   `text`, `reason`, `evidence`: the `seq` of the events that moved it, at an act's end those of
@@ -910,7 +910,7 @@ Per run, `runs/run-NNN/` contains:
 | `events.jsonl` | every event with `seq`, virtual minute, wall-clock time |
 | `NNN-minute/events.jsonl` | events of one minute |
 | `agents/A01.md` | transcript per agent: inputs, reasoning, text, tool calls and results |
-| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core and the text of its system prompt; written before the first step, again at the end |
+| `cast/A01-<figure>.md` | who each resident is: name, cast figure, core motive and the text of its system prompt; written before the first step, again at the end |
 | `acts/act-<n>/private.md` | what the residents know privately in act n: secret goals and their outcome, the black seal's secret bids, winner and use, the gamemaker's private notes (`pnpm report:private <run>` rewrites them) |
 | `minutes.md` | per-minute table: level, points, rank, tool count, activation |
 | `usage.json` | tokens and cost, total and per agent; a resumed run splits them into `prefix` and `own` (§17) |
@@ -1005,7 +1005,7 @@ Per run, `runs/run-NNN/` contains:
   overlapping minutes between residents' chapters and the same POV twice in a row are warnings.
 - **Scene packs** (code): per chapter, within a character budget, the POV's messages, its thinking
   (the inner monologue), the gamemaker's notes to it, the board, the city's verified facts of the
-  chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core,
+  chapter's minutes and the events the outline cites, plus its figure text (from `cast/`), core motive,
   secret goal and fate shifts. A secret fact (a vote, a payment, a private receipt or factor,
   another's fate shift) is shown only to a POV that knows it. IDs are replaced by names.
 - **Prologue, chapters, Gamemaker chapters, edit, translation** (models: the draft by the writer, default DeepSeek V4.1 Flash, thinking low; the edit and translation by the editor, default Claude Sonnet via Anthropic, thinking low: Sonnet 5.5 cannot turn it off, and without a level it would think at effort high; every system prompt opens with a plain statement that the keys and codes are a word-puzzle game, not computer crime, P56): a
@@ -1176,29 +1176,29 @@ words). In a fresh run that starts at the first level (`--no-names` keeps IDs):
   the digest show "Mira (A03)".
 - **Old snapshots** (without names) resume with IDs as names and no `chooseName`.
 
-## 19. Drama: cores, goals, the black seal [v09]
+## 19. Drama: core motives, goals, the black seal [v09]
 
-Build spec: [`design/v09.md`](design/v09.md). A story may declare `cores`, `goals` and `seal`; all
+Build spec: [`design/v09.md`](design/v09.md). A story may declare `coreMotives`, `goals` and `seal`; all
 three are optional, and the texts say who someone is or what it wants, never how to get it.
 
 - **Penalty ladders:** `rules.penalty` and `tribunal.blame.penalty` may be a list (cityofkeys: `[2, 4,
   6, 8]`); the n-th offence of a resident within an act costs step n, the last step repeats. The
   count is kept in snapshots and starts again at every act start. Task texts may use `{penalty}`
   and `{blamePenalty}`; refusals and the status line name the next price.
-- **Cores** (`cores: { axes, drives, perResident, lightShare, spreadPer }`): at the fresh world's
-  start (or at the resume of a snapshot without cores) every resident is dealt, seeded, one drive
+- **Core motives** (`coreMotives: { axes, drives, perResident, lightShare, spreadPer }`): at the fresh world's
+  start (or at the resume of a snapshot without core motives) every resident is dealt, seeded, one drive
   above all and up to `perResident.max - 1` more (`clearly`, `atTimes`) plus a level on every axis.
   `round(n * lightShare)` residents have a light drive above all, and no drive is above all for
-  more than `ceil(n / spreadPer)`. The rendered core follows the persona in the system prompt;
-  `core_dealt` logs it. `--no-cores` deals none. In a named city the system prompt never names the
+  more than `ceil(n / spreadPer)`. The rendered core motive follows the persona in the system prompt;
+  `motive_dealt` logs it (logs before step 18 wrote `core_dealt`, which the readers read as `motive_dealt`). `--no-core-motives` (old name `--no-cores`) deals none. In a named city the system prompt never names the
   resident's ID, so it is the same before and after a resume.
   With `figures` (a story's cast) residents get finished figures instead, as many as the cast has:
   the ones the run names (`--cast`), or a seeded pick with `round(count * lightShare)` light ones.
-  A figure's core is its own drives and axes, its text replaces the core's sentences, and it plays
-  the persona of its `profession`; `core_dealt` and the snapshot carry its `figure` ID. Residents
-  beyond the cast get a drawn core. `frame`, when set, comes first in the system prompt of every
-  resident with a core.
-- **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; src/engine/direction.ts):
+  A figure's core motive is its own drives and axes, its text replaces the core motive's sentences, and it plays
+  the persona of its `profession`; `motive_dealt` and the snapshot carry its `figure` ID. Residents
+  beyond the cast get a drawn core motive. `frame`, when set, comes first in the system prompt of every
+  resident with a core motive.
+- **Direction** (`--figure-direction`, `--gm-direction`, 0-10, default 4; packages/engine/src/direction.ts):
   how strongly a run steers what its residents do. Defined levels are 0, 4, 6, 8 and 10; other
   values round down. Up to 4 the prompts are built as before (v12). A figure's file may hold the
   sections `## In brief`, `## Tendencies`, `## Orders`, `## Duty` and `## Rivals`
@@ -1217,11 +1217,11 @@ three are optional, and the texts say who someone is or what it wants, never how
   with a new beat; the refusal goes into `gamemaker_defied` and the act's private file. From
   8 on a run breaks the promise "who, not what" on purpose; the run's `000-run.json` and `meta`
   carry both levels.
-- **Goals** (`goals: { acts, bonus, leadTribunals, againstCore, matches, texts }`): at the start
+- **Goals** (`goals: { acts, bonus, leadTribunals, againstCoreMotive, matches, texts }`): at the start
   of each listed act every resident in the city is dealt a goal (`goal_dealt`): `protect`,
   `exile` or `outrank` a target, `lead` a faction in `leadTribunals` tribunals, or `heir` (a will
-  leaves it something). The kind follows the core's strongest mapped drive, against it for about
-  `againstCore`. The goal is resolved once when the act ends (`goal_resolved`, `bonus` points when
+  leaves it something). The kind follows the core motive's strongest mapped drive, against it for about
+  `againstCoreMotive`. The goal is resolved once when the act ends (`goal_resolved`, `bonus` points when
   it holds; void for the exiled). A resident at the gate still counts as in the city.
 - **The black seal** (`seal: { act, announceAfter, bidMinutes, perResidents, spacing, texts }`):
   `ceil(n / perResidents)` seals in the tribunal's act (none below 2 residents). Each auction opens
@@ -1232,15 +1232,15 @@ three are optional, and the texts say who someone is or what it wants, never how
   gate, will or ransom, and counts toward the tribunal's target. A seal is gone when the act ends,
   its bearer is exiled, or the target is reached (a resident already at the gate stays a valid
   target). Validation requires a tribunal in the seal's act and `spacing >= bidMinutes`.
-- **Director:** the gamemaker's report lists cores and goals under a private header and the
+- **Director:** the gamemaker's report lists core motives and goals under a private header and the
   seal's state without its bearer, and adds `YOUR MOVE` while `scheduleTribunal` is available.
-  A note that names a resident together with its core's cues or its goal goes only to that
+  A note that names a resident together with its core motive's cues or its goal goes only to that
   resident (`PRIVATE_BLOCKED` otherwise); a note sharing more than 80% of its words with an
   earlier one to the same reader is refused (`REPEATED`).
 - **Scaled counts:** `collectDms.first` may be `{ share, minimum }`, and `afterSolve { level,
   minutes }` ends a collection early; `tribunal.targetShare` may be a list of `{ from?, share }`
   rules from the largest city down (cityofkeys: a quarter from 12, otherwise a half).
-- **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Cores and Goals tables and
+- **Reports:** REPORT.md, `minutes.md` and the digest's timeline show Core motives and Goals tables and
   the seal's auction, winner and use.
 
 ## 20. Whispers: the whisperer, forged receipts, popularity votes, door clock, DM cap, tool guards, holdout tribunal [Whispers, 2026-10-30]
@@ -1254,7 +1254,7 @@ play as before.
 - **The whisperer** (`whisperer: { agent?, brief, forgery, duty }`): at the start of a fresh run
   one competitor is the whisperer: `agent` when it is one of the run's IDs, otherwise a seeded pick
   (`rngFor(seed, "whisperer")`). `whisperer_chosen` is logged, and the choice is never shown to
-  anyone. `brief` follows his system prompt, after the persona and core. `--no-whisperer`
+  anyone. `brief` follows his system prompt, after the persona and core motive. `--no-whisperer`
   (`overrides.whisperer: false`) plays the story without one.
 - **The duty** (`duty`), a private notice to the whisperer, in one of two rhythms:
   `{ kind: "every", everyMinutes, fromMinute, text }` at `fromMinute` and every `everyMinutes`
@@ -1266,7 +1266,7 @@ play as before.
   `[since, minute)`; after a vote `since` is the count before (0 before the first).
 - **The directed whisperer** (`direction: { brief?, tendencies, orders, duty?, rivals: [], quota? }`,
   after P64, P67, P69): `--figure-direction` steers the whisperer as it steers a cast figure (§19,
-  "Direction"; src/engine/direction.ts): 6 the voice rule, no persona block and the brief in every
+  "Direction"; packages/engine/src/direction.ts): 6 the voice rule, no persona block and the brief in every
   step; 8 the tendencies; 10 the orders and the duty, after his secret brief at the end of his
   prompt, and with a gamemaker the author's line and `defy` (for him alone, whatever
   `--gm-direction`). He faces no figures, so `rivals` stays empty. At 10 the city also measures

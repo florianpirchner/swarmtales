@@ -5,8 +5,9 @@
  * `collectionOpen`.
  */
 import { describe, expect, it } from "vitest";
-import { act as directorAct, at, onCollect, onCollectionEnd, onEnter, when } from "../../src/story/define.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { act as directorAct, at, onCollect, onCollectionEnd, onEnter, when } from "@swarmtales/sdk";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { codeOf, submit, collectionOf } from "../helpers/host-inspect.ts";
 import { castStory, soloLevels, socialLevels } from "../helpers/stories.ts";
 
 const write = (message: string) => act({ name: "sendDM", args: { target: "STEWARD", message } });
@@ -22,7 +23,7 @@ describe("feast collections", () => {
 				onCollect("feast", [directorAct.notify("actor", "A seat for {actor} on level {level}.")], { id: "seat" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 4,
 			script: () => ({
@@ -35,7 +36,7 @@ describe("feast collections", () => {
 		});
 		await fixture.run();
 		expect(fixture.events("collection_started")).toMatchObject([{ into: "feast", cast: "STEWARD", first: 2, untilMinute: 3 }]);
-		expect(fixture.world.collection("feast")?.entries.map((entry) => [entry.from, entry.text])).toEqual([
+		expect(collectionOf(fixture.host, "feast")?.entries.map((entry) => [entry.from, entry.text])).toEqual([
 			["A01", "first"],
 			["A02", "me too"],
 		]);
@@ -64,9 +65,9 @@ describe("feast collections", () => {
 				onCollect("letters", [directorAct.notify("actor", "Received.")], { id: "received" }),
 			],
 		});
-		const fixture = createFixture({ story, minutes: 3, script: () => ({ A01: [write("one"), write("two"), say()], A02: [say(), write("three"), say()] }) });
+		const fixture = createHostFixture({ story, minutes: 3, script: () => ({ A01: [write("one"), write("two"), say()], A02: [say(), write("three"), say()] }) });
 		await fixture.run();
-		const letters = fixture.world.collection("letters")?.entries.map((entry) => entry.text) ?? [];
+		const letters = collectionOf(fixture.host, "letters")?.entries.map((entry) => entry.text) ?? [];
 		// "two" and "three" are written in the same minute, in that minute's seeded order.
 		expect(letters[0]).toBe("one");
 		expect([...letters].sort()).toEqual(["one", "three", "two"]);
@@ -85,7 +86,7 @@ describe("feast collections", () => {
 				],
 			});
 			const letter = (index: number) => (index < writers ? write("me") : say());
-			const fixture = createFixture({
+			const fixture = createHostFixture({
 				story,
 				minutes: 7,
 				script: () => ({
@@ -99,7 +100,7 @@ describe("feast collections", () => {
 		};
 		for (const writers of [0, 3]) {
 			const fixture = await play(writers);
-			expect(fixture.world.collection("table")?.entries).toHaveLength(Math.min(writers, 2));
+			expect(collectionOf(fixture.host, "table")?.entries).toHaveLength(Math.min(writers, 2));
 			expect(fixture.events("director_action").filter((event) => event.rule === "cleared").map((event) => event.minute)).toEqual([4]);
 		}
 	});
@@ -114,14 +115,14 @@ describe("feast collections", () => {
 				onEnter(2, [directorAct.notify("actor", "The table is open.")], { id: "open", when: [when.collectionOpen("table")] }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 4,
-			script: (world) => ({
+			script: (host) => ({
 				// A01 arrives while the table is open; A02 writes and fills it; A03 arrives after that.
-				A01: [act({ name: "submitSolution", args: { level: 1, code: world.inspect.codeOf("A01", 1) } }), say(), say(), say()],
+				A01: [act({ name: "submitSolution", args: { level: 1, code: codeOf(host, "A01", 1) } }), say(), say(), say()],
 				A02: [say(), write("seat"), say(), say()],
-				A03: [say(), say(), act({ name: "submitSolution", args: { level: 1, code: world.inspect.codeOf("A03", 1) } }), say()],
+				A03: [say(), say(), act({ name: "submitSolution", args: { level: 1, code: codeOf(host, "A03", 1) } }), say()],
 			}),
 		});
 		await fixture.run();
@@ -147,16 +148,16 @@ describe("feast collections", () => {
 				onCollectionEnd("feast", [directorAct.post("COURIER", "The table is cleared.")], { id: "cleared" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 8,
-			script: (world) => ({ A01: [say(), say(), submit(world, "A01", 1), say()], A02: [say()] }),
+			script: (host) => ({ A01: [say(), say(), submit(host, "A01", 1), say()], A02: [say()] }),
 		});
 		await fixture.run();
 		// A quarter of 8 is 2 seats; the window of 10 minutes ends 2 minutes after A01 passes door 1 at minute 2.
 		expect(fixture.events("collection_started")).toMatchObject([{ into: "feast", first: 2, untilMinute: 10 }]);
 		expect(fixture.events("collection_shortened")).toMatchObject([{ into: "feast", untilMinute: 4 }]);
-		expect(fixture.world.board.all().map((post) => post.text)).toEqual(expect.arrayContaining(["A table for 2.", "The table is cleared."]));
+		expect(fixture.boardPosts().map((post) => post.text)).toEqual(expect.arrayContaining(["A table for 2.", "The table is cleared."]));
 		const cleared = fixture.events("director_action").find((event) => event.rule === "cleared");
 		expect(cleared?.minute).toBe(4);
 	});

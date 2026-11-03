@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { RecordedEvent } from "../../src/engine/events.ts";
-import { privateLabelsOf, privateLeaks } from "../../src/gamemaker/privacy.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import { privateLabelsOf, privateLeaks } from "@swarmtales/roles";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
 
 const labelled = (seq: number, agent: string, source: "thought" | "aside" | "dm" | "board", labels: readonly ("hesitation" | "lie" | "refusal" | "promise")[]): RecordedEvent => ({
 	type: "interpretation",
@@ -58,7 +58,7 @@ describe("gamemaker privacy", () => {
 			minutes: 2,
 			only: 1,
 			script: () => ({ A01: [say("A wrong code costs points, I wait."), say()], A02: [say(), say()] }),
-			classifierScript: () => [
+			classifierScript: [
 				(context) => {
 					const user = context.messages.find((message) => message.role === "user");
 					const prompt = user !== undefined && typeof user.content === "string" ? user.content : "";

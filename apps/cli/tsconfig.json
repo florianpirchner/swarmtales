@@ -1,0 +1,101 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+	},
+	"include": [
+		"src"
+	],
+	"references": [
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/legacy-log"
+		},
+		{
+			"path": "../../packages/kernel"
+		},
+		{
+			"path": "../../packages/prompts"
+		},
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../../packages/models"
+		},
+		{
+			"path": "../../packages/roles"
+		},
+		{
+			"path": "../../packages/chronicle"
+		},
+		{
+			"path": "../../packages/novelist"
+		},
+		{
+			"path": "../../stories"
+		},
+		{
+			"path": "../../mechanics/arena"
+		},
+		{
+			"path": "../../mechanics/cast"
+		},
+		{
+			"path": "../../mechanics/channels"
+		},
+		{
+			"path": "../../mechanics/exile"
+		},
+		{
+			"path": "../../mechanics/goals"
+		},
+		{
+			"path": "../../mechanics/ledger"
+		},
+		{
+			"path": "../../mechanics/marks"
+		},
+		{
+			"path": "../../mechanics/motives"
+		},
+		{
+			"path": "../../mechanics/names"
+		},
+		{
+			"path": "../../mechanics/petitions"
+		},
+		{
+			"path": "../../mechanics/progression"
+		},
+		{
+			"path": "../../mechanics/puzzles"
+		},
+		{
+			"path": "../../mechanics/receipts"
+		},
+		{
+			"path": "../../mechanics/script"
+		},
+		{
+			"path": "../../mechanics/seal"
+		},
+		{
+			"path": "../../mechanics/standoff"
+		},
+		{
+			"path": "../../mechanics/standoff-tribunal"
+		},
+		{
+			"path": "../../mechanics/tribunal"
+		},
+		{
+			"path": "../../mechanics/whispers"
+		}
+	]
+}

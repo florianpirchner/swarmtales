@@ -1,0 +1,345 @@
+[
+	{
+		"id": "C1-K1",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "const BATCH_MAX = 60;",
+		"replace": "const BATCH_MAX = 61;",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K2",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "const CONTEXT_MESSAGES = 4;",
+		"replace": "const CONTEXT_MESSAGES = 3;",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K3",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "triggers: [{ hook: \"between\", order: OVERSEER_ORDER.classifier }],",
+		"replace": "triggers: [{ hook: \"between\", order: OVERSEER_ORDER.gamemaker }],",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K4",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "round.failed = true;",
+		"replace": "",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K5",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "if (ctx.residents.has(target) && target !== statement.agent) entry.targets.add(target);",
+		"replace": "if (ctx.residents.has(target)) entry.targets.add(target);",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K6",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "const round = ctx.minute + 1;",
+		"replace": "const round = ctx.minute;",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K7",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "for (const label of verdict.labels) if (isLabel(label)) entry.labels.add(label);",
+		"replace": "for (const label of verdict.labels) entry.labels.add(label as Label);",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K8",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "if (last !== undefined) state.cursor = last.seq;",
+		"replace": "",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K9",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "if (payload.by === \"none\") {",
+		"replace": "if (false) {",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K10",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "if (!round.failed) ctx.emit(\"interpretation_round\"",
+		"replace": "if (true) ctx.emit(\"interpretation_round\"",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K11",
+		"file": "packages/roles/src/overseer/classifier.ts",
+		"find": "fallback: () => ({ items: [] }),",
+		"replace": "fallback: () => undefined,",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K12",
+		"file": "packages/roles/src/overseer/statements.ts",
+		"find": "return payload.kind === \"player\" ? make(payload.author, \"board\", payload.text) : undefined;",
+		"replace": "return make(payload.author, \"board\", payload.text);",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K13",
+		"file": "packages/roles/src/overseer/statements.ts",
+		"find": "text.trim().length === 0",
+		"replace": "text.length === 0",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-K14",
+		"file": "packages/roles/src/overseer/statements.ts",
+		"find": "return `dm:${[statement.agent, other].sort().join(\"|\")}`;",
+		"replace": "return `dm:${[statement.agent, other].join(\"|\")}`;",
+		"tests": [
+			"test/overseers/classifier.test.ts"
+		]
+	},
+	{
+		"id": "C1-W1",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const MAX_SOFT = 6;",
+		"replace": "const MAX_SOFT = 7;",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W2",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const MAX_HARD = 2;",
+		"replace": "const MAX_HARD = 3;",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W3",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const kind = weave.kind === \"hard\" && hard < MAX_HARD ? \"hard\" : soft < MAX_SOFT ? \"soft\" : undefined;",
+		"replace": "const kind = weave.kind === \"hard\" ? \"hard\" : soft < MAX_SOFT ? \"soft\" : undefined;",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W4",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "state.voices.delete(agent);",
+		"replace": "",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W5",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "state.closed.add(act);",
+		"replace": "",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W6",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "if (event.seq > state.cursor) state.pending.push(...triggers.hitsOf(event, render));",
+		"replace": "state.pending.push(...triggers.hitsOf(event, render));",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W7",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const text = ctx.display(weave.text.trim());",
+		"replace": "const text = weave.text.trim();",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W8",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "text: clip(weave.text, TEXT_MAX),",
+		"replace": "text: weave.text,",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W9",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "{ schedule: { every: 1 }, order: OVERSEER_ORDER.weaver },",
+		"replace": "{ schedule: { every: 1 }, order: OVERSEER_ORDER.weaver + 2 },",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W10",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "fallback: (): Weave => ({ kind: \"none\", text: \"\", reason: \"\" }),",
+		"replace": "fallback: (): Weave => ({ kind: \"soft\", text: \"x\", reason: \"\" }),",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W11",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "const touched = residents.filter((id) => !gone.has(id) && hits.some((hit) => hit.agent === id));",
+		"replace": "const touched = residents.filter((id) => hits.some((hit) => hit.agent === id));",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-W12",
+		"file": "packages/roles/src/overseer/weaver.ts",
+		"find": "triggers.observe(event);",
+		"replace": "",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-F1",
+		"file": "packages/roles/src/overseer/fate.ts",
+		"find": "if (PRIVATE_SOURCES.includes(payload.source) || !payload.labels.includes(\"accusation\")) return [];",
+		"replace": "if (!payload.labels.includes(\"accusation\")) return [];",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-F2",
+		"file": "packages/roles/src/overseer/fate.ts",
+		"find": "? readers?.has(target) === true : true);",
+		"replace": "? true : true);",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-F3",
+		"file": "packages/roles/src/overseer/fate.ts",
+		"find": "if (payload.change === \"added\") members.add(payload.agent);",
+		"replace": "if (payload.change !== \"added\") members.add(payload.agent);",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-F5",
+		"file": "packages/roles/src/overseer/fate.ts",
+		"find": "&& payload.cause === \"ultimatum\") {",
+		"replace": ") {",
+		"tests": [
+			"test/overseers/weaver.test.ts"
+		]
+	},
+	{
+		"id": "C1-J1",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "const QUOTE_CHARS = 1_000;",
+		"replace": "const QUOTE_CHARS = 100;",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J2",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "const CHANNELS = { dm: \"judge/channel-dm\", board: \"judge/channel-board\", group: \"judge/channel-group\" } as const;",
+		"replace": "const CHANNELS = { dm: \"judge/channel-dm\", board: \"judge/channel-dm\", group: \"judge/channel-group\" } as const;",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J3",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "...(standing === undefined",
+		"replace": "...(true",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J4",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "partial: \"judge/system-partial\",",
+		"replace": "partial: \"judge/system-fair\",",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J5",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "output: JudgeVerdict,",
+		"replace": "output: Type.Object({ deniesReceipt: Type.Boolean(), board: Type.Optional(Type.String()), gamemaker: Type.Optional(Type.String()) }),",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J6",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "model: { slot: \"classifier\" },",
+		"replace": "model: { slot: \"judge\" },",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J7",
+		"file": "packages/roles/src/overseer/judge.ts",
+		"find": "fallback: () => undefined,",
+		"replace": "fallback: () => ({ deniesReceipt: true }),",
+		"tests": [
+			"test/overseers/judge.test.ts"
+		]
+	},
+	{
+		"id": "C1-J8",
+		"file": "packages/roles/src/overseer/order.ts",
+		"find": "{ classifier: 100, weaver: 200, gamemaker: 300 }",
+		"replace": "{ classifier: 200, weaver: 100, gamemaker: 300 }",
+		"tests": [
+			"test/overseers/classifier.test.ts",
+			"test/overseers/weaver.test.ts"
+		]
+	}
+]

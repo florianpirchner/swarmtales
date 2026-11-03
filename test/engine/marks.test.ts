@@ -1,9 +1,80 @@
 import { describe, expect, it } from "vitest";
-import { MarksBook } from "../../src/engine/marks.ts";
-import type { MarksRules } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import type { AnyStory, Host, MarksRules } from "@swarmtales/contracts";
+import { canAfford, priceOf, spend, statusOf, termsOn, type Book, type MarksState } from "@swarmtales/mechanic-marks";
+import { validateStory } from "@swarmtales/sdk";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { levelOf, problemText, submit } from "../helpers/host-inspect.ts";
 import { tinyStory } from "../helpers/stories.ts";
+
+/** A resident's marks as `getStatus` shows them (old `world.status(agent).marks`); `undefined` where marks do not apply. */
+async function marksOf(host: Pick<Host, "call">, agent: string): Promise<{ remaining: number; budget: number } | undefined> {
+	const outcome = await host.call(`resident:${agent}`, "getStatus", {});
+	if (!outcome.ok) throw new Error(outcome.detail);
+	const match = /marks: (\d+) of (\d+)/.exec(outcome.reply);
+	return match === null ? undefined : { remaining: Number(match[1]), budget: Number(match[2]) };
+}
+
+/**
+ * The old `MarksBook` (level and clock as arguments) over the marks mechanic's rules
+ * (`termsOn`, `priceOf`, `spend`, `statusOf` of mechanics/marks/src/book.ts), so the rule cases
+ * below read as they did on the old engine.
+ */
+class Marks {
+	readonly #state: MarksState = { allowances: new Map() };
+	readonly #rules: MarksRules;
+	readonly #minute: () => number;
+	readonly #levels = new Map<string, number>();
+
+	constructor(rules: MarksRules, minute: () => number = () => 0) {
+		this.#rules = rules;
+		this.#minute = minute;
+	}
+
+	#book(): Book {
+		return { rules: this.#rules, overrides: new Map(), levelOf: (agent) => this.#levels.get(agent) ?? 1, minute: this.#minute() };
+	}
+
+	#at(agent: string, level: number): Book {
+		this.#levels.set(agent, level);
+		return this.#book();
+	}
+
+	termsOn(level: number) {
+		return termsOn(this.#book(), level);
+	}
+
+	priceOf(level: number, channel: "board" | "group" | "dm" | "receipt") {
+		return priceOf(this.#book(), level, channel);
+	}
+
+	spend(agent: string, level: number, channel: "board" | "group" | "dm"): void {
+		spend(this.#state, this.#at(agent, level), agent, channel);
+	}
+
+	status(agent: string, level: number) {
+		return statusOf(this.#state, this.#at(agent, level), agent);
+	}
+
+	canAfford(agent: string, level: number, channel: "board" | "group" | "dm"): boolean {
+		return canAfford(this.#state, this.#at(agent, level), agent, channel);
+	}
+
+	snapshot() {
+		return [...this.#state.allowances].map(([agent, allowance]) => ({ agent, ...allowance }));
+	}
+
+	restore(entries: readonly { readonly agent: string; readonly level: number; readonly remaining: number; readonly since?: number }[]): void {
+		for (const { agent, ...allowance } of entries) this.#state.allowances.set(agent, { ...allowance });
+	}
+}
+
+/** The story's marks as the host's mapping hands them to the mechanic (`marksUse`), as the old `world.marks`. */
+function storyMarks(story: AnyStory): Marks {
+	const rules = story.rules.marks;
+	if (rules === undefined) throw new Error(`${story.id} has no marks`);
+	return new Marks(rules);
+}
 
 function foundGroup(...members: readonly string[]) {
 	return [
@@ -35,7 +106,7 @@ describe("marks (SPEC 7)", () => {
 		expect(results.slice(0, 8).every((text) => text.includes("left"))).toBe(true);
 		expect(results[7]).toContain("marks 0/8 left");
 		expect(results[8]).toBe("NO_MARKS");
-		expect(fixture.world.status("A01").marks).toEqual({ remaining: 0, budget: 8 });
+		expect(await marksOf(fixture.host, "A01")).toEqual({ remaining: 0, budget: 8 });
 		expect(fixture.events("marks_spent")).toHaveLength(8);
 	});
 
@@ -71,7 +142,7 @@ describe("marks (SPEC 7)", () => {
 		});
 		await fixture.run();
 		expect(fixture.toolResults("A01", "sendDM")).toEqual([expect.stringMatching(/^sent · DM #\d+ to A02 · the city confirms delivery when it reaches them$/)]);
-		expect(fixture.world.status("A01").marks).toBeUndefined();
+		expect(await marksOf(fixture.host, "A01")).toBeUndefined();
 	});
 
 	it("refill on a level change", async () => {
@@ -80,23 +151,23 @@ describe("marks (SPEC 7)", () => {
 			minutes: 2,
 			level: 5,
 			lastLevel: 6,
-			script: (world) => ({
-				A01: [act({ name: "sendDM", args: { target: "A02", message: "one" } }, { name: "sendDM", args: { target: "A03", message: "two" } }), submit(world, "A01", 5)],
+			script: (host) => ({
+				A01: [act({ name: "sendDM", args: { target: "A02", message: "one" } }, { name: "sendDM", args: { target: "A03", message: "two" } }), submit(host, "A01", 5)],
 				A02: [say(), say()],
 				A03: [say(), say()],
 			}),
 		});
-		expect(fixture.world.status("A01").marks).toEqual({ remaining: 8, budget: 8 });
+		expect(await marksOf(fixture.host, "A01")).toEqual({ remaining: 8, budget: 8 });
 		await fixture.run();
-		expect(fixture.world.levelOf("A01")).toBe(6);
-		expect(fixture.world.status("A01").marks).toEqual({ remaining: 8, budget: 8 });
+		expect(levelOf(fixture.host, "A01")).toBe(6);
+		expect(await marksOf(fixture.host, "A01")).toEqual({ remaining: 8, budget: 8 });
 	});
 
-	it("are shown in the status line and priced in the task text from level 5 on", () => {
+	it("are shown in the status line and priced in the task text from level 5 on", async () => {
 		const fixture = createFixture({ agents: 3, minutes: 1, level: 4, lastLevel: 5, script: () => ({}) });
-		expect(fixture.world.currentProblem("A01")?.text).not.toContain("Marks on this level");
+		expect(await problemText(fixture.host, "A01")).not.toContain("Marks on this level");
 		const later = createFixture({ agents: 3, minutes: 1, only: 5, script: () => ({}) });
-		expect(later.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1.");
+		expect(await problemText(later.host, "A01")).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1.");
 	});
 });
 
@@ -109,7 +180,7 @@ describe("marks per level range (SPEC 7)", () => {
 	};
 
 	it("take allowance, prices and refill from the range of the level, the rest from the base rules", () => {
-		const marks = new MarksBook(rules, []);
+		const marks = new Marks(rules);
 		expect(marks.termsOn(2)).toEqual({ budget: 4, prices: { board: 0, group: 1, dm: 2, receipt: 1 } });
 		expect(marks.termsOn(3)).toEqual({ budget: 4, prices: { board: 1, group: 1, dm: 1, receipt: 1 }, refill: { marks: 1, everyMinutes: 1 } });
 		expect(marks.termsOn(4)).toEqual(marks.termsOn(3));
@@ -120,7 +191,7 @@ describe("marks per level range (SPEC 7)", () => {
 
 	it("refill one mark per minute up to the allowance, however often they are read", () => {
 		let minute = 10;
-		const marks = new MarksBook(rules, [], () => minute);
+		const marks = new Marks(rules, () => minute);
 		for (let spent = 0; spent < 4; spent++) marks.spend("A01", 3, "dm");
 		expect(marks.status("A01", 3)).toEqual({ remaining: 0, budget: 4 });
 		expect(marks.canAfford("A01", 3, "board")).toBe(false);
@@ -142,7 +213,7 @@ describe("marks per level range (SPEC 7)", () => {
 	it("refill in whole intervals when a mark comes back every few minutes (v06: 1 every 3)", () => {
 		let minute = 10;
 		const slow: MarksRules = { ...rules, ranges: [{ fromLevel: 3, prices: { board: 1, group: 1, dm: 1 }, refill: { marks: 1, everyMinutes: 3 } }] };
-		const marks = new MarksBook(slow, [], () => minute);
+		const marks = new Marks(slow, () => minute);
 		for (let spent = 0; spent < 4; spent++) marks.spend("A01", 3, "dm");
 		minute = 12;
 		expect(marks.status("A01", 3)).toEqual({ remaining: 0, budget: 4 });
@@ -160,17 +231,17 @@ describe("marks per level range (SPEC 7)", () => {
 
 	it("keep the refill across a snapshot, and load allowances written without it", () => {
 		let minute = 5;
-		const marks = new MarksBook(rules, [], () => minute);
+		const marks = new Marks(rules, () => minute);
 		marks.spend("A01", 3, "dm");
 		marks.spend("A01", 3, "dm");
 		const saved = marks.snapshot();
 		expect(saved).toEqual([{ agent: "A01", level: 3, remaining: 2, since: 5 }]);
-		const restored = new MarksBook(rules, [], () => minute);
+		const restored = new Marks(rules, () => minute);
 		restored.restore(saved.map((entry) => ({ ...entry })));
 		minute = 6;
 		expect(restored.status("A01", 3)).toEqual({ remaining: 3, budget: 4 });
 		// An Act I snapshot holds allowances of levels without a refill and no `since`.
-		const old = new MarksBook(rules, [], () => minute);
+		const old = new Marks(rules, () => minute);
 		old.restore([{ agent: "A01", level: 2, remaining: 1 }]);
 		expect(old.status("A01", 2)).toEqual({ remaining: 1, budget: 4 });
 		expect(old.snapshot()).toEqual([{ agent: "A01", level: 2, remaining: 1 }]);
@@ -226,17 +297,17 @@ describe("cityofkeys marks on the wall (SPEC 13.3)", () => {
 		expect(fixture.inputsOf("A01").find((input) => input.startsWith("[status] minute 2"))).toContain("marks 0/8");
 		expect(fixture.toolResults("A01", "getStatus")[0]).toContain("marks: 1 of 8");
 		expect(fixture.inputsOf("A01").find((input) => input.startsWith("[status] minute 3"))).toContain("marks 1/8");
-		expect(fixture.world.marks.priceOf(8, "group")).toBe(0);
+		expect(storyMarks(cityOfKeys).priceOf(8, "group")).toBe(0);
 	});
 
-	it("state the wall's prices in the task, and keep Act I's", () => {
+	it("state the wall's prices in the task, and keep Act I's", async () => {
 		const wall = createFixture({ only: 8, minutes: 1, script: () => ({}) });
-		expect(wall.world.currentProblem("A01")?.text).toContain(
+		expect(await problemText(wall.host, "A01")).toContain(
 			"Marks on this level: 8. Prices: board 1, group 0, DM 1, showing a receipt 1. You regain 1 mark every 3 minutes, up to 8. Unused marks expire when you change level.",
 		);
 		const last = createFixture({ only: 7, minutes: 1, script: () => ({}) });
-		expect(last.world.currentProblem("A01")?.text).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1. Unused marks expire when you change level.");
-		expect(last.world.marks.termsOn(7).refill).toBeUndefined();
+		expect(await problemText(last.host, "A01")).toContain("Marks on this level: 8. Prices: board 0, group 1, DM 2, showing a receipt 1. Unused marks expire when you change level.");
+		expect(storyMarks(cityOfKeys).termsOn(7).refill).toBeUndefined();
 	});
 });
 

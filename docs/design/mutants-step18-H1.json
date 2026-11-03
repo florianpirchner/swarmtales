@@ -1,0 +1,163 @@
+[
+	{
+		"id": "H1-1",
+		"file": "packages/chronicle/src/log/canonical.ts",
+		"find": "const keys = Object.keys(value).sort(byCodeUnits);",
+		"replace": "const keys = Object.keys(value);",
+		"tests": ["test/log/canonical.test.ts"]
+	},
+	{
+		"id": "H1-2",
+		"file": "packages/chronicle/src/log/canonical.ts",
+		"find": "return left < right ? -1 : 1;",
+		"replace": "return left < right ? 1 : -1;",
+		"tests": ["test/log/canonical.test.ts"]
+	},
+	{
+		"id": "H1-3",
+		"file": "packages/chronicle/src/log/canonical.ts",
+		"find": "if (!Number.isFinite(value)) throw",
+		"replace": "if (Number.isNaN(value)) throw",
+		"tests": ["test/log/canonical.test.ts"]
+	},
+	{
+		"id": "H1-4",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "return createHash(\"sha256\").update(previous, \"utf8\").update(text, \"utf8\").digest(\"hex\");",
+		"replace": "return createHash(\"sha256\").update(text, \"utf8\").digest(\"hex\");",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-5",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (hash !== entry.hash) return",
+		"replace": "if (hash === \"\") return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-6",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (!verifies(key, headMessage(genesisHash, entry.seq, entry.hash), entry.signature)) return",
+		"replace": "if (entry.signature.length === 0) return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-7",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (genesis.publicKey !== derOf(key)) return",
+		"replace": "if (genesis.publicKey === \"\") return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-8",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (lines.length > covered) return",
+		"replace": "if (lines.length < covered) return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-9",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (last === undefined || !last.ok || !isRunEnd(last.value)) {",
+		"replace": "if (last === undefined) {",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-10",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "\tif (!signedLast) {",
+		"replace": "\tif (signedLast && !signedLast) {",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-11",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (entry.seq !== covered || entry.hash !== head) return",
+		"replace": "if (entry.seq !== covered) return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-12",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (isRunEnd(value)) this.#sign();",
+		"replace": "",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-13",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (this.#signed !== this.#lines) this.#sign();",
+		"replace": "",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-14",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (this.#signed === this.#lines && this.#checkpoint !== undefined) return this.#checkpoint;",
+		"replace": "",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-15",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "const previousHash = input.resumedFrom?.checkpoint?.hash ?? ZERO_HASH;",
+		"replace": "const previousHash = ZERO_HASH;",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-16",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (anchor !== undefined && !checkpointVerifies(anchor)) return",
+		"replace": "if (anchor === null) return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-17",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "for (let index = 0; index < anchor.lines; index += 1) {",
+		"replace": "for (let index = 0; index < 0; index += 1) {",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-18",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (!before.heads.some((entry) => entry.lines === anchor.lines && entry.hash === anchor.hash)) return",
+		"replace": "if (before.heads.length === 0) return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-19",
+		"file": "packages/chronicle/src/log/chain.ts",
+		"find": "if (anchor.publicKey !== before.genesis.publicKey || anchor.genesis !== before.genesisHash) return",
+		"replace": "if (anchor.genesis === \"\") return",
+		"tests": ["test/log/chain.test.ts"]
+	},
+	{
+		"id": "H1-20",
+		"file": "packages/chronicle/src/log/sinks.ts",
+		"find": "this.#chain?.append(line);",
+		"replace": "",
+		"tests": ["test/log/chain.test.ts", "test/golden/golden-chain.test.ts"]
+	},
+	{
+		"id": "H1-21",
+		"file": "apps/cli/src/host/snapshot.ts",
+		"find": "...(file.chain === undefined ? {} : { chain: file.chain }),",
+		"replace": "",
+		"tests": ["test/cli/main.test.ts"]
+	},
+	{
+		"id": "H1-22",
+		"file": "apps/cli/src/main.ts",
+		"find": "{ ...taken, chain: chain.checkpoint() }",
+		"replace": "taken",
+		"tests": ["test/cli/main.test.ts"]
+	},
+	{
+		"id": "H1-23",
+		"file": "apps/cli/src/host/chain.ts",
+		"find": "...(resume.point.chain === undefined ? {} : { checkpoint: resume.point.chain }),",
+		"replace": "",
+		"tests": ["test/cli/main.test.ts"]
+	}
+]

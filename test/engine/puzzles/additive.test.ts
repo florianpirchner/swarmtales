@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { competitorIds } from "../../../src/core/ids.ts";
-import { createRng } from "../../../src/core/random.ts";
+import { competitorIds, createRng } from "@swarmtales/kernel";
 import {
 	addFactors,
 	cityFactorOf,
@@ -11,8 +10,8 @@ import {
 	formatFactor,
 	validateDeal,
 	type FactorDeal,
-} from "../../../src/engine/puzzles/additive.ts";
-import type { FactorTopology } from "../../../src/story/types.ts";
+} from "@swarmtales/mechanic-puzzles";
+import type { FactorTopology } from "@swarmtales/contracts";
 
 /** Consecutive teams of `size` over `agents` competitors. */
 function teamsOf(agents: number, size: number): readonly (readonly string[])[] {

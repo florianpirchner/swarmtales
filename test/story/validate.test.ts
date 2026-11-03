@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
-import { act, at, defineStory, level, onFirstEnter, onPetitionResolved, puzzle, team, when } from "../../src/story/define.ts";
-import type { AnyStory, LevelDefinition } from "../../src/story/types.ts";
-import { assertValidStory, StoryValidationError, validateStory, type DirectorSupport } from "../../src/story/validate.ts";
+import { DIRECTOR_SUPPORT } from "@swarmtales/contracts";
+import {
+	act,
+	assertValidStory,
+	at,
+	defineStory,
+	type DirectorSupport,
+	level,
+	onFirstEnter,
+	onPetitionResolved,
+	puzzle,
+	StoryValidationError,
+	team,
+	validateStory,
+	when,
+} from "@swarmtales/sdk";
+import type { AnyStory, LevelDefinition } from "@swarmtales/contracts";
 import { soloLevels, tinyStory } from "../helpers/stories.ts";
 
 function withLevels(levels: readonly LevelDefinition[], agents = 6): AnyStory {

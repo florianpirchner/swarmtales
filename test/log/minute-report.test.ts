@@ -2,21 +2,29 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { describeEvent, JsonlEventLog } from "../../src/log/sinks.ts";
-import { readNames, readRunEnd, readSnapshots, renderMinuteReport, writeMinuteReport } from "../../src/log/minute-report.ts";
-import { UsageCollector } from "../../src/log/usage.ts";
-import { createFixture, say, submit } from "../helpers/fixture.ts";
+import {
+	describeEvent,
+	JsonlEventLog,
+	readNames,
+	readRunEnd,
+	readSnapshots,
+	renderMinuteReport,
+	UsageCollector,
+	writeMinuteReport,
+} from "@swarmtales/chronicle";
+import { createHostFixture, say } from "../helpers/host-fixture.ts";
+import { submit } from "../helpers/host-inspect.ts";
 
 describe("minute report, usage and console", () => {
 	it("rebuilds minutes.md from the round_end snapshots in events.jsonl", async () => {
 		const directory = mkdtempSync(join(tmpdir(), "arena-minutes-"));
 		try {
-			const fixture = createFixture({
+			const fixture = createHostFixture({
 				agents: 2,
 				minutes: 2,
 				only: 1,
 				sinks: [new JsonlEventLog(join(directory, "events.jsonl"))],
-				script: (world) => ({ A01: [say(), submit(world, "A01", 1)], A02: [say(), say()] }),
+				script: (host) => ({ A01: [say(), submit(host, "A01", 1)], A02: [say(), say()] }),
 			});
 			await fixture.run();
 			const path = writeMinuteReport(directory);

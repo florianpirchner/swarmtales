@@ -1,0 +1,182 @@
+[
+	{
+		"id": "T4b-1",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "ctx.rng(\"seal\", seal)",
+		"replace": "ctx.rng(\"seal-renamed\", seal)",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-2",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "if (auction !== undefined && standing === \"alive\") {",
+		"replace": "if (auction !== undefined) {",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-3",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "if (standing === \"exiled\") return [];",
+		"replace": "if (standing === \"gate\") return [];",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-4",
+		"file": "mechanics/seal/src/house.ts",
+		"find": "if (this.#ports.standing(resident).kind === \"alive\" && this.#ports.missing() === 0) {",
+		"replace": "if (this.#ports.missing() === 0) {",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-5",
+		"file": "mechanics/standoff-tribunal/src/ports.ts",
+		"find": "ctx.call(ExileApi, \"standing\", { resident: agent }).kind !== \"alive\"",
+		"replace": "ctx.call(ExileApi, \"standing\", { resident: agent }).kind === \"exiled\"",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-6",
+		"file": "mechanics/standoff-tribunal/src/court.ts",
+		"find": "if (minute < data.cooldownUntil)",
+		"replace": "if (minute <= data.cooldownUntil)",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-7",
+		"file": "mechanics/standoff-tribunal/src/court.ts",
+		"find": "const voters = session.voters.filter((voter) => alive.includes(voter));",
+		"replace": "const voters = session.voters.filter((voter) => alive.length >= 0 && voter.length > 0);",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-8",
+		"file": "mechanics/standoff-tribunal/src/tools.ts",
+		"find": "rule: ({ reason }, ctx) => checkRule(ctx, reason),\n\t\t\texecute: ({ accused, reason }, ctx) => {\n\t\t\t\tconst announcement = checked(ctx, reason);",
+		"replace": "execute: ({ accused, reason }, ctx) => {\n\t\t\t\tconst announcement = { ok: true as const, text: reason.trim(), code: \"\", detail: \"\" };",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-9",
+		"file": "mechanics/standoff-tribunal/src/tools.ts",
+		"find": "rule: ({ text }, ctx) => checkRule(ctx, text),\n\t\t\texecute: ({ text }, ctx) => {\n\t\t\t\tconst words = checked(ctx, text);",
+		"replace": "execute: ({ text }, ctx) => {\n\t\t\t\tconst words = { ok: true as const, text: text.trim(), code: \"\", detail: \"\" };",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-10",
+		"file": "mechanics/standoff-tribunal/src/tools.ts",
+		"find": "rule: ({ reason }, ctx) => checkRule(ctx, reason),\n\t\t\texecute: ({ agent, reason }, ctx) => {\n\t\t\t\tconst line = checked(ctx, reason);",
+		"replace": "execute: ({ agent, reason }, ctx) => {\n\t\t\t\tconst line = { ok: true as const, text: reason.trim(), code: \"\", detail: \"\" };",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-11",
+		"file": "mechanics/standoff/src/grants.ts",
+		"find": "return (direction ?? DEFAULT_DIRECTION) >= ULTIMATUM_DIRECTION && hasUltimatums;",
+		"replace": "return !((direction ?? DEFAULT_DIRECTION) >= ULTIMATUM_DIRECTION && hasUltimatums);",
+		"tests": [
+			"test/mechanics/standoff",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "T4b-12",
+		"file": "mechanics/standoff-tribunal/src/slice.ts",
+		"find": "const unknown = namedIn(saved).find((id) => !setup.residents.includes(id));",
+		"replace": "const unknown = namedIn(saved).find((id) => id.length < 0 && !setup.residents.includes(id));",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-act-ended-order",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "{ immediate: true, order: LISTENER_ORDER.act_ended.seal }",
+		"replace": "{ immediate: true, order: LISTENER_ORDER.act_ended.goals + 1 }",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-seal-minute-order",
+		"file": "mechanics/seal/src/index.ts",
+		"find": "order: HOOK_ORDER.minuteStarted.seal,",
+		"replace": "order: HOOK_ORDER.minuteStarted.progressionDoor - 50,",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-holdout-lot-label",
+		"file": "mechanics/standoff-tribunal/src/ports.ts",
+		"find": "ctx.rng(\"holdout-lot\", lot)",
+		"replace": "ctx.rng(\"holdout-lots\", lot)",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-tie-break-points-reversed",
+		"file": "mechanics/seal/src/house.ts",
+		"find": "this.#ports.points(a) - this.#ports.points(b)",
+		"replace": "this.#ports.points(b) - this.#ports.points(a)",
+		"tests": [
+			"test/mechanics/seal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-task-line-null",
+		"file": "mechanics/standoff-tribunal/src/index.ts",
+		"find": "taskLine: (_input, ctx) => ctx.options.texts.rule,",
+		"replace": "taskLine: () => null,",
+		"tests": [
+			"test/mechanics/standoff-tribunal",
+			"test/mechanics/t4b"
+		]
+	},
+	{
+		"id": "R2-held-part",
+		"file": "mechanics/standoff/src/index.ts",
+		"find": "return waiting.length === 0 ? [] : [ctx.prompt(\"competitor/status/held-piece\"",
+		"replace": "return waiting.length < 0 ? [] : [ctx.prompt(\"competitor/status/held-piece\"",
+		"tests": [
+			"test/mechanics/standoff",
+			"test/mechanics/t4b"
+		]
+	}
+]

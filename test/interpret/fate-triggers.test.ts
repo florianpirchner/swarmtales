@@ -1,7 +1,7 @@
 /** What touches a resident (the weaver's triggers): plain code over the event bus, no model. */
 import { describe, expect, it } from "vitest";
-import type { ArenaEvent, RecordedEvent } from "../../src/engine/events.ts";
-import { FateTriggers } from "../../src/interpret/fate-triggers.ts";
+import type { ArenaEvent, RecordedEvent } from "@swarmtales/legacy-log";
+import { FateTriggers } from "@swarmtales/roles";
 
 const RESIDENTS = new Set(["A01", "A02", "A03", "A04", "A05", "A06"]);
 

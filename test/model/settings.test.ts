@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createModelSource } from "../../src/model/source.ts";
-import { describeModel, missingApiKeys, ModelConfigError, resolveModelSettings, settingsFromStory } from "../../src/model/settings.ts";
-import { createProviderRegistry, customProviderSpec, OPENROUTER_DEEPSEEK_FLASH } from "../../src/model/providers.ts";
+import {
+	createModelSource,
+	createProviderRegistry,
+	customProviderSpec,
+	describeModel,
+	missingApiKeys,
+	ModelConfigError,
+	OPENROUTER_DEEPSEEK_FLASH,
+	resolveModelSettings,
+	settingsFromStory,
+} from "@swarmtales/models";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 
 const registry = createProviderRegistry();

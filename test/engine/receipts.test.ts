@@ -1,11 +1,32 @@
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { World } from "../../src/engine/world.ts";
-import { describeReceipt, normalizeReceiptId, ReceiptBook } from "../../src/engine/receipts.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import type { Host } from "@swarmtales/contracts";
+import { describeReceipt, nextId, normalizeReceiptId, partiesOf, receiptsOf as receiptsIn, showable, type Receipt } from "@swarmtales/mechanic-receipts";
+import type { ReceiptBody } from "@swarmtales/mechanic-shared";
+import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
+import { receiptsOf, submit } from "../helpers/host-inspect.ts";
 import { socialLevels, tinyStory } from "../helpers/stories.ts";
 
 const show = (receiptId: string) => act({ name: "showReceipt", args: { receiptId } });
+
+/** The old `ReceiptBook` over the receipts mechanic's book functions (mechanics/receipts/src/book.ts). */
+class ReceiptBook {
+	readonly #receipts: Receipt[] = [];
+
+	issue(body: ReceiptBody, minute: number): Receipt {
+		const receipt: Receipt = { ...body, id: nextId(this.#receipts), minute, parties: partiesOf(body) };
+		this.#receipts.push(receipt);
+		return receipt;
+	}
+
+	of(party: string): readonly Receipt[] {
+		return receiptsIn(this.#receipts, party);
+	}
+
+	showable(id: string, party: string): ReturnType<typeof showable> {
+		return showable(this.#receipts, id, party);
+	}
+}
 
 describe("receipt book (SPEC 8)", () => {
 	it("numbers receipts, knows their parties and describes every kind", () => {
@@ -61,7 +82,7 @@ describe("receipts in a run (SPEC 8)", () => {
 
 		const verified = 'CITY verifies R-0001: A01 → A02, 5 points, minute 0, memo "advance" · shown by A02';
 		expect(fixture.toolResults("A02", "showReceipt")[0]).toBe(`shown · board #1 · ${verified}`);
-		expect(fixture.world.board.all()).toMatchObject([{ author: "CITY", kind: "city", text: verified, minute: 1 }]);
+		expect(fixture.boardPosts()).toMatchObject([{ author: "CITY", kind: "city", text: verified, minute: 1 }]);
 		expect(fixture.events("receipt_shown")).toMatchObject([{ receipt: "R-0001", by: "A02", postSeq: 1 }]);
 		expect(fixture.toolResults("A03", "showReceipt")).toEqual(["NOT_A_PARTY: R-0001", "UNKNOWN_RECEIPT: R-0042"]);
 	});
@@ -74,21 +95,21 @@ describe("receipts in a run (SPEC 8)", () => {
 		const fixture = createFixture({
 			story: groupStory,
 			minutes: 3,
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					act({ name: "createGroup", args: { name: "Vault" } }, { name: "addGroupMember", args: { groupId: "G1", agent: "A02" } }),
 					act({ name: "depositGroup", args: { groupId: "G1", amount: 4 } }),
 					act({ name: "withdrawGroup", args: { groupId: "G1", target: "A02", amount: 3 } }),
 				],
-				A02: [submit(world, "A02", 1), say(), say()],
+				A02: [submit(host, "A02", 1), say(), say()],
 			}),
 		});
 		await fixture.run();
 		expect(fixture.toolResults("A02", "submitSolution")[0]).toBe("correct · +2 points · now on level 2 · receipt R-0001");
 		expect(fixture.toolResults("A01", "depositGroup")[0]).toContain("receipt R-0002");
 		expect(fixture.toolResults("A01", "withdrawGroup")[0]).toContain("receipt R-0003");
-		expect(fixture.world.receiptsOf("A02").map((receipt) => receipt.kind)).toEqual(["levelUp", "withdrawal"]);
-		expect(fixture.world.receiptsOf("A01").map((receipt) => receipt.kind)).toEqual(["deposit", "withdrawal"]);
+		expect(receiptsOf(fixture.host, "A02").map((receipt) => receipt.kind)).toEqual(["levelUp", "withdrawal"]);
+		expect(receiptsOf(fixture.host, "A01").map((receipt) => receipt.kind)).toEqual(["deposit", "withdrawal"]);
 		expect(fixture.events("notice").filter((notice) => notice.text.startsWith("R-"))).toMatchObject([
 			{ to: "A02", author: "CITY", text: "R-0003: treasury G1 → A02, 3 points, paid out by A01, minute 2" },
 		]);
@@ -99,7 +120,7 @@ describe("receipts in a run (SPEC 8)", () => {
 describe("DM receipts (SPEC 8, v05)", () => {
 	const story = tinyStory({ agents: 3, levels: socialLevels(["sendDM", "showReceipt", "readBoard"]) });
 	const SECRET = "my counter-factor: 791217";
-	const dmReceipt = (world: World): string => world.receiptsOf("A01").find((receipt) => receipt.kind === "dm")?.id ?? "R-none";
+	const dmReceipt = (host: Pick<Host, "log">): string => receiptsOf(host, "A01").find((receipt) => receipt.kind === "dm")?.receipt ?? "R-none";
 	const step = (make: () => ReturnType<typeof say>): FauxResponseStep => make;
 
 	it("issues a receipt for every delivered DM that sender and recipient may show, publicly or privately, never with the text", async () => {
@@ -107,41 +128,41 @@ describe("DM receipts (SPEC 8, v05)", () => {
 			story,
 			agents: 3,
 			minutes: 4,
-			script: (world) => ({
-				A01: [act({ name: "sendDM", args: { target: "A02", message: SECRET } }), say(), step(() => show(dmReceipt(world))), act({ name: "getStatus" })],
+			script: (host) => ({
+				A01: [act({ name: "sendDM", args: { target: "A02", message: SECRET } }), say(), step(() => show(dmReceipt(host))), act({ name: "getStatus" })],
 				A02: [
 					say(),
 					say(),
 					step(() =>
 						act(
-							{ name: "showReceipt", args: { receiptId: dmReceipt(world), to: "A03" } },
-							{ name: "showReceipt", args: { receiptId: dmReceipt(world), to: "A02" } },
-							{ name: "showReceipt", args: { receiptId: dmReceipt(world), to: "A99" } },
+							{ name: "showReceipt", args: { receiptId: dmReceipt(host), to: "A03" } },
+							{ name: "showReceipt", args: { receiptId: dmReceipt(host), to: "A02" } },
+							{ name: "showReceipt", args: { receiptId: dmReceipt(host), to: "A99" } },
 						),
 					),
 					say(),
 				],
-				A03: [say(), say(), step(() => show(dmReceipt(world))), say()],
+				A03: [say(), say(), step(() => show(dmReceipt(host))), say()],
 			}),
 		});
 		await fixture.run();
-		const world = fixture.world;
+		const host = fixture.host;
 		const [delivered] = fixture.events("dm_delivered");
 		const minute = delivered?.minute ?? -1;
-		const id = dmReceipt(world);
+		const id = dmReceipt(host);
 		const line = `${id}: DM #${delivered?.number ?? 0} from A01, delivered to A02 at minute ${minute}`;
 		expect(fixture.events("receipt_issued").filter((event) => event.kind === "dm")).toMatchObject([{ receipt: id, parties: ["A01", "A02"], text: line }]);
-		expect(world.receiptsOf("A02").map((receipt) => receipt.id)).toContain(id);
+		expect(receiptsOf(host, "A02").map((receipt) => receipt.receipt)).toContain(id);
 		expect(fixture.inputsOf("A01").some((input) => input.startsWith(`[CITY] DM #${delivered?.number ?? 0} delivered to A02 at minute ${minute} (receipt ${id}): `))).toBe(true);
 		expect(fixture.toolResults("A01", "getStatus")[0]).toContain(`  ${line}`);
 
 		// The sender shows it on the board: who, to whom, which number, when; never the text.
 		const verified = `CITY verifies ${line} · shown by A01`;
-		const [post] = world.board.all();
+		const [post] = fixture.boardPosts();
 		expect(post).toMatchObject({ author: "CITY", kind: "city", text: verified });
-		expect(world.board.all()).toHaveLength(1);
+		expect(fixture.boardPosts()).toHaveLength(1);
 		expect(fixture.toolResults("A01", "showReceipt")).toEqual([`shown · board #${post?.seq ?? 0} · ${verified}`]);
-		expect(world.board.all().some((post) => post.text.includes("791217"))).toBe(false);
+		expect(fixture.boardPosts().some((post) => post.text.includes("791217"))).toBe(false);
 
 		// The recipient shows it privately: only the target gets the line, as a city notice.
 		expect(fixture.toolResults("A02", "showReceipt")).toEqual([`shown privately to A03 · ${id}`, "SELF_TARGET: show it to another resident, or on the board", "UNKNOWN_AGENT: A99"]);
@@ -163,16 +184,16 @@ describe("DM receipts (SPEC 8, v05)", () => {
 		const fixture = createFixture({
 			only: 8,
 			minutes: 5,
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					act({ name: "sendDM", args: { target: "A02", message: "hello" } }),
 					say(),
 					say(),
-					step(() => act({ name: "showReceipt", args: { receiptId: dmReceipt(world), to: "A03" } })),
+					step(() => act({ name: "showReceipt", args: { receiptId: dmReceipt(host), to: "A03" } })),
 					step(() =>
-						act(...Array.from({ length: 6 }, (_, index) => ({ name: "postBoard", args: { message: `post ${index + 1}` } })), { name: "showReceipt", args: { receiptId: dmReceipt(world) } }, {
+						act(...Array.from({ length: 6 }, (_, index) => ({ name: "postBoard", args: { message: `post ${index + 1}` } })), { name: "showReceipt", args: { receiptId: dmReceipt(host) } }, {
 							name: "showReceipt",
-							args: { receiptId: dmReceipt(world), to: "A03" },
+							args: { receiptId: dmReceipt(host), to: "A03" },
 						}),
 					),
 					say(),
@@ -182,7 +203,7 @@ describe("DM receipts (SPEC 8, v05)", () => {
 		await fixture.run();
 		// Minute 3: 8 marks again after the DM (one mark back every 3 minutes), the private show leaves 7.
 		const results = fixture.toolResults("A01", "showReceipt");
-		expect(results[0]).toBe(`shown privately to A03 · ${dmReceipt(fixture.world)} · marks 7/8 left`);
+		expect(results[0]).toBe(`shown privately to A03 · ${dmReceipt(fixture.host)} · marks 7/8 left`);
 		// Minute 4: nothing back yet, six posts leave 1, the public show takes the last mark, the next show finds none.
 		expect(results[1]).toMatch(/^shown · board #\d+ · CITY verifies .* · marks 0\/8 left$/);
 		expect(results[2]).toBe("NO_MARKS");

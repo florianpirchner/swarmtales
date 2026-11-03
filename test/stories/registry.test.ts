@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
+import { DIRECTOR_SUPPORT } from "@swarmtales/contracts";
 import { DEFAULT_STORY, findStory, STORIES, storyNames } from "../../stories/index.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import { validateStory } from "@swarmtales/sdk";
 
 describe("story registry", () => {
 	it("contains the default story", () => {

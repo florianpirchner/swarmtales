@@ -3,9 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fauxAssistantMessage, fauxThinking, fauxToolCall } from "@earendil-works/pi-ai";
 import { afterEach, describe, expect, it } from "vitest";
-import { EventBus } from "../../src/engine/events.ts";
-import { AgentTranscriptLog } from "../../src/log/transcripts.ts";
-import { createFixture, say } from "../helpers/fixture.ts";
+import { EventBus } from "@swarmtales/legacy-log";
+import { AgentTranscriptLog } from "@swarmtales/chronicle";
+import { createHostFixture, say } from "../helpers/host-fixture.ts";
+import { fragmentOf } from "../helpers/host-inspect.ts";
 
 const directories: string[] = [];
 
@@ -22,16 +23,16 @@ afterEach(() => {
 describe("AgentTranscriptLog", () => {
 	it("writes one Markdown file per competitor with inputs, reasoning, tools and results", async () => {
 		const directory = tempDirectory();
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			agents: 2,
 			minutes: 1,
 			only: 2,
 			sinks: [new AgentTranscriptLog(directory)],
-			script: (world) => ({
+			script: (host) => ({
 				A01: [
 					fauxAssistantMessage([
 						fauxThinking("A02 holds the other fragment. I post mine first."),
-						fauxToolCall("postBoard", { message: world.inspect.fragmentOf("A01", 2) }),
+						fauxToolCall("postBoard", { message: fragmentOf(host, "A01", 2) }),
 					]),
 				],
 				A02: [fauxAssistantMessage(fauxThinking("I read the board first.")), say()],

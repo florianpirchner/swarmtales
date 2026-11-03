@@ -1,0 +1,2491 @@
+{
+	"6-1": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"atTimes\"}],\"figure\":\"margin\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"anxiety\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"atTimes\"}],\"figure\":\"sure-thing\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"justice\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"atTimes\"}],\"figure\":\"believer\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"leadership\",\"intensity\":\"aboveAll\"},{\"drive\":\"control\",\"intensity\":\"clearly\"},{\"drive\":\"callousness\",\"intensity\":\"atTimes\"}],\"figure\":\"quartermaster\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"greed\",\"intensity\":\"aboveAll\"},{\"drive\":\"cowardice\",\"intensity\":\"atTimes\"}],\"figure\":\"broker\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"control\",\"intensity\":\"aboveAll\"},{\"drive\":\"envy\",\"intensity\":\"atTimes\"}],\"figure\":\"quiet-hand\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "margin"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "anxiety",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "sure-thing"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "justice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "believer"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "leadership",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "control",
+						"intensity": "clearly"
+					},
+					{
+						"drive": "callousness",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "quartermaster"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "greed",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "cowardice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "broker"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "control",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "envy",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "quiet-hand"
+			}
+		]
+	},
+	"6-7": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"attention\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"atTimes\"}],\"figure\":\"long-shot\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"incorruptibility\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"clearly\"}],\"figure\":\"question\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"callousness\",\"intensity\":\"aboveAll\"},{\"drive\":\"justice\",\"intensity\":\"atTimes\"}],\"figure\":\"auditor\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"selfSacrifice\",\"intensity\":\"aboveAll\"},{\"drive\":\"pride\",\"intensity\":\"clearly\"}],\"figure\":\"statue\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"narcissism\",\"intensity\":\"aboveAll\"},{\"drive\":\"selfSacrifice\",\"intensity\":\"atTimes\"}],\"figure\":\"mirror\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"sloth\",\"intensity\":\"aboveAll\"},{\"drive\":\"machiavellianism\",\"intensity\":\"atTimes\"}],\"figure\":\"idler\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "attention",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "long-shot"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "incorruptibility",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "question"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "callousness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "justice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "auditor"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "selfSacrifice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "pride",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "statue"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "narcissism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "selfSacrifice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "mirror"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "sloth",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "machiavellianism",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "idler"
+			}
+		]
+	},
+	"6-8": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"vengefulness\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"clearly\"}],\"figure\":\"old-wound\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"pride\",\"intensity\":\"aboveAll\"},{\"drive\":\"leadership\",\"intensity\":\"clearly\"}],\"figure\":\"banner\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"distrust\",\"intensity\":\"aboveAll\"},{\"drive\":\"anxiety\",\"intensity\":\"clearly\"}],\"figure\":\"watcher\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"incorruptibility\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"clearly\"}],\"figure\":\"question\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"care\",\"intensity\":\"aboveAll\"},{\"drive\":\"anxiety\",\"intensity\":\"atTimes\"}],\"figure\":\"shelter\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"narcissism\",\"intensity\":\"aboveAll\"},{\"drive\":\"selfSacrifice\",\"intensity\":\"atTimes\"}],\"figure\":\"mirror\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "vengefulness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "old-wound"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "pride",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "leadership",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "banner"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "distrust",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "anxiety",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "watcher"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "incorruptibility",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "question"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "care",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "anxiety",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "shelter"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "narcissism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "selfSacrifice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "mirror"
+			}
+		]
+	},
+	"18-3": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"callousness\",\"intensity\":\"aboveAll\"},{\"drive\":\"justice\",\"intensity\":\"atTimes\"}],\"figure\":\"auditor\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"envy\",\"intensity\":\"aboveAll\"},{\"drive\":\"selfSacrifice\",\"intensity\":\"atTimes\"}],\"figure\":\"second-chair\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"care\",\"intensity\":\"aboveAll\"},{\"drive\":\"anxiety\",\"intensity\":\"atTimes\"}],\"figure\":\"shelter\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"atTimes\"}],\"figure\":\"margin\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"distrust\",\"intensity\":\"aboveAll\"},{\"drive\":\"anxiety\",\"intensity\":\"clearly\"}],\"figure\":\"watcher\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"justice\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"atTimes\"}],\"figure\":\"believer\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A07\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"melancholy\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"clearly\"}],\"figure\":\"candle\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A08\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"cowardice\",\"intensity\":\"aboveAll\"},{\"drive\":\"hoarding\",\"intensity\":\"clearly\"}],\"figure\":\"clerk\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A09\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"loyalty\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"clearly\"}],\"figure\":\"last-post\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A10\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"narcissism\",\"intensity\":\"aboveAll\"},{\"drive\":\"selfSacrifice\",\"intensity\":\"atTimes\"}],\"figure\":\"mirror\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A11\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"leadership\",\"intensity\":\"aboveAll\"},{\"drive\":\"control\",\"intensity\":\"clearly\"},{\"drive\":\"callousness\",\"intensity\":\"atTimes\"}],\"figure\":\"quartermaster\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A12\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"incorruptibility\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"clearly\"}],\"figure\":\"question\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A13\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"vengefulness\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"clearly\"}],\"figure\":\"old-wound\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A14\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"clearly\"}],\"figure\":\"house\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A15\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"control\",\"intensity\":\"aboveAll\"},{\"drive\":\"envy\",\"intensity\":\"atTimes\"}],\"figure\":\"quiet-hand\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A16\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"attention\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"atTimes\"}],\"figure\":\"long-shot\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A17\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"hoarding\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"atTimes\"}],\"figure\":\"tally\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A18\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"anxiety\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"atTimes\"}],\"figure\":\"sure-thing\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "callousness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "justice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "auditor"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "envy",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "selfSacrifice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "second-chair"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "care",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "anxiety",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "shelter"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "margin"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "distrust",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "anxiety",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "watcher"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "justice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "believer"
+			},
+			{
+				"agent": "A07",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "melancholy",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "candle"
+			},
+			{
+				"agent": "A08",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "cowardice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "hoarding",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "clerk"
+			},
+			{
+				"agent": "A09",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "loyalty",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "last-post"
+			},
+			{
+				"agent": "A10",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "narcissism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "selfSacrifice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "mirror"
+			},
+			{
+				"agent": "A11",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "leadership",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "control",
+						"intensity": "clearly"
+					},
+					{
+						"drive": "callousness",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "quartermaster"
+			},
+			{
+				"agent": "A12",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "incorruptibility",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "question"
+			},
+			{
+				"agent": "A13",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "vengefulness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "old-wound"
+			},
+			{
+				"agent": "A14",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "house"
+			},
+			{
+				"agent": "A15",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "control",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "envy",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "quiet-hand"
+			},
+			{
+				"agent": "A16",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "attention",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "long-shot"
+			},
+			{
+				"agent": "A17",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "hoarding",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "tally"
+			},
+			{
+				"agent": "A18",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "anxiety",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "sure-thing"
+			}
+		]
+	},
+	"12-11": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"anxiety\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"atTimes\"}],\"figure\":\"sure-thing\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"clearly\"}],\"figure\":\"house\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"wrath\",\"intensity\":\"aboveAll\"},{\"drive\":\"attention\",\"intensity\":\"clearly\"}],\"figure\":\"crier\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"control\",\"intensity\":\"aboveAll\"},{\"drive\":\"envy\",\"intensity\":\"atTimes\"}],\"figure\":\"quiet-hand\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"care\",\"intensity\":\"aboveAll\"},{\"drive\":\"anxiety\",\"intensity\":\"atTimes\"}],\"figure\":\"shelter\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"hoarding\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"atTimes\"}],\"figure\":\"tally\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A07\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"loyalty\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"clearly\"}],\"figure\":\"last-post\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A08\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"vengefulness\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"clearly\"}],\"figure\":\"old-wound\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A09\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"sloth\",\"intensity\":\"aboveAll\"},{\"drive\":\"machiavellianism\",\"intensity\":\"atTimes\"}],\"figure\":\"idler\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A10\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"incorruptibility\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"clearly\"}],\"figure\":\"question\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A11\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"attention\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"atTimes\"}],\"figure\":\"long-shot\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A12\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"atTimes\"}],\"figure\":\"margin\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "anxiety",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "sure-thing"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "house"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "wrath",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "attention",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "crier"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "control",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "envy",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "quiet-hand"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "care",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "anxiety",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "shelter"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "hoarding",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "tally"
+			},
+			{
+				"agent": "A07",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "loyalty",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "last-post"
+			},
+			{
+				"agent": "A08",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "vengefulness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "old-wound"
+			},
+			{
+				"agent": "A09",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "sloth",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "machiavellianism",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "idler"
+			},
+			{
+				"agent": "A10",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "incorruptibility",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "question"
+			},
+			{
+				"agent": "A11",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "attention",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "long-shot"
+			},
+			{
+				"agent": "A12",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "margin"
+			}
+		]
+	},
+	"12-42": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"sloth\",\"intensity\":\"aboveAll\"},{\"drive\":\"machiavellianism\",\"intensity\":\"atTimes\"}],\"figure\":\"idler\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"narcissism\",\"intensity\":\"aboveAll\"},{\"drive\":\"selfSacrifice\",\"intensity\":\"atTimes\"}],\"figure\":\"mirror\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"anxiety\",\"intensity\":\"aboveAll\"},{\"drive\":\"greed\",\"intensity\":\"atTimes\"}],\"figure\":\"sure-thing\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"greed\",\"intensity\":\"aboveAll\"},{\"drive\":\"cowardice\",\"intensity\":\"atTimes\"}],\"figure\":\"broker\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"greed\",\"intensity\":\"aboveAll\"},{\"drive\":\"narcissism\",\"intensity\":\"clearly\"}],\"figure\":\"ledger\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"incorruptibility\",\"intensity\":\"aboveAll\"},{\"drive\":\"distrust\",\"intensity\":\"clearly\"}],\"figure\":\"question\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A07\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"melancholy\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"clearly\"}],\"figure\":\"candle\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A08\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"middle\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"machiavellianism\",\"intensity\":\"aboveAll\"},{\"drive\":\"care\",\"intensity\":\"atTimes\"}],\"figure\":\"margin\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A09\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"vengefulness\",\"intensity\":\"aboveAll\"},{\"drive\":\"loyalty\",\"intensity\":\"clearly\"}],\"figure\":\"old-wound\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A10\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"selfSacrifice\",\"intensity\":\"aboveAll\"},{\"drive\":\"pride\",\"intensity\":\"clearly\"}],\"figure\":\"statue\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A11\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"middle\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"loyalty\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"clearly\"}],\"figure\":\"last-post\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A12\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"high\"}],\"drives\":[{\"drive\":\"cowardice\",\"intensity\":\"aboveAll\"},{\"drive\":\"hoarding\",\"intensity\":\"clearly\"}],\"figure\":\"clerk\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "sloth",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "machiavellianism",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "idler"
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "narcissism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "selfSacrifice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "mirror"
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "anxiety",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "greed",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "sure-thing"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "greed",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "cowardice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "broker"
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "greed",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "narcissism",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "ledger"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "incorruptibility",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "distrust",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "question"
+			},
+			{
+				"agent": "A07",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "melancholy",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "candle"
+			},
+			{
+				"agent": "A08",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "middle"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "machiavellianism",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "care",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "margin"
+			},
+			{
+				"agent": "A09",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "vengefulness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "loyalty",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "old-wound"
+			},
+			{
+				"agent": "A10",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "selfSacrifice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "pride",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "statue"
+			},
+			{
+				"agent": "A11",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "middle"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "loyalty",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "last-post"
+			},
+			{
+				"agent": "A12",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "high"
+					}
+				],
+				"drives": [
+					{
+						"drive": "cowardice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "hoarding",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "clerk"
+			}
+		]
+	},
+	"6-5-cast": {
+		"lines": [
+			"{\"type\":\"core_dealt\",\"agent\":\"A01\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"sloth\",\"intensity\":\"aboveAll\"},{\"drive\":\"justice\",\"intensity\":\"atTimes\"}],\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A02\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"low\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"greed\",\"intensity\":\"aboveAll\"}],\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A03\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"pride\",\"intensity\":\"aboveAll\"},{\"drive\":\"leadership\",\"intensity\":\"clearly\"}],\"figure\":\"banner\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A04\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"low\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"pride\",\"intensity\":\"aboveAll\"},{\"drive\":\"justice\",\"intensity\":\"clearly\"},{\"drive\":\"greed\",\"intensity\":\"clearly\"}],\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A05\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"high\"},{\"axis\":\"conscientiousness\",\"level\":\"middle\"},{\"axis\":\"extraversion\",\"level\":\"high\"},{\"axis\":\"agreeableness\",\"level\":\"high\"},{\"axis\":\"neuroticism\",\"level\":\"middle\"}],\"drives\":[{\"drive\":\"justice\",\"intensity\":\"aboveAll\"},{\"drive\":\"wrath\",\"intensity\":\"atTimes\"}],\"figure\":\"believer\",\"minute\":0}",
+			"{\"type\":\"core_dealt\",\"agent\":\"A06\",\"bigFive\":[{\"axis\":\"openness\",\"level\":\"middle\"},{\"axis\":\"conscientiousness\",\"level\":\"high\"},{\"axis\":\"extraversion\",\"level\":\"low\"},{\"axis\":\"agreeableness\",\"level\":\"low\"},{\"axis\":\"neuroticism\",\"level\":\"low\"}],\"drives\":[{\"drive\":\"callousness\",\"intensity\":\"aboveAll\"},{\"drive\":\"justice\",\"intensity\":\"atTimes\"}],\"figure\":\"auditor\",\"minute\":0}"
+		],
+		"cores": [
+			{
+				"agent": "A01",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "sloth",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "justice",
+						"intensity": "atTimes"
+					}
+				]
+			},
+			{
+				"agent": "A02",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "low"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "greed",
+						"intensity": "aboveAll"
+					}
+				]
+			},
+			{
+				"agent": "A03",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "pride",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "leadership",
+						"intensity": "clearly"
+					}
+				],
+				"figure": "banner"
+			},
+			{
+				"agent": "A04",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "low"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "pride",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "justice",
+						"intensity": "clearly"
+					},
+					{
+						"drive": "greed",
+						"intensity": "clearly"
+					}
+				]
+			},
+			{
+				"agent": "A05",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "high"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "middle"
+					},
+					{
+						"axis": "extraversion",
+						"level": "high"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "high"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "middle"
+					}
+				],
+				"drives": [
+					{
+						"drive": "justice",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "wrath",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "believer"
+			},
+			{
+				"agent": "A06",
+				"bigFive": [
+					{
+						"axis": "openness",
+						"level": "middle"
+					},
+					{
+						"axis": "conscientiousness",
+						"level": "high"
+					},
+					{
+						"axis": "extraversion",
+						"level": "low"
+					},
+					{
+						"axis": "agreeableness",
+						"level": "low"
+					},
+					{
+						"axis": "neuroticism",
+						"level": "low"
+					}
+				],
+				"drives": [
+					{
+						"drive": "callousness",
+						"intensity": "aboveAll"
+					},
+					{
+						"drive": "justice",
+						"intensity": "atTimes"
+					}
+				],
+				"figure": "auditor"
+			}
+		]
+	}
+}

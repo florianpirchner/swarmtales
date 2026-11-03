@@ -1,0 +1,49 @@
+{
+	"name": "swarmtales",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The swt command line: play stories, report on runs, build digests and novels",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"bin": {
+		"swarmtales": "./dist/swt.js",
+		"swt": "./dist/swt.js"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/chronicle": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/legacy-log": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-arena": "workspace:*",
+		"@swarmtales/mechanic-cast": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-goals": "workspace:*",
+		"@swarmtales/mechanic-ledger": "workspace:*",
+		"@swarmtales/mechanic-marks": "workspace:*",
+		"@swarmtales/mechanic-motives": "workspace:*",
+		"@swarmtales/mechanic-names": "workspace:*",
+		"@swarmtales/mechanic-petitions": "workspace:*",
+		"@swarmtales/mechanic-progression": "workspace:*",
+		"@swarmtales/mechanic-puzzles": "workspace:*",
+		"@swarmtales/mechanic-receipts": "workspace:*",
+		"@swarmtales/mechanic-script": "workspace:*",
+		"@swarmtales/mechanic-seal": "workspace:*",
+		"@swarmtales/mechanic-standoff": "workspace:*",
+		"@swarmtales/mechanic-standoff-tribunal": "workspace:*",
+		"@swarmtales/mechanic-tribunal": "workspace:*",
+		"@swarmtales/mechanic-whispers": "workspace:*",
+		"@swarmtales/models": "workspace:*",
+		"@swarmtales/novelist": "workspace:*",
+		"@swarmtales/prompts": "workspace:*",
+		"@swarmtales/roles": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

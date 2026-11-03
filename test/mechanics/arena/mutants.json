@@ -1,0 +1,128 @@
+[
+	{
+		"id": "A1-budget-at-limit",
+		"file": "mechanics/arena/src/rules.ts",
+		"find": "return spent > limit ?",
+		"replace": "return spent >= limit ?",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A2-budget-whole-log",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "ctx.state.ownFrom = ctx.log.length;",
+		"replace": "ctx.state.ownFrom = 0;",
+		"tests": ["test/mechanics/arena/resume.test.ts"]
+	},
+	{
+		"id": "A3-no-stop-limit",
+		"file": "mechanics/arena/src/index.ts",
+		"find": "view.state.stopDue ? stopReason(view) : undefined",
+		"replace": "undefined",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A4-round-end-on-stopped-minute",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "\tif (!state.passed) {\n\t\tif (state.stopDue)",
+		"replace": "\tif (state.reason !== undefined && !state.passed) {\n\t\tif (state.stopDue)",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A5-brake-one-minute-late",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "ctx.minute < startedAt + maxMinutes - 1",
+		"replace": "ctx.minute < startedAt + maxMinutes",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A6-brake-without-checkpoint",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "const checkpoint = request !== undefined && !state.snapshotTaken && request.afterLevel === toLevel;",
+		"replace": "const checkpoint = false;",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A7-snapshot-minute-late",
+		"file": "mechanics/arena/src/run.ts",
+		"find": ": ctx.minute >= atMinute;",
+		"replace": ": ctx.minute > atMinute;",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A8-seen-points-at-end",
+		"file": "mechanics/arena/src/index.ts",
+		"find": "ctx.state.seenPoints.set(resident, start + (end - turn));",
+		"replace": "ctx.state.seenPoints.set(resident, end);",
+		"tests": ["test/mechanics/arena/differential.test.ts", "test/mechanics/arena/golden.test.ts"]
+	},
+	{
+		"id": "A9-no-points-news",
+		"file": "mechanics/arena/src/index.ts",
+		"find": "return points !== undefined && points !== ctx.call(LedgerApi, \"balance\", { account: resident });",
+		"replace": "return false;",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A10-tools-count",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "tools: ctx.access.open(entry.agent).length,",
+		"replace": "tools: ctx.access.open(entry.agent).length - 1,",
+		"tests": ["test/mechanics/arena/golden.test.ts"]
+	},
+	{
+		"id": "A11-never-activated",
+		"file": "mechanics/arena/src/index.ts",
+		"find": "ctx.state.activated.add(resident);",
+		"replace": "void resident;",
+		"tests": ["test/mechanics/arena/golden.test.ts"]
+	},
+	{
+		"id": "A12-braked-not-restored",
+		"file": "mechanics/arena/src/state.ts",
+		"find": "for (const level of data.braked) state.braked.add(level);",
+		"replace": "void data.braked;",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A13-policy-always",
+		"file": "mechanics/arena/src/from-story.ts",
+		"find": "return { options, turns: legacyTurns(run) };",
+		"replace": "return { options, turns: legacyTurns({ ...run, activation: \"always\" }) };",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A14-reachable-ignores-open-rewards",
+		"file": "mechanics/arena/src/rules.ts",
+		"find": "if (!view.call(ProgressionApi, \"hasSolved\", { resident, level })) open +=",
+		"replace": "if (level < 0) open +=",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A15-ending-dropped",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "...(ending === null ? {} : { ending })",
+		"replace": "...(ending === undefined ? { ending } : {})",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A16-last-minute-unnamed",
+		"file": "mechanics/arena/src/run.ts",
+		"find": "if (ctx.minute >= ctx.minutes - 1) state.reason = stopReason(ctx);",
+		"replace": "if (ctx.minute >= ctx.minutes) state.reason = stopReason(ctx);",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A17-stop-checked-mid-minute",
+		"file": "mechanics/arena/src/index.ts",
+		"find": "ctx.state.stopDue = false;",
+		"replace": "void ctx.state.stopDue;",
+		"tests": ["test/mechanics/arena/differential.test.ts"]
+	},
+	{
+		"id": "A18-v0-seen-points-dropped",
+		"file": "mechanics/arena/src/state.ts",
+		"find": "return { seenPoints: parsed.seenPoints.map((entry) => ({ ...entry })), braked",
+		"replace": "return { seenPoints: [], braked",
+		"tests": ["test/mechanics/arena/resume.test.ts"]
+	}
+]

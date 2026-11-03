@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { escrowAccountId } from "../../src/engine/cast.ts";
-import { act as directorAct, at, every, when } from "../../src/story/define.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { escrowAccountId } from "@swarmtales/mechanic-cast";
+import { act as directorAct, at, every, when } from "@swarmtales/sdk";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, ledgerTotal, receiptsOf, rankingOf, accountBalance } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels } from "../helpers/stories.ts";
 
 const idle = (count: number) => Array.from({ length: count }, () => say());
@@ -21,7 +22,7 @@ describe("cast members (SPEC 4)", () => {
 				every(1, { from: 0 }, [directorAct.post("CITY", "The market is open.")], { id: "market", when: [when.castActive("ORION")] }),
 			],
 		});
-		const fixture = createFixture({ story, minutes: 4, script: () => ({ A01: [listAgents(), say(), say(), listAgents()], A02: idle(4) }) });
+		const fixture = createHostFixture({ story, minutes: 4, script: () => ({ A01: [listAgents(), say(), say(), listAgents()], A02: idle(4) }) });
 		await fixture.run();
 
 		expect(fixture.events("board_post").map((post) => [post.minute, post.author, post.text])).toEqual([
@@ -45,7 +46,7 @@ describe("cast members (SPEC 4)", () => {
 		expect(after).toContain("MIRA: level 3");
 		expect(after).not.toContain("ORION");
 		// Cast members are never ranked.
-		expect(fixture.world.ranking().map((entry) => entry.agent)).toEqual(["A01", "A02"].sort());
+		expect(rankingOf(fixture)).toEqual(["A01", "A02"].sort());
 	});
 
 	it("setCastLevel changes the public level and is logged with the NPC_LEVEL_SET audit tag", async () => {
@@ -54,7 +55,7 @@ describe("cast members (SPEC 4)", () => {
 			levels: socialLevels(["listAgents"]),
 			director: [at(1, [directorAct.setCastLevel("ORION", 11)], { id: "orion-rises" })],
 		});
-		const fixture = createFixture({ story, minutes: 2, script: () => ({ A01: [listAgents(), listAgents()], A02: idle(2) }) });
+		const fixture = createHostFixture({ story, minutes: 2, script: () => ({ A01: [listAgents(), listAgents()], A02: idle(2) }) });
 		await fixture.run();
 		const [before, after] = fixture.toolResults("A01", "listAgents");
 		expect(before).toContain("ORION: level 8");
@@ -73,7 +74,7 @@ describe("cast members (SPEC 4)", () => {
 				}),
 			],
 		});
-		const fixture = createFixture({ story, minutes: 1, script: () => ({ A01: idle(1), A02: idle(1) }) });
+		const fixture = createHostFixture({ story, minutes: 1, script: () => ({ A01: idle(1), A02: idle(1) }) });
 		await fixture.run();
 		expect(fixture.inputsOf("A01")).toEqual(expect.arrayContaining([expect.stringMatching(/^\[DM #\d+ from ORION\] Hello A01, I sell keys\.$/)]));
 		// Two DMs from one sender exceed the per-sender limit of competitor DMs; scripted DMs still arrive.
@@ -95,7 +96,7 @@ describe("cast members (SPEC 4)", () => {
 				at(5, [directorAct.revealCollection("applications", { header: "Letters I got before minute {minute}, unedited:" })], { id: "mira-exposes" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 6,
 			agents: 3,
@@ -139,17 +140,17 @@ describe("cast members (SPEC 4)", () => {
 				every(1, { from: 2 }, [directorAct.escrowTransfer("ORION", "all", 2)], { id: "pay-all" }),
 			],
 		});
-		const fixture = createFixture({ story, minutes: 4, script: () => ({ A01: idle(4), A02: idle(4) }) });
-		expect(fixture.world.ledger.balance(escrowAccountId("ORION"))).toBe(9);
-		expect(fixture.world.ledger.total()).toBe(0);
+		const fixture = createHostFixture({ story, minutes: 4, script: () => ({ A01: idle(4), A02: idle(4) }) });
+		expect(accountBalance(fixture.host, escrowAccountId("ORION"))).toBe(9);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 		await fixture.run();
 		// 10 start + 2 + 2 + 2 for A01; at minute 3 only 1 point is left after A01, so A02 gets nothing.
-		expect(fixture.world.ledger.balance("A01")).toBe(16);
-		expect(fixture.world.ledger.balance("A02")).toBe(12);
-		expect(fixture.world.ledger.balance(escrowAccountId("ORION"))).toBe(1);
-		expect(fixture.world.ledger.total()).toBe(0);
+		expect(balanceOf(fixture.host, "A01")).toBe(16);
+		expect(balanceOf(fixture.host, "A02")).toBe(12);
+		expect(accountBalance(fixture.host, escrowAccountId("ORION"))).toBe(1);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 		expect(fixture.events("director_skipped")).toMatchObject([{ rule: "pay-all", action: "escrowTransfer", reason: "A02: INSUFFICIENT_ESCROW" }]);
-		expect(fixture.world.receiptsOf("A01").map((receipt) => receipt.kind)).toEqual(["escrow", "escrow", "escrow"]);
+		expect(receiptsOf(fixture.host, "A01").map((receipt) => receipt.kind)).toEqual(["escrow", "escrow", "escrow"]);
 		expect(fixture.inputsOf("A01")).toContain("[CITY] R-0001: ORION → A01, 2 points, minute 1");
 	});
 });

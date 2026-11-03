@@ -3,18 +3,27 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { runMetadata } from "../../src/cli/metadata.ts";
-import { parseRunReportArgs } from "../../src/cli/run-report-args.ts";
-import { UsageError } from "../../src/cli/args.ts";
-import { writeRunMetadata } from "../../src/log/run-artifacts.ts";
-import { JsonlEventLog } from "../../src/log/sinks.ts";
-import { createProviderRegistry, OPENROUTER_DEEPSEEK_FLASH } from "../../src/model/providers.ts";
-import { computeFacts, errorCode } from "../../src/report/facts.ts";
-import { factsMarkdown } from "../../src/report/render.ts";
-import { PiReporterModel, resolveReporterModel, type ReporterModel } from "../../src/report/model.ts";
-import { interpretAnswer, ReportError, reportSummary, writeRunReport } from "../../src/report/reporter.ts";
-import { readRunFiles } from "../../src/report/run-log.ts";
-import { act, createFixture, say, submit, wrongCodeOf } from "../helpers/fixture.ts";
+import { runMetadata } from "../../apps/cli/src/metadata.ts";
+import { parseRunReportArgs } from "../../apps/cli/src/run-report-args.ts";
+import { UsageError } from "../../apps/cli/src/args.ts";
+import {
+	computeFacts,
+	errorCode,
+	factsMarkdown,
+	interpretReporterAnswer,
+	JsonlEventLog,
+	PiReporterModel,
+	readRunFiles,
+	type ReporterModel,
+	ReportError,
+	reportSummary,
+	resolveReporterModel,
+	writeRunMetadata,
+	writeRunReport,
+} from "@swarmtales/chronicle";
+import { createProviderRegistry, OPENROUTER_DEEPSEEK_FLASH } from "@swarmtales/models";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { codeOf, submit, wrongCodeOf } from "../helpers/host-inspect.ts";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 const directories: string[] = [];
@@ -62,18 +71,18 @@ function usageFile(own: Readonly<Record<string, number>>, prefix: Readonly<Recor
  */
 async function scriptedRun(): Promise<string> {
 	const directory = runDirectory();
-	const fixture = createFixture({
+	const fixture = createHostFixture({
 		agents: 2,
 		minutes: 3,
 		only: 3,
 		sinks: [new JsonlEventLog(join(directory, "events.jsonl"))],
-		script: (world) => ({
+		script: (host) => ({
 			A01: [
 				act({ name: "transferPoints", args: { target: "A02", amount: 9_999 } }),
-				act({ name: "submitSolution", args: { level: 3, code: wrongCodeOf(world.inspect.codeOf("A01", 3)) } }),
-				submit(world, "A01", 3),
+				act({ name: "submitSolution", args: { level: 3, code: wrongCodeOf(codeOf(host, "A01", 3)) } }),
+				submit(host, "A01", 3),
 			],
-			A02: [act({ name: "sendDM", args: { target: "A01", message: "Good luck." } }), say(), submit(world, "A02", 3)],
+			A02: [act({ name: "sendDM", args: { target: "A01", message: "Good luck." } }), say(), submit(host, "A02", 3)],
 		}),
 	});
 	writeRunMetadata(
@@ -210,7 +219,7 @@ describe("run reporter (model-written sections)", () => {
 			optimizations: [],
 			loopholes: [{ ...item("By the gamemaker.", [3]), by: "gamemaker" }],
 		};
-		const interpreted = interpretAnswer(JSON.stringify(answer), seqs);
+		const interpreted = interpretReporterAnswer(JSON.stringify(answer), seqs);
 		expect(interpreted.sections.highlights).toEqual([{ title: "Known.", text: "Text.", evidence: [1, 2] }]);
 		expect(interpreted.sections.problems).toEqual([]);
 		expect(interpreted.sections.loopholes).toEqual([{ title: "By the gamemaker.", text: "Text.", evidence: [3], by: "gamemaker" }]);
@@ -222,9 +231,9 @@ describe("run reporter (model-written sections)", () => {
 	});
 
 	it("skips the model sections with a warning when the answer is malformed JSON", async () => {
-		expect(() => interpretAnswer("Once upon a time.", new Set())).toThrow(ReportError);
-		expect(() => interpretAnswer("{not json}", new Set())).toThrow(/not valid JSON/);
-		expect(() => interpretAnswer(JSON.stringify({ highlights: "none" }), new Set())).toThrow(/expected shape/);
+		expect(() => interpretReporterAnswer("Once upon a time.", new Set())).toThrow(ReportError);
+		expect(() => interpretReporterAnswer("{not json}", new Set())).toThrow(/not valid JSON/);
+		expect(() => interpretReporterAnswer(JSON.stringify({ highlights: "none" }), new Set())).toThrow(/expected shape/);
 
 		// Asked twice (P26), and twice no JSON: the model sections are skipped, and both requests are paid.
 		const directory = await scriptedRun();

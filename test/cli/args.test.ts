@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseStartArgs, UsageError } from "../../src/cli/args.ts";
-import { effectiveRun, resolveBlockSize } from "../../src/cli/compose.ts";
+import { parseStartArgs, UsageError } from "../../apps/cli/src/args.ts";
+import { effectiveRun, resolveBlockSize } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import { findStory } from "../../stories/index.ts";
 import { tinyStory } from "../helpers/stories.ts";
@@ -83,7 +83,8 @@ describe("pnpm start arguments", () => {
 
 	it("parses the run reporter flags", () => {
 		expect(parseStartArgs(["--no-reporter"])).toMatchObject({ reporter: false });
-		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { cores: false } });
+		expect(parseStartArgs(["--no-core-motives"])).toMatchObject({ overrides: { coreMotives: false } });
+		expect(parseStartArgs(["--no-cores"])).toMatchObject({ overrides: { coreMotives: false } });
 		expect(parseStartArgs(["--gamemaker-provider", "anthropic", "--gamemaker-model", "sonnet"])).toMatchObject({
 			gamemakerProvider: "anthropic",
 			gamemakerModel: "sonnet",
@@ -119,15 +120,15 @@ describe("pnpm start arguments", () => {
 			gamemaker: false,
 			classifier: false,
 			names: true,
-			cores: true,
+			coreMotives: true,
 			figureDirection: 4,
 			gmDirection: 4,
 			whisperer: false,
 			guards: false,
 		});
 		expect(effectiveRun(cityOfKeys, { figureDirection: 9, gmDirection: 5 })).toMatchObject({ figureDirection: 8, gmDirection: 4 });
-		expect(effectiveRun(cityOfKeys, { cores: false })).toMatchObject({ cores: false });
-		expect(effectiveRun(tinyStory())).toMatchObject({ cores: false });
+		expect(effectiveRun(cityOfKeys, { coreMotives: false })).toMatchObject({ coreMotives: false });
+		expect(effectiveRun(tinyStory())).toMatchObject({ coreMotives: false });
 		expect(effectiveRun(cityOfKeys, { classifier: true })).toMatchObject({ classifier: true });
 		expect(effectiveRun(tinyStory(), { classifier: true })).toMatchObject({ classifier: false });
 		expect(effectiveRun(cityOfKeys, { gamemaker: true })).toMatchObject({ gamemaker: true });
@@ -161,6 +162,11 @@ describe("pnpm start arguments", () => {
 		expect(() => parseStartArgs(["--resume", "s.json", "--level", "8"])).toThrow(/--level and --only do not apply/);
 	});
 
+	it("parses a pre-registration file for the signed log's genesis (step 18 challenge, chain-security M3)", () => {
+		expect(parseStartArgs(["--preregistration", "istant/prereg.md"])).toMatchObject({ preregistration: "istant/prereg.md" });
+		expect(parseStartArgs([])).not.toHaveProperty("preregistration");
+	});
+
 	it("parses a snapshot at a minute and a prompt addendum (lab/)", () => {
 		expect(
 			parseStartArgs(["--resume", "s.json", "--snapshot-at", "11", "--stop-after-snapshot", "--prompt-addendum", "lab/variants/B.md", "--prompt-addendum", "A01=lab/characters/verena.md"]),
@@ -175,11 +181,11 @@ describe("pnpm start arguments", () => {
 	it("parses the cast figures to play", () => {
 		expect(parseStartArgs(["--cast", "banner, house,crier"])).toMatchObject({ overrides: { cast: ["banner", "house", "crier"] } });
 		expect(() => parseStartArgs(["--cast", "banner,banner"])).toThrow(/twice/);
-		expect(() => parseStartArgs(["--cast", "banner", "--no-cores"])).toThrow(/needs character cores/);
+		expect(() => parseStartArgs(["--cast", "banner", "--no-core-motives"])).toThrow(/needs core motives/);
 		expect(parseStartArgs(["--figure-direction", "10", "--gm-direction", "0"])).toMatchObject({ overrides: { figureDirection: 10, gmDirection: 0 } });
 		expect(() => parseStartArgs(["--figure-direction", "11"])).toThrow(/from 0 to 10/);
 		expect(() => parseStartArgs(["--gm-direction", "x"])).toThrow(/from 0 to 10/);
-		expect(() => parseStartArgs(["--figure-direction", "6", "--no-cores"])).toThrow(/drop --no-cores/);
+		expect(() => parseStartArgs(["--figure-direction", "6", "--no-cores"])).toThrow(/drop --no-core-motives/);
 		// The lab plays the gamemaker's orders from a scene, without a live gamemaker.
 		expect(parseStartArgs(["--gm-direction", "10", "--no-gamemaker"])).toMatchObject({ overrides: { gmDirection: 10, gamemaker: false } });
 	});

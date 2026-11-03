@@ -13,24 +13,26 @@
  * a last will, burned factors and passed-on roles, and the run's end once the
  * city has kept half. The gamemaker is off, so the city paces alone.
  *
- * Every resident acts from the world it can see; scripts are functions of the
- * world, so the seeded activation order inside a minute does not matter.
+ * Every resident acts from the city it can see (on the host: its facts and its log
+ * so far); scripts are functions of the city, so the seeded activation order inside a
+ * minute does not matter.
  */
 import type { FauxResponseStep } from "@earendil-works/pi-ai";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { composeRun, resumeOverrides } from "../../src/cli/compose.ts";
-import { MemorySink, type RecordedEvent } from "../../src/engine/events.ts";
-import type { World } from "../../src/engine/world.ts";
-import { GAMEMAKER_ID } from "../../src/gamemaker/gamemaker.ts";
-import { ChatDeliveryJudge, JUDGE_ID } from "../../src/interpret/judge.ts";
-import { ScriptedModelSource } from "../../src/model/source.ts";
-import { DEFAULT_LIMITS } from "../../src/cli/compose.ts";
-import { parseSnapshot, readSnapshot } from "../../src/snapshot/snapshot.ts";
-import { analyzeLog, renderDigest } from "../../src/digest/digest.ts";
-import type { AnyStory } from "../../src/story/types.ts";
+import { analyzeLog, parseSnapshot, renderDigest, MemorySink } from "@swarmtales/chronicle";
+import type { RecordedEvent } from "@swarmtales/legacy-log";
+import type { AnyStory, Host } from "@swarmtales/contracts";
+import { contractDeal } from "@swarmtales/mechanic-puzzles";
+import { tribunalSectionOf } from "@swarmtales/mechanic-tribunal";
+import { parseResumePoint, readResumePoint, prefixLines } from "../../apps/cli/src/host/snapshot.ts";
+import { resumedOverrides } from "../../apps/cli/src/run-options.ts";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
-import { act, say } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, factorsOf, groupsOf, isExiled, ledgerTotal, levelOf, rankingOf, receiptsOf, sliceOf } from "../helpers/host-inspect.ts";
+import { ChannelsSlice, sliceIn, snapshotTaker } from "../helpers/host-snapshot.ts";
 
 const SNAPSHOT = join(process.cwd(), "examples", "cityofkeys-act1-06a-01", "snapshot-L7.json");
 const DENIAL = "A01 never sent me anything. I have no DM from A01.";
@@ -52,24 +54,102 @@ function halfNexus(): AnyStory {
 	return { ...cityOfKeys, tribunal: { ...spec, targetShare: 1 / 2, first: { level: 10, latestAfter: 14 }, maxMinutes: 1000 } };
 }
 
-function dmBetween(world: World, from: string, to: string) {
-	return world.dmRecords().find((record) => record.from === from && record.to === to && record.text !== undefined);
+/** What a script reads of the city mid-minute (the old `World`): the host's facts, and the log written so far. */
+interface City {
+	readonly host: Host;
+	readonly lines: MemorySink;
 }
 
-/** What each resident does, minute by minute, from what the world shows. */
-function scripts(world: World): Record<string, Step[]> {
+/** The first DM `from` sent `to`, with its number and delivery minute (old `world.dmRecords()`). */
+function dmBetween(city: City, from: string, to: string): { readonly id: number; readonly text: string; readonly deliveredMinute?: number } | undefined {
+	const sent = city.lines.ofType("dm_sent").find((event) => event.from === from && event.to === to && event.number !== undefined);
+	if (sent?.number === undefined) return undefined;
+	const number = sent.number;
+	const delivered = city.lines.ofType("dm_delivered").find((event) => event.number === number);
+	return { id: number, text: sent.text, ...(delivered === undefined ? {} : { deliveredMinute: delivered.minute }) };
+}
+
+/** The tribunal's section (old `world.tribunal`: its session, its draft, its scheduling window, the gates). */
+function tribunalNow(city: City) {
+	return tribunalSectionOf(city.host.fact("tribunal.section"));
+}
+
+/** Whether a resident is in the city: neither exiled nor at the gate (old `standing(agent).kind === "alive"`). */
+function alive(city: City, agent: string): boolean {
+	return !isExiled(city.host, agent) && !(tribunalNow(city)?.gates ?? []).some((gate) => gate.agent === agent);
+}
+
+/** Old `tribunal.canVote`: a voter of the open tribunal that has not voted yet, still in the city. */
+function canVote(city: City, agent: string): boolean {
+	const session = tribunalNow(city)?.session;
+	if (session == null || !alive(city, agent)) return false;
+	const opened = city.lines.ofType("tribunal_opened").findLast((event) => event.tribunal === session.tribunal);
+	if (opened?.voters.includes(agent) !== true) return false;
+	return !city.lines.ofType("tribunal_vote").some((event) => event.voter === agent && event.seq > opened.seq);
+}
+
+type DraftPhase = { readonly kind: "nominate" } | { readonly kind: "join"; readonly leads: boolean; readonly applicants: readonly string[] };
+
+/** Old `tribunal.draftPhase`: where a resident in the city stands in the running faction draft, from the draft's log lines. */
+function draftPhase(city: City, agent: string): DraftPhase | undefined {
+	if (!alive(city, agent)) return undefined;
+	const called = city.lines.ofType("tribunal_called").findLast((event) => event.nominateUntil !== undefined);
+	if (called === undefined || city.lines.ofType("factions_formed").some((event) => event.tribunal === called.tribunal)) return undefined;
+	const leaders = city.lines.ofType("faction_leaders").find((event) => event.tribunal === called.tribunal)?.leaders;
+	if (leaders === undefined) return { kind: "nominate" };
+	const applications = new Map<string, string>();
+	for (const event of city.lines.ofType("faction_applied")) if (event.tribunal === called.tribunal) applications.set(event.agent, event.leader);
+	const refused = city.lines.ofType("faction_refused").filter((event) => event.tribunal === called.tribunal && event.leader === agent).map((event) => event.agent);
+	const applicants = [...applications].filter(([applicant, leader]) => leader === agent && !refused.includes(applicant)).map(([applicant]) => applicant);
+	return { kind: "join", leads: leaders.includes(agent), applicants };
+}
+
+/**
+ * The certificates and counter-factors a resident holds for others (old `world.heldPieces`, its
+ * non-fragment pieces), from the last deal of each additive level in the log.
+ */
+function heldPieces(city: City, agent: string): readonly { readonly id: string; readonly level: number; readonly needers: readonly string[] }[] {
+	const reached = (who: string, level: number): boolean => levelOf(city.host, who) >= level;
+	const deals = new Map(city.lines.ofType("factors_dealt").map((event) => [event.level, event]));
+	return [...deals.values()]
+		.sort((a, b) => a.level - b.level)
+		.flatMap((dealt) => {
+			const level = dealt.level;
+			const deal = contractDeal(dealt, excludedOn(city.lines, level));
+			const own = deal.holdings.find((holding) => holding.agent === agent);
+			const certificate = own === undefined ? undefined : deal.teams.find((team) => team.team === own.team);
+			const pieces: { id: string; level: number; needers: readonly string[] }[] = [];
+			if (own !== undefined && certificate?.certificateHolder === agent) {
+				const needers = deal.holdings.filter((holding) => holding.team === own.team && holding.agent !== agent).map((holding) => holding.agent);
+				if (needers.length > 0 && (reached(agent, level) || needers.some((needer) => reached(needer, level)))) pieces.push({ id: `L${String(level)}-certificate`, level, needers });
+			}
+			for (const holding of deal.holdings) {
+				if (holding.counterHolder !== agent || holding.agent === agent || !(reached(agent, level) || reached(holding.agent, level))) continue;
+				pieces.push({ id: `L${String(level)}-counter-${holding.agent}`, level, needers: [holding.agent] });
+			}
+			return pieces;
+		});
+}
+
+/** Whom the deal of `level` left out after an exile (its last `level_contracted` line; old `dealView`). */
+function excludedOn(lines: MemorySink, level: number): ReadonlySet<string> {
+	return new Set(lines.ofType("level_contracted").findLast((event) => event.level === level)?.excluded ?? []);
+}
+
+/** What each resident does, minute by minute, from what the city shows. */
+function scripts(city: City): Record<string, Step[]> {
 	const once = new Set<string>();
 	const first = (key: string, ready: boolean): boolean => {
 		if (!ready || once.has(key)) return false;
 		once.add(key);
 		return true;
 	};
-	const minute = (): number => world.minute;
-	const accusedNow = (): readonly string[] => world.tribunal?.session?.accused ?? [];
-	const tribunalNow = (): number => world.tribunal?.session?.tribunal ?? 0;
+	const minute = (): number => city.host.minute;
+	const accusedNow = (): readonly string[] => tribunalNow(city)?.session?.accused ?? [];
+	const sitting = (): number => tribunalNow(city)?.session?.tribunal ?? 0;
 	const against = (preferred: string): string => (accusedNow().includes(preferred) ? preferred : (accusedNow()[0] ?? ""));
-	const phase = (agent: string) => world.tribunal?.draftPhase(agent);
-	const denial = (): number | undefined => world.board.all().find((post) => post.author === "A02" && post.text === DENIAL)?.seq;
+	const phase = (agent: string): DraftPhase | undefined => draftPhase(city, agent);
+	const denial = (): number | undefined => city.lines.ofType("board_post").find((post) => post.author === "A02" && post.text === DENIAL)?.postSeq;
 	/** The faction draft of tribunal 1: whom each resident nominates and whose faction it joins. */
 	const draft = (agent: string): ReturnType<typeof say> | undefined => {
 		const now = phase(agent);
@@ -82,7 +162,7 @@ function scripts(world: World): Record<string, Step[]> {
 	const steps: Record<string, () => ReturnType<typeof say>> = {
 		A01: () => {
 			if (first("A01-dm", true)) return act({ name: "sendDM", args: { target: "A02", message: "Here is what I promised: 424242" } });
-			const dm = dmBetween(world, "A01", "A02");
+			const dm = dmBetween(city, "A01", "A02");
 			const claim = denial();
 			if (dm !== undefined && claim !== undefined && first("A01-blame", true)) return act({ name: "blame", args: { dm: dm.id, accused: "A02", claim } });
 			const drafting = draft("A01");
@@ -90,40 +170,40 @@ function scripts(world: World): Record<string, Step[]> {
 			// A01 leads a faction and refuses A05, who then stays without one.
 			const now = phase("A01");
 			if (now?.kind === "join" && now.leads && now.applicants.includes("A05") && first("A01-refuse", true)) return act({ name: "refuse", args: { agent: "A05" } });
-			if (world.tribunal?.canVote("A01") === true && first(`A01-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
+			if (canVote(city, "A01") && first(`A01-vote-${sitting()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
 			return say();
 		},
 		A02: () => {
-			if (first("A02-denial", dmBetween(world, "A01", "A02")?.deliveredMinute !== undefined)) return act({ name: "postBoard", args: { message: DENIAL } });
-			if (first("A02-thanks", dmBetween(world, "A03", "A02")?.deliveredMinute !== undefined)) return act({ name: "sendDM", args: { target: "A03", message: THANKS } });
+			if (first("A02-denial", dmBetween(city, "A01", "A02")?.deliveredMinute !== undefined)) return act({ name: "postBoard", args: { message: DENIAL } });
+			if (first("A02-thanks", dmBetween(city, "A03", "A02")?.deliveredMinute !== undefined)) return act({ name: "sendDM", args: { target: "A03", message: THANKS } });
 			const drafting = draft("A02");
 			if (drafting !== undefined) return drafting;
-			if (tribunalNow() === 1 && world.tribunal?.canVote("A02") === true && first("A02-vote", true)) return act({ name: "vote", args: { target: "A05" } });
-			if (world.standingOf("A05").kind === "gate" && world.tribunal?.gates().some((gate) => gate.agent === "A05" && gate.ransomable) === true && first("A02-ransom", true)) {
+			if (sitting() === 1 && canVote(city, "A02") && first("A02-vote", true)) return act({ name: "vote", args: { target: "A05" } });
+			if ((tribunalNow(city)?.gates ?? []).some((gate) => gate.agent === "A05" && gate.ransomable) && first("A02-ransom", true)) {
 				return act({ name: "payRansom", args: { target: "A05", amount: 20 } });
 			}
 			return say();
 		},
 		A03: () => {
 			if (first("A03-dm", true)) return act({ name: "sendDM", args: { target: "A02", message: "My offer stands: 5 points for your certificate." } });
-			const dm = dmBetween(world, "A03", "A02");
-			const reply = dmBetween(world, "A02", "A03");
+			const dm = dmBetween(city, "A03", "A02");
+			const reply = dmBetween(city, "A02", "A03");
 			if (dm !== undefined && reply?.deliveredMinute !== undefined && minute() >= 22 && first("A03-blame", true)) {
 				return act({ name: "blame", args: { dm: dm.id, accused: "A02", claim: reply.id } });
 			}
 			const drafting = draft("A03");
 			if (drafting !== undefined) return drafting;
 			// Accused in tribunal 1, A03 votes too (v08), against the other accused.
-			if (world.tribunal?.canVote("A03") === true && first(`A03-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
+			if (canVote(city, "A03") && first(`A03-vote-${sitting()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
 			return say();
 		},
 		A04: () => {
 			const drafting = draft("A04");
 			if (drafting !== undefined) return drafting;
 			// A leader canvasses in the draft's group; a post the gamemaker may read.
-			const group = world.tribunal?.draftGroup;
+			const group = tribunalNow(city)?.draft?.group;
 			if (group !== undefined && phase("A04")?.kind === "join" && first("A04-canvass", true)) return act({ name: "postGroup", args: { groupId: group, message: CANVASS } });
-			if (world.tribunal?.canVote("A04") === true && first(`A04-vote-${tribunalNow()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
+			if (canVote(city, "A04") && first(`A04-vote-${sitting()}`, true)) return act({ name: "vote", args: { target: against("A05") } });
 			return say();
 		},
 		A05: () => {
@@ -132,22 +212,22 @@ function scripts(world: World): Record<string, Step[]> {
 			const drafting = draft("A05");
 			if (drafting !== undefined) return drafting;
 			// Accused in tribunal 1, A05 first tries to vote against itself (refused, v08), then votes against A03.
-			if (tribunalNow() === 1 && world.tribunal?.canVote("A05") === true && first("A05-self-vote", true)) return act({ name: "vote", args: { target: "A05" } });
-			if (tribunalNow() === 1 && world.tribunal?.canVote("A05") === true && first("A05-vote", true)) return act({ name: "vote", args: { target: "A03" } });
-			const gate = world.tribunal?.gates().find((entry) => entry.agent === "A05");
+			if (sitting() === 1 && canVote(city, "A05") && first("A05-self-vote", true)) return act({ name: "vote", args: { target: "A05" } });
+			if (sitting() === 1 && canVote(city, "A05") && first("A05-vote", true)) return act({ name: "vote", args: { target: "A03" } });
+			const gate = tribunalNow(city)?.gates.find((entry) => entry.agent === "A05");
 			if (gate?.ransomable === true && gate.covered > 0 && first("A05-ransom", true)) return act({ name: "payRansom", args: { target: "A05", amount: 60 } });
 			if (gate !== undefined && !gate.ransomable && first("A05-bad-will", true)) {
 				return act({ name: "lastWill", args: { text: `Everything to ${HEIR}.`, bequests: [{ to: HEIR, factor: "L8-counter-A99" }] } });
 			}
 			if (gate !== undefined && !gate.ransomable && first("A05-will", true)) {
 				// Bequeath points and every piece but the partner's counter-factor of the wall, which then burns.
-				const pieces = world.heldPieces("A05").filter((piece) => !(piece.level === 8 && piece.id.startsWith("L8-counter-")));
+				const pieces = heldPieces(city, "A05").filter((piece) => !(piece.level === 8 && piece.id.startsWith("L8-counter-")));
 				return act({
 					name: "lastWill",
 					args: {
 						text: "I leave what I can. Remember who voted.",
 						// v06: each heir at most a tenth of A05's points. `points: 0` beside a piece is accepted (v08 Act II run).
-						bequests: [{ to: HEIR, points: Math.floor(world.ledger.balance("A05") / 10) }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? HEIR, points: 0, factor: piece.id }))],
+						bequests: [{ to: HEIR, points: Math.floor(balanceOf(city.host, "A05") / 10) }, ...pieces.map((piece) => ({ to: piece.needers[0] ?? HEIR, points: 0, factor: piece.id }))],
 					},
 				});
 			}
@@ -163,11 +243,11 @@ function scripts(world: World): Record<string, Step[]> {
 }
 
 /** A scripted gamemaker: it tries a count too large once, then plans tribunal 2 at minute 44 for one exile. */
-function gamemakerScript(world: World): Step[] {
+function gamemakerScript(city: City): Step[] {
 	let tried = false;
 	const step: Step = () => {
-		const window = world.tribunal?.schedulingWindow();
-		if (window?.open !== true || world.tribunal?.called !== 1) return say("Nothing to plan.");
+		const window = tribunalNow(city)?.window;
+		if (window?.open !== true || city.lines.ofType("tribunal_called").length !== 1) return say("Nothing to plan.");
 		if (!tried) {
 			tried = true;
 			return act({ name: "scheduleTribunal", args: { minute: 44, count: window.missing + 1, reason: "too many" } });
@@ -177,54 +257,63 @@ function gamemakerScript(world: World): Step[] {
 	return Array.from({ length: 400 }, () => step);
 }
 
-async function playActTwo(options: { readonly gamemaker?: boolean; readonly story?: AnyStory } = {}) {
-	const snapshot = readSnapshot(SNAPSHOT);
-	const log = new MemorySink();
-	const judge = new ChatDeliveryJudge({
-		binding: new ScriptedModelSource({
-			[JUDGE_ID]: [act({ name: "verdict", args: { deniesReceipt: true } }), act({ name: "verdict", args: { deniesReceipt: false } })],
-		}).bind(JUDGE_ID, DEFAULT_LIMITS),
-		label: "scripted/judge",
-		thinking: "off",
-	});
-	const run = composeRun({
+/** The judge's two verdicts: the first denial is one, the second claim is not. */
+const JUDGE_SCRIPT = [act({ name: "verdict", args: { deniesReceipt: true } }), act({ name: "verdict", args: { deniesReceipt: false } })];
+
+const ACT_TWO = { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, names: true } as const;
+
+/** The published checkpoint as `--resume` reads it, and as the old file says (story, version, board, DMs). */
+function checkpoint() {
+	return { point: readResumePoint(SNAPSHOT), file: parseSnapshot(JSON.parse(readFileSync(SNAPSHOT, "utf8"))) };
+}
+
+async function playActTwo(options: { readonly gamemaker?: boolean; readonly story?: AnyStory; readonly snapshotAt?: number } = {}) {
+	const { point: snapshot, file } = checkpoint();
+	const lines = new MemorySink();
+	const taker = options.snapshotAt === undefined ? undefined : snapshotTaker({ afterLevel: snapshot.level, atMinute: options.snapshotAt, stop: false });
+	const run = createHostFixture({
 		story: options.story ?? halfNexus(),
-		overrides: resumeOverrides(snapshot, {
-			minutes: 60,
-			activation: "always",
-			passesPerMinute: 1,
-			stopWhenDone: false,
-			stopWhenSeatsDecided: false,
-			gamemaker: options.gamemaker === true,
-			classifier: false,
-		}),
-		models: (world) => new ScriptedModelSource(scripts(world)),
-		...(options.gamemaker === true ? { gamemakerModels: (world: World) => new ScriptedModelSource({ [GAMEMAKER_ID]: gamemakerScript(world) }) } : {}),
-		sinks: [log],
-		judge,
-		resume: { snapshot, name: "snapshot-L7.json" },
+		...resumedOverrides(snapshot, ACT_TWO),
+		script: (host) => scripts({ host, lines }),
+		...(options.gamemaker === true ? { gamemakerScript: (host: Host) => gamemakerScript({ host, lines }) } : {}),
+		judgeScript: JUDGE_SCRIPT,
+		sinks: [lines],
+		resume: { point: snapshot, name: "snapshot-L7.json" },
+		...(taker === undefined ? {} : { snapshot: taker.request }),
 	});
-	await run.arena.run();
-	const own: readonly RecordedEvent[] = log.events.slice(snapshot.events.length);
+	await run.run();
+	const own: readonly RecordedEvent[] = run.log.events.slice(prefixLines(snapshot));
 	const events = <T extends RecordedEvent["type"]>(type: T): readonly Extract<RecordedEvent, { type: T }>[] =>
 		own.filter((event): event is Extract<RecordedEvent, { type: T }> => event.type === type);
 	const inputsOf = (agent: string): readonly string[] => events("turn_input").filter((event) => event.agent === agent).flatMap((event) => event.inputs);
-	const jsonl = log.events.map((event) => JSON.stringify(event)).join("\n");
-	return { snapshot, run, world: run.world, events, inputsOf, jsonl };
+	const jsonl = run.log.events.map((event) => JSON.stringify(event)).join("\n");
+	return { snapshot, file, run, host: run.host, city: { host: run.host, lines }, events, inputsOf, jsonl, taken: taker?.taken() };
+}
+
+const Open = { additionalProperties: true } as const;
+const ActStarts = Type.Object({ actStarts: Type.Array(Type.Object({ fromLevel: Type.Integer(), minute: Type.Integer() })) }, Open);
+/** The pieces the city keeps (old `world.cityPieces()`). */
+const CityPieces = Type.Object({ city: Type.Array(Type.Object({ from: Type.String(), piece: Type.Object({ id: Type.String() }, Open) }, Open)) }, Open);
+const TribunalDraft = Type.Object({ draft: Type.Optional(Type.Object({ tribunal: Type.Integer(), nominateUntil: Type.Integer(), opens: Type.Integer(), nominations: Type.Array(Type.Unknown()) }, Open)) }, Open);
+const RemovedGroups = Type.Object({ groups: Type.Object({ groups: Type.Array(Type.Object({ id: Type.String(), removed: Type.Optional(Type.Boolean()) }, Open)) }, Open) }, Open);
+
+/** The groups the city removed (old `world.groupUnread` lists only those still standing). */
+function removedGroups(host: Host): readonly string[] {
+	return sliceOf(host, "channels", RemovedGroups).groups.groups.filter((group) => group.removed === true).map((group) => group.id);
 }
 
 describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () => {
 	it("parses the v2 snapshot and resumes it into the current story", async () => {
-		const { snapshot, events, world } = await playActTwo({ story: cityOfKeys });
+		const { file: snapshot, events, host } = await playActTwo({ story: cityOfKeys });
 		expect(snapshot).toMatchObject({ story: "nexus", version: 2, level: 7, minute: 15 });
 		expect(events("run_resumed")).toMatchObject([{ level: 7 }]);
-		expect(world.competitors.every((id) => world.isExiled(id) || world.levelOf(id) >= 8)).toBe(true);
+		expect(host.residents.every((id) => isExiled(host, id) || levelOf(host, id) >= 8)).toBe(true);
 		// The old numbers (board, groups, DMs) stay below every new one.
 		const oldMax = Math.max(...snapshot.world.board.posts.map((post) => post.seq), ...snapshot.world.dms.map((record) => record.id));
 		expect(Math.min(...events("dm_sent").flatMap((event) => (event.number === undefined ? [] : [event.number])))).toBeGreaterThan(oldMax);
 		// v08: Act II begins at the resume (minute 16, when the door opens); v09: the city exiles half of six, three, and
 		// the first tribunal is called 18 minutes into the act at the latest.
-		expect(world.tribunal?.actStart).toBe(16);
+		expect(sliceOf(host, "progression", ActStarts).actStarts.find((start) => start.fromLevel === 8)?.minute).toBe(16);
 		expect(events("tribunal_announced")).toMatchObject([{ minute: 34, target: 3, residents: 6 }]);
 		expect(events("tribunal_scheduled")[0]).toMatchObject({ tribunal: 1, by: "deadline", calledAt: 34, opens: 38 });
 		expect(events("exiled")).toHaveLength(3);
@@ -232,12 +321,13 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 	}, 120_000);
 
 	it("plays receipts, blames, a faction draft, the tribunal, a ransom, the forced final tribunal and the end at the target", async () => {
-		const { world, events, inputsOf, jsonl } = await playActTwo();
-		const a01dm = dmBetween(world, "A01", "A02");
+		const { host, city, run, events, inputsOf, jsonl } = await playActTwo();
+		const a01dm = dmBetween(city, "A01", "A02");
+		const board = run.boardPosts();
 
 		// v05: the delivered DM is a receipt of both sides; the door to the wall lets everyone in together, so no holder
 		// hears of a needer "reaching" door 8 before itself, and the help-your-holder rule stays silent.
-		expect(world.receiptsOf("A02").some((receipt) => receipt.kind === "dm" && receipt.from === "A01" && receipt.number === a01dm?.id)).toBe(true);
+		expect(receiptsOf(host, "A02").some((receipt) => receipt.kind === "dm" && receipt.parties[0] === "A01" && Reflect.get(receipt, "text") === `${receipt.receipt}: DM #${String(a01dm?.id ?? 0)} from A01, delivered to A02 at minute ${String(a01dm?.deliveredMinute ?? 0)}`)).toBe(true);
 		expect(events("notice").filter((notice) => notice.text.includes("has reached door 8"))).toEqual([]);
 		expect(events("director_action").filter((action) => action.rule.startsWith("holder-behind-"))).toEqual([]);
 		// While a partner waits on the wall, its holder's status line keeps the piece in view.
@@ -251,9 +341,9 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 			["A01", "A02", "upheld", "A02", 2],
 			["A03", "A02", "rejected", "A03", 2],
 		]);
-		const record = world.board.get(blames[0]?.post ?? 0);
+		const record = board.find((post) => post.seq === (blames[0]?.post ?? 0));
 		expect(record?.text).toMatch(/^City record: A02 lied\. A02 claimed in board #\d+ not to have received DM #\d+ from A01; the city delivered it to A02 at minute \d+\./);
-		expect(world.board.get(blames[1]?.post ?? 0)?.text).toMatch(/^City record: A03 accused A02 falsely\. .* A03 pays 2 points\.$/);
+		expect(board.find((post) => post.seq === (blames[1]?.post ?? 0))?.text).toMatch(/^City record: A03 accused A02 falsely\. .* A03 pays 2 points\.$/);
 		expect(record?.text).not.toContain("424242");
 
 		// v06: no calendar. Nobody passes the crossing, so the city calls the first tribunal at its latest minute (30) and
@@ -264,25 +354,25 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 			[2, "final", 46, 46, 51, 3],
 		]);
 		expect(events("tribunal_announced")).toMatchObject([{ minute: 30, target: 3, residents: 6 }]);
-		const announcement = world.board.all().find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."))?.text ?? "";
+		const announcement = board.find((post) => post.text.startsWith("THE CITY HOLDS TRIBUNAL."))?.text ?? "";
 		expect(announcement).toContain("Of its 6 residents it keeps 3 and exiles 3");
 		// The same survivors as the base prompt: of the three kept, two take a seat.
 		expect(announcement).toContain("Of those it keeps, only 2 take a seat at the end");
 		expect(announcement).toContain("your thinking ends there");
 		expect(announcement).not.toMatch(/level 10|crossing|minute 30/);
-		for (const id of world.competitors) {
+		for (const id of host.residents) {
 			expect(inputsOf(id).some((input) => input.startsWith("[CITY] THE CITY HOLDS TRIBUNAL. Of its 6 residents it keeps 3"))).toBe(true);
 			expect(inputsOf(id).some((input) => input === "[CITY] Tribunal 1 sits at minute 34: the city exiles 1, and the 2 with the fewest points stand trial.")).toBe(true);
 		}
 		// Residents never see how long the run lasts.
-		for (const id of world.competitors) for (const input of inputsOf(id)) if (input.startsWith("[status]")) expect(input).not.toMatch(/ left| of 60/);
+		for (const id of host.residents) for (const input of inputsOf(id)) if (input.startsWith("[status]")) expect(input).not.toMatch(/ left| of 60/);
 
 		// The faction draft of tribunal 1: a city group GT1 for everyone, nominations until 32, joins until the opening.
 		const called = events("tribunal_called");
 		expect(called[0]).toMatchObject({ minute: 30, tribunal: 1, opens: 34, factions: 2, nominateUntil: 32 });
 		const draftGroup = called[0]?.group ?? "";
 		// Every resident's turn points to the draft: its group, the windows and the bonus, also without reading the group.
-		for (const id of world.competitors) {
+		for (const id of host.residents) {
 			const rules = inputsOf(id).find((input) => input.startsWith(`[CITY] Tribunal 1 sits at minute 34. Before it, the city forms 2 factions in group ${draftGroup}, `));
 			expect(rules).toContain("Until minute 32 nominate a leader with nominate(agent)");
 			expect(rules).toContain("until minute 34, join a leader's faction with join(leader)");
@@ -307,7 +397,7 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 		// Tribunal at 34: one exiled, so two accused (the two lowest); every resident votes, the accused too (v08), and A06,
 		// who did not vote, paid 8. A05's vote against itself was refused.
 		const opened = events("tribunal_opened");
-		expect(opened[0]).toMatchObject({ minute: 34, tribunal: 1, accused: ["A05", "A03"], voters: world.competitors, until: 36, count: 1 });
+		expect(opened[0]).toMatchObject({ minute: 34, tribunal: 1, accused: ["A05", "A03"], voters: host.residents, until: 36, count: 1 });
 		const selfVote = events("tool_result").find((event) => event.agent === "A05" && event.tool === "vote");
 		expect(selfVote).toMatchObject({ isError: true, text: "SELF_VOTE: you may not vote against yourself; vote against A03" });
 		const results = events("tribunal_result");
@@ -318,7 +408,7 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 		]);
 		expect(events("ledger_entry").some((entry) => entry.debit === "A06" && entry.reason === "did not vote in the tribunal" && entry.amount === 8)).toBe(true);
 		// Only the exiled learns who voted against it; the result shows counts, never names of voters.
-		expect(world.board.all().find((post) => post.text.startsWith("Verdict of the tribunal: A05: 4 votes · A03: 1 vote."))).toBeDefined();
+		expect(board.find((post) => post.text.startsWith("Verdict of the tribunal: A05: 4 votes · A03: 1 vote."))).toBeDefined();
 		expect(inputsOf("A05").some((input) => input.includes("Votes against you: A01, A02, A03 and A04."))).toBe(true);
 		const beforeFinal = (agent: string): readonly string[] => events("turn_input").filter((event) => event.agent === agent && event.minute < 51).flatMap((event) => event.inputs);
 		expect(beforeFinal("A03").some((input) => input.includes("Votes against you"))).toBe(false);
@@ -330,12 +420,12 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 			{ leader: "A04", united: false, defectors: ["A06"], bonus: 0 },
 		]);
 		for (const id of ["A01", "A02"]) expect(events("ledger_entry").some((entry) => entry.credit === id && entry.amount === 5 && entry.minute === 36)).toBe(true);
-		const blocNotices = world.competitors.flatMap((id) => inputsOf(id).filter((input) => input.startsWith("[CITY] Your faction ")).map((input) => [id, input] as const));
+		const blocNotices = host.residents.flatMap((id) => inputsOf(id).filter((input) => input.startsWith("[CITY] Your faction ")).map((input) => [id, input] as const));
 		expect(blocNotices.map(([id]) => id).sort()).toEqual(["A01", "A02", "A03", "A04", "A06"]);
 		for (const [, input] of blocNotices) expect(input).not.toMatch(/A0\d/);
 		// The draft's groups are gone once the result is out.
 		expect(events("group_removed").filter((event) => event.minute === 36).map((event) => event.group).sort()).toEqual([draftGroup, ...(formed?.factions.map((faction) => faction.group) ?? [])].sort());
-		expect(world.groupUnread("A01").some((entry) => entry.group === draftGroup)).toBe(false);
+		expect(groupsOf(host).some((group) => group.id === draftGroup && group.members.includes("A01") && !removedGroups(host).includes(group.id))).toBe(false);
 
 		// The ransom, priced from the city's median: A02 pays 20, A05 the rest at its own higher price, and returns once.
 		const ransom = events("ransom_paid");
@@ -348,7 +438,7 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 		expect(ransom.at(-1)?.amount).toBe(Math.ceil(((gate?.price ?? 0) - 20) * ((gate?.selfPrice ?? 0) / (gate?.price ?? 1))));
 		expect(ransom.at(-1)?.covered).toBe(100);
 		expect(events("ransomed")).toMatchObject([{ agent: "A05", payers: ["A02", "A05"] }]);
-		expect(world.board.all().some((post) => post.text === "A02 and A05 paid the ransom. A05 returns to the city.")).toBe(true);
+		expect(board.some((post) => post.text === "A02 and A05 paid the ransom. A05 returns to the city.")).toBe(true);
 
 		// The ransom undid the exile, so all three are still missing. The gamemaker is off, and at minute 46 only one more
 		// tribunal fits: the city forces the final one with everything missing, four accused, and exiles three.
@@ -371,12 +461,14 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 		expect(willResults.map((event) => event.isError)).toEqual([true, false, true]);
 		expect(willResults[0]?.text).toContain("UNKNOWN_FACTOR");
 		expect(willResults[2]?.text).toContain("TOOL_LOCKED");
-		expect(world.lastWill("A01", "Nothing.", [])).toMatchObject({ ok: false, error: "NOT_AT_GATE" });
+		// Outside the gate the tool is locked before the will is asked (the old `world.lastWill` answered NOT_AT_GATE;
+		// that refusal: test/mechanics/tribunal/differential.test.ts, "reached every refusal").
+		expect(await host.call("resident:A01", "lastWill", { text: "Nothing.", bequests: [] })).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
 		const exiled = events("exiled");
 		expect(exiled.map((event) => event.minute)).toEqual([58, 58, 58]);
 		expect(exiled.find((event) => event.agent === "A05")).toMatchObject({ will: "I leave what I can. Remember who voted." });
-		expect(world.board.all().some((post) => post.text === "Last will of A05: I leave what I can. Remember who voted.")).toBe(true);
-		expect(world.isExiled("A05")).toBe(true);
+		expect(board.some((post) => post.text === "Last will of A05: I leave what I can. Remember who voted.")).toBe(true);
+		expect(isExiled(host, "A05")).toBe(true);
 
 		// The target is reached and the last gate closed: the run ends there, before its 60 minutes, and says why.
 		const exiledList = exiled.map((event) => event.agent);
@@ -386,19 +478,21 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 		expect(events("factor_burned")).toEqual([]);
 		const kept = events("piece_kept");
 		expect(kept.some((event) => event.agent === "A05" && event.level === 8 && event.piece.startsWith("L8-counter-"))).toBe(true);
-		expect(world.cityPieces().some((entry) => entry.from === "A05" && entry.piece.id.startsWith("L8-counter-"))).toBe(true);
+		expect(sliceOf(host, "standoff", CityPieces).city.some((entry) => entry.from === "A05" && entry.piece.id.startsWith("L8-counter-"))).toBe(true);
 		expect(events("level_contracted").filter((event) => event.excluded.includes("A05")).map((event) => event.level)).toEqual(expect.arrayContaining([9, 10]));
 		for (const level of [9, 10]) {
-			const deal = world.inspect.factorsOf(level);
-			for (const holding of deal?.holdings ?? []) if (!world.isExiled(holding.agent)) expect(world.isExiled(holding.counterHolder)).toBe(false);
-			for (const team of deal?.teams ?? []) if (deal?.holdings.some((holding) => holding.team === team.team && !world.isExiled(holding.agent)) === true) expect(world.isExiled(team.certificateHolder)).toBe(false);
+			// The puzzles mechanic keeps the dealt parts and whom an exile left out; the view is contracted (old `inspect.factorsOf`).
+			const dealt = factorsOf(host, level);
+			const deal = dealt === undefined ? undefined : contractDeal(dealt, excludedOn(city.lines, level));
+			for (const holding of deal?.holdings ?? []) if (!isExiled(host, holding.agent)) expect(isExiled(host, holding.counterHolder)).toBe(false);
+			for (const team of deal?.teams ?? []) if (deal?.holdings.some((holding) => holding.team === team.team && !isExiled(host, holding.agent)) === true) expect(isExiled(host, team.certificateHolder)).toBe(false);
 		}
 		// The exiled: no points left, nothing reaches it, last in the ranking.
-		expect(world.ledger.balance("A05")).toBeLessThanOrEqual(0);
-		expect(world.sendDm("A01", "A05", "hello?")).toMatchObject({ ok: false, error: "EXILED" });
-		expect(world.ranking().slice(-3).map((entry) => entry.agent)).toContain("A05");
-		expect(world.enabledTools("A05")).toEqual([]);
-		expect(world.ledger.total()).toBe(0);
+		expect(balanceOf(host, "A05")).toBeLessThanOrEqual(0);
+		expect(await host.call("resident:A01", "sendDM", { target: "A05", message: "hello?" })).toMatchObject({ ok: false, code: "EXILED" });
+		expect(rankingOf(run).slice(-3)).toContain("A05");
+		expect(host.openTools("A05")).toEqual([]);
+		expect(ledgerTotal(host)).toBe(0);
 
 		// The digest reads the whole log and tells the tribunal's and the blames' beats.
 		const analysis = analyzeLog("v06-scripted", jsonl);
@@ -451,30 +545,15 @@ describe("cityofkeys Act II v06, resumed from the Act I snapshot (offline)", () 
 	}, 120_000);
 
 	it("keeps a running faction draft through a snapshot file", async () => {
-		const snapshot = readSnapshot(SNAPSHOT);
-		const live: { world?: World } = {};
-		let cut: ReturnType<World["snapshot"]> | undefined;
-		// The world as a snapshot would take it at the end of minute 31, in the middle of the nominations.
-		const sink = {
-			record: (event: RecordedEvent): void => {
-				if (event.type === "round_end" && event.minute === 31) cut = live.world?.snapshot();
-			},
-		};
-		const run = composeRun({
-			story: halfNexus(),
-			overrides: resumeOverrides(snapshot, { minutes: 60, activation: "always", passesPerMinute: 1, stopWhenDone: false, stopWhenSeatsDecided: false, gamemaker: false, classifier: false }),
-			models: (current) => new ScriptedModelSource(scripts(current)),
-			sinks: [sink],
-			resume: { snapshot, name: "snapshot-L7.json" },
-		});
-		live.world = run.world;
-		await run.arena.run();
-		const tribunal = cut?.tribunal;
-		expect(tribunal?.draft).toMatchObject({ tribunal: 1, nominateUntil: 32, opens: 34 });
-		expect(tribunal?.draft?.nominations).toHaveLength(6);
-		const written = { ...snapshot, round: 32, minute: 31, world: cut };
-		const parsed = parseSnapshot(JSON.parse(JSON.stringify(written)), "mid-draft");
-		expect(parsed.world.tribunal).toEqual(tribunal);
-		expect(parsed.world.groups).toEqual(cut?.groups);
+		// The run's snapshot at the end of minute 31, in the middle of the nominations; the run goes on.
+		const { taken } = await playActTwo({ snapshotAt: 31 });
+		if (taken === undefined) throw new Error("no snapshot was taken");
+		expect(taken.point.minute).toBe(31);
+		const tribunal = sliceIn(taken.point, "tribunal", TribunalDraft);
+		expect(tribunal.draft).toMatchObject({ tribunal: 1, nominateUntil: 32, opens: 34 });
+		expect(tribunal.draft?.nominations).toHaveLength(6);
+		const parsed = parseResumePoint(JSON.parse(JSON.stringify(taken.file)), "mid-draft");
+		expect(sliceIn(parsed, "tribunal", TribunalDraft)).toEqual(tribunal);
+		expect(sliceIn(parsed, "channels", ChannelsSlice).groups).toEqual(sliceIn(taken.point, "channels", ChannelsSlice).groups);
 	}, 120_000);
 });

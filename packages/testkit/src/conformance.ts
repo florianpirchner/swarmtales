@@ -1,0 +1,134 @@
+/**
+ * Module conformance checks (docs/ideas/monorepo.md §3e item 8). Each returns a list of problems,
+ * empty when the mechanic conforms, so any test framework can assert on it:
+ *
+ * - same seed, same events (two runs of a story give identical logs)
+ * - snapshot round trip (a run cut at a minute, written as JSON and resumed, logs the same events
+ *   after the cut as the uninterrupted run, and its snapshot reads back unchanged)
+ * - every option documented (a `description` on every option property, at any depth)
+ * - no forbidden imports or globals in a mechanic's sources (no Node APIs, no engine internals,
+ *   nothing of `@swarmtales/kernel` but the authoring calls, no wall clock, no `Math.random`)
+ * - no draw that depends on the log's position (`ctx.random()`, `setup.random()`) in the sources of
+ *   mechanics whose golden logs must not move when the core writes new events (overseers, §7 risk 1)
+ *
+ * The first two take the host options, or a function that makes them fresh for every run (a
+ * scripted overseer runtime records what it was asked), so they check stories with overseers too;
+ * `checkOptionsDocumented` takes a mechanic's or an overseer's definition.
+ */
+import { Type, type TSchema } from "typebox";
+import type { TurnTaker } from "@swarmtales/contracts";
+import { createHost, type HostOptions } from "@swarmtales/kernel";
+import { playMinutes, playStory } from "./agents.ts";
+
+function differences(label: string, left: readonly unknown[], right: readonly unknown[]): readonly string[] {
+	const problems: string[] = [];
+	if (left.length !== right.length) problems.push(`${label}: ${String(left.length)} events against ${String(right.length)}`);
+	const length = Math.min(left.length, right.length);
+	for (let index = 0; index < length && problems.length < 5; index++) {
+		const a = JSON.stringify(left[index]);
+		const b = JSON.stringify(right[index]);
+		if (a !== b) problems.push(`${label}: event ${String(index + 1)} differs:\n  ${a}\n  ${b}`);
+	}
+	return problems;
+}
+
+/** Host options, or a function that makes them fresh for every run. */
+export type OptionsSource = HostOptions | (() => HostOptions);
+
+function fresh(options: OptionsSource): HostOptions {
+	return typeof options === "function" ? options() : options;
+}
+
+/** Same seed, same events. `agent` is called once per run, so a stateful script starts fresh. */
+export async function checkDeterminism(options: OptionsSource, agent: () => TurnTaker): Promise<readonly string[]> {
+	const first = await playStory(fresh(options), agent());
+	const second = await playStory(fresh(options), agent());
+	return differences("determinism", first.events, second.events);
+}
+
+/** A cut after `cut` minutes, through JSON, resumed: the events after the cut must equal the uninterrupted run's. */
+export async function checkSnapshotRoundTrip(options: OptionsSource, agent: () => TurnTaker, cut: number): Promise<readonly string[]> {
+	const whole = await playStory(fresh(options), agent());
+	const cutHost = await playMinutes(fresh(options), agent(), cut);
+	const snapshot: unknown = JSON.parse(JSON.stringify(cutHost.snapshot()));
+	const prefix: unknown[] = cutHost.log.all().map((event): unknown => JSON.parse(JSON.stringify(event)));
+	const resumed = await playStory({ ...fresh(options), resume: { snapshot, events: prefix } }, agent());
+	const problems = [...differences("snapshot round trip", whole.events, resumed.events)];
+	const restored = createHost({ ...fresh(options), resume: { snapshot, events: prefix } }).snapshot();
+	if (JSON.stringify(restored) !== JSON.stringify(snapshot)) problems.push("snapshot: a restored host writes a different snapshot");
+	if (JSON.stringify(whole.host.facts()) !== JSON.stringify(resumed.host.facts())) problems.push("snapshot: the facts differ after the resumed run");
+	return problems;
+}
+
+function describedProperties(schema: TSchema, path: string): readonly string[] {
+	if (!Type.IsObject(schema)) return [];
+	return Object.entries(schema.properties).flatMap(([name, property]: [string, TSchema]) => {
+		const where = path === "" ? name : `${path}.${name}`;
+		const own = "description" in property && typeof property.description === "string" && property.description.trim().length > 0 ? [] : [`option "${where}" has no description`];
+		return [...own, ...describedProperties(property, where)];
+	});
+}
+
+/** Every option property, at any depth, carries a description; for a mechanic or an overseer. */
+export function checkOptionsDocumented(definition: { readonly id: string; readonly options: TSchema }): readonly string[] {
+	return describedProperties(definition.options, "").map((problem) => `${definition.id}: ${problem}`);
+}
+
+const FORBIDDEN_IMPORTS: readonly RegExp[] = [/^node:/, /^(fs|path|os|child_process|crypto|http|https|net|url|worker_threads)$/, /^@swarmtales\/(engine|roles|models|chronicle|novelist)(\/|$)/, /world(\.ts)?$/];
+const FORBIDDEN_CODE: readonly (readonly [RegExp, string])[] = [
+	[/\bMath\.random\b/, "Math.random"],
+	[/\bDate\.now\b/, "Date.now"],
+	[/\bnew Date\b/, "new Date"],
+	[/\bperformance\.now\b/, "performance.now"],
+	[/\bprocess\./, "process"],
+	[/\bsetTimeout\b|\bsetInterval\b/, "timers"],
+];
+const IMPORT = /(?:\bfrom\s+|\bimport\s*\(\s*|\bimport\s+)["']([^"']+)["']/g;
+
+/** What a mechanic may take from `@swarmtales/kernel`: the authoring calls, never the host, the old ledger or the random helpers. */
+export const KERNEL_AUTHORING = ["defineApi", "defineEvents", "defineHead", "defineMechanic", "defineTool", "refuse", "reply", "skipConsult"] as const;
+
+/** `import { a, type B, c as d } from "@swarmtales/kernel"` (and `export ... from`), with the names; `*` for a namespace import. */
+const KERNEL_IMPORT = /\b(?:import|export)\s+(type\s+)?(\*\s+as\s+\w+|\{[^}]*\}|\w+(?:\s*,\s*\{[^}]*\})?)\s*from\s*["']@swarmtales\/kernel(\/[^"']*)?["']/g;
+
+function kernelNames(clause: string): readonly string[] {
+	if (clause.trim().startsWith("*")) return ["*"];
+	const braces = /\{([^}]*)\}/.exec(clause)?.[1];
+	const named = (braces ?? "").split(",").map((part) => part.trim().replace(/^type\s+/, "").split(/\s+as\s+/)[0]?.trim() ?? "").filter((name) => name.length > 0);
+	const fallback = braces === undefined ? [clause.trim()] : clause.slice(0, clause.indexOf("{")).replace(",", "").trim().length > 0 ? ["default"] : [];
+	return [...named, ...fallback];
+}
+
+/** Imports from the kernel beyond the authoring calls (subpaths, namespaces, the host, the old engine helpers). */
+function kernelProblems(path: string, text: string): readonly string[] {
+	return [...text.matchAll(KERNEL_IMPORT)].flatMap((match) => {
+		if (match[3] !== undefined) return [`${path}: imports @swarmtales/kernel${match[3]}`];
+		const allowed: readonly string[] = KERNEL_AUTHORING;
+		return kernelNames(match[2] ?? "").filter((name) => !allowed.includes(name)).map((name) => `${path}: imports ${name} from @swarmtales/kernel`);
+	});
+}
+
+/** `ctx.random()` and `setup.random()` (not `Math.random`, which `checkSourceRules` forbids anyway). */
+const LOG_RANDOM = /(?<!\bMath)\.random\s*\(/;
+
+/**
+ * Draws that depend on the log's position: `random()` derives its stream from `bus.lastSeq`, which
+ * every new core event moves (an overseer's `overseer_called`, a human's note). Mechanics in golden
+ * runs must draw with `ctx.rng(labels)` instead, or their golden logs move with the core.
+ */
+export function checkNoLogRandom(files: readonly { readonly path: string; readonly text: string }[]): readonly string[] {
+	return files.flatMap((file) => {
+		const lines = file.text.split("\n");
+		return lines.flatMap((line, index) => (LOG_RANDOM.test(line.replace(/\/\/.*$/, "")) ? [`${file.path}:${String(index + 1)}: draws with random(), which depends on the log's position`] : []));
+	});
+}
+
+/** Imports and globals a mechanic's source may not use: randomness and time come only from the host. */
+export function checkSourceRules(files: readonly { readonly path: string; readonly text: string }[]): readonly string[] {
+	return files.flatMap((file) => {
+		const imports = [...file.text.matchAll(IMPORT)].map((match) => match[1] ?? "");
+		const badImports = imports.filter((specifier) => FORBIDDEN_IMPORTS.some((pattern) => pattern.test(specifier))).map((specifier) => `${file.path}: imports ${specifier}`);
+		const badCode = FORBIDDEN_CODE.filter(([pattern]) => pattern.test(file.text)).map(([, name]) => `${file.path}: uses ${name}`);
+		return [...badImports, ...kernelProblems(file.path, file.text), ...badCode];
+	});
+}

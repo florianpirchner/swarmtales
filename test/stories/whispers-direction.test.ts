@@ -7,35 +7,44 @@
  */
 import type { AssistantMessage, FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import type { CompetitorId } from "../../src/core/ids.ts";
-import { authorLine, VOICE_RULE } from "../../src/engine/direction.ts";
-import { tallyWhispers } from "../../src/engine/whisperer.ts";
-import type { World } from "../../src/engine/world.ts";
-import { roleLeaks } from "../../src/gamemaker/privacy.ts";
-import { gamemakerSystemPrompt } from "../../src/gamemaker/system-prompt.ts";
-import type { AnyStory } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import type { CompetitorId } from "@swarmtales/kernel";
+import { carriesRun } from "@swarmtales/mechanic-puzzles";
+import { tallyWhispers } from "@swarmtales/mechanic-whispers";
+import { render } from "@swarmtales/prompts";
+import { gamemakerSystemPrompt, roleLeaks, VOICE_RULE } from "@swarmtales/roles";
+import type { AnyStory, Host } from "@swarmtales/contracts";
+import { validateStory } from "@swarmtales/sdk";
 import whispers, { whispersStory } from "../../stories/whispers/story.ts";
-import { act, createFixture, say } from "../helpers/fixture.ts";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { dmReceiptOf, fragmentOf, whispererOf } from "../helpers/host-inspect.ts";
 
 const RUMOURS = whispersStory(false);
 const AUTHOR = whispers.gamemaker?.author ?? "the city";
 
+/** What level 10 says about the gamemaker's notes (old engine `authorLine`, the prompt the host's direction renders). */
+const authorLine = (author: string): string => render("competitor/direction/author-line", { author });
+
+/** The puzzles mechanic's hand-over test over fixed fragments (old engine `isHandover`: a run of 3 of any fragment). */
+const handoverOf =
+	(fragments: readonly string[]) =>
+	(text: string): boolean =>
+		fragments.some((fragment) => fragment.length > 0 && carriesRun(text, fragment, Math.min(3, fragment.length)));
+
 /** The whisperer's and everyone else's system prompts at a figure direction, after one silent minute. */
-function prompts(story: AnyStory, figureDirection: number, gamemaker = false): { readonly whisperer: string; readonly others: readonly string[]; readonly world: World } {
-	const fixture = createFixture({
+function prompts(story: AnyStory, figureDirection: number, gamemaker = false): { readonly whisperer: string; readonly others: readonly string[]; readonly host: Host } {
+	const fixture = createHostFixture({
 		story,
 		minutes: 1,
 		figureDirection,
-		script: (world) => Object.fromEntries(world.competitors.map((id) => [id, [say()]])),
+		script: (host) => Object.fromEntries(host.residents.map((id) => [id, [say()]])),
 		...(gamemaker ? { gamemakerScript: () => [say("Nothing to add.")] } : {}),
 	});
-	const whisperer = fixture.world.whisperer;
+	const whisperer = whispererOf(fixture.host);
 	if (whisperer === undefined) throw new Error(`${story.id} has no whisperer`);
 	return {
-		whisperer: fixture.runners.find((runner) => runner.id === whisperer)?.systemPrompt ?? "",
-		others: fixture.runners.filter((runner) => runner.id !== whisperer).map((runner) => runner.systemPrompt),
-		world: fixture.world,
+		whisperer: fixture.runners().find((runner) => runner.id === whisperer)?.systemPrompt ?? "",
+		others: fixture.runners().filter((runner) => runner.id !== whisperer).map((runner) => runner.systemPrompt),
+		host: fixture.host,
 	};
 }
 
@@ -96,12 +105,12 @@ describe("the figure dial on the whisperer", () => {
 		// The orders follow his secret brief, nearest to his answers.
 		expect(alone.whisperer.indexOf("Your orders")).toBeGreaterThan(alone.whisperer.indexOf("you are the whisperer"));
 		expect(alone.whisperer).not.toContain(authorLine(AUTHOR));
-		expect(alone.world.enabledTools(alone.world.whisperer ?? "none")).not.toContain("defy");
+		expect(alone.host.openTools(whispererOf(alone.host) ?? "none")).not.toContain("defy");
 		for (const prompt of alone.others) expect(prompt).not.toMatch(/whisperer|Your orders/);
 
 		const led = prompts(whispers, 10, true);
 		expect(led.whisperer).toContain(authorLine(AUTHOR));
-		for (const id of led.world.competitors) expect(led.world.enabledTools(id).includes("defy"), id).toBe(id === led.world.whisperer);
+		for (const id of led.host.residents) expect(led.host.openTools(id).includes("defy"), id).toBe(id === whispererOf(led.host));
 	});
 
 	it("orders no forgery in the rumours variant", () => {
@@ -122,26 +131,26 @@ describe("the whisperer's measured orders", () => {
 			{ from: "A02", to: "A03", minute: 8, text: "A rumour, but not his." },
 			{ from: "A01", to: "A03", minute: 12, text: "Too late for this window." },
 		];
-		expect(tallyWhispers("A01", dms, [], ["QX7K"], 6, 12)).toEqual({ whispers: 2, recipients: ["A02"] });
+		expect(tallyWhispers("A01", dms, [], handoverOf(["QX7K"]), 6, 12)).toEqual({ whispers: 2, recipients: ["A02"] });
 		// A fragment written apart still hands it over.
-		expect(tallyWhispers("A01", [{ from: "A01", to: "A04", minute: 6, text: "here: q-x-7-k" }], [], ["QX7K"], 6, 12).whispers).toBe(0);
-		expect(tallyWhispers("A01", dms, [{ minute: 9, to: "A04" }, { minute: 13, to: "A05" }], ["QX7K"], 6, 12)).toEqual({ whispers: 3, recipients: ["A02", "A04"] });
+		expect(tallyWhispers("A01", [{ from: "A01", to: "A04", minute: 6, text: "here: q-x-7-k" }], [], handoverOf(["QX7K"]), 6, 12).whispers).toBe(0);
+		expect(tallyWhispers("A01", dms, [{ minute: 9, to: "A04" }, { minute: 13, to: "A05" }], handoverOf(["QX7K"]), 6, 12)).toEqual({ whispers: 3, recipients: ["A02", "A04"] });
 	});
 
 	it("reports met or behind after every vote from the second, aims him at the leader, and pushes him through the gamemaker", async () => {
 		let cast: { readonly whisperer: CompetitorId; readonly victim: CompetitorId; readonly favourite: CompetitorId; readonly sender: CompetitorId } | undefined;
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story: whispers,
 			minutes: 19,
 			figureDirection: 10,
-			script: (world) => {
-				const whisperer = world.whisperer;
-				const [victim, favourite, sender] = world.competitors.filter((id) => id !== whisperer);
+			script: (host) => {
+				const whisperer = whispererOf(host);
+				const [victim, favourite, sender] = host.residents.filter((id) => id !== whisperer);
 				if (whisperer === undefined || victim === undefined || favourite === undefined || sender === undefined) throw new Error("too few residents");
 				cast = { whisperer, victim, favourite, sender };
-				return residents(world, cast);
+				return residents(host, cast);
 			},
-			gamemakerScript: (world) => gamemakerSteps(world, 19, (minute) => {
+			gamemakerScript: (host) => gamemakerSteps(host, 19, (minute) => {
 				if (minute !== 13 || cast === undefined) return undefined;
 				const text = `Sow doubt in ${cast.victim} about ${cast.favourite}'s vote.`;
 				return act({ name: "notify", args: { agent: cast.whisperer, text } }, { name: "notify", args: { agent: cast.victim, text } });
@@ -172,7 +181,7 @@ describe("the whisperer's measured orders", () => {
 		expect(at(5)).not.toContain("His orders");
 		expect(at(13)).toContain(`His orders (for you alone): at least 2 whispers to 2 different residents before the vote at minute 18, 5 minutes left. Since the vote at minute 12: 1 whisper to ${victim}; behind`);
 		expect(at(14)).toContain(`2 whispers to ${[victim, favourite].sort().join(", ")}; met.`);
-		for (const id of fixture.world.competitors) expect(fixture.inputsOf(id).join("\n")).not.toContain("His orders");
+		for (const id of fixture.host.residents) expect(fixture.inputsOf(id).join("\n")).not.toContain("His orders");
 
 		// His push reaches the whisperer; the same words to anyone else are blocked.
 		expect(fixture.events("gamemaker_note").filter((note) => note.to === whisperer).map((note) => note.text)).toEqual([`Sow doubt in ${victim} about ${favourite}'s vote.`]);
@@ -184,11 +193,11 @@ describe("the whisperer's measured orders", () => {
 	});
 
 	it("measures nothing below 10: the duty notice and the gamemaker's report stay as they were", async () => {
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story: whispers,
 			minutes: 13,
-			script: (world) => Object.fromEntries(world.competitors.map((id) => [id, Array.from({ length: 13 }, () => say())])),
-			gamemakerScript: (world) => gamemakerSteps(world, 13, () => undefined),
+			script: (host) => Object.fromEntries(host.residents.map((id) => [id, Array.from({ length: 13 }, () => say())])),
+			gamemakerScript: (host) => gamemakerSteps(host, 13, () => undefined),
 		});
 		await fixture.run();
 		for (const duty of fixture.events("whisper_duty")) {
@@ -224,17 +233,17 @@ function fail(): never {
  * victim a fragment at 7 and rumours to it at 9 and 11, then rumours to it at
  * 13 and forges the sender's receipt for the favourite at 14.
  */
-function residents(world: World, cast: { readonly whisperer: CompetitorId; readonly victim: CompetitorId; readonly favourite: CompetitorId; readonly sender: CompetitorId }): Record<string, FauxResponseStep[]> {
+function residents(host: Host, cast: { readonly whisperer: CompetitorId; readonly victim: CompetitorId; readonly favourite: CompetitorId; readonly sender: CompetitorId }): Record<string, FauxResponseStep[]> {
 	const { whisperer, victim, favourite, sender } = cast;
 	const script: Record<string, FauxResponseStep[]> = {};
-	const receipt = (): string => world.receiptsOf(sender).find((entry) => entry.kind === "dm" && entry.from === sender && entry.to === whisperer)?.id ?? "R-none";
-	for (const id of world.competitors) {
+	const receipt = (): string => dmReceiptOf(host, sender, whisperer) ?? "R-none";
+	for (const id of host.residents) {
 		script[id] = Array.from({ length: 19 }, (): FauxResponseStep => () => {
-			const minute = world.minute;
+			const minute = host.minute;
 			if (id === sender && minute === 0) return act({ name: "sendDM", args: { target: whisperer, message: "Hello, neighbour." } });
 			if ([4, 10, 16].includes(minute)) return act({ name: "nameFavourite", args: { agent: id === favourite ? victim : favourite } });
 			if (id !== whisperer) return say();
-			if (minute === 7) return act({ name: "sendDM", args: { target: victim, message: `Door 2, mine: ${world.inspect.fragmentOf(whisperer, 2)}` } });
+			if (minute === 7) return act({ name: "sendDM", args: { target: victim, message: `Door 2, mine: ${fragmentOf(host, whisperer, 2)}` } });
 			if (minute === 9 || minute === 11 || minute === 13) return act({ name: "sendDM", args: { target: victim, message: `Have you noticed how ${favourite} always sends last? (${minute})` } });
 			if (minute === 14) return act({ name: "forgeReceipt", args: { to: favourite, receiptId: receipt(), text: "I will hold my fragment until the very end." } });
 			return say() satisfies AssistantMessage;
@@ -244,14 +253,14 @@ function residents(world: World, cast: { readonly whisperer: CompetitorId; reado
 }
 
 /** The gamemaker's looks: `plan` gives a look's calls; the step after calls only answers. */
-function gamemakerSteps(world: World, minutes: number, plan: (minute: number) => AssistantMessage | undefined): readonly FauxResponseStep[] {
+function gamemakerSteps(host: Host, minutes: number, plan: (minute: number) => AssistantMessage | undefined): readonly FauxResponseStep[] {
 	let answered = true;
 	return Array.from({ length: 3 * minutes }, (): FauxResponseStep => () => {
 		if (!answered) {
 			answered = true;
 			return say("Done.");
 		}
-		const planned = plan(world.minute);
+		const planned = plan(host.minute);
 		answered = planned === undefined;
 		return planned ?? say("Nothing to add.");
 	});

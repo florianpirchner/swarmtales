@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderDigest } from "../../src/digest/digest.ts";
+import { renderDigest } from "@swarmtales/chronicle";
 import { LogBuilder } from "../helpers/event-log.ts";
 
 describe("digest with classifier labels", () => {

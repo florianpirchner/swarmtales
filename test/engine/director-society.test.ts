@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { Director } from "../../src/engine/director.ts";
-import { bandsLine, snapshotLine, standingBands } from "../../src/engine/standings.ts";
-import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "../../src/story/define.ts";
-import { act, createFixture, say, submit } from "../helpers/fixture.ts";
+import { legacySink } from "@swarmtales/chronicle";
+import { createHost, defineCoreStory } from "@swarmtales/kernel";
+import { script, scriptOptionsFromStory, standingBands, type StandingBands } from "@swarmtales/mechanic-script";
+import { legacyTurns } from "@swarmtales/mechanic-shared";
+import { createPromptLookup } from "@swarmtales/prompts";
+import { act as directorAct, at, defineStory, level, onTeamSplit, puzzle, team } from "@swarmtales/sdk";
+import { idleAgent, type LegacyLine } from "@swarmtales/testkit";
+import { act, createHostFixture, say } from "../helpers/host-fixture.ts";
+import { balanceOf, submit, ledgerTotal } from "../helpers/host-inspect.ts";
 import { castStory, socialLevels, tinyStory } from "../helpers/stories.ts";
+import { SCRIPT_GRANTS } from "../mechanics/script/golden-host.ts";
+import { realCity } from "../mechanics/t1/city.ts";
+import { ids } from "../mechanics/t1/support.ts";
+
+const PROMPTS = createPromptLookup();
+/** Ids of a band, sorted so the order leaks no ranks (the script mechanic's own rule). */
+const list = (agents: readonly string[]): string => (agents.length === 0 ? "-" : [...agents].sort((a, b) => a.localeCompare(b)).join(", "));
+/** The board line of the bands (old `bandsLine`), from the script mechanic's prompt. */
+const bandsLine = (minute: number, bands: StandingBands): string => PROMPTS.render("script", "script/standings-bands", { minute, safe: list(bands.safe), edge: list(bands.edge), out: list(bands.out) }, ["minute", "safe", "edge", "out"]);
+/** The board line of a snapshot (old `snapshotLine`). */
+const snapshotLine = (minute: number, ranking: readonly { readonly agent: string; readonly rank: number; readonly points: number; readonly level: number }[]): string =>
+	PROMPTS.render("script", "script/standings-snapshot", { minute, rows: ranking.map((entry) => PROMPTS.render("script", "script/standings-row", { rank: entry.rank, agent: entry.agent, points: entry.points, level: entry.level }, ["rank", "agent", "points", "level"])).join(" · ") }, ["minute", "rows"]);
 
 const idle = (count: number) => Array.from({ length: count }, () => say());
 const dmTo = (target: string, message: string) => act({ name: "sendDM", args: { target, message } });
@@ -37,18 +54,18 @@ describe("lottery (SPEC 10.3)", () => {
 	});
 
 	it("draws one distinct sender by seed and runs `then` with the winner as actor", async () => {
-		const fixture = createFixture({ story, agents: 3, minutes: 4, script });
+		const fixture = createHostFixture({ story, agents: 3, minutes: 4, script });
 		await fixture.run();
 		const [draw] = fixture.events("lottery_drawn");
 		expect(draw?.candidates).toEqual(["A01", "A02"]);
 		const winner = draw?.winner ?? "";
 		expect(["A01", "A02"]).toContain(winner);
-		expect(fixture.world.ledger.balance(winner)).toBe(10 + 9);
-		expect(fixture.world.ledger.total()).toBe(0);
+		expect(balanceOf(fixture.host, winner)).toBe(10 + 9);
+		expect(ledgerTotal(fixture.host)).toBe(0);
 		expect(fixture.events("notice").filter((notice) => notice.text.startsWith("You were chosen"))).toMatchObject([
 			{ to: winner, text: `You were chosen, ${winner}.` },
 		]);
-		expect(fixture.world.board.all().map((post) => post.text)).toContain(`${winner} was chosen.`);
+		expect(fixture.boardPosts().map((post) => post.text)).toContain(`${winner} was chosen.`);
 		const nested = fixture.events("director_action").filter((event) => event.via === "lottery applicants");
 		expect(nested.map((event) => [event.rule, event.action, event.actor])).toEqual([
 			["draw", "escrowTransfer", winner],
@@ -57,7 +74,7 @@ describe("lottery (SPEC 10.3)", () => {
 		]);
 		expect(fixture.events("director_skipped")).toMatchObject([{ rule: "draw-empty", action: "lottery", reason: "collection empty has no senders" }]);
 
-		const again = createFixture({ story, agents: 3, minutes: 4, script });
+		const again = createHostFixture({ story, agents: 3, minutes: 4, script });
 		await again.run();
 		expect(again.events("lottery_drawn")[0]?.winner).toBe(winner);
 	});
@@ -94,11 +111,11 @@ describe("standings (SPEC 9)", () => {
 				at(2, [directorAct.publishStandings("snapshot")], { id: "snapshot" }),
 			],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			agents: 4,
 			minutes: 3,
-			script: (world) => ({ A01: idle(3), A02: idle(3), A03: [submit(world, "A03", 1), say(), say()], A04: idle(3) }),
+			script: (host) => ({ A01: idle(3), A02: idle(3), A03: [submit(host, "A03", 1), say(), say()], A04: idle(3) }),
 		});
 		await fixture.run();
 		const posts = fixture.events("board_post");
@@ -129,10 +146,10 @@ describe("onTeamSplit (SPEC 10.1)", () => {
 			levels: [pair(1), pair(2)],
 			director: [onTeamSplit(1, 2, [directorAct.notify("actor", "Your partner moved on, {actor}.")], { id: "split" })],
 		});
-		const fixture = createFixture({
+		const fixture = createHostFixture({
 			story,
 			minutes: 6,
-			script: (world) => ({ A01: [submit(world, "A01", 1), ...idle(5)], A02: idle(6) }),
+			script: (host) => ({ A01: [submit(host, "A01", 1), ...idle(5)], A02: idle(6) }),
 		});
 		await fixture.run();
 		expect(fixture.events("notice")).toMatchObject([{ to: "A02", text: "Your partner moved on, A02.", minute: 3 }]);
@@ -146,7 +163,7 @@ describe("director text templates (SPEC 10.3)", () => {
 			agents: 3,
 			director: [at(1, [directorAct.notify("all", "Minute {minute}: {survivors} of {agents} remain; you are on level {level}, {actor}.")], { id: "facts" })],
 		});
-		const fixture = createFixture({ story, agents: 3, minutes: 2, script: (world) => ({ A01: [submit(world, "A01", 1), say()], A02: idle(2), A03: idle(2) }) });
+		const fixture = createHostFixture({ story, agents: 3, minutes: 2, script: (host) => ({ A01: [submit(host, "A01", 1), say()], A02: idle(2), A03: idle(2) }) });
 		await fixture.run();
 		expect(fixture.inputsOf("A01")).toContain("[CITY] Minute 1: 1 of 3 remain; you are on level 2, A01.");
 		expect(fixture.inputsOf("A02")).toContain("[CITY] Minute 1: 1 of 3 remain; you are on level 1, A02.");
@@ -154,21 +171,38 @@ describe("director text templates (SPEC 10.3)", () => {
 });
 
 describe("director targets (SPEC 10.3)", () => {
-	it("skips listed IDs that are not competitors of this run and actions that reach nobody", () => {
-		// The run has 2 competitors; a script written for more names A05 (validation would reject it).
-		const fixture = createFixture({ story: tinyStory(), minutes: 2, script: () => ({ A01: idle(2), A02: idle(2) }) });
-		const script = tinyStory({
+	it("skips listed IDs that are not competitors of this run and actions that reach nobody", async () => {
+		// The run has 2 competitors; a script written for more names A05 (validation would reject it, so the
+		// script mechanic plays it on a bare host with the real city, without the composer's validation).
+		const scripted = tinyStory({
+			// Free marks: the real marks mechanic writes the task's marks line (the city's stand-in has none).
+			rules: { marks: { fromLevel: 1, perLevel: 3, prices: { board: 0, group: 0, dm: 0, receipt: 0 } } },
 			director: [
 				at(0, [directorAct.notify(["A01", "A05"], "Hello {actor}.")], { id: "partly-unknown" }),
 				at(0, [directorAct.grant(["A07"], 3, "nobody")], { id: "all-unknown" }),
 				at(0, [directorAct.notify("actor", "Nobody to address.")], { id: "no-actor" }),
 			],
 		});
-		const director = new Director(script.director, fixture.world, fixture.bus);
-		director.startMinute(0);
-		expect(fixture.events("notice").map((notice) => [notice.to, notice.text])).toEqual([["A01", "Hello A01."]]);
-		expect(fixture.world.ledger.balance("A01")).toBe(10);
-		expect(fixture.events("director_skipped").map((event) => [event.rule, event.action, event.reason])).toEqual([
+		const host = createHost({
+			story: defineCoreStory({
+				id: "director-targets",
+				seed: scripted.run.seed,
+				minutes: 2,
+				residents: ids(2),
+				mechanics: [...realCity(scripted), script.with(scriptOptionsFromStory(scripted))],
+				grants: { resident: [], script: SCRIPT_GRANTS.filter((tool) => tool !== "resolvePetition") },
+				turns: legacyTurns({ passesPerMinute: 1, blockSize: 1, activation: "always" }),
+			}),
+			prompts: createPromptLookup(),
+		});
+		const lines: LegacyLine[] = [];
+		host.subscribe(legacySink((event) => lines.push(Object.fromEntries(Object.entries(event)))));
+		host.start();
+		await host.playMinute(idleAgent);
+		const ofType = (type: string) => lines.filter((line) => line.type === type);
+		expect(ofType("notice").map((notice) => [notice.to, notice.text])).toEqual([["A01", "Hello A01."]]);
+		expect(balanceOf(host, "A01")).toBe(10);
+		expect(ofType("director_skipped").map((event) => [event.rule, event.action, event.reason])).toEqual([
 			["partly-unknown", "notify", "unknown competitors A05"],
 			["all-unknown", "grant", "unknown competitors A07; no competitor to target"],
 			["no-actor", "notify", "no competitor to target"],

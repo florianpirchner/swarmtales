@@ -1,9 +1,8 @@
 /** Validation of additive levels and the feast primitives (SPEC 10, 12.3). */
 import { describe, expect, it } from "vitest";
-import { DIRECTOR_SUPPORT } from "../../src/engine/director.ts";
-import { act, at, level, onCollect, onFirstEnter, puzzle, team } from "../../src/story/define.ts";
-import type { AnyStory, TeamLayout } from "../../src/story/types.ts";
-import { validateStory } from "../../src/story/validate.ts";
+import { DIRECTOR_SUPPORT } from "@swarmtales/contracts";
+import { act, at, level, onCollect, onFirstEnter, puzzle, team, validateStory } from "@swarmtales/sdk";
+import type { AnyStory, TeamLayout } from "@swarmtales/contracts";
 import { additiveStory, castStory, soloLevels } from "../helpers/stories.ts";
 
 /** One additive level with `layout`, the city factor posted at minute 0. */
