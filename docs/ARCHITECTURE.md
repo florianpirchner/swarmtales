@@ -153,7 +153,7 @@ touched (code, no model), its runtime asks the chat model (`weave` tool, typebox
 applied within the caps: an inner voice the runner appends after the tools notice, or a rewrite of the
 leading system message from the prompt facts plus `PromptFacts.shift`. It writes `fate_shift` events;
 `log/weaver-log.ts` turns them into `weaver.md`. The old role classes `AgentRunner`, `Interpreter` and
-`Weaver` are still in `roles` as the old side of a few tests (rewrite-status.md, "state after team D4").
+`Weaver` are deleted; their old side lives on as recordings in `test/fixtures/old-engine/` (step18-decisions.md, "Cleanup 1").
 
 ### 3.5 Run snapshots
 

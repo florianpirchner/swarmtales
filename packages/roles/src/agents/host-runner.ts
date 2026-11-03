@@ -1,5 +1,6 @@
 /**
- * One resident on the new host (step 18, team R1): the old {@link AgentRunner} with the host in place
+ * One resident on the new host (step 18, team R1): the old `AgentRunner` (deleted after step 18; its
+ * differential is recorded in `test/fixtures/old-engine/agents-host-runner.json.gz`) with the host in place
  * of `World` and the `EventBus`. A persistent pi {@link Agent} session for the whole run; every tool
  * the run binds reaches the model in every request, so the cached prefix stays the same all run
  * (P46); a call runs through the host's pipeline as this resident (`Turn.call`), which answers a
@@ -21,7 +22,7 @@ import { Type } from "typebox";
 import { TOOL_NAMES, type EventSchemas, type ResidentId, type Souffleur, type ThinkingLevel, type ToolOutcome, type ToolSpec, type Turn } from "@swarmtales/contracts";
 import { withRequestDefaults, type ModelBinding } from "@swarmtales/models";
 import { SOUFFLEUR_ID } from "../interpret/souffleur.ts";
-import { isSafeguardRefusal, lastAnnounced, LOST_INPUTS, toolsNotice, type ContextMessage, type InnerVoice } from "./runner.ts";
+import { render, text } from "@swarmtales/prompts";
 
 const Usage = Type.Object({
 	agent: Type.String(),
@@ -69,6 +70,46 @@ function toolResult(outcome: ToolOutcome): AgentToolResult<undefined> {
 	const content: AgentToolResult<undefined>["content"] = [{ type: "text", text: outcomeText(outcome) }];
 	return outcome.ok ? { content, details: undefined } : { content, details: undefined, isError: true };
 }
+
+/** The weaver's queue of inner voices for one resident. */
+export interface InnerVoice {
+	/** Takes the voices due now; taking them empties the queue. */
+	take(): readonly string[];
+	/** Puts back voices a step took but the model never kept (a refused step, or inputs the souffleur lost). */
+	giveBack(voices: readonly string[]): void;
+}
+
+/** Whether a step's error is a refusal of the provider's safeguards, not a failure of the game. */
+export function isSafeguardRefusal(error: string | undefined): boolean {
+	return error !== undefined && /safeguards/i.test(error);
+}
+
+/** What a refused step gets when its inputs cannot be rewritten: the resident's tools still read everything. */
+export const LOST_INPUTS = text("competitor/input/lost-inputs");
+
+/** The notice that opens a step whose unlocked tools changed since the last one. */
+export function toolsNotice(tools: readonly string[]): string {
+	return render("competitor/input/tools-notice", { tools: tools.join(", ") });
+}
+
+/** The fixed text before and after the tool list in the notice, so a resumed run can read the list back. */
+const [TOOLS_NOTICE_HEAD = "", TOOLS_NOTICE_TAIL = ""] = render("competitor/input/tools-notice", { tools: "\u0000" }).split("\u0000");
+
+/** The tools the last notice in `messages` named, as the key `#announced` keeps; a resumed run goes on from it. */
+export function lastAnnounced(messages: readonly AgentMessage[]): string | undefined {
+	for (let at = messages.length - 1; at >= 0; at -= 1) {
+		const message = messages[at];
+		if (message?.role !== "user" || typeof message.content !== "string") continue;
+		const { content } = message;
+		if (content.startsWith(TOOLS_NOTICE_HEAD) && content.endsWith(TOOLS_NOTICE_TAIL)) {
+			return content.slice(TOOLS_NOTICE_HEAD.length, -TOOLS_NOTICE_TAIL.length).split(", ").join(",");
+		}
+	}
+	return undefined;
+}
+
+/** A message of a competitor's persistent context, as a run snapshot keeps it: anything but a system message. */
+export type ContextMessage = Exclude<AgentMessage, { readonly role: "system" }>;
 
 export interface HostRunnerOptions {
 	readonly id: ResidentId;

@@ -28,6 +28,31 @@ import { assertNever, type CompetitorId } from "@swarmtales/kernel";
 import { type FateTrigger, isPrivateSource, type RecordedEvent } from "@swarmtales/legacy-log";
 import { render, text } from "@swarmtales/prompts";
 
+/** A change of one resident in an act that is still running. */
+export interface FatePatch {
+	readonly agent: CompetitorId;
+	/** The first level of the act it belongs to. */
+	readonly act: number;
+	readonly kind: "soft" | "hard";
+	readonly text: string;
+	readonly minute: number;
+	/** The `seq` of its `fate_shift` event. */
+	readonly seq: number;
+}
+
+/** What the weaver carries over a run snapshot (SPEC 17). */
+export interface WeaverSnapshot {
+	/** Residents touched since the last look, not asked about yet. */
+	readonly pending: readonly FateHit[];
+	readonly patches: readonly FatePatch[];
+	/** Each resident's last hard text, as its prompt shows it. */
+	readonly shifts: readonly { readonly agent: CompetitorId; readonly text: string }[];
+	/** Inner voices its next step has not heard yet. */
+	readonly voices: readonly { readonly agent: CompetitorId; readonly text: string }[];
+	/** Acts whose end the weaver has written. */
+	readonly closed: readonly number[];
+}
+
 /** A resident a hard fact touched: what happened, as a sentence, what kind of event it was, and its number. */
 export interface FateHit {
 	readonly agent: CompetitorId;

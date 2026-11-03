@@ -29,6 +29,15 @@ export interface ModelSource {
 	bind(agent: CompetitorId, limits: RequestLimits): ModelBinding;
 }
 
+/**
+ * The request limits a model can honour (P75): a story sets `maxOutputTokens` for its own model (393216 for
+ * DeepSeek on OpenRouter); when the model is overridden (`--gamemaker-model haiku`) the provider would answer
+ * 400 for a `max_tokens` above its own limit, so the setting is cut to the model's `maxTokens`.
+ */
+function limitsFor(model: Pick<Model<Api>, "maxTokens">, limits: RequestLimits): RequestLimits {
+	return model.maxTokens > 0 && limits.maxOutputTokens > model.maxTokens ? { ...limits, maxOutputTokens: model.maxTokens } : limits;
+}
+
 function limitedStream(models: Models, limits: RequestLimits): StreamFn {
 	return (model, context, options) =>
 		models.streamSimple(model, context, { ...options, maxTokens: limits.maxOutputTokens, timeoutMs: limits.timeoutMs });
@@ -83,7 +92,7 @@ export class PiModelSource implements ModelSource {
 			this.#spec.id === "openrouter" && this.#routing !== undefined ? openRouterProviderPreferences(this.#routing) : undefined;
 		return {
 			model,
-			streamFn: redactingStream(limitedStream(this.#models, limits)),
+			streamFn: redactingStream(limitedStream(this.#models, limitsFor(model, limits))),
 			...(requestDefaults === undefined ? {} : { requestDefaults }),
 		};
 	}

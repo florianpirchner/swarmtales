@@ -538,6 +538,42 @@ Goldens byte-identical until the rename commit, `GOLDEN_UPDATE` used only there 
    recording; `test/cli/host-gamemaker-golden.test.ts` still pins the gamemaker's token counts against the regenerated
    goldens. Added: `test/log/legacy-files.test.ts`, "the old event names". No test was deleted.
 
+## Cleanup 1 (old role classes deleted, 2026-11-03)
+
+Flo asked for a clean-up of the old code. No golden changed.
+
+1. **Old sides recorded** (commit c7691e0, the recorder restored from `825d267^`, run once with `OLD_ENGINE_RECORD=1`):
+   `agents-host-runner` (the `AgentRunner` scenarios and the snapshot resume), `overseers-classifier` (the interpreter's
+   log lines, batch prompts and sizes), `overseers-runtime-decider` (the interpreter's batches, names as pairs),
+   `overseers-weaver` (the weaver's questions, `fate_shift` events and snapshot). The tests replay them
+   (`replayOld`); the recorder and the live old sides are gone again.
+2. **Deleted:** `packages/roles/src/agents/runner.ts` (`AgentRunner`), `packages/roles/src/interpret/interpreter.ts`
+   (`Interpreter`), `packages/roles/src/interpret/weaver.ts` (`Weaver`, `WeaverCity`, `WeaverOptions`),
+   `packages/contracts/src/turn.ts` (`Competitor`, `TurnInput`, `StepSlot`, `TurnInputKind`: nothing used them
+   but the old runner), `test/helpers/old-engine-recorder.ts`, and the harness's old-side helpers
+   (`legacyInputs`, `oldBus`, `bare`) in `test/overseers/harness.ts`.
+3. **Moved:** `isSafeguardRefusal`, `lastAnnounced`, `LOST_INPUTS`, `toolsNotice`, `ContextMessage`, `InnerVoice` to
+   `agents/host-runner.ts`; `InterpreterSnapshot` to `interpret/statements.ts`; `WeaverSnapshot` and `FatePatch` to
+   `interpret/fate-triggers.ts`; `INNER_VOICE_HEAD` to `interpret/weaver-model.ts`. `CONTEXT_MESSAGES` and
+   `MAX_BATCH_STATEMENTS` (was `BATCH_MAX`) and `MAX_SOFT`, `MAX_HARD` are the overseers' own constants now, exported from
+   `overseer/classifier.ts` and `overseer/weaver.ts` (the old copies are deleted; read them as `overseers.X`).
+4. **Covering tests of deleted cases:**
+   - `test/agents/souffleur.test.ts` ran the `AgentRunner`; it runs `HostResidentRunner` now, every case kept.
+   - `test/interpret/weaver.test.ts`: the "inner voices in a resident's steps" cases run `HostResidentRunner`, every
+     case kept. The `Weaver` unit cases (no request in a quiet minute, dossier per touched resident, soft answer as an
+     inner voice, hard answer as a rewrite, none/empty/malformed answers, caps of two hard and six soft, residents beyond
+     the wall, the act's end, snapshot and restore) are deleted; the covering test is
+     `test/overseers/weaver.test.ts` (differential against the recorded `Weaver`: dossiers, `fate_shift` lines,
+     caps, act ends, hits, state, resume) with `test/snapshot/weaver.test.ts` (inner voice heard once, resumed).
+     Not carried over: `takeVoices`/`returnVoices` as methods (the weaver desk of `apps/cli/src/host/weaver-desk.ts`, tested in `test/cli/host-weaver.test.ts`, and
+     the `InnerVoice` cases above cover the hand-over) and the usage line per request (`test/overseers/runtime-chat.test.ts`).
+   - `test/interpret/interpreter.test.ts` never ran the old class; only its constants moved.
+5. **`scripts/production-exports.json`:** `AgentRunner`, `Interpreter`, `Weaver` left the list; `EventBus`
+   (`legacy-log/src/bus.ts`), `FateTriggers`, `statementOf` (`interpret/statements.ts`) and `INNER_VOICE_HEAD` joined it:
+   only tests use them now (written with `--write`, a deliberate change). `FateTriggers` and `statementOf` are the old
+   roles' helpers and can go with their tests (`test/interpret/fate-triggers.test.ts`) when the overseers' own copies
+   (`overseer/fate.ts`, `overseer/statements.ts`) are the only ones; left for a later cleanup.
+
 ## H1 (signed event log, rewrite-status item 5a)
 
 Built as `docs/design/event-log-signing.md` describes; mutants `docs/design/mutants-step18-H1.json` (23, all killed).
