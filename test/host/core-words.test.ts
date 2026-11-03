@@ -22,6 +22,7 @@ const GAME_WORDS = [
 const LEGACY = [
 	"packages/contracts/src/ids.ts",
 	"packages/contracts/src/roles.ts",
+	"packages/contracts/src/story-schema.ts",
 	"packages/contracts/src/story.ts",
 	"packages/contracts/src/tool-names.ts",
 	"packages/kernel/src/counts.ts",
