@@ -6,7 +6,11 @@
  * statements back from the host log. A request that failed fails the whole call.
  */
 import { createModels, createProvider, envApiKeyAuth, type ClassifierContext, type ClassifierModel, type ClassifierResult } from "@earendil-works/pi-ai";
+import { Type, type Static } from "typebox";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { isStatementSource } from "@swarmtales/legacy-log";
+import type { Statement } from "@swarmtales/roles";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { DeciderStatementClassifier, Interpreter, overseers, type Classification, type StatementBatch, type StatementClassifier } from "@swarmtales/roles";
 import type { OverseerRuntime } from "@swarmtales/contracts";
 import { scriptedOverseer } from "@swarmtales/testkit";
@@ -72,6 +76,19 @@ function spec(inputs: readonly Input[], runtime: OverseerRuntime = scriptedOvers
 	return { inputs, minutes: 2, residents: 4, overseers: [overseers.classifierOverseer.as("classifier", { label: "fake/decider" })], names: true, appEvents: overseers.USAGE_APP_EVENTS, runtime };
 }
 
+const WireStatement = Type.Object({ seq: Type.Number(), minute: Type.Number(), agent: Type.String(), source: Type.String(), to: Type.Array(Type.String()), group: Type.Optional(Type.String()), text: Type.String() });
+const WireBatches = Type.Array(Type.Object({ round: Type.Number(), minute: Type.Number(), agents: Type.Array(Type.String()), names: Type.Array(Type.Tuple([Type.String(), Type.String()])), statements: Type.Array(WireStatement), context: Type.Array(WireStatement) }));
+
+function statementOf(wire: Static<typeof WireStatement>): Statement {
+	if (!isStatementSource(wire.source)) throw new Error(`unknown statement source ${wire.source}`);
+	return { seq: wire.seq, minute: wire.minute, agent: wire.agent, source: wire.source, to: wire.to, text: wire.text, ...(wire.group === undefined ? {} : { group: wire.group }) };
+}
+
+/** The old interpreter's batches, stored as plain data (the names as pairs). */
+function batchesOf(wire: Static<typeof WireBatches>): StatementBatch[] {
+	return wire.map((batch) => ({ round: batch.round, minute: batch.minute, agents: batch.agents, ...(batch.names.length === 0 ? {} : { names: new Map(batch.names) }), statements: batch.statements.map(statementOf), context: batch.context.map(statementOf) }));
+}
+
 /** The new side's calls, and the old side's batches of the same events. */
 async function played(inputs: readonly Input[]) {
 	const scripted = scriptedOverseer({ classifier: () => ({ answer: { items: [] } }) });
@@ -82,6 +99,7 @@ async function played(inputs: readonly Input[]) {
 	await playInputs(host, newSpec, 0, 2, seqs);
 	const calls = scripted.asked.map((entry) => entry.call);
 
+	const playOldBatches = async (): Promise<unknown> => {
 	const side = oldBus();
 	const batches: StatementBatch[] = [];
 	const classifier: StatementClassifier = {
@@ -101,6 +119,9 @@ async function played(inputs: readonly Input[]) {
 		}
 		await interpreter.afterRound(minute + 1);
 	}
+	return batches.map((batch) => ({ ...batch, names: [...(batch.names ?? [])] }));
+	};
+	const batches = batchesOf(await oldRunAsync({ inputs, seqs }, WireBatches, playOldBatches));
 	return { host, calls, batches };
 }
 

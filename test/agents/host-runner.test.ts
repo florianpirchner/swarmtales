@@ -16,6 +16,7 @@ import { ScriptedModelSource, say } from "@swarmtales/models";
 import { AgentRunner, HostResidentRunner, inCatalogOrder, type InnerVoice, outcomeText, toolsNotice } from "@swarmtales/roles";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import { RESIDENT_LIMITS } from "../../apps/cli/src/host/residents.ts";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 
 const SPECS: readonly ToolSpec[] = [
 	{ name: "getStatus", description: "Your status.", parameters: Type.Object({}) },
@@ -242,9 +243,15 @@ const SCENARIOS: Readonly<Record<string, Scenario>> = {
 	},
 };
 
+const OldRun = Type.Object({ lines: Type.Array(Type.Record(Type.String(), Type.Unknown())), context: Type.Unknown(), tools: Type.Array(Type.String()) });
+const OldLines = Type.Array(Type.Record(Type.String(), Type.Unknown()));
+
+/** What a scenario's old run depends on, apart from the scripted model answers (static in this file). */
+const inputsOf = (scenario: Scenario): unknown => ({ steps: scenario.steps, voices: scenario.voices, initial: scenario.initial, rewriteBefore: scenario.rewriteBefore, souffleur: scenario.souffleur?.label });
+
 describe("the host resident runner against the old AgentRunner", () => {
 	it.each(Object.entries(SCENARIOS))("%s: the same app events, context and declarations", async (_name, scenario) => {
-		const old = await playOld(scenario);
+		const old = await oldRunAsync(inputsOf(scenario), OldRun, () => playOld(scenario));
 		const fresh = await playNew(scenario);
 		expect(old.lines.length).toBeGreaterThan(scenario.steps.length);
 		expect(fresh.lines).toEqual(old.lines);
@@ -273,7 +280,7 @@ describe("the host resident runner against the old AgentRunner", () => {
 			runner.restore(played.runner.snapshot());
 			return runner.step(turnOf(step, record), []).then(() => lines);
 		};
-		const [old, fresh] = await Promise.all([resumed("old"), resumed("new")]);
+		const [old, fresh] = await Promise.all([oldRunAsync({ resumed: "b" }, OldLines, () => resumed("old")), resumed("new")]);
 		expect(fresh).toEqual(old);
 		expect(fresh.find((line) => line.type === "turn_input")).toMatchObject({ inputs: ["b"] });
 	});

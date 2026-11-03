@@ -4,10 +4,12 @@
  * (system and per batch), the same `interpretation`, `interpretation_round` and `interpretation_error`
  * events, in the same order. The new side is a real host with the overseer and a scripted runtime.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { text } from "@swarmtales/prompts";
 import { classifierPrompt, classifierSystemPrompt, Interpreter, overseers, type Classification, type StatementBatch, type StatementClassifier } from "@swarmtales/roles";
 import { scriptedOverseer, type OverseerScript } from "@swarmtales/testkit";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { bare, displayName, flat, legacyInputs, newHost, oldBus, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
 
 const LABEL = "test/classifier";
@@ -84,8 +86,10 @@ async function playOld(seqs: readonly number[], failOn: readonly number[]) {
 		}
 		await interpreter.afterRound(minute + 1);
 	}
-	return { side, batches };
+	return { events: side.log.events.map(bare), prompts: batches.map((batch) => classifierPrompt(batch, 1_500)), sizes: batches.map((batch) => batch.statements.length) };
 }
+
+const OldSide = Type.Object({ events: Type.Array(Type.Record(Type.String(), Type.Unknown())), prompts: Type.Array(Type.String()), sizes: Type.Array(Type.Number()) });
 
 function runtimeFor(failOn: readonly number[]) {
 	let n = 0;
@@ -99,17 +103,17 @@ function runtimeFor(failOn: readonly number[]) {
 async function compare(failOn: readonly number[]) {
 	const runtime = runtimeFor(failOn);
 	const fresh = await playNew(spec({ runtime }));
-	const old = await playOld(fresh.seqs, failOn);
+	const old = await oldRunAsync({ failOn, seqs: fresh.seqs, script: SCRIPT }, OldSide, () => playOld(fresh.seqs, failOn));
 	return { fresh, runtime, ...old };
 }
 
 describe("the classifier overseer against the old interpreter", () => {
 	it("asks with the old prompts: the system prompt, and per batch the round, the context and the statements", async () => {
-		const { runtime, batches } = await compare([]);
+		const { runtime, prompts, sizes } = await compare([]);
 		expect(runtime.asked.map((entry) => entry.call.system)).toEqual(runtime.asked.map(() => classifierSystemPrompt()));
-		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(batches.map((batch) => classifierPrompt(batch, 1_500)));
+		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(prompts);
 		// Minute 0: seven statements in one batch; minute 1: two; minute 2: 130 statements in three; minute 3: one.
-		expect(batches.map((batch) => batch.statements.length)).toEqual([7, 2, 60, 60, 10, 1]);
+		expect(sizes).toEqual([7, 2, 60, 60, 10, 1]);
 		expect(runtime.asked.map((entry) => entry.call.slot)).toEqual(runtime.asked.map(() => "classifier"));
 		// Names and context reached the prompt.
 		expect(runtime.asked[0]?.call.input).toContain("A02 (called Maren)");
@@ -117,9 +121,9 @@ describe("the classifier overseer against the old interpreter", () => {
 	});
 
 	it("writes the old events in the old order: interpretations of a round, then the round", async () => {
-		const { fresh, side } = await compare([]);
+		const { fresh, events } = await compare([]);
 		const written = flat(fresh.events, "classifier");
-		expect(written).toEqual(side.log.events.map(bare));
+		expect(written).toEqual(events);
 		expect(written.filter((event) => event.type === "interpretation").length).toBeGreaterThan(80);
 		expect(written.filter((event) => event.type === "interpretation_round")).toHaveLength(4);
 		// Unknown labels, unknown residents and the model's own name for a resident were handled alike.
@@ -128,9 +132,9 @@ describe("the classifier overseer against the old interpreter", () => {
 	});
 
 	it("writes an error for a failed batch, no round for it, and labels the others", async () => {
-		const { fresh, side } = await compare([3]);
+		const { fresh, events } = await compare([3]);
 		const written = flat(fresh.events, "classifier");
-		expect(written).toEqual(side.log.events.map(bare));
+		expect(written).toEqual(events);
 		const errors = written.filter((event) => event.type === "interpretation_error");
 		expect(errors).toEqual([{ type: "interpretation_error", round: 3, message: "boom" }]);
 		// Round 3 (minute 2) is not marked as classified, the others are.

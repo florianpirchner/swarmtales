@@ -4,10 +4,12 @@
  * dossiers (system and per question), the same `fate_shift` events, the same caps and the same act
  * ends. The new side is a real host with the overseer and a scripted runtime.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { clip, overseers, Weaver, weaverPrompt, weaverSystemPrompt, type Weave, type WeaverAnswer, type WeaverCity, type WeaverModel, type WeaverQuestion } from "@swarmtales/roles";
 import { scriptedOverseer, type ScriptedAnswer } from "@swarmtales/testkit";
 import { recordOf } from "../mechanics/t1/support.ts";
+import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
 import { displayName, flat, legacyInputs, newHost, oldBus, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
 
 const PEOPLE = ["A01", "A02", "A03", "A04"];
@@ -160,8 +162,27 @@ async function playOld(scenario: Scenario, seqs: readonly number[]) {
 		// The old arena (arena.ts:206): no change and no look after the last round.
 		if (minute + 1 < scenario.minutes) await weaver.afterRound();
 	}
-	return { side, model, weaver };
+	const snapshot = weaver.snapshot();
+	return { questions: model.questions, fateShifts: side.log.events.filter((event) => event.type === "fate_shift"), snapshot };
 }
+
+const Kind = Type.Union([Type.Literal("soft"), Type.Literal("hard")]);
+const OldSide = Type.Object({
+	questions: Type.Array(
+		Type.Object({
+			resident: Type.String(),
+			minute: Type.Number(),
+			character: Type.String(),
+			shift: Type.Optional(Type.String()),
+			patches: Type.Array(Type.Object({ minute: Type.Number(), kind: Kind, text: Type.String() })),
+			events: Type.Array(Type.Object({ seq: Type.Number(), text: Type.String() })),
+			actEnd: Type.Optional(Type.Object({ title: Type.String() })),
+			hardLeft: Type.Number(),
+		}),
+	),
+	fateShifts: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	snapshot: Type.Object({ pending: Type.Unknown(), patches: Type.Unknown(), shifts: Type.Unknown(), voices: Type.Unknown(), closed: Type.Unknown() }),
+});
 
 /** The fate shifts as flat lines; an act end's evidence (the act's earlier shifts) is named by the order the shifts were written in. */
 function shifts(lines: readonly Record<string, unknown>[], seqOfShift: readonly number[]): readonly Record<string, unknown>[] {
@@ -178,24 +199,25 @@ const withoutSeq = (entry: unknown): unknown => (typeof entry === "object" && en
 async function compare(scenario: Scenario = BASE) {
 	const runtime = scripted(scenario);
 	const fresh = await playNew(spec(scenario, { runtime }));
-	const old = await playOld(scenario, fresh.seqs);
+	const answers = Array.from({ length: 40 }, (_unused, index) => scenario.answer(index));
+	const old = await oldRunAsync({ inputs: scenario.inputs, minutes: scenario.minutes, answers, seqs: fresh.seqs }, OldSide, () => playOld(scenario, fresh.seqs));
 	const newLines = flat(fresh.events, "weaver");
 	const newSeqs = fresh.events.filter((event) => event.source === "weaver").map((event) => event.seq);
-	const oldEvents = old.side.log.events.filter((event) => event.type === "fate_shift");
+	const oldEvents = old.fateShifts;
 	const oldLines = oldEvents.map((event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== "seq" && key !== "minute")));
-	return { fresh, runtime, old, newShifts: shifts(newLines, newSeqs), oldShifts: shifts(oldLines, oldEvents.map((event) => event.seq)) };
+	return { fresh, runtime, old, newShifts: shifts(newLines, newSeqs), oldShifts: shifts(oldLines, oldEvents.map((event) => Number(event.seq))) };
 }
 
 describe("the weaver overseer against the old weaver", () => {
 	it("asks with the old dossiers: the system prompt and, per touched resident, the same question text", async () => {
 		const { runtime, old } = await compare();
 		expect(runtime.asked.map((entry) => entry.call.system)).toEqual(runtime.asked.map(() => weaverSystemPrompt()));
-		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(old.model.questions.map(weaverPrompt));
-		expect(old.model.questions.length).toBeGreaterThan(12);
+		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(old.questions.map(weaverPrompt));
+		expect(old.questions.length).toBeGreaterThan(12);
 		expect(runtime.asked.every((entry) => entry.call.slot === "weaver")).toBe(true);
 		// A name shows as the city shows it, and an act-end question is among them.
 		expect(runtime.asked.some((entry) => entry.call.input.includes("Maren"))).toBe(true);
-		expect(old.model.questions.some((question) => question.actEnd !== undefined)).toBe(true);
+		expect(old.questions.some((question) => question.actEnd !== undefined)).toBe(true);
 	});
 
 	it("writes the old fate shifts: kinds, texts, reasons, evidence, triggers; the caps; the act ends", async () => {
@@ -212,7 +234,7 @@ describe("the weaver overseer against the old weaver", () => {
 	it("reads hits like the old triggers: a DM only for its reader, a thought for nobody, allies of the exiled", async () => {
 		const { old } = await compare();
 		const hit = (agent: string, minute: number) =>
-			old.model.questions.filter((question) => question.resident === displayName(agent) && question.minute === minute).flatMap((question) => question.events.map((event) => event.text));
+			old.questions.filter((question) => question.resident === displayName(agent) && question.minute === minute).flatMap((question) => question.events.map((event) => event.text));
 		// Minute 1: the DM accusation hits A04 (its reader) and not A02; the board accusation hits A02; the thought hits nobody.
 		expect(hit("A04", 1)).toHaveLength(1);
 		expect(hit("A02", 1)).toHaveLength(1);
@@ -234,7 +256,7 @@ describe("the weaver overseer against the old weaver", () => {
 		for (const scenario of [BASE, CAPS]) {
 			const { fresh, old } = await compare(scenario);
 			const slice = recordOf(JSON.stringify(fresh.host.snapshot().overseers?.weaver?.slice?.data));
-			const legacy = old.weaver.snapshot();
+			const legacy = old.snapshot;
 			expect(slice.shifts).toEqual(recordsOf(legacy.shifts));
 			expect(slice.voices).toEqual(recordsOf(legacy.voices));
 			expect(slice.closed).toEqual(legacy.closed);
