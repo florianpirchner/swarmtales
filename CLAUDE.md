@@ -24,6 +24,8 @@ longer worked on). The owner is Flo.
   `packages/contracts/src/story-schema.ts`, run `swt story schema` and commit `story.schema.json`.
 - `pnpm check` (typecheck, lint, package rules, knip, test, validate, build, smoke) must be green before a push. Tests run offline;
   never call live models in tests.
+- **Docs-only changes** (Markdown, `docs/`, README; no code, config, tests or schema): skip `pnpm check`,
+  commit with `git commit --no-verify` and push straight to `main`. Any code change keeps the full check.
 - Big refactors: a builder agent writes, a challenger agent reviews.
 
 ## Working with Flo
@@ -32,7 +34,8 @@ longer worked on). The owner is Flo.
 - **Brainstorm before building.** For story or game-mechanic ideas, lay out options, trade-offs and
   open questions, and build only after an explicit go ("leg los", "bau das", "implementiere das").
   A design reply is not a go. Engineering chores (reporter, docs, merges, fixes) do not need one.
-- **Merging:** every change goes through a PR; never push straight to `main`. GitHub Actions is
+- **Merging:** every code change goes through a PR; never push it straight to `main` (docs-only
+  changes are the exception, see Conventions). GitHub Actions is
   disabled, so run `pnpm check` locally, say in the PR body that CI did not run, then squash-merge
   yourself (standing approval) and report.
 - Actions that cannot be undone outside the repository (deleting, publishing, sending messages,
