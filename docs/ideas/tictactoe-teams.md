@@ -1,6 +1,6 @@
 # Tic-tac-toe teams: a small real game with a learning "strategy brain"
 
-Status: **idea, not approved for building** (2026-11-03, from the chat with Flo). Nothing here is built.
+Status: **Flo gave the go on 2026-11-03; first version built** (mechanics `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`; story `tictactoe-teams`; core-story runner, neutral prompt and context reset). Not yet built: the biased Gamemaker, E3/E6 forks, brain statistics, resume on the core-story path. No live run yet.
 Per the brainstorm-first rule, code starts only after Flo's explicit go. Everything marked "proposal" or
 "open" is for Flo to decide.
 

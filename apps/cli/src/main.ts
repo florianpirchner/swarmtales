@@ -51,12 +51,13 @@ import {
 } from "@swarmtales/models";
 import { assignModels, classifierBackend, createGuardJudge, createSouffleur, judgeBackend, weaverBackend } from "@swarmtales/roles";
 import type { ModelChoice } from "@swarmtales/contracts";
-import { findStory, storyNames } from "../../../stories/index.ts";
+import { findCoreStory, findStory, storyNames, coreStoryNames } from "../../../stories/index.ts";
 import { isStoryFile, readStoryFile } from "./swt/story-file.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
 import { assertPlayable, DEFAULT_LIMITS, effectiveRun, resumedOverrides } from "./run-options.ts";
 import { StoryValidationError } from "@swarmtales/sdk";
 import { hostOracle } from "./oracle.ts";
+import { playCoreStory } from "./host/core-play.ts";
 import { castEntries, composeHostRun, type HostComposeOptions } from "./host/run.ts";
 import { prefixLines, readResumePoint, runFileName, withCheckpoint, writeRunFile, type ResumePoint } from "./host/snapshot.ts";
 import { runMetadata } from "./metadata.ts";
@@ -80,6 +81,12 @@ try {
 	throw error;
 }
 
+// A story written as a CoreStory (stories/index.ts `coreStories`) is played by the generic runner, not by the city mapping below.
+const coreEntry = args.story === undefined ? undefined : findCoreStory(args.story);
+if (args.story !== undefined && coreEntry !== undefined) {
+	process.exit(await playCoreStory(args, args.story, coreEntry, { out: (text) => process.stdout.write(`${text}\n`), env: process.env }, (text) => process.stderr.write(`${text}\n`)));
+}
+
 // A resumed run plays the snapshot's story, seed and competitors (SPEC 17); a mismatching flag is refused.
 const snapshot: ResumePoint | undefined = (() => {
 	if (args.resume === undefined) return undefined;
@@ -98,7 +105,7 @@ const story = (() => {
 		const parsed = readStoryFile(storyName);
 		return parsed.story ?? fail(`Story file ${storyName} is not valid:\n${parsed.issues.map((issue) => `  - ${issue}`).join("\n")}`);
 	}
-	return findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}, or a .yaml/.json story file`);
+	return findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${[...storyNames(), ...coreStoryNames()].join(", ")}, or a .yaml/.json story file`);
 })();
 const runOverrides = (() => {
 	if (snapshot === undefined) return args.overrides;

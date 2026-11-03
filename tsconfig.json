@@ -28,6 +28,8 @@
 		{ "path": "mechanics/puzzles" },
 		{ "path": "mechanics/progression" },
 		{ "path": "mechanics/goals" },
+		{ "path": "mechanics/grid-game" },
+		{ "path": "mechanics/optimal-referee" },
 		{ "path": "mechanics/script" },
 		{ "path": "mechanics/arena" },
 		{ "path": "mechanics/standoff" },
@@ -35,6 +37,9 @@
 		{ "path": "mechanics/tribunal" },
 		{ "path": "mechanics/seal" },
 		{ "path": "mechanics/standoff-tribunal" },
+		{ "path": "mechanics/consensus" },
+		{ "path": "mechanics/team-channel" },
+		{ "path": "mechanics/strategy-brain" },
 		{ "path": "apps/cli" },
 		{ "path": "stories" }
 	]

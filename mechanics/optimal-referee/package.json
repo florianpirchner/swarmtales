@@ -1,0 +1,28 @@
+{
+	"name": "@swarmtales/mechanic-optimal-referee",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The optimal-referee mechanic: scores every grid-game move against minimax, read-only.",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-grid-game": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

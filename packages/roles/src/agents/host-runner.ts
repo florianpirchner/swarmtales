@@ -108,6 +108,14 @@ export function lastAnnounced(messages: readonly AgentMessage[]): string | undef
 	return undefined;
 }
 
+/**
+ * The kind of a turn-input line (`TurnLine` of a mechanic's `turnInputs` hook) that asks for a context
+ * reset: when a resident's turn carries a note of this kind, the runner drops the resident's whole
+ * conversation (the system prompt stays) before the turn's inputs enter it, so the notes of this turn
+ * are the fresh briefing (docs/design/context-reset.md).
+ */
+export const CONTEXT_RESET_KIND = "context-reset";
+
 /** A message of a competitor's persistent context, as a run snapshot keeps it: anything but a system message. */
 export type ContextMessage = Exclude<AgentMessage, { readonly role: "system" }>;
 
@@ -144,6 +152,7 @@ export class HostResidentRunner {
 	#announced: string | undefined;
 	/** The turn of the step running now; tool calls go through it. */
 	#turn: Turn | undefined;
+	#resets = 0;
 
 	constructor(options: HostRunnerOptions) {
 		this.id = options.id;
@@ -196,6 +205,11 @@ export class HostResidentRunner {
 		return this.#agent.state.messages.length;
 	}
 
+	/** How many times this run has dropped the resident's conversation (a mechanic's `context-reset` line). */
+	get contextResets(): number {
+		return this.#resets;
+	}
+
 	/** The names of the tools this resident's model sees. */
 	get boundTools(): readonly string[] {
 		return this.#agent.state.tools.map((tool) => tool.name);
@@ -220,6 +234,7 @@ export class HostResidentRunner {
 	 */
 	async step(turn: Turn, leading: readonly string[]): Promise<void> {
 		this.#turn = turn;
+		if (turn.inputs.some((note) => note.kind === CONTEXT_RESET_KIND)) this.#resetContext();
 		const voices = this.#options.innerVoice?.take() ?? [];
 		const texts = [...leading, ...turn.inputs.map((note) => note.text), ...this.#notice(), ...voices];
 		const error = await this.#try(texts, turn);
@@ -240,6 +255,17 @@ export class HostResidentRunner {
 		this.#options.record("souffleur_rewrite", { agent: this.id, inputs: [...retry], ...(answer.ok ? {} : { error: answer.error }) });
 		const again = await this.#try(retry, turn);
 		if (answer.ok && isSafeguardRefusal(again)) this.#options.innerVoice?.giveBack(voices);
+	}
+
+	/**
+	 * Drops the conversation, keeps the system messages (the prompt and pi's tool declarations) and
+	 * forgets the last tools notice, so the fresh turn announces the open tools again. A snapshot taken
+	 * afterwards holds the empty context, so a resume continues from the reset.
+	 */
+	#resetContext(): void {
+		this.#agent.state.messages = this.#agent.state.messages.filter((message) => message.role === "system");
+		this.#announced = undefined;
+		this.#resets += 1;
 	}
 
 	#ready(): Promise<void> {
