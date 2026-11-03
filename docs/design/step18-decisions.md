@@ -540,7 +540,7 @@ Goldens byte-identical until the rename commit, `GOLDEN_UPDATE` used only there 
 
 ## Cleanup 1 (old role classes deleted, 2026-11-03)
 
-Flo: "Altlasten, dass alles sauber ist". No golden changed.
+Flo asked for a clean-up of the old code. No golden changed.
 
 1. **Old sides recorded** (commit c7691e0, the recorder restored from `825d267^`, run once with `OLD_ENGINE_RECORD=1`):
    `agents-host-runner` (the `AgentRunner` scenarios and the snapshot resume), `overseers-classifier` (the interpreter's
