@@ -334,7 +334,14 @@ resume after S18-10.
    operator could re-sign a fake log with a fresh key, so the chain proves integrity after publication, not authenticity.
    Where: `packages/kernel/src/host/log.ts` (a log sink after the legacy adapter), verify in `apps/cli`, tests with a tampered
    line, a deleted line, a swapped order and a resume.
-6. **Docs:** README and `docs/` for the new structure; change CLAUDE.md "never YAML" only in the PR that ships YAML.
+5b. **Wave 4, slice 1: built (`docs/CLI.md`, `docs/STORY-FORMAT.md`).** `swt` noun-verb commands that need no new
+   infrastructure (`story list|show|validate|schema`, `run list|show|cost|start`, `module list|show`, `prompt list|show|check`,
+   `archetype list|show`, `doctor`, `completion`), the story schema (`StorySchema` in `packages/contracts/src/story-schema.ts`,
+   `story.schema.json` at the root, `parseStoryData` in the sdk) and a YAML/JSON story loader (`apps/cli/src/swt/story-file.ts`,
+   `swt run --story file.yaml`). CLAUDE.md now says "TS or YAML, both against the story schema". Open for the next slices: the
+   mechanics' sections of the schema are open objects (each mechanic adds its options schema), `module show` lists no tools,
+   `story new`, `run resume|watch|stop`, `prompt render`, the Ink TUI, CEL, sandbox, VS Code extension, MCP.
+6. **Docs:** README and `docs/` for the new structure; ~~change CLAUDE.md "never YAML" only in the PR that ships YAML~~ done in slice 1.
 
 ## Notes for whoever continues
 

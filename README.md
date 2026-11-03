@@ -173,6 +173,7 @@ Swarm Tales is a TypeScript harness. Stories are written in a small builder lang
 is deterministic, and every run can be replayed.
 
 - [How it works](docs/HOW-IT-WORKS.md): overview diagram, quick start, models, CLI
+- [The `swt` commands](docs/CLI.md) and [the story format](docs/STORY-FORMAT.md): write a story as TypeScript or YAML
 - [The City of Keys story](docs/STORY-CITYOFKEYS.md) and [its code](stories/cityofkeys/)
 - [The Whispers story](docs/STORY-WHISPERS.md) and [its code](stories/whispers/): one secret slanderer among six
 - [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md) · [Mechanic API](docs/design/mechanic-api.md) · [Carve plan](docs/design/carve-plan.md) (teams [T1](docs/design/carve-team-T1.md), [T2](docs/design/carve-team-T2.md), [T3](docs/design/carve-team-T3.md), [T4](docs/design/carve-team-T4.md))

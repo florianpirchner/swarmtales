@@ -25,7 +25,8 @@ describe("story schema", () => {
 		const text = JSON.stringify(document);
 		const refs = [...text.matchAll(/"\$ref":"([^"]*)"/g)].map((match) => match[1]);
 		expect(refs.length).toBeGreaterThan(0);
-		const defined = Object.keys(document.$defs as Record<string, unknown>);
+		const definitions: unknown = document.$defs;
+		const defined = typeof definitions === "object" && definitions !== null ? Object.keys(definitions) : [];
 		expect(defined).toEqual(expect.arrayContaining(["Action", "Petition"]));
 		for (const ref of refs) expect(defined.map((name) => `#/$defs/${name}`)).toContain(ref);
 		expect(text.match(/"\$defs"/g)).toHaveLength(1);
