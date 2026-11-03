@@ -112,3 +112,32 @@ describe("the generic CoreStory runner", () => {
 		expect(errors[1]).toContain("Missing API keys");
 	});
 });
+
+describe("events of a core story outside the legacy union", () => {
+	it("writes them to the signed log with their payload as it is", async () => {
+		const { recordedCoreEvent } = await import("../../apps/cli/src/host/core-run.ts");
+		const known = recordedCoreEvent({ type: "run_end", reason: "minutes", seq: 1, minute: 3 });
+		expect(known).toMatchObject({ type: "run_end", reason: "minutes" });
+		const custom = recordedCoreEvent({ type: "retro_started", game: 2, seq: 2, minute: 3 });
+		expect(custom).toEqual({ type: "retro_started", game: 2, seq: 2, minute: 3 });
+	});
+
+	it("plays tictactoe-teams scripted into a verifiable run directory", async () => {
+		const found = findCoreStory("tictactoe-teams");
+		expect(found).toBeDefined();
+		if (found === undefined) return;
+		const runs = mkdtempSync(join(tmpdir(), "swt-ttt-"));
+		try {
+			const errors: string[] = [];
+			const code = await playCoreStory(parseStartArgs(["--story", "tictactoe-teams", "--provider", "scripted", "--minutes", "3", "--runs", runs]), "tictactoe-teams", found, { out: () => undefined, env: {} }, (text) => errors.push(text));
+			expect(errors).toEqual([]);
+			expect(code).toBe(0);
+			const directory = join(runs, "run-001");
+			const types = readFileSync(join(directory, "events.jsonl"), "utf8").trim().split("\n").map((line) => JSON.parse(line).type);
+			expect(types).toContain("retro_started");
+			expect(verifyChain(directory)).toMatchObject({ ok: true });
+		} finally {
+			rmSync(runs, { recursive: true, force: true });
+		}
+	});
+});

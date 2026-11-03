@@ -7,12 +7,12 @@
  *
  * No overseers, no weaver, no snapshot or resume yet: a core story that needs them is a later step.
  */
-import { LegacyEventAdapter, toRecorded } from "@swarmtales/chronicle";
+import { LegacyEventAdapter, toRecorded, type LegacyEvent } from "@swarmtales/chronicle";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
 import type { CoreStory, Host, ModelChoice, ResidentId, RunEnd, ThinkingLevel, ToolSpec, TurnTaker } from "@swarmtales/contracts";
 import { createHost, residentActor } from "@swarmtales/kernel";
-import type { EventSink } from "@swarmtales/legacy-log";
+import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 import type { ModelSource, RequestLimits } from "@swarmtales/models";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { HostResidentRunner, inCatalogOrder, neutralSystemPrompt, RESIDENT_APP_EVENTS } from "@swarmtales/roles";
@@ -23,6 +23,30 @@ const RunEnded = Type.Object({ reason: Type.String() }, { additionalProperties: 
 
 /** The signed log needs a legacy `run_end` as its last line; a core story has no arena mechanic to write one, so the core's `run_ended` becomes it. */
 const LEGACY_RUN_END = { "core.run_ended": (event: { readonly payload: unknown }) => [{ type: "run_end", ...(Check(RunEnded, event.payload) ? { reason: event.payload.reason } : {}) }] };
+
+/** A mechanic's event the legacy union does not know: it is written as it is, payload fields after `type`, with its `seq` and `minute`. */
+function isPassThrough(line: LegacyEvent): line is LegacyEvent & RecordedEvent {
+	return typeof line.type === "string";
+}
+
+function isKnownEvent(line: LegacyEvent): boolean {
+	try {
+		toRecorded(line);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/** The legacy mapping for events the old union knows; every other event of a core story passes through unchanged. */
+export function recordedCoreEvent(line: LegacyEvent): RecordedEvent {
+	try {
+		return toRecorded(line);
+	} catch (error) {
+		if (isPassThrough(line)) return line;
+		throw error;
+	}
+}
 
 /** What the command line may change of a core story's run. */
 export interface CoreRunOverrides {
@@ -72,8 +96,16 @@ export function composeCoreRun(options: CoreComposeOptions): CoreComposedRun {
 	const adapter = new LegacyEventAdapter({ translators: LEGACY_RUN_END });
 	host.subscribe((envelope) => {
 		for (const line of adapter.write(envelope)) {
-			const event = toRecorded(line);
-			for (const sink of options.sinks) sink.record(event);
+			const event = recordedCoreEvent(line);
+			const known = isKnownEvent(line);
+			for (const sink of options.sinks) {
+				try {
+					sink.record(event);
+				} catch (error) {
+					// A sink that reads typed events (the transcripts) does not know a mechanic's own event; the signed log does.
+					if (known) throw error;
+				}
+			}
 		}
 	});
 	host.start();
