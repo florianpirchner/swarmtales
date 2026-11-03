@@ -22,6 +22,9 @@
 		},
 		{
 			"path": "../team-channel"
+		},
+		{
+			"path": "../shared"
 		}
 	]
 }

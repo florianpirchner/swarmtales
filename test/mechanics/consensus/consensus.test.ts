@@ -90,6 +90,17 @@ describe("consensus", () => {
 		expect(other.events.filter((event) => event.type === "consensus_forfeited")).toHaveLength(2);
 	});
 
+	it("counts only whole minutes the team was on move: a team that went on move mid-minute starts counting the next minute", async () => {
+		// Red plays in minute 0 (pass 2), so blue is on move from the middle of minute 0: its rounds are minutes 1 and 2.
+		const run = await playStory(toyOptions({ maxRounds: 2, minutes: 5 }), scripted(AGREED));
+		expect(ofType(run.events, "consensus_forfeited").map((event) => [event.minute, payload(event).team, payload(event).rounds])).toEqual([
+			[2, "blue", 2],
+			[4, "red", 2],
+		]);
+		// And the forfeit of blue (mid-minute 2, in the minute's end) gives red whole minutes 3 and 4 only.
+		for (const cut of [1, 2, 3, 4]) expect(await checkSnapshotRoundTrip(() => toyOptions({ maxRounds: 2, minutes: 5 }), () => scripted(AGREED), cut)).toEqual([]);
+	});
+
 	it("with onDeadlock refuse keeps the gate shut and writes consensus_deadlocked once", async () => {
 		const run = await playStory(toyOptions({ maxRounds: 2, onDeadlock: "refuse", minutes: 5 }), scripted({ "3:1:A01": [play(4)] }));
 		expect(ofType(run.events, "consensus_deadlocked").map(payload)).toEqual([{ team: "red", rounds: 2 }]);

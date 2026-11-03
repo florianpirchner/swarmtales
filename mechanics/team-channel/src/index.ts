@@ -6,12 +6,19 @@
  */
 import { Type } from "typebox";
 import type { ContextOf } from "@swarmtales/contracts";
+import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { defineApi, defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 
 export const TeamChannelApi = defineApi({
 	name: "team-channel",
 	summary: "Private team channels with a post cap per round.",
 	methods: {
+		newEpoch: {
+			kind: "command",
+			summary: "Starts a new epoch for a team: readTeam shows only the posts from now on, and posts not yet shown are not announced. False when the team is unknown.",
+			input: Type.Object({ team: Type.String() }),
+			output: Type.Boolean(),
+		},
 		resetCap: {
 			kind: "command",
 			summary: "Opens a new round for a team: every member may post again. False when the team is unknown.",
@@ -33,6 +40,8 @@ interface ChannelState {
 	readonly used: Map<string, number>;
 	/** How many posts of the own team a resident has been shown. */
 	readonly seen: Map<string, number>;
+	/** Per team: the index of its first post of the current epoch. */
+	readonly epoch: Map<string, number>;
 }
 
 const options = Type.Object({
@@ -58,7 +67,7 @@ const head = defineHead({
 				owner.set(member, team);
 			}
 		}
-		return { posts: new Map(Object.keys(chosen.teams).map((team) => [team, []])), used: new Map(), seen: new Map() };
+		return { posts: new Map(Object.keys(chosen.teams).map((team) => [team, []])), used: new Map(), seen: new Map(), epoch: new Map() };
 	},
 	events: { team_post: Type.Object({ team: Type.String(), from: Type.String(), text: Type.String() }) },
 	prompts: {
@@ -81,11 +90,18 @@ const Saved = Type.Object({
 	posts: Type.Record(Type.String(), Type.Array(Type.Object({ from: Type.String(), text: Type.String(), minute: Type.Integer() }))),
 	used: Type.Record(Type.String(), Type.Integer()),
 	seen: Type.Record(Type.String(), Type.Integer()),
+	epoch: Type.Optional(Type.Record(Type.String(), Type.Integer())),
 });
 
 export const teamChannel = defineMechanic(head, (kit) => ({
 	services: [
 		kit.provide(TeamChannelApi, {
+			newEpoch: ({ team }, ctx) => {
+				const posts = ctx.state.posts.get(team);
+				if (posts === undefined) return false;
+				ctx.state.epoch.set(team, posts.length);
+				return true;
+			},
 			resetCap: ({ team }, ctx) => {
 				const members = ctx.options.teams[team];
 				if (members === undefined) return false;
@@ -129,22 +145,26 @@ export const teamChannel = defineMechanic(head, (kit) => ({
 			rule: (_params, ctx) => (teamOf(ctx, ctx.resident) === undefined ? refuse("NOT_TEAM_MEMBER", "you are in no team") : undefined),
 			execute: (_params, ctx) => {
 				const team = teamOf(ctx, ctx.resident);
-				const posts = team === undefined ? [] : (ctx.state.posts.get(team) ?? []);
-				if (ctx.resident !== undefined) ctx.state.seen.set(ctx.resident, posts.length);
+				const all = team === undefined ? [] : (ctx.state.posts.get(team) ?? []);
+				const posts = all.slice(team === undefined ? 0 : (ctx.state.epoch.get(team) ?? 0));
+				if (ctx.resident !== undefined) ctx.state.seen.set(ctx.resident, all.length);
 				if (posts.length === 0) return reply(ctx.prompt("team-channel/empty", {}));
 				return reply(posts.map((post) => `${post.from}: ${post.text}`).join("\n"));
 			},
 		}),
 	],
 	hooks: {
-		turnInputs: (resident, ctx) => {
-			if (!ctx.options.notify) return [];
-			const team = teamOf(ctx, resident);
-			const posts = team === undefined ? [] : (ctx.state.posts.get(team) ?? []);
-			const fresh = posts.slice(ctx.state.seen.get(resident) ?? 0);
-			if (fresh.length === 0) return [];
-			ctx.state.seen.set(resident, posts.length);
-			return fresh.map((post) => ctx.prompt("team-channel/notice", { from: post.from, text: post.text }));
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.teamChannel,
+			run: (resident, ctx) => {
+				if (!ctx.options.notify) return [];
+				const team = teamOf(ctx, resident);
+				const posts = team === undefined ? [] : (ctx.state.posts.get(team) ?? []);
+				const fresh = posts.slice(Math.max(ctx.state.seen.get(resident) ?? 0, team === undefined ? 0 : (ctx.state.epoch.get(team) ?? 0)));
+				if (fresh.length === 0) return [];
+				ctx.state.seen.set(resident, posts.length);
+				return fresh.map((post) => ctx.prompt("team-channel/notice", { from: post.from, text: post.text }));
+			},
 		},
 	},
 	facts: {
@@ -153,7 +173,7 @@ export const teamChannel = defineMechanic(head, (kit) => ({
 	snapshot: kit.snapshot({
 		version: 1,
 		schema: Saved,
-		save: (state) => ({ posts: Object.fromEntries([...state.posts].map(([team, posts]) => [team, [...posts]])), used: Object.fromEntries(state.used), seen: Object.fromEntries(state.seen) }),
-		load: (data) => ({ posts: new Map(Object.entries(data.posts).map(([team, posts]) => [team, [...posts]])), used: new Map(Object.entries(data.used)), seen: new Map(Object.entries(data.seen)) }),
+		save: (state) => ({ posts: Object.fromEntries([...state.posts].map(([team, posts]) => [team, [...posts]])), used: Object.fromEntries(state.used), seen: Object.fromEntries(state.seen), epoch: Object.fromEntries(state.epoch) }),
+		load: (data) => ({ posts: new Map(Object.entries(data.posts).map(([team, posts]) => [team, [...posts]])), used: new Map(Object.entries(data.used)), seen: new Map(Object.entries(data.seen)), epoch: new Map(Object.entries(data.epoch ?? {})) }),
 	}),
 }));

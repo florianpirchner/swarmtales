@@ -294,6 +294,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
       typebox:
         specifier: 1.3.27
         version: 1.3.27
@@ -339,6 +342,9 @@ importers:
       '@swarmtales/mechanic-consensus':
         specifier: workspace:*
         version: link:../consensus
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
       '@swarmtales/mechanic-team-channel':
         specifier: workspace:*
         version: link:../team-channel
@@ -564,6 +570,9 @@ importers:
       '@swarmtales/mechanic-grid-game':
         specifier: workspace:*
         version: link:../grid-game
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
       '@swarmtales/mechanic-team-channel':
         specifier: workspace:*
         version: link:../team-channel
@@ -579,6 +588,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
       typebox:
         specifier: 1.3.27
         version: 1.3.27

@@ -23,6 +23,7 @@
 	"dependencies": {
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-shared": "workspace:*",
 		"typebox": "1.3.27"
 	}
 }

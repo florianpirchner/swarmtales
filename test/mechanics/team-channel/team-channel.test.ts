@@ -17,7 +17,7 @@ const rounds = defineMechanic(
 		options: Type.Object({}),
 		state: () => undefined,
 		events: {},
-		prompts: { "rounds/tools/newRound": [], "rounds/opened": [] },
+		prompts: { "rounds/tools/newRound": [], "rounds/tools/newEpoch": [], "rounds/opened": [] },
 	},
 	(kit) => ({
 		tools: [
@@ -28,6 +28,16 @@ const rounds = defineMechanic(
 				suggest: ["resident"],
 				execute: (params, ctx) => {
 					ctx.call(TeamChannelApi, "resetCap", { team: params.team });
+					return reply(ctx.prompt("rounds/opened", {}));
+				},
+			}),
+			kit.tool({
+				name: "newEpoch",
+				description: "rounds/tools/newEpoch",
+				parameters: Type.Object({ team: Type.String() }),
+				suggest: ["resident"],
+				execute: (params, ctx) => {
+					ctx.call(TeamChannelApi, "newEpoch", { team: params.team });
 					return reply(ctx.prompt("rounds/opened", {}));
 				},
 			}),
@@ -45,7 +55,7 @@ function options(): HostOptions {
 		minutes: 4,
 		residents: 4,
 		mechanics: [teamChannel.with({ teams: { red: ["A01", "A02"], blue: ["A03"] }, maxPostsPerMove: 2 }), rounds.with({})],
-		grants: { resident: ["postTeam", "readTeam", "newRound"] },
+		grants: { resident: ["postTeam", "readTeam", "newRound", "newEpoch"] },
 		turns: { order: (view) => view.residents },
 	});
 	return { story, prompts: createPromptLookup({ mechanics: { rounds: PROMPTS, "team-channel": `${REPO}/team-channel/prompts` } }) };
@@ -61,10 +71,10 @@ const SCRIPT: Readonly<Record<string, readonly PlannedCall[]>> = {
 	"1:A01": [post("after cap"), { tool: "newRound", params: { team: "red" } }, post("new round")],
 };
 
-function agent(seen?: string[], record?: CallRecord[]): TurnTaker {
+function agent(seen?: string[], record?: CallRecord[], script: Readonly<Record<string, readonly PlannedCall[]>> = SCRIPT): TurnTaker {
 	const plan = (turn: Turn): readonly PlannedCall[] => {
 		for (const note of turn.inputs) seen?.push(`${String(turn.minute)} ${turn.resident} ${note.text}`);
-		return SCRIPT[`${String(turn.minute)}:${turn.resident}`] ?? [];
+		return script[`${String(turn.minute)}:${turn.resident}`] ?? [];
 	};
 	return scriptedAgent(plan, record);
 }
@@ -95,6 +105,27 @@ describe("team-channel", () => {
 		// A02 is told of the new posts at its next turn; the author is not told of its own.
 		expect(seen.some((line) => line.startsWith("1 A02 Team message from A01: after cap")) || seen.some((line) => line.includes("A02") && line.includes("new round"))).toBe(true);
 		expect(seen.filter((line) => line.includes(" A01 "))).toEqual([]);
+	});
+
+	it("shows readTeam only the posts of the current epoch, and announces none of the old ones", async () => {
+		const epochs: Readonly<Record<string, readonly PlannedCall[]>> = {
+			"0:A01": [post("game one plan")],
+			"0:A03": [post("blue game one")],
+			"1:A01": [{ tool: "newEpoch", params: { team: "red" } }],
+			"1:A02": [read],
+			"2:A01": [post("game two plan")],
+			"2:A02": [read],
+		};
+		const record: CallRecord[] = [];
+		const seen: string[] = [];
+		await playStory(options(), agent(seen, record, epochs));
+		const replies = record.filter((entry) => entry.resident === "A02" && entry.tool === "readTeam").map((entry) => (entry.outcome.ok ? entry.outcome.reply : entry.outcome.code));
+		expect(replies).toHaveLength(2);
+		expect(replies[0]).not.toContain("game one plan");
+		expect(replies[1]).toBe("A01: game two plan");
+		// The other team's epoch did not move: it still has its post.
+		expect(seen.filter((line) => line.includes("game one plan") && line.startsWith("2 A02"))).toEqual([]);
+		for (const cut of [1, 2, 3]) expect(await checkSnapshotRoundTrip(options, () => agent(undefined, undefined, epochs), cut)).toEqual([]);
 	});
 
 	it("is deterministic and survives a snapshot round trip", async () => {

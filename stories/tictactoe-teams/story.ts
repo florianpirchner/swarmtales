@@ -74,7 +74,7 @@ function briefing(brain: boolean) {
 /** The registered entry: Haiku via Anthropic, three games, brain on. */
 export function tictactoeEntry(options: TicTacToeOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? true;
-	return { title: "Tic-tac-toe teams", story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brain) };
+	return { title: "Tic-tac-toe teams", story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brain), fixedRoster: "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)" };
 }
 
 export default tictactoeEntry();

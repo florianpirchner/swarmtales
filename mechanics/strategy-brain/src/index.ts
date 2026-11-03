@@ -16,6 +16,7 @@
 import { Type } from "typebox";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
+import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { GridGameApi, GridGameEvents } from "@swarmtales/mechanic-grid-game";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import { hashText, replaysMoves, wordCount } from "./text.ts";
@@ -65,13 +66,15 @@ interface BrainState {
 	results: Played[];
 	/** Residents who get a fresh context at their next turn. */
 	reset: Set<string>;
+	/** The side that started the running (or last) game, from `game_started`; "" before the first game. */
+	startingSide: string;
 }
 
 const head = defineHead({
 	id: "strategy-brain",
 	summary: "A bounded, versioned text per team, written in a retro window between games and handed to the next game's briefing.",
 	options,
-	state: (): BrainState => ({ brains: new Map(), windows: new Map(), results: [], reset: new Set() }),
+	state: (): BrainState => ({ brains: new Map(), windows: new Map(), results: [], reset: new Set(), startingSide: "" }),
 	events: {
 		brain_written: Type.Object({
 			team: Type.String(),
@@ -120,6 +123,15 @@ function resultText(played: Played): string {
 	return played.result === "draw" ? `game ${String(played.game)}: draw` : `game ${String(played.game)}: ${played.result} won`;
 }
 
+/** Whether a retro window would open for at least one team (a team needs a captain). */
+const hasRetroTeam = (ctx: Ctx): boolean => Object.values(ctx.options.teams).some((members) => members.length > 0);
+
+/** Holds the next game back and opens the windows, but only when at least one window opens: nothing would release the hold otherwise. */
+function holdForRetro(ctx: Ctx, game: number): void {
+	if (!ctx.options.enabled || !hasRetroTeam(ctx)) return;
+	if (ctx.call(GridGameApi, "hold", {})) openWindows(ctx, game);
+}
+
 function openWindows(ctx: Ctx, game: number): void {
 	for (const [team, members] of Object.entries(ctx.options.teams)) {
 		const captain = members[game % members.length];
@@ -158,7 +170,7 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string) {
 
 function briefing(ctx: Ctx, resident: string): string {
 	const team = teamOf(ctx, resident) ?? "";
-	const first = ctx.call(GridGameApi, "side", {}) ?? "";
+	const first = ctx.state.startingSide;
 	const lines = [
 		ctx.prompt("strategy-brain/briefing-head", { game: ctx.call(GridGameApi, "game", {}), team, first }),
 		ctx.state.results.length === 0 ? ctx.prompt("strategy-brain/briefing-none", {}) : ctx.prompt("strategy-brain/briefing-results", { results: ctx.state.results.map(resultText).join("; ") }),
@@ -187,6 +199,7 @@ const Saved = Type.Object({
 	windows: Type.Record(Type.String(), Type.Object({ game: Type.Integer(), captain: Type.String(), opened: Type.Integer(), posts: Type.Integer(), told: Type.Array(Type.String()) })),
 	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()) })),
 	reset: Type.Array(Type.String()),
+	startingSide: Type.Optional(Type.String()),
 });
 
 export const strategyBrain = defineMechanic(head, (kit) => ({
@@ -236,46 +249,55 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 		},
 	},
 	listeners: [
-		kit.listen(GridGameEvents, "game_started", (_payload, ctx) => {
+		kit.listen(GridGameEvents, "game_started", (payload, ctx) => {
+			ctx.state.startingSide = payload.startingSide;
 			for (const members of Object.values(ctx.options.teams)) for (const member of members) ctx.state.reset.add(member);
 		}),
 		kit.listen(GridGameEvents, "game_ended", (payload, ctx) => {
 			ctx.state.results.push({ game: payload.game, result: payload.result, moves: [...payload.moves] });
-			if (ctx.options.enabled && ctx.call(GridGameApi, "hold", {})) openWindows(ctx, payload.game);
+			holdForRetro(ctx, payload.game);
 		}),
 	],
 	hooks: {
 		runStarted: {
-			// Before the grid game starts game 1 (its plain, order 0 phase), so the game can be held back.
-			order: -100,
+			// Before the grid game starts game 1, so the game can be held back.
+			order: HOOK_ORDER.runStarted.strategyBrain,
 			run: (ctx) => {
-				if (!ctx.options.enabled || !ctx.options.brainAtStart || Object.keys(ctx.options.teams).length === 0) return;
-				if (ctx.call(GridGameApi, "hold", {})) openWindows(ctx, 0);
+				if (ctx.options.brainAtStart) holdForRetro(ctx, 0);
 			},
 		},
-		minuteStarted: (ctx) => {
-			for (const team of ctx.state.windows.keys()) ctx.tryCall(TeamChannelApi, "resetCap", { team });
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.strategyBrain,
+			run: (ctx) => {
+				for (const team of ctx.state.windows.keys()) ctx.tryCall(TeamChannelApi, "resetCap", { team });
+			},
 		},
-		minuteEnded: (ctx) => {
-			for (const [team, window] of [...ctx.state.windows]) {
-				if (window.posts >= ctx.options.retroMaxPosts) closeWindow(ctx, team, "max_posts");
-				else if (ctx.minute - window.opened + 1 >= ctx.options.retroMaxMinutes) closeWindow(ctx, team, "timeout");
-			}
+		minuteEnded: {
+			order: HOOK_ORDER.minuteEnded.strategyBrain,
+			run: (ctx) => {
+				for (const [team, window] of [...ctx.state.windows]) {
+					if (window.posts >= ctx.options.retroMaxPosts) closeWindow(ctx, team, "max_posts");
+					else if (ctx.minute - window.opened + 1 >= ctx.options.retroMaxMinutes) closeWindow(ctx, team, "timeout");
+				}
+			},
 		},
 		news: (resident, ctx) => {
 			const team = teamOf(ctx, resident);
 			return team !== undefined && ctx.state.windows.has(team);
 		},
-		turnInputs: (resident, ctx) => {
-			const lines: (string | { readonly kind: string; readonly text: string })[] = [];
-			if (ctx.state.reset.delete(resident)) lines.push({ kind: "context-reset", text: briefing(ctx, resident) });
-			const team = teamOf(ctx, resident);
-			const window = team === undefined ? undefined : ctx.state.windows.get(team);
-			if (team !== undefined && window !== undefined && !window.told.includes(resident)) {
-				window.told.push(resident);
-				lines.push(...retroLines(ctx, resident, team, window));
-			}
-			return lines;
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.strategyBrain,
+			run: (resident, ctx) => {
+				const lines: (string | { readonly kind: string; readonly text: string })[] = [];
+				if (ctx.state.reset.delete(resident)) lines.push({ kind: "context-reset", text: briefing(ctx, resident) });
+				const team = teamOf(ctx, resident);
+				const window = team === undefined ? undefined : ctx.state.windows.get(team);
+				if (team !== undefined && window !== undefined && !window.told.includes(resident)) {
+					window.told.push(resident);
+					lines.push(...retroLines(ctx, resident, team, window));
+				}
+				return lines;
+			},
 		},
 	},
 	facts: {
@@ -289,12 +311,14 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 			windows: Object.fromEntries([...state.windows].map(([team, window]) => [team, { ...window, told: [...window.told] }])),
 			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves] })),
 			reset: [...state.reset].sort(),
+			startingSide: state.startingSide,
 		}),
 		load: (data) => ({
 			brains: new Map(Object.entries(data.brains).map(([key, brain]) => [key, { ...brain }])),
 			windows: new Map(Object.entries(data.windows).map(([team, window]) => [team, { ...window, told: [...window.told] }])),
 			results: data.results.map((played) => ({ ...played, moves: [...played.moves] })),
 			reset: new Set(data.reset),
+			startingSide: data.startingSide ?? "",
 		}),
 	}),
 }));

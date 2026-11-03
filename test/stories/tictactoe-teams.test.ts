@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { createHost } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { checkDeterminism, checkSnapshotRoundTrip, playStory } from "@swarmtales/testkit";
+import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
 import { brainFor, field, goldenStory, ofType, ticTacToePlayer } from "./tictactoe-support.ts";
 
 const options = (brain = true) => ({ story: goldenStory({ brain }), prompts: createPromptLookup() });
@@ -67,6 +67,16 @@ describe("tictactoe-teams, scripted match", () => {
 		host.start();
 		expect(host.openTools("A01")).not.toContain("writeBrain");
 		expect(host.toolSpecs("resident").map((spec) => spec.name)).not.toContain("readBrain");
+	});
+
+	it("marks the moves the move timer plays for a silent team as forfeits", async () => {
+		const idle = await playStory(options(false), idleAgent);
+		const moves = ofType(idle.events, "move_played");
+		expect(moves.length).toBeGreaterThan(0);
+		expect(moves.every((event) => field(event, "forfeit") === true)).toBe(true);
+		expect(moves).toHaveLength(ofType(idle.events, "consensus_forfeited").length);
+		const played = await playStory(options(), ticTacToePlayer());
+		expect(ofType(played.events, "move_played").every((event) => field(event, "forfeit") === false)).toBe(true);
 	});
 
 	it("is deterministic and survives a snapshot round trip between games and inside a retro window", async () => {

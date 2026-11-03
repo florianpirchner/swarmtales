@@ -18,6 +18,10 @@ import { INPUT_KINDS } from "./turn-input.ts";
 export const HOOK_ORDER = {
 	/** The old `World` constructor, then the arena's `run_start` (every earlier line is before it in the goldens). */
 	runStarted: {
+		/** The strategy brain holds the first game back (`GridGameApi.hold`) before the grid game starts it. */
+		strategyBrain: -100,
+		/** The grid game starts game 1 (tic-tac-toe teams; after the brain's hold, before `run_start`). */
+		gridGame: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -49,6 +53,10 @@ export const HOOK_ORDER = {
 	},
 	/** `Arena#nextMinute`: openDoor, `World.startMinute`, openDoor, `Director.startMinute`. */
 	minuteStarted: {
+		/** The strategy brain reopens the post cap of the teams in a retro window (tic-tac-toe teams). */
+		strategyBrain: 20,
+		/** The consensus gate notes which team is on move for a whole minute. */
+		consensus: 10,
 		/** An old snapshot without core motives gets them before anything else of the minute (until motives moves to `runResumed.motives`, R2-D9). */
 		motives: 50,
 		/** `openDoor` before the ticks (not at minute 0: the first minute had none). */
@@ -88,9 +96,19 @@ export const HOOK_ORDER = {
 		channelsInbox: 800,
 		/** The digest of unread board and group posts. */
 		channelsDigest: 900,
+		/** The strategy brain's context-reset briefing and retro lines come first, then the team chat and the vote lines (tic-tac-toe teams). */
+		strategyBrain: 300,
+		/** The team channel's new posts. */
+		teamChannel: 400,
+		/** The consensus gate's vote requests and go-ahead. */
+		consensus: 500,
 	},
 	/** The end of a round. */
 	minuteEnded: {
+		/** The consensus move timer (it may play a forfeit move that ends a game) comes before the brain's retro windows. */
+		consensus: 100,
+		/** The strategy brain closes retro windows at the minute's end. */
+		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */
 		standoff: 500,
 		/** `round_end`, after every mechanic's own end of the minute. */

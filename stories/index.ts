@@ -1,8 +1,10 @@
 /** Registry of shipped stories, by name (`pnpm start --story <name>`). */
 import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmtales/contracts";
 import cityOfKeys from "./cityofkeys/story.ts";
-import tictactoeTeams from "./tictactoe-teams/story.ts";
+import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
+
+const tictactoeNobrain = tictactoeEntry({ brain: false });
 
 export const DEFAULT_STORY = "cityofkeys";
 
@@ -44,15 +46,22 @@ export interface CoreStoryEntry {
 	readonly briefing: (resident: ResidentId, host: Host) => string;
 	/** The story's own prompt folder (`stories/<name>/prompts`), looked up before the mechanics' and the library's. */
 	readonly prompts?: string;
+	/** Set when the roster is fixed by the story (teams): `--agents` is refused with this reason. */
+	readonly fixedRoster?: string;
 }
 
 /** Registry of core stories, by name. A name here is played by the generic runner, never by the city mapping. */
-export const coreStories: Readonly<Record<string, CoreStoryEntry>> = { "tictactoe-teams": tictactoeTeams };
+export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
+	"tictactoe-teams": tictactoeTeams,
+	// The control arm: the same briefings, no strategy brain and no retro.
+	"tictactoe-teams-nobrain": tictactoeNobrain,
+};
 
 export function coreStoryNames(): readonly string[] {
 	return Object.keys(coreStories);
 }
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
-	return Object.hasOwn(coreStories, name) ? coreStories[name] : undefined;
+	const id = storyId(name);
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : undefined;
 }

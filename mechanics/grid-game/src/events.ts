@@ -16,6 +16,7 @@ export const GridGameEvents = defineEvents("grid-game", {
 		by: Type.String({ description: "The captain who played the move." }),
 		cell: Type.Integer(),
 		moveNo: Type.Integer({ description: "The move's number in its game, from 1." }),
+		forfeit: Type.Boolean({ description: "True when the move was played for the team by the move timer (a random legal cell), not by its captain." }),
 	}),
 	game_ended: Type.Object({
 		game: Type.Integer(),

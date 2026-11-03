@@ -28,7 +28,7 @@ import type { CoreStoryEntry } from "../../../../stories/index.ts";
 import { storyData } from "@swarmtales/kernel";
 import type { StartArgs } from "../args.ts";
 import { codeCommit } from "./chain.ts";
-import { composeCoreRun, coreStoryFor } from "./core-run.ts";
+import { composeCoreRun, coreStoryFor, refusedOverrides } from "./core-run.ts";
 
 export interface CorePlayIo {
 	readonly out: (text: string) => void;
@@ -48,6 +48,11 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		...(args.overrides.minutes === undefined ? {} : { minutes: args.overrides.minutes }),
 		...(args.overrides.seed === undefined ? {} : { seed: args.overrides.seed }),
 	};
+	const refused = refusedOverrides(entry, overrides);
+	if (refused !== undefined) {
+		err(refused);
+		return 1;
+	}
 	const story = coreStoryFor(entry.story, overrides);
 	let settings;
 	try {

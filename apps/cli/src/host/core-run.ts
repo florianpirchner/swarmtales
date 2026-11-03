@@ -82,8 +82,16 @@ export function coreStoryFor(story: CoreStory, overrides: CoreRunOverrides = {})
 	return { ...story, seed: overrides.seed ?? story.seed, minutes: overrides.minutes ?? story.minutes, residents: overrides.agents ?? story.residents };
 }
 
+/** Why the overrides cannot apply to the entry's story, or undefined: a story with fixed teams has a fixed roster. */
+export function refusedOverrides(entry: CoreStoryEntry, overrides: CoreRunOverrides = {}): string | undefined {
+	if (overrides.agents !== undefined && entry.fixedRoster !== undefined) return `--agents is not accepted for ${entry.title}: ${entry.fixedRoster}`;
+	return undefined;
+}
+
 export function composeCoreRun(options: CoreComposeOptions): CoreComposedRun {
 	const { entry } = options;
+	const refused = refusedOverrides(entry, options.overrides);
+	if (refused !== undefined) throw new Error(refused);
 	const story = coreStoryFor(entry.story, options.overrides);
 	const runners = new Map<ResidentId, HostResidentRunner>();
 	const host = createHost({

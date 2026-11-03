@@ -4,8 +4,9 @@ import { describe, expect, it } from "vitest";
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { strategyBrain, replaysMoves, wordCount, hashText } from "@swarmtales/mechanic-strategy-brain";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { checkOptionsDocumented, checkSourceRules, idleAgent, playStory, scriptedAgent } from "@swarmtales/testkit";
-import { field, goldenStory, ofType } from "../../stories/tictactoe-support.ts";
+import { checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, idleAgent, playStory, scriptedAgent } from "@swarmtales/testkit";
+import type { CoreStory } from "@swarmtales/contracts";
+import { field, goldenStory, ofType, ticTacToePlayer } from "../../stories/tictactoe-support.ts";
 
 const options = (extra: Parameters<typeof goldenStory>[0] = {}) => ({ story: goldenStory(extra), prompts: createPromptLookup() });
 const as = residentActor;
@@ -91,5 +92,36 @@ describe("the retro window", () => {
 		expect(checkOptionsDocumented(strategyBrain)).toEqual([]);
 		const files = ["index", "text"].map((name) => ({ path: `mechanics/strategy-brain/src/${name}.ts`, text: readFileSync(`mechanics/strategy-brain/src/${name}.ts`, "utf8") }));
 		expect(checkSourceRules(files)).toEqual([]);
+	});
+});
+
+describe("the briefing and the hold", () => {
+	it("names the side that started the game in the briefing of the waiting team too", async () => {
+		const heads: string[] = [];
+		const player = ticTacToePlayer();
+		const run = await playStory(options(), async (turn) => {
+			for (const note of turn.inputs) if (note.text.includes(" begins. You play for team ")) heads.push(`${turn.resident} ${note.text.split("\n")[0] ?? ""}`);
+			await player(turn);
+		});
+		expect(ofType(run.events, "game_ended")).toHaveLength(3);
+		// Game 2 starts with O: the waiting team X (A01) and the team on move (A04) are told the same.
+		expect(heads).toContain("A01 Game 2 begins. You play for team X. Team O moves first.");
+		expect(heads).toContain("A04 Game 2 begins. You play for team O. Team O moves first.");
+		expect(heads).toContain("A04 Game 3 begins. You play for team O. Team X moves first.");
+	});
+
+	it("keeps the starting side in the snapshot, so a resumed briefing is the same", async () => {
+		for (const cut of [4, 9]) expect(await checkSnapshotRoundTrip(options(), ticTacToePlayer, cut)).toEqual([]);
+	});
+
+	it("holds no game back when no retro window can open (enabled, but a brain for nobody)", async () => {
+		const empty = (): CoreStory => {
+			const story = goldenStory({ games: 2, minutes: 12 });
+			return { ...story, mechanics: story.mechanics.map((use) => (use.mechanic.id === "strategy-brain" ? strategyBrain.with({ enabled: true, teams: {} }) : use)) };
+		};
+		const run = await playStory({ story: empty(), prompts: createPromptLookup() }, ticTacToePlayer());
+		expect(ofType(run.events, "retro_started")).toHaveLength(0);
+		expect(ofType(run.events, "game_started")).toHaveLength(2);
+		expect(ofType(run.events, "match_ended")).toHaveLength(1);
 	});
 });

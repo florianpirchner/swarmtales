@@ -54,11 +54,11 @@ describe("a match", () => {
 		const run = await playStory(hostOptions(), scriptedPlayer());
 		const firstGame = ofType(run.events, "move_played").filter((event) => field(event, "game") === 1);
 		expect(firstGame.map((event) => event.payload)).toEqual([
-			{ game: 1, side: "X", by: "A01", cell: 0, moveNo: 1 },
-			{ game: 1, side: "O", by: "A03", cell: 3, moveNo: 2 },
-			{ game: 1, side: "X", by: "A02", cell: 1, moveNo: 3 },
-			{ game: 1, side: "O", by: "A04", cell: 4, moveNo: 4 },
-			{ game: 1, side: "X", by: "A01", cell: 2, moveNo: 5 },
+			{ game: 1, side: "X", by: "A01", cell: 0, moveNo: 1, forfeit: false },
+			{ game: 1, side: "O", by: "A03", cell: 3, moveNo: 2, forfeit: false },
+			{ game: 1, side: "X", by: "A02", cell: 1, moveNo: 3, forfeit: false },
+			{ game: 1, side: "O", by: "A04", cell: 4, moveNo: 4, forfeit: false },
+			{ game: 1, side: "X", by: "A01", cell: 2, moveNo: 5, forfeit: false },
 		]);
 	});
 

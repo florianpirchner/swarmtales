@@ -20,6 +20,7 @@
  */
 import { Type } from "typebox";
 import type { ContextOf } from "@swarmtales/contracts";
+import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { defineApi, defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { ConsensusSourceApi } from "./source.ts";
 
@@ -51,6 +52,8 @@ interface TeamState {
 	/** The last proposal that was rejected, until the next one. */
 	rejected: number | undefined;
 	rounds: number;
+	/** The minute from which the team has been on move at a minute's start (a whole minute counts from it); undefined while it is not on move or went on move mid-minute. */
+	since: number | undefined;
 	forfeits: number;
 	deadlocked: boolean;
 }
@@ -61,7 +64,7 @@ interface GateState {
 	moved: number;
 }
 
-const freshTeam = (forfeits: number): TeamState => ({ proposal: undefined, votes: new Map(), won: undefined, rejected: undefined, rounds: 0, forfeits, deadlocked: false });
+const freshTeam = (forfeits: number): TeamState => ({ proposal: undefined, votes: new Map(), won: undefined, rejected: undefined, rounds: 0, since: undefined, forfeits, deadlocked: false });
 
 const options = Type.Object({
 	tool: Type.String({ default: "playMove", description: "The gated tool: it is refused unless the team agreed on the value of `param`." }),
@@ -156,6 +159,7 @@ function clear(state: TeamState): void {
 	state.won = undefined;
 	state.rejected = undefined;
 	state.rounds = 0;
+	state.since = undefined;
 	state.deadlocked = false;
 }
 
@@ -169,6 +173,7 @@ const Saved = Type.Object({
 			won: Type.Union([Type.Null(), Type.Integer()]),
 			rejected: Type.Union([Type.Null(), Type.Integer()]),
 			rounds: Type.Integer(),
+			since: Type.Optional(Type.Union([Type.Null(), Type.Integer()])),
 			forfeits: Type.Integer(),
 			deadlocked: Type.Boolean(),
 		}),
@@ -276,40 +281,58 @@ export const consensus = defineMechanic(head, (kit) => ({
 		},
 	},
 	hooks: {
-		turnInputs: (resident, ctx) => {
-			const team = teamOf(ctx, resident);
-			const state = team === undefined ? undefined : ctx.state.teams.get(team);
-			if (team === undefined || state === undefined || ctx.call(ConsensusSourceApi, "team", {}) !== team) return [];
-			const captain = ctx.call(ConsensusSourceApi, "captain", {});
-			if (resident === captain) {
-				if (state.won !== undefined) return [ctx.prompt("consensus/go-ahead", { cell: state.won })];
-				if (state.rejected !== undefined) return [ctx.prompt("consensus/rejected-notice", { cell: state.rejected })];
-				return [];
-			}
-			if (state.proposal === undefined || state.won !== undefined || state.votes.has(resident)) return [];
-			return [ctx.prompt("consensus/vote-request", { captain, cell: state.proposal.cell, reason: state.proposal.reason })];
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.consensus,
+			run: (resident, ctx) => {
+				const team = teamOf(ctx, resident);
+				const state = team === undefined ? undefined : ctx.state.teams.get(team);
+				if (team === undefined || state === undefined || ctx.call(ConsensusSourceApi, "team", {}) !== team) return [];
+				const captain = ctx.call(ConsensusSourceApi, "captain", {});
+				if (resident === captain) {
+					if (state.won !== undefined) return [ctx.prompt("consensus/go-ahead", { cell: state.won })];
+					if (state.rejected !== undefined) return [ctx.prompt("consensus/rejected-notice", { cell: state.rejected })];
+					return [];
+				}
+				if (state.proposal === undefined || state.won !== undefined || state.votes.has(resident)) return [];
+				return [ctx.prompt("consensus/vote-request", { captain, cell: state.proposal.cell, reason: state.proposal.reason })];
+			},
 		},
-		minuteEnded: (ctx) => {
-			const team = ctx.call(ConsensusSourceApi, "team", {});
-			const state = ctx.state.teams.get(team);
-			if (state === undefined || state.deadlocked || ctx.state.moved === ctx.minute) return;
-			state.rounds += 1;
-			if (state.rounds < ctx.options.maxRounds) return;
-			if (ctx.options.onDeadlock === "refuse") {
-				state.deadlocked = true;
-				ctx.emit("consensus_deadlocked", { team, rounds: state.rounds });
-				return;
-			}
-			const cells = ctx.call(ConsensusSourceApi, "legalCells", {});
-			if (cells.length === 0) return;
-			const cell = ctx.rng("consensus", "forfeit", team, ctx.minute, state.forfeits).pick(cells);
-			if (!ctx.call(ConsensusSourceApi, "playForfeit", { cell })) return;
-			const rounds = state.rounds;
-			const forfeits = state.forfeits + 1;
-			clear(state);
-			state.forfeits = forfeits;
-			ctx.state.moved = ctx.minute;
-			ctx.emit("consensus_forfeited", { team, cell, rounds });
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.consensus,
+			run: (ctx) => {
+				// A round is a whole minute: only a team on move at the minute's start has it counted (a team that went on move mid-minute starts counting next minute).
+				const onMove = ctx.call(ConsensusSourceApi, "team", {});
+				for (const [team, state] of ctx.state.teams) {
+					if (team !== onMove) state.since = undefined;
+					else state.since ??= ctx.minute;
+				}
+			},
+		},
+		minuteEnded: {
+			order: HOOK_ORDER.minuteEnded.consensus,
+			run: (ctx) => {
+				const team = ctx.call(ConsensusSourceApi, "team", {});
+				const state = ctx.state.teams.get(team);
+				// Only a whole minute counts: the team was on move at the minute's start (`since`) and nothing was played in it.
+				if (state === undefined || state.deadlocked || state.since === undefined || state.since > ctx.minute || ctx.state.moved === ctx.minute) return;
+				state.rounds += 1;
+				if (state.rounds < ctx.options.maxRounds) return;
+				if (ctx.options.onDeadlock === "refuse") {
+					state.deadlocked = true;
+					ctx.emit("consensus_deadlocked", { team, rounds: state.rounds });
+					return;
+				}
+				const cells = ctx.call(ConsensusSourceApi, "legalCells", {});
+				if (cells.length === 0) return;
+				const cell = ctx.rng("consensus", "forfeit", team, ctx.minute, state.forfeits).pick(cells);
+				if (!ctx.call(ConsensusSourceApi, "playForfeit", { cell })) return;
+				const rounds = state.rounds;
+				const forfeits = state.forfeits + 1;
+				clear(state);
+				state.forfeits = forfeits;
+				ctx.state.moved = ctx.minute;
+				ctx.emit("consensus_forfeited", { team, cell, rounds });
+			},
 		},
 	},
 	facts: {
@@ -324,7 +347,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 			teams: Object.fromEntries(
 				[...state.teams].map(([team, st]) => [
 					team,
-					{ proposal: st.proposal ?? null, votes: Object.fromEntries(st.votes), won: st.won ?? null, rejected: st.rejected ?? null, rounds: st.rounds, forfeits: st.forfeits, deadlocked: st.deadlocked },
+					{ proposal: st.proposal ?? null, votes: Object.fromEntries(st.votes), won: st.won ?? null, rejected: st.rejected ?? null, rounds: st.rounds, since: st.since ?? null, forfeits: st.forfeits, deadlocked: st.deadlocked },
 				]),
 			),
 		}),
@@ -333,7 +356,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 			teams: new Map(
 				Object.entries(data.teams).map(([team, st]) => [
 					team,
-					{ proposal: st.proposal ?? undefined, votes: new Map(Object.entries(st.votes)), won: st.won ?? undefined, rejected: st.rejected ?? undefined, rounds: st.rounds, forfeits: st.forfeits, deadlocked: st.deadlocked },
+					{ proposal: st.proposal ?? undefined, votes: new Map(Object.entries(st.votes)), won: st.won ?? undefined, rejected: st.rejected ?? undefined, rounds: st.rounds, since: st.since ?? undefined, forfeits: st.forfeits, deadlocked: st.deadlocked },
 				]),
 			),
 		}),

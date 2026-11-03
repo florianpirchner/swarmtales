@@ -15,7 +15,7 @@ import { ScriptedModelSource, say } from "@swarmtales/models";
 import { CONTEXT_RESET_KIND } from "@swarmtales/roles";
 import { parseStartArgs } from "../../apps/cli/src/args.ts";
 import { playCoreStory } from "../../apps/cli/src/host/core-play.ts";
-import { composeCoreRun, coreStoryFor } from "../../apps/cli/src/host/core-run.ts";
+import { composeCoreRun, coreStoryFor, recordedCoreEvent } from "../../apps/cli/src/host/core-run.ts";
 import { coreStories, findCoreStory, type CoreStoryEntry } from "../../stories/index.ts";
 
 const PERIOD = 2;
@@ -84,6 +84,18 @@ describe("the generic CoreStory runner", () => {
 		expect(Object.keys(coreStories).every((name) => findCoreStory(name) !== undefined)).toBe(true);
 	});
 
+	it("registers the tic-tac-toe control arm and refuses --agents for a story with fixed teams", async () => {
+		expect(coreStories["tictactoe-teams-nobrain"]).toBeDefined();
+		expect(findCoreStory("tictactoe-teams-nobrain")).toBe(coreStories["tictactoe-teams-nobrain"]);
+		const teams = findCoreStory("tictactoe-teams");
+		if (teams === undefined) throw new Error("tictactoe-teams is not registered");
+		expect(() => composeCoreRun({ entry: teams, overrides: { agents: 12 }, models: new ScriptedModelSource({}), sinks: [] })).toThrow(/--agents is not accepted for Tic-tac-toe teams/);
+		const errors: string[] = [];
+		const code = await playCoreStory(parseStartArgs(["--story", "tictactoe-teams", "--provider", "scripted", "--agents", "12"]), "tictactoe-teams", teams, { out: () => undefined, env: {} }, (text) => errors.push(text));
+		expect(code).toBe(1);
+		expect(errors.join("\n")).toContain("--agents is not accepted");
+	});
+
 	it("plays through the command line path: run directory, prompts, signed log, usage", async () => {
 		const runs = mkdtempSync(join(tmpdir(), "swt-core-"));
 		try {
@@ -114,8 +126,7 @@ describe("the generic CoreStory runner", () => {
 });
 
 describe("events of a core story outside the legacy union", () => {
-	it("writes them to the signed log with their payload as it is", async () => {
-		const { recordedCoreEvent } = await import("../../apps/cli/src/host/core-run.ts");
+	it("writes them to the signed log with their payload as it is", () => {
 		const known = recordedCoreEvent({ type: "run_end", reason: "minutes", seq: 1, minute: 3 });
 		expect(known).toMatchObject({ type: "run_end", reason: "minutes" });
 		const custom = recordedCoreEvent({ type: "retro_started", game: 2, seq: 2, minute: 3 });
@@ -133,7 +144,7 @@ describe("events of a core story outside the legacy union", () => {
 			expect(errors).toEqual([]);
 			expect(code).toBe(0);
 			const directory = join(runs, "run-001");
-			const types = readFileSync(join(directory, "events.jsonl"), "utf8").trim().split("\n").map((line) => JSON.parse(line).type);
+			const types = readFileSync(join(directory, "events.jsonl"), "utf8").trim().split("\n").map((line): unknown => JSON.parse(line)).map((event) => (typeof event === "object" && event !== null && "type" in event ? event.type : undefined));
 			expect(types).toContain("retro_started");
 			expect(verifyChain(directory)).toMatchObject({ ok: true });
 		} finally {

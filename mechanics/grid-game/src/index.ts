@@ -12,6 +12,7 @@ import type { ContextOf, Refusal, ToolSuccess, ToolContextOf, ViewOf } from "@sw
 import { ConsensusApi, ConsensusSourceApi } from "@swarmtales/mechanic-consensus";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
+import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { GridGameApi } from "./api.ts";
 import { GridGameEvents } from "./events.ts";
 import { emptyBoard, freeCells, GridSlice, linesOf, other, renderBoard, tallyOf, winnerOf, type GridState, type Side } from "./model.ts";
@@ -112,6 +113,9 @@ function startGame(ctx: Ctx, game: number): void {
 	ctx.emit("game_started", { game, startingSide: state.startingSide, xTeam: [...state.teams.X], oTeam: [...state.teams.O] });
 	refreshLocks(ctx);
 	ctx.tryCall(ConsensusApi, "reset", {});
+	// A new game, a new chat: the teams' channels show nothing of the games before.
+	ctx.tryCall(TeamChannelApi, "newEpoch", { team: "X" });
+	ctx.tryCall(TeamChannelApi, "newEpoch", { team: "O" });
 	ctx.tryCall(TeamChannelApi, "resetCap", { team: state.side });
 }
 
@@ -155,14 +159,14 @@ function problemWith(state: Readonly<GridState>, resident: string | undefined, c
 }
 
 /** Plays `cell` for the side to move (already checked) and moves the turn on; the reply tells the outcome. */
-function applyMove(ctx: Ctx, cell: number): ToolSuccess {
+function applyMove(ctx: Ctx, cell: number, forfeit: boolean): ToolSuccess {
 	const state = ctx.state;
 	const side = state.side;
 	const by = captainOf(state) ?? "";
 	state.board[cell] = side;
 	state.moves.push(cell);
 	state.taken[side] += 1;
-	ctx.emit("move_played", { game: state.game, side, by, cell, moveNo: state.moves.length });
+	ctx.emit("move_played", { game: state.game, side, by, cell, moveNo: state.moves.length, forfeit });
 	const win = winnerOf(state.board, linesOf(ctx.options.size, ctx.options.line));
 	if (win !== undefined) {
 		endGame(ctx, win.cells, win.side);
@@ -205,7 +209,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			execute: (params, ctx) => {
 				const refusal = problemWith(ctx.state, ctx.resident, params.cell);
 				if (refusal !== undefined) return refusal;
-				return applyMove(ctx, params.cell);
+				return applyMove(ctx, params.cell, false);
 			},
 		}),
 	],
@@ -234,15 +238,18 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			legalCells: (_input, ctx) => (ctx.state.running ? [...freeCells(ctx.state.board)] : []),
 			playForfeit: ({ cell }, ctx) => {
 				if (problemWith(ctx.state, captainOf(ctx.state) ?? undefined, cell) !== undefined) return false;
-				applyMove(ctx, cell);
+				applyMove(ctx, cell, true);
 				return true;
 			},
 		}),
 	],
 	hooks: {
-		// Plain order 0: a mechanic that holds the first game back runs its runStarted phase at a negative order (strategy-brain: -100).
-		runStarted: (ctx) => {
-			startNext(ctx);
+		// After the strategy brain's runStarted phase, which may hold the first game back.
+		runStarted: {
+			order: HOOK_ORDER.runStarted.gridGame,
+			run: (ctx) => {
+				startNext(ctx);
+			},
 		},
 		news: (resident, ctx) => (ctx.options.wakeTeam && ctx.state.running ? ctx.state.teams[ctx.state.side].includes(resident) : captainOf(ctx.state) === resident),
 	},
