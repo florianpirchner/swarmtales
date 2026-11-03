@@ -1,0 +1,2365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "city",
+    "run",
+    "model",
+    "rules",
+    "cast",
+    "personas",
+    "levels",
+    "finishedNotice",
+    "director"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Lowercase kebab-case; the folder and registry name."
+    },
+    "title": {
+      "type": "string",
+      "description": "Story title."
+    },
+    "city": {
+      "type": "string",
+      "description": "Name of the closed city, used in the base system prompt."
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "agents",
+        "minutes",
+        "seed",
+        "survivors",
+        "startPoints",
+        "activation",
+        "passesPerMinute",
+        "blockSize"
+      ],
+      "properties": {
+        "agents": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of competitors."
+        },
+        "minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of the run in virtual minutes."
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Seed of every draw."
+        },
+        "survivors": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many competitors the story lets survive."
+        },
+        "startPoints": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Points each competitor starts with."
+        },
+        "activation": {
+          "type": "string",
+          "enum": [
+            "always",
+            "onNovelty"
+          ],
+          "description": "`onNovelty` skips a competitor when nothing new reached it."
+        },
+        "passesPerMinute": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Passes per virtual minute."
+        },
+        "blockSize": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Competitors per block."
+            },
+            {
+              "type": "string",
+              "const": "auto"
+            }
+          ],
+          "description": "Competitors per block of a pass, or `auto`."
+        },
+        "stopWhenDone": {
+          "type": "boolean",
+          "description": "End the run once every competitor passed the last level."
+        },
+        "stopWhenSeatsDecided": {
+          "type": "boolean",
+          "description": "End the run once open rewards can no longer change who survives."
+        },
+        "budgetUsd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Abort cleanly once this cost is exceeded."
+        }
+      },
+      "description": "Size, length and pacing of a run."
+    },
+    "model": {
+      "type": "object",
+      "required": [
+        "provider"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Provider id, e.g. `anthropic` or `openrouter`."
+        },
+        "id": {
+          "type": "string",
+          "description": "Model id at the provider; the provider's default when left out."
+        },
+        "routing": {
+          "type": "object",
+          "properties": {
+            "order": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "allowFallbacks": {
+              "type": "boolean"
+            }
+          },
+          "description": "OpenRouter routing."
+        },
+        "thinking": {
+          "type": "string",
+          "enum": [
+            "off",
+            "minimal",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "description": "Thinking level."
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Output token cap per call."
+        }
+      },
+      "description": "A model and where to run it."
+    },
+    "rules": {
+      "type": "object",
+      "required": [
+        "penalty",
+        "maxAttemptsPerWindow",
+        "attemptWindowMinutes"
+      ],
+      "properties": {
+        "penalty": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "description": "The same price every time."
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The price of the n-th offence."
+              }
+            }
+          ],
+          "description": "A price that may rise with every offence."
+        },
+        "maxAttemptsPerWindow": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Submissions allowed per window."
+        },
+        "attemptWindowMinutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Length of the submission window."
+        },
+        "marks": {
+          "type": "object",
+          "required": [
+            "fromLevel",
+            "prices"
+          ],
+          "properties": {
+            "fromLevel": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The first level marks apply on."
+            },
+            "perLevel": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Allowance per level."
+            },
+            "perRun": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "One allowance for the whole run instead."
+            },
+            "prices": {
+              "type": "object",
+              "required": [
+                "board",
+                "group",
+                "dm"
+              ],
+              "properties": {
+                "board": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Board post."
+                },
+                "group": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Group post."
+                },
+                "dm": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "DM."
+                },
+                "receipt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Shown receipt; 1 when left out."
+                }
+              },
+              "description": "Marks per channel."
+            },
+            "ranges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "fromLevel"
+                ],
+                "properties": {
+                  "fromLevel": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "First level of the range."
+                  },
+                  "perLevel": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "The range's allowance."
+                  },
+                  "prices": {
+                    "type": "object",
+                    "required": [
+                      "board",
+                      "group",
+                      "dm"
+                    ],
+                    "properties": {
+                      "board": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Board post."
+                      },
+                      "group": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Group post."
+                      },
+                      "dm": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "DM."
+                      },
+                      "receipt": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Shown receipt; 1 when left out."
+                      }
+                    },
+                    "description": "Marks per channel."
+                  },
+                  "refill": {
+                    "type": "object",
+                    "required": [
+                      "marks",
+                      "everyMinutes"
+                    ],
+                    "properties": {
+                      "marks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Marks that come back."
+                      },
+                      "everyMinutes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Minutes between refills."
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Later level ranges with their own allowance."
+            }
+          },
+          "description": "The message allowance."
+        },
+        "blame": {
+          "type": "object",
+          "required": [
+            "penalty"
+          ],
+          "properties": {
+            "penalty": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "The same price every time."
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "The price of the n-th offence."
+                  }
+                }
+              ],
+              "description": "A price that may rise with every offence."
+            }
+          },
+          "description": "What the loser of a blame pays."
+        },
+        "ultimatum": {
+          "type": "object",
+          "required": [
+            "penalty",
+            "maxMinutes"
+          ],
+          "properties": {
+            "penalty": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points lost."
+            },
+            "maxMinutes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Longest deadline."
+            }
+          },
+          "description": "The gamemaker's ultimatum."
+        },
+        "receipts": {
+          "type": "object",
+          "properties": {
+            "quoteDms": {
+              "type": "boolean"
+            }
+          },
+          "description": "How receipts read."
+        },
+        "dmLimit": {
+          "type": "object",
+          "required": [
+            "perWindow",
+            "windowMinutes"
+          ],
+          "properties": {
+            "perWindow": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "DMs per window."
+            },
+            "windowMinutes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Window length."
+            }
+          },
+          "description": "A cap on DMs."
+        }
+      },
+      "description": "Penalties, attempts and the message allowance."
+    },
+    "cast": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "object",
+          "required": [
+            "level"
+          ],
+          "properties": {
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Public level."
+            },
+            "hidden": {
+              "type": "boolean"
+            },
+            "escrow": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points pre-funded for escrowTransfer."
+            }
+          },
+          "description": "A scripted NPC."
+        }
+      },
+      "description": "Scripted NPCs by name."
+    },
+    "personas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "temperament",
+          "values",
+          "voice"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Internal label."
+          },
+          "temperament": {
+            "type": "string",
+            "description": "Temperament."
+          },
+          "values": {
+            "type": "string",
+            "description": "Values."
+          },
+          "voice": {
+            "type": "string",
+            "description": "Voice."
+          }
+        },
+        "description": "Character, never strategy."
+      }
+    },
+    "personaAssignment": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "seeded"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "map"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "explicit"
+            },
+            "map": {
+              "type": "object",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "How personas are dealt."
+    },
+    "models": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "map"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "explicit"
+            },
+            "map": {
+              "type": "object",
+              "patternProperties": {
+                "^.*$": {
+                  "type": "object",
+                  "required": [
+                    "provider"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "description": "Provider id, e.g. `anthropic` or `openrouter`."
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "Model id at the provider; the provider's default when left out."
+                    },
+                    "routing": {
+                      "type": "object",
+                      "properties": {
+                        "order": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "allowFallbacks": {
+                          "type": "boolean"
+                        }
+                      },
+                      "description": "OpenRouter routing."
+                    },
+                    "thinking": {
+                      "type": "string",
+                      "enum": [
+                        "off",
+                        "minimal",
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max"
+                      ],
+                      "description": "Thinking level."
+                    },
+                    "maxOutputTokens": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Output token cap per call."
+                    }
+                  },
+                  "description": "A model and where to run it."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "choices"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "mix"
+            },
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "provider"
+                ],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "description": "Provider id, e.g. `anthropic` or `openrouter`."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "Model id at the provider; the provider's default when left out."
+                  },
+                  "routing": {
+                    "type": "object",
+                    "properties": {
+                      "order": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "allowFallbacks": {
+                        "type": "boolean"
+                      }
+                    },
+                    "description": "OpenRouter routing."
+                  },
+                  "thinking": {
+                    "type": "string",
+                    "enum": [
+                      "off",
+                      "minimal",
+                      "low",
+                      "medium",
+                      "high",
+                      "xhigh",
+                      "max"
+                    ],
+                    "description": "Thinking level."
+                  },
+                  "maxOutputTokens": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Output token cap per call."
+                  }
+                },
+                "description": "A model and where to run it."
+              }
+            }
+          }
+        }
+      ],
+      "description": "Per-competitor models."
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "number",
+          "title",
+          "puzzle",
+          "team",
+          "reward",
+          "tools",
+          "task"
+        ],
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Numbered from 1, in order."
+          },
+          "title": {
+            "type": "string",
+            "description": "Level title."
+          },
+          "puzzle": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "length",
+                  "overlap"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "fragments"
+                  },
+                  "length": {
+                    "type": "array",
+                    "additionalItems": false,
+                    "items": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Minimum."
+                      },
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Maximum."
+                      }
+                    ],
+                    "minItems": 2
+                  },
+                  "overlap": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Characters shared at each seam."
+                  },
+                  "ownChars": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Characters only one fragment holds."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "digits",
+                  "topology",
+                  "cityFactor"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "additive"
+                  },
+                  "digits": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Digits of every code and factor."
+                  },
+                  "topology": {
+                    "type": "string",
+                    "enum": [
+                      "mutual",
+                      "cycle",
+                      "crossTeam"
+                    ],
+                    "description": "Who holds a counter-factor."
+                  },
+                  "cityFactor": {
+                    "type": "string",
+                    "enum": [
+                      "board",
+                      "feast"
+                    ],
+                    "description": "How the city factor reaches the competitors."
+                  },
+                  "cityFactorPer": {
+                    "type": "string",
+                    "enum": [
+                      "level",
+                      "team"
+                    ],
+                    "description": "One city factor per level or per team."
+                  }
+                }
+              }
+            ]
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "kind"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "solo"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "size"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "random"
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Team size."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "sameAs"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "An earlier level."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level",
+                  "size"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "splitFrom"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "An earlier level."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Team size."
+                  }
+                }
+              }
+            ]
+          },
+          "reward": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Points for passing."
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "getStatus",
+                "getProblem",
+                "submitSolution",
+                "listAgents",
+                "readBoard",
+                "postBoard",
+                "sendDM",
+                "transferPoints",
+                "createGroup",
+                "addGroupMember",
+                "removeGroupMember",
+                "leaveGroup",
+                "listMyGroups",
+                "postGroup",
+                "readGroup",
+                "depositGroup",
+                "withdrawGroup",
+                "setTreasurer",
+                "showReceipt",
+                "signPetition",
+                "listPetitions",
+                "blame",
+                "vote",
+                "payRansom",
+                "lastWill",
+                "nominate",
+                "join",
+                "refuse",
+                "chooseName",
+                "bid",
+                "permaDeath",
+                "defy",
+                "claimPiece",
+                "forgeReceipt",
+                "nameFavourite",
+                "tribunalVote",
+                "activeTools"
+              ],
+              "description": "The name of a competitor tool."
+            },
+            "description": "The complete tool set of this level (not cumulative)."
+          },
+          "task": {
+            "type": "string",
+            "description": "Task text template with {placeholders}."
+          },
+          "marks": {
+            "type": "object",
+            "required": [
+              "perLevel"
+            ],
+            "properties": {
+              "perLevel": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Overrides rules.marks.perLevel."
+              }
+            }
+          },
+          "opensAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The minute the level's door opens."
+          }
+        },
+        "description": "One level."
+      }
+    },
+    "finishedNotice": {
+      "type": "string",
+      "description": "Private notice for a competitor that passed the last level."
+    },
+    "director": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "trigger",
+          "when",
+          "actions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Logged with every action the rule causes."
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "minute"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "at"
+                  },
+                  "minute": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "The minute."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "minutes"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "every"
+                  },
+                  "minutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Period."
+                  },
+                  "from": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "First minute."
+                  },
+                  "until": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Last minute."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onFirstEnter"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Level."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onEnter"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Level."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onAllPast"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Level."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "petition",
+                  "outcome"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onPetitionResolved"
+                  },
+                  "petition": {
+                    "type": "string"
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "enum": [
+                      "passed",
+                      "failed"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "afterMinutes"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onUnansweredDm"
+                  },
+                  "afterMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Minutes."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level",
+                  "forMinutes"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onTeamSplit"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Level."
+                  },
+                  "forMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Minutes."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "into"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onCollect"
+                  },
+                  "into": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "into"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onCollectionEnd"
+                  },
+                  "into": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "level"
+                ],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "onHolderBehind"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Level."
+                  }
+                }
+              }
+            ]
+          },
+          "when": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "level",
+                    "count"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "minLevelReached"
+                    },
+                    "level": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Level."
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Competitors."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "level"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "competitorsAtLevel"
+                    },
+                    "level": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Level."
+                    },
+                    "min": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "At least."
+                    },
+                    "max": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "At most."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "petition",
+                    "status"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "petitionStatus"
+                    },
+                    "petition": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "passed",
+                        "failed"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "cast"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "castActive"
+                    },
+                    "cast": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "into"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "collectionOpen"
+                    },
+                    "into": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "into"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "collectionEnded"
+                    },
+                    "into": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "onceOnly"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "minutes",
+                    "per"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "cooldown"
+                    },
+                    "minutes": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Minutes."
+                    },
+                    "per": {
+                      "type": "string",
+                      "enum": [
+                        "rule",
+                        "actor",
+                        "pair"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Action"
+            }
+          }
+        },
+        "description": "When a trigger fires and all conditions hold, the actions run."
+      }
+    },
+    "acts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "fromLevel"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Act title."
+          },
+          "fromLevel": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "First level."
+          },
+          "maxMinutes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Brake for an act without a tribunal."
+          }
+        }
+      }
+    },
+    "gamemaker": {
+      "type": "object",
+      "required": [
+        "model",
+        "author",
+        "every",
+        "notesPerAgent",
+        "boardPosts",
+        "windowMinutes",
+        "modelCallsPerTurn",
+        "brief",
+        "roles"
+      ],
+      "properties": {
+        "model": {
+          "type": "object",
+          "required": [
+            "provider"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "description": "Provider id, e.g. `anthropic` or `openrouter`."
+            },
+            "id": {
+              "type": "string",
+              "description": "Model id at the provider; the provider's default when left out."
+            },
+            "routing": {
+              "type": "object",
+              "properties": {
+                "order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "allowFallbacks": {
+                  "type": "boolean"
+                }
+              },
+              "description": "OpenRouter routing."
+            },
+            "thinking": {
+              "type": "string",
+              "enum": [
+                "off",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "description": "Thinking level."
+            },
+            "maxOutputTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Output token cap per call."
+            }
+          },
+          "description": "A model and where to run it."
+        },
+        "author": {
+          "type": "string",
+          "enum": [
+            "CITY",
+            "COURIER"
+          ],
+          "description": "Author of notes and board posts."
+        },
+        "every": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rounds between two looks."
+        },
+        "notesPerAgent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Private notes per competitor within the window."
+        },
+        "boardPosts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Board posts within the window."
+        },
+        "windowMinutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Window length."
+        },
+        "modelCallsPerTurn": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Model calls per look."
+        },
+        "brief": {
+          "type": "string",
+          "description": "Story-specific instructions."
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "fromLevel",
+              "role"
+            ],
+            "properties": {
+              "fromLevel": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "First level."
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "coach",
+                  "director",
+                  "keeper"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "description": "The LLM gamemaker."
+    },
+    "classifier": {
+      "type": "object",
+      "required": [
+        "model",
+        "maxChars"
+      ],
+      "properties": {
+        "model": {
+          "type": "object",
+          "required": [
+            "provider"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "description": "Provider id, e.g. `anthropic` or `openrouter`."
+            },
+            "id": {
+              "type": "string",
+              "description": "Model id at the provider; the provider's default when left out."
+            },
+            "routing": {
+              "type": "object",
+              "properties": {
+                "order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "allowFallbacks": {
+                  "type": "boolean"
+                }
+              },
+              "description": "OpenRouter routing."
+            },
+            "thinking": {
+              "type": "string",
+              "enum": [
+                "off",
+                "minimal",
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max"
+              ],
+              "description": "Thinking level."
+            },
+            "maxOutputTokens": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Output token cap per call."
+            }
+          },
+          "description": "A model and where to run it."
+        },
+        "maxChars": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Characters of one statement the classifier reads."
+        }
+      },
+      "description": "The statement classifier."
+    },
+    "tribunal": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Exile by tribunal."
+    },
+    "names": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Resident names."
+    },
+    "coreMotives": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Core motives."
+    },
+    "goals": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Secret goals per act."
+    },
+    "seal": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "The black seal."
+    },
+    "whisperer": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "The whisperer."
+    },
+    "popularity": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Popularity votes."
+    },
+    "guards": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Tool guards."
+    },
+    "holdout": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true,
+      "description": "Holdout tribunal."
+    },
+    "toolScope": {
+      "type": "string",
+      "enum": [
+        "all",
+        "story"
+      ],
+      "description": "Which tool schemas a resident's model sees."
+    }
+  },
+  "$id": "https://swarmtales.dev/story.schema.json",
+  "title": "Swarm Tales story",
+  "description": "A story as data: the same for the TypeScript builder and for YAML or JSON files.",
+  "$defs": {
+    "Petition": {
+      "type": "object",
+      "required": [
+        "id",
+        "text",
+        "threshold",
+        "deadlineMinute",
+        "visibility",
+        "onPass",
+        "onFail"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [
+                "count"
+              ],
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Signatures."
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "fraction"
+              ],
+              "properties": {
+                "fraction": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          ]
+        },
+        "deadlineMinute": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Deadline."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "public",
+            "secret"
+          ]
+        },
+        "against": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onPass": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          }
+        },
+        "onFail": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Action"
+          }
+        }
+      },
+      "$id": "Petition"
+    },
+    "Action": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "author",
+            "text"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "post"
+            },
+            "author": {
+              "type": "string",
+              "description": "A cast member, or a system author (CITY, COURIER)."
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "target",
+            "text"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "notify"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "from",
+            "to",
+            "text"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "dm"
+            },
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "cast",
+            "level"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "setCastLevel"
+            },
+            "cast": {
+              "type": "string"
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Level."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "cast"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "revealCast"
+            },
+            "cast": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "cast"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "retireCast"
+            },
+            "cast": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "target",
+            "points",
+            "reason"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "grant"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "points": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points."
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "target",
+            "points",
+            "reason"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "fine"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "points": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points."
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "cast",
+            "target",
+            "points"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "escrowTransfer"
+            },
+            "cast": {
+              "type": "string"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "points": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Points."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "target",
+            "tools"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "unlockTools"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "actor"
+                },
+                {
+                  "type": "string",
+                  "const": "all"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "onLevel"
+                  ],
+                  "properties": {
+                    "onLevel": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "description": "Everyone on this level."
+                    }
+                  }
+                }
+              ]
+            },
+            "tools": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "getStatus",
+                  "getProblem",
+                  "submitSolution",
+                  "listAgents",
+                  "readBoard",
+                  "postBoard",
+                  "sendDM",
+                  "transferPoints",
+                  "createGroup",
+                  "addGroupMember",
+                  "removeGroupMember",
+                  "leaveGroup",
+                  "listMyGroups",
+                  "postGroup",
+                  "readGroup",
+                  "depositGroup",
+                  "withdrawGroup",
+                  "setTreasurer",
+                  "showReceipt",
+                  "signPetition",
+                  "listPetitions",
+                  "blame",
+                  "vote",
+                  "payRansom",
+                  "lastWill",
+                  "nominate",
+                  "join",
+                  "refuse",
+                  "chooseName",
+                  "bid",
+                  "permaDeath",
+                  "defy",
+                  "claimPiece",
+                  "forgeReceipt",
+                  "nameFavourite",
+                  "tribunalVote",
+                  "activeTools"
+                ],
+                "description": "The name of a competitor tool."
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "petition"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "openPetition"
+            },
+            "petition": {
+              "$ref": "#/$defs/Petition"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "mode",
+            "edgeSize"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "publishStandings"
+            },
+            "mode": {
+              "type": "string",
+              "const": "bands"
+            },
+            "edgeSize": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Residents at each edge."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "mode"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "publishStandings"
+            },
+            "mode": {
+              "type": "string",
+              "const": "snapshot"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "cast",
+            "first",
+            "into"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "collectDms"
+            },
+            "cast": {
+              "type": "string"
+            },
+            "first": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "A fixed count."
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "share",
+                    "minimum"
+                  ],
+                  "properties": {
+                    "share": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "minimum": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "At least."
+                    }
+                  }
+                }
+              ]
+            },
+            "untilMinute": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Absolute end."
+            },
+            "forMinutes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Relative end."
+            },
+            "into": {
+              "type": "string"
+            },
+            "distinctSenders": {
+              "type": "boolean"
+            },
+            "afterSolve": {
+              "type": "object",
+              "required": [
+                "level",
+                "minutes"
+              ],
+              "properties": {
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Level."
+                },
+                "minutes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Minutes."
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "into"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "revealCollection"
+            },
+            "into": {
+              "type": "string"
+            },
+            "header": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "into",
+            "then"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "lottery"
+            },
+            "into": {
+              "type": "string"
+            },
+            "then": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Action"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "target",
+            "level"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "revealFactor"
+            },
+            "target": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "board"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "const": "actor"
+                    },
+                    {
+                      "type": "string",
+                      "const": "all"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "onLevel"
+                      ],
+                      "properties": {
+                        "onLevel": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Everyone on this level."
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Level."
+            }
+          }
+        }
+      ],
+      "$id": "Action"
+    }
+  }
+}

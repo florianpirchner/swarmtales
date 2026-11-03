@@ -284,3 +284,33 @@ export const StorySchema = Type.Object(
 	},
 	{ $id: "https://swarmtales.dev/story.schema.json", title: "Swarm Tales story", description: "A story as data: the same for the TypeScript builder and for YAML or JSON files." },
 );
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * The schema as a standalone JSON Schema document for `story.schema.json`. Typebox puts the
+ * definitions of a recursive type (`$defs`) where the type sits and refers to them by bare name;
+ * editors resolve `#/$defs/<name>` at the document root, so the definitions move there.
+ */
+export function storyJsonSchema(): Record<string, unknown> {
+	const definitions: Record<string, unknown> = {};
+	const rewrite = (node: unknown): unknown => {
+		if (Array.isArray(node)) return node.map(rewrite);
+		if (!isRecord(node)) return node;
+		const out: Record<string, unknown> = {};
+		for (const [key, value] of Object.entries(node)) {
+			if (key === "$defs" && isRecord(value)) {
+				for (const [name, definition] of Object.entries(value)) definitions[name] = rewrite(definition);
+			} else if (key === "$ref" && typeof value === "string" && !value.startsWith("#")) {
+				out[key] = `#/$defs/${value}`;
+			} else {
+				out[key] = rewrite(value);
+			}
+		}
+		return out;
+	};
+	const root = rewrite(JSON.parse(JSON.stringify(StorySchema)));
+	return { $schema: "https://json-schema.org/draft/2020-12/schema", ...(isRecord(root) ? root : {}), $defs: definitions };
+}

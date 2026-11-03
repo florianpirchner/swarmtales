@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { StorySchema } from "@swarmtales/contracts";
+import { StorySchema, storyJsonSchema } from "@swarmtales/contracts";
 import { parseStoryData } from "@swarmtales/sdk";
 import { STORIES } from "../../stories/index.ts";
 import { tinyStory } from "../helpers/stories.ts";
@@ -18,6 +18,17 @@ describe("story schema", () => {
 
 	it("is a JSON schema with an id and the story's fields", () => {
 		expect(plain(StorySchema)).toMatchObject({ $id: "https://swarmtales.dev/story.schema.json", properties: { levels: { type: "array" } } });
+	});
+
+	it("writes a standalone JSON schema: every $ref points into the root's $defs", () => {
+		const document = storyJsonSchema();
+		const text = JSON.stringify(document);
+		const refs = [...text.matchAll(/"\$ref":"([^"]*)"/g)].map((match) => match[1]);
+		expect(refs.length).toBeGreaterThan(0);
+		const defined = Object.keys(document.$defs as Record<string, unknown>);
+		expect(defined).toEqual(expect.arrayContaining(["Action", "Petition"]));
+		for (const ref of refs) expect(defined.map((name) => `#/$defs/${name}`)).toContain(ref);
+		expect(text.match(/"\$defs"/g)).toHaveLength(1);
 	});
 
 	it("names the path of a wrong field", () => {
