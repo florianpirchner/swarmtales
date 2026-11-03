@@ -10,12 +10,12 @@
 import { fauxAssistantMessage, fauxText, fauxThinking, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import type { ClassifierUsage, Souffleur, ToolOutcome, ToolSpec, Turn, TurnInputKind } from "@swarmtales/contracts";
-import { EventBus } from "@swarmtales/legacy-log";
+import type { Souffleur, ToolOutcome, ToolSpec, Turn } from "@swarmtales/contracts";
 import { ScriptedModelSource, say } from "@swarmtales/models";
-import { AgentRunner, HostResidentRunner, inCatalogOrder, type InnerVoice, outcomeText, toolsNotice } from "@swarmtales/roles";
+import { HostResidentRunner, inCatalogOrder, type InnerVoice, outcomeText, toolsNotice } from "@swarmtales/roles";
 import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
 import { RESIDENT_LIMITS } from "../../apps/cli/src/host/residents.ts";
+import { replayOld } from "../helpers/old-engine.ts";
 
 const SPECS: readonly ToolSpec[] = [
 	{ name: "getStatus", description: "Your status.", parameters: Type.Object({}) },
@@ -23,23 +23,12 @@ const SPECS: readonly ToolSpec[] = [
 	{ name: "sendDM", description: "Send a message.", parameters: Type.Object({ target: Type.String(), message: Type.String() }) },
 ];
 
-/** The city's answers, the same for both runners: a correct code, a wrong one, a locked tool. */
+/** The city's answers: a correct code, a wrong one, a locked tool. */
 function answer(tool: string, params: unknown): ToolOutcome {
 	if (tool === "getStatus") return { ok: true, reply: "level 1 · 15 points" };
 	if (tool === "sendDM") return { ok: false, code: "TOOL_LOCKED", detail: "not available to you now" };
 	const code = typeof params === "object" && params !== null && "code" in params ? params.code : undefined;
 	return code === "OPEN" ? { ok: true, reply: "correct · +5 points" } : { ok: false, code: "INCORRECT" };
-}
-
-/** A tool as the old runner binds it (the engine's `BoundTool`). */
-type BoundTool = ConstructorParameters<typeof AgentRunner>[0]["tools"][number];
-
-function oldResult(outcome: ToolOutcome): Awaited<ReturnType<BoundTool["execute"]>> {
-	return { content: [{ type: "text", text: outcomeText(outcome) }], details: undefined, ...(outcome.ok ? {} : { isError: true }) };
-}
-
-function bound(spec: ToolSpec): BoundTool {
-	return { name: spec.name, label: spec.name, description: spec.description, parameters: spec.parameters, execute: (_id, params) => Promise.resolve(oldResult(answer(spec.name, params))) };
 }
 
 interface Step {
@@ -87,48 +76,6 @@ function voiceQueue(steps: readonly (readonly string[])[] | undefined, log: Line
 		giveBack: (voices) => {
 			log.push({ type: "voices_back", voices: [...voices] });
 			carried = [...voices, ...carried];
-		},
-	};
-}
-
-async function playOld(scenario: Scenario): Promise<{ readonly lines: readonly Line[]; readonly context: unknown; readonly tools: readonly string[] }> {
-	const lines: Line[] = [];
-	let step: Step | undefined;
-	const bus = new EventBus([{ record: (event) => lines.push(Object.fromEntries(Object.entries(event).filter(([key]) => key !== "seq" && key !== "minute"))) }], () => step?.minute ?? 0);
-	const tools = SPECS.map(bound);
-	const initial = scenario.initial;
-	const voice = voiceQueue(scenario.voices, lines);
-	const runner = new AgentRunner({
-		id: "A01",
-		systemPrompt: "You play.",
-		tools: initial === undefined ? tools : tools.filter((tool) => initial.includes(tool.name)),
-		...(initial === undefined ? {} : { lateTool: (name: string) => tools.find((tool) => tool.name === name) }),
-		binding: new ScriptedModelSource({ A01: [...scenario.responses] }).bind("A01", DEFAULT_LIMITS),
-		bus,
-		thinking: "off",
-		enabledTools: () => step?.open ?? [],
-		minute: () => step?.minute ?? 0,
-		...(scenario.souffleur === undefined ? {} : { souffleur: metered(scenario.souffleur, (usage) => {
-					bus.emit({ type: "usage", agent: "SF", ...usage });
-				}) }),
-		...(voice === undefined ? {} : { innerVoice: voice }),
-	});
-	for (const [index, entry] of scenario.steps.entries()) {
-		step = entry;
-		if (index === scenario.rewriteBefore) runner.rewriteSystemPrompt("You play, changed.");
-		await runner.step(entry.inputs.map((text) => ({ kind: "notice" satisfies TurnInputKind, text })), { pass: 1, block: 1, turn: Promise.resolve() });
-	}
-	return { lines, context: stable(runner.snapshot()), tools: runner.boundTools };
-}
-
-/** The old composer's metering: the souffleur's usage lines before its rewrite line. */
-function metered(souffleur: Souffleur, emit: (usage: ClassifierUsage) => void): Souffleur {
-	return {
-		label: souffleur.label,
-		async rewrite(texts) {
-			const answered = await souffleur.rewrite(texts);
-			for (const entry of answered.usage) emit(entry);
-			return answered;
 		},
 	};
 }
@@ -242,9 +189,15 @@ const SCENARIOS: Readonly<Record<string, Scenario>> = {
 	},
 };
 
+const OldRun = Type.Object({ lines: Type.Array(Type.Record(Type.String(), Type.Unknown())), context: Type.Unknown(), tools: Type.Array(Type.String()) });
+const OldLines = Type.Array(Type.Record(Type.String(), Type.Unknown()));
+
+/** What a scenario's old run depends on, apart from the scripted model answers (static in this file). */
+const inputsOf = (scenario: Scenario): unknown => ({ steps: scenario.steps, voices: scenario.voices, initial: scenario.initial, rewriteBefore: scenario.rewriteBefore, souffleur: scenario.souffleur?.label });
+
 describe("the host resident runner against the old AgentRunner", () => {
 	it.each(Object.entries(SCENARIOS))("%s: the same app events, context and declarations", async (_name, scenario) => {
-		const old = await playOld(scenario);
+		const old = replayOld(inputsOf(scenario), OldRun);
 		const fresh = await playNew(scenario);
 		expect(old.lines.length).toBeGreaterThan(scenario.steps.length);
 		expect(fresh.lines).toEqual(old.lines);
@@ -255,25 +208,16 @@ describe("the host resident runner against the old AgentRunner", () => {
 	it("goes on from a snapshot as the old runner does: the context, and the last notice is not sent again", async () => {
 		const first: Scenario = { responses: [submit("OPEN")], steps: [{ inputs: ["a"], open: OPEN, minute: 0 }] };
 		const played = await playNew(first);
-		const resumed = (Runner: "old" | "new") => {
-			const responses = [say("Back.")];
-			const step: Step = { inputs: ["b"], open: OPEN, minute: 1 };
-			if (Runner === "old") {
-				const lines: Line[] = [];
-				const bus = new EventBus([{ record: (event) => lines.push(Object.fromEntries(Object.entries(event).filter(([key]) => key !== "seq" && key !== "minute"))) }], () => 1);
-				const runner = new AgentRunner({ id: "A01", systemPrompt: "You play.", tools: SPECS.map(bound), binding: new ScriptedModelSource({ A01: responses }).bind("A01", DEFAULT_LIMITS), bus, thinking: "off", enabledTools: () => OPEN, minute: () => 1 });
-				runner.restore(played.runner.snapshot());
-				return runner.step([{ kind: "notice", text: "b" }], { pass: 1, block: 1, turn: Promise.resolve() }).then(() => lines);
-			}
-			const lines: Line[] = [];
-			const record = (type: string, payload: unknown): void => {
-				lines.push({ type, ...(typeof payload === "object" && payload !== null ? Object.fromEntries(Object.entries(payload)) : {}) });
-			};
-			const runner = new HostResidentRunner({ id: "A01", systemPrompt: "You play.", tools: SPECS, binding: new ScriptedModelSource({ A01: responses }).bind("A01", RESIDENT_LIMITS), thinking: "off", record, openTools: () => OPEN });
-			runner.restore(played.runner.snapshot());
-			return runner.step(turnOf(step, record), []).then(() => lines);
+		const responses = [say("Back.")];
+		const step: Step = { inputs: ["b"], open: OPEN, minute: 1 };
+		const fresh: Line[] = [];
+		const record = (type: string, payload: unknown): void => {
+			fresh.push({ type, ...(typeof payload === "object" && payload !== null ? Object.fromEntries(Object.entries(payload)) : {}) });
 		};
-		const [old, fresh] = await Promise.all([resumed("old"), resumed("new")]);
+		const runner = new HostResidentRunner({ id: "A01", systemPrompt: "You play.", tools: SPECS, binding: new ScriptedModelSource({ A01: responses }).bind("A01", RESIDENT_LIMITS), thinking: "off", record, openTools: () => OPEN });
+		runner.restore(played.runner.snapshot());
+		await runner.step(turnOf(step, record), []);
+		const old = replayOld({ resumed: "b" }, OldLines);
 		expect(fresh).toEqual(old);
 		expect(fresh.find((line) => line.type === "turn_input")).toMatchObject({ inputs: ["b"] });
 	});

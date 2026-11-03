@@ -1,13 +1,13 @@
 /**
  * The statement classifier on the host (step 18): a composed run with a scripted classifier
  * (`classifierScript`), and the classifier overseer's context and batches on a bare host
- * (test/overseers/harness.ts; the old `Interpreter` on the old event bus before).
+ * (test/overseers/harness.ts).
  */
 import { fauxAssistantMessage, fauxThinking, fauxToolCall, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
 import type { Host } from "@swarmtales/contracts";
 import { text } from "@swarmtales/prompts";
-import { CONTEXT_MESSAGES, MAX_BATCH_STATEMENTS, overseers } from "@swarmtales/roles";
+import { overseers } from "@swarmtales/roles";
 import { scriptedOverseer, type OverseerScript } from "@swarmtales/testkit";
 import { act, createHostFixture as createFixture, say } from "../helpers/host-fixture.ts";
 import { flat, playNew, type Input } from "../overseers/harness.ts";
@@ -123,7 +123,7 @@ describe("the classifier's context (the old interpreter's)", () => {
 	});
 
 	it("keeps only the last messages of a conversation", async () => {
-		const earlier = Array.from({ length: CONTEXT_MESSAGES + 2 }, (_unused, index) => dm(0, "A01", "A02", `m${String(index)}`, index + 1));
+		const earlier = Array.from({ length: overseers.CONTEXT_MESSAGES + 2 }, (_unused, index) => dm(0, "A01", "A02", `m${String(index)}`, index + 1));
 		const { prompts } = await classify([...earlier, dm(1, "A02", "A01", "reply", 99)], 2, { residents: 2 });
 		const context = contextOf(prompts[1] ?? "");
 		expect(["m2", "m3", "m4", "m5"].map((message) => context.includes(`"${message}"`))).toEqual([true, true, true, true]);
@@ -131,12 +131,12 @@ describe("the classifier's context (the old interpreter's)", () => {
 	});
 
 	it("labels a large round in chunks, each with the context of its own conversations (v08, scale)", async () => {
-		const round = Array.from({ length: MAX_BATCH_STATEMENTS }, (_unused, index) => dm(1, "A01", "A02", `m${String(index)}`, index + 2));
+		const round = Array.from({ length: overseers.MAX_BATCH_STATEMENTS }, (_unused, index) => dm(1, "A01", "A02", `m${String(index)}`, index + 2));
 		const { prompts, written } = await classify([dm(0, "A02", "A03", "earlier", 1), ...round, dm(1, "A03", "A02", "reply", 999)], 2);
-		expect(prompts.map(statementCount)).toEqual([1, MAX_BATCH_STATEMENTS, 1]);
+		expect(prompts.map(statementCount)).toEqual([1, overseers.MAX_BATCH_STATEMENTS, 1]);
 		expect(contextOf(prompts[1] ?? "")).toBe("");
 		expect(contextOf(prompts[2] ?? "")).toContain('"earlier"');
-		expect(written.filter((event) => event.type === "interpretation_round").map((event) => event.statements)).toEqual([1, MAX_BATCH_STATEMENTS + 1]);
+		expect(written.filter((event) => event.type === "interpretation_round").map((event) => event.statements)).toEqual([1, overseers.MAX_BATCH_STATEMENTS + 1]);
 	});
 
 	it("tells the classifier the names and maps targets given by name back to IDs (v08)", async () => {

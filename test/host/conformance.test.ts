@@ -60,7 +60,7 @@ describe("the conformance checks themselves", () => {
 	});
 
 	it("find forbidden imports and globals", () => {
-		const text = ['import { readFileSync } from "node:fs";', 'import { AgentRunner } from "@swarmtales/roles";', "const roll = Math.random();", "const now = Date.now();"].join("\n");
+		const text = ['import { readFileSync } from "node:fs";', 'import { HostResidentRunner } from "@swarmtales/roles";', "const roll = Math.random();", "const now = Date.now();"].join("\n");
 		expect(checkSourceRules([{ path: "bad.ts", text }])).toEqual(["bad.ts: imports node:fs", "bad.ts: imports @swarmtales/roles", "bad.ts: uses Math.random", "bad.ts: uses Date.now"]);
 	});
 });

@@ -10,7 +10,7 @@ import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { createHost, defineCoreStory, defineMechanic, reply } from "@swarmtales/kernel";
 
-const LEGACY_CONTRACTS = ["ids.ts", "roles.ts", "story.ts", "tool-names.ts", "turn.ts"].map((file) => join("packages", "contracts", "src", file));
+const LEGACY_CONTRACTS = ["ids.ts", "roles.ts", "story.ts", "tool-names.ts"].map((file) => join("packages", "contracts", "src", file));
 const NEW_CORE = [join("packages", "contracts", "src", "core"), join("packages", "kernel", "src", "host")];
 
 function exportedNames(file: string): readonly string[] {

@@ -32,15 +32,10 @@ with its covering test: `step18-decisions.md`, "Team D4".
 
 **What remains:**
 
-1. **The old role classes the overseers and the host runner replaced:** `AgentRunner` (`packages/roles/src/agents/
-   runner.ts`; `host-runner.ts` still imports its helpers `isSafeguardRefusal`, `lastAnnounced`, `LOST_INPUTS`,
-   `toolsNotice`, `ContextMessage`, `InnerVoice`, which move into `host-runner.ts`), `Interpreter`
-   (`interpret/interpreter.ts`; `CONTEXT_MESSAGES` and `InterpreterSnapshot` stay) and `Weaver`
-   (`interpret/weaver.ts`; `MAX_SOFT`, `MAX_HARD`, `WeaverSnapshot` stay). They no longer touch the engine, but they
-   are the live old side of `test/agents/{host-runner,souffleur}`, `test/interpret/{interpreter,weaver}` and
-   `test/overseers/{classifier,runtime-decider,weaver}`. Record those old sides into `test/fixtures/old-engine/` (a
-   recorder like the deleted `old-engine-recorder.ts`, run once at the commit before the deletion), switch the tests to
-   the replay, then delete the classes and list the files in `step18-decisions.md`.
+1. **The old role classes: Done** (cleanup after D4, `step18-decisions.md`, "Cleanup 1"): `AgentRunner`, `Interpreter` and
+   `Weaver` are deleted, their helpers live in `host-runner.ts`, `overseer/{classifier,weaver}.ts`, `interpret/{statements,
+   fate-triggers,weaver-model}.ts`, and the old sides of their tests are recordings in `test/fixtures/old-engine/`
+   (`agents-host-runner`, `overseers-{classifier,runtime-decider,weaver}`).
 2. **Comments** in `mechanics/**` and `test/mechanics/**` still name `packages/engine/src/*.ts` as the origin of a
    ported rule; they are history, readable at the commit before D4's deletion (`git log -- packages/engine`).
 

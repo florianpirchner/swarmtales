@@ -2,17 +2,14 @@
  * The harness of the differential tests of team C1 (classifier, weaver, judge as overseers): the
  * new side is a real host with the overseer and a scripted runtime; the events the old roles read
  * are written with `host.record` as app events (the overseers go by the event type, as the old
- * roles did). The old side is the old role fed the same events with the same `seq` numbers.
+ * roles did). The old roles' side is recorded in `test/fixtures/old-engine` (they were fed the same
+ * events with the same `seq` numbers).
  */
 import { Type } from "typebox";
 import { createHost, defineMechanic } from "@swarmtales/kernel";
-import type { EventSink, RecordedEvent } from "@swarmtales/legacy-log";
 import type { EventEnvelope, EventSchemas, Host, MechanicUse, OverseerRuntime, OverseerUse } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { idleAgent } from "@swarmtales/testkit";
-import { Parse } from "typebox/value";
-import { RecordedEventSchema, MemorySink } from "@swarmtales/chronicle";
-import { EventBus } from "@swarmtales/legacy-log";
 
 /** An event the old roles read, flat as in the old log, to be written in a minute. */
 export type Fields = Readonly<Record<string, unknown>>;
@@ -29,9 +26,6 @@ export interface Input {
 function fieldsOf(fields: FieldsOf, seqs: readonly number[]): Fields {
 	return typeof fields === "function" ? fields(seqs) : fields;
 }
-
-/** Events of the new log that the old log never had. */
-const NOT_IN_THE_OLD_LOG: readonly string[] = ["act_started", "act_ended"];
 
 const OPEN = Type.Object({}, { additionalProperties: true });
 
@@ -105,36 +99,6 @@ export async function playNew(spec: NewSpec): Promise<NewSide> {
 	return { host, events: host.log.all(), seqs };
 }
 
-/** The old events of a script, numbered with the seqs the new log gave them. */
-export function legacyInputs(spec: NewSpec, seqs: readonly number[]): readonly (RecordedEvent | undefined)[] {
-	return spec.inputs.map((input, index) => {
-		const seq = seqs[index];
-		if (seq === undefined) throw new Error("no seq for input");
-		// The old engine kept acts in the world, not in the log.
-		if (NOT_IN_THE_OLD_LOG.includes(input.type)) return undefined;
-		const line: unknown = { ...fieldsOf(input.fields, seqs), type: input.type, seq, minute: input.minute };
-		return recorded(line);
-	});
-}
-
-/** A flat event as the old roles take it, checked against the old log's schema. */
-function recorded(value: unknown): RecordedEvent {
-	return Parse(RecordedEventSchema, value);
-}
-
-export interface OldSide {
-	readonly bus: EventBus;
-	readonly log: MemorySink;
-	readonly sinks: readonly EventSink[];
-	minute: number;
-}
-
-export function oldBus(): OldSide {
-	const log = new MemorySink();
-	const side: OldSide = { bus: new EventBus([log], () => side.minute), log, sinks: [log], minute: 0 };
-	return side;
-}
-
 /** The events the overseer of `source` wrote, as the legacy adapter would flatten them (`type` and payload). */
 export function flat(events: readonly EventEnvelope[], source: string): readonly Record<string, unknown>[] {
 	return events
@@ -143,9 +107,4 @@ export function flat(events: readonly EventEnvelope[], source: string): readonly
 			const payload = event.payload;
 			return { type: event.type, ...(typeof payload === "object" && payload !== null ? Object.fromEntries(Object.entries(payload)) : {}) };
 		});
-}
-
-/** An old event without its numbers. */
-export function bare(event: RecordedEvent): Record<string, unknown> {
-	return Object.fromEntries(Object.entries(event).filter(([key]) => key !== "seq" && key !== "minute"));
 }

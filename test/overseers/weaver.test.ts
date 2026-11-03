@@ -1,14 +1,16 @@
 /**
- * The weaver as an overseer against the old `Weaver` (docs/design/overseer-api.md §1.5, step 18 wave
+ * The weaver as an overseer against the old `Weaver` (recorded in test/fixtures/old-engine; docs/design/overseer-api.md §1.5, step 18 wave
  * C1): the same events (with the same `seq`), the same scripted answers in the same order, so the same
  * dossiers (system and per question), the same `fate_shift` events, the same caps and the same act
  * ends. The new side is a real host with the overseer and a scripted runtime.
  */
+import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { clip, overseers, Weaver, weaverPrompt, weaverSystemPrompt, type Weave, type WeaverAnswer, type WeaverCity, type WeaverModel, type WeaverQuestion } from "@swarmtales/roles";
+import { overseers, weaverPrompt, weaverSystemPrompt, type Weave } from "@swarmtales/roles";
 import { scriptedOverseer, type ScriptedAnswer } from "@swarmtales/testkit";
 import { recordOf } from "../mechanics/t1/support.ts";
-import { displayName, flat, legacyInputs, newHost, oldBus, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
+import { replayOld } from "../helpers/old-engine.ts";
+import { displayName, flat, newHost, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
 
 const PEOPLE = ["A01", "A02", "A03", "A04"];
 const at = (minute: number, type: string, fields: Input["fields"]): Input => ({ minute, type, fields });
@@ -106,62 +108,23 @@ function scripted(scenario: Scenario = BASE, from = 0) {
 	});
 }
 
-class ListedWeaver implements WeaverModel {
-	readonly label = "test/weaver";
-	readonly questions: WeaverQuestion[] = [];
-	readonly #answer: Scenario["answer"];
-	constructor(answer: Scenario["answer"]) {
-		this.#answer = answer;
-	}
-	weave(question: WeaverQuestion): Promise<WeaverAnswer> {
-		const answer = this.#answer(this.questions.length);
-		this.questions.push(question);
-		if (answer === "broken") return Promise.resolve({ ok: false, error: "the weave call had invalid arguments", usage: [] });
-		// What `ChatWeaver` does with the model's call: the text and the reason are cut in code, not refused.
-		return Promise.resolve({ ok: true, weave: { kind: answer.kind, text: clip(answer.text, 600), reason: clip(answer.reason, 200) }, usage: [] });
-	}
-}
-
-async function playOld(scenario: Scenario, seqs: readonly number[]) {
-	const side = oldBus();
-	const exiled = new Set<string>();
-	const over = new Set<number>();
-	const city: WeaverCity & { minute: number; currentAct: number } = {
-		competitors: PEOPLE,
-		minute: 0,
-		currentAct: 1,
-		isExiled: (agent) => exiled.has(agent),
-		isActOver: (fromLevel) => over.has(fromLevel),
-		display: displayName,
-	};
-	const model = new ListedWeaver(scenario.answer);
-	const weaver = new Weaver({
-		model,
-		bus: side.bus,
-		city,
-		characterOf: (agent) => `${agent} is greedy above all.`,
-		rewrite: () => undefined,
-		actTitle: (fromLevel) => (fromLevel === 1 ? "Act I" : fromLevel === 4 ? "Act II" : undefined),
-	});
-	const events = legacyInputs(spec(scenario), seqs);
-	for (let minute = 0; minute < scenario.minutes; minute++) {
-		side.minute = minute;
-		city.minute = minute;
-		for (const [index, input] of scenario.inputs.entries()) {
-			if (input.minute !== minute) continue;
-			const fromLevel = typeof input.fields === "object" && "fromLevel" in input.fields && typeof input.fields.fromLevel === "number" ? input.fields.fromLevel : 0;
-			if (input.type === "act_ended") over.add(fromLevel);
-			if (input.type === "act_started") city.currentAct = Math.max(city.currentAct, fromLevel);
-			const event = events[index];
-			if (event === undefined) continue;
-			if (event.type === "exiled") exiled.add(event.agent);
-			weaver.record(event);
-		}
-		// The old arena (arena.ts:206): no change and no look after the last round.
-		if (minute + 1 < scenario.minutes) await weaver.afterRound();
-	}
-	return { side, model, weaver };
-}
+const Kind = Type.Union([Type.Literal("soft"), Type.Literal("hard")]);
+const OldSide = Type.Object({
+	questions: Type.Array(
+		Type.Object({
+			resident: Type.String(),
+			minute: Type.Number(),
+			character: Type.String(),
+			shift: Type.Optional(Type.String()),
+			patches: Type.Array(Type.Object({ minute: Type.Number(), kind: Kind, text: Type.String() })),
+			events: Type.Array(Type.Object({ seq: Type.Number(), text: Type.String() })),
+			actEnd: Type.Optional(Type.Object({ title: Type.String() })),
+			hardLeft: Type.Number(),
+		}),
+	),
+	fateShifts: Type.Array(Type.Record(Type.String(), Type.Unknown())),
+	snapshot: Type.Object({ pending: Type.Unknown(), patches: Type.Unknown(), shifts: Type.Unknown(), voices: Type.Unknown(), closed: Type.Unknown() }),
+});
 
 /** The fate shifts as flat lines; an act end's evidence (the act's earlier shifts) is named by the order the shifts were written in. */
 function shifts(lines: readonly Record<string, unknown>[], seqOfShift: readonly number[]): readonly Record<string, unknown>[] {
@@ -178,24 +141,25 @@ const withoutSeq = (entry: unknown): unknown => (typeof entry === "object" && en
 async function compare(scenario: Scenario = BASE) {
 	const runtime = scripted(scenario);
 	const fresh = await playNew(spec(scenario, { runtime }));
-	const old = await playOld(scenario, fresh.seqs);
+	const answers = Array.from({ length: 40 }, (_unused, index) => scenario.answer(index));
+	const old = replayOld({ inputs: scenario.inputs, minutes: scenario.minutes, answers, seqs: fresh.seqs }, OldSide);
 	const newLines = flat(fresh.events, "weaver");
 	const newSeqs = fresh.events.filter((event) => event.source === "weaver").map((event) => event.seq);
-	const oldEvents = old.side.log.events.filter((event) => event.type === "fate_shift");
+	const oldEvents = old.fateShifts;
 	const oldLines = oldEvents.map((event) => Object.fromEntries(Object.entries(event).filter(([key]) => key !== "seq" && key !== "minute")));
-	return { fresh, runtime, old, newShifts: shifts(newLines, newSeqs), oldShifts: shifts(oldLines, oldEvents.map((event) => event.seq)) };
+	return { fresh, runtime, old, newShifts: shifts(newLines, newSeqs), oldShifts: shifts(oldLines, oldEvents.map((event) => Number(event.seq))) };
 }
 
 describe("the weaver overseer against the old weaver", () => {
 	it("asks with the old dossiers: the system prompt and, per touched resident, the same question text", async () => {
 		const { runtime, old } = await compare();
 		expect(runtime.asked.map((entry) => entry.call.system)).toEqual(runtime.asked.map(() => weaverSystemPrompt()));
-		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(old.model.questions.map(weaverPrompt));
-		expect(old.model.questions.length).toBeGreaterThan(12);
+		expect(runtime.asked.map((entry) => entry.call.input)).toEqual(old.questions.map(weaverPrompt));
+		expect(old.questions.length).toBeGreaterThan(12);
 		expect(runtime.asked.every((entry) => entry.call.slot === "weaver")).toBe(true);
 		// A name shows as the city shows it, and an act-end question is among them.
 		expect(runtime.asked.some((entry) => entry.call.input.includes("Maren"))).toBe(true);
-		expect(old.model.questions.some((question) => question.actEnd !== undefined)).toBe(true);
+		expect(old.questions.some((question) => question.actEnd !== undefined)).toBe(true);
 	});
 
 	it("writes the old fate shifts: kinds, texts, reasons, evidence, triggers; the caps; the act ends", async () => {
@@ -212,7 +176,7 @@ describe("the weaver overseer against the old weaver", () => {
 	it("reads hits like the old triggers: a DM only for its reader, a thought for nobody, allies of the exiled", async () => {
 		const { old } = await compare();
 		const hit = (agent: string, minute: number) =>
-			old.model.questions.filter((question) => question.resident === displayName(agent) && question.minute === minute).flatMap((question) => question.events.map((event) => event.text));
+			old.questions.filter((question) => question.resident === displayName(agent) && question.minute === minute).flatMap((question) => question.events.map((event) => event.text));
 		// Minute 1: the DM accusation hits A04 (its reader) and not A02; the board accusation hits A02; the thought hits nobody.
 		expect(hit("A04", 1)).toHaveLength(1);
 		expect(hit("A02", 1)).toHaveLength(1);
@@ -234,7 +198,7 @@ describe("the weaver overseer against the old weaver", () => {
 		for (const scenario of [BASE, CAPS]) {
 			const { fresh, old } = await compare(scenario);
 			const slice = recordOf(JSON.stringify(fresh.host.snapshot().overseers?.weaver?.slice?.data));
-			const legacy = old.weaver.snapshot();
+			const legacy = old.snapshot;
 			expect(slice.shifts).toEqual(recordsOf(legacy.shifts));
 			expect(slice.voices).toEqual(recordsOf(legacy.voices));
 			expect(slice.closed).toEqual(legacy.closed);
