@@ -50,7 +50,7 @@ export interface PromptAddendumFile {
 export const START_USAGE = [
 	"Usage: pnpm start [--story cityofkeys] [options]",
 	"",
-	"  --story <name>       story from the registry (default: cityofkeys)",
+	"  --story <name|file>  story from the registry (default: cityofkeys), or a YAML or JSON story file",
 	"  --agents <n>         number of competitors",
 	"  --minutes <n>        virtual minutes (= rounds)",
 	"  --seed <n>           run seed",

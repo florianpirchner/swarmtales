@@ -52,6 +52,7 @@ import {
 import { assignModels, classifierBackend, createGuardJudge, createSouffleur, judgeBackend, weaverBackend } from "@swarmtales/roles";
 import type { ModelChoice } from "@swarmtales/contracts";
 import { findStory, storyNames } from "../../../stories/index.ts";
+import { isStoryFile, readStoryFile } from "./swt/story-file.ts";
 import { parseStartArgs, START_USAGE, UsageError } from "./args.ts";
 import { assertPlayable, DEFAULT_LIMITS, effectiveRun, resumedOverrides } from "./run-options.ts";
 import { StoryValidationError } from "@swarmtales/sdk";
@@ -91,7 +92,14 @@ const snapshot: ResumePoint | undefined = (() => {
 })();
 if (args.preregistration !== undefined && !existsSync(args.preregistration)) fail(`No pre-registration file ${args.preregistration}`);
 const storyName = args.story ?? snapshot?.story ?? "cityofkeys";
-const story = findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}`);
+// A story is a registered name or, for a YAML or JSON story, the path of its file (docs/STORY-FORMAT.md).
+const story = (() => {
+	if (isStoryFile(storyName)) {
+		const parsed = readStoryFile(storyName);
+		return parsed.story ?? fail(`Story file ${storyName} is not valid:\n${parsed.issues.map((issue) => `  - ${issue}`).join("\n")}`);
+	}
+	return findStory(storyName) ?? fail(`Unknown story "${storyName}". Known: ${storyNames().join(", ")}, or a .yaml/.json story file`);
+})();
 const runOverrides = (() => {
 	if (snapshot === undefined) return args.overrides;
 	try {

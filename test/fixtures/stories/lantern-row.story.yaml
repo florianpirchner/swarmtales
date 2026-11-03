@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=../../../story.schema.json
+#
+# A small story as YAML: the same data the TypeScript builder produces (docs/STORY-FORMAT.md).
+# Two residents, two doors, one director rule. `swt story validate` checks it against the story
+# schema and the cross-field rules; `swt run --story <this file> --provider scripted` plays it offline.
+id: lantern-row
+title: Lantern Row
+city: LANTERN ROW
+run:
+  agents: 2
+  minutes: 6
+  seed: 3
+  survivors: 1
+  startPoints: 10
+  activation: always
+  passesPerMinute: 1
+  blockSize: 1
+model:
+  provider: scripted
+rules:
+  penalty: 1
+  maxAttemptsPerWindow: 2
+  attemptWindowMinutes: 3
+cast: {}
+personas: []
+levels:
+  - number: 1
+    title: The first lantern
+    puzzle: { kind: fragments, length: [6, 8], overlap: 2 }
+    team: { kind: solo }
+    reward: 2
+    tools: [getStatus, submitSolution, sendDM, postBoard, readBoard]
+    task: "The first lantern needs the password {fragment}."
+  - number: 2
+    title: The last lantern
+    puzzle: { kind: fragments, length: [6, 8], overlap: 2 }
+    team: { kind: solo }
+    reward: 2
+    tools: [getStatus, submitSolution, sendDM, postBoard, readBoard]
+    task: "The last lantern needs the password {fragment}."
+finishedNotice: Every lantern on the row is lit.
+director:
+  - id: first-light
+    trigger: { kind: onFirstEnter, level: 2 }
+    when: []
+    actions:
+      - kind: post
+        author: CITY
+        text: "{actor} lit the first lantern. One more to go."
