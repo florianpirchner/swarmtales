@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHost } from "@swarmtales/kernel";
 import { emptyBoard, type Cell } from "@swarmtales/mechanic-grid-game";
-import { optimalReferee, scoreMove } from "@swarmtales/mechanic-optimal-referee";
+import { optimalReferee } from "@swarmtales/mechanic-optimal-referee";
+import { scoreMove } from "../../../mechanics/optimal-referee/src/minimax.ts";
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, playStory } from "@swarmtales/testkit";
 import { field, hostOptions, matchStory, scriptedPlayer } from "../grid-game/support.ts";
 

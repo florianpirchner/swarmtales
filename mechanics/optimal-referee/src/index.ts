@@ -10,7 +10,6 @@ import { defineHead, defineMechanic } from "@swarmtales/kernel";
 import { emptyBoard, GridGameApi, GridGameEvents, type Cell, type Side } from "@swarmtales/mechanic-grid-game";
 import { scoreMove } from "./minimax.ts";
 
-export { scoreMove, type MoveClass, type Scored } from "./minimax.ts";
 
 const Value = Type.Integer({ minimum: -1, maximum: 1 });
 

@@ -17,12 +17,17 @@ const ROOT = resolve(import.meta.dirname, "..");
 const MECHANIC_IDS = [
 	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
+	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
 /** Which workspace packages each package may depend on (today's coarse layering; see the module README). */
 const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	...Object.fromEntries(MECHANIC_IDS.map((id) => [`@swarmtales/mechanic-${id}`, MECHANIC_DEPENDENCIES])),
+	// The tic-tac-toe mechanics use each other's published APIs (docs/ideas/tictactoe-teams.md §4).
+	"@swarmtales/mechanic-grid-game": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel"],
+	"@swarmtales/mechanic-optimal-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-grid-game"],
+	"@swarmtales/mechanic-strategy-brain": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-grid-game", "@swarmtales/mechanic-team-channel"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],

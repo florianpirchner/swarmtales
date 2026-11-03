@@ -21,7 +21,6 @@ import { GridGameApi, GridGameEvents } from "@swarmtales/mechanic-grid-game";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import { hashText, replaysMoves, wordCount } from "./text.ts";
 
-export { hashText, replaysMoves, wordCount } from "./text.ts";
 
 const WRITE = "writeBrain";
 /** A game with fewer moves than this is too short to count as "a game's move list". */

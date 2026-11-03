@@ -2,7 +2,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createHost, residentActor } from "@swarmtales/kernel";
-import { strategyBrain, replaysMoves, wordCount, hashText } from "@swarmtales/mechanic-strategy-brain";
+import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
+import { hashText, replaysMoves, wordCount } from "../../../mechanics/strategy-brain/src/text.ts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, idleAgent, playStory, scriptedAgent } from "@swarmtales/testkit";
 import type { CoreStory } from "@swarmtales/contracts";

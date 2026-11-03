@@ -19,7 +19,7 @@ import { emptyBoard, freeCells, GridSlice, linesOf, other, renderBoard, tallyOf,
 
 export { GridGameApi } from "./api.ts";
 export { GridGameEvents } from "./events.ts";
-export { emptyBoard, freeCells, linesOf, other, renderBoard, tallyOf, winnerOf, type Cell, type GameResult, type Result, type Side, type Tally } from "./model.ts";
+export { emptyBoard, freeCells, linesOf, other, winnerOf, type Cell, type Side } from "./model.ts";
 
 const PLAY_MOVE = "playMove";
 
