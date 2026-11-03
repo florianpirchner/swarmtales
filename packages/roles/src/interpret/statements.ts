@@ -18,6 +18,12 @@ export interface Statement {
 	readonly text: string;
 }
 
+/** Unlabelled statements and the conversation context, for run snapshots (SPEC 17). */
+export interface InterpreterSnapshot {
+	readonly pending: readonly Statement[];
+	readonly history: readonly { readonly conversation: string; readonly statements: readonly Statement[] }[];
+}
+
 /** The statement an event carries, if any; `isCompetitor` filters out the city's own voices. */
 export function statementOf(event: RecordedEvent, isCompetitor: (id: string) => boolean): Statement | undefined {
 	const base = { seq: event.seq, minute: event.minute };

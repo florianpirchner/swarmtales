@@ -10,11 +10,11 @@ import { Type, type Static } from "typebox";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isStatementSource } from "@swarmtales/legacy-log";
 import type { Statement } from "@swarmtales/roles";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
-import { DeciderStatementClassifier, Interpreter, overseers, type Classification, type StatementBatch, type StatementClassifier } from "@swarmtales/roles";
+import { replayOld } from "../helpers/old-engine.ts";
+import { DeciderStatementClassifier, overseers, type StatementBatch } from "@swarmtales/roles";
 import type { OverseerRuntime } from "@swarmtales/contracts";
 import { scriptedOverseer } from "@swarmtales/testkit";
-import { displayName, legacyInputs, newHost, oldBus, playInputs, type Input, type NewSpec } from "./harness.ts";
+import { newHost, playInputs, type Input, type NewSpec } from "./harness.ts";
 
 const MODEL: ClassifierModel<"fake-decider"> = {
 	type: "classifier",
@@ -99,29 +99,7 @@ async function played(inputs: readonly Input[]) {
 	await playInputs(host, newSpec, 0, 2, seqs);
 	const calls = scripted.asked.map((entry) => entry.call);
 
-	const playOldBatches = async (): Promise<unknown> => {
-	const side = oldBus();
-	const batches: StatementBatch[] = [];
-	const classifier: StatementClassifier = {
-		label: "fake/decider",
-		classify(batch): Promise<Classification> {
-			batches.push(batch);
-			return Promise.resolve({ verdicts: [], usage: [], errors: [] });
-		},
-	};
-	const interpreter = new Interpreter({ classifier, bus: side.bus, competitors: ["A01", "A02", "A03", "A04"], minute: () => side.minute, nameOf: (agent) => (agent === "A02" ? displayName(agent) : undefined) });
-	const events = legacyInputs(newSpec, seqs);
-	for (let minute = 0; minute < 2; minute++) {
-		side.minute = minute;
-		for (const [index, input] of inputs.entries()) {
-			const event = events[index];
-			if (input.minute === minute && event !== undefined) interpreter.record(event);
-		}
-		await interpreter.afterRound(minute + 1);
-	}
-	return batches.map((batch) => ({ ...batch, names: [...(batch.names ?? [])] }));
-	};
-	const batches = batchesOf(await oldRunAsync({ inputs, seqs }, WireBatches, playOldBatches));
+	const batches = batchesOf(replayOld({ inputs, seqs }, WireBatches));
 	return { host, calls, batches };
 }
 

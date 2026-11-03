@@ -18,6 +18,9 @@ import type { ThinkingLevel } from "@swarmtales/contracts";
 import type { ClassifierUsage } from "./classifier.ts";
 import { render, text } from "@swarmtales/prompts";
 
+/** How an inner voice opens in a step's inputs. */
+export const INNER_VOICE_HEAD = render("weaver/inner-voice", { text: "\u0000" }).split("\u0000")[0] ?? "";
+
 /** ID of the weaver in usage records. */
 export const WEAVER_ID = "WV";
 

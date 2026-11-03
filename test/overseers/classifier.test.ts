@@ -1,5 +1,5 @@
 /**
- * The classifier as an overseer against the old interpreter (docs/design/overseer-api.md §1.5, step 18
+ * The classifier as an overseer against the old interpreter (recorded in test/fixtures/old-engine; docs/design/overseer-api.md §1.5, step 18
  * wave C1): the same events (with the same `seq`), the same scripted answers, so the same prompts
  * (system and per batch), the same `interpretation`, `interpretation_round` and `interpretation_error`
  * events, in the same order. The new side is a real host with the overseer and a scripted runtime.
@@ -7,10 +7,10 @@
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
 import { text } from "@swarmtales/prompts";
-import { classifierPrompt, classifierSystemPrompt, Interpreter, overseers, type Classification, type StatementBatch, type StatementClassifier } from "@swarmtales/roles";
+import { classifierSystemPrompt, overseers } from "@swarmtales/roles";
 import { scriptedOverseer, type OverseerScript } from "@swarmtales/testkit";
-import { oldRunAsync } from "../helpers/old-engine-recorder.ts";
-import { bare, displayName, flat, legacyInputs, newHost, oldBus, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
+import { replayOld } from "../helpers/old-engine.ts";
+import { flat, newHost, playInputs, playNew, type Input, type NewSpec } from "./harness.ts";
 
 const LABEL = "test/classifier";
 const PEOPLE = ["A01", "A02", "A03", "A04"];
@@ -62,33 +62,7 @@ function spec(extra: Partial<NewSpec> = {}): NewSpec {
 	return { inputs: SCRIPT, minutes: 4, residents: 4, overseers: [overseers.classifierOverseer.as("classifier", { label: LABEL })], names: true, ...extra };
 }
 
-/** The old side: the interpreter with a classifier that answers by the same rule (or fails the chosen calls). */
-async function playOld(seqs: readonly number[], failOn: readonly number[]) {
-	const side = oldBus();
-	const batches: StatementBatch[] = [];
-	const classifier: StatementClassifier = {
-		label: LABEL,
-		classify(batch): Promise<Classification> {
-			const n = batches.length;
-			batches.push(batch);
-			if (failOn.includes(n)) return Promise.resolve({ verdicts: [], usage: [], errors: ["boom"] });
-			const items = itemsFor(batch.statements.map((statement) => statement.seq));
-			return Promise.resolve({ verdicts: items.map((item) => ({ seq: item.ref, labels: item.labels, targets: item.targets ?? [] })), usage: [], errors: [] });
-		},
-	};
-	const interpreter = new Interpreter({ classifier, bus: side.bus, competitors: PEOPLE, minute: () => side.minute, nameOf: (agent) => (agent === "A02" ? displayName(agent) : undefined) });
-	const inputs = legacyInputs(spec(), seqs);
-	for (let minute = 0; minute < 4; minute++) {
-		side.minute = minute;
-		for (const [index, input] of SCRIPT.entries()) {
-			const event = inputs[index];
-			if (input.minute === minute && event !== undefined) interpreter.record(event);
-		}
-		await interpreter.afterRound(minute + 1);
-	}
-	return { events: side.log.events.map(bare), prompts: batches.map((batch) => classifierPrompt(batch, 1_500)), sizes: batches.map((batch) => batch.statements.length) };
-}
-
+/** The old interpreter's side, recorded: its log lines (without numbers), the prompt of each batch and the size of each batch. */
 const OldSide = Type.Object({ events: Type.Array(Type.Record(Type.String(), Type.Unknown())), prompts: Type.Array(Type.String()), sizes: Type.Array(Type.Number()) });
 
 function runtimeFor(failOn: readonly number[]) {
@@ -103,7 +77,7 @@ function runtimeFor(failOn: readonly number[]) {
 async function compare(failOn: readonly number[]) {
 	const runtime = runtimeFor(failOn);
 	const fresh = await playNew(spec({ runtime }));
-	const old = await oldRunAsync({ failOn, seqs: fresh.seqs, script: SCRIPT }, OldSide, () => playOld(fresh.seqs, failOn));
+	const old = replayOld({ failOn, seqs: fresh.seqs, script: SCRIPT }, OldSide);
 	return { fresh, runtime, ...old };
 }
 

@@ -5,7 +5,7 @@
  *
  * - **Statements.** At each firing it reads the log since its last look (a cursor in its state),
  *   keeps the statements of the minute (thoughts, asides, DMs, board, group and cast posts) and
- *   cuts them into batches of at most {@link BATCH_MAX}; each batch is one call, with the earlier
+ *   cuts them into batches of at most {@link MAX_BATCH_STATEMENTS}; each batch is one call, with the earlier
  *   messages of its conversations as context. The model answers through the `label` tool.
  * - **Events.** `settle` collects the answers; after the last batch it writes one
  *   `interpretation` per labelled statement and, when no batch failed, `interpretation_round`;
@@ -30,9 +30,9 @@ export const LABELS = ["promise", "offer", "threat", "refusal", "lie", "hesitati
 export type Label = (typeof LABELS)[number];
 
 /** Earlier messages kept per conversation (DM pair or group) as context for its replies. */
-const CONTEXT_MESSAGES = 4;
+export const CONTEXT_MESSAGES = 4;
 /** Most statements in one call (v08, scale): a round of 48 residents can hold a hundred and more. */
-const BATCH_MAX = 60;
+export const MAX_BATCH_STATEMENTS = 60;
 
 const Items = Type.Object({
 	items: Type.Array(
@@ -111,7 +111,7 @@ function isLabel(value: string): value is Label {
 }
 
 function chunked(statements: readonly Statement[]): readonly (readonly Statement[])[] {
-	return Array.from({ length: Math.ceil(statements.length / BATCH_MAX) }, (_unused, index) => statements.slice(index * BATCH_MAX, (index + 1) * BATCH_MAX));
+	return Array.from({ length: Math.ceil(statements.length / MAX_BATCH_STATEMENTS) }, (_unused, index) => statements.slice(index * MAX_BATCH_STATEMENTS, (index + 1) * MAX_BATCH_STATEMENTS));
 }
 
 /** The newest `overseer_answered` of `self`: whether the model answered, and why not. */

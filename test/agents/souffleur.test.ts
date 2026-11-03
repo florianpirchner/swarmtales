@@ -1,10 +1,9 @@
 import { fauxAssistantMessage } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
-import { AgentRunner, isSafeguardRefusal, LOST_INPUTS, rewriteProblem, type Souffleur } from "@swarmtales/roles";
-import { DEFAULT_LIMITS } from "../../apps/cli/src/run-options.ts";
-import type { RecordedEvent } from "@swarmtales/legacy-log";
-import { EventBus } from "@swarmtales/legacy-log";
+import type { Turn } from "@swarmtales/contracts";
+import { isSafeguardRefusal, HostResidentRunner, LOST_INPUTS, rewriteProblem, type Souffleur } from "@swarmtales/roles";
 import { say, ScriptedModelSource } from "@swarmtales/models";
+import { RESIDENT_LIMITS } from "../../apps/cli/src/host/residents.ts";
 
 const REFUSAL = "This request triggered cyber-related safeguards. To learn about the Cyber Verification Program ...";
 
@@ -12,21 +11,43 @@ function refused() {
 	return fauxAssistantMessage("", { stopReason: "error", errorMessage: REFUSAL });
 }
 
+interface Line {
+	readonly type: string;
+	readonly [field: string]: unknown;
+}
+
 function fixture(responses: ReturnType<typeof say>[], souffleur?: Souffleur) {
-	const events: RecordedEvent[] = [];
-	const bus = new EventBus([{ record: (event) => events.push(event) }], () => 9);
-	const runner = new AgentRunner({
+	const events: Line[] = [];
+	const record = (type: string, payload: unknown): void => {
+		events.push({ type, ...(typeof payload === "object" && payload !== null ? Object.fromEntries(Object.entries(payload)) : {}) });
+	};
+	const runner = new HostResidentRunner({
 		id: "A01",
 		systemPrompt: "You play.",
 		tools: [],
-		binding: new ScriptedModelSource({ A01: responses }).bind("A01", DEFAULT_LIMITS),
-		bus,
+		binding: new ScriptedModelSource({ A01: responses }).bind("A01", RESIDENT_LIMITS),
 		thinking: "off",
-		enabledTools: () => [],
-		minute: () => 9,
+		record,
+		openTools: () => [],
 		...(souffleur === undefined ? {} : { souffleur }),
 	});
-	const step = (...texts: string[]) => runner.step(texts.map((text) => ({ kind: "notice" as const, text })), { pass: 1, block: 1, turn: Promise.resolve() });
+	const step = (...texts: string[]) => {
+		const turn: Turn = {
+			resident: "A01",
+			minute: 9,
+			pass: 1,
+			block: 1,
+			inputs: texts.map((text) => ({ source: "test", text })),
+			tools: [],
+			ready: Promise.resolve(),
+			call: () => Promise.reject(new Error("no tool is called here")),
+			record: (type, payload) => {
+				record(type, payload);
+				return Promise.resolve();
+			},
+		};
+		return runner.step(turn, []);
+	};
 	const userTexts = () => runner.snapshot().flatMap((message) => (message.role === "user" && typeof message.content === "string" ? [message.content] : []));
 	return { events, runner, step, userTexts };
 }

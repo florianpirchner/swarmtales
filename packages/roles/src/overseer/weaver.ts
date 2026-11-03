@@ -30,9 +30,9 @@ import { worthALook } from "./gamemaker.ts";
 import { OVERSEER_ORDER } from "./order.ts";
 
 /** Inner voices per resident and act. */
-const MAX_SOFT = 6;
+export const MAX_SOFT = 6;
 /** Rewrites of the character per resident and act (the act's end does not count). */
-const MAX_HARD = 2;
+export const MAX_HARD = 2;
 /** Characters of the weaver's text (about three short sentences); a longer one is cut in code, not refused. */
 const TEXT_MAX = 600;
 /** Characters of the weaver's reason (for the run's record, never the gamemaker); a longer one is cut in code. */
