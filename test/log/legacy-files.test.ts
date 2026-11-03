@@ -5,7 +5,7 @@
  * snapshots, which also resume a host whose mechanics are all testkit stand-ins.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { convertLegacySnapshot, envelopeFromLegacy, eventsOfType, LegacyEventAdapter, legacyLine, legacyStamp, parseEventLog, readCharacters, toLegacySnapshot } from "@swarmtales/chronicle";
 import { createHost, defineCoreStory } from "@swarmtales/kernel";
@@ -19,7 +19,8 @@ function runLogs(): readonly string[] {
 	const stories = readdirSync(join(ROOT, "stories"), { withFileTypes: true })
 		.filter((entry) => entry.isDirectory() && existsSync(join(ROOT, "stories", entry.name, "runs")))
 		.flatMap((entry) => readdirSync(join(ROOT, "stories", entry.name, "runs")).map((run) => join("stories", entry.name, "runs", run, "run", "events.jsonl")));
-	return [...examples, ...stories].filter((path) => existsSync(join(ROOT, path))).sort();
+	// A run with a signed chain beside it was written by the new host: it is no old file.
+	return [...examples, ...stories].filter((path) => existsSync(join(ROOT, path)) && !existsSync(join(ROOT, dirname(path), "events.chain.jsonl"))).sort();
 }
 
 const SNAPSHOTS = readdirSync(join(ROOT, "examples"))
