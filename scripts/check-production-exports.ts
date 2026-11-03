@@ -44,7 +44,7 @@ function withoutBuildOutput<T>(run: () => T): T {
 	}
 }
 
-const raw = withoutBuildOutput(() => execFileSync("pnpm", ["exec", "knip", "--config", "knip.production.json", "--production", "--include-entry-exports", "--no-exit-code", "--reporter", "json"], { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
+const raw = withoutBuildOutput(() => execFileSync(process.execPath, [join(ROOT, "node_modules", "knip", "bin", "knip.js"), "--config", "knip.production.json", "--production", "--include-entry-exports", "--no-exit-code", "--reporter", "json"], { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
 const report = Parse(Report, JSON.parse(raw.slice(raw.indexOf("{"))));
 const found = report.issues.flatMap((issue) => [...issue.exports, ...issue.types].map((entry) => `${issue.file}: ${entry.name}`)).sort();
 

@@ -5,7 +5,7 @@ export const libraryConfig: UserConfig = {
 	entry: ["src/index.ts"],
 	format: "esm",
 	platform: "node",
-	target: "node22",
+	target: "node26",
 	dts: true,
 	clean: true,
 	sourcemap: false,

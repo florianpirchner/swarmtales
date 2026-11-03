@@ -33,4 +33,25 @@ describe("RecordedTrace", () => {
 			short.step("tick");
 		}).toThrow("the trace: answer 2 was recorded for nothing, not tick");
 	});
+
+	it("answers a run of comparator questions in any order and as often as asked, then goes on in order", () => {
+		const sorted = [
+			{ label: "isExiled A02", value: false },
+			{ label: "isExiled A01", value: true },
+			{ label: "isExiled A02", value: false },
+			{ label: "tick", value: undefined },
+		];
+		const trace = new RecordedTrace({ where: "the trace", entries: sorted });
+		expect(trace.readUnordered("isExiled ", "isExiled A01", Type.Boolean())).toBe(true);
+		expect(trace.readUnordered("isExiled ", "isExiled A01", Type.Boolean())).toBe(true);
+		expect(trace.readUnordered("isExiled ", "isExiled A02", Type.Boolean())).toBe(false);
+		expect(() => trace.readUnordered("isExiled ", "isExiled A03", Type.Boolean())).toThrow("the trace: the run of answers from 1 holds no isExiled A03");
+		trace.step("tick");
+		trace.done();
+	});
+
+	it("refuses a run whose answers to one question disagree", () => {
+		const trace = new RecordedTrace({ where: "the trace", entries: [{ label: "isExiled A01", value: false }, { label: "isExiled A01", value: true }] });
+		expect(() => trace.readUnordered("isExiled ", "isExiled A01", Type.Boolean())).toThrow("the trace: answer 2 (isExiled A01) differs from an earlier answer in its run");
+	});
 });

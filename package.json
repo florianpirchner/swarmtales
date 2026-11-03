@@ -6,14 +6,14 @@
   "type": "module",
   "description": "Swarm Tales: AI agent swarms play through stories in acts; their logs become novellas. Built on pi-ai and pi-agent-core",
   "engines": {
-    "node": ">=22.19"
+    "node": ">=26.13"
   },
   "scripts": {
     "start": "tsx --conditions=development apps/cli/src/main.ts",
     "swt": "tsx --conditions=development apps/cli/src/swt.ts",
     "typecheck": "tsc -b",
     "lint": "node --max-old-space-size=12288 node_modules/eslint/bin/eslint.js .",
-    "test": "vitest --run --exclude '.claude/**' --exclude '**/node_modules/**'",
+    "test": "vitest --run --testTimeout=30000 --maxWorkers=50% --exclude '.claude/**' --exclude '**/node_modules/**'",
     "validate": "tsx --conditions=development apps/cli/src/validate.ts",
     "check:packages": "tsx scripts/check-packages.ts",
     "knip": "knip",
@@ -69,7 +69,7 @@
     "@swarmtales/roles": "workspace:*",
     "@swarmtales/sdk": "workspace:*",
     "@swarmtales/testkit": "workspace:*",
-    "@types/node": "^22.10.0",
+    "@types/node": "^26.6.6",
     "eslint": "^9.39.5",
     "knip": "6.44.0",
     "tsdown": "0.23.4",
@@ -77,10 +77,5 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.72.1",
     "vitest": "^3.2.4"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
