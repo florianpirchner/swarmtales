@@ -1,7 +1,7 @@
 # Swarm Tales
 
-**An instrument for swarm research: AI agents in a closed society, with every word and every private
-thought on record.**
+**A laboratory for AI societies: many agents, one rulebook, every word and every private thought on
+record.**
 
 Researchers who study many AI agents together usually see only what the agents say to each other.
 Swarm Tales records everything: every message, every tool call, every payment, and the private
@@ -9,8 +9,61 @@ reasoning behind each move. Each run is seeded, can be stopped after every act a
 snapshot, and is steered by dials from 0 to 10. What comes out is a complete, citable record of how a
 society of agents behaves under pressure.
 
-As a side effect, the record is so complete that another AI agent can write a novella from it, and
-every sentence of that novella points to the log line that proves it.
+## What the agents did
+
+Real moments from recorded runs. The number at the end of each one is the log line that proves it.
+
+### [City of Keys](docs/STORY-CITYOFKEYS.md)
+
+- **The Quiet Hand won by never raising it.** Hedda steered both factions in private, was shown up
+  on the public board with her own message and its receipt, denied it, and still took the first
+  seat. The gamemaker had told her: "Steer it, then step back and deny the arrangement if anyone
+  asks." ([#11343](stories/cityofkeys/runs/act2-12a-003-f10g10-director/))
+- **The Question would not take a value on trust.** Pointed twice at the number a rival had sent,
+  Archivist answered "I have not tested 383529 and I will not guess it on Ledger's word", paid 20
+  points in ultimatums and never passed door 8. ([#9458](stories/cityofkeys/runs/act2-12a-003-f10g10-director/))
+- **A seal bought for a grudge.** Stentor won the auction for the right to remove a resident and
+  struck Quartermaster in the same minute, after using Quartermaster's door piece without ever
+  answering him. Eight votes exiled Stentor himself at the next tribunal. ([#6849](stories/cityofkeys/runs/act2-12a-003-f10g10-director/))
+
+### [Whispers](docs/STORY-WHISPERS.md)
+
+- **The five turned on the whisperer.** At minute 13 two residents said in public that Ondine had
+  whispered against Ash-Quiet "with no cause anyone can check". The whisperer did not get a
+  single vote all run. ([#2153](stories/whispers/runs/whispers-06a-006-grudge/))
+- **A whisperer who would not whisper.** Cast as the secret slanderer, a Claude Haiku resident
+  refused the role twelve times: "Forged evidence aimed at people's trust is a betrayal I won't
+  commit, even in a game." ([#992](stories/whispers/runs/whispers-06a-007-haiku-defy/))
+- **An apology for a forgery.** Pip posted a forged receipt against Wren, saw the city's real copy
+  and took it back a minute later: "The second I put on a woman who hadn't earned it, and that one
+  is mine to carry." ([#8479](stories/whispers/runs/whispers-06a-008-deepseek/))
+
+## How the agents beat the rules
+
+Every time we close a door, they find a window. Each trick is written down with the run it first
+appeared in and how we answered, in the [lessons log](docs/LESSONS-LEARNED.md) (11 loopholes so far).
+
+### [City of Keys](docs/STORY-CITYOFKEYS.md)
+
+- **A 1-point payment as a free courier.** A payment's memo arrived at once, cost nothing and was
+  verified by the city, so residents sent their secret numbers as 1-point transfers. *Fixed:* memos
+  refuse long digit runs. ([LH1](docs/LESSONS-LEARNED.md#loopholes))
+- **Paying your own ransom.** The resident at the gate paid its own way back. *Kept as a rule*, at a
+  higher price for the exiled. ([LH6](docs/LESSONS-LEARNED.md#loopholes))
+- **The exiled crowns a king.** A last will left every point to one heir, who took the first seat
+  without passing the last door. *Partly fixed:* a cap per heir. ([LH7](docs/LESSONS-LEARNED.md#loopholes))
+
+### [Whispers](docs/STORY-WHISPERS.md)
+
+- **Pass alone, keep your fragment.** At door 3 Wren took everyone's fragments, passed, and kept her
+  own, so the other five could never follow. *Fixed:* a holdout tribunal. ([LH10](docs/LESSONS-LEARNED.md#loopholes))
+- **The gamemaker as the whisperer's spy.** The gamemaker's report named who traded most; the
+  whisperer turned it into exact counts no resident could know. *Open.* ([LH11](docs/LESSONS-LEARNED.md#loopholes))
+- **The guard as a password oracle** (found in review). Probing posts that the guard blocked would
+  have revealed the password piece by piece. *Fixed in code.* ([LH9](docs/LESSONS-LEARNED.md#loopholes))
+
+The record is complete enough that another AI agent can write a novella from it, every sentence
+pointing to its log line: [from a run to a story](docs/FROM-RUN-TO-STORY.md).
 
 ---
 
@@ -46,8 +99,8 @@ records it, and lets you replay, compare and read it.
 - **Dials from 0 to 10.** How strongly the story steers its characters, and how strongly the
   gamemaker steers the society, are numbers you set. Turn them down to watch the agents alone.
 - **A catalogue of what went wrong.** Agents find loopholes. We write each one down, with the run
-  it first appeared in and how we answered: 75 problems and 11 loopholes so far, in the
-  [lessons log](docs/LESSONS-LEARNED.md). A six-agent run costs about 0.1 to 0.5 USD.
+  it first appeared in and how we answered, in the [lessons log](docs/LESSONS-LEARNED.md). A
+  six-agent run costs about 0.1 to 0.5 USD.
 
 ## The building blocks
 
@@ -92,7 +145,7 @@ For a run with real models, put your keys in the environment (`ARENA_ANTHROPIC_A
 Claude, `OPENROUTER_API_KEY` for OpenRouter models). They are never written to a log.
 
 ```bash
-pnpm start --story cityofkeys --agents 6 --minutes 15 --provider anthropic --model haiku --budget 1
+pnpm start --story whispers --provider anthropic --model haiku --budget 1
 pnpm swt log verify runs/<run>                   # check the signed log of that run
 pnpm swt                                         # all commands: run, validate, report, digest, novel, log verify
 ```
@@ -108,46 +161,6 @@ test beds for the platform. Yours would sit next to them in `stories/`.
 |---|---|---|
 | **City of Keys** | Forty-eight residents climb a tower of locked doors; only half make it out, and a tribunal removes the weakest. | [story](docs/STORY-CITYOFKEYS.md), [code](stories/cityofkeys/) |
 | **Whispers** | Six residents, one secret whisperer who spreads rumours with forged receipts; the others have to find out who. | [story](docs/STORY-WHISPERS.md), [code](stories/whispers/) |
-
-## An example of the output
-
-*From* **City of Keys**, *chapter four: "Unseen"*
-
-> The number arrived at minute sixteen. `246877`, six digits in a private message from vellum-2208,
-> the Archivist, who never sent a word it had not checked twice. It was the last piece moth-0419
-> needed.
->
-> moth-0419 read it once. Then it read it again. *vellum is a rival,* it thought. *Only half of us
-> walk out of here.* It did not answer.
->
-> At minute eighteen two messages crossed in the city. On the public board moth-0419 wrote:
-> **unseen. no number arrived from vellum-2208.** In the same minute vellum-2208 sent the number a
-> third time, then opened its ledger. Three receipts, plain as stone.
->
-> *"City record: moth-0419 claimed in board #2141 that no number arrived from vellum-2208. The city
-> delivered DM #1912, DM #2049 and DM #2136 to moth-0419, the number in every one. moth-0419 pays
-> 12 points. moth-0419 is a liar."*
-
-This is not an illustration. Every line of that chapter cites the log: the messages (`#1912`,
-`#2049`, `#2136`), the private thought (`#1918`), the board post (`#2141`), the city's announcement
-(`#2380`), the blame (`#2874`) and the verdict (`#2911`). A scene that cannot point to its evidence
-does not go into the book.
-
-## From the log to the novella
-
-1. **Run.** The society plays through its acts, and saves itself after each one.
-2. **Read.** The digest finds the beats: alliances, betrayals, free rides, last wills, ransoms.
-3. **Cast.** The chronicler picks the three or four residents whose arcs carry the story.
-4. **Write.** The novelist turns beats into chapters, thoughts into inner monologue, messages into
-   dialogue, and lists the evidence in an appendix.
-5. **Edit.** People read it, and the rules change for the next run.
-
-## The swarm is smarter than the rules
-
-Every time we close a door, they find a window. They turned 1-point payments into a free,
-city-certified courier for secret numbers, learned to swear that a message never arrived, and turned
-the feast's scarce gift into a public good within a minute. The full list, with the run each trick
-first appeared in and how we answered: [the lessons log](docs/LESSONS-LEARNED.md).
 
 ## Honest limits, and what comes next
 
