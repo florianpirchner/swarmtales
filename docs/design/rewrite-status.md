@@ -286,6 +286,7 @@ resume after S18-10.
 
 ## Open, in this order
 
+0. **PRIORITY HIGH (Flo, 2026-11-03): tool naming, next after the tic-tac-toe teams work.** Canonical tool names with package + mechanic + tool, a deterministic model-facing alias, load error on duplicate definitions. Idea paper (decisions open, no build before Flo's go): [`docs/ideas/tool-naming.md`](../ideas/tool-naming.md).
 1. **Round 3 challengers are done** (reports: `/mnt/project-files/notes/challenge-round3-*.md`). Golden logs are safe in every
    team's area. Code blockers (one Sonnet agent fixes them): the DM count in `whispers` `dutyNow.busiest`, the active cast in
    progression's `listAgents` (`CastExtrasApi.active` into `mechanics/shared`), the wrong `defiance` mapping in R2-D5/R2-D17

@@ -272,6 +272,8 @@ reference score.
 
 ## 5. Ranking and recommendation
 
+**Priority note (Flo, 2026-11-03):** right after tic-tac-toe teams comes the **tool naming** work ([tool-naming.md](tool-naming.md), HIGH), before any game in the table below, because third-party mechanics will collide on tool names such as `say`.
+
 Ranked by value for the research question (does a memory make a team better, and what does it
 learn) divided by effort and risk, assuming the tic-tac-toe prerequisites exist.
 
