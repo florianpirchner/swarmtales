@@ -40,7 +40,7 @@ function userTexts(runner: HostResidentRunner): readonly string[] {
 }
 
 describe("context reset", () => {
-	it("makes no request for a turn without input (P76: the context ends with the resident\'s own answer)", async () => {
+	it("makes no request for a turn without input (P76: the context ends with the resident's own answer)", async () => {
 		const { runner, events } = runnerOf(2);
 		await runner.step(turn(0, [plain("game 1, move 1")]), []);
 		const before = events.filter((event) => event.type === "request").length;
