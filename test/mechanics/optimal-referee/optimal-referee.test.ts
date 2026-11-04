@@ -82,3 +82,34 @@ describe("the mechanic in a match", () => {
 		expect(await checkSnapshotRoundTrip(hostOptions(story()), () => scriptedPlayer(only), 2)).toEqual([]);
 	});
 });
+
+describe("the minimax on 4x4 with four in a row", () => {
+	it("calls every opening move optimal because the empty board is a draw", () => {
+		expect(scoreMove(emptyBoard(4), 4, 4, "X", 5, 16)).toBeUndefined();
+		expect(scoreMove(emptyBoard(4), 4, 4, "X", 0, 16)).toBeUndefined();
+	});
+
+	it("finds a missed win and a missed block", () => {
+		// X X X . / O O . . / . . . . with X to move: cell 3 wins at once.
+		const win = board("XXX.OO..........");
+		expect(scoreMove(win, 4, 4, "X", 3, 16)).toMatchObject({ valueBefore: 1, valueAfter: 1, class: "optimal" });
+		expect(scoreMove(win, 4, 4, "X", 15, 16)).toMatchObject({ valueBefore: 1, valueAfter: 0, class: "missed_win" });
+		// O to move against the open three X X X . : only cell 3 holds.
+		const threat = board("XXX.O.O.........");
+		expect(scoreMove(threat, 4, 4, "O", 3, 16)?.class).toBe("optimal");
+		expect(scoreMove(threat, 4, 4, "O", 15, 16)).toMatchObject({ valueAfter: -1, class: "missed_block" });
+	});
+
+	it("scores a whole game from the empty board fast", () => {
+		const moves = [5, 6, 9, 10, 0, 15, 3, 12, 1, 2, 4, 8, 7, 11, 13, 14];
+		const play = emptyBoard(4);
+		const started = performance.now();
+		let side: "X" | "O" = "X";
+		for (const cell of moves) {
+			scoreMove(play, 4, 4, side, cell, 16);
+			play[cell] = side;
+			side = side === "X" ? "O" : "X";
+		}
+		expect(performance.now() - started).toBeLessThan(10_000);
+	});
+});

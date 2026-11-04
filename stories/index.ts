@@ -5,6 +5,8 @@ import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
 const tictactoeNobrain = tictactoeEntry({ brain: false });
+const tictactoe4x4 = tictactoeEntry({ size: 4, line: 4 });
+const tictactoe4x4Nobrain = tictactoeEntry({ size: 4, line: 4, brain: false });
 
 export const DEFAULT_STORY = "cityofkeys";
 
@@ -55,6 +57,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"tictactoe-teams": tictactoeTeams,
 	// The control arm: the same briefings, no strategy brain and no retro.
 	"tictactoe-teams-nobrain": tictactoeNobrain,
+	// The 4x4 board with four in a row (a draw with best play), with and without the brain.
+	"tictactoe-teams-4x4": tictactoe4x4,
+	"tictactoe-teams-4x4-nobrain": tictactoe4x4Nobrain,
 };
 
 export function coreStoryNames(): readonly string[] {
