@@ -9,12 +9,19 @@ export const CELLS: Readonly<Record<number, readonly number[]>> = {
 	3: [0, 3, 1, 4, 8, 5],
 };
 
+/** The 4x4 match: game 1 X wins the top row, game 2 (O starts) O wins the left column, game 3 fills the board without four in a row. */
+export const CELLS_4X4: Readonly<Record<number, readonly number[]>> = {
+	1: [0, 4, 1, 5, 2, 6, 3],
+	2: [0, 1, 4, 2, 8, 3, 12],
+	3: [0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 11, 10, 13, 12, 15, 14],
+};
+
 const texts = (turn: Turn): string => turn.inputs.map((note) => note.text).join("\n");
 
 /** The brain a retro captain writes after `game` (0: before the first game). */
 export const brainFor = (team: string, game: number): string => `Team ${team} brain after game ${String(game)}: take the centre when it is free, block any two in a row, and if the opponent holds a corner answer with the opposite corner.`;
 
-export function ticTacToePlayer(): TurnTaker {
+export function ticTacToePlayer(cells: Readonly<Record<number, readonly number[]>> = CELLS, size = 3): TurnTaker {
 	return async (turn) => {
 		const told = texts(turn);
 		const team = ["A01", "A02", "A03"].includes(turn.resident) ? "X" : "O";
@@ -34,8 +41,8 @@ export function ticTacToePlayer(): TurnTaker {
 		const captain = /Captain of the turn: (A\d+)\./.exec(view.reply)?.[1];
 		const side = /Side to move: ([XO])\./.exec(view.reply)?.[1];
 		if (side !== team) return;
-		const marks = (view.reply.split("\n").slice(0, 3).join("").match(/[XO]/g) ?? []).length;
-		const cell = CELLS[game]?.[marks];
+		const marks = (view.reply.split("\n").slice(0, size).join("").match(/[XO]/g) ?? []).length;
+		const cell = cells[game]?.[marks];
 		if (cell === undefined) return;
 		if (turn.resident === captain) {
 			const agreed = /agreed on (\d+)/.exec(told)?.[1];
