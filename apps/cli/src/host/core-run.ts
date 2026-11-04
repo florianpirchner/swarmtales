@@ -62,6 +62,8 @@ export interface CoreComposeOptions {
 	readonly models: ModelSource | ((host: Host) => ModelSource);
 	/** Replaces the entry's model in the profiles that `agent_profile` logs (the source itself is `models`). */
 	readonly modelOverride?: ModelChoice;
+	/** Per-resident models for the `agent_profile` events (a resident not listed gets `modelOverride` or the entry's). */
+	readonly residentChoices?: ReadonlyMap<ResidentId, ModelChoice>;
 	readonly sinks: readonly EventSink[];
 	readonly limits?: RequestLimits;
 	readonly thinking?: ThinkingLevel;
@@ -146,7 +148,8 @@ export function composeCoreRun(options: CoreComposeOptions): CoreComposedRun {
 				},
 			}),
 		);
-		host.record(actor, "agent_profile", { agent: id, provider: model.provider, model: model.id ?? "-" });
+		const own = options.residentChoices?.get(id) ?? model;
+		host.record(actor, "agent_profile", { agent: id, provider: own.provider, model: own.id ?? "-" });
 	}
 
 	const take: TurnTaker = (turn) => {

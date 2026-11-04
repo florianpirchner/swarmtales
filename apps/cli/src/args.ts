@@ -17,6 +17,8 @@ export interface StartArgs {
 	readonly model?: string;
 	/** `tool_choice` sent with every resident request (`--tool-choice`, ARENA_TOOL_CHOICE). */
 	readonly toolChoice?: ToolChoice;
+	/** `--resident-model`: a model for some residents of a core story; the others use `provider` / `model`. */
+	readonly residentModels?: readonly ResidentModelFlag[];
 	readonly gamemakerProvider?: string;
 	readonly gamemakerModel?: string;
 	readonly classifierProvider?: string;
@@ -45,6 +47,13 @@ export interface StartArgs {
 	readonly preregistration?: string;
 }
 
+/** One `--resident-model A04,A05=openrouter/google/gemma-4-26b-a4b-it`: the model string is split at its first slash. */
+export interface ResidentModelFlag {
+	readonly residents: readonly string[];
+	readonly provider: string;
+	readonly model: string;
+}
+
 export interface PromptAddendumFile {
 	readonly agent?: string;
 	readonly file: string;
@@ -60,6 +69,8 @@ export const START_USAGE = [
 	"  --provider <id>      openrouter | anthropic | deepseek | zai | scripted | custom",
 	"  --model <id>         provider model ID or alias (e.g. glm-flash, haiku)",
 	"  --tool-choice <c>    auto | required | none: tool_choice of the residents' requests (default: ARENA_TOOL_CHOICE, else the provider's)",
+	"  --resident-model <ids>=<provider>/<model>  core stories: these residents (comma-separated, e.g. A04,A05,A06) use that model, split at the first '/'",
+	"                       (e.g. A04,A05,A06=openrouter/google/gemma-4-26b-a4b-it); repeatable; the others use --provider/--model; --tool-choice applies to all",
 	"  --level <n>          start every competitor on level n, then keep playing",
 	"  --only <n>           play only level n and stop once everyone passed it",
 	"  --stop-when-done     stop once every competitor passed the last level",
@@ -110,6 +121,7 @@ function parseValues(argv: readonly string[]) {
 				provider: { type: "string" },
 				model: { type: "string" },
 				"tool-choice": { type: "string" },
+				"resident-model": { type: "string", multiple: true },
 				level: { type: "string" },
 				only: { type: "string" },
 				"stop-when-done": { type: "boolean" },
@@ -216,6 +228,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	if (toolChoice !== undefined && !isToolChoice(toolChoice)) {
 		throw new UsageError(`--tool-choice must be one of ${TOOL_CHOICES.join(", ")}, got "${toolChoice}"`);
 	}
+	const residentModels = values["resident-model"] === undefined ? undefined : residentModelFlags(values["resident-model"]);
 	const resume = values.resume;
 	if (resume !== undefined && (overrides.level !== undefined || overrides.only !== undefined)) {
 		throw new UsageError("--resume continues where the snapshot stopped; --level and --only do not apply");
@@ -227,6 +240,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values.provider === undefined ? {} : { provider: values.provider }),
 		...(values.model === undefined ? {} : { model: values.model }),
 		...(toolChoice === undefined ? {} : { toolChoice }),
+		...(residentModels === undefined ? {} : { residentModels }),
 		...(values["gamemaker-provider"] === undefined ? {} : { gamemakerProvider: values["gamemaker-provider"] }),
 		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
 		...(values["classifier-provider"] === undefined ? {} : { classifierProvider: values["classifier-provider"] }),
@@ -245,6 +259,26 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(resume === undefined ? {} : { resume }),
 		...(values.preregistration === undefined ? {} : { preregistration: values.preregistration }),
 	};
+}
+
+/** `<ids>=<provider>/<model>` per flag; a resident may appear in one flag only. */
+function residentModelFlags(values: readonly string[]): readonly ResidentModelFlag[] {
+	const seen = new Set<string>();
+	return values.map((value) => {
+		const equals = value.indexOf("=");
+		const slash = value.indexOf("/", equals + 1);
+		const shape = `--resident-model must look like A04,A05=<provider>/<model>, got "${value}"`;
+		if (equals < 1 || slash < 0) throw new UsageError(shape);
+		const residents = value.slice(0, equals).split(",").map((id) => id.trim());
+		const provider = value.slice(equals + 1, slash).trim();
+		const model = value.slice(slash + 1).trim();
+		if (residents.some((id) => id.length === 0) || provider.length === 0 || model.length === 0) throw new UsageError(shape);
+		for (const id of residents) {
+			if (seen.has(id)) throw new UsageError(`--resident-model names ${id} twice`);
+			seen.add(id);
+		}
+		return { residents, provider, model };
+	});
 }
 
 /** `<file>` for every competitor, `<ID>=<file>` for one. */
