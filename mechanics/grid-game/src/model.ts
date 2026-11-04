@@ -103,6 +103,8 @@ export interface GridState {
 	held: boolean;
 	/** A game is due but waits for `release`. */
 	due: boolean;
+	/** The match was ended as invalid (consensus forfeits only). */
+	invalid?: boolean;
 }
 
 export const GridSlice = Type.Object({
@@ -118,6 +120,7 @@ export const GridSlice = Type.Object({
 	finished: Type.Boolean(),
 	held: Type.Optional(Type.Boolean()),
 	due: Type.Optional(Type.Boolean()),
+	invalid: Type.Optional(Type.Boolean()),
 });
 
 export function tallyOf(results: readonly GameResult[]): Tally {

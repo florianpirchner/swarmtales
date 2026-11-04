@@ -241,6 +241,16 @@ export const gridGame = defineMechanic(head, (kit) => ({
 				applyMove(ctx, cell, true);
 				return true;
 			},
+			invalidate: (_input, ctx) => {
+				const state = ctx.state;
+				if (state.finished) return false;
+				state.running = false;
+				state.finished = true;
+				state.invalid = true;
+				refreshLocks(ctx);
+				ctx.emit("match_ended", { tally: tallyOf(state.results), invalid: true });
+				return true;
+			},
 		}),
 	],
 	hooks: {
@@ -258,7 +268,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			startNext(ctx);
 		},
 	},
-	limits: [kit.limit("match", "Breaches once the last game of the match is over.", (view: View) => (view.state.finished ? "the match is over" : undefined))],
+	limits: [kit.limit("match", "Breaches once the last game of the match is over.", (view: View) => (view.state.invalid === true ? "the match is invalid" : view.state.finished ? "the match is over" : undefined))],
 	facts: {
 		tally: kit.fact(Type.Object({ X: Type.Integer(), O: Type.Integer(), draw: Type.Integer() }), (view) => tallyOf(view.state.results)),
 		captain: kit.fact(Type.Union([Type.String(), Type.Null()]), (view) => captainOf(view.state)),
@@ -279,6 +289,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			finished: state.finished,
 			held: state.held,
 			due: state.due,
+			...(state.invalid === true ? { invalid: true } : {}),
 		}),
 		load: (data) => ({
 			teams: { X: [...data.teams.X], O: [...data.teams.O] },
@@ -293,6 +304,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			finished: data.finished,
 			held: data.held ?? false,
 			due: data.due ?? false,
+			...(data.invalid === true ? { invalid: true } : {}),
 		}),
 	}),
 }));

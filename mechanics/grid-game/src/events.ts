@@ -24,5 +24,5 @@ export const GridGameEvents = defineEvents("grid-game", {
 		winLine: Type.Optional(Type.Array(Type.Integer())),
 		moves: Type.Array(Type.Integer(), { description: "Every cell of the game in the order played." }),
 	}),
-	match_ended: Type.Object({ tally: Tally }),
+	match_ended: Type.Object({ tally: Tally, invalid: Type.Optional(Type.Boolean({ description: "True when the match was ended as invalid (only consensus forfeits were played); the tally is no result." })) }),
 });

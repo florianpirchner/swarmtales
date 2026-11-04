@@ -18,6 +18,7 @@ validate, an unknown module), 2 the command line is wrong (unknown verb, missing
 | `swt story validate [name\|file...]` | the story schema, then the cross-field rules of `validateStory`; no argument checks every registered story |
 | `swt story schema [--out <file>]` | writes `story.schema.json` (`--out -` prints it); see [STORY-FORMAT.md](STORY-FORMAT.md) |
 | `swt run start [options]` | plays a story: the options of `pnpm start`. `swt run --story x` (without `start`) keeps working. `--story` takes a registered name or the path of a YAML or JSON story file |
+| `swt run start --tool-choice <auto\|required\|none>` | sets `tool_choice` on every resident request (env `ARENA_TOOL_CHOICE`; the flag wins). Needed for Gemma 3 on OpenRouter, which ignores tools without `required`. OpenAI-compatible providers get the string; Anthropic gets `{type: "any"}` for `required`, `{type: "auto"}` and `{type: "none"}` otherwise. Other roles (gamemaker, classifier, judge) are not affected |
 | `swt run list [--runs <dir>]` | the runs in a folder (default `runs/`): story, start, last minute, how it stopped, cost |
 | `swt run show <run>` | result table, cost, stop reason, dials (`000-run.json` `effective`), and the state of the signed log |
 | `swt run cost <run>` | tokens and cost, per competitor (a resumed run: prefix and own part) |

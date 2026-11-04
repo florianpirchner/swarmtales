@@ -44,7 +44,7 @@ export function tictactoeStory(options: TicTacToeOptions = {}) {
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 		mechanics: [
 			gridGame.with({ size: 3, line: 3, games, alternateStart: true, teams: TEAMS, wakeTeam: true }),
-			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds: 3, onDeadlock: "forfeitRandomLegalMove", teams: TEAMS }),
+			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds: 3, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams: TEAMS }),
 			teamChannel.with({ teams: TEAMS, maxPostsPerMove: 3 }),
 			strategyBrain.with({ enabled: brain, maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
 			optimalReferee.with({}),

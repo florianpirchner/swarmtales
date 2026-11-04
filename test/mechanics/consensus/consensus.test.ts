@@ -115,6 +115,24 @@ describe("consensus", () => {
 		for (const cut of [1, 2, 3, 4]) expect(await checkSnapshotRoundTrip(make, () => scripted(script), cut)).toEqual([]);
 	});
 
+	it("ends the run as invalid after maxConsecutiveForfeits forfeits with no agreed move", async () => {
+		const make = () => toyOptions({ maxRounds: 1, maxConsecutiveForfeits: 3, minutes: 12 });
+		const run = await playStory(make(), scripted({}));
+		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(3);
+		expect(ofType(run.events, "match_invalid").map((event) => [payload(event).forfeits, String(payload(event).reason).startsWith("3 forfeits in a row")])).toEqual([[3, true]]);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "toy.match" });
+		expect(await checkDeterminism(make, () => scripted({}))).toEqual([]);
+		for (const cut of [1, 2]) expect(await checkSnapshotRoundTrip(make, () => scripted({}), cut)).toEqual([]);
+	});
+
+	it("an agreed move resets the forfeit streak, and 0 turns the check off", async () => {
+		const reset = await playStory(toyOptions({ maxRounds: 1, maxConsecutiveForfeits: 2, minutes: 3 }), scripted({ "1:1:A04": [propose(0)], "1:1:A05": [vote(true)], "1:1:A06": [vote(true)], "1:2:A04": [play(0)] }));
+		expect(ofType(reset.events, "match_invalid")).toHaveLength(0);
+		const off = await playStory(toyOptions({ maxRounds: 1, minutes: 8 }), scripted({}));
+		expect(ofType(off.events, "consensus_forfeited").length).toBeGreaterThan(3);
+		expect(ofType(off.events, "match_invalid")).toHaveLength(0);
+	});
+
 	it("documents every option", () => {
 		expect(checkOptionsDocumented(consensus)).toEqual([]);
 	});

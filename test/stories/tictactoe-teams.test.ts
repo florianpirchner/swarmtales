@@ -31,6 +31,17 @@ describe("tictactoe-teams, scripted match", () => {
 		expect(ofType(run.events, "retro_closed").map((event) => field(event, "reason"))).toEqual(Array(6).fill("written"));
 	});
 
+	it("marks a match nobody played as invalid after 4 forfeits in a row and ends the run", async () => {
+		const run = await playStory(options(false), idleAgent);
+		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(4);
+		expect(ofType(run.events, "match_invalid").map((event) => field(event, "forfeits"))).toEqual([4]);
+		expect(ofType(run.events, "match_ended").map((event) => field(event, "invalid"))).toEqual([true]);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "grid-game.match" });
+		const make = () => options(false);
+		expect(await checkDeterminism(make, () => idleAgent)).toEqual([]);
+		expect(await checkSnapshotRoundTrip(make, () => idleAgent, 5)).toEqual([]);
+	});
+
 	it("holds each game back until both retro windows are closed, and the last game has no retro", async () => {
 		const run = await playStory(options(), ticTacToePlayer());
 		const order = run.events.filter((event) => ["game_started", "game_ended", "retro_started", "retro_closed"].includes(event.type)).map((event) => `${event.type}:${String(field(event, "game"))}`);
