@@ -40,6 +40,15 @@ function userTexts(runner: HostResidentRunner): readonly string[] {
 }
 
 describe("context reset", () => {
+	it("makes no request for a turn without input (P76: the context ends with the resident's own answer)", async () => {
+		const { runner, events } = runnerOf(2);
+		await runner.step(turn(0, [plain("game 1, move 1")]), []);
+		const before = events.filter((event) => event.type === "request").length;
+		await runner.step(turn(1, []), []);
+		expect(events.filter((event) => event.type === "request").length).toBe(before);
+		expect(runner.snapshot().at(-1)?.role).toBe("assistant");
+	});
+
 	it("keeps appending without a reset line", async () => {
 		const { runner } = runnerOf(2);
 		await runner.step(turn(0, [plain("game 1, move 1")]), []);
