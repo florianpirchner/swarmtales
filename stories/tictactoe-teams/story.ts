@@ -34,32 +34,36 @@ export interface TicTacToeOptions {
 	readonly line?: number;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
+	/** Rounds of proposal and vote a team gets per move before a random cell is played for it (default 3; slow models need more, P81). */
+	readonly maxRounds?: number;
 }
 
+const DEFAULT_ROUNDS = 3;
 const TEAMS = { X: ["A01", "A02", "A03"], O: ["A04", "A05", "A06"] };
 /** Virtual minutes a game takes, scaled with the cells of the board: 16 for 9 cells, 28 for 16. */
 const minutesPerGame = (size: number): number => Math.round((size * size * 16) / 9 / 4) * 4;
 
 /** The registered name: the 3x3 game keeps the original id, a bigger board is named after its size. */
-function storyName(size: number, line: number, brainTeams: readonly string[] | undefined): string {
-	const board = size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
+function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number): string {
+	const base = size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
+	const board = maxRounds === DEFAULT_ROUNDS ? base : `${base}-r${String(maxRounds)}`;
 	return brainTeams === undefined || brainTeams.length === 0 || brainTeams.length === Object.keys(TEAMS).length ? board : `${board}-brain-${brainTeams.join("").toLowerCase()}`;
 }
 
 /** The story with its variants as options. */
 export function tictactoeStory(options: TicTacToeOptions = {}) {
-	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = 300, size = 3, line = 3 } = options;
+	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = 300, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS } = options;
 	const brain = brainOn && (brainTeams === undefined || brainTeams.length > 0);
 	if (brainTeams?.some((team) => !(team in TEAMS))) throw new Error(`tictactoe-teams: brainTeams must name teams of ${Object.keys(TEAMS).join(", ")}`);
 	if (gamemaker) throw new Error("tictactoe-teams: the gamemaker variant is not built yet");
 	return defineCoreStory({
-		id: storyName(size, line, brainTeams),
+		id: storyName(size, line, brainTeams, maxRounds),
 		seed,
 		minutes: options.minutes ?? games * minutesPerGame(size) + 8,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 		mechanics: [
 			gridGame.with({ size, line, games, alternateStart: true, teams: TEAMS, wakeTeam: true }),
-			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds: 3, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams: TEAMS }),
+			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams: TEAMS }),
 			teamChannel.with({ teams: TEAMS, maxPostsPerMove: 3 }),
 			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
 			optimalReferee.with({ maxEmptyCells: Math.min(16, size * size) }),

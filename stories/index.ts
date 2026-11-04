@@ -69,7 +69,28 @@ export function coreStoryNames(): readonly string[] {
 	return Object.keys(coreStories);
 }
 
+/**
+ * Tic-tac-toe combinations by name: `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>]`, for example
+ * `tictactoe-teams-5x5-nobrain-r6`. A board bigger than 3x3 needs four in a row.
+ */
+const TICTACTOE_NAME = /^tictactoe-teams(?:-(\d+)x\1)?(-nobrain|-brain-o)?(?:-r(\d+))?$/;
+
+function parseTictactoe(id: string): CoreStoryEntry | undefined {
+	const match = TICTACTOE_NAME.exec(id);
+	if (match === null) return undefined;
+	const size = match[1] === undefined ? 3 : Number(match[1]);
+	const rounds = match[3] === undefined ? undefined : Number(match[3]);
+	if (size < 3 || size > 8 || (rounds !== undefined && (rounds < 1 || rounds > 20))) return undefined;
+	return tictactoeEntry({
+		size,
+		line: size === 3 ? 3 : 4,
+		...(match[2] === "-nobrain" ? { brain: false } : {}),
+		...(match[2] === "-brain-o" ? { brainTeams: ["O"] } : {}),
+		...(rounds === undefined ? {} : { maxRounds: rounds }),
+	});
+}
+
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : undefined;
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : parseTictactoe(id);
 }
