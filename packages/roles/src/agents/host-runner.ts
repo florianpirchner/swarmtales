@@ -237,6 +237,8 @@ export class HostResidentRunner {
 		if (turn.inputs.some((note) => note.kind === CONTEXT_RESET_KIND)) this.#resetContext();
 		const voices = this.#options.innerVoice?.take() ?? [];
 		const texts = [...leading, ...turn.inputs.map((note) => note.text), ...this.#notice(), ...voices];
+		// No new input and no tool result to answer: the context ends with the resident's own answer, and Anthropic refuses such a request with a 400 (P76).
+		if (texts.length === 0 && !this.awaitsAnswer) return;
 		const error = await this.#try(texts, turn);
 		if (!isSafeguardRefusal(error)) return;
 		const souffleur = this.#options.souffleur;
