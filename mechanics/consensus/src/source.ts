@@ -34,5 +34,11 @@ export const ConsensusSourceApi = defineApi({
 			input: Type.Object({ cell: Type.Integer() }),
 			output: Type.Boolean(),
 		},
+		invalidate: {
+			kind: "command",
+			summary: "Ends the match as invalid (nobody played it; forfeits only) so the run ends. False when the match is already over.",
+			input: Type.Object({ reason: Type.String() }),
+			output: Type.Boolean(),
+		},
 	},
 });

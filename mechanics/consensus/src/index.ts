@@ -15,6 +15,10 @@
  *   `ctx.rng`, so it is the same in every replay) and records `consensus_forfeited`; with
  *   `"refuse"` nothing is played, `consensus_deadlocked` is written once and the gate stays shut.
  *
+ * - `maxConsecutiveForfeits` (0 = off): that many forfeits in a row, with no agreed move between them,
+ *   write `match_invalid{reason, forfeits}` and ask the source to end the match as invalid
+ *   (`ConsensusSourceApi.invalidate`), so a match nobody played is not mistaken for a result.
+ *
  * It knows no game: the team on move, the captain and the legal values come from the story's
  * `ConsensusSourceApi` provider. Residents of the waiting team and non-members are refused.
  */
@@ -62,6 +66,8 @@ interface GateState {
 	readonly teams: Map<string, TeamState>;
 	/** The last minute in which something was played through the gate; -1 for none. */
 	moved: number;
+	/** Forfeits in a row with no agreed move between them (across teams). */
+	streak: number;
 }
 
 const freshTeam = (forfeits: number): TeamState => ({ proposal: undefined, votes: new Map(), won: undefined, rejected: undefined, rounds: 0, since: undefined, forfeits, deadlocked: false });
@@ -75,6 +81,7 @@ const options = Type.Object({
 		default: "forfeitRandomLegalMove",
 		description: "At the deadlock: play a random legal value for the team and count a forfeit, or only keep refusing the gated tool.",
 	}),
+	maxConsecutiveForfeits: Type.Integer({ minimum: 0, default: 0, description: "Forfeits in a row with no agreed move between them after which the match is invalid (match_invalid) and the run ends; 0 = off." }),
 	teams: Type.Record(Type.String(), Type.Array(Type.String(), { description: "Resident ids of one team, the captain included." }), {
 		default: {},
 		description: "The teams that must agree, by the names the ConsensusSourceApi provider uses.",
@@ -89,13 +96,14 @@ const head = defineHead({
 	requires: [ConsensusSourceApi],
 	provides: [ConsensusApi],
 	options,
-	state: ({ options: chosen }): GateState => ({ teams: new Map(Object.keys(chosen.teams).map((team) => [team, freshTeam(0)])), moved: -1 }),
+	state: ({ options: chosen }): GateState => ({ teams: new Map(Object.keys(chosen.teams).map((team) => [team, freshTeam(0)])), moved: -1, streak: 0 }),
 	events: {
 		move_proposed: Type.Object({ team: Type.String(), captain: Type.String(), cell: Type.Integer(), reason: Type.String() }),
 		vote_cast: Type.Object({ team: Type.String(), voter: Type.String(), cell: Type.Integer(), agree: Type.Boolean(), reason: Type.String(), outcome: Outcome }),
 		consensus_reached: Type.Object({ team: Type.String(), cell: Type.Integer(), agree: Type.Integer(), disagree: Type.Integer() }),
 		consensus_forfeited: Type.Object({ team: Type.String(), cell: Type.Integer(), rounds: Type.Integer() }),
 		consensus_deadlocked: Type.Object({ team: Type.String(), rounds: Type.Integer() }),
+		match_invalid: Type.Object({ reason: Type.String(), forfeits: Type.Integer() }),
 	},
 	prompts: {
 		"consensus/tools/proposeMove": [],
@@ -165,6 +173,7 @@ function clear(state: TeamState): void {
 
 const Saved = Type.Object({
 	moved: Type.Integer(),
+	streak: Type.Optional(Type.Integer()),
 	teams: Type.Record(
 		Type.String(),
 		Type.Object({
@@ -214,6 +223,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 				ctx.emit("move_proposed", { team, captain: ctx.resident, cell: params.cell, reason: params.reason });
 				if (votersOf(ctx, team, ctx.resident).length === 0) {
 					state.won = params.cell;
+					ctx.state.streak = 0;
 					ctx.emit("consensus_reached", { team, cell: params.cell, agree: 0, disagree: 0 });
 					return reply(ctx.prompt("consensus/reached", { cell: params.cell }));
 				}
@@ -245,6 +255,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 				ctx.emit("vote_cast", { team, voter, cell, agree: params.agree, reason: params.reason, outcome });
 				if (outcome === "reached") {
 					state.won = cell;
+					ctx.state.streak = 0;
 					ctx.emit("consensus_reached", { team, cell, agree, disagree });
 					return reply(ctx.prompt("consensus/reached", { cell }));
 				}
@@ -332,6 +343,12 @@ export const consensus = defineMechanic(head, (kit) => ({
 				state.forfeits = forfeits;
 				ctx.state.moved = ctx.minute;
 				ctx.emit("consensus_forfeited", { team, cell, rounds });
+				ctx.state.streak += 1;
+				const limit = ctx.options.maxConsecutiveForfeits;
+				if (limit > 0 && ctx.state.streak >= limit) {
+					const reason = `${String(ctx.state.streak)} forfeits in a row and no agreed move: the teams did not play`;
+					if (ctx.call(ConsensusSourceApi, "invalidate", { reason })) ctx.emit("match_invalid", { reason, forfeits: ctx.state.streak });
+				}
 			},
 		},
 	},
@@ -344,6 +361,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 		schema: Saved,
 		save: (state) => ({
 			moved: state.moved,
+			streak: state.streak,
 			teams: Object.fromEntries(
 				[...state.teams].map(([team, st]) => [
 					team,
@@ -353,6 +371,7 @@ export const consensus = defineMechanic(head, (kit) => ({
 		}),
 		load: (data) => ({
 			moved: data.moved,
+			streak: data.streak ?? 0,
 			teams: new Map(
 				Object.entries(data.teams).map(([team, st]) => [
 					team,

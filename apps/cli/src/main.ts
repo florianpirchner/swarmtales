@@ -48,6 +48,8 @@ import {
 	SCRIPTED_PROVIDER_ID,
 	ScriptedModelSource,
 	settingsFromStory,
+	isToolChoice,
+	TOOL_CHOICES,
 } from "@swarmtales/models";
 import { assignModels, classifierBackend, createGuardJudge, createSouffleur, judgeBackend, weaverBackend } from "@swarmtales/roles";
 import type { ModelChoice } from "@swarmtales/contracts";
@@ -129,6 +131,12 @@ const resolveSettings = (overrides: ModelOverrides, env: ModelEnv, choice: Model
 		throw error;
 	}
 };
+const toolChoice = (() => {
+	const raw = args.toolChoice ?? ((process.env.ARENA_TOOL_CHOICE ?? "") === "" ? undefined : process.env.ARENA_TOOL_CHOICE);
+	if (raw === undefined) return undefined;
+	if (!isToolChoice(raw)) fail(`tool choice must be one of ${TOOL_CHOICES.join(", ")}, got "${raw}"`);
+	return raw;
+})();
 const uniform = resolveSettings(modelOverrides, process.env, story.model);
 // CLI flags (and ARENA_PROVIDER / ARENA_MODEL) override every per-competitor assignment (SPEC 5.3).
 const overridden =
@@ -429,7 +437,7 @@ const composeOptions: HostComposeOptions = {
 			const created =
 				entry.provider === SCRIPTED_PROVIDER_ID
 					? new ScriptedModelSource(oracleScript(ids, () => hostOracle(host), steps))
-					: createModelSource(entry, { registry });
+					: createModelSource(entry, { registry, ...(toolChoice === undefined ? {} : { toolChoice }) });
 			sources.set(key, created);
 			return created;
 		};

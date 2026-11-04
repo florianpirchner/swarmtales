@@ -10,6 +10,8 @@ import { AgentTranscriptLog, allocateRunDirectory, CHAIN_FILE, EventChain, jsonH
 import type { Host, ModelChoice } from "@swarmtales/contracts";
 import {
 	createModelSource,
+	isToolChoice,
+	TOOL_CHOICES,
 	createProviderRegistry,
 	describeModel,
 	missingApiKeys,
@@ -69,12 +71,18 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		err(`Missing API keys for provider "${settings.provider}": ${missing.join(", ")}\nExport the key or use --provider scripted (offline).`);
 		return 1;
 	}
+	const rawToolChoice = args.toolChoice ?? ((io.env.ARENA_TOOL_CHOICE ?? "") === "" ? undefined : io.env.ARENA_TOOL_CHOICE);
+	if (rawToolChoice !== undefined && !isToolChoice(rawToolChoice)) {
+		err(`tool choice must be one of ${TOOL_CHOICES.join(", ")}, got "${rawToolChoice}"`);
+		return 1;
+	}
+	const toolChoice = rawToolChoice;
 	const scripted = settings.provider === SCRIPTED_PROVIDER_ID;
 	const choice: ModelChoice = { provider: settings.provider, ...(settings.modelId === undefined ? {} : { id: settings.modelId }), ...(entry.model.thinking === undefined ? {} : { thinking: entry.model.thinking }), ...(entry.model.maxOutputTokens === undefined ? {} : { maxOutputTokens: entry.model.maxOutputTokens }) };
 	// A scripted run has no game to play: every resident only speaks, one answer per step it may take.
 	const steps = story.minutes * (story.turns?.passes ?? 1);
 	const models = (host: Host): ModelSource => {
-		if (!scripted) return createModelSource(settings, { registry });
+		if (!scripted) return createModelSource(settings, { registry, ...(toolChoice === undefined ? {} : { toolChoice }) });
 		const script: Script = Object.fromEntries(host.residents.map((id) => [id, Array.from({ length: steps }, () => say())]));
 		return new ScriptedModelSource(script);
 	};

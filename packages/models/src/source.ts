@@ -4,6 +4,7 @@
 import type { StreamFn } from "@earendil-works/pi-agent-core";
 import { type AssistantMessage, createAssistantMessageEventStream, createModels, fauxProvider, type Api, type Model, type Models, type FauxResponseStep } from "@earendil-works/pi-ai";
 import { type CompetitorId, redactSecrets } from "@swarmtales/kernel";
+import { toolChoiceDefaults, type ToolChoice } from "./request-defaults.ts";
 import { ModelConfigError, type ModelSettings } from "./settings.ts";
 import {
 	openRouterProviderPreferences,
@@ -71,8 +72,10 @@ export class PiModelSource implements ModelSource {
 	readonly #spec: ProviderSpec;
 	readonly #modelId: string;
 	readonly #routing: OpenRouterRouting | undefined;
+	readonly #toolChoice: ToolChoice | undefined;
 
-	constructor(spec: ProviderSpec, modelId: string, routing?: OpenRouterRouting) {
+	constructor(spec: ProviderSpec, modelId: string, routing?: OpenRouterRouting, toolChoice?: ToolChoice) {
+		this.#toolChoice = toolChoice;
 		this.#spec = spec;
 		this.#modelId = modelId;
 		this.#routing = routing;
@@ -88,8 +91,10 @@ export class PiModelSource implements ModelSource {
 					`Available (${available.length}): ${available.slice(0, 12).join(", ")}${available.length > 12 ? ", ..." : ""}`,
 			);
 		}
-		const requestDefaults =
+		const routingDefaults =
 			this.#spec.id === "openrouter" && this.#routing !== undefined ? openRouterProviderPreferences(this.#routing) : undefined;
+		const requestDefaults =
+			this.#toolChoice === undefined ? routingDefaults : { ...routingDefaults, ...toolChoiceDefaults(this.#toolChoice, model.api) };
 		return {
 			model,
 			streamFn: redactingStream(limitedStream(this.#models, limitsFor(model, limits))),
@@ -136,6 +141,8 @@ export interface CreateModelSourceOptions {
 	readonly registry: ProviderRegistry;
 	/** Only needed for the `scripted` provider. */
 	readonly script?: Script;
+	/** Sent as `tool_choice` with every request of this source (Gemma on OpenRouter ignores tools without "required"). */
+	readonly toolChoice?: ToolChoice;
 }
 
 export function createModelSource(settings: ModelSettings, options: CreateModelSourceOptions): ModelSource {
@@ -146,5 +153,5 @@ export function createModelSource(settings: ModelSettings, options: CreateModelS
 	const spec = options.registry.require(settings.provider);
 	const modelId = settings.modelId ?? spec.defaultModelId;
 	if (modelId.length === 0) throw new ModelConfigError(`Provider "${spec.id}" has no default model ID`);
-	return new PiModelSource(spec, modelId, settings.routing);
+	return new PiModelSource(spec, modelId, settings.routing, options.toolChoice);
 }

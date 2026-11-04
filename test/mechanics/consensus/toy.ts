@@ -14,6 +14,7 @@ const CAPTAINS: Readonly<Record<string, string>> = { red: "A01", blue: "A04" };
 interface ToyState {
 	taken: Map<number, string>;
 	side: "red" | "blue";
+	invalid: boolean;
 }
 
 export const toy = defineMechanic(
@@ -22,7 +23,7 @@ export const toy = defineMechanic(
 		summary: "Two teams take turns taking cells 0-8.",
 		provides: [ConsensusSourceApi],
 		options: Type.Object({}),
-		state: (): ToyState => ({ taken: new Map(), side: "red" }),
+		state: (): ToyState => ({ taken: new Map(), side: "red", invalid: false }),
 		events: { move_played: Type.Object({ team: Type.String(), cell: Type.Integer(), forfeit: Type.Boolean() }) },
 		prompts: { "toy/tools/playMove": [], "toy/played": ["cell"] },
 	},
@@ -41,8 +42,14 @@ export const toy = defineMechanic(
 						ctx.state.side = ctx.state.side === "red" ? "blue" : "red";
 						return true;
 					},
+					invalidate: (_input, ctx) => {
+						if (ctx.state.invalid) return false;
+						ctx.state.invalid = true;
+						return true;
+					},
 				}),
 			],
+			limits: [kit.limit("match", "Breaches once the match is invalid.", (view) => (view.state.invalid ? "the match is invalid" : undefined))],
 			tools: [
 				kit.tool({
 					name: "playMove",
@@ -60,9 +67,9 @@ export const toy = defineMechanic(
 			],
 			snapshot: kit.snapshot({
 				version: 1,
-				schema: Type.Object({ taken: Type.Record(Type.String(), Type.String()), side: Type.Union([Type.Literal("red"), Type.Literal("blue")]) }),
-				save: (state) => ({ taken: Object.fromEntries([...state.taken].map(([cell, team]) => [String(cell), team])), side: state.side }),
-				load: (data) => ({ taken: new Map(Object.entries(data.taken).map(([cell, team]) => [Number(cell), team])), side: data.side }),
+				schema: Type.Object({ taken: Type.Record(Type.String(), Type.String()), side: Type.Union([Type.Literal("red"), Type.Literal("blue")]), invalid: Type.Optional(Type.Boolean()) }),
+				save: (state) => ({ taken: Object.fromEntries([...state.taken].map(([cell, team]) => [String(cell), team])), side: state.side, invalid: state.invalid }),
+				load: (data) => ({ taken: new Map(Object.entries(data.taken).map(([cell, team]) => [Number(cell), team])), side: data.side, invalid: data.invalid ?? false }),
 			}),
 		};
 	},
@@ -71,14 +78,14 @@ export const toy = defineMechanic(
 const PROMPTS = fileURLToPath(new URL("prompts", import.meta.url));
 const REPO = fileURLToPath(new URL("../../../mechanics", import.meta.url));
 
-export function toyOptions(gate: { maxRounds?: number; onDeadlock?: "forfeitRandomLegalMove" | "refuse"; minutes?: number; seed?: number } = {}): HostOptions {
+export function toyOptions(gate: { maxRounds?: number; onDeadlock?: "forfeitRandomLegalMove" | "refuse"; maxConsecutiveForfeits?: number; minutes?: number; seed?: number } = {}): HostOptions {
 	const teams = Object.fromEntries(Object.entries(TEAMS).map(([team, members]) => [team, [...members]]));
 	const story = defineCoreStory({
 		id: "toy-consensus",
 		seed: gate.seed ?? 5,
 		minutes: gate.minutes ?? 4,
 		residents: 7,
-		mechanics: [toy.with({}), consensus.with({ teams, maxRounds: gate.maxRounds ?? 2, onDeadlock: gate.onDeadlock ?? "forfeitRandomLegalMove" }), teamChannel.with({ teams, maxPostsPerMove: 1 })],
+		mechanics: [toy.with({}), consensus.with({ teams, maxRounds: gate.maxRounds ?? 2, onDeadlock: gate.onDeadlock ?? "forfeitRandomLegalMove", maxConsecutiveForfeits: gate.maxConsecutiveForfeits ?? 0 }), teamChannel.with({ teams, maxPostsPerMove: 1 })],
 		grants: { resident: ["playMove", "proposeMove", "castVote", "postTeam", "readTeam"] },
 		// Three passes a minute, residents in their story order, so captain, then voters, then the play.
 		turns: { passes: 3, order: (view) => view.residents },

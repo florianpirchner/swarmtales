@@ -2,6 +2,7 @@
 import { parseArgs } from "node:util";
 import { MAX_PASSES_PER_MINUTE } from "@swarmtales/sdk";
 import { JUDGE_TEMPERS, type JudgeTemper } from "@swarmtales/roles";
+import { isToolChoice, TOOL_CHOICES, type ToolChoice } from "@swarmtales/models";
 import type { RunOverrides } from "./run-options.ts";
 
 export class UsageError extends Error {
@@ -14,6 +15,8 @@ export interface StartArgs {
 	readonly overrides: RunOverrides;
 	readonly provider?: string;
 	readonly model?: string;
+	/** `tool_choice` sent with every resident request (`--tool-choice`, ARENA_TOOL_CHOICE). */
+	readonly toolChoice?: ToolChoice;
 	readonly gamemakerProvider?: string;
 	readonly gamemakerModel?: string;
 	readonly classifierProvider?: string;
@@ -56,6 +59,7 @@ export const START_USAGE = [
 	"  --seed <n>           run seed",
 	"  --provider <id>      openrouter | anthropic | deepseek | zai | scripted | custom",
 	"  --model <id>         provider model ID or alias (e.g. glm-flash, haiku)",
+	"  --tool-choice <c>    auto | required | none: tool_choice of the residents' requests (default: ARENA_TOOL_CHOICE, else the provider's)",
 	"  --level <n>          start every competitor on level n, then keep playing",
 	"  --only <n>           play only level n and stop once everyone passed it",
 	"  --stop-when-done     stop once every competitor passed the last level",
@@ -105,6 +109,7 @@ function parseValues(argv: readonly string[]) {
 				seed: { type: "string" },
 				provider: { type: "string" },
 				model: { type: "string" },
+				"tool-choice": { type: "string" },
 				level: { type: "string" },
 				only: { type: "string" },
 				"stop-when-done": { type: "boolean" },
@@ -207,6 +212,10 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	if (values["no-reporter"] === true && (values["reporter-provider"] !== undefined || values["reporter-model"] !== undefined)) {
 		throw new UsageError("--no-reporter switches the reporter off; --reporter-provider and --reporter-model do not apply");
 	}
+	const toolChoice = values["tool-choice"];
+	if (toolChoice !== undefined && !isToolChoice(toolChoice)) {
+		throw new UsageError(`--tool-choice must be one of ${TOOL_CHOICES.join(", ")}, got "${toolChoice}"`);
+	}
 	const resume = values.resume;
 	if (resume !== undefined && (overrides.level !== undefined || overrides.only !== undefined)) {
 		throw new UsageError("--resume continues where the snapshot stopped; --level and --only do not apply");
@@ -217,6 +226,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		overrides,
 		...(values.provider === undefined ? {} : { provider: values.provider }),
 		...(values.model === undefined ? {} : { model: values.model }),
+		...(toolChoice === undefined ? {} : { toolChoice }),
 		...(values["gamemaker-provider"] === undefined ? {} : { gamemakerProvider: values["gamemaker-provider"] }),
 		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
 		...(values["classifier-provider"] === undefined ? {} : { classifierProvider: values["classifier-provider"] }),
