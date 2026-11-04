@@ -39,9 +39,12 @@ function limitsFor(model: Pick<Model<Api>, "maxTokens">, limits: RequestLimits):
 	return model.maxTokens > 0 && limits.maxOutputTokens > model.maxTokens ? { ...limits, maxOutputTokens: model.maxTokens } : limits;
 }
 
+/** Client-side retries with backoff (429, 5xx) of a provider request; a rate-limited upstream such as OpenRouter's small models needs more than the SDK default of 2. */
+const PROVIDER_RETRIES = 6;
+
 function limitedStream(models: Models, limits: RequestLimits): StreamFn {
 	return (model, context, options) =>
-		models.streamSimple(model, context, { ...options, maxTokens: limits.maxOutputTokens, timeoutMs: limits.timeoutMs });
+		models.streamSimple(model, context, { ...options, maxTokens: limits.maxOutputTokens, timeoutMs: limits.timeoutMs, maxRetries: PROVIDER_RETRIES });
 }
 
 function redacted(message: AssistantMessage): AssistantMessage {

@@ -1,0 +1,47 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-04T15:06:32.295Z",
+  "provider": "openrouter",
+  "model": "google/gemma-4-26b-a4b-it",
+  "storyId": "tictactoe-teams",
+  "kind": "core",
+  "title": "Tic-tac-toe teams",
+  "effective": {
+    "agents": 6,
+    "minutes": 56,
+    "seed": 11
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A02",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A03",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A04",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A05",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A06",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    }
+  ]
+}
