@@ -22,15 +22,17 @@ import {
 	say,
 	settingsFromStory,
 	type ModelEnv,
+	type ModelSettings,
 	type ModelSource,
 	type ProviderRegistry,
 	type Script,
 } from "@swarmtales/models";
 import type { CoreStoryEntry } from "../../../../stories/index.ts";
-import { storyData } from "@swarmtales/kernel";
+import { competitorIds, storyData } from "@swarmtales/kernel";
 import type { StartArgs } from "../args.ts";
 import { codeCommit } from "./chain.ts";
 import { composeCoreRun, coreStoryFor, refusedOverrides } from "./core-run.ts";
+import { planResidentModels, residentModelSource, settingsLabel, type ResidentModelPlan } from "./resident-models.ts";
 
 export interface CorePlayIo {
 	readonly out: (text: string) => void;
@@ -77,15 +79,30 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		return 1;
 	}
 	const toolChoice = rawToolChoice;
-	const scripted = settings.provider === SCRIPTED_PROVIDER_ID;
 	const choice: ModelChoice = { provider: settings.provider, ...(settings.modelId === undefined ? {} : { id: settings.modelId }), ...(entry.model.thinking === undefined ? {} : { thinking: entry.model.thinking }), ...(entry.model.maxOutputTokens === undefined ? {} : { maxOutputTokens: entry.model.maxOutputTokens }) };
 	// A scripted run has no game to play: every resident only speaks, one answer per step it may take.
 	const steps = story.minutes * (story.turns?.passes ?? 1);
-	const models = (host: Host): ModelSource => {
-		if (!scripted) return createModelSource(settings, { registry, ...(toolChoice === undefined ? {} : { toolChoice }) });
+	let plan: ResidentModelPlan = { overrides: new Map() };
+	if (args.residentModels !== undefined) {
+		const roster = typeof story.residents === "number" ? competitorIds(story.residents) : story.residents;
+		try {
+			plan = planResidentModels(args.residentModels, roster, registry, settings, io.env);
+		} catch (error) {
+			if (error instanceof ModelConfigError) {
+				err(error.message);
+				return 1;
+			}
+			throw error;
+		}
+	}
+	const sourceFor = (host: Host, own: ModelSettings): ModelSource => {
+		if (own.provider !== SCRIPTED_PROVIDER_ID) return createModelSource(own, { registry, ...(toolChoice === undefined ? {} : { toolChoice }) });
 		const script: Script = Object.fromEntries(host.residents.map((id) => [id, Array.from({ length: steps }, () => say())]));
 		return new ScriptedModelSource(script);
 	};
+	const models = (host: Host): ModelSource => (plan.overrides.size === 0 ? sourceFor(host, settings) : residentModelSource(host.residents, settings, plan, (own) => sourceFor(host, own)));
+	const residentChoices = new Map<string, ModelChoice>([...plan.overrides].map(([id, own]) => [id, { provider: own.provider, ...(own.modelId === undefined ? {} : { id: own.modelId }) }]));
+	const residentLabels = Object.fromEntries([...plan.overrides].map(([id, own]) => [id, settingsLabel(own)]));
 
 	const allocated = allocateRunDirectory(args.runsDirectory);
 	const commit = codeCommit();
@@ -96,7 +113,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		story: story.id,
 		storyHash: jsonHash(JSON.parse(JSON.stringify(storyData(story)))),
 		seed: story.seed,
-		models: { residents: label },
+		models: { residents: label, ...residentLabels },
 	});
 	const usage = new UsageCollector();
 	const run = composeCoreRun({
@@ -104,6 +121,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		overrides,
 		models,
 		modelOverride: choice,
+		residentChoices,
 		sinks: [new JsonlEventLog(join(allocated.directory, "events.jsonl"), { chain }), new AgentTranscriptLog(join(allocated.directory, "agents")), usage],
 	});
 	const residents = run.host.residents;
@@ -117,19 +135,22 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		kind: "core",
 		title: entry.title,
 		effective: { agents: residents.length, minutes: story.minutes, seed: story.seed },
-		agents: residents.map((agent) => ({ agent, provider: settings.provider, model: settings.modelId ?? "-" })),
+		agents: residents.map((agent) => {
+			const own = plan.overrides.get(agent) ?? settings;
+			return { agent, provider: own.provider, model: own.modelId ?? "-" };
+		}),
 	});
 	writeSystemPrompts(
 		join(allocated.directory, "agents"),
-		residents.map((agent) => ({ agent, label: label, prompt: run.runner(agent)?.systemPrompt ?? run.prompts.get(agent) ?? "" })),
+		residents.map((agent) => ({ agent, label: residentLabels[agent] ?? label, prompt: run.runner(agent)?.systemPrompt ?? run.prompts.get(agent) ?? "" })),
 	);
-	io.out(`> story ${story.id} (core) · ${describeModel(settings, registry)} · ${residents.length} residents · ${story.minutes} minutes · seed ${story.seed}\n`);
+	io.out(`> story ${story.id} (core) · ${describeModel(settings, registry)}${plan.overrides.size === 0 ? "" : ` (residents ${[...plan.overrides.keys()].join(",")}: ${[...new Set(Object.values(residentLabels))].join(", ")})`} · ${residents.length} residents · ${story.minutes} minutes · seed ${story.seed}\n`);
 	try {
 		await run.run();
 	} finally {
 		chain.close();
 	}
-	writeFileSync(join(allocated.directory, "usage.json"), `${JSON.stringify(usage.toJSON(), null, 2)}\n`);
+	writeFileSync(join(allocated.directory, "usage.json"), `${JSON.stringify({ ...usage.toJSON(), models: { residents: label, ...residentLabels } }, null, 2)}\n`);
 	io.out(["", usage.summary(), `run:         ${allocated.directory}`, `events:      ${join(allocated.directory, "events.jsonl")}`, `chain:       ${join(allocated.directory, CHAIN_FILE)} (signed; check with swt log verify ${allocated.directory})`, `transcripts: ${join(allocated.directory, "agents")}`, ""].join("\n"));
 	return 0;
 }

@@ -1,0 +1,26 @@
+4x4 HaikuXvsGemmaO brain-both brainboth-s1 res XXd ff {'O': 10} scored {'missed_block': 2, 'optimal': 3} cost 0.23 (X 0.06 O 0.17) req 528 min 48
+4x4 HaikuXvsGemmaO brain-both brainboth-s2 res XdX ff {'O': 9} scored {'optimal': 5, 'missed_block': 2} cost 0.16 (X 0.07 O 0.09) req 487 min 46
+4x4 HaikuXvsGemmaO brain-both brainboth-s3 res ddX ff {'O': 14} scored {'optimal': 3, 'missed_block': 1} cost 0.27 (X 0.09 O 0.18) req 610 min 52
+4x4 HaikuXvsGemmaO nobrain nobrain-s1 res XXX ff {'O': 10} scored {'missed_block': 3, 'optimal': 2} cost 0.10 (X 0.06 O 0.05) req 401 min 29
+4x4 HaikuXvsGemmaO nobrain nobrain-s2 res XdX ff {'O': 10} scored {'optimal': 5, 'missed_block': 2} cost 0.13 (X 0.07 O 0.06) req 414 min 38
+4x4 HaikuXvsGemmaO nobrain nobrain-s3 res XdX ff {'O': 9} scored {'missed_block': 2, 'optimal': 4} cost 0.13 (X 0.05 O 0.08) req 456 min 29
+4x4 GemmaXvsGemmaO brain-both 4x4-gemma-brain-s1 res  ff {'O': 3, 'X': 3} scored {'optimal': 1} cost 0.03 (X 0.02 O 0.01) req 91 min 12
+4x4 GemmaXvsGemmaO brain-both 4x4-gemma-brain-s2 res  ff {'X': 2, 'O': 2} scored {} cost 0.04 (X 0.01 O 0.03) req 137 min 15
+4x4 GemmaXvsGemmaO brain-both 4x4-gemma-brain-s3 res  ff {'O': 2, 'X': 2} scored {} cost 0.03 (X 0.01 O 0.01) req 82 min 11
+4x4 GemmaXvsGemmaO nobrain 4x4-gemma-nobrain-s1 res  ff {'O': 3, 'X': 2} scored {'blunder': 2} cost 0.03 (X 0.02 O 0.01) req 95 min 10
+4x4 GemmaXvsGemmaO nobrain 4x4-gemma-nobrain-s2 res  ff {'O': 2, 'X': 2} scored {'optimal': 1} cost 0.06 (X 0.04 O 0.02) req 149 min 19
+4x4 GemmaXvsGemmaO nobrain 4x4-gemma-nobrain-s3 res  ff {'X': 2, 'O': 2} scored {'optimal': 1} cost 0.04 (X 0.02 O 0.02) req 93 min 15
+4x4 HaikuXvsHaikuO brain-both 4x4-haiku-brain-s1 res dOd ff {} scored {'optimal': 4, 'missed_block': 1} cost 0.13 (X 0.07 O 0.07) req 563 min 15
+4x4 HaikuXvsHaikuO brain-both 4x4-haiku-brain-s2 res ddd ff {} scored {'optimal': 3} cost 0.21 (X 0.11 O 0.10) req 742 min 21
+4x4 HaikuXvsHaikuO brain-both 4x4-haiku-brain-s3 res ddd ff {'O': 1} scored {'optimal': 1} cost 0.20 (X 0.11 O 0.10) req 759 min 21
+4x4 HaikuXvsHaikuO nobrain 4x4-haiku-nobrain-s1 res Xdd ff {'O': 1} scored {'missed_block': 1, 'optimal': 3} cost 0.13 (X 0.06 O 0.07) req 586 min 15
+4x4 HaikuXvsHaikuO nobrain 4x4-haiku-nobrain-s2 res ddd ff {} scored {'optimal': 3} cost 0.16 (X 0.08 O 0.08) req 698 min 19
+4x4 HaikuXvsHaikuO nobrain 4x4-haiku-nobrain-s3 res ddd ff {} scored {'optimal': 5} cost 0.15 (X 0.07 O 0.07) req 678 min 18
+5x5 GemmaXvsGemmaO brain-both 5x5-gemma-brain-s1 res  ff {'X': 5, 'O': 4} scored {'missed_win': 1, 'optimal': 2, 'blunder': 1, 'missed_block': 1} cost 0.11 (X 0.06 O 0.05) req 172 min 24
+5x5 GemmaXvsGemmaO brain-both 5x5-gemma-brain-s2 res  ff {'X': 2, 'O': 2} scored {} cost 0.03 (X 0.01 O 0.01) req 92 min 6
+5x5 GemmaXvsGemmaO nobrain 5x5-gemma-nobrain-s1 res  ff {'X': 2, 'O': 2} scored {} cost 0.04 (X 0.01 O 0.03) req 88 min 12
+5x5 GemmaXvsGemmaO nobrain 5x5-gemma-nobrain-s2 res X ff {'X': 5, 'O': 4} scored {'missed_win': 1, 'missed_block': 1, 'optimal': 1} cost 0.16 (X 0.07 O 0.09) req 305 min 34
+5x5 HaikuXvsHaikuO brain-both 5x5-haiku-brain-s1 res XOX ff {'O': 1} scored {} cost 0.08 (X 0.04 O 0.04) req 389 min 10
+5x5 HaikuXvsHaikuO brain-both 5x5-haiku-brain-s2 res dOd ff {'O': 2, 'X': 1} scored {'optimal': 8} cost 0.33 (X 0.15 O 0.18) req 947 min 31
+5x5 HaikuXvsHaikuO nobrain 5x5-haiku-nobrain-s1 res Xdd ff {'O': 1} scored {'missed_block': 1, 'optimal': 7, 'blunder': 2} cost 0.26 (X 0.13 O 0.14) req 821 min 26
+5x5 HaikuXvsHaikuO nobrain 5x5-haiku-nobrain-s2 res ddX ff {'O': 1} scored {'optimal': 7} cost 0.26 (X 0.12 O 0.14) req 798 min 26

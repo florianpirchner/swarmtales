@@ -1,0 +1,47 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-04T22:39:50.314Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "tictactoe-teams-4x4-r6",
+  "kind": "core",
+  "title": "Tic-tac-toe teams 4x4",
+  "effective": {
+    "agents": 6,
+    "minutes": 92,
+    "seed": 1
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A02",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A03",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A04",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A05",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    },
+    {
+      "agent": "A06",
+      "provider": "openrouter",
+      "model": "google/gemma-4-26b-a4b-it"
+    }
+  ]
+}

@@ -28,6 +28,7 @@ const MIN_REPLAY_MOVES = 5;
 
 const options = Type.Object({
 	enabled: Type.Boolean({ default: true, description: "false: no brain and no retro, only the result-only briefing at each game's start (the control arm)." }),
+	brainTeams: Type.Optional(Type.Array(Type.String(), { description: "The teams that keep a brain (default: all teams). The others get the result-only briefing, no retro and BRAIN_DISABLED from readBrain/writeBrain; an empty list equals enabled: false." })),
 	maxWords: Type.Integer({ minimum: 1, default: 300, description: "The most words a brain may have." }),
 	teams: Type.Record(Type.String(), Type.Array(Type.String(), { description: "Resident ids of one team; the retro captain rotates through them." }), {
 		default: {},
@@ -122,8 +123,11 @@ function resultText(played: Played): string {
 	return played.result === "draw" ? `game ${String(played.game)}: draw` : `game ${String(played.game)}: ${played.result} won`;
 }
 
+/** Whether `team` keeps a brain: the mechanic is enabled and the team is among `brainTeams` (default all). */
+const hasBrain = (ctx: Ctx, team: string): boolean => ctx.options.enabled && (ctx.options.brainTeams === undefined || ctx.options.brainTeams.includes(team));
+
 /** Whether a retro window would open for at least one team (a team needs a captain). */
-const hasRetroTeam = (ctx: Ctx): boolean => Object.values(ctx.options.teams).some((members) => members.length > 0);
+const hasRetroTeam = (ctx: Ctx): boolean => Object.entries(ctx.options.teams).some(([team, members]) => members.length > 0 && hasBrain(ctx, team));
 
 /** Holds the next game back and opens the windows, but only when at least one window opens: nothing would release the hold otherwise. */
 function holdForRetro(ctx: Ctx, game: number): void {
@@ -133,6 +137,7 @@ function holdForRetro(ctx: Ctx, game: number): void {
 
 function openWindows(ctx: Ctx, game: number): void {
 	for (const [team, members] of Object.entries(ctx.options.teams)) {
+		if (!hasBrain(ctx, team)) continue;
 		const captain = members[game % members.length];
 		if (captain === undefined) continue;
 		ctx.state.windows.set(team, { game, captain, opened: ctx.minute, posts: 0, told: [] });
@@ -156,6 +161,7 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string) {
 	if (!ctx.options.enabled) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 	const team = teamOf(ctx, resident);
 	if (team === undefined) return refuse("NOT_TEAM_MEMBER", "you are in no team");
+	if (!hasBrain(ctx, team)) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 	const window = ctx.state.windows.get(team);
 	if (window === undefined) return refuse("NO_RETRO", "The brain can only be written in the retro window between games.");
 	if (resident !== window.captain) return refuse("NOT_RETRO_CAPTAIN", `Only the retro captain (${window.captain}) writes the brain.`);
@@ -174,7 +180,7 @@ function briefing(ctx: Ctx, resident: string): string {
 		ctx.prompt("strategy-brain/briefing-head", { game: ctx.call(GridGameApi, "game", {}), team, first }),
 		ctx.state.results.length === 0 ? ctx.prompt("strategy-brain/briefing-none", {}) : ctx.prompt("strategy-brain/briefing-results", { results: ctx.state.results.map(resultText).join("; ") }),
 	];
-	if (ctx.options.enabled) {
+	if (hasBrain(ctx, team)) {
 		const brain = ctx.state.brains.get(keyOf(ctx, team));
 		lines.push(brain === undefined ? ctx.prompt("strategy-brain/empty", {}) : ctx.prompt("strategy-brain/briefing-brain", { version: brain.version, text: brain.text }));
 	} else {
@@ -212,6 +218,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 				if (!ctx.options.enabled) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 				const team = teamOf(ctx, ctx.resident);
 				if (team === undefined) return refuse("NOT_TEAM_MEMBER", "you are in no team");
+				if (!hasBrain(ctx, team)) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 				const brain = ctx.state.brains.get(keyOf(ctx, team));
 				return reply(brain === undefined ? ctx.prompt("strategy-brain/empty", {}) : ctx.prompt("strategy-brain/brain-text", { version: brain.version, text: brain.text }));
 			},

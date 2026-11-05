@@ -11,5 +11,5 @@ swt run --story tictactoe-teams                         # Haiku via Anthropic, 3
 ```
 
 Variants are factory options of `tictactoeStory` in `story.ts`: `games`, `brain: false` (the control
-arm: identical result-only briefings, no brain), `maxWords`, `seed`. The biased gamemaker is not built.
+arm: identical result-only briefings, no brain), `brainTeams: ["O"]` (registered as `tictactoe-teams-brain-o`: only team O keeps a brain, X gets the result-only briefing and no retro), `maxWords`, `seed`. The biased gamemaker is not built.
 Mechanics: `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`.

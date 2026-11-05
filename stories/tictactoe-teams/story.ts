@@ -21,6 +21,8 @@ export interface TicTacToeOptions {
 	readonly games?: number;
 	/** Teams keep a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
+	/** Teams that keep a brain (default: both, when `brain` is on): `["O"]` gives X the result-only briefing and no retro. */
+	readonly brainTeams?: readonly string[];
 	/** Reserved for the biased gamemaker twist (paper §7); not built yet, `true` throws. */
 	readonly gamemaker?: boolean;
 	readonly seed?: number;
@@ -32,31 +34,38 @@ export interface TicTacToeOptions {
 	readonly line?: number;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
+	/** Rounds of proposal and vote a team gets per move before a random cell is played for it (default 3; slow models need more, P81). */
+	readonly maxRounds?: number;
 }
 
+const DEFAULT_ROUNDS = 3;
 const TEAMS = { X: ["A01", "A02", "A03"], O: ["A04", "A05", "A06"] };
 /** Virtual minutes a game takes, scaled with the cells of the board: 16 for 9 cells, 28 for 16. */
 const minutesPerGame = (size: number): number => Math.round((size * size * 16) / 9 / 4) * 4;
 
 /** The registered name: the 3x3 game keeps the original id, a bigger board is named after its size. */
-function storyName(size: number, line: number): string {
-	return size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
+function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number): string {
+	const base = size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
+	const board = maxRounds === DEFAULT_ROUNDS ? base : `${base}-r${String(maxRounds)}`;
+	return brainTeams === undefined || brainTeams.length === 0 || brainTeams.length === Object.keys(TEAMS).length ? board : `${board}-brain-${brainTeams.join("").toLowerCase()}`;
 }
 
 /** The story with its variants as options. */
 export function tictactoeStory(options: TicTacToeOptions = {}) {
-	const { games = 3, brain = true, gamemaker = false, seed = 11, maxWords = 300, size = 3, line = 3 } = options;
+	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = 300, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS } = options;
+	const brain = brainOn && (brainTeams === undefined || brainTeams.length > 0);
+	if (brainTeams?.some((team) => !(team in TEAMS))) throw new Error(`tictactoe-teams: brainTeams must name teams of ${Object.keys(TEAMS).join(", ")}`);
 	if (gamemaker) throw new Error("tictactoe-teams: the gamemaker variant is not built yet");
 	return defineCoreStory({
-		id: storyName(size, line),
+		id: storyName(size, line, brainTeams, maxRounds),
 		seed,
 		minutes: options.minutes ?? games * minutesPerGame(size) + 8,
 		residents: ["A01", "A02", "A03", "A04", "A05", "A06"],
 		mechanics: [
 			gridGame.with({ size, line, games, alternateStart: true, teams: TEAMS, wakeTeam: true }),
-			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds: 3, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams: TEAMS }),
+			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams: TEAMS }),
 			teamChannel.with({ teams: TEAMS, maxPostsPerMove: 3 }),
-			strategyBrain.with({ enabled: brain, maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
+			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
 			optimalReferee.with({ maxEmptyCells: Math.min(16, size * size) }),
 		],
 		grants: { resident: ["viewBoard", "proposeMove", "castVote", "postTeam", "readTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
@@ -67,7 +76,7 @@ export function tictactoeStory(options: TicTacToeOptions = {}) {
 	});
 }
 
-function briefing(brain: boolean, size: number, line: number) {
+function briefing(brainTeams: readonly string[], size: number, line: number) {
 	return (resident: ResidentId, host: Host): string => {
 		const team = TEAMS.X.includes(resident) ? "X" : "O";
 		const mates = TEAMS[team].filter((id) => id !== resident).join(" and ");
@@ -76,17 +85,17 @@ function briefing(brain: boolean, size: number, line: number) {
 			"Each move: use viewBoard to see the board. Your team has a private chat (postTeam, readTeam). The captain of the turn rotates among your team; only the captain proposes a cell with proposeMove (cell and reason), the two others answer with castVote (agree true or false, with a reason). A tie is no agreement. Once your team agreed, only the captain can play exactly that cell with playMove. If your team does not move in time, a random legal cell is played for it.",
 			"Take a turn only when it is your team's turn; the other team's moves and chat are not visible to you except on the board.",
 		];
-		if (brain) lines.push("Your team keeps a strategy brain: a short text (readBrain). After each game your team discusses in the chat and the retro captain rewrites it with writeBrain. Write rules that help in the next game; do not copy a game's move list.");
+		if (brainTeams.includes(team)) lines.push("Your team keeps a strategy brain: a short text (readBrain). After each game your team discusses in the chat and the retro captain rewrites it with writeBrain. Write rules that help in the next game; do not copy a game's move list.");
 		return lines.join("\n\n");
 	};
 }
 
 /** The registered entry: Haiku via Anthropic, three games, brain on. */
 export function tictactoeEntry(options: TicTacToeOptions = {}): CoreStoryEntry {
-	const brain = options.brain ?? true;
+	const brainTeams = (options.brain ?? true) ? (options.brainTeams ?? Object.keys(TEAMS)) : [];
 	const { size = 3, line = 3 } = options;
 	const board = size === 3 && line === 3 ? "" : ` ${String(size)}x${String(size)}`;
-	return { title: `Tic-tac-toe teams${board}`, story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brain, size, line), fixedRoster: "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)" };
+	return { title: `Tic-tac-toe teams${board}`, story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brainTeams, size, line), fixedRoster: "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)" };
 }
 
 export default tictactoeEntry();
