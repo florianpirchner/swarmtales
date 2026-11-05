@@ -13,3 +13,6 @@ swt run --story tictactoe-teams                         # Haiku via Anthropic, 3
 Variants are factory options of `tictactoeStory` in `story.ts`: `games`, `brain: false` (the control
 arm: identical result-only briefings, no brain), `brainTeams: ["O"]` (registered as `tictactoe-teams-brain-o`: only team O keeps a brain, X gets the result-only briefing and no retro), `maxWords`, `seed`. The biased gamemaker is not built.
 Mechanics: `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`.
+
+**Combinations by name.** `stories/index.ts` resolves `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>]`: board size 3 to 8 (four in a row above 3x3), no brain or a brain for team O only, and the rounds of proposal and vote per move before a random cell is played (default 3). Examples: `tictactoe-teams-4x4`, `tictactoe-teams-5x5-nobrain-r6`. Mixed models: `--resident-model A04,A05,A06=openrouter/google/gemma-4-26b-a4b-it` ([docs/CLI.md](../../docs/CLI.md)). The referee scores only positions with at most 16 free cells. Runs and results: [runs/README.md](runs/README.md).
+

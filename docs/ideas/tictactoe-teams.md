@@ -1,6 +1,6 @@
 # Tic-tac-toe teams: a small real game with a learning "strategy brain"
 
-Status: **Flo gave the go on 2026-11-03; first version built** (mechanics `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`; story `tictactoe-teams`; core-story runner, neutral prompt and context reset). Not yet built: the biased Gamemaker, E3/E6 forks, brain statistics, resume on the core-story path. No live run yet.
+Status: **Flo gave the go on 2026-11-03; first version built** (mechanics `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`; story `tictactoe-teams`; core-story runner, neutral prompt and context reset). Not yet built: the biased Gamemaker, E3/E6 forks, brain statistics, resume on the core-story path. Live runs: 44 matches so far, listed in [stories/tictactoe-teams/runs/](../../stories/tictactoe-teams/runs/README.md); results in section 14.
 Per the brainstorm-first rule, code starts only after Flo's explicit go. Everything marked "proposal" or
 "open" is for Flo to decide.
 
@@ -331,3 +331,13 @@ Following the checklist habit in `docs/LESSONS-LEARNED.md`; each risk has a prop
 4. A 3-game live smoke run with Haiku, recorded under `stories/tictactoe-teams/runs/` with the
    loopholes, problems and solutions README the repository requires.
 5. Experiments E1, E3, E4 as a recorded series.
+
+## 14. Results so far (2026-11-04/05)
+
+Nothing here is proof; every arm has 2 or 3 matches of 3 games. Details, costs and per-match numbers are in the run READMEs.
+
+- **Haiku vs Haiku** draws 3x3 and 4x4 (P77, P84): no error to learn from, so no learning curve. On 5x5 with four in a row Haiku decides 6 of 12 games, so that board gives a brain room to matter; no effect can be told from noise at this size.
+- **Small open models (Gemma 3, Gemma 4 26B)** do not work with the protocol as it is: Gemma 3 needs `--tool-choice required` (P80); Gemma 4 forfeits most moves and loses track of the rotating captain, so Gemma vs Gemma never plays a game on 4x4 or 5x5 (P86). Against Haiku, every Gemma-side forfeit decides games, so brain arms cannot be compared (P81).
+- **Asymmetric 3x3** (Haiku X vs Gemma O): all 14 X wins contain a forfeited Gemma move; every scored Gemma move that was actually played was optimal. No brain effect.
+- **Process:** matches run in parallel (up to 14 at once) at 0.05-0.33 USD each; a container restart kills background runs and the core-story path has no resume (P87).
+- **Next, not built:** a fixed captain per team (fixes P86), 5x5 with Haiku in a larger sample, the biased Gamemaker, personas. Combinations are started by name: `swt run --story tictactoe-teams-5x5-nobrain-r6` (see the story README).
