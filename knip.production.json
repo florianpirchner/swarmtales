@@ -6,7 +6,8 @@
 			"entry": [
 				"stories/index.ts!",
 				"lab/*.ts!",
-				"scripts/*.{ts,mjs}!"
+				"scripts/*.{ts,mjs}!",
+				"scripts/ember-calibration/analyze.ts!"
 			],
 			"project": [
 				"stories/**!",

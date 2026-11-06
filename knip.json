@@ -3,7 +3,7 @@
 	"ignoreExportsUsedInFile": true,
 	"workspaces": {
 		".": {
-			"entry": ["scripts/*.{ts,mjs}", "test/**/*.{test,check}.ts", "lab/*.ts", "stories/index.ts", "tsdown.base.ts"],
+			"entry": ["scripts/*.{ts,mjs}", "scripts/ember-calibration/analyze.ts","test/**/*.{test,check}.ts", "lab/*.ts", "stories/index.ts", "tsdown.base.ts"],
 			"project": ["scripts/**", "test/**", "lab/**", "stories/**", "*.ts"]
 		}
 	}
