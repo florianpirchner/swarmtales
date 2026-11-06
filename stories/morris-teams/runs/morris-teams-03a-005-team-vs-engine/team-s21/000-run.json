@@ -1,0 +1,32 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-06T22:02:51.786Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "morris-teams-vs-engine2",
+  "kind": "core",
+  "title": "Nine men's morris teams against the engine",
+  "effective": {
+    "agents": 3,
+    "minutes": 494,
+    "seed": 21
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

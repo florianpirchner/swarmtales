@@ -1,10 +1,11 @@
 /**
  * A depth-limited alpha-beta search over whole morris turns (a step with its removal), with
  * iterative deepening under a node budget, and a static evaluation: pieces, mills about to close
- * and mobility. It is a reference for scoring moves, not an exact solver: nine men's morris is a
- * draw with best play, but an exact table is far too heavy for a test suite.
+ * and mobility. It is a reference, not an exact solver (nine men's morris is a draw with best play,
+ * but an exact table is far too heavy for a test suite): the morris-referee scores moves with it, and
+ * the morris mechanic's `engine` option plays one side with it.
  */
-import { applyTurn, hasLost, legalSteps, legalTurns, MILLS, onBoard, other, type Position, type Side, type Turn } from "@swarmtales/mechanic-morris";
+import { applyTurn, hasLost, legalSteps, legalTurns, MILLS, onBoard, other, type Position, type Side, type Turn } from "./rules.ts";
 
 /** The value of a won position; a quicker win is worth a little more. */
 export const WIN = 100_000;
@@ -126,4 +127,27 @@ export function classify(score: TurnScore): MoveClass {
 	if (score.best >= WIN / 2 && score.played < WIN / 2) return "missed_win";
 	if (loss >= PIECE || score.played <= -WIN / 2) return "blunder";
 	return "inaccuracy";
+}
+
+/**
+ * The best whole turns in `position` (every turn whose value is the best one), searching `maxDepth`
+ * whole turns deep while the budget of `maxNodes` holds per depth. All legal turns when not even
+ * depth 1 fits the budget; empty when there is no legal turn.
+ */
+export function bestTurns(position: Position, flying: boolean, maxDepth: number, maxNodes: number): readonly Turn[] {
+	const turns = legalTurns(position, flying);
+	if (turns.length < 2) return turns;
+	let best: readonly Turn[] = turns;
+	for (let depth = 1; depth <= maxDepth; depth++) {
+		const budget: Budget = { nodes: 0, max: maxNodes };
+		try {
+			const values = turns.map((turn) => -negamax(applyTurn(position, turn), depth - 1, -Infinity, Infinity, flying, budget));
+			const top = Math.max(...values);
+			best = turns.filter((_, index) => (values[index] ?? -Infinity) >= top);
+		} catch (error) {
+			if (error instanceof OutOfNodes) break;
+			throw error;
+		}
+	}
+	return best;
 }

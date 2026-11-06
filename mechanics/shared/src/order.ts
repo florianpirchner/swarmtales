@@ -40,6 +40,8 @@ export const HOOK_ORDER = {
 		saltMarket: 0,
 		/** The word-clue game (Lanterns) starts game 1, after the brain's hold. */
 		clueGrid: 0,
+		/** Convoy starts game 1 (after the brain's hold, like the grid game). */
+		convoy: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -138,6 +140,8 @@ export const HOOK_ORDER = {
 		saltMarket: 350,
 		/** The word-clue game's rules, record and clue or guess task (Lanterns), after the brain's context reset. */
 		clueGrid: 350,
+		/** Convoy's rules, the seat's role, the table record and the task line, after the brain's context reset. */
+		convoy: 370,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -161,6 +165,8 @@ export const HOOK_ORDER = {
 		saltMarket: 150,
 		/** The word-clue game's clue and guess deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		clueGrid: 150,
+		/** Convoy's phase deadlines (they may end a game and open a retro) come before the brain's retro windows. */
+		convoy: 170,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */

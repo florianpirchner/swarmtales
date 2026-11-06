@@ -2,6 +2,7 @@
 import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmtales/contracts";
 import chessMatch, { chessEntryByName } from "./chess/story.ts";
 import cityOfKeys from "./cityofkeys/story.ts";
+import convoy, { convoyEntry } from "./convoy/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import harborLights, { harborLightsEntry, harborLightsEntryByName } from "./harbor-lights/story.ts";
@@ -114,6 +115,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	// Lanterns, the word-clue game: two teams of three, a rotating keeper, a team brain; the control arm keeps none.
 	lanterns,
 	"lanterns-nobrain": lanternsEntry({ brain: false }),
+	// Convoy, the hidden-role card game: six seats, two secret saboteurs, a private brain per seat; the control arm keeps none.
+	convoy,
+	"convoy-nobrain": convoyEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -161,10 +165,11 @@ function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 }
 
 /**
- * Morris combinations by name: `morris-teams[-nobrain][-g<games>][-r<rounds>][-t<turns>][-solo][-fc]`, for example
- * `morris-teams-g1-t60-solo` (one game, a turn limit of 60, one agent per side).
+ * Morris combinations by name: `morris-teams[-nobrain][-g<games>][-r<rounds>][-t<turns>][-solo][-fc][-vs-engine<depth>]`, for example
+ * `morris-teams-g1-t60-solo` (one game, a turn limit of 60, one agent per side) or
+ * `morris-teams-g6-solo-vs-engine2` (six games of one agent against the search at depth 2).
  */
-const MORRIS_NAME = /^morris-teams(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?(?:-t(\d+))?(-solo)?(-fc)?$/;
+const MORRIS_NAME = /^morris-teams(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?(?:-t(\d+))?(-solo)?(-fc)?(?:-vs-engine(\d))?$/;
 
 function parseMorris(id: string): CoreStoryEntry | undefined {
 	const match = MORRIS_NAME.exec(id);
@@ -172,7 +177,8 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 	const games = match[2] === undefined ? undefined : Number(match[2]);
 	const rounds = match[3] === undefined ? undefined : Number(match[3]);
 	const turns = match[4] === undefined ? undefined : Number(match[4]);
-	if ((games !== undefined && (games < 1 || games > 20)) || (rounds !== undefined && (rounds < 1 || rounds > 20)) || (turns !== undefined && (turns < 10 || turns > 400))) return undefined;
+	const engineDepth = match[7] === undefined ? undefined : Number(match[7]);
+	if ((games !== undefined && (games < 1 || games > 20)) || (rounds !== undefined && (rounds < 1 || rounds > 20)) || (turns !== undefined && (turns < 10 || turns > 400)) || (engineDepth !== undefined && (engineDepth < 1 || engineDepth > 6))) return undefined;
 	return morrisEntry({
 		...(match[1] === "-nobrain" ? { brain: false } : {}),
 		...(games === undefined ? {} : { games }),
@@ -180,10 +186,22 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 		...(turns === undefined ? {} : { maxTurns: turns }),
 		...(match[5] === "-solo" ? { teamSize: 1 as const } : {}),
 		...(match[6] === "-fc" ? { fixedCaptain: true } : {}),
+		...(engineDepth === undefined ? {} : { engineDepth }),
 	});
+}
+
+/** Convoy combinations by name: `convoy[-nobrain][-g<games>]`, for example `convoy-g1` (one game). */
+const CONVOY_NAME = /^convoy(-nobrain)?(?:-g(\d+))?$/;
+
+function parseConvoy(id: string): CoreStoryEntry | undefined {
+	const match = CONVOY_NAME.exec(id);
+	if (match === null) return undefined;
+	const games = match[2] === undefined ? undefined : Number(match[2]);
+	if (games !== undefined && (games < 1 || games > 20)) return undefined;
+	return convoyEntry({ ...(match[1] === "-nobrain" ? { brain: false } : {}), ...(games === undefined ? {} : { games }) });
 }
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id) ?? parseConvoy(id));
 }
