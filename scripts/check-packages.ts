@@ -19,6 +19,7 @@ const MECHANIC_IDS = [
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
 	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "draft-rounds", "chess",
 	"holdem",
+	"morris", "morris-referee",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
@@ -37,6 +38,9 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-draft-rounds": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-chess": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-holdem": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	// Nine men's morris: gated by consensus, chat rounds through the team channel, a brain through its source API.
+	"@swarmtales/mechanic-morris": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel", "@swarmtales/mechanic-strategy-brain"],
+	"@swarmtales/mechanic-morris-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-morris"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],

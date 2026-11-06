@@ -1,0 +1,28 @@
+{
+	"name": "@swarmtales/mechanic-morris-referee",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The morris-referee mechanic: scores every morris turn against a depth-limited alpha-beta search, for the human and the reporter.",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-morris": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

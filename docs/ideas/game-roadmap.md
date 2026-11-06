@@ -246,6 +246,16 @@ a bank that executes only what both sides confirm.
 All traditional, no owner, so the genres are free. Two teams of two (or three) with a captain and
 consensus, exactly the tic-tac-toe setup on a bigger board.
 
+**Built (2026-11-06): nine men's morris** as story `morris-teams` ([stories/morris-teams/](../../stories/morris-teams/README.md))
+on two new mechanics: `morris` (the rules module: placing, moving, flying, mills and removals, the end
+of a game by pieces, blockade, repetition, quiet turns or the turn limit; it feeds `consensus` and the
+`strategy-brain` through their source APIs) and `morris-referee` (a depth-limited alpha-beta search
+that scores every turn, audience `human`). Instead of generalising `grid-game` into a `board-game` with
+rules modules, morris is its own mechanic for now: other board games are being built in parallel, and
+the shared parts (captain rotation, match, holds) are small. A move is one integer (point, or
+`from * 100 + to`), and a mill is followed by a second agreed move that names the piece to remove, so
+the consensus gate needed no change. Runs: [stories/morris-teams/runs/](../../stories/morris-teams/runs/README.md).
+
 | Game | Reference | Fit | Effort |
 |---|---|---|---|
 | Nine men's morris | Solved (a draw); an exact solver is possible but heavy; a depth-limited alpha-beta works for scoring | Best of the four: small rules, phases (place, move, fly), real tactics | M |

@@ -32,6 +32,8 @@ export const HOOK_ORDER = {
 		chess: 0,
 		/** Hold'em starts game 1 (after the brain's hold, like the grid game). */
 		holdem: 0,
+		/** Nine men's morris starts game 1 (morris teams; after the brain's hold, like the grid game). */
+		morris: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
