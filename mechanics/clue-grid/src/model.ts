@@ -48,20 +48,22 @@ export type Card = Static<typeof Card>;
 
 export interface DealRules {
 	readonly size: number;
-	/** Words of each team. */
-	readonly perTeam: number;
+	/** Words of team amber. */
+	readonly amber: number;
+	/** Words of team teal. */
+	readonly teal: number;
 	readonly shadows: number;
 }
 
 /** The grid of one game: `size` words from the shuffled pool, the owners in a second shuffle (`shuffle` is the run's seeded shuffle). */
 export function dealGrid(rules: DealRules, shuffle: <T>(items: readonly T[]) => T[]): Card[] {
-	const fog = rules.size - 2 * rules.perTeam - rules.shadows;
-	if (fog < 0) throw new Error(`clue-grid: ${String(rules.size)} words do not hold ${String(rules.perTeam)} per team and ${String(rules.shadows)} shadows`);
+	const fog = rules.size - rules.amber - rules.teal - rules.shadows;
+	if (fog < 0) throw new Error(`clue-grid: ${String(rules.size)} words do not hold ${String(rules.amber)} amber, ${String(rules.teal)} teal and ${String(rules.shadows)} shadows`);
 	if (rules.size > WORD_POOL.length) throw new Error(`clue-grid: the pool has only ${String(WORD_POOL.length)} words`);
 	const words = shuffle(WORD_POOL).slice(0, rules.size);
 	const owners: Owner[] = [
-		...Array.from({ length: rules.perTeam }, (): Owner => "amber"),
-		...Array.from({ length: rules.perTeam }, (): Owner => "teal"),
+		...Array.from({ length: rules.amber }, (): Owner => "amber"),
+		...Array.from({ length: rules.teal }, (): Owner => "teal"),
 		...Array.from({ length: rules.shadows }, (): Owner => "shadow"),
 		...Array.from({ length: fog }, (): Owner => "fog"),
 	];
@@ -74,6 +76,14 @@ export function stemOf(word: string): string {
 	const lower = word.toLowerCase();
 	for (const end of ["ing", "ers", "ed", "es", "er", "s", "y"]) if (lower.length - end.length >= 3 && lower.endsWith(end)) return lower.slice(0, -end.length);
 	return lower;
+}
+
+/** Words left against clues left, so a keeper sees what finishing needs (P197). `clues` counts this clue too. */
+export function paceLine(words: number, clues: number): string {
+	const need = clues > 0 ? Math.ceil(words / clues) : words;
+	const plural = (n: number, one: string): string => `${String(n)} ${one}${n === 1 ? "" : "s"}`;
+	if (clues <= 1) return `Your team has ${plural(words, "hidden word")} left and this is its last clue.`;
+	return `Your team has ${plural(words, "hidden word")} left and ${plural(clues, "clue")} (this one included): to find them all, a clue must average ${need === 1 ? "1 word" : `${String(need)} words`} or more.`;
 }
 
 export const normalizeWord = (word: string): string => word.trim().toLowerCase();

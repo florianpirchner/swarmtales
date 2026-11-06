@@ -1,8 +1,9 @@
 # Lanterns
 
 Two teams of three (amber: A01-A03, teal: A04-A06) play a match of an original **word-clue game**. A grid
-of 20 words is dealt from the game's own word pool. Each word secretly belongs to team amber (6), team teal
-(6), the fog (6, nobody's) or the shadows (2). Only the two **keepers** see who owns which word.
+of 20 words is dealt from the game's own word pool. Each word secretly belongs to the team with the first clue of
+the game (6), the other team (5, which evens out the first move, P196), the fog (7, nobody's) or the shadows
+(2). Only the two **keepers** see who owns which word.
 
 - **Roles.** In each game one member of each team is its keeper and the two others are **seekers**. The
   keeper role rotates game by game (game 1 A01 and A04, game 2 A02 and A05, game 3 A03 and A06), so in the
@@ -18,8 +19,8 @@ of 20 words is dealt from the game's own word pool. Each word secretly belongs t
   each **landed** clue (a number of 2 or more whose first guesses were all own words) +1 per word beyond the
   first (a landed 3 scores 2); +3 for the team whose words are all revealed first, which ends the game.
   Otherwise a game ends after 5 clues per team. (The first run had +1 per landed clue and 8 clues; both
-  changed after it, P191.) A keeper
-  who gives no clue in 2 minutes loses the turn; a caller who does nothing for 2 minutes ends it.
+  changed after it, P191.) The keeper's task says how many own words are left against how many clues
+  (P197). A keeper who gives no clue in 2 minutes loses the turn; a caller who does nothing for 2 minutes ends it.
 
 The game is an original design ([docs/ideas/game-roadmap.md](../../docs/ideas/game-roadmap.md) §2.9) in the
 genre of team word-association games; it copies no published title: own word pool, grid size and key, the
@@ -43,6 +44,6 @@ The retro asks for the team's conventions between keeper and seekers, not for ca
 brain's `retroFocus` option, P195). Registered arms: `lanterns` (team brains) and `lanterns-nobrain` (the same briefings, no brain, no retro);
 by name `lanterns[-nobrain][-g<games>][-c<clues>]`. Further options of `lanternsStory` in `story.ts`:
 `games`, `brain`, `maxClues`, `maxWords`, `seed`; the grid and scoring numbers are options of the `clue-grid`
-mechanic (`size`, `columns`, `perTeam`, `shadows`, `maxNumber`, `maxClues`, `wordPoints`, `shadowPenalty`,
+mechanic (`size`, `columns`, `perTeam`, `secondFewer`, `shadows`, `maxNumber`, `maxClues`, `wordPoints`, `shadowPenalty`,
 `landedBonus`, `finishBonus`, `deadline`). Mechanics: `clue-grid`, `team-channel`, `strategy-brain`. Runs and
 results: [runs/README.md](runs/README.md).
