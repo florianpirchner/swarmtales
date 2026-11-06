@@ -44,6 +44,7 @@
 		{ "path": "mechanics/strategy-brain" },
 		{ "path": "mechanics/econ-games" },
 		{ "path": "mechanics/draft-rounds" },
+		{ "path": "mechanics/salt-market" },
 		{ "path": "mechanics/chess" },
 		{ "path": "mechanics/holdem" },
 		{ "path": "mechanics/morris" },

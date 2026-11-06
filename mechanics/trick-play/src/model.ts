@@ -42,15 +42,17 @@ export function legalCards(hand: readonly string[], led: string | undefined, vet
 export const Scoring = Type.Object({
 	hit: Type.Integer({ default: 10, description: "Points for taking exactly the tricks bid." }),
 	perTrick: Type.Integer({ default: 3, description: "Points per trick taken, on a hit only." }),
-	miss: Type.Union([Type.Literal("square"), Type.Literal("linear")], { default: "square", description: "A miss costs the square of the error (square) or 10 per trick off (linear)." }),
+	miss: Type.Union([Type.Literal("square"), Type.Literal("linear")], { default: "square", description: "A miss costs the square of the error (square) or 10 per trick off (linear), plus missBase." }),
+	missBase: Type.Optional(Type.Integer({ minimum: 0, description: "A fixed cost of every miss on top of the error term (default 0)." })),
 });
 export type Scoring = Static<typeof Scoring>;
 
-/** The points of one round: a hit is `hit + perTrick * taken`, a miss costs the error squared (or 10 per trick off). */
+/** The points of one round: a hit is `hit + perTrick * taken`, a miss costs `missBase` plus the error squared (or 10 per trick off). */
 export function roundPoints(bid: number, taken: number, scoring: Scoring): number {
 	if (bid === taken) return scoring.hit + scoring.perTrick * taken;
 	const error = Math.abs(bid - taken);
-	return scoring.miss === "square" ? -(error * error) : -10 * error;
+	const base = scoring.missBase ?? 0;
+	return -(base + (scoring.miss === "square" ? error * error : 10 * error));
 }
 
 /** Who names trump: the lowest bid, the earliest in bidding order on a tie. */
