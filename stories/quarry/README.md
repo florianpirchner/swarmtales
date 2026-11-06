@@ -11,8 +11,10 @@ wild ore (lodestone). At the end of a game each quarry scores:
 - a **lodestone** joins one set as one more card, at most one per set, on the biggest sets;
 - **5 points** for strictly the most cards of a resource (lodestones do not count; a tie scores nothing,
   so a hate pick can cost a neighbour its bonus);
-- **-2 points per burn**: with a pick a seat may destroy one more card of the pack before it moves on,
-  twice a game at most.
+- **burns**: with a pick a seat may destroy one more card of the pack before it moves on, twice a game at
+  most, for free (it cost 2 points until the bot test of P123);
+- a **place bonus** per game: 10 points for the best quarry, 5 for the second (a tie shares the better
+  place). It is what makes denial pay: in a points-only game a burn only helps the two other rivals.
 
 Picks are sealed and simultaneous. A seat sees only its own pack, its own quarry and who passed the pack
 to it; every quarry is shown when the game ends. There is no table talk. A seat that does not pick in
@@ -28,7 +30,11 @@ same deal, in the event `draft_game_scored`, for the human and the reporter only
 
 Scripted bots on 2000 deals (default rules) show the shape of the game: four greedy seats score about 75
 each, four seats in four different lanes about 86, two seats fighting over one lane about 61 against 85 for
-the others, and random picks about 49. Greedy is not optimal; avoiding a neighbour's lane is.
+the others, and random picks about 49. Greedy is not optimal; avoiding a neighbour's lane is. For the burn
+(P123): a burn that destroys a card the pack would have brought back costs the burner itself 2-6 points; a
+late burn (the pack cannot come back) at no cost is worth exactly nothing in points alone, because it
+hurts every rival but helps nobody; with the place bonus a late free burn of the receiver's best card pays
+the burner about 1-2 points a game. `test/stories/quarry.test.ts` keeps this check.
 
 ```
 swt run --story quarry --provider scripted     # offline, no model
@@ -39,5 +45,5 @@ Registered arms: `quarry` (brain on), `quarry-nobrain` (the same briefings, no b
 `quarry-open` (every quarry visible during the game). Further variants are factory options of
 `quarryStory` in `story.ts`: `games`, `packs`, `packSize`, `openHands`, `maxWords`, `seed`; the scoring
 numbers are options of the `draft-rounds` mechanic (`wilds`, `majorityBonus`, `burnCost`, `maxBurns`,
-`deadline`). Mechanics: `draft-rounds`, `strategy-brain` (solo seats). Runs and results:
+`placeBonus`, `deadline`). Mechanics: `draft-rounds`, `strategy-brain` (solo seats). Runs and results:
 [runs/README.md](runs/README.md).

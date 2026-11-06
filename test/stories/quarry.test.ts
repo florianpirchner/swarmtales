@@ -4,7 +4,8 @@ import type { CoreStory, TurnTaker } from "@swarmtales/contracts";
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { deckOf, greedyTable, laneOf, scoreTable, setScore } from "../../mechanics/draft-rounds/src/model.ts";
+import { createRng } from "@swarmtales/kernel";
+import { deckOf, gainOf, greedyTable, laneOf, packsOf, receiverOf, scoreTable, setScore, type Card } from "../../mechanics/draft-rounds/src/model.ts";
 import { quarryStory, type QuarryOptions } from "../../stories/quarry/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { field, ofType } from "./tictactoe-support.ts";
@@ -60,7 +61,7 @@ describe("Quarry rules", () => {
 		const table = scoreTable(
 			{ A01: [c("A1", "amber"), c("A2", "amber")], A02: [c("A3", "amber"), c("B1", "basalt")], A03: [c("B2", "basalt")] },
 			{ A01: 1 },
-			{ majorityBonus: 5, burnCost: 2 },
+			{ majorityBonus: 5, burnCost: 2, placeBonus: [] },
 		);
 		// A01: 4 + amber majority 5 - burn 2; A02 and A03 tie on basalt: nobody gets it.
 		expect(table.A01).toMatchObject({ sets: 4, majorities: ["amber"], total: 7 });
@@ -71,9 +72,67 @@ describe("Quarry rules", () => {
 	});
 
 	it("plays a greedy table on a fixed deal", () => {
-		const scores = greedyTable(deckOf(48, 4), ["A01", "A02", "A03", "A04"], 2, 6, { majorityBonus: 5, burnCost: 2 });
+		const scores = greedyTable(deckOf(48, 4), ["A01", "A02", "A03", "A04"], 2, 6, { majorityBonus: 5, burnCost: 2, placeBonus: [] });
 		expect(Object.keys(scores)).toEqual(["A01", "A02", "A03", "A04"]);
 		expect(Object.values(scores).every((score) => score > 0)).toBe(true);
+	});
+});
+
+/**
+ * The bot test behind P123: four seats draft four different lanes on many deals; A01 may also burn the
+ * receiver's best card once the pack cannot come back to it. Returns A01's mean score with and without burns.
+ */
+function burnTest(rules: { majorityBonus: number; burnCost: number; placeBonus: readonly number[] }, deals: number): { readonly without: number; readonly with: number } {
+	const seats = ["A01", "A02", "A03", "A04"];
+	const lanes: Readonly<Record<string, string>> = { A01: "amber", A02: "basalt", A03: "cobalt", A04: "jade" };
+	const play = (seed: number, burner: boolean): number => {
+		const hands: Record<string, Card[]> = Object.fromEntries(seats.map((seat) => [seat, []]));
+		const burns: Record<string, number> = { A01: 0 };
+		for (const [index, row] of packsOf(createRng(seed).shuffle(deckOf(48, 4)), 4, 2, 6).entries()) {
+			let held: Record<string, Card[]> = Object.fromEntries(seats.map((seat, k) => [seat, row[k] ?? []]));
+			while (Object.values(held).some((pack) => pack.length > 0)) {
+				const next: Record<string, Card[]> = {};
+				for (const seat of seats) {
+					const pack = held[seat] ?? [];
+					const hand = hands[seat] ?? [];
+					const card = pack.find((other) => other.kind === lanes[seat]) ?? pack.find((other) => other.kind === "lodestone") ?? pack[0];
+					let rest = card === undefined ? pack : pack.filter((other) => other.id !== card.id);
+					if (card !== undefined) hand.push(card);
+					const receiver = receiverOf(seats, seat, index + 1);
+					if (burner && seat === "A01" && (burns.A01 ?? 0) < 2 && rest.length > 0 && rest.length < seats.length) {
+						const target = [...rest].sort((a, b) => gainOf(hands[receiver] ?? [], b) - gainOf(hands[receiver] ?? [], a))[0];
+						if (target !== undefined && gainOf(hands[receiver] ?? [], target) >= 5) {
+							rest = rest.filter((other) => other.id !== target.id);
+							burns.A01 = (burns.A01 ?? 0) + 1;
+						}
+					}
+					next[receiver] = rest;
+				}
+				held = next;
+			}
+		}
+		return scoreTable(hands, burns, rules).A01?.total ?? 0;
+	};
+	let without = 0;
+	let withBurns = 0;
+	for (let seed = 0; seed < deals; seed++) {
+		without += play(seed, false);
+		withBurns += play(seed, true);
+	}
+	return { without: without / deals, with: withBurns / deals };
+}
+
+describe("quarry, the burn (P123)", () => {
+	it("pays a late burner only when burns are free and places score", () => {
+		// The old rules: a burn costs 2 and only points count, so burning loses.
+		const old = burnTest({ majorityBonus: 5, burnCost: 2, placeBonus: [] }, 300);
+		expect(old.with).toBeLessThan(old.without);
+		// Free burns without a place bonus change nothing for the burner: denial does not pay in points.
+		const free = burnTest({ majorityBonus: 5, burnCost: 0, placeBonus: [] }, 300);
+		expect(Math.abs(free.with - free.without)).toBeLessThan(1);
+		// The new defaults: free burns and 10/5 for the first two places; a late burn now pays.
+		const now = burnTest({ majorityBonus: 5, burnCost: 0, placeBonus: [10, 5] }, 300);
+		expect(now.with).toBeGreaterThan(now.without + 1);
 	});
 });
 
