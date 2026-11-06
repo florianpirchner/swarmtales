@@ -83,6 +83,11 @@ punishment round yet. No kernel change. Runs: [stories/econ-lab/runs/](../../sto
 
 ### 2.3 Original trick-taking game with exact bidding (working title "Ember Tricks")
 
+**Built (2026-11-06, Flo's go):** `mechanics/card-table` (deck, seeded deal, private hands), `mechanics/trick-play`
+(bids, named trump, follow suit, veto, scoring, move timer) and the story `stories/ember-tricks/`; the strategy brain
+now also serves trick play (one team of one per seat, reset every round). Not built yet: the Monte Carlo reference
+listener. First run: [ember-tricks-04a-001-smoke](../../stories/ember-tricks/runs/ember-tricks-04a-001-smoke/).
+
 Not Wizard. A genre sibling with real differences, so nothing is a 1:1 copy:
 
 - **Own deck:** five suits (Ash, Brine, Cinder, Dust, Ember) of 1-10, with no jokers and no

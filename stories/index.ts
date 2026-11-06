@@ -2,6 +2,7 @@
 import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmtales/contracts";
 import cityOfKeys from "./cityofkeys/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
+import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
@@ -73,6 +74,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"econ-lab-ultimatum": econLabSingle("ultimatum"),
 	"econ-lab-public-goods": econLabSingle("public-goods"),
 	"econ-lab-dilemma": econLabSingle("dilemma"),
+	// Ember Tricks (docs/ideas/game-roadmap.md §2.3): four solo seats, exact bids; the control arm keeps no notes.
+	"ember-tricks": emberTricks,
+	"ember-tricks-nobrain": emberTricksEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -103,7 +107,23 @@ function parseTictactoe(id: string): CoreStoryEntry | undefined {
 	});
 }
 
+/** Ember Tricks combinations by name: `ember-tricks[-nobrain][-g<games>][-r<rounds>]`, rounds 1 to N cards (N up to 10), for example `ember-tricks-g2-r4`. */
+const EMBER_NAME = /^ember-tricks(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?$/;
+
+function parseEmberTricks(id: string): CoreStoryEntry | undefined {
+	const match = EMBER_NAME.exec(id);
+	if (match === null) return undefined;
+	const games = match[2] === undefined ? undefined : Number(match[2]);
+	const last = match[3] === undefined ? undefined : Number(match[3]);
+	if ((games !== undefined && (games < 1 || games > 20)) || (last !== undefined && (last < 1 || last > 10))) return undefined;
+	return emberTricksEntry({
+		...(match[1] === "-nobrain" ? { brain: false } : {}),
+		...(games === undefined ? {} : { games }),
+		...(last === undefined ? {} : { rounds: Array.from({ length: last }, (_, index) => index + 1) }),
+	});
+}
+
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : parseTictactoe(id);
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id));
 }

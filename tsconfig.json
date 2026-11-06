@@ -39,6 +39,8 @@
 		{ "path": "mechanics/standoff-tribunal" },
 		{ "path": "mechanics/consensus" },
 		{ "path": "mechanics/team-channel" },
+		{ "path": "mechanics/card-table" },
+		{ "path": "mechanics/trick-play" },
 		{ "path": "mechanics/strategy-brain" },
 		{ "path": "mechanics/econ-games" },
 		{ "path": "apps/cli" },
