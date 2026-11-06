@@ -47,6 +47,8 @@ describe("the rules", () => {
 		expect(roundPoints(3, 5, SCORING)).toBe(-4);
 		expect(roundPoints(4, 1, SCORING)).toBe(-9);
 		expect(roundPoints(4, 1, { ...SCORING, miss: "linear" })).toBe(-30);
+		expect(roundPoints(0, 1, { ...SCORING, missBase: 5 })).toBe(-6);
+		expect(roundPoints(3, 5, { ...SCORING, missBase: 5 })).toBe(-9);
 	});
 
 	it("lets the lowest bidder name trump, the earliest on a tie, and bids from the dealer's left", () => {

@@ -35,7 +35,7 @@ const options = Type.Object({
 	rounds: Type.Array(Type.Integer({ minimum: 1 }), { minItems: 1, default: [1, 2, 3, 4, 5, 6, 7, 8], description: "Cards dealt to each seat, round by round; a game has one round per entry." }),
 	trump: Type.Union([Type.Literal("lowestBidderNames"), Type.Literal("none")], { default: "lowestBidderNames", description: "lowestBidderNames: the lowest bidder names the trump suit once every bid is public; none: no trump." }),
 	vetoTokens: Type.Integer({ minimum: 0, default: 1, description: "Veto tokens each seat gets per game (0: no veto)." }),
-	scoring: Type.Object(Scoring.properties, { default: { hit: 10, perTrick: 3, miss: "square" }, description: "Points of a round: hit plus perTrick per trick on a hit; a miss costs the error squared (or 10 per trick off)." }),
+	scoring: Type.Object(Scoring.properties, { default: { hit: 10, perTrick: 3, miss: "square" }, description: "Points of a round: hit plus perTrick per trick on a hit; a miss costs missBase plus the error squared (or 10 per trick off)." }),
 	maxIdleMinutes: Type.Integer({ minimum: 1, default: 3, description: "Whole minutes a seat may leave its action open before the move timer acts for it." }),
 	maxConsecutiveForfeits: Type.Integer({ minimum: 0, default: 0, description: "That many timer actions in a row end the match as invalid (0: off)." }),
 	briefEveryRound: Type.Boolean({ default: false, description: "Tell a strategy brain of every round's start, not only the game's, so every round begins from a fresh context with the briefing." }),
