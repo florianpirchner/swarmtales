@@ -138,7 +138,7 @@ describe("quarry, the burn (P123)", () => {
 
 describe("quarry, scripted match", () => {
 	it("plays three games with sealed picks, passing, burns, a reference score and a brain per seat", async () => {
-		const run = await playStory(options(), player);
+		const run = await playStory(options({ burns: true }), player);
 		expect(run.end).toMatchObject({ reason: "referee", limit: "draft-rounds.match" });
 		const ended = ofType(run.events, "draft_game_ended");
 		expect(ended).toHaveLength(3);
@@ -157,6 +157,18 @@ describe("quarry, scripted match", () => {
 		expect(ofType(run.events, "draft_match_ended")).toHaveLength(1);
 		const written = ofType(run.events, "brain_written");
 		expect(written).toHaveLength(12);
+		// P126: the next game's briefing names every burn and whether its pack came back to the burner.
+		const second = run.events.filter((event) => event.type === "turn_started").map((event) => JSON.stringify(field(event, "inputs"))).find((text) => text.includes("Game 2 begins")) ?? "";
+		expect(second).toMatch(/burns A01 L\d lodestone/);
+		expect(second).toContain("A02 none");
+	});
+
+	it("plays without burns by default and keeps the burn arm and the old name", async () => {
+		const run = await playStory(options(), player);
+		expect(ofType(run.events, "draft_card_picked").some((event) => field(event, "burned") !== undefined)).toBe(false);
+		expect(findCoreStory("quarry-noburn")?.story.id).toBe("quarry");
+		const rules = (createHost(options()).toolSpecs("resident").find((spec) => spec.name === "pick")?.description ?? "");
+		expect(rules).toContain("burn");
 	});
 
 	it("starts every game from a fresh context with the results so far and the seat's own brain", async () => {
@@ -183,7 +195,7 @@ describe("quarry, scripted match", () => {
 	});
 
 	it("passes left in the first pack round and right in the second, and refuses bad picks", async () => {
-		const host = createHost(options({ brain: false, games: 1, packs: 2, packSize: 2 }));
+		const host = createHost(options({ brain: false, burns: true, games: 1, packs: 2, packSize: 2 }));
 		host.start();
 		const packOf = async (seat: string): Promise<string[]> => {
 			const view = await host.call(as(seat), "viewTable", {});
@@ -208,7 +220,7 @@ describe("quarry, scripted match", () => {
 	});
 
 	it("refuses every burn in the no-burn arm and says so in the rules", async () => {
-		const host = createHost(options({ brain: false, burns: false, games: 1, packs: 1, packSize: 3 }));
+		const host = createHost(options({ brain: false, games: 1, packs: 1, packSize: 3 }));
 		host.start();
 		const view = await host.call(as("A01"), "viewTable", {});
 		const text = view.ok ? view.reply : "";
@@ -219,7 +231,7 @@ describe("quarry, scripted match", () => {
 	});
 
 	it("is registered with its arms", () => {
-		for (const name of ["quarry", "quarry-nobrain", "quarry-open", "quarry-noburn"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["quarry", "quarry-nobrain", "quarry-open", "quarry-burn"]) expect(findCoreStory(name)?.story.id).toBe(name);
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a game and inside a retro window", async () => {

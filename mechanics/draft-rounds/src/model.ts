@@ -203,6 +203,7 @@ export const PickRecord = Type.Object({
 	regret: Type.Number({ description: "best - gain: set points left on the table by this pick (0 = greedy)." }),
 	denied: Type.Boolean({ description: "The card was the receiver's best and not the picker's: a hate pick." }),
 	missed: Type.Boolean({ description: "No pick in time: the first card of the pack was taken." }),
+	returnable: Type.Optional(Type.Boolean({ description: "With a burn: the pack still had enough cards to come back to the burner, so the burned card could have come back to it (P126)." })),
 });
 export type PickRecord = Static<typeof PickRecord>;
 
