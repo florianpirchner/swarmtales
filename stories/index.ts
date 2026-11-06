@@ -107,7 +107,7 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"harbor-lights": harborLights,
 	"harbor-lights-solo": harborLightsEntry({ brain: "solo" }),
 	"harbor-lights-nobrain": harborLightsEntry({ brain: "nobrain" }),
-	"harbor-lights-soft-strikes": harborLightsEntry({ softStrikes: true }),
+	"harbor-lights-hard-strikes": harborLightsEntry({ strikes: "hard" }),
 	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
 	"morris-teams": morrisTeams,
 	"morris-teams-nobrain": morrisEntry({ brain: false }),

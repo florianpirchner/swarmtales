@@ -53,12 +53,15 @@ describe("harbor-lights, scripted matches", () => {
 		for (const reset of late) expect(reset.text).toContain(notes(author, 1));
 	});
 
-	it("crew: the record after a game asks the retro what a signal means; soft strikes tell the seats the penalty", async () => {
-		const run = await playStory({ story: story({ softStrikes: true }), prompts: createPromptLookup() }, towerPlayer({ notes, post }));
+	it("crew: the record after a game asks the retro what a signal means and names every discard; soft strikes (the default) tell the seats the penalty", async () => {
+		const run = await playStory({ story: story(), prompts: createPromptLookup() }, towerPlayer({ notes, post }));
 		expect(ofType(run.events, "game_ended")).toHaveLength(2);
 		const texts = ofType(run.events, "turn_started").map((event) => JSON.stringify(field(event, "inputs")));
 		expect(texts.some((text) => text.includes("Retro question: agree in the chat what a signal means"))).toBe(true);
-		expect(texts.some((text) => text.includes("soft strikes: from strike 3 on"))).toBe(true);
+		expect(texts.some((text) => text.includes("soft strikes: from strike 2 on"))).toBe(true);
+		expect(texts.some((text) => text.includes("Discarded, each still needed and each one point lost"))).toBe(true);
+		const hard = await playStory({ story: story({ strikes: "hard" }), prompts: createPromptLookup() }, towerPlayer({ notes, post }));
+		expect(ofType(hard.events, "turn_started").some((event) => JSON.stringify(field(event, "inputs")).includes("(the last one ends the game)"))).toBe(true);
 	});
 
 	it("solo: every seat writes private notes and reads only its own", async () => {
@@ -95,8 +98,9 @@ describe("harbor-lights, scripted matches", () => {
 		expect(findCoreStory("harbor-lights")?.story.id).toBe("harbor-lights");
 		expect(findCoreStory("harbor-lights-solo")?.story.id).toBe("harbor-lights-solo");
 		expect(findCoreStory("harbor-lights-nobrain-g2")?.story.id).toBe("harbor-lights-nobrain-g2");
-		expect(findCoreStory("harbor-lights-soft-strikes")?.story.id).toBe("harbor-lights-soft-strikes");
-		expect(findCoreStory("harbor-lights-solo-soft-strikes-g2")?.story.id).toBe("harbor-lights-solo-soft-strikes-g2");
+		expect(findCoreStory("harbor-lights-hard-strikes")?.story.id).toBe("harbor-lights-hard-strikes");
+		expect(findCoreStory("harbor-lights-solo-hard-strikes-g2")?.story.id).toBe("harbor-lights-solo-hard-strikes-g2");
+		expect(findCoreStory("harbor-lights-soft-strikes")).toBeUndefined();
 		expect(findCoreStory("harbor-lights-g0")).toBeUndefined();
 	});
 });

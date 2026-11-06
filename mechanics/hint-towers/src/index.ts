@@ -42,11 +42,13 @@ import {
 	parseAbout,
 	penaltyStrikes,
 	play,
+	rankOf,
 	type Rules,
 	scoreOf,
 	signal,
 	signalProblem,
 	type Slot,
+	suitOf,
 	surePlayable,
 	topOf,
 } from "./model.ts";
@@ -87,6 +89,8 @@ const HintSlice = Type.Object({
 	idle: Type.Integer(),
 	forfeits: Type.Integer(),
 	debrief: Type.Array(Type.String()),
+	/** Every card discarded in this game, with what it was still needed for (the debrief names them, P170). */
+	discarded: Type.Array(Type.String()),
 });
 type HintState = Static<typeof HintSlice>;
 
@@ -94,7 +98,7 @@ const head = defineHead({
 	id: "hint-towers",
 	summary: "A cooperative game of hidden hands: signals about suit or rank, towers lit in rank order, bridged losses.",
 	options,
-	state: (): HintState => ({ seats: [], game: 0, core: null, baseline: 0, signalsGiven: 0, misfires: 0, results: [], finished: false, held: false, due: false, watch: "", idle: 0, forfeits: 0, debrief: [] }),
+	state: (): HintState => ({ seats: [], game: 0, core: null, baseline: 0, signalsGiven: 0, misfires: 0, results: [], finished: false, held: false, due: false, watch: "", idle: 0, forfeits: 0, debrief: [], discarded: [] }),
 	events: HintTowersEvents.events,
 	audiences: { deal_revealed: ["human"], card_drawn: ["human"], game_scored: ["human"] },
 	provides: [BrainSourceApi],
@@ -133,6 +137,7 @@ function startGame(ctx: Ctx, game: number): void {
 	state.signalsGiven = 0;
 	state.misfires = 0;
 	state.debrief = [];
+	state.discarded = [];
 	const first = state.seats[(game - 1) % state.seats.length] ?? "";
 	const suits = ctx.call(CardTableApi, "suits", {});
 	ctx.call(CardTableApi, "deal", { cards: 0 });
@@ -203,6 +208,7 @@ function act(ctx: Ctx, action: Action, forfeit: boolean): string {
 		text = `You signalled ${action.to} "${aboutText(action.about)}": slot${slots.length === 1 ? "" : "s"} ${slots.join(", ")}.`;
 	} else {
 		const card = core.hands[seat]?.[action.slot]?.card ?? "";
+		if (action.kind === "discard") state.discarded.push(stillNeeded(core, card));
 		if (!ctx.call(CardTableApi, "take", { resident: seat, card })) throw new Error(`hint-towers: ${seat} does not hold ${card}`);
 		const outcome = action.kind === "play" ? play(core, action.slot, rules, drawFrom(ctx)) : discard(core, action.slot, rules, drawFrom(ctx));
 		if (action.kind === "play") {
@@ -314,6 +320,14 @@ function tableText(ctx: Ctx, seat: string): string {
 	return lines.join("\n");
 }
 
+/** What a discarded card was still needed for, told before it is lost: every card is needed until lit (P170). */
+function stillNeeded(core: Readonly<Core>, card: string): string {
+	const suit = suitOf(card);
+	const top = topOf(core, suit);
+	if (nextRank(core, suit) === rankOf(card)) return `${card} (playable right then)`;
+	return `${card} (${suit} stood at ${top === 0 ? "nothing lit" : String(top)}; it would have been playable once the ranks below it were lit or lost)`;
+}
+
 function debriefText(ctx: Ctx): string {
 	const record = ctx.state.results.at(-1);
 	const core = ctx.state.core;
@@ -321,6 +335,7 @@ function debriefText(ctx: Ctx): string {
 	return [
 		`Game ${String(record.game)} is over: ${reasonText(record.reason)}. The crew lit ${String(core.lit.length)} of ${String(deckOf(core.suits).length)} cards${record.score === core.lit.length ? "" : `, score ${String(record.score)} after the strike penalty`}.`,
 		`Lost: ${String(record.lost)} (${String(record.lost - record.misfires)} discarded, ${plural(record.misfires, "misfire")}: ${core.lost.join(", ") || "none"}). Signals given: ${String(record.signals)}.`,
+		...(ctx.state.discarded.length === 0 ? [] : [`Discarded, each still needed and each one point lost (no card is ever dead): ${ctx.state.discarded.join(", ")}.`]),
 		`Scores so far: ${ctx.state.results.map((entry) => `game ${String(entry.game)} ${String(entry.score)}`).join(", ")}.`,
 		...(ctx.options.debriefNote === undefined ? [] : [ctx.options.debriefNote]),
 	].join("\n");
