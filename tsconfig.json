@@ -43,6 +43,7 @@
 		{ "path": "mechanics/trick-play" },
 		{ "path": "mechanics/strategy-brain" },
 		{ "path": "mechanics/econ-games" },
+		{ "path": "mechanics/draft-rounds" },
 		{ "path": "apps/cli" },
 		{ "path": "stories" }
 	]
