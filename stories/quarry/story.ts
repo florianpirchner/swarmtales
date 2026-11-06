@@ -24,6 +24,8 @@ export interface QuarryOptions {
 	readonly packSize?: number;
 	/** Each seat keeps a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
+	/** Burns allowed (default on; off is the control arm of P125: `maxBurns: 0`). */
+	readonly burns?: boolean;
 	/** Every seat sees every quarry during the game (default off). */
 	readonly openHands?: boolean;
 	/** Words a brain may have. */
@@ -44,14 +46,14 @@ function minutesFor(games: number, packs: number, packSize: number): number {
 
 /** The story with its variants as options. */
 export function quarryStory(options: QuarryOptions = {}) {
-	const { games = 3, packs = 2, packSize = 6, brain = true, openHands = false, maxWords = 150, seed = 29 } = options;
+	const { games = 3, packs = 2, packSize = 6, brain = true, burns = true, openHands = false, maxWords = 150, seed = 29 } = options;
 	return defineCoreStory({
-		id: `quarry${brain ? "" : "-nobrain"}${openHands ? "-open" : ""}`,
+		id: `quarry${brain ? "" : "-nobrain"}${burns ? "" : "-noburn"}${openHands ? "-open" : ""}`,
 		seed,
 		minutes: options.minutes ?? minutesFor(games, packs, packSize),
 		residents: [...SEATS],
 		mechanics: [
-			draftRounds.with({ games, packs, packSize, openHands, deadline: DEADLINE }),
+			draftRounds.with({ games, packs, packSize, openHands, deadline: DEADLINE, ...(burns ? {} : { maxBurns: 0 }) }),
 			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
 		grants: { resident: ["viewTable", "pick", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },

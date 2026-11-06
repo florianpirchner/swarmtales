@@ -14,6 +14,7 @@ const econLabNobrain = econLabEntry({ brain: false });
 const econLabSingle = (game: "public-goods" | "ultimatum" | "dilemma") => econLabEntry({ blocks: [{ game, rounds: 12 }] });
 const quarryNobrain = quarryEntry({ brain: false });
 const quarryOpen = quarryEntry({ openHands: true });
+const quarryNoburn = quarryEntry({ burns: false });
 const tictactoeNobrain = tictactoeEntry({ brain: false });
 const tictactoeBrainO = tictactoeEntry({ brainTeams: ["O"] });
 const tictactoe4x4 = tictactoeEntry({ size: 4, line: 4 });
@@ -87,6 +88,8 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	quarry,
 	"quarry-nobrain": quarryNobrain,
 	"quarry-open": quarryOpen,
+	// The control arm of P125: the same rules and place bonus, no burns.
+	"quarry-noburn": quarryNoburn,
 	// Two solo seats, chess.js as the legality filter; more variants by name (`chess-nobrain-moves-g4-p120`).
 	chess: chessMatch,
 	// Fixed-limit hold'em with duplicate deals and a private brain per seat: four-handed, heads-up, and the control arms.

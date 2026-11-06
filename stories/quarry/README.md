@@ -42,7 +42,7 @@ swt run --story quarry                         # Haiku via Anthropic, three game
 ```
 
 Registered arms: `quarry` (brain on), `quarry-nobrain` (the same briefings, no brain, no retro),
-`quarry-open` (every quarry visible during the game). Further variants are factory options of
+`quarry-open` (every quarry visible during the game), `quarry-noburn` (no burns, the control arm of P125). Further variants are factory options of
 `quarryStory` in `story.ts`: `games`, `packs`, `packSize`, `openHands`, `maxWords`, `seed`; the scoring
 numbers are options of the `draft-rounds` mechanic (`wilds`, `majorityBonus`, `burnCost`, `maxBurns`,
 `placeBonus`, `deadline`). Mechanics: `draft-rounds`, `strategy-brain` (solo seats). Runs and results:
