@@ -14,9 +14,11 @@ of 20 words is dealt from the game's own word pool. Each word secretly belongs t
   team chat. A fog word, a word of the other team or a shadow ends the turn at once.
 - **Silence.** A keeper may not post in the team chat while a game runs; the clue is the only thing it can
   tell its seekers. Between games (the retro) it talks again.
-- **Scoring.** 1 point per own word revealed, whoever reveals it; -3 for each shadow a team reveals; +1 for
-  each **landed** clue (a number of 2 or more whose first guesses were all own words); +3 for the team whose
-  words are all revealed first, which ends the game. Otherwise a game ends after 8 clues per team. A keeper
+- **Scoring.** 1 point per own word revealed, whoever reveals it; -3 for each shadow a team reveals; for
+  each **landed** clue (a number of 2 or more whose first guesses were all own words) +1 per word beyond the
+  first (a landed 3 scores 2); +3 for the team whose words are all revealed first, which ends the game.
+  Otherwise a game ends after 5 clues per team. (The first run had +1 per landed clue and 8 clues; both
+  changed after it, P191.) A keeper
   who gives no clue in 2 minutes loses the turn; a caller who does nothing for 2 minutes ends it.
 
 The game is an original design ([docs/ideas/game-roadmap.md](../../docs/ideas/game-roadmap.md) §2.9) in the

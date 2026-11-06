@@ -106,9 +106,12 @@ describe("Lanterns rules", () => {
 		const clue = (team: "amber" | "teal", landed: boolean): ClueRecord => ({ game: 1, team, keeper: "", caller: "", clueNo: 1, word: "x", number: 2, targets: [], guesses: [], end: "stopped", landed });
 		const scores = scoreGame(grid, [clue("amber", true), clue("teal", false)], "amber", { wordPoints: 1, shadowPenalty: 3, landedBonus: 1, finishBonus: 3 });
 		// Amber: two words (one revealed by teal), a landed clue and the finish.
-		expect(scores.amber).toEqual({ words: 2, shadows: 0, landed: 1, finished: true, total: 6 });
+		expect(scores.amber).toEqual({ words: 2, shadows: 0, landed: 1, landedPoints: 1, finished: true, total: 6 });
 		// Teal: one word, one shadow.
-		expect(scores.teal).toEqual({ words: 1, shadows: 1, landed: 0, finished: false, total: -2 });
+		expect(scores.teal).toEqual({ words: 1, shadows: 1, landed: 0, landedPoints: 0, finished: false, total: -2 });
+		// A landed 3 is worth two bonus points, a landed 4 three (P191).
+		const three = scoreGame([], [{ ...clue("teal", true), number: 3 }, { ...clue("teal", true), number: 4 }], null, { wordPoints: 1, shadowPenalty: 3, landedBonus: 1, finishBonus: 3 });
+		expect(three.teal).toMatchObject({ landed: 2, landedPoints: 5, total: 5 });
 	});
 
 	it("measures how much of what the keeper meant the seekers found", () => {
