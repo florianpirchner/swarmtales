@@ -107,9 +107,9 @@ const head = defineHead({
 	prompts: {
 		"draft-rounds/tools/viewTable": [],
 		"draft-rounds/tools/pick": [],
-		"draft-rounds/rules": ["seats", "games", "packs", "packSize", "deck", "majorityBonus", "maxBurns", "burnCost", "places"],
+		"draft-rounds/rules": ["seats", "games", "packs", "packSize", "deck", "majorityBonus", "burnRule", "places"],
 		"draft-rounds/game-head": ["game", "games"],
-		"draft-rounds/task-pick": ["pack", "packs", "step", "from", "cards", "quarry", "burns", "burnCost", "receiver"],
+		"draft-rounds/task-pick": ["pack", "packs", "step", "from", "cards", "quarry", "burnLine", "receiver"],
 	},
 });
 
@@ -340,7 +340,8 @@ function placesLine(ctx: Ctx): string {
 
 function rulesText(ctx: Ctx): string {
 	const { games, packs, packSize, majorityBonus, maxBurns, burnCost } = ctx.options;
-	return ctx.prompt("draft-rounds/rules", { seats: ctx.state.seats.length, games, packs, packSize, deck: deckLine(ctx), majorityBonus, maxBurns, burnCost, places: placesLine(ctx) });
+	const burnRule = maxBurns === 0 ? "There are no burns in this game." : `With a pick you may burn one more card of the pack to destroy it, at most ${String(maxBurns)} times a game, for ${String(burnCost)} points each.`;
+	return ctx.prompt("draft-rounds/rules", { seats: ctx.state.seats.length, games, packs, packSize, deck: deckLine(ctx), majorityBonus, burnRule, places: placesLine(ctx) });
 }
 
 /** The pick `resident` is asked for now, or undefined. */
@@ -355,8 +356,10 @@ function taskText(ctx: Ctx, resident: string): string | undefined {
 		from: state.from[resident] === undefined ? "a fresh pack" : `passed to you by ${state.from[resident] ?? ""}`,
 		cards: cardsLine(pack),
 		quarry: quarryLine(state.hands[resident] ?? []),
-		burns: Math.max(0, ctx.options.maxBurns - (state.burns[resident] ?? 0)),
-		burnCost: ctx.options.burnCost,
+		burnLine:
+			ctx.options.maxBurns === 0
+				? "Keep one card with pick (card id and a short reason)."
+				: `Burns left: ${String(Math.max(0, ctx.options.maxBurns - (state.burns[resident] ?? 0)))} (each costs ${String(ctx.options.burnCost)} points). Keep one card with pick (card id and a short reason; add burn with a second card id to destroy it).`,
 		receiver: receiverOf(state.seats, resident, state.packRound),
 	});
 }

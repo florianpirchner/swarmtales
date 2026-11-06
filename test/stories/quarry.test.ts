@@ -207,8 +207,19 @@ describe("quarry, scripted match", () => {
 		expect(view.ok && view.reply).toContain("passed to you by A01");
 	});
 
+	it("refuses every burn in the no-burn arm and says so in the rules", async () => {
+		const host = createHost(options({ brain: false, burns: false, games: 1, packs: 1, packSize: 3 }));
+		host.start();
+		const view = await host.call(as("A01"), "viewTable", {});
+		const text = view.ok ? view.reply : "";
+		expect(text).toContain("There are no burns in this game.");
+		expect(text).not.toContain("Burns left");
+		const pack = (/Your pack: ([^.]+)\./.exec(text)?.[1] ?? "").split(", ").map((entry) => entry.split(" ")[0] ?? "");
+		expect(await host.call(as("A01"), "pick", { card: pack[0] ?? "", burn: pack[1] ?? "" })).toMatchObject({ ok: false, code: "NO_BURNS_LEFT" });
+	});
+
 	it("is registered with its arms", () => {
-		for (const name of ["quarry", "quarry-nobrain", "quarry-open"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["quarry", "quarry-nobrain", "quarry-open", "quarry-noburn"]) expect(findCoreStory(name)?.story.id).toBe(name);
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a game and inside a retro window", async () => {
