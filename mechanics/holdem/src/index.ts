@@ -19,7 +19,7 @@ import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, ViewOf } from "@sw
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
-import { DECK, describe, equity } from "./cards.ts";
+import { DECK, describeWith, equity } from "./cards.ts";
 import {
 	baselineOf,
 	Done,
@@ -105,7 +105,7 @@ const head = defineHead({
 		"holdem/tools/act": [],
 		"holdem/rules": ["seats", "smallBlind", "bigBlind", "smallBet", "bigBet", "cap", "hands"],
 		"holdem/game-head": ["game", "games"],
-		"holdem/hand-head": ["hand", "hands", "position", "button", "cards"],
+		"holdem/hand-head": ["hand", "hands", "seat", "position", "button", "cards"],
 		"holdem/task": ["street", "board", "pot", "toCall", "choices"],
 		"holdem/best": ["best"],
 	},
@@ -279,8 +279,9 @@ function act(ctx: Ctx, resident: string | undefined, move: Move, reason: string 
 	score(ctx, hand, normal.done, false, reason);
 	proceed(ctx, hand, normal.done, false, ctx.minute);
 	const now = ctx.state.hand;
-	if (now?.number === number && !now.over) return reply(`You ${verb(normal.done)} (${street}). ${now.toAct === resident ? "It is your turn again." : `${now.toAct} is to act.`}`);
-	return reply(`You ${verb(normal.done)}. Hand ${String(number)} is over; use viewTable for the result.`);
+	// Say plainly that the turn is over: a model that answers the tool result otherwise tries to act again (P131).
+	if (now?.number === number && !now.over) return reply(`You ${verb(normal.done)} (${street}). ${now.toAct === resident ? "It is your turn again." : `${now.toAct} is to act, not you: end your turn now; you will be told when it is yours.`}`);
+	return reply(`You ${verb(normal.done)}. Hand ${String(number)} is over: end your turn now; you will be told the result when you next play.`);
 }
 
 function verb(done: Scored["done"]): string {
@@ -299,33 +300,38 @@ function problemWith(ctx: Ctx, resident: string | undefined, move: Move): Refusa
 	return "problem" in normal ? refuse("ILLEGAL_ACTION", normal.problem) : undefined;
 }
 
-function entryLine(entry: Entry, limits: Limits): string {
+/** A seat's name as `viewer` reads it: its own seat is marked, so a model does not lose track of which seat it is (P133). */
+const nameFor = (seat: string, viewer: string | undefined): string => (seat === viewer ? `${seat} (you)` : seat);
+
+function entryLine(entry: Entry, limits: Limits, viewer: string | undefined): string {
 	if (entry.kind === "board") return `${entry.street === "flop" ? "Flop" : entry.street === "turn" ? "Turn" : "River"}: ${entry.cards.join(" ")}`;
 	const late = entry.missed === true ? " (no action in time)" : "";
+	const seat = nameFor(entry.seat, viewer);
 	switch (entry.done) {
 		case "small blind":
-			return `${entry.seat} posts the small blind (${String(limits.smallBlind)})`;
+			return `${seat} posts the small blind (${String(limits.smallBlind)})`;
 		case "big blind":
-			return `${entry.seat} posts the big blind (${String(limits.bigBlind)})`;
+			return `${seat} posts the big blind (${String(limits.bigBlind)})`;
 		case "fold":
-			return `${entry.seat} folds${late}`;
+			return `${seat} folds${late}`;
 		case "check":
-			return `${entry.seat} checks${late}`;
+			return `${seat} checks${late}`;
 		case "call":
-			return `${entry.seat} calls (${String(entry.to)} in on the ${entry.street})`;
+			return `${seat} calls (${String(entry.to)} in on the ${entry.street})`;
 		case "bet":
-			return `${entry.seat} bets ${String(entry.to)}`;
+			return `${seat} bets ${String(entry.to)}`;
 		case "raise":
-			return `${entry.seat} raises to ${String(entry.to)}`;
+			return `${seat} raises to ${String(entry.to)}`;
 	}
 }
 
 function resultLine(result: Result, seat: string): string {
 	const own = result.net[seat] ?? 0;
 	const head = `Hand ${String(result.hand)} result`;
-	if (!result.showdown) return `${head}: everyone else folded on the ${result.street}, ${result.winners.join(", ")} won the pot of ${String(result.pot)}; your points ${signed(own)}.`;
-	const shown = result.shown.map((entry) => `${entry.seat} ${entry.cards.join(" ")} (${entry.best})`).join(", ");
-	return `${head}: showdown, board ${result.board.join(" ")}; ${shown}; ${result.winners.join(" and ")} won the pot of ${String(result.pot)}; your points ${signed(own)}.`;
+	const winners = result.winners.map((winner) => nameFor(winner, seat));
+	if (!result.showdown) return `${head}: everyone else folded on the ${result.street}, ${winners.join(", ")} won the pot of ${String(result.pot)}; your points ${signed(own)}.`;
+	const shown = result.shown.map((entry) => `${nameFor(entry.seat, seat)} ${entry.cards.join(" ")} (${entry.best})`).join(", ");
+	return `${head}: showdown, board ${result.board.join(" ")}; ${shown}; ${winners.join(" and ")} won the pot of ${String(result.pot)}; your points ${signed(own)}.`;
 }
 
 function choicesOf(ctx: Ctx, hand: Hand): string {
@@ -341,13 +347,13 @@ function rulesText(ctx: Ctx): string {
 }
 
 function handHead(ctx: Ctx, hand: Hand, seat: string): string {
-	return ctx.prompt("holdem/hand-head", { hand: hand.number, hands: ctx.options.hands, position: positionOf(hand, seat), button: hand.seats[hand.button] ?? "", cards: (hand.holes[seat] ?? []).join(" ") });
+	return ctx.prompt("holdem/hand-head", { hand: hand.number, hands: ctx.options.hands, seat, position: positionOf(hand, seat), button: hand.seats[hand.button] ?? "", cards: (hand.holes[seat] ?? []).join(" ") });
 }
 
 function taskText(ctx: Ctx, hand: Hand, seat: string): string {
 	const { toCall, pot } = optionsOf(hand, limitsOf(ctx));
 	const lines = [ctx.prompt("holdem/task", { street: hand.street, board: cardsText(hand.board), pot, toCall, choices: choicesOf(ctx, hand) })];
-	if (ctx.options.showBest && hand.board.length >= 3) lines.push(ctx.prompt("holdem/best", { best: describe([...(hand.holes[seat] ?? []), ...hand.board]) }));
+	if (ctx.options.showBest && hand.board.length >= 3) lines.push(ctx.prompt("holdem/best", { best: describeWith(hand.holes[seat] ?? [], hand.board) }));
 	else if (ctx.options.showBest) {
 		const [a, b] = hand.holes[seat] ?? [];
 		if (a !== undefined && b !== undefined) lines.push(ctx.prompt("holdem/best", { best: a.slice(0, 1) === b.slice(0, 1) ? "a pocket pair" : a.slice(1) === b.slice(1) ? "two suited cards" : "two unpaired cards" }));
@@ -363,7 +369,7 @@ function tableText(ctx: Ctx, resident: string | undefined): string {
 	const lines = [`Game ${String(state.game)} of ${String(ctx.options.games)}, hand ${String(hand.number)} of ${String(ctx.options.hands)}.`, rulesText(ctx)];
 	if (resident !== undefined && state.seats.includes(resident)) {
 		lines.push(handHead(ctx, hand, resident));
-		lines.push(`This hand so far: ${hand.log.map((entry) => entryLine(entry, limitsOf(ctx))).join("; ")}. Pot ${String(potOf(hand))}.`);
+		lines.push(`This hand so far: ${hand.log.map((entry) => entryLine(entry, limitsOf(ctx), resident)).join("; ")}. Pot ${String(potOf(hand))}.`);
 		if (hand.folded.includes(resident)) lines.push("You folded this hand.");
 		else if (hand.toAct === resident) lines.push(taskText(ctx, hand, resident));
 		else lines.push(`${hand.toAct} is to act; wait for your turn.`);
@@ -451,7 +457,7 @@ export const holdem = defineMechanic(head, (kit) => ({
 				}
 				const from = state.seenLog[resident] ?? 0;
 				if (from < hand.log.length) {
-					lines.push(`${hand.log.slice(from).map((entry) => entryLine(entry, limitsOf(ctx))).join("; ")}.`);
+					lines.push(`${hand.log.slice(from).map((entry) => entryLine(entry, limitsOf(ctx), resident)).join("; ")}.`);
 					state.seenLog[resident] = hand.log.length;
 				}
 				if (hand.toAct === resident && !state.told) {

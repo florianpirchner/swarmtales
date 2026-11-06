@@ -54,7 +54,7 @@ function score(category: number, ranks: readonly number[]): number {
 	return category * BASE + tail;
 }
 
-/** The value of the best five-card hand among 5 to 7 cards (integers): a higher number is a better hand, equal numbers tie. The category (0 high card ... 8 straight flush) is the value over 13^5. */
+/** The value of the best five-card hand among 3 to 7 cards (integers; fewer than 5 rank as the cards there are): a higher number is a better hand, equal numbers tie. The category (0 high card ... 8 straight flush) is the value over 13^5. */
 export function evaluateIndexes(cards: readonly number[]): number {
 	const counts = new Array<number>(13).fill(0);
 	const suitMasks = [0, 0, 0, 0];
@@ -138,6 +138,18 @@ export function describe(cards: readonly string[]): string {
 		default:
 			return `${name(a)} high`;
 	}
+}
+
+/**
+ * The best hand in words with the board's part named: when the hand's category and its top rank come from
+ * the board alone ("pair of aces" with two aces on the board), the line says so, since a seat's own cards
+ * then add at most kickers.
+ */
+export function describeWith(hole: readonly string[], board: readonly string[]): string {
+	const words = describe([...hole, ...board]);
+	if (board.length < 3) return words;
+	const top = (value: number): number => Math.floor(value / 13 ** 4);
+	return top(evaluate([...hole, ...board])) === top(evaluate(board)) ? `${words}, all from the board (your own cards add at most a kicker)` : words;
 }
 
 /**

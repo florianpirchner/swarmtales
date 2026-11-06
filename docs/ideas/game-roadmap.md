@@ -166,7 +166,7 @@ mechanic `holdem` (its own 52-card deck and seven-card evaluator, fixed-limit be
 no stacks so no all-in and no side pots, duplicate deals across games, a Monte Carlo pot-odds baseline per
 decision in `decision_scored`, seat statistics in `game_scored`) and the `strategy-brain` with solo seats.
 Arms `holdem`, `holdem-nobrain`, `holdem-hu`, `holdem-hu-nobrain`. It does not use `card-table` yet: that
-mechanic was still on the Ember Tricks branch, and its deck (suits of ranks 1..n) does not fit the French
+mechanic reached main only while Hold'em was built (#104), and its deck (suits of ranks 1..n) does not fit the French
 deck without changes (P130). No chat, no kernel change. Runs: [stories/holdem/runs/](../../stories/holdem/runs/README.md).
 
 - **Research angle.** Bluffing, hidden information, risk calibration; does the brain learn opponent

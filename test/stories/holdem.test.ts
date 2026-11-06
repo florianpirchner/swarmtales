@@ -4,7 +4,7 @@ import type { CoreStory, EventEnvelope, RandomSource, TurnTaker } from "@swarmta
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { describe as describeHand, equity, evaluate } from "../../mechanics/holdem/src/cards.ts";
+import { describe as describeHand, describeWith, equity, evaluate } from "../../mechanics/holdem/src/cards.ts";
 import { baselineOf, evLossOf, newHand, normalise, play, settle, type Limits } from "../../mechanics/holdem/src/model.ts";
 import { holdemStory, type HoldemOptions } from "../../stories/holdem/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
@@ -97,6 +97,13 @@ describe("holdem cards", () => {
 		]);
 		// The board plays: both hands are the same straight, a tie.
 		expect(evaluate(["2c", "3d", "5h", "6s", "7c", "8d", "9h"])).toBe(evaluate(["Kc", "Qd", "5h", "6s", "7c", "8d", "9h"]));
+	});
+
+	it("says when the best hand comes from the board alone", () => {
+		// Run 001: two aces on the board, a seat with 4h 2h read "pair of aces" as its own hand (P132).
+		expect(describeWith(["4h", "2h"], ["6h", "Qd", "Jh", "Ac", "As"])).toBe("pair of aces, all from the board (your own cards add at most a kicker)");
+		expect(describeWith(["Ah", "Kd"], ["Ac", "7s", "2d"])).toBe("pair of aces");
+		expect(describeWith(["Qc", "9s"], ["6h", "Qd", "Jh", "Ac", "As"])).toBe("two pair, aces and queens");
 	});
 
 	it("estimates equity against random hands", () => {
@@ -250,7 +257,7 @@ describe("holdem, scripted match", () => {
 		// Hand 2: the button moved to A02.
 		expect(host.openTools("A02")).toContain("act");
 		const view = await host.call(as("A01"), "viewTable", {});
-		expect(view.ok && view.reply).toContain("Hand 1 result: everyone else folded on the preflop, A01 won the pot of 6; your points +2.");
+		expect(view.ok && view.reply).toContain("Hand 1 result: everyone else folded on the preflop, A01 (you) won the pot of 6; your points +2.");
 	});
 
 	it("is registered with its arms", () => {
