@@ -21,6 +21,8 @@ export interface ChessOptions {
 	readonly brain?: boolean;
 	/** The position shown to the seat on move lists every legal move (default off: the list comes only with a refused move). */
 	readonly showLegalMoves?: boolean;
+	/** The position lists each side's loose pieces (attacked and undefended, or attacked by a cheaper piece). */
+	readonly showThreats?: boolean;
 	/** Half-moves after which a game is scored on material. */
 	readonly maxPlies?: number;
 	/** Words a brain may have. */
@@ -49,6 +51,7 @@ function storyName(options: ChessOptions): string {
 	const parts = ["chess"];
 	if (options.brain === false) parts.push("nobrain");
 	if (options.showLegalMoves === true) parts.push("moves");
+	if (options.showThreats === true) parts.push("threats");
 	if (options.teams === true) parts.push("teams");
 	if (options.games !== undefined && options.games !== DEFAULT_GAMES) parts.push(`g${String(options.games)}`);
 	if (options.maxPlies !== undefined && options.maxPlies !== DEFAULT_PLIES) parts.push(`p${String(options.maxPlies)}`);
@@ -60,7 +63,7 @@ const DEFAULT_PLIES = 160;
 
 /** The story with its variants as options. */
 export function chessStory(options: ChessOptions = {}) {
-	const { games = DEFAULT_GAMES, brain = true, showLegalMoves = false, maxPlies = DEFAULT_PLIES, maxWords = 150, seed = 29, teams = false } = options;
+	const { games = DEFAULT_GAMES, brain = true, showLegalMoves = false, showThreats = false, maxPlies = DEFAULT_PLIES, maxWords = 150, seed = 29, teams = false } = options;
 	const sides = teams ? Object.fromEntries(Object.entries(TEAMS).map(([name, members]) => [name, [...members]])) : Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
 	return defineCoreStory({
 		id: storyName(options),
@@ -69,7 +72,7 @@ export function chessStory(options: ChessOptions = {}) {
 		minutes: options.minutes ?? minutesFor(games, maxPlies) * (teams ? 2 : 1),
 		residents: teams ? Object.values(TEAMS).flat() : [...SEATS],
 		mechanics: [
-			chess.with({ games, maxPlies, showLegalMoves, maxIdleTurns: IDLE_TURNS, maxForfeits: 3, adjudicateMargin: 3, alternateColours: true, score: true, teams: sides, wakeTeam: teams }),
+			chess.with({ games, maxPlies, showLegalMoves, showThreats, maxIdleTurns: IDLE_TURNS, maxForfeits: 3, adjudicateMargin: 3, alternateColours: true, score: true, teams: sides, wakeTeam: teams }),
 			// Solo seats have no team chat: the channel has no teams and nobody is granted its tools.
 			teamChannel.with({ teams: teams ? sides : {}, maxPostsPerMove: 2 }),
 			strategyBrain.with({ enabled: brain, solo: !teams, maxWords, teams: sides, retroMaxPosts: 6, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
@@ -116,19 +119,20 @@ export function chessEntry(options: ChessOptions = {}): CoreStoryEntry {
 	};
 }
 
-/** Chess variants by name: `chess[-nobrain][-moves][-teams][-g<games>][-p<plies>]`, for example `chess-nobrain-teams-g4-p120`. */
-const CHESS_NAME = /^chess(-nobrain)?(-moves)?(-teams)?(?:-g(\d+))?(?:-p(\d+))?$/;
+/** Chess variants by name: `chess[-nobrain][-moves][-threats][-teams][-g<games>][-p<plies>]`, for example `chess-nobrain-teams-g4-p120`. */
+const CHESS_NAME = /^chess(-nobrain)?(-moves)?(-threats)?(-teams)?(?:-g(\d+))?(?:-p(\d+))?$/;
 
 export function chessEntryByName(id: string): CoreStoryEntry | undefined {
 	const match = CHESS_NAME.exec(id);
 	if (match === null) return undefined;
-	const games = match[4] === undefined ? undefined : Number(match[4]);
-	const maxPlies = match[5] === undefined ? undefined : Number(match[5]);
+	const games = match[5] === undefined ? undefined : Number(match[5]);
+	const maxPlies = match[6] === undefined ? undefined : Number(match[6]);
 	if ((games !== undefined && (games < 1 || games > 20)) || (maxPlies !== undefined && (maxPlies < 2 || maxPlies > 400))) return undefined;
 	return chessEntry({
 		...(match[1] === undefined ? {} : { brain: false }),
 		...(match[2] === undefined ? {} : { showLegalMoves: true }),
-		...(match[3] === undefined ? {} : { teams: true }),
+		...(match[3] === undefined ? {} : { showThreats: true }),
+		...(match[4] === undefined ? {} : { teams: true }),
 		...(games === undefined ? {} : { games }),
 		...(maxPlies === undefined ? {} : { maxPlies }),
 	});

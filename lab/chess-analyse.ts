@@ -96,7 +96,9 @@ export async function analyseGame(moves: readonly Pick<MovePlayed, "ply" | "colo
 	const scores: Score[] = [];
 	const bests: string[] = [];
 	for (const fen of fens) {
-		const result = await analyse(fen, depth);
+		// A finished position needs no search, and the engine build never answers `go` on a mated king.
+		const position = new Chess(fen);
+		const result = position.isCheckmate() ? { score: { mate: 0 }, best: "" } : position.isGameOver() ? { score: { cp: 0 }, best: "" } : await analyse(fen, depth);
 		scores.push(result.score);
 		bests.push(result.best);
 	}

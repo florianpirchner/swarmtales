@@ -148,6 +148,32 @@ function threatOf(chess: Chess, by: "w" | "b"): number {
 	return worst;
 }
 
+const NAME: Readonly<Record<string, string>> = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" };
+
+/**
+ * The pieces of `side` that the other side can win now: attacked and undefended, or attacked by a
+ * cheaper piece. One line per piece, most valuable first: `queen g5 (attacked by knight f3, undefended)`.
+ * The same static view as the baseline (no pins, no x-rays), meant as a reading aid for the seat.
+ */
+export function loosePieces(chess: Chess, side: "w" | "b"): string[] {
+	const by = side === "w" ? "b" : "w";
+	const found: { readonly value: number; readonly text: string }[] = [];
+	for (const row of chess.board()) {
+		for (const square of row) {
+			if (square?.color !== side || square.type === "k") continue;
+			const attackers = chess.attackers(square.square, by);
+			if (attackers.length === 0) continue;
+			const value = VALUE[square.type] ?? 0;
+			const defended = chess.attackers(square.square, side).length > 0;
+			const cheapest = attackers.reduce((low, from) => (valueAt(chess, from) < valueAt(chess, low) ? from : low));
+			if (defended && valueAt(chess, cheapest) >= value) continue;
+			const attacker = chess.get(cheapest);
+			found.push({ value, text: `${NAME[square.type] ?? square.type} ${square.square} (attacked by ${attacker === undefined ? "?" : (NAME[attacker.type] ?? attacker.type)} ${cheapest}, ${defended ? "defended but worth more" : "undefended"})` });
+		}
+	}
+	return found.sort((a, b) => b.value - a.value).map((entry) => entry.text);
+}
+
 function valueOfMove(chess: Chess, move: Move): number {
 	const gain = (move.captured === undefined ? 0 : (VALUE[move.captured] ?? 0)) + (move.promotion === undefined ? 0 : (VALUE[move.promotion] ?? 0) - 1);
 	chess.move({ from: move.from, to: move.to, ...(move.promotion === undefined ? {} : { promotion: move.promotion }) });

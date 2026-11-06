@@ -317,7 +317,9 @@ a rotating captain and an advisor turn on the team channel; the brain's replay c
 (`pnpm lab:chess`), never in a live run, so its licence stays out of the packages. First comparison over six
 Haiku runs (two games each, cap 80 half-moves): engine ACPL 167 default, 80 with the legal list, 144 without a
 brain, 98 for teams (at 2.3 times the cost); details in [stories/chess/runs/](../../stories/chess/runs/README.md)
-and P113-P116.
+and P113-P116. Four-game matches on one seed (2026-11-06, about 1.4 USD): default 148, `-moves` 86, the new
+`-threats` arm (loose pieces listed) 109, no brain 191, teams with the legal list 132 at 2.4 times the cost of a solo
+seat; see P113-P118.
 
 - **Mechanics needed.** Extend `grid-game` into a generic `board-game` with a rules module per game
   (placement, movement, capture); `move-validator` (the engine, not the model, checks legality);

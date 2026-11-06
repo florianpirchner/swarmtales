@@ -4,7 +4,7 @@ import type { CoreStory, TurnTaker } from "@swarmtales/contracts";
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { parseMove, replay, scoreMove } from "../../mechanics/chess/src/model.ts";
+import { loosePieces, parseMove, replay, scoreMove } from "../../mechanics/chess/src/model.ts";
 import { chessStory, type ChessOptions } from "../../stories/chess/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { replaysLine } from "../../mechanics/strategy-brain/src/text.ts";
@@ -71,6 +71,15 @@ describe("chess rules through chess.js", () => {
 		const promote = replay(["a4", "b5", "axb5", "a6", "bxa6", "Nc6", "a7", "Rb8"]);
 		expect(parseMove(promote, "a8=Q")?.san).toBe("a8=Q");
 		expect(parseMove(promote, "a7a8n")?.san).toBe("a8=N");
+	});
+
+	it("names loose pieces: undefended, or attacked by a cheaper piece, most valuable first", () => {
+		// 1. e4 e5 2. Qh5 Nc6 3. Qxe5+?? : the queen on e5 is attacked by the knight on c6 (and defended by nothing).
+		const chess = replay(["e4", "e5", "Qh5", "Nc6", "Qxe5+"]);
+		expect(loosePieces(chess, "w")).toEqual(["queen e5 (attacked by knight c6, undefended)"]);
+		// The knight on c6 is attacked by the queen but defended by two pawns, so it is not loose.
+		expect(loosePieces(chess, "b")).toEqual([]);
+		expect(loosePieces(replay([]), "w")).toEqual([]);
 	});
 
 	it("scores a hanging queen as a blunder and a free capture as the best move", () => {
@@ -164,8 +173,20 @@ describe("chess, scripted match", () => {
 		expect(view.ok && view.reply).toContain("Legal moves: a3, a4,");
 	});
 
+	it("lists each side's loose pieces with showThreats", async () => {
+		const host = createHost(options({ brain: false, games: 1, showThreats: true }));
+		host.start();
+		await host.call(as("A01"), "playMove", { move: "e4" });
+		await host.call(as("A02"), "playMove", { move: "d5" });
+		const view = await host.call(as("A01"), "viewBoard", {});
+		expect(view.ok && view.reply).toContain("Loose pieces");
+		expect(view.ok && view.reply).toContain("White: pawn e4 (attacked by pawn d5, undefended).");
+		// d5 is defended by the queen on d8, and a pawn is the cheapest attacker: not loose.
+		expect(view.ok && view.reply).toContain("Black: none.");
+	});
+
 	it("is registered with its arms and named variants", () => {
-		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-teams", "chess-nobrain-moves-g4-p120", "chess-moves-teams-p60"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-threats", "chess-nobrain-threats-g4-p80", "chess-moves-threats-teams-g4", "chess-teams", "chess-nobrain-moves-g4-p120", "chess-moves-teams-p60"]) expect(findCoreStory(name)?.story.id).toBe(name);
 		expect(findCoreStory("chess-g0")).toBeUndefined();
 	});
 
@@ -233,5 +254,12 @@ describe("the engine reference (Stockfish, lab)", () => {
 		expect(plies[2]).toMatchObject({ san: "Qg4", class: "blunder" });
 		expect(plies[3]).toMatchObject({ san: "Bxg4", best: "Bxg4", loss: 0 });
 		expect(classOf(120)).toBe("mistake");
+	}, 30_000);
+
+	it("scores a game that ends in checkmate without asking the engine about the mated position", async () => {
+		const moves = ["f3", "e5", "g4", "Qh4#"].map((san, index) => ({ ply: index + 1, colour: index % 2 === 0 ? ("white" as const) : ("black" as const), by: index % 2 === 0 ? "A01" : "A02", san, forfeit: false }));
+		const plies = await analyseGame(moves, 6);
+		expect(plies[2]).toMatchObject({ san: "g4", class: "blunder" });
+		expect(plies[3]).toMatchObject({ san: "Qh4#", loss: 0, after: 1000, missedMate: false });
 	}, 30_000);
 });
