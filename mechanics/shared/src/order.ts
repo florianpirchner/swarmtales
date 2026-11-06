@@ -28,6 +28,8 @@ export const HOOK_ORDER = {
 		trickPlay: 0,
 		/** The draft (Quarry) starts game 1, after the brain's hold. */
 		draftRounds: 0,
+		/** The chess match starts game 1 (after the brain's hold, like the grid game). */
+		chess: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -112,6 +114,8 @@ export const HOOK_ORDER = {
 		trickPlay: 350,
 		/** The draft's rules and pick requests (Quarry), after the brain's context reset. */
 		draftRounds: 350,
+		/** The chess rules and the position for the seat on move, after the brain's context reset. */
+		chess: 350,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */

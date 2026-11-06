@@ -245,6 +245,15 @@ consensus, exactly the tic-tac-toe setup on a bigger board.
 | Go (5x5 or 7x7) | A small-board engine (for example a Monte Carlo tree search in code) is needed to score; scoring the end position needs a counting rule | Hard for Haiku to even stay legal; interesting but expensive to adjudicate | L |
 | Chess | An external engine (for example Stockfish) would score centipawn loss | Models make illegal moves often; needs a legality filter and a board renderer; the cost per game is high (60+ moves, long contexts) | L |
 
+**Chess built (2026-11-06, Flo's go):** story `chess` ([stories/chess/](../../stories/chess/README.md)) on the new
+mechanic `chess`, two solo seats (not teams yet), alternating colours, chess.js 1.4 (BSD-2-Clause, pure
+TypeScript) as the legality filter and referee: moves are text, illegal ones are refused with the legal list,
+chess.js ends the game, a move cap scores long games on material, a forfeit clock plays a seeded random move
+for a seat that does not move. Instead of Stockfish, a material baseline in TypeScript scores each move
+(`move_scored`, one ply with a static exchange check; a real search on chess.js is too slow, it builds two FENs
+per move). The `strategy-brain` plugs in through `BrainSourceApi` as in the econ lab. No kernel change.
+Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
+
 - **Mechanics needed.** Extend `grid-game` into a generic `board-game` with a rules module per game
   (placement, movement, capture); `move-validator` (the engine, not the model, checks legality);
   `reference-engine` listener (generalised `optimal-referee`). Rules modules are the bulk.

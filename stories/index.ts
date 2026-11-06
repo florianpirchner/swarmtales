@@ -1,5 +1,6 @@
 /** Registry of shipped stories, by name (`pnpm start --story <name>`). */
 import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmtales/contracts";
+import chessMatch, { chessEntryByName } from "./chess/story.ts";
 import cityOfKeys from "./cityofkeys/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
@@ -84,6 +85,8 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	quarry,
 	"quarry-nobrain": quarryNobrain,
 	"quarry-open": quarryOpen,
+	// Two solo seats, chess.js as the legality filter; more variants by name (`chess-nobrain-moves-g4-p120`).
+	chess: chessMatch,
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -132,5 +135,5 @@ function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id));
 }

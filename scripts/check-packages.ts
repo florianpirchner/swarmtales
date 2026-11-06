@@ -17,7 +17,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 const MECHANIC_IDS = [
 	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
-	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "draft-rounds",
+	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "draft-rounds", "chess",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
@@ -34,6 +34,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-trick-play": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-card-table", "@swarmtales/mechanic-strategy-brain"],
 	// The draft (Quarry) too.
 	"@swarmtales/mechanic-draft-rounds": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	"@swarmtales/mechanic-chess": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
