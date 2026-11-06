@@ -1,0 +1,32 @@
+{
+	"name": "@swarmtales/mechanic-clue-grid",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The clue-grid mechanic: a team word-clue game where a keeper gives one-word clues and seekers reveal words on a grid.",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src",
+		"prompts"
+	],
+	"scripts": {
+		"build": "tsdown"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-shared": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

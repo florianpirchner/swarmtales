@@ -48,6 +48,7 @@
     "@swarmtales/mechanic-cast": "workspace:*",
     "@swarmtales/mechanic-channels": "workspace:*",
     "@swarmtales/mechanic-chess": "workspace:*",
+    "@swarmtales/mechanic-clue-grid": "workspace:*",
     "@swarmtales/mechanic-consensus": "workspace:*",
     "@swarmtales/mechanic-motives": "workspace:*",
     "@swarmtales/mechanic-draft-rounds": "workspace:*",
