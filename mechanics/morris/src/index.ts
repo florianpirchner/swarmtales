@@ -350,6 +350,11 @@ function sideText(state: Readonly<MorrisState>, side: Side, flying: boolean): st
 	return `${side}: ${String(onBoard(state.board, side))} on the board, ${String(state.inHand[side])} in hand (${word[stage]}).`;
 }
 
+function piecesOf(board: readonly Cell[], cell: Cell): string {
+	const points = board.flatMap((value, point) => (value === cell ? [String(point + 1)] : []));
+	return points.length === 0 ? "none" : points.join(", ");
+}
+
 function legalText(state: Readonly<MorrisState>, flying: boolean): string {
 	if (state.removing) return `${state.side} closed a mill and removes an ${other(state.side)} piece.\nLegal moves (the point of the piece to remove): ${legalCodes(state, flying).join(", ")}.`;
 	const steps = legalSteps(positionOf(state), flying);
@@ -366,6 +371,8 @@ function boardText(ctx: ToolCtx): string {
 	else {
 		lines.push(`Game ${String(state.game)}. Turn ${String(state.turnNo)} of at most ${String(maxTurns)}. Side to move: ${state.side}. Captain of the turn: ${captainOf(state) ?? "nobody"}.`);
 		lines.push(`${sideText(state, "X", flying)} ${sideText(state, "O", flying)}`);
+		// The picture alone was misread in the first live run (P101): the points of each side as a list.
+		lines.push(`X pieces on: ${piecesOf(state.board, "X")}. O pieces on: ${piecesOf(state.board, "O")}. Free: ${piecesOf(state.board, ".")}.`);
 		if (state.inHand.X === 0 && state.inHand.O === 0) lines.push(`Turns without a mill: ${String(state.quiet)} (a draw at ${String(maxQuietTurns)}).`);
 		lines.push(legalText(state, flying));
 	}

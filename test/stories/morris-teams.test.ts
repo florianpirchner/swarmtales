@@ -101,6 +101,7 @@ describe("morris-teams, scripted match", () => {
 		const view = await host.call(residentActor("A01"), "viewBoard", {});
 		expect(view).toMatchObject({ ok: true });
 		if (view.ok) expect(view.reply).toContain("Legal moves (place on a free point; the move number is the point): 1, 2, 3,");
+		if (view.ok) expect(view.reply).toContain("X pieces on: none. O pieces on: none. Free: 1, 2,");
 		expect(await host.call(residentActor("A01"), "proposeMove", { cell: 1011, reason: "a move while placing" })).toMatchObject({ ok: false, code: "ILLEGAL_CELL" });
 		expect(await host.call(residentActor("A02"), "proposeMove", { cell: 5, reason: "not the captain" })).toMatchObject({ ok: false, code: "NOT_CAPTAIN" });
 		expect(await host.call(residentActor("A01"), "playMove", { move: 5 })).toMatchObject({ ok: false });
