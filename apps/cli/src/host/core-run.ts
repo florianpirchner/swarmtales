@@ -136,7 +136,9 @@ export function composeCoreRun(options: CoreComposeOptions): CoreComposedRun {
 			new HostResidentRunner({
 				id,
 				systemPrompt,
-				tools: all,
+				// Only the tools open now are declared; a tool that opens later joins before the next request, and one that never opens for this resident (a mixed table's brain tools, P138) is never declared.
+				tools: all.filter((tool) => host.openTools(id).includes(tool.name)),
+				lateTool: (name: string) => all.find((tool) => tool.name === name),
 				binding: source.bind(id, limits),
 				thinking: options.thinking ?? model.thinking ?? "medium",
 				record: (type, payload) => {

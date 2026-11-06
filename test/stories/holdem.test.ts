@@ -4,8 +4,8 @@ import type { CoreStory, EventEnvelope, RandomSource, TurnTaker } from "@swarmta
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { describe as describeHand, describeWith, equity, evaluate } from "../../mechanics/holdem/src/cards.ts";
-import { baselineOf, evLossOf, newHand, normalise, play, settle, type Limits } from "../../mechanics/holdem/src/model.ts";
+import { describe as describeHand, describeWith, equity, evaluate, rangeEquity } from "../../mechanics/holdem/src/cards.ts";
+import { baselineOf, evLossOf, newHand, normalise, play, rangesOf, settle, type Limits } from "../../mechanics/holdem/src/model.ts";
 import { holdemStory, type HoldemOptions } from "../../stories/holdem/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { field, ofType } from "./tictactoe-support.ts";
@@ -115,6 +115,18 @@ describe("holdem cards", () => {
 		// A made flush on the river against one hand wins almost always.
 		expect(equity(["Ah", "Kh"], ["2h", "7h", "9h", "Jc", "3d"], 1, 500, stream(3))).toBeGreaterThan(0.95);
 	});
+
+	it("narrows the equity to the range an opponent's actions leave it (P134)", () => {
+		const any = { top: 1, strongOn: [] };
+		const random = equity(["Kd", "Qc"], [], 1, 3000, stream(5));
+		expect(Math.abs(rangeEquity(["Kd", "Qc"], [], [any], 3000, stream(5)) - random)).toBeLessThan(0.04);
+		// K-Q offsuit is ahead of a random hand and well behind a seat that re-raised.
+		expect(rangeEquity(["Kd", "Qc"], [], [{ top: 0.08, strongOn: [] }], 3000, stream(5))).toBeLessThan(random - 0.15);
+		// Top pair with a weak kicker against a preflop caller who bet this flop: far less than against any two cards.
+		const board = ["Qh", "8d", "3c"];
+		const flopRandom = equity(["Qc", "4s"], board, 1, 3000, stream(9));
+		expect(rangeEquity(["Qc", "4s"], board, [{ top: 0.55, strongOn: [board] }], 3000, stream(9))).toBeLessThan(flopRandom - 0.15);
+	});
 });
 
 describe("holdem betting", () => {
@@ -139,6 +151,22 @@ describe("holdem betting", () => {
 		expect(hand.toAct).toBe("A02");
 		expect(normalise(hand, "call", LIMITS)).toEqual({ done: "check" });
 		expect(normalise(hand, "raise", LIMITS)).toEqual({ done: "bet" });
+	});
+
+	it("reads each opponent's range from its actions in the hand", () => {
+		const hand = newHand(1, ["A01", "A02", "A03", "A04"], 0, holes, runout, LIMITS);
+		play(hand, "call", LIMITS); // A04 calls 2
+		play(hand, "raise", LIMITS); // A01 raises to 4
+		play(hand, "fold", LIMITS); // A02
+		play(hand, "call", LIMITS); // A03, the big blind
+		play(hand, "call", LIMITS); // A04
+		play(hand, "check", LIMITS); // A03 on the flop
+		play(hand, "check", LIMITS); // A04
+		play(hand, "bet", LIMITS); // A01 bets the flop
+		expect(rangesOf(hand, "A03")).toEqual([
+			{ top: 0.2, strongOn: [["Ac", "8h", "3s"]] },
+			{ top: 0.55, strongOn: [] },
+		]);
 	});
 
 	it("plays heads-up with the button on the small blind, first before the flop and last after it", () => {
@@ -266,6 +294,15 @@ describe("holdem, scripted match", () => {
 		const authors = new Set(ofType(run.events, "brain_written").map((event) => field(event, "author")));
 		expect(authors).toEqual(new Set(["A01", "A03"]));
 		expect(ofType(run.events, "brain_written")).toHaveLength(4);
+	});
+
+	it("keeps the brain tools closed to the seats without a brain (P138)", async () => {
+		const host = createHost(options({ brainSeats: ["A01", "A03"] }));
+		host.start();
+		expect(host.openTools("A01")).toContain("readBrain");
+		expect(host.openTools("A02")).not.toContain("readBrain");
+		expect(host.openTools("A04")).not.toContain("writeBrain");
+		expect(await host.call(as("A02"), "readBrain", {})).toMatchObject({ ok: false });
 	});
 
 	it("is registered with its arms", () => {

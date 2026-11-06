@@ -14,8 +14,12 @@ one place, so over as many games as there are seats every seat plays every posit
 match totals are free of the deal's luck.
 
 The `holdem` mechanic scores every decision against a simple **equity baseline** in `decision_scored`
-(Monte Carlo equity against random hands of the opponents still in, pot odds, one street: fold below the
-pot odds, bet or raise well above a fair share, call or check otherwise). It is a baseline, not a solver:
+(Monte Carlo equity against the hands the opponents still in can hold after their actions, pot odds, one
+street: fold below the pot odds, bet or raise well above a fair share, call or check otherwise). The range
+is read from the public actions only: a preflop raise leaves the strongest 20% of starting hands (a
+re-raise 8%, a call 55%, by the Chen score), and a bet or raise after the flop leaves only hands that play
+on that board (a pair or better with a hole card, or a flush or open-ended straight draw). The equity
+against random hands is recorded beside it (`equity`; the baseline uses `rangeEquity`, P134). It is a baseline, not a solver:
 implied odds, position and bluffs are outside it, so "agrees with the baseline" is not "played well". Each
 game ends with `game_scored`: net points, VPIP, PFR, aggression, showdowns, agreement with the baseline and
 the summed one-street EV loss per seat. Both are for the human and the reporter only. The design is in

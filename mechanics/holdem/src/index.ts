@@ -8,7 +8,8 @@
  *
  * A seat sees only its own cards (its turn lines and `viewTable`); `cards_dealt` with every hole card
  * is for the human only. Every decision is scored against a simple equity baseline (Monte Carlo equity
- * against random hands, pot odds, one street; not a solver) in `decision_scored`, and each game ends
+ * against the opponents' ranges as their actions narrow them, pot odds, one street; not a solver; the
+ * equity against random hands is recorded beside it) in `decision_scored`, and each game ends
  * with `game_scored` (net points, VPIP, PFR, aggression, agreement with the baseline, EV loss), both
  * for the human and the reporter only; the reasons a seat gives for its actions stay there too, so a
  * bluff stays a bluff. A seat that does not act by the deadline checks, or folds when it has a bet to
@@ -19,7 +20,7 @@ import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, ViewOf } from "@sw
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
-import { DECK, describeWith, equity } from "./cards.ts";
+import { DECK, describeWith, equity, rangeEquity } from "./cards.ts";
 import {
 	baselineOf,
 	Done,
@@ -32,6 +33,7 @@ import {
 	options as optionsOf,
 	play,
 	positionOf,
+	rangesOf,
 	Result,
 	Scored,
 	SeatStats,
@@ -247,9 +249,12 @@ function score(ctx: Ctx, hand: Hand, done: Scored["done"], missed: boolean, reas
 	const seat = hand.toAct;
 	const { toCall, canRaise, pot } = optionsOf(hand, limitsOf(ctx));
 	const opponents = hand.seats.filter((other) => other !== seat && !hand.folded.includes(other)).length;
-	const value = Math.round(equity(hand.holes[seat] ?? [], hand.board, opponents, ctx.options.equitySamples, ctx.rng("holdem", "equity", state.game, hand.number, state.decisions.length)) * 1000) / 1000;
-	const { baseline, potOdds } = baselineOf(value, toCall, pot, opponents + 1, canRaise);
-	const scored: Scored = { game: state.game, hand: hand.number, street: hand.street, resident: seat, done, toCall, pot, opponents, equity: value, potOdds: Math.round(potOdds * 1000) / 1000, baseline, evLoss: evLossOf(done, value, toCall, pot), missed };
+	const round = (value: number): number => Math.round(value * 1000) / 1000;
+	const hole = hand.holes[seat] ?? [];
+	const value = round(equity(hole, hand.board, opponents, ctx.options.equitySamples, ctx.rng("holdem", "equity", state.game, hand.number, state.decisions.length)));
+	const ranged = round(rangeEquity(hole, hand.board, rangesOf(hand, seat), ctx.options.equitySamples, ctx.rng("holdem", "range-equity", state.game, hand.number, state.decisions.length)));
+	const { baseline, potOdds } = baselineOf(ranged, toCall, pot, opponents + 1, canRaise);
+	const scored: Scored = { game: state.game, hand: hand.number, street: hand.street, resident: seat, done, toCall, pot, opponents, equity: value, rangeEquity: ranged, potOdds: round(potOdds), baseline, evLoss: evLossOf(done, ranged, toCall, pot), missed };
 	state.decisions.push(scored);
 	ctx.emit("decision_scored", { ...scored, ...(reason === undefined || reason.trim() === "" ? {} : { reason: reason.trim() }) });
 }
