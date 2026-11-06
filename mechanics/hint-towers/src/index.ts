@@ -10,7 +10,8 @@
  * Every card of the deck is unique; a lost rank is bridged (the next rank above it becomes playable),
  * so a loss costs exactly one point. A completed tower gives a signal back. Once the draw pile is
  * empty the game goes on until a whole round of seats lights no card and gives no signal (P171); the strikes running out also
- * end it. The score is the number of cards lit. The engine keeps every seat's knowledge (what signals
+ * end it, unless `strikePenalty` is above 0 (soft strikes: the game goes on, and every misfire from the
+ * last strike on costs that many points). The score is the number of cards lit, less any strike penalty. The engine keeps every seat's knowledge (what signals
  * told it, which cards it can still be) and shows it in the status, so a context reset loses nothing.
  * A seat that does nothing for `maxIdleMinutes` whole minutes gets the reference bot's action (flag
  * `forfeit`); every deal is also played by a crew of reference bots (event `game_scored`, audience
@@ -39,8 +40,10 @@ import {
 	newGame,
 	nextRank,
 	parseAbout,
+	penaltyStrikes,
 	play,
 	type Rules,
+	scoreOf,
 	signal,
 	signalProblem,
 	type Slot,
@@ -53,7 +56,9 @@ const options = Type.Object({
 	games: Type.Integer({ minimum: 1, default: 3, description: "Games in the match; the run ends after the last one." }),
 	handSize: Type.Integer({ minimum: 1, default: 4, description: "Cards each seat holds." }),
 	signals: Type.Integer({ minimum: 1, default: 6, description: "Signal tokens: the crew starts with this many and never holds more." }),
-	strikes: Type.Integer({ minimum: 1, default: 3, description: "Misfires that end a game." }),
+	strikes: Type.Integer({ minimum: 1, default: 3, description: "Misfires that end a game (with soft strikes: the misfire from which each one costs points)." }),
+	strikePenalty: Type.Integer({ minimum: 0, default: 0, description: "Soft strikes: 0 ends the game at the last strike; above 0 the strikes never end it, and every misfire from the last strike on costs this many points." }),
+	debriefNote: Type.Optional(Type.String({ description: "A line added to the record every seat gets after a game (for example a question for the retro)." })),
 	refillOnTower: Type.Boolean({ default: true, description: "A completed tower gives a signal back." }),
 	recent: Type.Integer({ minimum: 0, default: 8, description: "Last actions of the game shown in the status." }),
 	listCandidates: Type.Integer({ minimum: 0, default: 6, description: "A slot's possible cards are listed when there are at most this many (0: only the count)." }),
@@ -107,7 +112,7 @@ type Ctx = ContextOf<typeof head>;
 type ToolCtx = ToolContextOf<typeof head>;
 type View = ViewOf<typeof head>;
 
-const rulesOf = (ctx: Ctx): Rules => ({ handSize: ctx.options.handSize, maxSignals: ctx.options.signals, maxStrikes: ctx.options.strikes, refillOnTower: ctx.options.refillOnTower });
+const rulesOf = (ctx: Ctx): Rules => ({ handSize: ctx.options.handSize, maxSignals: ctx.options.signals, maxStrikes: ctx.options.strikes, refillOnTower: ctx.options.refillOnTower, strikePenalty: ctx.options.strikePenalty });
 const plural = (count: number, word: string): string => `${String(count)} ${word}${count === 1 ? "" : "s"}`;
 
 /** What the move timer watches: the same key at a minute's start and end means nothing happened in it. */
@@ -153,19 +158,27 @@ function startNext(ctx: Ctx): void {
 	startGame(ctx, state.game + 1);
 }
 
+/** The strike counter as the status shows it: the end at the last strike, or the soft-strike cost. */
+function strikeText(ctx: Ctx, core: Readonly<Core>): string {
+	const { strikes, strikePenalty } = ctx.options;
+	if (strikePenalty === 0) return `Strikes ${String(core.strikes)} of ${String(strikes)} (the last one ends the game)`;
+	const paid = penaltyStrikes(core, rulesOf(ctx));
+	return `Strikes ${String(core.strikes)} (soft strikes: from strike ${String(strikes)} on, every misfire also costs ${String(strikePenalty)} points${paid > 0 ? `; ${String(paid * strikePenalty)} points so far` : ""})`;
+}
+
 const reasonText = (reason: EndReason): string => (reason === "complete" ? "every card is lit or lost" : reason === "strikes" ? "the strikes ran out" : "the harbour went dark");
 
 function endGame(ctx: Ctx, core: Core): void {
 	const state = ctx.state;
 	const reason = core.over ?? "dark";
 	const deck = deckOf(core.suits).length;
-	const record: GameRecord = { game: state.game, reason, score: core.lit.length, baseline: state.baseline, lost: core.lost.length, misfires: state.misfires, signals: state.signalsGiven };
+	const record: GameRecord = { game: state.game, reason, score: scoreOf(core, rulesOf(ctx)), baseline: state.baseline, lost: core.lost.length, misfires: state.misfires, signals: state.signalsGiven };
 	state.results.push(record);
 	state.debrief = [...state.seats];
 	for (const resident of state.seats) for (const tool of ctx.options.quietTools) ctx.access.unlock(resident, tool);
 	ctx.emit("game_ended", { game: state.game, reason, score: record.score, deck, lost: record.lost, misfires: record.misfires, signals: record.signals });
 	ctx.emit("game_scored", { game: state.game, score: record.score, baseline: record.baseline });
-	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: `the crew lit ${String(record.score)} of ${String(deck)} cards (${reasonText(reason)}; ${plural(record.misfires, "misfire")}, ${String(record.lost - record.misfires)} discarded)` });
+	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: `the crew lit ${String(core.lit.length)} of ${String(deck)} cards${record.score === core.lit.length ? "" : `, score ${String(record.score)} after the strike penalty`} (${reasonText(reason)}; ${plural(record.misfires, "misfire")}, ${String(record.lost - record.misfires)} discarded)` });
 	if (state.game < ctx.options.games) {
 		ctx.schedule.at(ctx.minute + 1, "nextGame");
 		return;
@@ -195,7 +208,7 @@ function act(ctx: Ctx, action: Action, forfeit: boolean): string {
 		if (action.kind === "play") {
 			if (!outcome.lit) state.misfires += 1;
 			ctx.emit("card_played", { game, turn: core.turn, seat, slot: action.slot + 1, card: outcome.card, lit: outcome.lit, forfeit });
-			text = outcome.lit ? `Slot ${String(action.slot + 1)} was ${outcome.card}: lit.${outcome.refilled ? " The tower is complete; a signal comes back." : ""}` : `Slot ${String(action.slot + 1)} was ${outcome.card}: a misfire. The card is lost; strike ${String(core.strikes)} of ${String(rules.maxStrikes)}.`;
+			text = outcome.lit ? `Slot ${String(action.slot + 1)} was ${outcome.card}: lit.${outcome.refilled ? " The tower is complete; a signal comes back." : ""}` : `Slot ${String(action.slot + 1)} was ${outcome.card}: a misfire. The card is lost; ${strikeText(ctx, core)}.`;
 		} else {
 			ctx.emit("card_discarded", { game, turn: core.turn, seat, slot: action.slot + 1, card: outcome.card, forfeit });
 			text = `Slot ${String(action.slot + 1)} was ${outcome.card}: discarded (lost). Signals: ${String(core.signals)}.`;
@@ -207,7 +220,7 @@ function act(ctx: Ctx, action: Action, forfeit: boolean): string {
 	}
 	if (core.over !== null) {
 		endGame(ctx, core);
-		return `${text} The game is over: ${reasonText(core.over)}; the crew lit ${String(core.lit.length)} cards. End your turn.`;
+		return `${text} The game is over: ${reasonText(core.over)}; the crew lit ${String(core.lit.length)} cards (score ${String(scoreOf(core, rules))}). End your turn.`;
 	}
 	return `${text} ${core.actor} is next. End your turn.`;
 }
@@ -285,7 +298,7 @@ function tableText(ctx: Ctx, seat: string): string {
 	const lines = [
 		`Game ${String(state.game)} of ${String(ctx.options.games)}, turn ${String(core.turn + 1)}. Turn order: ${core.seats.join(", ")}. You are ${seat}.`,
 		`Towers (top lit rank, next playable rank): ${towers.join(" · ")}.`,
-		`Lit ${String(core.lit.length)} of ${String(deck)}. Lost: ${core.lost.length === 0 ? "none" : core.lost.join(", ")}. Signals ${String(core.signals)} of ${String(ctx.options.signals)}. Strikes ${String(core.strikes)} of ${String(ctx.options.strikes)}. Draw pile: ${core.dark === null ? plural(core.pile, "card") : `empty; turns in a row that lit no card and gave no signal: ${String(Math.max(0, core.dark))} (the game ends at ${String(core.seats.length)})`}.`,
+		`Lit ${String(core.lit.length)} of ${String(deck)}. Lost: ${core.lost.length === 0 ? "none" : core.lost.join(", ")}. Signals ${String(core.signals)} of ${String(ctx.options.signals)}. ${strikeText(ctx, core)}. Draw pile: ${core.dark === null ? plural(core.pile, "card") : `empty; turns in a row with no card lit and no signal given to a teammate (a discard does not count): ${String(Math.max(0, core.dark))} (the game ends at ${String(core.seats.length)})`}.`,
 	];
 	if (core.seats.includes(seat)) lines.push(`Your hand (you cannot see it; slot 1 is your oldest card, a new card goes last):`, ...ownSlots(ctx, core, seat));
 	lines.push("The others' hands (* the newest card of a signal; in brackets what that seat knows):", ...core.seats.filter((other) => other !== seat).map((other) => otherHand(core, other)));
@@ -306,9 +319,10 @@ function debriefText(ctx: Ctx): string {
 	const core = ctx.state.core;
 	if (record === undefined || core === null) return "";
 	return [
-		`Game ${String(record.game)} is over: ${reasonText(record.reason)}. The crew lit ${String(record.score)} of ${String(deckOf(core.suits).length)} cards.`,
+		`Game ${String(record.game)} is over: ${reasonText(record.reason)}. The crew lit ${String(core.lit.length)} of ${String(deckOf(core.suits).length)} cards${record.score === core.lit.length ? "" : `, score ${String(record.score)} after the strike penalty`}.`,
 		`Lost: ${String(record.lost)} (${String(record.lost - record.misfires)} discarded, ${plural(record.misfires, "misfire")}: ${core.lost.join(", ") || "none"}). Signals given: ${String(record.signals)}.`,
 		`Scores so far: ${ctx.state.results.map((entry) => `game ${String(entry.game)} ${String(entry.score)}`).join(", ")}.`,
+		...(ctx.options.debriefNote === undefined ? [] : [ctx.options.debriefNote]),
 	].join("\n");
 }
 

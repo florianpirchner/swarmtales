@@ -8,11 +8,11 @@ import { cardTable } from "@swarmtales/mechanic-card-table";
 import { hintTowers } from "@swarmtales/mechanic-hint-towers";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, idleAgent, playStory } from "@swarmtales/testkit";
-import { botAction, botScore, candidates, type Core, deckOf, discard, isPlayable, newGame, nextRank, parseAbout, play, type Rules, signal, signalProblem, surePlayable } from "../../../mechanics/hint-towers/src/model.ts";
+import { botAction, botScore, candidates, penaltyStrikes, scoreOf, type Core, deckOf, discard, isPlayable, newGame, nextRank, parseAbout, play, type Rules, signal, signalProblem, surePlayable } from "../../../mechanics/hint-towers/src/model.ts";
 
 const SEATS = ["A01", "A02", "A03", "A04"];
 const SUITS = ["Amber", "Cobalt", "Moss"].map((name) => ({ name, ranks: 4 }));
-const RULES: Rules = { handSize: 2, maxSignals: 3, maxStrikes: 2, refillOnTower: true };
+const RULES: Rules = { handSize: 2, maxSignals: 3, maxStrikes: 2, refillOnTower: true, strikePenalty: 0 };
 
 /** A game on a fixed deck order, first card first. */
 function gameOn(deck: readonly string[], rules: Rules = RULES): { core: Core; draw: (seat: string) => string | undefined } {
@@ -95,6 +95,21 @@ describe("the rules", () => {
 		play(core, 1, RULES, draw);
 		play(core, 0, RULES, draw);
 		expect(core.over).toBe("strikes");
+	});
+
+	it("soft strikes: the last strike does not end the game, and every misfire from it on costs points", () => {
+		const soft: Rules = { ...RULES, strikePenalty: 3 };
+		const { core, draw } = gameOn(DECK, soft);
+		play(core, 0, soft, draw); // A01 lights Amber 1
+		play(core, 1, soft, draw); // A02 lights Cobalt 1
+		expect(core.lit).toHaveLength(2);
+		play(core, 1, soft, draw); // A03 misfires Cobalt 3
+		play(core, 0, soft, draw); // A04 misfires Amber 3
+		expect(core.strikes).toBe(2);
+		expect(core.over).toBeNull();
+		expect(penaltyStrikes(core, soft)).toBe(1);
+		expect(scoreOf(core, soft)).toBe(2 - 3);
+		expect(scoreOf(core, RULES)).toBe(2);
 	});
 
 	it("lets the bot play a sure card, point at a playable card as the newest touched, and score a deal", () => {

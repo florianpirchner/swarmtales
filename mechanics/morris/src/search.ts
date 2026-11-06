@@ -5,13 +5,15 @@
  * but an exact table is far too heavy for a test suite): the morris-referee scores moves with it, and
  * the morris mechanic's `engine` option plays one side with it.
  */
-import { applyTurn, hasLost, legalSteps, legalTurns, MILLS, onBoard, other, type Position, type Side, type Turn } from "./rules.ts";
+import { applyTurn, hasLost, legalSteps, legalTurns, MILLS, NEIGHBOURS, onBoard, other, type Position, type Side, type Turn } from "./rules.ts";
 
 /** The value of a won position; a quicker win is worth a little more. */
 export const WIN = 100_000;
 const PIECE = 100;
 const OPEN_TWO = 12;
 const MOBILITY = 2;
+/** A piece of the placing side with no free neighbour: a step towards a blockade. */
+const STUCK = 8;
 /** A loss smaller than this is evaluation noise (one open two less), not a worse move. */
 const NOISE = 12;
 
@@ -43,8 +45,26 @@ export function evaluate(position: Position, flying: boolean): number {
 		const mine = legalSteps(position, flying).length;
 		const theirs = legalSteps({ ...position, side: them }, flying).length;
 		value += MOBILITY * (mine - theirs);
+	} else {
+		// While placing, the moves the pieces will have once placed count too: without this the search walled its own pieces in and lost blocked a few turns after the placing (P107).
+		const mine = stepsOnBoard(position.board, me);
+		const theirs = stepsOnBoard(position.board, them);
+		value += MOBILITY * (mine.steps - theirs.steps) - STUCK * (mine.stuck - theirs.stuck);
 	}
 	return value;
+}
+
+/** The moves `side`'s pieces on the board would have (steps to a free neighbour) and how many of them have none. */
+function stepsOnBoard(board: Position["board"], side: Side): { readonly steps: number; readonly stuck: number } {
+	let steps = 0;
+	let stuck = 0;
+	board.forEach((cell, point) => {
+		if (cell !== side) return;
+		const free = (NEIGHBOURS[point] ?? []).filter((next) => board[next] === ".").length;
+		steps += free;
+		if (free === 0) stuck += 1;
+	});
+	return { steps, stuck };
 }
 
 interface Budget {

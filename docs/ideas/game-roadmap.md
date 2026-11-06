@@ -251,6 +251,10 @@ now (no other story needs them yet; split when one does). The reference is an ex
 fill (2^n subsets, the rest of each good to its top valuer) instead of a linear program; efficiency is the share of
 the possible gains from trade realised, fairness the Gini of the surpluses. Multilateral (three-way) deals are not
 built. Solo seats with the strategy brain. Runs: [stories/salt-market/runs/](../../stories/salt-market/runs/README.md).
+**v2 (2026-11-06, after the smoke run):** deals rotate over four games, salt is worth 2, about a third of the
+perishable goods arrives as a shipment in round 2-4 (sold early only on credit; escrow can reserve shipment goods),
+harsher spoilage; the reference adds the gain over doing nothing (`gainOverIdle`). Three Haiku seeds (0.72 USD):
+credit is used (4 escrows, 4 plain promises), the rotation evens out the deal, but spoilage now overshoots (P149).
 
 Not a board game, not Catan. Four traders hold different bundles of five goods; each has a secret
 **contract** (a target bundle worth points). Bilateral and multilateral offers, a short round clock,

@@ -17,8 +17,13 @@
  * - `give` hands goods over without anything back (to keep a promise, or as a side payment).
  * - `say` sends a short message, to everyone or to one trader; it moves nothing.
  *
+ * Part of each trader's goods arrives as one **shipment** at the end of a later round; until then the
+ * trader can sell those goods only on credit (a plain promise, or escrow the bank reserves from the
+ * shipment). Deals **rotate** by default: one deal per cycle of as many games as traders, passed on one
+ * seat each game, so every trader plays every position once. Salt is worth 2 points to everyone.
+ *
  * Goods **spoil**: at the end of every round but the last, the good announced at the round's start
- * spoils, and every trader loses a quarter of its stock of it (rounded down). Holdings are public (the
+ * spoils: every stock of 2 or more loses one unit (a quarter of a stock of 8 or more). Holdings are public (the
  * bank's book is open); values and contracts are secret until the game's end, so a trader may lie about
  * them. Every game is scored against the optimum (the best joint score of the start supply, an exact
  * search over which contracts to fill) in `market_game_scored`, for the human only: efficiency (the share
@@ -33,6 +38,9 @@ import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-
 import {
 	Bundle,
 	bundleLine,
+	goodsOf,
+	idleHolding,
+	rotated,
 	bundleOf,
 	copyBundle,
 	covers,
@@ -62,7 +70,10 @@ import {
 const ALL = "all";
 
 const options = Type.Object({
-	games: Type.Integer({ minimum: 1, maximum: 20, default: 2, description: "Games in the match; the run ends after the last." }),
+	games: Type.Integer({ minimum: 1, maximum: 20, default: 4, description: "Games in the match; the run ends after the last." }),
+	rotate: Type.Boolean({ default: true, description: "Deals rotate: one deal per cycle of as many games as traders, passed on one seat each game, so every trader plays every position once (P141)." }),
+	saltValue: Type.Integer({ minimum: 0, default: 2, description: "What a unit of salt is worth to every trader (P142)." }),
+	shipShare: Type.Number({ minimum: 0, maximum: 1, default: 0.35, description: "The chance that a dealt unit of a perishable good comes in the trader's shipment at the end of a later round instead of at the start (P143)." }),
 	rounds: Type.Integer({ minimum: 2, maximum: 20, default: 6, description: "Trading rounds per game." }),
 	roundMinutes: Type.Integer({ minimum: 1, default: 1, description: "Minutes a round lasts." }),
 	salt: Type.Integer({ minimum: 0, default: 6, description: "Salt every trader starts a game with." }),
@@ -93,8 +104,11 @@ const head = defineHead({
 		holdings: {},
 		offers: [],
 		pledges: [],
+		reserved: {},
+		arrived: [],
 		counter: 0,
 		spoils: "",
+		spoilLog: [],
 		spoiled: {},
 		says: {},
 		inbox: {},
@@ -126,6 +140,7 @@ const head = defineHead({
 		market_gift: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), goods: Bundle, note: Type.String() }),
 		market_said: Type.Object({ game: Type.Integer(), round: Type.Integer(), from: Type.String(), to: Type.String(), text: Type.String() }),
 		market_promise_settled: Pledge,
+		market_shipment_arrived: Type.Object({ game: Type.Integer(), round: Type.Integer(), trader: Type.String(), shipment: Bundle, escrow: Bundle }),
 		market_spoiled: Type.Object({ game: Type.Integer(), round: Type.Integer(), good: Type.String(), losses: Type.Record(Type.String(), Type.Integer()) }),
 		market_game_ended: Type.Object({
 			game: Type.Integer(),
@@ -150,9 +165,9 @@ const head = defineHead({
 		"salt-market/tools/withdraw": [],
 		"salt-market/tools/give": [],
 		"salt-market/tools/say": [],
-		"salt-market/rules": ["seats", "games", "rounds", "salt", "contractBonus", "taxFree", "tax", "escrowFee", "maxOpenOffers", "maxSays", "spoil"],
+		"salt-market/rules": ["seats", "games", "rounds", "salt", "saltValue", "contractBonus", "taxFree", "tax", "escrowFee", "maxOpenOffers", "maxSays", "spoil", "rotation"],
 		"salt-market/game-head": ["game", "games"],
-		"salt-market/round": ["round", "rounds", "spoils", "goods", "book", "offers", "pledges"],
+		"salt-market/round": ["round", "rounds", "spoils", "goods", "book", "shipments", "offers", "pledges"],
 	},
 });
 
@@ -193,6 +208,35 @@ function bookLine(state: MarketState, reader: string | undefined): string {
 	return state.seats.map((seat) => `${who(seat, reader)}: ${bundleLine(holdingOf(state, seat))}`).join("; ");
 }
 
+/** The shipments still to come, public: `A02 (you) 3 spice at the end of round 3 (1 spice held for escrow)`. */
+function shipmentsLine(state: MarketState, reader: string | undefined): string {
+	const coming = state.seats.filter((seat) => !state.arrived.includes(seat) && size(state.profiles[seat]?.shipment ?? empty()) > 0);
+	if (coming.length === 0) return "none";
+	return coming
+		.map((seat) => {
+			const profile = state.profiles[seat];
+			const reserved = state.reserved[seat] ?? empty();
+			return `${who(seat, reader)} ${bundleLine(profile?.shipment ?? empty())} at the end of round ${String(profile?.arrives ?? 0)}${size(reserved) > 0 ? ` (${bundleLine(reserved)} held for escrow)` : ""}`;
+		})
+		.join("; ");
+}
+
+/** What of `seat`'s shipment is still free for escrow due by the end of `round` (none once it arrived, or if it comes later). */
+function freeShipment(state: MarketState, seat: string, round: number): Bundle {
+	const profile = state.profiles[seat];
+	if (profile === undefined || state.arrived.includes(seat) || profile.arrives === 0 || profile.arrives > round) return empty();
+	return minus(profile.shipment, state.reserved[seat] ?? empty());
+}
+
+/** How escrowed later goods are covered: from the free shipment first, the rest from holdings. */
+function escrowSplit(state: MarketState, seat: string, later: Later | undefined): { readonly fromShipment: Bundle; readonly fromHoldings: Bundle } {
+	if (later?.escrow !== true) return { fromShipment: empty(), fromHoldings: empty() };
+	const free = freeShipment(state, seat, later.round);
+	const fromShipment = empty();
+	for (const good of GOODS) fromShipment[good] = Math.min(free[good], later.goods[good]);
+	return { fromShipment, fromHoldings: minus(later.goods, fromShipment) };
+}
+
 /** The offers `reader` can act on or made itself. */
 function openOffersFor(state: MarketState, reader: string): Offer[] {
 	return state.offers.filter((offer) => offer.status === "open" && (offer.from === reader || offer.to === reader || offer.to === ALL));
@@ -218,8 +262,9 @@ function privateLine(state: MarketState, seat: string): string {
 
 function rulesText(ctx: Ctx): string {
 	const { games, rounds, salt, contractBonus, taxFree, tax, escrowFee, maxOpenOffers, maxSays } = ctx.options;
-	const spoil = ctx.options.spoil ? "At the end of every round but the last, one perishable good (announced when the round starts) spoils: every trader loses a quarter of its stock of it, rounded down (3 or fewer units lose nothing)." : "Goods do not spoil in this match.";
-	return ctx.prompt("salt-market/rules", { seats: ctx.state.seats.length, games, rounds, salt, contractBonus, taxFree, tax, escrowFee, maxOpenOffers, maxSays, spoil });
+	const spoil = ctx.options.spoil ? "At the end of every round but the last, one perishable good (announced when the round starts) spoils: every trader holding 2 or more units of it loses one, and a quarter (rounded down) of a stock of 8 or more; a single unit keeps." : "Goods do not spoil in this match.";
+	const rotation = ctx.options.rotate ? ` The deals rotate: every ${String(ctx.state.seats.length)} games use the same ${String(ctx.state.seats.length)} positions (goods, values, contract, shipment), passed on one seat each game, so every trader plays every position once.` : "";
+	return ctx.prompt("salt-market/rules", { seats: ctx.state.seats.length, games, rounds, salt, saltValue: ctx.options.saltValue, contractBonus, taxFree, tax, escrowFee, maxOpenOffers, maxSays, spoil, rotation });
 }
 
 function roundText(ctx: Ctx, seat: string): string {
@@ -231,6 +276,7 @@ function roundText(ctx: Ctx, seat: string): string {
 		spoils: state.spoils === "" ? "nothing spoils at the end of this round" : `${state.spoils} spoils at the end of this round`,
 		goods: `${bundleLine(holdingOf(state, seat))}. ${privateLine(state, seat)}`,
 		book: bookLine(state, seat),
+		shipments: shipmentsLine(state, seat),
 		offers: offers.length === 0 ? "none" : offers.map((offer) => offerLine(offer, seat)).join(" | "),
 		pledges: pledgesLine(state, seat),
 	});
@@ -248,7 +294,13 @@ function startRound(ctx: Ctx, round: number, minute: number): void {
 function startGame(ctx: Ctx, game: number): void {
 	const state = ctx.state;
 	state.game = game;
-	state.profiles = dealOf(state.seats, ctx.rng("salt-market", "deal", game), ctx.options.salt, ctx.options.slack);
+	const n = state.seats.length;
+	const cycle = ctx.options.rotate ? Math.floor((game - 1) / n) + 1 : game;
+	const base = dealOf(state.seats, ctx.rng("salt-market", "deal", cycle), { salt: ctx.options.salt, saltValue: ctx.options.saltValue, slack: ctx.options.slack, rounds: ctx.options.rounds, shipShare: ctx.options.shipShare });
+	state.profiles = ctx.options.rotate ? rotated(base, state.seats, (game - 1) % n) : base;
+	state.reserved = Object.fromEntries(state.seats.map((seat) => [seat, empty()]));
+	state.arrived = [];
+	state.spoilLog = [];
 	state.holdings = Object.fromEntries(state.seats.map((seat) => [seat, copyBundle(state.profiles[seat]?.start ?? empty())]));
 	state.offers = [];
 	state.pledges = [];
@@ -274,6 +326,21 @@ function startNext(ctx: Ctx): void {
 	}
 	state.due = false;
 	startGame(ctx, state.game + 1);
+}
+
+/** The shipments due this round arrive; what the bank holds for escrow stays with it. */
+function arriveShipments(ctx: Ctx, round: number): void {
+	const state = ctx.state;
+	for (const seat of state.seats) {
+		const profile = state.profiles[seat];
+		if (profile?.arrives !== round || state.arrived.includes(seat)) continue;
+		const reserved = state.reserved[seat] ?? empty();
+		const goods = minus(profile.shipment, reserved);
+		state.holdings[seat] = plus(holdingOf(state, seat), goods);
+		state.arrived.push(seat);
+		ctx.emit("market_shipment_arrived", { game: state.game, round, trader: seat, shipment: copyBundle(profile.shipment), escrow: copyBundle(reserved) });
+		tell(ctx, state.seats, `${seat}'s shipment arrived: ${bundleLine(profile.shipment)}${size(reserved) > 0 ? ` (${bundleLine(reserved)} of it went to the bank's escrow)` : ""}.`);
+	}
 }
 
 /** The pledges due this round: escrow is delivered by the bank; a plain promise is kept when the proposer gave the goods. */
@@ -305,6 +372,7 @@ function expireOffers(ctx: Ctx, round: number, last: boolean): void {
 
 function spoilRound(ctx: Ctx, round: number): void {
 	const state = ctx.state;
+	state.spoilLog.push(state.spoils);
 	const good = GOODS.find((name) => name === state.spoils);
 	if (good === undefined) return;
 	const losses: Record<string, number> = {};
@@ -328,7 +396,7 @@ function scoreLine(scores: Readonly<Record<string, number>>, seats: readonly str
 function referenceOf(ctx: Ctx): Reference {
 	const state = ctx.state;
 	const rules = rulesOf(ctx);
-	const startSupply = state.seats.reduce((sum, seat) => plus(sum, state.profiles[seat]?.start ?? empty()), empty());
+	const startSupply = state.seats.reduce((sum, seat) => plus(sum, goodsOf(state.profiles[seat] ?? { values: empty(), contract: empty(), start: empty(), shipment: empty(), arrives: 0 })), empty());
 	// Goods held in escrow at the end were delivered before scoring; nothing is still in the bank.
 	const endSupply = state.seats.reduce((sum, seat) => plus(sum, holdingOf(state, seat)), empty());
 	const optimum = optimumOf(state.profiles, startSupply, rules);
@@ -339,7 +407,7 @@ function referenceOf(ctx: Ctx): Reference {
 	for (const seat of state.seats) {
 		const profile = state.profiles[seat];
 		if (profile === undefined) continue;
-		const start = scoreOf(profile, profile.start, rules).total;
+		const start = scoreOf(profile, goodsOf(profile), rules).total;
 		const end = scoreOf(profile, holdingOf(state, seat), rules);
 		const stats = statsOf(state, seat);
 		const promises = state.pledges.filter((pledge) => pledge.from === seat && !pledge.escrow);
@@ -357,11 +425,16 @@ function referenceOf(ctx: Ctx): Reference {
 			feesPaid: stats.feesPaid,
 			spoiled: state.spoiled[seat] ?? 0,
 			promises: promises.length,
+			escrows: state.pledges.filter((pledge) => pledge.from === seat && pledge.escrow).length,
 			kept: promises.filter((pledge) => pledge.status === "kept").length,
 			broken: promises.filter((pledge) => pledge.status === "broken").length,
 		};
 	}
 	const gains = optimum.total - startTotal;
+	const idleTotal = state.seats.reduce((sum, seat) => {
+		const profile = state.profiles[seat];
+		return profile === undefined ? sum : sum + scoreOf(profile, idleHolding(profile, state.spoilLog), rules).total;
+	}, 0);
 	const round3 = (value: number): number => Math.round(value * 1000) / 1000;
 	return {
 		seats,
@@ -371,6 +444,8 @@ function referenceOf(ctx: Ctx): Reference {
 		optimumContracts: [...optimum.contracts],
 		endOptimum: endOptimum.total,
 		efficiency: gains <= 0 ? 0 : round3((total - startTotal) / gains),
+		idleTotal,
+		gainOverIdle: optimum.total - idleTotal <= 0 ? 0 : round3((total - idleTotal) / (optimum.total - idleTotal)),
 		allocative: endOptimum.total <= 0 ? 0 : round3(total / endOptimum.total),
 		gini: gini(Object.values(seats).map((seat) => seat.surplus)),
 		contractsMet: Object.values(seats).filter((seat) => seat.met).length,
@@ -406,6 +481,7 @@ function endRound(ctx: Ctx): void {
 	const state = ctx.state;
 	const round = state.round;
 	const last = round >= ctx.options.rounds;
+	arriveShipments(ctx, round);
 	settlePledges(ctx, round);
 	expireOffers(ctx, round, last);
 	spoilRound(ctx, round);
@@ -443,9 +519,9 @@ function laterOf(params: OfferParams): Later | undefined {
 /** What a trade costs each side in salt: the tax when it moves more than `taxFree` units now. */
 const taxOf = (ctx: Ctx, give: Bundle, get: Bundle): number => (size(give) + size(get) > ctx.options.taxFree ? ctx.options.tax : 0);
 
-/** What the proposer needs to hold for a trade: the goods it gives now, escrowed later goods, the tax and the fee, in salt. */
-function proposerNeeds(ctx: Ctx, offer: { readonly give: Bundle; readonly get: Bundle; readonly later?: Later | undefined }): Bundle {
-	const escrow = offer.later?.escrow === true ? offer.later.goods : empty();
+/** What the proposer needs to hold for a trade: the goods it gives now, escrowed later goods its shipment does not cover, the tax and the fee, in salt. */
+function proposerNeeds(ctx: Ctx, from: string, offer: { readonly give: Bundle; readonly get: Bundle; readonly later?: Later | undefined }): Bundle {
+	const escrow = escrowSplit(ctx.state, from, offer.later).fromHoldings;
 	const salt = taxOf(ctx, offer.give, offer.get) + (offer.later?.escrow === true ? ctx.options.escrowFee : 0);
 	return plus(plus(offer.give, escrow), { ...empty(), salt });
 }
@@ -467,8 +543,13 @@ function offerProblem(ctx: Ctx, resident: string | undefined, params: OfferParam
 	if (size(give) + size(get) + (later === undefined ? 0 : size(later.goods)) === 0) return refuse("EMPTY_OFFER", "An offer must move at least one unit.");
 	if (size(get) === 0 && later === undefined) return refuse("USE_GIVE", "An offer that asks for nothing is a gift; use give.");
 	if (later !== undefined && (later.round <= state.round || later.round > ctx.options.rounds)) return refuse("BAD_ROUND", `Later goods must be due in a later round of this game (${String(state.round + 1)} to ${String(ctx.options.rounds)}).`);
+	const own = state.profiles[resident];
+	if (later !== undefined && !later.escrow && own !== undefined && !state.arrived.includes(resident) && own.arrives >= later.round && !covers(holdingOf(state, resident), later.goods)) {
+		// A plain promise of goods still to come: the shipment lands at the end of its round, after the last turn of that round (P148).
+		return refuse("TOO_EARLY_FOR_SHIPMENT", `Your shipment arrives at the end of round ${String(own.arrives)}, after your last turn of that round, so you could not hand those goods over by round ${String(later.round)}. Make the promise due in round ${String(own.arrives + 1)} or later, or use escrow (the bank delivers from the shipment).`);
+	}
 	if (state.offers.filter((offer) => offer.status === "open" && offer.from === resident).length >= ctx.options.maxOpenOffers) return refuse("TOO_MANY_OFFERS", `You have ${String(ctx.options.maxOpenOffers)} open offers; withdraw one first.`);
-	const needs = proposerNeeds(ctx, { give, get, later });
+	const needs = proposerNeeds(ctx, resident, { give, get, later });
 	if (!covers(holdingOf(state, resident), needs)) return refuse("CANNOT_COVER", `You do not hold ${bundleLine(needs)} (goods, escrow, tax and fee). You hold ${bundleLine(holdingOf(state, resident))}.`);
 	return undefined;
 }
@@ -509,7 +590,7 @@ function acceptProblem(ctx: Ctx, resident: string | undefined, id: string): Refu
 	if (offer.status !== "open") return refuse("OFFER_CLOSED", `Offer ${offer.id} is ${offer.status}.`);
 	if (offer.from === resident) return refuse("OWN_OFFER", "You cannot accept your own offer; withdraw it instead.");
 	if (offer.to !== ALL && offer.to !== resident) return refuse("NOT_FOR_YOU", `Offer ${offer.id} is for ${offer.to}.`);
-	const proposer = proposerNeeds(ctx, offer);
+	const proposer = proposerNeeds(ctx, offer.from, offer);
 	if (!covers(holdingOf(state, offer.from), proposer)) return refuse("PROPOSER_CANNOT_COVER", `${offer.from} no longer holds ${bundleLine(proposer)}; the bank cannot execute ${offer.id}.`);
 	const accepter = accepterNeeds(ctx, offer);
 	if (!covers(holdingOf(state, resident), accepter)) return refuse("CANNOT_COVER", `You do not hold ${bundleLine(accepter)} (goods and tax). You hold ${bundleLine(holdingOf(state, resident))}.`);
@@ -523,7 +604,9 @@ function acceptNow(ctx: Ctx, resident: string | undefined, id: string): ToolSucc
 	if (refusal !== undefined || resident === undefined || offer === undefined) return refusal ?? refuse("NO_SUCH_OFFER", `There is no offer ${id}.`);
 	const tax = taxOf(ctx, offer.give, offer.get);
 	const fee = offer.later?.escrow === true ? ctx.options.escrowFee : 0;
-	state.holdings[offer.from] = minus(plus(holdingOf(state, offer.from), offer.get), proposerNeeds(ctx, offer));
+	const split = escrowSplit(state, offer.from, offer.later);
+	state.holdings[offer.from] = minus(plus(holdingOf(state, offer.from), offer.get), proposerNeeds(ctx, offer.from, offer));
+	state.reserved[offer.from] = plus(state.reserved[offer.from] ?? empty(), split.fromShipment);
 	state.holdings[resident] = minus(plus(holdingOf(state, resident), offer.give), accepterNeeds(ctx, offer));
 	offer.status = "accepted";
 	offer.by = resident;
@@ -536,7 +619,7 @@ function acceptNow(ctx: Ctx, resident: string | undefined, id: string): ToolSucc
 	proposerStats.feesPaid += fee;
 	if (offer.later !== undefined) {
 		state.counter += 1;
-		state.pledges.push({ id: `P${String(state.counter)}`, offer: offer.id, game: state.game, from: offer.from, to: resident, goods: copyBundle(offer.later.goods), due: offer.later.round, escrow: offer.later.escrow, delivered: empty(), status: "pending" });
+		state.pledges.push({ id: `P${String(state.counter)}`, offer: offer.id, game: state.game, from: offer.from, to: resident, goods: copyBundle(offer.later.goods), due: offer.later.round, escrow: offer.later.escrow, delivered: empty(), fromShipment: split.fromShipment, status: "pending" });
 	}
 	ctx.emit("market_trade", { game: state.game, round: state.round, offer: offer.id, from: offer.from, to: resident, give: copyBundle(offer.give), get: copyBundle(offer.get), ...(offer.later === undefined ? {} : { later: structuredClone(offer.later) }), tax, fee });
 	ctx.emit("market_offer_closed", { game: state.game, id: offer.id, status: "accepted", by: resident, note: "" });
