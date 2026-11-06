@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { classify, emptyBoard, scoreTurn, type Cell, type Position } from "@swarmtales/mechanic-morris";
-import { bestTurns } from "../../../mechanics/morris/src/search.ts";
+import { bestTurns, evaluate } from "../../../mechanics/morris/src/search.ts";
 import { morrisReferee } from "@swarmtales/mechanic-morris-referee";
 import { checkOptionsDocumented, checkSourceRules } from "@swarmtales/testkit";
 
@@ -43,6 +43,13 @@ describe("the morris reference search", () => {
 		expect(best.length).toBeGreaterThan(0);
 		expect(best.every((turn) => turn.to === 2 && turn.remove !== undefined)).toBe(true);
 		expect(bestTurns(at([1, 2], [22, 24], "X", { X: 7, O: 7 }), true, 3, 1_000).length).toBeGreaterThan(0);
+	});
+
+	it("counts a walled-in piece against its side while placing (P107)", () => {
+		// X on 1 with O on both neighbours (2, 10), against X on 1 with O elsewhere (3, 22).
+		const walled = evaluate(at([1], [2, 10], "X", { X: 8, O: 7 }), true);
+		const free = evaluate(at([1], [3, 22], "X", { X: 8, O: 7 }), true);
+		expect(walled).toBeLessThan(free);
 	});
 
 	it("scores nothing for an illegal or a forced turn, and stops deepening when out of nodes", () => {
