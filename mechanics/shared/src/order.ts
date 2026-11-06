@@ -36,6 +36,8 @@ export const HOOK_ORDER = {
 		chess: 0,
 		/** Hold'em starts game 1 (after the brain's hold, like the grid game). */
 		holdem: 0,
+		/** Liar's dice starts game 1 (after the brain's hold, like the grid game). */
+		liarsDice: 0,
 		/** Nine men's morris starts game 1 (morris teams; after the brain's hold, like the grid game). */
 		morris: 0,
 		/** Salt Market starts game 1, after the brain's hold. */
@@ -146,6 +148,8 @@ export const HOOK_ORDER = {
 		clueGrid: 350,
 		/** Convoy's rules, the seat's role, the table record and the task line, after the brain's context reset. */
 		convoy: 370,
+		/** Liar's dice: the rules, the public record and the turn line with the seat's own dice, after the brain's context reset. */
+		liarsDice: 360,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -173,6 +177,8 @@ export const HOOK_ORDER = {
 		clueGrid: 150,
 		/** Convoy's phase deadlines (they may end a game and open a retro) come before the brain's retro windows. */
 		convoy: 170,
+		/** Liar's dice's action deadline (a missed call may end a game and open a retro) comes before the brain's retro windows. */
+		liarsDice: 160,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */

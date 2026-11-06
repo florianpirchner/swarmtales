@@ -18,7 +18,7 @@ const MECHANIC_IDS = [
 	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
 	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "hint-towers", "draft-rounds", "chess",
-	"holdem", "convoy",
+	"holdem", "convoy", "liars-dice",
 	"morris", "morris-referee",
 	"salt-market",
 	"clue-grid", "sealed-auction",
@@ -46,6 +46,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	// Convoy too (docs/ideas/game-roadmap.md §2.6).
 	"@swarmtales/mechanic-convoy": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-sealed-auction": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	"@swarmtales/mechanic-liars-dice": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	// Nine men's morris: gated by consensus, chat rounds through the team channel, a brain through its source API.
 	"@swarmtales/mechanic-morris": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel", "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-morris-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-morris"],

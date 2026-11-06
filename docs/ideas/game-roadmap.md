@@ -388,6 +388,32 @@ of candidates; added because it is the smallest game with a closed-form referenc
 - **Cost (Haiku).** One match is 72 bids and 12-16 brain writes: 0.025 USD, 104 requests in the smoke run
   ([blind-bid-04a-001-smoke](../../stories/blind-bid/runs/blind-bid-04a-001-smoke/), P160-P163).
 
+### 2.11 Liar's dice (traditional bluffing with hidden dice)
+
+A traditional dice game without a single owner, so the genre is free (branded variants with their own extra
+calls are not copied). Four solo seats, each with a few hidden dice; escalating bids on the whole table and a
+liar call that reveals every die.
+
+**Built (2026-11-06, Flo: "Baue neue Spiele. Entscheide du!"):** story `liars-dice`
+([stories/liars-dice/](../../stories/liars-dice/README.md)) on the new mechanic `liars-dice`: seeded secret
+rolls every round, bids checked by the engine (must beat the standing bid, fit on the table, ones wild and
+not biddable), a liar call that reveals all dice and takes one die from the wrong side, places scoring
+3/2/1/0, an optional public remark with each bid or call (table talk that need not be true), and a
+probability baseline per decision in `dice_decision_scored` (human only). The `strategy-brain` plugs in as in
+Hold'em. Arms `liars-dice`, `-nobrain`, `-quiet` (no talk), more by name. No kernel change.
+Runs: [stories/liars-dice/runs/](../../stories/liars-dice/runs/README.md).
+
+- **Research angle.** Bluffing with a voice: Hold'em showed a passive, honest Haiku (P135). Here a bid *is* a
+  claim, so every move is a statement about hidden information; the remark adds talk. Does a seat bluff,
+  does it read the others' bids as information, and does the brain learn who bluffs?
+- **Reference.** Closed form: the binomial chance that a bid is true from the seat's own dice. A floor, not a
+  solver (it ignores what the bids reveal); an opponent-aware Bayesian baseline is the next step.
+- **Cost (Haiku).** One decision is one call; a game of four seats with four dice is 15 rounds of about 3-6
+  decisions.
+- **Loophole risks.** Collusion through the remark (two seats agreeing to call a third); stalling by never
+  raising (the deadline calls liar); a model reading another seat's dice from the record (the record holds
+  only revealed dice).
+
 ## 3. The cross-game strategy brain
 
 The tic-tac-toe brain is *per team, per game type*. For a multi-game roadmap, three versions of the same

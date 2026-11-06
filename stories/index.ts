@@ -11,6 +11,7 @@ import saltMarket, { saltMarketEntryByName } from "./salt-market/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
 import lanterns, { lanternsEntry, lanternsEntryByName } from "./lanterns/story.ts";
 import blindBid, { blindBidEntry, blindBidEntryByName } from "./blind-bid/story.ts";
+import liarsDice, { liarsDiceEntry, liarsDiceEntryByName } from "./liars-dice/story.ts";
 import morrisTeams, { morrisEntry } from "./morris-teams/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
@@ -109,6 +110,10 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"harbor-lights-solo": harborLightsEntry({ brain: "solo" }),
 	"harbor-lights-nobrain": harborLightsEntry({ brain: "nobrain" }),
 	"harbor-lights-hard-strikes": harborLightsEntry({ strikes: "hard" }),
+	// Liar's dice with hidden seeded dice, table talk and a private brain per seat; the control arms keep no brain or no talk; more by name (`liars-dice-hu-g2-d5`).
+	"liars-dice": liarsDice,
+	"liars-dice-nobrain": liarsDiceEntry({ brain: false }),
+	"liars-dice-quiet": liarsDiceEntry({ talk: false }),
 	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
 	"morris-teams": morrisTeams,
 	"morris-teams-nobrain": morrisEntry({ brain: false }),
@@ -217,5 +222,5 @@ function parseConvoy(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id) ?? parseConvoy(id) ?? blindBidEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id) ?? parseConvoy(id) ?? blindBidEntryByName(id) ?? liarsDiceEntryByName(id));
 }
