@@ -99,6 +99,9 @@ importers:
       '@swarmtales/mechanic-receipts':
         specifier: workspace:*
         version: link:mechanics/receipts
+      '@swarmtales/mechanic-salt-market':
+        specifier: workspace:*
+        version: link:mechanics/salt-market
       '@swarmtales/mechanic-script':
         specifier: workspace:*
         version: link:mechanics/script
@@ -627,6 +630,24 @@ importers:
       '@swarmtales/mechanic-shared':
         specifier: workspace:*
         version: link:../shared
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+
+  mechanics/salt-market:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/mechanic-shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@swarmtales/mechanic-strategy-brain':
+        specifier: workspace:*
+        version: link:../strategy-brain
       typebox:
         specifier: 1.3.27
         version: 1.3.27

@@ -34,6 +34,8 @@ export const HOOK_ORDER = {
 		holdem: 0,
 		/** Nine men's morris starts game 1 (morris teams; after the brain's hold, like the grid game). */
 		morris: 0,
+		/** Salt Market starts game 1, after the brain's hold. */
+		saltMarket: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -122,6 +124,8 @@ export const HOOK_ORDER = {
 		chess: 350,
 		/** Hold'em's rules, hole cards, the hand's record and the turn line, after the brain's context reset. */
 		holdem: 360,
+		/** Salt Market's rules, the round line and the trader's inbox, after the brain's context reset. */
+		saltMarket: 350,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -139,6 +143,8 @@ export const HOOK_ORDER = {
 		draftRounds: 150,
 		/** Hold'em's action deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		holdem: 160,
+		/** Salt Market's round clock (it may end a game and open a retro) comes before the brain's retro windows. */
+		saltMarket: 150,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */
