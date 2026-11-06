@@ -46,6 +46,8 @@
 		{ "path": "mechanics/draft-rounds" },
 		{ "path": "mechanics/chess" },
 		{ "path": "mechanics/holdem" },
+		{ "path": "mechanics/morris" },
+		{ "path": "mechanics/morris-referee" },
 		{ "path": "apps/cli" },
 		{ "path": "stories" }
 	]

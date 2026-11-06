@@ -51,6 +51,8 @@
     "@swarmtales/mechanic-consensus": "workspace:*",
     "@swarmtales/mechanic-motives": "workspace:*",
     "@swarmtales/mechanic-draft-rounds": "workspace:*",
+    "@swarmtales/mechanic-morris": "workspace:*",
+    "@swarmtales/mechanic-morris-referee": "workspace:*",
     "@swarmtales/mechanic-econ-games": "workspace:*",
     "@swarmtales/mechanic-holdem": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",

@@ -6,6 +6,7 @@ import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import quarry, { quarryEntry } from "./quarry/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
+import morrisTeams, { morrisEntry } from "./morris-teams/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
@@ -93,6 +94,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"holdem-nobrain": holdemEntry({ brain: false }),
 	"holdem-hu": holdemEntry({ seats: 2 }),
 	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
+	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
+	"morris-teams": morrisTeams,
+	"morris-teams-nobrain": morrisEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -139,7 +143,30 @@ function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 	});
 }
 
+/**
+ * Morris combinations by name: `morris-teams[-nobrain][-g<games>][-r<rounds>][-t<turns>][-solo][-fc]`, for example
+ * `morris-teams-g1-t60-solo` (one game, a turn limit of 60, one agent per side).
+ */
+const MORRIS_NAME = /^morris-teams(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?(?:-t(\d+))?(-solo)?(-fc)?$/;
+
+function parseMorris(id: string): CoreStoryEntry | undefined {
+	const match = MORRIS_NAME.exec(id);
+	if (match === null) return undefined;
+	const games = match[2] === undefined ? undefined : Number(match[2]);
+	const rounds = match[3] === undefined ? undefined : Number(match[3]);
+	const turns = match[4] === undefined ? undefined : Number(match[4]);
+	if ((games !== undefined && (games < 1 || games > 20)) || (rounds !== undefined && (rounds < 1 || rounds > 20)) || (turns !== undefined && (turns < 10 || turns > 400))) return undefined;
+	return morrisEntry({
+		...(match[1] === "-nobrain" ? { brain: false } : {}),
+		...(games === undefined ? {} : { games }),
+		...(rounds === undefined ? {} : { maxRounds: rounds }),
+		...(turns === undefined ? {} : { maxTurns: turns }),
+		...(match[5] === "-solo" ? { teamSize: 1 as const } : {}),
+		...(match[6] === "-fc" ? { fixedCaptain: true } : {}),
+	});
+}
+
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id));
 }
