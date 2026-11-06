@@ -260,8 +260,16 @@ describe("holdem, scripted match", () => {
 		expect(view.ok && view.reply).toContain("Hand 1 result: everyone else folded on the preflop, A01 (you) won the pot of 6; your points +2.");
 	});
 
+	it("keeps a brain only for the brain seats of a mixed table", async () => {
+		const run = await playStory(options({ brainSeats: ["A01", "A03"], games: 2, hands: 2 }), player);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "holdem.match" });
+		const authors = new Set(ofType(run.events, "brain_written").map((event) => field(event, "author")));
+		expect(authors).toEqual(new Set(["A01", "A03"]));
+		expect(ofType(run.events, "brain_written")).toHaveLength(4);
+	});
+
 	it("is registered with its arms", () => {
-		for (const name of ["holdem", "holdem-nobrain", "holdem-hu", "holdem-hu-nobrain"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["holdem", "holdem-nobrain", "holdem-mixed", "holdem-hu", "holdem-hu-nobrain"]) expect(findCoreStory(name)?.story.id).toBe(name);
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a hand and inside a retro window", async () => {

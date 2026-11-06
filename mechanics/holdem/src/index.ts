@@ -463,6 +463,9 @@ export const holdem = defineMechanic(head, (kit) => ({
 				if (hand.toAct === resident && !state.told) {
 					state.told = true;
 					lines.push(taskText(ctx, hand, resident));
+				} else if (hand.toAct !== resident && lines.length > 0 && !hand.over) {
+					// A seat woken to answer its last tool result reads the record as its cue and acts out of turn (P131).
+					lines.push(hand.folded.includes(resident) ? "You folded this hand: nothing to do; end your turn." : `Not your turn: ${hand.toAct} is to act. End your turn; you will be told when it is yours.`);
 				}
 				return lines;
 			},
