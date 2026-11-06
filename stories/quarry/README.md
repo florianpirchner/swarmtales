@@ -11,8 +11,10 @@ wild ore (lodestone). At the end of a game each quarry scores:
 - a **lodestone** joins one set as one more card, at most one per set, on the biggest sets;
 - **5 points** for strictly the most cards of a resource (lodestones do not count; a tie scores nothing,
   so a hate pick can cost a neighbour its bonus);
-- **burns**: with a pick a seat may destroy one more card of the pack before it moves on, twice a game at
-  most, for free (it cost 2 points until the bot test of P123);
+- **burns** (only in the arm `quarry-burn`; off by default since P125): with a pick a seat may destroy one
+  more card of the pack before it moves on, twice a game at most, for free. At the game's end every seat
+  is told each burn and whether its pack came back to the burner later, so the burned card could have
+  been its own (P126);
 - a **place bonus** per game: 10 points for the best quarry, 5 for the second (a tie shares the better
   place). It is what makes denial pay: in a points-only game a burn only helps the two other rivals.
 
@@ -42,7 +44,8 @@ swt run --story quarry                         # Haiku via Anthropic, three game
 ```
 
 Registered arms: `quarry` (brain on), `quarry-nobrain` (the same briefings, no brain, no retro),
-`quarry-open` (every quarry visible during the game), `quarry-noburn` (no burns, the control arm of P125). Further variants are factory options of
+`quarry-open` (every quarry visible during the game), `quarry-burn` (free burns, the hate-drafting arm; the
+default until P125 showed that Haiku's burns cost the table 13 %; `quarry-noburn` is the old name of today's default). Further variants are factory options of
 `quarryStory` in `story.ts`: `games`, `packs`, `packSize`, `openHands`, `maxWords`, `seed`; the scoring
 numbers are options of the `draft-rounds` mechanic (`wilds`, `majorityBonus`, `burnCost`, `maxBurns`,
 `placeBonus`, `deadline`). Mechanics: `draft-rounds`, `strategy-brain` (solo seats). Runs and results:
