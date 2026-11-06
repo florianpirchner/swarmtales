@@ -1,0 +1,37 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-06T23:23:49.952Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "harbor-lights-nobrain",
+  "kind": "core",
+  "title": "Harbor Lights",
+  "effective": {
+    "agents": 4,
+    "minutes": 106,
+    "seed": 43
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

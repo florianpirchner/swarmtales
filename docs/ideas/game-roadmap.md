@@ -198,7 +198,7 @@ three strikes, and a "dark round" ending after the last draw. Mechanic `hint-tow
 a draw pile: `stock`, `draw`), story `stories/harbor-lights/` with three arms on the same deals: a shared **crew**
 brain with a chat open only between games, **solo** private notes, **nobrain**. A reference crew of bots plays
 every deal (22.5 of 35 over 2000 deals). Research angle: do conventions emerge, and does a crew that may talk
-between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md).
+between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md). **Closed 2026-11-06** after two smokes and three series: no arm effect under hard strikes (strike-outs decided), then soft strikes from the second misfire as the default; on those the crew brain led nobrain by 1.5 points a game on 4 seeds (P252).
 
 ### 2.6 Social-deduction card game with hidden roles (original, "Convoy")
 
