@@ -219,6 +219,17 @@ cards are shuffled and revealed as a count only.
 
 ### 2.7 Negotiation and trading (original, "Salt Market")
 
+**Built (2026-11-06):** story `salt-market` ([stories/salt-market/](../../stories/salt-market/README.md)) on the
+new mechanic `salt-market`: five goods (salt, cloth, copper, spice, wax), private unit values 1-4 (salt 1 for
+everyone), a secret contract of three goods worth 20 points, offers to one trader or to all through a bank that
+executes only what both sides hold, later deliveries as plain promises (kept or broken, announced by the bank) or
+escrowed for 1 salt, a tax of 1 salt each side above 6 units, a quarter of a stock spoiling each round, public
+holdings, `say` to all or privately. The `offers`, `escrow` and `contracts` mechanics of the plan are one mechanic for
+now (no other story needs them yet; split when one does). The reference is an exact search over which contracts to
+fill (2^n subsets, the rest of each good to its top valuer) instead of a linear program; efficiency is the share of
+the possible gains from trade realised, fairness the Gini of the surpluses. Multilateral (three-way) deals are not
+built. Solo seats with the strategy brain. Runs: [stories/salt-market/runs/](../../stories/salt-market/runs/README.md).
+
 Not a board game, not Catan. Four traders hold different bundles of five goods; each has a secret
 **contract** (a target bundle worth points). Bilateral and multilateral offers, a short round clock,
 a bank that executes only what both sides confirm.
@@ -235,7 +246,8 @@ a bank that executes only what both sides confirm.
 - **Reference.** Linear program for the best joint allocation; score = efficiency (achieved joint
   value over the optimum) and fairness (Gini of surplus).
 - **Cost (Haiku).** Free-form bargaining is the most expensive of the lot: about 4 traders x 8 rounds
-  x 3 calls plus replies, about 150-300 calls, 0.3-0.8 USD per game.
+  x 3 calls plus replies, about 150-300 calls, 0.3-0.8 USD per game. (The smoke run: 142 requests,
+  0.05 USD for two games of six rounds; prompt caching does most of it.)
 - **Loophole risks.** Side payments that the bank cannot see (counter: all transfers through the
   bank); promises outside escrow; collusion against the fourth trader (a 3-against-1 coalition is the
   expected failure and a research result in itself); degenerate "no trade is safe" equilibrium;
