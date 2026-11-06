@@ -112,6 +112,10 @@ describe("morris-teams, scripted match", () => {
 		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(6);
 		expect(ofType(run.events, "match_ended").map((event) => field(event, "invalid"))).toEqual([true]);
 		expect(ofType(run.events, "move_played").every((event) => field(event, "forfeit") === true)).toBe(true);
+		// The captain on move is told once per turn and minute, so a silent one is asked again (P104).
+		const told = ofType(run.events, "turn_started").filter((event) => JSON.stringify(field(event, "inputs")).includes("is on move"));
+		expect(told.length).toBeGreaterThanOrEqual(6 * 3);
+		expect(new Set(told.map((event) => `${String(event.minute)}:${event.actor}`)).size).toBe(told.length);
 		const make = () => options({ brain: false });
 		expect(await checkDeterminism(make, () => idleAgent)).toEqual([]);
 		expect(await checkSnapshotRoundTrip(make, () => idleAgent, 4)).toEqual([]);
