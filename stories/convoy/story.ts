@@ -25,6 +25,8 @@ export interface ConvoyOptions {
 	readonly crews?: readonly number[];
 	/** Damaged stages that stop the convoy (default 4). */
 	readonly damageToLose?: number;
+	/** A saboteur's damage card is allowed again `cooldown` stages after its last (default 3). */
+	readonly cooldown?: number;
 	/** Each seat keeps a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
 	/** Words a brain may have. */
@@ -49,14 +51,14 @@ function minutesFor(games: number, stages: number): number {
 
 /** The story with its variants as options. */
 export function convoyStory(options: ConvoyOptions = {}) {
-	const { games = 3, crews = DEFAULT_CREWS, damageToLose = 4, brain = true, maxWords = 150, seed = 53 } = options;
+	const { games = 3, crews = DEFAULT_CREWS, damageToLose = 4, cooldown = 3, brain = true, maxWords = 150, seed = 53 } = options;
 	return defineCoreStory({
-		id: `convoy${brain ? "" : "-nobrain"}`,
+		id: `convoy${brain ? "" : "-nobrain"}${damageToLose === 4 ? "" : `-d${String(damageToLose)}`}${cooldown === 3 ? "" : `-c${String(cooldown)}`}`,
 		seed,
 		minutes: options.minutes ?? minutesFor(games, crews.length),
 		residents: [...SEATS],
 		mechanics: [
-			convoy.with({ games, crews: [...crews], damageToLose, deadline: DEADLINE, talkMinutes: TALK_MINUTES }),
+			convoy.with({ games, crews: [...crews], damageToLose, cooldown, deadline: DEADLINE, talkMinutes: TALK_MINUTES }),
 			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
 		grants: { resident: ["viewConvoy", "proposeCrew", "speak", "voteConfidence", "playCrewCard", "audit", "accuse", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
