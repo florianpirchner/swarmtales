@@ -35,34 +35,39 @@ export interface HarborLightsOptions {
 	readonly maxWords?: number;
 	/** Run length in virtual minutes; default is an upper bound (the match ends the run earlier). */
 	readonly minutes?: number;
+	/** Soft strikes: the third strike no longer ends the game; it and every later misfire cost SOFT_PENALTY points. */
+	readonly softStrikes?: boolean;
 }
 
 const SEATS: readonly ResidentId[] = ["A01", "A02", "A03", "A04"];
 const CREW = "crew";
 const SUITS = ["Amber", "Cobalt", "Moss", "Rose", "Violet"].map((name) => ({ name, ranks: 7 }));
 const RETRO_MINUTES = 3;
+const SOFT_PENALTY = 3;
+/** The question for the crew retro after each game (P175): agree what a signal asks for. */
+const SIGNAL_QUESTION = "Retro question: agree in the chat what a signal means, and the captain writes it into the brain as a convention. Which signal says \"play this card now\", and which only gives information to keep? Name the slot it points to (for example the newest touched card), and what a player does when a signalled card cannot be played yet.";
 
-/** The registered name: `harbor-lights[-solo|-nobrain][-g<games>]`, the defaults left out. */
-function storyName(brain: HarborBrain, games: number): string {
-	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${games === 3 ? "" : `-g${String(games)}`}`;
+/** The registered name: `harbor-lights[-solo|-nobrain][-soft-strikes][-g<games>]`, the defaults left out. */
+function storyName(brain: HarborBrain, soft: boolean, games: number): string {
+	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${soft ? "-soft-strikes" : ""}${games === 3 ? "" : `-g${String(games)}`}`;
 }
 
 /** The story with its variants as options. */
 export function harborLightsStory(options: HarborLightsOptions = {}) {
-	const { games = 3, brain = "crew", seed = 31, maxWords = 150 } = options;
+	const { games = 3, brain = "crew", seed = 31, maxWords = 150, softStrikes = false } = options;
 	const crew = brain === "crew";
 	const keeps = brain !== "nobrain";
 	const teams = crew ? { [CREW]: [...SEATS] } : Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
 	const chat = crew ? (["postTeam", "readTeam"] as const) : [];
 	return defineCoreStory({
-		id: storyName(brain, games),
+		id: storyName(brain, softStrikes, games),
 		seed,
 		// About 55 actions a game at eight passes a minute, a move timer of two minutes, and a retro per game.
 		minutes: options.minutes ?? games * (30 + RETRO_MINUTES) + RETRO_MINUTES + 4,
 		residents: [...SEATS],
 		mechanics: [
 			cardTable.with({ suits: SUITS, seats: [...SEATS] }),
-			hintTowers.with({ games, handSize: 4, signals: 6, strikes: 3, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(crew ? { side: CREW } : {}) }),
+			hintTowers.with({ games, handSize: 4, signals: 6, strikes: 3, strikePenalty: softStrikes ? SOFT_PENALTY : 0, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(crew ? { side: CREW, debriefNote: SIGNAL_QUESTION } : {}) }),
 			...(crew ? [teamChannel.with({ teams, maxPostsPerMove: 2 })] : []),
 			strategyBrain.with({ enabled: keeps, solo: !crew, maxWords, teams, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
@@ -78,16 +83,20 @@ export function harborLightsStory(options: HarborLightsOptions = {}) {
 const RULES = [
 	"The harbour wall has five signal towers: Amber, Cobalt, Moss, Rose and Violet. Each tower is lit lamp by lamp, rank 1 to 7, in order. The deck holds each card exactly once (35 cards). The crew lights as many cards as it can together; the score of a game is the number of cards lit.",
 	"You hold four cards but cannot see them; you see every other crew member's cards, and they see yours. Your slots are numbered from 1 (your oldest card); a new card always goes last. The status shows what each seat knows about its own cards and which cards each of your slots can still be.",
-	"On your turn you do exactly one thing: 1) giveSignal: spend one of the crew's signals (6 at most) to tell one teammate every card of one suit, or every card of one rank, in their hand; it must touch at least one card, and their other cards learn they are not that. 2) playSlot: play one of your slots to its tower; if it is the tower's next rank it is lit, otherwise it is a misfire: the card is lost and a strike counts (three strikes end the game). 3) discardSlot: drop a slot (the card is lost) and win one signal back; not while the crew holds all six.",
+	"On your turn you do exactly one thing: 1) giveSignal: spend one of the crew's signals (6 at most) to tell one teammate every card of one suit, or every card of one rank, in their hand; it must touch at least one card, and their other cards learn they are not that. 2) playSlot: play one of your slots to its tower; if it is the tower's next rank it is lit, otherwise it is a misfire: the card is lost and a strike counts (STRIKE_RULE). 3) discardSlot: drop a slot (the card is lost) and win one signal back; not while the crew holds all six.",
 	"After a play or a discard you draw a new card while the pile lasts. A lost card never comes back, but its tower skips the gap: if Moss 3 is lost, Moss 4 becomes playable once Moss 2 is lit. So no card in a hand is ever dead: every card you hold is still needed, and every loss costs the crew one point. A tower that is done gives a signal back. When the pile is empty there are no more draws, and the game ends once a whole round of turns neither lights a card nor gives a signal.",
 	"There is no table talk during a game: the only way to tell a teammate anything is a signal. When it is your turn the status shows everything; act with one tool call and end your turn. viewTowers shows the status again.",
 ];
 
-function briefing(brain: HarborBrain) {
+const HARD_STRIKES = "three strikes end the game";
+const SOFT_STRIKES = `soft strikes: strikes never end the game, but the third misfire and every one after it also cost ${String(SOFT_PENALTY)} points each`;
+
+function briefing(brain: HarborBrain, soft: boolean) {
+	const rules = RULES.map((line) => line.replace("STRIKE_RULE", soft ? SOFT_STRIKES : HARD_STRIKES));
 	return (resident: ResidentId, host: Host): string => {
 		const others = SEATS.filter((seat) => seat !== resident).join(", ");
-		const lines = [`You are ${resident}, one of a crew of four (${others} are the others; ${String(host.residents.length)} residents in all) playing Harbor Lights, a cooperative card game. The turn order is A01, A02, A03, A04, then back to A01. A match has several games; each game starts from a fresh mind.`, ...RULES];
-		if (brain === "crew") lines.push("Between games (and once before the first) the crew meets in a private chat (postTeam, readTeam; closed during a game) and the retro captain writes the crew's shared strategy brain with writeBrain: the conventions you all play by, for example what a signal means. Every member reads it at the start of each game.");
+		const lines = [`You are ${resident}, one of a crew of four (${others} are the others; ${String(host.residents.length)} residents in all) playing Harbor Lights, a cooperative card game. The turn order is A01, A02, A03, A04, then back to A01. A match has several games; each game starts from a fresh mind.`, ...rules];
+		if (brain === "crew") lines.push("Between games (and once before the first) the crew meets in a private chat (postTeam, readTeam; closed during a game) and the retro captain writes the crew's shared strategy brain with writeBrain: the conventions you all play by, for example what a signal means. Agree first of all which signal asks a teammate to play a card now and which one only gives information to keep, and write that down. Every member reads it at the start of each game.");
 		if (brain === "solo") lines.push("You keep short private notes across games (readBrain). Before the first game and after each game you rewrite them with writeBrain: rules that help you play better next time. No one else reads them, and there is no chat.");
 		return lines.join("\n\n");
 	};
@@ -96,25 +105,26 @@ function briefing(brain: HarborBrain) {
 /** The registered entry: Haiku via Anthropic, three games, the crew brain. */
 export function harborLightsEntry(options: HarborLightsOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? "crew";
+	const soft = options.softStrikes ?? false;
 	return {
 		title: "Harbor Lights",
 		story: harborLightsStory(options),
 		model: { provider: "anthropic", id: "claude-haiku-5-5" },
-		briefing: briefing(brain),
+		briefing: briefing(brain, soft),
 		fixedRoster: "the four residents are the crew's four seats (A01-A04)",
 	};
 }
 
-/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-g<games>]`, for example `harbor-lights-solo-g2`. */
-const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(?:-g(\d+))?$/;
+/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-soft-strikes][-g<games>]`, for example `harbor-lights-solo-g2`. */
+const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(-soft-strikes)?(?:-g(\d+))?$/;
 
 export function harborLightsEntryByName(id: string): CoreStoryEntry | undefined {
 	const match = HARBOR_NAME.exec(id);
 	if (match === null) return undefined;
-	const games = match[2] === undefined ? undefined : Number(match[2]);
+	const games = match[3] === undefined ? undefined : Number(match[3]);
 	if (games !== undefined && (games < 1 || games > 20)) return undefined;
 	const brain: HarborBrain = match[1] === "-solo" ? "solo" : match[1] === "-nobrain" ? "nobrain" : "crew";
-	return harborLightsEntry({ brain, ...(games === undefined ? {} : { games }) });
+	return harborLightsEntry({ brain, softStrikes: match[2] !== undefined, ...(games === undefined ? {} : { games }) });
 }
 
 export default harborLightsEntry();

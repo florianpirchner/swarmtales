@@ -18,7 +18,7 @@ import { teamChannel } from "@swarmtales/mechanic-team-channel";
 import type { CoreStoryEntry } from "../index.ts";
 
 export interface LanternsOptions {
-	/** Games in the match (default 3: every member keeps once). */
+	/** Games in the match (default 4: each team starts twice; the keeper role goes A01, A02, A03, A01). */
 	readonly games?: number;
 	/** Teams keep a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
@@ -31,13 +31,17 @@ export interface LanternsOptions {
 	readonly minutes?: number;
 }
 
-const DEFAULT_GAMES = 3;
+/** Games in the match: 4 since P196, so each team has the first clue twice (with 3, amber started twice and won 8 of 12). */
+const DEFAULT_GAMES = 4;
 /** Clues per team and game (8 in the first run; 5 since P191, so a game of clues of 1 cannot finish). */
 const DEFAULT_CLUES = 5;
 const DEADLINE = 2;
 const RETRO_MINUTES = 3;
 /** Output cap per call (P94: a 4000-token cap made thinking models end turns without a tool call). */
 const OUTPUT_TOKENS = 16_000;
+/** What the retro asks the team to write (P195: without it the brains were lists of caution). */
+const RETRO_FOCUS =
+	"Each of you will be the keeper in turn, so write your team's conventions, the shared code between keeper and seekers: how a keeper picks and shapes a clue (kinds of links, how the number is meant) and how the seekers read it (which link first, what a number promises). Keep conventions that worked, change those that did not. Do not write general caution: the rules already punish wrong words.";
 const TEAMS = { amber: ["A01", "A02", "A03"], teal: ["A04", "A05", "A06"] };
 
 /** The registered name: `lanterns[-nobrain][-g<games>][-c<clues>]`. */
@@ -61,7 +65,7 @@ export function lanternsStory(options: LanternsOptions = {}) {
 		mechanics: [
 			clueGrid.with({ games, maxClues, deadline: DEADLINE, teams: TEAMS }),
 			teamChannel.with({ teams: TEAMS, maxPostsPerMove: 3 }),
-			strategyBrain.with({ enabled: brain, maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
+			strategyBrain.with({ enabled: brain, maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true, retroFocus: RETRO_FOCUS }),
 		],
 		grants: { resident: ["viewGrid", "giveClue", "guess", "endGuesses", "postTeam", "readTeam", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["giveClue", "guess", "endGuesses", ...(brain ? (["writeBrain"] as const) : [])],
@@ -80,7 +84,7 @@ function briefing(brain: boolean) {
 			`You are ${resident}, on team ${team} with ${mates}. Your team plays a word-clue game against the other team (${String(host.residents.length)} residents in all). A match has several games in a row; in each game one of you is the keeper, who sees which hidden word belongs to whom and gives the clues, and the two others are seekers, who reveal words from the clues. The keeper changes from game to game, and each game starts from a fresh mind: you are given the rules and your role at its start.`,
 			"Your team has a private chat (postTeam, readTeam); the other team cannot read it. viewGrid shows the grid, the game so far and your task. A keeper gives a clue with giveClue; the caller of a clue reveals words with guess and may stop with endGuesses; the other seeker advises in the chat. Act only when you have a task; otherwise end your turn.",
 		];
-		if (brain) lines.push("Your team keeps a strategy brain: a short text (readBrain). Before the first game and after each game your team discusses in the chat and the retro captain rewrites it with writeBrain. Write rules and conventions that help the next keeper and the next seekers; do not copy a game's words or clues.");
+		if (brain) lines.push("Your team keeps a strategy brain: a short text (readBrain). Before the first game and after each game your team discusses in the chat and the retro captain rewrites it with writeBrain. Write your team's conventions between keeper and seekers, so the next keeper and the next seekers share one code; do not copy a game's words or clues.");
 		return lines.join("\n\n");
 	};
 }

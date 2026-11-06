@@ -79,9 +79,16 @@ export class Gateway {
 	/** The actors whose calls are let in while an overseer runs. */
 	readonly #admitted = new Set<Actor>();
 	#broken = false;
+	/** The actors whose last call was a free look (`ToolDefinition.free`). */
+	readonly #lookedLast = new Set<Actor>();
 
 	constructor(parts: GatewayParts) {
 		this.#parts = parts;
+	}
+
+	/** Whether the actor's last call was a free look: its answer alone wakes no turn (`activation: "onNews"`). */
+	lastCallWasLook(actor: Actor): boolean {
+		return this.#lookedLast.has(actor);
 	}
 
 	/** `cause` is the event the call answers (the turn it belongs to). The reply is formatted for the caller. */
@@ -208,11 +215,13 @@ export class Gateway {
 			inChain(() => bus.emit("core", "tool_refused", payload));
 			return { outcome: refusal, seq: called.seq };
 		};
-		const overStep = this.#parts.referee.step(actor, this.#parts.reply);
-		if (overStep !== undefined) return refused("limit", overStep);
-		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
 		const caller = this.#parts.names.callerOf(actor);
 		const loaded = caller === undefined ? undefined : toolFor(this.#parts.tools, name, caller);
+		if (loaded?.tool.free === true) this.#lookedLast.add(actor);
+		else this.#lookedLast.delete(actor);
+		const overStep = loaded?.tool.free === true ? undefined : this.#parts.referee.step(actor, this.#parts.reply);
+		if (overStep !== undefined) return refused("limit", overStep);
+		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
 		if (caller === undefined || loaded === undefined) return refused("lock", this.#core(TOOL_NOT_GRANTED));
 		const role = caller.name;
 		const resident = residentOf(actor);

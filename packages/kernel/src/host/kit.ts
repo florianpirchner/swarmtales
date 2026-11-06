@@ -235,6 +235,7 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>): Mec
 				limit: definition.limit,
 				suggest: definition.suggest ?? [],
 				serves: definition.serves,
+				...(definition.free === true ? { free: true } : {}),
 				...(definition.consult === undefined ? {} : { consult: { role: definition.consult.role, answer: definition.consult.answer } }),
 				prepare(raw, actor, resident) {
 					let params: Static<typeof definition.parameters>;

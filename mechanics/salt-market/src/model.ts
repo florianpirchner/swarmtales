@@ -38,11 +38,13 @@ export function bundleLine(bundle: Bundle): string {
 	return parts.length === 0 ? "nothing" : parts.join(", ");
 }
 
-/** A trader's secret side of a game: what each unit is worth to it, and the contract it wants to fill. */
+/** A trader's side of a game: what each unit is worth to it and the contract it wants to fill (secret), its start bundle and its shipment (public). */
 export const Profile = Type.Object({
 	values: Bundle,
 	contract: Bundle,
 	start: Bundle,
+	shipment: Bundle,
+	arrives: Type.Integer({ minimum: 0, description: "The round at whose end the shipment arrives; 0: no shipment." }),
 });
 export type Profile = Static<typeof Profile>;
 
@@ -65,25 +67,41 @@ export interface Draw {
 	shuffle<T>(items: readonly T[]): T[];
 }
 
+export interface DealRules {
+	/** Salt every trader starts with. */
+	readonly salt: number;
+	/** Salt's value, the same for everyone. */
+	readonly saltValue: number;
+	/** Units of each perishable good beyond the joint demand of the contracts. */
+	readonly slack: number;
+	/** Rounds of the game: a shipment arrives at the end of round 2 to rounds - 2. */
+	readonly rounds: number;
+	/** The chance that a dealt unit of a perishable good comes in the trader's shipment instead of at the start. */
+	readonly shipShare: number;
+}
+
 /**
- * The deal of one game. Every trader gets a value of 1 to 4 for each perishable good (salt is worth 1
- * to everyone), a contract of three perishable goods with 2 to 4 units each, and a start bundle: salt
- * for everyone, and each unit of a perishable good dealt at random, three times as likely to a trader
- * whose contract does not ask for it. So nobody can fill a contract without trading, and the goods each
- * trader needs sit mostly with the others. The supply of a good is the joint demand of the contracts
- * plus `slack`, so all four contracts can be filled at once if nothing spoils.
+ * The deal of one game. Every trader gets a value of 1 to 4 for each perishable good (salt is worth
+ * `saltValue` to everyone), a contract of three perishable goods with 2 to 4 units each, and its goods:
+ * salt for everyone, and each unit of a perishable good dealt at random, three times as likely to a
+ * trader whose contract does not ask for it. So nobody can fill a contract without trading, and the
+ * goods each trader needs sit mostly with the others. The supply of a good is the joint demand of the
+ * contracts plus `slack`, so all four contracts can be filled at once if nothing spoils. A share of each
+ * trader's perishable units (`shipShare`) comes as one shipment at the end of a later round, so a trader
+ * can sell those goods early only on credit (a promise, or escrow against the shipment).
  */
-export function dealOf(seats: readonly string[], draw: Draw, salt: number, slack: number): Record<string, Profile> {
+export function dealOf(seats: readonly string[], draw: Draw, rules: DealRules): Record<string, Profile> {
+	const { salt, slack } = rules;
 	const profiles: Record<string, Profile> = {};
 	for (const seat of seats) {
 		const values = empty();
-		values.salt = 1;
+		values.salt = rules.saltValue;
 		for (const good of PERISHABLE) values[good] = draw.int(1, 4);
 		const contract = empty();
 		for (const good of draw.shuffle(PERISHABLE).slice(0, 3)) contract[good] = draw.int(2, 4);
 		const start = empty();
 		start.salt = salt;
-		profiles[seat] = { values, contract, start };
+		profiles[seat] = { values, contract, start, shipment: empty(), arrives: 0 };
 	}
 	for (const good of PERISHABLE) {
 		const demand = seats.reduce((sum, seat) => sum + (profiles[seat]?.contract[good] ?? 0), 0);
@@ -101,11 +119,52 @@ export function dealOf(seats: readonly string[], draw: Draw, salt: number, slack
 			if (profile !== undefined) profile.start[good] += 1;
 		}
 	}
+	if (rules.shipShare > 0 && rules.rounds >= 4) {
+		for (const seat of seats) {
+			const profile = profiles[seat];
+			if (profile === undefined) continue;
+			for (const good of PERISHABLE) {
+				const units = profile.start[good];
+				for (let unit = 0; unit < units; unit++) {
+					if (draw.next() >= rules.shipShare) continue;
+					profile.start[good] -= 1;
+					profile.shipment[good] += 1;
+				}
+			}
+			profile.arrives = size(profile.shipment) === 0 ? 0 : draw.int(2, rules.rounds - 2);
+		}
+	}
 	return profiles;
 }
 
-/** The units a holding loses when `good` spoils: a quarter of its stock, rounded down (three or fewer lose nothing). */
-export const spoilLoss = (holding: Bundle, good: Good): number => (good === "salt" ? 0 : Math.floor(holding[good] / 4));
+/**
+ * What a trader ends with if nobody trades: the start bundle, the shipment when it arrives, and every
+ * spoil of `schedule` (the good that spoiled at the end of round 1, 2, ...; '' for none).
+ */
+export function idleHolding(profile: Profile, schedule: readonly string[]): Bundle {
+	let holding = copyBundle(profile.start);
+	schedule.forEach((spoiled, index) => {
+		if (profile.arrives === index + 1) holding = plus(holding, profile.shipment);
+		const good = GOODS.find((name) => name === spoiled);
+		if (good !== undefined) holding[good] -= spoilLoss(holding, good);
+	});
+	if (profile.arrives > schedule.length) holding = plus(holding, profile.shipment);
+	return holding;
+}
+
+/** All goods of a profile: the start bundle and the shipment. */
+export const goodsOf = (profile: Profile): Bundle => plus(profile.start, profile.shipment);
+
+/**
+ * The deal of game `game` when deals rotate: the deal of a cycle (one per `seats.length` games) passes
+ * one seat on with every game, so in a full cycle every seat plays every position once.
+ */
+export function rotated(base: Readonly<Record<string, Profile>>, seats: readonly string[], offset: number): Record<string, Profile> {
+	return Object.fromEntries(seats.map((seat, index) => [seat, structuredClone(base[seats[(index + offset) % seats.length] ?? ""] ?? { values: empty(), contract: empty(), start: empty(), shipment: empty(), arrives: 0 })]));
+}
+
+/** The units a holding loses when `good` spoils: one of a stock of 2 or more, a quarter (rounded down) of a stock of 8 or more; a single unit keeps. */
+export const spoilLoss = (holding: Bundle, good: Good): number => (good === "salt" || holding[good] < 2 ? 0 : Math.max(1, Math.floor(holding[good] / 4)));
 
 /**
  * The best joint score of a supply split among the traders (the reference optimum): for every subset of
@@ -177,6 +236,7 @@ export const Pledge = Type.Object({
 	due: Type.Integer(),
 	escrow: Type.Boolean(),
 	delivered: Bundle,
+	fromShipment: Bundle,
 	status: PromiseStatus,
 });
 export type Pledge = Static<typeof Pledge>;
@@ -193,6 +253,7 @@ export const SeatReference = Type.Object({
 	feesPaid: Type.Integer(),
 	spoiled: Type.Integer({ description: "Units this trader lost to spoilage." }),
 	promises: Type.Integer({ description: "Promises without escrow this trader made." }),
+	escrows: Type.Integer({ description: "Escrowed deliveries this trader made." }),
 	kept: Type.Integer(),
 	broken: Type.Integer(),
 });
@@ -204,7 +265,9 @@ export const Reference = Type.Object({
 	optimum: Type.Number({ description: "The best joint score of the start supply (spoilage ignored: an upper bound)." }),
 	optimumContracts: Type.Array(Type.String()),
 	endOptimum: Type.Number({ description: "The best joint score of the goods left at the end." }),
-	efficiency: Type.Number({ description: "(total - startTotal) / (optimum - startTotal): the share of the possible gains from trade realised." }),
+	efficiency: Type.Number({ description: "(total - startTotal) / (optimum - startTotal): the share of the possible gains from trade realised, against the start goods before any spoil." }),
+	idleTotal: Type.Number({ description: "The joint score if nobody had traded: start goods, shipments, the same spoils (P180)." }),
+	gainOverIdle: Type.Number({ description: "(total - idleTotal) / (optimum - idleTotal): what trading added over doing nothing, as a share of what was possible." }),
 	allocative: Type.Number({ description: "total / endOptimum: how well the goods left are placed." }),
 	gini: Type.Number({ description: "Gini of the surpluses (negative surpluses as 0)." }),
 	contractsMet: Type.Integer(),
@@ -225,8 +288,11 @@ export const MarketSlice = Type.Object({
 	holdings: Type.Record(Type.String(), Bundle),
 	offers: Type.Array(Offer),
 	pledges: Type.Array(Pledge),
+	reserved: Type.Record(Type.String(), Bundle, { description: "Goods of each trader's shipment the bank holds back for escrow." }),
+	arrived: Type.Array(Type.String({ description: "Traders whose shipment arrived this game." })),
 	counter: Type.Integer(),
 	spoils: Type.String({ description: "The good that spoils at the end of this round, or ''." }),
+	spoilLog: Type.Array(Type.String(), { description: "The good that spoiled at the end of each round so far ('' for none)." }),
 	spoiled: Type.Record(Type.String(), Type.Integer()),
 	says: Type.Record(Type.String(), Type.Integer({ description: "Messages this round." })),
 	inbox: Type.Record(Type.String(), Type.Array(Type.String())),

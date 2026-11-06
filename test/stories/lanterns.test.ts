@@ -130,7 +130,7 @@ describe("Lanterns rules", () => {
 });
 
 describe("lanterns, scripted match", () => {
-	it("plays three games with a rotating keeper, sealed targets and a brain per team", async () => {
+	it("plays four games with a rotating keeper, sealed targets and a brain per team", async () => {
 		const run = await playStory(options(), player);
 		expect(run.end).toMatchObject({ reason: "referee", limit: "clue-grid.match" });
 		const started = ofType(run.events, "clue_game_started");
@@ -138,19 +138,30 @@ describe("lanterns, scripted match", () => {
 			{ amber: "A01", teal: "A04" },
 			{ amber: "A02", teal: "A05" },
 			{ amber: "A03", teal: "A06" },
+			{ amber: "A01", teal: "A04" },
 		]);
-		expect(started.map((event) => field(event, "startingTeam"))).toEqual(["amber", "teal", "amber"]);
+		// Four games: each team has the first clue twice (P196).
+		expect(started.map((event) => field(event, "startingTeam"))).toEqual(["amber", "teal", "amber", "teal"]);
 		for (const type of ["clue_key_dealt", "clue_intent", "clue_closed", "clue_game_scored"]) {
 			const events = ofType(run.events, type);
 			expect(events.length).toBeGreaterThan(0);
 			expect(events.every((event) => JSON.stringify(event.audience) === JSON.stringify(["human"]))).toBe(true);
 		}
 		expect(ofType(run.events, "clue_given").every((event) => event.audience === undefined || event.audience.length === 0)).toBe(true);
-		expect(ofType(run.events, "clue_game_ended")).toHaveLength(3);
+		expect(ofType(run.events, "clue_game_ended")).toHaveLength(4);
+		// No extra guess: a clue never has more guesses than its number.
+		expect(ofType(run.events, "clue_closed").every((event) => {
+			const guesses = field(event, "guesses");
+			const number = field(event, "number");
+			return Array.isArray(guesses) && typeof number === "number" && guesses.length <= Math.max(number, 0);
+		})).toBe(true);
 		expect(ofType(run.events, "clue_match_ended")).toHaveLength(1);
 		expect(ofType(run.events, "clue_word_revealed").length).toBeGreaterThan(10);
-		// Before game 1 and after games 1 and 2, each team writes its brain.
-		expect(ofType(run.events, "brain_written")).toHaveLength(6);
+		// Before game 1 and after games 1 to 3, each team writes its brain.
+		expect(ofType(run.events, "brain_written")).toHaveLength(8);
+		// The story's retro asks for conventions, not caution (P195).
+		const retro = run.events.filter((event) => event.type === "turn_started").map((event) => JSON.stringify(field(event, "inputs"))).find((text) => text.includes("Retro after game 1"));
+		expect(retro).toContain("conventions");
 	});
 
 	it("starts every game from a fresh context with the rules, the role and the team's brain", async () => {
