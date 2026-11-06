@@ -35,6 +35,7 @@ export const StrategyBrainApi = defineApi({
 				game: Type.Integer({ minimum: 1 }),
 				summary: Type.String({ minLength: 1, description: "The game's public result in one line, shown in later briefings as it stands." }),
 				moves: Type.Optional(Type.Array(Type.Integer(), { description: "The game's moves, for the replay check of a brain; none skips it." })),
+				line: Type.Optional(Type.Array(Type.Array(Type.String()), { description: "The game's moves as text, each with its accepted spellings (SAN, from-to), for the replay check of a brain in a game whose moves are text (chess)." })),
 			}),
 			output: Type.Null(),
 		},
