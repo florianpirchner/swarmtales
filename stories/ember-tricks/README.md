@@ -13,10 +13,14 @@ memory across games is each player's own short notes, rewritten after each game.
 swt run --story ember-tricks --provider scripted     # offline, no model
 swt run --story ember-tricks                         # Haiku via Anthropic, 2 games
 swt run --story ember-tricks-nobrain                 # the control arm: no notes, no retro
+swt run --story ember-tricks-calib-g4                # lever: each seat's own calibration line in the retro
+swt run --story ember-tricks-sum-g4                  # lever: the bids so far against the round's tricks
 ```
 
 Variants are factory options of `emberTricksStory` in `story.ts`: `games`, `rounds` (cards per round),
-`brain: false`, `maxWords`, `seed`. Mechanics: `card-table` (deck, seeded deal, private hands; reusable
+`brain: false`, `maxWords`, `seed`, `lever` (`"bidSum"` or `"calibration"`, one at a time against the
+control; names `ember-tricks[-nobrain][-sum|-calib][-g<games>][-r<rounds>]`). `viewTable` costs no step; a
+seat not on turn gets only "waiting for X" and is not woken again by that answer. Mechanics: `card-table` (deck, seeded deal, private hands; reusable
 by every card game), `trick-play` (bids, named trump, follow suit, veto, scoring, move timer) and
 `strategy-brain` (one team of one per seat, reset every round). The engine, not the model, checks every
 rule and counts every trick. Runs and results: [runs/README.md](runs/README.md).

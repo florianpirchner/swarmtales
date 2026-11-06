@@ -10,8 +10,11 @@
  *    trump or else the highest card of the suit led wins, the winner leads next. Right after a lead,
  *    the next seat may spend its veto token (`vetoTokens` per game) instead of playing: the lead card
  *    goes back and the leader must lead another suit;
- * 4. scoring: a hit (tricks taken equal the bid) is `hit + perTrick * taken`, a miss costs the square
- *    of the error (`scoring.miss`).
+ * 4. scoring: a hit (tricks taken equal the bid) is `hit + perTrick * taken`, a miss costs `missBase`
+ *    plus the square of the error (`scoring.miss`).
+ * `viewTable` is free (no step) and answers a seat not on turn with one wait line; `bidSum` adds the
+ * bids so far against the round's tricks to the table, `calibration` each seat's own bid-against-taken
+ * line to the end-of-game record.
  * The engine enforces every rule and counts every trick; a seat that does nothing for `maxIdleMinutes`
  * whole minutes gets a random legal action from the seeded stream (flag `forfeit`). The match ends
  * the run through the referee limit `trick-play.match`. A strategy brain plugs in through
@@ -27,7 +30,7 @@ import { HOOK_ORDER, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
 import { TrickPlayApi } from "./api.ts";
 import { TrickPlayEvents } from "./events.ts";
-import { legalCards, orderAfter, roundPoints, Scoring, trickWinner, TrickSlice, trumpNamer, type Trick, type TrickState } from "./model.ts";
+import { legalCards, orderAfter, roundPoints, Scoring, trickWinner, TrickSlice, trumpNamer, type RoundRecord, type Trick, type TrickState } from "./model.ts";
 
 
 const options = Type.Object({
@@ -39,6 +42,8 @@ const options = Type.Object({
 	maxIdleMinutes: Type.Integer({ minimum: 1, default: 3, description: "Whole minutes a seat may leave its action open before the move timer acts for it." }),
 	maxConsecutiveForfeits: Type.Integer({ minimum: 0, default: 0, description: "That many timer actions in a row end the match as invalid (0: off)." }),
 	briefEveryRound: Type.Boolean({ default: false, description: "Tell a strategy brain of every round's start, not only the game's, so every round begins from a fresh context with the briefing." }),
+	bidSum: Type.Boolean({ default: false, description: "The table shows the sum of the bids placed so far against the tricks of the round." }),
+	calibration: Type.Boolean({ default: false, description: "The end-of-game record tells each seat its own calibration: tricks bid against tricks taken, hits, zero bids." }),
 });
 
 const head = defineHead({
@@ -343,6 +348,26 @@ function actionHint(ctx: Ctx, seat: string): string {
 	return `Your turn: playCard. Legal now: ${legal.join(", ")}.${veto}`;
 }
 
+/** The bids placed so far against the tricks of the round, with the seats still to bid. */
+function bidSumText(ctx: Ctx): string {
+	const state = ctx.state;
+	const sum = Object.values(state.bids).reduce((total, bid) => total + bid, 0);
+	const open = state.order.filter((name) => state.bids[name] === undefined).length;
+	return `Tricks bid so far: ${String(sum)} of the round's ${String(cardsOf(ctx))}${open === 0 ? "" : ` (${String(open)} bid(s) still to come)`}.`;
+}
+
+/** One seat's bidding in a finished game: tricks bid against tricks taken, hits and zero bids. */
+function calibrationText(rounds: readonly RoundRecord[], seat: string): string {
+	const bid = rounds.reduce((total, round) => total + (round.bids[seat] ?? 0), 0);
+	const taken = rounds.reduce((total, round) => total + (round.tricks[seat] ?? 0), 0);
+	const hits = rounds.filter((round) => (round.bids[seat] ?? 0) === (round.tricks[seat] ?? 0)).length;
+	const zeros = rounds.filter((round) => (round.bids[seat] ?? 0) === 0).length;
+	const count = rounds.length;
+	const gap = (taken - bid) / count;
+	const verdict = Math.abs(gap) < 0.25 ? "your bids matched your tricks well" : gap > 0 ? `you took ${gap.toFixed(1)} more trick(s) per round than you bid: you underbid` : `you took ${(-gap).toFixed(1)} fewer trick(s) per round than you bid: you overbid`;
+	return `Your calibration this game: you bid ${String(bid)} tricks in all and took ${String(taken)} over ${String(count)} rounds; ${String(hits)} of ${String(count)} bids hit; ${String(zeros)} of your bids were 0. In short, ${verdict}.`;
+}
+
 /** The table as `seat` sees it: its own hand and everything public. */
 function tableText(ctx: Ctx, seat: string): string {
 	const state = ctx.state;
@@ -354,6 +379,7 @@ function tableText(ctx: Ctx, seat: string): string {
 		`Game ${String(state.game)} of ${String(ctx.options.games)}, round ${String(state.round)} of ${String(ctx.options.rounds.length)}: ${String(cardsOf(ctx))} card(s) each. Dealer ${state.dealer}. Seats in table order: ${state.seats.join(", ")}.`,
 		state.seats.includes(seat) ? `Your hand: ${renderHand(handOf(ctx, seat), suits)}` : "You have no seat.",
 		`Bids (bidding order): ${state.order.map((name) => `${name} ${state.bids[name] === undefined ? "-" : String(state.bids[name])}`).join(", ")}.`,
+		...(ctx.options.bidSum ? [bidSumText(ctx)] : []),
 		ctx.options.trump === "none" ? "No trump in this game." : state.trump === null ? "Trump: not named yet (the lowest bidder names it once every bid is in)." : `Trump: ${state.trump} (named by ${state.namer ?? "?"}).`,
 	];
 	if (state.phase === "play") {
@@ -374,8 +400,15 @@ function tableText(ctx: Ctx, seat: string): string {
 	return lines.join("\n");
 }
 
+/** What `viewTable` answers: the full table for the seat on turn, a short wait line for the others. */
+function tableView(ctx: Ctx, seat: string): string {
+	const state = ctx.state;
+	if (state.finished || state.phase === "idle" || state.actor === null || state.actor === seat) return tableText(ctx, seat);
+	return `Not your turn: waiting for ${state.actor}. You get the full table in your input when it is your turn; do nothing until then.`;
+}
+
 /** The public record of a finished game, round by round: what a seat needs to judge its own bidding. */
-function debriefText(ctx: Ctx): string {
+function debriefText(ctx: Ctx, seat: string): string {
 	const state = ctx.state;
 	const record = state.results.at(-1);
 	if (record === undefined) return "";
@@ -384,7 +417,9 @@ function debriefText(ctx: Ctx): string {
 		const seats = state.seats.map((name) => `${name} ${String(round.bids[name] ?? 0)}/${String(round.tricks[name] ?? 0)}`).join(", ");
 		return `r${String(round.round)} (${String(round.cards)} card(s), trump ${round.trump ?? "none"}${round.namer === null ? "" : ` by ${round.namer}`}): ${seats}`;
 	});
-	return [`Game ${String(record.game)} is over. Winner: ${record.result}. Final scores: ${scores(record.totals)}.`, `Bid/taken per round: ${rounds.join("; ")}.`].join("\n");
+	const lines = [`Game ${String(record.game)} is over. Winner: ${record.result}. Final scores: ${scores(record.totals)}.`, `Bid/taken per round: ${rounds.join("; ")}.`];
+	if (ctx.options.calibration && state.seats.includes(seat)) lines.push(calibrationText(record.rounds, seat));
+	return lines.join("\n");
 }
 
 /** The move timer acts for the seat on turn: a random legal bid, suit or card from the seeded stream. */
@@ -418,7 +453,8 @@ export const trickPlay = defineMechanic(head, (kit) => ({
 			description: "trick-play/tools/viewTable",
 			parameters: Type.Object({}),
 			suggest: ["resident"],
-			execute: (_params, ctx: ToolCtx) => reply(tableText(ctx, ctx.resident ?? "")),
+			free: true,
+			execute: (_params, ctx: ToolCtx) => reply(tableView(ctx, ctx.resident ?? "")),
 		}),
 		kit.tool({
 			name: "placeBid",
@@ -532,7 +568,7 @@ export const trickPlay = defineMechanic(head, (kit) => ({
 				const index = ctx.state.debrief.indexOf(resident);
 				if (index >= 0) {
 					ctx.state.debrief.splice(index, 1);
-					if (ctx.state.phase === "idle") lines.push({ kind: "status", text: debriefText(ctx), order: STATUS_ORDER.minute });
+					if (ctx.state.phase === "idle") lines.push({ kind: "status", text: debriefText(ctx, resident), order: STATUS_ORDER.minute });
 				}
 				if (ctx.state.actor === resident) lines.push({ kind: "status", text: tableText(ctx, resident), order: STATUS_ORDER.minute });
 				return lines;

@@ -46,6 +46,17 @@ describe("ember-tricks, scripted match", () => {
 		expect(new Set(debriefs.map((event) => field(event, "resident"))).size).toBe(4);
 	});
 
+	it("gives every seat its own calibration line in the retro with the calibration lever, and none without", async () => {
+		const run = await playStory({ story: story({ lever: "calibration" }), prompts: createPromptLookup() }, trickPlayer({ notes, bid: () => 0 }));
+		const lines = run.events
+			.filter((event) => event.type === "turn_started" && JSON.stringify(field(event, "inputs")).includes("Game 1 is over"))
+			.map((event) => ({ resident: String(field(event, "resident")), line: /Your calibration this game: [^"\\]+/.exec(JSON.stringify(field(event, "inputs")))?.[0] ?? "" }));
+		expect(new Set(lines.map((entry) => entry.resident)).size).toBe(4);
+		for (const entry of lines) expect(entry.line).toMatch(/^Your calibration this game: you bid 0 tricks in all and took \d+ over 3 rounds; \d of 3 bids hit; 3 of your bids were 0\. In short, /);
+		const plain = await playStory(options(), trickPlayer({ notes }));
+		expect(JSON.stringify(plain.events)).not.toContain("Your calibration");
+	});
+
 	it("resets every seat at each round, so a conversation never spans two rounds", async () => {
 		const run = await playStory(options(), trickPlayer({ notes }));
 		const firstGame = resets(run.events).filter((reset) => reset.text.includes("Game 1 begins"));
@@ -73,6 +84,9 @@ describe("ember-tricks names", () => {
 		expect(findCoreStory("ember-tricks-nobrain")?.story.id).toBe("ember-tricks-nobrain");
 		expect(findCoreStory("ember-tricks-g2-r4")?.story.id).toBe("ember-tricks-r4");
 		expect(findCoreStory("ember-tricks-nobrain-g5")?.story.id).toBe("ember-tricks-nobrain-g5");
+		expect(findCoreStory("ember-tricks-sum-g4")?.story.id).toBe("ember-tricks-sum-g4");
+		expect(findCoreStory("ember-tricks-calib-g4")?.story.id).toBe("ember-tricks-calib-g4");
+		expect(findCoreStory("ember-tricks-sum-calib")).toBeUndefined();
 		expect(findCoreStory("ember-tricks-r11")).toBeUndefined();
 		expect(findCoreStory("ember-tricks-g0")).toBeUndefined();
 	});
