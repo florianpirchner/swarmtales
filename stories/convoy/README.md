@@ -12,7 +12,8 @@ who know each other, sit among four **loyal** seats, and a convoy crosses eight 
    card damages the stage.
 
 Once per game a lead may spend the **audit** before its crew goes out: it reveals to the table the card one
-seat played in an earlier stage. Four damaged stages stop the convoy and the saboteurs win; otherwise the
+seat played in an earlier stage. Three damaged stages stop the convoy and the saboteurs win (four until the balance test of 2026-11-06,
+[runs/convoy-06a-003-damage3](runs/convoy-06a-003-damage3/); `convoy-d4` keeps the old rule); otherwise the
 loyal seats win when the last stage is crossed. Every seat of the winning side scores a point. After the
 crossing every loyal seat names its two suspects (sealed and unscored, for the record), then the roles and
 all cards are revealed.
@@ -26,7 +27,7 @@ seat its accusations against a **Bayesian tracker** that reads only the public r
 audits; not the votes or the talk), the confidence votes that matched the crew's truth, a saboteur's
 chances and damage cards (the **role-compliance check**: a saboteur who never damages refused its role, as
 in Whispers run 007), and talk lines in which a seat calls itself a saboteur (a **role leak**). In a
-scripted balance test, saboteurs who always damage beat a town that picks crews at random 79 % of the
+scripted balance test with four damaged stages, saboteurs who always damage beat a town that picks crews at random 79 % of the
 time and a town that picks the tracker's least suspected seats 34 % of the time: reading the record is
 what decides the game. The design is in [docs/ideas/game-roadmap.md](../../docs/ideas/game-roadmap.md) §2.6.
 
