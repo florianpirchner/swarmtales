@@ -6,6 +6,8 @@
  * the next rank above it becomes playable and the loss costs exactly that one card's point. Once the
  * pile is empty no card is drawn any more; the game goes on until a whole round of seats lights no
  * card and gives no signal (the harbour goes dark), every hand is empty, every tower is done, or the strikes run out.
+ * With soft strikes (`strikePenalty` > 0) the strikes never end a game; every misfire from the last strike on costs
+ * that many points instead.
  */
 import { Type, type Static } from "typebox";
 
@@ -69,7 +71,15 @@ export interface Rules {
 	readonly maxStrikes: number;
 	/** A completed tower gives a signal back. */
 	readonly refillOnTower: boolean;
+	/** 0: the last strike ends the game; above 0: strikes never end it, and each misfire from the last strike on costs this many points. */
+	readonly strikePenalty: number;
 }
+
+/** Misfires that cost points: those from the last strike on, with soft strikes only. */
+export const penaltyStrikes = (core: Readonly<Core>, rules: Rules): number => (rules.strikePenalty > 0 ? Math.max(0, core.strikes - rules.maxStrikes + 1) : 0);
+
+/** The game's score: the cards lit, less the soft-strike penalty. */
+export const scoreOf = (core: Readonly<Core>, rules: Rules): number => core.lit.length - rules.strikePenalty * penaltyStrikes(core, rules);
 
 /** Draws the top card of the pile for `seat`, or undefined when it is empty. */
 export type Draw = (seat: string) => string | undefined;
@@ -158,7 +168,7 @@ const complete = (core: Readonly<Core>): boolean => core.suits.every((suit) => n
 /** After an action: the end checks, the dark count (`bright`: the action lit a card or gave a signal) and the next seat (a seat without cards is skipped). */
 function advance(core: Core, bright: boolean, rules: Rules): void {
 	if (core.dark !== null) core.dark = bright ? 0 : core.dark + 1;
-	if (core.strikes >= rules.maxStrikes) core.over = "strikes";
+	if (rules.strikePenalty === 0 && core.strikes >= rules.maxStrikes) core.over = "strikes";
 	else if (complete(core)) core.over = "complete";
 	else if (core.seats.every((seat) => (core.hands[seat] ?? []).length === 0)) core.over = "dark";
 	else if (core.dark !== null && core.dark >= core.seats.length) core.over = "dark";
@@ -208,7 +218,7 @@ export function play(core: Core, index: number, rules: Rules, draw: Draw): Outco
 	const before = core.pile;
 	refill(core, seat, draw);
 	const drawn = core.pile < before ? (hand.at(-1)?.card ?? null) : null;
-	core.log.push({ turn: core.turn, seat, text: lit ? `played slot ${String(index + 1)}: ${slot.card}, lit${refilled ? " (tower complete, a signal back)" : ""}` : `played slot ${String(index + 1)}: ${slot.card}, a misfire (lost, strike ${String(core.strikes)} of ${String(rules.maxStrikes)})` });
+	core.log.push({ turn: core.turn, seat, text: lit ? `played slot ${String(index + 1)}: ${slot.card}, lit${refilled ? " (tower complete, a signal back)" : ""}` : `played slot ${String(index + 1)}: ${slot.card}, a misfire (lost, strike ${String(core.strikes)}${rules.strikePenalty > 0 ? "" : ` of ${String(rules.maxStrikes)}`})` });
 	advance(core, lit, rules);
 	return { card: slot.card, slot: index, lit, drawn, refilled };
 }
@@ -318,5 +328,5 @@ export function botScore(seats: readonly string[], suits: readonly Suit[], rules
 	const draw: Draw = () => pile.shift();
 	const core = newGame(seats, suits, rules, first, pile.length, draw);
 	for (let step = 0; core.over === null && step < 1000; step++) apply(core, botAction(core, rules), rules, draw);
-	return core.lit.length;
+	return scoreOf(core, rules);
 }
