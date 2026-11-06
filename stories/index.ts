@@ -201,7 +201,7 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 
 /**
  * Convoy combinations by name: `convoy[-nobrain][-g<games>][-d<damage>][-c<cooldown>]`, for example `convoy-g1`
- * (one game) or `convoy-nobrain-d4` (four damaged stages stop the convoy, the rule before P233).
+ * (one game) or `convoy-nobrain-d4` (four damaged stages stop the convoy, the rule before P273).
  */
 const CONVOY_NAME = /^convoy(-nobrain)?(?:-g(\d+))?(?:-d(\d+))?(?:-c(\d+))?$/;
 

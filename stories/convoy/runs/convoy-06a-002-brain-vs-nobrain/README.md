@@ -82,7 +82,7 @@ None found. I checked the reporter's candidates against `events.jsonl`:
 - **The brain overruns the word cap** (P152 again): 26 `BRAIN_TOO_LONG` refusals over the five brain runs (1-8 a
   run); every seat got its brain written on a later call.
 - **Accusations over the reason cap**: 4 `accuse` calls failed validation because the reason was over 400
-  characters (convoy-s101 A02 #3721, and in s102 and s104), and the seat had to accuse again (P230).
+  characters (convoy-s101 A02 #3721, and in s102 and s104), and the seat had to accuse again (P270).
 - **Saboteurs try to accuse**: `accuse` is not asked of saboteurs, yet a few called it and were refused
   (`TOOL_LOCKED`, 5 in the no-brain runs). Harmless.
 - **The reporter is still city-shaped** (P155): levels, submissions and "0 messages" with hundreds of talk
@@ -93,15 +93,15 @@ None found. I checked the reporter's candidates against `events.jsonl`:
 
 ## Solutions
 
-- Brain against no brain: done in this run. The brain changes the saboteurs' play and not the detection (P231,
-  P232). Proposal (not built): a mixed table, three seats with a brain and three without, to see whether a
+- Brain against no brain: done in this run. The brain changes the saboteurs' play and not the detection (P271,
+  P272). Proposal (not built): a mixed table, three seats with a brain and three without, to see whether a
   brain seat wins more points on the same deals, as in the Hold'em mixed table.
 - P151 (vote decorative): the fix holds; 21 crews voted down.
 - P154 (cooldown-aware tracker): **not built**. The tracker beats the players on average in both arms
   (0.86 and 0.83 against 0.79), so the reference is not too weak to compare with. The players beat it in a
   few games (convoy-s102 game 2: 7 against 2 hits), where the cooldown matters; that is too little to rebuild
   the reference.
-- P230 (accuse reason too long): proposal, not built: say the limit in the accuse line, or cut the reason to
+- P270 (accuse reason too long): proposal, not built: say the limit in the accuse line, or cut the reason to
   400 characters instead of refusing it.
 
 ## Optimizations
