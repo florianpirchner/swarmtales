@@ -7,6 +7,7 @@ import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import quarry, { quarryEntry } from "./quarry/story.ts";
 import saltMarket, { saltMarketEntryByName } from "./salt-market/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
+import lanterns, { lanternsEntry, lanternsEntryByName } from "./lanterns/story.ts";
 import morrisTeams, { morrisEntry } from "./morris-teams/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
@@ -105,6 +106,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"morris-teams-nobrain": morrisEntry({ brain: false }),
 	// The negotiation game: four traders, secret values and contracts, a bank; more variants by name (`salt-market-nobrain-g3-r8`).
 	"salt-market": saltMarket,
+	// Lanterns, the word-clue game: two teams of three, a rotating keeper, a team brain; the control arm keeps none.
+	lanterns,
+	"lanterns-nobrain": lanternsEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -176,5 +180,5 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id));
 }

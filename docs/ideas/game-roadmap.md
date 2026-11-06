@@ -296,6 +296,40 @@ Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
   and install weight (external engines are an extra dependency; keep them out of tests, which are offline);
   endless draw shuffles (move cap and repetition rule).
 
+### 2.9 Word-clue game for two teams (original, "Lanterns")
+
+Not added to the first list; asked for by Flo on 2026-11-06 ("build new games, decide yourself"). A genre
+sibling of team word-association games, built from scratch with its own word pool, grid, key, scoring and
+roles, so nothing is a 1:1 copy of a published title.
+
+**Built (2026-11-06):** story `lanterns` ([stories/lanterns/](../../stories/lanterns/README.md)) on the new
+mechanic `clue-grid`, reusing `team-channel` and the `strategy-brain` (team brains through `BrainSourceApi`).
+No kernel change. Rules as built:
+
+- **Grid and key.** 20 words drawn from an own pool of about 260 concrete nouns (no word holds another);
+  6 per team, 6 fog (nobody's), 2 shadows. Only the two keepers see the key.
+- **Roles.** Two teams of three. Each game one member is the **keeper**, the others are **seekers**; the
+  keeper role rotates game by game, so over three games every member keeps once and the team brain has to
+  carry conventions from one keeper to the next. The seekers take turns as the **caller** of a clue; the other
+  advises in the team chat. A keeper may not post in the team chat while a game runs (a `lock` handler).
+- **Clue.** One word of letters, not on the grid, not holding or inside a grid word, not the same crude stem;
+  a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
+- **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
+- **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
+  team a point); -3 per shadow a team reveals (not an instant loss); +1 per **landed** clue (number 2 or more,
+  its first `number` guesses all own words); +3 for the team whose words are all revealed first, which ends
+  the game; otherwise the game ends after 8 clues per team. A match is the sum over games.
+- **Reference.** No solver: word association has no exact answer. The measure is **intent transfer**: the
+  keeper's declared targets against what the seekers revealed (recall = target hits over the clue numbers,
+  precision = own hits over guesses), per team and game in `clue_game_scored` (audience `human`).
+- **Research angle.** Shared conventions between a sender and receivers that change roles; whether a brain
+  ("our keeper clues two at a time, rhymes are off") raises recall when the keeper changes; how ambitious
+  numbers get under a shadow penalty. Later: a mixed table (keeper on another model) to see whether
+  conventions survive a model change.
+- **Loophole risks.** The keeper leaks the targets through the chat (blocked while a game runs) or the
+  reason field (sealed); a clue that spells a grid word in parts (the stem and containment check catch the
+  plain cases only); a caller who never stops (bounded by number + 1 and the deadline).
+
 ## 3. The cross-game strategy brain
 
 The tic-tac-toe brain is *per team, per game type*. For a multi-game roadmap, three versions of the same
