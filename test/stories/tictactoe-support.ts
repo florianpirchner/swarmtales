@@ -56,7 +56,8 @@ export function ticTacToePlayer(cells: Readonly<Record<number, readonly number[]
 
 /** The story as the golden test plays it: roster order, so that captain, voters and the play fit in a pass or two. */
 export function goldenStory(options: Parameters<typeof tictactoeStory>[0] = {}): CoreStory {
-	const story = tictactoeStory(options);
+	// The golden tests describe the original setup: 300 words, retro of 8 posts and 3 minutes.
+	const story = tictactoeStory({ maxWords: 300, retroMaxPosts: 8, retroMaxMinutes: 3, ...options });
 	return { ...story, turns: { ...story.turns, order: (view) => view.residents } };
 }
 

@@ -107,7 +107,7 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"harbor-lights": harborLights,
 	"harbor-lights-solo": harborLightsEntry({ brain: "solo" }),
 	"harbor-lights-nobrain": harborLightsEntry({ brain: "nobrain" }),
-	"harbor-lights-soft-strikes": harborLightsEntry({ softStrikes: true }),
+	"harbor-lights-hard-strikes": harborLightsEntry({ strikes: "hard" }),
 	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
 	"morris-teams": morrisTeams,
 	"morris-teams-nobrain": morrisEntry({ brain: false }),
@@ -195,15 +195,20 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 	});
 }
 
-/** Convoy combinations by name: `convoy[-nobrain][-g<games>]`, for example `convoy-g1` (one game). */
-const CONVOY_NAME = /^convoy(-nobrain)?(?:-g(\d+))?$/;
+/**
+ * Convoy combinations by name: `convoy[-nobrain][-g<games>][-d<damage>][-c<cooldown>]`, for example `convoy-g1`
+ * (one game) or `convoy-nobrain-d3` (three damaged stages stop the convoy).
+ */
+const CONVOY_NAME = /^convoy(-nobrain)?(?:-g(\d+))?(?:-d(\d+))?(?:-c(\d+))?$/;
 
 function parseConvoy(id: string): CoreStoryEntry | undefined {
 	const match = CONVOY_NAME.exec(id);
 	if (match === null) return undefined;
 	const games = match[2] === undefined ? undefined : Number(match[2]);
-	if (games !== undefined && (games < 1 || games > 20)) return undefined;
-	return convoyEntry({ ...(match[1] === "-nobrain" ? { brain: false } : {}), ...(games === undefined ? {} : { games }) });
+	const damage = match[3] === undefined ? undefined : Number(match[3]);
+	const cooldown = match[4] === undefined ? undefined : Number(match[4]);
+	if ((games !== undefined && (games < 1 || games > 20)) || (damage !== undefined && (damage < 1 || damage > 8)) || (cooldown !== undefined && (cooldown < 1 || cooldown > 8))) return undefined;
+	return convoyEntry({ ...(match[1] === "-nobrain" ? { brain: false } : {}), ...(games === undefined ? {} : { games }), ...(damage === undefined ? {} : { damageToLose: damage }), ...(cooldown === undefined ? {} : { cooldown }) });
 }
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {

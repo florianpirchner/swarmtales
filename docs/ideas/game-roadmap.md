@@ -341,7 +341,7 @@ mechanic `clue-grid`, reusing `team-channel` and the `strategy-brain` (team brai
 No kernel change. Rules as built:
 
 - **Grid and key.** 20 words drawn from an own pool of about 260 concrete nouns (no word holds another);
-  6 per team, 6 fog (nobody's), 2 shadows. Only the two keepers see the key.
+  6 for the team with the first clue, 5 for the other (P196), 7 fog (nobody's), 2 shadows. Only the two keepers see the key.
 - **Roles.** Two teams of three. Each game one member is the **keeper**, the others are **seekers**; the
   keeper role rotates game by game (a match is 4 games since P196, so each team starts twice) and the team brain has to
   carry conventions from one keeper to the next. The seekers take turns as the **caller** of a clue; the other

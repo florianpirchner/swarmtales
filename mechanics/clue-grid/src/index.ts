@@ -30,6 +30,7 @@ import {
 	GameResult,
 	gridText,
 	hiddenOf,
+	paceLine,
 	keeperOf,
 	landedOf,
 	normalizeWord,
@@ -57,7 +58,8 @@ const options = Type.Object({
 	games: Type.Integer({ minimum: 1, maximum: 20, default: 3, description: "Games in the match; the run ends after the last. The keeper rotates through each team's members, one game each." }),
 	size: Type.Integer({ minimum: 8, maximum: 40, default: 20, description: "Words on the grid." }),
 	columns: Type.Integer({ minimum: 2, maximum: 8, default: 5, description: "Words per row when the grid is shown." }),
-	perTeam: Type.Integer({ minimum: 2, default: 6, description: "Words of each team." }),
+	perTeam: Type.Integer({ minimum: 2, default: 6, description: "Words of the team with the first clue of a game." }),
+	secondFewer: Type.Integer({ minimum: 0, default: 1, description: "Words fewer for the team without the first clue, to even out the first-move edge (P196)." }),
 	shadows: Type.Integer({ minimum: 0, default: 2, description: "Shadow words; the rest is fog." }),
 	maxNumber: Type.Integer({ minimum: 1, default: 4, description: "The highest number a clue may carry." }),
 	maxClues: Type.Integer({ minimum: 1, default: 5, description: "Clues per team and game; the game ends when both teams used theirs (5 since P191: with 8, clues of 1 finished a game)." }),
@@ -90,7 +92,8 @@ const head = defineHead({
 		if (new Set(members).size !== members.length) throw new Error("clue-grid: a resident may play in one team only");
 		const unknown = members.find((id) => !setup.residents.includes(id));
 		if (unknown !== undefined) throw new Error(`clue-grid: ${unknown} is not a resident of the run`);
-		const { size, perTeam, shadows } = setup.options;
+		const { size, perTeam, shadows, secondFewer } = setup.options;
+		if (perTeam - secondFewer < 1) throw new Error(`clue-grid: the second team needs at least one word (perTeam ${String(perTeam)}, secondFewer ${String(secondFewer)})`);
 		if (2 * perTeam + shadows > size) throw new Error(`clue-grid: ${String(size)} words do not hold ${String(perTeam)} per team and ${String(shadows)} shadows`);
 		return {
 			teams: { amber: [...chosen.amber], teal: [...chosen.teal] },
@@ -144,9 +147,9 @@ const head = defineHead({
 		"clue-grid/tools/giveClue": [],
 		"clue-grid/tools/guess": [],
 		"clue-grid/tools/endGuesses": [],
-		"clue-grid/rules": ["size", "perTeam", "fog", "shadows", "maxNumber", "maxClues", "wordPoints", "shadowPenalty", "landedBonus", "finishBonus", "deadline", "guessLimit"],
+		"clue-grid/rules": ["size", "perTeam", "secondWords", "fog", "shadows", "maxNumber", "maxClues", "wordPoints", "shadowPenalty", "landedBonus", "finishBonus", "deadline", "guessLimit"],
 		"clue-grid/game-head": ["game", "games", "starting", "role"],
-		"clue-grid/task-clue": ["team", "clueNo", "maxClues", "grid", "own", "opponent", "shadows", "maxNumber"],
+		"clue-grid/task-clue": ["team", "clueNo", "maxClues", "grid", "own", "opponent", "shadows", "maxNumber", "pace"],
 		"clue-grid/task-caller": ["team", "word", "number", "keeper", "partner", "grid", "left"],
 		"clue-grid/task-partner": ["team", "word", "number", "keeper", "caller", "grid"],
 		"clue-grid/keeper-silent": [],
@@ -203,8 +206,10 @@ function startGame(ctx: Ctx, game: number): void {
 	const state = ctx.state;
 	state.game = game;
 	const rng = ctx.rng("clue-grid", "grid", game);
-	state.grid = dealGrid({ size: ctx.options.size, perTeam: ctx.options.perTeam, shadows: ctx.options.shadows }, (items) => rng.shuffle(items));
 	state.startingTeam = game % 2 === 1 ? "amber" : "teal";
+	const second = ctx.options.perTeam - ctx.options.secondFewer;
+	const words = state.startingTeam === "amber" ? { amber: ctx.options.perTeam, teal: second } : { amber: second, teal: ctx.options.perTeam };
+	state.grid = dealGrid({ size: ctx.options.size, ...words, shadows: ctx.options.shadows }, (items) => rng.shuffle(items));
 	state.clues = [];
 	state.log = [];
 	state.seen = {};
@@ -402,7 +407,8 @@ function rulesText(ctx: Ctx): string {
 	return ctx.prompt("clue-grid/rules", {
 		size: o.size,
 		perTeam: o.perTeam,
-		fog: o.size - 2 * o.perTeam - o.shadows,
+		secondWords: o.perTeam - o.secondFewer,
+		fog: o.size - 2 * o.perTeam + o.secondFewer - o.shadows,
 		shadows: o.shadows,
 		maxNumber: o.maxNumber,
 		maxClues: o.maxClues,
@@ -445,6 +451,7 @@ function taskText(ctx: Ctx, resident: string): string | undefined {
 			opponent: hiddenOf(state.grid, other(team)).join(", "),
 			shadows: hiddenOf(state.grid, "shadow").join(", ") || "none left",
 			maxNumber: Math.min(ctx.options.maxNumber, hiddenOf(state.grid, team).length),
+			pace: paceLine(hiddenOf(state.grid, team).length, ctx.options.maxClues - cluesOf(state, team)),
 		});
 	}
 	const clue = state.clue;
@@ -460,8 +467,9 @@ function taskText(ctx: Ctx, resident: string): string | undefined {
 }
 
 /** The resident's task in one line (the view already shows the grid). */
-function taskHint(state: Readonly<ClueState>, resident: string): string | undefined {
-	if (state.phase === "clue" && resident === keeper(state, state.team)) return `Your task: give team ${state.team}'s clue with giveClue (word, number, targets).`;
+function taskHint(ctx: Ctx, resident: string): string | undefined {
+	const state = ctx.state;
+	if (state.phase === "clue" && resident === keeper(state, state.team)) return `Your task: give team ${state.team}'s clue with giveClue (word, number, targets). ${paceLine(hiddenOf(state.grid, state.team).length, ctx.options.maxClues - cluesOf(state, state.team))}`;
 	const clue = state.clue;
 	if (state.phase !== "guess" || clue === null) return undefined;
 	if (resident === clue.caller) return `Your task: call the guesses for "${clue.word}" ${String(clue.number)} with guess, or stop with endGuesses after at least one guess.`;
@@ -485,7 +493,7 @@ function gridView(ctx: Ctx, resident: string | undefined): string {
 	];
 	const recent = state.log.slice(-RECORD_LINES);
 	if (recent.length > 0) lines.push(`The game so far:\n${recent.join("\n")}`);
-	const hint = resident === undefined ? undefined : taskHint(state, resident);
+	const hint = resident === undefined ? undefined : taskHint(ctx, resident);
 	if (hint !== undefined) lines.push(hint);
 	return lines.join("\n");
 }

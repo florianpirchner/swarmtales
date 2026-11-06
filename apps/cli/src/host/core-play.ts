@@ -32,6 +32,8 @@ import { competitorIds, storyData } from "@swarmtales/kernel";
 import type { StartArgs } from "../args.ts";
 import { codeCommit } from "./chain.ts";
 import { composeCoreRun, coreStoryFor, refusedOverrides } from "./core-run.ts";
+import { describeRunNotes, readRunNotes } from "./run-notes.ts";
+import { RESIDENT_LIMITS } from "./residents.ts";
 import { planResidentModels, residentModelSource, settingsLabel, type ResidentModelPlan } from "./resident-models.ts";
 
 export interface CorePlayIo {
@@ -151,6 +153,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		chain.close();
 	}
 	writeFileSync(join(allocated.directory, "usage.json"), `${JSON.stringify({ ...usage.toJSON(), models: { residents: label, ...residentLabels } }, null, 2)}\n`);
-	io.out(["", usage.summary(), `run:         ${allocated.directory}`, `events:      ${join(allocated.directory, "events.jsonl")}`, `chain:       ${join(allocated.directory, CHAIN_FILE)} (signed; check with swt log verify ${allocated.directory})`, `transcripts: ${join(allocated.directory, "agents")}`, ""].join("\n"));
+	const outputCap = entry.model.maxOutputTokens ?? RESIDENT_LIMITS.maxOutputTokens;
+	io.out(["", usage.summary(), `notes:       ${describeRunNotes(readRunNotes(join(allocated.directory, "events.jsonl"), outputCap), outputCap)}`, `run:         ${allocated.directory}`, `events:      ${join(allocated.directory, "events.jsonl")}`, `chain:       ${join(allocated.directory, CHAIN_FILE)} (signed; check with swt log verify ${allocated.directory})`, `transcripts: ${join(allocated.directory, "agents")}`, ""].join("\n"));
 	return 0;
 }

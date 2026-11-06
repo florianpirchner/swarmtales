@@ -4,7 +4,7 @@ import type { CoreStory, TurnTaker } from "@swarmtales/contracts";
 import { createHost, createRng, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { clueProblem, dealGrid, keeperOf, landedOf, referenceOf, scoreGame, seekersOf, stemOf, WORD_POOL, type Card, type ClueRecord } from "../../mechanics/clue-grid/src/model.ts";
+import { clueProblem, dealGrid, keeperOf, paceLine, landedOf, referenceOf, scoreGame, seekersOf, stemOf, WORD_POOL, type Card, type ClueRecord } from "../../mechanics/clue-grid/src/model.ts";
 import { lanternsStory, type LanternsOptions } from "../../stories/lanterns/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { field, ofType } from "./tictactoe-support.ts";
@@ -68,14 +68,14 @@ describe("Lanterns rules", () => {
 		expect(clashes).toEqual([]);
 	});
 
-	it("deals 20 words: six per team, two shadows, the rest fog", () => {
+	it("deals 20 words: six and five per team, two shadows, the rest fog", () => {
 		const rng = createRng(5);
-		const grid = dealGrid({ size: 20, perTeam: 6, shadows: 2 }, (items) => rng.shuffle(items));
+		const grid = dealGrid({ size: 20, amber: 6, teal: 5, shadows: 2 }, (items) => rng.shuffle(items));
 		expect(grid).toHaveLength(20);
 		expect(new Set(grid.map((entry) => entry.word)).size).toBe(20);
 		const count = (owner: Card["owner"]) => grid.filter((entry) => entry.owner === owner).length;
-		expect([count("amber"), count("teal"), count("shadow"), count("fog")]).toEqual([6, 6, 2, 6]);
-		expect(() => dealGrid({ size: 10, perTeam: 6, shadows: 0 }, (items) => [...items])).toThrow();
+		expect([count("amber"), count("teal"), count("shadow"), count("fog")]).toEqual([6, 5, 2, 7]);
+		expect(() => dealGrid({ size: 10, amber: 6, teal: 6, shadows: 0 }, (items) => [...items])).toThrow();
 	});
 
 	it("refuses clues that are not one word, are on the grid, hold a grid word or share its stem", () => {
@@ -122,6 +122,13 @@ describe("Lanterns rules", () => {
 		expect(referenceOf("amber", clues)).toMatchObject({ clues: 2, missedClues: 1, meanNumber: 2, guesses: 3, ownHits: 2, targetHits: 1, recall: 0.5, precision: 0.667, fogHits: 1 });
 	});
 
+	it("tells the keeper words left against clues left (P197)", () => {
+		expect(paceLine(4, 2)).toBe("Your team has 4 hidden words left and 2 clues (this one included): to find them all, a clue must average 2 words or more.");
+		expect(paceLine(5, 2)).toContain("average 3 words");
+		expect(paceLine(1, 3)).toContain("average 1 word or more");
+		expect(paceLine(3, 1)).toBe("Your team has 3 hidden words left and this is its last clue.");
+	});
+
 	it("rotates the keeper through the team, one game each", () => {
 		const team = ["A01", "A02", "A03"];
 		expect([1, 2, 3, 4].map((game) => keeperOf(team, game))).toEqual(["A01", "A02", "A03", "A01"]);
@@ -142,6 +149,13 @@ describe("lanterns, scripted match", () => {
 		]);
 		// Four games: each team has the first clue twice (P196).
 		expect(started.map((event) => field(event, "startingTeam"))).toEqual(["amber", "teal", "amber", "teal"]);
+		// The team without the first clue has one word fewer (P196).
+		const owners = ofType(run.events, "clue_key_dealt").map((event) => {
+			const key = field(event, "key");
+			const count = (owner: string): number => (Array.isArray(key) ? key.filter((entry: unknown) => typeof entry === "object" && entry !== null && Reflect.get(entry, "owner") === owner).length : 0);
+			return [count("amber"), count("teal")];
+		});
+		expect(owners).toEqual([[6, 5], [5, 6], [6, 5], [5, 6]]);
 		for (const type of ["clue_key_dealt", "clue_intent", "clue_closed", "clue_game_scored"]) {
 			const events = ofType(run.events, type);
 			expect(events.length).toBeGreaterThan(0);
@@ -191,6 +205,7 @@ describe("lanterns, scripted match", () => {
 		const owners = [...text.matchAll(/([a-z]+) \((amber|teal|fog|shadow)\)/g)].map((match) => ({ word: match[1] ?? "", owner: match[2] ?? "" }));
 		expect(owners).toHaveLength(20);
 		expect(text).toContain("Your task: give team amber's clue");
+		expect(text).toContain("hidden words left");
 		const ofOwner = (owner: string) => owners.filter((entry) => entry.owner === owner).map((entry) => entry.word);
 		const [first = "", second = ""] = ofOwner("amber");
 		const seekerView = await host.call(as("A02"), "viewGrid", {});

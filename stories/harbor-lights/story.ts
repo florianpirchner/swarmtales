@@ -6,7 +6,8 @@
  * of their own slots (lit if it is its tower's next rank, else a misfire), or discards a slot to get a
  * signal back. Every card exists once; a lost card is bridged, so it costs exactly its own point.
  * After the last draw the game goes on until a whole round lights nothing. The score is the cards
- * lit (35 at most). No table talk: the only messages are the signals. The rules are the
+ * lit (35 at most), less 3 points for every misfire from the second on (soft strikes, the default since
+ * P178; `-hard-strikes` keeps the old rule: the third strike ends the game). No table talk: the only messages are the signals. The rules are the
  * `hint-towers` mechanic on the `card-table`.
  *
  * Three arms, the same deals (seed): `crew` (default) keeps one shared crew brain, discussed in a team
@@ -24,6 +25,7 @@ import { teamChannel } from "@swarmtales/mechanic-team-channel";
 import type { CoreStoryEntry } from "../index.ts";
 
 export type HarborBrain = "crew" | "solo" | "nobrain";
+export type HarborStrikes = "soft" | "hard";
 
 export interface HarborLightsOptions {
 	/** Games in the match (default 3). */
@@ -35,8 +37,8 @@ export interface HarborLightsOptions {
 	readonly maxWords?: number;
 	/** Run length in virtual minutes; default is an upper bound (the match ends the run earlier). */
 	readonly minutes?: number;
-	/** Soft strikes: the third strike no longer ends the game; it and every later misfire cost SOFT_PENALTY points. */
-	readonly softStrikes?: boolean;
+	/** soft (default): strikes never end the game; from the second misfire on every misfire costs SOFT_PENALTY points. hard: the third strike ends the game. */
+	readonly strikes?: HarborStrikes;
 }
 
 const SEATS: readonly ResidentId[] = ["A01", "A02", "A03", "A04"];
@@ -44,30 +46,33 @@ const CREW = "crew";
 const SUITS = ["Amber", "Cobalt", "Moss", "Rose", "Violet"].map((name) => ({ name, ranks: 7 }));
 const RETRO_MINUTES = 3;
 const SOFT_PENALTY = 3;
+/** Soft strikes: the first misfire is free, every later one costs SOFT_PENALTY points (P178: from strike 2, not 3). */
+const SOFT_FROM = 2;
 /** The question for the crew retro after each game (P175): agree what a signal asks for. */
 const SIGNAL_QUESTION = "Retro question: agree in the chat what a signal means, and the captain writes it into the brain as a convention. Which signal says \"play this card now\", and which only gives information to keep? Name the slot it points to (for example the newest touched card), and what a player does when a signalled card cannot be played yet.";
 
-/** The registered name: `harbor-lights[-solo|-nobrain][-soft-strikes][-g<games>]`, the defaults left out. */
-function storyName(brain: HarborBrain, soft: boolean, games: number): string {
-	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${soft ? "-soft-strikes" : ""}${games === 3 ? "" : `-g${String(games)}`}`;
+/** The registered name: `harbor-lights[-solo|-nobrain][-hard-strikes][-g<games>]`, the defaults left out. */
+function storyName(brain: HarborBrain, strikes: HarborStrikes, games: number): string {
+	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${strikes === "hard" ? "-hard-strikes" : ""}${games === 3 ? "" : `-g${String(games)}`}`;
 }
 
 /** The story with its variants as options. */
 export function harborLightsStory(options: HarborLightsOptions = {}) {
-	const { games = 3, brain = "crew", seed = 31, maxWords = 150, softStrikes = false } = options;
+	const { games = 3, brain = "crew", seed = 31, maxWords = 150, strikes = "soft" } = options;
+	const soft = strikes === "soft";
 	const crew = brain === "crew";
 	const keeps = brain !== "nobrain";
 	const teams = crew ? { [CREW]: [...SEATS] } : Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
 	const chat = crew ? (["postTeam", "readTeam"] as const) : [];
 	return defineCoreStory({
-		id: storyName(brain, softStrikes, games),
+		id: storyName(brain, strikes, games),
 		seed,
 		// About 55 actions a game at eight passes a minute, a move timer of two minutes, and a retro per game.
 		minutes: options.minutes ?? games * (30 + RETRO_MINUTES) + RETRO_MINUTES + 4,
 		residents: [...SEATS],
 		mechanics: [
 			cardTable.with({ suits: SUITS, seats: [...SEATS] }),
-			hintTowers.with({ games, handSize: 4, signals: 6, strikes: 3, strikePenalty: softStrikes ? SOFT_PENALTY : 0, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(crew ? { side: CREW, debriefNote: SIGNAL_QUESTION } : {}) }),
+			hintTowers.with({ games, handSize: 4, signals: 6, strikes: soft ? SOFT_FROM : 3, strikePenalty: soft ? SOFT_PENALTY : 0, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(crew ? { side: CREW, debriefNote: SIGNAL_QUESTION } : {}) }),
 			...(crew ? [teamChannel.with({ teams, maxPostsPerMove: 2 })] : []),
 			strategyBrain.with({ enabled: keeps, solo: !crew, maxWords, teams, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
@@ -89,7 +94,7 @@ const RULES = [
 ];
 
 const HARD_STRIKES = "three strikes end the game";
-const SOFT_STRIKES = `soft strikes: strikes never end the game, but the third misfire and every one after it also cost ${String(SOFT_PENALTY)} points each`;
+const SOFT_STRIKES = `soft strikes: strikes never end the game, but the second misfire and every one after it also cost ${String(SOFT_PENALTY)} points each`;
 
 function briefing(brain: HarborBrain, soft: boolean) {
 	const rules = RULES.map((line) => line.replace("STRIKE_RULE", soft ? SOFT_STRIKES : HARD_STRIKES));
@@ -105,7 +110,7 @@ function briefing(brain: HarborBrain, soft: boolean) {
 /** The registered entry: Haiku via Anthropic, three games, the crew brain. */
 export function harborLightsEntry(options: HarborLightsOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? "crew";
-	const soft = options.softStrikes ?? false;
+	const soft = (options.strikes ?? "soft") === "soft";
 	return {
 		title: "Harbor Lights",
 		story: harborLightsStory(options),
@@ -115,8 +120,8 @@ export function harborLightsEntry(options: HarborLightsOptions = {}): CoreStoryE
 	};
 }
 
-/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-soft-strikes][-g<games>]`, for example `harbor-lights-solo-g2`. */
-const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(-soft-strikes)?(?:-g(\d+))?$/;
+/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-hard-strikes][-g<games>]`, for example `harbor-lights-solo-g2`. */
+const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(-hard-strikes)?(?:-g(\d+))?$/;
 
 export function harborLightsEntryByName(id: string): CoreStoryEntry | undefined {
 	const match = HARBOR_NAME.exec(id);
@@ -124,7 +129,7 @@ export function harborLightsEntryByName(id: string): CoreStoryEntry | undefined 
 	const games = match[3] === undefined ? undefined : Number(match[3]);
 	if (games !== undefined && (games < 1 || games > 20)) return undefined;
 	const brain: HarborBrain = match[1] === "-solo" ? "solo" : match[1] === "-nobrain" ? "nobrain" : "crew";
-	return harborLightsEntry({ brain, softStrikes: match[2] !== undefined, ...(games === undefined ? {} : { games }) });
+	return harborLightsEntry({ brain, strikes: match[2] === undefined ? "soft" : "hard", ...(games === undefined ? {} : { games }) });
 }
 
 export default harborLightsEntry();

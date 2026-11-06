@@ -37,7 +37,7 @@ swt run --story convoy-g1                      # one game
 ```
 
 Registered arms: `convoy` (brain on) and `convoy-nobrain` (the same briefings, no brain, no retro); by name
-`convoy[-nobrain][-g<games>]`. Further variants are factory options of `convoyStory` in `story.ts`: `crews`,
+`convoy[-nobrain][-g<games>][-d<damage>][-c<cooldown>]`. Further variants are factory options of `convoyStory` in `story.ts`: `crews`,
 `damageToLose`, `maxWords`, `seed`. A seat that lets a deadline (two minutes) pass is filled in: the lead's
 crew is the lead and the next seats, a vote is yes, a card is safe, an accusation is empty.
 Mechanics: `convoy`, `strategy-brain` (solo seats). Runs and results: [runs/README.md](runs/README.md).

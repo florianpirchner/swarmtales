@@ -32,6 +32,9 @@ export interface TicTacToeOptions {
 	readonly size?: number;
 	/** Marks in a row that win (3 on the 3x3 board, 4 on the 4x4 board). */
 	readonly line?: number;
+	/** Posts and minutes of a retro window before the brain is due. */
+	readonly retroMaxPosts?: number;
+	readonly retroMaxMinutes?: number;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
 	/** Rounds of proposal and vote a team gets per move before a random cell is played for it (default 3; slow models need more, P81). */
@@ -43,6 +46,11 @@ export interface TicTacToeOptions {
 }
 
 const DEFAULT_ROUNDS = 3;
+/** Words a brain may have: 300 filled up by game 2 with interface rules (P147). */
+const DEFAULT_MAX_WORDS = 500;
+/** The retro ends when the brain is written or after this many posts and minutes; shorter than before (8 posts, 3 minutes) because the longer retro cost time and forfeits (P146). */
+const DEFAULT_RETRO_POSTS = 4;
+const DEFAULT_RETRO_MINUTES = 2;
 /** Output cap per call: a thinking model (Gemma 4) spends 4000 tokens inside its thinking and ends the turn without a tool call, so a move forfeits (P86). */
 const OUTPUT_TOKENS = 16_000;
 const TEAMS = { X: ["A01", "A02", "A03"], O: ["A04", "A05", "A06"] };
@@ -61,7 +69,7 @@ function storyName(size: number, line: number, brainTeams: readonly string[] | u
 
 /** The story with its variants as options. */
 export function tictactoeStory(options: TicTacToeOptions = {}) {
-	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = 300, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false } = options;
+	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = DEFAULT_MAX_WORDS, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, retroMaxPosts = DEFAULT_RETRO_POSTS, retroMaxMinutes = DEFAULT_RETRO_MINUTES } = options;
 	const teams = teamsOf(teamSize);
 	const brain = brainOn && (brainTeams === undefined || brainTeams.length > 0);
 	if (brainTeams?.some((team) => !(team in TEAMS))) throw new Error(`tictactoe-teams: brainTeams must name teams of ${Object.keys(TEAMS).join(", ")}`);
@@ -75,7 +83,7 @@ export function tictactoeStory(options: TicTacToeOptions = {}) {
 			gridGame.with({ size, line, games, alternateStart: true, teams, wakeTeam: true, fixedCaptain }),
 			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams }),
 			teamChannel.with({ teams, maxPostsPerMove: 3 }),
-			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, teams, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
+			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, teams, retroMaxPosts, retroMaxMinutes, shared: false, brainAtStart: true }),
 			optimalReferee.with({ maxEmptyCells: Math.min(16, size * size) }),
 		],
 		grants: { resident: ["viewBoard", "proposeMove", "castVote", "postTeam", "readTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
