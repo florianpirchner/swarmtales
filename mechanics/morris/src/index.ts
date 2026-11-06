@@ -10,8 +10,11 @@
  * forfeit removal is a random removable piece. `playMove` is a locked tool, open for the captain of
  * the turn only (the captain rotates move by move unless `fixedCaptain`), and `consensus` gates it
  * further. A strategy brain plugs in through `BrainSourceApi` and `StrategyBrainApi`. The match ends
- * the run through the referee limit `morris.match` once the last game is over. Nothing here scores
- * moves (that is the morris-referee) or knows about team chat beyond opening its rounds.
+ * the run through the referee limit `morris.match` once the last game is over. With the `engine`
+ * option one side has no residents: the search (`search.ts`) plays its whole turn, step and removal,
+ * the moment it comes on move, so that side is never on move between two calls and the consensus
+ * gate never sees it. Nothing here scores moves (that is the morris-referee) or knows about team chat
+ * beyond opening its rounds.
  */
 import { Type, type Static } from "typebox";
 import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, ViewOf } from "@swarmtales/contracts";
@@ -42,9 +45,11 @@ import {
 	type Position,
 	type Stage,
 } from "./rules.ts";
+import { bestTurns } from "./search.ts";
 
 export { MorrisEvents } from "./events.ts";
 export * from "./rules.ts";
+export { classify, scoreTurn } from "./search.ts";
 
 const PLAY_MOVE = "playMove";
 
@@ -62,13 +67,26 @@ const options = Type.Object({
 	teams: Type.Optional(
 		Type.Object(
 			{
-				X: Type.Array(Type.String(), { minItems: 1, description: "Resident ids of the X team, in the order their captaincy rotates." }),
-				O: Type.Array(Type.String(), { minItems: 1, description: "Resident ids of the O team, in the order their captaincy rotates." }),
+				X: Type.Array(Type.String(), { description: "Resident ids of the X team, in the order their captaincy rotates (empty when the engine plays X)." }),
+				O: Type.Array(Type.String(), { description: "Resident ids of the O team, in the order their captaincy rotates (empty when the engine plays O)." }),
 			},
-			{ description: "The two teams; without it the residents are split in half, the first half playing X." },
+			{ description: "The two teams; without it the residents are split in half, the first half playing X (all of them play X when the engine plays O, and the other way round)." },
+		),
+	),
+	engine: Type.Optional(
+		Type.Object(
+			{
+				side: Type.Union([Type.Literal("X"), Type.Literal("O")], { description: "The side the engine plays; its team has no residents." }),
+				depth: Type.Integer({ minimum: 1, maximum: 6, default: 3, description: "Whole turns the engine's search looks ahead at most." }),
+				maxNodes: Type.Integer({ minimum: 1000, default: 200_000, description: "Positions one search depth may visit; a deeper search that exceeds it is dropped and the last finished depth counts." }),
+			},
+			{ description: "A scripted opponent: this side has no residents and plays the best turn of an alpha-beta search (ties broken by the seeded random), the moment it comes on move." },
 		),
 	),
 });
+
+/** The name the engine plays under in `move_played.by` and in the teams line of viewBoard. */
+export const ENGINE = "engine";
 
 const Count = Type.Object({ X: Type.Integer(), O: Type.Integer() });
 const Reason = MorrisEvents.events.game_ended.properties.reason;
@@ -133,11 +151,16 @@ const head = defineHead({
 	summary: "Nine men's morris between two teams: placing, moving and flying, mills and removals, the captain of the turn and a match of several games.",
 	options,
 	state: (setup): MorrisState => {
-		const { teams, pieces } = setup.options;
+		const { teams, pieces, engine } = setup.options;
 		const half = Math.ceil(setup.residents.length / 2);
-		const chosen = teams ?? { X: setup.residents.slice(0, half), O: setup.residents.slice(half) };
+		const split = engine === undefined ? { X: setup.residents.slice(0, half), O: setup.residents.slice(half) } : engine.side === "X" ? { X: [], O: [...setup.residents] } : { X: [...setup.residents], O: [] };
+		const chosen = teams ?? split;
 		const members = [...chosen.X, ...chosen.O];
-		if (chosen.X.length === 0 || chosen.O.length === 0) throw new Error("morris: each team needs at least one resident");
+		for (const side of ["X", "O"] as const) {
+			const empty = chosen[side].length === 0;
+			if (engine?.side === side && !empty) throw new Error(`morris: the engine plays ${side}, so team ${side} must have no residents`);
+			if (engine?.side !== side && empty) throw new Error("morris: each team needs at least one resident");
+		}
 		if (new Set(members).size !== members.length) throw new Error("morris: a resident may play in one team only");
 		const unknown = members.find((id) => !setup.residents.includes(id));
 		if (unknown !== undefined) throw new Error(`morris: ${unknown} is not a resident of the run`);
@@ -226,6 +249,7 @@ function startGame(ctx: Ctx, game: number): void {
 	ctx.tryCall(TeamChannelApi, "newEpoch", { team: "O" });
 	ctx.tryCall(TeamChannelApi, "resetCap", { team: state.side });
 	ctx.tryCall(StrategyBrainApi, "gameStarted", { game, first: state.startingSide });
+	engineTurn(ctx);
 }
 
 /** Starts the next game, or marks it due when the strategy brain holds it back. */
@@ -291,6 +315,20 @@ function problemWith(state: Readonly<MorrisState>, resident: string | undefined,
 	return refuse("ILLEGAL_MOVE", `${step === undefined ? `${String(code)} is no move` : `${stepText(step)} is not legal now`}; ${hint[stage]}. viewBoard lists the legal moves.`);
 }
 
+/** The engine's whole turn when it is on move (the step, then the removal of a mill): the text of what it played, or undefined. */
+function engineTurn(ctx: Ctx): string | undefined {
+	const state = ctx.state;
+	const engine = ctx.options.engine;
+	if (engine === undefined || !state.running || state.side !== engine.side) return undefined;
+	const choices = bestTurns(positionOf(state), ctx.options.flying, engine.depth, engine.maxNodes);
+	const turn = choices.length === 0 ? undefined : ctx.rng("morris", "engine", state.game, state.turnNo).pick(choices);
+	if (turn === undefined) return undefined;
+	const side = state.side;
+	const stepped = applyMove(ctx, stepCode(turn), false).reply;
+	if (!state.removing || turn.remove === undefined) return `The ${ENGINE} (${side}): ${stepped}`;
+	return `The ${ENGINE} (${side}): played ${stepText(turn)} and closed a mill. ${applyMove(ctx, turn.remove + 1, false).reply}`;
+}
+
 /** Ends a whole turn: the other side moves next, unless the game is over. */
 function finishTurn(ctx: Ctx, removed: boolean): string {
 	const state = ctx.state;
@@ -313,14 +351,14 @@ function finishTurn(ctx: Ctx, removed: boolean): string {
 	if (state.turnNo >= ctx.options.maxTurns) return endGame(ctx, "draw", "turn_limit");
 	refreshLocks(ctx);
 	ctx.tryCall(TeamChannelApi, "resetCap", { team: state.side });
-	return `${state.side} to move; captain ${captainOf(state) ?? "nobody"}.`;
+	return engineTurn(ctx) ?? `${state.side} to move; captain ${captainOf(state) ?? "nobody"}.`;
 }
 
 /** Plays `code` for the side to move (already checked); the reply tells the outcome. */
 function applyMove(ctx: Ctx, code: number, forfeit: boolean): ToolSuccess {
 	const state = ctx.state;
 	const side = state.side;
-	const by = captainOf(state) ?? "";
+	const by = ctx.options.engine?.side === side ? ENGINE : (captainOf(state) ?? "");
 	if (state.removing) {
 		const point = code - 1;
 		state.board = [...applyRemove(positionOf(state), point).board];
@@ -379,7 +417,8 @@ function boardText(ctx: ToolCtx): string {
 		if (state.inHand.X === 0 && state.inHand.O === 0) lines.push(`Turns without a mill: ${String(state.quiet)} (a draw at ${String(maxQuietTurns)}).`);
 		lines.push(legalText(state, flying));
 	}
-	lines.push(`X team: ${state.teams.X.join(", ")}. O team: ${state.teams.O.join(", ")}.`);
+	const members = (side: Side): string => (ctx.options.engine?.side === side ? `the ${ENGINE} (a computer program)` : state.teams[side].join(", "));
+	lines.push(`X team: ${members("X")}. O team: ${members("O")}.`);
 	return lines.join("\n");
 }
 
