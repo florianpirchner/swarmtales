@@ -21,7 +21,7 @@ const MECHANIC_IDS = [
 	"holdem", "convoy",
 	"morris", "morris-referee",
 	"salt-market",
-	"clue-grid",
+	"clue-grid", "sealed-auction",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
@@ -45,6 +45,7 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-holdem": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	// Convoy too (docs/ideas/game-roadmap.md §2.6).
 	"@swarmtales/mechanic-convoy": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	"@swarmtales/mechanic-sealed-auction": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	// Nine men's morris: gated by consensus, chat rounds through the team channel, a brain through its source API.
 	"@swarmtales/mechanic-morris": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel", "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-morris-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-morris"],
