@@ -53,6 +53,7 @@
     "@swarmtales/mechanic-consensus": "workspace:*",
     "@swarmtales/mechanic-draft-rounds": "workspace:*",
     "@swarmtales/mechanic-salt-market": "workspace:*",
+    "@swarmtales/mechanic-convoy": "workspace:*",
     "@swarmtales/mechanic-econ-games": "workspace:*",
     "@swarmtales/mechanic-hint-towers": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
