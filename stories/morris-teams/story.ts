@@ -8,7 +8,7 @@
  * every turn against an alpha-beta search for the report; residents never see it. A TypeScript
  * `CoreStory`, played by the generic runner (`swt run --story morris-teams`).
  */
-import type { Host, ResidentId } from "@swarmtales/contracts";
+import type { ResidentId } from "@swarmtales/contracts";
 import { defineCoreStory } from "@swarmtales/kernel";
 import { consensus } from "@swarmtales/mechanic-consensus";
 import { millsText, morris, neighboursText, renderBoard, emptyBoard } from "@swarmtales/mechanic-morris";
@@ -39,6 +39,8 @@ export interface MorrisOptions {
 	readonly fixedCaptain?: boolean;
 	/** Whole turns the reference search looks ahead. */
 	readonly refereeDepth?: number;
+	/** Side O is a scripted opponent: the morris search plays it at this depth (whole turns); the residents all play X. */
+	readonly engineDepth?: number;
 }
 
 const DEFAULT_GAMES = 3;
@@ -49,30 +51,36 @@ const DEFAULT_QUIET = 40;
 const OUTPUT_TOKENS = 16_000;
 const TEAMS = { X: ["A01", "A02", "A03"], O: ["A04", "A05", "A06"] };
 const SOLO_TEAMS = { X: ["A01"], O: ["A04"] };
-const teamsOf = (teamSize: 1 | 3): { X: string[]; O: string[] } => (teamSize === 1 ? SOLO_TEAMS : TEAMS);
+const teamsOf = (teamSize: 1 | 3, engine = false): { X: string[]; O: string[] } => {
+	const teams = teamSize === 1 ? SOLO_TEAMS : TEAMS;
+	return engine ? { X: teams.X, O: [] } : teams;
+};
 
-function storyName(games: number, brain: boolean, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean, maxTurns: number): string {
+function storyName(games: number, brain: boolean, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean, maxTurns: number, engineDepth: number | undefined): string {
 	const match = games === DEFAULT_GAMES ? "" : `-g${String(games)}`;
 	const rounds = maxRounds === DEFAULT_ROUNDS ? "" : `-r${String(maxRounds)}`;
 	const turns = maxTurns === DEFAULT_TURNS ? "" : `-t${String(maxTurns)}`;
-	return `morris-teams${brain ? "" : "-nobrain"}${match}${rounds}${turns}${teamSize === 1 ? "-solo" : ""}${fixedCaptain ? "-fc" : ""}`;
+	return `morris-teams${brain ? "" : "-nobrain"}${match}${rounds}${turns}${teamSize === 1 ? "-solo" : ""}${fixedCaptain ? "-fc" : ""}${engineDepth === undefined ? "" : `-vs-engine${String(engineDepth)}`}`;
 }
 
 /** The story with its variants as options. */
 export function morrisStory(options: MorrisOptions = {}) {
-	const { games = DEFAULT_GAMES, brain = true, seed = 13, maxWords = 300, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, maxTurns = DEFAULT_TURNS, maxQuietTurns = DEFAULT_QUIET, refereeDepth = 3 } = options;
-	const teams = teamsOf(teamSize);
+	const { games = DEFAULT_GAMES, brain = true, seed = 13, maxWords = 300, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, maxTurns = DEFAULT_TURNS, maxQuietTurns = DEFAULT_QUIET, refereeDepth = 3, engineDepth } = options;
+	const engine = engineDepth !== undefined;
+	const teams = teamsOf(teamSize, engine);
+	// The engine's side has no residents, so the gate, the chat and the brain know the residents' team only.
+	const playing: Record<string, string[]> = engine ? { X: teams.X } : teams;
 	return defineCoreStory({
-		id: storyName(games, brain, maxRounds, teamSize, fixedCaptain, maxTurns),
+		id: storyName(games, brain, maxRounds, teamSize, fixedCaptain, maxTurns, engineDepth),
 		seed,
 		// A turn takes a minute (propose, vote, play), a mill one more; the retros take a few.
 		minutes: options.minutes ?? games * (Math.ceil(maxTurns * 1.3) + 6) + 8,
 		residents: [...teams.X, ...teams.O],
 		mechanics: [
-			morris.with({ games, maxTurns, maxQuietTurns, alternateStart: true, teams, wakeTeam: true, fixedCaptain }),
-			consensus.with({ tool: "playMove", param: "move", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 6, teams }),
-			teamChannel.with({ teams, maxPostsPerMove: 3 }),
-			strategyBrain.with({ enabled: brain, maxWords, teams, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
+			morris.with({ games, maxTurns, maxQuietTurns, alternateStart: true, teams, wakeTeam: true, fixedCaptain, ...(engineDepth === undefined ? {} : { engine: { side: "O" as const, depth: engineDepth, maxNodes: 200_000 } }) }),
+			consensus.with({ tool: "playMove", param: "move", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 6, teams: playing }),
+			teamChannel.with({ teams: playing, maxPostsPerMove: 3 }),
+			strategyBrain.with({ enabled: brain, maxWords, teams: playing, retroMaxPosts: 8, retroMaxMinutes: 3, shared: false, brainAtStart: true }),
 			morrisReferee.with({ depth: refereeDepth }),
 		],
 		grants: { resident: ["viewBoard", "proposeMove", "castVote", "postTeam", "readTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
@@ -96,10 +104,11 @@ function rulesText(maxTurns: number, maxQuietTurns: number): string {
 	].join("\n");
 }
 
-function briefing(brain: boolean, teamSize: 1 | 3, fixedCaptain: boolean, maxTurns: number, maxQuietTurns: number) {
-	const teams = teamsOf(teamSize);
-	return (resident: ResidentId, host: Host): string => {
+function briefing(brain: boolean, teamSize: 1 | 3, fixedCaptain: boolean, maxTurns: number, maxQuietTurns: number, engine: boolean) {
+	const teams = teamsOf(teamSize, engine);
+	return (resident: ResidentId): string => {
 		const team = teams.X.includes(resident) ? "X" : "O";
+		const foe = engine ? "a computer program (it plays side O and answers your move at once)" : teamSize === 1 ? "another single player" : "the other team";
 		const members = teams[team];
 		const mates = members.filter((id) => id !== resident).join(" and ");
 		const captain = members[0] ?? resident;
@@ -107,16 +116,16 @@ function briefing(brain: boolean, teamSize: 1 | 3, fixedCaptain: boolean, maxTur
 		const lines =
 			teamSize === 1
 				? [
-						`You are ${resident}, playing nine men's morris alone for side ${team} against another single player (${String(host.residents.length)} residents in all). ${match}`,
+						`You are ${resident}, playing nine men's morris alone for side ${team} against ${foe}. ${match}`,
 						rulesText(maxTurns, maxQuietTurns),
 						"Each move: use viewBoard to see the board, propose your move with proposeMove (its cell argument is the move number, with a reason; with no one to vote it is agreed at once), then play exactly that number with playMove. After a mill you do the same for the piece to remove. If you do not move in time, a random legal move is played for you.",
-						"Take a turn only when it is your turn; the other player's moves are not visible to you except on the board.",
+						engine ? "The reply to your move tells what the program answered; viewBoard shows the board." : "Take a turn only when it is your turn; the other player's moves are not visible to you except on the board.",
 					]
 				: [
-						`You are ${resident}, on team ${team} with ${mates}. Your team plays nine men's morris against the other team (${String(host.residents.length)} residents in all). ${match}`,
+						`You are ${resident}, on team ${team} with ${mates}. Your team plays nine men's morris against ${foe}. ${match}`,
 						rulesText(maxTurns, maxQuietTurns),
 						`Each move: use viewBoard to see the board. Your team has a private chat (postTeam, readTeam). ${fixedCaptain ? `${captain} is the captain of your team for the whole match` : "The captain of the turn rotates among your team"}; only the captain proposes a move with proposeMove (its cell argument is the move number, with a reason), the two others answer with castVote (agree true or false, with a reason). A tie is no agreement. Once your team agreed, only the captain plays exactly that number with playMove. After a mill the team agrees the same way on the piece to remove. ${resident === captain && fixedCaptain ? "You are the captain: you propose and you play, you never vote. " : ""}If your team does not move in time, a random legal move is played for it.`,
-						"Take a turn only when it is your team's turn; the other team's moves and chat are not visible to you except on the board.",
+						engine ? "The reply to the captain's move tells what the program answered; viewBoard shows the board." : "Take a turn only when it is your team's turn; the other team's moves and chat are not visible to you except on the board.",
 					];
 		if (brain) lines.push(`Your ${teamSize === 1 ? "own" : "team keeps a"} strategy brain: a short text (readBrain). After each game ${teamSize === 1 ? "you" : "your team discusses in the chat and the retro captain"} rewrite${teamSize === 1 ? "" : "s"} it with writeBrain. Write rules that help in the next game; do not copy a game's move list.`);
 		return lines.join("\n\n");
@@ -125,13 +134,14 @@ function briefing(brain: boolean, teamSize: 1 | 3, fixedCaptain: boolean, maxTur
 
 /** The registered entry: Haiku via Anthropic, three games, brain on. */
 export function morrisEntry(options: MorrisOptions = {}): CoreStoryEntry {
-	const { brain = true, teamSize = 3, fixedCaptain = false, maxTurns = DEFAULT_TURNS, maxQuietTurns = DEFAULT_QUIET } = options;
+	const { brain = true, teamSize = 3, fixedCaptain = false, maxTurns = DEFAULT_TURNS, maxQuietTurns = DEFAULT_QUIET, engineDepth } = options;
+	const engine = engineDepth !== undefined;
 	return {
-		title: `Nine men's morris ${teamSize === 1 ? "solo" : "teams"}`,
+		title: `Nine men's morris ${teamSize === 1 ? "solo" : "teams"}${engine ? " against the engine" : ""}`,
 		story: morrisStory(options),
 		model: { provider: "anthropic", id: "claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS },
-		briefing: briefing(brain, teamSize, fixedCaptain, maxTurns, maxQuietTurns),
-		fixedRoster: teamSize === 1 ? "two residents, one per side (X: A01, O: A04)" : "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)",
+		briefing: briefing(brain, teamSize, fixedCaptain, maxTurns, maxQuietTurns, engine),
+		fixedRoster: engine ? (teamSize === 1 ? "one resident (X: A01) against the engine (O)" : "three residents in one team (X: A01-A03) against the engine (O)") : teamSize === 1 ? "two residents, one per side (X: A01, O: A04)" : "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)",
 	};
 }
 

@@ -1,0 +1,101 @@
+{
+  "totals": {
+    "requests": 691,
+    "input": 2308,
+    "output": 156076,
+    "cacheRead": 14534609,
+    "cacheWrite": 380414,
+    "costUsd": 0.27116664
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 235,
+      "input": 758,
+      "output": 51111,
+      "cacheRead": 5157330,
+      "cacheWrite": 131407,
+      "costUsd": 0.09363047499999998
+    },
+    {
+      "agent": "A02",
+      "requests": 231,
+      "input": 780,
+      "output": 52386,
+      "cacheRead": 4674962,
+      "cacheWrite": 121702,
+      "costUsd": 0.08823337000000006
+    },
+    {
+      "agent": "A03",
+      "requests": 225,
+      "input": 770,
+      "output": 52579,
+      "cacheRead": 4702317,
+      "cacheWrite": 127305,
+      "costUsd": 0.089302795
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 0,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "costUsd": 0
+    },
+    "perAgent": []
+  },
+  "own": {
+    "totals": {
+      "requests": 691,
+      "input": 2308,
+      "output": 156076,
+      "cacheRead": 14534609,
+      "cacheWrite": 380414,
+      "costUsd": 0.27116664
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 235,
+        "input": 758,
+        "output": 51111,
+        "cacheRead": 5157330,
+        "cacheWrite": 131407,
+        "costUsd": 0.09363047499999998
+      },
+      {
+        "agent": "A02",
+        "requests": 231,
+        "input": 780,
+        "output": 52386,
+        "cacheRead": 4674962,
+        "cacheWrite": 121702,
+        "costUsd": 0.08823337000000006
+      },
+      {
+        "agent": "A03",
+        "requests": 225,
+        "input": 770,
+        "output": 52579,
+        "cacheRead": 4702317,
+        "cacheWrite": 127305,
+        "costUsd": 0.089302795
+      }
+    ]
+  },
+  "models": {
+    "residents": "anthropic/claude-haiku-5-5"
+  },
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 1,
+    "input": 32668,
+    "output": 2366,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "costUsd": 0.0063197999999999995
+  }
+}

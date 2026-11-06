@@ -128,6 +128,46 @@ describe("morris-teams, scripted match", () => {
 	});
 });
 
+describe("morris-teams against the engine", () => {
+	it("lets the search play side O at once, step and removal, with the residents on X only", async () => {
+		const run = await playStory(options({ teamSize: 1, engineDepth: 2 }), morrisPlayer);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "morris.match" });
+		expect(ofType(run.events, "game_ended")).toHaveLength(2);
+		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(0);
+		const moves = ofType(run.events, "move_played");
+		const engine = moves.filter((event) => field(event, "side") === "O");
+		expect(engine.length).toBeGreaterThan(10);
+		expect(engine.every((event) => field(event, "by") === "engine")).toBe(true);
+		expect(moves.filter((event) => field(event, "side") === "X").every((event) => field(event, "by") === "A01")).toBe(true);
+		// Game 2 starts with O: the engine places before the resident is ever on move.
+		const second = moves.filter((event) => field(event, "game") === 2);
+		expect(second.map((event) => field(event, "side"))[0]).toBe("O");
+		// Nobody but the resident takes a turn.
+		expect(ofType(run.events, "turn_started").some((event) => JSON.stringify(event.actor).includes("A04"))).toBe(false);
+		const make = () => options({ teamSize: 1, engineDepth: 2, games: 1, maxTurns: 30 });
+		expect(await checkDeterminism(make, () => morrisPlayer)).toEqual([]);
+		expect(await checkSnapshotRoundTrip(make, () => morrisPlayer, 6)).toEqual([]);
+	});
+
+	it("tells the resident what the engine answered and names it on the board", async () => {
+		const host = createHost(options({ teamSize: 1, engineDepth: 1, brain: false }));
+		host.start();
+		expect(await host.call(residentActor("A01"), "proposeMove", { cell: 1, reason: "corner" })).toMatchObject({ ok: true });
+		const played = await host.call(residentActor("A01"), "playMove", { move: 1 });
+		expect(played).toMatchObject({ ok: true });
+		if (played.ok) expect(played.reply).toMatch(/^Played place on 1\. The engine \(O\): Played place on \d+\. X to move; captain A01\.$/);
+		const view = await host.call(residentActor("A01"), "viewBoard", {});
+		if (view.ok) expect(view.reply).toContain("O team: the engine (a computer program).");
+	});
+
+	it("plays a team of three against the engine", async () => {
+		const run = await playStory(options({ engineDepth: 1, games: 1, maxTurns: 30 }), morrisPlayer);
+		expect(ofType(run.events, "game_ended")).toHaveLength(1);
+		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(0);
+		expect(new Set(ofType(run.events, "move_played").filter((event) => field(event, "side") === "X").map((event) => field(event, "by")))).toEqual(new Set(["A01", "A02", "A03"]));
+	});
+});
+
 describe("morris-teams in the registry", () => {
 	it("finds the arms and the combinations by name", () => {
 		expect(findCoreStory("morris-teams")?.story.id).toBe("morris-teams");
@@ -138,5 +178,10 @@ describe("morris-teams in the registry", () => {
 		expect(findCoreStory("morris-teams-t5")).toBeUndefined();
 		expect(findCoreStory("morris-teams-r4-fc")?.story.id).toBe("morris-teams-r4-fc");
 		expect(findCoreStory("morris-teams-nobrain-g1-t60")?.story.id).toBe("morris-teams-nobrain-g1-t60");
+		const engine = findCoreStory("morris-teams-g6-solo-vs-engine2");
+		expect(engine?.story.id).toBe("morris-teams-g6-solo-vs-engine2");
+		expect(engine?.story.residents).toEqual(["A01"]);
+		expect(findCoreStory("morris-teams-vs-engine3")?.story.residents).toEqual(["A01", "A02", "A03"]);
+		expect(findCoreStory("morris-teams-vs-engine9")).toBeUndefined();
 	});
 });
