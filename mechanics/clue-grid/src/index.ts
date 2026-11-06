@@ -8,7 +8,7 @@
  * advises in the team chat. An own word lets the caller go on, up to number + 1 guesses; a fog word, an
  * opponent's word or a shadow ends the turn. Scoring (original, not a recreation of any published word
  * game): a point per own word revealed (whoever reveals it), minus a penalty per shadow a team reveals, a
- * bonus per landed clue (number of 2 or more, and its first `number` guesses were all own words), and a
+ * bonus per word beyond the first of a landed clue (number of 2 or more, and its first `number` guesses were all own words), and a
  * bonus for the team whose words are all revealed first, which ends the game; otherwise the game ends
  * when both teams used their clues. A keeper may not post in the team chat during a game. The keeper's
  * targets make the report's measure (`clue_game_scored`, audience human): how much of what the keeper
@@ -60,10 +60,10 @@ const options = Type.Object({
 	perTeam: Type.Integer({ minimum: 2, default: 6, description: "Words of each team." }),
 	shadows: Type.Integer({ minimum: 0, default: 2, description: "Shadow words; the rest is fog." }),
 	maxNumber: Type.Integer({ minimum: 1, default: 4, description: "The highest number a clue may carry." }),
-	maxClues: Type.Integer({ minimum: 1, default: 8, description: "Clues per team and game; the game ends when both teams used theirs." }),
+	maxClues: Type.Integer({ minimum: 1, default: 5, description: "Clues per team and game; the game ends when both teams used theirs (5 since P191: with 8, clues of 1 finished a game)." }),
 	wordPoints: Type.Integer({ minimum: 0, default: 1, description: "Points per own word revealed, whoever reveals it." }),
 	shadowPenalty: Type.Integer({ minimum: 0, default: 3, description: "Points a team loses per shadow it reveals." }),
-	landedBonus: Type.Integer({ minimum: 0, default: 1, description: "Points per landed clue (number 2 or more, its first `number` guesses all own words)." }),
+	landedBonus: Type.Integer({ minimum: 0, default: 1, description: "Points per word beyond the first of a landed clue (number 2 or more, its first `number` guesses all own words): a landed 3 scores twice this (P191)." }),
 	finishBonus: Type.Integer({ minimum: 0, default: 3, description: "Points for the team whose words are all revealed first (it ends the game)." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a clue or the next guess stays open; a missing clue loses the turn, a missing guess ends it." }),
 	teams: Type.Optional(

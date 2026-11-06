@@ -28,6 +28,8 @@ export const HOOK_ORDER = {
 		trickPlay: 0,
 		/** The draft (Quarry) starts game 1, after the brain's hold. */
 		draftRounds: 0,
+		/** The hint towers (Harbor Lights) start game 1, after the brain's hold. */
+		hintTowers: 0,
 		/** The chess match starts game 1 (after the brain's hold, like the grid game). */
 		chess: 0,
 		/** Hold'em starts game 1 (after the brain's hold, like the grid game). */
@@ -75,6 +77,8 @@ export const HOOK_ORDER = {
 		consensus: 10,
 		/** Trick play notes which action is open at the minute's start, for its move timer. */
 		trickPlay: 10,
+		/** The hint towers note whose turn is open at the minute's start, for their move timer. */
+		hintTowers: 10,
 		/** An old snapshot without core motives gets them before anything else of the minute (until motives moves to `runResumed.motives`, R2-D9). */
 		motives: 50,
 		/** `openDoor` before the ticks (not at minute 0: the first minute had none). */
@@ -124,6 +128,8 @@ export const HOOK_ORDER = {
 		trickPlay: 350,
 		/** The draft's rules and pick requests (Quarry), after the brain's context reset. */
 		draftRounds: 350,
+		/** The hint towers' game record and table status, after the brain's context reset. */
+		hintTowers: 350,
 		/** The chess rules and the position for the seat on move, after the brain's context reset. */
 		chess: 350,
 		/** Hold'em's rules, hole cards, the hand's record and the turn line, after the brain's context reset. */
@@ -147,6 +153,8 @@ export const HOOK_ORDER = {
 		trickPlay: 150,
 		/** The draft's pick deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		draftRounds: 150,
+		/** The hint towers' move timer (it may end a game and open a retro) comes before the brain's retro windows. */
+		hintTowers: 150,
 		/** Hold'em's action deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		holdem: 160,
 		/** Salt Market's round clock (it may end a game and open a retro) comes before the brain's retro windows. */

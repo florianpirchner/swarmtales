@@ -140,6 +140,7 @@ export const GameScore = Type.Object({
 	words: Type.Integer({ description: "Own words revealed (by anyone)." }),
 	shadows: Type.Integer({ description: "Shadows this team revealed." }),
 	landed: Type.Integer({ description: "Clues of 2 or more whose first guesses were all own words." }),
+	landedPoints: Type.Integer({ description: "Words beyond the first of the landed clues (a landed 3 counts 2); times the landed bonus in the total." }),
 	finished: Type.Boolean({ description: "All own words were revealed first." }),
 	total: Type.Number(),
 });
@@ -150,10 +151,12 @@ export function scoreGame(grid: readonly Card[], clues: readonly ClueRecord[], f
 	const score = (team: TeamName): GameScore => {
 		const words = grid.filter((card) => card.owner === team && card.revealed).length;
 		const shadows = grid.filter((card) => card.owner === "shadow" && card.by === team).length;
-		const landed = clues.filter((clue) => clue.team === team && clue.landed).length;
+		const hits = clues.filter((clue) => clue.team === team && clue.landed);
+		const landed = hits.length;
+		const landedPoints = hits.reduce((sum, clue) => sum + clue.number - 1, 0);
 		const finished = finisher === team;
-		const total = words * rules.wordPoints - shadows * rules.shadowPenalty + landed * rules.landedBonus + (finished ? rules.finishBonus : 0);
-		return { words, shadows, landed, finished, total };
+		const total = words * rules.wordPoints - shadows * rules.shadowPenalty + landedPoints * rules.landedBonus + (finished ? rules.finishBonus : 0);
+		return { words, shadows, landed, landedPoints, finished, total };
 	};
 	return { amber: score("amber"), teal: score("teal") };
 }

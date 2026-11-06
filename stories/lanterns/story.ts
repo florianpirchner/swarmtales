@@ -32,7 +32,8 @@ export interface LanternsOptions {
 }
 
 const DEFAULT_GAMES = 3;
-const DEFAULT_CLUES = 8;
+/** Clues per team and game (8 in the first run; 5 since P191, so a game of clues of 1 cannot finish). */
+const DEFAULT_CLUES = 5;
 const DEADLINE = 2;
 const RETRO_MINUTES = 3;
 /** Output cap per call (P94: a 4000-token cap made thinking models end turns without a tool call). */

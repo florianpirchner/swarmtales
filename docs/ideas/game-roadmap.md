@@ -189,6 +189,17 @@ deck without changes (P130). No chat, no kernel change. Runs: [stories/holdem/ru
   size. Models tend to be passive and call too much: expect a floor effect.
 - **Effort: M** (after the card table).
 
+### 2.5b Cooperative hint game (original, "Harbor Lights")
+
+**Built (2026-11-06, Flo: "Entscheide du"):** not on the original list. A cooperative game of hidden hands in the
+genre of hint games, with its own rules: five suits of 1-7 where every card exists once, a lost rank is bridged
+(the tower skips it, so a loss costs exactly one point), six signals (one suit or one rank to one teammate),
+three strikes, and a "dark round" ending after the last draw. Mechanic `hint-towers` on `card-table` (which got
+a draw pile: `stock`, `draw`), story `stories/harbor-lights/` with three arms on the same deals: a shared **crew**
+brain with a chat open only between games, **solo** private notes, **nobrain**. A reference crew of bots plays
+every deal (22.5 of 35 over 2000 deals). Research angle: do conventions emerge, and does a crew that may talk
+between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md).
+
 ### 2.6 Social-deduction card game with hidden roles (original, "Convoy")
 
 Not a copy of any published title. Five to six players (four is too few for a good hidden-role game:
@@ -324,9 +335,10 @@ No kernel change. Rules as built:
   a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
 - **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
 - **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
-  team a point); -3 per shadow a team reveals (not an instant loss); +1 per **landed** clue (number 2 or more,
-  its first `number` guesses all own words); +3 for the team whose words are all revealed first, which ends
-  the game; otherwise the game ends after 8 clues per team. A match is the sum over games.
+  team a point); -3 per shadow a team reveals (not an instant loss); for a **landed** clue (number 2 or more,
+  its first `number` guesses all own words) +1 per word beyond the first; +3 for the team whose words are
+  all revealed first, which ends the game; otherwise the game ends after 5 clues per team (+1 per landed
+  clue and 8 clues before P191). A match is the sum over games.
 - **Reference.** No solver: word association has no exact answer. The measure is **intent transfer**: the
   keeper's declared targets against what the seekers revealed (recall = target hits over the clue numbers,
   precision = own hits over guesses), per team and game in `clue_game_scored` (audience `human`).

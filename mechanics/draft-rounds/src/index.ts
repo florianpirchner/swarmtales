@@ -195,7 +195,7 @@ function resultLine(ctx: Ctx): string {
 
 /**
  * Every seat's burns of the game, and which of them could have come back to the burner (P126: a brain
- * cannot learn a cost it never sees): `A01 J3 (could have come back to A01), B4; A02 none`.
+ * cannot learn a cost it never sees): `A01 J3 amber (its pack came back to A01 later: A01 lost that card), B4 basalt; A02 none`.
  */
 function burnsLine(ctx: Ctx): string {
 	const state = ctx.state;
@@ -203,7 +203,7 @@ function burnsLine(ctx: Ctx): string {
 		.map((seat) => {
 			const burns = state.picks.filter((pick) => pick.resident === seat && pick.burned !== undefined);
 			if (burns.length === 0) return `${seat} none`;
-			return `${seat} ${burns.map((pick) => `${pick.burned?.id ?? ""} ${pick.burned?.kind ?? ""}${pick.returnable === true ? ` (its pack came back to ${seat} later, so this card could have been ${seat}'s)` : ""}`).join(", ")}`;
+			return `${seat} ${burns.map((pick) => `${pick.burned?.id ?? ""} ${pick.burned?.kind ?? ""}${pick.returnable === true ? ` (its pack came back to ${seat} later: ${seat} lost that card)` : ""}`).join(", ")}`;
 		})
 		.join("; ");
 }

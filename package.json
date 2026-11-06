@@ -54,6 +54,7 @@
     "@swarmtales/mechanic-draft-rounds": "workspace:*",
     "@swarmtales/mechanic-salt-market": "workspace:*",
     "@swarmtales/mechanic-econ-games": "workspace:*",
+    "@swarmtales/mechanic-hint-towers": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
     "@swarmtales/mechanic-goals": "workspace:*",
     "@swarmtales/mechanic-grid-game": "workspace:*",
