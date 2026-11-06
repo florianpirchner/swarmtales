@@ -8,8 +8,7 @@
  */
 import { Type } from "typebox";
 import { defineHead, defineMechanic } from "@swarmtales/kernel";
-import { applyRemove, applyStep, Cell, MorrisEvents, pass, Side, startPosition, type Position, type Step } from "@swarmtales/mechanic-morris";
-import { classify, scoreTurn } from "./search.ts";
+import { applyRemove, applyStep, Cell, classify, MorrisEvents, pass, scoreTurn, Side, startPosition, type Position, type Step } from "@swarmtales/mechanic-morris";
 
 const MOVE_SCORED = Type.Object({
 	game: Type.Integer(),

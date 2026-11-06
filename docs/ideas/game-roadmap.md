@@ -207,6 +207,17 @@ list 4 as a degenerate arm). A convoy crosses ten stages; two hidden **saboteurs
 Each stage the lead picks a crew, everyone plays a card face down (safe or damage), the crew's
 cards are shuffled and revealed as a count only.
 
+**Built (2026-11-06, Flo's go):** story `convoy` ([stories/convoy/](../../stories/convoy/README.md)) on the new
+mechanic `convoy` and the `strategy-brain` with solo seats. Six seats, two saboteurs, eight stages with crews of
+2, 2, 3, 3, 3, 3, 4, 4; four damaged stages stop the convoy (a scripted balance test: a random town loses 79 %,
+a town that follows the tracker 34 %, so ten stages and three damages as first sketched were far too easy for
+the saboteurs). The vote of confidence is the crew vote: a strict majority of no ends the lead's term and the
+next lead's crew goes out without a vote (no always-no stalemate). Table talk is the mechanic's own `speak`
+(two lines a seat per stage), not `team-channel`, whose tools speak of teams. The Bayesian tracker reads crews,
+counts and audits; the role-compliance check counts a saboteur's chances and damage cards and flags talk lines
+that call the speaker a saboteur. The saboteurs have no private channel (they know each other). No kernel
+change. Arms `convoy`, `convoy-nobrain`, by name `-g<games>`. Runs: [stories/convoy/runs/](../../stories/convoy/runs/README.md).
+
 - **Own mechanics:** a *role card for each seat* secretly dealt; saboteurs may play at most one
   damage card per three stages (so they must be patient); one **audit** token per game to reveal a
   single played card to the table; a **vote of confidence** that ends a lead's term.
@@ -240,6 +251,10 @@ now (no other story needs them yet; split when one does). The reference is an ex
 fill (2^n subsets, the rest of each good to its top valuer) instead of a linear program; efficiency is the share of
 the possible gains from trade realised, fairness the Gini of the surpluses. Multilateral (three-way) deals are not
 built. Solo seats with the strategy brain. Runs: [stories/salt-market/runs/](../../stories/salt-market/runs/README.md).
+**v2 (2026-11-06, after the smoke run):** deals rotate over four games, salt is worth 2, about a third of the
+perishable goods arrives as a shipment in round 2-4 (sold early only on credit; escrow can reserve shipment goods),
+harsher spoilage; the reference adds the gain over doing nothing (`gainOverIdle`). Three Haiku seeds (0.72 USD):
+credit is used (4 escrows, 4 plain promises), the rotation evens out the deal, but spoilage now overshoots (P149).
 
 Not a board game, not Catan. Four traders hold different bundles of five goods; each has a secret
 **contract** (a target bundle worth points). Bilateral and multilateral offers, a short round clock,
@@ -330,12 +345,12 @@ No kernel change. Rules as built:
 - **Grid and key.** 20 words drawn from an own pool of about 260 concrete nouns (no word holds another);
   6 per team, 6 fog (nobody's), 2 shadows. Only the two keepers see the key.
 - **Roles.** Two teams of three. Each game one member is the **keeper**, the others are **seekers**; the
-  keeper role rotates game by game, so over three games every member keeps once and the team brain has to
+  keeper role rotates game by game (a match is 4 games since P196, so each team starts twice) and the team brain has to
   carry conventions from one keeper to the next. The seekers take turns as the **caller** of a clue; the other
   advises in the team chat. A keeper may not post in the team chat while a game runs (a `lock` handler).
 - **Clue.** One word of letters, not on the grid, not holding or inside a grid word, not the same crude stem;
   a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
-- **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
+- **Guessing.** Up to `number` guesses (number + 1 until P191: nobody took the extra one); a fog word, an opponent's word or a shadow ends the turn.
 - **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
   team a point); -3 per shadow a team reveals (not an instant loss); for a **landed** clue (number 2 or more,
   its first `number` guesses all own words) +1 per word beyond the first; +3 for the team whose words are

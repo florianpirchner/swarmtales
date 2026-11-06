@@ -5,7 +5,7 @@
  * sees the key; the others are seekers and see only the words. Teams take turns: the keeper gives one
  * clue (`giveClue`: one word, a number, and the words it means, sealed for the report), then the caller
  * of the clue (the seekers take turns) reveals words one at a time (`guess`) while the other seeker
- * advises in the team chat. An own word lets the caller go on, up to number + 1 guesses; a fog word, an
+ * advises in the team chat. An own word lets the caller go on, up to `number` guesses (number + 1 with `extraGuess`); a fog word, an
  * opponent's word or a shadow ends the turn. Scoring (original, not a recreation of any published word
  * game): a point per own word revealed (whoever reveals it), minus a penalty per shadow a team reveals, a
  * bonus per word beyond the first of a landed clue (number of 2 or more, and its first `number` guesses were all own words), and a
@@ -65,6 +65,7 @@ const options = Type.Object({
 	shadowPenalty: Type.Integer({ minimum: 0, default: 3, description: "Points a team loses per shadow it reveals." }),
 	landedBonus: Type.Integer({ minimum: 0, default: 1, description: "Points per word beyond the first of a landed clue (number 2 or more, its first `number` guesses all own words): a landed 3 scores twice this (P191)." }),
 	finishBonus: Type.Integer({ minimum: 0, default: 3, description: "Points for the team whose words are all revealed first (it ends the game)." }),
+	extraGuess: Type.Boolean({ default: false, description: "A clue allows number + 1 guesses; off (since P191: nobody ever took the extra guess): exactly `number`." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a clue or the next guess stays open; a missing clue loses the turn, a missing guess ends it." }),
 	teams: Type.Optional(
 		Type.Object(
@@ -143,7 +144,7 @@ const head = defineHead({
 		"clue-grid/tools/giveClue": [],
 		"clue-grid/tools/guess": [],
 		"clue-grid/tools/endGuesses": [],
-		"clue-grid/rules": ["size", "perTeam", "fog", "shadows", "maxNumber", "maxClues", "wordPoints", "shadowPenalty", "landedBonus", "finishBonus", "deadline"],
+		"clue-grid/rules": ["size", "perTeam", "fog", "shadows", "maxNumber", "maxClues", "wordPoints", "shadowPenalty", "landedBonus", "finishBonus", "deadline", "guessLimit"],
 		"clue-grid/game-head": ["game", "games", "starting", "role"],
 		"clue-grid/task-clue": ["team", "clueNo", "maxClues", "grid", "own", "opponent", "shadows", "maxNumber"],
 		"clue-grid/task-caller": ["team", "word", "number", "keeper", "partner", "grid", "left"],
@@ -161,6 +162,9 @@ const rulesOf = (ctx: Ctx): ScoreRules => ({ wordPoints: ctx.options.wordPoints,
 const teamOf = (state: Readonly<ClueState>, resident: string | undefined): TeamName | undefined => TEAMS.find((team) => resident !== undefined && state.teams[team].includes(resident));
 
 const keeper = (state: Readonly<ClueState>, team: TeamName): string => keeperOf(state.teams[team], state.game);
+
+/** How many guesses a clue allows. */
+const limitOf = (ctx: Ctx, clue: Readonly<ClueRecord>): number => clue.number + (ctx.options.extraGuess ? 1 : 0);
 
 const isKeeper = (state: Readonly<ClueState>, resident: string): boolean => TEAMS.some((team) => keeper(state, team) === resident);
 
@@ -374,7 +378,7 @@ function guess(ctx: Ctx, resident: string | undefined, word: string): ToolSucces
 		const what = card.owner === "shadow" ? `a shadow (your team loses ${String(ctx.options.shadowPenalty)} points)` : card.owner === "fog" ? "fog" : `a word of team ${card.owner}`;
 		return reply(`"${card.word}" is ${what}. Your turn is over.`);
 	}
-	const left = clue.number + 1 - clue.guesses.length;
+	const left = limitOf(ctx, clue) - clue.guesses.length;
 	if (left <= 0) {
 		closeClue(ctx, clue, "limit", ctx.minute);
 		return reply(`"${card.word}" is yours. That was the last guess for this clue; your turn is over.`);
@@ -407,6 +411,7 @@ function rulesText(ctx: Ctx): string {
 		landedBonus: o.landedBonus,
 		finishBonus: o.finishBonus,
 		deadline: o.deadline,
+		guessLimit: o.extraGuess ? "up to the number plus one guesses" : "up to as many guesses as the number",
 	});
 }
 
@@ -449,7 +454,7 @@ function taskText(ctx: Ctx, resident: string): string | undefined {
 	const grid = gridText(state.grid, columns, false);
 	if (resident === clue.caller) {
 		const partner = seekers.filter((id) => id !== resident).join(" and ");
-		return ctx.prompt("clue-grid/task-caller", { team: clue.team, word: clue.word, number: clue.number, keeper: clue.keeper, partner: partner === "" ? "nobody" : partner, grid, left: clue.number + 1 - clue.guesses.length });
+		return ctx.prompt("clue-grid/task-caller", { team: clue.team, word: clue.word, number: clue.number, keeper: clue.keeper, partner: partner === "" ? "nobody" : partner, grid, left: limitOf(ctx, clue) - clue.guesses.length });
 	}
 	return ctx.prompt("clue-grid/task-partner", { team: clue.team, word: clue.word, number: clue.number, keeper: clue.keeper, caller: clue.caller, grid });
 }
@@ -470,7 +475,7 @@ function gridView(ctx: Ctx, resident: string | undefined): string {
 	if (state.finished) return `The match is over. Points: ${totals}.`;
 	if (!state.running) return state.game === 0 ? "The first game has not started yet." : `Game ${String(state.game)} is over. Match points: ${totals}. The next game starts soon.`;
 	const showKey = resident !== undefined && isKeeper(state, resident);
-	const turn = state.phase === "clue" ? `Team ${state.team} waits for a clue from its keeper ${keeper(state, state.team)}.` : `Team ${state.team} guesses clue "${state.clue?.word ?? ""}" ${String(state.clue?.number ?? 0)}; caller ${state.clue?.caller ?? ""}, ${String((state.clue?.number ?? 0) + 1 - (state.clue?.guesses.length ?? 0))} guesses left.`;
+	const turn = state.phase === "clue" ? `Team ${state.team} waits for a clue from its keeper ${keeper(state, state.team)}.` : `Team ${state.team} guesses clue "${state.clue?.word ?? ""}" ${String(state.clue?.number ?? 0)}; caller ${state.clue?.caller ?? ""}, ${String(state.clue === null ? 0 : limitOf(ctx, state.clue) - state.clue.guesses.length)} guesses left.`;
 	const lines = [
 		`Game ${String(state.game)} of ${String(ctx.options.games)}. Keepers: amber ${keeper(state, "amber")}, teal ${keeper(state, "teal")}. Match points before this game: ${totals}.`,
 		showKey ? "The grid with the key (only keepers see the owners of hidden words):" : "The grid (revealed words show their owner in brackets):",

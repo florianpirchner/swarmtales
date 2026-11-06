@@ -99,7 +99,7 @@ describe("moving, flying and the end", () => {
 
 	it("documents its options and keeps the source rules", () => {
 		expect(checkOptionsDocumented(morris)).toEqual([]);
-		const files = ["index", "rules", "events"].map((name) => ({ path: `mechanics/morris/src/${name}.ts`, text: readFileSync(`mechanics/morris/src/${name}.ts`, "utf8") }));
+		const files = ["index", "rules", "events", "search"].map((name) => ({ path: `mechanics/morris/src/${name}.ts`, text: readFileSync(`mechanics/morris/src/${name}.ts`, "utf8") }));
 		expect(checkSourceRules(files)).toEqual([]);
 	});
 });
