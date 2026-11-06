@@ -161,10 +161,11 @@ function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 }
 
 /**
- * Morris combinations by name: `morris-teams[-nobrain][-g<games>][-r<rounds>][-t<turns>][-solo][-fc]`, for example
- * `morris-teams-g1-t60-solo` (one game, a turn limit of 60, one agent per side).
+ * Morris combinations by name: `morris-teams[-nobrain][-g<games>][-r<rounds>][-t<turns>][-solo][-fc][-vs-engine<depth>]`, for example
+ * `morris-teams-g1-t60-solo` (one game, a turn limit of 60, one agent per side) or
+ * `morris-teams-g6-solo-vs-engine2` (six games of one agent against the search at depth 2).
  */
-const MORRIS_NAME = /^morris-teams(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?(?:-t(\d+))?(-solo)?(-fc)?$/;
+const MORRIS_NAME = /^morris-teams(-nobrain)?(?:-g(\d+))?(?:-r(\d+))?(?:-t(\d+))?(-solo)?(-fc)?(?:-vs-engine(\d))?$/;
 
 function parseMorris(id: string): CoreStoryEntry | undefined {
 	const match = MORRIS_NAME.exec(id);
@@ -172,7 +173,8 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 	const games = match[2] === undefined ? undefined : Number(match[2]);
 	const rounds = match[3] === undefined ? undefined : Number(match[3]);
 	const turns = match[4] === undefined ? undefined : Number(match[4]);
-	if ((games !== undefined && (games < 1 || games > 20)) || (rounds !== undefined && (rounds < 1 || rounds > 20)) || (turns !== undefined && (turns < 10 || turns > 400))) return undefined;
+	const engineDepth = match[7] === undefined ? undefined : Number(match[7]);
+	if ((games !== undefined && (games < 1 || games > 20)) || (rounds !== undefined && (rounds < 1 || rounds > 20)) || (turns !== undefined && (turns < 10 || turns > 400)) || (engineDepth !== undefined && (engineDepth < 1 || engineDepth > 6))) return undefined;
 	return morrisEntry({
 		...(match[1] === "-nobrain" ? { brain: false } : {}),
 		...(games === undefined ? {} : { games }),
@@ -180,6 +182,7 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 		...(turns === undefined ? {} : { maxTurns: turns }),
 		...(match[5] === "-solo" ? { teamSize: 1 as const } : {}),
 		...(match[6] === "-fc" ? { fixedCaptain: true } : {}),
+		...(engineDepth === undefined ? {} : { engineDepth }),
 	});
 }
 
