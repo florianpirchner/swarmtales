@@ -40,3 +40,31 @@ export function replaysMoves(text: string, moves: readonly number[], minMoves: n
 	}
 	return false;
 }
+
+/** A move as written in a text: check and mate signs, `!` and `?` and a trailing comma or dot dropped, upper and lower case kept. */
+function moveToken(word: string): string {
+	return word.replace(/^\d+\.(\.\.)?/, "").replace(/[+#!?,;.)]+$/, "").replace(/^\(/, "");
+}
+
+/**
+ * Whether `text` spells out `minRun` half-moves of one game in a row, for games whose moves are text
+ * (chess). `line` holds every move's accepted spellings (SAN and from-to, say); move numbers such as
+ * `12.` or `12...` between the moves are skipped. An opening named in words passes; this is a floor.
+ */
+export function replaysLine(text: string, line: readonly (readonly string[])[], minRun: number): boolean {
+	if (line.length < minRun) return false;
+	const tokens = text
+		.split(/\s+/)
+		.map(moveToken)
+		.filter((token) => token !== "" && !/^\d+\.*$/.test(token));
+	for (let start = 0; start + minRun <= line.length; start++) {
+		const first = line[start] ?? [];
+		for (let position = 0; position + minRun <= tokens.length; position++) {
+			if (!first.includes(tokens[position] ?? "")) continue;
+			let length = 1;
+			while (length < minRun && (line[start + length] ?? []).includes(tokens[position + length] ?? "")) length += 1;
+			if (length === minRun) return true;
+		}
+	}
+	return false;
+}
