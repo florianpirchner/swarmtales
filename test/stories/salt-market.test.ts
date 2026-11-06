@@ -4,7 +4,7 @@ import type { CoreStory, EventEnvelope, TurnTaker } from "@swarmtales/contracts"
 import { createHost, createRng, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { bundleOf, dealOf, gini, optimumOf, scoreOf, spoilLoss } from "../../mechanics/salt-market/src/model.ts";
+import { bundleOf, dealOf, gini, idleHolding, optimumOf, rotated, scoreOf, spoilLoss } from "../../mechanics/salt-market/src/model.ts";
 import { saltMarketStory, type SaltMarketOptions } from "../../stories/salt-market/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { field, ofType } from "./tictactoe-support.ts";
@@ -49,13 +49,17 @@ const trader: TurnTaker = async (turn) => {
 	}
 	for (const match of told.matchAll(/New offer (O\d+)/g)) await turn.call("accept", { offer: match[1] ?? "" });
 	const round = /Round (\d+) of \d+ \(/.exec(told);
-	const book = /The book: ([^\n]*?)\. Open offers:/.exec(told)?.[1];
+	const book = /The book: ([^\n]*?)\. Shipments to come:/.exec(told)?.[1];
 	if (round === null || book === undefined) return;
 	const number = Number(round[1]);
 	const target = next(turn.resident);
 	const theirs = holdingIn(book, target);
 	const good = PERISHABLE.find((name) => (theirs[name] ?? 0) > 0);
 	if (number === 1) await turn.call("say", { text: `${turn.resident} buys anything for salt.` });
+	const shipment = new RegExp(`${turn.resident} \\(you\\) (\\d+) (cloth|copper|spice|wax)[^;]*? at the end of round (\\d+)`).exec(told);
+	if (number === 1 && turn.resident === "A03" && shipment !== null) {
+		await turn.call("offer", { to: target, give: { salt: 1 }, get: { salt: 1 }, later: { [shipment[2] ?? "cloth"]: 1, round: Number(shipment[3]), escrow: true }, note: "from my shipment" });
+	}
 	if (number === 3 && turn.resident === "A02") await turn.call("give", { to: target, goods: { salt: 1 }, note: "keeps my promise" });
 	if (good === undefined) return;
 	const later = number !== 2 ? {} : turn.resident === "A01" ? { later: { salt: 1, round: 3, escrow: true } } : turn.resident === "A02" || turn.resident === "A04" ? { later: { salt: 1, round: 3 } } : {};
@@ -64,26 +68,35 @@ const trader: TurnTaker = async (turn) => {
 
 describe("Salt Market rules", () => {
 	it("deals values, three-good contracts and start bundles that make trade necessary", () => {
-		const profiles = dealOf(SEATS, createRng(7), 6, 2);
-		const again = dealOf(SEATS, createRng(7), 6, 2);
+		const rules = { salt: 6, saltValue: 2, slack: 2, rounds: 6, shipShare: 0.35 };
+		const profiles = dealOf(SEATS, createRng(7), rules);
+		const again = dealOf(SEATS, createRng(7), rules);
 		expect(again).toEqual(profiles);
 		for (const seat of SEATS) {
 			const profile = profiles[seat];
-			expect(profile?.values.salt).toBe(1);
+			expect(profile?.values.salt).toBe(2);
+			const shipped = Object.values(profile?.shipment ?? {}).reduce((sum, units) => sum + units, 0);
+			if (shipped > 0) expect(profile?.arrives).toBeGreaterThanOrEqual(2);
+			expect(profile?.arrives).toBeLessThanOrEqual(4);
 			expect(profile?.start.salt).toBe(6);
 			expect((["cloth", "copper", "spice", "wax"] as const).filter((good) => (profile?.contract[good] ?? 0) > 0)).toHaveLength(3);
 			expect(profile?.contract.salt).toBe(0);
 		}
 		for (const good of ["cloth", "copper", "spice", "wax"] as const) {
 			const demand = SEATS.reduce((sum, seat) => sum + (profiles[seat]?.contract[good] ?? 0), 0);
-			const supply = SEATS.reduce((sum, seat) => sum + (profiles[seat]?.start[good] ?? 0), 0);
+			const supply = SEATS.reduce((sum, seat) => sum + (profiles[seat]?.start[good] ?? 0) + (profiles[seat]?.shipment[good] ?? 0), 0);
 			expect(supply).toBe(Math.max(4, demand + 2));
 		}
+		expect(SEATS.some((seat) => (profiles[seat]?.arrives ?? 0) > 0)).toBe(true);
+		// Rotation passes the deal on one seat per game: A01 plays A02's position, A04 plays A01's.
+		const next = rotated(profiles, SEATS, 1);
+		expect(next.A01).toEqual(profiles.A02);
+		expect(next.A04).toEqual(profiles.A01);
 	});
 
 	it("scores units at private values plus the contract bonus, and finds the optimum", () => {
-		const a = { values: bundleOf({ salt: 1, cloth: 4, copper: 1 }), contract: bundleOf({ copper: 2 }), start: bundleOf({ cloth: 2 }) };
-		const b = { values: bundleOf({ salt: 1, cloth: 1, copper: 3 }), contract: bundleOf({ cloth: 2 }), start: bundleOf({ copper: 2 }) };
+		const a = { values: bundleOf({ salt: 1, cloth: 4, copper: 1 }), contract: bundleOf({ copper: 2 }), start: bundleOf({ cloth: 2 }), shipment: bundleOf({}), arrives: 0 };
+		const b = { values: bundleOf({ salt: 1, cloth: 1, copper: 3 }), contract: bundleOf({ cloth: 2 }), start: bundleOf({ copper: 2 }), shipment: bundleOf({}), arrives: 0 };
 		const rules = { contractBonus: 10 };
 		expect(scoreOf(a, a.start, rules)).toEqual({ goods: 8, met: false, total: 8 });
 		expect(scoreOf(a, bundleOf({ copper: 2 }), rules)).toEqual({ goods: 2, met: true, total: 12 });
@@ -94,17 +107,21 @@ describe("Salt Market rules", () => {
 		expect(gini([5, 5, 5, 5])).toBe(0);
 		expect(gini([0, 0, 0, 12])).toBe(0.75);
 		expect(gini([-3, 0, 0, 0])).toBe(0);
-		expect(spoilLoss(bundleOf({ spice: 3 }), "spice")).toBe(0);
+		expect(spoilLoss(bundleOf({ spice: 1 }), "spice")).toBe(0);
+		expect(spoilLoss(bundleOf({ spice: 3 }), "spice")).toBe(1);
 		expect(spoilLoss(bundleOf({ spice: 9 }), "spice")).toBe(2);
 		expect(spoilLoss(bundleOf({ salt: 9 }), "salt")).toBe(0);
+		// Doing nothing: 3 spice lose one at round 1, the shipment of 2 spice lands at round 2 and the 4 lose one at round 2.
+		const idle = { values: bundleOf({}), contract: bundleOf({}), start: bundleOf({ spice: 3, salt: 6 }), shipment: bundleOf({ spice: 2 }), arrives: 2 };
+		expect(idleHolding(idle, ["spice", "spice", "", "wax"])).toEqual(bundleOf({ salt: 6, spice: 3 }));
 	});
 });
 
 describe("salt-market, scripted match", () => {
-	it("plays two games with offers, trades, escrow, kept and broken promises, a reference and a brain per trader", async () => {
+	it("plays four rotated games with offers, trades, shipments, escrow, kept and broken promises, a reference and a brain per trader", async () => {
 		const run = await playStory(options(), trader);
 		expect(run.end).toMatchObject({ reason: "referee", limit: "salt-market.match" });
-		expect(ofType(run.events, "market_game_ended")).toHaveLength(2);
+		expect(ofType(run.events, "market_game_ended")).toHaveLength(4);
 		for (const type of ["market_game_started", "market_said", "market_game_scored"]) {
 			expect(ofType(run.events, type).every((event) => JSON.stringify(event.audience) === JSON.stringify(["human"]))).toBe(true);
 		}
@@ -115,11 +132,16 @@ describe("salt-market, scripted match", () => {
 		expect(statusOf("A01")).toEqual(["true:kept"]);
 		expect(statusOf("A02")).toEqual(["false:kept"]);
 		expect(statusOf("A04")).toEqual(["false:broken"]);
-		expect(ofType(run.events, "market_spoiled")).toHaveLength(2 * 5);
+		expect(ofType(run.events, "market_spoiled")).toHaveLength(4 * 5);
+		expect(ofType(run.events, "market_shipment_arrived").length).toBeGreaterThan(0);
+		// A03 sells a unit of its shipment on escrow in round 1; the bank reserves it and delivers it when due.
+		const fromShipment = ofType(run.events, "market_promise_settled").filter((event) => field(event, "from") === "A03" && field(event, "escrow") === true);
+		expect(fromShipment.length).toBeGreaterThan(0);
+		expect(fromShipment.every((event) => field(event, "status") === "kept")).toBe(true);
 		const reference = firstReference(run.events);
 		expect(typeof reference === "object" && reference !== null && typeof Reflect.get(reference, "efficiency") === "number").toBe(true);
 		expect(ofType(run.events, "market_match_ended")).toHaveLength(1);
-		expect(ofType(run.events, "brain_written")).toHaveLength(8);
+		expect(ofType(run.events, "brain_written")).toHaveLength(16);
 		// The next briefing names the broken promise and every contract.
 		const resets = run.events.filter((event) => event.type === "turn_started").flatMap((event) => {
 			const inputs: unknown = field(event, "inputs");
@@ -146,7 +168,7 @@ describe("salt-market, scripted match", () => {
 			const outcome = await host.call(as(seat), "viewMarket", {});
 			return outcome.ok ? outcome.reply : "";
 		};
-		const book = /The book: ([^\n]*?)\. Open offers:/.exec(await view("A01"))?.[1] ?? "";
+		const book = /The book: ([^\n]*?)\. Shipments to come:/.exec(await view("A01"))?.[1] ?? "";
 		const a02 = holdingIn(book, "A02");
 		const good = PERISHABLE.find((name) => (a02[name] ?? 0) > 0) ?? "cloth";
 		expect(await host.call(as("A01"), "offer", { to: "A01", give: { salt: 1 }, get: { [good]: 1 } })).toMatchObject({ ok: false, code: "SELF_OFFER" });
@@ -162,19 +184,38 @@ describe("salt-market, scripted match", () => {
 		expect(await host.call(as("A02"), "accept", { offer: "o1" })).toMatchObject({ ok: true });
 		expect(await host.call(as("A02"), "accept", { offer: "O1" })).toMatchObject({ ok: false, code: "OFFER_CLOSED" });
 		// A01: 6 - 4 - 1 (escrow) - 1 (fee) = 0 salt.
-		expect(holdingIn(/The book: ([^\n]*?)\. Open offers:/.exec(await view("A01"))?.[1] ?? "", "A01").salt ?? 0).toBe(0);
-		expect(holdingIn(/The book: ([^\n]*?)\. Open offers:/.exec(await view("A02"))?.[1] ?? "", "A02").salt).toBe(10);
+		expect(holdingIn(/The book: ([^\n]*?)\. Shipments to come:/.exec(await view("A01"))?.[1] ?? "", "A01").salt ?? 0).toBe(0);
+		expect(holdingIn(/The book: ([^\n]*?)\. Shipments to come:/.exec(await view("A02"))?.[1] ?? "", "A02").salt).toBe(10);
 		// A big trade: 7 units moved, each side pays 1 salt of tax.
 		const a03 = holdingIn(book, "A03");
 		const many = PERISHABLE.find((name) => (a03[name] ?? 0) >= 1) ?? "cloth";
 		expect(await host.call(as("A02"), "offer", { to: "all", give: { salt: 6 }, get: { [many]: 1 } })).toMatchObject({ ok: true });
 		expect(await host.call(as("A04"), "decline", { offer: "O3", note: "too dear" })).toMatchObject({ ok: true });
 		expect(await host.call(as("A03"), "accept", { offer: "O3" })).toMatchObject({ ok: true });
-		expect(holdingIn(/The book: ([^\n]*?)\. Open offers:/.exec(await view("A02"))?.[1] ?? "", "A02").salt).toBe(3);
-		expect(holdingIn(/The book: ([^\n]*?)\. Open offers:/.exec(await view("A03"))?.[1] ?? "", "A03").salt).toBe(11);
+		expect(holdingIn(/The book: ([^\n]*?)\. Shipments to come:/.exec(await view("A02"))?.[1] ?? "", "A02").salt).toBe(3);
+		expect(holdingIn(/The book: ([^\n]*?)\. Shipments to come:/.exec(await view("A03"))?.[1] ?? "", "A03").salt).toBe(11);
 		expect(await host.call(as("A01"), "say", { text: "hello", to: "A03" })).toMatchObject({ ok: true });
 		for (let n = 0; n < 3; n++) await host.call(as("A04"), "say", { text: `call ${String(n)}` });
 		expect(await host.call(as("A04"), "say", { text: "one too many" })).toMatchObject({ ok: false, code: "TOO_MANY_MESSAGES" });
+	});
+
+	it("refuses a plain promise of shipment goods due before the trader could hand them over", async () => {
+		const host = createHost(options({ brain: false, games: 1 }));
+		host.start();
+		for (const seat of SEATS) {
+			const outcome = await host.call(as(seat), "viewMarket", {});
+			const text = outcome.ok ? outcome.reply : "";
+			const ship = new RegExp(`${seat} \\(you\\) (\\d+) (cloth|copper|spice|wax)[^;]*? at the end of round (\\d+)`).exec(text);
+			if (ship === null) continue;
+			const good = ship[2] ?? "cloth";
+			const arrives = Number(ship[3]);
+			const held = holdingIn(/The book: ([^\n]*?)\. Shipments to come:/.exec(text)?.[1] ?? "", seat)[good] ?? 0;
+			const later = { [good]: held + 1, round: arrives };
+			expect(await host.call(as(seat), "offer", { to: next(seat), give: { salt: 1 }, get: { salt: 1 }, later })).toMatchObject({ ok: false, code: "TOO_EARLY_FOR_SHIPMENT" });
+			expect(await host.call(as(seat), "offer", { to: next(seat), give: { salt: 1 }, get: { salt: 1 }, later: { ...later, round: arrives + 1 } })).toMatchObject({ ok: true });
+			return;
+		}
+		throw new Error("no shipment in this deal");
 	});
 
 	it("is registered with its arms and variants by name", () => {

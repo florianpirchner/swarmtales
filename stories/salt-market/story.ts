@@ -2,8 +2,10 @@
  * SALT MARKET (docs/ideas/game-roadmap.md §2.7): four solo traders play a match of negotiation games.
  * In each game every trader holds a bundle of five goods, values them privately and has a secret
  * contract (a bundle that pays a bonus); the goods each one needs sit with the others. All goods move
- * through a bank that executes only offers both sides hold the goods for; later deliveries are plain
- * promises or escrowed for a fee; trades above a size pay a tax; one good spoils every round. The rules
+ * through a bank that executes only offers both sides hold the goods for; part of each trader's goods
+ * arrives as a shipment in a later round, so it can be sold early only on credit (a plain promise, or
+ * escrow against the shipment); trades above a size pay a tax; one good spoils every round; the deal
+ * rotates, so every trader plays every position once in four games. The rules
  * are in the `salt-market` mechanic. Every game starts from a fresh context; the only memory across
  * games is each trader's private strategy brain (variant `brain: false`: the same briefings, no brain),
  * so the question is whether a trader learns a trading style (generous, tough, honest, deceptive) and
@@ -17,7 +19,7 @@ import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
 import type { CoreStoryEntry } from "../index.ts";
 
 export interface SaltMarketOptions {
-	/** Games in the match (default 2). */
+	/** Games in the match (default 4: one full rotation of the deal). */
 	readonly games?: number;
 	/** Trading rounds per game (default 6), one virtual minute each. */
 	readonly rounds?: number;
@@ -43,7 +45,7 @@ function minutesFor(games: number, rounds: number): number {
 
 /** The story with its variants as options. */
 export function saltMarketStory(options: SaltMarketOptions = {}) {
-	const { games = 2, rounds = 6, brain = true, spoil = true, maxWords = 150, seed = 41 } = options;
+	const { games = 4, rounds = 6, brain = true, spoil = true, maxWords = 150, seed = 41 } = options;
 	return defineCoreStory({
 		id: `salt-market${brain ? "" : "-nobrain"}${spoil ? "" : "-nospoil"}`,
 		seed,
@@ -73,7 +75,7 @@ function briefing(brain: boolean) {
 	};
 }
 
-/** The registered entry: Haiku via Anthropic, two games of six rounds, brain on. */
+/** The registered entry: Haiku via Anthropic, four games of six rounds (one rotation of the deal), brain on. */
 export function saltMarketEntry(options: SaltMarketOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? true;
 	return { title: "Salt Market", story: saltMarketStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brain), fixedRoster: "the four traders are fixed (A01-A04)" };
