@@ -309,12 +309,12 @@ No kernel change. Rules as built:
 - **Grid and key.** 20 words drawn from an own pool of about 260 concrete nouns (no word holds another);
   6 per team, 6 fog (nobody's), 2 shadows. Only the two keepers see the key.
 - **Roles.** Two teams of three. Each game one member is the **keeper**, the others are **seekers**; the
-  keeper role rotates game by game, so over three games every member keeps once and the team brain has to
+  keeper role rotates game by game (a match is 4 games since P196, so each team starts twice) and the team brain has to
   carry conventions from one keeper to the next. The seekers take turns as the **caller** of a clue; the other
   advises in the team chat. A keeper may not post in the team chat while a game runs (a `lock` handler).
 - **Clue.** One word of letters, not on the grid, not holding or inside a grid word, not the same crude stem;
   a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
-- **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
+- **Guessing.** Up to `number` guesses (number + 1 until P191: nobody took the extra one); a fog word, an opponent's word or a shadow ends the turn.
 - **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
   team a point); -3 per shadow a team reveals (not an instant loss); for a **landed** clue (number 2 or more,
   its first `number` guesses all own words) +1 per word beyond the first; +3 for the team whose words are

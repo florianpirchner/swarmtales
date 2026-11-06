@@ -44,6 +44,7 @@ const options = Type.Object({
 	shared: Type.Boolean({ default: false, description: "One brain both teams read and write, instead of one per team." }),
 	brainAtStart: Type.Boolean({ default: true, description: "Every team writes a first brain in a window before game 1." }),
 	postTool: Type.String({ default: "postTeam", description: "The team-chat tool whose successful calls count as retro posts." }),
+	retroFocus: Type.String({ default: "", description: "A story's own words added to every retro line: what the brain should hold (Lanterns: the team's conventions, not caution, P195). Empty: none." }),
 	solo: Type.Boolean({ default: false, description: "Every team is one resident: the briefings name no team and no side, and a retro window has no team talk." }),
 });
 
@@ -236,6 +237,7 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 	const lines = ctx.options.solo
 		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words, aim, lines: lineCount }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words, aim, lines: lineCount })]
 		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
+	if (ctx.options.retroFocus !== "") lines[0] = `${lines[0] ?? ""} ${ctx.options.retroFocus}`;
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));
 	if (resident === window.captain && !ctx.options.solo) lines.push(ctx.prompt("strategy-brain/retro-captain", {}));
