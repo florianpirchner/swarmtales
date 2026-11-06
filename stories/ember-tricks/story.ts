@@ -9,7 +9,6 @@
  * strategy brain, a team of one). A TypeScript `CoreStory`, played by the generic runner
  * (`swt run --story ember-tricks`).
  */
-import { fileURLToPath } from "node:url";
 import type { Host, ResidentId } from "@swarmtales/contracts";
 import { defineCoreStory } from "@swarmtales/kernel";
 import { cardTable } from "@swarmtales/mechanic-card-table";
@@ -92,7 +91,6 @@ export function emberTricksEntry(options: EmberTricksOptions = {}): CoreStoryEnt
 		story: emberTricksStory(options),
 		model: { provider: "anthropic", id: "claude-haiku-5-5" },
 		briefing: briefing(brain),
-		prompts: fileURLToPath(new URL("./prompts", import.meta.url)),
 		fixedRoster: "the four residents are the four seats of the card table (A01-A04)",
 	};
 }

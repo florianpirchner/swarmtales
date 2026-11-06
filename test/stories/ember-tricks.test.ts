@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { CoreStory, EventEnvelope } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, playStory } from "@swarmtales/testkit";
-import { emberTricksEntry, emberTricksStory } from "../../stories/ember-tricks/story.ts";
+import { emberTricksStory } from "../../stories/ember-tricks/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { field, ofType, trickPlayer } from "../mechanics/trick-play/support.ts";
 
@@ -14,15 +14,15 @@ function story(options: Parameters<typeof emberTricksStory>[0] = {}): CoreStory 
 	return { ...base, turns: { ...base.turns, order: (view) => view.residents } };
 }
 
-const options = (brain = true) => ({ story: story({ brain }), prompts: createPromptLookup({ story: emberTricksEntry().prompts ?? "" }) });
+const options = (brain = true) => ({ story: story({ brain }), prompts: createPromptLookup() });
 
 /** The context-reset lines each resident got, in order. */
-function resets(events: readonly EventEnvelope[]): { readonly text: string }[] {
+function resets(events: readonly EventEnvelope[]): { readonly resident: string; readonly text: string }[] {
 	return events
 		.filter((event) => event.type === "turn_started")
 		.flatMap((event) => {
 			const inputs: unknown = field(event, "inputs");
-			return Array.isArray(inputs) ? inputs.filter((input): input is { kind: string; text: string } => typeof input === "object" && input !== null && Reflect.get(input, "kind") === "context-reset").map((input) => ({ text: input.text })) : [];
+			return Array.isArray(inputs) ? inputs.filter((input): input is { kind: string; text: string } => typeof input === "object" && input !== null && Reflect.get(input, "kind") === "context-reset").map((input) => ({ resident: String(field(event, "resident")), text: input.text })) : [];
 		});
 }
 
@@ -35,10 +35,10 @@ describe("ember-tricks, scripted match", () => {
 		expect(written.map((event) => `${String(field(event, "team"))} ${String(field(event, "game"))}`).sort()).toEqual(["A01 1", "A02 1", "A03 1", "A04 1"]);
 		expect(written.every((event) => event.audience?.join() === "human")).toBe(true);
 		// Game 2's briefing (in every round) carries the seat's own notes, never another seat's.
-		const late = resets(run.events).filter((reset) => reset.text.includes("Game 2 of the match"));
+		const late = resets(run.events).filter((reset) => reset.text.includes("Game 2 begins"));
 		expect(late.length).toBeGreaterThanOrEqual(4 * 3 - 1);
 		for (const reset of late) {
-			expect(reset.text).toContain(notes(/You are (A\d+)\./.exec(reset.text)?.[1] ?? "", 1));
+			expect(reset.text).toContain(notes(reset.resident, 1));
 			expect(reset.text.match(/after game 1:/g)).toHaveLength(1);
 		}
 		// The debrief of game 1 reached every seat in the retro.
@@ -48,10 +48,10 @@ describe("ember-tricks, scripted match", () => {
 
 	it("resets every seat at each round, so a conversation never spans two rounds", async () => {
 		const run = await playStory(options(), trickPlayer({ notes }));
-		const firstGame = resets(run.events).filter((reset) => reset.text.includes("Game 1 of the match"));
+		const firstGame = resets(run.events).filter((reset) => reset.text.includes("Game 1 begins"));
 		// Three rounds, four seats; a seat that has no turn in a round is reset at its next one.
 		expect(firstGame.length).toBeGreaterThanOrEqual(9);
-		expect(firstGame.every((reset) => reset.text.includes("not written notes yet"))).toBe(true);
+		expect(firstGame.every((reset) => reset.text.includes("not written a brain yet"))).toBe(true);
 	});
 
 	it("keeps no notes and opens no retro in the control arm", async () => {

@@ -493,9 +493,9 @@ export const trickPlay = defineMechanic(head, (kit) => ({
 		}),
 	],
 	hooks: {
-		// After the strategy brain's runStarted phase, which may hold the first game back (the grid game's slot).
+		// After the strategy brain's runStarted phase, which may hold the first game back.
 		runStarted: {
-			order: HOOK_ORDER.runStarted.gridGame,
+			order: HOOK_ORDER.runStarted.trickPlay,
 			run: (ctx) => {
 				const seats = ctx.call(CardTableApi, "seats", {});
 				const most = Math.max(...ctx.options.rounds);
@@ -506,21 +506,27 @@ export const trickPlay = defineMechanic(head, (kit) => ({
 				startNext(ctx);
 			},
 		},
-		minuteStarted: (ctx) => {
-			ctx.state.watch = actionKey(ctx.state);
+		minuteStarted: {
+			order: HOOK_ORDER.minuteStarted.trickPlay,
+			run: (ctx) => {
+				ctx.state.watch = actionKey(ctx.state);
+			},
 		},
-		minuteEnded: (ctx) => {
-			const state = ctx.state;
-			const key = actionKey(state);
-			state.idle = key !== "" && key === state.watch ? state.idle + 1 : 0;
-			if (state.idle >= ctx.options.maxIdleMinutes) {
-				state.idle = 0;
-				forfeit(ctx);
-			}
+		minuteEnded: {
+			order: HOOK_ORDER.minuteEnded.trickPlay,
+			run: (ctx) => {
+				const state = ctx.state;
+				const key = actionKey(state);
+				state.idle = key !== "" && key === state.watch ? state.idle + 1 : 0;
+				if (state.idle >= ctx.options.maxIdleMinutes) {
+					state.idle = 0;
+					forfeit(ctx);
+				}
+			},
 		},
 		news: (resident, ctx) => ctx.state.actor === resident,
 		turnInputs: {
-			order: HOOK_ORDER.turnInputs.status,
+			order: HOOK_ORDER.turnInputs.trickPlay,
 			run: (resident, ctx) => {
 				const lines: { readonly kind: string; readonly text: string; readonly order: number }[] = [];
 				const index = ctx.state.debrief.indexOf(resident);

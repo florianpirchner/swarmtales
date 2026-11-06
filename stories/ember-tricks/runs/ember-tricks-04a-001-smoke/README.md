@@ -12,7 +12,8 @@ cached input). The roadmap guessed 0.2-0.5 USD for an 8-round game; this run had
 
 The run used the first wiring of the brain (a `resetEveryRound` option inside the strategy brain); before the merge it
 was switched to the brain's `BrainSourceApi`/`StrategyBrainApi` with `solo` and trick play's `briefEveryRound`, with
-the same briefing texts and the same resets. The reporter (OpenRouter) was not run; this README is the hand-written run report.
+the same resets; the story's own wording of the brain lines ("notes") gave way to the brain's `solo` texts, since
+story prompt overrides are not applied yet. The reporter (OpenRouter) was not run; this README is the hand-written run report.
 
 ## Digest highlights
 
