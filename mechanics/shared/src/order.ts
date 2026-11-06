@@ -22,6 +22,8 @@ export const HOOK_ORDER = {
 		strategyBrain: -100,
 		/** The grid game starts game 1 (tic-tac-toe teams; after the brain's hold, before `run_start`). */
 		gridGame: 0,
+		/** The economics games start game 1 (econ lab; after the brain's hold, like the grid game). */
+		econGames: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -98,6 +100,8 @@ export const HOOK_ORDER = {
 		channelsDigest: 900,
 		/** The strategy brain's context-reset briefing and retro lines come first, then the team chat and the vote lines (tic-tac-toe teams). */
 		strategyBrain: 300,
+		/** The economics games' rules and decision requests, after the brain's context reset. */
+		econGames: 350,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -107,6 +111,8 @@ export const HOOK_ORDER = {
 	minuteEnded: {
 		/** The consensus move timer (it may play a forfeit move that ends a game) comes before the brain's retro windows. */
 		consensus: 100,
+		/** The economics games' phase deadline (it may end a game and open a retro) comes before the brain's retro windows. */
+		econGames: 150,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */

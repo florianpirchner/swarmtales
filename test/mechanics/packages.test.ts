@@ -70,7 +70,7 @@ describe("the mechanic packages", () => {
 	it("are one folder per head, plus shared", () => {
 		const folders = readdirSync(resolve(import.meta.dirname, "../../mechanics")).sort();
 		// Not carved from the old engine: new mechanics written for the core (no legacy event owner, no head above).
-		const newMechanics = ["consensus", "grid-game", "optimal-referee", "strategy-brain", "team-channel"];
+		const newMechanics = ["consensus", "econ-games", "grid-game", "optimal-referee", "strategy-brain", "team-channel"];
 		expect(folders).toEqual([...HEADS.map((head) => head.id), ...newMechanics, "shared"].sort());
 	});
 

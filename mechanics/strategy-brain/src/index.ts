@@ -11,7 +11,9 @@
  *   a team closes when the text is written, or at a minute's end when its members made `retroMaxPosts`
  *   team posts, or after `retroMaxMinutes` minutes; when every window is closed the game is released;
  * - every version is the event `brain_written` (audience `human`, so a gamemaker never reads it).
- * It reads the board's words only through the grid-game's events and API.
+ * It reads the board's words only through the grid-game's events and API. A game other than the grid
+ * game provides `BrainSourceApi` (game number, hold, release) and calls `StrategyBrainApi` when a game
+ * starts or ends; with `solo` every team is one resident, and the briefings and retro lines say so.
  */
 import { Type } from "typebox";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
@@ -19,7 +21,10 @@ import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { GridGameApi, GridGameEvents } from "@swarmtales/mechanic-grid-game";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
+import { BrainSourceApi, StrategyBrainApi } from "./source.ts";
 import { hashText, replaysMoves, wordCount } from "./text.ts";
+
+export { BrainSourceApi, StrategyBrainApi } from "./source.ts";
 
 
 const WRITE = "writeBrain";
@@ -39,6 +44,7 @@ const options = Type.Object({
 	shared: Type.Boolean({ default: false, description: "One brain both teams read and write, instead of one per team." }),
 	brainAtStart: Type.Boolean({ default: true, description: "Every team writes a first brain in a window before game 1." }),
 	postTool: Type.String({ default: "postTeam", description: "The team-chat tool whose successful calls count as retro posts." }),
+	solo: Type.Boolean({ default: false, description: "Every team is one resident: the briefings name no team and no side, and a retro window has no team talk." }),
 });
 
 interface Brain {
@@ -58,6 +64,8 @@ interface Played {
 	readonly game: number;
 	readonly result: string;
 	readonly moves: readonly number[];
+	/** The game's own one-line result (`StrategyBrainApi.gameEnded`), shown in place of `result`. */
+	readonly summary?: string;
 }
 
 interface BrainState {
@@ -89,8 +97,8 @@ const head = defineHead({
 		retro_closed: Type.Object({ team: Type.String(), game: Type.Integer(), reason: Type.Union([Type.Literal("written"), Type.Literal("max_posts"), Type.Literal("timeout")]) }),
 	},
 	audiences: { brain_written: ["human"] },
-	requires: [GridGameApi],
-	uses: [TeamChannelApi],
+	provides: [StrategyBrainApi],
+	uses: [GridGameApi, BrainSourceApi, TeamChannelApi],
 	prompts: {
 		"strategy-brain/tools/readBrain": [],
 		"strategy-brain/tools/writeBrain": [],
@@ -106,6 +114,12 @@ const head = defineHead({
 		"strategy-brain/retro-start": ["captain", "words", "posts"],
 		"strategy-brain/retro-current": ["text"],
 		"strategy-brain/retro-captain": [],
+		"strategy-brain/briefing-head-solo": ["game"],
+		"strategy-brain/empty-solo": [],
+		"strategy-brain/briefing-brain-solo": ["version", "text"],
+		"strategy-brain/briefing-nobrain-solo": [],
+		"strategy-brain/retro-open-solo": ["game", "result", "words"],
+		"strategy-brain/retro-start-solo": ["words"],
 	},
 });
 
@@ -120,7 +134,28 @@ function teamOf(ctx: Ctx, resident: string | undefined): string | undefined {
 const keyOf = (ctx: Ctx, team: string): string => (ctx.options.shared ? "*" : team);
 
 function resultText(played: Played): string {
+	if (played.summary !== undefined) return `game ${String(played.game)}: ${played.summary}`;
 	return played.result === "draw" ? `game ${String(played.game)}: draw` : `game ${String(played.game)}: ${played.result} won`;
+}
+
+/** The game's number, from the game that provides one (a brain-source first, else the grid game). */
+function gameOf(ctx: Ctx): number {
+	return ctx.tryCall(BrainSourceApi, "game", {}) ?? ctx.tryCall(GridGameApi, "game", {}) ?? 0;
+}
+
+function holdGame(ctx: Ctx): boolean {
+	return ctx.tryCall(BrainSourceApi, "hold", {}) ?? ctx.tryCall(GridGameApi, "hold", {}) ?? false;
+}
+
+function releaseGame(ctx: Ctx): void {
+	if (ctx.has(BrainSourceApi)) ctx.tryCall(BrainSourceApi, "release", {});
+	else ctx.tryCall(GridGameApi, "release", {});
+}
+
+/** A game started: every team member gets a fresh context with the briefing at the next turn. */
+function noteGameStarted(ctx: Ctx, startingSide: string): void {
+	ctx.state.startingSide = startingSide;
+	for (const members of Object.values(ctx.options.teams)) for (const member of members) ctx.state.reset.add(member);
 }
 
 /** Whether `team` keeps a brain: the mechanic is enabled and the team is among `brainTeams` (default all). */
@@ -132,7 +167,7 @@ const hasRetroTeam = (ctx: Ctx): boolean => Object.entries(ctx.options.teams).so
 /** Holds the next game back and opens the windows, but only when at least one window opens: nothing would release the hold otherwise. */
 function holdForRetro(ctx: Ctx, game: number): void {
 	if (!ctx.options.enabled || !hasRetroTeam(ctx)) return;
-	if (ctx.call(GridGameApi, "hold", {})) openWindows(ctx, game);
+	if (holdGame(ctx)) openWindows(ctx, game);
 }
 
 function openWindows(ctx: Ctx, game: number): void {
@@ -153,7 +188,7 @@ function closeWindow(ctx: Ctx, team: string, reason: "written" | "max_posts" | "
 	ctx.state.windows.delete(team);
 	ctx.access.lock(window.captain, WRITE);
 	ctx.emit("retro_closed", { team, game: window.game, reason });
-	if (ctx.state.windows.size === 0) ctx.call(GridGameApi, "release", {});
+	if (ctx.state.windows.size === 0) releaseGame(ctx);
 }
 
 /** Why `resident` may not write `text` now, or undefined. */
@@ -176,15 +211,17 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string) {
 function briefing(ctx: Ctx, resident: string): string {
 	const team = teamOf(ctx, resident) ?? "";
 	const first = ctx.state.startingSide;
+	const game = gameOf(ctx);
 	const lines = [
-		ctx.prompt("strategy-brain/briefing-head", { game: ctx.call(GridGameApi, "game", {}), team, first }),
+		ctx.options.solo ? ctx.prompt("strategy-brain/briefing-head-solo", { game }) : ctx.prompt("strategy-brain/briefing-head", { game, team, first }),
 		ctx.state.results.length === 0 ? ctx.prompt("strategy-brain/briefing-none", {}) : ctx.prompt("strategy-brain/briefing-results", { results: ctx.state.results.map(resultText).join("; ") }),
 	];
 	if (hasBrain(ctx, team)) {
 		const brain = ctx.state.brains.get(keyOf(ctx, team));
-		lines.push(brain === undefined ? ctx.prompt("strategy-brain/empty", {}) : ctx.prompt("strategy-brain/briefing-brain", { version: brain.version, text: brain.text }));
+		const own = ctx.options.solo ? "strategy-brain/briefing-brain-solo" : "strategy-brain/briefing-brain";
+		lines.push(brain === undefined ? ctx.prompt(ctx.options.solo ? "strategy-brain/empty-solo" : "strategy-brain/empty", {}) : ctx.prompt(own, { version: brain.version, text: brain.text }));
 	} else {
-		lines.push(ctx.prompt("strategy-brain/briefing-nobrain", {}));
+		lines.push(ctx.options.solo ? ctx.prompt("strategy-brain/briefing-nobrain-solo", {}) : ctx.prompt("strategy-brain/briefing-nobrain", {}));
 	}
 	return lines.join("\n");
 }
@@ -192,17 +229,20 @@ function briefing(ctx: Ctx, resident: string): string {
 function retroLines(ctx: Ctx, resident: string, team: string, window: Window): string[] {
 	const vars = { captain: window.captain, words: ctx.options.maxWords, posts: ctx.options.retroMaxPosts };
 	const last = ctx.state.results.find((played) => played.game === window.game);
-	const lines = [window.game === 0 || last === undefined ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
+	const first = window.game === 0 || last === undefined;
+	const lines = ctx.options.solo
+		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words })]
+		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));
-	if (resident === window.captain) lines.push(ctx.prompt("strategy-brain/retro-captain", {}));
+	if (resident === window.captain && !ctx.options.solo) lines.push(ctx.prompt("strategy-brain/retro-captain", {}));
 	return lines;
 }
 
 const Saved = Type.Object({
 	brains: Type.Record(Type.String(), Type.Object({ version: Type.Integer(), text: Type.String() })),
 	windows: Type.Record(Type.String(), Type.Object({ game: Type.Integer(), captain: Type.String(), opened: Type.Integer(), posts: Type.Integer(), told: Type.Array(Type.String()) })),
-	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()) })),
+	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()), summary: Type.Optional(Type.String()) })),
 	reset: Type.Array(Type.String()),
 	startingSide: Type.Optional(Type.String()),
 });
@@ -220,7 +260,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 				if (team === undefined) return refuse("NOT_TEAM_MEMBER", "you are in no team");
 				if (!hasBrain(ctx, team)) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 				const brain = ctx.state.brains.get(keyOf(ctx, team));
-				return reply(brain === undefined ? ctx.prompt("strategy-brain/empty", {}) : ctx.prompt("strategy-brain/brain-text", { version: brain.version, text: brain.text }));
+				return reply(brain === undefined ? ctx.prompt(ctx.options.solo ? "strategy-brain/empty-solo" : "strategy-brain/empty", {}) : ctx.prompt("strategy-brain/brain-text", { version: brain.version, text: brain.text }));
 			},
 		}),
 		kit.tool({
@@ -246,6 +286,19 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 			},
 		}),
 	],
+	services: [
+		kit.provide(StrategyBrainApi, {
+			gameStarted: ({ first }, ctx) => {
+				noteGameStarted(ctx, first);
+				return null;
+			},
+			gameEnded: ({ game, summary, moves }, ctx) => {
+				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary });
+				holdForRetro(ctx, game);
+				return null;
+			},
+		}),
+	],
 	pipeline: {
 		after: (call, outcome, ctx) => {
 			if (call.tool !== ctx.options.postTool || !outcome.ok) return;
@@ -256,8 +309,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 	},
 	listeners: [
 		kit.listen(GridGameEvents, "game_started", (payload, ctx) => {
-			ctx.state.startingSide = payload.startingSide;
-			for (const members of Object.values(ctx.options.teams)) for (const member of members) ctx.state.reset.add(member);
+			noteGameStarted(ctx, payload.startingSide);
 		}),
 		kit.listen(GridGameEvents, "game_ended", (payload, ctx) => {
 			ctx.state.results.push({ game: payload.game, result: payload.result, moves: [...payload.moves] });
@@ -269,6 +321,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 			// Before the grid game starts game 1, so the game can be held back.
 			order: HOOK_ORDER.runStarted.strategyBrain,
 			run: (ctx) => {
+				if (!ctx.has(BrainSourceApi) && !ctx.has(GridGameApi)) throw new Error("strategy-brain: the story needs a game: grid-game, or a mechanic that provides brain-source");
 				if (ctx.options.brainAtStart) holdForRetro(ctx, 0);
 			},
 		},
@@ -315,7 +368,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 		save: (state) => ({
 			brains: Object.fromEntries([...state.brains].map(([key, brain]) => [key, { ...brain }])),
 			windows: Object.fromEntries([...state.windows].map(([team, window]) => [team, { ...window, told: [...window.told] }])),
-			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves] })),
+			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves], ...(played.summary === undefined ? {} : { summary: played.summary }) })),
 			reset: [...state.reset].sort(),
 			startingSide: state.startingSide,
 		}),
