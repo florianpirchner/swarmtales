@@ -22,7 +22,7 @@ import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import type { Chess } from "chess.js";
-import { adjudicate, colourOf, endOf, EndReason, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "./model.ts";
+import { adjudicate, colourOf, endOf, EndReason, loosePieces, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "./model.ts";
 
 
 const TOOLS = { play: "playMove", resign: "resign" } as const;
@@ -35,6 +35,7 @@ const options = Type.Object({
 	maxIdleTurns: Type.Integer({ minimum: 1, default: 3, description: "Turns in a row on move without a legal move before a random legal move is played for the seat." }),
 	maxForfeits: Type.Integer({ minimum: 0, default: 3, description: "Forfeit moves in one game that lose it; 0: never." }),
 	showLegalMoves: Type.Boolean({ default: false, description: "The position shown to the seat on move lists every legal move (off: the list comes only with a refused move)." }),
+	showThreats: Type.Boolean({ default: false, description: "The position shown to every seat lists each side's loose pieces: attacked and undefended, or attacked by a cheaper piece (a static check, no pins)." }),
 	score: Type.Boolean({ default: true, description: "Score every move against the material baseline (`move_scored`, for the human)." }),
 	teams: Type.Optional(
 		Type.Record(Type.String(), Type.Array(Type.String(), { minItems: 1 }), {
@@ -160,6 +161,7 @@ const head = defineHead({
 		"chess/last-move": ["san"],
 		"chess/check": [],
 		"chess/legal-moves": ["moves"],
+		"chess/threats": ["white", "black"],
 		"chess/how-to-move": [],
 		"chess/still-your-move": ["game", "moveNo"],
 		"chess/forfeit-warning": ["left"],
@@ -416,6 +418,10 @@ function positionText(ctx: Ctx, resident: string | undefined, chess: Chess): str
 		`Material: White ${String(material.white)}, Black ${String(material.black)}.`,
 		`${capital(colour)} to move (move ${String(moveNoOf(state.moves.length))})${chess.inCheck() ? ", in check" : ""}.${captain}`,
 	];
+	if (ctx.options.showThreats) {
+		const list = (side: "w" | "b"): string => loosePieces(chess, side).join("; ") || "none";
+		lines.push(ctx.prompt("chess/threats", { white: list("w"), black: list("b") }));
+	}
 	if (ctx.options.showLegalMoves && resident !== undefined && moverOf(state, chess) === resident) lines.push(ctx.prompt("chess/legal-moves", { moves: chess.moves().join(", ") }));
 	return lines.join("\n");
 }
