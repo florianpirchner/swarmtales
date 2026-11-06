@@ -207,6 +207,17 @@ list 4 as a degenerate arm). A convoy crosses ten stages; two hidden **saboteurs
 Each stage the lead picks a crew, everyone plays a card face down (safe or damage), the crew's
 cards are shuffled and revealed as a count only.
 
+**Built (2026-11-06, Flo's go):** story `convoy` ([stories/convoy/](../../stories/convoy/README.md)) on the new
+mechanic `convoy` and the `strategy-brain` with solo seats. Six seats, two saboteurs, eight stages with crews of
+2, 2, 3, 3, 3, 3, 4, 4; four damaged stages stop the convoy (a scripted balance test: a random town loses 79 %,
+a town that follows the tracker 34 %, so ten stages and three damages as first sketched were far too easy for
+the saboteurs). The vote of confidence is the crew vote: a strict majority of no ends the lead's term and the
+next lead's crew goes out without a vote (no always-no stalemate). Table talk is the mechanic's own `speak`
+(two lines a seat per stage), not `team-channel`, whose tools speak of teams. The Bayesian tracker reads crews,
+counts and audits; the role-compliance check counts a saboteur's chances and damage cards and flags talk lines
+that call the speaker a saboteur. The saboteurs have no private channel (they know each other). No kernel
+change. Arms `convoy`, `convoy-nobrain`, by name `-g<games>`. Runs: [stories/convoy/runs/](../../stories/convoy/runs/README.md).
+
 - **Own mechanics:** a *role card for each seat* secretly dealt; saboteurs may play at most one
   damage card per three stages (so they must be patient); one **audit** token per game to reveal a
   single played card to the table; a **vote of confidence** that ends a lead's term.
