@@ -30,6 +30,8 @@ export const HOOK_ORDER = {
 		draftRounds: 0,
 		/** The chess match starts game 1 (after the brain's hold, like the grid game). */
 		chess: 0,
+		/** Hold'em starts game 1 (after the brain's hold, like the grid game). */
+		holdem: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -116,6 +118,8 @@ export const HOOK_ORDER = {
 		draftRounds: 350,
 		/** The chess rules and the position for the seat on move, after the brain's context reset. */
 		chess: 350,
+		/** Hold'em's rules, hole cards, the hand's record and the turn line, after the brain's context reset. */
+		holdem: 360,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -131,6 +135,8 @@ export const HOOK_ORDER = {
 		trickPlay: 150,
 		/** The draft's pick deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		draftRounds: 150,
+		/** Hold'em's action deadline (it may end a game and open a retro) comes before the brain's retro windows. */
+		holdem: 160,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */

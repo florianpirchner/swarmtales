@@ -52,6 +52,7 @@
     "@swarmtales/mechanic-motives": "workspace:*",
     "@swarmtales/mechanic-draft-rounds": "workspace:*",
     "@swarmtales/mechanic-econ-games": "workspace:*",
+    "@swarmtales/mechanic-holdem": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
     "@swarmtales/mechanic-goals": "workspace:*",
     "@swarmtales/mechanic-grid-game": "workspace:*",

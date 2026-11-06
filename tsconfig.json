@@ -45,6 +45,7 @@
 		{ "path": "mechanics/econ-games" },
 		{ "path": "mechanics/draft-rounds" },
 		{ "path": "mechanics/chess" },
+		{ "path": "mechanics/holdem" },
 		{ "path": "apps/cli" },
 		{ "path": "stories" }
 	]

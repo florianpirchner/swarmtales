@@ -5,6 +5,7 @@ import cityOfKeys from "./cityofkeys/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import quarry, { quarryEntry } from "./quarry/story.ts";
+import holdem, { holdemEntry } from "./holdem/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
@@ -87,6 +88,11 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"quarry-open": quarryOpen,
 	// Two solo seats, chess.js as the legality filter; more variants by name (`chess-nobrain-moves-g4-p120`).
 	chess: chessMatch,
+	// Fixed-limit hold'em with duplicate deals and a private brain per seat: four-handed, heads-up, and the control arms.
+	holdem,
+	"holdem-nobrain": holdemEntry({ brain: false }),
+	"holdem-hu": holdemEntry({ seats: 2 }),
+	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
