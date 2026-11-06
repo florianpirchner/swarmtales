@@ -126,6 +126,17 @@ Not Wizard. A genre sibling with real differences, so nothing is a 1:1 copy:
 Not a copy of any published draft game. Four players each open packs of 8 cards, keep one, pass the
 rest, until all cards are taken, then score a tableau.
 
+**Built (2026-11-06, Flo's go):** story `quarry` ([stories/quarry/](../../stories/quarry/README.md)) on the new
+mechanic `draft-rounds` (pack passing, sealed picks, the tableau score and the greedy reference in one plugin;
+no separate `card-table` or `tableau-scorer`: it was built in parallel with Ember Tricks, so moving its deck
+and packs onto `card-table` is a follow-up). Rules as
+built: four resources (amber, basalt, cobalt, jade) scored as squares, a wild lodestone (at most one per set,
+on the biggest sets), 5 points for strictly the most of a resource (a tie scores nothing), up to two burns
+per game at 2 points each, 2 pack rounds of 6 cards, passing direction turns. The "last card passed decides
+a tie-break" idea below was dropped for the majority bonus, which gives hate-drafting a clearer target.
+Solo seats with the strategy brain (`BrainSourceApi` / `StrategyBrainApi`), no chat, no kernel change. Runs:
+[stories/quarry/runs/](../../stories/quarry/runs/README.md).
+
 - **Own scoring:** sets of one of four resources score quadratically; a *wild* ore counts for the
   best set only once; the leftover-pile rule is original: the *last card passed to you* decides a
   tie-break bonus.

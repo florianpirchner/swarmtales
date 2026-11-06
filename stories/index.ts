@@ -3,11 +3,14 @@ import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmt
 import cityOfKeys from "./cityofkeys/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
+import quarry, { quarryEntry } from "./quarry/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
 const econLabNobrain = econLabEntry({ brain: false });
 const econLabSingle = (game: "public-goods" | "ultimatum" | "dilemma") => econLabEntry({ blocks: [{ game, rounds: 12 }] });
+const quarryNobrain = quarryEntry({ brain: false });
+const quarryOpen = quarryEntry({ openHands: true });
 const tictactoeNobrain = tictactoeEntry({ brain: false });
 const tictactoeBrainO = tictactoeEntry({ brainTeams: ["O"] });
 const tictactoe4x4 = tictactoeEntry({ size: 4, line: 4 });
@@ -77,6 +80,10 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	// Ember Tricks (docs/ideas/game-roadmap.md §2.3): four solo seats, exact bids; the control arm keeps no notes.
 	"ember-tricks": emberTricks,
 	"ember-tricks-nobrain": emberTricksEntry({ brain: false }),
+	// The drafting game: three games with a private brain per seat; the control arm keeps none; open hands shows every quarry during the game.
+	quarry,
+	"quarry-nobrain": quarryNobrain,
+	"quarry-open": quarryOpen,
 };
 
 export function coreStoryNames(): readonly string[] {
