@@ -29,8 +29,6 @@ import { TrickPlayApi } from "./api.ts";
 import { TrickPlayEvents } from "./events.ts";
 import { legalCards, orderAfter, roundPoints, Scoring, trickWinner, TrickSlice, trumpNamer, type Trick, type TrickState } from "./model.ts";
 
-export { TrickPlayApi } from "./api.ts";
-export { TrickPlayEvents } from "./events.ts";
 
 const options = Type.Object({
 	games: Type.Integer({ minimum: 1, default: 3, description: "Games in the match; the run ends after the last one." }),
