@@ -19,7 +19,10 @@ What makes it its own game:
 
 Arms (same seed, same deals): `harbor-lights` keeps one shared **crew brain**, discussed in a team chat that is
 open only between games and written by a rotating captain (the crew may agree conventions);
-`harbor-lights-solo` gives each seat private notes and no chat; `harbor-lights-nobrain` keeps nothing. Add
+`harbor-lights-solo` gives each seat private notes and no chat; `harbor-lights-nobrain` keeps nothing.
+`-soft-strikes` (for example `harbor-lights-soft-strikes`) is the soft-strike arm: the third strike no longer
+ends the game; it and every later misfire cost 3 points instead (P174). The crew retro is asked to agree
+which signal means "play now" and which only informs (P175). Add
 `-g<N>` for N games (default 3), for example `harbor-lights-solo-g2`.
 
 ```sh
