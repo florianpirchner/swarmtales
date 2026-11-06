@@ -80,6 +80,7 @@ export const RoundRecord = Type.Object({
 	bids: Type.Record(Type.String(), Type.Integer()),
 	tricks: Type.Record(Type.String(), Type.Integer()),
 	points: Type.Record(Type.String(), Type.Integer()),
+	worth: Type.Optional(Type.Record(Type.String(), Type.Number({ description: "The Monte Carlo worth of each seat's hand at bidding time, in tricks (option `reference`)." }))),
 });
 export type RoundRecord = Static<typeof RoundRecord>;
 
@@ -112,6 +113,7 @@ export const TrickSlice = Type.Object({
 	namer: Type.Union([Type.String(), Type.Null()]),
 	tricks: Type.Array(TrickSchema),
 	won: Type.Record(Type.String(), Type.Integer()),
+	worth: Type.Optional(Type.Record(Type.String(), Type.Number())),
 	totals: Type.Record(Type.String(), Type.Integer()),
 	vetoes: Type.Record(Type.String(), Type.Integer()),
 	rounds: Type.Array(RoundRecord),

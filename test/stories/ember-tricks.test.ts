@@ -57,6 +57,17 @@ describe("ember-tricks, scripted match", () => {
 		expect(JSON.stringify(plain.events)).not.toContain("Your calibration");
 	});
 
+	it("adds the reference worth of the seat's hands to the calibration line with mcRetro", async () => {
+		const run = await playStory({ story: story({ lever: "mcRetro" }), prompts: createPromptLookup() }, trickPlayer({ notes, bid: () => 0 }));
+		const lines = run.events
+			.filter((event) => event.type === "turn_started" && JSON.stringify(field(event, "inputs")).includes("Game 1 is over"))
+			.map((event) => /A simulation of random deals and trumps rated your hands at [^"\\]+/.exec(JSON.stringify(field(event, "inputs")))?.[0] ?? "");
+		expect(lines).toHaveLength(4);
+		for (const line of lines) expect(line).toMatch(/^A simulation of random deals and trumps rated your hands at \d+\.\d tricks in all \(\d+\.\d per round\), against your 0 bid: r1 bid 0, worth \d\.\d, took \d; r2 /);
+		expect(findCoreStory("ember-tricks-mcretro-g4")?.story.id).toBe("ember-tricks-mcretro-g4");
+		expect(findCoreStory("ember-tricks-mcbid-g4")?.story.id).toBe("ember-tricks-mcbid-g4");
+	});
+
 	it("resets every seat at each round, so a conversation never spans two rounds", async () => {
 		const run = await playStory(options(), trickPlayer({ notes }));
 		const firstGame = resets(run.events).filter((reset) => reset.text.includes("Game 1 begins"));

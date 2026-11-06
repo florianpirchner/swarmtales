@@ -28,8 +28,12 @@ export interface EmberTricksOptions {
 	readonly minutes?: number;
 	/** Words the notes may have. */
 	readonly maxWords?: number;
-	/** One bidding lever under test (P136): the bid sum so far on the table, or a calibration line in the end-of-game record. */
-	readonly lever?: "bidSum" | "calibration";
+	/**
+	 * One bidding lever under test (P136, P165): the bid sum so far on the table; a calibration line in the
+	 * end-of-game record; that line with the Monte Carlo worth of the seat's hands (mcRetro); or the line plus
+	 * the hand's worth shown while bidding (mcBid).
+	 */
+	readonly lever?: "bidSum" | "calibration" | "mcRetro" | "mcBid";
 }
 
 const SEATS = ["A01", "A02", "A03", "A04"];
@@ -42,9 +46,9 @@ const SUITS = [
 ];
 const DEFAULT_ROUNDS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-const LEVER_SUFFIX = { bidSum: "-sum", calibration: "-calib" } as const;
+const LEVER_SUFFIX = { bidSum: "-sum", calibration: "-calib", mcRetro: "-mcretro", mcBid: "-mcbid" } as const;
 
-/** The registered name: `ember-tricks[-nobrain][-sum|-calib][-g<games>][-r<last round>]`, the defaults left out. */
+/** The registered name: `ember-tricks[-nobrain][-sum|-calib|-mcretro|-mcbid][-g<games>][-r<last round>]`, the defaults left out. */
 function storyName(brain: boolean, lever: EmberTricksOptions["lever"], games: number, rounds: readonly number[]): string {
 	const plain = rounds.length === DEFAULT_ROUNDS.length && rounds.every((cards, index) => cards === DEFAULT_ROUNDS[index]);
 	return `ember-tricks${brain ? "" : "-nobrain"}${lever === undefined ? "" : LEVER_SUFFIX[lever]}${games === 2 ? "" : `-g${String(games)}`}${plain ? "" : `-r${String(rounds.length)}`}`;
@@ -60,7 +64,7 @@ export function emberTricksStory(options: EmberTricksOptions = {}) {
 		residents: [...SEATS],
 		mechanics: [
 			cardTable.with({ suits: SUITS, seats: SEATS }),
-			trickPlay.with({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true, bidSum: lever === "bidSum", calibration: lever === "calibration" }),
+			trickPlay.with({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true, bidSum: lever === "bidSum", calibration: lever === "calibration" || lever === "mcRetro" || lever === "mcBid", reference: lever === "mcRetro" ? "retro" : lever === "mcBid" ? "bid" : "off" }),
 			strategyBrain.with({ enabled: brain, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 1, retroMaxMinutes: 2, shared: false, brainAtStart: false, solo: true }),
 		],
 		grants: { resident: ["viewTable", "placeBid", "nameTrump", "playCard", "vetoLead", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },

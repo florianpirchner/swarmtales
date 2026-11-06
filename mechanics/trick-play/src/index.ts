@@ -12,6 +12,8 @@
  *    goes back and the leader must lead another suit;
  * 4. scoring: a hit (tricks taken equal the bid) is `hit + perTrick * taken`, a miss costs `missBase`
  *    plus the square of the error (`scoring.miss`).
+ * With `reference` a Monte Carlo worth of every hand (`reference.ts`) goes into the round record and
+ * either the calibration line (retro) or the bidder's action line (bid).
  * `viewTable` is free (no step) and answers a seat not on turn with one wait line; `bidSum` adds the
  * bids so far against the round's tricks to the table, `calibration` each seat's own bid-against-taken
  * line to the end-of-game record.
@@ -30,6 +32,7 @@ import { HOOK_ORDER, STATUS_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
 import { TrickPlayApi } from "./api.ts";
 import { TrickPlayEvents } from "./events.ts";
+import { expectedTricks } from "./reference.ts";
 import { legalCards, orderAfter, roundPoints, Scoring, trickWinner, TrickSlice, trumpNamer, type RoundRecord, type Trick, type TrickState } from "./model.ts";
 
 
@@ -44,6 +47,8 @@ const options = Type.Object({
 	briefEveryRound: Type.Boolean({ default: false, description: "Tell a strategy brain of every round's start, not only the game's, so every round begins from a fresh context with the briefing." }),
 	bidSum: Type.Boolean({ default: false, description: "The table shows the sum of the bids placed so far against the tricks of the round." }),
 	calibration: Type.Boolean({ default: false, description: "The end-of-game record tells each seat its own calibration: tricks bid against tricks taken, hits, zero bids." }),
+	reference: Type.Union([Type.Literal("off"), Type.Literal("retro"), Type.Literal("bid")], { default: "off", description: "A Monte Carlo worth of each hand at bidding time (random unseen cards and trump, a simple play policy): retro adds the seat's own total to the calibration line, bid shows the seat its hand's worth while it bids." }),
+	referenceSamples: Type.Integer({ minimum: 1, default: 200, description: "Random deals per hand for the reference worth." }),
 });
 
 const head = defineHead({
@@ -130,10 +135,25 @@ function startRound(ctx: Ctx, round: number): void {
 	state.won = zeros(state.seats);
 	const cards = cardsOf(ctx);
 	ctx.call(CardTableApi, "deal", { cards });
+	if (ctx.options.reference === "off") delete state.worth;
+	else state.worth = handWorth(ctx, cards);
 	state.phase = "bid";
 	state.actor = state.order[0] ?? null;
 	ctx.emit("round_started", { game: state.game, round, cards, dealer: state.dealer, order: [...state.order] });
 	if (round > 1 && ctx.options.briefEveryRound) ctx.tryCall(StrategyBrainApi, "gameStarted", { game: state.game, first: state.actor ?? "" });
+}
+
+/** Each seat's Monte Carlo worth of its fresh hand, one decimal, from its own seeded stream (the deal is not touched). */
+function handWorth(ctx: Ctx, cards: number): Record<string, number> {
+	const state = ctx.state;
+	const suits = ctx.call(CardTableApi, "suits", {});
+	return Object.fromEntries(
+		state.order.map((seat, index) => {
+			const rng = ctx.rng("trick-play", "reference", state.game, state.round, seat);
+			const worth = expectedTricks(handOf(ctx, seat), index, cards, suits, () => rng.next(), ctx.options.referenceSamples, state.order.length);
+			return [seat, Math.round(worth * 10) / 10];
+		}),
+	);
 }
 
 /** Starts the next game, or marks it due when another mechanic holds it back. */
@@ -227,7 +247,7 @@ function scoreRound(ctx: Ctx): void {
 	const state = ctx.state;
 	const points = Object.fromEntries(state.seats.map((seat) => [seat, roundPoints(state.bids[seat] ?? 0, state.won[seat] ?? 0, ctx.options.scoring)]));
 	for (const seat of state.seats) state.totals[seat] = (state.totals[seat] ?? 0) + (points[seat] ?? 0);
-	state.rounds.push({ round: state.round, cards: cardsOf(ctx), dealer: state.dealer, trump: state.trump, namer: state.namer, bids: { ...state.bids }, tricks: { ...state.won }, points });
+	state.rounds.push({ round: state.round, cards: cardsOf(ctx), dealer: state.dealer, trump: state.trump, namer: state.namer, bids: { ...state.bids }, tricks: { ...state.won }, points, ...(state.worth === undefined ? {} : { worth: { ...state.worth } }) });
 	ctx.emit("round_scored", { game: state.game, round: state.round, trump: state.trump, bids: { ...state.bids }, tricks: { ...state.won }, points, totals: { ...state.totals } });
 	if (state.round < ctx.options.rounds.length) {
 		startRound(ctx, state.round + 1);
@@ -339,7 +359,11 @@ function trickText(trick: Trick, index: number): string {
 function actionHint(ctx: Ctx, seat: string): string {
 	const state = ctx.state;
 	if (state.actor !== seat) return state.actor === null ? "Nothing to do right now." : `Waiting for ${state.actor}.`;
-	if (state.phase === "bid") return `Your turn to bid: placeBid with 0 to ${String(cardsOf(ctx))}.`;
+	if (state.phase === "bid") {
+		const worth = ctx.options.reference === "bid" ? state.worth?.[seat] : undefined;
+		const hint = worth === undefined ? "" : ` A simulation of random deals and trumps rates your hand at about ${worth.toFixed(1)} tricks from your seat.`;
+		return `Your turn to bid: placeBid with 0 to ${String(cardsOf(ctx))}.${hint}`;
+	}
 	if (state.phase === "trump") return `You have the lowest bid: name the trump with nameTrump (${suitNames(ctx).join(", ")}).`;
 	const trick = currentTrick(state);
 	const led = trick?.plays[0] === undefined ? undefined : suitOf(trick.plays[0].card);
@@ -357,7 +381,7 @@ function bidSumText(ctx: Ctx): string {
 }
 
 /** One seat's bidding in a finished game: tricks bid against tricks taken, hits and zero bids. */
-function calibrationText(rounds: readonly RoundRecord[], seat: string): string {
+function calibrationText(rounds: readonly RoundRecord[], seat: string, withReference: boolean): string {
 	const bid = rounds.reduce((total, round) => total + (round.bids[seat] ?? 0), 0);
 	const taken = rounds.reduce((total, round) => total + (round.tricks[seat] ?? 0), 0);
 	const hits = rounds.filter((round) => (round.bids[seat] ?? 0) === (round.tricks[seat] ?? 0)).length;
@@ -365,7 +389,11 @@ function calibrationText(rounds: readonly RoundRecord[], seat: string): string {
 	const count = rounds.length;
 	const gap = (taken - bid) / count;
 	const verdict = Math.abs(gap) < 0.25 ? "your bids matched your tricks well" : gap > 0 ? `you took ${gap.toFixed(1)} more trick(s) per round than you bid: you underbid` : `you took ${(-gap).toFixed(1)} fewer trick(s) per round than you bid: you overbid`;
-	return `Your calibration this game: you bid ${String(bid)} tricks in all and took ${String(taken)} over ${String(count)} rounds; ${String(hits)} of ${String(count)} bids hit; ${String(zeros)} of your bids were 0. In short, ${verdict}.`;
+	const line = `Your calibration this game: you bid ${String(bid)} tricks in all and took ${String(taken)} over ${String(count)} rounds; ${String(hits)} of ${String(count)} bids hit; ${String(zeros)} of your bids were 0. In short, ${verdict}.`;
+	if (!withReference || rounds.some((round) => round.worth?.[seat] === undefined)) return line;
+	const worth = rounds.reduce((total, round) => total + (round.worth?.[seat] ?? 0), 0);
+	const perRound = rounds.map((round) => `r${String(round.round)} bid ${String(round.bids[seat] ?? 0)}, worth ${(round.worth?.[seat] ?? 0).toFixed(1)}, took ${String(round.tricks[seat] ?? 0)}`);
+	return `${line} A simulation of random deals and trumps rated your hands at ${worth.toFixed(1)} tricks in all (${(worth / count).toFixed(1)} per round), against your ${String(bid)} bid: ${perRound.join("; ")}.`;
 }
 
 /** The table as `seat` sees it: its own hand and everything public. */
@@ -418,7 +446,7 @@ function debriefText(ctx: Ctx, seat: string): string {
 		return `r${String(round.round)} (${String(round.cards)} card(s), trump ${round.trump ?? "none"}${round.namer === null ? "" : ` by ${round.namer}`}): ${seats}`;
 	});
 	const lines = [`Game ${String(record.game)} is over. Winner: ${record.result}. Final scores: ${scores(record.totals)}.`, `Bid/taken per round: ${rounds.join("; ")}.`];
-	if (ctx.options.calibration && state.seats.includes(seat)) lines.push(calibrationText(record.rounds, seat));
+	if (ctx.options.calibration && state.seats.includes(seat)) lines.push(calibrationText(record.rounds, seat, ctx.options.reference === "retro"));
 	return lines.join("\n");
 }
 
