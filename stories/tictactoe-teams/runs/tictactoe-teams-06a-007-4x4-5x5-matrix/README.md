@@ -1,5 +1,8 @@
 # tictactoe-teams-06a-007-4x4-5x5-matrix
 
+> **Note 2026-11-06:** the forfeits in this run came largely from the output cap of 4000 tokens per call (P94), which thinking models such as Gemma and GLM exhaust inside their thinking. Conclusions here about forfeits, captains and model strength are biased; see [tictactoe-teams-06a-009-captain-solo-cap](../tictactoe-teams-06a-009-captain-solo-cap/README.md).
+
+
 26 matches of three games each on the 4x4 and 5x5 boards (four in a row wins on both), run in parallel on 2026-11-04/05, no personas, no gamemaker. Total cost **about 3.5 USD**. The container restarted twice during the night and killed running matches; every killed match was started again from scratch, so each folder below is one complete, uninterrupted match. Per-match numbers are in [summary.txt](summary.txt). The event logs are gzipped (`gunzip events.jsonl.gz`; the chain verifies after unzipping both files).
 
 | Pairing | Board | Arms (seeds) | Rounds per move | Folder prefix |

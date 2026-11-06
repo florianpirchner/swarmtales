@@ -28,6 +28,7 @@ const options = Type.Object({
 	line: Type.Integer({ minimum: 2, maximum: 10, default: 3, description: "How many marks in a row (line, column or diagonal) win a game; at most the board size." }),
 	games: Type.Integer({ minimum: 1, default: 3, description: "How many games the match has; the run ends after the last one." }),
 	alternateStart: Type.Boolean({ default: true, description: "The starting side alternates from game to game (X starts game 1); false: X always starts." }),
+	fixedCaptain: Type.Boolean({ default: false, description: "The first member of each team is its captain for the whole match; false: the captaincy rotates, one move each." }),
 	wakeTeam: Type.Boolean({ default: false, description: "With activation onNews, every member of the team on move has news (so the others can advise and vote), not only the captain." }),
 	teams: Type.Optional(
 		Type.Object(
@@ -165,7 +166,8 @@ function applyMove(ctx: Ctx, cell: number, forfeit: boolean): ToolSuccess {
 	const by = captainOf(state) ?? "";
 	state.board[cell] = side;
 	state.moves.push(cell);
-	state.taken[side] += 1;
+	// The rotation of the captaincy counts the moves taken; a fixed captain never rotates.
+	if (!ctx.options.fixedCaptain) state.taken[side] += 1;
 	ctx.emit("move_played", { game: state.game, side, by, cell, moveNo: state.moves.length, forfeit });
 	const win = winnerOf(state.board, linesOf(ctx.options.size, ctx.options.line));
 	if (win !== undefined) {

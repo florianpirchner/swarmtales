@@ -80,16 +80,17 @@ export function coreStoryNames(): readonly string[] {
 }
 
 /**
- * Tic-tac-toe combinations by name: `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>]`, for example
+ * Tic-tac-toe combinations by name: `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>][-solo][-fc]`, for example
  * `tictactoe-teams-5x5-nobrain-r6`. A board bigger than 3x3 needs four in a row.
  */
-const TICTACTOE_NAME = /^tictactoe-teams(?:-(\d+)x\1)?(-nobrain|-brain-o)?(?:-r(\d+))?$/;
+const TICTACTOE_NAME = /^tictactoe-teams(?:-(\d+)x\1)?(-nobrain|-brain-o)?(?:-r(\d+))?(-solo)?(-fc)?$/;
 
 function parseTictactoe(id: string): CoreStoryEntry | undefined {
 	const match = TICTACTOE_NAME.exec(id);
 	if (match === null) return undefined;
 	const size = match[1] === undefined ? 3 : Number(match[1]);
 	const rounds = match[3] === undefined ? undefined : Number(match[3]);
+	const solo = match[4] === "-solo";
 	if (size < 3 || size > 8 || (rounds !== undefined && (rounds < 1 || rounds > 20))) return undefined;
 	return tictactoeEntry({
 		size,
@@ -97,6 +98,8 @@ function parseTictactoe(id: string): CoreStoryEntry | undefined {
 		...(match[2] === "-nobrain" ? { brain: false } : {}),
 		...(match[2] === "-brain-o" ? { brainTeams: ["O"] } : {}),
 		...(rounds === undefined ? {} : { maxRounds: rounds }),
+		...(solo ? { teamSize: 1 as const } : {}),
+		...(match[5] === "-fc" ? { fixedCaptain: true } : {}),
 	});
 }
 
