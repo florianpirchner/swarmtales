@@ -20,6 +20,13 @@ export const CardTableApi = defineApi({
 			input: Type.Object({ cards: Type.Integer({ minimum: 0 }) }),
 			output: Type.Integer(),
 		},
+		stock: { kind: "query", summary: "The draw pile: the cards not in any hand, top card first (never shown to a resident; a reference listener may read it).", input: Type.Object({}), output: Type.Array(Type.String()) },
+		draw: {
+			kind: "command",
+			summary: "Moves the top card of the draw pile into the seat's hand and returns it; null (nothing changes) when the pile is empty.",
+			input: Seat,
+			output: Type.Union([Type.String(), Type.Null()]),
+		},
 		take: { kind: "command", summary: "Removes the card from the seat's hand; false (nothing changes) when the seat does not hold it.", input: SeatCard, output: Type.Boolean() },
 		give: { kind: "command", summary: "Puts a card (back) into the seat's hand.", input: SeatCard, output: Type.Null() },
 	},

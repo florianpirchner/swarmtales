@@ -189,6 +189,17 @@ deck without changes (P130). No chat, no kernel change. Runs: [stories/holdem/ru
   size. Models tend to be passive and call too much: expect a floor effect.
 - **Effort: M** (after the card table).
 
+### 2.5b Cooperative hint game (original, "Harbor Lights")
+
+**Built (2026-11-06, Flo: "Entscheide du"):** not on the original list. A cooperative game of hidden hands in the
+genre of hint games, with its own rules: five suits of 1-7 where every card exists once, a lost rank is bridged
+(the tower skips it, so a loss costs exactly one point), six signals (one suit or one rank to one teammate),
+three strikes, and a "dark round" ending after the last draw. Mechanic `hint-towers` on `card-table` (which got
+a draw pile: `stock`, `draw`), story `stories/harbor-lights/` with three arms on the same deals: a shared **crew**
+brain with a chat open only between games, **solo** private notes, **nobrain**. A reference crew of bots plays
+every deal (22.5 of 35 over 2000 deals). Research angle: do conventions emerge, and does a crew that may talk
+between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md).
+
 ### 2.6 Social-deduction card game with hidden roles (original, "Convoy")
 
 Not a copy of any published title. Five to six players (four is too few for a good hidden-role game:
