@@ -50,7 +50,10 @@ const player: TurnTaker = async (turn) => {
 		expect(await turn.call("playMove", { move: "xyz" })).toMatchObject({ ok: false, code: "ILLEGAL_MOVE" });
 		const illegal = await turn.call("playMove", { move: "Ke2" });
 		expect(illegal).toMatchObject({ ok: false, code: "ILLEGAL_MOVE" });
-		expect(illegal.ok ? "" : (illegal.detail ?? "")).toContain("Legal moves:");
+		// Without the legal list, a refusal names only the moves of the piece the text names: never the whole list.
+		expect(illegal.ok ? "" : (illegal.detail ?? "")).toContain("That piece has no legal move now.");
+		const knight = await turn.call("playMove", { move: "g1e2" });
+		expect(knight.ok ? "" : (knight.detail ?? "")).toContain("Legal moves of that piece: Nf3, Nh3.");
 	}
 	await turn.call("playMove", { move, reason: "script" });
 };
@@ -92,12 +95,12 @@ describe("chess, scripted match", () => {
 			["A01", "1-0", "checkmate", 7],
 			["A02", "0-1", "checkmate", 4],
 		]);
-		expect(ended.map((event) => field(event, "illegal"))).toEqual([{ A01: 2 }, {}]);
+		expect(ended.map((event) => field(event, "illegal"))).toEqual([{ A01: 3 }, {}]);
 		expect(ended.map((event) => String(field(event, "pgn")))[1]).toContain("2. g4 Qh4#");
 		expect(ofType(run.events, "match_ended").map((event) => field(event, "scores"))).toEqual([{ A01: 2, A02: 0 }]);
 		// Refusals and the baseline's verdicts are for the human only.
 		const refused = ofType(run.events, "move_refused");
-		expect(refused.map((event) => field(event, "written"))).toEqual(["xyz", "Ke2"]);
+		expect(refused.map((event) => field(event, "written"))).toEqual(["xyz", "Ke2", "g1e2"]);
 		for (const type of ["move_refused", "move_scored"]) expect(ofType(run.events, type).every((event) => JSON.stringify(event.audience) === JSON.stringify(["human"]))).toBe(true);
 		expect(ofType(run.events, "move_scored").length).toBeGreaterThan(5);
 		// A first brain before game 1 and a new one after game 1, for each seat.

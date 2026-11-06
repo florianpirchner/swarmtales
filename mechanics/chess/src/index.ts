@@ -368,6 +368,21 @@ function problemWith(ctx: Ctx, resident: string | undefined): Refusal | undefine
 	return undefined;
 }
 
+/**
+ * What a refused move is told: with `showLegalMoves` every legal move; otherwise only the legal moves of
+ * the piece the text names (its from-square, or its piece letter), so an illegal try cannot fetch the
+ * whole list the arm without it is meant to withhold (chess-02a-006).
+ */
+function refusalHint(ctx: Ctx, chess: Chess, written: string): string {
+	const legal = chess.moves({ verbose: true });
+	if (ctx.options.showLegalMoves) return `Legal moves: ${legal.map((move) => move.san).join(", ")}.`;
+	const from = /^\s*([a-h][1-8])/.exec(written)?.[1];
+	const letter = /^\s*([KQRBN])/.exec(written)?.[1]?.toLowerCase();
+	const own = legal.filter((move) => (from !== undefined ? move.from === from : letter !== undefined ? move.piece === letter : false));
+	if (from === undefined && letter === undefined) return "Write the move as SAN (Nf3) or from and to squares (g1f3).";
+	return own.length === 0 ? "That piece has no legal move now." : `Legal moves of that piece: ${own.map((move) => move.san).join(", ")}.`;
+}
+
 function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
 	const refusal = problemWith(ctx, ctx.resident);
 	if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
@@ -378,8 +393,7 @@ function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
 		const count = (state.illegal[ctx.resident] ?? 0) + 1;
 		state.illegal[ctx.resident] = count;
 		ctx.emit("move_refused", { game: state.game, ply: state.moves.length + 1, colour: colourOf(chess), by: ctx.resident, written, count });
-		const legal = chess.moves().join(", ");
-		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. Legal moves: ${legal}.`);
+		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. ${refusalHint(ctx, chess, written)}`);
 	}
 	return reply(applyMove(ctx, move.san, written, false));
 }

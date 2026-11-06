@@ -273,6 +273,14 @@ for a seat that does not move. Instead of Stockfish, a material baseline in Type
 per move). The `strategy-brain` plugs in through `BrainSourceApi` as in the econ lab. No kernel change.
 Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
 
+**Chess teams and the engine reference built (2026-11-06, Flo's go):** `chess-teams` plays two teams of two with
+a rotating captain and an advisor turn on the team channel; the brain's replay check covers move text
+(`replaysLine`, P112); Stockfish 10 (npm `stockfish.js`, GPL-3.0) scores finished runs in the lab
+(`pnpm lab:chess`), never in a live run, so its licence stays out of the packages. First comparison over six
+Haiku runs (two games each, cap 80 half-moves): engine ACPL 167 default, 80 with the legal list, 144 without a
+brain, 98 for teams (at 2.3 times the cost); details in [stories/chess/runs/](../../stories/chess/runs/README.md)
+and P113-P116.
+
 - **Mechanics needed.** Extend `grid-game` into a generic `board-game` with a rules module per game
   (placement, movement, capture); `move-validator` (the engine, not the model, checks legality);
   `reference-engine` listener (generalised `optimal-referee`). Rules modules are the bulk.
