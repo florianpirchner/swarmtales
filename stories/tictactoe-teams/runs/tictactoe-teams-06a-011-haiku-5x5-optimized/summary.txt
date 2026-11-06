@@ -1,0 +1,8 @@
+5x5 HaikuvsHaiku brain brain-s1 res OXX ff {} scored {'optimal': 5, 'blunder': 1} cost 0.18 (X 0.08 O 0.10) req 595 min 22
+5x5 HaikuvsHaiku brain brain-s2 res dOd ff {} scored {'optimal': 4} cost 0.33 (X 0.17 O 0.16) req 907 min 32
+5x5 HaikuvsHaiku brain brain-s3 res ddd ff {} scored {'optimal': 5} cost 0.38 (X 0.20 O 0.18) req 1107 min 36
+5x5 HaikuvsHaiku brain brain-s4 res XdX ff {} scored {'optimal': 3} cost 0.23 (X 0.10 O 0.13) req 704 min 24
+5x5 HaikuvsHaiku nobrain nobrain-s1 res dOX ff {} scored {'optimal': 7} cost 0.22 (X 0.12 O 0.10) req 697 min 24
+5x5 HaikuvsHaiku nobrain nobrain-s2 res XOO ff {'O': 1, 'X': 1} scored {'optimal': 2} cost 0.13 (X 0.08 O 0.05) req 435 min 18
+5x5 HaikuvsHaiku nobrain nobrain-s3 res dXO ff {} scored {'optimal': 5} cost 0.22 (X 0.10 O 0.12) req 686 min 24
+5x5 HaikuvsHaiku nobrain nobrain-s4 res dOd ff {} scored {'optimal': 7} cost 0.28 (X 0.14 O 0.13) req 875 min 28

@@ -61,13 +61,15 @@ export function emptyBoard(size: number): Cell[] {
 
 /** The board as text: one row per line, cells separated by a space, free cells shown by their number. */
 export function renderBoard(board: readonly Cell[], size: number): string {
+	// Every cell is its mark (or a blank) plus its number, so a taken cell still shows which number it is and a
+	// reader never has to count columns (P147: GLM misread cells on 5x5 where marks replaced the numbers).
 	const width = String(size * size - 1).length;
 	const rows: string[] = [];
 	for (let row = 0; row < size; row++) {
 		rows.push(
 			board
 				.slice(row * size, row * size + size)
-				.map((cell, col) => (cell === "." ? String(row * size + col) : cell).padStart(width, " "))
+				.map((cell, col) => `${cell === "." ? " " : cell}${String(row * size + col).padStart(width, " ")}`)
 				.join(" "),
 		);
 	}
