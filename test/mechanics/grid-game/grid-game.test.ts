@@ -62,6 +62,14 @@ describe("a match", () => {
 		]);
 	});
 
+	it("keeps the same captain for the whole match with fixedCaptain", async () => {
+		const run = await playStory(hostOptions(matchStory({ fixedCaptain: true })), scriptedPlayer());
+		const moves = ofType(run.events, "move_played");
+		expect(moves.length).toBeGreaterThan(5);
+		expect(new Set(moves.filter((event) => field(event, "side") === "X").map((event) => field(event, "by")))).toEqual(new Set(["A01"]));
+		expect(new Set(moves.filter((event) => field(event, "side") === "O").map((event) => field(event, "by")))).toEqual(new Set(["A03"]));
+	});
+
 	it("keeps X as the starting side when alternateStart is off", async () => {
 		const run = await playStory(hostOptions(matchStory({ alternateStart: false, games: 2 })), scriptedPlayer());
 		expect(ofType(run.events, "game_started").map((event) => field(event, "startingSide"))).toEqual(["X", "X"]);

@@ -1,5 +1,8 @@
 # tictactoe-teams-06a-006-asym-haiku-vs-gemma4
 
+> **Note 2026-11-06:** the forfeits in this run came largely from the output cap of 4000 tokens per call (P94), which thinking models such as Gemma and GLM exhaust inside their thinking. Conclusions here about forfeits, captains and model strength are biased; see [tictactoe-teams-06a-009-captain-solo-cap](../tictactoe-teams-06a-009-captain-solo-cap/README.md).
+
+
 Nine matches, three games each, on 3x3: team X (A01-A03) is Haiku via Anthropic, team O (A04-A06) is `google/gemma-4-26b-a4b-it` via OpenRouter (`--resident-model A04,A05,A06=openrouter/google/gemma-4-26b-a4b-it`). Three arms, seeds 1-3 each, no personas, no gamemaker. Run in parallel on 2026-11-04. Total cost **about 0.84 USD**; 23-42 virtual minutes per match.
 
 | Arm | Story | Brain | Matches (X / draw / O per game) |

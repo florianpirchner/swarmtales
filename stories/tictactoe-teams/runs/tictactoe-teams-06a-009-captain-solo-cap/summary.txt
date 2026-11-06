@@ -1,0 +1,36 @@
+fc gemma 3x3-brain fc-gemma-3x3-brain-s1 res XO ff {'O': 4, 'X': 3} scored {'optimal': 7, 'missed_block': 3, 'missed_win': 1} cost 0.06 (X 0.04 O 0.02) req 224 min 27
+fc gemma 3x3-brain fc-gemma-3x3-brain-s2 res O ff {'O': 5, 'X': 2} scored {'optimal': 6, 'blunder': 1, 'missed_win': 2, 'missed_block': 1} cost 0.13 (X 0.10 O 0.03) req 341 min 54
+fc gemma 3x3-nobrain fc-gemma-3x3-nobrain-s1 res d ff {'O': 4, 'X': 3} scored {'optimal': 8, 'missed_block': 2, 'missed_win': 1} cost 0.13 (X 0.05 O 0.08) req 405 min 24
+fc gemma 3x3-nobrain fc-gemma-3x3-nobrain-s2 res XOX ff {'O': 5, 'X': 2} scored {'optimal': 9, 'blunder': 1, 'missed_block': 2} cost 0.05 (X 0.03 O 0.02) req 197 min 16
+fc gemma 4x4-brain fc-gemma-4x4-brain-s1 res  ff {'X': 2, 'O': 2} scored {'blunder': 1} cost 0.03 (X 0.01 O 0.02) req 101 min 8
+fc gemma 4x4-brain fc-gemma-4x4-brain-s2 res  ff {'O': 2, 'X': 2} scored {} cost 0.02 (X 0.01 O 0.01) req 91 min 7
+fc gemma 4x4-nobrain fc-gemma-4x4-nobrain-s1 res  ff {'X': 3, 'O': 2} scored {'missed_block': 1, 'missed_win': 1, 'optimal': 1} cost 0.01 (X 0.00 O 0.01) req 65 min 4
+fc gemma 4x4-nobrain fc-gemma-4x4-nobrain-s2 res  ff {'X': 3, 'O': 2} scored {} cost 0.09 (X 0.09 O 0.01) req 213 min 7
+solo glm 5x5-brain solo-glm-5x5-brain-s1 res XXX ff {'O': 8} scored {'optimal': 4, 'missed_block': 1} cost 0.09 (X 0.05 O 0.04) req 182 min 13
+solo glm 5x5-brain solo-glm-5x5-brain-s2 res XOX ff {'O': 1} scored {} cost 0.06 (X 0.04 O 0.02) req 151 min 7
+solo glm 5x5-nobrain solo-glm-5x5-nobrain-s1 res XOO ff {'X': 2} scored {} cost 0.03 (X 0.02 O 0.01) req 116 min 4
+solo glm 5x5-nobrain solo-glm-5x5-nobrain-s2 res OXO ff {'X': 8} scored {'optimal': 3, 'missed_win': 3, 'missed_block': 1} cost 0.04 (X 0.02 O 0.02) req 133 min 5
+solo haiku 5x5-brain solo-haiku-5x5-brain-s1 res XXX ff {} scored {'optimal': 3, 'missed_block': 1} cost 0.04 (X 0.02 O 0.02) req 195 min 5
+solo haiku 5x5-brain solo-haiku-5x5-brain-s2 res XOX ff {} scored {'optimal': 1} cost 0.03 (X 0.01 O 0.02) req 141 min 4
+solo haiku 5x5-brain solo-haiku-5x5-brain-s3 res OOX ff {} scored {} cost 0.02 (X 0.01 O 0.01) req 117 min 3
+solo haiku 5x5-nobrain solo-haiku-5x5-nobrain-s1 res XOX ff {} scored {'optimal': 3, 'missed_block': 1} cost 0.03 (X 0.02 O 0.02) req 150 min 5
+solo haiku 5x5-nobrain solo-haiku-5x5-nobrain-s2 res XOO ff {'O': 2, 'X': 5} scored {'optimal': 2, 'missed_block': 1} cost 0.04 (X 0.02 O 0.02) req 165 min 5
+solo haiku 5x5-nobrain solo-haiku-5x5-nobrain-s3 res XOX ff {} scored {} cost 0.02 (X 0.01 O 0.01) req 114 min 3
+cap16 gemma 3x3-fc cap16-gemma-3x3-fc-nobrain-s1 res  ff {'X': 2, 'O': 2} scored {'optimal': 1, 'missed_block': 1} cost 0.02 (X 0.01 O 0.00) req 76 min 5
+cap16 gemma 3x3-fc cap16-gemma-3x3-fc-nobrain-s2 res  ff {'X': 2, 'O': 2} scored {'optimal': 2, 'missed_block': 1} cost 0.01 (X 0.00 O 0.01) req 40 min 3
+cap16 gemma 4x4-fc cap16-gemma-4x4-fc-nobrain-s1 res  ff {'X': 2, 'O': 2} scored {'missed_block': 1} cost 0.04 (X 0.02 O 0.01) req 116 min 12
+cap16 gemma 4x4-fc cap16-gemma-4x4-fc-nobrain-s2 res  ff {'X': 4, 'O': 2} scored {'optimal': 1} cost 0.06 (X 0.01 O 0.05) req 108 min 29
+cap16 glm 3x3-glmO cap16-glm-3x3-glmO-nobrain-s1 res ddX ff {} scored {'optimal': 14, 'missed_block': 1} cost 0.09 (X 0.02 O 0.07) req 333 min 20
+cap16 glm 3x3-glmO cap16-glm-3x3-glmO-nobrain-s2 res Xdd ff {'O': 1} scored {'optimal': 14, 'missed_block': 1} cost 0.09 (X 0.02 O 0.07) req 343 min 22
+cap16 glm 3x3-glmO cap16-glm-3x3-glmO-nobrain-s3 res ddd ff {} scored {'optimal': 15} cost 0.08 (X 0.03 O 0.06) req 370 min 21
+cap16 glm 3x3-glmboth cap16-glm-3x3-glmboth-nobrain-s1 res ddX ff {} scored {'optimal': 13, 'blunder': 1} cost 0.10 (X 0.04 O 0.06) req 358 min 20
+cap16 glm 3x3-glmboth cap16-glm-3x3-glmboth-nobrain-s2 res ddX ff {} scored {'optimal': 13, 'blunder': 1} cost 0.10 (X 0.04 O 0.06) req 347 min 24
+cap16 glm 3x3-glmboth cap16-glm-3x3-glmboth-nobrain-s3 res XOO ff {} scored {'optimal': 11, 'blunder': 2, 'missed_block': 1} cost 0.08 (X 0.03 O 0.05) req 304 min 14
+cap16 glm 4x4-glmO cap16-glm-4x4-glmO-nobrain-s1 res ddd ff {} scored {'optimal': 6} cost 0.33 (X 0.09 O 0.24) req 710 min 44
+cap16 glm 4x4-glmO cap16-glm-4x4-glmO-nobrain-s2 res Xdd ff {} scored {'missed_block': 1, 'optimal': 4} cost 0.21 (X 0.07 O 0.14) req 565 min 36
+cap16 glm 4x4-glmboth cap16-glm-4x4-glmboth-nobrain-s1 res dOd ff {} scored {'optimal': 5, 'missed_block': 1} cost 0.29 (X 0.13 O 0.17) req 572 min 41
+cap16 glm 4x4-glmboth cap16-glm-4x4-glmboth-nobrain-s2 res Xdd ff {} scored {'optimal': 5, 'missed_block': 1} cost 0.37 (X 0.17 O 0.20) req 658 min 48
+cap16 glm 5x5-glmO cap16-glm-5x5-glmO-nobrain-s1 res XdX ff {'O': 2} scored {'optimal': 2} cost 0.45 (X 0.09 O 0.37) req 638 min 60
+cap16 glm 5x5-glmO cap16-glm-5x5-glmO-nobrain-s2 res XXX ff {} scored {'optimal': 1} cost 0.21 (X 0.05 O 0.16) req 434 min 44
+cap16 glm 5x5-glmboth cap16-glm-5x5-glmboth-nobrain-s1 res XOd ff {'X': 1, 'O': 1} scored {'optimal': 11, 'blunder': 1, 'missed_win': 1} cost 0.82 (X 0.41 O 0.41) req 838 min 89
+cap16 glm 5x5-glmboth cap16-glm-5x5-glmboth-nobrain-s2 res XdO ff {'X': 1} scored {'optimal': 6, 'missed_block': 1} cost 0.56 (X 0.25 O 0.31) req 691 min 62

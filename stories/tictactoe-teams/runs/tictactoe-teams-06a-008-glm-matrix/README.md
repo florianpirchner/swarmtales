@@ -1,5 +1,8 @@
 # tictactoe-teams-06a-008-glm-matrix
 
+> **Note 2026-11-06:** the forfeits in this run came largely from the output cap of 4000 tokens per call (P94), which thinking models such as Gemma and GLM exhaust inside their thinking. Conclusions here about forfeits, captains and model strength are biased; see [tictactoe-teams-06a-009-captain-solo-cap](../tictactoe-teams-06a-009-captain-solo-cap/README.md).
+
+
 28 matches of three games on 3x3, 4x4 and 5x5 (four in a row above 3x3) with `z-ai/glm-5.3-flash` (OpenRouter) instead of Gemma, run in parallel on 2026-11-06, one git worktree per board size, six rounds of proposal and vote per move, no personas, no gamemaker. Total cost **6.88 USD** on OpenRouter (3x3 1.33, 4x4 2.42, 5x5 3.13). Per-match numbers: [summary.txt](summary.txt). Event logs are gzipped (`gunzip events.jsonl.gz`).
 
 | Pairing | Arms | Seeds | Folder prefix |

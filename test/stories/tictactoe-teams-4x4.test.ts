@@ -43,3 +43,20 @@ describe("tictactoe-teams, 4x4 with four in a row", () => {
 		expect(tictactoeStory({ games: 1, size: 4, line: 4 }).minutes).toBe(36);
 	});
 });
+
+describe("tictactoe-teams, combinations by name", () => {
+	it("resolves solo and fixed-captain names with their briefings", async () => {
+		const { findCoreStory } = await import("../../stories/index.ts");
+		const host = createHost(options());
+		const solo = findCoreStory("tictactoe-teams-5x5-nobrain-r6-solo");
+		const fixed = findCoreStory("tictactoe-teams-r6-fc");
+		if (solo === undefined || fixed === undefined) throw new Error("combination names do not resolve");
+		expect(solo.story.residents).toEqual(["A01", "A04"]);
+		expect(solo.briefing("A01", host)).toContain("playing tic-tac-toe alone for side X on a 5x5 board");
+		expect(fixed.story.residents).toHaveLength(6);
+		expect(fixed.briefing("A01", host)).toContain("A01 is the captain of your team for the whole match");
+		expect(fixed.briefing("A01", host)).toContain("You are the captain: you propose and you play, you never vote.");
+		expect(fixed.briefing("A02", host)).not.toContain("You are the captain");
+		expect(findCoreStory("tictactoe-teams-9x9")).toBeUndefined();
+	});
+});

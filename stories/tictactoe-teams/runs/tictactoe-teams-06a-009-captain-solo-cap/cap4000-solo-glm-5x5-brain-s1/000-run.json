@@ -1,0 +1,27 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-06T08:54:51.220Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "tictactoe-teams-5x5-r6-solo",
+  "kind": "core",
+  "title": "Tic-tac-toe solo 5x5",
+  "effective": {
+    "agents": 2,
+    "minutes": 140,
+    "seed": 1
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "openrouter",
+      "model": "z-ai/glm-5.3-flash"
+    },
+    {
+      "agent": "A04",
+      "provider": "openrouter",
+      "model": "z-ai/glm-5.3-flash"
+    }
+  ]
+}
