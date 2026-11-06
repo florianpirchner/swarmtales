@@ -189,6 +189,17 @@ deck without changes (P130). No chat, no kernel change. Runs: [stories/holdem/ru
   size. Models tend to be passive and call too much: expect a floor effect.
 - **Effort: M** (after the card table).
 
+### 2.5b Cooperative hint game (original, "Harbor Lights")
+
+**Built (2026-11-06, Flo: "Entscheide du"):** not on the original list. A cooperative game of hidden hands in the
+genre of hint games, with its own rules: five suits of 1-7 where every card exists once, a lost rank is bridged
+(the tower skips it, so a loss costs exactly one point), six signals (one suit or one rank to one teammate),
+three strikes, and a "dark round" ending after the last draw. Mechanic `hint-towers` on `card-table` (which got
+a draw pile: `stock`, `draw`), story `stories/harbor-lights/` with three arms on the same deals: a shared **crew**
+brain with a chat open only between games, **solo** private notes, **nobrain**. A reference crew of bots plays
+every deal (22.5 of 35 over 2000 deals). Research angle: do conventions emerge, and does a crew that may talk
+between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md).
+
 ### 2.6 Social-deduction card game with hidden roles (original, "Convoy")
 
 Not a copy of any published title. Five to six players (four is too few for a good hidden-role game:
@@ -284,6 +295,14 @@ for a seat that does not move. Instead of Stockfish, a material baseline in Type
 (`move_scored`, one ply with a static exchange check; a real search on chess.js is too slow, it builds two FENs
 per move). The `strategy-brain` plugs in through `BrainSourceApi` as in the econ lab. No kernel change.
 Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
+
+**Chess teams and the engine reference built (2026-11-06, Flo's go):** `chess-teams` plays two teams of two with
+a rotating captain and an advisor turn on the team channel; the brain's replay check covers move text
+(`replaysLine`, P112); Stockfish 10 (npm `stockfish.js`, GPL-3.0) scores finished runs in the lab
+(`pnpm lab:chess`), never in a live run, so its licence stays out of the packages. First comparison over six
+Haiku runs (two games each, cap 80 half-moves): engine ACPL 167 default, 80 with the legal list, 144 without a
+brain, 98 for teams (at 2.3 times the cost); details in [stories/chess/runs/](../../stories/chess/runs/README.md)
+and P113-P116.
 
 - **Mechanics needed.** Extend `grid-game` into a generic `board-game` with a rules module per game
   (placement, movement, capture); `move-validator` (the engine, not the model, checks legality);

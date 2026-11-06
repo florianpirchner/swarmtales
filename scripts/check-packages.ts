@@ -17,7 +17,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 const MECHANIC_IDS = [
 	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
-	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "draft-rounds", "chess",
+	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games", "card-table", "trick-play", "hint-towers", "draft-rounds", "chess",
 	"holdem",
 	"morris", "morris-referee",
 	"salt-market",
@@ -36,9 +36,12 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-econ-games": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	// The card games build on the card table and plug into the strategy brain (docs/ideas/game-roadmap.md §2.3).
 	"@swarmtales/mechanic-trick-play": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-card-table", "@swarmtales/mechanic-strategy-brain"],
+	// The hint towers (Harbor Lights) too.
+	"@swarmtales/mechanic-hint-towers": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-card-table", "@swarmtales/mechanic-strategy-brain"],
 	// The draft (Quarry) too.
 	"@swarmtales/mechanic-draft-rounds": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
-	"@swarmtales/mechanic-chess": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	// Chess plugs into the strategy brain and, with teams, the team chat.
+	"@swarmtales/mechanic-chess": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain", "@swarmtales/mechanic-team-channel"],
 	"@swarmtales/mechanic-holdem": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	// Nine men's morris: gated by consensus, chat rounds through the team channel, a brain through its source API.
 	"@swarmtales/mechanic-morris": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel", "@swarmtales/mechanic-strategy-brain"],

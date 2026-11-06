@@ -20,6 +20,7 @@ import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, ViewOf } from "@sw
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
+import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import type { Chess } from "chess.js";
 import { adjudicate, colourOf, endOf, EndReason, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "./model.ts";
 
@@ -35,6 +36,12 @@ const options = Type.Object({
 	maxForfeits: Type.Integer({ minimum: 0, default: 3, description: "Forfeit moves in one game that lose it; 0: never." }),
 	showLegalMoves: Type.Boolean({ default: false, description: "The position shown to the seat on move lists every legal move (off: the list comes only with a refused move)." }),
 	score: Type.Boolean({ default: true, description: "Score every move against the material baseline (`move_scored`, for the human)." }),
+	teams: Type.Optional(
+		Type.Record(Type.String(), Type.Array(Type.String(), { minItems: 1 }), {
+			description: "The two sides by name, each with its members in the order the captaincy rotates (one move each). Default: each of the two residents is a side of its own, named by its id.",
+		}),
+	),
+	wakeTeam: Type.Boolean({ default: false, description: "Every member of the side on move gets one turn per half-move to advise its captain in the team chat; false: only the captain has news." }),
 });
 
 const GameRecord = Type.Object({
@@ -52,7 +59,11 @@ const GameRecord = Type.Object({
 type GameRecord = Static<typeof GameRecord>;
 
 const ChessSlice = Type.Object({
+	/** The two sides by name (a solo side is named by its resident). */
 	seats: Type.Array(Type.String()),
+	members: Type.Record(Type.String(), Type.Array(Type.String())),
+	/** Moves each side has played in the running game; the captaincy rotates by it. */
+	taken: Type.Record(Type.String(), Type.Integer()),
 	game: Type.Integer(),
 	white: Type.String(),
 	black: Type.String(),
@@ -79,9 +90,17 @@ const head = defineHead({
 	summary: "A match of chess games between two solo seats; chess.js checks every move and ends the games.",
 	options,
 	state: (setup): ChessState => {
-		if (setup.residents.length !== 2) throw new Error(`chess: the match needs exactly two residents, not ${String(setup.residents.length)}`);
+		const teams = setup.options.teams ?? Object.fromEntries(setup.residents.map((id) => [id, [id]]));
+		const names = Object.keys(teams);
+		if (names.length !== 2) throw new Error(`chess: the match needs exactly two sides, not ${String(names.length)}`);
+		const members = Object.values(teams).flat();
+		if (new Set(members).size !== members.length) throw new Error("chess: a resident may play on one side only");
+		const unknown = members.find((id) => !setup.residents.includes(id));
+		if (unknown !== undefined) throw new Error(`chess: ${unknown} is not a resident of the run`);
 		return {
-			seats: [...setup.residents],
+			seats: names,
+			members: Object.fromEntries(Object.entries(teams).map(([name, list]) => [name, [...list]])),
+			taken: Object.fromEntries(names.map((name) => [name, 0])),
 			game: 0,
 			white: "",
 			black: "",
@@ -93,7 +112,7 @@ const head = defineHead({
 			illegal: {},
 			forfeits: {},
 			results: [],
-			scores: Object.fromEntries(setup.residents.map((id) => [id, 0])),
+			scores: Object.fromEntries(names.map((name) => [name, 0])),
 			running: false,
 			finished: false,
 			held: false,
@@ -131,7 +150,7 @@ const head = defineHead({
 	// The baseline's verdict and the refused attempts are for the human and the reporter only.
 	audiences: { move_scored: ["human"], move_refused: ["human"] },
 	provides: [BrainSourceApi],
-	uses: [StrategyBrainApi],
+	uses: [StrategyBrainApi, TeamChannelApi],
 	prompts: {
 		"chess/tools/viewBoard": [],
 		"chess/tools/playMove": [],
@@ -144,6 +163,7 @@ const head = defineHead({
 		"chess/how-to-move": [],
 		"chess/still-your-move": ["game", "moveNo"],
 		"chess/forfeit-warning": ["left"],
+		"chess/advise": ["colour", "captain"],
 	},
 });
 
@@ -155,10 +175,34 @@ const Reason = Type.Optional(Type.String({ maxLength: 400, description: "A short
 
 const capital = (colour: Colour): string => (colour === "white" ? "White" : "Black");
 
-/** The seat on move, or undefined when no game runs. */
-function moverOf(state: Readonly<ChessState>, chess: Chess): string | undefined {
+/** The side `resident` plays on, or undefined. */
+function teamOf(state: Readonly<ChessState>, resident: string | undefined): string | undefined {
+	if (resident === undefined) return undefined;
+	return state.seats.find((team) => state.members[team]?.includes(resident) === true);
+}
+
+/** The side on move, or undefined when no game runs. */
+function sideOnMove(state: Readonly<ChessState>, chess: Chess): string | undefined {
 	if (!state.running) return undefined;
 	return colourOf(chess) === "white" ? state.white : state.black;
+}
+
+/** The member of `team` who plays its next move: the captaincy rotates, one move each. */
+function captainOf(state: Readonly<ChessState>, team: string): string | undefined {
+	const members = state.members[team] ?? [];
+	return members[(state.taken[team] ?? 0) % Math.max(1, members.length)];
+}
+
+/** The resident who plays the next move (the captain of the side on move), or undefined when no game runs. */
+function moverOf(state: Readonly<ChessState>, chess: Chess): string | undefined {
+	const team = sideOnMove(state, chess);
+	return team === undefined ? undefined : captainOf(state, team);
+}
+
+/** How a side is named in texts: a solo side by its resident, a team as `team A (A01, A02)`. */
+function labelOf(state: Readonly<ChessState>, team: string): string {
+	const members = state.members[team] ?? [];
+	return members.length === 1 && members[0] === team ? team : `team ${team} (${members.join(", ")})`;
 }
 
 const boardNow = (state: Readonly<ChessState>): Chess => replay(state.moves);
@@ -191,8 +235,12 @@ function startGame(ctx: Ctx, game: number): void {
 	state.briefed = [];
 	state.illegal = {};
 	state.forfeits = {};
+	state.taken = Object.fromEntries(state.seats.map((team) => [team, 0]));
 	state.running = true;
 	ctx.emit("game_started", { game, white: state.white, black: state.black });
+	// A new game, a new chat: the teams' channels show nothing of the games before.
+	for (const team of state.seats) ctx.tryCall(TeamChannelApi, "newEpoch", { team });
+	ctx.tryCall(TeamChannelApi, "resetCap", { team: state.white });
 	ctx.tryCall(StrategyBrainApi, "gameStarted", { game, first: "" });
 	refreshLocks(ctx, boardNow(state));
 }
@@ -219,12 +267,23 @@ const REASON_TEXT: Readonly<Record<EndReason, string>> = {
 	resignation: "by resignation",
 };
 
+/** Every move of a game with the spellings a brain might copy it in: SAN and from-to (`Nf3`, `g1f3`). */
+function spellingsOf(moves: readonly string[]): string[][] {
+	const chess = replay([]);
+	return moves.map((san) => {
+		const move = chess.move(san);
+		return [...new Set([san.replace(/[+#]$/, ""), move.lan, `${move.from}-${move.to}`])];
+	});
+}
+
 /** The game's public result in one line, for the next briefings. */
-function summaryOf(record: GameRecord): string {
+function summaryOf(state: Readonly<ChessState>, record: GameRecord): string {
 	const moves = `after ${String(moveNoOf(record.plies - 1))} moves`;
 	const how = REASON_TEXT[record.reason];
-	if (record.result === "1/2-1/2") return `${record.white} (White) and ${record.black} (Black) drew ${how} ${moves}`;
-	const [winner, loser] = record.result === "1-0" ? [`${record.white} (White)`, `${record.black} (Black)`] : [`${record.black} (Black)`, `${record.white} (White)`];
+	const white = `${labelOf(state, record.white)} (White)`;
+	const black = `${labelOf(state, record.black)} (Black)`;
+	if (record.result === "1/2-1/2") return `${white} and ${black} drew ${how} ${moves}`;
+	const [winner, loser] = record.result === "1-0" ? [white, black] : [black, white];
 	return `${winner} beat ${loser} ${how} ${moves}`;
 }
 
@@ -257,7 +316,7 @@ function endGame(ctx: Ctx, result: Result, reason: EndReason, resigned?: string)
 	refreshLocks(ctx, chess);
 	const last = state.game >= ctx.options.games;
 	if (last) state.finished = true;
-	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: summaryOf(record) });
+	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: summaryOf(state, record), line: spellingsOf(record.moves) });
 	if (last) ctx.emit("match_ended", { scores: { ...state.scores } });
 	else ctx.schedule.at(ctx.minute + 1, "nextGame");
 }
@@ -269,9 +328,11 @@ function applyMove(ctx: Ctx, san: string, written: string, forfeit: boolean): st
 	const chess = boardNow(state);
 	const colour = colourOf(chess);
 	const by = moverOf(state, chess) ?? "";
+	const side = sideOnMove(state, chess);
 	const scored = ctx.options.score ? scoreMove(before, san) : undefined;
 	chess.move(san);
 	state.moves.push(san);
+	if (side !== undefined) state.taken[side] = (state.taken[side] ?? 0) + 1;
 	state.idle = 0;
 	state.told = [];
 	const ply = state.moves.length;
@@ -288,6 +349,8 @@ function applyMove(ctx: Ctx, san: string, written: string, forfeit: boolean): st
 		return `${san} played. Game ${String(state.game)} reached the move cap and is scored on material: ${result}.`;
 	}
 	refreshLocks(ctx, chess);
+	const next = sideOnMove(state, chess);
+	if (next !== undefined) ctx.tryCall(TeamChannelApi, "resetCap", { team: next });
 	return `${san} played${chess.inCheck() ? " (check)" : ""}. Now it is your opponent's move; end your turn.`;
 }
 
@@ -296,10 +359,28 @@ function problemWith(ctx: Ctx, resident: string | undefined): Refusal | undefine
 	const state = ctx.state;
 	if (state.finished) return refuse("MATCH_OVER", "The match is over.");
 	if (!state.running) return refuse("NO_GAME", "No game is running right now; wait for the next one.");
-	if (resident === undefined || !state.seats.includes(resident)) return refuse("NOT_A_SEAT", "You have no seat at this board.");
+	const team = teamOf(state, resident);
+	if (resident === undefined || team === undefined) return refuse("NOT_A_SEAT", "You have no seat at this board.");
 	const chess = boardNow(state);
-	if (moverOf(state, chess) !== resident) return refuse("NOT_YOUR_MOVE", "It is not your move; wait for your opponent.");
+	if (sideOnMove(state, chess) !== team) return refuse("NOT_YOUR_MOVE", "It is not your move; wait for your opponent.");
+	const captain = moverOf(state, chess);
+	if (captain !== resident) return refuse("NOT_CAPTAIN", `${captain ?? "Your captain"} plays this move for your side; advise in the team chat.`);
 	return undefined;
+}
+
+/**
+ * What a refused move is told: with `showLegalMoves` every legal move; otherwise only the legal moves of
+ * the piece the text names (its from-square, or its piece letter), so an illegal try cannot fetch the
+ * whole list the arm without it is meant to withhold (chess-02a-006).
+ */
+function refusalHint(ctx: Ctx, chess: Chess, written: string): string {
+	const legal = chess.moves({ verbose: true });
+	if (ctx.options.showLegalMoves) return `Legal moves: ${legal.map((move) => move.san).join(", ")}.`;
+	const from = /^\s*([a-h][1-8])/.exec(written)?.[1];
+	const letter = /^\s*([KQRBN])/.exec(written)?.[1]?.toLowerCase();
+	const own = legal.filter((move) => (from !== undefined ? move.from === from : letter !== undefined ? move.piece === letter : false));
+	if (from === undefined && letter === undefined) return "Write the move as SAN (Nf3) or from and to squares (g1f3).";
+	return own.length === 0 ? "That piece has no legal move now." : `Legal moves of that piece: ${own.map((move) => move.san).join(", ")}.`;
 }
 
 function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
@@ -312,8 +393,7 @@ function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
 		const count = (state.illegal[ctx.resident] ?? 0) + 1;
 		state.illegal[ctx.resident] = count;
 		ctx.emit("move_refused", { game: state.game, ply: state.moves.length + 1, colour: colourOf(chess), by: ctx.resident, written, count });
-		const legal = chess.moves().join(", ");
-		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. Legal moves: ${legal}.`);
+		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. ${refusalHint(ctx, chess, written)}`);
 	}
 	return reply(applyMove(ctx, move.san, written, false));
 }
@@ -323,15 +403,18 @@ function positionText(ctx: Ctx, resident: string | undefined, chess: Chess): str
 	const state = ctx.state;
 	const colour = colourOf(chess);
 	const material = materialOf(chess);
-	const own = resident === state.white ? "white" : resident === state.black ? "black" : undefined;
+	const team = teamOf(state, resident);
+	const own = team === undefined ? undefined : team === state.white ? "white" : "black";
+	const onMove = sideOnMove(state, chess);
+	const captain = onMove === undefined || (state.members[onMove]?.length ?? 0) < 2 ? "" : ` Captain of this move: ${moverOf(state, chess) ?? ""}.`;
 	const lines = [
-		`Game ${String(state.game)} of ${String(ctx.options.games)}. White: ${state.white}. Black: ${state.black}.${own === undefined ? "" : ` You play ${capital(own)}.`}`,
+		`Game ${String(state.game)} of ${String(ctx.options.games)}. White: ${labelOf(state, state.white)}. Black: ${labelOf(state, state.black)}.${own === undefined ? "" : ` You play ${capital(own)}.`}`,
 		"The board (White at the bottom; upper case White, lower case Black, '.' empty):",
 		chess.ascii().trimEnd(),
 		`FEN: ${chess.fen()}`,
 		`Moves so far: ${state.moves.length === 0 ? "none" : moveText(state.moves)}`,
 		`Material: White ${String(material.white)}, Black ${String(material.black)}.`,
-		`${capital(colour)} to move (move ${String(moveNoOf(state.moves.length))})${chess.inCheck() ? ", in check" : ""}.`,
+		`${capital(colour)} to move (move ${String(moveNoOf(state.moves.length))})${chess.inCheck() ? ", in check" : ""}.${captain}`,
 	];
 	if (ctx.options.showLegalMoves && resident !== undefined && moverOf(state, chess) === resident) lines.push(ctx.prompt("chess/legal-moves", { moves: chess.moves().join(", ") }));
 	return lines.join("\n");
@@ -339,7 +422,7 @@ function positionText(ctx: Ctx, resident: string | undefined, chess: Chess): str
 
 function boardText(ctx: Ctx, resident: string | undefined): string {
 	const state = ctx.state;
-	const scores = state.seats.map((seat) => `${seat} ${String(state.scores[seat] ?? 0)}`).join(", ");
+	const scores = state.seats.map((seat) => `${labelOf(state, seat)} ${String(state.scores[seat] ?? 0)}`).join(", ");
 	if (state.finished) return `The match is over. Points: ${scores}.`;
 	if (!state.running) return state.game === 0 ? "The first game has not started yet." : `Game ${String(state.game)} is over; the next one starts soon. Points: ${scores}.`;
 	return `${positionText(ctx, resident, boardNow(state))}\nPoints so far: ${scores}.`;
@@ -393,7 +476,7 @@ export const chess = defineMechanic(head, (kit) => ({
 				const refusal = problemWith(ctx, ctx.resident);
 				if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
 				const game = ctx.state.game;
-				endGame(ctx, ctx.resident === ctx.state.white ? "0-1" : "1-0", "resignation", ctx.resident);
+				endGame(ctx, teamOf(ctx.state, ctx.resident) === ctx.state.white ? "0-1" : "1-0", "resignation", ctx.resident);
 				return reply(`You resigned game ${String(game)}.`);
 			},
 		}),
@@ -422,20 +505,31 @@ export const chess = defineMechanic(head, (kit) => ({
 				startNext(ctx);
 			},
 		},
-		news: (resident, ctx) => ctx.state.running && moverOf(ctx.state, boardNow(ctx.state)) === resident,
+		news: (resident, ctx) => {
+			const state = ctx.state;
+			if (!state.running) return false;
+			const chess = boardNow(state);
+			if (moverOf(state, chess) === resident) return true;
+			return ctx.options.wakeTeam && teamOf(state, resident) === sideOnMove(state, chess) && !state.told.includes(resident);
+		},
 		turnInputs: {
 			order: HOOK_ORDER.turnInputs.chess,
 			run: (resident, ctx) => {
 				const state = ctx.state;
-				if (!state.running || !state.seats.includes(resident)) return [];
+				const team = teamOf(state, resident);
+				if (!state.running || team === undefined) return [];
 				const chess = boardNow(state);
 				const lines: string[] = [];
 				if (!state.briefed.includes(resident)) {
 					state.briefed.push(resident);
-					const white = resident === state.white;
-					lines.push(ctx.prompt("chess/rules", { game: state.game, games: ctx.options.games, colour: white ? "White" : "Black", opponent: white ? state.black : state.white, maxMoves: Math.ceil(ctx.options.maxPlies / 2) }));
+					const white = team === state.white;
+					lines.push(ctx.prompt("chess/rules", { game: state.game, games: ctx.options.games, colour: white ? "White" : "Black", opponent: labelOf(state, white ? state.black : state.white), maxMoves: Math.ceil(ctx.options.maxPlies / 2) }));
 				}
 				if (moverOf(state, chess) === resident) lines.push(...moverLines(ctx, resident, chess));
+				else if (ctx.options.wakeTeam && sideOnMove(state, chess) === team && !state.told.includes(resident)) {
+					state.told.push(resident);
+					lines.push(ctx.prompt("chess/advise", { colour: capital(colourOf(chess)), captain: moverOf(state, chess) ?? "" }), positionText(ctx, resident, chess));
+				}
 				return lines;
 			},
 		},
@@ -452,10 +546,11 @@ export const chess = defineMechanic(head, (kit) => ({
 			state.turnPly = -1;
 			state.idle += 1;
 			if (state.idle < ctx.options.maxIdleTurns) return;
-			const forfeits = (state.forfeits[resident] ?? 0) + 1;
-			state.forfeits[resident] = forfeits;
+			const team = teamOf(state, resident) ?? resident;
+			const forfeits = (state.forfeits[team] ?? 0) + 1;
+			state.forfeits[team] = forfeits;
 			if (ctx.options.maxForfeits > 0 && forfeits >= ctx.options.maxForfeits) {
-				endGame(ctx, resident === state.white ? "0-1" : "1-0", "forfeits");
+				endGame(ctx, team === state.white ? "0-1" : "1-0", "forfeits");
 				return;
 			}
 			// A running game always has a legal move: chess.js ends it at mate or stalemate.

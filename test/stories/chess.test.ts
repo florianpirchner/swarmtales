@@ -7,6 +7,8 @@ import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "
 import { parseMove, replay, scoreMove } from "../../mechanics/chess/src/model.ts";
 import { chessStory, type ChessOptions } from "../../stories/chess/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
+import { replaysLine } from "../../mechanics/strategy-brain/src/text.ts";
+import { analyseGame, classOf } from "../../lab/chess-analyse.ts";
 import { field, ofType } from "./tictactoe-support.ts";
 
 const as = residentActor;
@@ -48,7 +50,10 @@ const player: TurnTaker = async (turn) => {
 		expect(await turn.call("playMove", { move: "xyz" })).toMatchObject({ ok: false, code: "ILLEGAL_MOVE" });
 		const illegal = await turn.call("playMove", { move: "Ke2" });
 		expect(illegal).toMatchObject({ ok: false, code: "ILLEGAL_MOVE" });
-		expect(illegal.ok ? "" : (illegal.detail ?? "")).toContain("Legal moves:");
+		// Without the legal list, a refusal names only the moves of the piece the text names: never the whole list.
+		expect(illegal.ok ? "" : (illegal.detail ?? "")).toContain("That piece has no legal move now.");
+		const knight = await turn.call("playMove", { move: "g1e2" });
+		expect(knight.ok ? "" : (knight.detail ?? "")).toContain("Legal moves of that piece: Nf3, Nh3.");
 	}
 	await turn.call("playMove", { move, reason: "script" });
 };
@@ -90,12 +95,12 @@ describe("chess, scripted match", () => {
 			["A01", "1-0", "checkmate", 7],
 			["A02", "0-1", "checkmate", 4],
 		]);
-		expect(ended.map((event) => field(event, "illegal"))).toEqual([{ A01: 2 }, {}]);
+		expect(ended.map((event) => field(event, "illegal"))).toEqual([{ A01: 3 }, {}]);
 		expect(ended.map((event) => String(field(event, "pgn")))[1]).toContain("2. g4 Qh4#");
 		expect(ofType(run.events, "match_ended").map((event) => field(event, "scores"))).toEqual([{ A01: 2, A02: 0 }]);
 		// Refusals and the baseline's verdicts are for the human only.
 		const refused = ofType(run.events, "move_refused");
-		expect(refused.map((event) => field(event, "written"))).toEqual(["xyz", "Ke2"]);
+		expect(refused.map((event) => field(event, "written"))).toEqual(["xyz", "Ke2", "g1e2"]);
 		for (const type of ["move_refused", "move_scored"]) expect(ofType(run.events, type).every((event) => JSON.stringify(event.audience) === JSON.stringify(["human"]))).toBe(true);
 		expect(ofType(run.events, "move_scored").length).toBeGreaterThan(5);
 		// A first brain before game 1 and a new one after game 1, for each seat.
@@ -160,7 +165,7 @@ describe("chess, scripted match", () => {
 	});
 
 	it("is registered with its arms and named variants", () => {
-		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-nobrain-moves-g4-p120"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-teams", "chess-nobrain-moves-g4-p120", "chess-moves-teams-p60"]) expect(findCoreStory(name)?.story.id).toBe(name);
 		expect(findCoreStory("chess-g0")).toBeUndefined();
 	});
 
@@ -168,4 +173,65 @@ describe("chess, scripted match", () => {
 		expect(await checkDeterminism(options(), () => player)).toEqual([]);
 		for (const cut of [0, 2, 5]) expect(await checkSnapshotRoundTrip(options(), () => player, cut)).toEqual([]);
 	});
+});
+
+describe("chess teams", () => {
+	/** Game 1 (team A White) is the four-move mate; the captain plays it, the advisor posts first. */
+	const teamPlayer: TurnTaker = async (turn) => {
+		const told = turn.inputs.map((note) => note.text).join("\n");
+		if (told.includes("Retro after game") || told.includes("Before game 1")) {
+			if (told.includes("You are the retro captain")) await turn.call("writeBrain", { text: `${turn.resident}: develop, guard f7, check every capture.` });
+			else await turn.call("postTeam", { text: "keep it simple" });
+			return;
+		}
+		const view = await turn.call("viewBoard", {});
+		if (!view.ok) return;
+		const game = Number(/Game (\d+) of/.exec(view.reply)?.[1]);
+		const move = GAMES[game]?.[movesSoFar(view.reply)];
+		if (move === undefined) return;
+		if (told.includes("advise")) await turn.call("postTeam", { text: `play ${move}` });
+		else await turn.call("playMove", { move });
+	};
+
+	it("rotates the captaincy move by move, lets the advisor post, and refuses a move by the advisor", async () => {
+		const run = await playStory(options({ teams: true }), teamPlayer);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "chess.match" });
+		const game1 = ofType(run.events, "move_played").filter((event) => field(event, "game") === 1);
+		// White's captains alternate A01, A02; Black's A03, A04.
+		expect(game1.map((event) => field(event, "by"))).toEqual(["A01", "A03", "A02", "A04", "A01", "A03", "A02"]);
+		expect(ofType(run.events, "game_ended").map((event) => [field(event, "white"), field(event, "result")])).toEqual([
+			["A", "1-0"],
+			["B", "0-1"],
+		]);
+		expect(ofType(run.events, "match_ended").map((event) => field(event, "scores"))).toEqual([{ A: 2, B: 0 }]);
+		expect(ofType(run.events, "team_post").length).toBeGreaterThan(5);
+
+		const host = createHost(options({ teams: true, brain: false, games: 1 }));
+		host.start();
+		expect(await host.call(as("A02"), "playMove", { move: "e4" })).toMatchObject({ ok: false, code: "TOOL_LOCKED" });
+		expect(await host.call(as("A01"), "playMove", { move: "e4" })).toMatchObject({ ok: true });
+		const view = await host.call(as("A04"), "viewBoard", {});
+		expect(view.ok && view.reply).toContain("White: team A (A01, A02). Black: team B (A03, A04). You play Black.");
+		expect(view.ok && view.reply).toContain("Captain of this move: A03.");
+	});
+});
+
+describe("the brain's replay check for text moves", () => {
+	const line = [["e4", "e2e4"], ["e5", "e7e5"], ["Nf3", "g1f3"], ["Nc6", "b8c6"], ["Bb5", "f1b5"], ["a6", "a7a6"], ["Ba4", "b5a4"], ["Nf6", "g8f6"], ["O-O", "e1g1"]];
+	it("refuses eight half-moves of a game in a row, in SAN or from-to, and passes an opening named in words", () => {
+		expect(replaysLine("Play 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 again.", line, 8)).toBe(true);
+		expect(replaysLine("e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6", line, 8)).toBe(true);
+		expect(replaysLine("The Ruy Lopez with 1. e4 e5 2. Nf3 Nc6 worked; castle early.", line, 8)).toBe(false);
+		expect(replaysLine("e4 e5 Nf3 Nc6 Bb5 Nf6", line, 8)).toBe(false);
+	});
+});
+
+describe("the engine reference (Stockfish, lab)", () => {
+	it("scores a hanging queen as a blunder and the engine's own move as no loss", async () => {
+		const moves = ["e4", "d6", "Qg4", "Bxg4"].map((san, index) => ({ ply: index + 1, colour: index % 2 === 0 ? ("white" as const) : ("black" as const), by: index % 2 === 0 ? "A01" : "A02", san, forfeit: false }));
+		const plies = await analyseGame(moves, 6);
+		expect(plies[2]).toMatchObject({ san: "Qg4", class: "blunder" });
+		expect(plies[3]).toMatchObject({ san: "Bxg4", best: "Bxg4", loss: 0 });
+		expect(classOf(120)).toBe("mistake");
+	}, 30_000);
 });

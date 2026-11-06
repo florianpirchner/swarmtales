@@ -22,6 +22,9 @@
 		},
 		{
 			"path": "../strategy-brain"
+		},
+		{
+			"path": "../team-channel"
 		}
 	]
 }
