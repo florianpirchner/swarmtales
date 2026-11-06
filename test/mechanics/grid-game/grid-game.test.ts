@@ -8,6 +8,7 @@ import { ConsensusSourceApi } from "@swarmtales/mechanic-consensus";
 import { GridGameApi, gridGame, linesOf, winnerOf, type Cell } from "@swarmtales/mechanic-grid-game";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkOptionsDocumented, checkSnapshotRoundTrip, checkSourceRules, playStory } from "@swarmtales/testkit";
+import { renderBoard } from "../../../mechanics/grid-game/src/model.ts";
 import { field, hostOptions, matchStory, scriptedPlayer } from "./support.ts";
 
 const ofType = (events: readonly EventEnvelope[], type: string): readonly EventEnvelope[] => events.filter((event) => event.source === "grid-game" && event.type === type);
@@ -21,6 +22,12 @@ describe("the board rules", () => {
 		expect(winnerOf(board("O..O..O.."), lines)).toEqual({ side: "O", cells: [0, 3, 6] });
 		expect(winnerOf(board("..X.X.X.."), lines)?.cells).toEqual([2, 4, 6]);
 		expect(winnerOf(board("XOXOXOOXO"), lines)).toBeUndefined();
+	});
+
+	it("shows every cell as its mark plus its number, so a taken cell keeps its number", () => {
+		const board: Cell[] = [".", ".", "X", ".", "O", ".", ".", ".", "."];
+		expect(renderBoard(board, 3)).toBe(" 0  1 X2\n 3 O4  5\n 6  7  8");
+		expect(renderBoard(Array.from({ length: 16 }, (_, index) => (index === 10 ? "X" : ".")), 4)).toBe("  0   1   2   3\n  4   5   6   7\n  8   9 X10  11\n 12  13  14  15");
 	});
 
 	it("supports other board sizes and line lengths", () => {
