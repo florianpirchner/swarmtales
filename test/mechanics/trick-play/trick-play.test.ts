@@ -131,10 +131,51 @@ describe("a match", () => {
 		for (const seat of SEATS) {
 			const view = await host.call(`resident:${seat}`, "viewTable", {});
 			expect(view).toMatchObject({ ok: true });
-			expect(view.ok && view.reply.includes(`Your hand: ${renderHand(hands[seat] ?? [], SUITS)}`)).toBe(true);
+			// Only the seat on turn (A02, left of dealer A01) gets the table; the others a wait line.
+			if (seat === "A02") expect(view.ok && view.reply.includes(`Your hand: ${renderHand(hands[seat] ?? [], SUITS)}`)).toBe(true);
+			else expect(view).toEqual({ ok: true, reply: "Not your turn: waiting for A02. You get the full table in your input when it is your turn; do nothing until then." });
 			const hand = await host.call(`resident:${seat}`, "viewHand", {});
 			expect(hand).toEqual({ ok: true, reply: `Your hand: ${renderHand(hands[seat] ?? [], SUITS)}` });
 		}
+	});
+
+	it("does not count viewTable as a step against the step limit", async () => {
+		const host = createHost({ story: { ...trickStory(), limits: { maxStepsPerMinute: 2 } } });
+		host.start();
+		for (let look = 0; look < 5; look += 1) expect(await host.call("resident:A02", "viewTable", {})).toMatchObject({ ok: true });
+		expect(await host.call("resident:A02", "placeBid", { tricks: 0 })).toMatchObject({ ok: true });
+		expect(await host.call("resident:A03", "viewHand", {})).toMatchObject({ ok: true });
+		expect(await host.call("resident:A03", "viewHand", {})).toMatchObject({ ok: true });
+		expect(await host.call("resident:A03", "viewHand", {})).toMatchObject({ ok: false, code: "STEP_LIMIT" });
+	});
+
+	it("does not wake a seat again for the answer of its viewTable alone (activation onNews)", async () => {
+		const host = createHost({ story: trickStory(), awaitsAnswer: () => true });
+		const started: string[] = [];
+		host.subscribe((event) => {
+			if (event.type === "turn_started") started.push(String(field(event, "resident")));
+		});
+		host.start();
+		// Nobody acts, everyone looks: A02 (on turn) has news in every pass, the others step once and sleep.
+		await host.playMinute(async (turn) => {
+			await turn.call("viewTable", {});
+		});
+		expect(started.filter((seat) => seat === "A02")).toHaveLength(6);
+		for (const seat of ["A01", "A03", "A04"]) expect(started.filter((name) => name === seat)).toHaveLength(1);
+	});
+
+	it("shows the bid sum so far with bidSum", async () => {
+		const host = createHost({ story: trickStory({ games: 1, rounds: [3], bidSum: true }) });
+		host.start();
+		const first = await host.call("resident:A02", "viewTable", {});
+		expect(first.ok && first.reply).toContain("Tricks bid so far: 0 of the round's 3 (4 bid(s) still to come).");
+		await host.call("resident:A02", "placeBid", { tricks: 2 });
+		const next = await host.call("resident:A03", "viewTable", {});
+		expect(next.ok && next.reply).toContain("Tricks bid so far: 2 of the round's 3 (3 bid(s) still to come).");
+		const plain = createHost({ story: trickStory({ games: 1, rounds: [3] }) });
+		plain.start();
+		const view = await plain.call("resident:A02", "viewTable", {});
+		expect(view.ok && view.reply).not.toContain("Tricks bid so far");
 	});
 
 	it("refuses a round longer than the deck allows", () => {

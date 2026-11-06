@@ -28,6 +28,8 @@ export interface EmberTricksOptions {
 	readonly minutes?: number;
 	/** Words the notes may have. */
 	readonly maxWords?: number;
+	/** One bidding lever under test (P136): the bid sum so far on the table, or a calibration line in the end-of-game record. */
+	readonly lever?: "bidSum" | "calibration";
 }
 
 const SEATS = ["A01", "A02", "A03", "A04"];
@@ -40,23 +42,25 @@ const SUITS = [
 ];
 const DEFAULT_ROUNDS = [1, 2, 3, 4, 5, 6, 7, 8];
 
-/** The registered name: `ember-tricks[-nobrain][-g<games>][-r<last round>]`, the defaults left out. */
-function storyName(brain: boolean, games: number, rounds: readonly number[]): string {
+const LEVER_SUFFIX = { bidSum: "-sum", calibration: "-calib" } as const;
+
+/** The registered name: `ember-tricks[-nobrain][-sum|-calib][-g<games>][-r<last round>]`, the defaults left out. */
+function storyName(brain: boolean, lever: EmberTricksOptions["lever"], games: number, rounds: readonly number[]): string {
 	const plain = rounds.length === DEFAULT_ROUNDS.length && rounds.every((cards, index) => cards === DEFAULT_ROUNDS[index]);
-	return `ember-tricks${brain ? "" : "-nobrain"}${games === 2 ? "" : `-g${String(games)}`}${plain ? "" : `-r${String(rounds.length)}`}`;
+	return `ember-tricks${brain ? "" : "-nobrain"}${lever === undefined ? "" : LEVER_SUFFIX[lever]}${games === 2 ? "" : `-g${String(games)}`}${plain ? "" : `-r${String(rounds.length)}`}`;
 }
 
 /** The story with its variants as options. */
 export function emberTricksStory(options: EmberTricksOptions = {}) {
-	const { games = 2, rounds = DEFAULT_ROUNDS, brain = true, seed = 23, maxWords = 200 } = options;
+	const { games = 2, rounds = DEFAULT_ROUNDS, brain = true, seed = 23, maxWords = 200, lever } = options;
 	return defineCoreStory({
-		id: storyName(brain, games, rounds),
+		id: storyName(brain, lever, games, rounds),
 		seed,
 		minutes: options.minutes ?? games * (rounds.length * 6 + 6) + 6,
 		residents: [...SEATS],
 		mechanics: [
 			cardTable.with({ suits: SUITS, seats: SEATS }),
-			trickPlay.with({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true }),
+			trickPlay.with({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1, scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound: true, bidSum: lever === "bidSum", calibration: lever === "calibration" }),
 			strategyBrain.with({ enabled: brain, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 1, retroMaxMinutes: 2, shared: false, brainAtStart: false, solo: true }),
 		],
 		grants: { resident: ["viewTable", "placeBid", "nameTrump", "playCard", "vetoLead", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
@@ -76,14 +80,14 @@ function briefing(brain: boolean) {
 			"Each round: 1) Bidding, starting left of the dealer: each player bids how many tricks they will take, exactly (placeBid). Bids are public. 2) The player with the lowest bid (the earliest on a tie) names the trump suit (nameTrump). 3) Tricks: the first bidder leads; everyone must follow the suit led if they can, otherwise any card (playCard). The highest trump wins the trick, otherwise the highest card of the suit led. The winner leads the next trick.",
 			"Veto: once per game, right after a lead card and before you play, the player after the leader may spend the veto token (vetoLead): the lead card goes back and the leader must lead a different suit.",
 			"Scoring per round: taking exactly your bid scores 10 + 3 per trick taken; a miss costs 5 plus the square of the difference (bid 3, took 5: -9; bid 0, took 1: -6). The match has several games; the most points in a game wins it.",
-			"When it is your turn the table status in your input is current and complete: your hand, the bids, the trump, the trick and what you may do. Act at once with one tool call (placeBid, nameTrump, playCard or vetoLead); do not call viewTable first. When it is not your turn, do nothing.",
+			"When it is your turn the table status in your input is current and complete: your hand, the bids, the trump, the trick and what you may do. Act at once with one tool call (placeBid, nameTrump, playCard or vetoLead); do not call viewTable first. When it is not your turn, do nothing: viewTable then only says whose turn it is.",
 		];
 		if (brain) lines.push("You keep short notes across games (readBrain). After each game you rewrite them with writeBrain: rules that help you bid and play better next time, not a list of one game's cards.");
 		return lines.join("\n\n");
 	};
 }
 
-/** The registered entry: Haiku via Anthropic, two games, notes on. */
+/** The registered entry: Haiku via Anthropic, two games, notes on, no lever. */
 export function emberTricksEntry(options: EmberTricksOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? true;
 	return {

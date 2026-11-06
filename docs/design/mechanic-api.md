@@ -105,6 +105,7 @@ export const ledger = defineMechanic(head, (kit) => ({ ... }));
 | Presentation | `presentation: { resolve?(call), display?(text) }` | `resolve` rewrites raw arguments before `parse`; `display` formats every text a caller reads (replies, refusal details, turn inputs); in load order. Events keep ids |
 | Guard secrets | `guard: { secrets(resident, minRun), leaks?(text, secrets, minRun) }`; the guard model is a `GuardModel` (`core/consult.ts`) | at the `guard` stage of a resident's call (§4) |
 | Consult | a tool's `consult: { role, question, answer, ask(params, ctx) }`; `ask` may return `skipConsult(reason)` | at the `consult` stage; `execute` gets the parsed answer as its third argument, or `{ ok: false, reason: "skipped" }` without asking |
+| Free look | a tool's `free: true` | the gateway does not count the call as a step against the story's `limits.maxStepsPerMinute`; and with `activation: "onNews"` the look's answer alone wakes no further turn (news does); for read-only looks such as a table view |
 | Role variant | a tool's `serves: ["gamemaker"]` | the gateway picks the variant that serves the caller's role; two tools of one name may coexist when their `serves` do not overlap |
 | Pipeline handler | `pipeline: { lock, afford, rule, settle, after }`, for every tool call | at that stage, in load order |
 | Referee limit | `kit.limit(id, summary, (view) => reason \| undefined)` | after every turn and minute; a breach ends the run |

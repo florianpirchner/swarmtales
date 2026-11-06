@@ -107,6 +107,11 @@ export interface ToolDefinition<M extends MechanicShape, N extends string, P ext
 	 * caller is served by both: a resident's `post` and the gamemaker's may be two tools.
 	 */
 	readonly serves?: readonly GrantRole[];
+	/**
+	 * A read-only look: not counted as a step against the run's `maxStepsPerMinute`, and with
+	 * `activation: "onNews"` its answer alone does not wake the resident for another turn.
+	 */
+	readonly free?: boolean;
 	/** The tool's own program-checkable rule (stage `rule`). */
 	rule?(params: Static<P>, ctx: ToolContext<M>): Refusal | undefined;
 	/** The text a story guard checks (stage `guard`); without it a guard does not apply. */
@@ -142,6 +147,8 @@ export interface MechanicTool<N extends string = string> {
 	readonly suggest: readonly GrantRole[];
 	/** Undefined: every caller. */
 	readonly serves: readonly GrantRole[] | undefined;
+	/** Not counted as a step (`ToolDefinition.free`). */
+	readonly free?: boolean;
 	/** The role its `consult` asks and the answer schema it reads, for the loader's checks. */
 	readonly consult?: { readonly role: string; readonly answer: TSchema };
 	/** Undefined when the arguments do not match the schema. */
