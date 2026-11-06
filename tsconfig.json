@@ -41,6 +41,7 @@
 		{ "path": "mechanics/team-channel" },
 		{ "path": "mechanics/card-table" },
 		{ "path": "mechanics/trick-play" },
+		{ "path": "mechanics/hint-towers" },
 		{ "path": "mechanics/strategy-brain" },
 		{ "path": "mechanics/econ-games" },
 		{ "path": "mechanics/clue-grid" },

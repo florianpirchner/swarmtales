@@ -1,0 +1,37 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-06T20:55:52.944Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "harbor-lights-solo-g2",
+  "kind": "core",
+  "title": "Harbor Lights",
+  "effective": {
+    "agents": 4,
+    "minutes": 73,
+    "seed": 31
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

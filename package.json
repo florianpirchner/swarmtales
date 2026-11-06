@@ -56,6 +56,7 @@
     "@swarmtales/mechanic-morris": "workspace:*",
     "@swarmtales/mechanic-morris-referee": "workspace:*",
     "@swarmtales/mechanic-econ-games": "workspace:*",
+    "@swarmtales/mechanic-hint-towers": "workspace:*",
     "@swarmtales/mechanic-holdem": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
     "@swarmtales/mechanic-goals": "workspace:*",

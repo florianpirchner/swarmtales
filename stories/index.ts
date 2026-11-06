@@ -4,6 +4,7 @@ import chessMatch, { chessEntryByName } from "./chess/story.ts";
 import cityOfKeys from "./cityofkeys/story.ts";
 import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
+import harborLights, { harborLightsEntry, harborLightsEntryByName } from "./harbor-lights/story.ts";
 import quarry, { quarryEntry } from "./quarry/story.ts";
 import saltMarket, { saltMarketEntryByName } from "./salt-market/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
@@ -101,6 +102,10 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"holdem-mixed": holdemEntry({ brainSeats: ["A01", "A03"] }),
 	"holdem-hu": holdemEntry({ seats: 2 }),
 	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
+	// Harbor Lights, the cooperative hint game: a shared crew brain with a chat between games, private notes, or nothing.
+	"harbor-lights": harborLights,
+	"harbor-lights-solo": harborLightsEntry({ brain: "solo" }),
+	"harbor-lights-nobrain": harborLightsEntry({ brain: "nobrain" }),
 	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
 	"morris-teams": morrisTeams,
 	"morris-teams-nobrain": morrisEntry({ brain: false }),
@@ -180,5 +185,5 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id));
 }
