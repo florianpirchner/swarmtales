@@ -114,16 +114,16 @@ const head = defineHead({
 		"strategy-brain/briefing-none": [],
 		"strategy-brain/briefing-brain": ["version", "text"],
 		"strategy-brain/briefing-nobrain": [],
-		"strategy-brain/retro-open": ["game", "result", "captain", "words", "posts"],
-		"strategy-brain/retro-start": ["captain", "words", "posts"],
+		"strategy-brain/retro-open": ["game", "result", "captain", "words", "aim", "lines", "posts"],
+		"strategy-brain/retro-start": ["captain", "words", "aim", "lines", "posts"],
 		"strategy-brain/retro-current": ["text"],
 		"strategy-brain/retro-captain": [],
 		"strategy-brain/briefing-head-solo": ["game"],
 		"strategy-brain/empty-solo": [],
 		"strategy-brain/briefing-brain-solo": ["version", "text"],
 		"strategy-brain/briefing-nobrain-solo": [],
-		"strategy-brain/retro-open-solo": ["game", "result", "words"],
-		"strategy-brain/retro-start-solo": ["words"],
+		"strategy-brain/retro-open-solo": ["game", "result", "words", "aim", "lines"],
+		"strategy-brain/retro-start-solo": ["words", "aim", "lines"],
 	},
 });
 
@@ -231,11 +231,14 @@ function briefing(ctx: Ctx, resident: string): string {
 }
 
 function retroLines(ctx: Ctx, resident: string, team: string, window: Window): string[] {
-	const vars = { captain: window.captain, words: ctx.options.maxWords, posts: ctx.options.retroMaxPosts };
+	// P120: models overrun a word cap by 5-20 words; a lower aim and a line count keep them under it.
+	const aim = Math.max(1, Math.floor(ctx.options.maxWords * 0.8));
+	const lineCount = Math.max(2, Math.round(aim / 12));
+	const vars = { captain: window.captain, words: ctx.options.maxWords, aim, lines: lineCount, posts: ctx.options.retroMaxPosts };
 	const last = ctx.state.results.find((played) => played.game === window.game);
 	const first = window.game === 0 || last === undefined;
 	const lines = ctx.options.solo
-		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words })]
+		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words, aim, lines: lineCount }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words, aim, lines: lineCount })]
 		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));

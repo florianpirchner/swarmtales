@@ -21,6 +21,7 @@ const MECHANIC_IDS = [
 	"holdem",
 	"morris", "morris-referee",
 	"salt-market",
+	"clue-grid",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
@@ -44,6 +45,8 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-morris": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel", "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-morris-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-morris"],
 	"@swarmtales/mechanic-salt-market": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
+	// The word-clue game (Lanterns): chat rounds through the team channel, a brain through its source API.
+	"@swarmtales/mechanic-clue-grid": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain", "@swarmtales/mechanic-team-channel"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],

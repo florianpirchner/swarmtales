@@ -7,6 +7,7 @@ import emberTricks, { emberTricksEntry } from "./ember-tricks/story.ts";
 import quarry, { quarryEntry } from "./quarry/story.ts";
 import saltMarket, { saltMarketEntryByName } from "./salt-market/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
+import lanterns, { lanternsEntry, lanternsEntryByName } from "./lanterns/story.ts";
 import morrisTeams, { morrisEntry } from "./morris-teams/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
@@ -15,7 +16,7 @@ const econLabNobrain = econLabEntry({ brain: false });
 const econLabSingle = (game: "public-goods" | "ultimatum" | "dilemma") => econLabEntry({ blocks: [{ game, rounds: 12 }] });
 const quarryNobrain = quarryEntry({ brain: false });
 const quarryOpen = quarryEntry({ openHands: true });
-const quarryNoburn = quarryEntry({ burns: false });
+const quarryBurn = quarryEntry({ burns: true });
 const tictactoeNobrain = tictactoeEntry({ brain: false });
 const tictactoeBrainO = tictactoeEntry({ brainTeams: ["O"] });
 const tictactoe4x4 = tictactoeEntry({ size: 4, line: 4 });
@@ -31,7 +32,7 @@ export const STORIES: Readonly<Record<string, AnyStory>> = {
 };
 
 /** Earlier names of a story; snapshots and runs recorded before a rename still find it. */
-const ALIASES: Readonly<Record<string, string>> = { nexus: "cityofkeys" };
+const ALIASES: Readonly<Record<string, string>> = { nexus: "cityofkeys", "quarry-noburn": "quarry" };
 
 export function storyNames(): readonly string[] {
 	return Object.keys(STORIES);
@@ -89,8 +90,8 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	quarry,
 	"quarry-nobrain": quarryNobrain,
 	"quarry-open": quarryOpen,
-	// The control arm of P125: the same rules and place bonus, no burns.
-	"quarry-noburn": quarryNoburn,
+	// The hate-drafting arm: free burns (two a game), the default before P125.
+	"quarry-burn": quarryBurn,
 	// Two solo seats, chess.js as the legality filter; more variants by name (`chess-nobrain-moves-g4-p120`).
 	chess: chessMatch,
 	// Fixed-limit hold'em with duplicate deals and a private brain per seat: four-handed, heads-up, and the control arms.
@@ -105,6 +106,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"morris-teams-nobrain": morrisEntry({ brain: false }),
 	// The negotiation game: four traders, secret values and contracts, a bank; more variants by name (`salt-market-nobrain-g3-r8`).
 	"salt-market": saltMarket,
+	// Lanterns, the word-clue game: two teams of three, a rotating keeper, a team brain; the control arm keeps none.
+	lanterns,
+	"lanterns-nobrain": lanternsEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -176,5 +180,5 @@ function parseMorris(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id));
 }

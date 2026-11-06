@@ -36,6 +36,8 @@ export const HOOK_ORDER = {
 		morris: 0,
 		/** Salt Market starts game 1, after the brain's hold. */
 		saltMarket: 0,
+		/** The word-clue game (Lanterns) starts game 1, after the brain's hold. */
+		clueGrid: 0,
 		/** `whisperer_chosen` (world.ts:708), before the start points. */
 		whispers: 100,
 		/** The start points of every resident. */
@@ -128,6 +130,8 @@ export const HOOK_ORDER = {
 		holdem: 360,
 		/** Salt Market's rules, the round line and the trader's inbox, after the brain's context reset. */
 		saltMarket: 350,
+		/** The word-clue game's rules, record and clue or guess task (Lanterns), after the brain's context reset. */
+		clueGrid: 350,
 		/** The team channel's new posts. */
 		teamChannel: 400,
 		/** The consensus gate's vote requests and go-ahead. */
@@ -147,6 +151,8 @@ export const HOOK_ORDER = {
 		holdem: 160,
 		/** Salt Market's round clock (it may end a game and open a retro) comes before the brain's retro windows. */
 		saltMarket: 150,
+		/** The word-clue game's clue and guess deadline (it may end a game and open a retro) comes before the brain's retro windows. */
+		clueGrid: 150,
 		/** The strategy brain closes retro windows at the minute's end. */
 		strategyBrain: 200,
 		/** The standoff takes the situation it reports (writes nothing; T4b R2-8). */
