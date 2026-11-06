@@ -49,6 +49,13 @@ runner, story-neutral base prompt, context reset). Nothing below can start befor
 Four residents, repeated rounds of three classic experimental-economics games, in one story with
 the game as a parameter.
 
+**Built (2026-11-06, Flo's go):** story `econ-lab` ([stories/econ-lab/](../../stories/econ-lab/README.md)) on the
+new mechanic `econ-games` (sealed decisions, rotating pairs, payoffs and the reference score in one
+plugin; no separate `sealed-commit` or `payoff-table` was needed, `seal` is the City of Keys auction and
+unrelated) and the `strategy-brain`, which now plugs into any game through `BrainSourceApi` /
+`StrategyBrainApi` and has solo seats. Neutral framing (no game named), unknown horizon, no chat, no
+punishment round yet. No kernel change. Runs: [stories/econ-lab/runs/](../../stories/econ-lab/runs/README.md).
+
 - **Public goods game:** each of 4 gets an endowment, secretly contributes, the pool is multiplied
   (for example by 1.6) and shared equally. Optional: a costly-punishment round.
 - **Ultimatum game:** proposer splits a sum, responder accepts or rejects (both get nothing).

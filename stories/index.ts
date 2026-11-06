@@ -1,9 +1,12 @@
 /** Registry of shipped stories, by name (`pnpm start --story <name>`). */
 import type { AnyStory, CoreStory, Host, ModelChoice, ResidentId } from "@swarmtales/contracts";
 import cityOfKeys from "./cityofkeys/story.ts";
+import econLab, { econLabEntry } from "./econ-lab/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
 
+const econLabNobrain = econLabEntry({ brain: false });
+const econLabSingle = (game: "public-goods" | "ultimatum" | "dilemma") => econLabEntry({ blocks: [{ game, rounds: 12 }] });
 const tictactoeNobrain = tictactoeEntry({ brain: false });
 const tictactoeBrainO = tictactoeEntry({ brainTeams: ["O"] });
 const tictactoe4x4 = tictactoeEntry({ size: 4, line: 4 });
@@ -63,6 +66,13 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	// The 4x4 board with four in a row (a draw with best play), with and without the brain.
 	"tictactoe-teams-4x4": tictactoe4x4,
 	"tictactoe-teams-4x4-nobrain": tictactoe4x4Nobrain,
+	// Three economics games in a row with a private brain per seat; the control arm keeps none.
+	"econ-lab": econLab,
+	"econ-lab-nobrain": econLabNobrain,
+	// One game alone, twelve rounds (each seat proposes six times in the split offer); the brain is written once, before it.
+	"econ-lab-ultimatum": econLabSingle("ultimatum"),
+	"econ-lab-public-goods": econLabSingle("public-goods"),
+	"econ-lab-dilemma": econLabSingle("dilemma"),
 };
 
 export function coreStoryNames(): readonly string[] {

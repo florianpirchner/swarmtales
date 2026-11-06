@@ -48,6 +48,7 @@
     "@swarmtales/mechanic-channels": "workspace:*",
     "@swarmtales/mechanic-consensus": "workspace:*",
     "@swarmtales/mechanic-motives": "workspace:*",
+    "@swarmtales/mechanic-econ-games": "workspace:*",
     "@swarmtales/mechanic-exile": "workspace:*",
     "@swarmtales/mechanic-goals": "workspace:*",
     "@swarmtales/mechanic-grid-game": "workspace:*",

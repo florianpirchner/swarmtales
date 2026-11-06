@@ -17,7 +17,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 const MECHANIC_IDS = [
 	"names", "ledger", "marks", "receipts", "whispers", "channels", "petitions", "cast", "motives", "puzzles",
 	"progression", "goals", "script", "arena", "standoff", "exile", "tribunal", "seal", "standoff-tribunal",
-	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain",
+	"consensus", "team-channel", "grid-game", "optimal-referee", "strategy-brain", "econ-games",
 ] as const;
 const MECHANIC_DEPENDENCIES = ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/mechanic-shared"] as const;
 
@@ -28,6 +28,8 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-grid-game": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-consensus", "@swarmtales/mechanic-team-channel"],
 	"@swarmtales/mechanic-optimal-referee": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-grid-game"],
 	"@swarmtales/mechanic-strategy-brain": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-grid-game", "@swarmtales/mechanic-team-channel"],
+	// The economics games plug into the strategy brain through its source API.
+	"@swarmtales/mechanic-econ-games": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
