@@ -116,6 +116,8 @@ export const HOOK_ORDER = {
 		strategyBrain: 300,
 		/** The economics games' rules and decision requests, after the brain's context reset. */
 		econGames: 350,
+		/** Nine men's morris tells the captain on move that it is on move, after the brain's context reset (P104). */
+		morris: 350,
 		/** Trick play's game record and table status, after the brain's context reset. */
 		trickPlay: 350,
 		/** The draft's rules and pick requests (Quarry), after the brain's context reset. */

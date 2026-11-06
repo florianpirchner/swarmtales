@@ -102,6 +102,8 @@ interface MorrisState {
 	held: boolean;
 	due: boolean;
 	invalid?: boolean;
+	/** The last turn the captain on move was told about ("game:turn:removing:minute"), so it is told once per turn and minute. */
+	told?: string;
 }
 
 const MorrisSlice = Type.Object({
@@ -123,6 +125,7 @@ const MorrisSlice = Type.Object({
 	held: Type.Boolean(),
 	due: Type.Boolean(),
 	invalid: Type.Optional(Type.Boolean()),
+	told: Type.Optional(Type.String()),
 });
 
 const head = defineHead({
@@ -446,6 +449,19 @@ export const morris = defineMechanic(head, (kit) => ({
 				startNext(ctx);
 			},
 		},
+		// The captain on move is told so once per turn and minute: a resident that ended its turn on a stale board ("still X's turn") gets no new input otherwise, so the runner never asks its model again and the move forfeits (P104).
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.morris,
+			run: (resident, ctx) => {
+				const state = ctx.state;
+				if (!state.running || captainOf(state) !== resident) return [];
+				const key = `${String(state.game)}:${String(state.turnNo)}:${String(state.removing)}:${String(ctx.minute)}`;
+				if (state.told === key) return [];
+				state.told = key;
+				const task = state.removing ? "your side closed a mill and must name the opposing piece to remove" : `turn ${String(state.turnNo + 1)}`;
+				return [`Side ${state.side} is on move (${task}); you are its captain. viewBoard shows the board and the legal moves.`];
+			},
+		},
 		news: (resident, ctx) => (ctx.options.wakeTeam && ctx.state.running ? ctx.state.teams[ctx.state.side].includes(resident) : captainOf(ctx.state) === resident),
 	},
 	jobs: {
@@ -480,6 +496,7 @@ export const morris = defineMechanic(head, (kit) => ({
 			held: state.held,
 			due: state.due,
 			...(state.invalid === true ? { invalid: true } : {}),
+			...(state.told === undefined ? {} : { told: state.told }),
 		}),
 		load: (data) => ({
 			teams: { X: [...data.teams.X], O: [...data.teams.O] },
@@ -500,6 +517,7 @@ export const morris = defineMechanic(head, (kit) => ({
 			held: data.held,
 			due: data.due,
 			...(data.invalid === true ? { invalid: true } : {}),
+			...(data.told === undefined ? {} : { told: data.told }),
 		}),
 	}),
 }));
