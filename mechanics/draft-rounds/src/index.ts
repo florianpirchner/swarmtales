@@ -53,7 +53,8 @@ const options = Type.Object({
 	packSize: Type.Integer({ minimum: 2, maximum: 15, default: 6, description: "Cards in a pack." }),
 	wilds: Type.Integer({ minimum: 0, default: 4, description: "Lodestones (wild ore) in a game's deck; the rest is split over the four resources." }),
 	majorityBonus: Type.Integer({ minimum: 0, default: 5, description: "Points for strictly the most cards of a resource (wilds do not count; a tie scores nothing)." }),
-	burnCost: Type.Integer({ minimum: 0, default: 2, description: "Points a burn costs." }),
+	burnCost: Type.Integer({ minimum: 0, default: 0, description: "Points a burn costs (0 since P123: bots showed a burn pays only when it is free and late)." }),
+	placeBonus: Type.Array(Type.Integer({ minimum: 0 }), { maxItems: 8, default: [10, 5], description: "Points per game for the first, second, ... place by the score before this bonus; a tie shares the better place. Empty: none." }),
 	maxBurns: Type.Integer({ minimum: 0, default: 2, description: "Burns a seat may make per game." }),
 	openHands: Type.Boolean({ default: false, description: "Every seat sees every quarry during the game (off: only at the game's end)." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a pick stays open before a missing pick takes the first card of the pack." }),
@@ -106,7 +107,7 @@ const head = defineHead({
 	prompts: {
 		"draft-rounds/tools/viewTable": [],
 		"draft-rounds/tools/pick": [],
-		"draft-rounds/rules": ["seats", "games", "packs", "packSize", "deck", "majorityBonus", "maxBurns", "burnCost"],
+		"draft-rounds/rules": ["seats", "games", "packs", "packSize", "deck", "majorityBonus", "maxBurns", "burnCost", "places"],
 		"draft-rounds/game-head": ["game", "games"],
 		"draft-rounds/task-pick": ["pack", "packs", "step", "from", "cards", "quarry", "burns", "burnCost", "receiver"],
 	},
@@ -116,7 +117,7 @@ type Ctx = ContextOf<typeof head>;
 type ToolCtx = ToolContextOf<typeof head>;
 type View = ViewOf<typeof head>;
 
-const rulesOf = (ctx: Ctx): Rules => ({ majorityBonus: ctx.options.majorityBonus, burnCost: ctx.options.burnCost });
+const rulesOf = (ctx: Ctx): Rules => ({ majorityBonus: ctx.options.majorityBonus, burnCost: ctx.options.burnCost, placeBonus: ctx.options.placeBonus });
 
 const deckSize = (ctx: Ctx): number => ctx.state.seats.length * ctx.options.packs * ctx.options.packSize;
 
@@ -330,9 +331,16 @@ function pickNow(ctx: Ctx, resident: string | undefined, card: string, burn: str
 	return reply(`${done} Wait for the next pack.`);
 }
 
+/** The place bonus in words: `the best quarry of the game gets 10 more points, the second 5`. */
+function placesLine(ctx: Ctx): string {
+	const names = ["best", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth"];
+	const parts = ctx.options.placeBonus.map((points, index) => (index === 0 ? `the ${names[index] ?? ""} quarry of the game gets ${String(points)} more points` : `the ${names[index] ?? ""} ${String(points)}`)).filter((_, index) => (ctx.options.placeBonus[index] ?? 0) > 0);
+	return parts.length === 0 ? "No bonus for places." : `By the score so far, ${parts.join(", ")} (a tie shares the better place).`;
+}
+
 function rulesText(ctx: Ctx): string {
 	const { games, packs, packSize, majorityBonus, maxBurns, burnCost } = ctx.options;
-	return ctx.prompt("draft-rounds/rules", { seats: ctx.state.seats.length, games, packs, packSize, deck: deckLine(ctx), majorityBonus, maxBurns, burnCost });
+	return ctx.prompt("draft-rounds/rules", { seats: ctx.state.seats.length, games, packs, packSize, deck: deckLine(ctx), majorityBonus, maxBurns, burnCost, places: placesLine(ctx) });
 }
 
 /** The pick `resident` is asked for now, or undefined. */
@@ -380,7 +388,7 @@ export const draftRounds = defineMechanic(head, (kit) => ({
 			description: "draft-rounds/tools/pick",
 			parameters: Type.Object({
 				card: Type.String({ minLength: 1, maxLength: 8, description: "The id of the card you keep (for example A3)." }),
-				burn: Type.Optional(Type.String({ maxLength: 8, description: "Optional: the id of a second card of the pack to destroy before the pack moves on (costs points, limited per game)." })),
+				burn: Type.Optional(Type.String({ maxLength: 8, description: "Optional: the id of a second card of the pack to destroy before the pack moves on (limited per game)." })),
 				reason: Type.Optional(Type.String({ maxLength: 400, description: "A short reason, for the record." })),
 			}),
 			suggest: ["resident"],

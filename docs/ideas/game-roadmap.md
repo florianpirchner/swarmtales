@@ -132,7 +132,8 @@ no separate `card-table` or `tableau-scorer`: it was built in parallel with Embe
 and packs onto `card-table` is a follow-up). Rules as
 built: four resources (amber, basalt, cobalt, jade) scored as squares, a wild lodestone (at most one per set,
 on the biggest sets), 5 points for strictly the most of a resource (a tie scores nothing), up to two burns
-per game at 2 points each, 2 pack rounds of 6 cards, passing direction turns. The "last card passed decides
+per game (free since the P123 bot test, 2 points in the first run), a place bonus of 10/5 per game (also
+since P123), 2 pack rounds of 6 cards, passing direction turns. The "last card passed decides
 a tie-break" idea below was dropped for the majority bonus, which gives hate-drafting a clearer target.
 Solo seats with the strategy brain (`BrainSourceApi` / `StrategyBrainApi`), no chat, no kernel change. Runs:
 [stories/quarry/runs/](../../stories/quarry/runs/README.md).

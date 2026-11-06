@@ -17,6 +17,8 @@ export interface Rules {
 	readonly majorityBonus: number;
 	/** Points a burn costs. */
 	readonly burnCost: number;
+	/** Points for the places of a game by the score before this bonus: first, second, ...; a tie gets the better place's bonus. Empty: none. */
+	readonly placeBonus: readonly number[];
 }
 
 /**
@@ -79,20 +81,31 @@ export const Breakdown = Type.Object({
 	majorities: Type.Array(Kind, { description: "The resources this seat holds strictly the most of." }),
 	bonus: Type.Number(),
 	burns: Type.Integer(),
+	place: Type.Integer({ description: "The place by the score before the place bonus, from 1; tied seats share the better place." }),
+	placeBonus: Type.Number(),
 	total: Type.Number(),
 });
 export type Breakdown = Static<typeof Breakdown>;
 
-/** The final score of every seat: sets, plus the majority bonuses, minus the burns. */
+/**
+ * The final score of every seat: sets, plus the majority bonuses, minus the burns, plus the place bonus
+ * of the seat's place by that score (the place bonus is what makes denial pay: a burn costs the burner
+ * nothing it would have kept only when the pack cannot come back to it, and it pays only against rivals).
+ */
 export function scoreTable(hands: Readonly<Record<string, readonly Card[]>>, burns: Readonly<Record<string, number>>, rules: Rules): Record<string, Breakdown> {
 	const leaders = new Map(RESOURCES.map((kind) => [kind, majorityOf(hands, kind)]));
+	const base = Object.entries(hands).map(([seat, hand]) => {
+		const sets = setScore(hand);
+		const majorities = RESOURCES.filter((kind) => leaders.get(kind) === seat);
+		const bonus = majorities.length * rules.majorityBonus;
+		const burned = burns[seat] ?? 0;
+		return { seat, sets, majorities, bonus, burns: burned, subtotal: sets + bonus - burned * rules.burnCost };
+	});
 	return Object.fromEntries(
-		Object.entries(hands).map(([seat, hand]) => {
-			const sets = setScore(hand);
-			const majorities = RESOURCES.filter((kind) => leaders.get(kind) === seat);
-			const bonus = majorities.length * rules.majorityBonus;
-			const burned = burns[seat] ?? 0;
-			return [seat, { sets, majorities, bonus, burns: burned, total: sets + bonus - burned * rules.burnCost }];
+		base.map(({ seat, subtotal, ...rest }) => {
+			const place = 1 + base.filter((other) => other.subtotal > subtotal).length;
+			const placeBonus = rules.placeBonus[place - 1] ?? 0;
+			return [seat, { ...rest, place, placeBonus, total: subtotal + placeBonus }];
 		}),
 	);
 }
