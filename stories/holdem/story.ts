@@ -23,6 +23,8 @@ export interface HoldemOptions {
 	readonly hands?: number;
 	/** Each seat keeps a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
+	/** Only these seats keep a brain (a mixed table: brain against no brain on the same duplicate cards); the others get the no-brain briefing. Needs `brain` on. */
+	readonly brainSeats?: readonly ResidentId[];
 	/** Replay the same deals in every game with the seats moved (default on). */
 	readonly duplicate?: boolean;
 	/** Words a brain may have. */
@@ -43,8 +45,8 @@ function seatsOf(count: number): ResidentId[] {
 	return Array.from({ length: count }, (_, index) => `A${String(index + 1).padStart(2, "0")}`);
 }
 
-function storyName(seats: number, brain: boolean): string {
-	return `holdem${seats === 2 ? "-hu" : seats === 4 ? "" : `-${String(seats)}max`}${brain ? "" : "-nobrain"}`;
+function storyName(seats: number, brain: boolean, mixed: boolean): string {
+	return `holdem${seats === 2 ? "-hu" : seats === 4 ? "" : `-${String(seats)}max`}${brain ? (mixed ? "-mixed" : "") : "-nobrain"}`;
 }
 
 /** The story with its variants as options. */
@@ -54,16 +56,18 @@ export function holdemStory(options: HoldemOptions = {}) {
 	const games = options.games ?? seats;
 	const hands = options.hands ?? (seats === 2 ? 12 : 8);
 	const residents = seatsOf(seats);
+	const brainSeats = brain ? options.brainSeats : undefined;
+	if (brainSeats?.some((seat) => !residents.includes(seat)) === true) throw new Error("holdem story: a brain seat is not at the table");
 	// An upper bound: a hand rarely needs more than four minutes even with every deadline run out.
 	const minutes = options.minutes ?? games * hands * 6 + (games + 1) * RETRO_MINUTES + 4;
 	return defineCoreStory({
-		id: storyName(seats, brain),
+		id: storyName(seats, brain, brainSeats !== undefined),
 		seed,
 		minutes,
 		residents,
 		mechanics: [
 			holdem.with({ games, hands, duplicate, deadline: DEADLINE, ...(options.equitySamples === undefined ? {} : { equitySamples: options.equitySamples }) }),
-			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(residents.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
+			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(residents.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true, ...(brainSeats === undefined ? {} : { brainTeams: [...brainSeats] }) }),
 		],
 		grants: { resident: ["viewTable", "act", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
 		locked: ["act", ...(brain ? (["writeBrain"] as const) : [])],
@@ -73,8 +77,9 @@ export function holdemStory(options: HoldemOptions = {}) {
 	});
 }
 
-function briefing(brain: boolean, seats: number) {
+function briefing(brain: boolean, seats: number, brainSeats: readonly ResidentId[] | undefined) {
 	return (resident: ResidentId): string => {
+		const keeps = brain && (brainSeats === undefined || brainSeats.includes(resident));
 		const others = seatsOf(seats)
 			.filter((seat) => seat !== resident)
 			.join(", ");
@@ -82,7 +87,7 @@ function briefing(brain: boolean, seats: number) {
 			`You are ${resident}, a player at a poker table (the others: ${others}). The session is a match of several games of fixed-limit Texas Hold'em, each game a number of hands. Every point you win in any hand counts toward your score; the aim is the most points over the whole match. At the start of each game you are given the rules, and each game starts from a fresh mind.`,
 			"When it is your turn you are told your cards, the board, the pot and what you may do; act with the act tool (fold, check, call, bet or raise) and a short reason, which the other players never see. viewTable shows the table at any time. When it is not your turn, end your turn. There is no table talk.",
 		];
-		if (brain) lines.push("You keep a strategy brain: a short private text (readBrain) that only you read. Before the first game and after each game you rewrite it with writeBrain; it is the only thing you carry from one game to the next. Write the rules you want to play by (which hands to play from which position, when to bet, raise, call or fold, what you noticed about the other players), not a list of what happened.");
+		if (keeps) lines.push("You keep a strategy brain: a short private text (readBrain) that only you read. Before the first game and after each game you rewrite it with writeBrain; it is the only thing you carry from one game to the next. Write the rules you want to play by (which hands to play from which position, when to bet, raise, call or fold, what you noticed about the other players), not a list of what happened.");
 		return lines.join("\n\n");
 	};
 }
@@ -95,7 +100,7 @@ export function holdemEntry(options: HoldemOptions = {}): CoreStoryEntry {
 		title: seats === 2 ? "Hold'em heads-up" : "Hold'em",
 		story: holdemStory(options),
 		model: { provider: "anthropic", id: "claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS },
-		briefing: briefing(brain, seats),
+		briefing: briefing(brain, seats, options.brainSeats),
 		fixedRoster: `the ${String(seats)} seats are fixed (A01-A${String(seats).padStart(2, "0")}); pick the table size by story name`,
 	};
 }

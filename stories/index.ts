@@ -95,6 +95,8 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	// Fixed-limit hold'em with duplicate deals and a private brain per seat: four-handed, heads-up, and the control arms.
 	holdem,
 	"holdem-nobrain": holdemEntry({ brain: false }),
+	// A mixed table: A01 and A03 keep a brain, A02 and A04 do not, on the same duplicate cards.
+	"holdem-mixed": holdemEntry({ brainSeats: ["A01", "A03"] }),
 	"holdem-hu": holdemEntry({ seats: 2 }),
 	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
 	// Nine men's morris with the tic-tac-toe teams setup; the control arm keeps no brain.
