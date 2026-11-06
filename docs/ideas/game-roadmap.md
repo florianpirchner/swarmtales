@@ -316,9 +316,10 @@ No kernel change. Rules as built:
   a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
 - **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
 - **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
-  team a point); -3 per shadow a team reveals (not an instant loss); +1 per **landed** clue (number 2 or more,
-  its first `number` guesses all own words); +3 for the team whose words are all revealed first, which ends
-  the game; otherwise the game ends after 8 clues per team. A match is the sum over games.
+  team a point); -3 per shadow a team reveals (not an instant loss); for a **landed** clue (number 2 or more,
+  its first `number` guesses all own words) +1 per word beyond the first; +3 for the team whose words are
+  all revealed first, which ends the game; otherwise the game ends after 5 clues per team (+1 per landed
+  clue and 8 clues before P191). A match is the sum over games.
 - **Reference.** No solver: word association has no exact answer. The measure is **intent transfer**: the
   keeper's declared targets against what the seekers revealed (recall = target hits over the clue numbers,
   precision = own hits over guesses), per team and game in `clue_game_scored` (audience `human`).
