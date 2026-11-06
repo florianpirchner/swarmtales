@@ -1,6 +1,6 @@
 # Tic-tac-toe teams: a small real game with a learning "strategy brain"
 
-Status: **Flo gave the go on 2026-11-03; first version built** (mechanics `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`; story `tictactoe-teams`; core-story runner, neutral prompt and context reset). Not yet built: the biased Gamemaker, E3/E6 forks, brain statistics, resume on the core-story path. Live runs: 44 matches so far, listed in [stories/tictactoe-teams/runs/](../../stories/tictactoe-teams/runs/README.md); results in section 14.
+Status: **Flo gave the go on 2026-11-03; first version built** (mechanics `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee`; story `tictactoe-teams`; core-story runner, neutral prompt and context reset). Not yet built: the biased Gamemaker, E3/E6 forks, brain statistics, resume on the core-story path. Live runs: 72 matches so far, listed in [stories/tictactoe-teams/runs/](../../stories/tictactoe-teams/runs/README.md); results in section 14.
 Per the brainstorm-first rule, code starts only after Flo's explicit go. Everything marked "proposal" or
 "open" is for Flo to decide.
 
@@ -341,3 +341,4 @@ Nothing here is proof; every arm has 2 or 3 matches of 3 games. Details, costs a
 - **Asymmetric 3x3** (Haiku X vs Gemma O): all 14 X wins contain a forfeited Gemma move; every scored Gemma move that was actually played was optimal. No brain effect.
 - **Process:** matches run in parallel (up to 14 at once) at 0.05-0.33 USD each; a container restart kills background runs and the core-story path has no resume (P87).
 - **Next, not built:** a fixed captain per team (fixes P86), 5x5 with Haiku in a larger sample, the biased Gamemaker, personas. Combinations are started by name: `swt run --story tictactoe-teams-5x5-nobrain-r6` (see the story README).
+- **GLM-5.3-flash instead of Gemma (28 matches, 2026-11-06):** GLM plays the protocol to the end (0.5, 2 and 4.5 forfeits per match on 3x3, 4x4, 5x5, P88). It draws 3x3 and 4x4 like Haiku; on 5x5 Haiku beats GLM in 9 of 12 games and GLM vs GLM decides most games, partly through forfeits. No brain effect can be told from noise. Cost 6.88 USD on OpenRouter, GLM vs GLM on 5x5 takes up to 100 minutes per match. See `stories/tictactoe-teams/runs/tictactoe-teams-06a-008-glm-matrix/`.

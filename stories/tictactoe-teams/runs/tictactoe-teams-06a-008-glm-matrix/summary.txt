@@ -1,0 +1,28 @@
+3x3 glmO brain 3x3-glmO-brain-s1 res dXX ff {'O': 1} scored {'optimal': 11, 'missed_block': 1, 'blunder': 1} cost 0.10 (X 0.03 O 0.07) req 370 min 19
+3x3 glmO brain 3x3-glmO-brain-s2 res Xdd ff {'O': 1} scored {'optimal': 13, 'blunder': 1} cost 0.13 (X 0.03 O 0.10) req 405 min 24
+3x3 glmO brain 3x3-glmO-brain-s3 res ddd ff {} scored {'optimal': 15} cost 0.13 (X 0.04 O 0.09) req 432 min 24
+3x3 glmO nobrain 3x3-glmO-nobrain-s1 res XdX ff {'O': 1} scored {'optimal': 11, 'blunder': 2} cost 0.06 (X 0.02 O 0.04) req 305 min 13
+3x3 glmO nobrain 3x3-glmO-nobrain-s2 res ddX ff {} scored {'optimal': 14, 'missed_block': 1} cost 0.07 (X 0.03 O 0.05) req 374 min 13
+3x3 glmO nobrain 3x3-glmO-nobrain-s3 res ddd ff {} scored {'optimal': 15} cost 0.07 (X 0.02 O 0.05) req 396 min 15
+3x3 glmboth brain 3x3-glmboth-brain-s1 res ddX ff {'O': 1} scored {'optimal': 14, 'missed_block': 1} cost 0.17 (X 0.07 O 0.10) req 439 min 28
+3x3 glmboth brain 3x3-glmboth-brain-s2 res dXd ff {'O': 1} scored {'optimal': 13, 'missed_block': 1} cost 0.14 (X 0.07 O 0.07) req 405 min 24
+3x3 glmboth brain 3x3-glmboth-brain-s3 res ddd ff {'X': 1} scored {'optimal': 12, 'blunder': 2} cost 0.14 (X 0.07 O 0.07) req 414 min 28
+3x3 glmboth nobrain 3x3-glmboth-nobrain-s1 res ddd ff {} scored {'optimal': 15} cost 0.13 (X 0.05 O 0.07) req 396 min 22
+3x3 glmboth nobrain 3x3-glmboth-nobrain-s2 res ddX ff {} scored {'optimal': 13, 'blunder': 1} cost 0.11 (X 0.06 O 0.05) req 383 min 27
+3x3 glmboth nobrain 3x3-glmboth-nobrain-s3 res XOd ff {} scored {'optimal': 12, 'blunder': 2} cost 0.08 (X 0.04 O 0.04) req 323 min 17
+4x4 glmO brain 4x4-glmO-brain-s1 res ddd ff {'O': 3} scored {'optimal': 4} cost 0.35 (X 0.10 O 0.26) req 756 min 52
+4x4 glmO brain 4x4-glmO-brain-s2 res Xdd ff {} scored {'missed_block': 1, 'optimal': 3} cost 0.32 (X 0.07 O 0.25) req 619 min 52
+4x4 glmO nobrain 4x4-glmO-nobrain-s1 res ddd ff {'O': 1} scored {'optimal': 4} cost 0.23 (X 0.07 O 0.15) req 685 min 32
+4x4 glmO nobrain 4x4-glmO-nobrain-s2 res ddX ff {'O': 1} scored {'optimal': 3, 'missed_block': 1} cost 0.19 (X 0.07 O 0.12) req 592 min 31
+4x4 glmboth brain 4x4-glmboth-brain-s1 res ddd ff {'X': 2} scored {'optimal': 3} cost 0.54 (X 0.28 O 0.25) req 815 min 66
+4x4 glmboth brain 4x4-glmboth-brain-s2 res d ff {'O': 4, 'X': 2} scored {'optimal': 1} cost 0.20 (X 0.09 O 0.10) req 333 min 31
+4x4 glmboth nobrain 4x4-glmboth-nobrain-s1 res ddd ff {'O': 2} scored {'optimal': 5} cost 0.35 (X 0.17 O 0.18) req 725 min 46
+4x4 glmboth nobrain 4x4-glmboth-nobrain-s2 res Xdd ff {'X': 1} scored {'missed_block': 1, 'optimal': 3} cost 0.24 (X 0.11 O 0.14) req 547 min 35
+5x5 glmO brain 5x5-glmO-brain-s1 res OXX ff {'O': 4} scored {'optimal': 1} cost 0.15 (X 0.05 O 0.10) req 426 min 26
+5x5 glmO brain 5x5-glmO-brain-s2 res XOX ff {'O': 2} scored {'missed_block': 1, 'optimal': 1} cost 0.15 (X 0.05 O 0.10) req 401 min 26
+5x5 glmO nobrain 5x5-glmO-nobrain-s1 res XXO ff {'O': 3, 'X': 1} scored {'optimal': 4, 'missed_block': 1} cost 0.26 (X 0.07 O 0.19) req 571 min 41
+5x5 glmO nobrain 5x5-glmO-nobrain-s2 res XXX ff {'O': 2} scored {'missed_block': 1, 'optimal': 1} cost 0.16 (X 0.04 O 0.12) req 403 min 30
+5x5 glmboth brain 5x5-glmboth-brain-s1 res XXX ff {'O': 5, 'X': 2} scored {'missed_block': 1, 'optimal': 3, 'missed_win': 3} cost 0.54 (X 0.28 O 0.26) req 644 min 80
+5x5 glmboth brain 5x5-glmboth-brain-s2 res dOX ff {'X': 4, 'O': 5} scored {'optimal': 4, 'blunder': 1} cost 0.64 (X 0.29 O 0.35) req 701 min 90
+5x5 glmboth nobrain 5x5-glmboth-nobrain-s1 res OdX ff {'O': 2} scored {'optimal': 6} cost 0.51 (X 0.17 O 0.34) req 676 min 68
+5x5 glmboth nobrain 5x5-glmboth-nobrain-s2 res OOd ff {'O': 4, 'X': 2} scored {'optimal': 8, 'blunder': 1} cost 0.72 (X 0.32 O 0.40) req 787 min 102
