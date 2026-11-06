@@ -1,0 +1,27 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-06T20:19:08.138Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "morris-teams-nobrain-solo",
+  "kind": "core",
+  "title": "Nine men's morris solo",
+  "effective": {
+    "agents": 2,
+    "minutes": 494,
+    "seed": 13
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { GridGameApi, GridGameEvents } from "@swarmtales/mechanic-grid-game";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import { BrainSourceApi, StrategyBrainApi } from "./source.ts";
-import { hashText, replaysMoves, wordCount } from "./text.ts";
+import { hashText, replaysLine, replaysMoves, wordCount } from "./text.ts";
 
 export { BrainSourceApi, StrategyBrainApi } from "./source.ts";
 
@@ -30,6 +30,8 @@ export { BrainSourceApi, StrategyBrainApi } from "./source.ts";
 const WRITE = "writeBrain";
 /** A game with fewer moves than this is too short to count as "a game's move list". */
 const MIN_REPLAY_MOVES = 5;
+/** A run of this many half-moves of a game whose moves are text (chess) counts as a replay. */
+const MIN_REPLAY_LINE = 8;
 
 const options = Type.Object({
 	enabled: Type.Boolean({ default: true, description: "false: no brain and no retro, only the result-only briefing at each game's start (the control arm)." }),
@@ -66,6 +68,8 @@ interface Played {
 	readonly moves: readonly number[];
 	/** The game's own one-line result (`StrategyBrainApi.gameEnded`), shown in place of `result`. */
 	readonly summary?: string;
+	/** The game's moves as text with their spellings (`StrategyBrainApi.gameEnded`), for the replay check of a chess-like game. */
+	readonly line?: readonly (readonly string[])[];
 }
 
 interface BrainState {
@@ -110,16 +114,16 @@ const head = defineHead({
 		"strategy-brain/briefing-none": [],
 		"strategy-brain/briefing-brain": ["version", "text"],
 		"strategy-brain/briefing-nobrain": [],
-		"strategy-brain/retro-open": ["game", "result", "captain", "words", "posts"],
-		"strategy-brain/retro-start": ["captain", "words", "posts"],
+		"strategy-brain/retro-open": ["game", "result", "captain", "words", "aim", "lines", "posts"],
+		"strategy-brain/retro-start": ["captain", "words", "aim", "lines", "posts"],
 		"strategy-brain/retro-current": ["text"],
 		"strategy-brain/retro-captain": [],
 		"strategy-brain/briefing-head-solo": ["game"],
 		"strategy-brain/empty-solo": [],
 		"strategy-brain/briefing-brain-solo": ["version", "text"],
 		"strategy-brain/briefing-nobrain-solo": [],
-		"strategy-brain/retro-open-solo": ["game", "result", "words"],
-		"strategy-brain/retro-start-solo": ["words"],
+		"strategy-brain/retro-open-solo": ["game", "result", "words", "aim", "lines"],
+		"strategy-brain/retro-start-solo": ["words", "aim", "lines"],
 	},
 });
 
@@ -203,7 +207,7 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string) {
 	const words = wordCount(text);
 	if (words === 0) return refuse("BRAIN_EMPTY", "The brain may not be empty.");
 	if (words > ctx.options.maxWords) return refuse("BRAIN_TOO_LONG", `The brain has ${String(words)} words; the limit is ${String(ctx.options.maxWords)}.`);
-	const replayed = ctx.state.results.find((played) => replaysMoves(text, played.moves, MIN_REPLAY_MOVES));
+	const replayed = ctx.state.results.find((played) => replaysMoves(text, played.moves, MIN_REPLAY_MOVES) || (played.line !== undefined && replaysLine(text, played.line, MIN_REPLAY_LINE)));
 	if (replayed !== undefined) return refuse("BRAIN_REPLAY", `The text replays the moves of game ${String(replayed.game)}. Write rules keyed to positions, not one game's move list.`);
 	return undefined;
 }
@@ -227,11 +231,14 @@ function briefing(ctx: Ctx, resident: string): string {
 }
 
 function retroLines(ctx: Ctx, resident: string, team: string, window: Window): string[] {
-	const vars = { captain: window.captain, words: ctx.options.maxWords, posts: ctx.options.retroMaxPosts };
+	// P120: models overrun a word cap by 5-20 words; a lower aim and a line count keep them under it.
+	const aim = Math.max(1, Math.floor(ctx.options.maxWords * 0.8));
+	const lineCount = Math.max(2, Math.round(aim / 12));
+	const vars = { captain: window.captain, words: ctx.options.maxWords, aim, lines: lineCount, posts: ctx.options.retroMaxPosts };
 	const last = ctx.state.results.find((played) => played.game === window.game);
 	const first = window.game === 0 || last === undefined;
 	const lines = ctx.options.solo
-		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words })]
+		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words, aim, lines: lineCount }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words, aim, lines: lineCount })]
 		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));
@@ -242,7 +249,7 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 const Saved = Type.Object({
 	brains: Type.Record(Type.String(), Type.Object({ version: Type.Integer(), text: Type.String() })),
 	windows: Type.Record(Type.String(), Type.Object({ game: Type.Integer(), captain: Type.String(), opened: Type.Integer(), posts: Type.Integer(), told: Type.Array(Type.String()) })),
-	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()), summary: Type.Optional(Type.String()) })),
+	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()), summary: Type.Optional(Type.String()), line: Type.Optional(Type.Array(Type.Array(Type.String()))) })),
 	reset: Type.Array(Type.String()),
 	startingSide: Type.Optional(Type.String()),
 });
@@ -292,8 +299,8 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 				noteGameStarted(ctx, first);
 				return null;
 			},
-			gameEnded: ({ game, summary, moves }, ctx) => {
-				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary });
+			gameEnded: ({ game, summary, moves, line }, ctx) => {
+				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary, ...(line === undefined ? {} : { line: line.map((spellings) => [...spellings]) }) });
 				holdForRetro(ctx, game);
 				return null;
 			},
@@ -374,14 +381,14 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 		save: (state) => ({
 			brains: Object.fromEntries([...state.brains].map(([key, brain]) => [key, { ...brain }])),
 			windows: Object.fromEntries([...state.windows].map(([team, window]) => [team, { ...window, told: [...window.told] }])),
-			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves], ...(played.summary === undefined ? {} : { summary: played.summary }) })),
+			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves], ...(played.summary === undefined ? {} : { summary: played.summary }), ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }) })),
 			reset: [...state.reset].sort(),
 			startingSide: state.startingSide,
 		}),
 		load: (data) => ({
 			brains: new Map(Object.entries(data.brains).map(([key, brain]) => [key, { ...brain }])),
 			windows: new Map(Object.entries(data.windows).map(([team, window]) => [team, { ...window, told: [...window.told] }])),
-			results: data.results.map((played) => ({ ...played, moves: [...played.moves] })),
+			results: data.results.map((played) => ({ ...played, moves: [...played.moves], ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }) })),
 			reset: new Set(data.reset),
 			startingSide: data.startingSide ?? "",
 		}),

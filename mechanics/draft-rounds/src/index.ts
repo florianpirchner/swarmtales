@@ -189,7 +189,23 @@ function scoreLine(scores: Readonly<Record<string, number>>, seats: readonly str
 function resultLine(ctx: Ctx): string {
 	const state = ctx.state;
 	const quarries = state.seats.map((seat) => `${seat} ${quarryLine(state.hands[seat] ?? [])}`).join("; ");
-	return `points ${scoreLine(state.gameScores, state.seats)}; quarries ${quarries}`;
+	const line = `points ${scoreLine(state.gameScores, state.seats)}; quarries ${quarries}`;
+	return ctx.options.maxBurns === 0 ? line : `${line}; burns ${burnsLine(ctx)}`;
+}
+
+/**
+ * Every seat's burns of the game, and which of them could have come back to the burner (P126: a brain
+ * cannot learn a cost it never sees): `A01 J3 amber (its pack came back to A01 later: A01 lost that card), B4 basalt; A02 none`.
+ */
+function burnsLine(ctx: Ctx): string {
+	const state = ctx.state;
+	return state.seats
+		.map((seat) => {
+			const burns = state.picks.filter((pick) => pick.resident === seat && pick.burned !== undefined);
+			if (burns.length === 0) return `${seat} none`;
+			return `${seat} ${burns.map((pick) => `${pick.burned?.id ?? ""} ${pick.burned?.kind ?? ""}${pick.returnable === true ? ` (its pack came back to ${seat} later: ${seat} lost that card)` : ""}`).join(", ")}`;
+		})
+		.join("; ");
 }
 
 function referenceOf(ctx: Ctx): Reference {
@@ -301,6 +317,7 @@ function take(ctx: Ctx, resident: string, cardId: string, burnId: string | undef
 		card: { ...card },
 		...(burned === undefined ? {} : { burned: { ...burned } }),
 		packSize: pack.length,
+		...(burned === undefined ? {} : { returnable: pack.length > state.seats.length }),
 		gain,
 		best,
 		regret: best - gain,

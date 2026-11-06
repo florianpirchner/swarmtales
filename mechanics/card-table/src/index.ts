@@ -4,7 +4,8 @@
  * (`viewHand`, and whatever the game mechanic shows it); the event `cards_dealt` with every hand is
  * for humans only. It knows no game: who plays which card, follow rules, tricks and scores belong to
  * the game mechanic, which changes the hands through `CardTableApi` (`take`, `give`).
- * Reused by every card game of docs/ideas/game-roadmap.md (trick-taking, drafting, poker, convoy).
+ * The draw pile (`stock`, `draw`) is the shuffled rest of the deck after a deal, top card first.
+ * Reused by every card game of docs/ideas/game-roadmap.md (trick-taking, hint towers, convoy).
  */
 import { Type } from "typebox";
 import type { ContextOf, ToolContextOf } from "@swarmtales/contracts";
@@ -94,6 +95,15 @@ export const cardTable = defineMechanic(head, (kit) => ({
 			hand: ({ resident }, ctx) => [...(ctx.state.hands[resident] ?? [])],
 			holds: ({ resident, card }, ctx) => ctx.state.hands[resident]?.includes(card) ?? false,
 			deal: ({ cards }, ctx) => deal(ctx, cards),
+			stock: (_input, ctx) => [...ctx.state.stock],
+			draw: ({ resident }, ctx) => {
+				const hand = ctx.state.hands[resident];
+				if (hand === undefined) throw new Error(`card-table: ${resident} has no seat`);
+				const card = ctx.state.stock.shift();
+				if (card === undefined) return null;
+				ctx.state.hands[resident] = sortHand([...hand, card], ctx.options.suits);
+				return card;
+			},
 			take: ({ resident, card }, ctx) => {
 				const hand = ctx.state.hands[resident];
 				const index = hand?.indexOf(card) ?? -1;

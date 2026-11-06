@@ -189,6 +189,17 @@ deck without changes (P130). No chat, no kernel change. Runs: [stories/holdem/ru
   size. Models tend to be passive and call too much: expect a floor effect.
 - **Effort: M** (after the card table).
 
+### 2.5b Cooperative hint game (original, "Harbor Lights")
+
+**Built (2026-11-06, Flo: "Entscheide du"):** not on the original list. A cooperative game of hidden hands in the
+genre of hint games, with its own rules: five suits of 1-7 where every card exists once, a lost rank is bridged
+(the tower skips it, so a loss costs exactly one point), six signals (one suit or one rank to one teammate),
+three strikes, and a "dark round" ending after the last draw. Mechanic `hint-towers` on `card-table` (which got
+a draw pile: `stock`, `draw`), story `stories/harbor-lights/` with three arms on the same deals: a shared **crew**
+brain with a chat open only between games, **solo** private notes, **nobrain**. A reference crew of bots plays
+every deal (22.5 of 35 over 2000 deals). Research angle: do conventions emerge, and does a crew that may talk
+between games beat seats that cannot? First runs: [stories/harbor-lights/runs/](../../stories/harbor-lights/runs/README.md).
+
 ### 2.6 Social-deduction card game with hidden roles (original, "Convoy")
 
 Not a copy of any published title. Five to six players (four is too few for a good hidden-role game:
@@ -285,6 +296,14 @@ for a seat that does not move. Instead of Stockfish, a material baseline in Type
 per move). The `strategy-brain` plugs in through `BrainSourceApi` as in the econ lab. No kernel change.
 Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
 
+**Chess teams and the engine reference built (2026-11-06, Flo's go):** `chess-teams` plays two teams of two with
+a rotating captain and an advisor turn on the team channel; the brain's replay check covers move text
+(`replaysLine`, P112); Stockfish 10 (npm `stockfish.js`, GPL-3.0) scores finished runs in the lab
+(`pnpm lab:chess`), never in a live run, so its licence stays out of the packages. First comparison over six
+Haiku runs (two games each, cap 80 half-moves): engine ACPL 167 default, 80 with the legal list, 144 without a
+brain, 98 for teams (at 2.3 times the cost); details in [stories/chess/runs/](../../stories/chess/runs/README.md)
+and P113-P116.
+
 - **Mechanics needed.** Extend `grid-game` into a generic `board-game` with a rules module per game
   (placement, movement, capture); `move-validator` (the engine, not the model, checks legality);
   `reference-engine` listener (generalised `optimal-referee`). Rules modules are the bulk.
@@ -295,6 +314,41 @@ Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
 - **Loophole risks.** Illegal moves (refuse and re-ask, bounded, as in tic-tac-toe §11); engine licences
   and install weight (external engines are an extra dependency; keep them out of tests, which are offline);
   endless draw shuffles (move cap and repetition rule).
+
+### 2.9 Word-clue game for two teams (original, "Lanterns")
+
+Not added to the first list; asked for by Flo on 2026-11-06 ("build new games, decide yourself"). A genre
+sibling of team word-association games, built from scratch with its own word pool, grid, key, scoring and
+roles, so nothing is a 1:1 copy of a published title.
+
+**Built (2026-11-06):** story `lanterns` ([stories/lanterns/](../../stories/lanterns/README.md)) on the new
+mechanic `clue-grid`, reusing `team-channel` and the `strategy-brain` (team brains through `BrainSourceApi`).
+No kernel change. Rules as built:
+
+- **Grid and key.** 20 words drawn from an own pool of about 260 concrete nouns (no word holds another);
+  6 per team, 6 fog (nobody's), 2 shadows. Only the two keepers see the key.
+- **Roles.** Two teams of three. Each game one member is the **keeper**, the others are **seekers**; the
+  keeper role rotates game by game, so over three games every member keeps once and the team brain has to
+  carry conventions from one keeper to the next. The seekers take turns as the **caller** of a clue; the other
+  advises in the team chat. A keeper may not post in the team chat while a game runs (a `lock` handler).
+- **Clue.** One word of letters, not on the grid, not holding or inside a grid word, not the same crude stem;
+  a number from 1 to 4; and, sealed for the report, the **targets** (exactly that many own hidden words).
+- **Guessing.** Up to number + 1 guesses; a fog word, an opponent's word or a shadow ends the turn.
+- **Scoring (original).** 1 point per own word revealed, whoever reveals it (a wrong guess hands the other
+  team a point); -3 per shadow a team reveals (not an instant loss); for a **landed** clue (number 2 or more,
+  its first `number` guesses all own words) +1 per word beyond the first; +3 for the team whose words are
+  all revealed first, which ends the game; otherwise the game ends after 5 clues per team (+1 per landed
+  clue and 8 clues before P191). A match is the sum over games.
+- **Reference.** No solver: word association has no exact answer. The measure is **intent transfer**: the
+  keeper's declared targets against what the seekers revealed (recall = target hits over the clue numbers,
+  precision = own hits over guesses), per team and game in `clue_game_scored` (audience `human`).
+- **Research angle.** Shared conventions between a sender and receivers that change roles; whether a brain
+  ("our keeper clues two at a time, rhymes are off") raises recall when the keeper changes; how ambitious
+  numbers get under a shadow penalty. Later: a mixed table (keeper on another model) to see whether
+  conventions survive a model change.
+- **Loophole risks.** The keeper leaks the targets through the chat (blocked while a game runs) or the
+  reason field (sealed); a clue that spells a grid word in parts (the stem and containment check catch the
+  plain cases only); a caller who never stops (bounded by number + 1 and the deadline).
 
 ## 3. The cross-game strategy brain
 

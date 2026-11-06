@@ -58,6 +58,8 @@ const dealer = defineMechanic(
 					if (params.op === "deal") return reply(JSON.stringify(ctx.call(CardTableApi, "deal", { cards: params.cards ?? 0 })));
 					if (params.op === "take") return reply(JSON.stringify(ctx.call(CardTableApi, "take", { resident, card })));
 					if (params.op === "give") return reply(JSON.stringify(ctx.call(CardTableApi, "give", { resident, card })));
+					if (params.op === "stock") return reply(JSON.stringify(ctx.call(CardTableApi, "stock", {})));
+					if (params.op === "draw") return reply(JSON.stringify(ctx.call(CardTableApi, "draw", { resident })));
 					if (params.op === "holds") return reply(JSON.stringify(ctx.call(CardTableApi, "holds", { resident, card })));
 					return reply(JSON.stringify(ctx.call(CardTableApi, "hand", { resident })));
 				},
@@ -108,6 +110,22 @@ describe("the deal", () => {
 		expect(await probe(host, { op: "holds", resident: "A01", card })).toBe(false);
 		await probe(host, { op: "give", resident: "A01", card });
 		expect(await handOf(host, "A01")).toContain(card);
+	});
+});
+
+describe("the draw pile", () => {
+	it("holds the rest of the deck after a deal and moves its top card into a hand", async () => {
+		const host = createHost({ story: story() });
+		host.start();
+		await probe(host, { op: "deal", cards: 0 });
+		const stock = await probe(host, { op: "stock" });
+		if (!Array.isArray(stock)) throw new Error("no stock");
+		expect(stock).toHaveLength(SUITS.reduce((sum, suit) => sum + suit.ranks, 0));
+		expect(await probe(host, { op: "draw", resident: "A02" })).toBe(stock[0]);
+		expect(await handOf(host, "A02")).toEqual([stock[0]]);
+		expect(await probe(host, { op: "stock" })).toEqual(stock.slice(1));
+		for (let index = 1; index < stock.length; index++) await probe(host, { op: "draw", resident: "A01" });
+		expect(await probe(host, { op: "draw", resident: "A01" })).toBeNull();
 	});
 });
 
