@@ -105,6 +105,7 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"holdem-mixed": holdemEntry({ brainSeats: ["A01", "A03"] }),
 	"holdem-hu": holdemEntry({ seats: 2 }),
 	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
+	"holdem-hu-mixed": holdemEntry({ seats: 2, brainSeats: ["A01"] }),
 	// Harbor Lights, the cooperative hint game: a shared crew brain with a chat between games, private notes, or nothing.
 	"harbor-lights": harborLights,
 	"harbor-lights-solo": harborLightsEntry({ brain: "solo" }),

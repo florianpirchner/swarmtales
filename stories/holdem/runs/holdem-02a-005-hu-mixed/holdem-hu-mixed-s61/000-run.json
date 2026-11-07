@@ -1,0 +1,27 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-07T00:01:28.539Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "holdem-hu-mixed",
+  "kind": "core",
+  "title": "Hold'em heads-up",
+  "effective": {
+    "agents": 2,
+    "minutes": 154,
+    "seed": 61
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

@@ -32,7 +32,7 @@ swt run --story holdem-hu                      # heads-up: two games of twelve h
 ```
 
 Registered arms: `holdem` (four seats, brain on), `holdem-nobrain` (the same briefings, no brain, no retro),
-`holdem-mixed` (A01 and A03 keep a brain, A02 and A04 do not, on the same duplicate cards: the arm that compares points), `holdem-hu` and `holdem-hu-nobrain` (heads-up). Further variants are factory options of `holdemStory` in
+`holdem-mixed` (A01 and A03 keep a brain, A02 and A04 do not, on the same duplicate cards: the arm that compares points), `holdem-hu` and `holdem-hu-nobrain` (heads-up), and `holdem-hu-mixed` (heads-up, A01 with a brain against A02 without: over the two duplicate games each seat plays both positions' cards). Further variants are factory options of `holdemStory` in
 `story.ts`: `seats` (2-6), `brainSeats`, `games`, `hands`, `duplicate`, `maxWords`, `seed`, `equitySamples`. A seat that
 does not act within two minutes checks, or folds when it faces a bet. On its turn a seat is told its best
 hand in words (option `showBest` of the mechanic): reading the board is not what this game measures.
