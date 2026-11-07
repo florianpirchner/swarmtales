@@ -70,6 +70,16 @@ describe("writeBrain", () => {
 	});
 });
 
+describe("a brain of at most maxRules rules", () => {
+	it("refuses more lines than rules and names the limit in the retro", async () => {
+		const host = createHost(options({ maxRules: 3 }));
+		host.start();
+		const four = ["1. a", "2. b", "", "3. c", "4. d"].join("\n");
+		expect(await host.call(as("A01"), "writeBrain", { text: four })).toMatchObject({ ok: false, code: "BRAIN_TOO_MANY_RULES" });
+		expect(await host.call(as("A01"), "writeBrain", { text: ["1. a", "2. b", "3. c"].join("\n") })).toMatchObject({ ok: true });
+	});
+});
+
 describe("the retro window", () => {
 	it("closes on its own after retroMaxMinutes and then the game starts", async () => {
 		const run = await playStory({ ...options({ minutes: 8 }) }, idleAgent);
