@@ -17,7 +17,7 @@ function get(value: unknown, key: string): unknown {
 	const found: unknown = Reflect.get(value, key);
 	return found;
 }
-const RULES: Rules = { purse: 100, valueMin: 10, valueMax: 60, worthMin: 20, worthMax: 80, noise: 15, reserve: 1 };
+const RULES: Rules = { purse: 100, valueMin: 10, valueMax: 60, worthMin: 20, worthMax: 80, noise: 15, reserve: 1, coinValue: 0 };
 const SEATS = ["A01", "A02", "A03", "A04"];
 
 function story(extra: BlindBidOptions = {}): CoreStory {
@@ -25,7 +25,9 @@ function story(extra: BlindBidOptions = {}): CoreStory {
 	return { ...base, turns: { ...base.turns, order: (view) => view.residents } };
 }
 
-const options = (extra: BlindBidOptions = {}) => ({ story: story(extra), prompts: createPromptLookup() });
+/** The classic rules (six lots of three known kinds), whose numbers the scripted match below checks. */
+const options = (extra: BlindBidOptions = {}) => ({ story: story({ classic: true, ...extra }), prompts: createPromptLookup() });
+const optionsV2 = (extra: BlindBidOptions = {}) => ({ story: story(extra), prompts: createPromptLookup() });
 
 /** A01 bids its value or estimate, A02 half of it, A03 its value plus 5, A04 always passes; each capped by the coins left. */
 const player: TurnTaker = async (turn) => {
@@ -84,7 +86,7 @@ describe("sealed-auction rules", () => {
 	});
 
 	it("scores shading against the equilibrium and truthfulness in second-price lots", () => {
-		expect(equilibriumBid(50, 4, RULES)).toBe(40);
+		expect(equilibriumBid("first-price", 50, 4, RULES)).toBe(40);
 		const values = { A01: 50, A02: 30, A03: 20, A04: 10 };
 		const lots = [{ number: 1, kind: "first-price" as const, values }, { number: 2, kind: "second-price" as const, values }];
 		const truthful = { A01: 50, A02: 30, A03: 20, A04: 10 };
@@ -94,8 +96,67 @@ describe("sealed-auction rules", () => {
 		expect(reference.secondPrice).toMatchObject({ lots: 1, efficiency: 1, truthfulness: 1, overbids: 0, underbids: 0, capped: 0 });
 		expect(reference.firstPrice.equilibriumShading).toBeGreaterThan(reference.firstPrice.shading - 0.2);
 		// A bid below the value that spends every coin left is the purse's doing, not shading.
-		const poor = referenceOf(lots, [{ ...(results[0] ?? resolveLot(lots[0] ?? { number: 1, kind: "first-price", values }, {}, SEATS, RULES, [], () => "A01")), price: 90 }, resolveLot(lots[1] ?? { number: 2, kind: "second-price", values }, { A01: 10, A02: 30, A03: 20, A04: 10 }, SEATS, RULES, [], () => "A02")], SEATS, RULES, {});
+		const poor = referenceOf(lots, [{ ...(results[0] ?? resolveLot(lots[0] ?? { number: 1, kind: "first-price", values }, {}, SEATS, RULES, [], () => "A01")), price: 90, paid: { A01: 90, A02: 0, A03: 0, A04: 0 } }, resolveLot(lots[1] ?? { number: 2, kind: "second-price", values }, { A01: 10, A02: 30, A03: 20, A04: 10 }, SEATS, RULES, [], () => "A02")], SEATS, RULES, {});
 		expect(poor.secondPrice).toMatchObject({ capped: 1, underbids: 0, truthfulness: 1 });
+	});
+});
+
+describe("sealed-auction, unfamiliar formats and coins worth points", () => {
+	const values = { A01: 50, A02: 40, A03: 30, A04: 20 };
+	const bids = { A01: 45, A02: 35, A03: 25, A04: 0 };
+
+	it("charges the third-highest bid in a third-price lot and every bid in an all-pay lot", () => {
+		const third = resolveLot({ number: 1, kind: "third-price", values }, bids, SEATS, RULES, [], () => "A01");
+		expect(third).toMatchObject({ winner: "A01", price: 25, profit: 25, paid: { A01: 25, A02: 0, A03: 0, A04: 0 } });
+		// Two counting bids: no third bid, the reserve is the price.
+		expect(resolveLot({ number: 2, kind: "third-price", values }, { A01: 45, A02: 35 }, SEATS, RULES, [], () => "A01")).toMatchObject({ price: 1 });
+		const all = resolveLot({ number: 3, kind: "all-pay", values }, bids, SEATS, RULES, [], () => "A01");
+		expect(all).toMatchObject({ winner: "A01", price: 45, paid: { A01: 45, A02: 35, A03: 25, A04: 0 }, gains: { A01: 5, A02: -35, A03: -25, A04: 0 } });
+		const reference = referenceOf([{ number: 3, kind: "all-pay", values }], [all], SEATS, RULES, {});
+		expect(reference.revenue).toBe(105);
+		expect(reference.surplus).toBe(-55);
+		expect(reference.allPay).toMatchObject({ lots: 1, efficiency: 1, passes: 1 });
+	});
+
+	it("puts the third-price equilibrium above the value and the all-pay one far below it", () => {
+		// Four bidders, values 10-60: third price bids 10 + 3/2 (v - 10), all-pay v x^3 - 50 x^4 / 4.
+		expect(equilibriumBid("third-price", 50, 4, RULES)).toBe(70);
+		expect(equilibriumBid("all-pay", 60, 4, RULES)).toBeCloseTo(47.5, 5);
+		expect(equilibriumBid("all-pay", 10, 4, RULES)).toBe(0);
+		expect(equilibriumBid("second-price", 50, 4, RULES)).toBe(50);
+		// A coin left worth a quarter point: a coin paid costs 1.25 points, so the dominant bid is v / 1.25.
+		const worth = { ...RULES, coinValue: 0.25 };
+		expect(equilibriumBid("second-price", 50, 4, worth)).toBe(40);
+		expect(curseFreeCeiling(55, 4, worth)).toBeCloseTo(36.8, 5);
+	});
+
+	it("plays the default match: eight lots of five kinds, everyone pays in all-pay lots, coins left pay a quarter point", async () => {
+		const run = await playStory(optionsV2({ brain: false, games: 1 }), player);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "sealed-auction.match" });
+		const resolved = ofType(run.events, "lot_resolved");
+		expect(resolved.map((event) => field(event, "kind"))).toEqual(["first-price", "third-price", "common", "all-pay", "second-price", "common", "third-price", "all-pay"]);
+		const allPay = resolved.find((event) => field(event, "kind") === "all-pay");
+		const paid = get(allPay === undefined ? undefined : field(allPay, "paid"), "A02");
+		expect(typeof paid === "number" && paid > 0).toBe(true);
+		const ended = ofType(run.events, "game_ended")[0];
+		const coins = ended === undefined ? undefined : field(ended, "coins");
+		const bonus = ended === undefined ? undefined : field(ended, "bonus");
+		// A04 never bids: all 120 coins left, a bonus of 30, its only points.
+		expect(get(coins, "A04")).toBe(120);
+		expect(get(bonus, "A04")).toBe(30);
+		expect(get(ended === undefined ? undefined : field(ended, "scores"), "A04")).toBe(30);
+		const scored = ofType(run.events, "game_scored")[0];
+		const reference = get(scored === undefined ? undefined : field(scored, "reference"), "thirdPrice");
+		expect(get(reference, "lots")).toBe(2);
+		const rules = run.events.filter((event) => event.type === "turn_started").map((event) => JSON.stringify(field(event, "inputs"))).find((text) => text.includes("The auction:"));
+		expect(rules).toContain("Pay-the-third-bid");
+		expect(rules).toContain("Everyone-pays");
+		expect(rules).toContain("worth 0.25 points");
+	});
+
+	it("is deterministic and survives a snapshot round trip with the default rules", async () => {
+		expect(await checkDeterminism(optionsV2(), () => player)).toEqual([]);
+		for (const cut of [0, 5]) expect(await checkSnapshotRoundTrip(optionsV2(), () => player, cut)).toEqual([]);
 	});
 });
 
@@ -156,7 +217,7 @@ describe("blind-bid, scripted match", () => {
 	});
 
 	it("is registered with its arms and named variants", () => {
-		for (const name of ["blind-bid", "blind-bid-nobrain", "blind-bid-g5", "blind-bid-nobrain-g2"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["blind-bid", "blind-bid-nobrain", "blind-bid-g5", "blind-bid-nobrain-g2", "blind-bid-classic", "blind-bid-classic-nobrain", "blind-bid-nobrain-s37", "blind-bid-g2-s41"]) expect(findCoreStory(name)?.story.id).toBe(name);
 		expect(findCoreStory("blind-bid-g0")).toBeUndefined();
 		// The name of the first smoke run still finds the story.
 		expect(findCoreStory("lantern-auction")?.story.id).toBe("blind-bid");

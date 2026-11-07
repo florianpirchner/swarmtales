@@ -1,0 +1,37 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-07T00:28:15.409Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "blind-bid",
+  "kind": "core",
+  "title": "Blind Bid",
+  "effective": {
+    "agents": 4,
+    "minutes": 60,
+    "seed": 31
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 /**
  * BLIND BID: four solo seats bid on a series of lots with sealed bids and a purse per game. Each
- * game sells six lots of three kinds, two each: pay-your-bid and pay-the-runner-up lots with private
- * values, and shared-worth lots with one hidden worth and a noisy estimate per seat (the winner's curse).
+ * game sells eight lots: pay-your-bid, pay-the-runner-up, and the unfamiliar pay-the-third-bid and
+ * everyone-pays lots with private values, and shared-worth lots with one hidden worth and a noisy estimate
+ * per seat (the winner's curse); a coin left at the end of a game is worth a quarter point. The rules of the
+ * first smoke run are the `classic` variant.
  * A match is several games; each starts from a fresh context, a full purse and fresh lots, and the only
  * memory across games is each seat's private strategy brain (variant `brain: false`: the same briefings,
  * no brain). The `sealed-auction` mechanic scores each game against closed-form single-lot references
@@ -23,6 +25,8 @@ export interface BlindBidOptions {
 	readonly purse?: number;
 	/** Each seat keeps a strategy brain; false is the control arm (same briefings, no brain, no retro). */
 	readonly brain?: boolean;
+	/** The rules of the first smoke run (six lots of three known kinds, purse 100, error ±15, coins left worth nothing). */
+	readonly classic?: boolean;
 	readonly maxWords?: number;
 	readonly seed?: number;
 	readonly minutes?: number;
@@ -32,7 +36,18 @@ const SEATS: readonly ResidentId[] = ["A01", "A02", "A03", "A04"];
 const DEADLINE = 2;
 const RETRO_MINUTES = 2;
 
-export const DEFAULT_LOTS: readonly LotKind[] = ["first-price", "second-price", "common", "first-price", "common", "second-price"];
+/** The first smoke run's lots (P160-P163): two each of pay-your-bid, pay-the-runner-up and shared-worth. */
+export const CLASSIC_LOTS: readonly LotKind[] = ["first-price", "second-price", "common", "first-price", "common", "second-price"];
+
+/**
+ * The default since v2 (P161-P163): the known formats once each, the unfamiliar ones (third price, all-pay) and
+ * the shared worth twice each, eight lots. With an error of ±25 four bidders show the curse more clearly than
+ * eight bidders with ±15 (bot test: bidding 0.7 of the estimate loses on 31 against 15 percent of the lots won).
+ */
+export const DEFAULT_LOTS: readonly LotKind[] = ["first-price", "third-price", "common", "all-pay", "second-price", "common", "third-price", "all-pay"];
+
+const CLASSIC = { lots: CLASSIC_LOTS, purse: 100, worthMin: 20, worthMax: 80, noise: 15, coinValue: 0 } as const;
+const V2 = { lots: DEFAULT_LOTS, purse: 120, worthMin: 30, worthMax: 90, noise: 25, coinValue: 0.25 } as const;
 
 /** An upper bound of the minutes: every lot runs to its deadline, every retro to its timeout. */
 function minutesFor(games: number, lots: number): number {
@@ -40,14 +55,15 @@ function minutesFor(games: number, lots: number): number {
 }
 
 export function blindBidStory(options: BlindBidOptions = {}) {
-	const { games = 3, lots = DEFAULT_LOTS, purse = 100, brain = true, maxWords = 150, seed = 31 } = options;
+	const rules = options.classic === true ? CLASSIC : V2;
+	const { games = 3, lots = rules.lots, purse = rules.purse, brain = true, maxWords = 150, seed = 31 } = options;
 	return defineCoreStory({
-		id: `blind-bid${brain ? "" : "-nobrain"}${games === 3 ? "" : `-g${String(games)}`}`,
+		id: `blind-bid${options.classic === true ? "-classic" : ""}${brain ? "" : "-nobrain"}${games === 3 ? "" : `-g${String(games)}`}${seed === 31 ? "" : `-s${String(seed)}`}`,
 		seed,
 		minutes: options.minutes ?? minutesFor(games, lots.length),
 		residents: [...SEATS],
 		mechanics: [
-			sealedAuction.with({ games, lots: [...lots], purse, deadline: DEADLINE }),
+			sealedAuction.with({ games, lots: [...lots], purse, deadline: DEADLINE, worthMin: rules.worthMin, worthMax: rules.worthMax, noise: rules.noise, coinValue: rules.coinValue }),
 			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
 		grants: { resident: ["viewAuction", "bid", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },
@@ -70,21 +86,27 @@ function briefing(brain: boolean) {
 	};
 }
 
-/** The registered entry: Haiku via Anthropic, three games of six lots, brain on. */
+/** The registered entry: Haiku via Anthropic, three games of eight lots, brain on. */
 export function blindBidEntry(options: BlindBidOptions = {}): CoreStoryEntry {
 	const brain = options.brain ?? true;
 	return { title: "Blind Bid", story: blindBidStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5" }, briefing: briefing(brain), fixedRoster: "the four seats are fixed (A01-A04)" };
 }
 
-/** Variants by name: `blind-bid[-nobrain][-g<games>]`, for example `blind-bid-nobrain-g5`. */
-const NAME = /^blind-bid(-nobrain)?(?:-g(\d+))?$/;
+/** Variants by name: `blind-bid[-classic][-nobrain][-g<games>][-s<seed>]`, for example `blind-bid-nobrain-s37`. */
+const NAME = /^blind-bid(-classic)?(-nobrain)?(?:-g(\d+))?(?:-s(\d+))?$/;
 
 export function blindBidEntryByName(id: string): CoreStoryEntry | undefined {
 	const match = NAME.exec(id);
 	if (match === null) return undefined;
-	const games = match[2] === undefined ? undefined : Number(match[2]);
+	const games = match[3] === undefined ? undefined : Number(match[3]);
+	const seed = match[4] === undefined ? undefined : Number(match[4]);
 	if (games !== undefined && (games < 1 || games > 20)) return undefined;
-	return blindBidEntry({ ...(match[1] === "-nobrain" ? { brain: false } : {}), ...(games === undefined ? {} : { games }) });
+	return blindBidEntry({
+		...(match[1] === "-classic" ? { classic: true } : {}),
+		...(match[2] === "-nobrain" ? { brain: false } : {}),
+		...(games === undefined ? {} : { games }),
+		...(seed === undefined ? {} : { seed }),
+	});
 }
 
 export default blindBidEntry();
