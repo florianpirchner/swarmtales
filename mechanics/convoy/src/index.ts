@@ -55,7 +55,7 @@ const options = Type.Object({
 	games: Type.Integer({ minimum: 1, maximum: 20, default: 3, description: "Games in the match; the roles are dealt anew for each; the run ends after the last." }),
 	saboteurs: Type.Integer({ minimum: 1, default: 2, description: "Saboteurs dealt per game; they know each other." }),
 	crews: Type.Array(Type.Integer({ minimum: 1 }), { minItems: 1, default: [2, 2, 3, 3, 3, 3, 4, 4], description: "The crew size of each stage; its length is the number of stages." }),
-	damageToLose: Type.Integer({ minimum: 1, default: 4, description: "Damaged stages that stop the convoy: the saboteurs win." }),
+	damageToLose: Type.Integer({ minimum: 1, default: 3, description: "Damaged stages that stop the convoy: the saboteurs win." }),
 	cooldown: Type.Integer({ minimum: 1, default: 3, description: "A saboteur who played damage in stage s may play damage again from stage s + cooldown (3: at most one damage card per three stages)." }),
 	talkPosts: Type.Integer({ minimum: 0, default: 2, description: "Lines a seat may speak per stage." }),
 	maxTalkLength: Type.Integer({ minimum: 20, default: 400, description: "The longest line a seat may speak, in characters." }),

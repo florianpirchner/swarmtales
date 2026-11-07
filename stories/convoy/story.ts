@@ -4,7 +4,8 @@
  * eight stages. Each stage a rotating lead proposes a crew, the table talks and casts a vote of
  * confidence (a lost vote ends the lead's term), and the crew plays sealed safe or damage cards of
  * which only the count is revealed. A saboteur may play damage at most once in three stages; the lead
- * may spend the game's single audit to reveal one earlier card. Four damaged stages stop the convoy.
+ * may spend the game's single audit to reveal one earlier card. Three damaged stages stop the convoy
+ * (four until the d3 test of 2026-11-06, P273; `convoy-d4` keeps the old rule).
  * The rules are in the `convoy` mechanic. Every game starts from a fresh context with new roles; the
  * only memory across games is each seat's private strategy brain (variant `brain: false`: the same
  * briefings, no brain), so the question is whether a seat learns to read the record and to bluff.
@@ -23,7 +24,7 @@ export interface ConvoyOptions {
 	readonly games?: number;
 	/** Crew size per stage; its length is the number of stages (default eight stages: 2, 2, 3, 3, 3, 3, 4, 4). */
 	readonly crews?: readonly number[];
-	/** Damaged stages that stop the convoy (default 4). */
+	/** Damaged stages that stop the convoy (default 3; 4 before P273). */
 	readonly damageToLose?: number;
 	/** A saboteur's damage card is allowed again `cooldown` stages after its last (default 3). */
 	readonly cooldown?: number;
@@ -51,9 +52,9 @@ function minutesFor(games: number, stages: number): number {
 
 /** The story with its variants as options. */
 export function convoyStory(options: ConvoyOptions = {}) {
-	const { games = 3, crews = DEFAULT_CREWS, damageToLose = 4, cooldown = 3, brain = true, maxWords = 150, seed = 53 } = options;
+	const { games = 3, crews = DEFAULT_CREWS, damageToLose = 3, cooldown = 3, brain = true, maxWords = 150, seed = 53 } = options;
 	return defineCoreStory({
-		id: `convoy${brain ? "" : "-nobrain"}${damageToLose === 4 ? "" : `-d${String(damageToLose)}`}${cooldown === 3 ? "" : `-c${String(cooldown)}`}`,
+		id: `convoy${brain ? "" : "-nobrain"}${damageToLose === 3 ? "" : `-d${String(damageToLose)}`}${cooldown === 3 ? "" : `-c${String(cooldown)}`}`,
 		seed,
 		minutes: options.minutes ?? minutesFor(games, crews.length),
 		residents: [...SEATS],

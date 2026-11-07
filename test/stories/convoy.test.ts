@@ -301,8 +301,9 @@ describe("convoy, scripted match", () => {
 		for (const name of ["convoy", "convoy-nobrain"]) expect(findCoreStory(name)?.story.id).toBe(name);
 		expect(findCoreStory("convoy-g1")?.story.id).toBe("convoy");
 		expect(findCoreStory("convoy-nobrain-g2")?.story.id).toBe("convoy-nobrain");
-		expect(findCoreStory("convoy-d3")?.story.id).toBe("convoy-d3");
-		expect(findCoreStory("convoy-nobrain-g2-d4-c2")?.story.id).toBe("convoy-nobrain-c2");
+		expect(findCoreStory("convoy-d4")?.story.id).toBe("convoy-d4");
+		expect(findCoreStory("convoy-d3")?.story.id).toBe("convoy");
+		expect(findCoreStory("convoy-nobrain-g2-d3-c2")?.story.id).toBe("convoy-nobrain-c2");
 		expect(findCoreStory("convoy-d9")).toBeUndefined();
 	});
 

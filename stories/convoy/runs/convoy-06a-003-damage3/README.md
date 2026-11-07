@@ -56,17 +56,17 @@ None found. The reporter's candidates are its city frame (P155) or ordinary play
 ## Problems
 
 - `BRAIN_TOO_LONG` 11 times over the two runs (P152).
-- One `accuse` over the 400-character reason cap (P230).
+- One `accuse` over the 400-character reason cap (P270).
 - One `proposeCrew` and one `playCrewCard` refused as `TOOL_LOCKED`: a seat called the tool just after its
   phase had closed.
 
 ## Solutions
 
-- P153: `damageToLose` 3 tested and balanced on six games (P233). Proposal, not built: make 3 the default
+- P153: `damageToLose` 3 tested and balanced on six games (P273). Proposal, not built: make 3 the default
   damage limit and confirm with five seeds of brain against no brain (about 2 USD); `convoy-c2` stays untested.
 - Six games are few: two wins in six are consistent with anything from about 5 % to 70 %.
 
 ## Optimizations
 
 - Rerun brain against no brain at `damageToLose` 3: with a real chance to win, the saboteurs' boldness from
-  the brain (P231) should show in the win rate, not only in damage counts.
+  the brain (P271) should show in the win rate, not only in damage counts.

@@ -209,7 +209,7 @@ cards are shuffled and revealed as a count only.
 
 **Built (2026-11-06, Flo's go):** story `convoy` ([stories/convoy/](../../stories/convoy/README.md)) on the new
 mechanic `convoy` and the `strategy-brain` with solo seats. Six seats, two saboteurs, eight stages with crews of
-2, 2, 3, 3, 3, 3, 4, 4; four damaged stages stop the convoy (a scripted balance test: a random town loses 79 %,
+2, 2, 3, 3, 3, 3, 4, 4; four damaged stages stop the convoy (three since the 2026-11-06 balance runs, P273; a scripted balance test: a random town loses 79 %,
 a town that follows the tracker 34 %, so ten stages and three damages as first sketched were far too easy for
 the saboteurs). The vote of confidence is the crew vote: a strict majority of no ends the lead's term and the
 next lead's crew goes out without a vote (no always-no stalemate). Table talk is the mechanic's own `speak`
