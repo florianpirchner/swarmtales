@@ -164,6 +164,20 @@ describe("a match", () => {
 		for (const seat of ["A01", "A03", "A04"]) expect(started.filter((name) => name === seat)).toHaveLength(1);
 	});
 
+	it("shows the bidder its hand's Monte Carlo worth with reference bid, and records the worth of every hand", async () => {
+		const host = createHost({ story: trickStory({ games: 1, rounds: [3], reference: "bid", referenceSamples: 50 }) });
+		host.start();
+		const view = await host.call("resident:A02", "viewTable", {});
+		const worth = view.ok ? /rates your hand at about (\d+\.\d) tricks/.exec(view.reply)?.[1] : undefined;
+		expect(worth).toBeDefined();
+		expect(Number(worth)).toBeGreaterThanOrEqual(0);
+		expect(Number(worth)).toBeLessThanOrEqual(3);
+		const plain = createHost({ story: trickStory({ games: 1, rounds: [3] }) });
+		plain.start();
+		const without = await plain.call("resident:A02", "viewTable", {});
+		expect(without.ok && without.reply).not.toContain("rates your hand");
+	});
+
 	it("shows the bid sum so far with bidSum", async () => {
 		const host = createHost({ story: trickStory({ games: 1, rounds: [3], bidSum: true }) });
 		host.start();
@@ -189,7 +203,7 @@ describe("a match", () => {
 describe("module conformance", () => {
 	it("documents every option and takes randomness and time only from the host", () => {
 		expect(checkOptionsDocumented(trickPlay)).toEqual([]);
-		const files = ["index", "model", "events", "api"].map((name) => ({ path: `mechanics/trick-play/src/${name}.ts`, text: readFileSync(`mechanics/trick-play/src/${name}.ts`, "utf8") }));
+		const files = ["index", "model", "events", "api", "reference"].map((name) => ({ path: `mechanics/trick-play/src/${name}.ts`, text: readFileSync(`mechanics/trick-play/src/${name}.ts`, "utf8") }));
 		expect(checkSourceRules(files)).toEqual([]);
 	});
 

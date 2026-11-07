@@ -18,8 +18,9 @@ swt run --story ember-tricks-sum-g4                  # lever: the bids so far ag
 ```
 
 Variants are factory options of `emberTricksStory` in `story.ts`: `games`, `rounds` (cards per round),
-`brain: false`, `maxWords`, `seed`, `lever` (`"bidSum"` or `"calibration"`, one at a time against the
-control; names `ember-tricks[-nobrain][-sum|-calib][-g<games>][-r<rounds>]`). `viewTable` costs no step; a
+`brain: false`, `maxWords`, `seed`, `lever` (`"bidSum"`, `"calibration"`, `"mcRetro"`: the calibration line
+with the Monte Carlo worth of the seat's own hands, or `"mcBid"`: the calibration line plus the hand's worth
+shown while bidding; one at a time; names `ember-tricks[-nobrain][-sum|-calib|-mcretro|-mcbid][-g<games>][-r<rounds>]`). `viewTable` costs no step; a
 seat not on turn gets only "waiting for X" and is not woken again by that answer. Mechanics: `card-table` (deck, seeded deal, private hands; reusable
 by every card game), `trick-play` (bids, named trump, follow suit, veto, scoring, move timer) and
 `strategy-brain` (one team of one per seat, reset every round). The engine, not the model, checks every
@@ -35,4 +36,6 @@ with it and with the tricks actually taken, per seat and per game:
 pnpm exec tsx --conditions=development scripts/ember-calibration/analyze.ts <run-dir> [<run-dir>...] [--samples 400] [--seed 1] [--json]
 ```
 
-It reads `<run-dir>/events.jsonl` (or `.jsonl.gz`) and calls no model.
+It reads `<run-dir>/events.jsonl` (or `.jsonl.gz`) and calls no model. The same reference runs inside the
+mechanic with the option `reference` (`mechanics/trick-play/src/reference.ts`, 200 deals per hand from the
+host's seeded stream).

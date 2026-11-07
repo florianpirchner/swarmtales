@@ -154,10 +154,10 @@ function parseTictactoe(id: string): CoreStoryEntry | undefined {
 }
 
 /**
- * Ember Tricks combinations by name: `ember-tricks[-nobrain][-sum|-calib][-g<games>][-r<rounds>]`, rounds 1 to N cards
+ * Ember Tricks combinations by name: `ember-tricks[-nobrain][-sum|-calib|-mcretro|-mcbid][-g<games>][-r<rounds>]`, rounds 1 to N cards
  * (N up to 10), for example `ember-tricks-g2-r4` or `ember-tricks-sum-g4` (the bid sum lever, P136).
  */
-const EMBER_NAME = /^ember-tricks(-nobrain)?(-sum|-calib)?(?:-g(\d+))?(?:-r(\d+))?$/;
+const EMBER_NAME = /^ember-tricks(-nobrain)?(-sum|-calib|-mcretro|-mcbid)?(?:-g(\d+))?(?:-r(\d+))?$/;
 
 function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 	const match = EMBER_NAME.exec(id);
@@ -167,7 +167,7 @@ function parseEmberTricks(id: string): CoreStoryEntry | undefined {
 	if ((games !== undefined && (games < 1 || games > 20)) || (last !== undefined && (last < 1 || last > 10))) return undefined;
 	return emberTricksEntry({
 		...(match[1] === "-nobrain" ? { brain: false } : {}),
-		...(match[2] === "-sum" ? { lever: "bidSum" as const } : match[2] === "-calib" ? { lever: "calibration" as const } : {}),
+		...(match[2] === "-sum" ? { lever: "bidSum" as const } : match[2] === "-calib" ? { lever: "calibration" as const } : match[2] === "-mcretro" ? { lever: "mcRetro" as const } : match[2] === "-mcbid" ? { lever: "mcBid" as const } : {}),
 		...(games === undefined ? {} : { games }),
 		...(last === undefined ? {} : { rounds: Array.from({ length: last }, (_, index) => index + 1) }),
 	});
