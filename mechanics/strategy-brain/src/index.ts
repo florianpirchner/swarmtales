@@ -35,7 +35,7 @@ const MIN_REPLAY_LINE = 8;
 
 const options = Type.Object({
 	enabled: Type.Boolean({ default: true, description: "false: no brain and no retro, only the result-only briefing at each game's start (the control arm)." }),
-	brainTeams: Type.Optional(Type.Array(Type.String(), { description: "The teams that keep a brain (default: all teams). The others get the result-only briefing, no retro and BRAIN_DISABLED from readBrain/writeBrain; an empty list equals enabled: false." })),
+	brainTeams: Type.Optional(Type.Array(Type.String(), { description: "The teams that keep a brain (default: all teams). The others get the result-only briefing, no retro, and readBrain/writeBrain stay closed to them (BRAIN_DISABLED); an empty list equals enabled: false." })),
 	maxWords: Type.Integer({ minimum: 1, default: 300, description: "The most words a brain may have." }),
 	teams: Type.Record(Type.String(), Type.Array(Type.String(), { description: "Resident ids of one team; the retro captain rotates through them." }), {
 		default: {},
@@ -309,6 +309,12 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 		}),
 	],
 	pipeline: {
+		// A seat whose team keeps no brain (a mixed table's control seats) has the brain tools closed for good, so they leave its open tools and its tools notice (P138).
+		lock: (call, ctx) => {
+			if (call.owner !== "strategy-brain" || (call.tool !== "readBrain" && call.tool !== WRITE)) return undefined;
+			const team = teamOf(ctx, call.resident);
+			return team !== undefined && !hasBrain(ctx, team) ? refuse("BRAIN_DISABLED", "This match keeps no strategy brain.") : undefined;
+		},
 		after: (call, outcome, ctx) => {
 			if (call.tool !== ctx.options.postTool || !outcome.ok) return;
 			const team = teamOf(ctx, call.resident);

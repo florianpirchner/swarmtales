@@ -193,3 +193,116 @@ export function equity(hole: readonly string[], board: readonly string[], oppone
 	}
 	return won / samples;
 }
+
+/** The Chen score of two hole cards (integers): a quick preflop strength, higher is stronger. */
+function chen(a: number, b: number): number {
+	const high = Math.max(a >> 2, b >> 2);
+	const low = Math.min(a >> 2, b >> 2);
+	const points = (rank: number): number => (rank === 12 ? 10 : rank === 11 ? 8 : rank === 10 ? 7 : rank === 9 ? 6 : (rank + 2) / 2);
+	if (high === low) return Math.max(5, points(high) * 2);
+	const gap = high - low - 1;
+	let value = points(high) + ((a & 3) === (b & 3) ? 2 : 0) - (gap === 0 ? 0 : gap === 1 ? 1 : gap === 2 ? 2 : gap === 3 ? 4 : 5);
+	if (gap <= 1 && high < 10) value += 1;
+	return value;
+}
+
+let shares: Map<number, number> | undefined;
+
+/** The share of the 1,326 starting hands that are stronger than these two (by the Chen score): 0 for aces, near 1 for 7-2 offsuit. */
+function shareAbove(a: number, b: number): number {
+	if (shares === undefined) {
+		const combos: { key: number; value: number }[] = [];
+		for (let first = 0; first < 52; first++) for (let second = first + 1; second < 52; second++) combos.push({ key: first * 52 + second, value: chen(first, second) });
+		const built = new Map<number, number>();
+		for (const combo of combos) built.set(combo.key, combos.filter((other) => other.value > combo.value).length / combos.length);
+		shares = built;
+	}
+	return shares.get(Math.min(a, b) * 52 + Math.max(a, b)) ?? 1;
+}
+
+/** Whether the hole cards play on `board`: a pair or better that uses a hole card, or (before the river) a flush draw or an open-ended straight draw with a hole card. */
+function plays(hole: readonly number[], board: readonly number[]): boolean {
+	const all = [...hole, ...board];
+	const top = (value: number): number => Math.floor(value / 13 ** 4);
+	const value = evaluateIndexes(all);
+	if (Math.floor(value / BASE) >= 1 && top(value) > top(evaluateIndexes(board))) return true;
+	if (board.length >= 5) return false;
+	for (let suit = 0; suit < 4; suit++) if (hole.some((card) => (card & 3) === suit) && all.filter((card) => (card & 3) === suit).length >= 4) return true;
+	let mask = 0;
+	for (const card of all) mask |= 1 << (card >> 2);
+	for (let low = 0; low <= 8; low++) {
+		const run = 0b1111 << low;
+		if ((mask & run) === run && hole.some((card) => (card >> 2) >= low && (card >> 2) <= low + 3)) return true;
+	}
+	return false;
+}
+
+/** What an opponent's actions in the hand say about its cards. */
+export interface Range {
+	/** The share of starting hands, strongest first, it can hold (1: any two cards). */
+	readonly top: number;
+	/** The boards on which it bet or raised: on each its cards must play (a pair or better with a hole card, or a strong draw). */
+	readonly strongOn: readonly (readonly string[])[];
+}
+
+/** Draws trying a range before a hand is taken anyway (a range that fits almost nothing falls back to any two cards). */
+const RANGE_TRIES = 60;
+
+/**
+ * Like `equity`, but each opponent's two cards are drawn from its `Range` (by rejection: up to 60 tries, then
+ * any two cards), so a seat that raised preflop and bet the flop holds a strong hand more often than a
+ * random one (P134). Still an estimate a player could make, from the public actions only.
+ */
+export function rangeEquity(hole: readonly string[], board: readonly string[], ranges: readonly Range[], samples: number, rng: RandomSource): number {
+	if (ranges.length === 0) return 1;
+	const own = indexes(hole);
+	const fixed = indexes(board);
+	const strongOn = ranges.map((range) => range.strongOn.map((cards) => indexes(cards)));
+	const used = new Array<boolean>(52).fill(false);
+	const pick = (): number => {
+		for (;;) {
+			const card = Math.floor(rng.next() * 52);
+			if (!used[card]) return card;
+		}
+	};
+	if (own.length + fixed.length + ranges.length * 2 + (5 - fixed.length) > 52 || samples <= 0) return 0;
+	let won = 0;
+	for (let sample = 0; sample < samples; sample++) {
+		used.fill(false);
+		for (const card of [...own, ...fixed]) used[card] = true;
+		const hands: number[][] = [];
+		ranges.forEach((range, opponent) => {
+			let cards: number[] = [];
+			for (let attempt = 0; attempt < RANGE_TRIES; attempt++) {
+				const a = pick();
+				used[a] = true;
+				const b = pick();
+				used[a] = false;
+				cards = [a, b];
+				if (shareAbove(a, b) >= range.top) continue;
+				if ((strongOn[opponent] ?? []).every((cardsOn) => plays(cards, cardsOn))) break;
+			}
+			for (const card of cards) used[card] = true;
+			hands.push(cards);
+		});
+		const runout = [...fixed];
+		while (runout.length < 5) {
+			const card = pick();
+			used[card] = true;
+			runout.push(card);
+		}
+		const mine = evaluateIndexes([...own, ...runout]);
+		let best = true;
+		let ties = 0;
+		for (const cards of hands) {
+			const theirs = evaluateIndexes([...cards, ...runout]);
+			if (theirs > mine) {
+				best = false;
+				break;
+			}
+			if (theirs === mine) ties += 1;
+		}
+		if (best) won += 1 / (ties + 1);
+	}
+	return won / samples;
+}

@@ -5,7 +5,7 @@
  * hand are what it won minus what it put in.
  */
 import { Type, type Static } from "typebox";
-import { describe, evaluate } from "./cards.ts";
+import { describe, evaluate, type Range } from "./cards.ts";
 
 export const Street = Type.Union([Type.Literal("preflop"), Type.Literal("flop"), Type.Literal("turn"), Type.Literal("river")]);
 export type Street = Static<typeof Street>;
@@ -254,12 +254,31 @@ export const Scored = Type.Object({
 	pot: Type.Number({ description: "The pot before the decision." }),
 	opponents: Type.Integer(),
 	equity: Type.Number({ description: "Monte Carlo share of the pot against random hands of the opponents still in." }),
+	rangeEquity: Type.Number({ description: "The same against hands drawn from each opponent's range as its actions narrow it (`rangesOf`); the baseline and the EV loss use it (P134)." }),
 	potOdds: Type.Number({ description: "toCall / (pot + toCall): the equity a call needs to break even on this street." }),
 	baseline: Type.Union([Type.Literal("fold"), Type.Literal("check"), Type.Literal("call"), Type.Literal("bet"), Type.Literal("raise")]),
 	evLoss: Type.Number({ description: "One-street EV the decision gave up against the baseline's (folding equity, or calling without odds); 0 when it agrees in kind." }),
 	missed: Type.Boolean(),
 });
 export type Scored = Static<typeof Scored>;
+
+/** Preflop ranges by action: the share of starting hands a seat holds after one raise, after two or more, and after a call. */
+const PREFLOP_TOP = { raise: 0.2, reraise: 0.08, call: 0.55 } as const;
+const BOARD_SIZE: Readonly<Record<Street, number>> = { preflop: 0, flop: 3, turn: 4, river: 5 };
+
+/** What the public actions of the hand so far say about the cards of each opponent of `seat` still in (P134), in table order. */
+export function rangesOf(hand: Hand, seat: string): Range[] {
+	return hand.seats
+		.filter((other) => other !== seat && !hand.folded.includes(other))
+		.map((other) => {
+			const actions = hand.log.flatMap((entry) => (entry.kind === "action" && entry.seat === other ? [entry] : []));
+			const preflop = actions.filter((entry) => entry.street === "preflop");
+			const raises = preflop.filter((entry) => entry.done === "raise" || entry.done === "bet").length;
+			const top = raises >= 2 ? PREFLOP_TOP.reraise : raises === 1 ? PREFLOP_TOP.raise : preflop.some((entry) => entry.done === "call") ? PREFLOP_TOP.call : 1;
+			const streets = [...new Set(actions.filter((entry) => entry.street !== "preflop" && (entry.done === "bet" || entry.done === "raise")).map((entry) => entry.street))];
+			return { top, strongOn: streets.map((street) => hand.runout.slice(0, BOARD_SIZE[street])) };
+		});
+}
 
 /**
  * The equity baseline: fold when the equity is below the pot odds, bet or raise when it is well above a
