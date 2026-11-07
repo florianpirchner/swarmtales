@@ -24,6 +24,8 @@ export const HOOK_ORDER = {
 		gridGame: 0,
 		/** The economics games start game 1 (econ lab; after the brain's hold, like the grid game). */
 		econGames: 0,
+		/** The sealed auction starts game 1 (after the brain's hold, like the grid game). */
+		sealedAuction: 0,
 		/** Trick play starts game 1 (Ember Tricks; after the brain's hold, like the grid game). */
 		trickPlay: 0,
 		/** The draft (Quarry) starts game 1, after the brain's hold. */
@@ -126,6 +128,8 @@ export const HOOK_ORDER = {
 		econGames: 350,
 		/** Nine men's morris tells the captain on move that it is on move, after the brain's context reset (P104). */
 		morris: 350,
+		/** The sealed auction's rules and the open lot with the seat's own value, after the brain's context reset. */
+		sealedAuction: 350,
 		/** Trick play's game record and table status, after the brain's context reset. */
 		trickPlay: 350,
 		/** The draft's rules and pick requests (Quarry), after the brain's context reset. */
@@ -153,6 +157,8 @@ export const HOOK_ORDER = {
 		consensus: 100,
 		/** The economics games' phase deadline (it may end a game and open a retro) comes before the brain's retro windows. */
 		econGames: 150,
+		/** The sealed auction's lot deadline (it may end a game and open a retro) comes before the brain's retro windows. */
+		sealedAuction: 150,
 		/** Trick play's move timer (it may end a game and open a retro) comes before the brain's retro windows. */
 		trickPlay: 150,
 		/** The draft's pick deadline (it may end a game and open a retro) comes before the brain's retro windows. */

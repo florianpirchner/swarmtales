@@ -45,6 +45,7 @@
 		{ "path": "mechanics/strategy-brain" },
 		{ "path": "mechanics/econ-games" },
 		{ "path": "mechanics/clue-grid" },
+		{ "path": "mechanics/sealed-auction" },
 		{ "path": "mechanics/draft-rounds" },
 		{ "path": "mechanics/salt-market" },
 		{ "path": "mechanics/chess" },

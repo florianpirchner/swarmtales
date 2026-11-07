@@ -10,6 +10,7 @@ import quarry, { quarryEntry } from "./quarry/story.ts";
 import saltMarket, { saltMarketEntryByName } from "./salt-market/story.ts";
 import holdem, { holdemEntry } from "./holdem/story.ts";
 import lanterns, { lanternsEntry, lanternsEntryByName } from "./lanterns/story.ts";
+import blindBid, { blindBidEntry, blindBidEntryByName } from "./blind-bid/story.ts";
 import morrisTeams, { morrisEntry } from "./morris-teams/story.ts";
 import tictactoeTeams, { tictactoeEntry } from "./tictactoe-teams/story.ts";
 import whispers, { whispersStory } from "./whispers/story.ts";
@@ -34,13 +35,13 @@ export const STORIES: Readonly<Record<string, AnyStory>> = {
 };
 
 /** Earlier names of a story; snapshots and runs recorded before a rename still find it. */
-const ALIASES: Readonly<Record<string, string>> = { nexus: "cityofkeys", "quarry-noburn": "quarry" };
+const ALIASES: Readonly<Record<string, string>> = { nexus: "cityofkeys", "quarry-noburn": "quarry", "lantern-auction": "blind-bid" };
 
 export function storyNames(): readonly string[] {
 	return Object.keys(STORIES);
 }
 
-/** The current name of a story: "nexus" is now "cityofkeys". */
+/** The current name of a story: "nexus" is now "cityofkeys", "lantern-auction" (its first smoke run) "blind-bid". */
 export function storyId(name: string): string {
 	return Object.hasOwn(ALIASES, name) ? (ALIASES[name] ?? name) : name;
 }
@@ -119,6 +120,9 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	// Convoy, the hidden-role card game: six seats, two secret saboteurs, a private brain per seat; the control arm keeps none.
 	convoy,
 	"convoy-nobrain": convoyEntry({ brain: false }),
+	// Sealed bids on six lots a game (private values and a shared worth), a private brain per seat; more games by name (`blind-bid-g5`).
+	"blind-bid": blindBid,
+	"blind-bid-nobrain": blindBidEntry({ brain: false }),
 };
 
 export function coreStoryNames(): readonly string[] {
@@ -213,5 +217,5 @@ function parseConvoy(id: string): CoreStoryEntry | undefined {
 
 export function findCoreStory(name: string): CoreStoryEntry | undefined {
 	const id = storyId(name);
-	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id) ?? parseConvoy(id));
+	return Object.hasOwn(coreStories, id) ? coreStories[id] : (parseTictactoe(id) ?? parseEmberTricks(id) ?? chessEntryByName(id) ?? parseMorris(id) ?? saltMarketEntryByName(id) ?? lanternsEntryByName(id) ?? harborLightsEntryByName(id) ?? parseConvoy(id) ?? blindBidEntryByName(id));
 }
