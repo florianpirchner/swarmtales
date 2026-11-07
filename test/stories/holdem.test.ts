@@ -306,7 +306,7 @@ describe("holdem, scripted match", () => {
 	});
 
 	it("is registered with its arms", () => {
-		for (const name of ["holdem", "holdem-nobrain", "holdem-mixed", "holdem-hu", "holdem-hu-nobrain"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["holdem", "holdem-nobrain", "holdem-mixed", "holdem-hu", "holdem-hu-nobrain", "holdem-hu-mixed"]) expect(findCoreStory(name)?.story.id).toBe(name);
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a hand and inside a retro window", async () => {
