@@ -367,6 +367,27 @@ No kernel change. Rules as built:
   reason field (sealed); a clue that spells a grid word in parts (the stem and containment check catch the
   plain cases only); a caller who never stops (bounded by number + 1 and the deadline).
 
+### 2.10 Sealed-bid auctions (original, "Blind Bid")
+
+**Built (2026-11-06, Flo: "Baue neue Spiele. Entscheide du!"):** mechanic `sealed-auction` and story
+`blind-bid` ([stories/blind-bid/](../../stories/blind-bid/README.md)). Not in the first list
+of candidates; added because it is the smallest game with a closed-form reference for three separate skills.
+
+- **Rules.** Four solo seats, a purse of 100 coins per game (enough for two or three lots, not for six), six lots
+  a game sold one by one with sealed bids: two **pay-your-bid** lots (private values 10-60, first price), two
+  **pay-the-runner-up** lots (private values, second price), two **shared-worth** lots (one hidden worth 20-80,
+  a private estimate within ±15 each, first price). Points are value minus price of the lots won; unspent
+  coins are worth nothing. All bids, the winner, the price and a shared lot's true worth are public after each lot.
+  Neutral framing (no textbook names). Three games a match, a private strategy brain per seat (control arm `-nobrain`).
+- **Reference (human only, `game_scored`).** Shading against the symmetric equilibrium bid min + (n-1)/n (v - min);
+  truthfulness in second-price lots (bidding the value is dominant); the winner's curse: sold shared lots below
+  their price and bids above the curse-free ceiling estimate - noise (n-1)/(n+1); efficiency, revenue, unspent purse.
+  The references are single-lot: the purse makes the true optimum lower, so they are a yardstick, not an optimum.
+- **Mechanics.** One new plugin (`sealed-auction`: deal, sealed bids, resolution, reference), the strategy brain
+  through `BrainSourceApi`. No kernel change. The City of Keys `seal` mechanic is unrelated.
+- **Cost (Haiku).** One match is 72 bids and 12-16 brain writes: 0.025 USD, 104 requests in the smoke run
+  ([blind-bid-04a-001-smoke](../../stories/blind-bid/runs/blind-bid-04a-001-smoke/), P160-P163).
+
 ## 3. The cross-game strategy brain
 
 The tic-tac-toe brain is *per team, per game type*. For a multi-game roadmap, three versions of the same
