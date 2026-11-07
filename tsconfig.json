@@ -51,6 +51,7 @@
 		{ "path": "mechanics/chess" },
 		{ "path": "mechanics/holdem" },
 		{ "path": "mechanics/convoy" },
+		{ "path": "mechanics/liars-dice" },
 		{ "path": "mechanics/morris" },
 		{ "path": "mechanics/morris-referee" },
 		{ "path": "apps/cli" },

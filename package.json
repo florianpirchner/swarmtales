@@ -61,6 +61,7 @@
     "@swarmtales/mechanic-goals": "workspace:*",
     "@swarmtales/mechanic-grid-game": "workspace:*",
     "@swarmtales/mechanic-holdem": "workspace:*",
+    "@swarmtales/mechanic-liars-dice": "workspace:*",
     "@swarmtales/mechanic-ledger": "workspace:*",
     "@swarmtales/mechanic-marks": "workspace:*",
     "@swarmtales/mechanic-morris": "workspace:*",
