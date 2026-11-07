@@ -37,6 +37,7 @@ const options = Type.Object({
 	enabled: Type.Boolean({ default: true, description: "false: no brain and no retro, only the result-only briefing at each game's start (the control arm)." }),
 	brainTeams: Type.Optional(Type.Array(Type.String(), { description: "The teams that keep a brain (default: all teams). The others get the result-only briefing, no retro, and readBrain/writeBrain stay closed to them (BRAIN_DISABLED); an empty list equals enabled: false." })),
 	maxWords: Type.Integer({ minimum: 1, default: 300, description: "The most words a brain may have." }),
+	maxRules: Type.Integer({ minimum: 0, default: 0, description: "More than 0: the brain is a list of at most this many rules, one per line; a new rule has to replace an old one once the list is full (P210). 0: free text up to maxWords." }),
 	teams: Type.Record(Type.String(), Type.Array(Type.String(), { description: "Resident ids of one team; the retro captain rotates through them." }), {
 		default: {},
 		description: "The teams, by the side names the grid game uses (X, O).",
@@ -125,6 +126,7 @@ const head = defineHead({
 		"strategy-brain/briefing-nobrain-solo": [],
 		"strategy-brain/retro-open-solo": ["game", "result", "words", "aim", "lines"],
 		"strategy-brain/retro-start-solo": ["words", "aim", "lines"],
+		"strategy-brain/retro-rules": ["rules"],
 	},
 });
 
@@ -208,6 +210,10 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string) {
 	const words = wordCount(text);
 	if (words === 0) return refuse("BRAIN_EMPTY", "The brain may not be empty.");
 	if (words > ctx.options.maxWords) return refuse("BRAIN_TOO_LONG", `The brain has ${String(words)} words; the limit is ${String(ctx.options.maxWords)}.`);
+	if (ctx.options.maxRules > 0) {
+		const rules = text.split("\n").filter((row) => row.trim() !== "").length;
+		if (rules > ctx.options.maxRules) return refuse("BRAIN_TOO_MANY_RULES", `The brain has ${String(rules)} lines; at most ${String(ctx.options.maxRules)} rules, one per line. Replace an old rule instead of adding one.`);
+	}
 	const replayed = ctx.state.results.find((played) => replaysMoves(text, played.moves, MIN_REPLAY_MOVES) || (played.line !== undefined && replaysLine(text, played.line, MIN_REPLAY_LINE)));
 	if (replayed !== undefined) return refuse("BRAIN_REPLAY", `The text replays the moves of game ${String(replayed.game)}. Write rules keyed to positions, not one game's move list.`);
 	return undefined;
@@ -241,6 +247,7 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 	const lines = ctx.options.solo
 		? [first ? ctx.prompt("strategy-brain/retro-start-solo", { words: vars.words, aim, lines: lineCount }) : ctx.prompt("strategy-brain/retro-open-solo", { game: window.game, result: resultText(last), words: vars.words, aim, lines: lineCount })]
 		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
+	if (ctx.options.maxRules > 0) lines[0] = `${lines[0] ?? ""} ${ctx.prompt("strategy-brain/retro-rules", { rules: ctx.options.maxRules })}`;
 	if (ctx.options.retroFocus !== "") lines[0] = `${lines[0] ?? ""} ${ctx.options.retroFocus}`;
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));

@@ -35,6 +35,8 @@ export interface TicTacToeOptions {
 	/** Posts and minutes of a retro window before the brain is due. */
 	readonly retroMaxPosts?: number;
 	readonly retroMaxMinutes?: number;
+	/** More than 0: the brain is a list of at most this many rules (P210). */
+	readonly maxRules?: number;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
 	/** Rounds of proposal and vote a team gets per move before a random cell is played for it (default 3; slow models need more, P81). */
@@ -48,6 +50,8 @@ export interface TicTacToeOptions {
 const DEFAULT_ROUNDS = 3;
 /** Words a brain may have: 300 filled up by game 2 with interface rules (P147). */
 const DEFAULT_MAX_WORDS = 500;
+/** Words of a list of at most 8 one-line rules. */
+const RULES_MAX_WORDS = 240;
 /** The retro ends when the brain is written or after this many posts and minutes; shorter than before (8 posts, 3 minutes) because the longer retro cost time and forfeits (P146). */
 const DEFAULT_RETRO_POSTS = 4;
 const DEFAULT_RETRO_MINUTES = 2;
@@ -60,22 +64,22 @@ const teamsOf = (teamSize: 1 | 3): { X: string[]; O: string[] } => (teamSize ===
 const minutesPerGame = (size: number): number => Math.round((size * size * 16) / 9 / 4) * 4;
 
 /** The registered name: the 3x3 game keeps the original id, a bigger board is named after its size. */
-function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean): string {
+function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean, maxRules: number): string {
 	const base = size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
 	const withRounds = maxRounds === DEFAULT_ROUNDS ? base : `${base}-r${String(maxRounds)}`;
-	const board = `${withRounds}${teamSize === 1 ? "-solo" : ""}${fixedCaptain ? "-fc" : ""}`;
+	const board = `${withRounds}${teamSize === 1 ? "-solo" : ""}${fixedCaptain ? "-fc" : ""}${maxRules > 0 ? `-rules${String(maxRules)}` : ""}`;
 	return brainTeams === undefined || brainTeams.length === 0 || brainTeams.length === Object.keys(TEAMS).length ? board : `${board}-brain-${brainTeams.join("").toLowerCase()}`;
 }
 
 /** The story with its variants as options. */
 export function tictactoeStory(options: TicTacToeOptions = {}) {
-	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxWords = DEFAULT_MAX_WORDS, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, retroMaxPosts = DEFAULT_RETRO_POSTS, retroMaxMinutes = DEFAULT_RETRO_MINUTES } = options;
+	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxRules = 0, maxWords = maxRules > 0 ? RULES_MAX_WORDS : DEFAULT_MAX_WORDS, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, retroMaxPosts = DEFAULT_RETRO_POSTS, retroMaxMinutes = DEFAULT_RETRO_MINUTES } = options;
 	const teams = teamsOf(teamSize);
 	const brain = brainOn && (brainTeams === undefined || brainTeams.length > 0);
 	if (brainTeams?.some((team) => !(team in TEAMS))) throw new Error(`tictactoe-teams: brainTeams must name teams of ${Object.keys(TEAMS).join(", ")}`);
 	if (gamemaker) throw new Error("tictactoe-teams: the gamemaker variant is not built yet");
 	return defineCoreStory({
-		id: storyName(size, line, brainTeams, maxRounds, teamSize, fixedCaptain),
+		id: storyName(size, line, brainTeams, maxRounds, teamSize, fixedCaptain, maxRules),
 		seed,
 		minutes: options.minutes ?? games * minutesPerGame(size) + 8,
 		residents: [...teams.X, ...teams.O],
@@ -83,7 +87,7 @@ export function tictactoeStory(options: TicTacToeOptions = {}) {
 			gridGame.with({ size, line, games, alternateStart: true, teams, wakeTeam: true, fixedCaptain }),
 			consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams }),
 			teamChannel.with({ teams, maxPostsPerMove: 3 }),
-			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, teams, retroMaxPosts, retroMaxMinutes, shared: false, brainAtStart: true }),
+			strategyBrain.with({ enabled: brain, ...(brainTeams === undefined ? {} : { brainTeams: [...brainTeams] }), maxWords, maxRules, teams, retroMaxPosts, retroMaxMinutes, shared: false, brainAtStart: true }),
 			optimalReferee.with({ maxEmptyCells: Math.min(16, size * size) }),
 		],
 		grants: { resident: ["viewBoard", "proposeMove", "castVote", "postTeam", "readTeam", "playMove", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },

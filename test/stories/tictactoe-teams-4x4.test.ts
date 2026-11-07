@@ -59,4 +59,10 @@ describe("tictactoe-teams, combinations by name", () => {
 		expect(fixed.briefing("A02", host)).not.toContain("You are the captain");
 		expect(findCoreStory("tictactoe-teams-9x9")).toBeUndefined();
 	});
+
+	it("resolves the rule-list brain by name", async () => {
+		const { findCoreStory } = await import("../../stories/index.ts");
+		expect(findCoreStory("tictactoe-teams-5x5-r6-rules")?.story.id).toBe("tictactoe-teams-5x5-r6-rules8");
+		expect(findCoreStory("tictactoe-teams-rules5")?.story.id).toBe("tictactoe-teams-rules5");
+	});
 });
