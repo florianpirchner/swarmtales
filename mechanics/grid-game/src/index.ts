@@ -263,6 +263,18 @@ export const gridGame = defineMechanic(head, (kit) => ({
 				startNext(ctx);
 			},
 		},
+		// The captain of the turn is told so once per turn and minute: a resident that ended its turn on a stale board ("X's move now") gets no new input otherwise, so the runner never asks its model again and the move forfeits (P410, as P104 in morris).
+		turnInputs: {
+			order: HOOK_ORDER.turnInputs.gridGame,
+			run: (resident, ctx) => {
+				const state = ctx.state;
+				if (!state.running || captainOf(state) !== resident) return [];
+				const key = `${String(state.game)}:${String(state.moves.length)}:${String(ctx.minute)}`;
+				if (state.told === key) return [];
+				state.told = key;
+				return [`Side ${state.side} is on move (move ${String(state.moves.length + 1)} of game ${String(state.game)}); you are its captain. viewBoard shows the board.`];
+			},
+		},
 		news: (resident, ctx) => (ctx.options.wakeTeam && ctx.state.running ? ctx.state.teams[ctx.state.side].includes(resident) : captainOf(ctx.state) === resident),
 	},
 	jobs: {
@@ -292,6 +304,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			held: state.held,
 			due: state.due,
 			...(state.invalid === true ? { invalid: true } : {}),
+			...(state.told === undefined ? {} : { told: state.told }),
 		}),
 		load: (data) => ({
 			teams: { X: [...data.teams.X], O: [...data.teams.O] },
@@ -307,6 +320,7 @@ export const gridGame = defineMechanic(head, (kit) => ({
 			held: data.held ?? false,
 			due: data.due ?? false,
 			...(data.invalid === true ? { invalid: true } : {}),
+			...(data.told === undefined ? {} : { told: data.told }),
 		}),
 	}),
 }));

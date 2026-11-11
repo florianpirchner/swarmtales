@@ -35,6 +35,10 @@ describe("tictactoe-teams, scripted match", () => {
 		const run = await playStory(options(false), idleAgent);
 		expect(ofType(run.events, "consensus_forfeited")).toHaveLength(4);
 		expect(ofType(run.events, "match_invalid").map((event) => field(event, "forfeits"))).toEqual([4]);
+		// The captain of the turn is told once per turn and minute, so a silent one is asked again (P410).
+		const told = run.events.filter((event) => event.type === "turn_started" && JSON.stringify(field(event, "inputs")).includes("is on move"));
+		expect(told.length).toBeGreaterThanOrEqual(4 * 3);
+		expect(new Set(told.map((event) => `${String(event.minute)}:${event.actor}`)).size).toBe(told.length);
 		expect(ofType(run.events, "match_ended").map((event) => field(event, "invalid"))).toEqual([true]);
 		expect(run.end).toMatchObject({ reason: "referee", limit: "grid-game.match" });
 		const make = () => options(false);

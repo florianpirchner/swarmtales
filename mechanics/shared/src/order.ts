@@ -130,6 +130,8 @@ export const HOOK_ORDER = {
 		econGames: 350,
 		/** Nine men's morris tells the captain on move that it is on move, after the brain's context reset (P104). */
 		morris: 350,
+		/** The grid game (tic-tac-toe) tells the captain of the turn that it is on move, after the brain's context reset (P410). */
+		gridGame: 350,
 		/** The sealed auction's rules and the open lot with the seat's own value, after the brain's context reset. */
 		sealedAuction: 350,
 		/** Trick play's game record and table status, after the brain's context reset. */
