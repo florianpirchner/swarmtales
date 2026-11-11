@@ -1,0 +1,75 @@
+{
+  "totals": {
+    "requests": 91,
+    "input": 292,
+    "output": 22244,
+    "cacheRead": 335805,
+    "cacheWrite": 34702,
+    "costUsd": 0.22611204000000001
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 53,
+      "input": 170,
+      "output": 15688,
+      "cacheRead": 230959,
+      "cacheWrite": 22594,
+      "costUsd": 0.012994839999999999
+    },
+    {
+      "agent": "A04",
+      "requests": 38,
+      "input": 122,
+      "output": 6556,
+      "cacheRead": 104846,
+      "cacheWrite": 12108,
+      "costUsd": 0.2131172
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 0,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "costUsd": 0
+    },
+    "perAgent": []
+  },
+  "own": {
+    "totals": {
+      "requests": 91,
+      "input": 292,
+      "output": 22244,
+      "cacheRead": 335805,
+      "cacheWrite": 34702,
+      "costUsd": 0.22611204000000001
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 53,
+        "input": 170,
+        "output": 15688,
+        "cacheRead": 230959,
+        "cacheWrite": 22594,
+        "costUsd": 0.012994839999999999
+      },
+      {
+        "agent": "A04",
+        "requests": 38,
+        "input": 122,
+        "output": 6556,
+        "cacheRead": 104846,
+        "cacheWrite": 12108,
+        "costUsd": 0.2131172
+      }
+    ]
+  },
+  "models": {
+    "residents": "anthropic/claude-haiku-5-5",
+    "A04": "anthropic/claude-opus-5-5"
+  }
+}
