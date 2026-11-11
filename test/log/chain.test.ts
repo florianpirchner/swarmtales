@@ -17,14 +17,13 @@ import {
 	type EventChainOptions,
 	JsonlEventLog,
 	jsonHash,
-	linkHash,
 	PUBLIC_KEY_FILE,
 	snapshotStateHash,
 	verifyChain,
-	verifyChainText,
 	verifyContinuity,
-	ZERO_HASH,
 } from "@swarmtales/chronicle";
+import { verifyChainText, ZERO_HASH } from "@swarmtales/chain";
+import { linkHash } from "../../packages/chain/src/verify.ts";
 
 /** `expect.stringMatching`, typed as the asymmetric matcher it is. */
 function matching(pattern: RegExp): unknown {

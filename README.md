@@ -192,6 +192,7 @@ is deterministic, and every run can be replayed.
 - [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md) · [Mechanic API](docs/design/mechanic-api.md) · [Carve plan](docs/design/carve-plan.md) (teams [T1](docs/design/carve-team-T1.md), [T2](docs/design/carve-team-T2.md), [T3](docs/design/carve-team-T3.md), [T4](docs/design/carve-team-T4.md))
 - [From a run to a story](docs/FROM-RUN-TO-STORY.md): how the chronicle and the short stories are made
 - [The signed event log](docs/design/event-log-signing.md): every run's log is hash-chained and signed; `swt log verify` checks it
+- [The run viewer](docs/design/viewer-build.md): replay, chain check, charts, compare and the story graph in the browser ([`apps/viewer-web`](apps/viewer-web/)) or in VS Code and github.dev ([`apps/vscode`](apps/vscode/))
 - [Recorded runs](examples/): Act I with a snapshot, and the Act II series
 - [Related work](docs/RELATED-WORK.md): Swarm Tales next to Generative Agents, Concordia and Sotopia
 - [What helps the residents](docs/CROSS-GAME-FINDINGS.md): brains, teams and referee information compared across the game stories
@@ -199,4 +200,4 @@ is deterministic, and every run can be replayed.
 
 ## License
 
-Swarm Tales is source-available under the [Sustainable Use License](LICENSE) with additional terms: you may run and change it for free, but not offer it as a hosted service or sell it as your own product. The plugin interface (`contracts`, `sdk`) is Apache 2.0. See the [license FAQ](LICENSE-FAQ.md).
+Swarm Tales is source-available under the [Sustainable Use License](LICENSE) with additional terms: you may run and change it for free, but not offer it as a hosted service or sell it as your own product. The plugin interface (`contracts`, `sdk`) and the log verifier and viewer core (`chain`, `viewer-core`) are Apache 2.0. See the [license FAQ](LICENSE-FAQ.md).

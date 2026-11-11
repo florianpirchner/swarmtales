@@ -6,6 +6,9 @@
 	"include": ["test", "lab", "scripts", "*.ts"],
 	"references": [
 		{ "path": "packages/contracts" },
+		{ "path": "packages/chain" },
+		{ "path": "packages/viewer-core" },
+		{ "path": "packages/viewer-ui" },
 		{ "path": "packages/legacy-log" },
 		{ "path": "packages/kernel" },
 		{ "path": "packages/prompts" },
@@ -55,6 +58,8 @@
 		{ "path": "mechanics/morris" },
 		{ "path": "mechanics/morris-referee" },
 		{ "path": "apps/cli" },
+		{ "path": "apps/viewer-web" },
+		{ "path": "apps/vscode" },
 		{ "path": "stories" }
 	]
 }

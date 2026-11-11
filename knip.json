@@ -5,6 +5,10 @@
 		".": {
 			"entry": ["scripts/*.{ts,mjs}", "scripts/ember-calibration/analyze.ts","test/**/*.{test,check}.ts", "lab/*.ts", "stories/index.ts", "tsdown.base.ts"],
 			"project": ["scripts/**", "test/**", "lab/**", "stories/**", "*.ts"]
+		},
+		"apps/vscode": {
+			"entry": ["src/entry-node.ts", "src/entry-browser.ts", "src/webview/main.ts"],
+			"project": ["src/**"]
 		}
 	}
 }

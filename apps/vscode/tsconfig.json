@@ -1,0 +1,30 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": ".",
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo",
+		"lib": [
+			"ES2023",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"types": [
+			"node"
+		]
+	},
+	"include": [
+		"src",
+		"build.ts"
+	],
+	"references": [
+		{
+			"path": "../../packages/viewer-core"
+		},
+		{
+			"path": "../../packages/viewer-ui"
+		}
+	]
+}

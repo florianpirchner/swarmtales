@@ -1,0 +1,26 @@
+{
+	"name": "@swarmtales/viewer-web",
+	"version": "0.1.0",
+	"private": true,
+	"description": "The run viewer as a static web page: folder pick and drop, File System Access, GitHub",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"scripts": {
+		"export-data": "tsx --conditions=development ../../scripts/export-viewer-data.ts",
+		"dev": "pnpm export-data && vite",
+		"build": "pnpm export-data && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@swarmtales/viewer-core": "workspace:*",
+		"@swarmtales/viewer-ui": "workspace:*",
+		"react": "19.3.1",
+		"react-dom": "19.3.1"
+	},
+	"devDependencies": {
+		"@types/react": "19.3.0",
+		"@types/react-dom": "19.3.0",
+		"@vitejs/plugin-react": "5.2.0",
+		"vite": "7.3.7"
+	}
+}

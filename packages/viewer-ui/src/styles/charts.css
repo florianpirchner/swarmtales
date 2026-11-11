@@ -1,0 +1,12 @@
+.stv-chart { width: 100%; height: auto; display: block; }
+.stv-chart text { font: 11px system-ui, sans-serif; fill: var(--muted); }
+.stv-chart .axis { stroke: var(--line); }
+.stv-chart .grid { stroke: var(--line); stroke-dasharray: 2 3; opacity: 0.7; }
+.stv-chart .title { font-weight: 600; fill: var(--text); font-size: 12px; }
+.stv-chart .label { fill: var(--text); }
+.stv-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; margin-top: 4px; }
+.stv-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.stv-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.stv-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.stv-seg button { border: 0 !important; border-radius: 0 !important; }
+.stv-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }

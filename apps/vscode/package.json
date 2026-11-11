@@ -1,0 +1,133 @@
+{
+	"name": "swarmtales-vscode",
+	"displayName": "Swarm Tales",
+	"description": "Open Swarm Tales runs in VS Code, github.dev and Codespaces: replay, report, charts, compare, story graph",
+	"version": "0.1.0",
+	"private": true,
+	"publisher": "swarmtales",
+	"license": "SEE LICENSE IN LICENSE",
+	"type": "module",
+	"engines": {
+		"vscode": "^1.95.0"
+	},
+	"categories": [
+		"Visualization",
+		"Other"
+	],
+	"keywords": [
+		"swarm tales",
+		"agents",
+		"run viewer",
+		"replay"
+	],
+	"main": "./dist/extension-node.cjs",
+	"browser": "./dist/extension-browser.js",
+	"capabilities": {
+		"virtualWorkspaces": true,
+		"untrustedWorkspaces": {
+			"supported": "limited",
+			"description": "The viewer only reads files. Run Story, which prefills a terminal, is off until the workspace is trusted."
+		}
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "swarmtales.openRun",
+				"title": "Open Run",
+				"category": "Swarm Tales"
+			},
+			{
+				"command": "swarmtales.openRunBrowser",
+				"title": "Open Run Browser",
+				"category": "Swarm Tales"
+			},
+			{
+				"command": "swarmtales.openStoryGraph",
+				"title": "Open Story Graph",
+				"category": "Swarm Tales"
+			},
+			{
+				"command": "swarmtales.runStory",
+				"title": "Run Story…",
+				"category": "Swarm Tales"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "swarmtales.openRun",
+					"when": "explorerResourceIsFolder",
+					"group": "swarmtales@1"
+				},
+				{
+					"command": "swarmtales.openStoryGraph",
+					"when": "resourceFilename =~ /\\.story\\.(ya?ml|json)$|^story\\.ya?ml$/",
+					"group": "swarmtales@1"
+				},
+				{
+					"command": "swarmtales.runStory",
+					"when": "resourceFilename =~ /\\.story\\.(ya?ml|json)$|^story\\.ya?ml$/ && !isWeb && isWorkspaceTrusted",
+					"group": "swarmtales@2"
+				}
+			],
+			"editor/title": [
+				{
+					"command": "swarmtales.openStoryGraph",
+					"when": "resourceFilename =~ /\\.story\\.(ya?ml|json)$|^story\\.ya?ml$/",
+					"group": "navigation"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "swarmtales.runStory",
+					"when": "!isWeb && isWorkspaceTrusted"
+				}
+			]
+		},
+		"customEditors": [
+			{
+				"viewType": "swarmtales.runEditor",
+				"displayName": "Swarm Tales Run Viewer",
+				"selector": [
+					{
+						"filenamePattern": "events.jsonl"
+					}
+				],
+				"priority": "option"
+			}
+		],
+		"yamlValidation": [
+			{
+				"fileMatch": "**/*.story.yaml",
+				"url": "./dist/story.schema.json"
+			},
+			{
+				"fileMatch": "**/story.yaml",
+				"url": "./dist/story.schema.json"
+			}
+		],
+		"jsonValidation": [
+			{
+				"fileMatch": "*.story.json",
+				"url": "./dist/story.schema.json"
+			}
+		]
+	},
+	"scripts": {
+		"export-data": "tsx --conditions=development ../../scripts/export-viewer-data.ts dist/viewer-data.json",
+		"bundle": "tsx build.ts",
+		"build": "pnpm export-data && pnpm bundle",
+		"package": "pnpm build && vsce package --no-dependencies --allow-missing-repository --skip-license --out swarmtales-vscode.vsix"
+	},
+	"dependencies": {
+		"@swarmtales/viewer-core": "workspace:*",
+		"@swarmtales/viewer-ui": "workspace:*",
+		"typebox": "1.3.27",
+		"yaml": "2.9.1"
+	},
+	"devDependencies": {
+		"@types/vscode": "1.95.0",
+		"@vscode/vsce": "3.9.2",
+		"esbuild": "0.28.2"
+	}
+}

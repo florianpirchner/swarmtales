@@ -58,7 +58,7 @@ hash(n)  = sha256(hash(n-1) + canonicalJson(parse(line n)))
 ```
 
 as hex digests over UTF-8, where `canonicalJson` is RFC 8785 (JCS: sorted keys by UTF-16 code units, no whitespace, numbers
-and strings as ECMAScript serialises them; `packages/chronicle/src/log/canonical.ts`). RFC 8785 assumes I-JSON (RFC 7493), so
+and strings as ECMAScript serialises them; `packages/chain/src/canonical.ts`). RFC 8785 assumes I-JSON (RFC 7493), so
 `verify` refuses a line with a duplicate key (parsers differ in which value they keep) or a lone surrogate (not UTF-8
 encodable, so another JCS implementation cannot hash it); `JsonlEventLog` writes a lone surrogate as U+FFFD, so a run's own
 text (a summary sliced through an emoji) never breaks its chain. `seq` is the line number, which equals
@@ -136,7 +136,9 @@ pre-registration and, for a resumed run, its checkpoint and what was (not) check
 
 Whitespace and key order inside a line are not changes: the chain hashes the canonical form.
 
-The code: `packages/chronicle/src/log/chain.ts` (`EventChain`, `verifyChain`, `verifyChainText`, `verifyContinuity`),
+The code: the pure verifier `packages/chain` (`@swarmtales/chain`: `verifyChainText`, `verifyContinuityText`, canonical JSON,
+Ed25519 and sha256 in pure JavaScript with `@noble/curves` and `@noble/hashes`, so a browser gives the same verdict),
+`packages/chronicle/src/log/chain.ts` (`EventChain`, signing with `node:crypto`, and the file wrappers `verifyChain`, `verifyContinuity`),
 `JsonlEventLog` in `sinks.ts` (hands every line it writes to the chain, after writing it), `apps/cli/src/host/chain.ts` (the
 CLI's genesis), `apps/cli/src/log-verify.ts`. The chain sits after the legacy adapter: it signs the lines `events.jsonl` holds,
 not the host's envelopes.
