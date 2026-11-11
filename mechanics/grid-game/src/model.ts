@@ -107,6 +107,8 @@ export interface GridState {
 	due: boolean;
 	/** The match was ended as invalid (consensus forfeits only). */
 	invalid?: boolean;
+	/** The last turn the captain of the turn was told about ("game:move:minute"), so it is told once per turn and minute. */
+	told?: string;
 }
 
 export const GridSlice = Type.Object({
@@ -123,6 +125,7 @@ export const GridSlice = Type.Object({
 	held: Type.Optional(Type.Boolean()),
 	due: Type.Optional(Type.Boolean()),
 	invalid: Type.Optional(Type.Boolean()),
+	told: Type.Optional(Type.String()),
 });
 
 export function tallyOf(results: readonly GameResult[]): Tally {
