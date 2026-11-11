@@ -77,6 +77,9 @@ describe("the generic CoreStory runner", () => {
 		expect(changed).toMatchObject({ seed: 9, minutes: 2, residents: 4 });
 		expect(story).toMatchObject({ seed: 3, minutes: 5, residents: 2 });
 		expect(coreStoryFor(story)).toEqual(story);
+		// P327: --budget becomes the referee's cost cap, beside the story's own limits.
+		const chess = findCoreStory("chess")?.story;
+		expect(chess === undefined ? undefined : coreStoryFor(chess, { budgetUsd: 4 }).limits).toEqual({ maxStepsPerMinute: 16, maxCostUsd: 4 });
 	});
 
 	it("keeps the registry of core stories apart from the registered city stories", () => {
