@@ -5,7 +5,7 @@ import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { assertNever } from "@swarmtales/kernel";
 import type { ArenaEventType, EventSink, RecordedEvent } from "@swarmtales/legacy-log";
-import { wellFormed } from "./canonical.ts";
+import { wellFormed } from "@swarmtales/chain";
 import type { EventChain } from "./chain.ts";
 
 /** Keeps every event in memory; for tests and in-process consumers (moved from the engine, step 18). */

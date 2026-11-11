@@ -12,6 +12,9 @@
 	],
 	"references": [
 		{
+			"path": "../chain"
+		},
+		{
 			"path": "../contracts"
 		},
 		{

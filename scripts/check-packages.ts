@@ -55,13 +55,16 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	"@swarmtales/mechanic-clue-grid": [...MECHANIC_DEPENDENCIES, "@swarmtales/mechanic-strategy-brain", "@swarmtales/mechanic-team-channel"],
 	"@swarmtales/mechanic-shared": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/contracts": [],
+	// The pure verifier of the signed log and the viewer's core (docs/design/viewer-build.md): no node:*, browser-safe.
+	"@swarmtales/chain": [],
+	"@swarmtales/viewer-core": ["@swarmtales/chain", "@swarmtales/contracts"],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
 	"@swarmtales/legacy-log": ["@swarmtales/contracts"],
 	"@swarmtales/prompts": [],
 	"@swarmtales/models": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/sdk": ["@swarmtales/contracts", "@swarmtales/kernel"],
 	"@swarmtales/roles": ["@swarmtales/contracts", "@swarmtales/legacy-log", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/mechanic-shared"],
-	"@swarmtales/chronicle": ["@swarmtales/contracts", "@swarmtales/legacy-log", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/roles"],
+	"@swarmtales/chronicle": ["@swarmtales/chain", "@swarmtales/contracts", "@swarmtales/legacy-log", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/roles"],
 	"@swarmtales/novelist": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/prompts", "@swarmtales/models", "@swarmtales/chronicle"],
 	"@swarmtales/testkit": ["@swarmtales/contracts", "@swarmtales/kernel", "@swarmtales/chronicle"],
 };

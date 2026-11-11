@@ -21,6 +21,7 @@
 		"build": "tsdown"
 	},
 	"dependencies": {
+		"@swarmtales/chain": "workspace:*",
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/legacy-log": "workspace:*",
 		"@swarmtales/kernel": "workspace:*",

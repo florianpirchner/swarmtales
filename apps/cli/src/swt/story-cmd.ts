@@ -2,8 +2,9 @@
 import { writeFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 import { DIRECTOR_SUPPORT, storyJsonSchema, type AnyStory } from "@swarmtales/contracts";
+import { storyData } from "@swarmtales/kernel";
 import { validateStory } from "@swarmtales/sdk";
-import { STORIES } from "../../../../stories/index.ts";
+import { findCoreStory, STORIES, type CoreStoryEntry } from "../../../../stories/index.ts";
 import { UsageError } from "../args.ts";
 import { json, parseFlags, table, type CommandRun, type Noun } from "./io.ts";
 import { isStoryFile, resolveStory, storyToYaml } from "./story-file.ts";
@@ -46,11 +47,30 @@ const list: CommandRun = (argv, io) => {
 	return 0;
 };
 
+/** The story as plain JSON (what a viewer draws its graph from). */
+function plain(value: unknown): unknown {
+	return JSON.parse(JSON.stringify(value));
+}
+
+/** A core story (stories/index.ts `coreStories`, or a variant by name): its mechanics in load order. */
+function showCore(name: string, entry: CoreStoryEntry, asJson: boolean): string {
+	const data = storyData(entry.story);
+	const mechanics = data.mechanics.map((mechanic) => mechanic.id);
+	if (asJson) return json({ id: data.id, title: entry.title, kind: "core", minutes: data.minutes, residents: data.residents, mechanics, story: plain(data) });
+	const residents = typeof data.residents === "number" ? String(data.residents) : data.residents.join(", ");
+	return [`${entry.title} (${name}), a core story`, `run: ${residents} residents, ${String(data.minutes)} minutes, seed ${String(data.seed)}`, `mechanics: ${mechanics.join(", ")}`].join("\n");
+}
+
 const show: CommandRun = (argv, io) => {
 	const { positionals, flags } = parseFlags(argv, { yaml: "boolean" });
 	const [reference, ...rest] = positionals;
 	if (reference === undefined || rest.length > 0) throw new UsageError("show takes one story name or file");
 	const resolved = resolveStory(reference);
+	const core = resolved.story === undefined && !isStoryFile(reference) ? findCoreStory(reference) : undefined;
+	if (core !== undefined && flags.yaml !== true) {
+		io.out(showCore(reference, core, flags.json === true));
+		return 0;
+	}
 	if (resolved.story === undefined) {
 		io.err(resolved.issues.join("\n"));
 		return 1;
@@ -61,7 +81,8 @@ const show: CommandRun = (argv, io) => {
 		return 0;
 	}
 	if (flags.json === true) {
-		io.out(json(summary(story)));
+		// The summary, and the whole story as plain JSON under `story` (what the viewer's story graph reads).
+		io.out(json({ ...summary(story), story: plain(story) }));
 		return 0;
 	}
 	const info = summary(story);
@@ -118,7 +139,7 @@ export const storyNoun: Noun = {
 	name: "story",
 	verbs: {
 		list: { args: "[--json]", summary: "the registered stories", run: list },
-		show: { args: "<name|file> [--json|--yaml]", summary: "run settings, levels, tools and features of a story", run: show },
+		show: { args: "<name|file> [--json|--yaml]", summary: "run settings, levels, tools and features of a story (a core story: its mechanics); --json adds the whole story under `story`", run: show },
 		validate: { args: "[name|file...]", summary: "the registry's stories, or the ones named (a file is YAML or JSON)", run: validate },
 		schema: { args: "[--out <file>]", summary: "write the story schema (default story.schema.json; `--out -` prints it)", run: schema },
 	},

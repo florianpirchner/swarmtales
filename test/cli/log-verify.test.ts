@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ZERO_HASH } from "@swarmtales/chronicle";
+import { ZERO_HASH } from "@swarmtales/chain";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
 import { UsageError } from "../../apps/cli/src/args.ts";

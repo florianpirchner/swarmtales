@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@swarmtales/chain": "workspace:*",
     "@swarmtales/chronicle": "workspace:*",
     "@swarmtales/contracts": "workspace:*",
     "@swarmtales/kernel": "workspace:*",
@@ -89,6 +90,7 @@
     "@swarmtales/roles": "workspace:*",
     "@swarmtales/sdk": "workspace:*",
     "@swarmtales/testkit": "workspace:*",
+    "@swarmtales/viewer-core": "workspace:*",
     "@types/node": "^26.6.6",
     "chess.js": "1.4.0",
     "eslint": "^9.39.5",

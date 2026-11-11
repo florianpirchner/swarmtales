@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalJson, CanonicalJsonError, iJsonIssue, wellFormed } from "@swarmtales/chronicle";
+import { canonicalJson, CanonicalJsonError, iJsonIssue, wellFormed } from "@swarmtales/chain";
 
 describe("canonical JSON (RFC 8785)", () => {
 	it("matches the RFC's example of numbers, strings and literals (§3.2.2)", () => {
