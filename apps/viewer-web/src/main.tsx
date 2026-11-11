@@ -1,5 +1,5 @@
 import { mountViewer, type ViewerHandle, type ViewerHost } from "@swarmtales/viewer-ui";
-import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
+import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Launcher } from "./launcher.tsx";
 import { githubSource, locationFromQuery } from "./github-source.ts";
@@ -23,15 +23,23 @@ function Viewer({ opened, data }: { readonly opened: Opened; readonly data: View
 
 function Shell() {
 	const fromQuery = useMemo(() => locationFromQuery(window.location.search), []);
-	const [opened, setOpened] = useState<Opened | undefined>(() => (fromQuery === undefined ? undefined : { source: githubSource(fromQuery, (url, init) => fetch(url, init)), title: `${fromQuery.owner}/${fromQuery.repo}@${fromQuery.ref}` }));
+	const [truncated, setTruncated] = useState(false);
+	const onTruncated = useCallback(() => { setTruncated(true); }, []);
+	const [opened, setOpened] = useState<Opened | undefined>(() => (fromQuery === undefined ? undefined : { source: githubSource(fromQuery, (url, init) => fetch(url, init), undefined, onTruncated), title: `${fromQuery.owner}/${fromQuery.repo}@${fromQuery.ref}` }));
 	const [data, setData] = useState<ViewerData>({ stories: {}, views: [] });
 	useEffect(() => {
 		void loadViewerData("./viewer-data.json").then(setData);
 	}, []);
-	if (opened === undefined) return <Launcher onOpen={setOpened} />;
+	if (opened === undefined) return <Launcher onOpen={setOpened} onTruncated={onTruncated} />;
 	return (
 		<>
-			<button type="button" className="change" onClick={() => { setOpened(undefined); }}>Change source</button>
+			{truncated && (
+				<p className="notice" role="status">
+					GitHub sent only part of this repository's file tree (it is too large), so some runs may be missing. Open a smaller path, such as stories/chess/runs.
+					<button type="button" onClick={() => { setTruncated(false); }}>Dismiss</button>
+				</p>
+			)}
+			<button type="button" className="change" onClick={() => { setTruncated(false); setOpened(undefined); }}>Change source</button>
 			<Viewer opened={opened} data={data} />
 		</>
 	);

@@ -1,11 +1,12 @@
-import { usageTotals, type RunModel, type RunVerification } from "@swarmtales/viewer-core";
+import { keyFingerprint, usageTotals, type RunModel } from "@swarmtales/viewer-core";
 import { useMemo } from "react";
 import { count, usd } from "../format.ts";
+import type { VerificationState } from "../use-run.ts";
 import { ChainBadge } from "./ChainBadge.tsx";
 
 interface Props {
 	readonly model: RunModel;
-	readonly verification: RunVerification | undefined;
+	readonly verification: VerificationState;
 	readonly onJump: (seq: number) => void;
 	readonly openExternal?: (path: string) => void;
 }
@@ -26,7 +27,7 @@ export function Overview({ model, verification, onJump, openExternal }: Props) {
 				<p className="muted small" style={{ margin: "0 0 10px" }}>{model.dir || "(root)"}</p>
 				<ChainBadge verification={verification} model={model} onJump={onJump} />
 				<p className="stv-note">
-					The badge proves that the log was not changed since the run started (every line is chained and the heads are signed by the key in the genesis). It does not prove the run was honest before it began: there is no external timestamp anchor yet.
+					A valid chain proves that the log matches the key in this run folder (<span className="mono">run.pub</span>, named in the genesis): no line was changed, dropped or reordered after it was signed. It does not prove who wrote the run. Whoever can replace the folder can write another log and sign it with a new key; compare the key fingerprint with a copy published elsewhere. External anchoring (a timestamp or a published key outside the folder) is not built yet.
 				</p>
 				{openExternal !== undefined && (
 					<p style={{ margin: "10px 0 0" }}>
@@ -64,7 +65,7 @@ export function Overview({ model, verification, onJump, openExternal }: Props) {
 						<dl className="stv-kv">
 							<dt>commit</dt><dd className="mono">{genesis.commit ?? "-"}</dd>
 							<dt>story hash</dt><dd className="mono">{genesis.storyHash.slice(0, 16)}…</dd>
-							<dt>key</dt><dd className="mono">{genesis.publicKey.slice(-16)}</dd>
+							<dt>key</dt><dd className="mono" title="first 16 hex digits of the sha256 of the public key">{keyFingerprint(genesis.publicKey)}</dd>
 							{genesis.resumedFrom !== undefined && (<><dt>resumed</dt><dd>from a checkpoint</dd></>)}
 							{Object.keys(genesis.models).length > 0 && (<><dt>models</dt><dd>{Object.entries(genesis.models).slice(0, 6).map(([role, name]) => <div key={role}><span className="muted">{role}</span> {name}</div>)}</dd></>)}
 						</dl>

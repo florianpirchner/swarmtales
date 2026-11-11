@@ -11,6 +11,7 @@ export { joinPath, memorySource, type RunSource, type RunSourceEntry } from "./s
 export type { RunEvent } from "./events.ts";
 export { findRuns, loadRun, type RunModel, type RunSummary } from "./load.ts";
 export { verifyRun, type RunVerification } from "./verify.ts";
+export { keyFingerprint } from "@swarmtales/chain";
 export { indexRun, type RunIndex } from "./run-index.ts";
 export { actorLanes, toolCounts, typeCounts, usageByMinute, usageTotals, type Lane } from "./series.ts";
 export { messageGraph, type MessageGraph } from "./messages.ts";
@@ -18,4 +19,5 @@ export { compareRuns, type Comparison } from "./compare.ts";
 export { reportLinks } from "./report-links.ts";
 export { storyGraph, type GraphEdge, type GraphNode, type StoryGraph } from "./story-graph.ts";
 export { runOverlay, type RunOverlay } from "./overlay.ts";
+export { storyHashOf } from "./story-hash.ts";
 export type { Vocabulary } from "./vocabulary.ts";

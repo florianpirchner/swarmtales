@@ -70,10 +70,13 @@ All from `@swarmtales/viewer-core`; every function is synchronous except the two
 
 - `memorySource(files: Record<path, text>): RunSource`: a source over a map (tests, files already in memory).
 - `joinPath(...parts): string`: joins `/` paths (`""` is the root).
-- `findRuns(source, dir = "", { depth = 6 }): Promise<RunSummary[]>`: run folders (a folder with `events.jsonl`) under
-  `dir`, sorted by path; a run folder is not searched further. `RunSummary`: `dir`, `name` (the folder, or the folder
-  above `run/`), `story?`, `title?`, `startedAt?`, `agents?`, `costUsd?` (from `000-run.json` and `usage.json` only),
-  `signed`, `hasReport`.
+- `findRuns(source, dir = "", { depth = 6, concurrency = 6, onDetails? }): Promise<RunSummary[]>`: run folders (a folder
+  with `events.jsonl`) under `dir`, sorted by path; a run folder is not searched further. `RunSummary`: `dir`, `name`
+  (the folder, or the folder above `run/`), `story?`, `title?`, `startedAt?`, `agents?`, `costUsd?` (from `000-run.json`
+  and `usage.json` only), `signed`, `hasReport`, `pending?`. The details are read at most `concurrency` runs at a time.
+  With `onDetails` the call answers from the listing alone (rows marked `pending: true`) and hands each run's full
+  summary to `onDetails` as it is read: the run list shows the rows of a GitHub tree at once and fills story, date
+  and cost afterwards.
 - `loadRun(source, dir, { actors? }): Promise<RunModel>`: throws only when `events.jsonl` is missing or cannot be read; a
   rejected optional read (a rate limit, a folder that went away) is an issue `could not be read (…)`. `RunModel`: `dir`, `name`, `meta?`
   (`000-run.json`, `RunMeta`), `genesis?` (the chain's genesis as written, not verified), `events: RunEvent[]`,
@@ -81,7 +84,8 @@ All from `@swarmtales/viewer-core`; every function is synchronous except the two
   `analysisReport?` (`ANALYSIS.md`), `transcripts: {agent, path, promptPath?}[]` (from `agents/*.md`, read them
   lazily with `source.readText`), `texts` (`events`, `chain?`, `publicKey?`: what `verifyRun` checks), `issues:
   LoadIssue[]` (`{file, line?, reason}`: a broken line or file; the rest still loads).
-- `RunEvent`: `seq` (the line's, else its line number), `minute` (else the line before's), `type`, `at?`, `actor?` (who
+- `RunEvent`: `seq` (the line's, else its line number), `minute` (else the line before's; a `seq` that is not a safe
+  whole number from 0, or a `minute` outside 0 to 100 000, is an issue and is replaced the same way), `type`, `at?`, `actor?` (who
   acted), `subject?` (whom the line was about), `line`, `data` (the whole parsed line). The actor comes from the line's
   type rule in the actor vocabulary, else the first of `ACTOR_FIELDS` (`actor`, `agent`, `by`, `from`, `author`,
   `voter`, `seat`, `resident`). `DEFAULT_ACTORS` (`events.ts`): `group_membership` actor `by`, subject `agent`;
@@ -99,9 +103,17 @@ All from `@swarmtales/viewer-core`; every function is synchronous except the two
 
 **Checking**
 
-- `verifyRun(model, { publicKey? }): RunVerification`: `{signed: false}` without a chain, else `{signed: true,
-  checkedWith: "run.pub" | "given key", verdict: ChainVerdict}` (from `@swarmtales/chain`: `ok` with `lines`, `head`,
-  `genesis`, `heads`, or the first broken `line` and the `reason`, the texts `swt log verify` prints).
+- `verifyRun(model, { publicKey? }): RunVerification`: `{signed: false}` without a chain (with `unreadable` when the
+  chain file is listed but could not be read: a rate limit, a 403), else `{signed: true, checkedWith: "run.pub" |
+  "given key", key?, verdict: ChainVerdict}` (`key`: the fingerprint of the genesis' public key, `keyFingerprint`;
+  the verdict from `@swarmtales/chain`: `ok` with `lines`, `head`, `genesis`, `heads`, or the first broken `line` and
+  the `reason`, the texts `swt log verify` prints).
+- What a valid chain proves (the badge says "chain valid, N lines, signed by run.pub (key fingerprint …)" and the
+  Overview says the rest): the log matches the key in the run folder. Whoever can replace the folder can write another
+  log and sign it with a new key; only a key published elsewhere (compare the fingerprint, or `swt log verify --key`)
+  ties the log to its author, and external anchoring is not built yet (`event-log-signing.md`, "The limit").
+- `storyHashOf(story)`: the genesis' `storyHash` of a story value (sha256 of its canonical JSON), `undefined` for a
+  value that is no JSON.
 
 **Index and series**
 
@@ -169,9 +181,10 @@ these files.
 ## viewer-ui host contract (wave 2; wave 3, the VS Code extension, builds against it)
 
 `@swarmtales/viewer-ui` ships source (no build step) for a bundler; it imports its CSS (also React Flow's), so the
-bundler must handle `.css` imports (Vite and esbuild do). The chain check starts a module Web Worker through
-`new Worker(new URL("./verify-worker.ts", import.meta.url), { type: "module" })`; a bundler that does not support
-that pattern, or a webview whose CSP forbids workers, gets the main-thread fallback (the check runs after a paint).
+bundler must handle `.css` imports (Vite and esbuild do). The chain check starts `host.verifyWorker()` when the host
+gives one, else a module Web Worker through `new Worker(new URL("./verify-worker.ts", import.meta.url), { type:
+"module" })`; where neither starts, the check runs on the main thread after a paint. A check that throws ends as a grey
+"could not check the chain: …" badge, never as "checking" forever; a run without a chain file is answered at once.
 
 ```ts
 import { mountViewer, type ViewerHost, type ViewerHandle } from "@swarmtales/viewer-ui";
@@ -185,6 +198,7 @@ interface ViewerHost {
 	readonly openExternal?: (path: string) => void;   // open a source file in the host's editor; buttons show only when set
 	readonly vocabulary?: Vocabulary;                 // viewer-core's actor, message and overlay words, added to the defaults
 	readonly initialStory?: { readonly name: string; readonly story: unknown }; // the Story tab shows it first (a story file the user picked)
+	readonly verifyWorker?: () => Worker;             // starts the chain-check worker where the module worker cannot load (VS Code: a blob)
 }
 function mountViewer(element: HTMLElement, host: ViewerHost): ViewerHandle; // { unmount(): void }
 
@@ -200,6 +214,11 @@ interface ViewDescriptor {
   `story`, then the same name with trailing `-suffix` parts cut (`chess-p80` finds `chess`), then the `story` the run's own
   `000-run.json` carries (level stories). The value is `swt story show <name> --json`'s `story` (level stories: the story;
   core stories: `storyData`). The user can also open a `.yaml`/`.json` story file in the Story tab.
+- **Story version:** a signed run's genesis carries `storyHash`. Each candidate (the run's own `000-run.json` story, the
+  host story of the same id, then the shorter names) is hashed with `storyHashOf`; the first that matches is drawn with a
+  green note "the version this run played". When none matches (today's story changed since the run), the first
+  candidate is drawn under a warning banner and the overlay is labelled approximate (still allowed). An unsigned run
+  says it cannot be checked.
 - **View descriptors:** `mechanics/<id>/views.json` (a list, or `{ "views": [...] }`), Typebox-checked by `parseViews`.
   `board-fen` reads `fields.fen` (required), `fields.lastMove` (a coordinate move such as `e2e4`) and `fields.caption`.
   Chess ships `mechanics/chess/views.json` (event `move_played`, `fen`, `written`, `san`).
@@ -217,7 +236,18 @@ interface ViewDescriptor {
   failed red, a lottery draw violet); with a run laid over, the backbone the run went down is a thick glowing line,
   reached cards and chips carry their first minute (`m12 · 3×`, click: replay from there), the rest is faded.
 - **Licences:** React, React Flow, marked, DOMPurify (MPL-2.0 or Apache-2.0) and yaml are
-  permissive. Reports are sanitised with DOMPurify before they are shown.
+  permissive.
+- **Reports:** a report's text may come from a model or a stranger's pull request. `safeHtml` (`markdown.ts`) renders
+  it with marked and sanitises it with DOMPurify (no scripts, event handlers, forms, frames, embeds, `<style>`,
+  `<link>`, `<meta>`, `<base>`, and no `style`, `class`, `id` or `target` attributes: a report cannot reuse the viewer's
+  classes to fake a badge). `#seq` references become links afterwards, on the text nodes of the sanitised DOM, built
+  as elements. The report box is `contain: paint` and `overflow: auto`, so nothing draws outside it.
+- **CSP (viewer-web):** the build puts a `Content-Security-Policy` meta into `index.html` (`vite.config.ts`):
+  `default-src 'self'`, scripts from `'self'` only, `img-src 'self' data: blob:` (no remote images: a report cannot
+  call home), `connect-src 'self' https://api.github.com https://raw.githubusercontent.com`, `object-src 'none'`,
+  `base-uri 'self'`, `form-action 'none'`. The dev server has none (Vite injects inline scripts).
+- **GitHub source:** when GitHub sends only part of a large repository's tree (`truncated`), the web app shows a notice
+  that runs may be missing and suggests a smaller path. The launcher builds its query with `URLSearchParams`.
 
 ## VS Code extension (wave 3, `apps/vscode`)
 
@@ -227,11 +257,18 @@ Details and use: `apps/vscode/README.md`.
 
 - **Bridge:** the webview mounts the viewer with a `RunSource` that sends `list`/`readText` over `postMessage`; the host
   answers with `vscode.workspace.fs` (works on github.dev). Every webview message is a closed Typebox object, paths are
-  folder-relative and `..`/absolute paths are refused. Strict CSP with a nonce, `localResourceRoots` = `dist/`.
-- **Worker:** no module worker in the webview (no `import.meta.url`, no `worker-src`); the viewer's main-thread fallback runs.
+  folder-relative and `..`/absolute paths are refused, so are names ending in a dot or a space, and the host never
+  lists or reads through a symbolic link (`stat` per path part). Strict CSP with a nonce, `localResourceRoots` = `dist/`.
+- **Worker:** `build.ts` bundles `verify-worker.ts` first as a classic script and inlines it in the webview bundle; the
+  webview passes `verifyWorker` (a worker from a blob URL of that code), and the CSP allows `worker-src blob:` and no
+  other worker source. VS Code webviews load workers only from blob or data URLs; the check of a large log no longer
+  freezes the page. Verified in Chromium under `default-src 'none'; worker-src blob:` on a signed chess run.
 - **Data:** `scripts/export-viewer-data.ts [out]` now takes an optional output path; the extension writes `dist/viewer-data.json`.
 - **Designer stage 1:** `yamlValidation` (`**/*.story.yaml`, `**/story.yaml`) and `jsonValidation` (`*.story.json`) bind the bundled `story.schema.json`.
-- **Run Story…** (desktop only) types `pnpm swt run --story <file>` into a terminal without executing it.
+- **Run Story…** (desktop only, trusted workspaces only: `capabilities.untrustedWorkspaces` is `limited` and the menus
+  carry `isWorkspaceTrusted`; the command checks `workspace.isTrusted` too) types `pnpm swt run --story <file>` into a
+  terminal without executing it. The path is never quoted: a name outside letters, digits, `_ . @ + = , -` and `/`
+  (no part starting with `-`) is refused with a message to rename the file or type the command.
 - **Verified:** the built webview bundle with the real host logic (`answer`, protocol parser) behind a fake `acquireVsCodeApi`,
   served over HTTP with the real CSP, in Chromium over `stories/chess/runs` (no CSP violations; screenshot 5-vscode-web.png).
   **Not verified:** a real VS Code (web or desktop): `@vscode/test-web` needs `update.code.visualstudio.com`, which the sandbox

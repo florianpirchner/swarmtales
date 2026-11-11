@@ -11,12 +11,13 @@ export type FolderFiles = RunSource;
 
 /**
  * A folder-relative path made of plain names, with `/` separators: no `..`, no absolute path, no drive
- * letter, no backslash, no NUL. `undefined` for anything else (the host then refuses the request).
+ * letter, no backslash, no NUL, no name ending in a dot or a space. `undefined` for anything else (the host then refuses the request).
  */
 export function safeRelative(path: string): string | undefined {
 	if (path.includes("\\") || path.includes("\0") || path.startsWith("/") || /^[A-Za-z]:/.test(path)) return undefined;
 	const parts = path.split("/").filter((part) => part !== "" && part !== ".");
-	if (parts.some((part) => part === "..")) return undefined;
+	// `..`, and names Windows would shorten to it or to another name (a trailing dot or space).
+	if (parts.some((part) => part === ".." || part.endsWith(".") || part.endsWith(" "))) return undefined;
 	return joinPath(...parts);
 }
 

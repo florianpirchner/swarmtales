@@ -1,6 +1,7 @@
 /**
  * The page a webview shows. The content security policy allows exactly one script (the viewer bundle,
- * by nonce) and nothing from the network: no remote script, no frame, no connection. Styles may be
+ * by nonce), a worker only from a blob URL (the bundle builds the chain-check worker from its own
+ * code) and nothing from the network: no remote script, no frame, no connection. Styles may be
  * inline because React and React Flow position elements with `style` attributes.
  */
 
@@ -27,7 +28,8 @@ export function contentSecurityPolicy(nonce: string, cspSource: string): string 
 		`style-src ${cspSource} 'unsafe-inline'`,
 		`img-src ${cspSource} data: blob:`,
 		`font-src ${cspSource} data:`,
-		// No worker-src: the chain check falls back to the main thread (see apps/vscode/README.md).
+		// The chain-check worker comes from a blob URL of the bundle's own code (see apps/vscode/README.md).
+		"worker-src blob:",
 	].join("; ");
 }
 

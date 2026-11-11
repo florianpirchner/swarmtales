@@ -24,20 +24,33 @@ const shared: BuildOptions = {
 	legalComments: "none",
 };
 
+// The chain-check worker, built first as one classic script: the webview starts it from a blob URL
+// (the only way a VS Code webview loads a worker), so the check of an 8 MB log does not freeze the page.
+const worker = await build({
+	...shared,
+	entryPoints: [join(ROOT, "packages", "viewer-ui", "src", "verify-worker.ts")],
+	write: false,
+	platform: "browser",
+	format: "iife",
+	define: { "process.env.NODE_ENV": '"production"' },
+});
+const workerCode = worker.outputFiles[0]?.text;
+if (workerCode === undefined) throw new Error("the verify worker was not built");
+
 await Promise.all([
 	// The extension hosts: `vscode` is provided by the editor.
 	build({ ...shared, entryPoints: [join(APP, "src", "entry-node.ts")], outfile: join(DIST, "extension-node.cjs"), platform: "node", format: "cjs", external: ["vscode"] }),
 	build({ ...shared, entryPoints: [join(APP, "src", "entry-browser.ts")], outfile: join(DIST, "extension-browser.js"), platform: "browser", format: "cjs", external: ["vscode"] }),
-	// The webview: one classic script (no chunks, so the CSP needs only a nonce). The viewer asks for a
-	// module worker through `new URL(..., import.meta.url)`; without `import.meta.url` that throws and
-	// the viewer runs the chain check on the main thread.
+	// The webview: one classic script (no chunks, so the CSP needs only a nonce). The worker's code is
+	// inlined as a string (`__SWT_VERIFY_WORKER__`); the viewer's own `new URL(..., import.meta.url)`
+	// module worker is never used here (`import.meta.url` is undefined).
 	build({
 		...shared,
 		entryPoints: [join(APP, "src", "webview", "main.ts")],
 		outfile: join(DIST, "webview.js"),
 		platform: "browser",
 		format: "iife",
-		define: { "import.meta.url": "undefined", "process.env.NODE_ENV": '"production"' },
+		define: { "import.meta.url": "undefined", "process.env.NODE_ENV": '"production"', __SWT_VERIFY_WORKER__: JSON.stringify(workerCode) },
 		loader: { ".woff": "dataurl", ".woff2": "dataurl", ".svg": "dataurl", ".png": "dataurl" },
 	}),
 ]);

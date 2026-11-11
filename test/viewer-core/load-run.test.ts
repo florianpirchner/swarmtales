@@ -79,6 +79,42 @@ describe("run folders", () => {
 		const tampered = { ...run, texts: { ...run.texts, events: run.texts.events.replace('"minute":0', '"minute":1') } };
 		expect(verifyRun(tampered)).toMatchObject({ signed: true, verdict: { ok: false, line: 1 } });
 		expect(verifyRun({ ...run, texts: { events: run.texts.events } })).toEqual({ signed: false });
+		expect(verifyRun({ ...run, texts: { events: run.texts.events }, issues: [{ file: `${CHESS}/events.chain.jsonl`, reason: "could not be read (GitHub answered 403)" }] })).toEqual({ signed: false, unreadable: "events.chain.jsonl could not be read (GitHub answered 403)" });
+	});
+
+	it("lists runs from the listing first and fills their details at most `concurrency` at a time", async () => {
+		const files: Record<string, string> = {};
+		for (const name of ["a", "b", "c", "d"]) {
+			files[`runs/${name}/events.jsonl`] = SMALL;
+			files[`runs/${name}/000-run.json`] = JSON.stringify({ storyId: `story-${name}` });
+		}
+		const inner = memorySource(files);
+		let open = 0;
+		let most = 0;
+		const slow = {
+			list: (dir: string) => inner.list(dir),
+			async readText(path: string) {
+				open += 1;
+				most = Math.max(most, open);
+				await new Promise((resolve) => setTimeout(resolve, 5));
+				open -= 1;
+				return inner.readText(path);
+			},
+		};
+		const details: string[] = [];
+		const done = new Promise<void>((resolve) => {
+			const onDetails = (run: { readonly story?: string }) => {
+				details.push(run.story ?? "");
+				if (details.length === 4) resolve();
+			};
+			void findRuns(slow, "", { concurrency: 2, onDetails }).then((runs) => {
+				expect(runs.map((run) => [run.dir, run.pending, run.story])).toEqual([["runs/a", true, undefined], ["runs/b", true, undefined], ["runs/c", true, undefined], ["runs/d", true, undefined]]);
+			});
+		});
+		await done;
+		expect(details.sort()).toEqual(["story-a", "story-b", "story-c", "story-d"]);
+		expect(most).toBeLessThanOrEqual(2);
+		expect((await findRuns(slow, "")).map((run) => run.story)).toEqual(["story-a", "story-b", "story-c", "story-d"]);
 	});
 
 	it("loads a folder with only events.jsonl, and reads a broken line as an issue", async () => {

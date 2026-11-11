@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { costSeries } from "../../packages/viewer-ui/src/cost-series.ts";
 import { moveSquares, parseFen, squareIndex, glyphOf } from "../../packages/viewer-ui/src/fen.ts";
 import { formatHash, parseHash } from "../../packages/viewer-ui/src/hash.ts";
-import { linkSeqs, markdownToHtml } from "../../packages/viewer-ui/src/markdown.ts";
+import { safeHtml, SANITIZE, seqParts } from "../../packages/viewer-ui/src/markdown.ts";
 import { positionOf, scrollToShow, visibleRange } from "../../packages/viewer-ui/src/replay-math.ts";
 import { filterRuns, sortRuns } from "../../packages/viewer-ui/src/run-list-logic.ts";
 import { niceTicks } from "../../packages/viewer-ui/src/scale.ts";
@@ -101,24 +101,20 @@ describe("location hash", () => {
 });
 
 describe("report links", () => {
-	it("links #seq in text, not in links, not entities, not words", () => {
-		const html = linkSeqs("<p>see #12 and C#3, &#123; and <a href=\"x\">#7</a> then #99</p>");
-		expect(html).toContain('<a href="#seq=12" data-seq="12">#12</a>');
-		expect(html).toContain('<a href="#seq=99" data-seq="99">#99</a>');
-		expect(html).not.toContain('data-seq="3"');
-		expect(html).not.toContain('data-seq="123"');
-		expect(html).not.toContain('data-seq="7"');
+	// The DOM part (sanitise, then link the text nodes) is checked in a browser; here the text split and the settings.
+	it("splits #seq out of a text node, not entities, not words", () => {
+		expect(seqParts("see #12 and C#3, &#123; then #99.")).toEqual(["see ", { seq: 12, text: "#12" }, " and C#3, &#123; then ", { seq: 99, text: "#99" }, "."]);
+		expect(seqParts("no references")).toEqual(["no references"]);
 	});
 	it("links only the seqs the run has", () => {
-		const html = linkSeqs("<p>#1 and #2</p>", (seq) => seq === 2);
-		expect(html).not.toContain('data-seq="1"');
-		expect(html).toContain('data-seq="2"');
+		expect(seqParts("#1 and #2", (seq) => seq === 2)).toEqual(["#1 and ", { seq: 2, text: "#2" }]);
 	});
-	it("rewrites the references of rendered Markdown", () => {
-		const html = markdownToHtml("# Run #5\n\n| a | b |\n|---|---|\n| x | events #3 to #1801 |\n\nThe `#3` code stays a link too: #4.");
-		expect(html).toContain('data-seq="1801"');
-		expect(html).toContain('data-seq="4"');
-		expect(html).toContain("<table>");
+	it("never lets a report keep style, class or id", () => {
+		expect(SANITIZE.FORBID_ATTR).toEqual(expect.arrayContaining(["style", "class", "id"]));
+		expect(SANITIZE.FORBID_TAGS).toEqual(expect.arrayContaining(["style", "form", "iframe"]));
+	});
+	it("escapes the text where no DOM is there to sanitise with", () => {
+		expect(safeHtml("<img src=x onerror=alert(1)> #3")).toBe("<pre>&lt;img src=x onerror=alert(1)&gt; #3</pre>");
 	});
 });
 
@@ -133,6 +129,18 @@ describe("story lookup", () => {
 	it("falls back to the story in the run's own file, else nothing", () => {
 		expect(storyOfRun(model({ storyId: "zzz", story: { levels: [] } }), stories)?.story).toEqual({ levels: [] });
 		expect(storyOfRun(model({ storyId: "zzz" }), stories)).toBeUndefined();
+	});
+	it("prefers the version the run played, by the genesis' story hash, and says when none is", () => {
+		const hashOf = (story: unknown): string => JSON.stringify(story);
+		const signed = (meta: { storyId?: string; story?: unknown }, storyHash: string) => ({ name: "r", meta, genesis: { story: "chess-p80", storyHash } });
+		// The host's chess is the played version, the run's own copy is not.
+		expect(storyOfRun(signed({ story: { old: true } }, hashOf({ id: "chess" })), stories, hashOf)).toMatchObject({ id: "chess", from: "host-prefix", check: "matches" });
+		// The run's own copy is the played version: it wins over the host's story.
+		expect(storyOfRun(signed({ story: { own: 1 } }, hashOf({ own: 1 })), stories, hashOf)).toMatchObject({ from: "run", check: "matches", story: { own: 1 } });
+		// No candidate matches: the run's own copy is drawn, marked as not the played version.
+		expect(storyOfRun(signed({ story: { own: 2 } }, "x"), stories, hashOf)).toMatchObject({ from: "run", check: "differs" });
+		expect(storyOfRun(signed({}, "x"), stories, hashOf)).toMatchObject({ id: "chess", check: "differs" });
+		expect(storyOfRun(model({ storyId: "chess" }), stories, hashOf)?.check).toBe("unchecked");
 	});
 });
 

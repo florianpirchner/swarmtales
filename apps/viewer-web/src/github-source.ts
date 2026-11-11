@@ -47,9 +47,10 @@ export function contentsUrl(location: GithubLocation, path: string): string {
 
 /**
  * The source for a location. `token` is used for the requests and kept nowhere else (not in storage, not in a URL, not logged);
- * it is never put into an error message either.
+ * it is never put into an error message either. `onTruncated` is called once when GitHub sends only part of
+ * the tree (a very large repository): runs outside that part are missing from the list.
  */
-export function githubSource(location: GithubLocation, fetchFn: FetchFn, token?: string): RunSource {
+export function githubSource(location: GithubLocation, fetchFn: FetchFn, token?: string, onTruncated?: () => void): RunSource {
 	const auth = token === undefined || token === "" ? {} : { Authorization: `Bearer ${token}` };
 	let tree: Promise<{ readonly source: RunSource; readonly files: ReadonlySet<string>; readonly truncated: boolean }> | undefined;
 	const loadTree = async () => {
@@ -59,6 +60,7 @@ export function githubSource(location: GithubLocation, fetchFn: FetchFn, token?:
 		if (!Check(TreeResponse, body)) throw new Error("GitHub's file tree has an unexpected shape");
 		const base = joinPath(location.path);
 		const files = new Set(body.tree.filter((entry) => entry.type === "blob" && (base === "" || entry.path.startsWith(`${base}/`))).map((entry) => (base === "" ? entry.path : entry.path.slice(base.length + 1))));
+		if (body.truncated === true) onTruncated?.();
 		// Directories are implied by the file paths; the listing is a map of empty texts.
 		return { source: memorySource(Object.fromEntries([...files].map((file) => [file, ""]))), files, truncated: body.truncated === true };
 	};

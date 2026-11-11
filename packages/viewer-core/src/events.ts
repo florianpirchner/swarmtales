@@ -69,15 +69,19 @@ export const DEFAULT_ACTORS: ActorVocabulary = {
 	factor_burned: { subject: "agent" },
 };
 
-const EventLine = Type.Object(
-	{
-		type: Type.String(),
-		seq: Type.Optional(Type.Integer()),
-		minute: Type.Optional(Type.Number()),
-		at: Type.Optional(Type.String()),
-	},
-	{ additionalProperties: true },
-);
+const EventLine = Type.Object({ type: Type.String() }, { additionalProperties: true });
+
+/** The largest minute a line may name (a run of 100 000 minutes is far beyond any story); beyond it the charts' arrays would explode. */
+const MAX_MINUTE = 100_000;
+
+/** A `seq` the viewer can use: a whole number from 0 that a JavaScript number holds exactly. */
+function goodSeq(value: unknown): value is number {
+	return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function goodMinute(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= MAX_MINUTE;
+}
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -131,13 +135,18 @@ export function parseEvents(text: string, file = "events.jsonl", actors: ActorVo
 			issues.push({ file, line, reason: "not an event (no string type)" });
 			continue;
 		}
-		minute = value.minute ?? minute;
+		// A bad `seq` or `minute` is an issue; the line keeps its line number and the minute before it.
+		const fields: Readonly<Record<string, unknown>> = value;
+		const { seq: rawSeq, minute: rawMinute, at } = fields;
+		if (rawSeq !== undefined && !goodSeq(rawSeq)) issues.push({ file, line, reason: "seq is not a whole number from 0" });
+		if (rawMinute !== undefined && !goodMinute(rawMinute)) issues.push({ file, line, reason: `minute is not a number from 0 to ${String(MAX_MINUTE)}` });
+		if (goodMinute(rawMinute)) minute = rawMinute;
 		const { actor, subject } = actorOf(value, Object.hasOwn(rules, value.type) ? rules[value.type] : undefined);
 		events.push({
-			seq: value.seq ?? line,
+			seq: goodSeq(rawSeq) ? rawSeq : line,
 			minute,
 			type: value.type,
-			...(value.at === undefined ? {} : { at: value.at }),
+			...(typeof at === "string" ? { at } : {}),
 			...(actor === undefined ? {} : { actor }),
 			...(subject === undefined ? {} : { subject }),
 			line,

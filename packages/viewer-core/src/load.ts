@@ -29,6 +29,8 @@ export interface RunSummary {
 	readonly costUsd?: number;
 	readonly signed: boolean;
 	readonly hasReport: boolean;
+	/** Set on a row of a listing whose details (story, date, agents, cost) are still being read (`FindRunsOptions.onDetails`). */
+	readonly pending?: true;
 }
 
 /** An agent's files under `agents/`: the transcript and, when there is one, its system prompt. */
@@ -64,19 +66,41 @@ const SKIPPED = new Set(["node_modules", ".git", "dist", "dist-types"]);
 export interface FindRunsOptions {
 	/** How deep below `dir` to look (default 6). */
 	readonly depth?: number;
+	/**
+	 * Answer from the listing alone: the runs come back at once, marked `pending`, and each run's details
+	 * are read afterwards and handed to this callback (a source over the network lists 200 runs at once,
+	 * but reads their files one request each).
+	 */
+	readonly onDetails?: (run: RunSummary) => void;
+	/** How many runs' details are read at the same time (default 6). */
+	readonly concurrency?: number;
+}
+
+/** Runs `work` over `items`, at most `limit` at a time. */
+async function eachLimited<T>(items: readonly T[], limit: number, work: (item: T) => Promise<void>): Promise<void> {
+	let next = 0;
+	const lane = async (): Promise<void> => {
+		while (next < items.length) {
+			const item = items[next];
+			next += 1;
+			if (item !== undefined) await work(item);
+		}
+	};
+	await Promise.all(Array.from({ length: Math.max(1, Math.min(limit, items.length)) }, lane));
 }
 
 /**
  * The run folders under `dir` (a folder with `events.jsonl`), in path order, each summarised from
- * `000-run.json` and `usage.json`. A run folder is not searched further.
+ * `000-run.json` and `usage.json` (or, with `onDetails`, from the listing first). A run folder is not
+ * searched further.
  */
 export async function findRuns(source: RunSource, dir = "", options: FindRunsOptions = {}): Promise<readonly RunSummary[]> {
-	const found: RunSummary[] = [];
+	const found: { readonly dir: string; readonly names: ReadonlySet<string> }[] = [];
 	const visit = async (folder: string, depth: number): Promise<void> => {
 		const entries = await source.list(folder);
 		const names = new Set(entries.filter((entry) => entry.kind === "file").map((entry) => entry.name));
 		if (names.has(EVENTS_FILE)) {
-			found.push(await summarise(source, folder, names));
+			found.push({ dir: folder, names });
 			return;
 		}
 		if (depth <= 0) return;
@@ -85,7 +109,24 @@ export async function findRuns(source: RunSource, dir = "", options: FindRunsOpt
 		}
 	};
 	await visit(joinPath(dir), options.depth ?? 6);
-	return found.sort((left, right) => (left.dir < right.dir ? -1 : left.dir > right.dir ? 1 : 0));
+	found.sort((left, right) => (left.dir < right.dir ? -1 : left.dir > right.dir ? 1 : 0));
+	const limit = options.concurrency ?? 6;
+	const { onDetails } = options;
+	if (onDetails !== undefined) {
+		// `summarise` never rejects; a callback that throws must not stop the other runs.
+		void eachLimited(found, limit, async (run) => {
+			const summary = await summarise(source, run.dir, run.names);
+			try {
+				onDetails(summary);
+			} catch {
+				// The caller's own failure; the next run still gets its details.
+			}
+		});
+		return found.map((run) => ({ ...bareSummary(run.dir, run.names), pending: true }));
+	}
+	const summaries = new Map<string, RunSummary>();
+	await eachLimited(found, limit, async (run) => { summaries.set(run.dir, await summarise(source, run.dir, run.names)); });
+	return found.flatMap((run) => summaries.get(run.dir) ?? []);
 }
 
 function nameOf(dir: string): string {
@@ -118,6 +159,12 @@ async function readJson<T>(source: RunSource, path: string, check: (value: unkno
 	return parsed.value;
 }
 
+/** What the listing alone tells about a run folder. */
+function bareSummary(dir: string, files: ReadonlySet<string>): RunSummary {
+	return { dir, name: runName(dir), signed: files.has(CHAIN_FILE), hasReport: files.has(REPORT_FILE) };
+}
+
+/** A run's summary; a file that cannot be read leaves its fields out (it never rejects). */
 async function summarise(source: RunSource, dir: string, files: ReadonlySet<string>): Promise<RunSummary> {
 	const issues: LoadIssue[] = [];
 	const meta = files.has(RUN_FILE) ? await readJson(source, joinPath(dir, RUN_FILE), isRunMeta, issues) : undefined;

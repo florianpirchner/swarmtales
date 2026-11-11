@@ -1,4 +1,4 @@
-import { indexRun, loadRun, type RunIndex, type RunModel, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
+import { indexRun, loadRun, verifyRun, type RunIndex, type RunModel, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { verifyTexts, type VerifyReply, type VerifyRequest } from "./verify-worker.ts";
 
@@ -55,19 +55,27 @@ function isReply(value: unknown): value is VerifyReply {
 	return typeof value === "object" && value !== null && "ok" in value && typeof value.ok === "boolean";
 }
 
-/** Checks the chain in a Web Worker; where no worker can start (a host that does not bundle workers) it runs here after a paint. */
-function verifyOffThread(request: VerifyRequest, stop: { current: boolean }): Promise<RunVerification> {
+/** Starts the viewer's own module worker (bundlers that handle `new URL(…, import.meta.url)`, such as Vite). */
+function moduleWorker(): Worker {
+	return new Worker(new URL("./verify-worker.ts", import.meta.url), { type: "module" });
+}
+
+/**
+ * Checks the chain in a Web Worker (the host's, or the viewer's own module worker); where no worker
+ * can start it runs here after a paint. A worker that fails falls back to the same check here.
+ */
+function verifyOffThread(request: VerifyRequest, stop: { current: boolean }, startWorker: () => Worker): Promise<RunVerification> {
 	const here = async () => {
 		await nextFrame();
 		return verifyTexts(request);
 	};
 	if (typeof Worker === "undefined") return here();
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let worker: Worker;
 		try {
-			worker = new Worker(new URL("./verify-worker.ts", import.meta.url), { type: "module" });
+			worker = startWorker();
 		} catch {
-			resolve(here());
+			here().then(resolve, reject);
 			return;
 		}
 		const poll = setInterval(() => {
@@ -79,7 +87,7 @@ function verifyOffThread(request: VerifyRequest, stop: { current: boolean }): Pr
 		const done = (next: Promise<RunVerification>) => {
 			clearInterval(poll);
 			worker.terminate();
-			resolve(next);
+			next.then(resolve, reject);
 		};
 		worker.addEventListener("message", (event: MessageEvent<unknown>) => {
 			const reply = event.data;
@@ -91,20 +99,33 @@ function verifyOffThread(request: VerifyRequest, stop: { current: boolean }): Pr
 	});
 }
 
-/** The chain verdict of a loaded run, computed after the run is on screen (`undefined` while it is being checked). */
-export function useVerification(model: RunModel | undefined): RunVerification | undefined {
-	const [verdict, setVerdict] = useState<{ readonly model: RunModel; readonly result: RunVerification } | undefined>(undefined);
+/** The chain check as the badge shows it: being checked, a verdict, or a check that could not run at all. */
+export type VerificationState =
+	| { readonly status: "checking" }
+	| { readonly status: "done"; readonly verification: RunVerification }
+	| { readonly status: "failed"; readonly message: string };
+
+const CHECKING: VerificationState = { status: "checking" };
+
+/**
+ * The chain verdict of a loaded run, computed after the run is on screen. A run without a chain file
+ * is answered here at once (there is nothing to check, and only the model knows whether the file could
+ * not be read); a check that throws ends as `failed`, never as "checking" forever.
+ */
+export function useVerification(model: RunModel | undefined, startWorker: () => Worker = moduleWorker): VerificationState {
+	const [verdict, setVerdict] = useState<{ readonly model: RunModel; readonly state: VerificationState } | undefined>(undefined);
 	useEffect(() => {
 		if (model === undefined) return undefined;
 		const alive = { current: true };
-		void (async () => {
-			const { chain, publicKey } = model.texts;
-			const result = await verifyOffThread({ events: model.texts.events, ...(chain === undefined ? {} : { chain }), ...(publicKey === undefined ? {} : { publicKey }) }, alive);
-			if (alive.current) setVerdict({ model, result });
-		})();
+		const { events, chain, publicKey } = model.texts;
+		const check = chain === undefined ? Promise.resolve(verifyRun(model)) : verifyOffThread({ events, chain, ...(publicKey === undefined ? {} : { publicKey }) }, alive, startWorker);
+		check.then(
+			(verification) => { if (alive.current) setVerdict({ model, state: { status: "done", verification } }); },
+			(reason: unknown) => { if (alive.current) setVerdict({ model, state: { status: "failed", message: reason instanceof Error ? reason.message : String(reason) } }); },
+		);
 		return () => {
 			alive.current = false;
 		};
-	}, [model]);
-	return verdict !== undefined && verdict.model === model ? verdict.result : undefined;
+	}, [model, startWorker]);
+	return verdict !== undefined && verdict.model === model ? verdict.state : CHECKING;
 }

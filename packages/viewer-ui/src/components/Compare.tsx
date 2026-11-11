@@ -62,9 +62,14 @@ export function Compare({ source, dirs, onOpen, vocabulary }: Props) {
 					))}
 				</tbody>
 				<tfoot>
+					{/* Each column counts only the runs that have a value (a run without a cost is left out of the cost). */}
+					<tr>
+						<th colSpan={4}>n (runs with a value)</th>
+						{COLUMNS.map((column) => <th key={column} className="num">{result.spread[column]?.n ?? 0}</th>)}
+					</tr>
 					{(["mean", "min", "max", "stdev"] as const).map((stat) => (
 						<tr key={stat}>
-							<th colSpan={4}>{stat}{stat === "mean" ? ` (n = ${String(result.spread.costUsd?.n ?? result.rows.length)})` : ""}</th>
+							<th colSpan={4}>{stat}</th>
 							{COLUMNS.map((column) => <th key={column} className="num">{cell(column, result.spread[column]?.[stat])}</th>)}
 						</tr>
 					))}

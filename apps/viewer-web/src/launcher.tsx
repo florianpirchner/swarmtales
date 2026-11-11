@@ -6,10 +6,12 @@ import type { Opened } from "./types.ts";
 
 interface Props {
 	readonly onOpen: (opened: Opened) => void;
+	/** Called when GitHub sends only part of a repository's file tree. */
+	readonly onTruncated: () => void;
 }
 
 /** Where the runs come from: a folder (pick, drop, File System Access) or a GitHub repository. */
-export function Launcher({ onOpen }: Props) {
+export function Launcher({ onOpen, onTruncated }: Props) {
 	const [error, setError] = useState<string | undefined>(undefined);
 	const [over, setOver] = useState(false);
 	const [repo, setRepo] = useState("");
@@ -33,7 +35,7 @@ export function Launcher({ onOpen }: Props) {
 		});
 	};
 	const fromGithub = (location: GithubLocation) => {
-		onOpen({ source: githubSource(location, (url, init) => fetch(url, init), token), title: `${location.owner}/${location.repo}${location.path === "" ? "" : `/${location.path}`}@${location.ref}` });
+		onOpen({ source: githubSource(location, (url, init) => fetch(url, init), token, onTruncated), title: `${location.owner}/${location.repo}${location.path === "" ? "" : `/${location.path}`}@${location.ref}` });
 	};
 	const onDrop = (event: DragEvent) => {
 		event.preventDefault();
@@ -41,7 +43,7 @@ export function Launcher({ onOpen }: Props) {
 		const transfer = event.dataTransfer;
 		guard(async () => { fromFiles(await filesOfDrop(transfer)); });
 	};
-	const parsed = locationFromQuery(`repo=${repo}&ref=${ref}&path=${path}`);
+	const parsed = locationFromQuery(new URLSearchParams({ repo, ref, path }).toString());
 	return (
 		<div className="launcher">
 			<h1>Swarm Tales run viewer</h1>

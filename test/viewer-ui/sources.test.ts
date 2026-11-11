@@ -49,6 +49,8 @@ describe("GitHub source", () => {
 		expect(locationFromQuery("?repo=nope")).toBeUndefined();
 		expect(locationFromQuery("")).toBeUndefined();
 		expect(locationFromQuery("?repo=a/b/c")).toBeUndefined();
+		// The launcher builds its query with URLSearchParams, so a ref or path with & or = stays whole.
+		expect(locationFromQuery(new URLSearchParams({ repo: "o/r", ref: "feat&path=x", path: "a b/c=d" }).toString())).toEqual({ owner: "o", repo: "r", ref: "feat&path=x", path: "a b/c=d" });
 	});
 	it("builds the URLs", () => {
 		expect(treeUrl(location)).toBe("https://api.github.com/repos/o/r/git/trees/main?recursive=1");
@@ -101,6 +103,15 @@ describe("GitHub source", () => {
 		await expect(githubSource(location, answer(403), "tok").list("")).rejects.toThrow(/rate limit/);
 		const message = await githubSource(location, answer(404), "secret-token").list("").then(() => "", (error: unknown) => (error instanceof Error ? error.message : ""));
 		expect(message).not.toContain("secret-token");
+	});
+	it("says once when GitHub sent only part of the tree", async () => {
+		const tree = { tree: [{ path: "stories/chess/runs/one/run/events.jsonl", type: "blob" }], truncated: true };
+		const partial: FetchFn = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(tree), text: () => Promise.resolve("") });
+		let told = 0;
+		const source = githubSource(location, partial, undefined, () => { told += 1; });
+		expect((await findRuns(source, "")).map((run) => run.dir)).toEqual(["one/run"]);
+		await source.list("one");
+		expect(told).toBe(1);
 	});
 	it("refuses a tree of an unexpected shape", async () => {
 		const odd: FetchFn = () => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ nope: 1 }), text: () => Promise.resolve("") });

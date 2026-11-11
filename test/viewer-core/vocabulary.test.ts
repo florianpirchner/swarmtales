@@ -144,3 +144,18 @@ describe("loading and comparing", () => {
 		]);
 	});
 });
+
+describe("seq and minute of a line", () => {
+	it("keeps a line with a bad seq or minute, as an issue, on its line number and the minute before it", () => {
+		const text = ['{"type":"a","seq":1,"minute":2}', '{"type":"b","seq":-1,"minute":1e300}', '{"type":"c","seq":9007199254740993,"minute":"x"}', '{"type":"d","seq":1.5,"minute":3}'].join("\n");
+		const { events, issues } = parseEvents(text);
+		expect(events.map((event) => [event.seq, event.minute])).toEqual([[1, 2], [2, 2], [3, 2], [4, 3]]);
+		expect(issues.map((issue) => [issue.line, issue.reason])).toEqual([
+			[2, "seq is not a whole number from 0"],
+			[2, "minute is not a number from 0 to 100000"],
+			[3, "seq is not a whole number from 0"],
+			[3, "minute is not a number from 0 to 100000"],
+			[4, "seq is not a whole number from 0"],
+		]);
+	});
+});

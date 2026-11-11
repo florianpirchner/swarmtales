@@ -33,15 +33,22 @@ export function App({ host }: { readonly host: ViewerHost }) {
 	const vocabulary = host.vocabulary ?? NO_VOCABULARY;
 	const state = useRun(host.source, runDir, vocabulary);
 	const loaded = state.status === "ready" ? state.run : undefined;
-	const verification = useVerification(loaded?.model);
+	const verification = useVerification(loaded?.model, host.verifyWorker);
 	useEffect(() => {
 		let cancelled = false;
 		setRuns(undefined);
 		setError(undefined);
-		findRuns(host.source, "")
+		// The rows show from the listing at once; each run's story, date and cost fill in as they are read.
+		// Details can arrive before the listing is set (a run without small files is summarised at once): keep them.
+		const details = new Map<string, RunSummary>();
+		const onDetails = (detail: RunSummary) => {
+			details.set(detail.dir, detail);
+			if (!cancelled) setRuns((current) => current?.map((run) => (run.dir === detail.dir ? detail : run)));
+		};
+		findRuns(host.source, "", { onDetails })
 			.then((found) => {
 				if (cancelled) return;
-				setRuns(found);
+				setRuns(found.map((run) => details.get(run.dir) ?? run));
 				// A source that is itself one run folder (the folder dropped is the run): open it.
 				if (found.length === 1 && found[0] !== undefined && runDir === undefined) {
 					setRunDir(found[0].dir);

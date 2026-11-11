@@ -25,7 +25,8 @@
 	"capabilities": {
 		"virtualWorkspaces": true,
 		"untrustedWorkspaces": {
-			"supported": true
+			"supported": "limited",
+			"description": "The viewer only reads files. Run Story, which prefills a terminal, is off until the workspace is trusted."
 		}
 	},
 	"contributes": {
@@ -65,7 +66,7 @@
 				},
 				{
 					"command": "swarmtales.runStory",
-					"when": "resourceFilename =~ /\\.story\\.(ya?ml|json)$|^story\\.ya?ml$/ && !isWeb",
+					"when": "resourceFilename =~ /\\.story\\.(ya?ml|json)$|^story\\.ya?ml$/ && !isWeb && isWorkspaceTrusted",
 					"group": "swarmtales@2"
 				}
 			],
@@ -79,7 +80,7 @@
 			"commandPalette": [
 				{
 					"command": "swarmtales.runStory",
-					"when": "!isWeb"
+					"when": "!isWeb && isWorkspaceTrusted"
 				}
 			]
 		},

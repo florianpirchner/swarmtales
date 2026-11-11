@@ -38,7 +38,7 @@ export function RunList({ runs, error, selected, onOpen, onToggle, onCompare }: 
 					<option value="name">sort by name</option>
 				</select>
 				<button type="button" onClick={() => { setDescending(!descending); }} aria-label="Reverse the order">{descending ? "↓" : "↑"}</button>
-				<span className="muted small">{rows.length} of {runs.length} runs</span>
+				<span className="muted small">{rows.length} of {runs.length} runs{runs.some((run) => run.pending === true) ? ", reading details…" : ""}</span>
 				<button type="button" className="primary" disabled={selected.length < 2} onClick={onCompare}>Compare {selected.length > 0 ? String(selected.length) : ""}</button>
 			</div>
 			<div className="stv-scroll">
@@ -53,10 +53,10 @@ export function RunList({ runs, error, selected, onOpen, onToggle, onCompare }: 
 									<input type="checkbox" aria-label={`Compare ${run.name}`} checked={selected.includes(run.dir)} onChange={() => { onToggle(run.dir); }} />
 								</td>
 								<td><strong>{run.name}</strong><div className="muted small">{run.dir}</div></td>
-								<td>{run.story ?? ""}</td>
-								<td>{day(run.startedAt)}</td>
-								<td className="num">{run.agents ?? ""}</td>
-								<td className="num">{usd(run.costUsd)}</td>
+								<td>{run.pending === true ? <span className="muted">…</span> : run.story ?? ""}</td>
+								<td>{run.pending === true ? "" : day(run.startedAt)}</td>
+								<td className="num">{run.pending === true ? "" : run.agents ?? ""}</td>
+								<td className="num">{run.pending === true ? "" : usd(run.costUsd)}</td>
 								<td>{run.signed ? "signed" : "unsigned"}{run.hasReport ? ", report" : ""}</td>
 							</tr>
 						))}

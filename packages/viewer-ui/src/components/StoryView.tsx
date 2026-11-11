@@ -1,11 +1,11 @@
-import { runOverlay, storyGraph, type RunOverlay, type Vocabulary } from "@swarmtales/viewer-core";
+import { runOverlay, storyGraph, storyHashOf, type RunOverlay, type Vocabulary } from "@swarmtales/viewer-core";
 import { Background, Controls, MiniMap, ReactFlow, type ReactFlowInstance } from "@xyflow/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { parse } from "yaml";
 import { foldGraph, type FoldedGraph } from "../story-fold.ts";
 import { DASHED, EDGE_COLOR, EDGE_NAMES, flowEdges, flowNodes } from "../story-flow.ts";
 import { layoutStory, type StoryLayout } from "../story-layout.ts";
-import { storyOfRun } from "../story-lookup.ts";
+import { storyOfRun, type FoundStory } from "../story-lookup.ts";
 import type { LoadedRun } from "../use-run.ts";
 import { ActNodeType, StoryNodeType, type ActFlowNode, type StoryFlowNode } from "./StoryNode.tsx";
 
@@ -47,6 +47,21 @@ function Key({ graph, overlay }: { readonly graph: FoldedGraph; readonly overlay
 	);
 }
 
+const FROM: Readonly<Record<FoundStory["from"], string>> = { run: "the run's own 000-run.json", host: "this build's stories", "host-prefix": "this build's stories, under a shorter name" };
+
+/** Whether the drawn story is the version the run played (its hash against the genesis), said in one line. */
+function VersionNote({ found, storyHash }: { readonly found: FoundStory; readonly storyHash: string | undefined }) {
+	if (found.check === "matches") return <div className="stv-version ok small">The version this run played: its hash matches the run's genesis ({FROM[found.from]}).</div>;
+	if (found.check === "differs") {
+		return (
+			<div className="stv-version warn" role="status">
+				<strong>Not the version this run played.</strong> This is story {found.id} from {FROM[found.from]}; its hash differs from the story hash in the run's genesis ({storyHash?.slice(0, 12) ?? "?"}…). The overlay is approximate: rules and levels may have changed since the run.
+			</div>
+		);
+	}
+	return <div className="stv-version small">The run is not signed, so the story version cannot be checked (story {found.id} from {FROM[found.from]}); the overlay may be approximate.</div>;
+}
+
 function StoryFlow({ graph, layout, overlay, onJump }: { readonly graph: FoldedGraph; readonly layout: StoryLayout; readonly overlay: RunOverlay | undefined; readonly onJump: (seq: number) => void }) {
 	const box = useRef<HTMLDivElement>(null);
 	const nodes = useMemo(() => flowNodes(graph, layout, overlay, onJump), [graph, layout, overlay, onJump]);
@@ -82,7 +97,7 @@ function StoryFlow({ graph, layout, overlay, onJump }: { readonly graph: FoldedG
 }
 
 export function StoryView({ run, stories, onJump, vocabulary, initial }: Props) {
-	const fromRun = useMemo(() => (run === undefined ? undefined : storyOfRun(run.model, stories)), [run, stories]);
+	const fromRun = useMemo(() => (run === undefined ? undefined : storyOfRun(run.model, stories, storyHashOf)), [run, stories]);
 	const [picked, setPicked] = useState<string>("");
 	const [file, setFile] = useState<{ readonly name: string; readonly value: unknown } | undefined>(initial === undefined ? undefined : { name: initial.name, value: initial.story });
 	const [fileError, setFileError] = useState<string | undefined>(undefined);
@@ -117,13 +132,14 @@ export function StoryView({ run, stories, onJump, vocabulary, initial }: Props) 
 					/>
 				</label>
 				{run !== undefined && choice === fromRun && fromRun !== undefined && (
-					<label className="small"><input type="checkbox" checked={showOverlay} onChange={(event) => { setShowOverlay(event.target.checked); }} /> overlay this run</label>
+					<label className="small"><input type="checkbox" checked={showOverlay} onChange={(event) => { setShowOverlay(event.target.checked); }} /> overlay this run{fromRun.check === "matches" ? "" : " (approximate)"}</label>
 				)}
 				<label className="small"><input type="checkbox" checked={details} onChange={(event) => { setDetails(event.target.checked); }} /> show details (every action as a node)</label>
 				{graph !== undefined && folded !== undefined && (
 					<span className="muted small">{graph.kind} story, {folded.nodes.filter((node) => node.kind !== "act").length} cards ({graph.nodes.length} graph nodes){overlay === undefined ? "" : `, ${String(overlay.visits.size)} reached by the run`}</span>
 				)}
 			</div>
+			{fromRun !== undefined && choice === fromRun && <VersionNote found={fromRun} storyHash={run?.model.genesis?.storyHash} />}
 			{folded !== undefined && folded.nodes.length > 0 && <Key graph={folded} overlay={overlay !== undefined} />}
 			{fileError !== undefined && <div className="stv-issue">{fileError}</div>}
 			{graph?.issues.map((issue) => <div key={issue} className="stv-issue small">{issue}</div>)}

@@ -1,47 +1,72 @@
 /**
  * Markdown to safe HTML for the report view. A report is a file in a repository, but its text can come
- * from a model or from a stranger's pull request, so the HTML is always sanitised before it is shown.
+ * from a model or from a stranger's pull request, so the HTML is always sanitised before it is shown:
+ * no scripts, no event handlers, no embeds, and no `style`, `class` or `id` (a report must not reuse the
+ * viewer's own classes or move outside its box). `#seq` references become links afterwards, on the
+ * text nodes of the sanitised DOM, built as elements (never as HTML text).
  */
 import { reportLinks } from "@swarmtales/viewer-core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 
-/** The `#seq` references of a text node turned into links (viewer-core's `reportLinks` finds them). */
-function linkText(text: string, exists: (seq: number) => boolean): string {
-	let out = "";
+/** A piece of a text node: plain text, or a `#seq` reference to link. */
+export type SeqPart = string | { readonly seq: number; readonly text: string };
+
+/** A text split into plain text and the `#seq` references `exists` accepts (viewer-core's `reportLinks` finds them). */
+export function seqParts(text: string, exists: (seq: number) => boolean = () => true): readonly SeqPart[] {
+	const parts: SeqPart[] = [];
 	let from = 0;
 	for (const link of reportLinks(text)) {
 		if (!exists(link.seq)) continue;
-		out += `${text.slice(from, link.start)}<a href="#seq=${String(link.seq)}" data-seq="${String(link.seq)}">${text.slice(link.start, link.end)}</a>`;
+		if (link.start > from) parts.push(text.slice(from, link.start));
+		parts.push({ seq: link.seq, text: text.slice(link.start, link.end) });
 		from = link.end;
 	}
-	return out + text.slice(from);
+	if (from < text.length) parts.push(text.slice(from));
+	return parts;
 }
 
-/** Turns every `#123` in the text nodes of an HTML string into a link `#seq=123` (not inside a link), for the seqs `exists` accepts. */
-export function linkSeqs(html: string, exists: (seq: number) => boolean = () => true): string {
-	let inLink = 0;
-	return html
-		.split(/(<[^>]*>)/)
-		.map((part) => {
-			if (part.startsWith("<")) {
-				if (/^<a[\s>]/i.test(part)) inLink += 1;
-				else if (/^<\/a\s*>/i.test(part)) inLink = Math.max(0, inLink - 1);
-				return part;
-			}
-			return inLink > 0 ? part : linkText(part, exists);
-		})
-		.join("");
+/** The sanitiser's settings; exported so a test can pin them. */
+export const SANITIZE = {
+	FORBID_TAGS: ["style", "form", "input", "button", "textarea", "select", "iframe", "object", "embed", "link", "meta", "base"],
+	FORBID_ATTR: ["style", "class", "id", "target"],
+} as const;
+
+/** Turns the `#seq` references in the text nodes of `root` (outside links) into `<a href="#seq=…" data-seq="…">` elements. */
+function linkTextNodes(root: Node, exists: (seq: number) => boolean): void {
+	const owner = root.ownerDocument ?? document;
+	const walker = owner.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+	const texts: Text[] = [];
+	for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+		if (node instanceof Text && node.parentElement?.closest("a") === null) texts.push(node);
+	}
+	for (const node of texts) {
+		const parts = seqParts(node.data, exists);
+		if (!parts.some((part) => typeof part !== "string")) continue;
+		node.replaceWith(
+			...parts.map((part) => {
+				if (typeof part === "string") return part;
+				const link = owner.createElement("a");
+				link.href = `#seq=${String(part.seq)}`;
+				link.dataset.seq = String(part.seq);
+				link.textContent = part.text;
+				return link;
+			}),
+		);
+	}
 }
 
-/** Markdown rendered to HTML with `#seq` links; not yet safe. */
-export function markdownToHtml(markdown: string, exists?: (seq: number) => boolean): string {
-	return linkSeqs(marked.parse(markdown, { async: false, gfm: true }), exists);
+function escaped(text: string): string {
+	return text.replace(/[&<>]/g, (char) => (char === "&" ? "&amp;" : char === "<" ? "&lt;" : "&gt;"));
 }
 
-/** Sanitised HTML (no scripts, no event handlers, no remote embeds); the plain text escaped when no DOM is there to sanitise with. */
-export function safeHtml(markdown: string, exists?: (seq: number) => boolean): string {
-	const html = markdownToHtml(markdown, exists);
-	if (!DOMPurify.isSupported) return `<pre>${markdown.replace(/[&<>]/g, (char) => (char === "&" ? "&amp;" : char === "<" ? "&lt;" : "&gt;"))}</pre>`;
-	return DOMPurify.sanitize(html, { ADD_ATTR: ["data-seq"], FORBID_TAGS: ["style", "form", "input", "iframe", "object", "embed"] });
+/** Sanitised HTML with `#seq` links; the plain text escaped when no DOM is there to sanitise with. */
+export function safeHtml(markdown: string, exists: (seq: number) => boolean = () => true): string {
+	if (!DOMPurify.isSupported) return `<pre>${escaped(markdown)}</pre>`;
+	const html = marked.parse(markdown, { async: false, gfm: true });
+	const fragment = DOMPurify.sanitize(html, { ...SANITIZE, FORBID_TAGS: [...SANITIZE.FORBID_TAGS], FORBID_ATTR: [...SANITIZE.FORBID_ATTR], RETURN_DOM_FRAGMENT: true });
+	linkTextNodes(fragment, exists);
+	const box = document.createElement("div");
+	box.append(fragment);
+	return box.innerHTML;
 }

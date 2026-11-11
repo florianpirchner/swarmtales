@@ -21,4 +21,9 @@ export interface ViewerHost {
 	readonly vocabulary?: Vocabulary;
 	/** A story to show first in the Story tab (a story file the user picked), by its name and its plain JSON. */
 	readonly initialStory?: { readonly name: string; readonly story: unknown };
+	/**
+	 * Starts the chain-check worker where the viewer's own module worker cannot load (the VS Code webview
+	 * builds it as a blob). Without it the viewer tries its module worker, then checks on the main thread.
+	 */
+	readonly verifyWorker?: () => Worker;
 }

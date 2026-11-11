@@ -56,3 +56,6 @@
 .stv-key .edge svg { width: 26px; height: 8px; }
 .stv .stv-chip:disabled { color: var(--text); opacity: 1; }
 .stv .stv-chip.dim:disabled { opacity: 0.5; }
+.stv-version { margin: 0 0 10px; padding: 6px 10px; border-radius: 8px; background: var(--panel-2); color: var(--muted); }
+.stv-version.ok { background: var(--ok-soft); color: var(--ok); }
+.stv-version.warn { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn); }

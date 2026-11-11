@@ -12,7 +12,7 @@ describe("safeRelative", () => {
 		expect(safeRelative("./a//b/")).toBe("a/b");
 	});
 	it("refuses paths that leave the folder", () => {
-		for (const bad of ["../x", "a/../../x", "a/..", "/etc/passwd", "C:/Windows", "c:\\x", "a\\b", "a\0b"]) expect(safeRelative(bad), bad).toBeUndefined();
+		for (const bad of ["../x", "a/../../x", "a/..", "/etc/passwd", "C:/Windows", "c:\\x", "a\\b", "a\0b", "a/.../x", "a/.. /x", "run./events.jsonl", "run /x"]) expect(safeRelative(bad), bad).toBeUndefined();
 	});
 });
 

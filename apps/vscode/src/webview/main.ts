@@ -8,6 +8,16 @@ const post = (message: ToHostMessage): void => { api.postMessage(message); };
 const rpc = rpcSource({ post });
 let mounted: ViewerHandle | undefined;
 
+/** The chain-check worker's code, inlined by `build.ts`. */
+declare const __SWT_VERIFY_WORKER__: string;
+let workerUrl: string | undefined;
+
+/** Starts the chain-check worker from a blob URL (the CSP allows `worker-src blob:` and nothing else). */
+function verifyWorker(): Worker {
+	workerUrl ??= URL.createObjectURL(new Blob([__SWT_VERIFY_WORKER__], { type: "text/javascript" }));
+	return new Worker(workerUrl);
+}
+
 function start(init: InitMessage, element: HTMLElement): void {
 	mounted?.unmount();
 	if (init.hash !== undefined) {
@@ -23,6 +33,7 @@ function start(init: InitMessage, element: HTMLElement): void {
 		stories: init.stories,
 		views: init.views,
 		openExternal: (path) => { post({ type: "openFile", path }); },
+		verifyWorker,
 		...(init.initialStory === undefined ? {} : { initialStory: init.initialStory }),
 	});
 }
