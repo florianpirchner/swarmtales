@@ -1,17 +1,18 @@
 /**
- * Writes `apps/viewer-web/public/viewer-data.json`: every registered story as plain JSON (what
+ * Writes `apps/viewer-web/public/viewer-data.json` (or the file given as argument): every registered story as plain JSON (what
  * `swt story show <name> --json` puts under `story`, for the viewer's story graph) and the view
  * descriptors of `mechanics/*\/views.json`. Run by `pnpm --filter @swarmtales/viewer-web build` and `dev`;
  * the file is not committed.
  */
 import { mkdirSync, readdirSync, readFileSync, existsSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { storyData } from "@swarmtales/kernel";
 import { parseViews, type ViewDescriptor } from "@swarmtales/viewer-ui/views";
 import { coreStories, coreStoryNames, STORIES, storyId } from "../stories/index.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const OUT = join(ROOT, "apps", "viewer-web", "public", "viewer-data.json");
+// `export-viewer-data.ts [out-file]`: the web app's public folder by default; the VS Code extension passes its own `dist/viewer-data.json`.
+const OUT = process.argv[2] === undefined ? join(ROOT, "apps", "viewer-web", "public", "viewer-data.json") : resolve(process.cwd(), process.argv[2]);
 
 /** A story as plain JSON, without functions or classes. */
 function plain(value: unknown): unknown {
@@ -40,6 +41,6 @@ for (const mechanic of readdirSync(join(ROOT, "mechanics"))) {
 	views.push(...parsed.views);
 }
 
-mkdirSync(join(ROOT, "apps", "viewer-web", "public"), { recursive: true });
+mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify({ stories, aliases, views }));
-console.log(`viewer data: ${String(Object.keys(stories).length)} stories, ${String(views.length)} views -> apps/viewer-web/public/viewer-data.json`);
+console.log(`viewer data: ${String(Object.keys(stories).length)} stories, ${String(views.length)} views -> ${relative(ROOT, OUT)}`);

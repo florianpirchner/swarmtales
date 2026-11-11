@@ -61,6 +61,8 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	// The viewer's React components read runs only through viewer-core.
 	"@swarmtales/viewer-ui": ["@swarmtales/viewer-core"],
 	"@swarmtales/viewer-web": ["@swarmtales/viewer-core", "@swarmtales/viewer-ui"],
+	// The VS Code extension (not scoped: an extension's name is a plain id) hosts the viewer in a webview.
+	"swarmtales-vscode": ["@swarmtales/viewer-core", "@swarmtales/viewer-ui"],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
 	"@swarmtales/legacy-log": ["@swarmtales/contracts"],
 	"@swarmtales/prompts": [],
@@ -115,6 +117,7 @@ function workspaceManifests(): readonly Manifest[] {
 		...readdirSync(join(ROOT, "mechanics")).map((name) => join(ROOT, "mechanics", name)),
 		join(ROOT, "apps", "cli"),
 		join(ROOT, "apps", "viewer-web"),
+		join(ROOT, "apps", "vscode"),
 	];
 	const manifests = folders.filter((dir) => existsSync(join(dir, "package.json"))).map(manifestAt);
 	for (const manifest of manifests) {

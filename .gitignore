@@ -16,3 +16,4 @@ dist-types/
 
 # The viewer web app: stories and views exported at build time
 apps/viewer-web/public/viewer-data.json
+*.vsix

@@ -1,0 +1,9 @@
+**
+!dist/extension-node.cjs
+!dist/extension-browser.js
+!dist/webview.js
+!dist/webview.css
+!dist/viewer-data.json
+!dist/story.schema.json
+!package.json
+!README.md

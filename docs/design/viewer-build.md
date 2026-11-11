@@ -183,3 +183,21 @@ interface ViewDescriptor {
   (`{stories, aliases, views}`; not committed); the extension can reuse the script's output.
 - **Licences:** elkjs is EPL-2.0 (pure JS); React, React Flow, marked, DOMPurify (MPL-2.0 or Apache-2.0) and yaml are
   permissive. Reports are sanitised with DOMPurify before they are shown.
+
+## VS Code extension (wave 3, `apps/vscode`)
+
+`swarmtales-vscode` (private, SUL): `browser` and `main` entries, bundled by esbuild (`apps/vscode/build.ts`, fast and
+offline; part of `pnpm build`; the `.vsix` is `pnpm --filter swarmtales-vscode package`, not part of `pnpm check`).
+Details and use: `apps/vscode/README.md`.
+
+- **Bridge:** the webview mounts the viewer with a `RunSource` that sends `list`/`readText` over `postMessage`; the host
+  answers with `vscode.workspace.fs` (works on github.dev). Every webview message is a closed Typebox object, paths are
+  folder-relative and `..`/absolute paths are refused. Strict CSP with a nonce, `localResourceRoots` = `dist/`.
+- **Worker:** no module worker in the webview (no `import.meta.url`, no `worker-src`); the viewer's main-thread fallback runs.
+- **Data:** `scripts/export-viewer-data.ts [out]` now takes an optional output path; the extension writes `dist/viewer-data.json`.
+- **Designer stage 1:** `yamlValidation` (`**/*.story.yaml`, `**/story.yaml`) and `jsonValidation` (`*.story.json`) bind the bundled `story.schema.json`.
+- **Run Story…** (desktop only) types `pnpm swt run --story <file>` into a terminal without executing it.
+- **Verified:** the built webview bundle with the real host logic (`answer`, protocol parser) behind a fake `acquireVsCodeApi`,
+  served over HTTP with the real CSP, in Chromium over `stories/chess/runs` (no CSP violations; screenshot 5-vscode-web.png).
+  **Not verified:** a real VS Code (web or desktop): `@vscode/test-web` needs `update.code.visualstudio.com`, which the sandbox
+  blocks. Open: run `npx @vscode/test-web` once on a machine with network; the story picker does not preselect the opened story file.

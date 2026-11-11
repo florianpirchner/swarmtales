@@ -30,9 +30,21 @@
 				"src/**!"
 			]
 		},
+		"apps/vscode": {
+			"entry": [
+				"src/entry-node.ts!",
+				"src/entry-browser.ts!",
+				"src/webview/main.ts!",
+				"build.ts!"
+			],
+			"project": [
+				"src/**!",
+				"build.ts!"
+			]
+		},
 		"apps/viewer-web": {
 			"entry": [
-				"src/main.tsx!",
+				"src/main.ts!",
 				"vite.config.ts!"
 			],
 			"project": [

@@ -59,6 +59,7 @@
 		{ "path": "mechanics/morris-referee" },
 		{ "path": "apps/cli" },
 		{ "path": "apps/viewer-web" },
+		{ "path": "apps/vscode" },
 		{ "path": "stories" }
 	]
 }
