@@ -43,6 +43,8 @@ export interface TicTacToeOptions {
 	readonly maxRounds?: number;
 	/** Residents per team: 3 (default) or 1, a single agent per side that decides alone (the baseline that shows what teamwork adds). */
 	readonly teamSize?: 1 | 3;
+	/** One side plays alone against a team of three (`teamSize` 3): the head-to-head test of what a team adds over one agent of the same model. */
+	readonly soloSide?: "X" | "O";
 	/** The first member of each team is captain for the whole match instead of rotating (P86: Gemma 4 loses track of a rotating captain). */
 	readonly fixedCaptain?: boolean;
 }
@@ -59,27 +61,28 @@ const DEFAULT_RETRO_MINUTES = 2;
 const OUTPUT_TOKENS = 16_000;
 const TEAMS = { X: ["A01", "A02", "A03"], O: ["A04", "A05", "A06"] };
 const SOLO_TEAMS = { X: ["A01"], O: ["A04"] };
-const teamsOf = (teamSize: 1 | 3): { X: string[]; O: string[] } => (teamSize === 1 ? SOLO_TEAMS : TEAMS);
+const teamsOf = (teamSize: 1 | 3, soloSide?: "X" | "O"): { X: string[]; O: string[] } =>
+	teamSize === 1 ? SOLO_TEAMS : { X: soloSide === "X" ? SOLO_TEAMS.X : TEAMS.X, O: soloSide === "O" ? SOLO_TEAMS.O : TEAMS.O };
 /** Virtual minutes a game takes, scaled with the cells of the board: 16 for 9 cells, 28 for 16. */
 const minutesPerGame = (size: number): number => Math.round((size * size * 16) / 9 / 4) * 4;
 
 /** The registered name: the 3x3 game keeps the original id, a bigger board is named after its size. */
-function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean, maxRules: number): string {
+function storyName(size: number, line: number, brainTeams: readonly string[] | undefined, maxRounds: number, teamSize: 1 | 3, fixedCaptain: boolean, maxRules: number, soloSide: "X" | "O" | undefined): string {
 	const base = size === 3 && line === 3 ? "tictactoe-teams" : `tictactoe-teams-${String(size)}x${String(size)}`;
 	const withRounds = maxRounds === DEFAULT_ROUNDS ? base : `${base}-r${String(maxRounds)}`;
-	const board = `${withRounds}${teamSize === 1 ? "-solo" : ""}${fixedCaptain ? "-fc" : ""}${maxRules > 0 ? `-rules${String(maxRules)}` : ""}`;
+	const board = `${withRounds}${teamSize === 1 ? "-solo" : soloSide === undefined ? "" : `-solo-${soloSide.toLowerCase()}`}${fixedCaptain ? "-fc" : ""}${maxRules > 0 ? `-rules${String(maxRules)}` : ""}`;
 	return brainTeams === undefined || brainTeams.length === 0 || brainTeams.length === Object.keys(TEAMS).length ? board : `${board}-brain-${brainTeams.join("").toLowerCase()}`;
 }
 
 /** The story with its variants as options. */
 export function tictactoeStory(options: TicTacToeOptions = {}) {
-	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxRules = 0, maxWords = maxRules > 0 ? RULES_MAX_WORDS : DEFAULT_MAX_WORDS, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, fixedCaptain = false, retroMaxPosts = DEFAULT_RETRO_POSTS, retroMaxMinutes = DEFAULT_RETRO_MINUTES } = options;
-	const teams = teamsOf(teamSize);
+	const { games = 3, brain: brainOn = true, brainTeams, gamemaker = false, seed = 11, maxRules = 0, maxWords = maxRules > 0 ? RULES_MAX_WORDS : DEFAULT_MAX_WORDS, size = 3, line = 3, maxRounds = DEFAULT_ROUNDS, teamSize = 3, soloSide, fixedCaptain = false, retroMaxPosts = DEFAULT_RETRO_POSTS, retroMaxMinutes = DEFAULT_RETRO_MINUTES } = options;
+	const teams = teamsOf(teamSize, soloSide);
 	const brain = brainOn && (brainTeams === undefined || brainTeams.length > 0);
 	if (brainTeams?.some((team) => !(team in TEAMS))) throw new Error(`tictactoe-teams: brainTeams must name teams of ${Object.keys(TEAMS).join(", ")}`);
 	if (gamemaker) throw new Error("tictactoe-teams: the gamemaker variant is not built yet");
 	return defineCoreStory({
-		id: storyName(size, line, brainTeams, maxRounds, teamSize, fixedCaptain, maxRules),
+		id: storyName(size, line, brainTeams, maxRounds, teamSize, fixedCaptain, maxRules, soloSide),
 		seed,
 		minutes: options.minutes ?? games * minutesPerGame(size) + 8,
 		residents: [...teams.X, ...teams.O],
@@ -98,27 +101,29 @@ export function tictactoeStory(options: TicTacToeOptions = {}) {
 	});
 }
 
-function briefing(brainTeams: readonly string[], size: number, line: number, teamSize: 1 | 3, fixedCaptain: boolean) {
-	const teams = teamsOf(teamSize);
+function briefing(brainTeams: readonly string[], size: number, line: number, teamSize: 1 | 3, fixedCaptain: boolean, soloSide?: "X" | "O") {
+	const teams = teamsOf(teamSize, soloSide);
 	return (resident: ResidentId, host: Host): string => {
 		const team = teams.X.includes(resident) ? "X" : "O";
 		const members = teams[team];
+		const alone = members.length === 1;
+		const opponent = teams[team === "X" ? "O" : "X"].length === 1 ? "a single player" : "a team of three";
 		const mates = members.filter((id) => id !== resident).join(" and ");
 		const captain = members[0] ?? resident;
 		const rules = `Cells are numbered 0-${String(size * size - 1)}, row by row. ${size === 3 && line === 3 ? "Marks" : `${String(line)} marks`} in a row, column or diagonal win; a full board is a draw. A match has several games in a row; the starting side alternates, and each game starts from a fresh mind: you are given a briefing at its start.`;
 		const lines =
-			teamSize === 1
+			alone
 				? [
-						`You are ${resident}, playing tic-tac-toe alone for side ${team} on a ${String(size)}x${String(size)} board against another single player (${host.residents.length} residents in all). ${rules}`,
+						`You are ${resident}, playing tic-tac-toe alone for side ${team} on a ${String(size)}x${String(size)} board against ${opponent === "a single player" ? "another single player" : opponent} (${host.residents.length} residents in all). ${rules}`,
 						"Each move: use viewBoard to see the board, propose your cell with proposeMove (cell and reason; with no one to vote it is agreed at once), then play exactly that cell with playMove. If you do not move in time, a random legal cell is played for you.",
-						"Take a turn only when it is your turn; the other player's moves are not visible to you except on the board.",
+						`Take a turn only when it is your turn; the other ${opponent === "a team of three" ? "team's moves and chat are" : "player's moves are"} not visible to you except on the board.`,
 					]
 				: [
-						`You are ${resident}, on team ${team} with ${mates}. Your team plays tic-tac-toe on a ${String(size)}x${String(size)} board against the other team (${host.residents.length} residents in all). ${rules}`,
+						`You are ${resident}, on team ${team} with ${mates}. Your team plays tic-tac-toe on a ${String(size)}x${String(size)} board against ${opponent === "a team of three" ? "the other team" : opponent} (${host.residents.length} residents in all). ${rules}`,
 						`Each move: use viewBoard to see the board. Your team has a private chat (postTeam, readTeam). ${fixedCaptain ? `${captain} is the captain of your team for the whole match` : "The captain of the turn rotates among your team"}; only the captain proposes a cell with proposeMove (cell and reason), the two others answer with castVote (agree true or false, with a reason). A tie is no agreement. Once your team agreed, only the captain can play exactly that cell with playMove. ${resident === captain && fixedCaptain ? "You are the captain: you propose and you play, you never vote. " : ""}If your team does not move in time, a random legal cell is played for it.`,
-						"Take a turn only when it is your team's turn; the other team's moves and chat are not visible to you except on the board.",
+						`Take a turn only when it is your team's turn; the other ${opponent === "a team of three" ? "team's moves and chat are" : "player's moves are"} not visible to you except on the board.`,
 					];
-		if (brainTeams.includes(team)) lines.push(`Your ${teamSize === 1 ? "own" : "team keeps a"} strategy brain: a short text (readBrain). After each game ${teamSize === 1 ? "you" : "your team discusses in the chat and the retro captain"} rewrite${teamSize === 1 ? "" : "s"} it with writeBrain. Write rules that help in the next game; do not copy a game's move list.`);
+		if (brainTeams.includes(team)) lines.push(`Your ${alone ? "own" : "team keeps a"} strategy brain: a short text (readBrain). After each game ${alone ? "you" : "your team discusses in the chat and the retro captain"} rewrite${alone ? "" : "s"} it with writeBrain. Write rules that help in the next game; do not copy a game's move list.`);
 		return lines.join("\n\n");
 	};
 }
@@ -126,9 +131,11 @@ function briefing(brainTeams: readonly string[], size: number, line: number, tea
 /** The registered entry: Haiku via Anthropic, three games, brain on. */
 export function tictactoeEntry(options: TicTacToeOptions = {}): CoreStoryEntry {
 	const brainTeams = (options.brain ?? true) ? (options.brainTeams ?? Object.keys(TEAMS)) : [];
-	const { size = 3, line = 3, teamSize = 3, fixedCaptain = false } = options;
+	const { size = 3, line = 3, teamSize = 3, fixedCaptain = false, soloSide } = options;
 	const board = size === 3 && line === 3 ? "" : ` ${String(size)}x${String(size)}`;
-	return { title: `Tic-tac-toe ${teamSize === 1 ? "solo" : "teams"}${board}`, story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS }, briefing: briefing(brainTeams, size, line, teamSize, fixedCaptain), fixedRoster: teamSize === 1 ? "two residents, one per side (X: A01, O: A04)" : "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)" };
+	const mixed = teamSize === 3 && soloSide !== undefined;
+	const roster = teamSize === 1 ? "two residents, one per side (X: A01, O: A04)" : mixed ? (soloSide === "X" ? "one resident alone (X: A01) against a team of three (O: A04-A06)" : "a team of three (X: A01-A03) against one resident alone (O: A04)") : "the six residents are two fixed teams of three (X: A01-A03, O: A04-A06)";
+	return { title: `Tic-tac-toe ${teamSize === 1 ? "solo" : mixed ? "team against solo" : "teams"}${board}`, story: tictactoeStory(options), model: { provider: "anthropic", id: "claude-haiku-5-5", maxOutputTokens: OUTPUT_TOKENS }, briefing: briefing(brainTeams, size, line, teamSize, fixedCaptain, soloSide), fixedRoster: roster };
 }
 
 export default tictactoeEntry();

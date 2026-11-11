@@ -194,6 +194,7 @@ is deterministic, and every run can be replayed.
 - [The signed event log](docs/design/event-log-signing.md): every run's log is hash-chained and signed; `swt log verify` checks it
 - [Recorded runs](examples/): Act I with a snapshot, and the Act II series
 - [Related work](docs/RELATED-WORK.md): Swarm Tales next to Generative Agents, Concordia and Sotopia
+- [What helps the residents](docs/CROSS-GAME-FINDINGS.md): brains, teams and referee information compared across the game stories
 - [Rules for contributors and agents](CLAUDE.md)
 
 ## License
