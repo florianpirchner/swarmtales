@@ -1,6 +1,7 @@
 # Idea: a visual UI for runs and stories (run viewer and story designer)
 
-Status: idea only (2026-11-11). Nothing is built. Brainstorm for Flo; building waits for an explicit go.
+Status: phases 0-3, the story graph (§6a) and designer stage 1 built on 2026-11-11 after Flo's go; see
+[`../design/viewer-build.md`](../design/viewer-build.md). Designer forms and editing (phase 4) and the desktop extras (phase 5) are open.
 
 Flo asked (2026-11-11): plan the React UI for visualising runs, maybe as a VS Code extension that runs
 directly in GitHub. This paper gives one recommendation, not a survey of everything possible. It connects to
