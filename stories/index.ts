@@ -136,10 +136,10 @@ export function coreStoryNames(): readonly string[] {
 }
 
 /**
- * Tic-tac-toe combinations by name: `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>][-solo][-fc][-rules[<N>]]`, for example
- * `tictactoe-teams-5x5-nobrain-r6`; `-rules` limits the brain to 8 rules, `-rules5` to 5. A board bigger than 3x3 needs four in a row.
+ * Tic-tac-toe combinations by name: `tictactoe-teams[-<N>x<N>][-nobrain|-brain-o][-r<rounds>][-solo|-solo-x|-solo-o][-fc][-rules[<N>]]`, for example
+ * `tictactoe-teams-5x5-nobrain-r6`; `-solo` puts one agent on each side, `-solo-o` one agent (O) against a team of three (X); `-rules` limits the brain to 8 rules, `-rules5` to 5. A board bigger than 3x3 needs four in a row.
  */
-const TICTACTOE_NAME = /^tictactoe-teams(?:-(\d+)x\1)?(-nobrain|-brain-o)?(?:-r(\d+))?(-solo)?(-fc)?(?:-rules(\d*))?$/;
+const TICTACTOE_NAME = /^tictactoe-teams(?:-(\d+)x\1)?(-nobrain|-brain-o)?(?:-r(\d+))?(-solo(?:-[xo])?)?(-fc)?(?:-rules(\d*))?$/;
 
 function parseTictactoe(id: string): CoreStoryEntry | undefined {
 	const match = TICTACTOE_NAME.exec(id);
@@ -147,6 +147,7 @@ function parseTictactoe(id: string): CoreStoryEntry | undefined {
 	const size = match[1] === undefined ? 3 : Number(match[1]);
 	const rounds = match[3] === undefined ? undefined : Number(match[3]);
 	const solo = match[4] === "-solo";
+	const soloSide = match[4] === "-solo-x" ? "X" : match[4] === "-solo-o" ? "O" : undefined;
 	if (size < 3 || size > 8 || (rounds !== undefined && (rounds < 1 || rounds > 20))) return undefined;
 	return tictactoeEntry({
 		size,
@@ -155,6 +156,7 @@ function parseTictactoe(id: string): CoreStoryEntry | undefined {
 		...(match[2] === "-brain-o" ? { brainTeams: ["O"] } : {}),
 		...(rounds === undefined ? {} : { maxRounds: rounds }),
 		...(solo ? { teamSize: 1 as const } : {}),
+		...(soloSide === undefined ? {} : { soloSide }),
 		...(match[5] === "-fc" ? { fixedCaptain: true } : {}),
 		...(match[6] === undefined ? {} : { maxRules: match[6] === "" ? 8 : Number(match[6]) }),
 	});
