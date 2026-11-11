@@ -72,6 +72,8 @@ interface Played {
 	readonly summary?: string;
 	/** The game's moves as text with their spellings (`StrategyBrainApi.gameEnded`), for the replay check of a chess-like game. */
 	readonly line?: readonly (readonly string[])[];
+	/** A private review per team (`StrategyBrainApi.gameEnded`), shown only in that team's next retro. */
+	readonly review?: Readonly<Record<string, string>>;
 }
 
 interface BrainState {
@@ -119,6 +121,7 @@ const head = defineHead({
 		"strategy-brain/retro-open": ["game", "result", "captain", "words", "aim", "lines", "posts"],
 		"strategy-brain/retro-start": ["captain", "words", "aim", "lines", "posts"],
 		"strategy-brain/retro-current": ["text"],
+		"strategy-brain/retro-review": ["text"],
 		"strategy-brain/retro-captain": [],
 		"strategy-brain/briefing-head-solo": ["game"],
 		"strategy-brain/empty-solo": [],
@@ -249,6 +252,8 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 		: [first ? ctx.prompt("strategy-brain/retro-start", vars) : ctx.prompt("strategy-brain/retro-open", { game: window.game, result: resultText(last), ...vars })];
 	if (ctx.options.maxRules > 0) lines[0] = `${lines[0] ?? ""} ${ctx.prompt("strategy-brain/retro-rules", { rules: ctx.options.maxRules })}`;
 	if (ctx.options.retroFocus !== "") lines[0] = `${lines[0] ?? ""} ${ctx.options.retroFocus}`;
+	const review = first ? undefined : last.review?.[team];
+	if (review !== undefined) lines.push(ctx.prompt("strategy-brain/retro-review", { text: review }));
 	const brain = ctx.state.brains.get(keyOf(ctx, team));
 	if (brain !== undefined) lines.push(ctx.prompt("strategy-brain/retro-current", { text: brain.text }));
 	if (resident === window.captain && !ctx.options.solo) lines.push(ctx.prompt("strategy-brain/retro-captain", {}));
@@ -258,7 +263,7 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 const Saved = Type.Object({
 	brains: Type.Record(Type.String(), Type.Object({ version: Type.Integer(), text: Type.String() })),
 	windows: Type.Record(Type.String(), Type.Object({ game: Type.Integer(), captain: Type.String(), opened: Type.Integer(), posts: Type.Integer(), told: Type.Array(Type.String()) })),
-	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()), summary: Type.Optional(Type.String()), line: Type.Optional(Type.Array(Type.Array(Type.String()))) })),
+	results: Type.Array(Type.Object({ game: Type.Integer(), result: Type.String(), moves: Type.Array(Type.Integer()), summary: Type.Optional(Type.String()), line: Type.Optional(Type.Array(Type.Array(Type.String()))), review: Type.Optional(Type.Record(Type.String(), Type.String())) })),
 	reset: Type.Array(Type.String()),
 	startingSide: Type.Optional(Type.String()),
 });
@@ -308,8 +313,8 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 				noteGameStarted(ctx, first);
 				return null;
 			},
-			gameEnded: ({ game, summary, moves, line }, ctx) => {
-				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary, ...(line === undefined ? {} : { line: line.map((spellings) => [...spellings]) }) });
+			gameEnded: ({ game, summary, moves, line, review }, ctx) => {
+				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary, ...(line === undefined ? {} : { line: line.map((spellings) => [...spellings]) }), ...(review === undefined ? {} : { review: { ...review } }) });
 				holdForRetro(ctx, game);
 				return null;
 			},
@@ -390,14 +395,14 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 		save: (state) => ({
 			brains: Object.fromEntries([...state.brains].map(([key, brain]) => [key, { ...brain }])),
 			windows: Object.fromEntries([...state.windows].map(([team, window]) => [team, { ...window, told: [...window.told] }])),
-			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves], ...(played.summary === undefined ? {} : { summary: played.summary }), ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }) })),
+			results: state.results.map((played) => ({ game: played.game, result: played.result, moves: [...played.moves], ...(played.summary === undefined ? {} : { summary: played.summary }), ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }), ...(played.review === undefined ? {} : { review: { ...played.review } }) })),
 			reset: [...state.reset].sort(),
 			startingSide: state.startingSide,
 		}),
 		load: (data) => ({
 			brains: new Map(Object.entries(data.brains).map(([key, brain]) => [key, { ...brain }])),
 			windows: new Map(Object.entries(data.windows).map(([team, window]) => [team, { ...window, told: [...window.told] }])),
-			results: data.results.map((played) => ({ ...played, moves: [...played.moves], ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }) })),
+			results: data.results.map((played) => ({ ...played, moves: [...played.moves], ...(played.line === undefined ? {} : { line: played.line.map((spellings) => [...spellings]) }), ...(played.review === undefined ? {} : { review: { ...played.review } }) })),
 			reset: new Set(data.reset),
 			startingSide: data.startingSide ?? "",
 		}),

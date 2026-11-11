@@ -185,9 +185,31 @@ describe("chess, scripted match", () => {
 		expect(view.ok && view.reply).toContain("Black: none.");
 	});
 
+	it("gives each seat a private coach's review of its worst moves in the retro after a game, but not after the last", async () => {
+		const run = await playStory(options({ coach: true }), player);
+		const reviews = run.events.filter((event) => event.type === "coach_review");
+		expect(reviews.map((event) => [field(event, "game"), field(event, "side")])).toEqual([
+			[1, "A01"],
+			[1, "A02"],
+		]);
+		// Game 1 (the four-move mate): the one-ply material check sees no material lost; it does not see a mate threat such as 3...Nf6 allowing 4. Qxf7#.
+		for (const event of reviews) expect(String(field(event, "text"))).toMatch(/^Coach: none of your [34] moves lost material/);
+		const retroInputs = run.events.filter((event) => event.type === "turn_started").flatMap((event) => {
+			const inputs: unknown = field(event, "inputs");
+			const texts = Array.isArray(inputs) ? inputs.map((input: unknown) => (typeof input === "object" && input !== null ? String(Reflect.get(input, "text")) : String(input))) : [];
+			return texts.filter((text) => text.startsWith("A review of the game you just played")).map((text) => ({ resident: String(field(event, "resident")), text }));
+		});
+		expect(retroInputs.map((input) => input.resident).sort()).toEqual(["A01", "A02"]);
+		for (const input of retroInputs) expect(input.text).toContain("Coach: none of your");
+		expect(await checkDeterminism(options({ coach: true }), () => player)).toEqual([]);
+		expect(await checkSnapshotRoundTrip(options({ coach: true }), () => player, 5)).toEqual([]);
+	});
+
 	it("is registered with its arms and named variants", () => {
-		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-threats", "chess-nobrain-threats-g4-p80", "chess-moves-threats-teams-g4", "chess-teams", "chess-nobrain-moves-g4-p120", "chess-moves-teams-p60"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["chess", "chess-nobrain", "chess-moves", "chess-threats", "chess-nobrain-threats-g4-p80", "chess-moves-threats-teams-g4", "chess-teams", "chess-nobrain-moves-g4-p120", "chess-moves-teams-p60", "chess-coach", "chess-moves-threats-coach-g4-p80", "chess-coach-teams"]) expect(findCoreStory(name)?.story.id).toBe(name);
 		expect(findCoreStory("chess-g0")).toBeUndefined();
+		// The coach reviews into the brain retro: without a brain there is none.
+		expect(findCoreStory("chess-nobrain-coach")).toBeUndefined();
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a game and inside a retro window", async () => {
