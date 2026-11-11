@@ -58,6 +58,9 @@ const ALLOWED: Readonly<Record<string, readonly string[]>> = {
 	// The pure verifier of the signed log and the viewer's core (docs/design/viewer-build.md): no node:*, browser-safe.
 	"@swarmtales/chain": [],
 	"@swarmtales/viewer-core": ["@swarmtales/chain", "@swarmtales/contracts"],
+	// The viewer's React components read runs only through viewer-core.
+	"@swarmtales/viewer-ui": ["@swarmtales/viewer-core"],
+	"@swarmtales/viewer-web": ["@swarmtales/viewer-core", "@swarmtales/viewer-ui"],
 	"@swarmtales/kernel": ["@swarmtales/contracts"],
 	"@swarmtales/legacy-log": ["@swarmtales/contracts"],
 	"@swarmtales/prompts": [],
@@ -111,6 +114,7 @@ function workspaceManifests(): readonly Manifest[] {
 		...readdirSync(join(ROOT, "packages")).map((name) => join(ROOT, "packages", name)),
 		...readdirSync(join(ROOT, "mechanics")).map((name) => join(ROOT, "mechanics", name)),
 		join(ROOT, "apps", "cli"),
+		join(ROOT, "apps", "viewer-web"),
 	];
 	const manifests = folders.filter((dir) => existsSync(join(dir, "package.json"))).map(manifestAt);
 	for (const manifest of manifests) {

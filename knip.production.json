@@ -29,6 +29,18 @@
 			"project": [
 				"src/**!"
 			]
+		},
+		"apps/viewer-web": {
+			"entry": [
+				"src/main.tsx!",
+				"vite.config.ts!"
+			],
+			"project": [
+				"src/**!"
+			],
+			"ignoreDependencies": [
+				"@swarmtales/viewer-core"
+			]
 		}
 	},
 	"ignoreWorkspaces": [

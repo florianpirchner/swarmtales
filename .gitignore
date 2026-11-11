@@ -13,3 +13,6 @@ lab/out/
 dist/
 dist-types/
 *.tsbuildinfo
+
+# The viewer web app: stories and views exported at build time
+apps/viewer-web/public/viewer-data.json

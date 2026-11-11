@@ -141,3 +141,45 @@ under `story`; a core story such as `chess` or a variant by name: `{id, title, k
 mechanics, story}` with `story` the `storyData` of the core story). A build script of viewer-web or the extension
 can loop over `swt story list --json` and the core story names (`coreStoryNames()` in `stories/index.ts`) and write
 these files.
+
+## viewer-ui host contract (wave 2; wave 3, the VS Code extension, builds against it)
+
+`@swarmtales/viewer-ui` ships source (no build step) for a bundler; it imports its CSS (also React Flow's), so the
+bundler must handle `.css` imports (Vite and esbuild do). The chain check starts a module Web Worker through
+`new Worker(new URL("./verify-worker.ts", import.meta.url), { type: "module" })`; a bundler that does not support
+that pattern, or a webview whose CSP forbids workers, gets the main-thread fallback (the check runs after a paint).
+
+```ts
+import { mountViewer, type ViewerHost, type ViewerHandle } from "@swarmtales/viewer-ui";
+import type { ViewDescriptor } from "@swarmtales/viewer-ui/views"; // also: parseViews(text), ViewDescriptorSchema, pathValue
+
+interface ViewerHost {
+	readonly source: RunSource;                       // its root is searched for run folders (events.jsonl)
+	readonly title?: string;                          // top bar
+	readonly stories?: Readonly<Record<string, unknown>>; // story JSON by story id, for the story graph
+	readonly views?: readonly ViewDescriptor[];       // story-specific views
+	readonly openExternal?: (path: string) => void;   // open a source file in the host's editor; buttons show only when set
+}
+function mountViewer(element: HTMLElement, host: ViewerHost): ViewerHandle; // { unmount(): void }
+
+interface ViewDescriptor {
+	id: string; title?: string;
+	kind: string;                    // renderer; "board-fen" is built in, unknown kinds are ignored
+	event: string;                   // event type carrying the state (the view shows the last one at or before the replay seq)
+	fields: Record<string, string>;  // renderer input name -> dotted path into the event ("fen", "move.to", "$.fen")
+}
+```
+
+- **Stories for the graph:** a run's story is looked up in `host.stories` by `000-run.json` `storyId`, then the genesis
+  `story`, then the same name with trailing `-suffix` parts cut (`chess-p80` finds `chess`), then the `story` the run's own
+  `000-run.json` carries (level stories). The value is `swt story show <name> --json`'s `story` (level stories: the story;
+  core stories: `storyData`). The user can also open a `.yaml`/`.json` story file in the Story tab.
+- **View descriptors:** `mechanics/<id>/views.json` (a list, or `{ "views": [...] }`), Typebox-checked by `parseViews`.
+  `board-fen` reads `fields.fen` (required), `fields.lastMove` (a coordinate move such as `e2e4`) and `fields.caption`.
+  Chess ships `mechanics/chess/views.json` (event `move_played`, `fen`, `written`, `san`).
+- **Location:** the viewer keeps its place in `location.hash` (`#run=<dir>&view=replay&seq=57`; a bare `#seq=57` opens the
+  replay). A webview without a usable `location` should pass through the hash it is given or ignore it.
+- **Web app data:** `scripts/export-viewer-data.ts` writes `apps/viewer-web/public/viewer-data.json`
+  (`{stories, aliases, views}`; not committed); the extension can reuse the script's output.
+- **Licences:** elkjs is EPL-2.0 (pure JS); React, React Flow, marked, DOMPurify (MPL-2.0 or Apache-2.0) and yaml are
+  permissive. Reports are sanitised with DOMPurify before they are shown.

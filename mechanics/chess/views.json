@@ -1,0 +1,13 @@
+[
+	{
+		"id": "chess-board",
+		"title": "Board",
+		"kind": "board-fen",
+		"event": "move_played",
+		"fields": {
+			"fen": "fen",
+			"lastMove": "written",
+			"caption": "san"
+		}
+	}
+]

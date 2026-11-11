@@ -91,6 +91,7 @@
     "@swarmtales/sdk": "workspace:*",
     "@swarmtales/testkit": "workspace:*",
     "@swarmtales/viewer-core": "workspace:*",
+    "@swarmtales/viewer-ui": "workspace:*",
     "@types/node": "^26.6.6",
     "chess.js": "1.4.0",
     "eslint": "^9.39.5",

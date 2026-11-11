@@ -1,0 +1,82 @@
+.stv {
+	--bg: #f6f7f9;
+	--panel: #ffffff;
+	--panel-2: #eef0f4;
+	--text: #1c2330;
+	--muted: #5d6879;
+	--line: #d9dde5;
+	--accent: #2557d6;
+	--accent-soft: #e3ebfc;
+	--ok: #17803d;
+	--ok-soft: #dcf4e4;
+	--bad: #c0262d;
+	--bad-soft: #fbe3e4;
+	--warn: #8a6100;
+	--warn-soft: #fbf0d3;
+	--grey-soft: #e6e9ef;
+	--s1: #2557d6;
+	--s2: #d9631e;
+	--s3: #1e8e6e;
+	--s4: #9a4fc1;
+	--s5: #b8870b;
+	--s6: #cf3e7e;
+	--s7: #3a8fb7;
+	--s8: #6f7a8c;
+	--light-sq: #eadfc8;
+	--dark-sq: #9fb18a;
+	--mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+	.stv {
+		--bg: #12151b;
+		--panel: #1a1e26;
+		--panel-2: #232834;
+		--text: #e5e9f0;
+		--muted: #98a2b3;
+		--line: #2f3644;
+		--accent: #7ea6ff;
+		--accent-soft: #223152;
+		--ok: #58d083;
+		--ok-soft: #173826;
+		--bad: #ff7a80;
+		--bad-soft: #442024;
+		--warn: #e6b94d;
+		--warn-soft: #3d3114;
+		--grey-soft: #2a303c;
+		--s1: #7ea6ff;
+		--s2: #f09a5a;
+		--s3: #52c9a3;
+		--s4: #c79af0;
+		--s5: #e0b84a;
+		--s6: #f07ab0;
+		--s7: #6cc3e8;
+		--s8: #a3adbf;
+		--light-sq: #b9ae98;
+		--dark-sq: #5b6b4d;
+		color-scheme: dark;
+	}
+}
+.stv {
+	font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	color: var(--text);
+	background: var(--bg);
+	min-height: 100%;
+	box-sizing: border-box;
+}
+.stv *, .stv *::before, .stv *::after { box-sizing: border-box; }
+.stv h1, .stv h2, .stv h3 { margin: 0 0 8px; line-height: 1.25; font-weight: 600; }
+.stv h2 { font-size: 17px; }
+.stv h3 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.stv a { color: var(--accent); }
+.stv code, .stv pre, .stv .mono { font-family: var(--mono); font-size: 12.5px; }
+.stv button, .stv select, .stv input[type="text"], .stv input[type="search"], .stv input[type="password"] {
+	font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+}
+.stv button { cursor: pointer; }
+.stv button:hover:not(:disabled) { border-color: var(--accent); }
+.stv button:disabled { opacity: 0.5; cursor: default; }
+.stv button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.stv :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.stv .muted { color: var(--muted); }
+.stv .small { font-size: 12.5px; }

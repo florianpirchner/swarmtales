@@ -44,7 +44,7 @@ export default tseslint.config(
 	}).map(([file, max]) => ({ files: [file], rules: { "max-lines": ["error", { max, skipBlankLines: true, skipComments: true }] } })),
 	{
 		// Plain JavaScript and per-package build configs sit outside every tsconfig: lint them without type information.
-		files: ["eslint.config.js", "scripts/**/*.mjs", "**/tsdown.config.ts"],
+		files: ["eslint.config.js", "scripts/**/*.mjs", "**/tsdown.config.ts", "**/vite.config.ts"],
 		extends: [tseslint.configs.disableTypeChecked],
 	},
 );

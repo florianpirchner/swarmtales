@@ -1,0 +1,25 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": "src",
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo",
+		"jsx": "react-jsx",
+		"lib": [
+			"ES2023",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"types": []
+	},
+	"include": [
+		"src"
+	],
+	"references": [
+		{
+			"path": "../viewer-core"
+		}
+	]
+}
