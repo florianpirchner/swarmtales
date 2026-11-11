@@ -42,6 +42,8 @@ const options = Type.Object({
 			description: "The two sides by name, each with its members in the order the captaincy rotates (one move each). Default: each of the two residents is a side of its own, named by its id.",
 		}),
 	),
+	coach: Type.Boolean({ default: false, description: "After each game, every side gets a private review of its own worst moves by the material baseline, shown in its next brain retro (needs a strategy brain)." }),
+	coachMoves: Type.Integer({ minimum: 1, default: 3, description: "How many of a side's worst moves the coach's review names." }),
 	wakeTeam: Type.Boolean({ default: false, description: "Every member of the side on move gets one turn per half-move to advise its captain in the team chat; false: only the captain has news." }),
 });
 
@@ -147,9 +149,10 @@ const head = defineHead({
 		}),
 		game_ended: Type.Object({ ...GameRecord.properties, pgn: Type.String() }),
 		match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+		coach_review: Type.Object({ game: Type.Integer(), side: Type.String(), losses: Type.Integer({ description: "The side's moves that lost material by the baseline (loss 1 or more)." }), text: Type.String() }),
 	},
 	// The baseline's verdict and the refused attempts are for the human and the reporter only.
-	audiences: { move_scored: ["human"], move_refused: ["human"] },
+	audiences: { move_scored: ["human"], move_refused: ["human"], coach_review: ["human"] },
 	provides: [BrainSourceApi],
 	uses: [StrategyBrainApi, TeamChannelApi],
 	prompts: {
@@ -166,6 +169,9 @@ const head = defineHead({
 		"chess/still-your-move": ["game", "moveNo"],
 		"chess/forfeit-warning": ["left"],
 		"chess/advise": ["colour", "captain"],
+		"chess/coach-review": ["count", "total", "moves"],
+		"chess/coach-clean": ["total"],
+		"chess/coach-move": ["moveNo", "san", "loss", "best"],
 	},
 });
 
@@ -289,6 +295,27 @@ function summaryOf(state: Readonly<ChessState>, record: GameRecord): string {
 	return `${winner} beat ${loser} ${how} ${moves}`;
 }
 
+/**
+ * The coach's private review of one game per side: the side's worst moves by the material baseline
+ * (`scoreMove`, one ply with a static exchange: hanging pieces and missed free captures, no deeper
+ * tactics), worst first. Forfeit moves count too: the seat let the clock play them.
+ */
+function reviewsOf(ctx: Ctx, record: GameRecord): Record<string, string> {
+	const scored = record.moves.map((san, index) => ({ index, san, scored: scoreMove(record.moves.slice(0, index), san) }));
+	const reviews: Record<string, string> = {};
+	for (const side of [record.white, record.black]) {
+		const parity = side === record.white ? 0 : 1;
+		const own = scored.filter((move) => move.index % 2 === parity);
+		const losses = own.flatMap((move) => (move.scored !== undefined && move.scored.loss >= 1 ? [{ ...move, loss: move.scored.loss, best: move.scored.best }] : []));
+		const worst = [...losses].sort((a, b) => b.loss - a.loss || a.index - b.index).slice(0, ctx.options.coachMoves);
+		const moves = worst.map((move) => ctx.prompt("chess/coach-move", { moveNo: `${String(moveNoOf(move.index))}${parity === 0 ? "." : "..."}`, san: move.san, loss: move.loss >= 50 ? "a mate (missed or allowed)" : `${String(move.loss)} pawn${move.loss === 1 ? "" : "s"} of material`, best: move.best })).join("\n");
+		const text = losses.length === 0 ? ctx.prompt("chess/coach-clean", { total: own.length }) : ctx.prompt("chess/coach-review", { count: losses.length, total: own.length, moves });
+		reviews[side] = text;
+		ctx.emit("coach_review", { game: record.game, side, losses: losses.length, text });
+	}
+	return reviews;
+}
+
 function endGame(ctx: Ctx, result: Result, reason: EndReason, resigned?: string): void {
 	const state = ctx.state;
 	const record: GameRecord = {
@@ -318,7 +345,8 @@ function endGame(ctx: Ctx, result: Result, reason: EndReason, resigned?: string)
 	refreshLocks(ctx, chess);
 	const last = state.game >= ctx.options.games;
 	if (last) state.finished = true;
-	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: summaryOf(state, record), line: spellingsOf(record.moves) });
+	const review = ctx.options.coach && !last ? reviewsOf(ctx, record) : undefined;
+	ctx.tryCall(StrategyBrainApi, "gameEnded", { game: state.game, summary: summaryOf(state, record), line: spellingsOf(record.moves), ...(review === undefined ? {} : { review }) });
 	if (last) ctx.emit("match_ended", { scores: { ...state.scores } });
 	else ctx.schedule.at(ctx.minute + 1, "nextGame");
 }

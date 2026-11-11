@@ -1,0 +1,11 @@
+{
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 1,
+    "input": 11993,
+    "output": 1284,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "costUsd": 0.0025693499999999998
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-11T17:43:07.331Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "chess-g4-p80",
+  "kind": "core",
+  "title": "Chess",
+  "effective": {
+    "agents": 2,
+    "minutes": 254,
+    "seed": 47
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

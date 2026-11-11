@@ -53,6 +53,8 @@ export interface CoreRunOverrides {
 	readonly agents?: number;
 	readonly minutes?: number;
 	readonly seed?: number;
+	/** The run's spending cap in USD (`--budget`): the referee ends the run once the residents' cost reaches it. */
+	readonly budgetUsd?: number;
 }
 
 export interface CoreComposeOptions {
@@ -81,7 +83,8 @@ export interface CoreComposedRun {
 
 /** The story with the run's seed, length and roster applied; the story itself is never changed. */
 export function coreStoryFor(story: CoreStory, overrides: CoreRunOverrides = {}): CoreStory {
-	return { ...story, seed: overrides.seed ?? story.seed, minutes: overrides.minutes ?? story.minutes, residents: overrides.agents ?? story.residents };
+	const limits = overrides.budgetUsd === undefined ? story.limits : { ...story.limits, maxCostUsd: overrides.budgetUsd };
+	return { ...story, seed: overrides.seed ?? story.seed, minutes: overrides.minutes ?? story.minutes, residents: overrides.agents ?? story.residents, ...(limits === undefined ? {} : { limits }) };
 }
 
 /** Why the overrides cannot apply to the entry's story, or undefined: a story with fixed teams has a fixed roster. */

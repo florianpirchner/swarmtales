@@ -22,13 +22,13 @@ swt run --story chess                         # Haiku via Anthropic, two games, 
 swt run --story chess-nobrain-moves-g4-p120   # four games, no brain, legal moves listed, cap 120 half-moves
 ```
 
-Variants by name: `chess[-nobrain][-moves][-threats][-teams][-g<games>][-p<plies>]`. `-nobrain` is the control arm (the
+Variants by name: `chess[-nobrain][-moves][-threats][-coach][-teams][-g<games>][-p<plies>]`. `-nobrain` is the control arm (the
 same briefings, no brain, no retro); `-moves` lists every legal move in the position shown to the seat on
 move (without it the list comes only with a refused move, so the refusal rate measures how well a model
 keeps track of the board). `-threats` adds each side's loose pieces to the position every seat sees: pieces
 attacked and undefended, or attacked by a cheaper piece (`queen g5 (attacked by knight f3, undefended)`), from
 the same static check as the baseline (no pins, no x-rays); it tests whether naming the hanging piece stops
-the queen blunders of P113. `-teams` plays two teams of two (A: A01, A02; B: A03, A04): the captain of a
+the queen blunders of P113. `-coach` (needs the brain) adds a coach: after each game but the last, every side gets a private review of its own worst moves by the material baseline (`chess/coach-review`: how many of its moves lost material or missed a free capture, and the worst three with the better move), shown only in its next brain retro (`StrategyBrainApi.gameEnded` takes a `review` per team; event `coach_review`, human only). The coach is the same one-ply check as `move_scored`, not the engine: it names hanging pieces and missed captures, not deeper tactics or mate threats. `-teams` plays two teams of two (A: A01, A02; B: A03, A04): the captain of a
 move rotates within the side on move, only the captain may play it, and the teammate gets one advisor turn
 per move to post a suggestion on the team channel (`postTeam`, `readTeam`); each team writes one shared
 brain. Further options are factory options of `chessStory` in `story.ts`: `maxWords`,

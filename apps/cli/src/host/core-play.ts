@@ -53,6 +53,8 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		...(args.overrides.agents === undefined ? {} : { agents: args.overrides.agents }),
 		...(args.overrides.minutes === undefined ? {} : { minutes: args.overrides.minutes }),
 		...(args.overrides.seed === undefined ? {} : { seed: args.overrides.seed }),
+		// P327: `--budget` was read but never applied to a core story (two Opus chess runs went past a cap of 4 USD).
+		...(args.overrides.budgetUsd === undefined ? {} : { budgetUsd: args.overrides.budgetUsd }),
 	};
 	const refused = refusedOverrides(entry, overrides);
 	if (refused !== undefined) {
