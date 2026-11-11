@@ -1,0 +1,65 @@
+{
+  "totals": {
+    "requests": 105,
+    "input": 392,
+    "output": 46592,
+    "cacheRead": 1329926,
+    "cacheWrite": 69672,
+    "costUsd": 1.5477532
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 105,
+      "input": 392,
+      "output": 46592,
+      "cacheRead": 1329926,
+      "cacheWrite": 69672,
+      "costUsd": 1.5477532
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 0,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "costUsd": 0
+    },
+    "perAgent": []
+  },
+  "own": {
+    "totals": {
+      "requests": 105,
+      "input": 392,
+      "output": 46592,
+      "cacheRead": 1329926,
+      "cacheWrite": 69672,
+      "costUsd": 1.5477532
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 105,
+        "input": 392,
+        "output": 46592,
+        "cacheRead": 1329926,
+        "cacheWrite": 69672,
+        "costUsd": 1.5477532
+      }
+    ]
+  },
+  "models": {
+    "residents": "anthropic/claude-opus-5-5"
+  },
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 1,
+    "input": 9075,
+    "output": 1465,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "costUsd": 0.00224025
+  }
+}

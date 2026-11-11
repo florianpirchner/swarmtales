@@ -1,0 +1,65 @@
+{
+  "totals": {
+    "requests": 129,
+    "input": 484,
+    "output": 37930,
+    "cacheRead": 1494337,
+    "cacheWrite": 64831,
+    "costUsd": 0.6917792000000003
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 129,
+      "input": 484,
+      "output": 37930,
+      "cacheRead": 1494337,
+      "cacheWrite": 64831,
+      "costUsd": 0.6917792000000003
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 0,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "costUsd": 0
+    },
+    "perAgent": []
+  },
+  "own": {
+    "totals": {
+      "requests": 129,
+      "input": 484,
+      "output": 37930,
+      "cacheRead": 1494337,
+      "cacheWrite": 64831,
+      "costUsd": 0.6917792000000003
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 129,
+        "input": 484,
+        "output": 37930,
+        "cacheRead": 1494337,
+        "cacheWrite": 64831,
+        "costUsd": 0.6917792000000003
+      }
+    ]
+  },
+  "models": {
+    "residents": "anthropic/claude-sonnet-5-5"
+  },
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 1,
+    "input": 9362,
+    "output": 1624,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "costUsd": 0.0023787
+  }
+}

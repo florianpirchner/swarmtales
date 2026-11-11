@@ -1,0 +1,22 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-11T18:42:31.459Z",
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "storyId": "morris-teams-solo-vs-engine3",
+  "kind": "core",
+  "title": "Nine men's morris solo against the engine",
+  "effective": {
+    "agents": 1,
+    "minutes": 494,
+    "seed": 32
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5"
+    }
+  ]
+}
