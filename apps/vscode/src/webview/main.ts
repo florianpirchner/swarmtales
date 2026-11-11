@@ -23,6 +23,7 @@ function start(init: InitMessage, element: HTMLElement): void {
 		stories: init.stories,
 		views: init.views,
 		openExternal: (path) => { post({ type: "openFile", path }); },
+		...(init.initialStory === undefined ? {} : { initialStory: init.initialStory }),
 	});
 }
 

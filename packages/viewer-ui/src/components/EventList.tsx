@@ -44,7 +44,7 @@ export function EventList({ events, current, onPick }: Props) {
 						<span className="seq">{event.seq}</span>
 						<span className="min">m{event.minute}</span>
 						<span className="type">{event.type}</span>
-						{event.actor !== undefined && <span className="who">{event.actor}</span>}
+						{(event.actor !== undefined || event.subject !== undefined) && <span className="who" title={event.subject === undefined ? undefined : `${event.actor ?? "?"} acted on ${event.subject}`}>{event.actor ?? ""}{event.subject === undefined ? "" : ` → ${event.subject}`}</span>}
 						<span className="sum">{summaryOf(event.data)}</span>
 					</div>
 				);

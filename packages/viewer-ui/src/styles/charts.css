@@ -10,34 +10,3 @@
 .stv-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .stv-seg button { border: 0 !important; border-radius: 0 !important; }
 .stv-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.stv-flow { height: 76vh; min-height: 460px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--panel); }
-.stv-flow .react-flow { --xy-background-color: var(--panel); --xy-edge-stroke: var(--muted); --xy-attribution-background-color: transparent; background: var(--panel); }
-.stv-flow .react-flow__attribution { display: none; }
-.stv-flow .react-flow__controls-button { background: var(--panel); color: var(--text); border-color: var(--line); fill: var(--text); }
-.stv-flow .react-flow__minimap { background: var(--panel-2); }
-.stv-flow .react-flow__edge-textbg { fill: var(--panel); }
-.stv-flow .react-flow__edge-text { fill: var(--text); font-size: 10px; }
-.stv-flow .react-flow__background pattern circle { fill: var(--line); }
-.stv-node { border: 1.5px solid var(--line); border-radius: 8px; background: var(--panel); padding: 5px 9px; font-size: 12px; line-height: 1.3; text-align: center; color: var(--text); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-.stv-node small { color: var(--muted); font-size: 10.5px; }
-.stv-node.k-start, .stv-node.k-end { border-radius: 99px; background: var(--panel-2); font-weight: 600; }
-.stv-node.k-level { border-color: var(--s1); border-width: 2px; font-weight: 600; }
-.stv-node.k-act { border-color: var(--s4); background: color-mix(in srgb, var(--s4) 14%, var(--panel)); font-weight: 650; }
-.stv-node.k-role, .stv-node.k-cast { border-style: dashed; border-color: var(--s8); }
-.stv-node.k-rule { border-color: var(--s2); background: color-mix(in srgb, var(--s2) 10%, var(--panel)); }
-.stv-node.k-trigger, .stv-node.k-collection { border-color: var(--s5); border-radius: 99px; }
-.stv-node.k-action, .stv-node.k-lottery { border-color: var(--s3); background: color-mix(in srgb, var(--s3) 10%, var(--panel)); }
-.stv-node.k-petition { border-color: var(--s6); background: color-mix(in srgb, var(--s6) 10%, var(--panel)); }
-.stv-node.k-outcome { border-color: var(--s6); border-radius: 99px; }
-.stv-node.k-mechanic { border-color: var(--s7); background: color-mix(in srgb, var(--s7) 10%, var(--panel)); font-weight: 600; }
-.stv-node.k-overseer { border-color: var(--s4); border-style: dashed; }
-.stv-node.dim { opacity: 0.35; }
-.stv-node.visited { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); cursor: pointer; }
-.stv-node .visit { color: var(--accent); font-weight: 600; font-size: 10.5px; }
-.stv-node .skip { color: var(--warn); font-size: 10.5px; }
-.stv-flow .react-flow__controls-button { padding: 4px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; width: 26px; height: 26px; }
-.stv-flow .react-flow__controls-button svg { width: 12px; height: 12px; max-width: none; fill: currentColor; }
-.stv-key { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
-.stv-key .stv-node { width: auto; height: auto; display: inline-block; padding: 1px 9px; font-size: 11.5px; }
-.stv-key .edge { display: inline-flex; align-items: center; gap: 4px; }
-.stv-key .edge svg { width: 26px; height: 8px; }

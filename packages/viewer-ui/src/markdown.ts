@@ -2,10 +2,21 @@
  * Markdown to safe HTML for the report view. A report is a file in a repository, but its text can come
  * from a model or from a stranger's pull request, so the HTML is always sanitised before it is shown.
  */
+import { reportLinks } from "@swarmtales/viewer-core";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 
-const REFERENCE = /(?<![\w&#])#(\d{1,9})(?!\w)/g;
+/** The `#seq` references of a text node turned into links (viewer-core's `reportLinks` finds them). */
+function linkText(text: string, exists: (seq: number) => boolean): string {
+	let out = "";
+	let from = 0;
+	for (const link of reportLinks(text)) {
+		if (!exists(link.seq)) continue;
+		out += `${text.slice(from, link.start)}<a href="#seq=${String(link.seq)}" data-seq="${String(link.seq)}">${text.slice(link.start, link.end)}</a>`;
+		from = link.end;
+	}
+	return out + text.slice(from);
+}
 
 /** Turns every `#123` in the text nodes of an HTML string into a link `#seq=123` (not inside a link), for the seqs `exists` accepts. */
 export function linkSeqs(html: string, exists: (seq: number) => boolean = () => true): string {
@@ -18,7 +29,7 @@ export function linkSeqs(html: string, exists: (seq: number) => boolean = () => 
 				else if (/^<\/a\s*>/i.test(part)) inLink = Math.max(0, inLink - 1);
 				return part;
 			}
-			return inLink > 0 ? part : part.replace(REFERENCE, (match, seq: string) => (exists(Number(seq)) ? `<a href="#seq=${seq}" data-seq="${seq}">#${seq}</a>` : match));
+			return inLink > 0 ? part : linkText(part, exists);
 		})
 		.join("");
 }

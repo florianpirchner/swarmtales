@@ -22,7 +22,8 @@ import {
 	verifyChain,
 	verifyContinuity,
 } from "@swarmtales/chronicle";
-import { linkHash, verifyChainText, ZERO_HASH } from "@swarmtales/chain";
+import { verifyChainText, ZERO_HASH } from "@swarmtales/chain";
+import { linkHash } from "../../packages/chain/src/verify.ts";
 
 /** `expect.stringMatching`, typed as the asymmetric matcher it is. */
 function matching(pattern: RegExp): unknown {

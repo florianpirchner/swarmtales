@@ -5,7 +5,7 @@
  */
 import { CHAIN_FILE, EVENTS_FILE, GenesisEntrySchema, PUBLIC_KEY_FILE, type ChainGenesis } from "@swarmtales/chain";
 import { Check } from "typebox/value";
-import { type LoadIssue, parseEvents, type RunEvent } from "./events.ts";
+import { type ActorVocabulary, type LoadIssue, parseEvents, type RunEvent } from "./events.ts";
 import { isAnyJson, isRunMeta, isUsageFile, parseJsonFile, type RunMeta, type UsageFile } from "./files.ts";
 import { joinPath, type RunSource } from "./source.ts";
 
@@ -97,8 +97,18 @@ function runName(dir: string): string {
 	return nameOf(dir) === "run" && dir.includes("/") ? nameOf(dir.slice(0, dir.lastIndexOf("/"))) : nameOf(dir);
 }
 
+/** An optional read: a source that rejects (a rate limit, a folder that went away) gives an issue, not a failed load. */
+async function optional<T>(read: () => Promise<T>, file: string, issues: LoadIssue[]): Promise<T | undefined> {
+	try {
+		return await read();
+	} catch (error) {
+		issues.push({ file, reason: `could not be read${error instanceof Error && error.message !== "" ? ` (${error.message})` : ""}` });
+		return undefined;
+	}
+}
+
 async function readJson<T>(source: RunSource, path: string, check: (value: unknown) => value is T, issues: LoadIssue[]): Promise<T | undefined> {
-	const text = await source.readText(path);
+	const text = await optional(() => source.readText(path), path, issues);
 	if (text === undefined) return undefined;
 	const parsed = parseJsonFile(text, check);
 	if ("reason" in parsed) {
@@ -139,9 +149,10 @@ function genesisOf(chain: string | undefined, issues: LoadIssue[]): ChainGenesis
 	return undefined;
 }
 
-async function transcriptsOf(source: RunSource, dir: string): Promise<readonly Transcript[]> {
+async function transcriptsOf(source: RunSource, dir: string, issues: LoadIssue[]): Promise<readonly Transcript[]> {
 	const folder = joinPath(dir, AGENTS_DIR);
-	const names = new Set((await source.list(folder)).filter((entry) => entry.kind === "file").map((entry) => entry.name));
+	const entries = (await optional(() => source.list(folder), folder, issues)) ?? [];
+	const names = new Set(entries.filter((entry) => entry.kind === "file").map((entry) => entry.name));
 	return [...names]
 		.filter((name) => name.endsWith(".md") && !name.endsWith(".prompt.md"))
 		.sort()
@@ -152,24 +163,27 @@ async function transcriptsOf(source: RunSource, dir: string): Promise<readonly T
 		});
 }
 
-/** Loads one run folder. Throws only when it has no `events.jsonl`; any other unreadable file becomes an issue. */
-export async function loadRun(source: RunSource, dir: string): Promise<RunModel> {
+/**
+ * Loads one run folder. Throws only when its `events.jsonl` is missing or cannot be read; any other
+ * unreadable file becomes an issue. `actors` are added to the default actor rules (`DEFAULT_ACTORS`).
+ */
+export async function loadRun(source: RunSource, dir: string, options: { readonly actors?: ActorVocabulary } = {}): Promise<RunModel> {
 	const folder = joinPath(dir);
 	const at = (name: string): string => joinPath(folder, name);
 	const events = await source.readText(at(EVENTS_FILE));
 	if (events === undefined) throw new Error(`${at(EVENTS_FILE)} is missing`);
 	const issues: LoadIssue[] = [];
-	const parsed = parseEvents(events, at(EVENTS_FILE));
+	const parsed = parseEvents(events, at(EVENTS_FILE), options.actors);
 	issues.push(...parsed.issues);
 	const [meta, usage, analysis, report, analysisReport, chain, publicKey, transcripts] = await Promise.all([
 		readJson(source, at(RUN_FILE), isRunMeta, issues),
 		readJson(source, at(USAGE_FILE), isUsageFile, issues),
 		readJson(source, at(ANALYSIS_FILE), isAnyJson, issues),
-		source.readText(at(REPORT_FILE)),
-		source.readText(at(ANALYSIS_REPORT_FILE)),
-		source.readText(at(CHAIN_FILE)),
-		source.readText(at(PUBLIC_KEY_FILE)),
-		transcriptsOf(source, folder),
+		optional(() => source.readText(at(REPORT_FILE)), at(REPORT_FILE), issues),
+		optional(() => source.readText(at(ANALYSIS_REPORT_FILE)), at(ANALYSIS_REPORT_FILE), issues),
+		optional(() => source.readText(at(CHAIN_FILE)), at(CHAIN_FILE), issues),
+		optional(() => source.readText(at(PUBLIC_KEY_FILE)), at(PUBLIC_KEY_FILE), issues),
+		transcriptsOf(source, folder, issues),
 	]);
 	const genesis = genesisOf(chain, issues);
 	return {

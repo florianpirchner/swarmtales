@@ -94,7 +94,8 @@ export function activate(context: vscode.ExtensionContext): Viewers {
 			try {
 				const text = new TextDecoder("utf-8").decode(await vscode.workspace.fs.readFile(file));
 				const name = baseName(file);
-				viewers.open({ root: parentOf(file), title: name, hash: "#view=story", extraStories: { [name]: parseStoryFile(name, text) } });
+				const story = parseStoryFile(name, text);
+				viewers.open({ root: parentOf(file), title: name, hash: "#view=story", extraStories: { [name]: story }, initialStory: { name, story } });
 			} catch (error) {
 				void vscode.window.showErrorMessage(`Cannot read ${baseName(file)}: ${error instanceof Error ? error.message : String(error)}`);
 			}

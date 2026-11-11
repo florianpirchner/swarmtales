@@ -20,6 +20,8 @@ describe("messages to the webview", () => {
 	it("accepts init and the three kinds of reply", () => {
 		const init = parseToWebview({ type: "init", title: "runs", stories: { chess: { a: 1 } }, views: [{ id: "v", kind: "board-fen", event: "move_played", fields: { fen: "fen" } }], hash: "#view=story" });
 		expect(init !== undefined && isInit(init)).toBe(true);
+		const withStory = parseToWebview({ type: "init", title: "x", stories: {}, views: [], hash: "#view=story", initialStory: { name: "x.story.yaml", story: { levels: [] } } });
+		expect(withStory !== undefined && isInit(withStory) && withStory.initialStory?.name === "x.story.yaml").toBe(true);
 		expect(parseToWebview({ type: "rpc-result", id: 1, ok: true, entries: [{ name: "a", kind: "dir" }] })).toBeDefined();
 		expect(parseToWebview({ type: "rpc-result", id: 1, ok: true, text: "x" })).toBeDefined();
 		expect(parseToWebview({ type: "rpc-result", id: 1, ok: true })).toBeDefined();
@@ -28,6 +30,7 @@ describe("messages to the webview", () => {
 	it("refuses a malformed init or reply", () => {
 		expect(parseToWebview({ type: "init", title: 3, stories: {}, views: [] })).toBeUndefined();
 		expect(parseToWebview({ type: "init", title: "t", stories: {}, views: [{ id: "v" }] })).toBeUndefined();
+		expect(parseToWebview({ type: "init", title: "t", stories: {}, views: [], initialStory: { name: "x.story.yaml" } })).toBeUndefined();
 		expect(parseToWebview({ type: "rpc-result", id: 1, ok: false })).toBeUndefined();
 		expect(parseToWebview({ type: "rpc-result", id: 1, ok: true, entries: [{ name: "a", kind: "link" }] })).toBeUndefined();
 	});

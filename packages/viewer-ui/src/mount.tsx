@@ -6,6 +6,7 @@ import "./styles/theme.css";
 import "./styles/layout.css";
 import "./styles/replay.css";
 import "./styles/charts.css";
+import "./styles/story.css";
 
 export interface ViewerHandle {
 	unmount(): void;

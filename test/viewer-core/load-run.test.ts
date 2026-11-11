@@ -6,15 +6,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
 	actorLanes,
-	actorOf,
 	compareRuns,
 	findRuns,
 	indexRun,
 	loadRun,
 	memorySource,
 	messageGraph,
-	messageOf,
-	parseEvents,
 	reportLinks,
 	toolCounts,
 	typeCounts,
@@ -22,6 +19,9 @@ import {
 	usageTotals,
 	verifyRun,
 } from "@swarmtales/viewer-core";
+// Helpers the hosts do not need are exported by their source files, not by the package index.
+import { actorOf, parseEvents } from "../../packages/viewer-core/src/events.ts";
+import { messagesOf } from "../../packages/viewer-core/src/messages.ts";
 import { fsRunSource } from "../helpers/fs-run-source.ts";
 
 const ROOT = join(import.meta.dirname, "..", "..");
@@ -103,7 +103,7 @@ describe("run folders", () => {
 			[9, 3, "y", "A03"],
 		]);
 		expect(issues.map((issue) => issue.line)).toEqual([2, 3]);
-		expect(actorOf({ author: "CITY", voter: "A01" })).toBe("CITY");
+		expect(actorOf({ author: "CITY", voter: "A01" })).toEqual({ actor: "CITY" });
 	});
 });
 
@@ -140,7 +140,7 @@ describe("the index and the series", () => {
 			{ from: "A02", to: "team:B", count: 1, firstSeq: 7, lastSeq: 7, types: ["team_post"] },
 		]);
 		expect(messageGraph(run.events, 6).edges).toHaveLength(1);
-		expect(run.events.filter((event) => messageOf(event) !== undefined)).toHaveLength(2);
+		expect(messagesOf(run.events)).toHaveLength(2);
 	});
 
 	it("derives the series of a 12-agent run", async () => {

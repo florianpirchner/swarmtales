@@ -13,14 +13,14 @@ import {
 	EVENTS_FILE,
 	jsonHash,
 	keyFingerprint,
-	linkHash,
 	PUBLIC_KEY_FILE,
 	verifyChainText,
 } from "@swarmtales/chain";
 import { EventChain, JsonlEventLog, verifyChain } from "@swarmtales/chronicle";
 // The byte and key helpers are internal to the package; their parity with node:crypto is checked here.
 import { fromBase64, toBase64 } from "../../packages/chain/src/bytes.ts";
-import { publicKeyFromPem, signatureVerifies } from "../../packages/chain/src/keys.ts";
+import { linkHash } from "../../packages/chain/src/verify.ts";
+import { publicKeyFromDer, publicKeyFromPem, signatureVerifies } from "../../packages/chain/src/keys.ts";
 import { EventBus } from "@swarmtales/legacy-log";
 
 /** `expect.stringMatching`, typed as the asymmetric matcher it is. */
@@ -106,6 +106,24 @@ describe("the noble verifier against the Node signer", () => {
 		const last = forged.at(-1) ?? "";
 		forged[forged.length - 1] = last.replace(/"signature":"(.)/, (_, first: string) => `"signature":"${first === "A" ? "B" : "A"}`);
 		expect(verifyChainText(events, joined(forged), key)).toEqual({ ok: false, line: 4, reason: `${CHAIN_FILE} line 7: the head's signature does not verify` });
+	});
+
+	it("is stricter than node:crypto where that is safer: small-order keys, non-canonical base64, junk keys", () => {
+		// The identity point as a key, R = identity and S = 0: OpenSSL accepts this "signature" on any message, noble does not.
+		const identity = Uint8Array.from({ length: 32 }, (_, index) => (index === 0 ? 1 : 0));
+		const prefix = Uint8Array.of(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00);
+		const key = publicKeyFromDer(toBase64(Uint8Array.from([...prefix, ...identity])));
+		expect(key).toBeDefined();
+		const signature = toBase64(Uint8Array.from([...identity, ...new Uint8Array(32)]));
+		expect(key !== undefined && signatureVerifies(key, new TextEncoder().encode("hello"), signature)).toBe(false);
+		// One byte string, one text: unused bits must be zero, and padding must fill the last quantum.
+		expect(fromBase64("QQ==")).toEqual(Uint8Array.of(65));
+		expect(fromBase64("QQ")).toEqual(Uint8Array.of(65));
+		expect(fromBase64("QR==")).toBeUndefined();
+		expect(fromBase64("QQ=")).toBeUndefined();
+		// Two junk keys do not share a fingerprint (before, both were the sha256 of nothing).
+		expect(keyFingerprint("!!")).toBe('(not base64: "!!")');
+		expect(keyFingerprint("not base64")).not.toBe(keyFingerprint("!!"));
 	});
 });
 

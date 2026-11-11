@@ -17,6 +17,8 @@ export interface ViewerOptions {
 	readonly hash?: string;
 	/** A story from a file the user opened, shown next to the bundled ones. */
 	readonly extraStories?: Readonly<Record<string, unknown>>;
+	/** The story the Story tab shows first (the file the user opened the graph for). */
+	readonly initialStory?: { readonly name: string; readonly story: unknown };
 }
 
 /** The webview options every viewer page needs: scripts on, and only the extension's `dist` readable. */
@@ -43,6 +45,7 @@ export function showViewer(panel: vscode.WebviewPanel, extensionUri: vscode.Uri,
 		stories: { ...data.stories, ...options.extraStories },
 		views: [...data.views],
 		...(options.hash === undefined ? {} : { hash: options.hash }),
+		...(options.initialStory === undefined ? {} : { initialStory: options.initialStory }),
 	};
 	const listener = webview.onDidReceiveMessage((raw: unknown) => {
 		const message = parseToHost(raw);

@@ -1,7 +1,7 @@
 /**
  * The lines of `events.jsonl` as open records. Every story writes its own event types, so the core
- * reads only what every line has (`type`, `seq`, `minute`, `at`) and who acted, from the first of
- * the actor fields a line carries. Anything else stays in `data` for the views.
+ * reads only what every line has (`type`, `seq`, `minute`, `at`), who acted (the actor) and whom the
+ * line was about (the subject). Anything else stays in `data` for the views.
  */
 import { Type } from "typebox";
 import { Check } from "typebox/value";
@@ -22,16 +22,52 @@ export interface RunEvent {
 	readonly type: string;
 	/** Wall-clock stamp (ISO 8601), when the line has one. */
 	readonly at?: string;
-	/** Who acted, from the first actor field the line carries ({@link ACTOR_FIELDS}). */
+	/** Who acted: the field its type's {@link ActorRule} names, else the first of {@link ACTOR_FIELDS} the line carries. */
 	readonly actor?: string;
+	/** Whom the line was about, when its type's rule names a subject field (the member a group admitted, the resident a rule acted on). */
+	readonly subject?: string;
 	/** 1-based line number in `events.jsonl` (what the chain's `seq` counts). */
 	readonly line: number;
 	/** The whole parsed line. */
 	readonly data: Readonly<Record<string, unknown>>;
 }
 
-/** The fields that name who acted, in the order they are looked up. */
+/** The fields that name who acted, in the order they are looked up when a type has no rule of its own. */
 export const ACTOR_FIELDS = ["actor", "agent", "by", "from", "author", "voter", "seat", "resident"] as const;
+
+/**
+ * Who did a line and whom it was about, for an event type whose fields do not say it in the order of
+ * {@link ACTOR_FIELDS}. `actor` is a field, or a fixed name for a doer the line does not name (the
+ * director, a guard); without `actor` the line keeps the default order, leaving out the subject field.
+ */
+export interface ActorRule {
+	readonly actor?: string | { readonly name: string };
+	readonly subject?: string;
+}
+
+/** Actor rules by event type. A caller's rules are added to {@link DEFAULT_ACTORS}; a type given replaces its default rule (`{}`: the plain order). */
+export type ActorVocabulary = Readonly<Record<string, ActorRule>>;
+
+/**
+ * The types of the recorded logs whose first actor field names the subject: a group member added by
+ * someone else, a resident a director rule or a guard acted on, an exiled resident, an audited seat,
+ * a resident whose message was forged, the one a piece was bought from, and the resident the city
+ * dealt a goal or a gate to (no actor: the city did it).
+ */
+export const DEFAULT_ACTORS: ActorVocabulary = {
+	group_membership: { actor: "by", subject: "agent" },
+	director_action: { actor: { name: "director" }, subject: "actor" },
+	director_skipped: { actor: { name: "director" }, subject: "actor" },
+	guard_verdict: { actor: { name: "guard" }, subject: "agent" },
+	exiled: { actor: "by", subject: "agent" },
+	convoy_audited: { actor: "by", subject: "seat" },
+	receipt_forged: { actor: "by", subject: "from" },
+	piece_claimed: { actor: "agent", subject: "from" },
+	goal_dealt: { subject: "agent" },
+	goal_resolved: { subject: "agent" },
+	exile_gate: { subject: "agent" },
+	factor_burned: { subject: "agent" },
+};
 
 const EventLine = Type.Object(
 	{
@@ -47,19 +83,34 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** The actor of a parsed line: the first {@link ACTOR_FIELDS} entry that holds a non-empty string. */
-export function actorOf(data: Readonly<Record<string, unknown>>): string | undefined {
-	for (const field of ACTOR_FIELDS) {
-		const value = data[field];
-		if (typeof value === "string" && value !== "") return value;
-	}
-	return undefined;
+function named(data: Readonly<Record<string, unknown>>, field: string): string | undefined {
+	const value = data[field];
+	return typeof value === "string" && value !== "" ? value : undefined;
 }
 
-/** Parses `events.jsonl`; a line that is not a JSON object with a string `type` becomes an issue, never an exception. */
-export function parseEvents(text: string, file = "events.jsonl"): { readonly events: readonly RunEvent[]; readonly issues: readonly LoadIssue[] } {
+/** The actor and subject of a parsed line under a rule (none: the first {@link ACTOR_FIELDS} entry that holds a non-empty string). */
+export function actorOf(data: Readonly<Record<string, unknown>>, rule: ActorRule = {}): { readonly actor?: string; readonly subject?: string } {
+	const subject = rule.subject === undefined ? undefined : named(data, rule.subject);
+	const ruled = rule.actor;
+	const actor =
+		ruled === undefined
+			? ACTOR_FIELDS.filter((field) => field !== rule.subject)
+					.map((field) => named(data, field))
+					.find((value) => value !== undefined)
+			: typeof ruled === "string"
+				? named(data, ruled)
+				: ruled.name;
+	return { ...(actor === undefined ? {} : { actor }), ...(subject === undefined ? {} : { subject }) };
+}
+
+/**
+ * Parses `events.jsonl`; a line that is not a JSON object with a string `type` becomes an issue, never
+ * an exception. `actors` are added to {@link DEFAULT_ACTORS}.
+ */
+export function parseEvents(text: string, file = "events.jsonl", actors: ActorVocabulary = {}): { readonly events: readonly RunEvent[]; readonly issues: readonly LoadIssue[] } {
 	const events: RunEvent[] = [];
 	const issues: LoadIssue[] = [];
+	const rules: ActorVocabulary = { ...DEFAULT_ACTORS, ...actors };
 	let minute = 0;
 	const lines = text.split("\n");
 	if (lines.at(-1) === "") lines.pop();
@@ -81,13 +132,14 @@ export function parseEvents(text: string, file = "events.jsonl"): { readonly eve
 			continue;
 		}
 		minute = value.minute ?? minute;
-		const actor = actorOf(value);
+		const { actor, subject } = actorOf(value, Object.hasOwn(rules, value.type) ? rules[value.type] : undefined);
 		events.push({
 			seq: value.seq ?? line,
 			minute,
 			type: value.type,
 			...(value.at === undefined ? {} : { at: value.at }),
 			...(actor === undefined ? {} : { actor }),
+			...(subject === undefined ? {} : { subject }),
 			line,
 			data: value,
 		});

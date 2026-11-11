@@ -26,11 +26,14 @@ export function toBase64(bytes: Uint8Array): string {
 
 /**
  * Decodes standard base64 (padding optional, whitespace ignored); `undefined` for any other
- * character or a length no base64 text has.
+ * character, a length no base64 text has, padding that does not fill the last quantum, or unused
+ * bits that are not zero (so one byte string has one text, apart from the optional padding).
  */
 export function fromBase64(text: string): Uint8Array | undefined {
-	const clean = text.replace(/\s+/g, "").replace(/={1,2}$/, "");
+	const compact = text.replace(/\s+/g, "");
+	const clean = compact.replace(/={1,2}$/, "");
 	if (clean.length % 4 === 1) return undefined;
+	if (clean.length !== compact.length && compact.length % 4 !== 0) return undefined;
 	const out = new Uint8Array(Math.floor((clean.length * 3) / 4));
 	let bits = 0;
 	let buffer = 0;
@@ -47,6 +50,7 @@ export function fromBase64(text: string): Uint8Array | undefined {
 			written += 1;
 		}
 	}
+	if ((buffer & ((1 << bits) - 1)) !== 0) return undefined;
 	return out;
 }
 

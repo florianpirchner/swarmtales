@@ -19,8 +19,10 @@ export interface CompareRow {
 	/** The run end's `reason`, when the log has a run end. */
 	readonly result?: string;
 	readonly ended: boolean;
-	/** `usage.json` total, else the sum of the usage lines. */
+	/** The sum of the log's usage lines (covered by the chain on a signed run), else the `usage.json` total. */
 	readonly costUsd?: number;
+	/** Where `costUsd` came from: `log` (the usage lines of `events.jsonl`) or `usage.json`. */
+	readonly costSource?: "log" | "usage.json";
 	/** The last minute of the log. */
 	readonly minutes: number;
 	readonly events: number;
@@ -65,7 +67,9 @@ function rowOf(model: RunModel, metrics: Readonly<Record<string, RunMetric>>): C
 	const seed = model.genesis?.seed ?? model.meta?.effective?.seed ?? (start === undefined ? undefined : numberField(start, "seed"));
 	const story = model.genesis?.story ?? model.meta?.storyId;
 	const result = end === undefined ? undefined : stringField(end, "reason");
-	const costUsd = model.usage?.totals.costUsd ?? usageTotals(model.events).get("total")?.costUsd;
+	const logged = usageTotals(model.events).get("total");
+	const fromFile = model.usage?.totals.costUsd;
+	const cost = logged !== undefined && logged.requests > 0 ? { costUsd: logged.costUsd, costSource: "log" as const } : fromFile === undefined ? undefined : { costUsd: fromFile, costSource: "usage.json" as const };
 	return {
 		dir: model.dir,
 		name: model.name,
@@ -74,7 +78,7 @@ function rowOf(model: RunModel, metrics: Readonly<Record<string, RunMetric>>): C
 		models: modelsOf(model),
 		...(result === undefined ? {} : { result }),
 		ended: end !== undefined,
-		...(costUsd === undefined ? {} : { costUsd }),
+		...cost,
 		minutes: model.events.reduce((last, event) => Math.max(last, event.minute), 0),
 		events: model.events.length,
 		metrics: Object.fromEntries(Object.entries(metrics).map(([name, metric]) => [name, metric(model)])),

@@ -41,44 +41,103 @@ function visitOf(events: readonly RunEvent[]): NodeVisit | undefined {
 	return first === undefined ? undefined : { seq: first.seq, minute: first.minute, count: events.length };
 }
 
-function matches(events: readonly RunEvent[], test: (event: RunEvent) => boolean): readonly RunEvent[] {
-	return events.filter(test);
+/** Events grouped by a key, in seq order; built once, so each node is one lookup. */
+class Buckets {
+	private readonly groups = new Map<string, RunEvent[]>();
+
+	add(key: string | undefined, event: RunEvent): void {
+		if (key === undefined) return;
+		const group = this.groups.get(key);
+		if (group === undefined) this.groups.set(key, [event]);
+		else group.push(event);
+	}
+
+	get(key: string): readonly RunEvent[] {
+		return this.groups.get(key) ?? [];
+	}
+}
+
+/** The events the overlay reads, indexed in one pass over the log. */
+interface Indexed {
+	readonly events: readonly RunEvent[];
+	readonly actions: Buckets;
+	readonly skipped: Buckets;
+	readonly levelUps: readonly RunEvent[];
+	readonly levelTo: Buckets;
+	readonly runEnds: readonly RunEvent[];
+	readonly petitions: Buckets;
+	readonly into: Buckets;
+	readonly casts: Buckets;
+	readonly actors: Buckets;
+}
+
+const key = (...parts: readonly string[]): string => parts.join("\u0000");
+
+function indexed(input: readonly RunEvent[], vocabulary: OverlayVocabulary): Indexed {
+	const events = [...input].sort((left, right) => left.seq - right.seq);
+	const index = { events, actions: new Buckets(), skipped: new Buckets(), levelUps: new Array<RunEvent>(), levelTo: new Buckets(), runEnds: new Array<RunEvent>(), petitions: new Buckets(), into: new Buckets(), casts: new Buckets(), actors: new Buckets() };
+	for (const event of events) {
+		const rule = stringField(event, "rule");
+		const action = stringField(event, "action");
+		if (event.type === vocabulary.directorAction || event.type === vocabulary.directorSkipped) {
+			const bucket = event.type === vocabulary.directorAction ? index.actions : index.skipped;
+			if (rule !== undefined) {
+				bucket.add(key(rule), event);
+				if (action !== undefined) bucket.add(key(rule, action), event);
+			}
+		}
+		if (event.type === vocabulary.levelUp) {
+			index.levelUps.push(event);
+			const to = numberField(event, "to");
+			if (to !== undefined) index.levelTo.add(String(to), event);
+		}
+		if (event.type === vocabulary.runEnd) index.runEnds.push(event);
+		const petition = stringField(event, "petition");
+		if (petition !== undefined) {
+			index.petitions.add(key(petition), event);
+			const outcomes = new Set([stringField(event, "outcome"), stringField(event, "status"), stringField(event, "result")]);
+			for (const outcome of outcomes) if (outcome !== undefined) index.petitions.add(key(petition, outcome), event);
+		}
+		index.into.add(stringField(event, "into"), event);
+		const cast = stringField(event, "cast");
+		index.casts.add(cast, event);
+		if (event.actor !== undefined && event.actor !== cast) index.casts.add(event.actor, event);
+		index.actors.add(event.actor, event);
+	}
+	return index;
 }
 
 /** What reaches a node, for the nodes that read the log directly (acts and roles follow their level). */
-function reachingEvents(node: GraphNode, events: readonly RunEvent[], vocabulary: OverlayVocabulary, firstLevel: number | undefined, lastLevel: number | undefined): readonly RunEvent[] | undefined {
-	const field = (event: RunEvent, name: string) => stringField(event, name);
-	const acted = (event: RunEvent, rule: string) => event.type === vocabulary.directorAction && field(event, "rule") === rule;
+function reachingEvents(node: GraphNode, index: Indexed, firstLevel: number | undefined, lastLevel: number | undefined): readonly RunEvent[] | undefined {
 	switch (node.kind) {
 		case "start":
-			return events.slice(0, 1);
+			return index.events.slice(0, 1);
 		case "level":
-			if (node.level === firstLevel) return events.slice(0, 1);
-			return matches(events, (event) => event.type === vocabulary.levelUp && numberField(event, "to") === node.level);
+			return node.level === firstLevel ? index.events.slice(0, 1) : index.levelTo.get(String(node.level));
 		case "end":
-			if (node.end === "run") return matches(events, (event) => event.type === vocabulary.runEnd);
-			return matches(events, (event) => event.type === vocabulary.levelUp && lastLevel !== undefined && (numberField(event, "to") ?? 0) > lastLevel);
+			if (node.end === "run") return index.runEnds;
+			return index.levelUps.filter((event) => lastLevel !== undefined && (numberField(event, "to") ?? 0) > lastLevel);
 		case "rule":
-			return matches(events, (event) => acted(event, node.rule));
-		case "trigger":
-			if (node.minute !== undefined) {
-				const minute = node.minute;
-				return matches(events, (event) => event.minute >= minute).slice(0, 1);
-			}
-			return matches(events, (event) => acted(event, node.rule));
+			return index.actions.get(key(node.rule));
+		case "trigger": {
+			const minute = node.minute;
+			if (minute === undefined) return index.actions.get(key(node.rule));
+			const first = index.events.find((event) => event.minute >= minute);
+			return first === undefined ? [] : [first];
+		}
 		case "action":
 		case "lottery":
-			return matches(events, (event) => acted(event, node.rule) && field(event, "action") === node.action);
+			return index.actions.get(key(node.rule, node.action));
 		case "petition":
-			return matches(events, (event) => field(event, "petition") === node.petition);
+			return index.petitions.get(key(node.petition));
 		case "outcome":
-			return matches(events, (event) => field(event, "petition") === node.petition && [field(event, "outcome"), field(event, "status"), field(event, "result")].includes(node.outcome));
+			return index.petitions.get(key(node.petition, node.outcome));
 		case "collection":
-			return matches(events, (event) => field(event, "into") === node.into);
+			return index.into.get(node.into);
 		case "cast":
-			return matches(events, (event) => field(event, "cast") === node.cast || event.actor === node.cast);
+			return index.casts.get(node.cast);
 		case "overseer":
-			return matches(events, (event) => event.actor === node.overseer);
+			return index.actors.get(node.overseer);
 		case "act":
 		case "role":
 		case "mechanic":
@@ -86,21 +145,24 @@ function reachingEvents(node: GraphNode, events: readonly RunEvent[], vocabulary
 	}
 }
 
-/** Lays a run (anything with its events, such as a `RunModel`) over a story graph. */
-export function runOverlay(graph: StoryGraph, run: { readonly events: readonly RunEvent[] }, vocabulary: OverlayVocabulary = DEFAULT_VOCABULARY): RunOverlay {
-	const events = [...run.events].sort((left, right) => left.seq - right.seq);
+/**
+ * Lays a run (anything with its events, such as a `RunModel`) over a story graph. The log is indexed
+ * once, so the cost is one pass over the events plus one lookup per node. `vocabulary` replaces
+ * single names of {@link DEFAULT_VOCABULARY}.
+ */
+export function runOverlay(graph: StoryGraph, run: { readonly events: readonly RunEvent[] }, vocabulary: Partial<OverlayVocabulary> = {}): RunOverlay {
+	const index = indexed(run.events, { ...DEFAULT_VOCABULARY, ...vocabulary });
 	const levels = graph.nodes.flatMap((node) => (node.kind === "level" ? [node.level] : []));
 	const firstLevel = levels.length === 0 ? undefined : Math.min(...levels);
 	const lastLevel = levels.length === 0 ? undefined : Math.max(...levels);
 	const visits = new Map<string, NodeVisit>();
 	const skipped = new Map<string, number>();
 	for (const node of graph.nodes) {
-		const reaching = reachingEvents(node, events, vocabulary, firstLevel, lastLevel);
+		const reaching = reachingEvents(node, index, firstLevel, lastLevel);
 		const visit = reaching === undefined ? undefined : visitOf(reaching);
 		if (visit !== undefined) visits.set(node.id, visit);
 		if (node.kind === "rule" || node.kind === "action" || node.kind === "lottery") {
-			const action = node.kind === "rule" ? undefined : node.action;
-			const count = events.filter((event) => event.type === vocabulary.directorSkipped && stringField(event, "rule") === node.rule && (action === undefined || stringField(event, "action") === action)).length;
+			const count = index.skipped.get(node.kind === "rule" ? key(node.rule) : key(node.rule, node.action)).length;
 			if (count > 0) skipped.set(node.id, count);
 		}
 	}

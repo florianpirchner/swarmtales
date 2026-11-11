@@ -24,7 +24,15 @@ export type GraphNode = Located &
 		| { readonly kind: "cast"; readonly cast: string; readonly level?: number }
 		| { readonly kind: "rule"; readonly rule: string; readonly trigger: string; readonly conditions: readonly string[] }
 		| { readonly kind: "trigger"; readonly rule: string; readonly trigger: string; readonly minute?: number }
-		| { readonly kind: "action" | "lottery"; readonly rule: string; readonly action: string }
+		| {
+				readonly kind: "action" | "lottery";
+				readonly rule: string;
+				readonly action: string;
+				/** The cast member the action names (`cast`, or `from` of a collection). */
+				readonly cast?: string;
+				/** The collection the action fills or reads. */
+				readonly into?: string;
+		  }
 		| { readonly kind: "petition"; readonly petition: string }
 		| { readonly kind: "outcome"; readonly petition: string; readonly outcome: string }
 		| { readonly kind: "collection"; readonly into: string }
@@ -32,8 +40,6 @@ export type GraphNode = Located &
 		| { readonly kind: "overseer"; readonly overseer: string; readonly mechanic: string }
 		| { readonly kind: "end"; readonly end: "finished" | "run"; readonly minutes?: number }
 	);
-
-export type GraphNodeKind = GraphNode["kind"];
 
 export interface GraphEdge {
 	readonly id: string;
@@ -151,9 +157,9 @@ function addActions(builder: Builder, rule: string, from: string, actions: reado
 	for (const [index, action] of builder.parts(ActionPart, actions, `${rule} actions`).entries()) {
 		const here = `${path}.${String(index)}`;
 		const id = `action:${rule}:${here}`;
-		builder.node({ id, kind: action.kind === "lottery" ? "lottery" : "action", rule, action: action.kind, label: action.kind });
-		builder.edge(from, id, edgeKind, label);
 		const cast = action.cast ?? action.from;
+		builder.node({ id, kind: action.kind === "lottery" ? "lottery" : "action", rule, action: action.kind, label: action.kind, ...(cast === undefined ? {} : { cast }), ...(action.into === undefined ? {} : { into: action.into }) });
+		builder.edge(from, id, edgeKind, label);
 		if (cast !== undefined && builder.nodes.has(castId(cast))) builder.edge(id, castId(cast), "cast");
 		if (action.into !== undefined) {
 			const collection = builder.node({ id: collectionId(action.into), kind: "collection", into: action.into, label: `collection ${action.into}` });

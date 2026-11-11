@@ -2,14 +2,14 @@ import { findRuns, type RunSummary } from "@swarmtales/viewer-core";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { formatHash, parseHash, type ViewId } from "../hash.ts";
 import type { ViewerHost } from "../host.ts";
-import { useRun, useVerification } from "../use-run.ts";
+import { NO_VOCABULARY, useRun, useVerification } from "../use-run.ts";
 import { Charts } from "./Charts.tsx";
 import { Compare } from "./Compare.tsx";
 import { Overview } from "./Overview.tsx";
 import { Replay } from "./Replay.tsx";
 import { Report } from "./Report.tsx";
 import { RunList } from "./RunList.tsx";
-// React Flow and ELK are the heavy part of the bundle; they load with the story view.
+// React Flow is the heavy part of the bundle; they load with the story view.
 const StoryView = lazy(async () => ({ default: (await import("./StoryView.tsx")).StoryView }));
 
 const TABS: readonly { readonly id: ViewId; readonly label: string; readonly needsRun: boolean }[] = [
@@ -30,7 +30,8 @@ export function App({ host }: { readonly host: ViewerHost }) {
 	const [compare, setCompare] = useState<readonly string[]>([]);
 	const [runs, setRuns] = useState<readonly RunSummary[] | undefined>(undefined);
 	const [error, setError] = useState<string | undefined>(undefined);
-	const state = useRun(host.source, runDir);
+	const vocabulary = host.vocabulary ?? NO_VOCABULARY;
+	const state = useRun(host.source, runDir, vocabulary);
 	const loaded = state.status === "ready" ? state.run : undefined;
 	const verification = useVerification(loaded?.model);
 	useEffect(() => {
@@ -78,13 +79,13 @@ export function App({ host }: { readonly host: ViewerHost }) {
 	}, []);
 	const body = (() => {
 		if (view === "runs") return <RunList runs={runs} error={error} selected={compare} onOpen={open} onToggle={toggle} onCompare={() => { setView("compare"); }} />;
-		if (view === "compare") return <Compare source={host.source} dirs={compare} onOpen={open} />;
-		if (view === "story") return <Suspense fallback={<div className="stv-loading">Loading the story view…</div>}><StoryView run={loaded} stories={host.stories ?? {}} onJump={jump} /></Suspense>;
+		if (view === "compare") return <Compare source={host.source} dirs={compare} onOpen={open} vocabulary={vocabulary} />;
+		if (view === "story") return <Suspense fallback={<div className="stv-loading">Loading the story view…</div>}><StoryView run={loaded} stories={host.stories ?? {}} onJump={jump} vocabulary={vocabulary} {...(host.initialStory === undefined ? {} : { initial: host.initialStory })} /></Suspense>;
 		if (runDir === undefined) return <div className="stv-empty">Choose a run in the Runs tab first.</div>;
 		if (state.status === "loading" || state.status === "idle") return <div className="stv-loading">Loading {runDir || "the run"}…</div>;
 		if (state.status === "error") return <div className="stv-empty stv-issue">{state.message}</div>;
 		if (view === "overview") return <Overview model={state.run.model} verification={verification} onJump={jump} {...(host.openExternal === undefined ? {} : { openExternal: host.openExternal })} />;
-		if (view === "replay") return <Replay run={state.run} seq={seq ?? state.run.index.firstSeq} onSeq={setSeq} views={host.views ?? []} />;
+		if (view === "replay") return <Replay run={state.run} seq={seq ?? state.run.index.firstSeq} onSeq={setSeq} views={host.views ?? []} vocabulary={vocabulary} />;
 		if (view === "report") return <Report run={state.run} onJump={jump} />;
 		return <Charts run={state.run} />;
 	})();

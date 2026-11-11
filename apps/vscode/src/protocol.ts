@@ -43,6 +43,8 @@ const Init = Type.Object({
 	views: Type.Array(ViewDescriptorSchema),
 	/** A location hash to start at (`#run=...&view=replay`), or none. */
 	hash: Type.Optional(Type.String()),
+	/** The story the Story tab shows first. */
+	initialStory: Type.Optional(Type.Object({ name: Type.String(), story: Type.Unknown() }, closed)),
 }, closed);
 export interface InitMessage {
 	readonly type: "init";
@@ -50,6 +52,7 @@ export interface InitMessage {
 	readonly stories: Readonly<Record<string, unknown>>;
 	readonly views: readonly ViewDescriptor[];
 	readonly hash?: string;
+	readonly initialStory?: { readonly name: string; readonly story: unknown };
 }
 
 const ToWebview = Type.Union([Init, RpcReply]);

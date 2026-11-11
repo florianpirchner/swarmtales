@@ -1,4 +1,4 @@
-import { actorLanes, messageGraph } from "@swarmtales/viewer-core";
+import { actorLanes, messageGraph, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { positionOf } from "../replay-math.ts";
 import type { ViewDescriptor } from "../views.ts";
@@ -13,6 +13,7 @@ interface Props {
 	readonly seq: number;
 	readonly onSeq: (seq: number) => void;
 	readonly views: readonly ViewDescriptor[];
+	readonly vocabulary: Vocabulary;
 }
 
 const SPEEDS = [2, 10, 50, 250] as const;
@@ -21,7 +22,7 @@ function isTyping(target: EventTarget | null): boolean {
 	return target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement;
 }
 
-export function Replay({ run, seq, onSeq, views }: Props) {
+export function Replay({ run, seq, onSeq, views, vocabulary }: Props) {
 	const { index, model } = run;
 	const events = index.events;
 	const position = positionOf(events, seq);
@@ -31,7 +32,7 @@ export function Replay({ run, seq, onSeq, views }: Props) {
 	const positionRef = useRef(position);
 	positionRef.current = position;
 	const lanes = useMemo(() => actorLanes(events), [events]);
-	const graph = useMemo(() => messageGraph(events, current?.seq), [events, current?.seq]);
+	const graph = useMemo(() => messageGraph(events, current?.seq, vocabulary.messages), [events, current?.seq, vocabulary.messages]);
 	const goto = (next: number) => {
 		const target = events[Math.max(0, Math.min(events.length - 1, next))];
 		if (target !== undefined) onSeq(target.seq);

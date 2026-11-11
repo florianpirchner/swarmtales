@@ -1,4 +1,4 @@
-import { indexRun, loadRun, type RunIndex, type RunModel, type RunSource, type RunVerification } from "@swarmtales/viewer-core";
+import { indexRun, loadRun, type RunIndex, type RunModel, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { verifyTexts, type VerifyReply, type VerifyRequest } from "./verify-worker.ts";
 
@@ -20,8 +20,11 @@ export function nextFrame(): Promise<void> {
 	});
 }
 
+/** No words of the host's own: viewer-core's defaults. */
+export const NO_VOCABULARY: Vocabulary = {};
+
 /** Loads and indexes a run folder; the work starts after a paint, so the page shows "loading" first. */
-export function useRun(source: RunSource, dir: string | undefined): RunState {
+export function useRun(source: RunSource, dir: string | undefined, vocabulary: Vocabulary = NO_VOCABULARY): RunState {
 	const [state, setState] = useState<RunState>({ status: "idle" });
 	useEffect(() => {
 		if (dir === undefined) {
@@ -33,7 +36,7 @@ export function useRun(source: RunSource, dir: string | undefined): RunState {
 		void (async () => {
 			try {
 				await nextFrame();
-				const model = await loadRun(source, dir);
+				const model = await loadRun(source, dir, vocabulary.actors === undefined ? {} : { actors: vocabulary.actors });
 				await nextFrame();
 				const index = indexRun(model.events);
 				if (alive.current) setState({ status: "ready", dir, run: { model, index } });
@@ -44,7 +47,7 @@ export function useRun(source: RunSource, dir: string | undefined): RunState {
 		return () => {
 			alive.current = false;
 		};
-	}, [source, dir]);
+	}, [source, dir, vocabulary]);
 	return state;
 }
 

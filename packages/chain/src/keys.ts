@@ -35,12 +35,20 @@ export function publicKeyFromPem(text: string): PublicKey | undefined {
 	return body === undefined ? undefined : publicKeyFromDer(body);
 }
 
-/** A short name of a public key: the first 16 hex digits of the sha256 of its DER bytes. */
+/**
+ * A short name of a public key: the first 16 hex digits of the sha256 of its DER bytes. A text that
+ * is no base64 gets no fingerprint (two junk keys must not share one): it is named as it was given.
+ */
 export function keyFingerprint(publicKey: string): string {
-	return bytesToHex(sha256(fromBase64(publicKey) ?? new Uint8Array())).slice(0, 16);
+	const der = fromBase64(publicKey);
+	return der === undefined ? `(not base64: ${JSON.stringify(publicKey.slice(0, 16))})` : bytesToHex(sha256(der)).slice(0, 16);
 }
 
-/** Whether a base64 Ed25519 signature over `message` holds (RFC 8032 strict, as OpenSSL checks it). */
+/**
+ * Whether a base64 Ed25519 signature over `message` holds: RFC 8032 strict (`zip215: false`), at least
+ * as strict as OpenSSL behind `node:crypto`, and stricter for small-order keys (OpenSSL accepts
+ * R = identity, S = 0 under the identity key; this check does not).
+ */
 export function signatureVerifies(key: PublicKey, message: Uint8Array, signature: string): boolean {
 	const bytes = fromBase64(signature);
 	if (bytes?.length !== 64) return false;

@@ -1,4 +1,4 @@
-import { compareRuns, loadRun, type Comparison, type RunModel, type RunSource } from "@swarmtales/viewer-core";
+import { compareRuns, loadRun, type Comparison, type RunModel, type RunSource, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { number, usd } from "../format.ts";
 import { nextFrame } from "../use-run.ts";
@@ -7,12 +7,13 @@ interface Props {
 	readonly source: RunSource;
 	readonly dirs: readonly string[];
 	readonly onOpen: (dir: string) => void;
+	readonly vocabulary: Vocabulary;
 }
 
 const COLUMNS = ["costUsd", "minutes", "events"] as const;
 
 /** The chosen runs side by side with the spread (mean, min, max, standard deviation) of every number column. */
-export function Compare({ source, dirs, onOpen }: Props) {
+export function Compare({ source, dirs, onOpen, vocabulary }: Props) {
 	const [result, setResult] = useState<Comparison | undefined>(undefined);
 	const [error, setError] = useState<string | undefined>(undefined);
 	useEffect(() => {
@@ -25,7 +26,7 @@ export function Compare({ source, dirs, onOpen }: Props) {
 				const models: RunModel[] = [];
 				for (const dir of dirs) {
 					await nextFrame();
-					const model = await loadRun(source, dir);
+					const model = await loadRun(source, dir, vocabulary.actors === undefined ? {} : { actors: vocabulary.actors });
 					models.push(model);
 				}
 				if (alive.current) setResult(compareRuns(models));
@@ -36,7 +37,7 @@ export function Compare({ source, dirs, onOpen }: Props) {
 		return () => {
 			alive.current = false;
 		};
-	}, [source, dirs]);
+	}, [source, dirs, vocabulary]);
 	if (dirs.length < 2) return <div className="stv-empty">Tick two or more runs in the run list, then choose Compare.</div>;
 	if (error !== undefined) return <div className="stv-empty stv-issue">{error}</div>;
 	if (result === undefined) return <div className="stv-loading">Loading {dirs.length} runs…</div>;
@@ -54,7 +55,7 @@ export function Compare({ source, dirs, onOpen }: Props) {
 							<td>{row.story ?? ""}</td>
 							<td className="num">{row.seed ?? ""}</td>
 							<td>{row.result ?? (row.ended ? "ended" : "no end")}</td>
-							<td className="num">{usd(row.costUsd)}</td>
+							<td className="num" title={row.costSource === undefined ? "no cost recorded" : `from ${row.costSource === "log" ? "the usage lines of the log" : "usage.json"}`}>{usd(row.costUsd)}</td>
 							<td className="num">{row.minutes}</td>
 							<td className="num">{row.events.toLocaleString("en-US")}</td>
 						</tr>

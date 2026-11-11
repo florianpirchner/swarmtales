@@ -1,6 +1,6 @@
 /**
  * Series the charts and the replay draw, derived from the events alone: cost and tokens per minute,
- * events per actor (lanes), counts by type and tool, and who wrote to whom up to a seq.
+ * events per actor (lanes), and counts by type and tool (who wrote to whom: `messages.ts`).
  */
 import { numberField, type RunEvent, stringField } from "./events.ts";
 
@@ -104,7 +104,7 @@ function counted(keys: Iterable<string>): readonly Count[] {
 	return [...counts].map(([key, count]) => ({ key, count })).sort((left, right) => right.count - left.count || (left.key < right.key ? -1 : 1));
 }
 
-function* upTo(events: readonly RunEvent[], seq: number | undefined): Generator<RunEvent> {
+export function* upTo(events: readonly RunEvent[], seq: number | undefined): Generator<RunEvent> {
 	for (const event of events) if (seq === undefined || event.seq <= seq) yield event;
 }
 
@@ -116,69 +116,4 @@ export function typeCounts(events: readonly RunEvent[], seq?: number): readonly 
 /** Tool calls per tool (up to a seq), most frequent first. */
 export function toolCounts(events: readonly RunEvent[], seq?: number): readonly Count[] {
 	return counted([...upTo(events, seq)].flatMap((event) => (event.type === TOOL_CALL_EVENT ? [stringField(event, "tool") ?? "?"] : [])));
-}
-
-/** A message between actors: an event with a `text`, an actor, and a recipient. */
-export interface Message {
-	readonly seq: number;
-	readonly from: string;
-	/** Actors, `"all"`, a cast member, or a channel as `group:<id>` / `team:<id>`. */
-	readonly to: readonly string[];
-	readonly type: string;
-}
-
-/**
- * The message an event carries, if any: it has a string `text` and an actor, and names its
- * recipients in `to` (one or a list), a cast member in `cast`, or a channel in `group` or `team`. A delivery receipt
- * without text is no message, so a message counts once.
- */
-export function messageOf(event: RunEvent): Message | undefined {
-	if (event.actor === undefined || typeof event.data.text !== "string") return undefined;
-	const to = event.data.to;
-	const recipients = typeof to === "string" ? [to] : Array.isArray(to) ? to.filter((entry): entry is string => typeof entry === "string") : [];
-	const cast = stringField(event, "cast");
-	const group = stringField(event, "group");
-	const team = stringField(event, "team");
-	const channel = cast ?? (group === undefined ? (team === undefined ? undefined : `team:${team}`) : `group:${group}`);
-	const targets = recipients.length > 0 ? recipients : channel === undefined ? [] : [channel];
-	const from = event.actor;
-	const others = targets.filter((target) => target !== from);
-	return others.length === 0 ? undefined : { seq: event.seq, from, to: others, type: event.type };
-}
-
-export interface MessageEdge {
-	readonly from: string;
-	readonly to: string;
-	readonly count: number;
-	readonly firstSeq: number;
-	readonly lastSeq: number;
-	/** The event types the messages came in (e.g. a direct message and a channel post). */
-	readonly types: readonly string[];
-}
-
-export interface MessageGraph {
-	/** Senders and recipients, in the order they first occur. */
-	readonly nodes: readonly string[];
-	readonly edges: readonly MessageEdge[];
-}
-
-/** Who wrote to whom up to and including `seq` (all of the run without it). */
-export function messageGraph(events: readonly RunEvent[], seq?: number): MessageGraph {
-	const nodes = new Set<string>();
-	const edges = new Map<string, { from: string; to: string; count: number; firstSeq: number; lastSeq: number; types: Set<string> }>();
-	for (const event of upTo(events, seq)) {
-		const message = messageOf(event);
-		if (message === undefined) continue;
-		nodes.add(message.from);
-		for (const to of message.to) {
-			nodes.add(to);
-			const id = `${message.from}\u0000${to}`;
-			const edge = edges.get(id) ?? { from: message.from, to, count: 0, firstSeq: message.seq, lastSeq: message.seq, types: new Set<string>() };
-			edge.count += 1;
-			edge.lastSeq = message.seq;
-			edge.types.add(message.type);
-			edges.set(id, edge);
-		}
-	}
-	return { nodes: [...nodes], edges: [...edges.values()].map((edge) => ({ ...edge, types: [...edge.types] })) };
 }
