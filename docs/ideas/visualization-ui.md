@@ -124,6 +124,24 @@ plugin comes later, if ever, in a sandboxed iframe.
   unknown prompt ids, locks on missing tools) need the story loader. Either make that check browser-safe too
   (preferred, it is pure TypeScript over loaded plugin heads) or run it only on desktop/Codespaces.
 
+## 6a. The story as a flow graph (Flo, 2026-11-11)
+
+Flo: stories should be shown as a React Flow graph, "really nice, with branches". Proposal:
+
+- **The graph is derived, not drawn.** `viewer-core` builds nodes and edges from the effective story (levels,
+  doors, phases, quest steps of §11, endings, the overseers that act at each point); auto layout with elkjs.
+  Hand-tuned positions, if wanted, live in a small sidecar file (`story.layout.json`), never in the story.
+- **Branches are edges with conditions.** A door, a quest choice or a delayed consequence becomes an edge
+  labelled with its CEL condition (§13); merges and endings are visible as such. Mechanics contribute their
+  node kinds through the view descriptors of §5, so the core stays free of game words.
+- **The best part is the overlay of runs.** On the same graph, a run lights up the path it actually took
+  (which branch, at which minute, link to `#seq`); several runs give a heat map ("in 5 of 9 seeds the city
+  took the tribunal branch"). That turns the design view into a research view.
+- **Same graph, designer mode.** In the designer (stage 3 of §6) the graph is editable and writes back to YAML.
+- **Limit:** flat games (chess, hold'em, morris) have almost no branches; for them the graph shows phases,
+  mechanics and overseers, and the real picture is the replay. The graph pays off for City of Keys, Whispers
+  and the quest stories.
+
 ## 7. MCP and running stories
 
 - **`swt mcp`** (§7 of the plugins paper) stays a Node process. The desktop extension registers it with VS Code
