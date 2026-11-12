@@ -68,6 +68,13 @@ model bluff?" needs a table that reads it.
 4. **The read baseline** (bids as evidence) for the report, so the bluff counter stops counting reads as
    bluffs (P422). The rules themselves need no change.
 
+## The first test: four Opus seats
+
+[liars-dice-04a-003-opus-only](runs/liars-dice-04a-003-opus-only/) (2026-11-12, two matches): Opus does not
+bluff at a table of readers either. Its low bids are reads of the others' bids or forced smallest raises,
+every brain says "bluff rarely" before the first game, and the table talk falls silent (P424). The readers
+learn to discount bids that chase one face, which shrinks the reward the simulation predicts.
+
 <details>
 <summary>The simulation script (plain Node, no dependencies: <code>node bluff-sim.mjs</code>)</summary>
 
