@@ -425,7 +425,7 @@ function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
 		ctx.emit("move_refused", { game: state.game, ply: state.moves.length + 1, colour: colourOf(chess), by: ctx.resident, written, count });
 		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. ${refusalHint(ctx, chess, written)}`);
 	}
-	return reply(applyMove(ctx, move.san, written, false));
+	return reply(applyMove(ctx, move.san, written, false), { endsTurn: true });
 }
 
 /** The position for `resident`: the board, the moves, the material, and whose move it is. */
@@ -511,7 +511,7 @@ export const chess = defineMechanic(head, (kit) => ({
 				if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
 				const game = ctx.state.game;
 				endGame(ctx, teamOf(ctx.state, ctx.resident) === ctx.state.white ? "0-1" : "1-0", "resignation", ctx.resident);
-				return reply(`You resigned game ${String(game)}.`);
+				return reply(`You resigned game ${String(game)}.`, { endsTurn: true });
 			},
 		}),
 	],

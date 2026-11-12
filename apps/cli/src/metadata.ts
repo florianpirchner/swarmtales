@@ -1,6 +1,7 @@
 /** Contents of `000-run.json` (SPEC §14): run metadata and the full serialized story. */
 import type { ResidentProfile } from "./host/residents.ts";
 import type { AnyStory } from "@swarmtales/contracts";
+import { RUNTIME_REVISION } from "@swarmtales/kernel";
 import type { EffectiveRun } from "./run-options.ts";
 
 export interface RunMetadataInput {
@@ -32,6 +33,7 @@ export function runMetadata(input: RunMetadataInput): Readonly<Record<string, un
 		run: input.run,
 		number: input.number,
 		startedAt: input.startedAt,
+		runtime: RUNTIME_REVISION,
 		provider: input.provider,
 		model: input.model,
 		storyId: input.story.id,

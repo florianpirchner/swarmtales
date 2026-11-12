@@ -285,3 +285,22 @@ describe("the engine reference (Stockfish, lab)", () => {
 		expect(plies[3]).toMatchObject({ san: "Qh4#", loss: 0, after: 1000, missedMate: false });
 	}, 30_000);
 });
+
+describe("a played move ends the seat's turn (runtime revision 2)", () => {
+	it("does not wake the seat again to answer its own playMove; only the seat on move steps", async () => {
+		// awaitsAnswer true: every resident's context ends with an unanswered tool result after a call.
+		const host = createHost({ ...options({ brain: false }), awaitsAnswer: () => true });
+		const started: string[] = [];
+		const played: string[] = [];
+		host.subscribe((event) => {
+			if (event.type === "turn_started") started.push(String(field(event, "resident")));
+			if (event.type === "move_played") played.push(String(field(event, "by")));
+		});
+		host.start();
+		await host.playMinute(player);
+		await host.playMinute(player);
+		expect(played.length).toBeGreaterThan(2);
+		// Every turn that started played a move: no step was spent on "end your turn".
+		expect(started).toEqual(played);
+	});
+});

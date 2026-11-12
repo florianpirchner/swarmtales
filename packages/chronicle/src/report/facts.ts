@@ -115,6 +115,8 @@ export interface ReportFacts {
 	readonly storyId?: string;
 	readonly storyTitle?: string;
 	readonly seed?: number;
+	/** Runtime revision; 1 when `000-run.json` names none. */
+	readonly runtime: number;
 	readonly start: RunStart;
 	readonly models: { readonly competitors: readonly string[]; readonly gamemaker: string; readonly classifier: string };
 	readonly end: { readonly minute: number; readonly reason: string; readonly seq?: number };
@@ -258,6 +260,7 @@ export function computeFacts(run: string, files: RunFiles, options: ReportOption
 		...(storyId === undefined ? {} : { storyId }),
 		...(metadata.story?.title === undefined ? {} : { storyTitle: metadata.story.title }),
 		...(seed === undefined ? {} : { seed }),
+		runtime: metadata.runtime ?? 1,
 		start,
 		models,
 		end,

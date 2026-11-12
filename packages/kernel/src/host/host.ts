@@ -239,8 +239,8 @@ class CoreHost implements Host {
 				instances.flatMap(([id, instance]) => (instance.turns === undefined ? [] : [[id, instance.turns] as const])),
 				story.turns,
 			),
-			// The answer of a free look alone does not wake a resident again; news does.
-			awaitsAnswer: (resident) => (options.awaitsAnswer?.(resident) ?? false) && !this.#gateway.lastCallWasLook(`resident:${resident}`),
+			// The answer of a free look or of a call that ended the turn alone does not wake a resident again; news does.
+			awaitsAnswer: (resident) => (options.awaitsAnswer?.(resident) ?? false) && !this.#gateway.lastCallNeedsNoAnswer(`resident:${resident}`),
 			tools: () => this.toolSpecs("resident"),
 			call: (actor, tool, params, cause) => this.#gateway.call(actor, tool, params, cause),
 			record: (actor, type, payload) => {

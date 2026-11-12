@@ -7,6 +7,7 @@
 import { execFileSync } from "node:child_process";
 import { type ChainGenesisInput, jsonHash } from "@swarmtales/chronicle";
 import type { AnyStory } from "@swarmtales/contracts";
+import { RUNTIME_REVISION } from "@swarmtales/kernel";
 import type { ResumePoint } from "./snapshot.ts";
 
 /**
@@ -71,6 +72,7 @@ export function runGenesis(input: RunGenesisInput): ChainGenesisInput {
 	const previousRun = resume?.point.run.meta?.run;
 	return {
 		...(input.commit === undefined ? {} : { commit: input.commit }),
+		runtime: RUNTIME_REVISION,
 		...(input.run === undefined ? {} : { run: input.run }),
 		...(input.preregistration === undefined ? {} : { preregistration: input.preregistration }),
 		story: input.story.id,

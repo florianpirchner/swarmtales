@@ -28,7 +28,7 @@ import {
 	type Script,
 } from "@swarmtales/models";
 import type { CoreStoryEntry } from "../../../../stories/index.ts";
-import { competitorIds, storyData } from "@swarmtales/kernel";
+import { competitorIds, RUNTIME_REVISION, storyData } from "@swarmtales/kernel";
 import type { StartArgs } from "../args.ts";
 import { codeCommit } from "./chain.ts";
 import { composeCoreRun, coreStoryFor, refusedOverrides } from "./core-run.ts";
@@ -113,6 +113,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 	const label = `${settings.provider}/${settings.modelId ?? "-"}`;
 	const chain = new EventChain(allocated.directory, {
 		...(commit === undefined ? {} : { commit }),
+		runtime: RUNTIME_REVISION,
 		run: allocated.name,
 		story: story.id,
 		storyHash: jsonHash(JSON.parse(JSON.stringify(storyData(story)))),
@@ -133,6 +134,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		run: allocated.name,
 		number: allocated.number,
 		startedAt: new Date().toISOString(),
+		runtime: RUNTIME_REVISION,
 		provider: settings.provider,
 		model: settings.modelId ?? "-",
 		storyId: story.id,

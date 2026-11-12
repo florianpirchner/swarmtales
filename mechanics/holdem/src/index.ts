@@ -288,8 +288,8 @@ function act(ctx: Ctx, resident: string | undefined, move: Move, reason: string 
 	proceed(ctx, hand, normal.done, false, ctx.minute);
 	const now = ctx.state.hand;
 	// Say plainly that the turn is over: a model that answers the tool result otherwise tries to act again (P131).
-	if (now?.number === number && !now.over) return reply(`You ${verb(normal.done)} (${street}). ${now.toAct === resident ? "It is your turn again." : `${now.toAct} is to act, not you: end your turn now; you will be told when it is yours.`}`);
-	return reply(`You ${verb(normal.done)}. Hand ${String(number)} is over: end your turn now; you will be told the result when you next play.`);
+	if (now?.number === number && !now.over) return reply(`You ${verb(normal.done)} (${street}). ${now.toAct === resident ? "It is your turn again." : `${now.toAct} is to act, not you: end your turn now; you will be told when it is yours.`}`, { endsTurn: now.toAct !== resident });
+	return reply(`You ${verb(normal.done)}. Hand ${String(number)} is over: end your turn now; you will be told the result when you next play.`, { endsTurn: true });
 }
 
 function verb(done: Scored["done"]): string {

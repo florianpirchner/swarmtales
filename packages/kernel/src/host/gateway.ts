@@ -81,14 +81,19 @@ export class Gateway {
 	#broken = false;
 	/** The actors whose last call was a free look (`ToolDefinition.free`). */
 	readonly #lookedLast = new Set<Actor>();
+	/** The actors whose last call succeeded and ended their turn (`ToolSuccess.endsTurn`). */
+	readonly #endedLast = new Set<Actor>();
 
 	constructor(parts: GatewayParts) {
 		this.#parts = parts;
 	}
 
-	/** Whether the actor's last call was a free look: its answer alone wakes no turn (`activation: "onNews"`). */
-	lastCallWasLook(actor: Actor): boolean {
-		return this.#lookedLast.has(actor);
+	/**
+	 * Whether the answer to the actor's last call alone wakes no turn (`activation: "onNews"`): the call was
+	 * a free look, or it succeeded and ended the actor's turn (`ToolSuccess.endsTurn`, runtime revision 2).
+	 */
+	lastCallNeedsNoAnswer(actor: Actor): boolean {
+		return this.#lookedLast.has(actor) || this.#endedLast.has(actor);
 	}
 
 	/** `cause` is the event the call answers (the turn it belongs to). The reply is formatted for the caller. */
@@ -219,6 +224,7 @@ export class Gateway {
 		const loaded = caller === undefined ? undefined : toolFor(this.#parts.tools, name, caller);
 		if (loaded?.tool.free === true) this.#lookedLast.add(actor);
 		else this.#lookedLast.delete(actor);
+		this.#endedLast.delete(actor);
 		const overStep = loaded?.tool.free === true ? undefined : this.#parts.referee.step(actor, this.#parts.reply);
 		if (overStep !== undefined) return refused("limit", overStep);
 		if (!this.#parts.tools.has(name)) return refused("lock", this.#core(TOOL_UNKNOWN));
@@ -268,6 +274,7 @@ export class Gateway {
 				instance.hooks.after(checked, outcome);
 			});
 		}
+		if (outcome.ok && outcome.endsTurn === true) this.#endedLast.add(actor);
 		return { outcome, seq: called.seq };
 	}
 
