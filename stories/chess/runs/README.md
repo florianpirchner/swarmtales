@@ -50,6 +50,13 @@ Runtime: the runtime revision a run played on ([docs/RUNTIME-REVISIONS.md](../..
 | [chess-02a-042-moves-threats-g4-s41-sonnet](chess-02a-042-moves-threats-g4-s41-sonnet/) | 2026-11-11 | r1 | `chess-moves-threats-g4-p80`, seed 41 | Sonnet | A01 3, A02 1 (cap); ACPL 69 | 3.53 USD |
 | [chess-02a-043-default-g4-s41-opus](chess-02a-043-default-g4-s41-opus/) | 2026-11-11 | r1 | `chess-g4-p80`, seed 41 | Opus | A01 2, A02 2 (cap, resignations); ACPL 55 | 5.93 USD |
 | [chess-02a-044-moves-threats-g4-s41-opus](chess-02a-044-moves-threats-g4-s41-opus/) | 2026-11-11 | r1 | `chess-moves-threats-g4-p80`, seed 41 | Opus | A01 2, A02 2 (cap); ACPL 81 | 6.87 USD |
+| [chess-02a-045-default-g4-s41-r2](chess-02a-045-default-g4-s41-r2/) | 2026-11-12 | r2 | `chess-g4-p80`, seed 41: the r2 baseline | Haiku | A01 2, A02 2 (cap, checkmate, resignation); ACPL 151; 1.13 requests per half-move (013: 1.48) | 0.21 USD |
+| [chess-02a-046-fresh-g4-s41-r2](chess-02a-046-fresh-g4-s41-r2/) | 2026-11-12 | r2 | `chess-fresh-g4-p80`, seed 41: fresh context per half-move | Haiku | A01 3, A02 1; ACPL 132; 1,620 output tokens per half-move (P340) | 0.28 USD |
+| [chess-02a-047-compact-g4-s41-r2](chess-02a-047-compact-g4-s41-r2/) | 2026-11-12 | r2 | `chess-compact-g4-p80`, seed 41: compact board | Haiku | A01 1, A02 3 (four resignations); ACPL 153 (P341) | 0.17 USD |
+| [chess-02a-048-fresh-compact-g4-s41-r2](chess-02a-048-fresh-compact-g4-s41-r2/) | 2026-11-12 | r2 | `chess-fresh-compact-g4-p80`, seed 41 | Haiku | A01 2.5, A02 1.5; ACPL 87 | 0.30 USD |
+| [chess-02a-049-fresh-compact-g4-s43-r2](chess-02a-049-fresh-compact-g4-s43-r2/) | 2026-11-12 | r2 | `chess-fresh-compact-g4-p80`, seed 43 | Haiku | A01 2.5, A02 1.5; ACPL 162 | 0.33 USD |
+| [chess-02a-050-fresh-compact-g4-s47-r2](chess-02a-050-fresh-compact-g4-s47-r2/) | 2026-11-12 | r2 | `chess-fresh-compact-g4-p80`, seed 47 | Haiku | A01 2, A02 2 (four at the cap); ACPL 96 | 0.34 USD |
+| [chess-02a-051-fresh-compact-g4-s53-r2](chess-02a-051-fresh-compact-g4-s53-r2/) | 2026-11-12 | r2 | `chess-fresh-compact-g4-p80`, seed 53 | Haiku | A01 3, A02 1; ACPL 129 | 0.32 USD |
 
 ## Comparison (2026-11-06)
 
@@ -120,3 +127,21 @@ Haiku, four-game matches at cap 80 half-moves on seeds 37, 41, 43, 47 and 53 (th
 - `--budget` was ignored by core stories (P327, fixed in this PR): the Opus runs cost 5.93 and 6.87 USD against caps of 6 and 4. A first Opus run of the default arm was stopped after its first requests (under 0.2 USD) and its directory deleted before it was recorded; run 043 replaced it.
 
 Costs of this round: Haiku 2026-11-07 (013-024) 2.32 USD, Haiku 2026-11-11 (025-040) 3.62 USD, Sonnet and Opus 19.70 USD, reporter drafts about 0.15 USD (OpenRouter).
+
+## Runtime r2, a fresh context and a compact board (2026-11-12)
+
+Haiku, four-game matches at cap 80 half-moves, runtime r2 (P329: a played move no longer wakes the seat to answer it). Engine numbers as above. The r1 rows are the default arm of the five-seed table, same seeds; r1 and r2 are not the same runtime, so read the direction.
+
+| Arm | Runs | Seeds | ACPL by seed | Mean ACPL | Requests per half-move | Output tokens per half-move | Context, mean | USD per 100 half-moves |
+|---|---|---|---|---:|---:|---:|---:|---:|
+| default, r1 | 013, 017, 025, 029 | 41, 43, 47, 53 | 124, 157, 121, 137 | 135 | 1.41-1.48 | 620-870 | 26-34k | 0.087-0.112 |
+| default, r2 | 045 | 41 | 151 | 151 | 1.13 | 621 | 24k | 0.074 |
+| `-compact` | 047 | 41 | 153 | 153 | 1.16 | 675 | 18k | 0.068 |
+| `-fresh` | 046 | 41 | 132 | 132 | 1.19 | 1,620 | 2.9k | 0.108 |
+| `-fresh -compact` | 048-051 | 41, 43, 47, 53 | 87, 162, 96, 129 | **119** | 1.18-1.22 | 1,585-1,693 | 2.7-2.8k | 0.104-0.109 |
+
+- **The r2 fix works** (P329): 1.13 requests per half-move against 1.48, a quarter cheaper per half-move on the same seed.
+- **A fresh context does not save money with Haiku** (P340): the context falls from 24-34k to under 3k tokens, but the model thinks 2.3 times as long without its earlier thoughts, and output costs 50 times a cached input token. For Opus, whose output is already 36-42% of its cost, `-fresh` would likely cost more, not less.
+- **Play is a little better with `-fresh -compact`**: ACPL 119 against 135 on the same four seeds (paired difference 16, SE about 9). The compact board alone does nothing (P341).
+
+Cost of this round: 1.94 USD (Haiku) plus about 0.04 USD for the reporter drafts (OpenRouter).
