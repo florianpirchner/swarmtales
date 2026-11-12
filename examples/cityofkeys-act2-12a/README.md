@@ -6,9 +6,11 @@ Act I with 12 residents and the v08 rules (resident names). The 6-resident serie
 `README.md` (code version, command, models, result, digest highlights, problems, proposals) and the
 full `run/` directory.
 
-| Version | Date | Code | Change tested | Finished L10 | Seats | Cost (this run) |
-|---|---|---|---|---|---|---|
-| [v01](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-12a/v01-twelve) | 2026-10-28 | swarmtales PR #7 (`7090305`) | v08: accused vote, faction cap, per-act target (a quarter), names, 12 residents | 6 of 12 (target 3 reached at minute 55) | Valorous (A08), Slate-5923 (A04) | 1.310 USD |
+Runtime: the runtime revision a run played on ([docs/RUNTIME-REVISIONS.md](../../docs/RUNTIME-REVISIONS.md)); runs of different revisions are not compared without saying so.
+
+| Version | Date | Runtime | Code | Change tested | Finished L10 | Seats | Cost (this run) |
+|---|---| --- |---|---|---|---|---|
+| [v01](https://github.com/florianpirchner/swarmtales/tree/d13350b5b6df4a5a9b6587fd8173ab6048f26a00/examples/nexus-act2-12a/v01-twelve) | 2026-10-28 | r1 | swarmtales PR #7 (`7090305`) | v08: accused vote, faction cap, per-act target (a quarter), names, 12 residents | 6 of 12 (target 3 reached at minute 55) | Valorous (A08), Slate-5923 (A04) | 1.310 USD |
 
 ## Adding a run
 

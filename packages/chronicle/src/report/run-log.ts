@@ -58,6 +58,8 @@ export function ofType<T extends RecordedEvent["type"]>(events: readonly Recorde
 const MetadataSchema = Type.Object({
 	run: Type.Optional(Type.String()),
 	startedAt: Type.Optional(Type.String()),
+	/** Runtime revision (docs/RUNTIME-REVISIONS.md); absent in runs before revision 2, which are revision 1. */
+	runtime: Type.Optional(Type.Integer({ minimum: 1 })),
 	storyId: Type.Optional(Type.String()),
 	effective: Type.Optional(Type.Object({ seed: Type.Optional(Type.Integer()), startLevel: Type.Optional(Type.Integer()), minutes: Type.Optional(Type.Integer()) })),
 	resumedFrom: Type.Optional(

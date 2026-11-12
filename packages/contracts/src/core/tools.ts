@@ -26,6 +26,12 @@ export interface ToolSuccess {
 	readonly ok: true;
 	/** The text the caller reads. */
 	readonly reply: string;
+	/**
+	 * The call ends the caller's turn (it has nothing more to do until news comes): its answer alone wakes no new step
+	 * (`activation: "onNews"`), so no model call is spent on answering "end your turn"; the reply stays in
+	 * the context and the next news comes after it. Runtime revision 2.
+	 */
+	readonly endsTurn?: boolean;
 }
 
 export type ToolOutcome = ToolSuccess | Refusal;

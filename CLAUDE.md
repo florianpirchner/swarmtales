@@ -27,6 +27,9 @@ longer worked on). The owner is Flo.
 - **Docs-only changes** (Markdown, `docs/`, README; no code, config, tests or schema): skip `pnpm check`,
   commit with `git commit --no-verify` and push straight to `main`. Any code change keeps the full check.
 - Big refactors: a builder agent writes, a challenger agent reviews.
+- **Runtime revision:** a change of how a run plays (when a resident is woken, what stays in its context, how
+  tool notices and answers arrive) raises `RUNTIME_REVISION` (`packages/kernel/src/revision.ts`) in the same PR,
+  adds a row to `docs/RUNTIME-REVISIONS.md` and sets the tag `runtime-rN` at the merge commit.
 
 ## Working with Flo
 
@@ -61,7 +64,8 @@ Every live run of every story is recorded, also a short or stopped one: it goes 
 repository under `stories/<name>/runs/<run>/` (or the `examples/` place below) with a `README.md`
 that lists the run's **loopholes**, **problems** and **solutions** (what was proposed, what was
 built, or "open"), and a row in that story's runs index (`stories/<name>/runs/README.md`). Nothing
-from a run is deleted unrecorded.
+from a run is deleted unrecorded. The run's runtime revision goes into the index's `Runtime` column and,
+when it is not 1, into the folder name as a suffix (`-r2`); see `docs/RUNTIME-REVISIONS.md`.
 
 1. The run reporter writes a first-draft `<run>/REPORT.md` automatically (header and result
    table computed in code; **digest highlights**, **problems**, **optimizations** and loophole

@@ -89,6 +89,7 @@ function header(facts: ReportFacts): readonly string[] {
 	const story = facts.storyTitle === undefined ? (facts.storyId === undefined ? "unknown" : `\`${facts.storyId}\``) : `${facts.storyTitle}${facts.storyId === undefined ? "" : ` (\`${facts.storyId}\`)`}`;
 	rows.push(["Story", story]);
 	if (facts.seed !== undefined) rows.push(["Seed", String(facts.seed)]);
+	rows.push(["Runtime", `r${String(facts.runtime)}`]);
 	rows.push([
 		"Start",
 		facts.start.kind === "fresh"

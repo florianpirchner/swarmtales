@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ZERO_HASH } from "@swarmtales/chain";
+import { RUNTIME_REVISION } from "@swarmtales/kernel";
 import cityOfKeys from "../../stories/cityofkeys/story.ts";
 import whispers from "../../stories/whispers/story.ts";
 import { UsageError } from "../../apps/cli/src/args.ts";
@@ -67,7 +68,7 @@ describe("swt log verify", () => {
 		const text = describeVerdict("runs/run-003", { ok: true, lines: 12, head: "d".repeat(64), genesisHash: ZERO_HASH, genesis, heads: [] }, true);
 		expect(text).toContain(`ok   runs/run-003: 12 lines, head ${"d".repeat(64)}`);
 		expect(text).toContain("(the run's own run.pub: integrity, not authenticity)");
-		expect(text).toContain("commit unknown");
+		expect(text).toContain("commit unknown, runtime r1");
 		expect(text).toContain("resumed from snapshot-L7.json of run-002 (no checkpoint: not anchored)");
 		expect(describeVerdict("runs/run-003", { ok: true, lines: 12, head: "d".repeat(64), genesisHash: ZERO_HASH, genesis, heads: [] }, false)).toContain("(the key given)");
 	});
@@ -85,8 +86,8 @@ describe("the genesis of a CLI run", () => {
 		expect(codeCommit({}, "/")).toBeUndefined();
 	});
 
-	it("states the story, seed, models and commitments, and nothing it was not given", () => {
-		expect(runGenesis({ story: cityOfKeys, seed: 7, models: { A01: "scripted/-" } })).toEqual({ story: "cityofkeys", storyHash: storyHash(cityOfKeys), seed: 7, models: { A01: "scripted/-" } });
+	it("states the story, seed, models, runtime revision and commitments, and nothing it was not given", () => {
+		expect(runGenesis({ story: cityOfKeys, seed: 7, models: { A01: "scripted/-" } })).toEqual({ runtime: RUNTIME_REVISION, story: "cityofkeys", storyHash: storyHash(cityOfKeys), seed: 7, models: { A01: "scripted/-" } });
 		expect(runGenesis({ story: cityOfKeys, seed: 7, models: {}, commit: "abc", commitments: { treatment: "e".repeat(64) } })).toMatchObject({ commit: "abc", commitments: { treatment: "e".repeat(64) } });
 		expect(runGenesis({ story: cityOfKeys, seed: 7, models: {}, run: "run-004", preregistration: "f".repeat(64) })).toMatchObject({ run: "run-004", preregistration: "f".repeat(64) });
 	});

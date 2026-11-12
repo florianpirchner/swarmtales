@@ -33,7 +33,7 @@ export function describeVerdict(directory: string, verdict: ChainVerdict, ownKey
 	return [
 		`ok   ${directory}: ${String(verdict.lines)} lines, head ${verdict.head}`,
 		`     key ${keyFingerprint(genesis.publicKey)}${ownKey ? " (the run's own run.pub: integrity, not authenticity)" : " (the key given)"}`,
-		`     ${genesis.run === undefined ? "" : `run ${genesis.run}, `}story ${genesis.story} (${genesis.storyHash.slice(0, 16)}), seed ${String(genesis.seed)}, commit ${genesis.commit ?? "unknown"}`,
+		`     ${genesis.run === undefined ? "" : `run ${genesis.run}, `}story ${genesis.story} (${genesis.storyHash.slice(0, 16)}), seed ${String(genesis.seed)}, commit ${genesis.commit ?? "unknown"}, runtime r${String(genesis.runtime ?? 1)}`,
 		// Plain verify cannot see a checkpoint head deleted from the chain; a later --previous does (chain-security m1).
 		`     ${String(verdict.heads.length)} signed head(s) over line(s) ${verdict.heads.map((head) => String(head.lines)).join(", ")}`,
 		...(genesis.preregistration === undefined ? [] : [`     pre-registration ${genesis.preregistration.slice(0, 16)}`]),

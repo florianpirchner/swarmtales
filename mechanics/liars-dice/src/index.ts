@@ -327,6 +327,9 @@ function liarRefusal(ctx: Ctx, resident: string | undefined): Refusal | undefine
 	return ctx.state.standing === undefined ? refuse("NO_BID", "Nobody has bid yet this round: you open it with a bid.") : undefined;
 }
 
+/** Whether `resident` acts again right away (its call does not end its turn). */
+const onTurn = (ctx: Ctx, resident: string): boolean => ctx.state.running && ctx.state.toAct === resident;
+
 const after = (ctx: Ctx, resident: string): string => {
 	const state = ctx.state;
 	if (!state.running) return "end your turn now.";
@@ -338,7 +341,7 @@ function bidNow(ctx: Ctx, resident: string | undefined, bid: Bid, say: string | 
 	if (refusal !== undefined || resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this table.");
 	score(ctx, "bid", bid, false, reason);
 	placeBid(ctx, bid, say, false, ctx.minute);
-	return reply(`You bid ${bidText(bid)}. ${after(ctx, resident)}`);
+	return reply(`You bid ${bidText(bid)}. ${after(ctx, resident)}`, { endsTurn: !onTurn(ctx, resident) });
 }
 
 function liarNow(ctx: Ctx, resident: string | undefined, say: string | undefined, reason: string | undefined): ToolSuccess | Refusal {
@@ -349,7 +352,7 @@ function liarNow(ctx: Ctx, resident: string | undefined, say: string | undefined
 	const result = callLiar(ctx, say, false, ctx.minute);
 	if (result === undefined) return refuse("NO_BID", "Nobody has bid yet this round.");
 	const verdict = result.loser === resident ? `The bid held (${String(result.count)} counted): you lose a die.` : `The bid was a lie (${String(result.count)} counted): ${bidder} loses a die.`;
-	return reply(`You called ${bidder}'s ${bidText(result.bid)} a lie. ${verdict} The dice are shown in your next turn. ${ctx.state.running && ctx.state.toAct === resident ? "You open the next round: it is your turn." : "End your turn now; you will be told when it is yours."}`);
+	return reply(`You called ${bidder}'s ${bidText(result.bid)} a lie. ${verdict} The dice are shown in your next turn. ${onTurn(ctx, resident) ? "You open the next round: it is your turn." : "End your turn now; you will be told when it is yours."}`, { endsTurn: !onTurn(ctx, resident) });
 }
 
 function entryLine(ctx: Ctx, entry: Entry, viewer: string | undefined): string {

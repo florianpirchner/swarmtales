@@ -61,6 +61,8 @@ export const ChainGenesisSchema = Type.Object(
 		publicKey: Type.String(),
 		/** The code's commit, when the run knew it. */
 		commit: Type.Optional(Type.String()),
+		/** The runtime revision the run played on (docs/RUNTIME-REVISIONS.md); absent means revision 1. */
+		runtime: Type.Optional(Type.Integer({ minimum: 1 })),
 		/** The run's name (`run-004`), so a renamed run directory shows. */
 		run: Type.Optional(Type.String()),
 		/**

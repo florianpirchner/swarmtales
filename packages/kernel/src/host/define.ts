@@ -38,8 +38,9 @@ export function refuse(code: string, detail?: string): Refusal {
 	return detail === undefined ? { ok: false, code } : { ok: false, code, detail };
 }
 
-export function reply(text: string): ToolSuccess {
-	return { ok: true, reply: text };
+/** A successful call's answer; `endsTurn` when the call ends the caller's turn (`ToolSuccess.endsTurn`). */
+export function reply(text: string, options: { readonly endsTurn?: boolean } = {}): ToolSuccess {
+	return options.endsTurn === true ? { ok: true, reply: text, endsTurn: true } : { ok: true, reply: text };
 }
 
 /** What a consult's `ask` returns when the tool's own checks make the role unnecessary; `execute` gets `{ ok: false, reason: "skipped", error: reason }`. */
