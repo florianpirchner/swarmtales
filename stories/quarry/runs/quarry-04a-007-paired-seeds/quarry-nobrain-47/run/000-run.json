@@ -1,0 +1,37 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-11T23:09:20.292Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "quarry-nobrain",
+  "kind": "core",
+  "title": "Quarry",
+  "effective": {
+    "agents": 4,
+    "minutes": 84,
+    "seed": 47
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}

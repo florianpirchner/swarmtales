@@ -23,7 +23,9 @@ open only between games and written by a rotating captain (the crew may agree co
 Strikes are **soft** by default (P174, P178): they never end the game, but the second misfire and every
 later one cost 3 points; `-hard-strikes` (for example `harbor-lights-hard-strikes`) keeps the old rule, the
 third strike ends the game. The crew retro is asked to agree which signal means "play now" and which only
-informs (P175), and the record after each game names every discarded card and what it was still needed for (P170). Add
+informs (P175), and the record after each game names every discarded card and what it was still needed for (P170).
+`-aid` (for example `harbor-lights-nobrain-aid-g1`) adds a decision-time aid: each own slot shows the chance that
+a play lights it now (`hint-towers` option `playableOdds`, P430); in run 007 it raised misfires (P432). Add
 `-g<N>` for N games (default 3), for example `harbor-lights-solo-g2`.
 
 ```sh

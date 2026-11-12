@@ -6,7 +6,7 @@
 import { createHash, createPublicKey, generateKeyPairSync, sign } from "node:crypto";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
 	CHAIN_FILE,
@@ -136,8 +136,8 @@ function recordedRuns(): readonly string[] {
 		.filter((directory) => existsSync(join(directory, CHAIN_FILE)));
 }
 
-/** A recorded run that was stopped before its end: its chain's tail was never signed. */
-const STOPPED = "salt-market-04a-003-v2-s42-stopped";
+/** A recorded run that was stopped before its end (its folder name ends in `-stopped`): its chain's tail was never signed. */
+const stopped = (directory: string): boolean => basename(dirname(directory)).endsWith("-stopped");
 
 describe("the recorded runs (golden)", () => {
 	const runs = recordedRuns();
@@ -149,8 +149,8 @@ describe("the recorded runs (golden)", () => {
 	it.each(runs.map((directory) => [directory.slice(ROOT.length + 1), directory]))("%s verifies as before", (_, directory) => {
 		const verdict = verifyChainText(read(directory, EVENTS_FILE), read(directory, CHAIN_FILE), read(directory, PUBLIC_KEY_FILE));
 		expect(verifyChain(directory)).toEqual(verdict);
-		if (directory.includes(STOPPED)) {
-			expect(verdict).toEqual({ ok: false, line: 1, reason: "lines 1-2287 are not covered by a signed head (the chain's tail is missing or the run did not end)" });
+		if (stopped(directory)) {
+			expect(verdict).toEqual({ ok: false, line: 1, reason: `lines 1-${String(lines(read(directory, EVENTS_FILE)).length)} are not covered by a signed head (the chain's tail is missing or the run did not end)` });
 		} else {
 			expect(verdict).toMatchObject({ ok: true, lines: lines(read(directory, EVENTS_FILE)).length });
 		}

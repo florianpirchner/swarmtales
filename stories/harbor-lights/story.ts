@@ -39,6 +39,8 @@ export interface HarborLightsOptions {
 	readonly minutes?: number;
 	/** soft (default): strikes never end the game; from the second misfire on every misfire costs SOFT_PENALTY points. hard: the third strike ends the game. */
 	readonly strikes?: HarborStrikes;
+	/** Decision-time aid (P430): every own slot shows the chance that a play lights it now. */
+	readonly aid?: boolean;
 }
 
 const SEATS: readonly ResidentId[] = ["A01", "A02", "A03", "A04"];
@@ -51,28 +53,28 @@ const SOFT_FROM = 2;
 /** The question for the crew retro after each game (P175): agree what a signal asks for. */
 const SIGNAL_QUESTION = "Retro question: agree in the chat what a signal means, and the captain writes it into the brain as a convention. Which signal says \"play this card now\", and which only gives information to keep? Name the slot it points to (for example the newest touched card), and what a player does when a signalled card cannot be played yet.";
 
-/** The registered name: `harbor-lights[-solo|-nobrain][-hard-strikes][-g<games>]`, the defaults left out. */
-function storyName(brain: HarborBrain, strikes: HarborStrikes, games: number): string {
-	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${strikes === "hard" ? "-hard-strikes" : ""}${games === 3 ? "" : `-g${String(games)}`}`;
+/** The registered name: `harbor-lights[-solo|-nobrain][-hard-strikes][-aid][-g<games>]`, the defaults left out. */
+function storyName(brain: HarborBrain, strikes: HarborStrikes, aid: boolean, games: number): string {
+	return `harbor-lights${brain === "crew" ? "" : `-${brain}`}${strikes === "hard" ? "-hard-strikes" : ""}${aid ? "-aid" : ""}${games === 3 ? "" : `-g${String(games)}`}`;
 }
 
 /** The story with its variants as options. */
 export function harborLightsStory(options: HarborLightsOptions = {}) {
-	const { games = 3, brain = "crew", seed = 31, maxWords = 150, strikes = "soft" } = options;
+	const { games = 3, brain = "crew", seed = 31, maxWords = 150, strikes = "soft", aid = false } = options;
 	const soft = strikes === "soft";
 	const crew = brain === "crew";
 	const keeps = brain !== "nobrain";
 	const teams = crew ? { [CREW]: [...SEATS] } : Object.fromEntries(SEATS.map((seat) => [seat, [seat]]));
 	const chat = crew ? (["postTeam", "readTeam"] as const) : [];
 	return defineCoreStory({
-		id: storyName(brain, strikes, games),
+		id: storyName(brain, strikes, aid, games),
 		seed,
 		// About 55 actions a game at eight passes a minute, a move timer of two minutes, and a retro per game.
 		minutes: options.minutes ?? games * (30 + RETRO_MINUTES) + RETRO_MINUTES + 4,
 		residents: [...SEATS],
 		mechanics: [
 			cardTable.with({ suits: SUITS, seats: [...SEATS] }),
-			hintTowers.with({ games, handSize: 4, signals: 6, strikes: soft ? SOFT_FROM : 3, strikePenalty: soft ? SOFT_PENALTY : 0, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(crew ? { side: CREW, debriefNote: SIGNAL_QUESTION } : {}) }),
+			hintTowers.with({ games, handSize: 4, signals: 6, strikes: soft ? SOFT_FROM : 3, strikePenalty: soft ? SOFT_PENALTY : 0, maxIdleMinutes: 2, maxConsecutiveForfeits: 24, quietTools: [...chat], ...(aid ? { playableOdds: true } : {}), ...(crew ? { side: CREW, debriefNote: SIGNAL_QUESTION } : {}) }),
 			...(crew ? [teamChannel.with({ teams, maxPostsPerMove: 2 })] : []),
 			strategyBrain.with({ enabled: keeps, solo: !crew, maxWords, teams, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
 		],
@@ -120,16 +122,16 @@ export function harborLightsEntry(options: HarborLightsOptions = {}): CoreStoryE
 	};
 }
 
-/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-hard-strikes][-g<games>]`, for example `harbor-lights-solo-g2`. */
-const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(-hard-strikes)?(?:-g(\d+))?$/;
+/** Harbor Lights combinations by name: `harbor-lights[-solo|-nobrain][-hard-strikes][-aid][-g<games>]`, for example `harbor-lights-solo-g2` or `harbor-lights-nobrain-aid-g1`. */
+const HARBOR_NAME = /^harbor-lights(-solo|-nobrain)?(-hard-strikes)?(-aid)?(?:-g(\d+))?$/;
 
 export function harborLightsEntryByName(id: string): CoreStoryEntry | undefined {
 	const match = HARBOR_NAME.exec(id);
 	if (match === null) return undefined;
-	const games = match[3] === undefined ? undefined : Number(match[3]);
+	const games = match[4] === undefined ? undefined : Number(match[4]);
 	if (games !== undefined && (games < 1 || games > 20)) return undefined;
 	const brain: HarborBrain = match[1] === "-solo" ? "solo" : match[1] === "-nobrain" ? "nobrain" : "crew";
-	return harborLightsEntry({ brain, strikes: match[2] === undefined ? "soft" : "hard", ...(games === undefined ? {} : { games }) });
+	return harborLightsEntry({ brain, strikes: match[2] === undefined ? "soft" : "hard", aid: match[3] !== undefined, ...(games === undefined ? {} : { games }) });
 }
 
 export default harborLightsEntry();

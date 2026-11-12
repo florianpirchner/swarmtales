@@ -1,6 +1,7 @@
 # What helps the residents: brains, teams and referees across the game stories
 
-Status: 2026-11-11, with the chess and morris results of the same day (PR #140, run 01a-007). An analysis of every recorded run of the game stories (tic-tac-toe teams, chess,
+Status: 2026-11-12, with the paired series of section 5 (Hold'em, Harbor Lights, econ lab, Quarry, Salt
+Market, Lanterns; lessons P430-P439) on top of the chess and morris results of 2026-11-11 (PR #140, run 01a-007). An analysis of every recorded run of the game stories (tic-tac-toe teams, chess,
 nine men's morris, Convoy, Ember Tricks, Hold'em, Salt Market, Harbor Lights, Econ Lab, Blind Bid,
 Lanterns, Quarry, Liar's Dice), plus two new experiments run for this paper (section 4). All residents
 are Claude Haiku via Anthropic unless a row says otherwise. Numbers come from the reviewed run READMEs
@@ -22,6 +23,14 @@ Where does each lever change the result, and what does it cost?
 
 ## Digest highlights
 
+- **Update 2026-11-12 (section 5): the pattern holds with two corrections.** A number at the decision helped
+  again where it answers the decision (Quarry open quarries +77 table points, SE 22; Hold'em equity and pot
+  odds: EV loss per decision 0.26 to 0.03, points +2.1, SE 1.25) and hurt where it ranks bad options (Harbor
+  Lights: notes + chance -1.7, SE 1.2, more misfires). And the brain *does* work as a memory where the lesson
+  is about the other players: Lanterns teams learn a clue code (+0.11 recall from game 2 on, SE 0.03, 12
+  seeds), and econ-lab brains carry "free riding pays" into the next game (cooperation -0.40, SE 0.13, -37
+  table points). Still no brain effect in Quarry or Salt Market (8 seeds each). Opus plays the econ lab's
+  social optimum with or without a brain.
 - **Information at the moment of the decision is the only lever that moves results in every game that
   tried it, and by far the most.** Chess over five seeds: the legal-move list takes the engine loss from
   ACPL 138 to 115, legal list plus loose pieces to 92 (p = 0.005), and with a coach's review on top to 78,
@@ -66,12 +75,14 @@ game, against the cheapest arm.
 | Morris | no effect four times: 6+6 games solo, 12+12 vs depth-2 engine (both 7/2/3), 12+12 vs depth 3 (1/10/1 vs 0/11/1); Sonnet 0/12/0 with, 3/8/1 without, Opus 3/8/1 with, 2/4/0 without | team vs depth-2 engine 2 wins, 1 draw in 3 games (solo 7/2/3 per 12); about 4x cost | stronger model: Haiku wins 4 %, Sonnet 13 %, Opus 28 % against depth 3, at 0.02 / 0.20 / 0.65 USD a game | P106, P109, P202, P400-P402 |
 | Convoy | saboteurs only: d4 damage on 52 % vs 38 % of chances; d3 saboteur wins 5 vs 3 of 15, by game 1/2/3 3/2/0 vs 0/2/1; loyal detection unchanged (0.79 / 0.79, 0.88 / 0.93) | - | - | P271, P272, P275 |
 | Ember Tricks | notes: hits 42 % vs 45 %, the same bid error (-0.68), points 0.13 vs 0.55 per seat and round | - | calibration line in the retro: bid 0.45 to 0.64, points 0.53 to 0.73-1.13; MC worth in the retro 1.39; MC worth at the bid 2.36, hits 50 % | P137, P165, P220 |
-| Hold'em | a style, not points: VPIP 0.74 to 0.55 over a match; mixed tables +1.8 points per seat and game (SE 2.4, 40 games); heads-up +0.6 (SE 10) | - | - | P139, P290 |
-| Harbor Lights | 3-game series: crew 20.8, solo 19.5, nobrain 18.9 (hard strikes); crew 19.2 vs nobrain 17.7 (soft); game 1 only: solo +3.2, crew +1.8 (section 4) | the crew is a shared brain, not an in-game team | discard debrief after each game: no change in discards (11.2 vs 10.5) | P173, P177, P250, P252, P330, P331 |
-| Lanterns | recall 0.81 vs 0.65 on seeds 41-53, 0.80 vs 0.78 on seeds 59-71; points even | teams by design (no solo arm) | pace line in the keeper's task: 0 of 32 games out of clues (4 of 32 before) | P195, P197, P230 |
-| Quarry | brains find "one deep colour" after game 1 (smoke, no control arm) | - | burn cost shown after the game: burns 66 to 49, still 12 % below the no-burn table | P126 |
+| Hold'em | a style, not points: VPIP 0.74 to 0.55 over a match; mixed tables +1.8 points per seat and game (SE 2.4, 40 games); heads-up +0.6 (SE 10) | - | range equity and pot odds at the action (24 mixed tables, 96 games): EV loss per decision 0.03 vs 0.26, points +2.1 per seat and game (SE 1.25); Opus +19 and Sonnet +13 a game against the Haiku seats (4 tables), with EV losses 0.11 and 0.14 | P139, P290, P437, P438 |
+| Harbor Lights | 3-game series: crew 20.8, solo 19.5, nobrain 18.9 (hard strikes); crew 19.2 vs nobrain 17.7 (soft); game 1 only: solo +3.2, crew +1.8 (section 4) | the crew is a shared brain, not an in-game team | discard debrief after each game: no change in discards (11.2 vs 10.5); each slot's chance to light at the decision: -0.1 without notes, -1.7 (SE 1.2) with notes, misfires up | P173, P177, P250, P252, P330, P331, P432 |
+| Lanterns | recall 0.81 vs 0.65 on seeds 41-53, 0.80 vs 0.78 on seeds 59-71; on 12 paired seeds of the current rules +0.08 recall (SE 0.03): level in game 1, +0.11 in games 2-4; points +0.2 (SE 0.2) | teams by design (no solo arm) | pace line in the keeper's task: 0 of 32 games out of clues (4 of 32 before) | P195, P197, P230, P439 |
+| Quarry | 8 paired seeds: 949 with, 961 without (paired -12, SE 28) | - | burn cost shown after the game: burns 66 to 49, still 12 % below the no-burn table; every quarry visible during the draft: +77 over the brain arm (SE 22), +32 in game 1, shared lanes 6 vs 29-35 | P126, P434 |
 | Blind Bid | v2: 1349.5 with, 1352.5 without (3 seeds; unmerged) | - | - | P303 (planned) |
-| Econ Lab, Salt Market, Liar's Dice | not tested (smokes; Salt Market v3 brain arm stopped, unmerged) | - | - | P90, P91 |
+| Econ Lab | 8 paired seeds: the brain carries "free riding pays" into the A-or-B game, cooperation 0.11 vs 0.51 (paired -0.40, SE 0.13), table -37 points (SE 11); Sonnet the same (-0.48); Opus cooperates fully with and without | - | stronger model: table points Haiku 438-475, Sonnet 515-552, Opus 628 | P90, P91, P433, P436 |
+| Salt Market | v2, 8 paired seeds: gain over idle 0.228 vs 0.223 (paired +0.005, SE 0.025); v3 brain arm stopped, unmerged | - | - | P435 |
+| Liar's Dice | not tested as brain vs none (series lost with a container) | - | stronger model: Opus wins 8 of 12 at a Haiku table, Sonnet worse than Haiku | P420, P421 |
 
 ## 2. What the pattern says
 
@@ -186,7 +197,47 @@ overhead: members claim votes they never cast and vote on proposals posted only 
 `NO_OPEN_PROPOSAL` refusals), and four team moves forfeited against none for the lone agent. A team of the
 same model with public information is a second look at 3.4 times the calls, not a stronger player.
 
-## 5. Optimizations (proposals, not built)
+## 5. Closing the evidence gaps (2026-11-11/12)
+
+The games with thin evidence got paired series in one night: 8-24 paired seeds or tables per comparison,
+Haiku unless named, 20.8 USD in all (plus about 0.5 USD of reporter drafts on OpenRouter and 1.18 USD for
+two series lost to 429 errors, P431). Two decision-time aids were built for it (P430, both off by default).
+
+| Game | Comparison | Result (paired, SE) | Run |
+|---|---|---|---|
+| Hold'em | equity against the action-narrowed ranges and the pot odds at each action, 24 mixed tables | EV loss per decision 0.03 vs 0.26; VPIP 0.41 vs 0.73; points **+2.1 per seat and game (1.25)** | [holdem-04a-006](../stories/holdem/runs/holdem-04a-006-decision-aid/) |
+| Hold'em | Sonnet and Opus seats at Haiku tables, 4 tables | Opus **+19 a game (8)**, Sonnet +13 (8) against the Haiku seats; EV loss 0.11 / 0.14 / Haiku 0.28 | [holdem-04a-007](../stories/holdem/runs/holdem-04a-007-sonnet-opus-seats/) |
+| Harbor Lights | each own slot's chance to light, 12 one-game deals, without and with private notes | without notes -0.1 (1.6); with notes **-1.7 (1.2)**; misfires 29 vs 26 and 22 vs 14 | [harbor-lights-04a-007](../stories/harbor-lights/runs/harbor-lights-04a-007-decision-aid/) |
+| Quarry | brain vs none, and open quarries, 8 seeds | brain -12 (28); open quarries **+77 (22)** over the brain arm, +32 (9) in game 1 | [quarry-04a-007](../stories/quarry/runs/quarry-04a-007-paired-seeds/) |
+| Econ Lab | brain vs none, 8 seeds | A-or-B cooperation **-0.40 (0.13)**, table **-37 points (11)** | [econ-lab-04a-003](../stories/econ-lab/runs/econ-lab-04a-003-brain-vs-nobrain/) |
+| Econ Lab | Sonnet and Opus tables, brain vs none, 4 seeds | Sonnet -0.48 (0.21) cooperation with a brain; Opus 1.00 in both arms | [econ-lab-04a-004](../stories/econ-lab/runs/econ-lab-04a-004-sonnet-opus/) |
+| Salt Market | brain vs none, v2, 8 seeds | gain over idle +0.005 (0.025) | [salt-market-04a-006](../stories/salt-market/runs/salt-market-04a-006-v2-brain-vs-nobrain/) |
+| Lanterns | brain vs none, 8 more seeds (12 on the current rules) | recall **+0.08 (0.03)**; game 1 +0.00, games 2-4 **+0.11 (0.03)**; points +0.2 (0.2) | [lanterns-06a-006](../stories/lanterns/runs/lanterns-06a-006-more-seeds/) |
+
+What it changes in section 2:
+
+- **2.1 holds with a condition: the number must answer the decision.** Open quarries show exactly which
+  lane is free, and Hold'em's equity next to the pot odds is the call-or-fold rule itself; both help.
+  Harbor Lights' chance per slot is a number about each of several bad options: the seats read it as a
+  ranking ("27% beats 20%") and gamble more. The aid there would have to say "play or signal", not "which
+  slot".
+- **2.2 needs a correction: a brain is a memory when the lesson is about the other players.** In Lanterns
+  the brain learns what this keeper means by a clue, which no rule says, and accuracy rises from game 2 on.
+  In the econ lab it learns that the others free-ride, and the next game is played selfishly. Where the
+  lesson is about the rules (Quarry's squares, Salt Market's bookkeeping) the model already plays by it and
+  the brain adds nothing. So the positive control asked for in optimization 7 exists: Lanterns.
+- **A reference is not a strength measure until a stronger model has played it.** The Hold'em equity
+  baseline ranks aided Haiku (EV loss 0.03) above Opus (0.11), while Opus takes 19 points a game from the
+  Haiku seats and aided Haiku about 2: the one-street baseline has no fold equity (P438). The econ lab's
+  reference has a ceiling for Opus (P436).
+- **Teams and the coach** were not tested again in this round.
+
+Blind Bid v2 (branch `claude/project-thread-80sx9m`, not merged): the code and the six runs of
+blind-bid-04a-002 merge cleanly onto `main`; the recommendation is to merge them (with lessons P300-P303
+and a `pnpm check`) as the record of Blind Bid, and to add 7 more paired seeds per arm (about 0.2 USD) before
+any brain claim. A decision for Flo.
+
+## 6. Optimizations (proposals, not built)
 
 1. **Make "a number at the decision" the first lever to try in every game,** before a brain, a team or a
    stronger model: it is the only one that worked everywhere and it is free; add the coach review
@@ -214,6 +265,7 @@ same model with public information is a second look at 3.4 times the calls, not 
 
 ## Problems found in this work
 
-- P330-P335 in [LESSONS-LEARNED.md](LESSONS-LEARNED.md).
+- P330-P335 in [LESSONS-LEARNED.md](LESSONS-LEARNED.md); section 5: P430-P439.
+- 429 errors when about 70 runs share the API (P431): run at most about 10 new runs at a time.
 - The run reporter is still city-shaped for core stories (P89): the drafts of both new series report
   "levels solved: none".

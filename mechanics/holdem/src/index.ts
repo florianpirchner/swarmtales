@@ -59,6 +59,8 @@ const options = Type.Object({
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes the seat to act has before it checks, or folds when facing a bet." }),
 	equitySamples: Type.Integer({ minimum: 1, maximum: 5000, default: 400, description: "Monte Carlo draws per scored decision." }),
 	showBest: Type.Boolean({ default: true, description: "Tell a seat on its turn the best hand it holds now, in words (reading the board is not what the game measures)." }),
+	aid: Type.Boolean({ default: false, description: "Decision-time aid: tell the seat to act its equity against the opponents' action-narrowed ranges and the pot odds it needs to call, the referee's own reference (P430)." }),
+	aidSeats: Type.Optional(Type.Array(Type.String(), { description: "With `aid`: only these seats get the aid line (a mixed table); default every seat." })),
 });
 
 const head = defineHead({
@@ -110,6 +112,7 @@ const head = defineHead({
 		"holdem/hand-head": ["hand", "hands", "seat", "position", "button", "cards"],
 		"holdem/task": ["street", "board", "pot", "toCall", "choices"],
 		"holdem/best": ["best"],
+		"holdem/aid": ["equity", "need", "share"],
 	},
 });
 
@@ -363,7 +366,24 @@ function taskText(ctx: Ctx, hand: Hand, seat: string): string {
 		const [a, b] = hand.holes[seat] ?? [];
 		if (a !== undefined && b !== undefined) lines.push(ctx.prompt("holdem/best", { best: a.slice(0, 1) === b.slice(0, 1) ? "a pocket pair" : a.slice(1) === b.slice(1) ? "two suited cards" : "two unpaired cards" }));
 	}
+	if (aidFor(ctx, seat)) lines.push(aidText(ctx, hand, seat));
 	return lines.join(" ");
+}
+
+const aidFor = (ctx: Ctx, seat: string): boolean => ctx.options.aid && (ctx.options.aidSeats === undefined || ctx.options.aidSeats.includes(seat));
+
+const percent = (value: number): string => `${String(Math.round(value * 100))} %`;
+
+/**
+ * The decision-time aid (P430): the same range equity the baseline scores the decision with, drawn from
+ * its own stream (keyed by the decision's index, so viewTable and the turn line show the same number).
+ */
+function aidText(ctx: Ctx, hand: Hand, seat: string): string {
+	const { toCall, pot } = optionsOf(hand, limitsOf(ctx));
+	const players = hand.seats.filter((other) => !hand.folded.includes(other)).length;
+	const value = rangeEquity(hand.holes[seat] ?? [], hand.board, rangesOf(hand, seat), ctx.options.equitySamples, ctx.rng("holdem", "aid", ctx.state.game, hand.number, ctx.state.decisions.length));
+	const need = toCall === 0 ? "nothing (no bet to call)" : percent(toCall / (pot + toCall));
+	return ctx.prompt("holdem/aid", { equity: percent(value), need, share: percent(1 / Math.max(1, players)) });
 }
 
 function tableText(ctx: Ctx, resident: string | undefined): string {
