@@ -4,7 +4,7 @@ import type { CoreStory, TurnTaker } from "@swarmtales/contracts";
 import { createHost, residentActor } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, idleAgent, playStory } from "@swarmtales/testkit";
-import { loosePieces, parseMove, replay, scoreMove } from "../../mechanics/chess/src/model.ts";
+import { adjudicate, loosePieces, parseMove, replay, scoreMove } from "../../mechanics/chess/src/model.ts";
 import { chessStory, type ChessOptions } from "../../stories/chess/story.ts";
 import { findCoreStory } from "../../stories/index.ts";
 import { replaysLine } from "../../mechanics/strategy-brain/src/text.ts";
@@ -302,5 +302,64 @@ describe("a played move ends the seat's turn (runtime revision 2)", () => {
 		expect(played.length).toBeGreaterThan(2);
 		// Every turn that started played a move: no step was spent on "end your turn".
 		expect(started).toEqual(played);
+	});
+});
+
+describe("the fresh context, the compact board and the settled cap", () => {
+	it("names the variants and finds them by name", () => {
+		expect(chessStory({ fresh: true, compact: true, settleCap: true, games: 4, maxPlies: 80 }).id).toBe("chess-fresh-compact-settle-g4-p80");
+		expect(findCoreStory("chess-moves-threats-fresh-compact-g4")?.story.id).toBe("chess-moves-threats-fresh-compact-g4");
+		expect(findCoreStory("chess-settle-p80")?.story.id).toBe("chess-settle-p80");
+	});
+
+	it("drops the mover's context on every half-move, with the rules, the brain and its last note", async () => {
+		const host = createHost(options({ fresh: true, games: 1 }));
+		const resets: string[] = [];
+		const turn = (resident: string, inputs: readonly { readonly kind?: string; readonly text: string }[]): void => {
+			for (const note of inputs) if (note.kind === "context-reset") resets.push(`${resident}: ${note.text}`);
+		};
+		host.start();
+		const scripted: TurnTaker = async (t) => {
+			turn(t.resident, t.inputs);
+			const told = t.inputs.map((note) => note.text).join("\n");
+			if (told.includes("Before game 1")) {
+				await t.call("writeBrain", { text: `${t.resident}: guard f7.` });
+				return;
+			}
+			const view = await t.call("viewBoard", {});
+			if (!view.ok) return;
+			const move = GAMES[1]?.[movesSoFar(view.reply)];
+			if (move !== undefined) await t.call("playMove", { move, reason: `plan after ${move}` });
+		};
+		await host.playMinute(scripted);
+		await host.playMinute(scripted);
+		const mover = resets.filter((line) => line.includes("fresh mind"));
+		expect(mover.length).toBeGreaterThan(2);
+		expect(mover.every((line) => line.includes("Standard chess rules"))).toBe(true);
+		expect(mover.some((line) => line.includes("A01: guard f7."))).toBe(true);
+		expect(mover.some((line) => line.includes("Your note with your last move (1. e4): plan after e4"))).toBe(true);
+	});
+
+	it("shows the compact grid and only the last half-moves", async () => {
+		const host = createHost(options({ compact: true, brain: false }));
+		host.start();
+		const line = ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6", "Ba4", "Nf6", "O-O", "Be7", "Re1", "b5", "Bb3", "d6"];
+		for (const [index, move] of line.entries()) expect((await host.call(as(index % 2 === 0 ? "A01" : "A02"), "playMove", { move })).ok).toBe(true);
+		const view = await host.call(as("A01"), "viewBoard", {});
+		const text = view.ok ? view.reply : "";
+		expect(text).toContain("8 r.bqk..r");
+		expect(text).toContain("1 RNBQR.K.");
+		expect(text).toContain("Last moves (14 half-moves played): 2. Nf3 Nc6 3. Bb5");
+		expect(text).not.toContain("1. e4");
+	});
+
+	it("credits the side to move with the capture still open at the cap (LH17)", () => {
+		// Black's queen grabs a2 on the last half-move (a pawn up on the count); White's rook takes it back at once.
+		const hanging = replay(["e4", "d5", "exd5", "Qxd5", "Nc3", "Qa5", "d4", "Qxa2"]);
+		expect(adjudicate(hanging, 1)).toBe("0-1");
+		expect(adjudicate(hanging, 1, true)).toBe("1-0");
+		// Nothing open: settling changes nothing.
+		const quiet = replay(["e4", "e5"]);
+		expect(adjudicate(quiet, 1, true)).toBe("1/2-1/2");
 	});
 });

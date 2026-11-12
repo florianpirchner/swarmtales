@@ -28,6 +28,12 @@ export const StrategyBrainApi = defineApi({
 			input: Type.Object({ game: Type.Integer({ minimum: 1 }), first: Type.String({ description: "The side that moves first, or '' when the game has no sides." }) }),
 			output: Type.Null(),
 		},
+		briefing: {
+			kind: "query",
+			summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.",
+			input: Type.Object({ resident: Type.String() }),
+			output: Type.String(),
+		},
 		gameEnded: {
 			kind: "command",
 			summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).",
