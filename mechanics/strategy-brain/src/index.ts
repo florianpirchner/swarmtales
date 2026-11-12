@@ -313,6 +313,7 @@ export const strategyBrain = defineMechanic(head, (kit) => ({
 				noteGameStarted(ctx, first);
 				return null;
 			},
+			briefing: ({ resident }, ctx) => briefing(ctx, resident),
 			gameEnded: ({ game, summary, moves, line, review }, ctx) => {
 				ctx.state.results.push({ game, result: "", moves: [...(moves ?? [])], summary, ...(line === undefined ? {} : { line: line.map((spellings) => [...spellings]) }), ...(review === undefined ? {} : { review: { ...review } }) });
 				holdForRetro(ctx, game);

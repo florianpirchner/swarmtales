@@ -97,9 +97,16 @@ export function endOf(chess: Chess): { readonly result: Result; readonly reason:
 	return undefined;
 }
 
-/** The result at the move cap: the side ahead by at least `margin` in material wins, else a draw. */
-export function adjudicate(chess: Chess, margin: number): Result {
-	const { white, black } = materialOf(chess);
+/**
+ * The result at the move cap: the side ahead by at least `margin` in material wins, else a draw. With
+ * `settle`, the side to move is first credited with the most it can win with one capture now (the
+ * baseline's static exchange), so a grab on the last half-move into a recapture does not count (LH17).
+ */
+export function adjudicate(chess: Chess, margin: number, settle = false): Result {
+	const counted = materialOf(chess);
+	const credit = settle ? threatOf(chess, chess.turn()) : 0;
+	const white = counted.white + (chess.turn() === "w" ? credit : 0);
+	const black = counted.black + (chess.turn() === "b" ? credit : 0);
 	if (white - black >= margin) return "1-0";
 	if (black - white >= margin) return "0-1";
 	return "1/2-1/2";

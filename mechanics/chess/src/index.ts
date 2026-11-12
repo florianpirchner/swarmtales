@@ -16,7 +16,7 @@
  * on its own. The opponent waits while one seat thinks: only the seat on move has news.
  */
 import { Type, type Static } from "typebox";
-import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, ViewOf } from "@swarmtales/contracts";
+import type { ContextOf, Refusal, ToolContextOf, ToolSuccess, TurnLine, ViewOf } from "@swarmtales/contracts";
 import { defineHead, defineMechanic, refuse, reply } from "@swarmtales/kernel";
 import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
@@ -45,6 +45,16 @@ const options = Type.Object({
 	coach: Type.Boolean({ default: false, description: "After each game, every side gets a private review of its own worst moves by the material baseline, shown in its next brain retro (needs a strategy brain)." }),
 	coachMoves: Type.Integer({ minimum: 1, default: 3, description: "How many of a side's worst moves the coach's review names." }),
 	wakeTeam: Type.Boolean({ default: false, description: "Every member of the side on move gets one turn per half-move to advise its captain in the team chat; false: only the captain has news." }),
+	freshContext: Type.Boolean({
+		default: false,
+		description: "The seat on move starts every half-move from a fresh context: the rules, its strategy brain, the note it gave with its last move, and the position (false: the context is dropped only between games).",
+	}),
+	compactBoard: Type.Boolean({ default: false, description: "The position is shown as a compact grid without spaces and only the last moves (false: the spaced grid and the whole move list)." }),
+	compactMoves: Type.Integer({ minimum: 1, default: 12, description: "Half-moves the compact board lists." }),
+	settleCap: Type.Boolean({
+		default: false,
+		description: "At the move cap, the side to move is credited with the most it can win with one capture before the material is counted, so a grab on the last half-move into a recapture does not count (LH17).",
+	}),
 });
 
 const GameRecord = Type.Object({
@@ -83,6 +93,8 @@ const ChessSlice = Type.Object({
 	finished: Type.Boolean(),
 	held: Type.Boolean(),
 	due: Type.Boolean(),
+	/** The reason each resident gave with its last move in the running game (shown after a fresh context). */
+	notes: Type.Optional(Type.Record(Type.String(), Type.Object({ moveNo: Type.Integer(), san: Type.String(), text: Type.String() }))),
 });
 type ChessState = Static<typeof ChessSlice>;
 
@@ -172,6 +184,9 @@ const head = defineHead({
 		"chess/coach-review": ["count", "total", "moves"],
 		"chess/coach-clean": ["total"],
 		"chess/coach-move": ["moveNo", "san", "loss", "best"],
+		"chess/fresh-context": [],
+		"chess/last-note": ["moveNo", "san", "text"],
+		"chess/cap-settled": [],
 	},
 });
 
@@ -336,6 +351,7 @@ function endGame(ctx: Ctx, result: Result, reason: EndReason, resigned?: string)
 	state.scores[state.black] = (state.scores[state.black] ?? 0) + (points[1] ?? 0);
 	state.running = false;
 	state.told = [];
+	state.notes = {};
 	const chess = boardNow(state);
 	chess.setHeader("White", state.white);
 	chess.setHeader("Black", state.black);
@@ -374,7 +390,7 @@ function applyMove(ctx: Ctx, san: string, written: string, forfeit: boolean): st
 		return end.reason === "checkmate" ? `${san} is checkmate. You win game ${String(state.game)}.` : `${san} played. Game ${String(state.game)} is drawn ${REASON_TEXT[end.reason]}.`;
 	}
 	if (ply >= ctx.options.maxPlies) {
-		const result = adjudicate(chess, ctx.options.adjudicateMargin);
+		const result = adjudicate(chess, ctx.options.adjudicateMargin, ctx.options.settleCap);
 		endGame(ctx, result, "move_cap");
 		return `${san} played. Game ${String(state.game)} reached the move cap and is scored on material: ${result}.`;
 	}
@@ -413,7 +429,7 @@ function refusalHint(ctx: Ctx, chess: Chess, written: string): string {
 	return own.length === 0 ? "That piece has no legal move now." : `Legal moves of that piece: ${own.map((move) => move.san).join(", ")}.`;
 }
 
-function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
+function play(ctx: ToolCtx, written: string, reason: string | undefined): ToolSuccess | Refusal {
 	const refusal = problemWith(ctx, ctx.resident);
 	if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
 	const state = ctx.state;
@@ -425,7 +441,12 @@ function play(ctx: ToolCtx, written: string): ToolSuccess | Refusal {
 		ctx.emit("move_refused", { game: state.game, ply: state.moves.length + 1, colour: colourOf(chess), by: ctx.resident, written, count });
 		return refuse("ILLEGAL_MOVE", `"${written}" is not a legal move in this position (${capital(colourOf(chess))} to move). The board is unchanged. ${refusalHint(ctx, chess, written)}`);
 	}
-	return reply(applyMove(ctx, move.san, written, false), { endsTurn: true });
+	const moveNo = moveNoOf(state.moves.length);
+	const resident = ctx.resident;
+	const text = applyMove(ctx, move.san, written, false);
+	const note = reason?.trim() ?? "";
+	if (ctx.options.freshContext && note.length > 0 && state.running) state.notes = { ...(state.notes ?? {}), [resident]: { moveNo, san: move.san, text: note } };
+	return reply(text, { endsTurn: true });
 }
 
 /** The position for `resident`: the board, the moves, the material, and whose move it is. */
@@ -437,12 +458,13 @@ function positionText(ctx: Ctx, resident: string | undefined, chess: Chess): str
 	const own = team === undefined ? undefined : team === state.white ? "white" : "black";
 	const onMove = sideOnMove(state, chess);
 	const captain = onMove === undefined || (state.members[onMove]?.length ?? 0) < 2 ? "" : ` Captain of this move: ${moverOf(state, chess) ?? ""}.`;
+	const compact = ctx.options.compactBoard;
 	const lines = [
 		`Game ${String(state.game)} of ${String(ctx.options.games)}. White: ${labelOf(state, state.white)}. Black: ${labelOf(state, state.black)}.${own === undefined ? "" : ` You play ${capital(own)}.`}`,
-		"The board (White at the bottom; upper case White, lower case Black, '.' empty):",
-		chess.ascii().trimEnd(),
+		compact ? "The board (rank 8 at the top, files a-h left to right; upper case White, lower case Black, '.' empty):" : "The board (White at the bottom; upper case White, lower case Black, '.' empty):",
+		compact ? compactGrid(chess) : chess.ascii().trimEnd(),
 		`FEN: ${chess.fen()}`,
-		`Moves so far: ${state.moves.length === 0 ? "none" : moveText(state.moves)}`,
+		compact ? lastMovesLine(state.moves, ctx.options.compactMoves) : `Moves so far: ${state.moves.length === 0 ? "none" : moveText(state.moves)}`,
 		`Material: White ${String(material.white)}, Black ${String(material.black)}.`,
 		`${capital(colour)} to move (move ${String(moveNoOf(state.moves.length))})${chess.inCheck() ? ", in check" : ""}.${captain}`,
 	];
@@ -454,6 +476,26 @@ function positionText(ctx: Ctx, resident: string | undefined, chess: Chess): str
 	return lines.join("\n");
 }
 
+/** The board as eight lines `8 r.bqkbnr`, rank 8 first: about a third of the tokens of the spaced grid. */
+function compactGrid(chess: Chess): string {
+	const rows = chess.board().map((row, index) => `${String(8 - index)} ${row.map((square) => (square === null ? "." : square.color === "w" ? square.type.toUpperCase() : square.type)).join("")}`);
+	return [...rows, "  abcdefgh"].join("\n");
+}
+
+/** The last `count` half-moves, numbered: `Last moves (30 half-moves played): 13. cxd4 Nc6 14. Nb3 ...`. */
+function lastMovesLine(moves: readonly string[], count: number): string {
+	if (moves.length === 0) return "Moves so far: none";
+	const from = Math.max(0, moves.length - count);
+	const parts: string[] = [];
+	for (let index = from; index < moves.length; index += 1) {
+		const san = moves[index] ?? "";
+		const number = String(Math.floor(index / 2) + 1);
+		if (index % 2 === 0) parts.push(`${number}. ${san}`);
+		else parts.push(index === from ? `${number}... ${san}` : san);
+	}
+	return from === 0 ? `Moves so far: ${parts.join(" ")}` : `Last moves (${String(moves.length)} half-moves played): ${parts.join(" ")}`;
+}
+
 function boardText(ctx: Ctx, resident: string | undefined): string {
 	const state = ctx.state;
 	const scores = state.seats.map((seat) => `${labelOf(state, seat)} ${String(state.scores[seat] ?? 0)}`).join(", ");
@@ -462,8 +504,28 @@ function boardText(ctx: Ctx, resident: string | undefined): string {
 	return `${positionText(ctx, resident, boardNow(state))}\nPoints so far: ${scores}.`;
 }
 
+/**
+ * The briefing of a fresh context (`freshContext`): the rules, the seat's strategy brain (through the
+ * strategy brain, when the story has one) and the note it gave with its last move.
+ */
+function freshBriefing(ctx: Ctx, resident: string): string {
+	const state = ctx.state;
+	const team = teamOf(state, resident) ?? resident;
+	const white = team === state.white;
+	const lines = [
+		ctx.prompt("chess/fresh-context", {}),
+		ctx.prompt("chess/rules", { game: state.game, games: ctx.options.games, colour: white ? "White" : "Black", opponent: labelOf(state, white ? state.black : state.white), maxMoves: Math.ceil(ctx.options.maxPlies / 2) }),
+	];
+	if (ctx.options.settleCap) lines.push(ctx.prompt("chess/cap-settled", {}));
+	const brain = ctx.tryCall(StrategyBrainApi, "briefing", { resident });
+	if (brain !== undefined && brain.length > 0) lines.push(brain);
+	const note = state.notes?.[resident];
+	if (note !== undefined) lines.push(ctx.prompt("chess/last-note", { moveNo: note.moveNo, san: note.san, text: note.text }));
+	return lines.join("\n\n");
+}
+
 /** What the seat on move is told at its turn: the full position once per half-move, a short reminder after. */
-function moverLines(ctx: Ctx, resident: string, chess: Chess): string[] {
+function moverLines(ctx: Ctx, resident: string, chess: Chess): TurnLine[] {
 	const state = ctx.state;
 	const game = state.game;
 	const moveNo = moveNoOf(state.moves.length);
@@ -474,7 +536,9 @@ function moverLines(ctx: Ctx, resident: string, chess: Chess): string[] {
 		return lines;
 	}
 	state.told.push(resident);
-	const lines = [ctx.prompt("chess/your-move", { game, moveNo, colour: capital(colourOf(chess)) })];
+	const lines: TurnLine[] = [];
+	if (ctx.options.freshContext) lines.push({ kind: "context-reset", text: freshBriefing(ctx, resident) });
+	lines.push(ctx.prompt("chess/your-move", { game, moveNo, colour: capital(colourOf(chess)) }));
 	const last = state.moves[state.moves.length - 1];
 	if (last !== undefined) lines.push(ctx.prompt("chess/last-move", { san: last }));
 	if (chess.inCheck()) lines.push(ctx.prompt("chess/check", {}));
@@ -498,7 +562,7 @@ export const chess = defineMechanic(head, (kit) => ({
 			parameters: Type.Object({ move: Type.String({ minLength: 1, maxLength: 40, description: "The move: SAN (Nf3, exd5, O-O, e8=Q) or from and to squares (g1f3, e7e8q)." }), reason: Reason }),
 			suggest: ["resident"],
 			rule: (_params, ctx) => problemWith(ctx, ctx.resident),
-			execute: (params, ctx) => play(ctx, params.move),
+			execute: (params, ctx) => play(ctx, params.move, params.reason),
 		}),
 		kit.tool({
 			name: TOOLS.resign,
@@ -553,11 +617,15 @@ export const chess = defineMechanic(head, (kit) => ({
 				const team = teamOf(state, resident);
 				if (!state.running || team === undefined) return [];
 				const chess = boardNow(state);
-				const lines: string[] = [];
+				const lines: TurnLine[] = [];
 				if (!state.briefed.includes(resident)) {
 					state.briefed.push(resident);
 					const white = team === state.white;
-					lines.push(ctx.prompt("chess/rules", { game: state.game, games: ctx.options.games, colour: white ? "White" : "Black", opponent: labelOf(state, white ? state.black : state.white), maxMoves: Math.ceil(ctx.options.maxPlies / 2) }));
+					// A fresh context carries the rules in its briefing on every half-move.
+					if (!ctx.options.freshContext || moverOf(state, chess) !== resident) {
+						lines.push(ctx.prompt("chess/rules", { game: state.game, games: ctx.options.games, colour: white ? "White" : "Black", opponent: labelOf(state, white ? state.black : state.white), maxMoves: Math.ceil(ctx.options.maxPlies / 2) }));
+						if (ctx.options.settleCap) lines.push(ctx.prompt("chess/cap-settled", {}));
+					}
 				}
 				if (moverOf(state, chess) === resident) lines.push(...moverLines(ctx, resident, chess));
 				else if (ctx.options.wakeTeam && sideOnMove(state, chess) === team && !state.told.includes(resident)) {

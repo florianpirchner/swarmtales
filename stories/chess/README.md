@@ -22,7 +22,7 @@ swt run --story chess                         # Haiku via Anthropic, two games, 
 swt run --story chess-nobrain-moves-g4-p120   # four games, no brain, legal moves listed, cap 120 half-moves
 ```
 
-Variants by name: `chess[-nobrain][-moves][-threats][-coach][-teams][-g<games>][-p<plies>]`. `-nobrain` is the control arm (the
+Variants by name: `chess[-nobrain][-moves][-threats][-coach][-teams][-fresh][-compact][-settle][-g<games>][-p<plies>]`. `-nobrain` is the control arm (the
 same briefings, no brain, no retro); `-moves` lists every legal move in the position shown to the seat on
 move (without it the list comes only with a refused move, so the refusal rate measures how well a model
 keeps track of the board). `-threats` adds each side's loose pieces to the position every seat sees: pieces
@@ -31,7 +31,13 @@ the same static check as the baseline (no pins, no x-rays); it tests whether nam
 the queen blunders of P113. `-coach` (needs the brain) adds a coach: after each game but the last, every side gets a private review of its own worst moves by the material baseline (`chess/coach-review`: how many of its moves lost material or missed a free capture, and the worst three with the better move), shown only in its next brain retro (`StrategyBrainApi.gameEnded` takes a `review` per team; event `coach_review`, human only). The coach is the same one-ply check as `move_scored`, not the engine: it names hanging pieces and missed captures, not deeper tactics or mate threats. `-teams` plays two teams of two (A: A01, A02; B: A03, A04): the captain of a
 move rotates within the side on move, only the captain may play it, and the teammate gets one advisor turn
 per move to post a suggestion on the team channel (`postTeam`, `readTeam`); each team writes one shared
-brain. Further options are factory options of `chessStory` in `story.ts`: `maxWords`,
+brain. Three variants against cost and the cap (P329, LH17; the old arms play as before): `-fresh` starts the
+seat on move from a fresh context on every half-move (rules, its strategy brain through
+`StrategyBrainApi.briefing`, the reason it gave with its last move, and the position) instead of once per
+game, so the context no longer grows with the game; `-compact` shows the board as eight lines without spaces
+(`8 r.bqk..r`) and only the last 12 half-moves instead of the spaced grid and the whole move list; `-settle`
+credits the side to move at the cap with the most it can win with one capture before the material is
+counted, so a grab on the last half-move into a recapture no longer wins. Further options are factory options of `chessStory` in `story.ts`: `maxWords`,
 `seed`, `minutes`. Mechanics: `chess` (chess.js 1.4, BSD-2-Clause), `strategy-brain` (solo seats).
 Mechanics with `-teams`: also `team-channel`.
 
