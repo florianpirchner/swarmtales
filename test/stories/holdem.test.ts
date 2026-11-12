@@ -305,8 +305,25 @@ describe("holdem, scripted match", () => {
 		expect(await host.call(as("A02"), "readBrain", {})).toMatchObject({ ok: false });
 	});
 
+	it("tells only the aid seats their range equity and pot odds at the decision (P430)", async () => {
+		const seen = new Map<string, string[]>();
+		const recorder: TurnTaker = async (turn) => {
+			const lines = seen.get(turn.resident) ?? [];
+			lines.push(...turn.inputs.map((note) => note.text));
+			seen.set(turn.resident, lines);
+			await player(turn);
+		};
+		const run = await playStory(options({ brain: false, aidSeats: ["A01", "A03"], games: 1, hands: 4 }), recorder);
+		expect(run.end).toMatchObject({ reason: "referee", limit: "holdem.match" });
+		const aided = (seat: string): number => (seen.get(seat) ?? []).filter((text) => text.includes("Referee's estimate: you win")).length;
+		expect(aided("A01")).toBeGreaterThan(0);
+		expect(aided("A03")).toBeGreaterThan(0);
+		expect(aided("A02") + aided("A04")).toBe(0);
+		expect((seen.get("A01") ?? []).some((text) => /a call needs \d+ % to pay|a call needs nothing/.test(text))).toBe(true);
+	});
+
 	it("is registered with its arms", () => {
-		for (const name of ["holdem", "holdem-nobrain", "holdem-mixed", "holdem-hu", "holdem-hu-nobrain", "holdem-hu-mixed"]) expect(findCoreStory(name)?.story.id).toBe(name);
+		for (const name of ["holdem", "holdem-nobrain", "holdem-mixed", "holdem-hu", "holdem-hu-nobrain", "holdem-hu-mixed", "holdem-aid-mixed"]) expect(findCoreStory(name)?.story.id).toBe(name);
 	});
 
 	it("is deterministic and survives a snapshot round trip inside a hand and inside a retro window", async () => {

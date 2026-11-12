@@ -49,6 +49,7 @@ import {
 	signalProblem,
 	type Slot,
 	suitOf,
+	isPlayable,
 	surePlayable,
 	topOf,
 } from "./model.ts";
@@ -63,6 +64,7 @@ const options = Type.Object({
 	debriefNote: Type.Optional(Type.String({ description: "A line added to the record every seat gets after a game (for example a question for the retro)." })),
 	refillOnTower: Type.Boolean({ default: true, description: "A completed tower gives a signal back." }),
 	recent: Type.Integer({ minimum: 0, default: 8, description: "Last actions of the game shown in the status." }),
+	playableOdds: Type.Boolean({ default: false, description: "Decision-time aid: each own slot also shows the share of its possible cards that are playable now, the chance a play lights it (P430)." }),
 	listCandidates: Type.Integer({ minimum: 0, default: 6, description: "A slot's possible cards are listed when there are at most this many (0: only the count)." }),
 	maxIdleMinutes: Type.Integer({ minimum: 1, default: 2, description: "Whole minutes a seat may leave its turn open before the move timer acts for it." }),
 	maxConsecutiveForfeits: Type.Integer({ minimum: 0, default: 0, description: "That many timer actions in a row end the match as invalid (0: off)." }),
@@ -281,7 +283,9 @@ function ownSlots(ctx: Ctx, core: Readonly<Core>, seat: string): string[] {
 		const listed = options.length <= ctx.options.listCandidates ? `could be ${options.join(", ")}` : `${String(options.length)} possible cards`;
 		const focus = slot.focus > 0 ? `, the newest card of the signal at turn ${String(slot.focus)}` : "";
 		const sure = surePlayable(core, seat, index) ? " SURELY PLAYABLE NOW." : "";
-		return `  slot ${String(index + 1)}${index === 0 ? " (oldest)" : ""}: you know ${knowText(slot)}${focus}; ${listed}.${sure}`;
+		const playable = options.filter((card) => isPlayable(core, card)).length;
+		const odds = ctx.options.playableOdds && sure === "" && options.length > 0 ? ` Chance a play lights it now: ${String(playable)} of ${String(options.length)} (${String(Math.round((100 * playable) / options.length))} %).` : "";
+		return `  slot ${String(index + 1)}${index === 0 ? " (oldest)" : ""}: you know ${knowText(slot)}${focus}; ${listed}.${sure}${odds}`;
 	});
 }
 

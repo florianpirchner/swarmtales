@@ -29,3 +29,4 @@ drafts). What changed against the smoke run:
 - **The brains converge on "contract or bust by round 3".** All three seeds end with rules like "If a contract is not
   whole by round 3, stop chasing it and trade for point value" (s43 A03 #2377).
 
+| [salt-market-04a-006-v2-brain-vs-nobrain](salt-market-04a-006-v2-brain-vs-nobrain/) | 2026-11-11 | v2: `salt-market` against `salt-market-nobrain`, 8 paired seeds (41-48), 4 games each | Haiku | no brain effect: gain over idle 0.228 vs 0.223 (paired +0.005, SE 0.025), table 669 vs 666, contracts 6.0 vs 6.4 of 16; brains write bookkeeping rules; credit stays rare (P435) | 2.641 USD |

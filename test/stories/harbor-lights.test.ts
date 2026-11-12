@@ -1,6 +1,6 @@
 /** The Harbor Lights story through the real mechanics: scripted matches of the three arms, offline. */
 import { describe, expect, it } from "vitest";
-import type { CoreStory, EventEnvelope } from "@swarmtales/contracts";
+import type { CoreStory, EventEnvelope, TurnTaker } from "@swarmtales/contracts";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { checkDeterminism, checkSnapshotRoundTrip, playStory } from "@swarmtales/testkit";
 import { harborLightsStory } from "../../stories/harbor-lights/story.ts";
@@ -94,12 +94,30 @@ describe("harbor-lights, scripted matches", () => {
 		expect(await checkSnapshotRoundTrip(options, () => towerPlayer({ notes, post }), 4)).toEqual([]);
 	});
 
+	it("shows each own slot's chance to light only in the aid arm (P430)", async () => {
+		const seen: string[] = [];
+		const base = towerPlayer();
+		const recorder: TurnTaker = async (turn) => {
+			seen.push(...turn.inputs.map((note) => note.text));
+			await base(turn);
+		};
+		await playStory({ story: story({ brain: "nobrain", games: 1, aid: true }), prompts: createPromptLookup() }, recorder);
+		expect(seen.some((text) => /Chance a play lights it now: \d+ of \d+ \(\d+ %\)/.test(text))).toBe(true);
+		const plain: string[] = [];
+		await playStory({ story: story({ brain: "nobrain", games: 1 }), prompts: createPromptLookup() }, async (turn) => {
+			plain.push(...turn.inputs.map((note) => note.text));
+			await base(turn);
+		});
+		expect(plain.some((text) => text.includes("Chance a play lights it now"))).toBe(false);
+	});
+
 	it("is registered under its names", () => {
 		expect(findCoreStory("harbor-lights")?.story.id).toBe("harbor-lights");
 		expect(findCoreStory("harbor-lights-solo")?.story.id).toBe("harbor-lights-solo");
 		expect(findCoreStory("harbor-lights-nobrain-g2")?.story.id).toBe("harbor-lights-nobrain-g2");
 		expect(findCoreStory("harbor-lights-hard-strikes")?.story.id).toBe("harbor-lights-hard-strikes");
 		expect(findCoreStory("harbor-lights-solo-hard-strikes-g2")?.story.id).toBe("harbor-lights-solo-hard-strikes-g2");
+		expect(findCoreStory("harbor-lights-nobrain-aid-g1")?.story.id).toBe("harbor-lights-nobrain-aid-g1");
 		expect(findCoreStory("harbor-lights-soft-strikes")).toBeUndefined();
 		expect(findCoreStory("harbor-lights-g0")).toBeUndefined();
 	});

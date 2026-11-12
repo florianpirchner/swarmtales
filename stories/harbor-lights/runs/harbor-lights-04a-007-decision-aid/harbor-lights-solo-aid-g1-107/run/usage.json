@@ -1,0 +1,119 @@
+{
+  "totals": {
+    "requests": 116,
+    "input": 352,
+    "output": 48982,
+    "cacheRead": 1531457,
+    "cacheWrite": 107557,
+    "costUsd": 0.053285395000000006
+  },
+  "perAgent": [
+    {
+      "agent": "A01",
+      "requests": 29,
+      "input": 88,
+      "output": 9914,
+      "cacheRead": 333455,
+      "cacheWrite": 25160,
+      "costUsd": 0.01144535
+    },
+    {
+      "agent": "A02",
+      "requests": 29,
+      "input": 88,
+      "output": 12162,
+      "cacheRead": 390704,
+      "cacheWrite": 27342,
+      "costUsd": 0.01341459
+    },
+    {
+      "agent": "A03",
+      "requests": 29,
+      "input": 88,
+      "output": 14468,
+      "cacheRead": 415126,
+      "cacheWrite": 27658,
+      "costUsd": 0.014851310000000001
+    },
+    {
+      "agent": "A04",
+      "requests": 29,
+      "input": 88,
+      "output": 12438,
+      "cacheRead": 392172,
+      "cacheWrite": 27397,
+      "costUsd": 0.013574145000000001
+    }
+  ],
+  "prefix": {
+    "totals": {
+      "requests": 0,
+      "input": 0,
+      "output": 0,
+      "cacheRead": 0,
+      "cacheWrite": 0,
+      "costUsd": 0
+    },
+    "perAgent": []
+  },
+  "own": {
+    "totals": {
+      "requests": 116,
+      "input": 352,
+      "output": 48982,
+      "cacheRead": 1531457,
+      "cacheWrite": 107557,
+      "costUsd": 0.053285395000000006
+    },
+    "perAgent": [
+      {
+        "agent": "A01",
+        "requests": 29,
+        "input": 88,
+        "output": 9914,
+        "cacheRead": 333455,
+        "cacheWrite": 25160,
+        "costUsd": 0.01144535
+      },
+      {
+        "agent": "A02",
+        "requests": 29,
+        "input": 88,
+        "output": 12162,
+        "cacheRead": 390704,
+        "cacheWrite": 27342,
+        "costUsd": 0.01341459
+      },
+      {
+        "agent": "A03",
+        "requests": 29,
+        "input": 88,
+        "output": 14468,
+        "cacheRead": 415126,
+        "cacheWrite": 27658,
+        "costUsd": 0.014851310000000001
+      },
+      {
+        "agent": "A04",
+        "requests": 29,
+        "input": 88,
+        "output": 12438,
+        "cacheRead": 392172,
+        "cacheWrite": 27397,
+        "costUsd": 0.013574145000000001
+      }
+    ]
+  },
+  "models": {
+    "residents": "anthropic/claude-haiku-5-5"
+  },
+  "reporter": {
+    "model": "OpenRouter (deepseek/deepseek-v4.1-flash-1017)",
+    "requests": 1,
+    "input": 9250,
+    "output": 1418,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "costUsd": 0.0022383
+  }
+}

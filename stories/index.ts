@@ -103,6 +103,8 @@ export const coreStories: Readonly<Record<string, CoreStoryEntry>> = {
 	"holdem-nobrain": holdemEntry({ brain: false }),
 	// A mixed table: A01 and A03 keep a brain, A02 and A04 do not, on the same duplicate cards.
 	"holdem-mixed": holdemEntry({ brainSeats: ["A01", "A03"] }),
+	// Decision-time aid (P430): A01 and A03 see their range equity and the pot odds at each action, A02 and A04 do not; no brain anywhere.
+	"holdem-aid-mixed": holdemEntry({ brain: false, aidSeats: ["A01", "A03"] }),
 	"holdem-hu": holdemEntry({ seats: 2 }),
 	"holdem-hu-nobrain": holdemEntry({ seats: 2, brain: false }),
 	"holdem-hu-mixed": holdemEntry({ seats: 2, brainSeats: ["A01"] }),

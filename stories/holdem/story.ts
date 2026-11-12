@@ -32,6 +32,8 @@ export interface HoldemOptions {
 	readonly seed?: number;
 	/** Monte Carlo draws per scored decision (the report's baseline; tests use few). */
 	readonly equitySamples?: number;
+	/** Decision-time aid (P430): these seats are told, on their turn, their equity against the opponents' action-narrowed ranges and the pot odds; the others play without it on the same duplicate cards. */
+	readonly aidSeats?: readonly ResidentId[];
 	/** Run length in virtual minutes; default is an upper bound from the hands (the match ends the run earlier). */
 	readonly minutes?: number;
 }
@@ -45,8 +47,8 @@ function seatsOf(count: number): ResidentId[] {
 	return Array.from({ length: count }, (_, index) => `A${String(index + 1).padStart(2, "0")}`);
 }
 
-function storyName(seats: number, brain: boolean, mixed: boolean): string {
-	return `holdem${seats === 2 ? "-hu" : seats === 4 ? "" : `-${String(seats)}max`}${brain ? (mixed ? "-mixed" : "") : "-nobrain"}`;
+function storyName(seats: number, brain: boolean, mixed: boolean, aid: boolean): string {
+	return `holdem${seats === 2 ? "-hu" : seats === 4 ? "" : `-${String(seats)}max`}${aid ? "-aid" : ""}${brain ? (mixed ? "-mixed" : "") : aid ? "-mixed" : "-nobrain"}`;
 }
 
 /** The story with its variants as options. */
@@ -58,15 +60,17 @@ export function holdemStory(options: HoldemOptions = {}) {
 	const residents = seatsOf(seats);
 	const brainSeats = brain ? options.brainSeats : undefined;
 	if (brainSeats?.some((seat) => !residents.includes(seat)) === true) throw new Error("holdem story: a brain seat is not at the table");
+	const aidSeats = options.aidSeats;
+	if (aidSeats?.some((seat) => !residents.includes(seat)) === true) throw new Error("holdem story: an aid seat is not at the table");
 	// An upper bound: a hand rarely needs more than four minutes even with every deadline run out.
 	const minutes = options.minutes ?? games * hands * 6 + (games + 1) * RETRO_MINUTES + 4;
 	return defineCoreStory({
-		id: storyName(seats, brain, brainSeats !== undefined),
+		id: storyName(seats, brain, brainSeats !== undefined, aidSeats !== undefined),
 		seed,
 		minutes,
 		residents,
 		mechanics: [
-			holdem.with({ games, hands, duplicate, deadline: DEADLINE, ...(options.equitySamples === undefined ? {} : { equitySamples: options.equitySamples }) }),
+			holdem.with({ games, hands, duplicate, deadline: DEADLINE, ...(options.equitySamples === undefined ? {} : { equitySamples: options.equitySamples }), ...(aidSeats === undefined ? {} : { aid: true, aidSeats: [...aidSeats] }) }),
 			strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(residents.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true, ...(brainSeats === undefined ? {} : { brainTeams: [...brainSeats] }) }),
 		],
 		grants: { resident: ["viewTable", "act", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },

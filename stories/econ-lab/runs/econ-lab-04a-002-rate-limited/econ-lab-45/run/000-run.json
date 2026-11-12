@@ -1,0 +1,37 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-11T22:45:32.110Z",
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "econ-lab",
+  "kind": "core",
+  "title": "Econ lab",
+  "effective": {
+    "agents": 4,
+    "minutes": 60,
+    "seed": 45
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A03",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A04",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}
