@@ -36,4 +36,4 @@ Registered arms: `liars-dice` (four seats, talk and brain on), `liars-dice-nobra
 brain, no retro) and `liars-dice-quiet` (no table talk). More by name:
 `liars-dice[-hu|-<N>p][-nobrain][-quiet][-g<games>][-d<dice>]`. A seat that does not act within two minutes
 calls liar, or opens with the lowest bid (1 x 2). Mechanics: `liars-dice`, `strategy-brain` (solo seats).
-Runs and results: [runs/README.md](runs/README.md).
+Runs and results: [runs/README.md](runs/README.md). Whether the rules reward bluffing: [BLUFFING.md](BLUFFING.md).
