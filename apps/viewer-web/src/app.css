@@ -15,10 +15,11 @@ body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -app
 .launcher .drop span { color: var(--muted); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 form.row { justify-content: flex-start; }
-.launcher input:not([type="file"]), .launcher button, .launcher .button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
-.launcher input:not([type="file"]) { cursor: text; flex: 1 1 140px; min-width: 0; box-sizing: border-box; }
-.launcher input[aria-label="Access token (optional)"] { flex: 1 1 100%; }
+.launcher input:not([type="file"]):not([type="checkbox"]), .launcher button, .launcher .button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.launcher input:not([type="file"]):not([type="checkbox"]) { cursor: text; flex: 1 1 140px; min-width: 0; box-sizing: border-box; }
+.launcher input[aria-label="Access token (optional)"]:not([type="checkbox"]):not([type="file"]) { flex: 1 1 100%; }
+.launcher .remember { flex: 1 1 100%; display: flex; gap: 8px; align-items: center; color: var(--muted); }
 .hint { color: var(--muted); font-size: 12.5px; margin: 0; }
 .error { color: #c0262d; margin: 0; }
 /* Phones: no zoom on focus (iOS zooms into inputs under 16px). */
-@media (max-width: 600px) { .launcher input:not([type="file"]) { font-size: 16px; } .launcher { padding-top: 24px; } }
+@media (max-width: 600px) { .launcher input:not([type="file"]):not([type="checkbox"]) { font-size: 16px; } .launcher { padding-top: 24px; } }
