@@ -1,6 +1,8 @@
-# arena
+# Arena
 
-_To be written._
+The frame of a city run: when it starts and ends, and why. It writes `run_start` and `run_end`, the standings after
+every minute (`round_end`), and stops the run when the story says it is over (everyone done, the seats decided, the
+budget spent). It also brakes an act that runs too long and tells the app when to take the Act I checkpoint.
 
 ## At a glance
 
@@ -24,7 +26,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Start.** `run_start` is written after every other mechanic's start, with the story's id and the run's labels
+   (`meta`).
+2. **Every minute.** After the minute's turns `round_end` carries the standings. The arena's `news` hook counts new
+   points as news, so the `onNews` activation wakes a resident whose balance changed.
+3. **Stopping.** The host asks the arena's referee limits after each minute: with `stopWhenDone` the run ends once
+   every resident in the city has passed the last level; with `stopWhenSeatsDecided` once the open `rewards` can no
+   longer change who survives; with `budgetUsd` once the run's model spend (the app's `usage` events) exceeds it. The
+   fact `stopping` tells the app to skip the weaver and the gamemaker once the run will stop.
+4. **Act brakes.** An act with `maxMinutes` logs `act_brake` that many minutes after its start (the tribunal's act has
+   no brake; the tribunal ends it).
+5. **Checkpoint.** With `snapshot` the fact `snapshot` says when to take `host.snapshot()`: once every resident has
+   passed `afterLevel` (or at `atMinute`), optionally stopping the run there. This is how the Act I checkpoints under
+   `examples/` are made.
+6. **End.** `run_end` carries the reason (the arena's own, or the text the app passed to `host.stop`) and, when a
+   mechanic provides the `ending` API, the run's ending.
+
+The arena has no tools and keeps the old engine's turn order (`legacyTurnOrder`) for the city stories.
 
 ## Tools
 
@@ -154,12 +172,27 @@ Prompts: none besides the tool descriptions.
 
 ## Example
 
-_To be written._
+The city runner builds the options from the story and the run ([`mechanics/arena/src/from-story.ts`](src/from-story.ts)):
+
+```ts
+const { options } = arenaFromStory(story, run.arena);
+arena.with(options),
+```
+
+`--snapshot-after 7` sets `snapshot: { afterLevel: 7, stop: true, file }`, the way the 6-agent Act I base was cut.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P15** dead minutes at the end. Partly fixed (stops and the act brake).
+- **P30** the run ended before the city reached its target. Fixed.
+- **P42, P53** the wall falls fast, then a long quiet tail. Open.
+- **P47** the budget cap ends an act with a sentence pending. Open; the cap can be raised per run.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/arena/differential.test.ts`](../../test/mechanics/arena/differential.test.ts): every stop reason,
+  the brake, checkpoints at a level and a minute, the budget, the ending provider, against the old `Arena`.
+- [`golden.test.ts`](../../test/mechanics/arena/golden.test.ts): the golden run's arena lines, order and turn inputs.
+- [`resume.test.ts`](../../test/mechanics/arena/resume.test.ts): the version-0 migration and resumed runs.

@@ -1,6 +1,8 @@
-# motives
+# Motives
 
-_To be written._
+Core motives: who a resident is. Once, at the start, every resident is dealt a seeded character: one drive above all,
+up to two more, and a temperament on the Big Five axes, or one of the story's finished figures. It goes into the
+resident's system prompt as who it is, never as what to do, and it never changes.
 
 ## At a glance
 
@@ -24,7 +26,16 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The deal.** At the start of a run (or before the next minute when a snapshot has none) every resident gets a core
+   motive in roster order (`motive_dealt`): a level per axis of `axes`, between `perResident.min` and `max` drives from
+   `drives` with intensities (`aboveAll`, `clearly`, `atTimes`), exactly one above all. `lightShare` sets how many
+   residents have a light drive above all; `spreadPer` keeps one drive from being above all for too many residents.
+2. **Figures.** With `figures` and `cast` the run names finished figures (persona, temperament, drives, a written
+   text), at most one per resident; the rest are drawn. The whisperer of Whispers can get its own character
+   (`whispererCoreMotive`).
+3. **Who reads it.** Nobody in the game: there is no tool and no status line. The facts `coreMotives`, `prose` and
+   `lines` are for the app (the system prompt, under `heading` and after `frame`), the gamemaker, `goals` (which match
+   goals to drives) and the reports.
 
 ## Tools
 
@@ -140,12 +151,24 @@ Prompts: none besides the tool descriptions.
 
 ## Example
 
-_To be written._
+The City of Keys sets `coreMotives` in its story; the city runner parses it into options
+([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+const options = Parse(CoreMotivesOptions, { ...spec, ...(own === undefined ? {} : { whispererCoreMotive: own }), ...(run.cast === undefined ? {} : { cast: [...run.cast] }) });
+return [motives.with(options)];
+```
+
+`--cast` names the figures to play; `--no-core-motives` leaves the mechanic out.
 
 ## Lessons and loopholes
 
-_To be written._
+None recorded yet that concern the deal itself; how residents play their motives is in the City of Keys and Whispers
+rows of [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md) (P45, P69).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/motives/motives.test.ts`](../../test/mechanics/motives/motives.test.ts): the deals of the shipped
+  stories, the event key order, one drive above all, seeded and kept for good, named figures and refused casts, prose
+  and lines, documented options, determinism, snapshots and the version-0 slice.
+- [`differential.test.ts`](../../test/mechanics/motives/differential.test.ts): the deal against the old engine.

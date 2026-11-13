@@ -1,6 +1,8 @@
-# names
+# Names
 
-_To be written._
+Residents choose their own names. At the start of a fresh run every resident may pick the name the city knows it by
+with `chooseName`, once and for good; whoever has none when the choice closes gets one from the city. From then on
+every text a resident reads shows names instead of IDs, and a name works wherever a tool asks for a resident.
 
 ## At a glance
 
@@ -24,7 +26,17 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The choice.** Until minute `untilMinute` starts, `chooseName` is open. A name has 3 to 16 characters (letters,
+   digits, hyphens, starting with a letter), is not taken, not one of the `reserved` names (the cast, the city) and
+   does not look like a resident ID. The board announces it (`name_chosen`) and the resident is told privately. While a
+   resident may still choose, its first task carries the story's `announcement` (with `{untilMinute}` filled in).
+2. **The fallback.** At the start of `untilMinute` the city names every resident that has none from `fallbackWords`.
+3. **Presentation.** IDs stay the keys of every event and snapshot. The mechanic gives the host a `display` that
+   replaces IDs with names in every text a caller reads (a password piece that only looks like an ID stays as it is),
+   and a `resolve` that turns a name back into an ID in tool arguments, in any case. Other mechanics ask for
+   `labelOf` (`Name (ID)`) and `nameOf` through the `names` API. The status line tells each resident who it is.
+4. **Off.** With `off` (a story without names, `--no-names`, or a run that starts past the first level) the
+   mechanic provides the API with no names, keeps `chooseName` locked and writes nothing.
 
 ## Tools
 
@@ -118,12 +130,28 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner turns the story's `names` block into options
+([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+names.with({ untilMinute: spec.untilMinute, announcement: spec.announcement, fallbackWords: [...spec.fallbackWords],
+	reserved: [...Object.keys(story.cast), story.city] });
+```
+
+Cast members and the city's own name are reserved, so no resident can pose as them.
 
 ## Lessons and loopholes
 
-_To be written._
+None recorded yet in [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md). P65 (a vote ranking that named IDs)
+was a `whispers` text, fixed there.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/names/names.test.ts`](../../test/mechanics/names/names.test.ts): the golden gate for `name_chosen`;
+  choosing (refusals, the board and private notices, closing at its minute); names in texts and arguments; the task
+  line while a resident may choose; determinism, snapshots and the legacy slices.
+- [`names-presentation.test.ts`](../../test/mechanics/names/names-presentation.test.ts): the status line, `display`
+  and the required announcement.
+- [`names-off.test.ts`](../../test/mechanics/names/names-off.test.ts): the switched-off book against the switched-on one.
+- [`names-differential.test.ts`](../../test/mechanics/names/names-differential.test.ts): `chooseName` against the old
+  engine.

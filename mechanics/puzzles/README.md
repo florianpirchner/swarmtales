@@ -1,6 +1,10 @@
-# puzzles
+# Puzzles
 
-_To be written._
+What each level of the city asks for. When a level is dealt, residents get the pieces of its password: overlapping
+**fragments** of a word that a team must put together, or, on the wall, **additive** six-digit codes made of a
+personal salt, a city factor, a team certificate and a counter-factor held by someone else. The mechanic deals the
+pieces, forms the teams, knows who needs whose piece, keeps the secrets the guard watches for, and rewrites the deal
+when someone leaves.
 
 ## At a glance
 
@@ -24,7 +28,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Teams.** Each level's `team` layout forms the teams: `solo`, `random` of a size, the same teams as an earlier
+   level (`sameAs`), or a split of an earlier level's teams (`splitFrom`).
+2. **Fragments.** A `fragments` level gives each team member one fragment of the team's password; neighbouring
+   fragments overlap by `overlap` characters, so the team can check the seams (`fragments_dealt`). Nobody can pass alone.
+3. **Additive codes.** An `additive` level gives each resident its own code as the sum of factors (`factors_dealt`):
+   its salt, a team certificate, a counter-factor held by another resident (`topology`: `mutual` pairs, a `cycle`, or
+   `crossTeam`) and a city factor that reaches residents on the board or at the feast (`cityFactor`), once per level or
+   per team. The script reveals the city factor at its minute (`factor_revealed`), never on a level behind a shut door.
+4. **Doors.** A level is dealt when its door opens (`opensAt`), and with `holdAfter` later levels wait until that door
+   opens. `progression` asks for the solution of a resident's level when it submits, and for task values.
+5. **Secrets.** The facts `secrets` and `solutions` give the guard and the note desk what must not reach the board: a
+   password, whole or in a piece, or a dealt number.
+6. **After an exile.** When a resident leaves, its fragments burn (`factor_burned`, logged for those who still need
+   them) and the level's deal contracts (`level_contracted`): a piece the exiled would have given passes to the first
+   remaining member of its team, so the others are not stuck.
+
+There are no tools: residents hand pieces over by message, and submit through `progression`.
 
 ## Tools
 
@@ -174,12 +194,34 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner passes the story's levels ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+puzzles.with({ levels, startLevel: run.arena.startLevel, ...(run.holdAfter === undefined ? {} : { holdAfter: run.holdAfter }), ...(run.lastLevel === undefined ? {} : { lastLevel: run.lastLevel }) }),
+```
+
+A level of the City of Keys' wall reads `{ kind: "additive", digits: 6, topology: "mutual", cityFactor: "board" }`
+(see [`stories/cityofkeys/story.ts`](../../stories/cityofkeys/story.ts) and
+[docs/STORY-FORMAT.md](../../docs/STORY-FORMAT.md) for every field).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH3** the feast's city factor became a public good. Fixed (one factor per team).
+- **LH9** the guard as a password oracle. Fixed in code, untested live.
+- **LH10, P62** pass alone, then keep your fragment: one held-back fragment froze a Whispers run for 33 minutes.
+  Fixed by the [standoff-tribunal](../standoff-tribunal/README.md).
+- **P21** burned factors break other doors. By design (certificates and counter-factors are kept by the city).
+- **P49** a value written as a condition is not read as a hand-over. Partly fixed.
+- **P60, P66** the hard doors were done by minute 11; once fragments flow, the clock is the whole game. P60 fixed,
+  P66 open.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/puzzles/puzzles.test.ts`](../../test/mechanics/puzzles/puzzles.test.ts): the city factor's release,
+  no factor behind a shut door, the API answers, resuming the Act I checkpoint.
+- [`run.test.ts`](../../test/mechanics/puzzles/run.test.ts), [`conformance.test.ts`](../../test/mechanics/puzzles/conformance.test.ts):
+  deals in a run, documented options, the source rules.
+- The deals of whole levels are covered by the story tests [`cityofkeys-wall.test.ts`](../../test/stories/cityofkeys-wall.test.ts)
+  and [`whispers.test.ts`](../../test/stories/whispers.test.ts).

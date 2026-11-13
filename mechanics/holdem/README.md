@@ -1,6 +1,8 @@
-# holdem
+# Hold'em
 
-_To be written._
+Fixed-limit Texas Hold'em for solo seats, heads-up or at a full table. A match is several games of several hands;
+with duplicate deals every seat plays every position's cards once, so the luck of the deal cancels out of the match
+totals. Every decision is scored for the human against a simple equity baseline; the seats never see it.
 
 ## At a glance
 
@@ -24,7 +26,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Hands.** The button moves one seat per hand; blinds `smallBlind` and `bigBlind`; bets of `smallBet` before and on
+   the flop, `bigBet` on the turn and river, at most `cap` bets per betting round. There are no stacks (the cap bounds
+   a hand), so no all-in and no side pot.
+2. **Seeing and acting.** A seat sees only its own cards (`viewTable` and its turn lines); `cards_dealt` with every hole
+   card is for the human. On its turn a seat calls `act` (fold, check, call, bet or raise) with an optional reason that
+   stays in the log for the human, so a bluff stays a bluff. With `showBest` the seat is told the best hand it holds now
+   in words. A seat that does not act within `deadline` minutes checks, or folds when it faces a bet.
+3. **Duplicate.** With `duplicate` every game replays the same deals with the seats moved one place; over as many games
+   as there are seats, every seat has played every position.
+4. **Scoring for the human.** Every decision is scored against a Monte Carlo equity against the opponents' ranges as
+   their actions narrow them, and the pot odds, one street ahead (not a solver; `equitySamples` draws). The equity
+   against random hands is recorded beside it (`decision_scored`). Each game ends with `game_scored`: net points, VPIP,
+   PFR, aggression, agreement with the baseline, EV loss.
+5. **Aid.** With `aid` (or for `aidSeats` only, a mixed table) the seat to act is told its equity and the pot odds it
+   needs, at decision time.
+6. **Brain.** It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md); every game starts from
+   a fresh context.
 
 ## Tools
 
@@ -254,12 +272,31 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/holdem/story.ts`](../../stories/holdem/story.ts):
+
+```ts
+holdem.with({ games, hands, duplicate, deadline: DEADLINE, ...(aidSeats === undefined ? {} : { aid: true, aidSeats: [...aidSeats] }), ... }),
+```
+
+`holdem-hu` plays heads-up; `-aid` gives every seat the decision-time line.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md); Hold'em is finished as an experiment:
+
+- **P130** `card-table` could not be reused for poker (Hold'em has its own deck). Open.
+- **P131** a seat that just acted got another turn and acted again. Fixed.
+- **P132** the best-hand line hid that the board plays. Partly fixed.
+- **P133** seats lost track of which seat they are. Fixed, to be measured.
+- **P134** the equity baseline punished sensible folds. Fixed (ranges narrowed by actions).
+- **P135** Haiku poker is passive and honest. Open.
+- **P138, P139, P290** brain tools on the wrong seats (fixed); brain seats +0.8 points per seat and game over eight
+  tables; no edge heads-up.
+- **P437, P438** the aid makes Haiku play the reference and buys few points; the equity baseline is not a strength
+  reference. Open.
 
 ## Tests
 
-_To be written._
+The mechanic is tested through its story: [`test/stories/holdem.test.ts`](../../test/stories/holdem.test.ts) (hand
+ranking, betting rounds and the cap, duplicate deals, private cards, the deadline, the equity baseline and the game
+scores, the aid, the variants, determinism and snapshots).

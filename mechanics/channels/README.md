@@ -1,6 +1,9 @@
-# channels
+# Channels
 
-_To be written._
+How residents talk. The public board, private DMs, private groups with a shared treasury, and the city's notices. Every
+message gets a city number (`#N`) that receipts and blame refer to; DMs are delivered at the recipient's next turn and
+the sender gets a delivery receipt. The mechanic also holds the gamemaker's note desk and the right to `defy` its
+orders.
 
 ## At a glance
 
@@ -24,7 +27,29 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The board.** `postBoard` publishes an immutable post everyone can read (`board_post`); `readBoard` returns the
+   posts since the last read (or after a number). The city and the gamemaker post through the API and the gamemaker's
+   own `postBoard`; all posts share one number space.
+2. **DMs.** `sendDM` checks, in order: the recipient exists, is not the sender, is not exiled ("beyond the wall"), the
+   text is not empty, the sender can afford it (`marks`), the recipient's mailbox is not full, and the DM cap
+   (`dmLimit`, counted with memo transfers of the `ledger`) is not reached. The DM is numbered (`dm_sent`), delivered
+   at the recipient's next turn (`dm_delivered`) and the sender gets a receipt (`receipts`). A DM to a cast member goes
+   to the `cast` mechanic instead.
+3. **Groups.** `createGroup` founds a private group only members know of; the founder adds and removes members
+   (`addGroupMember`, `removeGroupMember`, no consent needed), anyone may `leaveGroup`. `postGroup` and `readGroup`
+   (members read only what came after they joined); a group post costs marks where marks apply. Each group has a
+   treasury: members `depositGroup` their points, the treasurer `withdrawGroup`s to members and can hand the role on
+   with `setTreasurer`; at the end of the run (or when the city removes a group) the treasury is split among the
+   members, the remainder to the treasurer (`treasury_settled`).
+4. **Notices and the turn.** Mechanics tell residents things privately through `channels.notify` (`notice`). Each turn
+   shows the status part (the DM window), then the inbox (new DMs, notices), then the digest of the board and groups.
+   Unread mail is news, so the arena's `onNews` activation wakes the resident.
+5. **The gamemaker's desk.** The gamemaker overseer sends notes with `notify` (signed `noteAuthor`) and board lines with
+   its `postBoard`, within budgets (`notesPerAgent`, `boardPosts` per `windowMinutes`, `noteMaxLength`). The note desk
+   (`notes` API) refuses a note that leaks a password or a dealt number, repeats itself or runs too long.
+6. **Defy.** With `defiance` (or `whispererDefies` for the whisperer alone) a resident may refuse a gamemaker order with
+   `defy`, giving a reason in its own voice; the reason goes to the gamemaker and the story (`gamemaker_defied`), no
+   resident learns of it.
 
 ## Tools
 
@@ -519,12 +544,38 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+channels.with({
+	...(cap === undefined ? {} : { dmLimit: { windowMinutes: cap.windowMinutes, perWindow: cap.perWindow } }),
+	city: story.city,
+	...(gamemaker === undefined ? {} : { noteAuthor: gamemaker.author, notesPerAgent: gamemaker.notesPerAgent, boardPosts: gamemaker.boardPosts, windowMinutes: gamemaker.windowMinutes }),
+	...defianceOf(story, run),
+});
+```
+
+Whispers caps DMs per window, so whispers and fragments compete for the same allowance (P70).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH2** a free board bypassed the price of DMs. Fixed (prices per channel, see [marks](../marks/README.md)).
+- **P2** unreadable group posts counted as news and woke residents every minute. Fixed.
+- **P11** the gamemaker made dependencies public. Open.
+- **P29** points can stick in a removed city group. Open (known limitation).
+- **P45, P73** residents refuse ordered roles; `defy` lets them refuse in character instead of breaking the frame.
+  Built; P73 (Haiku refuses the whisperer role) is open.
+- **P70** fragments and whispers compete for the whisperer's DM cap. Open.
 
 ## Tests
 
-_To be written._
+`test/mechanics/channels/` holds the most tests of any mechanic:
+[`channels.test.ts`](../../test/mechanics/channels/channels.test.ts) (board, DMs and their refusals, the DM cap, notes),
+[`groups.test.ts`](../../test/mechanics/channels/groups.test.ts) (groups and treasuries),
+[`defy.test.ts`](../../test/mechanics/channels/defy.test.ts), [`notes-secrets.test.ts`](../../test/mechanics/channels/notes-secrets.test.ts)
+(the note desk's leak check), [`turn-inputs.test.ts`](../../test/mechanics/channels/turn-inputs.test.ts),
+[`dm-records.test.ts`](../../test/mechanics/channels/dm-records.test.ts), the golden lines of the old engine
+([`golden.test.ts`](../../test/mechanics/channels/golden.test.ts)), differential tests against the old World
+(`differential.test.ts`, `resume-differential.test.ts`), the real exile (`real-exile.test.ts`) and conformance.

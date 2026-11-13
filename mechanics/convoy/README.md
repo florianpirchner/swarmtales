@@ -1,6 +1,9 @@
-# convoy
+# Convoy
 
-_To be written._
+A hidden-role game for a table of solo seats. In each game a few saboteurs are dealt in secret (they know each other);
+the rest are loyal. A convoy crosses a number of stages: a rotating lead proposes a crew, the table talks and votes
+confidence, and every crew member plays a sealed card, safe or damage. The saboteurs win when enough stages are
+damaged, the convoy when it crosses the last stage.
 
 ## At a glance
 
@@ -24,7 +27,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Roles.** Each game deals `saboteurs` saboteurs anew (`convoy_game_started`, the deal for the human only).
+2. **A stage.** The lead (rotating round the table) proposes a crew of the stage's size from `crews` (`proposeCrew`).
+   The table talks (`speak`, `talkPosts` lines of at most `maxTalkLength` characters per seat, for at most
+   `talkMinutes`), and the lead may spend the game's single `audit` to reveal one card an earlier crew member played.
+3. **Confidence.** Every seat casts a sealed `voteConfidence`; the votes are shown once all are in
+   (`convoy_votes_revealed`). A strict majority of no ends the lead's term: the next seat leads and its crew goes out
+   without a vote.
+4. **Cards.** Every crew member plays a sealed card (`playCrewCard`): loyal seats play safe; a saboteur may play damage,
+   at most once per `cooldown` stages. Only the number of damage cards is revealed; one damage card damages the stage
+   (`convoy_stage_revealed`). `damageToLose` damaged stages win the game for the saboteurs.
+5. **After a game.** Every loyal seat names its suspects (`accuse`, sealed and unscored); roles and cards are revealed
+   and every seat of the winning side scores a point (`convoy_game_ended`).
+6. **For the report only** (`convoy_game_scored`): the hits of each seat's accusations against a Bayesian tracker that
+   reads only the public record, the votes that matched the crew's truth, a saboteur's chances and damage cards (role
+   compliance), and talk lines in which a seat calls itself a saboteur (a role leak).
+7. **The clock.** A proposal, vote, card or accusation not made within `deadline` minutes is filled in (crew in seat
+   order, yes, safe). It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md).
 
 ## Tools
 
@@ -341,12 +360,29 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/convoy/story.ts`](../../stories/convoy/story.ts):
+
+```ts
+convoy.with({ games, crews: [...crews], damageToLose, cooldown, deadline: DEADLINE, talkMinutes: TALK_MINUTES }),
+```
+
+The default since run 004 is three damaged stages to lose (P273).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md); Convoy is closed as an experiment:
+
+- **P150** saboteurs damaged the same crew together. Watch.
+- **P151** the vote of confidence was decorative. Fixed.
+- **P152, P270** brains and accusations overrun their caps. Open.
+- **P153, P273** saboteurs were too careful for four damaged stages. Fixed (three).
+- **P154** the tracker ignores the cooldown. Not built.
+- **P271, P272, P275** the brain makes saboteurs bolder and acts before the first game; at three stages it is
+  coordination, not boldness. Open.
+- **P274** a no-brain saboteur can be timid enough to refuse the role. Closed.
 
 ## Tests
 
-_To be written._
+The mechanic is tested through its story: [`test/stories/convoy.test.ts`](../../test/stories/convoy.test.ts) (the deal,
+crews, votes and the lead's term, sealed cards and the cooldown, the audit, accusations, the tracker and the game
+scores, deadlines, determinism and snapshots).

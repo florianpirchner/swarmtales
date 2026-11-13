@@ -1,6 +1,9 @@
-# goals
+# Goals
 
-_To be written._
+Secret goals. At the start of an act every resident is dealt one private goal (keep someone in the city, see someone
+exiled, end ahead of someone, lead factions in tribunals, or inherit), mostly matched to its core motive. The goal
+shows in its status line while the act runs; at the act's end the city reads every goal out and pays a bonus for each
+fulfilled one.
 
 ## At a glance
 
@@ -24,7 +27,19 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The deal.** `progression` writes the silent `act_started` when an act begins; on the acts listed in `acts` the
+   mechanic deals a goal to every resident in the city (`goal_dealt`) and tells it privately (`texts.notice`). The kind
+   follows the resident's core motive (`matches` maps drive ids from `motives` to goal kinds); a share
+   `againstCoreMotive` gets a goal that does not follow it. `lead` goals are dealt only when the city holds faction
+   drafts (`factions`) and ask for `leadTribunals` tribunals.
+2. **While the act runs.** The status line shows the goal and its bonus (`texts.status`). A resident who is exiled
+   loses its goal: it is void and read out on the board (`texts.exiledReadout`).
+3. **The resolution.** On `act_ended` every goal is checked against the act's outcome (who is still in the city, who
+   was exiled, the ranking, the factions led, the bequests received), the holders are told (`texts.fulfilled` or
+   `texts.missed`), a fulfilled goal pays `bonus` points through the `ledger` (`goal_resolved`), and the board reads
+   all goals out (`texts.readout`).
+
+The goals deal before the seal's auction begins and resolve after the seal ends (listener order).
 
 ## Tools
 
@@ -130,12 +145,26 @@ Prompts: none besides the tool descriptions.
 
 ## Example
 
-_To be written._
+The City of Keys deals goals on the wall ([`stories/cityofkeys/story.ts`](../../stories/cityofkeys/story.ts),
+turned into options by [`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+goals.with({ acts: [...spec.acts], bonus: spec.bonus, leadTribunals: spec.leadTribunals, againstCoreMotive: spec.againstCoreMotive,
+	matches: ..., factions: story.tribunal?.factions !== undefined, texts: { ...spec.texts } }),
+```
+
+Since v09 each goal is worth 15 points and is read out when Act II ends.
 
 ## Lessons and loopholes
 
-_To be written._
+None recorded yet that concern the goals alone; see the City of Keys rows of
+[docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md) (v09).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/goals/goals.test.ts`](../../test/mechanics/goals/goals.test.ts): the void goal of an exiled
+  resident and its readout; resuming the Act I checkpoint and writing the same slice back.
+- [`differential.test.ts`](../../test/mechanics/goals/differential.test.ts): deals and resolutions against the old
+  `GoalBook`.
+- [`test/mechanics/t3/real-order.test.ts`](../../test/mechanics/t3/real-order.test.ts): the order of goals and seal
+  listeners with the real mechanics.

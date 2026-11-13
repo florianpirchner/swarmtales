@@ -1,10 +1,32 @@
 # Shared
 
-_To be written._
+The package `@swarmtales/mechanic-shared` holds no mechanic. It holds what more than one mechanic of the city stories
+(City of Keys, Whispers) has to agree on: the APIs one mechanic provides and others call, the events other mechanics
+listen to, small schemas, and the fixed order of hooks, listeners and turn input lines. It is frozen: a fingerprint
+test fails on any change, so a change is a deliberate decision, not a side effect.
 
 ## What is in it
 
-_To be written._
+- **APIs** (`defineApi`), grouped by the teams that carved the old world into mechanics: economy (`names`, `ledger`,
+  `marks`, `receipts`, in `src/economy.ts`), messages (`channels`, `cast`, `cast-extras`, `notes`, `motives`,
+  `petitions`, `whispers`, in `src/messages.ts`), progress (`puzzles`, `progression`, `goals`, in `src/progress.ts`),
+  conflict (`standoff`, `exile`, `tribunal`, `tribunal-view`, `seal`, `standoff-tribunal`, in `src/conflict.ts`) and
+  the `ending` evaluator (`src/ending.ts`). A `command` writes `service_called` and causes the provider's events; a
+  `query` leaves no trace. Many methods name the code of the old engine they replace.
+- **Shared events** (`src/events.ts`, `defineEvents`): the events one mechanic emits and others listen to, declared here
+  so a listener needs no import of the emitter. The emitter spreads the declaration into its head, and the loader
+  refuses a listener whose schema is not the very same object. `LEGACY_SILENT_EVENTS` are events the old log never
+  had.
+- **Schemas** (`src/schemas.ts`): resident ids, receipts, board and group posts, DM records, standings and the like,
+  used in API methods, options and snapshot slices.
+- **Order** (`src/order.ts`, `src/turn-input.ts`): `HOOK_ORDER`, `LISTENER_ORDER` and `OVERSEER_ORDER` give each hook
+  phase, listener and overseer its slot, because the load order follows `requires` and cannot say "the tribunal ticks
+  before the standoff"; `INPUT_KINDS` and `STATUS_ORDER` put every line of a resident's turn input where the old engine
+  had it, whatever the load order.
+
+The APIs of the game mechanics are not here: each lives in the package that provides it (`brain-source` and
+`strategy-brain` in [strategy-brain](../strategy-brain/README.md)). The `ending` API has no provider yet; without one,
+the arena writes `run_end` as the old engine did.
 
 ## APIs
 
@@ -336,4 +358,9 @@ Provided by: [whispers](../whispers/README.md). Used by: [channels](../channels/
 
 ## Tests
 
-_To be written._
+- `test/mechanics/shared-frozen.test.ts` holds the fingerprint over every API, event, schema and the turn input order;
+  it fails on any change until the owner of the change updates `FINGERPRINT` in the same PR. It also checks that each
+  shared event matches the old event field for field and is declared by the mechanic that owns it.
+- `test/mechanics/round2-shared.test.ts` covers decisions taken on the shared pieces: the ledger's accounts, the
+  Whispers mechanics loading together, the puzzles' secrets and the order rule (every hook phase in its slot).
+- The APIs themselves are tested through their providers and users; see the Tests section of each mechanic.

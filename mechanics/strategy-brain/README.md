@@ -1,6 +1,8 @@
-# strategy-brain
+# Strategy brain
 
-_To be written._
+The only memory a team carries from game to game. Every game starts from a fresh context; instead of the conversation
+the team keeps one short text (its "brain") that it rewrites in a retro between games. `enabled: false` gives the
+identical briefing without the brain, so the brain is the only difference between two arms of an experiment.
 
 ## At a glance
 
@@ -24,7 +26,19 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Briefing.** At every game's start each resident gets a `context-reset` turn line: the game's number, the sides,
+   the results so far (results only, never moves) and, when enabled, its team's brain (`readBrain` reads it again).
+2. **Retro.** Before game 1 (`brainAtStart`) and after each game but the last, a retro window holds the next game back
+   (`retro_started`). Only the retro captain of a team (rotating by game) may `writeBrain`: at most `maxWords` words,
+   or with `maxRules` a list of at most that many rules (a new rule replaces an old one once the list is full), and
+   never a replay of one game's move list. The window closes when the text is written, after `retroMaxPosts` team
+   posts, or after `retroMaxMinutes` minutes (`retro_closed`); when every window is closed the game is released.
+3. **Versions.** Every version is the event `brain_written` (audience `human`, so a gamemaker never reads it).
+4. **Variants.** `shared` gives both teams one brain; `brainTeams` keeps a brain for some teams only (an asymmetric
+   arm); `solo` makes every team one resident; `retroFocus` adds a story's words on what the brain should hold.
+5. **Any game.** With the grid game it reads the board's words through its API. Other games provide `brain-source`
+   (game number, hold, release, the moves for the replay check) and call `strategy-brain` when a game starts or ends:
+   chess, morris, the card games, econ games, Convoy and the others listed above.
 
 ## Tools
 
@@ -173,12 +187,34 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/chess/story.ts`](../../stories/chess/story.ts):
+
+```ts
+strategyBrain.with({ enabled: brain, solo: !teams, maxWords, teams: sides, retroMaxPosts: 6, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
+```
+
+`chess-nobrain` sets `enabled: false`: the same briefings and no retro.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md); the summary across games is in
+[docs/CROSS-GAME-FINDINGS.md](../../docs/CROSS-GAME-FINDINGS.md):
+
+- **P333** across the game stories the brain never moved outcomes as a memory; its only firm effects are game-1
+  plans. Open.
+- **P115, P320** no effect on chess move quality over five seeds. **P146, P211, P260** no effect in tic-tac-toe with
+  GLM, also as a rule list. **P195, P290, P435** none in Lanterns, heads-up Hold'em or Salt Market.
+- **P139** Hold'em: brain seats +0.8 points per seat and game over eight tables. Answered.
+- **P112** the replay check did not cover chess move text. Fixed (`replaysLine`).
+- **P120, P193** brains overrun the word cap. P120 fixed, P193 open.
+- **P126** the brain does not learn a cost it cannot see. Partly fixed.
+- **P138** a mixed table granted brain tools to seats without one. Fixed (`brainTeams`).
+- **P197** a cautious brain default made a game unfinishable. Fixed.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/strategy-brain/strategy-brain.test.ts`](../../test/mechanics/strategy-brain/strategy-brain.test.ts):
+word counts and hashes, the replay check, the retro window open only for its captain, separate team brains, the brain
+switched off, rule lists, closing after `retroMaxMinutes` and `retroMaxPosts`, briefings and their snapshot, a brain
+for nobody, documented options. The asymmetric arm (`brainTeams`) is tested in
+[`test/stories/tictactoe-teams-brain-o.test.ts`](../../test/stories/tictactoe-teams-brain-o.test.ts).

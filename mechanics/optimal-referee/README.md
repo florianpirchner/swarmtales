@@ -1,6 +1,8 @@
-# optimal-referee
+# Optimal referee
 
-_To be written._
+A silent judge for the grid game. It scores every move against exact minimax play and writes the score as
+`move_scored`, for the human and the reporter only. No resident and no gamemaker ever learns how a move was rated. It
+has no tools.
 
 ## At a glance
 
@@ -24,7 +26,12 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Listening.** On every `move_played` of the [grid-game](../grid-game/README.md) it reads the position before the
+   move through the `grid-game` API.
+2. **Scoring.** It computes the minimax value of every free cell and compares the played one with the best: optimal,
+   or a missed win, a missed block, a blunder. Only positions where an error was possible are scored: where every free
+   cell is worth the same (the empty board is a draw, a lost position loses anyway) nothing is written.
+3. **Limits.** Positions with more than `maxEmptyCells` free cells are not scored, since minimax on a big board is slow.
 
 ## Tools
 
@@ -88,12 +95,22 @@ Prompts: none besides the tool descriptions.
 
 ## Example
 
-_To be written._
+From [`stories/tictactoe-teams/story.ts`](../../stories/tictactoe-teams/story.ts):
+
+```ts
+optimalReferee.with({ maxEmptyCells: Math.min(16, size * size) }),
+```
+
+On 5 x 5 only the late positions (16 free cells or fewer) are scored.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P84** Haiku draws 4 x 4 as well, and the referee scores few moves. Open.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/optimal-referee/optimal-referee.test.ts`](../../test/mechanics/optimal-referee/optimal-referee.test.ts):
+no score where no error is possible, the only saving reply, missed wins and blocks, lost positions, the audience of
+`move_scored`, no tools, conformance and snapshots, a whole game from the empty board.

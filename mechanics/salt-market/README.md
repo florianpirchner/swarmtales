@@ -1,6 +1,9 @@
-# salt-market
+# Salt Market
 
-_To be written._
+A negotiation game for solo seats. Each trader holds a bundle of five goods (salt, cloth, copper, spice, wax), values the
+perishable ones privately and has a secret contract that pays a bonus for holding a bundle of three goods at the end of
+a game. The goods a trader needs sit mostly with the others, so nobody fills a contract without trading, and every
+trade goes through a bank that executes offers, holds escrow and taxes big trades.
 
 ## At a glance
 
@@ -24,7 +27,30 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **A game.** `market_game_started` deals values, contracts and start bundles (rotated round the table by default, so
+   every trader plays every position once in a cycle, P141); part of each trader's perishable goods arrives later as one
+   shipment (`shipShare`, `market_shipment_arrived`). A game has `rounds` rounds of `roundMinutes` each
+   (`market_round_started` announces the good that spoils at the round's end).
+2. **Looking.** `viewMarket` shows the open book: every trader's holdings, the open offers, the own values and
+   contract. Values and contracts of the others stay secret until the game ends, so a trader may lie about them.
+3. **Offers.** `offer` (to one trader or to all) names what the proposer gives now, what it wants now and optionally
+   goods it delivers later, at the end of a named round: a plain promise the proposer must keep with `give`, or escrow
+   (the bank takes the goods at the trade and delivers them itself, for `escrowFee` salt). A trader may have
+   `maxOpenOffers` open offers; an offer lives until the end of the round after the one it was made in.
+4. **Answers.** `accept` executes an offer only if both sides hold what it moves at that moment (`market_trade`);
+   `decline` and `withdraw` close it (`market_offer_closed`). A trade that moves more than `taxFree` units costs
+   each side `tax` salt. `give` hands goods over without anything back (`market_gift`), and `say` sends up to
+   `maxSays` short messages a round, to all or to one trader (`market_said`); it moves nothing.
+5. **Round end.** Due promises are settled and the bank records whether they were kept (`market_promise_settled`).
+   With `spoil` on, the announced good spoils in every round but the last: each stock of 2 or more loses a unit, a
+   quarter of a stock of 8 or more (`market_spoiled`).
+6. **Game end.** Holdings are scored at private values (salt at `saltValue` for everyone) plus `contractBonus` for a
+   filled contract (`market_game_ended`, which reveals values and contracts). `market_game_scored` (for the human
+   only) compares the game with the optimum, an exact search over which contracts to fill: efficiency, fairness (Gini of
+   the surpluses) and the promises kept. After `games` games, `market_match_ended` ends the run.
+
+Between games the mechanic provides `brain-source`, so [strategy-brain](../strategy-brain/README.md) can open a retro
+window per trader. The mechanic does not police lying: claims in `say` are free, only the bank's book is true.
 
 ## Tools
 
@@ -463,12 +489,38 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From `stories/salt-market/story.ts`:
+
+```ts
+mechanics: [
+	saltMarket.with({ games, rounds, spoil, roundMinutes: 1 }),
+	strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
+],
+```
+
+Four traders play four games of six one-minute rounds; the `-nospoil` variant turns spoilage off, `-nobrain` the brain.
 
 ## Lessons and loopholes
 
-_To be written._
+See the log in [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md).
+
+| ID | What happened | Status |
+| --- | --- | --- |
+| P140 | An offer to all could not be declined. | fixed, to be measured |
+| P141 | The deal was unequal between seats. | fixed (rotating deals) |
+| P142 | Salt is too weak a currency, so contract goods do not move. | open |
+| P143 | Promises and escrow went unused. | fixed (shipments) |
+| P144 | Spoilage barely bit. | overshot, see P149 |
+| P145 | Haiku traders are honest. | open |
+| P148 | A plain promise due in the round of the own shipment could not be kept. | fixed, to be measured |
+| P149 | The v2 spoilage is too harsh. | open |
+| P180 | Efficiency against the unspoiled start was misleading. | fixed |
+| P435 | No brain effect in Salt Market. | open |
 
 ## Tests
 
-_To be written._
+The rules and the scripted match live in `test/stories/salt-market.test.ts`: the deal (values, three-good contracts,
+bundles that need trade), scoring and the optimum search, a scripted four-game match with offers, trades, shipments,
+escrow and kept and broken promises, refused offers and taxed trades, escrow held until due, a plain promise of
+shipment goods refused when it cannot be kept, a match without any trade, the registered variants, determinism and a
+snapshot round trip inside a game and inside a retro window.

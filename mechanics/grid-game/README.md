@@ -1,6 +1,9 @@
-# grid-game
+# Grid game
 
-_To be written._
+A small board game between two teams: tic-tac-toe by default, or any square board up to 10 x 10 with a line length to
+win (4 x 4 with four in a row, 5 x 5 ...). The mechanic owns the board, whose move it is, win and draw, the game
+counter and the alternating start, over a match of several games. It knows nothing about team talk, memory or the
+quality of moves; other mechanics add those.
 
 ## At a glance
 
@@ -24,7 +27,18 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The match.** `games` games are played; with `alternateStart` X starts game 1 and the starting side alternates.
+   Each game writes `game_started`, every move `move_played`, the end `game_ended`, and after the last game
+   `match_ended` ends the run through the referee limit.
+2. **Teams and captains.** `teams` gives the X and O members (without it the residents are split in half). The
+   captaincy rotates one move each through the team (or stays with the first member, `fixedCaptain`). With `wakeTeam`
+   every member of the team on move has news, so the others can advise and vote.
+3. **Moves.** `viewBoard` shows every cell as its mark plus its number, so a taken cell keeps its number. `playMove` is
+   locked and open only for the captain of the turn; a taken or unknown cell is refused. Another mechanic can gate the
+   move further with a `rule` handler: [consensus](../consensus/README.md) makes the team vote first.
+4. **Interfaces.** The `grid-game` API gives the board to other mechanics (the [optimal-referee](../optimal-referee/README.md)
+   scores moves from it); `consensus-source` tells `consensus` who is on move, who is captain and which cells are legal,
+   and plays a forfeit; it also holds and releases games for the [strategy-brain](../strategy-brain/README.md)'s retro.
 
 ## Tools
 
@@ -179,12 +193,28 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/tictactoe-teams/story.ts`](../../stories/tictactoe-teams/story.ts):
+
+```ts
+gridGame.with({ size, line, games, alternateStart: true, teams, wakeTeam: true, fixedCaptain }),
+consensus.with({ tool: "playMove", param: "cell", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 4, teams }),
+```
+
+Three residents per team, every move voted, the board size and line from the variant name (`tictactoe-teams-4x4`).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P77, P84** Haiku already plays tic-tac-toe perfectly and draws 4 x 4 as well, so the referee scores few moves.
+  Open (the reason for bigger boards and other games).
+- **P81, P86, P88** forfeits decide games with weaker models (Gemma, GLM on big boards). P88 fixed, the rest open.
+- **P410** a captain left on a stale board was never asked again. Fixed.
+- **P332** a team of three beats one agent of the same model only slightly, at 3.4 times the cost. Open.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/grid-game/grid-game.test.ts`](../../test/mechanics/grid-game/grid-game.test.ts): lines on boards of
+any size, the board text, a match with win, draw and alternating start, captains (rotating, fixed), default teams and
+bad teams, the locked `playMove` and its rule-stage check, the end of the match, briefings and forfeits, documented
+options and prompts, determinism and snapshots mid-game and between games.

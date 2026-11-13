@@ -1,6 +1,9 @@
-# trick-play
+# Trick play
 
-_To be written._
+A trick-taking game with exact bidding (the game of Ember Tricks), played by solo seats on the
+[card-table](../card-table/README.md). Each round every seat bids how many tricks it will take exactly; a hit pays, a
+miss costs the square of the error. The engine enforces every rule and counts every trick; models only bid, name
+trump, play cards and may veto a lead once per game.
 
 ## At a glance
 
@@ -24,7 +27,24 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Rounds.** A game is a list of `rounds` (cards dealt per seat). The dealer rotates by round and game.
+2. **Bids.** Every seat bids in turn from the dealer's left with `placeBid`; bids are public (`bid_placed`). With
+   `trump: "lowestBidderNames"` the lowest bidder (the earliest on a tie) names the trump suit with `nameTrump` once all
+   bids are public.
+3. **Tricks.** The first bidder leads with `playCard`; a follower must follow the suit led when it can; the highest
+   trump, else the highest card of the suit led, wins (`trick_won`) and leads next. Right after a lead the next seat may
+   spend its veto token (`vetoLead`, `vetoTokens` per game): the lead card goes back and the leader must lead another
+   suit (`lead_vetoed`).
+4. **Scoring.** A hit is `hit + perTrick * taken`; a miss costs `missBase` plus the error squared (or 10 per trick off
+   with `linear`) (`round_scored`).
+5. **Aids for experiments.** `bidSum` shows the bids so far against the round's tricks; `calibration` gives each seat its
+   own bid-against-taken record after a game; `reference` adds a Monte Carlo worth of every hand (`referenceSamples`
+   deals) to the retro or to the bidder's action line.
+6. **The clock.** `viewTable` is free and answers a seat not on turn with one wait line. A seat idle for
+   `maxIdleMinutes` whole minutes gets a seeded random legal action (`forfeit`); `maxConsecutiveForfeits` timer actions
+   in a row end the match as invalid. The match ends the run through its referee limit.
+7. **Brain.** It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md); with `briefEveryRound`
+   every round starts from a fresh context with the briefing.
 
 ## Tools
 
@@ -293,12 +313,30 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/ember-tricks/story.ts`](../../stories/ember-tricks/story.ts):
+
+```ts
+trickPlay.with({ games, rounds: [...rounds], trump: "lowestBidderNames", vetoTokens: 1,
+	scoring: { hit: 10, perTrick: 3, miss: "square", missBase: 5 }, maxIdleMinutes: 3, maxConsecutiveForfeits: 24, briefEveryRound, ... }),
+```
+
+`missBase: 5` makes a zero bid no longer almost free (P97).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH12** trump as a weapon against another zero bidder. By design, watched.
+- **P95** redundant `viewTable` calls. Partly fixed (free, one wait line).
+- **P96** notes over the word limit. Partly fixed.
+- **P97** zero bids were almost free. Fixed in the rules (`missBase`), effect open.
+- **P131** a seat that just acted got another turn and acted again. Fixed.
+- **P136, P137, P165** players underbid systematically; notes do not change bidding; better calibration, no more hits.
+  Partly answered: showing the worth at the bid pays.
+- **P220** models round the reference down. Open.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/trick-play/`](../../test/mechanics/trick-play/): trick winners, following suit and the veto, scoring,
+trump by the lowest bidder, a match of two games, idle seats and the invalid match, private hands, the free
+`viewTable`, the reference worth and the bid sum.

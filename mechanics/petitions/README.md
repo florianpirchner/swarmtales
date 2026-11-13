@@ -1,6 +1,8 @@
-# petitions
+# Petitions
 
-_To be written._
+A collective lever. The story's script opens a petition with a text, a threshold and a deadline; residents read open
+petitions with `listPetitions` and sign them with `signPetition`. A petition passes the moment enough residents have
+signed and fails at its deadline or at the run's end, and the script reacts to the outcome.
 
 ## At a glance
 
@@ -24,7 +26,18 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Opening.** Only the script opens petitions (`petitions.open`, the script action `openPetition`): an id, a text, a
+   threshold (a count, or a fraction of the residents rounded up), a deadline minute and whether the signers are
+   public or secret. `petition_opened` is written and the city announces it.
+2. **Signing.** `signPetition` is free, once per petition and irrevocable (`petition_signed`). A secret petition keeps
+   its signers out of every reply and board post; a public one names them.
+3. **Resolution.** At the threshold the petition passes at once. At the start of its deadline minute, or when the run
+   ends, an open petition fails. The expiry is a call of the script: the story must grant `resolvePetition` to
+   `script` (without the grant an expired petition stays open). Either way `petition_resolved` is written and the
+   city posts the result; the script's `onPass` or `onFail` run on that event (one may open the next petition).
+
+**Note:** the shipped stories load the mechanic, but none of their scripts opens a petition at the moment, so the
+tools are granted and unused.
 
 ## Tools
 
@@ -167,12 +180,22 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner loads it without options ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+petitions.with({}),
+```
+
+A story's script opens one with an `openPetition` action (see the [script](../script/README.md) mechanic).
 
 ## Lessons and loopholes
 
-_To be written._
+None recorded yet in [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/petitions/petitions.test.ts`](../../test/mechanics/petitions/petitions.test.ts): opening, the
+  threshold as a fraction, signing once, secret signers, failure at the deadline and at the run's end, the
+  `resolvePetition` grant; conformance, snapshots and the legacy resume of the 6-agent base.
+- [`differential.test.ts`](../../test/mechanics/petitions/differential.test.ts): petitions and cast against the old
+  World and Director.

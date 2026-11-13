@@ -1,6 +1,10 @@
-# tribunal
+# Tribunal
 
-_To be written._
+Exile by vote. Once the wall is under way, the city holds tribunals: the lowest-ranked residents present stand
+accused, everyone votes in secret against one of them, and the one with the most votes goes to the gate (see
+[exile](../exile/README.md)). Before each tribunal residents may form factions; a faction that votes as one earns each
+voter a bonus. The gamemaker plans the tribunals within bounds, and the city steps in when it does not, until a share
+of the act's residents has left.
 
 ## At a glance
 
@@ -24,7 +28,25 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Pacing.** The first tribunal is called once the first resident passes `first.level`, at the latest
+   `first.latestAfter` minutes after the act's start (`tribunal_announced` states every rule). Later ones are planned
+   by the gamemaker with `scheduleTribunal` (the minute, how many it exiles, how many factions), checked against the
+   bounds (`minGap`, the target), and called `lead` minutes ahead (`tribunal_scheduled`, `tribunal_called`). With
+   nothing planned the city schedules one itself `fallbackGap` minutes after a result, and forces the final one.
+2. **Factions.** With `factions` a draft runs before each tribunal in its own group `GT<k>`: residents `nominate`
+   leaders (themselves allowed), the most nominated lead, others `join` a leader, leaders may `refuse` applicants. A
+   faction holds at most its share of the residents. Formed factions get their own groups.
+3. **The vote.** At the opening (`tribunal_opened`) the accused are the lowest-ranked residents present. Every
+   resident present may `vote` once, in secret, against one accused (never itself), for `voteMinutes`. A resident who
+   does not vote loses `nonVoterPenalty` points. A faction whose voters (at least two) all voted for the same accused
+   earns each of them `blocBonus`; a split faction is told so without naming anyone.
+4. **The verdict.** The accused with the most votes goes to the gate for `gateMinutes`, at the ransom prices set from
+   the city's median points (`ransom.share` for others, `ransom.selfShare` for itself, at least `ransom.minimum`) and
+   with the will's cap `bequestPerHeir`. With a `decisionWindow` the verdict waits that many minutes at the decision
+   gate for the names that hold `tribunal.verdict` (a human or an overseer) to amend it.
+5. **The end.** Once the tribunals have exiled `targetShare` of the residents present at the act's start and the last
+   gate closed, the board says `texts.targetReached` and the run stops with it. Below three residents present the
+   tribunal halts.
 
 ## Tools
 
@@ -389,12 +411,31 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner passes the story's `tribunal` block and the gamemaker's roles
+([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+tribunal.with({ ...spec, ...(roles === undefined ? {} : { gamemakerRoles: tribunalGamemakerRoles(roles) }) })
+```
+
+In the City of Keys the tribunal belongs to the wall, exiles a quarter of the residents present (a half below 12),
+and the gamemaker may plan tribunals only while it directs (`gamemakerRoles`).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH7** the exiled crowns a king with its will. Partly fixed (`bequestPerHeir`).
+- **P24** the gamemaker advised selling votes and factors for points. Partly fixed.
+- **P28** the tribunal's target was counted once per run. Fixed (per act).
+- **P36** the gamemaker never scheduled a tribunal. Fixed (the city's fallback and the director's plans).
+- **P42, P53** the wall falls fast, then a long quiet tail. Open.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/tribunal/differential.test.ts`](../../test/mechanics/tribunal/differential.test.ts): the first call,
+  votes and non-voters, the faction draft and split factions, the gamemaker's plans and the guard rails, the final
+  tribunal, strikes during a vote, ransoms, old files, the stop at the target; against the old `Tribunal`.
+- [`verdict.test.ts`](../../test/mechanics/tribunal/verdict.test.ts): the decision window and amended verdicts.
+- [`resume.test.ts`](../../test/mechanics/tribunal/resume.test.ts) and the story test
+  [`cityofkeys-tribunal.test.ts`](../../test/stories/cityofkeys-tribunal.test.ts).

@@ -1,6 +1,9 @@
-# clue-grid
+# Clue grid
 
-_To be written._
+A word-clue game for two teams. A grid of words is dealt, and each word secretly belongs to team amber, team teal, the
+fog (nobody) or the shadows (a penalty). Each game one member of a team is its keeper and sees the key; the others are
+seekers and see only the words. The keeper gives one-word clues with a number, the seekers reveal words one at a time,
+and the team scores for its own words, loses for shadows and earns a bonus for clues that land.
 
 ## At a glance
 
@@ -24,7 +27,28 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **A game.** `clue_game_started` deals a grid of `size` words: `perTeam` for the team with the first clue,
+   `secondFewer` fewer for the other (P196), `shadows` shadows, the rest fog. `clue_key_dealt` tells the keepers
+   the key. The keeper rotates through each team's members, one game each, in the order of `teams`.
+2. **A clue.** Teams take turns. The keeper gives one clue with `giveClue`: one word that is not on the grid and shares
+   no stem with a grid word, a number up to `maxNumber`, and the words it means. `clue_given` is public;
+   `clue_intent` (the meant words) is sealed for the report. A keeper who gives no clue within `deadline` minutes
+   loses the turn. A keeper may not post in the team chat during a game.
+3. **Guesses.** The caller of the clue (the seekers take turns) reveals words one at a time with `guess` while the
+   other seekers advise in the team chat ([team-channel](../team-channel/README.md)). An own word lets the caller go on,
+   up to `number` guesses (one more with `extraGuess`); a fog word, the other team's word or a shadow ends the turn
+   (`clue_word_revealed`, `clue_closed`). `endGuesses` stops early; a missing guess after `deadline` ends the turn.
+4. **Scoring.** `wordPoints` per own word revealed (whoever reveals it), minus `shadowPenalty` per shadow a team
+   reveals, `landedBonus` per word beyond the first of a landed clue (number 2 or more and its first `number` guesses
+   all own words), and `finishBonus` for the team whose words are all revealed first, which ends the game. Otherwise
+   the game ends when both teams used their `maxClues` clues (`clue_game_ended`).
+5. **The measure.** `clue_game_scored` (for the human only) reports how much of what the keeper meant the seekers
+   found, from the sealed intents. After `games` games, `clue_match_ended` ends the run.
+
+`viewGrid` shows the grid (in `columns` per row) with the revealed owners and, for the keeper, the key. A keeper's turn
+also tells it the team's hidden words left against its clues left, so it sees what finishing needs (P197). Between games the mechanic provides `brain-source`, so
+[strategy-brain](../strategy-brain/README.md) can open a retro window per team. The scoring is original, not a
+recreation of any published word game.
 
 ## Tools
 
@@ -290,12 +314,41 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From `stories/lanterns/story.ts`:
+
+```ts
+mechanics: [
+	clueGrid.with({ games, maxClues, deadline: DEADLINE, teams: TEAMS }),
+	teamChannel.with({ teams: TEAMS, maxPostsPerMove: 3 }),
+	strategyBrain.with({ enabled: brain, maxWords, teams: TEAMS, retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true, retroFocus: RETRO_FOCUS }),
+],
+```
+
+Two teams of three play a match on the default 20-word grid; `teams` fixes who is on which team and the keeper order.
 
 ## Lessons and loopholes
 
-_To be written._
+See the log in [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md).
+
+| ID | What happened | Status |
+| --- | --- | --- |
+| P190 | A grid word was also the name of a card type. | fixed |
+| P191 | Keepers are timid and seekers never take the extra guess. | partly fixed |
+| P192 | A clue pointed at a visible shadow. | open (by design) |
+| P193 | Brains overrun the word cap. | open |
+| P194 | A keeper called `giveClue` out of turn, and a caller ran out of steps. | partly fixed |
+| P195 | No brain effect in Lanterns on two seeds. | small effect |
+| P196 | The team that starts more often wins. | partly fixed (handicap overcorrects) |
+| P197 | A cautious brain default made the game unfinishable. | fixed |
+| P230 | Seed sets swing more than the arms. | answered |
+| P439 | The brain is a real memory, and the score hides it. | open |
+| LH15 | A silenced keeper warned through its own answer. | closed by design |
 
 ## Tests
 
-_To be written._
+The rules and the scripted match live in `test/stories/lanterns.test.ts`: the word pool (no word inside another, no
+shared stem), the deal, refused clues (not one word, on the grid, holding a grid word or sharing its stem), landed
+clues, scoring, the keeper's measure, the words-left line (P197), the keeper rotation, a scripted four-game match with
+sealed targets and a brain per team, a fresh context per game, a lost clue turn, the silent keeper and the turn handed
+on after a wrong word, the registered variants, determinism and a snapshot round trip inside a game and inside a retro
+window.

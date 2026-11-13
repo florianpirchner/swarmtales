@@ -1,6 +1,10 @@
-# script
+# Script
 
-_To be written._
+The story's director: rules that fire on time or on events and act through the other mechanics. A rule has a trigger
+(a minute, every few minutes, the first entry of a level, everyone past a level, an unanswered DM, a split team, a
+collection's end, a petition's outcome), conditions, and actions (post on the board, notify, DM as a cast member,
+reveal a city factor, open a petition, collect DMs, draw a lottery, grant or fine points, publish standings, unlock
+tools). It is how a story writes courier lines, the feast and other beats without a model.
 
 ## At a glance
 
@@ -24,7 +28,20 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Rules.** `rules` holds the story's `director` block in order. Each rule has an `id` (logged with every action it
+   causes), a `trigger`, `when` conditions (`minLevelReached`, `competitorsAtLevel`, `castActive`, `collectionOpen`,
+   `collectionEnded`, `petitionStatus`, `cooldown`, `onceOnly`) and `actions`.
+2. **Event triggers.** On `level_entered` (from `progression`) the `onEnter`, `onFirstEnter`, `onAllPast` and
+   `onHolderBehind` rules run at once, so their lines land before the submission's reply. `cast_collected` runs
+   `onCollect`; `petition_resolved` runs the opening rule's `onPass` or `onFail` and the `onPetitionResolved` rules.
+3. **Time triggers.** `at`, `every`, `onAllPast`, `onUnansweredDm`, `onTeamSplit` and `onCollectionEnd` run in one staged
+   call per minute, `directorMinute`, after the petitions whose deadline came. The story must grant `directorMinute`
+   (and `resolvePetition`) to `script`; a refused call ends the run.
+4. **Actions.** Each action is a command of the mechanic that owns it: `post`, `notify`, `dm` (`channels`, as a cast
+   member), `revealFactor` (`puzzles`), `openPetition` (`petitions`), `collectDms`, `revealCollection`, `lottery`,
+   `revealCast`, `retireCast`, `setCastLevel`, `escrowTransfer` (`cast`), `grant`, `fine` (`ledger`),
+   `publishStandings`, `unlockTools` (`progression`). Every action writes `director_action`; one that cannot run (a post
+   by an inactive cast member, a condition that no longer holds) writes `director_skipped`.
 
 ## Tools
 
@@ -132,12 +149,32 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+Courier lines of the City of Keys ([`stories/cityofkeys/story.ts`](../../stories/cityofkeys/story.ts)), written with
+the builder helpers:
+
+```ts
+director: [
+	onFirstEnter(2, [act.post("COURIER", "The city watches who shares.")], { id: "courier-2" }),
+	onFirstEnter(3, [act.post("COURIER", "Whoever takes without giving will not be forgotten.")], { id: "courier-3" }),
+	...
+],
+```
+
+The city runner turns the block into options with `script.with(scriptOptionsFromStory(story))`.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH3, P9** the feast (a script beat with STEWARD) came too early and too vague, and its factor became a public
+  good. Fixed.
+- **P17** the director's tone overshoots. Partly fixed.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/script/differential.test.ts`](../../test/mechanics/script/differential.test.ts): time triggers,
+  standings, points, notices, cast, petitions with their chains, collections and the lottery, teams and the city
+  factor, against the old `Director`.
+- [`golden.test.ts`](../../test/mechanics/script/golden.test.ts): the director's lines and windows of the golden run.
+- [`resume.test.ts`](../../test/mechanics/script/resume.test.ts): the version-0 migration and a resumed run on the old
+  engine and the new host.

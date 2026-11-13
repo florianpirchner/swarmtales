@@ -1,6 +1,9 @@
-# morris
+# Morris
 
-_To be written._
+Nine men's morris between two teams (or a team and a built-in engine) over a match of several games. The mechanic
+owns the board of 24 points, the pieces in hand, mills and removals, and the end of a game; a move is one number, and
+a step that closes a mill is followed by a second move that names the piece to remove, so a team votes on each part on
+its own.
 
 ## At a glance
 
@@ -24,7 +27,21 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Moves as numbers.** A placement is the point (1-24); a move along a line or a flight is `from * 100 + to`.
+   `viewBoard` shows the numbered board and, for the team on move, what it may play. `playMove` is locked and open for
+   the captain of the turn only (rotating, or `fixedCaptain`); [consensus](../consensus/README.md) gates it further.
+2. **Phases.** Each side places its `pieces`, then moves them to free neighbours; with `flying` a side with three pieces
+   left may move to any free point. A step that closes a mill keeps the same side and captain on move for the removal
+   (a piece outside a mill, or any piece when all are in mills).
+3. **The end of a game.** A side loses when it is down to two pieces or blocked (never while placing). A game is a
+   draw by `repetitions` of a position, after `maxQuietTurns` whole turns without a mill once all pieces are placed, or
+   at `maxTurns`. `game_ended` gives the result; after `games` games `match_ended` ends the run. The starting side
+   alternates (`alternateStart`).
+4. **The engine.** With `engine` one side has no residents: an alpha-beta search of `depth` whole turns (ties broken by
+   the seeded random, `maxNodes` per depth) plays its whole turn, step and removal, the moment it comes on move.
+5. **Plugs.** It provides `consensus-source` (who is on move, legal moves, forfeits) and `brain-source` (the
+   [strategy-brain](../strategy-brain/README.md)'s retro between games). Moves are scored by the separate
+   [morris-referee](../morris-referee/README.md).
 
 ## Tools
 
@@ -192,12 +209,31 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/morris-teams/story.ts`](../../stories/morris-teams/story.ts):
+
+```ts
+morris.with({ games, maxTurns, maxQuietTurns, alternateStart: true, teams, wakeTeam: true, fixedCaptain,
+	...(engineDepth === undefined ? {} : { engine: { side: "O" as const, depth: engineDepth, maxNodes: 200_000 } }) }),
+```
+
+A variant name ending in `-solo-vs-engine3` puts one resident against the depth-3 engine.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md); morris is closed as an experiment:
+
+- **P100** nine men's morris takes ten times the calls of tic-tac-toe. Open.
+- **P101** residents misread the ASCII board. Fixed in code, untested live.
+- **P104** a resident that ended its turn on a stale board was never asked again. Fixed.
+- **P107** the engine walled itself in. Fixed. **P200** Haiku walls itself in against a search that plans for it. Open.
+- **P108** Haiku cannot finish three flying pieces. Open.
+- **P105, P106, P109, P202, P402** no brain effect, solo, against the engine, or with Sonnet and Opus.
+- **P400, P401** stronger models beat the depth-3 engine more often but still lose most games; the blockade weakness
+  is Haiku's.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/morris/rules.test.ts`](../../test/mechanics/morris/rules.test.ts): the rules (24 points, 16 mills,
+move numbers, removals, steps, flights, losing) and documented options. The match through the host (captains, mills
+and removals, forfeits, the engine side, determinism and snapshots) is tested in the story test
+[`test/stories/morris-teams.test.ts`](../../test/stories/morris-teams.test.ts).

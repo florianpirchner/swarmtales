@@ -1,6 +1,9 @@
-# cast
+# Cast
 
-_To be written._
+Named characters the story plays. A cast member (such as STEWARD, the host of the City of Keys' feast) has a name, an
+escrow account and a level; it can be hidden until the script reveals it, receive residents' DMs, collect them in a
+time window, publish them, draw a lottery among their senders and pay residents from its escrow. The script decides
+what the cast does; this mechanic keeps its state.
 
 ## At a glance
 
@@ -24,7 +27,19 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Members.** `members` lists the story's cast. At the run's start each member's account is opened and funded from
+   the system account (once, also across resumes). A hidden member is invisible until the script reveals it
+   (`cast_revealed`); a retired member is gone for good (`cast_retired`).
+2. **DMs to the cast.** `channels` routes a resident's DM to a cast member here (`cast.receive`): it is recorded with
+   the city's message number (`cast_dm`).
+3. **Collections.** The script starts a collection of DMs in a window (`collection_started`): the first DMs of
+   distinct senders (or every DM) until the window ends. A window can also end some minutes after the first solve of a
+   level; it is then shortened at the start of the minute (`collection_shortened`), before the script's triggers. The
+   script publishes a collection verbatim as the cast member (`collection_revealed`) and draws a seeded lottery among
+   its senders (`lottery_drawn`).
+4. **Payments.** The script pays residents from a member's escrow (`ledger.move`), with a receipt (`receipts`).
+
+There are no resident tools: residents reach the cast through ordinary DMs.
 
 ## Tools
 
@@ -195,12 +210,27 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The City of Keys has one hidden member, the host of the feast on level 10
+([`stories/cityofkeys/story.ts`](../../stories/cityofkeys/story.ts)):
+
+```ts
+cast: { STEWARD: { level: 10, hidden: true } },
+```
+
+The city runner passes the cast and the collections its script rules use (`castOptionsFromStory`).
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH3** the feast's city factor became a public good once guests posted it. Fixed (one factor per team, a quarter of
+  the city seated).
+- **P9** the feast came too early and too vague. Fixed.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/cast/cast.test.ts`](../../test/mechanics/cast/cast.test.ts): hidden and retired members, the
+  active list, DMs, collection windows (distinct senders, shortening after a solve), publishing, the lottery, escrow
+  funding and payments; documented options, determinism, snapshots and the version-0 slice.
+- [`golden.test.ts`](../../test/mechanics/cast/golden.test.ts): the City of Keys' members and collections and the
+  golden cast lines.

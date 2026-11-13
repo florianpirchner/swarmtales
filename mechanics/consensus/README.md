@@ -1,6 +1,9 @@
-# consensus
+# Consensus
 
-_To be written._
+A team must agree before it acts. The captain proposes a value for a gated tool (`proposeMove`), the other members
+vote (`castVote`), and the gated tool (for example `playMove`) is refused unless the captain calls it with exactly the
+value that won. If a team cannot agree in time, a seeded random legal move is played for it. The mechanic knows no
+game: the game tells it who is on move and which values are legal.
 
 ## At a glance
 
@@ -24,7 +27,19 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Proposal and vote.** The captain of the team on move proposes a value for `param` of `tool` (`move_proposed`);
+   the proposal is not a vote. The team without its captain votes (`vote_cast`). With `majority` the proposal wins with
+   more than half of the voters (`consensus_reached`); a tie is no consensus and the captain cannot override it. A
+   proposal is rejected as soon as a majority is out of reach. A team of one agrees with itself at once.
+2. **The gate.** A `rule` handler refuses the gated tool unless the caller is the captain and the parameter equals the
+   agreed value. Residents of the waiting team and non-members are refused.
+3. **Deadlock.** A round is a whole minute in which the team was on move from the start and nothing was played. After
+   `maxRounds` rounds, `forfeitRandomLegalMove` plays a random legal value (seeded, the same in every replay) through
+   the game (`consensus_forfeited`); `refuse` writes `consensus_deadlocked` once and keeps the gate shut.
+4. **An invalid match.** With `maxConsecutiveForfeits` that many forfeits in a row, without an agreed move between
+   them, write `match_invalid` and end the match, so a match nobody played is not mistaken for a result.
+
+The game provides the `consensus-source` API: [grid-game](../grid-game/README.md) and [morris](../morris/README.md) do.
 
 ## Tools
 
@@ -186,12 +201,27 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/morris-teams/story.ts`](../../stories/morris-teams/story.ts):
+
+```ts
+consensus.with({ tool: "playMove", param: "move", rule: "majority", maxRounds, onDeadlock: "forfeitRandomLegalMove", maxConsecutiveForfeits: 6, teams: playing }),
+```
+
+In tic-tac-toe the vote is about the `cell`, in morris about the `move` text.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P79** a match with no model action (every request failing) ran to the end on forfeits. Fixed
+  (`maxConsecutiveForfeits`, seen working live).
+- **P81, P86** forfeits decide games with weaker models. Open.
+- **P104, P410** a resident that ended its turn on a stale board was never asked again. Fixed.
+- **P116, P332** teams cost far more than a solo player and are not clearly better at equal information. Open.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/consensus/consensus.test.ts`](../../test/mechanics/consensus/consensus.test.ts) (on a toy game):
+the agreed move is released, a different one refused, ties and unreachable majorities, refused callers, seeded
+forfeits and whole-minute rounds, `refuse` on deadlock, the invalid match and the streak reset, determinism, snapshots
+at every cut, documented options.

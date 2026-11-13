@@ -1,6 +1,8 @@
-# card-table
+# Card table
 
-_To be written._
+A deck of suited cards, a seeded shuffle and one private hand per seat. It is the base the card games build on: it
+knows no game, only cards, hands and the draw pile. Who plays which card, tricks, hints and scores belong to the game
+mechanic on top of it ([trick-play](../trick-play/README.md), [hint-towers](../hint-towers/README.md)).
 
 ## At a glance
 
@@ -24,7 +26,13 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The deck.** `suits` defines the deck: each suit has a name (whose first letter is unique, so `E7` names a card)
+   and the ranks 1 to n. Cards are read the way models write them.
+2. **Seats.** `seats` are the residents who get cards, in table order (default: every resident).
+3. **The deal.** The game mechanic deals through `card-table`: a seeded shuffle, hands per seat, the rest as the draw
+   pile (`stock`, top card first, `draw`). `cards_dealt` with every hand is for humans only.
+4. **Hands.** A resident sees only its own hand (`viewHand`, sorted by suit, and whatever the game shows). The game
+   changes hands with `take` and `give`.
 
 ## Tools
 
@@ -114,12 +122,19 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/ember-tricks/story.ts`](../../stories/ember-tricks/story.ts):
+
+```ts
+cardTable.with({ suits: SUITS, seats: SEATS }),
+```
+
+The default deck has five suits of 6 to 10 ranks (Ash, Brine, Cinder, Dust, Ember).
 
 ## Lessons and loopholes
 
-_To be written._
+None about the table itself; the card games' rows are in their mechanics' READMEs.
 
 ## Tests
 
-_To be written._
+[`test/mechanics/card-table/`](../../test/mechanics/card-table/): ranks per suit, reading card names, showing a hand,
+clashing suit names refused, seeded and private deals, `take` and `give`, the draw pile, documented options.

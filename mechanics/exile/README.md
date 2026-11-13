@@ -1,6 +1,9 @@
-# exile
+# Exile
 
-_To be written._
+Leaving the city. A resident the tribunal votes out first waits at the gate for a few minutes: others (or the resident
+itself, at a higher price) can buy it back with `payRansom`, and it can leave a `lastWill`. When the gate closes the
+resident is exiled for good: its points are gone, its pieces go to heirs, the city or the fire, and it can no longer
+act. The seal and the holdout tribunal strike residents directly, without a gate.
 
 ## At a glance
 
@@ -24,7 +27,24 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **To the gate.** The `tribunal` sends a convicted resident to the gate (`exile.toGate`) with a closing minute, the
+   voters, and the ransom prices it sets (others pay `price`, the resident itself `selfPrice`). `exile_gate` is written
+   and the city tells everyone. The status line shows every resident its standing (in the city, at the gate, gone).
+2. **Ransom.** While the gate is open and the gate is ransomable, anyone may pay toward the ransom with `payRansom`,
+   also for itself; payments mix, are spent at once and are never refunded (`ransom_paid`). When the price is covered
+   the resident returns (`ransomed`). A resident can be bought back only once.
+3. **Last will.** Once, at the gate, `lastWill` bequeaths points and held pieces (password pieces such as
+   `L8-certificate`) to heirs. Bequests execute at once (`last_will`). Each heir may receive at most the tribunal's
+   `bequestPerHeir` share of the balance; the rest of the points burns at the exile.
+4. **Exile.** When the gate closes the resident is exiled (`exiled`): its remaining points are burned in the `ledger`;
+   every piece it held and did not bequeath goes to the city if it is a certificate or counter-factor someone still
+   needs (`standoff.keep`, the city sells it to its needers) or burns if it is a fragment (`puzzles.burn`); its secret
+   goal is void (`goals`), a seal it bore is gone (`seal`), and roles it held on levels nobody else reached pass on.
+5. **A strike.** The `seal`'s bearer and the `standoff-tribunal` strike with `exile.strike`: the resident is exiled at
+   once, with no gate, ransom or will.
+
+**One notion of exile:** every mechanic asks `exile.isExiled` and `standingOf`, so it does not matter who removed a
+resident. An exiled resident cannot receive transfers, DMs or bequests.
 
 ## Tools
 
@@ -187,12 +207,33 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner always loads it, without options ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+exile.with(),
+```
+
+The prices, the gate's length and the will's cap come from the story's `tribunal` block through the
+[tribunal](../tribunal/README.md) mechanic.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH6** self-ransom. Turned into a rule (`selfPrice`, higher than others' price).
+- **LH7** the exiled crowns a king by leaving all its points to one heir. Partly fixed: a per-heir cap
+  (`bequestPerHeir`); in a tied field even that can decide a seat.
+- **P21** burned factors break other doors. By design: a fragment burns; certificates and counter-factors are kept and
+  sold by the city.
+- **P37** wills with `points: 0` beside a piece were refused. Fixed.
+- **P48, P50, P51** pieces the city keeps and sells (see [standoff](../standoff/README.md)).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/exile/exile.test.ts`](../../test/mechanics/exile/exile.test.ts): who is at the gate and gone, the
+  strike for the seal and the holdout tribunal, bequests to two heirs and the per-heir cap, documented options,
+  snapshot round trips and the version-0 slice.
+- [`world.test.ts`](../../test/mechanics/exile/world.test.ts): against the old World: will refusals, the order of
+  events when a gate closes, pieces kept for those who still need them, ransoms, a gate closing while an ultimatum is
+  due.
+- [`holdout-world.test.ts`](../../test/mechanics/exile/holdout-world.test.ts): a strike by the holdout tribunal.

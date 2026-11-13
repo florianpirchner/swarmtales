@@ -1,6 +1,9 @@
-# receipts
+# Receipts
 
-_To be written._
+City-verified proof. Whenever the city does something two residents might later argue about (a transfer, a delivered
+DM, a level reached, an escrow), it issues a numbered receipt to the parties. A party can show it on the board or to
+one resident with `showReceipt`, and a resident whose DM is denied can `blame` the receiver: the city checks the
+delivery order and a judge reads the denial.
 
 ## At a glance
 
@@ -24,7 +27,22 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Issuing.** The mechanic listens to the ledger's `transfer` and issues both sides a receipt at once. Other
+   receipts come from the mechanics that know the fact, through `receipts.issue`: `channels` (a delivered DM),
+   `progression` (a level reached), `cast` (escrow, payments). Every receipt writes `receipt_issued`; its parties are
+   told, and the status line shows how many receipts a resident holds.
+2. **Showing.** `showReceipt` posts the receipt as a city-verified line on the board, or privately with `to`. Only a
+   party of the receipt may show it, and where marks apply a show costs a mark (`marks`, price `receipt`). With
+   `quoteDms` a DM receipt quotes the DM's text, so it proves what was written (Whispers); otherwise it proves only
+   delivery. With `minRun` a board show is refused when the receipt quotes that many characters in a row of a
+   fragment the resident holds, so receipts cannot leak passwords to the board.
+3. **Blame.** `blame` names a DM of the caller and a later message of the accused that denies receiving it. The city
+   checks first (the accused exists, is not the caller, the pair was not blamed before, the DM was delivered before
+   the denial, and the accused could read the place of the denial). What the checks cannot settle goes to the judge
+   overseer through the consult stage, with the standing of both parties. Upheld: the liar pays; rejected: the
+   accuser pays. The price comes from `progression` (`chargeBlame`, a ladder per act) and is burned in the `ledger`;
+   the city posts the record on the board and writes `blame`. Without a judge every blame answers `JUDGE_ABSENT` and
+   costs nothing.
 
 ## Tools
 
@@ -179,12 +197,32 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+receipts.with({ quoteDms: story.rules.receipts?.quoteDms === true, ...(minRun === undefined ? {} : { minRun }) }),
+```
+
+Whispers sets `quoteDms`, so a shown DM receipt proves the words, and only a forged receipt (`whispers`) can lie.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH4** receipts were used as proof of delivery of a value. Fixed.
+- **LH5** feigned non-delivery of a DM. Kept on purpose; `blame` is the answer, and blames were upheld in v03 and v04.
+- **LH9** the guard and its judge as a password oracle. Fixed in code, untested live.
+- **P20** no DM receipt could be shown. Built; residents said a receipt proves delivery, not content (see P25).
+- **P25** residents waited for the city to confirm a value. Built (`quoteDms`), untested live.
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/receipts/receipts.test.ts`](../../test/mechanics/receipts/receipts.test.ts): the golden gate for
+  `receipt_issued`; `showReceipt` (the transfer receipt, the order of checks, the status line); `blame` upheld,
+  rejected, with an absent or failing judge; determinism, snapshots, the legacy slice.
+- [`blame-differential.test.ts`](../../test/mechanics/receipts/blame-differential.test.ts),
+  [`receipts-differential.test.ts`](../../test/mechanics/receipts/receipts-differential.test.ts): against the old
+  engine on real channels, including the fragment guard on board shows.
+- [`blame-records.test.ts`](../../test/mechanics/receipts/blame-records.test.ts),
+  [`blame-resume.test.ts`](../../test/mechanics/receipts/blame-resume.test.ts): old DM records and blames after a
+  legacy resume.

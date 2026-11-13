@@ -189,6 +189,7 @@ is deterministic, and every run can be replayed.
 - [The `swt` commands](docs/CLI.md) and [the story format](docs/STORY-FORMAT.md): write a story as TypeScript or YAML
 - [The City of Keys story](docs/STORY-CITYOFKEYS.md) and [its code](stories/cityofkeys/)
 - [The Whispers story](docs/STORY-WHISPERS.md) and [its code](stories/whispers/): one secret slanderer among six
+- [The mechanics](mechanics/): every package has a README in [one shape](docs/MECHANIC-README.md), its tools, events and options generated from the code
 - [Specification](docs/SPEC.md) · [Architecture](docs/ARCHITECTURE.md) · [Models](docs/MODELS.md) · [Mechanic API](docs/design/mechanic-api.md) · [Carve plan](docs/design/carve-plan.md) (teams [T1](docs/design/carve-team-T1.md), [T2](docs/design/carve-team-T2.md), [T3](docs/design/carve-team-T3.md), [T4](docs/design/carve-team-T4.md))
 - [From a run to a story](docs/FROM-RUN-TO-STORY.md): how the chronicle and the short stories are made
 - [The signed event log](docs/design/event-log-signing.md): every run's log is hash-chained and signed; `swt log verify` checks it

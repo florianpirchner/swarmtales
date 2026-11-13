@@ -17,6 +17,9 @@ longer worked on). The owner is Flo.
 - Strict TypeScript: no `any`, no double casts. Untrusted input (model answers, files) is parsed
   with Typebox.
 - Before designing a new story or mechanic, read the design checklist in `docs/LESSONS-LEARNED.md`.
+- Every mechanic package has a `README.md` in the shape of `docs/MECHANIC-README.md`. After a change of a
+  mechanic's tools, events, options, APIs or prompts, run `pnpm docs:mechanics` and commit the READMEs; `pnpm check`
+  and the CI job `docs` fail on a stale block. A new mechanic package goes into `MECHANICS` in `scripts/mechanic-docs.ts`.
 - Stories are written in the TypeScript builder DSL (`packages/sdk/src/`) or as YAML or JSON files; both
   are checked against the story schema (`story.schema.json`, `docs/STORY-FORMAT.md`). A registered story
   lives in its own folder `stories/<name>/` (`story.ts` plus a short `README.md`) and is listed in

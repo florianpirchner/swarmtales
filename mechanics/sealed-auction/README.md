@@ -1,6 +1,9 @@
-# sealed-auction
+# Sealed auction
 
-_To be written._
+Solo seats bid on a series of lots, one lot at a time, with sealed bids and a purse of coins per game. Three kinds of
+lot measure three classic auction skills against closed-form references: pay-your-bid lots with private values
+(shading), pay-the-runner-up lots with private values (truthful bidding) and shared-worth lots where each seat holds
+only a noisy estimate (the winner's curse). The framing is neutral; no lot carries a textbook name.
 
 ## At a glance
 
@@ -24,7 +27,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **A game.** `game_started` hands every seat a `purse`; `lots_dealt` deals each lot's private values (between
+   `valueMin` and `valueMax`) or its hidden worth (between `worthMin` and `worthMax`) with one estimate per seat,
+   off by at most `noise`. Values and estimates are told only to their owner. The kinds come in the order of `lots`.
+2. **A lot.** `lot_opened` opens the next lot. Each seat sees its value or estimate, its coins and the earlier results
+   with `viewAuction`, and bids once with `bid` (0 passes; a bid must be at least `reserve` and at most the coins
+   left). `bid_placed` is sealed until the lot resolves. A seat that has not bid after `deadline` minutes passes.
+3. **Resolution.** `lot_resolved` makes every bid public, with the winner and the price: the own bid in a pay-your-bid
+   or shared-worth lot, the runner-up's bid (at least `reserve`) in a pay-the-runner-up lot, and a shared lot's
+   worth. The winner earns its value (or the worth) minus the price; the price leaves its purse.
+4. **Game end.** `game_ended` lists the points; `game_scored` (for the human and the reporter) compares the bids
+   with the references: shading against the symmetric equilibrium bid `min + (n-1)/n (v - min)`, truthfulness in
+   runner-up lots, and bids above the curse-free ceiling `estimate - noise (n-1)/(n+1)` in shared lots. Unspent
+   coins are worth nothing. After `games` games, `match_ended` ends the run.
+
+Between games the mechanic provides `brain-source`, so [strategy-brain](../strategy-brain/README.md) can open a retro
+window per seat. The single-lot references ignore the purse, so a bid held back to save coins for a later lot reads as
+underbidding; the reference therefore counts purse-capped bids apart (P160).
 
 ## Tools
 
@@ -221,12 +240,33 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From `stories/blind-bid/story.ts`:
+
+```ts
+mechanics: [
+	sealedAuction.with({ games, lots: [...lots], purse, deadline: DEADLINE }),
+	strategyBrain.with({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_MINUTES, shared: false, brainAtStart: true }),
+],
+```
+
+Four seats play three games of six lots (two of each kind) with a purse of 100 coins and two minutes per lot.
 
 ## Lessons and loopholes
 
-_To be written._
+See the log in [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md).
+
+| ID | What happened | Status |
+| --- | --- | --- |
+| P92 | Neutral framing does not hide the games. | open |
+| P160 | The purse read as underbidding: purse-capped bids counted as untruthful. | fixed (capped bids counted apart) |
+| P161 | Neutral names do not hide auction theory. | open |
+| P162 | Shared lots are over-shaded and the curse is small. | open |
+| P163 | The purse binds unevenly. | open |
 
 ## Tests
 
-_To be written._
+The rules and the scripted match live in `test/stories/blind-bid.test.ts`: the deal of private values and estimates
+inside the noise, the price rules of pay-your-bid and pay-the-runner-up lots, the curse on a shared lot, the shading and
+truthfulness scores, a scripted three-game match with a public result per lot and a brain per seat, private values
+told only to their owner, missed bids as passes, bids refused outside a waiting lot or above the coins, the registered
+variants, determinism and a snapshot round trip inside a game and inside a retro window.

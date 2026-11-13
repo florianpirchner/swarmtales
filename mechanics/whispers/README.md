@@ -1,6 +1,9 @@
-# whispers
+# Whispers
 
-_To be written._
+The hidden troublemaker of the Whispers story. One resident, chosen from the seed, is the whisperer: its aim is
+discord, and the city reminds it of its duty. It may forge a receipt (`forgeReceipt`) that reads exactly like a real
+one but quotes words the sender never wrote. Around it runs a popularity vote: residents name their favourite in secret
+(`nameFavourite`) and the winners earn points.
 
 ## At a glance
 
@@ -24,7 +27,21 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **The whisperer.** At the start the whisperer is chosen (`whisperer.agent`, or a seeded pick; `whisperer_chosen`).
+   It learns its role privately; nobody else does. The city sends it duty notices at the minutes `whisperer.duty`
+   names (`whisper_duty`), with its marks and whom it has reached. A control run (`control`) has no whisperer.
+2. **Forgery.** With `whisperer.forgery` the whisperer can `forgeReceipt`: show one resident, privately, a receipt of a
+   DM another resident sent it, keeping the receipt's number, sender, recipient and minute but quoting the text it
+   writes. It costs a mark like a real show (`marks`) and writes `receipt_forged` (for the log, not for residents).
+   Only with `quoteDms` on (see [receipts](../receipts/README.md)) do receipts carry words, so only then can a forgery
+   lie about them.
+3. **Direction.** At figure direction 10 (`direction.level`) the whisperer gets measured orders (`whisperer.quota`):
+   how many whispers and recipients between two votes, with a report after each vote. With `direction.defies` the
+   whisperer may refuse the gamemaker's orders (`defy` in [channels](../channels/README.md)).
+4. **The popularity vote.** Each round of `popularity.rounds` opens at `opensAt` (`popularity_opened`, a board post and
+   notices); residents cast a secret ballot with `nameFavourite` (never themselves; the last ballot counts,
+   `popularity_ballot`); at `countsAt` the ballots are counted and each winner gets `points` (`popularity_result`). A
+   resident at the gate still votes; a struck one does not.
 
 ## Tools
 
@@ -218,12 +235,40 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner maps the Whispers story's `whisperer` and `popularity` blocks and the run's dials
+([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+whispers.with({
+	whisperer: { forgery: spec.forgery, duty: { ...spec.duty }, ...quota },
+	popularity: { rounds: popularity.rounds.map((round) => ({ ...round })), texts: { ...popularity.texts } },
+	control: !run.whisperer,
+	direction: { level: run.figureDirection, defies: run.gamemaker && story.gamemaker !== undefined },
+}),
+```
+
+`whispers-rumours` is the same story without receipts to show: word against word.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **LH11** the gamemaker handed the whisperer the city's own data. Open.
+- **P64, P67, P69** the whisperer went quiet, spent its budget on its own fragment, or defused the role. Fixed at
+  `--figure-direction 10` (the quota).
+- **P65** the vote ranking named IDs instead of names. Fixed in code.
+- **P70** fragments and whispers compete for the whisperer's DM cap. Open.
+- **P71** Haiku targets forgive every whisper. Works in one run; not yet in the story's direction.
+- **P73** Haiku refuses the whisperer role. Open (DeepSeek played it in run 008).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/whispers/whispers.test.ts`](../../test/mechanics/whispers/whispers.test.ts): the whisperer, duty
+  notices, forgery, the vote.
+- [`whispers-exile.test.ts`](../../test/mechanics/whispers/whispers-exile.test.ts): residents at the gate and struck
+  ones, a struck whisperer.
+- [`whispers-resume.test.ts`](../../test/mechanics/whispers/whispers-resume.test.ts),
+  [`whispers-differential.test.ts`](../../test/mechanics/whispers/whispers-differential.test.ts): resumed runs and the
+  old engine.
+- The story tests [`whispers.test.ts`](../../test/stories/whispers.test.ts) and
+  [`whispers-direction.test.ts`](../../test/stories/whispers-direction.test.ts).

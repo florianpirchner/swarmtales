@@ -1,6 +1,8 @@
-# team-channel
+# Team channel
 
-_To be written._
+A private chat per team. Teams are fixed by the story; a resident posts to and reads only its own team's channel, with
+a cap on posts per round so talk cannot crowd out play. The game (or the story) opens the next round. The mechanic
+knows no game word: a "round" is whatever the caller says it is.
 
 ## At a glance
 
@@ -24,7 +26,13 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Teams.** `teams` lists the teams and their members; a resident belongs to at most one team.
+2. **Posting.** `postTeam` posts to the own team's channel (`team_post`), at most `maxPostsPerMove` times per round.
+   Another mechanic opens the next round with `team-channel.resetCap` (the games do it when the side on move changes).
+3. **Reading.** `readTeam` returns the posts of the current epoch. With `notify` new posts are shown to the other
+   members at the start of their turn.
+4. **Others.** The [strategy-brain](../strategy-brain/README.md) counts successful team posts in a retro window
+   (`postTool`), and chess and the card games use the API to wake advisors.
 
 ## Tools
 
@@ -122,12 +130,21 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/tictactoe-teams/story.ts`](../../stories/tictactoe-teams/story.ts):
+
+```ts
+teamChannel.with({ teams, maxPostsPerMove: 3 }),
+```
+
+Chess loads it with no teams for solo seats, so nobody is granted its tools.
 
 ## Lessons and loopholes
 
-_To be written._
+No row is about the channel itself; the cost of team talk is in **P116** and **P332**
+([docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md)).
 
 ## Tests
 
-_To be written._
+[`test/mechanics/team-channel/team-channel.test.ts`](../../test/mechanics/team-channel/team-channel.test.ts): private
+channels, the cap per round and `resetCap`, epochs, determinism, snapshots, documented options and a resident in two
+teams refused.

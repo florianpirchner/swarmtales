@@ -1,6 +1,9 @@
-# progression
+# Progression
 
-_To be written._
+The levels of the city. Every resident stands on a level, reads its task with `getProblem` and submits the level's
+password with `submitSolution`; a right code opens the door to the next level and pays the level's reward, a wrong one
+costs points. The mechanic also opens and closes tools level by level, groups levels into acts, keeps the ranking and
+writes the frame of every turn (task and status line).
 
 ## At a glance
 
@@ -24,7 +27,23 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Levels and doors.** `levels` lists the story's levels with title, reward, task text and the complete tool set of
+   the level (not cumulative). A level's door opens at `opensAt`; with `holdAfter` whoever passes that door waits until
+   every resident has (the Act I checkpoint). Above `lastLevel` a resident counts as finished and gets
+   `finishedNotice`.
+2. **Submitting.** `submitSolution` asks `puzzles` for the resident's solution. Right: `submission`, `level_up` with the
+   reward booked in the `ledger`, a receipt (`receipts`) and `level_entered` on the next level (the script reacts to it).
+   Wrong: a penalty from `penalty` (one number, or a ladder per act whose last step repeats), and after
+   `maxAttemptsPerWindow` wrong codes in `attemptWindowMinutes` further submissions are refused for the window.
+3. **Tools.** On entering a level the resident's tools become the level's set (`tools_unlocked`); `activeTools` lists
+   what is open. `managed` tools stay locked until the script unlocks them (`unlockTools`).
+4. **Acts.** `acts` names the first level of each act after the first. When the first resident enters an act, the
+   silent `act_started` is written; `act_ended` when it ends. `goals`, `seal` and `tribunal` listen to both. Penalties
+   and lost blames climb a ladder per act (`blamePenalty`, charged for `receipts`).
+5. **Ranking and status.** `getStatus` shows minute, level, points, rank, unread DMs, marks, receipts and open tools;
+   `listAgents` lists every resident with its level. The ranking (points, then level, then id, the exiled last) decides
+   `survivors` at the end. The task of each turn is built from the level's template and the lines other mechanics add
+   (names, marks, the holdout tribunal).
 
 ## Tools
 
@@ -270,12 +289,35 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+The city runner maps the story's levels and rules ([`apps/cli/src/host/story.ts`](../../apps/cli/src/host/story.ts)):
+
+```ts
+progression.with({
+	levels: story.levels.map((level) => ({ number: level.number, title: level.title, reward: level.reward, tools: [...level.tools], task: level.task })),
+	acts: (story.acts ?? []).map((act) => act.fromLevel).filter((fromLevel) => fromLevel > 1),
+	penalty: [...story.rules.penalty], maxAttemptsPerWindow: story.rules.maxAttemptsPerWindow, attemptWindowMinutes: story.rules.attemptWindowMinutes,
+	survivors: story.run.survivors, managed: [...LEVEL_MANAGED_TOOLS], ...
+}),
+```
+
+The City of Keys charges 2, 4, 6, then 8 points for wrong codes within an act (`penalty: [2, 4, 6, 8]`) and allows two
+wrong codes per five minutes.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P1** board tools vanished on level 3 for a pair member who moved on. Fixed (the board stays open).
+- **P3** penalty fear: residents did not submit without verification. Partly fixed (pressure from the tribunal).
+- **P15** dead minutes at the end of a run. Partly fixed.
+- **P22** holders denied holding a piece. Fixed (a hint in the task).
+- **P35** residents held a value and refused to use it. Partly tested (the penalty ladder, v09).
 
 ## Tests
 
-_To be written._
+- [`test/mechanics/progression/progression.test.ts`](../../test/mechanics/progression/progression.test.ts):
+  `getProblem` as the old tool answered, resuming the Act I checkpoint.
+- [`status.test.ts`](../../test/mechanics/progression/status.test.ts), [`turns.test.ts`](../../test/mechanics/progression/turns.test.ts),
+  [`notices.test.ts`](../../test/mechanics/progression/notices.test.ts), [`solved.test.ts`](../../test/mechanics/progression/solved.test.ts):
+  the status line and `getStatus` against the golden runs, the turn frame, notices, solved levels.
+- `test/mechanics/t3/`: the gate, resumes and the order of events with the real mechanics of team T3.

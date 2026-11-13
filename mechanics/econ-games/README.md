@@ -1,6 +1,9 @@
-# econ-games
+# Econ games
 
-_To be written._
+Classic experimental-economics games for solo seats, played one after another, each over several rounds: a public
+goods game, an ultimatum game in rotating pairs and a prisoner's dilemma in rotating pairs. The framing is neutral (a
+shared fund, a split offer, an A-or-B choice) and no game is named, so a model has to play the numbers rather than
+recite a textbook answer.
 
 ## At a glance
 
@@ -24,7 +27,19 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Blocks.** `blocks` lists the games in order with their rounds (`block_started`, `round_opened`). Whether seats know
+   the number of rounds is `showHorizon` (off by default, against end-game defection).
+2. **Public goods.** Every seat gets `endowment` tokens and secretly puts some into a fund (`contribute`); the fund is
+   multiplied by `multiplier` and split equally.
+3. **Ultimatum.** In rotating pairs the proposer offers a part of `pie` (`offer`); the responder accepts or rejects
+   (`respond`); a rejection gives both nothing.
+4. **Dilemma.** Rotating pairs choose A or B at the same time (`choose`) from the `dilemma` payoff table (A is
+   cooperation).
+5. **Sealed decisions.** Decisions are sealed (`decision_made`, for the human only) until the round resolves
+   (`round_resolved`). A decision not made within `deadline` minutes takes the default (nothing put in, no offer,
+   reject, B) and is marked missed. `viewTable` shows the seat's own game and history.
+6. **Scoring.** Each game ends with `block_scored`: the distance from Nash play and from the social optimum, for the
+   human only. It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md).
 
 ## Tools
 
@@ -269,12 +284,29 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/econ-lab/story.ts`](../../stories/econ-lab/story.ts):
+
+```ts
+econGames.with({ blocks: blocks.map((block) => ({ ...block })), showHorizon, deadline: DEADLINE }),
+```
+
+`econ-lab-dilemma` plays one block of 12 rounds of the dilemma only.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P90** rotating pairs read as a one-shot game. Open.
+- **P91** the split offer has no learning signal. Open.
+- **P92** neutral framing does not hide the games. Open.
+- **P93** equal game lengths leaked the horizon. Fixed.
+- **P431** 429 errors lose turns when many runs share the API. Open.
+- **P433** the brain carries the selfish lesson into the next game. Open.
+- **P436** Opus plays the social optimum. Open.
 
 ## Tests
 
-_To be written._
+The mechanic is tested through its story: [`test/stories/econ-lab.test.ts`](../../test/stories/econ-lab.test.ts)
+(rotating pairs, the distance from Nash play and the optimum, the three games in order with sealed decisions and
+payoffs, fresh contexts with the brain, defaults for missed decisions, the control arm, decisions open only for the
+seat that owes them, determinism and snapshots).

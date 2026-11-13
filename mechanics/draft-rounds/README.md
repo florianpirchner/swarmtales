@@ -1,6 +1,9 @@
-# draft-rounds
+# Draft rounds
 
-_To be written._
+A drafting game (the game of Quarry) for solo seats. In each pack round every seat opens a pack, keeps one card and
+passes the rest on, until the packs are empty; then each quarry scores the square of each resource it collected, a
+bonus for the single biggest holder of a resource, and a place bonus. A seat may also burn a card to deny it to the
+next seat.
 
 ## At a glance
 
@@ -24,7 +27,21 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **Cards.** Four resources (amber, basalt, cobalt, jade) and a wild ore (lodestone, `wilds` per game).
+2. **Pack rounds.** A game has `packs` pack rounds of `packSize` cards. Every seat opens a pack (`draft_pick_opened`),
+   keeps one card with `pick` and passes the rest: to the next seat in odd rounds, to the previous one in even rounds.
+   Picks are simultaneous and sealed (`draft_card_picked`, for the human only). With a pick a seat may also burn one
+   more card of the pack (`maxBurns` per game, `burnCost` points each). A pick not made within `deadline` minutes takes
+   the first card and is marked missed.
+3. **What a seat sees.** `viewTable` shows its own pack, its quarry and who passed the pack to it. Other quarries are
+   revealed at the game's end (`openHands` shows them all along).
+4. **Scoring.** Each resource scores the square of its cards; a set takes at most one lodestone and the lodestones go
+   to the biggest sets. The single seat with the most cards of a resource gets `majorityBonus` (a tie scores nothing,
+   so a hate pick can cost a neighbour its bonus). `placeBonus` pays the first, second ... place of the game
+   (`draft_game_ended`).
+5. **Reference.** Every pick is scored against the greedy pick (what it added against the best card, and whether it
+   took the receiver's best card), and each game against a greedy table on the same deal (`draft_game_scored`, for the
+   human only). It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md).
 
 ## Tools
 
@@ -200,12 +217,27 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/quarry/story.ts`](../../stories/quarry/story.ts):
+
+```ts
+draftRounds.with({ games, packs, packSize, openHands, deadline: DEADLINE, ...(burns ? {} : { maxBurns: 0 }) }),
+```
+
+`quarry-open` shows every quarry during play; `quarry` without `-burn` sets `maxBurns: 0`.
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
+
+- **P121, P122** the per-pick greedy reference is blunt and the greedy table a noisy baseline. Open.
+- **P123, P125** the burn was never used while it cost points; free burns guard the own lane and shrink the table.
+  Answered (`burnCost` 0).
+- **P124** a tied top lane was named by list order. Fixed.
+- **P126** the brain does not learn a cost it cannot see. Partly fixed.
+- **P127** pick calls without a card. By design.
 
 ## Tests
 
-_To be written._
+The mechanic is tested through its story: [`test/stories/quarry.test.ts`](../../test/stories/quarry.test.ts) (the
+deal, passing directions, sealed picks and the deadline, burns, scoring with wilds, majorities and places, the greedy
+reference, the variants, determinism and snapshots).

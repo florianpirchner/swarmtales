@@ -1,6 +1,8 @@
-# liars-dice
+# Liar's dice
 
-_To be written._
+The bluffing game with hidden dice, for solo seats. Each round every seat rolls its dice in secret; in turn, a seat
+either bids higher ("at least four fives on the whole table") or calls the last bid a lie. A call reveals every die and
+the loser of the call loses a die; the last seat with dice wins the game.
 
 ## At a glance
 
@@ -24,7 +26,20 @@ _To be written._
 
 ## How it plays
 
-_To be written._
+1. **A game.** Every seat starts with `dice` dice of `faces` faces. Each round the seats still in roll in secret
+   (seeded; `dice_rolled` is for the human only).
+2. **Bids.** In table order a seat either `bid`s a quantity and face that beats the standing bid and fits on the table
+   (`dice_bid`), or calls `liar` on the last bid (`dice_called`). With `wildOnes` ones count for every face and cannot
+   be bid on. A bid or call may carry a short public remark (`say`, table talk; off with `talk: false`). The reason a
+   seat gives stays for the human, so a bluff stays a bluff.
+3. **The call.** Every die is revealed. If the table holds at least the bid's quantity of its face, the caller loses a
+   die, else the bidder does. The loser opens the next round (or the next seat still in). A seat without dice is out
+   (`dice_seat_out`); the last seat with dice wins. Places score `placePoints` (default 3, 2, 1, 0).
+4. **The clock.** A seat that does not act within `deadline` minutes calls liar, or opens with the lowest bid.
+5. **Scoring for the human.** Every decision is scored against a simple probability baseline (the seat's own dice,
+   every other die fair and unknown; it reads nothing into the bids) in `dice_decision_scored`; every game ends with
+   `dice_game_scored` (bluffs, calls won, agreement).
+6. **Brain.** It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md).
 
 ## Tools
 
@@ -265,12 +280,27 @@ Prompts (the files a story may override in its own `prompts/` folder):
 
 ## Example
 
-_To be written._
+From [`stories/liars-dice/story.ts`](../../stories/liars-dice/story.ts):
+
+```ts
+liarsDice.with({ games, dice, talk, placePoints, deadline: DEADLINE }),
+```
 
 ## Lessons and loopholes
 
-_To be written._
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md) and the story's
+[BLUFFING.md](../../stories/liars-dice/BLUFFING.md):
+
+- **P280, P281** table talk is honest self-disclosure; no deliberate bluff by Haiku. Open.
+- **P282, P422** the own-dice baseline overrates liar calls and calls a read a bluff. Open.
+- **P283** out-of-turn tries. Fixed, to be measured.
+- **P284** the brain's word cap is overrun again. Open.
+- **P420, P421, P424** Opus dominates a Haiku table without lying; Sonnet plays worse than Haiku; Opus does not bluff
+  at a table of readers either. Open.
+- **P423** the game rewards bluffing only against readers. Open.
 
 ## Tests
 
-_To be written._
+The mechanic is tested through its story: [`test/stories/liars-dice.test.ts`](../../test/stories/liars-dice.test.ts)
+(bids and calls, wild ones, reveals and lost dice, seats out and places, the deadline, the baseline, the variants,
+determinism and snapshots).
