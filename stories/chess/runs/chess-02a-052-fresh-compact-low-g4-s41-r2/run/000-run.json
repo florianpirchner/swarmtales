@@ -1,0 +1,29 @@
+{
+  "run": "run-001",
+  "number": 1,
+  "startedAt": "2026-11-13T14:03:33.766Z",
+  "runtime": 2,
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "storyId": "chess-fresh-compact-g4-p80",
+  "kind": "core",
+  "title": "Chess",
+  "effective": {
+    "agents": 2,
+    "minutes": 254,
+    "seed": 41,
+    "thinking": "low"
+  },
+  "agents": [
+    {
+      "agent": "A01",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "agent": "A02",
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5"
+    }
+  ]
+}
