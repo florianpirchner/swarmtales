@@ -1,6 +1,7 @@
 import { mountViewer, type ViewerHandle, type ViewerHost } from "@swarmtales/viewer-ui";
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { loadBundle } from "./bundled-source.ts";
 import { Launcher } from "./launcher.tsx";
 import { locationFromQuery } from "./github-source.ts";
 import type { Opened } from "./types.ts";
@@ -30,7 +31,9 @@ function Shell() {
 	const [data, setData] = useState<ViewerData>({ stories: {}, views: [] });
 	useEffect(() => {
 		void loadViewerData("./viewer-data.json").then(setData);
-	}, []);
+		// Runs bundled next to the page (a private copy of the viewer) open right away, unless a `?repo=` link asks for GitHub.
+		if (fromQuery === undefined) void loadBundle("./runs", (url, init) => fetch(url, init)).then((bundle) => { if (bundle !== undefined) setOpened((current) => current ?? bundle); });
+	}, [fromQuery]);
 	if (opened === undefined) return <Launcher onOpen={setOpened} onTruncated={onTruncated} {...(fromQuery === undefined ? {} : { initial: fromQuery })} />;
 	return (
 		<>

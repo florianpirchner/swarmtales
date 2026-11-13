@@ -23,11 +23,20 @@ story as JSON (for the story graph) and the `mechanics/*/views.json` view descri
 `.github/workflows/pages.yml` builds with `build:pages` and deploys `dist/` on a push to `main` that touches the viewer
 (or by hand). The page is public even while the repository is private: it holds the app only, never runs or stories.
 Runs of a private repository are read in the browser with a fine-grained token (read access to contents), which is
-typed or pasted into the page, kept in memory only (gone on reload), and sent only to `api.github.com`; the page's
-Content Security Policy allows no other host. The Pages origin `<owner>.github.io` is shared by every Pages site of the
-owner, which is one more reason the token is never put into browser storage. A link such as
+typed or pasted into the page and sent only to `api.github.com`; the page's Content Security Policy allows no other
+host. By default it is kept in memory only (gone on reload). Ticking "Remember on this device" keeps it in
+`localStorage` until the box is unticked and Open is pressed again; then a `?repo=` link opens right away. The Pages
+origin `<owner>.github.io` is shared by every Pages site of the owner, so this is opt-in and meant for a read-only
+token of one repository. A link such as
 `https://<owner>.github.io/swarmtales/?repo=owner/name&path=stories/chess/runs` fills the form; the token is pasted
 there and Open loads the runs.
 
 One-time setup in the repository settings: Actions allowed, and Pages > Source "GitHub Actions". `ci.yml` runs only by
 hand, so enabling Actions starts no checks.
+
+## A private copy with runs inside
+
+`tsx scripts/bundle-viewer-runs.ts --out <dist> --title <title> <run-folder>...` packs run folders into a built viewer:
+one `runs/<name>.json` per folder (only the files the viewer reads, no per-minute snapshots) and `runs/index.json`. The
+page opens them at start, without GitHub or a token. Meant for a private copy, such as a claude.ai artifact; the Pages
+check refuses a `runs/` folder.
