@@ -1,11 +1,31 @@
 name: CI
 
-# Manual only: the checks run locally (`pnpm check`). Actions is on for the Pages workflow alone.
+# The full check is manual: it runs locally (`pnpm check`) or by hand here. Only the `docs` job runs on every push and
+# pull request: it checks that the mechanic READMEs match the code (docs/MECHANIC-README.md).
 on:
+  push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Mechanic READMEs
+        run: pnpm docs:mechanics --check
+
   check:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
