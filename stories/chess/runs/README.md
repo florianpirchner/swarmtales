@@ -62,6 +62,7 @@ Runtime: the runtime revision a run played on ([docs/RUNTIME-REVISIONS.md](../..
 | [chess-02a-054-fresh-compact-low-g4-s47-r2](chess-02a-054-fresh-compact-low-g4-s47-r2/) | 2026-11-13 | r2 | `chess-fresh-compact-g4-p80`, seed 47, `--thinking low` | Haiku | A01 2, A02 2; ACPL 174 | 0.21 USD |
 | [chess-02a-055-fresh-compact-low-g4-s53-r2](chess-02a-055-fresh-compact-low-g4-s53-r2/) | 2026-11-13 | r2 | `chess-fresh-compact-g4-p80`, seed 53, `--thinking low` | Haiku | A01 1, A02 3; ACPL 185 | 0.21 USD |
 | [chess-02a-056-fresh-compact-settle-g4-s41-sonnet-r2](chess-02a-056-fresh-compact-settle-g4-s41-sonnet-r2/) | 2026-11-13 | r2 | `chess-fresh-compact-settle-g4` (cap 160), seed 41 | Sonnet | A01 2.5, A02 1.5 (two resignations, repetition, checkmate; no game at the cap); ACPL 88; 0.81 USD per 100 half-moves (P343, P344) | 2.81 USD |
+| [chess-02a-057-compact-settle-g4-s41-sonnet-r2](chess-02a-057-compact-settle-g4-s41-sonnet-r2/) | 2026-11-13 | r2 | `chess-compact-settle-g4` (cap 160), seed 41: context kept, the baseline for 056 | Sonnet | A01 3, A02 1 (three resignations, checkmate; no game at the cap); ACPL 97; 0.74 USD per 100 half-moves (P343) | 3.05 USD |
 
 ## Comparison (2026-11-06)
 
@@ -161,10 +162,11 @@ Runtime r2. Haiku `-fresh -compact` at cap 80 with `--thinking low` on the four 
 | Haiku `-fresh -compact`, low | 052-055 | 41, 43, 47, 53 | 164, 157, 174, 185 | **170** | 977-1,030 | 2.6k | 0.071-0.074 |
 | Sonnet default, cap 80, r1 | 041 | 41 | 63 | 63 | 373 | 25k | 1.05 |
 | Sonnet `-fresh -compact -settle`, cap 160 | 056 | 41 | 88 | 88 | 394 | 2.5k | 0.81 |
+| Sonnet `-compact -settle`, cap 160, context kept | 057 | 41 | 97 | 97 | 325 | 20.5k | 0.74 |
 
 - **Thinking low is cheaper and plays worse** (P342): output down by a third, cost per half-move down by a third, ACPL up by 51 on the same four seeds. Keep medium for chess.
-- **Sonnet does not think longer on a fresh context** (P343), unlike Haiku: 394 against 373 output tokens per half-move, so `-fresh` saves a quarter. But it played weaker: ACPL 88 against 63, 7.4 against 1.9 blunders per 100 moves (one match each; 041 stopped at move 40, so its moves are all middlegame).
+- **Sonnet does not think longer on a fresh context** (P343), unlike Haiku: 394 against 373 output tokens per half-move. Against the fair baseline (057: same cap, same seed, context kept) it plays no worse: ACPL 88 against 97, 7.4 against 8.9 blunders per 100 moves. The ACPL of 63 in 041 came from games cut at move 40, middlegame only. But `-fresh` is not cheaper either: 0.81 against 0.74 USD per 100 half-moves, because of the cache writes.
 - **Half of the fresh-context cost is cache writes** (P344): the position is written to the cache on every half-move and never read again.
 - **160 half-moves is enough for Sonnet here** (P328): no game reached the cap, so `-settle` was not used.
 
-Cost of this round: 0.82 USD (Haiku) plus 2.81 USD (Sonnet) plus about 0.04 USD for the reporter drafts.
+Cost of this round: 0.82 USD (Haiku) plus 2.81 USD (056) plus 3.05 USD (057) plus about 0.05 USD for the reporter drafts.
