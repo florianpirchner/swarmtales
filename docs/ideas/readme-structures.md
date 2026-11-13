@@ -3,6 +3,7 @@
 Status: **idea, for Flo to choose** (2026-11-12). Nothing in the README is changed yet. Earlier README
 discussions and drafts are left aside on purpose; this paper starts from the repository as it is on
 `main` today and from [CROSS-GAME-FINDINGS.md](../CROSS-GAME-FINDINGS.md).
+Each option is written out as a full README draft: [A](readme-drafts/A-lab-report.md), [B](readme-drafts/B-arcade.md), [C](readme-drafts/C-construction-kit.md).
 
 ## 1. Why the README has to change
 
