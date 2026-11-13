@@ -8,15 +8,17 @@ interface Props {
 	readonly onOpen: (opened: Opened) => void;
 	/** Called when GitHub sends only part of a repository's file tree. */
 	readonly onTruncated: () => void;
+	/** A GitHub location from the page's `?repo=` query: fills the form. */
+	readonly initial?: GithubLocation;
 }
 
 /** Where the runs come from: a folder (pick, drop, File System Access) or a GitHub repository. */
-export function Launcher({ onOpen, onTruncated }: Props) {
+export function Launcher({ onOpen, onTruncated, initial }: Props) {
 	const [error, setError] = useState<string | undefined>(undefined);
 	const [over, setOver] = useState(false);
-	const [repo, setRepo] = useState("");
-	const [ref, setRef] = useState("main");
-	const [path, setPath] = useState("stories");
+	const [repo, setRepo] = useState(initial === undefined ? "" : `${initial.owner}/${initial.repo}`);
+	const [ref, setRef] = useState(initial?.ref ?? "main");
+	const [path, setPath] = useState(initial?.path ?? "stories");
 	// The token lives in this component's state only: no storage, no URL, no log.
 	const [token, setToken] = useState("");
 	const picker = directoryPicker();
@@ -77,10 +79,10 @@ export function Launcher({ onOpen, onTruncated }: Props) {
 					<input aria-label="Repository" placeholder="owner/name" value={repo} onChange={(event) => { setRepo(event.target.value); }} />
 					<input aria-label="Branch or tag" placeholder="main" value={ref} onChange={(event) => { setRef(event.target.value); }} size={8} />
 					<input aria-label="Folder" placeholder="stories/chess/runs" value={path} onChange={(event) => { setPath(event.target.value); }} />
-					<input aria-label="Access token (optional)" type="password" autoComplete="off" placeholder="token for a private repository (kept in memory only)" value={token} onChange={(event) => { setToken(event.target.value); }} />
+					<input aria-label="Access token (optional)" type="password" autoComplete="off" autoFocus={initial !== undefined} placeholder="token for a private repository (kept in memory only)" value={token} onChange={(event) => { setToken(event.target.value); }} />
 					<button type="submit">Open</button>
 				</form>
-				<p className="hint">A public repository needs no token. A fine-grained token with read access to contents is enough; it stays in this tab&apos;s memory and goes only to GitHub. You can also link here directly: <code>?repo=owner/name&amp;ref=main&amp;path=stories/chess/runs</code>.</p>
+				<p className="hint">A public repository needs no token. A fine-grained token with read access to contents is enough; it stays in this tab&apos;s memory and goes only to GitHub. A link with <code>?repo=owner/name&amp;ref=main&amp;path=stories/chess/runs</code> fills this form.</p>
 			</section>
 			{error !== undefined && <p className="error" role="alert">{error}</p>}
 		</div>

@@ -9,6 +9,7 @@
 		"export-data": "tsx --conditions=development ../../scripts/export-viewer-data.ts",
 		"dev": "pnpm export-data && vite",
 		"build": "pnpm export-data && vite build",
+		"build:pages": "pnpm export-data --no-stories && vite build && tsx ../../scripts/check-pages-artifact.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {

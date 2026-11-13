@@ -1,0 +1,57 @@
+# Publishes the run viewer (apps/viewer-web) to GitHub Pages: the built static app only. No runs, no stories,
+# no source maps; `scripts/check-pages-artifact.ts` refuses anything else before the upload. The page is public
+# even while the repository is private; runs are read in the browser from GitHub with a token kept in memory.
+# The checks in ci.yml stay manual; this is the only workflow that runs by itself.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/viewer-web/**
+      - packages/viewer-core/**
+      - packages/viewer-ui/**
+      - mechanics/*/views.json
+      - scripts/export-viewer-data.ts
+      - scripts/check-pages-artifact.ts
+      - pnpm-lock.yaml
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build the viewer (app only) and check the artifact
+        run: pnpm --filter @swarmtales/viewer-web build:pages
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/viewer-web/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
