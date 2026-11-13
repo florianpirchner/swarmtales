@@ -19,6 +19,7 @@
     "knip": "knip",
     "knip:production": "tsx scripts/check-production-exports.ts",
     "build": "pnpm -r build",
+    "pages:check": "tsx scripts/check-pages-artifact.ts",
     "smoke": "node scripts/smoke-built-cli.mjs",
     "mutants": "tsx --conditions=development scripts/mutants.ts",
     "report:minutes": "tsx --conditions=development apps/cli/src/report.ts",

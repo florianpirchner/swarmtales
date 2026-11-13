@@ -2,7 +2,7 @@ import { mountViewer, type ViewerHandle, type ViewerHost } from "@swarmtales/vie
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Launcher } from "./launcher.tsx";
-import { githubSource, locationFromQuery } from "./github-source.ts";
+import { locationFromQuery } from "./github-source.ts";
 import type { Opened } from "./types.ts";
 import { loadViewerData, type ViewerData } from "./viewer-data.ts";
 import "./app.css";
@@ -25,12 +25,13 @@ function Shell() {
 	const fromQuery = useMemo(() => locationFromQuery(window.location.search), []);
 	const [truncated, setTruncated] = useState(false);
 	const onTruncated = useCallback(() => { setTruncated(true); }, []);
-	const [opened, setOpened] = useState<Opened | undefined>(() => (fromQuery === undefined ? undefined : { source: githubSource(fromQuery, (url, init) => fetch(url, init), undefined, onTruncated), title: `${fromQuery.owner}/${fromQuery.repo}@${fromQuery.ref}` }));
+	// A `?repo=` link fills the launcher's GitHub form and waits for Open, so a private repository's token can be pasted first.
+	const [opened, setOpened] = useState<Opened | undefined>(undefined);
 	const [data, setData] = useState<ViewerData>({ stories: {}, views: [] });
 	useEffect(() => {
 		void loadViewerData("./viewer-data.json").then(setData);
 	}, []);
-	if (opened === undefined) return <Launcher onOpen={setOpened} onTruncated={onTruncated} />;
+	if (opened === undefined) return <Launcher onOpen={setOpened} onTruncated={onTruncated} {...(fromQuery === undefined ? {} : { initial: fromQuery })} />;
 	return (
 		<>
 			{truncated && (

@@ -1,9 +1,8 @@
 name: CI
 
+# Manual only: the checks run locally (`pnpm check`). Actions is on for the Pages workflow alone.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
