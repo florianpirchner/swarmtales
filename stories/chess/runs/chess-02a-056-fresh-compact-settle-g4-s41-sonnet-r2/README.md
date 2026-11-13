@@ -17,7 +17,7 @@ None new. The reporter draft's candidates are city-shaped (P89); no game hit the
 
 | # | Problem | Solution |
 |---|---|---|
-| P343 | With `-fresh` Sonnet does not think longer (394 output tokens per half-move against 373 in 041), so the fresh context saves a quarter (0.81 USD per 100 half-moves against 1.05). Play is weaker: ACPL 88 against 63, 7.4 blunders per 100 moves against 1.9 (041 played to move 40 only, so its moves are middlegame moves; one match each). | open: a Sonnet match on the same cap with the context kept, before Opus |
+| P343 | With `-fresh` Sonnet does not think longer (394 output tokens per half-move against 373 in 041), and the match costs 0.81 USD per 100 half-moves. Against 041 (ACPL 63) it looked weaker, but 041 stopped at move 40; the fair baseline 057 (same cap and seed, context kept) has ACPL 97 and 0.74 USD per 100 half-moves. | answered by 057: no strength difference, `-fresh` a little dearer (P344) |
 | P344 | Cache writes are half the cost of a fresh-context match (1.40 of 2.81 USD): the position is written to the cache at 1.25 times the input price on every half-move and never read again. | open: put the cache breakpoint on the system prompt and the tools only when the context is fresh |
 | P328 | With 160 half-moves no game reached the cap: resignation twice, threefold repetition, checkmate (71-101 half-moves). `-settle` was never needed. | partly answered: 160 is enough for Sonnet on this seed |
 | P120 | 4 brain writes over the 150-word cap refused (BRAIN_TOO_LONG), each fixed on a later try. | open |
