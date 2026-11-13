@@ -16,7 +16,13 @@ Sources: pick a folder, drop a folder, the File System Access API (Chromium), or
 serves them). A token for a private repository is typed into the page and kept in memory only.
 
 Build time: `scripts/export-viewer-data.ts` writes `public/viewer-data.json` (not committed) with every registered
-story as JSON (for the story graph) and the `mechanics/*/views.json` view descriptors.
+story as JSON (for the story graph), the `mechanics/*/views.json` view descriptors, and the Games tab's data
+(`scripts/viewer-games.ts`: per story folder its README, variants, tools with the text the residents read, and the
+mechanics with their event types).
+
+The Replay tab lists **highlights**: the lines the run's report cites (`#seq`, with the report's sentence), rare actions
+(an event type seen at most three times) and notable ones (refusals, forgeries, verdicts, ...), each with the actor's
+last thought before it (`highlightsOf` in viewer-core; no model call).
 
 ## GitHub Pages
 

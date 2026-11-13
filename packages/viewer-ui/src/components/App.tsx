@@ -5,6 +5,7 @@ import type { ViewerHost } from "../host.ts";
 import { NO_VOCABULARY, useRun, useVerification } from "../use-run.ts";
 import { Charts } from "./Charts.tsx";
 import { Compare } from "./Compare.tsx";
+import { Games } from "./Games.tsx";
 import { Overview } from "./Overview.tsx";
 import { Replay } from "./Replay.tsx";
 import { Report } from "./Report.tsx";
@@ -14,6 +15,7 @@ const StoryView = lazy(async () => ({ default: (await import("./StoryView.tsx"))
 
 const TABS: readonly { readonly id: ViewId; readonly label: string; readonly needsRun: boolean }[] = [
 	{ id: "runs", label: "Runs", needsRun: false },
+	{ id: "games", label: "Games", needsRun: false },
 	{ id: "overview", label: "Overview", needsRun: true },
 	{ id: "replay", label: "Replay", needsRun: true },
 	{ id: "report", label: "Report", needsRun: true },
@@ -28,6 +30,7 @@ export function App({ host }: { readonly host: ViewerHost }) {
 	const [runDir, setRunDir] = useState<string | undefined>(initial.run);
 	const [seq, setSeq] = useState<number | undefined>(initial.seq);
 	const [compare, setCompare] = useState<readonly string[]>([]);
+	const [game, setGame] = useState<string | undefined>(undefined);
 	const [runs, setRuns] = useState<readonly RunSummary[] | undefined>(undefined);
 	const [error, setError] = useState<string | undefined>(undefined);
 	const vocabulary = host.vocabulary ?? NO_VOCABULARY;
@@ -86,6 +89,7 @@ export function App({ host }: { readonly host: ViewerHost }) {
 	}, []);
 	const body = (() => {
 		if (view === "runs") return <RunList runs={runs} error={error} selected={compare} onOpen={open} onToggle={toggle} onCompare={() => { setView("compare"); }} />;
+		if (view === "games") return <Games games={host.games ?? []} selected={game} onSelect={setGame} runs={runs} onOpenRun={open} />;
 		if (view === "compare") return <Compare source={host.source} dirs={compare} onOpen={open} vocabulary={vocabulary} />;
 		if (view === "story") return <Suspense fallback={<div className="stv-loading">Loading the story view…</div>}><StoryView run={loaded} stories={host.stories ?? {}} onJump={jump} vocabulary={vocabulary} {...(host.initialStory === undefined ? {} : { initial: host.initialStory })} /></Suspense>;
 		if (runDir === undefined) return <div className="stv-empty">Choose a run in the Runs tab first.</div>;

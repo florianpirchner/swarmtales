@@ -42,3 +42,30 @@
 	.stv-main { padding: 10px; }
 	.stv-run-name { margin-left: 0; max-width: 100%; }
 }
+/* Games tab */
+.stv-games { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.stv-game-card { display: flex; flex-direction: column; gap: 6px; text-align: left; font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; cursor: pointer; min-width: 0; }
+.stv-game-card:hover, .stv-game-card:focus-visible { border-color: var(--accent); }
+.stv-game-card strong { font-size: 15px; }
+.stv-game-summary { color: var(--muted); font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.stv-game-meta { margin-top: auto; }
+.stv-chip.here { background: var(--accent-soft); color: var(--accent); }
+.stv-back { margin-bottom: 12px; }
+.stv-game-title { margin: 0 0 6px; font-size: 20px; }
+.stv-game-facts { margin-top: 10px; }
+.stv-game h3 { margin: 0 0 8px; font-size: 15px; }
+.stv-tool-list { margin: 10px 0 0; display: grid; gap: 10px; }
+.stv-tool-list dt { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stv-tool-list dt code { font-weight: 600; }
+.stv-tool-list dd { margin: 2px 0 0; color: var(--text); line-height: 1.5; }
+.stv-mechanic { border-top: 1px solid var(--line); padding: 8px 0; }
+.stv-mechanic summary { cursor: pointer; line-height: 1.5; }
+.stv-mechanic summary span:not(.stv-chip) { color: var(--muted); }
+.stv-events { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.stv-events li { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 4px 10px; align-items: baseline; }
+.stv-event-type { font-weight: 600; overflow-wrap: anywhere; }
+.stv-fields { display: flex; flex-wrap: wrap; gap: 2px 10px; min-width: 0; }
+.stv-field { font-size: 12px; color: var(--muted); }
+.stv-field:has(small) { flex-basis: 100%; }
+.stv-field code { font-family: var(--mono); }
+@media (max-width: 600px) { .stv-events li { grid-template-columns: minmax(0, 1fr); } }

@@ -17,6 +17,7 @@ export { actorLanes, toolCounts, typeCounts, usageByMinute, usageTotals, type La
 export { messageGraph, type MessageGraph } from "./messages.ts";
 export { compareRuns, type Comparison } from "./compare.ts";
 export { reportLinks } from "./report-links.ts";
+export { highlightsOf, type Highlight } from "./highlights.ts";
 export { storyGraph, type GraphEdge, type GraphNode, type StoryGraph } from "./story-graph.ts";
 export { runOverlay, type RunOverlay } from "./overlay.ts";
 export { storyHashOf } from "./story-hash.ts";

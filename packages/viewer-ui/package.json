@@ -14,6 +14,10 @@
 		"./views": {
 			"types": "./src/views.ts",
 			"default": "./src/views.ts"
+		},
+		"./games": {
+			"types": "./src/games.ts",
+			"default": "./src/games.ts"
 		}
 	},
 	"files": [

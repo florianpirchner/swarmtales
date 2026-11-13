@@ -12,7 +12,7 @@ function Viewer({ opened, data }: { readonly opened: Opened; readonly data: View
 	const element = useRef<HTMLDivElement>(null);
 	useEffect(() => {
 		if (element.current === null) return undefined;
-		const host: ViewerHost = { source: opened.source, title: opened.title, stories: data.stories, views: data.views };
+		const host: ViewerHost = { source: opened.source, title: opened.title, stories: data.stories, views: data.views, games: data.games };
 		const handle: ViewerHandle = mountViewer(element.current, host);
 		return () => {
 			// Not while React is rendering this very component.
@@ -28,7 +28,7 @@ function Shell() {
 	const onTruncated = useCallback(() => { setTruncated(true); }, []);
 	// A `?repo=` link fills the launcher's GitHub form and waits for Open, so a private repository's token can be pasted first.
 	const [opened, setOpened] = useState<Opened | undefined>(undefined);
-	const [data, setData] = useState<ViewerData>({ stories: {}, views: [] });
+	const [data, setData] = useState<ViewerData>({ stories: {}, views: [], games: [] });
 	useEffect(() => {
 		void loadViewerData("./viewer-data.json").then(setData);
 		// Runs bundled next to the page (a private copy of the viewer) open right away, unless a `?repo=` link asks for GitHub.

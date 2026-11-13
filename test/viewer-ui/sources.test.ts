@@ -127,7 +127,7 @@ describe("viewer data file", () => {
 		expect(data.views).toHaveLength(1);
 	});
 	it("gives an empty viewer for a file that does not fit", () => {
-		expect(parseViewerData({ nope: true })).toEqual({ stories: {}, views: [] });
-		expect(parseViewerData(undefined)).toEqual({ stories: {}, views: [] });
+		expect(parseViewerData({ nope: true })).toEqual({ stories: {}, views: [], games: [] });
+		expect(parseViewerData(undefined)).toEqual({ stories: {}, views: [], games: [] });
 	});
 });

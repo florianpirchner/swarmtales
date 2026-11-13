@@ -1,5 +1,5 @@
 /** The viewer's place in the page's `location.hash`, e.g. `#run=stories/chess/runs/x/run&view=replay&seq=57`; a bare `#seq=57` is valid. */
-export const VIEW_IDS = ["runs", "overview", "replay", "report", "charts", "compare", "story"] as const;
+export const VIEW_IDS = ["runs", "games", "overview", "replay", "report", "charts", "compare", "story"] as const;
 export type ViewId = (typeof VIEW_IDS)[number];
 
 export interface ViewerLocation {

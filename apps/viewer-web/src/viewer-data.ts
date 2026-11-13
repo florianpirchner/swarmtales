@@ -1,4 +1,5 @@
 /** The build's story and view data (`public/viewer-data.json`, written by `pnpm export-data`). */
+import { parseGames, type GameInfo } from "@swarmtales/viewer-ui/games";
 import { parseViews, type ViewDescriptor } from "@swarmtales/viewer-ui/views";
 import { Type } from "typebox";
 import { Check } from "typebox/value";
@@ -8,29 +9,31 @@ const DataFile = Type.Object({
 	/** Old story names and the current name they stand for. */
 	aliases: Type.Record(Type.String(), Type.String()),
 	views: Type.Array(Type.Unknown()),
+	games: Type.Optional(Type.Array(Type.Unknown())),
 });
 
 export interface ViewerData {
 	readonly stories: Readonly<Record<string, unknown>>;
 	readonly views: readonly ViewDescriptor[];
+	readonly games: readonly GameInfo[];
 }
 
 /** Reads the data file's JSON; a bad or missing file gives no stories and no views (the viewer still works). */
 export function parseViewerData(value: unknown): ViewerData {
-	if (!Check(DataFile, value)) return { stories: {}, views: [] };
+	if (!Check(DataFile, value)) return { stories: {}, views: [], games: [] };
 	const stories: Record<string, unknown> = { ...value.stories };
 	for (const [old, current] of Object.entries(value.aliases)) {
 		const story = Object.entries(value.stories).find(([key]) => key === current)?.[1];
 		if (story !== undefined) stories[old] = story;
 	}
-	return { stories, views: parseViews(JSON.stringify(value.views), "viewer-data.json").views };
+	return { stories, views: parseViews(JSON.stringify(value.views), "viewer-data.json").views, games: parseGames(value.games ?? []) };
 }
 
 export async function loadViewerData(url: string): Promise<ViewerData> {
 	try {
 		const response = await fetch(url);
-		return response.ok ? parseViewerData(await response.json()) : { stories: {}, views: [] };
+		return response.ok ? parseViewerData(await response.json()) : { stories: {}, views: [], games: [] };
 	} catch {
-		return { stories: {}, views: [] };
+		return { stories: {}, views: [], games: [] };
 	}
 }
