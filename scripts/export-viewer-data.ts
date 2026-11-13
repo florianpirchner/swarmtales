@@ -1,7 +1,7 @@
 /**
  * Writes `apps/viewer-web/public/viewer-data.json` (or the file given as argument): every registered story as plain JSON (what
  * `swt story show <name> --json` puts under `story`, for the viewer's story graph) and the view
- * descriptors of `mechanics/*\/views.json`. Run by `pnpm --filter @swarmtales/viewer-web build` and `dev`;
+ * descriptors of `mechanics/*\/views.json`, and the Games tab's descriptions (`scripts/viewer-games.ts`). Run by `pnpm --filter @swarmtales/viewer-web build` and `dev`;
  * the file is not committed. `--no-stories` leaves the stories out (the public GitHub Pages build ships the app
  * only; its story view then reads the story from the run's own `000-run.json`).
  */
@@ -9,7 +9,9 @@ import { mkdirSync, readdirSync, readFileSync, existsSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { storyData } from "@swarmtales/kernel";
 import { parseViews, type ViewDescriptor } from "@swarmtales/viewer-ui/views";
+import type { GameInfo } from "@swarmtales/viewer-ui/games";
 import { coreStories, coreStoryNames, STORIES, storyId } from "../stories/index.ts";
+import { gamesOf } from "./viewer-games.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 // `export-viewer-data.ts [--no-stories] [out-file]`: the web app's public folder by default; the VS Code extension passes its own `dist/viewer-data.json`.
@@ -38,6 +40,9 @@ for (const old of withStories ? ["nexus", "quarry-noburn", "lantern-auction"] : 
 	if (storyId(old) !== old) aliases[old] = storyId(old);
 }
 
+// The Games tab: README, tools and event types per story folder (repository content, so not in the Pages build either).
+const games: GameInfo[] = withStories ? gamesOf(ROOT) : [];
+
 const views: ViewDescriptor[] = [];
 for (const mechanic of readdirSync(join(ROOT, "mechanics"))) {
 	const file = join(ROOT, "mechanics", mechanic, "views.json");
@@ -48,5 +53,5 @@ for (const mechanic of readdirSync(join(ROOT, "mechanics"))) {
 }
 
 mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, JSON.stringify({ stories, aliases, views }));
-console.log(`viewer data: ${String(Object.keys(stories).length)} stories, ${String(views.length)} views -> ${relative(ROOT, OUT)}`);
+writeFileSync(OUT, JSON.stringify({ stories, aliases, views, games }));
+console.log(`viewer data: ${String(Object.keys(stories).length)} stories, ${String(games.length)} games, ${String(views.length)} views -> ${relative(ROOT, OUT)}`);

@@ -4,6 +4,7 @@
  * they come from; the viewer knows nothing else (docs/design/viewer-build.md, "viewer-ui host contract").
  */
 import type { RunSource, Vocabulary } from "@swarmtales/viewer-core";
+import type { GameInfo } from "./games.ts";
 import type { ViewDescriptor } from "./views.ts";
 
 export interface ViewerHost {
@@ -13,6 +14,8 @@ export interface ViewerHost {
 	readonly title?: string;
 	/** Story JSON by story id (`swt story show <name> --json`), for the story graph of a run. */
 	readonly stories?: Readonly<Record<string, unknown>>;
+	/** Game descriptions for the Games tab (README, tools, event types per story folder); without them the tab says so. */
+	readonly games?: readonly GameInfo[];
 	/** Story-specific views (`mechanics/<id>/views.json`): which event draws which renderer. */
 	readonly views?: readonly ViewDescriptor[];
 	/** Opens a file of the source in the host's own editor (a path relative to the source root); without it the buttons are not shown. */
