@@ -190,3 +190,11 @@ describe("pnpm start arguments", () => {
 		expect(parseStartArgs(["--gm-direction", "10", "--no-gamemaker"])).toMatchObject({ overrides: { gmDirection: 10, gamemaker: false } });
 	});
 });
+
+describe("--thinking", () => {
+	it("takes a thinking level for the residents and refuses an unknown one", () => {
+		expect(parseStartArgs(["--story", "chess", "--thinking", "low"]).thinking).toBe("low");
+		expect(parseStartArgs(["--story", "chess"]).thinking).toBeUndefined();
+		expect(() => parseStartArgs(["--story", "chess", "--thinking", "loud"])).toThrow(UsageError);
+	});
+});

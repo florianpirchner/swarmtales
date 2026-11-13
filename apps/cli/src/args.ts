@@ -3,7 +3,14 @@ import { parseArgs } from "node:util";
 import { MAX_PASSES_PER_MINUTE } from "@swarmtales/sdk";
 import { JUDGE_TEMPERS, type JudgeTemper } from "@swarmtales/roles";
 import { isToolChoice, TOOL_CHOICES, type ToolChoice } from "@swarmtales/models";
+import type { ThinkingLevel } from "@swarmtales/contracts";
 import type { RunOverrides } from "./run-options.ts";
+
+const THINKING_LEVELS: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
+
+function isThinkingLevel(value: string): value is ThinkingLevel {
+	return THINKING_LEVELS.some((level) => level === value);
+}
 
 export class UsageError extends Error {
 	override readonly name = "UsageError";
@@ -17,6 +24,8 @@ export interface StartArgs {
 	readonly model?: string;
 	/** `tool_choice` sent with every resident request (`--tool-choice`, ARENA_TOOL_CHOICE). */
 	readonly toolChoice?: ToolChoice;
+	/** `--thinking`: the residents' thinking level of a core story, instead of the story's own (default medium). */
+	readonly thinking?: ThinkingLevel;
 	/** `--resident-model`: a model for some residents of a core story; the others use `provider` / `model`. */
 	readonly residentModels?: readonly ResidentModelFlag[];
 	readonly gamemakerProvider?: string;
@@ -69,6 +78,7 @@ export const START_USAGE = [
 	"  --provider <id>      openrouter | anthropic | deepseek | zai | scripted | custom",
 	"  --model <id>         provider model ID or alias (e.g. glm-flash, haiku)",
 	"  --tool-choice <c>    auto | required | none: tool_choice of the residents' requests (default: ARENA_TOOL_CHOICE, else the provider's)",
+	`  --thinking <level>   core stories: the residents' thinking level (${THINKING_LEVELS.join(" | ")}; default: the story's, else medium)`,
 	"  --resident-model <ids>=<provider>/<model>  core stories: these residents (comma-separated, e.g. A04,A05,A06) use that model, split at the first '/'",
 	"                       (e.g. A04,A05,A06=openrouter/google/gemma-4-26b-a4b-it); repeatable; the others use --provider/--model; --tool-choice applies to all",
 	"  --level <n>          start every competitor on level n, then keep playing",
@@ -121,6 +131,7 @@ function parseValues(argv: readonly string[]) {
 				provider: { type: "string" },
 				model: { type: "string" },
 				"tool-choice": { type: "string" },
+				thinking: { type: "string" },
 				"resident-model": { type: "string", multiple: true },
 				level: { type: "string" },
 				only: { type: "string" },
@@ -228,6 +239,10 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 	if (toolChoice !== undefined && !isToolChoice(toolChoice)) {
 		throw new UsageError(`--tool-choice must be one of ${TOOL_CHOICES.join(", ")}, got "${toolChoice}"`);
 	}
+	const thinking = values.thinking;
+	if (thinking !== undefined && !isThinkingLevel(thinking)) {
+		throw new UsageError(`--thinking must be one of ${THINKING_LEVELS.join(", ")}, got "${thinking}"`);
+	}
 	const residentModels = values["resident-model"] === undefined ? undefined : residentModelFlags(values["resident-model"]);
 	const resume = values.resume;
 	if (resume !== undefined && (overrides.level !== undefined || overrides.only !== undefined)) {
@@ -240,6 +255,7 @@ export function parseStartArgs(argv: readonly string[]): StartArgs {
 		...(values.provider === undefined ? {} : { provider: values.provider }),
 		...(values.model === undefined ? {} : { model: values.model }),
 		...(toolChoice === undefined ? {} : { toolChoice }),
+		...(thinking === undefined ? {} : { thinking }),
 		...(residentModels === undefined ? {} : { residentModels }),
 		...(values["gamemaker-provider"] === undefined ? {} : { gamemakerProvider: values["gamemaker-provider"] }),
 		...(values["gamemaker-model"] === undefined ? {} : { gamemakerModel: values["gamemaker-model"] }),
