@@ -83,7 +83,8 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		return 1;
 	}
 	const toolChoice = rawToolChoice;
-	const choice: ModelChoice = { provider: settings.provider, ...(settings.modelId === undefined ? {} : { id: settings.modelId }), ...(entry.model.thinking === undefined ? {} : { thinking: entry.model.thinking }), ...(entry.model.maxOutputTokens === undefined ? {} : { maxOutputTokens: entry.model.maxOutputTokens }) };
+	const thinking = args.thinking ?? entry.model.thinking;
+	const choice: ModelChoice = { provider: settings.provider, ...(settings.modelId === undefined ? {} : { id: settings.modelId }), ...(thinking === undefined ? {} : { thinking }), ...(entry.model.maxOutputTokens === undefined ? {} : { maxOutputTokens: entry.model.maxOutputTokens }) };
 	// A scripted run has no game to play: every resident only speaks, one answer per step it may take.
 	const steps = story.minutes * (story.turns?.passes ?? 1);
 	let plan: ResidentModelPlan = { overrides: new Map() };
@@ -140,7 +141,7 @@ export async function playCoreStory(args: StartArgs, name: string, entry: CoreSt
 		storyId: story.id,
 		kind: "core",
 		title: entry.title,
-		effective: { agents: residents.length, minutes: story.minutes, seed: story.seed },
+		effective: { agents: residents.length, minutes: story.minutes, seed: story.seed, ...(thinking === undefined ? {} : { thinking }) },
 		agents: residents.map((agent) => {
 			const own = plan.overrides.get(agent) ?? settings;
 			return { agent, provider: own.provider, model: own.modelId ?? "-" };
