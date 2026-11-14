@@ -7,17 +7,21 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatIssue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
-import { buildManifest, turns, type ManifestRun } from "@swarmtales/engine";
+import { createDirectorDrivers, DIRECTOR_RECORDS, turns, type ManifestRun } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import { definitionsOf, isGameFamily, resolveGame, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
+import { scriptedAsker } from "@swarmtales/models";
+import { definitionsOf, isGameFamily, resolveGame, RESIDENT_KIND, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { fakeDriver } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
+import { loopOf, runManifest, type LoopOptions } from "./assembly.ts";
 import { toolWithoutSample } from "./errors.ts";
+import { handEnded, handOf } from "./hand.ts";
 import { installedTable } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
+import { runLoop, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 
 const FAKE = "fake/sample";
@@ -41,6 +45,10 @@ export interface RunInput {
 	readonly out: string | undefined;
 	/** Print the result as one JSON line. */
 	readonly json: boolean;
+	/** `--hand`: the JSON-lines file of the Human Hand, or `-` for standard input; no Human Hand when absent. */
+	readonly hand?: string;
+	/** `--snapshot-at`: the numbers of finished ticks after which a snapshot is written; none when absent. */
+	readonly snapshotAt?: readonly number[];
 }
 
 /**
@@ -89,10 +97,10 @@ export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "param
 	return { game, mechanics: Object.values(definitionsOf(built, installed)), texts };
 }
 
-// `SWT-C010`, once per tool: a tool in the grant of an actor whose body has no `sample`. The fake driver never calls it.
+// `SWT-C010`, once per tool: a tool in the grant of a resident whose body has no `sample`. The fake driver never calls it.
 function unsampled({ definition }: ResolvedGame, mechanics: readonly MechanicDefinition[]): readonly SwtIssue[] {
 	const mute = new Set(mechanics.flatMap((mechanic) => mechanic.head.tools.filter((tool) => tool.sampled === false).map((tool) => `${mechanic.source}/${tool.name}`)));
-	const grants = [...new Set(definition.actors.map((actor) => actor.grant))];
+	const grants = [...new Set(definition.actors.filter((actor) => actor.kind === RESIDENT_KIND).map((actor) => actor.grant))];
 	const found = new Map(grants.flatMap((grant) => (definition.grants[grant] ?? []).filter((tool) => mute.has(tool)).map((tool): [string, string] => [tool, grant])).reverse());
 	return [...found].reverse().map(([tool, grant]) => toolWithoutSample({ tool: (Object.hasOwn(definition.names, tool) ? definition.names[tool] : undefined) ?? tool, grant }));
 }
@@ -128,8 +136,7 @@ export function folderTexts(game: ResolvedGame): Readonly<Record<string, string>
 function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonly sink: EventSink; readonly opened: () => RunFolder | undefined } {
 	let folder: RunFolder | undefined;
 	const open = (): RunFolder => {
-		const drivers = Object.fromEntries(game.definition.actors.map((actor) => [actor.id, FAKE]));
-		const manifest = buildManifest(game, { ...runFacts(directory, io.now), purpose: "smoke", replicate: 0, drivers });
+		const manifest = runManifest(game, { ...runFacts(directory, io.now), purpose: "smoke", replicate: 0 }, FAKE);
 		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: folderTexts(game) });
 		return folder;
 	};
@@ -145,24 +152,27 @@ function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonl
 }
 
 /**
- * Runs the kernel to its end. A run that failed has its end and its log; the issues of the failure are what the
- * command reports.
+ * Runs the kernel through the run loop to its end, or to where the loop stops. A run that failed has its end and
+ * its log; the issues of the failure are what the command reports. The Human Hand is closed afterwards.
  *
  * @param kernel - The kernel of the run.
  * @param drivers - The drivers by actor id.
- * @returns The end of the run, and the issues of an `SwtError` that ended it.
+ * @param loop - The ticks, the Human Hand and the snapshots (`loopOf`); to the end of the run, with neither, when absent.
+ * @returns The end of the run and the issues of an `SwtError` that ended it; or the stop of the loop, with
+ * `SWT-X009` when the run is paused and the Human Hand has ended.
  * @throws Whatever ends the run without a recorded end, and whatever is no `SwtError`.
  *
  * @public
  */
-export async function played(kernel: Kernel, drivers: DriverTable): Promise<{ readonly end: RunEnd; readonly issues: readonly SwtIssue[] }> {
+export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOptions = { ticks: Infinity, snapshotAt: [], writeSnapshot: () => Promise.resolve() }): Promise<{ readonly end: RunEnd | LoopStop; readonly issues: readonly SwtIssue[] }> {
 	try {
-		const end = await kernel.run(drivers);
-		if (end === undefined) throw new RangeError("the run stopped without an end");
-		return { end, issues: [] };
+		const end = await runLoop({ kernel, drivers, ...loop });
+		return { end, issues: "stopped" in end && end.stopped === "paused" ? [handEnded(end)] : [] };
 	} catch (error) {
 		if (!(error instanceof SwtError) || kernel.ended === undefined) throw error;
 		return { end: kernel.ended, issues: error.issues };
+	} finally {
+		loop.hand?.close?.();
 	}
 }
 
@@ -170,12 +180,13 @@ export async function played(kernel: Kernel, drivers: DriverTable): Promise<{ re
  * Says why a run ended, for the result line.
  *
  * @param kernel - The kernel of the run, for the reason of a limit.
- * @param end - The end of the run.
- * @returns "limit grid-game.match: the match is over", "tick limit" or "error".
+ * @param end - The end of the run, or the stop of the run loop.
+ * @returns "limit grid-game.match: the match is over", "tick limit" or "error"; for a stop "paused" or "open".
  *
  * @public
  */
-export function whyOf(kernel: Kernel, end: RunEnd): string {
+export function whyOf(kernel: Kernel, end: RunEnd | LoopStop): string {
+	if ("stopped" in end) return end.stopped === "paused" ? "paused" : "open";
 	if (end.reason !== "limit") return end.reason === "ticks" ? "tick limit" : "error";
 	const breach = kernel.log.all().findLast((event) => event.type === "limit_reached")?.payload;
 	return `limit ${end.limit ?? ""}${Check(Breach, breach) ? `: ${breach.reason}` : ""}`;
@@ -184,7 +195,7 @@ export function whyOf(kernel: Kernel, end: RunEnd): string {
 interface Outcome {
 	readonly game: string;
 	readonly seed: number;
-	readonly end: RunEnd;
+	readonly end: RunEnd | LoopStop;
 	readonly why: string;
 	readonly result?: { readonly fact: string; readonly value: unknown };
 	readonly verdict: RunVerdict;
@@ -199,7 +210,7 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
 		return;
 	}
 	io.out("fake models: no result");
-	io.out(`${game} seed ${String(seed)}: ended after ${String(end.tick)} ticks (${outcome.why})`);
+	io.out(`${game} seed ${String(seed)}: ${"stopped" in end ? "stopped" : "ended"} after ${String(end.tick)} ticks (${outcome.why})`);
 	if (result !== undefined) io.out(`result ${result.fact}: ${JSON.stringify(result.value)}`);
 	for (const issue of issues) io.err(formatIssue(issue));
 	if (verdict.ok) io.out(`log verified: ${String(verdict.lines)} lines, head ${verdict.head ?? "none"}`);
@@ -214,24 +225,31 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
  *
  * @param input - The game file, the seed, the overrides of a family's params, the folder of the runs and the form of the output.
  * @param io - The current directory, the clock and the two outputs.
- * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`.
+ * A Director of the game acts on its fallback: its model port is a script without an answer. With `hand` and
+ * `snapshotAt` the run loop applies the Human Hand and writes snapshots into `<run>/snapshots/`.
+ *
+ * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`, 3 it
+ * is paused and the Human Hand has ended (`SWT-X009`): the folder holds a snapshot and verifies as unfinished.
  * @throws SwtError Before the run: `SWT-C001`, `SWT-C002`, `SWT-C030`, what game resolution reports (`SWT-G041` for a `--set` that fits no param), `SWT-R002`,
- * and `SWT-R015` when `win.fact` names no fact. No run folder is written then.
+ * `SWT-R015` when `win.fact` names no fact, and `SWT-X008` for a `--hand` the game cannot take. No run folder is written then.
  *
  * @public
  */
 export async function runFake(input: RunInput, io: CliIo): Promise<number> {
-	const { game, mechanics } = await resolveFile(input, io);
+	const { game, mechanics } = await resolveFile(input, io, [DIRECTOR_RECORDS]);
+	const hand = handOf(input.hand, game, io);
 	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
 	const folder = lazyFolder(directory, game, io);
 	const kernel = createKernel(game.definition, { sinks: [folder.sink] });
 	if (game.win !== undefined) kernel.fact(game.win);
 	const driver = fakeDriver(kernel, game.definition.seed);
-	const { end, issues } = await played(kernel, Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver]))).finally(() => folder.opened()?.close());
-	const failed = end.reason === "error";
+	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask: scriptedAsker({}) }) };
+	const { end, issues } = await played(kernel, drivers, loopOf(game, kernel, folder.opened, { hand, snapshotAt: input.snapshotAt })).finally(() => folder.opened()?.close());
+	const failed = whyOf(kernel, end) === "error";
 	const verdict = verifyRun(directory);
 	const result = game.win === undefined || failed ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
 	print({ game: game.definition.game.id, seed: game.definition.seed, end, why: whyOf(kernel, end), ...result, verdict, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues] }, input.json, io);
-	return failed ? 2 : verdict.ok ? 0 : 1;
+	if (failed || !verdict.ok) return failed ? 2 : 1;
+	return "stopped" in end ? 3 : 0;
 }

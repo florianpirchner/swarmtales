@@ -8,7 +8,7 @@ import { badUsage } from "./errors.ts";
 // A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
 const MAX_SEED = 4294967295;
 const text = { type: "string" } as const;
-const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text } as const;
+const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text, hand: text, "snapshot-at": text } as const;
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];
 const PURPOSES: readonly Purpose[] = ["smoke", "pilot", "exploratory", "confirmatory"];
 
@@ -170,4 +170,20 @@ export function liveFlags(flags: Flags): LiveFlags {
 		purpose: wordOf("purpose", flags.purpose, PURPOSES) ?? "smoke",
 		replicate: numberOf("replicate", flags.replicate, /^\d{1,9}$/, "whole number from 0") ?? 0,
 	};
+}
+
+/**
+ * Reads `--hand` and `--snapshot-at`, the flags of the run loop.
+ *
+ * @param flags - The flags as written.
+ * @returns The file of the Human Hand (`-` for standard input) when the flag is there, and the numbers of finished ticks after which a snapshot is written.
+ * @throws SwtError `SWT-C003` for a `--snapshot-at` that is no comma list of whole numbers.
+ *
+ * @public
+ */
+export function loopFlags(flags: Flags): { readonly hand?: string; readonly snapshotAt: readonly number[] } {
+	const ticks = flags["snapshot-at"]?.split(",") ?? [];
+	const bad = ticks.find((tick) => !/^\d{1,9}$/.test(tick));
+	if (bad !== undefined) throw new SwtError(badUsage({ problem: `\`--snapshot-at ${flags["snapshot-at"] ?? ""}\` is no comma list of whole numbers of ticks` }));
+	return { ...(flags.hand === undefined ? {} : { hand: flags.hand }), snapshotAt: ticks.map(Number) };
 }

@@ -11,17 +11,20 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON } from "node:module";
 import { relative, resolve } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
-import { formatIssue, redactSecrets, redactValue, SwtError, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
-import { buildManifest } from "@swarmtales/engine";
+import { formatIssue, redactSecrets, redactValue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
+import { createDirectorDrivers, DIRECTOR_RECORDS } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
-import { createCostMeter, createKeyBroker, createModelDrivers, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
+import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
 import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import type { ResolvedGame } from "@swarmtales/sdk";
+import { RESIDENT_KIND, type ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
+import { loopOf, runManifest } from "./assembly.ts";
 import type { LiveFlags } from "./flags.ts";
+import { handOf } from "./hand.ts";
 import { scanFolder } from "./leak-scan.ts";
 import { openLedger } from "./ledger.ts";
+import type { HandSource, LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
 import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
@@ -57,12 +60,14 @@ export interface LiveInput extends RunInput, LiveFlags {
  * @public
  */
 export interface LiveResult {
-	/** The exit code: 0 finished, 1 an `SwtError` before the run or a log that does not verify, 2 ended with `error`, 4 a held key value in a file of the run folder (`SWT-X030`), 5 ended at the cost cap. */
+	/** The exit code: 0 finished, 1 an `SwtError` before the run or a log that does not verify, 2 ended with `error`, 3 paused with the Human Hand ended (`SWT-X009`), 4 a held key value in a file of the run folder (`SWT-X030`), 5 ended at the cost cap. */
 	readonly code: number;
 	/** The run folder, relative to the current directory; absent when the run did not start. */
 	readonly run?: string;
-	/** The end of the run. */
+	/** The end of the run; absent when the run loop stopped with the run still open. */
 	readonly end?: RunEnd;
+	/** The stop of the run loop, when the run did not end. */
+	readonly stopped?: LoopStop;
 	/** What the run spent. */
 	readonly spend?: Spend;
 	/** The issues that were printed, with every text of them redacted. */
@@ -91,11 +96,11 @@ function pricing(): string {
 	return `pi-ai@${Parse(Pinned, raw).dependencies["@earendil-works/pi-ai"]}`;
 }
 
-// The system prompt of every actor: a pure function of the resolved game, so its hash is in the manifest before the kernel starts.
+// The system prompt of every resident (a Director has its own, and the human none): a pure function of the resolved game, so its hash is in the manifest before the kernel starts.
 function promptsOf(game: ResolvedGame, texts: PromptLookup): Readonly<Record<string, string>> {
 	const { actors, scheduler } = game.definition;
 	const passes = Check(Passes, scheduler.options) ? scheduler.options.passes : 1;
-	return Object.fromEntries(actors.map((actor) => [actor.id, systemPrompt({ id: actor.id.slice(actor.kind.length + 1), passes, briefing: game.briefings[actor.id] ?? "" }, texts)]));
+	return Object.fromEntries(actors.filter((actor) => actor.kind === RESIDENT_KIND).map((actor) => [actor.id, systemPrompt({ id: actor.id.slice(actor.kind.length + 1), passes, briefing: game.briefings[actor.id] ?? "" }, texts)]));
 }
 
 function modelOf(settings: ModelSettings): NonNullable<RunManifest["actors"][number]["model"]> {
@@ -111,15 +116,15 @@ function settingsOf(input: LiveInput, game: ResolvedGame, broker: KeyBroker): { 
 	const settings = resolveModelSettings(overrides, env, game.data.model, registry);
 	broker.auth(settings.provider);
 	const source = input.source ?? createModelSource(settings, registry, broker);
-	// `SWT-X007` comes from `bind`: every actor is bound once here and the binding dropped, so a model without a price is refused before the run folder exists.
-	for (const actor of game.definition.actors) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
+	// `SWT-X007` comes from `bind`: every actor a model plays is bound once here and the binding dropped, so a model without a price is refused before the run folder exists.
+	for (const actor of game.definition.actors.filter(({ id }) => id !== "human")) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
 	return { settings, source };
 }
 
 interface Outcome {
 	readonly game: ResolvedGame;
 	readonly settings: ModelSettings;
-	readonly end: RunEnd;
+	readonly end: RunEnd | LoopStop;
 	readonly why: string;
 	readonly result?: { readonly fact: string; readonly value: unknown };
 	readonly verdict: RunVerdict;
@@ -139,7 +144,7 @@ function print(outcome: Outcome, json: boolean, io: CliIo, redact: Redact): void
 		io.out(redact(JSON.stringify({ driver: RESIDENT_DRIVER, model, game: id, seed, end, ...(result === undefined ? {} : { result }), log: { ok: verdict.ok, lines: verdict.lines, head: verdict.head }, spend, capUsd, run, issues })));
 		return;
 	}
-	io.out(redact(`${id} seed ${String(seed)} with ${model}: ended after ${String(end.tick)} ticks (${outcome.why})`));
+	io.out(redact(`${id} seed ${String(seed)} with ${model}: ${"stopped" in end ? "stopped" : "ended"} after ${String(end.tick)} ticks (${outcome.why})`));
 	if (result !== undefined) io.out(redact(`result ${result.fact}: ${JSON.stringify(result.value)}`));
 	for (const issue of issues) io.err(redact(formatIssue(issue)));
 	if (verdict.ok) io.out(`log verified: ${String(verdict.lines)} lines, head ${verdict.head ?? "none"}`);
@@ -157,6 +162,7 @@ interface Prepared {
 	readonly meter: CostMeter;
 	readonly redact: Redact;
 	readonly tree: SourceTree;
+	readonly hand: HandSource | undefined;
 }
 
 // Steps one and two: the cap, the source tree (a confirmatory run needs an experiment and a clean tree), the resolved game, its model with the key check, the system prompts.
@@ -165,8 +171,8 @@ async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
 	const tree = input.tree ?? readSourceTree();
 	if (input.purpose === "confirmatory" && tree.dirty !== false) throw new SwtError(confirmatoryDirty(tree));
-	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS]);
-	return { game, texts, ...settingsOf(input, game, broker), systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree };
+	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS]);
+	return { game, texts, ...settingsOf(input, game, broker), systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, hand: handOf(input.hand, game, io) };
 }
 
 // Steps three and four: the kernel is created (the manifest holds its tool specs), then the manifest is written with the folder. Nothing is started.
@@ -187,18 +193,18 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	const kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact });
 	if (game.win !== undefined) kernel.fact(game.win);
 	const model = modelOf(settings);
-	const manifest = buildManifest(game, {
+	const facts = {
 		...runFacts(directory, io.now),
 		...run.tree,
 		purpose: input.purpose,
 		replicate: input.replicate,
 		budgetUsd: meter.capUsd,
-		drivers: Object.fromEntries(actors.map((actor) => [actor.id, RESIDENT_DRIVER])),
-		models: Object.fromEntries(actors.map((actor) => [actor.id, model])),
+		models: Object.fromEntries(actors.filter(({ id }) => id !== "human").map((actor) => [actor.id, model])),
 		systemPrompts,
 		toolSpecs: Object.fromEntries(actors.map((actor) => [actor.grant, kernel.toolSpecs(actor.grant)])),
 		...(input.experiment === undefined ? {} : { experiment: input.experiment }),
-	});
+	};
+	const manifest = runManifest(game, facts, RESIDENT_DRIVER);
 	const folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: folderTexts(game), redact });
 	folders.push(folder);
 	return { kernel, folder };
@@ -223,10 +229,11 @@ function reserved(input: LiveInput, io: CliIo, name: string, capUsd: number, ope
 }
 
 // A leak comes first: its folder is not published, whatever the run came to.
-function codeOf(leak: boolean, end: RunEnd, verified: boolean, capped: boolean): number {
+function codeOf(leak: boolean, end: RunEnd | undefined, verified: boolean, capped: boolean): number {
 	if (leak) return 4;
-	if (end.reason === "error") return 2;
+	if (end?.reason === "error") return 2;
 	if (!verified) return 1;
+	if (end === undefined) return 3;
 	return capped ? 5 : 0;
 }
 
@@ -242,19 +249,24 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 		kernel.start();
 		const models = createModelDrivers({ kernel, actors: game.definition.actors, source, settings, systemPrompts, meter, redact, texts, hash: jsonHash });
 		models.fix();
-		return played(kernel, models.drivers);
+		// A Director asks the model of the run; its cost counts on the meter of the run, under its own `maxCostUsd`.
+		const ask = createAsker(source, meter, (actor) => (game.directors ?? []).find((director) => director.actor === actor)?.limits ?? {});
+		const drivers: DriverTable = { ...models.drivers, ...createDirectorDrivers({ game, ask }) };
+		return played(kernel, drivers, loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt }));
 	};
-	const { end, issues } = await play().finally(() => {
+	const { end: last, issues } = await play().finally(() => {
 		folder.close();
 	});
+	const ended = "stopped" in last ? { stopped: last } : { end: last };
+	const { end } = ended;
 	const verdict = verifyRun(directory);
 	const leak = trace.scan();
 	// A closed meter does not know the cost: the reservation stays, as for a run that crashed.
 	if (meter.closed === undefined) settle(meter.total.costUsd);
-	const result = game.win === undefined || end.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	const outcome = { end, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact) };
-	print({ game, settings, why: whyOf(kernel, end), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
-	return { code: codeOf(leak.length > 0, end, verdict.ok, end.limit === meter.limit.id), ...outcome };
+	const result = game.win === undefined || end?.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
+	const outcome = { ...ended, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact) };
+	print({ game, settings, end: last, why: whyOf(kernel, last), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
+	return { code: codeOf(leak.length > 0, end, verdict.ok, end?.limit === meter.limit.id), ...outcome };
 }
 
 // A run that threw: an `SwtError` is printed as its issues, anything else as its message, then the leak the folder
