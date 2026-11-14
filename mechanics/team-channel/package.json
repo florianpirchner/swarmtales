@@ -10,7 +10,7 @@
 		"kind": "mechanic",
 		"class": "base",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["teamChannel"]
 	},
 	"exports": {
 		".": {
