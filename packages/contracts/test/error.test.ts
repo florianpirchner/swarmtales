@@ -43,6 +43,13 @@ describe("SwtIssueSchema", () => {
 		expect(Value.Check(SwtIssueSchema, { code: granted.code, summary: granted.summary, why: granted.why })).toBe(false);
 	});
 
+	it("knows ten areas, with E for experiments and the lab and T for the testkit, and no other letter", () => {
+		expect(SWT_CODE).toBe("^SWT-[GMDRXPLCET][0-9]{3}$");
+		for (const code of ["SWT-E001", "SWT-E011", "SWT-T001", "SWT-T002"]) expect(new RegExp(SWT_CODE).test(code), code).toBe(true);
+		for (const letter of "GMDRXPLCET") expect(Value.Check(SwtIssueSchema, { ...granted, code: `SWT-${letter}001` }), letter).toBe(true);
+		for (const letter of "ABFHIJKNOQSUVWYZet") expect(Value.Check(SwtIssueSchema, { ...granted, code: `SWT-${letter}001` }), letter).toBe(false);
+	});
+
 	it("refuses an unknown field in the issue and in its place", () => {
 		expect(Value.Check(SwtIssueSchema, { ...bare, hint: "x" })).toBe(false);
 		expect(Value.Check(SwtIssueSchema, { ...bare, where: { file: "game.ts", column: 3 } })).toBe(false);

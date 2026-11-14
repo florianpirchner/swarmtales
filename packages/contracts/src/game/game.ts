@@ -40,6 +40,32 @@ const MechanicUse = Type.Object(
 const members = (of: string) => Type.Array(ResidentIdSchema, text(`The residents of one ${of}`));
 
 /**
+ * The schema of a model choice: the model of the residents with its settings, where a plain id is not enough.
+ *
+ * @remarks
+ * Only the id is needed. The runner fills what is left out: `thinking` is `medium` and `maxOutputTokens` is 4000.
+ *
+ * @public
+ */
+export const ModelChoiceSchema = Type.Object(
+	{
+		id: Type.String(text("The model, as `<provider>/<model id or alias>`, for example `anthropic/haiku`")),
+		thinking: Type.Optional(
+			Type.Union([Type.Literal("off"), Type.Literal("minimal"), Type.Literal("low"), Type.Literal("medium"), Type.Literal("high")], text("How much the model thinks before it answers; `medium` when absent")),
+		),
+		maxOutputTokens: Type.Optional(Type.Integer({ minimum: 1, description: "The limit of output tokens of one request; 4000 when absent" })),
+	},
+	closed("A model with its settings"),
+);
+
+/**
+ * A model with its settings: what {@link ModelChoiceSchema} accepts.
+ *
+ * @public
+ */
+export type ModelChoice = Static<typeof ModelChoiceSchema>;
+
+/**
  * The schema of a game definition, version 1.
  *
  * @remarks
@@ -83,7 +109,7 @@ export const GameDefinitionSchema = Type.Object(
 				text("What a resident reads before the run starts"),
 			),
 		),
-		model: Type.Optional(Type.String(text("The model the residents run on"))),
+		model: Type.Optional(Type.Union([Type.String(text("The id alone, as `<provider>/<model id or alias>`; the settings take their defaults")), ModelChoiceSchema], text("The model the residents run on"))),
 	},
 	{ additionalProperties: false, description: "A game definition, version 1" },
 );

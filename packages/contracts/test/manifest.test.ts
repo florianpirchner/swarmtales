@@ -32,7 +32,7 @@ const full = (): RunManifest => {
 	return {
 		...base,
 		kernel: { ...base.kernel, commit: "89927a0", dirty: false },
-		actors: base.actors.map((actor) => ({ ...actor, driver: "model", model: { provider: "p", requestedId: "alias", resolvedId: "id-1", params } })),
+		actors: base.actors.map((actor) => ({ ...actor, driver: "model", model: { provider: "p", requestedId: "alias", resolvedId: "id-1", params, pricing: "prices@1.0.0" } })),
 		limits: { maxTicks: 40, maxCallsPerTick: 3, budgetUsd: 0.5 },
 		resumedFrom: { snapshotHash: HASH_A },
 		experiment: { id: "e1", specHash: HASH_B, arm: "control" },
@@ -128,6 +128,25 @@ describe("RunManifestSchema", () => {
 		expect(check(withParams({ temperature: "provider-default", topP: 1, maxOutputTokens: "provider-default", thinking: "off" }))).toBe(true);
 		expect(check(withParams({ temperature: "default", topP: 1, maxOutputTokens: 1, thinking: "off" }))).toBe(false);
 		expect(check(withParams({ topP: 1, maxOutputTokens: 1, thinking: "off" }))).toBe(false);
+	});
+
+	it("wants the price table of a model, and takes the text hashes of a model actor", () => {
+		const withModel = (change: (model: NonNullable<RunManifest["actors"][number]["model"]>) => unknown): unknown => ({
+			...full(),
+			actors: full().actors.map((actor) => ({ ...actor, model: actor.model === undefined ? undefined : change(actor.model) })),
+		});
+		expect(check(withModel((model) => model))).toBe(true);
+		expect(check(withModel(({ provider, requestedId, resolvedId, params }) => ({ provider, requestedId, resolvedId, params })))).toBe(false);
+		expect(check(withModel((model) => ({ ...model, pricing: 1 })))).toBe(false);
+		const hashes = { briefing: HASH_A, tools: HASH_B, system: HASH_A, toolSpecs: HASH_B };
+		expect(check({ ...full(), actors: full().actors.map((actor) => ({ ...actor, textHashes: hashes })) })).toBe(true);
+		expect(check({ ...full(), actors: full().actors.map((actor) => ({ ...actor, textHashes: { ...hashes, system: "prompt" } })) })).toBe(false);
+	});
+
+	it("still reads a manifest of M1, which has no model: the version stays 1", () => {
+		const m1: unknown = JSON.parse(JSON.stringify(sample()));
+		expect(check(m1)).toBe(true);
+		expect(RunManifestSchema.properties.version.const).toBe(1);
 	});
 
 	it("describes every schema and property", () => {

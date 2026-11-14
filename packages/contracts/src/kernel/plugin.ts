@@ -74,14 +74,27 @@ export interface StageHandlers {
  * order at the ends of a tick and whenever the scheduler asks whether the run is halted; the first reason ends the
  * run with `limit_reached { limit: "<plugin id>.<limit id>" }`.
  *
+ * @remarks
+ * A limit can also come from outside the plugins, through `KernelPorts.limits`: a cost cap. Such a limit is checked
+ * before the plugins' limits, and its id is the whole name in the log, `<owner>.<limit>` (`models.budget`).
+ *
+ * What an implementer must do. `check` is called often and must be cheap, synchronous and free of side effects: it
+ * reads a state its owner keeps (a board, a meter) and never changes it. It must not throw. Once it has returned a
+ * reason it keeps returning one. The reason is written to the log (`limit_reached { limit, reason }`, then
+ * `RunEnd { reason: "limit", limit }`), so it must hold no secret.
+ *
  * @public
  */
 export interface RunLimit {
-	/** The id, unique in its plugin. */
+	/** The id: unique in its plugin, or `<owner>.<limit>` for a limit of `KernelPorts.limits`, where the owner is never the id of a plugin. */
 	readonly id: string;
 	/** What the limit is, in one line. */
 	readonly summary: string;
-	/** The reason when the limit is reached, else undefined. */
+	/**
+	 * Says whether the limit is reached.
+	 *
+	 * @returns The reason of the breach, as one sentence for the log, or `undefined` while the limit holds.
+	 */
 	check(): string | undefined;
 }
 

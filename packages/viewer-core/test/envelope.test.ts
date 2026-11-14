@@ -18,7 +18,7 @@ const MANIFEST: RunManifest = {
 	plugins: [],
 	actors: [
 		{ id: "resident:A01", kind: "resident", grant: "resident", driver: "fake/sample", textHashes: {} },
-		{ id: "director:D1", kind: "director", grant: "director", driver: "model", model: { provider: "p", requestedId: "m", resolvedId: "m-1", params: { temperature: 0, topP: "provider-default", maxOutputTokens: 100, thinking: "off" } }, textHashes: {} },
+		{ id: "director:D1", kind: "director", grant: "director", driver: "model", model: { provider: "p", requestedId: "m", resolvedId: "m-1", params: { temperature: 0, topP: "provider-default", maxOutputTokens: 100, thinking: "off" }, pricing: "prices@1.0.0" }, textHashes: {} },
 	],
 	texts: {},
 	seed: 7,

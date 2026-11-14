@@ -8,11 +8,12 @@ const text = (description: string): { readonly description: string } => ({ descr
 
 /**
  * The pattern of an error code. The letter is the area: G game, M mechanic, D Director, R run and kernel,
- * X models, P texts, L log and chain, C command line. A code is never reused or renumbered.
+ * X models, P texts, L log and chain, C command line, E experiments and the lab, T testkit (an oracle file that is
+ * not valid or cannot be played). A code is never reused or renumbered; a retired code (`SWT-C020`) stays retired.
  *
  * @public
  */
-export const SWT_CODE = "^SWT-[GMDRXPLC][0-9]{3}$";
+export const SWT_CODE = "^SWT-[GMDRXPLCET][0-9]{3}$";
 
 /**
  * The schema of one problem.

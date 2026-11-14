@@ -176,7 +176,11 @@ export const GameDefinitionSchema: Type.TObject<{
         fact: Type.TString;
     }>>;
     briefing: Type.TOptional<Type.TUnion<[Type.TString, Type.TRecord<"^.*$", Type.TString>]>>;
-    model: Type.TOptional<Type.TString>;
+    model: Type.TOptional<Type.TUnion<[Type.TString, Type.TObject<{
+        id: Type.TString;
+        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+        maxOutputTokens: Type.TOptional<Type.TInteger>;
+    }>]>>;
 }>;
 
 // @public
@@ -334,6 +338,7 @@ export interface KernelDefinition {
     readonly limits: KernelLimits;
     readonly names: Readonly<Record<CanonicalTool, string>>;
     readonly plugins: readonly ResolvedPlugin[];
+    readonly records?: readonly RecordSource[];
     readonly replies: Readonly<Record<string, string>>;
     readonly scheduler: {
         readonly definition: SchedulerDefinition;
@@ -351,6 +356,8 @@ export interface KernelLimits {
 
 // @public
 export interface KernelPorts {
+    readonly limits?: readonly RunLimit[];
+    readonly redact?: (text: string) => string;
     readonly sinks?: readonly EventSink[];
 }
 
@@ -439,6 +446,25 @@ export interface LogView {
 }
 
 // @public
+export interface MetricDefinition {
+    compute(events: readonly Envelope[]): number | undefined;
+    readonly id: string;
+    readonly reads: readonly string[];
+    readonly title: string;
+    readonly unit?: string;
+}
+
+// @public
+export type ModelChoice = Static<typeof ModelChoiceSchema>;
+
+// @public
+export const ModelChoiceSchema: Type.TObject<{
+    id: Type.TString;
+    thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+    maxOutputTokens: Type.TOptional<Type.TInteger>;
+}>;
+
+// @public
 export function nameOf(id: ActorId): string;
 
 // @public
@@ -524,6 +550,12 @@ export interface RandomSource {
     next(): number;
     pick<T>(items: readonly T[]): T;
     shuffle<T>(items: readonly T[]): T[];
+}
+
+// @public
+export interface RecordSource {
+    readonly events: EventSchemas;
+    readonly id: string;
 }
 
 // @public
@@ -641,6 +673,7 @@ export const RunManifestSchema: Type.TObject<{
                 maxOutputTokens: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
                 thinking: Type.TString;
             }>;
+            pricing: Type.TString;
         }>>;
         textHashes: Type.TRecord<"^.*$", Type.TString>;
     }>>;
@@ -778,7 +811,7 @@ export interface Submission {
 }
 
 // @public
-export const SWT_CODE = "^SWT-[GMDRXPLC][0-9]{3}$";
+export const SWT_CODE = "^SWT-[GMDRXPLCET][0-9]{3}$";
 
 // @public
 export class SwtError extends Error {

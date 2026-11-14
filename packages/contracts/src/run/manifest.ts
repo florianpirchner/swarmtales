@@ -93,6 +93,7 @@ const Model = Type.Object(
 		requestedId: Type.String({ description: "The model id as the command gave it, an alias included" }),
 		resolvedId: Type.String({ description: "The model id after the alias was resolved" }),
 		params: ModelParams,
+		pricing: Type.String({ description: "The price table the cost of the run is computed with, as `<library>@<version>`" }),
 	},
 	{ additionalProperties: false, description: "The model behind the actor; absent for a fake or scripted driver" },
 );
@@ -105,7 +106,7 @@ const Actor = Type.Object(
 		driver: Type.String({ description: "The id of the driver that answers for the actor, for example `fake/sample` or `scripted`" }),
 		model: Type.Optional(Model),
 		textHashes: Type.Record(Type.String(), hash("The sha256 of one text"), {
-			description: "The hashes of the texts the actor is shown, by part: `briefing`, `tools` (the tool list as shown)",
+			description: "The hashes of the texts the actor is shown, by part: `briefing`, `tools` (the tool list as shown) and, for a model actor, `system` (the whole system prompt as sent) and `toolSpecs` (name, description and parameter schema of every granted tool, in grant order)",
 		}),
 	},
 	{ additionalProperties: false, description: "One actor of the run" },

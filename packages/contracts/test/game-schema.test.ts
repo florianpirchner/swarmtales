@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { GameDefinitionSchema, ResidentIdSchema, type GameData, type PromptLookup } from "../src/game/index.ts";
+import { GameDefinitionSchema, ModelChoiceSchema, ResidentIdSchema, type GameData, type PromptLookup } from "../src/game/index.ts";
 import { missingDescriptions } from "./descriptions.ts";
 
 /** The data form of the Hello Game (sample 1): two residents, one mechanic. */
@@ -110,8 +110,22 @@ describe("GameDefinitionSchema", () => {
 		expect(Value.Check(ResidentIdSchema, "resident:A01")).toBe(false);
 	});
 
+	it("takes the model as an id or as a choice with settings, and refuses a choice it does not know", () => {
+		expect(ok({ ...hello, model: "anthropic/haiku" })).toBe(true);
+		expect(ok({ ...hello, model: { id: "anthropic/haiku" } })).toBe(true);
+		for (const thinking of ["off", "minimal", "low", "medium", "high"]) expect(ok({ ...hello, model: { id: "anthropic/haiku", thinking, maxOutputTokens: 16000 } }), thinking).toBe(true);
+		expect(ok({ ...hello, model: { thinking: "low" } })).toBe(false);
+		expect(ok({ ...hello, model: { id: "anthropic/haiku", thinking: "max" } })).toBe(false);
+		expect(ok({ ...hello, model: { id: "anthropic/haiku", maxOutputTokens: 0 } })).toBe(false);
+		expect(ok({ ...hello, model: { id: "anthropic/haiku", maxOutputTokens: 1.5 } })).toBe(false);
+		expect(ok({ ...hello, model: { id: "anthropic/haiku", temperature: 0 } })).toBe(false);
+		expect(ok({ ...hello, model: 7 })).toBe(false);
+		expect(Value.Check(ModelChoiceSchema, "anthropic/haiku")).toBe(false);
+	});
+
 	it("describes every part", () => {
 		expect(missingDescriptions(GameDefinitionSchema, "GameDefinitionSchema")).toEqual([]);
+		expect(missingDescriptions(ModelChoiceSchema, "ModelChoiceSchema")).toEqual([]);
 	});
 });
 

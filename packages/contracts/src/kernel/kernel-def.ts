@@ -2,7 +2,8 @@
 /** The kernel definition, the kernel itself and its snapshot, as types. The snapshot schema lives in `state.ts`. */
 import type { JsonValue, RandomSource, RunEnd } from "../values.ts";
 import type { ActorId, ActorSpec } from "./actor.ts";
-import type { LogView, ResolvedPlugin } from "./plugin.ts";
+import type { EventSchemas } from "./event-def.ts";
+import type { LogView, ResolvedPlugin, RunLimit } from "./plugin.ts";
 import type { DriverTable, EventSink, SchedulerDefinition } from "./ports.ts";
 import type { CanonicalTool, ToolOutcome, ToolSpec } from "./tool.ts";
 
@@ -83,6 +84,25 @@ export interface KernelLimits {
 }
 
 /**
+ * Events that are written by something outside the plugins: a driver. Declared like a plugin's events.
+ *
+ * @remarks
+ * What an implementer must do. The one who declares a record source (the models package for its resident driver)
+ * lists every event type it will ever write, each with a schema, and checks each payload against that schema
+ * itself before it records it: the kernel checks only that the source and the type are declared (SWT-R017) and
+ * redacts the payload. A recorded event has the audience `["human"]`, so no actor is ever shown it, and no plugin
+ * can listen to it. The id must not equal the canonical source of a loaded plugin (SWT-R002).
+ *
+ * @public
+ */
+export interface RecordSource {
+	/** The `source` of every envelope it writes, for example `@swarmtales/models/resident`. */
+	readonly id: string;
+	/** Event type to the schema of its payload; a type that is not listed here cannot be recorded. */
+	readonly events: EventSchemas;
+}
+
+/**
  * Everything a kernel is assembled from: plain data plus plugin factories. The sdk builds it; nobody writes it by
  * hand.
  *
@@ -109,6 +129,8 @@ export interface KernelDefinition {
 	readonly replies: Readonly<Record<string, string>>;
 	/** The kernel's own limits. */
 	readonly limits: KernelLimits;
+	/** The record sources whose events may be recorded in this run; left out: none. The builder of the definition passes them through unchanged. */
+	readonly records?: readonly RecordSource[];
 }
 
 /**
@@ -137,6 +159,18 @@ export interface Submission {
 export interface KernelPorts {
 	/** The sinks that read the log. */
 	readonly sinks?: readonly EventSink[];
+	/**
+	 * The run limits that are not a plugin's, for example a cost cap: checked before the plugins' limits, at the same
+	 * moments, in this order; left out: none. The id of such a limit is `<owner>.<limit>` (`models.budget`) and is
+	 * written to the log as it is; the part before the dot is never the id of a plugin.
+	 */
+	readonly limits?: readonly RunLimit[];
+	/**
+	 * Takes secrets out of a text before the kernel keeps it: the detail of a failed run and every string of a
+	 * recorded payload. It must be pure, must not throw and must give the same text for the same input; left out:
+	 * the pattern redaction `redactSecrets`. The type is the `Redact` of `redact.ts`.
+	 */
+	readonly redact?: (text: string) => string;
 }
 
 /**
