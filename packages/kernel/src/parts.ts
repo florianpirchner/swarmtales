@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * The interfaces between the kernel's files, fixed first so that the files are built in parallel and tested
- * against hand-written fakes of their neighbours. Type-only while the files are built; the assembly replaces the
- * interfaces by types derived from the factories.
+ * against hand-written fakes of their neighbours. Type-only: every factory checks itself against `PartFactories`,
+ * and `kernel.ts` joins the factories.
  *
  * Who turns a throw of plugin code into `SWT-R003` (`guarded` in `errors.ts`): the loader, for every function it
  * hands on without its owner (the hooks and stage handlers of `Loaded`, the listeners it gives the log, the

@@ -4,7 +4,14 @@
 
 ```ts
 
+import { Kernel } from '@swarmtales/contracts';
+import { KernelDefinition } from '@swarmtales/contracts';
+import { KernelPorts } from '@swarmtales/contracts';
 import { RandomSource } from '@swarmtales/contracts';
+import { ResumeInput } from '@swarmtales/contracts';
+
+// @public
+export function createKernel(definition: KernelDefinition, ports?: KernelPorts, resume?: ResumeInput): Kernel;
 
 // @public
 export function createRng(seed: number): RandomSource;
