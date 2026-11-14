@@ -1,6 +1,6 @@
 # Docs
 
-The documentation of Swarm Tales. At milestone M0 it holds the rules of the repository, the plan of the rewrite and
+The documentation of Swarm Tales. During the rewrite it holds the rules of the repository, the plan of the rewrite and
 the documents carried from the old platform. Tutorials, how-to guides and the generated reference arrive with the
 milestones that build what they describe.
 

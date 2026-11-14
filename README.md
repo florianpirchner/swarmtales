@@ -46,7 +46,7 @@ result grid-game.tally: {"X":1,"O":0,"draw":0}
 ```
 
 and writes the run folder with the signed, hash-chained log. Before the run it prints one warning `SWT-C010`: the fake
-player never calls `viewBoard`, it moves without looking at the board. The same game on a live model arrives with milestone M2.
+player never calls `viewBoard`, it moves without looking at the board. A live model plays the same game with `--model` and a spending cap (`--budget`).
 
 ## The building blocks
 

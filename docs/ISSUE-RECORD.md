@@ -53,7 +53,7 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `bfe388d` of `rewrite/develop`.
+All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `0ac3e89` of `rewrite/develop`.
 
 | # | Issue | Title | Milestone | Commit | Merged | Tokens (total, M) | Cost (USD) | Wall time (h) | Agent time (h) | Lines | Source | Tests | Other | Note |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -139,6 +139,8 @@ All merges are of 2026-11-14; the times are UTC. The table is complete up to com
 | 80 | M2-19 | Lab: the run report and the series report | M2 | `021e1d5` | 14:55 | 0.11 | - | 0.17 | 0.22 | +499 -0 | 282 | 202 | 0 | one session |
 | 81 | M2-21 | Canary test, leak scan, spend ledger | M2 | `f8acaac` | 15:11 | 0.20 | - | 0.24 | 0.33 | +526 -22 | 281 | 264 | 0 | one session |
 | 82 | M2-23 | Mechanic README generator; the READMEs of the seven mechanics | M2 | `bfe388d` | 15:15 | 0.20 | - | 0.19 | 0.31 | +2395 -28 | 630 | 156 | 1637 | one session |
+| 83 | M2 review B | the experiment runner holds its cap against a bad cost and an edited state file; analysis, exclusions and report fixes | M2 | `201aefc` | 15:22 | not recorded | - | - | not recorded | +176 -15 | - | - | - | challenger session; the line split is not counted |
+| 84 | M2 review A | held keys redacted before patterns, flag values and limit reasons redacted, a model without a price refused before the folder is written | M2 | `0ac3e89` | 15:32 | not recorded | - | - | not recorded | +372 -10 | - | - | - | challenger session; the line split is not counted |
 
 ## Sessions without a row
 
@@ -163,7 +165,7 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `bfe388d`, 82 rows.
+State at commit `0ac3e89`, 84 rows; the sums below are of the first 82.
 
 | | Planned (A12) | Merged | Note |
 |---|---|---|---|
