@@ -4,6 +4,83 @@
 
 ```ts
 
+import { ChainCheckpoint } from '@swarmtales/chain';
+import { ChainGenesisV2Input } from '@swarmtales/chain';
+import { EventSink } from '@swarmtales/contracts';
+import { KeyObject } from 'node:crypto';
+import { RunManifest } from '@swarmtales/contracts';
+import { SwtIssue } from '@swarmtales/contracts';
+
+// @public
+export function createSink(chain: EventChain, now: () => Date): EventSink;
+
+// @public
+export class EventChain {
+    constructor(directory: string, input: ChainGenesisV2Input, options?: EventChainOptions);
+    append(value: unknown): void;
+    checkpoint(state?: string): ChainCheckpoint;
+    close(): void;
+    readonly genesisHash: string;
+    head(): {
+        readonly lines: number;
+        readonly hash: string;
+    };
+    readonly publicKey: string;
+}
+
+// @public
+export interface EventChainOptions {
+    readonly keys?: {
+        readonly publicKey: KeyObject;
+        readonly privateKey: KeyObject;
+    };
+}
+
+// @public
+export const GAME_FILE = "game.json";
+
+// @public
+export const MANIFEST_FILE = "manifest.json";
+
+// @public
+export function nextRunFolder(root: string, gameId: string): string;
+
+// @public
+export function openRunFolder(directory: string, manifest: RunManifest, options: RunFolderOptions): RunFolder;
+
+// @public
+export interface RunFolder {
+    close(): void;
+    readonly sink: EventSink;
+}
+
+// @public
+export interface RunFolderOptions {
+    readonly game?: unknown;
+    readonly keys?: {
+        readonly publicKey: KeyObject;
+        readonly privateKey: KeyObject;
+    };
+    readonly now: () => Date;
+    readonly resumedFrom?: NonNullable<ChainGenesisV2Input["resumedFrom"]>;
+    readonly texts?: Readonly<Record<string, string>>;
+}
+
+// @public
+export interface RunVerdict {
+    readonly finished: boolean;
+    readonly head?: string;
+    readonly issues: readonly SwtIssue[];
+    readonly lines: number;
+    readonly ok: boolean;
+}
+
+// @public
+export const TEXTS_FILE = "texts.json";
+
+// @public
+export function verifyRun(directory: string): RunVerdict;
+
 // (No @packageDocumentation comment for this package)
 
 ```
