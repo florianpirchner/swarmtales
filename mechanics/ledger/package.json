@@ -7,9 +7,10 @@
 	"license": "Apache-2.0",
 	"sideEffects": false,
 	"swarmtales": {
+		"kind": "mechanic",
 		"class": "base",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["ledger"]
 	},
 	"exports": {
 		".": {

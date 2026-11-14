@@ -4,6 +4,255 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { ToolCtxOf } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export function book(state: LedgerState, debit: string, credit: string, amount: number, reason: string, tick: number, options: BookOptions, written: (entry: LedgerEntry) => void): LedgerEntry;
+
+// @public
+export interface BookOptions {
+    readonly allowNegative: boolean;
+    readonly idempotencyKey?: string | undefined;
+    readonly strict: boolean;
+}
+
+// @public
+export const ledger: MechanicDefinition<"ledger", Type.TObject<{
+startPoints: Type.TInteger;
+strictAccounts: Type.TBoolean;
+}>, {
+readonly ledger_entry: Type.TObject<{
+txId: Type.TString;
+debit: Type.TString;
+credit: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+}>;
+readonly transfer: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+memo: Type.TString;
+txId: Type.TString;
+}>;
+}, "transferPoints">;
+
+// @public
+export type LedgerCtx = CtxOf<typeof ledgerHead>;
+
+// @public
+export interface LedgerEntry {
+    readonly amount: number;
+    readonly credit: string;
+    readonly debit: string;
+    readonly idempotencyKey?: string;
+    readonly reason: string;
+    readonly tick: number;
+    readonly txId: string;
+}
+
+// @public
+export class LedgerError extends Error {
+    constructor(code: LedgerErrorCode, message: string);
+    readonly code: LedgerErrorCode;
+    readonly name = "LedgerError";
+}
+
+// @public
+export type LedgerErrorCode = "INVALID_AMOUNT" | "SAME_ACCOUNT" | "INSUFFICIENT_FUNDS" | "UNKNOWN_ACCOUNT";
+
+// @public
+export const ledgerHead: MechanicHead<"ledger", Type.TObject<{
+startPoints: Type.TInteger;
+strictAccounts: Type.TBoolean;
+}>, Type.TObject<{
+balances: Type.TArray<Type.TObject<{
+account: Type.TString;
+balance: Type.TNumber;
+}>>;
+entries: Type.TArray<Type.TObject<{
+txId: Type.TString;
+debit: Type.TString;
+credit: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+tick: Type.TInteger;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>>;
+txSeq: Type.TInteger;
+}>, LedgerState, {
+readonly ledger_entry: Type.TObject<{
+txId: Type.TString;
+debit: Type.TString;
+credit: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+}>;
+readonly transfer: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+memo: Type.TString;
+txId: Type.TString;
+}>;
+}, {
+readonly "ledger/tools/transferPoints": readonly [];
+readonly "ledger/replies/transfer-ok": readonly ["amount", "target", "balance", "receipt"];
+readonly "ledger/status/points": readonly ["points"];
+}, readonly [ServiceDefinition<"roster", {
+readonly ids: {
+readonly kind: "query";
+readonly summary: "Every resident, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly teams: {
+readonly kind: "query";
+readonly summary: "The residents of each team.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+};
+readonly teamOf: {
+readonly kind: "query";
+readonly summary: "The team of a resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly roles: {
+readonly kind: "query";
+readonly summary: "The residents of each role.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+};
+readonly roleOf: {
+readonly kind: "query";
+readonly summary: "The role of a resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly present: {
+readonly kind: "query";
+readonly summary: "Says whether the resident may act now.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>], readonly [ServiceDefinition<"ledger", {
+readonly balance: {
+readonly kind: "query";
+readonly summary: "An account's points; 0 for an account nobody opened.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNumber;
+};
+readonly balances: {
+readonly kind: "query";
+readonly summary: "Every resident's points, for rankings and standings.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TNumber>;
+};
+readonly open: {
+readonly kind: "command";
+readonly summary: "Opens an account at 0; an open account is left as it is; writes no event.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly has: {
+readonly kind: "query";
+readonly summary: "Whether the account is open.";
+readonly input: Type.TObject<{
+account: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly mint: {
+readonly kind: "command";
+readonly summary: "Creates points: start points, rewards, grants; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly burn: {
+readonly kind: "command";
+readonly summary: "Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`.";
+readonly input: Type.TObject<{
+account: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TNull;
+};
+readonly move: {
+readonly kind: "command";
+readonly summary: "Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`.";
+readonly input: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+amount: Type.TNumber;
+reason: Type.TString;
+idempotencyKey: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+ok: Type.TLiteral<true>;
+txId: Type.TString;
+}>, Type.TObject<{
+ok: Type.TLiteral<false>;
+code: Type.TLiteral<"INSUFFICIENT_FUNDS">;
+}>]>;
+};
+}>], [], {
+transferPoints: Type.TObject<{
+target: Type.TString;
+amount: Type.TInteger;
+memo: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export interface LedgerState {
+    readonly balances: Map<string, number>;
+    readonly entries: LedgerEntry[];
+    readonly keys: Map<string, LedgerEntry>;
+    txSeq: number;
+}
+
+// @public
+export type LedgerToolCtx = ToolCtxOf<typeof ledgerHead>;
+
+// @public
+export function memoCarriesDigits(memo: string): boolean;
+
+// @public
+export function restored(data: {
+    readonly balances: readonly {
+        readonly account: string;
+        readonly balance: number;
+    }[];
+    readonly entries: readonly LedgerEntry[];
+    readonly txSeq: number;
+}): LedgerState;
+
+// @public
+export const SYSTEM_ACCOUNT = "SYSTEM_MINT_BURN";
+
 // (No @packageDocumentation comment for this package)
 
 ```
