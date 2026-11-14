@@ -1,3 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The files of `kernel/`; the issues that own the folder fill this barrel. */
-export {};
+/** The files of `kernel/`: what the kernel sees. The issues that own the folder fill this barrel. */
+export * from "./actor.ts";
+export * from "./envelope.ts";
+export * from "./event-def.ts";
+export * from "./kernel-def.ts";
+export * from "./plugin.ts";
+export * from "./ports.ts";
+export * from "./service.ts";
+export * from "./tool.ts";
