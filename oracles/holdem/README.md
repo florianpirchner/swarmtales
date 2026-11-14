@@ -7,6 +7,7 @@ Format and rules of comparison: [../README.md](../README.md).
 | `holdem-s7.json`, `holdem-s11.json` | default: four seats, fixed limit, duplicate deals, a private brain | scripted (`holdemProbed`) | six hands of game 1 (cut): blinds, bets, raises, calls, folds, checks, boards, showdowns, pots; three refused calls (an action out of turn: `TOOL_LOCKED`; an unknown action and a missing one: `INVALID_ARGUMENTS`) |
 | `holdem-nobrain-s7.json` | no brain | scripted (`holdem`) | six hands of game 1 (cut) |
 | `holdem-hu-s7.json` | heads-up | scripted (`holdem`) | six hands of game 1 (cut) |
+| `holdem-aid-mixed-s7.json` | the registry story `holdem-aid-mixed`: no brain, the decision aid for A01 and A03 (`aid: true`, `aidSeats`) | scripted (`holdem`) | six hands of game 1 (cut): the aid line `Referee's estimate: you win ... (pot odds)` in 33 of the 79 `viewTable` answers, all of A01 and A03 and none of A02 and A04, on the duplicate deals of `holdem-nobrain-s7.json`; recorded for M4-18 (`../m4-catalog.patch`) |
 | `holdem-hu-s13-silent.json` | heads-up | scripted (`silent`): no resident ever calls a tool | the action timer: every action is the default of the clock; two whole games of 12 hands with `game_scored`, the retro windows and `match_ended` |
 
 Source of the calls: the player of `test/stories/holdem.test.ts` (A01 bets and raises whenever it may, A02 calls
@@ -21,4 +22,4 @@ The seeded deal is visible: `cards_dealt` carries the hole cards and the whole r
 sampling and must match.
 
 Not covered: the end of a game and of the match at a played table of four (cut before; the silent heads-up file
-has both), the mixed tables and the decision aid, decisions of real models.
+has both), the mixed tables of brain seats (`holdem-mixed`), decisions of real models.

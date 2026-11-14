@@ -15,3 +15,10 @@ The seeded deal is visible: `cards_dealt` (mechanic `card-table`, audience `huma
 
 Not covered: a played match of the registry default (no recorded run of it replays exactly), the no-brain arm,
 the bid-sum lever.
+
+The no-brain arm stays without a file on purpose (M4-18, `11-m4-spec.md` section 2.4, row 11, the way out): the
+first test failed. `scripts/export-oracles.ts --survey stories/ember-tricks/runs` on the old platform finds no
+recorded run of `ember-tricks-nobrain-*` that replays exactly: the three no-brain runs of
+`ember-tricks-04a-002-long-matrix` are four-game matches (`ember-tricks-nobrain-g4`, not `-g1`) and today's code
+gives the recorded answer to 59, 50 and 50 of about 1600 calls (the first difference is a `viewTable` answer in
+minute 0). No other run of the arm was recorded. The arm is proven by the carried tests only.

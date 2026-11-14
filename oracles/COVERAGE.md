@@ -205,23 +205,23 @@ Event types of the mechanics: 14 of 14 occur. Never written in a file: none.
 
 ## harbor-lights
 
-6 files. Mechanics: `card-table`, `hint-towers`, `team-channel`, `strategy-brain`.
+8 files. Mechanics: `card-table`, `hint-towers`, `team-channel`, `strategy-brain`.
 
 | Tool | Mechanic | Granted to residents | Called by | Accepted | Refused with |
 | --- | --- | --- | --- | ---: | --- |
-| `discardSlot` | hint-towers | yes | resident | 58 | `NOT_YOUR_TURN@execute` 1 |
-| `giveSignal` | hint-towers | yes | resident | 103 | `NO_SIGNALS@execute` 2, `TOUCHES_NOTHING@execute` 1 |
-| `playSlot` | hint-towers | yes | resident | 152 | `NOT_YOUR_TURN@execute` 1, `NO_SUCH_SLOT@execute` 1 |
-| `postTeam` | team-channel | yes | resident | 9 | - |
+| `discardSlot` | hint-towers | yes | resident | 67 | `NOT_YOUR_TURN@execute` 2 |
+| `giveSignal` | hint-towers | yes | resident | 118 | `NO_SIGNALS@execute` 2, `TOUCHES_NOTHING@execute` 1 |
+| `playSlot` | hint-towers | yes | resident | 190 | `NOT_YOUR_TURN@execute` 1, `NO_SUCH_SLOT@execute` 1 |
+| `postTeam` | team-channel | yes | resident | 17 | - |
 | `readBrain` | strategy-brain | yes | resident | 12 | - |
 | `readTeam` | team-channel | yes | resident | 9 | - |
 | `viewHand` | card-table | no | **never called** | 0 | - |
 | `viewTowers` | hint-towers | yes | resident | 10 | - |
-| `writeBrain` | strategy-brain | yes | resident | 6 | `BRAIN_TOO_LONG@rule` 1 |
+| `writeBrain` | strategy-brain | yes | resident | 9 | `BRAIN_TOO_LONG@rule` 1 |
 
 | Refusal code | From | Refused calls | In files |
 | --- | --- | ---: | ---: |
-| `NOT_YOUR_TURN` | hint-towers | 2 | 2 |
+| `NOT_YOUR_TURN` | hint-towers | 3 | 3 |
 | `NO_SIGNALS` | (not found in the source by the pattern) | 2 | 1 |
 | `BRAIN_TOO_LONG` | strategy-brain | 1 | 1 |
 | `NO_SUCH_SLOT` | hint-towers | 1 | 1 |
@@ -233,13 +233,13 @@ Event types of the mechanics: 14 of 14 occur. Never written in a file: none.
 
 ## holdem
 
-5 files. Mechanics: `holdem`, `strategy-brain`.
+6 files. Mechanics: `holdem`, `strategy-brain`.
 
 | Tool | Mechanic | Granted to residents | Called by | Accepted | Refused with |
 | --- | --- | --- | --- | ---: | --- |
-| `act` | holdem | yes | resident | 297 | `INVALID_ARGUMENTS@parse` 4, `TOOL_LOCKED@lock` 2 |
+| `act` | holdem | yes | resident | 376 | `INVALID_ARGUMENTS@parse` 4, `TOOL_LOCKED@lock` 2 |
 | `readBrain` | strategy-brain | yes | **never called** | 0 | - |
-| `viewTable` | holdem | yes | resident | 297 | - |
+| `viewTable` | holdem | yes | resident | 376 | - |
 | `writeBrain` | strategy-brain | yes | resident | 10 | - |
 
 | Refusal code | From | Refused calls | In files |
