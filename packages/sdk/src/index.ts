@@ -25,3 +25,6 @@ export { shownNameClashes, toolNames, type NamedTool, type ToolNames, type ToolS
 
 export { actorsOf, checkSchema, mechanicsOf, residentsOf, type UsedMechanic } from "./game/validate.ts";
 export { appendRoster, rosterPlugin, RosterService } from "./roster/index.ts";
+
+export { defineHandlers, defineHead } from "./mechanic/define-head.ts";
+export { defineMechanic } from "./mechanic/define-mechanic.ts";

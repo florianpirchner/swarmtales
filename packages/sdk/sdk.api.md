@@ -40,6 +40,7 @@ import { ToolOutcome } from '@swarmtales/contracts';
 import { ToolRef } from '@swarmtales/contracts';
 import { ToolSuccess } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
+import { TUndefined } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
@@ -114,6 +115,15 @@ export function defineEvents<const Id extends string, const E extends EventSchem
 
 // @public
 export function defineGame<const Ms extends readonly MechanicUse[]>(game: Game<Ms>): Game<Ms>;
+
+// @public
+export function defineHandlers<H extends AnyHead, K extends keyof ToolsOf<H> & string>(_head: H, handlers: { readonly [N in K]: ToolHandlers<ShapeOf<H>, ToolsOf<H>[N]>; }): { readonly [N in K]: ToolHandlers<ShapeOf<H>, ToolsOf<H>[N]>; };
+
+// @public
+export function defineHead<const Id extends string, O extends TSchema = NoOptions, Snap extends TSchema = TUndefined, C = never, E extends EventSchemas = None, const P extends PromptKeys = None, const R extends readonly ServiceDefinition[] = [], const Pv extends readonly ServiceDefinition[] = [], const U extends readonly ServiceDefinition[] = [], TP extends ToolParams = None>(head: MechanicHead<Id, O, Snap, C, E, P, R, Pv, U, TP>): MechanicHead<Id, O, Snap, C, E, P, R, Pv, U, TP>;
+
+// @public
+export function defineMechanic<H extends AnyHead, F extends Readonly<Record<string, TSchema>> = None>(head: H, body: MechanicBody<ShapeOf<H>, ToolsOf<H>, F>): DefinitionOf<H>;
 
 // @public
 export function defineService<const N extends string, const M extends ServiceMethods>(service: ServiceDefinition<N, M>): ServiceDefinition<N, M>;
