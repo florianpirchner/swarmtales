@@ -4,6 +4,68 @@
 
 ```ts
 
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { NoOptions } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const channels: MechanicDefinition<"channels", NoOptions, {
+readonly board_post: Type.TObject<{
+postSeq: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
+}>;
+readonly notice: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+}, "readBoard" | "postBoard">;
+
+// @public
+export const ChannelsEvents: EventsDefinition<"channels", {
+readonly board_post: Type.TObject<{
+postSeq: Type.TInteger;
+author: Type.TString;
+text: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
+}>;
+readonly notice: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+}>;
+
+// @public
+export const ChannelsService: ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
