@@ -14,6 +14,7 @@ import { experimentNotFound } from "./errors.ts";
 import { liveFlags } from "./flags.ts";
 import { scanFolder } from "./leak-scan.ts";
 import { runLive, type LiveResult } from "./live.ts";
+import type { SourceTree } from "./tree.ts";
 import type { CliIo } from "./main.ts";
 import { jsonFile, metricTable } from "./report.ts";
 import { resolveFile } from "./run.ts";
@@ -44,6 +45,8 @@ export interface ExperimentInput {
 	readonly source?: (run: PlannedRun) => ModelSource;
 	/** Sinks beside the folder of every run. */
 	readonly sinks?: readonly EventSink[];
+	/** The commit and the state of the platform's source tree; asked from git by every run when absent. A test passes one. */
+	readonly tree?: SourceTree;
 }
 
 // Every arm resolves before a run is paid for (`SWT-G041` for a param the family does not declare); the metrics are those of the mechanics of all arms.
@@ -76,7 +79,7 @@ function player(spec: ExperimentSpec, directory: string, input: ExperimentInput,
 	const flags = liveFlags({ provider: spec.model.provider, model: spec.model.id, purpose: spec.purpose, ...(spec.model.thinking === undefined ? {} : { thinking: spec.model.thinking }), ...(input.ledger === undefined ? {} : { ledger: input.ledger }) });
 	const { redact } = createKeyBroker(input.env);
 	return async (run, capUsd, experiment) => {
-		const more = { ...(input.source === undefined ? {} : { source: input.source(run) }), ...(input.sinks === undefined ? {} : { sinks: input.sinks }) };
+		const more = { ...(input.source === undefined ? {} : { source: input.source(run) }), ...(input.sinks === undefined ? {} : { sinks: input.sinks }), ...(input.tree === undefined ? {} : { tree: input.tree }) };
 		const live = { ...flags, file: spec.game, seed: run.seed, params: run.params, out: directory, json: false, budget: capUsd, replicate: run.replicate, env: input.env, experiment: { ...experiment, arm: run.arm }, ...more };
 		const result = await runLive(live, { ...io, out: () => undefined, err: () => undefined });
 		const { line, failure } = outcomeOf(result);
