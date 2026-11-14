@@ -21,15 +21,24 @@ export interface ComposedOptions {
 	readonly definition: string;
 	/** The script's name and what it does. */
 	readonly script: string;
+	/** The file the script is in; `scripts/oracles/city-scripts.ts` when omitted. */
+	readonly from?: string;
 	readonly note: string;
 	readonly fixture: Omit<HostFixtureOptions, "story" | "resume" | "snapshot">;
 	/** Save the run after this minute and continue it on a fresh host. */
 	readonly resumeAfter?: number;
 }
 
+/** A definition without its model choices (`model: { provider, id, ... }`): which model played is no part of a game's rules. */
+function withoutModels(value: unknown): unknown {
+	if (Array.isArray(value)) return value.map(withoutModels);
+	if (typeof value !== "object" || value === null) return value;
+	return Object.fromEntries(Object.entries(value).flatMap(([key, entry]): [string, unknown][] => (key === "model" ? [] : [[key, withoutModels(entry)]])));
+}
+
 /** The story definition as the file next to the oracles holds it. */
 export function definitionText(story: AnyStory): string {
-	return `${JSON.stringify(plainJson(story), null, "\t")}\n`;
+	return `${JSON.stringify(withoutModels(plainJson(story)), null, "\t")}\n`;
 }
 
 function setupOf(options: Pick<ComposedOptions, "story" | "definition">, run: HostFixture, events: readonly EventEnvelope[]): OracleSetup {
@@ -54,7 +63,7 @@ function timelineFor(events: readonly EventEnvelope[]): OracleEntry[] {
 
 /** Plays the story to its end, with a save and a resume in between when asked, and returns the oracle. */
 export async function composedOracle(options: ComposedOptions): Promise<Oracle> {
-	const source = { kind: "scripted" as const, from: `scripts/oracles/city-scripts.ts#${options.script}`, note: options.note };
+	const source = { kind: "scripted" as const, from: `${options.from ?? "scripts/oracles/city-scripts.ts"}#${options.script}`, note: options.note };
 	const identity = { game: options.game, variant: options.variant, source };
 	if (options.resumeAfter === undefined) {
 		const run = createHostFixture({ ...options.fixture, story: options.story });

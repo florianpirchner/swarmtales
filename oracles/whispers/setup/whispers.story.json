@@ -15,11 +15,6 @@
 		"stopWhenSeatsDecided": false,
 		"budgetUsd": 2
 	},
-	"model": {
-		"provider": "anthropic",
-		"id": "claude-haiku-5-5",
-		"thinking": "low"
-	},
 	"rules": {
 		"penalty": [
 			2,
@@ -508,12 +503,6 @@
 		}
 	],
 	"gamemaker": {
-		"model": {
-			"provider": "openrouter",
-			"id": "deepseek/deepseek-v4.1-flash-1017",
-			"thinking": "high",
-			"maxOutputTokens": 393216
-		},
 		"author": "COURIER",
 		"every": 1,
 		"notesPerAgent": 1,
@@ -529,11 +518,6 @@
 		]
 	},
 	"classifier": {
-		"model": {
-			"provider": "anthropic",
-			"id": "claude-haiku-5-5",
-			"thinking": "off"
-		},
 		"maxChars": 1500
 	},
 	"names": {
@@ -1063,11 +1047,6 @@
 		}
 	},
 	"guards": {
-		"model": {
-			"provider": "anthropic",
-			"id": "claude-haiku-5-5",
-			"thinking": "off"
-		},
 		"rules": [
 			{
 				"id": "no-fragments",
