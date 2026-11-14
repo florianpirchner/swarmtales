@@ -29,6 +29,9 @@ The specification of a milestone is written and challenged before its issues sta
 - [`10-m3-spec.md`](10-m3-spec.md): milestone M3, the City slice: seven mechanics, the Director, the decision
   window, the Human Hand, snapshot, resume and replay, and the issue list with its waves. Challenged on
   2026-11-14 (its section 19); decisions A19 to A24.
+- [`11-m4-spec.md`](11-m4-spec.md): milestone M4, the remaining ten tabletop games, the scheduler sample
+  `parallel`, the platform items of the reviews, the small live reruns, and the issue list with its waves.
+  Challenged on 2026-11-14 (its section 17); its section 14 words the decisions A30 to A41.
 
 What the builders found against a specification is in its errata file:
 [`08-m1-spec-errata.md`](08-m1-spec-errata.md), [`09-m2-spec-errata.md`](09-m2-spec-errata.md),
