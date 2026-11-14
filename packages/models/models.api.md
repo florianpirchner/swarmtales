@@ -4,6 +4,73 @@
 
 ```ts
 
+import { ApiKeyAuth } from '@earendil-works/pi-ai';
+import { RecordSource } from '@swarmtales/contracts';
+import { Redact } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { SwtError } from '@swarmtales/contracts';
+import { SwtIssue } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export function createKeyBroker(env: Readonly<Record<string, string | undefined>>, variables?: Readonly<Record<string, readonly string[]>>): KeyBroker;
+
+// @public
+export function emptyModel(provider: string): SwtIssue;
+
+// @public
+export const KEY_VARIABLES: Readonly<Record<string, readonly string[]>>;
+
+// @public
+export type KeyAuth = ApiKeyAuth;
+
+// @public
+export interface KeyBroker {
+    auth(provider: string): KeyAuth;
+    leaks(text: string): boolean;
+    missing(provider: string): readonly string[];
+    readonly redact: Redact;
+    toString(): string;
+}
+
+// @public
+export function keyLeaked(files: readonly string[]): SwtIssue;
+
+// @public
+export function noCostCap(): SwtIssue;
+
+// @public
+export function noKey(provider: string, variables: readonly string[]): SwtIssue;
+
+// @public
+export function noPrice(provider: string, model: string): SwtIssue;
+
+// @public
+export function recordMismatch(type: string, path: string, message: string): SwtIssue;
+
+// @public
+export const RESIDENT_RECORDS: RecordSource;
+
+// @public
+export function residentRecord<Type extends keyof ResidentRecords>(type: Type, payload: ResidentRecords[Type]): ResidentRecords[Type];
+
+// Warning: (ae-forgotten-export) The symbol "SCHEMAS" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<(typeof SCHEMAS)[Type]>; };
+
+// @public
+export function shortKey(variable: string): SwtIssue;
+
+// @public
+export function thrown(issue: SwtIssue | readonly SwtIssue[], redact: Redact): SwtError;
+
+// @public
+export function unknownModel(provider: string, model: string, known: readonly string[]): SwtIssue;
+
+// @public
+export function unknownProvider(provider: string, known: readonly string[]): SwtIssue;
+
 // (No @packageDocumentation comment for this package)
 
 ```
