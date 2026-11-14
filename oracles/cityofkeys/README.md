@@ -44,3 +44,37 @@ Not covered, and why:
 - The human's hand (pause, instruction, amendment), the classifier, the weaver, the seal's auction beyond its
   opening, levels 8 to 10 played to their end, 12 or more residents.
 - Model text: the scripted models answer with fixed words, which are not in the file.
+
+## What the rewritten platform proves with these files (M3)
+
+No file here can be replayed whole on the rewritten platform: the smallest setup (`cityofkeys-burn-s7.json`) loads
+15 mechanics, and the slice of milestone M3 has seven. The files are used as **projections**: the events of named
+sources and types, with named fields, in order, taken from the file and from the log of a run that reaches the
+same situation, and compared byte for byte (`projectOracle`, `projectLog`, `eventBurst` and
+`projectionDifference` in `packages/testkit/src/oracle/project.ts`). Each proof also runs against a copy of the
+file changed by hand and must name the changed event.
+
+| # | File | Projection | Test |
+|---|---|---|---|
+| 1 | `cityofkeys-act1-s7.json`, `cityofkeys-act1-s11.json` | `puzzles.fragments_dealt`, levels 1 to 7, whole payload | `mechanics/puzzles/test/oracle.test.ts` |
+| 2 | `cityofkeys-burn-s7.json` | `puzzles.fragments_dealt`, levels 1 to 7, whole payload | the same |
+| 3 | `cityofkeys-burn-s7.json`, first exile (`A04`, minute 14) | `exile.exiled` (field `agent`), `puzzles.factor_burned`, `puzzles.level_contracted` for levels 5 to 7 | the same |
+
+How projection 3 is set up: the test reads where every resident stands from the file's `progression` events
+before the exile (`level_entered`, and `submission` with the outcome `correct`), gives that to `puzzles` as its
+option `standings`, banishes the resident the file names through the service of `exile`, and compares what is
+written then. The file holds no direct message before its first exile, so no message is fed in.
+
+### Registered changes against the files
+
+A projection leaves these out or maps them; nothing else may differ.
+
+| Change | In the file | On the rewritten platform | Why |
+|---|---|---|---|
+| Additive levels are not dealt | `factors_dealt` for levels 8 to 10; `level_contracted` for levels 5 to 10 after the first exile | no `factors_dealt`; `level_contracted` for levels 5 to 7 | `puzzles` is cut to fragment levels at M3 (specification of M3, section 1.3) |
+| `exiled` has a new field | `{ agent }` | `{ agent, by }` | whoever banishes is named; the projection compares `agent` |
+| Order after an exile | `exiled`, `resident_suspended`, `factor_burned`, the ledger entry that burns the points, `level_contracted` | `exiled`, `actor_suspended`, the ledger entry, `factor_burned`, `level_contracted` | the ledger is a base mechanic and cannot name `puzzles`, so `puzzles` listens after the ledger (specification of M3, section 2.3, decision 4). Within one source the order is the file's |
+| Numbers are renumbered | `postSeq` of a board post, `number` of a direct message, `txId` of a ledger entry | the same fields, counted without the posts, notices and entries of mechanics that are not in the slice | compared after a mapping in order of first appearance |
+| The second exile of the burn file is not projected | `A02`, exiled by the second tribunal | not compared | it follows events of `standoff`, which is not ported |
+| The standing of a resident is an option | `progression` events | the option `standings` of `puzzles` | `progression` is not ported at M3; the test computes the option from the file |
+

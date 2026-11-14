@@ -124,6 +124,12 @@ Refusal codes no file exercises (48): `ALREADY_BLAMED` (receipts), `ALREADY_EXIL
 
 Event types of the mechanics: 54 of 82 occur. Never written in a file: `channels.treasury_deposit`, `channels.treasury_withdrawal`, `channels.treasurer_set`, `channels.treasury_settled`, `channels.gamemaker_defied`, `petitions.petition_opened`, `petitions.petition_signed`, `petitions.petition_resolved`, `receipts.receipt_shown`, `progression.tools_unlocked`, `cast.cast_level_set`, `cast.cast_revealed`, `cast.cast_retired`, `cast.cast_dm`, `cast.cast_collected`, `cast.collection_started`, `cast.collection_shortened`, `cast.collection_revealed`, `cast.lottery_drawn`, `standoff.piece_claimed`, `standoff.ultimatum_set`, `standoff.ultimatum_resolved`, `tribunal.tribunal_cancelled`, `seal.seal_bid`, `seal.seal_won`, `seal.seal_used`, `script.director_skipped`, `arena.act_brake`.
 
+On the rewritten platform no file of this game is replayed whole. What is proven from the files, as projections of
+single sources, and the registered changes are listed in [cityofkeys/README.md](cityofkeys/README.md): so far
+`puzzles.fragments_dealt` (levels 1 to 7, three files), and after the first exile of `cityofkeys-burn-s7.json`
+`exile.exiled`, `puzzles.factor_burned` and `puzzles.level_contracted` (levels 5 to 7). This paragraph is written
+by hand; `scripts/export-oracles.ts` of the old platform does not write it.
+
 ## convoy
 
 4 files. Mechanics: `convoy`, `strategy-brain`.

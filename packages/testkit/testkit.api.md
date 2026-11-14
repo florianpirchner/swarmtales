@@ -61,6 +61,12 @@ export type ConformanceOptions = Pick<PlayOptions, "seed" | "prompts" | "install
 export function countsOf(timeline: readonly OracleEntry[]): Oracle["counts"];
 
 // @public
+export function eventBurst(timeline: readonly OracleEntry[], source: string, type: string, occurrence?: number): {
+    readonly index: number;
+    readonly entries: readonly OracleEntry[];
+};
+
+// @public
 export function fakeDriver(kernel: Kernel, seed: number): ActorDriver;
 
 // @public
@@ -308,6 +314,36 @@ export interface PlayOptions {
     readonly sinks?: readonly EventSink[];
     readonly ticks?: number;
 }
+
+// @public
+export interface ProjectedEvent {
+    readonly payload: unknown;
+    readonly source: string;
+    readonly type: string;
+}
+
+// @public
+export interface ProjectionDifference {
+    readonly actual?: ProjectedEvent;
+    readonly expected?: ProjectedEvent;
+    readonly index: number;
+}
+
+// @public
+export function projectionDifference(expected: readonly ProjectedEvent[], actual: readonly ProjectedEvent[]): ProjectionDifference | undefined;
+
+// @public
+export interface ProjectionSelector {
+    readonly fields?: readonly string[];
+    readonly source: string;
+    readonly type: string;
+}
+
+// @public
+export function projectLog(events: readonly Envelope[], selectors: readonly ProjectionSelector[]): readonly ProjectedEvent[];
+
+// @public
+export function projectOracle(timeline: readonly OracleEntry[], selectors: readonly ProjectionSelector[]): readonly ProjectedEvent[];
 
 // @public
 export function readOracle(path: string): Oracle;
