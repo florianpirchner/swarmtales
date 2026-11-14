@@ -13,7 +13,8 @@ describe("pnpm check", () => {
 	it("runs only scripts that package.json defines, and lint in a 4 GB heap", () => {
 		const scripts = JSON.stringify(JSON.parse(readText("package.json")));
 		for (const gate of GATES) expect(scripts).toContain(`"${gate.command[1] ?? ""}":`);
-		expect(scripts).toContain("--max-old-space-size=4096 node_modules/eslint/bin/eslint.js");
+		expect(scripts).toContain('"lint":"node scripts/lint.ts"');
+		expect(readText("scripts/lint.ts")).toContain('"--max-old-space-size=4096", "node_modules/eslint/bin/eslint.js"');
 		expect(scripts).toContain('"check":"node scripts/check.ts"');
 	});
 
