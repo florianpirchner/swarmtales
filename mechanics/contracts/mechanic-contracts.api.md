@@ -4,6 +4,69 @@
 
 ```ts
 
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const BrainSourceService: ServiceDefinition<"brain-source", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly hold: {
+readonly kind: "command";
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly release: {
+readonly kind: "command";
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>;
+
+// @public
+export const ConsensusSourceService: ServiceDefinition<"consensus-source", {
+readonly team: {
+readonly kind: "query";
+readonly summary: "The team on move now; an empty string when no team may act.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TString;
+};
+readonly captain: {
+readonly kind: "query";
+readonly summary: "The resident who proposes for the team on move; an empty string when there is none.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TString;
+};
+readonly legalCells: {
+readonly kind: "query";
+readonly summary: "The values the gated parameter may take for the team on move (empty when none or no team is on move).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TInteger>;
+};
+readonly playForfeit: {
+readonly kind: "command";
+readonly summary: "Plays `cell` for the team on move as a forfeit (the move timer ran out). False when it could not be played.";
+readonly input: Type.TObject<{
+cell: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly invalidate: {
+readonly kind: "command";
+readonly summary: "Ends the match as invalid (nobody played it; forfeits only) so the run ends. False when the match is already over.";
+readonly input: Type.TObject<{
+reason: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
