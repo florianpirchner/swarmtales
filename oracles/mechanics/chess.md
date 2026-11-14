@@ -38,7 +38,7 @@ every member of the side on move gets one turn per half-move to advise in the te
 
 **Scoring for the human.** `move_scored` compares every move with the best move by a one-ply search with a static
 exchange check (pawn 1, queen 9). It sees hanging pieces and missed free captures, nothing deeper; it is not an
-engine (P111). The engine reference is `pnpm lab:chess` (Stockfish), run after the match.
+engine (P111). The engine reference is `pnpm lab:chess` (Garbochess-JS, see `stories/chess/README.md`), run after the match.
 
 **Not done here:** no clock in seconds (the run's turns are the clock), no engine opponent (that is a separate
 referee mechanic in other games), no draw offers.
