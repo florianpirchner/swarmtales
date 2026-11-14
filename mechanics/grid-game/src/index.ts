@@ -153,6 +153,8 @@ export const gridGame = defineMechanic(gridGameHead, {
 				if (refusal !== undefined) return refusal;
 				return applyMove(ctx, params.cell, false);
 			},
+			// A random free cell for the captain of the turn; nobody else has a legal move.
+			sample: (ctx, random) => (ctx.resident !== undefined && ctx.resident === captainOf(ctx.state) ? { cell: random.pick(freeCells(ctx.state.board)) } : undefined),
 		},
 	},
 	services: {
@@ -213,6 +215,11 @@ export const gridGame = defineMechanic(gridGameHead, {
 			return [`Side ${state.side} is on move (move ${String(state.moves.length + 1)} of game ${String(state.game)}); you are its captain. viewBoard shows the board.`];
 		},
 		news: (resident, ctx) => (ctx.options.wakeTeam && ctx.state.running ? ctx.state.teams[ctx.state.side].includes(resident) : captainOf(ctx.state) === resident),
+		// Who is to act: the captain of the turn, nobody between two games. Read only with the activation `toAct`.
+		toAct: (ctx) => {
+			const captain = captainOf(ctx.state);
+			return captain === null ? [] : [captain];
+		},
 	},
 	jobs: {
 		nextGame: (ctx) => {
