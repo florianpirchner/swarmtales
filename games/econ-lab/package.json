@@ -1,0 +1,20 @@
+{
+	"name": "@swarmtales/game-econ-lab",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: Econ Lab, three economic games in rounds",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-econ-games": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

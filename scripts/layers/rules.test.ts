@@ -49,7 +49,7 @@ describe("layer check", () => {
 
 	it("keeps the table inside the package limit (E6)", () => {
 		const libraries = Object.entries(PACKAGE_RULES).filter(([folder, rule]) => folder.startsWith("packages/") && rule.layer !== "L6");
-		expect(libraries).toHaveLength(10);
+		expect(libraries).toHaveLength(12);
 		expect(libraries.length).toBeLessThanOrEqual(MAX_LIBRARY_PACKAGES);
 		const many = Array.from({ length: MAX_LIBRARY_PACKAGES + 1 }, (_, index) => pack(`p${index}`, `packages/p${index}`, "L4"));
 		expect(checkLayers(many).join("\n")).toContain(`packages/ holds ${MAX_LIBRARY_PACKAGES + 1} library packages`);

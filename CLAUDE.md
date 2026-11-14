@@ -9,9 +9,9 @@ removed after 1.0. Code comes back from it issue by issue; nothing is copied wit
 ## Precedence
 
 The rewrite is decided. Read [`docs/refactoring-before-release/DECISIONS.md`](docs/refactoring-before-release/DECISIONS.md)
-before you plan anything; its section 9 (A1 to A7) holds the decisions taken while building and wins over the
-sections before it. The specification of the milestone you work on (`08-m1-spec.md` for M1) is what you code
-against. Order of precedence: `BRIEF.md` (the owner's decisions), then `DECISIONS.md`, then
+before you plan anything; its section 9 (A1 to A15) holds the decisions taken while building and wins over the
+sections before it. The specification of the milestone you work on (`08-m1-spec.md` for M1, `09-m2-spec.md` for
+M2) is what you code against. Order of precedence: `BRIEF.md` (the owner's decisions), then `DECISIONS.md`, then
 `REWRITE.md`, then the papers 01 to 06, all in that folder. This file sums them up; where it differs,
 `DECISIONS.md` holds. A decision changes only through an issue that brings new evidence (a measurement, a failed
 test, a licence fact). Taste is not evidence.
@@ -79,8 +79,11 @@ name lint in the check rejects the retired ones.
   author did not sign off. Never sign off in the name of a person who does not operate your session.
 - **Model roles for development.** One model family builds and reviews, by the owner's instruction of
   2026-11-14 (decision A1); it replaces the split of roles by model in `BRIEF.md`. Independence comes from the
-  separate session of the challenger. Never write a model identifier into the repository, except in the
-  `Co-Authored-By` line of a commit.
+  separate session of the challenger. Never name a model that is used for development (to build or to review the
+  platform) in the repository: not in a commit message, in code or in a doc. The one exception is the
+  `Co-Authored-By` trailer that a commit must carry. The rule is not about the models that play: the alias table of
+  the models package holds a provider's model id, and games, manifests and run reports name the model of a run,
+  because that is run configuration.
 - **Runtime revision.** A change of how a run plays (when a resident is woken, what stays in its context, how tool
   notices and answers arrive) raises the kernel's revision in the same pull request, adds a row to
   `docs/RUNTIME-REVISIONS.md` and sets the tag `runtime-rN` at the merge commit. The new kernel starts at
@@ -157,10 +160,12 @@ Machines enforce them; a limit is never met by moving code next door.
 
 - Residents in City of Keys: Claude Haiku via Anthropic. Gamemaker and reporter: DeepSeek V4.1 Flash via
   OpenRouter. Confessor (classifier) and blame judge: Haiku via Anthropic. GLM runs via OpenRouter.
-- Keys come from the environment: `SWT_ANTHROPIC_API_KEY` (the cloud runtime strips `ANTHROPIC_API_KEY`; if it
-  also strips the new name, the name becomes `SWT_CLAUDE_API_KEY`) and `OPENROUTER_API_KEY`. Never print, log or
-  commit a key, never ask for one in chat, never put one into a workflow secret. Keys never reach a plugin, a
-  prompt or a log.
+- Keys come from the environment, and only the key broker of the models package holds them (decision A13). It
+  reads `SWT_ANTHROPIC_API_KEY` and `SWT_OPENROUTER_API_KEY` first and falls back to the names this environment
+  provides today, `ARENA_ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` (the cloud runtime strips
+  `ANTHROPIC_API_KEY`). These two fallbacks are the only environment names without `SWT_`. `process.env` is read
+  in one file, `apps/cli/src/env.ts`. Never print, log or commit a key, never ask for one in chat, never put one
+  into a workflow secret. Keys never reach a plugin, a prompt or a log.
 - Any live test run uses Haiku via Anthropic; keep OpenRouter spending small. No Sonnet or Opus runs before 1.0.
 - Live budget of the rewrite: 10 USD through milestone M2, 50 USD in total. A single run stays inside its own
   budget. Each rerun series runs once at its planned seed count; the rerun plan is committed before the first run.
@@ -172,10 +177,12 @@ Machines enforce them; a limit is never met by moving code next door.
 
 Every live run of every game is recorded, also a short or stopped one. Nothing from a run is deleted unrecorded.
 
-1. **Run data goes to the data repository** `swarmtales-runs`, not into this repository, with a `README.md` that
-   lists the run's loopholes, problems and solutions (what was proposed, what was built, or "open"). This
-   repository holds the index only: a row in the game's runs index (`games/<name>/RUNS.md`) with the run's runtime
-   revision. Replace local absolute paths with repository paths.
+1. **Run data goes to the data branch `data/runs`** of this repository (decision A15), never into `develop` or
+   `main`: an orphan branch with the layout `<game>/<experiment id>/<run>/` and `smoke/` for single runs, with a
+   `README.md` that lists the run's loopholes, problems and solutions (what was proposed, what was built, or
+   "open"). `develop` holds the index only: a row in the game's runs index (`games/<name>/RUNS.md`) with the run's
+   runtime revision. Replace local absolute paths with repository paths. An agent does not push the branch. The
+   data repository `swarmtales-runs` stays the owner's open point for the release (M6); the branch then moves there.
 2. **Report.** The facts table of a run report is computed in code from the metrics that mechanics export, with
    "absent" instead of zero. A model writes only the loophole candidates, in a section marked unverified. A human
    or agent reviews the draft, verifies suspicious claims against the log and corrects it.

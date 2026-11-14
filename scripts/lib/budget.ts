@@ -24,8 +24,8 @@ export const ENGINE_FOLDERS = ["packages/kernel", "packages/sdk", "packages/engi
  * {@link ENGINE_FOLDERS}; a test fails on a package in neither, so no code leaves the budget unseen.
  */
 export const OUTSIDE_ENGINE = [
-	"packages/contracts", "packages/chain", "packages/prompts", "packages/runlog", "packages/testkit", "packages/viewer-core",
-	"packages/viewer-ui", "packages/swarmtales",
+	"packages/contracts", "packages/chain", "packages/prompts", "packages/runlog", "packages/testkit", "packages/models",
+	"packages/lab", "packages/viewer-core", "packages/viewer-ui", "packages/swarmtales",
 ] as const;
 
 /** The two budgets. The second one stops the first from being met by moving code next door. */

@@ -15,7 +15,13 @@
 			"path": "apps/viewer-web"
 		},
 		{
+			"path": "games/econ-lab"
+		},
+		{
 			"path": "games/hello"
+		},
+		{
+			"path": "games/quarry"
 		},
 		{
 			"path": "games/tictactoe-teams"
@@ -25,6 +31,12 @@
 		},
 		{
 			"path": "mechanics/contracts"
+		},
+		{
+			"path": "mechanics/draft-rounds"
+		},
+		{
+			"path": "mechanics/econ-games"
 		},
 		{
 			"path": "mechanics/grid-game"
@@ -49,6 +61,12 @@
 		},
 		{
 			"path": "packages/kernel"
+		},
+		{
+			"path": "packages/lab"
+		},
+		{
+			"path": "packages/models"
 		},
 		{
 			"path": "packages/prompts"

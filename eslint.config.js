@@ -4,7 +4,7 @@ import eslint from "@eslint/js";
 import jsdoc from "eslint-plugin-jsdoc";
 import tseslint from "typescript-eslint";
 import { swt } from "./scripts/eslint/plugin.ts";
-import { BARE_ERROR, DOUBLE_CAST } from "./scripts/eslint/restricted.ts";
+import { BARE_ERROR, DOUBLE_CAST, ENV_FILE, ENV_RULE_FILES, PROCESS_ENV } from "./scripts/eslint/restricted.ts";
 import { LIMITS } from "./scripts/lib/limits.ts";
 
 /** Test files: `*.test.ts` anywhere and the `test/` folder of a package. A `test` folder under `src/` is code. */
@@ -17,6 +17,9 @@ const NO_GLOBAL = "Code that runs inside a run is deterministic: no clock, no ra
 const RUN_GLOBALS = ["process", "Buffer", "Date", "fetch", "setTimeout", "setInterval", "setImmediate", "queueMicrotask", "performance", "crypto", "navigator"];
 /** The ways around a restricted global. */
 const GLOBAL_OBJECTS = ["globalThis", "global", "window", "self"];
+/** The forbidden globals of a package that is not deterministic as a whole (docs/LAYERS.md). */
+const noGlobals = (/** @type {readonly string[]} */ names, /** @type {string} */ message) => [...names, ...GLOBAL_OBJECTS].map((name) => ({ name, message }));
+const NO_RANDOM = { object: "Math", property: "random", message: "Use the seeded random streams." };
 
 export default tseslint.config(
 	// The same folders the gates skip (scripts/lib/files.ts), and vendored code, which is not ours to restyle.
@@ -83,6 +86,23 @@ export default tseslint.config(
 		},
 	},
 	{
+		// models: no environment, no clock of its own, no Node API; keys and time come in as parameters.
+		files: ["packages/models/src/**/*.ts"],
+		rules: {
+			"no-restricted-globals": ["error", ...noGlobals(["process", "Date", "setTimeout"], "models takes the environment and the clock as parameters; the provider library holds its own timers.")],
+			"no-restricted-properties": ["error", NO_RANDOM],
+			"no-restricted-imports": ["error", { patterns: [{ group: ["node:*"], message: "No Node API in models." }] }],
+		},
+	},
+	{
+		// lab: every number is recomputed from a run folder, so no environment and no randomness of its own.
+		files: ["packages/lab/src/**/*.ts"],
+		rules: {
+			"no-restricted-globals": ["error", ...noGlobals(["process"], "lab reads run folders only; it takes everything else as a parameter.")],
+			"no-restricted-properties": ["error", NO_RANDOM],
+		},
+	},
+	{
 		// Tests: a higher file limit (E7), a higher function limit that leaves out `describe` callbacks, no TSDoc rule.
 		files: TESTS,
 		rules: {
@@ -99,6 +119,17 @@ export default tseslint.config(
 			"jsdoc/require-returns": "off",
 			"jsdoc/require-throws": "off",
 		},
+	},
+	{
+		// The environment is read in one file. This comes after the test block, so tests are covered too.
+		files: [...ENV_RULE_FILES],
+		ignores: [ENV_FILE],
+		rules: { "no-restricted-syntax": ["error", DOUBLE_CAST, ...PROCESS_ENV] },
+	},
+	{
+		files: PACKAGE_CODE,
+		ignores: TESTS,
+		rules: { "no-restricted-syntax": ["error", DOUBLE_CAST, BARE_ERROR, ...PROCESS_ENV] },
 	},
 	{
 		// Plain JavaScript and per-package build configs sit outside every tsconfig: lint them without type information.

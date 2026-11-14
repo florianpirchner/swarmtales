@@ -6,10 +6,31 @@ optional and transitive ones included), `third_party/manifest.json` and the acti
 [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md). Every package here is a development tool or a library of this
 repository. `A -> B` means: declared as A, used under B.
 
-394 entries.
+475 entries.
 
 | Package | Version | Licence | Source |
 |---|---|---|---|
+| @anthropic-ai/sdk | 0.129.0 | MIT | https://github.com/anthropics/anthropic-sdk-typescript#readme |
+| @aws-sdk/client-bedrock-runtime | 3.1127.0 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/clients/client-bedrock-runtime |
+| @aws-sdk/core | 3.981.0 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/core |
+| @aws-sdk/credential-provider-env | 3.972.84 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-env |
+| @aws-sdk/credential-provider-http | 3.972.86 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-http |
+| @aws-sdk/credential-provider-ini | 3.973.30 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-ini |
+| @aws-sdk/credential-provider-login | 3.972.92 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-login |
+| @aws-sdk/credential-provider-node | 3.972.97 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-node |
+| @aws-sdk/credential-provider-process | 3.972.84 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-process |
+| @aws-sdk/credential-provider-sso | 3.973.28 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-sso |
+| @aws-sdk/credential-provider-web-identity | 3.972.90 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/credential-provider-web-identity |
+| @aws-sdk/eventstream-handler-node | 3.972.42 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/eventstream-handler-node |
+| @aws-sdk/middleware-eventstream | 3.972.38 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/middleware-eventstream |
+| @aws-sdk/middleware-websocket | 3.972.66 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/middleware-websocket |
+| @aws-sdk/nested-clients | 3.998.3 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages/nested-clients |
+| @aws-sdk/signature-v4-multi-region | 3.996.52 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages/signature-v4-multi-region |
+| @aws-sdk/token-providers | 3.1127.0 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages/token-providers |
+| @aws-sdk/token-providers | 3.1166.0 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages/token-providers |
+| @aws-sdk/types | 3.975.1 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/types |
+| @aws-sdk/xml-builder | 3.972.43 | Apache-2.0 | https://github.com/aws/aws-sdk-js-v3/tree/main/packages-internal/xml-builder |
+| @aws/lambda-invoke-store | 0.3.0 | Apache-2.0 | https://github.com/awslabs/aws-lambda-invoke-store |
 | @babel/code-frame | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-code-frame |
 | @babel/compat-data | 7.29.7 | MIT | https://github.com/babel/babel#readme |
 | @babel/core | 7.29.13 | MIT | https://babel.dev/docs/en/next/babel-core |
@@ -26,9 +47,13 @@ repository. `A -> B` means: declared as A, used under B.
 | @babel/parser | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-parser |
 | @babel/plugin-transform-react-jsx-self | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-plugin-transform-react-jsx-self |
 | @babel/plugin-transform-react-jsx-source | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-plugin-transform-react-jsx-source |
+| @babel/runtime | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-runtime |
 | @babel/template | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-template |
 | @babel/traverse | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-traverse |
 | @babel/types | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-types |
+| @earendil-works/pi-agent-core | 1.4.0 | MIT | https://github.com/earendil-works/pi#readme |
+| @earendil-works/pi-ai | 1.4.0 | MIT | https://github.com/earendil-works/pi#readme |
+| @earendil-works/pi-telemetry | 1.4.0 | MIT | https://github.com/earendil-works/pi#readme |
 | @emnapi/core | 2.0.0-beta.2 | MIT | https://github.com/toyobayashi/emnapi#readme |
 | @emnapi/runtime | 2.0.0-beta.2 | MIT | https://github.com/toyobayashi/emnapi#readme |
 | @emnapi/wasi-threads | 2.2.0 | MIT | https://github.com/toyobayashi/emnapi#readme |
@@ -72,6 +97,7 @@ repository. `A -> B` means: declared as A, used under B.
 | @eslint/js | 9.39.5 | MIT | https://eslint.org |
 | @eslint/object-schema | 2.1.7 | Apache-2.0 | https://github.com/eslint/rewrite/tree/main/packages/object-schema#readme |
 | @eslint/plugin-kit | 0.4.1 | Apache-2.0 | https://github.com/eslint/rewrite/tree/main/packages/plugin-kit#readme |
+| @google/genai | 2.21.0 | Apache-2.0 | https://github.com/googleapis/js-genai#readme |
 | @humanfs/core | 0.19.2 | Apache-2.0 | https://github.com/humanwhocodes/humanfs#readme |
 | @humanfs/node | 0.16.8 | Apache-2.0 | https://github.com/humanwhocodes/humanfs#readme |
 | @humanfs/types | 0.15.0 | Apache-2.0 | https://github.com/humanwhocodes/humanfs#readme |
@@ -90,6 +116,15 @@ repository. `A -> B` means: declared as A, used under B.
 | @noble/curves | 2.4.0 | MIT | https://paulmillr.com/noble/ |
 | @noble/hashes | 2.4.0 | MIT | https://paulmillr.com/noble/ |
 | @oxc-project/types | 0.156.0 | MIT | https://oxc.rs |
+| @protobufjs/aspromise | 1.1.2 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/base64 | 1.1.2 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/codegen | 2.0.5 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/eventemitter | 1.1.1 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/fetch | 1.1.1 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/float | 1.0.2 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/path | 1.1.2 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/pool | 1.1.0 | BSD-3-Clause | https://github.com/dcodeIO/protobuf.js#readme |
+| @protobufjs/utf8 | 1.1.2 | BSD-3-Clause | https://github.com/protobufjs/protobuf.js#readme |
 | @quansync/fs | 1.1.0 | MIT | https://github.com/quansync-dev/fs#readme |
 | @rolldown/binding-android-arm-eabi | 1.2.19 | MIT | https://rolldown.rs/ |
 | @rolldown/binding-android-arm64 | 1.2.19 | MIT | https://rolldown.rs/ |
@@ -141,6 +176,14 @@ repository. `A -> B` means: declared as A, used under B.
 | @rushstack/terminal | 0.24.8 | MIT | https://github.com/microsoft/rushstack#readme |
 | @rushstack/ts-command-line | 5.3.18 | MIT | https://github.com/microsoft/rushstack#readme |
 | @sindresorhus/base62 | 1.0.0 | MIT | https://github.com/sindresorhus/base62#readme |
+| @smithy/core | 3.40.0 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/core |
+| @smithy/credential-provider-imds | 4.5.2 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/credential-provider-imds |
+| @smithy/fetch-http-handler | 5.8.1 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/fetch-http-handler |
+| @smithy/node-http-handler | 4.12.1 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/node-http-handler |
+| @smithy/node-http-handler | 4.14.2 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/node-http-handler |
+| @smithy/signature-v4 | 5.7.5 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/signature-v4 |
+| @smithy/types | 4.20.0 | Apache-2.0 | https://github.com/smithy-lang/smithy-typescript/tree/main/packages/types |
+| @stablelib/base64 | 1.0.1 | MIT | https://github.com/StableLib/stablelib/tree/master/packages/base64 |
 | @tybys/wasm-util | 0.10.4 | MIT | https://github.com/toyobayashi/wasm-util#readme |
 | @types/argparse | 1.0.38 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped#readme |
 | @types/babel__core | 7.20.5 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__core |
@@ -154,6 +197,7 @@ repository. `A -> B` means: declared as A, used under B.
 | @types/node | 26.6.6 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node |
 | @types/react | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react |
 | @types/react-dom | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom |
+| @types/retry | 0.12.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped#readme |
 | @types/trusted-types | 2.0.7 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/trusted-types |
 | @typescript-eslint/eslint-plugin | 8.72.1 | MIT | https://typescript-eslint.io/packages/eslint-plugin |
 | @typescript-eslint/parser | 8.72.1 | MIT | https://typescript-eslint.io/packages/parser |
@@ -198,6 +242,8 @@ repository. `A -> B` means: declared as A, used under B.
 | action actions/checkout | 3d3c42e5aac5ba805825da76410c181273ba90b1 | MIT | https://github.com/actions/checkout |
 | action actions/setup-node | 949feb2413d6458794dcd2491c4babbbce0c15c1 | MIT | https://github.com/actions/setup-node |
 | action pnpm/action-setup | 73e46992e05b19abd31f2f3c20e0e7370d762115 | MIT | https://github.com/pnpm/action-setup |
+| agent-base | 7.1.4 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
+| agent-base | 9.0.0 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
 | ajv | 6.15.0 | MIT | https://ajv.js.org |
 | ajv | 8.18.0 | MIT | https://ajv.js.org |
 | ajv | 8.20.0 | MIT | https://ajv.js.org |
@@ -210,10 +256,14 @@ repository. `A -> B` means: declared as A, used under B.
 | assertion-error | 2.0.1 | MIT | https://github.com/chaijs/assertion-error#readme |
 | balanced-match | 1.0.2 | MIT | https://github.com/juliangruber/balanced-match#readme |
 | balanced-match | 4.0.4 | MIT | https://github.com/juliangruber/balanced-match#readme |
+| base64-js | 1.5.1 | MIT | https://github.com/beatgammit/base64-js |
 | baseline-browser-mapping | 2.11.37 | Apache-2.0 | https://github.com/web-platform-dx/baseline-browser-mapping#readme |
+| bignumber.js | 9.3.1 | MIT | https://github.com/MikeMcl/bignumber.js#readme |
+| bowser | 2.15.0 | MIT | https://github.com/bowser-js/bowser |
 | brace-expansion | 1.1.22 | MIT | https://github.com/juliangruber/brace-expansion#readme |
 | brace-expansion | 5.0.13 | MIT | https://github.com/juliangruber/brace-expansion#readme |
 | browserslist | 4.29.5 | MIT | https://github.com/browserslist/browserslist#readme |
+| buffer-equal-constant-time | 1.0.1 | BSD-3-Clause | https://github.com/goinstant/buffer-equal-constant-time#readme |
 | cac | 6.7.14 | MIT | https://github.com/cacjs/cac#readme |
 | cac | 7.1.0 | MIT | https://github.com/cacjs/cac#readme |
 | callsites | 3.1.0 | MIT | https://github.com/sindresorhus/callsites#readme |
@@ -228,6 +278,7 @@ repository. `A -> B` means: declared as A, used under B.
 | convert-source-map | 2.0.0 | MIT | https://github.com/thlorenz/convert-source-map |
 | cross-spawn | 7.0.6 | MIT | https://github.com/moxystudio/node-cross-spawn |
 | csstype | 3.2.3 | MIT | https://github.com/frenic/csstype#readme |
+| data-uri-to-buffer | 4.0.1 | MIT | https://github.com/TooTallNate/node-data-uri-to-buffer |
 | debug | 4.4.3 | MIT | https://github.com/debug-js/debug#readme |
 | deep-eql | 5.0.2 | MIT | https://github.com/chaijs/deep-eql#readme |
 | deep-is | 0.1.4 | MIT | https://github.com/thlorenz/deep-is#readme |
@@ -235,6 +286,7 @@ repository. `A -> B` means: declared as A, used under B.
 | diff | 8.0.4 | BSD-3-Clause | https://github.com/kpdecker/jsdiff#readme |
 | dompurify | 3.4.17 | (MPL-2.0 OR Apache-2.0) -> Apache-2.0 | https://github.com/cure53/DOMPurify |
 | dts-resolver | 3.0.0 | MIT | https://github.com/sxzz/dts-resolver#readme |
+| ecdsa-sig-formatter | 1.0.11 | Apache-2.0 | https://github.com/Brightspace/node-ecdsa-sig-formatter#readme |
 | electron-to-chromium | 1.5.485 | ISC | https://github.com/Kilian/electron-to-chromium#readme |
 | empathic | 2.1.0 | MIT | https://github.com/lukeed/empathic#readme |
 | es-errors | 1.3.0 | MIT | https://github.com/ljharb/es-errors#readme |
@@ -258,27 +310,38 @@ repository. `A -> B` means: declared as A, used under B.
 | estree-walker | 3.0.3 | MIT | https://github.com/Rich-Harris/estree-walker#readme |
 | esutils | 2.0.3 | BSD-2-Clause | https://github.com/estools/esutils |
 | expect-type | 1.4.0 | Apache-2.0 | https://github.com/mmkal/expect-type#readme |
+| extend | 3.0.2 | MIT | https://github.com/justmoon/node-extend#readme |
 | fast-deep-equal | 3.1.3 | MIT | https://github.com/epoberezkin/fast-deep-equal#readme |
 | fast-json-stable-stringify | 2.1.0 | MIT | https://github.com/epoberezkin/fast-json-stable-stringify |
 | fast-levenshtein | 2.0.6 | MIT | https://github.com/hiddentao/fast-levenshtein#readme |
+| fast-sha256 | 1.3.0 | Unlicense | https://github.com/dchest/fast-sha256-js#readme |
 | fast-uri | 3.1.9 | BSD-3-Clause | https://github.com/fastify/fast-uri |
 | fdir | 6.5.0 | MIT | https://github.com/thecodrr/fdir#readme |
+| fetch-blob | 3.2.0 | MIT | https://github.com/node-fetch/fetch-blob#readme |
 | file-entry-cache | 8.0.0 | MIT | https://github.com/jaredwray/file-entry-cache#readme |
 | find-up | 5.0.0 | MIT | https://github.com/sindresorhus/find-up#readme |
 | flat-cache | 4.0.1 | MIT | https://github.com/jaredwray/flat-cache#readme |
 | flatted | 3.4.4 | ISC | https://github.com/WebReflection/flatted#readme |
+| formdata-polyfill | 4.0.10 | MIT | https://github.com/jimmywarting/FormData#readme |
 | fs-extra | 11.3.6 | MIT | https://github.com/jprichardson/node-fs-extra |
 | fsevents | 2.3.3 | MIT | https://github.com/fsevents/fsevents |
 | function-bind | 1.1.2 | MIT | https://github.com/Raynos/function-bind |
+| gaxios | 7.3.1 | Apache-2.0 | https://github.com/googleapis/google-cloud-node/tree/main/core/packages/gaxios |
+| gcp-metadata | 8.1.2 | Apache-2.0 | https://github.com/googleapis/google-cloud-node-core/tree/main/packages/gcp-metadata |
 | gensync | 1.0.0-beta.2 | MIT | https://github.com/loganfsmyth/gensync |
 | get-tsconfig | 5.0.0-beta.6 | MIT | https://github.com/privatenumber/get-tsconfig#readme |
 | glob-parent | 6.0.2 | ISC | https://github.com/gulpjs/glob-parent#readme |
 | globals | 14.0.0 | MIT | https://github.com/sindresorhus/globals#readme |
+| google-auth-library | 10.9.1 | Apache-2.0 | https://github.com/googleapis/google-cloud-node/tree/main/core/packages/google-auth-library-nodejs |
+| google-logging-utils | 1.1.3 | Apache-2.0 | https://github.com/googleapis/google-cloud-node-core/tree/main/dev-packages/logging-utils |
 | graceful-fs | 4.2.12 | BlueOak-1.0.0 | https://github.com/isaacs/node-graceful-fs#readme |
 | has-flag | 4.0.0 | MIT | https://github.com/sindresorhus/has-flag#readme |
 | hasown | 2.0.4 | MIT | https://github.com/inspect-js/hasOwn#readme |
 | hookable | 6.1.2 | MIT | https://github.com/unjs/hookable#readme |
 | html-entities | 2.6.0 | MIT | https://github.com/mdevils/html-entities#readme |
+| http-proxy-agent | 9.1.0 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
+| https-proxy-agent | 7.0.6 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
+| https-proxy-agent | 9.1.0 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
 | ignore | 5.3.2 | MIT | https://github.com/kaelzhang/node-ignore#readme |
 | ignore | 7.0.14 | MIT | https://github.com/kaelzhang/node-ignore#readme |
 | import-fresh | 3.3.1 | MIT | https://github.com/sindresorhus/import-fresh#readme |
@@ -295,16 +358,21 @@ repository. `A -> B` means: declared as A, used under B.
 | js-yaml | 4.3.2 | MIT | https://github.com/nodeca/js-yaml#readme |
 | jsdoc-type-pratt-parser | 9.5.0 | MIT | https://github.com/jsdoc-type-pratt-parser/jsdoc-type-pratt-parser |
 | jsesc | 3.1.0 | MIT | https://mths.be/jsesc |
+| json-bigint | 1.0.0 | MIT | https://github.com/sidorares/json-bigint#readme |
 | json-buffer | 3.0.1 | MIT | https://github.com/dominictarr/json-buffer |
+| json-schema-to-ts | 3.1.1 | MIT | https://github.com/ThomasAribart/json-schema-to-ts#readme |
 | json-schema-traverse | 0.4.1 | MIT | https://github.com/epoberezkin/json-schema-traverse#readme |
 | json-schema-traverse | 1.0.0 | MIT | https://github.com/epoberezkin/json-schema-traverse#readme |
 | json-stable-stringify-without-jsonify | 1.0.1 | MIT | https://github.com/samn/json-stable-stringify |
 | json5 | 2.2.3 | MIT | http://json5.org/ |
 | jsonfile | 6.2.1 | MIT | https://github.com/jprichardson/node-jsonfile#readme |
+| jwa | 2.0.1 | MIT | https://github.com/brianloveswords/node-jwa#readme |
+| jws | 4.0.1 | MIT | https://github.com/brianloveswords/node-jws#readme |
 | keyv | 4.5.4 | MIT | https://github.com/jaredwray/keyv |
 | levn | 0.4.1 | MIT | https://github.com/gkz/levn |
 | locate-path | 6.0.0 | MIT | https://github.com/sindresorhus/locate-path#readme |
 | lodash.merge | 4.6.2 | MIT | https://lodash.com/ |
+| long | 5.3.2 | Apache-2.0 | https://github.com/dcodeIO/long.js#readme |
 | loupe | 3.2.1 | MIT | https://github.com/chaijs/loupe |
 | lru-cache | 5.1.1 | ISC | https://github.com/isaacs/node-lru-cache#readme |
 | magic-string | 0.30.21 | MIT | https://github.com/Rich-Harris/magic-string#readme |
@@ -315,15 +383,20 @@ repository. `A -> B` means: declared as A, used under B.
 | ms | 2.1.3 | MIT | https://github.com/vercel/ms#readme |
 | nanoid | 3.3.20 | MIT | https://github.com/ai/nanoid#readme |
 | natural-compare | 1.4.0 | MIT | https://github.com/litejs/natural-compare-lite#readme |
+| node-domexception | 1.0.0 | MIT | https://github.com/jimmywarting/node-domexception#readme |
+| node-fetch | 3.3.2 | MIT | https://github.com/node-fetch/node-fetch |
 | node-releases | 2.0.64 | MIT | https://github.com/chicoxyzzy/node-releases#readme |
 | object-deep-merge | 2.0.1 | MIT | https://github.com/forcir/object-deep-merge |
 | obug | 3.0.0 | MIT | https://github.com/sxzz/obug#readme |
+| openai | 7.19.0 | Apache-2.0 | https://github.com/openai/openai-node#readme |
 | optionator | 0.9.4 | MIT | https://github.com/gkz/optionator |
 | p-limit | 3.1.0 | MIT | https://github.com/sindresorhus/p-limit#readme |
 | p-locate | 5.0.0 | MIT | https://github.com/sindresorhus/p-locate#readme |
+| p-retry | 4.6.2 | MIT | https://github.com/sindresorhus/p-retry#readme |
 | parent-module | 1.0.1 | MIT | https://github.com/sindresorhus/parent-module#readme |
 | parse-imports-exports | 0.2.4 | MIT | https://github.com/joomcode/parse-imports-exports#readme |
 | parse-statements | 1.0.11 | MIT | https://github.com/joomcode/parse-statements#readme |
+| partial-json | 0.1.7 | MIT | https://promplate.dev/partial-json-parser |
 | path-exists | 4.0.0 | MIT | https://github.com/sindresorhus/path-exists#readme |
 | path-key | 3.1.1 | MIT | https://github.com/sindresorhus/path-key#readme |
 | path-parse | 1.0.7 | MIT | https://github.com/jbgutierrez/path-parse#readme |
@@ -333,6 +406,8 @@ repository. `A -> B` means: declared as A, used under B.
 | picomatch | 4.0.7 | MIT | https://github.com/micromatch/picomatch |
 | postcss | 8.5.33 | MIT | https://postcss.org/ |
 | prelude-ls | 1.2.1 | MIT | http://preludels.com |
+| protobufjs | 7.6.6 | BSD-3-Clause | https://protobufjs.github.io/protobuf.js/ |
+| proxy-agent-negotiate | 1.1.0 | MIT | https://github.com/TooTallNate/proxy-agents#readme |
 | punycode | 2.3.1 | MIT | https://mths.be/punycode |
 | quansync | 1.0.0 | MIT | https://github.com/quansync-dev/quansync#readme |
 | react | 19.3.1 | MIT | https://react.dev/ |
@@ -343,9 +418,11 @@ repository. `A -> B` means: declared as A, used under B.
 | resolve | 1.22.14 | MIT | https://github.com/browserify/resolve#readme |
 | resolve-from | 4.0.0 | MIT | https://github.com/sindresorhus/resolve-from#readme |
 | resolve-pkg-maps | 1.0.0 | MIT | https://github.com/privatenumber/resolve-pkg-maps#readme |
+| retry | 0.13.1 | MIT | https://github.com/tim-kos/node-retry |
 | rolldown | 1.2.19 | MIT | https://rolldown.rs/ |
 | rolldown-plugin-dts | 0.28.8 | MIT | https://github.com/sxzz/rolldown-plugin-dts#readme |
 | rollup | 4.68.3 | MIT | https://rollupjs.org/ |
+| safe-buffer | 5.2.1 | MIT | https://github.com/feross/safe-buffer |
 | scheduler | 0.28.0 | MIT | https://react.dev/ |
 | semver | 6.3.2 | ISC | https://github.com/npm/node-semver#readme |
 | semver | 7.7.4 | ISC | https://github.com/npm/node-semver#readme |
@@ -361,6 +438,7 @@ repository. `A -> B` means: declared as A, used under B.
 | spdx-license-ids | 3.0.24 | CC0-1.0 | https://github.com/jslicense/spdx-license-ids#readme |
 | sprintf-js | 1.0.3 | BSD-3-Clause | https://github.com/alexei/sprintf.js#readme |
 | stackback | 0.0.2 | MIT | https://github.com/shtylman/node-stackback#readme |
+| standardwebhooks | 1.1.1 | MIT | https://github.com/standard-webhooks/standard-webhooks/tree/main/libraries/javascript |
 | std-env | 3.10.0 | MIT | https://github.com/unjs/std-env#readme |
 | string-argv | 0.3.2 | MIT | https://github.com/mccormicka/string-argv |
 | strip-json-comments | 3.1.1 | MIT | https://github.com/sindresorhus/strip-json-comments#readme |
@@ -377,6 +455,7 @@ repository. `A -> B` means: declared as A, used under B.
 | tinyrainbow | 2.0.0 | MIT | https://github.com/tinylibs/tinyrainbow#readme |
 | tinyspy | 4.0.6 | MIT | https://github.com/tinylibs/tinyspy#readme |
 | to-valid-identifier | 1.0.0 | MIT | https://github.com/sindresorhus/to-valid-identifier#readme |
+| ts-algebra | 2.0.0 | MIT | https://github.com/ThomasAribart/ts-algebra#readme |
 | ts-api-utils | 2.5.0 | MIT | https://github.com/JoshuaKGoldberg/ts-api-utils#readme |
 | tsdown | 0.23.4 | MIT | http://tsdown.dev/ |
 | tslib | 2.9.1 | 0BSD | https://www.typescriptlang.org/ |
@@ -394,9 +473,11 @@ repository. `A -> B` means: declared as A, used under B.
 | vite | 7.3.8 | MIT | https://vite.dev |
 | vite-node | 3.2.4 | MIT | https://github.com/vitest-dev/vitest/blob/main/packages/vite-node#readme |
 | vitest | 3.2.7 | MIT | https://github.com/vitest-dev/vitest#readme |
+| web-streams-polyfill | 3.3.3 | MIT | https://github.com/MattiasBuelens/web-streams-polyfill#readme |
 | which | 2.0.2 | ISC | https://github.com/isaacs/node-which#readme |
 | why-is-node-running | 2.3.0 | MIT | https://github.com/mafintosh/why-is-node-running |
 | word-wrap | 1.2.5 | MIT | https://github.com/jonschlinkert/word-wrap |
+| ws | 8.23.0 | MIT | https://github.com/websockets/ws |
 | yallist | 3.1.1 | ISC | https://github.com/isaacs/yallist#readme |
 | yaml | 2.9.1 | ISC | https://eemeli.org/yaml/ |
 | yocto-queue | 0.1.0 | MIT | https://github.com/sindresorhus/yocto-queue#readme |

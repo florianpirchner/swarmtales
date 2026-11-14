@@ -10,3 +10,5 @@ saveExact: true
 # No dependency runs an install script. esbuild works without its postinstall.
 allowBuilds:
   esbuild: false
+  "@google/genai": false
+  protobufjs: false

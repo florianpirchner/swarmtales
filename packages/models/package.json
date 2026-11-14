@@ -1,0 +1,34 @@
+{
+	"name": "@swarmtales/models",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Key broker, provider adapters, model settings, the resident driver and the cost meter",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L4"
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@earendil-works/pi-agent-core": "1.4.0",
+		"@earendil-works/pi-ai": "1.4.0",
+		"typebox": "1.3.27"
+	}
+}

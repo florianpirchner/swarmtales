@@ -1,0 +1,20 @@
+{
+	"name": "@swarmtales/game-quarry",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: Quarry, a drafting game for solo seats",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-draft-rounds": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

@@ -2,7 +2,7 @@
 /**
  * The layer table: which workspace package may import which, and which Node modules. `check-layers.ts` enforces
  * it; `docs/LAYERS.md` explains it. Sources: DECISIONS.md D8 and E6, paper 01 section 4.4, and the layer table of
- * the M1 specification (`08-m1-spec.md`, section 1.2).
+ * the M1 specification (`08-m1-spec.md`, section 1.2) and of the M2 specification (`09-m2-spec.md`, section 1.2).
  */
 
 /** What one package, or every package of one folder, may import. */
@@ -21,7 +21,7 @@ export const LAYER_TITLES: Readonly<Record<string, string>> = {
 	L1: "kernel",
 	L2: "sdk, prompts",
 	L3: "plugins: mechanics",
-	L4: "engine, run log, testkit",
+	L4: "engine, run log, testkit, models, lab",
 	L5: "viewer",
 	L6: "command line, umbrella package, games, samples",
 };
@@ -52,6 +52,9 @@ export const PACKAGE_RULES: Readonly<Record<string, ImportRule & { readonly name
 		may: ["@swarmtales/engine", KERNEL, SDK, CONTRACTS, "@swarmtales/prompts"],
 		node: ["node:fs"],
 	},
+	// `models` gets the kernel as a type of contracts; `lab` reads run folders and never reaches a live kernel.
+	"packages/models": { name: "@swarmtales/models", layer: "L4", may: [CONTRACTS], node: [] },
+	"packages/lab": { name: "@swarmtales/lab", layer: "L4", may: [CONTRACTS, CHAIN, "@swarmtales/runlog"], node: ["node:fs", "node:path"] },
 	"packages/viewer-core": { name: "@swarmtales/viewer-core", layer: "L5", may: [CONTRACTS, CHAIN], node: [] },
 	"packages/viewer-ui": { name: "@swarmtales/viewer-ui", layer: "L5", may: [CONTRACTS, CHAIN, "@swarmtales/viewer-core"], node: [] },
 	"packages/swarmtales": { name: "swarmtales", layer: "L6", may: ["*"], node: "any" },

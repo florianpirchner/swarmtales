@@ -21,6 +21,8 @@ there without a row fails the check.
 | 4 | `engine` | `kernel`, `sdk`, `contracts`, `chain` | none |
 | 4 | `runlog` | `contracts`, `chain` | `node:fs`, `node:path`, `node:crypto` |
 | 4 | `testkit` | `engine`, `kernel`, `sdk`, `contracts`, `prompts` | `node:fs` |
+| 4 | `models` | `contracts`. It gets the kernel as a type of contracts and the environment as a plain record; it does not import `kernel`, `sdk`, `engine`, `prompts` or `runlog` | none |
+| 4 | `lab` | `contracts`, `chain` (for the hash of JSON), `runlog` (to verify a run folder). It does not import `kernel`, `sdk`, `engine` or `models`, so every number can be recomputed from a published log | `node:fs`, `node:path` |
 | 5 | `viewer-core`, `viewer-ui` | `contracts`, `chain`; `viewer-ui` also `viewer-core` | none |
 | 6 | `swarmtales` (the umbrella package), `apps/*`, `games/*`, `samples/*` | anything; the only place plugins are named | any |
 
@@ -59,7 +61,15 @@ references, source only under `src/` and `test/`, and for `packages/` and `mecha
 and its configuration.
 
 The linter adds rules for code that runs inside a run (the kernel, the sdk and mechanics): no clock (`Date`),
-randomness, timer, network, `process` or `node:` module; and no bare `throw new Error` in any package.
+randomness, timer, network, `process` or `node:` module; and no bare `throw new Error` in any package. In `models`
+it forbids `process`, `Date`, `Math.random` and `setTimeout` (the provider library holds its own timers), in `lab`
+`process` and `Math.random`.
+
+**The environment is read in one file.** `process.env` is allowed only in `apps/cli/src/env.ts`; the linter refuses
+it in every other file under `packages/`, `mechanics/`, `games/`, `samples/` and `apps/`, tests included
+(`PROCESS_ENV` in `scripts/eslint/restricted.ts`). The scripts under `scripts/` are not part of a run and keep
+their own reads. Third-party packages of `models`: `@earendil-works/pi-ai`, `@earendil-works/pi-agent-core` and
+`typebox`; `apps/cli` is the only package that imports `models`, `lab`, `kernel` and `runlog` together.
 
 ## Changing the table
 
