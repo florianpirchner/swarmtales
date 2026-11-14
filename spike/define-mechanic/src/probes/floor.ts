@@ -5,6 +5,7 @@
  */
 import { Type, type Static, type TSchema } from "typebox";
 import type { EventSchemas, MechanicContext, MechanicShape, Shape, StateSetup } from "@swarmtales/contracts";
+import type { None } from "../define.ts";
 
 const Sample = Type.Object({ name: Type.String(), count: Type.Integer() });
 
@@ -32,7 +33,7 @@ export const one = withOptions({
 });
 
 /** A head with options and events, and a handler typed by today's context of that shape. */
-function withContext<O extends TSchema, E extends EventSchemas>(spec: { readonly options: O; readonly events: E; run(ctx: MechanicContext<Shape<O, undefined, E, Record<never, readonly string[]>, [], []>>): number }): O {
+function withContext<O extends TSchema, E extends EventSchemas>(spec: { readonly options: O; readonly events: E; run(ctx: MechanicContext<Shape<O, undefined, E, None, [], []>>): number }): O {
 	return spec.options;
 }
 
