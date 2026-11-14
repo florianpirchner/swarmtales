@@ -43,6 +43,7 @@ async function main(): Promise<void> {
 		const variant = args[diff + 2];
 		const { oracle, differences } = await liveOracle({ game: "diff", events: args[diff + 1] ?? "", ...(variant === undefined ? {} : { variant }) });
 		console.log(JSON.stringify(oracle.source.fidelity), JSON.stringify(oracle.end ?? oracle.truncated), `${String(Math.round(oracleText(oracle).length / 1024))} KB`);
+		console.log(JSON.stringify(oracle.counts.events));
 		console.log(differences.join("\n"));
 		return;
 	}

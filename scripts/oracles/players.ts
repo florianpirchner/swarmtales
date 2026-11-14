@@ -4,6 +4,7 @@
  */
 import type { TurnTaker } from "@swarmtales/contracts";
 import { countFor, minimalRaise, type Rules } from "../../mechanics/liars-dice/src/model.ts";
+import { withProbes } from "./probes.ts";
 import { CELLS, CELLS_4X4, ticTacToePlayer } from "../../test/stories/tictactoe-support.ts";
 
 const WILD: Rules = { faces: 6, wildOnes: true };
@@ -87,28 +88,6 @@ export const blindBid = (): TurnTaker => async (turn) => {
 	await turn.call("bid", { amount: Math.max(0, Math.min(Number(coins), wanted)), reason: "script" });
 };
 
-/** A call a resident makes once, before its own play, on the first turn whose inputs contain `when`: a refusal a model would run into. */
-export interface Probe {
-	readonly resident: string;
-	readonly when: string;
-	readonly tool: string;
-	readonly params: unknown;
-}
-
-/** The player with a few calls added that the rules refuse (out of turn, illegal, malformed), each made once. */
-export function withProbes(player: TurnTaker, probes: readonly Probe[]): TurnTaker {
-	const open = [...probes];
-	return async (turn) => {
-		const text = told(turn);
-		const at = open.findIndex((probe) => probe.resident === turn.resident && text.includes(probe.when));
-		if (at >= 0) {
-			const [probe] = open.splice(at, 1);
-			if (probe !== undefined) await turn.call(probe.tool, probe.params);
-		}
-		await player(turn);
-	};
-}
-
 /** Liar's dice with refusals: a bid on ones, a bid that does not beat the standing one, a bid out of turn, a bid without a face. */
 export const liarsDiceProbed = (): TurnTaker =>
 	withProbes(liarsDice(), [
@@ -116,4 +95,20 @@ export const liarsDiceProbed = (): TurnTaker =>
 		{ resident: "A02", when: "Your turn (round 2)", tool: "bid", params: { quantity: 1, face: 2, reason: "probe: does not beat" } },
 		{ resident: "A01", when: "bids", tool: "liar", params: { reason: "probe: maybe out of turn" } },
 		{ resident: "A02", when: "Your turn (round 3)", tool: "bid", params: { quantity: 3 } },
+	]);
+
+/** Hold'em with refusals: an action on a seat's first turn (out of turn unless it is to act), an action the table does not know, an action without a name. */
+export const holdemProbed = (): TurnTaker =>
+	withProbes(holdem(), [
+		{ resident: "A02", when: "", tool: "act", params: { action: "raise", reason: "probe: first turn" } },
+		{ resident: "A03", when: "Your turn (", tool: "act", params: { action: "dance", reason: "probe: unknown action" } },
+		{ resident: "A04", when: "Your turn (", tool: "act", params: { reason: "probe: no action" } },
+	]);
+
+/** Blind bid with refusals: a bid above the coins a seat has, a negative bid, a bid on a seat's first turn. */
+export const blindBidProbed = (): TurnTaker =>
+	withProbes(blindBid(), [
+		{ resident: "A01", when: "You have", tool: "bid", params: { amount: 100000, reason: "probe: more than I have" } },
+		{ resident: "A02", when: "You have", tool: "bid", params: { amount: -5, reason: "probe: negative" } },
+		{ resident: "A04", when: "", tool: "bid", params: { amount: 1, reason: "probe: first turn" } },
 	]);

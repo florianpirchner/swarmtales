@@ -75,4 +75,91 @@ const LIARS_DICE: readonly CatalogItem[] = [
 	scripted("liars-dice", "liars-dice-hu-quiet-g2-d5", 7, "liarsDice", `heads-up, no table talk, two games, five dice, played to the end: ${LIARS_NOTE}`),
 ];
 
-export const CATALOG: readonly CatalogItem[] = [...TICTACTOE, ...QUARRY_ITEMS, ...ECON_LAB, ...LIARS_DICE];
+const BLIND_NOTE = "A01 bids its value or estimate, A02 half of it, A03 its value plus 5, A04 always passes";
+const BLIND_BID: readonly CatalogItem[] = [
+	scripted("blind-bid", "blind-bid", 7, "blindBidProbed", `${BLIND_NOTE}; three calls the rules refuse are added`),
+	scripted("blind-bid", "blind-bid", 11, "blindBidProbed", `${BLIND_NOTE}; three calls the rules refuse are added`),
+	scripted("blind-bid", "blind-bid-nobrain", 7, "blindBid", BLIND_NOTE),
+	live("blind-bid", "blind-bid", 31, "stories/blind-bid/runs/blind-bid-04a-001-smoke/run/events.jsonl", { as: "recorded under the story's first name, lantern-auction; 12 of 104 turns show inputs worded differently today, every call gets the recorded answer", tag: "live" }),
+];
+
+const CHESS = "stories/chess/runs";
+const CHESS_CUT = { type: "game_ended", count: 1, reason: "one of four games, to keep the file small" };
+const CHESS_ITEMS: readonly CatalogItem[] = [
+	live("chess", "chess-g4-p80", 41, `${CHESS}/chess-02a-045-default-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+	live("chess", "chess-compact-g4-p80", 41, `${CHESS}/chess-02a-047-compact-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+	live("chess", "chess-fresh-compact-g4-p80", 47, `${CHESS}/chess-02a-054-fresh-compact-low-g4-s47-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+];
+
+const CONVOY = "stories/convoy/runs/convoy-06a-004-d3-brain-vs-nobrain";
+const CONVOY_CUT = { type: "convoy_game_ended", count: 1, reason: "one of three games, to keep the file small" };
+const CONVOY_ITEMS: readonly CatalogItem[] = [
+	live("convoy", "convoy", 101, `${CONVOY}/convoy-s101/events.jsonl`, { cut: CONVOY_CUT }),
+	live("convoy", "convoy", 104, `${CONVOY}/convoy-s104/events.jsonl`, { cut: CONVOY_CUT }),
+	live("convoy", "convoy-nobrain", 104, `${CONVOY}/convoy-nobrain-s104/events.jsonl`, { cut: CONVOY_CUT }),
+];
+
+const EMBER = "stories/ember-tricks/runs";
+const EMBER_CUT = { type: "game_ended", count: 1, reason: "one of four games, to keep the file small" };
+const EMBER_TRICKS: readonly CatalogItem[] = [
+	live("ember-tricks", "ember-tricks-g1", 31, `${EMBER}/ember-tricks-04a-004-quiet-look/run/events.jsonl.gz`),
+	live("ember-tricks", "ember-tricks-calib-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/calib-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
+	live("ember-tricks", "ember-tricks-mcbid-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/mcbid-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
+];
+
+const HARBOR = "stories/harbor-lights/runs";
+const HARBOR_LIGHTS: readonly CatalogItem[] = [
+	live("harbor-lights", "harbor-lights-g1", 103, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-g1-103/run/events.jsonl`),
+	live("harbor-lights", "harbor-lights-g1", 110, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-g1-110/run/events.jsonl`),
+	live("harbor-lights", "harbor-lights-nobrain-g1", 103, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-nobrain-g1-103/run/events.jsonl`),
+	live("harbor-lights", "harbor-lights-solo-g1", 111, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-solo-g1-111/run/events.jsonl`),
+	live("harbor-lights", "harbor-lights-nobrain", 37, `${HARBOR}/harbor-lights-04a-005-crew-nobrain-soft/harbor-lights-nobrain-37/run/events.jsonl`, { cut: { type: "game_ended", count: 2, reason: "two of three games, to keep the file small" } }),
+];
+
+const HOLDEM_NOTE = "A01 bets and raises whenever it may, A02 calls everything, A03 never puts a chip in voluntarily, A04 plays a pair or an ace and folds the rest";
+const HOLDEM_CUT = { type: "hand_ended", count: 6, reason: "six hands of the first game (a game has eight), to keep the file small" };
+const HOLDEM: readonly CatalogItem[] = [
+	scripted("holdem", "holdem", 7, "holdemProbed", `${HOLDEM_NOTE}; three calls the rules refuse are added`, HOLDEM_CUT),
+	scripted("holdem", "holdem", 11, "holdemProbed", `${HOLDEM_NOTE}; three calls the rules refuse are added`, HOLDEM_CUT),
+	scripted("holdem", "holdem-nobrain", 7, "holdem", HOLDEM_NOTE, HOLDEM_CUT),
+	scripted("holdem", "holdem-hu", 7, "holdem", `heads-up: ${HOLDEM_NOTE}`, HOLDEM_CUT),
+];
+
+const LANTERNS = "stories/lanterns/runs";
+const LANTERNS_ITEMS: readonly CatalogItem[] = [
+	live("lanterns", "lanterns", 73, `${LANTERNS}/lanterns-06a-006-more-seeds/brain-s73/run/events.jsonl`, { cut: { type: "clue_game_ended", count: 2, reason: "two of four games, to keep the file small" } }),
+	live("lanterns", "lanterns", 107, `${LANTERNS}/lanterns-06a-006-more-seeds/brain-s107/run/events.jsonl`, { cut: { type: "clue_game_ended", count: 2, reason: "two of four games, to keep the file small" } }),
+	live("lanterns", "lanterns-nobrain", 67, `${LANTERNS}/lanterns-06a-005-pace-and-handicap/nobrain-s67/events.jsonl`, { cut: { type: "clue_game_ended", count: 3, reason: "three of four games, to keep the file small" } }),
+];
+
+const MORRIS = "stories/morris-teams/runs";
+const MORRIS_ITEMS: readonly CatalogItem[] = [
+	live("morris-teams", "morris-teams-nobrain-solo-vs-engine3", 33, `${MORRIS}/morris-teams-01a-006-solo-vs-engine3/nobrain-s33/events.jsonl`),
+	live("morris-teams", "morris-teams-nobrain-solo-vs-engine3", 31, `${MORRIS}/morris-teams-01a-006-solo-vs-engine3/nobrain-s31/events.jsonl`),
+	live("morris-teams", "morris-teams-solo-vs-engine3", 33, `${MORRIS}/morris-teams-01a-007-sonnet-opus-vs-engine3/sonnet-brain-s33/events.jsonl`),
+	live("morris-teams", "morris-teams-nobrain-solo", 13, `${MORRIS}/morris-teams-02a-003-solo-brain-vs-nobrain/nobrain-s2/events.jsonl`, { cut: { type: "game_ended", count: 1, reason: "one of three games, to keep the file small" } }),
+];
+
+const SALT = "stories/salt-market/runs/salt-market-04a-006-v2-brain-vs-nobrain";
+const SALT_CUT = { type: "market_game_ended", count: 2, reason: "two of four games, to keep the file small" };
+const SALT_MARKET: readonly CatalogItem[] = [
+	live("salt-market", "salt-market", 45, `${SALT}/salt-market-45/run/events.jsonl`, { cut: SALT_CUT }),
+	live("salt-market", "salt-market", 46, `${SALT}/salt-market-46/run/events.jsonl`, { cut: SALT_CUT }),
+	live("salt-market", "salt-market-nobrain", 45, `${SALT}/salt-market-nobrain-45/run/events.jsonl`, { cut: SALT_CUT }),
+];
+
+export const CATALOG: readonly CatalogItem[] = [
+	...TICTACTOE,
+	...QUARRY_ITEMS,
+	...ECON_LAB,
+	...LIARS_DICE,
+	...BLIND_BID,
+	...CHESS_ITEMS,
+	...CONVOY_ITEMS,
+	...EMBER_TRICKS,
+	...HARBOR_LIGHTS,
+	...HOLDEM,
+	...LANTERNS_ITEMS,
+	...MORRIS_ITEMS,
+	...SALT_MARKET,
+];
