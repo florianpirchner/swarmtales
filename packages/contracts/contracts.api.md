@@ -4,7 +4,669 @@
 
 ```ts
 
+import { Static } from 'typebox';
+import { TSchema } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export interface AccessPort {
+    isLocked(actor: ActorId, tool: CanonicalTool): boolean;
+    isOpen(actor: ActorId, tool: CanonicalTool): boolean;
+    lock(actor: ActorId, tool: CanonicalTool): void;
+    open(actor: ActorId): readonly CanonicalTool[];
+    unlock(actor: ActorId, tool: CanonicalTool): void;
+}
+
+// @public
+export interface Activation {
+    readonly actor: ActorId;
+    readonly basis: number;
+    call(as: string, params: unknown): Promise<ToolOutcome>;
+    readonly detail: Readonly<Record<string, JsonValue>>;
+    readonly inputs: readonly InputNote[];
+    readonly tick: number;
+    readonly tools: readonly ToolSpec[];
+}
+
+// @public
+export type ActorDriver = (activation: Activation) => Promise<DriverResult | undefined> | Promise<void>;
+
+// @public
+export type ActorId = `${string}:${string}` | "human" | "script" | "kernel";
+
+// @public
+export function actorId(kind: string, name: string): ActorId;
+
+// @public
+export interface ActorSpec {
+    readonly grant: string;
+    readonly id: ActorId;
+    readonly kind: string;
+    readonly shared: Readonly<Record<string, JsonValue>>;
+}
+
+// @public
+export interface ActorsPort extends ActorsView {
+    resume(id: ActorId): void;
+    suspend(id: ActorId, reason: string): void;
+}
+
+// @public
+export interface ActorsView {
+    has(id: string): boolean;
+    readonly ids: readonly ActorId[];
+    mayAct(id: ActorId): boolean;
+    ofKind(kind: string): readonly ActorId[];
+    shared(id: ActorId, key: string): JsonValue | undefined;
+}
+
+// @public
+export type CanonicalTool = string;
+
+// @public
+export function closest(name: string, known: readonly string[]): string | undefined;
+
+// @public
+export interface DriverResult {
+    readonly pending: boolean;
+}
+
+// @public
+export type DriverTable = Readonly<Record<string, ActorDriver>>;
+
+// @public
+export interface Envelope<T extends string = string, P = unknown> {
+    readonly actor: ActorId;
+    readonly audience?: readonly string[];
+    readonly basis?: number;
+    readonly causedBy?: number;
+    readonly payload: P;
+    readonly seq: number;
+    readonly source: string;
+    readonly tick: number;
+    readonly tool?: string;
+    readonly type: T;
+}
+
+// @public
+export type EventSchemas = Readonly<Record<string, TSchema>>;
+
+// @public
+export interface EventsDefinition<Id extends string = string, E extends EventSchemas = EventSchemas> {
+    readonly events: E;
+    readonly id: Id;
+}
+
+// @public
+export interface EventSink {
+    close?(end: RunEnd): void;
+    write(event: Envelope): void;
+}
+
+// @public
+export interface Fact {
+    compute(): unknown;
+    readonly output: TSchema;
+}
+
+// @public
+export function formatIssue(issue: SwtIssue): string;
+
 // @public
 export const GAME_FORMAT_VERSION = 1;
+
+// @public
+export type GameData = Static<typeof GameDefinitionSchema>;
+
+// @public
+export const GameDefinitionSchema: Type.TObject<{
+    schema: Type.TLiteral<1>;
+    id: Type.TString;
+    title: Type.TOptional<Type.TString>;
+    seed: Type.TOptional<Type.TInteger>;
+    residents: Type.TUnion<[Type.TInteger, Type.TArray<Type.TString>]>;
+    teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+    roles: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+    mechanics: Type.TArray<Type.TObject<{
+        use: Type.TString;
+        options: Type.TOptional<Type.TUnknown>;
+        as: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+    }>>;
+    directors: Type.TOptional<Type.TArray<Type.TUnknown>>;
+    grants: Type.TOptional<Type.TRecord<"^.*$", Type.TUnion<[Type.TArray<Type.TString>, Type.TObject<{
+        drop: Type.TOptional<Type.TArray<Type.TString>>;
+        add: Type.TOptional<Type.TArray<Type.TString>>;
+    }>]>>>;
+    locked: Type.TOptional<Type.TArray<Type.TString>>;
+    scheduler: Type.TOptional<Type.TObject<{
+        id: Type.TString;
+        options: Type.TOptional<Type.TUnknown>;
+    }>>;
+    limits: Type.TOptional<Type.TObject<{
+        maxCallsPerTick: Type.TOptional<Type.TInteger>;
+    }>>;
+    end: Type.TObject<{
+        ticks: Type.TInteger;
+    }>;
+    win: Type.TOptional<Type.TObject<{
+        fact: Type.TString;
+    }>>;
+    briefing: Type.TOptional<Type.TUnion<[Type.TString, Type.TRecord<"^.*$", Type.TString>]>>;
+    model: Type.TOptional<Type.TString>;
+}>;
+
+// @public
+export type InputLine = string | {
+    readonly kind: string;
+    readonly text: string;
+    readonly order?: number;
+};
+
+// @public
+export interface InputNote {
+    readonly kind?: string;
+    readonly source: string;
+    readonly text: string;
+}
+
+// @public
+export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
+
+// @public
+export interface Job {
+    readonly data?: JsonValue;
+    readonly id: number;
+    readonly job: string;
+    readonly next: number;
+    readonly owner: string;
+}
+
+// @public
+export type JsonValue = string | number | boolean | null | readonly JsonValue[] | {
+    readonly [key: string]: JsonValue;
+};
+
+// @public
+export interface Kernel {
+    readonly ended: RunEnd | undefined;
+    fact(key: string): unknown;
+    readonly log: LogView;
+    openTools(actor: ActorId): readonly string[];
+    readonly plugins: readonly string[];
+    run(drivers: DriverTable, until?: {
+        readonly ticks: number;
+    }): Promise<RunEnd | undefined>;
+    sample(actor: ActorId, as: string, random: RandomSource): JsonValue | undefined;
+    snapshot(): KernelSnapshot;
+    start(): void;
+    submit(call: Submission): Promise<ToolOutcome>;
+    readonly tick: number;
+    toolSpecs(grant: string): readonly ToolSpec[];
+}
+
+// @public
+export interface KernelDefinition {
+    readonly actors: readonly ActorSpec[];
+    readonly game: {
+        readonly id: string;
+        readonly hash: string;
+    };
+    readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
+    readonly limits: KernelLimits;
+    readonly names: Readonly<Record<CanonicalTool, string>>;
+    readonly plugins: readonly ResolvedPlugin[];
+    readonly replies: Readonly<Record<string, string>>;
+    readonly scheduler: {
+        readonly definition: SchedulerDefinition;
+        readonly options: JsonValue;
+    };
+    readonly seed: number;
+    readonly startLocks: Readonly<Record<string, readonly CanonicalTool[]>>;
+}
+
+// @public
+export interface KernelLimits {
+    readonly maxCallsPerTick?: number;
+    readonly maxTicks: number;
+}
+
+// @public
+export interface KernelPorts {
+    readonly sinks?: readonly EventSink[];
+}
+
+// @public
+export interface KernelSnapshot {
+    readonly ended?: RunEnd;
+    readonly format: "swarmtales.kernel";
+    readonly game: string;
+    readonly gameHash: string;
+    readonly jobs: readonly Job[];
+    readonly locks: Readonly<Record<string, readonly string[]>>;
+    readonly plugins: Readonly<Record<string, SliceData>>;
+    readonly scheduler?: SliceData;
+    readonly seed: number;
+    readonly seq: number;
+    readonly suspensions: Readonly<Record<string, readonly string[]>>;
+    readonly tick: number;
+    readonly version: 1;
+}
+
+// @public
+export interface KernelTool {
+    readonly description: string;
+    readonly free: boolean;
+    readonly name: string;
+    readonly parameters: TSchema;
+    prepare(raw: unknown, actor: ActorId): PreparedCall | undefined;
+    sample?(actor: ActorId, random: RandomSource): JsonValue | undefined;
+}
+
+// @public
+export function kindOf(id: ActorId): string;
+
+// @public
+export interface Listener extends Ordered<(event: Envelope) => void> {
+    readonly schema: TSchema;
+    readonly source: string;
+    readonly type: string;
+}
+
+// @public
+export const LOG_FORMAT = "swarmtales.events";
+
+// @public
+export const LOG_VERSION = 1;
+
+// @public
+export interface LogView {
+    all(): readonly Envelope[];
+    readonly length: number;
+    ofType(source: string, type: string): readonly Envelope[];
+    since(seq: number): readonly Envelope[];
+}
+
+// @public
+export function nameOf(id: ActorId): string;
+
+// @public
+export interface OpenActivation extends Activation {
+    close(failed: boolean): void;
+    readonly quietEnd: boolean;
+}
+
+// @public
+export interface Ordered<F> {
+    readonly after?: readonly string[];
+    readonly run: F;
+}
+
+// @public
+export interface OrderedNote extends InputNote {
+    readonly order?: number;
+}
+
+// @public
+export interface PluginHooks {
+    readonly inputs?: readonly Ordered<(actor: ActorId) => readonly InputLine[]>[];
+    news?(actor: ActorId): boolean;
+    readonly runStarted?: readonly Ordered<() => void>[];
+    readonly tickEnded?: readonly Ordered<() => void>[];
+    readonly tickStarted?: readonly Ordered<() => void>[];
+    toAct?(): readonly ActorId[];
+}
+
+// @public
+export interface PluginInstance {
+    readonly facts: Readonly<Record<string, Fact>>;
+    readonly hooks: PluginHooks;
+    readonly jobs: Readonly<Record<string, (data: JsonValue | undefined) => void>>;
+    readonly limits: readonly RunLimit[];
+    readonly listeners: readonly Listener[];
+    readonly services: readonly ProvidedService[];
+    readonly slice: SnapshotSlice | undefined;
+    readonly stages: StageHandlers;
+    readonly tools: readonly KernelTool[];
+}
+
+// @public
+export interface PluginPort {
+    readonly access: AccessPort;
+    readonly actors: ActorsPort;
+    call(service: string, method: string, input: unknown): unknown;
+    emit(type: string, payload: unknown): void;
+    has(service: string): boolean;
+    readonly id: string;
+    readonly maxTicks: number;
+    rng(...labels: readonly RandomLabel[]): RandomSource;
+    readonly schedule: SchedulePort;
+    readonly seed: number;
+    readonly source: string;
+    tick(): number;
+}
+
+// @public
+export interface PreparedCall {
+    execute(): ToolOutcome;
+    readonly params: unknown;
+    rule(): Refusal | undefined;
+}
+
+// @public
+export interface PromptLookup {
+    render(owner: string, id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]): string;
+}
+
+// @public
+export interface ProvidedService {
+    call(method: string, input: unknown, caller: string): unknown;
+    readonly service: ServiceDefinition;
+}
+
+// @public
+export type RandomLabel = string | number;
+
+// @public
+export interface RandomSource {
+    int(min: number, max: number): number;
+    next(): number;
+    pick<T>(items: readonly T[]): T;
+    shuffle<T>(items: readonly T[]): T[];
+}
+
+// @public
+export interface Refusal {
+    readonly code: string;
+    readonly detail?: string;
+    readonly ok: false;
+}
+
+// @public
+export const ResidentIdSchema: Type.TString;
+
+// @public
+export interface ResolvedPlugin {
+    readonly audiences: Readonly<Record<string, readonly string[]>>;
+    create(port: PluginPort): PluginInstance;
+    readonly events: EventSchemas;
+    readonly id: string;
+    readonly options: JsonValue;
+    readonly package: string;
+    readonly provides: readonly string[];
+    readonly requires: readonly string[];
+    readonly version: string;
+}
+
+// @public
+export interface ResumeInput {
+    readonly log: readonly unknown[];
+    readonly snapshot: unknown;
+}
+
+// @public
+export interface RunEnd {
+    readonly limit?: string;
+    readonly reason: "ticks" | "limit" | "error";
+    readonly tick: number;
+}
+
+// @public
+export interface RunLimit {
+    check(): string | undefined;
+    readonly id: string;
+    readonly summary: string;
+}
+
+// @public
+export type RunManifest = Static<typeof RunManifestSchema>;
+
+// @public
+export const RunManifestSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales-run">;
+    version: Type.TLiteral<1>;
+    run: Type.TObject<{
+        id: Type.TString;
+        startedAt: Type.TString;
+        purpose: Type.TUnion<[Type.TLiteral<"smoke">, Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+    }>;
+    game: Type.TObject<{
+        id: Type.TString;
+        title: Type.TOptional<Type.TString>;
+        hash: Type.TString;
+        params: Type.TRecord<"^.*$", Type.TUnknown>;
+    }>;
+    kernel: Type.TObject<{
+        revision: Type.TInteger;
+        version: Type.TString;
+        commit: Type.TOptional<Type.TString>;
+        dirty: Type.TOptional<Type.TBoolean>;
+        node: Type.TString;
+    }>;
+    scheduler: Type.TObject<{
+        id: Type.TString;
+        revision: Type.TInteger;
+        determinism: Type.TString;
+        options: Type.TUnknown;
+        optionsHash: Type.TString;
+    }>;
+    plugins: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        package: Type.TString;
+        version: Type.TString;
+        optionsHash: Type.TString;
+    }>>;
+    actors: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        kind: Type.TString;
+        grant: Type.TString;
+        driver: Type.TString;
+        model: Type.TOptional<Type.TObject<{
+            provider: Type.TString;
+            requestedId: Type.TString;
+            resolvedId: Type.TString;
+            params: Type.TObject<{
+                temperature: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+                topP: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+                maxOutputTokens: Type.TUnion<[Type.TNumber, Type.TLiteral<"provider-default">]>;
+                thinking: Type.TString;
+            }>;
+        }>>;
+        textHashes: Type.TRecord<"^.*$", Type.TString>;
+    }>>;
+    texts: Type.TRecord<"^.*$", Type.TString>;
+    seed: Type.TInteger;
+    replicate: Type.TInteger;
+    limits: Type.TObject<{
+        maxTicks: Type.TInteger;
+        maxCallsPerTick: Type.TOptional<Type.TInteger>;
+        budgetUsd: Type.TOptional<Type.TNumber>;
+    }>;
+    naming: Type.TLiteral<1>;
+    log: Type.TObject<{
+        format: Type.TString;
+        version: Type.TInteger;
+    }>;
+    resumedFrom: Type.TOptional<Type.TObject<{
+        snapshotHash: Type.TString;
+    }>>;
+    experiment: Type.TOptional<Type.TObject<{
+        id: Type.TString;
+        specHash: Type.TString;
+        arm: Type.TString;
+    }>>;
+}>;
+
+// @public
+export interface SchedulePort {
+    at(tick: number, job: string, data?: JsonValue): void;
+}
+
+// @public
+export interface SchedulerDefinition<O = unknown> {
+    create(options: O): SchedulerInstance;
+    readonly determinism: "seeded" | "recorded";
+    readonly events: EventSchemas;
+    readonly id: string;
+    readonly options: TSchema;
+    readonly revision: number;
+}
+
+// @public
+export interface SchedulerInstance {
+    run(port: SchedulerPort, drivers: DriverTable, until?: {
+        readonly ticks: number;
+    }): Promise<RunEnd | undefined>;
+    readonly slice?: SnapshotSlice;
+}
+
+// @public
+export interface SchedulerPort {
+    readonly actors: ActorsView;
+    beginTick(): Promise<void>;
+    emit(type: string, payload: unknown): Envelope;
+    endTick(idle: boolean): Promise<RunEnd | undefined>;
+    readonly halted: boolean;
+    hasNews(actor: ActorId): boolean;
+    inputsFor(actor: ActorId): readonly OrderedNote[];
+    open(actor: ActorId, inputs: readonly InputNote[], detail: Readonly<Record<string, JsonValue>>): OpenActivation;
+    rng(...labels: readonly RandomLabel[]): RandomSource;
+    readonly seed: number;
+    readonly tick: number;
+    toAct(): readonly ActorId[] | undefined;
+}
+
+// @public
+export interface ServiceDefinition<N extends string = string, M extends ServiceMethods = ServiceMethods> {
+    readonly methods: M;
+    readonly name: N;
+    readonly summary: string;
+}
+
+// @public
+export interface ServiceMethod<I extends TSchema = TSchema, O extends TSchema = TSchema> {
+    readonly input: I;
+    readonly kind: "command" | "query";
+    readonly output: O;
+    readonly summary: string;
+}
+
+// @public
+export type ServiceMethods = Readonly<Record<string, ServiceMethod>>;
+
+// @public
+export interface SliceData {
+    readonly data: unknown;
+    readonly version: number;
+}
+
+// @public
+export interface SnapshotSlice {
+    load(data: unknown, version: number): void;
+    save(): unknown;
+    readonly version: number;
+}
+
+// @public
+export type Stage = (typeof STAGES)[number];
+
+// @public
+export interface StageHandlers {
+    after?(call: ToolCall, outcome: ToolOutcome): void;
+    lock?(call: ToolCall): Refusal | undefined;
+    rule?(call: ToolCall): Refusal | undefined;
+}
+
+// @public
+export const STAGES: readonly ["lock", "parse", "limit", "afford", "rule", "guard", "consult", "execute", "settle", "after"];
+
+// @public
+export const STEP_LIMIT = "STEP_LIMIT";
+
+// @public
+export interface Submission {
+    readonly actor: ActorId;
+    readonly as: string;
+    readonly basis?: number;
+    readonly causedBy?: number;
+    readonly params: unknown;
+}
+
+// @public
+export const SWT_CODE = "^SWT-[GMDRXPLC][0-9]{3}$";
+
+// @public
+export class SwtError extends Error {
+    constructor(issues: SwtIssue | readonly SwtIssue[], options?: {
+        readonly cause?: unknown;
+    });
+    get code(): string;
+    readonly issues: readonly SwtIssue[];
+}
+
+// @public
+export type SwtIssue = Static<typeof SwtIssueSchema>;
+
+// @public
+export const SwtIssueSchema: Type.TObject<{
+    code: Type.TString;
+    summary: Type.TString;
+    where: Type.TOptional<Type.TObject<{
+        file: Type.TOptional<Type.TString>;
+        line: Type.TOptional<Type.TInteger>;
+        path: Type.TOptional<Type.TString>;
+        package: Type.TOptional<Type.TString>;
+    }>>;
+    why: Type.TString;
+    fix: Type.TString;
+    details: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+}>;
+
+// @public
+export const TOOL_LOCKED = "TOOL_LOCKED";
+
+// @public
+export const TOOL_NAME_PATTERN = "^[a-zA-Z0-9_-]{1,64}$";
+
+// @public
+export const TOOL_NOT_GRANTED = "TOOL_NOT_GRANTED";
+
+// @public
+export const TOOL_UNKNOWN = "TOOL_UNKNOWN";
+
+// @public
+export interface ToolCall {
+    readonly actor: ActorId;
+    readonly as: string;
+    readonly name: string;
+    readonly owner: string;
+    readonly params: unknown;
+    readonly seq: number;
+    readonly tool: CanonicalTool;
+}
+
+// @public
+export type ToolOutcome = ToolSuccess | Refusal;
+
+// @public
+export interface ToolRef<N extends string = string, P extends TSchema = TSchema> {
+    readonly name: N;
+    readonly parameters: P;
+}
+
+// @public
+export interface ToolSpec {
+    readonly description: string;
+    readonly name: string;
+    readonly parameters: TSchema;
+}
+
+// @public
+export interface ToolSuccess {
+    readonly endsTurn?: boolean;
+    readonly ok: true;
+    readonly reply: string;
+}
+
+// (No @packageDocumentation comment for this package)
 
 ```
