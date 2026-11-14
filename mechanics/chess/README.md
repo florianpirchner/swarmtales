@@ -56,7 +56,7 @@ every member of the side on move gets one turn per half-move to advise in the te
 
 **Scoring for the human.** `move_scored` compares every move with the best move by a one-ply search with a static
 exchange check (pawn 1, queen 9). It sees hanging pieces and missed free captures, nothing deeper; it is not an
-engine (P111). The engine reference is `pnpm lab:chess` (Stockfish), run after the match.
+engine (P111). The engine reference is `pnpm lab:chess` (Garbochess-JS, see `stories/chess/README.md`), run after the match.
 
 **Not done here:** no clock in seconds (the run's turns are the clock), no engine opponent (that is a separate
 referee mechanic in other games), no draw offers.
@@ -320,5 +320,5 @@ From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md):
 moves as models write them, loose pieces and the baseline's scoring; scripted matches through the host (alternating
 colours, refused moves, mate, forfeits, the move cap, `playMove` open only on move, the legal list, threats, the coach's
 review); determinism and a snapshot round trip inside a game and inside a retro window; teams with a rotating captain;
-the brain's replay check for text moves; the Stockfish reference of `lab/`; `endsTurn` (runtime revision 2); the fresh
+the brain's replay check for text moves; the engine reference of `lab/` (also `test/stories/chess-engine.test.ts`); `endsTurn` (runtime revision 2); the fresh
 context, the compact board and the settled cap (LH17).

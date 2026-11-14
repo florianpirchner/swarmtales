@@ -52,7 +52,7 @@ report.
 
 | Story | What it is | What it showed | Runs |
 |---|---|---|---|
-| [Chess](../../../stories/chess/) | two seats, moves as text, Stockfish as the judge | a legal-move list plus loose pieces lifts Haiku to Sonnet level; the brain changes nothing | [runs](../../../stories/chess/runs/) |
+| [Chess](../../../stories/chess/) | two seats, moves as text, a chess engine as the judge | a legal-move list plus loose pieces lifts Haiku to Sonnet level; the brain changes nothing | [runs](../../../stories/chess/runs/) |
 | [Nine men's morris](../../../stories/morris-teams/) | two teams of three, or one seat against an engine | Haiku wins 4 %, Sonnet 13 %, Opus 28 % against the depth-3 engine; no brain effect | [runs](../../../stories/morris-teams/runs/) |
 | [Tic-tac-toe teams](../../../stories/tictactoe-teams/) | 3x3 to 5x5, teams vote on every move | 3x3 and 4x4 are a ceiling (all draws); on 5x5 a team blocks more than it wins | [runs](../../../stories/tictactoe-teams/runs/) |
 
