@@ -1,6 +1,9 @@
 # Games
 
-One folder per game: `games/<name>/` with the game definition, a short `README.md`, its prompts and one oracle test.
-The folder is empty at milestone M0. The catalogue for readers is [`GAMES.md`](../GAMES.md).
+One folder per game: `games/<name>/` with the game definition (`game.ts`), a short `README.md`, its briefing and its
+tests, among them the oracle test where the game has oracle files. Four games are here: `hello`, `tictactoe-teams`,
+`quarry` and `econ-lab`. The catalogue for readers is [`GAMES.md`](../GAMES.md).
 
-Recorded runs do not live here. They go to the data repository `swarmtales-runs`; this repository holds indexes only.
+Recorded runs do not live here. They go to the orphan branch `data/runs` of this repository (decision A15); a game
+folder holds the index only (`games/<name>/RUNS.md`, from the first run on). `m2-ledger.jsonl` is the spend ledger
+of the live runs of milestone M2.

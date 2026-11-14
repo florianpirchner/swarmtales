@@ -170,7 +170,7 @@ Machines enforce them; a limit is never met by moving code next door.
 - Live budget of the rewrite: 10 USD through milestone M2, 50 USD in total. A single run stays inside its own
   budget. Each rerun series runs once at its planned seed count; the rerun plan is committed before the first run.
 - No large runs (12, 48 or 96 residents) until Act II works with 6 residents.
-- Development budget for M0 to M2: 75 issues (decision A4), 300 million agent tokens, 750 USD. Twice any of
+- Development budget for M0 to M2: 76 issues (decisions A4 and A12), 300 million agent tokens, 750 USD. Twice any of
   these stops the rewrite (kill criterion, `REWRITE.md` section 7).
 
 ## After every live run

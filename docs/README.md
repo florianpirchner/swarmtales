@@ -11,6 +11,7 @@ milestones that build what they describe.
 - [`GLOSSARY.md`](GLOSSARY.md): the words, one meaning each, and the retired words.
 - [`LAYERS.md`](LAYERS.md): which package may import which.
 - [`LICENCE-POLICY.md`](LICENCE-POLICY.md): Apache 2.0, the allowlist, the licence gate.
+- [`MECHANIC-README.md`](MECHANIC-README.md): the fixed shape of a mechanic's README and its generated sections.
 - [`ISSUE-RECORD.md`](ISSUE-RECORD.md): tokens, wall time and changed lines per issue; the budget.
 
 ## The rewrite

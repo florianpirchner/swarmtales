@@ -1,29 +1,95 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. **It is a stub at milestone M0: no game runs on the new
-platform yet.**
-
-What this page will hold:
-
-- an overview table generated from the registered games (family, residents, mechanics, Directors, params), from
-  milestone M1 on;
-- one hand-written card per game of at most 20 lines: the rules in brief, one finding, one recorded moment and
-  links. A finding appears on a card only when it is reproduced on this platform.
+The catalogue of the games that run on Swarm Tales. Four games run on the new platform today, each with a scripted
+or sampled player in place of a model. **No live run has happened on this platform yet, so no card carries a finding
+or a recorded moment:** a finding appears on a card only when it is reproduced on this platform.
 
 A new game adds a card here, never a line to the [`README.md`](README.md).
+
+## Overview
+
+The table is written by hand for now; the plan is to generate it from the registered games.
+
+| Game | Family | Residents | Mechanics | Params | How it is proven |
+|---|---|---|---|---|---|
+| [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid-game` | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
+| [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
+| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with seven params | six oracle files match at level 3 |
+| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with four params | five oracle files match at level 3 |
+
+No game on the new platform has a Director yet. An oracle file is one configuration with one seed, recorded on the
+old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
+compares the rules, the texts and the scheduling ([`oracles/README.md`](oracles/README.md)).
+
+## Hello Game
+
+Tic-tac-toe between two residents, `ada` (X) and `bob` (O), one game. The whole game is eleven code lines: one
+mechanic, the `turns` scheduler with the activation `toAct` (the mechanic names the resident that is on move, so
+every activation is one move), a limit of twelve ticks and the tally as the result line. The code block of the
+README is this file.
+
+- Proof: [`games/hello/test/hello.test.ts`](games/hello/test/hello.test.ts) plays the game with the sampled player,
+  runs `swt run --fake` on it and verifies the log of the run folder. It has no oracle file: the game is new.
+- Links: [folder](games/hello/), [README](games/hello/README.md), [`game.ts`](games/hello/game.ts).
+
+## Tic-tac-toe teams
+
+Two teams of three residents (X: A01 to A03, O: A04 to A06) play a short match on one board. Before every move a
+team agrees in its private chat and by vote; only the agreed cell can be played, and after three rounds without
+agreement a random cell is played. Every game starts from a fresh context; a team's only memory is a short
+"strategy brain" that it rewrites after each game. A silent referee scores every move against minimax for the
+report; residents never see it.
+
+- Variants are options of `tictactoeGame`: the number of games, the board size and line length, no brain (the
+  control arm), a brain for one team only, one resident per side, one side alone against a team, a fixed captain.
+- Proof: the nine oracle files match at level 3; the briefings are byte-identical to the old platform.
+- Links: [folder](games/tictactoe-teams/), [README](games/tictactoe-teams/README.md),
+  [oracle files](oracles/tictactoe/).
+
+## Quarry
+
+Four solo seats (A01 to A04) play a match of drafting games. In each game every seat opens packs of cards, keeps one
+card per pick and passes the rest around the table. At the end every quarry scores the square of each resource it
+holds and a bonus for strictly the most of a resource. Every game starts from a fresh context; a seat's only memory
+is a short private strategy brain. The mechanic scores every pick against the greedy pick and every game against
+four greedy seats on the same deal, for the report only.
+
+- Params of the game family: `games`, `packs`, `packSize`, `brain`, `burns` (a seat may destroy a card of the pack
+  it passes on), `openHands` (every seat sees every quarry), `maxWords`. The defaults give the game of the old
+  platform.
+- Proof: the six oracle files match at level 3, one of them up to its cut; the briefings are byte-identical.
+- Links: [folder](games/quarry/), [README](games/quarry/README.md), [oracle files](oracles/quarry/),
+  [experiment specifications](games/quarry/experiments/).
+
+## Econ Lab
+
+Four solo seats (A01 to A04) play three classic games of experimental economics one after another, each over several
+rounds: a split offer (the ultimatum game, 6 rounds), a shared fund (the public goods game, 7 rounds) and an A-or-B
+choice (the prisoner's dilemma in rotating pairs, 5 rounds). The framing is neutral: no game is named. Decisions are
+sealed until a round resolves, and a seat that does not decide in time takes the default. Every game starts from a
+fresh context; a seat's only memory is a short private strategy brain. The mechanic scores each game against Nash
+play and the social optimum, for the report only.
+
+- Params of the game family: `blocks` (the games of the match in order, each with its rounds), `brain`,
+  `showHorizon` (the seats are told how many rounds a game has), `maxWords`. The defaults give the game of the old
+  platform.
+- Proof: the five oracle files match at level 3, three of them replays of a live run of the old platform; the
+  briefings are byte-identical.
+- Links: [folder](games/econ-lab/), [README](games/econ-lab/README.md), [oracle files](oracles/econ-lab/),
+  [experiment specifications](games/econ-lab/experiments/).
 
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families.
+five families. Three are ported so far, marked in bold; the Hello Game is new and is not one of the fifteen.
 
 | Family | Games |
 |---|---|
 | Societies | City of Keys, Whispers |
-| Board games, all information public | chess, nine men's morris, tic-tac-toe teams |
+| Board games, all information public | chess, nine men's morris, **tic-tac-toe teams (ported)** |
 | Hidden information and bluff | Hold'em, Liar's Dice, Convoy |
 | Cooperation under hidden information | Harbor Lights, Lanterns |
-| Markets, bids and economics | Econ Lab, Salt Market, Blind Bid, Quarry, Ember Tricks |
+| Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
 Until a game is ported, its rules, runs and findings are readable at the tag
 [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final) under `stories/<name>/`.
