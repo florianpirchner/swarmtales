@@ -22,9 +22,12 @@ const STOP_LEVEL = 4;
 export function fragmentCity(): AnyStory {
 	const spec = cityOfKeys.tribunal;
 	if (spec === undefined) throw new Error("cityofkeys has no tribunal");
-	const { act: _act, factions: _factions, ...rest } = spec;
-	const { acts: _acts, goals: _goals, seal: _seal, ...city } = cityOfKeys;
-	return { ...city, tribunal: { ...rest, first: { level: 3, latestAfter: 8 }, targetShare: 1 / 3, maxMinutes: 1000 } };
+	const omit = <T extends object>(value: T, keys: readonly string[]): T => {
+		const copy = { ...value };
+		for (const key of keys) Reflect.deleteProperty(copy, key);
+		return copy;
+	};
+	return { ...omit(cityOfKeys, ["acts", "goals", "seal"]), tribunal: { ...omit(spec, ["act", "factions"]), first: { level: 3, latestAfter: 8 }, targetShare: 1 / 3, maxMinutes: 1000 } };
 }
 
 export function burnResidents(city: { readonly host: Host; readonly lines: MemorySink }): Script {

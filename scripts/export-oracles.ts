@@ -4,13 +4,24 @@
  * `tsx --conditions=development scripts/export-oracles.ts [game ...]` writes the catalog's files (all, or the named games);
  * `--check` writes nothing and exits 1 when a file differs from what the code produces now;
  * `--survey <folder>` replays every recorded run under a folder and prints how closely today's code reproduces it;
- * `--diff <events.jsonl> [variant]` prints the first turns and answers of one recorded run that today's code does not reproduce.
+ * `--diff <events.jsonl> [variant]` prints the first turns and answers of one recorded run that today's code does not reproduce;
+ * `--project <oracle.json> [--by-actor]` prints the rules-level projection of a file (`scripts/oracles/projection.ts`).
+ *
+ * Every write also rewrites `oracles/checksums.txt` (SHA-256 of every file, in the format of `sha256sum`) and
+ * `oracles/COVERAGE.md` (which tools and refusal codes the files exercise) and the pages under `oracles/mechanics/`
+ * (what each loaded mechanic's README says about its rules, tools, events and options).
  */
 import { existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { CATALOG, DEFINITIONS, oraclePath } from "./oracles/catalog.ts";
 import { liveOracle, liveRun, ROOT } from "./oracles/live.ts";
+import { checksumsText, CHECKSUMS } from "./oracles/checksums.ts";
+import { coverageText, COVERAGE } from "./oracles/coverage.ts";
+import { OracleSchema } from "./oracles/format.ts";
+import { mechanicPages } from "./oracles/mechanics-doc.ts";
+import { rulesByActor, rulesProjection, rulesText } from "./oracles/projection.ts";
 import { oracleText } from "./oracles/record.ts";
+import { Value } from "typebox/value";
 
 async function survey(folder: string): Promise<void> {
 	for (const events of globSync("**/events.jsonl{,.gz}", { cwd: resolve(ROOT, folder) }).sort()) {
@@ -47,6 +58,14 @@ async function main(): Promise<void> {
 		console.log(differences.join("\n"));
 		return;
 	}
+	const project = args.indexOf("--project");
+	if (project >= 0) {
+		const parsed: unknown = JSON.parse(readFileSync(resolve(args[project + 1] ?? ""), "utf8"));
+		if (!Value.Check(OracleSchema, parsed)) throw new Error(`${args[project + 1] ?? ""}: not an oracle file`);
+		const projection = rulesProjection(parsed);
+		process.stdout.write(args.includes("--by-actor") ? `${JSON.stringify(rulesByActor(projection), null, "\t")}\n` : rulesText(projection));
+		return;
+	}
 	const check = args.includes("--check");
 	const games = args.filter((arg) => !arg.startsWith("--"));
 	let stale = 0;
@@ -77,6 +96,17 @@ async function main(): Promise<void> {
 			writeFileSync(path, text);
 		}
 		console.log(`${file.path}\t${String(Math.round(text.length / 1024))} KB\t${same ? "unchanged" : "changed"}`);
+	}
+	// The derived files cover every oracle on disk, so they are written (or checked) on every run, whatever games were named.
+	for (const derived of [{ path: CHECKSUMS, text: checksumsText(ROOT) }, { path: COVERAGE, text: coverageText(ROOT) }, ...mechanicPages(ROOT)]) {
+		const path = resolve(ROOT, derived.path);
+		const same = existsSync(path) && readFileSync(path, "utf8") === derived.text;
+		if (!same) stale++;
+		if (!check && !same) {
+			mkdirSync(dirname(path), { recursive: true });
+			writeFileSync(path, derived.text);
+		}
+		console.log(`${derived.path}\t${String(Math.round(derived.text.length / 1024))} KB\t${same ? "unchanged" : "changed"}`);
 	}
 	if (check && stale > 0) process.exitCode = 1;
 }

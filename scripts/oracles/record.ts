@@ -6,7 +6,7 @@ import { Type } from "typebox";
 import { Check } from "typebox/value";
 import type { CoreStory, EventEnvelope, Host, RunEnd, ToolOutcome, TurnTaker } from "@swarmtales/contracts";
 import { createHost, RUNTIME_REVISION, type HostOptions } from "@swarmtales/kernel";
-import { ORACLE_FORMAT, ORACLE_VERSION, type Oracle, type OracleCall, type OracleEntry, type OracleSetup, type OracleSource } from "./format.ts";
+import { ORACLE_FORMAT, ORACLE_VERSION, Stage, type Oracle, type OracleCall, type OracleEntry, type OracleSetup, type OracleSource } from "./format.ts";
 
 /** Events of the platform that are scheduling or bookkeeping of the old engine; the timeline shows them in its own entries or not at all. */
 const ENGINE_EVENTS = new Set(["run_started", "run_ended", "minute_started", "minute_ended", "pass_started", "turn_started", "turn_skipped", "tool_called", "tool_refused", "service_called", "job_ran"]);
@@ -18,7 +18,7 @@ const TurnStarted = Type.Object({ resident: Type.String(), pass: Type.Integer(),
 const TurnSkipped = Type.Object({ resident: Type.String(), pass: Type.Integer(), block: Type.Integer() });
 const ToolCalled = Type.Object({ tool: Type.String(), params: Type.Unknown() });
 const AppToolResult = Type.Object({ agent: Type.String(), tool: Type.String(), text: Type.String() }, { additionalProperties: true });
-const ToolRefused = Type.Object({ tool: Type.String(), stage: Type.String(), code: Type.String(), detail: Type.Optional(Type.String()) });
+const ToolRefused = Type.Object({ tool: Type.String(), stage: Stage, code: Type.String(), detail: Type.Optional(Type.String()) });
 
 /** Plain JSON without functions, `undefined` and volatile fields; object keys keep their order. */
 export function plainJson(value: unknown, key?: string): unknown {
@@ -175,6 +175,9 @@ export interface OracleParts extends OracleIdentity {
 
 export function assemble(parts: OracleParts): Oracle {
 	const { end, truncated } = parts;
+	// A run that was stopped from outside or that failed is no oracle.
+	const reason = end?.reason;
+	if (reason !== undefined && reason !== "referee" && reason !== "minutes") throw new Error(`${parts.game}/${parts.variant}: the run ended by "${reason}"`);
 	return {
 		format: ORACLE_FORMAT,
 		version: ORACLE_VERSION,
@@ -185,7 +188,7 @@ export function assemble(parts: OracleParts): Oracle {
 		source: parts.source,
 		setup: parts.setup,
 		...(truncated === undefined ? {} : { truncated }),
-		...(end === undefined || truncated !== undefined ? {} : { end: { reason: end.reason, minute: end.minute, ...(end.limit === undefined ? {} : { limit: end.limit }) } }),
+		...(end === undefined || reason === undefined || truncated !== undefined ? {} : { end: { reason, minute: end.minute, ...(end.limit === undefined ? {} : { limit: end.limit }) } }),
 		counts: countsOf(parts.timeline),
 		timeline: [...parts.timeline],
 	};

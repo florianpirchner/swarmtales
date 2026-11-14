@@ -12,7 +12,10 @@ export const ORACLE_VERSION = 1;
 const Json = Type.Unknown();
 
 /** Who acts: `resident:<id>`, `gamemaker`, `script`, `human`, `overseer:<name>` or `host` (clock, timers, hooks). */
-const Actor = Type.String();
+const Actor = Type.String({ pattern: "^(resident:[A-Za-z0-9_-]+|overseer:[A-Za-z0-9_-]+|gamemaker|script|human|host)$" });
+
+/** The stages of the old call pipeline, in the order a call passes them; a refusal names the stage that stopped it. */
+export const Stage = Type.Union([Type.Literal("lock"), Type.Literal("parse"), Type.Literal("limit"), Type.Literal("afford"), Type.Literal("rule"), Type.Literal("guard"), Type.Literal("consult"), Type.Literal("execute")]);
 
 /** A minute of the virtual clock begins. Timers of the mechanics fire on minute boundaries. */
 const MinuteEntry = Type.Object({ k: Type.Literal("minute"), minute: Type.Integer({ minimum: 0 }) }, { additionalProperties: false });
@@ -45,8 +48,8 @@ const CallEntry = Type.Object(
 		ok: Type.Boolean(),
 		reply: Type.Optional(Type.String()),
 		endsTurn: Type.Optional(Type.Boolean()),
-		code: Type.Optional(Type.String()),
-		stage: Type.Optional(Type.String()),
+		code: Type.Optional(Type.String({ pattern: "^[A-Z][A-Z0-9_]*$" })),
+		stage: Type.Optional(Stage),
 		detail: Type.Optional(Type.String()),
 	},
 	{ additionalProperties: false },
@@ -149,7 +152,7 @@ export const OracleSchema = Type.Object(
 		/** Present when the run was cut before its end: after which minute, and why. */
 		truncated: Type.Optional(Type.Object({ afterMinute: Type.Integer({ minimum: 0 }), reason: Type.String() }, { additionalProperties: false })),
 		/** How the run ended; absent in a truncated file. */
-		end: Type.Optional(Type.Object({ reason: Type.String(), minute: Type.Integer({ minimum: 0 }), limit: Type.Optional(Type.String()) }, { additionalProperties: false })),
+		end: Type.Optional(Type.Object({ reason: Type.Union([Type.Literal("referee"), Type.Literal("minutes")]), minute: Type.Integer({ minimum: 0 }), limit: Type.Optional(Type.String()) }, { additionalProperties: false })),
 		/** Entries per kind and events per `source.type`, for a quick look and as a checksum of the timeline. */
 		counts: Type.Object({ entries: Type.Record(Type.String(), Type.Integer()), events: Type.Record(Type.String(), Type.Integer()) }, { additionalProperties: false }),
 		timeline: Type.Array(OracleEntrySchema),
