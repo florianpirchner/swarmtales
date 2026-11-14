@@ -313,18 +313,18 @@ Next to the oracle files, written by the same script:
 | [econ-lab](econ-lab/) | 5 | 3 (3 exact) | 2 | 0 | 5 | 105-178 KB |
 | [liars-dice](liars-dice/) | 6 | 0 | 6 | 3 | 3 | 69-282 KB |
 | [blind-bid](blind-bid/) | 5 | 1 (answers exact, 12 of 104 turn inputs reworded) | 4 | 0 | 5 | 102-176 KB |
-| [chess](chess/) | 5 | 3 (3 exact) | 2 | 3 | 2 | 31-293 KB |
+| [chess](chess/) | 12 | 3 (3 exact) | 9 | 3 | 9 | 25-293 KB |
 | [convoy](convoy/) | 4 | 3 (3 exact) | 1 | 3 | 1 | 264-357 KB |
 | [ember-tricks](ember-tricks/) | 4 | 3 (2 exact; 1 with answers exact, 4 of 336 turn inputs reworded) | 1 | 2 | 2 | 277-426 KB |
-| [harbor-lights](harbor-lights/) | 6 | 5 (5 exact) | 1 | 1 | 5 | 115-706 KB |
-| [holdem](holdem/) | 5 | 0 | 5 | 4 | 1 | 85-319 KB |
+| [harbor-lights](harbor-lights/) | 8 | 6 (6 exact) | 2 | 1 | 7 | 62-706 KB |
+| [holdem](holdem/) | 6 | 0 | 6 | 5 | 1 | 85-319 KB |
 | [lanterns](lanterns/) | 4 | 3 (3 exact) | 1 | 3 | 1 | 140-272 KB |
 | [morris-teams](morris-teams/) | 5 | 4 (4 exact) | 1 | 1 | 4 | 51-233 KB |
 | [salt-market](salt-market/) | 4 | 3 (3 exact) | 1 | 3 | 1 | 192-316 KB |
 | [whispers](whispers/) | 3 | 0 | 3 | 0 | 3 | 231-248 KB |
 | [cityofkeys](cityofkeys/) | 5 | 0 | 5 | 0 | 5 | 186-343 KB |
 
-76 files, about 15.8 MB, plus five story definitions (0.5 MB), 38 mechanic pages (0.3 MB), the coverage table and
+86 files, about 16.6 MB, plus five story definitions (0.5 MB), 38 mechanic pages (0.3 MB), the coverage table and
 the checksums. "Exact" means: every replayed turn showed the recorded inputs and every call got the recorded
 answer, word for word. "Reach a final result" counts the files with an `end` head, that is a run the referee or
 the minute limit closed; a cut file has `truncated` instead. Every game has at least one file that reaches its

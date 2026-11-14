@@ -1,8 +1,32 @@
 diff --git a/scripts/oracles/catalog.ts b/scripts/oracles/catalog.ts
-index d16a9838..08df335b 100644
+index d16a9838..d67542ce 100644
 --- a/scripts/oracles/catalog.ts
 +++ b/scripts/oracles/catalog.ts
-@@ -132,6 +132,7 @@ const EMBER_TRICKS: readonly CatalogItem[] = [
+@@ -109,12 +109,23 @@ const BLIND_BID: readonly CatalogItem[] = [
+ 
+ const CHESS = "stories/chess/runs";
+ const CHESS_CUT = { type: "game_ended", count: 1, reason: "one of four games, to keep the file small" };
++const CHESS_MATES_NOTE = "in every game White plays f3 and g4, Black e5 and Qh4 mate; the six added calls of chess-s13.json";
++const CHESS_BLUNDERS_NOTE = "game 1: 1. e4 e5 2. Qh5 g6 3. Qxe5+ Qe7 4. Qxh8 and Black resigns; game 2: White plays f3 and g4, Black e5 and Qh4 mate";
++const CHESS_CAP_NOTE = "a move cap of 12 half-moves, reached in both games: game 1 ends with Qxd1+ (a queen that the king takes back at once), game 2 with White a knight ahead and nothing to take";
+ const CHESS_ITEMS: readonly CatalogItem[] = [
+ 	live("chess", "chess-g4-p80", 41, `${CHESS}/chess-02a-045-default-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+ 	live("chess", "chess-compact-g4-p80", 41, `${CHESS}/chess-02a-047-compact-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+ 	live("chess", "chess-fresh-compact-g4-p80", 47, `${CHESS}/chess-02a-054-fresh-compact-low-g4-s47-r2/run/events.jsonl`, { cut: CHESS_CUT }),
+ 	scripted("chess", "chess", 13, "chessMates", "the registry default, played to the end of the match: in every game White plays f3 and g4, Black e5 and Qh4 mate; six calls are added that the rules refuse or that the plain script never makes"),
+ 	silent("chess", "chess", 13, "moves forfeited to a seeded legal move until the match is called off"),
++	// Added for milestone M4 of the rewrite (decision A39): options that the ports carry and no file exercised.
++	scripted("chess", "chess-moves", 13, "chessMates", `the legal-move list in every position: ${CHESS_MATES_NOTE}`),
++	scripted("chess", "chess-moves-coach", 13, "chessBlunders", `the legal-move list and the coach, whose review of game 1 opens the retro after it: ${CHESS_BLUNDERS_NOTE}`),
++	scripted("chess", "chess-nobrain", 13, "chessMates", `the control arm without a brain (no retro; the look at the brain is refused): ${CHESS_MATES_NOTE}`),
++	scripted("chess", "chess-teams", 13, "chessTeams", "two teams of two with a rotating captain: game 1 is the four-move mate on f7, game 2 the two-move mate on h4; the advisor of a half-move posts the move, the captain plays it; A03 ends its first turn as a captain without a move; five calls are added (a move by the advisor, three more posts in one half-move, a look at the team chat)"),
++	scripted("chess", "chess-p12", 13, "chessCap", CHESS_CAP_NOTE),
++	scripted("chess", "chess-settle-p12", 13, "chessCap", `${CHESS_CAP_NOTE}; with settleCap the open capture of game 1 is credited to the side to move`),
++	scripted("chess", "chess-threats", 13, "chessBlunders", `the list of loose pieces in every position: ${CHESS_BLUNDERS_NOTE}`),
+ ];
+ 
+ const CONVOY = "stories/convoy/runs/convoy-06a-004-d3-brain-vs-nobrain";
+@@ -132,6 +143,7 @@ const EMBER_TRICKS: readonly CatalogItem[] = [
  	live("ember-tricks", "ember-tricks-g1", 31, `${EMBER}/ember-tricks-04a-004-quiet-look/run/events.jsonl.gz`),
  	live("ember-tricks", "ember-tricks-calib-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/calib-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
  	live("ember-tricks", "ember-tricks-mcbid-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/mcbid-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
@@ -10,7 +34,7 @@ index d16a9838..08df335b 100644
  	silent("ember-tricks", "ember-tricks", 13, "the registry default: bids and cards forfeited until the match is called off"),
  ];
  
-@@ -142,6 +143,8 @@ const HARBOR_LIGHTS: readonly CatalogItem[] = [
+@@ -142,6 +154,8 @@ const HARBOR_LIGHTS: readonly CatalogItem[] = [
  	live("harbor-lights", "harbor-lights-nobrain-g1", 103, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-nobrain-g1-103/run/events.jsonl`),
  	live("harbor-lights", "harbor-lights-solo-g1", 111, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-solo-g1-111/run/events.jsonl`),
  	live("harbor-lights", "harbor-lights-nobrain", 37, `${HARBOR}/harbor-lights-04a-005-crew-nobrain-soft/harbor-lights-nobrain-37/run/events.jsonl`, { cut: { type: "game_ended", count: 2, reason: "two of three games, to keep the file small" } }),
@@ -19,7 +43,7 @@ index d16a9838..08df335b 100644
  	silent("harbor-lights", "harbor-lights", 13, "the registry default: every turn forfeited until the match is called off as invalid"),
  ];
  
-@@ -152,6 +155,7 @@ const HOLDEM: readonly CatalogItem[] = [
+@@ -152,6 +166,7 @@ const HOLDEM: readonly CatalogItem[] = [
  	scripted("holdem", "holdem", 11, "holdemProbed", `${HOLDEM_NOTE}; three calls the rules refuse are added`, HOLDEM_CUT),
  	scripted("holdem", "holdem-nobrain", 7, "holdem", HOLDEM_NOTE, HOLDEM_CUT),
  	scripted("holdem", "holdem-hu", 7, "holdem", `heads-up: ${HOLDEM_NOTE}`, HOLDEM_CUT),
@@ -27,11 +51,137 @@ index d16a9838..08df335b 100644
  	silent("holdem", "holdem-hu", 13, "heads-up: every action is the default of the clock, to the end of the match and its scores"),
  ];
  
+diff --git a/scripts/oracles/chess-players.ts b/scripts/oracles/chess-players.ts
+new file mode 100644
+index 00000000..dbf2bb95
+--- /dev/null
++++ b/scripts/oracles/chess-players.ts
+@@ -0,0 +1,111 @@
++/**
++ * Hand-written chess players for the oracle files that `chessMates` cannot play: a match in which every game ends
++ * at the move cap, and a match of two teams with a rotating captain. Each decides from its turn's inputs and the
++ * answers of its own calls only.
++ */
++import type { TurnTaker } from "@swarmtales/contracts";
++import { withProbes } from "./probes.ts";
++
++const told = (turn: Parameters<TurnTaker>[0]): string => turn.inputs.map((note) => note.text).join("\n");
++const isRetro = (text: string): boolean => text.includes("Retro after game") || text.includes("Before game 1");
++
++/** How many half-moves a position text shows (`Moves so far: 1. e4 e5 2. Nf3`). */
++const movesSoFar = (text: string): number => {
++	const line = /Moves so far: (.*)/.exec(text)?.[1] ?? "none";
++	return line === "none" ? 0 : line.split(" ").filter((token) => !/^\d+\.$/.test(token)).length;
++};
++
++/**
++ * Twelve half-moves per game, no mate and no repetition. Game 1 ends with a queen taken on d1 that the king takes
++ * back at once: Black is 9 ahead on the board and level once the open capture is settled. Game 2 ends quietly with
++ * White a knight ahead and no capture open.
++ */
++const CAP_GAMES: Readonly<Record<number, readonly string[]>> = {
++	1: ["Nf3", "Nf6", "g3", "g6", "d4", "d5", "c4", "dxc4", "e4", "e5", "dxe5", "Qxd1+"],
++	2: ["e4", "Nf6", "e5", "Ng4", "Qxg4", "e6", "Qg3", "a6", "Nf3", "b6", "d4", "h6"],
++};
++
++/** A seat that plays its half-moves of a line per game, one try per turn; the word `resign` gives the game up. */
++const linePlayer = (games: Readonly<Record<number, readonly string[]>>, brain: string): TurnTaker => {
++	const plans = new Map<string, string[]>();
++	return async (turn) => {
++		const text = told(turn);
++		if (isRetro(text)) {
++			await turn.call("writeBrain", { text: `${turn.resident}: ${brain}` });
++			return;
++		}
++		const start = /Game (\d+) of \d+: you play (White|Black)/.exec(text);
++		if (start !== null) plans.set(turn.resident, (games[Number(start[1])] ?? []).filter((_, ply) => (ply % 2 === 0) === (start[2] === "White")));
++		const plan = plans.get(turn.resident);
++		const move = plan?.[0];
++		if (plan === undefined || move === undefined) return;
++		const outcome = move === "resign" ? await turn.call("resign", { reason: `script ${turn.resident}` }) : await turn.call("playMove", { move, reason: `script ${turn.resident}` });
++		if (outcome.ok) plan.shift();
++	};
++};
++
++/**
++ * Chess to the move cap of 12 half-moves in both games (`chess-p12`, `chess-settle-p12`). A seat learns the game
++ * and its colour from the game's first line and tries its next move on every turn it gets.
++ */
++export const chessCap = (): TurnTaker => linePlayer(CAP_GAMES, "count the material before the last move of a capped game.");
++
++/**
++ * Game 1: Black leaves the e-pawn loose, blocks the check with the queen and loses the rook on h8, then resigns.
++ * Game 2 is the two-move mate on h4.
++ */
++const BLUNDER_GAMES: Readonly<Record<number, readonly string[]>> = {
++	1: ["e4", "e5", "Qh5", "g6", "Qxe5+", "Qe7", "Qxh8", "resign"],
++	2: ["f3", "e5", "g4", "Qh4#"],
++};
++
++/**
++ * Chess with moves that lose material, for the variants that show it (`-threats`: the list of loose pieces is not
++ * empty; `-coach`: the review of game 1 names Black's worst moves). Game 1 ends by a resignation.
++ */
++export const chessBlunders = (): TurnTaker => linePlayer(BLUNDER_GAMES, "leave no piece loose, look at every check first.");
++
++/** Game 1 (team A White) is the four-move mate on f7, game 2 (team B White) the two-move mate on h4. */
++const TEAM_GAMES: Readonly<Record<number, readonly string[]>> = {
++	1: ["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6", "Qxf7#"],
++	2: ["f3", "e5", "g4", "Qh4#"],
++};
++
++/**
++ * Chess in two teams of two (`chess-teams`, after the player of `test/stories/chess.test.ts`): every member looks
++ * at the board; the advisor of a half-move posts the move to the team chat, the captain plays it. In a retro the
++ * retro captain writes the brain and the other member posts. A03 ends its first turn as a captain without a move
++ * (the captain's idle turn). Added: a move by the advisor, a look at the team chat, a third post in one half-move,
++ * a post without a text.
++ */
++export const chessTeams = (): TurnTaker => {
++	let idled = false;
++	const play: TurnTaker = async (turn) => {
++		const text = told(turn);
++		if (isRetro(text)) {
++			if (text.includes("You are the retro captain")) await turn.call("writeBrain", { text: `${turn.resident}: develop, guard f7, check every capture.` });
++			else await turn.call("postTeam", { text: "keep it simple" });
++			return;
++		}
++		const view = await turn.call("viewBoard", {});
++		if (!view.ok) return;
++		const move = TEAM_GAMES[Number(/Game (\d+) of/.exec(view.reply)?.[1])]?.[movesSoFar(view.reply)];
++		if (move === undefined) return;
++		if (text.includes("advise")) {
++			await turn.call("postTeam", { text: `play ${move}` });
++			return;
++		}
++		if (turn.resident === "A03" && !idled) {
++			idled = true;
++			return;
++		}
++		await turn.call("playMove", { move, reason: `script ${turn.resident}` });
++	};
++	return withProbes(play, [
++		{ resident: "A02", when: "advise A01", tool: "playMove", params: { move: "e4", reason: "probe: I am not the captain of this move" } },
++		{ resident: "A04", when: "advise A03", tool: "postTeam", params: { text: "probe: a second post" }, after: true },
++		{ resident: "A04", when: "advise A03", tool: "postTeam", params: { text: "probe: a third post" }, after: true },
++		{ resident: "A04", when: "advise A03", tool: "postTeam", params: {}, after: true },
++		{ resident: "A03", when: "it is still your move", tool: "readTeam", params: {} },
++	]);
++};
 diff --git a/scripts/oracles/players.ts b/scripts/oracles/players.ts
-index f5ab4de0..b4e60d07 100644
+index f5ab4de0..af385ca7 100644
 --- a/scripts/oracles/players.ts
 +++ b/scripts/oracles/players.ts
-@@ -293,3 +293,18 @@ export const chessMates = (): TurnTaker => {
+@@ -7,6 +7,8 @@ import { countFor, minimalRaise, type Rules } from "../../mechanics/liars-dice/s
+ import { withProbes } from "./probes.ts";
+ import { CELLS, CELLS_4X4, ticTacToePlayer } from "../../test/stories/tictactoe-support.ts";
+ 
++export { chessBlunders, chessCap, chessTeams } from "./chess-players.ts";
++
+ const WILD: Rules = { faces: 6, wildOnes: true };
+ 
+ /** Tic-tac-toe 3x3: game 1 X wins the top row, game 2 is a draw, game 3 O wins the middle row; one refused brain (a replay of moves). */
+@@ -293,3 +295,18 @@ export const chessMates = (): TurnTaker => {
  		{ resident: "A01", when: "Game 1 of", tool: "readBrain", params: {} },
  	]);
  };

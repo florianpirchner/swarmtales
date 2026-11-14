@@ -43,27 +43,29 @@ Event types of the mechanics: 11 of 11 occur. Never written in a file: none.
 
 ## chess
 
-5 files. Mechanics: `chess`, `team-channel`, `strategy-brain`.
+12 files. Mechanics: `chess`, `team-channel`, `strategy-brain`.
 
 | Tool | Mechanic | Granted to residents | Called by | Accepted | Refused with |
 | --- | --- | --- | --- | ---: | --- |
-| `playMove` | chess | yes | resident | 199 | `ILLEGAL_MOVE@execute` 8, `INVALID_ARGUMENTS@parse` 1, `TOOL_LOCKED@lock` 1 |
-| `postTeam` | team-channel | no | **never called** | 0 | - |
-| `readBrain` | strategy-brain | yes | resident | 21 | - |
-| `readTeam` | team-channel | no | **never called** | 0 | - |
-| `resign` | chess | yes | resident | 2 | - |
-| `viewBoard` | chess | yes | resident | 18 | - |
-| `writeBrain` | strategy-brain | yes | resident | 13 | `TOOL_LOCKED@lock` 1 |
+| `playMove` | chess | yes | resident | 296 | `ILLEGAL_MOVE@execute` 12, `INVALID_ARGUMENTS@parse` 3, `TOOL_LOCKED@lock` 4 |
+| `postTeam` | team-channel | yes | resident | 10 | `INVALID_ARGUMENTS@parse` 1, `POST_CAP@rule` 1 |
+| `readBrain` | strategy-brain | yes | resident | 22 | `TOOL_NOT_GRANTED@lock` 1 |
+| `readTeam` | team-channel | yes | resident | 1 | - |
+| `resign` | chess | yes | resident | 4 | - |
+| `viewBoard` | chess | yes | resident | 39 | - |
+| `writeBrain` | strategy-brain | yes | resident | 37 | `TOOL_LOCKED@lock` 1 |
 
 | Refusal code | From | Refused calls | In files |
 | --- | --- | ---: | ---: |
-| `ILLEGAL_MOVE` | chess | 8 | 4 |
-| `TOOL_LOCKED` | platform, stage `lock` | 2 | 2 |
-| `INVALID_ARGUMENTS` | platform, stage `parse` | 1 | 1 |
+| `ILLEGAL_MOVE` | chess | 12 | 6 |
+| `TOOL_LOCKED` | platform, stage `lock` | 5 | 5 |
+| `INVALID_ARGUMENTS` | platform, stage `parse` | 4 | 4 |
+| `POST_CAP` | team-channel | 1 | 1 |
+| `TOOL_NOT_GRANTED` | platform, stage `lock` | 1 | 1 |
 
-Refusal codes no file exercises (20): `BRAIN_DISABLED` (strategy-brain), `BRAIN_EMPTY` (strategy-brain), `BRAIN_REPLAY` (strategy-brain), `BRAIN_TOO_LONG` (strategy-brain), `BRAIN_TOO_MANY_RULES` (strategy-brain), `GUARD_BLOCKED` (platform, stage `guard`), `MATCH_OVER` (chess), `NOT_A_SEAT` (chess), `NOT_CAPTAIN` (chess), `NOT_RETRO_CAPTAIN` (strategy-brain), `NOT_TEAM_MEMBER` (team-channel, strategy-brain), `NOT_YOUR_MOVE` (chess), `NO_GAME` (chess), `NO_RETRO` (strategy-brain), `POST_CAP` (team-channel), `STEP_LIMIT` (platform, stage `limit`), `TEXT_TOO_LONG` (platform, stage `parse`), `TOOL_LIMIT` (platform, stage `limit`), `TOOL_NOT_GRANTED` (platform, stage `lock`), `TOOL_UNKNOWN` (platform, stage `lock`).
+Refusal codes no file exercises (18): `BRAIN_DISABLED` (strategy-brain), `BRAIN_EMPTY` (strategy-brain), `BRAIN_REPLAY` (strategy-brain), `BRAIN_TOO_LONG` (strategy-brain), `BRAIN_TOO_MANY_RULES` (strategy-brain), `GUARD_BLOCKED` (platform, stage `guard`), `MATCH_OVER` (chess), `NOT_A_SEAT` (chess), `NOT_CAPTAIN` (chess), `NOT_RETRO_CAPTAIN` (strategy-brain), `NOT_TEAM_MEMBER` (team-channel, strategy-brain), `NOT_YOUR_MOVE` (chess), `NO_GAME` (chess), `NO_RETRO` (strategy-brain), `STEP_LIMIT` (platform, stage `limit`), `TEXT_TOO_LONG` (platform, stage `parse`), `TOOL_LIMIT` (platform, stage `limit`), `TOOL_UNKNOWN` (platform, stage `lock`).
 
-Event types of the mechanics: 9 of 11 occur. Never written in a file: `chess.coach_review`, `team-channel.team_post`.
+Event types of the mechanics: 11 of 11 occur. Never written in a file: none.
 
 ## cityofkeys
 

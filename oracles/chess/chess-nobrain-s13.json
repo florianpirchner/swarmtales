@@ -1,0 +1,209 @@
+{
+	"format": "swarmtales.oracle",
+	"version": 1,
+	"game": "chess",
+	"variant": "chess-nobrain",
+	"seed": 13,
+	"runtimeRevision": 2,
+	"source": {
+		"kind": "scripted",
+		"from": "scripts/oracles/players.ts#chessMates",
+		"note": "the control arm without a brain (no retro; the look at the brain is refused): in every game White plays f3 and g4, Black e5 and Qh4 mate; the six added calls of chess-s13.json"
+	},
+	"setup": {
+		"story": "chess-nobrain",
+		"seed": 13,
+		"minutes": 250,
+		"residents": [
+			"A01",
+			"A02"
+		],
+		"mechanics": [
+			{
+				"id": "chess",
+				"options": {
+					"games": 2,
+					"maxPlies": 160,
+					"showLegalMoves": false,
+					"showThreats": false,
+					"coach": false,
+					"maxIdleTurns": 3,
+					"maxForfeits": 3,
+					"adjudicateMargin": 3,
+					"alternateColours": true,
+					"score": true,
+					"teams": {
+						"A01": [
+							"A01"
+						],
+						"A02": [
+							"A02"
+						]
+					},
+					"wakeTeam": false,
+					"freshContext": false,
+					"compactBoard": false,
+					"settleCap": false
+				}
+			},
+			{
+				"id": "team-channel",
+				"options": {
+					"teams": {},
+					"maxPostsPerMove": 2
+				}
+			},
+			{
+				"id": "strategy-brain",
+				"options": {
+					"enabled": false,
+					"solo": true,
+					"maxWords": 150,
+					"teams": {
+						"A01": [
+							"A01"
+						],
+						"A02": [
+							"A02"
+						]
+					},
+					"retroMaxPosts": 6,
+					"retroMaxMinutes": 2,
+					"shared": false,
+					"brainAtStart": true
+				}
+			}
+		],
+		"residentTools": [
+			"viewBoard",
+			"playMove",
+			"resign"
+		],
+		"locked": [
+			"playMove",
+			"resign"
+		],
+		"turns": {
+			"passes": 4,
+			"blockSize": 1,
+			"activation": "onNews",
+			"order": "seeded"
+		},
+		"limits": {
+			"maxStepsPerMinute": 16
+		}
+	},
+	"end": {
+		"reason": "referee",
+		"minute": 2,
+		"limit": "chess.match"
+	},
+	"counts": {
+		"entries": {
+			"call": 14,
+			"event": 56,
+			"minute": 2,
+			"skip": 6,
+			"turn": 8
+		},
+		"events": {
+			"chess.game_ended": 2,
+			"chess.game_started": 2,
+			"chess.match_ended": 1,
+			"chess.move_played": 8,
+			"chess.move_refused": 2,
+			"chess.move_scored": 8,
+			"core.referee_intervened": 1,
+			"core.tool_locked": 16,
+			"core.tool_unlocked": 16
+		}
+	},
+	"timeline": [
+		{"k":"event","source":"chess","type":"game_started","actor":"host","payload":{"game":1,"white":"A01","black":"A02"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"host","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"host","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"minute","minute":0},
+		{"k":"skip","resident":"A02","pass":1,"block":1},
+		{"k":"turn","resident":"A01","pass":1,"block":2,"inputs":[{"source":"strategy-brain","kind":"context-reset","text":"Game 1 begins.\nNo game has been played yet.\nYou keep no notes between games."},{"source":"chess","text":"Game 1 of 2: you play White against A02. Standard chess rules (castling, en passant, promotion; checkmate wins; stalemate, threefold repetition, the fifty-move rule and insufficient material are draws). A game that reaches 80 moves each is stopped and scored on material. A win counts 1 point, a draw half a point."},{"source":"chess","text":"Game 1, move 1: White to move, it is your move."},{"source":"chess","text":"Game 1 of 2. White: A01. Black: A02. You play White.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  p  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  P  P  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\nMoves so far: none\nMaterial: White 39, Black 39.\nWhite to move (move 1)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"Ke3","reason":"probe: not a legal move"},"ok":false,"code":"ILLEGAL_MOVE","stage":"execute","detail":"\"Ke3\" is not a legal move in this position (White to move). The board is unchanged. That piece has no legal move now."},
+		{"k":"event","source":"chess","type":"move_refused","actor":"resident:A01","audience":["human"],"payload":{"game":1,"ply":1,"colour":"white","by":"A01","written":"Ke3","count":1}},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"castle somewhere","reason":"probe: not a move"},"ok":false,"code":"ILLEGAL_MOVE","stage":"execute","detail":"\"castle somewhere\" is not a legal move in this position (White to move). The board is unchanged. Write the move as SAN (Nf3) or from and to squares (g1f3)."},
+		{"k":"event","source":"chess","type":"move_refused","actor":"resident:A01","audience":["human"],"payload":{"game":1,"ply":1,"colour":"white","by":"A01","written":"castle somewhere","count":2}},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{},"ok":false,"code":"INVALID_ARGUMENTS","stage":"parse"},
+		{"k":"call","actor":"resident:A01","tool":"readBrain","params":{},"ok":false,"code":"TOOL_NOT_GRANTED","stage":"lock","detail":"this tool is not given to your role in this story"},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"f3","reason":"script A01"},"ok":true,"reply":"f3 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A01","payload":{"game":1,"ply":1,"colour":"white","by":"A01","san":"f3","written":"f3","fen":"rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A01","audience":["human"],"payload":{"game":1,"ply":1,"colour":"white","by":"A01","san":"f3","best":"a3","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"turn","resident":"A02","pass":2,"block":1,"inputs":[{"source":"strategy-brain","kind":"context-reset","text":"Game 1 begins.\nNo game has been played yet.\nYou keep no notes between games."},{"source":"chess","text":"Game 1 of 2: you play Black against A01. Standard chess rules (castling, en passant, promotion; checkmate wins; stalemate, threefold repetition, the fifty-move rule and insufficient material are draws). A game that reaches 80 moves each is stopped and scored on material. A win counts 1 point, a draw half a point."},{"source":"chess","text":"Game 1, move 1: Black to move, it is your move."},{"source":"chess","text":"Your opponent played f3."},{"source":"chess","text":"Game 1 of 2. White: A01. Black: A02. You play Black.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  p  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1\nMoves so far: 1. f3\nMaterial: White 39, Black 39.\nBlack to move (move 1)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A02","tool":"viewBoard","params":{},"ok":true,"reply":"Game 1 of 2. White: A01. Black: A02. You play Black.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  p  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1\nMoves so far: 1. f3\nMaterial: White 39, Black 39.\nBlack to move (move 1).\nPoints so far: A01 0, A02 0."},
+		{"k":"call","actor":"resident:A02","tool":"playMove","params":{"move":"e5","reason":"script A02"},"ok":true,"reply":"e5 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A02","payload":{"game":1,"ply":2,"colour":"black","by":"A02","san":"e5","written":"e5","fen":"rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A02","audience":["human"],"payload":{"game":1,"ply":2,"colour":"black","by":"A02","san":"e5","best":"Nc6","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"call","actor":"resident:A02","tool":"playMove","params":{"move":"Qh4","reason":"probe: it is not my move"},"ok":false,"code":"TOOL_LOCKED","stage":"lock","detail":"not available to you at this level or in this phase; activeTools lists the tools you can use now"},
+		{"k":"turn","resident":"A01","pass":2,"block":2,"inputs":[{"source":"chess","text":"Game 1, move 2: White to move, it is your move."},{"source":"chess","text":"Your opponent played e5."},{"source":"chess","text":"Game 1 of 2. White: A01. Black: A02. You play White.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2\nMoves so far: 1. f3 e5\nMaterial: White 39, Black 39.\nWhite to move (move 2)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"g4","reason":"script A01"},"ok":true,"reply":"g4 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A01","payload":{"game":1,"ply":3,"colour":"white","by":"A01","san":"g4","written":"g4","fen":"rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A01","audience":["human"],"payload":{"game":1,"ply":3,"colour":"white","by":"A01","san":"g4","best":"a3","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"skip","resident":"A01","pass":3,"block":1},
+		{"k":"turn","resident":"A02","pass":3,"block":2,"inputs":[{"source":"chess","text":"Game 1, move 2: Black to move, it is your move."},{"source":"chess","text":"Your opponent played g4."},{"source":"chess","text":"Game 1 of 2. White: A01. Black: A02. You play Black.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  . |\n 4 | .  .  .  .  .  .  P  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  .  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2\nMoves so far: 1. f3 e5 2. g4\nMaterial: White 39, Black 39.\nBlack to move (move 2)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A02","tool":"playMove","params":{"move":"Qh4","reason":"script A02"},"ok":true,"reply":"Qh4# is checkmate. You win game 1."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A02","payload":{"game":1,"ply":4,"colour":"black","by":"A02","san":"Qh4#","written":"Qh4","fen":"rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A02","audience":["human"],"payload":{"game":1,"ply":4,"colour":"black","by":"A02","san":"Qh4#","best":"Qh4#","bestValue":100,"playedValue":100,"loss":0,"class":"good"}},
+		{"k":"event","source":"chess","type":"game_ended","actor":"resident:A02","payload":{"game":1,"white":"A01","black":"A02","result":"0-1","reason":"checkmate","plies":4,"moves":["f3","e5","g4","Qh4#"],"illegal":{"A01":2},"forfeits":{},"pgn":"[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"1\"]\n[White \"A01\"]\n[Black \"A02\"]\n[Result \"0-1\"]\n\n1. f3 e5 2. g4 Qh4# 0-1"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"skip","resident":"A02","pass":4,"block":1},
+		{"k":"skip","resident":"A01","pass":4,"block":2},
+		{"k":"minute","minute":1},
+		{"k":"event","source":"chess","type":"game_started","actor":"host","payload":{"game":2,"white":"A02","black":"A01"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"host","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"host","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"skip","resident":"A01","pass":1,"block":1},
+		{"k":"turn","resident":"A02","pass":1,"block":2,"inputs":[{"source":"strategy-brain","kind":"context-reset","text":"Game 2 begins.\nResults so far: game 1: A02 (Black) beat A01 (White) by checkmate after 2 moves\nYou keep no notes between games."},{"source":"chess","text":"Game 2 of 2: you play White against A01. Standard chess rules (castling, en passant, promotion; checkmate wins; stalemate, threefold repetition, the fifty-move rule and insufficient material are draws). A game that reaches 80 moves each is stopped and scored on material. A win counts 1 point, a draw half a point."},{"source":"chess","text":"Game 2, move 1: White to move, it is your move."},{"source":"chess","text":"Game 2 of 2. White: A02. Black: A01. You play White.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  p  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  .  .  . |\n 2 | P  P  P  P  P  P  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\nMoves so far: none\nMaterial: White 39, Black 39.\nWhite to move (move 1)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A02","tool":"playMove","params":{"move":"f3","reason":"script A02"},"ok":true,"reply":"f3 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A02","payload":{"game":2,"ply":1,"colour":"white","by":"A02","san":"f3","written":"f3","fen":"rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A02","audience":["human"],"payload":{"game":2,"ply":1,"colour":"white","by":"A02","san":"f3","best":"a3","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"skip","resident":"A02","pass":2,"block":1},
+		{"k":"turn","resident":"A01","pass":2,"block":2,"inputs":[{"source":"strategy-brain","kind":"context-reset","text":"Game 2 begins.\nResults so far: game 1: A02 (Black) beat A01 (White) by checkmate after 2 moves\nYou keep no notes between games."},{"source":"chess","text":"Game 2 of 2: you play Black against A02. Standard chess rules (castling, en passant, promotion; checkmate wins; stalemate, threefold repetition, the fifty-move rule and insufficient material are draws). A game that reaches 80 moves each is stopped and scored on material. A win counts 1 point, a draw half a point."},{"source":"chess","text":"Game 2, move 1: Black to move, it is your move."},{"source":"chess","text":"Your opponent played f3."},{"source":"chess","text":"Game 2 of 2. White: A02. Black: A01. You play Black.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  p  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  .  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1\nMoves so far: 1. f3\nMaterial: White 39, Black 39.\nBlack to move (move 1)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"e5","reason":"script A01"},"ok":true,"reply":"e5 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A01","payload":{"game":2,"ply":2,"colour":"black","by":"A01","san":"e5","written":"e5","fen":"rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A01","audience":["human"],"payload":{"game":2,"ply":2,"colour":"black","by":"A01","san":"e5","best":"Nc6","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A01","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"turn","resident":"A02","pass":3,"block":1,"inputs":[{"source":"chess","text":"Game 2, move 2: White to move, it is your move."},{"source":"chess","text":"Your opponent played e5."},{"source":"chess","text":"Game 2 of 2. White: A02. Black: A01. You play White.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  . |\n 4 | .  .  .  .  .  .  .  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  P  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppp1ppp/8/4p3/8/5P2/PPPPP1PP/RNBQKBNR w KQkq - 0 2\nMoves so far: 1. f3 e5\nMaterial: White 39, Black 39.\nWhite to move (move 2)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A02","tool":"playMove","params":{"move":"g4","reason":"script A02"},"ok":true,"reply":"g4 played. Now it is your opponent's move; end your turn."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A02","payload":{"game":2,"ply":3,"colour":"white","by":"A02","san":"g4","written":"g4","fen":"rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A02","audience":["human"],"payload":{"game":2,"ply":3,"colour":"white","by":"A02","san":"g4","best":"a3","bestValue":0,"playedValue":0,"loss":0,"class":"good"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_unlocked","actor":"resident:A02","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A02","payload":{"resident":"A02","tool":"resign","by":"chess"}},
+		{"k":"turn","resident":"A01","pass":3,"block":2,"inputs":[{"source":"chess","text":"Game 2, move 2: Black to move, it is your move."},{"source":"chess","text":"Your opponent played g4."},{"source":"chess","text":"Game 2 of 2. White: A02. Black: A01. You play Black.\nThe board (White at the bottom; upper case White, lower case Black, '.' empty):\n   +------------------------+\n 8 | r  n  b  q  k  b  n  r |\n 7 | p  p  p  p  .  p  p  p |\n 6 | .  .  .  .  .  .  .  . |\n 5 | .  .  .  .  p  .  .  . |\n 4 | .  .  .  .  .  .  P  . |\n 3 | .  .  .  .  .  P  .  . |\n 2 | P  P  P  P  P  .  .  P |\n 1 | R  N  B  Q  K  B  N  R |\n   +------------------------+\n     a  b  c  d  e  f  g  h\nFEN: rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2\nMoves so far: 1. f3 e5 2. g4\nMaterial: White 39, Black 39.\nBlack to move (move 2)."},{"source":"chess","text":"Play one move with playMove (for example Nf3, exd5, O-O, e8=Q, or g1f3); a short reason helps the record. Then end your turn."}]},
+		{"k":"call","actor":"resident:A01","tool":"playMove","params":{"move":"Qh4","reason":"script A01"},"ok":true,"reply":"Qh4# is checkmate. You win game 2."},
+		{"k":"event","source":"chess","type":"move_played","actor":"resident:A01","payload":{"game":2,"ply":4,"colour":"black","by":"A01","san":"Qh4#","written":"Qh4","fen":"rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3","forfeit":false}},
+		{"k":"event","source":"chess","type":"move_scored","actor":"resident:A01","audience":["human"],"payload":{"game":2,"ply":4,"colour":"black","by":"A01","san":"Qh4#","best":"Qh4#","bestValue":100,"playedValue":100,"loss":0,"class":"good"}},
+		{"k":"event","source":"chess","type":"game_ended","actor":"resident:A01","payload":{"game":2,"white":"A02","black":"A01","result":"0-1","reason":"checkmate","plies":4,"moves":["f3","e5","g4","Qh4#"],"illegal":{},"forfeits":{},"pgn":"[Event \"?\"]\n[Site \"?\"]\n[Date \"????.??.??\"]\n[Round \"2\"]\n[White \"A02\"]\n[Black \"A01\"]\n[Result \"0-1\"]\n\n1. f3 e5 2. g4 Qh4# 0-1"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"playMove","by":"chess"}},
+		{"k":"event","source":"core","type":"tool_locked","actor":"resident:A01","payload":{"resident":"A01","tool":"resign","by":"chess"}},
+		{"k":"event","source":"chess","type":"match_ended","actor":"resident:A01","payload":{"scores":{"A01":1,"A02":1}}},
+		{"k":"event","source":"core","type":"referee_intervened","actor":"host","payload":{"limit":"chess.match","reason":"the match is over"}}
+	]
+}
