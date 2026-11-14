@@ -10,7 +10,7 @@ import { createAccess } from "./access.ts";
 import { createActors } from "./actors.ts";
 import { createClock } from "./clock.ts";
 import { createDispatch } from "./dispatch.ts";
-import { guarded, kernelFailed, misfit, noRecord, unknownFact } from "./errors.ts";
+import { guarded, kernelFailed, misfit, noRecord, noResume, unknownFact } from "./errors.ts";
 import { createLifecycle } from "./lifecycle.ts";
 import { loadPlugins } from "./loader.ts";
 import { createLog } from "./log.ts";
@@ -39,6 +39,18 @@ function parsed(resume: ResumeInput): { readonly snapshot: KernelSnapshot; reado
 	} catch (thrown) {
 		throw new SwtError(misfit("the snapshot to resume from is no snapshot of a kernel", RESUME), { cause: thrown });
 	}
+}
+
+// Restores the snapshot, then refuses (`SWT-R021`) one that is older than its log, or whose suspensions name a
+// plugin that is not loaded, or whose locks name a tool that no loaded plugin has.
+function restore(parts: SliceParts, snapshot: KernelSnapshot): void {
+	restoreKernel(parts, snapshot);
+	const last = parts.log.all().at(-1)?.tick ?? 0;
+	if (snapshot.tick < last) throw new SwtError(noResume(`the snapshot continues with tick ${String(snapshot.tick)}, but the last event of the log is of tick ${String(last)}`));
+	const plugin = Object.values(snapshot.suspensions).flat().find((id) => !parts.loaded.order.includes(id));
+	if (plugin !== undefined) throw new SwtError(noResume(`the snapshot has a suspension held by the plugin "${plugin}", which is not loaded`));
+	const tool = Object.values(snapshot.locks).flat().find((name) => !parts.loaded.tools.has(name));
+	if (tool !== undefined) throw new SwtError(noResume(`the snapshot locks the tool "${tool}", which no loaded plugin has`));
 }
 
 // `SWT-R001` with the first failure as its cause, once the run failed; with `open`, a run that ended is refused too.
@@ -215,7 +227,8 @@ function recordOf(parts: ReturnType<typeof assemble>, run: Run): Kernel["record"
  * @param resume - The snapshot and the log to resume from, both unchecked.
  * @returns The kernel.
  * @throws SwtError `SWT-R002` when the definition and what it loads do not fit or the resume input does not fit
- * the definition or a record source has the source of a plugin, `SWT-R003` when a plugin throws at load, `SWT-R013` for two `toAct` hooks, `SWT-R016` for a
+ * the definition or a record source has the source of a plugin, `SWT-R021` when the snapshot is older than the log
+ * or names a plugin (a suspension) or a tool (a lock) that is not loaded, `SWT-R003` when a plugin throws at load, `SWT-R013` for two `toAct` hooks, `SWT-R016` for a
  * cycle of `after`.
  *
  * @example
@@ -230,7 +243,7 @@ export function createKernel(definition: KernelDefinition, ports: KernelPorts = 
 	const input = resume === undefined ? undefined : parsed(resume);
 	const run: Run = { started: false, playing: false, ended: undefined, failure: undefined };
 	const parts = assemble(definition, ports, input?.log ?? [], run);
-	if (input !== undefined) restoreKernel(parts.slices, input.snapshot);
+	if (input !== undefined) restore(parts.slices, input.snapshot);
 	run.ended = input?.snapshot.ended;
 	run.started = parts.log.ofType("kernel", "run_started").length > 0;
 	return {

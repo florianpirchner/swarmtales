@@ -14,12 +14,13 @@ const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 	"SWT-R016": errors.afterCycle(["a", "b"]),
 	"SWT-R017": errors.noRecord('"notes" records the event "said", which the definition does not declare'),
 	"SWT-R020": errors.sinkThrew(new Error("disk full")),
+	"SWT-R021": errors.noResume('the snapshot locks the tool "@example/mechanic-counter/counter/add", which no loaded plugin has'),
 };
 
 describe("the R catalogue", () => {
 	it("has one function per code and no other export but `guarded`", () => {
-		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "noRecord", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
-		expect(Object.keys(CATALOGUE)).toHaveLength(8);
+		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "noRecord", "noResume", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
+		expect(Object.keys(CATALOGUE)).toHaveLength(9);
 	});
 
 	it.each(Object.entries(CATALOGUE))("%s is a valid issue with its own code and formats in four lines", (code, issue) => {

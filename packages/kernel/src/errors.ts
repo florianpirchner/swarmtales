@@ -128,6 +128,16 @@ export function sinkThrew(thrown: unknown): SwtIssue {
 }
 
 /**
+ * `SWT-R021`: a snapshot that fits the definition names a moment, a plugin or a tool the run does not have.
+ *
+ * @param summary - What the snapshot names, in one sentence.
+ * @returns The issue.
+ */
+export function noResume(summary: string): SwtIssue {
+	return { code: "SWT-R021", summary, why: "A resumed run goes on from where the log ends, with the plugins and tools that the snapshot's suspensions and locks name.", fix: "Resume with the snapshot as it was written and the log up to it; a snapshot changed by hand is not resumed." };
+}
+
+/**
  * Runs plugin code; what it throws leaves as `SWT-R003` with the thrown value as the cause. An `SwtError` leaves
  * unchanged, so the first failure keeps its code through nested calls.
  *

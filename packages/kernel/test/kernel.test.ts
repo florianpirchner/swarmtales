@@ -2,10 +2,10 @@
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
 import { describe, expect, it } from "vitest";
-import { SwtError } from "@swarmtales/contracts";
-import type { ResolvedPlugin, ResumeInput } from "@swarmtales/contracts";
+import { KernelSnapshotSchema, SwtError } from "@swarmtales/contracts";
+import type { KernelSnapshot, ResolvedPlugin, ResumeInput } from "@swarmtales/contracts";
 import { createKernel, createRng } from "../src/index.ts";
-import { A, adder, broken, caught, codeOf, counter, definition, keeper, types, unlucky } from "./sample.ts";
+import { A, ADD, adder, broken, caught, codeOf, counter, definition, keeper, types, unlucky } from "./sample.ts";
 
 describe("createKernel", () => {
 	it("plays a run to its limit, tells the sinks and refuses what comes after the end", async () => {
@@ -127,5 +127,24 @@ describe("createKernel, resumed", () => {
 		expect(await refused({ ...input, log: input.log.slice(0, -1) })).toBe("SWT-R002");
 		expect(await refused(input, { ...definition({ full: 6 }), seed: 12 })).toBe("SWT-R002");
 		expect(await refused(input)).toBeUndefined();
+	});
+
+	// Erratum O17: each snapshot below fits the definition and the log's length, and is changed by hand in one place.
+	it("refuses a snapshot older than its log, a suspension of a plugin that is not loaded, and a lock of a tool that does not exist (SWT-R021)", async () => {
+		const input = await cut();
+		const snapshot = Parse(KernelSnapshotSchema, input.snapshot);
+		const refused = (changed: Partial<KernelSnapshot>) => caught(() => createKernel(definition({ full: 6 }), {}, { ...input, snapshot: { ...snapshot, ...changed } }));
+		const summaryOf = (error: unknown) => (error instanceof SwtError ? error.issues[0]?.summary : undefined);
+		expect(snapshot.tick).toBe(2);
+		const older = await refused({ tick: 0 });
+		expect([codeOf(older), summaryOf(older)]).toEqual(["SWT-R021", "the snapshot continues with tick 0, but the last event of the log is of tick 1"]);
+		const ghost = await refused({ suspensions: { [A]: ["ghost"] } });
+		expect([codeOf(ghost), summaryOf(ghost)]).toEqual(["SWT-R021", 'the snapshot has a suspension held by the plugin "ghost", which is not loaded']);
+		const lock = await refused({ locks: { [A]: [ADD, "@sample/counter/counter/gone"] } });
+		expect([codeOf(lock), summaryOf(lock)]).toEqual(["SWT-R021", 'the snapshot locks the tool "@sample/counter/counter/gone", which no loaded plugin has']);
+		// The same places with values the run has are taken: the tick of the last event, the loaded plugin, its tool.
+		for (const fine of [{ tick: 1 }, { suspensions: { [A]: ["counter"] } }, { locks: { [A]: [ADD] } }]) expect(codeOf(await refused(fine)), JSON.stringify(fine)).toBeUndefined();
+		// A snapshot of another run stays a misfit, whatever else it names.
+		expect(codeOf(await refused({ seed: 12, tick: 0 }))).toBe("SWT-R002");
 	});
 });
