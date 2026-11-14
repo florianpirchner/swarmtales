@@ -4,10 +4,10 @@
  * object into a head and a body and hands both to the kernel's `defineMechanic`, so a mechanic
  * written this way runs on today's kernel unchanged.
  *
- * Inference order inside the one object (TypeScript infers left to right, so the declaring
- * properties must stand above the properties with handlers): `options`, `state`, `events`,
- * `prompts`, `requires`, `provides`, `uses`, `decisions`, `start`, then `tools`, `services`,
- * `listeners`, `hooks` and the rest.
+ * The order of the properties inside the one object does not matter (measured on `channels`): the
+ * declaring properties are not context-sensitive, so TypeScript reads them before any handler.
+ * `head({...})`, `mechanicOf(head, body)` and `toolsFor(head, {...})` are the same form with the
+ * declaring part written apart, for mechanics whose helpers live outside the object.
  */
 import type { Static, TObject, TSchema, TUndefined } from "typebox";
 import { Type } from "typebox";
@@ -405,3 +405,115 @@ export function mechanic(spec: AnySpec): AnyMechanic {
 	};
 	return result;
 }
+
+/*
+ * The third form, the one the verdict recommends for the fail case: the head declares the tools as
+ * data (name, description, parameters, grants) and the body holds only handlers, keyed by the names
+ * the head declared. The type of the mechanic then follows from the head alone, so a helper can
+ * take `CtxOf<typeof head>`, nothing is inferred from the body, and the tools can be read without
+ * running a handler.
+ */
+
+/** A tool as the head declares it: data only. */
+export interface ToolDeclaration<O extends TSchema, P extends PromptKeys, Params extends TSchema> {
+	/** A prompt id of this mechanic without variables, or one with variables taken from the options. */
+	readonly description: PlainPromptId<P> | { readonly prompt: keyof P & string; variables(options: Static<O>): Readonly<Record<string, string | number | { readonly prompt: PlainPromptId<P> }>> };
+	readonly params: Params;
+	readonly for?: readonly GrantRole[];
+	readonly serves?: readonly GrantRole[];
+	readonly limit?: ToolLimit;
+	readonly free?: boolean;
+}
+
+/** The handlers of one declared tool. */
+export interface ToolHandlers<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas>, Params extends TSchema> {
+	check?(params: Static<Params>, ctx: ToolContext<M>): Refusal | undefined;
+	guardText?(params: Static<Params>): string | undefined;
+	run(params: Static<Params>, ctx: ToolContext<M>): ToolOutcome;
+}
+
+/** A head that declares its tools. */
+export type DeclaredHead<
+	Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	P extends PromptKeys,
+	R extends readonly ApiDefinition[],
+	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[],
+	D extends DecisionSchemas,
+	TP extends Readonly<Record<string, TSchema>>,
+> = HeadSpec<Id, O, Snap, C, E, P, R, Pv, U, D> & {
+	readonly tools?: { readonly [K in keyof TP]: ToolDeclaration<O, P, TP[K]> };
+};
+
+/** Declares a head with its tools: plain data plus `start` and `snapshot`. */
+export function declare<
+	const Id extends string,
+	O extends TSchema = NoOptions,
+	Snap extends TSchema = TUndefined,
+	C = never,
+	E extends EventSchemas = None,
+	const P extends PromptKeys = None,
+	const R extends readonly ApiDefinition[] = [],
+	const Pv extends readonly ApiDefinition[] = [],
+	const U extends readonly ApiDefinition[] = [],
+	const D extends DecisionSchemas = None,
+	TP extends Readonly<Record<string, TSchema>> = None,
+>(spec: DeclaredHead<Id, O, Snap, C, E, P, R, Pv, U, D, TP>): DeclaredHead<Id, O, Snap, C, E, P, R, Pv, U, D, TP> {
+	return spec;
+}
+
+/** The body of a mechanic whose head declares the tools: handlers only. */
+export type HandlerBody<
+	Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	P extends PromptKeys,
+	R extends readonly ApiDefinition[],
+	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[],
+	D extends DecisionSchemas,
+	TP extends Readonly<Record<string, TSchema>>,
+	F extends Readonly<Record<string, TSchema>>,
+> = Omit<BodySpec<Id, O, Snap, C, E, P, R, Pv, U, D, TP, F>, "tools"> & {
+	readonly tools?: { readonly [K in keyof TP]: ToolHandlers<Shape<O, StateOf<Snap, C>, E, P, R, Pv, U, D>, TP[K]> };
+};
+
+/**
+ * Head and body with one registration site, the head declaring the tools. Only `F` (the facts) is
+ * inferred from the body; everything else is fixed by the head.
+ */
+export function implement<
+	const Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	const P extends PromptKeys,
+	const R extends readonly ApiDefinition[],
+	const Pv extends readonly ApiDefinition[],
+	const U extends readonly ApiDefinition[],
+	const D extends DecisionSchemas,
+	TP extends Readonly<Record<string, TSchema>>,
+	F extends Readonly<Record<string, TSchema>> = None,
+>(declared: DeclaredHead<Id, O, Snap, C, E, P, R, Pv, U, D, TP>, body: HandlerBody<Id, O, Snap, C, E, P, R, Pv, U, D, TP, F>): OneMechanic<Id, O, StateOf<Snap, C>, E, P, R, Pv, U, D, ToolNameOf<keyof TP>>;
+export function implement(declared: AnyDeclaredHead, body: AnyHandlerBody): AnyMechanic {
+	const handlers = body.tools ?? {};
+	const tools: Record<string, ToolSpec<AnyShape, TSchema>> = {};
+	for (const [key, tool] of Object.entries(declared.tools ?? {})) {
+		const own = handlers[key];
+		if (own === undefined) throw new Error(`${declared.id}: the head declares the tool "${key}" but the body has no handlers for it`);
+		tools[key] = { ...tool, ...own };
+	}
+	const stray = Object.keys(handlers).find((key) => !Object.hasOwn(declared.tools ?? {}, key));
+	if (stray !== undefined) throw new Error(`${declared.id}: the body has handlers for "${stray}", which the head does not declare`);
+	return mechanic({ ...declared, ...body, tools });
+}
+
+type AnyDeclaredHead = DeclaredHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas, Readonly<Record<string, TSchema>>>;
+type AnyHandlerBody = HandlerBody<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas, Readonly<Record<string, TSchema>>, Readonly<Record<string, TSchema>>>;

@@ -23,6 +23,8 @@ const CASES = [
 	["head-and-body", "chess", "mechanics/chess/tsconfig.json", "mechanics/chess/src/index.ts", "const game = ctx.state.game;"],
 	["one-object", "channels", "spike/define-mechanic/tsconfig.one-channels.json", "spike/define-mechanic/src/channels/index.ts", "const self = selfOf(ctx);"],
 	["one-object", "chess", "spike/define-mechanic/tsconfig.one-chess.json", "spike/define-mechanic/src/chess/index.ts", "const game = ctx.state.game;"],
+	["declared-head", "channels", "spike/define-mechanic/tsconfig.declared-channels.json", "spike/define-mechanic/src/channels-declared/index.ts", "const self = selfOf(ctx);"],
+	["declared-head", "chess", "spike/define-mechanic/tsconfig.declared-chess.json", "spike/define-mechanic/src/chess-declared/index.ts", "const game = ctx.state.game;"],
 	["head-apart", "chess", "spike/define-mechanic/tsconfig.one-chess-head-apart.json", "spike/define-mechanic/src/chess-head-apart/index.ts", "const game = ctx.state.game;"],
 	// The floor: the 40-line first mechanic of paper 04, and the small `marks` mechanic of today.
 	["one-object", "guess", "spike/define-mechanic/tsconfig.probe.json", "spike/define-mechanic/src/probes/guess-number.ts", "const hint = value ==="],

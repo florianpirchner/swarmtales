@@ -1,7 +1,7 @@
 /**
  * Criterion 2 of DECISIONS.md D1, first half: `tsc --noEmit` on `channels` and `chess` in the
- * head-and-body form (the packages under `mechanics/`) and in the one-object form (the copies
- * here). Each project is checked RUNS times; the median of the total time is reported, with the
+ * head-and-body form (the packages under `mechanics/`), in the one-object form and in the
+ * declared-head form (the copies here). Each project is checked RUNS times; the median of the total time is reported, with the
  * type count, the instantiation count and the memory of the median run. The head-and-body projects
  * (`tsconfig.hb-*.json`) take the sources of the packages under `mechanics/` with the same options and
  * references as the one-object projects, without `composite`, so no build info shortens the check.
@@ -16,6 +16,8 @@ const PROJECTS = [
 	["head-and-body", "chess", "spike/define-mechanic/tsconfig.hb-chess.json"],
 	["one-object", "channels", "spike/define-mechanic/tsconfig.one-channels.json"],
 	["one-object", "chess", "spike/define-mechanic/tsconfig.one-chess.json"],
+	["declared-head", "channels", "spike/define-mechanic/tsconfig.declared-channels.json"],
+	["declared-head", "chess", "spike/define-mechanic/tsconfig.declared-chess.json"],
 	// Not part of the sums: the chess variant with the head written apart.
 	["head-apart", "chess", "spike/define-mechanic/tsconfig.one-chess-head-apart.json"],
 ];
@@ -41,4 +43,6 @@ for (const [form, name, project] of PROJECTS) {
 	console.log(`${form.padEnd(14)} ${name.padEnd(9)} total ${median.total.toFixed(2)}s  check ${median.check.toFixed(2)}s  wall ${median.wall.toFixed(2)}s  types ${String(median.types)}  instantiations ${String(median.instantiations)}  memory ${String(Math.round(median.memoryK / 1024))} MB  own lines ${String(median.lines)}  runs [${runs.map((run) => run.total.toFixed(2)).join(", ")}]`);
 }
 const sum = (form, key) => results.filter((row) => row.form === form).reduce((total, row) => total + row[key], 0);
-for (const key of ["total", "check", "wall"]) console.log(`${key}: head-and-body ${sum("head-and-body", key).toFixed(2)}s, one-object ${sum("one-object", key).toFixed(2)}s, ratio ${(sum("one-object", key) / sum("head-and-body", key)).toFixed(2)}`);
+for (const form of ["one-object", "declared-head"]) {
+	for (const key of ["total", "check", "wall"]) console.log(`${key}: head-and-body ${sum("head-and-body", key).toFixed(2)}s, ${form} ${sum(form, key).toFixed(2)}s, ratio ${(sum(form, key) / sum("head-and-body", key)).toFixed(2)}`);
+}
