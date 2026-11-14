@@ -4,6 +4,169 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const CITY_LINE = "The gate has closed. The city has struck {resident} from its register. No one will hear {resident} again.";
+
+// @public
+export const court: MechanicDefinition<"court", Type.TObject<{
+opensAt: Type.TInteger;
+closesAt: Type.TInteger;
+window: Type.TInteger;
+line: Type.TString;
+}>, {
+session_opened: Type.TObject<{
+closesAt: Type.TInteger;
+}>;
+vote_cast: Type.TObject<{
+voter: Type.TString;
+target: Type.TString;
+}>;
+session_closed: Type.TObject<{
+tally: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+verdict: Type.TObject<{
+exiled: Type.TString;
+decision: Type.TOptional<Type.TString>;
+}>;
+}, "vote">;
+
+// @public
+export const COURT_VERDICT = "court.verdict";
+
+// @public
+export const courtHead: MechanicHead<"court", Type.TObject<{
+opensAt: Type.TInteger;
+closesAt: Type.TInteger;
+window: Type.TInteger;
+line: Type.TString;
+}>, Type.TObject<{
+open: Type.TBoolean;
+votes: Type.TArray<Type.TObject<{
+voter: Type.TString;
+target: Type.TString;
+}>>;
+}>, never, {
+session_opened: Type.TObject<{
+closesAt: Type.TInteger;
+}>;
+vote_cast: Type.TObject<{
+voter: Type.TString;
+target: Type.TString;
+}>;
+session_closed: Type.TObject<{
+tally: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+verdict: Type.TObject<{
+exiled: Type.TString;
+decision: Type.TOptional<Type.TString>;
+}>;
+}, {
+readonly "court/tools/vote": readonly [];
+readonly "court/replies/vote-cast": readonly ["target"];
+readonly "court/replies/session-closed": readonly [];
+readonly "court/replies/self-vote": readonly [];
+readonly "court/replies/unknown-resident": readonly ["target"];
+readonly "court/replies/exiled": readonly ["target"];
+}, readonly [ServiceDefinition<"decisions", {
+readonly propose: {
+readonly kind: "command";
+readonly summary: "Opens a decision owned by the caller. With a window of 0, or when no holder can act, it writes nothing and answers `committed: true`: the caller commits at once. Otherwise it writes `decision_proposed` and answers `committed: false` with the id; the caller commits in a listener to `decision_settled`.";
+readonly input: Type.TObject<{
+kind: Type.TString;
+proposal: Type.TUnknown;
+window: Type.TInteger;
+schema: Type.TOptional<Type.TUnknown>;
+}>;
+readonly output: Type.TUnion<[Type.TObject<{
+committed: Type.TLiteral<true>;
+}>, Type.TObject<{
+committed: Type.TLiteral<false>;
+decision: Type.TString;
+}>]>;
+};
+readonly open: {
+readonly kind: "query";
+readonly summary: "Lists the open decisions, in the order they were opened.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+decision: Type.TString;
+kind: Type.TString;
+owner: Type.TString;
+deadline: Type.TInteger;
+}>>;
+};
+}>, ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident, in the order they were banished.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>, ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: Type.TObject<{
+author: Type.TString;
+text: Type.TString;
+kind: Type.TOptional<Type.TUnion<[Type.TLiteral<"city">, Type.TLiteral<"system">]>>;
+}>;
+readonly output: Type.TObject<{
+postSeq: Type.TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: Type.TObject<{
+to: Type.TString;
+author: Type.TString;
+text: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>>;
+};
+}>], [], [], {
+vote: Type.TObject<{
+target: Type.TString;
+}>;
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
