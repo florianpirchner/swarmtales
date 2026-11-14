@@ -49,7 +49,8 @@ engine's best move, inaccuracies (50+), mistakes (100+), blunders (300+) and mis
 The header of `analysis.json` names the engine, its commit, its hash and the depth. The engine has a hand-written
 evaluation and no net, no opening book and no clock in its result: the same position at the same depth gives the
 same score, best move and node count on every machine (`test/stories/chess-engine.test.ts`). Depth 10 takes
-about a second per position on one core. This is the number to quote for move quality; `move_scored` is the
+about 0.7 s of CPU time per position in the median (a few positions take a minute; a search has no time limit), about
+four CPU-hours for the 57 recorded runs. This is the number to quote for move quality; `move_scored` is the
 cheap in-run check.
 
 Until 2026-11-14 the reference was Stockfish 10 at depth 14. It was replaced because of its licence (GPL-3.0),

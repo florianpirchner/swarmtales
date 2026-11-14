@@ -34,6 +34,7 @@
     "lab:orders": "tsx --conditions=development lab/orders.ts",
     "lab:judge": "tsx --conditions=development lab/judge.ts",
     "lab:chess": "tsx --conditions=development lab/chess.ts",
+    "lab:chess:gate": "tsx --conditions=development lab/chess-reanalysis.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm check:packages && pnpm knip && pnpm knip:production && pnpm test && pnpm validate && pnpm build && pnpm smoke"
   },
   "dependencies": {
