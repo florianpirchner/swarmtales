@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkLayers, type ImportUse, type WorkspacePackage } from "./rules.ts";
+import { checkLayers, COMPUTED_IMPORT_FILES, type ImportUse, type WorkspacePackage } from "./rules.ts";
 import { MAX_LIBRARY_PACKAGES, PACKAGE_RULES } from "./table.ts";
 import { computedImportsOf, importsOf, readRootTools, readWorkspace } from "./workspace.ts";
 
@@ -147,6 +147,7 @@ describe("layer check", () => {
 		expect(checkLayers([withImport(kernel, "src/a.ts", "/home/x.ts")])).toHaveLength(1);
 		expect(checkLayers([withImport(kernel, "src/a.ts", "#internal")])).toHaveLength(1);
 		expect(checkLayers([withImport(kernel, "src/a.ts", "", { computed: true })])[0]).toContain("must be a string");
+		expect(COMPUTED_IMPORT_FILES).toEqual(["apps/cli/src/load-game.ts"]);
 	});
 
 	it("rejects code that imports a test file, so no code hides from the budgets in a test", () => {

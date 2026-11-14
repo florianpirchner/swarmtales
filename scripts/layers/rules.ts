@@ -155,9 +155,15 @@ function relativeRefusal(pack: WorkspacePackage, use: ImportUse): string | undef
 	return !use.inTest && isTestFile(target) ? "code that is not a test may not import a test file" : undefined;
 }
 
+/**
+ * The files that may load a module whose name is known only at run time (DECISIONS A11): the loader of a
+ * person's game file and of the installed mechanic packages.
+ */
+export const COMPUTED_IMPORT_FILES: readonly string[] = ["apps/cli/src/load-game.ts"];
+
 /** Says why a relative, absolute or computed import is refused, or `undefined` when it is fine. */
 function pathRefusal(pack: WorkspacePackage, use: ImportUse): string | undefined {
-	if (use.computed === true) return use.inTest ? undefined : "the target of import() or require() must be a string, so the check can read it";
+	if (use.computed === true) return use.inTest || COMPUTED_IMPORT_FILES.includes(use.file) ? undefined : "the target of import() or require() must be a string, so the check can read it";
 	if (use.specifier.startsWith("/") || use.specifier.startsWith("file:")) return "an absolute path is not an import";
 	if (use.specifier.startsWith("#")) return "sub-path imports (#name) are not used; import the file or the package";
 	return isRelative(use.specifier) ? relativeRefusal(pack, use) : undefined;
