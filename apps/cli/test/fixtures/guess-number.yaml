@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# The game of guess-number.ts in its data form.
+schema: 1
+id: guess-number
+seed: 4
+residents: 3
+mechanics:
+  - use: guess-number
+    options: { max: 20 }
+briefing: Find the secret number.
+end:
+  ticks: 30

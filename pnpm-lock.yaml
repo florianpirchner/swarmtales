@@ -53,6 +53,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/prompts':
+        specifier: workspace:*
+        version: link:../../packages/prompts
       '@swarmtales/runlog':
         specifier: workspace:*
         version: link:../../packages/runlog
