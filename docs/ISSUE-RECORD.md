@@ -242,7 +242,7 @@ issue (rows 89, 96, 106), and seventeen commits of the integrator without an iss
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
 | Agent tokens, all 85 session reports | 15.60 million | 300 million | 5.2 % |
 | Agent cost | - | 750 USD | the sessions are not billed per token, so the USD line of the kill criterion cannot be counted |
-| Live model spend | 1.6022 USD (M2 gate, 61 runs, `games/m2-ledger.jsonl`) and 0.0114 USD (M3 smoke, 2 runs, `games/m3-ledger.jsonl`) on this platform; 0.72 USD before M2 on the old one (specification of M2, 8.5) | 10 USD | not a kill number |
+| Live model spend | 1.6022 USD (M2 gate, 61 runs, `games/m2-ledger.jsonl`) and 0.0206 USD (M3 smoke, 3 runs, `games/m3-ledger.jsonl`) on this platform; 0.72 USD before M2 on the old one (specification of M2, 8.5) | 10 USD | not a kill number |
 
 **Kill check 1** (specification of M2, 8.6), recounted by M2-27 from the rows above and written into
 [`M2-GATE.md`](M2-GATE.md): 72 issues of M0 to M2 against 150; 15.60 million recorded tokens against 600 million

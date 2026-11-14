@@ -3,3 +3,5 @@
 {"run":"../runs-data/city-slice/smoke/city-slice-001","id":"9cc8629e-f1fe-44cc-9e1c-b211c2aefb27","costUsd":0.005794145,"at":"2026-11-14T20:31:37.820Z"}
 {"run":"../runs-data/city-slice/smoke/city-slice-002","id":"ec5984b8-63e7-4c55-a41b-5b2ba5bf0d0b","reservedUsd":0.4,"at":"2026-11-14T20:32:39.154Z"}
 {"run":"../runs-data/city-slice/smoke/city-slice-002","id":"ec5984b8-63e7-4c55-a41b-5b2ba5bf0d0b","costUsd":0.005605949999999999,"at":"2026-11-14T20:34:22.525Z"}
+{"run":"../runs-data/city-slice/smoke/city-slice-003","id":"718bf7c9-81a4-4a33-a585-ecedb795df7b","reservedUsd":0.4,"at":"2026-11-14T21:12:06.543Z"}
+{"run":"../runs-data/city-slice/smoke/city-slice-003","id":"718bf7c9-81a4-4a33-a585-ecedb795df7b","costUsd":0.009199165000000002,"at":"2026-11-14T21:13:37.215Z"}
