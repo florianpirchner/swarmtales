@@ -5,7 +5,7 @@
  */
 import { Clean, Clone, Parse } from "typebox/value";
 import { EnvelopeSchema, envelopeLogIssues, KernelSnapshotSchema, SwtError } from "@swarmtales/contracts";
-import type { Envelope, EventSink, Fact, Kernel, KernelDefinition, KernelPorts, KernelSnapshot, ResumeInput, RunEnd, SchedulerInstance, ToolSpec } from "@swarmtales/contracts";
+import type { Envelope, EventSink, Fact, Kernel, KernelDefinition, KernelPorts, KernelSnapshot, ResumeInput, RunEnd, SchedulerInstance, Submission, ToolSpec } from "@swarmtales/contracts";
 import { createAccess } from "./access.ts";
 import { createActors } from "./actors.ts";
 import { createClock } from "./clock.ts";
@@ -14,7 +14,7 @@ import { guarded, kernelFailed, misfit, unknownFact } from "./errors.ts";
 import { createLifecycle } from "./lifecycle.ts";
 import { loadPlugins } from "./loader.ts";
 import { createLog } from "./log.ts";
-import type { Lifecycle, LoadedTool, SliceParts } from "./parts.ts";
+import type { Dispatch, Lifecycle, LoadedTool, SliceParts } from "./parts.ts";
 import { createSchedulerPort } from "./ports.ts";
 import { createServices } from "./services.ts";
 import { restoreKernel, saveKernel } from "./slices.ts";
@@ -47,9 +47,18 @@ function usable(run: Run, open?: string): void {
 	if (open !== undefined && run.ended !== undefined) throw new RangeError(`the run has ended, ${open} is refused`);
 }
 
+// `causedBy` and `basis` of a call from outside are written as given, so they must name events the log has.
+function inLog(call: Submission, length: number): void {
+	const within = (seq: number | undefined, least: number): boolean => seq === undefined || (Number.isInteger(seq) && seq >= least && seq <= length);
+	if (within(call.causedBy, 1) && within(call.basis, 0)) return;
+	throw new RangeError(`a call with causedBy ${String(call.causedBy)} and basis ${String(call.basis)} is refused, the log has ${String(length)} events`);
+}
+
 // The lifecycle the scheduler gets: it keeps the end and the first failure, and refuses a tick after the end.
 function gateOf(life: Lifecycle, run: Run, tick: () => number) {
 	const note = (error: unknown): unknown => {
+		// What is refused after a normal end is no failure: the run keeps its end.
+		if (run.ended !== undefined && run.failure === undefined) return error;
 		run.failure ??= { error };
 		run.ended ??= { reason: "error", tick: tick() };
 		life.fail(error);
@@ -97,7 +106,13 @@ function assemble(definition: KernelDefinition, sinks: readonly EventSink[], pre
 	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks }), run, () => clock.tick);
 	const shown = (tool: LoadedTool): string => definition.names[tool.canonical] ?? tool.tool.name;
 	const toolSpecs = (grant: string): readonly ToolSpec[] => access.grantsOf(grant).flatMap((name) => [loaded.tools.get(name)].flatMap((tool) => (tool === undefined ? [] : [{ name: shown(tool), description: tool.tool.description, parameters: tool.tool.parameters }])));
-	const dispatch = createDispatch({ definition, log, actors, access, steps, loaded, fail: note });
+	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note });
+	// Every call, also the one of an activation whose driver is still running, is refused once the run failed or ended.
+	const submit: Dispatch["submit"] = async (call) => {
+		usable(run, "a call");
+		return lane.submit(call);
+	};
+	const dispatch: Dispatch = { ...lane, submit };
 	const scheduler: SchedulerInstance = definition.scheduler.definition.create(definition.scheduler.options);
 	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, gate);
 	const slices: SliceParts = { definition, log, actors, access, clock, loaded, scheduler: scheduler.slice };
@@ -156,6 +171,7 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
 		},
 		async submit(call) {
 			usable(run, "a call");
+			inLog(call, parts.log.length);
 			return parts.dispatch.submit(call);
 		},
 		snapshot() {
@@ -173,7 +189,9 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
  * Once the run failed, `start`, `run`, `submit` and `snapshot` throw (or reject with) `SWT-R001` with the first
  * failure as the cause; the call that failed throws the failure itself. After a normal end `run` answers the end
  * again, and `start`, `submit` and a further tick are refused with a `RangeError`, as a second `start`, a `run`
- * inside a `run` and a `snapshot` inside a tick are.
+ * inside a `run`, a `snapshot` inside a `run`, and a `submit` whose `causedBy` or `basis` names no event of the log
+ * are. A call of an actor that is not in the definition (a reserved id, an unknown id) is a call as any other: it
+ * is written and refused with `TOOL_NOT_GRANTED`. A refusal after a normal end is no failure: the run keeps its end.
  *
  * @param definition - The kernel definition, built by the sdk.
  * @param ports - The sinks that read the log.

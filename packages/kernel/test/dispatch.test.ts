@@ -68,7 +68,7 @@ interface World {
 	readonly trace: string[];
 	readonly failures: unknown[];
 	readonly staged: { [K in "lock" | "rule" | "after"]: NonNullable<StageHandlers[K]>[] };
-	readonly set: { stepsLeft: number; mayAct: boolean; locked: boolean; rule: Refusal | undefined; execute: () => ToolOutcome };
+	readonly set: { stepsLeft: number; mayAct: boolean; locked: boolean; rule: Refusal | undefined; execute: () => ToolOutcome; first?: unknown };
 	probe(actor: ActorId, tool: string): boolean;
 	call(as: string, params?: unknown, more?: Partial<Submission>): Promise<ToolOutcome>;
 	/** The events from `from` on as `type[:stage:code]`. */
@@ -105,7 +105,7 @@ function world(): World {
 		access: { grantsOf: unused, portFor: unused, state: unused, restore: unused, granted: (grant, name) => grants[grant]?.includes(name) === true, isLocked: () => set.locked, setProbe: (given) => void (probe = given) },
 		steps: { tickStarted: unused, step: (actor) => (trace.push(`step ${actor}`), (set.stepsLeft -= 1) >= 0) },
 		loaded: { order: ["grid"], instances: new Map(), limits: [], hooks: () => [], tools: new Map(tools.map((entry) => [entry.canonical, entry])), byShownName: new Map(tools.map((entry) => [definition.names[entry.canonical] ?? "", [entry]])), stages: (stage) => staged[stage] },
-		fail: (error) => void failures.push(error),
+		fail: (error) => (failures.push(error), set.first),
 	};
 	const dispatch = createDispatch(parts);
 	return {
@@ -245,13 +245,23 @@ describe("quiet end, lane, failure, probe", () => {
 		expect(second).toMatchObject({ status: "rejected", reason: { code: "SWT-R001", cause: { cause: boom } } });
 		expect(second.status === "rejected" && second.reason instanceof SwtError).toBe(true);
 		expect(w.failures).toHaveLength(1);
-		expect(w.dispatch.broken).toBe(true);
 		expect(w.types()).toEqual(["tool_called"]);
+	});
+
+	it("a call that throws after another part failed is `SWT-R001` with the first failure of the run (O12)", async () => {
+		const w = world();
+		const first = new TypeError("a hook broke");
+		w.set.first = first;
+		w.set.execute = () => {
+			throw new RangeError("the log is closed");
+		};
+		const [waiting, later] = await Promise.allSettled([w.call("place", 1), w.call("place", 2)]);
+		expect(waiting).toMatchObject({ status: "rejected", reason: { code: "SWT-R001", cause: first } });
+		expect(later).toMatchObject({ status: "rejected", reason: { code: "SWT-R001", cause: first } });
 	});
 
 	it("runs the calls one after the other, in the order they were submitted", async () => {
 		const w = world();
-		expect(w.dispatch.broken).toBe(false);
 		await Promise.all([w.call("place", 1), w.call("peek", 2), w.call("place", "x")]);
 		expect(w.log.all().map((event) => event.payload).map((payload) => (typeof payload === "object" && payload !== null && "as" in payload ? payload.as : ""))).toEqual(["place", "place", "peek", "peek", "place", "place"]);
 	});

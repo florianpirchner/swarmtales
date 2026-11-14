@@ -5,7 +5,7 @@
  */
 import { SwtError, type ActorId, type ActorSpec, type ActorsPort, type ActorsView } from "@swarmtales/contracts";
 import { misfit } from "./errors.ts";
-import type { Log, PartFactories } from "./parts.ts";
+import type { Log } from "./parts.ts";
 
 /** The suspensions: actor id to the ids of the plugins that hold one, in the order they were taken. */
 type Held = Map<string, readonly string[]>;
@@ -60,16 +60,16 @@ function portOf(plugin: string, view: ActorsView, held: Held, log: Log): ActorsP
  * (`SWT-R003` once it leaves the plugin's code); `restore` throws `SWT-R002` for such an id.
  * @throws SwtError `SWT-R002` when two actors have the same id.
  */
-export const createActors = ((specs, log) => {
+export function createActors(specs: readonly ActorSpec[], log: Log) {
 	const byId = indexed(specs);
 	const held: Held = new Map();
 	const view = viewOf(specs, byId, held);
 	return {
 		...view,
-		spec: (id) => byId.get(id),
-		portFor: (pluginId) => portOf(pluginId, view, held, log),
-		state: () => Object.fromEntries([...held].filter(([, owners]) => owners.length > 0)),
-		restore: (state) => {
+		spec: (id: ActorId): ActorSpec | undefined => byId.get(id),
+		portFor: (pluginId: string): ActorsPort => portOf(pluginId, view, held, log),
+		state: (): Readonly<Record<string, readonly string[]>> => Object.fromEntries([...held].filter(([, owners]) => owners.length > 0)),
+		restore: (state: Readonly<Record<string, readonly string[]>>): void => {
 			held.clear();
 			for (const [id, owners] of Object.entries(state)) {
 				if (!byId.has(id)) throw new SwtError(misfit(`the snapshot suspends "${id}", which is no actor of the definition`, "Resume the snapshot with the definition it was taken from."));
@@ -77,4 +77,4 @@ export const createActors = ((specs, log) => {
 			}
 		},
 	};
-}) satisfies PartFactories["createActors"];
+}

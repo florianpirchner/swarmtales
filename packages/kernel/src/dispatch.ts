@@ -7,7 +7,7 @@
  */
 import { INVALID_ARGUMENTS, STEP_LIMIT, SwtError, TOOL_LOCKED, TOOL_NOT_GRANTED, TOOL_UNKNOWN, type ActorId, type PreparedCall, type Refusal, type Stage, type Submission, type ToolCall, type ToolOutcome } from "@swarmtales/contracts";
 import { guarded, kernelFailed } from "./errors.ts";
-import type { Dispatch, DispatchParts, Frame, LoadedTool, PartFactories } from "./parts.ts";
+import type { DispatchParts, Frame, LoadedTool } from "./parts.ts";
 
 /** What dispatch remembers of each actor's last call. */
 interface Memory {
@@ -147,18 +147,20 @@ function probeOf(parts: DispatchParts): (actor: ActorId, tool: string) => boolea
  * Creates the lane and the pipeline of tool calls, and gives `access` its probe.
  *
  * @param parts - The log, the actors, the access, the step counter, what was loaded, and whom to tell a failure.
- * @returns The dispatch: `submit`, `quietEnd`, `answerSeq` and `broken`.
+ * @returns The dispatch. `submit` runs one call after the calls before it. `quietEnd` says whether the actor's last
+ * call was a free look or a success that ended its activation. `answerSeq` is the seq of the `tool_result` or
+ * `tool_refused` of the actor's last finished call: the `basis` of its next call in the same activation.
  * @throws SwtError Never from the factory. A promise of `submit` rejects with `SWT-R003` when plugin code of the
- * call threw (or with what kernel code threw), and with `SWT-R001`, the first failure as its cause, for every call
- * after that.
+ * call threw (or with what kernel code threw), and with `SWT-R001`, the first failure of the run as its cause, for
+ * every call after that and for a call that was waiting when another part failed.
  */
-export const createDispatch = ((parts: DispatchParts): Dispatch => {
+export function createDispatch(parts: DispatchParts) {
 	const memory: Memory = { looked: new Set(), ended: new Set(), answers: new Map() };
 	let queue: Promise<unknown> = Promise.resolve();
 	let failure: { readonly error: unknown } | undefined;
 	parts.access.setProbe(probeOf(parts));
 	return {
-		submit(given) {
+		submit(given: Submission): Promise<ToolOutcome> {
 			// What the caller had seen when it decided: the log as it is now, not as it is when the calls before this one have run.
 			const call: Submission = { ...given, basis: given.basis ?? parts.log.length };
 			const next = queue.then(() => {
@@ -166,18 +168,16 @@ export const createDispatch = ((parts: DispatchParts): Dispatch => {
 				try {
 					return runCall(parts, memory, call);
 				} catch (error) {
-					failure = { error };
-					parts.fail(error);
-					throw error;
+					// The first failure of the run: this one, unless another part failed while the call waited in the lane.
+					const first = parts.fail(error) ?? error;
+					failure = { error: first };
+					throw first === error ? error : new SwtError(kernelFailed(), { cause: first });
 				}
 			});
 			queue = next.catch(() => undefined);
 			return next;
 		},
-		quietEnd: (actor) => memory.looked.has(actor) || memory.ended.has(actor),
-		answerSeq: (actor) => memory.answers.get(actor),
-		get broken() {
-			return failure !== undefined;
-		},
+		quietEnd: (actor: ActorId): boolean => memory.looked.has(actor) || memory.ended.has(actor),
+		answerSeq: (actor: ActorId): number | undefined => memory.answers.get(actor),
 	};
-}) satisfies PartFactories["createDispatch"];
+}

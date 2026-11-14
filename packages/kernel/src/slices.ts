@@ -5,9 +5,9 @@
  */
 import { Clone } from "typebox/value";
 import { SwtError } from "@swarmtales/contracts";
-import type { KernelSnapshot, SliceData, SnapshotSlice } from "@swarmtales/contracts";
+import type { KernelSnapshot, RunEnd, SliceData, SnapshotSlice } from "@swarmtales/contracts";
 import { guarded, misfit } from "./errors.ts";
-import type { PartFactories, SliceParts } from "./parts.ts";
+import type { SliceParts } from "./parts.ts";
 
 const RESUME = "Resume the snapshot with the definition and the log it was taken from.";
 
@@ -37,7 +37,7 @@ function pluginSlices(parts: SliceParts): readonly (readonly [string, SnapshotSl
  * @returns The snapshot; every value in it is a copy.
  * @throws SwtError `SWT-R003` when a slice's `save` throws.
  */
-export const saveKernel = ((parts, tick, ended) => {
+export function saveKernel(parts: SliceParts, tick: number, ended: RunEnd | undefined): KernelSnapshot {
 	const { definition } = parts;
 	const scheduler = parts.scheduler;
 	return {
@@ -55,7 +55,7 @@ export const saveKernel = ((parts, tick, ended) => {
 		plugins: Object.fromEntries(pluginSlices(parts).map(([id, slice]) => [id, saved(id, slice)])),
 		...(scheduler === undefined ? {} : { scheduler: saved(definition.scheduler.definition.id, scheduler) }),
 	};
-}) satisfies PartFactories["saveKernel"];
+}
 
 // Whether the snapshot was taken from this definition and at the end of this log; undefined when it was.
 function strangerOf(parts: SliceParts, snapshot: KernelSnapshot): string | undefined {
@@ -99,7 +99,7 @@ function load(owner: string, slice: SnapshotSlice, data: SliceData): void {
  * @throws SwtError `SWT-R002` when the snapshot is of another game, hash, seed or log length, when its slices
  * are not those of the loaded plugins and the scheduler, when a job is unknown, or when a slice does not load.
  */
-export const restoreKernel = ((parts, snapshot) => {
+export function restoreKernel(parts: SliceParts, snapshot: KernelSnapshot): void {
 	const reason = misfitOf(parts, snapshot);
 	if (reason !== undefined) throw new SwtError(misfit(reason, RESUME));
 	parts.actors.restore(copyLists(snapshot.suspensions));
@@ -113,4 +113,4 @@ export const restoreKernel = ((parts, snapshot) => {
 		if (data !== undefined) load(id, slice, data);
 	}
 	if (parts.scheduler !== undefined && snapshot.scheduler !== undefined) load(parts.definition.scheduler.definition.id, parts.scheduler, snapshot.scheduler);
-}) satisfies PartFactories["restoreKernel"];
+}

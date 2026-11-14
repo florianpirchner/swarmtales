@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Part 5: loading the plugins of a definition, in its order, with the checks that only a loaded body shows or that
- * protect the kernel (3.2). Whatever does not fit is `SWT-R002`; nothing is skipped silently.
+ * protect the kernel (3.2). Whatever does not fit is `SWT-R002`; the one thing left out is a listener of a plugin that
+ * is not loaded (decision 10 of section 11).
  */
-import { closest, KERNEL_EVENTS, SwtError, type CanonicalTool, type KernelDefinition, type Ordered, type PluginHooks, type PluginInstance, type StageHandlers } from "@swarmtales/contracts";
+import { closest, KERNEL_EVENTS, SwtError, type CanonicalTool, type KernelDefinition, type Ordered, type PluginHooks, type PluginInstance, type RunLimit, type StageHandlers } from "@swarmtales/contracts";
 import { guarded, misfit, twoToAct } from "./errors.ts";
 import { ordered } from "./order.ts";
-import type { Loaded, LoadedTool, LoaderParts, OrderedHook, PartFactories } from "./parts.ts";
+import type { LoadedTool, LoaderParts, OrderedHook } from "./parts.ts";
 import { portFor } from "./plugin-port.ts";
 
 type Instances = ReadonlyMap<string, PluginInstance>;
-type HookTable = { readonly [K in OrderedHook]: readonly { readonly plugin: string; readonly run: NonNullable<PluginHooks[K]>[number]["run"] }[] };
+type Hooked<K extends OrderedHook> = readonly { readonly plugin: string; readonly run: NonNullable<PluginHooks[K]>[number]["run"] }[];
+type HookTable = { readonly [K in OrderedHook]: Hooked<K> };
 type StageTable = { readonly [K in Extract<keyof StageHandlers, string>]: readonly NonNullable<StageHandlers[K]>[] };
 
 const bad = (summary: string, fix: string): SwtError => new SwtError(misfit(summary, fix));
@@ -47,7 +49,7 @@ function createInstances(definition: KernelDefinition, parts: LoaderParts): Inst
 	return instances;
 }
 
-function loadTools(definition: KernelDefinition, instances: Instances): Pick<Loaded, "tools" | "byShownName"> {
+function loadTools(definition: KernelDefinition, instances: Instances): { readonly tools: ReadonlyMap<CanonicalTool, LoadedTool>; readonly byShownName: ReadonlyMap<string, readonly LoadedTool[]> } {
 	const tools = new Map<CanonicalTool, LoadedTool>();
 	const byShownName = new Map<string, readonly LoadedTool[]>();
 	for (const plugin of definition.plugins) {
@@ -68,17 +70,18 @@ function loadTools(definition: KernelDefinition, instances: Instances): Pick<Loa
 	return { tools, byShownName };
 }
 
-// Checks every listener against the plugin that declares its event, then gives the listeners of each event to the log in their final order.
+// A listener of a plugin that is not loaded is left out, so a plugin stays loadable without the one it listens to
+// (decision 10). Checks every other listener against the plugin that declares its event, then gives the listeners of each event to the log in their final order.
 function addListeners(definition: KernelDefinition, instances: Instances, parts: LoaderParts): void {
 	const declaring = new Map(definition.plugins.map((plugin) => [plugin.id, plugin]));
 	const entries = [...instances].flatMap(([plugin, instance]) =>
-		instance.listeners.map((listener) => {
+		instance.listeners.flatMap((listener) => {
 			const event = `${listener.source}.${listener.type}`;
 			const owner = declaring.get(listener.source);
-			if (owner === undefined) throw bad(`"${plugin}" listens to ${event}, and no plugin "${listener.source}" is loaded`, "Listen only to events of loaded plugins.");
+			if (owner === undefined) return [];
 			if (!Object.hasOwn(owner.events, listener.type)) throw bad(`"${plugin}" listens to ${event}, which "${listener.source}" does not declare`, "Listen to a declared event.");
 			if (owner.events[listener.type] !== listener.schema) throw bad(`"${plugin}" listens to ${event} with another schema than "${listener.source}" declares`, "Use the shared declaration of the event in both.");
-			return { ...listener, plugin, event, from: `${owner.package}/${owner.id}` };
+			return [{ ...listener, plugin, event, from: `${owner.package}/${owner.id}` }];
 		}),
 	);
 	for (const event of new Set(entries.map((entry) => entry.event))) {
@@ -106,19 +109,22 @@ function stageTable(instances: Instances): StageTable {
 }
 
 /**
- * Loads the plugins in the order of the definition: creates the instances, registers their services, tools and
+ * Loads the plugins in the order of the definition, which is `order`: creates the instances, registers their services, tools and
  * listeners, and places the hooks. A function it hands on without its owner (a hook, a stage handler, a listener,
  * `create`) is wrapped so that its throw is `SWT-R003`.
  *
  * @param definition - The kernel definition.
  * @param parts - The log, the actors, the access, the services and the clock.
- * @returns What was loaded.
+ * @returns What was loaded: the instances and the tools by canonical name and by shown name (one shown name may
+ * stand for tools of different grants), `hooks(hook)` with the registrations of one hook in the final order (load
+ * order plus `after`), `stages(stage)` with the handlers of one stage in load order, and the run limits in load
+ * order, each with the id `<plugin id>.<limit id>`.
  * @throws SwtError `SWT-R002` for a check of loading that fails, `SWT-R013` for two `toAct` hooks, `SWT-R016` for a cycle of `after`, `SWT-R003` when a plugin's `create` throws.
  */
-export const loadPlugins = ((definition, parts) => {
+export function loadPlugins(definition: KernelDefinition, parts: LoaderParts) {
 	checkEvents(definition);
 	const instances = createInstances(definition, parts);
-	const order = [...instances.keys()];
+	const order: readonly string[] = [...instances.keys()];
 	const acting = order.filter((id) => instances.get(id)?.hooks.toAct !== undefined);
 	if (acting.length > 1) throw new SwtError(twoToAct(acting));
 	const catalogue = loadTools(definition, instances);
@@ -130,6 +136,6 @@ export const loadPlugins = ((definition, parts) => {
 		tickEnded: placeHooks(instances, (all) => all.tickEnded),
 	};
 	const stages = stageTable(instances);
-	const limits = [...instances].flatMap(([plugin, instance]) => instance.limits.map((limit) => ({ id: `${plugin}.${limit.id}`, limit })));
-	return { order, instances, ...catalogue, hooks: (hook) => hooks[hook], stages: (stage) => stages[stage], limits } satisfies Loaded;
-}) satisfies PartFactories["loadPlugins"];
+	const limits: readonly { readonly id: string; readonly limit: RunLimit }[] = [...instances].flatMap(([plugin, instance]) => instance.limits.map((limit) => ({ id: `${plugin}.${limit.id}`, limit })));
+	return { order, instances, ...catalogue, hooks: <K extends OrderedHook>(hook: K): Hooked<K> => hooks[hook], stages: <K extends keyof StageTable>(stage: K): StageTable[K] => stages[stage], limits };
+}

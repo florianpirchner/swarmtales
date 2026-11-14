@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Part 5: the port of one plugin, the only way a plugin reaches the kernel. */
-import type { PluginPort } from "@swarmtales/contracts";
-import type { PartFactories } from "./parts.ts";
+import type { PluginPort, ResolvedPlugin } from "@swarmtales/contracts";
+import type { PluginPortParts } from "./parts.ts";
 import { rngFor } from "./random.ts";
 
 /**
@@ -15,7 +15,7 @@ import { rngFor } from "./random.ts";
  * @param parts - The kernel parts the port reaches.
  * @returns The port.
  */
-export const portFor = ((plugin, parts) => {
+export function portFor(plugin: ResolvedPlugin, parts: PluginPortParts): PluginPort {
 	const { definition, log, clock } = parts;
 	const source = `${plugin.package}/${plugin.id}`;
 	return {
@@ -39,5 +39,5 @@ export const portFor = ((plugin, parts) => {
 			},
 		},
 		access: parts.access.portFor(plugin.id),
-	} satisfies PluginPort;
-}) satisfies PartFactories["portFor"];
+	};
+}

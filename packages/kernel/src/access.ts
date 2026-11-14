@@ -6,7 +6,7 @@
  */
 import { SwtError, type AccessPort, type ActorId, type CanonicalTool, type KernelDefinition } from "@swarmtales/contracts";
 import { misfit } from "./errors.ts";
-import type { Access, Actors, Log, PartFactories } from "./parts.ts";
+import type { Actors, Log } from "./parts.ts";
 
 type Probe = (actor: ActorId, tool: CanonicalTool) => boolean;
 
@@ -89,7 +89,9 @@ function restore(shared: Shared, state: Readonly<Record<string, readonly string[
 }
 
 /**
- * Creates the grants and the locks of a run. Every actor starts with the start locks of its grant; no event is
+ * Creates the grants and the locks of a run. `grantsOf` gives the tools of a grant in the order a caller sees them,
+ * empty for an unknown grant; `setProbe` sets the answer to "no lock handler refuses", given by dispatch, which
+ * `isOpen` and `open` of the ports ask; `state` gives the locks, actor id to canonical tools, sorted. Every actor starts with the start locks of its grant; no event is
  * written for them.
  *
  * @param definition - The kernel definition; `grants`, `startLocks` and `names` are read.
@@ -100,19 +102,19 @@ function restore(shared: Shared, state: Readonly<Record<string, readonly string[
  * handler asks about the call it decides (`SWT-R003` once it leaves the plugin's code); `restore` throws
  * `SWT-R002` for an id that is no actor of the definition.
  */
-export const createAccess = ((definition, actors, log) => {
+export function createAccess(definition: KernelDefinition, actors: Actors, log: Log) {
 	const shared: Shared = { definition, actors, log, locks: startLocks(definition, actors), probing: new Set(), probe: () => true };
 	return {
-		granted: (grant, tool) => listOf(definition.grants, grant).includes(tool),
-		grantsOf: (grant) => listOf(definition.grants, grant),
-		isLocked: (actor, tool) => isLocked(shared, actor, tool),
-		setProbe: (probe) => {
+		granted: (grant: string, tool: CanonicalTool): boolean => listOf(definition.grants, grant).includes(tool),
+		grantsOf: (grant: string): readonly CanonicalTool[] => listOf(definition.grants, grant),
+		isLocked: (actor: ActorId, tool: CanonicalTool): boolean => isLocked(shared, actor, tool),
+		setProbe: (probe: Probe): void => {
 			shared.probe = probe;
 		},
-		portFor: (pluginId) => portOf(pluginId, shared),
-		state: () => Object.fromEntries([...shared.locks].filter(([, tools]) => tools.size > 0).map(([id, tools]) => [id, [...tools].sort()])),
-		restore: (state) => {
+		portFor: (pluginId: string): AccessPort => portOf(pluginId, shared),
+		state: (): Readonly<Record<string, readonly string[]>> => Object.fromEntries([...shared.locks].filter(([, tools]) => tools.size > 0).map(([id, tools]) => [id, [...tools].sort()])),
+		restore: (state: Readonly<Record<string, readonly string[]>>): void => {
 			restore(shared, state);
 		},
-	} satisfies Access;
-}) satisfies PartFactories["createAccess"];
+	};
+}

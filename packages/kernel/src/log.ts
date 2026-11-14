@@ -7,7 +7,7 @@
  */
 import { SwtError, type Envelope, type EventSink } from "@swarmtales/contracts";
 import { kernelFailed, misfit, sinkThrew } from "./errors.ts";
-import type { Frame, Log, PartFactories } from "./parts.ts";
+import type { Frame } from "./parts.ts";
 
 /** A cascade longer than this is a loop between listeners. */
 const MAX_CASCADE = 100_000;
@@ -117,7 +117,12 @@ function fail(state: LogState, last: () => void): void {
 }
 
 /**
- * Creates the log of a run.
+ * Creates the log of a run. `emit` appends an event in the top frame; its `audience` wins over the default of
+ * `audienceOf`, and the field is written only when one is set. `run` runs code in a frame: the events are
+ * delivered to the listeners, then to the sinks, when the outermost frame returns. `frame` is the top frame,
+ * `{ actor: "kernel" }` outside any. Listeners of one event run in the order they were added, so the loader adds
+ * them in the final order. `fail` ends the log after a failure: listeners off, the queue goes to the sinks, `last`
+ * writes the closing event, then every `emit` throws.
  *
  * @param tick - Gives the tick an event is stamped with.
  * @param audienceOf - The audience an event of a source and type gets when its emitter names none.
@@ -126,23 +131,23 @@ function fail(state: LogState, last: () => void): void {
  * @throws SwtError `SWT-R002` when the seq of `prefix` does not count from 1 without a gap. In use: `SWT-R001`
  * from `emit` after `fail`, `SWT-R020` when a sink throws.
  */
-export const createLog = ((tick, audienceOf, prefix = []) => {
+export function createLog(tick: () => number, audienceOf: (source: string, type: string) => readonly string[] | undefined, prefix: readonly Envelope[] = []) {
 	const state: LogState = { events: checkedPrefix(prefix), queue: [], frames: [], listeners: [], sinks: [], draining: false, failed: undefined };
-	const log: Log = {
-		get length() {
+	return {
+		get length(): number {
 			return state.events.length;
 		},
-		all: () => state.events,
-		since: (seq) => state.events.slice(Math.max(0, seq)),
-		ofType: (source, type) => state.events.filter((event) => event.source === source && event.type === type),
-		frame: () => state.frames.at(-1) ?? { actor: "kernel" },
-		listen: (source, type, run) => {
+		all: (): readonly Envelope[] => state.events,
+		since: (seq: number): readonly Envelope[] => state.events.slice(Math.max(0, seq)),
+		ofType: (source: string, type: string): readonly Envelope[] => state.events.filter((event) => event.source === source && event.type === type),
+		frame: (): Frame => state.frames.at(-1) ?? { actor: "kernel" },
+		listen: (source: string, type: string, run: (event: Envelope) => void): void => {
 			state.listeners.push({ source, type, run });
 		},
-		addSink: (sink) => {
+		addSink: (sink: EventSink): void => {
 			state.sinks.push(sink);
 		},
-		emit: (source, type, payload, extra = {}) => {
+		emit: (source: string, type: string, payload: unknown, extra: { readonly basis?: number; readonly audience?: readonly string[] } = {}): Envelope => {
 			if (state.failed === "closed") throw new SwtError(kernelFailed());
 			const event = envelope(state, tick(), source, type, payload, extra.basis, extra.audience ?? audienceOf(source, type));
 			state.events.push(event);
@@ -150,7 +155,7 @@ export const createLog = ((tick, audienceOf, prefix = []) => {
 			if (state.frames.length === 0 || state.failed !== undefined) drain(state);
 			return event;
 		},
-		run: (frame, code) => {
+		run: <T>(frame: Frame, code: () => T): T => {
 			state.frames.push(frame);
 			try {
 				return code();
@@ -159,9 +164,8 @@ export const createLog = ((tick, audienceOf, prefix = []) => {
 				if (state.frames.length === 0) drain(state);
 			}
 		},
-		fail: (last) => {
+		fail: (last: () => void): void => {
 			fail(state, last);
 		},
 	};
-	return log;
-}) satisfies PartFactories["createLog"];
+}

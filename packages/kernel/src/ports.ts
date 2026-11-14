@@ -5,9 +5,9 @@
  * `activation_opened` and `activation_closed`.
  */
 import { SwtError } from "@swarmtales/contracts";
-import type { ActorId, Envelope, InputLine, InputNote, JsonValue, OpenActivation, OrderedNote, PluginInstance, ToolOutcome } from "@swarmtales/contracts";
-import { guarded, misfit, twoToAct } from "./errors.ts";
-import type { Frame, Lifecycle, PartFactories, SchedulerPortParts } from "./parts.ts";
+import type { ActorId, Envelope, InputLine, InputNote, JsonValue, OpenActivation, OrderedNote, SchedulerPort, ToolOutcome } from "@swarmtales/contracts";
+import { guarded, misfit } from "./errors.ts";
+import type { Frame, Lifecycle, SchedulerPortParts } from "./parts.ts";
 import { rngFor } from "./random.ts";
 
 const KERNEL: Frame = { actor: "kernel" };
@@ -80,16 +80,6 @@ function openActivation(parts: SchedulerPortParts, opening: Opening, step: Step)
 	};
 }
 
-// The plugin whose `toAct` hook says who is to act now; `SWT-R013` when two have one.
-function toActOwner(parts: SchedulerPortParts): { readonly id: string; readonly instance: PluginInstance } | undefined {
-	const owners = parts.loaded.order.flatMap((id) => {
-		const instance = parts.loaded.instances.get(id);
-		return instance?.hooks.toAct === undefined ? [] : [{ id, instance }];
-	});
-	if (owners.length > 1) throw new SwtError(twoToAct(owners.map((owner) => owner.id)));
-	return owners[0];
-}
-
 /**
  * Creates the scheduler's port. Plugin code it calls (`news`, `toAct`, the `inputs` hooks) runs each in its own
  * frame of the kernel; a throw of it is `SWT-R003`. Whatever throws in the port (plugin code, a sink) ends the
@@ -98,13 +88,13 @@ function toActOwner(parts: SchedulerPortParts): { readonly id: string; readonly 
  * @param parts - The log, the actors, the clock, the loaded plugins, dispatch and the tool lists.
  * @param life - The lifecycle: the two halves of a tick and the halt.
  * @returns The port.
- * @throws SwtError `SWT-R013` when two loaded plugins have a `toAct` hook; from `emit`, `SWT-R002` for an event
- * type the scheduler does not declare.
+ * @throws SwtError From `emit`, `SWT-R002` for an event type the scheduler does not declare.
  */
-export const createSchedulerPort = ((parts, life) => {
+export function createSchedulerPort(parts: SchedulerPortParts, life: Lifecycle): SchedulerPort {
 	const { definition, log, loaded } = parts;
 	const scheduler = definition.scheduler.definition;
-	const owner = toActOwner(parts);
+	// The plugin whose `toAct` hook says who is to act now; the loader has refused a second one (`SWT-R013`).
+	const owner = loaded.order.find((id) => loaded.instances.get(id)?.hooks.toAct !== undefined);
 	const remembered = new Map<ActorId, number>();
 	const step = stepOf(life);
 	// One piece of plugin code in its own frame of the kernel.
@@ -132,7 +122,7 @@ export const createSchedulerPort = ((parts, life) => {
 				const instance = loaded.instances.get(id);
 				return instance !== undefined && ask(id, () => instance.hooks.news?.(actor) === true);
 			}),
-		toAct: () => (owner === undefined ? undefined : ask(owner.id, () => owner.instance.hooks.toAct?.())),
+		toAct: () => (owner === undefined ? undefined : ask(owner, () => loaded.instances.get(owner)?.hooks.toAct?.())),
 		inputsFor(actor: ActorId): readonly OrderedNote[] {
 			const notes = loaded.hooks("inputs").flatMap((hook) => ask(hook.plugin, () => hook.run(actor)).map((line) => noteOf(hook.plugin, line)));
 			remembered.set(actor, log.length);
@@ -144,4 +134,4 @@ export const createSchedulerPort = ((parts, life) => {
 			return step(() => openActivation(parts, { actor, basis, inputs, detail }, step));
 		},
 	};
-}) satisfies PartFactories["createSchedulerPort"];
+}

@@ -172,3 +172,31 @@ exported signature is additive.
 Open after this issue: `MechanicKit.fact` takes no name (the `SWT-M023` of the kit cannot name the fact); the row
 of `runlog` in `docs/LAYERS.md` does not mention `typebox` (the layer check judges workspace packages and Node
 modules only).
+
+## M1-38: the kernel's budget of 1380 lines and the open points of the kernel review
+
+The issue has no row in 10.3; it closes O10 to O15 and takes back E4. The kernel has 1341 code lines (1448
+before), the gate of `packages/kernel/test/budget.test.ts` is 1380 again. `createKernel` and the types of
+`packages/contracts` are unchanged.
+
+| # | Sev | Before | What holds | Why |
+|---|---|---|---|---|
+| E51 | C | 3.1: `parts.ts` holds an interface per part, a bundle per factory and `PartFactories`, and every factory checks itself with `satisfies` | A part is what its factory returns: `Log`, `Actors`, `Access`, `Steps`, `Services`, `Clock`, `Loaded` and `Dispatch` are `ReturnType<typeof create...>`, documented at the factory, which is a plain function with typed parameters. `Lifecycle` stays an interface (a class implements it and the assembly wraps it), as `Frame`, `LoadedTool` and `Placed`. What a factory gets is a `Pick` of the one bag `Parts`; the names `LoaderParts`, `DispatchParts` and so on stay as those picks. `PartFactories` is gone | O15: 140 lines of types became 61. A test still fakes a neighbour against the same names |
+| E52 | C | 2.11: the kernel's catalogue has ten R codes | The kernel's `errors.ts` has the seven it raises. `SWT-R010`, `SWT-R011` and `SWT-R014` are built where they are raised (`packages/engine`: `turns.ts`, `manifest.ts`); nothing in contracts lists the codes by function, and no test outside the kernel used the three functions | O6, O15. The codes stay reserved: a code is never reused |
+| E53 | C | `createSchedulerPort` raises `SWT-R013` for two `toAct` hooks | Only the loader raises it; the port reads the first plugin with the hook | The same check twice. A port is built after loading in the kernel; a test that builds a port from a fake `Loaded` gets no check |
+| E54 | B | O11 | `Kernel.submit` refuses, with a `RangeError` and before the lane, a `causedBy` that is no integer from 1 to the log length and a `basis` that is no integer from 0 to it. The run goes on. The calls of an activation are not checked: the kernel sets their two fields itself | A call from outside could write a log that `envelopeLogIssues` refuses |
+| E55 | B | O12 | Every call goes through one gate of the assembly, also the call of an activation: after a failure it rejects with `SWT-R001` and the first failure as the cause. A call that was waiting in the lane when another part failed rejects the same way: `DispatchParts.fail` answers the first failure of the run, and dispatch wraps what it caught when that is another error. `Dispatch.broken` is gone (nothing read it) | The cause was missing for the call of an activation |
+| E56 | B | O13 | Held by the assembly (`run` gives every rejection of `SchedulerInstance.run` to `Lifecycle.fail`), now with a test of a scheduler that rejects by itself | No test |
+| E57 | B | O14 | Held: `audienceOf` uses `Object.hasOwn`, and `Kernel.fact` looks keys up in a `Map` built from own entries. Tested with an event `toString` and a fact key `constructor` | No test |
+| E58 | A | O10 | After a normal end `start`, `submit`, `beginTick`, `endTick` and the call of an activation that is still held are refused with a `RangeError`, and nothing is written. Such a refusal is no failure: `Kernel.ended` keeps the end, `run` answers it again, `snapshot` works, and a scheduler that ticks on gets the `RangeError` out of `Kernel.run`. `snapshot` inside a `run` is a `RangeError`. There is still no R code for "used after the end" | Before, the refusal that a ticking scheduler got was recorded as the first failure of a run that had ended well, and the call of a held activation was written behind `run_ended` |
+| E59 | B | E4: "the loader refuses a listener whose `source` is no loaded plugin as `SWT-R002`" | A listener whose source plugin is not loaded is left out, silently, and the plugin loads (decision 10 of section 11: "same softness as `listen`; a mechanic stays loadable alone"; `strategy-brain` listens to `grid-game`). `SWT-R002` stays for a listener whose loaded source does not declare the event or declares it with another schema object. E4 holds otherwise: a listener names a plugin id, so the events of the kernel and of the scheduler reach no listener (such a listener is now left out, not refused) | E4 contradicted decision 10 and the old loader |
+| E60 | C | A check added and taken back inside this issue: `Kernel.submit` refused an actor that is not in the definition with a `RangeError` | 3.3 holds as written (row 1: "a reserved id is never counted"; row 2: "The actor is not in the definition, or its grant does not hold a tool of that name: `TOOL_NOT_GRANTED`"). A call of a reserved id (`script`, `human`) or of an unknown id is a normal call: `tool_called`, then `tool_refused` at the stage `lock`, both with that actor. `kernel-review.test.ts` pins it for an unknown id and for `script` | The oracle files of the old platform may hold such calls; E39 is about `suspend`, `lock` and `unlock` only |
+
+E37 stays as the review set it: the frame of a listener and of a provider keeps `tool`.
+
+Open after this issue:
+
+| # | Sev | Point | Goes to |
+|---|---|---|---|
+| O20 | C | After a normal end the scheduler's port still writes for a scheduler that goes on without a tick: `open`, `close` of an activation, `emit`, and the plugin code behind `hasNews`, `toAct` and `inputsFor` run. `turns` does none of it. Closing it costs a check in each of the six entries of the port | with the R code for "used after the end" (follow-up list) |
+| O21 | C | A typing error in `Listener.source` is now silent in the kernel. The sdk knows the mechanics of a game and their heads, so `resolveGame` can warn about a source that is no mechanic of any installed package | sdk, M2 |

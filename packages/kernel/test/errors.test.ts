@@ -4,15 +4,12 @@ import { describe, expect, it } from "vitest";
 import { formatIssue, SwtError, SwtIssueSchema, type SwtIssue } from "@swarmtales/contracts";
 import * as errors from "../src/errors.ts";
 
-/** Every R code of section 2.11 of the M1 specification, with an issue built by the catalogue. */
+/** Every R code the kernel raises, with an issue built by the catalogue. `SWT-R010`, `SWT-R011` and `SWT-R014` of section 2.11 are the scheduler's (`packages/engine`). */
 const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 	"SWT-R001": errors.kernelFailed(),
 	"SWT-R002": errors.misfit("the snapshot was taken from the game \"other\"", "Resume it with its own game."),
 	"SWT-R003": errors.pluginThrew("grid-game", new TypeError("cell is taken")),
-	"SWT-R010": errors.orderNoPermutation("@swarmtales/engine/turns"),
-	"SWT-R011": errors.noDriver("resident:A01"),
 	"SWT-R013": errors.twoToAct(["grid-game", "other-game"]),
-	"SWT-R014": errors.noToAct("@swarmtales/engine/turns"),
 	"SWT-R015": errors.unknownFact("grid-game.winer", ["grid-game.winner"]),
 	"SWT-R016": errors.afterCycle(["a", "b"]),
 	"SWT-R020": errors.sinkThrew(new Error("disk full")),
@@ -20,8 +17,8 @@ const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 
 describe("the R catalogue", () => {
 	it("has one function per code and no other export but `guarded`", () => {
-		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "noDriver", "noToAct", "orderNoPermutation", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
-		expect(Object.keys(CATALOGUE)).toHaveLength(10);
+		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
+		expect(Object.keys(CATALOGUE)).toHaveLength(7);
 	});
 
 	it.each(Object.entries(CATALOGUE))("%s is a valid issue with its own code and formats in four lines", (code, issue) => {

@@ -8,7 +8,7 @@
  */
 import { SwtError, type Job, type RunEnd } from "@swarmtales/contracts";
 import { guarded, kernelFailed, misfit, sinkThrew } from "./errors.ts";
-import type { Lifecycle, LifecycleParts, PartFactories } from "./parts.ts";
+import type { Lifecycle, LifecycleParts } from "./parts.ts";
 
 /** A run limit that answered a reason. */
 interface Breach {
@@ -201,4 +201,4 @@ class Run implements Lifecycle {
  * @returns The lifecycle. Its steps throw (or reject with) `SWT-R003` when plugin code threw, `SWT-R020` when a
  * sink threw while it was closed, `SWT-R002` when a due job has no owner, and `SWT-R001` once the run failed.
  */
-export const createLifecycle = ((parts: LifecycleParts): Lifecycle => new Run(parts)) satisfies PartFactories["createLifecycle"];
+export const createLifecycle = (parts: LifecycleParts): Lifecycle => new Run(parts);

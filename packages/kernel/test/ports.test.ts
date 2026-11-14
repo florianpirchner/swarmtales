@@ -72,7 +72,6 @@ function world(plugins: Readonly<Record<string, PluginHooks>> = {}) {
 		},
 		quietEnd: () => state.quiet,
 		answerSeq: () => state.answer,
-		broken: false,
 	};
 	const actors: Actors = { ids: [A], ofKind: unused, has: unused, mayAct: () => true, shared: unused, spec: (id) => (id === A ? { id, kind: "resident", grant: "all", shared: {} } : undefined), portFor: unused, state: unused, restore: unused };
 	const clock: Clock = { tick: 4, advance: unused, at: unused, take: unused, state: unused, restore: unused };
@@ -158,9 +157,8 @@ describe("the scheduler's port", () => {
 		expect(port.toAct()).toBeUndefined();
 	});
 
-	it("reads `toAct` from the one plugin that has it and refuses two (SWT-R013)", () => {
+	it("reads `toAct` from the one plugin that has it (the loader refuses a second one)", () => {
 		expect(world({ first: {}, second: { toAct: () => [A] } }).create().toAct()).toEqual([A]);
-		expect(() => world({ first: { toAct: () => [] }, second: { toAct: () => [A] } }).create()).toThrow(/SWT-R013: first and second/);
 	});
 
 	it("passes seed, tick, halt, the random streams and the tick halves through, and writes only declared events", async () => {

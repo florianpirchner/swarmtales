@@ -68,7 +68,6 @@ describe("loadPlugins: each check of 3.2, raised by a hand-written plugin", () =
 		["a plugin id listed twice", "SWT-R002", () => load([plugin("a"), plugin("a")])],
 		["a listener with a schema object of its own", "SWT-R002", () => load([plugin("a", declares), plugin("b", {}, { listeners: [listener("a", Type.Object({}))] })])],
 		["a listener of an event its plugin does not declare", "SWT-R002", () => load([plugin("a"), plugin("b", {}, { listeners: [listener("a")] })])],
-		["a listener of a plugin that is not loaded (E4)", "SWT-R002", () => load([plugin("b", {}, { listeners: [listener("sched")] })])],
 		["two `toAct` hooks", "SWT-R013", () => load([plugin("a", {}, { hooks: { toAct: () => [] } }), plugin("b", {}, { hooks: { toAct: () => [] } })])],
 		["a cycle of `after` among the hooks", "SWT-R016", () => load([plugin("a", {}, { hooks: { runStarted: [{ run: () => undefined, after: ["b"] }] } }), plugin("b", {}, { hooks: cycle })])],
 		["a cycle of `after` among the listeners of one event", "SWT-R016", () => load([plugin("a", declares, { listeners: [listener("a", SCHEMA, ["b"])] }), plugin("b", {}, { listeners: [listener("a", SCHEMA, ["a"])] })])],
@@ -80,6 +79,14 @@ describe("loadPlugins: each check of 3.2, raised by a hand-written plugin", () =
 	it("says which plugin threw and which tool was meant", () => {
 		expect(failure(() => load([plugin("a", {}, never)])).summary).toBe("a: not used by the loader");
 		expect(failure(() => load([plugin("a", {}, { tools: [tool("look")] })], { grants: { all: ["pkg/a/lok"] } })).fix).toBe('Did you mean "pkg/a/look"?');
+	});
+});
+
+describe("loadPlugins: a listener of a plugin that is not loaded (decision 10)", () => {
+	it("is left out, and the plugin loads alone; its other listeners stay", () => {
+		expect(load([plugin("b", {}, { listeners: [listener("absent")] })]).listened).toEqual([]);
+		expect(load([plugin("a", declares), plugin("b", {}, { listeners: [listener("absent"), listener("a")] })]).listened).toEqual(["pkg/a done"]);
+		expect(failure(() => load([plugin("a"), plugin("b", {}, { listeners: [listener("absent"), listener("a")] })])).code).toBe("SWT-R002");
 	});
 });
 

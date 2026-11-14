@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * The catalogue of the R codes (run and kernel): one function per code, each returning the issue. A code is never
- * reused or renumbered. `SWT-R010`, `SWT-R011` and `SWT-R014` are raised by the scheduler, which may not import
- * the kernel and builds them itself; they are listed here because they end a run.
+ * reused or renumbered. `SWT-R010`, `SWT-R011` and `SWT-R014` belong to the scheduler, which may not import the
+ * kernel: it builds them itself (`packages/engine`), and the kernel has no function for a code it never raises.
  */
 import { closest, SwtError, type SwtIssue } from "@swarmtales/contracts";
 
@@ -53,38 +53,6 @@ export function pluginThrew(plugin: string, thrown: unknown): SwtIssue {
 }
 
 /**
- * `SWT-R010`: the order a scheduler built is no permutation of the actors that may act.
- *
- * @param scheduler - The scheduler id.
- * @returns The issue.
- */
-export function orderNoPermutation(scheduler: string): SwtIssue {
-	return {
-		code: "SWT-R010",
-		summary: `${scheduler}: the order is no permutation of the actors that may act`,
-		why: "Every actor that may act is activated exactly once in an order.",
-		fix: "Return every given actor id once and no other id.",
-		details: { scheduler },
-	};
-}
-
-/**
- * `SWT-R011`: an activated actor has no driver.
- *
- * @param actor - The actor id.
- * @returns The issue.
- */
-export function noDriver(actor: string): SwtIssue {
-	return {
-		code: "SWT-R011",
-		summary: `the activated actor "${actor}" has no driver`,
-		why: "A driver is looked up by actor id, then by kind; an activation without one cannot be answered.",
-		fix: `Add a driver for "${actor}" or for its kind to the driver table.`,
-		details: { actor },
-	};
-}
-
-/**
  * `SWT-R013`: two plugins have a `toAct` hook.
  *
  * @param plugins - The ids of the plugins that have the hook, in load order.
@@ -97,22 +65,6 @@ export function twoToAct(plugins: readonly string[]): SwtIssue {
 		why: "One plugin at most says who is to act now.",
 		fix: "Load only one of them, or remove the hook from the others.",
 		details: { plugins },
-	};
-}
-
-/**
- * `SWT-R014`: the scheduler activates by `toAct`, and no loaded plugin has the hook.
- *
- * @param scheduler - The scheduler id.
- * @returns The issue.
- */
-export function noToAct(scheduler: string): SwtIssue {
-	return {
-		code: "SWT-R014",
-		summary: `${scheduler}: activation \`toAct\` without a plugin that has a \`toAct\` hook`,
-		why: "With this activation only the actors a plugin names are activated, so without the hook nobody would ever act.",
-		fix: "Load a plugin with a `toAct` hook, or choose another activation.",
-		details: { scheduler },
 	};
 }
 
