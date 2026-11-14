@@ -14,10 +14,13 @@ import { Game } from '@swarmtales/sdk';
 import { GameData } from '@swarmtales/contracts';
 import { Kernel } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
 import { ResumeInput } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
 import { ToolOutcome } from '@swarmtales/contracts';
+import { TSchema } from 'typebox';
+import { Type } from 'typebox';
 
 // @public
 export interface CallRecord {
@@ -28,7 +31,57 @@ export interface CallRecord {
 }
 
 // @public
+export function checkDeterminism(game: Game | GameData, driver: () => ActorDriver, options?: ConformanceOptions): Promise<readonly string[]>;
+
+// @public
+export function checkOptionsDocumented(definition: {
+    readonly id: string;
+    readonly options: TSchema;
+}): readonly string[];
+
+// @public
+export function checkPackage(definition: {
+    readonly id: string;
+    readonly package: string;
+}, packageJson: unknown): readonly string[];
+
+// @public
+export function checkSnapshotRoundTrip(game: Game | GameData, driver: () => ActorDriver, cut: number, options?: ConformanceOptions): Promise<readonly string[]>;
+
+// @public
+export type ConformanceOptions = Pick<PlayOptions, "seed" | "prompts" | "installed">;
+
+// @public
 export function fakeDriver(kernel: Kernel, seed: number): ActorDriver;
+
+// @public
+export const guessNumber: MechanicDefinition<"guess-number", Type.TObject<{
+max: Type.TInteger;
+}>, {
+guessed: Type.TObject<{
+by: Type.TString;
+value: Type.TInteger;
+hint: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"high">, Type.TLiteral<"right">]>;
+}>;
+}, "guess">;
+
+// @public
+export const guessNumberHead: MechanicHead<"guess-number", Type.TObject<{
+max: Type.TInteger;
+}>, Type.TObject<{
+secret: Type.TInteger;
+winner: Type.TOptional<Type.TString>;
+}>, never, {
+guessed: Type.TObject<{
+by: Type.TString;
+value: Type.TInteger;
+hint: Type.TUnion<[Type.TLiteral<"low">, Type.TLiteral<"high">, Type.TLiteral<"right">]>;
+}>;
+}, Readonly<Record<symbol, never>>, [], [], [], {
+guess: Type.TObject<{
+value: Type.TInteger;
+}>;
+}>;
 
 // @public
 export const idleDriver: ActorDriver;
