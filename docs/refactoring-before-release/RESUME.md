@@ -1,29 +1,31 @@
 # Resume note of the rewrite (kept by the integrator)
 
-Last update: 2026-11-14, about 10:00 UTC. Read this first when the work is picked up again.
+Last update: 2026-11-14, about 10:40 UTC. Read this first when the work is picked up again.
 
 ## Where things are
 
+- **Old state, frozen:** pull request 156 is squash-merged; `main` is at `a73e6a9` (old platform + oracles + noise
+  floor + chess engine without copyleft). Branch `legacy` sits on the same commit, verified on the remote.
+  **Tag `v0-final` is NOT on the remote yet:** the git gateway of the build session refuses tag pushes. The owner
+  pushes it (`git tag v0-final a73e6a9214767509c042cf572ba87ef586e133cc && git push origin v0-final`). `main` is
+  not cleared before the tag is verified on the remote. Never delete the tag or the branch (the owner does).
 - **New platform:** branch `rewrite/develop` (pushed after every merge). One squash commit per issue.
   Rules for builders: `CLAUDE.md`; specifications `08-m1-spec.md` (+ `08-m1-spec-errata.md`) and `09-m2-spec.md`;
-  decisions `DECISIONS.md` (section 9: A1 to A15).
-- **Merged on `rewrite/develop`:** M1 issues 00 to 32 except 33, follow-ups M1-37 and M1-38, the challenger reviews
-  of waves 1, 2 and of the kernel parts of wave 3; M2-00 (scaffold) and M2-01 (redaction).
-- **In flight (local branches in worktrees under `/home/user/wt/`, not pushed unless said):**
-  `m1/33` (port of `grid-game`, `optimal-referee`, `strategy-brain`), `m1/34` (CLI: `swt run --fake`, `swt log verify`),
-  `m2/02` (contracts of M2; also adds the code letters `T` and `E`).
-- **Old state:** branch `m0/integration` = `main` + oracles + noise floor + chess engine swap (Garbochess-JS in
-  place of the GPL engine; lessons P440 to P445). Its full check was killed by memory in the lint gate while other
-  work ran; it must be run alone (`flock /tmp/swt-check.lock pnpm check`, Node 26, about 25 minutes).
+  decisions `DECISIONS.md` (section 9: A1 to A16).
+- **Merged on `rewrite/develop`:** M1 issues 00 to 34, follow-ups M1-37 and M1-38, the challenger reviews of waves
+  1, 2 and of the kernel parts of wave 3; M2-00 (scaffold) and M2-01 (redaction). Full check green at this state.
+- **In flight (local branches in worktrees under `/home/user/wt/`, not pushed):** `m1/35` (tic-tac-toe teams
+  against its oracle files), `m2/02` (contracts of M2, built and green, waits for its merge).
+- **Pace:** slow (one or two agents) until the usage reset at about 15:00 UTC on 2026-11-14, full width after it.
 
 ## Next steps, in this order
 
-1. Old state: green full check on `m0/integration`, pull request to `main`, squash-merge. Then the freeze: tag
-   `v0-final` and branch `legacy` at that commit, both verified on the remote. Never delete either (the owner does).
-2. Finish M1: merge 33 and 34; then 35 (tic-tac-toe teams against its seven oracle files at level 3), 36 (Hello
-   Game), swap the local conformance stand-ins of 32 and 33 for the testkit's checks, M1 review by a challenger.
-3. The switch: `main` becomes the new platform (root `rewrite/root`), `develop` from `rewrite/develop`.
-4. M2 in the wave order of `09-m2-spec.md` section 10 (next: 02, 17, 11, 12, then 03 to 06).
+1. Finish M1: 35, then 36 (Hello Game), swap the local conformance stand-ins of 32 and 33 for the testkit's
+   checks, M1 review by a challenger. Leftovers of 34: `SWT-C010` is never raised, `swt` has no `bin`, build or
+   smoke gate yet, plugin versions are `0.0.0` in the manifest.
+2. The switch (needs the tag first): `main` becomes the new platform (root `rewrite/root`), `develop` from
+   `rewrite/develop`.
+3. M2 in the wave order of `09-m2-spec.md` section 10 (next: merge 02, then 17, 11, 12, then 03 to 06).
 
 ## Open follow-ups (not blocking)
 
