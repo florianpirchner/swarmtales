@@ -4,6 +4,7 @@
  */
 import type { ExperimentResults } from "../experiment/results.ts";
 import type { ExperimentSpec } from "../experiment/spec.ts";
+import { share } from "../stats/effect.ts";
 import { mean } from "../stats/summary.ts";
 import { ABSENT, code, section, shown, table } from "./format.ts";
 
@@ -44,6 +45,24 @@ function armMeans(results: ExperimentResults, spec: ExperimentSpec): readonly st
 	return table(["Metric", ...spec.arms.map((arm) => code(arm.id))], rows, "no metric");
 }
 
+const SHARES = "## Shares by arm (included runs, 95 % Wilson interval)";
+
+// The share of the included runs of each arm whose primary metric is at or above the spec's threshold (two-outcome
+// measures, decision A10). The section stands in every unpaired series, and wherever the spec names a threshold.
+function shares(results: ExperimentResults, spec: ExperimentSpec): readonly string[] {
+	const threshold = spec.shareAt ?? (spec.tolerance?.kind === "share" ? spec.tolerance.threshold : undefined);
+	if (threshold === undefined) return spec.design === "unpaired" ? section(SHARES, ["none: the spec names no threshold (`shareAt`, or a `tolerance` of the kind `share`)"]) : [];
+	const rows = spec.arms.map((arm) => {
+		const included = new Set(results.runs.filter((run) => run.arm === arm.id && run.status === "included").map((run) => run.run));
+		const numbers = results.values.flatMap((row) => (row.metric === spec.metrics.primary && included.has(row.run) && typeof row.value === "number" ? [row.value] : []));
+		if (numbers.length === 0) return [code(arm.id), ABSENT, "0", ABSENT, ABSENT];
+		const hits = numbers.filter((number) => number >= threshold).length;
+		const { share: part, interval95: [low, high] } = share(hits, numbers.length);
+		return [code(arm.id), String(hits), String(numbers.length), shown(part), `${shown(low)} to ${shown(high)}`];
+	});
+	return section(SHARES, [`A run counts when its ${code(spec.metrics.primary)} is at or above ${shown(threshold)}.`, "", ...table(["Arm", "Runs that count", "n", "Share", "95 % interval"], rows, "no arm")]);
+}
+
 // One row per metric of the spec and set of runs; an estimate the analysis could not compute reads "absent".
 function estimates(results: ExperimentResults, spec: ExperimentSpec): readonly string[] {
 	const rows = [spec.metrics.primary, ...spec.metrics.secondary].flatMap((metric, index) =>
@@ -80,12 +99,12 @@ function tolerance(results: ExperimentResults): readonly string[] {
 }
 
 /**
- * Renders `README.md` of a series: the plan, the run table, the means by arm, the estimates, the pass rule, the
- * guardrails, the tolerance and the deviations.
+ * Renders `README.md` of a series: the plan, the run table, the means by arm, the shares by arm (an unpaired series,
+ * or a spec with a threshold), the estimates, the pass rule, the guardrails, the tolerance and the deviations.
  *
  * @remarks
  * Pure: results and spec in, Markdown out. No number is typed: each comes from `results`, or is the mean of
- * values of `results`. A metric that an arm does not export reads `absent` in the column of that arm, an estimate
+ * values of `results`, or the share of them at the spec's threshold with its Wilson interval. A metric that an arm does not export reads `absent` in the column of that arm, an estimate
  * that could not be computed reads `absent`, and a pass rule without a verdict prints its n and no estimate (the table of the estimates has the number when there is one).
  *
  * @param results - The results of the analysis (`analyse`).
@@ -108,6 +127,7 @@ export function renderSeriesReport(results: ExperimentResults, spec: ExperimentS
 		...section("## Plan", plan(results, spec)),
 		...section("## Runs", runs(results)),
 		...section("## Means by arm (included runs)", armMeans(results, spec)),
+		...shares(results, spec),
 		...section("## Estimates", estimates(results, spec)),
 		...section("## Pass rule", pass(results)),
 		...section("## Guardrails", table(["Metric", "Per", "Arm", "Mean", "Result"], guardrails, "none")),

@@ -64,7 +64,7 @@ export const ExperimentSpecSchema = Type.Object(
 		),
 		arms: Type.Array(Arm, { minItems: 1, description: "The arms" }),
 		seeds: Type.Array(Type.Integer({ minimum: 0, maximum: 4294967295, description: "A seed" }), { minItems: 1, description: "The seeds: blocks of a paired design, run labels of an unpaired one" }),
-		replicates: Type.Integer({ minimum: 1, description: "The runs per arm and seed" }),
+		replicates: Type.Integer({ minimum: 1, maximum: 99, description: "The runs per arm and seed; at most 99, because a replacement has the replicate plus 100" }),
 		design: Type.Union([Type.Literal("paired"), Type.Literal("unpaired"), Type.Literal("replicates")], { description: "How runs are compared: the seed is the block, runs are independent, or one arm and one seed are repeated" }),
 		metrics: Type.Object(
 			{
@@ -88,6 +88,7 @@ export const ExperimentSpecSchema = Type.Object(
 			{ additionalProperties: false, description: "The money; every cap is checked by code before a run starts" },
 		),
 		concurrency: Type.Optional(Type.Integer({ minimum: 1, maximum: 4, description: "The runs in flight at once; 1 when absent" })),
+		shareAt: Type.Optional(Type.Number({ description: "A value of the primary metric: the series report gives, per arm, the share of the included runs at or above it with its Wilson interval. Without it the threshold of a `share` tolerance is taken" })),
 		baseline: Type.Optional(text("The path of a noise-floor file the control values are compared with")),
 		tolerance: Type.Optional(
 			Type.Union(
@@ -131,14 +132,31 @@ export function parseLabFile<S extends TSchema>(schema: S, value: unknown, what:
 }
 
 /**
+ * Refuses a spec whose plan would hold a cell twice: a seed that is listed twice, or an arm id that is. Two runs of
+ * one arm, seed and replicate share a place in the analysis, and the later one would replace the earlier without a word.
+ *
+ * @param spec - The experiment spec.
+ * @param file - The file the spec came from, for the message.
+ * @returns The spec.
+ * @throws LabError `SWT-E001` for the first seed or arm id that is listed twice.
+ */
+export function checkCells(spec: ExperimentSpec, file?: string): ExperimentSpec {
+	const twice = <T>(items: readonly T[]): T | undefined => items.find((item, index) => items.indexOf(item) !== index);
+	const [seed, arm] = [twice(spec.seeds), twice(spec.arms.map((item) => item.id))];
+	if (seed !== undefined) throw badFile("experiment spec", `/seeds lists the seed ${seed} twice; for more runs of one seed raise \`replicates\``, file);
+	if (arm !== undefined) throw badFile("experiment spec", `/arms lists the arm "${arm}" twice`, file);
+	return spec;
+}
+
+/**
  * Parses an experiment spec.
  *
  * @param value - The parsed JSON of a spec file.
  * @param file - The file's path, for the message.
  * @returns The spec.
- * @throws LabError `SWT-E001` when the value does not match `ExperimentSpecSchema`.
+ * @throws LabError `SWT-E001` when the value does not match `ExperimentSpecSchema`, or lists a seed or an arm id twice.
  * @public
  */
 export function parseExperimentSpec(value: unknown, file?: string): ExperimentSpec {
-	return parseLabFile(ExperimentSpecSchema, value, "experiment spec", file);
+	return checkCells(parseLabFile(ExperimentSpecSchema, value, "experiment spec", file), file);
 }

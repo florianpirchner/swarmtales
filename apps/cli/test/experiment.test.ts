@@ -126,14 +126,25 @@ describe("swt experiment", () => {
 		expect(await swt("experiment", "analyse", "series")).toEqual([0, expect.stringMatching(/^guess-small: no pass rule; 4 estimates in /), undefined]);
 	});
 
-	it("stops the series at once when a run leaks (exit 4), and after three runs the ledger refuses (exit 6)", async () => {
+	it("stops the series at once when a run leaks (exit 4), and with the refusal of a ledger that has no room, which costs the experiment nothing", async () => {
 		const plant: EventSink = { write: () => { writeFileSync(join(cwd, "leaky/guess-number-001/notes.txt"), `Authorization: ${KEY}`); } };
 		const leaky = await run("leaky", SPEC, { sinks: [plant] });
 		expect([leaky.code, leaky.out.slice(2), /SWT-E007[^\n]*reported a leak/.test(leaky.err), leaky.err.includes(KEY)]).toEqual([4, [expect.stringMatching(/^run 0 \w+ seed \d replicate 0: failed in leaky\/guess-number-001 \(SWT-X030\)$/)], true, false]);
 		expect([existsSync(join(cwd, "leaky", "guess-number-001", LEAK_FILE)), existsSync(join(cwd, "leaky/guess-number-002")), readExperimentState(join(cwd, "leaky"))?.runs.map((record) => record.status)]).toEqual([true, false, ["stopped"]]);
 		writeFileSync(join(cwd, "full.jsonl"), '{"capUsd":0.04}\n');
-		const refused = await run("refused", { ...SPEC, budget: { ...SPEC.budget, totalUsd: 1 } }, { ledger: "full.jsonl" });
-		expect([refused.code, refused.out.slice(2).map((line) => line.replace(/^run \d \w+ seed \d /, "")), /SWT-E007[^\n]*3 runs in a row/.test(refused.err)]).toEqual([6, [1, 2, 3].map(() => "replicate 0: failed (SWT-C025)"), true]);
+		// A ledger without room refuses the run before any call: the series stops with SWT-C025, charges nothing and keeps the run open.
+		const roomy = { ...SPEC, budget: { ...SPEC.budget, totalUsd: 1 } };
+		await expect(run("refused", roomy, { ledger: "full.jsonl" })).rejects.toMatchObject({ code: "SWT-C025" });
+		expect([readExperimentState(join(cwd, "refused")), lines("full.jsonl")]).toEqual([undefined, ['{"capUsd":0.04}']]);
+		writeFileSync(join(cwd, "full.jsonl"), '{"capUsd":0.05}\n');
+		await expect(run("refused", roomy, { ledger: "full.jsonl" })).rejects.toMatchObject({ code: "SWT-C025" });
+		const one = readExperimentState(join(cwd, "refused"));
+		expect([one?.runs.map((record) => [record.status, record.directory, record.costUsd]), one?.spentUsd]).toEqual([[["included", "guess-number-001", 0.003]], 0.003]);
+		// A ledger that cannot be read may fail after a run too: that failure is charged its cap, three times, and stops the series (exit 6).
+		writeFileSync(join(cwd, "broken.jsonl"), "no ledger\n");
+		const broken = await run("broken", roomy, { ledger: "broken.jsonl" });
+		expect([broken.code, broken.out.slice(2).map((line) => line.replace(/^run \d \w+ seed \d /, "")), /SWT-E007[^\n]*3 runs in a row/.test(broken.err)]).toEqual([6, [1, 2, 3].map(() => "replicate 0: failed (SWT-C025)"), true]);
+		expect(readExperimentState(join(cwd, "broken"))?.spentUsd.toFixed(2)).toBe("0.15");
 	});
 
 	it("refuses before any run: a metric no mechanic exports (E010), a param the family does not declare, a missing file", async () => {

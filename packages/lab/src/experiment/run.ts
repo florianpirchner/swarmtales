@@ -3,83 +3,23 @@
  * The runner of an experiment: plays the plan with an injected player, holds every cap by code before a run
  * starts, and rewrites the state file after every run, so a stopped experiment continues without replaying.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { type MetricDefinition, type RunManifest, RunManifestSchema, SwtError } from "@swarmtales/contracts";
-import { MANIFEST_FILE } from "@swarmtales/runlog";
-import { type Static, Type } from "typebox";
-import { badFile, badRunFolder, capReached, estimateAboveCap, type LabError, notComparable, seriesBroken } from "../errors.ts";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
+import { type MetricDefinition, type RunManifest, SwtError } from "@swarmtales/contracts";
+import { badRunFolder, capReached, estimateAboveCap, notComparable, RunRefused, seriesBroken } from "../errors.ts";
 import type { RunFacts } from "../facts/facts.ts";
 import { readRun } from "../facts/read.ts";
-import { difference } from "./compare.ts";
+import { difference, planMismatch } from "./compare.ts";
 import { bindingHash, checkMetrics, openRuns, type PlannedRun, planRuns, replacementOf } from "./plan.ts";
-import { type ExperimentSpec, ExperimentSpecSchema, parseLabFile } from "./spec.ts";
+import type { ExperimentSpec } from "./spec.ts";
+import { type ExperimentState, manifestOf, readExperimentState, resolveRunFolder, type RunRecord, STATE_FILE } from "./state.ts";
 
-/** The name of the state file in the experiment's folder. */
-export const STATE_FILE = "experiment.json";
 /** The code of a leak (`apps/cli`); a player that throws it stops the experiment at once. */
 const LEAK = "SWT-X030";
 /** The id of the cost meter's limit (`models`, which the lab may not import). */
 const COST_LIMIT = "models.budget";
 const BROKEN = 3;
 const EPSILON = 1e-9;
-
-const Planned = Type.Object(
-	{
-		index: Type.Integer({ minimum: 0, description: "The place in the plan" }),
-		arm: Type.String({ description: "The arm" }),
-		seed: Type.Integer({ minimum: 0, description: "The seed" }),
-		replicate: Type.Integer({ minimum: 0, description: "The replicate" }),
-		params: Type.Record(Type.String(), Type.Unknown({ description: "The value of one param" }), { description: "The param overrides of the arm" }),
-	},
-	{ additionalProperties: false, description: "A planned run" },
-);
-const Played = Type.Object(
-	{
-		planned: Planned,
-		directory: Type.String({ description: "The run folder; empty when the player failed before it named one" }),
-		status: Type.Union([Type.Literal("included"), Type.Literal("excluded"), Type.Literal("stopped")], { description: "Whether the run counts: included, excluded by a rule of the spec, or stopped (failed, unreadable or not comparable)" }),
-		reason: Type.Optional(Type.String({ description: "The exclusion rule, or why the run is stopped" })),
-		replaces: Type.Optional(Type.Integer({ minimum: 0, description: "The plan index of the excluded run this one replaces" })),
-		costUsd: Type.Number({ minimum: 0, description: "What the run cost; its whole cap when the player failed" }),
-	},
-	{ additionalProperties: false, description: "The record of one played run" },
-);
-
-/**
- * The schema of the state file `experiment.json` of an experiment's folder.
- *
- * @public
- */
-export const ExperimentStateSchema = Type.Object(
-	{
-		spec: ExperimentSpecSchema,
-		specHash: Type.String({ description: "The sha256 of the canonical JSON of the spec without `budget` and `concurrency`" }),
-		runs: Type.Array(Played, { description: "The records, in the order the runs ended" }),
-		spentUsd: Type.Number({ minimum: 0, description: "The sum of the costs of the records" }),
-		code: Type.Optional(
-			Type.Object(
-				{ commit: Type.String({ description: "The commit of the platform's source tree, or `unknown`" }), kernelRevision: Type.Integer({ minimum: 1, description: "The runtime revision of the kernel" }) },
-				{ additionalProperties: false, description: "The code that played the first run that was read" },
-			),
-		),
-	},
-	{ additionalProperties: false, description: "The state of an experiment: its spec and the record of every run played so far" },
-);
-
-/**
- * The record of one played run.
- *
- * @public
- */
-export type RunRecord = Readonly<Static<typeof Played>>;
-
-/**
- * The state of an experiment.
- *
- * @public
- */
-export type ExperimentState = Readonly<Static<typeof ExperimentStateSchema>>;
 
 /**
  * What a player reports about one run: its folder and its cost.
@@ -95,8 +35,10 @@ export interface RunOutcome {
 
 /**
  * Plays one planned run under a cost cap and writes its run folder, with the experiment in the manifest. Injected
- * by the command line; the lab does not know how a run is played. A rejection is a failed run; a rejection with
- * an `SwtError` of the code `SWT-X030` (a leak) stops the experiment at once.
+ * by the command line; the lab does not know how a run is played. A rejection is a failed run, charged with its
+ * whole cap; a rejection with an `SwtError` of the code `SWT-X030` (a leak) stops the experiment at once. A rejection
+ * with a {@link RunRefused} says that the run was refused before any model call (the spend ledger has no room): it is
+ * no run, costs nothing, leaves no record, and the experiment stops with that error.
  *
  * @public
  */
@@ -121,31 +63,6 @@ export interface ExperimentOptions {
 	readonly metrics: MetricTable;
 }
 
-function parsed(directory: string, name: string): unknown {
-	try {
-		const value: unknown = JSON.parse(readFileSync(join(directory, name), "utf8"));
-		return value;
-	} catch {
-		throw badFile("file", "it cannot be read as JSON", join(directory, name));
-	}
-}
-
-function manifestOf(directory: string): RunManifest {
-	return parseLabFile(RunManifestSchema, parsed(directory, MANIFEST_FILE), "run manifest", join(directory, MANIFEST_FILE));
-}
-
-/**
- * Reads the state file of an experiment's folder.
- *
- * @param directory - The experiment's folder.
- * @returns The state, or `undefined` when the folder has no state file yet.
- * @throws LabError `SWT-E001` when the file is not JSON or does not match `ExperimentStateSchema`.
- * @public
- */
-export function readExperimentState(directory: string): ExperimentState | undefined {
-	if (!existsSync(join(directory, STATE_FILE))) return undefined;
-	return parseLabFile(ExperimentStateSchema, parsed(directory, STATE_FILE), "experiment state", join(directory, STATE_FILE));
-}
 
 // The first rule of the spec's exclusions that holds for the facts of a run.
 function exclusion(spec: ExperimentSpec, facts: RunFacts): string | undefined {
@@ -162,7 +79,7 @@ function exclusion(spec: ExperimentSpec, facts: RunFacts): string | undefined {
 
 class Series {
 	state: ExperimentState;
-	stop: LabError | undefined;
+	stop: SwtError | undefined;
 	private readonly play: PlayRun;
 	private readonly options: ExperimentOptions;
 	private readonly planLength: number;
@@ -177,7 +94,7 @@ class Series {
 		this.options = options;
 		this.planLength = planRuns(state.spec).length;
 		this.queue = openRuns(state.spec, state.runs);
-		for (const record of state.runs) if (record.status !== "stopped") this.first(manifestOf(record.directory));
+		for (const record of state.runs) if (record.status !== "stopped") this.first(manifestOf(resolveRunFolder(options.directory, record.directory)));
 		// The failures in a row at the end of an earlier call still count: a continue of a broken series pays one run, not three.
 		this.failures = state.runs.length - 1 - state.runs.findLastIndex((record) => record.status === "included");
 	}
@@ -187,8 +104,8 @@ class Series {
 		if (!this.firsts.has(arm)) this.firsts.set(arm, manifest);
 	}
 
-	// Why a finished run cannot belong to this series: another experiment, another planned run, or not comparable.
-	private mismatch(planned: PlannedRun, manifest: RunManifest, directory: string): LabError | undefined {
+	// Why a finished run cannot belong to this series: another experiment, another planned run, not played as the spec plans it, or not comparable.
+	private mismatch(planned: PlannedRun, manifest: RunManifest, directory: string): SwtError | undefined {
 		const { spec, specHash } = this.state;
 		if (manifest.experiment?.id !== spec.id || manifest.experiment.specHash !== specHash) return badRunFolder(directory, `the run belongs to another experiment: its manifest does not name "${spec.id}" with the spec hash ${specHash}`);
 		if (manifest.experiment.arm !== planned.arm || manifest.seed !== planned.seed || manifest.replicate !== planned.replicate)
@@ -197,19 +114,20 @@ class Series {
 			const field = difference(manifest, other);
 			if (field !== undefined) return notComparable(manifest.run.id, other.run.id, field);
 		}
-		return undefined;
+		return planMismatch(spec, planned, manifest);
 	}
 
 	private judge(base: Omit<RunRecord, "status" | "reason">): RunRecord {
+		const folder = resolveRunFolder(this.options.directory, base.directory);
 		let facts: RunFacts;
 		try {
-			facts = readRun(base.directory, this.options.metrics);
+			facts = readRun(folder, this.options.metrics);
 		} catch (error) {
 			// Any failure is a record: a run that was paid for never leaves the state file, whatever broke while reading it.
 			return { ...base, status: "stopped", reason: error instanceof Error ? error.message : String(error) };
 		}
-		const manifest = manifestOf(base.directory);
-		const fatal = this.mismatch(base.planned, manifest, base.directory);
+		const manifest = manifestOf(folder);
+		const fatal = this.mismatch(base.planned, manifest, folder);
 		if (fatal !== undefined) {
 			this.stop ??= fatal;
 			return { ...base, status: "stopped", reason: fatal.message };
@@ -220,19 +138,30 @@ class Series {
 		return rule === undefined ? { ...base, status: "included" } : { ...base, status: "excluded", reason: rule };
 	}
 
-	private async one(planned: PlannedRun): Promise<RunRecord> {
+	// A player that rejected: no record when the run was refused before any call, a leak stops the series, and any failure is charged the whole cap.
+	private failed(base: Omit<RunRecord, "status" | "reason">, error: unknown): RunRecord | undefined {
+		if (error instanceof RunRefused) {
+			this.stop ??= error;
+			return undefined;
+		}
+		if (error instanceof SwtError && error.code === LEAK) this.stop ??= seriesBroken(`the run of arm "${base.planned.arm}" at seed ${base.planned.seed} reported a leak`);
+		return { ...base, status: "stopped", reason: error instanceof Error ? error.message : String(error) };
+	}
+
+	// The record of one run; none when the spend ledger refused the run before any call (it cost nothing and stays open).
+	private async one(planned: PlannedRun): Promise<RunRecord | undefined> {
 		const { spec, specHash } = this.state;
 		const replaces = planned.index >= this.planLength ? { replaces: planned.index - this.planLength } : {};
 		let outcome: RunOutcome;
 		try {
 			outcome = await this.play(planned, spec.budget.perRunUsd, { id: spec.id, specHash });
 		} catch (error) {
-			if (error instanceof SwtError && error.code === LEAK) this.stop ??= seriesBroken(`the run of arm "${planned.arm}" at seed ${planned.seed} reported a leak`);
-			return { planned, directory: "", status: "stopped", reason: error instanceof Error ? error.message : String(error), costUsd: spec.budget.perRunUsd, ...replaces };
+			return this.failed({ planned, directory: "", costUsd: spec.budget.perRunUsd, ...replaces }, error);
 		}
 		// A cost that is no amount would make every later sum pass the cap check: the run counts with its whole cap.
-		if (!Number.isFinite(outcome.costUsd) || outcome.costUsd < 0) return { planned, directory: outcome.directory, status: "stopped", reason: `the player reported the cost ${String(outcome.costUsd)}, which is no amount`, costUsd: spec.budget.perRunUsd, ...replaces };
-		return this.judge({ planned, ...outcome, ...replaces });
+		const directory = relative(resolve(this.options.directory), resolve(outcome.directory));
+		if (!Number.isFinite(outcome.costUsd) || outcome.costUsd < 0) return { planned, directory, status: "stopped", reason: `the player reported the cost ${String(outcome.costUsd)}, which is no amount`, costUsd: spec.budget.perRunUsd, ...replaces };
+		return this.judge({ planned, directory, costUsd: outcome.costUsd, ...replaces });
 	}
 
 	private add(record: RunRecord): void {
@@ -249,15 +178,17 @@ class Series {
 		while (this.stop === undefined) {
 			const planned = this.queue.shift();
 			if (planned === undefined) return;
-			const reservedUsd = this.inFlight * perRunUsd;
-			if (this.state.spentUsd + reservedUsd + perRunUsd > totalUsd + EPSILON) {
-				this.stop = capReached(this.state.spentUsd, reservedUsd, perRunUsd, totalUsd);
+			// A run may report more than its cap (the meter stops before the next request, not inside one): once one did, every run reserves the largest cost seen.
+			const needUsd = Math.max(perRunUsd, ...this.state.runs.map((record) => record.costUsd));
+			const reservedUsd = this.inFlight * needUsd;
+			if (this.state.spentUsd + reservedUsd + needUsd > totalUsd + EPSILON) {
+				this.stop = capReached(this.state.spentUsd, reservedUsd, needUsd, totalUsd);
 				return;
 			}
 			this.inFlight++;
 			const record = await this.one(planned);
 			this.inFlight--;
-			this.add(record);
+			if (record !== undefined) this.add(record);
 		}
 	}
 }
@@ -267,9 +198,15 @@ class Series {
  *
  * @remarks
  * Every cap is checked by code before a run starts. A run starts only when what is spent, plus the per-run cap of
- * every run in flight, plus its own per-run cap fits under `budget.totalUsd`; no run is stopped half way. A run
+ * every run in flight, plus its own per-run cap fits under `budget.totalUsd`; no run is stopped half way. The runner
+ * cannot stop a player inside a run: when a run reported more than its cap, every later run (and every run in flight)
+ * reserves the largest cost a record holds in place of the per-run cap, so one overrun is not repeated into the total. A run
  * whose facts meet a rule of `exclusions` is replaced once (replicate plus 100). A player that fails, or reports a
- * cost that is no amount, counts with its whole cap. A run whose folder cannot be read keeps a record with its cost.
+ * cost that is no amount, counts with its whole cap; a run that was refused before any call (the player rejects
+ * with a `RunRefused`) costs nothing, has no record and stops the experiment with that error, so it is played by the next call.
+ * A run whose folder cannot be read keeps a record with its cost. A record names its run folder relative to
+ * `options.directory` (an absolute path of an earlier state file still reads), so a moved folder is continued.
+ * A finished run is checked against the spec: its game has the params of its arm, its actors the model of the spec, its budget is `budget.perRunUsd`.
  * Of a state file only the records are trusted: the spec is the caller's and what is spent is the sum of the records. The file
  * is bound to the spec without `budget` and `concurrency` (decision A18), so a series continues under a changed cap or pace.
  * The failures in a row at the end of an earlier call count on. When the experiment stops, the runs in flight end first and the state file holds them.
@@ -280,9 +217,12 @@ class Series {
  * @returns The state after the last run of the plan.
  * @throws LabError `SWT-E010` a metric of the spec that no mechanic of `options.metrics` exports; `SWT-E003` the
  * estimate of the plan is above the cap; `SWT-E004` the cap was reached before a run; `SWT-E005` a run does not
- * compare with the first of its arm or of another arm; `SWT-E006` the state file is of another spec, or a run
+ * compare with the first of its arm or of another arm, or was not played with the model, the params of its arm and
+ * the per-run cap of the spec; `SWT-E002` the game of a run declares no param its arm overrides; `SWT-E001` a spec
+ * that lists a seed twice; `SWT-E006` the state file is of another spec, or a run
  * folder names another experiment or another planned run; `SWT-E007` three runs in a row were excluded or failed,
  * or a run reported a leak; `SWT-E001` an unreadable state file.
+ * @throws RunRefused the player's, when a run was refused before any model call (`SWT-C025` of the spend ledger).
  * @example
  * ```ts
  * const state = await runExperiment(spec, play, { directory: "runs/quarry-open-quarries", metrics });

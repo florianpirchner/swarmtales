@@ -5,15 +5,15 @@
  * run, three failed runs stop the series, an excluded run is replaced once, and runs that do not compare stop it.
  */
 import { generateKeyPairSync } from "node:crypto";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
 import { type Envelope, type RunEnd, type RunManifest, SwtError } from "@swarmtales/contracts";
 import { openRunFolder } from "@swarmtales/runlog";
 import { afterEach, describe, expect, it } from "vitest";
 import { bindingHash } from "../src/experiment/plan.ts";
-import { comparable, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun, planRuns, readExperimentState, runExperiment } from "../src/index.ts";
+import { comparable, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun, planRuns, readExperimentState, runExperiment, RunRefused } from "../src/index.ts";
 
 const HASH = "a".repeat(64);
 const GAME = { id: "toy" };
@@ -33,18 +33,18 @@ const SPEC: ExperimentSpec = {
 };
 
 /** The manifest a player writes for a planned run; `model` is the resolved model id of its one actor. */
-function manifestOf(run: Pick<PlannedRun, "arm" | "seed" | "replicate">, experiment = { id: SPEC.id, specHash: bindingHash(SPEC) }, model = "claude-haiku"): RunManifest {
+function manifestOf(run: Pick<PlannedRun, "arm" | "seed" | "replicate"> & Partial<PlannedRun>, experiment = { id: SPEC.id, specHash: bindingHash(SPEC) }, model = "claude-haiku", step: Step = {}): RunManifest {
 	return {
 		format: "swarmtales-run", version: 1, run: { id: `${run.arm}-s${run.seed}-r${run.replicate}`, startedAt: "2026-11-14T10:00:00.000Z", purpose: "pilot" },
-		game: { id: "toy", hash: jsonHash(GAME), params: {} }, kernel: { revision: 3, version: "0.0.0", commit: "c0ffee", node: "26.13.0" },
+		game: { id: "toy", hash: jsonHash(GAME), params: step.params ?? { open: false, ...run.params } }, kernel: { revision: 3, version: "0.0.0", commit: "c0ffee", node: "26.13.0" },
 		scheduler: { id: "turns", revision: 1, determinism: "seeded", options: {}, optionsHash: HASH },
 		plugins: [{ id: "guess-number", package: "@swarmtales/testkit", version: "0.0.0", optionsHash: HASH }],
-		actors: [{ id: "resident:A01", kind: "resident", grant: "resident", driver: "@swarmtales/models/resident", textHashes: { system: HASH, toolSpecs: HASH }, model: { provider: "anthropic", requestedId: "haiku", resolvedId: model, params: { temperature: "provider-default", topP: "provider-default", maxOutputTokens: 4000, thinking: "medium" }, pricing: "pi-ai@1" } }],
-		texts: {}, seed: run.seed, replicate: run.replicate, limits: { maxTicks: 30, budgetUsd: 0.1 }, naming: 1, log: { format: "swarmtales.events", version: 1 }, experiment: { ...experiment, arm: run.arm },
+		actors: [{ id: "resident:A01", kind: "resident", grant: "resident", driver: "@swarmtales/models/resident", textHashes: { system: HASH, toolSpecs: HASH }, model: { provider: "anthropic", requestedId: step.requested ?? "haiku", resolvedId: model, params: { temperature: "provider-default", topP: "provider-default", maxOutputTokens: 4000, thinking: "medium" }, pricing: "pi-ai@1" } }],
+		texts: {}, seed: run.seed, replicate: run.replicate, limits: { maxTicks: 30, budgetUsd: step.budgetUsd ?? 0.1 }, naming: 1, log: { format: "swarmtales.events", version: 1 }, experiment: { ...experiment, arm: run.arm },
 	};
 }
 
-interface Step { readonly reason?: RunEnd["reason"]; readonly costUsd?: number; readonly model?: string; readonly experiment?: string; readonly fail?: boolean | "leak"; readonly limit?: string; readonly extra?: readonly (readonly [source: string, type: string, payload: unknown])[] }
+interface Step { readonly reason?: RunEnd["reason"]; readonly costUsd?: number; readonly model?: string; readonly experiment?: string; readonly fail?: boolean | "leak" | "ledger"; readonly params?: Readonly<Record<string, unknown>>; readonly requested?: string; readonly budgetUsd?: number; readonly limit?: string; readonly extra?: readonly (readonly [source: string, type: string, payload: unknown])[] }
 const roots: string[] = [];
 afterEach(() => {
 	for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
@@ -59,6 +59,13 @@ function linesOf(step: Step, seed: number, reason: RunEnd["reason"]): readonly (
 	return [[0, "kernel", "run_started", { seed }], [0, SOURCE, "scored", seed * 10], ...middle, [1, "kernel", "run_ended", { reason }]];
 }
 
+/** What a failing player rejects with: a leak, the refusal of the spend ledger before any call, or any other failure. */
+function failure(kind: boolean | "leak" | "ledger"): SwtError {
+	const issue = { summary: "the player failed", why: "A test.", fix: "None." };
+	if (kind === "ledger") return new RunRefused({ code: "SWT-C025", ...issue });
+	return new SwtError({ code: kind === "leak" ? "SWT-X030" : "SWT-X001", ...issue });
+}
+
 /** A fake player: writes a finished run folder per run, as `script` says; counts its calls and the runs in flight. */
 function player(directory: string, script: (run: PlannedRun, call: number) => Step = () => ({})) {
 	const seen = { calls: new Array<PlannedRun>(), flying: 0, most: 0 };
@@ -67,8 +74,8 @@ function player(directory: string, script: (run: PlannedRun, call: number) => St
 		seen.most = Math.max(seen.most, ++seen.flying);
 		await Promise.resolve();
 		seen.flying--;
-		if (step.fail !== undefined) throw new SwtError({ code: step.fail === "leak" ? "SWT-X030" : "SWT-X001", summary: "the player failed", why: "A test.", fix: "None." });
-		const manifest = manifestOf(run, { id: step.experiment ?? experiment.id, specHash: experiment.specHash }, step.model);
+		if (step.fail !== undefined) throw failure(step.fail);
+		const manifest = manifestOf(run, { id: step.experiment ?? experiment.id, specHash: experiment.specHash }, step.model, step);
 		let clock = Date.UTC(2026, 10, 14, 10);
 		const folder = openRunFolder(join(directory, manifest.run.id), manifest, { now: () => new Date((clock += 1000)), keys: KEYS, game: GAME, texts: {} });
 		const reason = step.reason ?? "ticks";
@@ -240,13 +247,77 @@ describe("runExperiment under attack (M2 review B)", () => {
 		expect(state.runs).toHaveLength(7);
 	});
 
-	// Finding B5 (open): the cap of the experiment holds only while every run stays under its own cap. The meter of a
-	// run stops before the next request, so a run may report more than `perRunUsd`, and the sum then passes `totalUsd`.
-	it.fails("B5: the sum of what is spent never passes totalUsd, also when a run reports more than its own cap", async () => {
+	// Finding B5: the meter of a run stops before the next request, so a run may report more than `perRunUsd`. Once one
+	// did, every run reserves the largest cost seen, so the overrun is not repeated into the total.
+	it("B5: the sum of what is spent never passes totalUsd, also when a run reports more than its own cap", async () => {
 		const directory = root();
-		const { play } = player(directory, () => ({ costUsd: 0.15 }));
-		await refusal(runExperiment(tight, play, { directory, metrics: METRICS }));
+		const { play, seen } = player(directory, () => ({ costUsd: 0.15 }));
+		expect(await refusal(runExperiment(tight, play, { directory, metrics: METRICS }))).toMatch(/^SWT-E004 .*0\.1500 spent \+ 0\.00 reserved \+ 0\.15 for the run is above 0\.25/);
 		expect(readExperimentState(directory)?.spentUsd).toBeLessThanOrEqual(0.25 + 1e-9);
+		expect(seen.calls).toHaveLength(1);
+		const two = player(root(), () => ({ costUsd: 0.15 }));
+		expect(await refusal(runExperiment({ ...tight, concurrency: 2, budget: { ...tight.budget, totalUsd: 0.5 } }, two.play, { directory: roots.at(-1) ?? "", metrics: METRICS }))).toMatch(/^SWT-E004/);
+		expect(readExperimentState(roots.at(-1) ?? "")?.spentUsd).toBeLessThanOrEqual(0.5 + 1e-9);
+	});
+});
+
+describe("runExperiment, follow-ups of the M2 reviews", () => {
+	it("records a run folder relative to the experiment's folder, so a moved folder continues; an absolute path of an old state file still reads", async () => {
+		const spec = { ...SPEC, budget: { ...SPEC.budget, totalUsd: 0.25 } };
+		const directory = root();
+		const first = player(directory, () => ({ costUsd: 0.06 }));
+		expect(await refusal(runExperiment(spec, first.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E004/);
+		const names = readExperimentState(directory)?.runs.map((run) => run.directory) ?? [];
+		expect(names).toEqual(planRuns(spec).slice(0, 3).map((run) => `${run.arm}-s${run.seed}-r${run.replicate}`));
+		const moved = join(root(), "moved");
+		renameSync(directory, moved);
+		const raised = { ...spec, budget: { ...spec.budget, totalUsd: 1 } };
+		const second = player(moved);
+		const state = await runExperiment(raised, second.play, { directory: moved, metrics: METRICS });
+		expect([second.seen.calls.length, state.runs.map((run) => run.status), state.runs.some((run) => isAbsolute(run.directory))]).toEqual([1, ["included", "included", "included", "included"], false]);
+		// An old state file holds absolute paths: they read where they are, and beside the state file after a move.
+		const old = (base: string): void => {
+			writeFileSync(join(moved, "experiment.json"), JSON.stringify({ ...state, runs: state.runs.map((run) => ({ ...run, directory: join(base, run.directory) })) }));
+		};
+		for (const base of [moved, directory]) {
+			old(base);
+			expect((await runExperiment(raised, second.play, { directory: moved, metrics: METRICS })).runs).toHaveLength(4);
+		}
+		expect(second.seen.calls).toHaveLength(1);
+	});
+
+	it("refuses a finished run that was not played as the spec plans it: a param of the arm (E002, E005), the model and the budget (E005)", async () => {
+		const open = (step: Step) => (run: PlannedRun): Step => (run.arm === "open" ? step : {});
+		const stopsWith = async (script: (run: PlannedRun) => Step, spec: ExperimentSpec = SPEC): Promise<string> => {
+			const directory = root();
+			const outcome = await refusal(runExperiment(spec, player(directory, script).play, { directory, metrics: METRICS }));
+			expect(readExperimentState(directory)?.runs.at(-1)?.status).toBe("stopped");
+			return outcome;
+		};
+		expect(await stopsWith(open({ params: { closed: true } }))).toMatch(/^SWT-E002 .*arm "open" overrides the param "open", which the game does not declare/);
+		expect(await stopsWith(open({ params: { open: false } }))).toMatch(/^SWT-E005 .*game\.params\.open is false, the spec has true/);
+		expect(await stopsWith(() => ({ requested: "sonnet" }))).toMatch(/^SWT-E005 .*actors\[0\]\.model\.requestedId is "sonnet", the spec has "haiku"/);
+		expect(await stopsWith(() => ({ budgetUsd: 0.4 }))).toMatch(/^SWT-E005 .*limits\.budgetUsd is 0\.4, the spec has 0\.1/);
+		expect(await stopsWith(() => ({}), { ...SPEC, model: { ...SPEC.model, thinking: "high" } })).toMatch(/^SWT-E005 .*model\.params\.thinking is "medium", the spec has "high"/);
+		expect(await stopsWith(() => ({}), { ...SPEC, model: { ...SPEC.model, provider: "openrouter" } })).toMatch(/^SWT-E005 .*model\.provider is "anthropic"/);
+	});
+
+	it("does not charge a run the spend ledger refused before any call: no record, the series stops with the refusal and plays the run on a continue", async () => {
+		const directory = root();
+		const full = player(directory, (_run, call) => (call === 2 ? { fail: "ledger" } : {}));
+		expect(await refusal(runExperiment(SPEC, full.play, { directory, metrics: METRICS }))).toMatch(/^SWT-C025 /);
+		const stopped = readExperimentState(directory);
+		expect([full.seen.calls.length, stopped?.runs.map((run) => run.status), stopped?.spentUsd]).toEqual([2, ["included"], 0.01]);
+		const healthy = player(directory);
+		const state = await runExperiment(SPEC, healthy.play, { directory, metrics: METRICS });
+		expect([healthy.seen.calls, state.runs.length, state.spentUsd.toFixed(2)]).toEqual([planRuns(SPEC).slice(1), 4, "0.04"]);
+		// Every other failure of the player is charged its whole cap, also one that only carries the ledger's code.
+		const broken = player(root(), (_run, call) => (call === 1 ? {} : { fail: true }));
+		await refusal(runExperiment(SPEC, broken.play, { directory: roots.at(-1) ?? "", metrics: METRICS }));
+		expect(readExperimentState(roots.at(-1) ?? "")?.runs.map((run) => run.costUsd)).toEqual([0.01, 0.1, 0.1, 0.1]);
+		const coded: PlayRun = () => Promise.reject(new SwtError({ code: "SWT-C025", summary: "the ledger cannot be read", why: "A test.", fix: "None." }));
+		expect(await refusal(runExperiment(SPEC, coded, { directory: root(), metrics: METRICS }))).toMatch(/^SWT-E007/);
+		expect(readExperimentState(roots.at(-1) ?? "")?.spentUsd.toFixed(1)).toBe("0.3");
 	});
 });
 

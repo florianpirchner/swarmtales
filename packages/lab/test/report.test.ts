@@ -192,10 +192,18 @@ describe("the series report", () => {
 		expect(renderSeriesReport(RESULTS, { ...SPEC, exclusions: ["missed-decision", "error-end"] })).toContain(`|\n\n${said}, so the rows over the included runs are conditioned on their play.`);
 	});
 
-	// Finding B12 (open): section 8.2 and decision A10 ask the series README of econ-lab for the share of locked tables
-	// (cooperation 1.00) per arm with its Wilson interval. Neither the spec nor the results have a place for it.
-	it.fails("B12: the report of an unpaired series gives the share of runs at a threshold per arm, with its Wilson interval", () => {
+	// Finding B12: section 8.2 and decision A10 ask the series README of econ-lab for the share of locked tables
+	// (cooperation 1.00) per arm with its Wilson interval. The threshold is the spec's `shareAt`, or that of a `share` tolerance.
+	it("B12: the report of an unpaired series gives the share of runs at a threshold per arm, with its Wilson interval", () => {
 		expect(renderSeriesReport(RESULTS, { ...SPEC, design: "unpaired" })).toMatch(/Wilson/);
+		const heading = "## Shares by arm (included runs, 95 % Wilson interval)";
+		expect(renderSeriesReport(RESULTS, { ...SPEC, design: "unpaired" })).toContain(`${heading}\n\nnone: the spec names no threshold`);
+		const rows = ["A run counts when its `toy.score` is at or above 5.", "", "| Arm | Runs that count | n | Share | 95 % interval |", "| --- | --- | --- | --- | --- |", "| `control` | 1 | 2 | 0.5 | 0.09453 to 0.9055 |", "| `open` | 1 | 1 | 1 | 0.2065 to 1 |"].join("\n");
+		expect(renderSeriesReport(RESULTS, { ...SPEC, design: "unpaired", shareAt: 5 })).toContain(`${heading}\n\n${rows}\n\n## Estimates`);
+		expect(renderSeriesReport(RESULTS, { ...SPEC, tolerance: { kind: "share", threshold: 5 } })).toContain(rows);
+		expect(renderSeriesReport(RESULTS, { ...SPEC, shareAt: 100 })).toContain("| `control` | 0 | 2 | 0 | 0 to 0.6576 |");
+		expect(renderSeriesReport({ ...RESULTS, values: [] }, { ...SPEC, shareAt: 5 })).toContain("| `open` | absent | 0 | absent | absent |");
+		expect(renderSeriesReport(RESULTS, SPEC)).not.toContain(heading);
 	});
 
 	it("prints absent in the column of an arm that does not export a metric, and for an estimate that is missing", () => {

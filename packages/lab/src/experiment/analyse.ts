@@ -11,7 +11,7 @@ import { shareWithinNoise, withinNoise } from "../stats/tolerance.ts";
 import type { NoiseFloor } from "./noise-schema.ts";
 import { checkMetrics, openRuns, REPLACEMENT, specMetrics } from "./plan.ts";
 import { type ExperimentResults, parseExperimentResults } from "./results.ts";
-import type { ExperimentState, RunRecord } from "./run.ts";
+import type { ExperimentState, RunRecord } from "./state.ts";
 import type { ExperimentSpec } from "./spec.ts";
 
 type Over = "included" | "finished";
@@ -154,10 +154,10 @@ function toleranceOf(spec: ExperimentSpec, rows: readonly Row[], baseline: Noise
  * @returns The results, valid against `ExperimentResultsSchema`.
  * @throws LabError `SWT-E011` when a planned run, or the replacement of an excluded one, has no record yet;
  * `SWT-E010` when no run of the facts has a metric of the spec; `SWT-E001` when the baseline holds another metric or
- * another arm than the one the tolerance compares.
+ * another arm than the one the tolerance compares, or when the spec lists a seed or an arm id twice.
  * @example
  * ```ts
- * const results = analyse(state, state.runs.filter((run) => run.status !== "stopped").map((run) => readRun(run.directory, metrics)));
+ * const results = analyse(state, state.runs.filter((run) => run.status !== "stopped").map((run) => readRun(resolveRunFolder(directory, run.directory), metrics)));
  * console.log(results.pass?.verdict);
  * ```
  *

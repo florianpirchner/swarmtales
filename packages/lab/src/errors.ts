@@ -10,8 +10,8 @@ import { SwtError } from "@swarmtales/contracts";
  *
  * @remarks
  * `SWT-E001` a file of the lab does not match its schema; `SWT-E002` an arm overrides a param the game does not
- * declare; `SWT-E003` the plan's estimate is above the cap; `SWT-E004` the cap was reached between two runs;
- * `SWT-E005` two runs do not compare; `SWT-E006` a run folder is unfinished, unverified or of another experiment;
+ * declare (read from the manifest of a finished run); `SWT-E003` the plan's estimate is above the cap; `SWT-E004` the cap was reached between two runs;
+ * `SWT-E005` two runs do not compare, or a run was not played with the model, the params and the cap of the spec; `SWT-E006` a run folder is unfinished, unverified or of another experiment;
  * `SWT-E007` a broken series; `SWT-E010` a metric no loaded mechanic exports; `SWT-E011` an analysis before every
  * planned run has a status. `SWT-E008` and `SWT-E009` are not used.
  *
@@ -27,6 +27,23 @@ import { SwtError } from "@swarmtales/contracts";
  * @public
  */
 export class LabError extends SwtError {}
+
+/**
+ * What a player rejects with when a run was refused before any model call, for example because the spend ledger has
+ * no room for its cap. It carries the issues of the refusal. The runner charges nothing for such a run and writes no
+ * record: the experiment stops with this error, and the run is played by the next call.
+ *
+ * @example
+ * ```ts
+ * const play: PlayRun = async (run, capUsd) => {
+ * 	if (!ledger.fits(capUsd)) throw new RunRefused({ code: "SWT-C025", summary: "the spend ledger has no room", why: "The cap of the milestone is held by code.", fix: "Raise the cap." });
+ * 	return playLive(run, capUsd);
+ * };
+ * ```
+ *
+ * @public
+ */
+export class RunRefused extends SwtError {}
 
 const issue = (code: string, summary: string, why: string, fix: string, file?: string): LabError =>
 	new LabError(file === undefined ? { code, summary, why, fix } : { code, summary, where: { file }, why, fix });
@@ -89,6 +106,20 @@ export function capReached(spentUsd: number, reservedUsd: number, perRunUsd: num
  */
 export function notComparable(run: string, other: string, field: string): LabError {
 	return issue("SWT-E005", `run ${run} does not compare with run ${other}: ${field} differs`, "Runs are pooled only when kernel, scheduler, model, pricing and tool texts are the same.", "Play the series with one checkout and one model id; do not pool the two runs.");
+}
+
+/**
+ * `SWT-E005`: a finished run was not played as the spec plans it, so it does not compare with the planned runs.
+ *
+ * @param run - The id of the run.
+ * @param field - The manifest field that differs from the spec.
+ * @param found - The value of the manifest.
+ * @param planned - The value the spec plans.
+ * @returns The error.
+ */
+export function notAsPlanned(run: string, field: string, found: unknown, planned: unknown): LabError {
+	const shown = (value: unknown): string => (value === undefined ? "nothing" : JSON.stringify(value));
+	return issue("SWT-E005", `run ${run} does not compare with the runs the spec plans: ${field} is ${shown(found)}, the spec has ${shown(planned)}`, "Runs are pooled only when kernel, scheduler, model, pricing and tool texts are the same, and each is played with the model of the spec, the params of its arm and the per-run cap.", "Play every run of the series from its spec with `swt experiment run`; do not pool the run.");
 }
 
 /**

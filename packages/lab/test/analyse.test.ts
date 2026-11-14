@@ -7,7 +7,7 @@
 import { jsonHash } from "@swarmtales/chain";
 import { SwtError } from "@swarmtales/contracts";
 import { describe, expect, it } from "vitest";
-import { analyse, type ExperimentSpec, type ExperimentState, type FactValue, type NoiseFloor, planRuns, type RunFacts, type RunRecord, summarize } from "../src/index.ts";
+import { analyse, type ExperimentSpec, type ExperimentState, type FactValue, type NoiseFloor, parseExperimentSpec, planRuns, type RunFacts, type RunRecord, summarize } from "../src/index.ts";
 
 const BASE: ExperimentSpec = {
 	format: "swarmtales-experiment", version: 1, id: "toy", question: "Does it?", purpose: "pilot", game: "games/toy/game.ts", model: { provider: "anthropic", id: "haiku" },
@@ -131,10 +131,26 @@ describe("analyse", () => {
 		expect(results({ ...SPEC, design: "unpaired" }, cells).pass).toMatchObject({ estimate: -13, verdict: "not-kept" });
 	});
 
-	// Finding B8 (open): a seed listed twice, or 100 replicates and more, share one cell key, and the later run replaces the earlier one without a word.
-	it.fails("B8: a spec with a seed listed twice is refused, or both runs of the seed count", () => {
-		const twice = results({ ...SPEC, seeds: [1, 1, 2], pass: { contrast: ["open", "control"], sign: "positive", minN: 2 } }, [["control", 1, 10], ["control", 1, 20], ["control", 2, 30], ["open", 1, 11], ["open", 1, 21], ["open", 2, 31]]);
-		expect(twice.pass?.n).toBe(3);
+	// Finding B8: a seed listed twice, or 100 replicates and more, would share one cell key, and the later run would replace the earlier one without a word.
+	it("B8: a spec with a seed listed twice is refused, or both runs of the seed count", () => {
+		const twice: ExperimentSpec = { ...SPEC, seeds: [1, 1, 2], pass: { contrast: ["open", "control"], sign: "positive", minN: 2 } };
+		const coded = (run: () => unknown): string => {
+			try {
+				run();
+			} catch (error) {
+				return error instanceof SwtError ? `${error.code} ${error.message}` : String(error);
+			}
+			return "no error";
+		};
+		const refused = /^SWT-E001 .*\/seeds lists the seed 1 twice/;
+		expect(coded(() => results(twice, [["control", 1, 10], ["control", 1, 20], ["control", 2, 30], ["open", 1, 11], ["open", 1, 21], ["open", 2, 31]]))).toMatch(refused);
+		expect(coded(() => parseExperimentSpec(twice, "twice.json"))).toMatch(refused);
+		expect(coded(() => planRuns(twice))).toMatch(refused);
+		expect(coded(() => parseExperimentSpec({ ...SPEC, arms: [...SPEC.arms, { id: "open", params: {} }] }))).toMatch(/^SWT-E001 .*lists the arm "open" twice/);
+		expect(coded(() => parseExperimentSpec({ ...SPEC, replicates: 100 }))).toMatch(/^SWT-E001 .*\/replicates/);
+		// The supported way to more runs of one seed: replicates, and every run counts.
+		const both = results({ ...twice, seeds: [1, 2], replicates: 2 }, [["control", 1, 10], ["control", 1, 20, "included", 1], ["control", 2, 30], ["control", 2, 30, "included", 1], ["open", 1, 11], ["open", 1, 21, "included", 1], ["open", 2, 31], ["open", 2, 31, "included", 1]]);
+		expect(both.pass?.n).toBe(4);
 	});
 
 	it("refuses an analysis before every planned run, and the replacement of an excluded one, has a status (E011)", () => {

@@ -167,6 +167,7 @@ export const ExperimentSpecSchema: Type.TObject<{
         estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
     }>;
     concurrency: Type.TOptional<Type.TInteger>;
+    shareAt: Type.TOptional<Type.TNumber>;
     baseline: Type.TOptional<Type.TString>;
     tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
         kind: Type.TLiteral<"mean">;
@@ -229,6 +230,7 @@ export const ExperimentStateSchema: Type.TObject<{
             estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
         }>;
         concurrency: Type.TOptional<Type.TInteger>;
+        shareAt: Type.TOptional<Type.TNumber>;
         baseline: Type.TOptional<Type.TString>;
         tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
             kind: Type.TLiteral<"mean">;
@@ -363,6 +365,9 @@ export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: 
 export function renderSeriesReport(results: ExperimentResults, spec: ExperimentSpec): string;
 
 // @public
+export function resolveRunFolder(directory: string, recorded: string): string;
+
+// @public
 export function runExperiment(spec: ExperimentSpec, play: PlayRun, options: ExperimentOptions): Promise<ExperimentState>;
 
 // @public
@@ -392,6 +397,9 @@ export interface RunOutcome {
 //
 // @public
 export type RunRecord = Readonly<Static<typeof Played>>;
+
+// @public
+export class RunRefused extends SwtError {}
 
 // @public
 export function share(hits: number, n: number): {

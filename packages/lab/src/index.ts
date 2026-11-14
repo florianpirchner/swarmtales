@@ -4,7 +4,7 @@
  *
  * @packageDocumentation
  */
-export { LabError } from "./errors.ts";
+export { LabError, RunRefused } from "./errors.ts";
 export { type NoiseFloor, NoiseFloorSchema, type NoiseSummary, parseNoiseFloor, SummarySchema } from "./experiment/noise-schema.ts";
 export { type ExperimentResults, ExperimentResultsSchema, parseExperimentResults } from "./experiment/results.ts";
 export { type ExperimentSpec, ExperimentSpecSchema, parseExperimentSpec, parseLabFile } from "./experiment/spec.ts";
@@ -15,7 +15,8 @@ export { factsOf, type FactValue, type RunFacts } from "./facts/facts.ts";
 export { readRun } from "./facts/read.ts";
 export { COMPARE_FIELDS, comparable } from "./experiment/compare.ts";
 export { type PlannedRun, planRuns } from "./experiment/plan.ts";
-export { type ExperimentOptions, type ExperimentState, ExperimentStateSchema, type MetricTable, type PlayRun, readExperimentState, type RunOutcome, type RunRecord, runExperiment } from "./experiment/run.ts";
+export { type ExperimentOptions, type MetricTable, type PlayRun, type RunOutcome, runExperiment } from "./experiment/run.ts";
+export { type ExperimentState, ExperimentStateSchema, readExperimentState, resolveRunFolder, type RunRecord } from "./experiment/state.ts";
 export { analyse } from "./experiment/analyse.ts";
 export { LOOPHOLE_HEADING, NO_LOOPHOLE_PART, renderRunReport } from "./report/run-report.ts";
 export { renderSeriesReport } from "./report/series-report.ts";

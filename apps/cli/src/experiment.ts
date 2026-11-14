@@ -5,9 +5,9 @@
  * of the game's mechanics, and writes the files of a series that the lab only computes.
  */
 import { existsSync, writeFileSync } from "node:fs";
-import { basename, join, relative, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { formatIssue, SwtError, type EventSink } from "@swarmtales/contracts";
-import { analyse, parseExperimentSpec, parseNoiseFloor, planRuns, readExperimentState, readRun, renderSeriesReport, runExperiment, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun } from "@swarmtales/lab";
+import { analyse, parseExperimentSpec, parseNoiseFloor, planRuns, readExperimentState, readRun, renderSeriesReport, resolveRunFolder, runExperiment, RunRefused, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun } from "@swarmtales/lab";
 import { createKeyBroker, RESIDENT_RECORDS, type ModelSource } from "@swarmtales/models";
 import { readEnv } from "./env.ts";
 import { experimentNotFound } from "./errors.ts";
@@ -19,6 +19,10 @@ import { jsonFile, metricTable } from "./report.ts";
 import { resolveFile } from "./run.ts";
 
 const LEAK = "SWT-X030";
+// The spend ledger's refusal, and the words of the one that only a reservation gives: the run's cap did not fit, so
+// nothing was started. An unreadable ledger may also show after a run (at its cost line), so it is charged as a failure.
+const REFUSED = "SWT-C025";
+const NO_ROOM = "has no room for a run";
 // The codes with which the runner stops a series: at the experiment's cap, and after three failed runs or a leak.
 const STOPS = ["SWT-E004", "SWT-E007"];
 
@@ -48,13 +52,23 @@ async function metricsOf(spec: ExperimentSpec, io: CliIo): Promise<MetricTable> 
 	return metricTable(arms.flatMap((arm) => arm.mechanics));
 }
 
-// The series' line of one run, and for a run that did not end in a readable folder the error the runner gets. A leak
-// comes first in it, so the runner reads its code and stops the series at once.
+// Whether the ledger had no room for the run: it has no folder, and the refusal is the one of a reservation.
+const neverStarted = (result: LiveResult): boolean => result.run === undefined && result.issues.some((issue) => issue.code === REFUSED && issue.summary.includes(NO_ROOM));
+
+// The error the runner gets for a run that did not end in a readable folder. A leak comes first in it, so the runner
+// reads its code and stops the series at once. A run that the ledger had no room for never started: the runner gets
+// a `RunRefused` and charges nothing. Every other failure is charged the run's whole cap.
+function failureOf(result: LiveResult): SwtError {
+	const leaks = result.issues.filter((issue) => issue.code === LEAK);
+	if (leaks.length === 0 && neverStarted(result)) return new RunRefused(result.issues);
+	return new SwtError([...leaks, ...result.issues.filter((issue) => issue.code !== LEAK)]);
+}
+
+// The series' line of one run, and for a failed one the error the runner gets.
 function outcomeOf(result: LiveResult): { readonly line: string; readonly failure?: SwtError } {
 	if (result.code !== 4 && result.run !== undefined && result.spend !== undefined) return { line: `${result.run} ended with ${result.end?.limit ?? result.end?.reason ?? "no end"}, ${result.spend.costUsd.toFixed(4)} USD` };
-	const leaks = result.issues.filter((issue) => issue.code === LEAK);
 	const codes = result.issues.map((issue) => issue.code).join(", ");
-	return { line: `failed${result.run === undefined ? "" : ` in ${result.run}`} (${codes === "" ? "no issue" : codes})`, failure: new SwtError([...leaks, ...result.issues.filter((issue) => issue.code !== LEAK)]) };
+	return { line: `failed${result.run === undefined ? "" : ` in ${result.run}`} (${codes === "" ? "no issue" : codes})`, failure: failureOf(result) };
 }
 
 // One live run in process. Its own lines are not printed: the series prints one line per run.
@@ -79,7 +93,9 @@ function player(spec: ExperimentSpec, directory: string, input: ExperimentInput,
  * Runs the plan of an experiment spec, resumable: prints the plan and its estimate, then plays every open run of
  * the plan as a live run in process (`runLive`) into the experiment's folder, one printed line per run. The caps
  * are the runner's (`runExperiment` of the lab): the per-run cap is the run's `--budget`, and with `ledger` every
- * run reserves it in the spend ledger. A run that leaks rejects with `SWT-X030`, which stops the series.
+ * run reserves it in the spend ledger. A run that leaks rejects with `SWT-X030`, which stops the series. A run the
+ * ledger has no room for (`SWT-C025`, refused before any call) costs the experiment nothing and has no record: the series stops with
+ * that error and plays the run with the next call, once the ledger has room.
  *
  * @param input - The spec file, the experiment's folder, the ledger, the environment, and for a test the model source.
  * @param io - The current directory, the clock and the two outputs.
@@ -87,7 +103,7 @@ function player(spec: ExperimentSpec, directory: string, input: ExperimentInput,
  * experiment's cap (`SWT-E004`) or after three failed runs (`SWT-E007`), and continues with the same command.
  * @throws SwtError `SWT-C024` no spec file; `SWT-E001` a spec that does not match its schema; what `resolveFile`
  * reports for the game and the params of an arm (`SWT-G041`); `SWT-C022` an unknown thinking level; `SWT-E003`,
- * `SWT-E005`, `SWT-E006`, `SWT-E010` of the runner. The command exits with 1 then.
+ * `SWT-E002`, `SWT-E005`, `SWT-E006`, `SWT-E010` of the runner; `SWT-C025` the spend ledger refused a run. The command exits with 1 then.
  * @example
  * ```ts
  * const code = await experimentRun({ spec: "games/quarry/experiments/open-quarries.json", out: "../runs/quarry/quarry-open-quarries", ledger: "games/m2-ledger.jsonl", env: readEnv() }, io);
@@ -117,9 +133,6 @@ export async function experimentRun(input: ExperimentInput, io: CliIo): Promise<
 	}
 }
 
-// A run folder is found beside the state file first, so a series that was moved (to the data branch) is still read.
-const folderOf = (directory: string, run: string): string => (existsSync(join(directory, basename(run))) ? join(directory, basename(run)) : run);
-
 /**
  * Analyses a finished experiment: reads the state file and the facts of every run that was not stopped, computes
  * the results (`analyse` of the lab) and writes `results.json`, `values.csv` (the long table of the values) and the
@@ -144,7 +157,7 @@ export async function experimentAnalyse(experiment: string, io: CliIo): Promise<
 	if (state === undefined) throw new SwtError(experimentNotFound({ path: directory, what: "experiment state `experiment.json`" }));
 	const { spec } = state;
 	const metrics = await metricsOf(spec, io);
-	const facts = state.runs.filter((run) => run.status !== "stopped").map((run) => readRun(folderOf(directory, run.directory), metrics));
+	const facts = state.runs.filter((run) => run.status !== "stopped").map((run) => readRun(resolveRunFolder(directory, run.directory), metrics));
 	const baseline = spec.baseline === undefined ? undefined : parseNoiseFloor(jsonFile(resolve(io.cwd, spec.baseline)), spec.baseline);
 	const results = analyse(state, facts, baseline);
 	writeFileSync(join(directory, "results.json"), `${JSON.stringify(results, null, "\t")}\n`);

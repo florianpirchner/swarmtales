@@ -6,7 +6,7 @@
 import { jsonHash } from "@swarmtales/chain";
 import { unknownMetric } from "../errors.ts";
 import { mulberry32 } from "../stats/summary.ts";
-import type { ExperimentSpec } from "./spec.ts";
+import { checkCells, type ExperimentSpec } from "./spec.ts";
 
 /**
  * One run of the plan.
@@ -47,6 +47,7 @@ export const REPLACEMENT = 100;
  *
  * @param spec - The experiment spec.
  * @returns The planned runs in play order; the same spec gives the same plan.
+ * @throws LabError `SWT-E001` when the spec lists a seed or an arm id twice: the plan would hold a cell twice.
  * @example
  * ```ts
  * for (const run of planRuns(spec)) console.log(run.index, run.arm, run.seed, run.replicate);
@@ -55,7 +56,7 @@ export const REPLACEMENT = 100;
  * @public
  */
 export function planRuns(spec: ExperimentSpec): readonly PlannedRun[] {
-	const cells = spec.arms.flatMap((arm) => spec.seeds.flatMap((seed) => Array.from({ length: spec.replicates }, (_, replicate) => ({ arm: arm.id, seed, replicate, params: arm.params }))));
+	const cells = checkCells(spec).arms.flatMap((arm) => spec.seeds.flatMap((seed) => Array.from({ length: spec.replicates }, (_, replicate) => ({ arm: arm.id, seed, replicate, params: arm.params }))));
 	const next = mulberry32(Number.parseInt(bindingHash(spec).slice(0, 8), 16));
 	for (let i = cells.length - 1; i > 0; i--) {
 		const j = Math.floor(next() * (i + 1));
