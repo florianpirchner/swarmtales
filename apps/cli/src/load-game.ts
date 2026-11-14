@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game files: a TypeScript or JavaScript module that default-exports a game, or a JSON or YAML file that holds one
+ * Game files: a TypeScript or JavaScript module that default-exports a game or a game family, or a JSON or YAML file that holds one
  * in its data form. The loader reads the file and says what it found; it does not judge the game. Every field is
  * checked by game resolution (`resolveGame`, step 1), which reports all problems together with their data paths.
  */
@@ -8,7 +8,7 @@ import { readFileSync, statSync } from "node:fs";
 import { extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { SwtError, type GameData, type SwtIssue } from "@swarmtales/contracts";
-import type { Game } from "@swarmtales/sdk";
+import type { Game, GameFamily } from "@swarmtales/sdk";
 import { parse as parseYaml } from "yaml";
 
 /**
@@ -43,8 +43,8 @@ export interface LoadedGame {
 	readonly file: string;
 	/** How the file was read. A `json` or `yaml` game names its mechanics by id and needs the installed table. */
 	readonly type: GameFileType;
-	/** The game: the builder form from a module, the data form from a data file. Not yet checked field by field. */
-	readonly game: Game | GameData;
+	/** The game: the builder form or a game family from a module, the data form from a data file. Not yet checked field by field. */
+	readonly game: Game | GameData | GameFamily;
 }
 
 /**
@@ -111,7 +111,7 @@ export async function importFile(file: string): Promise<unknown> {
  * @param value - What a file gave.
  * @returns True for an object that is no list.
  */
-function isGame(value: unknown): value is Game | GameData {
+function isGame(value: unknown): value is Game | GameData | GameFamily {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -136,7 +136,8 @@ async function read(file: string, type: GameFileType): Promise<unknown> {
 }
 
 /**
- * Loads a game from a file: `.ts`, `.mts`, `.js` and `.mjs` are imported and must default-export a game; `.json`,
+ * Loads a game from a file: `.ts`, `.mts`, `.js` and `.mjs` are imported and must default-export a game or a game
+ * family (`defineGameFamily`); `.json`,
  * `.yaml` and `.yml` are parsed as a game in its data form.
  *
  * @param path - The path of the file, absolute or relative to `cwd`.

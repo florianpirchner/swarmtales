@@ -6,12 +6,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatIssue, SwtError, type DriverTable, type EventSink, type Kernel, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
-import { buildManifest, turns } from "@swarmtales/engine";
+import { formatIssue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
+import { buildManifest, turns, type ManifestRun } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import { definitionsOf, resolveGame, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
+import { definitionsOf, isGameFamily, resolveGame, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { fakeDriver } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
@@ -35,25 +35,58 @@ export interface RunInput {
 	readonly file: string;
 	/** The seed; it wins over the game's own. */
 	readonly seed: number | undefined;
+	/** The overrides of a game family's params by name (`--set`); none when absent. */
+	readonly params?: Readonly<Record<string, unknown>>;
 	/** The folder that holds the runs; `runs` under the current directory when absent. */
 	readonly out: string | undefined;
 	/** Print the result as one JSON line. */
 	readonly json: boolean;
 }
 
-// Step one: the file, the installed table for a data game, the prompts (the game's own folder is `prompts/` beside its file).
-async function resolved(input: RunInput, io: CliIo): Promise<{ readonly game: ResolvedGame; readonly mechanics: readonly MechanicDefinition[] }> {
+/**
+ * A game file, resolved: step one of a fake run and of a live run.
+ *
+ * @public
+ */
+export interface ResolvedFile {
+	/** The resolved game. */
+	readonly game: ResolvedGame;
+	/** The definitions of the game's mechanics. */
+	readonly mechanics: readonly MechanicDefinition[];
+	/** The prompt lookup the game was resolved with: the library, and the game's own folder `prompts/` beside its file. */
+	readonly texts: PromptLookup;
+}
+
+/**
+ * Loads a game file and resolves it: the file, the installed table for a data game, the prompts. A game family is
+ * built from the defaults of its params with the overrides on top.
+ *
+ * @param input - The game file, the seed and the overrides of the params.
+ * @param io - The current directory and the installed table of a test.
+ * @param records - The record sources of the run's drivers; none for a fake run.
+ * @returns The resolved game, the definitions of its mechanics and the prompt lookup.
+ * @throws SwtError `SWT-C001`, `SWT-C002`, `SWT-C030`, and what game resolution reports, with `SWT-G041` for an
+ * override that names no param, has the wrong type, or is given to a game that is no family.
+ *
+ * @public
+ */
+export async function resolveFile(input: Pick<RunInput, "file" | "seed" | "params">, io: Pick<CliIo, "cwd" | "installed">, records: readonly RecordSource[] = []): Promise<ResolvedFile> {
 	const loaded = await loadGame(input.file, io.cwd);
 	const installed = loaded.type === "module" ? undefined : (io.installed ?? (await installedTable(PACKAGE_FILE)));
 	const folder = join(dirname(loaded.file), "prompts");
+	const texts = createPromptLookup(existsSync(folder) ? { game: folder } : {});
 	const game = resolveGame({
 		game: loaded.game,
 		schedulers: { turns },
-		prompts: createPromptLookup(existsSync(folder) ? { game: folder } : {}),
+		prompts: texts,
+		...(input.params === undefined ? {} : { params: input.params }),
+		...(records.length === 0 ? {} : { records }),
 		...(installed === undefined ? {} : { installed }),
 		...(input.seed === undefined ? {} : { seed: input.seed }),
 	});
-	return { game, mechanics: Object.values(definitionsOf(loaded.game, installed)) };
+	// The family resolved, so its effective params build the game the definitions are read from.
+	const built = isGameFamily(loaded.game) ? loaded.game.build(game.params) : loaded.game;
+	return { game, mechanics: Object.values(definitionsOf(built, installed)), texts };
 }
 
 // `SWT-C010`, once per tool: a tool in the grant of an actor whose body has no `sample`. The fake driver never calls it.
@@ -64,15 +97,40 @@ function unsampled({ definition }: ResolvedGame, mechanics: readonly MechanicDef
 	return [...found].reverse().map(([tool, grant]) => toolWithoutSample({ tool: (Object.hasOwn(definition.names, tool) ? definition.names[tool] : undefined) ?? tool, grant }));
 }
 
+/**
+ * The facts of a run that the platform knows: its id, its start, and the kernel and the Node.js that play it.
+ *
+ * @param directory - The run folder; its name is the id of the run.
+ * @param now - The wall clock.
+ * @returns The fields of `ManifestRun` that are the same for a fake run and a live run.
+ *
+ * @public
+ */
+export function runFacts(directory: string, now: () => Date): Pick<ManifestRun, "id" | "startedAt" | "kernelRevision" | "kernelVersion" | "node"> {
+	const raw: unknown = JSON.parse(readFileSync(PACKAGE_FILE, "utf8"));
+	return { id: basename(directory), startedAt: now().toISOString(), kernelRevision: RUNTIME_REVISION, kernelVersion: Parse(Versioned, raw).version, node: process.version };
+}
+
+/**
+ * The texts of a run folder: every text of the game by its key, and each actor's briefing under
+ * `briefing/<actor id>` (`briefingKey` of the runlog).
+ *
+ * @param game - The resolved game.
+ * @returns What `texts.json` holds.
+ *
+ * @public
+ */
+export function folderTexts(game: ResolvedGame): Readonly<Record<string, string>> {
+	return { ...game.texts, ...Object.fromEntries(Object.entries(game.briefings).map(([actor, text]): [string, string] => [briefingKey(actor), text])) };
+}
+
 // The run folder, opened at the first event: a game that fails before its run leaves no folder behind.
 function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonly sink: EventSink; readonly opened: () => RunFolder | undefined } {
 	let folder: RunFolder | undefined;
 	const open = (): RunFolder => {
 		const drivers = Object.fromEntries(game.definition.actors.map((actor) => [actor.id, FAKE]));
-		const raw: unknown = JSON.parse(readFileSync(PACKAGE_FILE, "utf8"));
-		const manifest = buildManifest(game, { id: basename(directory), startedAt: io.now().toISOString(), purpose: "smoke", replicate: 0, drivers, kernelRevision: RUNTIME_REVISION, kernelVersion: Parse(Versioned, raw).version, node: process.version });
-		const briefings = Object.entries(game.briefings).map(([actor, text]): [string, string] => [briefingKey(actor), text]);
-		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: { ...game.texts, ...Object.fromEntries(briefings) } });
+		const manifest = buildManifest(game, { ...runFacts(directory, io.now), purpose: "smoke", replicate: 0, drivers });
+		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: folderTexts(game) });
 		return folder;
 	};
 	const sink: EventSink = {
@@ -86,8 +144,18 @@ function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonl
 	return { sink, opened: () => folder };
 }
 
-// Step four. A run that failed has its end and its log; the issues of the failure are what the command reports.
-async function played(kernel: Kernel, drivers: DriverTable): Promise<{ readonly end: RunEnd; readonly issues: readonly SwtIssue[] }> {
+/**
+ * Runs the kernel to its end. A run that failed has its end and its log; the issues of the failure are what the
+ * command reports.
+ *
+ * @param kernel - The kernel of the run.
+ * @param drivers - The drivers by actor id.
+ * @returns The end of the run, and the issues of an `SwtError` that ended it.
+ * @throws Whatever ends the run without a recorded end, and whatever is no `SwtError`.
+ *
+ * @public
+ */
+export async function played(kernel: Kernel, drivers: DriverTable): Promise<{ readonly end: RunEnd; readonly issues: readonly SwtIssue[] }> {
 	try {
 		const end = await kernel.run(drivers);
 		if (end === undefined) throw new RangeError("the run stopped without an end");
@@ -98,8 +166,16 @@ async function played(kernel: Kernel, drivers: DriverTable): Promise<{ readonly 
 	}
 }
 
-// "limit grid-game.match: the match is over", "tick limit" or "error".
-function whyOf(kernel: Kernel, end: RunEnd): string {
+/**
+ * Says why a run ended, for the result line.
+ *
+ * @param kernel - The kernel of the run, for the reason of a limit.
+ * @param end - The end of the run.
+ * @returns "limit grid-game.match: the match is over", "tick limit" or "error".
+ *
+ * @public
+ */
+export function whyOf(kernel: Kernel, end: RunEnd): string {
 	if (end.reason !== "limit") return end.reason === "ticks" ? "tick limit" : "error";
 	const breach = kernel.log.all().findLast((event) => event.type === "limit_reached")?.payload;
 	return `limit ${end.limit ?? ""}${Check(Breach, breach) ? `: ${breach.reason}` : ""}`;
@@ -136,16 +212,16 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
  * granted that has no `sample`; the run still plays. `texts.json` holds every text of the game by its key and each actor's briefing under
  * `briefing/<actor id>` (`briefingKey` of the runlog).
  *
- * @param input - The game file, the seed, the folder of the runs and the form of the output.
+ * @param input - The game file, the seed, the overrides of a family's params, the folder of the runs and the form of the output.
  * @param io - The current directory, the clock and the two outputs.
  * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`.
- * @throws SwtError Before the run: `SWT-C001`, `SWT-C002`, `SWT-C030`, what game resolution reports, `SWT-R002`,
+ * @throws SwtError Before the run: `SWT-C001`, `SWT-C002`, `SWT-C030`, what game resolution reports (`SWT-G041` for a `--set` that fits no param), `SWT-R002`,
  * and `SWT-R015` when `win.fact` names no fact. No run folder is written then.
  *
  * @public
  */
 export async function runFake(input: RunInput, io: CliIo): Promise<number> {
-	const { game, mechanics } = await resolved(input, io);
+	const { game, mechanics } = await resolveFile(input, io);
 	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
 	const folder = lazyFolder(directory, game, io);

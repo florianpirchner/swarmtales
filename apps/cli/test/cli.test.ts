@@ -38,7 +38,7 @@ afterAll(() => {
 async function swt(...args: readonly string[]): Promise<{ readonly code: number; readonly out: readonly string[]; readonly err: string }> {
 	const out: string[] = [];
 	const err: string[] = [];
-	const io: CliIo = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: (line) => out.push(line), err: (line) => err.push(line), installed: { "guess-number": guessNumber } };
+	const io: CliIo = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: (line) => out.push(line), err: (line) => err.push(line), installed: { "guess-number": guessNumber }, env: {} };
 	return { code: await main(args, io), out, err: err.join("\n") };
 }
 
@@ -96,7 +96,8 @@ describe("swt run --fake", () => {
 			const { code, err } = await swt(...args);
 			return [code, /SWT-[A-Z]\d{3}/.exec(err)?.[0]];
 		};
-		expect(await codes("run", fixture("guess-number.ts"))).toEqual([1, "SWT-C020"]);
+		// Without `--fake` the run is a live one (M2-20), and a live run without a cost cap is refused before anything else.
+		expect(await codes("run", fixture("guess-number.ts"))).toEqual([1, "SWT-X005"]);
 		expect(await codes("run", fixture("guess-number.ts"), "--fake", "--seed", "-1")).toEqual([1, "SWT-C003"]);
 		expect(await codes("run", fixture("guess-number.ts"), "--fake", "--seed", "1.5")).toEqual([1, "SWT-C003"]);
 		// M1 review, finding C1: a seed above 32 bits started a run that ended with SWT-R020 (the manifest refused it) and exit 2.
@@ -107,6 +108,34 @@ describe("swt run --fake", () => {
 		expect(await codes("log", "check", "runs")).toEqual([1, "SWT-C003"]);
 		expect(await codes("run", "no-such.ts", "--fake", "--out", "none")).toEqual([1, "SWT-C001"]);
 		expect(json((await swt("run", "no-such.ts", "--fake", "--json")).out[0])).toMatchObject({ issues: [{ code: "SWT-C001" }] });
+		expect(() => readFileSync(join(cwd, "none"))).toThrow();
+	});
+});
+
+// M2-20: since M2-15 the two ported games default-export a game family, and `definitionsOf` of the family threw a TypeError.
+describe("swt run --fake of a game family", () => {
+	const quarry = fileURLToPath(new URL("../../../games/quarry/game.ts", import.meta.url));
+
+	it("plays quarry to the end of its match with the defaults of the family, and the log verifies", async () => {
+		const { code, out, err } = await swt("run", quarry, "--fake", "--json");
+		const result = Parse(Result, json(out[0]));
+		expect([code, err.match(/SWT-C010/g)?.length]).toEqual([0, 4]);
+		expect(result).toMatchObject({ seed: 29, end: { reason: "limit", limit: "draft-rounds.match" }, run: "runs/quarry-001", log: { ok: true } });
+		expect((await swt("log", "verify", "runs/quarry-001")).code).toBe(0);
+		expect(Parse(RunManifestSchema, json(file("runs/quarry-001", "manifest.json"))).game.params).toMatchObject({ games: 3, brain: true });
+	});
+
+	it("takes --set overrides into the game and the manifest, and reports a bad one before the run", async () => {
+		const { code, out } = await swt("run", quarry, "--fake", "--json", "--out", "arm", "--set", "games=1", "--set", "brain=false");
+		expect([code, Parse(Result, json(out[0])).run]).toEqual([0, "arm/quarry-001"]);
+		const [base, arm] = ["runs", "arm"].map((folder) => Parse(RunManifestSchema, json(file(`${folder}/quarry-001`, "manifest.json"))).game);
+		expect(arm?.params).toMatchObject({ games: 1, brain: false });
+		expect(arm?.hash).not.toBe(base?.hash);
+		const wrong = await swt("run", quarry, "--fake", "--out", "none", "--set", "gamez=1", "--set", 'games="x"');
+		expect([wrong.code, wrong.err.match(/error SWT-G041/g)?.length, wrong.err]).toEqual([1, 2, expect.stringContaining('did you mean "games"?')]);
+		expect([(await swt("run", quarry, "--fake", "--set", "games")).err, (await swt("run", quarry, "--fake", "--set", "games=one")).err]).toEqual([expect.stringContaining("SWT-C021"), expect.stringContaining("SWT-C021")]);
+		// A game that is no family takes no override.
+		expect((await swt("run", fixture("guess-number.ts"), "--fake", "--out", "none", "--set", "max=3")).err).toContain("SWT-G041");
 		expect(() => readFileSync(join(cwd, "none"))).toThrow();
 	});
 });

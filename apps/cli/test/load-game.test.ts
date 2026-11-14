@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { GameDefinitionSchema, SwtError, type GameData } from "@swarmtales/contracts";
+import { isGameFamily } from "@swarmtales/sdk";
 import { Check } from "typebox/value";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { installedTable } from "../src/installed.ts";
@@ -51,6 +52,7 @@ const registration = (mechanics: readonly string[]): string => JSON.stringify({ 
  * @returns The game with `schema: 1` and its mechanics named by id.
  */
 function dataOf(loaded: LoadedGame): GameData {
+	if (isGameFamily(loaded.game)) expect.fail("the file holds a game family");
 	const mechanics = loaded.game.mechanics.map((use) => ("use" in use ? use : { use: use.mechanic.id, options: use.options }));
 	const data: unknown = JSON.parse(JSON.stringify({ ...loaded.game, schema: 1, mechanics }));
 	if (!Check(GameDefinitionSchema, data)) expect.fail("the file holds no game in its data form");
@@ -123,7 +125,7 @@ describe("installedTable", () => {
 		expect(Object.keys(table)).toEqual(["marker", "second"]);
 		expect(table.marker?.package).toBe("fixture-mechanic");
 		const builder = await loadGame("game.ts", root);
-		expect(builder.game.mechanics.map((use) => ("use" in use ? use.use : use.mechanic.id))).toEqual(Object.keys(table).slice(0, 1));
+		expect(dataOf(builder).mechanics.map((use) => use.use)).toEqual(Object.keys(table).slice(0, 1));
 	});
 
 	it("imports through the given loader, and no package without mechanics", async () => {

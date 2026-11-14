@@ -10,4 +10,7 @@ export { installedTable, installedTableBroken, type LoadPackage } from "./instal
 export { badUsage, liveRunTooEarly, toolWithoutSample } from "./errors.ts";
 export { logVerify } from "./log-verify.ts";
 export { main, type CliIo } from "./main.ts";
-export { runFake, type RunInput } from "./run.ts";
+export { folderTexts, played, resolveFile, runFacts, runFake, whyOf, type ResolvedFile, type RunInput } from "./run.ts";
+export { ENV_NAMES, readEnv } from "./env.ts";
+export { badSet, liveFlags, paramsOf, readFlags, seedOf, unknownWord, type Flags, type LiveFlags } from "./flags.ts";
+export { confirmatoryAlone, runLive, type LiveInput, type LiveResult } from "./live.ts";
