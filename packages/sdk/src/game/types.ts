@@ -3,7 +3,8 @@
  * The game types: the builder form of a game (`defineGame`), and what game resolution takes and gives. A game is
  * plain data; the builder form differs from the data form only in naming its mechanics by typed uses instead of ids.
  */
-import type { GameData, JsonValue, KernelDefinition, PromptLookup, RecordSource, SchedulerDefinition } from "@swarmtales/contracts";
+import type { ActorId, DirectorUse, GameData, JsonValue, KernelDefinition, ModelChoice, PromptLookup, RecordSource, SchedulerDefinition } from "@swarmtales/contracts";
+import type { DirectorDefinition, DirectorLimits } from "../director/define.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import type { GameFamily } from "./family.ts";
 
@@ -41,11 +42,41 @@ export interface GrantTweak<T extends string = string> {
 }
 
 /**
+ * One Director in a builder game: a `DirectorUse` whose `use` may be the definition itself instead of its id.
+ *
+ * @public
+ */
+export interface DirectorPlacement extends Omit<DirectorUse, "use"> {
+	/** The definition, or its id when the definition is given to game resolution (`ResolveInput.directors`). */
+	readonly use: string | DirectorDefinition;
+}
+
+/**
+ * One Director of a resolved game: its definition with the options and the limits of its use.
+ *
+ * @public
+ */
+export interface ResolvedDirector {
+	/** The name in the game: the `as` of the use, else the id of the definition. It is the name of the Director's grant. */
+	readonly name: string;
+	/** The actor: `director:<name>`. */
+	readonly actor: ActorId;
+	/** The definition. */
+	readonly definition: DirectorDefinition;
+	/** The options of the use, parsed, with defaults. */
+	readonly options: Readonly<Record<string, JsonValue>>;
+	/** The limits of the use; without them those of the definition; `{}` without both. */
+	readonly limits: DirectorLimits;
+	/** The model of the use; undefined when the game names none. */
+	readonly model: ModelChoice | undefined;
+}
+
+/**
  * The builder form of a game: `GameData` with the mechanics as typed uses instead of ids. `schema: 1` may be left out.
  *
  * @public
  */
-export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked"> {
+export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked" | "directors"> {
 	/** The version of the game definition format; 1 when left out. */
 	readonly schema?: 1;
 	/** The mechanics of the game, in the order they are listed. */
@@ -54,6 +85,8 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
 	readonly grants?: Partial<Readonly<Record<string, readonly ToolOf<Ms>[] | GrantTweak<ToolOf<Ms>>>>>;
 	/** The tools every resident starts with locked. Only tools of the listed mechanics. */
 	readonly locked?: readonly ToolOf<Ms>[];
+	/** The Directors of the game, each by its definition or by the id of one. */
+	readonly directors?: readonly DirectorPlacement[];
 }
 
 /**
@@ -70,6 +103,8 @@ export interface ResolveInput {
 	readonly records?: readonly RecordSource[];
 	/** For a data game: mechanic id to definition. */
 	readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+	/** Director id to definition, for a use that names its Director by id; a definition a builder game holds wins over one of the same id. */
+	readonly directors?: Readonly<Record<string, DirectorDefinition>>;
 	/** Scheduler id to definition (`turns`); passed in because the sdk may not import the engine. */
 	readonly schedulers: Readonly<Record<string, SchedulerDefinition>>;
 	/** The lookup that renders every text. */
@@ -94,6 +129,8 @@ export interface ResolvedGame {
 	readonly texts: Readonly<Record<string, string>>;
 	/** Actor id to briefing. */
 	readonly briefings: Readonly<Record<string, string>>;
+	/** The Directors of the game, in its order. `resolveGame` always sets it, empty for a game without one; only a value built by hand may leave it out. */
+	readonly directors?: readonly ResolvedDirector[];
 	/** The key of the fact whose value is the result line; undefined when the game names none. */
 	readonly win: string | undefined;
 	/** The effective params of a game family: the defaults with the overrides on top; `{}` for a game without params. */

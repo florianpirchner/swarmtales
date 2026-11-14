@@ -14,7 +14,7 @@ import { closest, TOOL_NAME_PATTERN, type SwtIssue } from "@swarmtales/contracts
 export const SDK_ERRORS = {
 	"SWT-G001": "the game does not match schema version 1",
 	"SWT-G002": "`schema` is not 1",
-	"SWT-G003": "`directors` is not empty before milestone M3",
+	"SWT-G003": "`directors` is not empty before milestone M3 (no longer raised: a game may have Directors)",
 	"SWT-G010": "a resident id is doubled or malformed",
 	"SWT-G011": "a team or a role names an id that is not a resident",
 	"SWT-G012": "a tool is granted or locked but not defined",
@@ -27,7 +27,9 @@ export const SDK_ERRORS = {
 	"SWT-G031": "a service has two providers",
 	"SWT-G032": "`requires` form a cycle",
 	"SWT-G041": "an override names no param of the game, or its value has the wrong type",
-	"SWT-D002": "the name of a Director is taken by another Director or by a grant",
+	"SWT-D001": "a Director's trigger names an event that no mechanic of the game declares",
+	"SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition",
+	"SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`",
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
 	"SWT-M012": "the body of a mechanic does not fit its head",
@@ -109,7 +111,8 @@ export function schemaVersion(input: { readonly found: unknown }): SwtIssue {
 }
 
 /**
- * `SWT-G003`: `directors` is not empty before milestone M3.
+ * `SWT-G003`: `directors` is not empty before milestone M3. Game resolution no longer raises it; the code stays,
+ * because a code is never reused.
  *
  * @param input - The count of entries of `directors`.
  * @param input.count - That count.
@@ -122,19 +125,52 @@ export function directorsReserved(input: { readonly count: number }): SwtIssue {
 }
 
 /**
- * `SWT-D002`: the name of a Director is taken.
+ * `SWT-D001`: a Director's trigger names an event that no mechanic of the game declares.
  *
- * @param input - The name, its place and who holds it.
- * @param input.name - The Director's name: its `as`, else its `use`.
- * @param input.path - The data path, for example `directors[1]`.
- * @param input.taken - `director`: an earlier Director has the name; `grant`: it is the grant name of the residents or of the human.
+ * @param input - The Director, the event and the events the game has.
+ * @param input.director - The Director's name.
+ * @param input.event - The event of the trigger, `<mechanic>.<event>`.
+ * @param input.path - The data path of the use, for example `directors[0]`.
+ * @param input.declared - Every event the mechanics of the game declare, as `<mechanic>.<event>`.
  * @returns The issue.
  *
  * @public
  */
-export function directorName(input: { readonly name: string; readonly path: string; readonly taken: "director" | "grant" }): SwtIssue {
+export function triggerWithoutEvent(input: { readonly director: string; readonly event: string; readonly path: string; readonly declared: readonly string[] }): SwtIssue {
+	return issue("SWT-D001", `the Director "${input.director}" is woken by the event "${input.event}", which no mechanic of the game declares`, `The mechanics of the game declare: ${quoted(input.declared)}.`, `${meant(input.event, input.declared)}add the mechanic that declares the event, or remove the Director.`, { path: input.path }, { event: input.event });
+}
+
+/**
+ * `SWT-D002`: the name of a Director is taken, or its `use` names no definition.
+ *
+ * @param input - The name, its place and who holds it.
+ * @param input.name - The Director's name: its `as`, else its `use`; for `unknown` the `use`.
+ * @param input.path - The data path, for example `directors[1]`.
+ * @param input.taken - `director`: an earlier Director has the name; `grant`: it is the grant name of the residents or of the human; `unknown`: no Director definition has the id.
+ * @param input.known - For `unknown`: the ids of the definitions that were given.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function directorName(input: { readonly name: string; readonly path: string; readonly taken: "director" | "grant" | "unknown"; readonly known?: readonly string[] }): SwtIssue {
+	const details = { name: input.name, taken: input.taken };
+	if (input.taken === "unknown") return issue("SWT-D002", `the game uses the Director "${input.name}", and no Director definition has that id`, `The Director definitions of this run are: ${quoted(input.known ?? [])}.`, `${meant(input.name, input.known ?? [])}put the definition itself into \`use\`, or pass it to game resolution in \`directors\`.`, { path: input.path }, details);
 	const holder = input.taken === "director" ? "an earlier Director of the game" : `the grant \`${input.name}\``;
-	return issue("SWT-D002", `the Director name "${input.name}" is taken by ${holder}`, "A Director is the actor `director:<name>` and its tools come from the grant `<name>`, so the name must be its own.", "Give the Director another name with `as`.", { path: input.path }, { name: input.name, taken: input.taken });
+	return issue("SWT-D002", `the Director name "${input.name}" is taken by ${holder}`, "A Director is the actor `director:<name>` and its tools come from the grant `<name>`, so the name must be its own.", "Give the Director another name with `as`.", { path: input.path }, details);
+}
+
+/**
+ * `SWT-D003`: the game has a Director and its scheduler activates no actor of kind `director`.
+ *
+ * @param input - The scheduler and the Directors.
+ * @param input.scheduler - The scheduler id.
+ * @param input.directors - The names of the game's Directors.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function directorNeverActivated(input: { readonly scheduler: string; readonly directors: readonly string[] }): SwtIssue {
+	return issue("SWT-D003", `the game has the Director(s) ${quoted(input.directors)}, and the scheduler "${input.scheduler}" activates no actor of kind \`director\``, "A Director acts only inside an activation, and a scheduler activates the actor kinds its options name.", 'Name the kind in the scheduler options, for `turns`: `afterBlocks: ["director"]`.', { path: "scheduler.options" });
 }
 
 /**
@@ -228,7 +264,7 @@ export function shownNameMalformed(input: { readonly shown: string; readonly too
  * `SWT-G020`: an option does not match its schema.
  *
  * @param input - The owner of the options and one mismatch.
- * @param input.owner - The mechanic id, or the scheduler id for `scheduler.options`.
+ * @param input.owner - The mechanic id, the scheduler id for `scheduler.options`, or the id of a Director definition.
  * @param input.kind - What the owner is; a mechanic when left out.
  * @param input.package - The package of the owner.
  * @param input.path - The data path with the field, for example `mechanics[0].options.size`.
@@ -237,8 +273,8 @@ export function shownNameMalformed(input: { readonly shown: string; readonly too
  *
  * @public
  */
-export function optionMismatch(input: { readonly owner: string; readonly kind?: "mechanic" | "scheduler"; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
-	const kind = input.kind ?? "mechanic";
+export function optionMismatch(input: { readonly owner: string; readonly kind?: "mechanic" | "scheduler" | "director"; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
+	const kind = input.kind === "director" ? "Director" : (input.kind ?? "mechanic");
 	return issue("SWT-G020", `\`${input.path}\` of the ${kind} "${input.owner}" ${input.message}`, `The options of a ${kind} must match the schema it declares, and may hold no field the schema does not know.`, `Correct the option; the README of the ${kind}'s package lists every option with its default.`, { path: input.path, package: input.package });
 }
 

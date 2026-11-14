@@ -12,12 +12,13 @@ import { RESIDENT_KIND } from "../mechanic/context.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import { appendRoster } from "../roster/index.ts";
 import { gameData } from "./define-game.ts";
+import { directorGrants, resolveDirectors } from "./directors.ts";
 import { familyParams, isGameFamily, isJson } from "./family.ts";
 import { resolveGrants } from "./grants.ts";
 import { loadOrder } from "./load-order.ts";
 import { collectTexts } from "./texts.ts";
 import { toolNames } from "./tool-names.ts";
-import type { Game, ResolvedGame, ResolveInput } from "./types.ts";
+import type { Game, ResolvedDirector, ResolvedGame, ResolveInput } from "./types.ts";
 import { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf, type UsedMechanic } from "./validate.ts";
 
 const ROSTER = "roster";
@@ -104,14 +105,15 @@ function briefingsOf(data: GameData, residents: readonly string[]): Readonly<Rec
 }
 
 // The data form that is hashed and recorded: the seed, every mechanic's options and the scheduler with their defaults, `roster` listed.
-// An empty `directors` is left out, so the game has the hash of the game without the field.
-function filledData({ directors, ...data }: GameData, used: readonly UsedMechanic[], scheduler: Scheduled, roster: boolean): GameData {
+// An empty `directors` is left out, so the game has the hash of the game without the field; a Director is listed with its parsed options.
+function filledData({ directors: uses, ...data }: GameData, used: readonly UsedMechanic[], scheduler: Scheduled, roster: boolean, resolved: readonly ResolvedDirector[]): GameData {
+	const directors = (uses ?? []).map((use) => ({ ...use, options: resolved.find((director) => director.name === (use.as ?? use.use))?.options ?? {} }));
 	const mechanics = data.mechanics.map((use, index) => {
 		const options = used.find((entry) => entry.index === index)?.options;
 		return options === undefined ? use : { ...use, options };
 	});
 	const listed = data.mechanics.some((use) => use.use === ROSTER);
-	return { ...data, ...(directors === undefined || directors.length === 0 ? {} : { directors }), seed: data.seed ?? 1, mechanics: roster && !listed ? [...mechanics, { use: ROSTER }] : mechanics, scheduler: { id: scheduler.id, options: scheduler.options } };
+	return { ...data, ...(directors.length === 0 ? {} : { directors }), seed: data.seed ?? 1, mechanics: roster && !listed ? [...mechanics, { use: ROSTER }] : mechanics, scheduler: { id: scheduler.id, options: scheduler.options } };
 }
 
 // Steps 4 to 8: the mechanics in load order with their tool names, grants and texts. A recorded game lists `roster`, which no package installs.
@@ -154,6 +156,7 @@ interface Checked {
 	readonly data: GameData;
 	readonly residents: readonly string[];
 	readonly actors: readonly ActorSpec[];
+	readonly directors: readonly ResolvedDirector[];
 	readonly steps: ReturnType<typeof mechanicSteps>;
 	readonly scheduler: Scheduled;
 	readonly definition: SchedulerDefinition;
@@ -165,7 +168,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 	const version = versionOf(input.versions ?? {});
 	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package)));
 	const plugins = appendRoster(loaded, version(SDK));
-	const filled = filledData(data, steps.used, scheduler, plugins.length > loaded.length);
+	const filled = filledData(data, steps.used, scheduler, plugins.length > loaded.length, parts.directors);
 	const limits = data.limits?.maxCallsPerTick === undefined ? {} : { maxCallsPerTick: data.limits.maxCallsPerTick };
 	return {
 		definition: {
@@ -174,7 +177,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 			actors: parts.actors,
 			plugins,
 			scheduler: { definition: parts.definition, options: scheduler.options },
-			grants: steps.grants.grants,
+			grants: directorGrants(steps.grants.grants, parts.directors),
 			names: steps.names,
 			startLocks: steps.grants.startLocks,
 			replies: steps.texts.replies,
@@ -184,6 +187,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 		data: filled,
 		texts: steps.texts.texts,
 		briefings: briefingsOf(data, parts.residents),
+		directors: parts.directors,
 		win: data.win?.fact,
 		params: parts.params,
 	};
@@ -197,10 +201,10 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
  * A game family is built first, from the defaults of its params with `input.params` on top; what is hashed is the
  * data of the game it builds, so the params are in the hash only through what they change in the game.
  *
- * @param input - The game or the family, the overrides of its params, the installed mechanics (for a data game), the schedulers by id, the prompt lookup, the seed, the package versions and the record sources.
- * @returns The kernel definition, the data form with defaults filled, the texts, the briefings, the key of the win fact and the effective params.
- * @throws SwtError One error with every issue found, sorted by data path (`SWT-G001` to `SWT-G032`, `SWT-M010`,
- * `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues
+ * @param input - The game or the family, the overrides of its params, the installed mechanics (for a data game), the Director definitions, the schedulers by id, the prompt lookup, the seed, the package versions and the record sources.
+ * @returns The kernel definition, the data form with defaults filled, the texts, the briefings, the Directors, the key of the win fact and the effective params.
+ * @throws SwtError One error with every issue found, sorted by data path (`SWT-G001` to `SWT-G032`, `SWT-D001` to
+ * `SWT-D003`, `SWT-M010`, `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues
  * alone, and so are overrides that do not fit (`SWT-G041`): an unknown param, a value of the wrong type, or any
  * override for a game that is no family.
  *
@@ -220,11 +224,13 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	const data = checked.data;
 	const residents = residentsOf(data);
 	const steps = mechanicSteps(data, { ...input.installed, ...builder?.mechanics }, input);
-	const directors = directorsOf(data);
+	const named = directorsOf(data);
 	// The actors come after the grants: the actor `human` exists when its grant holds a tool.
-	const actors = actorsOf(data, residents.ids, directors.names, steps.grants.grants);
+	const actors = actorsOf(data, residents.ids, named.names, steps.grants.grants);
 	const scheduler = schedulerOf(data, input.schedulers);
-	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...directors.issues, ...steps.issues, ...scheduler.issues];
+	const events = steps.used.flatMap((entry) => Object.keys(entry.definition.events).map((type) => `${entry.definition.id}.${type}`));
+	const directors = resolveDirectors({ data, definitions: { ...input.directors, ...builder?.directors }, events, scheduler: scheduler.definition === undefined ? undefined : scheduler });
+	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...named.issues, ...directors.issues, ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
-	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, steps, scheduler, definition: scheduler.definition });
+	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, directors: directors.directors, steps, scheduler, definition: scheduler.definition });
 }

@@ -8,6 +8,7 @@ import { ActorId } from '@swarmtales/contracts';
 import { ActorSpec } from '@swarmtales/contracts';
 import { ActorsView } from '@swarmtales/contracts';
 import { CanonicalTool } from '@swarmtales/contracts';
+import { DirectorUse } from '@swarmtales/contracts';
 import { Envelope } from '@swarmtales/contracts';
 import { EventSchemas } from '@swarmtales/contracts';
 import { EventsDefinition } from '@swarmtales/contracts';
@@ -19,6 +20,7 @@ import { KernelDefinition } from '@swarmtales/contracts';
 import { KernelTool } from '@swarmtales/contracts';
 import { Listener } from '@swarmtales/contracts';
 import { MetricDefinition } from '@swarmtales/contracts';
+import { ModelChoice } from '@swarmtales/contracts';
 import { Ordered } from '@swarmtales/contracts';
 import { PluginHooks } from '@swarmtales/contracts';
 import { PluginPort } from '@swarmtales/contracts';
@@ -133,6 +135,9 @@ export interface DeclaredTool {
 }
 
 // @public
+export function defineDirector<O extends TSchema, A extends TSchema>(head: DirectorHead<O, A>, body: DirectorBody<O, A>): DirectorDefinition;
+
+// @public
 export function defineEvents<const Id extends string, const E extends EventSchemas>(id: Id, events: E): EventsDefinition<Id, E>;
 
 // @public
@@ -166,11 +171,98 @@ export type DefinitionOf<H> = H extends MechanicHead<infer Id, infer O, TSchema,
 export function definitionsOf(game: Game | GameData, installed?: Readonly<Record<string, MechanicDefinition>>): Readonly<Record<string, MechanicDefinition>>;
 
 // @public
+export const DIRECTOR_KIND = "director";
+
+// @public
+export const DIRECTOR_TAKE: CanonicalTool;
+
+// @public
+export interface DirectorActContext<O> extends DirectorContext<O> {
+    call(tool: string, params: unknown): Promise<ToolOutcome>;
+}
+
+// @public
+export interface DirectorBody<O extends TSchema, A extends TSchema> {
+    act(answer: Static<A>, ctx: DirectorActContext<Static<O>>): Promise<void>;
+    fallback?(ctx: DirectorContext<Static<O>>): Static<A> | undefined;
+    input(ctx: DirectorContext<Static<O>>): string;
+    system(ctx: DirectorContext<Static<O>>): string;
+}
+
+// @public
+export interface DirectorContext<O> {
+    readonly firings: readonly Firing[];
+    readonly name: string;
+    readonly options: O;
+    readonly tick: number;
+}
+
+// @public
+export interface DirectorDefinition {
+    act(answer: unknown, ctx: DirectorActContext<unknown>): Promise<void>;
+    fallback(ctx: DirectorContext<unknown>): unknown;
+    readonly id: string;
+    input(ctx: DirectorContext<unknown>): string;
+    readonly limits: DirectorLimits;
+    readonly on: readonly DirectorTrigger[];
+    readonly options: TSchema;
+    readonly output: TSchema;
+    parseOptions(raw: unknown): Readonly<Record<string, JsonValue>>;
+    readonly summary: string;
+    system(ctx: DirectorContext<unknown>): string;
+}
+
+// @public
+export function directorGrants(grants: Readonly<Record<string, readonly CanonicalTool[]>>, directors: readonly ResolvedDirector[]): Readonly<Record<string, readonly CanonicalTool[]>>;
+
+// @public
+export interface DirectorHead<O extends TSchema, A extends TSchema> {
+    readonly id: string;
+    readonly limits?: DirectorLimits;
+    readonly on: readonly DirectorTrigger[];
+    readonly options?: O;
+    readonly output: A;
+    readonly summary: string;
+}
+
+// @public
+export interface DirectorLimits {
+    readonly maxCalls?: number;
+    readonly maxCostUsd?: number;
+}
+
+// @public
 export function directorName(input: {
     readonly name: string;
     readonly path: string;
-    readonly taken: "director" | "grant";
+    readonly taken: "director" | "grant" | "unknown";
+    readonly known?: readonly string[];
 }): SwtIssue;
+
+// @public
+export function directorNeverActivated(input: {
+    readonly scheduler: string;
+    readonly directors: readonly string[];
+}): SwtIssue;
+
+// @public
+export interface DirectorPlacement extends Omit<DirectorUse, "use"> {
+    readonly use: string | DirectorDefinition;
+}
+
+// @public
+export const DIRECTORS_PLUGIN = "directors";
+
+// @public
+export interface DirectorsInput {
+    readonly data: GameData;
+    readonly definitions: Readonly<Record<string, DirectorDefinition>>;
+    readonly events: readonly string[];
+    readonly scheduler: {
+        readonly id: string;
+        readonly options: JsonValue;
+    } | undefined;
+}
 
 // @public
 export function directorsOf(data: GameData): {
@@ -182,6 +274,12 @@ export function directorsOf(data: GameData): {
 export function directorsReserved(input: {
     readonly count: number;
 }): SwtIssue;
+
+// @public
+export interface DirectorTrigger {
+    readonly event: string;
+    readonly where?: (payload: unknown) => boolean;
+}
 
 // @public
 export interface ErasedBody extends BodyParts<MechanicShape, Readonly<Record<string, TSchema>>> {
@@ -229,7 +327,16 @@ export function familyParams(family: GameFamily, overrides?: Readonly<Record<str
 };
 
 // @public
-export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked"> {
+export interface Firing {
+    readonly event: string;
+    readonly payload: unknown;
+    readonly seq: number;
+    readonly tick: number;
+}
+
+// @public
+export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked" | "directors"> {
+    readonly directors?: readonly DirectorPlacement[];
     readonly grants?: Partial<Readonly<Record<string, readonly ToolOf<Ms>[] | GrantTweak<ToolOf<Ms>>>>>;
     readonly locked?: readonly ToolOf<Ms>[];
     readonly mechanics: Ms;
@@ -240,6 +347,7 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
 export function gameData(game: Game): {
     readonly data: GameData;
     readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
+    readonly directors: Readonly<Record<string, DirectorDefinition>>;
 };
 
 // @public
@@ -509,7 +617,7 @@ export function noProvider(input: {
 // @public
 export function optionMismatch(input: {
     readonly owner: string;
-    readonly kind?: "mechanic" | "scheduler";
+    readonly kind?: "mechanic" | "scheduler" | "director";
     readonly package?: string;
     readonly path: string;
     readonly message: string;
@@ -636,10 +744,21 @@ export interface ResidentsView {
 }
 
 // @public
+export interface ResolvedDirector {
+    readonly actor: ActorId;
+    readonly definition: DirectorDefinition;
+    readonly limits: DirectorLimits;
+    readonly model: ModelChoice | undefined;
+    readonly name: string;
+    readonly options: Readonly<Record<string, JsonValue>>;
+}
+
+// @public
 export interface ResolvedGame {
     readonly briefings: Readonly<Record<string, string>>;
     readonly data: GameData;
     readonly definition: KernelDefinition;
+    readonly directors?: readonly ResolvedDirector[];
     readonly params: Readonly<Record<string, JsonValue>>;
     readonly texts: Readonly<Record<string, string>>;
     readonly win: string | undefined;
@@ -653,6 +772,12 @@ export interface ResolvedGrants {
 }
 
 // @public
+export function resolveDirectors(input: DirectorsInput): {
+    readonly directors: readonly ResolvedDirector[];
+    readonly issues: readonly SwtIssue[];
+};
+
+// @public
 export function resolveGame(input: ResolveInput): ResolvedGame;
 
 // @public
@@ -660,6 +785,7 @@ export function resolveGrants(input: GrantsInput): ResolvedGrants;
 
 // @public
 export interface ResolveInput {
+    readonly directors?: Readonly<Record<string, DirectorDefinition>>;
     readonly game: Game | GameData | GameFamily;
     readonly installed?: Readonly<Record<string, MechanicDefinition>>;
     readonly params?: Readonly<Record<string, unknown>>;
@@ -728,7 +854,7 @@ export function schemaVersion(input: {
 export const SDK_ERRORS: {
     readonly "SWT-G001": "the game does not match schema version 1";
     readonly "SWT-G002": "`schema` is not 1";
-    readonly "SWT-G003": "`directors` is not empty before milestone M3";
+    readonly "SWT-G003": "`directors` is not empty before milestone M3 (no longer raised: a game may have Directors)";
     readonly "SWT-G010": "a resident id is doubled or malformed";
     readonly "SWT-G011": "a team or a role names an id that is not a resident";
     readonly "SWT-G012": "a tool is granted or locked but not defined";
@@ -741,7 +867,9 @@ export const SDK_ERRORS: {
     readonly "SWT-G031": "a service has two providers";
     readonly "SWT-G032": "`requires` form a cycle";
     readonly "SWT-G041": "an override names no param of the game, or its value has the wrong type";
-    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant";
+    readonly "SWT-D001": "a Director's trigger names an event that no mechanic of the game declares";
+    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant, or its `use` names no definition";
+    readonly "SWT-D003": "the game has a Director and its scheduler activates no actor of kind `director`";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";
@@ -960,6 +1088,14 @@ export interface ToolSource {
     };
     readonly path: string;
 }
+
+// @public
+export function triggerWithoutEvent(input: {
+    readonly director: string;
+    readonly event: string;
+    readonly path: string;
+    readonly declared: readonly string[];
+}): SwtIssue;
 
 // @public
 export function twoProviders(input: {

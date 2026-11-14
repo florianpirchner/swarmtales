@@ -7,7 +7,7 @@
  */
 import { actorId, GameDefinitionSchema, KERNEL_EVENTS, ResidentIdSchema, SwtError, type ActorSpec, type GameData, type JsonValue, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
-import { directorName, directorsReserved, eventTypeTaken, gameSchemaMismatch, mechanicNotInstalled, mechanicTwice, memberNotResident, residentId, schemaVersion } from "../errors.ts";
+import { directorName, eventTypeTaken, gameSchemaMismatch, mechanicNotInstalled, mechanicTwice, memberNotResident, residentId, schemaVersion } from "../errors.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 
 const KIND = "resident";
@@ -34,17 +34,15 @@ export interface UsedMechanic {
 const dataPath = (pointer: string): string => pointer.split("/").slice(1).map((part) => (/^\d+$/.test(part) ? `[${part}]` : `.${part}`)).join("").slice(1);
 
 /**
- * The issues of a game that have a code of their own: a schema version that is not 1, Directors, malformed ids.
+ * The issues of a game that have a code of their own: a schema version that is not 1, malformed ids.
  *
  * @param game - The game, as it was read.
- * @returns `SWT-G002`, `SWT-G003` and `SWT-G010` issues.
+ * @returns `SWT-G002` and `SWT-G010` issues.
  */
 function namedIssues(game: object): readonly SwtIssue[] {
 	if ("schema" in game && game.schema !== 1) return [schemaVersion({ found: game.schema })];
-	const directors = "directors" in game && Array.isArray(game.directors) ? game.directors.length : 0;
 	const ids: readonly unknown[] = "residents" in game && Array.isArray(game.residents) ? game.residents : [];
-	const malformed = ids.flatMap((id, index) => (typeof id === "string" && !Value.Check(ResidentIdSchema, id) ? [residentId({ id, path: `residents[${index}]`, reason: "malformed" })] : []));
-	return [...(directors > 0 ? [directorsReserved({ count: directors })] : []), ...malformed];
+	return ids.flatMap((id, index) => (typeof id === "string" && !Value.Check(ResidentIdSchema, id) ? [residentId({ id, path: `residents[${index}]`, reason: "malformed" })] : []));
 }
 
 /**
@@ -52,19 +50,17 @@ function namedIssues(game: object): readonly SwtIssue[] {
  *
  * @param game - The game in its data form, as it was read; untrusted.
  * @returns The game when it matches, else undefined and the issues: `SWT-G002` alone for another schema version;
- * else `SWT-G003` for Directors, `SWT-G010` for a malformed resident id and `SWT-G001` for every other mismatch.
+ * else `SWT-G010` for a malformed resident id and `SWT-G001` for every other mismatch.
  *
  * @public
  */
 export function checkSchema(game: unknown): { readonly data: GameData | undefined; readonly issues: readonly SwtIssue[] } {
 	const named = typeof game === "object" && game !== null ? namedIssues(game) : [];
-	// A Director that fits the format is refused all the same (SWT-G003) until the sdk can run one.
 	if (named.length === 0 && Value.Check(GameDefinitionSchema, game)) return { data: game, issues: [] };
 	if (named[0]?.code === "SWT-G002") return { data: undefined, issues: named };
-	const covered = new Set<string>(named.map((issue) => (issue.code === "SWT-G010" ? "/residents" : "/directors")));
 	const rest = Value.Errors(GameDefinitionSchema, game).flatMap((error) => {
 		// A union reports each of its forms; only its own line says something true. An unknown field is reported twice.
-		if (error.schemaPath.includes("/anyOf/") || error.keyword === "additionalProperties" || [...covered].some((path) => `${error.instancePath}/`.startsWith(`${path}/`))) return [];
+		if (error.schemaPath.includes("/anyOf/") || error.keyword === "additionalProperties" || (named.length > 0 && `${error.instancePath}/`.startsWith("/residents/"))) return [];
 		const message = error.keyword === "anyOf" ? "matches none of the forms the format allows" : error.keyword === "boolean" ? "is not a field of the format" : error.message;
 		return [gameSchemaMismatch({ path: dataPath(error.instancePath), message })];
 	});

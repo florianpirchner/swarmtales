@@ -5,6 +5,7 @@
  * mechanic is not listed does not compile; the data form names them by id and is what is hashed and recorded.
  */
 import type { GameData } from "@swarmtales/contracts";
+import type { DirectorDefinition } from "../director/define.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import type { Game, MechanicUse } from "./types.ts";
 
@@ -64,8 +65,9 @@ export function definitionsOf(game: Game | GameData, installed: Readonly<Record<
  * Turns a builder game into its data form: `schema: 1`, and the mechanics by id with their options and renames.
  *
  * @param game - The game in its builder form.
- * @returns The data form, and the definitions the game used, by id. When a mechanic is listed twice its id stands
- * for the first use's definition; game resolution reports the double (`SWT-G021`).
+ * @returns The data form, and the definitions the game used, by id: of its mechanics, and of the Directors it
+ * names by definition. When a mechanic is listed twice its id stands for the first use's definition; game
+ * resolution reports the double (`SWT-G021`).
  * @example
  * ```ts
  * const { data, mechanics } = gameData(game);
@@ -74,16 +76,18 @@ export function definitionsOf(game: Game | GameData, installed: Readonly<Record<
  *
  * @public
  */
-export function gameData(game: Game): { readonly data: GameData; readonly mechanics: Readonly<Record<string, MechanicDefinition>> } {
-	const { mechanics: uses, grants, locked, ...rest } = game;
+export function gameData(game: Game): { readonly data: GameData; readonly mechanics: Readonly<Record<string, MechanicDefinition>>; readonly directors: Readonly<Record<string, DirectorDefinition>> } {
+	const { mechanics: uses, grants, locked, directors: placed, ...rest } = game;
 	const data: GameData = {
 		...rest,
 		schema: 1,
 		mechanics: uses.map(dataUse),
 		...(grants === undefined ? {} : { grants: dataGrants(grants) }),
 		...(locked === undefined ? {} : { locked: [...locked] }),
+		...(placed === undefined ? {} : { directors: placed.map((director) => ({ ...director, use: typeof director.use === "string" ? director.use : director.use.id })) }),
 	};
 	// Own entries only, the first use of an id wins: an id such as `constructor` or `__proto__` is a key like any other.
 	const mechanics: Readonly<Record<string, MechanicDefinition>> = Object.fromEntries(uses.map((use): [string, MechanicDefinition] => [use.mechanic.id, use.mechanic]).reverse());
-	return { data, mechanics };
+	const directors = Object.fromEntries((placed ?? []).flatMap((director): [string, DirectorDefinition][] => (typeof director.use === "string" ? [] : [[director.use.id, director.use]])).reverse());
+	return { data, mechanics, directors };
 }

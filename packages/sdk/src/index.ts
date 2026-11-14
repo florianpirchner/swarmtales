@@ -31,5 +31,7 @@ export { defineMetric, type MetricEvent, type MetricSpec } from "./mechanic/metr
 export { defineMechanic } from "./mechanic/define-mechanic.ts";
 
 export { resolveGame } from "./game/resolve.ts";
+export { defineDirector, type DirectorActContext, type DirectorBody, type DirectorContext, type DirectorDefinition, type DirectorHead, type DirectorLimits, type DirectorTrigger, type Firing } from "./director/define.ts";
+export { directorGrants, resolveDirectors, DIRECTOR_KIND, DIRECTOR_TAKE, DIRECTORS_PLUGIN, type DirectorsInput } from "./game/directors.ts";
 export { defineGameFamily, familyParams, isGameFamily, type GameFamily } from "./game/family.ts";
 export { collectTexts, type CollectedTexts, type TextSource } from "./game/texts.ts";

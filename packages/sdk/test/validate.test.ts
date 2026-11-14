@@ -60,11 +60,12 @@ describe("step 1, the schema", () => {
 		expect(brief(checkSchema({ ...game(), schema: 2, colour: "red" }).issues)).toEqual(["SWT-G002 schema"]);
 	});
 
-	it("reports Directors as SWT-G003 and a malformed resident id as SWT-G010, each once", () => {
+	it("lets a Director that fits the format pass, and reports a malformed resident id as SWT-G010 once", () => {
+		expect(checkSchema(game({ directors: [{ use: "host" }] })).issues).toEqual([]);
 		const { data, issues } = checkSchema({ ...game(), directors: [{ id: "host" }], residents: ["A", "B 2"] });
 		expect(data).toBeUndefined();
-		expect(brief(issues)).toEqual(["SWT-G003 directors", "SWT-G010 residents[1]"]);
-		expect(issues[1]?.summary).toBe('resident id "B 2" is malformed');
+		expect(brief(issues)).toEqual(["SWT-G010 residents[1]", "SWT-G001 directors[0]", "SWT-G001 directors[0].id"]);
+		expect(issues[0]?.summary).toBe('resident id "B 2" is malformed');
 	});
 });
 
