@@ -129,6 +129,20 @@ describe("loadPlugins: what it gives", () => {
 		expect(order).toEqual(["b hears", "a hears"]);
 	});
 
+	it("places the activation hooks like every hook: load order plus `after`, a throw is SWT-R003 (M4 4.9)", () => {
+		const seen: string[] = [];
+		const hook = (text: string, after?: readonly string[]) => [{ run: (actor: string) => void seen.push(`${text} ${actor}`), ...(after === undefined ? {} : { after }) }];
+		const placed = load([
+			plugin("a", {}, { hooks: { activationOpened: hook("a opened", ["b"]), activationClosed: hook("a closed") } }),
+			plugin("b", {}, { hooks: { activationOpened: hook("b opened"), activationClosed: [{ run: never, after: ["a"] }] } }),
+		]).loaded;
+		for (const entry of placed.hooks("activationOpened")) entry.run("resident:x");
+		expect(seen).toEqual(["b opened resident:x", "a opened resident:x"]);
+		expect(placed.hooks("activationClosed").map((entry) => entry.plugin)).toEqual(["a", "b"]);
+		expect(failure(() => placed.hooks("activationClosed")[1]?.run("resident:x")).code).toBe("SWT-R003");
+		expect(loaded.hooks("activationOpened")).toEqual([]);
+	});
+
 	it("gives a port that refuses an undeclared event and a job the plugin does not have, as SWT-R003 of the plugin", () => {
 		const [wake, sleep, done, gone] = loaded.hooks("tickEnded").map((hook) => hook.run);
 		wake?.();

@@ -42,6 +42,10 @@ export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hook
 	const plain = (run: (ctx: MechanicContext<M>) => void) => (): void => {
 		run(ctx);
 	};
+	const forResident = (run: (resident: string, ctx: MechanicContext<M>) => void) => (actor: ActorId): void => {
+		const resident = residentOf(actor);
+		if (resident !== undefined) run(resident, ctx);
+	};
 	return {
 		runStarted: registrations(hooks?.runStarted, plain),
 		tickStarted: registrations(hooks?.tickStarted, plain),
@@ -49,6 +53,8 @@ export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hook
 			const resident = residentOf(actor);
 			return resident === undefined ? [] : run(resident, ctx);
 		}),
+		activationOpened: registrations(hooks?.activationOpened, forResident),
+		activationClosed: registrations(hooks?.activationClosed, forResident),
 		tickEnded: registrations(hooks?.tickEnded, plain),
 		...(news === undefined
 			? {}

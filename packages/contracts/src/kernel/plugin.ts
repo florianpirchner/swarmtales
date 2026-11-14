@@ -47,6 +47,10 @@ export interface PluginHooks {
 	readonly tickStarted?: readonly Ordered<() => void>[];
 	/** Give the lines an actor is shown when it is activated; called once per activation, and it may note what it has told. */
 	readonly inputs?: readonly Ordered<(actor: ActorId) => readonly InputLine[]>[];
+	/** Run after `activation_opened` is written, before the driver starts; what one emits is caused by that event. */
+	readonly activationOpened?: readonly Ordered<(actor: ActorId) => void>[];
+	/** Run when the activation ends, before `activation_closed` is written; what one emits is caused by `activation_opened`. */
+	readonly activationClosed?: readonly Ordered<(actor: ActorId) => void>[];
 	/** Run at the end of a tick. */
 	readonly tickEnded?: readonly Ordered<() => void>[];
 	/** Says whether there is something new for the actor. It must not change state; any plugin saying yes counts. */

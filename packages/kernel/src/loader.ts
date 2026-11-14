@@ -133,6 +133,8 @@ export function loadPlugins(definition: KernelDefinition, parts: LoaderParts) {
 		runStarted: placeHooks(instances, (all) => all.runStarted),
 		tickStarted: placeHooks(instances, (all) => all.tickStarted),
 		inputs: placeHooks(instances, (all) => all.inputs),
+		activationOpened: placeHooks(instances, (all) => all.activationOpened),
+		activationClosed: placeHooks(instances, (all) => all.activationClosed),
 		tickEnded: placeHooks(instances, (all) => all.tickEnded),
 	};
 	const stages = stageTable(instances);

@@ -541,6 +541,8 @@ export interface OrderedNote extends InputNote {
 
 // @public
 export interface PluginHooks {
+    readonly activationClosed?: readonly Ordered<(actor: ActorId) => void>[];
+    readonly activationOpened?: readonly Ordered<(actor: ActorId) => void>[];
     readonly inputs?: readonly Ordered<(actor: ActorId) => readonly InputLine[]>[];
     news?(actor: ActorId): boolean;
     readonly runStarted?: readonly Ordered<() => void>[];

@@ -51,7 +51,7 @@ export interface LoadedTool {
 }
 
 /** The hooks that have an order across plugins. `news` and `toAct` are read from the instances, in load order. */
-export type OrderedHook = "runStarted" | "tickStarted" | "inputs" | "tickEnded";
+export type OrderedHook = "runStarted" | "tickStarted" | "inputs" | "activationOpened" | "activationClosed" | "tickEnded";
 
 /** The assembly: the start, the tick sequence, the end and the failure of a run. */
 export interface Lifecycle {

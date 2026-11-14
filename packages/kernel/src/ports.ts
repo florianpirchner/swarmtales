@@ -68,12 +68,20 @@ interface Opening {
 	readonly detail: Readonly<Record<string, JsonValue>>;
 }
 
-// Writes `activation_opened` and returns the activation. Its calls are caused by that event; the first has the
-// basis of the inputs, a later one the seq of the answer to the call before it.
+// Writes `activation_opened`, runs the `activationOpened` hooks and returns the activation. Its calls are caused by
+// that event; the first has the basis of the inputs, a later one the seq of the answer to the call before it.
+// `close` runs the `activationClosed` hooks, then writes `activation_closed`.
 function openActivation(parts: SchedulerPortParts, opening: Opening, step: Step, record: Recorder): OpenActivation {
 	const { log, dispatch } = parts;
 	const { actor, basis, inputs, detail } = opening;
 	const opened = log.run({ actor }, () => log.emit("kernel", "activation_opened", { actor, inputs: inputs.map(plain), detail: { ...detail } }, { basis }));
+	// The hooks of the two ends of the activation, each in its own frame of the kernel; a throw ends the run.
+	const hooks = (end: "activationOpened" | "activationClosed"): void => {
+		step(() => {
+			for (const hook of parts.loaded.hooks(end)) log.run({ actor: "kernel", causedBy: opened.seq }, hook.run.bind(undefined, actor));
+		});
+	};
+	hooks("activationOpened");
 	const grant = parts.actors.spec(actor)?.grant;
 	let calls = 0;
 	let answered = false;
@@ -99,6 +107,7 @@ function openActivation(parts: SchedulerPortParts, opening: Opening, step: Step,
 		close(failed: boolean): void {
 			if (closed) return;
 			closed = true;
+			hooks("activationClosed");
 			const outcome = failed ? "error" : calls > 0 ? "acted" : "no-call";
 			step(() => log.run({ actor, causedBy: opened.seq }, () => log.emit("kernel", "activation_closed", { actor, calls, outcome })));
 		},

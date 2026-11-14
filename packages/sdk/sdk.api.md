@@ -503,6 +503,8 @@ export interface MechanicHead<Id extends string, O extends TSchema, Snap extends
 
 // @public
 export interface MechanicHooks<M extends MechanicShape> {
+    readonly activationClosed?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
+    readonly activationOpened?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
     readonly news?: (resident: string, ctx: MechanicContext<M>) => boolean;
     readonly runStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
     readonly tickEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;

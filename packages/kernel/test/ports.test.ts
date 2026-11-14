@@ -137,6 +137,36 @@ describe("the scheduler's port", () => {
 		expect(closed.map((event) => [event.actor, event.causedBy])).toEqual([[A, 1], [A, 7], [A, 9]]);
 	});
 
+	it("runs the activation hooks in hook order: after `activation_opened`, and before `activation_closed` (M4 4.9)", async () => {
+		const seen: string[] = [];
+		const note = (word: string) => [{ run: (actor: ActorId) => void seen.push(`${word} ${actor} ${JSON.stringify(log.frame())} at ${String(log.length)}`) }];
+		const { log, state, create } = world({ first: { activationOpened: note("first opened"), activationClosed: note("first closed") }, second: { activationOpened: note("second opened") }, third: { activationClosed: note("third closed") } });
+		const open = create().open(A, [], {});
+		// Each hook has its own frame of the kernel, caused by the opening line.
+		const frame = JSON.stringify({ actor: "kernel", causedBy: 1 });
+		expect(seen).toEqual([`first opened ${A} ${frame} at 1`, `second opened ${A} ${frame} at 1`]);
+		await open.call("look", {});
+		open.close(false);
+		open.close(false);
+		expect(seen.slice(2)).toEqual([`first closed ${A} ${frame} at 3`, `third closed ${A} ${frame} at 3`]);
+		expect(log.all().map((event) => event.type)).toEqual(["activation_opened", "tool_called", "tool_result", "activation_closed"]);
+		expect(state.failures).toBe(0);
+	});
+
+	it("ends the run when an activation hook throws, before the throw reaches the scheduler", () => {
+		const thrower = [{ run: () => unused() }];
+		const opening = world({ bad: { activationOpened: thrower } });
+		expect(() => opening.create().open(A, [], {})).toThrow(/not used/);
+		expect(opening.state.failures).toBeGreaterThan(0);
+		const closing = world({ bad: { activationClosed: thrower } });
+		const open = closing.create().open(A, [], {});
+		expect(() => { open.close(false); }).toThrow(/not used/);
+		expect(closing.state.failures).toBe(1);
+		// The closing line is not written after a hook failed, and a second `close` does nothing.
+		open.close(false);
+		expect(closing.log.ofType("kernel", "activation_closed")).toEqual([]);
+	});
+
 	it("collects the lines of every `inputs` hook in hook order and asks every plugin for news", () => {
 		const { state, create } = world({
 			first: { inputs: [{ run: (actor) => [`for ${actor}`, { kind: "state", text: "s", order: 2 }] }], news: () => false },

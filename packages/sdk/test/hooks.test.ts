@@ -60,7 +60,7 @@ describe("bindHooks", () => {
 	});
 
 	it("gives no hooks, and neither `news` nor `toAct`, for a body without them", () => {
-		expect(bindHooks(parts(), undefined)).toEqual({ runStarted: [], tickStarted: [], inputs: [], tickEnded: [] });
+		expect(bindHooks(parts(), undefined)).toEqual({ runStarted: [], tickStarted: [], inputs: [], activationOpened: [], activationClosed: [], tickEnded: [] });
 		expect(Object.keys(bindHooks(parts(), { news: () => true }))).not.toContain("toAct");
 	});
 
@@ -78,6 +78,20 @@ describe("bindHooks", () => {
 		expect([hooks.news?.("resident:A01"), hooks.news?.("resident:A02"), hooks.news?.("director:D1"), hooks.news?.("kernel")]).toEqual([false, true, false, false]);
 		expect(seen).toEqual(["A01", "news A01", "news A02"]);
 		expect(hooks.toAct?.()).toEqual(["resident:A02"]);
+	});
+
+	it("calls the activation hooks with the bare id, only for a resident, and keeps `after`", () => {
+		const instance = parts();
+		const hooks = bindHooks(instance, {
+			activationOpened: (resident, ctx) => void ctx.state.log.push(`opened ${resident}`),
+			activationClosed: [{ run: (resident, ctx) => void ctx.state.log.push(`closed ${resident}@${String(ctx.tick)}`), after: ["grid-game"] }],
+		});
+		expect([hooks.activationOpened?.map((entry) => entry.after), hooks.activationClosed?.map((entry) => entry.after)]).toEqual([[undefined], [["grid-game"]]]);
+		for (const actor of ACTORS) {
+			hooks.activationOpened?.[0]?.run(actor);
+			hooks.activationClosed?.[0]?.run(actor);
+		}
+		expect(instance.state.value.log).toEqual(["opened A01", "closed A01@3", "opened A02", "closed A02@3"]);
 	});
 });
 

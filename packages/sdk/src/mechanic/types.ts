@@ -256,6 +256,10 @@ export interface MechanicHooks<M extends MechanicShape> {
 	readonly tickStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
 	/** Gives the lines a resident is shown when it is activated: plain, or with a kind the scheduler orders by. */
 	readonly turnInputs?: HookSlot<(resident: string, ctx: MechanicContext<M>) => readonly InputLine[]>;
+	/** Runs when a resident's activation is opened, after `activation_opened` and before its driver starts. */
+	readonly activationOpened?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
+	/** Runs when a resident's activation ends, before `activation_closed`; what it emits lands before the next wake decision. */
+	readonly activationClosed?: HookSlot<(resident: string, ctx: MechanicContext<M>) => void>;
 	/** Runs at the end of a tick. */
 	readonly tickEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
 	/** Says whether the resident has something new; any mechanic saying yes counts. It must not change state. */
