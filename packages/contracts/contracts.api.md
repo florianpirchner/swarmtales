@@ -38,6 +38,9 @@ export type ActorId = `${string}:${string}` | "human" | "script" | "kernel";
 export function actorId(kind: string, name: string): ActorId;
 
 // @public
+export const ActorIdSchema: Type.TUnsafe<ActorId>;
+
+// @public
 export interface ActorSpec {
     readonly grant: string;
     readonly id: ActorId;
@@ -87,6 +90,26 @@ export interface Envelope<T extends string = string, P = unknown> {
     readonly tool?: string;
     readonly type: T;
 }
+
+// @public
+export function envelopeLogIssues(lines: readonly unknown[]): readonly {
+    readonly line: number;
+    readonly reason: string;
+}[];
+
+// @public
+export const EnvelopeSchema: Type.TObject<{
+    seq: Type.TInteger;
+    tick: Type.TInteger;
+    source: Type.TString;
+    type: Type.TString;
+    actor: Type.TUnsafe<ActorId>;
+    causedBy: Type.TOptional<Type.TInteger>;
+    basis: Type.TOptional<Type.TInteger>;
+    tool: Type.TOptional<Type.TString>;
+    audience: Type.TOptional<Type.TArray<Type.TString>>;
+    payload: Type.TUnknown;
+}>;
 
 // @public
 export type EventSchemas = Readonly<Record<string, TSchema>>;
@@ -170,6 +193,13 @@ export interface InputNote {
 }
 
 // @public
+export const InputNoteSchema: Type.TObject<{
+    source: Type.TString;
+    kind: Type.TOptional<Type.TString>;
+    text: Type.TString;
+}>;
+
+// @public
 export const INVALID_ARGUMENTS = "INVALID_ARGUMENTS";
 
 // @public
@@ -180,6 +210,15 @@ export interface Job {
     readonly next: number;
     readonly owner: string;
 }
+
+// @public
+export const JobSchema: Type.TObject<{
+    id: Type.TInteger;
+    owner: Type.TString;
+    job: Type.TString;
+    next: Type.TInteger;
+    data: Type.TOptional<Type.TUnsafe<JsonValue>>;
+}>;
 
 // @public
 export type JsonValue = string | number | boolean | null | readonly JsonValue[] | {
@@ -203,6 +242,85 @@ export interface Kernel {
     readonly tick: number;
     toolSpecs(grant: string): readonly ToolSpec[];
 }
+
+// @public
+export const KERNEL_EVENTS: {
+    readonly run_started: Type.TObject<{
+        game: Type.TString;
+        seed: Type.TNumber;
+        maxTicks: Type.TInteger;
+        actors: Type.TArray<Type.TString>;
+        plugins: Type.TArray<Type.TString>;
+    }>;
+    readonly tick_started: Type.TObject<{}>;
+    readonly tick_ended: Type.TObject<{}>;
+    readonly job_ran: Type.TObject<{
+        owner: Type.TString;
+        job: Type.TString;
+    }>;
+    readonly activation_opened: Type.TObject<{
+        actor: Type.TString;
+        inputs: Type.TArray<Type.TObject<{
+            source: Type.TString;
+            kind: Type.TOptional<Type.TString>;
+            text: Type.TString;
+        }>>;
+        detail: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+    }>;
+    readonly activation_closed: Type.TObject<{
+        actor: Type.TString;
+        calls: Type.TInteger;
+        outcome: Type.TUnion<[Type.TLiteral<"acted">, Type.TLiteral<"no-call">, Type.TLiteral<"error">]>;
+    }>;
+    readonly tool_called: Type.TObject<{
+        as: Type.TString;
+        params: Type.TUnknown;
+    }>;
+    readonly tool_refused: Type.TObject<{
+        as: Type.TString;
+        stage: Type.TString;
+        code: Type.TString;
+        detail: Type.TOptional<Type.TString>;
+    }>;
+    readonly tool_result: Type.TObject<{
+        as: Type.TString;
+        reply: Type.TString;
+        endsTurn: Type.TOptional<Type.TBoolean>;
+    }>;
+    readonly service_called: Type.TObject<{
+        service: Type.TString;
+        method: Type.TString;
+        caller: Type.TString;
+        input: Type.TUnknown;
+    }>;
+    readonly actor_suspended: Type.TObject<{
+        actor: Type.TString;
+        by: Type.TString;
+        reason: Type.TString;
+    }>;
+    readonly actor_resumed: Type.TObject<{
+        actor: Type.TString;
+        by: Type.TString;
+    }>;
+    readonly tool_locked: Type.TObject<{
+        actor: Type.TString;
+        tool: Type.TString;
+        by: Type.TString;
+    }>;
+    readonly tool_unlocked: Type.TObject<{
+        actor: Type.TString;
+        tool: Type.TString;
+        by: Type.TString;
+    }>;
+    readonly limit_reached: Type.TObject<{
+        limit: Type.TString;
+        reason: Type.TString;
+    }>;
+    readonly run_ended: Type.TObject<{
+        reason: Type.TString;
+        detail: Type.TOptional<Type.TString>;
+    }>;
+};
 
 // @public
 export interface KernelDefinition {
@@ -251,6 +369,39 @@ export interface KernelSnapshot {
     readonly tick: number;
     readonly version: 1;
 }
+
+// @public
+export const KernelSnapshotSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales.kernel">;
+    version: Type.TLiteral<1>;
+    game: Type.TString;
+    gameHash: Type.TString;
+    seed: Type.TNumber;
+    tick: Type.TInteger;
+    seq: Type.TInteger;
+    ended: Type.TOptional<Type.TObject<{
+        reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
+        tick: Type.TInteger;
+        limit: Type.TOptional<Type.TString>;
+    }>>;
+    suspensions: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+    locks: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+    jobs: Type.TArray<Type.TObject<{
+        id: Type.TInteger;
+        owner: Type.TString;
+        job: Type.TString;
+        next: Type.TInteger;
+        data: Type.TOptional<Type.TUnsafe<JsonValue>>;
+    }>>;
+    plugins: Type.TRecord<"^.*$", Type.TObject<{
+        version: Type.TInteger;
+        data: Type.TUnknown;
+    }>>;
+    scheduler: Type.TOptional<Type.TObject<{
+        version: Type.TInteger;
+        data: Type.TUnknown;
+    }>>;
+}>;
 
 // @public
 export interface KernelTool {
@@ -409,6 +560,13 @@ export interface RunEnd {
     readonly reason: "ticks" | "limit" | "error";
     readonly tick: number;
 }
+
+// @public
+export const RunEndSchema: Type.TObject<{
+    reason: Type.TUnion<[Type.TLiteral<"ticks">, Type.TLiteral<"limit">, Type.TLiteral<"error">]>;
+    tick: Type.TInteger;
+    limit: Type.TOptional<Type.TString>;
+}>;
 
 // @public
 export interface RunLimit {
@@ -581,6 +739,21 @@ export const STAGES: readonly ["lock", "parse", "limit", "afford", "rule", "guar
 
 // @public
 export const STEP_LIMIT = "STEP_LIMIT";
+
+// @public
+export const StoredEnvelopeSchema: Type.TObject<{
+    at: Type.TString;
+    seq: Type.TInteger;
+    tick: Type.TInteger;
+    source: Type.TString;
+    type: Type.TString;
+    actor: Type.TUnsafe<ActorId>;
+    causedBy: Type.TOptional<Type.TInteger>;
+    basis: Type.TOptional<Type.TInteger>;
+    tool: Type.TOptional<Type.TString>;
+    audience: Type.TOptional<Type.TArray<Type.TString>>;
+    payload: Type.TUnknown;
+}>;
 
 // @public
 export interface Submission {
