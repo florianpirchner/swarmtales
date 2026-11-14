@@ -30,7 +30,8 @@ describe("row 1: the records of a driver", () => {
 		const card = text(replay(142));
 		expect(card).toMatch(/#141 asked \{"firings":\[136\]\}#142 answeredfallback \{"costUsd":0,.*"reason":"error"\}#143 postBoard/);
 		expect(rows.some((row) => row.event.type === "asked" || row.event.type === "answered" || row.event.type === "tool_called" && row.event.actorId !== "human")).toBe(false);
-		expect(rows.length).toBe(model.events.length - projection.attached.size);
+		// The answers to the three calls of the human are not rows either (issue 29).
+		expect(rows.length).toBe(model.events.length - projection.attached.size - projection.humanCalls.length);
 		// A line of the activation shows the activation's row and card; the line itself stays the current event.
 		expect(rows[rowAt(rows, projection, 142)]?.seq).toBe(138);
 		const shown = replay(142);

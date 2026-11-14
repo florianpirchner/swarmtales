@@ -7,6 +7,14 @@ overview with the chain badge, the replay (timeline, event list, lanes per actor
 report, the charts and the comparison. The `ViewerSetup` names the `RunSource` and what the page knows beside the
 runs (view descriptors, game descriptions).
 
+The replay reads the projection of `viewer-core` (`projectRun`). An activation is one row of the event list and one
+card with its calls, their answers and the records of its driver; a Director's activation is a row of its own kind
+with the events it was woken for and its acts; a decision is one card (proposed, each amendment, settled). A call
+of the human is a marked row that carries its answer, and the header shows the badge "human-influenced" when the
+log has one. A pause is a band of rows from `paused` to `resumed` and a band between two ticks over the actors'
+lanes, the resume marker (`run_resumed`) is a line across both with the run it came from, and a suspended actor
+(a banished resident) is grey from the event on: its lane, and each later row of it.
+
 The code is carried from the old platform; the views read `RunEvent` records and do not know which reader made them.
 A view that keys on an event type of the old platform (`run_end`, `usage`, `tool_call`, `thinking`) finds none in a
 run of the new platform. Not carried: the Story tab (the graph of a game's definition), and with it the

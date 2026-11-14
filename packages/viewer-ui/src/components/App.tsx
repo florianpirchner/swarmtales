@@ -7,6 +7,7 @@ import { NO_VOCABULARY, useRun, useVerification, type LoadedRun, type RunState, 
 import { Charts } from "./Charts.tsx";
 import { Compare } from "./Compare.tsx";
 import { Games } from "./Games.tsx";
+import { HumanBadge } from "./HumanHand.tsx";
 import { Overview } from "./Overview.tsx";
 import { Replay } from "./Replay.tsx";
 import { Report } from "./Report.tsx";
@@ -177,6 +178,7 @@ export function App(props: AppProps) {
 			<header className="stv-top">
 				<span className="stv-title">{setup.title ?? "Swarm Tales viewer"}</span>
 				<Tabs view={view} compared={compare.length} hasRun={runDir !== undefined} onView={setView} />
+				{loaded !== undefined && <HumanBadge projection={loaded.projection} onJump={jump} />}
 				{runDir !== undefined && <span className="stv-run-name" title={runDir}>{loaded?.model.name ?? runDir}</span>}
 			</header>
 			<main className="stv-main">{body}</main>

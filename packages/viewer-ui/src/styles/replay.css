@@ -61,3 +61,22 @@ p.stv-hl-reason { margin: 0 0 8px; }
 .stv-tag.warn { background: var(--warn-soft); color: var(--warn); }
 .stv-decision h3 .stv-badge { margin-left: 6px; vertical-align: middle; }
 .stv-decision .stv-kv { margin-bottom: 10px; font-size: 13px; }
+/* The Human Hand, the pause, the resume marker, a suspended actor */
+.stv-vrow.human, .stv-vrow.paused { border-left: 3px solid var(--warn); padding-left: 7px; }
+.stv-vrow.human .type, .stv-vrow.human .who { color: var(--warn); }
+.stv-vrow.paused { background: var(--warn-soft); }
+.stv-vrow.resume { border-top: 2px solid var(--s3); border-bottom: 2px solid var(--s3); }
+.stv-vrow.resume .type { color: var(--s3); }
+.stv-vrow.resume .sum { color: var(--text); }
+.stv-vrow.paused.current, .stv-vrow.human.current { background: var(--accent-soft); }
+.stv-vrow.suspension { border-left: 3px solid var(--muted); padding-left: 7px; }
+.stv-vrow.suspension .who { color: var(--muted); text-decoration: line-through; }
+.stv-vrow.suspended { opacity: 0.45; }
+.stv-vrow.suspended .type, .stv-vrow.suspended .who { color: var(--muted); text-decoration: line-through; }
+.stv-lanes text.suspended { fill: var(--muted); opacity: 0.6; text-decoration: line-through; }
+.stv-lanes rect.suspended { fill: var(--muted); opacity: 0.4; }
+.stv-lanes rect.pause { fill: var(--warn); opacity: 0.55; }
+.stv-lanes line.resume { stroke: var(--s3); stroke-width: 2; stroke-dasharray: 4 3; }
+.stv-human { border-left: 4px solid var(--warn); }
+.stv-human-badge { border: 0; cursor: pointer; margin-left: auto; }
+.stv-human-badge + .stv-run-name { margin-left: 0; }

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { summaryOf } from "../format.ts";
 import { scrollToShow, visibleRange } from "../replay-math.ts";
-import { activationLine, type TimelineRow } from "../timeline.ts";
+import { activationLine, callLine, markClasses, pauseLine, resumeLine, type TimelineRow } from "../timeline.ts";
 
 const ROW = 24;
 
@@ -22,9 +22,23 @@ function Who({ event }: { readonly event: TimelineRow["event"] }) {
 	return <span className="who" title={subject === undefined ? undefined : `${actor ?? "?"} acted on ${subject}`}>{actor ?? ""}{subject === undefined ? "" : ` → ${subject}`}</span>;
 }
 
-// What a row says: an activation as one line (a Director's with its own label), any other event by its type and its first fields.
+// The words of a marked row (type, who, what): a call of the human, a resume marker, the two ends of a pause, a suspension.
+function marked(row: TimelineRow): readonly [string, string, string] | undefined {
+	const { human, pause, resume, suspended } = row;
+	if (human !== undefined) return ["human", human.as, callLine(human)];
+	if (resume !== undefined) return ["run resumed", "", resumeLine(resume)];
+	if (pause?.seq === row.seq) return ["pause", pause.by, pauseLine(pause)];
+	if (pause?.endSeq === row.seq) return ["resumed", pause.by, `the pause of #${String(pause.seq)} ends`];
+	if (suspended?.seq === row.seq) return ["suspended", suspended.name, `by ${suspended.by} · ${suspended.reason} · greyed from here on`];
+	return undefined;
+}
+
+// What a row says: a marked row in its own words, an activation as one line (a Director's with its own label),
+// any other event by its type and its first fields.
 function Cells({ row }: { readonly row: TimelineRow }) {
 	const { event, activation } = row;
+	const own = marked(row);
+	if (own !== undefined) return <><span className="type">{own[0]}</span><span className="who">{own[1]}</span><span className="sum">{own[2]}</span></>;
 	if (activation === undefined) return <><span className="type">{event.type}</span><Who event={event} /><span className="sum">{summaryOf(event.data)}</span></>;
 	return <><span className="type">{activation.kind === "director" ? "Director" : "activation"}</span><span className="who">{activation.name}</span><span className="sum">{activationLine(activation)}</span></>;
 }
@@ -32,7 +46,7 @@ function Cells({ row }: { readonly row: TimelineRow }) {
 function Row({ row, position, selected, starred, onPick }: { readonly row: TimelineRow; readonly position: number; readonly selected: boolean; readonly starred: boolean; readonly onPick: (seq: number) => void }) {
 	const kind = row.activation === undefined ? "" : ` activation ${row.activation.kind}`;
 	return (
-		<div role="option" aria-selected={selected} className={`stv-vrow${kind}${selected ? " current" : ""}${starred ? " marked" : ""}`} style={{ top: position * ROW }} onClick={() => { onPick(row.seq); }}>
+		<div role="option" aria-selected={selected} className={`stv-vrow${kind}${markClasses(row)}${selected ? " current" : ""}${starred ? " marked" : ""}`} style={{ top: position * ROW }} onClick={() => { onPick(row.seq); }}>
 			<span className="seq">{starred ? "★" : ""}{row.seq}</span>
 			<span className="min">m{row.event.minute}</span>
 			<Cells row={row} />

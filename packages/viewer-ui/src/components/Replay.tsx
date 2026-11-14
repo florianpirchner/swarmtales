@@ -8,6 +8,7 @@ import type { LoadedRun } from "../use-run.ts";
 import { ActivationCard } from "./ActivationCard.tsx";
 import { DecisionCard } from "./DecisionCard.tsx";
 import { EventList } from "./EventList.tsx";
+import { HumanCard } from "./HumanHand.tsx";
 import { Lanes } from "./Lanes.tsx";
 import { MessageGraph } from "./MessageGraph.tsx";
 import { ViewsPanel } from "./ViewsPanel.tsx";
@@ -134,20 +135,21 @@ function Detail({ current, highlight, onSeq, box }: { readonly current: RunEvent
 	);
 }
 
-// What the projection knows about the current line: the activation it belongs to, and the decisions proposed up to it.
+// What the projection knows about the current line: the activation it belongs to and the decisions proposed up to it; then the Human Hand over the whole run.
 function ProjectionCards({ projection, seq, onSeq }: { readonly projection: RunProjection; readonly seq: number; readonly onSeq: (seq: number) => void }) {
 	const activation = projection.activations.find((entry) => entry.seq === (projection.attached.get(seq) ?? seq));
 	return (
 		<>
 			{activation !== undefined && <ActivationCard activation={activation} seq={seq} onSeq={onSeq} />}
 			{projection.decisions.filter((decision) => decision.seq <= seq).map((decision) => <DecisionCard key={decision.id} decision={decision} seq={seq} onSeq={onSeq} />)}
+			<HumanCard projection={projection} seq={seq} onSeq={onSeq} />
 		</>
 	);
 }
 
 /**
  * The replay of a run: the controls, the highlights, the actors' lanes and the event list on the left,
- * the current event, its activation, the decisions, the views of its mechanics and the message graph on the right.
+ * the current event, its activation, the decisions, the Human Hand, the views of its mechanics and the message graph on the right.
  *
  * @param props - The loaded run, the current seq and how to change it, the view descriptors and the caller's vocabulary.
  * @returns The replay view.
@@ -182,7 +184,7 @@ export function Replay(props: Props) {
 				{highlights.length > 0 && <Highlights highlights={highlights} current={current.seq} onSeq={pickHighlight} index={index} />}
 				<div className="stv-card">
 					<h3>Actors</h3>
-					<Lanes lanes={lanes} index={index} minute={current.minute} onMinute={toMinute} />
+					<Lanes lanes={lanes} index={index} minute={current.minute} onMinute={toMinute} projection={projection} />
 				</div>
 				<div className="stv-card">
 					<h3>Events</h3>
