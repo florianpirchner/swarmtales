@@ -74,7 +74,7 @@ describe("row 6: the resume marker", () => {
 	it("is a line across the event list and the lanes that names the run it came from", () => {
 		const shown = list(163, 163);
 		expect(shown).toContain('class="stv-vrow paused resume"');
-		expect(text(shown)).toBe("163m7run resumedfrom city-slice-001 at tick 7 · snapshot d2094dca7238…");
+		expect(text(shown)).toBe("163m7run resumedfrom city-slice-001 at tick 7 · snapshot a15c30916b22…");
 		expect(lanes(model.events)).toMatch(/<line class="resume"[^>]*><title>run resumed from city-slice-001 at tick 7/);
 		expect(text(renderToStaticMarkup(createElement(HumanCard, { projection, seq: 163, onSeq: nothing })))).toContain("#163 run resumed  from city-slice-001 at tick 7");
 	});

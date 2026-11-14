@@ -6,6 +6,7 @@
 
 import { ChainCheckpoint } from '@swarmtales/chain';
 import { ChainGenesisV2Input } from '@swarmtales/chain';
+import { Envelope } from '@swarmtales/contracts';
 import { EventSink } from '@swarmtales/contracts';
 import { KernelSnapshot } from '@swarmtales/contracts';
 import { KeyObject } from 'node:crypto';
@@ -44,7 +45,21 @@ export interface EventChainOptions {
 }
 
 // @public
+export function findFirings(log: readonly Envelope[]): readonly FoundFiring[];
+
+// @public
 export function findLeaks(directory: string, leaks: (text: string) => boolean): readonly string[];
+
+// @public
+export interface FoundFiring {
+    readonly director: string;
+    readonly event: string;
+    readonly n: number;
+    readonly payload: unknown;
+    readonly taken: number;
+    readonly tick: number;
+    readonly trigger?: number;
+}
 
 // @public
 export const GAME_FILE = "game.json";
@@ -102,6 +117,9 @@ export interface SnapshotExpectation {
 
 // @public
 export const SNAPSHOTS_FOLDER = "snapshots";
+
+// @public
+export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
 
 // @public
 export const TEXTS_FILE = "texts.json";

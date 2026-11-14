@@ -131,6 +131,7 @@ export interface FindRunsOptions {
 // @public
 export interface Firing {
     readonly event: string;
+    readonly n: number;
     readonly payload: unknown;
     readonly seq: number;
     readonly tick: number;

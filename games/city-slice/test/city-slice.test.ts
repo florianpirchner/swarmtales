@@ -7,7 +7,7 @@
  */
 import { join } from "node:path";
 import type { Envelope } from "@swarmtales/contracts";
-import { loadOrder } from "@swarmtales/sdk";
+import { loadOrder, parseTake } from "@swarmtales/sdk";
 import { describe, expect, it } from "vitest";
 import game from "../game.ts";
 import { AMENDED_HAND, HAND, SCRIPT } from "../src/scripts.ts";
@@ -86,8 +86,11 @@ describe.each(RUNS)("the city slice, $name", ({ name, seed, hand, exiled }) => {
 		expect(proposed.map((event) => [event.tick, event.payload])).toMatchObject([[6, { decision: "D1", kind: "court.verdict", owner: "court", proposal: { exiled: "A04" }, deadline: 8, holders: ["human", "director:warden"] }]]);
 		// The Director is an actor: one activation at the slot after the tick's start, a question about the proposal, one logged call.
 		expect(told(events, "activation_opened").filter(([, , actor]) => actor === "director:warden")).toEqual([[6, "activation_opened", "director:warden", { actor: "director:warden", inputs: [], detail: { slot: "start", pass: 1, block: 0 } }]]);
-		expect(told(events, "asked", "answered")).toEqual([[6, "asked", "director:warden", { firings: [proposed[0]?.seq] }], [6, "answered", "director:warden", { ok: true, fallback: false, costUsd: 0 }]]);
+		expect(told(events, "asked", "answered")).toEqual([[6, "asked", "director:warden", { firings: [1] }], [6, "answered", "director:warden", { ok: true, fallback: false, costUsd: 0 }]]);
 		expect(calls(events, "director:warden")).toEqual([[6, "take", "ok"], [6, "postBoard", "ok"]]);
+		// The record `asked` cites the firing by its number; the reply of `take` before it says which line that is, by tick, event and payload, and holds no log position (decision A34).
+		const taken = events.find((event) => event.actor === "director:warden" && event.type === "tool_result");
+		expect(parseTake(String(field(taken?.payload, "reply")))).toEqual({ firings: [{ n: 1, tick: 6, event: "decisions.decision_proposed", payload: proposed[0]?.payload }], calls: 1 });
 		expect(told(events, "board_post").filter(([, , actor]) => actor === "director:warden")).toMatchObject([[6, "board_post", "director:warden", { author: "director:warden", text: "The court proposes to banish A04. The verdict can be changed until tick 8." }]]);
 	});
 

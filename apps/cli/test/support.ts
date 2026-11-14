@@ -46,8 +46,8 @@ export function eventsOf(directory: string): readonly StoredEnvelope[] {
 
 /**
  * The log of a resumed run as the straight run has it: without the marker `run_resumed`, and with `seq`, `causedBy`
- * and `basis` of the later events counted without it. A seq inside a payload (the reply of a Director's `take`) is
- * not changed.
+ * and `basis` of the later events counted without it. No payload is
+ * changed: none holds a log position (decision A34).
  */
 export function withoutMarker(events: readonly StoredEnvelope[]): readonly StoredEnvelope[] {
 	const marker = events.find((event) => event.type === "run_resumed")?.seq ?? Infinity;

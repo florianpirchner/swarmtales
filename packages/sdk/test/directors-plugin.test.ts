@@ -83,9 +83,10 @@ describe("the plugin `directors`", () => {
 		fire("proposed", "loud");
 		fire("closed");
 		expect([news("director:warden"), news("director:clerk"), news("resident:A01")]).toEqual([true, true, false]);
-		expect(take("director:warden")).toEqual({ firings: [{ seq: 3, tick: 1, event: "votes.proposed", payload: { line: "loud" } }, { seq: 4, tick: 1, event: "votes.closed", payload: { line: "x" } }], calls: 1 });
+		expect(take("director:warden")).toEqual({ firings: [{ n: 1, tick: 1, event: "votes.proposed", payload: { line: "loud" } }, { n: 2, tick: 1, event: "votes.closed", payload: { line: "x" } }], calls: 1 });
 		expect([news("director:warden"), take("director:warden"), news("director:clerk")]).toEqual([false, { firings: [], calls: 1 }, true]);
-		expect(take("director:clerk")?.firings.map((firing) => firing.seq)).toEqual([1, 3]);
+		// A firing is numbered per Director, from 1, and holds no place on the log (decision A34): the clerk's two are the events 1 and 3.
+		expect(take("director:clerk")?.firings.map((firing): readonly unknown[] => [firing.n, Reflect.get(Object(firing.payload), "line"), "seq" in firing])).toEqual([[1, "hush", false], [2, "loud", false]]);
 		expect([call("resident:A01")?.rule(), call("resident:A01")?.execute(), call("director:clerk")?.rule(), emitted]).toEqual([{ ok: false, code: NOT_A_DIRECTOR, detail: "Only a Director of the game takes firings." }, { ok: false, code: NOT_A_DIRECTOR }, undefined, []]);
 		expect([parseTake("ok"), parseTake('{"firings":[],"calls":-1}')]).toEqual([undefined, undefined]);
 	});
@@ -97,11 +98,11 @@ describe("the plugin `directors`", () => {
 		first.fire("closed");
 		first.fire("proposed");
 		const saved: unknown = JSON.parse(JSON.stringify(first.instance.slice?.save()));
-		expect(saved).toEqual({ queue: { warden: [{ seq: 2, tick: 1, event: "votes.closed", payload: { line: "x" } }, { seq: 3, tick: 1, event: "votes.proposed", payload: { line: "x" } }], clerk: [{ seq: 3, tick: 1, event: "votes.proposed", payload: { line: "x" } }] }, calls: { warden: 1, clerk: 0 }, skipped: [] });
+		expect(saved).toEqual({ queue: { warden: [{ n: 2, tick: 1, event: "votes.closed", payload: { line: "x" } }, { n: 3, tick: 1, event: "votes.proposed", payload: { line: "x" } }], clerk: [{ n: 1, tick: 1, event: "votes.proposed", payload: { line: "x" } }] }, calls: { warden: 1, clerk: 0 }, skipped: [], fired: { warden: 3, clerk: 1 } });
 		const second = started();
-		second.instance.slice?.load(saved, 1);
+		second.instance.slice?.load(saved, 2);
 		for (const run of [first, second]) {
-			expect([run.news("director:warden"), run.take("director:warden")?.firings.map((firing) => firing.seq), run.take("director:warden")?.calls]).toEqual([true, [2, 3], 2]);
+			expect([run.news("director:warden"), run.take("director:warden")?.firings.map((firing) => firing.n), run.take("director:warden")?.calls]).toEqual([true, [2, 3], 2]);
 			run.fire("closed");
 			run.fire("proposed");
 			expect([run.news("director:warden"), run.take("director:warden"), run.emitted, run.take("director:clerk")?.firings.length]).toEqual([false, { firings: [], calls: 2 }, [["skipped", { director: "warden", reason: "maxCalls" }]], 2]);

@@ -9,7 +9,7 @@ import { DIRECTOR_TAKE, parseTake, type DirectorContext, type ResolvedDirector, 
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
 
-const AskedSchema = Type.Object({ firings: Type.Array(Type.Integer({ description: "The seq of one event that fired a trigger" }), { description: "The firings the question is about, in log order" }) }, { additionalProperties: false, description: "A Director took its firings and asks its model" });
+const AskedSchema = Type.Object({ firings: Type.Array(Type.Integer({ minimum: 1, description: "The number `n` of one firing, as the reply of `take` before this record lists it; no place on the log" }), { description: "The firings the question is about, in log order" }) }, { additionalProperties: false, description: "A Director took its firings and asks its model" });
 
 const AnsweredSchema = Type.Object(
 	{
@@ -59,7 +59,7 @@ function driverOf(director: ResolvedDirector, take: string, ask: AskModel): Acto
 		if (firings.length === 0) return;
 		const ctx: DirectorContext<unknown> = { name: director.name, options: director.options, tick: activation.tick, firings };
 		const question = { system: definition.system(ctx), input: definition.input(ctx), output: definition.output };
-		activation.record(DIRECTOR_RECORDS.id, "asked", { firings: firings.map((firing) => firing.seq) } satisfies Static<typeof AskedSchema>);
+		activation.record(DIRECTOR_RECORDS.id, "asked", { firings: firings.map((firing) => firing.n) } satisfies Static<typeof AskedSchema>);
 		const { value, record } = settle(director, ctx, await ask(activation, question));
 		activation.record(DIRECTOR_RECORDS.id, "answered", record);
 		if (value !== undefined) await definition.act(value, { ...ctx, call: (tool, params) => activation.call(tool, params) });

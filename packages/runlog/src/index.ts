@@ -6,6 +6,7 @@
  */
 
 export { EventChain, type EventChainOptions } from "./chain-writer.ts";
+export { findFirings, type FoundFiring, TAKE_TOOL } from "./firings.ts";
 export { briefingKey, GAME_FILE, MANIFEST_FILE, nextRunFolder, openRunFolder, TEXTS_FILE, type RunFolder, type RunFolderOptions } from "./folder.ts";
 export { findLeaks } from "./leaks.ts";
 export { createSink } from "./sink.ts";

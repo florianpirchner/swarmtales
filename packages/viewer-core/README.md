@@ -29,7 +29,7 @@ nothing.
 
 | Field | What | From |
 |---|---|---|
-| `activations` | every activation with its `kind` (`resident`, `director`), its `calls` (each with its answer), the `records` of its driver and, for a Director, its `firings` | `activation_opened`, `activation_closed`, `tool_called`, `tool_result`, `tool_refused`, the answer of `directors.take`, every line of another source whose `causedBy` is the activation |
+| `activations` | every activation with its `kind` (`resident`, `director`), its `calls` (each with its answer), the `records` of its driver and, for a Director, its `firings`: each with its number `n` (what `asked.firings` cites) and the `seq` of the line that fired it, which no payload holds (decision A34) and which the projection finds as the line of the firing's tick with its event type and payload, by the rule of `findFirings` in `@swarmtales/runlog` | `activation_opened`, `activation_closed`, `tool_called`, `tool_result`, `tool_refused`, the answer of `directors.take`, every line of another source whose `causedBy` is the activation |
 | `attached` | seq of a line that belongs to an activation, to the seq of that activation | the same lines |
 | `decisions` | one item per decision: proposed, each amendment, settled | the three events of `decisions` |
 | `humanCalls`, `humanInfluenced` | the calls of the actor `human`, and whether there is one | `tool_called` with the actor `human` |

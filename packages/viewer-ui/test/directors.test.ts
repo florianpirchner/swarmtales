@@ -28,7 +28,7 @@ const replay = (seq: number): string => renderToStaticMarkup(createElement(Repla
 describe("row 1: the records of a driver", () => {
 	it("are lines of the card of their activation, in the order of the log, and no rows of the event list", () => {
 		const card = text(replay(142));
-		expect(card).toMatch(/#141 asked \{"firings":\[136\]\}#142 answeredfallback \{"costUsd":0,.*"reason":"error"\}#143 postBoard/);
+		expect(card).toMatch(/#141 asked \{"firings":\[1\]\}#142 answeredfallback \{"costUsd":0,.*"reason":"error"\}#143 postBoard/);
 		expect(rows.some((row) => row.event.type === "asked" || row.event.type === "answered" || row.event.type === "tool_called" && row.event.actorId !== "human")).toBe(false);
 		// The answers to the three calls of the human are not rows either (issue 29).
 		expect(rows.length).toBe(model.events.length - projection.attached.size - projection.humanCalls.length);

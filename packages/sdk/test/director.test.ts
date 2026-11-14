@@ -58,7 +58,7 @@ describe("defineDirector", () => {
 		expect([warden.parseOptions(undefined), warden.parseOptions({ tone: "warm" }), silent.parseOptions({})]).toEqual([{ tone: "dry" }, { tone: "warm" }, {}]);
 		expect(failure(() => warden.parseOptions({ tone: 3, ton: "x" }))).toEqual(["SWT-G020 options.ton", "SWT-G020 options.tone"]);
 		expect(failure(() => warden.parseOptions([]))).toEqual(["SWT-G020 options"]);
-		const firings = [{ seq: 4, tick: 2, event: "votes.proposed", payload: {} }];
+		const firings = [{ n: 1, tick: 2, event: "votes.proposed", payload: {} }];
 		const ctx = { name: "host", options: { tone: "dry" }, tick: 2, firings };
 		expect([warden.system(ctx), warden.input(ctx), warden.fallback(ctx), warden.fallback({ ...ctx, firings: [] }), silent.fallback(ctx)]).toEqual(["You are host, dry.", "tick 2: votes.proposed", { line: "..." }, undefined, undefined]);
 		const calls: unknown[] = [];

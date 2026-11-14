@@ -18,10 +18,10 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { RunManifestSchema } from "@swarmtales/contracts";
 import { DIRECTOR_RECORDS } from "@swarmtales/engine";
+import { findFirings } from "@swarmtales/runlog";
 import { isGameFamily, parseTake } from "@swarmtales/sdk";
 import { replay } from "@swarmtales/testkit";
-import { Type } from "typebox";
-import { Check, Parse } from "typebox/value";
+import { Parse } from "typebox/value";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadGame } from "../src/load-game.ts";
 import { RUN_RECORDS } from "../src/records.ts";
@@ -65,18 +65,12 @@ async function pair(out: string, seed: number, hand: keyof typeof HANDS): Promis
 	return { straight: eventsOf(join(cwd, folders[0])), resumed, marker: resumed.findIndex((event) => event.type === "run_resumed"), folders };
 }
 
-const Settled = Type.Object({ amendments: Type.Array(Type.Object({ seq: Type.Integer({ description: "The line of the amendment" }) }, { description: "One amendment" })) }, { description: "The payload of `decision_settled`, as far as it names lines of the log" });
-/** `decision_settled` names the line of each amendment in its payload; in a resumed log that line is one further down when the marker lies before it. */
-function amendmentsBack(events: readonly StoredEnvelope[], marker: number): readonly StoredEnvelope[] {
-	return events.map((event) => (event.type === "decision_settled" && Check(Settled, event.payload) ? { ...event, payload: { ...event.payload, amendments: event.payload.amendments.map((entry) => ({ ...entry, seq: entry.seq > marker ? entry.seq - 1 : entry.seq })) } } : event));
-}
-
-/** Done-when 3 on a pair: one marker, the rest equal (`same` first takes back what the marker moved inside a payload), and the continuity of the two folders verifies. */
-async function proven({ straight, resumed, marker, folders }: Pair, other: string, same: (events: readonly StoredEnvelope[]) => readonly StoredEnvelope[] = (events) => events): Promise<void> {
+/** Done-when 3 on a pair: one marker, the rest equal (decision A34: after the marker is taken out and the envelope fields behind it are moved back; no payload is touched), and the continuity of the two folders verifies. */
+async function proven({ straight, resumed, marker, folders }: Pair, other: string): Promise<void> {
 	expect(resumed[marker]).toMatchObject({ tick: 7, source: RUN_RECORDS.id, actor: "script", payload: { from: "city-slice-001", tick: 7 } });
 	expect(resumed.filter((event) => event.type === "run_resumed")).toHaveLength(1);
 	expect(resumed.length).toBe(straight.length + 1);
-	expect(same(withoutMarker(resumed))).toEqual(straight);
+	expect(withoutMarker(resumed)).toEqual(straight);
 	expect((await swt("log", "verify", folders[1], "--previous", folders[0])).out).toEqual([expect.stringMatching(HOLDS)]);
 	expect(await swt("log", "verify", folders[1], "--previous", other)).toMatchObject({ code: 1, issue: "SWT-L007" });
 	const manifest = Parse(RunManifestSchema, JSON.parse(readFileSync(join(cwd, folders[1], "manifest.json"), "utf8")));
@@ -148,26 +142,22 @@ describe("the city slice through the command line", () => {
 		const plain = withoutMarker(run.resumed);
 		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(run.straight[index]) ? [] : [event.type]));
 		expect(differing).toEqual([]);
-		await proven(run, "seed-7/city-slice-001", (events) => amendmentsBack(events, run.marker));
+		await proven(run, "seed-7/city-slice-001");
 	});
 
-	// Decision A27 and open point P3 of the errata. A cure (no log position in a payload, or a marker that takes no position) must change this test.
-	it("a snapshot before the Director is asked (--snapshot-at 6): the resumed log differs from the straight one in exactly the two lines of the warden that hold the log position of its firing", async () => {
+	// Decision A34 closes open point P3 of the errata: no payload holds a log position, so the marker moves nothing inside one.
+	it("a snapshot before the Director is asked (--snapshot-at 6): the resumed log without its marker is the straight log, the two lines of the warden included", async () => {
 		expect((await swt("run", CITY, "--fake", "--seed", "7", "--out", "early", "--snapshot-at", "6")).code).toBe(0);
 		expect((await swt("resume", "early/city-slice-001", "--game", CITY)).code).toBe(0);
 		const [straight, resumed] = [eventsOf(join(cwd, "early/city-slice-001")), eventsOf(join(cwd, "early/city-slice-002"))];
-		const plain = withoutMarker(resumed);
-		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(straight[index]) ? [] : [index]));
-		// Line 1: the reply of the Director's `take`, a JSON text with `firings[].seq`. Line 2: the record `asked` with `firings`. `withoutMarker` reaches neither.
-		expect(differing.map((index) => [plain[index]?.tick, plain[index]?.actor, plain[index]?.type])).toEqual([[6, "director:warden", "tool_result"], [6, "director:warden", "asked"]]);
-		const positions = (events: readonly StoredEnvelope[]): readonly unknown[] => {
-			const [taken, asked] = differing.map((index): unknown => events[index]?.payload);
-			return [parseTake(String(Reflect.get(Object(taken), "reply")))?.firings.map((firing) => firing.seq), Reflect.get(Object(asked), "firings")];
-		};
-		// The firing is the verdict's proposal. The marker lies before it, so the resumed run counts it one line further down, and says so to the Director.
+		expect(withoutMarker(resumed)).toEqual(straight);
+		// The Director is asked after the marker, and both runs tell it the same: firing 1, with no place on the log.
+		const warden = (events: readonly StoredEnvelope[]): readonly unknown[] => events.filter((event) => event.actor === "director:warden" && ["tool_result", "asked"].includes(event.type)).map((event) => event.payload);
+		expect(warden(resumed.slice(resumed.findIndex((event) => event.type === "run_resumed")))).toEqual(warden(straight));
+		expect([parseTake(String(Reflect.get(Object(warden(straight)[0]), "reply")))?.firings.map((firing) => [firing.n, "seq" in firing]), warden(straight)[1]]).toEqual([[[1, false]], { firings: [1] }]);
+		// A reader finds the trigger from the log (`findFirings`): the proposal's line, one further down in the resumed log, and stored in neither.
 		const proposed = straight.find((event) => event.type === "decision_proposed")?.seq ?? 0;
-		expect(resumed.find((event) => event.type === "run_resumed")?.seq).toBeLessThan(proposed);
-		expect([positions(straight), positions(plain)]).toEqual([[[proposed], [proposed]], [[proposed + 1], [proposed + 1]]]);
+		expect([findFirings(straight), findFirings(resumed)].map((found) => found.map((firing) => [firing.director, firing.n, firing.trigger]))).toEqual([[["director:warden", 1, proposed]], [["director:warden", 1, proposed + 1]]]);
 		expect((await swt("log", "verify", "early/city-slice-002", "--previous", "early/city-slice-001")).out).toEqual([expect.stringMatching(HOLDS)]);
 	});
 

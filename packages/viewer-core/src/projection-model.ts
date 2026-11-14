@@ -36,7 +36,9 @@ export interface Call {
  * @public
  */
 export interface Firing {
-	/** The seq of the event that fired. */
+	/** The number of the firing among the firings of this Director, from 1: what the record `asked` cites. */
+	readonly n: number;
+	/** The seq of the event that fired. The answer of `take` holds no seq (decision A34): it is the line of that tick with that type and payload, found in the log; the seq of the answer itself when the log does not hold the line. */
 	readonly seq: number;
 	/** The tick of that event. */
 	readonly tick: number;

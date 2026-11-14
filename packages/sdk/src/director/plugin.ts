@@ -3,8 +3,8 @@
  * The plugin `directors`: the queue of every Director of a game. Game resolution adds it, last in load order, to a
  * game that has a Director. It listens to the events the Directors' triggers name and queues a firing for each
  * Director that keeps the event; `news` says that a Director has something queued; with the tool `take` a Director
- * (its driver) takes its queue and is counted. Queue and counts are the plugin's slice, so a resumed run goes on
- * with them. It is written by hand as a `ResolvedPlugin`, like `roster`: it asks no model and calls no body
+ * (its driver) takes its queue and is counted. A firing has a number of its own, from 1 per Director, and no place
+ * on the log (decision A34). Queue, counts and numbers are the plugin's slice, so a resumed run goes on with them. It is written by hand as a `ResolvedPlugin`, like `roster`: it asks no model and calls no body
  * function of a Director but `where`.
  */
 import { SwtError, type Envelope, type KernelTool, type Listener, type PluginInstance, type PluginPort, type ResolvedPlugin } from "@swarmtales/contracts";
@@ -27,7 +27,7 @@ export const NOT_A_DIRECTOR = "NOT_A_DIRECTOR";
 
 const FiringSchema = Type.Object(
 	{
-		seq: Type.Integer({ description: "The place of the event on the log" }),
+		n: Type.Integer({ minimum: 1, description: "The number of the firing among the firings of this Director, from 1, in log order" }),
 		tick: Type.Integer({ description: "The tick of the event" }),
 		event: Type.String({ description: "`<mechanic>.<event>`, as the trigger names it" }),
 		payload: Type.Unknown({ description: "The payload of the event" }),
@@ -61,6 +61,7 @@ const StateSchema = Type.Object(
 		queue: Type.Record(Type.String({ description: "The name of a Director" }), Type.Array(FiringSchema, { description: "Its queued firings, in log order" }), { description: "The queue of each Director" }),
 		calls: Type.Record(Type.String({ description: "The name of a Director" }), count, { description: "The count of each Director" }),
 		skipped: Type.Array(Type.String({ description: "The name of a Director" }), { description: "The Directors whose `skipped` event is written" }),
+		fired: Type.Record(Type.String({ description: "The name of a Director" }), Type.Integer({ minimum: 0, description: "The number of its last firing" }), { description: "How many firings each Director has had" }),
 	},
 	{ additionalProperties: false, description: "The slice of the plugin `directors`" },
 );
@@ -84,7 +85,7 @@ export function parseTake(reply: string): TakeAnswer | undefined {
 }
 
 // The state of the run: an own entry per Director, so a name like `constructor` reads no inherited value.
-const emptyState = (directors: readonly ResolvedDirector[]): State => ({ queue: Object.fromEntries(directors.map((director) => [director.name, []])), calls: Object.fromEntries(directors.map((director) => [director.name, 0])), skipped: [] });
+const emptyState = (directors: readonly ResolvedDirector[]): State => ({ queue: Object.fromEntries(directors.map((director) => [director.name, []])), calls: Object.fromEntries(directors.map((director) => [director.name, 0])), skipped: [], fired: Object.fromEntries(directors.map((director) => [director.name, 0])) });
 
 // The saved state as the slice of a run with these Directors; a slice of another form is `SWT-M024`.
 function loaded(data: unknown, directors: readonly ResolvedDirector[]): State {
@@ -98,6 +99,7 @@ function loaded(data: unknown, directors: readonly ResolvedDirector[]): State {
 		queue: Object.fromEntries(directors.map((director) => [director.name, [...(own(data.queue, director.name) ?? [])]])),
 		calls: Object.fromEntries(directors.map((director) => [director.name, own(data.calls, director.name) ?? 0])),
 		skipped: data.skipped.filter((name) => Object.hasOwn(fresh.queue, name)),
+		fired: Object.fromEntries(directors.map((director) => [director.name, own(data.fired, director.name) ?? 0])),
 	};
 }
 
@@ -116,7 +118,9 @@ function createRun(port: PluginPort, directors: readonly ResolvedDirector[]) {
 			port.emit(SKIPPED, { director: name, reason: "maxCalls" });
 			return;
 		}
-		state.queue[name] = [...queueOf(name), { seq: envelope.seq, tick: envelope.tick, event, payload: envelope.payload }];
+		const n = (state.fired[name] ?? 0) + 1;
+		state.fired[name] = n;
+		state.queue[name] = [...queueOf(name), { n, tick: envelope.tick, event, payload: envelope.payload }];
 	};
 	const take = (name: string): TakeAnswer => {
 		const firings = queueOf(name);
@@ -182,7 +186,7 @@ function instanceOf(port: PluginPort, directors: readonly ResolvedDirector[], pl
 		jobs: {},
 		limits: [],
 		facts: {},
-		slice: { version: 1, save: run.save, load: run.load },
+		slice: { version: 2, save: run.save, load: run.load },
 	};
 }
 

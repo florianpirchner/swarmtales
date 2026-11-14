@@ -25,13 +25,14 @@ export interface DirectorTrigger {
 }
 
 /**
- * One event that fired a trigger of a Director.
+ * One event that fired a trigger of a Director. It holds no place on the log (decision A34): the event is the line
+ * of that tick with that type and payload.
  *
  * @public
  */
 export interface Firing {
-	/** The place of the event on the log. */
-	readonly seq: number;
+	/** The number of the firing among the firings of this Director, from 1, in log order. */
+	readonly n: number;
 	/** The tick of the event. */
 	readonly tick: number;
 	/** `<mechanic>.<event>`, as the trigger names it. */

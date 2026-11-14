@@ -332,8 +332,8 @@ export function familyParams(family: GameFamily, overrides?: Readonly<Record<str
 // @public
 export interface Firing {
     readonly event: string;
+    readonly n: number;
     readonly payload: unknown;
-    readonly seq: number;
     readonly tick: number;
 }
 
@@ -1021,7 +1021,7 @@ export type TakeAnswer = Static<typeof TakeAnswerSchema>;
 // @public
 export const TakeAnswerSchema: Type.TObject<{
     firings: Type.TArray<Type.TObject<{
-        seq: Type.TInteger;
+        n: Type.TInteger;
         tick: Type.TInteger;
         event: Type.TString;
         payload: Type.TUnknown;

@@ -23,7 +23,8 @@ describe("projectRun over the timelines of the city slice", () => {
 		const directors = projection.activations.filter((activation) => activation.kind === "director");
 		expect(directors).toHaveLength(1);
 		expect(directors[0]).toMatchObject({ seq: 162, tick: 6, actor: "director:warden", name: "warden", closedSeq: 170, outcome: "acted" });
-		expect(directors[0]?.firings).toMatchObject([{ seq: 160, tick: 6, event: "decisions.decision_proposed", payload: { decision: "D1", deadline: 8 } }]);
+		// The answer of `take` names the firing by `n`; its seq is found in the log: the line of `decision_proposed` (decision A34).
+		expect(directors[0]?.firings).toMatchObject([{ n: 1, seq: 160, tick: 6, event: "decisions.decision_proposed", payload: { decision: "D1", deadline: 8 } }]);
 		expect(directors[0]?.calls.map((call) => [call.seq, call.as, call.take, call.answer?.seq, call.answer?.ok])).toEqual([[163, "take", true, 164, true], [167, "postBoard", false, 169, true]]);
 		expect(directors[0]?.records.map((event) => [event.seq, event.type, event.data.source])).toEqual([[165, "asked", "@swarmtales/engine/director"], [166, "answered", "@swarmtales/engine/director"]]);
 		// Every line between the opening and the closing that the activation caused is attached to it; the board post is an event of its own.
@@ -69,6 +70,8 @@ describe("projectRun over a resumed run folder", () => {
 		expect(projection.humanCalls.map((call) => [call.seq, call.as])).toEqual([[160, "pause"], [164, "resume"], [182, "amendDecision"]]);
 		expect(projection.decisions[0]).toMatchObject({ amendments: [{ by: "human" }], settled: { changed: true, proposal: { exiled: "A02" } } });
 		expect(projection.suspensions.map((entry) => entry.name)).toEqual(["A02"]);
+		// The Director was asked before the marker: its firing 1 is found at the proposal's line, which no payload names.
+		expect(projection.activations.flatMap((activation) => activation.firings).map((firing) => [firing.n, firing.seq, model.events.find((event) => event.seq === firing.seq)?.type])).toEqual([[1, 136, "decision_proposed"]]);
 		// The fake run's Director takes its fallback; the record says so and hangs on the activation.
 		expect(projection.activations.find((activation) => activation.kind === "director")?.records.at(-1)?.data).toMatchObject({ type: "answered", fallback: true });
 	});
@@ -99,6 +102,18 @@ describe("projectRun over logs before M3", () => {
 		// The record written outside an activation (`prompt_fixed`) and the mechanic's event stay events of their own.
 		expect([...attached.keys()]).toEqual([4, 5, 6, 8, 9, 10]);
 		expect(rest).toEqual({ decisions: [], humanCalls: [], humanInfluenced: false, pauses: [], resumes: [], suspensions: [] });
+	});
+
+	it("finds the line of each firing by tick, type and payload: twins by their order, and the answer of `take` itself when the log holds no such line", () => {
+		const closed = (seq: number, line: string): object => ({ seq, tick: 1, source: "@test/votes/votes", type: "closed", actor: "kernel", payload: { line, by: "A01" } });
+		const firing = (n: number, line: string): object => ({ n, tick: 1, event: "votes.closed", payload: { by: "A01", line } });
+		const log = [
+			closed(1, "x"), closed(2, "x"), closed(3, "y"),
+			{ seq: 4, tick: 1, source: "kernel", type: "activation_opened", actor: "director:warden", basis: 3, payload: { actor: "director:warden", inputs: [] } },
+			{ seq: 5, tick: 1, source: "kernel", type: "tool_called", actor: "director:warden", causedBy: 4, basis: 3, tool: "@swarmtales/sdk/directors/take", payload: { as: "take", params: {} } },
+			{ seq: 6, tick: 1, source: "kernel", type: "tool_result", actor: "director:warden", causedBy: 5, tool: "@swarmtales/sdk/directors/take", payload: { as: "take", reply: JSON.stringify({ firings: [firing(1, "x"), firing(2, "x"), firing(3, "y"), firing(4, "gone")], calls: 1 }) } },
+		];
+		expect(projectRun(parseEnvelopes(jsonl(log)).events).activations[0]?.firings.map((found) => [found.n, found.seq])).toEqual([[1, 1], [2, 2], [3, 3], [4, 6]]);
 	});
 
 	it("a payload that does not fit its event is not read, and a log of the old format projects to nothing", () => {

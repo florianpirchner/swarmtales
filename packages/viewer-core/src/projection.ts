@@ -2,10 +2,11 @@
 /**
  * The projection of an envelope log: what the views draw beside the plain list of events. It attaches every line
  * of an activation (its calls, their answers, the records of its driver) to the activation, reads a Director's
- * firings, folds the three events of `decisions` into one item, marks the calls of the actor `human`, and finds
+ * firings and finds the line that fired each (by the rule of `findFirings` in `@swarmtales/runlog`), folds the three events of `decisions` into one item, marks the calls of the actor `human`, and finds
  * the pauses, the resume markers and the suspended actors. It reads only the log; a line of an old run (no
  * payload) projects to nothing.
  */
+import { canonicalJson } from "@swarmtales/chain";
 import { KERNEL_EVENTS } from "@swarmtales/contracts";
 import { Type, type Static, type TSchema } from "typebox";
 import { Check } from "typebox/value";
@@ -48,7 +49,7 @@ export const HUMAN = "human";
 const text = Type.String({ description: "A text of the log" });
 const whole = Type.Integer({ description: "A tick or a position of the log" });
 const any = Type.Unknown({ description: "A value the owner of the event defines" });
-const Take = Type.Object({ firings: Type.Array(Type.Object({ seq: whole, tick: whole, event: text, payload: any }, { description: "One firing" })) }, { description: "The answer of a Director's `take`" });
+const Take = Type.Object({ firings: Type.Array(Type.Object({ n: whole, tick: whole, event: text, payload: any }, { description: "One firing" })) }, { description: "The answer of a Director's `take`" });
 const Proposed = Type.Object({ decision: text, kind: text, owner: text, proposal: any, deadline: whole, holders: Type.Array(text) }, { description: "The payload of `decision_proposed`" });
 const Amended = Type.Object({ decision: text, by: text, reason: Type.Optional(text), proposal: any }, { description: "The payload of `decision_amended`" });
 const Settled = Type.Object({ decision: text, changed: Type.Boolean(), proposal: any }, { description: "The payload of `decision_settled`" });
@@ -67,6 +68,10 @@ interface Draft {
 	readonly resumes: ResumeMarker[];
 	readonly suspensions: Mutable<Suspension>[];
 	readonly attached: Map<number, number>;
+	/** The lines by tick and `<plugin id>.<event type>`, as a trigger names them. */
+	readonly lines: Map<string, RunEvent[]>;
+	/** By Director, tick, event and payload: how many firings of that kind are found already. */
+	readonly used: Map<string, number>;
 }
 
 /** A line with its payload read by a schema. */
@@ -84,13 +89,29 @@ function parts(id: string): { readonly kind: string; readonly name: string } {
 }
 
 // The firings of a `take` answer; a reply that is no such JSON has none.
-function firingsOf(reply: string): readonly Firing[] {
+function takenOf(reply: string): Static<typeof Take>["firings"] {
 	try {
 		const value: unknown = JSON.parse(reply);
 		return Check(Take, value) ? value.firings : [];
 	} catch {
 		return [];
 	}
+}
+
+// What a trigger names a line by: its tick and `<plugin id>.<event type>`; the plugin id ends the canonical source.
+const nameOf = (event: RunEvent, source: string): string => `${String(event.minute)} ${source.slice(source.lastIndexOf("/") + 1)}.${event.type}`;
+
+// The firings of a `take` answer, each with the line that fired it: the line of its tick with its type and payload;
+// the k-th such firing of a Director is the k-th such line. `answer` stands in when the log does not hold the line.
+function firingsOf(draft: Draft, actor: string, reply: string, answer: number): readonly Firing[] {
+	return takenOf(reply).map((firing) => {
+		const payload = canonicalJson(firing.payload);
+		const key = `${actor} ${String(firing.tick)} ${firing.event} ${payload}`;
+		const rank = draft.used.get(key) ?? 0;
+		draft.used.set(key, rank + 1);
+		const fired = (draft.lines.get(`${String(firing.tick)} ${firing.event}`) ?? []).filter((line) => canonicalJson(line.payload) === payload)[rank];
+		return { ...firing, seq: fired?.seq ?? answer };
+	});
 }
 
 const opened: Read<typeof KERNEL_EVENTS.activation_opened> = (draft, event, payload) => {
@@ -125,7 +146,7 @@ function answered(draft: Draft, event: RunEvent, answer: Omit<NonNullable<Call["
 	const activation = draft.activations.get(call.activation ?? -1);
 	if (activation === undefined) return;
 	draft.attached.set(event.seq, activation.seq);
-	if (call.take && answer.ok) activation.firings = firingsOf(answer.text);
+	if (call.take && answer.ok) activation.firings = firingsOf(draft, call.actor, answer.text, event.seq);
 }
 
 const result: Read<typeof KERNEL_EVENTS.tool_result> = (draft, event, payload) => {
@@ -220,13 +241,17 @@ function record(draft: Draft, event: RunEvent, source: string): void {
  * @public
  */
 export function projectRun(events: readonly RunEvent[]): RunProjection {
-	const draft: Draft = { activations: new Map(), calls: new Map(), decisions: new Map(), humanCalls: [], pauses: [], resumes: [], suspensions: [], attached: new Map() };
+	const draft: Draft = { activations: new Map(), calls: new Map(), decisions: new Map(), humanCalls: [], pauses: [], resumes: [], suspensions: [], attached: new Map(), lines: new Map(), used: new Map() };
 	for (const event of events) {
 		const source = event.data.source;
 		if (event.actorId === undefined || typeof source !== "string") continue;
 		const read = READERS[`${source} ${event.type}`];
 		if (read === undefined) record(draft, event, source);
 		else read(draft, event);
+		const name = nameOf(event, source);
+		const same = draft.lines.get(name);
+		if (same === undefined) draft.lines.set(name, [event]);
+		else same.push(event);
 	}
 	const { activations, decisions, humanCalls, ...rest } = draft;
 	return { activations: [...activations.values()], decisions: [...decisions.values()], humanCalls, humanInfluenced: humanCalls.length > 0, pauses: rest.pauses, resumes: rest.resumes, suspensions: rest.suspensions, attached: rest.attached };

@@ -94,8 +94,8 @@ describe("the Director's driver in a real kernel", () => {
 			'0 activation_closed resident:A01 {"actor":"resident:A01","calls":1,"outcome":"acted"}',
 			'0 activation_opened director:warden {"actor":"director:warden","inputs":[],"detail":{"slot":"afterBlock","pass":1,"block":1}}',
 			'0 tool_called director:warden {"as":"take","params":{}}',
-			'0 tool_result director:warden {"as":"take","reply":"{\\"firings\\":[{\\"seq\\":6,\\"tick\\":0,\\"event\\":\\"votes.proposed\\",\\"payload\\":{\\"line\\":\\"one\\"}}],\\"calls\\":1}"}',
-			'0 asked director:warden {"firings":[6]}',
+			'0 tool_result director:warden {"as":"take","reply":"{\\"firings\\":[{\\"n\\":1,\\"tick\\":0,\\"event\\":\\"votes.proposed\\",\\"payload\\":{\\"line\\":\\"one\\"}}],\\"calls\\":1}"}',
+			'0 asked director:warden {"firings":[1]}',
 			'0 answered director:warden {"ok":true,"fallback":false,"costUsd":0.01}',
 			'0 tool_called director:warden {"as":"post","params":{"line":"heard"}}',
 			'0 posted director:warden {"line":"heard"}',
@@ -112,7 +112,7 @@ describe("the Director's driver in a real kernel", () => {
 	it("gives two events before the slot as one activation with two firings", async () => {
 		const { kernel, drivers, asked } = setup({ script: { "0:A01": ["a", "hush", "b"] }, answers: [says("both")] });
 		await kernel.run(drivers);
-		expect([asked, payloads(kernel, "asked"), payloads(kernel, "posted")]).toEqual([["You are warden. 0: a+b"], [{ firings: [6, 12] }], [{ line: "both" }]]);
+		expect([asked, payloads(kernel, "asked"), payloads(kernel, "posted")]).toEqual([["You are warden. 0: a+b"], [{ firings: [1, 2] }], [{ line: "both" }]]);
 	});
 
 	it("stops at `maxCalls`: no further activation, and `skipped` is written once", async () => {
