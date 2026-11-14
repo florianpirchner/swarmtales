@@ -102,7 +102,7 @@ The deck, the seats and their private hands: a seeded deal, and taking a card fr
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
 | `seats` | query | - | string[] | The seats in table order (the residents who get cards). |
-| `suits` | query | - | object[] | The deck's suits in order, with their rank counts. |
+| `suits` | query | - | { name: string, ranks: integer ≥ 1 ≤ 20 }[] | The deck's suits in order, with their rank counts. |
 | `hand` | query | resident: string | string[] | A seat's hand, sorted by suit and rank; empty for a resident without a seat. |
 | `holds` | query | resident: string, card: string | boolean | Whether the seat holds the card. |
 | `deal` | command | cards: integer ≥ 0 | integer | Collects every card, shuffles the whole deck with the run's seeded stream (label: the deal's number) and deals `cards` to each seat, one at a time in seat order. Returns the deal's number, from 1; writes `cards_dealt` (audience human). |
