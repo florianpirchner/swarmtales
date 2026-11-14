@@ -4,30 +4,64 @@
 
 ```ts
 
+import { ActorId } from '@swarmtales/contracts';
 import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
+import { FauxResponseStep } from '@earendil-works/pi-ai';
 import { GameData } from '@swarmtales/contracts';
+import { JsonObject } from '@earendil-works/pi-ai';
 import { Model } from '@earendil-works/pi-ai';
 import { ModelChoice } from '@swarmtales/contracts';
+import { Models } from '@earendil-works/pi-ai';
+import { MutableModels } from '@earendil-works/pi-ai';
 import { Provider } from '@earendil-works/pi-ai';
 import { RecordSource } from '@swarmtales/contracts';
 import { Redact } from '@swarmtales/contracts';
+import { RunLimit } from '@swarmtales/contracts';
 import { Static } from 'typebox';
+import { StreamFn } from '@earendil-works/pi-agent-core';
 import { SwtError } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
+export function act(...calls: readonly {
+    readonly name: string;
+    readonly args?: JsonObject;
+}[]): ScriptStep;
+
+// @public
 export const BUILTIN_PROVIDERS: readonly ProviderSpec[];
 
 // @public
+export function closedModels(): MutableModels;
+
+// @public
+export interface CostMeter {
+    add(actor: ActorId, usage: Omit<Spend, "requests">): void;
+    readonly byActor: Readonly<Record<string, Spend>>;
+    readonly capUsd: number;
+    readonly limit: RunLimit;
+    readonly total: Spend;
+}
+
+// @public
+export function createCostMeter(capUsd: number): CostMeter;
+
+// @public
 export function createKeyBroker(env: Readonly<Record<string, string | undefined>>, variables?: Readonly<Record<string, readonly string[]>>): KeyBroker;
+
+// @public
+export function createModelSource(settings: ModelSettings, registry: ProviderRegistry, broker: KeyBroker): ModelSource;
 
 // @public
 export function createProviderRegistry(extra?: readonly ProviderSpec[]): ProviderRegistry;
 
 // @public
 export function emptyModel(provider: string): SwtIssue;
+
+// @public
+export function fail(message: string): ScriptStep;
 
 // @public
 export function isToolChoice(value: string): value is ToolChoice;
@@ -51,6 +85,9 @@ export interface KeyBroker {
 export function keyLeaked(files: readonly string[]): SwtIssue;
 
 // @public
+export function limitedStream(models: Models, limits: RequestLimits): StreamFn;
+
+// @public
 export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimits;
 
 // @public
@@ -58,6 +95,13 @@ export const MODEL_DEFAULTS: Readonly<{
     readonly thinking: "medium";
     readonly maxOutputTokens: 4000;
 }>;
+
+// @public
+export interface ModelBinding {
+    readonly model: Model<Api>;
+    readonly requestDefaults?: Readonly<Record<string, unknown>>;
+    readonly streamFn: StreamFn;
+}
 
 // @public
 export interface ModelEnv {
@@ -83,6 +127,11 @@ export interface ModelSettings {
     readonly requestedId: string;
     readonly routing?: OpenRouterRouting;
     readonly thinking: ThinkingLevel;
+}
+
+// @public
+export interface ModelSource {
+    bind(actor: ActorId, limits: RequestLimits): ModelBinding;
 }
 
 // @public
@@ -150,7 +199,29 @@ export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<
 export function resolveModelSettings(overrides: ModelOverrides, env: ModelEnv, game: GameData["model"], registry: ProviderRegistry): ModelSettings;
 
 // @public
+export function say(text?: string): ScriptStep;
+
+// @public
+export type Script = Readonly<Record<string, readonly ScriptStep[]>>;
+
+// @public
+export function scriptedSource(script: Script): ModelSource;
+
+// @public
+export type ScriptStep = FauxResponseStep;
+
+// @public
 export function shortKey(variable: string): SwtIssue;
+
+// @public
+export interface Spend {
+    readonly cacheRead: number;
+    readonly cacheWrite: number;
+    readonly costUsd: number;
+    readonly input: number;
+    readonly output: number;
+    readonly requests: number;
+}
 
 // @public
 export type ThinkingLevel = NonNullable<ModelChoice["thinking"]>;
