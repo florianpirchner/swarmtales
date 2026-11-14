@@ -12,7 +12,8 @@
 import type { ESLint, Rule } from "eslint";
 import { codeLineNumbers } from "../lib/code-lines.ts";
 import { exceptionProblem } from "../lib/exceptions.ts";
-import { isTestFile } from "../lib/files.ts";
+import { relative, sep } from "node:path";
+import { isTestFile, REPO_ROOT } from "../lib/files.ts";
 
 const MAX_SCHEMA: Rule.RuleMetaData["schema"] = [
 	{
@@ -96,7 +97,7 @@ const disableNeedsIssue: Rule.RuleModule = {
 		return {
 			Program() {
 				for (const comment of context.sourceCode.getAllComments()) {
-					const problem = exceptionProblem(comment.value, isTestFile(context.filename));
+					const problem = exceptionProblem(comment.value, isTestFile(relative(REPO_ROOT, context.filename).split(sep).join("/")));
 					if (problem !== undefined) context.report({ loc: comment.loc ?? { line: 1, column: 0 }, messageId: "malformed", data: { problem } });
 				}
 			},
