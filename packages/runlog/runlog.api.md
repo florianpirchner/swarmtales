@@ -7,9 +7,12 @@
 import { ChainCheckpoint } from '@swarmtales/chain';
 import { ChainGenesisV2Input } from '@swarmtales/chain';
 import { EventSink } from '@swarmtales/contracts';
+import { KernelSnapshot } from '@swarmtales/contracts';
 import { KeyObject } from 'node:crypto';
 import { Redact } from '@swarmtales/contracts';
 import { RunManifest } from '@swarmtales/contracts';
+import { SnapshotCheckpoint } from '@swarmtales/contracts';
+import { SnapshotFile } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
 
 // @public
@@ -56,8 +59,14 @@ export function nextRunFolder(root: string, gameId: string): string;
 export function openRunFolder(directory: string, manifest: RunManifest, options: RunFolderOptions): RunFolder;
 
 // @public
+export function readSnapshotFile(path: string, expected?: SnapshotExpectation): Promise<SnapshotFile>;
+
+// @public
 export interface RunFolder {
+    checkpoint(state: string): SnapshotCheckpoint;
     close(): void;
+    readonly directory: string;
+    readonly manifest: RunManifest;
     readonly sink: EventSink;
 }
 
@@ -69,6 +78,7 @@ export interface RunFolderOptions {
         readonly privateKey: KeyObject;
     };
     readonly now: () => Date;
+    readonly prefix?: readonly string[];
     readonly redact?: Redact;
     readonly resumedFrom?: NonNullable<ChainGenesisV2Input["resumedFrom"]>;
     readonly texts?: Readonly<Record<string, string>>;
@@ -76,6 +86,7 @@ export interface RunFolderOptions {
 
 // @public
 export interface RunVerdict {
+    readonly continuity?: "holds" | "broken" | "unchecked";
     readonly finished: boolean;
     readonly head?: string;
     readonly issues: readonly SwtIssue[];
@@ -84,10 +95,30 @@ export interface RunVerdict {
 }
 
 // @public
+export interface SnapshotExpectation {
+    readonly gameHash?: string;
+    readonly runId?: string;
+}
+
+// @public
+export const SNAPSHOTS_FOLDER = "snapshots";
+
+// @public
 export const TEXTS_FILE = "texts.json";
 
 // @public
-export function verifyRun(directory: string): RunVerdict;
+export function verifyRun(directory: string, options?: VerifyRunOptions): RunVerdict;
+
+// @public
+export interface VerifyRunOptions {
+    readonly previous?: string;
+}
+
+// @public
+export function writeSnapshotFile(folder: RunFolder, snapshot: KernelSnapshot, tick: number): Promise<{
+    readonly path: string;
+    readonly hash: string;
+}>;
 
 // (No @packageDocumentation comment for this package)
 

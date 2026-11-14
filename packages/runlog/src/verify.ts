@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-/**
- * The verification of a run folder, and the catalogue of the codes `SWT-L001` to `SWT-L005`: the chain breaks at
- * a line (L001), a head is not signed or no head covers the tail (L002), the manifest is not the one the genesis
- * names, or `game.json` or `texts.json` is not what the manifest names by hash (L003), a line is no stored envelope (L004), `seq`, `tick`, `causedBy` or `basis` are out of order (L005).
- */
+/** The verification of a run folder, alone or against the folder of the run it resumed from; the codes are in `catalogue.ts`. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CHAIN_FILE, type ChainFault, type ChainHolds, type ChainVerdict, canonicalJson, EVENTS_FILE, jsonHash, PUBLIC_KEY_FILE, type RunTexts, verifyRunTexts } from "@swarmtales/chain";
+import { CHAIN_FILE, type ChainFault, type ChainHolds, type ChainVerdict, canonicalJson, EVENTS_FILE, jsonHash, PUBLIC_KEY_FILE, type RunTexts, verifyContinuityText, verifyRunTexts } from "@swarmtales/chain";
 import { envelopeLogIssues, StoredEnvelopeSchema, type SwtIssue } from "@swarmtales/contracts";
 import { Check } from "typebox/value";
+import { type Code, issue } from "./catalogue.ts";
 import { briefingKey, GAME_FILE, MANIFEST_FILE, manifestMismatch, TEXTS_FILE } from "./folder.ts";
 
 /** What {@link verifyRun} says about a run folder. @public */
@@ -21,27 +18,17 @@ export interface RunVerdict {
 	readonly lines: number;
 	/** The hash of the last line, when the chain holds. */
 	readonly head?: string;
+	/**
+	 * Set for a resumed run, and whenever a previous folder was given: `holds` when the run continues that folder's
+	 * run, `broken` when it does not (an issue `SWT-L007` says why), `unchecked` when no previous folder was given.
+	 */
+	readonly continuity?: "holds" | "broken" | "unchecked";
 	/** Every fault found, the chain's first; each names its file and, where it has one, its line. */
 	readonly issues: readonly SwtIssue[];
 }
 
-type Code = "SWT-L001" | "SWT-L002" | "SWT-L003" | "SWT-L004" | "SWT-L005";
-
-const RESTORE = "Restore the run folder from a copy that was not changed; a log that does not verify is no evidence.";
-const CATALOGUE: Readonly<Record<Code, { readonly why: string; readonly fix: string }>> = {
-	"SWT-L001": { why: "Every line of the log is chained to the line before it by its hash, so a changed, deleted, inserted or moved line shows.", fix: RESTORE },
-	"SWT-L002": { why: "A head signed with the run's key covers every line of the log.", fix: "Check that run.pub is the key of this run. A run that crashed has no signed end: play it again." },
-	"SWT-L003": { why: "The genesis of the chain names the hash of manifest.json, which is written as canonical JSON and says what the genesis says.", fix: RESTORE },
-	"SWT-L004": { why: "Every line of events.jsonl is one stored envelope: an event of the log with the time it was written at.", fix: RESTORE },
-	"SWT-L005": { why: "In a log, seq is the line number, tick never falls, and causedBy and basis are smaller than seq.", fix: "The writer of the log broke the order: report it with the run folder." },
-};
-
-/** The code of each kind of fault of the chain (erratum E17); `continuity` has no code of its own at M1. */
-const CODE_OF: Readonly<Record<ChainFault, Code>> = { chain: "SWT-L001", signature: "SWT-L002", unsigned: "SWT-L002", manifest: "SWT-L003", continuity: "SWT-L001" };
-
-function issue(code: Code, summary: string, file: string, line?: number): SwtIssue {
-	return { code, summary, where: line === undefined ? { file } : { file, line }, ...CATALOGUE[code] };
-}
+/** The code of each kind of fault of the chain (erratum E17); `continuity` is `SWT-L007` since M3. */
+const CODE_OF: Readonly<Record<ChainFault, Code>> = { chain: "SWT-L001", signature: "SWT-L002", unsigned: "SWT-L002", manifest: "SWT-L003", continuity: "SWT-L007" };
 
 function parse(text: string): unknown {
 	try {
@@ -171,27 +158,55 @@ function committedIssues(directory: string, manifestText: string): readonly SwtI
 	return typeof hashes === "object" && hashes !== null ? [...issues, ...textIssues(texts.value, manifest)] : issues;
 }
 
+/** What {@link verifyRun} takes beside the folder. @public */
+export interface VerifyRunOptions {
+	/** The folder of the run this run resumed from; with it the continuity of the two runs is checked. */
+	readonly previous?: string;
+}
+
+// `SWT-L007` when the run does not continue the run of the folder `previous`. A fault of the run's own chain is not
+// one: `chainIssues` has said it.
+function continuityIssues(previous: string, texts: RunTexts): readonly SwtIssue[] {
+	const before = readTexts(previous);
+	if (!("events" in before)) return [issue("SWT-L007", `the folder of the previous run, ${previous}, cannot be read: ${before[0]?.summary ?? "a file is missing"}`, EVENTS_FILE)];
+	const verdict = verifyContinuityText(before, texts);
+	if (verdict.ok || verdict.kind !== "continuity") return [];
+	return [issue("SWT-L007", `${verdict.line === undefined ? "" : `line ${String(verdict.line)}: `}${verdict.reason}`, verdict.line === undefined ? CHAIN_FILE : EVENTS_FILE, verdict.line)];
+}
+
+// What the verdict says about continuity; undefined for a run that did not resume and was given no previous folder.
+function continuityOf(verdict: ChainVerdict, previous: string | undefined, faults: readonly SwtIssue[]): RunVerdict["continuity"] {
+	if (previous !== undefined) return faults.length === 0 && verdict.ok ? "holds" : "broken";
+	return verdict.ok && verdict.genesis.resumedFrom !== undefined ? "unchecked" : undefined;
+}
+
 /**
  * Verifies a run folder: the chain over `events.jsonl` and its signed heads, the manifest against the genesis,
  * every line as a stored envelope in log order, and `game.json` and `texts.json` (where the folder has them) against
  * the hashes of the manifest: each text of the game, each actor's briefing under {@link briefingKey}, and no key
- * that no hash covers.
+ * that no hash covers. With `previous`, also that the run continues the run of that folder: its genesis chains from
+ * a head that run signed, its first lines repeat that run's lines up to the head (all but the stamp `at`), and the
+ * next line is the marker `run_resumed`; a fault is `SWT-L007`.
  *
  * @param directory - The run folder, with `events.jsonl`, `events.chain.jsonl`, `run.pub` and `manifest.json`.
- * @returns The verdict. `ok` with `finished: false` is a run that stopped at a signed head before its end.
+ * @param options - The folder of the run this run resumed from.
+ * @returns The verdict. `ok` with `finished: false` is a run that stopped at a signed head before its end. A
+ * resumed run that is verified without `previous` has `continuity: "unchecked"`.
  * @example
  * ```ts
- * const verdict = verifyRun("runs/hello-game-001");
+ * const verdict = verifyRun("runs/hello-game-002", { previous: "runs/hello-game-001" });
  * if (!verdict.ok) for (const issue of verdict.issues) console.error(formatIssue(issue));
  * ```
  *
  * @public
  */
-export function verifyRun(directory: string): RunVerdict {
+export function verifyRun(directory: string, options: VerifyRunOptions = {}): RunVerdict {
 	const texts = readTexts(directory);
 	if (!("events" in texts)) return { ok: false, finished: false, lines: 0, issues: texts };
 	const verdict = verifyRunTexts(texts);
 	const fault = manifestFault(texts.manifest, verdict);
-	const issues = [...chainIssues(verdict), ...lineIssues(texts.events), ...(fault === undefined ? [] : [issue("SWT-L003", fault, MANIFEST_FILE)]), ...committedIssues(directory, texts.manifest)];
-	return { ok: issues.length === 0, finished: verdict.ok && verdict.finished, lines: linesOf(texts.events).length, ...(verdict.ok ? { head: verdict.head } : {}), issues };
+	const broken = options.previous === undefined ? [] : continuityIssues(options.previous, texts);
+	const continuity = continuityOf(verdict, options.previous, broken);
+	const issues = [...chainIssues(verdict), ...broken, ...lineIssues(texts.events), ...(fault === undefined ? [] : [issue("SWT-L003", fault, MANIFEST_FILE)]), ...committedIssues(directory, texts.manifest)];
+	return { ok: issues.length === 0, finished: verdict.ok && verdict.finished, lines: linesOf(texts.events).length, ...(verdict.ok ? { head: verdict.head } : {}), ...(continuity === undefined ? {} : { continuity }), issues };
 }

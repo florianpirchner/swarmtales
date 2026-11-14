@@ -9,4 +9,5 @@ export { EventChain, type EventChainOptions } from "./chain-writer.ts";
 export { briefingKey, GAME_FILE, MANIFEST_FILE, nextRunFolder, openRunFolder, TEXTS_FILE, type RunFolder, type RunFolderOptions } from "./folder.ts";
 export { findLeaks } from "./leaks.ts";
 export { createSink } from "./sink.ts";
-export { type RunVerdict, verifyRun } from "./verify.ts";
+export { readSnapshotFile, SNAPSHOTS_FOLDER, type SnapshotExpectation, writeSnapshotFile } from "./snapshot.ts";
+export { type RunVerdict, type VerifyRunOptions, verifyRun } from "./verify.ts";

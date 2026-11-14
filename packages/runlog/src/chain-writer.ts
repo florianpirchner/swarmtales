@@ -14,8 +14,14 @@ import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CHAIN_FILE, CHAIN_FORMAT, CHAIN_VERSION, type ChainCheckpoint, type ChainGenesisV2, type ChainGenesisV2Input, canonicalJson, EVENTS_FILE, headMessage, PUBLIC_KEY_FILE, ZERO_HASH } from "@swarmtales/chain";
 
-// One link with `node:crypto` (the writer's hot path); `@swarmtales/chain`'s `linkHash` gives the same hex.
-function nodeLinkHash(previous: string, text: string): string {
+/**
+ * One link with `node:crypto` (the writer's hot path); `@swarmtales/chain`'s `linkHash` gives the same hex.
+ *
+ * @param previous - The hash of the entry before.
+ * @param text - The text of the line.
+ * @returns The hash of the line in the chain, hex.
+ */
+export function nodeLinkHash(previous: string, text: string): string {
 	return createHash("sha256").update(previous, "utf8").update(text, "utf8").digest("hex");
 }
 

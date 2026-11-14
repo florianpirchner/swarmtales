@@ -3,10 +3,11 @@
 import type { KeyObject } from "node:crypto";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { type ChainGenesisV2Input, canonicalJson, jsonHash } from "@swarmtales/chain";
-import { type EventSink, type Redact, redactSecrets, type RunManifest, RunManifestSchema, SwtError, type SwtIssue } from "@swarmtales/contracts";
+import { type ChainGenesisV2Input, canonicalJson, EVENTS_FILE, jsonHash } from "@swarmtales/chain";
+import { type EventSink, type Redact, redactSecrets, type RunManifest, RunManifestSchema, type SnapshotCheckpoint, SwtError, type SwtIssue } from "@swarmtales/contracts";
 import { Check, Errors } from "typebox/value";
-import { EventChain } from "./chain-writer.ts";
+import { issue } from "./catalogue.ts";
+import { EventChain, nodeLinkHash } from "./chain-writer.ts";
 import { createSink } from "./sink.ts";
 
 /** The manifest of a run, canonical JSON. @public */
@@ -43,6 +44,11 @@ export interface RunFolderOptions {
 	readonly texts?: Readonly<Record<string, string>>;
 	/** The snapshot the run resumed from, as the genesis states it. */
 	readonly resumedFrom?: NonNullable<ChainGenesisV2Input["resumedFrom"]>;
+	/**
+	 * The lines of the previous run's `events.jsonl` that the checkpoint of `resumedFrom` covers. They are written
+	 * first, as they were (with their stamps), before the sink writes its first event.
+	 */
+	readonly prefix?: readonly string[];
 	/** A fixed key pair instead of a fresh one; for tests only. */
 	readonly keys?: { readonly publicKey: KeyObject; readonly privateKey: KeyObject };
 	/** Takes secrets out of every line of the log, and refuses a manifest, a game or texts it would change; `redactSecrets` when left out. */
@@ -53,6 +59,18 @@ export interface RunFolderOptions {
 export interface RunFolder {
 	/** The sink that stamps, writes and chains each event; give it to the kernel. */
 	readonly sink: EventSink;
+	/** The path of the run folder. */
+	readonly directory: string;
+	/** The manifest the folder was opened with. */
+	readonly manifest: RunManifest;
+	/**
+	 * Signs the head of the chain as it is now, for a snapshot. It writes a head entry into the chain file and no
+	 * line into the log.
+	 *
+	 * @param state - The hash of the snapshot's state (`snapshotStateHash`), signed with the head.
+	 * @returns The signed head; a resumed run chains from it.
+	 */
+	checkpoint(state: string): SnapshotCheckpoint;
 	/** Signs the head when the run stopped without its end; does nothing after the sink was closed. */
 	close(): void;
 }
@@ -123,9 +141,30 @@ function holdsSecret(file: string, path: string, redact: Redact): SwtIssue {
 	};
 }
 
+// The parsed lines of the prefix of a resumed run. `SWT-L007` when they are not the lines the checkpoint signed:
+// their count, each as JSON, and the hash of the last in the previous run's chain.
+function prefixValues(options: RunFolderOptions): readonly unknown[] {
+	const lines = options.prefix ?? [];
+	const anchor = options.resumedFrom?.checkpoint;
+	if (options.prefix === undefined) return [];
+	const refuse = (summary: string, line?: number): SwtError => new SwtError(issue("SWT-L007", `${summary}; the run folder is not created`, EVENTS_FILE, line));
+	if (anchor === undefined) throw refuse("the prefix of a resumed run was given without the checkpoint it resumes from");
+	if (lines.length !== anchor.lines) throw refuse(`the prefix has ${String(lines.length)} lines and the checkpoint covers ${String(anchor.lines)}`);
+	if (lines.reduce(nodeLinkHash, anchor.genesis) !== anchor.hash) throw refuse("the prefix is not the lines the checkpoint signed: the hash of its last line is not the checkpoint's");
+	return lines.map((line, index) => {
+		try {
+			const value: unknown = JSON.parse(line);
+			return value;
+		} catch {
+			throw refuse(`line ${String(index + 1)} of the prefix is not JSON`, index + 1);
+		}
+	});
+}
+
 /**
  * Opens a run folder: writes `manifest.json` (and `game.json`, `texts.json` when given) as canonical JSON, the
- * genesis that names the manifest's hash, and the key, and returns the sink of the log.
+ * genesis that names the manifest's hash, and the key, and returns the sink of the log. A resumed run
+ * (`resumedFrom` with `prefix`) starts its log with the lines of the previous run up to the checkpoint.
  *
  * @param directory - The run folder; it is created.
  * @param manifest - The run's manifest.
@@ -134,6 +173,8 @@ function holdsSecret(file: string, path: string, redact: Redact): SwtIssue {
  * @throws SwtError `SWT-L003` when the manifest does not match `RunManifestSchema`; nothing is written then.
  * @throws SwtError `SWT-L006` when `redact` would change a string of the manifest, the game or the texts; nothing
  * is written then.
+ * @throws SwtError `SWT-L007` when `prefix` is not the lines the checkpoint of `resumedFrom` signed; nothing is
+ * written then.
  * @throws Error of the file system when the folder already holds a manifest: a run folder is written once.
  * @throws CanonicalJsonError when the manifest, the game or the texts hold something that is no JSON value.
  * @example
@@ -151,14 +192,19 @@ export function openRunFolder(directory: string, manifest: RunManifest, options:
 		const path = secretAt(value, redact, "");
 		if (path !== undefined) throw new SwtError(holdsSecret(file, path, redact));
 	}
+	const prefix = prefixValues(options);
 	mkdirSync(directory, { recursive: true });
 	writeFileSync(join(directory, MANIFEST_FILE), `${canonicalJson(manifest)}\n`, { flag: "wx" });
 	if (options.game !== undefined) writeFileSync(join(directory, GAME_FILE), `${canonicalJson(options.game)}\n`);
 	if (options.texts !== undefined) writeFileSync(join(directory, TEXTS_FILE), `${canonicalJson(options.texts)}\n`);
 	const genesis: ChainGenesisV2Input = { manifest: jsonHash(manifest), log: manifest.log, ...(options.resumedFrom === undefined ? {} : { resumedFrom: options.resumedFrom }) };
 	const chain = new EventChain(directory, genesis, options.keys === undefined ? {} : { keys: options.keys });
+	for (const line of prefix) chain.append(line);
 	return {
 		sink: createSink(chain, options.now, redact),
+		directory,
+		manifest,
+		checkpoint: (state) => chain.checkpoint(state),
 		close() {
 			chain.close();
 		},
