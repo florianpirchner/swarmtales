@@ -12,13 +12,14 @@ const CATALOGUE: Readonly<Record<string, SwtIssue>> = {
 	"SWT-R013": errors.twoToAct(["grid-game", "other-game"]),
 	"SWT-R015": errors.unknownFact("grid-game.winer", ["grid-game.winner"]),
 	"SWT-R016": errors.afterCycle(["a", "b"]),
+	"SWT-R017": errors.noRecord('"notes" records the event "said", which the definition does not declare'),
 	"SWT-R020": errors.sinkThrew(new Error("disk full")),
 };
 
 describe("the R catalogue", () => {
 	it("has one function per code and no other export but `guarded`", () => {
-		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
-		expect(Object.keys(CATALOGUE)).toHaveLength(7);
+		expect(Object.keys(errors).sort()).toEqual(["afterCycle", "guarded", "kernelFailed", "misfit", "noRecord", "pluginThrew", "sinkThrew", "twoToAct", "unknownFact"]);
+		expect(Object.keys(CATALOGUE)).toHaveLength(8);
 	});
 
 	it.each(Object.entries(CATALOGUE))("%s is a valid issue with its own code and formats in four lines", (code, issue) => {

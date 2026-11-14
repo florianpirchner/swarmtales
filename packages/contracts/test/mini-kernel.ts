@@ -332,6 +332,7 @@ function open(parts: Parts, actor: ActorId, inputs: readonly InputNote[], detail
 			seen = log.events.length;
 			return Promise.resolve(outcome);
 		},
+		record: (source, type, payload) => log.run({ actor, causedBy: opened.seq }, () => log.emit(source, type, payload, { audience: ["human"] })),
 		close: (failed) => {
 			const outcome = failed ? "error" : count > 0 ? "acted" : "no-call";
 			log.run({ actor, causedBy: opened.seq }, () => log.emit("kernel", "activation_closed", { actor, calls: count, outcome }));

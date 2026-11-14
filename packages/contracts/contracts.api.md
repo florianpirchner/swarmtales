@@ -24,6 +24,7 @@ export interface Activation {
     call(as: string, params: unknown): Promise<ToolOutcome>;
     readonly detail: Readonly<Record<string, JsonValue>>;
     readonly inputs: readonly InputNote[];
+    record(source: string, type: string, payload: unknown): Envelope;
     readonly tick: number;
     readonly tools: readonly ToolSpec[];
 }
@@ -237,6 +238,7 @@ export interface Kernel {
     readonly log: LogView;
     openTools(actor: ActorId): readonly string[];
     readonly plugins: readonly string[];
+    record(source: string, actor: ActorId, type: string, payload: unknown): Envelope;
     run(drivers: DriverTable, until?: {
         readonly ticks: number;
     }): Promise<RunEnd | undefined>;

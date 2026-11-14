@@ -2,6 +2,7 @@
 /** The kernel definition, the kernel itself and its snapshot, as types. The snapshot schema lives in `state.ts`. */
 import type { JsonValue, RandomSource, RunEnd } from "../values.ts";
 import type { ActorId, ActorSpec } from "./actor.ts";
+import type { Envelope } from "./envelope.ts";
 import type { EventSchemas } from "./event-def.ts";
 import type { LogView, ResolvedPlugin, RunLimit } from "./plugin.ts";
 import type { DriverTable, EventSink, SchedulerDefinition } from "./ports.ts";
@@ -215,4 +216,11 @@ export interface Kernel {
 	fact(key: string): unknown;
 	/** The state of the kernel, to resume from later; only between ticks. */
 	snapshot(): KernelSnapshot;
+	/**
+	 * Appends one declared event of a record source outside an activation: after `start()`, between ticks, before
+	 * the end. The event has the given actor, the audience `["human"]` and a payload whose strings went through
+	 * `KernelPorts.redact`; the payload is not checked against the schema. An undeclared source or type, or another
+	 * moment, throws SWT-R017.
+	 */
+	record(source: string, actor: ActorId, type: string, payload: unknown): Envelope;
 }

@@ -46,6 +46,7 @@ function stub(seed: number, count: number, maxTicks: number): Stub {
 				self.heard.push(String(params));
 				return Promise.resolve({ ok: true, reply: as });
 			},
+			record: (source, type, payload) => ({ seq: self.log.push(`record ${name}`), tick, source, type, actor, payload }),
 			close: (failed) => self.log.push(`close ${name} ${failed ? "error" : calls > 0 ? "acted" : "no-call"}`),
 			// Live, as the kernel's (erratum E7): true only once a call of a quiet name has landed.
 			get quietEnd() { return self.quiet.has(name) && calls > 0; },

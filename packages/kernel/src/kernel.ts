@@ -5,17 +5,17 @@
  */
 import { Clean, Clone, Parse } from "typebox/value";
 import { EnvelopeSchema, envelopeLogIssues, KernelSnapshotSchema, SwtError } from "@swarmtales/contracts";
-import type { Envelope, EventSink, Fact, Kernel, KernelDefinition, KernelPorts, KernelSnapshot, ResumeInput, RunEnd, SchedulerInstance, Submission, ToolSpec } from "@swarmtales/contracts";
+import type { Envelope, Fact, Kernel, KernelDefinition, KernelPorts, KernelSnapshot, ResumeInput, RunEnd, SchedulerInstance, Submission, ToolSpec } from "@swarmtales/contracts";
 import { createAccess } from "./access.ts";
 import { createActors } from "./actors.ts";
 import { createClock } from "./clock.ts";
 import { createDispatch } from "./dispatch.ts";
-import { guarded, kernelFailed, misfit, unknownFact } from "./errors.ts";
+import { guarded, kernelFailed, misfit, noRecord, unknownFact } from "./errors.ts";
 import { createLifecycle } from "./lifecycle.ts";
 import { loadPlugins } from "./loader.ts";
 import { createLog } from "./log.ts";
 import type { Dispatch, Lifecycle, LoadedTool, SliceParts } from "./parts.ts";
-import { createSchedulerPort } from "./ports.ts";
+import { createRecorder, createSchedulerPort } from "./ports.ts";
 import { createServices } from "./services.ts";
 import { restoreKernel, saveKernel } from "./slices.ts";
 import { createSteps } from "./steps.ts";
@@ -89,8 +89,9 @@ function gateOf(life: Lifecycle, run: Run, tick: () => number) {
 }
 
 // Joins the parts.
-function assemble(definition: KernelDefinition, sinks: readonly EventSink[], prefix: readonly Envelope[], run: Run) {
+function assemble(definition: KernelDefinition, ports: KernelPorts, prefix: readonly Envelope[], run: Run) {
 	const clock = createClock();
+	const sinks = ports.sinks ?? [];
 	const audiences = new Map(definition.plugins.map((plugin) => [`${plugin.package}/${plugin.id}`, plugin.audiences]));
 	const audienceOf = (source: string, type: string): readonly string[] | undefined => {
 		const own = audiences.get(source);
@@ -98,12 +99,13 @@ function assemble(definition: KernelDefinition, sinks: readonly EventSink[], pre
 	};
 	const log = createLog(() => clock.tick, audienceOf, prefix);
 	for (const sink of sinks) log.addSink(sink);
+	const record = createRecorder(definition, log, ports.redact);
 	const actors = createActors(definition.actors, log);
 	const access = createAccess(definition, actors, log);
 	const loaded = loadPlugins(definition, { log, actors, access, services: createServices(log), clock });
 	const counted = definition.actors.map((actor) => actor.id);
 	const steps = createSteps(definition.limits.maxCallsPerTick, counted);
-	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks }), run, () => clock.tick);
+	const { gate, raise, note } = gateOf(createLifecycle({ definition, log, clock, steps, loaded, sinks }, ports), run, () => clock.tick);
 	const shown = (tool: LoadedTool): string => definition.names[tool.canonical] ?? tool.tool.name;
 	const toolSpecs = (grant: string): readonly ToolSpec[] => access.grantsOf(grant).flatMap((name) => [loaded.tools.get(name)].flatMap((tool) => (tool === undefined ? [] : [{ name: shown(tool), description: tool.tool.description, parameters: tool.tool.parameters }])));
 	const lane = createDispatch({ definition, log, actors, access, steps, loaded, fail: note });
@@ -114,9 +116,9 @@ function assemble(definition: KernelDefinition, sinks: readonly EventSink[], pre
 	};
 	const dispatch: Dispatch = { ...lane, submit };
 	const scheduler: SchedulerInstance = definition.scheduler.definition.create(definition.scheduler.options);
-	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, gate);
+	const port = createSchedulerPort({ definition, log, actors, clock, loaded, dispatch, toolSpecs }, gate, record);
 	const slices: SliceParts = { definition, log, actors, access, clock, loaded, scheduler: scheduler.slice };
-	return { log, clock, actors, access, loaded, dispatch, scheduler, port, slices, toolSpecs, shown, raise, gate };
+	return { log, clock, actors, access, loaded, dispatch, scheduler, port, slices, toolSpecs, shown, raise, gate, record };
 }
 
 // The readers of a kernel: what it tells about its tools and facts without changing the run.
@@ -182,11 +184,26 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
 	};
 }
 
+// A record outside an activation: only in a started run, between two ticks; a sink that throws at it ends the run.
+function recordOf(parts: ReturnType<typeof assemble>, run: Run): Kernel["record"] {
+	return (source, actor, type, payload) => {
+		usable(run);
+		if (!run.started || run.playing || run.ended !== undefined) throw new SwtError(noRecord(`"${source}" records the event "${type}" before the start, inside a tick or after the end`));
+		return parts.record({ actor }, source, type, payload, (code) => {
+			try {
+				return code();
+			} catch (error) {
+				return parts.raise(error);
+			}
+		});
+	};
+}
+
 /**
  * Creates the kernel of one run from its definition, or resumes one from a snapshot and the log up to it. A
  * resumed kernel is started already and writes none of the old events again.
  *
- * Once the run failed, `start`, `run`, `submit` and `snapshot` throw (or reject with) `SWT-R001` with the first
+ * Once the run failed, `start`, `run`, `submit`, `snapshot` and `record` throw (or reject with) `SWT-R001` with the first
  * failure as the cause; the call that failed throws the failure itself. After a normal end `run` answers the end
  * again, and `start`, `submit` and a further tick are refused with a `RangeError`, as a second `start`, a `run`
  * inside a `run`, a `snapshot` inside a `run`, and a `submit` whose `causedBy` or `basis` names no event of the log
@@ -194,11 +211,11 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
  * is written and refused with `TOOL_NOT_GRANTED`. A refusal after a normal end is no failure: the run keeps its end.
  *
  * @param definition - The kernel definition, built by the sdk.
- * @param ports - The sinks that read the log.
+ * @param ports - The sinks that read the log, the run limits that are no plugin's, and the redaction.
  * @param resume - The snapshot and the log to resume from, both unchecked.
  * @returns The kernel.
  * @throws SwtError `SWT-R002` when the definition and what it loads do not fit or the resume input does not fit
- * the definition, `SWT-R003` when a plugin throws at load, `SWT-R013` for two `toAct` hooks, `SWT-R016` for a
+ * the definition or a record source has the source of a plugin, `SWT-R003` when a plugin throws at load, `SWT-R013` for two `toAct` hooks, `SWT-R016` for a
  * cycle of `after`.
  *
  * @example
@@ -212,7 +229,7 @@ function controls(parts: ReturnType<typeof assemble>, run: Run): Pick<Kernel, "s
 export function createKernel(definition: KernelDefinition, ports: KernelPorts = {}, resume?: ResumeInput): Kernel {
 	const input = resume === undefined ? undefined : parsed(resume);
 	const run: Run = { started: false, playing: false, ended: undefined, failure: undefined };
-	const parts = assemble(definition, ports.sinks ?? [], input?.log ?? [], run);
+	const parts = assemble(definition, ports, input?.log ?? [], run);
 	if (input !== undefined) restoreKernel(parts.slices, input.snapshot);
 	run.ended = input?.snapshot.ended;
 	run.started = parts.log.ofType("kernel", "run_started").length > 0;
@@ -227,5 +244,6 @@ export function createKernel(definition: KernelDefinition, ports: KernelPorts = 
 		plugins: parts.loaded.order,
 		...readers(parts),
 		...controls(parts, run),
+		record: recordOf(parts, run),
 	};
 }

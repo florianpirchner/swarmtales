@@ -67,6 +67,8 @@ function playTurn(turns: Turns, open: OpenActivation, driver: ActorDriver, ready
 		inputs: open.inputs,
 		tools: open.tools,
 		call,
+		// Not gated by `ready`: a record is the driver's own note (a request that starts), not a move in the game.
+		record: (source, type, payload) => open.record(source, type, payload),
 	};
 	// The executor runs now, so the driver starts before the next member is prepared; a throw becomes a rejection.
 	const step = new Promise<Awaited<ReturnType<ActorDriver>>>((resolve) => {

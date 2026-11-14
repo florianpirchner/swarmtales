@@ -103,6 +103,16 @@ export function afterCycle(plugins: readonly string[]): SwtIssue {
 }
 
 /**
+ * `SWT-R017`: a record of a source or a type that is not declared, or at a moment that takes none.
+ *
+ * @param summary - What was refused, in one sentence.
+ * @returns The issue.
+ */
+export function noRecord(summary: string): SwtIssue {
+	return { code: "SWT-R017", summary, why: "A record is an event of a source the definition declares (`records`), written inside an activation or between two ticks of a started run.", fix: "Declare the source and the type in `records` of the definition, and record only while the activation is open, or after `start()` between two ticks." };
+}
+
+/**
  * `SWT-R020`: a sink threw while it took an event or was closed.
  *
  * @param thrown - What was thrown; the caller sets it as the `cause`.

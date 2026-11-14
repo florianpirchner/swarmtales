@@ -6,7 +6,7 @@
  * Every hook and every job runs in its own outermost frame, so the listeners of what it emitted have run before
  * the next one is called. Whatever throws in a step ends the run through `fail` and is thrown on.
  */
-import { redactSecrets, SwtError, type Job, type RunEnd } from "@swarmtales/contracts";
+import { redactSecrets, SwtError, type Job, type KernelPorts, type RunEnd } from "@swarmtales/contracts";
 import { guarded, kernelFailed, misfit, sinkThrew } from "./errors.ts";
 import type { Lifecycle, LifecycleParts } from "./parts.ts";
 
@@ -18,23 +18,25 @@ interface Breach {
 
 const SOURCE = "kernel";
 
-// What `run_ended` says about a failure: code and summary of a developer error, else the thrown message; never a
-// secret, because the line is signed as it is written (the redaction port of M2-05 replaces the fixed function).
+// What `run_ended` says about a failure, before the redaction: code and summary of a developer error, else the
+// thrown message. `fail` redacts it through the port, because the line is signed as it is written.
 function detailOf(error: unknown): string {
-	if (error instanceof SwtError) return redactSecrets(error.issues[0] === undefined ? error.message : `${error.issues[0].code}: ${error.issues[0].summary}`);
-	return redactSecrets(error instanceof Error ? error.message : String(error));
+	if (error instanceof SwtError) return error.issues[0] === undefined ? error.message : `${error.issues[0].code}: ${error.issues[0].summary}`;
+	return error instanceof Error ? error.message : String(error);
 }
 
 class Run implements Lifecycle {
 	readonly #parts: LifecycleParts;
+	readonly #ports: KernelPorts;
 	#breach: Breach | undefined;
 	#failure: { readonly error: unknown } | undefined;
 	#closed = false;
 	/** The closing event of a normal end is written (or was tried): a failure after that adds no second one. */
 	#ending = false;
 
-	constructor(parts: LifecycleParts) {
+	constructor(parts: LifecycleParts, ports: KernelPorts) {
 		this.#parts = parts;
+		this.#ports = ports;
 	}
 
 	get halted(): boolean {
@@ -93,7 +95,7 @@ class Run implements Lifecycle {
 		}
 		try {
 			log.fail(() => {
-				log.emit(SOURCE, "run_ended", { reason: "error", detail: detailOf(error) });
+				log.emit(SOURCE, "run_ended", { reason: "error", detail: (this.#ports.redact ?? redactSecrets)(detailOf(error)) });
 			});
 		} catch {
 			// The first failure is the one that is reported; what the closing throws would hide it.
@@ -130,9 +132,13 @@ class Run implements Lifecycle {
 		return undefined;
 	}
 
-	// The first run limit, in load order, that answers a reason.
+	// The first run limit that answers a reason: those of the ports in the order given, then the plugins' in load order.
 	#check(): Breach | undefined {
 		const { loaded } = this.#parts;
+		for (const limit of this.#ports.limits ?? []) {
+			const reason = limit.check();
+			if (reason !== undefined) return { limit: limit.id, reason };
+		}
 		for (const { id, limit } of loaded.limits) {
 			const owner = loaded.order.find((plugin) => id.startsWith(`${plugin}.`)) ?? id;
 			const reason = guarded(owner, () => limit.check());
@@ -199,7 +205,9 @@ class Run implements Lifecycle {
  * stays for the tick.
  *
  * @param parts - The definition, the log, the clock, the step counter, what was loaded, and the sinks to close.
+ * @param ports - The kernel's ports: its `limits` are checked before the plugins', its `redact` (left out: the
+ * pattern redaction) takes the secrets out of a failure's detail.
  * @returns The lifecycle. Its steps throw (or reject with) `SWT-R003` when plugin code threw, `SWT-R020` when a
  * sink threw while it was closed, `SWT-R002` when a due job has no owner, and `SWT-R001` once the run failed.
  */
-export const createLifecycle = (parts: LifecycleParts): Lifecycle => new Run(parts);
+export const createLifecycle = (parts: LifecycleParts, ports: KernelPorts = {}): Lifecycle => new Run(parts, ports);

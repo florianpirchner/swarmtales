@@ -28,6 +28,12 @@ export interface Activation {
 	readonly tools: readonly ToolSpec[];
 	/** Calls a tool under the name the caller was shown. */
 	call(as: string, params: unknown): Promise<ToolOutcome>;
+	/**
+	 * Appends one declared event of a record source (`KernelDefinition.records`), caused by this activation, with the
+	 * activation's actor and the audience `["human"]`; the strings of the payload go through `KernelPorts.redact`. An
+	 * undeclared source or type, or a record after the activation closed, throws SWT-R017.
+	 */
+	record(source: string, type: string, payload: unknown): Envelope;
 }
 
 /**
