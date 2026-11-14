@@ -5,6 +5,7 @@
 ```ts
 
 import { ActorId } from '@swarmtales/contracts';
+import { ActorSpec } from '@swarmtales/contracts';
 import { CanonicalTool } from '@swarmtales/contracts';
 import { Envelope } from '@swarmtales/contracts';
 import { EventSchemas } from '@swarmtales/contracts';
@@ -39,12 +40,22 @@ import { ToolOutcome } from '@swarmtales/contracts';
 import { ToolRef } from '@swarmtales/contracts';
 import { ToolSuccess } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
+import { Type } from 'typebox';
 
 // @public
 export function actorOf(resident: string): ActorId;
 
 // @public
+export function actorsOf(data: GameData, ids: readonly string[]): {
+    readonly actors: readonly ActorSpec[];
+    readonly issues: readonly SwtIssue[];
+};
+
+// @public
 export type AnyHead = MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], ToolParams>;
+
+// @public
+export function appendRoster(plugins: readonly ResolvedPlugin[], version: string): readonly ResolvedPlugin[];
 
 // @public
 export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hooks: MechanicHooks<M> | undefined): PluginHooks;
@@ -70,6 +81,12 @@ export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<st
     readonly listeners?: (kit: ListenKit<M>) => readonly Listener[];
     readonly pipeline?: MechanicPipeline<M>;
 }
+
+// @public
+export function checkSchema(game: unknown): {
+    readonly data: GameData | undefined;
+    readonly issues: readonly SwtIssue[];
+};
 
 // @public
 export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
@@ -350,6 +367,12 @@ export interface MechanicShape {
 }
 
 // @public
+export function mechanicsOf(data: GameData, definitions: Readonly<Record<string, MechanicDefinition>>): {
+    readonly used: readonly UsedMechanic[];
+    readonly issues: readonly SwtIssue[];
+};
+
+// @public
 export function mechanicTwice(input: {
     readonly mechanic: string;
     readonly path: string;
@@ -499,6 +522,12 @@ export function residentId(input: {
 export function residentOf(actor: ActorId): string | undefined;
 
 // @public
+export function residentsOf(data: GameData): {
+    readonly ids: readonly string[];
+    readonly issues: readonly SwtIssue[];
+};
+
+// @public
 export interface ResidentsPort extends ResidentsView {
     resume(id: string): void;
     suspend(id: string, reason: string): void;
@@ -539,6 +568,55 @@ export interface ResolveInput {
     readonly seed?: number;
     readonly versions?: Readonly<Record<string, string>>;
 }
+
+// @public
+export function rosterPlugin(version: string): ResolvedPlugin;
+
+// @public
+export const RosterService: ServiceDefinition<"roster", {
+readonly ids: {
+readonly kind: "query";
+readonly summary: "Every resident, in the game's order.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+readonly teams: {
+readonly kind: "query";
+readonly summary: "The residents of each team.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+};
+readonly teamOf: {
+readonly kind: "query";
+readonly summary: "The team of a resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly roles: {
+readonly kind: "query";
+readonly summary: "The residents of each role.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+};
+readonly roleOf: {
+readonly kind: "query";
+readonly summary: "The role of a resident.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly present: {
+readonly kind: "query";
+readonly summary: "Says whether the resident may act now.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>;
 
 // @public
 export function schemaVersion(input: {
@@ -755,6 +833,14 @@ export function twoProviders(input: {
     readonly service: string;
     readonly providers: readonly string[];
 }): SwtIssue;
+
+// @public
+export interface UsedMechanic {
+    readonly as: Readonly<Record<string, string>>;
+    readonly definition: MechanicDefinition;
+    readonly index: number;
+    readonly options: unknown;
+}
 
 // @public
 export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M>;
