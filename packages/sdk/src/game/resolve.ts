@@ -7,7 +7,7 @@
 import { jsonHash } from "@swarmtales/chain";
 import { actorId, SwtError, type ActorSpec, type GameData, type JsonValue, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
-import { optionMismatch } from "../errors.ts";
+import { gameSchemaMismatch, optionMismatch } from "../errors.ts";
 import { RESIDENT_KIND } from "../mechanic/context.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import { appendRoster } from "../roster/index.ts";
@@ -23,13 +23,21 @@ const ROSTER = "roster";
 const SDK = "@swarmtales/sdk";
 const NO_VERSION = "0.0.0";
 const DEFAULT_SCHEDULER = "turns";
+const MAX_SEED = 4294967295;
 
 type Definitions = Readonly<Record<string, MechanicDefinition>>;
 
 // The builder form names every mechanic by a use (`mechanic`), the data form by an id (`use`).
-function isBuilder(game: Game | GameData): game is Game {
-	const uses: unknown = game.mechanics;
-	return Array.isArray(uses) && uses.length > 0 && uses.every((use) => typeof use === "object" && use !== null && "mechanic" in use);
+// What is neither is left to the schema check of step 1, which reports it (a value that is no object, a use without a definition).
+function isBuilder(game: unknown): game is Game {
+	const uses: unknown = typeof game === "object" && game !== null && "mechanics" in game ? game.mechanics : undefined;
+	return Array.isArray(uses) && uses.length > 0 && uses.every((use: unknown) => typeof use === "object" && use !== null && "mechanic" in use && typeof use.mechanic === "function");
+}
+
+// The seed of the run (`input.seed`) has the bounds of the game's own seed: the generator reads 32 bits (erratum E8).
+function seedIssues(seed: number | undefined): readonly SwtIssue[] {
+	if (seed === undefined || (Number.isInteger(seed) && seed >= 0 && seed <= MAX_SEED)) return [];
+	return [gameSchemaMismatch({ path: "seed", message: `is ${String(seed)} for this run; a seed must be a whole number from 0 to ${String(MAX_SEED)}` })];
 }
 
 function isJson(value: unknown): value is JsonValue {
@@ -68,7 +76,8 @@ function parsedOptions(definition: SchedulerDefinition, raw: unknown, wrong: Wro
 	const root = "scheduler.options";
 	const filled: unknown = Value.Default(definition.options, Value.Clone(raw ?? {}));
 	const issues = [
-		...unknownKeys(definition.options, filled).map((key) => wrong(`${root}.${key}`, "is unknown")),
+		// Read from what the game wrote: the copy that gets the defaults has lost a key named `__proto__`.
+		...unknownKeys(definition.options, raw).map((key) => wrong(`${root}.${key}`, "is unknown")),
 		...Value.Errors(definition.options, filled)
 			.filter((error) => !error.schemaPath.includes("/anyOf/"))
 			.map((error) => wrong(`${root}${error.instancePath.split("/").slice(1).map((part) => (/^\d+$/.test(part) ? `[${part}]` : `.${part}`)).join("")}`, error.message)),
@@ -115,12 +124,18 @@ function mechanicSteps(data: GameData, definitions: Definitions, input: ResolveI
 	const found = mechanicsOf(data, definitions);
 	const own = new Set(data.mechanics.flatMap((use, index) => (use.use === ROSTER && !Object.hasOwn(definitions, ROSTER) ? [`mechanics[${index}].use`] : [])));
 	const ordered = loadOrder(found.used.map((entry) => ({ id: entry.definition.id, requires: entry.definition.head.requires, provides: entry.definition.head.provides, uses: entry.definition.head.uses, entry })));
+	// `loadOrder` counts the mechanics it was given; the path of an issue names the place in the game's own list.
+	const placed = ordered.issues.map((issue) => {
+		const at = /^mechanics\[(\d+)\]$/.exec(issue.where?.path ?? "")?.[1];
+		const index = at === undefined ? undefined : found.used[Number(at)]?.index;
+		return index === undefined ? issue : { ...issue, where: { ...issue.where, path: `mechanics[${String(index)}]` } };
+	});
 	const order = ordered.order.map((placed) => placed.entry);
 	const sources = order.map((entry) => ({ mechanic: entry.definition, as: entry.as, path: `mechanics[${entry.index}]` }));
 	const names = toolNames(sources);
 	const grants = resolveGrants({ tools: names.tools, grants: data.grants, locked: data.locked });
 	const texts = collectTexts(sources, input.prompts);
-	const issues = [...found.issues.filter((issue) => !(issue.code === "SWT-G022" && own.has(issue.where?.path ?? ""))), ...ordered.issues, ...names.issues, ...grants.issues, ...texts.issues];
+	const issues = [...found.issues.filter((issue) => !(issue.code === "SWT-G022" && own.has(issue.where?.path ?? ""))), ...placed, ...names.issues, ...grants.issues, ...texts.issues];
 	return { used: found.used, order, names: names.names, grants, texts, issues };
 }
 
@@ -191,7 +206,7 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	const actors = actorsOf(data, residents.ids);
 	const steps = mechanicSteps(data, { ...input.installed, ...builder?.mechanics }, input);
 	const scheduler = schedulerOf(data, input.schedulers);
-	const issues = [...residents.issues, ...actors.issues, ...steps.issues, ...scheduler.issues];
+	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
 	return assembled(input, { data, residents: residents.ids, actors: actors.actors, steps, scheduler, definition: scheduler.definition });
 }

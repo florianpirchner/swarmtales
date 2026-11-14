@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { SwtError, type GameData, type PromptLookup, type SchedulerDefinition, type ServiceDefinition } from "@swarmtales/contracts";
 import { Type } from "typebox";
-import { Value } from "typebox/value";
+import { Parse, Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { optionMismatch } from "../src/errors.ts";
 import { defineGame } from "../src/game/define-game.ts";
@@ -145,5 +145,46 @@ describe("resolveGame", () => {
 		expect(failure(() => resolveGame(input(data({ scheduler: { id: "none" } }), { installed })))).toEqual(["SWT-G020 scheduler.id"]);
 		expect(failure(() => resolveGame(input(data({ scheduler: { id: "turns", options: { order: "random" } } }), { installed })))).toEqual(["SWT-G020 scheduler.options.order"]);
 		expect(failure(() => resolveGame(input(data({ mechanics: [{ use: "roster" }, { use: "rooster" }] }), { installed })))).toEqual(["SWT-G022 mechanics[1].use"]);
+	});
+
+	// The findings of the M1 review of resolution; each case failed before its fix.
+	describe("M1 review", () => {
+		it("S1: finds a builder game's mechanic whose id is a name of Object.prototype", () => {
+			for (const id of ["constructor", "toString", "valueOf", "__proto__"]) {
+				const odd = standIn(id);
+				expect(resolveGame(input(defineGame({ id: "demo", residents: 1, mechanics: [odd()], end: { ticks: 1 } }))).definition.plugins.map((plugin) => plugin.id)).toEqual([id, "roster"]);
+			}
+			const again = standIn("board");
+			expect(failure(() => resolveGame(input(defineGame({ id: "demo", residents: 1, mechanics: [board(), again()], end: { ticks: 1 } }))))).toEqual(["SWT-G021 mechanics[1]"]);
+		});
+
+		it("S2: reports a game that is no object, or whose mechanics hold no definition, as SWT-G001 and not as a TypeError", () => {
+			const untyped = (game: unknown): ResolveInput => ({ ...input(data()), ...Parse(Type.Object({ game: Type.Any() }), { game }) });
+			expect(failure(() => resolveGame(untyped(null)))).toEqual(["SWT-G001 -"]);
+			expect(failure(() => resolveGame(untyped(7)))).toEqual(["SWT-G001 -"]);
+			expect(failure(() => resolveGame(untyped({ id: "demo", residents: 1, mechanics: [{ mechanic: undefined }], end: { ticks: 1 } })))[0]).toMatch(/^SWT-G001 /);
+		});
+
+		it("S3: refuses a seed of the run that is no 32-bit whole number, and takes the two bounds", () => {
+			for (const seed of [-1, 1.5, 4294967296, Number.NaN]) expect(failure(() => resolveGame(input(data(), { installed, seed })))).toEqual(["SWT-G001 seed"]);
+			expect([0, 4294967295].map((seed) => resolveGame(input(data(), { installed, seed })).definition.seed)).toEqual([0, 4294967295]);
+		});
+
+		it("S4: names a mechanic without a provider by its place in the game, also behind a use that was not found or is listed twice", () => {
+			const game = data({ mechanics: [{ use: "ghost" }, { use: "board" }, { use: "board" }, { use: "needy" }] });
+			expect(failure(() => resolveGame(input(game, { installed: { board, needy: standIn("needy", { requires: ["absent"] }) } })))).toEqual(["SWT-G022 mechanics[0].use", "SWT-G021 mechanics[2]", "SWT-G030 mechanics[3]"]);
+		});
+
+		it("S5: reports the scheduler option `__proto__` of a parsed game as unknown instead of dropping it", () => {
+			const game = data({ scheduler: { id: "turns", options: JSON.parse('{"__proto__":{"passes":2},"constructor":1}') } });
+			expect(failure(() => resolveGame(input(game, { installed })))).toEqual(["SWT-G020 scheduler.options.__proto__", "SWT-G020 scheduler.options.constructor"]);
+		});
+
+		// Open, finding S6 (not fixed: 6.4 says the roster plugin is the last in load order). A mechanic cannot require
+		// the service every game has: step 5 runs before `roster` is appended and reports SWT-G030. `uses` works.
+		it.fails("S6: a mechanic that requires the service `roster` resolves", () => {
+			const needy = standIn("needy", { requires: ["roster"] });
+			expect(resolveGame(input(data({ mechanics: [{ use: "needy" }] }), { installed: { needy } })).definition.plugins.map((plugin) => plugin.id)).toEqual(["roster", "needy"]);
+		});
 	});
 });

@@ -81,6 +81,15 @@ describe("swt run --fake", () => {
 		expect((await swt("log", "verify", "runs/broken-001")).code).toBe(0);
 	});
 
+	// Open, M1 review finding C2 (not fixed: the kernel's `sample` answers undefined for a tool without a `sample` and
+	// for one that has nothing to play, so the command line cannot tell them apart without a change of an interface).
+	// 9.1: "A granted tool without `sample` gives the warning `SWT-C010` once; the run still plays." `toolWithoutSample`
+	// exists in `errors.ts` and has no caller.
+	it.fails("warns once with SWT-C010 about a granted tool without a sample, and still plays", async () => {
+		const { code, err } = await swt("run", fixture("no-sample.ts"), "--fake");
+		expect([code, err.match(/SWT-C010/g)?.length]).toEqual([0, 1]);
+	});
+
 	it("exits 1 with the issue before a run: no --fake, a bad seed, an unknown flag or command, a missing file", async () => {
 		const codes = async (...args: readonly string[]): Promise<readonly [number, string | undefined]> => {
 			const { code, err } = await swt(...args);
@@ -89,12 +98,29 @@ describe("swt run --fake", () => {
 		expect(await codes("run", fixture("guess-number.ts"))).toEqual([1, "SWT-C020"]);
 		expect(await codes("run", fixture("guess-number.ts"), "--fake", "--seed", "-1")).toEqual([1, "SWT-C003"]);
 		expect(await codes("run", fixture("guess-number.ts"), "--fake", "--seed", "1.5")).toEqual([1, "SWT-C003"]);
+		// M1 review, finding C1: a seed above 32 bits started a run that ended with SWT-R020 (the manifest refused it) and exit 2.
+		expect(await codes("run", fixture("guess-number.ts"), "--fake", "--seed", "4294967296", "--out", "none")).toEqual([1, "SWT-C003"]);
+		expect((await swt("run", fixture("guess-number.ts"), "--fake", "--seed", "4294967295", "--out", "bound")).code).toBe(0);
 		expect(await codes("run", fixture("guess-number.ts"), "--live")).toEqual([1, "SWT-C003"]);
 		expect(await codes("play", "x")).toEqual([1, "SWT-C003"]);
 		expect(await codes("log", "check", "runs")).toEqual([1, "SWT-C003"]);
 		expect(await codes("run", "no-such.ts", "--fake", "--out", "none")).toEqual([1, "SWT-C001"]);
 		expect(json((await swt("run", "no-such.ts", "--fake", "--json")).out[0])).toMatchObject({ issues: [{ code: "SWT-C001" }] });
 		expect(() => readFileSync(join(cwd, "none"))).toThrow();
+	});
+});
+
+// M1 review, finding S2: a module whose default export is an object that is no game left `main` with a TypeError.
+describe("a module that exports no game", () => {
+	it("exits 1 with an issue of the game, whatever the export holds", async () => {
+		const module = (name: string, text: string): string => {
+			writeFileSync(join(cwd, name), text);
+			return name;
+		};
+		const shell = "id: 'x', residents: 1, end: { ticks: 1 }";
+		expect((await swt("run", module("no-definition.mjs", `export default { ${shell}, mechanics: [{ mechanic: undefined }] };`), "--fake")).err).toContain("SWT-G001");
+		expect((await swt("run", module("no-list.mjs", `export default { ${shell} };`), "--fake")).err).toContain("SWT-G001");
+		expect((await swt("run", module("text.mjs", `export default { ${shell}, mechanics: "none" };`), "--fake")).err).toContain("SWT-G001");
 	});
 });
 
@@ -116,5 +142,19 @@ describe("swt log verify", () => {
 		const asJson = await swt("log", "verify", "runs/guess-number-001", "--json");
 		expect([asJson.code, json(asJson.out[0])]).toMatchObject([1, { ok: false, issues: [{ code: "SWT-L001" }] }]);
 		expect((await swt("log", "verify", "nowhere")).code).toBe(1);
+	});
+
+	// Open, M1 review finding R2 (not fixed: it needs the key convention `briefing/<actor id>` of `apps/cli/src/run.ts` in
+	// `@swarmtales/runlog`, or the briefings among `manifest.texts`). `verifyRun` compares only the keys of `manifest.texts`:
+	// a briefing in `texts.json` is covered by `actors[].textHashes.briefing` and is not compared, and a key that no hash
+	// covers is not noticed.
+	it.fails("exits 1 when a briefing in texts.json was changed, or a text was added that no hash covers", async () => {
+		await swt("run", fixture("guess-number.ts"), "--fake", "--out", "texts");
+		const path = join(cwd, "texts/guess-number-001/texts.json");
+		const texts = Parse(Texts, json(readFileSync(path, "utf8")));
+		writeFileSync(path, JSON.stringify({ ...texts, "briefing/resident:A02": "Lose on purpose." }));
+		const changed = (await swt("log", "verify", "texts/guess-number-001")).code;
+		writeFileSync(path, JSON.stringify({ ...texts, "guess-number/extra": "A text nobody committed." }));
+		expect([changed, (await swt("log", "verify", "texts/guess-number-001")).code]).toEqual([1, 1]);
 	});
 });

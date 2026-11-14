@@ -117,13 +117,16 @@ function disagreement(manifest: unknown, genesis: ChainHolds["genesis"]): string
 	return undefined;
 }
 
-// A file the manifest commits by hash, parsed; undefined when the folder has none (or it is not JSON).
-function committed(directory: string, name: string): unknown {
+// A file the manifest commits by hash, parsed; undefined when the folder has none. A file that is there and is not
+// JSON has the value undefined: it is not what was committed.
+function committed(directory: string, name: string): { readonly value: unknown } | undefined {
+	let text: string;
 	try {
-		return parse(readFileSync(join(directory, name), "utf8"));
+		text = readFileSync(join(directory, name), "utf8");
 	} catch {
 		return undefined;
 	}
+	return { value: parse(text) };
 }
 
 // `game.json` and `texts.json`, where the folder has them, against the hashes of the manifest. A hash is `jsonHash`
@@ -132,12 +135,14 @@ function committedIssues(directory: string, manifestText: string): readonly SwtI
 	const manifest = parse(manifestText);
 	const issues: SwtIssue[] = [];
 	const game = committed(directory, GAME_FILE);
-	if (game !== undefined && jsonHash(game) !== field(field(manifest, "game"), "hash")) issues.push(issue("SWT-L003", "game.json is not the game the manifest names by hash", GAME_FILE));
+	if (game !== undefined && (game.value === undefined || jsonHash(game.value) !== field(field(manifest, "game"), "hash"))) issues.push(issue("SWT-L003", "game.json is not the game the manifest names by hash", GAME_FILE));
 	const texts = committed(directory, TEXTS_FILE);
+	if (texts === undefined) return issues;
+	if (typeof texts.value !== "object" || texts.value === null) return [...issues, issue("SWT-L003", "texts.json is not the object of texts the manifest names by hash", TEXTS_FILE)];
 	const hashes = field(manifest, "texts");
-	if (texts === undefined || typeof hashes !== "object" || hashes === null) return issues;
+	if (typeof hashes !== "object" || hashes === null) return issues;
 	const key = Object.keys(hashes).find((name) => {
-		const text = field(texts, name);
+		const text = field(texts.value, name);
 		return typeof text !== "string" || jsonHash(text) !== field(hashes, name);
 	});
 	if (key !== undefined) issues.push(issue("SWT-L003", `texts.json: the text "${key}" is not the text the manifest names by hash`, TEXTS_FILE));

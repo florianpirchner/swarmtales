@@ -179,4 +179,18 @@ describe("runOracle", () => {
 		expect(await refusal({ ...oracle, setup: { ...oracle.setup, turns: { ...oracle.setup.turns, order: "custom" } } })).toMatch(/turn order `custom`/);
 		expect(await refusal(changed((entry) => (entry.k === "event" && entry.type === "referee_intervened" ? { ...entry, type: "role_asked" } : entry)))).toMatch(/platform event `core\.role_asked`/);
 	});
+
+	// Open, M1 review finding T1 (not fixed: it changes the rule of erratum E61). The runner compares an option only
+	// when the file states it, so an option that the new game sets and the old game left to its default is not
+	// compared. Where the script never reaches the option, the timeline does not show it either. Here the game caps a
+	// note at 10 characters (default 100) and no note of the file is longer.
+	it.fails("finds an option the game sets and the file leaves to its default, when the timeline does not show it", async () => {
+		const capped = defineMechanic(defineHead({ ...head, options: Type.Object({ target: Type.Integer({ default: 3, description: "The number of passes that ends the run." }), maxNote: Type.Integer({ default: 100, description: "The longest note." }) }, { description: "The options." }) }), {
+			tools: { pass: { run: (_params, ctx) => reply(`Passed by ${ctx.resident ?? ""}.`) } },
+		});
+		const stated: Oracle = { ...oracle, setup: { ...oracle.setup, residentTools: ["pass"], mechanics: [{ id: "relay", options: { target: 3 } }] }, timeline: [], counts: { entries: {}, events: {} }, end: { reason: "minutes", minute: 4 } };
+		const as = (options: { readonly target: number; readonly maxNote?: number }) => defineGame({ id: "relay", residents: 2, mechanics: [capped(options)], scheduler: { id: "turns", options: { passes: 2, activation: "onNews" } }, end: { ticks: 4 }, limits: { maxCallsPerTick: 8 } });
+		expect((await runOracle(stated, as({ target: 3 }), 1)).filter((mismatch) => mismatch.at === "setup")).toEqual([]);
+		expect((await runOracle(stated, as({ target: 3, maxNote: 10 }), 1)).filter((mismatch) => mismatch.at === "setup")).toHaveLength(1);
+	});
 });

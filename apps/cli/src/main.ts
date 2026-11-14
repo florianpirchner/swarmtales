@@ -25,6 +25,8 @@ export interface CliIo {
 	readonly installed?: Readonly<Record<string, MechanicDefinition>>;
 }
 
+// A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
+const MAX_SEED = 4294967295;
 const FLAGS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: { type: "string" }, out: { type: "string" } } as const;
 
 // The flags and the words before and between them; a flag that no command has is `SWT-C003`.
@@ -38,7 +40,7 @@ function read(args: readonly string[]): ReturnType<typeof parseArgs<{ options: t
 
 function seedOf(text: string | undefined): number | undefined {
 	if (text === undefined) return undefined;
-	if (!/^\d+$/.test(text) || !Number.isSafeInteger(Number(text))) throw new SwtError(badUsage({ problem: `the seed "${text}" is no whole number from 0` }));
+	if (!/^\d+$/.test(text) || Number(text) > MAX_SEED) throw new SwtError(badUsage({ problem: `the seed "${text}" is no whole number from 0 to ${String(MAX_SEED)}` }));
 	return Number(text);
 }
 

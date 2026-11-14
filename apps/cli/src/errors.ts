@@ -18,7 +18,7 @@ export function badUsage(input: { readonly problem: string }): SwtIssue {
 	return {
 		code: "SWT-C003",
 		summary: input.problem,
-		why: "The commands are `swt run <game file> --fake [--seed n] [--out dir] [--json]` and `swt log verify <run dir> [--json]`; a seed is a whole number from 0.",
+		why: "The commands are `swt run <game file> --fake [--seed n] [--out dir] [--json]` and `swt log verify <run dir> [--json]`; a seed is a whole number from 0 to 4294967295.",
 		fix: "Write the command in one of the two forms.",
 	};
 }

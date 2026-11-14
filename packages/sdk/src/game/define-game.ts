@@ -65,7 +65,7 @@ export function gameData(game: Game): { readonly data: GameData; readonly mechan
 		...(grants === undefined ? {} : { grants: dataGrants(grants) }),
 		...(locked === undefined ? {} : { locked: [...locked] }),
 	};
-	const mechanics: Record<string, MechanicDefinition> = {};
-	for (const use of uses) mechanics[use.mechanic.id] ??= use.mechanic;
+	// Own entries only, the first use of an id wins: an id such as `constructor` or `__proto__` is a key like any other.
+	const mechanics: Readonly<Record<string, MechanicDefinition>> = Object.fromEntries(uses.map((use): [string, MechanicDefinition] => [use.mechanic.id, use.mechanic]).reverse());
 	return { data, mechanics };
 }

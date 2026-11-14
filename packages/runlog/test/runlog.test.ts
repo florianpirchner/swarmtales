@@ -187,6 +187,20 @@ describe("verifyRun", () => {
 		expect(codes(verifyRun(directory))).toEqual(["SWT-L003", "SWT-L003"]);
 	});
 
+	// M1 review, finding R1: a committed file that was overwritten with something that is no JSON passed as "absent".
+	it("gives SWT-L003 for a game.json or a texts.json that is there and is no JSON, or no object of texts", () => {
+		for (const garbage of ["", "garbage{"]) {
+			const directory = writeRun();
+			change(directory, GAME_FILE, () => garbage);
+			expect(verifyRun(directory).issues).toMatchObject([{ code: "SWT-L003", where: { file: GAME_FILE } }]);
+			change(directory, TEXTS_FILE, () => garbage);
+			expect(verifyRun(directory).issues).toMatchObject([{ code: "SWT-L003", where: { file: GAME_FILE } }, { code: "SWT-L003", where: { file: TEXTS_FILE } }]);
+		}
+		const directory = writeRun();
+		change(directory, TEXTS_FILE, () => '"rules"');
+		expect(verifyRun(directory).issues).toMatchObject([{ code: "SWT-L003", where: { file: TEXTS_FILE } }]);
+	});
+
 	it("gives SWT-L004 for a line that is no stored envelope and SWT-L005 once for an order fault", () => {
 		const directory = mkdtempSync(join(tmpdir(), "runlog-"));
 		directories.push(directory);
