@@ -5,10 +5,11 @@ import type { MechanicDefinition } from "@swarmtales/sdk";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
 import { experimentAnalyse, experimentRun } from "./experiment.ts";
-import { liveFlags, loopFlags, paramsOf, readFlags, seedOf, type Flags } from "./flags.ts";
+import { liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type Flags } from "./flags.ts";
 import { runLive } from "./live.ts";
 import { logVerify } from "./log-verify.ts";
 import { report } from "./report.ts";
+import { resumeRun } from "./resume.ts";
 import { runFake } from "./run.ts";
 
 /**
@@ -42,7 +43,8 @@ const COMMANDS: Readonly<Record<string, Command>> = {
 		if (values.fake === true) return runFake(run, io);
 		return (await runLive({ ...run, ...liveFlags(values), env: io.env ?? readEnv() }, io)).code;
 	},
-	"log verify": (directory, values, io) => logVerify(directory, values.json === true, io),
+	resume: (directory, values, io) => resumeRun({ directory, out: values.out, json: values.json === true, ...resumeFlags(values), ...loopFlags(values) }, io),
+	"log verify": (directory, values, io) => logVerify(directory, values.json === true, io, values.previous),
 	report: (directory, values, io) => report({ directory, ...(values.game === undefined ? {} : { game: values.game }) }, io),
 	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), env: io.env ?? readEnv() }, io),
 	"experiment analyse": (directory, _values, io) => experimentAnalyse(directory, io),
@@ -63,7 +65,8 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
  * @param args - The arguments after the program name, for example `["run", "game.ts", "--fake"]`.
  * @param io - The current directory, the clock and the two outputs; those of the process when left out.
  * @returns The exit code. `swt run`: 0 the run finished, 1 an `SwtError` before the run or a log that does not
- * verify, 2 the run ended with the reason `error`, 3 the run is paused and the Human Hand of `--hand` has ended (`SWT-X009`; a snapshot is written), 5 a live run (no `--fake`) ended at its cost cap (`--budget`). `swt log verify`: 0 the log holds, 1 it is broken, 3 the run has
+ * verify, 2 the run ended with the reason `error`, 3 the run is paused and the Human Hand of `--hand` has ended (`SWT-X009`; a snapshot is written), 5 a live run (no `--fake`) ended at its cost cap (`--budget`). `swt resume`: as `swt run --fake`, and 3 also when
+ * `--ticks` stopped the run before its end. `swt log verify`: 0 the log holds, 1 it is broken, 3 the run has
  * no end. `swt report`: 0 the report is written, 1 the run folder is unreadable, 4 a file of it holds a key value.
  * `swt experiment run`: 0 complete, 1 an `SwtError`, 4 a leak, 6 stopped at the experiment's cap or after three failed
  * runs. `swt experiment analyse`: 0 the pass rule is kept or there is none, 1 an `SwtError`, 3 not kept, 4 a leak,

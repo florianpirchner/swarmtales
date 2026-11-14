@@ -129,13 +129,17 @@ function sourceOf(buffer: HandLine[], tools: readonly string[], open?: () => Asy
  * @param hand - The value of `--hand`; undefined without the flag.
  * @param game - The resolved game: its actor `human` and the tools of the grant `human`.
  * @param io - The current directory, and the lines of standard input of a test.
+ * @param after - For a resumed run, which is given the hand file of the straight run: the lines of the file that
+ * the run before the snapshot applied already are dropped. These are the first `calls` tool lines (the calls of the
+ * actor `human` in the log up to the snapshot) and every `snapshot` line with `at` at or below `tick` (the finished
+ * ticks of the snapshot). Standard input is taken as it comes.
  * @returns The source, or undefined without the flag.
  * @throws SwtError `SWT-X008` when the game has no actor `human`, the file cannot be read, or a line of the file
  * is no line of the Human Hand or names a tool the grant `human` does not hold.
  *
  * @public
  */
-export function handOf(hand: string | undefined, game: ResolvedGame, io: Pick<CliIo, "cwd" | "stdin">): HandSource | undefined {
+export function handOf(hand: string | undefined, game: ResolvedGame, io: Pick<CliIo, "cwd" | "stdin">, after?: { readonly calls: number; readonly tick: number }): HandSource | undefined {
 	if (hand === undefined) return undefined;
 	const { actors, grants, names } = game.definition;
 	if (!actors.some((actor) => actor.id === HUMAN)) throw new SwtError(handRefused({ problem: "`--hand` was given, and the game has no actor `human`" }));
@@ -149,5 +153,6 @@ export function handOf(hand: string | undefined, game: ResolvedGame, io: Pick<Cl
 		throw new SwtError(handRefused({ problem: `the file of \`--hand\` cannot be read`, file }));
 	}
 	const lines = text.split("\n").flatMap((line, index) => (line.trim() === "" ? [] : [lineOf(line, tools, { file, line: index + 1 })]));
-	return sourceOf(lines, tools);
+	let left = after?.calls ?? 0;
+	return sourceOf(after === undefined ? lines : lines.filter((line) => (line.command === "snapshot" ? line.at > after.tick : left-- <= 0)), tools);
 }

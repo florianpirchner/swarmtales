@@ -8,7 +8,7 @@ import { badUsage } from "./errors.ts";
 // A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
 const MAX_SEED = 4294967295;
 const text = { type: "string" } as const;
-const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text, hand: text, "snapshot-at": text } as const;
+const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text, hand: text, "snapshot-at": text, snapshot: text, ticks: text, previous: text } as const;
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];
 const PURPOSES: readonly Purpose[] = ["smoke", "pilot", "exploratory", "confirmatory"];
 
@@ -186,4 +186,18 @@ export function loopFlags(flags: Flags): { readonly hand?: string; readonly snap
 	const bad = ticks.find((tick) => !/^\d{1,9}$/.test(tick));
 	if (bad !== undefined) throw new SwtError(badUsage({ problem: `\`--snapshot-at ${flags["snapshot-at"] ?? ""}\` is no comma list of whole numbers of ticks` }));
 	return { ...(flags.hand === undefined ? {} : { hand: flags.hand }), snapshotAt: ticks.map(Number) };
+}
+
+/**
+ * Reads `--game`, `--snapshot` and `--ticks`, the flags of `swt resume` beside those of the run loop.
+ *
+ * @param flags - The flags as written.
+ * @returns The game file, the snapshot file and the number of finished ticks to stop at, each when its flag is there.
+ * @throws SwtError `SWT-C003` for a `--ticks` that is no whole number.
+ *
+ * @public
+ */
+export function resumeFlags(flags: Flags): { readonly game?: string; readonly snapshot?: string; readonly ticks?: number } {
+	const ticks = numberOf("ticks", flags.ticks, /^\d{1,9}$/, "whole number of ticks");
+	return { ...(flags.game === undefined ? {} : { game: flags.game }), ...(flags.snapshot === undefined ? {} : { snapshot: flags.snapshot }), ...(ticks === undefined ? {} : { ticks }) };
 }

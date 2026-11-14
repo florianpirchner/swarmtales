@@ -6,11 +6,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatIssue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
+import { formatIssue, SwtError, type ActorDriver, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type ResumeInput, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
 import { createDirectorDrivers, DIRECTOR_RECORDS, turns, type ManifestRun } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
+import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunFolderOptions, type RunVerdict } from "@swarmtales/runlog";
 import { scriptedAsker } from "@swarmtales/models";
 import { definitionsOf, isGameFamily, resolveGame, RESIDENT_KIND, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { fakeDriver } from "@swarmtales/testkit";
@@ -21,7 +21,7 @@ import { toolWithoutSample } from "./errors.ts";
 import { handEnded, handOf } from "./hand.ts";
 import { installedTable } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
-import { runLoop, type LoopStop } from "./loop.ts";
+import { runLoop, type HandSource, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 
 const FAKE = "fake/sample";
@@ -133,16 +133,11 @@ export function folderTexts(game: ResolvedGame): Readonly<Record<string, string>
 }
 
 // The run folder, opened at the first event: a game that fails before its run leaves no folder behind.
-function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonly sink: EventSink; readonly opened: () => RunFolder | undefined } {
+function lazyFolder(open: () => RunFolder): { readonly sink: EventSink; readonly opened: () => RunFolder | undefined } {
 	let folder: RunFolder | undefined;
-	const open = (): RunFolder => {
-		const manifest = runManifest(game, { ...runFacts(directory, io.now), purpose: "smoke", replicate: 0 }, FAKE);
-		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: folderTexts(game) });
-		return folder;
-	};
 	const sink: EventSink = {
 		write(event) {
-			(folder ?? open()).sink.write(event);
+			(folder ??= open()).sink.write(event);
 		},
 		close(end) {
 			folder?.sink.close?.(end);
@@ -218,6 +213,87 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
 }
 
 /**
+ * What makes a fake run a resumed one (`swt resume`).
+ *
+ * @public
+ */
+export interface Resumed {
+	/** The purpose and the replicate of the run that is resumed: the resumed run keeps them. */
+	readonly run: Pick<ManifestRun, "purpose" | "replicate">;
+	/** The hash of the snapshot file, for `resumedFrom` of the manifest. */
+	readonly snapshotHash: string;
+	/** The checkpoint the new folder chains from, and the lines of the previous log it starts with. */
+	readonly folder: Required<Pick<RunFolderOptions, "resumedFrom" | "prefix">>;
+	/** The snapshot and the log the kernel resumes from. */
+	readonly input: ResumeInput;
+	/** Called once with the resumed kernel, before the loop: writes the marker and gives the driver of the residents. */
+	readonly began: (kernel: Kernel, fake: ActorDriver) => ActorDriver;
+}
+
+/**
+ * What `playFake` plays.
+ *
+ * @public
+ */
+export interface FakePlay {
+	/** The resolved game. */
+	readonly game: ResolvedGame;
+	/** The run folder to write; it is created at the first event. */
+	readonly directory: string;
+	/** Print the result as one JSON line. */
+	readonly json: boolean;
+	/** The Human Hand; none when absent. */
+	readonly hand?: HandSource | undefined;
+	/** The numbers of finished ticks after which a snapshot is written; none when absent. */
+	readonly snapshotAt?: readonly number[] | undefined;
+	/** The loop stops after this many finished ticks; the ticks of the game when absent. */
+	readonly ticks?: number | undefined;
+	/** Set for a resumed run. */
+	readonly resumed?: Resumed;
+}
+
+function exitOf(failed: boolean, verified: boolean, end: RunEnd | LoopStop): number {
+	if (failed || !verified) return failed ? 2 : 1;
+	return "stopped" in end ? 3 : 0;
+}
+
+// Opens the run folder of a fake run; a resumed one names its snapshot in the manifest and starts with the prefix.
+function openFolder({ game, directory, resumed }: FakePlay, io: CliIo): RunFolder {
+	const manifest = runManifest(game, { ...runFacts(directory, io.now), purpose: "smoke", replicate: 0, ...resumed?.run }, FAKE);
+	return openRunFolder(directory, resumed === undefined ? manifest : { ...manifest, resumedFrom: { snapshotHash: resumed.snapshotHash } }, { now: io.now, game: game.data, texts: folderTexts(game), ...resumed?.folder });
+}
+
+/**
+ * Plays a resolved game with the fake driver into its run folder, from the start or from a snapshot, verifies the
+ * folder and prints the result. A Director acts on its fallback: its model port is a script without an answer.
+ *
+ * @param play - The game, the folder, the flags of the run loop and, for a resumed run, what it resumes from.
+ * @param io - The current directory, the clock and the two outputs.
+ * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`, 3 the
+ * loop stopped with the run open (paused with the Human Hand ended, `SWT-X009`, or at `ticks`).
+ * @throws SwtError `SWT-R002`, `SWT-R015` when `win.fact` names no fact, `SWT-R021` for a snapshot that does not fit
+ * its log, `SWT-L007` for a prefix that is not what the checkpoint signed.
+ *
+ * @public
+ */
+export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
+	const { game, directory, resumed } = play;
+	const folder = lazyFolder(() => openFolder(play, io));
+	const kernel = createKernel(game.definition, { sinks: [folder.sink] }, resumed?.input);
+	if (game.win !== undefined) kernel.fact(game.win);
+	const fake = fakeDriver(kernel, game.definition.seed);
+	const driver = resumed === undefined ? fake : resumed.began(kernel, fake);
+	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask: scriptedAsker({}) }) };
+	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt });
+	const { end, issues } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
+	const failed = whyOf(kernel, end) === "error";
+	const verdict = verifyRun(directory);
+	const result = game.win === undefined || failed ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
+	print({ game: game.definition.game.id, seed: game.definition.seed, end, why: whyOf(kernel, end), ...result, verdict, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues] }, play.json, io);
+	return exitOf(failed, verdict.ok, end);
+}
+
+/**
  * Loads the game file, resolves it, plays it with the fake driver into a new run folder, verifies the folder and
  * prints the result. Before the run it warns once (`SWT-C010`, on the error output) about each tool an actor is
  * granted that has no `sample`; the run still plays. `texts.json` holds every text of the game by its key and each actor's briefing under
@@ -240,16 +316,5 @@ export async function runFake(input: RunInput, io: CliIo): Promise<number> {
 	const hand = handOf(input.hand, game, io);
 	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
-	const folder = lazyFolder(directory, game, io);
-	const kernel = createKernel(game.definition, { sinks: [folder.sink] });
-	if (game.win !== undefined) kernel.fact(game.win);
-	const driver = fakeDriver(kernel, game.definition.seed);
-	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask: scriptedAsker({}) }) };
-	const { end, issues } = await played(kernel, drivers, loopOf(game, kernel, folder.opened, { hand, snapshotAt: input.snapshotAt })).finally(() => folder.opened()?.close());
-	const failed = whyOf(kernel, end) === "error";
-	const verdict = verifyRun(directory);
-	const result = game.win === undefined || failed ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	print({ game: game.definition.game.id, seed: game.definition.seed, end, why: whyOf(kernel, end), ...result, verdict, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues] }, input.json, io);
-	if (failed || !verdict.ok) return failed ? 2 : 1;
-	return "stopped" in end ? 3 : 0;
+	return playFake({ game, directory, json: input.json, hand, snapshotAt: input.snapshotAt }, io);
 }
