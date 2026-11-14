@@ -13,6 +13,7 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{ find: /^@swarmtales\/mechanic-chess$/, replacement: here("./src/chess/index.ts") },
+			{ find: /^@swarmtales\/mechanic-channels$/, replacement: here("./src/channels/index.ts") },
 		],
 	},
 	test: { testTimeout: 30000, exclude: ["**/node_modules/**", ".claude/**"] },
