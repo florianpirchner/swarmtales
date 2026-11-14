@@ -11,7 +11,7 @@
 	},
 	"scripts": {
 		"typecheck": "tsc -b",
-		"lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js packages && node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js . --ignore-pattern \"packages/**\"",
+		"lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js packages && node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js mechanics && node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js . --ignore-pattern \"packages/**\" --ignore-pattern \"mechanics/**\"",
 		"test": "vitest --run",
 		"check:layers": "node scripts/check-layers.ts",
 		"check:licences": "node scripts/check-licences.ts --check",
