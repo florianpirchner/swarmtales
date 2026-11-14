@@ -12,7 +12,7 @@ the last commit that changed it (`git log -1 -- oracles/<game>/<file>`). The fir
 
 ## Format (version 1)
 
-The schema is `OracleSchema` in `scripts/oracles/format.ts` (Typebox). A file has a head and a `timeline`.
+The schema is `OracleSchema` in `packages/testkit/src/oracle/format.ts` (Typebox). A file has a head and a `timeline`.
 
 | Field | Meaning |
 |---|---|

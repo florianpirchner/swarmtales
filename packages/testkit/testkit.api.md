@@ -18,6 +18,7 @@ import { MechanicHead } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
 import { ResumeInput } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
+import { Static } from 'typebox';
 import { ToolOutcome } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
 import { Type } from 'typebox';
@@ -50,6 +51,9 @@ export function checkSnapshotRoundTrip(game: Game | GameData, driver: () => Acto
 
 // @public
 export type ConformanceOptions = Pick<PlayOptions, "seed" | "prompts" | "installed">;
+
+// @public
+export function countsOf(timeline: readonly OracleEntry[]): Oracle["counts"];
 
 // @public
 export function fakeDriver(kernel: Kernel, seed: number): ActorDriver;
@@ -87,6 +91,185 @@ value: Type.TInteger;
 export const idleDriver: ActorDriver;
 
 // @public
+export type Oracle = Static<typeof OracleSchema>;
+
+// @public
+export const ORACLE_FORMAT = "swarmtales.oracle";
+
+// @public
+export const ORACLE_VERSION = 1;
+
+// Warning: (ae-forgotten-export) The symbol "CallEntry" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type OracleCall = Static<typeof CallEntry>;
+
+// @public
+export type OracleEntry = Static<typeof OracleEntrySchema>;
+
+// @public
+export const OracleEntrySchema: Type.TUnion<[Type.TObject<{
+    k: Type.TLiteral<"minute">;
+    minute: Type.TInteger;
+}>, Type.TObject<{
+    k: Type.TLiteral<"turn">;
+    resident: Type.TString;
+    pass: Type.TInteger;
+    block: Type.TInteger;
+    inputs: Type.TArray<Type.TObject<{
+        source: Type.TString;
+        kind: Type.TOptional<Type.TString>;
+        text: Type.TString;
+    }>>;
+}>, Type.TObject<{
+    k: Type.TLiteral<"skip">;
+    resident: Type.TString;
+    pass: Type.TInteger;
+    block: Type.TInteger;
+}>, Type.TObject<{
+    k: Type.TLiteral<"call">;
+    actor: Type.TString;
+    tool: Type.TString;
+    params: Type.TUnknown;
+    ok: Type.TBoolean;
+    reply: Type.TOptional<Type.TString>;
+    endsTurn: Type.TOptional<Type.TBoolean>;
+    code: Type.TOptional<Type.TString>;
+    stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
+    detail: Type.TOptional<Type.TString>;
+}>, Type.TObject<{
+    k: Type.TLiteral<"event">;
+    source: Type.TString;
+    type: Type.TString;
+    actor: Type.TString;
+    audience: Type.TOptional<Type.TArray<Type.TString>>;
+    payload: Type.TUnknown;
+}>, Type.TObject<{
+    k: Type.TLiteral<"resume">;
+    minute: Type.TInteger;
+}>]>;
+
+// @public
+export type OracleLevel = 1 | 2 | 3;
+
+// @public
+export interface OracleMismatch {
+    readonly actual: unknown;
+    readonly at: "setup" | "call" | "event" | "inputs" | "turn" | "end";
+    readonly expected: unknown;
+    readonly index: number;
+    readonly level: OracleLevel;
+}
+
+// @public
+export const OracleSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales.oracle">;
+    version: Type.TLiteral<1>;
+    game: Type.TString;
+    variant: Type.TString;
+    seed: Type.TNumber;
+    runtimeRevision: Type.TInteger;
+    source: Type.TObject<{
+        kind: Type.TUnion<[Type.TLiteral<"live-replay">, Type.TLiteral<"scripted">]>;
+        from: Type.TString;
+        note: Type.TOptional<Type.TString>;
+        fidelity: Type.TOptional<Type.TObject<{
+            turns: Type.TInteger;
+            turnsWithEqualInputs: Type.TInteger;
+            calls: Type.TInteger;
+            callsWithEqualResult: Type.TInteger;
+            turnsLeft: Type.TInteger;
+        }>>;
+    }>;
+    setup: Type.TObject<{
+        story: Type.TString;
+        seed: Type.TNumber;
+        minutes: Type.TInteger;
+        residents: Type.TArray<Type.TString>;
+        mechanics: Type.TArray<Type.TObject<{
+            id: Type.TString;
+            options: Type.TUnknown;
+        }>>;
+        residentTools: Type.TArray<Type.TString>;
+        locked: Type.TArray<Type.TString>;
+        turns: Type.TObject<{
+            passes: Type.TInteger;
+            blockSize: Type.TInteger;
+            activation: Type.TUnion<[Type.TLiteral<"always">, Type.TLiteral<"onNews">]>;
+            order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"custom">]>;
+        }>;
+        limits: Type.TOptional<Type.TUnknown>;
+        definition: Type.TOptional<Type.TObject<{
+            file: Type.TString;
+            effective: Type.TUnknown;
+        }>>;
+    }>;
+    truncated: Type.TOptional<Type.TObject<{
+        afterMinute: Type.TInteger;
+        reason: Type.TString;
+    }>>;
+    end: Type.TOptional<Type.TObject<{
+        reason: Type.TUnion<[Type.TLiteral<"referee">, Type.TLiteral<"minutes">]>;
+        minute: Type.TInteger;
+        limit: Type.TOptional<Type.TString>;
+    }>>;
+    counts: Type.TObject<{
+        entries: Type.TRecord<"^.*$", Type.TInteger>;
+        events: Type.TRecord<"^.*$", Type.TInteger>;
+    }>;
+    timeline: Type.TArray<Type.TUnion<[Type.TObject<{
+        k: Type.TLiteral<"minute">;
+        minute: Type.TInteger;
+    }>, Type.TObject<{
+        k: Type.TLiteral<"turn">;
+        resident: Type.TString;
+        pass: Type.TInteger;
+        block: Type.TInteger;
+        inputs: Type.TArray<Type.TObject<{
+            source: Type.TString;
+            kind: Type.TOptional<Type.TString>;
+            text: Type.TString;
+        }>>;
+    }>, Type.TObject<{
+        k: Type.TLiteral<"skip">;
+        resident: Type.TString;
+        pass: Type.TInteger;
+        block: Type.TInteger;
+    }>, Type.TObject<{
+        k: Type.TLiteral<"call">;
+        actor: Type.TString;
+        tool: Type.TString;
+        params: Type.TUnknown;
+        ok: Type.TBoolean;
+        reply: Type.TOptional<Type.TString>;
+        endsTurn: Type.TOptional<Type.TBoolean>;
+        code: Type.TOptional<Type.TString>;
+        stage: Type.TOptional<Type.TUnion<[Type.TLiteral<"lock">, Type.TLiteral<"parse">, Type.TLiteral<"limit">, Type.TLiteral<"afford">, Type.TLiteral<"rule">, Type.TLiteral<"guard">, Type.TLiteral<"consult">, Type.TLiteral<"execute">]>>;
+        detail: Type.TOptional<Type.TString>;
+    }>, Type.TObject<{
+        k: Type.TLiteral<"event">;
+        source: Type.TString;
+        type: Type.TString;
+        actor: Type.TString;
+        audience: Type.TOptional<Type.TArray<Type.TString>>;
+        payload: Type.TUnknown;
+    }>, Type.TObject<{
+        k: Type.TLiteral<"resume">;
+        minute: Type.TInteger;
+    }>]>>;
+}>;
+
+// Warning: (ae-forgotten-export) The symbol "Setup" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type OracleSetup = Static<typeof Setup>;
+
+// Warning: (ae-forgotten-export) The symbol "Source" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type OracleSource = Static<typeof Source>;
+
+// @public
 export type Plan = (activation: Activation) => readonly PlannedCall[] | Promise<readonly PlannedCall[]>;
 
 // @public
@@ -118,6 +301,12 @@ export interface PlayOptions {
 }
 
 // @public
+export function readOracle(path: string): Oracle;
+
+// @public
+export function runOracle(oracle: Oracle, game: Game | GameData, level?: OracleLevel, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<readonly OracleMismatch[]>;
+
+// @public
 export function scriptedDriver(plan: Plan, record?: CallRecord[]): ActorDriver;
 
 // @public
@@ -131,6 +320,9 @@ export interface TestKernel {
 
 // @public
 export function testKernel(game: Game | GameData, options?: PlayOptions): TestKernel;
+
+// @public
+export function timelineOf(events: readonly Envelope[]): readonly OracleEntry[];
 
 // (No @packageDocumentation comment for this package)
 

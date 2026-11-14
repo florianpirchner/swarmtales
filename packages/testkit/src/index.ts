@@ -9,3 +9,5 @@ export { play, testKernel, type Played, type PlayOptions, type TestKernel } from
 
 export { checkDeterminism, checkOptionsDocumented, checkPackage, checkSnapshotRoundTrip, type ConformanceOptions } from "./conformance.ts";
 export { guessNumber, guessNumberHead } from "./fixtures/index.ts";
+
+export { countsOf, ORACLE_FORMAT, ORACLE_VERSION, OracleEntrySchema, OracleSchema, readOracle, runOracle, timelineOf, type Oracle, type OracleCall, type OracleEntry, type OracleLevel, type OracleMismatch, type OracleSetup, type OracleSource } from "./oracle/index.ts";
