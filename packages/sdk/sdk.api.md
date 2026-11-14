@@ -4,15 +4,64 @@
 
 ```ts
 
+import { ActorId } from '@swarmtales/contracts';
+import { CanonicalTool } from '@swarmtales/contracts';
+import { Envelope } from '@swarmtales/contracts';
 import { EventSchemas } from '@swarmtales/contracts';
 import { EventsDefinition } from '@swarmtales/contracts';
+import { Fact } from '@swarmtales/contracts';
+import { GameData } from '@swarmtales/contracts';
+import { InputLine } from '@swarmtales/contracts';
+import { JsonValue } from '@swarmtales/contracts';
+import { KernelDefinition } from '@swarmtales/contracts';
+import { KernelTool } from '@swarmtales/contracts';
+import { Listener } from '@swarmtales/contracts';
+import { Ordered } from '@swarmtales/contracts';
+import { PluginPort } from '@swarmtales/contracts';
+import { PromptLookup } from '@swarmtales/contracts';
+import { ProvidedService } from '@swarmtales/contracts';
+import { RandomLabel } from '@swarmtales/contracts';
+import { RandomSource } from '@swarmtales/contracts';
 import { Refusal } from '@swarmtales/contracts';
+import { ResolvedPlugin } from '@swarmtales/contracts';
+import { RunLimit } from '@swarmtales/contracts';
+import { SchedulePort } from '@swarmtales/contracts';
+import { SchedulerDefinition } from '@swarmtales/contracts';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { ServiceMethods } from '@swarmtales/contracts';
+import { SnapshotSlice } from '@swarmtales/contracts';
+import { Static } from 'typebox';
 import { SwtIssue } from '@swarmtales/contracts';
+import { TObject } from 'typebox';
+import { ToolOutcome } from '@swarmtales/contracts';
 import { ToolRef } from '@swarmtales/contracts';
 import { ToolSuccess } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
+
+// @public
+export type AnyHead = MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], ToolParams>;
+
+// @public
+export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<string, TSchema>>> {
+    readonly facts?: { readonly [K in keyof F]: FactSpec<M, F[K]>; };
+    readonly hooks?: MechanicHooks<M>;
+    readonly jobs?: Readonly<Record<string, MechanicJob<M>>>;
+    readonly limits?: Readonly<Record<string, LimitSpec<M>>>;
+    readonly listeners?: (kit: ListenKit<M>) => readonly Listener[];
+    readonly pipeline?: MechanicPipeline<M>;
+}
+
+// @public
+export type CtxOf<H> = MechanicContext<ShapeOf<H>>;
+
+// @public
+export interface DeclaredTool {
+    readonly description: string;
+    readonly for: readonly string[];
+    readonly free: boolean;
+    readonly name: string;
+    readonly parameters: TSchema;
+}
 
 // @public
 export function defineEvents<const Id extends string, const E extends EventSchemas>(id: Id, events: E): EventsDefinition<Id, E>;
@@ -24,9 +73,18 @@ export function defineService<const N extends string, const M extends ServiceMet
 export function defineTool<const N extends string, P extends TSchema>(name: N, parameters: P): ToolRef<N, P>;
 
 // @public
+export type DefinitionOf<H> = H extends MechanicHead<infer Id, infer O, TSchema, unknown, infer E, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], infer TP> ? MechanicDefinition<Id, O, E, keyof TP & string> : never;
+
+// @public
 export function directorsReserved(input: {
     readonly count: number;
 }): SwtIssue;
+
+// @public
+export interface ErasedBody extends BodyParts<MechanicShape, Readonly<Record<string, TSchema>>> {
+    readonly services?: Readonly<Record<string, ServiceImplementation<ServiceDefinition, MechanicContext<MechanicShape>>>>;
+    readonly tools?: Readonly<Record<string, ToolHandlers<MechanicShape, TSchema>>>;
+}
 
 // @public
 export function eventTypeTaken(input: {
@@ -37,7 +95,68 @@ export function eventTypeTaken(input: {
 }): SwtIssue;
 
 // @public
+export interface FactSpec<M extends MechanicShape, F extends TSchema> {
+    compute(view: FactView<M>): Static<F>;
+    readonly output: F;
+}
+
+// @public
+export interface FactView<M extends MechanicShape> {
+    call<A extends M["requires"][number], K extends QueryMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K>;
+    readonly options: M["options"];
+    readonly residents: ResidentsView;
+    readonly state: Readonly<M["state"]>;
+    readonly tick: number;
+    tryCall<A extends M["uses"][number], K extends QueryMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K> | undefined;
+}
+
+// @public
+export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked"> {
+    readonly grants?: Partial<Readonly<Record<string, readonly ToolOf<Ms>[] | GrantTweak<ToolOf<Ms>>>>>;
+    readonly locked?: readonly ToolOf<Ms>[];
+    readonly mechanics: Ms;
+    readonly schema?: 1;
+}
+
+// @public
 export function gameSchemaMismatch(input: Mismatch): SwtIssue;
+
+// @public
+export interface GrantTweak<T extends string = string> {
+    readonly add?: readonly T[];
+    readonly drop?: readonly T[];
+}
+
+// @public
+export type HookSlot<F> = F | Ordered<F> | readonly (F | Ordered<F>)[];
+
+// @public
+export interface InstanceParts<M extends MechanicShape> {
+    readonly head: PluginHead;
+    readonly options: M["options"];
+    readonly port: PluginPort;
+    readonly setup: Setup<M["options"]>;
+    readonly state: {
+        value: M["state"];
+    };
+    readonly texts: PromptLookup;
+}
+
+// @public
+export interface LimitSpec<M extends MechanicShape> {
+    breached(view: FactView<M>): string | undefined;
+    readonly summary: string;
+}
+
+// @public
+export interface ListenKit<M extends MechanicShape> {
+    listen<D extends EventsDefinition, K extends keyof D["events"] & string>(source: D, type: K, handler: (payload: Static<D["events"][K]>, ctx: MechanicContext<M>, event: Envelope<K, Static<D["events"][K]>>) => void, options?: ListenOptions): Listener;
+}
+
+// @public
+export interface ListenOptions {
+    readonly after?: readonly string[];
+}
 
 // @public
 export interface LoadOrder<T extends LoadOrderEntry> {
@@ -63,6 +182,88 @@ export interface LoadOrderEntry {
 }
 
 // @public
+export type MechanicBody<M extends MechanicShape, TP extends ToolParams, F extends Readonly<Record<string, TSchema>>> = BodyParts<M, F> & Needs<keyof TP & string, {
+    readonly tools: { readonly [K in keyof TP & string]: ToolHandlers<M, TP[K]>; };
+}> & Needs<M["provides"][number]["name"], {
+    readonly services: ServicesOf<M>;
+}>;
+
+// @public
+export interface MechanicContext<M extends MechanicShape> {
+    readonly access: ResidentAccess;
+    call<A extends M["requires"][number], K extends ServiceMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K>;
+    emit<K extends keyof M["events"] & string>(type: K, payload: Static<M["events"][K]>): void;
+    has(service: M["requires"][number] | M["uses"][number]): boolean;
+    readonly mechanic: string;
+    readonly options: M["options"];
+    prompt<K extends keyof M["prompts"] & string>(id: K, variables: PromptVariables<M["prompts"][K]>): string;
+    readonly residents: ResidentsPort;
+    readonly rng: (...labels: readonly RandomLabel[]) => RandomSource;
+    readonly schedule: SchedulePort;
+    readonly seed: number;
+    readonly state: M["state"];
+    readonly tick: number;
+    readonly ticks: number;
+    tryCall<A extends M["uses"][number], K extends ServiceMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K> | undefined;
+}
+
+// @public
+export interface MechanicDefinition<Id extends string = string, O extends TSchema = TSchema, E extends EventSchemas = EventSchemas, Tools extends string = string> {
+    (options?: OptionsInput<O>): MechanicUse<MechanicDefinition<Id, O, E, Tools>>;
+    readonly events: E;
+    readonly head: PluginHead;
+    readonly id: Id;
+    readonly options: O;
+    readonly package: string;
+    parseOptions(raw: unknown): Static<O>;
+    resolve(options: Static<O>, texts: PromptLookup, version: string): ResolvedPlugin;
+    readonly source: string;
+    readonly toolNames?: Tools;
+}
+
+// @public
+export interface MechanicHead<Id extends string, O extends TSchema, Snap extends TSchema, C, E extends EventSchemas, P extends PromptKeys, R extends readonly ServiceDefinition[], Pv extends readonly ServiceDefinition[], U extends readonly ServiceDefinition[], TP extends ToolParams> {
+    readonly audiences?: Partial<Readonly<Record<keyof E & string, readonly string[]>>>;
+    readonly events?: E;
+    readonly id: Id;
+    readonly migrations?: Readonly<Record<number, (data: unknown) => unknown>>;
+    readonly options?: O;
+    readonly package: string;
+    readonly prompts?: P;
+    readonly provides?: Pv;
+    readonly requires?: R;
+    readonly snapshot?: SnapshotSpec<C, Static<Snap>, Static<O>>;
+    start?(setup: StateSetup<O>): NoInfer<StateOf<Snap, C>>;
+    readonly state?: Snap;
+    readonly summary: string;
+    readonly tools?: { readonly [K in keyof TP]: ToolDeclaration<TP[K]>; };
+    readonly uses?: U;
+    readonly version?: number;
+}
+
+// @public
+export interface MechanicHooks<M extends MechanicShape> {
+    readonly news?: (resident: string, ctx: MechanicContext<M>) => boolean;
+    readonly runStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
+    readonly tickEnded?: HookSlot<(ctx: MechanicContext<M>) => void>;
+    readonly tickStarted?: HookSlot<(ctx: MechanicContext<M>) => void>;
+    readonly toAct?: (ctx: MechanicContext<M>) => readonly string[];
+    readonly turnInputs?: HookSlot<(resident: string, ctx: MechanicContext<M>) => readonly InputLine[]>;
+}
+
+// @public
+export type MechanicJob<M extends MechanicShape> = (ctx: MechanicContext<M>, data: JsonValue | undefined) => void;
+
+// @public
+export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
+    fact(spec: FactSpec<M, TSchema>): Fact;
+    limit(id: string, spec: LimitSpec<M>): RunLimit;
+    provide(service: ServiceDefinition, implementation: ServiceImplementation<ServiceDefinition, MechanicContext<M>>): ProvidedService;
+    slice(spec: SliceSpec<M>): SnapshotSlice;
+    tool(declared: DeclaredTool, handlers: ToolHandlers<M, TSchema>): KernelTool;
+}
+
+// @public
 export function mechanicNotInstalled(input: {
     readonly mechanic: string;
     readonly path: string;
@@ -70,10 +271,35 @@ export function mechanicNotInstalled(input: {
 }): SwtIssue;
 
 // @public
+export interface MechanicPipeline<M extends MechanicShape> {
+    after?(call: StageCall, outcome: ToolOutcome, ctx: MechanicContext<M>): void;
+    lock?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
+    rule?(call: StageCall, ctx: MechanicContext<M>): Refusal | undefined;
+}
+
+// @public
+export interface MechanicShape {
+    readonly events: EventSchemas;
+    readonly options: unknown;
+    readonly prompts: PromptKeys;
+    readonly provides: readonly ServiceDefinition[];
+    readonly requires: readonly ServiceDefinition[];
+    readonly state: unknown;
+    readonly uses: readonly ServiceDefinition[];
+}
+
+// @public
 export function mechanicTwice(input: {
     readonly mechanic: string;
     readonly path: string;
 }): SwtIssue;
+
+// @public
+export interface MechanicUse<D extends MechanicDefinition = MechanicDefinition> {
+    readonly as?: Readonly<Record<string, string>>;
+    readonly mechanic: D;
+    readonly options: unknown;
+}
 
 // @public
 export function memberNotResident(input: {
@@ -89,6 +315,15 @@ export interface Mismatch {
     readonly message: string;
     readonly path?: string;
 }
+
+// @public
+export type Needs<Keys, Part> = [Keys] extends [never] ? unknown : Part;
+
+// @public
+export type None = Readonly<Record<symbol, never>>;
+
+// @public
+export type NoOptions = TObject<None>;
 
 // @public
 export function noProvider(input: {
@@ -107,6 +342,9 @@ export function optionMismatch(input: {
 }): SwtIssue;
 
 // @public
+export type OptionsInput<O extends TSchema> = Partial<Static<O>>;
+
+// @public
 export function packageMismatch(input: {
     readonly mechanic: string;
     readonly declared: string;
@@ -123,11 +361,37 @@ export function payloadMismatch(input: {
 }): SwtIssue;
 
 // @public
+export interface PluginHead {
+    readonly audiences: Readonly<Record<string, readonly string[]>>;
+    readonly events: EventSchemas;
+    readonly id: string;
+    readonly options: TSchema;
+    readonly package: string;
+    readonly prompts: PromptKeys;
+    readonly provides: readonly ServiceDefinition[];
+    readonly requires: readonly ServiceDefinition[];
+    readonly state: TSchema | undefined;
+    readonly summary: string;
+    readonly tools: readonly DeclaredTool[];
+    readonly uses: readonly ServiceDefinition[];
+    readonly version: number;
+}
+
+// @public
+export type PromptKeys = Readonly<Record<string, readonly string[]>>;
+
+// @public
+export type PromptVariables<Names extends readonly string[]> = Readonly<Record<Names[number], string | number>>;
+
+// @public
 export function promptWithoutText(input: {
     readonly owner: string;
     readonly prompt: string;
     readonly lookedIn: readonly string[];
 }): SwtIssue;
+
+// @public
+export type QueryMethodName<A extends ServiceDefinition> = { [K in ServiceMethodName<A>]: A["methods"][K]["kind"] extends "query" ? K : never; }[ServiceMethodName<A>];
 
 // @public
 export function refuse(code: string, detail?: string): Refusal;
@@ -143,11 +407,51 @@ export function requiresCycle(input: {
 }): SwtIssue;
 
 // @public
+export interface ResidentAccess {
+    isLocked(resident: string, tool: ToolName): boolean;
+    isOpen(resident: string, tool: ToolName): boolean;
+    lock(resident: string, tool: ToolName): void;
+    unlock(resident: string, tool: ToolName): void;
+}
+
+// @public
 export function residentId(input: {
     readonly id: string;
     readonly path: string;
     readonly reason: "doubled" | "malformed";
 }): SwtIssue;
+
+// @public
+export interface ResidentsPort extends ResidentsView {
+    resume(id: string): void;
+    suspend(id: string, reason: string): void;
+}
+
+// @public
+export interface ResidentsView {
+    has(id: string): boolean;
+    readonly ids: readonly string[];
+    mayAct(id: string): boolean;
+}
+
+// @public
+export interface ResolvedGame {
+    readonly briefings: Readonly<Record<string, string>>;
+    readonly data: GameData;
+    readonly definition: KernelDefinition;
+    readonly texts: Readonly<Record<string, string>>;
+    readonly win: string | undefined;
+}
+
+// @public
+export interface ResolveInput {
+    readonly game: Game | GameData;
+    readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+    readonly prompts: PromptLookup;
+    readonly schedulers: Readonly<Record<string, SchedulerDefinition>>;
+    readonly seed?: number;
+    readonly versions?: Readonly<Record<string, string>>;
+}
 
 // @public
 export function schemaVersion(input: {
@@ -181,6 +485,15 @@ export const SDK_ERRORS: {
 export type SdkErrorCode = keyof typeof SDK_ERRORS;
 
 // @public
+export type ServiceImplementation<A extends ServiceDefinition, Ctx> = { readonly [K in ServiceMethodName<A>]: (input: ServiceInput<A, K>, ctx: Ctx, caller: string) => ServiceOutput<A, K>; };
+
+// @public
+export type ServiceInput<A extends ServiceDefinition, K extends ServiceMethodName<A>> = Static<A["methods"][K]["input"]>;
+
+// @public
+export type ServiceMethodName<A extends ServiceDefinition> = keyof A["methods"] & string;
+
+// @public
 export function serviceMismatch(input: {
     readonly service: string;
     readonly method: string;
@@ -190,6 +503,36 @@ export function serviceMismatch(input: {
     readonly path: string;
     readonly message: string;
 }): SwtIssue;
+
+// @public
+export type ServiceOutput<A extends ServiceDefinition, K extends ServiceMethodName<A>> = Static<A["methods"][K]["output"]>;
+
+// @public
+export type ServicesOf<M extends MechanicShape> = { readonly [N in M["provides"][number]["name"]]: ServiceImplementation<Extract<M["provides"][number], {
+        readonly name: N;
+    }>, MechanicContext<M>>; };
+
+// @public
+export interface Setup<O> {
+    readonly options: O;
+    readonly residents: readonly string[];
+    readonly rng: (...labels: readonly RandomLabel[]) => RandomSource;
+    readonly seed: number;
+}
+
+// @public
+export interface Shape<O, S, E extends EventSchemas, P extends PromptKeys, R extends readonly ServiceDefinition[], Pv extends readonly ServiceDefinition[], U extends readonly ServiceDefinition[] = []> extends MechanicShape {
+    readonly events: E;
+    readonly options: O;
+    readonly prompts: P;
+    readonly provides: Pv;
+    readonly requires: R;
+    readonly state: S;
+    readonly uses: U;
+}
+
+// @public
+export type ShapeOf<H> = H extends MechanicHead<string, infer O, infer Snap, infer C, infer E, infer P, infer R, infer Pv, infer U, ToolParams> ? Shape<Static<O>, StateOf<Snap, C>, E, P, R, Pv, U> : never;
 
 // @public
 export function shownNameClash(input: {
@@ -207,6 +550,64 @@ export function shownNameMalformed(input: {
 }): SwtIssue;
 
 // @public
+export interface SliceSpec<M extends MechanicShape> {
+    readonly migrations?: Readonly<Record<number, (data: unknown) => unknown>>;
+    readonly schema: TSchema;
+    readonly snapshot?: SnapshotSpec<M["state"], unknown, M["options"]>;
+    readonly version: number;
+}
+
+// @public
+export interface SnapshotSpec<S, Data, O> {
+    load(data: Data, setup: Setup<O>): S;
+    save(state: S): Data;
+}
+
+// @public
+export interface StageCall {
+    readonly actor: ActorId;
+    readonly canonical: CanonicalTool;
+    readonly owner: string;
+    readonly params: unknown;
+    readonly resident: string | undefined;
+    readonly seq: number;
+    readonly tool: string;
+}
+
+// @public
+export type StateOf<Snap extends TSchema, C> = [C] extends [never] ? Static<Snap> : C;
+
+// @public
+export type StateSetup<O extends TSchema> = Setup<Static<O>>;
+
+// @public
+export interface ToolContext<M extends MechanicShape> extends MechanicContext<M> {
+    readonly actor: ActorId;
+    readonly resident: string | undefined;
+}
+
+// @public
+export type ToolCtxOf<H> = ToolContext<ShapeOf<H>>;
+
+// @public
+export interface ToolDeclaration<Params extends TSchema = TSchema> {
+    readonly description: string;
+    readonly for?: readonly string[];
+    readonly free?: boolean;
+    readonly params: Params;
+}
+
+// @public
+export interface ToolHandlers<M extends MechanicShape, Params extends TSchema> {
+    check?(params: Static<Params>, ctx: ToolContext<M>): Refusal | undefined;
+    run(params: Static<Params>, ctx: ToolContext<M>): ToolOutcome;
+    sample?(ctx: ToolContext<M>, random: RandomSource): (Static<Params> & JsonValue) | undefined;
+}
+
+// @public
+export type ToolName = string | ToolRef;
+
+// @public
 export function toolNotDefined(input: {
     readonly tool: string;
     readonly place: "granted" | "locked";
@@ -215,10 +616,22 @@ export function toolNotDefined(input: {
 }): SwtIssue;
 
 // @public
+export type ToolOf<Ms extends readonly MechanicUse[]> = NonNullable<Ms[number]["mechanic"]["toolNames"]>;
+
+// @public
+export type ToolParams = Readonly<Record<string, TSchema>>;
+
+// @public
+export type ToolsOf<H> = H extends MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], infer TP> ? TP : never;
+
+// @public
 export function twoProviders(input: {
     readonly service: string;
     readonly providers: readonly string[];
 }): SwtIssue;
+
+// @public
+export type ViewOf<H> = FactView<ShapeOf<H>>;
 
 // (No @packageDocumentation comment for this package)
 
