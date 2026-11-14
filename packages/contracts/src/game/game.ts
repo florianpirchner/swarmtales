@@ -66,6 +66,41 @@ export const ModelChoiceSchema = Type.Object(
 export type ModelChoice = Static<typeof ModelChoiceSchema>;
 
 /**
+ * The schema of one Director a game uses: the definition by id, its name in the game, its options, its model and
+ * its limits.
+ *
+ * @remarks
+ * Only `use` is needed. The Director's actor is `director:<as>` and its grant is `<as>`; `as` is the id when absent.
+ *
+ * @public
+ */
+export const DirectorUseSchema = Type.Object(
+	{
+		use: Type.String(text("The id of the Director definition")),
+		as: Type.Optional(Type.String(text("The name in this game; the id when absent. The actor is `director:<as>`, the grant is `<as>`"))),
+		options: Type.Optional(Type.Record(Type.String(text("The name of an option")), Type.Unknown(text("The value of the option")), text("The options of this use; the Director's own schema checks them"))),
+		model: Type.Optional(ModelChoiceSchema),
+		limits: Type.Optional(
+			Type.Object(
+				{
+					maxCalls: Type.Optional(Type.Integer({ minimum: 0, description: "The most times the Director is asked in one run" })),
+					maxCostUsd: Type.Optional(Type.Number({ minimum: 0, description: "The most money the Director's model calls may cost in one run, in US dollars" })),
+				},
+				closed("The limits of this Director; they replace those of its definition"),
+			),
+		),
+	},
+	closed("One Director the game uses"),
+);
+
+/**
+ * One Director a game uses: what {@link DirectorUseSchema} accepts.
+ *
+ * @public
+ */
+export type DirectorUse = Static<typeof DirectorUseSchema>;
+
+/**
  * The schema of a game definition, version 1.
  *
  * @remarks
@@ -83,7 +118,7 @@ export const GameDefinitionSchema = Type.Object(
 		teams: Type.Optional(Type.Record(Type.String(text("The name of a team")), members("team"), text("The teams, by name"))),
 		roles: Type.Optional(Type.Record(Type.String(text("The name of a role")), members("role"), text("The roles, by name"))),
 		mechanics: Type.Array(MechanicUse, text("The mechanics of the game, in the order they are listed")),
-		directors: Type.Optional(Type.Array(Type.Unknown(text("A Director")), { maxItems: 0, description: "Reserved: it must be empty in this version" })),
+		directors: Type.Optional(Type.Array(DirectorUseSchema, text("The Directors of the game; without one, or with an empty list, the game plays as it does without the field"))),
 		grants: Type.Optional(
 			Type.Record(
 				Type.String(text("A grant name")),

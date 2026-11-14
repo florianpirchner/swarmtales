@@ -66,7 +66,7 @@ describe("GameDefinitionSchema", () => {
 		expect(Value.Errors(GameDefinitionSchema, game)).toEqual([]);
 	});
 
-	it("refuses an unknown field, schema 2 and a non-empty `directors`", () => {
+	it("refuses an unknown field, schema 2 and a Director without `use`", () => {
 		expect(ok({ ...hello, kind: "game" })).toBe(false);
 		expect(ok({ ...hello, schema: 2 })).toBe(false);
 		expect(ok({ ...hello, directors: [{ id: "gamemaker" }] })).toBe(false);

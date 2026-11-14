@@ -65,10 +65,32 @@ export interface ActorsView {
 }
 
 // @public
+export type AskModel = (activation: Activation, question: ModelQuestion) => Promise<ModelAnswer>;
+
+// @public
 export type CanonicalTool = string;
 
 // @public
 export function closest(name: string, known: readonly string[]): string | undefined;
+
+// @public
+export type DirectorUse = Static<typeof DirectorUseSchema>;
+
+// @public
+export const DirectorUseSchema: Type.TObject<{
+    use: Type.TString;
+    as: Type.TOptional<Type.TString>;
+    options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+    model: Type.TOptional<Type.TObject<{
+        id: Type.TString;
+        thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+        maxOutputTokens: Type.TOptional<Type.TInteger>;
+    }>>;
+    limits: Type.TOptional<Type.TObject<{
+        maxCalls: Type.TOptional<Type.TInteger>;
+        maxCostUsd: Type.TOptional<Type.TNumber>;
+    }>>;
+}>;
 
 // @public
 export interface DriverResult {
@@ -157,7 +179,20 @@ export const GameDefinitionSchema: Type.TObject<{
         options: Type.TOptional<Type.TUnknown>;
         as: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
     }>>;
-    directors: Type.TOptional<Type.TArray<Type.TUnknown>>;
+    directors: Type.TOptional<Type.TArray<Type.TObject<{
+        use: Type.TString;
+        as: Type.TOptional<Type.TString>;
+        options: Type.TOptional<Type.TRecord<"^.*$", Type.TUnknown>>;
+        model: Type.TOptional<Type.TObject<{
+            id: Type.TString;
+            thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
+            maxOutputTokens: Type.TOptional<Type.TInteger>;
+        }>>;
+        limits: Type.TOptional<Type.TObject<{
+            maxCalls: Type.TOptional<Type.TInteger>;
+            maxCostUsd: Type.TOptional<Type.TNumber>;
+        }>>;
+    }>>>;
     grants: Type.TOptional<Type.TRecord<"^.*$", Type.TUnion<[Type.TArray<Type.TString>, Type.TObject<{
         drop: Type.TOptional<Type.TArray<Type.TString>>;
         add: Type.TOptional<Type.TArray<Type.TString>>;
@@ -457,6 +492,17 @@ export interface MetricDefinition {
 }
 
 // @public
+export type ModelAnswer = {
+    readonly ok: true;
+    readonly value: unknown;
+    readonly costUsd: number;
+} | {
+    readonly ok: false;
+    readonly reason: "limit" | "invalid" | "error";
+    readonly detail: string;
+};
+
+// @public
 export type ModelChoice = Static<typeof ModelChoiceSchema>;
 
 // @public
@@ -465,6 +511,13 @@ export const ModelChoiceSchema: Type.TObject<{
     thinking: Type.TOptional<Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"minimal">, Type.TLiteral<"low">, Type.TLiteral<"medium">, Type.TLiteral<"high">]>>;
     maxOutputTokens: Type.TOptional<Type.TInteger>;
 }>;
+
+// @public
+export interface ModelQuestion {
+    readonly input: string;
+    readonly output: unknown;
+    readonly system: string;
+}
 
 // @public
 export function nameOf(id: ActorId): string;
@@ -695,6 +748,7 @@ export const RunManifestSchema: Type.TObject<{
     resumedFrom: Type.TOptional<Type.TObject<{
         snapshotHash: Type.TString;
     }>>;
+    human: Type.TOptional<Type.TLiteral<true>>;
     experiment: Type.TOptional<Type.TObject<{
         id: Type.TString;
         specHash: Type.TString;
@@ -763,6 +817,29 @@ export type ServiceMethods = Readonly<Record<string, ServiceMethod>>;
 export interface SliceData {
     readonly data: unknown;
     readonly version: number;
+}
+
+// @public
+export const SNAPSHOT_FILE_FORMAT = 1;
+
+// @public
+export interface SnapshotCheckpoint {
+    readonly genesis: string;
+    readonly hash: string;
+    readonly lines: number;
+    readonly publicKey: string;
+    readonly signature: string;
+    readonly state?: string;
+}
+
+// @public
+export interface SnapshotFile {
+    readonly checkpoint: SnapshotCheckpoint;
+    readonly format: 1;
+    readonly gameHash: string;
+    readonly runId: string;
+    readonly snapshot: KernelSnapshot;
+    readonly tick: number;
 }
 
 // @public

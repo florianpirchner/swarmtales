@@ -55,13 +55,14 @@ function namedIssues(game: object): readonly SwtIssue[] {
  * @public
  */
 export function checkSchema(game: unknown): { readonly data: GameData | undefined; readonly issues: readonly SwtIssue[] } {
-	if (Value.Check(GameDefinitionSchema, game)) return { data: game, issues: [] };
 	const named = typeof game === "object" && game !== null ? namedIssues(game) : [];
+	// A Director that fits the format is refused all the same (SWT-G003) until the sdk can run one.
+	if (named.length === 0 && Value.Check(GameDefinitionSchema, game)) return { data: game, issues: [] };
 	if (named[0]?.code === "SWT-G002") return { data: undefined, issues: named };
 	const covered = new Set<string>(named.map((issue) => (issue.code === "SWT-G010" ? "/residents" : "/directors")));
 	const rest = Value.Errors(GameDefinitionSchema, game).flatMap((error) => {
 		// A union reports each of its forms; only its own line says something true. An unknown field is reported twice.
-		if (error.schemaPath.includes("/anyOf/") || error.keyword === "additionalProperties" || covered.has(error.instancePath)) return [];
+		if (error.schemaPath.includes("/anyOf/") || error.keyword === "additionalProperties" || [...covered].some((path) => `${error.instancePath}/`.startsWith(`${path}/`))) return [];
 		const message = error.keyword === "anyOf" ? "matches none of the forms the format allows" : error.keyword === "boolean" ? "is not a field of the format" : error.message;
 		return [gameSchemaMismatch({ path: dataPath(error.instancePath), message })];
 	});

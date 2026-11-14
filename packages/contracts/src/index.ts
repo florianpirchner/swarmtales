@@ -23,11 +23,11 @@
  */
 export const GAME_FORMAT_VERSION = 1;
 
-export { type MetricDefinition, type RunManifest, RunManifestSchema } from "./run/index.ts";
+export { type AskModel, type MetricDefinition, type ModelAnswer, type ModelQuestion, type RunManifest, RunManifestSchema, SNAPSHOT_FILE_FORMAT, type SnapshotCheckpoint, type SnapshotFile } from "./run/index.ts";
 
 export * from "./values.ts";
 export * from "./kernel/index.ts";
 
-export { GameDefinitionSchema, ModelChoiceSchema, ResidentIdSchema, type GameData, type ModelChoice, type PromptLookup } from "./game/index.ts";
+export { DirectorUseSchema, GameDefinitionSchema, ModelChoiceSchema, ResidentIdSchema, type DirectorUse, type GameData, type ModelChoice, type PromptLookup } from "./game/index.ts";
 export { closest, formatIssue, SWT_CODE, SwtError, SwtIssueSchema, type SwtIssue } from "./error.ts";
 export { redactSecrets, redactValue, redactWith, type Redact } from "./redact.ts";

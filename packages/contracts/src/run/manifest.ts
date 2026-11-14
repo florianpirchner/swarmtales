@@ -166,6 +166,7 @@ export const RunManifestSchema = Type.Object(
 		resumedFrom: Type.Optional(
 			Type.Object({ snapshotHash: hash("The sha256 of the snapshot the run started from") }, { additionalProperties: false, description: "Set when the run resumes from a snapshot" }),
 		),
+		human: Type.Optional(Type.Literal(true, { description: "Set when the game has the actor `human`: a person may intervene in the run. Absent otherwise, never `false`" })),
 		experiment: Type.Optional(
 			Type.Object(
 				{
