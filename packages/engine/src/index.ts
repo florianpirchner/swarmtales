@@ -5,3 +5,5 @@
  * @packageDocumentation
  */
 export { arrange, InputEntrySchema, turns, TurnsOptions, type InputEntry } from "./turns/index.ts";
+
+export { buildManifest, type ManifestRun } from "./run/index.ts";

@@ -6,12 +6,17 @@
 
 import { InputNote } from '@swarmtales/contracts';
 import { OrderedNote } from '@swarmtales/contracts';
+import { ResolvedGame } from '@swarmtales/sdk';
+import { RunManifest } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
 export function arrange(notes: readonly OrderedNote[], entries: readonly InputEntry[]): readonly InputNote[];
+
+// @public
+export function buildManifest(resolved: ResolvedGame, run: ManifestRun): RunManifest;
 
 // @public
 export type InputEntry = Static<typeof InputEntrySchema>;
@@ -23,6 +28,18 @@ export const InputEntrySchema: Type.TUnion<[Type.TObject<{
 }>, Type.TObject<{
     source: Type.TString;
 }>]>;
+
+// @public
+export interface ManifestRun {
+    readonly commit?: string;
+    readonly dirty?: boolean;
+    readonly drivers: Readonly<Record<string, string>>;
+    readonly id: string;
+    readonly kernelRevision: number;
+    readonly kernelVersion: string;
+    readonly node: string;
+    readonly startedAt: string;
+}
 
 // @public
 export const turns: SchedulerDefinition<TurnsOptions>;

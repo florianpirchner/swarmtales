@@ -1,3 +1,3 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The files of `run/`; the issues that own the folder fill this barrel. */
-export {};
+/** The files of `run/`: the manifest builder. */
+export { buildManifest, type ManifestRun } from "./manifest.ts";
