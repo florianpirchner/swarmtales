@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The views draw a run of the new platform and an old run: rendered to text, without a browser. */
-import { indexRun, loadRun, memorySource, verifyRun, type RunModel } from "@swarmtales/viewer-core";
+import { indexRun, loadRun, memorySource, projectRun, verifyRun, type RunModel } from "@swarmtales/viewer-core";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -26,7 +26,8 @@ const jsonl = (lines: readonly unknown[]): string => `${lines.map((line) => JSON
 const nothing = (): void => undefined;
 
 const overview = (model: RunModel): string => renderToStaticMarkup(createElement(Overview, { model, verification: { status: "done", verification: verifyRun(model) }, onJump: nothing }));
-const replay = (model: RunModel, seq: number): string => renderToStaticMarkup(createElement(Replay, { run: { model, index: indexRun(model.events) }, seq, onSeq: nothing, views: [], vocabulary: {} }));
+const loaded = (model: RunModel) => ({ model, index: indexRun(model.events), projection: projectRun(model.events) });
+const replay = (model: RunModel, seq: number): string => renderToStaticMarkup(createElement(Replay, { run: loaded(model), seq, onSeq: nothing, views: [], vocabulary: {} }));
 
 describe("the views", () => {
 	it("draw a run of the new platform: header from the manifest, the event list, the lane of the actor", async () => {
@@ -40,7 +41,7 @@ describe("the views", () => {
 		expect(shown).toContain("#2 of 2 · minute 1 of 1");
 		expect(shown).toContain('<span class="type">move_played</span><span class="who">A01</span>');
 		expect(shown).toContain("&quot;cell&quot;: 4");
-		expect(renderToStaticMarkup(createElement(Charts, { run: { model, index: indexRun(model.events) } }))).toContain("Events by type");
+		expect(renderToStaticMarkup(createElement(Charts, { run: loaded(model) }))).toContain("Events by type");
 	});
 
 	it("draw an old run as before: the header of the log, the result, the words of an actor", async () => {

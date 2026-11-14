@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-import { indexRun, loadRun, verifyRun, type RunIndex, type RunModel, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
+import { indexRun, loadRun, projectRun, verifyRun, type RunIndex, type RunModel, type RunProjection, type RunSource, type RunVerification, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useState } from "react";
 import { verifyTexts, type VerifyReply, type VerifyRequest } from "./verify-worker.ts";
 
-/** A loaded run and its index. */
+/** A loaded run, its index and its projection (activations, decisions, the human's calls, pauses, resume markers, suspensions). */
 export interface LoadedRun {
 	readonly model: RunModel;
 	readonly index: RunIndex;
+	readonly projection: RunProjection;
 }
 
 /** Where the loading of a run stands. */
@@ -53,7 +54,7 @@ export function useRun(source: RunSource, dir: string | undefined, vocabulary: V
 				const model = await loadRun(source, dir, vocabulary.actors === undefined ? {} : { actors: vocabulary.actors });
 				await nextFrame();
 				const index = indexRun(model.events);
-				if (alive.current) setState({ status: "ready", dir, run: { model, index } });
+				if (alive.current) setState({ status: "ready", dir, run: { model, index, projection: projectRun(model.events) } });
 			} catch (error) {
 				if (alive.current) setState({ status: "error", dir, message: error instanceof Error ? error.message : String(error) });
 			}

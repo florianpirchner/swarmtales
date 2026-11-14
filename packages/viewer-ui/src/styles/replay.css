@@ -42,3 +42,22 @@ p.stv-hl-reason { margin: 0 0 8px; }
 .stv-text p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
 .stv-vrow.marked .seq { color: var(--warn); font-weight: 600; }
 .stv-replay .stv-card { scroll-margin-top: 130px; }
+/* Activations, Directors and decisions */
+.stv-vrow.activation { border-left: 3px solid var(--line); padding-left: 7px; }
+.stv-vrow.activation .type { color: var(--muted); }
+.stv-vrow.director { border-left-color: var(--s2); background: color-mix(in srgb, var(--s2) 9%, transparent); }
+.stv-vrow.director.current { background: var(--accent-soft); }
+.stv-vrow.director .type, .stv-vrow.director .who { color: var(--s2); }
+.stv-activation.director { border-left: 4px solid var(--s2); }
+.stv-activation h4 { margin: 10px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.stv-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; line-height: 1.5; }
+.stv-steps li { padding: 3px 8px; border-radius: 6px; background: var(--panel-2); overflow-wrap: anywhere; }
+.stv-steps li.current { outline: 1px solid var(--accent); }
+.stv-steps .stv-link { font-family: var(--mono); font-size: 12px; }
+.stv-steps code { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.stv-record { font-weight: 600; color: var(--s4); }
+.stv-answer.refused { color: var(--bad); }
+.stv-tag { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 0 6px; margin-left: 6px; border-radius: 4px; background: var(--grey-soft); color: var(--muted); }
+.stv-tag.warn { background: var(--warn-soft); color: var(--warn); }
+.stv-decision h3 .stv-badge { margin-left: 6px; vertical-align: middle; }
+.stv-decision .stv-kv { margin-bottom: 10px; font-size: 13px; }

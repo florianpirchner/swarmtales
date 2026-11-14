@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { RunEvent } from "@swarmtales/viewer-core";
-
 /**
  * The position in `events` (sorted by seq) of the last event at or before `seq`; 0 when `seq` is before the first.
  *
- * @param events - The events in seq order.
+ * @param events - The events, or the rows of a list, in seq order.
  * @param seq - The seq to find.
  * @returns The position in the list.
  */
-export function positionOf(events: readonly RunEvent[], seq: number): number {
+export function positionOf(events: readonly { readonly seq: number }[], seq: number): number {
 	let low = 0;
 	let high = events.length;
 	while (low < high) {

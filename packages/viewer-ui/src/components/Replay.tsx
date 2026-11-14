@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { actorLanes, highlightsOf, messageGraph, type Highlight, type RunEvent, type Vocabulary } from "@swarmtales/viewer-core";
+import { actorLanes, highlightsOf, messageGraph, type Highlight, type RunEvent, type RunProjection, type Vocabulary } from "@swarmtales/viewer-core";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { positionOf } from "../replay-math.ts";
+import { rowAt, timelineOf } from "../timeline.ts";
 import type { ViewDescriptor } from "../views.ts";
 import type { LoadedRun } from "../use-run.ts";
+import { ActivationCard } from "./ActivationCard.tsx";
+import { DecisionCard } from "./DecisionCard.tsx";
 import { EventList } from "./EventList.tsx";
 import { Lanes } from "./Lanes.tsx";
 import { MessageGraph } from "./MessageGraph.tsx";
@@ -131,16 +134,27 @@ function Detail({ current, highlight, onSeq, box }: { readonly current: RunEvent
 	);
 }
 
+// What the projection knows about the current line: the activation it belongs to, and the decisions proposed up to it.
+function ProjectionCards({ projection, seq, onSeq }: { readonly projection: RunProjection; readonly seq: number; readonly onSeq: (seq: number) => void }) {
+	const activation = projection.activations.find((entry) => entry.seq === (projection.attached.get(seq) ?? seq));
+	return (
+		<>
+			{activation !== undefined && <ActivationCard activation={activation} seq={seq} onSeq={onSeq} />}
+			{projection.decisions.filter((decision) => decision.seq <= seq).map((decision) => <DecisionCard key={decision.id} decision={decision} seq={seq} onSeq={onSeq} />)}
+		</>
+	);
+}
+
 /**
  * The replay of a run: the controls, the highlights, the actors' lanes and the event list on the left,
- * the current event, the views of its mechanics and the message graph on the right.
+ * the current event, its activation, the decisions, the views of its mechanics and the message graph on the right.
  *
  * @param props - The loaded run, the current seq and how to change it, the view descriptors and the caller's vocabulary.
  * @returns The replay view.
  */
 export function Replay(props: Props) {
 	const { run, seq, onSeq, views, vocabulary } = props;
-	const { index, model } = run;
+	const { index, model, projection } = run;
 	const events = index.events;
 	const position = positionOf(events, seq);
 	const current = events[position];
@@ -155,6 +169,7 @@ export function Replay(props: Props) {
 	const highlights = useMemo(() => highlightsOf(events, [model.report, model.analysisReport].filter((text): text is string => text !== undefined)), [events, model.report, model.analysisReport]);
 	const highlightAt = useMemo(() => new Map(highlights.map((highlight) => [highlight.seq, highlight])), [highlights]);
 	const graph = useMemo(() => messageGraph(events, current?.seq, vocabulary.messages), [events, current?.seq, vocabulary.messages]);
+	const rows = useMemo(() => timelineOf(events, projection), [events, projection]);
 	if (current === undefined) return <div className="stv-empty">This run has no events.</div>;
 	const toMinute = (minute: number) => {
 		const target = index.seqAtMinute(minute);
@@ -171,12 +186,13 @@ export function Replay(props: Props) {
 				</div>
 				<div className="stv-card">
 					<h3>Events</h3>
-					<EventList events={events} current={position} onPick={playback.goto} marked={highlightAt} />
+					<EventList rows={rows} current={rowAt(rows, projection, current.seq)} onPick={onSeq} marked={highlightAt} />
 					<p className="muted small" style={{ marginBottom: 0 }}>Arrow keys step, shift+arrow steps by ten, space plays. {model.issues.length > 0 ? `${String(model.issues.length)} lines could not be read.` : ""}</p>
 				</div>
 			</div>
 			<div>
 				<Detail current={current} highlight={highlightAt.get(current.seq)} onSeq={onSeq} box={detailRef} />
+					<ProjectionCards projection={projection} seq={current.seq} onSeq={onSeq} />
 				<ViewsPanel views={views} index={index} seq={current.seq} />
 				<div className="stv-card">
 					<h3>Who writes to whom (up to #{current.seq})</h3>
