@@ -4,6 +4,88 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const chess: MechanicDefinition<"chess", Type.TObject<{
+games: Type.TInteger;
+alternateColours: Type.TBoolean;
+maxPlies: Type.TInteger;
+adjudicateMargin: Type.TInteger;
+maxIdleTurns: Type.TInteger;
+maxForfeits: Type.TInteger;
+showLegalMoves: Type.TBoolean;
+showThreats: Type.TBoolean;
+score: Type.TBoolean;
+teams: Type.TOptional<Type.TRecord<"^.*$", Type.TArray<Type.TString>>>;
+coach: Type.TBoolean;
+coachMoves: Type.TInteger;
+wakeTeam: Type.TBoolean;
+freshContext: Type.TBoolean;
+compactBoard: Type.TBoolean;
+compactMoves: Type.TInteger;
+settleCap: Type.TBoolean;
+}>, {
+game_started: Type.TObject<{
+game: Type.TInteger;
+white: Type.TString;
+black: Type.TString;
+}>;
+move_played: Type.TObject<{
+game: Type.TInteger;
+ply: Type.TInteger;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+by: Type.TString;
+san: Type.TString;
+written: Type.TString;
+fen: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+move_refused: Type.TObject<{
+game: Type.TInteger;
+ply: Type.TInteger;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+by: Type.TString;
+written: Type.TString;
+count: Type.TInteger;
+}>;
+move_scored: Type.TObject<{
+game: Type.TInteger;
+ply: Type.TInteger;
+colour: Type.TUnion<[Type.TLiteral<"white">, Type.TLiteral<"black">]>;
+by: Type.TString;
+san: Type.TString;
+best: Type.TString;
+bestValue: Type.TNumber;
+playedValue: Type.TNumber;
+loss: Type.TNumber;
+class: Type.TUnion<[Type.TLiteral<"good">, Type.TLiteral<"inaccuracy">, Type.TLiteral<"mistake">, Type.TLiteral<"blunder">]>;
+}>;
+game_ended: Type.TObject<{
+pgn: Type.TString;
+game: Type.TInteger;
+white: Type.TString;
+black: Type.TString;
+result: Type.TUnion<[Type.TLiteral<"1-0">, Type.TLiteral<"0-1">, Type.TLiteral<"1/2-1/2">]>;
+reason: Type.TUnion<[Type.TLiteral<"checkmate">, Type.TLiteral<"stalemate">, Type.TLiteral<"threefold_repetition">, Type.TLiteral<"fifty_moves">, Type.TLiteral<"insufficient_material">, Type.TLiteral<"move_cap">, Type.TLiteral<"forfeits">, Type.TLiteral<"resignation">]>;
+plies: Type.TInteger;
+moves: Type.TArray<Type.TString>;
+illegal: Type.TRecord<"^.*$", Type.TInteger>;
+forfeits: Type.TRecord<"^.*$", Type.TInteger>;
+resigned: Type.TOptional<Type.TString>;
+}>;
+match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+coach_review: Type.TObject<{
+game: Type.TInteger;
+side: Type.TString;
+losses: Type.TInteger;
+text: Type.TString;
+}>;
+}, "viewBoard" | "playMove" | "resign">;
+
 // (No @packageDocumentation comment for this package)
 
 ```
