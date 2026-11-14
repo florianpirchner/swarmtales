@@ -4,6 +4,57 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { NoOptions } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const exile: MechanicDefinition<"exile", NoOptions, {
+readonly exiled: Type.TObject<{
+agent: Type.TString;
+by: Type.TString;
+}>;
+}, never>;
+
+// @public
+export const exileHead: MechanicHead<"exile", NoOptions, Type.TObject<{
+exiled: Type.TArray<Type.TString>;
+}>, never, {
+readonly exiled: Type.TObject<{
+agent: Type.TString;
+by: Type.TString;
+}>;
+}, Readonly<Record<symbol, never>>, [], readonly [ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+by: Type.TOptional<Type.TString>;
+}>;
+readonly output: Type.TObject<{
+ok: Type.TBoolean;
+code: Type.TOptional<Type.TUnion<[Type.TLiteral<"UNKNOWN_RESIDENT">, Type.TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident, in the order they were banished.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TString>;
+};
+}>], [], Readonly<Record<symbol, never>>>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
