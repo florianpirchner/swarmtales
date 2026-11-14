@@ -61,7 +61,7 @@ by: TString;
 seq: TInteger;
 }>>;
 }>;
-}, never> & {
+}, "amendDecision"> & {
     resolve(options: Parameters<typeof plain.resolve>[0], texts: PromptLookup, version: string): ResolvedPlugin;
 };
 

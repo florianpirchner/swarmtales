@@ -36,9 +36,9 @@ const owner = defineMechanic(head, {
 	],
 });
 
-/** A game of three residents and five ticks in which `A02` (or the given actors) holds the decisions. */
+/** A game of three residents and five ticks in which `A02` (or the given actors) holds the decisions; every resident is granted `amendDecision`. */
 export const game = (holders: string[] = ["resident:A02"], ticks = 5) =>
-	defineGame({ id: "decide", seed: 3, residents: 3, mechanics: [decisions({ holders }), owner()], scheduler: { id: "turns", options: { order: "roster" } }, end: { ticks } });
+	defineGame({ id: "decide", seed: 3, residents: 3, mechanics: [decisions({ holders }), owner()], grants: { resident: { add: ["amendDecision"] } }, scheduler: { id: "turns", options: { order: "roster" } }, end: { ticks } });
 
 /** Plays the game; `A01` calls `decide` with `params` at its first activation (tick 0). */
 export const decide = (params: { window: number; bench?: string }, holders?: string[], options: PlayOptions = {}, ticks?: number): Promise<Played> =>
@@ -46,7 +46,7 @@ export const decide = (params: { window: number; bench?: string }, holders?: str
 
 /** The events of `decisions` and of the owner, and the kernel's `service_called`, as `[tick, type, payload]`. */
 export const told = (events: readonly Envelope[]): (readonly [number, string, unknown])[] =>
-	events.filter((event) => ["decision_proposed", "decision_settled", "committed", "listed", "service_called"].includes(event.type)).map((event) => [event.tick, event.type, event.payload] as const);
+	events.filter((event) => ["decision_proposed", "decision_amended", "decision_settled", "committed", "listed", "service_called"].includes(event.type)).map((event) => [event.tick, event.type, event.payload] as const);
 
 /** The slice of `decisions` in the snapshot of a played run. */
 export const slice = (run: Played): unknown => run.kernel.snapshot().plugins.decisions?.data;

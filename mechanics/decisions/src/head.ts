@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The head of the `decisions` mechanic: its option, its slice, its events and the service it provides. */
+/** The head of the `decisions` mechanic: its option, its slice, its events, its prompts, its tool and the service it provides. */
 import { Type, type Static } from "typebox";
 import { defineHead } from "@swarmtales/sdk";
-import { DecisionsEvents, DecisionsService } from "./contract.ts";
+import { AmendDecision, DecisionsEvents, DecisionsService } from "./contract.ts";
 
 const Amendment = Type.Object(
 	{
@@ -41,4 +41,14 @@ export const head = defineHead({
 	state: Type.Object({ next: Type.Integer({ description: "The number of the next decision id." }), open: Type.Record(Type.String(), Open, { description: "The open decisions by id." }) }, { description: "The open decisions." }),
 	start: () => ({ next: 1, open: {} }),
 	events: DecisionsEvents.events,
+	prompts: {
+		"decisions/tools/amendDecision": [],
+		"decisions/replies/decision-amended": ["decision", "proposal"],
+		"decisions/replies/decision-outlasts-run": ["decision", "deadline", "last"],
+		"decisions/replies/decision-closed": [],
+		"decisions/replies/decision-not-held": [],
+		"decisions/replies/decision-human": [],
+	},
+	// The person holds the tool by default; a game grants it to every other holder (a Director's grant, `resident`).
+	tools: { [AmendDecision.name]: { description: "decisions/tools/amendDecision", params: AmendDecision.parameters, for: ["human"] } },
 });

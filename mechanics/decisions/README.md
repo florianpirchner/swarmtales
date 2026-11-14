@@ -34,15 +34,26 @@ one. Without a holder that can act, or with a window of 0, there is no window an
 3. Otherwise the decision gets the id `D1`, `D2`, ..., `decision_proposed` is written with the deadline
    (`tick + window`) and the holders that can act, and a job is set at the deadline. The answer is
    `committed: false` with the id.
-4. Until the deadline the holders may amend the decision; the last amendment stands. (The tool `amendDecision`, its
-   refusals and `decision_amended` arrive with the second issue of this mechanic; the `/contract` entry holds them
-   already.)
+4. Until the deadline a holder may amend the decision with the tool `amendDecision`: it gives the id, the whole
+   proposal that should stand instead, and its reason. `decision_amended` is written and the amendment is kept in
+   the slice with the seq of the call's `tool_called`. The last amendment stands, with one exception: once the
+   actor `human` has amended a decision, only the human may amend it again.
 5. At the start of the deadline's tick, before anybody acts, the job writes `decision_settled` with the proposal
    that stands; `changed` is true when an amendment stands that differs from the original. The owner listens to
    `decision_settled`, checks `kind` and `owner`, and commits there: its events are caused by the settlement.
 
+`amendDecision` refuses, in this order: `DECISION_CLOSED` (the id names no open decision: it settled already or
+never opened), `DECISION_NOT_HELD` (the caller is not in the option `holders`), `DECISION_HUMAN` (the human has
+amended it and the caller is not the human), `PROPOSAL_INVALID` (the proposal does not fit the `schema` of the
+decision; the detail is the first mismatch, `/exiled must be string`). A refused call writes no event of this
+mechanic. The old platform's event `human_amend` is gone: `decision_amended` with `by: "human"` says the same.
+
+The tool goes to the grant `human` when the game lists no grants. Every other holder needs both: its actor id in
+`holders` and the tool in its grant (`grants: { resident: { add: ["amendDecision"] } }`, or the grant of a
+Director). A caller with the grant that is no holder reads `DECISION_NOT_HELD`.
+
 A decision whose deadline lies after the last tick of the run stays open: it is in the last snapshot and is never
-settled. `decisions` never calls its owner back and names no other mechanic, so it cannot be part of a service
+settled. An amendment of such a decision is kept, and the caller is told that nothing will settle. `decisions` never calls its owner back and names no other mechanic, so it cannot be part of a service
 cycle. A proposal that does not fit its own `schema` is a mistake of the owner and stops the run.
 
 The option `holders` lists actor ids, not resident ids, because a holder need not be a resident. An id that is no
@@ -53,7 +64,19 @@ actor of the run is refused with `SWT-G020` while the kernel is created, before 
 <!-- generated:tools -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic declares no tools.
+### `amendDecision`
+
+- Granted when the game lists no grants: `human`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `decision` | string | yes | The id of the decision: `D1`, `D2`, in the order they were opened. |
+| `proposal` | any | yes | The proposal: plain JSON data, shaped as the owner says. |
+| `reason` | string | yes | Why the holder amended the decision, in its own words. |
+
+What the caller reads ([decisions/tools/amendDecision](prompts/decisions/tools/amendDecision.md)):
+
+> Change an open decision before its deadline: give the decision's id, the whole proposal that should stand instead (in the decision's schema), and your reason. The last amendment before the deadline stands; a human's amendment stands above every other.
 
 <!-- /generated:tools -->
 
@@ -147,7 +170,14 @@ This mechanic exports no metrics.
 <!-- generated:prompts -->
 <!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
 
-This mechanic has no prompt files.
+| Prompt | Variables |
+| --- | --- |
+| [decisions/tools/amendDecision](prompts/decisions/tools/amendDecision.md) | - |
+| [decisions/replies/decision-amended](prompts/decisions/replies/decision-amended.md) | `decision`, `proposal` |
+| [decisions/replies/decision-outlasts-run](prompts/decisions/replies/decision-outlasts-run.md) | `decision`, `deadline`, `last` |
+| [decisions/replies/decision-closed](prompts/decisions/replies/decision-closed.md) | - |
+| [decisions/replies/decision-not-held](prompts/decisions/replies/decision-not-held.md) | - |
+| [decisions/replies/decision-human](prompts/decisions/replies/decision-human.md) | - |
 
 <!-- /generated:prompts -->
 
@@ -172,3 +202,11 @@ missing or suspended holder commit at once and write nothing; a proposal is logg
 the deadline settles with the original proposal and causes the owner's commit; the open decision survives a
 snapshot and the resumed run settles at the same tick; a deadline after the last tick leaves the decision open.
 The first case is the refusal of a holder that is no actor of the run.
+
+`test/amend.test.ts` holds the amendment cases with residents as holders: an amendment stands and the owner commits
+it; of two amendments the last stands, and `changed` is false when it repeats the original; the refusals for a
+decision that is not open, a caller that is no holder, a proposal off the schema, and an amendment after the
+deadline; the reply for a decision that outlasts the run. `test/human.test.ts` plays the human: its amendment
+stands against a later one of another holder, it may amend again, and no `human_amend` is written. The sdk builds
+no actor `human` yet, so that file adds the actor to the kernel definition by hand (it wraps `resolveGame` for the
+test kit).

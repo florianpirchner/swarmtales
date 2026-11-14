@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * Mechanic: the decision window. A mechanic proposes a decision through the service `decisions`; the holders may
- * amend it until its deadline; at the deadline a job writes `decision_settled` with the proposal that stands, and
+ * amend it with the tool `amendDecision` until its deadline; at the deadline a job writes `decision_settled` with the proposal that stands, and
  * the owner commits in a listener to that event. With a window of 0, or when no holder can act, nothing is written
  * and the owner commits at once. A decision whose deadline lies after the last tick of the run stays open.
  *
  * @packageDocumentation
  */
 import { Clone, Check, Errors } from "typebox/value";
-import type { ActorsView, PromptLookup, ResolvedPlugin } from "@swarmtales/contracts";
+import type { ActorsView, PromptLookup, Refusal, ResolvedPlugin, ToolOutcome } from "@swarmtales/contracts";
 import { SwtError } from "@swarmtales/contracts";
-import { defineMechanic, optionMismatch, type CtxOf } from "@swarmtales/sdk";
+import { defineMechanic, optionMismatch, refuse, reply, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { head, type OpenDecision } from "./head.ts";
 
 export { AmendDecision, DECISION_REFUSALS, DecisionsEvents, DecisionsService } from "./contract.ts";
@@ -26,6 +26,37 @@ function misfit(schema: unknown, value: unknown): string | undefined {
 	if (typeof schema !== "object" || schema === null || Check(schema, value)) return undefined;
 	const [error] = Errors(schema, value);
 	return error === undefined ? "the proposal does not match the schema" : `${error.instancePath === "" ? "/" : error.instancePath} ${error.message}`;
+}
+
+/** An amendment as the tool takes it. */
+interface Amendment {
+	readonly decision: string;
+	readonly proposal: unknown;
+	readonly reason: string;
+}
+
+// The open decision of an id; undefined when it settled already or never opened.
+const openOf = (ctx: CtxOf<typeof head>, id: string): OpenDecision | undefined => (Object.hasOwn(ctx.state.open, id) ? ctx.state.open[id] : undefined);
+
+// Stage `rule` of `amendDecision`: the decision is open, the caller holds it, the human has not taken it, the proposal fits.
+function barred(ctx: ToolCtxOf<typeof head>, { decision, proposal }: Amendment): Refusal | undefined {
+	const open = openOf(ctx, decision);
+	if (open === undefined) return refuse("DECISION_CLOSED", ctx.prompt("decisions/replies/decision-closed", {}));
+	if (!ctx.options.holders.includes(ctx.actor)) return refuse("DECISION_NOT_HELD", ctx.prompt("decisions/replies/decision-not-held", {}));
+	if (ctx.actor !== "human" && open.amendments.some((amendment) => amendment.by === "human")) return refuse("DECISION_HUMAN", ctx.prompt("decisions/replies/decision-human", {}));
+	const invalid = misfit(open.schema, proposal);
+	return invalid === undefined ? undefined : refuse("PROPOSAL_INVALID", invalid);
+}
+
+// Puts the caller's proposal in place of the standing one; `seq` is the seq of the call's `tool_called`.
+function amend(ctx: ToolCtxOf<typeof head>, { decision, proposal, reason }: Amendment, seq: number): ToolOutcome {
+	const open = openOf(ctx, decision);
+	if (open === undefined) return refuse("DECISION_CLOSED", ctx.prompt("decisions/replies/decision-closed", {}));
+	open.amendments.push({ by: ctx.actor, seq, proposal: Clone(proposal), reason });
+	ctx.emit("decision_amended", { decision, by: ctx.actor, reason, proposal: Clone(proposal) });
+	// The deadline never comes: the amendment is kept in the slice, and the caller is told that nothing settles.
+	if (open.deadline >= ctx.ticks) return reply(ctx.prompt("decisions/replies/decision-outlasts-run", { decision, deadline: open.deadline, last: ctx.ticks - 1 }));
+	return reply(ctx.prompt("decisions/replies/decision-amended", { decision, proposal: JSON.stringify(proposal) }));
 }
 
 // The job of a deadline: closes the decision with the proposal that stands, which is the last amendment's or the original.
@@ -46,8 +77,10 @@ function settle(ctx: CtxOf<typeof head>, id: string): void {
 }
 
 // The mechanic over the actors of one run; without them (the definition as data) no holder can act.
-const build = (actors?: ActorsView) =>
-	defineMechanic(head, {
+const build = (actors?: ActorsView) => {
+	// The seq of the `tool_called` of the `amendDecision` call in flight: a tool context does not carry it, the stage `rule` does.
+	let called = 0;
+	return defineMechanic(head, {
 		services: {
 			decisions: {
 				propose: (input, ctx, caller) => {
@@ -68,12 +101,20 @@ const build = (actors?: ActorsView) =>
 				open: (_input, ctx) => Object.entries(ctx.state.open).map(([id, open]) => ({ decision: id, kind: open.kind, owner: open.owner, deadline: open.deadline })),
 			},
 		},
+		tools: { amendDecision: { check: (params, ctx) => barred(ctx, params), run: (params, ctx) => amend(ctx, params, called) } },
+		pipeline: {
+			rule: (call) => {
+				if (call.owner === head.id) called = call.seq;
+				return undefined;
+			},
+		},
 		jobs: {
 			settle: (ctx, data) => {
 				settle(ctx, typeof data === "string" ? data : "");
 			},
 		},
 	});
+};
 
 const plain = build();
 
