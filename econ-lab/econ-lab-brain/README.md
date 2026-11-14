@@ -105,3 +105,21 @@ none: no baseline was compared
 ## Deviations
 
 none
+
+## Loopholes (written by the reviewer, issue M2-27)
+
+The milestone review of M2 read `econ-lab-003`, `econ-lab-005` (`nobrain`), `econ-lab-007` and `econ-lab-002`
+(`brain`) from `events.jsonl`. One loophole, carried from the old platform, open. Row LH19 in
+`docs/LESSONS-LEARNED.md` on `develop`.
+
+- **LH19: "Results so far" is a second memory, also in the arm without a brain.** Games 2 and 3 start with the
+  points of all four seats per earlier game, in the `nobrain` arm directly above "You keep no notes between
+  games" (`econ-lab-003`, #404 and #734). The `nobrain` arm is "results without a written lesson", not "no
+  memory", and the estimate of this series compares a written lesson with that. Proposed: an arm without the
+  line, or corrected README and prompt texts. Built: nothing. Open.
+
+Reading the size: -0.771 keeps the sign of the old platform (-0.40, SE 0.13) and is larger; the two are about 2.4
+standard errors apart. 9 of 12 `nobrain` tables lock at 1.00 here, 2 of 8 in the old baseline.
+
+Problems: P449 (`n` 24 above for an unpaired estimate; the pass rule counts 12 per arm) and P456 (a seat sees the
+names of all four decision tools from its first turn, `econ-lab-003` #7). Open.

@@ -90,3 +90,23 @@ none: no baseline was compared
 ## Deviations
 
 none
+
+## Loopholes (written by the reviewer, issue M2-27)
+
+Not "none": the milestone review of M2 read `quarry-001`, `quarry-020` (control), `quarry-003` and `quarry-004`
+(open) from `events.jsonl` and found two, both carried from the old platform, both open. Rows LH18 and LH19 in
+`docs/LESSONS-LEARNED.md` on `develop`.
+
+- **LH18: a seat of the open arm sees the picks other seats made in the same step.** The `Quarries:` line is the
+  live state and seats are asked one after another, while the rules call the picks sealed. `quarry-003`: #166
+  (A04 is shown the jade A03 kept at #159), #243, #257, #260 (A01: "A03 is already stacking jade (3), and no one
+  holds cobalt, so cobalt looks like the open lane"), #514 (A04 notices the uneven lines). 1292 of the 1728 pick
+  requests of the 12 open runs show a same-step pick of another seat. The estimate of this series is therefore
+  "visible quarries plus a move order inside each step". The old platform did the same, so the pass rule (the
+  sign) is not touched. Proposed: an open arm with the quarries frozen per step. Built: nothing. Open.
+- **LH19: "Results so far" is a second memory.** Games 2 and 3 start with the points and the final quarries of
+  all four seats of every earlier game (`quarry-001`, #747), in both arms. Proposed: corrected texts or an arm
+  without the line. Built: nothing. Open.
+
+Problems: P446 (a brain rewrite lost to the word limit, `quarry-003` #753, `quarry-004` #1358) and P456 (the game
+README differs from the play). Open.

@@ -41,8 +41,28 @@ Problems: rows P450 to P455 in `docs/LESSONS-LEARNED.md` on `develop`.
 
 ## Loopholes
 
-None seen (M2 gate). The reviewer read the facts table of every run, and by script the brains, the reasons of the picks and
-choices, the refusals and the free texts of the runs; no log was read line by line.
+Two in the runs of the M2 gate, both carried from the old platform, both open (rows LH18 and LH19 in
+`docs/LESSONS-LEARNED.md` on `develop`). The gate issue wrote "none seen" here: it had read the facts table of
+every run and, by script, the brains, the reasons of the picks and choices, the refusals and the free texts, but no
+log line by line. The milestone review of M2 then read two runs per arm from `events.jsonl`
+(`quarry-open-quarries/quarry-001`, `-020`, `-003`, `-004`; `econ-lab-brain/econ-lab-003`, `-005`, `-007`, `-002`)
+and found them.
+
+- **LH18: in the open arm of quarry a seat sees the picks other seats made in the same step.** The `Quarries:`
+  line of a pick request is the live state, and seats are asked one after another; the rules in the same request
+  call the picks sealed. `quarry/quarry-open-quarries/quarry-003`: #166 (A04 is shown the jade A03 kept at #159),
+  #243, #257 and #260 (A01 leaves jade: "A03 is already stacking jade (3)"), #514. 1292 of 1728 pick requests of
+  the 12 open runs show a same-step pick of another seat. The legacy run
+  `legacy/quarry/quarry-04a-008-noise-floor-r2/quarry-open-31-rep1` shows the same, so the sign gate is not
+  touched; the finding is "visible quarries plus a move order inside each step". Proposed: an open arm with the
+  quarries frozen per step, or corrected texts (the owner's go is needed). Built: nothing. Open.
+- **LH19: "Results so far" is a second memory, also in the arm without a brain.** Every later game starts with
+  the points of all four seats per earlier game, in quarry also their final quarries
+  (`quarry/quarry-open-quarries/quarry-001` #747; `econ-lab/econ-lab-brain/econ-lab-003`, `nobrain`, #404 and
+  #734). The `nobrain` arm is "results without a written lesson", not "no memory". Proposed: an arm without the
+  line, or corrected README and prompt texts (the owner's go is needed). Built: nothing. Open.
+
+The M3 smoke saw none (its section above).
 
 ## Problems of the M2 gate
 
@@ -56,3 +76,8 @@ Recorded as rows P444 to P449 in `docs/LESSONS-LEARNED.md` on `develop`, with wh
   (`../runs-data/...`). Open.
 - P448: the result line of a live run counts input tokens without the cache (686 of about 840 000 in a quarry run). Open.
 - P449: the series README gives `n` 24 for an unpaired estimate where the pass rule counts 12 per arm. Open.
+- P456 (found by the milestone review): the game READMEs of quarry and econ-lab differ from the play in four
+  places: the place bonus of 10 and 5 points (`quarry-001` of the open-quarries series, #154, #627), no retro after
+  the last game (`quarry-020`, #1826 to #1831), the tool list shows the later games of econ-lab from the first turn
+  (`econ-lab-003`, #7), the `pick` tool describes a burn in a game without burns (`quarry-001`, #11). All carried
+  from the old platform. Open.

@@ -14,7 +14,9 @@ No leak, no `error` end, no cost cap reached, no failed request.
 
 ## Loopholes
 
-None seen.
+None seen in these three runs when they were written up. The milestone review of M2 later found LH19 in the
+series ("Results so far" is a second memory, also without a brain; carried from the old platform, open); the two
+pilots here start their later games with the same line. See the root `README.md`.
 
 ## Problems
 
