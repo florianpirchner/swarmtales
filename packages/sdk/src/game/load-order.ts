@@ -86,8 +86,10 @@ function place<T extends LoadOrderEntry>(entries: readonly T[], needs: Edges, wa
  *
  * @param entries - The mechanics in the game's order. Ids are unique (step 4 reports `SWT-G021`); of a doubled
  * id only the first entry is placed. The position in this list is the index in the data path of an issue. The
- * `roster` plugin that resolution adds is not passed in: it is appended to the result, so it loads last (an entry
- * without edges would load before the mechanics of a cycle of uses).
+ * `roster` plugin that resolution adds is not passed in (an entry without edges would load before the mechanics
+ * of a cycle of uses); its service is named in `given`, and resolution places the plugin afterwards.
+ * @param given - The services a plugin outside the list provides (resolution passes `roster`). A listed provider
+ * of such a service stands; without one, a mechanic that requires it gets no issue and no edge.
  * @returns The load order and the issues: a service with two providers (`SWT-G031`, the first stands), a
  * required service without a provider (`SWT-G030`, the edge is dropped), a cycle of `requires` (`SWT-G032`).
  * @example
@@ -98,7 +100,7 @@ function place<T extends LoadOrderEntry>(entries: readonly T[], needs: Edges, wa
  *
  * @public
  */
-export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[]): LoadOrder<T> {
+export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[], given: readonly string[] = []): LoadOrder<T> {
 	const unique = entries.filter((entry, index) => entries.findIndex((other) => other.id === entry.id) === index);
 	const { providers, issues: doubled } = providersOf(unique);
 	const missing: SwtIssue[] = [];
@@ -110,7 +112,7 @@ export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[]): Load
 			entry.id,
 			(entry.requires ?? []).flatMap((service) => {
 				const provider = providers.get(service.name);
-				if (provider === undefined) missing.push(noProvider({ mechanic: entry.id, service: service.name, path }));
+				if (provider === undefined && !given.includes(service.name)) missing.push(noProvider({ mechanic: entry.id, service: service.name, path }));
 				return provider ?? [];
 			}),
 		);

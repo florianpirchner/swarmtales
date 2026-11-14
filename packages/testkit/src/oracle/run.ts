@@ -3,10 +3,10 @@
  * The oracle runner: plays a game from the inputs of an oracle file under the game's own scheduler and compares
  * what came out with the file, at the three levels of `oracles/README.md` (specification of M1, section 7).
  */
-import { nameOf, type ActorDriver, type GameData, type RunEnd } from "@swarmtales/contracts";
+import { nameOf, SwtError, type ActorDriver, type GameData, type RunEnd } from "@swarmtales/contracts";
 import { turns, TurnsOptions } from "@swarmtales/engine";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { resolveGame, RESIDENT_KIND, type Game, type ResolvedGame } from "@swarmtales/sdk";
+import { definitionsOf, resolveGame, RESIDENT_KIND, type Game, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { Value } from "typebox/value";
 import { scriptedDriver, type Plan, type PlannedCall } from "../drivers.ts";
 import { play, type PlayOptions } from "../play.ts";
@@ -68,8 +68,22 @@ function unsupported(oracle: Oracle): string | undefined {
 	return oracle.timeline.flatMap((entry, index) => unsupportedEntry(entry, index) ?? []).at(0);
 }
 
-// The fields of `setup` as the oracle states them; the mechanics as a sorted list of ids and one field of options per id.
-function statedSetup({ setup }: Oracle): Fields {
+type Definitions = Readonly<Record<string, MechanicDefinition>>;
+
+// A file holds the options of a mechanic as the old game wrote them, before the defaults; the mechanic's own
+// `parseOptions` fills them, so they compare whole with the resolved options. Only a default that changed stays
+// uncompared. Options that do not parse stay as written: they differ from every resolved value.
+function filled(definition: MechanicDefinition | undefined, options: unknown): unknown {
+	try {
+		return definition === undefined ? options : definition.parseOptions(options ?? {});
+	} catch (error) {
+		if (error instanceof SwtError) return options;
+		throw error;
+	}
+}
+
+// The fields of `setup` as the oracle states them; the mechanics as a sorted list of ids and one field of options per id, with the defaults.
+function statedSetup({ setup }: Oracle, definitions: Definitions): Fields {
 	return {
 		residents: setup.residents,
 		residentTools: setup.residentTools,
@@ -78,7 +92,7 @@ function statedSetup({ setup }: Oracle): Fields {
 		minutes: setup.minutes,
 		limits: setup.limits ?? {},
 		mechanics: setup.mechanics.map((mechanic) => mechanic.id).sort(),
-		...Object.fromEntries(setup.mechanics.map((mechanic) => [`options.${mechanic.id}`, mechanic.options])),
+		...Object.fromEntries(setup.mechanics.map((mechanic) => [`options.${mechanic.id}`, filled(Object.hasOwn(definitions, mechanic.id) ? definitions[mechanic.id] : undefined, mechanic.options)])),
 	};
 }
 
@@ -99,20 +113,10 @@ function resolvedSetup({ definition }: ResolvedGame): Fields {
 	};
 }
 
-const isRecord = (value: unknown): value is Fields => typeof value === "object" && value !== null && !Array.isArray(value);
-
-// A file holds the options of a mechanic as the game wrote them, the resolved game holds them with the defaults
-// filled: an option the file leaves out is not compared (a default that changed shows in the timeline).
-function asWritten(key: string, stated: unknown, resolved: unknown): unknown {
-	if (!key.startsWith("options.") || !isRecord(stated) || !isRecord(resolved)) return resolved;
-	return Object.fromEntries(Object.entries(resolved).filter(([option]) => Object.hasOwn(stated, option)));
-}
-
 function setupMismatches(stated: Fields, resolved: Fields): readonly OracleMismatch[] {
 	const keys = [...new Set([...Object.keys(stated), ...Object.keys(resolved)])];
 	return keys.flatMap((key): OracleMismatch[] => {
-		const actual = asWritten(key, stated[key], resolved[key]);
-		return Value.Equal(stated[key], actual) ? [] : [{ level: 1, at: "setup", index: -1, expected: { [key]: stated[key] }, actual: { [key]: actual } }];
+		return Value.Equal(stated[key], resolved[key]) ? [] : [{ level: 1, at: "setup", index: -1, expected: { [key]: stated[key] }, actual: { [key]: resolved[key] } }];
 	});
 }
 
@@ -198,8 +202,10 @@ function endOf(end: RunEnd | undefined): unknown {
  * Plays `game` from the oracle's inputs and compares up to `level`. The game is played by its own scheduler with
  * the seed of the oracle, for `setup.minutes` ticks; at its n-th activation a resident makes the calls that follow
  * its n-th `turn` entry in the file, and never reads a reply; the replay of a live run is pending after a turn with
- * a call, as the recorded model was. Before the run the resolved game is compared with
- * `setup` (the options of a mechanic only in the fields the file states); after it the log is folded with `timelineOf` and compared entry by entry.
+ * a call, as the recorded model was. Before the run the resolved game is compared with `setup`; the options a
+ * file states for a mechanic are filled with the defaults of the mechanic's own `parseOptions` and compared whole
+ * and deep (stated options that do not parse are a setup mismatch). After the run the log is folded with
+ * `timelineOf` and compared entry by entry.
  *
  * @param oracle - The oracle, as `readOracle` gave it.
  * @param game - The game, in its builder form or its data form.
@@ -226,7 +232,7 @@ export async function runOracle(oracle: Oracle, game: Game | GameData, level: Or
 	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks: oracle.setup.minutes, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
 	const end = endOf(played.end);
 	return [
-		...setupMismatches(statedSetup(oracle), resolvedSetup(resolved)),
+		...setupMismatches(statedSetup(oracle, definitionsOf(game, options.installed)), resolvedSetup(resolved)),
 		...timelineMismatches(oracle.timeline, timelineOf(played.events), level),
 		...(Value.Equal(oracle.end, end) ? [] : [{ level: 1, at: "end", index: -1, expected: oracle.end, actual: end } as const]),
 	];

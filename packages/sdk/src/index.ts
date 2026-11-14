@@ -19,7 +19,7 @@ export { convertArguments } from "./mechanic/arguments.ts";
 
 export { createKit, type KitBinding } from "./mechanic/kit.ts";
 
-export { defineGame, gameData } from "./game/define-game.ts";
+export { defineGame, definitionsOf, gameData } from "./game/define-game.ts";
 export { resolveGrants, type GrantsInput, type ResolvedGrants } from "./game/grants.ts";
 export { shownNameClashes, toolNames, type NamedTool, type ToolNames, type ToolSource } from "./game/tool-names.ts";
 

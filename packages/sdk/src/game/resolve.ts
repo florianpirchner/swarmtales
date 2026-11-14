@@ -123,7 +123,7 @@ function filledData(data: GameData, used: readonly UsedMechanic[], scheduler: Sc
 function mechanicSteps(data: GameData, definitions: Definitions, input: ResolveInput) {
 	const found = mechanicsOf(data, definitions);
 	const own = new Set(data.mechanics.flatMap((use, index) => (use.use === ROSTER && !Object.hasOwn(definitions, ROSTER) ? [`mechanics[${index}].use`] : [])));
-	const ordered = loadOrder(found.used.map((entry) => ({ id: entry.definition.id, requires: entry.definition.head.requires, provides: entry.definition.head.provides, uses: entry.definition.head.uses, entry })));
+	const ordered = loadOrder(found.used.map((entry) => ({ id: entry.definition.id, requires: entry.definition.head.requires, provides: entry.definition.head.provides, uses: entry.definition.head.uses, entry })), [ROSTER]);
 	// `loadOrder` counts the mechanics it was given; the path of an issue names the place in the game's own list.
 	const placed = ordered.issues.map((issue) => {
 		const at = /^mechanics\[(\d+)\]$/.exec(issue.where?.path ?? "")?.[1];

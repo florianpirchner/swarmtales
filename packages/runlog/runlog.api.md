@@ -13,6 +13,9 @@ import { RunManifest } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
 
 // @public
+export function briefingKey(actor: string): string;
+
+// @public
 export function createSink(chain: EventChain, now: () => Date, redact?: Redact): EventSink;
 
 // @public

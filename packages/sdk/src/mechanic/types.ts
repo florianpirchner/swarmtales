@@ -181,6 +181,8 @@ export interface DeclaredTool {
 	readonly for: readonly string[];
 	/** True for a read-only look. */
 	readonly free: boolean;
+	/** Whether the body gives the tool a `sample`, so the fake driver can call it. `defineMechanic` sets it; a head alone does not say. */
+	readonly sampled?: boolean;
 }
 
 /**

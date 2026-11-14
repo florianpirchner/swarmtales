@@ -131,7 +131,8 @@ export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinit
 		source: `${erased.package}/${erased.id}`,
 		options: erased.options,
 		events: erased.events,
-		head: erased,
+		// What a reader of the definition sees of the body without running it: which tools the fake driver can call.
+		head: { ...erased, tools: erased.tools.map((tool) => ({ ...tool, sampled: body.tools?.[tool.name]?.sample !== undefined })) },
 		parseOptions: (raw: unknown): unknown => parseOptions(erased, raw),
 		resolve(options: unknown, texts: PromptLookup, version: string): ResolvedPlugin {
 			if (!isJson(options)) throw new SwtError(optionMismatch({ owner: erased.id, package: erased.package, path: "options", message: "must be plain JSON data" }));

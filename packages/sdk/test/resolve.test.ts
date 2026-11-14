@@ -180,11 +180,14 @@ describe("resolveGame", () => {
 			expect(failure(() => resolveGame(input(game, { installed })))).toEqual(["SWT-G020 scheduler.options.__proto__", "SWT-G020 scheduler.options.constructor"]);
 		});
 
-		// Open, finding S6 (not fixed: 6.4 says the roster plugin is the last in load order). A mechanic cannot require
-		// the service every game has: step 5 runs before `roster` is appended and reports SWT-G030. `uses` works.
-		it.fails("S6: a mechanic that requires the service `roster` resolves", () => {
+		it("S6: a mechanic that requires the service `roster` resolves, and `roster` loads before its first requirer", () => {
 			const needy = standIn("needy", { requires: ["roster"] });
-			expect(resolveGame(input(data({ mechanics: [{ use: "needy" }] }), { installed: { needy } })).definition.plugins.map((plugin) => plugin.id)).toEqual(["roster", "needy"]);
+			const order = (game: GameData, mechanics: Readonly<Record<string, MechanicDefinition>>): readonly string[] => resolveGame(input(game, { installed: mechanics })).definition.plugins.map((plugin) => plugin.id);
+			expect(order(data({ mechanics: [{ use: "needy" }] }), { needy })).toEqual(["roster", "needy"]);
+			expect(order(data({ mechanics: [{ use: "board" }, { use: "needy" }, { use: "chat" }] }), { ...installed, needy })).toEqual(["board", "roster", "needy", "chat"]);
+			// A listed provider of `roster` stands: the sdk adds none, and the requirer loads after it.
+			const own = standIn("own", { provides: ["roster"] });
+			expect(order(data({ mechanics: [{ use: "needy" }, { use: "own" }] }), { needy, own })).toEqual(["own", "needy"]);
 		});
 	});
 });

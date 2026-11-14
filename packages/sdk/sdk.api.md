@@ -126,6 +126,7 @@ export interface DeclaredTool {
     readonly free: boolean;
     readonly name: string;
     readonly parameters: TSchema;
+    readonly sampled?: boolean;
 }
 
 // @public
@@ -151,6 +152,9 @@ export function defineTool<const N extends string, P extends TSchema>(name: N, p
 
 // @public
 export type DefinitionOf<H> = H extends MechanicHead<infer Id, infer O, TSchema, unknown, infer E, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], infer TP> ? MechanicDefinition<Id, O, E, keyof TP & string> : never;
+
+// @public
+export function definitionsOf(game: Game | GameData, installed?: Readonly<Record<string, MechanicDefinition>>): Readonly<Record<string, MechanicDefinition>>;
 
 // @public
 export function directorsReserved(input: {
@@ -271,7 +275,7 @@ export interface LoadOrder<T extends LoadOrderEntry> {
 }
 
 // @public
-export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[]): LoadOrder<T>;
+export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[], given?: readonly string[]): LoadOrder<T>;
 
 // @public
 export interface LoadOrderEntry {

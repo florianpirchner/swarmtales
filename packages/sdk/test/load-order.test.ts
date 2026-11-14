@@ -74,4 +74,12 @@ describe("loadOrder", () => {
 		expect(codes([{ id: "a", provides: named("s") }, { id: "b", provides: named("s"), requires: named("gone") }])).toEqual(["SWT-G031", "SWT-G030"]);
 		expect(loadOrder([teamChannel, teamChannel, gridGame])).toEqual({ order: [teamChannel, gridGame], issues: [] });
 	});
+
+	it("takes a service that is given from outside the list as provided, unless a listed mechanic provides it", () => {
+		const user = { id: "user", requires: named("roster") };
+		expect(codes([user])).toEqual(["SWT-G030"]);
+		expect(loadOrder([user], ["roster"])).toEqual({ order: [user], issues: [] });
+		const own = { id: "own", provides: named("roster") };
+		expect(loadOrder([user, own], ["roster"])).toEqual({ order: [own, user], issues: [] });
+	});
 });

@@ -10,11 +10,12 @@ import { formatIssue, SwtError, type DriverTable, type EventSink, type Kernel, t
 import { buildManifest, turns } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
-import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import { resolveGame, type ResolvedGame } from "@swarmtales/sdk";
+import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
+import { definitionsOf, resolveGame, type MechanicDefinition, type ResolvedGame } from "@swarmtales/sdk";
 import { fakeDriver } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
+import { toolWithoutSample } from "./errors.ts";
 import { installedTable } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
 import type { CliIo } from "./main.ts";
@@ -41,17 +42,26 @@ export interface RunInput {
 }
 
 // Step one: the file, the installed table for a data game, the prompts (the game's own folder is `prompts/` beside its file).
-async function resolved(input: RunInput, io: CliIo): Promise<ResolvedGame> {
+async function resolved(input: RunInput, io: CliIo): Promise<{ readonly game: ResolvedGame; readonly mechanics: readonly MechanicDefinition[] }> {
 	const loaded = await loadGame(input.file, io.cwd);
 	const installed = loaded.type === "module" ? undefined : (io.installed ?? (await installedTable(PACKAGE_FILE)));
 	const folder = join(dirname(loaded.file), "prompts");
-	return resolveGame({
+	const game = resolveGame({
 		game: loaded.game,
 		schedulers: { turns },
 		prompts: createPromptLookup(existsSync(folder) ? { game: folder } : {}),
 		...(installed === undefined ? {} : { installed }),
 		...(input.seed === undefined ? {} : { seed: input.seed }),
 	});
+	return { game, mechanics: Object.values(definitionsOf(loaded.game, installed)) };
+}
+
+// `SWT-C010`, once per tool: a tool in the grant of an actor whose body has no `sample`. The fake driver never calls it.
+function unsampled({ definition }: ResolvedGame, mechanics: readonly MechanicDefinition[]): readonly SwtIssue[] {
+	const mute = new Set(mechanics.flatMap((mechanic) => mechanic.head.tools.filter((tool) => tool.sampled === false).map((tool) => `${mechanic.source}/${tool.name}`)));
+	const grants = [...new Set(definition.actors.map((actor) => actor.grant))];
+	const found = new Map(grants.flatMap((grant) => (definition.grants[grant] ?? []).filter((tool) => mute.has(tool)).map((tool): [string, string] => [tool, grant])).reverse());
+	return [...found].reverse().map(([tool, grant]) => toolWithoutSample({ tool: (Object.hasOwn(definition.names, tool) ? definition.names[tool] : undefined) ?? tool, grant }));
 }
 
 // The run folder, opened at the first event: a game that fails before its run leaves no folder behind.
@@ -61,7 +71,7 @@ function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonl
 		const drivers = Object.fromEntries(game.definition.actors.map((actor) => [actor.id, FAKE]));
 		const raw: unknown = JSON.parse(readFileSync(PACKAGE_FILE, "utf8"));
 		const manifest = buildManifest(game, { id: basename(directory), startedAt: io.now().toISOString(), drivers, kernelRevision: RUNTIME_REVISION, kernelVersion: Parse(Versioned, raw).version, node: process.version });
-		const briefings = Object.entries(game.briefings).map(([actor, text]): [string, string] => [`briefing/${actor}`, text]);
+		const briefings = Object.entries(game.briefings).map(([actor, text]): [string, string] => [briefingKey(actor), text]);
 		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: { ...game.texts, ...Object.fromEntries(briefings) } });
 		return folder;
 	};
@@ -122,8 +132,9 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
 
 /**
  * Loads the game file, resolves it, plays it with the fake driver into a new run folder, verifies the folder and
- * prints the result. `texts.json` holds every text of the game by its key and each actor's briefing under
- * `briefing/<actor id>`.
+ * prints the result. Before the run it warns once (`SWT-C010`, on the error output) about each tool an actor is
+ * granted that has no `sample`; the run still plays. `texts.json` holds every text of the game by its key and each actor's briefing under
+ * `briefing/<actor id>` (`briefingKey` of the runlog).
  *
  * @param input - The game file, the seed, the folder of the runs and the form of the output.
  * @param io - The current directory, the clock and the two outputs.
@@ -134,7 +145,8 @@ function print(outcome: Outcome, json: boolean, io: CliIo): void {
  * @public
  */
 export async function runFake(input: RunInput, io: CliIo): Promise<number> {
-	const game = await resolved(input, io);
+	const { game, mechanics } = await resolved(input, io);
+	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
 	const folder = lazyFolder(directory, game, io);
 	const kernel = createKernel(game.definition, { sinks: [folder.sink] });

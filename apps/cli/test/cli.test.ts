@@ -81,13 +81,14 @@ describe("swt run --fake", () => {
 		expect((await swt("log", "verify", "runs/broken-001")).code).toBe(0);
 	});
 
-	// Open, M1 review finding C2 (not fixed: the kernel's `sample` answers undefined for a tool without a `sample` and
-	// for one that has nothing to play, so the command line cannot tell them apart without a change of an interface).
-	// 9.1: "A granted tool without `sample` gives the warning `SWT-C010` once; the run still plays." `toolWithoutSample`
-	// exists in `errors.ts` and has no caller.
-	it.fails("warns once with SWT-C010 about a granted tool without a sample, and still plays", async () => {
-		const { code, err } = await swt("run", fixture("no-sample.ts"), "--fake");
+	// M1 review, finding C2. The sdk says which tools have a `sample` (`head.tools[].sampled`); the kernel is not asked.
+	it("warns once with SWT-C010 about a granted tool without a sample, and still plays", async () => {
+		const { code, out, err } = await swt("run", fixture("no-sample.ts"), "--fake");
 		expect([code, err.match(/SWT-C010/g)?.length]).toEqual([0, 1]);
+		expect(err.split("\n")[0]).toBe('warning SWT-C010: the tool "poke" of the grant "resident" has no `sample`, so `--fake` never calls it');
+		expect(out[0]).toBe("fake models: no result");
+		// A game whose tools all have a `sample` gives no warning.
+		expect((await swt("run", fixture("guess-number.ts"), "--fake", "--out", "quiet")).err).toBe("");
 	});
 
 	it("exits 1 with the issue before a run: no --fake, a bad seed, an unknown flag or command, a missing file", async () => {
@@ -144,11 +145,8 @@ describe("swt log verify", () => {
 		expect((await swt("log", "verify", "nowhere")).code).toBe(1);
 	});
 
-	// Open, M1 review finding R2 (not fixed: it needs the key convention `briefing/<actor id>` of `apps/cli/src/run.ts` in
-	// `@swarmtales/runlog`, or the briefings among `manifest.texts`). `verifyRun` compares only the keys of `manifest.texts`:
-	// a briefing in `texts.json` is covered by `actors[].textHashes.briefing` and is not compared, and a key that no hash
-	// covers is not noticed.
-	it.fails("exits 1 when a briefing in texts.json was changed, or a text was added that no hash covers", async () => {
+	// M1 review, finding R2: `verifyRun` compared only the keys of `manifest.texts`.
+	it("exits 1 when a briefing in texts.json was changed, or a text was added that no hash covers", async () => {
 		await swt("run", fixture("guess-number.ts"), "--fake", "--out", "texts");
 		const path = join(cwd, "texts/guess-number-001/texts.json");
 		const texts = Parse(Texts, json(readFileSync(path, "utf8")));

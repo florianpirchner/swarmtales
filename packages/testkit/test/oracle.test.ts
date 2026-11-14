@@ -180,11 +180,9 @@ describe("runOracle", () => {
 		expect(await refusal(changed((entry) => (entry.k === "event" && entry.type === "referee_intervened" ? { ...entry, type: "role_asked" } : entry)))).toMatch(/platform event `core\.role_asked`/);
 	});
 
-	// Open, M1 review finding T1 (not fixed: it changes the rule of erratum E61). The runner compares an option only
-	// when the file states it, so an option that the new game sets and the old game left to its default is not
-	// compared. Where the script never reaches the option, the timeline does not show it either. Here the game caps a
-	// note at 10 characters (default 100) and no note of the file is longer.
-	it.fails("finds an option the game sets and the file leaves to its default, when the timeline does not show it", async () => {
+	// M1 review, finding T1 (erratum E61 as rewritten): the stated options are filled with the mechanic's defaults and
+	// compared whole. Here the game caps a note at 10 characters (default 100) and no note of the file is longer.
+	it("finds an option the game sets and the file leaves to its default, when the timeline does not show it", async () => {
 		const capped = defineMechanic(defineHead({ ...head, options: Type.Object({ target: Type.Integer({ default: 3, description: "The number of passes that ends the run." }), maxNote: Type.Integer({ default: 100, description: "The longest note." }) }, { description: "The options." }) }), {
 			tools: { pass: { run: (_params, ctx) => reply(`Passed by ${ctx.resident ?? ""}.`) } },
 		});
@@ -192,5 +190,8 @@ describe("runOracle", () => {
 		const as = (options: { readonly target: number; readonly maxNote?: number }) => defineGame({ id: "relay", residents: 2, mechanics: [capped(options)], scheduler: { id: "turns", options: { passes: 2, activation: "onNews" } }, end: { ticks: 4 }, limits: { maxCallsPerTick: 8 } });
 		expect((await runOracle(stated, as({ target: 3 }), 1)).filter((mismatch) => mismatch.at === "setup")).toEqual([]);
 		expect((await runOracle(stated, as({ target: 3, maxNote: 10 }), 1)).filter((mismatch) => mismatch.at === "setup")).toHaveLength(1);
+		// Stated options that the mechanic refuses are a difference of the setup, as written, and no throw.
+		const unparsed: Oracle = { ...stated, setup: { ...stated.setup, mechanics: [{ id: "relay", options: { target: "three" } }] } };
+		expect((await runOracle(unparsed, as({ target: 3 }), 1)).filter((mismatch) => mismatch.at === "setup")).toEqual([{ level: 1, at: "setup", index: -1, expected: { "options.relay": { target: "three" } }, actual: { "options.relay": { target: 3, maxNote: 100 } } }]);
 	});
 });

@@ -119,14 +119,19 @@ export function rosterPlugin(version: string): ResolvedPlugin {
 
 /**
  * Adds the `roster` plugin to the plugins of a game, unless one of them provides `roster`. It is called with the
- * plugins in load order, so `roster` is the last plugin: it never goes through `loadOrder`.
+ * plugins in load order and never goes through `loadOrder`: `roster` is the last plugin, unless a plugin requires
+ * the service, and then it stands before the first that does.
  *
  * @param plugins - The plugins of the game, in load order.
  * @param version - The version of the sdk package.
- * @returns The same list when a plugin provides `roster`, else the list with the `roster` plugin at its end.
+ * @returns The same list when a plugin provides `roster`, else the list with the `roster` plugin before its first
+ * requirer, or at its end when no plugin requires it.
  *
  * @public
  */
 export function appendRoster(plugins: readonly ResolvedPlugin[], version: string): readonly ResolvedPlugin[] {
-	return plugins.some((plugin) => plugin.provides.includes(ID)) ? plugins : [...plugins, rosterPlugin(version)];
+	if (plugins.some((plugin) => plugin.provides.includes(ID))) return plugins;
+	const first = plugins.findIndex((plugin) => plugin.requires.includes(ID));
+	const at = first === -1 ? plugins.length : first;
+	return [...plugins.slice(0, at), rosterPlugin(version), ...plugins.slice(at)];
 }

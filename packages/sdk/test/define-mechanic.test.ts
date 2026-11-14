@@ -93,6 +93,13 @@ function issuesOf(run: () => unknown): readonly SwtIssue[] {
 const texts = { render: (owner: string, id: string): string => `text of ${owner}/${id}` };
 
 describe("defineMechanic: the definition", () => {
+	it("says of each tool whether its body has a `sample` (M1 review, finding C2)", () => {
+		const none = Type.Object({}, { description: "No arguments." });
+		const pair = defineHead({ id: "pair", package: "@test/pair", summary: "Two tools.", tools: { drawn: { description: "Draws.", params: none }, fixed: { description: "Stays.", params: none } } });
+		const definition = defineMechanic(pair, { tools: { drawn: { run: () => reply("Drawn."), sample: () => ({}) }, fixed: { run: () => reply("Stays.") } } });
+		expect(definition.head.tools.map((tool) => [tool.name, tool.sampled])).toEqual([["drawn", true], ["fixed", false]]);
+	});
+
 	it("is callable and carries the erased head", () => {
 		expect(counter({ step: 2 })).toEqual({ mechanic: counter, options: { step: 2 } });
 		expect(counter().options).toEqual({});

@@ -16,6 +16,23 @@ export const GAME_FILE = "game.json";
 /** Key to text, canonical JSON: every text the manifest names by hash. @public */
 export const TEXTS_FILE = "texts.json";
 
+/**
+ * The key of an actor's briefing in `texts.json`. The manifest names the text by `actors[].textHashes.briefing`;
+ * the writer of a run folder and `verifyRun` both find it under this key.
+ *
+ * @param actor - The actor id, for example `resident:A01`.
+ * @returns The key, `briefing/<actor id>`.
+ * @example
+ * ```ts
+ * briefingKey("resident:A01"); // "briefing/resident:A01"
+ * ```
+ *
+ * @public
+ */
+export function briefingKey(actor: string): string {
+	return `briefing/${actor}`;
+}
+
 /** What {@link openRunFolder} needs beside the manifest. @public */
 export interface RunFolderOptions {
 	/** The clock that stamps each line: the wall clock in a run, a fixed clock in a test. */

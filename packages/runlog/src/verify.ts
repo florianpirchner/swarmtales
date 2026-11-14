@@ -9,7 +9,7 @@ import { join } from "node:path";
 import { CHAIN_FILE, type ChainFault, type ChainHolds, type ChainVerdict, canonicalJson, EVENTS_FILE, jsonHash, PUBLIC_KEY_FILE, type RunTexts, verifyRunTexts } from "@swarmtales/chain";
 import { envelopeLogIssues, StoredEnvelopeSchema, type SwtIssue } from "@swarmtales/contracts";
 import { Check } from "typebox/value";
-import { GAME_FILE, MANIFEST_FILE, manifestMismatch, TEXTS_FILE } from "./folder.ts";
+import { briefingKey, GAME_FILE, MANIFEST_FILE, manifestMismatch, TEXTS_FILE } from "./folder.ts";
 
 /** What {@link verifyRun} says about a run folder. @public */
 export interface RunVerdict {
@@ -129,6 +129,33 @@ function committed(directory: string, name: string): { readonly value: unknown }
 	return { value: parse(text) };
 }
 
+// The hash the manifest holds for each key of `texts.json`: the texts of the game by their key, and the briefing
+// of each actor (`actors[].textHashes.briefing`) under its briefing key.
+function textHashes(manifest: unknown): ReadonlyMap<string, unknown> {
+	const texts = field(manifest, "texts");
+	const actors = field(manifest, "actors");
+	const briefings = (Array.isArray(actors) ? actors : []).flatMap((actor: unknown): [string, unknown][] => {
+		const id = field(actor, "id");
+		const hash = field(field(actor, "textHashes"), "briefing");
+		return typeof id === "string" && hash !== undefined ? [[briefingKey(id), hash]] : [];
+	});
+	return new Map([...(typeof texts === "object" && texts !== null ? Object.entries(texts) : []), ...briefings]);
+}
+
+// `texts.json` against the manifest: the first text that is not the one its hash names, and the first key that no hash covers.
+function textIssues(texts: object, manifest: unknown): readonly SwtIssue[] {
+	const hashes = textHashes(manifest);
+	const changed = [...hashes].find(([key, hash]) => {
+		const text = field(texts, key);
+		return typeof text !== "string" || jsonHash(text) !== hash;
+	})?.[0];
+	const added = Object.keys(texts).find((key) => !hashes.has(key));
+	return [
+		...(changed === undefined ? [] : [issue("SWT-L003", `texts.json: the text "${changed}" is not the text the manifest names by hash`, TEXTS_FILE)]),
+		...(added === undefined ? [] : [issue("SWT-L003", `texts.json: the text "${added}" is covered by no hash of the manifest`, TEXTS_FILE)]),
+	];
+}
+
 // `game.json` and `texts.json`, where the folder has them, against the hashes of the manifest. A hash is `jsonHash`
 // of the value: of the whole game, and of each text as a string (as the manifest builder hashes them).
 function committedIssues(directory: string, manifestText: string): readonly SwtIssue[] {
@@ -139,20 +166,16 @@ function committedIssues(directory: string, manifestText: string): readonly SwtI
 	const texts = committed(directory, TEXTS_FILE);
 	if (texts === undefined) return issues;
 	if (typeof texts.value !== "object" || texts.value === null) return [...issues, issue("SWT-L003", "texts.json is not the object of texts the manifest names by hash", TEXTS_FILE)];
+	// A manifest without its map of texts has its own issue; there is nothing to compare the texts with.
 	const hashes = field(manifest, "texts");
-	if (typeof hashes !== "object" || hashes === null) return issues;
-	const key = Object.keys(hashes).find((name) => {
-		const text = field(texts.value, name);
-		return typeof text !== "string" || jsonHash(text) !== field(hashes, name);
-	});
-	if (key !== undefined) issues.push(issue("SWT-L003", `texts.json: the text "${key}" is not the text the manifest names by hash`, TEXTS_FILE));
-	return issues;
+	return typeof hashes === "object" && hashes !== null ? [...issues, ...textIssues(texts.value, manifest)] : issues;
 }
 
 /**
  * Verifies a run folder: the chain over `events.jsonl` and its signed heads, the manifest against the genesis,
  * every line as a stored envelope in log order, and `game.json` and `texts.json` (where the folder has them) against
- * the hashes of the manifest.
+ * the hashes of the manifest: each text of the game, each actor's briefing under {@link briefingKey}, and no key
+ * that no hash covers.
  *
  * @param directory - The run folder, with `events.jsonl`, `events.chain.jsonl`, `run.pub` and `manifest.json`.
  * @returns The verdict. `ok` with `finished: false` is a run that stopped at a signed head before its end.

@@ -43,6 +43,24 @@ function dataGrants(grants: NonNullable<Game["grants"]>): DataGrants {
 }
 
 /**
+ * The mechanic definitions a game uses, by id: the uses of a builder game, and for a game in its data form the
+ * installed mechanics. It reads a game that resolves; it checks nothing.
+ *
+ * @param game - The game, in its builder form or its data form.
+ * @param installed - Mechanic id to definition, for a game in its data form.
+ * @returns The definitions by id; a use of the game wins over an installed mechanic of the same id.
+ * @example
+ * ```ts
+ * const { "grid-game": gridGame } = definitionsOf(game);
+ * ```
+ *
+ * @public
+ */
+export function definitionsOf(game: Game | GameData, installed: Readonly<Record<string, MechanicDefinition>> = {}): Readonly<Record<string, MechanicDefinition>> {
+	return { ...installed, ...Object.fromEntries(game.mechanics.flatMap((use): [string, MechanicDefinition][] => ("mechanic" in use ? [[use.mechanic.id, use.mechanic]] : []))) };
+}
+
+/**
  * Turns a builder game into its data form: `schema: 1`, and the mechanics by id with their options and renames.
  *
  * @param game - The game in its builder form.
