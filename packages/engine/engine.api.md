@@ -4,8 +4,11 @@
 
 ```ts
 
+import { AskModel } from '@swarmtales/contracts';
+import { DriverTable } from '@swarmtales/contracts';
 import { InputNote } from '@swarmtales/contracts';
 import { OrderedNote } from '@swarmtales/contracts';
+import { RecordSource } from '@swarmtales/contracts';
 import { ResolvedGame } from '@swarmtales/sdk';
 import { RunManifest } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
@@ -18,6 +21,18 @@ export function arrange(notes: readonly OrderedNote[], entries: readonly InputEn
 
 // @public
 export function buildManifest(resolved: ResolvedGame, run: ManifestRun): RunManifest;
+
+// @public
+export function createDirectorDrivers(input: DirectorDriverInput): DriverTable;
+
+// @public
+export const DIRECTOR_RECORDS: RecordSource;
+
+// @public
+export interface DirectorDriverInput {
+    readonly ask: AskModel;
+    readonly game: ResolvedGame;
+}
 
 // @public
 export type InputEntry = Static<typeof InputEntrySchema>;
