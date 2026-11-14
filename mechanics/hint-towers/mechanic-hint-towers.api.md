@@ -4,6 +4,159 @@
 
 ```ts
 
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const hintTowers: MechanicDefinition<"hint-towers", Type.TObject<{
+games: Type.TInteger;
+handSize: Type.TInteger;
+signals: Type.TInteger;
+strikes: Type.TInteger;
+strikePenalty: Type.TInteger;
+debriefNote: Type.TOptional<Type.TString>;
+refillOnTower: Type.TBoolean;
+recent: Type.TInteger;
+playableOdds: Type.TBoolean;
+listCandidates: Type.TInteger;
+maxIdleMinutes: Type.TInteger;
+maxConsecutiveForfeits: Type.TInteger;
+side: Type.TOptional<Type.TString>;
+quietTools: Type.TArray<Type.TString>;
+}>, {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+first: Type.TString;
+deck: Type.TInteger;
+}>;
+readonly deal_revealed: Type.TObject<{
+game: Type.TInteger;
+hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+pile: Type.TArray<Type.TString>;
+baseline: Type.TInteger;
+}>;
+readonly signal_given: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+to: Type.TString;
+about: Type.TString;
+slots: Type.TArray<Type.TInteger>;
+forfeit: Type.TBoolean;
+}>;
+readonly card_played: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+card: Type.TString;
+lit: Type.TBoolean;
+forfeit: Type.TBoolean;
+}>;
+readonly card_discarded: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+card: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly card_drawn: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+card: Type.TString;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
+score: Type.TInteger;
+deck: Type.TInteger;
+lost: Type.TInteger;
+misfires: Type.TInteger;
+signals: Type.TInteger;
+}>;
+readonly game_scored: Type.TObject<{
+game: Type.TInteger;
+score: Type.TInteger;
+baseline: Type.TInteger;
+}>;
+readonly match_ended: Type.TObject<{
+scores: Type.TArray<Type.TInteger>;
+baselines: Type.TArray<Type.TInteger>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}, "viewTowers" | "giveSignal" | "playSlot" | "discardSlot">;
+
+// @public
+export const HintTowersEvents: EventsDefinition<"hint-towers", {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+first: Type.TString;
+deck: Type.TInteger;
+}>;
+readonly deal_revealed: Type.TObject<{
+game: Type.TInteger;
+hands: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+pile: Type.TArray<Type.TString>;
+baseline: Type.TInteger;
+}>;
+readonly signal_given: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+to: Type.TString;
+about: Type.TString;
+slots: Type.TArray<Type.TInteger>;
+forfeit: Type.TBoolean;
+}>;
+readonly card_played: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+card: Type.TString;
+lit: Type.TBoolean;
+forfeit: Type.TBoolean;
+}>;
+readonly card_discarded: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+slot: Type.TInteger;
+card: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly card_drawn: Type.TObject<{
+game: Type.TInteger;
+turn: Type.TInteger;
+seat: Type.TString;
+card: Type.TString;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"complete">, Type.TLiteral<"strikes">, Type.TLiteral<"dark">]>;
+score: Type.TInteger;
+deck: Type.TInteger;
+lost: Type.TInteger;
+misfires: Type.TInteger;
+signals: Type.TInteger;
+}>;
+readonly game_scored: Type.TObject<{
+game: Type.TInteger;
+score: Type.TInteger;
+baseline: Type.TInteger;
+}>;
+readonly match_ended: Type.TObject<{
+scores: Type.TArray<Type.TInteger>;
+baselines: Type.TArray<Type.TInteger>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
