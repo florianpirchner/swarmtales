@@ -87,6 +87,30 @@ function measure(project, file, anchor, typed) {
 	return { cold: cold.ms, warm: warm[2].ms, warmSync: warm[2].syncMs, warmCpu: warm[2].cpuMs, names: cold.names };
 }
 
+if (process.argv.includes("--floor")) {
+	// Where the floor comes from: a schema's value alone, today's context alone.
+	const probe = ["spike/define-mechanic/tsconfig.probe.json", "spike/define-mechanic/src/probes/floor.ts"];
+	const schema = measure(...probe, "const anchorSchema = value.name;", "value.");
+	const context = measure(...probe, "const anchorContext = ctx.minute;", "ctx.");
+	console.log(`floor          schema    value.      cold ${(schema.cold / 1000).toFixed(2)}s  warm ${schema.warm.toFixed(0)}ms (cpu ${schema.warmCpu.toFixed(0)}ms)  ${String(schema.names.length)} entries`);
+	console.log(`floor          context   ctx.        cold ${(context.cold / 1000).toFixed(2)}s  warm ${context.warm.toFixed(0)}ms (cpu ${context.warmCpu.toFixed(0)}ms)  ${String(context.names.length)} entries`);
+	const setup = measure(...probe, "const anchorOne = setup.seed;", "setup.");
+	console.log(`floor          one param setup.      cold ${(setup.cold / 1000).toFixed(2)}s  warm ${setup.warm.toFixed(0)}ms (cpu ${setup.warmCpu.toFixed(0)}ms)  ${String(setup.names.length)} entries`);
+	const shaped = measure(...probe, "const anchorTwo = ctx.minute;", "ctx.");
+	console.log(`floor          two param ctx.        cold ${(shaped.cold / 1000).toFixed(2)}s  warm ${shaped.warm.toFixed(0)}ms (cpu ${shaped.warmCpu.toFixed(0)}ms)  ${String(shaped.names.length)} entries`);
+	// Inside the 40-line mechanic: which part of resolving the call is the cost.
+	const guess = ["spike/define-mechanic/tsconfig.probe.json", "spike/define-mechanic/src/probes/guess-number.ts"];
+	for (const [label, anchor, typed] of [
+		["options   ", "export const guessNumber = mechanic({", "const typed = Type.Object({ max: Type.Integer({ minimum: 2, default: 100 }) }); typed."],
+		["ctx.state.", "const hint = value ===", "ctx.state."],
+		["ctx.      ", "const hint = value ===", "ctx."],
+	]) {
+		const found = measure(...guess, anchor, typed);
+		console.log(`floor          guess     ${label}  cold ${(found.cold / 1000).toFixed(2)}s  warm ${found.warm.toFixed(0)}ms (cpu ${found.warmCpu.toFixed(0)}ms)  ${String(found.names.length)} entries`);
+	}
+	process.exit(0);
+}
+
 for (const [form, name, project, file, anchor] of CASES) {
 	const member = measure(project, file, anchor, "ctx.");
 	const event = measure(project, file, anchor, 'ctx.emit("');
