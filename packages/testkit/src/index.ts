@@ -4,4 +4,5 @@
  *
  * @packageDocumentation
  */
-export {};
+export { fakeDriver, idleDriver, scriptedDriver, type CallRecord, type Plan, type PlannedCall } from "./drivers.ts";
+export { play, testKernel, type Played, type PlayOptions, type TestKernel } from "./play.ts";

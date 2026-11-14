@@ -4,6 +4,81 @@
 
 ```ts
 
+import { Activation } from '@swarmtales/contracts';
+import { ActorDriver } from '@swarmtales/contracts';
+import { ActorId } from '@swarmtales/contracts';
+import { DriverTable } from '@swarmtales/contracts';
+import { Envelope } from '@swarmtales/contracts';
+import { EventSink } from '@swarmtales/contracts';
+import { Game } from '@swarmtales/sdk';
+import { GameData } from '@swarmtales/contracts';
+import { Kernel } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { PromptLookup } from '@swarmtales/contracts';
+import { ResumeInput } from '@swarmtales/contracts';
+import { RunEnd } from '@swarmtales/contracts';
+import { ToolOutcome } from '@swarmtales/contracts';
+
+// @public
+export interface CallRecord {
+    readonly actor: ActorId;
+    readonly outcome: ToolOutcome;
+    readonly tick: number;
+    readonly tool: string;
+}
+
+// @public
+export function fakeDriver(kernel: Kernel, seed: number): ActorDriver;
+
+// @public
+export const idleDriver: ActorDriver;
+
+// @public
+export type Plan = (activation: Activation) => readonly PlannedCall[] | Promise<readonly PlannedCall[]>;
+
+// @public
+export interface PlannedCall {
+    readonly params: unknown;
+    readonly tool: string;
+}
+
+// @public
+export function play(game: Game | GameData, options?: PlayOptions): Promise<Played>;
+
+// @public
+export interface Played {
+    readonly end: RunEnd | undefined;
+    readonly events: readonly Envelope[];
+    readonly kernel: Kernel;
+}
+
+// @public
+export interface PlayOptions {
+    readonly drivers?: DriverTable | ((kernel: Kernel) => DriverTable);
+    readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+    readonly prompts?: PromptLookup;
+    readonly resume?: ResumeInput;
+    readonly script?: Readonly<Record<string, readonly (readonly [string, unknown])[]>>;
+    readonly seed?: number;
+    readonly sinks?: readonly EventSink[];
+    readonly ticks?: number;
+}
+
+// @public
+export function scriptedDriver(plan: Plan, record?: CallRecord[]): ActorDriver;
+
+// @public
+export interface TestKernel {
+    call(resident: string, tool: string, params: unknown): Promise<ToolOutcome>;
+    fact(key: string): unknown;
+    readonly kernel: Kernel;
+    openTools(resident: string): readonly string[];
+    playTicks(driver: ActorDriver, ticks: number): Promise<RunEnd | undefined>;
+}
+
+// @public
+export function testKernel(game: Game | GameData, options?: PlayOptions): TestKernel;
+
 // (No @packageDocumentation comment for this package)
 
 ```
