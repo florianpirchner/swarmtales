@@ -1,22 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The human's amendment (rules 2 and 6). The sdk builds no actor `human` yet, so this file adds it to the kernel
- * definition by hand: `resolveGame` is wrapped for the test kit, which creates the kernel from its result.
+ * The human's amendment (rules 2 and 6). The sdk gives the game the actor `human` because the tool is granted to it.
  */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ToolOutcome } from "@swarmtales/contracts";
-import type * as Sdk from "@swarmtales/sdk";
 import { idleDriver, testKernel, type TestKernel } from "@swarmtales/testkit";
 import { game } from "./owner.ts";
-
-vi.mock("@swarmtales/sdk", async (original) => {
-	const sdk = await original<typeof Sdk>();
-	const resolveGame: typeof sdk.resolveGame = (input) => {
-		const resolved = sdk.resolveGame(input);
-		return { ...resolved, definition: { ...resolved.definition, actors: [...resolved.definition.actors, { id: "human", kind: "human", grant: "human", shared: {} }] } };
-	};
-	return { ...sdk, resolveGame };
-});
 
 const amend = (test: TestKernel, actor: "human" | "resident:A02", exiled: string, reason: string): Promise<ToolOutcome> => test.kernel.submit({ actor, as: "amendDecision", params: { decision: "D1", proposal: { exiled }, reason } });
 
