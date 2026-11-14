@@ -7,8 +7,8 @@ societies. It records everything they do: every message, every move, every payme
 run has a seeded world and a signed, hash-chained log, so it can be cited line by line. It is an instrument with a
 complete record, not a benchmark.
 
-> **Status: rewrite in progress, before 1.0.** This branch is the new platform, built issue by issue; no game
-> runs on it yet. The old platform, with its fifteen games and all recorded runs, is on the branch `legacy` (tag
+> **Status: rewrite in progress, before 1.0.** This branch is the new platform, built issue by issue. Two games
+> play on it so far, with a scripted player in place of a model: the Hello Game and tic-tac-toe teams. The old platform, with its fifteen games and all recorded runs, is on the branch `legacy` (tag
 > [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final)), under its old licence, and will be
 > removed after 1.0. The plan is in [`docs/refactoring-before-release/`](docs/refactoring-before-release/README.md).
 
