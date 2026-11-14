@@ -4,6 +4,68 @@
 
 ```ts
 
+import { ConsensusSourceService } from '@swarmtales/mechanic-contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const consensus: MechanicDefinition<"consensus", Type.TObject<{
+tool: Type.TString;
+param: Type.TString;
+rule: Type.TLiteral<"majority">;
+maxRounds: Type.TInteger;
+onDeadlock: Type.TUnion<[Type.TLiteral<"forfeitRandomLegalMove">, Type.TLiteral<"refuse">]>;
+maxConsecutiveForfeits: Type.TInteger;
+teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+}>, {
+move_proposed: Type.TObject<{
+team: Type.TString;
+captain: Type.TString;
+cell: Type.TInteger;
+reason: Type.TString;
+}>;
+vote_cast: Type.TObject<{
+team: Type.TString;
+voter: Type.TString;
+cell: Type.TInteger;
+agree: Type.TBoolean;
+reason: Type.TString;
+outcome: Type.TUnion<[Type.TLiteral<"pending">, Type.TLiteral<"reached">, Type.TLiteral<"rejected">]>;
+}>;
+consensus_reached: Type.TObject<{
+team: Type.TString;
+cell: Type.TInteger;
+agree: Type.TInteger;
+disagree: Type.TInteger;
+}>;
+consensus_forfeited: Type.TObject<{
+team: Type.TString;
+cell: Type.TInteger;
+rounds: Type.TInteger;
+}>;
+consensus_deadlocked: Type.TObject<{
+team: Type.TString;
+rounds: Type.TInteger;
+}>;
+match_invalid: Type.TObject<{
+reason: Type.TString;
+forfeits: Type.TInteger;
+}>;
+}, "proposeMove" | "castVote">;
+
+// @public
+export const ConsensusService: ServiceDefinition<"consensus", {
+readonly reset: {
+readonly kind: "command";
+readonly summary: "Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>;
+
+export { ConsensusSourceService }
+
 // (No @packageDocumentation comment for this package)
 
 ```

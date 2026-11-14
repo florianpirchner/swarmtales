@@ -4,6 +4,43 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const teamChannel: MechanicDefinition<"team-channel", Type.TObject<{
+teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+maxPostsPerMove: Type.TInteger;
+notify: Type.TBoolean;
+}>, {
+team_post: Type.TObject<{
+team: Type.TString;
+from: Type.TString;
+text: Type.TString;
+}>;
+}, "postTeam" | "readTeam">;
+
+// @public
+export const TeamChannelService: ServiceDefinition<"team-channel", {
+readonly newEpoch: {
+readonly kind: "command";
+readonly summary: "Starts a new epoch for a team: readTeam shows only the posts from now on, and posts not yet shown are not announced. False when the team is unknown.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly resetCap: {
+readonly kind: "command";
+readonly summary: "Opens a new round for a team: every member may post again. False when the team is unknown.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
