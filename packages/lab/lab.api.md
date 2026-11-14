@@ -13,7 +13,19 @@ import { TSchema } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
+export function analyse(state: ExperimentState, facts: readonly RunFacts[], baseline?: NoiseFloor): ExperimentResults;
+
+// @public
 export const BOOTSTRAP_SEED = 20261114;
+
+// @public
+export function comparable(a: RunManifest, b: RunManifest): boolean;
+
+// @public
+export const COMPARE_FIELDS: {
+    readonly always: readonly ["kernel.revision", "scheduler.id", "scheduler.revision", "scheduler.optionsHash", "actors.model.provider", "actors.model.resolvedId", "actors.model.params", "actors.model.pricing"];
+    readonly sameArm: readonly ["game.hash", "actors.textHashes.system", "actors.textHashes.toolSpecs"];
+};
 
 // @public
 export interface Effect {
@@ -23,6 +35,12 @@ export interface Effect {
     readonly p: number;
     readonly se: number;
     readonly test: string;
+}
+
+// @public
+export interface ExperimentOptions {
+    readonly directory: string;
+    readonly metrics: MetricTable;
 }
 
 // @public
@@ -159,6 +177,89 @@ export const ExperimentSpecSchema: Type.TObject<{
 }>;
 
 // @public
+export type ExperimentState = Readonly<Static<typeof ExperimentStateSchema>>;
+
+// @public
+export const ExperimentStateSchema: Type.TObject<{
+    spec: Type.TObject<{
+        format: Type.TLiteral<"swarmtales-experiment">;
+        version: Type.TLiteral<1>;
+        id: Type.TString;
+        question: Type.TString;
+        purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+        game: Type.TString;
+        model: Type.TObject<{
+            provider: Type.TString;
+            id: Type.TString;
+            thinking: Type.TOptional<Type.TString>;
+        }>;
+        arms: Type.TArray<Type.TObject<{
+            id: Type.TString;
+            params: Type.TRecord<"^.*$", Type.TUnknown>;
+            control: Type.TOptional<Type.TBoolean>;
+        }>>;
+        seeds: Type.TArray<Type.TInteger>;
+        replicates: Type.TInteger;
+        design: Type.TUnion<[Type.TLiteral<"paired">, Type.TLiteral<"unpaired">, Type.TLiteral<"replicates">]>;
+        metrics: Type.TObject<{
+            primary: Type.TString;
+            secondary: Type.TArray<Type.TString>;
+            guardrails: Type.TArray<Type.TObject<{
+                metric: Type.TString;
+                per: Type.TOptional<Type.TString>;
+                arm: Type.TOptional<Type.TString>;
+                max: Type.TOptional<Type.TNumber>;
+                min: Type.TOptional<Type.TNumber>;
+                within: Type.TOptional<Type.TObject<{
+                    of: Type.TNumber;
+                    share: Type.TNumber;
+                }>>;
+            }>>;
+        }>;
+        pass: Type.TOptional<Type.TObject<{
+            contrast: Type.TTuple<[Type.TString, Type.TString]>;
+            sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
+            minN: Type.TInteger;
+        }>>;
+        allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
+        exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
+        budget: Type.TObject<{
+            perRunUsd: Type.TNumber;
+            totalUsd: Type.TNumber;
+            estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
+        }>;
+        concurrency: Type.TOptional<Type.TInteger>;
+        baseline: Type.TOptional<Type.TString>;
+        tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"mean">;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"share">;
+            threshold: Type.TNumber;
+        }>]>>;
+    }>;
+    specHash: Type.TString;
+    runs: Type.TArray<Type.TObject<{
+        planned: Type.TObject<{
+            index: Type.TInteger;
+            arm: Type.TString;
+            seed: Type.TInteger;
+            replicate: Type.TInteger;
+            params: Type.TRecord<"^.*$", Type.TUnknown>;
+        }>;
+        directory: Type.TString;
+        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
+        reason: Type.TOptional<Type.TString>;
+        replaces: Type.TOptional<Type.TInteger>;
+        costUsd: Type.TNumber;
+    }>>;
+    spentUsd: Type.TNumber;
+    code: Type.TOptional<Type.TObject<{
+        commit: Type.TString;
+        kernelRevision: Type.TInteger;
+    }>>;
+}>;
+
+// @public
 export function factsOf(manifest: RunManifest, events: readonly Envelope[], metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts["values"];
 
 // @public
@@ -166,6 +267,9 @@ export type FactValue = number | "absent";
 
 // @public
 export class LabError extends SwtError {}
+
+// @public
+export type MetricTable = Readonly<Record<string, readonly MetricDefinition[]>>;
 
 // @public
 export type NoiseFloor = Static<typeof NoiseFloorSchema>;
@@ -220,7 +324,31 @@ export function parseLabFile<S extends TSchema>(schema: S, value: unknown, what:
 export function parseNoiseFloor(value: unknown, file?: string): NoiseFloor;
 
 // @public
+export interface PlannedRun {
+    readonly arm: string;
+    readonly index: number;
+    readonly params: Readonly<Record<string, unknown>>;
+    readonly replicate: number;
+    readonly seed: number;
+}
+
+// @public
+export function planRuns(spec: ExperimentSpec): readonly PlannedRun[];
+
+// @public
+export type PlayRun = (run: PlannedRun, capUsd: number, experiment: {
+    readonly id: string;
+    readonly specHash: string;
+}) => Promise<RunOutcome>;
+
+// @public
+export function readExperimentState(directory: string): ExperimentState | undefined;
+
+// @public
 export function readRun(directory: string, metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts;
+
+// @public
+export function runExperiment(spec: ExperimentSpec, play: PlayRun, options: ExperimentOptions): Promise<ExperimentState>;
 
 // @public
 export interface RunFacts {
@@ -238,6 +366,17 @@ export interface RunFacts {
     readonly seed: number;
     readonly values: Readonly<Record<string, FactValue>>;
 }
+
+// @public
+export interface RunOutcome {
+    readonly costUsd: number;
+    readonly directory: string;
+}
+
+// Warning: (ae-forgotten-export) The symbol "Played" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type RunRecord = Readonly<Static<typeof Played>>;
 
 // @public
 export function share(hits: number, n: number): {
