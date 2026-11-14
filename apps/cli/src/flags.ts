@@ -8,7 +8,7 @@ import { badUsage } from "./errors.ts";
 // A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
 const MAX_SEED = 4294967295;
 const text = { type: "string" } as const;
-const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, purpose: text, replicate: text } as const;
+const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text } as const;
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];
 const PURPOSES: readonly Purpose[] = ["smoke", "pilot", "exploratory", "confirmatory"];
 
@@ -36,6 +36,8 @@ export interface LiveFlags {
 	readonly thinking?: ThinkingLevel;
 	/** `--budget`: the cost cap of the run in US dollars; a live run without one is refused (`SWT-X005`). */
 	readonly budget?: number;
+	/** `--ledger`: the spend ledger file the run's cap must fit under (`SWT-C025`); no ledger when absent. */
+	readonly ledger?: string;
 	/** `--purpose`: what the run is for; `smoke` when absent. */
 	readonly purpose: Purpose;
 	/** `--replicate`: the index of the repetition; 0 when absent. */
@@ -150,7 +152,7 @@ function numberOf(flag: string, value: string | undefined, form: RegExp, what: s
  * Checks the flags of a live run.
  *
  * @param flags - The flags as written.
- * @returns The provider, the model and its thinking level, the cost cap, the purpose and the replicate.
+ * @returns The provider, the model and its thinking level, the cost cap, the spend ledger, the purpose and the replicate.
  * @throws SwtError `SWT-C022` for an unknown `--purpose` or `--thinking`; `SWT-C003` for a `--budget` that is no
  * amount in US dollars or a `--replicate` that is no whole number.
  *
@@ -164,6 +166,7 @@ export function liveFlags(flags: Flags): LiveFlags {
 		...(flags.model === undefined ? {} : { modelId: flags.model }),
 		...(thinking === undefined ? {} : { thinking }),
 		...(budget === undefined ? {} : { budget }),
+		...(flags.ledger === undefined ? {} : { ledger: flags.ledger }),
 		purpose: wordOf("purpose", flags.purpose, PURPOSES) ?? "smoke",
 		replicate: numberOf("replicate", flags.replicate, /^\d{1,9}$/, "whole number from 0") ?? 0,
 	};

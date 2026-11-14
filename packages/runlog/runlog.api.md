@@ -41,6 +41,9 @@ export interface EventChainOptions {
 }
 
 // @public
+export function findLeaks(directory: string, leaks: (text: string) => boolean): readonly string[];
+
+// @public
 export const GAME_FILE = "game.json";
 
 // @public

@@ -14,3 +14,5 @@ export { folderTexts, played, resolveFile, runFacts, runFake, whyOf, type Resolv
 export { ENV_NAMES, readEnv } from "./env.ts";
 export { badSet, liveFlags, paramsOf, readFlags, seedOf, unknownWord, type Flags, type LiveFlags } from "./flags.ts";
 export { confirmatoryAlone, runLive, type LiveInput, type LiveResult } from "./live.ts";
+export { LEAK_FILE, scanFolder } from "./leak-scan.ts";
+export { ledgerRefused, openLedger, type Ledger } from "./ledger.ts";

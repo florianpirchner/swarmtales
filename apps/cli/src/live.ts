@@ -3,14 +3,15 @@
  * `swt run` without `--fake`: a game file to a verified run folder, played by models under a cost cap. The order is
  * fixed, because the manifest must exist before the first event: the key broker and the cap; the resolved game and
  * its model; the system prompts, the kernel (created, not started: the manifest holds its tool specs), the manifest
- * and the run folder; the start, the model drivers and `prompt_fixed`; the run; the verification and the result.
+ * and the run folder; the start, the model drivers and `prompt_fixed`; the run; the verification, the leak scan and
+ * the result. With a spend ledger the run's cap is reserved before the folder is opened and settled after the scan.
  * The key broker is created here and handed to `createModelSource` only; everything else gets `broker.redact`.
  */
 import { readFileSync } from "node:fs";
 import { findPackageJSON } from "node:module";
 import { relative, resolve } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
-import { formatIssue, redactSecrets, SwtError, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
+import { formatIssue, redactSecrets, redactValue, SwtError, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { buildManifest } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createCostMeter, createKeyBroker, createModelDrivers, createModelSource, createProviderRegistry, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
@@ -19,6 +20,8 @@ import type { ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
 import type { LiveFlags } from "./flags.ts";
+import { scanFolder } from "./leak-scan.ts";
+import { openLedger } from "./ledger.ts";
 import type { CliIo } from "./main.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
 
@@ -51,7 +54,7 @@ export interface LiveInput extends RunInput, LiveFlags {
  * @public
  */
 export interface LiveResult {
-	/** The exit code: 0 finished, 1 an `SwtError` before the run or a log that does not verify, 2 ended with `error`, 5 ended at the cost cap. */
+	/** The exit code: 0 finished, 1 an `SwtError` before the run or a log that does not verify, 2 ended with `error`, 4 a held key value in a file of the run folder (`SWT-X030`), 5 ended at the cost cap. */
 	readonly code: number;
 	/** The run folder, relative to the current directory; absent when the run did not start. */
 	readonly run?: string;
@@ -59,7 +62,7 @@ export interface LiveResult {
 	readonly end?: RunEnd;
 	/** What the run spent. */
 	readonly spend?: Spend;
-	/** The issues that were printed. */
+	/** The issues that were printed, with every text of them redacted. */
 	readonly issues: readonly SwtIssue[];
 }
 
@@ -191,12 +194,40 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	return { kernel, folder };
 }
 
+// The leak scan of the run folder, for the caller that catches a throw of the run: absent until the folder is open.
+interface Trace {
+	scan?: () => readonly SwtIssue[];
+}
+
+// The cap is reserved before the folder is opened; a folder that is refused (`SWT-L006`) started nothing and gives it back.
+function reserved(input: LiveInput, io: CliIo, name: string, capUsd: number, open: () => ReturnType<typeof opened>): ReturnType<typeof opened> & { readonly settle: (costUsd: number) => void } {
+	const ledger = input.ledger === undefined ? undefined : openLedger(resolve(io.cwd, input.ledger), io.now);
+	const settle = (costUsd: number): void => ledger?.settle(name, costUsd);
+	ledger?.reserve(name, capUsd);
+	try {
+		return { ...open(), settle };
+	} catch (error) {
+		settle(0);
+		throw error;
+	}
+}
+
+// A leak comes first: its folder is not published, whatever the run came to.
+function codeOf(leak: boolean, end: RunEnd, verified: boolean, capped: boolean): number {
+	if (leak) return 4;
+	if (end.reason === "error") return 2;
+	if (!verified) return 1;
+	return capped ? 5 : 0;
+}
+
 // The six steps. The folder is open before `kernel.start()` writes the first event, and closed whatever the run does.
-async function live(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<LiveResult> {
+// A throw after the start leaves the reservation in the ledger: a crashed run keeps its whole cap.
+async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace): Promise<LiveResult> {
 	const run = await prepared(input, io, broker);
 	const { game, settings, source, systemPrompts, meter, redact, texts } = run;
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
-	const { kernel, folder } = opened(input, io, run, directory);
+	const { kernel, folder, settle } = reserved(input, io, relative(io.cwd, directory), meter.capUsd, () => opened(input, io, run, directory));
+	trace.scan = () => scanFolder(directory, (text) => broker.leaks(text));
 	const play = async (): Promise<Awaited<ReturnType<typeof played>>> => {
 		kernel.start();
 		const models = createModelDrivers({ kernel, actors: game.definition.actors, source, settings, systemPrompts, meter, redact, texts, hash: jsonHash });
@@ -207,25 +238,42 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<Liv
 		folder.close();
 	});
 	const verdict = verifyRun(directory);
-	const failed = end.reason === "error";
-	const result = game.win === undefined || failed ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	const outcome = { end, spend: meter.total, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues] };
+	const leak = trace.scan();
+	settle(meter.total.costUsd);
+	const result = game.win === undefined || end.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
+	const outcome = { end, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact) };
 	print({ game, settings, why: whyOf(kernel, end), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
-	return { code: failed ? 2 : !verdict.ok ? 1 : end.limit === meter.limit.id ? 5 : 0, ...outcome };
+	return { code: codeOf(leak.length > 0, end, verdict.ok, end.limit === meter.limit.id), ...outcome };
+}
+
+// A run that threw: an `SwtError` is printed as its issues, anything else as its message, then the leak the folder
+// holds. The issues are redacted before they are returned: the caller may keep them in a file.
+function thrownRun(error: unknown, leak: readonly SwtIssue[], json: boolean, io: CliIo, redact: Redact): readonly SwtIssue[] {
+	const issues = redactValue([...(error instanceof SwtError ? error.issues : []), ...leak], redact);
+	const other = error instanceof SwtError ? {} : { error: error instanceof Error ? error.message : "the run failed" };
+	if (json) io.out(redact(JSON.stringify({ ...other, ...(issues.length > 0 || other.error === undefined ? { issues } : {}) })));
+	else {
+		if (other.error !== undefined) io.err(redact(`error: ${other.error}`));
+		for (const issue of issues) io.err(redact(formatIssue(issue)));
+	}
+	return issues;
 }
 
 /**
  * Plays a game file with models into a new run folder: resolves the game (with the overrides of `--set`) and its
  * model, builds every actor's system prompt, writes the manifest before the first event, plays under the cost cap,
- * verifies the log and prints the result and the spend. Every printed line passes the redaction of the key broker,
- * and no error object is printed: an `SwtError` is printed as its issues, anything else as its redacted message.
- * The spend ledger and the leak scan are not part of this function yet.
+ * verifies the log, scans the run folder for a held key value and prints the result and the spend. Every printed
+ * line passes the redaction of the key broker, and no error object is printed: an `SwtError` is printed as its
+ * issues, anything else as its redacted message. With `ledger`, the run's cap is reserved in the spend ledger before
+ * the run folder is opened and replaced by the run's cost after it; a run that throws after its start keeps its
+ * reservation. A leak (`SWT-X030`, code 4) writes the marker file `LEAK` into the folder, also when the run threw.
  *
  * @param input - The game file, the flags of a live run, the environment record, and for a test the model source.
  * @param io - The current directory, the clock and the two outputs.
  * @returns The exit code with the run folder, the end, the spend and the printed issues. Code 1 with the issues
  * before a run: `SWT-X005` without a cost cap, `SWT-X001` without a key (it names every variable that was tried),
- * `SWT-X002` to `SWT-X004`, `SWT-X006`, `SWT-X007`, `SWT-C023`, `SWT-L006`, and what `resolveFile` reports.
+ * `SWT-X002` to `SWT-X004`, `SWT-X006`, `SWT-X007`, `SWT-C023`, `SWT-C025` (the ledger cannot be read, or the cap
+ * does not fit under it), `SWT-L006`, and what `resolveFile` reports.
  * @example
  * ```ts
  * const { code } = await runLive({ file: "games/quarry/game.ts", seed: undefined, out: undefined, json: false, budget: 0.4, purpose: "smoke", replicate: 0, env: readEnv() }, io);
@@ -235,15 +283,13 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<Liv
  */
 export async function runLive(input: LiveInput, io: CliIo): Promise<LiveResult> {
 	let redact: Redact = redactSecrets;
+	const trace: Trace = {};
 	try {
 		const broker = createKeyBroker(input.env);
 		redact = broker.redact;
-		return await live(input, io, broker);
+		return await live(input, io, broker, trace);
 	} catch (error) {
-		const issues = error instanceof SwtError ? error.issues : [];
-		if (input.json) io.out(redact(JSON.stringify(error instanceof SwtError ? { issues } : { error: error instanceof Error ? error.message : "the run failed" })));
-		else if (error instanceof SwtError) for (const issue of issues) io.err(redact(formatIssue(issue)));
-		else io.err(redact(`error: ${error instanceof Error ? error.message : "the run failed"}`));
-		return { code: 1, issues };
+		const leak = trace.scan?.() ?? [];
+		return { code: leak.length > 0 ? 4 : 1, issues: thrownRun(error, leak, input.json, io, redact) };
 	}
 }
