@@ -10,6 +10,19 @@ import { TSchema } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
+export const BOOTSTRAP_SEED = 20261114;
+
+// @public
+export interface Effect {
+    readonly estimate: number;
+    readonly interval95: readonly [number, number];
+    readonly n: number;
+    readonly p: number;
+    readonly se: number;
+    readonly test: string;
+}
+
+// @public
 export type ExperimentResults = Static<typeof ExperimentResultsSchema>;
 
 // @public
@@ -183,6 +196,9 @@ export const NoiseFloorSchema: Type.TObject<{
 export type NoiseSummary = Static<typeof SummarySchema>;
 
 // @public
+export function pairedEffect(a: readonly number[], b: readonly number[], seed?: number): Effect;
+
+// @public
 export function parseExperimentResults(value: unknown, file?: string): ExperimentResults;
 
 // @public
@@ -195,6 +211,18 @@ export function parseLabFile<S extends TSchema>(schema: S, value: unknown, what:
 export function parseNoiseFloor(value: unknown, file?: string): NoiseFloor;
 
 // @public
+export function share(hits: number, n: number): {
+    readonly share: number;
+    readonly interval95: readonly [number, number];
+};
+
+// @public
+export function shareWithinNoise(baseline: readonly number[], values: readonly number[], threshold: number): Tolerance;
+
+// @public
+export function summarize(values: readonly number[], seed?: number): NoiseSummary;
+
+// @public
 export const SummarySchema: Type.TObject<{
     n: Type.TInteger;
     mean: Type.TNumber;
@@ -204,6 +232,21 @@ export const SummarySchema: Type.TObject<{
     t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
     bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
 }>;
+
+// @public
+export interface Tolerance {
+    readonly baselineMean: number;
+    readonly difference: number;
+    readonly newMean: number;
+    readonly se: number;
+    readonly within: boolean;
+}
+
+// @public
+export function unpairedEffect(a: readonly number[], b: readonly number[], seed?: number): Effect;
+
+// @public
+export function withinNoise(baseline: readonly number[], values: readonly number[]): Tolerance;
 
 // (No @packageDocumentation comment for this package)
 
