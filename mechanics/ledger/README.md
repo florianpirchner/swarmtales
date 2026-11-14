@@ -37,7 +37,11 @@ through the service `ledger`, so the log explains every balance.
    (`INSUFFICIENT_FUNDS`). The transfer writes `ledger_entry` and then `transfer`; a transfer without a memo is booked
    with the reason `transfer`.
 4. **Status.** Every resident reads its points in the status line of its turn input (`ledger/status/points`).
-5. **Facts and the limit.** The facts `ledger.balances` and `ledger.entries` are the reports' view of the book. The
+5. **An exile.** The ledger listens to the event `exiled` of the mechanic `exile`: the whole balance of the banished
+   resident is burned into `SYSTEM_MINT_BURN` with the reason `exiled <id>` (one `ledger_entry`). A balance of 0 or
+   less writes nothing. Without `exile` in the game the listener never runs. A mechanic that must clear away after
+   the ledger declares its own listener with `after: ["ledger"]`.
+6. **Facts and the limit.** The facts `ledger.balances` and `ledger.entries` are the reports' view of the book. The
    run limit `ledger.zero-sum` ends the run if the balances of all accounts ever stop adding up to 0.
 
 **Balances.** The sum of all balances is always 0: the system account holds the minus of every minted point. A
@@ -45,7 +49,7 @@ resident's transfer and a `move` refuse to overdraw; a `burn` may push an accoun
 
 **Not done here.** No interest and no prices: what points buy is up to other mechanics. Not ported yet: the receipt of
 a transfer (the reply says `receipt none`, although the tool text still promises one), the refusal `DM_LIMIT` for a
-memo over the cap on direct messages, and the burn of a banished resident's balance (a later issue adds the listener).
+memo over the cap on direct messages.
 
 ## Tools
 
@@ -178,3 +182,5 @@ balances after every call, determinism, snapshot round trips, documented options
 the old platform's texts. [`test/ledger-differential.test.ts`](test/ledger-differential.test.ts) books 300 random
 bookings per seed through the book and through the old platform's `PointsLedger`
 ([`test/old-points-ledger.ts`](test/old-points-ledger.ts), carried) and compares entries, errors and snapshots.
+[`test/exile.test.ts`](test/exile.test.ts): the burn after `exile.exiled` in the old shape, nothing for a balance of 0,
+and the order against a second listener that declares `after: ["ledger"]`, listed before and after the ledger.

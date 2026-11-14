@@ -2,12 +2,14 @@
 /**
  * The `ledger` mechanic: double-entry points. Every resident has an account, every change of points is a booking
  * between two accounts (`ledger_entry`), other mechanics book through the service `ledger`, and residents pay each
- * other with `transferPoints`, which writes `ledger_entry` and then `transfer`.
+ * other with `transferPoints`, which writes `ledger_entry` and then `transfer`. It listens to the event `exiled` of
+ * the mechanic `exile` and burns what the banished resident has left.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
 import type { Refusal } from "@swarmtales/contracts";
+import { ExileEvents } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse, reply, RosterService } from "@swarmtales/sdk";
 import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerEntry } from "./book.ts";
 import { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
@@ -85,6 +87,14 @@ export const ledger = defineMechanic(ledgerHead, {
 			},
 		},
 	},
+	listeners: (kit) => [
+		// The points of a banished resident are gone: its whole balance is burned, as the old exile did. Nothing is
+		// booked for a balance of 0 or less.
+		kit.listen(ExileEvents, "exiled", ({ agent }, ctx) => {
+			const balance = balanceOf(ctx.state, agent);
+			if (balance > 0) bookEntry(ctx, agent, SYSTEM_ACCOUNT, balance, `exiled ${agent}`, true);
+		}),
+	],
 	hooks: {
 		runStarted: (ctx) => {
 			if (ctx.options.startPoints <= 0) return;
