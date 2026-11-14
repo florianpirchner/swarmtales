@@ -16,8 +16,9 @@
  * on its own. The opponent waits while one seat thinks: only the seat on move has news.
  *
  * Spike copy (issue 14, DECISIONS.md D1), second variant: the declaring part is written apart
- * (`head({...})`) and spread into the one object, so the helpers take `CtxOf<typeof chessHead>` and
- * no handler needs a return type. The rule code is the original's, unchanged.
+ * (`head({...})`) and the body is a plain object (`mechanicOf(head, body)`), so the helpers take
+ * `CtxOf<typeof chessHead>` and no handler needs a return type; one tool is written apart with
+ * `toolsFor`, as a second file would. The rule code is the original's, unchanged.
  */
 import { Type, type Static } from "typebox";
 import type { Refusal, ToolSuccess, TurnLine } from "@swarmtales/contracts";
@@ -27,7 +28,7 @@ import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import type { Chess } from "chess.js";
 import { adjudicate, colourOf, endOf, EndReason, loosePieces, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "../chess/model.ts";
-import { head, mechanic, type CtxOf, type ToolCtxOf } from "../define.ts";
+import { head, mechanicOf, toolsFor, type CtxOf, type ToolCtxOf } from "../define.ts";
 
 
 const TOOLS = { play: "playMove", resign: "resign" } as const;
@@ -552,8 +553,24 @@ function moverLines(ctx: Ctx, resident: string, chess: Chess): TurnLine[] {
 	return lines;
 }
 
-export const chess = mechanic({
-	...chessHead,
+/** A tool written apart from the mechanic's object (as a second file would), typed by the head. */
+const resignTools = toolsFor(chessHead, {
+	[TOOLS.resign]: {
+		description: "chess/tools/resign",
+		params: Type.Object({ reason: Reason }),
+		for: ["resident"],
+		check: (_params, ctx) => problemWith(ctx, ctx.resident),
+		run: (_params, ctx) => {
+			const refusal = problemWith(ctx, ctx.resident);
+			if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
+			const game = ctx.state.game;
+			endGame(ctx, teamOf(ctx.state, ctx.resident) === ctx.state.white ? "0-1" : "1-0", "resignation", ctx.resident);
+			return reply(`You resigned game ${String(game)}.`, { endsTurn: true });
+		},
+	},
+});
+
+export const chess = mechanicOf(chessHead, {
 	tools: {
 		viewBoard: {
 			description: "chess/tools/viewBoard",
@@ -568,19 +585,7 @@ export const chess = mechanic({
 			check: (_params, ctx) => problemWith(ctx, ctx.resident),
 			run: (params, ctx) => play(ctx, params.move, params.reason),
 		},
-		[TOOLS.resign]: {
-			description: "chess/tools/resign",
-			params: Type.Object({ reason: Reason }),
-			for: ["resident"],
-			check: (_params, ctx) => problemWith(ctx, ctx.resident),
-			run: (_params, ctx) => {
-				const refusal = problemWith(ctx, ctx.resident);
-				if (refusal !== undefined || ctx.resident === undefined) return refusal ?? refuse("NOT_A_SEAT", "You have no seat at this board.");
-				const game = ctx.state.game;
-				endGame(ctx, teamOf(ctx.state, ctx.resident) === ctx.state.white ? "0-1" : "1-0", "resignation", ctx.resident);
-				return reply(`You resigned game ${String(game)}.`, { endsTurn: true });
-			},
-		},
+		...resignTools,
 	},
 	services: {
 		"brain-source": {

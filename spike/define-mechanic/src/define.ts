@@ -224,6 +224,53 @@ export function head<
 	return spec;
 }
 
+/** The shape a head written apart declares. */
+export type ShapeOfHead<H> = H extends { readonly head?: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? Shape<O, S, E, P, R, Pv, U, D> : never;
+
+/** The handler part of the one object: everything that is not the head. */
+export type BodySpec<
+	Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	P extends PromptKeys,
+	R extends readonly ApiDefinition[],
+	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[],
+	D extends DecisionSchemas,
+	TP extends Readonly<Record<string, TSchema>>,
+	F extends Readonly<Record<string, TSchema>>,
+> = Pick<MechanicSpec<Id, O, Snap, C, E, P, R, Pv, U, D, TP, F>, "tools" | "services" | "listeners" | "hooks" | "pipeline" | "facts" | "limits" | "jobs" | "commits" | "turns" | "presentation" | "guard">;
+
+/**
+ * Head and body with one registration site: the head written apart (`head({...})`), the body a
+ * plain object. The same result as `mechanic({ ...head, ...body })`.
+ */
+export function mechanicOf<
+	const Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	const P extends PromptKeys,
+	const R extends readonly ApiDefinition[],
+	const Pv extends readonly ApiDefinition[],
+	const U extends readonly ApiDefinition[],
+	const D extends DecisionSchemas,
+	TP extends Readonly<Record<string, TSchema>> = None,
+	F extends Readonly<Record<string, TSchema>> = None,
+>(declared: HeadSpec<Id, O, Snap, C, E, P, R, Pv, U, D>, body: BodySpec<Id, O, Snap, C, E, P, R, Pv, U, D, TP, F>): OneMechanic<Id, O, StateOf<Snap, C>, E, P, R, Pv, U, D, ToolNameOf<keyof TP>> {
+	return mechanic({ ...declared, ...body });
+}
+
+/**
+ * Tools written in another file than the mechanic, typed by a head written apart; spread into `tools`.
+ */
+export function toolsFor<H, TP extends Readonly<Record<string, TSchema>>>(_declared: H, tools: { readonly [K in keyof TP]: ToolSpec<ShapeOfHead<H>, TP[K]> }): { readonly [K in keyof TP]: ToolSpec<ShapeOfHead<H>, TP[K]> } {
+	return tools;
+}
+
 /** The context of hooks, listeners, jobs and services of a one-object mechanic (or of a head written apart). */
 export type CtxOf<Mech> = Mech extends { readonly head?: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? MechanicContext<Shape<O, S, E, P, R, Pv, U, D>> : never;
 
