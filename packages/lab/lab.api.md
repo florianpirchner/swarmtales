@@ -269,7 +269,13 @@ export type FactValue = number | "absent";
 export class LabError extends SwtError {}
 
 // @public
+export const LOOPHOLE_HEADING = "## Loophole candidates (unverified)";
+
+// @public
 export type MetricTable = Readonly<Record<string, readonly MetricDefinition[]>>;
+
+// @public
+export const NO_LOOPHOLE_PART = "none written: this report has no model-written part";
 
 // @public
 export type NoiseFloor = Static<typeof NoiseFloorSchema>;
@@ -346,6 +352,15 @@ export function readExperimentState(directory: string): ExperimentState | undefi
 
 // @public
 export function readRun(directory: string, metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts;
+
+// @public
+export function renderRunReport(facts: RunFacts, manifest: RunManifest, titles: Readonly<Record<string, {
+    readonly title: string;
+    readonly unit?: string;
+}>>): string;
+
+// @public
+export function renderSeriesReport(results: ExperimentResults, spec: ExperimentSpec): string;
 
 // @public
 export function runExperiment(spec: ExperimentSpec, play: PlayRun, options: ExperimentOptions): Promise<ExperimentState>;

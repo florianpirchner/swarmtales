@@ -17,3 +17,5 @@ export { COMPARE_FIELDS, comparable } from "./experiment/compare.ts";
 export { type PlannedRun, planRuns } from "./experiment/plan.ts";
 export { type ExperimentOptions, type ExperimentState, ExperimentStateSchema, type MetricTable, type PlayRun, readExperimentState, type RunOutcome, type RunRecord, runExperiment } from "./experiment/run.ts";
 export { analyse } from "./experiment/analyse.ts";
+export { LOOPHOLE_HEADING, NO_LOOPHOLE_PART, renderRunReport } from "./report/run-report.ts";
+export { renderSeriesReport } from "./report/series-report.ts";
