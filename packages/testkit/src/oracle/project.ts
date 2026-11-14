@@ -129,3 +129,62 @@ export function projectionDifference(expected: readonly ProjectedEvent[], actual
 	}
 	return undefined;
 }
+
+// The fields of a `call` entry that a projection keeps, in this order: who called with what, and the answer.
+const CALL_FIELDS = ["actor", "params", "ok", "reply", "code", "stage", "detail"] as const;
+
+/**
+ * Projects the tool calls of a timeline with their answers: an oracle's, or the timeline of a run's log
+ * (`timelineOf`). A call reads as an event of the source `call` whose type is the tool.
+ *
+ * @param timeline - The entries, or a part of them.
+ * @param tools - The tools to keep.
+ * @param rewrite - A declared mapping of the answer's texts (`reply`, `detail`), for what a registered change renames or renumbers; none when left out.
+ * @returns The kept calls, in timeline order, each with `actor`, `params`, `ok` and what the answer holds of `reply`, `code`, `stage`, `detail`.
+ *
+ * @public
+ */
+export function projectCalls(timeline: readonly OracleEntry[], tools: readonly string[], rewrite: (text: string) => string = (text) => text): readonly ProjectedEvent[] {
+	return timeline.flatMap((entry) => {
+		if (entry.k !== "call" || !tools.includes(entry.tool)) return [];
+		const call = { ...entry, ...(entry.reply === undefined ? {} : { reply: rewrite(entry.reply) }), ...(entry.detail === undefined ? {} : { detail: rewrite(entry.detail) }) };
+		return [{ source: "call", type: entry.tool, payload: Object.fromEntries(CALL_FIELDS.filter((field) => call[field] !== undefined).map((field) => [field, call[field]])) }];
+	});
+}
+
+/**
+ * Renumbers what a mechanic counts (`txId`, `postSeq`, `number`): every value of the named payload fields is
+ * replaced by its rank of first appearance, from 1, with one count over all named fields. Two projections that
+ * differ only in the numbers other mechanics used up in between are equal afterwards.
+ *
+ * @param events - A projection.
+ * @param fields - The payload fields that hold a counted value.
+ * @returns The projection with ranks, and the rank of every value seen.
+ *
+ * @public
+ */
+export function renumbered(events: readonly ProjectedEvent[], fields: readonly string[]): { readonly events: readonly ProjectedEvent[]; readonly ranks: ReadonlyMap<unknown, number> } {
+	const ranks = new Map<unknown, number>();
+	const rankOf = (value: unknown): number => ranks.get(value) ?? ranks.set(value, ranks.size + 1).size;
+	const ranked = events.map((event) => (Value.Check(Fields, event.payload) ? { ...event, payload: Object.fromEntries(Object.entries(event.payload).map(([key, value]) => [key, fields.includes(key) ? rankOf(value) : value])) } : event));
+	return { events: ranked, ranks };
+}
+
+/**
+ * Counts what a projection leaves out: the events of the named sources in a timeline that are not among the
+ * compared ones, per `source.type`.
+ *
+ * @param timeline - The entries of the oracle.
+ * @param sources - The mechanic ids whose events are counted.
+ * @param compared - The events of the oracle that a proof compares.
+ * @returns `source.type` to the number of events left out; a type that is compared whole is absent.
+ *
+ * @public
+ */
+export function projectionRest(timeline: readonly OracleEntry[], sources: readonly string[], compared: readonly ProjectedEvent[]): Readonly<Record<string, number>> {
+	const rest = new Map<string, number>();
+	const count = (key: string, by: number): unknown => rest.set(key, (rest.get(key) ?? 0) + by);
+	for (const entry of timeline) if (entry.k === "event" && sources.includes(entry.source)) count(`${entry.source}.${entry.type}`, 1);
+	for (const event of compared) count(`${event.source}.${event.type}`, -1);
+	return Object.fromEntries([...rest].filter(([, left]) => left !== 0));
+}

@@ -316,6 +316,9 @@ export interface PlayOptions {
 }
 
 // @public
+export function projectCalls(timeline: readonly OracleEntry[], tools: readonly string[], rewrite?: (text: string) => string): readonly ProjectedEvent[];
+
+// @public
 export interface ProjectedEvent {
     readonly payload: unknown;
     readonly source: string;
@@ -333,6 +336,9 @@ export interface ProjectionDifference {
 export function projectionDifference(expected: readonly ProjectedEvent[], actual: readonly ProjectedEvent[]): ProjectionDifference | undefined;
 
 // @public
+export function projectionRest(timeline: readonly OracleEntry[], sources: readonly string[], compared: readonly ProjectedEvent[]): Readonly<Record<string, number>>;
+
+// @public
 export interface ProjectionSelector {
     readonly fields?: readonly string[];
     readonly source: string;
@@ -347,6 +353,12 @@ export function projectOracle(timeline: readonly OracleEntry[], selectors: reado
 
 // @public
 export function readOracle(path: string): Oracle;
+
+// @public
+export function renumbered(events: readonly ProjectedEvent[], fields: readonly string[]): {
+    readonly events: readonly ProjectedEvent[];
+    readonly ranks: ReadonlyMap<unknown, number>;
+};
 
 // @public
 export function replay(input: ReplayInput): Promise<ReplayResult>;
