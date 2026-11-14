@@ -4,6 +4,47 @@
 
 ```ts
 
+import { InputNote } from '@swarmtales/contracts';
+import { OrderedNote } from '@swarmtales/contracts';
+import { SchedulerDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export function arrange(notes: readonly OrderedNote[], entries: readonly InputEntry[]): readonly InputNote[];
+
+// @public
+export type InputEntry = Static<typeof InputEntrySchema>;
+
+// @public
+export const InputEntrySchema: Type.TUnion<[Type.TObject<{
+    kind: Type.TString;
+    join: Type.TOptional<Type.TString>;
+}>, Type.TObject<{
+    source: Type.TString;
+}>]>;
+
+// @public
+export const turns: SchedulerDefinition<TurnsOptions>;
+
+// @public
+export const TurnsOptions: Type.TObject<{
+    passes: Type.TInteger;
+    blockSize: Type.TInteger;
+    activation: Type.TUnion<[Type.TLiteral<"always">, Type.TLiteral<"onNews">, Type.TLiteral<"toAct">]>;
+    order: Type.TUnion<[Type.TLiteral<"seeded">, Type.TLiteral<"roster">]>;
+    kinds: Type.TArray<Type.TString>;
+    inputs: Type.TArray<Type.TUnion<[Type.TObject<{
+        kind: Type.TString;
+        join: Type.TOptional<Type.TString>;
+    }>, Type.TObject<{
+        source: Type.TString;
+    }>]>>;
+}>;
+
+// @public
+export type TurnsOptions = Static<typeof TurnsOptions>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
