@@ -25,19 +25,25 @@ no held key value in any file.
 ## M3 live smoke of the city slice (2026-11-14, issue M3-30, decision A21)
 
 Code commit `a4e7ea7dd26766bffa4f35d0b8e79cf61263f2b5`, runtime revision 3, model `anthropic/haiku` resolved to
-`claude-haiku-5-5`, thinking medium, pricing `pi-ai@1.4.0`. 2 runs of at most 3, 0.0114 USD by `m3-ledger.jsonl`
-(cap 1.50; 0.40 per run). Each run folder has its own `README.md` (loopholes, problems, solutions).
+`claude-haiku-5-5`, thinking medium, pricing `pi-ai@1.4.0`. 3 runs of at most 3, 0.0206 USD by `m3-ledger.jsonl`
+(cap 1.50; 0.40 per run). Each run folder has its own `README.md` (loopholes, problems, solutions). The third run
+is of code commit `53c35973ad26416d5312bdf8baa62e08785a09d9`: the variant `briefed` of the game (issue M3-33,
+decisions A21 and A26).
 
 | Run | Seed | Flags | Cost (USD) | End | Result |
 |---|---:|---|---:|---|---|
 | `city-slice/smoke/city-slice-001` | 7 | `--snapshot-at 6` | 0.0058 | tick limit (12) | 22 calls, all `readBoard`; no vote, no decision, the Director was not woken |
 | `city-slice/smoke/city-slice-002` | 11 | `--snapshot-at 6 --hand city-slice-002.hand.jsonl` | 0.0056 | tick limit (12) | as 001; the person paused, took a snapshot, resumed; its amendment was refused with `DECISION_CLOSED` |
+| `city-slice/smoke/city-slice-003` | 7 | `--set briefed=true --snapshot-at 6 --hand games/city-slice/hands/amend.jsonl` | 0.0092 | tick limit (12) | 12 posts, the notice of the session arrived, no vote: the residents agreed in public not to vote without evidence; no decision, the Director was not woken; the person's amendment was refused with `DECISION_CLOSED` |
 
-Both folders verify (`swt log verify`), replay equal (`replay` of the testkit), and hold a `REPORT.md` written
+All three folders verify (`swt log verify`), replay equal (`replay` of the testkit), and hold a `REPORT.md` written
 with `--game`; the leak scan found no held key value. No `error` end, no cap reached, no failed request. The smoke
-did not exercise the Director's model port: without a briefing no resident voted (P450). A third run was not
-started, because it would have shown the same. Loopholes: none seen (`city-slice-001` was read line by line).
-Problems: rows P450 to P455 in `docs/LESSONS-LEARNED.md` on `develop`.
+did not exercise the Director's model port: without a briefing no resident acted (P450, runs 001 and 002); with
+the briefing and the court's notice (run 003) the residents posted and then agreed not to vote, so the session
+closed without a verdict again. The Director's live answer, a landed amendment and the exile are untested on the
+live path. Loopholes: none in 001 and 002; one candidate in 003, the public pact of abstention (LH20). The logs of
+`city-slice-001` and `city-slice-003` were read line by line. Problems: rows P450 to P455 and P457 to P460 in
+`docs/LESSONS-LEARNED.md` on `develop`.
 
 ## Loopholes
 
@@ -62,7 +68,7 @@ and found them.
   #734). The `nobrain` arm is "results without a written lesson", not "no memory". Proposed: an arm without the
   line, or corrected README and prompt texts (the owner's go is needed). Built: nothing. Open.
 
-The M3 smoke saw none (its section above).
+The M3 smoke has one candidate, LH20 in `city-slice/smoke/city-slice-003` (its section above).
 
 ## Problems of the M2 gate
 
