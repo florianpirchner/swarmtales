@@ -4,6 +4,96 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const draftRounds: MechanicDefinition<"draft-rounds", Type.TObject<{
+games: Type.TInteger;
+packs: Type.TInteger;
+packSize: Type.TInteger;
+wilds: Type.TInteger;
+majorityBonus: Type.TInteger;
+burnCost: Type.TInteger;
+placeBonus: Type.TArray<Type.TInteger>;
+maxBurns: Type.TInteger;
+openHands: Type.TBoolean;
+deadline: Type.TInteger;
+}>, {
+draft_game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+deck: Type.TArray<Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>>;
+}>;
+draft_pick_opened: Type.TObject<{
+game: Type.TInteger;
+pack: Type.TInteger;
+step: Type.TInteger;
+sizes: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+draft_card_picked: Type.TObject<{
+game: Type.TInteger;
+pack: Type.TInteger;
+step: Type.TInteger;
+resident: Type.TString;
+card: Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>;
+burned: Type.TOptional<Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>>;
+packSize: Type.TInteger;
+gain: Type.TNumber;
+best: Type.TNumber;
+regret: Type.TNumber;
+denied: Type.TBoolean;
+missed: Type.TBoolean;
+returnable: Type.TOptional<Type.TBoolean>;
+}>;
+draft_game_ended: Type.TObject<{
+game: Type.TInteger;
+hands: Type.TRecord<"^.*$", Type.TArray<Type.TObject<{
+id: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>;
+}>>>;
+breakdown: Type.TRecord<"^.*$", Type.TObject<{
+sets: Type.TNumber;
+majorities: Type.TArray<Type.TUnion<[Type.TLiteral<"amber">, Type.TLiteral<"basalt">, Type.TLiteral<"cobalt">, Type.TLiteral<"jade">, Type.TLiteral<"lodestone">]>>;
+bonus: Type.TNumber;
+burns: Type.TInteger;
+place: Type.TInteger;
+placeBonus: Type.TNumber;
+total: Type.TNumber;
+}>>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+draft_game_scored: Type.TObject<{
+game: Type.TInteger;
+reference: Type.TObject<{
+seats: Type.TRecord<"^.*$", Type.TObject<{
+score: Type.TNumber;
+greedy: Type.TNumber;
+regret: Type.TNumber;
+hatePicks: Type.TInteger;
+burns: Type.TInteger;
+missed: Type.TInteger;
+lane: Type.TString;
+focus: Type.TNumber;
+}>>;
+sharedLanes: Type.TInteger;
+efficiency: Type.TNumber;
+}>;
+}>;
+draft_match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, "viewTable" | "pick">;
+
 // (No @packageDocumentation comment for this package)
 
 ```
