@@ -2,4 +2,4 @@
 import { defineConfig } from "tsdown";
 import { libraryConfig } from "../../tsdown.base.ts";
 
-export default defineConfig(libraryConfig);
+export default defineConfig({ ...libraryConfig, entry: ["src/index.ts", "src/rules.ts"] });
