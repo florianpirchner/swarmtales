@@ -8,11 +8,12 @@ import { ChainCheckpoint } from '@swarmtales/chain';
 import { ChainGenesisV2Input } from '@swarmtales/chain';
 import { EventSink } from '@swarmtales/contracts';
 import { KeyObject } from 'node:crypto';
+import { Redact } from '@swarmtales/contracts';
 import { RunManifest } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
 
 // @public
-export function createSink(chain: EventChain, now: () => Date): EventSink;
+export function createSink(chain: EventChain, now: () => Date, redact?: Redact): EventSink;
 
 // @public
 export class EventChain {
@@ -62,6 +63,7 @@ export interface RunFolderOptions {
         readonly privateKey: KeyObject;
     };
     readonly now: () => Date;
+    readonly redact?: Redact;
     readonly resumedFrom?: NonNullable<ChainGenesisV2Input["resumedFrom"]>;
     readonly texts?: Readonly<Record<string, string>>;
 }

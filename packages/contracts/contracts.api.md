@@ -527,6 +527,18 @@ export interface RandomSource {
 }
 
 // @public
+export type Redact = (text: string) => string;
+
+// @public
+export function redactSecrets(text: string): string;
+
+// @public
+export function redactValue<T>(value: T, redact: Redact): T;
+
+// @public
+export function redactWith(first: Redact, second: Redact): Redact;
+
+// @public
 export interface Refusal {
     readonly code: string;
     readonly detail?: string;

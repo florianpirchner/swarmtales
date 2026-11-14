@@ -6,7 +6,7 @@
  * Every hook and every job runs in its own outermost frame, so the listeners of what it emitted have run before
  * the next one is called. Whatever throws in a step ends the run through `fail` and is thrown on.
  */
-import { SwtError, type Job, type RunEnd } from "@swarmtales/contracts";
+import { redactSecrets, SwtError, type Job, type RunEnd } from "@swarmtales/contracts";
 import { guarded, kernelFailed, misfit, sinkThrew } from "./errors.ts";
 import type { Lifecycle, LifecycleParts } from "./parts.ts";
 
@@ -18,10 +18,11 @@ interface Breach {
 
 const SOURCE = "kernel";
 
-// What `run_ended` says about a failure: code and summary of a developer error, else the thrown message.
+// What `run_ended` says about a failure: code and summary of a developer error, else the thrown message; never a
+// secret, because the line is signed as it is written (the redaction port of M2-05 replaces the fixed function).
 function detailOf(error: unknown): string {
-	if (error instanceof SwtError) return error.issues[0] === undefined ? error.message : `${error.issues[0].code}: ${error.issues[0].summary}`;
-	return error instanceof Error ? error.message : String(error);
+	if (error instanceof SwtError) return redactSecrets(error.issues[0] === undefined ? error.message : `${error.issues[0].code}: ${error.issues[0].summary}`);
+	return redactSecrets(error instanceof Error ? error.message : String(error));
 }
 
 class Run implements Lifecycle {

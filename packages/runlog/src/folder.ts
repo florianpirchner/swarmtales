@@ -4,7 +4,7 @@ import type { KeyObject } from "node:crypto";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { type ChainGenesisV2Input, canonicalJson, jsonHash } from "@swarmtales/chain";
-import { type EventSink, type RunManifest, RunManifestSchema, SwtError, type SwtIssue } from "@swarmtales/contracts";
+import { type EventSink, type Redact, redactSecrets, type RunManifest, RunManifestSchema, SwtError, type SwtIssue } from "@swarmtales/contracts";
 import { Check, Errors } from "typebox/value";
 import { EventChain } from "./chain-writer.ts";
 import { createSink } from "./sink.ts";
@@ -28,6 +28,8 @@ export interface RunFolderOptions {
 	readonly resumedFrom?: NonNullable<ChainGenesisV2Input["resumedFrom"]>;
 	/** A fixed key pair instead of a fresh one; for tests only. */
 	readonly keys?: { readonly publicKey: KeyObject; readonly privateKey: KeyObject };
+	/** Takes secrets out of every line of the log, and refuses a manifest, a game or texts it would change; `redactSecrets` when left out. */
+	readonly redact?: Redact;
 }
 
 /** An open run folder. @public */
@@ -81,6 +83,29 @@ function notManifest(mismatch: string): SwtIssue {
 	};
 }
 
+// The path of the first string value that `redact` would change, or undefined when it would change none.
+function secretAt(value: unknown, redact: Redact, path: string): string | undefined {
+	if (typeof value === "string") return redact(value) === value ? undefined : path;
+	if (typeof value !== "object" || value === null) return undefined;
+	for (const [key, item] of Object.entries(value)) {
+		const found = secretAt(item, redact, Array.isArray(value) ? `${path}[${key}]` : path === "" ? key : `${path}.${key}`);
+		if (found !== undefined) return found;
+	}
+	return undefined;
+}
+
+// `SWT-L006` for a file that is written once and would hold a secret; it names the place, never the value.
+function holdsSecret(file: string, path: string, redact: Redact): SwtIssue {
+	const place = redact(path);
+	return {
+		code: "SWT-L006",
+		summary: `${file} would hold a secret at "${place}"; the run folder is not created`,
+		where: { file, path: place },
+		why: "The manifest, the game and the texts of a run folder are written once and named by hash in the signed chain, so a secret in them cannot be taken out later.",
+		fix: "Take the value out of the game's parameters, options or texts; a key comes from the environment only.",
+	};
+}
+
 /**
  * Opens a run folder: writes `manifest.json` (and `game.json`, `texts.json` when given) as canonical JSON, the
  * genesis that names the manifest's hash, and the key, and returns the sink of the log.
@@ -90,6 +115,8 @@ function notManifest(mismatch: string): SwtIssue {
  * @param options - The clock, the files beside the manifest, and a fixed key for tests.
  * @returns The sink and a `close` for a run that stopped without its end.
  * @throws SwtError `SWT-L003` when the manifest does not match `RunManifestSchema`; nothing is written then.
+ * @throws SwtError `SWT-L006` when `redact` would change a string of the manifest, the game or the texts; nothing
+ * is written then.
  * @throws Error of the file system when the folder already holds a manifest: a run folder is written once.
  * @throws CanonicalJsonError when the manifest, the game or the texts hold something that is no JSON value.
  * @example
@@ -102,6 +129,11 @@ function notManifest(mismatch: string): SwtIssue {
 export function openRunFolder(directory: string, manifest: RunManifest, options: RunFolderOptions): RunFolder {
 	const mismatch = manifestMismatch(manifest);
 	if (mismatch !== undefined) throw new SwtError(notManifest(mismatch));
+	const redact = options.redact ?? redactSecrets;
+	for (const [file, value] of [[MANIFEST_FILE, manifest], [GAME_FILE, options.game], [TEXTS_FILE, options.texts]] as const) {
+		const path = secretAt(value, redact, "");
+		if (path !== undefined) throw new SwtError(holdsSecret(file, path, redact));
+	}
 	mkdirSync(directory, { recursive: true });
 	writeFileSync(join(directory, MANIFEST_FILE), `${canonicalJson(manifest)}\n`, { flag: "wx" });
 	if (options.game !== undefined) writeFileSync(join(directory, GAME_FILE), `${canonicalJson(options.game)}\n`);
@@ -109,7 +141,7 @@ export function openRunFolder(directory: string, manifest: RunManifest, options:
 	const genesis: ChainGenesisV2Input = { manifest: jsonHash(manifest), log: manifest.log, ...(options.resumedFrom === undefined ? {} : { resumedFrom: options.resumedFrom }) };
 	const chain = new EventChain(directory, genesis, options.keys === undefined ? {} : { keys: options.keys });
 	return {
-		sink: createSink(chain, options.now),
+		sink: createSink(chain, options.now, redact),
 		close() {
 			chain.close();
 		},

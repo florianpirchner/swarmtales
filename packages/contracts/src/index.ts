@@ -30,3 +30,4 @@ export * from "./kernel/index.ts";
 
 export { GameDefinitionSchema, ResidentIdSchema, type GameData, type PromptLookup } from "./game/index.ts";
 export { closest, formatIssue, SWT_CODE, SwtError, SwtIssueSchema, type SwtIssue } from "./error.ts";
+export { redactSecrets, redactValue, redactWith, type Redact } from "./redact.ts";
