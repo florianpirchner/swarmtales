@@ -22,3 +22,5 @@
  * @public
  */
 export const GAME_FORMAT_VERSION = 1;
+
+export { type RunManifest, RunManifestSchema } from "./run/index.ts";
