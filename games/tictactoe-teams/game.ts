@@ -123,7 +123,7 @@ export function tictactoeGame(options: TicTacToeOptions = {}) {
 		end: { ticks: filled.minutes ?? games * minutesPerGame(size) + 8 },
 		win: { fact: "grid-game.tally" },
 		briefing: briefings({ teams, brainTeams: filled.brain ? (brainTeams ?? Object.keys(TEAMS)) : [], size, line, fixedCaptain }),
-		model: "anthropic/claude-haiku-5-5",
+		model: { id: "anthropic/claude-haiku-5-5", maxOutputTokens: 16000 },
 	});
 }
 

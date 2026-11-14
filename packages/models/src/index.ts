@@ -14,3 +14,6 @@ export { createCostMeter, type CostMeter, type Spend } from "./meter.ts";
 export { act, fail, say, scriptedSource, type Script, type ScriptStep } from "./scripted.ts";
 export { closedModels, createModelSource, limitedStream, type ModelBinding, type ModelSource } from "./source.ts";
 export { asksReset, CONTEXT_RESET_KIND, createResidentSession, isSafeguardRefusal, outcomeText, type ResidentSession, type SessionInput, type StepFrame } from "./driver/session.ts";
+export { createToolsNotice, toolsNotice, type ToolsNotice } from "./driver/notice.ts";
+export { systemPrompt, type PromptFacts } from "./driver/prompt.ts";
+export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";

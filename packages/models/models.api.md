@@ -6,16 +6,20 @@
 
 import { Activation } from '@swarmtales/contracts';
 import { ActorId } from '@swarmtales/contracts';
+import { ActorSpec } from '@swarmtales/contracts';
 import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
 import { DriverResult } from '@swarmtales/contracts';
+import { DriverTable } from '@swarmtales/contracts';
 import { FauxResponseStep } from '@earendil-works/pi-ai';
 import { GameData } from '@swarmtales/contracts';
 import { JsonObject } from '@earendil-works/pi-ai';
+import { Kernel } from '@swarmtales/contracts';
 import { Model } from '@earendil-works/pi-ai';
 import { ModelChoice } from '@swarmtales/contracts';
 import { Models } from '@earendil-works/pi-ai';
 import { MutableModels } from '@earendil-works/pi-ai';
+import { PromptLookup } from '@swarmtales/contracts';
 import { Provider } from '@earendil-works/pi-ai';
 import { RecordSource } from '@swarmtales/contracts';
 import { Redact } from '@swarmtales/contracts';
@@ -65,6 +69,9 @@ export function createCostMeter(capUsd: number): CostMeter;
 export function createKeyBroker(env: Readonly<Record<string, string | undefined>>, variables?: Readonly<Record<string, readonly string[]>>): KeyBroker;
 
 // @public
+export function createModelDrivers(input: ModelDriversInput): ModelDrivers;
+
+// @public
 export function createModelSource(settings: ModelSettings, registry: ProviderRegistry, broker: KeyBroker): ModelSource;
 
 // @public
@@ -72,6 +79,9 @@ export function createProviderRegistry(extra?: readonly ProviderSpec[]): Provide
 
 // @public
 export function createResidentSession(input: SessionInput): ResidentSession;
+
+// @public
+export function createToolsNotice(texts: PromptLookup): ToolsNotice;
 
 // @public
 export function emptyModel(provider: string): SwtIssue;
@@ -120,6 +130,25 @@ export interface ModelBinding {
     readonly model: Model<Api>;
     readonly requestDefaults?: Readonly<Record<string, unknown>>;
     readonly streamFn: StreamFn;
+}
+
+// @public
+export interface ModelDrivers {
+    readonly drivers: DriverTable;
+    fix(): void;
+}
+
+// @public
+export interface ModelDriversInput {
+    readonly actors: readonly ActorSpec[];
+    readonly hash: (text: string) => string;
+    readonly kernel: Kernel;
+    readonly meter: CostMeter;
+    readonly redact: Redact;
+    readonly settings: ModelSettings;
+    readonly source: ModelSource | ((actor: ActorId) => ModelSource);
+    readonly systemPrompts: Readonly<Record<string, string>>;
+    readonly texts: PromptLookup;
 }
 
 // @public
@@ -175,6 +204,13 @@ export interface OpenRouterRouting {
 export function outcomeText(outcome: ToolOutcome): string;
 
 // @public
+export interface PromptFacts {
+    readonly briefing: string;
+    readonly id: string;
+    readonly passes: number;
+}
+
+// @public
 export const PROVIDER_RETRIES = 6;
 
 // @public
@@ -205,6 +241,9 @@ export interface RequestLimits {
     readonly maxOutputTokens: number;
     readonly timeoutMs: number;
 }
+
+// @public
+export const RESIDENT_DRIVER = "@swarmtales/models/resident";
 
 // @public
 export const RESIDENT_RECORDS: RecordSource;
@@ -272,6 +311,9 @@ export interface StepFrame {
 }
 
 // @public
+export function systemPrompt(facts: PromptFacts, texts: PromptLookup): string;
+
+// @public
 export type ThinkingLevel = NonNullable<ModelChoice["thinking"]>;
 
 // @public
@@ -285,6 +327,15 @@ export type ToolChoice = (typeof TOOL_CHOICES)[number];
 
 // @public
 export function toolChoiceDefaults(choice: ToolChoice, api: string): Readonly<Record<string, unknown>>;
+
+// @public
+export interface ToolsNotice {
+    forget(): void;
+    next(open: readonly string[]): readonly string[];
+}
+
+// @public
+export function toolsNotice(tools: readonly string[], texts: PromptLookup): string;
 
 // @public
 export function unknownModel(provider: string, model: string, known: readonly string[]): SwtIssue;
