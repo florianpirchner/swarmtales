@@ -20,6 +20,7 @@ maxBurns: Type.TInteger;
 openHands: Type.TBoolean;
 frozenHands: Type.TOptional<Type.TBoolean>;
 deadline: Type.TInteger;
+showEarlierPoints: Type.TOptional<Type.TBoolean>;
 }>, {
 draft_game_started: Type.TObject<{
 game: Type.TInteger;

@@ -34,7 +34,7 @@ function armsOf(file: string): readonly Readonly<Record<string, unknown>>[] {
 describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the specification", () => {
 		expect(isGameFamily(quarry)).toBe(true);
-		expect(familyParams(quarry).params).toEqual({ games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, frozenHands: false, maxWords: 150 });
+		expect(familyParams(quarry).params).toEqual({ games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, frozenHands: false, maxWords: 150, showResults: true });
 	});
 
 	it("gives the pinned game hash for the default params: the control arm", () => {

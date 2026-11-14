@@ -30,6 +30,8 @@ export interface EconLabOptions {
 	readonly showHorizon?: boolean;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
+	/** A later game shows the results of the earlier games (default on, the old game); false: no briefing and no `viewTable` holds an earlier game's points, so the brain is the only memory (LH19). */
+	readonly showResults?: boolean;
 	/** The seed of the run; 23 when absent. */
 	readonly seed?: number;
 	/** Run length in ticks; default is an upper bound from the rounds (the match ends the run earlier). */
@@ -51,7 +53,7 @@ export const DEFAULT_BLOCKS: readonly Block[] = [
 ];
 
 /** The defaults of the old game. */
-const DEFAULTS = { blocks: DEFAULT_BLOCKS, brain: true, showHorizon: false, maxWords: 150, seed: 23 } as const satisfies EconLabOptions;
+const DEFAULTS = { blocks: DEFAULT_BLOCKS, brain: true, showHorizon: false, maxWords: 150, showResults: true, seed: 23 } as const satisfies EconLabOptions;
 type Filled = EconLabOptions & Required<Omit<EconLabOptions, "ticks">>;
 
 // An upper bound of the ticks: every phase runs to its deadline (a split offer has two), every retro to its timeout.
@@ -60,11 +62,11 @@ function ticksFor(blocks: readonly Block[]): number {
 	return rounds + (blocks.length + 1) * RETRO_TICKS + 4;
 }
 
-// The two mechanics with the options of the old game, in its order.
-function mechanicsOf({ blocks, brain, showHorizon, maxWords }: Filled) {
+// The two mechanics with the options of the old game, in its order. The options of `showResults` are passed only when it is off: the default game keeps its hash.
+function mechanicsOf({ blocks, brain, showHorizon, maxWords, showResults }: Filled) {
 	return [
-		econGames({ blocks: blocks.map((block) => ({ ...block })), showHorizon, deadline: DEADLINE }),
-		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
+		econGames({ blocks: blocks.map((block) => ({ ...block })), showHorizon, deadline: DEADLINE, ...(showResults ? {} : { showEarlierPoints: false }) }),
+		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true, ...(showResults ? {} : { showResults: false }) }),
 	] as const;
 }
 
@@ -118,6 +120,7 @@ const Params = Type.Object(
 		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm of the brain experiment)." }),
 		showHorizon: Type.Boolean({ default: DEFAULTS.showHorizon, description: "Tell the seats how many rounds a game has." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		showResults: Type.Boolean({ default: DEFAULTS.showResults, description: "A later game shows the results of the earlier games; false: none, in the briefing and in viewTable, so the brain is the only memory (the arms of the brain-no-results experiment)." }),
 	},
 	{ description: "The variants of Econ Lab." },
 );

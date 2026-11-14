@@ -115,6 +115,9 @@ export function taskText(ctx: Ctx, resident: string): string | undefined {
 	});
 }
 
+// A seat's points from the games before, as the table shows them; nothing with `showEarlierPoints: false` (LH19).
+const earlierPoints = (ctx: Ctx, resident: string): string[] => (ctx.options.showEarlierPoints === false ? [] : [`Your points from earlier games: ${String(ctx.state.scores[resident] ?? 0)}.`]);
+
 /**
  * The table as `viewTable` shows it to `resident`.
  *
@@ -129,7 +132,7 @@ export function tableText(ctx: Ctx, resident: string | undefined): string {
 	const lines = [`Game ${String(state.game)} of ${String(ctx.options.games)}, pack ${String(state.packRound)} of ${String(ctx.options.packs)}, pick ${String(state.step)}.`, rulesText(ctx)];
 	if (resident !== undefined && state.seats.includes(resident)) {
 		lines.push(taskText(ctx, resident) ?? `Nothing to pick for you right now. Your quarry: ${quarryLine(state.hands[resident] ?? [])}.`);
-		lines.push(`Your points from earlier games: ${String(state.scores[resident] ?? 0)}.`);
+		lines.push(...earlierPoints(ctx, resident));
 	}
 	if (ctx.options.openHands) lines.push(quarriesLine(ctx, resident));
 	return lines.join("\n");

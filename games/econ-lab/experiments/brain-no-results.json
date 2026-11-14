@@ -1,0 +1,104 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "econ-lab-brain-no-results",
+	"question": "Without the results of earlier games, by how much does the strategy brain lower cooperation in the dilemma? Six runs per arm give an estimate with its interval, read beside the -0.771 of the M2 gate and the old -0.40; nothing is gated.",
+	"purpose": "exploratory",
+	"game": "games/econ-lab/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "nobrain",
+			"params": {
+				"brain": false,
+				"showResults": false
+			},
+			"control": true
+		},
+		{
+			"id": "brain",
+			"params": {
+				"showResults": false
+			}
+		}
+	],
+	"seeds": [
+		41,
+		42,
+		43,
+		44,
+		45,
+		46
+	],
+	"replicates": 1,
+	"design": "unpaired",
+	"metrics": {
+		"primary": "econ-games.dilemmaCooperation",
+		"secondary": [
+			"econ-games.dilemmaRound1",
+			"econ-games.fundCooperation",
+			"econ-games.tablePoints",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"per": "econ-games.decisions",
+				"arm": "nobrain",
+				"within": {
+					"of": 1.32,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.requests",
+				"per": "econ-games.decisions",
+				"arm": "brain",
+				"within": {
+					"of": 1.75,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "nobrain",
+				"max": 0.015
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "brain",
+				"max": 0.025
+			},
+			{
+				"metric": "econ-games.missedDecisions",
+				"max": 0
+			}
+		]
+	},
+	"shareAt": 1,
+	"allowedRefusals": [
+		"TOOL_LOCKED",
+		"INVALID_ARGUMENTS",
+		"OUT_OF_RANGE",
+		"BRAIN_TOO_LONG"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.05,
+		"totalUsd": 0.4,
+		"estimateUsdPerRun": {
+			"nobrain": 0.0123,
+			"brain": 0.0207
+		}
+	},
+	"concurrency": 2
+}

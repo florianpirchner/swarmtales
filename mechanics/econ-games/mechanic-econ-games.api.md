@@ -38,6 +38,7 @@ sucker: Type.TNumber;
 }>;
 showHorizon: Type.TBoolean;
 deadline: Type.TInteger;
+showEarlierPoints: Type.TOptional<Type.TBoolean>;
 }>, {
 block_started: Type.TObject<{
 block: Type.TInteger;
@@ -124,6 +125,7 @@ sucker: Type.TNumber;
 }>;
 showHorizon: Type.TBoolean;
 deadline: Type.TInteger;
+showEarlierPoints: Type.TOptional<Type.TBoolean>;
 }>, Type.TObject<{
 seats: Type.TArray<Type.TString>;
 block: Type.TInteger;

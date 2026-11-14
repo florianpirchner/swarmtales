@@ -128,6 +128,7 @@ Audience: everyone
 | `postTool` | string | `"postTeam"` | The team-chat tool whose successful calls count as retro posts. |
 | `retroFocus` | string | `""` | A story's own words added to every retro line: what the brain should hold (Lanterns: the team's conventions, not caution, P195). Empty: none. |
 | `solo` | boolean | `false` | Every team is one resident: the briefings name no team and no side, and a retro window has no team talk. |
+| `showResults` | boolean | unset | false: the briefing of a later game leaves out the results of the earlier games, so a brain is the only thing a briefing carries from game to game (LH19). Shown when absent. |
 
 <!-- /generated:options -->
 

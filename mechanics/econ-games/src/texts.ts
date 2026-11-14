@@ -103,7 +103,7 @@ function ownLines(ctx: Ctx, resident: string): string[] {
 	const past = state.history.map((record) => outcomeLine(record, resident, ctx));
 	return [
 		taskText(ctx, resident) ?? "Nothing to decide for you right now.",
-		`Your points: ${String(points(state.blockScores[resident] ?? 0))} in this game, ${String(points(state.scores[resident] ?? 0))} in all.`,
+		`Your points: ${String(points(state.blockScores[resident] ?? 0))} in this game${ctx.options.showEarlierPoints === false ? "" : `, ${String(points(state.scores[resident] ?? 0))} in all`}.`,
 		past.length === 0 ? "No round of this game is resolved yet." : `Your rounds in this game: ${past.join("; ")}.`,
 	];
 }
@@ -159,7 +159,7 @@ export function tableText(ctx: Ctx, resident: string | undefined): string {
 	const state = ctx.state;
 	if (state.finished) return `The match is over. Points: ${scoreLine(state.scores, state.seats)}.`;
 	const block = blockOf(ctx);
-	if (block === undefined || !state.running) return state.block === 0 ? "The first game has not started yet." : `Game ${String(state.block)} is over; the next one starts soon. Points: ${scoreLine(state.scores, state.seats)}.`;
+	if (block === undefined || !state.running) return state.block === 0 ? "The first game has not started yet." : `Game ${String(state.block)} is over; the next one starts soon.${ctx.options.showEarlierPoints === false ? "" : ` Points: ${scoreLine(state.scores, state.seats)}.`}`;
 	const lines = [`Game ${String(state.block)} of ${String(ctx.options.blocks.length)}: ${LABEL[block.game]}, round ${String(state.round)}.`, rulesText(ctx, block)];
 	if (resident !== undefined && state.seats.includes(resident)) lines.push(...ownLines(ctx, resident));
 	return lines.join("\n");

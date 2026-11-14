@@ -3,7 +3,8 @@
  * The `strategy-brain` mechanic: one short free text per team (or one shared text), carried from game
  * to game in place of the residents' conversation. It is the only cross-game memory of a match:
  * - at a game's start every resident gets a `context-reset` turn line (docs/design/context-reset.md)
- *   with a briefing of the game's number, the sides, the results so far (result only, never moves) and,
+ *   with a briefing of the game's number, the sides, the results so far (result only, never moves; left
+ *   out with `showResults: false`, so that the results are no second memory beside the brain) and,
  *   when the brain is `enabled`, the team's brain. `enabled: false` gives the identical briefing minus
  *   the brain, so the brain is the only difference between two arms;
  * - after each game but the last (and before the first when `brainAtStart`) a retro window holds the
@@ -126,13 +127,19 @@ function problemWith(ctx: Ctx, resident: string | undefined, text: string): Refu
 	return textProblem(ctx, text);
 }
 
+// The second line of a briefing: that no game was played yet, or the results so far; none when `showResults` is false and a game was played (LH19).
+function resultsLine(ctx: Ctx): string[] {
+	if (ctx.state.results.length === 0) return [ctx.prompt("strategy-brain/briefing-none", {})];
+	return ctx.options.showResults === false ? [] : [ctx.prompt("strategy-brain/briefing-results", { results: ctx.state.results.map(resultText).join("; ") })];
+}
+
 function briefing(ctx: Ctx, resident: string): string {
 	const team = teamOf(ctx, resident) ?? "";
 	const first = ctx.state.startingSide;
 	const game = gameOf(ctx);
 	const lines = [
 		ctx.options.solo ? ctx.prompt("strategy-brain/briefing-head-solo", { game }) : ctx.prompt("strategy-brain/briefing-head", { game, team, first }),
-		ctx.state.results.length === 0 ? ctx.prompt("strategy-brain/briefing-none", {}) : ctx.prompt("strategy-brain/briefing-results", { results: ctx.state.results.map(resultText).join("; ") }),
+		...resultsLine(ctx),
 	];
 	if (hasBrain(ctx, team)) {
 		const brain = ctx.state.brains.get(keyOf(ctx, team));

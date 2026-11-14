@@ -31,10 +31,12 @@ describe("carried byte for byte", () => {
 
 	it("has the tool names, the options, the events and the audiences of the old platform", () => {
 		expect(sha256(JSON.stringify(draftRounds.head.tools.map((tool) => tool.name)))).toBe("5a11844e8658b1853517e4e3387a87f5165d8af4fba4399121fa3703b92eb6f9");
-		// `frozenHands` came after the port (lesson LH18): optional and without a default, so the options of a game that leaves it out are the old ones.
-		const { frozenHands, ...carried } = draftRounds.options.properties;
-		expect(frozenHands).toMatchObject({ type: "boolean" });
-		expect(frozenHands).not.toHaveProperty("default");
+		// `frozenHands` (lesson LH18) and `showEarlierPoints` (M2-29, the cure of LH19) came after the port: optional and without a default, so the options of a game that leaves them out are the old ones.
+		const { frozenHands, showEarlierPoints, ...carried } = draftRounds.options.properties;
+		for (const added of [frozenHands, showEarlierPoints]) {
+			expect(added).toMatchObject({ type: "boolean" });
+			expect(added).not.toHaveProperty("default");
+		}
 		expect(sha256(JSON.stringify({ ...draftRounds.options, properties: carried }))).toBe("066ea439078b2d4b27fa59e5faa7c0afcb1d0bf5a50e502406b6813bd5d54533");
 		expect(sha256(JSON.stringify(draftRounds.events))).toBe("a091fdca9dbe6391f4e79d351b23761845e394850ed316cf541e800ff7473a0d");
 		expect(sha256(JSON.stringify(draftRounds.head.audiences))).toBe("7aa195f38976aa3a25301c0bfebd4a72cf15a99ae3358966a45eb77084fa8cd8");

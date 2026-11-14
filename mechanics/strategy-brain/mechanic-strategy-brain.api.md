@@ -21,6 +21,7 @@ brainAtStart: Type.TBoolean;
 postTool: Type.TString;
 retroFocus: Type.TString;
 solo: Type.TBoolean;
+showResults: Type.TOptional<Type.TBoolean>;
 }>, {
 brain_written: Type.TObject<{
 team: Type.TString;

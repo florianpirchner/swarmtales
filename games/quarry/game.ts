@@ -42,6 +42,8 @@ export interface QuarryOptions {
 	readonly frozenHands?: boolean;
 	/** Words a brain may have. */
 	readonly maxWords?: number;
+	/** A later game shows the results of the earlier games (default on, the old game); false: no briefing and no `viewTable` holds an earlier game's points or quarries, so the brain is the only memory (LH19). */
+	readonly showResults?: boolean;
 	/** The seed of the run; 29 when absent. */
 	readonly seed?: number;
 	/** Run length in ticks; default is an upper bound from the picks (the match ends the run earlier). */
@@ -51,18 +53,18 @@ export interface QuarryOptions {
 const DEADLINE = 2;
 const RETRO_TICKS = 2;
 /** The defaults of the old game. */
-const DEFAULTS = { games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, frozenHands: false, maxWords: 150, seed: 29 } as const satisfies QuarryOptions;
+const DEFAULTS = { games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, frozenHands: false, maxWords: 150, showResults: true, seed: 29 } as const satisfies QuarryOptions;
 type Filled = QuarryOptions & Required<Omit<QuarryOptions, "ticks">>;
 
 // An upper bound of the ticks: every pick runs to its deadline, every retro to its timeout.
 const ticksFor = ({ games, packs, packSize }: Filled): number => games * packs * packSize * DEADLINE + (games + 1) * RETRO_TICKS + 4;
 
 // The two mechanics with the options of the old game, in its order.
-// `frozenHands` is passed only when it is on: left out, the options and the hash of the game are those of the old game.
-function mechanicsOf({ games, packs, packSize, brain, burns, openHands, frozenHands, maxWords }: Filled) {
+// `frozenHands` is passed only when it is on and the options of `showResults` only when it is off: left out, the options and the hash of the game are those of the old game.
+function mechanicsOf({ games, packs, packSize, brain, burns, openHands, frozenHands, maxWords, showResults }: Filled) {
 	return [
-		draftRounds({ games, packs, packSize, openHands, deadline: DEADLINE, ...(burns ? {} : { maxBurns: 0 }), ...(frozenHands ? { frozenHands: true } : {}) }),
-		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true }),
+		draftRounds({ games, packs, packSize, openHands, deadline: DEADLINE, ...(burns ? {} : { maxBurns: 0 }), ...(frozenHands ? { frozenHands: true } : {}), ...(showResults ? {} : { showEarlierPoints: false }) }),
+		strategyBrain({ enabled: brain, solo: true, maxWords, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: RETRO_TICKS, shared: false, brainAtStart: true, ...(showResults ? {} : { showResults: false }) }),
 	] as const;
 }
 
@@ -113,6 +115,7 @@ const Params = Type.Object(
 		openHands: Type.Boolean({ default: DEFAULTS.openHands, description: "Every seat sees every quarry during the game: the treatment arm of the open-quarries experiment." }),
 		frozenHands: Type.Boolean({ default: DEFAULTS.frozenHands, description: "With openHands: the quarries a seat is shown are those at the start of the running pick, so no seat sees a pick of the same step: the treatment arm of the open-quarries-frozen experiment (lesson LH18)." }),
 		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+		showResults: Type.Boolean({ default: DEFAULTS.showResults, description: "A later game shows the results of the earlier games; false: none, in the briefing and in viewTable, so the brain is the only memory." }),
 	},
 	{ description: "The variants of Quarry." },
 );

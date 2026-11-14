@@ -30,7 +30,7 @@ function armsOf(file: string): readonly Readonly<Record<string, unknown>>[] {
 describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the specification", () => {
 		expect(isGameFamily(econLab)).toBe(true);
-		expect(familyParams(econLab).params).toEqual({ blocks: [{ game: "ultimatum", rounds: 6 }, { game: "public-goods", rounds: 7 }, { game: "dilemma", rounds: 5 }], brain: true, showHorizon: false, maxWords: 150 });
+		expect(familyParams(econLab).params).toEqual({ blocks: [{ game: "ultimatum", rounds: 6 }, { game: "public-goods", rounds: 7 }, { game: "dilemma", rounds: 5 }], brain: true, showHorizon: false, maxWords: 150, showResults: true });
 	});
 
 	it("gives the pinned game hash for the default params: the treatment arm", () => {
@@ -46,6 +46,7 @@ describe("the game family", () => {
 	it("takes every arm of the committed experiment specs, and refuses a param it does not have", () => {
 		const arms = readdirSync(EXPERIMENTS).flatMap(armsOf);
 		expect(arms).toContainEqual({ brain: false });
+		expect(arms).toContainEqual({ brain: false, showResults: false });
 		expect(arms.flatMap((params) => familyParams(econLab, params).issues)).toEqual([]);
 		expect(familyParams(econLab, { seed: 31 }).issues.map((issue) => issue.code)).toEqual(["SWT-G041"]);
 		expect(familyParams(econLab, { brain: "no" }).issues.map((issue) => issue.code)).toEqual(["SWT-G041"]);

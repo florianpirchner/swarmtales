@@ -181,6 +181,7 @@ Audience: everyone
 | `openHands` | boolean | `false` | Every seat sees every quarry during the game (off: only at the game's end). |
 | `frozenHands` | boolean | unset | With openHands: true shows every other seat's quarry as it was when the running pick opened, so no seat sees a pick of the same step, whatever the order the seats are asked in (the cure of lesson LH18). Left out or false: the quarries are the live state, and a seat asked later sees what the seats before it kept in this pick. |
 | `deadline` | integer ≥ 1 | `2` | Minutes a pick stays open before a missing pick takes the first card of the pack. |
+| `showEarlierPoints` | boolean | unset | false: `viewTable` leaves out a seat's points from earlier games, so that it carries no points of an earlier game into the next (LH19). Shown when absent. |
 
 <!-- /generated:options -->
 

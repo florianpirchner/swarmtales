@@ -15,8 +15,8 @@ The table is written by hand for now; the plan is to generate it from the regist
 |---|---|---|---|---|---|
 | [Hello Game](#hello-game) | none (sample 1 of the README) | 2 | `grid-game` | none | its test plays it with the sampled player and with `swt run --fake`, and verifies the log |
 | [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
-| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with seven params | six oracle files match at level 3 |
-| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with four params | five oracle files match at level 3 |
+| [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with nine params | six oracle files match at level 3 |
+| [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with five params | five oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
@@ -58,7 +58,8 @@ four greedy seats on the same deal, for the report only.
 
 - Params of the game family: `games`, `packs`, `packSize`, `brain`, `burns` (a seat may destroy a card of the pack
   it passes on), `openHands` (every seat sees every quarry), `frozenHands` (with it: as they were when the pick
-  opened), `maxWords`. The defaults give the game of the old platform.
+  opened), `maxWords`, `showResults` (false: a later game shows nothing of the earlier ones). The defaults give the
+  game of the old platform.
 - Proof: the six oracle files match at level 3, one of them up to its cut; the briefings are byte-identical.
 - Links: [folder](games/quarry/), [README](games/quarry/README.md), [oracle files](oracles/quarry/),
   [experiment specifications](games/quarry/experiments/).
@@ -73,8 +74,8 @@ fresh context; a seat's only memory is a short private strategy brain. The mecha
 play and the social optimum, for the report only.
 
 - Params of the game family: `blocks` (the games of the match in order, each with its rounds), `brain`,
-  `showHorizon` (the seats are told how many rounds a game has), `maxWords`. The defaults give the game of the old
-  platform.
+  `showHorizon` (the seats are told how many rounds a game has), `maxWords`, `showResults` (false: a later game
+  shows nothing of the earlier ones). The defaults give the game of the old platform.
 - Proof: the five oracle files match at level 3, three of them replays of a live run of the old platform; the
   briefings are byte-identical.
 - Links: [folder](games/econ-lab/), [README](games/econ-lab/README.md), [oracle files](oracles/econ-lab/),

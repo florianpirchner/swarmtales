@@ -43,7 +43,10 @@ describe("carried byte for byte", () => {
 	it("has the tool names, the tool parameters, the options, the events and the audiences of the old platform", () => {
 		expect(sha256(JSON.stringify(econGames.head.tools.map((tool) => tool.name)))).toBe("7adb8c10754299f9175d7185c6b084cf0b7a0e092ec3537c14aad09bcaafac45");
 		expect(sha256(JSON.stringify(econGames.head.tools.map((tool) => [tool.name, tool.description, tool.parameters, tool.for])))).toBe("8061a68101402b7b335610f8d097d322544ad88fe308aef008cb960fad45d9ca");
-		expect(sha256(JSON.stringify(econGames.options))).toBe("088c380af59e1251080f69b5bc5289b84fb6be718ba789a0b8d5e084884c8b3b");
+		// `showEarlierPoints` is new on this platform (M2-29, the cure of LH19) and optional: without it the schema is the old one.
+		const { showEarlierPoints: added, ...carried } = econGames.options.properties;
+		expect(added).toMatchObject({ type: "boolean" });
+		expect(sha256(JSON.stringify({ ...econGames.options, properties: carried }))).toBe("088c380af59e1251080f69b5bc5289b84fb6be718ba789a0b8d5e084884c8b3b");
 		expect(sha256(JSON.stringify(econGames.events))).toBe("0158021665b2c5ad7e30ba5e521aa43b97e6ecd657c1ce89dd71ddb1fd177a94");
 		expect(econGames.head.audiences).toEqual({ decision_made: ["human"], block_scored: ["human"] });
 		expect([econGames.id, econGames.head.summary]).toEqual(["econ-games", "Public goods, ultimatum and an A-or-B dilemma in rounds for solo seats: sealed decisions, payoffs, a match of games."]);

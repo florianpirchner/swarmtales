@@ -229,6 +229,7 @@ Audience: everyone
 | `dilemma.sucker` | number | required | The A player's points against a B player. |
 | `showHorizon` | boolean | `false` | Tell the seats how many rounds a game has (off: unknown horizon, against end-game defection). |
 | `deadline` | integer ≥ 1 | `2` | Minutes a phase stays open before missing decisions take the default. |
+| `showEarlierPoints` | boolean | unset | false: `viewTable` shows a seat its points of the running game only, and no points between two games, so that it carries no points of an earlier game into the next (LH19). Shown when absent. |
 
 <!-- /generated:options -->
 

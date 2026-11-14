@@ -49,8 +49,8 @@ const METRICS = new Set([
 ]);
 
 describe("the committed plan", () => {
-	it("has the four specs of the gate and the series of decision A29, and each one parses", () => {
-		expect([...specs.keys()].sort()).toEqual([BRAIN, "games/econ-lab/experiments/noise-floor.json", "games/quarry/experiments/noise-floor.json", FROZEN, OPEN]);
+	it("has the four specs of the gate and the two series of decision A29, and each one parses", () => {
+		expect([...specs.keys()].sort()).toEqual(["games/econ-lab/experiments/brain-no-results.json", BRAIN, "games/econ-lab/experiments/noise-floor.json", "games/quarry/experiments/noise-floor.json", FROZEN, OPEN]);
 	});
 
 	it("A29: the frozen series is the gate's quarry series in small, with the open arm frozen and no pass rule", () => {
@@ -87,7 +87,7 @@ describe("the committed plan", () => {
 		expect(spec(BRAIN).arms).toEqual([{ id: "nobrain", params: { brain: false }, control: true }, { id: "brain", params: {} }]);
 		const estimate = ({ arms, seeds, replicates, budget }: lab.ExperimentSpec): string => (arms.reduce((sum, arm) => sum + (budget.estimateUsdPerRun[arm.id] ?? Number.NaN), 0) * seeds.length * replicates).toFixed(2);
 		expect(SPEC_FILES.map((file) => [spec(file).id, estimate(spec(file)), spec(file).budget.totalUsd, spec(file).budget.perRunUsd, spec(file).concurrency])).toEqual([
-			["econ-lab-brain", "0.40", 0.75, 0.05, 2], ["econ-lab-noise-floor", "0.06", 0.25, 0.05, 2], ["quarry-noise-floor", "0.17", 0.5, 0.1, 2], ["quarry-open-quarries-frozen", "0.46", 0.6, 0.1, 2], ["quarry-open-quarries", "0.91", 1.5, 0.1, 2],
+			["econ-lab-brain-no-results", "0.20", 0.4, 0.05, 2], ["econ-lab-brain", "0.40", 0.75, 0.05, 2], ["econ-lab-noise-floor", "0.06", 0.25, 0.05, 2], ["quarry-noise-floor", "0.17", 0.5, 0.1, 2], ["quarry-open-quarries-frozen", "0.46", 0.6, 0.1, 2], ["quarry-open-quarries", "0.91", 1.5, 0.1, 2],
 		]);
 		const ledger = readFileSync(join(ROOT, "games/m2-ledger.jsonl"), "utf8").split("\n");
 		expect(JSON.parse(ledger[0] ?? "")).toEqual({ capUsd: 4 });

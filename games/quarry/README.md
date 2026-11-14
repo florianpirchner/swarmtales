@@ -65,6 +65,21 @@ reports an estimate with its interval, to be read beside the gate's +84.5 (stand
 line), and it gates nothing. Six pairs give a standard error of about 30 points, so the series can show whether the
 effect stays clearly positive, not how much of the +84.5 was the move order. It has not been run yet.
 
+## Without the results of earlier games (`showResults: false`)
+
+The brain is not the only memory of the default game. Every game after the first starts with a line "Results so
+far" that gives the points and the final quarries of all four seats for each earlier game, with and without a
+brain, and `viewTable` gives a seat its "points from earlier games" (lesson LH19 of
+[`docs/LESSONS-LEARNED.md`](../../docs/LESSONS-LEARNED.md)).
+
+The option `showResults` (default `true`: the game of the old platform, with the same game hash, logs and oracle
+files byte for byte) cures it when set to `false` (decision A29): a seat is then shown nothing of an earlier game
+once the next one has started, also not its own points. The briefing of a later game has no "Results so far" line
+(game 1 still says "No game has been played yet."), and `viewTable` leaves out the points from earlier games. The
+retro after a game still names that game's result, in the context of the game that just ended, so a seat with a
+brain can write it down. The option sets `showResults` of the mechanic `strategy-brain` and `showEarlierPoints` of
+`draft-rounds`; `test/no-results.test.ts` proves it. No series of Quarry uses it yet.
+
 ## Runs
 
 The runs of the old platform are readable at the tag

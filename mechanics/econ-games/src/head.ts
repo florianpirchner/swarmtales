@@ -25,6 +25,7 @@ const options = Type.Object({
 	dilemma: Type.Object(DilemmaPayoffs.properties, { default: { bothA: 3, bothB: 1, temptation: 5, sucker: 0 }, description: "The payoff table of the A-or-B game (a dilemma when temptation > bothA > bothB > sucker and 2 bothA > temptation + sucker)." }),
 	showHorizon: Type.Boolean({ default: false, description: "Tell the seats how many rounds a game has (off: unknown horizon, against end-game defection)." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a phase stays open before missing decisions take the default." }),
+	showEarlierPoints: Type.Optional(Type.Boolean({ description: "false: `viewTable` shows a seat its points of the running game only, and no points between two games, so that it carries no points of an earlier game into the next (LH19). Shown when absent." })),
 });
 
 const copyHistory = (history: readonly RoundRecord[]): RoundRecord[] => history.map((record) => ({ ...record, outcomes: record.outcomes.map((outcome) => ({ ...outcome })) }));
