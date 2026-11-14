@@ -12,7 +12,17 @@ Prompt file loader and lookup (layer L2, see [`docs/LAYERS.md`](../../docs/LAYER
   (`unknown-tool`, `not-granted`, `locked`, `steps`), byte-identical to the old platform; `test/carried.test.ts`
   pins their sha256.
 
-A fault is a `PromptError` whose message names the file and what is wrong with it.
+A fault is a `PromptError`, an `SwtError` with one issue whose summary names the file and what is wrong with it.
+The package builds its codes itself (it may not import the sdk's catalogue):
+
+| Code | Raised when |
+|---|---|
+| `SWT-P010` | no folder has a file for the prompt |
+| `SWT-P011` | the frontmatter of a file is missing or malformed |
+| `SWT-P012` | a file states another id than the one it was found under |
+| `SWT-P013` | a file and the owner of the prompt declare different variables |
+| `SWT-P014` | a prompt is rendered with a missing, an unknown or an undeclared variable |
+| `SWT-P015` | no directory above the package holds `library/prompts/` |
 
 Carried from `packages/prompts` of the old platform (tag `v0-final`): `file.ts`, `lookup.ts` and the folder
 functions of `library.ts`, with their tests. The typed registry of prompt ids (`registry.ts`, `keys/`), the

@@ -151,7 +151,7 @@ export const RunManifestSchema = Type.Object(
 		plugins: Type.Array(Plugin, { description: "The plugins of the run, in load order" }),
 		actors: Type.Array(Actor, { description: "The actors of the run" }),
 		texts: Type.Record(Type.String(), hash("The sha256 of one text"), { description: "The hash of every plugin text and kernel reply, by key" }),
-		seed: Type.Integer({ minimum: 0, description: "The seed of the world: deals, order and lots follow from it" }),
+		seed: Type.Integer({ minimum: 0, maximum: 4294967295, description: "The seed of the world, a 32-bit number: deals, order and lots follow from it" }),
 		replicate: Type.Integer({ minimum: 0, description: "The index of the repetition: same seed, other sampling" }),
 		limits: Limits,
 		naming: Type.Literal(1, { description: "The version of the naming rules for ids and event types" }),

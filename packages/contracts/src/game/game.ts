@@ -52,7 +52,7 @@ export const GameDefinitionSchema = Type.Object(
 		schema: Type.Literal(1, text("The version of the game definition format")),
 		id: Type.String({ pattern: "^[a-z][a-z0-9-]*$", description: "The id of the game" }),
 		title: Type.Optional(Type.String(text("The title shown to people"))),
-		seed: Type.Optional(Type.Integer({ minimum: 0, description: "The seed of everything random; 1 when absent, and `--seed` wins" })),
+		seed: Type.Optional(Type.Integer({ minimum: 0, maximum: 4294967295, description: "The seed of everything random, a 32-bit number (a larger one would play as its remainder); 1 when absent, and `--seed` wins" })),
 		residents: Type.Union([Type.Integer({ minimum: 1, description: "A count; it gives the ids A01, A02, ..." }), Type.Array(ResidentIdSchema, { minItems: 1, description: "The ids of the residents" })], text("The residents that play")),
 		teams: Type.Optional(Type.Record(Type.String(text("The name of a team")), members("team"), text("The teams, by name"))),
 		roles: Type.Optional(Type.Record(Type.String(text("The name of a role")), members("role"), text("The roles, by name"))),

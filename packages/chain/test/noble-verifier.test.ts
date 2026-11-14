@@ -78,10 +78,10 @@ describe("the noble verifier against the Node signer", () => {
 
 		const edited = lines(events);
 		edited[2] = (edited[2] ?? "").replace("door", "doer");
-		expect(verifyChainText(joined(edited), chain, key)).toEqual({ ok: false, line: 3, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
+		expect(verifyChainText(joined(edited), chain, key)).toEqual({ ok: false, kind: "chain", line: 3, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
 
 		const removed = lines(events).filter((_, index) => index !== 1);
-		expect(verifyChainText(joined(removed), chain, key)).toEqual({ ok: false, line: 2, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
+		expect(verifyChainText(joined(removed), chain, key)).toEqual({ ok: false, kind: "chain", line: 2, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
 
 		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
 		const wrongKey = verifyChainText(events, chain, other);
@@ -91,7 +91,7 @@ describe("the noble verifier against the Node signer", () => {
 		const forged = lines(chain);
 		const last = forged.at(-1) ?? "";
 		forged[forged.length - 1] = last.replace(/"signature":"(.)/, (_, first: string) => `"signature":"${first === "A" ? "B" : "A"}`);
-		expect(verifyChainText(events, joined(forged), key)).toEqual({ ok: false, line: 4, reason: `${CHAIN_FILE} line 7: the head's signature does not verify` });
+		expect(verifyChainText(events, joined(forged), key)).toEqual({ ok: false, kind: "signature", line: 4, reason: `${CHAIN_FILE} line 7: the head's signature does not verify` });
 	});
 
 	it("is stricter than node:crypto where that is safer: small-order keys, non-canonical base64, junk keys", () => {

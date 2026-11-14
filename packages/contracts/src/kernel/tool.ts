@@ -40,9 +40,9 @@ export const TOOL_NAME_PATTERN = "^[a-zA-Z0-9_-]{1,64}$";
 export interface Refusal {
 	/** Always false. */
 	readonly ok: false;
-	/** The refusal code; callers read it. */
+	/** The refusal code, for example `TOOL_LOCKED` or a code of the refusing plugin; callers read it, so it never changes. */
 	readonly code: string;
-	/** The text for the caller. */
+	/** The text for the caller: why, and what to do instead. A kernel code takes it from `KernelDefinition.replies`. */
 	readonly detail?: string;
 }
 
@@ -77,13 +77,13 @@ export interface ToolCall {
 	readonly tool: CanonicalTool;
 	/** The bare name as the plugin declared it. */
 	readonly name: string;
-	/** The name the caller used. */
+	/** The name the caller used: the shown name, which a game may set apart from the bare name. */
 	readonly as: string;
 	/** The id of the plugin that owns the tool. */
 	readonly owner: string;
 	/** Who calls. */
 	readonly actor: ActorId;
-	/** The arguments. */
+	/** The arguments: as the caller sent them at `lock`, converted and checked (the `params` of the prepared call) at `rule` and `after`. */
 	readonly params: unknown;
 	/** The seq of the call's `tool_called` event. */
 	readonly seq: number;
@@ -116,7 +116,8 @@ export interface ToolSpec {
 }
 
 /**
- * A tool bound to one checked call.
+ * A tool bound to one checked call: what `KernelTool.prepare` returns. The kernel calls `rule`, then the plugins'
+ * `rule` handlers, then `execute`, each as its own step.
  *
  * @public
  */

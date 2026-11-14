@@ -117,6 +117,12 @@ describe("RunManifestSchema", () => {
 		expect(check({ ...sample(), replicate: -1 })).toBe(false);
 	});
 
+	it("refuses a seed that is no 32-bit number: the generator would play it as another seed", () => {
+		expect(check({ ...sample(), seed: 4294967295 })).toBe(true);
+		expect(check({ ...sample(), seed: 4294967296 })).toBe(false);
+		expect(check({ ...sample(), seed: 1e21 })).toBe(false);
+	});
+
 	it("wants every sampling field of a model as a number or `provider-default`, never absent", () => {
 		const withParams = (params: unknown): unknown => ({ ...full(), actors: full().actors.map((actor) => ({ ...actor, model: { ...actor.model, params } })) });
 		expect(check(withParams({ temperature: "provider-default", topP: 1, maxOutputTokens: "provider-default", thinking: "off" }))).toBe(true);

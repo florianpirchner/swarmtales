@@ -92,7 +92,7 @@ describe("the signed event log", () => {
 		const { directory } = playRun();
 		const events = lines(directory, EVENTS_FILE);
 		events[2] = (events[2] ?? "").replace("Who holds the key?", "I hold the key.");
-		expect(verifyWith(directory, { events })).toEqual({ ok: false, line: 3, reason: matching(/does not match the chain/) });
+		expect(verifyWith(directory, { events })).toEqual({ ok: false, kind: "chain", line: 3, reason: matching(/does not match the chain/) });
 		// Whitespace and key order are not changes: the chain hashes the canonical JSON.
 		const reordered = lines(directory, EVENTS_FILE);
 		const parsed: unknown = JSON.parse(reordered[1] ?? "");
@@ -108,7 +108,7 @@ describe("the signed event log", () => {
 		const swapped = [...events];
 		[swapped[1], swapped[2]] = [events[2] ?? "", events[1] ?? ""];
 		expect(verifyWith(directory, { events: swapped })).toMatchObject({ ok: false, line: 2 });
-		expect(verifyWith(directory, { events: [...events.slice(0, 4), "not json", ...events.slice(5)] })).toEqual({ ok: false, line: 5, reason: "not a JSON line" });
+		expect(verifyWith(directory, { events: [...events.slice(0, 4), "not json", ...events.slice(5)] })).toEqual({ ok: false, kind: "chain", line: 5, reason: "not a JSON line" });
 	});
 
 	it("chains each hash on the one before, so lines cannot be moved together with their chain entries", () => {
@@ -126,13 +126,13 @@ describe("the signed event log", () => {
 		const { directory } = playRun();
 		const events = lines(directory, EVENTS_FILE);
 		const chain = lines(directory, CHAIN_FILE);
-		expect(verifyWith(directory, { events: events.slice(0, 4) })).toEqual({ ok: false, line: 5, reason: matching(/missing from events\.jsonl/) });
+		expect(verifyWith(directory, { events: events.slice(0, 4) })).toEqual({ ok: false, kind: "chain", line: 5, reason: matching(/missing from events\.jsonl/) });
 		// Both cut, the head with them: nothing signs the lines left.
-		expect(verifyWith(directory, { events: events.slice(0, 4), chain: chain.slice(0, 5) })).toEqual({ ok: false, line: 1, reason: matching(/lines 1-4 are not covered by a signed head/) });
+		expect(verifyWith(directory, { events: events.slice(0, 4), chain: chain.slice(0, 5) })).toEqual({ ok: false, kind: "unsigned", line: 1, reason: matching(/lines 1-4 are not covered by a signed head/) });
 		// Only the head gone.
 		expect(verifyWith(directory, { chain: chain.slice(0, -1) })).toMatchObject({ ok: false, line: 1 });
 		// A line appended to the log after the chain ended.
-		expect(verifyWith(directory, { events: [...events, events[1] ?? ""] })).toEqual({ ok: false, line: 8, reason: matching(/not in the chain/) });
+		expect(verifyWith(directory, { events: [...events, events[1] ?? ""] })).toEqual({ ok: false, kind: "chain", line: 8, reason: matching(/not in the chain/) });
 		// A chain entry dropped in the middle.
 		expect(verifyWith(directory, { chain: chain.filter((_, index) => index !== 2) })).toMatchObject({ ok: false, line: 2 });
 	});
@@ -140,16 +140,16 @@ describe("the signed event log", () => {
 	it("refuses a wrong key, a forged head and a rewritten genesis", () => {
 		const { directory } = playRun();
 		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
-		expect(verifyWith(directory, { key: other })).toEqual({ ok: false, reason: matching(/not made with this key/) });
-		expect(verifyWith(directory, { key: "not a key" })).toEqual({ ok: false, reason: matching(/not an Ed25519 public key/) });
+		expect(verifyWith(directory, { key: other })).toEqual({ ok: false, kind: "signature", reason: matching(/not made with this key/) });
+		expect(verifyWith(directory, { key: "not a key" })).toEqual({ ok: false, kind: "signature", reason: matching(/not an Ed25519 public key/) });
 		const chain = lines(directory, CHAIN_FILE);
 		const head: unknown = JSON.parse(chain.at(-1) ?? "");
 		const signature = typeof head === "object" && head !== null ? String(Reflect.get(head, "signature")) : "";
 		const forged = Buffer.from(signature, "base64");
 		forged[0] = (forged[0] ?? 0) ^ 1;
-		expect(verifyWith(directory, { chain: [...chain.slice(0, -1), (chain.at(-1) ?? "").replace(signature, forged.toString("base64"))] })).toEqual({ ok: false, line: 7, reason: matching(/signature does not verify/) });
+		expect(verifyWith(directory, { chain: [...chain.slice(0, -1), (chain.at(-1) ?? "").replace(signature, forged.toString("base64"))] })).toEqual({ ok: false, kind: "signature", line: 7, reason: matching(/signature does not verify/) });
 		// A changed seed in the genesis breaks its hash.
-		expect(verifyWith(directory, { chain: [(chain[0] ?? "").replace('"seed":7', '"seed":8'), ...chain.slice(1)] })).toEqual({ ok: false, reason: matching(/genesis entry's hash/) });
+		expect(verifyWith(directory, { chain: [(chain[0] ?? "").replace('"seed":7', '"seed":8'), ...chain.slice(1)] })).toEqual({ ok: false, kind: "chain", reason: matching(/genesis entry's hash/) });
 		// The whole chain made again under a fresh key holds against that key, never against the run's (the stated limit).
 		const resigned = playRun();
 		expect(verifyWith(directory, { chain: lines(resigned.directory, CHAIN_FILE), key: read(directory, PUBLIC_KEY_FILE) })).toMatchObject({ ok: false });
@@ -171,7 +171,7 @@ describe("the signed event log", () => {
 		const other = playRun({ chain: { keys }, texts: ["Hello", "Who holds the key?", "I do."] });
 		const foreignHead = lines(other.directory, CHAIN_FILE).at(-1) ?? "";
 		expect(foreignHead).toMatch(/"kind":"head","seq":7/);
-		expect(verifyWith(one.directory, { chain: [...lines(one.directory, CHAIN_FILE).slice(0, -1), foreignHead] })).toEqual({ ok: false, line: 7, reason: matching(/does not match the chain before it/) });
+		expect(verifyWith(one.directory, { chain: [...lines(one.directory, CHAIN_FILE).slice(0, -1), foreignHead] })).toEqual({ ok: false, kind: "chain", line: 7, reason: matching(/does not match the chain before it/) });
 	});
 
 	it("signs a run that ends without run_end when it closes, and signs checkpoints", () => {
@@ -181,7 +181,7 @@ describe("the signed event log", () => {
 		const heads = (): number => lines(directory, CHAIN_FILE).filter((line) => line.includes('"kind":"head"')).length;
 		expect(heads()).toBe(1);
 		// Signed, but a log without its run_end line is not a whole run.
-		expect(verifyChain(directory)).toEqual({ ok: false, line: 6, reason: matching(/ends before its run_end line/) });
+		expect(verifyChain(directory)).toEqual({ ok: false, kind: "chain", line: 6, reason: matching(/ends before its run_end line/) });
 		// A checkpoint at the same line writes no second head.
 		const checkpoint = chain.checkpoint();
 		expect(heads()).toBe(1);
@@ -199,18 +199,18 @@ describe("the signed event log", () => {
 		// The last value wins in JSON.parse, so the hash is the original's; a parser that keeps the first reads a run_end.
 		const doubled = [...events];
 		doubled[0] = (events[0] ?? "").replace(/^\{/, '{"type":"run_end","round":99,');
-		expect(verifyWith(directory, { events: doubled })).toEqual({ ok: false, line: 1, reason: matching(/duplicate key "type"/) });
+		expect(verifyWith(directory, { events: doubled })).toEqual({ ok: false, kind: "chain", line: 1, reason: matching(/duplicate key "type"/) });
 		// Escaped the same key is the same key.
 		const escaped = [...events];
 		escaped[1] = (events[1] ?? "").replace(/^\{/, '{"\\u0074ext":"forged",');
-		expect(verifyWith(directory, { events: escaped })).toEqual({ ok: false, line: 2, reason: matching(/duplicate key "text"/) });
+		expect(verifyWith(directory, { events: escaped })).toEqual({ ok: false, kind: "chain", line: 2, reason: matching(/duplicate key "text"/) });
 
 		const lone = tempDirectory();
 		const chain = new EventChain(lone, GENESIS);
 		const written = ['{"seq":1,"minute":0,"type":"text","agent":"A01","text":"half \\ud83d"}', '{"seq":2,"minute":0,"type":"run_end","reason":"done"}'];
 		writeFileSync(join(lone, EVENTS_FILE), `${written.join("\n")}\n`);
 		for (const line of written) chain.append(line);
-		expect(verifyChain(lone)).toEqual({ ok: false, line: 1, reason: matching(/lone surrogate/) });
+		expect(verifyChain(lone)).toEqual({ ok: false, kind: "chain", line: 1, reason: matching(/lone surrogate/) });
 	});
 
 	it("refuses a run_end before the log's last line (step 18 challenge chain-security m3)", () => {
@@ -221,7 +221,7 @@ describe("the signed event log", () => {
 		bus.emit({ type: "run_end", reason: "done" });
 		bus.emit({ type: "text", agent: "A01", text: "after the end" });
 		bus.emit({ type: "run_end", reason: "done" });
-		expect(verifyChain(directory)).toEqual({ ok: false, line: 2, reason: matching(/run_end before the log's last line/) });
+		expect(verifyChain(directory)).toEqual({ ok: false, kind: "chain", line: 2, reason: matching(/run_end before the log's last line/) });
 	});
 
 	it("refuses a log cut back to a signed checkpoint", () => {
@@ -235,7 +235,7 @@ describe("the signed event log", () => {
 		bus.emit({ type: "run_end", reason: "done" });
 		expect(verifyChain(directory)).toMatchObject({ ok: true, lines: 4, heads: [{ lines: 2 }, { lines: 4 }] });
 		const chained = lines(directory, CHAIN_FILE);
-		expect(verifyWith(directory, { events: lines(directory, EVENTS_FILE).slice(0, 2), chain: chained.slice(0, 4) })).toEqual({ ok: false, line: 2, reason: matching(/ends before its run_end line/) });
+		expect(verifyWith(directory, { events: lines(directory, EVENTS_FILE).slice(0, 2), chain: chained.slice(0, 4) })).toEqual({ ok: false, kind: "chain", line: 2, reason: matching(/ends before its run_end line/) });
 	});
 });
 
@@ -300,7 +300,7 @@ describe("a resumed run's chain", () => {
 		const { previous, resumed } = resumedPair({ between: [forged] });
 		// The resumed chain itself holds (it was written over the forged line); the continuation does not.
 		expect(verifyChain(resumed)).toMatchObject({ ok: true });
-		expect(verifyContinuity(previous, resumed)).toEqual({ ok: false, line: 5, reason: matching(/not the run_resumed marker/) });
+		expect(verifyContinuity(previous, resumed)).toEqual({ ok: false, kind: "continuity", line: 5, reason: matching(/not the run_resumed marker/) });
 	});
 
 	it("signs the snapshot's state with the checkpoint, so a resumed run names the state it played on from (chain-security M1)", () => {
@@ -315,7 +315,7 @@ describe("a resumed run's chain", () => {
 		expect(verifyContinuity(previous, resumed)).toMatchObject({ ok: true });
 		// A resumed genesis that names another state does not verify (the checkpoint's signature covers it) ...
 		const edited = resumedPair({ state, checkpoint: (checkpoint) => ({ ...checkpoint, state: "c".repeat(64) }) });
-		expect(verifyChain(edited.resumed)).toEqual({ ok: false, reason: matching(/checkpoint the run resumed from is not signed/) });
+		expect(verifyChain(edited.resumed)).toEqual({ ok: false, kind: "signature", reason: matching(/checkpoint the run resumed from is not signed/) });
 		// The state hash of a run file leaves its own chain out, whatever the key order.
 		expect(snapshotStateHash({ format: "swarmtales-run", host: { a: 1 }, chain: taken })).toBe(snapshotStateHash({ host: { a: 1 }, format: "swarmtales-run" }));
 	});
@@ -324,7 +324,7 @@ describe("a resumed run's chain", () => {
 		const { previous, resumed } = resumedPair();
 		expect(verifyContinuity(previous, resumed, { previousKey: read(previous, PUBLIC_KEY_FILE) })).toMatchObject({ ok: true });
 		const other = generateKeyPairSync("ed25519").publicKey.export({ type: "spki", format: "pem" });
-		expect(verifyContinuity(previous, resumed, { previousKey: other })).toEqual({ ok: false, reason: matching(/previous run's chain does not hold: the chain was not made with this key/) });
+		expect(verifyContinuity(previous, resumed, { previousKey: other })).toEqual({ ok: false, kind: "continuity", reason: matching(/previous run's chain does not hold: the chain was not made with this key/) });
 	});
 
 	it("compares the prefix under today's event names, for a run file written before a rename (determinism M1)", () => {
@@ -333,23 +333,23 @@ describe("a resumed run's chain", () => {
 		const normalize = (value: unknown): unknown => (typeof value === "object" && value !== null && Reflect.get(value, "type") === "core_dealt" ? { ...value, type: "motive_dealt" } : value);
 		expect(verifyContinuity(renamed.previous, renamed.resumed, { normalize })).toMatchObject({ ok: true });
 		const other = resumedPair({ first: dealt, prefixChange: (line) => line.replace('"type":"core_dealt"', '"type":"goal_dealt"') });
-		expect(verifyContinuity(other.previous, other.resumed, { normalize })).toEqual({ ok: false, line: 2, reason: matching(/prefix differs/) });
+		expect(verifyContinuity(other.previous, other.resumed, { normalize })).toEqual({ ok: false, kind: "continuity", line: 2, reason: matching(/prefix differs/) });
 	});
 
 	it("refuses a prefix that differs from the previous log, a forged checkpoint and a checkpoint of another run", () => {
 		const changed = resumedPair({ prefixChange: (line) => line.replace('"text":"two"', '"text":"2"') });
 		// The resumed chain itself holds (it was written over the changed line); the continuity does not.
 		expect(verifyChain(changed.resumed)).toMatchObject({ ok: true });
-		expect(verifyContinuity(changed.previous, changed.resumed)).toEqual({ ok: false, line: 3, reason: matching(/prefix differs/) });
+		expect(verifyContinuity(changed.previous, changed.resumed)).toEqual({ ok: false, kind: "continuity", line: 3, reason: matching(/prefix differs/) });
 
 		const forged = resumedPair({ checkpoint: (taken) => ({ ...taken, hash: "b".repeat(64) }) });
-		expect(verifyChain(forged.resumed)).toEqual({ ok: false, reason: matching(/checkpoint the run resumed from is not signed/) });
+		expect(verifyChain(forged.resumed)).toEqual({ ok: false, kind: "signature", reason: matching(/checkpoint the run resumed from is not signed/) });
 
 		const stranger = playRun();
 		const foreign = resumedPair({ checkpoint: () => stranger.chain.checkpoint() });
 		expect(verifyChain(foreign.resumed)).toMatchObject({ ok: true });
-		expect(verifyContinuity(foreign.previous, foreign.resumed)).toEqual({ ok: false, reason: matching(/another chain/) });
-		expect(verifyContinuity(stranger.directory, foreign.resumed)).toEqual({ ok: false, line: 1, reason: matching(/prefix differs/) });
+		expect(verifyContinuity(foreign.previous, foreign.resumed)).toEqual({ ok: false, kind: "continuity", reason: matching(/another chain/) });
+		expect(verifyContinuity(stranger.directory, foreign.resumed)).toEqual({ ok: false, kind: "continuity", line: 1, reason: matching(/prefix differs/) });
 	});
 
 	it("needs the checkpoint among the previous run's signed heads", () => {
@@ -360,12 +360,12 @@ describe("a resumed run's chain", () => {
 		writeFileSync(join(previous, CHAIN_FILE), `${kept.join("\n")}\n`);
 		expect(verifyChain(previous)).toMatchObject({ ok: true, heads: [{ lines: 5 }] });
 		// ... but no longer shows that it signed the head the resumed run names.
-		expect(verifyContinuity(previous, resumed)).toEqual({ ok: false, reason: matching(/signed no head over line 4/) });
+		expect(verifyContinuity(previous, resumed)).toEqual({ ok: false, kind: "continuity", reason: matching(/signed no head over line 4/) });
 	});
 
 	it("refuses to call a run without a checkpoint a continuation", () => {
 		const { directory } = playRun();
 		const other = playRun();
-		expect(verifyContinuity(other.directory, directory)).toEqual({ ok: false, reason: matching(/does not chain from a snapshot checkpoint/) });
+		expect(verifyContinuity(other.directory, directory)).toEqual({ ok: false, kind: "continuity", reason: matching(/does not chain from a snapshot checkpoint/) });
 	});
 });

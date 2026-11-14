@@ -96,6 +96,15 @@ describe("GameDefinitionSchema", () => {
 		expect(ok({ ...base, mechanics: [{ use: "grid-game", options: { any: { thing: 1 } } }], scheduler: { id: "turns", options: { any: "thing" } } })).toBe(true);
 	});
 
+	it("refuses a field smuggled in as `__proto__`, and a seed that is no 32-bit number", () => {
+		const smuggled: unknown = JSON.parse('{"schema":1,"id":"g","residents":2,"mechanics":[],"end":{"ticks":1},"__proto__":{"model":"x"}}');
+		expect(ok(smuggled)).toBe(false);
+		expect(ok({ ...hello, seed: 4294967295 })).toBe(true);
+		expect(ok({ ...hello, seed: 4294967296 })).toBe(false);
+		expect(ok({ ...hello, seed: -1 })).toBe(false);
+		expect(ok({ ...hello, seed: 1.5 })).toBe(false);
+	});
+
 	it("exports the resident id schema", () => {
 		expect(Value.Check(ResidentIdSchema, "A01")).toBe(true);
 		expect(Value.Check(ResidentIdSchema, "resident:A01")).toBe(false);

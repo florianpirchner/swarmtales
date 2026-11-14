@@ -3,7 +3,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PromptError } from "./errors.ts";
+import { noLibrary } from "./errors.ts";
 
 let root: string | undefined;
 
@@ -13,7 +13,7 @@ let root: string | undefined;
  * installed package (which carries its own `library/`). Resolved on first use, never at import.
  *
  * @returns The directory.
- * @throws PromptError when no directory above this module holds `library/prompts/`.
+ * @throws PromptError `SWT-P015` when no directory above this module holds `library/prompts/`.
  * @public
  */
 export function libraryRoot(): string {
@@ -22,7 +22,7 @@ export function libraryRoot(): string {
 	let directory = start;
 	while (!existsSync(join(directory, "library", "prompts"))) {
 		const parent = dirname(directory);
-		if (parent === directory) throw new PromptError(`No library/prompts found above ${start}`);
+		if (parent === directory) throw noLibrary(start);
 		directory = parent;
 	}
 	root = directory;
@@ -33,7 +33,7 @@ export function libraryRoot(): string {
  * Names `library/prompts/`, where the prompt files of the library live.
  *
  * @returns The directory.
- * @throws PromptError when there is no `library/prompts/` above this module.
+ * @throws PromptError `SWT-P015` when there is no `library/prompts/` above this module.
  * @public
  */
 export function libraryDir(): string {

@@ -91,8 +91,8 @@ export const ChainGenesisV2Schema = Type.Object(
 		version: literal(2, "The genesis version."),
 		manifest: hash("sha256 of the canonical JSON of `manifest.json`."),
 		log: Type.Object(
-			{ format: Type.String({ description: "The log format's name." }), version: Type.Integer({ description: "The log format's version." }) },
-			{ description: "The format of the lines of `events.jsonl`." },
+			{ format: Type.String({ description: "The log format's name." }), version: Type.Integer({ minimum: 1, description: "The log format's version." }) },
+			{ additionalProperties: false, description: "The format of the lines of `events.jsonl`." },
 		),
 	},
 	{ additionalProperties: false, description: "The genesis of version 2: it names the hash of the run's manifest." },
@@ -155,14 +155,33 @@ export interface ChainHolds {
 	readonly genesisHash: string;
 	/** The genesis; its `version` tells which one. */
 	readonly genesis: ChainGenesis | ChainGenesisV2;
+	/**
+	 * True when the last covered line is the line that ends a run (`run_end` in a version 1 log, the kernel's
+	 * `run_ended` in a version 2 log). A version 2 log that was signed without its end holds and is not finished:
+	 * the run stopped at a snapshot, or the log was cut back to one. Whoever shows "holds" must show this beside it.
+	 */
+	readonly finished: boolean;
 	/** The signed heads, in chain order (the last covers every line); a checkpoint's head names its snapshot's state. */
 	readonly heads: readonly VerifiedHead[];
 }
+
+/**
+ * What kind of fault broke a chain, for a caller that maps the verdict to an error code:
+ * `chain` (a line, a chain entry or the genesis does not give the hash the chain names: something was changed,
+ * deleted, inserted or moved), `signature` (a head, a checkpoint or the key does not verify), `unsigned` (lines
+ * that no signed head covers: the run did not end, or the chain's tail was cut), `manifest` (the manifest is not
+ * the one the genesis names) and `continuity` (a resumed run does not continue the run it names).
+ *
+ * @public
+ */
+export type ChainFault = "chain" | "signature" | "unsigned" | "manifest" | "continuity";
 
 /** A chain that does not hold. @public */
 export interface ChainBroken {
 	/** The chain does not hold. */
 	readonly ok: false;
+	/** The kind of the fault; `reason` says it as a sentence. */
+	readonly kind: ChainFault;
 	/** The first line of `events.jsonl` that is broken, when the fault is in a line. */
 	readonly line?: number;
 	/** What is wrong, as a sentence. */

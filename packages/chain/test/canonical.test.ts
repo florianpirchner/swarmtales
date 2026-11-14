@@ -37,6 +37,42 @@ describe("canonical JSON (RFC 8785)", () => {
 		expect(() => canonicalJson(1n)).toThrow(CanonicalJsonError);
 	});
 
+	it("refuses a value that would share its form with another: a Date, a Map, a Set, a hole in an array", () => {
+		expect(() => canonicalJson({ at: new Date(0) })).toThrow(CanonicalJsonError);
+		expect(() => canonicalJson(new Map([["a", 1]]))).toThrow(CanonicalJsonError);
+		expect(() => canonicalJson(new Set([1]))).toThrow(CanonicalJsonError);
+		const sparse: unknown[] = [1];
+		sparse[2] = 3;
+		expect(() => canonicalJson(sparse)).toThrow(CanonicalJsonError);
+		expect(canonicalJson(Object.assign(Object.create(null), { a: 1 }))).toBe('{"a":1}');
+	});
+
+	it("writes numbers as ECMAScript does (RFC 8785 appendix B)", () => {
+		const cases: readonly (readonly [string, string])[] = [
+			["1e21", "1e+21"],
+			["100000000000000000000", "100000000000000000000"],
+			["1e-7", "1e-7"],
+			["0.000001", "0.000001"],
+			["5e-324", "5e-324"],
+			["1.7976931348623157e308", "1.7976931348623157e+308"],
+			["9007199254740993", "9007199254740992"],
+			["-0.0", "0"],
+			["1.0", "1"],
+			["0.1E1", "1"],
+		];
+		for (const [text, canonical] of cases) expect(canonicalJson(JSON.parse(text))).toBe(canonical);
+	});
+
+	it("keeps a key named `__proto__` as a key, and sees it twice", () => {
+		const text = '{"b":1,"__proto__":{"a":1},"a":2}';
+		const value: unknown = JSON.parse(text);
+		expect(canonicalJson(value)).toBe('{"__proto__":{"a":1},"a":2,"b":1}');
+		expect(iJsonIssue(text, value)).toBeUndefined();
+		const twice = '{"__proto__":1,"__proto__":2}';
+		expect(iJsonIssue(twice, JSON.parse(twice))).toBe('duplicate key "__proto__"');
+		expect(iJsonIssue(String.raw`{"a":1,"a":2}`, {})).toBe('duplicate key "a"');
+	});
+
 	it("tells what is not I-JSON: duplicate keys in any object, lone surrogates in keys and values (RFC 7493)", () => {
 		const issue = (text: string): string | undefined => iJsonIssue(text, JSON.parse(text));
 		expect(issue(String.raw`{"a":1,"b":[{"a":2,"c":"}{\"a\":"},{"a":3}],"d":{"a":4}}`)).toBeUndefined();

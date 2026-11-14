@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { Check } from "typebox/value";
-import { CHAIN_VERSION, type ChainGenesisV2Input, ChainGenesisV2Schema, EVENTS_FILE, jsonHash, type RunTexts, verifyChainText, verifyRunTexts } from "../src/index.ts";
+import { CHAIN_VERSION, canonicalJson, type ChainGenesisV2Input, ChainGenesisV2Schema, EVENTS_FILE, jsonHash, type RunTexts, verifyChainText, verifyRunTexts } from "../src/index.ts";
 import { EventChain, runTexts } from "./signer.ts";
 
 /** `expect.stringMatching`, typed as the asymmetric matcher it is. */
@@ -23,8 +23,9 @@ afterEach(() => {
 const MANIFEST = { schema: 1, game: { name: "guess-number", hash: "a".repeat(64) }, seed: 7, runtime: 3 };
 const GENESIS: ChainGenesisV2Input = { manifest: jsonHash(MANIFEST), log: { format: "swarmtales.events", version: 1 } };
 
+// A stored envelope as a run writes it: canonical JSON.
 const envelope = (seq: number, source: string, type: string, payload: unknown): string =>
-	JSON.stringify({ seq, tick: 0, source, type, actor: "kernel", payload, at: "2026-11-14T10:00:00.000Z" });
+	canonicalJson({ seq, tick: 0, source, type, actor: "kernel", payload, at: "2026-11-14T10:00:00.000Z" });
 
 /** A run of envelopes with a version 2 genesis; `events` replaces the three lines it writes by default. */
 function playRun(options: { readonly events?: readonly string[]; readonly genesis?: ConstructorParameters<typeof EventChain>[1]; readonly close?: boolean } = {}): RunTexts {
@@ -58,7 +59,7 @@ describe("the genesis of version 2", () => {
 		// The fields of version 1 are gone, and a genesis that mixes the versions is none.
 		expect(Check(ChainGenesisV2Schema, { ...Object(genesis), seed: 7 })).toBe(false);
 		const mixed = verifyChainText(run.events, run.chain.replace('"version":2', '"version":1'), run.publicKey);
-		expect(mixed).toEqual({ ok: false, reason: "events.chain.jsonl line 1 is not a genesis entry" });
+		expect(mixed).toEqual({ ok: false, kind: "chain", reason: "events.chain.jsonl line 1 is not a genesis entry" });
 	});
 
 	it("accepts a version 2 run", () => {
@@ -69,37 +70,37 @@ describe("the genesis of version 2", () => {
 
 	it("names a changed manifest", () => {
 		const run = playRun();
-		expect(verifyRunTexts({ ...run, manifest: run.manifest.replace('"seed": 7', '"seed": 8') })).toEqual({ ok: false, reason: matching(/^the manifest does not match the genesis/) });
-		expect(verifyRunTexts({ ...run, manifest: "{" })).toEqual({ ok: false, reason: "the manifest is not JSON" });
-		expect(verifyRunTexts({ ...run, manifest: '{"seed":7,"seed":8}' })).toEqual({ ok: false, reason: matching(/^the manifest is not I-JSON \(duplicate key "seed"\)/) });
+		expect(verifyRunTexts({ ...run, manifest: run.manifest.replace('"seed": 7', '"seed": 8') })).toEqual({ ok: false, kind: "manifest", reason: matching(/^the manifest does not match the genesis/) });
+		expect(verifyRunTexts({ ...run, manifest: "{" })).toEqual({ ok: false, kind: "manifest", reason: "the manifest is not JSON" });
+		expect(verifyRunTexts({ ...run, manifest: '{"seed":7,"seed":8}' })).toEqual({ ok: false, kind: "manifest", reason: matching(/^the manifest is not I-JSON \(duplicate key "seed"\)/) });
 		// A genesis rewritten to name the changed manifest breaks its own hash.
 		const changed = { ...MANIFEST, seed: 8 };
 		const rewritten = { ...run, manifest: JSON.stringify(changed), chain: run.chain.replace(jsonHash(MANIFEST), jsonHash(changed)) };
-		expect(verifyRunTexts(rewritten)).toEqual({ ok: false, reason: "the genesis entry's hash does not match its content" });
+		expect(verifyRunTexts(rewritten)).toEqual({ ok: false, kind: "chain", reason: "the genesis entry's hash does not match its content" });
 	});
 
 	it("reports a broken chain before the manifest, and at its line", () => {
 		const run = playRun();
 		const tampered = { ...run, events: run.events.replace('"number":4', '"number":5'), manifest: "{}" };
-		expect(verifyRunTexts(tampered)).toEqual({ ok: false, line: 2, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
+		expect(verifyRunTexts(tampered)).toEqual({ ok: false, kind: "chain", line: 2, reason: "does not match the chain (the line was changed, deleted, inserted or moved)" });
 	});
 
 	it("refuses a run of version 1: it names no manifest", () => {
 		const old = playRun({ genesis: { story: "cityofkeys", storyHash: "a".repeat(64), seed: 7, models: {} }, events: ['{"seq":1,"minute":0,"type":"run_end"}'] });
 		expect(verifyChainText(old.events, old.chain, old.publicKey)).toMatchObject({ ok: true, genesis: { version: 1 } });
-		expect(verifyRunTexts(old)).toEqual({ ok: false, reason: matching(/^the genesis is of version 1/) });
+		expect(verifyRunTexts(old)).toEqual({ ok: false, kind: "manifest", reason: matching(/^the genesis is of version 1/) });
 	});
 
 	it("lets a run end once: nothing follows the kernel's run_ended, and a plugin's event of that name is no end", () => {
 		const grown = playRun({ events: [envelope(1, "kernel", "run_ended", { reason: "done" }), envelope(2, "kernel", "tick_started", {}), envelope(3, "kernel", "run_ended", { reason: "done" })] });
-		expect(verifyRunTexts(grown)).toEqual({ ok: false, line: 1, reason: "a run_ended before the log's last line (a run ends once)" });
+		expect(verifyRunTexts(grown)).toEqual({ ok: false, kind: "chain", line: 1, reason: "a run_ended before the log's last line (a run ends once)" });
 		const plugin = playRun({ events: [envelope(1, "@swarmtales/roster/roster", "run_ended", {}), envelope(2, "kernel", "run_ended", { reason: "done" })] });
 		expect(verifyRunTexts(plugin)).toMatchObject({ ok: true, lines: 2 });
 	});
 
 	it("holds for a signed log without its run_ended (unfinished is the run log's verdict), and not without a signed head", () => {
 		const events = [envelope(1, "kernel", "run_started", {}), envelope(2, "kernel", "tick_started", {})];
-		expect(verifyRunTexts(playRun({ events }))).toEqual({ ok: false, line: 1, reason: matching(/^lines 1-2 are not covered by a signed head/) });
+		expect(verifyRunTexts(playRun({ events }))).toEqual({ ok: false, kind: "unsigned", line: 1, reason: matching(/^lines 1-2 are not covered by a signed head/) });
 		expect(verifyRunTexts(playRun({ events, close: true }))).toMatchObject({ ok: true, lines: 2 });
 	});
 });

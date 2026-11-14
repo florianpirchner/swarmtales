@@ -94,6 +94,14 @@ describe("closest", () => {
 		expect(closest("playMove", [])).toBeUndefined();
 	});
 
+	it("finds nothing between short names that share no letter", () => {
+		expect(closest("x", ["id"])).toBeUndefined();
+		expect(closest("ab", ["cd"])).toBeUndefined();
+		expect(closest("", ["ab"])).toBeUndefined();
+		expect(closest("a", ["ab"])).toBe("ab");
+		expect(closest("id", ["ids"])).toBe("ids");
+	});
+
 	it("prefers the nearer name, and the first one on a tie", () => {
 		expect(closest("readTeam", ["readTeams!", "readTeams", "readTeam"])).toBe("readTeam");
 		expect(closest("cat", ["bat", "hat"])).toBe("bat");

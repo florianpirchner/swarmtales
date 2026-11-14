@@ -22,9 +22,9 @@ function withoutStamp(value: unknown): unknown {
 
 // Why the checkpoint a resumed run names is not one the previous run signed.
 function anchorFault(before: ChainHolds, anchor: ChainCheckpoint): ChainBroken | undefined {
-	if (anchor.publicKey !== before.genesis.publicKey || anchor.genesis !== before.genesisHash) return { ok: false, reason: "the snapshot checkpoint belongs to another chain than the previous run's" };
+	if (anchor.publicKey !== before.genesis.publicKey || anchor.genesis !== before.genesisHash) return { ok: false, kind: "continuity", reason: "the snapshot checkpoint belongs to another chain than the previous run's" };
 	if (!before.heads.some((entry) => entry.lines === anchor.lines && entry.hash === anchor.hash && entry.state === anchor.state)) {
-		return { ok: false, reason: `the previous run signed no head over line ${String(anchor.lines)} with the checkpoint's hash${anchor.state === undefined ? "" : " and snapshot state"}` };
+		return { ok: false, kind: "continuity", reason: `the previous run signed no head over line ${String(anchor.lines)} with the checkpoint's hash${anchor.state === undefined ? "" : " and snapshot state"}` };
 	}
 	return undefined;
 }
@@ -39,11 +39,11 @@ function prefixFault(previous: string, resumed: string, lines: number, normalize
 	const now = linesOf(resumed);
 	for (let index = 0; index < lines; index += 1) {
 		const left = comparable(old[index] ?? "");
-		if (left === undefined || left !== comparable(now[index] ?? "")) return { ok: false, line: index + 1, reason: "the resumed run's prefix differs from the previous run's line" };
+		if (left === undefined || left !== comparable(now[index] ?? "")) return { ok: false, kind: "continuity", line: index + 1, reason: "the resumed run's prefix differs from the previous run's line" };
 	}
 	const marker = parseJson(now[lines] ?? "");
 	if (!marker.ok || fieldOf(marker.value, "type") !== "run_resumed") {
-		return { ok: false, line: lines + 1, reason: "the line after the resumed prefix is not the run_resumed marker (a line between the checkpoint and the resume is not the previous run's)" };
+		return { ok: false, kind: "continuity", line: lines + 1, reason: "the line after the resumed prefix is not the run_resumed marker (a line between the checkpoint and the resume is not the previous run's)" };
 	}
 	return undefined;
 }
@@ -63,11 +63,11 @@ function prefixFault(previous: string, resumed: string, lines: number, normalize
  */
 export function verifyContinuityText(previous: ChainTexts, resumed: ChainTexts, options: ContinuityTextOptions = {}): ChainVerdict {
 	const before = verifyChainText(previous.events, previous.chain, previous.publicKey);
-	if (!before.ok) return { ok: false, reason: `the previous run's chain does not hold: ${before.line === undefined ? "" : `line ${String(before.line)}: `}${before.reason}` };
+	if (!before.ok) return { ok: false, kind: "continuity", reason: `the previous run's chain does not hold: ${before.line === undefined ? "" : `line ${String(before.line)}: `}${before.reason}` };
 	const after = verifyChainText(resumed.events, resumed.chain, resumed.publicKey);
 	if (!after.ok) return after;
 	const anchor = after.genesis.resumedFrom?.checkpoint;
-	if (anchor === undefined) return { ok: false, reason: "the run does not chain from a snapshot checkpoint" };
+	if (anchor === undefined) return { ok: false, kind: "continuity", reason: "the run does not chain from a snapshot checkpoint" };
 	const fault = anchorFault(before, anchor) ?? prefixFault(previous.events, resumed.events, anchor.lines, options.normalize ?? ((value: unknown) => value));
 	return fault ?? after;
 }

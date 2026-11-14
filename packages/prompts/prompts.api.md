@@ -5,6 +5,7 @@
 ```ts
 
 import { PromptLookup } from '@swarmtales/contracts';
+import { SwtError } from '@swarmtales/contracts';
 
 // @public
 export function createPromptLookup(options?: PromptLookupOptions): LayeredPrompts;
@@ -33,7 +34,7 @@ export function parsePromptFile(text: string, source: string): PromptFile;
 export function placeholders(body: string): readonly string[];
 
 // @public
-export class PromptError extends Error {}
+export class PromptError extends SwtError {}
 
 // @public
 export interface PromptFile {

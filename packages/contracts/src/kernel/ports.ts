@@ -20,7 +20,7 @@ export interface Activation {
 	readonly tick: number;
 	/** The log length when its inputs were built. */
 	readonly basis: number;
-	/** The scheduler's own data about the activation. */
+	/** The scheduler's own data about the activation, written to `activation_opened`; the turn scheduler gives `pass`, `block` and `reason`. */
 	readonly detail: Readonly<Record<string, JsonValue>>;
 	/** The input lines, as shown. */
 	readonly inputs: readonly InputNote[];
@@ -36,12 +36,25 @@ export interface Activation {
  * @public
  */
 export interface DriverResult {
-	/** True when the driver holds tool results its caller has not answered yet. */
+	/**
+	 * True when the driver holds tool results its caller has not answered yet (a model that was cut off before it
+	 * read its last result). A scheduler that wakes on news wakes such an actor again, unless the activation had a
+	 * quiet end.
+	 */
 	readonly pending: boolean;
 }
 
 /**
- * An agent: it plays one activation and returns.
+ * An agent: it plays one activation and returns. It reaches the run only through `activation.call`; returning
+ * nothing means "not pending", and a rejected promise closes the activation as failed and ends the run.
+ *
+ * @example
+ * ```ts
+ * const driver: ActorDriver = async (activation) => {
+ * 	const outcome = await activation.call("add", { by: 1 });
+ * 	return { pending: !outcome.ok };
+ * };
+ * ```
  *
  * @public
  */
@@ -62,7 +75,11 @@ export type DriverTable = Readonly<Record<string, ActorDriver>>;
 export interface OpenActivation extends Activation {
 	/** Ends the activation and writes `activation_closed`; the kernel counted the calls. */
 	close(failed: boolean): void;
-	/** True when its last call was a free look or a success that ended the activation. */
+	/**
+	 * True when its last call was a free look or a success that ended the activation: nothing waits for an answer.
+	 * It is live: read it on this object after the driver has settled (a spread copy holds the value of the copy's
+	 * moment).
+	 */
 	readonly quietEnd: boolean;
 }
 
@@ -78,15 +95,15 @@ export interface SchedulerPort {
 	readonly tick: number;
 	/** The actors of the run. */
 	readonly actors: ActorsView;
-	/** True when a run limit is reached or the run failed; a breach, once seen, stays for the tick. */
+	/** True when a run limit is reached or the run failed. Each read checks the run limits; a breach, once seen, stays for the tick. A scheduler reads it before every block. */
 	readonly halted: boolean;
-	/** A seeded random stream of the scheduler for the labels. */
+	/** The seeded random stream of the labels; the label space is shared with the plugins, so a scheduler starts them with a word of its own. */
 	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/** Writes one of the scheduler's own declared events; the source is its id. */
 	emit(type: string, payload: unknown): Envelope;
-	/** Starts a tick: the due jobs, then the tick-start hooks. */
+	/** Starts a tick: resets the call counters, writes `tick_started`, runs the due jobs, then the tick-start hooks. */
 	beginTick(): Promise<void>;
-	/** Ends a tick; `idle` says that nothing was played in it. It returns the end of the run, if this was it. */
+	/** Ends a tick: the tick-end hooks, `tick_ended`, the run limits, then the clock moves on. `idle` says that nothing was played in it. It returns the end of the run, if this was it. */
 	endTick(idle: boolean): Promise<RunEnd | undefined>;
 	/** Says whether any plugin has something new for the actor. */
 	hasNews(actor: ActorId): boolean;
@@ -94,7 +111,7 @@ export interface SchedulerPort {
 	toAct(): readonly ActorId[] | undefined;
 	/** The lines of every `inputs` hook, in hook order; it remembers the log length as the basis. */
 	inputsFor(actor: ActorId): readonly OrderedNote[];
-	/** Opens an activation and writes `activation_opened`. */
+	/** Opens an activation and writes `activation_opened`; its `basis` is the log length the last `inputsFor(actor)` remembered. */
 	open(actor: ActorId, inputs: readonly InputNote[], detail: Readonly<Record<string, JsonValue>>): OpenActivation;
 }
 
@@ -111,11 +128,11 @@ export interface SchedulerDefinition<O = unknown> {
 	readonly revision: number;
 	/** Whether a run can be repeated from its seed, or only from its record. */
 	readonly determinism: "seeded" | "recorded";
-	/** The schema of its options. */
+	/** The schema of its options; the builder of the kernel definition parses the game's scheduler options with it and fills the defaults. */
 	readonly options: TSchema;
 	/** The events it declares. */
 	readonly events: EventSchemas;
-	/** Creates the scheduler of one run. */
+	/** Creates the scheduler of one run from its parsed options (`KernelDefinition.scheduler.options`). */
 	create(options: O): SchedulerInstance;
 }
 

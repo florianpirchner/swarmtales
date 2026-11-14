@@ -23,11 +23,11 @@ export interface RunTexts extends ChainTexts {
 export function verifyRunTexts(texts: RunTexts): ChainVerdict {
 	const verdict = verifyChainText(texts.events, texts.chain, texts.publicKey);
 	if (!verdict.ok) return verdict;
-	if (verdict.genesis.version !== 2) return { ok: false, reason: `the genesis is of version ${String(verdict.genesis.version)}, a run names its manifest in a genesis of version 2` };
+	if (verdict.genesis.version !== 2) return { ok: false, kind: "manifest", reason: `the genesis is of version ${String(verdict.genesis.version)}, a run names its manifest in a genesis of version 2` };
 	const manifest = parseJson(texts.manifest);
-	if (!manifest.ok) return { ok: false, reason: "the manifest is not JSON" };
+	if (!manifest.ok) return { ok: false, kind: "manifest", reason: "the manifest is not JSON" };
 	const issue = iJsonIssue(texts.manifest, manifest.value);
-	if (issue !== undefined) return { ok: false, reason: `the manifest is not I-JSON (${issue}): JSON parsers may read it differently` };
-	if (jsonHash(manifest.value) !== verdict.genesis.manifest) return { ok: false, reason: "the manifest does not match the genesis (the manifest was changed, or it is another run's)" };
+	if (issue !== undefined) return { ok: false, kind: "manifest", reason: `the manifest is not I-JSON (${issue}): JSON parsers may read it differently` };
+	if (jsonHash(manifest.value) !== verdict.genesis.manifest) return { ok: false, kind: "manifest", reason: "the manifest does not match the genesis (the manifest was changed, or it is another run's)" };
 	return verdict;
 }

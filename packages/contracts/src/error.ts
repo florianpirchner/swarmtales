@@ -56,7 +56,8 @@ function placeOf(where: SwtIssue["where"]): string {
 }
 
 /**
- * Prints one issue in the five-line form: what, where, why, fix and the link to the reference.
+ * Prints one issue in the five-line form: what, where, why, fix and the link to the reference. An issue without a
+ * place prints four lines: there is no empty `at` line.
  *
  * @param issue - The issue.
  * @returns The lines, joined by line feeds. The `at` line is left out when the issue names no place.
@@ -83,7 +84,17 @@ export function formatIssue(issue: SwtIssue): string {
 }
 
 /**
- * One or several problems, reported together. `message` is the first issue in the five-line form.
+ * One or several problems, reported together. `message` is the first issue in the five-line form; a caller that
+ * shows the error to a person prints every issue with {@link formatIssue}.
+ *
+ * @remarks
+ * Load errors and run errors are an `SwtError`; a refused tool call is a tool outcome and never an error. An error
+ * without an issue is a mistake of the caller: it keeps the message `error: no issue was given` and an empty code.
+ *
+ * @example
+ * ```ts
+ * throw new SwtError({ code: "SWT-G012", summary: "the tool `playMov` is granted but not defined", where: { path: "grants.resident[1]" }, why: "A grant names tools of the listed mechanics.", fix: "Did you mean `playMove`?" });
+ * ```
  *
  * @public
  */
@@ -141,7 +152,14 @@ function distance(a: string, b: string): number {
  *
  * @param name - The name as it was written.
  * @param known - The names that exist.
- * @returns The known name with the smallest edit distance, when that is at most 2; the first one on a tie.
+ * @returns The known name with the smallest edit distance, when that is at most 2 and smaller than the longer of
+ * the two names (so two short names that share no letter are no match); the first one on a tie. The comparison
+ * keeps upper and lower case apart, and a name that is known is its own match.
+ * @example
+ * ```ts
+ * closest("playMov", ["viewBoard", "playMove"]); // "playMove"
+ * closest("x", ["id"]); // undefined
+ * ```
  *
  * @public
  */
@@ -150,7 +168,7 @@ export function closest(name: string, known: readonly string[]): string | undefi
 	let bestDistance = 3;
 	for (const candidate of known) {
 		const d = distance(name, candidate);
-		if (d < bestDistance) {
+		if (d < bestDistance && d < Math.max(name.length, candidate.length)) {
 			best = candidate;
 			bestDistance = d;
 		}

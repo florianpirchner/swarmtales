@@ -26,7 +26,17 @@ run's Ed25519 key.
 
 `verifyChainText` reads both. `verifyRunTexts` asks for version 2 and compares the manifest's hash. In a version 1
 log the last line must be `run_end`. In a version 2 log nothing may follow the kernel's `run_ended`; a signed log
-that ends without it holds here, and the run log's verifier calls it unfinished.
+that ends without it holds here with `finished: false` (the run stopped at a snapshot, or the log was cut back to
+one), and the run log's verifier calls it unfinished. Never show "holds" without `finished`.
+
+A version 2 line must be written as canonical JSON, byte for byte: the verifier refuses a line whose text is not
+its canonical form, so a text that another JSON parser would read differently (digits beyond a double's precision,
+another key order, an escape) never passes as the signed line. Version 1 lines are compared by value, as before.
+
+A verdict that does not hold names its `kind`: `chain` (a line, an entry or the genesis was changed, deleted,
+inserted or moved), `signature` (a head, a checkpoint or the key does not verify), `unsigned` (lines no signed
+head covers), `manifest` (not the manifest the genesis names), `continuity` (a resumed run does not continue the
+run it names). The run log maps them to its `SWT-L` codes.
 
 ## Signing
 

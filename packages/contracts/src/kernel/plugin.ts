@@ -21,7 +21,8 @@ export interface Ordered<F> {
 }
 
 /**
- * A listener on one event type of one plugin.
+ * A listener on one event type of one plugin. It is called after the step that wrote the event has returned (never
+ * in the middle of a tool's `execute`), in log order of the events, and what it emits is caused by that event.
  *
  * @public
  */
@@ -44,13 +45,13 @@ export interface PluginHooks {
 	readonly runStarted?: readonly Ordered<() => void>[];
 	/** Run at the start of a tick, after the tick's due jobs. */
 	readonly tickStarted?: readonly Ordered<() => void>[];
-	/** Give the lines an actor is shown when it is activated. */
+	/** Give the lines an actor is shown when it is activated; called once per activation, and it may note what it has told. */
 	readonly inputs?: readonly Ordered<(actor: ActorId) => readonly InputLine[]>[];
 	/** Run at the end of a tick. */
 	readonly tickEnded?: readonly Ordered<() => void>[];
 	/** Says whether there is something new for the actor. It must not change state; any plugin saying yes counts. */
 	news?(actor: ActorId): boolean;
-	/** Says who is to act now; at most one loaded plugin has it (SWT-R013). */
+	/** Says who is to act now, for a scheduler that wakes only those (a game with a fixed order of play); at most one loaded plugin has it (SWT-R013). */
 	toAct?(): readonly ActorId[];
 }
 
@@ -69,7 +70,9 @@ export interface StageHandlers {
 }
 
 /**
- * A condition that ends the run.
+ * A condition that ends the run, for example "the game is won". The kernel checks the limits of every plugin in load
+ * order at the ends of a tick and whenever the scheduler asks whether the run is halted; the first reason ends the
+ * run with `limit_reached { limit: "<plugin id>.<limit id>" }`.
  *
  * @public
  */
@@ -83,7 +86,8 @@ export interface RunLimit {
 }
 
 /**
- * A value a plugin computes from its state for readers outside the run.
+ * A value a plugin computes from its state for readers outside the run, read with `kernel.fact("<plugin id>.<fact>")`:
+ * a result line, a score table. Computing it must not change state.
  *
  * @public
  */
@@ -95,14 +99,15 @@ export interface Fact {
 }
 
 /**
- * The state of one plugin (or of the scheduler) in a snapshot.
+ * The state of one plugin (or of the scheduler) in a snapshot. `save` is called between ticks; `load` is called on
+ * a fresh instance before a resumed run goes on, and must leave it as the saved one was.
  *
  * @public
  */
 export interface SnapshotSlice {
 	/** The version of the saved form. */
 	readonly version: number;
-	/** The state as JSON data. */
+	/** The state as JSON data: it is written to a file and read back. */
 	save(): unknown;
 	/** Takes saved state back; `version` is the version it was saved with. */
 	load(data: unknown, version: number): void;
@@ -130,7 +135,7 @@ export interface PluginInstance {
 	readonly limits: readonly RunLimit[];
 	/** Its facts, by name. */
 	readonly facts: Readonly<Record<string, Fact>>;
-	/** Its state; required when the plugin keeps state. */
+	/** Its state; required when the plugin keeps state, `undefined` when it keeps none (a snapshot then holds no entry for it). */
 	readonly slice: SnapshotSlice | undefined;
 }
 
@@ -168,7 +173,7 @@ export interface ResolvedPlugin {
 export interface PluginPort {
 	/** The plugin id. */
 	readonly id: string;
-	/** The envelope source of its events: `<package>/<id>`. */
+	/** The envelope source of its events: `<package>/<id>`; a tool's canonical name is this plus `/<tool>`. */
 	readonly source: string;
 	/** The seed of the run. */
 	readonly seed: number;
@@ -178,11 +183,14 @@ export interface PluginPort {
 	tick(): number;
 	/** Writes an event; the type must be declared, and the sdk has checked the payload. */
 	emit(type: string, payload: unknown): void;
-	/** Calls a service; it throws when no loaded plugin provides it. */
+	/** Calls a method of a service another plugin provides; a command writes `service_called`. It throws when no loaded plugin provides the service. */
 	call(service: string, method: string, input: unknown): unknown;
 	/** Says whether a loaded plugin provides the service. */
 	has(service: string): boolean;
-	/** A seeded random stream of this plugin for the labels. */
+	/**
+	 * The seeded random stream of the labels. The labels are not prefixed with the plugin id: the same labels give
+	 * the same stream in every plugin, so a plugin starts them with its own id or a word of its contract.
+	 */
 	rng(...labels: readonly RandomLabel[]): RandomSource;
 	/** The actors of the run. */
 	readonly actors: ActorsPort;
@@ -246,7 +254,7 @@ export interface AccessPort {
 	isLocked(actor: ActorId, tool: CanonicalTool): boolean;
 	/** True when the tool is granted, not locked, and no lock handler refuses. */
 	isOpen(actor: ActorId, tool: CanonicalTool): boolean;
-	/** The open tools of the actor, in grant order. */
+	/** The tools the actor can call now (`isOpen`), in grant order. */
 	open(actor: ActorId): readonly CanonicalTool[];
 }
 

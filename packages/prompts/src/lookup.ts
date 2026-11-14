@@ -6,7 +6,7 @@
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { PromptError } from "./errors.ts";
+import { noFile, variablesDiffer, wrongId } from "./errors.ts";
 import { parsePromptFile, renderBody, type PromptFile } from "./file.ts";
 import { libraryDir, libraryRoot } from "./library.ts";
 import type { PromptLookup } from "@swarmtales/contracts";
@@ -46,7 +46,7 @@ export interface LayeredPrompts extends PromptLookup {
  *
  * @returns The folders by mechanic id; empty where the repository's mechanics are not around (an installed
  * package).
- * @throws PromptError when there is no `library/prompts/` above this module.
+ * @throws PromptError `SWT-P015` when there is no `library/prompts/` above this module.
  * @public
  */
 export function mechanicPromptFolders(): Readonly<Record<string, string>> {
@@ -63,9 +63,10 @@ export function mechanicPromptFolders(): Readonly<Record<string, string>> {
  * Creates the layered lookup.
  *
  * @param options - The folders; by default the repository's mechanics and library, and no game folder.
- * @returns The lookup. Its `render` throws a `PromptError` when no folder has the file, when the file's id is
- * not the id asked for, or when it does not declare exactly the variables its owner declared.
- * @throws PromptError when a default folder is needed and there is no `library/prompts/` above this module.
+ * @returns The lookup. Its `render` throws a `PromptError`: `SWT-P010` when no folder has the file, `SWT-P011` for
+ * a malformed file, `SWT-P012` when the file's id is not the id asked for, `SWT-P013` when it does not declare
+ * exactly the variables its owner declared, `SWT-P014` when the values given are not those variables.
+ * @throws PromptError `SWT-P015` when a default folder is needed and there is no `library/prompts/` above this module.
  * @public
  */
 export function createPromptLookup(options: PromptLookupOptions = {}): LayeredPrompts {
@@ -77,13 +78,13 @@ export function createPromptLookup(options: PromptLookupOptions = {}): LayeredPr
 	};
 	const load = (owner: string, id: string, declared: readonly string[]): PromptFile => {
 		const path = pathOf(owner, id);
-		if (path === undefined) throw new PromptError(`prompt "${id}" of ${owner}: no file in the game, the owner's folder or the library`);
+		if (path === undefined) throw noFile(owner, id);
 		const cached = cache.get(path);
 		if (cached !== undefined) return cached;
 		const file = parsePromptFile(readFileSync(path, "utf8"), path);
-		if (file.id !== id) throw new PromptError(`${path}: the file's id is "${file.id}", expected "${id}"`);
+		if (file.id !== id) throw wrongId(path, file.id, id);
 		if (file.variables.length !== declared.length || !declared.every((name) => file.variables.includes(name))) {
-			throw new PromptError(`${path}: declares variables [${file.variables.join(", ")}], ${owner} declares [${declared.join(", ")}]`);
+			throw variablesDiffer(path, file.variables, owner, declared);
 		}
 		cache.set(path, file);
 		return file;

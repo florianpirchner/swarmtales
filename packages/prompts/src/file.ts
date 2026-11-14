@@ -6,7 +6,7 @@
  */
 import { Type } from "typebox";
 import { Parse } from "typebox/value";
-import { PromptError } from "./errors.ts";
+import { badFrontmatter, badVariable } from "./errors.ts";
 
 const Frontmatter = Type.Object(
 	{
@@ -37,7 +37,7 @@ function frontmatterFields(lines: readonly string[], source: string): ReadonlyMa
 	const fields = new Map<string, string>();
 	for (const line of lines) {
 		const colon = line.indexOf(":");
-		if (colon < 0) throw new PromptError(`${source}: frontmatter line without a colon: ${line}`);
+		if (colon < 0) throw badFrontmatter(source, `frontmatter line without a colon: ${line}`);
 		fields.set(line.slice(0, colon).trim(), line.slice(colon + 1).trim());
 	}
 	return fields;
@@ -49,14 +49,14 @@ function frontmatterFields(lines: readonly string[], source: string): ReadonlyMa
  * @param text - The file's text.
  * @param source - The file's name, for the error message.
  * @returns The id, the declared variables and the body.
- * @throws PromptError with `source` in the message when the frontmatter is missing or malformed.
+ * @throws PromptError `SWT-P011`, with `source` in the summary, when the frontmatter is missing or malformed.
  * @public
  */
 export function parsePromptFile(text: string, source: string): PromptFile {
 	const lines = text.split("\n");
-	if (lines[0] !== "---") throw new PromptError(`${source}: a prompt file starts with a frontmatter (---)`);
+	if (lines[0] !== "---") throw badFrontmatter(source, "a prompt file starts with a frontmatter (---)");
 	const end = lines.indexOf("---", 1);
-	if (end < 0) throw new PromptError(`${source}: the frontmatter is not closed (---)`);
+	if (end < 0) throw badFrontmatter(source, "the frontmatter is not closed (---)");
 	const fields = frontmatterFields(lines.slice(1, end), source);
 	const variables = (fields.get("variables") ?? "")
 		.split(",")
@@ -66,9 +66,9 @@ export function parsePromptFile(text: string, source: string): PromptFile {
 	try {
 		meta = Parse(Frontmatter, { id: fields.get("id"), variables });
 	} catch {
-		throw new PromptError(`${source}: the frontmatter needs an id and variables that are plain names`);
+		throw badFrontmatter(source, "the frontmatter needs an id and variables that are plain names");
 	}
-	if (new Set(meta.variables).size !== meta.variables.length) throw new PromptError(`${source}: the frontmatter lists a variable twice`);
+	if (new Set(meta.variables).size !== meta.variables.length) throw badFrontmatter(source, "the frontmatter lists a variable twice");
 	const raw = lines.slice(end + 1).join("\n");
 	return { id: meta.id, variables: meta.variables, body: raw.endsWith("\n") ? raw.slice(0, -1) : raw };
 }
@@ -101,17 +101,17 @@ export function hasStrayBraces(body: string): boolean {
  * @param file - The parsed file.
  * @param variables - The value of every declared variable.
  * @returns The rendered text.
- * @throws PromptError when a declared variable is not given, a given one is not declared, or the body uses one
- * that is not declared.
+ * @throws PromptError `SWT-P014` when a declared variable is not given, a given one is not declared, or the body
+ * uses one that is not declared.
  * @public
  */
 export function renderBody(file: PromptFile, variables: Readonly<Record<string, string | number>>): string {
 	const given = Object.keys(variables);
-	for (const name of file.variables) if (!given.includes(name)) throw new PromptError(`prompt ${file.id}: missing variable "${name}"`);
-	for (const name of given) if (!file.variables.includes(name)) throw new PromptError(`prompt ${file.id}: unknown variable "${name}"`);
+	for (const name of file.variables) if (!given.includes(name)) throw badVariable(file.id, `missing variable "${name}"`);
+	for (const name of given) if (!file.variables.includes(name)) throw badVariable(file.id, `unknown variable "${name}"`);
 	return file.body.replace(PLACEHOLDER, (_match, name: string) => {
 		const value = variables[name];
-		if (value === undefined) throw new PromptError(`prompt ${file.id}: the body uses "${name}", which is not declared`);
+		if (value === undefined) throw badVariable(file.id, `the body uses "${name}", which is not declared`);
 		return String(value);
 	});
 }

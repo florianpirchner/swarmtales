@@ -3,7 +3,13 @@
 import type { JsonValue } from "../values.ts";
 
 /**
- * The id of an actor: `<kind>:<name>` with an open kind, or one of the three reserved ids.
+ * The id of an actor: `<kind>:<name>` with an open kind (`worker:A03`), or one of the three reserved ids.
+ *
+ * @remarks
+ * The kind is lower case (`^[a-z][a-z0-9-]*$`), the name is `^[A-Za-z0-9_.-]+$`. The reserved ids stand for callers
+ * that are no actor of the game: `human` is a person's hand, `script` is code outside the run (a test, a tool),
+ * `kernel` is the kernel itself and the actor of every event nobody caused. The type cannot hold the pattern;
+ * untrusted text is checked with `ActorIdSchema`.
  *
  * @public
  */
@@ -26,7 +32,8 @@ export interface ActorSpec {
 }
 
 /**
- * Builds the id of an actor from its kind and its name. It joins the two parts and checks nothing.
+ * Builds the id of an actor from its kind and its name. It joins the two parts and checks nothing: the caller
+ * passes parts it has checked (the sdk checks a game's ids), and untrusted text goes through `ActorIdSchema`.
  *
  * @param kind - The kind, the part before the colon.
  * @param name - The name, the part after the colon.

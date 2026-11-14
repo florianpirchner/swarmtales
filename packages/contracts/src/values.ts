@@ -12,7 +12,8 @@
 export type JsonValue = string | number | boolean | null | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 /**
- * A label of a seeded random stream, for example `rng("deal", 3)`.
+ * A label of a seeded random stream, for example `rng("deal", 3)`. The labels name the stream: the same seed and
+ * the same labels give the same numbers, in every run and for every caller.
  *
  * @public
  */
@@ -43,7 +44,7 @@ export interface RandomSource {
 export interface RunEnd {
 	/** Why the run ended. */
 	readonly reason: "ticks" | "limit" | "error";
-	/** The tick the run ended in. */
+	/** The clock when the run ended: the tick after the last one played, so the tick limit when `reason` is `ticks`. */
 	readonly tick: number;
 	/** The id of the run limit that was reached, `<plugin id>.<limit id>`; set when `reason` is `limit`. */
 	readonly limit?: string;

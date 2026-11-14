@@ -24,6 +24,7 @@ export {
 	ZERO_HASH,
 	type ChainBroken,
 	type ChainCheckpoint,
+	type ChainFault,
 	type ChainGenesis,
 	type ChainGenesisInput,
 	type ChainGenesisV2,

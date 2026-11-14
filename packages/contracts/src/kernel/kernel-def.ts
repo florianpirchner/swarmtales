@@ -97,7 +97,7 @@ export interface KernelDefinition {
 	readonly actors: readonly ActorSpec[];
 	/** The plugins, in load order. */
 	readonly plugins: readonly ResolvedPlugin[];
-	/** The scheduler and its options. */
+	/** The scheduler and its options, already parsed with the scheduler's schema, defaults filled. */
 	readonly scheduler: { readonly definition: SchedulerDefinition; readonly options: JsonValue };
 	/** Grant name to its tools, in the order a caller sees them. */
 	readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
@@ -105,7 +105,7 @@ export interface KernelDefinition {
 	readonly names: Readonly<Record<CanonicalTool, string>>;
 	/** Grant name to the tools locked at the start for every actor of that grant. */
 	readonly startLocks: Readonly<Record<string, readonly CanonicalTool[]>>;
-	/** Kernel refusal code to the `detail` text of the refusal. */
+	/** Kernel refusal code (`TOOL_UNKNOWN`, `TOOL_NOT_GRANTED`, `TOOL_LOCKED`, `STEP_LIMIT`) to the `detail` text of the refusal; a code without a text is refused without a detail. */
 	readonly replies: Readonly<Record<string, string>>;
 	/** The kernel's own limits. */
 	readonly limits: KernelLimits;
@@ -125,12 +125,12 @@ export interface Submission {
 	readonly params: unknown;
 	/** The highest seq the caller had seen; the log length when left out. */
 	readonly basis?: number;
-	/** The seq the call is a consequence of. */
+	/** The seq the call is a consequence of, for example the event a script reacts to; left out: nothing in the log caused it. */
 	readonly causedBy?: number;
 }
 
 /**
- * What a kernel is connected to from outside.
+ * What a kernel is connected to from outside. Sinks are passed at creation; there is no way to add one later.
  *
  * @public
  */
@@ -169,7 +169,7 @@ export interface Kernel {
 	start(): void;
 	/** Plays to the end, or `until.ticks` ticks; it starts the run when needed. */
 	run(drivers: DriverTable, until?: { readonly ticks: number }): Promise<RunEnd | undefined>;
-	/** Makes a call outside an activation. */
+	/** Makes a call outside an activation (a test, a script, a person's hand) through the same pipeline; calls are served one after the other. */
 	submit(call: Submission): Promise<ToolOutcome>;
 	/** The tools of a grant, as a caller is shown them. */
 	toolSpecs(grant: string): readonly ToolSpec[];
@@ -179,6 +179,6 @@ export interface Kernel {
 	sample(actor: ActorId, as: string, random: RandomSource): JsonValue | undefined;
 	/** Reads a fact by `<plugin id>.<fact>`; an unknown key throws SWT-R015. */
 	fact(key: string): unknown;
-	/** The state of the kernel; only between ticks. */
+	/** The state of the kernel, to resume from later; only between ticks. */
 	snapshot(): KernelSnapshot;
 }

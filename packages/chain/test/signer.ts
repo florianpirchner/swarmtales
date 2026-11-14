@@ -139,7 +139,7 @@ export function runTexts(directory: string, publicKeyPem?: string): ChainTexts |
 /** Reads a run directory's chain; `publicKeyPem` replaces its `run.pub` (a key published elsewhere). */
 export function verifyChain(directory: string, publicKeyPem?: string): ChainVerdict {
 	const texts = runTexts(directory, publicKeyPem);
-	return "reason" in texts ? texts : verifyChainText(texts.events, texts.chain, texts.publicKey);
+	return "reason" in texts ? { ...texts, kind: "chain" } : verifyChainText(texts.events, texts.chain, texts.publicKey);
 }
 
 export interface ContinuityOptions extends ContinuityTextOptions {
@@ -150,8 +150,8 @@ export interface ContinuityOptions extends ContinuityTextOptions {
 /** Checks that the run directory `resumed` continues the run directory `previous`. */
 export function verifyContinuity(previous: string, resumed: string, options: ContinuityOptions = {}): ChainVerdict {
 	const before = runTexts(previous, options.previousKey);
-	if ("reason" in before) return { ok: false, reason: `the previous run's chain does not hold: ${before.reason}` };
+	if ("reason" in before) return { ok: false, kind: "continuity", reason: `the previous run's chain does not hold: ${before.reason}` };
 	const after = runTexts(resumed);
-	if ("reason" in after) return after;
+	if ("reason" in after) return { ...after, kind: "chain" };
 	return verifyContinuityText(before, after, options.normalize === undefined ? {} : { normalize: options.normalize });
 }

@@ -127,8 +127,10 @@ function canonicalNumber(value: number): string {
 }
 
 function canonicalObject(value: object): string {
-	if (Array.isArray(value)) return `[${value.map((entry: unknown) => canonicalJson(entry)).join(",")}]`;
-	if (!isRecord(value)) throw new CanonicalJsonError("canonical JSON: not a JSON object");
+	// `Array.from` visits a hole of a sparse array as `undefined`, which is refused; `map` would skip it.
+	if (Array.isArray(value)) return `[${Array.from(value, (entry: unknown) => canonicalJson(entry)).join(",")}]`;
+	// A Date, a Map or a Set has no own keys and would be written as `{}`: two different values with one form.
+	if (!isRecord(value) || Object.prototype.toString.call(value) !== "[object Object]") throw new CanonicalJsonError("canonical JSON: not a JSON object");
 	const keys = Object.keys(value).sort(byCodeUnits);
 	return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
 }
@@ -139,7 +141,11 @@ function canonicalObject(value: object): string {
  * @param value - A value as `JSON.parse` returns it.
  * @returns The canonical text.
  * @throws CanonicalJsonError when the value holds something that is no JSON value (`undefined`, a function, a
- * bigint, a symbol, a number that is not finite).
+ * bigint, a symbol, a number that is not finite, a hole in an array, a Date, a Map or a Set).
+ * @example
+ * ```ts
+ * canonicalJson({ b: [1e21, -0, "é"], a: null }); // {"a":null,"b":[1e+21,0,"é"]}
+ * ```
  * @public
  */
 export function canonicalJson(value: unknown): string {

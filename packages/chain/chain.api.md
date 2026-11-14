@@ -24,6 +24,7 @@ export const CHAIN_VERSION = 2;
 
 // @public
 export interface ChainBroken {
+    readonly kind: ChainFault;
     readonly line?: number;
     readonly ok: false;
     readonly reason: string;
@@ -41,6 +42,9 @@ export const ChainCheckpointSchema: Type.TObject<{
     signature: Type.TString;
     state: Type.TOptional<Type.TString>;
 }>;
+
+// @public
+export type ChainFault = "chain" | "signature" | "unsigned" | "manifest" | "continuity";
 
 // @public
 export type ChainGenesis = Static<typeof ChainGenesisSchema>;
@@ -114,6 +118,7 @@ export const ChainGenesisV2Schema: Type.TObject<{
 
 // @public
 export interface ChainHolds {
+    readonly finished: boolean;
     readonly genesis: ChainGenesis | ChainGenesisV2;
     readonly genesisHash: string;
     readonly head: string;
