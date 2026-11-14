@@ -4,6 +4,207 @@
 
 ```ts
 
+import { Static } from 'typebox';
+import { SwtError } from '@swarmtales/contracts';
+import { TSchema } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export type ExperimentResults = Static<typeof ExperimentResultsSchema>;
+
+// @public
+export const ExperimentResultsSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales-results">;
+    version: Type.TLiteral<1>;
+    spec: Type.TObject<{
+        id: Type.TString;
+        hash: Type.TString;
+    }>;
+    code: Type.TObject<{
+        commit: Type.TString;
+        kernelRevision: Type.TInteger;
+    }>;
+    runs: Type.TArray<Type.TObject<{
+        run: Type.TString;
+        arm: Type.TString;
+        seed: Type.TInteger;
+        replicate: Type.TInteger;
+        manifestHash: Type.TString;
+        head: Type.TString;
+        status: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"excluded">, Type.TLiteral<"stopped">]>;
+        reason: Type.TOptional<Type.TString>;
+        costUsd: Type.TNumber;
+    }>>;
+    values: Type.TArray<Type.TObject<{
+        run: Type.TString;
+        metric: Type.TString;
+        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
+    }>>;
+    estimates: Type.TArray<Type.TObject<{
+        metric: Type.TString;
+        role: Type.TUnion<[Type.TLiteral<"primary">, Type.TLiteral<"secondary">, Type.TLiteral<"guardrail">]>;
+        contrast: Type.TArray<Type.TString>;
+        estimator: Type.TString;
+        estimate: Type.TNumber;
+        se: Type.TNumber;
+        interval: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        n: Type.TInteger;
+        test: Type.TString;
+        p: Type.TNumber;
+        over: Type.TUnion<[Type.TLiteral<"included">, Type.TLiteral<"finished">]>;
+    }>>;
+    pass: Type.TOptional<Type.TObject<{
+        rule: Type.TString;
+        estimate: Type.TNumber;
+        n: Type.TInteger;
+        verdict: Type.TUnion<[Type.TLiteral<"kept">, Type.TLiteral<"not-kept">, Type.TLiteral<"no-verdict">]>;
+    }>>;
+    guardrails: Type.TArray<Type.TObject<{
+        metric: Type.TString;
+        per: Type.TOptional<Type.TString>;
+        arm: Type.TString;
+        value: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
+        held: Type.TBoolean;
+    }>>;
+    tolerance: Type.TOptional<Type.TObject<{
+        kind: Type.TUnion<[Type.TLiteral<"mean">, Type.TLiteral<"share">]>;
+        baselineMean: Type.TNumber;
+        newMean: Type.TNumber;
+        difference: Type.TNumber;
+        se: Type.TNumber;
+        within: Type.TBoolean;
+    }>>;
+    deviations: Type.TArray<Type.TObject<{
+        at: Type.TString;
+        what: Type.TString;
+        why: Type.TString;
+    }>>;
+}>;
+
+// @public
+export type ExperimentSpec = Static<typeof ExperimentSpecSchema>;
+
+// @public
+export const ExperimentSpecSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales-experiment">;
+    version: Type.TLiteral<1>;
+    id: Type.TString;
+    question: Type.TString;
+    purpose: Type.TUnion<[Type.TLiteral<"pilot">, Type.TLiteral<"exploratory">, Type.TLiteral<"confirmatory">]>;
+    game: Type.TString;
+    model: Type.TObject<{
+        provider: Type.TString;
+        id: Type.TString;
+        thinking: Type.TOptional<Type.TString>;
+    }>;
+    arms: Type.TArray<Type.TObject<{
+        id: Type.TString;
+        params: Type.TRecord<"^.*$", Type.TUnknown>;
+        control: Type.TOptional<Type.TBoolean>;
+    }>>;
+    seeds: Type.TArray<Type.TInteger>;
+    replicates: Type.TInteger;
+    design: Type.TUnion<[Type.TLiteral<"paired">, Type.TLiteral<"unpaired">, Type.TLiteral<"replicates">]>;
+    metrics: Type.TObject<{
+        primary: Type.TString;
+        secondary: Type.TArray<Type.TString>;
+        guardrails: Type.TArray<Type.TObject<{
+            metric: Type.TString;
+            per: Type.TOptional<Type.TString>;
+            arm: Type.TOptional<Type.TString>;
+            max: Type.TOptional<Type.TNumber>;
+            min: Type.TOptional<Type.TNumber>;
+            within: Type.TOptional<Type.TObject<{
+                of: Type.TNumber;
+                share: Type.TNumber;
+            }>>;
+        }>>;
+    }>;
+    pass: Type.TOptional<Type.TObject<{
+        contrast: Type.TTuple<[Type.TString, Type.TString]>;
+        sign: Type.TUnion<[Type.TLiteral<"positive">, Type.TLiteral<"negative">]>;
+        minN: Type.TInteger;
+    }>>;
+    allowedRefusals: Type.TOptional<Type.TArray<Type.TString>>;
+    exclusions: Type.TArray<Type.TUnion<[Type.TLiteral<"failed-request">, Type.TLiteral<"missed-decision">, Type.TLiteral<"cost-cap">, Type.TLiteral<"error-end">]>>;
+    budget: Type.TObject<{
+        perRunUsd: Type.TNumber;
+        totalUsd: Type.TNumber;
+        estimateUsdPerRun: Type.TRecord<"^.*$", Type.TNumber>;
+    }>;
+    concurrency: Type.TOptional<Type.TInteger>;
+    baseline: Type.TOptional<Type.TString>;
+    tolerance: Type.TOptional<Type.TUnion<[Type.TObject<{
+        kind: Type.TLiteral<"mean">;
+    }>, Type.TObject<{
+        kind: Type.TLiteral<"share">;
+        threshold: Type.TNumber;
+    }>]>>;
+}>;
+
+// @public
+export class LabError extends SwtError {}
+
+// @public
+export type NoiseFloor = Static<typeof NoiseFloorSchema>;
+
+// @public
+export const NoiseFloorSchema: Type.TObject<{
+    format: Type.TLiteral<"swarmtales-noise-floor">;
+    version: Type.TLiteral<1>;
+    game: Type.TString;
+    arm: Type.TString;
+    seed: Type.TInteger;
+    metric: Type.TString;
+    platform: Type.TUnion<[Type.TLiteral<"legacy">, Type.TLiteral<"rewrite">]>;
+    kernelRevision: Type.TInteger;
+    values: Type.TArray<Type.TNumber>;
+    summary: Type.TObject<{
+        n: Type.TInteger;
+        mean: Type.TNumber;
+        sd: Type.TNumber;
+        min: Type.TNumber;
+        max: Type.TNumber;
+        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+    }>;
+    guardrails: Type.TRecord<"^.*$", Type.TObject<{
+        n: Type.TInteger;
+        mean: Type.TNumber;
+        sd: Type.TNumber;
+        min: Type.TNumber;
+        max: Type.TNumber;
+        t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+        bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+    }>>;
+}>;
+
+// @public
+export type NoiseSummary = Static<typeof SummarySchema>;
+
+// @public
+export function parseExperimentResults(value: unknown, file?: string): ExperimentResults;
+
+// @public
+export function parseExperimentSpec(value: unknown, file?: string): ExperimentSpec;
+
+// @public
+export function parseLabFile<S extends TSchema>(schema: S, value: unknown, what: string, file?: string): Static<S>;
+
+// @public
+export function parseNoiseFloor(value: unknown, file?: string): NoiseFloor;
+
+// @public
+export const SummarySchema: Type.TObject<{
+    n: Type.TInteger;
+    mean: Type.TNumber;
+    sd: Type.TNumber;
+    min: Type.TNumber;
+    max: Type.TNumber;
+    t95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+    bootstrap95: Type.TTuple<[Type.TNumber, Type.TNumber]>;
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

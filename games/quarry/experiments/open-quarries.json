@@ -1,0 +1,104 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "quarry-open-quarries",
+	"question": "Does showing every hand raise the table's points?",
+	"purpose": "confirmatory",
+	"game": "games/quarry/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "control",
+			"params": {},
+			"control": true
+		},
+		{
+			"id": "open",
+			"params": {
+				"openHands": true
+			}
+		}
+	],
+	"seeds": [
+		31,
+		37,
+		41,
+		43,
+		47,
+		53,
+		59,
+		61,
+		67,
+		71,
+		73,
+		79
+	],
+	"replicates": 1,
+	"design": "paired",
+	"metrics": {
+		"primary": "draft-rounds.tablePoints",
+		"secondary": [
+			"draft-rounds.sharedLanes",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"per": "draft-rounds.decisions",
+				"within": {
+					"of": 1.3,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "control",
+				"max": 0.041
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "open",
+				"max": 0.05
+			},
+			{
+				"metric": "draft-rounds.missedPicks",
+				"max": 0
+			}
+		]
+	},
+	"pass": {
+		"contrast": [
+			"open",
+			"control"
+		],
+		"sign": "positive",
+		"minN": 10
+	},
+	"allowedRefusals": [
+		"BRAIN_TOO_LONG",
+		"TOOL_LOCKED",
+		"NOT_IN_PACK",
+		"INVALID_ARGUMENTS",
+		"BURN_IS_PICK",
+		"NO_BURNS_LEFT"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.1,
+		"totalUsd": 1.5,
+		"estimateUsdPerRun": {
+			"control": 0.0344,
+			"open": 0.0417
+		}
+	},
+	"concurrency": 2
+}

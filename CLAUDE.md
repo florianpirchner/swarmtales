@@ -9,7 +9,7 @@ removed after 1.0. Code comes back from it issue by issue; nothing is copied wit
 ## Precedence
 
 The rewrite is decided. Read [`docs/refactoring-before-release/DECISIONS.md`](docs/refactoring-before-release/DECISIONS.md)
-before you plan anything; its section 9 (A1 to A15) holds the decisions taken while building and wins over the
+before you plan anything; its section 9 (A1 to A17) holds the decisions taken while building and wins over the
 sections before it. The specification of the milestone you work on (`08-m1-spec.md` for M1, `09-m2-spec.md` for
 M2) is what you code against. Order of precedence: `BRIEF.md` (the owner's decisions), then `DECISIONS.md`, then
 `REWRITE.md`, then the papers 01 to 06, all in that folder. This file sums them up; where it differs,

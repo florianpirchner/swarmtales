@@ -1135,8 +1135,8 @@ list). A difference found there is a port error and is fixed before step 3; step
 both sets of runs are kept.
 
 Run rules: `concurrency: 2` (rate limits were not measured, so not more); the order is the shuffled plan of
-`planRuns`, which interleaves the arms; per-run cap 0.40 USD (about ten times a run); experiment caps
-`totalUsd` 1.50 (quarry series), 0.75 (econ-lab series), 0.40 and 0.20 (noise floors); every command names the
+`planRuns`, which interleaves the arms; per-run cap 0.10 USD for quarry and 0.05 for econ-lab (more than twice a run; decision A17 replaces 0.40); experiment caps
+`totalUsd` 1.50 (quarry series), 0.75 (econ-lab series), 0.50 and 0.25 (noise floors); every command names the
 ledger `games/m2-ledger.jsonl` with `capUsd: 4.00` (8.5). No test calls a model.
 
 | Cap | Value | Enforced by |

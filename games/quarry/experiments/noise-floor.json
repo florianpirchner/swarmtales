@@ -1,0 +1,77 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "quarry-noise-floor",
+	"question": "Do five replicates of the control arm at seed 31 lie within the noise of the old platform?",
+	"purpose": "pilot",
+	"game": "games/quarry/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "control",
+			"params": {},
+			"control": true
+		}
+	],
+	"seeds": [
+		31
+	],
+	"replicates": 5,
+	"design": "replicates",
+	"metrics": {
+		"primary": "draft-rounds.tablePoints",
+		"secondary": [
+			"draft-rounds.sharedLanes",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"per": "draft-rounds.decisions",
+				"within": {
+					"of": 1.3,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "control",
+				"max": 0.041
+			},
+			{
+				"metric": "draft-rounds.missedPicks",
+				"max": 0
+			}
+		]
+	},
+	"allowedRefusals": [
+		"BRAIN_TOO_LONG",
+		"TOOL_LOCKED",
+		"NOT_IN_PACK",
+		"INVALID_ARGUMENTS",
+		"BURN_IS_PICK",
+		"NO_BURNS_LEFT"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.1,
+		"totalUsd": 0.5,
+		"estimateUsdPerRun": {
+			"control": 0.0344
+		}
+	},
+	"concurrency": 2,
+	"baseline": "games/quarry/noise-floor.legacy.json",
+	"tolerance": {
+		"kind": "mean"
+	}
+}
