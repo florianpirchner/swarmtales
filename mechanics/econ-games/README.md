@@ -1,6 +1,327 @@
-# @swarmtales/mechanic-econ-games
+# Econ games
 
-Mechanic: public goods, ultimatum and an A-or-B dilemma in rounds for solo seats.
+Classic experimental-economics games for solo seats, played one after another, each over several rounds: a public
+goods game, an ultimatum game in rotating pairs and a prisoner's dilemma in rotating pairs. The framing is neutral (a
+shared fund, a split offer, an A-or-B choice) and no game is named, so a model has to play the numbers rather than
+recite a textbook answer.
 
-Scaffold of milestone M2: the package is empty until its issues land. Its place in the layer table is in
-[`docs/LAYERS.md`](../../docs/LAYERS.md).
+## At a glance
+
+<!-- generated:glance -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+|  |  |
+| --- | --- |
+| Package | `@swarmtales/mechanic-econ-games` |
+| Id | `econ-games` |
+| Summary | Public goods, ultimatum and an A-or-B dilemma in rounds for solo seats: sealed decisions, payoffs, a match of games. |
+| Requires | none |
+| Uses when loaded | `strategy-brain` (from [strategy-brain](../strategy-brain/README.md)) |
+| Provides | `brain-source` |
+| State | kept, snapshot slice version 1 |
+| Games | [econ-lab](../../games/econ-lab/README.md) |
+
+<!-- /generated:glance -->
+
+## How it plays
+
+1. **Blocks.** `blocks` lists the games in order with their rounds (`block_started`, `round_opened`). Whether seats know
+   the number of rounds is `showHorizon` (off by default, against end-game defection).
+2. **Public goods.** Every seat gets `endowment` tokens and secretly puts some into a fund (`contribute`); the fund is
+   multiplied by `multiplier` and split equally.
+3. **Ultimatum.** In rotating pairs the proposer offers a part of `pie` (`offer`); the responder accepts or rejects
+   (`respond`); a rejection gives both nothing.
+4. **Dilemma.** Rotating pairs choose A or B at the same time (`choose`) from the `dilemma` payoff table (A is
+   cooperation).
+5. **Sealed decisions.** Decisions are sealed (`decision_made`, for the human only) until the round resolves
+   (`round_resolved`). A decision not made within `deadline` ticks takes the default (nothing put in, no offer,
+   reject, B) and is marked missed. `viewTable` shows the seat's own game and history.
+6. **Scoring.** Each game ends with `block_scored`: the distance from Nash play and from the social optimum, for the
+   human only. It provides `brain-source` for the [strategy-brain](../strategy-brain/README.md).
+
+## Tools
+
+<!-- generated:tools -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+### `viewTable`
+
+- Granted when the game lists no grants: `resident`
+
+No parameters.
+
+What the caller reads ([econ-games/tools/viewTable](prompts/econ-games/tools/viewTable.md)):
+
+> Look at the table: the current task and its rules, the round, what you are asked to do now, your points and the results of your past rounds in this block.
+
+### `contribute`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `amount` | integer ≥ 0 | yes | Tokens to put into the shared fund. |
+| `reason` | string | no | A short reason, for the record. |
+
+What the caller reads ([econ-games/tools/contribute](prompts/econ-games/tools/contribute.md)):
+
+> Decide how many of your tokens you put into the shared fund this round (the rest you keep). Sealed: nobody sees it until everyone has decided. One decision per round.
+
+### `offer`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `amount` | integer ≥ 0 | yes | Points offered to the partner. |
+| `reason` | string | no | A short reason, for the record. |
+
+What the caller reads ([econ-games/tools/offer](prompts/econ-games/tools/offer.md)):
+
+> Offer your partner a part of the sum this round; you keep the rest if they accept. Sealed until the partner answers. Only the proposer of the pair, once per round.
+
+### `respond`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `accept` | boolean | yes | true accepts the offer, false rejects it. |
+| `reason` | string | no | A short reason, for the record. |
+
+What the caller reads ([econ-games/tools/respond](prompts/econ-games/tools/respond.md)):
+
+> Accept or reject the offer your partner made you this round. Accept: both get the split as offered. Reject: both get nothing this round. Only the responder of the pair, once per round.
+
+### `choose`
+
+- Granted when the game lists no grants: `resident`
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `option` | "A" or "B" | yes | A or B. |
+| `reason` | string | no | A short reason, for the record. |
+
+What the caller reads ([econ-games/tools/choose](prompts/econ-games/tools/choose.md)):
+
+> Choose option A or option B this round. Sealed: your partner decides at the same time without seeing your choice. One decision per round.
+
+<!-- /generated:tools -->
+
+## Events
+
+<!-- generated:events -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+### `block_started`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `game` | "public-goods" or "ultimatum" or "dilemma" | yes |  |
+| `rounds` | integer | yes |  |
+| `seats` | string[] | yes |  |
+
+### `round_opened`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `round` | integer | yes |  |
+| `game` | "public-goods" or "ultimatum" or "dilemma" | yes |  |
+| `pairs` | string[][] | yes | The pairs of the round (the proposer first in the ultimatum game); '' is the bye of an odd table. |
+
+### `decision_made`
+
+Audience: `human`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `round` | integer | yes |  |
+| `resident` | string | yes |  |
+| `action` | "contribute" or "offer" or "respond" or "choose" | yes |  |
+| `value` | number | yes |  |
+| `reason` | string | no |  |
+
+### `round_resolved`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `round` | integer | yes |  |
+| `game` | "public-goods" or "ultimatum" or "dilemma" | yes |  |
+| `pool` | number | no |  |
+| `outcomes` | object[] | yes |  |
+| `outcomes[].resident` | string | yes |  |
+| `outcomes[].partner` | string | no |  |
+| `outcomes[].role` | "proposer" or "responder" | no |  |
+| `outcomes[].action` | "contribute" or "offer" or "respond" or "choose" | no |  |
+| `outcomes[].value` | number | no |  |
+| `outcomes[].offer` | number | no |  |
+| `outcomes[].accepted` | boolean | no |  |
+| `outcomes[].partnerOption` | "A" or "B" | no |  |
+| `outcomes[].payoff` | number | yes |  |
+| `outcomes[].missed` | boolean | yes |  |
+| `outcomes[].sitsOut` | boolean | no |  |
+
+### `block_ended`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `game` | "public-goods" or "ultimatum" or "dilemma" | yes |  |
+| `scores` | record of number | yes |  |
+| `totals` | record of number | yes |  |
+
+### `block_scored`
+
+Audience: `human`
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | integer | yes |  |
+| `game` | "public-goods" or "ultimatum" or "dilemma" | yes |  |
+| `reference` | object | yes |  |
+| `reference.cooperation` | number | yes | 0 at Nash play, 1 at the social optimum (mean over the block's decisions). |
+| `reference.efficiency` | number | yes | Points earned over the most the table could have earned in the block. |
+| `reference.perRound` | number[] | yes | The cooperation measure per round: the curve of the block. |
+| `reference.missed` | integer | yes | Decisions not made in time. |
+| `reference.meanOffer` | number | no | Ultimatum: the mean offer as a share of the sum. |
+| `reference.rejectionRate` | number | no | Ultimatum: the share of offers rejected. |
+| `reference.mutualCooperation` | number | no | Two-option game: the share of choices that met an A with an A. |
+
+### `match_ended`
+
+Audience: everyone
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `scores` | record of number | yes |  |
+
+<!-- /generated:events -->
+
+## Options
+
+<!-- generated:options -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `blocks` | object[] | `[{"game":"ultimatum","rounds":6},{"game":"public-goods","rounds":6},{"game":"dilemma","rounds":6}]` | The games of the match in order, each with its rounds; the run ends after the last. |
+| `blocks[].game` | "public-goods" or "ultimatum" or "dilemma" | required |  |
+| `blocks[].rounds` | integer ≥ 1 ≤ 50 | required | Rounds of the block. |
+| `endowment` | integer ≥ 1 | `10` | Public goods: the tokens each seat gets per round. |
+| `multiplier` | number > 0 | `1.6` | Public goods: the factor on the fund before it is split equally (a dilemma when it lies between 1 and the number of seats). |
+| `pie` | integer ≥ 1 | `10` | Ultimatum: the points to split per pair and round. |
+| `dilemma` | object | `{"bothA":3,"bothB":1,"temptation":5,"sucker":0}` | The payoff table of the A-or-B game (a dilemma when temptation > bothA > bothB > sucker and 2 bothA > temptation + sucker). |
+| `dilemma.bothA` | number | required | Each player's points when both choose A (the reward for cooperation). |
+| `dilemma.bothB` | number | required | Each player's points when both choose B (the punishment). |
+| `dilemma.temptation` | number | required | The B player's points against an A player. |
+| `dilemma.sucker` | number | required | The A player's points against a B player. |
+| `showHorizon` | boolean | `false` | Tell the seats how many rounds a game has (off: unknown horizon, against end-game defection). |
+| `deadline` | integer ≥ 1 | `2` | Minutes a phase stays open before missing decisions take the default. |
+
+<!-- /generated:options -->
+
+## Services
+
+<!-- generated:services -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+### `brain-source`
+
+A match of games the strategy brain can pause between games: the game's number, hold and release.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `game` | query | - | integer | The running (or last) game's number, from 1; 0 before the first game. |
+| `hold` | command | - | boolean | Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game. |
+| `release` | command | - | null | Lets a held game start. A no-op when nothing is held. |
+
+<!-- /generated:services -->
+
+## Metrics
+
+<!-- generated:metrics -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+Each number is computed from the mechanic's own events of one finished run; a run without a value reads "absent", never zero.
+
+| Metric | Title | Unit | Computed from |
+| --- | --- | --- | --- |
+| `econ-games.dilemmaCooperation` | Cooperation in the dilemma | - | `block_scored` |
+| `econ-games.dilemmaRound1` | Cooperation in round 1 of the dilemma | - | `block_scored` |
+| `econ-games.fundCooperation` | Cooperation in the shared fund | - | `block_scored` |
+| `econ-games.tablePoints` | Points of the table | points | `match_ended` |
+| `econ-games.decisions` | Decisions | - | `decision_made` |
+| `econ-games.missedDecisions` | Decisions not made in time | - | `block_scored` |
+
+<!-- /generated:metrics -->
+
+## Prompts
+
+<!-- generated:prompts -->
+<!-- Written by `pnpm docs:mechanics` from the head and the prompt files; edit those, not this block. -->
+
+| Prompt | Variables |
+| --- | --- |
+| [econ-games/tools/viewTable](prompts/econ-games/tools/viewTable.md) | - |
+| [econ-games/tools/contribute](prompts/econ-games/tools/contribute.md) | - |
+| [econ-games/tools/offer](prompts/econ-games/tools/offer.md) | - |
+| [econ-games/tools/respond](prompts/econ-games/tools/respond.md) | - |
+| [econ-games/tools/choose](prompts/econ-games/tools/choose.md) | - |
+| [econ-games/rules-public-goods](prompts/econ-games/rules-public-goods.md) | `endowment`, `multiplier`, `seats` |
+| [econ-games/rules-ultimatum](prompts/econ-games/rules-ultimatum.md) | `pie` |
+| [econ-games/rules-dilemma](prompts/econ-games/rules-dilemma.md) | `bothA`, `bothB`, `temptation`, `sucker` |
+| [econ-games/horizon-known](prompts/econ-games/horizon-known.md) | `rounds` |
+| [econ-games/horizon-hidden](prompts/econ-games/horizon-hidden.md) | - |
+| [econ-games/block-head](prompts/econ-games/block-head.md) | `block`, `blocks` |
+| [econ-games/task-contribute](prompts/econ-games/task-contribute.md) | `round`, `endowment` |
+| [econ-games/task-offer](prompts/econ-games/task-offer.md) | `round`, `partner`, `pie` |
+| [econ-games/task-respond](prompts/econ-games/task-respond.md) | `round`, `partner`, `offer`, `keep` |
+| [econ-games/task-wait](prompts/econ-games/task-wait.md) | `round`, `partner` |
+| [econ-games/task-choose](prompts/econ-games/task-choose.md) | `round`, `partner` |
+| [econ-games/sits-out](prompts/econ-games/sits-out.md) | `round` |
+
+<!-- /generated:prompts -->
+
+## Example
+
+From [`games/econ-lab/game.ts`](../../games/econ-lab/game.ts):
+
+```ts
+econGames({ blocks: blocks.map((block) => ({ ...block })), showHorizon, deadline: DEADLINE }),
+```
+
+The default match is a split offer of 6 rounds, a shared fund of 7 and an A-or-B choice of 5: different lengths, so a
+brain cannot learn the horizon of the next game.
+
+## Lessons and loopholes
+
+From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md). The rows were recorded on the old platform; a status says what was true there.
+
+- **P90** rotating pairs read as a one-shot game. Open.
+- **P91** the split offer has no learning signal. Open.
+- **P92** neutral framing does not hide the games. Open.
+- **P93** equal game lengths leaked the horizon. Fixed.
+- **P431** 429 errors lose turns when many runs share one provider account. Open.
+- **P433** the brain carries the selfish lesson into the next game. Open.
+- **P436** Opus plays the social optimum. Open.
+
+## Tests
+
+[`test/econ-games.test.ts`](test/econ-games.test.ts): the three games in order with sealed decisions and payoffs,
+defaults for missed decisions, decisions open only for the seat that owes them, documented options, determinism and
+snapshots inside a game and between two games. [`test/model.test.ts`](test/model.test.ts): rotating pairs, the
+distance from Nash play and the social optimum. [`test/carried.test.ts`](test/carried.test.ts) holds the prompt files,
+tools, options, events and audiences to those of the old platform. The game is tested in
+[`games/econ-lab/test/`](../../games/econ-lab/test/).
