@@ -4,9 +4,11 @@
 
 ```ts
 
+import { Activation } from '@swarmtales/contracts';
 import { ActorId } from '@swarmtales/contracts';
 import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
+import { DriverResult } from '@swarmtales/contracts';
 import { FauxResponseStep } from '@earendil-works/pi-ai';
 import { GameData } from '@swarmtales/contracts';
 import { JsonObject } from '@earendil-works/pi-ai';
@@ -22,6 +24,8 @@ import { Static } from 'typebox';
 import { StreamFn } from '@earendil-works/pi-agent-core';
 import { SwtError } from '@swarmtales/contracts';
 import { SwtIssue } from '@swarmtales/contracts';
+import { ToolOutcome } from '@swarmtales/contracts';
+import { ToolSpec } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
@@ -31,10 +35,19 @@ export function act(...calls: readonly {
 }[]): ScriptStep;
 
 // @public
+export function asksReset(activation: Activation): boolean;
+
+// @public
 export const BUILTIN_PROVIDERS: readonly ProviderSpec[];
 
 // @public
+export function callOutsideActivation(actor: string): SwtIssue;
+
+// @public
 export function closedModels(): MutableModels;
+
+// @public
+export const CONTEXT_RESET_KIND = "context-reset";
 
 // @public
 export interface CostMeter {
@@ -58,10 +71,16 @@ export function createModelSource(settings: ModelSettings, registry: ProviderReg
 export function createProviderRegistry(extra?: readonly ProviderSpec[]): ProviderRegistry;
 
 // @public
+export function createResidentSession(input: SessionInput): ResidentSession;
+
+// @public
 export function emptyModel(provider: string): SwtIssue;
 
 // @public
 export function fail(message: string): ScriptStep;
+
+// @public
+export function isSafeguardRefusal(error: string | undefined): boolean;
 
 // @public
 export function isToolChoice(value: string): value is ToolChoice;
@@ -153,6 +172,9 @@ export interface OpenRouterRouting {
 }
 
 // @public
+export function outcomeText(outcome: ToolOutcome): string;
+
+// @public
 export const PROVIDER_RETRIES = 6;
 
 // @public
@@ -196,6 +218,15 @@ export function residentRecord<Type extends keyof ResidentRecords>(type: Type, p
 export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<(typeof SCHEMAS)[Type]>; };
 
 // @public
+export interface ResidentSession {
+    declare(specs: readonly ToolSpec[]): void;
+    readonly declared: readonly string[];
+    readonly messages: number;
+    readonly pending: boolean;
+    step(activation: Activation, frame: StepFrame): Promise<DriverResult>;
+}
+
+// @public
 export function resolveModelSettings(overrides: ModelOverrides, env: ModelEnv, game: GameData["model"], registry: ProviderRegistry): ModelSettings;
 
 // @public
@@ -211,6 +242,17 @@ export function scriptedSource(script: Script): ModelSource;
 export type ScriptStep = FauxResponseStep;
 
 // @public
+export interface SessionInput {
+    readonly actor: ActorId;
+    readonly binding: ModelBinding;
+    readonly meter: CostMeter;
+    readonly redact: Redact;
+    readonly systemPrompt: string;
+    readonly thinking: ThinkingLevel;
+    readonly tools: readonly ToolSpec[];
+}
+
+// @public
 export function shortKey(variable: string): SwtIssue;
 
 // @public
@@ -221,6 +263,12 @@ export interface Spend {
     readonly input: number;
     readonly output: number;
     readonly requests: number;
+}
+
+// @public
+export interface StepFrame {
+    readonly notice?: readonly string[];
+    readonly open: readonly string[];
 }
 
 // @public

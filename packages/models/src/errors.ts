@@ -173,3 +173,22 @@ export function recordMismatch(type: string, path: string, message: string): Swt
 		details: { type },
 	};
 }
+
+/**
+ * `SWT-X041`: a tool call of a model reached its session while no activation was open.
+ *
+ * @param actor - The actor of the session.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function callOutsideActivation(actor: string): SwtIssue {
+	return {
+		code: "SWT-X041",
+		summary: `a tool call of ${actor} arrived outside an activation`,
+		where: { package: "@swarmtales/models" },
+		why: "A driver calls only through its open activation; a call after the activation closed would be written with a closed cause.",
+		fix: "Await the model request with all its tool calls before the driver returns.",
+		details: { actor },
+	};
+}

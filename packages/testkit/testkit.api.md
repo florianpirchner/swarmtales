@@ -16,8 +16,11 @@ import { Kernel } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
 import { MechanicHead } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
+import { RecordSource } from '@swarmtales/contracts';
+import { Redact } from '@swarmtales/contracts';
 import { ResumeInput } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
+import { RunLimit } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { ToolOutcome } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
@@ -292,7 +295,11 @@ export interface Played {
 export interface PlayOptions {
     readonly drivers?: DriverTable | ((kernel: Kernel) => DriverTable);
     readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+    readonly limits?: readonly RunLimit[];
+    readonly params?: Readonly<Record<string, unknown>>;
     readonly prompts?: PromptLookup;
+    readonly records?: readonly RecordSource[];
+    readonly redact?: Redact;
     readonly resume?: ResumeInput;
     readonly script?: Readonly<Record<string, readonly (readonly [string, unknown])[]>>;
     readonly seed?: number;

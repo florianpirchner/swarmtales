@@ -4,7 +4,7 @@
  *
  * @packageDocumentation
  */
-export { emptyModel, keyLeaked, noCostCap, noKey, noPrice, recordMismatch, shortKey, thrown, unknownModel, unknownProvider } from "./errors.ts";
+export { callOutsideActivation, emptyModel, keyLeaked, noCostCap, noKey, noPrice, recordMismatch, shortKey, thrown, unknownModel, unknownProvider } from "./errors.ts";
 export { createKeyBroker, KEY_VARIABLES, type KeyAuth, type KeyBroker } from "./keys.ts";
 export { BUILTIN_PROVIDERS, createProviderRegistry, modelOf, openRouterProviderPreferences, type OpenRouterRouting, type ProviderRegistry, type ProviderSpec } from "./providers.ts";
 export { RESIDENT_RECORDS, residentRecord, type ResidentRecords } from "./records.ts";
@@ -13,3 +13,4 @@ export { MODEL_DEFAULTS, resolveModelSettings, type ModelEnv, type ModelOverride
 export { createCostMeter, type CostMeter, type Spend } from "./meter.ts";
 export { act, fail, say, scriptedSource, type Script, type ScriptStep } from "./scripted.ts";
 export { closedModels, createModelSource, limitedStream, type ModelBinding, type ModelSource } from "./source.ts";
+export { asksReset, CONTEXT_RESET_KIND, createResidentSession, isSafeguardRefusal, outcomeText, type ResidentSession, type SessionInput, type StepFrame } from "./driver/session.ts";
