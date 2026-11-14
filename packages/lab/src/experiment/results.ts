@@ -47,7 +47,7 @@ const Estimate = Type.Object(
 const Pass = Type.Object(
 	{
 		rule: text("The pass rule of the spec, in words"),
-		estimate: number("The estimate the rule read"),
+		estimate: value("The estimate the rule read; `absent` when too few runs give none"),
 		n: Type.Integer({ minimum: 0, description: "The n the rule read" }),
 		verdict: Type.Union([Type.Literal("kept"), Type.Literal("not-kept"), Type.Literal("no-verdict")], { description: "The outcome; `no-verdict` when n is below the spec's smallest n" }),
 	},

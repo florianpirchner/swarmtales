@@ -89,7 +89,7 @@ export const ExperimentResultsSchema: Type.TObject<{
     }>>;
     pass: Type.TOptional<Type.TObject<{
         rule: Type.TString;
-        estimate: Type.TNumber;
+        estimate: Type.TUnion<[Type.TNumber, Type.TLiteral<"absent">]>;
         n: Type.TInteger;
         verdict: Type.TUnion<[Type.TLiteral<"kept">, Type.TLiteral<"not-kept">, Type.TLiteral<"no-verdict">]>;
     }>>;

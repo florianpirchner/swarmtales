@@ -53,6 +53,9 @@ importers:
       '@swarmtales/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@swarmtales/lab':
+        specifier: workspace:*
+        version: link:../../packages/lab
       '@swarmtales/models':
         specifier: workspace:*
         version: link:../../packages/models

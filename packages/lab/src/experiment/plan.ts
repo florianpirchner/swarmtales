@@ -26,12 +26,24 @@ export interface PlannedRun {
 	readonly params: Readonly<Record<string, unknown>>;
 }
 
+/**
+ * The hash that binds the plan and the state file of an experiment to its spec. It leaves `budget` and
+ * `concurrency` out (decision A18): they say how a series is paid and paced, not what is measured, so a series
+ * stopped at its cap continues with the same plan after the total was raised.
+ *
+ * @param spec - The experiment spec.
+ * @returns The sha256 of the canonical JSON of the spec without the two fields.
+ */
+export function bindingHash(spec: ExperimentSpec): string {
+	return jsonHash(Object.fromEntries(Object.entries(spec).filter(([field]) => field !== "budget" && field !== "concurrency")));
+}
+
 /** What a replacement adds to the replicate of the run it replaces. */
 export const REPLACEMENT = 100;
 
 /**
- * Plans the runs of a spec: arm x seed x replicate, shuffled with a generator seeded from the spec's hash, so the
- * arms are interleaved and the order is fixed by the spec.
+ * Plans the runs of a spec: arm x seed x replicate, shuffled with a generator seeded from the spec's hash
+ * (taken without `budget` and `concurrency`, decision A18), so the arms are interleaved and the order is fixed by the spec.
  *
  * @param spec - The experiment spec.
  * @returns The planned runs in play order; the same spec gives the same plan.
@@ -44,7 +56,7 @@ export const REPLACEMENT = 100;
  */
 export function planRuns(spec: ExperimentSpec): readonly PlannedRun[] {
 	const cells = spec.arms.flatMap((arm) => spec.seeds.flatMap((seed) => Array.from({ length: spec.replicates }, (_, replicate) => ({ arm: arm.id, seed, replicate, params: arm.params }))));
-	const next = mulberry32(Number.parseInt(jsonHash(spec).slice(0, 8), 16));
+	const next = mulberry32(Number.parseInt(bindingHash(spec).slice(0, 8), 16));
 	for (let i = cells.length - 1; i > 0; i--) {
 		const j = Math.floor(next() * (i + 1));
 		const [a, b] = [cells[i], cells[j]];

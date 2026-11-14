@@ -7,7 +7,7 @@
 
 export { GAME_FILE_TYPES, gameFileNotFound, importFile, loadGame, unsupportedGameFile, type GameFileType, type LoadedGame } from "./load-game.ts";
 export { installedTable, installedTableBroken, type LoadPackage } from "./installed.ts";
-export { badUsage, liveRunTooEarly, toolWithoutSample } from "./errors.ts";
+export { badUsage, experimentNotFound, liveRunTooEarly, toolWithoutSample } from "./errors.ts";
 export { logVerify } from "./log-verify.ts";
 export { main, type CliIo } from "./main.ts";
 export { folderTexts, played, resolveFile, runFacts, runFake, whyOf, type ResolvedFile, type RunInput } from "./run.ts";
@@ -16,3 +16,5 @@ export { badSet, liveFlags, paramsOf, readFlags, seedOf, unknownWord, type Flags
 export { confirmatoryAlone, runLive, type LiveInput, type LiveResult } from "./live.ts";
 export { LEAK_FILE, scanFolder } from "./leak-scan.ts";
 export { ledgerRefused, openLedger, type Ledger } from "./ledger.ts";
+export { jsonFile, metricTable, report, REPORT_FILE, type ReportInput } from "./report.ts";
+export { experimentAnalyse, experimentRun, type ExperimentInput } from "./experiment.ts";

@@ -12,6 +12,7 @@ import { jsonHash } from "@swarmtales/chain";
 import { type Envelope, type RunEnd, type RunManifest, SwtError } from "@swarmtales/contracts";
 import { openRunFolder } from "@swarmtales/runlog";
 import { afterEach, describe, expect, it } from "vitest";
+import { bindingHash } from "../src/experiment/plan.ts";
 import { comparable, type ExperimentSpec, type MetricTable, type PlannedRun, type PlayRun, planRuns, readExperimentState, runExperiment } from "../src/index.ts";
 
 const HASH = "a".repeat(64);
@@ -32,7 +33,7 @@ const SPEC: ExperimentSpec = {
 };
 
 /** The manifest a player writes for a planned run; `model` is the resolved model id of its one actor. */
-function manifestOf(run: Pick<PlannedRun, "arm" | "seed" | "replicate">, experiment = { id: SPEC.id, specHash: jsonHash(SPEC) }, model = "claude-haiku"): RunManifest {
+function manifestOf(run: Pick<PlannedRun, "arm" | "seed" | "replicate">, experiment = { id: SPEC.id, specHash: bindingHash(SPEC) }, model = "claude-haiku"): RunManifest {
 	return {
 		format: "swarmtales-run", version: 1, run: { id: `${run.arm}-s${run.seed}-r${run.replicate}`, startedAt: "2026-11-14T10:00:00.000Z", purpose: "pilot" },
 		game: { id: "toy", hash: jsonHash(GAME), params: {} }, kernel: { revision: 3, version: "0.0.0", commit: "c0ffee", node: "26.13.0" },
@@ -130,6 +131,20 @@ describe("runExperiment", () => {
 		const three = player(root());
 		expect(await refusal(runExperiment({ ...spec, concurrency: 3 }, three.play, { directory: roots.at(-1) ?? "", metrics: METRICS }))).toMatch(/^SWT-E004 .*0\.0000 spent \+ 0\.20 reserved/);
 		expect([three.seen.calls.length, three.seen.most, readExperimentState(roots.at(-1) ?? "")?.runs.length]).toEqual([2, 2, 2]);
+	});
+
+	it("continues a series stopped at its cap with the same plan after the total was raised (A18); any other change is refused (E006)", async () => {
+		const spec = { ...SPEC, budget: { ...SPEC.budget, totalUsd: 0.25 } };
+		const directory = root();
+		const { play, seen } = player(directory, () => ({ costUsd: 0.06 }));
+		expect(await refusal(runExperiment(spec, play, { directory, metrics: METRICS }))).toMatch(/^SWT-E004/);
+		const raised = { ...spec, budget: { ...spec.budget, totalUsd: 1 }, concurrency: 2 };
+		expect([planRuns(raised), bindingHash(raised)]).toEqual([planRuns(spec), readExperimentState(directory)?.specHash]);
+		expect(await refusal(runExperiment({ ...raised, seeds: [1, 2, 3] }, play, { directory, metrics: METRICS }))).toMatch(/^SWT-E006 .*another spec/);
+		expect(await refusal(runExperiment({ ...raised, exclusions: [] }, play, { directory, metrics: METRICS }))).toMatch(/^SWT-E006 .*another spec/);
+		const state = await runExperiment(raised, play, { directory, metrics: METRICS });
+		expect([seen.calls.map(cell), state.runs.map((run) => run.status), state.spec.budget.totalUsd]).toEqual([planRuns(spec).map(cell), ["included", "included", "included", "included"], 1]);
+		expect(readExperimentState(directory)).toEqual(state);
 	});
 
 	it("replaces an excluded run once, with the replicate plus 100", async () => {

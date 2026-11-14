@@ -69,7 +69,8 @@ describe("analyse", () => {
 		expect(short.runs.map((run) => run.status).slice(-2)).toEqual(["excluded", "stopped"]);
 		expect(short.deviations).toEqual([{ at: "open-3-0", what: "the run is excluded", why: "error-end" }, { at: "open-s3-r100", what: "the run is stopped, and it was the one replacement", why: "error-end" }]);
 		const none = results(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, "absent"], ["open", 3, "absent"]]);
-		expect([none.pass?.verdict, none.pass?.n, none.estimates]).toEqual(["no-verdict", 1, []]);
+		expect([none.pass?.verdict, none.pass?.estimate, none.pass?.n, none.estimates]).toEqual(["no-verdict", "absent", 1, []]);
+		expect(none.pass?.rule).not.toContain("reads 0");
 	});
 
 	it("reads a metric of one arm as absent, and refuses a metric no run has (E010)", () => {

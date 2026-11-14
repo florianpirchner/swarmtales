@@ -8,7 +8,7 @@ import { badUsage } from "./errors.ts";
 // A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
 const MAX_SEED = 4294967295;
 const text = { type: "string" } as const;
-const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text } as const;
+const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text } as const;
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];
 const PURPOSES: readonly Purpose[] = ["smoke", "pilot", "exploratory", "confirmatory"];
 

@@ -5,7 +5,6 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { jsonHash } from "@swarmtales/chain";
 import { type MetricDefinition, type RunManifest, RunManifestSchema, SwtError } from "@swarmtales/contracts";
 import { MANIFEST_FILE } from "@swarmtales/runlog";
 import { type Static, Type } from "typebox";
@@ -13,7 +12,7 @@ import { badFile, badRunFolder, capReached, estimateAboveCap, type LabError, not
 import type { RunFacts } from "../facts/facts.ts";
 import { readRun } from "../facts/read.ts";
 import { difference } from "./compare.ts";
-import { checkMetrics, openRuns, type PlannedRun, planRuns, replacementOf } from "./plan.ts";
+import { bindingHash, checkMetrics, openRuns, type PlannedRun, planRuns, replacementOf } from "./plan.ts";
 import { type ExperimentSpec, ExperimentSpecSchema, parseLabFile } from "./spec.ts";
 
 /** The name of the state file in the experiment's folder. */
@@ -55,7 +54,7 @@ const Played = Type.Object(
 export const ExperimentStateSchema = Type.Object(
 	{
 		spec: ExperimentSpecSchema,
-		specHash: Type.String({ description: "The sha256 of the canonical JSON of the spec" }),
+		specHash: Type.String({ description: "The sha256 of the canonical JSON of the spec without `budget` and `concurrency`" }),
 		runs: Type.Array(Played, { description: "The records, in the order the runs ended" }),
 		spentUsd: Type.Number({ minimum: 0, description: "The sum of the costs of the records" }),
 		code: Type.Optional(
@@ -271,7 +270,8 @@ class Series {
  * every run in flight, plus its own per-run cap fits under `budget.totalUsd`; no run is stopped half way. A run
  * whose facts meet a rule of `exclusions` is replaced once (replicate plus 100). A player that fails, or reports a
  * cost that is no amount, counts with its whole cap. A run whose folder cannot be read keeps a record with its cost.
- * Of a state file only the records are trusted: the spec is the caller's and what is spent is the sum of the records.
+ * Of a state file only the records are trusted: the spec is the caller's and what is spent is the sum of the records. The file
+ * is bound to the spec without `budget` and `concurrency` (decision A18), so a series continues under a changed cap or pace.
  * The failures in a row at the end of an earlier call count on. When the experiment stops, the runs in flight end first and the state file holds them.
  *
  * @param spec - The experiment spec.
@@ -292,7 +292,7 @@ class Series {
  * @public
  */
 export async function runExperiment(spec: ExperimentSpec, play: PlayRun, options: ExperimentOptions): Promise<ExperimentState> {
-	const specHash = jsonHash(spec);
+	const specHash = bindingHash(spec);
 	checkMetrics(spec, Object.entries(options.metrics).flatMap(([plugin, metrics]) => metrics.map((metric) => `${plugin}.${metric.id}`)), true);
 	const estimate = planRuns(spec).reduce((sum, run) => sum + (spec.budget.estimateUsdPerRun[run.arm] ?? spec.budget.perRunUsd), 0);
 	if (estimate > spec.budget.totalUsd + EPSILON) throw estimateAboveCap(estimate, spec.budget.totalUsd);

@@ -48,8 +48,8 @@ const UNGATED: ExperimentResults = parseExperimentResults({
 	guardrails: [{ metric: "models.costUsd", arm: "control", value: 0.01, held: true }, { metric: "models.costUsd", arm: "open", value: "absent", held: false }],
 	deviations: [{ at: "open-s2", what: "the run is excluded", why: "error-end" }],
 });
-// What the analysis writes today for a rule that has no estimate: the number 0 beside the verdict.
-const RESULTS: ExperimentResults = { ...UNGATED, pass: { rule: "toy.score, open minus control over the included runs, is greater than 0; a verdict needs 3 complete pairs", estimate: 0, n: 1, verdict: "no-verdict" } };
+// What the analysis writes for a rule that has no estimate: `absent` beside the verdict.
+const RESULTS: ExperimentResults = { ...UNGATED, pass: { rule: "toy.score, open minus control over the included runs, is greater than 0; a verdict needs 3 complete pairs", estimate: "absent", n: 1, verdict: "no-verdict" } };
 
 describe("the run report", () => {
 	it("is the computed text of the fixture facts", () => {

@@ -91,13 +91,12 @@ function passOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["
 	if (spec.pass === undefined) return undefined;
 	const { sign, minN, contrast } = spec.pass;
 	const { effect, n } = effectOf(spec, rows, spec.metrics.primary, "included");
-	const estimate = effect?.estimate ?? 0;
-	const wanted = sign === "positive" ? { word: "greater", kept: estimate > 0 } : { word: "less", kept: estimate < 0 };
-	const rule = `${spec.metrics.primary}, ${contrast[0]} minus ${contrast[1]} over the included runs, is ${wanted.word} than 0; a verdict needs ${minN} ${spec.design === "paired" ? "complete pairs" : "runs in each arm"}`;
+	const [word, factor] = sign === "positive" ? ["greater", 1] : ["less", -1];
+	const rule = `${spec.metrics.primary}, ${contrast[0]} minus ${contrast[1]} over the included runs, is ${word} than 0; a verdict needs ${minN} ${spec.design === "paired" ? "complete pairs" : "runs in each arm"}`;
 	// A design without a contrast would hand the rule the mean of one arm, and its sign would read as a verdict.
-	if (contrastOf(spec).length < 2) return { rule: `${rule} (the design ${spec.design} has no contrast of two arms: it reads 0)`, estimate: 0, n: 0, verdict: "no-verdict" };
-	if (effect === undefined) return { rule: `${rule} (too few runs for an estimate: it reads 0)`, estimate, n, verdict: "no-verdict" };
-	return { rule, estimate, n, verdict: n < minN ? "no-verdict" : wanted.kept ? "kept" : "not-kept" };
+	if (contrastOf(spec).length < 2) return { rule: `${rule} (the design ${spec.design} has no contrast of two arms)`, estimate: "absent", n: 0, verdict: "no-verdict" };
+	if (effect === undefined) return { rule, estimate: "absent", n, verdict: "no-verdict" };
+	return { rule, estimate: effect.estimate, n, verdict: n < minN ? "no-verdict" : effect.estimate * factor > 0 ? "kept" : "not-kept" };
 }
 
 // The mean of a guardrail's measure over the included runs of an arm, and whether it is inside the limits.

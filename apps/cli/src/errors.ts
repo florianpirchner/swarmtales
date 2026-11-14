@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The C codes of the commands: `SWT-C003`, `SWT-C010` and `SWT-C020`. `SWT-C001` and `SWT-C002` are beside the game
+ * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020` and `SWT-C024`. `SWT-C001` and `SWT-C002` are beside the game
  * file loader (`load-game.ts`), `SWT-C030` beside the installed table (`installed.ts`).
  */
 import type { SwtIssue } from "@swarmtales/contracts";
@@ -18,8 +18,8 @@ export function badUsage(input: { readonly problem: string }): SwtIssue {
 	return {
 		code: "SWT-C003",
 		summary: input.problem,
-		why: "The commands are `swt run <game file> --fake [--seed n] [--out dir] [--json]` and `swt log verify <run dir> [--json]`; a seed is a whole number from 0 to 4294967295.",
-		fix: "Write the command in one of the two forms.",
+		why: "The commands are `swt run <game file>` (with `--fake`, or with `--budget <usd>` for a live run), `swt log verify <run dir>`, `swt report <run dir> [--game <game file>]`, `swt experiment run <spec file> [--out dir] [--ledger file]` and `swt experiment analyse <experiment dir>`; a seed is a whole number from 0 to 4294967295.",
+		fix: "Write the command in one of these forms.",
 	};
 }
 
@@ -55,5 +55,25 @@ export function liveRunTooEarly(): SwtIssue {
 		summary: "a run without `--fake` needs live models, which this milestone does not have",
 		why: "At milestone M1 the command line plays a game with the fake driver only; model drivers arrive with M2.",
 		fix: "Add `--fake` to the command.",
+	};
+}
+
+/**
+ * `SWT-C024`: an experiment file is not there: the spec file, or the state file of an experiment's folder.
+ *
+ * @param input - What is missing.
+ * @param input.path - The file or the folder that was looked at.
+ * @param input.what - What was expected there.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function experimentNotFound(input: { readonly path: string; readonly what: string }): SwtIssue {
+	return {
+		code: "SWT-C024",
+		summary: `there is no ${input.what} at "${input.path}"`,
+		why: "`swt experiment run` reads the spec file of an experiment, and `swt experiment analyse` the folder that `swt experiment run` wrote.",
+		fix: "Give the path of a spec file (for example `games/quarry/experiments/open-quarries.json`), or the folder that holds `experiment.json`.",
+		where: { file: input.path },
 	};
 }
