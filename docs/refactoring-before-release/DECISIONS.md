@@ -446,3 +446,20 @@ server reports does not fall; clones do not fetch those refs and are small.
 
 Before O6, the whole decision is undone by renaming `main` to `rewrite` and `legacy` back to `main`. That is also
 the fallback of the kill criterion. After O6 only the bundle brings the old state back.
+
+## 9. Addendum of 2026-11-14: decisions taken while building
+
+The owner delegated all decisions for the rewrite to the agent team on 2026-11-14 ("no check-ins, decide everything
+yourselves"), asked for as much parallel work as the machine carries, and set one model for every role: the same
+model family builds and reviews. Decisions taken after sections 1 to 8 were written are recorded here, newest last.
+Each row can be reopened by an issue with new evidence, like every other decision.
+
+| # | Date | Decision | Reason |
+|---|---|---|---|
+| A1 | 2026-11-14 | Builders and challengers run on the same model (owner's instruction). E3's "a challenger on another model" becomes "a challenger in a separate session that did not see the builder's reasoning, only the specification and the result" | the owner's choice of model; independence comes from the separate context and from the challenger's duty to attack with failing cases |
+| A2 | 2026-11-14 | E4 (at most three open pull requests) is replaced for the build phase: any number of issues may be built at once in separate git worktrees; **one integrator merges them one at a time, in wave order**, and runs the check after each merge | the limit existed to avoid conflicts in generated files; a single merge lane avoids them as well and allows the parallel work the owner asked for. `08-m1-spec.md` freezes all interfaces in waves 1 and 2 so that later issues do not collide |
+| A3 | 2026-11-14 | Issue-driven stays, in this form: every unit of work has an issue id from the specification of its milestone (`M1-07`), a row in `docs/ISSUE-RECORD.md`, and lands as **one squash commit** on `develop` whose subject names the id. GitHub issues mirror the list per milestone. `main` moves only at a milestone, after the milestone review | one commit per issue keeps "no change without an issue" checkable from `git log`; a pull request per issue would put the integrator's single lane behind the GitHub round trip thirty-seven times per milestone |
+| A4 | 2026-11-14 | D4 issue budget for M0 to M2 is 75 issues (M0 14, M1 37, M2 24), the kill criterion fires above 150. Token and cost numbers are unchanged | the 400-line rule of D4 itself splits M1 into 37 issues (`08-m1-spec.md`, challenged); the budget of 50 assumed 18. Changed before any M1 issue was started, so no crossed budget is raised |
+| A5 | 2026-11-14 | Until the freeze, the new platform is built on the branches `rewrite/root` (the future root commit of `main`) and `rewrite/develop`. At the switch they become `main` and `develop` | work on the new platform does not have to wait for the old-state issues that precede the tag |
+| A6 | 2026-11-14 | The check on the old state runs under Node 26.13 with one check at a time on a machine (a lock), because its lint needs a 12 GB heap | measured: the full check is green on `9765702`; two at once exhaust a 15 GB machine |
+| A7 | 2026-11-14 | Agent sessions commit with a `Signed-off-by` line; the identity rule is fixed in the new `CLAUDE.md` by the scaffold review | D15 needs a rule that keeps the sign-off check meaningful when the committer is an agent |
