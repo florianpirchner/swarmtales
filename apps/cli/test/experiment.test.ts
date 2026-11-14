@@ -46,19 +46,22 @@ afterAll(() => {
 	rmSync(cwd, { recursive: true, force: true });
 });
 
-// A01 guesses 1, 2, 3 and so on; every answer costs 0.0005 USD (the scripted model has no price, so the cost is set as the answer ends).
+// A01 guesses 1, 2, 3 and so on. Every run costs 0.003 USD, set on the first answer of A01 (the scripted model has no price): the plan's order
+// follows the spec's hash, which holds the path of this file, so a cost per answer would move the stop at the cap with the folder of the checkout.
 function source(): ModelSource {
 	const scripted = scriptedSource({ "resident:A01": Array.from({ length: 20 }, (_, index) => act({ name: "guess", args: { value: index + 1 } })), "resident:A02": Array.from({ length: 40 }, () => say()), "resident:A03": Array.from({ length: 40 }, () => say()) });
 	return {
 		bind: (actor, limits) => {
 			const binding = scripted.bind(actor, limits);
+			let total = actor === "resident:A01" ? 0.003 : 0;
 			return {
 				...binding,
 				streamFn: async (model, context, options) => {
 					const stream = await binding.streamFn(model, context, options);
 					const push = stream.push.bind(stream);
 					stream.push = (event) => {
-						push(event.type === "done" ? { ...event, message: { ...event.message, usage: { ...event.message.usage, cost: { ...event.message.usage.cost, total: 0.0005 } } } } : event);
+						push(event.type === "done" ? { ...event, message: { ...event.message, usage: { ...event.message.usage, cost: { ...event.message.usage.cost, total } } } } : event);
+						if (event.type === "done") total = 0;
 					};
 					return stream;
 				},
@@ -100,7 +103,7 @@ describe("swt experiment", () => {
 		const before = readExperimentState(join(cwd, "series"));
 		const raised = await run("series", { ...SPEC, budget: { ...SPEC.budget, totalUsd: 1 }, concurrency: 2 }, { ledger: "ledger.jsonl" });
 		expect([raised.code, raised.err, raised.out[0]]).toEqual([0, "", stopped.out[0]]);
-		expect(raised.out.slice(2).map((line) => line.replace(/\d\.\d{4} USD$/, "")).sort()).toEqual([...plan.slice(4), "complete: 6 runs, 6 included, 0.0255 USD; analyse with `swt experiment analyse series`"].sort());
+		expect(raised.out.slice(2).map((line) => line.replace(/\d\.\d{4} USD$/, "")).sort()).toEqual([...plan.slice(4), "complete: 6 runs, 6 included, 0.0180 USD; analyse with `swt experiment analyse series`"].sort());
 		const state = readExperimentState(join(cwd, "series"));
 		expect([state?.runs.slice(0, 4), state?.runs.length, state?.specHash]).toEqual([before?.runs, 6, before?.specHash]);
 		// The ledger was passed on: every run reserved its cap and settled its cost.
@@ -148,7 +151,7 @@ describe("swt report", () => {
 	it("writes REPORT.md with the computed facts, exits 1 on a folder that is no run and 4 when the folder holds a key value", async () => {
 		expect(await swt("report", "series/guess-number-001")).toEqual([0, "report: series/guess-number-001/REPORT.md", undefined]);
 		const text = lines("series/guess-number-001/REPORT.md");
-		expect(text).toEqual(expect.arrayContaining(["# Run guess-number-001", "| `run.ticks` | Ticks |  | 7 |", "| `models.costUsd` | Cost | USD | 0.0045 |", LOOPHOLE_HEADING]));
+		expect(text).toEqual(expect.arrayContaining(["# Run guess-number-001", expect.stringMatching(/^\| `run\.ticks` \| Ticks \| {2}\| \d+ \|$/), "| `models.costUsd` | Cost | USD | 0.003 |", LOOPHOLE_HEADING]));
 		expect((await swt("report", "series/guess-number-002", "--game", fileURLToPath(import.meta.url)))[0]).toBe(0);
 		expect(await swt("report", "series")).toEqual([1, "", "SWT-E001"]);
 		writeFileSync(join(cwd, "series/guess-number-002/notes.txt"), `Authorization: ${KEY}`);
