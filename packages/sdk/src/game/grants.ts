@@ -30,7 +30,10 @@ export interface GrantsInput {
 export interface ResolvedGrants {
 	/** Grant name to its tools, in the order a caller sees them: `KernelDefinition.grants`. */
 	readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
-	/** The game's `locked` under the grant name `resident`: `KernelDefinition.startLocks`. Empty when nothing is locked. */
+	/**
+	 * The game's `locked` under the grant name `resident`: `KernelDefinition.startLocks`. Empty when nothing is locked.
+	 * The grant of a Director and the grant `human` never get a start lock: `locked` speaks of residents only.
+	 */
 	readonly startLocks: Readonly<Record<string, readonly CanonicalTool[]>>;
 	/** One `SWT-G012` per name that no mechanic defines, then the `SWT-G013` clashes of the finished grants. */
 	readonly issues: readonly SwtIssue[];

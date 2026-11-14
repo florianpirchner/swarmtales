@@ -67,7 +67,7 @@ function stub(answers: { provided?: readonly string[]; output?: unknown; tick?: 
 	const options = { size: 3 };
 	const head = { id: "grid", package: "@acme/grid", summary: "A grid.", options: Type.Object({}), state: undefined, version: 1, events, audiences: {}, prompts: { "grid/turn": ["side"] }, requires: [Board], provides: [], uses: [Chat], tools: [], metrics: [] };
 	const texts = { render: (owner: string, id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]) => `${owner}|${id}|${JSON.stringify(variables)}|${declared.join(",")}` };
-	return { port, calls, parts: { port, head, options, state: { value: { moves: 0 } }, setup: { options, residents: ["A01", "A02"], seed: 7, rng: () => random }, texts } };
+	return { port, calls, parts: { port, head, options, state: { value: { moves: 0 } }, setup: { options, residents: ["A01", "A02"], actors: ["resident:A01", "resident:A02"], seed: 7, rng: () => random }, texts } };
 }
 
 const codeOf = (run: () => unknown): string => {
@@ -88,6 +88,9 @@ describe("contextFor", () => {
 		expect(contextFor(parts, "director:D1").resident).toBeUndefined();
 		expect([residentOf("resident:A01"), residentOf("human"), actorOf("A01")]).toEqual(["A01", undefined, "resident:A01"]);
 		expect(ctx.residents.ids).toEqual(["A01", "A02"]);
+		// Every actor under its actor id, read-only: the view has no `suspend` and no `resume`.
+		expect([ctx.actors.ids, ctx.actors.ofKind("resident"), ctx.actors.has("resident:A01"), ctx.actors.mayAct("resident:A02"), ctx.actors.shared("resident:A01", "team")]).toEqual([ACTORS, ACTORS.filter((id) => id.startsWith("resident:")), true, false, undefined]);
+		expect(Object.keys(ctx.actors).sort()).toEqual(["has", "ids", "mayAct", "ofKind", "shared"]);
 		expect([ctx.residents.has("A01"), ctx.residents.has("D1"), ctx.residents.has("resident:A01")]).toEqual([true, false, false]);
 		expect([ctx.residents.mayAct("A01"), ctx.residents.mayAct("A02")]).toEqual([true, false]);
 		ctx.residents.suspend("A01", "voted out");

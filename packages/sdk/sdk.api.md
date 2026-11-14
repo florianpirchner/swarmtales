@@ -6,6 +6,7 @@
 
 import { ActorId } from '@swarmtales/contracts';
 import { ActorSpec } from '@swarmtales/contracts';
+import { ActorsView } from '@swarmtales/contracts';
 import { CanonicalTool } from '@swarmtales/contracts';
 import { Envelope } from '@swarmtales/contracts';
 import { EventSchemas } from '@swarmtales/contracts';
@@ -49,7 +50,7 @@ import { Type } from 'typebox';
 export function actorOf(resident: string): ActorId;
 
 // @public
-export function actorsOf(data: GameData, ids: readonly string[]): {
+export function actorsOf(data: GameData, ids: readonly string[], directors?: readonly string[], grants?: Readonly<Record<string, readonly string[]>>): {
     readonly actors: readonly ActorSpec[];
     readonly issues: readonly SwtIssue[];
 };
@@ -163,6 +164,19 @@ export type DefinitionOf<H> = H extends MechanicHead<infer Id, infer O, TSchema,
 
 // @public
 export function definitionsOf(game: Game | GameData, installed?: Readonly<Record<string, MechanicDefinition>>): Readonly<Record<string, MechanicDefinition>>;
+
+// @public
+export function directorName(input: {
+    readonly name: string;
+    readonly path: string;
+    readonly taken: "director" | "grant";
+}): SwtIssue;
+
+// @public
+export function directorsOf(data: GameData): {
+    readonly names: readonly string[];
+    readonly issues: readonly SwtIssue[];
+};
 
 // @public
 export function directorsReserved(input: {
@@ -324,6 +338,7 @@ export type MechanicBody<M extends MechanicShape, TP extends ToolParams, F exten
 // @public
 export interface MechanicContext<M extends MechanicShape> {
     readonly access: ResidentAccess;
+    readonly actors: ActorsView;
     call<A extends M["requires"][number], K extends ServiceMethodName<A>>(service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K>;
     emit<K extends keyof M["events"] & string>(type: K, payload: Static<M["events"][K]>): void;
     has(service: M["requires"][number] | M["uses"][number]): boolean;
@@ -726,6 +741,7 @@ export const SDK_ERRORS: {
     readonly "SWT-G031": "a service has two providers";
     readonly "SWT-G032": "`requires` form a cycle";
     readonly "SWT-G041": "an override names no param of the game, or its value has the wrong type";
+    readonly "SWT-D002": "the name of a Director is taken by another Director or by a grant";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";
@@ -772,6 +788,7 @@ export type ServicesOf<M extends MechanicShape> = { readonly [N in M["provides"]
 
 // @public
 export interface Setup<O> {
+    readonly actors: readonly ActorId[];
     readonly options: O;
     readonly residents: readonly string[];
     readonly rng: (...labels: readonly RandomLabel[]) => RandomSource;

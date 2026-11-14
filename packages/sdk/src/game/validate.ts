@@ -7,10 +7,12 @@
  */
 import { actorId, GameDefinitionSchema, KERNEL_EVENTS, ResidentIdSchema, SwtError, type ActorSpec, type GameData, type JsonValue, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
-import { directorsReserved, eventTypeTaken, gameSchemaMismatch, mechanicNotInstalled, mechanicTwice, memberNotResident, residentId, schemaVersion } from "../errors.ts";
+import { directorName, directorsReserved, eventTypeTaken, gameSchemaMismatch, mechanicNotInstalled, mechanicTwice, memberNotResident, residentId, schemaVersion } from "../errors.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 
 const KIND = "resident";
+const DIRECTOR = "director";
+const HUMAN = "human";
 
 /**
  * One mechanic of a game after step 4: its definition and its options, parsed, with defaults.
@@ -85,17 +87,41 @@ export function residentsOf(data: GameData): { readonly ids: readonly string[]; 
 }
 
 /**
+ * The names of a game's Directors: the `as` of each, else its `use`. A Director is the actor `director:<name>` and
+ * holds the grant `<name>`.
+ *
+ * @param data - The game.
+ * @returns The names in the game's order, each once, and one `SWT-D002` per name that an earlier Director has or
+ * that is the grant name of the residents (`resident`) or of the human (`human`).
+ *
+ * @public
+ */
+export function directorsOf(data: GameData): { readonly names: readonly string[]; readonly issues: readonly SwtIssue[] } {
+	const names = (data.directors ?? []).map((use) => use.as ?? use.use);
+	const issues = names.flatMap((name, index) => {
+		const taken = name === KIND || name === HUMAN ? "grant" : names.indexOf(name) < index ? "director" : undefined;
+		return taken === undefined ? [] : [directorName({ name, path: `directors[${index}]`, taken })];
+	});
+	return { names: [...new Set(names)], issues };
+}
+
+/**
  * Step 3: the actors of a game. Each resident becomes the actor `resident:<id>` of kind and grant `resident`; its
- * team and its role are written into `shared` (`team`, `role`), where the `roster` plugin reads them.
+ * team and its role are written into `shared` (`team`, `role`), where the `roster` plugin reads them. After the
+ * residents come the actor `director:<name>` (kind `director`, grant `<name>`) of each Director, and last the actor
+ * `human` (kind and grant `human`) when the grant `human` holds a tool. No scheduler option activates the human:
+ * its calls are submitted between two ticks.
  *
  * @param data - The game.
  * @param ids - The resident ids of step 2.
+ * @param directors - The names of the game's Directors, from {@link directorsOf}.
+ * @param grants - The resolved grants of step 7; without them the game has no actor `human`.
  * @returns The actors in the game's order, and one `SWT-G011` per member of a team or a role that is no resident.
  * A resident that several teams (or roles) name gets the first of them.
  *
  * @public
  */
-export function actorsOf(data: GameData, ids: readonly string[]): { readonly actors: readonly ActorSpec[]; readonly issues: readonly SwtIssue[] } {
+export function actorsOf(data: GameData, ids: readonly string[], directors: readonly string[] = [], grants: Readonly<Record<string, readonly string[]>> = {}): { readonly actors: readonly ActorSpec[]; readonly issues: readonly SwtIssue[] } {
 	const issues: SwtIssue[] = [];
 	const shared = new Map(ids.map((id): [string, Record<string, JsonValue>] => [id, {}]));
 	for (const kind of ["team", "role"] as const) {
@@ -107,7 +133,10 @@ export function actorsOf(data: GameData, ids: readonly string[]): { readonly act
 			});
 		}
 	}
-	return { actors: ids.map((id) => ({ id: actorId(KIND, id), kind: KIND, grant: KIND, shared: shared.get(id) ?? {} })), issues };
+	const residents = ids.map((id): ActorSpec => ({ id: actorId(KIND, id), kind: KIND, grant: KIND, shared: shared.get(id) ?? {} }));
+	const others = directors.map((name): ActorSpec => ({ id: actorId(DIRECTOR, name), kind: DIRECTOR, grant: name, shared: {} }));
+	const human: readonly ActorSpec[] = (Object.hasOwn(grants, HUMAN) ? (grants[HUMAN] ?? []) : []).length > 0 ? [{ id: HUMAN, kind: HUMAN, grant: HUMAN, shared: {} }] : [];
+	return { actors: [...residents, ...others, ...human], issues };
 }
 
 /**

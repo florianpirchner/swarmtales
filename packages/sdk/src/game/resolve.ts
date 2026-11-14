@@ -18,7 +18,7 @@ import { loadOrder } from "./load-order.ts";
 import { collectTexts } from "./texts.ts";
 import { toolNames } from "./tool-names.ts";
 import type { Game, ResolvedGame, ResolveInput } from "./types.ts";
-import { actorsOf, checkSchema, mechanicsOf, residentsOf, type UsedMechanic } from "./validate.ts";
+import { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf, type UsedMechanic } from "./validate.ts";
 
 const ROSTER = "roster";
 const SDK = "@swarmtales/sdk";
@@ -104,13 +104,14 @@ function briefingsOf(data: GameData, residents: readonly string[]): Readonly<Rec
 }
 
 // The data form that is hashed and recorded: the seed, every mechanic's options and the scheduler with their defaults, `roster` listed.
-function filledData(data: GameData, used: readonly UsedMechanic[], scheduler: Scheduled, roster: boolean): GameData {
+// An empty `directors` is left out, so the game has the hash of the game without the field.
+function filledData({ directors, ...data }: GameData, used: readonly UsedMechanic[], scheduler: Scheduled, roster: boolean): GameData {
 	const mechanics = data.mechanics.map((use, index) => {
 		const options = used.find((entry) => entry.index === index)?.options;
 		return options === undefined ? use : { ...use, options };
 	});
 	const listed = data.mechanics.some((use) => use.use === ROSTER);
-	return { ...data, seed: data.seed ?? 1, mechanics: roster && !listed ? [...mechanics, { use: ROSTER }] : mechanics, scheduler: { id: scheduler.id, options: scheduler.options } };
+	return { ...data, ...(directors === undefined || directors.length === 0 ? {} : { directors }), seed: data.seed ?? 1, mechanics: roster && !listed ? [...mechanics, { use: ROSTER }] : mechanics, scheduler: { id: scheduler.id, options: scheduler.options } };
 }
 
 // Steps 4 to 8: the mechanics in load order with their tool names, grants and texts. A recorded game lists `roster`, which no package installs.
@@ -218,10 +219,12 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	if (checked.data === undefined) throw new SwtError(sorted(checked.issues));
 	const data = checked.data;
 	const residents = residentsOf(data);
-	const actors = actorsOf(data, residents.ids);
 	const steps = mechanicSteps(data, { ...input.installed, ...builder?.mechanics }, input);
+	const directors = directorsOf(data);
+	// The actors come after the grants: the actor `human` exists when its grant holds a tool.
+	const actors = actorsOf(data, residents.ids, directors.names, steps.grants.grants);
 	const scheduler = schedulerOf(data, input.schedulers);
-	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...steps.issues, ...scheduler.issues];
+	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...directors.issues, ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
 	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, steps, scheduler, definition: scheduler.definition });
 }

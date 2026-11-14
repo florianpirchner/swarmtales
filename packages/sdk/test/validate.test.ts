@@ -4,7 +4,7 @@ import { Type, type TSchema } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { optionMismatch } from "../src/errors.ts";
-import { actorsOf, checkSchema, mechanicsOf, residentsOf } from "../src/game/validate.ts";
+import { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf } from "../src/game/validate.ts";
 import type { MechanicDefinition } from "../src/mechanic/types.ts";
 
 const SizeOptions = Type.Object({ size: Type.Integer({ default: 3, minimum: 2, description: "The size" }) }, { additionalProperties: false, description: "The options" });
@@ -94,6 +94,27 @@ describe("steps 2 and 3, residents, teams and roles", () => {
 		const { actors, issues } = actorsOf(game({ teams: { X: ["A", "D"] }, roles: { scout: ["E"] } }), ["A", "B", "C"]);
 		expect(brief(issues)).toEqual(["SWT-G011 teams.X[1]", "SWT-G011 roles.scout[0]"]);
 		expect(actors.map((actor) => actor.id)).toEqual(["resident:A", "resident:B", "resident:C"]);
+	});
+});
+
+describe("the actors that are no residents", () => {
+	it("names a Director by `as`, else by `use`, and refuses a taken name as SWT-D002", () => {
+		expect(directorsOf(game())).toEqual({ names: [], issues: [] });
+		expect(directorsOf(game({ directors: [{ use: "gamemaker", as: "host" }, { use: "warden" }] }))).toEqual({ names: ["host", "warden"], issues: [] });
+		const { names, issues } = directorsOf(game({ directors: [{ use: "host" }, { use: "gamemaker", as: "host" }, { use: "resident" }, { use: "warden", as: "human" }] }));
+		expect(names).toEqual(["host", "resident", "human"]);
+		expect(brief(issues)).toEqual(["SWT-D002 directors[1]", "SWT-D002 directors[2]", "SWT-D002 directors[3]"]);
+		expect(issues.map((issue) => issue.details?.taken)).toEqual(["director", "grant", "grant"]);
+	});
+
+	it("adds the Directors after the residents and the human last, only when the grant `human` holds a tool", () => {
+		const ids = (grants?: Readonly<Record<string, readonly string[]>>): readonly string[] => actorsOf(game(), ["A"], ["host", "warden"], grants).actors.map((actor) => actor.id);
+		expect(actorsOf(game(), ["A"], ["host"], { human: ["@a/hand/hand/pause"], host: [] }).actors.slice(1)).toEqual([
+			{ id: "director:host", kind: "director", grant: "host", shared: {} },
+			{ id: "human", kind: "human", grant: "human", shared: {} },
+		]);
+		expect([ids(), ids({ human: [] }), ids({ resident: ["@a/x/x/look"] })]).toEqual(Array.from({ length: 3 }, () => ["resident:A", "director:host", "director:warden"]));
+		expect(actorsOf(game(), ["A"], [], { human: ["@a/x/x/look"] }).actors.map((actor) => actor.id)).toEqual(["resident:A", "human"]);
 	});
 });
 

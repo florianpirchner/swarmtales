@@ -46,7 +46,7 @@ function setup(): { readonly parts: InstanceParts<M>; readonly bind: KitBinding;
 		head,
 		options: { size: 3 },
 		state: { value: { count: 1 } },
-		setup: { options: { size: 3 }, residents: ["A01"], seed: 7, rng: () => random },
+		setup: { options: { size: 3 }, residents: ["A01"], actors: ["resident:A01"], seed: 7, rng: () => random },
 		texts: { render: (owner, id) => `text of ${owner}/${id}` },
 	};
 	const bind: KitBinding = {
@@ -60,6 +60,7 @@ function setup(): { readonly parts: InstanceParts<M>; readonly bind: KitBinding;
 				tick: p.port.tick(),
 				ticks: p.port.maxTicks,
 				residents: { ids: [], has: () => false, mayAct: () => true, suspend: () => undefined, resume: () => undefined },
+				actors: p.port.actors,
 				schedule: p.port.schedule,
 				access: { lock: () => undefined, unlock: () => undefined, isLocked: () => false, isOpen: () => true },
 				emit: () => undefined,

@@ -27,6 +27,7 @@ export const SDK_ERRORS = {
 	"SWT-G031": "a service has two providers",
 	"SWT-G032": "`requires` form a cycle",
 	"SWT-G041": "an override names no param of the game, or its value has the wrong type",
+	"SWT-D002": "the name of a Director is taken by another Director or by a grant",
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
 	"SWT-M012": "the body of a mechanic does not fit its head",
@@ -118,6 +119,22 @@ export function schemaVersion(input: { readonly found: unknown }): SwtIssue {
  */
 export function directorsReserved(input: { readonly count: number }): SwtIssue {
 	return issue("SWT-G003", `the game lists ${input.count} Director(s)`, "The field `directors` is reserved: this version of the platform cannot run a Director.", "Remove the entries of `directors`, or leave the field out.", { path: "directors" });
+}
+
+/**
+ * `SWT-D002`: the name of a Director is taken.
+ *
+ * @param input - The name, its place and who holds it.
+ * @param input.name - The Director's name: its `as`, else its `use`.
+ * @param input.path - The data path, for example `directors[1]`.
+ * @param input.taken - `director`: an earlier Director has the name; `grant`: it is the grant name of the residents or of the human.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function directorName(input: { readonly name: string; readonly path: string; readonly taken: "director" | "grant" }): SwtIssue {
+	const holder = input.taken === "director" ? "an earlier Director of the game" : `the grant \`${input.name}\``;
+	return issue("SWT-D002", `the Director name "${input.name}" is taken by ${holder}`, "A Director is the actor `director:<name>` and its tools come from the grant `<name>`, so the name must be its own.", "Give the Director another name with `as`.", { path: input.path }, { name: input.name, taken: input.taken });
 }
 
 /**

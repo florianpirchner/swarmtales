@@ -97,6 +97,21 @@ describe("resolveGame", () => {
 		expect([briefings, win]).toEqual([{ "resident:A02": "You are O." }, "board.winner"]);
 	});
 
+	it("gives a game with a grant `human` the actor, its tool list and no start lock; a game without it the actors of today", () => {
+		const { definition } = resolveGame(input(data({ grants: { human: ["look"] }, locked: ["look"] }), { installed }));
+		expect(definition.actors.map((actor) => [actor.id, actor.kind, actor.grant])).toEqual([["resident:A01", "resident", "resident"], ["resident:A02", "resident", "resident"], ["human", "human", "human"]]);
+		expect(definition.grants.human).toEqual(["@test/board/board/look"]);
+		expect(definition.startLocks).toEqual({ resident: ["@test/board/board/look"] });
+		for (const grants of [undefined, { human: [] }]) expect(resolveGame(input(data(grants === undefined ? {} : { grants }), { installed })).definition.actors.map((actor) => actor.id)).toEqual(["resident:A01", "resident:A02"]);
+	});
+
+	it("gives a game with `directors: []` the hash, the data and the actors of the game without the field", () => {
+		const [plain, empty] = [resolveGame(input(data(), { installed })), resolveGame(input(data({ directors: [] }), { installed }))];
+		expect(empty.definition.game.hash).toBe(plain.definition.game.hash);
+		expect([empty.data, empty.definition.actors]).toEqual([plain.data, plain.definition.actors]);
+		expect("directors" in empty.data).toBe(false);
+	});
+
 	it("hashes the data form: one option changes the hash, the seed of the run does not, and the recorded data resolves to itself", () => {
 		const first = resolveGame(input(data(), { installed }));
 		expect(first.definition.game.hash).toMatch(/^[0-9a-f]{64}$/);

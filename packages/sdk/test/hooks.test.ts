@@ -38,7 +38,7 @@ function parts(): InstanceParts<M> {
 	};
 	const options = { tool: "playMove" };
 	const head = { id: "consensus", package: "@acme/consensus", summary: "A gate.", options: Type.Object({}), state: undefined, version: 1, events: {}, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [], metrics: [] };
-	return { port, head, options, state: { value: { log: [] } }, setup: { options, residents: ["A01", "A02"], seed: 1, rng: () => random }, texts: { render: () => "" } };
+	return { port, head, options, state: { value: { log: [] } }, setup: { options, residents: ["A01", "A02"], actors: ["resident:A01", "resident:A02"], seed: 1, rng: () => random }, texts: { render: () => "" } };
 }
 
 const say = (word: string) => (ctx: Ctx): void => void ctx.state.log.push(`${word}@${String(ctx.tick)}`);

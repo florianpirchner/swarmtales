@@ -5,7 +5,7 @@
  * own tools under their bare names.
  */
 import type { Static, TSchema } from "typebox";
-import type { ActorId, EventSchemas, RandomLabel, RandomSource, SchedulePort, ServiceDefinition, ToolRef } from "@swarmtales/contracts";
+import type { ActorId, ActorsView, EventSchemas, RandomLabel, RandomSource, SchedulePort, ServiceDefinition, ToolRef } from "@swarmtales/contracts";
 
 /**
  * The prompts a mechanic declares: prompt id to the names of its variables.
@@ -194,6 +194,8 @@ export interface MechanicContext<M extends MechanicShape> {
 	readonly ticks: number;
 	/** The residents. */
 	readonly residents: ResidentsPort;
+	/** Every actor of the run under its actor id (`resident:A01`, `director:host`, `human`), read-only: who exists and who may act. */
+	readonly actors: ActorsView;
 	/** The clock: a job named in the body's `jobs` runs at the start of a tick. */
 	readonly schedule: SchedulePort;
 	/** Locks on tools. */
@@ -234,6 +236,8 @@ export interface Setup<O> {
 	readonly options: O;
 	/** Every resident of the run, in the game's order. */
 	readonly residents: readonly string[];
+	/** Every actor of the run under its actor id, in the definition's order: the residents, then the Directors, then the human. */
+	readonly actors: readonly ActorId[];
 	/** The seed of the run. */
 	readonly seed: number;
 	/** The seeded random stream of the labels, as `ctx.rng`. A property, so it can be destructured. */

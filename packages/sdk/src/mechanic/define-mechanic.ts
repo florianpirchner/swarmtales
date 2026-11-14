@@ -67,7 +67,7 @@ function parseOptions(head: PluginHead, raw: unknown): JsonValue {
 
 // The instance of one run: the state of a fresh run, then every entry of the head and the body through the kit.
 function create(head: AnyHead, erased: PluginHead, body: ErasedBody, options: unknown, texts: PromptLookup, port: PluginPort): PluginInstance {
-	const setup = { options, residents: port.actors.ofKind(RESIDENT_KIND).map(nameOf), seed: port.seed, rng: port.rng.bind(port) };
+	const setup = { options, residents: port.actors.ofKind(RESIDENT_KIND).map(nameOf), actors: port.actors.ids, seed: port.seed, rng: port.rng.bind(port) };
 	const parts: InstanceParts<MechanicShape> = { port, head: erased, options, state: { value: head.start?.(setup) }, setup, texts };
 	const kit = createKit(parts, { contextFor, viewFor, convertArguments });
 	const ctx = contextFor(parts);

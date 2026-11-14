@@ -23,7 +23,7 @@ export { defineGame, definitionsOf, gameData } from "./game/define-game.ts";
 export { resolveGrants, type GrantsInput, type ResolvedGrants } from "./game/grants.ts";
 export { shownNameClashes, toolNames, type NamedTool, type ToolNames, type ToolSource } from "./game/tool-names.ts";
 
-export { actorsOf, checkSchema, mechanicsOf, residentsOf, type UsedMechanic } from "./game/validate.ts";
+export { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf, type UsedMechanic } from "./game/validate.ts";
 export { appendRoster, rosterPlugin, RosterService } from "./roster/index.ts";
 
 export { defineHandlers, defineHead } from "./mechanic/define-head.ts";

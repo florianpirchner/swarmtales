@@ -7,7 +7,7 @@
  */
 import type { TSchema } from "typebox";
 import { Check, Errors } from "typebox/value";
-import { actorId, kindOf, nameOf, SwtError, type ActorId, type CanonicalTool, type ServiceDefinition } from "@swarmtales/contracts";
+import { actorId, kindOf, nameOf, SwtError, type ActorId, type ActorsView, type CanonicalTool, type ServiceDefinition } from "@swarmtales/contracts";
 import { commandInView, payloadMismatch, serviceMismatch } from "../errors.ts";
 import type { FactView, MechanicShape, ResidentAccess, ResidentsPort, ResidentsView, ServiceMethodName, ServiceOutput, ToolContext, ToolName } from "./context-types.ts";
 import type { InstanceParts } from "./parts.ts";
@@ -97,6 +97,19 @@ function residentsOf<M extends MechanicShape>(parts: InstanceParts<M>): Resident
 	};
 }
 
+// The actors without the commands of the port: a mechanic suspends residents through `ctx.residents`.
+function actorsView(actors: ActorsView): ActorsView {
+	return {
+		get ids() {
+			return actors.ids;
+		},
+		ofKind: (kind) => actors.ofKind(kind),
+		has: (id) => actors.has(id),
+		mayAct: (id) => actors.mayAct(id),
+		shared: (id, key) => actors.shared(id, key),
+	};
+}
+
 function accessOf<M extends MechanicShape>({ port }: InstanceParts<M>): ResidentAccess {
 	// A `ToolRef` holds no package, so both forms name a tool of this mechanic.
 	const canonical = (tool: ToolName): CanonicalTool => `${port.source}/${typeof tool === "string" ? tool : tool.name}`;
@@ -140,6 +153,7 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 		},
 		ticks: port.maxTicks,
 		residents: residentsOf(parts),
+		actors: actorsView(port.actors),
 		schedule: port.schedule,
 		access: accessOf(parts),
 		emit(type, payload) {
