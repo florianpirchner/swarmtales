@@ -1,0 +1,426 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "quarry-open-quarries",
+		"question": "Does showing every hand raise the table's points?",
+		"purpose": "confirmatory",
+		"game": "games/quarry/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "control",
+				"params": {},
+				"control": true
+			},
+			{
+				"id": "open",
+				"params": {
+					"openHands": true
+				}
+			}
+		],
+		"seeds": [
+			31,
+			37,
+			41,
+			43,
+			47,
+			53,
+			59,
+			61,
+			67,
+			71,
+			73,
+			79
+		],
+		"replicates": 1,
+		"design": "paired",
+		"metrics": {
+			"primary": "draft-rounds.tablePoints",
+			"secondary": [
+				"draft-rounds.sharedLanes",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"per": "draft-rounds.decisions",
+					"within": {
+						"of": 1.3,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "control",
+					"max": 0.041
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "open",
+					"max": 0.05
+				},
+				{
+					"metric": "draft-rounds.missedPicks",
+					"max": 0
+				}
+			]
+		},
+		"pass": {
+			"contrast": [
+				"open",
+				"control"
+			],
+			"sign": "positive",
+			"minN": 10
+		},
+		"allowedRefusals": [
+			"BRAIN_TOO_LONG",
+			"TOOL_LOCKED",
+			"NOT_IN_PACK",
+			"INVALID_ARGUMENTS",
+			"BURN_IS_PICK",
+			"NO_BURNS_LEFT"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.1,
+			"totalUsd": 1.5,
+			"estimateUsdPerRun": {
+				"control": 0.0344,
+				"open": 0.0417
+			}
+		},
+		"concurrency": 2
+	},
+	"specHash": "bd19298de593e090ad709d6bf624197df8793825bad684a4ffe7d6cfed3f0d46",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "control",
+				"seed": 73,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-001",
+			"costUsd": 0.03341915,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "control",
+				"seed": 43,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-002",
+			"costUsd": 0.03569812500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "open",
+				"seed": 61,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-003",
+			"costUsd": 0.04078968000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "open",
+				"seed": 79,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-004",
+			"costUsd": 0.04309310499999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "control",
+				"seed": 71,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-005",
+			"costUsd": 0.03184913999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 5,
+				"arm": "open",
+				"seed": 37,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-006",
+			"costUsd": 0.04047964000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 6,
+				"arm": "open",
+				"seed": 73,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-007",
+			"costUsd": 0.04168743999999997,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 7,
+				"arm": "open",
+				"seed": 31,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-008",
+			"costUsd": 0.03982326499999996,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 8,
+				"arm": "control",
+				"seed": 37,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-009",
+			"costUsd": 0.03645167499999997,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 9,
+				"arm": "open",
+				"seed": 41,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-010",
+			"costUsd": 0.043653135000000017,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 10,
+				"arm": "open",
+				"seed": 53,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-011",
+			"costUsd": 0.04453558500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 11,
+				"arm": "open",
+				"seed": 43,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-012",
+			"costUsd": 0.04163480000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 12,
+				"arm": "control",
+				"seed": 47,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-013",
+			"costUsd": 0.03642492499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 13,
+				"arm": "control",
+				"seed": 59,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-014",
+			"costUsd": 0.036068619999999996,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 14,
+				"arm": "control",
+				"seed": 31,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-015",
+			"costUsd": 0.03279322999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 15,
+				"arm": "open",
+				"seed": 59,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-016",
+			"costUsd": 0.04040171000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 16,
+				"arm": "open",
+				"seed": 67,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-017",
+			"costUsd": 0.04103299500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 17,
+				"arm": "control",
+				"seed": 53,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-018",
+			"costUsd": 0.03238894499999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 18,
+				"arm": "open",
+				"seed": 47,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-019",
+			"costUsd": 0.038218914999999985,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 19,
+				"arm": "control",
+				"seed": 79,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-020",
+			"costUsd": 0.03183660000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 20,
+				"arm": "control",
+				"seed": 61,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-021",
+			"costUsd": 0.03519724500000004,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 21,
+				"arm": "control",
+				"seed": 41,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-022",
+			"costUsd": 0.03411791,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 22,
+				"arm": "control",
+				"seed": 67,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-023",
+			"costUsd": 0.035079355000000007,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 23,
+				"arm": "open",
+				"seed": 71,
+				"replicate": 0,
+				"params": {
+					"openHands": true
+				}
+			},
+			"directory": "quarry-024",
+			"costUsd": 0.043232540000000014,
+			"status": "included"
+		}
+	],
+	"spentUsd": 0.9099077299999999,
+	"code": {
+		"commit": "b7de6505cb6cfd55c699db639f425e3d5e26fc06",
+		"kernelRevision": 3
+	}
+}

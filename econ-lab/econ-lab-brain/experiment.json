@@ -1,0 +1,437 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "econ-lab-brain",
+		"question": "Does the strategy brain lower cooperation in the dilemma?",
+		"purpose": "confirmatory",
+		"game": "games/econ-lab/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "nobrain",
+				"params": {
+					"brain": false
+				},
+				"control": true
+			},
+			{
+				"id": "brain",
+				"params": {}
+			}
+		],
+		"seeds": [
+			41,
+			42,
+			43,
+			44,
+			45,
+			46,
+			47,
+			48,
+			49,
+			50,
+			51,
+			52
+		],
+		"replicates": 1,
+		"design": "unpaired",
+		"metrics": {
+			"primary": "econ-games.dilemmaCooperation",
+			"secondary": [
+				"econ-games.dilemmaRound1",
+				"econ-games.fundCooperation",
+				"econ-games.tablePoints",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"per": "econ-games.decisions",
+					"arm": "nobrain",
+					"within": {
+						"of": 1.32,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.requests",
+					"per": "econ-games.decisions",
+					"arm": "brain",
+					"within": {
+						"of": 1.75,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "nobrain",
+					"max": 0.015
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "brain",
+					"max": 0.025
+				},
+				{
+					"metric": "econ-games.missedDecisions",
+					"max": 0
+				}
+			]
+		},
+		"pass": {
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"sign": "negative",
+			"minN": 10
+		},
+		"shareAt": 1,
+		"allowedRefusals": [
+			"TOOL_LOCKED",
+			"INVALID_ARGUMENTS",
+			"OUT_OF_RANGE",
+			"BRAIN_TOO_LONG"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.05,
+			"totalUsd": 0.75,
+			"estimateUsdPerRun": {
+				"nobrain": 0.0123,
+				"brain": 0.0207
+			}
+		},
+		"concurrency": 2
+	},
+	"specHash": "d967092e2dfbf8689743006a7e51c8f13cb60f91259fbd7a7c2d1590c8f8f12f",
+	"runs": [
+		{
+			"planned": {
+				"index": 1,
+				"arm": "brain",
+				"seed": 50,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-002",
+			"costUsd": 0.021700165000000007,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 0,
+				"arm": "brain",
+				"seed": 49,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-001",
+			"costUsd": 0.023683604999999993,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "nobrain",
+				"seed": 48,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-003",
+			"costUsd": 0.013571159999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "nobrain",
+				"seed": 49,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-004",
+			"costUsd": 0.012843800000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "nobrain",
+				"seed": 45,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-005",
+			"costUsd": 0.011582959999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 5,
+				"arm": "nobrain",
+				"seed": 42,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-006",
+			"costUsd": 0.011347389999999997,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 6,
+				"arm": "brain",
+				"seed": 41,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-007",
+			"costUsd": 0.021157759999999987,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 7,
+				"arm": "brain",
+				"seed": 52,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-008",
+			"costUsd": 0.021746699999999994,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 8,
+				"arm": "nobrain",
+				"seed": 50,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-009",
+			"costUsd": 0.010178164999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 9,
+				"arm": "nobrain",
+				"seed": 46,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-010",
+			"costUsd": 0.012772469999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 10,
+				"arm": "brain",
+				"seed": 43,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-011",
+			"costUsd": 0.02104096999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 11,
+				"arm": "brain",
+				"seed": 46,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-012",
+			"costUsd": 0.02175016,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 12,
+				"arm": "brain",
+				"seed": 47,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-013",
+			"costUsd": 0.021899004999999992,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 13,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-014",
+			"costUsd": 0.012656174999999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 14,
+				"arm": "brain",
+				"seed": 48,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-015",
+			"costUsd": 0.02349080000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 15,
+				"arm": "brain",
+				"seed": 51,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-016",
+			"costUsd": 0.022584805,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 16,
+				"arm": "nobrain",
+				"seed": 43,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-017",
+			"costUsd": 0.01254885,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 17,
+				"arm": "brain",
+				"seed": 45,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-018",
+			"costUsd": 0.020277715000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 18,
+				"arm": "brain",
+				"seed": 42,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-019",
+			"costUsd": 0.022767575000000012,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 19,
+				"arm": "nobrain",
+				"seed": 52,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-020",
+			"costUsd": 0.012317049999999996,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 21,
+				"arm": "nobrain",
+				"seed": 44,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-022",
+			"costUsd": 0.011816059999999996,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 20,
+				"arm": "brain",
+				"seed": 44,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "econ-lab-021",
+			"costUsd": 0.02083925,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 22,
+				"arm": "nobrain",
+				"seed": 47,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-023",
+			"costUsd": 0.011834440000000003,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 23,
+				"arm": "nobrain",
+				"seed": 51,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-024",
+			"costUsd": 0.013695339999999997,
+			"status": "included"
+		}
+	],
+	"spentUsd": 0.41010237000000005,
+	"code": {
+		"commit": "b7de6505cb6cfd55c699db639f425e3d5e26fc06",
+		"kernelRevision": 3
+	}
+}

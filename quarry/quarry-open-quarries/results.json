@@ -1,0 +1,1259 @@
+{
+	"format": "swarmtales-results",
+	"version": 1,
+	"spec": {
+		"id": "quarry-open-quarries",
+		"hash": "bd19298de593e090ad709d6bf624197df8793825bad684a4ffe7d6cfed3f0d46"
+	},
+	"code": {
+		"commit": "b7de6505cb6cfd55c699db639f425e3d5e26fc06",
+		"kernelRevision": 3
+	},
+	"runs": [
+		{
+			"run": "quarry-001",
+			"arm": "control",
+			"seed": 73,
+			"replicate": 0,
+			"manifestHash": "54f3774669752da9f66b163942b1c971918b268ab1e6b19eb54189fe969a365e",
+			"head": "dc7a7a0ff7973e9334af818a007f46cd27fba6a0be1fc778d457e60770037962",
+			"status": "included",
+			"costUsd": 0.03341915
+		},
+		{
+			"run": "quarry-002",
+			"arm": "control",
+			"seed": 43,
+			"replicate": 0,
+			"manifestHash": "98c4469097a4f4b9a629a3e354851d6b47fc7bf1005ce4606e3eee700bf34c3e",
+			"head": "d2e2fd0d724e184796e03ce7c3306375da48b144f85c153884d5617f5b8f53d0",
+			"status": "included",
+			"costUsd": 0.03569812500000001
+		},
+		{
+			"run": "quarry-003",
+			"arm": "open",
+			"seed": 61,
+			"replicate": 0,
+			"manifestHash": "b59a210cb00f44bc7bf01f2fe7e351e8bbbd48633c9528bac73e100e222a09a9",
+			"head": "744cbf8dcfa0a866076718af8292740d1cd8583e69c36930e70c61068be7c21d",
+			"status": "included",
+			"costUsd": 0.04078968000000001
+		},
+		{
+			"run": "quarry-004",
+			"arm": "open",
+			"seed": 79,
+			"replicate": 0,
+			"manifestHash": "47086c14e28d540e0c1976c28c060dd30b2bffcf0eee53dd7f89990f17fe9b01",
+			"head": "81db9529f55d5599544668ff0fe8f91c928e0b9712aa9d6f39f3ecaada0c18eb",
+			"status": "included",
+			"costUsd": 0.04309310499999998
+		},
+		{
+			"run": "quarry-005",
+			"arm": "control",
+			"seed": 71,
+			"replicate": 0,
+			"manifestHash": "59fd180f34c39cf47c7d1472830006e15765f5e40300e62211a307e34be94812",
+			"head": "9ba8483db2f3fc39b30eff5ca7c170d0a75ca09ca6e22057bb41248d8a4160ab",
+			"status": "included",
+			"costUsd": 0.03184913999999999
+		},
+		{
+			"run": "quarry-006",
+			"arm": "open",
+			"seed": 37,
+			"replicate": 0,
+			"manifestHash": "1e2437db78a09c6306412be050283b381219006bc45f221a04940982c978c23e",
+			"head": "19e86efe5a57f6bd69a5b9e44b73ef27487d58eb098f3c86c73cefc16f7267aa",
+			"status": "included",
+			"costUsd": 0.04047964000000001
+		},
+		{
+			"run": "quarry-007",
+			"arm": "open",
+			"seed": 73,
+			"replicate": 0,
+			"manifestHash": "d3e8a27198a8917bd903155c5aa0e0fa2fe9e0493a8e2fab403ec1292bf3c3c7",
+			"head": "53f1c74649dd27c7dddea631e3016b02c7feb16761c5b27678a24aa5296ce173",
+			"status": "included",
+			"costUsd": 0.04168743999999997
+		},
+		{
+			"run": "quarry-008",
+			"arm": "open",
+			"seed": 31,
+			"replicate": 0,
+			"manifestHash": "f6746d8ff387c359478c7eadfc6919e0b6336fd201fda2500f904d026a268ce1",
+			"head": "e98477288622172a2fa576f613878802609aa716b5311b87bc13dc8ce24514dd",
+			"status": "included",
+			"costUsd": 0.03982326499999996
+		},
+		{
+			"run": "quarry-009",
+			"arm": "control",
+			"seed": 37,
+			"replicate": 0,
+			"manifestHash": "8c5ba9279d080bc5292b7e24ee5c8db54473f0a50a466773410c48b9a9c06382",
+			"head": "77d337fcfc91f3b466fa096d881ed9e54498d4b6a7d47df31348b87331e6800b",
+			"status": "included",
+			"costUsd": 0.03645167499999997
+		},
+		{
+			"run": "quarry-010",
+			"arm": "open",
+			"seed": 41,
+			"replicate": 0,
+			"manifestHash": "659ef862bf050726019c5d4751ba71684a79019bd1bddb370844c766c563fdbd",
+			"head": "cc6ca7eb7326c2a7784e685373d66d0005401b0c7c3158d2adb0b5c48188bbab",
+			"status": "included",
+			"costUsd": 0.043653135000000017
+		},
+		{
+			"run": "quarry-011",
+			"arm": "open",
+			"seed": 53,
+			"replicate": 0,
+			"manifestHash": "c0e7ee56690a0528f1e5fed0b6df456af6db99c4a47511e827aa139686ada092",
+			"head": "58499c9a4686c55907e2c87911b8a14aa2a1fb3a6d155b0011d1ad6f58860598",
+			"status": "included",
+			"costUsd": 0.04453558500000001
+		},
+		{
+			"run": "quarry-012",
+			"arm": "open",
+			"seed": 43,
+			"replicate": 0,
+			"manifestHash": "3aa0b7da253164eedbbbdfe6d1bf24ff85a74c68d54b68a5c617de2b6dcd2753",
+			"head": "4fc710996450be45917a9ac9a1445f18b081b3533765ddd31acf8639ca49b61b",
+			"status": "included",
+			"costUsd": 0.04163480000000002
+		},
+		{
+			"run": "quarry-013",
+			"arm": "control",
+			"seed": 47,
+			"replicate": 0,
+			"manifestHash": "238d652788ebc422aff54e868fd163b3a68d2f00c24a34a9e43fe44482c8b6b9",
+			"head": "2105dc259e58a8fbf3ab9e5cf602758367f323de18de073be00da09f24d9b4e4",
+			"status": "included",
+			"costUsd": 0.03642492499999999
+		},
+		{
+			"run": "quarry-014",
+			"arm": "control",
+			"seed": 59,
+			"replicate": 0,
+			"manifestHash": "63603d77bc233f9954913fe0e181c80f2e6d85e587d1f4012b0d675186933473",
+			"head": "5a1f17ddbb141532497f6b869e2b68261d5eb05c09d3d29269ea359d65bfae2b",
+			"status": "included",
+			"costUsd": 0.036068619999999996
+		},
+		{
+			"run": "quarry-015",
+			"arm": "control",
+			"seed": 31,
+			"replicate": 0,
+			"manifestHash": "bc078aa0d2c70cd49dc416fe58209f25f20f8787214c84472311f5163add5502",
+			"head": "83c2a1807c493421669938ea1cd02721c74f2f6643ef02c8dd9c6e973a451e81",
+			"status": "included",
+			"costUsd": 0.03279322999999999
+		},
+		{
+			"run": "quarry-016",
+			"arm": "open",
+			"seed": 59,
+			"replicate": 0,
+			"manifestHash": "b2cda18d51d71005c19c90a2d150ef690b29eb1f8885424257ce8946f8f00bfa",
+			"head": "5e01976685b43f9476893f2692eca4dafe6468324b147e5312b50359174c438a",
+			"status": "included",
+			"costUsd": 0.04040171000000001
+		},
+		{
+			"run": "quarry-017",
+			"arm": "open",
+			"seed": 67,
+			"replicate": 0,
+			"manifestHash": "1a7144fd922ff340eccdd8d03476343661483bba4c88e6ece1547472c71e72a7",
+			"head": "caaf9214fc220e63476d88e9ff2c81c43ae942c671741626c1e85c509d45c709",
+			"status": "included",
+			"costUsd": 0.04103299500000001
+		},
+		{
+			"run": "quarry-018",
+			"arm": "control",
+			"seed": 53,
+			"replicate": 0,
+			"manifestHash": "2c6ca150c4c6cbdc8d184ad621b61c77fff7c1cba9d6487646ecfbf25476e60c",
+			"head": "b2eec2596fb0cab87b7d915c07bd02b162e1adaeec570d67775ec7d2b90a54d7",
+			"status": "included",
+			"costUsd": 0.03238894499999998
+		},
+		{
+			"run": "quarry-019",
+			"arm": "open",
+			"seed": 47,
+			"replicate": 0,
+			"manifestHash": "8d960181345c39b8fdde0f85688da2333cb241de6e86d1ad82b3a9639fe2494e",
+			"head": "7ab2a1c6a12007320f2e00f2073b290a2367a1bef5f4a161c7dff557e1499863",
+			"status": "included",
+			"costUsd": 0.038218914999999985
+		},
+		{
+			"run": "quarry-020",
+			"arm": "control",
+			"seed": 79,
+			"replicate": 0,
+			"manifestHash": "63a7a99903ccd956538c61889d08dfd7963cd8cb79d9bd0faf8196f1c1b42b96",
+			"head": "071dd7681097ec4c46551ae00597b45821a8cd37322eab9154d8b482a27b1520",
+			"status": "included",
+			"costUsd": 0.03183660000000001
+		},
+		{
+			"run": "quarry-021",
+			"arm": "control",
+			"seed": 61,
+			"replicate": 0,
+			"manifestHash": "e68223d2a831799dc9db574fe9764e6328a2c29a7933e419a56d57c3f70b9610",
+			"head": "a968e509b746d204b69fdb0022b8a8e4f9ed0ff88cadd9fe2d85d10f8548c7fe",
+			"status": "included",
+			"costUsd": 0.03519724500000004
+		},
+		{
+			"run": "quarry-022",
+			"arm": "control",
+			"seed": 41,
+			"replicate": 0,
+			"manifestHash": "b3085f5927dcd0e7fddaed2d07178f513e7b830c7155e0e939c3552ab25b56f7",
+			"head": "29e5ae5da48c4c1d129c7812ad81ce14d994f2a5c0c206e4068feb4dea03d664",
+			"status": "included",
+			"costUsd": 0.03411791
+		},
+		{
+			"run": "quarry-023",
+			"arm": "control",
+			"seed": 67,
+			"replicate": 0,
+			"manifestHash": "a1e466ff9d874a7749347512bd460dac575a250ecf1d310faceca1e72246d9be",
+			"head": "e982e74a0f13e34f5751f10dc0ac1e4599e7f4e9427be14514d546be4466f03d",
+			"status": "included",
+			"costUsd": 0.035079355000000007
+		},
+		{
+			"run": "quarry-024",
+			"arm": "open",
+			"seed": 71,
+			"replicate": 0,
+			"manifestHash": "7fd01ef6ed6d912bfee23734c8efff5ac931a33af9eb6fcc8996e3988babc676",
+			"head": "80eb617bc45e85c93beeaac02fedcc797946e04e382ae1848083449f72e89e7a",
+			"status": "included",
+			"costUsd": 0.043232540000000014
+		}
+	],
+	"values": [
+		{
+			"run": "quarry-001",
+			"metric": "draft-rounds.tablePoints",
+			"value": 974
+		},
+		{
+			"run": "quarry-001",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 5
+		},
+		{
+			"run": "quarry-001",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-001",
+			"metric": "models.requests",
+			"value": 187
+		},
+		{
+			"run": "quarry-001",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-001",
+			"metric": "models.costUsd",
+			"value": 0.03341915
+		},
+		{
+			"run": "quarry-001",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-002",
+			"metric": "draft-rounds.tablePoints",
+			"value": 994
+		},
+		{
+			"run": "quarry-002",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 4
+		},
+		{
+			"run": "quarry-002",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-002",
+			"metric": "models.requests",
+			"value": 187
+		},
+		{
+			"run": "quarry-002",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-002",
+			"metric": "models.costUsd",
+			"value": 0.03569812500000001
+		},
+		{
+			"run": "quarry-002",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-003",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1057
+		},
+		{
+			"run": "quarry-003",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-003",
+			"metric": "strategy-brain.brainWrites",
+			"value": 11
+		},
+		{
+			"run": "quarry-003",
+			"metric": "models.requests",
+			"value": 186
+		},
+		{
+			"run": "quarry-003",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-003",
+			"metric": "models.costUsd",
+			"value": 0.04078968000000001
+		},
+		{
+			"run": "quarry-003",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-004",
+			"metric": "draft-rounds.tablePoints",
+			"value": 933
+		},
+		{
+			"run": "quarry-004",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 4
+		},
+		{
+			"run": "quarry-004",
+			"metric": "strategy-brain.brainWrites",
+			"value": 11
+		},
+		{
+			"run": "quarry-004",
+			"metric": "models.requests",
+			"value": 189
+		},
+		{
+			"run": "quarry-004",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-004",
+			"metric": "models.costUsd",
+			"value": 0.04309310499999998
+		},
+		{
+			"run": "quarry-004",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-005",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1061
+		},
+		{
+			"run": "quarry-005",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 4
+		},
+		{
+			"run": "quarry-005",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-005",
+			"metric": "models.requests",
+			"value": 180
+		},
+		{
+			"run": "quarry-005",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-005",
+			"metric": "models.costUsd",
+			"value": 0.03184913999999999
+		},
+		{
+			"run": "quarry-005",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-006",
+			"metric": "draft-rounds.tablePoints",
+			"value": 918
+		},
+		{
+			"run": "quarry-006",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-006",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-006",
+			"metric": "models.requests",
+			"value": 187
+		},
+		{
+			"run": "quarry-006",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-006",
+			"metric": "models.costUsd",
+			"value": 0.04047964000000001
+		},
+		{
+			"run": "quarry-006",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-007",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1006
+		},
+		{
+			"run": "quarry-007",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-007",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-007",
+			"metric": "models.requests",
+			"value": 187
+		},
+		{
+			"run": "quarry-007",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-007",
+			"metric": "models.costUsd",
+			"value": 0.04168743999999997
+		},
+		{
+			"run": "quarry-007",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-008",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1119
+		},
+		{
+			"run": "quarry-008",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-008",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-008",
+			"metric": "models.requests",
+			"value": 185
+		},
+		{
+			"run": "quarry-008",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-008",
+			"metric": "models.costUsd",
+			"value": 0.03982326499999996
+		},
+		{
+			"run": "quarry-008",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-009",
+			"metric": "draft-rounds.tablePoints",
+			"value": 899
+		},
+		{
+			"run": "quarry-009",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-009",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-009",
+			"metric": "models.requests",
+			"value": 191
+		},
+		{
+			"run": "quarry-009",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-009",
+			"metric": "models.costUsd",
+			"value": 0.03645167499999997
+		},
+		{
+			"run": "quarry-009",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-010",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1019
+		},
+		{
+			"run": "quarry-010",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-010",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-010",
+			"metric": "models.requests",
+			"value": 190
+		},
+		{
+			"run": "quarry-010",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-010",
+			"metric": "models.costUsd",
+			"value": 0.043653135000000017
+		},
+		{
+			"run": "quarry-010",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-011",
+			"metric": "draft-rounds.tablePoints",
+			"value": 986
+		},
+		{
+			"run": "quarry-011",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-011",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-011",
+			"metric": "models.requests",
+			"value": 191
+		},
+		{
+			"run": "quarry-011",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-011",
+			"metric": "models.costUsd",
+			"value": 0.04453558500000001
+		},
+		{
+			"run": "quarry-011",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-012",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1033
+		},
+		{
+			"run": "quarry-012",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-012",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-012",
+			"metric": "models.requests",
+			"value": 188
+		},
+		{
+			"run": "quarry-012",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-012",
+			"metric": "models.costUsd",
+			"value": 0.04163480000000002
+		},
+		{
+			"run": "quarry-012",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-013",
+			"metric": "draft-rounds.tablePoints",
+			"value": 988
+		},
+		{
+			"run": "quarry-013",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 6
+		},
+		{
+			"run": "quarry-013",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-013",
+			"metric": "models.requests",
+			"value": 190
+		},
+		{
+			"run": "quarry-013",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-013",
+			"metric": "models.costUsd",
+			"value": 0.03642492499999999
+		},
+		{
+			"run": "quarry-013",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-014",
+			"metric": "draft-rounds.tablePoints",
+			"value": 970
+		},
+		{
+			"run": "quarry-014",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-014",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-014",
+			"metric": "models.requests",
+			"value": 189
+		},
+		{
+			"run": "quarry-014",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-014",
+			"metric": "models.costUsd",
+			"value": 0.036068619999999996
+		},
+		{
+			"run": "quarry-014",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-015",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1020
+		},
+		{
+			"run": "quarry-015",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-015",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-015",
+			"metric": "models.requests",
+			"value": 183
+		},
+		{
+			"run": "quarry-015",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-015",
+			"metric": "models.costUsd",
+			"value": 0.03279322999999999
+		},
+		{
+			"run": "quarry-015",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-016",
+			"metric": "draft-rounds.tablePoints",
+			"value": 956
+		},
+		{
+			"run": "quarry-016",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-016",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-016",
+			"metric": "models.requests",
+			"value": 183
+		},
+		{
+			"run": "quarry-016",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-016",
+			"metric": "models.costUsd",
+			"value": 0.04040171000000001
+		},
+		{
+			"run": "quarry-016",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-017",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1097
+		},
+		{
+			"run": "quarry-017",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-017",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-017",
+			"metric": "models.requests",
+			"value": 189
+		},
+		{
+			"run": "quarry-017",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-017",
+			"metric": "models.costUsd",
+			"value": 0.04103299500000001
+		},
+		{
+			"run": "quarry-017",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-018",
+			"metric": "draft-rounds.tablePoints",
+			"value": 917
+		},
+		{
+			"run": "quarry-018",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 6
+		},
+		{
+			"run": "quarry-018",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-018",
+			"metric": "models.requests",
+			"value": 181
+		},
+		{
+			"run": "quarry-018",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-018",
+			"metric": "models.costUsd",
+			"value": 0.03238894499999998
+		},
+		{
+			"run": "quarry-018",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-019",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1120
+		},
+		{
+			"run": "quarry-019",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 2
+		},
+		{
+			"run": "quarry-019",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-019",
+			"metric": "models.requests",
+			"value": 180
+		},
+		{
+			"run": "quarry-019",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-019",
+			"metric": "models.costUsd",
+			"value": 0.038218914999999985
+		},
+		{
+			"run": "quarry-019",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-020",
+			"metric": "draft-rounds.tablePoints",
+			"value": 870
+		},
+		{
+			"run": "quarry-020",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 7
+		},
+		{
+			"run": "quarry-020",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-020",
+			"metric": "models.requests",
+			"value": 180
+		},
+		{
+			"run": "quarry-020",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-020",
+			"metric": "models.costUsd",
+			"value": 0.03183660000000001
+		},
+		{
+			"run": "quarry-020",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-021",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1037
+		},
+		{
+			"run": "quarry-021",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 4
+		},
+		{
+			"run": "quarry-021",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-021",
+			"metric": "models.requests",
+			"value": 189
+		},
+		{
+			"run": "quarry-021",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-021",
+			"metric": "models.costUsd",
+			"value": 0.03519724500000004
+		},
+		{
+			"run": "quarry-021",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-022",
+			"metric": "draft-rounds.tablePoints",
+			"value": 863
+		},
+		{
+			"run": "quarry-022",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 6
+		},
+		{
+			"run": "quarry-022",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-022",
+			"metric": "models.requests",
+			"value": 184
+		},
+		{
+			"run": "quarry-022",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-022",
+			"metric": "models.costUsd",
+			"value": 0.03411791
+		},
+		{
+			"run": "quarry-022",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-023",
+			"metric": "draft-rounds.tablePoints",
+			"value": 841
+		},
+		{
+			"run": "quarry-023",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 5
+		},
+		{
+			"run": "quarry-023",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-023",
+			"metric": "models.requests",
+			"value": 187
+		},
+		{
+			"run": "quarry-023",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-023",
+			"metric": "models.costUsd",
+			"value": 0.035079355000000007
+		},
+		{
+			"run": "quarry-023",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		},
+		{
+			"run": "quarry-024",
+			"metric": "draft-rounds.tablePoints",
+			"value": 1204
+		},
+		{
+			"run": "quarry-024",
+			"metric": "draft-rounds.sharedLanes",
+			"value": 0
+		},
+		{
+			"run": "quarry-024",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "quarry-024",
+			"metric": "models.requests",
+			"value": 190
+		},
+		{
+			"run": "quarry-024",
+			"metric": "draft-rounds.decisions",
+			"value": 144
+		},
+		{
+			"run": "quarry-024",
+			"metric": "models.costUsd",
+			"value": 0.043232540000000014
+		},
+		{
+			"run": "quarry-024",
+			"metric": "draft-rounds.missedPicks",
+			"value": 0
+		}
+	],
+	"estimates": [
+		{
+			"metric": "draft-rounds.tablePoints",
+			"role": "primary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 84.5,
+			"se": 22.035611673338725,
+			"interval": [
+				35.999618706981465,
+				133.00038129301853
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.0009765625,
+			"over": "included"
+		},
+		{
+			"metric": "draft-rounds.tablePoints",
+			"role": "primary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": 84.5,
+			"se": 22.035611673338725,
+			"interval": [
+				35.999618706981465,
+				133.00038129301853
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.0009765625,
+			"over": "finished"
+		},
+		{
+			"metric": "draft-rounds.sharedLanes",
+			"role": "secondary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -3.25,
+			"se": 0.35086473263361856,
+			"interval": [
+				-4.022253276526595,
+				-2.4777467234734054
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.00048828125,
+			"over": "included"
+		},
+		{
+			"metric": "draft-rounds.sharedLanes",
+			"role": "secondary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -3.25,
+			"se": 0.35086473263361856,
+			"interval": [
+				-4.022253276526595,
+				-2.4777467234734054
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.00048828125,
+			"over": "finished"
+		},
+		{
+			"metric": "strategy-brain.brainWrites",
+			"role": "secondary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -0.16666666666666666,
+			"se": 0.11236664374387366,
+			"interval": [
+				-0.4139856495469326,
+				0.08065231621359928
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.5,
+			"over": "included"
+		},
+		{
+			"metric": "strategy-brain.brainWrites",
+			"role": "secondary",
+			"contrast": [
+				"open",
+				"control"
+			],
+			"estimator": "mean of the paired differences, treatment minus control",
+			"estimate": -0.16666666666666666,
+			"se": 0.11236664374387366,
+			"interval": [
+				-0.4139856495469326,
+				0.08065231621359928
+			],
+			"n": 12,
+			"test": "sign-flip exact",
+			"p": 0.5,
+			"over": "finished"
+		}
+	],
+	"pass": {
+		"rule": "draft-rounds.tablePoints, open minus control over the included runs, is greater than 0; a verdict needs 10 complete pairs",
+		"estimate": 84.5,
+		"n": 12,
+		"verdict": "kept"
+	},
+	"guardrails": [
+		{
+			"metric": "models.requests",
+			"per": "draft-rounds.decisions",
+			"arm": "control",
+			"value": 1.2893518518518519,
+			"held": true
+		},
+		{
+			"metric": "models.requests",
+			"per": "draft-rounds.decisions",
+			"arm": "open",
+			"value": 1.2991898148148149,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "control",
+			"value": 0.03427707666666666,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "open",
+			"value": 0.041548567499999994,
+			"held": true
+		},
+		{
+			"metric": "draft-rounds.missedPicks",
+			"arm": "control",
+			"value": 0,
+			"held": true
+		},
+		{
+			"metric": "draft-rounds.missedPicks",
+			"arm": "open",
+			"value": 0,
+			"held": true
+		}
+	],
+	"deviations": []
+}
