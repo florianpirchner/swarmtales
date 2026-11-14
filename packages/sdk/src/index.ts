@@ -16,3 +16,5 @@ export type * from "./game/types.ts";
 export { actorOf, contextFor, residentOf, viewFor, RESIDENT_KIND } from "./mechanic/context.ts";
 export { bindHooks, bindStages } from "./mechanic/hooks.ts";
 export { convertArguments } from "./mechanic/arguments.ts";
+
+export { createKit, type KitBinding } from "./mechanic/kit.ts";

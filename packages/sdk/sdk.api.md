@@ -78,6 +78,9 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
 export function convertArguments(schema: TSchema, raw: unknown): unknown;
 
 // @public
+export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind: KitBinding): MechanicKit<M>;
+
+// @public
 export type CtxOf<H> = MechanicContext<ShapeOf<H>>;
 
 // @public
@@ -175,6 +178,13 @@ export interface InstanceParts<M extends MechanicShape> {
         value: M["state"];
     };
     readonly texts: PromptLookup;
+}
+
+// @public
+export interface KitBinding {
+    contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
+    convertArguments(schema: TSchema, raw: unknown): unknown;
+    viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M>;
 }
 
 // @public
