@@ -1,10 +1,10 @@
 /**
  * The chess analysis lab (not part of `pnpm check`'s live runs, no model, no money): replays every game
- * of a chess run and scores each half-move with Stockfish 10 (`lab/chess-engine.ts`) as centipawn loss
+ * of a chess run and scores each half-move with Garbochess-JS (`lab/chess-engine.ts`) as centipawn loss
  * against the engine's best move. It is the engine reference of P111: the live `move_scored` baseline is a
  * one-ply material check; this is the number to quote for move quality.
  *
- * `lab/chess.ts` is its command line (`pnpm lab:chess <run-dir> [--depth 14]`), which writes `<run-dir>/analysis.json` (every half-move) and `<run-dir>/ANALYSIS.md` (per game and side:
+ * `lab/chess.ts` is its command line (`pnpm lab:chess <run-dir> [--depth 10]`), which writes `<run-dir>/analysis.json` (every half-move) and `<run-dir>/ANALYSIS.md` (per game and side:
  * average centipawn loss, inaccuracies 50+, mistakes 100+, blunders 300+, missed mates).
  */
 import { readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { Chess } from "chess.js";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
-import { analyse, centipawns, type Score } from "./chess-engine.ts";
+import { analyse, centipawns, ENGINE, type Score } from "./chess-engine.ts";
 
 const MovePlayed = Type.Object({
 	type: Type.Literal("move_played"),
@@ -85,8 +85,8 @@ function summary(plies: readonly ScoredPly[]): SideSummary {
 
 const mates = (score: Score): boolean => "mate" in score && score.mate > 0;
 
-/** Scores one game's half-moves (SAN, in order) at `depth`; one engine call per position. */
-export async function analyseGame(moves: readonly Pick<MovePlayed, "ply" | "colour" | "by" | "san" | "forfeit">[], depth: number): Promise<ScoredPly[]> {
+/** Scores one game's half-moves (SAN, in order) at `depth`; one engine call per position. `timings` collects the milliseconds of every search. */
+export async function analyseGame(moves: readonly Pick<MovePlayed, "ply" | "colour" | "by" | "san" | "forfeit">[], depth: number, timings?: number[]): Promise<ScoredPly[]> {
 	const chess = new Chess();
 	const fens = [chess.fen()];
 	for (const move of moves) {
@@ -96,9 +96,11 @@ export async function analyseGame(moves: readonly Pick<MovePlayed, "ply" | "colo
 	const scores: Score[] = [];
 	const bests: string[] = [];
 	for (const fen of fens) {
-		// A finished position needs no search, and the engine build never answers `go` on a mated king.
+		// A finished position needs no search (P118): a mate is mate 0, and a draw by the rules (stalemate, repetition, fifty moves, material) is 0.
 		const position = new Chess(fen);
+		const started = performance.now();
 		const result = position.isCheckmate() ? { score: { mate: 0 }, best: "" } : position.isGameOver() ? { score: { cp: 0 }, best: "" } : await analyse(fen, depth);
+		if (!position.isGameOver()) timings?.push(performance.now() - started);
 		scores.push(result.score);
 		bests.push(result.best);
 	}
@@ -139,7 +141,7 @@ export function markdown(analyses: readonly GameAnalysis[], depth: number): stri
 	const lines = [
 		"# Engine analysis",
 		"",
-		`Stockfish 10 at depth ${String(depth)} (\`pnpm lab:chess\`), centipawn loss per half-move against the engine's best move, mates capped at 1000. Forfeit moves are left out of the sums.`,
+		`Garbochess-JS at depth ${String(depth)} (\`pnpm lab:chess\`; commit ${ENGINE.commit.slice(0, 7)}, BSD-3-Clause), centipawn loss per half-move against the engine's best move, mates capped at 1000. Forfeit moves are left out of the sums.`,
 		"",
 		"| Game, side | Moves | ACPL | Inaccuracies (50+) | Mistakes (100+) | Blunders (300+) | Missed mates |",
 		"|---|---:|---:|---:|---:|---:|---:|",
@@ -158,11 +160,11 @@ export function markdown(analyses: readonly GameAnalysis[], depth: number): stri
 	return `${lines.join("\n")}\n`;
 }
 
-export async function analyseRun(dir: string, depth: number): Promise<GameAnalysis[]> {
+export async function analyseRun(dir: string, depth: number, timings?: number[]): Promise<GameAnalysis[]> {
 	const { games, moves } = readRun(dir);
 	const analyses: GameAnalysis[] = [];
 	for (const [game, list] of [...moves].sort(([a], [b]) => a - b)) {
-		const plies = await analyseGame(list, depth);
+		const plies = await analyseGame(list, depth, timings);
 		const sides = games.get(game) ?? { white: "", black: "" };
 		analyses.push({ game, white: sides.white, black: sides.black, plies, white_: summary(plies.filter((ply) => ply.colour === "white")), black_: summary(plies.filter((ply) => ply.colour === "black")) });
 	}
