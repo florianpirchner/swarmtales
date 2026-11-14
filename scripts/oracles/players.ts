@@ -293,3 +293,18 @@ export const chessMates = (): TurnTaker => {
 		{ resident: "A01", when: "Game 1 of", tool: "readBrain", params: {} },
 	]);
 };
+
+/**
+ * Harbor Lights, a crew that misfires: in a retro window every seat posts one line to the crew chat and the retro
+ * captain writes the brain; on its turn a seat plays its oldest slot blind, so the strikes of a game add up fast.
+ */
+export const harborMisfires = (): TurnTaker => async (turn) => {
+	const text = told(turn);
+	if (isRetro(text)) {
+		await turn.call("postTeam", { text: `${turn.resident}: a signal means play that card now.` });
+		if (text.includes("You are the retro captain")) await turn.call("writeBrain", { text: "A signal means: play that card now. Without a signal, play the oldest slot." });
+		return;
+	}
+	if (!text.includes("Your turn: one action")) return;
+	await turn.call("playSlot", { slot: 1 });
+};
