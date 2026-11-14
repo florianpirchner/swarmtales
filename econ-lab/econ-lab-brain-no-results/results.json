@@ -1,0 +1,871 @@
+{
+	"format": "swarmtales-results",
+	"version": 1,
+	"spec": {
+		"id": "econ-lab-brain-no-results",
+		"hash": "0636c80a28b62486dfd126edb62376d7b0b3e151753229a62b2237b1ac34c1a1"
+	},
+	"code": {
+		"commit": "77d0307e92ffe1e374239b1c8722c2c68924e1aa",
+		"kernelRevision": 3
+	},
+	"runs": [
+		{
+			"run": "econ-lab-002",
+			"arm": "brain",
+			"seed": 44,
+			"replicate": 0,
+			"manifestHash": "2d87b3b35aa589e6c1d11ecf680695577af439a0bc4ef03a4af3a6006ef54dda",
+			"head": "9e7035edc3550abc03c51c4094b0caf13df35c05d2ee6a137bc5f713248df274",
+			"status": "included",
+			"costUsd": 0.020856894999999993
+		},
+		{
+			"run": "econ-lab-001",
+			"arm": "brain",
+			"seed": 45,
+			"replicate": 0,
+			"manifestHash": "7d7939f0c529d5e4784d0ddd6470b69d0e45ba78a37cce8481340c30ae55bb91",
+			"head": "0caa515aaeb44f57e263fccb8ae7669b5e431bd551a1abacc5ebc1f9d49f803d",
+			"status": "included",
+			"costUsd": 0.019713515
+		},
+		{
+			"run": "econ-lab-003",
+			"arm": "nobrain",
+			"seed": 41,
+			"replicate": 0,
+			"manifestHash": "44db90a77ea9f96722ca6fba5ce50e16ad48adaaf2eac797d2a22d39a0c6338b",
+			"head": "0d9b0d4de4409f4afabc20e5617ea23077b5aa661aa480e135d5aeda30b8f434",
+			"status": "included",
+			"costUsd": 0.011962025000000005
+		},
+		{
+			"run": "econ-lab-004",
+			"arm": "brain",
+			"seed": 46,
+			"replicate": 0,
+			"manifestHash": "112c12f73b398ef3865dabc8bcba481f32c3a8ea7070cdcb94e33412259f71d1",
+			"head": "c7929fcc982015a980b2c0d45412799ca962658b31fd6cb52947f08c56794ddb",
+			"status": "included",
+			"costUsd": 0.019202795000000005
+		},
+		{
+			"run": "econ-lab-005",
+			"arm": "nobrain",
+			"seed": 46,
+			"replicate": 0,
+			"manifestHash": "ca4676725431ad5089158bb766ae6463f4644025d1ae1ef54503d8279c50b255",
+			"head": "ee14db2e654d6fcab1354f9e8b8c96891cce5933d4e971ae79feec0a3d51bced",
+			"status": "included",
+			"costUsd": 0.010838210000000004
+		},
+		{
+			"run": "econ-lab-006",
+			"arm": "brain",
+			"seed": 42,
+			"replicate": 0,
+			"manifestHash": "725d6e03f249bf5e991940386aa9e8b6711632c6dbae680f351d2cf5189695a9",
+			"head": "f6055ccb751439efc1a13a35405a84586fb617c998f801cfd3cc23b668a8f648",
+			"status": "included",
+			"costUsd": 0.021179190000000007
+		},
+		{
+			"run": "econ-lab-007",
+			"arm": "brain",
+			"seed": 41,
+			"replicate": 0,
+			"manifestHash": "4a0e537f7646623eb18a082eade8b21223a50294e4662b409fade26e9146e83a",
+			"head": "19b9eb12ec22abfc8fb10acc803b0f8eebf3b47852ed2a9d278bbcc9a09207b8",
+			"status": "included",
+			"costUsd": 0.021406570000000003
+		},
+		{
+			"run": "econ-lab-008",
+			"arm": "nobrain",
+			"seed": 42,
+			"replicate": 0,
+			"manifestHash": "7968cfbb4567192e6c64c01a80adf512e13e6af502574c54a30ec07d1701c0b0",
+			"head": "3055d619bf376857c14b932cbce64856d1a3dc4dfcf06f232bc2243d0e03411d",
+			"status": "included",
+			"costUsd": 0.011620255000000001
+		},
+		{
+			"run": "econ-lab-009",
+			"arm": "nobrain",
+			"seed": 44,
+			"replicate": 0,
+			"manifestHash": "4349b5e2ac4fb078567f133835c0142db8ba7f1f99489126f7014d1942b0af22",
+			"head": "0f026796ddc9a0e743ee094ac3c4cd70912aad2162854e21af88ede06fd8d954",
+			"status": "included",
+			"costUsd": 0.010755210000000003
+		},
+		{
+			"run": "econ-lab-010",
+			"arm": "nobrain",
+			"seed": 45,
+			"replicate": 0,
+			"manifestHash": "f32c998ef44b274435db4e1c304a16b06125621dc590be95d44d89e24b66ce60",
+			"head": "25b2eed16bd86a5007c663e9bbb546570a73a44c5299ac33a0563e8e0ed0ba53",
+			"status": "included",
+			"costUsd": 0.01075217
+		},
+		{
+			"run": "econ-lab-012",
+			"arm": "nobrain",
+			"seed": 43,
+			"replicate": 0,
+			"manifestHash": "717ed369c7f487890a01792a55cc9756d3587160713507b510db67a50d907830",
+			"head": "1e406a0ea5efd824174535b49e02e0ae2ee4df4f597e467776e13571dfdc5700",
+			"status": "included",
+			"costUsd": 0.010519295000000003
+		},
+		{
+			"run": "econ-lab-011",
+			"arm": "brain",
+			"seed": 43,
+			"replicate": 0,
+			"manifestHash": "f8c5568a29b754da9b3f11b7efeac508fd589162824c07164b9b12781c8ccf68",
+			"head": "603190d13ac38464cef37613739f646b40fb5358c37af6b57aabcd58521ae568",
+			"status": "included",
+			"costUsd": 0.023235274999999993
+		}
+	],
+	"values": [
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 0.1
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 0.5
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.fundCooperation",
+			"value": 0.018
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.tablePoints",
+			"value": 429
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "models.requests",
+			"value": 127
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "models.costUsd",
+			"value": 0.020856894999999993
+		},
+		{
+			"run": "econ-lab-002",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 0.1
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 0.5
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.tablePoints",
+			"value": 426
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "models.requests",
+			"value": 122
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "models.costUsd",
+			"value": 0.019713515
+		},
+		{
+			"run": "econ-lab-001",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.tablePoints",
+			"value": 460
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "models.requests",
+			"value": 94
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "models.costUsd",
+			"value": 0.011962025000000005
+		},
+		{
+			"run": "econ-lab-003",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 0.2
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 0.5
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.tablePoints",
+			"value": 430
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "models.requests",
+			"value": 123
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "models.costUsd",
+			"value": 0.019202795000000005
+		},
+		{
+			"run": "econ-lab-004",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.tablePoints",
+			"value": 460
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "models.requests",
+			"value": 97
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "models.costUsd",
+			"value": 0.010838210000000004
+		},
+		{
+			"run": "econ-lab-005",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.fundCooperation",
+			"value": 0.511
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.tablePoints",
+			"value": 545.8
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "models.requests",
+			"value": 133
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "models.costUsd",
+			"value": 0.021179190000000007
+		},
+		{
+			"run": "econ-lab-006",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 0.25
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 0.75
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.fundCooperation",
+			"value": 0.018
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.tablePoints",
+			"value": 436
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "models.requests",
+			"value": 134
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "models.costUsd",
+			"value": 0.021406570000000003
+		},
+		{
+			"run": "econ-lab-007",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.fundCooperation",
+			"value": 0.043
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.tablePoints",
+			"value": 467.2
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "models.requests",
+			"value": 98
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "models.costUsd",
+			"value": 0.011620255000000001
+		},
+		{
+			"run": "econ-lab-008",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.fundCooperation",
+			"value": 0.018
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.tablePoints",
+			"value": 463
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "models.requests",
+			"value": 96
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "models.costUsd",
+			"value": 0.010755210000000003
+		},
+		{
+			"run": "econ-lab-009",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.tablePoints",
+			"value": 460
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "models.requests",
+			"value": 97
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "models.costUsd",
+			"value": 0.01075217
+		},
+		{
+			"run": "econ-lab-010",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 1
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.tablePoints",
+			"value": 460
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "strategy-brain.brainWrites",
+			"value": "absent"
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "models.requests",
+			"value": 95
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "models.costUsd",
+			"value": 0.010519295000000003
+		},
+		{
+			"run": "econ-lab-012",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.dilemmaCooperation",
+			"value": 0.35
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.dilemmaRound1",
+			"value": 0.75
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.fundCooperation",
+			"value": 0
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.tablePoints",
+			"value": 439
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "strategy-brain.brainWrites",
+			"value": 12
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "models.requests",
+			"value": 139
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.decisions",
+			"value": 72
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "models.costUsd",
+			"value": 0.023235274999999993
+		},
+		{
+			"run": "econ-lab-011",
+			"metric": "econ-games.missedDecisions",
+			"value": 0
+		}
+	],
+	"estimates": [
+		{
+			"metric": "econ-games.dilemmaCooperation",
+			"role": "primary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -0.6666666666666667,
+			"se": 0.13884443733105686,
+			"interval": [
+				-1.023635715044814,
+				-0.3096976182885195
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.015151515151515152,
+			"over": "included"
+		},
+		{
+			"metric": "econ-games.dilemmaCooperation",
+			"role": "primary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -0.6666666666666667,
+			"se": 0.13884443733105686,
+			"interval": [
+				-1.023635715044814,
+				-0.3096976182885195
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.015151515151515152,
+			"over": "finished"
+		},
+		{
+			"metric": "econ-games.dilemmaRound1",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -0.33333333333333337,
+			"se": 0.08333333333333333,
+			"interval": [
+				-0.5475833333333333,
+				-0.11908333333333337
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.015151515151515152,
+			"over": "included"
+		},
+		{
+			"metric": "econ-games.dilemmaRound1",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -0.33333333333333337,
+			"se": 0.08333333333333333,
+			"interval": [
+				-0.5475833333333333,
+				-0.11908333333333337
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.015151515151515152,
+			"over": "finished"
+		},
+		{
+			"metric": "econ-games.fundCooperation",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": 0.081,
+			"se": 0.08435118388156873,
+			"interval": [
+				-0.13586689375951322,
+				0.29786689375951325
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.7272727272727273,
+			"over": "included"
+		},
+		{
+			"metric": "econ-games.fundCooperation",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": 0.081,
+			"se": 0.08435118388156873,
+			"interval": [
+				-0.13586689375951322,
+				0.29786689375951325
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.7272727272727273,
+			"over": "finished"
+		},
+		{
+			"metric": "econ-games.tablePoints",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -10.733333333333292,
+			"se": 19.104566062709832,
+			"interval": [
+				-59.851172680560275,
+				38.38450601389369
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.6883116883116883,
+			"over": "included"
+		},
+		{
+			"metric": "econ-games.tablePoints",
+			"role": "secondary",
+			"contrast": [
+				"brain",
+				"nobrain"
+			],
+			"estimator": "difference of the arm means, treatment minus control",
+			"estimate": -10.733333333333292,
+			"se": 19.104566062709832,
+			"interval": [
+				-59.851172680560275,
+				38.38450601389369
+			],
+			"n": 12,
+			"test": "label-permutation exact",
+			"p": 0.6883116883116883,
+			"over": "finished"
+		}
+	],
+	"guardrails": [
+		{
+			"metric": "models.requests",
+			"per": "econ-games.decisions",
+			"arm": "nobrain",
+			"value": 1.3356481481481481,
+			"held": true
+		},
+		{
+			"metric": "models.requests",
+			"per": "econ-games.decisions",
+			"arm": "brain",
+			"value": 1.8009259259259258,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "nobrain",
+			"value": 0.011074527500000002,
+			"held": true
+		},
+		{
+			"metric": "models.costUsd",
+			"arm": "brain",
+			"value": 0.020932373333333334,
+			"held": true
+		},
+		{
+			"metric": "econ-games.missedDecisions",
+			"arm": "nobrain",
+			"value": 0,
+			"held": true
+		},
+		{
+			"metric": "econ-games.missedDecisions",
+			"arm": "brain",
+			"value": 0,
+			"held": true
+		}
+	],
+	"deviations": []
+}

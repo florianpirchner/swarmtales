@@ -1,0 +1,19 @@
+{"kind":"genesis","seq":0,"previousHash":"0000000000000000000000000000000000000000000000000000000000000000","hash":"e118d396522fdd4ff51548b099b1812e22687aa6633c41ab069395c06a0b0bfa","genesis":{"format":"swarmtales-chain","version":2,"algorithm":"ed25519","digest":"sha256","canonical":"RFC 8785","publicKey":"MCowBQYDK2VwAyEAr/3HXf8z3FIhwIP2+OlZtJsMlD39giH9DJsJKwI+lvs=","manifest":"813ab773e4d02831e47ba4aa721ce433217c3bb68075886938e6d514d1589672","log":{"format":"swarmtales.events","version":1}}}
+{"seq":1,"hash":"bc2f326bda3a927e9817887fb6966dcb36a34b717e3b88719feeea934d257a27"}
+{"seq":2,"hash":"8b4bb58d62a166cda5cff36c325cf92421c11c96099d98fe8b6ae9f19c3d0ce8"}
+{"seq":3,"hash":"2fe2264db46a07b1b7a8e03ebbad3423851bed97ef0d513f1299af4c789c0b18"}
+{"seq":4,"hash":"dccb1b7aa38ee05e7d741f090f8a04b344ae4796ea501cd2c362c3cdd8676f3e"}
+{"seq":5,"hash":"d30d321472fdaff67659944833ae7b8375d05cc7c7e31a26aa4bf9f58c537b2a"}
+{"seq":6,"hash":"df4cabd80bc1b652393cf6c9473937c4d3d47943dd30895806875ab0deb4e3a7"}
+{"seq":7,"hash":"161a27ab0393064437eb7595a5f9156536afdc455dcf3600d77551d4a2ec6912"}
+{"seq":8,"hash":"8d2e00cc53af221cd8c3c9bd18e33ed323e2d0c1245b320565a78656cdfb8e52"}
+{"seq":9,"hash":"8fd40c50118a7d6bb7e99e4e833ade6070c91410a20e3f9b4bc05cc8e4463d4c"}
+{"seq":10,"hash":"1f3ff1836c94e082a6bc9e53d96352672658b6b03e5d3a4622a7ceeb89974574"}
+{"seq":11,"hash":"d5b8656380709d41988d396df2901c9ca4c9a530a069d19fe2b481347e9bcd30"}
+{"seq":12,"hash":"53b50f8df773a56daa25dd87fad510c3598ba41804587a71a7a1f713b58e517b"}
+{"seq":13,"hash":"b98f3feee8931f8cf447855ba0386eedc079d779c83c9825614922421667bb65"}
+{"seq":14,"hash":"fb639e21bb1403d737d3a415536fabbc219dd25aec223615caea35967e7e43fb"}
+{"seq":15,"hash":"dba1c0b98d0d44833a3a6b42ab3ad1b0dfc6c9aae2c5c20722507a82f7bdf8c7"}
+{"seq":16,"hash":"30e1eb6ab5e455b8b8179e19994c632ac961105f4ffebd439ac13c8464894f03"}
+{"seq":17,"hash":"5be09d34e76339ab960e649dbcdbc6af3c523fdb80fdefa1f00b6969825c171d"}
+{"seq":18,"hash":"eaabc0965421faf1ffa7dbc4461f7806dfa8e183165a5c7c2a8dbdfbf68d91ec"}

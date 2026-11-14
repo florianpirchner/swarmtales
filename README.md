@@ -45,9 +45,38 @@ live path. Loopholes: none in 001 and 002; one candidate in 003, the public pact
 `city-slice-001` and `city-slice-003` were read line by line. Problems: rows P450 to P455 and P457 to P460 in
 `docs/LESSONS-LEARNED.md` on `develop`.
 
+## The cures of LH18 and LH19, measured (2026-11-14, issue M2-30, decision A29)
+
+Code commit `77d0307e92ffe1e374239b1c8722c2c68924e1aa`, runtime revision 3, model `anthropic/haiku` resolved to
+`claude-haiku-5-5`, thinking medium, pricing `pi-ai@1.4.0`. Two exploratory series without a pass rule, 24 runs
+with a record, 0.6515 USD by `a29-ledger.jsonl` (cap 1.50; the specs' caps 0.60 and 0.40). Write-up:
+`docs/M2-CURES.md` on `develop`.
+
+| Folder | Runs | Cost (USD) | Result | Beside the gate |
+|---|---:|---:|---|---|
+| `quarry/quarry-open-quarries-frozen/` | 12 (6 pairs) | 0.4594 | open quarries frozen per pick against control: +75.5 table points (SE 27.3, 95 % interval 5.3 to 145.7); shared lanes 0.67 against 4.17 a match; 0 of 864 pick requests show a pick of the same step | +84.5 (SE 22.0, 12 pairs), +85.7 on the same six seeds; 1292 of 1728 |
+| `econ-lab/econ-lab-brain-no-results/` | 12 (6 per arm) | 0.1920 | brain against no brain without the results of earlier games: -0.667 dilemma cooperation (SE 0.139, 95 % interval -1.024 to -0.310); locked tables 6 of 6 without a brain, 1 of 6 with it; 0 of 2129 texts of a later game hold an earlier result | -0.771 (SE 0.084, 12 per arm), 9 of 12 against 0 of 12; old platform -0.40 |
+
+Both effects are still there with the loophole closed, and both intervals exclude zero. Neither series can say how
+much of the gate's estimate was the loophole: frozen minus live is -10 points (interval -88 to +68), no results
+minus results is +0.10 (interval about -0.26 to +0.47). No run was excluded or replaced, no request failed, no
+decision was missed, every guardrail held. All 24 folders verify (`swt log verify`) and hold a `REPORT.md` written
+with `--game`; the leak scan found no held key value.
+
+Two more folders hold no finished run: `quarry/quarry-open-quarries-frozen/quarry-005` and `quarry-006`. The first
+call of the series was stopped from outside after ten minutes (the operator's time limit); the two runs in flight
+have 36 and 18 log lines, no signed end and no record, and their two reservations of 0.10 USD stay open in the
+ledger. The same command with the same caps then played the open runs of the plan; nothing was played twice.
+
+Loopholes: none new. Problems: P461 (a seat of the open arm takes its own row of the `Quarries:` line for a
+rival), P462 (a stopped series leaves runs without a record and reservations open), P463 (a card id read as a
+value) in `docs/LESSONS-LEARNED.md` on `develop`. Read line by line: `quarry-001` (open-frozen), `quarry-003`
+(control), `econ-lab-003` (`nobrain`), `econ-lab-001` (`brain`). Each series README has the reading.
+
 ## Loopholes
 
-Two in the runs of the M2 gate, both carried from the old platform, both open (rows LH18 and LH19 in
+Two in the runs of the M2 gate, both carried from the old platform, both cured since by an option that is off by
+default (issues M2-28 and M2-29, measured in the section above; rows LH18 and LH19 in
 `docs/LESSONS-LEARNED.md` on `develop`). The gate issue wrote "none seen" here: it had read the facts table of
 every run and, by script, the brains, the reasons of the picks and choices, the refusals and the free texts, but no
 log line by line. The milestone review of M2 then read two runs per arm from `events.jsonl`

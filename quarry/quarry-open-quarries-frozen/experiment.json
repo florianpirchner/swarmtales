@@ -1,0 +1,263 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "quarry-open-quarries-frozen",
+		"question": "How much do open quarries raise the table's points when no seat sees a pick of the same step (the gate's open arm, with the live line of lesson LH18: +84.5, standard error 22.0, 12 pairs)?",
+		"purpose": "exploratory",
+		"game": "games/quarry/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "control",
+				"params": {},
+				"control": true
+			},
+			{
+				"id": "open-frozen",
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			}
+		],
+		"seeds": [
+			31,
+			37,
+			41,
+			43,
+			47,
+			53
+		],
+		"replicates": 1,
+		"design": "paired",
+		"metrics": {
+			"primary": "draft-rounds.tablePoints",
+			"secondary": [
+				"draft-rounds.sharedLanes",
+				"strategy-brain.brainWrites"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"per": "draft-rounds.decisions",
+					"within": {
+						"of": 1.3,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "control",
+					"max": 0.041
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "open-frozen",
+					"max": 0.05
+				},
+				{
+					"metric": "draft-rounds.missedPicks",
+					"max": 0
+				}
+			]
+		},
+		"allowedRefusals": [
+			"BRAIN_TOO_LONG",
+			"TOOL_LOCKED",
+			"NOT_IN_PACK",
+			"INVALID_ARGUMENTS",
+			"BURN_IS_PICK",
+			"NO_BURNS_LEFT"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.1,
+			"totalUsd": 0.6,
+			"estimateUsdPerRun": {
+				"control": 0.0344,
+				"open-frozen": 0.0417
+			}
+		},
+		"concurrency": 2
+	},
+	"specHash": "060b26c57be57a11f51ee3dfe363530ea0b96eb0da5d7a570fc20f22f050601d",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "open-frozen",
+				"seed": 31,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-001",
+			"costUsd": 0.03909969499999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "open-frozen",
+				"seed": 53,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-002",
+			"costUsd": 0.04156927,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "open-frozen",
+				"seed": 37,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-004",
+			"costUsd": 0.04169362000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "control",
+				"seed": 47,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-003",
+			"costUsd": 0.034966725000000004,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "control",
+				"seed": 41,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-007",
+			"costUsd": 0.03431091499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 5,
+				"arm": "open-frozen",
+				"seed": 47,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-008",
+			"costUsd": 0.04484210499999999,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 7,
+				"arm": "control",
+				"seed": 43,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-010",
+			"costUsd": 0.03432897999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 6,
+				"arm": "control",
+				"seed": 37,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-009",
+			"costUsd": 0.03639740500000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 9,
+				"arm": "control",
+				"seed": 53,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-012",
+			"costUsd": 0.033696529999999975,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 8,
+				"arm": "open-frozen",
+				"seed": 43,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-011",
+			"costUsd": 0.04108762000000001,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 10,
+				"arm": "control",
+				"seed": 31,
+				"replicate": 0,
+				"params": {}
+			},
+			"directory": "quarry-013",
+			"costUsd": 0.035613389999999995,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 11,
+				"arm": "open-frozen",
+				"seed": 41,
+				"replicate": 0,
+				"params": {
+					"openHands": true,
+					"frozenHands": true
+				}
+			},
+			"directory": "quarry-014",
+			"costUsd": 0.041819790000000016,
+			"status": "included"
+		}
+	],
+	"spentUsd": 0.45942604499999995,
+	"code": {
+		"commit": "77d0307e92ffe1e374239b1c8722c2c68924e1aa",
+		"kernelRevision": 3
+	}
+}
