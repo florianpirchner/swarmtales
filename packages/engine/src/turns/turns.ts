@@ -2,7 +2,9 @@
 /**
  * The `turns` scheduler (specification of M1, sections 4.2 and 4.3): a tick has passes, each a seeded order cut
  * into blocks. The inputs of a block's members are built before any member acts; their drivers run at once, but
- * the calls of member k wait until member k-1 is closed, so the calls land in the order of the pass.
+ * the calls of member k wait until member k-1 is closed, so the calls land in the order of the pass. With the
+ * option `afterBlocks` (specification of M3, section 8), actors of the named kinds who have news are activated
+ * after `pass_started` and after every block; they are no part of the order of the pass.
  */
 import { kindOf, SwtError } from "@swarmtales/contracts";
 import type { Activation, ActorDriver, ActorId, DriverTable, OpenActivation, RunEnd, SchedulerDefinition, SchedulerPort, SnapshotSlice } from "@swarmtales/contracts";
@@ -85,8 +87,26 @@ function playTurn(turns: Turns, open: OpenActivation, driver: ActorDriver, ready
 	return closed.then(ignore, ignore);
 }
 
-async function playBlock(turns: Turns, passNumber: number, block: number, members: readonly ActorId[]): Promise<void> {
+// Opens one actor's activation and starts its turn; an actor without a driver fails the block (`SWT-R011`).
+function startTurn(turns: Turns, id: ActorId, detail: OpenActivation["detail"], ready: Promise<void>, outcomes: Promise<unknown>[]): Promise<void> {
 	const { port, drivers, options } = turns;
+	const driver = drivers[id] ?? drivers[kindOf(id)];
+	if (driver === undefined) {
+		outcomes.push(Promise.reject(issue("SWT-R011", `the actor ${id} is activated but has no driver`, "Every activated actor needs a driver, by its id or by its kind.", `Add a driver for "${id}" or for the kind "${kindOf(id)}" to the driver table.`)));
+		return ready;
+	}
+	const inputs = arrange(port.inputsFor(id), options.inputs);
+	return playTurn(turns, port.open(id, inputs, detail), driver, ready, outcomes);
+}
+
+// A failed member does not stop the next: all turns end, then the first failure in the block's order is thrown.
+async function settle(outcomes: readonly Promise<unknown>[]): Promise<void> {
+	await Promise.allSettled(outcomes);
+	await Promise.all(outcomes);
+}
+
+async function playBlock(turns: Turns, passNumber: number, block: number, members: readonly ActorId[]): Promise<void> {
+	const { port } = turns;
 	const outcomes: Promise<unknown>[] = [];
 	let ready: Promise<void> = Promise.resolve();
 	// No await in this loop: every member's inputs show the block's start.
@@ -97,17 +117,25 @@ async function playBlock(turns: Turns, passNumber: number, block: number, member
 			port.emit("activation_skipped", { actor: id, pass: passNumber, block });
 			continue;
 		}
-		const driver = drivers[id] ?? drivers[kindOf(id)];
-		if (driver === undefined) {
-			outcomes.push(Promise.reject(issue("SWT-R011", `the actor ${id} is activated but has no driver`, "Every activated actor needs a driver, by its id or by its kind.", `Add a driver for "${id}" or for the kind "${kindOf(id)}" to the driver table.`)));
-			continue;
-		}
-		const inputs = arrange(port.inputsFor(id), options.inputs);
-		ready = playTurn(turns, port.open(id, inputs, { pass: passNumber, block, reason }), driver, ready, outcomes);
+		ready = startTurn(turns, id, { pass: passNumber, block, reason }, ready, outcomes);
 	}
-	// A failed member does not stop the next: all turns end, then the first failure in the block's order is thrown.
-	await Promise.allSettled(outcomes);
-	await Promise.all(outcomes);
+	await settle(outcomes);
+}
+
+// A slot of `afterBlocks`: one round through the actors of those kinds, in the definition's order. Who may act and
+// has news gets one activation; no await in the loop, so news that one of them creates waits for the next slot.
+// `block` is the block the slot follows, 0 for the slot `start`.
+async function playSlot(turns: Turns, slot: "start" | "afterBlock", passNumber: number, block: number): Promise<void> {
+	const { port, options } = turns;
+	const kinds = options.afterBlocks ?? [];
+	if (kinds.length === 0 || port.halted) return;
+	const outcomes: Promise<unknown>[] = [];
+	let ready: Promise<void> = Promise.resolve();
+	for (const id of port.actors.ids) {
+		if (!kinds.includes(kindOf(id)) || !port.actors.mayAct(id) || !port.hasNews(id)) continue;
+		ready = startTurn(turns, id, { slot, pass: passNumber, block }, ready, outcomes);
+	}
+	await settle(outcomes);
 }
 
 async function playPass(turns: Turns, passNumber: number): Promise<void> {
@@ -120,9 +148,11 @@ async function playPass(turns: Turns, passNumber: number): Promise<void> {
 	const blocks: ActorId[][] = [];
 	for (let start = 0; start < order.length; start += options.blockSize) blocks.push(order.slice(start, start + options.blockSize));
 	port.emit("pass_started", { pass: passNumber, order, blocks });
+	await playSlot(turns, "start", passNumber, 0);
 	for (const [index, members] of blocks.entries()) {
 		if (port.halted) break;
 		await playBlock(turns, passNumber, index + 1, members);
+		await playSlot(turns, "afterBlock", passNumber, index + 1);
 	}
 }
 

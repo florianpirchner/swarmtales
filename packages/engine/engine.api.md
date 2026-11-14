@@ -66,6 +66,7 @@ export const TurnsOptions: Type.TObject<{
     }>, Type.TObject<{
         source: Type.TString;
     }>]>>;
+    afterBlocks: Type.TOptional<Type.TArray<Type.TString>>;
 }>;
 
 // @public

@@ -30,7 +30,8 @@ export const InputEntrySchema = Type.Union(
 export type InputEntry = Static<typeof InputEntrySchema>;
 
 /**
- * The options of the `turns` scheduler; every field has a default.
+ * The options of the `turns` scheduler; every field has a default, except `afterBlocks`: a default would change
+ * the options hash of every game that leaves it out.
  *
  * @public
  */
@@ -42,6 +43,7 @@ export const TurnsOptions = Type.Object(
 		order: Type.Union([Type.Literal("seeded"), Type.Literal("roster")], { default: "seeded", description: "The order of a pass: a seeded shuffle, or the definition's order." }),
 		kinds: Type.Array(Type.String({ description: "An actor kind." }), { default: ["resident"], description: "The actor kinds this scheduler activates." }),
 		inputs: Type.Array(InputEntrySchema, { default: [], description: "The order in which an activation's input lines are shown." }),
+		afterBlocks: Type.Optional(Type.Array(Type.String({ description: "An actor kind." }), { description: "Actor kinds that get an activation after tick start and after every block, when they have news" })),
 	},
 	{ description: "The options of the turns scheduler." },
 );
