@@ -109,12 +109,23 @@ const BLIND_BID: readonly CatalogItem[] = [
 
 const CHESS = "stories/chess/runs";
 const CHESS_CUT = { type: "game_ended", count: 1, reason: "one of four games, to keep the file small" };
+const CHESS_MATES_NOTE = "in every game White plays f3 and g4, Black e5 and Qh4 mate; the six added calls of chess-s13.json";
+const CHESS_BLUNDERS_NOTE = "game 1: 1. e4 e5 2. Qh5 g6 3. Qxe5+ Qe7 4. Qxh8 and Black resigns; game 2: White plays f3 and g4, Black e5 and Qh4 mate";
+const CHESS_CAP_NOTE = "a move cap of 12 half-moves, reached in both games: game 1 ends with Qxd1+ (a queen that the king takes back at once), game 2 with White a knight ahead and nothing to take";
 const CHESS_ITEMS: readonly CatalogItem[] = [
 	live("chess", "chess-g4-p80", 41, `${CHESS}/chess-02a-045-default-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
 	live("chess", "chess-compact-g4-p80", 41, `${CHESS}/chess-02a-047-compact-g4-s41-r2/run/events.jsonl`, { cut: CHESS_CUT }),
 	live("chess", "chess-fresh-compact-g4-p80", 47, `${CHESS}/chess-02a-054-fresh-compact-low-g4-s47-r2/run/events.jsonl`, { cut: CHESS_CUT }),
 	scripted("chess", "chess", 13, "chessMates", "the registry default, played to the end of the match: in every game White plays f3 and g4, Black e5 and Qh4 mate; six calls are added that the rules refuse or that the plain script never makes"),
 	silent("chess", "chess", 13, "moves forfeited to a seeded legal move until the match is called off"),
+	// Added for milestone M4 of the rewrite (decision A39): options that the ports carry and no file exercised.
+	scripted("chess", "chess-moves", 13, "chessMates", `the legal-move list in every position: ${CHESS_MATES_NOTE}`),
+	scripted("chess", "chess-moves-coach", 13, "chessBlunders", `the legal-move list and the coach, whose review of game 1 opens the retro after it: ${CHESS_BLUNDERS_NOTE}`),
+	scripted("chess", "chess-nobrain", 13, "chessMates", `the control arm without a brain (no retro; the look at the brain is refused): ${CHESS_MATES_NOTE}`),
+	scripted("chess", "chess-teams", 13, "chessTeams", "two teams of two with a rotating captain: game 1 is the four-move mate on f7, game 2 the two-move mate on h4; the advisor of a half-move posts the move, the captain plays it; A03 ends its first turn as a captain without a move; five calls are added (a move by the advisor, three more posts in one half-move, a look at the team chat)"),
+	scripted("chess", "chess-p12", 13, "chessCap", CHESS_CAP_NOTE),
+	scripted("chess", "chess-settle-p12", 13, "chessCap", `${CHESS_CAP_NOTE}; with settleCap the open capture of game 1 is credited to the side to move`),
+	scripted("chess", "chess-threats", 13, "chessBlunders", `the list of loose pieces in every position: ${CHESS_BLUNDERS_NOTE}`),
 ];
 
 const CONVOY = "stories/convoy/runs/convoy-06a-004-d3-brain-vs-nobrain";

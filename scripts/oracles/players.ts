@@ -7,6 +7,8 @@ import { countFor, minimalRaise, type Rules } from "../../mechanics/liars-dice/s
 import { withProbes } from "./probes.ts";
 import { CELLS, CELLS_4X4, ticTacToePlayer } from "../../test/stories/tictactoe-support.ts";
 
+export { chessBlunders, chessCap, chessTeams } from "./chess-players.ts";
+
 const WILD: Rules = { faces: 6, wildOnes: true };
 
 /** Tic-tac-toe 3x3: game 1 X wins the top row, game 2 is a draw, game 3 O wins the middle row; one refused brain (a replay of moves). */
