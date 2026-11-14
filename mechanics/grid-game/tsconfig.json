@@ -25,6 +25,9 @@
 			"path": "../consensus"
 		},
 		{
+			"path": "../team-channel"
+		},
+		{
 			"path": "../../packages/testkit"
 		}
 	]

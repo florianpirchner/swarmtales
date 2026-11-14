@@ -4,7 +4,7 @@ import { Type } from "typebox";
 import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
 import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";
 import { ConsensusSourceService } from "@swarmtales/mechanic-contracts";
-import { TeamChannelService } from "./team-channel.ts";
+import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { GridGameEvents } from "./events.ts";
 import { emptyBoard, GridSlice, type GridState } from "./model.ts";
 import { GridGameService } from "./service.ts";

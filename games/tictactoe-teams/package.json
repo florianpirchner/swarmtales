@@ -18,6 +18,7 @@
 		"@swarmtales/mechanic-optimal-referee": "workspace:*"
 	},
 	"devDependencies": {
+		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

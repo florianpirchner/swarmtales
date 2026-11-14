@@ -13,10 +13,10 @@
 import { Type } from "typebox";
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
 import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";
+import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { gridGameHead, type GridGameCtx, type GridGameView } from "./head.ts";
 import { emptyBoard, freeCells, linesOf, other, renderBoard, tallyOf, winnerOf, type GridState, type Side } from "./model.ts";
-import { TeamChannelService } from "./team-channel.ts";
 
 const PLAY_MOVE = "playMove";
 

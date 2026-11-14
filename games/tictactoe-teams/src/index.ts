@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: tic-tac-toe played by two teams. The issues of milestone M1 fill this package.
+ * Game: tic-tac-toe played by two teams.
  *
  * @packageDocumentation
  */
-export {};
+export { default, tictactoeGame, type TicTacToeOptions } from "../game.ts";
+export { briefings, type BriefingInput, type Teams } from "../briefing.ts";
