@@ -90,6 +90,7 @@
 		"sign": "negative",
 		"minN": 10
 	},
+	"shareAt": 1,
 	"allowedRefusals": [
 		"TOOL_LOCKED",
 		"INVALID_ARGUMENTS",
