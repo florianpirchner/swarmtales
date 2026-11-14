@@ -35,7 +35,7 @@ The schema is `OracleSchema` in `packages/testkit/src/oracle/format.ts` (Typebox
 | `story` | the story id |
 | `seed`, `minutes` | the seed and the limit of the virtual clock, in minutes |
 | `residents` | the players' ids in roster order |
-| `mechanics` | the loaded mechanics in load order, each with its effective options (teams, sizes, counts, timers) |
+| `mechanics` | the loaded mechanics in load order, each with its options as the game wrote them, before defaults (teams, sizes, counts, timers) |
 | `residentTools` | the tools a resident may call, in grant order |
 | `locked` | tools every resident starts with locked; the mechanics unlock them |
 | `turns` | `passes` per minute, `blockSize`, `activation` (`onNews`: a resident gets a turn only when it has news or an answer to read) and `order` (`seeded`: a seeded shuffle per pass; `custom`: a rule of the story) |

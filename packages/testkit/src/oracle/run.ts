@@ -3,7 +3,7 @@
  * The oracle runner: plays a game from the inputs of an oracle file under the game's own scheduler and compares
  * what came out with the file, at the three levels of `oracles/README.md` (specification of M1, section 7).
  */
-import { nameOf, type GameData, type RunEnd } from "@swarmtales/contracts";
+import { nameOf, type ActorDriver, type GameData, type RunEnd } from "@swarmtales/contracts";
 import { turns, TurnsOptions } from "@swarmtales/engine";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { resolveGame, RESIDENT_KIND, type Game, type ResolvedGame } from "@swarmtales/sdk";
@@ -99,9 +99,21 @@ function resolvedSetup({ definition }: ResolvedGame): Fields {
 	};
 }
 
+const isRecord = (value: unknown): value is Fields => typeof value === "object" && value !== null && !Array.isArray(value);
+
+// A file holds the options of a mechanic as the game wrote them, the resolved game holds them with the defaults
+// filled: an option the file leaves out is not compared (a default that changed shows in the timeline).
+function asWritten(key: string, stated: unknown, resolved: unknown): unknown {
+	if (!key.startsWith("options.") || !isRecord(stated) || !isRecord(resolved)) return resolved;
+	return Object.fromEntries(Object.entries(resolved).filter(([option]) => Object.hasOwn(stated, option)));
+}
+
 function setupMismatches(stated: Fields, resolved: Fields): readonly OracleMismatch[] {
 	const keys = [...new Set([...Object.keys(stated), ...Object.keys(resolved)])];
-	return keys.flatMap((key): OracleMismatch[] => (Value.Equal(stated[key], resolved[key]) ? [] : [{ level: 1, at: "setup", index: -1, expected: { [key]: stated[key] }, actual: { [key]: resolved[key] } }]));
+	return keys.flatMap((key): OracleMismatch[] => {
+		const actual = asWritten(key, stated[key], resolved[key]);
+		return Value.Equal(stated[key], actual) ? [] : [{ level: 1, at: "setup", index: -1, expected: { [key]: stated[key] }, actual: { [key]: actual } }];
+	});
 }
 
 // The calls of each resident, turn by turn: at its n-th activation a resident makes the calls that follow its n-th `turn` entry.
@@ -117,6 +129,18 @@ function scriptOf(timeline: readonly OracleEntry[]): Plan {
 		const turn = played.get(resident) ?? 0;
 		played.set(resident, turn + 1);
 		return script.get(resident)?.[turn] ?? [];
+	};
+}
+
+// The driver of a file. The model of a recorded run owed an answer after every turn in which it called a tool, so
+// the replay of a live run is pending after such a turn and is woken again without news; a scripted file never is.
+function driverOf(oracle: Oracle): ActorDriver {
+	const plan = scriptOf(oracle.timeline);
+	if (oracle.source.kind !== "live-replay") return scriptedDriver(plan);
+	return async (activation) => {
+		const calls = await plan(activation);
+		for (const call of calls) await activation.call(call.tool, call.params);
+		return { pending: calls.length > 0 };
 	};
 }
 
@@ -173,8 +197,9 @@ function endOf(end: RunEnd | undefined): unknown {
 /**
  * Plays `game` from the oracle's inputs and compares up to `level`. The game is played by its own scheduler with
  * the seed of the oracle, for `setup.minutes` ticks; at its n-th activation a resident makes the calls that follow
- * its n-th `turn` entry in the file, and never reads a reply. Before the run the resolved game is compared with
- * `setup`; after it the log is folded with `timelineOf` and compared entry by entry.
+ * its n-th `turn` entry in the file, and never reads a reply; the replay of a live run is pending after a turn with
+ * a call, as the recorded model was. Before the run the resolved game is compared with
+ * `setup` (the options of a mechanic only in the fields the file states); after it the log is folded with `timelineOf` and compared entry by entry.
  *
  * @param oracle - The oracle, as `readOracle` gave it.
  * @param game - The game, in its builder form or its data form.
@@ -198,7 +223,7 @@ export async function runOracle(oracle: Oracle, game: Game | GameData, level: Or
 	const prompts = options.prompts ?? createPromptLookup();
 	const installed = options.installed === undefined ? {} : { installed: options.installed };
 	const resolved = resolveGame({ game, schedulers: { turns }, prompts, seed: oracle.seed, ...installed });
-	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks: oracle.setup.minutes, drivers: { [RESIDENT_KIND]: scriptedDriver(scriptOf(oracle.timeline)) } });
+	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks: oracle.setup.minutes, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
 	const end = endOf(played.end);
 	return [
 		...setupMismatches(statedSetup(oracle), resolvedSetup(resolved)),
