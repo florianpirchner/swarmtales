@@ -1,0 +1,372 @@
+// SPDX-License-Identifier: Apache-2.0
+/**
+ * The error catalogue of the sdk: every G (game), M (mechanic) and P (texts) code of milestone M1, each as a
+ * function that returns the issue. A step of game resolution collects issues and resolution throws them as one
+ * `SwtError`; a wrapper inside a run throws `new SwtError(issue)`. A code is never reused or renumbered.
+ */
+import { closest, TOOL_NAME_PATTERN, type SwtIssue } from "@swarmtales/contracts";
+
+/**
+ * Every code of this catalogue with the case that raises it; the source of the reference page.
+ *
+ * @public
+ */
+export const SDK_ERRORS = {
+	"SWT-G001": "the game does not match schema version 1",
+	"SWT-G002": "`schema` is not 1",
+	"SWT-G003": "`directors` is not empty before milestone M3",
+	"SWT-G010": "a resident id is doubled or malformed",
+	"SWT-G011": "a team or a role names an id that is not a resident",
+	"SWT-G012": "a tool is granted or locked but not defined",
+	"SWT-G013": "two tools of one grant share a shown name",
+	"SWT-G014": "a shown tool name does not match the pattern",
+	"SWT-G020": "an option does not match its schema",
+	"SWT-G021": "a mechanic is listed twice",
+	"SWT-G022": "a data game names a mechanic that is not installed",
+	"SWT-G030": "a required service has no provider",
+	"SWT-G031": "a service has two providers",
+	"SWT-G032": "`requires` form a cycle",
+	"SWT-M010": "an event type is reserved by the kernel or declared twice",
+	"SWT-M011": "the head's `package` is not the package's name",
+	"SWT-M021": "an emitted payload does not match its schema",
+	"SWT-M022": "a service input or output does not match its schema",
+	"SWT-P003": "a declared prompt has no text",
+} as const;
+
+/**
+ * A code of the sdk's catalogue.
+ *
+ * @public
+ */
+export type SdkErrorCode = keyof typeof SDK_ERRORS;
+
+/**
+ * One mismatch between a value and a schema, as a step reports it.
+ *
+ * @public
+ */
+export interface Mismatch {
+	/** The data path of the place in the game, for example `mechanics[1].options.size`; left out inside a run. */
+	readonly path?: string;
+	/** What is wrong there, for example `must be an integer from 2 to 10, got "3x3"`. */
+	readonly message: string;
+}
+
+const quoted = (names: readonly string[]): string => (names.length === 0 ? "none" : names.map((name) => `"${name}"`).join(", "));
+const meant = (name: string, known: readonly string[]): string => {
+	const near = closest(name, known);
+	return near === undefined ? "" : `did you mean "${near}"? Or `;
+};
+interface Place {
+	readonly file?: string | undefined;
+	readonly path?: string | undefined;
+	readonly package?: string | undefined;
+}
+function issue(code: SdkErrorCode, summary: string, why: string, fix: string, place: Place = {}, details?: SwtIssue["details"]): SwtIssue {
+	const where = {
+		...(place.file === undefined ? {} : { file: place.file }),
+		...(place.path === undefined || place.path === "" ? {} : { path: place.path }),
+		...(place.package === undefined ? {} : { package: place.package }),
+	};
+	return { code, summary, ...(Object.keys(where).length === 0 ? {} : { where }), why, fix, ...(details === undefined ? {} : { details }) };
+}
+
+/**
+ * `SWT-G001`: the game does not match schema version 1.
+ *
+ * @param input - One mismatch of the game against `GameDefinitionSchema`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function gameSchemaMismatch(input: Mismatch): SwtIssue {
+	const at = input.path === undefined || input.path === "" ? "the game" : `\`${input.path}\` of the game`;
+	return issue("SWT-G001", `${at} ${input.message}`, "A game must match the game definition format, version 1, and may hold no field the format does not know.", "Correct the field; `GameDefinitionSchema` of `@swarmtales/contracts` describes every field of the format.", { path: input.path });
+}
+
+/**
+ * `SWT-G002`: `schema` is not 1.
+ *
+ * @param input - The value found in the field `schema`.
+ * @param input.found - That value; undefined when the field is missing.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function schemaVersion(input: { readonly found: unknown }): SwtIssue {
+	const found = input.found === undefined ? "missing" : JSON.stringify(input.found);
+	return issue("SWT-G002", `the game's \`schema\` is ${found}`, "This version of the platform reads games of schema version 1 only.", "Set `schema: 1`, or play the game with the platform version it was written for.", { path: "schema" }, { found: input.found });
+}
+
+/**
+ * `SWT-G003`: `directors` is not empty before milestone M3.
+ *
+ * @param input - The count of entries of `directors`.
+ * @param input.count - That count.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function directorsReserved(input: { readonly count: number }): SwtIssue {
+	return issue("SWT-G003", `the game lists ${input.count} Director(s)`, "The field `directors` is reserved: this version of the platform cannot run a Director.", "Remove the entries of `directors`, or leave the field out.", { path: "directors" });
+}
+
+/**
+ * `SWT-G010`: a resident id is doubled or malformed.
+ *
+ * @param input - The id, its place and what is wrong with it.
+ * @param input.id - The resident id.
+ * @param input.path - The data path, for example `residents[3]`.
+ * @param input.reason - `doubled`: the id is in the list before; `malformed`: it does not match the id pattern.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function residentId(input: { readonly id: string; readonly path: string; readonly reason: "doubled" | "malformed" }): SwtIssue {
+	const doubled = input.reason === "doubled";
+	return issue(
+		"SWT-G010",
+		`resident id "${input.id}" is ${doubled ? "listed twice" : "malformed"}`,
+		doubled ? "A resident id names one resident: the log, the teams and the grants tell residents apart by it." : "A resident id holds only letters, digits, `_`, `.` and `-`, and at least one of them.",
+		doubled ? "Remove one of the two entries, or rename it." : "Rename the resident, for example `A01`; or give `residents` as a count to get `A01`, `A02`, ...",
+		{ path: input.path },
+	);
+}
+
+/**
+ * `SWT-G011`: a team or a role names an id that is not a resident.
+ *
+ * @param input - The group, the id and the residents of the game.
+ * @param input.kind - Whether the group is a team or a role.
+ * @param input.group - The name of the team or role.
+ * @param input.id - The id that is no resident.
+ * @param input.path - The data path, for example `teams.X[2]`.
+ * @param input.residents - The resident ids of the game.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function memberNotResident(input: { readonly kind: "team" | "role"; readonly group: string; readonly id: string; readonly path: string; readonly residents: readonly string[] }): SwtIssue {
+	return issue("SWT-G011", `${input.kind} "${input.group}" names "${input.id}", which is not a resident of the game`, `A ${input.kind} holds residents of the game only. The game's residents are: ${quoted(input.residents)}.`, `${meant(input.id, input.residents)}add "${input.id}" to \`residents\`, or remove it from the ${input.kind}.`, { path: input.path });
+}
+
+/**
+ * `SWT-G012`: a tool is granted or locked but not defined.
+ *
+ * @param input - The tool name, where it is named and what the game's mechanics define.
+ * @param input.tool - The name as the game wrote it.
+ * @param input.place - Whether a grant or `locked` names it.
+ * @param input.path - The data path, for example `grants.resident[5]`.
+ * @param input.defined - The bare names of the tools the game's mechanics define.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function toolNotDefined(input: { readonly tool: string; readonly place: "granted" | "locked"; readonly path: string; readonly defined: readonly string[] }): SwtIssue {
+	return issue("SWT-G012", `tool "${input.tool}" is ${input.place} but no mechanic of the game defines it`, `The game's mechanics define: ${quoted(input.defined)}.`, `${meant(input.tool, input.defined)}add the mechanic that defines "${input.tool}", or remove the name.`, { path: input.path });
+}
+
+/**
+ * `SWT-G013`: two tools of one grant share a shown name.
+ *
+ * @param input - The shown name and the tools that carry it.
+ * @param input.shown - The name a caller would be shown.
+ * @param input.grant - The grant that holds the tools.
+ * @param input.tools - The canonical names of the tools, in load order.
+ * @param input.path - The data path of the later mechanic, for example `mechanics[2]`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function shownNameClash(input: { readonly shown: string; readonly grant: string; readonly tools: readonly string[]; readonly path: string }): SwtIssue {
+	return issue("SWT-G013", `the grant "${input.grant}" holds ${input.tools.length} tools that are shown as "${input.shown}": ${quoted(input.tools)}`, "A caller names a tool by its shown name, so within one grant a shown name stands for one tool.", `Rename one of them in the game with \`as\` on its mechanic, for example \`as: { "${input.shown}": "${input.shown}2" }\`, or drop one from the grant.`, { path: input.path }, { tools: input.tools });
+}
+
+/**
+ * `SWT-G014`: a shown tool name does not match the pattern.
+ *
+ * @param input - The shown name and its tool.
+ * @param input.shown - The name a caller would be shown.
+ * @param input.tool - The canonical name of the tool.
+ * @param input.path - The data path, for example `mechanics[0].as.playMove`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function shownNameMalformed(input: { readonly shown: string; readonly tool: string; readonly path: string }): SwtIssue {
+	return issue("SWT-G014", `tool "${input.tool}" would be shown as "${input.shown}", which is no valid tool name`, `A shown tool name matches ${TOOL_NAME_PATTERN}: model providers accept nothing else.`, "Give the tool a name of 1 to 64 letters, digits, `_` or `-`, with `as` on its mechanic in the game or in the mechanic itself.", { path: input.path });
+}
+
+/**
+ * `SWT-G020`: an option does not match its schema.
+ *
+ * @param input - The owner of the options and one mismatch.
+ * @param input.owner - The mechanic id, or the scheduler id for `scheduler.options`.
+ * @param input.kind - What the owner is; a mechanic when left out.
+ * @param input.package - The package of the owner.
+ * @param input.path - The data path with the field, for example `mechanics[0].options.size`.
+ * @param input.message - What is wrong, for example `must be an integer from 2 to 10, got "3x3"`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function optionMismatch(input: { readonly owner: string; readonly kind?: "mechanic" | "scheduler"; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
+	const kind = input.kind ?? "mechanic";
+	return issue("SWT-G020", `\`${input.path}\` of the ${kind} "${input.owner}" ${input.message}`, `The options of a ${kind} must match the schema it declares, and may hold no field the schema does not know.`, `Correct the option; the README of the ${kind}'s package lists every option with its default.`, { path: input.path, package: input.package });
+}
+
+/**
+ * `SWT-G021`: a mechanic is listed twice.
+ *
+ * @param input - The mechanic and the place of its second entry.
+ * @param input.mechanic - The mechanic id.
+ * @param input.path - The data path of the later entry, for example `mechanics[3]`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function mechanicTwice(input: { readonly mechanic: string; readonly path: string }): SwtIssue {
+	return issue("SWT-G021", `mechanic "${input.mechanic}" is listed twice`, "A game loads a mechanic once: its id names its state, its events and its tools.", "Remove one of the two entries of `mechanics`.", { path: input.path });
+}
+
+/**
+ * `SWT-G022`: a data game names a mechanic that is not installed.
+ *
+ * @param input - The mechanic id and the installed ones.
+ * @param input.mechanic - The id the game names in `use`.
+ * @param input.path - The data path, for example `mechanics[1].use`.
+ * @param input.installed - The ids of the installed mechanics.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function mechanicNotInstalled(input: { readonly mechanic: string; readonly path: string; readonly installed: readonly string[] }): SwtIssue {
+	return issue("SWT-G022", `the game uses the mechanic "${input.mechanic}", which is not installed`, `A game file names a mechanic by its id, and the id is looked up among the installed mechanic packages: ${quoted(input.installed)}.`, `${meant(input.mechanic, input.installed)}install the package that holds "${input.mechanic}".`, { path: input.path });
+}
+
+/**
+ * `SWT-G030`: a required service has no provider.
+ *
+ * @param input - The mechanic and the service it requires.
+ * @param input.mechanic - The id of the mechanic that requires the service.
+ * @param input.service - The service name.
+ * @param input.path - The data path of the mechanic, for example `mechanics[1]`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function noProvider(input: { readonly mechanic: string; readonly service: string; readonly path?: string }): SwtIssue {
+	return issue("SWT-G030", `mechanic "${input.mechanic}" needs the service "${input.service}", and no mechanic of the game provides it`, "A mechanic runs only when every service it requires is provided by a mechanic of the same game.", `Add a mechanic that provides "${input.service}" to \`mechanics\`, or remove "${input.mechanic}".`, { path: input.path });
+}
+
+/**
+ * `SWT-G031`: a service has two providers.
+ *
+ * @param input - The service and its providers.
+ * @param input.service - The service name.
+ * @param input.providers - The ids of the mechanics that provide it, in the game's order.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function twoProviders(input: { readonly service: string; readonly providers: readonly string[] }): SwtIssue {
+	return issue("SWT-G031", `the service "${input.service}" is provided by ${quoted(input.providers)}`, "A service has one provider in a game, so a call of it has one answer.", `Keep one of ${quoted(input.providers)} in \`mechanics\` and remove the rest.`, { path: "mechanics" }, { providers: input.providers });
+}
+
+/**
+ * `SWT-G032`: `requires` form a cycle.
+ *
+ * @param input - The mechanics that cannot be placed.
+ * @param input.mechanics - Their ids, in the game's order.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function requiresCycle(input: { readonly mechanics: readonly string[] }): SwtIssue {
+	return issue("SWT-G032", `the requires of ${quoted(input.mechanics)} form a cycle`, "A mechanic loads after the providers of the services it requires, so no chain of `requires` may lead back to its start.", "In one of these mechanics, move the service from `requires` to `uses` and call it with `ctx.tryCall`, or react to an event of the other mechanic.", { path: "mechanics" }, { mechanics: input.mechanics });
+}
+
+/**
+ * `SWT-M010`: an event type is reserved by the kernel or declared twice.
+ *
+ * @param input - The mechanic, the event type and who holds the type already.
+ * @param input.mechanic - The id of the mechanic that declares the type.
+ * @param input.type - The event type.
+ * @param input.owner - The id of the mechanic that declares it too; undefined: the kernel reserves it.
+ * @param input.package - The package of the mechanic.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function eventTypeTaken(input: { readonly mechanic: string; readonly type: string; readonly owner?: string; readonly package?: string }): SwtIssue {
+	const holder = input.owner === undefined ? "is reserved by the kernel" : `is declared by the mechanic "${input.owner}" too`;
+	return issue("SWT-M010", `mechanic "${input.mechanic}" declares the event "${input.type}", which ${holder}`, "An event type has one owner in a game, so a reader of the log knows who wrote an event.", `Rename the event in the head of "${input.mechanic}"${input.owner === undefined ? "" : `, or remove one of the two mechanics from the game`}.`, { package: input.package });
+}
+
+/**
+ * `SWT-M011`: the head's `package` is not the package's name.
+ *
+ * @param input - The mechanic and the two names.
+ * @param input.mechanic - The mechanic id.
+ * @param input.declared - The `package` of the head.
+ * @param input.actual - The `name` of the package's `package.json`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function packageMismatch(input: { readonly mechanic: string; readonly declared: string; readonly actual: string }): SwtIssue {
+	return issue("SWT-M011", `mechanic "${input.mechanic}" declares the package "${input.declared}", but lives in "${input.actual}"`, "The head's `package` is part of every canonical tool name and event source, so it must be the name in the package's `package.json`.", `Set \`package: "${input.actual}"\` in the head of "${input.mechanic}".`, { file: "package.json", package: input.actual });
+}
+
+/**
+ * `SWT-M021`: an emitted payload does not match its schema.
+ *
+ * @param input - The mechanic, the event type and one mismatch.
+ * @param input.mechanic - The id of the mechanic that emitted.
+ * @param input.type - The event type.
+ * @param input.package - The package of the mechanic.
+ * @param input.path - The path inside the payload, for example `/remaining`.
+ * @param input.message - What is wrong there, for example `must be a number, got undefined`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function payloadMismatch(input: { readonly mechanic: string; readonly type: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
+	return issue("SWT-M021", `mechanic "${input.mechanic}" emitted "${input.type}" with a wrong payload: ${input.path} ${input.message}`, "An event's payload must match the schema the head declares for it, so every reader of the log can rely on it.", `Correct the \`ctx.emit("${input.type}", ...)\` call, or the schema of "${input.type}" in the head's \`events\`.`, { path: input.path, package: input.package });
+}
+
+/**
+ * `SWT-M022`: a service input or output does not match its schema.
+ *
+ * @param input - The service, the method, the side and one mismatch.
+ * @param input.service - The service name.
+ * @param input.method - The method name.
+ * @param input.side - `input`: the caller's value is wrong; `output`: the provider's answer is.
+ * @param input.provider - The id of the mechanic that provides the service.
+ * @param input.caller - The id of the plugin that called.
+ * @param input.path - The path inside the value, for example `/resident`.
+ * @param input.message - What is wrong there.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function serviceMismatch(input: { readonly service: string; readonly method: string; readonly side: "input" | "output"; readonly provider: string; readonly caller: string; readonly path: string; readonly message: string }): SwtIssue {
+	const guilty = input.side === "input" ? `the call by "${input.caller}"` : `the implementation in "${input.provider}"`;
+	return issue("SWT-M022", `the ${input.side} of "${input.service}.${input.method}" is wrong (provider "${input.provider}", caller "${input.caller}"): ${input.path} ${input.message}`, `A service call must match the ${input.side} schema of its method in the service contract.`, `Correct ${guilty}, or the ${input.side} schema of "${input.method}" in the contract of "${input.service}".`, { path: input.path }, { side: input.side });
+}
+
+/**
+ * `SWT-P003`: a declared prompt has no text.
+ *
+ * @param input - The owner, the prompt and where a text was looked for.
+ * @param input.owner - The id of the mechanic that declares the prompt, or `kernel` for a kernel reply.
+ * @param input.prompt - The prompt id.
+ * @param input.lookedIn - The paths that were tried, in lookup order.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function promptWithoutText(input: { readonly owner: string; readonly prompt: string; readonly lookedIn: readonly string[] }): SwtIssue {
+	const first = input.lookedIn[0];
+	return issue("SWT-P003", `"${input.owner}" declares the prompt "${input.prompt}" but has no text for it`, `Every text a model may read is known before the run starts. Looked in: ${input.lookedIn.length === 0 ? "no path" : input.lookedIn.join(", ")}.`, `${first === undefined ? "Create the prompt file" : `Create \`${first}\``}, or give the tool's \`description\` as the text itself.`, { file: first }, { lookedIn: input.lookedIn });
+}

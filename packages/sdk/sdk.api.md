@@ -4,6 +4,222 @@
 
 ```ts
 
+import { EventSchemas } from '@swarmtales/contracts';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { Refusal } from '@swarmtales/contracts';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { ServiceMethods } from '@swarmtales/contracts';
+import { SwtIssue } from '@swarmtales/contracts';
+import { ToolRef } from '@swarmtales/contracts';
+import { ToolSuccess } from '@swarmtales/contracts';
+import { TSchema } from 'typebox';
+
+// @public
+export function defineEvents<const Id extends string, const E extends EventSchemas>(id: Id, events: E): EventsDefinition<Id, E>;
+
+// @public
+export function defineService<const N extends string, const M extends ServiceMethods>(service: ServiceDefinition<N, M>): ServiceDefinition<N, M>;
+
+// @public
+export function defineTool<const N extends string, P extends TSchema>(name: N, parameters: P): ToolRef<N, P>;
+
+// @public
+export function directorsReserved(input: {
+    readonly count: number;
+}): SwtIssue;
+
+// @public
+export function eventTypeTaken(input: {
+    readonly mechanic: string;
+    readonly type: string;
+    readonly owner?: string;
+    readonly package?: string;
+}): SwtIssue;
+
+// @public
+export function gameSchemaMismatch(input: Mismatch): SwtIssue;
+
+// @public
+export interface LoadOrder<T extends LoadOrderEntry> {
+    readonly issues: readonly SwtIssue[];
+    readonly order: readonly T[];
+}
+
+// @public
+export function loadOrder<T extends LoadOrderEntry>(entries: readonly T[]): LoadOrder<T>;
+
+// @public
+export interface LoadOrderEntry {
+    readonly id: string;
+    readonly provides?: readonly {
+        readonly name: string;
+    }[];
+    readonly requires?: readonly {
+        readonly name: string;
+    }[];
+    readonly uses?: readonly {
+        readonly name: string;
+    }[];
+}
+
+// @public
+export function mechanicNotInstalled(input: {
+    readonly mechanic: string;
+    readonly path: string;
+    readonly installed: readonly string[];
+}): SwtIssue;
+
+// @public
+export function mechanicTwice(input: {
+    readonly mechanic: string;
+    readonly path: string;
+}): SwtIssue;
+
+// @public
+export function memberNotResident(input: {
+    readonly kind: "team" | "role";
+    readonly group: string;
+    readonly id: string;
+    readonly path: string;
+    readonly residents: readonly string[];
+}): SwtIssue;
+
+// @public
+export interface Mismatch {
+    readonly message: string;
+    readonly path?: string;
+}
+
+// @public
+export function noProvider(input: {
+    readonly mechanic: string;
+    readonly service: string;
+    readonly path?: string;
+}): SwtIssue;
+
+// @public
+export function optionMismatch(input: {
+    readonly owner: string;
+    readonly kind?: "mechanic" | "scheduler";
+    readonly package?: string;
+    readonly path: string;
+    readonly message: string;
+}): SwtIssue;
+
+// @public
+export function packageMismatch(input: {
+    readonly mechanic: string;
+    readonly declared: string;
+    readonly actual: string;
+}): SwtIssue;
+
+// @public
+export function payloadMismatch(input: {
+    readonly mechanic: string;
+    readonly type: string;
+    readonly package?: string;
+    readonly path: string;
+    readonly message: string;
+}): SwtIssue;
+
+// @public
+export function promptWithoutText(input: {
+    readonly owner: string;
+    readonly prompt: string;
+    readonly lookedIn: readonly string[];
+}): SwtIssue;
+
+// @public
+export function refuse(code: string, detail?: string): Refusal;
+
+// @public
+export function reply(text: string, options?: {
+    readonly endsTurn?: boolean;
+}): ToolSuccess;
+
+// @public
+export function requiresCycle(input: {
+    readonly mechanics: readonly string[];
+}): SwtIssue;
+
+// @public
+export function residentId(input: {
+    readonly id: string;
+    readonly path: string;
+    readonly reason: "doubled" | "malformed";
+}): SwtIssue;
+
+// @public
+export function schemaVersion(input: {
+    readonly found: unknown;
+}): SwtIssue;
+
+// @public
+export const SDK_ERRORS: {
+    readonly "SWT-G001": "the game does not match schema version 1";
+    readonly "SWT-G002": "`schema` is not 1";
+    readonly "SWT-G003": "`directors` is not empty before milestone M3";
+    readonly "SWT-G010": "a resident id is doubled or malformed";
+    readonly "SWT-G011": "a team or a role names an id that is not a resident";
+    readonly "SWT-G012": "a tool is granted or locked but not defined";
+    readonly "SWT-G013": "two tools of one grant share a shown name";
+    readonly "SWT-G014": "a shown tool name does not match the pattern";
+    readonly "SWT-G020": "an option does not match its schema";
+    readonly "SWT-G021": "a mechanic is listed twice";
+    readonly "SWT-G022": "a data game names a mechanic that is not installed";
+    readonly "SWT-G030": "a required service has no provider";
+    readonly "SWT-G031": "a service has two providers";
+    readonly "SWT-G032": "`requires` form a cycle";
+    readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
+    readonly "SWT-M011": "the head's `package` is not the package's name";
+    readonly "SWT-M021": "an emitted payload does not match its schema";
+    readonly "SWT-M022": "a service input or output does not match its schema";
+    readonly "SWT-P003": "a declared prompt has no text";
+};
+
+// @public
+export type SdkErrorCode = keyof typeof SDK_ERRORS;
+
+// @public
+export function serviceMismatch(input: {
+    readonly service: string;
+    readonly method: string;
+    readonly side: "input" | "output";
+    readonly provider: string;
+    readonly caller: string;
+    readonly path: string;
+    readonly message: string;
+}): SwtIssue;
+
+// @public
+export function shownNameClash(input: {
+    readonly shown: string;
+    readonly grant: string;
+    readonly tools: readonly string[];
+    readonly path: string;
+}): SwtIssue;
+
+// @public
+export function shownNameMalformed(input: {
+    readonly shown: string;
+    readonly tool: string;
+    readonly path: string;
+}): SwtIssue;
+
+// @public
+export function toolNotDefined(input: {
+    readonly tool: string;
+    readonly place: "granted" | "locked";
+    readonly path: string;
+    readonly defined: readonly string[];
+}): SwtIssue;
+
+// @public
+export function twoProviders(input: {
+    readonly service: string;
+    readonly providers: readonly string[];
+}): SwtIssue;
+
 // (No @packageDocumentation comment for this package)
 
 ```
