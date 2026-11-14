@@ -25,7 +25,7 @@ import { HOOK_ORDER } from "@swarmtales/mechanic-shared";
 import { BrainSourceApi, StrategyBrainApi } from "@swarmtales/mechanic-strategy-brain";
 import { TeamChannelApi } from "@swarmtales/mechanic-team-channel";
 import type { Chess } from "chess.js";
-import { adjudicate, colourOf, endOf, EndReason, loosePieces, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "../../../../mechanics/chess/src/model.ts";
+import { adjudicate, colourOf, endOf, EndReason, loosePieces, materialOf, MoveClass, moveText, parseMove, replay, Result, scoreMove, type Colour } from "./model.ts";
 import { mechanic, type CtxOf, type ToolCtxOf } from "../define.ts";
 
 

@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "noEmit": true, "rootDir": "src" },
+	"include": ["src/chess-head-apart", "src/define.ts"],
+	"references": [
+		{ "path": "../../packages/contracts" },
+		{ "path": "../../packages/kernel" },
+		{ "path": "../../mechanics/shared" },
+		{ "path": "../../mechanics/strategy-brain" },
+		{ "path": "../../mechanics/team-channel" }
+	]
+}

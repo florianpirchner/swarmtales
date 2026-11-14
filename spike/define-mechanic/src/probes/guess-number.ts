@@ -16,7 +16,7 @@ export const guessNumber = mechanic({
 		guessed: Type.Object({ by: Type.String(), value: Type.Integer(), hint: Type.Union([Type.Literal("higher"), Type.Literal("lower"), Type.Literal("correct")]) }),
 	},
 	prompts: { "guess-number/tools/guess": [] },
-	start: ({ options, rng }) => ({ secret: rng("secret").int(1, options.max) }),
+	start: (setup) => ({ secret: setup.rng("secret").int(1, setup.options.max) }),
 	tools: {
 		guess: {
 			description: "guess-number/tools/guess",

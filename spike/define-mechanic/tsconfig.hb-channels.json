@@ -1,0 +1,6 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "noEmit": true, "rootDir": "../.." },
+	"include": ["../../mechanics/channels/src"],
+	"references": [{ "path": "../../packages/contracts" }, { "path": "../../packages/kernel" }, { "path": "../../mechanics/shared" }]
+}

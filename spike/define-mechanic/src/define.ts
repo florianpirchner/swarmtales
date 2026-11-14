@@ -53,7 +53,7 @@ import { defineMechanic } from "@swarmtales/kernel";
 export type NoOptions = TObject<{}>;
 
 /** The empty set of a keyed part (events, prompts, decisions, tools) that is left out. */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- an empty keyed part
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/consistent-type-definitions -- an empty keyed part; an interface would not be assignable to a record
 export type None = {};
 
 /** One tool in the `tools` object; its name is the property key. */
@@ -108,7 +108,7 @@ export type ListenKit<M extends Shape<TSchema, unknown, EventSchemas, PromptKeys
 export type ToolNameOf<K> = K extends `${string}/${infer N}` ? N : K & string;
 
 /** The one object. */
-export type MechanicSpec<
+export interface MechanicSpec<
 	Id extends string,
 	O extends TSchema,
 	Snap extends TSchema,
@@ -121,7 +121,7 @@ export type MechanicSpec<
 	D extends DecisionSchemas,
 	TP extends Readonly<Record<string, TSchema>>,
 	F extends Readonly<Record<string, TSchema>>,
-> = {
+> {
 	readonly id: Id;
 	/** One line for `swt module show`. */
 	readonly summary: string;
@@ -155,7 +155,7 @@ export type MechanicSpec<
 	readonly turns?: TurnPolicy;
 	readonly presentation?: PresentationHandlers<Shape<O, StateOf<Snap, C>, E, P, R, Pv, U, D>>;
 	readonly guard?: GuardHandlers<Shape<O, StateOf<Snap, C>, E, P, R, Pv, U, D>>;
-};
+}
 
 /** A mechanic defined with the one object: today's definition plus its head, for `CtxOf`. */
 export type OneMechanic<
@@ -185,11 +185,50 @@ export interface DeclaredTool {
 	readonly serves: readonly GrantRole[] | undefined;
 }
 
-/** The context of hooks, listeners, jobs and services of a one-object mechanic. */
-export type CtxOf<Mech> = Mech extends { readonly head: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? MechanicContext<Shape<O, S, E, P, R, Pv, U, D>> : never;
+/** The declaring properties of the one object, for a head written apart (`head({...})`) and spread into `mechanic({...head, ...})`. */
+export type HeadSpec<
+	Id extends string,
+	O extends TSchema,
+	Snap extends TSchema,
+	C,
+	E extends EventSchemas,
+	P extends PromptKeys,
+	R extends readonly ApiDefinition[],
+	Pv extends readonly ApiDefinition[],
+	U extends readonly ApiDefinition[],
+	D extends DecisionSchemas,
+> = Pick<
+	MechanicSpec<Id, O, Snap, C, E, P, R, Pv, U, D, None, None>,
+	"id" | "summary" | "options" | "state" | "snapshot" | "version" | "migrations" | "events" | "audiences" | "prompts" | "requires" | "provides" | "uses" | "decisions" | "start"
+> & {
+	/** Phantom, never set: the head the properties make, for `CtxOf`. */
+	readonly head?: MechanicHead<Id, O, StateOf<Snap, C>, E, P, R, Pv, U, D>;
+};
+
+/**
+ * The declaring part of a mechanic written apart, so that helpers outside the one object can name
+ * their context (`CtxOf<typeof head>`) without referring to the mechanic that calls them.
+ */
+export function head<
+	const Id extends string,
+	O extends TSchema = NoOptions,
+	Snap extends TSchema = TUndefined,
+	C = never,
+	E extends EventSchemas = None,
+	const P extends PromptKeys = None,
+	const R extends readonly ApiDefinition[] = [],
+	const Pv extends readonly ApiDefinition[] = [],
+	const U extends readonly ApiDefinition[] = [],
+	const D extends DecisionSchemas = None,
+>(spec: HeadSpec<Id, O, Snap, C, E, P, R, Pv, U, D>): HeadSpec<Id, O, Snap, C, E, P, R, Pv, U, D> {
+	return spec;
+}
+
+/** The context of hooks, listeners, jobs and services of a one-object mechanic (or of a head written apart). */
+export type CtxOf<Mech> = Mech extends { readonly head?: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? MechanicContext<Shape<O, S, E, P, R, Pv, U, D>> : never;
 
 /** The context of the tools of a one-object mechanic. */
-export type ToolCtxOf<Mech> = Mech extends { readonly head: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? ToolContext<Shape<O, S, E, P, R, Pv, U, D>> : never;
+export type ToolCtxOf<Mech> = Mech extends { readonly head?: MechanicHead<string, infer O, infer S, infer E, infer P, infer R, infer Pv, infer U, infer D> } ? ToolContext<Shape<O, S, E, P, R, Pv, U, D>> : never;
 
 const NO_OPTIONS: NoOptions = Type.Object({});
 
