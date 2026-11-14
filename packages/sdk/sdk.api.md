@@ -17,6 +17,7 @@ import { KernelDefinition } from '@swarmtales/contracts';
 import { KernelTool } from '@swarmtales/contracts';
 import { Listener } from '@swarmtales/contracts';
 import { Ordered } from '@swarmtales/contracts';
+import { PluginHooks } from '@swarmtales/contracts';
 import { PluginPort } from '@swarmtales/contracts';
 import { PromptLookup } from '@swarmtales/contracts';
 import { ProvidedService } from '@swarmtales/contracts';
@@ -30,6 +31,7 @@ import { SchedulerDefinition } from '@swarmtales/contracts';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { ServiceMethods } from '@swarmtales/contracts';
 import { SnapshotSlice } from '@swarmtales/contracts';
+import { StageHandlers } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { SwtIssue } from '@swarmtales/contracts';
 import { TObject } from 'typebox';
@@ -39,7 +41,16 @@ import { ToolSuccess } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
 
 // @public
+export function actorOf(resident: string): ActorId;
+
+// @public
 export type AnyHead = MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], ToolParams>;
+
+// @public
+export function bindHooks<M extends MechanicShape>(parts: InstanceParts<M>, hooks: MechanicHooks<M> | undefined): PluginHooks;
+
+// @public
+export function bindStages<M extends MechanicShape>(parts: InstanceParts<M>, pipeline: MechanicPipeline<M> | undefined): StageHandlers;
 
 // @public
 export function bodyMismatch(input: {
@@ -59,6 +70,12 @@ export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<st
     readonly listeners?: (kit: ListenKit<M>) => readonly Listener[];
     readonly pipeline?: MechanicPipeline<M>;
 }
+
+// @public
+export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
+
+// @public
+export function convertArguments(schema: TSchema, raw: unknown): unknown;
 
 // @public
 export type CtxOf<H> = MechanicContext<ShapeOf<H>>;
@@ -425,6 +442,9 @@ export function requiresCycle(input: {
 }): SwtIssue;
 
 // @public
+export const RESIDENT_KIND = "resident";
+
+// @public
 export interface ResidentAccess {
     isLocked(resident: string, tool: ToolName): boolean;
     isOpen(resident: string, tool: ToolName): boolean;
@@ -438,6 +458,9 @@ export function residentId(input: {
     readonly path: string;
     readonly reason: "doubled" | "malformed";
 }): SwtIssue;
+
+// @public
+export function residentOf(actor: ActorId): string | undefined;
 
 // @public
 export interface ResidentsPort extends ResidentsView {
@@ -657,6 +680,9 @@ export function twoProviders(input: {
     readonly service: string;
     readonly providers: readonly string[];
 }): SwtIssue;
+
+// @public
+export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactView<M>;
 
 // @public
 export type ViewOf<H> = FactView<ShapeOf<H>>;
