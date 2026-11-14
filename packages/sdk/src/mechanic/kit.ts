@@ -7,8 +7,8 @@
  */
 import type { TSchema } from "typebox";
 import { Check, Errors, Parse } from "typebox/value";
-import { SwtError, type ActorId, type Listener, type ServiceDefinition, type SwtIssue } from "@swarmtales/contracts";
-import { payloadMismatch, serviceMismatch } from "../errors.ts";
+import { SwtError, type ActorId, type Listener, type ServiceDefinition } from "@swarmtales/contracts";
+import { factMismatch, payloadMismatch, serviceMismatch, sliceMismatch } from "../errors.ts";
 import type { FactView, MechanicContext, MechanicShape, ToolContext } from "./context-types.ts";
 import type { InstanceParts, MechanicKit, SliceSpec } from "./parts.ts";
 
@@ -31,19 +31,6 @@ export interface KitBinding {
 function mismatch(schema: TSchema, value: unknown): { readonly path: string; readonly message: string } {
 	const first = Errors(schema, value)[0];
 	return { path: first?.instancePath ?? "", message: first?.message ?? "does not match its schema" };
-}
-
-// An issue of a code the sdk's catalogue does not hold yet (`SWT-M023`, `SWT-M024`): a stand-in until `errors.ts`
-// has a function for it.
-function uncatalogued(code: "SWT-M023" | "SWT-M024", summary: string, why: string, fix: string): SwtIssue {
-	return { code, summary, why, fix };
-}
-
-// `SWT-M024`: a snapshot slice that cannot be saved or loaded. The kernel reports a failed load as `SWT-R002`.
-function sliceFault(mechanic: string, what: string): SwtError {
-	return new SwtError(
-		uncatalogued("SWT-M024", `the snapshot slice of mechanic "${mechanic}" ${what}`, "A slice is saved and loaded in the form of the head's `state` schema, at a version the head knows.", `Correct \`state\`, \`snapshot\`, \`version\` or \`migrations\` in the head of "${mechanic}", or resume from a snapshot this version of the mechanic wrote.`),
-	);
 }
 
 // A type guard with a real check behind it: a value that matches the state schema is the state of a mechanic that is its own slice.
@@ -78,13 +65,13 @@ function serve<M extends MechanicShape>(parts: InstanceParts<M>, service: Servic
 
 // The slice binder: without `snapshot` the state is its own slice.
 function bindSlice<M extends MechanicShape>(parts: InstanceParts<M>, spec: SliceSpec<M>): ReturnType<MechanicKit<M>["slice"]> {
-	const id = parts.port.id;
+	const at = { mechanic: parts.port.id, package: parts.head.package };
 	const migrated = (data: unknown, version: number): unknown => {
-		if (version > spec.version) throw sliceFault(id, `has version ${version}, which is newer than ${spec.version}`);
+		if (version > spec.version) throw new SwtError(sliceMismatch({ ...at, problem: "newer", version, known: spec.version }));
 		let current = data;
 		for (let step = version; step < spec.version; step++) {
 			const migrate = spec.migrations?.[step];
-			if (migrate === undefined) throw sliceFault(id, `has version ${step}, and the head has no migration from it`);
+			if (migrate === undefined) throw new SwtError(sliceMismatch({ ...at, problem: "no-migration", version: step }));
 			current = migrate(current);
 		}
 		return current;
@@ -93,7 +80,7 @@ function bindSlice<M extends MechanicShape>(parts: InstanceParts<M>, spec: Slice
 		version: spec.version,
 		save() {
 			const data: unknown = spec.snapshot === undefined ? parts.state.value : spec.snapshot.save(parts.state.value);
-			if (!Check(spec.schema, data)) throw sliceFault(id, `does not match the state schema when it is saved: ${mismatch(spec.schema, data).path} ${mismatch(spec.schema, data).message}`);
+			if (!Check(spec.schema, data)) throw new SwtError(sliceMismatch({ ...at, problem: "saved", ...mismatch(spec.schema, data) }));
 			return data;
 		},
 		load(data, version) {
@@ -102,7 +89,7 @@ function bindSlice<M extends MechanicShape>(parts: InstanceParts<M>, spec: Slice
 			try {
 				parsed = Parse(spec.schema, current);
 			} catch {
-				throw sliceFault(id, `does not match the state schema when it is loaded: ${mismatch(spec.schema, current).path} ${mismatch(spec.schema, current).message}`);
+				throw new SwtError(sliceMismatch({ ...at, problem: "loaded", ...mismatch(spec.schema, current) }));
 			}
 			if (spec.snapshot !== undefined) parts.state.value = spec.snapshot.load(parsed, parts.setup);
 			else if (isOwnSlice(spec, parsed)) parts.state.value = parsed;
@@ -181,8 +168,8 @@ export function createKit<M extends MechanicShape>(parts: InstanceParts<M>, bind
 				compute() {
 					const value: unknown = spec.compute(bind.viewFor(parts));
 					if (Check(spec.output, value)) return value;
-					const { path, message } = mismatch(spec.output, value);
-					throw new SwtError(uncatalogued("SWT-M023", `a fact of mechanic "${id}" has a wrong value: ${path} ${message}`, "A fact's value must match the `output` schema its body declares, so every reader outside the run can rely on it.", `Correct \`compute\` of the fact in the body of "${id}", or its \`output\` schema.`));
+					// The binder is not told the name of the fact, so the issue names the mechanic only.
+					throw new SwtError(factMismatch({ mechanic: id, package: parts.head.package, ...mismatch(spec.output, value) }));
 				},
 			};
 		},

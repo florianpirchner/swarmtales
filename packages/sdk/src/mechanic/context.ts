@@ -8,7 +8,7 @@
 import type { TSchema } from "typebox";
 import { Check, Errors } from "typebox/value";
 import { actorId, kindOf, nameOf, SwtError, type ActorId, type CanonicalTool, type ServiceDefinition } from "@swarmtales/contracts";
-import { payloadMismatch, serviceMismatch } from "../errors.ts";
+import { commandInView, payloadMismatch, serviceMismatch } from "../errors.ts";
 import type { FactView, MechanicShape, ResidentAccess, ResidentsPort, ResidentsView, ServiceMethodName, ServiceOutput, ToolContext, ToolName } from "./context-types.ts";
 import type { InstanceParts } from "./parts.ts";
 
@@ -59,8 +59,14 @@ function callChecked<M extends MechanicShape, A extends ServiceDefinition, K ext
 	const schema = at(at(at(service, "methods"), method), "output");
 	const output = parts.port.call(service.name, method, input);
 	if (Check(schema, output)) return output;
-	// The port does not say who provides a service, so the issue names the provider by its service.
-	throw new SwtError(serviceMismatch({ service: service.name, method, side: "output", provider: `the provider of ${service.name}`, caller: parts.port.id, ...mismatch(schema, output) }));
+	// The port does not say who provides a service, so the issue names no provider.
+	throw new SwtError(serviceMismatch({ service: service.name, method, side: "output", caller: parts.port.id, ...mismatch(schema, output) }));
+}
+
+// Refuses a method that is declared and is no query (SWT-M025), before the port is asked: a view only reads.
+function queryOnly<M extends MechanicShape>(parts: InstanceParts<M>, service: ServiceDefinition, method: string): void {
+	const declared = Object.hasOwn(service.methods, method) ? service.methods[method] : undefined;
+	if (declared !== undefined && declared.kind !== "query") throw new SwtError(commandInView({ mechanic: parts.port.id, package: parts.head.package, service: service.name, method }));
 }
 
 function residentsView<M extends MechanicShape>({ port }: InstanceParts<M>): ResidentsView {
@@ -155,8 +161,8 @@ export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, act
  *
  * @param parts - The parts of the instance.
  * @returns The view. `state` and `tick` are live; `call` and `tryCall` throw an `SwtError` with `SWT-M022` for a
- * service output that does not match the method's schema. That a fact calls queries only is held by the type of
- * the view, not at run time.
+ * service output that does not match the method's schema, and with `SWT-M025` for a method that is a command
+ * (the type of the view refuses it too); the command is not called.
  *
  * @public
  */
@@ -171,7 +177,7 @@ export function viewFor<M extends MechanicShape>(parts: InstanceParts<M>): FactV
 			return port.tick();
 		},
 		residents: residentsView(parts),
-		call: (service, method, input) => callChecked(parts, service, method, input),
-		tryCall: (service, method, input) => (port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
+		call: (service, method, input) => (queryOnly(parts, service, method), callChecked(parts, service, method, input)),
+		tryCall: (service, method, input) => (queryOnly(parts, service, method), port.has(service.name) ? callChecked(parts, service, method, input) : undefined),
 	};
 }

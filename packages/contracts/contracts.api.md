@@ -94,6 +94,7 @@ export interface Envelope<T extends string = string, P = unknown> {
 // @public
 export function envelopeLogIssues(lines: readonly unknown[]): readonly {
     readonly line: number;
+    readonly kind: "envelope" | "seq" | "tick" | "causedBy" | "basis";
     readonly reason: string;
 }[];
 

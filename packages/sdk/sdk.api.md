@@ -100,6 +100,14 @@ export interface CollectedTexts {
 export function collectTexts(mechanics: readonly TextSource[], prompts: PromptLookup): CollectedTexts;
 
 // @public
+export function commandInView(input: {
+    readonly mechanic: string;
+    readonly package?: string;
+    readonly service: string;
+    readonly method: string;
+}): SwtIssue;
+
+// @public
 export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
 
 // @public
@@ -166,7 +174,7 @@ export function eventTypeTaken(input: {
 // @public
 export function factMismatch(input: {
     readonly mechanic: string;
-    readonly fact: string;
+    readonly fact?: string;
     readonly package?: string;
     readonly path: string;
     readonly message: string;
@@ -459,6 +467,12 @@ export function optionMismatch(input: {
 export type OptionsInput<O extends TSchema> = Partial<Static<O>>;
 
 // @public
+export function optionsNoObject(input: {
+    readonly mechanic: string;
+    readonly package?: string;
+}): SwtIssue;
+
+// @public
 export function packageMismatch(input: {
     readonly mechanic: string;
     readonly declared: string;
@@ -665,10 +679,13 @@ export const SDK_ERRORS: {
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";
+    readonly "SWT-M013": "the `options` schema of a mechanic is no object schema";
     readonly "SWT-M014": "a mechanic keeps state that cannot be started or saved";
     readonly "SWT-M021": "an emitted payload does not match its schema";
     readonly "SWT-M022": "a service input or output does not match its schema";
     readonly "SWT-M023": "the value of a fact does not match its schema";
+    readonly "SWT-M024": "a snapshot slice cannot be saved or loaded";
+    readonly "SWT-M025": "a fact or a run limit calls a command of a service";
     readonly "SWT-P003": "a declared prompt has no text";
 };
 
@@ -689,7 +706,7 @@ export function serviceMismatch(input: {
     readonly service: string;
     readonly method: string;
     readonly side: "input" | "output";
-    readonly provider: string;
+    readonly provider?: string;
     readonly caller: string;
     readonly path: string;
     readonly message: string;
@@ -741,6 +758,17 @@ export function shownNameMalformed(input: {
     readonly shown: string;
     readonly tool: string;
     readonly path: string;
+}): SwtIssue;
+
+// @public
+export function sliceMismatch(input: {
+    readonly mechanic: string;
+    readonly package?: string;
+    readonly problem: "saved" | "loaded" | "newer" | "no-migration";
+    readonly version?: number;
+    readonly known?: number;
+    readonly path?: string;
+    readonly message?: string;
 }): SwtIssue;
 
 // @public
@@ -836,7 +864,7 @@ export function toolNames(sources: readonly ToolSource[]): ToolNames;
 // @public
 export function toolNotDefined(input: {
     readonly tool: string;
-    readonly place: "granted" | "locked";
+    readonly place: "granted" | "locked" | "renamed";
     readonly path: string;
     readonly defined: readonly string[];
 }): SwtIssue;

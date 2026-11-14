@@ -4,7 +4,8 @@ import type { KeyObject } from "node:crypto";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { type ChainGenesisV2Input, canonicalJson, jsonHash } from "@swarmtales/chain";
-import type { EventSink, RunManifest } from "@swarmtales/contracts";
+import { type EventSink, type RunManifest, RunManifestSchema, SwtError, type SwtIssue } from "@swarmtales/contracts";
+import { Check, Errors } from "typebox/value";
 import { EventChain } from "./chain-writer.ts";
 import { createSink } from "./sink.ts";
 
@@ -57,6 +58,30 @@ export function nextRunFolder(root: string, gameId: string): string {
 }
 
 /**
+ * Checks a value against `RunManifestSchema`.
+ *
+ * @param manifest - The value: the manifest a run is opened with, or the parsed text of `manifest.json`.
+ * @returns The first mismatch, as its place and what is wrong there; undefined when the value is a run manifest.
+ */
+export function manifestMismatch(manifest: unknown): string | undefined {
+	if (Check(RunManifestSchema, manifest)) return undefined;
+	const first = Errors(RunManifestSchema, manifest)[0];
+	const place = first === undefined || first.instancePath === "" ? "" : `${first.instancePath} `;
+	return `${place}${first?.message ?? "does not match its schema"}`;
+}
+
+// `SWT-L003` for a manifest that a caller built past the type (a cast, plain JavaScript, a value out of a range).
+function notManifest(mismatch: string): SwtIssue {
+	return {
+		code: "SWT-L003",
+		summary: `the manifest of the run is not a run manifest: ${mismatch}`,
+		where: { file: MANIFEST_FILE },
+		why: "A run folder is opened with a manifest that matches the run manifest format, so the run can be verified and compared later.",
+		fix: "Build the manifest with the manifest builder of the engine, and correct the field that is named.",
+	};
+}
+
+/**
  * Opens a run folder: writes `manifest.json` (and `game.json`, `texts.json` when given) as canonical JSON, the
  * genesis that names the manifest's hash, and the key, and returns the sink of the log.
  *
@@ -64,6 +89,7 @@ export function nextRunFolder(root: string, gameId: string): string {
  * @param manifest - The run's manifest.
  * @param options - The clock, the files beside the manifest, and a fixed key for tests.
  * @returns The sink and a `close` for a run that stopped without its end.
+ * @throws SwtError `SWT-L003` when the manifest does not match `RunManifestSchema`; nothing is written then.
  * @throws Error of the file system when the folder already holds a manifest: a run folder is written once.
  * @throws CanonicalJsonError when the manifest, the game or the texts hold something that is no JSON value.
  * @example
@@ -74,6 +100,8 @@ export function nextRunFolder(root: string, gameId: string): string {
  * @public
  */
 export function openRunFolder(directory: string, manifest: RunManifest, options: RunFolderOptions): RunFolder {
+	const mismatch = manifestMismatch(manifest);
+	if (mismatch !== undefined) throw new SwtError(notManifest(mismatch));
 	mkdirSync(directory, { recursive: true });
 	writeFileSync(join(directory, MANIFEST_FILE), `${canonicalJson(manifest)}\n`, { flag: "wx" });
 	if (options.game !== undefined) writeFileSync(join(directory, GAME_FILE), `${canonicalJson(options.game)}\n`);

@@ -28,6 +28,12 @@ describe("toolNames", () => {
 		expect(issues[0]?.summary).toBe('tool "@example/board/board/view" would be shown as "look at", which is no valid tool name');
 		expect(tools).toHaveLength(4);
 	});
+	it("raises SWT-G012 for a key of `as` that names no tool of its mechanic, and renames the rest", () => {
+		const { issues, names } = toolNames([source("board", 0, ["view", "move"], { veiw: "look", move: "go" }), source("chat", 1, ["post"], { view: "look" })]);
+		expect(issues.map((issue) => [issue.code, issue.where?.path])).toEqual([["SWT-G012", "mechanics[0].as.veiw"], ["SWT-G012", "mechanics[1].as.view"]]);
+		expect(issues[0]?.fix).toBe('did you mean "view"? Or remove "veiw" from `as`.');
+		expect(names).toEqual({ "@example/board/board/view": "view", "@example/board/board/move": "go", "@example/chat/chat/post": "post" });
+	});
 });
 
 describe("shownNameClashes", () => {

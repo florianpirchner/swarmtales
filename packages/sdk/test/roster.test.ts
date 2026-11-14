@@ -78,7 +78,7 @@ describe("the roster plugin", () => {
 		};
 		expect(failure(() => ask("teamOf", { resident: 7 }))).toBe('SWT-M022: the input of "roster.teamOf" is wrong (provider "roster", caller "caller"): /resident must be string');
 		expect(failure(() => ask("ids", { resident: "A01" }))).toContain("SWT-M022");
-		expect(failure(() => ask("toString"))).toBe('SWT-M022: the input of "roster.toString" is wrong (provider "roster", caller "caller"):  names no method of the service');
+		expect(failure(() => ask("toString"))).toBe('SWT-M022: the input of "roster.toString" is wrong (provider "roster", caller "caller"): names no method of the service');
 	});
 
 	it("is appended last, unless a plugin of the game provides `roster`", () => {

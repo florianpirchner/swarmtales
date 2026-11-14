@@ -6,8 +6,8 @@
  */
 import type { TSchema } from "typebox";
 import { Clone, Default, Errors } from "typebox/value";
-import { closest, nameOf, SwtError, type JsonValue, type PluginInstance, type PluginPort, type PromptLookup, type ResolvedPlugin, type SwtIssue } from "@swarmtales/contracts";
-import { optionMismatch } from "../errors.ts";
+import { closest, nameOf, SwtError, type JsonValue, type PluginInstance, type PluginPort, type PromptLookup, type ResolvedPlugin } from "@swarmtales/contracts";
+import { optionMismatch, optionsNoObject } from "../errors.ts";
 import { convertArguments } from "./arguments.ts";
 import { contextFor, RESIDENT_KIND, viewFor } from "./context.ts";
 import type { MechanicShape } from "./context-types.ts";
@@ -33,17 +33,6 @@ function isJson(value: unknown): value is JsonValue {
 // The properties of an object schema; undefined when the schema is no object.
 function propertiesOf(schema: TSchema): Readonly<Record<string, unknown>> | undefined {
 	return "type" in schema && schema.type === "object" && "properties" in schema && isRecord(schema.properties) ? schema.properties : undefined;
-}
-
-// A definition error the sdk's catalogue has no function for yet: an `options` schema that is no object (erratum E32, 5).
-function optionsNoObject(head: PluginHead): SwtIssue {
-	return {
-		code: "SWT-M013",
-		summary: `the \`options\` schema of mechanic "${head.id}" is no object schema`,
-		where: { package: head.package },
-		why: "A game gives a mechanic its options by name, so the schema of the options is an object with one property per option.",
-		fix: `Declare \`options: Type.Object({ ... })\` in the head of "${head.id}", or leave \`options\` out.`,
-	};
 }
 
 // `/board/0/size` as `options.board[0].size`.
@@ -134,7 +123,7 @@ function create(head: AnyHead, erased: PluginHead, body: ErasedBody, options: un
 export function defineMechanic<H extends AnyHead, F extends Readonly<Record<string, TSchema>> = None>(head: H, body: MechanicBody<ShapeOf<H>, ToolsOf<H>, F>): DefinitionOf<H>;
 export function defineMechanic(head: AnyHead, body: ErasedBody): MechanicDefinition {
 	const erased = erasedHead(head);
-	const issues = [...(propertiesOf(erased.options) === undefined ? [optionsNoObject(erased)] : []), ...definitionIssues(head, body)];
+	const issues = [...(propertiesOf(erased.options) === undefined ? [optionsNoObject({ mechanic: erased.id, package: erased.package })] : []), ...definitionIssues(head, body)];
 	if (issues.length > 0) throw new SwtError(issues);
 	const definition: MechanicDefinition = Object.assign((options?: unknown) => ({ mechanic: definition, options: options ?? {} }), {
 		id: erased.id,

@@ -164,8 +164,19 @@ describe("viewFor", () => {
 		expect(Object.keys(view.residents).sort()).toEqual(["has", "ids", "mayAct"]);
 		expect(view.call(Board, "cells", {})).toEqual(["O"]);
 		expect(view.tryCall(Chat, "count", {})).toBeUndefined();
+	});
+
+	it("refuses a command with SWT-M025 before the port is asked, and names no provider it does not know", () => {
+		const { parts, calls } = stub({ output: null, provided: [] });
+		const view = viewFor(parts);
 		// @ts-expect-error -- `clear` is a command; a fact calls queries only
 		const command = (): unknown => view.call(Board, "clear", {});
-		expect(command).toBeTypeOf("function");
+		expect(codeOf(command)).toBe("SWT-M025");
+		const erased: { tryCall(service: unknown, method: string, input: unknown): unknown } = view;
+		expect(codeOf(() => erased.tryCall(Board, "clear", {}))).toBe("SWT-M025");
+		expect(calls).toEqual([]);
+		expect(contextFor(parts).call(Board, "clear", {})).toBeNull();
+		const bad = stub({ output: [1] });
+		expect(() => viewFor(bad.parts).call(Board, "cells", {})).toThrow(/the output of "board.cells" is wrong \(caller "grid"\): \/0 /);
 	});
 });

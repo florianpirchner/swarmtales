@@ -161,7 +161,7 @@ describe("createKit: provide", () => {
 		const { service, seen } = provided(5);
 		const fault = thrown(() => service.call("add", { by: "x" }, "board"));
 		expect([fault.code, fault.details]).toEqual(["SWT-M022", { side: "input" }]);
-		expect(thrown(() => service.call("toString", {}, "board")).summary).toContain('the service has no method "toString"');
+		expect(thrown(() => service.call("toString", {}, "board")).summary).toBe('the input of "counter.toString" is wrong (provider "tally", caller "board"): the service has no method "toString"');
 		expect(seen).toEqual([]);
 	});
 });
@@ -195,7 +195,7 @@ describe("createKit: listen, fact, limit", () => {
 		const wrong = kit.fact({ output: Type.Integer(), compute: (view) => view.state.count / 2 });
 		const fault = thrown(() => wrong.compute());
 		expect(fault.code).toBe("SWT-M023");
-		expect(fault.summary).toContain('a fact of mechanic "tally" has a wrong value');
+		expect(fault.summary).toMatch(/^a fact of mechanic "tally" has a wrong value: must be /);
 		const limit = kit.limit("full", { summary: "The board is full.", breached: (view) => (view.state.count > 1 ? "full" : undefined) });
 		expect([limit.id, limit.summary, limit.check()]).toEqual(["full", "The board is full.", undefined]);
 	});
@@ -211,11 +211,12 @@ describe("createKit: slice", () => {
 		expect(thrown(() => {
 				slice.load({ count: "8" }, 2);
 			}).summary).toContain("does not match the state schema when it is loaded: /count");
-		expect(thrown(() => {
-				slice.load({ count: 8 }, 3);
-			}).summary).toContain("has version 3, which is newer than 2");
+		const newer = thrown(() => {
+			slice.load({ count: 8 }, 3);
+		});
+		expect([newer.code, newer.details, newer.summary]).toEqual(["SWT-M024", { problem: "newer" }, 'the snapshot slice of mechanic "tally" has version 3, which is newer than 2']);
 		parts.state.value = { count: 0.5 };
-		expect(thrown(() => slice.save()).code).toBe("SWT-M024");
+		expect(thrown(() => slice.save())).toMatchObject({ code: "SWT-M024", details: { problem: "saved" } });
 	});
 
 	it("migrates an old slice step by step and loads it through `snapshot`, with the setup", () => {

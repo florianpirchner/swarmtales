@@ -151,3 +151,24 @@ the old kernel's rules before the test was run, and the parts gave them.
 | O17 | C | `restoreKernel` checks game, hash, seed, log length, slices and jobs. It does not check that `snapshot.tick` is at least the tick of the last event, that the plugins that hold a suspension are loaded, or that a locked tool exists. A snapshot is trusted beyond its hash | M3, with resume in the command line |
 | O18 | C | A driver that keeps `Activation.call` after `close` can still call: the call is written, caused by an activation that is closed. The old loop was the same | M2, with the model driver |
 | O19 | C | O9 is still open: `PluginPort.emit(type, undefined)` writes an envelope without a payload key in the file. The kernel's own payloads write `null` | issue 22 or 26 |
+
+## M1-37: catalogue codes and checks that wave 3 left as stand-ins
+
+The issue has no row in 10.3; it collects what the reports of wave 3 named. Two codes are new (`SWT-M024` in the
+catalogue, `SWT-M025`), one that issue 26 built by hand enters the catalogue (`SWT-M013`), and every change of an
+exported signature is additive.
+
+| # | Sev | Before | What holds | Why |
+|---|---|---|---|---|
+| E43 | B | `kit.ts` built `SWT-M023` and an invented `SWT-M024` by hand | `SWT-M024` is in the sdk's catalogue as `sliceMismatch` (`problem`: `saved`, `loaded`, `newer`, `no-migration`, also in `details`); the kit uses it and `factMismatch`. `factMismatch.fact` is optional: `MechanicKit.fact(spec)` is not told the name of the fact, so the issue of the kit names the mechanic only | A code is in a catalogue or it does not exist. Passing the name needs a change of `MechanicKit.fact` (open, see below) |
+| E44 | B | "a fact calls queries only" was held by the type of `FactView` | `SWT-M025` (`commandInView`): `viewFor(...).call` and `tryCall` refuse a declared method whose `kind` is not `query` before the port is asked, so the command is not called and writes no `service_called`. `tryCall` refuses it also when nobody provides the service. A method the service does not declare is not judged here | A cast or plain JavaScript gets past the type, and a fact is computed any number of times |
+| E45 | C | `serviceMismatch` required `provider`; `context.ts` passed the text "the provider of <service>" | `provider` is optional. Without it the summary reads `(caller "<id>")` and the fix names `the implementation of "<service>"` | The port does not say who provides a service |
+| E46 | C | O8: two spaces after the colon for a mismatch without a path | `payloadMismatch`, `serviceMismatch`, `factMismatch` and `sliceMismatch` print the message alone when the path is empty. O8 is closed | One helper in `errors.ts` |
+| E47 | B | `toolNames` ignored a key of `as` that names no tool of its mechanic | One `SWT-G012` per such key (`toolNotDefined` with `place: "renamed"`, at `mechanics[i].as.<key>`, `defined` holds the tools of that mechanic). The tools of the mechanic are named as before | A rename with a typing error changed nothing and said nothing |
+| E48 | C | `envelopeLogIssues` gave `{ line, reason }`, and `verify.ts` compared the reason text | Each entry has `kind`: `envelope`, `seq`, `tick`, `causedBy` or `basis`. `reason` is for a reader only | A changed wording would have turned every L004 into an L005 |
+| E49 | B | `verifyRun` checked three fields of the manifest by hand and `at` as any string; `openRunFolder` wrote what it was given | `@swarmtales/runlog` depends on `typebox` (the workspace's version; the lockfile gains the edge and no package). `openRunFolder` checks the manifest against `RunManifestSchema` before it creates the folder and throws `SwtError` `SWT-L003`; `verifyRun` reports a file that does not match the schema as `SWT-L003` with the first mismatch; `SWT-L004` is every line that does not match `StoredEnvelopeSchema` (so also a stamp that is no time, and an unknown field) | The schemas exist; a hand check drifts from them |
+| E50 | C | E32, item 5: `define-mechanic.ts` builds `SWT-M013` by hand | `SWT-M013` is in the catalogue as `optionsNoObject({ mechanic, package? })`, with the texts of the stand-in. `define-mechanic.ts` still holds its local function: the swap is for the integrator | The file is not on the branch of this issue |
+
+Open after this issue: `MechanicKit.fact` takes no name (the `SWT-M023` of the kit cannot name the fact); the row
+of `runlog` in `docs/LAYERS.md` does not mention `typebox` (the layer check judges workspace packages and Node
+modules only).

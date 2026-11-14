@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { canonicalJson, CanonicalJsonError, CHAIN_FILE, EVENTS_FILE, jsonHash, PUBLIC_KEY_FILE } from "@swarmtales/chain";
-import { type Envelope, type RunManifest, actorId } from "@swarmtales/contracts";
+import { type Envelope, type RunManifest, actorId, SwtError } from "@swarmtales/contracts";
 import { EventChain } from "../src/chain-writer.ts";
 import { GAME_FILE, MANIFEST_FILE, nextRunFolder, openRunFolder, TEXTS_FILE } from "../src/folder.ts";
 import { type RunVerdict, verifyRun } from "../src/verify.ts";
@@ -98,6 +98,20 @@ describe("openRunFolder", () => {
 		expect(nextRunFolder(root, "hello")).toBe(join(root, "hello-001"));
 		expect(nextRunFolder(join(root, "none"), "hello-game")).toBe(join(root, "none", "hello-game-001"));
 	});
+	it("refuses a manifest that is no run manifest with SWT-L003, and writes nothing", () => {
+		const directory = join(mkdtempSync(join(tmpdir(), "runlog-")), "bad-001");
+		directories.push(join(directory, ".."));
+		let fault: unknown;
+		try {
+			openRunFolder(directory, { ...MANIFEST, seed: -1 }, { now: () => new Date(0) });
+		} catch (error) {
+			fault = error;
+		}
+		expect(fault).toBeInstanceOf(SwtError);
+		expect(fault instanceof SwtError ? [fault.code, fault.issues[0]?.where] : []).toEqual(["SWT-L003", { file: MANIFEST_FILE }]);
+		expect(fault instanceof SwtError ? fault.issues[0]?.summary : "").toMatch(/^the manifest of the run is not a run manifest: \/seed /);
+		expect(readdirSync(join(directory, ".."))).toEqual([]);
+	});
 });
 
 describe("verifyRun", () => {
@@ -150,6 +164,15 @@ describe("verifyRun", () => {
 		writeFileSync(join(directory, MANIFEST_FILE), canonicalJson(manifest));
 		new EventChain(directory, { manifest: jsonHash(manifest), log: MANIFEST.log }).close();
 		expect(verifyRun(directory)).toMatchObject({ ok: false, issues: [{ code: "SWT-L003", summary: "the manifest and the genesis name different log formats" }] });
+		// A chain that holds over a file that is canonical JSON and no run manifest: a field the format does not know.
+		const stranger = mkdtempSync(join(tmpdir(), "runlog-"));
+		directories.push(stranger);
+		const extended = { ...MANIFEST, note: "mine" };
+		writeFileSync(join(stranger, MANIFEST_FILE), canonicalJson(extended));
+		new EventChain(stranger, { manifest: jsonHash(extended), log: MANIFEST.log }).close();
+		const strange = verifyRun(stranger).issues;
+		expect(strange).toMatchObject([{ code: "SWT-L003", where: { file: MANIFEST_FILE } }]);
+		expect(strange[0]?.summary).toMatch(/^the file is not a run manifest: /);
 	});
 
 	it("gives SWT-L003 for a game or a text that is not what the manifest names by hash", () => {
@@ -175,10 +198,15 @@ describe("verifyRun", () => {
 		chain.append(event(3, "no_stamp"));
 		chain.append({ ...event(5, "gap"), at });
 		chain.append({ ...event(6, "after_gap"), at });
+		// A stamp that is no time, and a field an envelope does not have: the stored envelope's schema refuses both.
+		chain.append({ ...event(7, "bad_stamp"), at: "yesterday" });
+		chain.append({ ...event(8, "extra"), at, note: 1 });
 		chain.close();
 		expect(verifyRun(directory).issues).toMatchObject([
 			{ code: "SWT-L004", where: { file: EVENTS_FILE, line: 2 } },
 			{ code: "SWT-L004", where: { line: 3 } },
+			{ code: "SWT-L004", where: { line: 6 } },
+			{ code: "SWT-L004", where: { line: 7 } },
 			{ code: "SWT-L005", summary: "line 4: seq is 5, the line number is 4", where: { line: 4 } },
 		]);
 	});

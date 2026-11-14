@@ -96,20 +96,23 @@ interface LogLine {
 	readonly basis?: number;
 }
 
+/** What is wrong with a line of a log: it is no envelope, or the named field is out of order. */
+type LogFaultKind = "envelope" | "seq" | "tick" | "causedBy" | "basis";
+
 /**
  * Lists the faults of one line against its place and the ticks before it.
  *
  * @param entry - The line.
  * @param line - Its line number, from 1.
  * @param tickBefore - The highest tick of the lines before it.
- * @returns The reasons, empty when the line is sound.
+ * @returns The faults, each with the field it is about and the reason; empty when the line is sound.
  */
-function lineFaults(entry: LogLine, line: number, tickBefore: number): readonly string[] {
-	const faults: string[] = [];
-	if (entry.seq !== line) faults.push(`seq is ${entry.seq}, the line number is ${line}`);
-	if (entry.tick < tickBefore) faults.push(`tick falls from ${tickBefore} to ${entry.tick}`);
-	if (entry.causedBy !== undefined && entry.causedBy >= entry.seq) faults.push(`causedBy ${entry.causedBy} is not smaller than seq ${entry.seq}`);
-	if (entry.basis !== undefined && entry.basis >= entry.seq) faults.push(`basis ${entry.basis} is not smaller than seq ${entry.seq}`);
+function lineFaults(entry: LogLine, line: number, tickBefore: number): readonly { readonly kind: LogFaultKind; readonly reason: string }[] {
+	const faults: { readonly kind: LogFaultKind; readonly reason: string }[] = [];
+	if (entry.seq !== line) faults.push({ kind: "seq", reason: `seq is ${entry.seq}, the line number is ${line}` });
+	if (entry.tick < tickBefore) faults.push({ kind: "tick", reason: `tick falls from ${tickBefore} to ${entry.tick}` });
+	if (entry.causedBy !== undefined && entry.causedBy >= entry.seq) faults.push({ kind: "causedBy", reason: `causedBy ${entry.causedBy} is not smaller than seq ${entry.seq}` });
+	if (entry.basis !== undefined && entry.basis >= entry.seq) faults.push({ kind: "basis", reason: `basis ${entry.basis} is not smaller than seq ${entry.seq}` });
 	return faults;
 }
 
@@ -119,7 +122,9 @@ function lineFaults(entry: LogLine, line: number, tickBefore: number): readonly 
  * out of the other checks.
  *
  * @param lines - The parsed lines of the log, in file order.
- * @returns One entry per fault with the line number (from 1) and the reason; empty when the log is sound.
+ * @returns One entry per fault with the line number (from 1), the `kind` (`envelope`: the line is no envelope;
+ * `seq`, `tick`, `causedBy`, `basis`: that field is out of order) and the reason as a text for a reader; empty
+ * when the log is sound. Code reads `kind`, never the text.
  *
  * @example
  * ```ts
@@ -128,16 +133,16 @@ function lineFaults(entry: LogLine, line: number, tickBefore: number): readonly 
  *
  * @public
  */
-export function envelopeLogIssues(lines: readonly unknown[]): readonly { readonly line: number; readonly reason: string }[] {
-	const issues: { readonly line: number; readonly reason: string }[] = [];
+export function envelopeLogIssues(lines: readonly unknown[]): readonly { readonly line: number; readonly kind: "envelope" | "seq" | "tick" | "causedBy" | "basis"; readonly reason: string }[] {
+	const issues: { readonly line: number; readonly kind: LogFaultKind; readonly reason: string }[] = [];
 	let tickBefore = 0;
 	lines.forEach((entry, index) => {
 		const line = index + 1;
 		if (!Value.Check(StoredEnvelopeSchema, entry) && !Value.Check(EnvelopeSchema, entry)) {
-			issues.push({ line, reason: "the line is not an envelope" });
+			issues.push({ line, kind: "envelope", reason: "the line is not an envelope" });
 			return;
 		}
-		for (const reason of lineFaults(entry, line, tickBefore)) issues.push({ line, reason });
+		for (const fault of lineFaults(entry, line, tickBefore)) issues.push({ line, ...fault });
 		tickBefore = Math.max(tickBefore, entry.tick);
 	});
 	return issues;

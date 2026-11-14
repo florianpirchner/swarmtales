@@ -5,7 +5,7 @@
  * game renames it with `as` on the mechanic. The tools are read from the heads, so no handler runs.
  */
 import { TOOL_NAME_PATTERN, type CanonicalTool, type SwtIssue } from "@swarmtales/contracts";
-import { shownNameClash, shownNameMalformed } from "../errors.ts";
+import { shownNameClash, shownNameMalformed, toolNotDefined } from "../errors.ts";
 
 /**
  * One mechanic of the game as the tool steps read it. A `MechanicUse` with the place it was listed at fits.
@@ -55,15 +55,24 @@ export interface ToolNames {
 	readonly tools: readonly NamedTool[];
 	/** Canonical name to shown name: `KernelDefinition.names`. */
 	readonly names: Readonly<Record<CanonicalTool, string>>;
-	/** One `SWT-G014` per shown name that is no valid tool name. */
+	/** One `SWT-G014` per shown name that is no valid tool name, and one `SWT-G012` per key of `as` that names no tool of its mechanic. */
 	readonly issues: readonly SwtIssue[];
+}
+
+// One `SWT-G012` per own key of `as` that is no tool of the mechanic: a rename that would change nothing.
+function strayRenames(source: ToolSource): readonly SwtIssue[] {
+	if (source.as === undefined) return [];
+	const defined = source.mechanic.head.tools.map((tool) => tool.name);
+	return Object.keys(source.as)
+		.filter((key) => !defined.includes(key))
+		.map((key) => toolNotDefined({ tool: key, place: "renamed", path: `${source.path}.as.${key}`, defined }));
 }
 
 /**
  * Names every tool of the game's mechanics.
  *
  * @param sources - The mechanics in load order.
- * @returns The tools, the shown name of each, and the `SWT-G014` issues.
+ * @returns The tools, the shown name of each, and the `SWT-G014` and `SWT-G012` issues.
  * @example
  * ```ts
  * const { tools, names } = toolNames([{ mechanic: gridGame, as: { playMove: "place" }, path: "mechanics[0]" }]);
@@ -76,7 +85,8 @@ export function toolNames(sources: readonly ToolSource[]): ToolNames {
 	const pattern = new RegExp(TOOL_NAME_PATTERN);
 	const tools: NamedTool[] = [];
 	const issues: SwtIssue[] = [];
-	for (const { mechanic, as, path } of sources) {
+	for (const source of sources) {
+		const { mechanic, as, path } = source;
 		for (const tool of mechanic.head.tools) {
 			const renamed = as !== undefined && Object.hasOwn(as, tool.name) ? as[tool.name] : undefined;
 			const shown = renamed ?? tool.name;
@@ -84,6 +94,7 @@ export function toolNames(sources: readonly ToolSource[]): ToolNames {
 			if (!pattern.test(shown)) issues.push(shownNameMalformed({ shown, tool: canonical, path: renamed === undefined ? path : `${path}.as.${tool.name}` }));
 			tools.push({ canonical, name: tool.name, shown, owner: mechanic.id, for: tool.for, path });
 		}
+		issues.push(...strayRenames(source));
 	}
 	return { tools, names: Object.fromEntries(tools.map((tool) => [tool.canonical, tool.shown])), issues };
 }

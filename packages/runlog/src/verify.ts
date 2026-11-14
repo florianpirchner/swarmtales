@@ -7,8 +7,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { CHAIN_FILE, type ChainFault, type ChainHolds, type ChainVerdict, canonicalJson, EVENTS_FILE, jsonHash, PUBLIC_KEY_FILE, type RunTexts, verifyRunTexts } from "@swarmtales/chain";
-import { envelopeLogIssues, type SwtIssue } from "@swarmtales/contracts";
-import { GAME_FILE, MANIFEST_FILE, TEXTS_FILE } from "./folder.ts";
+import { envelopeLogIssues, StoredEnvelopeSchema, type SwtIssue } from "@swarmtales/contracts";
+import { Check } from "typebox/value";
+import { GAME_FILE, MANIFEST_FILE, manifestMismatch, TEXTS_FILE } from "./folder.ts";
 
 /** What {@link verifyRun} says about a run folder. @public */
 export interface RunVerdict {
@@ -37,9 +38,6 @@ const CATALOGUE: Readonly<Record<Code, { readonly why: string; readonly fix: str
 
 /** The code of each kind of fault of the chain (erratum E17); `continuity` has no code of its own at M1. */
 const CODE_OF: Readonly<Record<ChainFault, Code>> = { chain: "SWT-L001", signature: "SWT-L002", unsigned: "SWT-L002", manifest: "SWT-L003", continuity: "SWT-L001" };
-
-/** The reason `envelopeLogIssues` gives for a line that is no envelope. */
-const NOT_ENVELOPE = "the line is not an envelope";
 
 function issue(code: Code, summary: string, file: string, line?: number): SwtIssue {
 	return { code, summary, where: line === undefined ? { file } : { file, line }, ...CATALOGUE[code] };
@@ -89,13 +87,8 @@ function chainIssues(verdict: ChainVerdict): readonly SwtIssue[] {
 // L004 for every line that is no stored envelope; L005 for the first line out of order (one gap moves every later line).
 function lineIssues(events: string): readonly SwtIssue[] {
 	const values = linesOf(events).map(parse);
-	const faults = envelopeLogIssues(values);
-	const strangers = new Set(faults.filter((fault) => fault.reason === NOT_ENVELOPE).map((fault) => fault.line));
-	values.forEach((value, index) => {
-		if (typeof field(value, "at") !== "string") strangers.add(index + 1);
-	});
-	const issues = [...strangers].sort((a, b) => a - b).map((line) => issue("SWT-L004", `line ${line} is not a stored envelope`, EVENTS_FILE, line));
-	const order = faults.find((fault) => fault.reason !== NOT_ENVELOPE);
+	const issues = values.flatMap((value, index) => (Check(StoredEnvelopeSchema, value) ? [] : [issue("SWT-L004", `line ${index + 1} is not a stored envelope`, EVENTS_FILE, index + 1)]));
+	const order = envelopeLogIssues(values).find((fault) => fault.kind !== "envelope");
 	return order === undefined ? issues : [...issues, issue("SWT-L005", `line ${order.line}: ${order.reason}`, EVENTS_FILE, order.line)];
 }
 
@@ -111,8 +104,8 @@ function manifestFault(text: string, verdict: ChainVerdict): string | undefined 
 		return "the manifest is not a JSON value";
 	}
 	if (text !== canonical && text !== `${canonical}\n`) return "the manifest is not written as canonical JSON (RFC 8785): JSON parsers may read it differently";
-	const log = field(manifest, "log");
-	if (field(manifest, "format") !== "swarmtales-run" || typeof field(log, "format") !== "string" || typeof field(log, "version") !== "number") return "the file is not a run manifest";
+	const mismatch = manifestMismatch(manifest);
+	if (mismatch !== undefined) return `the file is not a run manifest: ${mismatch}`;
 	return verdict.ok ? disagreement(manifest, verdict.genesis) : undefined;
 }
 

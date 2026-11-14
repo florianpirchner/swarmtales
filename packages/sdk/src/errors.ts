@@ -29,10 +29,13 @@ export const SDK_ERRORS = {
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
 	"SWT-M012": "the body of a mechanic does not fit its head",
+	"SWT-M013": "the `options` schema of a mechanic is no object schema",
 	"SWT-M014": "a mechanic keeps state that cannot be started or saved",
 	"SWT-M021": "an emitted payload does not match its schema",
 	"SWT-M022": "a service input or output does not match its schema",
 	"SWT-M023": "the value of a fact does not match its schema",
+	"SWT-M024": "a snapshot slice cannot be saved or loaded",
+	"SWT-M025": "a fact or a run limit calls a command of a service",
 	"SWT-P003": "a declared prompt has no text",
 } as const;
 
@@ -60,6 +63,8 @@ const meant = (name: string, known: readonly string[]): string => {
 	const near = closest(name, known);
 	return near === undefined ? "" : `did you mean "${near}"? Or `;
 };
+// The place and the fault of a mismatch as one text; a mismatch of the value itself has no path.
+const found = (path: string, message: string): string => (path === "" ? message : `${path} ${message}`);
 interface Place {
 	readonly file?: string | undefined;
 	readonly path?: string | undefined;
@@ -158,14 +163,15 @@ export function memberNotResident(input: { readonly kind: "team" | "role"; reado
  *
  * @param input - The tool name, where it is named and what the game's mechanics define.
  * @param input.tool - The name as the game wrote it.
- * @param input.place - Whether a grant or `locked` names it.
- * @param input.path - The data path, for example `grants.resident[5]`.
- * @param input.defined - The bare names of the tools the game's mechanics define.
+ * @param input.place - Whether a grant or `locked` names it, or `renamed`: a key of a mechanic's `as`.
+ * @param input.path - The data path, for example `grants.resident[5]` or `mechanics[0].as.playMov`.
+ * @param input.defined - The bare names of the tools the game's mechanics define; for `renamed`, the tools of that mechanic.
  * @returns The issue.
  *
  * @public
  */
-export function toolNotDefined(input: { readonly tool: string; readonly place: "granted" | "locked"; readonly path: string; readonly defined: readonly string[] }): SwtIssue {
+export function toolNotDefined(input: { readonly tool: string; readonly place: "granted" | "locked" | "renamed"; readonly path: string; readonly defined: readonly string[] }): SwtIssue {
+	if (input.place === "renamed") return issue("SWT-G012", `tool "${input.tool}" is renamed with \`as\` but its mechanic does not define it`, `A key of \`as\` is the bare name of a tool of that mechanic, which defines: ${quoted(input.defined)}.`, `${meant(input.tool, input.defined)}remove "${input.tool}" from \`as\`.`, { path: input.path });
 	return issue("SWT-G012", `tool "${input.tool}" is ${input.place} but no mechanic of the game defines it`, `The game's mechanics define: ${quoted(input.defined)}.`, `${meant(input.tool, input.defined)}add the mechanic that defines "${input.tool}", or remove the name.`, { path: input.path });
 }
 
@@ -344,6 +350,20 @@ export function bodyMismatch(input: { readonly mechanic: string; readonly packag
 }
 
 /**
+ * `SWT-M013`: the `options` schema of a mechanic is no object schema (erratum E32, item 5).
+ *
+ * @param input - The mechanic.
+ * @param input.mechanic - The mechanic id.
+ * @param input.package - The package of the mechanic.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function optionsNoObject(input: { readonly mechanic: string; readonly package?: string }): SwtIssue {
+	return issue("SWT-M013", `the \`options\` schema of mechanic "${input.mechanic}" is no object schema`, "A game gives a mechanic its options by name, so the schema of the options is an object with one property per option.", `Declare \`options: Type.Object({ ... })\` in the head of "${input.mechanic}", or leave \`options\` out.`, { package: input.package });
+}
+
+/**
  * `SWT-M014`: a mechanic keeps state that cannot be started or saved.
  *
  * @param input - The mechanic and what its head lacks.
@@ -374,7 +394,7 @@ export function stateUnsaved(input: { readonly mechanic: string; readonly packag
  * @public
  */
 export function payloadMismatch(input: { readonly mechanic: string; readonly type: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
-	return issue("SWT-M021", `mechanic "${input.mechanic}" emitted "${input.type}" with a wrong payload: ${input.path} ${input.message}`, "An event's payload must match the schema the head declares for it, so every reader of the log can rely on it.", `Correct the \`ctx.emit("${input.type}", ...)\` call, or the schema of "${input.type}" in the head's \`events\`.`, { path: input.path, package: input.package });
+	return issue("SWT-M021", `mechanic "${input.mechanic}" emitted "${input.type}" with a wrong payload: ${found(input.path, input.message)}`, "An event's payload must match the schema the head declares for it, so every reader of the log can rely on it.", `Correct the \`ctx.emit("${input.type}", ...)\` call, or the schema of "${input.type}" in the head's \`events\`.`, { path: input.path, package: input.package });
 }
 
 /**
@@ -384,7 +404,7 @@ export function payloadMismatch(input: { readonly mechanic: string; readonly typ
  * @param input.service - The service name.
  * @param input.method - The method name.
  * @param input.side - `input`: the caller's value is wrong; `output`: the provider's answer is.
- * @param input.provider - The id of the mechanic that provides the service.
+ * @param input.provider - The id of the mechanic that provides the service; left out by a caller, which does not know it.
  * @param input.caller - The id of the plugin that called.
  * @param input.path - The path inside the value, for example `/resident`.
  * @param input.message - What is wrong there.
@@ -392,9 +412,11 @@ export function payloadMismatch(input: { readonly mechanic: string; readonly typ
  *
  * @public
  */
-export function serviceMismatch(input: { readonly service: string; readonly method: string; readonly side: "input" | "output"; readonly provider: string; readonly caller: string; readonly path: string; readonly message: string }): SwtIssue {
-	const guilty = input.side === "input" ? `the call by "${input.caller}"` : `the implementation in "${input.provider}"`;
-	return issue("SWT-M022", `the ${input.side} of "${input.service}.${input.method}" is wrong (provider "${input.provider}", caller "${input.caller}"): ${input.path} ${input.message}`, `A service call must match the ${input.side} schema of its method in the service contract.`, `Correct ${guilty}, or the ${input.side} schema of "${input.method}" in the contract of "${input.service}".`, { path: input.path }, { side: input.side });
+export function serviceMismatch(input: { readonly service: string; readonly method: string; readonly side: "input" | "output"; readonly provider?: string; readonly caller: string; readonly path: string; readonly message: string }): SwtIssue {
+	const implementation = input.provider === undefined ? `the implementation of "${input.service}"` : `the implementation in "${input.provider}"`;
+	const guilty = input.side === "input" ? `the call by "${input.caller}"` : implementation;
+	const parties = `${input.provider === undefined ? "" : `provider "${input.provider}", `}caller "${input.caller}"`;
+	return issue("SWT-M022", `the ${input.side} of "${input.service}.${input.method}" is wrong (${parties}): ${found(input.path, input.message)}`, `A service call must match the ${input.side} schema of its method in the service contract.`, `Correct ${guilty}, or the ${input.side} schema of "${input.method}" in the contract of "${input.service}".`, { path: input.path }, { side: input.side });
 }
 
 /**
@@ -402,7 +424,7 @@ export function serviceMismatch(input: { readonly service: string; readonly meth
  *
  * @param input - The mechanic, the fact and one mismatch.
  * @param input.mechanic - The id of the mechanic that computes the fact.
- * @param input.fact - The bare name of the fact; its key in a game is `<mechanic id>.<name>`.
+ * @param input.fact - The bare name of the fact; its key in a game is `<mechanic id>.<name>`. Left out where the name is not known.
  * @param input.package - The package of the mechanic.
  * @param input.path - The path inside the value, for example `/scores/X`; empty for the value itself.
  * @param input.message - What is wrong there, for example `must be an integer, got "3"`.
@@ -410,8 +432,49 @@ export function serviceMismatch(input: { readonly service: string; readonly meth
  *
  * @public
  */
-export function factMismatch(input: { readonly mechanic: string; readonly fact: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
-	return issue("SWT-M023", `the fact "${input.mechanic}.${input.fact}" has a wrong value: ${input.path} ${input.message}`.replace(":  ", ": "), "A fact's value must match its `output` schema, so the result line and every reader outside the run can rely on it.", `Correct \`compute\` of the fact "${input.fact}" in the body of "${input.mechanic}", or its \`output\` schema.`, { path: input.path, package: input.package });
+export function factMismatch(input: { readonly mechanic: string; readonly fact?: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
+	const named = input.fact === undefined ? `a fact of mechanic "${input.mechanic}"` : `the fact "${input.mechanic}.${input.fact}"`;
+	return issue("SWT-M023", `${named} has a wrong value: ${found(input.path, input.message)}`, "A fact's value must match its `output` schema, so the result line and every reader outside the run can rely on it.", `Correct \`compute\` of the fact${input.fact === undefined ? "" : ` "${input.fact}"`} in the body of "${input.mechanic}", or its \`output\` schema.`, { path: input.path, package: input.package });
+}
+
+/**
+ * `SWT-M024`: a snapshot slice cannot be saved or loaded. The kernel reports a failed load as `SWT-R002` with this
+ * issue as its cause.
+ *
+ * @param input - The mechanic and what is wrong with its slice.
+ * @param input.mechanic - The mechanic id.
+ * @param input.package - The package of the mechanic.
+ * @param input.problem - `saved` or `loaded`: the slice does not match the head's `state` schema at that moment; `newer`: its version is above the head's; `no-migration`: the head has no migration from its version.
+ * @param input.version - The version of the slice (for `no-migration`, the step that has no migration); for `newer` and `no-migration`.
+ * @param input.known - The version of the head; for `newer`.
+ * @param input.path - The path inside the slice, for example `/count`; for `saved` and `loaded`.
+ * @param input.message - What is wrong there; for `saved` and `loaded`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function sliceMismatch(input: { readonly mechanic: string; readonly package?: string; readonly problem: "saved" | "loaded" | "newer" | "no-migration"; readonly version?: number; readonly known?: number; readonly path?: string; readonly message?: string }): SwtIssue {
+	const version = String(input.version ?? "unknown");
+	const what = { saved: "", loaded: "", newer: `has version ${version}, which is newer than ${String(input.known ?? "the head's")}`, "no-migration": `has version ${version}, and the head has no migration from it` }[input.problem];
+	const schema = `does not match the state schema when it is ${input.problem}: ${found(input.path ?? "", input.message ?? "does not match its schema")}`;
+	return issue("SWT-M024", `the snapshot slice of mechanic "${input.mechanic}" ${what === "" ? schema : what}`, "A slice is saved and loaded in the form of the head's `state` schema, at a version the head knows.", `Correct \`state\`, \`snapshot\`, \`version\` or \`migrations\` in the head of "${input.mechanic}", or resume from a snapshot this version of the mechanic wrote.`, { package: input.package }, { problem: input.problem });
+}
+
+/**
+ * `SWT-M025`: a fact or a run limit calls a command of a service. The type of the view refuses it; a cast or plain
+ * JavaScript gets past the type, so the view checks it again and the command is not called.
+ *
+ * @param input - The mechanic and the method it called.
+ * @param input.mechanic - The id of the mechanic whose fact or run limit called.
+ * @param input.package - The package of the mechanic.
+ * @param input.service - The service name.
+ * @param input.method - The method name, a `command` of the service.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function commandInView(input: { readonly mechanic: string; readonly package?: string; readonly service: string; readonly method: string }): SwtIssue {
+	return issue("SWT-M025", `a fact or a run limit of mechanic "${input.mechanic}" called "${input.service}.${input.method}", which is a command`, "A fact and a run limit only read: they are computed at any moment and any number of times, so they call the `query` methods of a service and never a command.", `Call a query of "${input.service}" in the fact or the run limit of "${input.mechanic}", or move the call of "${input.method}" into a tool, a hook or a listener.`, { package: input.package });
 }
 
 /**
