@@ -31,7 +31,8 @@ Test files may import any Node module.
 ## The rules
 
 1. **A plugin never imports the kernel.** A mechanic author imports `@swarmtales/sdk` only.
-2. **A mechanic imports another mechanic only through `/contract` and `/rules`.** The provider owns its service
+2. **A mechanic imports another mechanic only through `/contract` and `/rules`.** A test file is the exception: it may
+   import another mechanic whole, as a declared development dependency, to play a match (DECISIONS A16). The provider owns its service
    contract in `/contract`; pure rule code is shared through `/rules`. A file of a `/contract` sub-path imports only
    `typebox`, `@swarmtales/contracts` and `@swarmtales/sdk`; a file of a `/rules` sub-path imports only `typebox`
    and other `/rules` files.

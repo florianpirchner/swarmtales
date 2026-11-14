@@ -97,7 +97,8 @@ function allowedByTable(rule: ImportRule, source: WorkspacePackage, target: Work
 function refusal(source: WorkspacePackage, target: WorkspacePackage, subpath: string | undefined, inTest: boolean): string | undefined {
 	const rule = ruleOf(source);
 	if (rule === undefined || allowedByTable(rule, source, target, inTest)) return undefined;
-	if (isPlugin(source) && isPlugin(target)) return pluginRefusal(source, target, subpath);
+	// A test may load another mechanic whole (DECISIONS A16); source reaches it through /contract and /rules only.
+	if (isPlugin(source) && isPlugin(target)) return inTest ? undefined : pluginRefusal(source, target, subpath);
 	const allowed = rule.may.length === 0 ? "no workspace package" : `only ${rule.may.join(", ")}`;
 	return `${source.name} (layer ${rule.layer}, ${LAYER_TITLES[rule.layer] ?? ""}) may use ${allowed}, not ${target.name}`;
 }
