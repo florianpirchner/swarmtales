@@ -4,6 +4,23 @@
 
 ```ts
 
+import { RandomSource } from '@swarmtales/contracts';
+
+// @public
+export function createRng(seed: number): RandomSource;
+
+// @public
+export function deriveSeed(seed: number, ...parts: readonly (string | number)[]): number;
+
+// @public
+export function rngFor(seed: number, ...parts: readonly (string | number)[]): RandomSource;
+
+// @public
+export const RUNTIME_REVISION = 3;
+
+// @public
+export function seedFrom(text: string): number;
+
 // (No @packageDocumentation comment for this package)
 
 ```
