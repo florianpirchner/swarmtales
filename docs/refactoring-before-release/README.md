@@ -11,3 +11,4 @@ decisions. The other papers are its evidence:
 - [`03-game-design.md`](03-game-design.md): inventory and recut of the mechanics, anatomy of a Game.
 - [`04-developer-experience.md`](04-developer-experience.md): audit, first hour, CLI, errors, docs, sample ladder.
 - [`05-challenge.md`](05-challenge.md): fact check, contradictions between the papers, cut list, kill criterion.
+- [`07-mechanic-spike.md`](07-mechanic-spike.md): the type spike of issue 14 for D1 (one-object `defineMechanic`): measurements, verdict, recommended API.
