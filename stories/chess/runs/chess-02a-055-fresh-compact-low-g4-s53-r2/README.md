@@ -1,6 +1,6 @@
 # chess-02a-055-fresh-compact-low-g4-s53-r2
 
-`swt run --story chess-fresh-compact-g4-p80 --provider anthropic --model haiku --seed 53 --budget 1 --thinking low` (both seats claude-haiku-5-5), `-fresh -compact` with `--thinking low`; four games with alternating colours (A01 is White in game 1), cap 80 half-moves. Run on 2026-11-13 on **runtime r2** (commit `1dbedb0`). Final points: A01 1, A02 3. **Cost 0.209 USD**, 345 requests for 293 half-moves (1.18 per half-move), 977 output tokens per half-move, context 2.6k tokens on average and 5.1k at most; the reporter draft about 0.006 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.md](run/ANALYSIS.md)): ACPL **185**.
+`swt run --story chess-fresh-compact-g4-p80 --provider anthropic --model haiku --seed 53 --budget 1 --thinking low` (both seats claude-haiku-5-5), `-fresh -compact` with `--thinking low`; four games with alternating colours (A01 is White in game 1), cap 80 half-moves. Run on 2026-11-13 on **runtime r2** (commit `1dbedb0`). Final points: A01 1, A02 3. **Cost 0.209 USD**, 345 requests for 293 half-moves (1.18 per half-move), 977 output tokens per half-move, context 2.6k tokens on average and 5.1k at most; the reporter draft about 0.006 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)): ACPL **185**.
 
 | Game | White | Result | How | Half-moves | Refused moves | ACPL W / B | Blunders W / B (300+) | Missed mates |
 |---|---|---|---|---:|---|---:|---:|---:|
@@ -23,5 +23,7 @@ None new. The cap grab of LH17 was not seen.
 
 ## Notes
 
-- The reporter draft is `run/REPORT.md` (city-shaped, P89; this README is the reviewed report); the engine analysis is `run/ANALYSIS.md` and `run/analysis.json`.
+- The reporter draft is `run/REPORT.md` (city-shaped, P89; this README is the reviewed report); the engine analysis is `run/ANALYSIS.stockfish10.md` and `run/analysis.stockfish10.json`.
 - Files: `run/events.jsonl` (+ chain and public key; `swt log verify` shows runtime r2), `run/usage.json`, `run/agents/` (transcripts).
+
+> **Engine note (2026-11-14).** The engine numbers in this README are from Stockfish 10 at depth 14 and are kept as measured ([ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md), `run/analysis.stockfish10.json`). The reference engine is now Garbochess-JS at depth 10: the same games scored again are in [ANALYSIS.md](run/ANALYSIS.md) and `run/analysis.json`, and [REANALYSIS.md](../REANALYSIS.md) compares the two. Numbers of the two engines are not comparable.

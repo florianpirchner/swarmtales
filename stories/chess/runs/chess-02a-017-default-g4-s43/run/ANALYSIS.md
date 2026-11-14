@@ -1,66 +1,59 @@
 # Engine analysis
 
-Stockfish 10 at depth 14 (`pnpm lab:chess`), centipawn loss per half-move against the engine's best move, mates capped at 1000. Forfeit moves are left out of the sums.
+Garbochess-JS at depth 10 (`pnpm lab:chess`; commit 4ff0f9e, BSD-3-Clause), centipawn loss per half-move against the engine's best move, mates capped at 1000. Forfeit moves are left out of the sums.
 
 | Game, side | Moves | ACPL | Inaccuracies (50+) | Mistakes (100+) | Blunders (300+) | Missed mates |
 |---|---:|---:|---:|---:|---:|---:|
-| 1 White A01 | 40 | 148 | 10 | 8 | 4 | 1 |
-| 1 Black A02 | 40 | 162 | 10 | 6 | 7 | 0 |
-| 2 White A02 | 40 | 176 | 10 | 9 | 6 | 0 |
-| 2 Black A01 | 40 | 158 | 9 | 9 | 7 | 0 |
-| 3 White A01 | 40 | 121 | 12 | 7 | 5 | 0 |
-| 3 Black A02 | 40 | 122 | 8 | 10 | 5 | 0 |
-| 4 White A02 | 40 | 174 | 4 | 4 | 7 | 0 |
-| 4 Black A01 | 40 | 194 | 5 | 3 | 8 | 0 |
+| 1 White A01 | 40 | 101 | 5 | 3 | 3 | 1 |
+| 1 Black A02 | 40 | 111 | 5 | 3 | 4 | 0 |
+| 2 White A02 | 40 | 117 | 3 | 4 | 5 | 0 |
+| 2 Black A01 | 40 | 95 | 4 | 5 | 5 | 0 |
+| 3 White A01 | 40 | 62 | 6 | 1 | 4 | 0 |
+| 3 Black A02 | 40 | 61 | 3 | 1 | 4 | 0 |
+| 4 White A02 | 40 | 153 | 5 | 1 | 8 | 0 |
+| 4 Black A01 | 40 | 175 | 4 | 3 | 9 | 0 |
 
 ## Blunders and missed mates
 
-- game 1, move 11... Na5 (A02): -116 to -418, best Na7
-- game 1, move 12. Nb3 (A01): 418 to 24, best b4
-- game 1, move 26... Qe6 (A02): -203 to -1000, best e4
-- game 1, move 27. Rad1 (A01): 1000 to -177, best dxe6
-- game 1, move 27... Qf6 (A02): 177 to -492, best Qh3
-- game 1, move 28... Re8 (A02): -274 to -585, best e4
-- game 1, move 29... Re7 (A02): -526 to -1000, best e4
-- game 1, move 31. Qc8 (A01): 997 to 545, best dxe8=Q+, missed a forced mate
-- game 1, move 32... Qe7 (A02): -562 to -899, best Rf5
-- game 1, move 35. Qc4+ (A01): 658 to -1000, best Rd5
-- game 1, move 35... Rf7 (A02): 1000 to -550, best bxc4
-- game 2, move 15... Nc4 (A01): -135 to -725, best Ng4
-- game 2, move 17. Nxc4 (A02): 900 to 493, best e5
-- game 2, move 22. Qe2 (A02): 745 to 0, best Ba3
-- game 2, move 24... Qc5 (A01): 69 to -403, best Qa5
-- game 2, move 25. Rb7 (A02): 403 to -768, best Ba3
-- game 2, move 25... Rc8 (A01): 768 to -4, best Bxb7
-- game 2, move 26... Qd6 (A01): 55 to -337, best Qh5
-- game 2, move 27. Nbd4 (A02): 337 to -522, best e5
-- game 2, move 27... Bxe4 (A01): 522 to 128, best Bxb7
-- game 2, move 31... Qd7 (A01): 456 to 96, best Qc6
-- game 2, move 32... Nc3 (A01): 234 to -488, best Rce8
-- game 2, move 33. Qd3 (A02): 488 to -617, best Rxd7
-- game 2, move 37. Rb2 (A02): -621 to -1000, best Rd7
-- game 3, move 18. Nh4 (A01): 176 to -482, best d5
-- game 3, move 18... g5 (A02): 482 to -485, best Bxh4
-- game 3, move 19... Bxe4 (A02): -409 to -741, best f6
-- game 3, move 20. Ng3 (A01): 741 to -122, best Bxe4
-- game 3, move 27... Ne3 (A02): -64 to -451, best Rb8
-- game 3, move 28. Qc3 (A01): 451 to 36, best Bxe3
-- game 3, move 30... Ne3 (A02): -7 to -582, best f5
-- game 3, move 31. Rc3 (A01): 582 to 69, best Bxe3
-- game 3, move 34. Nc3 (A01): 138 to -200, best Ng3
-- game 3, move 34... Nxc3 (A02): 200 to -177, best Nb4
-- game 4, move 13... Qd6 (A01): -39 to -890, best Qd7
-- game 4, move 14. Re4 (A02): 890 to 24, best Rg5
-- game 4, move 15. Rae1 (A02): 93 to -523, best Re3
-- game 4, move 15... Rad8 (A01): 523 to -336, best dxe4
-- game 4, move 16. h3 (A02): 336 to -515, best Bh6
-- game 4, move 16... h6 (A01): 515 to -343, best dxe4
-- game 4, move 17. Bg3 (A02): 343 to -542, best Bxh6
-- game 4, move 17... Qf6 (A01): 542 to -180, best dxe4
-- game 4, move 18. Qe3 (A02): 180 to -541, best Qxf6
-- game 4, move 18... Bf5 (A01): 541 to -110, best dxe4
-- game 4, move 19... Rfe8 (A01): -72 to -806, best Bxc2
-- game 4, move 24. Rxd5 (A02): 787 to 65, best Qe2
-- game 4, move 24... cxd5 (A01): -65 to -1000, best Qxd5
-- game 4, move 25. Qf4 (A02): 1000 to 13, best Bxd6
-- game 4, move 40... g5 (A01): 0 to -1000, best cxb5
+- game 1, move 26... Qe6 (A02): -216 to -1000, best Qd7
+- game 1, move 27. Rad1 (A01): 1000 to 0, best dxe6
+- game 1, move 27... Qf6 (A02): 0 to -370, best Rxg2+
+- game 1, move 29... Re7 (A02): -329 to -1000, best e4
+- game 1, move 31. Qc8 (A01): 997 to 391, best dxe8=Q+, missed a forced mate
+- game 1, move 35. Qc4+ (A01): 393 to -1000, best Qc6
+- game 1, move 35... Rf7 (A02): 1000 to -389, best bxc4
+- game 2, move 15... Nc4 (A01): -80 to -569, best Ng4
+- game 2, move 22. Qe2 (A02): 574 to -47, best Ba3
+- game 2, move 25. Rb7 (A02): 229 to -680, best Ba3
+- game 2, move 25... Rc8 (A01): 680 to 46, best Bxb7
+- game 2, move 26... Qd6 (A01): 34 to -292, best Qc3
+- game 2, move 27. Nbd4 (A02): 292 to -332, best e5
+- game 2, move 32... Nc3 (A01): 65 to -467, best Rfe8
+- game 2, move 33. Qd3 (A02): 467 to -469, best Rxd7
+- game 2, move 37. Rb2 (A02): -569 to -1000, best Rd7
+- game 2, move 37... Nc3 (A01): 1000 to 655, best Bxb2
+- game 3, move 18. Nh4 (A01): 27 to -444, best a4
+- game 3, move 18... g5 (A02): 444 to -73, best Bxh4
+- game 3, move 19... Bxe4 (A02): -101 to -436, best Bf6
+- game 3, move 20. Ng3 (A01): 436 to -77, best Bxe4
+- game 3, move 27... Ne3 (A02): 64 to -352, best Nb6
+- game 3, move 28. Qc3 (A01): 352 to -7, best Bxe3
+- game 3, move 30... Ne3 (A02): -3 to -473, best Nb6
+- game 3, move 31. Rc3 (A01): 473 to 73, best Bxe3
+- game 4, move 13... Qd6 (A01): -21 to -745, best Qh4
+- game 4, move 14. Re4 (A02): 745 to 13, best Rg5
+- game 4, move 15. Rae1 (A02): 14 to -520, best Re3
+- game 4, move 15... Rad8 (A01): 520 to -168, best dxe4
+- game 4, move 16. h3 (A02): 168 to -518, best Bh6
+- game 4, move 16... h6 (A01): 518 to -185, best dxe4
+- game 4, move 17. Bg3 (A02): 185 to -531, best Bxh6
+- game 4, move 17... Qf6 (A01): 531 to -102, best dxe4
+- game 4, move 18. Qe3 (A02): 102 to -552, best Qxf6
+- game 4, move 18... Bf5 (A01): 552 to -37, best dxe4
+- game 4, move 19... Rfe8 (A01): -1 to -752, best Rb8
+- game 4, move 22... Qd6 (A01): -677 to -1000, best Kg6
+- game 4, move 23. Re5 (A02): 1000 to 682, best Bxd6
+- game 4, move 24. Rxd5 (A02): 743 to 91, best Re8
+- game 4, move 24... cxd5 (A01): -91 to -1000, best Qxd5
+- game 4, move 25. Qf4 (A02): 1000 to -5, best Bxd6
+- game 4, move 40... g5 (A01): -26 to -885, best cxb5

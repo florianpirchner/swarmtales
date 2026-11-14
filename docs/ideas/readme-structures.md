@@ -59,7 +59,7 @@ of those findings. Swarm Tales reads as a research instrument with results, not 
 ```markdown
 | Game | What it is | What it showed | Runs |
 |---|---|---|---|
-| [Chess](stories/chess/) | two seats, moves as text, Stockfish as the judge | a legal-move list plus loose pieces lifts Haiku to Sonnet level at 4-8 % of the cost | [44 runs](stories/chess/runs/) |
+| [Chess](stories/chess/) | two seats, moves as text, a chess engine as the judge | a legal-move list plus loose pieces lifts Haiku to Sonnet level at 4-8 % of the cost | [44 runs](stories/chess/runs/) |
 ```
 
 ### Pros and cons

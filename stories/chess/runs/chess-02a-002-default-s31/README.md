@@ -1,6 +1,6 @@
 # chess-02a-002-default-s31
 
-`swt run --story chess-p80 --provider anthropic --model haiku --seed 31`, default arm (brain on, no legal list); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A01": 1.5, "A02": 0.5}. **Cost 0.107 USD**, 173 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.md](run/ANALYSIS.md)).
+`swt run --story chess-p80 --provider anthropic --model haiku --seed 31`, default arm (brain on, no legal list); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A01": 1.5, "A02": 0.5}. **Cost 0.107 USD**, 173 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)).
 
 **Result.** Game 1 (A01 White, Ruy Lopez) ran to the cap and was **drawn on equal material**; game 2 ended at move 18 when **A02 resigned** after 18. Qd4?? Bxd4 lost the queen. A01 won the match 1.5 to 0.5.
 
@@ -11,7 +11,7 @@
 
 ## Digest highlights
 
-- **A queen left hanging for two moves.** Game 1, 21. Qb5?? put the queen where 21...axb5 takes it; Black played Rb8, White moved a rook (22. Rec1), Black played Rc8. Engine swing 117 to -1000 and back, twice (moves 21-22 in [ANALYSIS.md](run/ANALYSIS.md)). The busiest blunder game of the series: 22 blunders in 80 half-moves, ACPL 276 and 281.
+- **A queen left hanging for two moves.** Game 1, 21. Qb5?? put the queen where 21...axb5 takes it; Black played Rb8, White moved a rook (22. Rec1), Black played Rc8. Engine swing 117 to -1000 and back, twice (moves 21-22 in [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)). The busiest blunder game of the series: 22 blunders in 80 half-moves, ACPL 276 and 281.
 - **The resignation was right.** After 18. Qd4 Bxd4 White was a queen down (engine -1000 for A02).
 - **The brain kept an opening book on the opponent.** A01 v2 (#937): "A02 answers 1.e4 e5, 2.Nf3 Nc6, and plays 3...a6 4.Ba4 Nf6, Be7, O-O, Bg4 (trading my Nf3)"; game 2 repeated that line to move 11. A plan, not a move transcript (the replay check did not fire).
 
@@ -29,5 +29,7 @@ None by the residents. No seat moved out of turn, no move bypassed chess.js, and
 
 ## Notes
 
-- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.md` and `run/analysis.json`.
+- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.stockfish10.md` and `run/analysis.stockfish10.json`.
 - Files: `run/events.jsonl` (+ chain and public key), `run/usage.json`, `run/agents/` (transcripts).
+
+> **Engine note (2026-11-14).** The engine numbers in this README are from Stockfish 10 at depth 14 and are kept as measured ([ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md), `run/analysis.stockfish10.json`). The reference engine is now Garbochess-JS at depth 10: the same games scored again are in [ANALYSIS.md](run/ANALYSIS.md) and `run/analysis.json`, and [REANALYSIS.md](../REANALYSIS.md) compares the two. Numbers of the two engines are not comparable.
