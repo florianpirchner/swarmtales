@@ -36,7 +36,7 @@ export const createServices = ((log) => {
 			// The caller's frame is opened again, so that outside any frame nothing is delivered between the event and the call.
 			return log.run(frame, () => {
 				const called = log.emit("kernel", "service_called", { service, method, caller, input: input ?? null });
-				return log.run({ actor: frame.actor, causedBy: called.seq }, run);
+				return log.run({ ...frame, causedBy: called.seq }, run);
 			});
 		},
 	} satisfies Services;

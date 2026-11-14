@@ -104,7 +104,12 @@ describe("access (part 4): grants and locks", () => {
 		expect(() => {
 			access.portFor("gate").unlock(A01, "toString");
 		}).toThrowError(RangeError);
+		// A lock of an id that is no actor would be saved and then refused by `restore`.
+		expect(() => {
+			access.portFor("gate").lock("worker:A09", ADD);
+		}).toThrowError(new RangeError('gate: no actor "worker:A09" to lock or unlock a tool for'));
 		expect(log.length).toBe(0);
+		expect(access.state()).toEqual({ [A01]: [READ], [A02]: [READ] });
 	});
 
 	it("`isOpen` asks the probe, and only for a tool that is granted and not locked", () => {

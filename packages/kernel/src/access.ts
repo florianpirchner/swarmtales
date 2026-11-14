@@ -45,13 +45,15 @@ function isOpen(shared: Shared, actor: ActorId, tool: CanonicalTool): boolean {
 
 function portOf(plugin: string, shared: Shared): AccessPort {
 	const { definition, locks, log } = shared;
-	const known = (tool: CanonicalTool): void => {
+	// A lock of an id that is no actor would be saved and then refused by `restore`.
+	const known = (actor: ActorId, tool: CanonicalTool): void => {
+		if (!shared.actors.has(actor)) throw new RangeError(`${plugin}: no actor "${actor}" to lock or unlock a tool for`);
 		if (Object.hasOwn(definition.names, tool) || Object.values(definition.grants).some((tools) => tools.includes(tool))) return;
 		throw new RangeError(`${plugin}: no tool "${tool}" to lock or unlock`);
 	};
 	return {
 		lock: (actor, tool) => {
-			known(tool);
+			known(actor, tool);
 			const set = locks.get(actor) ?? new Set<string>();
 			if (set.has(tool)) return;
 			set.add(tool);
@@ -59,7 +61,7 @@ function portOf(plugin: string, shared: Shared): AccessPort {
 			log.emit("kernel", "tool_locked", { actor, tool, by: plugin });
 		},
 		unlock: (actor, tool) => {
-			known(tool);
+			known(actor, tool);
 			if (locks.get(actor)?.delete(tool) !== true) return;
 			log.emit("kernel", "tool_unlocked", { actor, tool, by: plugin });
 		},
@@ -94,7 +96,7 @@ function restore(shared: Shared, state: Readonly<Record<string, readonly string[
  * @param actors - The actors; the grant of an actor is `actors.spec(id)?.grant`.
  * @param log - The log; a lock and its lifting are written to it, in the frame of the code that asked.
  * @returns The access part. Until `setProbe` is called, no lock handler refuses. A port's `lock` and `unlock`
- * throw a `RangeError` for a tool the definition neither names nor grants, and `isOpen` throws one when a lock
+ * throw a `RangeError` for an id that is no actor and for a tool the definition neither names nor grants, and `isOpen` throws one when a lock
  * handler asks about the call it decides (`SWT-R003` once it leaves the plugin's code); `restore` throws
  * `SWT-R002` for an id that is no actor of the definition.
  */

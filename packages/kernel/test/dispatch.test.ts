@@ -128,6 +128,10 @@ describe("the dispatch pipeline (3.3), row by row", () => {
 		expect(second).toMatchObject({ seq: 4, basis: 1, causedBy: 1 });
 		await w.call("peek");
 		expect(w.log.all()[5]?.payload).toEqual({ as: "peek", params: null });
+		// The default basis is the log when the call was submitted, not when the calls before it have run.
+		const before = w.log.length;
+		await Promise.all([w.call("place", 1), w.call("place", 2)]);
+		expect(w.log.all().slice(before).flatMap((event) => (event.type === "tool_called" ? [event.basis] : []))).toEqual([before, before]);
 	});
 
 	it("row 1: the step is counted before the lock, with the detail of the definition; a free tool is not counted", async () => {

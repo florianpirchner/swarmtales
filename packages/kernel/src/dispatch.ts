@@ -158,7 +158,9 @@ export const createDispatch = ((parts: DispatchParts): Dispatch => {
 	let failure: { readonly error: unknown } | undefined;
 	parts.access.setProbe(probeOf(parts));
 	return {
-		submit(call) {
+		submit(given) {
+			// What the caller had seen when it decided: the log as it is now, not as it is when the calls before this one have run.
+			const call: Submission = { ...given, basis: given.basis ?? parts.log.length };
 			const next = queue.then(() => {
 				if (failure !== undefined) throw new SwtError(kernelFailed(), { cause: failure.error });
 				try {

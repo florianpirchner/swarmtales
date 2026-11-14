@@ -62,7 +62,7 @@ function fakeLoaded(plugins: Readonly<Record<string, PluginHooks>>): Loaded {
 function world(plugins: Readonly<Record<string, PluginHooks>> = {}) {
 	const log = fakeLog();
 	const submissions: Submission[] = [];
-	const state = { answer: 1, quiet: false, halted: false };
+	const state = { answer: 1, quiet: false, halted: false, failures: 0 };
 	const dispatch: Dispatch = {
 		submit(call) {
 			submissions.push(call);
@@ -83,7 +83,9 @@ function world(plugins: Readonly<Record<string, PluginHooks>> = {}) {
 		get halted() {
 			return state.halted;
 		},
-		fail: unused,
+		fail: () => {
+			state.failures += 1;
+		},
 	};
 	const scheduler = { id: SCHEDULER, revision: 1, determinism: "seeded", options: Type.Object({}), events: { noted: Type.Object({}) }, create: unused } as const;
 	const definition: KernelDefinition = { game: { id: "sample", hash: "h" }, seed: 11, actors: [], plugins: [], scheduler: { definition: scheduler, options: null }, grants: {}, names: {}, startLocks: {}, replies: {}, limits: { maxTicks: 9 } };
@@ -137,7 +139,7 @@ describe("the scheduler's port", () => {
 	});
 
 	it("collects the lines of every `inputs` hook in hook order and asks every plugin for news", () => {
-		const { create } = world({
+		const { state, create } = world({
 			first: { inputs: [{ run: (actor) => [`for ${actor}`, { kind: "state", text: "s", order: 2 }] }], news: () => false },
 			second: { inputs: [{ run: () => [{ kind: "state", text: "t" }] }], news: (actor) => actor === A },
 			third: { news: () => unused() },
@@ -149,7 +151,10 @@ describe("the scheduler's port", () => {
 			{ source: "second", kind: "state", text: "t" },
 		]);
 		expect(port.hasNews(A)).toBe(true);
+		expect(state.failures).toBe(0);
+		// A throw of plugin code ends the run before it reaches the scheduler.
 		expect(() => port.hasNews("resident:b")).toThrow(/SWT-R003: third: not used/);
+		expect(state.failures).toBe(1);
 		expect(port.toAct()).toBeUndefined();
 	});
 

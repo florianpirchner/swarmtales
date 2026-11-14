@@ -29,6 +29,8 @@ class Run implements Lifecycle {
 	#breach: Breach | undefined;
 	#failure: { readonly error: unknown } | undefined;
 	#closed = false;
+	/** The closing event of a normal end is written (or was tried): a failure after that adds no second one. */
+	#ending = false;
 
 	constructor(parts: LifecycleParts) {
 		this.#parts = parts;
@@ -82,9 +84,12 @@ class Run implements Lifecycle {
 	fail(error: unknown): void {
 		if (this.#failure !== undefined) return;
 		this.#failure = { error };
-		// A run that has ended keeps its `run_ended`: a sink that threw while it was closed adds no second one.
-		if (this.#closed) return;
 		const { log, clock } = this.#parts;
+		// A run that has ended keeps its `run_ended`: a sink that threw at it, or while it was closed, adds no second one.
+		if (this.#ending) {
+			this.#close({ reason: "error", tick: clock.tick });
+			return;
+		}
 		try {
 			log.fail(() => {
 				log.emit(SOURCE, "run_ended", { reason: "error", detail: detailOf(error) });
@@ -160,6 +165,7 @@ class Run implements Lifecycle {
 	}
 
 	#finish(end: RunEnd): RunEnd {
+		this.#ending = true;
 		this.#parts.log.emit(SOURCE, "run_ended", { reason: end.reason });
 		const thrown = this.#close(end);
 		if (thrown !== undefined) throw new SwtError(sinkThrew(thrown.error), { cause: thrown.error });

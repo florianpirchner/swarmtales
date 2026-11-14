@@ -86,7 +86,7 @@ describe("delivery", () => {
 	it("runs a listener in the frame of its event; what it emits queues behind", () => {
 		const { log, trace } = setup();
 		log.listen(SRC, "placed", (event) => {
-			expect(log.frame()).toEqual({ actor: A01, causedBy: event.seq });
+			expect(log.frame()).toEqual({ actor: A01, causedBy: event.seq, tool: "grid.place" });
 			log.emit(SRC, "won", null);
 			trace.push("first done");
 		});
@@ -100,7 +100,8 @@ describe("delivery", () => {
 		expect(log.all().map((event) => [event.type, event.actor, event.causedBy, event.tool])).toEqual([
 			["placed", A01, undefined, "grid.place"],
 			["counted", A01, undefined, "grid.place"],
-			["won", A01, 1, undefined],
+			// The reaction is a consequence of the call the event was written in (2.2).
+			["won", A01, 1, "grid.place"],
 		]);
 	});
 
@@ -171,6 +172,27 @@ describe("fail", () => {
 		log.fail(() => trace.push("second call"));
 		expect(trace).toEqual([]);
 		expect(codeOf(() => log.emit("kernel", "run_ended", null))).toBe("SWT-R001");
+	});
+
+	it("writes the closing event also when a sink throws while the queue is flushed", () => {
+		const { log } = setup();
+		const kept: string[] = [];
+		log.addSink({
+			write: (event) => {
+				if (event.type === "won") throw new TypeError("disk full");
+			},
+		});
+		log.addSink({ write: (event) => void kept.push(event.type) });
+		log.run({ actor: A01 }, () => {
+			log.emit(SRC, "placed", null);
+			log.emit(SRC, "won", null);
+			expect(codeOf(() => {
+				log.fail(() => log.emit("kernel", "run_ended", { reason: "error" }));
+			})).toBe("SWT-R020");
+		});
+		expect(log.all().map((event) => event.type)).toEqual(["placed", "won", "run_ended"]);
+		expect(kept).toEqual(["placed", "won", "run_ended"]);
+		expect(codeOf(() => log.emit(SRC, "placed", null))).toBe("SWT-R001");
 	});
 
 	it("finishes inside a cascade: the events behind the failing one reach only the sinks", () => {

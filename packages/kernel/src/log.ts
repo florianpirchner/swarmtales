@@ -38,11 +38,11 @@ function checkedPrefix(prefix: readonly Envelope[]): Envelope[] {
 	return [...prefix];
 }
 
-// Each listener of the event, in a frame of the event it reacts to.
+// Each listener of the event, in a frame of the event it reacts to: its actor, and the tool of the call it was written in.
 function tell(state: LogState, event: Envelope): void {
 	for (const listener of [...state.listeners]) {
 		if (listener.source !== event.source || listener.type !== event.type) continue;
-		state.frames.push({ actor: event.actor, causedBy: event.seq });
+		state.frames.push({ actor: event.actor, causedBy: event.seq, ...(event.tool === undefined ? {} : { tool: event.tool }) });
 		try {
 			listener.run(event);
 		} finally {
@@ -104,11 +104,15 @@ function fail(state: LogState, last: () => void): void {
 	if (state.failed !== undefined) return;
 	state.failed = "listeners-off";
 	state.draining = false;
+	// A sink that throws while the queue is flushed does not keep the closing event out of the log.
 	try {
 		drain(state);
-		last();
 	} finally {
-		state.failed = "closed";
+		try {
+			last();
+		} finally {
+			state.failed = "closed";
+		}
 	}
 }
 
