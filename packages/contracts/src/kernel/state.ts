@@ -33,7 +33,7 @@ export const KernelSnapshotSchema = Type.Object(
 		version: Type.Literal(1, text("The format version")),
 		game: Type.String(text("The id of the game")),
 		gameHash: Type.String(text("The hash of the game")),
-		seed: Type.Number(text("The seed of the run")),
+		seed: Type.Integer({ minimum: 0, maximum: 4294967295, description: "The seed of the run" }),
 		tick: Type.Integer({ minimum: 0, description: "The tick the run continues with" }),
 		seq: Type.Integer({ minimum: 0, description: "The length of the log at the snapshot" }),
 		ended: Type.Optional(RunEndSchema),

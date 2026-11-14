@@ -53,6 +53,11 @@ describe("KernelSnapshotSchema", () => {
 		expect(check({ ...sample(), locks: { "worker:A01": "add" } })).toBe(false);
 		expect(check({ ...sample(), plugins: { counter: { data: 0 } } })).toBe(false);
 	});
+
+	it("refuses a seed that is no 32-bit number: the generator would play it as another seed", () => {
+		expect(check({ ...sample(), seed: 4294967295 })).toBe(true);
+		for (const seed of [4294967296, -1, 1.5]) expect(check({ ...sample(), seed })).toBe(false);
+	});
 });
 
 describe("JobSchema", () => {

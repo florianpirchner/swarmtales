@@ -28,8 +28,11 @@ export const SDK_ERRORS = {
 	"SWT-G032": "`requires` form a cycle",
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
+	"SWT-M012": "the body of a mechanic does not fit its head",
+	"SWT-M014": "a mechanic keeps state that cannot be started or saved",
 	"SWT-M021": "an emitted payload does not match its schema",
 	"SWT-M022": "a service input or output does not match its schema",
+	"SWT-M023": "the value of a fact does not match its schema",
 	"SWT-P003": "a declared prompt has no text",
 } as const;
 
@@ -319,6 +322,45 @@ export function packageMismatch(input: { readonly mechanic: string; readonly dec
 }
 
 /**
+ * `SWT-M012`: the body of a mechanic does not fit its head. The types refuse it in an object literal; a spread or
+ * plain JavaScript gets past them, so `defineMechanic` checks it again.
+ *
+ * @param input - The mechanic, the part and what is wrong with it.
+ * @param input.mechanic - The mechanic id.
+ * @param input.package - The package of the mechanic.
+ * @param input.part - `tool`: an entry of `tools`; `service`: an entry of `services`.
+ * @param input.name - The bare tool name or the service name.
+ * @param input.problem - `missing`: the head declares it and the body has no handlers; `undeclared`: the body has handlers and the head does not declare it.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function bodyMismatch(input: { readonly mechanic: string; readonly package?: string; readonly part: "tool" | "service"; readonly name: string; readonly problem: "missing" | "undeclared" }): SwtIssue {
+	const key = input.part === "tool" ? "tools" : "services";
+	const declared = input.part === "tool" ? "`tools`" : "`provides`";
+	const summary = input.problem === "missing" ? `the head of "${input.mechanic}" declares the ${input.part} "${input.name}", but the body has no handlers for it` : `the body of "${input.mechanic}" has handlers for the ${input.part} "${input.name}", which the head does not declare`;
+	const fix = input.problem === "missing" ? `Add "${input.name}" to the body's \`${key}\`, or remove it from the head's ${declared}.` : `Declare "${input.name}" in the head's ${declared}, or remove it from the body's \`${key}\`.`;
+	return issue("SWT-M012", summary, "The head is read without running a handler, so the body must hold exactly the tools and services the head declares.", fix, { package: input.package }, { part: input.part, problem: input.problem });
+}
+
+/**
+ * `SWT-M014`: a mechanic keeps state that cannot be started or saved.
+ *
+ * @param input - The mechanic and what its head lacks.
+ * @param input.mechanic - The mechanic id.
+ * @param input.package - The package of the mechanic.
+ * @param input.problem - `no-start`: the head has `state` and no `start`; `no-schema`: it has `start` or `snapshot` and no `state` schema.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function stateUnsaved(input: { readonly mechanic: string; readonly package?: string; readonly problem: "no-start" | "no-schema" }): SwtIssue {
+	const summary = input.problem === "no-start" ? `mechanic "${input.mechanic}" declares a state but no \`start\` that builds it` : `mechanic "${input.mechanic}" keeps state that cannot be saved: its head has no \`state\` schema`;
+	const fix = input.problem === "no-start" ? `Add \`start(setup)\` to the head of "${input.mechanic}", or remove \`state\`.` : `Declare \`state\` as a schema in the head of "${input.mechanic}"; for a state that is not plain JSON, add \`snapshot: { save, load }\` beside it.`;
+	return issue("SWT-M014", summary, "A run must stop and resume at any tick, so every state has a schema it is saved under and a function that builds it for a fresh run.", fix, { package: input.package }, { problem: input.problem });
+}
+
+/**
  * `SWT-M021`: an emitted payload does not match its schema.
  *
  * @param input - The mechanic, the event type and one mismatch.
@@ -353,6 +395,23 @@ export function payloadMismatch(input: { readonly mechanic: string; readonly typ
 export function serviceMismatch(input: { readonly service: string; readonly method: string; readonly side: "input" | "output"; readonly provider: string; readonly caller: string; readonly path: string; readonly message: string }): SwtIssue {
 	const guilty = input.side === "input" ? `the call by "${input.caller}"` : `the implementation in "${input.provider}"`;
 	return issue("SWT-M022", `the ${input.side} of "${input.service}.${input.method}" is wrong (provider "${input.provider}", caller "${input.caller}"): ${input.path} ${input.message}`, `A service call must match the ${input.side} schema of its method in the service contract.`, `Correct ${guilty}, or the ${input.side} schema of "${input.method}" in the contract of "${input.service}".`, { path: input.path }, { side: input.side });
+}
+
+/**
+ * `SWT-M023`: the value of a fact does not match its schema.
+ *
+ * @param input - The mechanic, the fact and one mismatch.
+ * @param input.mechanic - The id of the mechanic that computes the fact.
+ * @param input.fact - The bare name of the fact; its key in a game is `<mechanic id>.<name>`.
+ * @param input.package - The package of the mechanic.
+ * @param input.path - The path inside the value, for example `/scores/X`; empty for the value itself.
+ * @param input.message - What is wrong there, for example `must be an integer, got "3"`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function factMismatch(input: { readonly mechanic: string; readonly fact: string; readonly package?: string; readonly path: string; readonly message: string }): SwtIssue {
+	return issue("SWT-M023", `the fact "${input.mechanic}.${input.fact}" has a wrong value: ${input.path} ${input.message}`.replace(":  ", ": "), "A fact's value must match its `output` schema, so the result line and every reader outside the run can rely on it.", `Correct \`compute\` of the fact "${input.fact}" in the body of "${input.mechanic}", or its \`output\` schema.`, { path: input.path, package: input.package });
 }
 
 /**

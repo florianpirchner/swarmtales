@@ -105,4 +105,10 @@ describe("KERNEL_EVENTS", () => {
 		expect(Value.Check(KERNEL_EVENTS.activation_closed, { actor: "worker:A01", calls: 0, outcome: "idle" })).toBe(false);
 		expect(Value.Check(KERNEL_EVENTS.activation_opened, { actor: "worker:A01", inputs: [{ source: "counter", text: "x", order: 1 }] })).toBe(false);
 	});
+
+	it("refuses a seed in run_started that is no 32-bit number", () => {
+		const started = { game: "counter", maxTicks: 40, actors: [], plugins: [] };
+		expect(Value.Check(KERNEL_EVENTS.run_started, { ...started, seed: 4294967295 })).toBe(true);
+		for (const seed of [4294967296, -1, 1.5]) expect(Value.Check(KERNEL_EVENTS.run_started, { ...started, seed })).toBe(false);
+	});
 });

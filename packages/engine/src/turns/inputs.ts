@@ -30,7 +30,7 @@ function ofKind(notes: readonly OrderedNote[], kind: string, join: string | unde
  * @returns The lines as shown, without their sort keys.
  * @example
  * ```ts
- * arrange(notes, [{ kind: "status", join: " · " }, { source: "@swarmtales/team-channel" }]);
+ * arrange(notes, [{ kind: "status", join: " · " }, { source: "team-channel" }]);
  * ```
  * @public
  */

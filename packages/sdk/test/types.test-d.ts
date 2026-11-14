@@ -386,6 +386,18 @@ export function bind(parts: InstanceParts<MechanicShape>, kit: MechanicKit<Mecha
 	};
 }
 
+/**
+ * The typed body of the generic signature reaches the erased body without a cast, and the erased head its slice.
+ *
+ * @param head - The typed head.
+ * @param body - The typed body.
+ * @returns The erased body.
+ */
+export function erase<H extends AnyHead, F extends Readonly<Record<string, TSchema>>>(head: H, body: MechanicBody<ShapeOf<H>, ToolsOf<H>, F>): ErasedBody {
+	const any: AnyHead = head;
+	return any.id === "" ? {} : body;
+}
+
 // ---- what must not compile ----
 
 /**
@@ -464,6 +476,51 @@ export const strayHandler = defineMechanic(refereeHead, {
 
 // @ts-expect-error -- the head provides the service `consensus`, and the body has no `services`
 export const missingService = defineMechanic(consensusHead, { tools: { ...voting, proposeMove: { run: () => reply("") } } });
+
+export const strayService = defineMechanic(soloHead, {
+	tools: { guess: { run: () => reply("") } },
+	// @ts-expect-error -- the head of `solo` provides no service
+	services: { solo: { peek: () => 1 } },
+});
+
+// @ts-expect-error -- the implementation of the service `consensus` lacks the method `reset`
+export const missingMethod = defineMechanic(consensusHead, { tools: { ...voting, proposeMove: { run: () => reply("") } }, services: { consensus: {} } });
+
+/**
+ * A fact or a run limit reads: it may call a query, not a command, and it cannot change the state.
+ *
+ * @param view - The view of `consensus`.
+ * @param grid - The view of `grid-game`.
+ */
+export function wrongViewUse(view: ViewOf<typeof consensusHead>, grid: GridView): void {
+	view.call(ConsensusSourceService, "team", {});
+	// @ts-expect-error -- `playForfeit` is a command
+	view.call(ConsensusSourceService, "playForfeit", { cell: 1 });
+	// @ts-expect-error -- the state of a view is read-only
+	grid.state.game = 2;
+}
+
+/**
+ * What 1.4 reserves has no type: each of these names is refused.
+ *
+ * @returns Nothing that runs.
+ */
+export function reserved(): readonly unknown[] {
+	return [
+		// @ts-expect-error -- `decisions` waits for M3
+		defineHead({ id: "r1", package: "@example/r", summary: "Reserved.", decisions: {} }),
+		// @ts-expect-error -- a tool limit waits for its first user
+		defineHead({ id: "r2", package: "@example/r", summary: "Reserved.", tools: { t: { description: "A tool.", params: Type.Object({}), limit: 1 } } }),
+		// @ts-expect-error -- the hook `turnOpened` waits for M3
+		defineMechanic(refereeHead, { hooks: { turnOpened: () => undefined } }),
+		// @ts-expect-error -- the stage handler `afford` waits for the ledger
+		defineMechanic(refereeHead, { pipeline: { afford: () => undefined } }),
+		// @ts-expect-error -- `commits` is not carried
+		defineMechanic(refereeHead, { commits: {} }),
+		// @ts-expect-error -- the game's `texts` overrides wait for M2
+		defineGame({ id: "reserved", residents: 2, mechanics: [gridGame()], end: { ticks: 1 }, texts: {} }),
+	];
+}
 
 export const wrongAudience = defineHead({
 	id: "wrong-audience",

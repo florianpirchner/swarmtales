@@ -42,6 +42,15 @@ import { TSchema } from 'typebox';
 export type AnyHead = MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], ToolParams>;
 
 // @public
+export function bodyMismatch(input: {
+    readonly mechanic: string;
+    readonly package?: string;
+    readonly part: "tool" | "service";
+    readonly name: string;
+    readonly problem: "missing" | "undeclared";
+}): SwtIssue;
+
+// @public
 export interface BodyParts<M extends MechanicShape, F extends Readonly<Record<string, TSchema>>> {
     readonly facts?: { readonly [K in keyof F]: FactSpec<M, F[K]>; };
     readonly hooks?: MechanicHooks<M>;
@@ -92,6 +101,15 @@ export function eventTypeTaken(input: {
     readonly type: string;
     readonly owner?: string;
     readonly package?: string;
+}): SwtIssue;
+
+// @public
+export function factMismatch(input: {
+    readonly mechanic: string;
+    readonly fact: string;
+    readonly package?: string;
+    readonly path: string;
+    readonly message: string;
 }): SwtIssue;
 
 // @public
@@ -476,8 +494,11 @@ export const SDK_ERRORS: {
     readonly "SWT-G032": "`requires` form a cycle";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
+    readonly "SWT-M012": "the body of a mechanic does not fit its head";
+    readonly "SWT-M014": "a mechanic keeps state that cannot be started or saved";
     readonly "SWT-M021": "an emitted payload does not match its schema";
     readonly "SWT-M022": "a service input or output does not match its schema";
+    readonly "SWT-M023": "the value of a fact does not match its schema";
     readonly "SWT-P003": "a declared prompt has no text";
 };
 
@@ -579,6 +600,13 @@ export type StateOf<Snap extends TSchema, C> = [C] extends [never] ? Static<Snap
 
 // @public
 export type StateSetup<O extends TSchema> = Setup<Static<O>>;
+
+// @public
+export function stateUnsaved(input: {
+    readonly mechanic: string;
+    readonly package?: string;
+    readonly problem: "no-start" | "no-schema";
+}): SwtIssue;
 
 // @public
 export interface ToolContext<M extends MechanicShape> extends MechanicContext<M> {

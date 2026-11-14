@@ -24,7 +24,7 @@ const payload = <P extends TProperties>(description: string, properties: P) => T
 export const KERNEL_EVENTS = {
 	run_started: payload("The run starts", {
 		game: Type.String(text("The id of the game")),
-		seed: Type.Number(text("The seed of the run")),
+		seed: Type.Integer({ minimum: 0, maximum: 4294967295, description: "The seed of the run" }),
 		maxTicks: Type.Integer(text("The run ends after this many ticks")),
 		actors: Type.Array(actor("An actor id"), text("The ids of the actors, in the definition's order")),
 		plugins: Type.Array(Type.String(text("A plugin id")), text("The ids of the plugins, in load order")),

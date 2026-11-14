@@ -65,7 +65,10 @@ export interface MechanicKit<M extends MechanicShape> extends ListenKit<M> {
 }
 
 /**
- * A body with every type erased: what the implementation of `defineMechanic` works on. Every typed body fits it.
+ * A body with every type erased: what the implementation of `defineMechanic` works on. The body of the generic
+ * signature fits it (`const erased: ErasedBody = body` inside `defineMechanic<H, F>`), and so does an implementation
+ * signature `(head: AnyHead, body: ErasedBody)` under the typed overload. A body of one concrete head does not: its
+ * service functions take a narrower input.
  *
  * @public
  */

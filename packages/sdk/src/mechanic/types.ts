@@ -94,13 +94,18 @@ export interface MechanicHead<
 	readonly options?: O;
 	/** The schema of the state and of its snapshot slice. Left out: no state. */
 	readonly state?: Snap;
-	/** Only for a state that is not plain JSON: how it is saved and loaded. Left out: the state is its own slice. */
+	/**
+	 * Only for a state that is not plain JSON: how it is saved and loaded. Left out: the state is its own slice. The
+	 * type of the custom state is read from the parameter of `save`, so write it there: `save: (state: GateState) => ...`.
+	 * A return type on `load` or `start` alone does not name it. It needs `state` (the schema of the saved form) and
+	 * `start` beside it; a head without them is refused when the mechanic is defined (SWT-M014).
+	 */
 	readonly snapshot?: SnapshotSpec<C, Static<Snap>, Static<O>>;
 	/** The version of the slice; 1 when left out. */
 	readonly version?: number;
 	/** `migrations[v]` turns a slice of version `v` into version `v + 1`. */
 	readonly migrations?: Readonly<Record<number, (data: unknown) => unknown>>;
-	/** Builds the state of a fresh run. */
+	/** Builds the state of a fresh run. Required when the head has `state` (SWT-M014); the types cannot say so. */
 	start?(setup: StateSetup<O>): NoInfer<StateOf<Snap, C>>;
 	/** Event type to payload schema. */
 	readonly events?: E;

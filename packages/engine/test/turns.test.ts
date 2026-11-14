@@ -4,37 +4,13 @@
  * pending, the errors, and a differential test against activations that the old turn loop recorded.
  */
 import { actorId, nameOf, SwtError } from "@swarmtales/contracts";
-import type { ActorDriver, ActorId, DriverTable, OpenActivation, RandomSource, RunEnd, SchedulerPort } from "@swarmtales/contracts";
-import { Default } from "typebox/value";
+import type { ActorDriver, ActorId, DriverTable, OpenActivation, RunEnd, SchedulerPort } from "@swarmtales/contracts";
+import { rngFor } from "@swarmtales/kernel";
+import { Type } from "typebox";
+import { Check, Default } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { TurnsOptions } from "../src/turns/options.ts";
 import { turns } from "../src/turns/turns.ts";
-
-// A stand-in for the kernel's generator (Mulberry32 over an FNV-1a seed), which is not on this branch yet.
-function rngFor(seed: number, labels: readonly (string | number)[]): RandomSource {
-	let state = 0x811c9dc5;
-	for (const char of [String(seed >>> 0), ...labels.map(String)].join(":")) state = Math.imul(state ^ char.charCodeAt(0), 0x01000193);
-	state >>>= 0;
-	const next = (): number => {
-		state = (state + 0x6d2b79f5) >>> 0;
-		let t = Math.imul(state ^ (state >>> 15), state | 1);
-		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-	};
-	const shuffle = <T>(items: readonly T[]): T[] => {
-		const copy = [...items];
-		for (let i = copy.length - 1; i > 0; i--) {
-			const j = Math.floor(next() * (i + 1));
-			const a = copy[i];
-			const b = copy[j];
-			if (a === undefined || b === undefined) continue;
-			copy[i] = b;
-			copy[j] = a;
-		}
-		return copy;
-	};
-	return { next, int: (min, max) => min + Math.floor(next() * (max - min + 1)), pick: (items) => shuffle(items)[0] ?? expect.fail("empty"), shuffle };
-}
 
 const text = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
 
@@ -46,6 +22,7 @@ interface Stub {
 	/** The names with news: a `say` call adds its target, building the inputs clears it. */
 	readonly heard: string[];
 	readonly asleep: Set<string>;
+	/** The names whose calls end quietly: `quietEnd` turns true with their first call. */
 	readonly quiet: Set<string>;
 	toAct: readonly ActorId[] | undefined;
 	haltAt: number | undefined;
@@ -70,7 +47,8 @@ function stub(seed: number, count: number, maxTicks: number): Stub {
 				return Promise.resolve({ ok: true, reply: as });
 			},
 			close: (failed) => self.log.push(`close ${name} ${failed ? "error" : calls > 0 ? "acted" : "no-call"}`),
-			quietEnd: self.quiet.has(name),
+			// Live, as the kernel's (erratum E7): true only once a call of a quiet name has landed.
+			get quietEnd() { return self.quiet.has(name) && calls > 0; },
 		};
 	};
 	const port: SchedulerPort = {
@@ -78,7 +56,7 @@ function stub(seed: number, count: number, maxTicks: number): Stub {
 		get tick() { return tick; },
 		actors: { ids, ofKind: (kind) => (kind === "resident" ? ids : []), has: (id) => ids.some((known) => known === id), mayAct: (id) => !self.asleep.has(nameOf(id)), shared: () => undefined },
 		get halted() { return self.haltAt !== undefined && self.log.length >= self.haltAt; },
-		rng: (...labels) => rngFor(seed, labels),
+		rng: (...labels) => rngFor(seed, ...labels),
 		emit: (type, payload) => {
 			const data: Record<string, unknown> = typeof payload === "object" && payload !== null ? Object.fromEntries(Object.entries(payload)) : {};
 			self.log.push(type === "pass_started" ? `pass ${text(data.pass)}: ${text(data.blocks)}` : `skip ${String(tick)}/${text(data.pass)}/${text(data.block)} ${text(data.actor).slice(-3)}`);
@@ -117,6 +95,10 @@ describe("turns: order, blocks and ticks", () => {
 		expect(lines(roster, "open").map((line) => line.slice(-3))).toEqual(["A01", "A02", "A03"]);
 		expect(Default(TurnsOptions, {})).toEqual(options({}));
 		expect([turns.id, turns.revision, turns.determinism, Object.keys(turns.events)]).toEqual(["@swarmtales/engine/turns", 1, "seeded", ["pass_started", "activation_skipped"]]);
+		// Closed payloads, as the kernel's events.
+		expect(Check(turns.events.pass_started ?? Type.Never(), { pass: 1, order: [], blocks: [] })).toBe(true);
+		expect(Check(turns.events.pass_started ?? Type.Never(), { pass: 1, order: [], blocks: [], tick: 0 })).toBe(false);
+		expect(Check(turns.events.activation_skipped ?? Type.Never(), { actor: "resident:A01", pass: 1, block: 1, reason: "news" })).toBe(false);
 	});
 
 	it("lands the calls of a block in order, whatever the drivers' timing, and builds all inputs first", async () => {
@@ -141,6 +123,12 @@ describe("turns: order, blocks and ticks", () => {
 		await scheduler.run(s.port, { resident: idle }, { ticks: 2 });
 		expect(s.log.slice(-5).map((line) => line.slice(0, 4))).toEqual(["pass", "open", "clos", "end ", "end "]);
 		expect(s.log.at(-1)).toBe("end 3 idle");
+	});
+
+	it("plays nothing with until.ticks 0 and leaves the run open", async () => {
+		const s = stub(7, 2, 5);
+		expect(await play(s, {}, { resident: idle }, { ticks: 0 })).toBeUndefined();
+		expect(s.log).toEqual([]);
 	});
 });
 
@@ -169,6 +157,7 @@ describe("turns: the wake rule", () => {
 		const restored = turns.create(options({ activation: "onNews", order: "roster" }));
 		restored.slice?.load(JSON.parse(JSON.stringify(scheduler.slice?.save())), 1);
 		expect(() => restored.slice?.load({ pending: [1] }, 1)).toThrow();
+		expect(() => restored.slice?.load({ pending: [], woken: [] }, 1)).toThrow();
 		restored.slice?.load({ pending: ["resident:A02"] }, 1);
 		await restored.run(s.port, { resident: pendingAfterNews });
 		// A02 had news, then an answer pending once; A03 had news, but its activation ended quietly.

@@ -23,12 +23,12 @@ const events = {
 			order: Type.Array(actor, { description: "The actors who may act, in the order of the pass." }),
 			blocks: Type.Array(Type.Array(actor, { description: "The members of one block." }), { description: "The order, cut into blocks." }),
 		},
-		{ description: "A pass of a tick started." },
+		{ additionalProperties: false, description: "A pass of a tick started." },
 	),
-	activation_skipped: Type.Object({ actor, pass, block: Type.Integer({ description: "The block of the pass, from 1." }) }, { description: "An actor who may act was not woken in a pass." }),
+	activation_skipped: Type.Object({ actor, pass, block: Type.Integer({ description: "The block of the pass, from 1." }) }, { additionalProperties: false, description: "An actor who may act was not woken in a pass." }),
 };
 
-const PendingSlice = Type.Object({ pending: Type.Array(actor, { description: "The actors whose driver holds tool results it has not answered yet." }) }, { description: "The state of the turns scheduler." });
+const PendingSlice = Type.Object({ pending: Type.Array(actor, { description: "The actors whose driver holds tool results it has not answered yet." }) }, { additionalProperties: false, description: "The state of the turns scheduler." });
 
 // What the functions of one run share.
 interface Turns {
@@ -56,7 +56,18 @@ function playTurn(turns: Turns, open: OpenActivation, driver: ActorDriver, ready
 		await ready;
 		return open.call(as, params);
 	};
-	const gated: Activation = { actor: open.actor, tick: open.tick, basis: open.basis, detail: open.detail, inputs: open.inputs, tools: open.tools, call };
+	// Not a spread: `basis` and `quietEnd` are live on `open` (erratum E7), so the copy reads `basis` through.
+	const gated: Activation = {
+		actor: open.actor,
+		tick: open.tick,
+		get basis() {
+			return open.basis;
+		},
+		detail: open.detail,
+		inputs: open.inputs,
+		tools: open.tools,
+		call,
+	};
 	// The executor runs now, so the driver starts before the next member is prepared; a throw becomes a rejection.
 	const step = new Promise<Awaited<ReturnType<ActorDriver>>>((resolve) => {
 		resolve(driver(gated));

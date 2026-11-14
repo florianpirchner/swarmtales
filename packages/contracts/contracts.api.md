@@ -247,7 +247,7 @@ export interface Kernel {
 export const KERNEL_EVENTS: {
     readonly run_started: Type.TObject<{
         game: Type.TString;
-        seed: Type.TNumber;
+        seed: Type.TInteger;
         maxTicks: Type.TInteger;
         actors: Type.TArray<Type.TString>;
         plugins: Type.TArray<Type.TString>;
@@ -376,7 +376,7 @@ export const KernelSnapshotSchema: Type.TObject<{
     version: Type.TLiteral<1>;
     game: Type.TString;
     gameHash: Type.TString;
-    seed: Type.TNumber;
+    seed: Type.TInteger;
     tick: Type.TInteger;
     seq: Type.TInteger;
     ended: Type.TOptional<Type.TObject<{
