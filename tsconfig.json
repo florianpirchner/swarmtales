@@ -15,6 +15,9 @@
 			"path": "apps/viewer-web"
 		},
 		{
+			"path": "games/city-slice"
+		},
+		{
 			"path": "games/econ-lab"
 		},
 		{
@@ -27,10 +30,19 @@
 			"path": "games/tictactoe-teams"
 		},
 		{
+			"path": "mechanics/channels"
+		},
+		{
 			"path": "mechanics/consensus"
 		},
 		{
 			"path": "mechanics/contracts"
+		},
+		{
+			"path": "mechanics/court"
+		},
+		{
+			"path": "mechanics/decisions"
 		},
 		{
 			"path": "mechanics/draft-rounds"
@@ -39,10 +51,22 @@
 			"path": "mechanics/econ-games"
 		},
 		{
+			"path": "mechanics/exile"
+		},
+		{
 			"path": "mechanics/grid-game"
 		},
 		{
+			"path": "mechanics/human-hand"
+		},
+		{
+			"path": "mechanics/ledger"
+		},
+		{
 			"path": "mechanics/optimal-referee"
+		},
+		{
+			"path": "mechanics/puzzles"
 		},
 		{
 			"path": "mechanics/strategy-brain"

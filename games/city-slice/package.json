@@ -1,0 +1,30 @@
+{
+	"name": "@swarmtales/game-city-slice",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: the city slice, the smallest part of the City of Keys with a Director and the Human Hand",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-ledger": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-decisions": "workspace:*",
+		"@swarmtales/mechanic-human-hand": "workspace:*",
+		"@swarmtales/mechanic-puzzles": "workspace:*",
+		"@swarmtales/mechanic-court": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/models": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

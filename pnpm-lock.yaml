@@ -115,6 +115,52 @@ importers:
         specifier: 7.3.8
         version: 7.3.8(@types/node@26.6.6)(yaml@2.9.1)
 
+  games/city-slice:
+    dependencies:
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../../mechanics/channels
+      '@swarmtales/mechanic-court':
+        specifier: workspace:*
+        version: link:../../mechanics/court
+      '@swarmtales/mechanic-decisions':
+        specifier: workspace:*
+        version: link:../../mechanics/decisions
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../../mechanics/exile
+      '@swarmtales/mechanic-human-hand':
+        specifier: workspace:*
+        version: link:../../mechanics/human-hand
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:../../mechanics/ledger
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:../../mechanics/puzzles
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
+      '@swarmtales/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@swarmtales/models':
+        specifier: workspace:*
+        version: link:../../packages/models
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
   games/econ-lab:
     dependencies:
       '@swarmtales/mechanic-econ-games':
@@ -194,6 +240,25 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/channels:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
   mechanics/consensus:
     dependencies:
       '@swarmtales/contracts':
@@ -224,6 +289,53 @@ importers:
       typebox:
         specifier: 1.3.27
         version: 1.3.27
+
+  mechanics/court:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../channels
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/mechanic-decisions':
+        specifier: workspace:*
+        version: link:../decisions
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../exile
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
+  mechanics/decisions:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
 
   mechanics/draft-rounds:
     dependencies:
@@ -269,6 +381,25 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/exile:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
   mechanics/grid-game:
     dependencies:
       '@swarmtales/contracts':
@@ -294,6 +425,47 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
+  mechanics/human-hand:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
+  mechanics/ledger:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../exile
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
   mechanics/optimal-referee:
     dependencies:
       '@swarmtales/contracts':
@@ -302,6 +474,31 @@ importers:
       '@swarmtales/mechanic-grid-game':
         specifier: workspace:*
         version: link:../grid-game
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
+
+  mechanics/puzzles:
+    dependencies:
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../channels
+      '@swarmtales/mechanic-contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../exile
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk

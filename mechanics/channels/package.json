@@ -1,0 +1,44 @@
+{
+	"name": "@swarmtales/mechanic-channels",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: talk on the board, direct messages and notices",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"class": "base",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./contract": {
+			"development": "./src/contract.ts",
+			"types": "./dist/contract.d.ts",
+			"default": "./dist/contract.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-contracts": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}
