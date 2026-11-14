@@ -3,7 +3,7 @@
 import { Type } from "typebox";
 import { ConsensusSourceService } from "@swarmtales/mechanic-contracts";
 import { defineHead } from "@swarmtales/sdk";
-import { ConsensusService } from "./contract.ts";
+import { ConsensusAgreedService, ConsensusService } from "./contract.ts";
 
 /** One vote on the open proposal. */
 export interface Vote {
@@ -84,7 +84,7 @@ export const head = defineHead({
 	package: "@swarmtales/mechanic-consensus",
 	summary: "A team must agree before a gated tool call is released.",
 	requires: [ConsensusSourceService],
-	provides: [ConsensusService],
+	provides: [ConsensusService, ConsensusAgreedService],
 	options,
 	state: Saved,
 	snapshot: {

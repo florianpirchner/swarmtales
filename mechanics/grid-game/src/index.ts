@@ -12,13 +12,15 @@
  */
 import { Type } from "typebox";
 import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
-import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";
+import { ConsensusAgreedService, ConsensusService } from "@swarmtales/mechanic-consensus/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { gridGameHead, type GridGameCtx, type GridGameView } from "./head.ts";
 import { emptyBoard, freeCells, linesOf, other, renderBoard, tallyOf, winnerOf, type GridState, type Side } from "./model.ts";
 
 const PLAY_MOVE = "playMove";
+/** The share of the times the fake driver (`--fake`) is asked in which it looks at the board. */
+const FAKE_RATE = 0.125;
 
 type Ctx = GridGameCtx;
 type View = GridGameView;
@@ -33,6 +35,9 @@ function captainOf(state: Readonly<GridState>): string | null {
 	const team = state.teams[state.side];
 	return team[state.taken[state.side] % team.length] ?? null;
 }
+
+// Whether `resident` is of the team on move without being its captain.
+const looksOn = (state: Readonly<GridState>, resident: string | undefined): boolean => resident !== undefined && state.running && resident !== captainOf(state) && state.teams[state.side].includes(resident);
 
 // Opens `playMove` for the captain and closes it for everybody else.
 function refreshLocks(ctx: Ctx): void {
@@ -145,7 +150,8 @@ function boardText(state: Readonly<GridState>, size: number): string {
  */
 export const gridGame = defineMechanic(gridGameHead, {
 	tools: {
-		viewBoard: { run: (_params, ctx) => reply(boardText(ctx.state, ctx.options.size)) },
+		// A look now and then by a member of the team on move that is not its captain: a captain's draws stay those of its move, so a fake run of a game without teams is what it was.
+		viewBoard: { sample: (ctx, random) => (looksOn(ctx.state, ctx.resident) && random.next() < FAKE_RATE ? {} : undefined), run: (_params, ctx) => reply(boardText(ctx.state, ctx.options.size)) },
 		[PLAY_MOVE]: {
 			check: (params, ctx) => problemWith(ctx.state, ctx.resident, params.cell),
 			run: (params, ctx) => {
@@ -153,8 +159,12 @@ export const gridGame = defineMechanic(gridGameHead, {
 				if (refusal !== undefined) return refusal;
 				return applyMove(ctx, params.cell, false);
 			},
-			// A random free cell for the captain of the turn; nobody else has a legal move.
-			sample: (ctx, random) => (ctx.resident !== undefined && ctx.resident === captainOf(ctx.state) ? { cell: random.pick(freeCells(ctx.state.board)) } : undefined),
+			// A random free cell for the captain of the turn; nobody else has a legal move. Behind a consensus gate only the agreed cell is legal: none (null) until the team agreed.
+			sample: (ctx, random) => {
+				if (ctx.resident === undefined || ctx.resident !== captainOf(ctx.state)) return undefined;
+				const agreed = ctx.tryCall(ConsensusAgreedService, "agreed", { team: ctx.state.side });
+				return agreed === null ? undefined : { cell: agreed ?? random.pick(freeCells(ctx.state.board)) };
+			},
 		},
 	},
 	services: {

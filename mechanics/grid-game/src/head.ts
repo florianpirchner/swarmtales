@@ -2,7 +2,7 @@
 /** The head of the `grid-game` mechanic: its options, its state with the snapshot, its events, services, prompts and tools. */
 import { Type } from "typebox";
 import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
-import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";
+import { ConsensusAgreedService, ConsensusService } from "@swarmtales/mechanic-consensus/contract";
 import { ConsensusSourceService } from "@swarmtales/mechanic-contracts";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { GridGameEvents } from "./events.ts";
@@ -99,7 +99,7 @@ export const gridGameHead = defineHead({
 	},
 	events: GridGameEvents.events,
 	provides: [GridGameService, ConsensusSourceService],
-	uses: [ConsensusService, TeamChannelService],
+	uses: [ConsensusService, ConsensusAgreedService, TeamChannelService],
 	prompts: {
 		"grid-game/tools/viewBoard": [],
 		"grid-game/tools/playMove": [],

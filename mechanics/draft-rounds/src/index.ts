@@ -22,12 +22,26 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
+import type { RandomSource } from "@swarmtales/contracts";
 import { defineMechanic, reply } from "@swarmtales/sdk";
 import { pass, pickNow, problemWith, refreshLocks, startNext, take } from "./flow.ts";
-import { draftRoundsHead, type DraftRoundsView } from "./head.ts";
+import { draftRoundsHead, type DraftRoundsToolCtx, type DraftRoundsView } from "./head.ts";
 import { quarriesLine, rulesText, tableText, taskText } from "./texts.ts";
 
 type View = DraftRoundsView;
+/** The share of the times the fake driver (`--fake`) is asked in which it looks at the table, and the share of its picks with a burn while it has burns left. */
+const FAKE_RATE = 0.125;
+const FAKE_BURN = 0.25;
+
+// A pick of the fake driver for a seat that owes one: any card of its pack, and now and then a second card to burn.
+function samplePick(ctx: DraftRoundsToolCtx, random: RandomSource): { card: string; burn?: string } | undefined {
+	const { state, resident } = ctx;
+	if (resident === undefined || !state.running || !state.owing.includes(resident)) return undefined;
+	const [card, burn] = random.shuffle(state.packs[resident] ?? []);
+	if (card === undefined) return undefined;
+	const burns = burn !== undefined && (state.burns[resident] ?? 0) < ctx.options.maxBurns && random.next() < FAKE_BURN;
+	return burns ? { card: card.id, burn: burn.id } : { card: card.id };
+}
 
 /**
  * The draft: packs passed around a table, one sealed pick each, a quarry scored at the end of a game.
@@ -41,8 +55,9 @@ type View = DraftRoundsView;
  */
 export const draftRounds = defineMechanic(draftRoundsHead, {
 	tools: {
-		viewTable: { run: (_params, ctx) => reply(tableText(ctx, ctx.resident)) },
+		viewTable: { sample: (ctx, random) => (ctx.resident !== undefined && random.next() < FAKE_RATE ? {} : undefined), run: (_params, ctx) => reply(tableText(ctx, ctx.resident)) },
 		pick: {
+			sample: samplePick,
 			check: (params, ctx) => problemWith(ctx, ctx.resident, params.card, params.burn),
 			run: (params, ctx) => pickNow(ctx, ctx.resident, params.card, params.burn),
 		},

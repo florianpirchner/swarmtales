@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The head of the `draft-rounds` mechanic: its options, its state with the snapshot, its events, services, prompts and tools. */
 import { Type } from "typebox";
-import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
+import { defineHead, type CtxOf, type ToolCtxOf, type ViewOf } from "@swarmtales/sdk";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { Breakdown, Card, copyState, DraftSlice, PickRecord, Reference, type DraftState } from "./model.ts";
@@ -116,6 +116,13 @@ export const draftRoundsHead = defineHead({
  * @public
  */
 export type DraftRoundsCtx = CtxOf<typeof draftRoundsHead>;
+
+/**
+ * The context of the draft's tools: the context with the caller.
+ *
+ * @public
+ */
+export type DraftRoundsToolCtx = ToolCtxOf<typeof draftRoundsHead>;
 
 /**
  * The read-only view of the draft's fact and run limit.

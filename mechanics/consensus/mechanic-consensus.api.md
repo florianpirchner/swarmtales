@@ -55,6 +55,18 @@ forfeits: Type.TInteger;
 }, "proposeMove" | "castVote">;
 
 // @public
+export const ConsensusAgreedService: ServiceDefinition<"consensus-agreed", {
+readonly agreed: {
+readonly kind: "query";
+readonly summary: "The value a team agreed on and has not played yet; null before the team agreed and for an unknown team. The `sample` of the gated tool reads it, so that the fake driver plays the agreed value.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TNull, Type.TInteger]>;
+};
+}>;
+
+// @public
 export const ConsensusService: ServiceDefinition<"consensus", {
 readonly reset: {
 readonly kind: "command";

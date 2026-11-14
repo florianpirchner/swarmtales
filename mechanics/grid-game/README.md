@@ -16,7 +16,7 @@ quality of moves; other mechanics add those.
 | Id | `grid-game` |
 | Summary | A board game between two teams: the board, the captain of the turn, win detection and a match of several games. |
 | Requires | none |
-| Uses when loaded | `consensus` (from [consensus](../consensus/README.md)), `team-channel` (from [team-channel](../team-channel/README.md)) |
+| Uses when loaded | `consensus` (from [consensus](../consensus/README.md)), `consensus-agreed` (from [consensus](../consensus/README.md)), `team-channel` (from [team-channel](../team-channel/README.md)) |
 | Provides | `grid-game`, `consensus-source` |
 | State | kept, snapshot slice version 1 |
 | Games | [hello](../../games/hello/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |

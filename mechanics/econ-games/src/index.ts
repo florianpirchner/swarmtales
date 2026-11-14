@@ -19,13 +19,20 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import { defineMechanic, reply } from "@swarmtales/sdk";
+import { defineMechanic, reply, type ToolCtxOf } from "@swarmtales/sdk";
 import { advance, decide, problemWith, refreshLocks, startNext } from "./flow.ts";
 import { econGamesHead, type EconGamesView } from "./head.ts";
+import type { Action } from "./model.ts";
 import { inputLines, tableText } from "./texts.ts";
 
 export { econGamesHead, type EconGamesCtx, type EconGamesView } from "./head.ts";
 export type { Block } from "./model.ts";
+
+/** The share of the times the fake driver (`--fake`) is asked in which it looks at the table. */
+const FAKE_RATE = 0.125;
+
+// Whether the caller owes the decision `action` now: what the `sample` of each decision tool asks first. 0 is in the range of every decision.
+const owes = (ctx: ToolCtxOf<typeof econGamesHead>, action: Action): boolean => problemWith(ctx, ctx.resident, action, 0) === undefined;
 
 /**
  * The econ games: public goods, ultimatum and an A-or-B dilemma in rounds for solo seats.
@@ -39,20 +46,24 @@ export type { Block } from "./model.ts";
  */
 export const econGames = defineMechanic(econGamesHead, {
 	tools: {
-		viewTable: { run: (_params, ctx) => reply(tableText(ctx, ctx.resident)) },
+		viewTable: { sample: (ctx, random) => (ctx.resident !== undefined && random.next() < FAKE_RATE ? {} : undefined), run: (_params, ctx) => reply(tableText(ctx, ctx.resident)) },
 		contribute: {
+			sample: (ctx, random) => (owes(ctx, "contribute") ? { amount: random.int(0, ctx.options.endowment) } : undefined),
 			check: (params, ctx) => problemWith(ctx, ctx.resident, "contribute", params.amount),
 			run: (params, ctx) => decide(ctx, ctx.resident, "contribute", params.amount, params.reason),
 		},
 		offer: {
+			sample: (ctx, random) => (owes(ctx, "offer") ? { amount: random.int(0, ctx.options.pie) } : undefined),
 			check: (params, ctx) => problemWith(ctx, ctx.resident, "offer", params.amount),
 			run: (params, ctx) => decide(ctx, ctx.resident, "offer", params.amount, params.reason),
 		},
 		respond: {
+			sample: (ctx, random) => (owes(ctx, "respond") ? { accept: random.next() < 0.5 } : undefined),
 			check: (params, ctx) => problemWith(ctx, ctx.resident, "respond", params.accept ? 1 : 0),
 			run: (params, ctx) => decide(ctx, ctx.resident, "respond", params.accept ? 1 : 0, params.reason),
 		},
 		choose: {
+			sample: (ctx, random) => (owes(ctx, "choose") ? { option: random.pick(["A", "B"] as const) } : undefined),
 			check: (params, ctx) => problemWith(ctx, ctx.resident, "choose", params.option === "A" ? 1 : 0),
 			run: (params, ctx) => decide(ctx, ctx.resident, "choose", params.option === "A" ? 1 : 0, params.reason),
 		},

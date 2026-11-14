@@ -35,6 +35,10 @@ const MIN_REPLAY_MOVES = 5;
 const MIN_REPLAY_LINE = 8;
 
 type Ctx = StrategyBrainCtx;
+/** The share of the times the fake driver (`--fake`) is asked in which it reads the brain. */
+const FAKE_RATE = 0.125;
+/** What the fake driver writes as a brain: one short rule that names no move, so it is no replay of a game. */
+const FAKE_BRAINS = ["Look at the whole table before every decision.", "Keep what paid in the last game and drop what cost points.", "Decide early and do not wait for the deadline."];
 
 function teamOf(ctx: Ctx, resident: string | undefined): string | undefined {
 	if (resident === undefined) return undefined;
@@ -195,6 +199,7 @@ function retroLines(ctx: Ctx, resident: string, team: string, window: Window): s
 export const strategyBrain = defineMechanic(strategyBrainHead, {
 	tools: {
 		readBrain: {
+			sample: (ctx, random) => (ctx.options.enabled && hasBrain(ctx, teamOf(ctx, ctx.resident) ?? "") && random.next() < FAKE_RATE ? {} : undefined),
 			run: (_params, ctx) => {
 				if (!ctx.options.enabled) return refuse("BRAIN_DISABLED", "This match keeps no strategy brain.");
 				const team = teamOf(ctx, ctx.resident);
@@ -206,6 +211,11 @@ export const strategyBrain = defineMechanic(strategyBrainHead, {
 		},
 		[WRITE]: {
 			check: (params, ctx) => problemWith(ctx, ctx.resident, params.text),
+			// The retro captain writes in its window, one of the fixed rules that the options allow (a cap of a few words allows none).
+			sample: (ctx, random) => {
+				const texts = FAKE_BRAINS.filter((text) => problemWith(ctx, ctx.resident, text) === undefined);
+				return texts.length === 0 ? undefined : { text: random.pick(texts) };
+			},
 			run: (params, ctx) => {
 				const refusal = problemWith(ctx, ctx.resident, params.text);
 				if (refusal !== undefined) return refusal;

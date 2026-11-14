@@ -56,7 +56,8 @@ describe("the carried consensus mechanic", () => {
 			["castVote", "consensus/tools/castVote", '{"type":"object","required":["agree","reason"],"properties":{"agree":{"type":"boolean"},"reason":{"type":"string"}}}', ["resident"]],
 		]);
 		expect(Object.keys(consensus.events)).toEqual(["move_proposed", "vote_cast", "consensus_reached", "consensus_forfeited", "consensus_deadlocked", "match_invalid"]);
-		expect([consensus.id, consensus.head.requires.map((service) => service.name), consensus.head.provides.map((service) => service.name)]).toEqual(["consensus", ["consensus-source"], ["consensus"]]);
+		// `consensus-agreed` is new on this platform (M4-04): a query for the `sample` of the gated tool. `consensus` is the old contract (`contract.test.ts`).
+		expect([consensus.id, consensus.head.requires.map((service) => service.name), consensus.head.provides.map((service) => service.name)]).toEqual(["consensus", ["consensus-source"], ["consensus", "consensus-agreed"]]);
 	});
 
 	it.each(RECORDED)("plays %j as the old platform did: the same seeded forfeits at the same ticks", async (gate, script, recorded) => {

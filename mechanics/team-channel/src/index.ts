@@ -82,6 +82,9 @@ const head = defineHead({
 });
 
 type Ctx = CtxOf<typeof head>;
+/** The share of the times the fake driver (`--fake`) is asked in which it posts or reads, so that the tools after these in a grant get their turn. */
+const FAKE_RATE = 0.125;
+const FAKE_POSTS = ["What do we play?", "I agree with the captain.", "Watch the other team.", "Keep it simple."];
 
 function teamOf(ctx: Ctx, resident: string | undefined): string | undefined {
 	if (resident === undefined) return undefined;
@@ -123,6 +126,8 @@ export const teamChannel = defineMechanic(head, {
 				if ((ctx.state.used.get(ctx.resident ?? "") ?? 0) >= ctx.options.maxPostsPerMove) return refuse("POST_CAP", "no more posts this round");
 				return undefined;
 			},
+			// A short fixed line now and then, while the member has a post left in the round.
+			sample: (ctx, random) => (teamOf(ctx, ctx.resident) === undefined || (ctx.state.used.get(ctx.resident ?? "") ?? 0) >= ctx.options.maxPostsPerMove || random.next() >= FAKE_RATE ? undefined : { text: random.pick(FAKE_POSTS) }),
 			run: (params, ctx) => {
 				const team = teamOf(ctx, ctx.resident);
 				const from = ctx.resident;
@@ -140,6 +145,7 @@ export const teamChannel = defineMechanic(head, {
 		},
 		readTeam: {
 			check: (_params, ctx) => (teamOf(ctx, ctx.resident) === undefined ? refuse("NOT_TEAM_MEMBER", "you are in no team") : undefined),
+			sample: (ctx, random) => (teamOf(ctx, ctx.resident) === undefined || random.next() >= FAKE_RATE ? undefined : {}),
 			run: (_params, ctx) => {
 				const team = teamOf(ctx, ctx.resident);
 				const all = team === undefined ? [] : (ctx.state.posts.get(team) ?? []);

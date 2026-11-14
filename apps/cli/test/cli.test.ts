@@ -119,7 +119,7 @@ describe("swt run --fake of a game family", () => {
 	it("plays quarry to the end of its match with the defaults of the family, and the log verifies", async () => {
 		const { code, out, err } = await swt("run", quarry, "--fake", "--json");
 		const result = Parse(Result, json(out[0]));
-		expect([code, err.match(/SWT-C010/g)?.length]).toEqual([0, 4]);
+		expect([code, err]).toEqual([0, ""]);
 		expect(result).toMatchObject({ seed: 29, end: { reason: "limit", limit: "draft-rounds.match" }, run: "runs/quarry-001", log: { ok: true } });
 		expect((await swt("log", "verify", "runs/quarry-001")).code).toBe(0);
 		expect(Parse(RunManifestSchema, json(file("runs/quarry-001", "manifest.json"))).game.params).toMatchObject({ games: 3, brain: true });

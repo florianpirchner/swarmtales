@@ -17,7 +17,7 @@ game: the game tells it who is on move and which values are legal.
 | Summary | A team must agree before a gated tool call is released. |
 | Requires | `consensus-source` (from [grid-game](../grid-game/README.md)) |
 | Uses when loaded | none |
-| Provides | `consensus` |
+| Provides | `consensus`, `consensus-agreed` |
 | State | kept, snapshot slice version 1 |
 | Games | [morris-teams](../../games/morris-teams/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
 
@@ -172,6 +172,14 @@ Resets the gate between games.
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
 | `reset` | command | - | null | Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay. |
+
+### `consensus-agreed`
+
+Tells the value a team agreed on.
+
+| Method | Kind | Input | Output | Summary |
+| --- | --- | --- | --- | --- |
+| `agreed` | query | team: string | null or integer | The value a team agreed on and has not played yet; null before the team agreed and for an unknown team. The `sample` of the gated tool reads it, so that the fake driver plays the agreed value. |
 
 <!-- /generated:services -->
 

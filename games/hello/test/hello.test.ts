@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * The Hello Game (sample 1): it plays to the end with the fake driver, one activation per move; `swt run --fake`
- * writes a run folder whose log verifies and warns that it never calls `viewBoard`; and the README shows the game
+ * writes a run folder whose log verifies, without a warning; and the README shows the game
  * file itself and a line the command prints.
  */
 import { spawnSync } from "node:child_process";
@@ -65,8 +65,8 @@ describe("the Hello Game", () => {
 			'result grid-game.tally: {"X":1,"O":0,"draw":0}',
 			`log verified: 90 lines, head ${head}`,
 		]);
-		// `viewBoard` of grid-game has no `sample`: the fake player moves without looking, and the command says so once.
-		expect(warned).toEqual(['warning SWT-C010: the tool "viewBoard" of the grant "resident" has no `sample`, so `--fake` never calls it']);
+		// Every tool of grid-game has a `sample`, so the command warns about none (`SWT-C010`).
+		expect(warned).toEqual([]);
 		expect(swt("log", "verify", join(out, "hello-game-001"))).toEqual([`ok, 90 lines, head ${head}`]);
 		const opened = readFileSync(join(out, "hello-game-001", "events.jsonl"), "utf8").split("\n").filter((line) => line.includes('"type":"activation_opened"'));
 		expect(opened).toHaveLength(9);
@@ -91,6 +91,5 @@ describe("sample 1 in the README", () => {
 		expect(readme).toContain("apps/cli/src/bin.ts run games/hello/game.ts --fake");
 		expect(readme).toContain("hello-game seed 1: ended after 6 ticks (limit grid-game.match: the match is over)");
 		expect(readme).toContain('result grid-game.tally: {"X":1,"O":0,"draw":0}');
-		expect(readme).toContain("warning `SWT-C010`");
 	});
 });

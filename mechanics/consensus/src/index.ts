@@ -27,13 +27,16 @@
  */
 import { Type } from "typebox";
 import { ConsensusSourceService } from "@swarmtales/mechanic-contracts";
-import { defineMechanic, refuse, reply, type CtxOf } from "@swarmtales/sdk";
-import { ConsensusService } from "./contract.ts";
+import { defineMechanic, refuse, reply, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
+import { ConsensusAgreedService, ConsensusService } from "./contract.ts";
 import { freshTeam, head, type TeamState, type Vote } from "./head.ts";
 
-export { ConsensusService, ConsensusSourceService };
+export { ConsensusAgreedService, ConsensusService, ConsensusSourceService };
 
 type Ctx = CtxOf<typeof head>;
+type ToolCtx = ToolCtxOf<typeof head>;
+/** The share of the votes of the fake driver (`--fake`) that agree: two voters agree in more than half of the proposals. */
+const FAKE_AGREE = 0.75;
 
 function teamOf(ctx: Ctx, resident: string | undefined): string | undefined {
 	if (resident === undefined) return undefined;
@@ -69,6 +72,23 @@ function refusal(ctx: Ctx, resident: string | undefined, asCaptain: boolean): { 
 
 function isRefusal(value: { team: string; captain: string } | ReturnType<typeof refuse>): value is ReturnType<typeof refuse> {
 	return "ok" in value;
+}
+
+// Why the caller may not vote now, or undefined: the check of `castVote`, and what its `sample` asks.
+function voteProblem(ctx: ToolCtx): ReturnType<typeof refuse> | undefined {
+	const who = refusal(ctx, ctx.resident, false);
+	if (isRefusal(who)) return who;
+	const state = ctx.state.teams.get(who.team);
+	if (state?.proposal === undefined || state.won !== undefined) return refuse("NO_OPEN_PROPOSAL", "there is nothing to vote on");
+	if (state.votes.has(ctx.resident ?? "")) return refuse("ALREADY_VOTED", "you have voted on this proposal");
+	return undefined;
+}
+
+// Whether the caller is the captain of the team on move and its team has no open proposal and no agreement: when the fake driver proposes.
+function mayPropose(ctx: ToolCtx): boolean {
+	const who = refusal(ctx, ctx.resident, true);
+	const state = isRefusal(who) ? undefined : ctx.state.teams.get(who.team);
+	return state !== undefined && state.proposal === undefined && state.won === undefined;
 }
 
 function paramOf(params: unknown, name: string): unknown {
@@ -144,6 +164,7 @@ export const consensus = defineMechanic(head, {
 				return null;
 			},
 		},
+		"consensus-agreed": { agreed: ({ team }, ctx) => ctx.state.teams.get(team)?.won ?? null },
 	},
 	tools: {
 		proposeMove: {
@@ -153,6 +174,11 @@ export const consensus = defineMechanic(head, {
 				if ((ctx.state.teams.get(who.team)?.won) !== undefined) return refuse("ALREADY_AGREED", "the team has agreed; play the agreed move");
 				if (!ctx.call(ConsensusSourceService, "legalCells", {}).includes(params.cell)) return refuse("ILLEGAL_CELL", "that move is not legal");
 				return undefined;
+			},
+			// A random legal value, once per vote: the captain waits while its proposal is open and plays once it won.
+			sample: (ctx, random) => {
+				const cells = mayPropose(ctx) ? ctx.call(ConsensusSourceService, "legalCells", {}) : [];
+				return cells.length === 0 ? undefined : { cell: random.pick(cells), reason: "A legal move." };
 			},
 			run: (params, ctx) => {
 				const team = teamOf(ctx, ctx.resident);
@@ -172,14 +198,9 @@ export const consensus = defineMechanic(head, {
 			},
 		},
 		castVote: {
-			check: (_params, ctx) => {
-				const who = refusal(ctx, ctx.resident, false);
-				if (isRefusal(who)) return who;
-				const state = ctx.state.teams.get(who.team);
-				if (state?.proposal === undefined || state.won !== undefined) return refuse("NO_OPEN_PROPOSAL", "there is nothing to vote on");
-				if (state.votes.has(ctx.resident ?? "")) return refuse("ALREADY_VOTED", "you have voted on this proposal");
-				return undefined;
-			},
+			check: (_params, ctx) => voteProblem(ctx),
+			// One vote per voter and proposal, most of them in favour.
+			sample: (ctx, random) => (voteProblem(ctx) !== undefined ? undefined : random.next() < FAKE_AGREE ? { agree: true, reason: "Agreed." } : { agree: false, reason: "Another move." }),
 			run: (params, ctx) => {
 				const team = teamOf(ctx, ctx.resident);
 				const state = team === undefined ? undefined : ctx.state.teams.get(team);
