@@ -4,6 +4,52 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const gridGame: MechanicDefinition<"grid-game", Type.TObject<{
+size: Type.TInteger;
+line: Type.TInteger;
+games: Type.TInteger;
+alternateStart: Type.TBoolean;
+fixedCaptain: Type.TBoolean;
+wakeTeam: Type.TBoolean;
+teams: Type.TOptional<Type.TObject<{
+X: Type.TArray<Type.TString>;
+O: Type.TArray<Type.TString>;
+}>>;
+}>, {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+xTeam: Type.TArray<Type.TString>;
+oTeam: Type.TArray<Type.TString>;
+}>;
+readonly move_played: Type.TObject<{
+game: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+by: Type.TString;
+cell: Type.TInteger;
+moveNo: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+winLine: Type.TOptional<Type.TArray<Type.TInteger>>;
+moves: Type.TArray<Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+tally: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+draw: Type.TInteger;
+}>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}, "viewBoard" | "playMove">;
+
 // (No @packageDocumentation comment for this package)
 
 ```

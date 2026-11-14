@@ -1,7 +1,227 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Mechanic: a line game on a square grid, played by two sides. The issues of milestone M1 fill this package.
+ * The `grid-game` mechanic: a small board game (tic-tac-toe by default, any `size` x `size` board
+ * with a `line` to win) between two teams over a match of `games` games. The mechanic owns the
+ * board, the side to move, win and draw detection, the game counter and the swap of the starting
+ * side. `playMove` is a locked tool, open for the captain of the turn only (the captain rotates
+ * through the team's members move by move), so another mechanic can gate it further with a `rule`
+ * handler. The match ends the run through the run limit `grid-game.match` once the last game is over.
+ * Nothing here knows about team chat, memory or scoring of moves.
  *
  * @packageDocumentation
  */
-export {};
+import { Type } from "typebox";
+import type { Refusal, ToolSuccess } from "@swarmtales/contracts";
+import { ConsensusService } from "@swarmtales/mechanic-consensus/contract";
+import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
+import { gridGameHead, type GridGameCtx, type GridGameView } from "./head.ts";
+import { emptyBoard, freeCells, linesOf, other, renderBoard, tallyOf, winnerOf, type GridState, type Side } from "./model.ts";
+import { TeamChannelService } from "./team-channel.ts";
+
+const PLAY_MOVE = "playMove";
+
+type Ctx = GridGameCtx;
+type View = GridGameView;
+
+function startingSideOf(game: number, alternate: boolean): Side {
+	return alternate && game % 2 === 0 ? "O" : "X";
+}
+
+// The captain of the turn: the team's members take turns, one move each.
+function captainOf(state: Readonly<GridState>): string | null {
+	if (!state.running) return null;
+	const team = state.teams[state.side];
+	return team[state.taken[state.side] % team.length] ?? null;
+}
+
+// Opens `playMove` for the captain and closes it for everybody else.
+function refreshLocks(ctx: Ctx): void {
+	const captain = captainOf(ctx.state);
+	for (const resident of ctx.residents.ids) {
+		if (resident === captain) ctx.access.unlock(resident, PLAY_MOVE);
+		else ctx.access.lock(resident, PLAY_MOVE);
+	}
+}
+
+function startGame(ctx: Ctx, game: number): void {
+	const state = ctx.state;
+	state.game = game;
+	state.board = emptyBoard(ctx.options.size);
+	state.moves = [];
+	state.startingSide = startingSideOf(game, ctx.options.alternateStart);
+	state.side = state.startingSide;
+	state.running = true;
+	ctx.emit("game_started", { game, startingSide: state.startingSide, xTeam: [...state.teams.X], oTeam: [...state.teams.O] });
+	refreshLocks(ctx);
+	ctx.tryCall(ConsensusService, "reset", {});
+	// A new game, a new chat: the teams' channels show nothing of the games before.
+	ctx.tryCall(TeamChannelService, "newEpoch", { team: "X" });
+	ctx.tryCall(TeamChannelService, "newEpoch", { team: "O" });
+	ctx.tryCall(TeamChannelService, "resetCap", { team: state.side });
+}
+
+// Starts the next game, or marks it due when another mechanic holds it back.
+function startNext(ctx: Ctx): void {
+	const state = ctx.state;
+	if (state.finished || state.running) return;
+	if (state.held) {
+		state.due = true;
+		return;
+	}
+	state.due = false;
+	startGame(ctx, state.game + 1);
+}
+
+function endGame(ctx: Ctx, winLine: readonly number[] | undefined, winner: Side | undefined): void {
+	const state = ctx.state;
+	const result = winner ?? "draw";
+	const moves = [...state.moves];
+	state.running = false;
+	state.results.push({ game: state.game, result, ...(winLine === undefined ? {} : { winLine: [...winLine] }), moves });
+	ctx.emit("game_ended", { game: state.game, result, ...(winLine === undefined ? {} : { winLine: [...winLine] }), moves });
+	refreshLocks(ctx);
+	if (state.game < ctx.options.games) {
+		ctx.schedule.at(ctx.tick + 1, "nextGame");
+		return;
+	}
+	state.finished = true;
+	ctx.emit("match_ended", { tally: tallyOf(state.results) });
+}
+
+// Why `cell` may not be played by `resident` now, or undefined.
+function problemWith(state: Readonly<GridState>, resident: string | undefined, cell: number): Refusal | undefined {
+	if (state.finished) return refuse("MATCH_OVER", "The match is over.");
+	if (!state.running) return refuse("NO_GAME", "No game is running right now; wait for the next one.");
+	const captain = captainOf(state);
+	if (resident === undefined || resident !== captain) return refuse("NOT_CAPTAIN", `Only the captain of the turn (${captain ?? "nobody"}, side ${state.side}) may play a move.`);
+	if (cell >= state.board.length) return refuse("OUT_OF_RANGE", `Cell ${String(cell)} is not on the board (0..${String(state.board.length - 1)}).`);
+	if (state.board[cell] !== ".") return refuse("CELL_TAKEN", `Cell ${String(cell)} is already taken.`);
+	return undefined;
+}
+
+// Plays `cell` for the side to move (already checked) and moves the turn on; the reply tells the outcome.
+function applyMove(ctx: Ctx, cell: number, forfeit: boolean): ToolSuccess {
+	const state = ctx.state;
+	const side = state.side;
+	const by = captainOf(state) ?? "";
+	state.board[cell] = side;
+	state.moves.push(cell);
+	// The rotation of the captaincy counts the moves taken; a fixed captain never rotates.
+	if (!ctx.options.fixedCaptain) state.taken[side] += 1;
+	ctx.emit("move_played", { game: state.game, side, by, cell, moveNo: state.moves.length, forfeit });
+	const win = winnerOf(state.board, linesOf(ctx.options.size, ctx.options.line));
+	if (win !== undefined) {
+		endGame(ctx, win.cells, win.side);
+		return reply(`Move played. ${side} wins game ${String(state.game)}.`);
+	}
+	if (freeCells(state.board).length === 0) {
+		endGame(ctx, undefined, undefined);
+		return reply(`Move played. Game ${String(state.game)} is a draw.`);
+	}
+	state.side = other(side);
+	refreshLocks(ctx);
+	ctx.tryCall(TeamChannelService, "resetCap", { team: state.side });
+	return reply(`Move played. ${state.side} to move; captain ${captainOf(state) ?? "nobody"}.`);
+}
+
+function boardText(state: Readonly<GridState>, size: number): string {
+	const status = state.finished
+		? "The match is over."
+		: state.running
+			? `Game ${String(state.game)}. Side to move: ${state.side}. Captain of the turn: ${captainOf(state) ?? "nobody"}.`
+			: `Game ${String(state.game)} is over; the next one starts soon.`;
+	return `${renderBoard(state.board, size)}\n${status} X team: ${state.teams.X.join(", ")}. O team: ${state.teams.O.join(", ")}.`;
+}
+
+/**
+ * The grid game: a board game between two teams over a match of several games.
+ *
+ * @example
+ * ```ts
+ * const game = defineGame({ id: "three", residents: 4, mechanics: [gridGame({ games: 1 })], end: { ticks: 20 }, win: { fact: "grid-game.tally" } });
+ * ```
+ *
+ * @public
+ */
+export const gridGame = defineMechanic(gridGameHead, {
+	tools: {
+		viewBoard: { run: (_params, ctx) => reply(boardText(ctx.state, ctx.options.size)) },
+		[PLAY_MOVE]: {
+			check: (params, ctx) => problemWith(ctx.state, ctx.resident, params.cell),
+			run: (params, ctx) => {
+				const refusal = problemWith(ctx.state, ctx.resident, params.cell);
+				if (refusal !== undefined) return refusal;
+				return applyMove(ctx, params.cell, false);
+			},
+		},
+	},
+	services: {
+		"grid-game": {
+			side: (_input, ctx) => (ctx.state.running ? ctx.state.side : null),
+			captain: (_input, ctx) => captainOf(ctx.state),
+			board: (_input, ctx) => [...ctx.state.board],
+			game: (_input, ctx) => ctx.state.game,
+			rules: (_input, ctx) => ({ size: ctx.options.size, line: ctx.options.line }),
+			hold: (_input, ctx) => {
+				if (ctx.state.finished) return false;
+				ctx.state.held = true;
+				return true;
+			},
+			release: (_input, ctx) => {
+				const state = ctx.state;
+				state.held = false;
+				if (state.due && !state.running && !state.finished) ctx.schedule.at(ctx.tick + 1, "nextGame");
+				return null;
+			},
+		},
+		"consensus-source": {
+			team: (_input, ctx) => (ctx.state.running ? ctx.state.side : ""),
+			captain: (_input, ctx) => captainOf(ctx.state) ?? "",
+			legalCells: (_input, ctx) => (ctx.state.running ? [...freeCells(ctx.state.board)] : []),
+			playForfeit: ({ cell }, ctx) => {
+				if (problemWith(ctx.state, captainOf(ctx.state) ?? undefined, cell) !== undefined) return false;
+				applyMove(ctx, cell, true);
+				return true;
+			},
+			invalidate: (_input, ctx) => {
+				const state = ctx.state;
+				if (state.finished) return false;
+				state.running = false;
+				state.finished = true;
+				state.invalid = true;
+				refreshLocks(ctx);
+				ctx.emit("match_ended", { tally: tallyOf(state.results), invalid: true });
+				return true;
+			},
+		},
+	},
+	hooks: {
+		// After the strategy brain's runStarted phase, which may hold the first game back.
+		runStarted: {
+			after: ["strategy-brain"],
+			run: (ctx) => {
+				startNext(ctx);
+			},
+		},
+		// The captain of the turn is told so once per turn and tick: a resident that ended its turn on a stale board ("X's move now") gets no new input otherwise, so the runner never asks its model again and the move forfeits (P410, as P104 in morris).
+		turnInputs: (resident, ctx) => {
+			const state = ctx.state;
+			if (!state.running || captainOf(state) !== resident) return [];
+			const key = `${String(state.game)}:${String(state.moves.length)}:${String(ctx.tick)}`;
+			if (state.told === key) return [];
+			state.told = key;
+			return [`Side ${state.side} is on move (move ${String(state.moves.length + 1)} of game ${String(state.game)}); you are its captain. viewBoard shows the board.`];
+		},
+		news: (resident, ctx) => (ctx.options.wakeTeam && ctx.state.running ? ctx.state.teams[ctx.state.side].includes(resident) : captainOf(ctx.state) === resident),
+	},
+	jobs: {
+		nextGame: (ctx) => {
+			startNext(ctx);
+		},
+	},
+	limits: { match: { summary: "Breaches once the last game of the match is over.", breached: (view: View) => (view.state.invalid === true ? "the match is invalid" : view.state.finished ? "the match is over" : undefined) } },
+	facts: {
+		tally: { output: Type.Object({ X: Type.Integer(), O: Type.Integer(), draw: Type.Integer() }), compute: (view) => tallyOf(view.state.results) },
+		captain: { output: Type.Union([Type.String(), Type.Null()]), compute: (view) => captainOf(view.state) },
+	},
+});

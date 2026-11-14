@@ -4,6 +4,45 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const strategyBrain: MechanicDefinition<"strategy-brain", Type.TObject<{
+enabled: Type.TBoolean;
+brainTeams: Type.TOptional<Type.TArray<Type.TString>>;
+maxWords: Type.TInteger;
+maxRules: Type.TInteger;
+teams: Type.TRecord<"^.*$", Type.TArray<Type.TString>>;
+retroMaxPosts: Type.TInteger;
+retroMaxMinutes: Type.TInteger;
+shared: Type.TBoolean;
+brainAtStart: Type.TBoolean;
+postTool: Type.TString;
+retroFocus: Type.TString;
+solo: Type.TBoolean;
+}>, {
+brain_written: Type.TObject<{
+team: Type.TString;
+game: Type.TInteger;
+version: Type.TInteger;
+author: Type.TString;
+words: Type.TInteger;
+hash: Type.TString;
+text: Type.TString;
+}>;
+retro_started: Type.TObject<{
+team: Type.TString;
+game: Type.TInteger;
+captain: Type.TString;
+}>;
+retro_closed: Type.TObject<{
+team: Type.TString;
+game: Type.TInteger;
+reason: Type.TUnion<[Type.TLiteral<"written">, Type.TLiteral<"max_posts">, Type.TLiteral<"timeout">]>;
+}>;
+}, "readBrain" | "writeBrain">;
+
 // (No @packageDocumentation comment for this package)
 
 ```

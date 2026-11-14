@@ -4,6 +4,23 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const optimalReferee: MechanicDefinition<"optimal-referee", Type.TObject<{
+maxEmptyCells: Type.TInteger;
+}>, {
+move_scored: Type.TObject<{
+game: Type.TInteger;
+moveNo: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+value_before: Type.TInteger;
+value_after: Type.TInteger;
+class: Type.TUnion<[Type.TLiteral<"optimal">, Type.TLiteral<"blunder">, Type.TLiteral<"missed_win">, Type.TLiteral<"missed_block">]>;
+}>;
+}, never>;
+
 // (No @packageDocumentation comment for this package)
 
 ```

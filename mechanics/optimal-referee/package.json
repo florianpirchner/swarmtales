@@ -10,7 +10,7 @@
 		"kind": "mechanic",
 		"class": "game",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["optimalReferee"]
 	},
 	"exports": {
 		".": {
