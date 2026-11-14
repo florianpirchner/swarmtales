@@ -39,7 +39,7 @@ game." ([#992](../../../stories/whispers/runs/whispers-06a-007-haiku-defy/))
 ## Board games
 
 ### Chess
-*Two seats, moves written as text, Stockfish as the judge.* · [story](../../../stories/chess/) · [runs](../../../stories/chess/runs/)
+*Two seats, moves written as text, a chess engine as the judge.* · [story](../../../stories/chess/) · [runs](../../../stories/chess/runs/)
 
 Haiku plays chess like a beginner: 18. Qxf4?? exf4, "nothing defends that queen"
 ([#394](../../../stories/chess/runs/chess-02a-010-threats-g4-s37/)). Give it a list of legal moves and loose

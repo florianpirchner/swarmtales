@@ -269,7 +269,7 @@ describe("the brain's replay check for text moves", () => {
 	});
 });
 
-describe("the engine reference (Stockfish, lab)", () => {
+describe("the engine reference (lab)", () => {
 	it("scores a hanging queen as a blunder and the engine's own move as no loss", async () => {
 		const moves = ["e4", "d6", "Qg4", "Bxg4"].map((san, index) => ({ ply: index + 1, colour: index % 2 === 0 ? ("white" as const) : ("black" as const), by: index % 2 === 0 ? "A01" : "A02", san, forfeit: false }));
 		const plies = await analyseGame(moves, 6);

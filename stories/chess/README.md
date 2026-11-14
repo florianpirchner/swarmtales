@@ -41,11 +41,22 @@ counted, so a grab on the last half-move into a recapture no longer wins. Furthe
 `seed`, `minutes`. Mechanics: `chess` (chess.js 1.4, BSD-2-Clause), `strategy-brain` (solo seats).
 Mechanics with `-teams`: also `team-channel`.
 
-**Engine reference (lab only).** `pnpm lab:chess <run-dir> [--depth 14]` replays every game of a run with
-Stockfish 10 (npm `stockfish.js`, GPL-3.0, a root dev dependency that no package and no live run imports) and
+**Engine reference (lab only).** `pnpm lab:chess <run-dir> [--depth 10]` replays every game of a run with
+Garbochess-JS (`BSD-3-Clause`, one unmodified file vendored under [`third_party/garbochess/`](../../third_party/garbochess/),
+pinned by commit and SHA-256; not a dependency, and no package and no live run imports it) and
 writes `analysis.json` and `ANALYSIS.md` into the run directory: centipawn loss per half-move against the
 engine's best move, inaccuracies (50+), mistakes (100+), blunders (300+) and missed mates per game and side.
-Depth 14 takes about a second per position. This is the number to quote for move quality; `move_scored` is
-the cheap in-run check.
+The header of `analysis.json` names the engine, its commit, its hash and the depth. The engine has a hand-written
+evaluation and no net, no opening book and no clock in its result: the same position at the same depth gives the
+same score, best move and node count on every machine (`test/stories/chess-engine.test.ts`). Depth 10 takes
+about 0.7 s of CPU time per position in the median (a few positions take a minute; a search has no time limit), about
+four CPU-hours for the 57 recorded runs. This is the number to quote for move quality; `move_scored` is the
+cheap in-run check.
+
+Until 2026-11-14 the reference was Stockfish 10 at depth 14. It was replaced because of its licence (GPL-3.0),
+and every recorded run was scored again; the old numbers stay next to the new ones as
+`analysis.stockfish10.json` and `ANALYSIS.stockfish10.md`, and
+[`runs/REANALYSIS.md`](runs/REANALYSIS.md) compares the two. Centipawn loss is a distance on one engine's scale
+at one depth: numbers of the two engines are never mixed in one table.
 
 Runs and results: [runs/README.md](runs/README.md).

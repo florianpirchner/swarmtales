@@ -1,6 +1,6 @@
 # chess-02a-006-nobrain-s31
 
-`swt run --story chess-nobrain-p80 --provider anthropic --model haiku --seed 31`, `-nobrain` arm (no strategy brain); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A01": 0, "A02": 2}. **Cost 0.055 USD**, 125 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.md](run/ANALYSIS.md)).
+`swt run --story chess-nobrain-p80 --provider anthropic --model haiku --seed 31`, `-nobrain` arm (no strategy brain); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A01": 0, "A02": 2}. **Cost 0.055 USD**, 125 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)).
 
 **Result.** **A02 won both games by resignation**: game 1 at move 20 (19. Qc5?? Kh7?! 20. Nf3?? Nxc5, the queen hung for two moves), game 2 at move 24 when 24. Qxa5 won A01's queen.
 
@@ -28,5 +28,7 @@ None by the residents. No seat moved out of turn, no move bypassed chess.js, and
 
 ## Notes
 
-- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.md` and `run/analysis.json`.
+- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.stockfish10.md` and `run/analysis.stockfish10.json`.
 - Files: `run/events.jsonl` (+ chain and public key), `run/usage.json`, `run/agents/` (transcripts).
+
+> **Engine note (2026-11-14).** The engine numbers in this README are from Stockfish 10 at depth 14 and are kept as measured ([ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md), `run/analysis.stockfish10.json`). The reference engine is now Garbochess-JS at depth 10: the same games scored again are in [ANALYSIS.md](run/ANALYSIS.md) and `run/analysis.json`, and [REANALYSIS.md](../REANALYSIS.md) compares the two. Numbers of the two engines are not comparable.

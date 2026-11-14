@@ -300,7 +300,7 @@ the consensus gate needed no change. Runs: [stories/morris-teams/runs/](../../st
 | Nine men's morris | Solved (a draw); an exact solver is possible but heavy; a depth-limited alpha-beta works for scoring | Best of the four: small rules, phases (place, move, fly), real tactics | M |
 | Checkers (draughts, 8x8) | Solved (a draw); an alpha-beta engine scores moves | Good; forced captures are a nice test of "read the rules" | M |
 | Go (5x5 or 7x7) | A small-board engine (for example a Monte Carlo tree search in code) is needed to score; scoring the end position needs a counting rule | Hard for Haiku to even stay legal; interesting but expensive to adjudicate | L |
-| Chess | An external engine (for example Stockfish) would score centipawn loss | Models make illegal moves often; needs a legality filter and a board renderer; the cost per game is high (60+ moves, long contexts) | L |
+| Chess | An external engine would score centipawn loss (it must have a permissive licence: no GPL engine such as Stockfish) | Models make illegal moves often; needs a legality filter and a board renderer; the cost per game is high (60+ moves, long contexts) | L |
 
 **Chess built (2026-11-06, Flo's go):** story `chess` ([stories/chess/](../../stories/chess/README.md)) on the new
 mechanic `chess`, two solo seats (not teams yet), alternating colours, chess.js 1.4 (BSD-2-Clause, pure
@@ -313,8 +313,9 @@ Runs: [stories/chess/runs/](../../stories/chess/runs/README.md).
 
 **Chess teams and the engine reference built (2026-11-06, Flo's go):** `chess-teams` plays two teams of two with
 a rotating captain and an advisor turn on the team channel; the brain's replay check covers move text
-(`replaysLine`, P112); Stockfish 10 (npm `stockfish.js`, GPL-3.0) scores finished runs in the lab
-(`pnpm lab:chess`), never in a live run, so its licence stays out of the packages. First comparison over six
+(`replaysLine`, P112); a chess engine scores finished runs in the lab (`pnpm lab:chess`), never in a live run
+(Stockfish 10 at first; replaced on 2026-11-14 by Garbochess-JS, `BSD-3-Clause`, because of Stockfish's GPL
+licence; the numbers in this paragraph are the Stockfish ones of that day). First comparison over six
 Haiku runs (two games each, cap 80 half-moves): engine ACPL 167 default, 80 with the legal list, 144 without a
 brain, 98 for teams (at 2.3 times the cost); details in [stories/chess/runs/](../../stories/chess/runs/README.md)
 and P113-P116. Four-game matches on one seed (2026-11-06, about 1.4 USD): default 148, `-moves` 86, the new
@@ -501,8 +502,9 @@ most and have the weakest reference scores. Chess and Go are the least attractiv
    consensus and chat cost but reuse the tic-tac-toe stack.
 4. **Chat.** Silent games (cards and bids only) or table talk? Silent is cheaper and cleaner; talk is
    where the loopholes and the drama are.
-5. **Engines.** Is an external engine (Stockfish, a Go engine) acceptable as a dependency, or only
-   pure TypeScript references?
+5. **Engines.** Is an external engine (a chess or Go engine) acceptable as a dependency, or only
+   pure TypeScript references? (Decided on 2026-11-14 for the licence: permissive only, never GPL or other
+   copyleft; chess uses a vendored BSD engine.)
 6. **Names.** Are the working titles (Ember Tricks, Quarry, Convoy, Salt Market) fine as placeholders,
    or do you want a naming pass with a trademark check before anything public?
 7. **Reviewer pass.** Should a challenger review each game paper's rules for originality before
