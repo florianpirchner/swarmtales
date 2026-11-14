@@ -1,6 +1,6 @@
 # Resume note of the rewrite (kept by the integrator)
 
-Last update: 2026-11-14, about 15:45 UTC. Read this first when the work is picked up again.
+Last update: 2026-11-14, about 18:25 UTC. Read this first when the work is picked up again.
 
 ## Where things are
 
@@ -13,24 +13,25 @@ Last update: 2026-11-14, about 15:45 UTC. Read this first when the work is picke
   Rules for builders: `CLAUDE.md`; specifications `08-m1-spec.md`, `09-m2-spec.md`, `10-m3-spec.md` and the errata
   files `08-m1-spec-errata.md` and `09-m2-spec-errata.md`; decisions `DECISIONS.md` (section 9: A1 to A22).
 - **M1 is complete** (issues 00 to 40, four reviews). Tic-tac-toe teams matches its nine oracle files at level 3.
-- **M2:** issues 00 to 21 and 23 are merged, and the two challenger reviews A (keys, money of a single run) and B
-  (experiment runner, analysis). Quarry (six files) and Econ Lab (five files) match their oracles at level 3. The
-  canary test finds no key in any artefact. **Open:** M2-22 (`swt report`, `swt experiment`; with A18 and errata
-  F12 and F14), then M2-25 and M2-24 below.
-- **M3:** specified in `10-m3-spec.md` (32 issues, M3-00 to M3-31, waves in section 13). Nothing built yet.
-- **Record:** `docs/ISSUE-RECORD.md` holds one row per merge.
+- **M2:** all issues but the gate are merged: 00 to 23, the follow-ups 25 (lab) and 26 (money: the meter fails
+  closed, the ledger pairs by id, a confirmatory run needs a clean tree), and the challenger reviews A and B.
+  **M2-24, the gate, is running** (about 18:20 UTC) on a detached clean checkout of `b7de6505` in
+  `/home/user/wt/gate`; run data in `/home/user/wt/runs-data/` (outside the tree), ledger
+  `/home/user/wt/runs-data/m2-ledger.jsonl` with the cap 4.00 USD. Its results go to the orphan branch
+  `data/runs` (the integrator pushes it) and to `docs/M2-GATE.md` on branch `m2/24`.
+- **M3:** specified in `10-m3-spec.md` (32 issues). Merged: 00 to 14, 16 to 19, 22, 25. Building: 15 (the
+  Director's driver), 26 (oracle proofs 2). Kernel at 1393 code lines.
+- **Record:** `docs/ISSUE-RECORD.md` holds one row per merge up to `0ac3e89`; the rows after it are owed.
+- **Check:** `pnpm check` has a time budget of 600 s; with several builders on the machine the lint alone takes
+  330 s and the last gates are cut off. Builders therefore run targeted gates only (brief of the integrator), and
+  the integrator runs the full check after each batch of merges. Lint runs as three processes (4 GB heap each).
 
 ## Next steps, in this order
 
-1. Merge M2-22.
-2. M2-25, a follow-up for the review findings that stand as `it.fails` tests: B5, B8, B12, B14 (review B); the
-   meter fails open on a cost that is no number, and the ledger pairs a reservation by run name (review A).
-3. M2-24, the gate (`09-m2-spec.md` section 8): live smoke of the Hello Game (cap 0.05 USD), the two noise floors,
-   the two series. Haiku through Anthropic, caps of A17, hard stop 4.00 USD (A14), spend ledger
-   `games/m2-ledger.jsonl`, run data on the orphan branch `data/runs` (A15). Then `docs/M2-GATE.md` and the
-   milestone review.
-4. M3 in the wave order of `10-m3-spec.md` section 13: issue 00, then 01, 04, 05, 07, 08 and 18 in parallel.
-5. The switch (needs the tag `v0-final` on the remote first): `main` becomes the new platform (root
+1. M2-24: read the gate's report, push `data/runs`, merge `m2/24`, then the milestone review of M2.
+2. M3 in the order of `10-m3-spec.md` section 12: after 15: 20 (run loop) and 23 (the game `city-slice`); then 21
+   (`swt resume`), 24 (replays and resumes), 27 to 29 (viewer), 30 (live smoke, A21), 31 (gate).
+3. The switch (needs the tag `v0-final` on the remote first): `main` becomes the new platform (root
    `rewrite/root`), `develop` from `rewrite/develop`.
 
 ## Open follow-ups (not blocking)
