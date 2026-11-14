@@ -4,6 +4,54 @@
 
 ```ts
 
+import { PromptLookup } from '@swarmtales/contracts';
+
+// @public
+export function createPromptLookup(options?: PromptLookupOptions): LayeredPrompts;
+
+// @public
+export function hasStrayBraces(body: string): boolean;
+
+// @public
+export interface LayeredPrompts extends PromptLookup {
+    pathOf(owner: string, id: string): string | undefined;
+}
+
+// @public
+export function libraryDir(): string;
+
+// @public
+export function libraryRoot(): string;
+
+// @public
+export function mechanicPromptFolders(): Readonly<Record<string, string>>;
+
+// @public
+export function parsePromptFile(text: string, source: string): PromptFile;
+
+// @public
+export function placeholders(body: string): readonly string[];
+
+// @public
+export class PromptError extends Error {}
+
+// @public
+export interface PromptFile {
+    readonly body: string;
+    readonly id: string;
+    readonly variables: readonly string[];
+}
+
+// @public
+export interface PromptLookupOptions {
+    readonly game?: string;
+    readonly library?: string;
+    readonly mechanics?: Readonly<Record<string, string>>;
+}
+
+// @public
+export function renderBody(file: PromptFile, variables: Readonly<Record<string, string | number>>): string;
+
 // (No @packageDocumentation comment for this package)
 
 ```

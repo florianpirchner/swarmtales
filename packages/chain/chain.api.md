@@ -4,6 +4,248 @@
 
 ```ts
 
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export function canonicalJson(value: unknown): string;
+
+// @public
+export class CanonicalJsonError extends Error {}
+
+// @public
+export const CHAIN_FILE = "events.chain.jsonl";
+
+// @public
+export const CHAIN_FORMAT = "swarmtales-chain";
+
+// @public
+export const CHAIN_VERSION = 2;
+
+// @public
+export interface ChainBroken {
+    readonly line?: number;
+    readonly ok: false;
+    readonly reason: string;
+}
+
+// @public
+export type ChainCheckpoint = Static<typeof ChainCheckpointSchema>;
+
+// @public
+export const ChainCheckpointSchema: Type.TObject<{
+    genesis: Type.TString;
+    lines: Type.TInteger;
+    hash: Type.TString;
+    publicKey: Type.TString;
+    signature: Type.TString;
+    state: Type.TOptional<Type.TString>;
+}>;
+
+// @public
+export type ChainGenesis = Static<typeof ChainGenesisSchema>;
+
+// @public
+export type ChainGenesisInput = Omit<ChainGenesis, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;
+
+// @public
+export const ChainGenesisSchema: Type.TObject<{
+    version: Type.TLiteral<1>;
+    commit: Type.TOptional<Type.TString>;
+    runtime: Type.TOptional<Type.TInteger>;
+    run: Type.TOptional<Type.TString>;
+    preregistration: Type.TOptional<Type.TString>;
+    story: Type.TString;
+    storyHash: Type.TString;
+    seed: Type.TNumber;
+    models: Type.TRecord<"^.*$", Type.TString>;
+    commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+    format: Type.TLiteral<"swarmtales-chain">;
+    algorithm: Type.TLiteral<"ed25519">;
+    digest: Type.TLiteral<"sha256">;
+    canonical: Type.TLiteral<"RFC 8785">;
+    publicKey: Type.TString;
+    resumedFrom: Type.TOptional<Type.TObject<{
+        file: Type.TString;
+        run: Type.TOptional<Type.TString>;
+        checkpoint: Type.TOptional<Type.TObject<{
+            genesis: Type.TString;
+            lines: Type.TInteger;
+            hash: Type.TString;
+            publicKey: Type.TString;
+            signature: Type.TString;
+            state: Type.TOptional<Type.TString>;
+        }>>;
+    }>>;
+}>;
+
+// @public
+export type ChainGenesisV2 = Static<typeof ChainGenesisV2Schema>;
+
+// @public
+export type ChainGenesisV2Input = Omit<ChainGenesisV2, "format" | "version" | "algorithm" | "digest" | "canonical" | "publicKey">;
+
+// @public
+export const ChainGenesisV2Schema: Type.TObject<{
+    version: Type.TLiteral<2>;
+    manifest: Type.TString;
+    log: Type.TObject<{
+        format: Type.TString;
+        version: Type.TInteger;
+    }>;
+    format: Type.TLiteral<"swarmtales-chain">;
+    algorithm: Type.TLiteral<"ed25519">;
+    digest: Type.TLiteral<"sha256">;
+    canonical: Type.TLiteral<"RFC 8785">;
+    publicKey: Type.TString;
+    resumedFrom: Type.TOptional<Type.TObject<{
+        file: Type.TString;
+        run: Type.TOptional<Type.TString>;
+        checkpoint: Type.TOptional<Type.TObject<{
+            genesis: Type.TString;
+            lines: Type.TInteger;
+            hash: Type.TString;
+            publicKey: Type.TString;
+            signature: Type.TString;
+            state: Type.TOptional<Type.TString>;
+        }>>;
+    }>>;
+}>;
+
+// @public
+export interface ChainHolds {
+    readonly genesis: ChainGenesis | ChainGenesisV2;
+    readonly genesisHash: string;
+    readonly head: string;
+    readonly heads: readonly VerifiedHead[];
+    readonly lines: number;
+    readonly ok: true;
+}
+
+// @public
+export interface ChainTexts {
+    readonly chain: string;
+    readonly events: string;
+    readonly publicKey: string;
+}
+
+// @public
+export type ChainVerdict = ChainHolds | ChainBroken;
+
+// @public
+export function checkpointVerifies(checkpoint: ChainCheckpoint): boolean;
+
+// @public
+export interface ContinuityTextOptions {
+    readonly normalize?: (value: unknown) => unknown;
+}
+
+// @public
+export const EVENTS_FILE = "events.jsonl";
+
+// @public
+export const GenesisEntrySchema: Type.TObject<{
+    kind: Type.TLiteral<"genesis">;
+    seq: Type.TLiteral<0>;
+    previousHash: Type.TString;
+    hash: Type.TString;
+    genesis: Type.TUnion<[Type.TObject<{
+        version: Type.TLiteral<1>;
+        commit: Type.TOptional<Type.TString>;
+        runtime: Type.TOptional<Type.TInteger>;
+        run: Type.TOptional<Type.TString>;
+        preregistration: Type.TOptional<Type.TString>;
+        story: Type.TString;
+        storyHash: Type.TString;
+        seed: Type.TNumber;
+        models: Type.TRecord<"^.*$", Type.TString>;
+        commitments: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+        format: Type.TLiteral<"swarmtales-chain">;
+        algorithm: Type.TLiteral<"ed25519">;
+        digest: Type.TLiteral<"sha256">;
+        canonical: Type.TLiteral<"RFC 8785">;
+        publicKey: Type.TString;
+        resumedFrom: Type.TOptional<Type.TObject<{
+            file: Type.TString;
+            run: Type.TOptional<Type.TString>;
+            checkpoint: Type.TOptional<Type.TObject<{
+                genesis: Type.TString;
+                lines: Type.TInteger;
+                hash: Type.TString;
+                publicKey: Type.TString;
+                signature: Type.TString;
+                state: Type.TOptional<Type.TString>;
+            }>>;
+        }>>;
+    }>, Type.TObject<{
+        version: Type.TLiteral<2>;
+        manifest: Type.TString;
+        log: Type.TObject<{
+            format: Type.TString;
+            version: Type.TInteger;
+        }>;
+        format: Type.TLiteral<"swarmtales-chain">;
+        algorithm: Type.TLiteral<"ed25519">;
+        digest: Type.TLiteral<"sha256">;
+        canonical: Type.TLiteral<"RFC 8785">;
+        publicKey: Type.TString;
+        resumedFrom: Type.TOptional<Type.TObject<{
+            file: Type.TString;
+            run: Type.TOptional<Type.TString>;
+            checkpoint: Type.TOptional<Type.TObject<{
+                genesis: Type.TString;
+                lines: Type.TInteger;
+                hash: Type.TString;
+                publicKey: Type.TString;
+                signature: Type.TString;
+                state: Type.TOptional<Type.TString>;
+            }>>;
+        }>>;
+    }>]>;
+}>;
+
+// @public
+export function headMessage(genesis: string, lines: number, hash: string, state?: string): string;
+
+// @public
+export function jsonHash(value: unknown): string;
+
+// @public
+export function keyFingerprint(publicKey: string): string;
+
+// @public
+export const PUBLIC_KEY_FILE = "run.pub";
+
+// @public
+export interface RunTexts extends ChainTexts {
+    readonly manifest: string;
+}
+
+// @public
+export function snapshotStateHash(file: unknown): string;
+
+// @public
+export interface VerifiedHead {
+    readonly hash: string;
+    readonly lines: number;
+    readonly state?: string;
+}
+
+// @public
+export function verifyChainText(events: string, chain: string, publicKeyPem: string): ChainVerdict;
+
+// @public
+export function verifyContinuityText(previous: ChainTexts, resumed: ChainTexts, options?: ContinuityTextOptions): ChainVerdict;
+
+// @public
+export function verifyRunTexts(texts: RunTexts): ChainVerdict;
+
+// @public
+export function wellFormed(text: string): string;
+
+// @public
+export const ZERO_HASH: string;
+
 // (No @packageDocumentation comment for this package)
 
 ```
