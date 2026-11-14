@@ -271,6 +271,9 @@ export function directorsOf(data: GameData): {
 };
 
 // @public
+export function directorsPlugin(directors: readonly ResolvedDirector[], plugins: readonly ResolvedPlugin[], version: string): ResolvedPlugin;
+
+// @public
 export function directorsReserved(input: {
     readonly count: number;
 }): SwtIssue;
@@ -615,6 +618,9 @@ export function noProvider(input: {
 }): SwtIssue;
 
 // @public
+export const NOT_A_DIRECTOR = "NOT_A_DIRECTOR";
+
+// @public
 export function optionMismatch(input: {
     readonly owner: string;
     readonly kind?: "mechanic" | "scheduler" | "director";
@@ -646,6 +652,9 @@ export function paramOverride(input: {
     readonly known?: readonly string[];
     readonly message?: string;
 }): SwtIssue;
+
+// @public
+export function parseTake(reply: string): TakeAnswer | undefined;
 
 // @public
 export function payloadMismatch(input: {
@@ -1003,6 +1012,20 @@ export function stateUnsaved(input: {
     readonly package?: string;
     readonly problem: "no-start" | "no-schema";
 }): SwtIssue;
+
+// @public
+export type TakeAnswer = Static<typeof TakeAnswerSchema>;
+
+// @public
+export const TakeAnswerSchema: Type.TObject<{
+    firings: Type.TArray<Type.TObject<{
+        seq: Type.TInteger;
+        tick: Type.TInteger;
+        event: Type.TString;
+        payload: Type.TUnknown;
+    }>>;
+    calls: Type.TInteger;
+}>;
 
 // @public
 export interface TextSource {

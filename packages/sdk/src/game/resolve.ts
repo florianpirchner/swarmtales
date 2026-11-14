@@ -7,17 +7,18 @@
 import { jsonHash } from "@swarmtales/chain";
 import { actorId, SwtError, type ActorSpec, type GameData, type JsonValue, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
+import { directorsPlugin } from "../director/plugin.ts";
 import { gameSchemaMismatch, optionMismatch, paramOverride } from "../errors.ts";
 import { RESIDENT_KIND } from "../mechanic/context.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import { appendRoster } from "../roster/index.ts";
 import { gameData } from "./define-game.ts";
-import { directorGrants, resolveDirectors } from "./directors.ts";
+import { DIRECTOR_TAKE, directorGrants, DIRECTORS_PLUGIN, resolveDirectors } from "./directors.ts";
 import { familyParams, isGameFamily, isJson } from "./family.ts";
 import { resolveGrants } from "./grants.ts";
 import { loadOrder } from "./load-order.ts";
 import { collectTexts } from "./texts.ts";
-import { toolNames } from "./tool-names.ts";
+import { shownNameClashes, toolNames, type NamedTool } from "./tool-names.ts";
 import type { Game, ResolvedDirector, ResolvedGame, ResolveInput } from "./types.ts";
 import { actorsOf, checkSchema, directorsOf, mechanicsOf, residentsOf, type UsedMechanic } from "./validate.ts";
 
@@ -133,7 +134,7 @@ function mechanicSteps(data: GameData, definitions: Definitions, input: ResolveI
 	const grants = resolveGrants({ tools: names.tools, grants: data.grants, locked: data.locked });
 	const texts = collectTexts(sources, input.prompts);
 	const issues = [...found.issues.filter((issue) => !(issue.code === "SWT-G022" && own.has(issue.where?.path ?? ""))), ...placed, ...names.issues, ...grants.issues, ...texts.issues];
-	return { used: found.used, order, names: names.names, grants, texts, issues };
+	return { used: found.used, order, tools: names.tools, names: names.names, grants, texts, issues };
 }
 
 // Package name to its version, `0.0.0` when the caller gave none.
@@ -149,6 +150,15 @@ function builtGame(input: ResolveInput): { readonly game: Game | GameData; reado
 	const { params, issues } = familyParams(input.game, input.params);
 	if (issues.length > 0) throw new SwtError(issues);
 	return { game: input.game.build(params), params };
+}
+
+// The tool `take` of the plugin `directors` as the name steps see a tool.
+const TAKE: NamedTool = { canonical: DIRECTOR_TAKE, name: "take", shown: "take", owner: DIRECTORS_PLUGIN, for: [], path: "directors" };
+
+// One `SWT-G013` per Director whose grant holds a tool of a mechanic that is shown as `take`: its `take` would reach that tool.
+function takeClashes(steps: ReturnType<typeof mechanicSteps>, directors: readonly ResolvedDirector[]): readonly SwtIssue[] {
+	const grants = Object.fromEntries(Object.entries(directorGrants(steps.grants.grants, directors)).filter(([grant]) => directors.some((director) => director.name === grant)));
+	return shownNameClashes(grants, [TAKE, ...steps.tools.filter((tool) => tool.shown === TAKE.shown)]);
 }
 
 interface Checked {
@@ -167,8 +177,10 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 	const { data, steps, scheduler } = parts;
 	const version = versionOf(input.versions ?? {});
 	const loaded = steps.order.map((entry) => entry.definition.resolve(entry.options, input.prompts, version(entry.definition.package)));
-	const plugins = appendRoster(loaded, version(SDK));
-	const filled = filledData(data, steps.used, scheduler, plugins.length > loaded.length, parts.directors);
+	const rostered = appendRoster(loaded, version(SDK));
+	// The plugin `directors` is the last plugin, and only a game with a Director has it.
+	const plugins = parts.directors.length === 0 ? rostered : [...rostered, directorsPlugin(parts.directors, rostered, version(SDK))];
+	const filled = filledData(data, steps.used, scheduler, rostered.length > loaded.length, parts.directors);
 	const limits = data.limits?.maxCallsPerTick === undefined ? {} : { maxCallsPerTick: data.limits.maxCallsPerTick };
 	return {
 		definition: {
@@ -178,7 +190,7 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 			plugins,
 			scheduler: { definition: parts.definition, options: scheduler.options },
 			grants: directorGrants(steps.grants.grants, parts.directors),
-			names: steps.names,
+			names: parts.directors.length === 0 ? steps.names : { ...steps.names, [DIRECTOR_TAKE]: TAKE.shown },
 			startLocks: steps.grants.startLocks,
 			replies: steps.texts.replies,
 			limits: { maxTicks: data.end.ticks, ...limits },
@@ -230,7 +242,7 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	const scheduler = schedulerOf(data, input.schedulers);
 	const events = steps.used.flatMap((entry) => Object.keys(entry.definition.events).map((type) => `${entry.definition.id}.${type}`));
 	const directors = resolveDirectors({ data, definitions: { ...input.directors, ...builder?.directors }, events, scheduler: scheduler.definition === undefined ? undefined : scheduler });
-	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...named.issues, ...directors.issues, ...steps.issues, ...scheduler.issues];
+	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...named.issues, ...directors.issues, ...takeClashes(steps, directors.directors), ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
 	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, directors: directors.directors, steps, scheduler, definition: scheduler.definition });
 }
