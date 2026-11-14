@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+name: New dependency
+description: A new package, tool, action, vendored file or downloaded data. The lockfile changes only with such an issue.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        No GPL and no other copyleft licence, ever. The allowlist is in `docs/LICENCE-POLICY.md`. If there is
+        doubt about a licence, the answer is no and the dependency is replaced.
+  - type: input
+    id: name
+    attributes:
+      label: Name and exact version
+    validations:
+      required: true
+  - type: input
+    id: licence
+    attributes:
+      label: Licence (SPDX id)
+      description: Of the package and, as far as known, of what it pulls in.
+    validations:
+      required: true
+  - type: input
+    id: licence-link
+    attributes:
+      label: Link to the licence text
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is needed, and what was considered instead
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      value: "`pnpm check:licences` is green and `THIRD-PARTY-LICENSES.md` is regenerated."
+    validations:
+      required: true
+  - type: textarea
+    id: allowed-paths
+    attributes:
+      label: Allowed paths
+      value: "package.json of the package that needs it, pnpm-lock.yaml, THIRD-PARTY-LICENSES.md"
+    validations:
+      required: true
+  - type: textarea
+    id: proving-test
+    attributes:
+      label: Proving test
+      value: "The licence gate (`pnpm check:licences`)."
+    validations:
+      required: true
+  - type: dropdown
+    id: variable-changed
+    attributes:
+      label: Variable changed
+      options: [none, kernel, frame, prompts]
+    validations:
+      required: true

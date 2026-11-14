@@ -1,0 +1,38 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": ".",
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+	},
+	"include": [
+		"src",
+		"test",
+		"*.ts"
+	],
+	"references": [
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../../mechanics/grid-game"
+		},
+		{
+			"path": "../../mechanics/consensus"
+		},
+		{
+			"path": "../../mechanics/team-channel"
+		},
+		{
+			"path": "../../mechanics/strategy-brain"
+		},
+		{
+			"path": "../../mechanics/optimal-referee"
+		},
+		{
+			"path": "../../packages/testkit"
+		}
+	]
+}

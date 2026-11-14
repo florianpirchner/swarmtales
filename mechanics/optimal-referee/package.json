@@ -1,0 +1,40 @@
+{
+	"name": "@swarmtales/mechanic-optimal-referee",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Mechanic: a referee that scores each move of the grid game against the best move",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"kind": "mechanic",
+		"class": "game",
+		"layer": "L3",
+		"mechanics": []
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-grid-game": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

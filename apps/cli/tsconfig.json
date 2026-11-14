@@ -1,0 +1,37 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"rootDir": ".",
+		"outDir": "dist-types",
+		"emitDeclarationOnly": true,
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+	},
+	"include": [
+		"src",
+		"test"
+	],
+	"references": [
+		{
+			"path": "../../packages/contracts"
+		},
+		{
+			"path": "../../packages/chain"
+		},
+		{
+			"path": "../../packages/kernel"
+		},
+		{
+			"path": "../../packages/sdk"
+		},
+		{
+			"path": "../../packages/engine"
+		},
+		{
+			"path": "../../packages/runlog"
+		},
+		{
+			"path": "../../packages/testkit"
+		}
+	]
+}

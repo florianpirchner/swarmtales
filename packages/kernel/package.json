@@ -1,0 +1,32 @@
+{
+	"name": "@swarmtales/kernel",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The single-writer state machine over an append-only log",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L1"
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"typebox": "1.3.27"
+	}
+}

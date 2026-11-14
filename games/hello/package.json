@@ -1,0 +1,19 @@
+{
+	"name": "@swarmtales/game-hello",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: the Hello Game of the README",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-grid-game": "workspace:*"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

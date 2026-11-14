@@ -1,0 +1,62 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Port issue
+description: Carry or port code from the old platform (tag v0-final) as it is.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A port changes one variable. Prompt texts, tool names and behaviour stay as they are until the baseline
+        is reproduced on the new platform. A port comes with the tests of what it ports.
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Milestone
+      options: [M1, M2, M3, M4, M5, M6]
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: The paths at the tag v0-final that are carried or ported, with the tests that come along.
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      description: Conditions a reviewer can check, one per line. A game matches its oracle file.
+    validations:
+      required: true
+  - type: textarea
+    id: allowed-paths
+    attributes:
+      label: Allowed paths
+    validations:
+      required: true
+  - type: textarea
+    id: proving-test
+    attributes:
+      label: Proving test
+      description: The oracle file or the ported test file that proves the port.
+    validations:
+      required: true
+  - type: dropdown
+    id: variable-changed
+    attributes:
+      label: Variable changed
+      options: [kernel, frame, prompts, none]
+    validations:
+      required: true
+  - type: dropdown
+    id: byte-identical
+    attributes:
+      label: "Prompt texts and tool names byte-identical"
+      options: ["yes", "no"]
+    validations:
+      required: true
+  - type: textarea
+    id: deviations
+    attributes:
+      label: Registered changes
+      description: Every place where the port differs from the old behaviour, with its reason. Empty means none.

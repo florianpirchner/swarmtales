@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.md text eol=lf
+pnpm-lock.yaml linguist-generated
+*.api.md linguist-generated
+THIRD-PARTY-LICENSES.md linguist-generated

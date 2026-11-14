@@ -1,0 +1,60 @@
+{
+	"$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+	"mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+	"newlineKind": "lf",
+	"compiler": {
+		"overrideTsconfig": {
+			"compilerOptions": {
+				"target": "ES2023",
+				"module": "NodeNext",
+				"moduleResolution": "NodeNext",
+				"strict": true,
+				"skipLibCheck": true,
+				"types": [
+					"node"
+				]
+			},
+			"include": [
+				"dist/**/*.d.ts"
+			]
+		}
+	},
+	"apiReport": {
+		"enabled": true,
+		"reportFolder": "<projectFolder>/",
+		"reportTempFolder": "<projectFolder>/temp/",
+		"reportFileName": "<unscopedPackageName>.api.md"
+	},
+	"docModel": {
+		"enabled": false
+	},
+	"dtsRollup": {
+		"enabled": false
+	},
+	"tsdocMetadata": {
+		"enabled": false
+	},
+	"messages": {
+		"compilerMessageReporting": {
+			"default": {
+				"logLevel": "error"
+			}
+		},
+		"extractorMessageReporting": {
+			"default": {
+				"logLevel": "error"
+			},
+			"ae-undocumented": {
+				"logLevel": "error"
+			},
+			"ae-missing-release-tag": {
+				"logLevel": "error"
+			}
+		},
+		"tsdocMessageReporting": {
+			"default": {
+				"logLevel": "error"
+			}
+		}
+	}
+}

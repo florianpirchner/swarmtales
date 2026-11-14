@@ -1,0 +1,42 @@
+{
+	"name": "swarmtales",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Swarm Tales: the umbrella package, re-exports only",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"exports": {
+		".": {
+			"development": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./mechanic": {
+			"development": "./src/mechanic.ts",
+			"types": "./dist/mechanic.d.ts",
+			"default": "./dist/mechanic.js"
+		},
+		"./testing": {
+			"development": "./src/testing.ts",
+			"types": "./dist/testing.d.ts",
+			"default": "./dist/testing.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"api": "api-extractor run",
+		"api:update": "api-extractor run --local"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

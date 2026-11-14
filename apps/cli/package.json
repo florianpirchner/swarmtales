@@ -1,0 +1,23 @@
+{
+	"name": "@swarmtales/cli",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The swt command line",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/chain": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/runlog": "workspace:*",
+		"@swarmtales/testkit": "workspace:*",
+		"yaml": "2.9.1",
+		"typebox": "1.3.27"
+	}
+}

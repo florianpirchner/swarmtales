@@ -1,0 +1,75 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true
+	},
+	"include": [
+		"scripts",
+		"*.ts"
+	],
+	"references": [
+		{
+			"path": "apps/cli"
+		},
+		{
+			"path": "apps/viewer-web"
+		},
+		{
+			"path": "games/hello"
+		},
+		{
+			"path": "games/tictactoe-teams"
+		},
+		{
+			"path": "mechanics/consensus"
+		},
+		{
+			"path": "mechanics/contracts"
+		},
+		{
+			"path": "mechanics/grid-game"
+		},
+		{
+			"path": "mechanics/optimal-referee"
+		},
+		{
+			"path": "mechanics/strategy-brain"
+		},
+		{
+			"path": "mechanics/team-channel"
+		},
+		{
+			"path": "packages/chain"
+		},
+		{
+			"path": "packages/contracts"
+		},
+		{
+			"path": "packages/engine"
+		},
+		{
+			"path": "packages/kernel"
+		},
+		{
+			"path": "packages/prompts"
+		},
+		{
+			"path": "packages/runlog"
+		},
+		{
+			"path": "packages/sdk"
+		},
+		{
+			"path": "packages/swarmtales"
+		},
+		{
+			"path": "packages/testkit"
+		},
+		{
+			"path": "packages/viewer-core"
+		},
+		{
+			"path": "packages/viewer-ui"
+		}
+	]
+}

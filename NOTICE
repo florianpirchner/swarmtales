@@ -1,0 +1,19 @@
+Swarm Tales
+Copyright 2026 Florian Pirchner and the Swarm Tales contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The name "Swarm Tales" is not licensed. The Apache License does not grant permission to use the trade names,
+trademarks, service marks or product names of the licensor (section 6 of the licence), except as required for
+reasonable and customary use in describing the origin of the work.
+
+Relicensing statement (see below for when it takes effect). Parts of this work are carried from the earlier Swarm
+Tales code base (tag v0-final of this repository), which was published under a source-available licence. Florian
+Pirchner, as the licensor of that code base, offers the carried parts under the Apache License, Version 2.0.
+
+This statement is the licensor's alone to make. It takes effect when Florian Pirchner himself commits this file, as
+the author of the commit and with his Signed-off-by line. A commit that an agent session made, also one that carries
+his sign-off by standing instruction, does not make the statement; until his own commit exists, the text above is a
+draft and the carried parts keep the licence of the tag v0-final.
+
+Third-party software that this work depends on is listed, with its licences, in THIRD-PARTY-LICENSES.md.

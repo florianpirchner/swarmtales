@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+packages:
+  - "packages/*"
+  - "mechanics/*"
+  - "games/*"
+  - "samples/*"
+  - "apps/*"
+# Every dependency is pinned to one exact version (the licence gate checks it).
+saveExact: true
+# No dependency runs an install script. esbuild works without its postinstall.
+allowBuilds:
+  esbuild: false

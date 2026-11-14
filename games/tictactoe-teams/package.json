@@ -1,0 +1,23 @@
+{
+	"name": "@swarmtales/game-tictactoe-teams",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: tic-tac-toe played by two teams",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-grid-game": "workspace:*",
+		"@swarmtales/mechanic-consensus": "workspace:*",
+		"@swarmtales/mechanic-team-channel": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*",
+		"@swarmtales/mechanic-optimal-referee": "workspace:*"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*"
+	}
+}

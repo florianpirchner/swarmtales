@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Work issue
+description: One change with a clear end. No change lands without an issue.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        An issue changes at most 400 hand-written lines (source plus tests; generated and carried files do not
+        count). Split a larger one before work starts. A new game, a new mechanic idea or anything after 1.0
+        needs the owner's go first.
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: Milestone
+      options: [M0, M1, M2, M3, M4, M5, M6, after-1.0]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What and why
+      description: The change in two or three sentences, and the decision or paper it follows.
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+      description: Conditions a reviewer can check, one per line.
+    validations:
+      required: true
+  - type: textarea
+    id: allowed-paths
+    attributes:
+      label: Allowed paths
+      description: The folders and files this issue may change. Anything else is out of scope and goes into a new issue.
+    validations:
+      required: true
+  - type: textarea
+    id: proving-test
+    attributes:
+      label: Proving test
+      description: The test (file and name) that fails before the change and passes after it.
+    validations:
+      required: true
+  - type: dropdown
+    id: variable-changed
+    attributes:
+      label: Variable changed
+      description: One variable at a time. A change that moves more than one is split.
+      options: [none, kernel, frame, prompts]
+    validations:
+      required: true
+  - type: textarea
+    id: api-sketch
+    attributes:
+      label: Public surface (only if a public export, a command, an error text or a file format changes)
+      description: The code a user writes and the error they get. Leave empty when nothing public changes.
+  - type: textarea
+    id: depends-on
+    attributes:
+      label: Depends on
+      description: Issues that must be merged first.

@@ -1,0 +1,37 @@
+{
+	"name": "swarmtales-workspace",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"license": "Apache-2.0",
+	"description": "Swarm Tales: a laboratory for AI agents. Games and societies on one engine, every word and every private thought on record",
+	"packageManager": "pnpm@10.28.0",
+	"engines": {
+		"node": ">=26.13"
+	},
+	"scripts": {
+		"typecheck": "tsc -b",
+		"lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js .",
+		"test": "vitest --run",
+		"check:layers": "node scripts/check-layers.ts",
+		"check:licences": "node scripts/check-licences.ts --check",
+		"licences:write": "node scripts/check-licences.ts --write",
+		"check:signoff": "node scripts/check-signoff.ts",
+		"build": "pnpm -r build",
+		"api": "pnpm -r api",
+		"api:update": "pnpm -r api:update",
+		"check": "node scripts/check.ts"
+	},
+	"devDependencies": {
+		"@eslint/js": "9.39.5",
+		"@microsoft/api-extractor": "7.60.1",
+		"@types/node": "26.6.6",
+		"eslint": "9.39.5",
+		"eslint-plugin-jsdoc": "65.4.5",
+		"tsdown": "0.23.4",
+		"typebox": "1.3.27",
+		"typescript": "5.9.3",
+		"typescript-eslint": "8.72.1",
+		"vitest": "3.2.7"
+	}
+}

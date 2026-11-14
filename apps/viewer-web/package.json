@@ -1,0 +1,16 @@
+{
+	"name": "@swarmtales/viewer-web",
+	"version": "0.0.0",
+	"private": true,
+	"description": "The viewer page",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/viewer-core": "workspace:*",
+		"@swarmtales/viewer-ui": "workspace:*"
+	}
+}
