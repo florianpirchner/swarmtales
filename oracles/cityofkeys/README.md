@@ -11,6 +11,7 @@ tabletop game touches.
 | `cityofkeys-act1-s7.json`, `cityofkeys-act1-s11.json` | the story from its start, six residents, 12 minutes | scripted (`cityActOne`, `cityGamemaker`) | talk on the board and by DM with delivery and receipts, transfers on the ledger, rewards and penalties, wrong codes (`INCORRECT`, `INVALID_FORMAT`), locked tools, names chosen, levels 1 to 7 passed, the end of act one and the start of act two with its deal, the scripted director's actions, one board post of the gamemaker |
 | `cityofkeys-act1-s7-resumed.json` | the same run, saved after minute 6 and continued on a fresh instance | the same script | save and resume: one `resume` entry; every other entry equals `cityofkeys-act1-s7.json` |
 | `cityofkeys-act2-s7.json` | act two with a target of half the residents, continued from a saved first act | scripted (`actTwoResidents`, `actTwoGamemaker`) | delivery receipts, two blames judged by a model role (`role_asked`, `role_answered`), a faction draft, three tribunals with votes (`SELF_VOTE` refused), a ransom that brings a resident back, a last will (one refused: `UNKNOWN_FACTOR`), three exiles and what follows each, and a gamemaker that plans the second tribunal (one plan refused: `INVALID_COUNT`) |
+| `cityofkeys-burn-s7.json` | a reduced City (`setup/cityofkeys-burn.story.json`): no acts, goals or seal, a tribunal from level 3 on that exiles a third of the city | scripted (`scripts/oracles/city-burn.ts`) | two tribunals, two exiles, and for each a burned puzzle piece: `factor_burned` for the level-4 fragment only the exiled resident held, with the residents who still need it |
 
 Source of the calls. All three scripts play through the app's own path with scripted models: one turn per
 resident and minute, one answer with tool calls or none. The act-two script is the scenario of
@@ -33,11 +34,13 @@ reached. A piece given away by a last will shows as `piece_given` before the exi
 
 Not covered, and why:
 
-- **A burned puzzle piece (`factor_burned`).** Under today's rules a certificate or counter-factor no longer burns
-  when a tribunal exiles its holder (P43); only a fragment burns, and no scripted run here exiles a resident on a
-  fragment level. `test/mechanics/exile` covers the burn on stand-ins.
-- **A decision with a window (`decision_proposed`, `decision_settled`).** No mechanic of the story opens one in
-  these runs. The gamemaker's part is its tool calls and its looks (`overseer_called`, `overseer_answered`).
+- **A burned certificate or counter-factor.** Under today's rules these no longer burn when a tribunal exiles
+  their holder (P43): the city keeps them (`piece_kept`). Only a fragment burns, and the story as shipped never
+  exiles a resident on a fragment level, which is why the burn file plays a reduced City.
+- **A decision with a window (`decision_proposed`, `decision_settled`, `amendDecision`).** The tribunal opens one
+  only with its option `decisionWindow` and a holder of `amendDecision`, and a holder is a human or an overseer.
+  The path these scripts play through seats neither with that grant. `test/mechanics/tribunal/verdict.test.ts`
+  reaches the gate on stand-in mechanics; it is the statement of that behaviour, not a file here.
 - The human's hand (pause, instruction, amendment), the classifier, the weaver, the seal's auction beyond its
   opening, levels 8 to 10 played to their end, 12 or more residents.
 - Model text: the scripted models answer with fixed words, which are not in the file.

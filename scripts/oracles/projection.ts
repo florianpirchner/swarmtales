@@ -1,10 +1,14 @@
 /**
  * The rules-level projection of an oracle (`oracles/README.md`, "Three levels of comparison"): what a port must
  * reproduce whatever its scheduler and its texts are. It keeps, per actor, the calls in the actor's own order with
- * their verdict (`ok`, `code`, `stage`), and the events of the mechanics in the order they were written. It drops
- * the turn, skip, minute and resume entries, the events of source `core`, and every text (`reply`, `detail`, `inputs`).
+ * their verdict (`ok`, `code`, `stage`), and the events of the mechanics in the order they were written, together
+ * with the four `core` events that state a rule (`RULE_EVENTS_OF_CORE`). It drops the turn, skip, minute and resume
+ * entries, the other events of source `core`, and every text (`reply`, `detail`, `inputs`).
  */
 import type { Oracle, OracleEntry } from "./format.ts";
+
+/** The events of source `core` that belong to the rules level: a resident is out, the run is stopped, a guard's verdict, a question to a model role. */
+export const RULE_EVENTS_OF_CORE: ReadonlySet<string> = new Set(["resident_suspended", "referee_intervened", "guard_verdict", "role_asked"]);
 
 export interface RulesCall {
 	readonly tool: string;
@@ -25,7 +29,7 @@ export interface RulesEvent {
 export interface RulesProjection {
 	/** Per actor, its calls in its own order. Calls of two actors are not ordered against each other. */
 	readonly calls: Readonly<Record<string, readonly RulesCall[]>>;
-	/** The mechanics' events in timeline order. */
+	/** The mechanics' events and the rule events of `core`, in timeline order. */
 	readonly events: readonly RulesEvent[];
 	readonly end?: Oracle["end"];
 }
@@ -38,7 +42,7 @@ export function rulesProjection(oracle: { readonly timeline: readonly OracleEntr
 			const { code, stage } = entry;
 			const verdict = entry.ok ? {} : { ...(code === undefined ? {} : { code }), ...(stage === undefined ? {} : { stage }) };
 			(calls[entry.actor] ??= []).push({ tool: entry.tool, params: entry.params, ok: entry.ok, ...verdict });
-		} else if (entry.k === "event" && entry.source !== "core") {
+		} else if (entry.k === "event" && (entry.source !== "core" || RULE_EVENTS_OF_CORE.has(entry.type))) {
 			events.push({ source: entry.source, type: entry.type, actor: entry.actor, ...(entry.audience === undefined ? {} : { audience: entry.audience }), payload: entry.payload });
 		}
 	}
