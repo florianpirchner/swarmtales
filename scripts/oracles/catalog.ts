@@ -143,6 +143,7 @@ const EMBER_TRICKS: readonly CatalogItem[] = [
 	live("ember-tricks", "ember-tricks-g1", 31, `${EMBER}/ember-tricks-04a-004-quiet-look/run/events.jsonl.gz`),
 	live("ember-tricks", "ember-tricks-calib-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/calib-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
 	live("ember-tricks", "ember-tricks-mcbid-g4", 32, `${EMBER}/ember-tricks-04a-005-reference/mcbid-s32/events.jsonl.gz`, { cut: EMBER_CUT }),
+	// No run of the no-brain arm replays exactly (`--survey stories/ember-tricks/runs`), so the arm has no file (M4-18).
 	silent("ember-tricks", "ember-tricks", 13, "the registry default: bids and cards forfeited until the match is called off"),
 ];
 
@@ -153,6 +154,8 @@ const HARBOR_LIGHTS: readonly CatalogItem[] = [
 	live("harbor-lights", "harbor-lights-nobrain-g1", 103, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-nobrain-g1-103/run/events.jsonl`),
 	live("harbor-lights", "harbor-lights-solo-g1", 111, `${HARBOR}/harbor-lights-04a-006-game1-plan/harbor-lights-solo-g1-111/run/events.jsonl`),
 	live("harbor-lights", "harbor-lights-nobrain", 37, `${HARBOR}/harbor-lights-04a-005-crew-nobrain-soft/harbor-lights-nobrain-37/run/events.jsonl`, { cut: { type: "game_ended", count: 2, reason: "two of three games, to keep the file small" } }),
+	live("harbor-lights", "harbor-lights-nobrain-aid-g1", 103, `${HARBOR}/harbor-lights-04a-007-decision-aid/harbor-lights-nobrain-aid-g1-103/run/events.jsonl`),
+	scripted("harbor-lights", "harbor-lights-hard-strikes", 13, "harborMisfires", "hard strikes, three games with a crew brain: every seat plays its oldest slot blind, so each game ends at the third strike; in the retro windows every seat posts once and the retro captain writes the brain"),
 	silent("harbor-lights", "harbor-lights", 13, "the registry default: every turn forfeited until the match is called off as invalid"),
 ];
 
@@ -163,6 +166,7 @@ const HOLDEM: readonly CatalogItem[] = [
 	scripted("holdem", "holdem", 11, "holdemProbed", `${HOLDEM_NOTE}; three calls the rules refuse are added`, HOLDEM_CUT),
 	scripted("holdem", "holdem-nobrain", 7, "holdem", HOLDEM_NOTE, HOLDEM_CUT),
 	scripted("holdem", "holdem-hu", 7, "holdem", `heads-up: ${HOLDEM_NOTE}`, HOLDEM_CUT),
+	scripted("holdem", "holdem-aid-mixed", 7, "holdem", `the decision aid for A01 and A03, no brain: ${HOLDEM_NOTE}`, HOLDEM_CUT),
 	silent("holdem", "holdem-hu", 13, "heads-up: every action is the default of the clock, to the end of the match and its scores"),
 ];
 
