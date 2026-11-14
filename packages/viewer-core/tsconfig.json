@@ -5,7 +5,10 @@
 		"rootDir": ".",
 		"outDir": "dist-types",
 		"emitDeclarationOnly": true,
-		"tsBuildInfoFile": "dist-types/.tsbuildinfo"
+		"tsBuildInfoFile": "dist-types/.tsbuildinfo",
+		"lib": [
+			"ES2023"
+		]
 	},
 	"include": [
 		"src",

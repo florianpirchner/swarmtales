@@ -4,6 +4,52 @@
 
 ```ts
 
+import { RunSource } from '@swarmtales/viewer-core';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+import { Vocabulary } from '@swarmtales/viewer-core';
+
+// Warning: (ae-forgotten-export) The symbol "GameInfoSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type GameInfo = Static<typeof GameInfoSchema>;
+
+// @public
+export function mountViewer(element: HTMLElement, setup: ViewerSetup): ViewerHandle;
+
+// @public
+export interface ParsedViews {
+    readonly issues: readonly string[];
+    readonly views: readonly ViewDescriptor[];
+}
+
+// @public
+export function parseGames(value: unknown): readonly GameInfo[];
+
+// @public
+export function parseViews(text: string, source?: string): ParsedViews;
+
+// Warning: (ae-forgotten-export) The symbol "ViewDescriptorSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type ViewDescriptor = Static<typeof ViewDescriptorSchema>;
+
+// @public
+export interface ViewerHandle {
+    unmount(): void;
+}
+
+// @public
+export interface ViewerSetup {
+    readonly games?: readonly GameInfo[];
+    readonly openExternal?: (path: string) => void;
+    readonly source: RunSource;
+    readonly title?: string;
+    readonly verifyWorker?: () => Worker;
+    readonly views?: readonly ViewDescriptor[];
+    readonly vocabulary?: Vocabulary;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```

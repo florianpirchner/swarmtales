@@ -6,10 +6,29 @@ optional and transitive ones included), `third_party/manifest.json` and the acti
 [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md). Every package here is a development tool or a library of this
 repository. `A -> B` means: declared as A, used under B.
 
-340 entries.
+394 entries.
 
 | Package | Version | Licence | Source |
 |---|---|---|---|
+| @babel/code-frame | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-code-frame |
+| @babel/compat-data | 7.29.7 | MIT | https://github.com/babel/babel#readme |
+| @babel/core | 7.29.13 | MIT | https://babel.dev/docs/en/next/babel-core |
+| @babel/generator | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-generator |
+| @babel/helper-compilation-targets | 7.29.13 | MIT | https://github.com/babel/babel#readme |
+| @babel/helper-globals | 7.29.7 | MIT | https://github.com/babel/babel#readme |
+| @babel/helper-module-imports | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-helper-module-imports |
+| @babel/helper-module-transforms | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-helper-module-transforms |
+| @babel/helper-plugin-utils | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-helper-plugin-utils |
+| @babel/helper-string-parser | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-helper-string-parser |
+| @babel/helper-validator-identifier | 7.29.7 | MIT | https://github.com/babel/babel#readme |
+| @babel/helper-validator-option | 7.29.7 | MIT | https://github.com/babel/babel#readme |
+| @babel/helpers | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-helpers |
+| @babel/parser | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-parser |
+| @babel/plugin-transform-react-jsx-self | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-plugin-transform-react-jsx-self |
+| @babel/plugin-transform-react-jsx-source | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-plugin-transform-react-jsx-source |
+| @babel/template | 7.29.7 | MIT | https://babel.dev/docs/en/next/babel-template |
+| @babel/traverse | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-traverse |
+| @babel/types | 7.29.14 | MIT | https://babel.dev/docs/en/next/babel-types |
 | @emnapi/core | 2.0.0-beta.2 | MIT | https://github.com/toyobayashi/emnapi#readme |
 | @emnapi/runtime | 2.0.0-beta.2 | MIT | https://github.com/toyobayashi/emnapi#readme |
 | @emnapi/wasi-threads | 2.2.0 | MIT | https://github.com/toyobayashi/emnapi#readme |
@@ -58,7 +77,11 @@ repository. `A -> B` means: declared as A, used under B.
 | @humanfs/types | 0.15.0 | Apache-2.0 | https://github.com/humanwhocodes/humanfs#readme |
 | @humanwhocodes/module-importer | 1.0.1 | Apache-2.0 | https://github.com/humanwhocodes/module-importer#readme |
 | @humanwhocodes/retry | 0.4.3 | Apache-2.0 | https://github.com/humanwhocodes/retry#readme |
+| @jridgewell/gen-mapping | 0.3.13 | MIT | https://github.com/jridgewell/sourcemaps/tree/main/packages/gen-mapping |
+| @jridgewell/remapping | 2.3.5 | MIT | https://github.com/jridgewell/sourcemaps/tree/main/packages/remapping |
+| @jridgewell/resolve-uri | 3.1.3 | MIT | https://github.com/jridgewell/resolve-uri#readme |
 | @jridgewell/sourcemap-codec | 1.6.0 | MIT | https://github.com/jridgewell/sourcemaps/tree/main/packages/sourcemap-codec |
+| @jridgewell/trace-mapping | 0.3.31 | MIT | https://github.com/jridgewell/sourcemaps/tree/main/packages/trace-mapping |
 | @microsoft/api-extractor | 7.60.1 | MIT | https://api-extractor.com |
 | @microsoft/api-extractor-model | 7.33.16 | MIT | https://api-extractor.com |
 | @microsoft/tsdoc | 0.17.1 | MIT | https://tsdoc.org/ |
@@ -84,6 +107,7 @@ repository. `A -> B` means: declared as A, used under B.
 | @rolldown/binding-wasm32-wasi | 1.2.19 | MIT | https://rolldown.rs/ |
 | @rolldown/binding-win32-arm64-msvc | 1.2.19 | MIT | https://rolldown.rs/ |
 | @rolldown/binding-win32-x64-msvc | 1.2.19 | MIT | https://rolldown.rs/ |
+| @rolldown/pluginutils | 1.0.0-rc.3 | MIT | https://github.com/rolldown/plugins/tree/main/packages/pluginutils#readme |
 | @rolldown/pluginutils | 1.1.1 | MIT | https://github.com/rolldown/plugins/tree/main/packages/pluginutils#readme |
 | @rollup/rollup-android-arm-eabi | 4.68.3 | MIT | https://rollupjs.org/ |
 | @rollup/rollup-android-arm64 | 4.68.3 | MIT | https://rollupjs.org/ |
@@ -119,11 +143,18 @@ repository. `A -> B` means: declared as A, used under B.
 | @sindresorhus/base62 | 1.0.0 | MIT | https://github.com/sindresorhus/base62#readme |
 | @tybys/wasm-util | 0.10.4 | MIT | https://github.com/toyobayashi/wasm-util#readme |
 | @types/argparse | 1.0.38 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped#readme |
+| @types/babel__core | 7.20.5 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__core |
+| @types/babel__generator | 7.27.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__generator |
+| @types/babel__template | 7.4.4 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__template |
+| @types/babel__traverse | 7.28.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/babel__traverse |
 | @types/chai | 5.2.3 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/chai |
 | @types/deep-eql | 4.0.2 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/deep-eql |
 | @types/estree | 1.0.10 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/estree |
 | @types/json-schema | 7.0.15 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/json-schema |
 | @types/node | 26.6.6 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/node |
+| @types/react | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react |
+| @types/react-dom | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom |
+| @types/trusted-types | 2.0.7 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/trusted-types |
 | @typescript-eslint/eslint-plugin | 8.72.1 | MIT | https://typescript-eslint.io/packages/eslint-plugin |
 | @typescript-eslint/parser | 8.72.1 | MIT | https://typescript-eslint.io/packages/parser |
 | @typescript-eslint/project-service | 8.72.1 | MIT | https://typescript-eslint.io |
@@ -141,6 +172,7 @@ repository. `A -> B` means: declared as A, used under B.
 | @typescript-eslint/utils | 8.72.2 | MIT | https://typescript-eslint.io/packages/utils |
 | @typescript-eslint/visitor-keys | 8.72.1 | MIT | https://typescript-eslint.io |
 | @typescript-eslint/visitor-keys | 8.72.2 | MIT | https://typescript-eslint.io |
+| @vitejs/plugin-react | 5.2.0 | MIT | https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme |
 | @vitest/expect | 3.2.7 | MIT | https://github.com/vitest-dev/vitest/tree/main/packages/expect#readme |
 | @vitest/mocker | 3.2.7 | MIT | https://github.com/vitest-dev/vitest/tree/main/packages/mocker#readme |
 | @vitest/pretty-format | 3.2.7 | MIT | https://github.com/vitest-dev/vitest/tree/main/packages/utils#readme |
@@ -178,11 +210,14 @@ repository. `A -> B` means: declared as A, used under B.
 | assertion-error | 2.0.1 | MIT | https://github.com/chaijs/assertion-error#readme |
 | balanced-match | 1.0.2 | MIT | https://github.com/juliangruber/balanced-match#readme |
 | balanced-match | 4.0.4 | MIT | https://github.com/juliangruber/balanced-match#readme |
+| baseline-browser-mapping | 2.11.37 | Apache-2.0 | https://github.com/web-platform-dx/baseline-browser-mapping#readme |
 | brace-expansion | 1.1.22 | MIT | https://github.com/juliangruber/brace-expansion#readme |
 | brace-expansion | 5.0.13 | MIT | https://github.com/juliangruber/brace-expansion#readme |
+| browserslist | 4.29.5 | MIT | https://github.com/browserslist/browserslist#readme |
 | cac | 6.7.14 | MIT | https://github.com/cacjs/cac#readme |
 | cac | 7.1.0 | MIT | https://github.com/cacjs/cac#readme |
 | callsites | 3.1.0 | MIT | https://github.com/sindresorhus/callsites#readme |
+| caniuse-lite | 1.0.30001826 | CC-BY-4.0 | https://github.com/browserslist/caniuse-lite#readme |
 | chai | 5.3.3 | MIT | http://chaijs.com |
 | chalk | 4.1.2 | MIT | https://github.com/chalk/chalk#readme |
 | check-error | 2.1.3 | MIT | https://github.com/chaijs/check-error#readme |
@@ -190,17 +225,22 @@ repository. `A -> B` means: declared as A, used under B.
 | color-name | 1.1.4 | MIT | https://github.com/colorjs/color-name |
 | comment-parser | 1.4.9 | MIT | https://github.com/syavorsky/comment-parser |
 | concat-map | 0.0.1 | MIT | https://github.com/substack/node-concat-map#readme |
+| convert-source-map | 2.0.0 | MIT | https://github.com/thlorenz/convert-source-map |
 | cross-spawn | 7.0.6 | MIT | https://github.com/moxystudio/node-cross-spawn |
+| csstype | 3.2.3 | MIT | https://github.com/frenic/csstype#readme |
 | debug | 4.4.3 | MIT | https://github.com/debug-js/debug#readme |
 | deep-eql | 5.0.2 | MIT | https://github.com/chaijs/deep-eql#readme |
 | deep-is | 0.1.4 | MIT | https://github.com/thlorenz/deep-is#readme |
 | defu | 6.1.7 | MIT | https://github.com/unjs/defu#readme |
 | diff | 8.0.4 | BSD-3-Clause | https://github.com/kpdecker/jsdiff#readme |
+| dompurify | 3.4.17 | (MPL-2.0 OR Apache-2.0) -> Apache-2.0 | https://github.com/cure53/DOMPurify |
 | dts-resolver | 3.0.0 | MIT | https://github.com/sxzz/dts-resolver#readme |
+| electron-to-chromium | 1.5.485 | ISC | https://github.com/Kilian/electron-to-chromium#readme |
 | empathic | 2.1.0 | MIT | https://github.com/lukeed/empathic#readme |
 | es-errors | 1.3.0 | MIT | https://github.com/ljharb/es-errors#readme |
 | es-module-lexer | 1.7.0 | MIT | https://github.com/guybedford/es-module-lexer#readme |
 | esbuild | 0.28.2 | MIT | https://github.com/evanw/esbuild#readme |
+| escalade | 3.2.0 | MIT | https://github.com/lukeed/escalade#readme |
 | escape-string-regexp | 4.0.0 | MIT | https://github.com/sindresorhus/escape-string-regexp#readme |
 | escape-string-regexp | 5.0.0 | MIT | https://github.com/sindresorhus/escape-string-regexp#readme |
 | eslint | 9.39.5 | MIT | https://eslint.org |
@@ -230,6 +270,7 @@ repository. `A -> B` means: declared as A, used under B.
 | fs-extra | 11.3.6 | MIT | https://github.com/jprichardson/node-fs-extra |
 | fsevents | 2.3.3 | MIT | https://github.com/fsevents/fsevents |
 | function-bind | 1.1.2 | MIT | https://github.com/Raynos/function-bind |
+| gensync | 1.0.0-beta.2 | MIT | https://github.com/loganfsmyth/gensync |
 | get-tsconfig | 5.0.0-beta.6 | MIT | https://github.com/privatenumber/get-tsconfig#readme |
 | glob-parent | 6.0.2 | ISC | https://github.com/gulpjs/glob-parent#readme |
 | globals | 14.0.0 | MIT | https://github.com/sindresorhus/globals#readme |
@@ -249,26 +290,32 @@ repository. `A -> B` means: declared as A, used under B.
 | is-glob | 4.0.3 | MIT | https://github.com/micromatch/is-glob |
 | isexe | 2.0.0 | ISC | https://github.com/isaacs/isexe#readme |
 | jju | 1.4.0 | MIT | http://rlidwka.github.io/jju/ |
+| js-tokens | 4.0.0 | MIT | https://github.com/lydell/js-tokens#readme |
 | js-tokens | 9.0.1 | MIT | https://github.com/lydell/js-tokens#readme |
 | js-yaml | 4.3.2 | MIT | https://github.com/nodeca/js-yaml#readme |
 | jsdoc-type-pratt-parser | 9.5.0 | MIT | https://github.com/jsdoc-type-pratt-parser/jsdoc-type-pratt-parser |
+| jsesc | 3.1.0 | MIT | https://mths.be/jsesc |
 | json-buffer | 3.0.1 | MIT | https://github.com/dominictarr/json-buffer |
 | json-schema-traverse | 0.4.1 | MIT | https://github.com/epoberezkin/json-schema-traverse#readme |
 | json-schema-traverse | 1.0.0 | MIT | https://github.com/epoberezkin/json-schema-traverse#readme |
 | json-stable-stringify-without-jsonify | 1.0.1 | MIT | https://github.com/samn/json-stable-stringify |
+| json5 | 2.2.3 | MIT | http://json5.org/ |
 | jsonfile | 6.2.1 | MIT | https://github.com/jprichardson/node-jsonfile#readme |
 | keyv | 4.5.4 | MIT | https://github.com/jaredwray/keyv |
 | levn | 0.4.1 | MIT | https://github.com/gkz/levn |
 | locate-path | 6.0.0 | MIT | https://github.com/sindresorhus/locate-path#readme |
 | lodash.merge | 4.6.2 | MIT | https://lodash.com/ |
 | loupe | 3.2.1 | MIT | https://github.com/chaijs/loupe |
+| lru-cache | 5.1.1 | ISC | https://github.com/isaacs/node-lru-cache#readme |
 | magic-string | 0.30.21 | MIT | https://github.com/Rich-Harris/magic-string#readme |
+| marked | 18.2.0 | MIT | https://marked.js.org |
 | minimatch | 10.2.3 | BlueOak-1.0.0 | https://github.com/isaacs/minimatch#readme |
 | minimatch | 10.2.6 | BlueOak-1.0.0 | https://github.com/isaacs/minimatch#readme |
 | minimatch | 3.1.5 | ISC | https://github.com/isaacs/minimatch#readme |
 | ms | 2.1.3 | MIT | https://github.com/vercel/ms#readme |
 | nanoid | 3.3.20 | MIT | https://github.com/ai/nanoid#readme |
 | natural-compare | 1.4.0 | MIT | https://github.com/litejs/natural-compare-lite#readme |
+| node-releases | 2.0.64 | MIT | https://github.com/chicoxyzzy/node-releases#readme |
 | object-deep-merge | 2.0.1 | MIT | https://github.com/forcir/object-deep-merge |
 | obug | 3.0.0 | MIT | https://github.com/sxzz/obug#readme |
 | optionator | 0.9.4 | MIT | https://github.com/gkz/optionator |
@@ -288,6 +335,9 @@ repository. `A -> B` means: declared as A, used under B.
 | prelude-ls | 1.2.1 | MIT | http://preludels.com |
 | punycode | 2.3.1 | MIT | https://mths.be/punycode |
 | quansync | 1.0.0 | MIT | https://github.com/quansync-dev/quansync#readme |
+| react | 19.3.1 | MIT | https://react.dev/ |
+| react-dom | 19.3.1 | MIT | https://react.dev/ |
+| react-refresh | 0.18.0 | MIT | https://react.dev/ |
 | require-from-string | 2.0.2 | MIT | https://github.com/floatdrop/require-from-string#readme |
 | reserved-identifiers | 1.2.0 | MIT | https://github.com/sindresorhus/reserved-identifiers#readme |
 | resolve | 1.22.14 | MIT | https://github.com/browserify/resolve#readme |
@@ -296,6 +346,8 @@ repository. `A -> B` means: declared as A, used under B.
 | rolldown | 1.2.19 | MIT | https://rolldown.rs/ |
 | rolldown-plugin-dts | 0.28.8 | MIT | https://github.com/sxzz/rolldown-plugin-dts#readme |
 | rollup | 4.68.3 | MIT | https://rollupjs.org/ |
+| scheduler | 0.28.0 | MIT | https://react.dev/ |
+| semver | 6.3.2 | ISC | https://github.com/npm/node-semver#readme |
 | semver | 7.7.4 | ISC | https://github.com/npm/node-semver#readme |
 | semver | 7.8.6 | ISC | https://github.com/npm/node-semver#readme |
 | shebang-command | 2.0.0 | MIT | https://github.com/kevva/shebang-command#readme |
@@ -336,6 +388,7 @@ repository. `A -> B` means: declared as A, used under B.
 | unconfig-core | 7.5.0 | MIT | https://github.com/antfu-collective/unconfig#readme |
 | undici-types | 8.9.0 | MIT | https://undici.nodejs.org |
 | universalify | 2.0.1 | MIT | https://github.com/RyanZim/universalify#readme |
+| update-browserslist-db | 1.3.4 | MIT | https://github.com/browserslist/update-db#readme |
 | uri-js | 4.4.1 | BSD-2-Clause | https://github.com/garycourt/uri-js |
 | verkit | 0.5.0 | MIT | https://github.com/sxzz/verkit#readme |
 | vite | 7.3.8 | MIT | https://vite.dev |
@@ -344,6 +397,7 @@ repository. `A -> B` means: declared as A, used under B.
 | which | 2.0.2 | ISC | https://github.com/isaacs/node-which#readme |
 | why-is-node-running | 2.3.0 | MIT | https://github.com/mafintosh/why-is-node-running |
 | word-wrap | 1.2.5 | MIT | https://github.com/jonschlinkert/word-wrap |
+| yallist | 3.1.1 | ISC | https://github.com/isaacs/yallist#readme |
 | yaml | 2.9.1 | ISC | https://eemeli.org/yaml/ |
 | yocto-queue | 0.1.0 | MIT | https://github.com/sindresorhus/yocto-queue#readme |
 | yuku-ast | 0.19.0 | MIT | https://github.com/yuku-toolchain/yuku#readme |

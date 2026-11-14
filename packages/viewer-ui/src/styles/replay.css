@@ -1,0 +1,44 @@
+.stv-replay { display: grid; gap: 14px; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); align-items: start; }
+@media (max-width: 900px) { .stv-replay { grid-template-columns: minmax(0, 1fr); } }
+.stv-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.stv-controls input[type="range"] { flex: 1 1 220px; accent-color: var(--accent); }
+.stv-controls label { display: flex; gap: 8px; align-items: center; flex: 1 1 260px; }
+.stv-pos { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.stv-lanes { width: 100%; display: block; }
+.stv-lanes text { font: 11px var(--mono); fill: var(--muted); }
+.stv-lanes .cursor { stroke: var(--accent); stroke-width: 1.5; }
+.stv-vlist { height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; position: relative; background: var(--panel); }
+.stv-vrow { position: absolute; left: 0; right: 0; height: 24px; display: flex; gap: 10px; align-items: center; padding: 0 10px; white-space: nowrap; cursor: pointer; font-size: 12.5px; border-bottom: 1px solid transparent; }
+.stv-vrow:hover { background: var(--panel-2); }
+.stv-vrow.current { background: var(--accent-soft); }
+.stv-vrow .seq { font-family: var(--mono); color: var(--muted); width: 6ch; text-align: right; flex: none; }
+.stv-vrow .min { font-family: var(--mono); color: var(--muted); width: 5ch; flex: none; }
+.stv-vrow .type { font-weight: 600; flex: none; }
+.stv-vrow .who { color: var(--s4); flex: none; }
+.stv-vrow .sum { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.stv-detail { background: var(--panel-2); border-radius: 8px; padding: 10px; max-height: 320px; overflow: auto; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stv-msg svg { width: 100%; height: auto; display: block; }
+.stv-msg text { font: 11px var(--mono); fill: var(--text); }
+.stv-board { display: block; width: 100%; max-width: 360px; margin: 0 auto; }
+.stv-board text.coord { font: 9px system-ui, sans-serif; fill: var(--text); opacity: 0.6; }
+.stv-board text.piece { text-anchor: middle; dominant-baseline: central; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", system-ui, sans-serif; }
+.stv-board .white { fill: #fff; stroke: #1b1b1b; stroke-width: 0.03; paint-order: stroke; }
+.stv-board .black { fill: #161616; stroke: #e8e8e8; stroke-width: 0.012; paint-order: stroke; }
+/* Highlights */
+.stv-highlights { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 360px; overflow-y: auto; }
+.stv-highlights button { display: grid; gap: 2px; width: 100%; text-align: left; font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 7px 10px; cursor: pointer; }
+.stv-highlights li.current button { border-color: var(--accent); }
+.stv-hl-head { font-size: 12.5px; color: var(--muted); }
+.stv-hl-source { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding: 0 6px; border-radius: 4px; background: var(--grey-soft); color: var(--muted); }
+.stv-hl-source.report { background: var(--accent-soft); color: var(--accent); }
+.stv-hl-source.rare { background: var(--warn-soft); color: var(--warn); }
+.stv-hl-reason { font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.stv-hl-thought { font-size: 12.5px; font-style: italic; color: var(--muted); overflow-wrap: anywhere; }
+p.stv-hl-reason { margin: 0 0 8px; }
+.stv-thought { margin: 0 0 10px; padding: 6px 10px; border-left: 3px solid var(--accent); background: var(--panel-2); font-style: italic; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stv-thought .stv-link { display: block; font-style: normal; font-size: 12px; margin-bottom: 4px; }
+.stv-link { border: 0 !important; background: none !important; padding: 0 !important; color: var(--accent) !important; cursor: pointer; }
+.stv-text { margin: 0 0 10px; }
+.stv-text p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.stv-vrow.marked .seq { color: var(--warn); font-weight: 600; }
+.stv-replay .stv-card { scroll-margin-top: 130px; }

@@ -4,6 +4,329 @@
 
 ```ts
 
+import { ChainGenesis } from '@swarmtales/chain';
+import { ChainGenesisV2 } from '@swarmtales/chain';
+import { ChainVerdict } from '@swarmtales/chain';
+import { keyFingerprint } from '@swarmtales/chain';
+import { RunManifest } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export function actorLanes(events: readonly RunEvent[]): readonly Lane[];
+
+// @public
+export interface ActorRule {
+    readonly actor?: string | {
+        readonly name: string;
+    };
+    readonly subject?: string;
+}
+
+// @public
+export type ActorVocabulary = Readonly<Record<string, ActorRule>>;
+
+// @public
+export interface CompareRow {
+    readonly costSource?: "log" | "usage.json";
+    readonly costUsd?: number;
+    readonly dir: string;
+    readonly ended: boolean;
+    readonly events: number;
+    readonly metrics: Readonly<Record<string, number | undefined>>;
+    readonly minutes: number;
+    readonly models: Readonly<Record<string, string>>;
+    readonly name: string;
+    readonly result?: string;
+    readonly seed?: number;
+    readonly story?: string;
+}
+
+// @public
+export function compareRuns(models: readonly RunModel[], metrics?: Readonly<Record<string, RunMetric>>): Comparison;
+
+// @public
+export interface Comparison {
+    readonly rows: readonly CompareRow[];
+    readonly spread: Readonly<Record<string, Spread | undefined>>;
+}
+
+// @public
+export interface Count {
+    readonly count: number;
+    readonly key: string;
+}
+
+// @public
+export function findRuns(source: RunSource, dir?: string, options?: FindRunsOptions): Promise<readonly RunSummary[]>;
+
+// @public
+export interface FindRunsOptions {
+    readonly concurrency?: number;
+    readonly depth?: number;
+    readonly onDetails?: (run: RunSummary) => void;
+}
+
+// @public
+interface Highlight_2 {
+    readonly reason: string;
+    readonly seq: number;
+    readonly source: "report" | "rare" | "notable";
+    readonly thought?: {
+        readonly seq: number;
+        readonly text: string;
+    };
+}
+export { Highlight_2 as Highlight }
+
+// @public
+export function highlightsOf(events: readonly RunEvent[], reports?: readonly string[]): readonly Highlight_2[];
+
+// @public
+export function indexRun(input: readonly RunEvent[]): RunIndex;
+
+// @public
+export function joinPath(...parts: readonly string[]): string;
+
+export { keyFingerprint }
+
+// @public
+export interface Lane {
+    readonly actor: string;
+    readonly perMinute: readonly (readonly [number, number])[];
+    readonly seqs: readonly number[];
+}
+
+// @public
+export interface LoadIssue {
+    readonly file: string;
+    readonly line?: number;
+    readonly reason: string;
+}
+
+// @public
+export function loadRun(source: RunSource, dir: string, options?: LoadRunOptions): Promise<RunModel>;
+
+// @public
+export interface LoadRunOptions {
+    readonly actors?: ActorVocabulary;
+}
+
+// @public
+export function memorySource(files: Readonly<Record<string, string>>): RunSource;
+
+// @public
+export interface MessageEdge {
+    readonly count: number;
+    readonly firstSeq: number;
+    readonly from: string;
+    readonly lastSeq: number;
+    readonly to: string;
+    readonly types: readonly string[];
+}
+
+// @public
+export interface MessageGraph {
+    readonly edges: readonly MessageEdge[];
+    readonly nodes: readonly string[];
+}
+
+// @public
+export function messageGraph(events: readonly RunEvent[], seq?: number, vocabulary?: MessageVocabulary): MessageGraph;
+
+// @public
+export interface MessageRule {
+    readonly except?: readonly string[];
+    readonly from?: string;
+    readonly to: {
+        readonly field: string;
+        readonly prefix?: string;
+    } | {
+        readonly fixed: string;
+    };
+}
+
+// @public
+export interface MessageVocabulary {
+    readonly systemAuthors?: readonly string[];
+    readonly types?: Readonly<Record<string, MessageRule | false>>;
+}
+
+// @public
+export interface ReportLink {
+    readonly end: number;
+    readonly event?: RunEvent;
+    readonly seq: number;
+    readonly start: number;
+}
+
+// @public
+export function reportLinks(markdown: string, index?: RunIndex): readonly ReportLink[];
+
+// @public
+export interface RunEvent {
+    readonly actor?: string;
+    readonly at?: string;
+    readonly data: Readonly<Record<string, unknown>>;
+    readonly line: number;
+    readonly minute: number;
+    readonly seq: number;
+    readonly subject?: string;
+    readonly type: string;
+}
+
+// @public
+export interface RunIndex {
+    actors(): readonly string[];
+    atMinute(minute: number): readonly RunEvent[];
+    byActor(actor: string): readonly RunEvent[];
+    bySeq(seq: number): RunEvent | undefined;
+    byType(type: string): readonly RunEvent[];
+    readonly events: readonly RunEvent[];
+    readonly firstSeq: number;
+    readonly lastMinute: number;
+    readonly lastSeq: number;
+    latest(type: string, seq: number): RunEvent | undefined;
+    seqAtMinute(minute: number): number | undefined;
+    types(): readonly string[];
+    upTo(seq: number): readonly RunEvent[];
+}
+
+// Warning: (ae-forgotten-export) The symbol "RunMetaSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type RunMeta = Static<typeof RunMetaSchema>;
+
+// @public
+export type RunMetric = (model: RunModel) => number | undefined;
+
+// @public
+export interface RunModel {
+    readonly analysis?: unknown;
+    readonly analysisReport?: string;
+    readonly dir: string;
+    readonly events: readonly RunEvent[];
+    readonly genesis?: ChainGenesis | ChainGenesisV2;
+    readonly issues: readonly LoadIssue[];
+    readonly manifest?: RunManifest;
+    readonly meta?: RunMeta;
+    readonly name: string;
+    readonly report?: string;
+    readonly texts: {
+        readonly events: string;
+        readonly chain?: string;
+        readonly publicKey?: string;
+        readonly manifest?: string;
+    };
+    readonly transcripts: readonly Transcript[];
+    readonly usage?: UsageFile;
+}
+
+// @public
+export interface RunSource {
+    list(dir: string): Promise<readonly RunSourceEntry[]>;
+    readText(path: string): Promise<string | undefined>;
+}
+
+// @public
+export interface RunSourceEntry {
+    readonly kind: "file" | "dir";
+    readonly name: string;
+}
+
+// @public
+export interface RunSummary {
+    readonly agents?: number;
+    readonly costUsd?: number;
+    readonly dir: string;
+    readonly hasReport: boolean;
+    readonly name: string;
+    readonly pending?: true;
+    readonly signed: boolean;
+    readonly startedAt?: string;
+    readonly story?: string;
+    readonly title?: string;
+}
+
+// @public
+export type RunVerification =
+/**
+* No chain to check: the run has no `events.chain.jsonl` (written before the chain, or by a library
+* caller), or, with `unreadable`, the file is there but could not be read (a rate limit, a 403).
+*/
+    {
+    readonly signed: false;
+    readonly unreadable?: string;
+} | {
+    readonly signed: true;
+    readonly verdict: ChainVerdict;
+    readonly checkedWith: "run.pub" | "given key";
+    readonly key?: string;
+};
+
+// @public
+export interface Spread {
+    readonly max: number;
+    readonly mean: number;
+    readonly min: number;
+    readonly n: number;
+    readonly stdev: number;
+}
+
+// @public
+export function toolCounts(events: readonly RunEvent[], seq?: number): readonly Count[];
+
+// @public
+export interface Transcript {
+    readonly agent: string;
+    readonly path: string;
+    readonly promptPath?: string;
+}
+
+// @public
+export function typeCounts(events: readonly RunEvent[], seq?: number): readonly Count[];
+
+// @public
+export function usageByTick(events: readonly RunEvent[], by?: "actor" | "model" | "total"): readonly UsagePoint[];
+
+// Warning: (ae-forgotten-export) The symbol "UsageFileSchema" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type UsageFile = Static<typeof UsageFileSchema>;
+
+// @public
+export interface UsagePoint extends UsageTotals {
+    readonly key: string;
+    readonly minute: number;
+}
+
+// @public
+export interface UsageTotals {
+    readonly cacheRead: number;
+    readonly cacheWrite: number;
+    readonly costUsd: number;
+    readonly input: number;
+    readonly output: number;
+    readonly requests: number;
+}
+
+// @public
+export function usageTotals(events: readonly RunEvent[], by?: "actor" | "model" | "total"): ReadonlyMap<string, UsageTotals>;
+
+// @public
+export function verifyRun(model: RunModel, options?: VerifyRunOptions): RunVerification;
+
+// @public
+export interface VerifyRunOptions {
+    readonly publicKey?: string;
+}
+
+// @public
+export interface Vocabulary {
+    readonly actors?: ActorVocabulary;
+    readonly messages?: MessageVocabulary;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```
