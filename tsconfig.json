@@ -5,6 +5,7 @@
 	},
 	"include": [
 		"scripts",
+		"games/*.ts",
 		"*.ts"
 	],
 	"references": [
@@ -15,28 +16,70 @@
 			"path": "apps/viewer-web"
 		},
 		{
+			"path": "games/blind-bid"
+		},
+		{
+			"path": "games/chess"
+		},
+		{
 			"path": "games/city-slice"
+		},
+		{
+			"path": "games/convoy"
 		},
 		{
 			"path": "games/econ-lab"
 		},
 		{
+			"path": "games/ember-tricks"
+		},
+		{
+			"path": "games/harbor-lights"
+		},
+		{
 			"path": "games/hello"
+		},
+		{
+			"path": "games/holdem"
+		},
+		{
+			"path": "games/lanterns"
+		},
+		{
+			"path": "games/liars-dice"
+		},
+		{
+			"path": "games/morris-teams"
 		},
 		{
 			"path": "games/quarry"
 		},
 		{
+			"path": "games/salt-market"
+		},
+		{
 			"path": "games/tictactoe-teams"
 		},
 		{
+			"path": "mechanics/card-table"
+		},
+		{
 			"path": "mechanics/channels"
+		},
+		{
+			"path": "mechanics/chess"
+		},
+		{
+			"path": "mechanics/clue-grid"
 		},
 		{
 			"path": "mechanics/consensus"
 		},
 		{
 			"path": "mechanics/contracts"
+		},
+		{
+			"path": "mechanics/convoy"
 		},
 		{
 			"path": "mechanics/court"
@@ -57,10 +100,25 @@
 			"path": "mechanics/grid-game"
 		},
 		{
+			"path": "mechanics/hint-towers"
+		},
+		{
+			"path": "mechanics/holdem"
+		},
+		{
 			"path": "mechanics/human-hand"
 		},
 		{
 			"path": "mechanics/ledger"
+		},
+		{
+			"path": "mechanics/liars-dice"
+		},
+		{
+			"path": "mechanics/morris"
+		},
+		{
+			"path": "mechanics/morris-referee"
 		},
 		{
 			"path": "mechanics/optimal-referee"
@@ -69,10 +127,19 @@
 			"path": "mechanics/puzzles"
 		},
 		{
+			"path": "mechanics/salt-market"
+		},
+		{
+			"path": "mechanics/sealed-auction"
+		},
+		{
 			"path": "mechanics/strategy-brain"
 		},
 		{
 			"path": "mechanics/team-channel"
+		},
+		{
+			"path": "mechanics/trick-play"
 		},
 		{
 			"path": "packages/chain"
@@ -112,6 +179,15 @@
 		},
 		{
 			"path": "packages/viewer-ui"
+		},
+		{
+			"path": "samples/own-director"
+		},
+		{
+			"path": "samples/own-mechanic"
+		},
+		{
+			"path": "samples/own-scheduler"
 		}
 	]
 }

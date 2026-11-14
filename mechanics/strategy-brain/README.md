@@ -18,7 +18,7 @@ identical briefing without the brain, so the brain is the only difference betwee
 | Uses when loaded | `grid-game` (from [grid-game](../grid-game/README.md)), `brain-source` (from [draft-rounds](../draft-rounds/README.md), [econ-games](../econ-games/README.md)), `team-channel` (from [team-channel](../team-channel/README.md)) |
 | Provides | `strategy-brain` |
 | State | kept, snapshot slice version 1 |
-| Games | [econ-lab](../../games/econ-lab/README.md), [quarry](../../games/quarry/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [blind-bid](../../games/blind-bid/README.md), [chess](../../games/chess/README.md), [convoy](../../games/convoy/README.md), [econ-lab](../../games/econ-lab/README.md), [ember-tricks](../../games/ember-tricks/README.md), [harbor-lights](../../games/harbor-lights/README.md), [holdem](../../games/holdem/README.md), [lanterns](../../games/lanterns/README.md), [liars-dice](../../games/liars-dice/README.md), [morris-teams](../../games/morris-teams/README.md), [quarry](../../games/quarry/README.md), [salt-market](../../games/salt-market/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
 
 <!-- /generated:glance -->
 

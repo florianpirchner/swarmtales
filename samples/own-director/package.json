@@ -1,0 +1,24 @@
+{
+	"name": "@swarmtales/sample-own-director",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Sample: sample 6, a Director of your own, with its tutorial",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"@swarmtales/mechanic-decisions": "workspace:*",
+		"@swarmtales/mechanic-human-hand": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*",
+		"@swarmtales/cli": "workspace:*"
+	}
+}

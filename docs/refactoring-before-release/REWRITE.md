@@ -110,11 +110,13 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 - `turns` is a folder of the engine, not a package, and counts in the engine total. There is no `schedulers`
   package.
 - `parallel` (agents act on their own; calls commit in arrival order through one lane; no rollback) is a time-boxed
-  spike of at most three issues plus one expert sample at M6, after the first rerun. The log envelope carries a
+  spike of at most three issues plus one expert sample at M4, before the interface freezes: a scheduler written
+  outside the engine, in `samples/own-scheduler/` (A30). The log envelope carries a
   `basis` field (what the actor had seen) from day one, so the format does not change when the mode arrives. None of
   the 15 games needs it today.
-- The lane is always held in `review`: the world does not change under an approved call. The tick advance in the
-  parallel spike is the commit count, with no option and no wall clock.
+- The lane is always held in `review`: the world does not change under an approved call. A tick of the parallel
+  spike ends when no actor can be opened any more; an option caps the activations of an actor per tick; there is no
+  commit count and no wall clock (A35).
 - Replay is a test tool in the testkit (feed recorded calls, compare events), not a scheduler plugin.
 - Reproducibility levels: reproducible (turns with scripted models), replayable (any mode, the log is the
   schedule), authentic (hash chain). LLM sampling is not seeded and never was; seeds control the world only.
@@ -149,13 +151,13 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
   (turn order, deadline and forfeit, fresh context, hidden score), where seven turn bugs were fixed one game at a
   time. It is unproven on Salt Market, Convoy and Harbor Lights. It is earned (D9): tic-tac-toe, quarry, econ-lab
   and liar's dice are ported as they are, then `match` and `Ruleset` are built on those four in at most six issues,
-  with the mechanical ports as the oracle. The frame is adopted for the other nine games only if all three hold:
+  with the mechanical ports as the oracle. The trial is not run before 1.0 (A31): all thirteen tabletop games are
+  ported as they are, and the frame, with the three criteria below, waits until after 1.0. The frame is adopted for the other nine games only if all three hold:
   1. all four games match their oracle on the frame;
   2. the four games on the frame, the frame included, have fewer source lines than the four mechanical ports;
   3. Salt Market is written out as a `Ruleset` in which no ruleset owns a timer or a job.
 
-  If one fails, the nine games are ported as they are and the frame waits until after 1.0. `match` is not built
-  before M4, and no game except the four is ported twice.
+  No game is ported twice before 1.0.
 - **Names:** an original game and its ruleset get one name; traditional rules get generic names. The renaming is
   one mechanical issue at M6, before names are published. It touches folder, package and log names only, never a
   model-facing name.
@@ -262,9 +264,9 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 | M1 | Skeleton | contracts, kernel, sdk, `turns`, scripted driver, chain over envelopes, manifest; one fixture mechanic; tic-tac-toe ported as it is with its tests | tic-tac-toe matches its oracle; `swt log verify` passes; the viewer opens the run; kernel under 1500 code lines |
 | M2 | Live and measured | models with key broker and canary test; computed facts table; quarry and econ-lab ported as they are; noise floor and the two paired series; the first findings block and the recorded moment enter the README; the data repository `swarmtales-runs` receives the runs | both firm effects keep their sign at 12 seeds (about 2 USD); no key canary in any artefact. **Kill criterion checked here** |
 | M3 | City slice | six scripted residents, talk, ledger, exile that knows nothing about pieces, one piece-owning mechanic that listens to the exile event, one decision, one Director, a pause by the human, snapshot and resume | the slice replays exactly from its log and resumes from a snapshot; `exile` names no other game mechanic; no service cycle |
-| M4 | Frame decision and the bulk | `match` and `Ruleset` on four ported games against their mechanical ports; then the remaining nine games on the winner; harbor-lights and lanterns rerun; `GAMES.md` complete for the tabletop games | every tabletop game matches its oracle or a registered change; four firm effects reproduced in sign |
-| M5 | City and Whispers | recut of the City cluster, Whispers first; Act I and Act II at six residents; API freeze after this, not before | City plays Act I and II; a new Act I base snapshot is recorded |
-| M6 | Release | samples 2 to 4, the parallel spike of at most three issues and its sample, a mechanic and a Director installed from outside the repository, the rename of original games, `swt doctor --online`, names and publishing | the 1.0 list of section 5 holds |
+| M4 | The bulk | the remaining ten tabletop games ported as they are; the parallel spike of at most three issues and its sample; harbor-lights and lanterns rerun; `GAMES.md` complete for the tabletop games | every tabletop game matches its oracle or a registered change; four firm effects reproduced in sign |
+| M5 | City and Whispers | a tabletop game that M4 cut, first; recut of the City cluster, Whispers first; Act I and Act II at six residents; API freeze after this, not before (the scheduler port was tried by a second scheduler at M4) | City plays Act I and II; a new Act I base snapshot is recorded |
+| M6 | Release | samples 2 to 4, a mechanic and a Director installed from outside the repository, the rename of original games, `swt doctor --online`, names and publishing | the 1.0 list of section 5 holds |
 
 **State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: built;
 its gate with the live series is merged ([`../M2-GATE.md`](../M2-GATE.md)), its milestone review is open. M3: built, and its done-when is proven offline by the gate issue
@@ -378,7 +380,7 @@ for the issue list are in `DECISIONS.md` section 2.
 | D7 | Oracles from the old state (`legacy`) | (a) export oracle files and port mechanic tests; (b) new goldens only | (a), before the freeze | replaces the lost differential test against the old engine |
 | D8 | Dependencies between mechanics | (a) "service", provider-owned contract, shared package only for contracts with two providers, events first; (b) a central capabilities package; (c) a standard contracts package with four entries | (a) | (b) rebuilds the hub that caused the question about exile |
 | D9 | Game frame `match` | (a) earned on four games, then decided; (b) built first; (c) never | (a), by the three adoption criteria of section 3.4, in at most six issues | the evidence for it is real, the interface is unproven on three games |
-| D10 | Schedulers at 1.0 | (a) the interface, `turns` with "to act", parallel as spike and sample; (b) a production parallel scheduler at M4; (c) three schedulers | (a) | pluggable from day one without hardening a mode no game uses |
+| D10 | Schedulers at 1.0 | (a) the interface, `turns` with "to act", parallel as spike and sample (at M4, A30); (b) a production parallel scheduler at M4; (c) three schedulers | (a) | pluggable from day one without hardening a mode no game uses |
 | D11 | What the rerun must prove | (a) four firm effects in sign plus chess request counts, the rest set new baselines; (b) fifteen equivalence rows | (a) | (b) cannot be passed even by a correct port at this sample size |
 | D12 | Names, licence, data | (a) now: reserve npm name and scope, Apache with `NOTICE` and SPDX headers, Stockfish removed, replacement under the allowlist, runs in a data repository; (b) at release | (a). No rename and no archive: the rewrite happens in this repository (section 4.1) | cheap now, awkward after a public launch. Reserving names is an action outside the repository and needs the owner's go |
 | D13 | Kernel budget counting | (a) code lines, plus the engine-total test; (b) raw lines | (a) | the TSDoc rule would otherwise punish documentation |

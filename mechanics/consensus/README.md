@@ -19,7 +19,7 @@ game: the game tells it who is on move and which values are legal.
 | Uses when loaded | none |
 | Provides | `consensus` |
 | State | kept, snapshot slice version 1 |
-| Games | [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [morris-teams](../../games/morris-teams/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
 
 <!-- /generated:glance -->
 

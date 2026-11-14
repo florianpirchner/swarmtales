@@ -1,0 +1,24 @@
+{
+	"name": "@swarmtales/sample-own-scheduler",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Sample: the scheduler sample parallel, a second scheduler written outside the engine",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/engine": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/testkit": "workspace:*",
+		"@swarmtales/kernel": "workspace:*",
+		"@swarmtales/mechanic-channels": "workspace:*",
+		"@swarmtales/mechanic-human-hand": "workspace:*"
+	}
+}

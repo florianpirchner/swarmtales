@@ -6,7 +6,7 @@ optional and transitive ones included), `third_party/manifest.json` and the acti
 [`docs/LICENCE-POLICY.md`](docs/LICENCE-POLICY.md). Every package here is a development tool or a library of this
 repository. `A -> B` means: declared as A, used under B.
 
-475 entries.
+476 entries.
 
 | Package | Version | Licence | Source |
 |---|---|---|---|
@@ -271,6 +271,7 @@ repository. `A -> B` means: declared as A, used under B.
 | chai | 5.3.3 | MIT | http://chaijs.com |
 | chalk | 4.1.2 | MIT | https://github.com/chalk/chalk#readme |
 | check-error | 2.1.3 | MIT | https://github.com/chaijs/check-error#readme |
+| chess.js | 1.4.0 | BSD-2-Clause | https://github.com/jhlywa/chess.js |
 | color-convert | 2.0.1 | MIT | https://github.com/Qix-/color-convert#readme |
 | color-name | 1.1.4 | MIT | https://github.com/colorjs/color-name |
 | comment-parser | 1.4.9 | MIT | https://github.com/syavorsky/comment-parser |

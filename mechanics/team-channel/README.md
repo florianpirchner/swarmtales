@@ -18,7 +18,7 @@ game word: a "round" is whatever the caller says it is.
 | Uses when loaded | none |
 | Provides | `team-channel` |
 | State | kept, snapshot slice version 1 |
-| Games | [tictactoe-teams](../../games/tictactoe-teams/README.md) |
+| Games | [chess](../../games/chess/README.md), [harbor-lights](../../games/harbor-lights/README.md), [lanterns](../../games/lanterns/README.md), [morris-teams](../../games/morris-teams/README.md), [tictactoe-teams](../../games/tictactoe-teams/README.md) |
 
 <!-- /generated:glance -->
 

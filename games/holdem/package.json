@@ -1,0 +1,22 @@
+{
+	"name": "@swarmtales/game-holdem",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Game: fixed-limit hold'em with duplicate deals",
+	"type": "module",
+	"license": "Apache-2.0",
+	"sideEffects": false,
+	"swarmtales": {
+		"layer": "L6"
+	},
+	"dependencies": {
+		"@swarmtales/sdk": "workspace:*",
+		"@swarmtales/mechanic-holdem": "workspace:*",
+		"@swarmtales/mechanic-strategy-brain": "workspace:*",
+		"typebox": "1.3.27"
+	},
+	"devDependencies": {
+		"@swarmtales/contracts": "workspace:*",
+		"@swarmtales/testkit": "workspace:*"
+	}
+}
