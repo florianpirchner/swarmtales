@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: Quarry, a drafting game for solo seats. The issues of milestone M2 fill this package.
+ * Game: Quarry, a drafting game for solo seats.
  *
  * @packageDocumentation
  */
-export {};
+export { default, quarryGame, type QuarryOptions } from "../game.ts";
+export { briefings, SEATS } from "../briefing.ts";

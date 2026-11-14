@@ -62,7 +62,6 @@ function unsupportedEntry(entry: OracleEntry, index: number): string | undefined
 }
 
 function unsupported(oracle: Oracle): string | undefined {
-	if (oracle.truncated !== undefined) return "is truncated";
 	if (oracle.setup.definition !== undefined) return "has `setup.definition`";
 	if (oracle.setup.turns.order !== "seeded") return `has the turn order \`${oracle.setup.turns.order}\``;
 	return oracle.timeline.flatMap((entry, index) => unsupportedEntry(entry, index) ?? []).at(0);
@@ -200,7 +199,8 @@ function endOf(end: RunEnd | undefined): unknown {
 
 /**
  * Plays `game` from the oracle's inputs and compares up to `level`. The game is played by its own scheduler with
- * the seed of the oracle, for `setup.minutes` ticks; at its n-th activation a resident makes the calls that follow
+ * the seed of the oracle, for `setup.minutes` ticks (a file with `truncated`: for `truncated.afterMinute + 1` ticks,
+ * compared up to the file's last entry and without the end); at its n-th activation a resident makes the calls that follow
  * its n-th `turn` entry in the file, and never reads a reply; the replay of a live run is pending after a turn with
  * a call, as the recorded model was. Before the run the resolved game is compared with `setup`; the options a
  * file states for a mechanic are filled with the defaults of the mechanic's own `parseOptions` and compared whole
@@ -214,7 +214,7 @@ function endOf(end: RunEnd | undefined): unknown {
  * @returns The differences: every field of the setup that differs, the first difference of each kind in the
  * timeline with the lowest level at which it shows, and the end. An empty list is a match.
  * @throws SwtError `SWT-T002` for an oracle the runner does not play at M1: a `resume` entry, a call of an actor
- * that is no resident, a truncated file, `setup.definition`, the turn order `custom`, or a `core` event other than
+ * that is no resident, `setup.definition`, the turn order `custom`, or a `core` event other than
  * `tool_locked`, `tool_unlocked` and `referee_intervened`. Also what `play` throws.
  * @example
  * ```ts
@@ -229,11 +229,15 @@ export async function runOracle(oracle: Oracle, game: Game | GameData, level: Or
 	const prompts = options.prompts ?? createPromptLookup();
 	const installed = options.installed === undefined ? {} : { installed: options.installed };
 	const resolved = resolveGame({ game, schedulers: { turns }, prompts, seed: oracle.seed, ...installed });
-	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks: oracle.setup.minutes, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
+	// A cut file is played to the end of the tick of its cut; what the run wrote after the file's last entry is not compared, nor is the end.
+	const cut = oracle.truncated;
+	const ticks = cut === undefined ? oracle.setup.minutes : cut.afterMinute + 1;
+	const played = await play(game, { ...installed, prompts, seed: oracle.seed, ticks, drivers: { [RESIDENT_KIND]: driverOf(oracle) } });
+	const timeline = timelineOf(played.events);
 	const end = endOf(played.end);
 	return [
 		...setupMismatches(statedSetup(oracle, definitionsOf(game, options.installed)), resolvedSetup(resolved)),
-		...timelineMismatches(oracle.timeline, timelineOf(played.events), level),
-		...(Value.Equal(oracle.end, end) ? [] : [{ level: 1, at: "end", index: -1, expected: oracle.end, actual: end } as const]),
+		...timelineMismatches(oracle.timeline, cut === undefined ? timeline : timeline.slice(0, oracle.timeline.length), level),
+		...(cut !== undefined || Value.Equal(oracle.end, end) ? [] : [{ level: 1, at: "end", index: -1, expected: oracle.end, actual: end } as const]),
 	];
 }

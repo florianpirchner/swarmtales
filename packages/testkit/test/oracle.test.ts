@@ -175,7 +175,6 @@ describe("runOracle", () => {
 		const refusal = (faulty: Oracle): Promise<string> => runOracle(faulty, game).then(() => "no error", (error: unknown) => (error instanceof SwtError ? `${error.code} ${error.message}` : String(error)));
 		expect(await refusal({ ...oracle, timeline: [...timeline, { k: "resume", minute: 1 }] })).toMatch(/^SWT-T002 .*`relay` with the seed 7 has a `resume` entry \(timeline\[28\]\)/);
 		expect(await refusal(changed((entry, index) => (index === 4 && entry.k === "call" ? { ...entry, actor: "script" } : entry)))).toMatch(/^SWT-T002 .*a call of `script`, which is no resident \(timeline\[4\]\)/);
-		expect(await refusal({ ...oracle, truncated: { afterMinute: 1, reason: "cut" } })).toMatch(/is truncated/);
 		expect(await refusal({ ...oracle, setup: { ...oracle.setup, turns: { ...oracle.setup.turns, order: "custom" } } })).toMatch(/turn order `custom`/);
 		expect(await refusal(changed((entry) => (entry.k === "event" && entry.type === "referee_intervened" ? { ...entry, type: "role_asked" } : entry)))).toMatch(/platform event `core\.role_asked`/);
 	});
