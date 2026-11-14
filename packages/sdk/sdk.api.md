@@ -96,6 +96,9 @@ export interface DeclaredTool {
 export function defineEvents<const Id extends string, const E extends EventSchemas>(id: Id, events: E): EventsDefinition<Id, E>;
 
 // @public
+export function defineGame<const Ms extends readonly MechanicUse[]>(game: Game<Ms>): Game<Ms>;
+
+// @public
 export function defineService<const N extends string, const M extends ServiceMethods>(service: ServiceDefinition<N, M>): ServiceDefinition<N, M>;
 
 // @public
@@ -157,7 +160,20 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
 }
 
 // @public
+export function gameData(game: Game): {
+    readonly data: GameData;
+    readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
+};
+
+// @public
 export function gameSchemaMismatch(input: Mismatch): SwtIssue;
+
+// @public
+export interface GrantsInput {
+    readonly grants?: GameData["grants"] | undefined;
+    readonly locked?: GameData["locked"] | undefined;
+    readonly tools: readonly NamedTool[];
+}
 
 // @public
 export interface GrantTweak<T extends string = string> {
@@ -362,6 +378,16 @@ export interface Mismatch {
 }
 
 // @public
+export interface NamedTool {
+    readonly canonical: CanonicalTool;
+    readonly for: readonly string[];
+    readonly name: string;
+    readonly owner: string;
+    readonly path: string;
+    readonly shown: string;
+}
+
+// @public
 export type Needs<Keys, Part> = [Keys] extends [never] ? unknown : Part;
 
 // @public
@@ -495,6 +521,16 @@ export interface ResolvedGame {
 }
 
 // @public
+export interface ResolvedGrants {
+    readonly grants: Readonly<Record<string, readonly CanonicalTool[]>>;
+    readonly issues: readonly SwtIssue[];
+    readonly startLocks: Readonly<Record<string, readonly CanonicalTool[]>>;
+}
+
+// @public
+export function resolveGrants(input: GrantsInput): ResolvedGrants;
+
+// @public
 export interface ResolveInput {
     readonly game: Game | GameData;
     readonly installed?: Readonly<Record<string, MechanicDefinition>>;
@@ -597,6 +633,9 @@ export function shownNameClash(input: {
 }): SwtIssue;
 
 // @public
+export function shownNameClashes(grants: Readonly<Record<string, readonly CanonicalTool[]>>, tools: readonly NamedTool[]): readonly SwtIssue[];
+
+// @public
 export function shownNameMalformed(input: {
     readonly shown: string;
     readonly tool: string;
@@ -669,6 +708,16 @@ export interface ToolHandlers<M extends MechanicShape, Params extends TSchema> {
 export type ToolName = string | ToolRef;
 
 // @public
+export interface ToolNames {
+    readonly issues: readonly SwtIssue[];
+    readonly names: Readonly<Record<CanonicalTool, string>>;
+    readonly tools: readonly NamedTool[];
+}
+
+// @public
+export function toolNames(sources: readonly ToolSource[]): ToolNames;
+
+// @public
 export function toolNotDefined(input: {
     readonly tool: string;
     readonly place: "granted" | "locked";
@@ -684,6 +733,22 @@ export type ToolParams = Readonly<Record<string, TSchema>>;
 
 // @public
 export type ToolsOf<H> = H extends MechanicHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ServiceDefinition[], readonly ServiceDefinition[], readonly ServiceDefinition[], infer TP> ? TP : never;
+
+// @public
+export interface ToolSource {
+    readonly as?: Readonly<Record<string, string>> | undefined;
+    readonly mechanic: {
+        readonly id: string;
+        readonly package: string;
+        readonly head: {
+            readonly tools: readonly {
+                readonly name: string;
+                readonly for: readonly string[];
+            }[];
+        };
+    };
+    readonly path: string;
+}
 
 // @public
 export function twoProviders(input: {
