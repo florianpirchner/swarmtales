@@ -515,5 +515,16 @@ export function implement(declared: AnyDeclaredHead, body: AnyHandlerBody): AnyM
 	return mechanic({ ...declared, ...body, tools });
 }
 
+/**
+ * Handlers of some declared tools, written apart from `implement` (in a second file, or above it):
+ * a unit the compiler and the editor check alone. Spread into the body's `tools`.
+ */
+export function handlersFor<H extends { readonly tools?: Readonly<Record<string, { readonly params: TSchema }>> }, K extends keyof NonNullable<H["tools"]>>(
+	_declared: H,
+	handlers: { readonly [N in K]: ToolHandlers<ShapeOfHead<H>, NonNullable<H["tools"]>[N]["params"]> },
+): { readonly [N in K]: ToolHandlers<ShapeOfHead<H>, NonNullable<H["tools"]>[N]["params"]> } {
+	return handlers;
+}
+
 type AnyDeclaredHead = DeclaredHead<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas, Readonly<Record<string, TSchema>>>;
 type AnyHandlerBody = HandlerBody<string, TSchema, TSchema, unknown, EventSchemas, PromptKeys, readonly ApiDefinition[], readonly ApiDefinition[], readonly ApiDefinition[], DecisionSchemas, Readonly<Record<string, TSchema>>, Readonly<Record<string, TSchema>>>;
