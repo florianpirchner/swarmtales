@@ -144,10 +144,10 @@ describe("the city slice through the command line", () => {
 		expect(before.filter((event) => event.actor === "human").map((event) => event.type)).toEqual(["tool_called", "paused", "tool_result"]);
 		expect(told(before, "decision_proposed")).toMatchObject([[6, "decision_proposed", { decision: "D1", proposal: { exiled: "A03" } }]]);
 		expect(told(after, "resumed", "decision_amended", "decision_settled", "exiled")).toMatchObject([[7, "resumed", {}], [8, "decision_amended", { by: "human", proposal: { exiled: "A02" } }], [8, "decision_settled", { changed: true, proposal: { exiled: "A02" } }], [8, "exiled", { agent: "A02", by: "court" }]]);
-		// The one difference the marker leaves: `decision_settled` holds the line of the amendment, which lies after the marker.
+		// The marker leaves no difference (decision A34, M4-01): `decision_settled` names the amendment by its number `n`, not by its line.
 		const plain = withoutMarker(run.resumed);
 		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(run.straight[index]) ? [] : [event.type]));
-		expect(differing).toEqual(["decision_settled"]);
+		expect(differing).toEqual([]);
 		await proven(run, "seed-7/city-slice-001", (events) => amendmentsBack(events, run.marker));
 	});
 

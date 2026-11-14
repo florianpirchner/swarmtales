@@ -36,7 +36,7 @@ one. Without a holder that can act, or with a window of 0, there is no window an
    `committed: false` with the id.
 4. Until the deadline a holder may amend the decision with the tool `amendDecision`: it gives the id, the whole
    proposal that should stand instead, and its reason. `decision_amended` is written and the amendment is kept in
-   the slice with the seq of the call's `tool_called`. The last amendment stands, with one exception: once the
+   the slice with its number `n`: 1 for the first amendment of this decision, 2 for the second. The last amendment stands, with one exception: once the
    actor `human` has amended a decision, only the human may amend it again.
 5. At the start of the deadline's tick, before anybody acts, the job writes `decision_settled` with the proposal
    that stands; `changed` is true when an amendment stands that differs from the original. The owner listens to
@@ -58,9 +58,12 @@ cycle. A proposal that does not fit its own `schema` is a mistake of the owner a
 
 The option `holders` lists actor ids, not resident ids, because a holder need not be a resident. An id that is no
 actor of the run is refused with `SWT-G020` while the kernel is created, before `run_started`: the head's `start`
-reads `Setup.actors`, and `propose` asks `ctx.actors.mayAct`. The tool does not know the log position of its own
-call, so a listener to the mechanic's own `decision_amended` takes the amendment into the slice with the `causedBy`
-of that event.
+reads `Setup.actors`, and `propose` asks `ctx.actors.mayAct`.
+
+No payload of this mechanic holds a log position (decision A34): an amendment is named by `n`, its number within
+its decision, which the tool counts in the slice. So a resumed run, whose log holds one line more (`run_resumed`),
+writes the same payloads as the straight run. The line of the amending call is the `causedBy` of the envelope of
+`decision_amended`.
 
 ## Tools
 
@@ -109,6 +112,7 @@ Audience: everyone
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `decision` | string | yes | The id of the decision: `D1`, `D2`, in the order they were opened. |
+| `n` | integer ≥ 1 | yes | The number of the amendment within its decision, from 1 in the order the amendments were made. It is no log position. |
 | `by` | string | yes | The actor id of the holder that amended the decision. |
 | `reason` | string | yes | Why the holder amended the decision, in its own words. |
 | `proposal` | any | yes | The proposal: plain JSON data, shaped as the owner says. |
@@ -128,7 +132,7 @@ Audience: everyone
 | `proposal` | any | yes | The proposal: plain JSON data, shaped as the owner says. |
 | `amendments` | object[] | yes | Every amendment, in order; the last one stands. |
 | `amendments[].by` | string | yes | The actor id of the holder that amended the decision. |
-| `amendments[].seq` | integer | yes | The seq of the amending call's `tool_called`. |
+| `amendments[].n` | integer ≥ 1 | yes | The number of the amendment within its decision, from 1 in the order the amendments were made. It is no log position. |
 
 <!-- /generated:events -->
 

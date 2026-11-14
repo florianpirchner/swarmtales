@@ -29,12 +29,11 @@ describe("amendDecision of the human", () => {
 		// Rule 6: no `human_amend`; `decision_amended` names the human.
 		expect(events.some((event) => event.type === "human_amend")).toBe(false);
 		expect(events.filter((event) => event.type === "decision_amended").map((event) => [event.actor, event.payload])).toEqual([
-			["resident:A02", { decision: "D1", by: "resident:A02", reason: "early", proposal: { exiled: "A01" } }],
-			["human", { decision: "D1", by: "human", reason: "the human", proposal: { exiled: "A02" } }],
-			["human", { decision: "D1", by: "human", reason: "the human again", proposal: { exiled: "A01" } }],
+			["resident:A02", { decision: "D1", n: 1, by: "resident:A02", reason: "early", proposal: { exiled: "A01" } }],
+			["human", { decision: "D1", n: 2, by: "human", reason: "the human", proposal: { exiled: "A02" } }],
+			["human", { decision: "D1", n: 3, by: "human", reason: "the human again", proposal: { exiled: "A01" } }],
 		]);
-		const called = events.filter((event) => event.type === "tool_called" && event.actor !== "resident:A01").map((event) => event.seq);
-		expect(events.find((event) => event.type === "decision_settled")?.payload).toMatchObject({ changed: true, by: "human", reason: "the human again", proposal: { exiled: "A01" }, amendments: [{ by: "resident:A02", seq: called[0] }, { by: "human", seq: called[1] }, { by: "human", seq: called[3] }] });
+		expect(events.find((event) => event.type === "decision_settled")?.payload).toMatchObject({ changed: true, by: "human", reason: "the human again", proposal: { exiled: "A01" }, amendments: [{ by: "resident:A02", n: 1 }, { by: "human", n: 2 }, { by: "human", n: 3 }] });
 		expect(events.find((event) => event.type === "committed")?.payload).toEqual({ proposal: { exiled: "A01" }, decision: "D1" });
 	});
 });

@@ -42,6 +42,7 @@ holders: TArray<TString>;
 }>;
 readonly decision_amended: TObject<    {
 decision: TString;
+n: TInteger;
 by: TString;
 reason: TString;
 proposal: TUnknown;
@@ -56,7 +57,7 @@ reason: TOptional<TString>;
 proposal: TUnknown;
 amendments: TArray<TObject<    {
 by: TString;
-seq: TInteger;
+n: TInteger;
 }>>;
 }>;
 }, "amendDecision">;
@@ -74,6 +75,7 @@ holders: Type.TArray<Type.TString>;
 }>;
 readonly decision_amended: Type.TObject<{
 decision: Type.TString;
+n: Type.TInteger;
 by: Type.TString;
 reason: Type.TString;
 proposal: Type.TUnknown;
@@ -88,7 +90,7 @@ reason: Type.TOptional<Type.TString>;
 proposal: Type.TUnknown;
 amendments: Type.TArray<Type.TObject<{
 by: Type.TString;
-seq: Type.TInteger;
+n: Type.TInteger;
 }>>;
 }>;
 }>;

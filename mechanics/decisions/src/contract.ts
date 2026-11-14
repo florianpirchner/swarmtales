@@ -15,6 +15,7 @@ const proposal = Type.Unknown({ description: "The proposal: plain JSON data, sha
 const schema = Type.Optional(Type.Unknown({ description: "A JSON schema every amended proposal must fit." }));
 const deadline = Type.Integer({ description: "The tick at whose start the decision settles." });
 const by = Type.String({ description: "The actor id of the holder that amended the decision." });
+const n = Type.Integer({ minimum: 1, description: "The number of the amendment within its decision, from 1 in the order the amendments were made. It is no log position." });
 const reason = Type.String({ description: "Why the holder amended the decision, in its own words." });
 
 /**
@@ -52,7 +53,7 @@ export const DecisionsEvents = defineEvents("decisions", {
 		{ decision, kind, owner, proposal, schema, deadline, holders: Type.Array(Type.String(), { description: "The actor ids of the holders that can act now." }) },
 		{ description: "A decision was opened; its holders may amend it until the deadline." },
 	),
-	decision_amended: Type.Object({ decision, by, reason, proposal }, { description: "A holder replaced the proposal of an open decision." }),
+	decision_amended: Type.Object({ decision, n, by, reason, proposal }, { description: "A holder replaced the proposal of an open decision." }),
 	decision_settled: Type.Object(
 		{
 			decision,
@@ -62,7 +63,7 @@ export const DecisionsEvents = defineEvents("decisions", {
 			by: Type.Optional(by),
 			reason: Type.Optional(reason),
 			proposal,
-			amendments: Type.Array(Type.Object({ by, seq: Type.Integer({ description: "The seq of the amending call's `tool_called`." }) }), { description: "Every amendment, in order; the last one stands." }),
+			amendments: Type.Array(Type.Object({ by, n }), { description: "Every amendment, in order; the last one stands." }),
 		},
 		{ description: "The deadline came: the decision is closed with the proposal that stands." },
 	),

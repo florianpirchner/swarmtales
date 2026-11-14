@@ -8,7 +8,7 @@ import { AmendDecision, DecisionsEvents, DecisionsService } from "./contract.ts"
 const Amendment = Type.Object(
 	{
 		by: Type.String({ description: "The actor id of the holder." }),
-		seq: Type.Integer({ description: "The seq of the amending call's `tool_called`." }),
+		n: Type.Integer({ minimum: 1, description: "The number of the amendment within its decision, from 1." }),
 		proposal: Type.Unknown({ description: "The proposal the holder put in place." }),
 		reason: Type.String({ description: "The holder's reason." }),
 	},

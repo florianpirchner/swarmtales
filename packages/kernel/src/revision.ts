@@ -4,8 +4,9 @@
  * activated, what it is shown, how tool notices and answers arrive), not with every commit. Runs of one revision
  * are comparable; runs of different revisions are not mixed in a comparison without saying so. Every run writes
  * it into its manifest. Raise it in the same pull request as such a change, add a row to
- * `docs/RUNTIME-REVISIONS.md` and set the tag `runtime-rN` at the merge commit. The rewritten kernel starts at 3.
+ * `docs/RUNTIME-REVISIONS.md` and set the tag `runtime-rN` at the merge commit. The rewritten kernel started at 3; 4 takes
+ * the log positions out of the payloads (decision A34).
  *
  * @public
  */
-export const RUNTIME_REVISION = 3;
+export const RUNTIME_REVISION = 4;

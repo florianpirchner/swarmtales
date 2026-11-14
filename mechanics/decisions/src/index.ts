@@ -10,7 +10,6 @@
 import { Clone, Check, Errors } from "typebox/value";
 import type { Refusal, ToolOutcome } from "@swarmtales/contracts";
 import { defineMechanic, refuse, reply, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
-import { DecisionsEvents } from "./contract.ts";
 import { head, type OpenDecision } from "./head.ts";
 
 export { AmendDecision, DECISION_REFUSALS, DecisionsEvents, DecisionsService } from "./contract.ts";
@@ -48,11 +47,13 @@ function barred(ctx: ToolCtxOf<typeof head>, { decision, proposal }: Amendment):
 	return invalid === undefined ? undefined : refuse("PROPOSAL_INVALID", invalid);
 }
 
-// The tool `amendDecision`: writes `decision_amended`; the listener `amended` takes the amendment into the slice.
+// The tool `amendDecision`: numbers the amendment within its decision, keeps it in the slice and writes `decision_amended`.
 function amend(ctx: ToolCtxOf<typeof head>, { decision, proposal, reason }: Amendment): ToolOutcome {
 	const open = openOf(ctx, decision);
 	if (open === undefined) return refuse("DECISION_CLOSED", ctx.prompt("decisions/replies/decision-closed", {}));
-	ctx.emit("decision_amended", { decision, by: ctx.actor, reason, proposal: Clone(proposal) });
+	const n = open.amendments.length + 1;
+	open.amendments.push({ by: ctx.actor, n, proposal: Clone(proposal), reason });
+	ctx.emit("decision_amended", { decision, n, by: ctx.actor, reason, proposal: Clone(proposal) });
 	// The deadline never comes: the amendment is kept in the slice, and the caller is told that nothing settles.
 	if (open.deadline >= ctx.ticks) return reply(ctx.prompt("decisions/replies/decision-outlasts-run", { decision, deadline: open.deadline, last: ctx.ticks - 1 }));
 	return reply(ctx.prompt("decisions/replies/decision-amended", { decision, proposal: JSON.stringify(proposal) }));
@@ -71,7 +72,7 @@ function settle(ctx: CtxOf<typeof head>, id: string): void {
 		changed: winner !== undefined && JSON.stringify(winner.proposal) !== JSON.stringify(open.proposal),
 		...(winner === undefined ? {} : { by: winner.by, reason: winner.reason }),
 		proposal: winner === undefined ? open.proposal : winner.proposal,
-		amendments: open.amendments.map((amendment) => ({ by: amendment.by, seq: amendment.seq })),
+		amendments: open.amendments.map((amendment) => ({ by: amendment.by, n: amendment.n })),
 	});
 }
 
@@ -110,13 +111,6 @@ export const decisions = defineMechanic(head, {
 		},
 	},
 	tools: { amendDecision: { check: (params, ctx) => barred(ctx, params), run: (params, ctx) => amend(ctx, params) } },
-	// A tool context does not carry the log position of its call; the envelope of the call's own event does (`causedBy`).
-	listeners: (kit) => [
-		kit.listen(DecisionsEvents, "decision_amended", ({ decision, by, reason, proposal }, ctx, event) => {
-			if (event.causedBy === undefined) throw new RangeError(`decisions: the amendment of ${decision} follows from no call`);
-			openOf(ctx, decision)?.amendments.push({ by, seq: event.causedBy, proposal: Clone(proposal), reason });
-		}),
-	],
 	jobs: {
 		settle: (ctx, data) => {
 			settle(ctx, typeof data === "string" ? data : "");

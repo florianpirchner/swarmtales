@@ -56,6 +56,13 @@ describe.each(RUNS)("the city slice, $name", ({ name, seed, hand, exiled }) => {
 		expect(plain((await playSlice(seed, hand)).events)).toEqual(plain(events));
 	});
 
+	it("holds no log position in a payload of `decisions`: an amendment is named by its number `n` (decision A34)", () => {
+		const payloads = timeline(name).filter((line) => String(field(line, "type")).startsWith("decision_")).map((line) => JSON.stringify(field(line, "payload")));
+		expect(payloads.length).toBeGreaterThanOrEqual(2);
+		expect(payloads.filter((payload) => payload.includes('"seq"'))).toEqual([]);
+		expect(payloads.filter((payload) => payload.includes('"n":1')).length).toBe(name === "amended" ? 2 : 0);
+	});
+
 	it("moment 1, ticks 0 to 3: every resident posts once, two direct messages are sent and delivered, two transfers happen", async () => {
 		const opening = (await run(name)).events.filter((event) => event.tick <= 3);
 		expect(told(opening, "board_post").map(([, , actor]) => actor).sort()).toEqual(["A01", "A02", "A03", "A04", "A05", "A06"].map((id) => `resident:${id}`));
@@ -106,7 +113,7 @@ describe.each(RUNS)("the city slice, $name", ({ name, seed, hand, exiled }) => {
 		}
 		expect(outcomes[2]).toMatchObject({ ok: true });
 		expect(calls(events, "human")).toEqual([...straight, [8, "amendDecision", "ok"]]);
-		expect(told(events, "decision_amended")).toEqual([[8, "decision_amended", "human", { decision: "D1", by: "human", reason: "A02 paid for its votes", proposal: { exiled: "A02" } }]]);
+		expect(told(events, "decision_amended")).toEqual([[8, "decision_amended", "human", { decision: "D1", n: 1, by: "human", reason: "A02 paid for its votes", proposal: { exiled: "A02" } }]]);
 		expect(first(events, "decision_amended").seq).toBeLessThan(seqOf(events, "tick_started", 8));
 	});
 
@@ -114,7 +121,7 @@ describe.each(RUNS)("the city slice, $name", ({ name, seed, hand, exiled }) => {
 		const { events, kernel } = await run(name);
 		expect(settling(events)).toEqual(["decision_settled", "board_post", "exiled", "actor_suspended", "verdict", "ledger_entry", "factor_burned", "level_contracted"]);
 		expect(events.find((event) => event.type === "job_ran")).toMatchObject({ tick: 8, payload: { owner: "decisions", job: "settle" } });
-		expect(told(events, "decision_settled")).toMatchObject([[8, "decision_settled", "kernel", { decision: "D1", changed: exiled !== "A04", proposal: { exiled }, amendments: exiled === "A04" ? [] : [{ by: "human" }] }]]);
+		expect(told(events, "decision_settled")).toMatchObject([[8, "decision_settled", "kernel", { decision: "D1", changed: exiled !== "A04", proposal: { exiled }, amendments: exiled === "A04" ? [] : [{ by: "human", n: 1 }] }]]);
 		expect(first(events, "board_post", 8).payload).toMatchObject({ author: "CITY", kind: "city", text: `The gate has closed. The city has struck ${exiled} from its register. No one will hear ${exiled} again.` });
 		expect(told(events, "exiled", "actor_suspended", "verdict")).toEqual([
 			[8, "exiled", "kernel", { agent: exiled, by: "court" }],

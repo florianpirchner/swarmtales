@@ -48,7 +48,7 @@ describe("the carried generator (3.6): vectors computed on the old platform", ()
 });
 
 describe("the runtime revision", () => {
-	it("starts at 3 for the rewritten kernel", () => {
-		expect(RUNTIME_REVISION).toBe(3);
+	it("is 4: the rewritten kernel started at 3, and 4 took the log positions out of the payloads (decision A34)", () => {
+		expect(RUNTIME_REVISION).toBe(4);
 	});
 });

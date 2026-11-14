@@ -19,17 +19,14 @@ const amend = (test: TestKernel, resident: string, exiled: unknown, reason = "be
 /** The payloads of one event type, in log order. */
 const payloads = (test: TestKernel, type: string): unknown[] => test.kernel.log.all().filter((event) => event.type === type).map((event) => event.payload);
 
-/** The seqs of the `tool_called` events of `amendDecision`, in log order. */
-const calls = (test: TestKernel): number[] => test.kernel.log.all().filter((event) => event.type === "tool_called" && JSON.stringify(event.payload).includes('"amendDecision"')).map((event) => event.seq);
-
 describe("amendDecision", () => {
 	it("lets the amendment of a holder stand: the owner commits it and learns who and why", async () => {
 		const test = await opened();
 		expect(await amend(test, "A02", "A01", "wrong one")).toEqual({ ok: true, reply: 'amended decision D1; the proposal standing now: {"exiled":"A01"}' });
-		expect(payloads(test, "decision_amended")).toEqual([{ decision: "D1", by: "resident:A02", reason: "wrong one", proposal: { exiled: "A01" } }]);
-		expect(test.kernel.snapshot().plugins.decisions?.data).toMatchObject({ open: { D1: { proposal: { exiled: "A03" }, amendments: [{ by: "resident:A02", seq: calls(test)[0], proposal: { exiled: "A01" }, reason: "wrong one" }] } } });
+		expect(payloads(test, "decision_amended")).toEqual([{ decision: "D1", n: 1, by: "resident:A02", reason: "wrong one", proposal: { exiled: "A01" } }]);
+		expect(test.kernel.snapshot().plugins.decisions?.data).toMatchObject({ open: { D1: { proposal: { exiled: "A03" }, amendments: [{ by: "resident:A02", n: 1, proposal: { exiled: "A01" }, reason: "wrong one" }] } } });
 		await test.playTicks(idleDriver, 3);
-		const settled = { decision: "D1", kind: "owner.verdict", owner: "owner", changed: true, by: "resident:A02", reason: "wrong one", proposal: { exiled: "A01" }, amendments: [{ by: "resident:A02", seq: calls(test)[0] }] };
+		const settled = { decision: "D1", kind: "owner.verdict", owner: "owner", changed: true, by: "resident:A02", reason: "wrong one", proposal: { exiled: "A01" }, amendments: [{ by: "resident:A02", n: 1 }] };
 		expect(told(test.kernel.log.all()).slice(-2)).toEqual([[2, "decision_settled", settled], [2, "committed", { proposal: { exiled: "A01" }, decision: "D1" }]]);
 	});
 
@@ -38,7 +35,7 @@ describe("amendDecision", () => {
 		expect((await amend(test, "A02", "A01", "first")).ok).toBe(true);
 		expect((await amend(test, "A03", "A03", "second")).ok).toBe(true);
 		await test.playTicks(idleDriver, 3);
-		const amendments = [{ by: "resident:A02", seq: calls(test)[0] }, { by: "resident:A03", seq: calls(test)[1] }];
+		const amendments = [{ by: "resident:A02", n: 1 }, { by: "resident:A03", n: 2 }];
 		expect(payloads(test, "decision_settled")).toEqual([{ decision: "D1", kind: "owner.verdict", owner: "owner", changed: false, by: "resident:A03", reason: "second", proposal: { exiled: "A03" }, amendments }]);
 	});
 
@@ -67,6 +64,6 @@ describe("amendDecision", () => {
 		expect(await amend(test, "A02", "A01")).toEqual({ ok: true, reply: "amended decision D1, but its deadline (tick 2) lies after the run's last tick (1): the decision stays open and is never settled" });
 		expect((await test.playTicks(idleDriver, 5))?.reason).toBeDefined();
 		expect(payloads(test, "decision_settled")).toEqual([]);
-		expect(test.kernel.snapshot().plugins.decisions?.data).toMatchObject({ open: { D1: { amendments: [{ by: "resident:A02" }] } } });
+		expect(test.kernel.snapshot().plugins.decisions?.data).toMatchObject({ open: { D1: { amendments: [{ by: "resident:A02", n: 1 }] } } });
 	});
 });
