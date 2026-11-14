@@ -16,4 +16,5 @@ export { closedModels, createModelSource, limitedStream, type ModelBinding, type
 export { asksReset, CONTEXT_RESET_KIND, createResidentSession, isSafeguardRefusal, outcomeText, type ResidentSession, type SessionInput, type StepFrame } from "./driver/session.ts";
 export { createToolsNotice, toolsNotice, type ToolsNotice } from "./driver/notice.ts";
 export { systemPrompt, type PromptFacts } from "./driver/prompt.ts";
+export { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "./director.ts";
 export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";

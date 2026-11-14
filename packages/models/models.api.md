@@ -9,6 +9,7 @@ import { ActorId } from '@swarmtales/contracts';
 import { ActorSpec } from '@swarmtales/contracts';
 import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
+import { AskModel } from '@swarmtales/contracts';
 import { DriverResult } from '@swarmtales/contracts';
 import { DriverTable } from '@swarmtales/contracts';
 import { FauxResponseStep } from '@earendil-works/pi-ai';
@@ -65,6 +66,11 @@ export interface CostMeter {
 }
 
 // @public
+export function createAsker(source: ModelSource, meter: CostMeter, limits: (actor: ActorId) => {
+    readonly maxCostUsd?: number;
+}): AskModel;
+
+// @public
 export function createCostMeter(capUsd: number): CostMeter;
 
 // @public
@@ -84,6 +90,9 @@ export function createResidentSession(input: SessionInput): ResidentSession;
 
 // @public
 export function createToolsNotice(texts: PromptLookup): ToolsNotice;
+
+// @public
+export const DIRECTOR_MODEL_RECORDS: RecordSource;
 
 // @public
 export function emptyModel(provider: string): SwtIssue;
@@ -275,6 +284,9 @@ export function say(text?: string): ScriptStep;
 
 // @public
 export type Script = Readonly<Record<string, readonly ScriptStep[]>>;
+
+// @public
+export function scriptedAsker(script: Readonly<Record<string, readonly unknown[]>>): AskModel;
 
 // @public
 export function scriptedSource(script: Script): ModelSource;
