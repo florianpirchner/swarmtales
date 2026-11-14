@@ -4,6 +4,343 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { RandomLabel } from '@swarmtales/contracts';
+import { RandomSource } from '@swarmtales/contracts';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { TArray } from 'typebox';
+import { TBoolean } from 'typebox';
+import { TInteger } from 'typebox';
+import { TLiteral } from 'typebox';
+import { TNull } from 'typebox';
+import { TObject } from 'typebox';
+import { TOptional } from 'typebox';
+import { TRecord } from 'typebox';
+import { TString } from 'typebox';
+import { TTuple } from 'typebox';
+import { TUnion } from 'typebox';
+import { Type } from 'typebox';
+
+// @public
+export function assembleAll(fragments: readonly string[], overlap: number): readonly string[];
+
+// @public
+export interface FragmentPuzzle {
+    readonly fragments: readonly string[];
+    readonly overlap: number;
+    readonly password: string;
+}
+
+// @public
+export interface LevelPuzzle {
+    readonly fragments: ReadonlyMap<string, string>;
+    readonly kind: "fragments";
+    readonly puzzles: readonly FragmentPuzzle[];
+}
+
+// @public
+export interface LevelState {
+    readonly puzzle: LevelPuzzle;
+    readonly teams: readonly Team[];
+}
+
+// @public
+export interface PlannedLevel {
+    readonly number: number;
+    readonly team: TeamLayout;
+}
+
+// @public
+export const puzzles: MechanicDefinition<"puzzles", Type.TObject<{
+levels: Type.TArray<Type.TObject<{
+number: Type.TInteger;
+team: Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"solo">;
+}>, Type.TObject<{
+kind: Type.TLiteral<"random">;
+size: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"sameAs">;
+level: Type.TInteger;
+}>, Type.TObject<{
+kind: Type.TLiteral<"splitFrom">;
+level: Type.TInteger;
+size: Type.TInteger;
+}>]>;
+puzzle: Type.TObject<{
+kind: Type.TLiteral<"fragments">;
+length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
+overlap: Type.TInteger;
+ownChars: Type.TOptional<Type.TInteger>;
+}>;
+}>>;
+startLevel: Type.TInteger;
+lastLevel: Type.TInteger;
+standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
+level: Type.TInteger;
+passed: Type.TOptional<Type.TArray<Type.TInteger>>;
+}>>>;
+}>, {
+readonly fragments_dealt: Type.TObject<{
+level: Type.TInteger;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+team: Type.TInteger;
+fragment: Type.TString;
+}>>;
+}>;
+readonly factor_burned: Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+needers: Type.TArray<Type.TString>;
+}>;
+readonly level_contracted: Type.TObject<{
+level: Type.TInteger;
+excluded: Type.TArray<Type.TString>;
+}>;
+}, never>;
+
+// @public
+export type PuzzlesCtx = CtxOf<typeof puzzlesHead>;
+
+// @public
+export const PuzzlesEvents: EventsDefinition<"puzzles", {
+readonly fragments_dealt: Type.TObject<{
+level: Type.TInteger;
+holdings: Type.TArray<Type.TObject<{
+agent: Type.TString;
+team: Type.TInteger;
+fragment: Type.TString;
+}>>;
+}>;
+readonly factor_burned: Type.TObject<{
+agent: Type.TString;
+level: Type.TInteger;
+piece: Type.TString;
+needers: Type.TArray<Type.TString>;
+}>;
+readonly level_contracted: Type.TObject<{
+level: Type.TInteger;
+excluded: Type.TArray<Type.TString>;
+}>;
+}>;
+
+// @public
+export const puzzlesHead: MechanicHead<"puzzles", TObject<    {
+levels: TArray<TObject<    {
+number: TInteger;
+team: TUnion<[TObject<    {
+kind: TLiteral<"solo">;
+}>, TObject<    {
+kind: TLiteral<"random">;
+size: TInteger;
+}>, TObject<    {
+kind: TLiteral<"sameAs">;
+level: TInteger;
+}>, TObject<    {
+kind: TLiteral<"splitFrom">;
+level: TInteger;
+size: TInteger;
+}>]>;
+puzzle: TObject<    {
+kind: TLiteral<"fragments">;
+length: TTuple<[TInteger, TInteger]>;
+overlap: TInteger;
+ownChars: TOptional<TInteger>;
+}>;
+}>>;
+startLevel: TInteger;
+lastLevel: TInteger;
+standings: TOptional<TRecord<"^.*$", TObject<    {
+level: TInteger;
+passed: TOptional<TArray<TInteger>>;
+}>>>;
+}>, TObject<    {
+levels: TArray<TObject<    {
+level: TInteger;
+teams: TArray<TObject<    {
+members: TArray<TString>;
+leader: TString;
+}>>;
+kind: TLiteral<"fragments">;
+puzzles: TArray<TObject<    {
+password: TString;
+fragments: TArray<TString>;
+overlap: TInteger;
+}>>;
+fragments: TArray<TObject<    {
+agent: TString;
+fragment: TString;
+}>>;
+}>>;
+exclusions: TArray<TObject<    {
+level: TInteger;
+agents: TArray<TString>;
+}>>;
+}>, PuzzlesState, {
+readonly fragments_dealt: TObject<    {
+level: TInteger;
+holdings: TArray<TObject<    {
+agent: TString;
+team: TInteger;
+fragment: TString;
+}>>;
+}>;
+readonly factor_burned: TObject<    {
+agent: TString;
+level: TInteger;
+piece: TString;
+needers: TArray<TString>;
+}>;
+readonly level_contracted: TObject<    {
+level: TInteger;
+excluded: TArray<TString>;
+}>;
+}, Readonly<Record<symbol, never>>, [], [], readonly [ServiceDefinition<"exile", {
+readonly banish: {
+readonly kind: "command";
+readonly summary: "Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already.";
+readonly input: TObject<    {
+resident: TString;
+by: TOptional<TString>;
+}>;
+readonly output: TObject<    {
+ok: TBoolean;
+code: TOptional<TUnion<[TLiteral<"UNKNOWN_RESIDENT">, TLiteral<"ALREADY_EXILED">]>>;
+}>;
+};
+readonly isExiled: {
+readonly kind: "query";
+readonly summary: "Says whether the resident is banished.";
+readonly input: TObject<    {
+resident: TString;
+}>;
+readonly output: TBoolean;
+};
+readonly exiled: {
+readonly kind: "query";
+readonly summary: "Every banished resident, in the order they were banished.";
+readonly input: TObject<    {}>;
+readonly output: TArray<TString>;
+};
+}>, ServiceDefinition<"channels", {
+readonly post: {
+readonly kind: "command";
+readonly summary: "Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is.";
+readonly input: TObject<    {
+author: TString;
+text: TString;
+kind: TOptional<TUnion<[TLiteral<"city">, TLiteral<"system">]>>;
+}>;
+readonly output: TObject<    {
+postSeq: TInteger;
+}>;
+};
+readonly notify: {
+readonly kind: "command";
+readonly summary: "Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws.";
+readonly input: TObject<    {
+to: TString;
+author: TString;
+text: TString;
+}>;
+readonly output: TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly input: TObject<    {}>;
+readonly output: TArray<TObject<    {
+from: TString;
+to: TString;
+text: TString;
+number: TInteger;
+}>>;
+};
+}>], Readonly<Record<symbol, never>>>;
+
+// @public
+export const PuzzlesOptions: Type.TObject<{
+    levels: Type.TArray<Type.TObject<{
+        number: Type.TInteger;
+        team: Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"solo">;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"random">;
+            size: Type.TInteger;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"sameAs">;
+            level: Type.TInteger;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"splitFrom">;
+            level: Type.TInteger;
+            size: Type.TInteger;
+        }>]>;
+        puzzle: Type.TObject<{
+            kind: Type.TLiteral<"fragments">;
+            length: Type.TTuple<[Type.TInteger, Type.TInteger]>;
+            overlap: Type.TInteger;
+            ownChars: Type.TOptional<Type.TInteger>;
+        }>;
+    }>>;
+    startLevel: Type.TInteger;
+    lastLevel: Type.TInteger;
+    standings: Type.TOptional<Type.TRecord<"^.*$", Type.TObject<{
+        level: Type.TInteger;
+        passed: Type.TOptional<Type.TArray<Type.TInteger>>;
+    }>>>;
+}>;
+
+// @public
+export interface PuzzlesState {
+    readonly exclusions: Map<number, Set<string>>;
+    readonly levels: Map<number, LevelState>;
+    readonly planner: TeamPlanner;
+}
+
+// @public
+export type Streams = (...labels: readonly RandomLabel[]) => RandomSource;
+
+// @public
+export interface Team {
+    readonly leader: string;
+    readonly members: readonly string[];
+}
+
+// @public
+export type TeamLayout = {
+    readonly kind: "solo";
+} | {
+    readonly kind: "random";
+    readonly size: number;
+} | {
+    readonly kind: "sameAs";
+    readonly level: number;
+} | {
+    readonly kind: "splitFrom";
+    readonly level: number;
+    readonly size: number;
+};
+
+// @public
+export class TeamLayoutError extends Error {
+    readonly name = "TeamLayoutError";
+}
+
+// @public
+export class TeamPlanner {
+    constructor(levels: readonly PlannedLevel[], ids: readonly string[], streams: Streams);
+    teamOf(levelNumber: number, agent: string): Team;
+    teamsOf(levelNumber: number): readonly Team[];
+}
+
+// @public
+export function validatePuzzle(puzzle: FragmentPuzzle, ownChars?: number): readonly string[];
+
 // (No @packageDocumentation comment for this package)
 
 ```
