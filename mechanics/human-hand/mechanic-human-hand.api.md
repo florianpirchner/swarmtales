@@ -4,6 +4,18 @@
 
 ```ts
 
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { NoOptions } from '@swarmtales/sdk';
+import { Type } from 'typebox';
+
+// @public
+export const humanHand: MechanicDefinition<"humanHand", NoOptions, {
+paused: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+}>;
+resumed: Type.TObject<{}>;
+}, "pause" | "resume">;
+
 // (No @packageDocumentation comment for this package)
 
 ```
