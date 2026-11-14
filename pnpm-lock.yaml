@@ -245,9 +245,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -298,9 +295,6 @@ importers:
       '@swarmtales/mechanic-channels':
         specifier: workspace:*
         version: link:../channels
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/mechanic-decisions':
         specifier: workspace:*
         version: link:../decisions
@@ -323,9 +317,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -386,9 +377,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -430,9 +418,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
@@ -449,9 +434,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/mechanic-exile':
         specifier: workspace:*
         version: link:../exile
@@ -493,9 +475,6 @@ importers:
       '@swarmtales/mechanic-channels':
         specifier: workspace:*
         version: link:../channels
-      '@swarmtales/mechanic-contracts':
-        specifier: workspace:*
-        version: link:../contracts
       '@swarmtales/mechanic-exile':
         specifier: workspace:*
         version: link:../exile

@@ -2,5 +2,5 @@
 
 Scripted and fake drivers, play, fixture mechanic, conformance checks and the oracle runner.
 
-Scaffold of milestone M1: the package is empty until its issues land. Its place in the layer table is in
-[`docs/LAYERS.md`](../../docs/LAYERS.md).
+Holds the scripted, fake and idle drivers, `testKernel` and `play`, `replay`, the fixture mechanic, the conformance
+checks and the oracle projection. Its place in the layer table is in [`docs/LAYERS.md`](../../docs/LAYERS.md).

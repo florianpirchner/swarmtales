@@ -6,8 +6,6 @@
 
 import { EventsDefinition } from '@swarmtales/contracts';
 import { MechanicDefinition } from '@swarmtales/sdk';
-import { PromptLookup } from '@swarmtales/contracts';
-import { ResolvedPlugin } from '@swarmtales/contracts';
 import { ServiceDefinition } from '@swarmtales/contracts';
 import { TArray } from 'typebox';
 import { TBoolean } from 'typebox';
@@ -61,9 +59,7 @@ by: TString;
 seq: TInteger;
 }>>;
 }>;
-}, "amendDecision"> & {
-    resolve(options: Parameters<typeof plain.resolve>[0], texts: PromptLookup, version: string): ResolvedPlugin;
-};
+}, "amendDecision">;
 
 // @public
 export const DecisionsEvents: EventsDefinition<"decisions", {
@@ -127,10 +123,6 @@ deadline: Type.TInteger;
 }>>;
 };
 }>;
-
-// Warnings were encountered during analysis:
-//
-// dist/index.d.ts:81:3 - (ae-forgotten-export) The symbol "plain" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -60,7 +60,7 @@ export function handEnded(input: { readonly tick: number }): SwtIssue {
 		code: "SWT-X009",
 		summary: `the run is paused after ${String(input.tick)} ticks and the input of the Human Hand has ended; the run stopped with the snapshot snapshots/t${String(input.tick)}.json`,
 		why: "A paused run plays no tick until the Human Hand calls `resume`, and no line is left that could.",
-		fix: "Resume the run from the snapshot with a Human Hand that calls `resume`, or end the file of `--hand` with a `resume` line.",
+		fix: "Add a `resume` line to the end of the file of `--hand` and give that whole file to `swt resume`: a resumed run drops the first N tool lines of its hand file, N being the calls the human made before the snapshot, so a file that holds only the `resume` line is dropped whole and the run stops here again.",
 	};
 }
 

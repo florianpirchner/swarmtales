@@ -80,8 +80,8 @@ A here" (`#1038`). The table cooperated in 1 of 20 choices. Run
 ## Choose your path
 
 - **Build a game** from shipped mechanics: the first-hour tutorial arrives with milestone M1.
-- **Write a mechanic:** the tutorial arrives with milestone M3.
-- **Write a Director:** the tutorial arrives with milestone M3.
+- **Write a mechanic:** the tutorial arrives with milestone M4, as a tested sample.
+- **Write a Director:** the tutorial arrives with milestone M4.
 - **Reproduce a finding:** the rerun plan and the data repository arrive with milestone M2.
 
 Until then, [`CLAUDE.md`](CLAUDE.md) and [`CONTRIBUTING.md`](CONTRIBUTING.md) say how work is done here.

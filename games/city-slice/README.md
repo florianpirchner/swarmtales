@@ -118,3 +118,15 @@ the diff before you commit it.
   lines at one boundary, so the pause shows as two events and a snapshot between them.
 - The warden's scripted model keeps its place in memory, not in the snapshot: a resumed offline run needs the
   answers that are left (none here, the warden is asked at tick 6, before the snapshot).
+
+## Resuming with a Human Hand
+
+`swt resume <run-folder> --game games/city-slice/game.ts --hand <file>` takes the hand file of the run it resumes,
+whole, not a file with only the lines that are left. The resumed run drops the first N tool lines of the file, N
+being the calls the person made before the snapshot, and every `snapshot` line at or before the snapshot's tick;
+the rest is applied as in a straight run. A run that stopped paused with `SWT-X009` is resumed with the same file
+plus one `resume` line at its end; a file that holds only that line is dropped whole and the run stops again.
+
+A resumed log holds one more line than the straight one, the marker `run_resumed`. After a snapshot before tick 7
+the warden is asked after the marker, and the two lines that tell it the log position of the proposal (the reply of
+`take` and `asked`) are one higher than in the straight run (decision A27).

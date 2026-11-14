@@ -18,7 +18,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { RunManifestSchema } from "@swarmtales/contracts";
 import { DIRECTOR_RECORDS } from "@swarmtales/engine";
-import { isGameFamily } from "@swarmtales/sdk";
+import { isGameFamily, parseTake } from "@swarmtales/sdk";
 import { replay } from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
@@ -149,6 +149,26 @@ describe("the city slice through the command line", () => {
 		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(run.straight[index]) ? [] : [event.type]));
 		expect(differing).toEqual(["decision_settled"]);
 		await proven(run, "seed-7/city-slice-001", (events) => amendmentsBack(events, run.marker));
+	});
+
+	// Decision A27 and open point P3 of the errata. A cure (no log position in a payload, or a marker that takes no position) must change this test.
+	it("a snapshot before the Director is asked (--snapshot-at 6): the resumed log differs from the straight one in exactly the two lines of the warden that hold the log position of its firing", async () => {
+		expect((await swt("run", CITY, "--fake", "--seed", "7", "--out", "early", "--snapshot-at", "6")).code).toBe(0);
+		expect((await swt("resume", "early/city-slice-001", "--game", CITY)).code).toBe(0);
+		const [straight, resumed] = [eventsOf(join(cwd, "early/city-slice-001")), eventsOf(join(cwd, "early/city-slice-002"))];
+		const plain = withoutMarker(resumed);
+		const differing = plain.flatMap((event, index) => (JSON.stringify(event) === JSON.stringify(straight[index]) ? [] : [index]));
+		// Line 1: the reply of the Director's `take`, a JSON text with `firings[].seq`. Line 2: the record `asked` with `firings`. `withoutMarker` reaches neither.
+		expect(differing.map((index) => [plain[index]?.tick, plain[index]?.actor, plain[index]?.type])).toEqual([[6, "director:warden", "tool_result"], [6, "director:warden", "asked"]]);
+		const positions = (events: readonly StoredEnvelope[]): readonly unknown[] => {
+			const [taken, asked] = differing.map((index): unknown => events[index]?.payload);
+			return [parseTake(String(Reflect.get(Object(taken), "reply")))?.firings.map((firing) => firing.seq), Reflect.get(Object(asked), "firings")];
+		};
+		// The firing is the verdict's proposal. The marker lies before it, so the resumed run counts it one line further down, and says so to the Director.
+		const proposed = straight.find((event) => event.type === "decision_proposed")?.seq ?? 0;
+		expect(resumed.find((event) => event.type === "run_resumed")?.seq).toBeLessThan(proposed);
+		expect([positions(straight), positions(plain)]).toEqual([[[proposed], [proposed]], [[proposed + 1], [proposed + 1]]]);
+		expect((await swt("log", "verify", "early/city-slice-002", "--previous", "early/city-slice-001")).out).toEqual([expect.stringMatching(HOLDS)]);
 	});
 
 	it("done-when 2 from run folders: replay writes the straight and the resumed log again from the game file and events.jsonl", async () => {

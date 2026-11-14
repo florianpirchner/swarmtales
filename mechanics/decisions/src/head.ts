@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The head of the `decisions` mechanic: its option, its slice, its events, its prompts, its tool and the service it provides. */
 import { Type, type Static } from "typebox";
-import { defineHead } from "@swarmtales/sdk";
+import { SwtError } from "@swarmtales/contracts";
+import { defineHead, optionMismatch } from "@swarmtales/sdk";
 import { AmendDecision, DecisionsEvents, DecisionsService } from "./contract.ts";
 
 const Amendment = Type.Object(
@@ -39,7 +40,12 @@ export const head = defineHead({
 		holders: Type.Array(Type.String(), { default: [], description: "The actor ids that may amend a decision (`human`, `director:warden`, `resident:A01`). An id that is no actor of the run is refused when the run is created." }),
 	}),
 	state: Type.Object({ next: Type.Integer({ description: "The number of the next decision id." }), open: Type.Record(Type.String(), Open, { description: "The open decisions by id." }) }, { description: "The open decisions." }),
-	start: () => ({ next: 1, open: {} }),
+	// Runs while the kernel is created, for a fresh run and a resumed one: a holder that is no actor of the run is `SWT-G020`.
+	start: ({ options, actors }) => {
+		const unknown = options.holders.findIndex((holder) => !actors.some((actor) => actor === holder));
+		if (unknown >= 0) throw new SwtError(optionMismatch({ owner: "decisions", package: "@swarmtales/mechanic-decisions", path: `options.holders[${String(unknown)}]`, message: `names "${options.holders[unknown] ?? ""}", which is no actor of the run` }));
+		return { next: 1, open: {} };
+	},
 	events: DecisionsEvents.events,
 	prompts: {
 		"decisions/tools/amendDecision": [],

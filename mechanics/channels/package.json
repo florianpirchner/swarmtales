@@ -36,7 +36,6 @@
 	"dependencies": {
 		"@swarmtales/contracts": "workspace:*",
 		"@swarmtales/sdk": "workspace:*",
-		"@swarmtales/mechanic-contracts": "workspace:*",
 		"typebox": "1.3.27"
 	},
 	"devDependencies": {

@@ -2,7 +2,7 @@
 
 Corrections to [`10-m3-spec.md`](10-m3-spec.md) found while building: every difference between the specification
 and the code that a builder of M3 reported. The code on `rewrite/develop` follows this file where the two differ.
-Decisions of principle are in `DECISIONS.md` section 9 (A19 to A24). Written by issue M3-31 from the integrator's
+Decisions of principle are in `DECISIONS.md` section 9 (A19 to A27). Written by issue M3-31 from the integrator's
 notes of the merged issues; a difference no builder reported is not here.
 
 ## Differences
@@ -11,7 +11,7 @@ notes of the merged issues; a difference no builder reported is not here.
 |---|---|---|---|---|
 | G1 | 3.4, issue row 01 | the codes of 3.4 go "in the catalogue" of the contracts | The contracts package holds no code catalogue. Each owning package adds its codes to its own: sdk `SWT-D001` to `D003`, kernel `SWT-R021`, runlog `SWT-L007` and `L008`, testkit `SWT-T003` and `T004`, the command line `SWT-X008` and `X009` | M3-01 |
 | G2 | 3.2 | `AskModel` lives in `packages/contracts/src/kernel/ask.ts` | `packages/contracts/src/run/ask.ts`; `packages/contracts/src/kernel/` has no changed line at M3. `SnapshotCheckpoint` of the snapshot file has the fields of the chain's `ChainCheckpoint` | M3-01 |
-| G3 | 5.1 | the decision window needs "no sdk change" | `decisions` reads the actors of the run. The sdk got `MechanicContext.actors` (a read-only view) and the actor ids on `Setup` (issue 12). Until then `decisions` wrapped `resolve` and `create` to read `port.actors`; that wrapper in `mechanics/decisions/src/index.ts` is still there (open point P1) | M3-08, M3-12 |
+| G3 | 5.1 | the decision window needs "no sdk change" | `decisions` reads the actors of the run. The sdk got `MechanicContext.actors` (a read-only view) and the actor ids on `Setup` (issue 12). Until M3-34 `decisions` wrapped `resolve` and `create` to read `port.actors`, so the addition was unproven for a milestone. Now it is a plain `defineMechanic`: the head's `start` refuses an unknown holder from `Setup.actors`, `propose` asks `ctx.actors.mayAct`. A second gap was not planned: a tool context does not carry the log position of its call (open point P5) | M3-08, M3-12, M3-34 |
 | G4 | 3.1 | a game with `directors: []` has the hash of the game without the field | It did not: `filledData` (`packages/sdk/src/game/resolve.ts`) kept the empty array. Fixed with a test in issue 12; `filledData` drops an empty `directors` | M3-01, M3-12 |
 | G5 | 2.4 | `banish(input: { resident, by })`, `by` required | `by` is optional; left out, the event carries the id of the calling plugin. Listeners of `exiled` run after `banish` returns, so the resident is suspended already when they run | M3-07 |
 | G6 | 2.4, 5.3 rule 1 | a command "writes nothing" (`banish` of an unknown resident, `propose` with a window of 0) | A command of a service always writes the kernel's `service_called`. "Writes nothing" means: no event of the mechanic | M3-07, M3-08 |
@@ -32,7 +32,7 @@ notes of the merged issues; a difference no builder reported is not here.
 | G21 | 7.2 step 1 | `swt resume <run-folder>` reads the game "from the path the manifest names" | The manifest holds no path: `--game <game file>` is required | M3-21 |
 | G22 | 7.1 | `readSnapshotFile(path)` | `readSnapshotFile(path, expected?)`: with `expected` it also refuses a file of another run or game (`SWT-L008`). `openRunFolder(..., { resumedFrom, prefix })` refuses a prefix the checkpoint did not sign with `SWT-L007` | M3-17 |
 | G23 | 7.4 | `ReplayInput.game` is a `ResolvedGame`; the result is `{ log, equal, firstDifference }` | `game` may be resolved, a builder game or a data game; the result also has `issue` (`SWT-T003`); `SWT-T004` is thrown. The slice is replayed from the builder game. A run folder is replayed with `records: [DIRECTOR_RECORDS, RUN_RECORDS]` | M3-22, M3-24 |
-| G24 | done-when 3, 7.2 (E42) | the resumed log, "after the marker line is taken out", is the straight log | Decision A23: equal after the marker is taken out and every log position behind it is moved back by one, also a position inside a payload (today one field, `decision_settled.amendments[].seq`). The resume in process writes no marker and is equal as it is | M3-24 |
+| G24 | done-when 3, 7.2 (E42) | the resumed log, "after the marker line is taken out", is the straight log | Decision A23: equal after the marker is taken out and every log position behind it is moved back by one, also a position inside a payload. Decision A27 corrects the count: three places hold one (`decision_settled.amendments[].seq`, `firings[].seq` in the reply of a Director's `take`, `asked.firings`), see P3. The resume in process writes no marker and is equal as it is | M3-24, M3-34 |
 | G25 | 2.1, 7.2 | the command line plays the slice's story | `swt run --fake` plays sampled calls, not the script of the tests; the script lives in the tests' drivers. The fake driver is seeded from the activation's `basis`, so a fake run with a hand differs from one without, and a fake run's Director always takes its fallback. The command-line proof of done-when 3 compares a resumed fake log with a straight fake log; the timelines belong to the proof in process. Decision A24 added issue M3-32: the slice's tools have `sample` functions, so a plain fake run has votes and, with seed 7, a verdict | M3-20, M3-21, M3-24, M3-32 |
 | G26 | 9 | the projection is part of the viewer's run model | `projectRun(model.events)` of `viewer-core` is not wired into `RunModel`: the user interface calls it and memoises it per run | M3-27 |
 
@@ -40,10 +40,11 @@ notes of the merged issues; a difference no builder reported is not here.
 
 | No | Point | Goes to |
 |---|---|---|
-| P1 | `mechanics/decisions/src/index.ts` still wraps `resolve` and `create` to read `port.actors`, and `test/human.test.ts` its stand-in; the sdk has `ctx.actors` since issue 12 | the next issue that touches `decisions` |
+| P1 | closed by M3-34: `decisions` is a plain `defineMechanic` on `ctx.actors` and `Setup.actors`; the wrapper around `resolve` and `create` is gone, and no committed log changed | - |
 | P2 | A data game with a Director: `resolveFile` of the command line and `play` of the testkit do not pass `ResolveInput.directors`. Builder games carry their definitions | M5, or the first data game with a Director |
-| P3 | A Director that takes firings after a resume from the command line has log positions in its `take` reply that are one higher than in the straight run (the marker line); the slice's warden is asked before the snapshot, so no test meets it | M5, with the City's Directors |
-| P4 | `packages/sdk/README.md` still says the package is empty | a docs issue; outside the paths of M3-31 |
+| P3 | A Director that takes firings after a resume from the command line is told log positions one higher than in the straight run (the marker line): `firings[].seq` in the reply of `take`, which is a JSON string, and `asked.firings`. The slice meets it with every snapshot before tick 7 (`--snapshot-at 0` to `6`), with the fake Director too; only the snapshot at 7, which the proof of done-when 3 takes, lies after the warden's one question. Pinned by `apps/cli/test/city-slice.test.ts` at `--snapshot-at 6`. For a live Director the position is model input (decision A27) | the choice of the cure: the M4 specification; built by M5 at the latest |
+| P4 | closed by M3-34: the READMEs of `sdk`, `kernel`, `models`, `testkit` and `swarmtales` say what the package holds | - |
+| P5 | An authoring gap: a tool context does not carry the log position of its call. `decisions` records where an amendment stands, so it takes the position from `causedBy` of its own event `decision_amended`, in a listener to that event (until M3-34: a closure variable set in the pipeline stage `rule`). It works without state outside the slice, and it is a detour an author should not have to find | the M4 specification: the tool context carries the position, or payloads hold none (the cure of P3 would remove the need) |
 
 ## Errata of M1 that M3 closed
 

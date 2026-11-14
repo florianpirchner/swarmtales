@@ -2,5 +2,6 @@
 
 Authoring: defineMechanic, defineGame and game resolution.
 
-Scaffold of milestone M1: the package is empty until its issues land. Its place in the layer table is in
-[`docs/LAYERS.md`](../../docs/LAYERS.md).
+Holds the mechanic definers (`defineHead`, `defineMechanic`, `defineService`, `defineEvents`), the game builder and
+game resolution, the roster, and the Director (`defineDirector` and the plugin `directors`). Its place in the layer
+table is in [`docs/LAYERS.md`](../../docs/LAYERS.md).

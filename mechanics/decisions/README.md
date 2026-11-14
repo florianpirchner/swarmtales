@@ -57,7 +57,10 @@ settled. An amendment of such a decision is kept, and the caller is told that no
 cycle. A proposal that does not fit its own `schema` is a mistake of the owner and stops the run.
 
 The option `holders` lists actor ids, not resident ids, because a holder need not be a resident. An id that is no
-actor of the run is refused with `SWT-G020` while the kernel is created, before `run_started`.
+actor of the run is refused with `SWT-G020` while the kernel is created, before `run_started`: the head's `start`
+reads `Setup.actors`, and `propose` asks `ctx.actors.mayAct`. The tool does not know the log position of its own
+call, so a listener to the mechanic's own `decision_amended` takes the amendment into the slice with the `causedBy`
+of that event.
 
 ## Tools
 
@@ -221,6 +224,5 @@ The first case is the refusal of a holder that is no actor of the run.
 it; of two amendments the last stands, and `changed` is false when it repeats the original; the refusals for a
 decision that is not open, a caller that is no holder, a proposal off the schema, and an amendment after the
 deadline; the reply for a decision that outlasts the run. `test/human.test.ts` plays the human: its amendment
-stands against a later one of another holder, it may amend again, and no `human_amend` is written. The sdk builds
-no actor `human` yet, so that file adds the actor to the kernel definition by hand (it wraps `resolveGame` for the
-test kit).
+stands against a later one of another holder, it may amend again, and no `human_amend` is written. The sdk gives
+the game the actor `human` because the tool is granted to it.

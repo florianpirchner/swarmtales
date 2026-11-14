@@ -54,9 +54,9 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `e1b77c2` of `rewrite/develop`
-(M3-31); the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, whose
-own commit has no row yet (owed, as the row of M3-31 was).
+All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `7b2a862` of `rewrite/develop`
+(M2-27); the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, the
+rows 133 to 135 by issue M3-34, whose own commit has no row yet (owed, as the rows of M3-31 and M2-27 were).
 
 | # | Issue | Title | Milestone | Commit | Merged | Tokens (total, M) | Cost (USD) | Wall time (h) | Agent time (h) | Lines | Source | Tests | Other | Note |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -191,7 +191,10 @@ own commit has no row yet (owed, as the row of M3-31 was).
 | 129 | M2-24 | The gate of M2: both series keep their sign, 61 live runs for 1.60 USD | M2 | `0ea32af` | 20:27 | not recorded | - | 0.05 | not recorded | +307 -0 | 0 | 0 | 307 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the lines are the gate's report, the run indexes and the spend ledger (data); the run folders are on `data/runs` |
 | 130 | M3-30 | Live smoke of the city slice: two runs for 0.0114 USD, no decision without a briefing | M3 | `da40e4a` | 20:39 | not recorded | - | - | not recorded | +30 -1 | 0 | 0 | 31 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the lines are the run index, the lesson rows P450 to P455 and the ledger of M3 (data); the run folders are on `data/runs`; row written by M2-27 |
 | 131 | M3-31 | Gate of M3: exile alone, the softer check, the record | M3 | `e1b77c2` | 20:40 | not recorded | - | - | not recorded | +564 -82 | 0 | 186 | 460 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; row written by M2-27 |
-| 132 | M2 milestone review | read-only review of the gate by a challenger: every number of `M2-GATE.md` recomputed from the event logs, eight logs read, two loopholes found (LH18, LH19), five blocking fixes named | M2 | - | - | not recorded | - | - | not recorded | - | 0 | 0 | 0 | challenger session, no commit: the review changed nothing in either checkout; its five fixes are issue M2-27, whose own row is owed (the integrator adds it with the merge commit) |
+| 132 | M2 milestone review | read-only review of the gate by a challenger: every number of `M2-GATE.md` recomputed from the event logs, eight logs read, two loopholes found (LH18, LH19), five blocking fixes named | M2 | - | - | not recorded | - | - | not recorded | - | 0 | 0 | 0 | challenger session, no commit: the review changed nothing in either checkout; its five fixes are issue M2-27 (row 134) |
+| 133 | - | Decisions A25 (the integrator pushes the data branch) and A26 (issue M3-33) | M3 | `a380815` | 20:46 | not recorded | - | - | not recorded | +3 -1 | 0 | 0 | 4 | integrator's commit, no issue id; A25 is a decision about the data of M2, A26 adds an issue to M3; row written by M3-34 |
+| 134 | M2-27 | Close the review of M2: findings, loopholes, the record | M2 | `7b2a862` | 20:51 | not recorded | - | - | not recorded | +172 -44 | 2 | 0 | 214 | follow-up issue of the milestone review of M2 (row 132); tokens and agent time not recorded: the usage file ends before the sessions of this issue; row written by M3-34 |
+| 135 | M3 milestone review | read-only review of the gate by a challenger at commit `e1b77c2`: the six done-whens run again, the resume tried from every boundary in process (64 cases) and through the command line (66 cases), two failures found (a Director asked after a command-line resume, the fix text of `SWT-X009`), six blocking fixes named | M3 | - | - | not recorded | - | - | not recorded | - | 0 | 0 | 0 | challenger session, no commit; its fixes 1 to 5 are issue M3-34, whose own row is owed (the integrator adds it with the merge commit); fix 6 is issue M3-33 (A26), open when this was written |
 
 ## Sessions without a row
 
@@ -216,26 +219,26 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `e1b77c2`, 132 rows (131 commits and the milestone review of M2, which has no commit). The token
-sums below are those of the first 82 rows: the usage file of the sessions ends there, and the rows 83 to 132 have
-no number.
+State at commit `7b2a862`, 135 rows (133 commits and the milestone reviews of M2 and M3, which have no commit). The
+token sums below are those of the first 82 rows: the usage file of the sessions ends there, and the rows 83 to 135
+have no number.
 
 | | Planned | Merged | Note |
 |---|---|---|---|
 | M0 | 14 (A12) | not recorded per issue | 3 rows: the root commit squashes the issues of the frame, then the oracle files and the spike paper. The other M0 issues on the old state (the resume note names the noise floor and the chess engine) were merged on `legacy` and have no row |
 | M1 | 37 (A12) | 37 | M1-00 to M1-36 |
-| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, and M2-27, which closes the milestone review (row 132) and whose row is owed |
-| Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 85, and 86 with the row of M2-27 |
-| M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Stop line of A19: above 64 |
+| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, and M2-27 (row 134), which closes the milestone review (row 132) |
+| Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 86 |
+| M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Beside the plan and not merged when this was written: M3-33 (A26) and M3-34, which closes the milestone review (row 135); both rows are owed. Stop line of A19: above 64 |
 
-Rows beside the plan: 34. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
-milestone), the specifications of M2 and M3, the reviews A and B and the milestone review of M2, the two follow-up
-issues of M2 (M2-25, M2-26; the row of the third, M2-27, is owed), three follow-up commits with the id of their issue (rows 89, 96, 106), and sixteen commits of the
-integrator without an issue id.
+Rows beside the plan: 37. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
+milestone), the specifications of M2 and M3, the reviews A and B and the milestone review of M2, the three
+follow-up issues of M2 (M2-25 to M2-27), the milestone review of M3, three follow-up commits with the id of their
+issue (rows 89, 96, 106), and seventeen commits of the integrator without an issue id.
 
 | | Recorded | Budget | Share |
 |---|---|---|---|
-| Agent tokens in rows (70 of 132 rows have a number, 62 are "not recorded") | 13.22 million | | |
+| Agent tokens in rows (70 of 135 rows have a number, 65 are "not recorded") | 13.22 million | | |
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
 | Agent tokens, all 85 session reports | 15.60 million | 300 million | 5.2 % |
 | Agent cost | - | 750 USD | the sessions are not billed per token, so the USD line of the kill criterion cannot be counted |
@@ -255,13 +258,14 @@ the first ten merged issues replaces the 6 million per issue) is not done yet; i
 The six done-whens of `refactoring-before-release/10-m3-spec.md` and the test that proves each. All of them run
 offline, in `pnpm check`. The milestone is closed by its review, after M2 is closed (the gate of M2, M2-24, was merged at 20:27 while
 this was written; its milestone review is open). The live smoke of M3 (M3-30, which does not gate) is run by
-another session and was open when this was written.
+another session and was open when this was written. The milestone review (row 135) read commit `e1b77c2` and named
+six fixes before the close: five are issue M3-34, the sixth is issue M3-33 (A26).
 
 | # | Done when | Proven by |
 |---|---|---|
 | 1 | the slice plays and the whole run equals a committed timeline | `games/city-slice/test/city-slice.test.ts`: "plays twelve ticks and the whole log equals the committed timeline" (seeds 7 and 11, the variant `amended`) and the seven moments by name |
 | 2 | replay from the game and `events.jsonl` alone gives the same log | `games/city-slice/test/replay-resume.test.ts`: "done-when 2: replay writes the committed timeline again ..." and its failing twin "a log with one input changed is not replayed equal"; from run folders: `apps/cli/test/city-slice.test.ts`, "done-when 2 from run folders" |
-| 3 | a run stopped at a snapshot and resumed gives the straight log; `swt log verify` proves the continuity | in process: `replay-resume.test.ts`, "done-when 3, in process"; through `swt run`, `swt resume` and `swt log verify --previous`: `apps/cli/test/city-slice.test.ts` (equal as decision A23 reads it) |
+| 3 | a run stopped at a snapshot and resumed gives the straight log; `swt log verify` proves the continuity | in process: `replay-resume.test.ts`, "done-when 3, in process"; through `swt run`, `swt resume` and `swt log verify --previous`: `apps/cli/test/city-slice.test.ts` (equal as decision A23 reads it, for the snapshot at 7; the case "a snapshot before the Director is asked" pins the two lines that differ for a snapshot at 6, decision A27) |
 | 4 | `exile` names no other game mechanic | `scripts/gates/exile-alone.test.ts` (this issue): the manifest, every import and every string of `mechanics/exile/src/`, and the head's empty `requires` and `uses`; it fails on fourteen fixtures in which `exile` names `puzzles` or another mechanic |
 | 5 | no service cycle | `games/city-slice/test/city-slice.test.ts`: "resolves without a cycle of services, in the game's own order, and no optional use had to wait" |
 | 6 | the softer check is answered in writing | the next section |
@@ -279,7 +283,7 @@ API is not frozen and M4 waits." Done-when 6 of the M3 specification asks for th
 | `sdk` | 1705 | 2065 | 360 | about 330, about 2035 | |
 | `engine` | 293 | 360 | 67 | about 230, about 523 | |
 | kernel + sdk + engine | 3379 | 3818 | 439 | about 575, about 3954 | 4100 (A20): 282 left |
-| Issues of M3 | | 33 planned (32, and M3-32 by A24); 32 merged with M3-31, M3-30 open | | 32 | stop above 64 (A19) |
+| Issues of M3 | | 33 merged, M3-00 to M3-32 (32 planned, and M3-32 by A24). Open when the review closed: M3-33 (A26) and M3-34, the fixes of the review | | 32 | stop above 64 (A19) |
 
 **Which kernel lines M3 added.** All 12 are of one issue, M3-02 (row 100, erratum O17): the function `restore`
 in `packages/kernel/src/kernel.ts` and the factory `noResume` of the code `SWT-R021` in `errors.ts`. After
@@ -296,12 +300,20 @@ contracts (`packages/contracts/src/kernel/`) have no changed line between `0ac3e
 Human Hand, the pause, the snapshot file, the resume marker and replay cost 0 kernel lines; they use the extension
 points the table of section 10 of the specification names. The two places where the specification expected a
 possible gap closed without the kernel: a `turnInputs` hook may emit (M3-06), and `Kernel.submit` takes the actor
-`human`, which no scheduler activates (M3-12). No builder reported a missing extension point. What M3 did change
-outside the kernel is in the errata `refactoring-before-release/10-m3-spec-errata.md`: `MechanicContext.actors`
-and `Setup.actors` in the sdk (G2) are the one addition to an authoring interface that a mechanic asked for.
+`human`, which no scheduler activates (M3-12). No builder reported a missing extension point of the kernel.
+
+**Where the authoring interface was short.** In two places, both met by `decisions` (errata
+`refactoring-before-release/10-m3-spec-errata.md`). One was added: `MechanicContext.actors` and `Setup.actors` in
+the sdk (G3, M3-12), because a holder of a decision need not be a resident. Until the milestone review no mechanic
+used the addition: `decisions`, which asked for it, still wrapped `resolve` and `create` to read the kernel's
+port. M3-34 made it a plain `defineMechanic` on the two, with every committed log equal, so the addition is proven
+by one mechanic. The other was worked around and is open: a tool context does not carry the log position of its
+call. `decisions` reads it from `causedBy` of its own event in a listener (open point P5); the M4 specification
+decides whether the context gets the position or payloads stop holding one (decision A27).
 
 **Answer.** The City slice needed no kernel change that the tabletop games did not need. The check passes; the
-kernel interface stands and M4 does not wait. The reserved returns of M1 1.4 were not taken (decision 20 of the
+kernel interface stands and M4 does not wait. The authoring interface did not stand untouched: one addition, one
+gap left open. The reserved returns of M1 1.4 were not taken (decision 20 of the
 specification, A20). Limits of this answer: the slice is six scripted residents and seven cut mechanics, not the
 City; the judge, hooks for blocks above 1 and a stop inside a tick are M5 and are the next test of the same
 question.
