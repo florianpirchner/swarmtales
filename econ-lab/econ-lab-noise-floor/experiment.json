@@ -1,0 +1,160 @@
+{
+	"spec": {
+		"format": "swarmtales-experiment",
+		"version": 1,
+		"id": "econ-lab-noise-floor",
+		"question": "Do five replicates of the control arm at label 41 lock the table as often as on the old platform?",
+		"purpose": "pilot",
+		"game": "games/econ-lab/game.ts",
+		"model": {
+			"provider": "anthropic",
+			"id": "haiku",
+			"thinking": "medium"
+		},
+		"arms": [
+			{
+				"id": "nobrain",
+				"params": {
+					"brain": false
+				},
+				"control": true
+			}
+		],
+		"seeds": [
+			41
+		],
+		"replicates": 5,
+		"design": "replicates",
+		"metrics": {
+			"primary": "econ-games.dilemmaCooperation",
+			"secondary": [
+				"econ-games.dilemmaRound1",
+				"econ-games.fundCooperation",
+				"econ-games.tablePoints"
+			],
+			"guardrails": [
+				{
+					"metric": "models.requests",
+					"per": "econ-games.decisions",
+					"arm": "nobrain",
+					"within": {
+						"of": 1.32,
+						"share": 0.1
+					}
+				},
+				{
+					"metric": "models.costUsd",
+					"arm": "nobrain",
+					"max": 0.015
+				},
+				{
+					"metric": "econ-games.missedDecisions",
+					"max": 0
+				}
+			]
+		},
+		"allowedRefusals": [
+			"TOOL_LOCKED",
+			"INVALID_ARGUMENTS",
+			"OUT_OF_RANGE",
+			"BRAIN_TOO_LONG"
+		],
+		"exclusions": [
+			"failed-request",
+			"missed-decision",
+			"cost-cap",
+			"error-end"
+		],
+		"budget": {
+			"perRunUsd": 0.05,
+			"totalUsd": 0.25,
+			"estimateUsdPerRun": {
+				"nobrain": 0.0123
+			}
+		},
+		"concurrency": 2,
+		"baseline": "games/econ-lab/noise-floor.legacy.json",
+		"tolerance": {
+			"kind": "share",
+			"threshold": 1
+		}
+	},
+	"specHash": "3c4ed71687d8360904ca3d8712e3f384e3d0cb3629b4184ed25a0e4940d5947a",
+	"runs": [
+		{
+			"planned": {
+				"index": 0,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 4,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-001",
+			"costUsd": 0.012283640000000005,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 1,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 3,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-002",
+			"costUsd": 0.014500205000000002,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 2,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 2,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-003",
+			"costUsd": 0.013554559999999998,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 3,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 1,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-004",
+			"costUsd": 0.01101487,
+			"status": "included"
+		},
+		{
+			"planned": {
+				"index": 4,
+				"arm": "nobrain",
+				"seed": 41,
+				"replicate": 0,
+				"params": {
+					"brain": false
+				}
+			},
+			"directory": "econ-lab-005",
+			"costUsd": 0.01149456,
+			"status": "included"
+		}
+	],
+	"spentUsd": 0.062847835,
+	"code": {
+		"commit": "b7de6505cb6cfd55c699db639f425e3d5e26fc06",
+		"kernelRevision": 3
+	}
+}
