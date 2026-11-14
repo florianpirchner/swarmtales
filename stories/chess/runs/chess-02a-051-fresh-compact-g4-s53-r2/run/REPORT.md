@@ -1,5 +1,34 @@
 # Run report: run-001
 
+> **Correction (2026-11-14, reviewed against `events.jsonl`). Several statements of this draft are wrong.** The
+> reviewed report of this run is [`../README.md`](../README.md); read that one. The draft below is kept as the
+> reporter wrote it, because it is the record of what the reporter got wrong (P89, P441).
+>
+> What the log says:
+>
+> - **299 moves were played, none of them a forfeit** (`move_played` #65 to #3246): 150 by A01 and 149 by A02, in
+>   four finished games of 73, 80, 80 and 66 half-moves. The draft's "never submitted a single move in 55 minutes",
+>   "Submissions: 0 correct, 0 wrong", "Quiet minutes: 56 of 56" and Problem 1 ("no move counted as a submission")
+>   are **false**: a chess move is a `move_played` event, and the reporter counted City-of-Keys submissions, which
+>   this story does not have.
+> - **The match was played to its end and has a result**: game 1 1-0 by checkmate (#811), game 2 0-1 at the move cap
+>   on material (#1655), game 3 0-1 at the move cap on material (#2515), game 4 0-1 by resignation of A02 (#3256);
+>   match A01 3, A02 1 (`match_ended` #3257). "Levels solved: none", "Stuck on level 1 for 55 minutes", "Final
+>   standings: unknown" and "the city scored [the games] as nothing" are **false**: the story has no levels, and the
+>   run ended because the match was over (`run_end` #3259, reason `referee`), not because the clock ran out.
+> - **The tools were not locked or misconfigured.** `playMove` is open only for the seat on move (runtime r2); the
+>   lines the draft cites (#45, #392, #429, #1117 and the others) are seats that note, correctly, that the game has not
+>   started or that it is not their turn.
+>   Problem 2, the first two "Optimizations" and "used up the clock" in Problem 3 describe a fault that did not
+>   happen. The two `TOOL_LOCKED` results (#664, #2415) are A01 calling `writeBrain` outside the retro window; that
+>   part is right.
+> - **Right as written:** 9 refused moves (`move_refused` #236, #331, #448, #756, #1634, #2225, #2503, #2749, #3102:
+>   A01 3, A02 6), 3 brain writes over the word limit (P120), the cost (0.323 USD), and A01's statement at #852 that
+>   it won game 1.
+> - "No DMs, group posts or board posts" (Problem 5 and the last optimization) is true and not a problem: the story
+>   has two solo seats and no channel. The "Log issues" list is the legacy event schema applied to mechanic events,
+>   not a fault of the log (P89).
+
 First draft, written automatically after the run. The header and the result tables are computed in code
 from `events.jsonl`, `000-run.json` and `usage.json`. The sections after them come from the reporter model
 (written by OpenRouter (deepseek/deepseek-v4.1-flash-1017)) and cite `#seq` numbers in `events.jsonl`; items that cited unknown events were dropped.
