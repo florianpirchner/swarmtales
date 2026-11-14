@@ -7,15 +7,21 @@
 	"license": "Apache-2.0",
 	"sideEffects": false,
 	"swarmtales": {
+		"kind": "mechanic",
 		"class": "game",
 		"layer": "L3",
-		"mechanics": []
+		"mechanics": ["liarsDice"]
 	},
 	"exports": {
 		".": {
 			"development": "./src/index.ts",
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./rules": {
+			"development": "./src/rules.ts",
+			"types": "./dist/rules.d.ts",
+			"default": "./dist/rules.js"
 		}
 	},
 	"files": [

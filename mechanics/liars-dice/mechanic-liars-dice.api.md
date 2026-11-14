@@ -4,6 +4,565 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export const DiceSlice: Type.TObject<{
+    seats: Type.TArray<Type.TString>;
+    game: Type.TInteger;
+    round: Type.TInteger;
+    counts: Type.TRecord<"^.*$", Type.TInteger>;
+    dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+    standing: Type.TOptional<Type.TObject<{
+        quantity: Type.TInteger;
+        face: Type.TInteger;
+    }>>;
+    bidder: Type.TString;
+    toAct: Type.TString;
+    out: Type.TArray<Type.TString>;
+    log: Type.TArray<Type.TUnion<[Type.TObject<{
+        kind: Type.TLiteral<"round">;
+        round: Type.TInteger;
+        starter: Type.TString;
+        counts: Type.TRecord<"^.*$", Type.TInteger>;
+    }>, Type.TObject<{
+        kind: Type.TLiteral<"bid">;
+        round: Type.TInteger;
+        seat: Type.TString;
+        bid: Type.TObject<{
+            quantity: Type.TInteger;
+            face: Type.TInteger;
+        }>;
+        say: Type.TOptional<Type.TString>;
+        missed: Type.TOptional<Type.TBoolean>;
+    }>, Type.TObject<{
+        kind: Type.TLiteral<"liar">;
+        round: Type.TInteger;
+        seat: Type.TString;
+        bidder: Type.TString;
+        bid: Type.TObject<{
+            quantity: Type.TInteger;
+            face: Type.TInteger;
+        }>;
+        count: Type.TInteger;
+        dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+        loser: Type.TString;
+        say: Type.TOptional<Type.TString>;
+        missed: Type.TOptional<Type.TBoolean>;
+    }>, Type.TObject<{
+        kind: Type.TLiteral<"out">;
+        seat: Type.TString;
+        place: Type.TInteger;
+    }>]>>;
+    seenLog: Type.TRecord<"^.*$", Type.TInteger>;
+    briefed: Type.TArray<Type.TString>;
+    told: Type.TBoolean;
+    opened: Type.TInteger;
+    decisions: Type.TArray<Type.TObject<{
+        game: Type.TInteger;
+        round: Type.TInteger;
+        resident: Type.TString;
+        kind: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+        bid: Type.TOptional<Type.TObject<{
+            quantity: Type.TInteger;
+            face: Type.TInteger;
+        }>>;
+        standing: Type.TOptional<Type.TObject<{
+            quantity: Type.TInteger;
+            face: Type.TInteger;
+        }>>;
+        dice: Type.TArray<Type.TInteger>;
+        unseen: Type.TInteger;
+        truth: Type.TNumber;
+        standingTruth: Type.TOptional<Type.TNumber>;
+        baseline: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+        baselineBid: Type.TOptional<Type.TObject<{
+            quantity: Type.TInteger;
+            face: Type.TInteger;
+        }>>;
+        agree: Type.TBoolean;
+        bluff: Type.TBoolean;
+        missed: Type.TBoolean;
+    }>>;
+    scores: Type.TRecord<"^.*$", Type.TNumber>;
+    gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+    running: Type.TBoolean;
+    finished: Type.TBoolean;
+    held: Type.TBoolean;
+    due: Type.TBoolean;
+}>;
+
+// @public
+export type DiceState = Static<typeof DiceSlice>;
+
+// @public
+export const liarsDice: MechanicDefinition<"liars-dice", Type.TObject<{
+games: Type.TInteger;
+dice: Type.TInteger;
+faces: Type.TInteger;
+wildOnes: Type.TBoolean;
+placePoints: Type.TArray<Type.TNumber>;
+talk: Type.TBoolean;
+deadline: Type.TInteger;
+}>, {
+dice_game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+dice: Type.TInteger;
+}>;
+dice_rolled: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+}>;
+dice_round_started: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+starter: Type.TString;
+counts: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+dice_bid: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+quantity: Type.TInteger;
+face: Type.TInteger;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>;
+dice_called: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+bidder: Type.TString;
+bid: Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>;
+count: Type.TInteger;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+loser: Type.TString;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>;
+dice_seat_out: Type.TObject<{
+game: Type.TInteger;
+seat: Type.TString;
+place: Type.TInteger;
+}>;
+dice_decision_scored: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+game: Type.TInteger;
+round: Type.TInteger;
+resident: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+bid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+standing: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+dice: Type.TArray<Type.TInteger>;
+unseen: Type.TInteger;
+truth: Type.TNumber;
+standingTruth: Type.TOptional<Type.TNumber>;
+baseline: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+baselineBid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+agree: Type.TBoolean;
+bluff: Type.TBoolean;
+missed: Type.TBoolean;
+}>;
+dice_game_ended: Type.TObject<{
+game: Type.TInteger;
+places: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TNumber>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+dice_game_scored: Type.TObject<{
+game: Type.TInteger;
+stats: Type.TRecord<"^.*$", Type.TObject<{
+place: Type.TInteger;
+points: Type.TNumber;
+decisions: Type.TInteger;
+bids: Type.TInteger;
+bluffs: Type.TInteger;
+liars: Type.TInteger;
+liarsWon: Type.TInteger;
+called: Type.TInteger;
+calledHeld: Type.TInteger;
+meanTruth: Type.TNumber;
+agreement: Type.TNumber;
+missed: Type.TInteger;
+diceLost: Type.TInteger;
+}>>;
+}>;
+dice_match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, "bid" | "liar" | "viewTable">;
+
+// @public
+export type LiarsDiceCtx = CtxOf<typeof liarsDiceHead>;
+
+// @public
+export const liarsDiceHead: MechanicHead<"liars-dice", Type.TObject<{
+games: Type.TInteger;
+dice: Type.TInteger;
+faces: Type.TInteger;
+wildOnes: Type.TBoolean;
+placePoints: Type.TArray<Type.TNumber>;
+talk: Type.TBoolean;
+deadline: Type.TInteger;
+}>, Type.TObject<{
+seats: Type.TArray<Type.TString>;
+game: Type.TInteger;
+round: Type.TInteger;
+counts: Type.TRecord<"^.*$", Type.TInteger>;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+standing: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+bidder: Type.TString;
+toAct: Type.TString;
+out: Type.TArray<Type.TString>;
+log: Type.TArray<Type.TUnion<[Type.TObject<{
+kind: Type.TLiteral<"round">;
+round: Type.TInteger;
+starter: Type.TString;
+counts: Type.TRecord<"^.*$", Type.TInteger>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"bid">;
+round: Type.TInteger;
+seat: Type.TString;
+bid: Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"liar">;
+round: Type.TInteger;
+seat: Type.TString;
+bidder: Type.TString;
+bid: Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>;
+count: Type.TInteger;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+loser: Type.TString;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>, Type.TObject<{
+kind: Type.TLiteral<"out">;
+seat: Type.TString;
+place: Type.TInteger;
+}>]>>;
+seenLog: Type.TRecord<"^.*$", Type.TInteger>;
+briefed: Type.TArray<Type.TString>;
+told: Type.TBoolean;
+opened: Type.TInteger;
+decisions: Type.TArray<Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+resident: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+bid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+standing: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+dice: Type.TArray<Type.TInteger>;
+unseen: Type.TInteger;
+truth: Type.TNumber;
+standingTruth: Type.TOptional<Type.TNumber>;
+baseline: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+baselineBid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+agree: Type.TBoolean;
+bluff: Type.TBoolean;
+missed: Type.TBoolean;
+}>>;
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+gameScores: Type.TRecord<"^.*$", Type.TNumber>;
+running: Type.TBoolean;
+finished: Type.TBoolean;
+held: Type.TBoolean;
+due: Type.TBoolean;
+}>, {
+standing?: {
+quantity: number;
+face: number;
+};
+dice: Record<string, number[]>;
+seats: string[];
+game: number;
+round: number;
+counts: Record<string, number>;
+bidder: string;
+toAct: string;
+out: string[];
+log: ({
+round: number;
+counts: Record<string, number>;
+kind: "round";
+starter: string;
+} | {
+say?: string;
+missed?: boolean;
+round: number;
+kind: "bid";
+bid: {
+quantity: number;
+face: number;
+};
+seat: string;
+} | {
+say?: string;
+missed?: boolean;
+dice: Record<string, number[]>;
+round: number;
+bidder: string;
+kind: "liar";
+bid: {
+quantity: number;
+face: number;
+};
+seat: string;
+count: number;
+loser: string;
+} | {
+kind: "out";
+seat: string;
+place: number;
+})[];
+seenLog: Record<string, number>;
+briefed: string[];
+told: boolean;
+opened: number;
+decisions: {
+standing?: {
+quantity: number;
+face: number;
+};
+bid?: {
+quantity: number;
+face: number;
+};
+standingTruth?: number;
+baselineBid?: {
+quantity: number;
+face: number;
+};
+dice: number[];
+game: number;
+round: number;
+kind: "bid" | "liar";
+missed: boolean;
+resident: string;
+unseen: number;
+truth: number;
+baseline: "bid" | "liar";
+agree: boolean;
+bluff: boolean;
+}[];
+scores: Record<string, number>;
+gameScores: Record<string, number>;
+running: boolean;
+finished: boolean;
+held: boolean;
+due: boolean;
+}, {
+dice_game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+dice: Type.TInteger;
+}>;
+dice_rolled: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+}>;
+dice_round_started: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+starter: Type.TString;
+counts: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+dice_bid: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+quantity: Type.TInteger;
+face: Type.TInteger;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>;
+dice_called: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+bidder: Type.TString;
+bid: Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>;
+count: Type.TInteger;
+dice: Type.TRecord<"^.*$", Type.TArray<Type.TInteger>>;
+loser: Type.TString;
+say: Type.TOptional<Type.TString>;
+missed: Type.TOptional<Type.TBoolean>;
+}>;
+dice_seat_out: Type.TObject<{
+game: Type.TInteger;
+seat: Type.TString;
+place: Type.TInteger;
+}>;
+dice_decision_scored: Type.TObject<{
+reason: Type.TOptional<Type.TString>;
+game: Type.TInteger;
+round: Type.TInteger;
+resident: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+bid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+standing: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+dice: Type.TArray<Type.TInteger>;
+unseen: Type.TInteger;
+truth: Type.TNumber;
+standingTruth: Type.TOptional<Type.TNumber>;
+baseline: Type.TUnion<[Type.TLiteral<"bid">, Type.TLiteral<"liar">]>;
+baselineBid: Type.TOptional<Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+}>>;
+agree: Type.TBoolean;
+bluff: Type.TBoolean;
+missed: Type.TBoolean;
+}>;
+dice_game_ended: Type.TObject<{
+game: Type.TInteger;
+places: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TNumber>;
+totals: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+dice_game_scored: Type.TObject<{
+game: Type.TInteger;
+stats: Type.TRecord<"^.*$", Type.TObject<{
+place: Type.TInteger;
+points: Type.TNumber;
+decisions: Type.TInteger;
+bids: Type.TInteger;
+bluffs: Type.TInteger;
+liars: Type.TInteger;
+liarsWon: Type.TInteger;
+called: Type.TInteger;
+calledHeld: Type.TInteger;
+meanTruth: Type.TNumber;
+agreement: Type.TNumber;
+missed: Type.TInteger;
+diceLost: Type.TInteger;
+}>>;
+}>;
+dice_match_ended: Type.TObject<{
+scores: Type.TRecord<"^.*$", Type.TNumber>;
+}>;
+}, {
+readonly "liars-dice/tools/viewTable": readonly [];
+readonly "liars-dice/tools/bid": readonly [];
+readonly "liars-dice/tools/liar": readonly [];
+readonly "liars-dice/rules": readonly ["seats", "dice", "faces", "wild", "lowest", "places", "talk"];
+readonly "liars-dice/game-head": readonly ["game", "games"];
+readonly "liars-dice/task": readonly ["round", "dice", "total", "standing", "choices"];
+}, [], readonly [ServiceDefinition<"brain-source", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly hold: {
+readonly kind: "command";
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly release: {
+readonly kind: "command";
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>], readonly [ServiceDefinition<"strategy-brain", {
+readonly gameStarted: {
+readonly kind: "command";
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+first: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly briefing: {
+readonly kind: "query";
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly gameEnded: {
+readonly kind: "command";
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+summary: Type.TString;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
+line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly output: Type.TNull;
+};
+}>], {
+viewTable: Type.TObject<{}>;
+bid: Type.TObject<{
+quantity: Type.TInteger;
+face: Type.TInteger;
+say: Type.TOptional<Type.TString>;
+reason: Type.TOptional<Type.TString>;
+}>;
+liar: Type.TObject<{
+say: Type.TOptional<Type.TString>;
+reason: Type.TOptional<Type.TString>;
+}>;
+}>;
+
+// @public
+export type LiarsDiceView = ViewOf<typeof liarsDiceHead>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
