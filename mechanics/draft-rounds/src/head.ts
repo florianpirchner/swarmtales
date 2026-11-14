@@ -5,6 +5,7 @@ import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
 import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { Breakdown, Card, copyState, DraftSlice, PickRecord, Reference, type DraftState } from "./model.ts";
+import { draftRoundsMetrics } from "./metrics.ts";
 
 const options = Type.Object({
 	games: Type.Integer({ minimum: 1, maximum: 20, default: 3, description: "Games in the match; the run ends after the last." }),
@@ -18,6 +19,28 @@ const options = Type.Object({
 	openHands: Type.Boolean({ default: false, description: "Every seat sees every quarry during the game (off: only at the game's end)." }),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a pick stays open before a missing pick takes the first card of the pack." }),
 });
+
+// The event schemas stand outside the head so that the metrics are typed by them.
+const events = {
+	draft_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), deck: Type.Array(Card, { description: "The deck in deal order (sealed: audience human)." }) }),
+	draft_pick_opened: Type.Object({ game: Type.Integer(), pack: Type.Integer(), step: Type.Integer(), sizes: Type.Record(Type.String(), Type.Integer(), { description: "Cards in front of each seat." }) }),
+	draft_card_picked: PickRecord,
+	draft_game_ended: Type.Object({
+		game: Type.Integer(),
+		hands: Type.Record(Type.String(), Type.Array(Card)),
+		breakdown: Type.Record(Type.String(), Breakdown),
+		totals: Type.Record(Type.String(), Type.Number()),
+	}),
+	draft_game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
+	draft_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of the draft, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type DraftRoundsEvents = typeof events;
 
 /**
  * The head of the draft: everything that can be read without running a handler.
@@ -57,19 +80,8 @@ export const draftRoundsHead = defineHead({
 		save: (state: DraftState) => copyState(state),
 		load: (data): DraftState => copyState(data),
 	},
-	events: {
-		draft_game_started: Type.Object({ game: Type.Integer(), seats: Type.Array(Type.String()), deck: Type.Array(Card, { description: "The deck in deal order (sealed: audience human)." }) }),
-		draft_pick_opened: Type.Object({ game: Type.Integer(), pack: Type.Integer(), step: Type.Integer(), sizes: Type.Record(Type.String(), Type.Integer(), { description: "Cards in front of each seat." }) }),
-		draft_card_picked: PickRecord,
-		draft_game_ended: Type.Object({
-			game: Type.Integer(),
-			hands: Type.Record(Type.String(), Type.Array(Card)),
-			breakdown: Type.Record(Type.String(), Breakdown),
-			totals: Type.Record(Type.String(), Type.Number()),
-		}),
-		draft_game_scored: Type.Object({ game: Type.Integer(), reference: Reference }),
-		draft_match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: draftRoundsMetrics(events),
 	// Sealed: the deal and the picks; the reference score is for the human and the reporter only.
 	audiences: { draft_game_started: ["human"], draft_card_picked: ["human"], draft_game_scored: ["human"] },
 	provides: [BrainSourceService],

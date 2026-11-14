@@ -5,6 +5,7 @@ import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { StrategyBrainService } from "@swarmtales/mechanic-strategy-brain/contract";
 import { defineHead, type CtxOf, type ViewOf } from "@swarmtales/sdk";
 import { Action, Block, DilemmaPayoffs, EconSlice, GameKind, Outcome, Reference, RoundRecord, type EconState } from "./model.ts";
+import { econGamesMetrics } from "./metrics.ts";
 
 const Reason = Type.Optional(Type.String({ maxLength: 400, description: "A short reason, for the record." }));
 
@@ -28,6 +29,26 @@ const options = Type.Object({
 
 const copyHistory = (history: readonly RoundRecord[]): RoundRecord[] => history.map((record) => ({ ...record, outcomes: record.outcomes.map((outcome) => ({ ...outcome })) }));
 
+// The event schemas stand outside the head so that the metrics are typed by them, and before the state: the declaration
+// build then meets the four decision names in the order of `Action` first, so the tool names of the API report keep one
+// order however the build walks the files.
+const events = {
+	block_started: Type.Object({ block: Type.Integer(), game: GameKind, rounds: Type.Integer(), seats: Type.Array(Type.String()) }),
+	round_opened: Type.Object({ block: Type.Integer(), round: Type.Integer(), game: GameKind, pairs: Type.Array(Type.Array(Type.String()), { description: "The pairs of the round (the proposer first in the ultimatum game); '' is the bye of an odd table." }) }),
+	decision_made: Type.Object({ block: Type.Integer(), round: Type.Integer(), resident: Type.String(), action: Action, value: Type.Number(), reason: Type.Optional(Type.String()) }),
+	round_resolved: Type.Object({ block: Type.Integer(), round: RoundRecord.properties.round, game: GameKind, pool: Type.Optional(Type.Number()), outcomes: Type.Array(Outcome) }),
+	block_ended: Type.Object({ block: Type.Integer(), game: GameKind, scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
+	block_scored: Type.Object({ block: Type.Integer(), game: GameKind, reference: Reference }),
+	match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
+};
+
+/**
+ * The event schemas of the econ games, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type EconGamesEvents = typeof events;
+
 /**
  * The head of the econ games: everything that can be read without running a handler.
  *
@@ -38,16 +59,8 @@ export const econGamesHead = defineHead({
 	package: "@swarmtales/mechanic-econ-games",
 	summary: "Public goods, ultimatum and an A-or-B dilemma in rounds for solo seats: sealed decisions, payoffs, a match of games.",
 	options,
-	// The events stand before the state: the declaration build then meets the four decision names in the order of `Action` first, so the tool names of the API report keep one order however the build walks the files.
-	events: {
-		block_started: Type.Object({ block: Type.Integer(), game: GameKind, rounds: Type.Integer(), seats: Type.Array(Type.String()) }),
-		round_opened: Type.Object({ block: Type.Integer(), round: Type.Integer(), game: GameKind, pairs: Type.Array(Type.Array(Type.String()), { description: "The pairs of the round (the proposer first in the ultimatum game); '' is the bye of an odd table." }) }),
-		decision_made: Type.Object({ block: Type.Integer(), round: Type.Integer(), resident: Type.String(), action: Action, value: Type.Number(), reason: Type.Optional(Type.String()) }),
-		round_resolved: Type.Object({ block: Type.Integer(), round: RoundRecord.properties.round, game: GameKind, pool: Type.Optional(Type.Number()), outcomes: Type.Array(Outcome) }),
-		block_ended: Type.Object({ block: Type.Integer(), game: GameKind, scores: Type.Record(Type.String(), Type.Number()), totals: Type.Record(Type.String(), Type.Number()) }),
-		block_scored: Type.Object({ block: Type.Integer(), game: GameKind, reference: Reference }),
-		match_ended: Type.Object({ scores: Type.Record(Type.String(), Type.Number()) }),
-	},
+	events,
+	metrics: econGamesMetrics(events),
 	// Sealed until the round resolves; the reference score is for the human and the reporter only.
 	audiences: { decision_made: ["human"], block_scored: ["human"] },
 	state: EconSlice,

@@ -7,11 +7,13 @@
  * each game, so the question is whether a norm learned in one game carries into the next (`brain: false`: the same
  * briefings, no brain). The mechanic scores each game against Nash play and the social optimum, for the report
  * only. A port of the old `stories/econ-lab/story.ts`: the variants are options of the factory, the id is always
- * `econ-lab`.
+ * `econ-lab`. The file exports the game family: the variants that an experiment or `--set` may choose are its params,
+ * and its defaults give the game of the old platform.
  */
 import { econGames, type Block } from "@swarmtales/mechanic-econ-games";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
 
 /**
@@ -99,4 +101,38 @@ export function econLabGame(options: EconLabOptions = {}) {
 	});
 }
 
-export default econLabGame();
+const BlockParam = Type.Object(
+	{
+		game: Type.Union([Type.Literal("ultimatum"), Type.Literal("public-goods"), Type.Literal("dilemma")], { description: "The game of the block." }),
+		rounds: Type.Integer({ minimum: 1, maximum: 50, description: "Rounds of the block." }),
+	},
+	{ description: "One game of the match with its rounds." },
+);
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose. The seed and the tick count
+ * are no params: the seed is the run's, and the tick count follows from the rounds.
+ */
+const Params = Type.Object(
+	{
+		blocks: Type.Array(BlockParam, { minItems: 1, default: DEFAULT_BLOCKS.map((block) => ({ ...block })), description: "The games of the match in order, each with its rounds." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro (the control arm of the brain experiment)." }),
+		showHorizon: Type.Boolean({ default: DEFAULTS.showHorizon, description: "Tell the seats how many rounds a game has." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Econ Lab." },
+);
+
+/**
+ * Econ Lab as a game family: the default params give the game of the old platform (the treatment arm of the brain
+ * experiment), `{ brain: false }` its control arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: econLabFamily, params: { brain: false }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const econLabFamily = defineGameFamily(Params, (params) => econLabGame(params));
+
+export default econLabFamily;

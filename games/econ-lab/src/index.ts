@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, DEFAULT_BLOCKS, econLabGame, type EconLabOptions } from "../game.ts";
+export { default, DEFAULT_BLOCKS, econLabFamily, econLabGame, type EconLabOptions } from "../game.ts";
 export { briefings, SEATS } from "../briefing.ts";

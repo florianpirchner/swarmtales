@@ -6,6 +6,7 @@ import { BrainSourceService } from "@swarmtales/mechanic-contracts";
 import { GridGameService } from "@swarmtales/mechanic-grid-game/contract";
 import { TeamChannelService } from "@swarmtales/mechanic-team-channel/contract";
 import { StrategyBrainService } from "./contract.ts";
+import { strategyBrainMetrics } from "./metrics.ts";
 
 const options = Type.Object({
 	enabled: Type.Boolean({ default: true, description: "false: no brain and no retro, only the result-only briefing at each game's start (the control arm)." }),
@@ -88,6 +89,28 @@ const Saved = Type.Object({
 	startingSide: Type.Optional(Type.String()),
 });
 
+// The event schemas stand outside the head so that the metrics are typed by them.
+const events = {
+	brain_written: Type.Object({
+		team: Type.String(),
+		game: Type.Integer({ description: "The game the retro followed; 0 for the brain before game 1." }),
+		version: Type.Integer({ description: "From 1, per brain (per team, or the one shared brain)." }),
+		author: Type.String(),
+		words: Type.Integer(),
+		hash: Type.String(),
+		text: Type.String(),
+	}),
+	retro_started: Type.Object({ team: Type.String(), game: Type.Integer(), captain: Type.String() }),
+	retro_closed: Type.Object({ team: Type.String(), game: Type.Integer(), reason: Type.Union([Type.Literal("written"), Type.Literal("max_posts"), Type.Literal("timeout")]) }),
+};
+
+/**
+ * The event schemas of the strategy brain, by event type: what its metrics are typed by.
+ *
+ * @internal
+ */
+export type StrategyBrainEvents = typeof events;
+
 /**
  * The head of the strategy brain: everything that can be read without running a handler.
  *
@@ -116,19 +139,8 @@ export const strategyBrainHead = defineHead({
 		startingSide: data.startingSide ?? "",
 	}),
 	},
-	events: {
-		brain_written: Type.Object({
-			team: Type.String(),
-			game: Type.Integer({ description: "The game the retro followed; 0 for the brain before game 1." }),
-			version: Type.Integer({ description: "From 1, per brain (per team, or the one shared brain)." }),
-			author: Type.String(),
-			words: Type.Integer(),
-			hash: Type.String(),
-			text: Type.String(),
-		}),
-		retro_started: Type.Object({ team: Type.String(), game: Type.Integer(), captain: Type.String() }),
-		retro_closed: Type.Object({ team: Type.String(), game: Type.Integer(), reason: Type.Union([Type.Literal("written"), Type.Literal("max_posts"), Type.Literal("timeout")]) }),
-	},
+	events,
+	metrics: strategyBrainMetrics(events),
 	audiences: { brain_written: ["human"] },
 	provides: [StrategyBrainService],
 	uses: [GridGameService, BrainSourceService, TeamChannelService],

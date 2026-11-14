@@ -4,5 +4,5 @@
  *
  * @packageDocumentation
  */
-export { default, quarryGame, type QuarryOptions } from "../game.ts";
+export { default, quarryFamily, quarryGame, type QuarryOptions } from "../game.ts";
 export { briefings, SEATS } from "../briefing.ts";

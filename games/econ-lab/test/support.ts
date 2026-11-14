@@ -3,8 +3,11 @@
  * The scripted seat of the Econ Lab tests and their readers of the log. Carried from `test/stories/econ-lab.test.ts`
  * (`player`) and `test/stories/tictactoe-support.ts` (`field`, `ofType`).
  */
-import { scriptedDriver, type Played } from "@swarmtales/testkit";
-import { econLabGame, type EconLabOptions } from "../game.ts";
+import { familyParams, type Game } from "@swarmtales/sdk";
+import { play, scriptedDriver, type Oracle, type Plan, type Played, type PlannedCall } from "@swarmtales/testkit";
+import { Value } from "typebox/value";
+import { expect } from "vitest";
+import { econLabGame, type EconLabOptions, econLabFamily } from "../game.ts";
 
 type Logged = Played["events"][number];
 type Call = readonly { readonly tool: string; readonly params: unknown }[];
@@ -51,3 +54,65 @@ export function field(event: Logged, key: string): unknown {
 /** The input lines of every opened activation, as JSON, with the resident's name. */
 export const shown = (events: readonly Logged[]): readonly { readonly resident: string; readonly inputs: unknown }[] =>
 	ofType(events, "activation_opened").map((event) => ({ resident: String(field(event, "actor")).replace(/^resident:/, ""), inputs: field(event, "inputs") }));
+
+/**
+ * The game of one param set of the family, as `resolveGame` builds it. A stand-in: `play` and `runOracle` of the
+ * testkit take a game, not yet a family with its overrides.
+ *
+ * @param overrides - The overrides of the params: an arm of an experiment.
+ * @returns The game of the arm.
+ */
+export function arm(overrides: Readonly<Record<string, unknown>> = {}) {
+	const { params, issues } = familyParams(econLabFamily, overrides);
+	expect(issues).toEqual([]);
+	return econLabFamily.build(Value.Parse(econLabFamily.params, params));
+}
+
+/**
+ * Plays a game from the inputs of an oracle file, as `runOracle` does, and gives the new log. A stand-in:
+ * `runOracle` returns the mismatches only.
+ *
+ * @param oracle - The oracle file.
+ * @param game - The game of its variant.
+ * @returns Every event of the run.
+ */
+export async function replay(oracle: Oracle, game: Game): Promise<Played["events"]> {
+	const script = new Map<string, PlannedCall[][]>();
+	for (const entry of oracle.timeline) {
+		if (entry.k === "turn") script.set(entry.resident, [...(script.get(entry.resident) ?? []), []]);
+		if (entry.k === "call") script.get(entry.actor.slice(entry.actor.indexOf(":") + 1))?.at(-1)?.push({ tool: entry.tool, params: entry.params });
+	}
+	const turns = new Map<string, number>();
+	const plan: Plan = (activation) => {
+		const resident = activation.actor.slice(activation.actor.indexOf(":") + 1);
+		const turn = turns.get(resident) ?? 0;
+		turns.set(resident, turn + 1);
+		return script.get(resident)?.[turn] ?? [];
+	};
+	// The model of a recorded run owed an answer after every turn with a call: the replay of a live run is pending then.
+	const live = oracle.source.kind === "live-replay";
+	const ticks = oracle.truncated === undefined ? oracle.setup.minutes : oracle.truncated.afterMinute + 1;
+	const played = await play(game, {
+		seed: oracle.seed,
+		ticks,
+		drivers: {
+			resident: async (activation) => {
+				const calls = await plan(activation);
+				for (const call of calls) await activation.call(call.tool, call.params);
+				return { pending: live && calls.length > 0 };
+			},
+		},
+	});
+	return played.events;
+}
+
+/**
+ * The metrics of a run as a table reads them: every metric of every mechanic of the game, computed from that
+ * mechanic's own events.
+ *
+ * @param game - The game that was played.
+ * @param events - Every event of the run.
+ * @returns `<mechanic id>.<metric id>` to the number, or `"absent"`.
+ */
+export const metricsOf = (game: Game, events: readonly Logged[]): Readonly<Record<string, number | "absent">> =>
+	Object.fromEntries(game.mechanics.flatMap(({ mechanic }) => mechanic.head.metrics.map((metric) => [`${mechanic.id}.${metric.id}`, metric.compute(events.filter((event) => event.source === mechanic.source)) ?? "absent"])));

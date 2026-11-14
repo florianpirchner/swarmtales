@@ -7,11 +7,14 @@
  * is each seat's private strategy brain (`brain: false`: the same briefings, no brain), so the question is whether a
  * seat learns to read what its neighbours pass and to stay out of their lanes. The mechanic scores every pick
  * against the greedy pick and every game against four greedy seats on the same deal, for the report only. A port of
- * the old `stories/quarry/story.ts`: the variants are options of the factory, the id is always `quarry`.
+ * the old `stories/quarry/story.ts`: the variants are options of the factory, the id is always `quarry`. The file
+ * exports the game family: the variants that an experiment or `--set` may choose are its params, and its defaults
+ * give the game of the old platform.
  */
 import { draftRounds } from "@swarmtales/mechanic-draft-rounds";
 import { strategyBrain } from "@swarmtales/mechanic-strategy-brain";
-import { defineGame } from "@swarmtales/sdk";
+import { defineGame, defineGameFamily } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { briefings, SEATS } from "./briefing.ts";
 
 /**
@@ -90,4 +93,34 @@ export function quarryGame(options: QuarryOptions = {}) {
 	});
 }
 
-export default quarryGame();
+/**
+ * The params of the family: the variants an arm of an experiment or `--set` may choose. The seed and the tick count
+ * are no params: the seed is the run's, and the tick count follows from the picks.
+ */
+const Params = Type.Object(
+	{
+		games: Type.Integer({ minimum: 1, default: DEFAULTS.games, description: "Games in the match." }),
+		packs: Type.Integer({ minimum: 1, default: DEFAULTS.packs, description: "Pack rounds per game." }),
+		packSize: Type.Integer({ minimum: 2, default: DEFAULTS.packSize, description: "Cards per pack." }),
+		brain: Type.Boolean({ default: DEFAULTS.brain, description: "Each seat keeps a strategy brain; false: the same briefings, no brain, no retro." }),
+		burns: Type.Boolean({ default: DEFAULTS.burns, description: "Burns allowed: the hate-drafting arm." }),
+		openHands: Type.Boolean({ default: DEFAULTS.openHands, description: "Every seat sees every quarry during the game: the treatment arm of the open-quarries experiment." }),
+		maxWords: Type.Integer({ minimum: 1, default: DEFAULTS.maxWords, description: "Words a brain may have." }),
+	},
+	{ description: "The variants of Quarry." },
+);
+
+/**
+ * Quarry as a game family: the default params give the game of the old platform (the control arm of the
+ * open-quarries experiment), `{ openHands: true }` its treatment arm.
+ *
+ * @example
+ * ```ts
+ * const resolved = resolveGame({ game: quarryFamily, params: { openHands: true }, schedulers: { turns }, prompts });
+ * ```
+ *
+ * @public
+ */
+export const quarryFamily = defineGameFamily(Params, (params) => quarryGame(params));
+
+export default quarryFamily;
