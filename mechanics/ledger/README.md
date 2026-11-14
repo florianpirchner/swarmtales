@@ -132,7 +132,7 @@ Points per account and bookings between accounts.
 | `has` | query | account: string | boolean | Whether the account is open. |
 | `mint` | command | account: string, amount: number > 0, reason: string, idempotencyKey?: string | null | Creates points: start points, rewards, grants; writes `ledger_entry`. |
 | `burn` | command | account: string, amount: number > 0, reason: string, idempotencyKey?: string | null | Destroys points: fines, penalties, an exile; the account may go negative; writes `ledger_entry`. |
-| `move` | command | from: string, to: string, amount: number > 0, reason: string, idempotencyKey?: string | object | Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`. |
+| `move` | command | from: string, to: string, amount: number > 0, reason: string, idempotencyKey?: string | { ok: true, txId: string } or { ok: false, code: "INSUFFICIENT_FUNDS" } | Books points between accounts without the resident checks: escrow, treasuries, bids; writes `ledger_entry` only, never `transfer`. |
 
 <!-- /generated:services -->
 

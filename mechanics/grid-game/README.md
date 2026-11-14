@@ -159,7 +159,7 @@ The board of the grid game: the side to move, the captain of the turn, the cells
 | `game` | query | - | integer | The running (or last) game's number, from 1; 0 before the first game. |
 | `hold` | command | - | boolean | Holds the next game back (also the first, before the run starts) until `release`. True when a game is still to come and is now held; false after the match's last game. |
 | `release` | command | - | null | Lets a held game start in the next minute. A no-op when nothing is held. |
-| `rules` | query | - | object | The board's size and the line length that wins. |
+| `rules` | query | - | { size: integer, line: integer } | The board's size and the line length that wins. |
 
 ### `consensus-source`
 

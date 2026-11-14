@@ -154,8 +154,8 @@ Opens a decision that its holders may amend until it settles.
 
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
-| `propose` | command | kind: string, proposal: any, window: integer ≥ 0, schema?: any | object | Opens a decision owned by the caller. With a window of 0, or when no holder can act, it writes nothing and answers `committed: true`: the caller commits at once. Otherwise it writes `decision_proposed` and answers `committed: false` with the id; the caller commits in a listener to `decision_settled`. |
-| `open` | query | - | object[] | Lists the open decisions, in the order they were opened. |
+| `propose` | command | kind: string, proposal: any, window: integer ≥ 0, schema?: any | { committed: true } or { committed: false, decision: string } | Opens a decision owned by the caller. With a window of 0, or when no holder can act, it writes nothing and answers `committed: true`: the caller commits at once. Otherwise it writes `decision_proposed` and answers `committed: false` with the id; the caller commits in a listener to `decision_settled`. |
+| `open` | query | - | { decision: string, kind: string, owner: string, deadline: integer }[] | Lists the open decisions, in the order they were opened. |
 
 <!-- /generated:services -->
 

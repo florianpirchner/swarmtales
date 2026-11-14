@@ -88,7 +88,7 @@ Banishes residents and says who is banished.
 
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
-| `banish` | command | resident: string, by?: string | object | Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already. |
+| `banish` | command | resident: string, by?: string | { ok: boolean, code?: "UNKNOWN_RESIDENT" or "ALREADY_EXILED" } | Banishes a resident: writes `exiled`, then suspends it with the reason `exiled`. Writes nothing when the resident is unknown or banished already. |
 | `isExiled` | query | resident: string | boolean | Says whether the resident is banished. |
 | `exiled` | query | - | string[] | Every banished resident, in the order they were banished. |
 

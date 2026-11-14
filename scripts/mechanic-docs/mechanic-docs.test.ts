@@ -8,7 +8,7 @@ import { REPO_ROOT, readText } from "../lib/files.ts";
 import { docsContext, mechanicBlocks } from "./blocks.ts";
 import { loadMechanics, type LoadedMechanic } from "./head.ts";
 import { docsProblems, MECHANIC_SECTIONS, PLACEHOLDER, readmeProblems, skeleton, withBlocks } from "./readme.ts";
-import { fieldLine, fieldsOf, typeText } from "./schema-text.ts";
+import { fieldLine, fieldsOf, outputText, typeText } from "./schema-text.ts";
 
 const mechanics = await loadMechanics(REPO_ROOT);
 const ctx = docsContext(REPO_ROOT, mechanics);
@@ -49,6 +49,16 @@ describe("schemas as text", () => {
 		expect(fieldLine(schema)).toBe("blocks: object[], note?: string");
 		expect(fieldLine({ type: "object", properties: {} })).toBe("-");
 	});
+
+	it("shows what a method answers with its fields and codes, not as `object`", () => {
+		const row = { type: "object", required: ["id"], properties: { id: { type: "string" }, at: { type: "object", properties: { x: { type: "integer" } } } } };
+		expect(outputText(row)).toBe("{ id: string, at?: object }");
+		expect(outputText({ type: "array", items: row })).toBe("{ id: string, at?: object }[]");
+		expect(outputText({ anyOf: [{ type: "object", required: ["ok"], properties: { ok: { const: true } } }, { type: "null" }] })).toBe("{ ok: true } or null");
+		expect(outputText({ type: "array", items: { type: "string" } })).toBe("string[]");
+		expect(outputText({ type: "object", properties: {} })).toBe("object");
+		expect(outputText(undefined)).toBe("any");
+	});
 });
 
 describe("the blocks of a head", () => {
@@ -70,6 +80,12 @@ describe("the blocks of a head", () => {
 		expect(blocks.tools).toBe("This mechanic declares no tools.");
 		expect(blocks.metrics).toBe("This mechanic exports no metrics.");
 		expect(blocks.services).toBe("This mechanic provides no service to other mechanics.");
+	});
+
+	it("lists the codes of `banish` in the service table of `exile`", () => {
+		const services = mechanicBlocks(ctx, mechanic("exile")).services;
+		expect(services).toContain('| `banish` | command | resident: string, by?: string | { ok: boolean, code?: "UNKNOWN_RESIDENT" or "ALREADY_EXILED" } |');
+		expect(services).toContain("| `exiled` | query | - | string[] |");
 	});
 });
 

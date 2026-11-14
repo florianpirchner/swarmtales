@@ -161,3 +161,24 @@ export function fieldLine(schema: unknown): string {
 		.join(", ");
 	return line === "" ? "-" : line;
 }
+
+function shapeOf(schema: unknown): string | undefined {
+	if (!isRecord(schema)) return undefined;
+	if (isRecord(schema.properties) && Object.keys(schema.properties).length > 0) return `{ ${fieldLine(schema)} }`;
+	if (schema.type !== "array") return undefined;
+	const items = shapeOf(schema.items);
+	return items === undefined ? undefined : `${items}[]`;
+}
+
+/**
+ * What a service method answers: an object with its fields and their values (`{ ok: boolean, code?: "A" or "B" }`),
+ * a list of such objects with `[]`, else the type in a few words.
+ *
+ * @param schema - The schema as JSON.
+ * @returns The text.
+ */
+export function outputText(schema: unknown): string {
+	const parts = isRecord(schema) ? (schema.anyOf ?? schema.oneOf) : undefined;
+	if (Array.isArray(parts)) return [...new Set(parts.map((part) => outputText(part)))].join(" or ");
+	return shapeOf(schema) ?? typeText(schema);
+}

@@ -179,9 +179,9 @@ The city's voice (posts on the public board, private notices) and the record of 
 
 | Method | Kind | Input | Output | Summary |
 | --- | --- | --- | --- | --- |
-| `post` | command | author: string, text: string, kind?: "city" or "system" | object | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
+| `post` | command | author: string, text: string, kind?: "city" or "system" | { postSeq: integer } | Writes a post on the public board and `board_post`. It is no news for residents: only a resident's own post is. |
 | `notify` | command | to: string, author: string, text: string | null | Leaves a private notice for a resident and writes `notice`; the resident reads it at its next activation. An unknown resident throws. |
-| `dmRecords` | query | - | object[] | Lists every direct message that was sent, delivered or not, oldest first. |
+| `dmRecords` | query | - | { from: string, to: string, text: string, number: integer }[] | Lists every direct message that was sent, delivered or not, oldest first. |
 
 <!-- /generated:services -->
 

@@ -6,7 +6,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { readManifest, type HeadView, type LoadedMechanic, type ServiceView } from "./head.ts";
-import { cell, code, fieldLine, fieldsOf, isRecord, plain, table, typeText } from "./schema-text.ts";
+import { cell, code, fieldLine, fieldsOf, isRecord, outputText, plain, table } from "./schema-text.ts";
 
 /** What the blocks of one README are computed against. */
 export interface DocsContext {
@@ -132,7 +132,7 @@ function optionsBlock(head: HeadView): string {
 }
 
 function serviceBlock(service: ServiceView): string {
-	const rows = Object.entries(service.methods).map(([name, method]) => [code(name), method.kind, cell(fieldLine(plain(method.input))), cell(typeText(plain(method.output))), cell(method.summary)]);
+	const rows = Object.entries(service.methods).map(([name, method]) => [code(name), method.kind, cell(fieldLine(plain(method.input))), cell(outputText(plain(method.output))), cell(method.summary)]);
 	return [`### ${code(service.name)}`, "", service.summary, "", table(["Method", "Kind", "Input", "Output", "Summary"], rows)].join("\n");
 }
 
