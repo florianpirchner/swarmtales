@@ -85,6 +85,20 @@ const differs = (at: number, expected: Envelope | undefined, got: Envelope | und
 	};
 };
 
+// `SWT-T005` for a log that stops inside a tick: it has no `run_ended`, and a tick started after the last one that ended.
+function cutOff(log: readonly Envelope[]): SwtError | undefined {
+	const last = (type: string): number => log.findLastIndex((event) => event.source === "kernel" && event.type === type);
+	if (last("run_ended") >= 0 || last("tick_started") <= last("tick_ended")) return undefined;
+	const tick = log[last("tick_started")]?.tick ?? 0;
+	return new SwtError({
+		code: "SWT-T005",
+		summary: `the log ends at line ${String(log.length)} inside tick ${String(tick)}, without \`run_ended\``,
+		where: { ...WHERE, line: log.length },
+		why: "The run crashed or was cut off in the middle of a tick. A replay plays whole ticks, so the lines of the open tick cannot be compared; a run that stopped between two ticks (paused, or stopped by `--ticks`) is replayable.",
+		fix: "Replay the run it was resumed from or a run that ended; `swt log verify` says whether the lines that are there hold.",
+	});
+}
+
 // An activation opens: the actor's next turn. The reason `answer` says that the driver was pending after the turn before.
 function opened(plan: Plan, open: Map<number, Turn>, event: Envelope): void {
 	const turn: Turn = { steps: [], pending: false };
@@ -199,8 +213,8 @@ function resolved(input: ReplayInput): ResolvedGame {
  *
  * @param input - The game, the log and the record sources that are inputs.
  * @returns The replayed log, whether it is equal, and the first differing line with its `SWT-T003` issue.
- * @throws SwtError `SWT-T004` when the log holds an input outside an activation inside a tick, and what game
- * resolution or `createKernel` reports for a game that does not resolve.
+ * @throws SwtError `SWT-T005` when the log has no `run_ended` and stops inside a tick (a crashed run), `SWT-T004`
+ * when the log holds an input outside an activation inside a tick, and what game resolution or `createKernel` reports for a game that does not resolve.
  * @example
  * ```ts
  * const { events } = await play(game, { seed: 7, drivers });
@@ -211,6 +225,8 @@ function resolved(input: ReplayInput): ResolvedGame {
  * @public
  */
 export async function replay(input: ReplayInput): Promise<ReplayResult> {
+	const crashed = cutOff(input.log);
+	if (crashed !== undefined) throw crashed;
 	const { definition } = resolved(input);
 	const sources = new Set((input.records ?? definition.records ?? []).map((source) => source.id));
 	const plan = planOf(input.log, sources);

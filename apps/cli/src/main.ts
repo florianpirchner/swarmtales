@@ -8,9 +8,11 @@ import { experimentAnalyse, experimentRun } from "./experiment.ts";
 import { liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type Flags } from "./flags.ts";
 import { runLive } from "./live.ts";
 import { logVerify } from "./log-verify.ts";
+import { replayRun } from "./replay.ts";
 import { report } from "./report.ts";
 import { resumeRun } from "./resume.ts";
 import { runFake } from "./run.ts";
+import { scan } from "./scan.ts";
 
 /**
  * What a command reads and writes outside its arguments; a test passes its own.
@@ -46,6 +48,8 @@ const COMMANDS: Readonly<Record<string, Command>> = {
 	resume: (directory, values, io) => resumeRun({ directory, out: values.out, json: values.json === true, ...resumeFlags(values), ...loopFlags(values) }, io),
 	"log verify": (directory, values, io) => logVerify(directory, values.json === true, io, values.previous),
 	report: (directory, values, io) => report({ directory, ...(values.game === undefined ? {} : { game: values.game }) }, io),
+	replay: (directory, values, io) => replayRun({ directory, json: values.json === true, ...(values.game === undefined ? {} : { game: values.game }) }, io),
+	scan: (directory, values, io) => scan(directory, values.json === true, io),
 	"experiment run": (spec, values, io) => experimentRun({ spec, out: values.out, ...(values.ledger === undefined ? {} : { ledger: values.ledger }), env: io.env ?? readEnv() }, io),
 	"experiment analyse": (directory, _values, io) => experimentAnalyse(directory, io),
 };
@@ -68,6 +72,9 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
  * verify, 2 the run ended with the reason `error`, 3 the run is paused and the Human Hand of `--hand` has ended (`SWT-X009`; a snapshot is written), 5 a live run (no `--fake`) ended at its cost cap (`--budget`). `swt resume`: as `swt run --fake`, and 3 also when
  * `--ticks` stopped the run before its end. `swt log verify`: 0 the log holds, 1 it is broken, 3 the run has
  * no end. `swt report`: 0 the report is written, 1 the run folder is unreadable, 4 a file of it holds a key value.
+ * `swt replay`: 0 the replayed log is equal, 1 it differs (`SWT-C031`), the run is not replayable (`SWT-T005`,
+ * `SWT-T004`) or its folder does not verify. `swt scan`: 0 no file holds a held key value, 1 a file does (`SWT-X030`) or
+ * the folder is none, 3 nothing was scanned because no key is held.
  * `swt experiment run`: 0 complete, 1 an `SwtError`, 4 a leak, 6 stopped at the experiment's cap or after three failed
  * runs. `swt experiment analyse`: 0 the pass rule is kept or there is none, 1 an `SwtError`, 3 not kept, 4 a leak,
  * 7 no verdict. An error before the run is printed in the five-line form, or with `--json` as `{ "issues": [...] }`.

@@ -24,3 +24,5 @@ export { LEAK_FILE, scanFolder } from "./leak-scan.ts";
 export { ledgerRefused, openLedger, type Ledger } from "./ledger.ts";
 export { jsonFile, metricTable, report, REPORT_FILE, type ReportInput } from "./report.ts";
 export { experimentAnalyse, experimentRun, type ExperimentInput } from "./experiment.ts";
+export { replayDiffers, replayRun, type ReplayRunInput } from "./replay.ts";
+export { scan } from "./scan.ts";
