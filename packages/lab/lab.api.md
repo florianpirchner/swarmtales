@@ -4,6 +4,9 @@
 
 ```ts
 
+import { Envelope } from '@swarmtales/contracts';
+import { MetricDefinition } from '@swarmtales/contracts';
+import { RunManifest } from '@swarmtales/contracts';
 import { Static } from 'typebox';
 import { SwtError } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
@@ -156,6 +159,12 @@ export const ExperimentSpecSchema: Type.TObject<{
 }>;
 
 // @public
+export function factsOf(manifest: RunManifest, events: readonly Envelope[], metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts["values"];
+
+// @public
+export type FactValue = number | "absent";
+
+// @public
 export class LabError extends SwtError {}
 
 // @public
@@ -209,6 +218,26 @@ export function parseLabFile<S extends TSchema>(schema: S, value: unknown, what:
 
 // @public
 export function parseNoiseFloor(value: unknown, file?: string): NoiseFloor;
+
+// @public
+export function readRun(directory: string, metrics: Readonly<Record<string, readonly MetricDefinition[]>>): RunFacts;
+
+// @public
+export interface RunFacts {
+    readonly arm?: string;
+    readonly end: {
+        readonly reason: string;
+        readonly limit?: string;
+        readonly tick: number;
+    };
+    readonly game: string;
+    readonly head: string;
+    readonly manifestHash: string;
+    readonly replicate: number;
+    readonly run: string;
+    readonly seed: number;
+    readonly values: Readonly<Record<string, FactValue>>;
+}
 
 // @public
 export function share(hits: number, n: number): {
