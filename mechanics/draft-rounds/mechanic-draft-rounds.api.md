@@ -18,6 +18,7 @@ burnCost: Type.TInteger;
 placeBonus: Type.TArray<Type.TInteger>;
 maxBurns: Type.TInteger;
 openHands: Type.TBoolean;
+frozenHands: Type.TOptional<Type.TBoolean>;
 deadline: Type.TInteger;
 }>, {
 draft_game_started: Type.TObject<{

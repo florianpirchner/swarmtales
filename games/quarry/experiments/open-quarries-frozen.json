@@ -1,0 +1,91 @@
+{
+	"format": "swarmtales-experiment",
+	"version": 1,
+	"id": "quarry-open-quarries-frozen",
+	"question": "How much do open quarries raise the table's points when no seat sees a pick of the same step (the gate's open arm, with the live line of lesson LH18: +84.5, standard error 22.0, 12 pairs)?",
+	"purpose": "exploratory",
+	"game": "games/quarry/game.ts",
+	"model": {
+		"provider": "anthropic",
+		"id": "haiku",
+		"thinking": "medium"
+	},
+	"arms": [
+		{
+			"id": "control",
+			"params": {},
+			"control": true
+		},
+		{
+			"id": "open-frozen",
+			"params": {
+				"openHands": true,
+				"frozenHands": true
+			}
+		}
+	],
+	"seeds": [
+		31,
+		37,
+		41,
+		43,
+		47,
+		53
+	],
+	"replicates": 1,
+	"design": "paired",
+	"metrics": {
+		"primary": "draft-rounds.tablePoints",
+		"secondary": [
+			"draft-rounds.sharedLanes",
+			"strategy-brain.brainWrites"
+		],
+		"guardrails": [
+			{
+				"metric": "models.requests",
+				"per": "draft-rounds.decisions",
+				"within": {
+					"of": 1.3,
+					"share": 0.1
+				}
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "control",
+				"max": 0.041
+			},
+			{
+				"metric": "models.costUsd",
+				"arm": "open-frozen",
+				"max": 0.05
+			},
+			{
+				"metric": "draft-rounds.missedPicks",
+				"max": 0
+			}
+		]
+	},
+	"allowedRefusals": [
+		"BRAIN_TOO_LONG",
+		"TOOL_LOCKED",
+		"NOT_IN_PACK",
+		"INVALID_ARGUMENTS",
+		"BURN_IS_PICK",
+		"NO_BURNS_LEFT"
+	],
+	"exclusions": [
+		"failed-request",
+		"missed-decision",
+		"cost-cap",
+		"error-end"
+	],
+	"budget": {
+		"perRunUsd": 0.1,
+		"totalUsd": 0.6,
+		"estimateUsdPerRun": {
+			"control": 0.0344,
+			"open-frozen": 0.0417
+		}
+	},
+	"concurrency": 2
+}

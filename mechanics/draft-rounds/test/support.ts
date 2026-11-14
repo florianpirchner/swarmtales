@@ -17,17 +17,18 @@ export interface DraftGameOptions {
 	readonly brain?: boolean;
 	readonly burns?: boolean;
 	readonly openHands?: boolean;
+	readonly frozenHands?: boolean;
 }
 
 /** The Quarry game of the old platform around the mechanic under test. */
 export function draftGame(options: DraftGameOptions = {}): Game {
-	const { games = 3, brain = true, burns = false, openHands = false } = options;
+	const { games = 3, brain = true, burns = false, openHands = false, ...more } = options;
 	return defineGame({
 		id: "draft-rounds-test",
 		seed: 29,
 		residents: [...SEATS],
 		mechanics: [
-			draftRounds({ games, packs: 2, packSize: 6, openHands, deadline: 2, ...(burns ? {} : { maxBurns: 0 }) }),
+			draftRounds({ games, packs: 2, packSize: 6, openHands, deadline: 2, ...(burns ? {} : { maxBurns: 0 }), ...more }),
 			strategyBrain({ enabled: brain, solo: true, maxWords: 150, teams: Object.fromEntries(SEATS.map((seat) => [seat, [seat]])), retroMaxPosts: 8, retroMaxMinutes: 2, shared: false, brainAtStart: true }),
 		],
 		grants: { resident: ["viewTable", "pick", ...(brain ? (["readBrain", "writeBrain"] as const) : [])] },

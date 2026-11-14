@@ -73,6 +73,43 @@ describe("pick", () => {
 	});
 });
 
+describe("open quarries", () => {
+	const NONE = "amber 0, basalt 0, cobalt 0, jade 0, lodestone 0";
+	// The `Quarries:` line `viewTable` shows to a seat, as a record by seat.
+	const quarries = async (test: ReturnType<typeof testKernel>, seat: string): Promise<Readonly<Record<string, string>>> => {
+		const view = await test.call(seat, "viewTable", {});
+		const line = /Quarries: (.+)\.$/m.exec(view.ok ? view.reply : "")?.[1] ?? "";
+		return Object.fromEntries(line.split("; ").map((entry) => [entry.slice(0, 3), entry.slice(4)]));
+	};
+	const keepFirst = async (test: ReturnType<typeof testKernel>, seat: string): Promise<void> => {
+		const view = await test.call(seat, "viewTable", {});
+		expect(await test.call(seat, "pick", { card: packOf(view.ok ? view.reply : "")[0]?.id })).toMatchObject({ ok: true });
+	};
+
+	it("are the live state by default: a seat sees a pick of the same step (LH18)", async () => {
+		const test = testKernel(draftGame({ brain: false, openHands: true }));
+		await keepFirst(test, "A01");
+		expect((await quarries(test, "A02")).A01).not.toBe(NONE);
+	});
+
+	it("are those at the start of the pick with frozenHands, the reader's own quarry excepted, until the packs pass", async () => {
+		const test = testKernel(draftGame({ brain: false, openHands: true, frozenHands: true }));
+		await keepFirst(test, "A01");
+		await keepFirst(test, "A03");
+		expect(await quarries(test, "A02")).toEqual({ A01: NONE, A02: NONE, A03: NONE, A04: NONE });
+		const own = await quarries(test, "A01");
+		expect(own.A01).not.toBe(NONE);
+		expect(own.A03).toBe(NONE);
+		await keepFirst(test, "A02");
+		await keepFirst(test, "A04");
+		// The packs passed: the picks of the finished step are shown to every seat.
+		expect(Object.values(await quarries(test, "A02")).filter((line) => line === NONE)).toEqual([]);
+		await keepFirst(test, "A04");
+		expect((await quarries(test, "A02")).A04).toBe((await quarries(test, "A01")).A04);
+		expect((await quarries(test, "A04")).A04).not.toBe((await quarries(test, "A02")).A04);
+	});
+});
+
 describe("mechanic conformance", () => {
 	it("fits its package, and documents every option", () => {
 		const packageJson: unknown = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8"));
@@ -83,6 +120,7 @@ describe("mechanic conformance", () => {
 	it("is deterministic, and a run resumed from a snapshot plays on as the whole run", async () => {
 		expect(await checkDeterminism(draftGame({ burns: true }), () => player)).toEqual([]);
 		for (const cut of [1, 3, 6]) expect(await checkSnapshotRoundTrip(draftGame({ burns: true }), () => player, cut)).toEqual([]);
+		expect(await checkSnapshotRoundTrip(draftGame({ games: 1, openHands: true, frozenHands: true }), () => player, 3)).toEqual([]);
 		// Silent seats: the cut falls between a pick's opening and its deadline.
 		expect(await checkSnapshotRoundTrip(draftGame({ brain: false }), () => idleDriver, 9)).toEqual([]);
 	});

@@ -17,6 +17,8 @@ const options = Type.Object({
 	placeBonus: Type.Array(Type.Integer({ minimum: 0 }), { maxItems: 8, default: [10, 5], description: "Points per game for the first, second, ... place by the score before this bonus; a tie shares the better place. Empty: none." }),
 	maxBurns: Type.Integer({ minimum: 0, default: 2, description: "Burns a seat may make per game." }),
 	openHands: Type.Boolean({ default: false, description: "Every seat sees every quarry during the game (off: only at the game's end)." }),
+	// No default: a game that leaves it out keeps the options, and so the hash, it had before the option existed.
+	frozenHands: Type.Optional(Type.Boolean({ description: "With openHands: true shows every other seat's quarry as it was when the running pick opened, so no seat sees a pick of the same step, whatever the order the seats are asked in (the cure of lesson LH18). Left out or false: the quarries are the live state, and a seat asked later sees what the seats before it kept in this pick." })),
 	deadline: Type.Integer({ minimum: 1, default: 2, description: "Minutes a pick stays open before a missing pick takes the first card of the pack." }),
 });
 

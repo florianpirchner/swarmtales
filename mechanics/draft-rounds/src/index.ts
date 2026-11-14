@@ -13,7 +13,7 @@
  *   moves on (a limited number per game), to deny it to the receiver.
  * Picks are simultaneous and sealed (`draft_card_picked`, audience `human`): a seat sees only its own
  * pack and quarry and who passed the pack to it; hands are revealed at the game's end (`openHands`
- * shows them all along). A pick not made by the deadline takes the first card of the pack and is
+ * shows them all along, as they are when a seat is asked; with `frozenHands` as they were when the pick opened). A pick not made by the deadline takes the first card of the pack and is
  * marked missed. Every pick is scored against the greedy reference (what it added to the own set score
  * against the best card, and whether it took the receiver's best card), and each game against the
  * greedy table (four greedy seats on the same deal), in `draft_game_scored` for the human only. A
@@ -25,8 +25,7 @@ import { Type } from "typebox";
 import { defineMechanic, reply } from "@swarmtales/sdk";
 import { pass, pickNow, problemWith, refreshLocks, startNext, take } from "./flow.ts";
 import { draftRoundsHead, type DraftRoundsView } from "./head.ts";
-import { quarryLine } from "./model.ts";
-import { rulesText, tableText, taskText } from "./texts.ts";
+import { quarriesLine, rulesText, tableText, taskText } from "./texts.ts";
 
 type View = DraftRoundsView;
 
@@ -96,7 +95,7 @@ export const draftRounds = defineMechanic(draftRoundsHead, {
 				state.told.push(resident);
 				const task = taskText(ctx, resident);
 				if (task !== undefined) lines.push(task);
-				if (ctx.options.openHands) lines.push(`Quarries: ${state.seats.map((seat) => `${seat} ${quarryLine(state.hands[seat] ?? [])}`).join("; ")}.`);
+				if (ctx.options.openHands) lines.push(quarriesLine(ctx, resident));
 			}
 			return lines;
 		},

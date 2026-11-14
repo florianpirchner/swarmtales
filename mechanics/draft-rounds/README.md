@@ -33,6 +33,12 @@ next seat.
    the first card and is marked missed.
 3. **What a seat sees.** `viewTable` shows its own pack, its quarry and who passed the pack to it. Other quarries are
    revealed at the game's end (`openHands` shows them all along).
+   With `openHands` the `Quarries:` line is the live state: the seats of a pick are asked one after another, so a
+   seat asked later sees what the seats before it kept in this very pick, although the picks are called sealed
+   (lesson LH18). `frozenHands` cures that: every other seat's quarry is shown as it was when the pick opened,
+   whatever the order of the seats; the reader's own quarry is always the current one. The label and every other
+   text stay the same. The option is off by default and has no default value, so a game that leaves it out has
+   the options and the game hash it had before.
 4. **Scoring.** Each resource scores the square of its cards; a set takes at most one lodestone and the lodestones go
    to the biggest sets. The single seat with the most cards of a resource gets `majorityBonus` (a tie scores nothing,
    so a hate pick can cost a neighbour its bonus). `placeBonus` pays the first, second ... place of the game
@@ -173,6 +179,7 @@ Audience: everyone
 | `placeBonus` | (integer ≥ 0)[] | `[10,5]` | Points per game for the first, second, ... place by the score before this bonus; a tie shares the better place. Empty: none. |
 | `maxBurns` | integer ≥ 0 | `2` | Burns a seat may make per game. |
 | `openHands` | boolean | `false` | Every seat sees every quarry during the game (off: only at the game's end). |
+| `frozenHands` | boolean | unset | With openHands: true shows every other seat's quarry as it was when the running pick opened, so no seat sees a pick of the same step, whatever the order the seats are asked in (the cure of lesson LH18). Left out or false: the quarries are the live state, and a seat asked later sees what the seats before it kept in this pick. |
 | `deadline` | integer ≥ 1 | `2` | Minutes a pick stays open before a missing pick takes the first card of the pack. |
 
 <!-- /generated:options -->

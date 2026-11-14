@@ -34,13 +34,14 @@ function armsOf(file: string): readonly Readonly<Record<string, unknown>>[] {
 describe("the game family", () => {
 	it("is the default export of the game file, with the params and defaults of the specification", () => {
 		expect(isGameFamily(quarry)).toBe(true);
-		expect(familyParams(quarry).params).toEqual({ games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, maxWords: 150 });
+		expect(familyParams(quarry).params).toEqual({ games: 3, packs: 2, packSize: 6, brain: true, burns: false, openHands: false, frozenHands: false, maxWords: 150 });
 	});
 
 	it("gives the pinned game hash for the default params: the control arm", () => {
 		expect(hashOf(quarryGame())).toBe(PINNED);
 		expect(hashOf(arm())).toBe(PINNED);
 		expect(hashOf(arm({ openHands: false, games: 3 }))).toBe(PINNED);
+		expect(hashOf(arm({ frozenHands: false }))).toBe(PINNED);
 	});
 
 	it.each(ARMS)("gives the game of the old variant for %j", (params, hash) => {
@@ -50,6 +51,7 @@ describe("the game family", () => {
 	it("takes every arm of the committed experiment specs, and refuses a param it does not have", () => {
 		const arms = readdirSync(EXPERIMENTS).flatMap(armsOf);
 		expect(arms).toContainEqual({ openHands: true });
+		expect(arms).toContainEqual({ openHands: true, frozenHands: true });
 		expect(arms.flatMap((params) => familyParams(quarry, params).issues)).toEqual([]);
 		expect(familyParams(quarry, { seed: 31 }).issues.map((issue) => issue.code)).toEqual(["SWT-G041"]);
 		expect(familyParams(quarry, { openHands: "yes" }).issues.map((issue) => issue.code)).toEqual(["SWT-G041"]);

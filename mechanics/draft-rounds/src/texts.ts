@@ -57,6 +57,27 @@ function placesLine(ctx: Ctx): string {
 }
 
 /**
+ * The line of `openHands`: every seat's quarry. It is the live state, so a seat that is asked later in a pick sees
+ * what the seats before it kept in this very pick (lesson LH18). With `frozenHands` every other seat's quarry is
+ * shown as it was when the pick opened, whatever the order the seats are asked in: the card it kept in the running
+ * pick is left out. The reader's own quarry is always the current one (its own pick is no secret to it).
+ *
+ * @param ctx - The mechanic's context.
+ * @param reader - The seat that reads the line; undefined when it is no resident.
+ * @returns The line.
+ */
+export function quarriesLine(ctx: Ctx, reader: string | undefined): string {
+	const state = ctx.state;
+	const running = ctx.options.frozenHands === true ? state.picks.filter((pick) => pick.game === state.game && pick.pack === state.packRound && pick.step === state.step) : [];
+	const shown = (seat: string): string => {
+		const hand = state.hands[seat] ?? [];
+		const kept = seat === reader ? undefined : running.find((pick) => pick.resident === seat);
+		return quarryLine(kept === undefined ? hand : hand.filter((card) => card.id !== kept.card.id));
+	};
+	return `Quarries: ${state.seats.map((seat) => `${seat} ${shown(seat)}`).join("; ")}.`;
+}
+
+/**
  * The rules of the game, with the options of this run.
  *
  * @param ctx - The mechanic's context.
@@ -110,6 +131,6 @@ export function tableText(ctx: Ctx, resident: string | undefined): string {
 		lines.push(taskText(ctx, resident) ?? `Nothing to pick for you right now. Your quarry: ${quarryLine(state.hands[resident] ?? [])}.`);
 		lines.push(`Your points from earlier games: ${String(state.scores[resident] ?? 0)}.`);
 	}
-	if (ctx.options.openHands) lines.push(`Quarries: ${state.seats.map((seat) => `${seat} ${quarryLine(state.hands[seat] ?? [])}`).join("; ")}.`);
+	if (ctx.options.openHands) lines.push(quarriesLine(ctx, resident));
 	return lines.join("\n");
 }

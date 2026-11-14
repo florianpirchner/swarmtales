@@ -31,7 +31,11 @@ describe("carried byte for byte", () => {
 
 	it("has the tool names, the options, the events and the audiences of the old platform", () => {
 		expect(sha256(JSON.stringify(draftRounds.head.tools.map((tool) => tool.name)))).toBe("5a11844e8658b1853517e4e3387a87f5165d8af4fba4399121fa3703b92eb6f9");
-		expect(sha256(JSON.stringify(draftRounds.options))).toBe("066ea439078b2d4b27fa59e5faa7c0afcb1d0bf5a50e502406b6813bd5d54533");
+		// `frozenHands` came after the port (lesson LH18): optional and without a default, so the options of a game that leaves it out are the old ones.
+		const { frozenHands, ...carried } = draftRounds.options.properties;
+		expect(frozenHands).toMatchObject({ type: "boolean" });
+		expect(frozenHands).not.toHaveProperty("default");
+		expect(sha256(JSON.stringify({ ...draftRounds.options, properties: carried }))).toBe("066ea439078b2d4b27fa59e5faa7c0afcb1d0bf5a50e502406b6813bd5d54533");
 		expect(sha256(JSON.stringify(draftRounds.events))).toBe("a091fdca9dbe6391f4e79d351b23761845e394850ed316cf541e800ff7473a0d");
 		expect(sha256(JSON.stringify(draftRounds.head.audiences))).toBe("7aa195f38976aa3a25301c0bfebd4a72cf15a99ae3358966a45eb77084fa8cd8");
 		expect([draftRounds.id, draftRounds.head.summary]).toEqual(["draft-rounds", "The drafting game Quarry for solo seats: packs passed around a table, one sealed pick each, quarries of four resources scored at the end of a game."]);

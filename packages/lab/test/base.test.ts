@@ -26,6 +26,7 @@ const spec = (file: string): lab.ExperimentSpec => {
 };
 const OPEN = "games/quarry/experiments/open-quarries.json";
 const BRAIN = "games/econ-lab/experiments/brain.json";
+const FROZEN = "games/quarry/experiments/open-quarries-frozen.json";
 
 /** Runs the code and returns the code of the `SwtError` it throws. */
 function codeOf(run: () => unknown): string | undefined {
@@ -48,8 +49,17 @@ const METRICS = new Set([
 ]);
 
 describe("the committed plan", () => {
-	it("has the four specs, and each one parses", () => {
-		expect([...specs.keys()].sort()).toEqual([BRAIN, "games/econ-lab/experiments/noise-floor.json", "games/quarry/experiments/noise-floor.json", OPEN]);
+	it("has the four specs of the gate and the series of decision A29, and each one parses", () => {
+		expect([...specs.keys()].sort()).toEqual([BRAIN, "games/econ-lab/experiments/noise-floor.json", "games/quarry/experiments/noise-floor.json", FROZEN, OPEN]);
+	});
+
+	it("A29: the frozen series is the gate's quarry series in small, with the open arm frozen and no pass rule", () => {
+		const [frozen, open] = [spec(FROZEN), spec(OPEN)];
+		expect(frozen).toMatchObject({ purpose: "exploratory", design: open.design, seeds: open.seeds.slice(0, 6), replicates: 1, model: open.model, exclusions: open.exclusions, allowedRefusals: open.allowedRefusals });
+		expect(frozen.pass).toBeUndefined();
+		expect(frozen.arms).toEqual([{ id: "control", params: {}, control: true }, { id: "open-frozen", params: { openHands: true, frozenHands: true } }]);
+		expect(frozen.metrics).toEqual({ ...open.metrics, guardrails: open.metrics.guardrails.map((rail) => (rail.arm === "open" ? { ...rail, arm: "open-frozen" } : rail)) });
+		expect(frozen.budget).toEqual({ perRunUsd: open.budget.perRunUsd, totalUsd: 0.6, estimateUsdPerRun: { control: 0.0344, "open-frozen": 0.0417 } });
 	});
 
 	it("names only metrics of section 7.3 and 6.1, and only its own arms", () => {
@@ -77,7 +87,7 @@ describe("the committed plan", () => {
 		expect(spec(BRAIN).arms).toEqual([{ id: "nobrain", params: { brain: false }, control: true }, { id: "brain", params: {} }]);
 		const estimate = ({ arms, seeds, replicates, budget }: lab.ExperimentSpec): string => (arms.reduce((sum, arm) => sum + (budget.estimateUsdPerRun[arm.id] ?? Number.NaN), 0) * seeds.length * replicates).toFixed(2);
 		expect(SPEC_FILES.map((file) => [spec(file).id, estimate(spec(file)), spec(file).budget.totalUsd, spec(file).budget.perRunUsd, spec(file).concurrency])).toEqual([
-			["econ-lab-brain", "0.40", 0.75, 0.05, 2], ["econ-lab-noise-floor", "0.06", 0.25, 0.05, 2], ["quarry-noise-floor", "0.17", 0.5, 0.1, 2], ["quarry-open-quarries", "0.91", 1.5, 0.1, 2],
+			["econ-lab-brain", "0.40", 0.75, 0.05, 2], ["econ-lab-noise-floor", "0.06", 0.25, 0.05, 2], ["quarry-noise-floor", "0.17", 0.5, 0.1, 2], ["quarry-open-quarries-frozen", "0.46", 0.6, 0.1, 2], ["quarry-open-quarries", "0.91", 1.5, 0.1, 2],
 		]);
 		const ledger = readFileSync(join(ROOT, "games/m2-ledger.jsonl"), "utf8").split("\n");
 		expect(JSON.parse(ledger[0] ?? "")).toEqual({ capUsd: 4 });

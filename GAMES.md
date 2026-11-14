@@ -57,8 +57,8 @@ is a short private strategy brain. The mechanic scores every pick against the gr
 four greedy seats on the same deal, for the report only.
 
 - Params of the game family: `games`, `packs`, `packSize`, `brain`, `burns` (a seat may destroy a card of the pack
-  it passes on), `openHands` (every seat sees every quarry), `maxWords`. The defaults give the game of the old
-  platform.
+  it passes on), `openHands` (every seat sees every quarry), `frozenHands` (with it: as they were when the pick
+  opened), `maxWords`. The defaults give the game of the old platform.
 - Proof: the six oracle files match at level 3, one of them up to its cut; the briefings are byte-identical.
 - Links: [folder](games/quarry/), [README](games/quarry/README.md), [oracle files](oracles/quarry/),
   [experiment specifications](games/quarry/experiments/).
