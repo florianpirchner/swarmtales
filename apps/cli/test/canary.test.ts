@@ -30,7 +30,7 @@ const PASSWORD = `pw${"7q".repeat(9)}`;
 const TOKEN = `tk${"8w".repeat(11)}`;
 const SECRETS = `${SHAPED} and ${PLAIN} at https://user:${PASSWORD}@example.test/v1 with Bearer ${TOKEN}`;
 // What the redaction makes of `SECRETS`: the prefix of a key's shape stays, no value does.
-const CLEAN = "sk-[redacted] and [redacted] at https://[redacted]@example.test/v1 with Bearer [redacted]";
+const CLEAN = "[redacted] and [redacted] at https://[redacted]@example.test/v1 with Bearer [redacted]";
 const NEEDLES = [SHAPED, PLAIN, PASSWORD, TOKEN].flatMap((value) => [value, Buffer.from(value).toString("base64").replace(/=+$/, ""), Buffer.from(value).toString("base64url"), encodeURIComponent(value)]);
 const holds = (text: string): boolean => NEEDLES.some((needle) => text.includes(needle));
 const env = { SWT_ANTHROPIC_API_KEY: SHAPED, OPENROUTER_API_KEY: PLAIN };

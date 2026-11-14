@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /** The commands of `swt`: the flags are read in `flags.ts`, and every `SwtError` becomes printed issues and exit code 1. */
-import { formatIssue, SwtError } from "@swarmtales/contracts";
+import { formatIssue, redactSecrets, redactValue, SwtError } from "@swarmtales/contracts";
 import type { MechanicDefinition } from "@swarmtales/sdk";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
@@ -63,8 +63,10 @@ export async function main(args: readonly string[], io: CliIo = { cwd: process.c
 		return await command(args, io);
 	} catch (error) {
 		if (!(error instanceof SwtError)) throw error;
-		if (args.includes("--json")) io.out(JSON.stringify({ issues: error.issues }));
-		else for (const issue of error.issues) io.err(formatIssue(issue));
+		// An issue of the flags echoes what was typed; no key broker exists yet, so the patterns take a key of a known shape out.
+		const issues = redactValue(error.issues, redactSecrets);
+		if (args.includes("--json")) io.out(JSON.stringify({ issues }));
+		else for (const issue of issues) io.err(formatIssue(issue));
 		return 1;
 	}
 }

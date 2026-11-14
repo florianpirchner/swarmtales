@@ -14,7 +14,7 @@ import { jsonHash } from "@swarmtales/chain";
 import { formatIssue, redactSecrets, redactValue, SwtError, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import { buildManifest } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
-import { createCostMeter, createKeyBroker, createModelDrivers, createModelSource, createProviderRegistry, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
+import { createCostMeter, createKeyBroker, createModelDrivers, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
 import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
 import type { ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
@@ -107,7 +107,10 @@ function settingsOf(input: LiveInput, game: ResolvedGame, broker: KeyBroker): { 
 	const env = { ...(input.env.SWT_PROVIDER === undefined ? {} : { SWT_PROVIDER: input.env.SWT_PROVIDER }), ...(input.env.SWT_MODEL === undefined ? {} : { SWT_MODEL: input.env.SWT_MODEL }) };
 	const settings = resolveModelSettings(overrides, env, game.data.model, registry);
 	broker.auth(settings.provider);
-	return { settings, source: input.source ?? createModelSource(settings, registry, broker) };
+	const source = input.source ?? createModelSource(settings, registry, broker);
+	// `SWT-X007` comes from `bind`: every actor is bound once here and the binding dropped, so a model without a price is refused before the run folder exists.
+	for (const actor of game.definition.actors) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
+	return { settings, source };
 }
 
 interface Outcome {

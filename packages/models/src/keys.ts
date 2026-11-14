@@ -46,7 +46,7 @@ export interface KeyBroker {
 	 * @throws SwtError `SWT-X001` when no key is held; it names every variable tried.
 	 */
 	auth(provider: string): KeyAuth;
-	/** `redactSecrets`, then every held value replaced by `[redacted]`. */
+	/** Every held value replaced by `[redacted]`, then `redactSecrets` over the rest. */
 	readonly redact: Redact;
 	/**
 	 * Tells whether a held value occurs in the text: as it is, base64 or base64url encoded, or percent-encoded.
@@ -123,7 +123,8 @@ export function createKeyBroker(env: Readonly<Record<string, string | undefined>
 	// Longest first: a value that is part of another one leaves no rest behind.
 	const values = [...new Set(good.map(({ held }) => held.value))].sort((a, b) => b.length - a.length);
 	const forms = values.flatMap(formsOf);
-	const redact = redactWith(redactSecrets, (text) => values.reduce((current, value) => current.split(value).join("[redacted]"), text));
+	// The held values go first: after the patterns, a value with a character outside a pattern (`sk-aaa.bbb`) would be cut in two and its rest stay.
+	const redact = redactWith((text) => values.reduce((current, value) => current.split(value).join("[redacted]"), text), redactSecrets);
 	const short = found.filter(({ held }) => held.value.length < SHORTEST).map(({ held }) => shortKey(held.variable));
 	if (short.length > 0) throw thrown(short, redact);
 	const broker = {

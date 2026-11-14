@@ -71,7 +71,7 @@ describe("createKeyBroker", () => {
 		const line = JSON.stringify({ detail: `401 for ${PLAIN}`, nested: [{ header: `x-api-key: ${SHAPED}` }], url: "https://user:pass@host/v1" });
 		const redacted = broker.redact(line);
 		for (const value of [SHAPED, PLAIN, "pass"]) expect(redacted).not.toContain(value);
-		expect(JSON.parse(redacted)).toEqual({ detail: "401 for [redacted]", nested: [{ header: `x-api-key: ${["s", "k"].join("")}-[redacted]` }], url: "https://[redacted]@host/v1" });
+		expect(JSON.parse(redacted)).toEqual({ detail: "401 for [redacted]", nested: [{ header: "x-api-key: [redacted]" }], url: "https://[redacted]@host/v1" });
 		expect(broker.redact(`${PLAIN}${PLAIN}`)).toBe("[redacted][redacted]");
 		// The fallback's value is not held when the first name is set.
 		expect(broker.redact(OTHER)).toBe(OTHER);

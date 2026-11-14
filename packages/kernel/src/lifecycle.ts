@@ -125,7 +125,7 @@ class Run implements Lifecycle {
 		// A breach seen before anything was played ends the run at that tick: the clock stays.
 		if (!idle || breach === undefined) clock.advance();
 		if (breach !== undefined) {
-			log.emit(SOURCE, "limit_reached", { limit: breach.limit, reason: breach.reason });
+			log.emit(SOURCE, "limit_reached", { limit: breach.limit, reason: (this.#ports.redact ?? redactSecrets)(breach.reason) });
 			return this.#finish({ reason: "limit", tick: clock.tick, limit: breach.limit });
 		}
 		if (clock.tick >= definition.limits.maxTicks) return this.#finish({ reason: "ticks", tick: clock.tick });
