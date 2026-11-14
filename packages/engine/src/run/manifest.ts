@@ -4,7 +4,7 @@
  * only: it creates no plugin, reads no clock and no file, so the same input gives the same manifest.
  */
 import { jsonHash } from "@swarmtales/chain";
-import { LOG_FORMAT, LOG_VERSION, type ActorSpec, type KernelDefinition, type RunManifest, SwtError } from "@swarmtales/contracts";
+import { LOG_FORMAT, LOG_VERSION, type ActorSpec, type KernelDefinition, type RunManifest, SwtError, type ToolSpec } from "@swarmtales/contracts";
 import type { ResolvedGame } from "@swarmtales/sdk";
 
 /**
@@ -30,9 +30,31 @@ export interface ManifestRun {
 	readonly commit?: string;
 	/** Whether the source tree had changes that are not committed. */
 	readonly dirty?: boolean;
+	/** What the run is for (`smoke` for a single try); the caller checks what a purpose demands. */
+	readonly purpose: RunManifest["run"]["purpose"];
+	/** The index of the repetition: same seed, other sampling; 0 for the first. */
+	readonly replicate: number;
+	/** The cost cap of the run in US dollars; left out for a run that spends nothing. */
+	readonly budgetUsd?: number;
+	/** The experiment the run belongs to, with its arm; left out for a single run. */
+	readonly experiment?: NonNullable<RunManifest["experiment"]>;
+	/** Actor id or actor kind to the model behind it, with its price table; an id wins over its kind. An actor without one has a fake or scripted driver. */
+	readonly models?: Readonly<Record<string, ManifestModel>>;
+	/** Actor id or actor kind to the whole system prompt as it is sent; an id wins over its kind. */
+	readonly systemPrompts?: Readonly<Record<string, string>>;
+	/** Grant name to its tools as a caller is shown them (`Kernel.toolSpecs`), in grant order: name, rendered description and parameter schema. */
+	readonly toolSpecs?: Readonly<Record<string, readonly ToolSpec[]>>;
 }
 
 type ManifestActor = RunManifest["actors"][number];
+type ManifestModel = NonNullable<ManifestActor["model"]>;
+
+// What the run says about one actor: by its id, else by its kind. A name that is only inherited (`constructor`) is no entry.
+function entryOf<V>(table: Readonly<Record<string, V>> | undefined, actor: ActorSpec): V | undefined {
+	if (table === undefined) return undefined;
+	const key = [actor.id, actor.kind].find((name) => Object.hasOwn(table, name));
+	return key === undefined ? undefined : table[key];
+}
 
 const hashAll = (texts: Readonly<Record<string, string>>): Record<string, string> =>
 	Object.fromEntries(
@@ -58,16 +80,22 @@ function driverOf(actor: ActorSpec, drivers: ManifestRun["drivers"]): string {
 	});
 }
 
-function actorOf(resolved: ResolvedGame, actor: ActorSpec, drivers: ManifestRun["drivers"]): ManifestActor {
+function actorOf(resolved: ResolvedGame, actor: ActorSpec, run: ManifestRun): ManifestActor {
 	const briefing = resolved.briefings[actor.id];
+	const model = entryOf(run.models, actor);
+	const system = entryOf(run.systemPrompts, actor);
+	const specs = run.toolSpecs !== undefined && Object.hasOwn(run.toolSpecs, actor.grant) ? run.toolSpecs[actor.grant] : undefined;
 	return {
 		id: actor.id,
 		kind: actor.kind,
 		grant: actor.grant,
-		driver: driverOf(actor, drivers),
+		driver: driverOf(actor, run.drivers),
+		...(model === undefined ? {} : { model }),
 		textHashes: {
 			...(briefing === undefined ? {} : { briefing: jsonHash(briefing) }),
 			tools: jsonHash(shownTools(resolved.definition, actor.grant)),
+			...(system === undefined ? {} : { system: jsonHash(system) }),
+			...(specs === undefined ? {} : { toolSpecs: jsonHash(specs.map((tool) => ({ name: tool.name, description: tool.description, parameters: tool.parameters }))) }),
 		},
 	};
 }
@@ -88,19 +116,21 @@ function kernelOf(run: ManifestRun): RunManifest["kernel"] {
  * @remarks
  * The hash of a text is `jsonHash` of the string (the sha256 of its canonical JSON form), for `texts` and for an
  * actor's `briefing`. An actor's `tools` hash is `jsonHash` of the shown tool names of its grant, in order; the
- * descriptions are among `texts`. `purpose` is `smoke`, `params` is empty, `replicate` is 0 and no actor has a
- * `model` at this milestone. The builder does not check the result against `RunManifestSchema`: the caller's
- * numbers (the kernel revision, the seed) are checked where the manifest is written.
+ * descriptions are among `texts`. The `system` hash is `jsonHash` of the system prompt, and the `toolSpecs` hash is
+ * `jsonHash` of the list of `{ name, description, parameters }` of the actor's grant, in grant order; each is present
+ * only when the run gives it. `game.params` are the effective params of the resolved game; the cost cap is in
+ * `limits.budgetUsd` and never in the game hash. The builder does not check the result against `RunManifestSchema`:
+ * the caller's numbers (the kernel revision, the seed, the replicate) are checked where the manifest is written.
  *
  * @param resolved - The resolved game.
- * @param run - The facts of the run: its id, its start, the drivers and the kernel that plays it.
+ * @param run - The facts of the run: its id, its start, its purpose and replicate, the drivers and the kernel that plays it, and for a live run the models, the system prompts, the tool specs, the cost cap and the experiment.
  * @returns The manifest, a plain JSON value.
  * @throws SwtError `SWT-R011` when an actor has no driver, by its id or by its kind.
- * @throws CanonicalJsonError when the options of the scheduler or of a plugin hold something that is no JSON value.
+ * @throws CanonicalJsonError when the options of the scheduler or of a plugin, or the parameter schema of a tool, hold something that is no JSON value.
  *
  * @example
  * ```ts
- * const manifest = buildManifest(resolveGame(input), { id: "hello-001", startedAt: now, drivers: { resident: "fake/sample" }, kernelRevision: RUNTIME_REVISION, kernelVersion: "0.0.0", node: process.version });
+ * const manifest = buildManifest(resolveGame(input), { id: "hello-001", startedAt: now, purpose: "smoke", replicate: 0, drivers: { resident: "fake/sample" }, kernelRevision: RUNTIME_REVISION, kernelVersion: "0.0.0", node: process.version });
  * ```
  *
  * @public
@@ -111,17 +141,18 @@ export function buildManifest(resolved: ResolvedGame, run: ManifestRun): RunMani
 	return {
 		format: "swarmtales-run",
 		version: 1,
-		run: { id: run.id, startedAt: run.startedAt, purpose: "smoke" },
-		game: { id: definition.game.id, ...(data.title === undefined ? {} : { title: data.title }), hash: definition.game.hash, params: {} },
+		run: { id: run.id, startedAt: run.startedAt, purpose: run.purpose },
+		game: { id: definition.game.id, ...(data.title === undefined ? {} : { title: data.title }), hash: definition.game.hash, params: resolved.params },
 		kernel: kernelOf(run),
 		scheduler: { id: scheduler.id, revision: scheduler.revision, determinism: scheduler.determinism, options, optionsHash: jsonHash(options) },
 		plugins: definition.plugins.map((plugin) => ({ id: plugin.id, package: plugin.package, version: plugin.version, optionsHash: jsonHash(plugin.options) })),
-		actors: definition.actors.map((actor) => actorOf(resolved, actor, run.drivers)),
+		actors: definition.actors.map((actor) => actorOf(resolved, actor, run)),
 		texts: hashAll(resolved.texts),
 		seed: definition.seed,
-		replicate: 0,
-		limits: { maxTicks: definition.limits.maxTicks, ...(definition.limits.maxCallsPerTick === undefined ? {} : { maxCallsPerTick: definition.limits.maxCallsPerTick }) },
+		replicate: run.replicate,
+		limits: { maxTicks: definition.limits.maxTicks, ...(definition.limits.maxCallsPerTick === undefined ? {} : { maxCallsPerTick: definition.limits.maxCallsPerTick }), ...(run.budgetUsd === undefined ? {} : { budgetUsd: run.budgetUsd }) },
 		naming: 1,
 		log: { format: LOG_FORMAT, version: LOG_VERSION },
+		...(run.experiment === undefined ? {} : { experiment: run.experiment }),
 	};
 }

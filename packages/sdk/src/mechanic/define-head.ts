@@ -63,8 +63,13 @@ export function defineHandlers<H extends AnyHead, K extends keyof ToolsOf<H> & s
 	return handlers;
 }
 
+// The tools of a head as data: a tool without `for` is in no derived grant, and `free` is false when left out.
+function declaredTools(head: AnyHead): PluginHead["tools"] {
+	return Object.entries(head.tools ?? {}).map(([name, tool]) => ({ name, description: tool.description, parameters: tool.params, for: tool.for ?? [], free: tool.free ?? false }));
+}
+
 /**
- * Erases a head: fills what was left out and drops its functions (`start`, `snapshot`, `migrations`).
+ * Erases a head: fills what was left out and drops its functions (`start`, `snapshot`, `migrations`); the metrics keep their `compute`.
  *
  * @param head - The head.
  * @returns The data of the head; a tool without `for` is in no derived grant, and `free` is false when left out.
@@ -85,7 +90,8 @@ export function erasedHead(head: AnyHead): PluginHead {
 		requires: head.requires ?? [],
 		provides: head.provides ?? [],
 		uses: head.uses ?? [],
-		tools: Object.entries(head.tools ?? {}).map(([name, tool]) => ({ name, description: tool.description, parameters: tool.params, for: tool.for ?? [], free: tool.free ?? false })),
+		tools: declaredTools(head),
+		metrics: head.metrics ?? [],
 	};
 }
 

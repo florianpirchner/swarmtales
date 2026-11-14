@@ -9,7 +9,7 @@ import type { MechanicDefinition, PluginHead } from "../src/mechanic/types.ts";
 /** A stand-in for what `defineMechanic` (issue 26) returns: `gameData` reads the id of a use's definition only. */
 function standIn(id: string): MechanicDefinition {
 	const options = Type.Object({}, { description: "No options" });
-	const head: PluginHead = { id, package: `@example/${id}`, summary: id, options, state: undefined, version: 1, events: {}, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [] };
+	const head: PluginHead = { id, package: `@example/${id}`, summary: id, options, state: undefined, version: 1, events: {}, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [], metrics: [] };
 	const plugin = { id, package: head.package, requires: [], provides: [], events: {}, audiences: {}, options: null };
 	const definition: MechanicDefinition = Object.assign((given?: object) => ({ mechanic: definition, options: given }), {
 		id,

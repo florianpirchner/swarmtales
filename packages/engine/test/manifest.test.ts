@@ -7,6 +7,7 @@ import { canonicalJson, jsonHash } from "@swarmtales/chain";
 import { actorId, LOG_FORMAT, LOG_VERSION, RunManifestSchema, SwtError } from "@swarmtales/contracts";
 import type { ActorSpec, JsonValue, ResolvedPlugin, RunManifest } from "@swarmtales/contracts";
 import type { ResolvedGame } from "@swarmtales/sdk";
+import { Type } from "typebox";
 import { Value } from "typebox/value";
 import { describe, expect, it } from "vitest";
 import { buildManifest, type ManifestRun } from "../src/run/index.ts";
@@ -35,6 +36,7 @@ interface Changes {
 	readonly names?: Readonly<Record<string, string>>;
 	readonly title?: string;
 	readonly maxCallsPerTick?: number;
+	readonly params?: Readonly<Record<string, JsonValue>>;
 }
 
 function game(changes: Changes = {}): ResolvedGame {
@@ -56,10 +58,11 @@ function game(changes: Changes = {}): ResolvedGame {
 		texts: changes.texts ?? { "board/tools/look": "Look at the board.", "board/tools/move": "Play a move.", "core/replies/locked": "This tool is locked." },
 		briefings: changes.briefings ?? { "resident:A01": "You are A01.", "resident:A02": "You are A02." },
 		win: undefined,
+		params: changes.params ?? {},
 	};
 }
 
-const RUN: ManifestRun = { id: "hello-001", startedAt: "2026-01-02T03:04:05.000Z", drivers: { resident: "fake/sample", "resident:A02": "scripted", watcher: "scripted" }, kernelRevision: 3, kernelVersion: "0.1.0", node: "v26.0.0" };
+const RUN: ManifestRun = { purpose: "smoke", replicate: 0, id: "hello-001", startedAt: "2026-01-02T03:04:05.000Z", drivers: { resident: "fake/sample", "resident:A02": "scripted", watcher: "scripted" }, kernelRevision: 3, kernelVersion: "0.1.0", node: "v26.0.0" };
 
 // Every hash of a manifest, by its place.
 function hashes(manifest: RunManifest): Record<string, string> {
@@ -101,6 +104,28 @@ describe("buildManifest", () => {
 		expect([manifest.seed, manifest.replicate, manifest.naming]).toEqual([7, 0, 1]);
 		expect(manifest.limits).toEqual({ maxTicks: 9, maxCallsPerTick: 4 });
 		expect(manifest.log).toEqual({ format: LOG_FORMAT, version: LOG_VERSION });
+	});
+
+	it("records what M2 adds: purpose, replicate, params, cost cap, experiment, and per model actor the model, the system prompt and the tool specs", () => {
+		const model = { provider: "anthropic", requestedId: "anthropic/haiku", resolvedId: "claude-haiku-4-5", params: { temperature: "provider-default" as const, topP: "provider-default" as const, maxOutputTokens: 4000, thinking: "medium" }, pricing: "pi-ai@0.1.0" };
+		const spec = { name: "playMove", description: "Play a move.", parameters: Type.Object({ cell: Type.Integer({ description: "The cell" }) }, { description: "The move" }) };
+		const specs = [spec];
+		const experiment = { id: "quarry-open-hands", specHash: jsonHash("spec"), arm: "treatment" };
+		const live: ManifestRun = { ...RUN, purpose: "pilot", replicate: 2, budgetUsd: 0.4, experiment, models: { resident: model, "resident:A02": { ...model, resolvedId: "other" } }, systemPrompts: { "resident:A01": "You play.", constructor: "never" }, toolSpecs: { resident: specs } };
+		const manifest = buildManifest(game({ params: { openHands: true, games: 3 } }), live);
+		expect([...Value.Errors(RunManifestSchema, manifest)]).toEqual([]);
+		expect(JSON.parse(canonicalJson(manifest))).toEqual(manifest);
+		expect([manifest.run.purpose, manifest.replicate, manifest.limits.budgetUsd, manifest.experiment]).toEqual(["pilot", 2, 0.4, experiment]);
+		expect(manifest.game.params).toEqual({ openHands: true, games: 3 });
+		expect(manifest.actors.map((entry) => entry.model?.resolvedId)).toEqual(["claude-haiku-4-5", "other", undefined]);
+		expect(manifest.actors[0]?.model?.pricing).toBe("pi-ai@0.1.0");
+		expect(manifest.actors[0]?.textHashes).toEqual({ briefing: jsonHash("You are A01."), tools: jsonHash(["viewBoard", "playMove"]), system: jsonHash("You play."), toolSpecs: jsonHash(JSON.parse(JSON.stringify(specs))) });
+		expect(Object.keys(manifest.actors[1]?.textHashes ?? {})).toEqual(["briefing", "tools", "toolSpecs"]);
+		expect(Object.keys(manifest.actors[2]?.textHashes ?? {})).toEqual(["tools"]);
+		// The cost cap, the purpose and the replicate are no part of the game: the hash of the game stays.
+		expect(manifest.game.hash).toBe(buildManifest(game(), RUN).game.hash);
+		const described = buildManifest(game(), { ...live, toolSpecs: { resident: [{ ...spec, description: "Play." }] } });
+		expect(described.actors[0]?.textHashes.toolSpecs).not.toBe(manifest.actors[0]?.textHashes.toolSpecs);
 	});
 
 	it("leaves out what is absent", () => {

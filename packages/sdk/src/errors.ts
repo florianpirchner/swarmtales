@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The error catalogue of the sdk: every G (game), M (mechanic) and P (texts) code of milestone M1, each as a
+ * The error catalogue of the sdk: every G (game), M (mechanic) and P (texts) code of the milestones M1 and M2, each as a
  * function that returns the issue. A step of game resolution collects issues and resolution throws them as one
  * `SwtError`; a wrapper inside a run throws `new SwtError(issue)`. A code is never reused or renumbered.
  */
@@ -26,6 +26,7 @@ export const SDK_ERRORS = {
 	"SWT-G030": "a required service has no provider",
 	"SWT-G031": "a service has two providers",
 	"SWT-G032": "`requires` form a cycle",
+	"SWT-G041": "an override names no param of the game, or its value has the wrong type",
 	"SWT-M010": "an event type is reserved by the kernel or declared twice",
 	"SWT-M011": "the head's `package` is not the package's name",
 	"SWT-M012": "the body of a mechanic does not fit its head",
@@ -293,6 +294,27 @@ export function twoProviders(input: { readonly service: string; readonly provide
  */
 export function requiresCycle(input: { readonly mechanics: readonly string[] }): SwtIssue {
 	return issue("SWT-G032", `the requires of ${quoted(input.mechanics)} form a cycle`, "A mechanic loads after the providers of the services it requires, so no chain of `requires` may lead back to its start.", "In one of these mechanics, move the service from `requires` to `uses` and call it with `ctx.tryCall`, or react to an event of the other mechanic.", { path: "mechanics" }, { mechanics: input.mechanics });
+}
+
+/**
+ * `SWT-G041`: an override (`--set`, an arm of an experiment) names no param of the game, or its value has the wrong type.
+ *
+ * @param input - The override and what is wrong with it.
+ * @param input.name - The name of the param the override sets.
+ * @param input.problem - `unknown`: the family declares no such param; `mismatch`: the value does not match the param's schema; `no-family`: the game has no params at all.
+ * @param input.known - The names of the params the family declares.
+ * @param input.message - For `mismatch`: what is wrong with the value, for example `must be boolean`.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function paramOverride(input: { readonly name: string; readonly problem: "unknown" | "mismatch" | "no-family"; readonly known?: readonly string[]; readonly message?: string }): SwtIssue {
+	const known = input.known ?? [];
+	const details = { param: input.name, known };
+	const why = "A game family builds its game from typed params, and an override may set only a param the family declares, with a value of its type.";
+	if (input.problem === "no-family") return issue("SWT-G041", `the param "${input.name}" is set, and the game has no params`, "Only a game family (`defineGameFamily`) has params; a plain game or a data game is played as it is written.", `Remove the override of "${input.name}", or export the game as a family that declares the param.`, {}, details);
+	if (input.problem === "unknown") return issue("SWT-G041", `the game family has no param "${input.name}"`, `${why} This family declares: ${quoted(known)}.`, `${meant(input.name, known)}remove the override of "${input.name}".`, {}, details);
+	return issue("SWT-G041", `the value of the param "${input.name}" ${input.message ?? "does not match its schema"}`, why, `Give "${input.name}" a value of the type its schema in the family's \`params\` states.`, {}, details);
 }
 
 /**

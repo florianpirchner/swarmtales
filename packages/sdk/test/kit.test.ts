@@ -36,7 +36,7 @@ const port: PluginPort = {
 	schedule: { at: () => undefined },
 	access: { lock: () => undefined, unlock: () => undefined, isLocked: () => false, isOpen: () => true, open: () => [] },
 };
-const head: PluginHead = { id: "tally", package: "@test/tally", summary: "Counts.", options: Type.Object({}), state: State, version: 2, events: {}, audiences: {}, prompts: { intro: [] }, requires: [], provides: [Counter], uses: [], tools: [] };
+const head: PluginHead = { id: "tally", package: "@test/tally", summary: "Counts.", options: Type.Object({}), state: State, version: 2, events: {}, audiences: {}, prompts: { intro: [] }, requires: [], provides: [Counter], uses: [], tools: [], metrics: [] };
 
 /** The stand-ins of issue 16 (`contextFor`, `viewFor`, `convertArguments`), with a trace of what the kit called. */
 function setup(): { readonly parts: InstanceParts<M>; readonly bind: KitBinding; readonly trace: string[] } {

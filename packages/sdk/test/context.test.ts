@@ -65,7 +65,7 @@ function stub(answers: { provided?: readonly string[]; output?: unknown; tick?: 
 		},
 	};
 	const options = { size: 3 };
-	const head = { id: "grid", package: "@acme/grid", summary: "A grid.", options: Type.Object({}), state: undefined, version: 1, events, audiences: {}, prompts: { "grid/turn": ["side"] }, requires: [Board], provides: [], uses: [Chat], tools: [] };
+	const head = { id: "grid", package: "@acme/grid", summary: "A grid.", options: Type.Object({}), state: undefined, version: 1, events, audiences: {}, prompts: { "grid/turn": ["side"] }, requires: [Board], provides: [], uses: [Chat], tools: [], metrics: [] };
 	const texts = { render: (owner: string, id: string, variables: Readonly<Record<string, string | number>>, declared: readonly string[]) => `${owner}|${id}|${JSON.stringify(variables)}|${declared.join(",")}` };
 	return { port, calls, parts: { port, head, options, state: { value: { moves: 0 } }, setup: { options, residents: ["A01", "A02"], seed: 7, rng: () => random }, texts } };
 }

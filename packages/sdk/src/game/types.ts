@@ -3,8 +3,9 @@
  * The game types: the builder form of a game (`defineGame`), and what game resolution takes and gives. A game is
  * plain data; the builder form differs from the data form only in naming its mechanics by typed uses instead of ids.
  */
-import type { GameData, KernelDefinition, PromptLookup, SchedulerDefinition } from "@swarmtales/contracts";
+import type { GameData, JsonValue, KernelDefinition, PromptLookup, RecordSource, SchedulerDefinition } from "@swarmtales/contracts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
+import type { GameFamily } from "./family.ts";
 
 /**
  * One mechanic in a game, with its options: what calling a mechanic definition returns.
@@ -61,8 +62,12 @@ export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]
  * @public
  */
 export interface ResolveInput {
-	/** The game, in its builder form or its data form. */
-	readonly game: Game | GameData;
+	/** The game, in its builder form or its data form, or a game family. */
+	readonly game: Game | GameData | GameFamily;
+	/** The overrides of a family's params, by name (`--set`, an arm of an experiment). A game that is no family takes none (SWT-G041). */
+	readonly params?: Readonly<Record<string, unknown>>;
+	/** The record sources of the run (a driver's); passed through into `KernelDefinition.records` unchanged. */
+	readonly records?: readonly RecordSource[];
 	/** For a data game: mechanic id to definition. */
 	readonly installed?: Readonly<Record<string, MechanicDefinition>>;
 	/** Scheduler id to definition (`turns`); passed in because the sdk may not import the engine. */
@@ -91,4 +96,6 @@ export interface ResolvedGame {
 	readonly briefings: Readonly<Record<string, string>>;
 	/** The key of the fact whose value is the result line; undefined when the game names none. */
 	readonly win: string | undefined;
+	/** The effective params of a game family: the defaults with the overrides on top; `{}` for a game without params. */
+	readonly params: Readonly<Record<string, JsonValue>>;
 }

@@ -25,7 +25,7 @@ function standIn(id: string, parts: Parts = {}): MechanicDefinition {
 	const tools = (parts.tools ?? []).map((name) => ({ name, description: `The tool ${name}.`, parameters: Type.Object({}, { description: "None" }), for: ["resident"], free: false }));
 	const requires = (parts.requires ?? []).map(service);
 	const provides = (parts.provides ?? []).map(service);
-	const head = { id, package: `@test/${id}`, summary: id, options: SizeOptions, state: undefined, version: 1, events: {}, audiences: {}, prompts: parts.prompts ?? {}, requires, provides, uses: [], tools };
+	const head = { id, package: `@test/${id}`, summary: id, options: SizeOptions, state: undefined, version: 1, events: {}, audiences: {}, prompts: parts.prompts ?? {}, requires, provides, uses: [], tools, metrics: [] };
 	const definition: MechanicDefinition = Object.assign((options?: unknown) => ({ mechanic: definition, options }), {
 		id,
 		package: head.package,

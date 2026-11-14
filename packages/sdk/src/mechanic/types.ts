@@ -6,7 +6,7 @@
  * a mechanic follows from its head alone, so a helper outside the body takes `CtxOf<typeof head>`.
  */
 import type { Static, TObject, TSchema } from "typebox";
-import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorId, CanonicalTool, Envelope, EventSchemas, EventsDefinition, InputLine, Listener, JsonValue, MetricDefinition, Ordered, PromptLookup, RandomSource, Refusal, ResolvedPlugin, ServiceDefinition, ToolOutcome } from "@swarmtales/contracts";
 import type { MechanicUse } from "../game/types.ts";
 import type { FactView, MechanicContext, MechanicShape, PromptKeys, ServiceImplementation, Setup, Shape, StateSetup, ToolContext } from "./context-types.ts";
 
@@ -121,6 +121,8 @@ export interface MechanicHead<
 	readonly uses?: U;
 	/** The tools, by bare name, in the order a caller sees them; the body's `tools` holds their handlers. */
 	readonly tools?: { readonly [K in keyof TP]: ToolDeclaration<TP[K]> };
+	/** The numbers the mechanic exports about a finished run, each computed from its own events (`defineMetric`). They are no part of a game's hash. */
+	readonly metrics?: readonly MetricDefinition[];
 }
 
 /**
@@ -217,6 +219,8 @@ export interface PluginHead {
 	readonly uses: readonly ServiceDefinition[];
 	/** The tools, in the order a caller sees them. */
 	readonly tools: readonly DeclaredTool[];
+	/** The metrics it exports about a finished run; empty when it declares none. */
+	readonly metrics: readonly MetricDefinition[];
 }
 
 /**

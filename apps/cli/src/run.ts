@@ -70,7 +70,7 @@ function lazyFolder(directory: string, game: ResolvedGame, io: CliIo): { readonl
 	const open = (): RunFolder => {
 		const drivers = Object.fromEntries(game.definition.actors.map((actor) => [actor.id, FAKE]));
 		const raw: unknown = JSON.parse(readFileSync(PACKAGE_FILE, "utf8"));
-		const manifest = buildManifest(game, { id: basename(directory), startedAt: io.now().toISOString(), drivers, kernelRevision: RUNTIME_REVISION, kernelVersion: Parse(Versioned, raw).version, node: process.version });
+		const manifest = buildManifest(game, { id: basename(directory), startedAt: io.now().toISOString(), purpose: "smoke", replicate: 0, drivers, kernelRevision: RUNTIME_REVISION, kernelVersion: Parse(Versioned, raw).version, node: process.version });
 		const briefings = Object.entries(game.briefings).map(([actor, text]): [string, string] => [briefingKey(actor), text]);
 		folder = openRunFolder(directory, manifest, { now: io.now, game: game.data, texts: { ...game.texts, ...Object.fromEntries(briefings) } });
 		return folder;

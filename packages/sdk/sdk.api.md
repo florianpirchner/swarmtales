@@ -17,6 +17,7 @@ import { JsonValue } from '@swarmtales/contracts';
 import { KernelDefinition } from '@swarmtales/contracts';
 import { KernelTool } from '@swarmtales/contracts';
 import { Listener } from '@swarmtales/contracts';
+import { MetricDefinition } from '@swarmtales/contracts';
 import { Ordered } from '@swarmtales/contracts';
 import { PluginHooks } from '@swarmtales/contracts';
 import { PluginPort } from '@swarmtales/contracts';
@@ -24,6 +25,7 @@ import { PromptLookup } from '@swarmtales/contracts';
 import { ProvidedService } from '@swarmtales/contracts';
 import { RandomLabel } from '@swarmtales/contracts';
 import { RandomSource } from '@swarmtales/contracts';
+import { RecordSource } from '@swarmtales/contracts';
 import { Refusal } from '@swarmtales/contracts';
 import { ResolvedPlugin } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
@@ -136,6 +138,9 @@ export function defineEvents<const Id extends string, const E extends EventSchem
 export function defineGame<const Ms extends readonly MechanicUse[]>(game: Game<Ms>): Game<Ms>;
 
 // @public
+export function defineGameFamily<P extends TObject>(params: P, build: (params: Static<P>) => Game): GameFamily<P>;
+
+// @public
 export function defineHandlers<H extends AnyHead, K extends keyof ToolsOf<H> & string>(_head: H, handlers: { readonly [N in K]: ToolHandlers<ShapeOf<H>, ToolsOf<H>[N]>; }): { readonly [N in K]: ToolHandlers<ShapeOf<H>, ToolsOf<H>[N]>; };
 
 // @public
@@ -143,6 +148,9 @@ export function defineHead<const Id extends string, O extends TSchema = NoOption
 
 // @public
 export function defineMechanic<H extends AnyHead, F extends Readonly<Record<string, TSchema>> = None>(head: H, body: MechanicBody<ShapeOf<H>, ToolsOf<H>, F>): DefinitionOf<H>;
+
+// @public
+export function defineMetric<E extends EventSchemas, const K extends keyof E & string>(events: E, metric: MetricSpec<E, K>): MetricDefinition;
 
 // @public
 export function defineService<const N extends string, const M extends ServiceMethods>(service: ServiceDefinition<N, M>): ServiceDefinition<N, M>;
@@ -201,6 +209,12 @@ export interface FactView<M extends MechanicShape> {
 }
 
 // @public
+export function familyParams(family: GameFamily, overrides?: Readonly<Record<string, unknown>>): {
+    readonly params: Readonly<Record<string, JsonValue>>;
+    readonly issues: readonly SwtIssue[];
+};
+
+// @public
 export interface Game<Ms extends readonly MechanicUse[] = readonly MechanicUse[]> extends Omit<GameData, "schema" | "mechanics" | "grants" | "locked"> {
     readonly grants?: Partial<Readonly<Record<string, readonly ToolOf<Ms>[] | GrantTweak<ToolOf<Ms>>>>>;
     readonly locked?: readonly ToolOf<Ms>[];
@@ -213,6 +227,12 @@ export function gameData(game: Game): {
     readonly data: GameData;
     readonly mechanics: Readonly<Record<string, MechanicDefinition>>;
 };
+
+// @public
+export interface GameFamily<P extends TObject = TObject> {
+    build(params: Static<P>): Game;
+    readonly params: P;
+}
 
 // @public
 export function gameSchemaMismatch(input: Mismatch): SwtIssue;
@@ -244,6 +264,9 @@ export interface InstanceParts<M extends MechanicShape> {
     };
     readonly texts: PromptLookup;
 }
+
+// @public
+export function isGameFamily(game: unknown): game is GameFamily;
 
 // @public
 export interface KitBinding {
@@ -336,6 +359,7 @@ export interface MechanicHead<Id extends string, O extends TSchema, Snap extends
     readonly audiences?: Partial<Readonly<Record<keyof E & string, readonly string[]>>>;
     readonly events?: E;
     readonly id: Id;
+    readonly metrics?: readonly MetricDefinition[];
     readonly migrations?: Readonly<Record<number, (data: unknown) => unknown>>;
     readonly options?: O;
     readonly package: string;
@@ -427,6 +451,15 @@ export function memberNotResident(input: {
 }): SwtIssue;
 
 // @public
+export type MetricEvent<E extends EventSchemas, K extends keyof E & string> = { readonly [T in K]: Envelope<T, Static<E[T]>>; }[K];
+
+// @public
+export interface MetricSpec<E extends EventSchemas, K extends keyof E & string> extends Omit<MetricDefinition, "reads" | "compute"> {
+    compute(events: readonly MetricEvent<E, K>[]): number | undefined;
+    readonly reads: readonly K[];
+}
+
+// @public
 export interface Mismatch {
     readonly message: string;
     readonly path?: string;
@@ -484,6 +517,14 @@ export function packageMismatch(input: {
 }): SwtIssue;
 
 // @public
+export function paramOverride(input: {
+    readonly name: string;
+    readonly problem: "unknown" | "mismatch" | "no-family";
+    readonly known?: readonly string[];
+    readonly message?: string;
+}): SwtIssue;
+
+// @public
 export function payloadMismatch(input: {
     readonly mechanic: string;
     readonly type: string;
@@ -497,6 +538,7 @@ export interface PluginHead {
     readonly audiences: Readonly<Record<string, readonly string[]>>;
     readonly events: EventSchemas;
     readonly id: string;
+    readonly metrics: readonly MetricDefinition[];
     readonly options: TSchema;
     readonly package: string;
     readonly prompts: PromptKeys;
@@ -583,6 +625,7 @@ export interface ResolvedGame {
     readonly briefings: Readonly<Record<string, string>>;
     readonly data: GameData;
     readonly definition: KernelDefinition;
+    readonly params: Readonly<Record<string, JsonValue>>;
     readonly texts: Readonly<Record<string, string>>;
     readonly win: string | undefined;
 }
@@ -602,9 +645,11 @@ export function resolveGrants(input: GrantsInput): ResolvedGrants;
 
 // @public
 export interface ResolveInput {
-    readonly game: Game | GameData;
+    readonly game: Game | GameData | GameFamily;
     readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+    readonly params?: Readonly<Record<string, unknown>>;
     readonly prompts: PromptLookup;
+    readonly records?: readonly RecordSource[];
     readonly schedulers: Readonly<Record<string, SchedulerDefinition>>;
     readonly seed?: number;
     readonly versions?: Readonly<Record<string, string>>;
@@ -680,6 +725,7 @@ export const SDK_ERRORS: {
     readonly "SWT-G030": "a required service has no provider";
     readonly "SWT-G031": "a service has two providers";
     readonly "SWT-G032": "`requires` form a cycle";
+    readonly "SWT-G041": "an override names no param of the game, or its value has the wrong type";
     readonly "SWT-M010": "an event type is reserved by the kernel or declared twice";
     readonly "SWT-M011": "the head's `package` is not the package's name";
     readonly "SWT-M012": "the body of a mechanic does not fit its head";

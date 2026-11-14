@@ -10,6 +10,7 @@ import { ResolvedGame } from '@swarmtales/sdk';
 import { RunManifest } from '@swarmtales/contracts';
 import { SchedulerDefinition } from '@swarmtales/contracts';
 import { Static } from 'typebox';
+import { ToolSpec } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
@@ -31,14 +32,22 @@ export const InputEntrySchema: Type.TUnion<[Type.TObject<{
 
 // @public
 export interface ManifestRun {
+    readonly budgetUsd?: number;
     readonly commit?: string;
     readonly dirty?: boolean;
     readonly drivers: Readonly<Record<string, string>>;
+    readonly experiment?: NonNullable<RunManifest["experiment"]>;
     readonly id: string;
     readonly kernelRevision: number;
     readonly kernelVersion: string;
+    // Warning: (ae-forgotten-export) The symbol "ManifestModel" needs to be exported by the entry point index.d.ts
+    readonly models?: Readonly<Record<string, ManifestModel>>;
     readonly node: string;
+    readonly purpose: RunManifest["run"]["purpose"];
+    readonly replicate: number;
     readonly startedAt: string;
+    readonly systemPrompts?: Readonly<Record<string, string>>;
+    readonly toolSpecs?: Readonly<Record<string, readonly ToolSpec[]>>;
 }
 
 // @public

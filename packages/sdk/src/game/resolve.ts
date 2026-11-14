@@ -7,11 +7,12 @@
 import { jsonHash } from "@swarmtales/chain";
 import { actorId, SwtError, type ActorSpec, type GameData, type JsonValue, type SchedulerDefinition, type SwtIssue } from "@swarmtales/contracts";
 import { Value } from "typebox/value";
-import { gameSchemaMismatch, optionMismatch } from "../errors.ts";
+import { gameSchemaMismatch, optionMismatch, paramOverride } from "../errors.ts";
 import { RESIDENT_KIND } from "../mechanic/context.ts";
 import type { MechanicDefinition } from "../mechanic/types.ts";
 import { appendRoster } from "../roster/index.ts";
 import { gameData } from "./define-game.ts";
+import { familyParams, isGameFamily, isJson } from "./family.ts";
 import { resolveGrants } from "./grants.ts";
 import { loadOrder } from "./load-order.ts";
 import { collectTexts } from "./texts.ts";
@@ -38,13 +39,6 @@ function isBuilder(game: unknown): game is Game {
 function seedIssues(seed: number | undefined): readonly SwtIssue[] {
 	if (seed === undefined || (Number.isInteger(seed) && seed >= 0 && seed <= MAX_SEED)) return [];
 	return [gameSchemaMismatch({ path: "seed", message: `is ${String(seed)} for this run; a seed must be a whole number from 0 to ${String(MAX_SEED)}` })];
-}
-
-function isJson(value: unknown): value is JsonValue {
-	if (value === null || typeof value === "string" || typeof value === "boolean") return true;
-	if (typeof value === "number") return Number.isFinite(value);
-	if (Array.isArray(value)) return value.every(isJson);
-	return typeof value === "object" && Object.values(value).every(isJson);
 }
 
 // Issues in the order of their data path (`mechanics[2]` before `mechanics[10]`); without a path first, ties in step order.
@@ -142,7 +136,20 @@ function mechanicSteps(data: GameData, definitions: Definitions, input: ResolveI
 // Package name to its version, `0.0.0` when the caller gave none.
 const versionOf = (versions: Readonly<Record<string, string>>) => (name: string): string => (Object.hasOwn(versions, name) ? versions[name] : undefined) ?? NO_VERSION;
 
+// The game that is resolved and its effective params: a family is built from them, any other game takes no override (SWT-G041).
+function builtGame(input: ResolveInput): { readonly game: Game | GameData; readonly params: ResolvedGame["params"] } {
+	if (!isGameFamily(input.game)) {
+		const issues = Object.keys(input.params ?? {}).map((name) => paramOverride({ name, problem: "no-family" }));
+		if (issues.length > 0) throw new SwtError(issues);
+		return { game: input.game, params: {} };
+	}
+	const { params, issues } = familyParams(input.game, input.params);
+	if (issues.length > 0) throw new SwtError(issues);
+	return { game: input.game.build(params), params };
+}
+
 interface Checked {
+	readonly params: ResolvedGame["params"];
 	readonly data: GameData;
 	readonly residents: readonly string[];
 	readonly actors: readonly ActorSpec[];
@@ -171,11 +178,13 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
 			startLocks: steps.grants.startLocks,
 			replies: steps.texts.replies,
 			limits: { maxTicks: data.end.ticks, ...limits },
+			...(input.records === undefined ? {} : { records: input.records }),
 		},
 		data: filled,
 		texts: steps.texts.texts,
 		briefings: briefingsOf(data, parts.residents),
 		win: data.win?.fact,
+		params: parts.params,
 	};
 }
 
@@ -184,10 +193,15 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
  * the kernel definition. The seed is `input.seed`, else the game's, else 1. The hash of the game is the hash of
  * `data`, which does not hold `input.seed`.
  *
- * @param input - The game, the installed mechanics (for a data game), the schedulers by id, the prompt lookup, the seed and the package versions.
- * @returns The kernel definition, the data form with defaults filled, the texts, the briefings and the key of the win fact.
+ * A game family is built first, from the defaults of its params with `input.params` on top; what is hashed is the
+ * data of the game it builds, so the params are in the hash only through what they change in the game.
+ *
+ * @param input - The game or the family, the overrides of its params, the installed mechanics (for a data game), the schedulers by id, the prompt lookup, the seed, the package versions and the record sources.
+ * @returns The kernel definition, the data form with defaults filled, the texts, the briefings, the key of the win fact and the effective params.
  * @throws SwtError One error with every issue found, sorted by data path (`SWT-G001` to `SWT-G032`, `SWT-M010`,
- * `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues alone.
+ * `SWT-P003`, and what the prompt lookup reports). A game that fails its schema is reported with the schema issues
+ * alone, and so are overrides that do not fit (`SWT-G041`): an unknown param, a value of the wrong type, or any
+ * override for a game that is no family.
  *
  * @example
  * ```ts
@@ -198,8 +212,9 @@ function assembled(input: ResolveInput, parts: Checked): ResolvedGame {
  * @public
  */
 export function resolveGame(input: ResolveInput): ResolvedGame {
-	const builder = isBuilder(input.game) ? gameData(input.game) : undefined;
-	const checked = checkSchema(builder?.data ?? input.game);
+	const { game, params } = builtGame(input);
+	const builder = isBuilder(game) ? gameData(game) : undefined;
+	const checked = checkSchema(builder?.data ?? game);
 	if (checked.data === undefined) throw new SwtError(sorted(checked.issues));
 	const data = checked.data;
 	const residents = residentsOf(data);
@@ -208,5 +223,5 @@ export function resolveGame(input: ResolveInput): ResolvedGame {
 	const scheduler = schedulerOf(data, input.schedulers);
 	const issues = [...seedIssues(input.seed), ...residents.issues, ...actors.issues, ...steps.issues, ...scheduler.issues];
 	if (issues.length > 0 || scheduler.definition === undefined) throw new SwtError(sorted(issues));
-	return assembled(input, { data, residents: residents.ids, actors: actors.actors, steps, scheduler, definition: scheduler.definition });
+	return assembled(input, { params, data, residents: residents.ids, actors: actors.actors, steps, scheduler, definition: scheduler.definition });
 }

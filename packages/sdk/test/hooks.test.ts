@@ -37,7 +37,7 @@ function parts(): InstanceParts<M> {
 		access: { lock: () => undefined, unlock: () => undefined, isLocked: () => false, isOpen: () => true, open: () => [] },
 	};
 	const options = { tool: "playMove" };
-	const head = { id: "consensus", package: "@acme/consensus", summary: "A gate.", options: Type.Object({}), state: undefined, version: 1, events: {}, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [] };
+	const head = { id: "consensus", package: "@acme/consensus", summary: "A gate.", options: Type.Object({}), state: undefined, version: 1, events: {}, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [], metrics: [] };
 	return { port, head, options, state: { value: { log: [] } }, setup: { options, residents: ["A01", "A02"], seed: 1, rng: () => random }, texts: { render: () => "" } };
 }
 

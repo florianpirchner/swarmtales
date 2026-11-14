@@ -11,7 +11,7 @@ const SizeOptions = Type.Object({ size: Type.Integer({ default: 3, minimum: 2, d
 
 /** A stand-in definition: what step 4 reads of one (`id`, `package`, `events`, `parseOptions`). */
 function standIn(id: string, events: Readonly<Record<string, TSchema>> = {}): MechanicDefinition {
-	const head = { id, package: `@test/${id}`, summary: id, options: SizeOptions, state: undefined, version: 1, events, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [] };
+	const head = { id, package: `@test/${id}`, summary: id, options: SizeOptions, state: undefined, version: 1, events, audiences: {}, prompts: {}, requires: [], provides: [], uses: [], tools: [], metrics: [] };
 	const definition: MechanicDefinition = Object.assign((options?: unknown) => ({ mechanic: definition, options }), {
 		id,
 		package: head.package,
