@@ -7,7 +7,7 @@ import type { TestKernel } from "@swarmtales/testkit";
 import { ChannelsService } from "../src/contract.ts";
 import { channels } from "../src/index.ts";
 
-/** Stands in for a mechanic that uses the service (the court of the slice): its tools call `post` and `notify`. */
+/** Stands in for a mechanic that uses the service (the court of the slice): its tools call the service and suspend a resident. */
 const city = defineMechanic(
 	defineHead({
 		id: "city",
@@ -17,6 +17,8 @@ const city = defineMechanic(
 		tools: {
 			cityPost: { description: "Post as the city.", params: Type.Object({ text: Type.String(), system: Type.Optional(Type.Boolean()) }), for: ["resident"] },
 			cityNotify: { description: "Notify as the city.", params: Type.Object({ to: Type.String(), text: Type.String() }), for: ["resident"] },
+			cityRecords: { description: "Read the direct messages.", params: Type.Object({}), for: ["resident"] },
+			cityExile: { description: "Suspend a resident.", params: Type.Object({ resident: Type.String() }), for: ["resident"] },
 		},
 	}),
 	{
@@ -25,6 +27,13 @@ const city = defineMechanic(
 			cityNotify: {
 				run: (params, ctx) => {
 					ctx.call(ChannelsService, "notify", { to: params.to, author: "CITY", text: params.text });
+					return reply("ok");
+				},
+			},
+			cityRecords: { run: (_params, ctx) => reply(JSON.stringify(ctx.call(ChannelsService, "dmRecords", {}))) },
+			cityExile: {
+				run: (params, ctx) => {
+					ctx.residents.suspend(params.resident, "exiled");
 					return reply("ok");
 				},
 			},

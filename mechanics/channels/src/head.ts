@@ -5,6 +5,7 @@ import { defineHead, type CtxOf, type ToolCtxOf } from "@swarmtales/sdk";
 import { MAX_BOARD_POST_LENGTH } from "./board.ts";
 import { ChannelsService } from "./contract.ts";
 import { ChannelsEvents } from "./events.ts";
+import { MAX_DM_LENGTH } from "./mailbox.ts";
 import { ChannelsSlice, loadState, newState, saveState, type ChannelsState } from "./state.ts";
 
 /**
@@ -15,7 +16,7 @@ import { ChannelsSlice, loadState, newState, saveState, type ChannelsState } fro
 export const channelsHead = defineHead({
 	id: "channels",
 	package: "@swarmtales/mechanic-channels",
-	summary: "Talk in the city: the public board and private notices.",
+	summary: "Talk in the city: the public board, direct messages and private notices.",
 	state: ChannelsSlice,
 	start: ({ residents }): ChannelsState => newState(residents),
 	snapshot: { save: (state: ChannelsState) => saveState(state), load: (data, setup): ChannelsState => loadState(data, setup.residents) },
@@ -24,10 +25,14 @@ export const channelsHead = defineHead({
 	prompts: {
 		"channels/tools/readBoard": [],
 		"channels/tools/postBoard": [],
+		"channels/tools/sendDM": [],
 		"channels/replies/board-hidden": ["count"],
 		"channels/replies/board-none": [],
 		"channels/replies/board-posted": ["seq"],
+		"channels/replies/dm-sent": ["number", "target"],
+		"channels/input/dm": ["number", "from", "text"],
 		"channels/input/notice": ["author", "text"],
+		"channels/notices/dm-delivered": ["number", "agent", "minute", "text"],
 	},
 	tools: {
 		readBoard: {
@@ -41,6 +46,14 @@ export const channelsHead = defineHead({
 		postBoard: {
 			description: "channels/tools/postBoard",
 			params: Type.Object({ message: Type.String({ description: "Text", minLength: 1, maxLength: MAX_BOARD_POST_LENGTH }) }),
+			for: ["resident"],
+		},
+		sendDM: {
+			description: "channels/tools/sendDM",
+			params: Type.Object({
+				target: Type.String({ description: "Recipient name or ID, e.g. A07" }),
+				message: Type.String({ description: "Message text", minLength: 1, maxLength: MAX_DM_LENGTH }),
+			}),
 			for: ["resident"],
 		},
 	},

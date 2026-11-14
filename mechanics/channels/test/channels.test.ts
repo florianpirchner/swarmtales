@@ -19,6 +19,7 @@ function driver(seen: string[], script: Readonly<Record<string, readonly Planned
 }
 
 const post = (message: string): PlannedCall => ({ tool: "postBoard", params: { message } });
+const dm = (target: string, message: string): PlannedCall => ({ tool: "sendDM", params: { target, message } });
 
 describe("the board", () => {
 	it("posts, numbers and reads without the reader's own posts", async () => {
@@ -60,7 +61,7 @@ describe("the board", () => {
 			["readBoard", "Reads new public board posts since your last read, each with its city number (#N). With afterSeq you read after a number (0 = everything)."],
 			["postBoard", "Publishes an immutable post on the public board. Everyone can read it."],
 		]);
-		expect(channels.head.tools.map((tool) => JSON.stringify(tool.parameters))).toEqual([
+		expect(channels.head.tools.slice(0, 2).map((tool) => JSON.stringify(tool.parameters))).toEqual([
 			'{"type":"object","properties":{"afterSeq":{"type":"integer","description":"Read posts after this city number","minimum":0},"limit":{"type":"integer","description":"At most this many posts (max 50)","minimum":1,"maximum":50}}}',
 			'{"type":"object","required":["message"],"properties":{"message":{"type":"string","description":"Text","minLength":1,"maxLength":1200}}}',
 		]);
@@ -107,9 +108,10 @@ describe("notices and news", () => {
 
 describe("conformance", () => {
 	const script = {
-		"0:A01": [post("one")],
+		"0:A01": [post("one"), dm("A03", "psst")],
 		"0:A03": [{ tool: "cityNotify", params: { to: "A01", text: "seen" } }, { tool: "readBoard", params: {} }],
-		"1:A03": [post("two"), { tool: "cityPost", params: { text: "city" } }],
+		// A direct message that waits in a mailbox when the run is cut after two ticks.
+		"1:A03": [post("two"), { tool: "cityPost", params: { text: "city" } }, dm("A01", "back")],
 		"2:A01": [{ tool: "readBoard", params: {} }, post("three")],
 	};
 	const run = (options: Parameters<typeof play>[1] = {}) => play(game(), { drivers: { resident: driver([], script) }, ...options });
@@ -117,12 +119,14 @@ describe("conformance", () => {
 	it("is deterministic and survives a snapshot round trip at every tick", async () => {
 		const straight = await run();
 		expect(payloads(straight.events, "board_post")).toHaveLength(4);
-		expect(payloads(straight.events, "notice")).toHaveLength(1);
+		expect(payloads(straight.events, "dm_delivered")).toEqual([{ number: 2, from: "A01", to: "A03" }, { number: 5, from: "A03", to: "A01" }]);
+		// The notice of the script and one per delivered message.
+		expect(payloads(straight.events, "notice")).toHaveLength(3);
 		expect((await run()).events).toEqual(straight.events);
 		for (const cut of [1, 2, 3]) {
 			const first = await run({ ticks: cut });
 			const resume = { snapshot: structuredClone(first.kernel.snapshot()), log: structuredClone([...first.events]) };
-			// Loading a slice and saving it again gives the slice: the board, the cursors, the waiting notice, the seen marks.
+			// Loading a slice and saving it again gives the slice: the board, the cursors, the mailboxes, the records, the waiting notices, the seen marks.
 			expect(testKernel(game(), { resume }).kernel.snapshot()).toEqual(first.kernel.snapshot());
 			const rest = await run({ resume });
 			expect(rest.events).toEqual(straight.events);

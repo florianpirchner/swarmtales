@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The `channels` mechanic: talk in the city. Residents post on the public board and read it; other mechanics speak
- * as the city through `ChannelsService` (a post, or a private notice that its reader finds at its next
- * activation). Every message a reader can cite has one number from one counter.
+ * The `channels` mechanic: talk in the city. Residents post on the public board, read it and send each other direct
+ * messages; other mechanics speak as the city through `ChannelsService` (a post, or a private notice that its
+ * reader finds at its next activation) and read the record of the direct messages there. Every message a reader can cite has one number from one counter.
  *
  * @packageDocumentation
  */
 import { Type } from "typebox";
 import { defineMechanic } from "@swarmtales/sdk";
 import { ChannelsEvents, ChannelsService } from "./contract.ts";
+import { sendDm } from "./dms.ts";
 import { channelsHead } from "./head.ts";
 import { inboxInputs, news } from "./hooks.ts";
 import { notify, postBoard, postToBoard, readBoard } from "./messages.ts";
@@ -33,11 +34,13 @@ export const channels = defineMechanic(channelsHead, {
 				notify(ctx, input.to, input.author, input.text);
 				return null;
 			},
+			dmRecords: (_input, ctx) => ctx.state.dms.map(({ from, to, text, number }) => ({ from, to, text, number })),
 		},
 	},
 	tools: {
 		readBoard: { run: (params, ctx) => readBoard(ctx, params.afterSeq, params.limit) },
 		postBoard: { run: (params, ctx) => postBoard(ctx, params.message) },
+		sendDM: { run: (params, ctx) => sendDm(ctx, params.target, params.message) },
 	},
 	hooks: { turnInputs: inboxInputs, news },
 	facts: {

@@ -18,12 +18,23 @@ author: Type.TString;
 text: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
 }>;
+readonly dm_sent: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>;
+readonly dm_delivered: Type.TObject<{
+number: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
+}>;
 readonly notice: Type.TObject<{
 to: Type.TString;
 author: Type.TString;
 text: Type.TString;
 }>;
-}, "readBoard" | "postBoard">;
+}, "readBoard" | "postBoard" | "sendDM">;
 
 // @public
 export const ChannelsEvents: EventsDefinition<"channels", {
@@ -32,6 +43,17 @@ postSeq: Type.TInteger;
 author: Type.TString;
 text: Type.TString;
 kind: Type.TUnion<[Type.TLiteral<"player">, Type.TLiteral<"city">, Type.TLiteral<"system">]>;
+}>;
+readonly dm_sent: Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>;
+readonly dm_delivered: Type.TObject<{
+number: Type.TInteger;
+from: Type.TString;
+to: Type.TString;
 }>;
 readonly notice: Type.TObject<{
 to: Type.TString;
@@ -63,6 +85,17 @@ author: Type.TString;
 text: Type.TString;
 }>;
 readonly output: Type.TNull;
+};
+readonly dmRecords: {
+readonly kind: "query";
+readonly summary: "Lists every direct message that was sent, delivered or not, oldest first.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TObject<{
+from: Type.TString;
+to: Type.TString;
+text: Type.TString;
+number: Type.TInteger;
+}>>;
 };
 }>;
 
