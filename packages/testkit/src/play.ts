@@ -5,7 +5,7 @@
  * host's test helpers.
  */
 import { actorId } from "@swarmtales/contracts";
-import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, PromptLookup, ResumeInput, RunEnd, ToolOutcome } from "@swarmtales/contracts";
+import type { ActorDriver, DriverTable, Envelope, EventSink, GameData, Kernel, PromptLookup, RecordSource, Redact, ResumeInput, RunEnd, RunLimit, ToolOutcome } from "@swarmtales/contracts";
 import { turns } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
@@ -34,6 +34,14 @@ export interface PlayOptions {
 	readonly sinks?: readonly EventSink[];
 	/** For a game in its data form: mechanic id to definition. */
 	readonly installed?: Readonly<Record<string, MechanicDefinition>>;
+	/** The overrides of a game family's params, by name. */
+	readonly params?: Readonly<Record<string, unknown>>;
+	/** The record sources of the run (a driver's); without them a record is refused. */
+	readonly records?: readonly RecordSource[];
+	/** Limits given from outside the game, such as a cost meter's; checked before the game's own. */
+	readonly limits?: readonly RunLimit[];
+	/** The redaction of what the kernel writes; the pattern redaction when absent. */
+	readonly redact?: Redact;
 }
 
 /**
@@ -100,8 +108,11 @@ function kernelOf(game: Game | GameData, options: PlayOptions): Kernel {
 		prompts: options.prompts ?? createPromptLookup(),
 		...(options.installed === undefined ? {} : { installed: options.installed }),
 		...(options.seed === undefined ? {} : { seed: options.seed }),
+		...(options.params === undefined ? {} : { params: options.params }),
+		...(options.records === undefined ? {} : { records: options.records }),
 	});
-	const kernel = createKernel(resolved.definition, { sinks: options.sinks ?? [] }, options.resume);
+	const ports = { sinks: options.sinks ?? [], ...(options.limits === undefined ? {} : { limits: options.limits }), ...(options.redact === undefined ? {} : { redact: options.redact }) };
+	const kernel = createKernel(resolved.definition, ports, options.resume);
 	if (resolved.win !== undefined) kernel.fact(resolved.win);
 	return kernel;
 }

@@ -113,3 +113,25 @@ describe("testKernel", () => {
 		expect(await test.playTicks(add, 5)).toEqual({ reason: "limit", tick: 2, limit: "counter.full" });
 	});
 });
+
+describe("play with what a live run gives the kernel", () => {
+	const source = { id: "@test/driver", events: { noted: Type.Object({ text: Type.String() }) } };
+
+	it("lets a driver record under turns when the record source is given, and refuses it otherwise", async () => {
+		const noting = { resident: scriptedDriver((activation) => (activation.record(source.id, "noted", { text: "seen" }), [{ tool: "add", params: { by: 1 } }])) };
+		const played = await play(game, { drivers: noting, records: [source] });
+		expect(played.events.filter((event) => event.source === source.id).map((event) => [event.type, event.payload])).toContainEqual(["noted", { text: "seen" }]);
+		expect(await codeOf(play(game, { drivers: noting }))).toBe("SWT-R017");
+	});
+
+	it("ends the run by a limit given from outside and redacts a record with the given function", async () => {
+		let asked = 0;
+		const limit = { id: "outside.budget", summary: "Ends at the third question.", check: () => (++asked >= 3 ? "the budget is spent" : undefined) };
+		const noting = { resident: scriptedDriver((activation) => (activation.record(source.id, "noted", { text: "sent key-123" }), [{ tool: "add", params: { by: 1 } }])) };
+		const played = await play(game, { drivers: noting, records: [source], limits: [limit], redact: (text) => text.replaceAll("key-123", "[redacted]") });
+		expect(played.end).toMatchObject({ reason: "limit", limit: "outside.budget" });
+		expect(played.events.find((event) => event.type === "noted")?.payload).toEqual({ text: "sent [redacted]" });
+		expect(JSON.stringify(played.events)).not.toContain("key-123");
+	});
+});
+
