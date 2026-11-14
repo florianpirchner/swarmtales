@@ -63,7 +63,9 @@ paired, the control arm against `{ openHands: true, frozenHands: true }`, the fi
 12 runs, at most 0.10 USD a run and 0.60 USD in all. It is exploratory and has no pass rule: with six pairs it
 reports an estimate with its interval, to be read beside the gate's +84.5 (standard error 22.0, 12 pairs, live
 line), and it gates nothing. Six pairs give a standard error of about 30 points, so the series can show whether the
-effect stays clearly positive, not how much of the +84.5 was the move order. It has not been run yet.
+effect stays clearly positive, not how much of the +84.5 was the move order. Run on 2026-11-14: +75.5 (standard
+error 27.3, 95 % interval 5.3 to 145.7), no pick request shows a pick of the same step
+([`docs/M2-CURES.md`](../../docs/M2-CURES.md)).
 
 ## Without the results of earlier games (`showResults: false`)
 

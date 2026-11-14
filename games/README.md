@@ -6,4 +6,5 @@ tests, among them the oracle test where the game has oracle files. Five games ar
 
 Recorded runs do not live here. They go to the orphan branch `data/runs` of this repository (decision A15); a game
 folder holds the index only (`games/<name>/RUNS.md`, from the first run on). `m2-ledger.jsonl` is the spend ledger
-of the live runs of milestone M2, `m3-ledger.jsonl` that of the live smoke of M3.
+of the live runs of milestone M2, `m3-ledger.jsonl` that of the live smoke of M3, `a29-ledger.jsonl` that of the two
+cure series of decision A29 ([`docs/M2-CURES.md`](../docs/M2-CURES.md)).

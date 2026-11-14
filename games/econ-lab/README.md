@@ -69,7 +69,9 @@ model, guardrails and per-run cap as the gate, experiment cap 0.40 USD. It is `e
 with six runs per arm it reports the estimate of `econ-games.dilemmaCooperation` (brain minus no brain) with its
 standard error and 95 % interval, to be read beside the gate's -0.771 (SE 0.084, n 12 per arm, results shown) and
 the old platform's -0.40 (SE 0.13). It gates nothing, and an interval of six runs per arm is wide: it can show
-whether the effect is still there without the results line, not how much of -0.771 the line was.
+whether the effect is still there without the results line, not how much of -0.771 the line was. Run on 2026-11-14:
+-0.667 (standard error 0.139, 95 % interval -1.024 to -0.310); all six tables without a brain lock at full
+cooperation, one of six with it ([`docs/M2-CURES.md`](../../docs/M2-CURES.md)).
 
 ## Runs
 
