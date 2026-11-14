@@ -54,8 +54,9 @@ the diff before you commit it.
 
 ## Limits
 
-- The residents are scripts. `swt run games/city-slice/game.ts --fake` plays the game with sampled calls, not this
-  story.
+- The residents of the timelines are scripts. `swt run games/city-slice/game.ts --fake` plays another run of the
+  same game with sampled calls: the residents vote, a verdict falls (seed 7) or the vote ties (seed 4), and the
+  warden takes its fallback line.
 - A pause holds no tick back by itself: the run loop reads the fact `humanHand.paused`. The test applies the three
   lines at one boundary, so the pause shows as two events and a snapshot between them.
 - The warden's scripted model keeps its place in memory, not in the snapshot: a resumed offline run needs the
