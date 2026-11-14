@@ -1,6 +1,6 @@
 # chess-04a-007-teams-s29
 
-`swt run --story chess-teams-p80 --provider anthropic --model haiku --seed 29`, `-teams` arm (two teams of two, rotating captain, team channel); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A": 0.5, "B": 1.5}. **Cost 0.245 USD**, 359 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.md](run/ANALYSIS.md)).
+`swt run --story chess-teams-p80 --provider anthropic --model haiku --seed 29`, `-teams` arm (two teams of two, rotating captain, team channel); two games with alternating colours, cap 80 half-moves. Run on 2026-11-06 as one of six comparison runs (see the [runs index](../README.md)). Scores: {"A": 0.5, "B": 1.5}. **Cost 0.245 USD**, 359 requests; the reporter draft about 0.003 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)).
 
 **Result.** Two teams of two Haiku seats (A: A01, A02; B: A03, A04), the captain rotating per move, one advisor turn per move for the teammate. Game 1 (A White, Italian) went to the cap and **B won 0-1 on material**; game 2 (B White) went to the cap too and was **drawn on material** in a king-and-pawn ending. B won the match 1.5 to 0.5. 138 team posts, 160 half-moves, 4 refused moves.
 
@@ -31,5 +31,7 @@ None by the residents. No seat moved out of turn, no move bypassed chess.js, and
 
 ## Notes
 
-- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.md` and `run/analysis.json`.
+- The reporter draft is `run/REPORT.md`; the engine analysis is `run/ANALYSIS.stockfish10.md` and `run/analysis.stockfish10.json`.
 - Files: `run/events.jsonl` (+ chain and public key), `run/usage.json`, `run/agents/` (transcripts).
+
+> **Engine note (2026-11-14).** The engine numbers in this README are from Stockfish 10 at depth 14 and are kept as measured ([ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md), `run/analysis.stockfish10.json`). The reference engine is now Garbochess-JS at depth 10: the same games scored again are in [ANALYSIS.md](run/ANALYSIS.md) and `run/analysis.json`, and [REANALYSIS.md](../REANALYSIS.md) compares the two. Numbers of the two engines are not comparable.

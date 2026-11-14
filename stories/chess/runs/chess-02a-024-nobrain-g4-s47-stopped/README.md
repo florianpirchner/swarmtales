@@ -1,6 +1,6 @@
 # chess-02a-024-nobrain-g4-s47-stopped
 
-`swt run --story chess-nobrain-g4-p80 --provider anthropic --model haiku --seed 47`, `-nobrain` (no brain, no list); four games with alternating colours (A01 is White in game 1), cap 80 half-moves. Run on 2026-11-06/07. Final points: none (stopped before the match ended). **Cost 0.092 USD**, 203 requests; the reporter draft about 0.004 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.md](run/ANALYSIS.md)).
+`swt run --story chess-nobrain-g4-p80 --provider anthropic --model haiku --seed 47`, `-nobrain` (no brain, no list); four games with alternating colours (A01 is White in game 1), cap 80 half-moves. Run on 2026-11-06/07. Final points: none (stopped before the match ended). **Cost 0.092 USD**, 203 requests; the reporter draft about 0.004 USD more (OpenRouter). Engine numbers: Stockfish 10 at depth 14 (`pnpm lab:chess`, [ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md)).
 
 **Stopped run.** The container was reclaimed on 2026-11-07 during game 3 or 4 (Flo had stopped the series); the run has no `run_end`, no `usage.json` (cost summed from the usage events) and no signed head: `swt log verify` reports "not covered by a signed head", while every line hash links (the check fails only after the last line). The unfinished game is analysed but not counted in the comparison. Seed 47 was played again in full in runs 025-028.
 
@@ -27,5 +27,7 @@ None by the residents: no move out of turn, no move past chess.js, no refusal us
 
 ## Notes
 
-- The reporter draft is `run/REPORT.md` (city-shaped, P89; this README is the reviewed report); the engine analysis is `run/ANALYSIS.md` and `run/analysis.json`.
+- The reporter draft is `run/REPORT.md` (city-shaped, P89; this README is the reviewed report); the engine analysis is `run/ANALYSIS.stockfish10.md` and `run/analysis.stockfish10.json`.
 - Files: `run/events.jsonl` (+ chain and public key), `run/usage.json` (reporter only), `run/agents/` (transcripts).
+
+> **Engine note (2026-11-14).** The engine numbers in this README are from Stockfish 10 at depth 14 and are kept as measured ([ANALYSIS.stockfish10.md](run/ANALYSIS.stockfish10.md), `run/analysis.stockfish10.json`). The reference engine is now Garbochess-JS at depth 10: the same games scored again are in [ANALYSIS.md](run/ANALYSIS.md) and `run/analysis.json`, and [REANALYSIS.md](../REANALYSIS.md) compares the two. Numbers of the two engines are not comparable.
