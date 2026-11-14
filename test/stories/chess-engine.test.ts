@@ -3,9 +3,11 @@
  * was pinned, and the same position at the same depth gives the same score, best move and node count everywhere.
  * A node count that matches proves the same search tree, not only the same answer.
  */
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { Chess } from "chess.js";
 import { describe, expect, it } from "vitest";
-import { analyse, analyseSync, centipawns, DEFAULT_DEPTH, ENGINE, engineFileHash, type Score } from "../../lab/chess-engine.ts";
+import { analyse, analyseSync, centipawns, DEFAULT_DEPTH, ENGINE, type Score } from "../../lab/chess-engine.ts";
 
 const DEPTH = 6;
 
@@ -47,8 +49,8 @@ const GOLDEN: readonly (readonly [string, string, Score, string, number])[] = [
 
 describe("the vendored engine file", () => {
 	it("is the pinned Garbochess-JS file, byte for byte", () => {
-		expect(engineFileHash()).toBe("b0ebcf80e7bc7c5c9dd08e57f96a07af0a655f6138590243028d6b98717c938c");
-		expect(ENGINE).toEqual({ engine: "garbochess-js", commit: "4ff0f9e49a0041545b645e25d3d2da7af3b36a90", sha256: engineFileHash() });
+		expect(createHash("sha256").update(readFileSync(new URL("../../third_party/garbochess/garbochess.js", import.meta.url))).digest("hex")).toBe("b0ebcf80e7bc7c5c9dd08e57f96a07af0a655f6138590243028d6b98717c938c");
+		expect(ENGINE).toEqual({ engine: "garbochess-js", commit: "4ff0f9e49a0041545b645e25d3d2da7af3b36a90", sha256: "b0ebcf80e7bc7c5c9dd08e57f96a07af0a655f6138590243028d6b98717c938c" });
 		expect(DEFAULT_DEPTH).toBe(10);
 	});
 });

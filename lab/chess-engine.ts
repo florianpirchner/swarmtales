@@ -74,11 +74,6 @@ const SearchResult = Type.Object({ move: Type.String(), value: Type.Integer(), d
 
 let api: unknown;
 
-/** The SHA-256 of the vendored engine file as it is on disk. */
-export function engineFileHash(): string {
-	return createHash("sha256").update(readFileSync(ENGINE_FILE)).digest("hex");
-}
-
 function load(): unknown {
 	if (api !== undefined) return api;
 	const source = readFileSync(ENGINE_FILE);
