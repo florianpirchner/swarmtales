@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * Game: Econ Lab, three economic games in rounds. The issues of milestone M2 fill this package.
+ * Game: Econ Lab, three economic games in rounds.
  *
  * @packageDocumentation
  */
-export {};
+export { default, DEFAULT_BLOCKS, econLabGame, type EconLabOptions } from "../game.ts";
+export { briefings, SEATS } from "../briefing.ts";
