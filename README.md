@@ -62,15 +62,20 @@ player never calls `viewBoard`, it moves without looking at the board. A live mo
 A seed fixes everything random in the world, a snapshot saves a run at a tick so it can be resumed, and a dial (an
 integer from 0 to 10) sets how strongly a Director or a mechanic acts.
 
-## What we found
+## What we found (2026-11-14)
 
-The findings of the old platform are being measured again on this one. Until an effect is reproduced here, this
-section stays empty; the old results are in [`docs/CROSS-GAME-FINDINGS.md`](docs/CROSS-GAME-FINDINGS.md) and their
-runs at the tag `v0-final`.
+Two firm effects of the old platform were measured again on this one, 12 seeds each
+([`docs/M2-GATE.md`](docs/M2-GATE.md)); every other result is still an "old platform" row of [`docs/FINDINGS.md`](docs/FINDINGS.md).
+
+- **Open quarries raise the table's points:** +84.5 (n 12 pairs, standard error 22.0, 95 % interval 36 to 133). The size agrees with the old +77. Caveat: a seat also sees picks of the same step (LH18 in [`docs/LESSONS-LEARNED.md`](docs/LESSONS-LEARNED.md)). [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/quarry/quarry-open-quarries)
+- **A strategy brain lowers cooperation in the dilemma:** -0.771 (n 12 runs per arm, standard error 0.084, 95 % interval -0.954 to -0.588). Sign kept, larger than the old estimate of -0.40. [Series](https://github.com/florianpirchner/swarmtales/tree/data/runs/econ-lab/econ-lab-brain)
 
 ## One recorded moment
 
-A quote with its event number follows with the first run on the new platform (milestone M2).
+After the shared-fund game, seat A02 wrote into its strategy brain: "Free-riding is dominant regardless of others;
+revisit only if rules change" (`#992`). In the next game it chose B against every partner: "B strictly dominates
+A here" (`#1038`). The table cooperated in 1 of 20 choices. Run
+[`econ-lab-brain/econ-lab-007`](https://github.com/florianpirchner/swarmtales/tree/data/runs/econ-lab/econ-lab-brain/econ-lab-007).
 
 ## Choose your path
 

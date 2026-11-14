@@ -54,8 +54,9 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `0ea32af` of `rewrite/develop`
-(M2-24); the rows 85 to 129 were written from the history by issue M3-31, whose own commit has no row yet.
+All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `e1b77c2` of `rewrite/develop`
+(M3-31); the rows 85 to 129 were written from the history by issue M3-31, the rows 130 to 132 by issue M2-27, whose
+own commit has no row yet (owed, as the row of M3-31 was).
 
 | # | Issue | Title | Milestone | Commit | Merged | Tokens (total, M) | Cost (USD) | Wall time (h) | Agent time (h) | Lines | Source | Tests | Other | Note |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -188,6 +189,9 @@ All merges are of 2026-11-14; the times are UTC. The table is complete up to com
 | 127 | M3-28 | Viewer 2: Directors and decisions | M3 | `d3d2990` | 20:07 | not recorded | - | 0.04 | not recorded | +374 -33 | 296 | 92 | 19 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
 | 128 | M3-29 | Viewer 3: the human, the pause, the resume | M3 | `a4e7ea7` | 20:20 | not recorded | - | 0.03 | not recorded | +308 -18 | 199 | 100 | 27 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
 | 129 | M2-24 | The gate of M2: both series keep their sign, 61 live runs for 1.60 USD | M2 | `0ea32af` | 20:27 | not recorded | - | 0.05 | not recorded | +307 -0 | 0 | 0 | 307 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the lines are the gate's report, the run indexes and the spend ledger (data); the run folders are on `data/runs` |
+| 130 | M3-30 | Live smoke of the city slice: two runs for 0.0114 USD, no decision without a briefing | M3 | `da40e4a` | 20:39 | not recorded | - | - | not recorded | +30 -1 | 0 | 0 | 31 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the lines are the run index, the lesson rows P450 to P455 and the ledger of M3 (data); the run folders are on `data/runs`; row written by M2-27 |
+| 131 | M3-31 | Gate of M3: exile alone, the softer check, the record | M3 | `e1b77c2` | 20:40 | not recorded | - | - | not recorded | +564 -82 | 0 | 186 | 460 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; row written by M2-27 |
+| 132 | M2 milestone review | read-only review of the gate by a challenger: every number of `M2-GATE.md` recomputed from the event logs, eight logs read, two loopholes found (LH18, LH19), five blocking fixes named | M2 | - | - | not recorded | - | - | not recorded | - | 0 | 0 | 0 | challenger session, no commit: the review changed nothing in either checkout; its five fixes are issue M2-27, whose own row is owed (the integrator adds it with the merge commit) |
 
 ## Sessions without a row
 
@@ -212,28 +216,34 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `0ea32af`, 129 rows. The token sums below are those of the first 82 rows: the usage file of the
-sessions ends there, and the rows 83 to 129 have no number.
+State at commit `e1b77c2`, 132 rows (131 commits and the milestone review of M2, which has no commit). The token
+sums below are those of the first 82 rows: the usage file of the sessions ends there, and the rows 83 to 132 have
+no number.
 
 | | Planned | Merged | Note |
 |---|---|---|---|
 | M0 | 14 (A12) | not recorded per issue | 3 rows: the root commit squashes the issues of the frame, then the oracle files and the spike paper. The other M0 issues on the old state (the resume note names the noise floor and the chess engine) were merged on `legacy` and have no row |
 | M1 | 37 (A12) | 37 | M1-00 to M1-36 |
-| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.60 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged |
-| Sum of M0 to M2 | 76 | 62 of M1 and M2, plus the 3 rows of M0 | kill line 150 |
-| M3 | 32 (A19), 33 with M3-32 (A24) | 31 | M3-00 to M3-29 and M3-32. Open: M3-30, the live smoke (another session runs it), and M3-31, the gate, whose commit this state precedes. Stop line of A19: above 64 |
+| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.6022 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged, and M2-27, which closes the milestone review (row 132) and whose row is owed |
+| Sum of M0 to M2 | 76 | 62 planned issues of M1 and M2, plus the 3 rows of M0. With the issues beside the plan (M1-37 to M1-40, M2-25 to M2-27): **72**, the number of kill check 1 | kill line 150. Every row with the milestone M0, M1 or M2 (reviews, the specification, follow-up and integrator commits included): 85, and 86 with the row of M2-27 |
+| M3 | 32 (A19), 33 with M3-32 (A24) | 33 | M3-00 to M3-32 (rows 130 and 131 are the live smoke M3-30 and the gate M3-31). Stop line of A19: above 64 |
 
-Rows beside the plan: 33. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
-milestone), the specifications of M2 and M3, the reviews A and B of M2, the two follow-up issues of M2 (M2-25,
-M2-26), three follow-up commits with the id of their issue (rows 89, 96, 106), and sixteen commits of the
+Rows beside the plan: 34. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
+milestone), the specifications of M2 and M3, the reviews A and B and the milestone review of M2, the two follow-up
+issues of M2 (M2-25, M2-26; the row of the third, M2-27, is owed), three follow-up commits with the id of their issue (rows 89, 96, 106), and sixteen commits of the
 integrator without an issue id.
 
 | | Recorded | Budget | Share |
 |---|---|---|---|
-| Agent tokens in rows (70 of 129 rows have a number, 59 are "not recorded") | 13.22 million | | |
+| Agent tokens in rows (70 of 132 rows have a number, 62 are "not recorded") | 13.22 million | | |
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
 | Agent tokens, all 85 session reports | 15.60 million | 300 million | 5.2 % |
-| Agent cost | - | 750 USD | the sessions are not billed per token |
+| Agent cost | - | 750 USD | the sessions are not billed per token, so the USD line of the kill criterion cannot be counted |
+| Live model spend | 1.6022 USD (M2 gate, 61 runs, `games/m2-ledger.jsonl`) and 0.0114 USD (M3 smoke, 2 runs, `games/m3-ledger.jsonl`) on this platform; 0.72 USD before M2 on the old one (specification of M2, 8.5) | 10 USD | not a kill number |
+
+**Kill check 1** (specification of M2, 8.6), recounted by M2-27 from the rows above and written into
+[`M2-GATE.md`](M2-GATE.md): 72 issues of M0 to M2 against 150; 15.60 million recorded tokens against 600 million
+(a lower bound, see below); no agent cost in USD. It does not fire.
 
 The recorded sum leaves out the integrator's session, every session after row 82 (the rest of M2 and all of M3)
 and counts each session as it reported itself, so it is a lower bound of what the work used. The median of the 70

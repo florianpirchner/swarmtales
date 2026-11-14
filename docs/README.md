@@ -27,8 +27,9 @@ These documents were written for the old platform and are kept as evidence. Thei
 at the tag `v0-final`; their words are the old ones (see the retired words in the glossary).
 
 - [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md): the design checklist and the log of problems and loopholes.
-- [`CROSS-GAME-FINDINGS.md`](CROSS-GAME-FINDINGS.md): what helped the residents across the games. Every row is an
-  "old platform" result until it is reproduced.
+- [`FINDINGS.md`](FINDINGS.md) (until M2 `CROSS-GAME-FINDINGS.md`): what helped the residents across the games.
+  Every row is an "old platform" result until it is reproduced; the table at its top lists the rows measured again
+  on the rewrite (two after the M2 gate).
 - [`RUNTIME-REVISIONS.md`](RUNTIME-REVISIONS.md): revisions 1 and 2 of the old engine. The new kernel starts at 3.
 - [`RELATED-WORK.md`](RELATED-WORK.md): comparison with other projects; rewritten at milestone M6.
 - [`ideas/readme-structures.md`](ideas/readme-structures.md) and [`ideas/readme-drafts/`](ideas/readme-drafts/):

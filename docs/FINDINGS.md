@@ -1,8 +1,23 @@
 # What helps the residents: brains, teams and referees across the game stories
 
 > **Carried from the old platform.** This document was written before the rewrite and is kept as it was, except for
-> its links. Paths into code, runs and other docs (`packages/`, `mechanics/`, `stories/`, `examples/`, `docs/`) that do
+> its links, its name (`CROSS-GAME-FINDINGS.md` until the M2 gate) and the status marks of the section "Status on the rewrite". Paths into code, runs and other docs (`packages/`, `mechanics/`, `stories/`, `examples/`, `docs/`) that do
 > not exist on this branch point at the tag [`v0-final`](https://github.com/florianpirchner/swarmtales/tree/v0-final) of this repository.
+
+## Status on the rewrite
+
+Every row and every number below this section is an **"old platform"** result: measured before the rewrite, runs at
+the tag `v0-final`. A row changes its status only when its effect is measured again on the new platform by a
+committed plan. Rows measured again so far (M2 gate, 2026-11-14, [`M2-GATE.md`](M2-GATE.md); the runs are on the
+branch `data/runs`):
+
+| Row (section 5) | Old platform | On the rewrite | Status |
+|---|---|---|---|
+| Quarry: every quarry visible during the draft | +77 table points (SE 22), 8 paired seeds | **+84.5** (SE 22.0, 95 % interval 36 to 133, n 12 pairs), [`quarry/quarry-open-quarries`](https://github.com/florianpirchner/swarmtales/tree/data/runs/quarry/quarry-open-quarries) | **reproduced on the rewrite**: sign kept, the interval excludes zero, the size agrees. Caveat LH18 of [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md): in the open arm a seat also sees the picks of the same step of the seats asked before it (1292 of 1728 pick requests), on both platforms; the effect is "visible quarries plus a move order inside each step" until an arm with quarries frozen per step separates the two |
+| Econ Lab: the brain lowers cooperation in the A-or-B game | -0.40 (SE 0.13), 8 paired seeds | **-0.771** (SE 0.084, 95 % interval -0.954 to -0.588, n 12 runs per arm, unpaired), [`econ-lab/econ-lab-brain`](https://github.com/florianpirchner/swarmtales/tree/data/runs/econ-lab/econ-lab-brain) | **reproduced on the rewrite in sign only: sign kept, larger than the old estimate.** The two estimates are about 2.4 standard errors apart (difference -0.37, standard error about 0.155). The control arm differs: 9 of 12 tables without a brain lock at full cooperation here, 2 of 8 in the old baseline. Caveat LH19: the arm without a brain still gets the results of the earlier games, so it is "results without a written lesson", not "no memory" |
+
+The other rows of the old table (the brain against none in Quarry, the table points of Econ Lab, every other game)
+were not gated on the rewrite and stay "old platform".
 
 Status: 2026-11-12, with the paired series of section 5 (Hold'em, Harbor Lights, econ lab, Quarry, Salt
 Market, Lanterns; lessons P430-P439) on top of the chess and morris results of 2026-11-11 (PR #140, run 01a-007). An analysis of every recorded run of the game stories (tic-tac-toe teams, chess,
@@ -212,8 +227,8 @@ two series lost to 429 errors, P431). Two decision-time aids were built for it (
 | Hold'em | equity against the action-narrowed ranges and the pot odds at each action, 24 mixed tables | EV loss per decision 0.03 vs 0.26; VPIP 0.41 vs 0.73; points **+2.1 per seat and game (1.25)** | [holdem-04a-006](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/holdem/runs/holdem-04a-006-decision-aid) |
 | Hold'em | Sonnet and Opus seats at Haiku tables, 4 tables | Opus **+19 a game (8)**, Sonnet +13 (8) against the Haiku seats; EV loss 0.11 / 0.14 / Haiku 0.28 | [holdem-04a-007](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/holdem/runs/holdem-04a-007-sonnet-opus-seats) |
 | Harbor Lights | each own slot's chance to light, 12 one-game deals, without and with private notes | without notes -0.1 (1.6); with notes **-1.7 (1.2)**; misfires 29 vs 26 and 22 vs 14 | [harbor-lights-04a-007](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/harbor-lights/runs/harbor-lights-04a-007-decision-aid) |
-| Quarry | brain vs none, and open quarries, 8 seeds | brain -12 (28); open quarries **+77 (22)** over the brain arm, +32 (9) in game 1 | [quarry-04a-007](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/quarry/runs/quarry-04a-007-paired-seeds) |
-| Econ Lab | brain vs none, 8 seeds | A-or-B cooperation **-0.40 (0.13)**, table **-37 points (11)** | [econ-lab-04a-003](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/econ-lab/runs/econ-lab-04a-003-brain-vs-nobrain) |
+| Quarry | brain vs none, and open quarries, 8 seeds | brain -12 (28); open quarries **+77 (22)** over the brain arm, +32 (9) in game 1. *Open quarries: reproduced on the rewrite, +84.5 (22.0), n 12 pairs; the rest old platform* | [quarry-04a-007](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/quarry/runs/quarry-04a-007-paired-seeds) |
+| Econ Lab | brain vs none, 8 seeds | A-or-B cooperation **-0.40 (0.13)**, table **-37 points (11)**. *Cooperation: sign kept on the rewrite, larger than the old estimate, -0.771 (0.084), n 12 per arm; the table points old platform* | [econ-lab-04a-003](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/econ-lab/runs/econ-lab-04a-003-brain-vs-nobrain) |
 | Econ Lab | Sonnet and Opus tables, brain vs none, 4 seeds | Sonnet -0.48 (0.21) cooperation with a brain; Opus 1.00 in both arms | [econ-lab-04a-004](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/econ-lab/runs/econ-lab-04a-004-sonnet-opus) |
 | Salt Market | brain vs none, v2, 8 seeds | gain over idle +0.005 (0.025) | [salt-market-04a-006](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/salt-market/runs/salt-market-04a-006-v2-brain-vs-nobrain) |
 | Lanterns | brain vs none, 8 more seeds (12 on the current rules) | recall **+0.08 (0.03)**; game 1 +0.00, games 2-4 **+0.11 (0.03)**; points +0.2 (0.2) | [lanterns-06a-006](https://github.com/florianpirchner/swarmtales/tree/v0-final/stories/lanterns/runs/lanterns-06a-006-more-seeds) |

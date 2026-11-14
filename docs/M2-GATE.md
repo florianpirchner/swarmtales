@@ -10,6 +10,12 @@ the data branch `data/runs` (commit `5bfb55ff`) or from the spend ledger [`../ga
 0.084, 95 % interval -0.954 to -0.588, 12 runs per arm). Both intervals exclude zero. All guardrails held, no run
 was excluded, no key value was found in any file, and the runs cost 1.60 USD of the cap of 4.00 USD.
 
+**State: closed by the milestone review, with one line left for the integrator** (check 2 below). A challenger
+reviewed the gate read-only on 2026-11-14 and recomputed every number of this file from the raw event logs: all
+match to the printed digits. The review found two loopholes this file had not seen, and write-up and record work
+that was missing; issue M2-27 did that work. What it changed here: the reading of the logs, "Problems and
+loopholes", checks 1 and 2 of the kill procedure, "Left open", and the exit note at the end.
+
 ## What ran
 
 | | |
@@ -52,8 +58,11 @@ reservations and 61 cost lines; none is open. The dearest run cost 0.0445 (cap 0
 
 With five runs both checks show only a gross break (specification 8.4). One first turn was read against the old
 platform: seat A04 of the quarry pilot against `quarry-31-rep1` of the legacy noise floor. The system prompt, the
-two input lines and the three open tools are the same text, and the same seat is asked first. The two-against-two
-reading of 8.4 was not done, because both checks are within; no econ-lab log was compared.
+two input lines and the three open tools are the same text, and the same seat is asked first. The gate did not do
+the two-against-two reading of 8.4, which is asked only when a check is outside. The milestone review did it by
+script: for `quarry-noise-floor/quarry-001` and `-002` against the legacy `quarry-31-rep1` and `-rep2`, and for
+`econ-lab-noise-floor/econ-lab-001` and `-002` against `econ-lab-nobrain-41-rep1` and `-rep2`, the system prompt
+of all four seats, their first inputs and the order of the first pass are identical.
 
 ## Step 3: the two pass rules
 
@@ -84,9 +93,17 @@ Not gated, econ-lab: locked tables (cooperation 1.00) are 9 of 12 without the br
 to +0.057): no difference shown. Points of the table: -30.9 (standard error 5.8, interval -43.2 to -18.5). The
 brain arm wrote 12 brains in every run.
 
-A kept sign shows that the port did not turn an effect around. Here both intervals also exclude zero, so both
-effects are reproduced on the rewrite with the model of today: +84.5 (SE 22.0, n 12 pairs) and -0.771 (SE 0.084,
-n 12 per arm).
+A kept sign shows that the port did not turn an effect around. Here both intervals also exclude zero, with the
+model of today: +84.5 (SE 22.0, n 12 pairs) and -0.771 (SE 0.084, n 12 per arm). What that says about the size
+differs between the two:
+
+- **Quarry agrees in size** with the old platform: +84.5 against +77 (SE 22).
+- **Econ-lab: sign kept, larger than the old estimate.** -0.771 against the old -0.40 (SE 0.13) is a difference
+  of -0.37 with a standard error of about 0.155, about 2.4 standard errors. The reason is in the control arm: 9 of
+  12 tables without a brain lock at 1.00 here, 2 of 8 in the old baseline (specification 8.4). The size of the old
+  effect is not reproduced; its sign is.
+
+Both findings carry a caveat from the logs (LH18 and LH19 under "Problems and loopholes").
 
 ## Guardrails
 
@@ -117,24 +134,50 @@ code is in the list of its spec. No `request_failed` record in any of the 61 run
      four commits (step 1, step 2, step 3, the legacy runs with the ledger), not one commit per step while running.
   2. The ledger of the runs was a copy of `games/m2-ledger.jsonl` beside the checkout, so that the tree stayed
      clean for the confirmatory runs; the final file is copied back in this commit.
-  3. The reviewer read the facts table of every run and, by script, the brains, the reasons of picks and choices,
-     the refusals and the free texts; the full log of two runs per arm (8.5) was not read line by line.
-  4. The README findings block, the recorded moment and `docs/FINDINGS.md` (8.5) are not part of this commit.
+  3. The reading of 8.5 (the full log of at least two runs per arm) was not done by the gate issue. The gate read
+     the facts table of every run and, by script, the brains, the reasons of picks and choices, the refusals and
+     the free texts. The milestone review read the logs afterwards, from `events.jsonl` (what each seat got as
+     input, its calls, the answers, the thinking and free texts, the brains, the retros):
+
+     | Arm | Runs | How far |
+     |---|---|---|
+     | quarry `control` | `quarry-001` (seed 73), `quarry-020` (seed 79) | 001: start, end of game 1, all of game 2 pick by pick, retros; 020: every thinking, text, retro and brain of the three games |
+     | quarry `open` | `quarry-003` (seed 61), `quarry-004` (seed 79) | 003: game 1 pick by pick with the quarry lines, retro 1; 004: the retros and the case of P446, the thinking of game 3 |
+     | econ-lab `nobrain` | `econ-lab-003` (label 48), `econ-lab-005` (label 45) | 003: the whole match; 005: the dilemma |
+     | econ-lab `brain` | `econ-lab-007` (label 41), `econ-lab-002` (label 50) | 007: the retros, brains and the dilemma; 002: the dilemma |
+
+     Two runs per arm were opened, and not every one of the eight from the first to the last line. This reading
+     found LH18 and LH19, which the script reading had missed.
+  4. The README findings block, the recorded moment and `docs/FINDINGS.md` (8.5) were not part of the gate's
+     commit; issue M2-27 wrote them.
   5. `develop` moved from `b7de6505` to `a4e7ea7d` while the series ran; the runs name the commit they ran on.
+     What changed on the live path since is in the exit note.
 
 ## The kill procedure (8.6)
 
 | # | Check | Result |
 |---|---|---|
-| 1 | Effort | Not recounted here. The totals of [`ISSUE-RECORD.md`](ISSUE-RECORD.md) (state at `0ac3e89`): 60 merged issues of M1 and M2 and 3 rows of M0 against the kill line of 150; 15.6 million agent tokens against 600 million. Does not fire |
-| 2 | Size | The full `pnpm check` was not run by this issue; it is the integrator's at the merge. The tests of step 0 and `pnpm vitest --run scripts` (the budget tests among them) are green |
+| 1 | Effort | Recounted by M2-27 from the rows of [`ISSUE-RECORD.md`](ISSUE-RECORD.md) (rows 1 to 132 and the owed row of M2-27). **Issues: 72** against the kill line of 150: 3 rows of M0, 41 issues of M1 (M1-00 to M1-40), 28 of M2 (M2-00 to M2-27). Counted the widest way, every row with the milestone M0, M1 or M2 (issues, follow-up commits, reviews, the specification, integrator commits): 86. **Tokens: 15.60 million recorded** against 600 million; the number is a lower bound, because the rows 83 to 132 have no token number (the usage file of the sessions ends before them). **USD: the agent cost cannot be counted**, the sessions are not billed per token (a dash in every row); the only USD number is the live model spend, **1.6022 USD** for the 61 runs of this gate by the ledger, which is not a kill number. The one recalibration of D4 is still owed. Does not fire |
+| 2 | Size | **TO FILL BY THE INTEGRATOR at the merge of M2-27:** full `pnpm check` green on commit `<to fill>`, with its last two lines: `<to fill>`. Until this line is filled, check 2 is not recorded. What is known without it: the gate issue ran the tests of step 0 and `pnpm vitest --run scripts` (the budget tests among them, kernel gate 1420), green; the kernel has 1393 code lines and kernel + sdk + engine 3818 of 4100 at `a4e7ea7` (`ISSUE-RECORD.md`, "The softer check of M3"); M2-27 ran `pnpm vitest --run scripts` and the oracle tests of quarry and econ-lab on its own commit, green |
 | 3 | Sign | `swt experiment analyse` exit 0 for both series: **pass**. No bridge is run |
 | 4 | Keys | The canary test is green (step 0). `findLeaks` with the key broker over every file of the data branch: 0 files. No file holds the prefix of a provider key. No `LEAK` file was written |
 
 ## Problems and loopholes
 
-Loopholes: none seen in these runs. Problems are the rows P444 to P449 of
-[`LESSONS-LEARNED.md`](LESSONS-LEARNED.md); none of them touches a pass rule.
+**Loopholes: two, both carried from the old platform, both open.** The gate issue wrote "none seen"; the
+milestone review found them when it read the logs. Rows LH18 and LH19 of [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md).
+
+| Row | In short | Evidence | Effect on the findings |
+|---|---|---|---|
+| LH18 | In the open arm a seat sees the picks other seats made in the same step: the `Quarries:` line is the live state and seats are asked one after another, while the rules and the tool call the picks sealed | `quarry-open-quarries/quarry-003`: #166 (A04 is shown the jade A03 kept at #159), #243, #257, #260 (A01 leaves jade because "A03 is already stacking jade (3)"), #514; 1292 of 1728 pick requests of the 12 open runs; the same in the legacy run `quarry-open-31-rep1` | "open quarries" is visible quarries plus a move order inside each step. The sign gate is not touched: the old baseline had the same |
+| LH19 | "Results so far" is a second memory, also without a brain: every later game starts with the points of all seats (in quarry also their final quarries) | `quarry-open-quarries/quarry-001` #747; `econ-lab-brain/econ-lab-003` (`nobrain`) #404, #734 | the `nobrain` arm is "results without a written lesson", not "no memory" |
+
+Proposals only, nothing is built: an open arm with the quarries frozen per step, an arm without the results line,
+or corrected rule, tool and README texts. Each changes a prompt or the play after the baseline and needs the
+owner's go.
+
+Problems are the rows P444 to P449 and P456 of [`LESSONS-LEARNED.md`](LESSONS-LEARNED.md); none of them touches a
+pass rule.
 
 | Row | In short |
 |---|---|
@@ -144,12 +187,63 @@ Loopholes: none seen in these runs. Problems are the rows P444 to P449 of
 | P447 | the ledger and the series lines name a run by a path relative to the start directory |
 | P448 | the result line of a live run counts input tokens without the cache |
 | P449 | the series README gives `n` 24 for an unpaired estimate where the pass rule counts 12 per arm |
+| P456 | the game READMEs of quarry and econ-lab differ from the play in four places (place bonus, no retro after the last game, the tool list shows the later games, the `pick` tool describes a burn); carried, found by the review |
 
 ## Left open
 
-- The owner's: pushing `data/runs`; the data repository (O8); O10 after the exit note.
-- The integrator's: the full `pnpm check` with the size budgets on the merge commit (check 2), the row of M2-24 in
-  `ISSUE-RECORD.md`, the tag.
-- From 8.5: the README findings block with the two estimates, one recorded moment, the two rows of
-  `docs/FINDINGS.md`. A candidate for the moment: resident A02 in `econ-lab/econ-lab-brain/econ-lab-007`, #949,
-  writing its brain after the shared fund: "Free-riding is dominant regardless of others".
+- The owner's: the tag of M2 (below); one look at the provider's usage page against 1.60 USD before the next live
+  series (the ledger's cap is only as good as the price table); the go or no for the proposals of LH18 and LH19;
+  whether the pushed branch `data/runs` stays (decision A25); the data repository (O8); O10, which may be asked
+  for only after check 2 is filled and the tag is set.
+- The integrator's: the line of check 2; the row of M2-27 in `ISSUE-RECORD.md`; the row A25 in `DECISIONS.md`.
+- Follow-ups that do not block: the game READMEs (P456); `results.json` should record the refusal-code guardrail
+  (the gate counted it by hand); P444 to P449; the one recalibration of D4; a live run that really ends at its
+  cost cap (done-when 2 is proved by scripted tests only, no live run reached a cap).
+
+## Exit note of M2
+
+Written by issue M2-27 after the milestone review (specification 8.6, last paragraph).
+
+**The done-whens.** 1 (oracle files at level 3): met. 2 (a live run through broker and driver, the cost cap, no
+key): met; the stop at the cap is proved by scripted tests only. 3 (facts table in every report): met. 4 (noise
+floor and both series by the committed plan, both signs kept at 12 seeds): met. 5 (runs on `data/runs`, the README
+findings block and one recorded moment): met with M2-27 (`README.md`, [`FINDINGS.md`](FINDINGS.md)). 6 (kill
+criterion checked and recorded): checks 1, 3 and 4 are recorded above; **check 2 waits for the integrator's line**.
+
+**The kill criterion does not fire** on checks 1, 3 and 4. Check 2 is expected to pass (kernel 1393 of 1500 code
+lines at `a4e7ea7`) and is recorded when its line is filled.
+
+**The commit of the runs is not the commit that gets the tag.** All 61 runs ran on `b7de6505` ("M3-22 testkit:
+replay"), a commit of `rewrite/develop` that already holds the M3 issues up to M3-22 beside all of M2 but the
+gate. Between `b7de6505` and the commit of M2-27 the live path changed as follows
+(`git diff b7de6505..HEAD --stat` over `apps/cli/src`, `packages/sdk/src`, `packages/kernel`, `packages/models`,
+`packages/lab`, `mechanics`, `games/quarry`, `games/econ-lab`):
+
+- **Untouched:** `packages/kernel`, `packages/models`, `packages/lab`; the three mechanics of the two games
+  (`draft-rounds`, `econ-games`, `strategy-brain`); the game files of quarry and econ-lab (only their `RUNS.md`
+  were added).
+- **Changed:** the command line (`apps/cli/src`: `live.ts`, `run.ts`, `flags.ts`, `main.ts`, `index.ts`,
+  `errors.ts`, `log-verify.ts`, and the new `assembly.ts`, `hand.ts`, `loop.ts`, `records.ts`, `resume.ts`: the
+  run loop, the Human Hand, the snapshot and `swt resume` of M3); the sdk (`game/resolve.ts`, and the new
+  `director/plugin.ts`); the M3 mechanics `channels`, `court` and `ledger` and the generated mechanic READMEs.
+- So the code that asks the model, counts the cost, and holds the rules and the statistics is the code of the
+  runs; the code that starts a live run and resolves a game is not. The oracle tests of quarry and econ-lab are
+  green on the commit of M2-27 (`pnpm vitest --run games/quarry games/econ-lab`). No live run was repeated on the
+  newer command line; the first live run on it is the M3 smoke (M3-30, `city-slice`).
+
+**The push of `data/runs`.** Specification 8.5 and `CLAUDE.md` said that an agent does not push the data branch.
+The integrator pushed it on 2026-11-14 all the same: first at `5bfb55ff` (20:26 UTC, one minute before the gate's
+commit), then at `00f05497` (with the M3 smoke). The reason, recorded as decision A25 in `DECISIONS.md` section 9:
+the container of the build session is ephemeral, and the run data would otherwise exist nowhere durable. The leak
+scan had run before the push (check 4: no key value, and the review's own scan found no key, no mail address and
+no local absolute path in a tracked file). The owner can remove the branch from the remote. `CLAUDE.md` now says
+that the integrator pushes the branch after the leak scan. The commit of M2-27 on `data/runs` (the loopholes in
+the READMEs) is local until the integrator pushes it.
+
+**The tag is owed by the owner.** The git gateway of the build session refuses tag pushes (as for `v0-final`), so
+no tag of M2 exists. It belongs on the merge commit of M2-27 on `rewrite/develop`, after the line of check 2 is
+filled; the specification fixes no name for it. Until then the commit is named by its hash in
+[`ISSUE-RECORD.md`](ISSUE-RECORD.md).
+
+**What M2 hands on.** Two findings with their caveats (LH18, LH19); the open rows P444 to P449 and P456; the
+ledger `games/m2-ledger.jsonl` at 1.6022 of 4.00 USD; the proposals above, none built.

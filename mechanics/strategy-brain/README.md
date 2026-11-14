@@ -207,7 +207,7 @@ it with `solo: true`, one brain per seat.
 ## Lessons and loopholes
 
 From [docs/LESSONS-LEARNED.md](../../docs/LESSONS-LEARNED.md); the summary across games is in
-[docs/CROSS-GAME-FINDINGS.md](../../docs/CROSS-GAME-FINDINGS.md). The rows were recorded on the old platform, some in
+[docs/FINDINGS.md](../../docs/FINDINGS.md). The rows were recorded on the old platform, some in
 games that are not ported; a status says what was true there.
 
 - **P333** across the games the brain never moved outcomes as a memory; its only firm effects are game-1 plans. Open.

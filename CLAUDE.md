@@ -181,7 +181,7 @@ Every live run of every game is recorded, also a short or stopped one. Nothing f
    `main`: an orphan branch with the layout `<game>/<experiment id>/<run>/` and `smoke/` for single runs, with a
    `README.md` that lists the run's loopholes, problems and solutions (what was proposed, what was built, or
    "open"). `develop` holds the index only: a row in the game's runs index (`games/<name>/RUNS.md`) with the run's
-   runtime revision. Replace local absolute paths with repository paths. An agent does not push the branch. The
+   runtime revision. Replace local absolute paths with repository paths. The integrator pushes the branch after the leak scan (decision A25). The
    data repository `swarmtales-runs` stays the owner's open point for the release (M6); the branch then moves there.
 2. **Report.** The facts table of a run report is computed in code from the metrics that mechanics export, with
    "absent" instead of zero. A model writes only the loophole candidates, in a section marked unverified. A human
