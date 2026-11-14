@@ -2,6 +2,7 @@
 /**
  * The cost meter: the one place that counts what a run spent and the one place that holds its cap. The numbers
  * come from the answers of the provider library; the cap reaches the kernel as the run limit `models.budget`.
+ * The meter fails closed: after an answer it could not count, its limit is breached and nothing more is sent.
  */
 import { redactSecrets, type ActorId, type RunLimit } from "@swarmtales/contracts";
 import { noCostCap, thrown } from "./errors.ts";
@@ -37,16 +38,25 @@ export interface CostMeter {
 	 *
 	 * @param actor - The actor that asked.
 	 * @param usage - The tokens and the cost of the answer.
-	 * @throws RangeError when a number is negative or not finite; nothing is counted then.
+	 * @throws RangeError when a number is missing, negative, not finite or no number; nothing is counted then and the meter is closed.
 	 */
 	add(actor: ActorId, usage: Omit<Spend, "requests">): void;
+	/**
+	 * Closes the meter: an answer was paid for and its cost is not known. The limit is breached from then on,
+	 * whatever was counted, so no further request is sent and the kernel ends the run. The first reason is kept.
+	 *
+	 * @param reason - What could not be counted, as a sentence part without a secret.
+	 */
+	close(reason: string): void;
+	/** The reason the meter was closed for; `undefined` while every answer was counted. */
+	readonly closed: string | undefined;
 	/** The spending of the run so far. */
 	readonly total: Spend;
 	/** The spending of each actor that was answered, by actor id. */
 	readonly byActor: Readonly<Record<string, Spend>>;
 	/** The cap, in USD. */
 	readonly capUsd: number;
-	/** The run limit `models.budget`: breached when `total.costUsd >= capUsd`. Pass it to `KernelPorts.limits`. */
+	/** The run limit `models.budget`: breached when `total.costUsd >= capUsd` or the meter is closed. Pass it to `KernelPorts.limits`. */
 	readonly limit: RunLimit;
 }
 
@@ -82,13 +92,25 @@ function plus(spend: Spend, usage: Omit<Spend, "requests">): Spend {
 export function createCostMeter(capUsd: number): CostMeter {
 	if (!(Number.isFinite(capUsd) && capUsd > 0)) throw thrown(noCostCap(), redactSecrets);
 	let total = NOTHING;
+	let closed: string | undefined;
 	const byActor = new Map<string, Spend>();
+	const close = (reason: string): void => {
+		closed ??= reason;
+	};
 	return Object.freeze({
 		add: (actor: ActorId, usage: Omit<Spend, "requests">): void => {
+			// `Number.isFinite` is false for a text, for `undefined` and for NaN: only a plain amount is counted.
 			const bad = FIELDS.find((field) => !(Number.isFinite(usage[field]) && usage[field] >= 0));
-			if (bad !== undefined) throw new RangeError(`the ${bad} of a request of ${actor} is negative or not finite`);
+			if (bad !== undefined) {
+				close(`the ${bad} of an answer to ${actor} is no amount that can be counted`);
+				throw new RangeError(`the ${bad} of a request of ${actor} is negative or not finite`);
+			}
 			total = plus(total, usage);
 			byActor.set(actor, plus(byActor.get(actor) ?? NOTHING, usage));
+		},
+		close,
+		get closed(): string | undefined {
+			return closed;
 		},
 		get total(): Spend {
 			return total;
@@ -100,7 +122,11 @@ export function createCostMeter(capUsd: number): CostMeter {
 		limit: Object.freeze({
 			id: "models.budget",
 			summary: "the cost of the run's model requests reached its cap",
-			check: (): string | undefined => (total.costUsd >= capUsd ? `cost ${total.costUsd.toFixed(2)} USD reached the cap of ${capUsd.toFixed(2)} USD` : undefined),
+			check: (): string | undefined => {
+				if (closed !== undefined) return `the cost of the run is not known: ${closed}`;
+				// Not `>=` alone: a sum that is no number any more must stop the run too.
+				return total.costUsd < capUsd ? undefined : `cost ${total.costUsd.toFixed(2)} USD reached the cap of ${capUsd.toFixed(2)} USD`;
+			},
 		}),
 	});
 }

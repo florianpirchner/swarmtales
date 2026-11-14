@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
  * The spend ledger: the cap of a milestone held by code. A JSON-lines file whose first line is `{ "capUsd": n }`;
- * every run adds `{ "run", "reservedUsd" }` before it starts and `{ "run", "costUsd" }` after it ended. This is
- * the only file that reads or writes a ledger.
+ * every run adds `{ "run", "id", "reservedUsd" }` before it starts and `{ "run", "id", "costUsd" }` after it ended.
+ * The `id` is made new for every reservation and pairs the two lines: the name of a run comes back when its folder
+ * is deleted, the id never does. A line without an id (written before the id existed, or a cost added by hand) is
+ * paired by the run's name. This is the only file that reads or writes a ledger.
  */
+import { randomUUID } from "node:crypto";
 import { appendFileSync, readFileSync } from "node:fs";
 import { SwtError, type SwtIssue } from "@swarmtales/contracts";
 import { Type } from "typebox";
@@ -11,8 +14,9 @@ import { Check } from "typebox/value";
 
 const usd = (description: string): ReturnType<typeof Type.Number> => Type.Number({ minimum: 0, description });
 const Cap = Type.Object({ capUsd: usd("The most that all runs of the ledger may cost, in USD") }, { description: "The first line of a ledger" });
-const Reserved = Type.Object({ run: Type.String({ description: "The run" }), reservedUsd: usd("The cost cap of the run, held until its cost line") }, { description: "The line written before a run starts" });
-const Cost = Type.Object({ run: Type.String({ description: "The run; `legacy/...` for a run of the old platform, added by hand" }), costUsd: usd("What the run cost") }, { description: "The line written after a run ended" });
+const id = Type.Optional(Type.String({ minLength: 1, description: "What pairs a reservation with its cost line; absent in a line that is paired by the run's name" }));
+const Reserved = Type.Object({ run: Type.String({ description: "The run" }), id, reservedUsd: usd("The cost cap of the run, held until its cost line") }, { description: "The line written before a run starts" });
+const Cost = Type.Object({ run: Type.String({ description: "The run; `legacy/...` for a run of the old platform, added by hand" }), id, costUsd: usd("What the run cost") }, { description: "The line written after a run ended" });
 // Sums of amounts with four decimals: a difference below this is the arithmetic, not money.
 const EPSILON = 1e-9;
 
@@ -50,7 +54,8 @@ export interface Ledger {
 	 */
 	reserve(run: string, usd: number): void;
 	/**
-	 * Writes the cost line of a run, which replaces its reservation in the sum.
+	 * Writes the cost line of a run, which replaces its reservation in the sum: the last reservation this ledger
+	 * object wrote under the name, and no reservation another process wrote under the same name.
 	 *
 	 * @param run - The name the run was reserved under.
 	 * @param costUsd - What the run cost.
@@ -80,8 +85,10 @@ function held(file: string): { readonly capUsd: number; readonly heldUsd: number
 	const bad = entries.findIndex((entry) => Check(Reserved, entry) === Check(Cost, entry));
 	if (bad >= 0) throw refused(`has a line ${String(lines[bad + 1]?.number)} that is neither a reservation nor a cost`);
 	const costs = entries.filter((entry) => Check(Cost, entry));
-	const settled = new Set(costs.map((entry) => entry.run));
-	const reserved = entries.filter((entry) => Check(Reserved, entry)).filter((entry) => !settled.has(entry.run));
+	// A cost line settles the reservation of its id; one without an id settles the reservations of its name that have none.
+	const settledIds = new Set(costs.flatMap((entry) => (entry.id === undefined ? [] : [entry.id])));
+	const settledNames = new Set(costs.flatMap((entry) => (entry.id === undefined ? [entry.run] : [])));
+	const reserved = entries.filter((entry) => Check(Reserved, entry)).filter((entry) => !(entry.id === undefined ? settledNames.has(entry.run) : settledIds.has(entry.id)));
 	const heldUsd = costs.reduce((sum, entry) => sum + entry.costUsd, 0) + reserved.reduce((sum, entry) => sum + entry.reservedUsd, 0);
 	return { capUsd: cap.capUsd, heldUsd, open: text !== "" && !text.endsWith("\n") };
 }
@@ -105,14 +112,20 @@ export function openLedger(file: string, now: () => Date): Ledger {
 	const write = (line: object, open: boolean): void => {
 		appendFileSync(file, `${open ? "\n" : ""}${JSON.stringify({ ...line, at: now().toISOString() })}\n`);
 	};
+	// The ids of the reservations this object wrote and has not settled, by the run's name.
+	const ids = new Map<string, string>();
 	return {
 		reserve(run, reservedUsd) {
 			const { capUsd, heldUsd, open } = held(file);
 			if (heldUsd + reservedUsd > capUsd + EPSILON) throw new SwtError(ledgerRefused({ file, problem: `has no room for a run with a cap of ${reservedUsd.toFixed(2)} USD: ${heldUsd.toFixed(4)} USD of its ${capUsd.toFixed(2)} USD are spent or reserved` }));
-			write({ run, reservedUsd }, open);
+			const id = randomUUID();
+			write({ run, id, reservedUsd }, open);
+			ids.set(run, id);
 		},
 		settle(run, costUsd) {
-			write({ run, costUsd }, held(file).open);
+			const id = ids.get(run);
+			ids.delete(run);
+			write({ run, ...(id === undefined ? {} : { id }), costUsd }, held(file).open);
 		},
 	};
 }

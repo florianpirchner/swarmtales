@@ -7,6 +7,7 @@
  * tools are the assembly's; they reach a step through {@link StepFrame} and {@link ResidentSession.declare}.
  */
 import { Agent, type AgentMessage, type AgentTool, type AgentToolResult } from "@earendil-works/pi-agent-core";
+import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { Activation, ActorId, DriverResult, Redact, ToolOutcome, ToolSpec } from "@swarmtales/contracts";
 import { callOutsideActivation, thrown } from "../errors.ts";
 import type { CostMeter } from "../meter.ts";
@@ -153,6 +154,15 @@ function agentTool(spec: ToolSpec, input: SessionInput, live: Live): AgentTool {
 	};
 }
 
+// What a cost of exactly zero means. A failed request: not billed. An answer of a model with a price (every live
+// one has, `SWT-X007`; a scripted one has none): the usage is missing. A cost that is no amount is never "zero".
+function zeroCost(message: AssistantMessage, binding: ModelBinding): "none" | "unbilled" | "missing" {
+	if (message.usage.cost.total !== 0) return "none";
+	if (message.stopReason === "error") return "unbilled";
+	const { input, output } = binding.model.cost;
+	return message.stopReason !== "aborted" && (input > 0 || output > 0) ? "missing" : "none";
+}
+
 // The records of one answer: its thinking and text blocks, then its usage, which also goes to the meter. A failed
 // request is "answered" only when the provider billed it.
 function recordAnswer(message: AgentMessage, input: SessionInput, record: Recorder): void {
@@ -162,7 +172,13 @@ function recordAnswer(message: AgentMessage, input: SessionInput, record: Record
 		if (block.type === "text") record("text", { text: block.text });
 	}
 	const { input: tokens, output, cacheRead, cacheWrite, cost } = message.usage;
-	if (message.stopReason === "error" && !(cost.total > 0)) return;
+	const zero = zeroCost(message, input.binding);
+	if (zero === "unbilled") return;
+	// A paid answer without a cost: the meter closes (fail closed). A cost that is no amount closes it in `add`.
+	if (zero === "missing") {
+		input.meter.close(`an answer to ${input.actor} of a model with a price came without a cost`);
+		return;
+	}
 	const usage = { input: tokens, output, cacheRead, cacheWrite, costUsd: cost.total };
 	input.meter.add(input.actor, usage);
 	record("response", { provider: message.provider, model: message.model, stopReason: message.stopReason, ...usage });

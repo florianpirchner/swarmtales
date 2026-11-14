@@ -5,11 +5,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { StreamFn } from "@earendil-works/pi-agent-core";
-import { createAssistantMessageEventStream, fauxAssistantMessage, type SimpleStreamOptions, type TranscriptContext } from "@earendil-works/pi-ai";
+import { createAssistantMessageEventStream, fauxAssistantMessage, type AssistantMessage, type SimpleStreamOptions, type TranscriptContext } from "@earendil-works/pi-ai";
 import type { Activation, ActorId, DriverResult, DriverTable, Envelope, GameData, InputNote, Kernel, Redact } from "@swarmtales/contracts";
 import { guessNumber, play, type Played } from "@swarmtales/testkit";
 import { createResidentSession, type ResidentSession } from "../src/driver/session.ts";
-import { createCostMeter, type CostMeter } from "../src/meter.ts";
+import { createCostMeter, type CostMeter, type Spend } from "../src/meter.ts";
 import { RESIDENT_RECORDS } from "../src/records.ts";
 import { createKeyBroker } from "../src/keys.ts";
 import { act, fail, say, scriptedSource, type Script, type ScriptStep } from "../src/scripted.ts";
@@ -31,6 +31,10 @@ interface Setup {
 	readonly redact?: Redact;
 	/** The cost every answer is given; the scripted model has no price. */
 	readonly usd?: number;
+	/** The failed answers get the cost too. */
+	readonly failed?: boolean;
+	/** The model has a price above zero. */
+	readonly price?: boolean;
 	/** The texts after the inputs; a line per tick (ticks count from 0) when left out (guess-number shows no input line). */
 	readonly notice?: (activation: Activation) => readonly string[];
 	readonly inputs?: (activation: Activation) => readonly InputNote[];
@@ -61,18 +65,24 @@ const game = (residents: number, ticks: number, blockSize: number): GameData => 
 	end: { ticks },
 });
 
-// A binding whose every answer costs `usd`.
-function priced(binding: ModelBinding, usd: number): ModelBinding {
+// A binding whose every answer costs `usd`: the ones that end with `done`, and with `failed` the failed ones too.
+// With `price` the model has a price, as every model of a live source has.
+function priced(binding: ModelBinding, usd: number, setup: Setup): ModelBinding {
+	const costing = (message: AssistantMessage): AssistantMessage => ({ ...message, usage: { ...message.usage, cost: { ...message.usage.cost, total: usd } } });
 	const streamFn: StreamFn = async (model, context, options) => {
 		const source = await binding.streamFn(model, context, options);
 		const out = createAssistantMessageEventStream();
 		void (async () => {
-			for await (const event of source) out.push(event.type === "done" ? { ...event, message: { ...event.message, usage: { ...event.message.usage, cost: { ...event.message.usage.cost, total: usd } } } } : event);
+			for await (const event of source) {
+				if (event.type === "done") out.push({ ...event, message: costing(event.message) });
+				else out.push(event.type === "error" && setup.failed === true ? { ...event, error: costing(event.error) } : event);
+			}
 			out.end();
 		})();
 		return out;
 	};
-	return { ...binding, streamFn };
+	const model = setup.price === true ? { ...binding.model, cost: { ...binding.model.cost, input: 1, output: 5 } } : binding.model;
+	return { ...binding, model, streamFn };
 }
 
 // A step that notes the texts of its request (user texts and tool results) and its stream options, then answers with `step`.
@@ -97,7 +107,7 @@ async function run(script: Script, setup: Setup = {}): Promise<Run> {
 		resident: async (activation) => {
 			const { actor, tick } = activation;
 			const bound = source.bind(actor, LIMITS);
-			const binding = setup.usd === undefined ? bound : priced(bound, setup.usd);
+			const binding = setup.usd === undefined ? bound : priced(bound, setup.usd, setup);
 			const made = createResidentSession({ actor, systemPrompt: `You are ${actor}.`, tools: setup.late === true ? [] : activation.tools, binding, thinking: "off", meter, redact: setup.redact ?? ((text) => text) });
 			const session = sessions.get(actor) ?? made;
 			sessions.set(actor, session);
@@ -149,15 +159,75 @@ describe("review A: the key broker", () => {
 });
 
 describe("review A: the cost cap", () => {
-	// Open (M1): `meter.add` throws for a cost it cannot count, the agent of the provider library turns the throw
-	// into a failed request, the session records `request_failed` and the run plays on with a meter that stays at
-	// zero: every later request is sent. Proposed: the meter remembers the first usage it refused and its limit
-	// answers a reason from then on (fail closed), so the driver sends nothing more and the kernel ends the run.
-	it.fails("M1: stops sending after an answer whose cost cannot be counted", async () => {
+	// M1: `meter.add` throws for a cost it cannot count and the agent of the provider library turns the throw into a
+	// failed request. The meter fails closed: it keeps the first usage it refused, its limit answers a reason from
+	// then on, so the driver sends nothing more and the kernel ends the run.
+	it("M1: stops sending after an answer whose cost cannot be counted", async () => {
 		const { records, meter } = await run({ [A01]: [say(), say(), say(), say()] }, { ticks: 4, capUsd: 0.03, usd: Number.NaN });
 		expect(meter.total.requests).toBe(0);
 		expect(of(records, "request")).toHaveLength(1);
 		expect(meter.limit.check()).toBeDefined();
+		expect(meter.closed).toBe(`the costUsd of an answer to ${A01} is no amount that can be counted`);
+	});
+
+	it("M1: a failed answer whose cost is no amount closes the meter; only a cost of exactly zero is 'not billed'", async () => {
+		for (const usd of [Number.NaN, -0.01, Number.POSITIVE_INFINITY]) {
+			const { records, meter } = await run({ [A01]: [fail("overloaded"), say(), say()] }, { ticks: 3, capUsd: 0.03, usd, failed: true });
+			expect([usd, of(records, "request").length, meter.total.requests]).toEqual([usd, 1, 0]);
+			expect(meter.closed).toBeDefined();
+		}
+		const unbilled = await run({ [A01]: [fail("overloaded"), say()] }, { ticks: 2, capUsd: 0.03, usd: 0, failed: true });
+		expect([of(unbilled.records, "request").length, unbilled.meter.closed]).toEqual([2, undefined]);
+	});
+
+	it("M1: an answer of a model with a price that comes without a cost closes the meter; a scripted model has no price", async () => {
+		const { records, meter } = await run({ [A01]: [say(), say(), say()] }, { ticks: 3, capUsd: 0.03, usd: 0, price: true });
+		expect([of(records, "request").length, of(records, "response").length, meter.total.requests]).toEqual([1, 0, 0]);
+		expect(meter.closed).toBe(`an answer to ${A01} of a model with a price came without a cost`);
+		// The same model with a cost is counted, and a failed request of it that was not billed closes nothing.
+		const paid = await run({ [A01]: [fail("overloaded"), say(), say()] }, { ticks: 3, capUsd: 1, usd: 0.01, price: true });
+		expect([of(paid.records, "request").length, paid.meter.total.requests, paid.meter.closed]).toEqual([3, 2, undefined]);
+		const free = await run({ [A01]: [say(), say()] }, { ticks: 2, capUsd: 0.03 });
+		expect([of(free.records, "request").length, free.meter.closed]).toEqual([2, undefined]);
+	});
+
+	it("M1: the meter refuses every number that is missing, negative, not finite or a text, counts nothing of it and stays closed", () => {
+		// What the provider library hands over is typed as numbers; at run time it is whatever a provider sent.
+		const untyped = (value: unknown): value is Omit<Spend, "requests"> => typeof value === "object" && value !== null;
+		const good = { input: 10, output: 2, cacheRead: 0, cacheWrite: 0, costUsd: 0.001 };
+		for (const field of ["input", "output", "cacheRead", "cacheWrite", "costUsd"]) {
+			for (const bad of [Number.NaN, -1, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, "0.001", null, undefined, {}]) {
+				const meter = createCostMeter(1);
+				const usage: unknown = { ...good, [field]: bad };
+				if (!untyped(usage)) throw new TypeError("no usage");
+				expect(() => {
+					meter.add(A01, usage);
+				}).toThrow(RangeError);
+				expect([field, bad, meter.total.requests, meter.total.costUsd, meter.byActor]).toEqual([field, bad, 0, 0, {}]);
+				expect(meter.limit.check()).toBe(`the cost of the run is not known: the ${field} of an answer to ${A01} is no amount that can be counted`);
+				// A later answer is still counted, and the meter stays closed with its first reason.
+				meter.add(A01, good);
+				meter.close("another reason");
+				expect([meter.total.requests, meter.closed]).toEqual([1, `the ${field} of an answer to ${A01} is no amount that can be counted`]);
+			}
+		}
+		const missing: unknown = { input: 10, output: 2 };
+		const meter = createCostMeter(1);
+		expect(() => {
+			if (untyped(missing)) meter.add(A01, missing);
+		}).toThrow(RangeError);
+		expect(meter.limit.check()).toBeDefined();
+	});
+
+	it("M1: a meter that was closed by hand, and a sum that overflows, are at the limit", () => {
+		const closed = createCostMeter(1);
+		expect(closed.limit.check()).toBeUndefined();
+		closed.close("the usage was missing");
+		expect(closed.limit.check()).toBe("the cost of the run is not known: the usage was missing");
+		const huge = createCostMeter(Number.MAX_VALUE);
+		huge.add(A01, { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, costUsd: Number.MAX_VALUE });
+		huge.add(A01, { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, costUsd: Number.MAX_VALUE });
+		expect(huge.limit.check()).toBeDefined();
 	});
 
 	it("M2: passes the cap by the requests in flight in one block and sends nothing in the next (spec 4.3)", async () => {

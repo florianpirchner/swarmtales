@@ -19,6 +19,7 @@ import { Type } from "typebox";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { LEAK_FILE } from "../src/leak-scan.ts";
 import { runLive, type LiveInput } from "../src/live.ts";
+import { REPORT_FILE } from "../src/report.ts";
 import { main } from "../src/main.ts";
 
 // Fake values of 40 characters, built at run time from parts: one shaped like a key, one shaped like no pattern
@@ -64,9 +65,10 @@ const filesOf = (folder: string): readonly string[] => (existsSync(folder) ? rea
  * @param first - The first answers of A01; the guesses that end the game follow.
  * @param more - What differs from a run with both canaries in the environment.
  * @returns The exit code, the terminal, the event types of the log lines that hold the redacted secrets, the two
- * scans as lists of what holds a canary, and the exit code of `swt log verify` (-1 without a run folder).
+ * scans as lists of what holds a canary, the exit code of `swt log verify` (-1 without a run folder) and the exit
+ * code of `swt report` (-1 without a run folder), whose `REPORT.md` and terminal lines are scanned with the rest.
  */
-async function attempt(name: string, first: readonly ScriptStep[], more: Partial<LiveInput> = {}): Promise<{ readonly code: number; readonly terminal: string; readonly clean: readonly string[]; readonly files: readonly string[]; readonly memory: readonly string[]; readonly verified: number }> {
+async function attempt(name: string, first: readonly ScriptStep[], more: Partial<LiveInput> = {}): Promise<{ readonly code: number; readonly terminal: string; readonly clean: readonly string[]; readonly files: readonly string[]; readonly memory: readonly string[]; readonly verified: number; readonly reported: number }> {
 	const terminal: string[] = [];
 	const seen: Parameters<EventSink["write"]>[0][] = [];
 	const io = { cwd, now: () => new Date("2026-11-14T12:00:00.000Z"), out: (line: string) => void terminal.push(line), err: (line: string) => void terminal.push(line) };
@@ -74,6 +76,8 @@ async function attempt(name: string, first: readonly ScriptStep[], more: Partial
 	const memory: EventSink = { write: (event) => void seen.push(event) };
 	const { code, issues } = await runLive({ file: fileURLToPath(import.meta.url), seed: undefined, out: name, json: false, provider: "anthropic", budget: 1, purpose: "smoke", replicate: 0, env, source, ...more, sinks: [memory, ...(more.sinks ?? [])] }, io);
 	const run = join(cwd, name, "guess-number-001");
+	// The report is written before the scan, with the environment of the test: `report` never reads the process then.
+	const reported = existsSync(run) ? await main(["report", run, "--game", fileURLToPath(import.meta.url)], { ...io, env }) : -1;
 	const texts = { terminal: terminal.join("\n"), issues: JSON.stringify(issues), broker: `${JSON.stringify(createKeyBroker(env))}${String(createKeyBroker(env))}`, ...Object.fromEntries(filesOf(join(cwd, name)).map((file) => [file.slice(cwd.length + 1), readFileSync(file, "utf8")])) };
 	// The memory scan: `run_ended` and the records. What a plugin gets and emits is redacted by the run log's sink only.
 	const records = seen.filter((event) => event.type === "run_ended" || event.source === RESIDENT_RECORDS.id);
@@ -84,13 +88,16 @@ async function attempt(name: string, first: readonly ScriptStep[], more: Partial
 		files: Object.entries(texts).filter(([, text]) => holds(text)).map(([file]) => file),
 		memory: records.filter((event) => holds(JSON.stringify(event))).map((event) => `${event.source}/${event.type}`),
 		verified: existsSync(run) ? await main(["log", "verify", run], { ...io, out: () => undefined }) : -1,
+		reported,
 	};
 }
 
 describe("the canary: no key value in any artefact of a live run", () => {
 	it("(a) a provider error with a canary, a URL with credentials and a bearer token", async () => {
-		const { code, files, memory, clean, verified } = await attempt("a", [fail(`the provider said: ${SECRETS}`)]);
+		const { code, files, memory, clean, verified, reported } = await attempt("a", [fail(`the provider said: ${SECRETS}`)]);
 		expect([code, files, memory, clean, verified]).toEqual([0, [], [], ["request_failed"], 0]);
+		// `swt report` wrote its file into the folder before the scan read every file of it.
+		expect([reported, existsSync(join(cwd, "a", "guess-number-001", REPORT_FILE))]).toEqual([0, true]);
 	});
 
 	it("(b) a plugin that throws with the canary ends the run: run_ended.detail", async () => {
@@ -99,8 +106,8 @@ describe("the canary: no key value in any artefact of a live run", () => {
 	});
 
 	it("(c) a model answer whose text and whose tool arguments hold the canary", async () => {
-		const { code, files, memory, clean, verified } = await attempt("c", [act({ name: "guess", args: { value: 1, note: SECRETS } }), say(`I say ${SECRETS}`)]);
-		expect([code, files, memory, clean, verified]).toEqual([0, [], [], ["tool_called", "text"], 0]);
+		const { code, files, memory, clean, verified, reported } = await attempt("c", [act({ name: "guess", args: { value: 1, note: SECRETS } }), say(`I say ${SECRETS}`)]);
+		expect([code, files, memory, clean, verified, reported]).toEqual([0, [], [], ["tool_called", "text"], 0, 0]);
 	});
 
 	it("(d) a sink that throws with the canary while the folder closes", async () => {
@@ -134,8 +141,9 @@ describe("the canary: no key value in any artefact of a live run", () => {
 	it("a value planted in a run folder gives exit 4 and the LEAK file without the value", async () => {
 		const planted = join(cwd, "g", "guess-number-001", "notes.txt");
 		const plant: EventSink = { write: () => { writeFileSync(planted, `Authorization: ${Buffer.from(PLAIN).toString("base64")}`); } };
-		const { code, files, terminal, verified } = await attempt("g", [], { sinks: [plant] });
-		expect([code, files, verified]).toEqual([4, ["g/guess-number-001/notes.txt"], 0]);
+		const { code, files, terminal, verified, reported } = await attempt("g", [], { sinks: [plant] });
+		// The report of a folder that holds a value exits with 4 too, and its own file holds none.
+		expect([code, files, verified, reported]).toEqual([4, ["g/guess-number-001/notes.txt"], 0, 4]);
 		expect([/SWT-X030[^\n]*`notes\.txt`/.test(terminal), readFileSync(join(cwd, "g", "guess-number-001", LEAK_FILE), "utf8").endsWith("\nnotes.txt\n")]).toEqual([true, true]);
 	});
 });

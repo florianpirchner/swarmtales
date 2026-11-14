@@ -58,6 +58,8 @@ export interface CostMeter {
     add(actor: ActorId, usage: Omit<Spend, "requests">): void;
     readonly byActor: Readonly<Record<string, Spend>>;
     readonly capUsd: number;
+    close(reason: string): void;
+    readonly closed: string | undefined;
     readonly limit: RunLimit;
     readonly total: Spend;
 }

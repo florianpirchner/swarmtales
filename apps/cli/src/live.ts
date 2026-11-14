@@ -24,6 +24,7 @@ import { scanFolder } from "./leak-scan.ts";
 import { openLedger } from "./ledger.ts";
 import type { CliIo } from "./main.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
+import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
 
 const Passes = Type.Object({ passes: Type.Integer({ minimum: 1, description: "Passes per tick" }) }, { description: "The option of the turn scheduler that the system prompt names" });
 const Pinned = Type.Object(
@@ -46,6 +47,8 @@ export interface LiveInput extends RunInput, LiveFlags {
 	readonly sinks?: readonly EventSink[];
 	/** The experiment the run belongs to, with its arm. */
 	readonly experiment?: NonNullable<RunManifest["experiment"]>;
+	/** The commit and the state of the platform's source tree; asked from git (`readSourceTree`) when absent. A test passes one. */
+	readonly tree?: SourceTree;
 }
 
 /**
@@ -67,7 +70,7 @@ export interface LiveResult {
 }
 
 /**
- * `SWT-C023`: a confirmatory run outside an experiment.
+ * `SWT-C023`: a confirmatory run outside an experiment. On a tree that is not clean it is `confirmatoryDirty`.
  *
  * @returns The issue.
  *
@@ -153,14 +156,17 @@ interface Prepared {
 	readonly systemPrompts: Readonly<Record<string, string>>;
 	readonly meter: CostMeter;
 	readonly redact: Redact;
+	readonly tree: SourceTree;
 }
 
-// Steps one and two: the cap, the resolved game, its model with the key check, the system prompts.
+// Steps one and two: the cap, the source tree (a confirmatory run needs an experiment and a clean tree), the resolved game, its model with the key check, the system prompts.
 async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<Prepared> {
 	const meter = createCostMeter(input.budget ?? 0);
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
+	const tree = input.tree ?? readSourceTree();
+	if (input.purpose === "confirmatory" && tree.dirty !== false) throw new SwtError(confirmatoryDirty(tree));
 	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS]);
-	return { game, texts, ...settingsOf(input, game, broker), systemPrompts: promptsOf(game, texts), meter, redact: broker.redact };
+	return { game, texts, ...settingsOf(input, game, broker), systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree };
 }
 
 // Steps three and four: the kernel is created (the manifest holds its tool specs), then the manifest is written with the folder. Nothing is started.
@@ -183,6 +189,7 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 	const model = modelOf(settings);
 	const manifest = buildManifest(game, {
 		...runFacts(directory, io.now),
+		...run.tree,
 		purpose: input.purpose,
 		replicate: input.replicate,
 		budgetUsd: meter.capUsd,
@@ -224,7 +231,7 @@ function codeOf(leak: boolean, end: RunEnd, verified: boolean, capped: boolean):
 }
 
 // The six steps. The folder is open before `kernel.start()` writes the first event, and closed whatever the run does.
-// A throw after the start leaves the reservation in the ledger: a crashed run keeps its whole cap.
+// A throw after the start leaves the reservation in the ledger: a crashed run keeps its whole cap, and so does a run whose cost is not known.
 async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace): Promise<LiveResult> {
 	const run = await prepared(input, io, broker);
 	const { game, settings, source, systemPrompts, meter, redact, texts } = run;
@@ -242,7 +249,8 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 	});
 	const verdict = verifyRun(directory);
 	const leak = trace.scan();
-	settle(meter.total.costUsd);
+	// A closed meter does not know the cost: the reservation stays, as for a run that crashed.
+	if (meter.closed === undefined) settle(meter.total.costUsd);
 	const result = game.win === undefined || end.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
 	const outcome = { end, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact) };
 	print({ game, settings, why: whyOf(kernel, end), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
@@ -268,8 +276,10 @@ function thrownRun(error: unknown, leak: readonly SwtIssue[], json: boolean, io:
  * verifies the log, scans the run folder for a held key value and prints the result and the spend. Every printed
  * line passes the redaction of the key broker, and no error object is printed: an `SwtError` is printed as its
  * issues, anything else as its redacted message. With `ledger`, the run's cap is reserved in the spend ledger before
- * the run folder is opened and replaced by the run's cost after it; a run that throws after its start keeps its
- * reservation. A leak (`SWT-X030`, code 4) writes the marker file `LEAK` into the folder, also when the run threw.
+ * the run folder is opened and replaced by the run's cost after it; a run that throws after its start, and a run
+ * with an answer whose cost could not be counted (it ends at the limit `models.budget`, code 5), keep their
+ * reservation. A `confirmatory` run is refused (`SWT-C023`) outside an experiment and on a source tree that git
+ * does not report as clean; the tree's commit and state go into the manifest of every run. A leak (`SWT-X030`, code 4) writes the marker file `LEAK` into the folder, also when the run threw.
  *
  * @param input - The game file, the flags of a live run, the environment record, and for a test the model source.
  * @param io - The current directory, the clock and the two outputs.

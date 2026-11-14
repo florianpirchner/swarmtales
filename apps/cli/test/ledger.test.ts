@@ -63,7 +63,8 @@ describe("the spend ledger", () => {
 		// 0.1 spent: 0.9 fits exactly, and once it is reserved nothing more does.
 		ledger.reserve("runs/a-002", 0.9);
 		expect(refusal(ledger, "runs/a-003", 0.01)).toBe("SWT-C025");
-		expect(linesOf(file)).toEqual([{ capUsd: 1 }, { run: "runs/a-001", reservedUsd: 0.4, at: AT }, { run: "runs/a-001", costUsd: 0.1, at: AT }, { run: "runs/a-002", reservedUsd: 0.9, at: AT }]);
+		const id: unknown = expect.any(String);
+		expect(linesOf(file)).toEqual([{ capUsd: 1 }, { run: "runs/a-001", id, reservedUsd: 0.4, at: AT }, { run: "runs/a-001", id, costUsd: 0.1, at: AT }, { run: "runs/a-002", id, reservedUsd: 0.9, at: AT }]);
 	});
 
 	it("counts the whole reservation of a run that never wrote its cost, and a legacy cost line added by hand", () => {
@@ -105,7 +106,8 @@ describe("swt run --ledger", () => {
 		expect([refused.code, /SWT-[A-Z]\d{3}/.exec(refused.err)?.[0], existsSync(join(cwd, "refused"))]).toEqual([1, "SWT-C025", false]);
 		expect(linesOf(file)).toHaveLength(2);
 		expect((await live({ ledger: "run.jsonl", budget: 0.5, out: "fits" })).code).toBe(0);
-		expect(linesOf(file).slice(2)).toEqual([{ run: "fits/guess-number-001", reservedUsd: 0.5, at: AT }, { run: "fits/guess-number-001", costUsd: 0, at: AT }]);
+		const id: unknown = expect.any(String);
+		expect(linesOf(file).slice(2)).toEqual([{ run: "fits/guess-number-001", id, reservedUsd: 0.5, at: AT }, { run: "fits/guess-number-001", id, costUsd: 0, at: AT }]);
 		// The flag of the command line reaches the run: the same ledger refuses through `main`.
 		const err: string[] = [];
 		const code = await main(["run", GAME, "--provider", "anthropic", "--budget", "0.6", "--ledger", file, "--out", "refused"], { cwd, now, out: () => undefined, err: (line) => err.push(line), env });
@@ -116,7 +118,8 @@ describe("swt run --ledger", () => {
 		const file = ledgerFile("crash.jsonl");
 		const crash = { write: (): void => { throw new TypeError("the sink failed"); } };
 		expect((await live({ ledger: "crash.jsonl", budget: 0.7, out: "crash", sinks: [crash] })).code).toBe(1);
-		expect(linesOf(file).slice(1)).toEqual([{ run: "crash/guess-number-001", reservedUsd: 0.7, at: AT }]);
+		const id: unknown = expect.any(String);
+		expect(linesOf(file).slice(1)).toEqual([{ run: "crash/guess-number-001", id, reservedUsd: 0.7, at: AT }]);
 		expect((await live({ ledger: "crash.jsonl", budget: 0.4, out: "crash" })).code).toBe(1);
 		expect((await live({ ledger: "crash.jsonl", budget: 0.3, out: "crash" })).code).toBe(0);
 	});
