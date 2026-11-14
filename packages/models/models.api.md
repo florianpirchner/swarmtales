@@ -4,7 +4,12 @@
 
 ```ts
 
+import { Api } from '@earendil-works/pi-ai';
 import { ApiKeyAuth } from '@earendil-works/pi-ai';
+import { GameData } from '@swarmtales/contracts';
+import { Model } from '@earendil-works/pi-ai';
+import { ModelChoice } from '@swarmtales/contracts';
+import { Provider } from '@earendil-works/pi-ai';
 import { RecordSource } from '@swarmtales/contracts';
 import { Redact } from '@swarmtales/contracts';
 import { Static } from 'typebox';
@@ -13,10 +18,19 @@ import { SwtIssue } from '@swarmtales/contracts';
 import { Type } from 'typebox';
 
 // @public
+export const BUILTIN_PROVIDERS: readonly ProviderSpec[];
+
+// @public
 export function createKeyBroker(env: Readonly<Record<string, string | undefined>>, variables?: Readonly<Record<string, readonly string[]>>): KeyBroker;
 
 // @public
+export function createProviderRegistry(extra?: readonly ProviderSpec[]): ProviderRegistry;
+
+// @public
 export function emptyModel(provider: string): SwtIssue;
+
+// @public
+export function isToolChoice(value: string): value is ToolChoice;
 
 // @public
 export const KEY_VARIABLES: Readonly<Record<string, readonly string[]>>;
@@ -37,6 +51,41 @@ export interface KeyBroker {
 export function keyLeaked(files: readonly string[]): SwtIssue;
 
 // @public
+export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimits;
+
+// @public
+export const MODEL_DEFAULTS: Readonly<{
+    readonly thinking: "medium";
+    readonly maxOutputTokens: 4000;
+}>;
+
+// @public
+export interface ModelEnv {
+    readonly SWT_MODEL?: string;
+    readonly SWT_PROVIDER?: string;
+}
+
+// @public
+export function modelOf(provider: Provider, modelId: string, redact?: Redact): Model<Api>;
+
+// @public
+export interface ModelOverrides {
+    readonly modelId?: string;
+    readonly provider?: string;
+    readonly thinking?: ThinkingLevel;
+}
+
+// @public
+export interface ModelSettings {
+    readonly maxOutputTokens: number;
+    readonly modelId: string;
+    readonly provider: string;
+    readonly requestedId: string;
+    readonly routing?: OpenRouterRouting;
+    readonly thinking: ThinkingLevel;
+}
+
+// @public
 export function noCostCap(): SwtIssue;
 
 // @public
@@ -46,7 +95,45 @@ export function noKey(provider: string, variables: readonly string[]): SwtIssue;
 export function noPrice(provider: string, model: string): SwtIssue;
 
 // @public
+export function openRouterProviderPreferences(routing: OpenRouterRouting): Readonly<Record<string, unknown>>;
+
+// @public
+export interface OpenRouterRouting {
+    readonly allowFallbacks?: boolean;
+    readonly order?: readonly string[];
+}
+
+// @public
+export const PROVIDER_RETRIES = 6;
+
+// @public
+export interface ProviderRegistry {
+    get(id: string): ProviderSpec | undefined;
+    has(id: string): boolean;
+    ids(): readonly string[];
+    require(id: string): ProviderSpec;
+}
+
+// @public
+export interface ProviderSpec {
+    create(auth: KeyAuth): Provider;
+    readonly defaultModelId: string;
+    readonly id: string;
+    readonly label: string;
+    readonly modelAliases?: Readonly<Record<string, string>>;
+}
+
+// @public
 export function recordMismatch(type: string, path: string, message: string): SwtIssue;
+
+// @public
+export const REQUEST_TIMEOUT_MS = 120000;
+
+// @public
+export interface RequestLimits {
+    readonly maxOutputTokens: number;
+    readonly timeoutMs: number;
+}
 
 // @public
 export const RESIDENT_RECORDS: RecordSource;
@@ -60,16 +147,34 @@ export function residentRecord<Type extends keyof ResidentRecords>(type: Type, p
 export type ResidentRecords = { readonly [Type in keyof typeof SCHEMAS]: Static<(typeof SCHEMAS)[Type]>; };
 
 // @public
+export function resolveModelSettings(overrides: ModelOverrides, env: ModelEnv, game: GameData["model"], registry: ProviderRegistry): ModelSettings;
+
+// @public
 export function shortKey(variable: string): SwtIssue;
 
 // @public
+export type ThinkingLevel = NonNullable<ModelChoice["thinking"]>;
+
+// @public
 export function thrown(issue: SwtIssue | readonly SwtIssue[], redact: Redact): SwtError;
+
+// @public
+export const TOOL_CHOICES: readonly ["auto", "required", "none"];
+
+// @public
+export type ToolChoice = (typeof TOOL_CHOICES)[number];
+
+// @public
+export function toolChoiceDefaults(choice: ToolChoice, api: string): Readonly<Record<string, unknown>>;
 
 // @public
 export function unknownModel(provider: string, model: string, known: readonly string[]): SwtIssue;
 
 // @public
 export function unknownProvider(provider: string, known: readonly string[]): SwtIssue;
+
+// @public
+export function withRequestDefaults(payload: unknown, defaults: Readonly<Record<string, unknown>> | undefined): unknown;
 
 // (No @packageDocumentation comment for this package)
 
