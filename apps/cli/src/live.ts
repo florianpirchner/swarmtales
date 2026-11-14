@@ -27,6 +27,7 @@ import { openLedger } from "./ledger.ts";
 import type { HandSource, LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
 import { folderTexts, played, resolveFile, runFacts, whyOf, type RunInput } from "./run.ts";
+import { handLine, type HandCount } from "./watch.ts";
 import { confirmatoryDirty, readSourceTree, type SourceTree } from "./tree.ts";
 
 const Passes = Type.Object({ passes: Type.Integer({ minimum: 1, description: "Passes per tick" }) }, { description: "The option of the turn scheduler that the system prompt names" });
@@ -72,6 +73,8 @@ export interface LiveResult {
 	readonly spend?: Spend;
 	/** The issues that were printed, with every text of them redacted. */
 	readonly issues: readonly SwtIssue[];
+	/** The calls of the Human Hand and the refused ones; absent for a run without a Human Hand. */
+	readonly hand?: HandCount;
 }
 
 /**
@@ -132,6 +135,7 @@ interface Outcome {
 	readonly capUsd: number;
 	readonly run: string;
 	readonly issues: readonly SwtIssue[];
+	readonly hand?: HandCount;
 }
 
 // Every line goes through `redact`: the result of a game and the text of an issue may hold what a model wrote.
@@ -141,11 +145,12 @@ function print(outcome: Outcome, json: boolean, io: CliIo, redact: Redact): void
 	const { seed } = game.definition;
 	const model = `${settings.provider}/${settings.modelId}`;
 	if (json) {
-		io.out(redact(JSON.stringify({ driver: RESIDENT_DRIVER, model, game: id, seed, end, ...(result === undefined ? {} : { result }), log: { ok: verdict.ok, lines: verdict.lines, head: verdict.head }, spend, capUsd, run, issues })));
+		io.out(redact(JSON.stringify({ driver: RESIDENT_DRIVER, model, game: id, seed, end, ...(result === undefined ? {} : { result }), log: { ok: verdict.ok, lines: verdict.lines, head: verdict.head }, ...(outcome.hand === undefined ? {} : { hand: outcome.hand }), spend, capUsd, run, issues })));
 		return;
 	}
 	io.out(redact(`${id} seed ${String(seed)} with ${model}: ${"stopped" in end ? "stopped" : "ended"} after ${String(end.tick)} ticks (${outcome.why})`));
 	if (result !== undefined) io.out(redact(`result ${result.fact}: ${JSON.stringify(result.value)}`));
+	for (const line of handLine(outcome.hand)) io.out(line);
 	for (const issue of issues) io.err(redact(formatIssue(issue)));
 	if (verdict.ok) io.out(`log verified: ${String(verdict.lines)} lines, head ${verdict.head ?? "none"}`);
 	io.out(`spend: ${spend.costUsd.toFixed(4)} USD of the cap ${capUsd.toFixed(2)} USD, ${String(spend.requests)} requests, ${String(spend.input)} input and ${String(spend.output)} output tokens`);
@@ -252,9 +257,9 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 		// A Director asks the model of the run; its cost counts on the meter of the run, under its own `maxCostUsd`.
 		const ask = createAsker(source, meter, (actor) => (game.directors ?? []).find((director) => director.actor === actor)?.limits ?? {});
 		const drivers: DriverTable = { ...models.drivers, ...createDirectorDrivers({ game, ask }) };
-		return played(kernel, drivers, loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt }));
+		return played(kernel, drivers, loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt, warn: (line) => { io.err(redact(line)); } }));
 	};
-	const { end: last, issues } = await play().finally(() => {
+	const { end: last, issues, hand } = await play().finally(() => {
 		folder.close();
 	});
 	const ended = "stopped" in last ? { stopped: last } : { end: last };
@@ -264,7 +269,7 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 	// A closed meter does not know the cost: the reservation stays, as for a run that crashed.
 	if (meter.closed === undefined) settle(meter.total.costUsd);
 	const result = game.win === undefined || end?.reason === "error" ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	const outcome = { ...ended, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact) };
+	const outcome = { ...ended, spend: meter.total, run: relative(io.cwd, directory), issues: redactValue([...issues, ...verdict.issues, ...leak], redact), ...(hand === undefined ? {} : { hand }) };
 	print({ game, settings, end: last, why: whyOf(kernel, last), ...result, verdict, capUsd: meter.capUsd, ...outcome }, input.json, io, redact);
 	return { code: codeOf(leak.length > 0, end, verdict.ok, end?.limit === meter.limit.id), ...outcome };
 }

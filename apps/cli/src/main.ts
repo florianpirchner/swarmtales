@@ -5,7 +5,7 @@ import type { MechanicDefinition } from "@swarmtales/sdk";
 import { readEnv } from "./env.ts";
 import { badUsage } from "./errors.ts";
 import { experimentAnalyse, experimentRun } from "./experiment.ts";
-import { liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type Flags } from "./flags.ts";
+import { helpOf, isCommand, liveFlags, loopFlags, paramsOf, readFlags, resumeFlags, seedOf, type CommandName, type Flags } from "./flags.ts";
 import { runLive } from "./live.ts";
 import { logVerify } from "./log-verify.ts";
 import { replayRun } from "./replay.ts";
@@ -38,8 +38,8 @@ export interface CliIo {
 
 type Command = (argument: string, values: Flags, io: CliIo) => Promise<number> | number;
 
-// The commands by the words before their one argument.
-const COMMANDS: Readonly<Record<string, Command>> = {
+// The commands by the words before their one argument: one for every row of the table in `flags.ts`.
+const COMMANDS: Readonly<Record<CommandName, Command>> = {
 	run: async (file, values, io) => {
 		const run = { file, seed: seedOf(values.seed), params: paramsOf(values.set), out: values.out, json: values.json === true, ...loopFlags(values) };
 		if (values.fake === true) return runFake(run, io);
@@ -58,8 +58,13 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
 	const { values, positionals } = readFlags(args);
 	const words = positionals.slice(0, -1).join(" ");
 	const argument = positionals.at(-1);
-	const found = Object.hasOwn(COMMANDS, words) ? COMMANDS[words] : undefined;
-	if (found === undefined || argument === undefined) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
+	if (values.help === true || argument === undefined) {
+		// `swt run --help` and `swt run game.ts --help` are the help of `run`; anything else is the list of the commands.
+		for (const line of helpOf([positionals.join(" "), words].find(isCommand))) io.out(line);
+		return 0;
+	}
+	const found = isCommand(words) ? COMMANDS[words] : undefined;
+	if (found === undefined) throw new SwtError(badUsage({ problem: `\`swt ${positionals.join(" ")}\` is no command with its arguments` }));
 	return found(argument, values, io);
 }
 
@@ -68,7 +73,8 @@ async function command(args: readonly string[], io: CliIo): Promise<number> {
  *
  * @param args - The arguments after the program name, for example `["run", "game.ts", "--fake"]`.
  * @param io - The current directory, the clock and the two outputs; those of the process when left out.
- * @returns The exit code. `swt run`: 0 the run finished, 1 an `SwtError` before the run or a log that does not
+ * @returns The exit code. `swt`, `swt --help` and `swt <command> --help` print the commands, or the flags and the
+ * exit codes of one command, from the table in `flags.ts`, and exit with 0. `swt run`: 0 the run finished, 1 an `SwtError` before the run or a log that does not
  * verify, 2 the run ended with the reason `error`, 3 the run is paused and the Human Hand of `--hand` has ended (`SWT-X009`; a snapshot is written), 5 a live run (no `--fake`) ended at its cost cap (`--budget`). `swt resume`: as `swt run --fake`, and 3 also when
  * `--ticks` stopped the run before its end. `swt log verify`: 0 the log holds, 1 it is broken, 3 the run has
  * no end. `swt report`: 0 the report is written, 1 the run folder is unreadable, 4 a file of it holds a key value.

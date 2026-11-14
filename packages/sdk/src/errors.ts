@@ -154,7 +154,7 @@ export function triggerWithoutEvent(input: { readonly director: string; readonly
  */
 export function directorName(input: { readonly name: string; readonly path: string; readonly taken: "director" | "grant" | "unknown"; readonly known?: readonly string[] }): SwtIssue {
 	const details = { name: input.name, taken: input.taken };
-	if (input.taken === "unknown") return issue("SWT-D002", `the game uses the Director "${input.name}", and no Director definition has that id`, `The Director definitions of this run are: ${quoted(input.known ?? [])}.`, `${meant(input.name, input.known ?? [])}put the definition itself into \`use\`, or pass it to game resolution in \`directors\`.`, { path: input.path }, details);
+	if (input.taken === "unknown") return issue("SWT-D002", `the game uses the Director "${input.name}", and no Director definition has that id`, `The Director definitions of this run are: ${quoted(input.known ?? [])}.`, `${meant(input.name, input.known ?? [])}put the definition itself into \`use\`, or pass it to game resolution in \`directors\`. A data game (a YAML or JSON file) cannot carry a Director definition yet, and \`swt\` passes none: write a game with a Director in the builder form.`, { path: input.path }, details);
 	const holder = input.taken === "director" ? "an earlier Director of the game" : `the grant \`${input.name}\``;
 	return issue("SWT-D002", `the Director name "${input.name}" is taken by ${holder}`, "A Director is the actor `director:<name>` and its tools come from the grant `<name>`, so the name must be its own.", "Give the Director another name with `as`.", { path: input.path }, details);
 }

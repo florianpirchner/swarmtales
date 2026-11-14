@@ -41,7 +41,7 @@ export function handRefused(input: { readonly problem: string; readonly file?: s
 		code: "SWT-X008",
 		summary: input.problem,
 		why: 'A line of the Human Hand is JSON: `{"at": <finished ticks>, "tool": "<name>", "params": {...}}` for a tool of the grant `human`, or `{"at": <finished ticks>, "command": "snapshot"}`; a game has the actor `human` when its grant `human` holds a tool.',
-		fix: "Write every line in one of the two forms, with a tool the game grants to `human` (the mechanic `humanHand` brings `pause` and `resume`).",
+		fix: "Write every line in one of the two forms, with a tool the game grants to `human` (the mechanic `humanHand` brings `pause` and `resume`); the format is in docs/reference/cli.md, \"The hand file\".",
 		...(input.file === undefined ? {} : { where: { file: input.file, ...(input.line === undefined ? {} : { line: input.line }) } }),
 	};
 }
@@ -60,7 +60,7 @@ export function handEnded(input: { readonly tick: number }): SwtIssue {
 		code: "SWT-X009",
 		summary: `the run is paused after ${String(input.tick)} ticks and the input of the Human Hand has ended; the run stopped with the snapshot snapshots/t${String(input.tick)}.json`,
 		why: "A paused run plays no tick until the Human Hand calls `resume`, and no line is left that could.",
-		fix: "Add a `resume` line to the end of the file of `--hand` and give that whole file to `swt resume`: a resumed run drops the first N tool lines of its hand file, N being the calls the human made before the snapshot, so a file that holds only the `resume` line is dropped whole and the run stops here again.",
+		fix: "Resume with the hand file of the stopped run plus a `resume` line: add the line to the end of that file and give the whole file to `swt resume --hand`. A resumed run drops the first N tool lines of its hand file, N being the calls the human made before the snapshot, so a file that holds only the `resume` line is dropped whole and the run stops here again (docs/reference/cli.md, \"The hand file\").",
 	};
 }
 

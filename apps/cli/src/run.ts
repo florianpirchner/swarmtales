@@ -23,6 +23,7 @@ import { installedTable } from "./installed.ts";
 import { loadGame } from "./load-game.ts";
 import { runLoop, type HandSource, type LoopStop } from "./loop.ts";
 import type { CliIo } from "./main.ts";
+import { handLine, watched, type HandCount } from "./watch.ts";
 
 const FAKE = "fake/sample";
 const PACKAGE_FILE = fileURLToPath(new URL("../package.json", import.meta.url));
@@ -154,18 +155,21 @@ function lazyFolder(open: () => RunFolder): { readonly sink: EventSink; readonly
  * @param drivers - The drivers by actor id.
  * @param loop - The ticks, the Human Hand and the snapshots (`loopOf`); to the end of the run, with neither, when absent.
  * @returns The end of the run and the issues of an `SwtError` that ended it; or the stop of the loop, with
- * `SWT-X009` when the run is paused and the Human Hand has ended.
+ * `SWT-X009` when the run is paused and the Human Hand has ended. `hand` counts the calls of the Human Hand and the
+ * refused ones, for a run that has one. Through `loop.warn` a refused call is printed as it happens, and after the
+ * loop a `--snapshot-at` that wrote no snapshot (`watched`).
  * @throws Whatever ends the run without a recorded end, and whatever is no `SwtError`.
  *
  * @public
  */
-export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOptions = { ticks: Infinity, snapshotAt: [], writeSnapshot: () => Promise.resolve() }): Promise<{ readonly end: RunEnd | LoopStop; readonly issues: readonly SwtIssue[] }> {
+export async function played(kernel: Kernel, drivers: DriverTable, loop: LoopOptions = { ticks: Infinity, snapshotAt: [], writeSnapshot: () => Promise.resolve() }): Promise<{ readonly end: RunEnd | LoopStop; readonly issues: readonly SwtIssue[]; readonly hand?: HandCount }> {
+	const watch = watched(loop);
 	try {
-		const end = await runLoop({ kernel, drivers, ...loop });
-		return { end, issues: "stopped" in end && end.stopped === "paused" ? [handEnded(end)] : [] };
+		const end = await runLoop({ kernel, drivers, ...watch.loop });
+		return { end, issues: "stopped" in end && end.stopped === "paused" ? [handEnded(end)] : [], ...watch.close(end) };
 	} catch (error) {
 		if (!(error instanceof SwtError) || kernel.ended === undefined) throw error;
-		return { end: kernel.ended, issues: error.issues };
+		return { end: kernel.ended, issues: error.issues, ...watch.close(kernel.ended) };
 	} finally {
 		loop.hand?.close?.();
 	}
@@ -196,17 +200,19 @@ interface Outcome {
 	readonly verdict: RunVerdict;
 	readonly run: string;
 	readonly issues: readonly SwtIssue[];
+	readonly hand?: HandCount;
 }
 
 function print(outcome: Outcome, json: boolean, io: CliIo): void {
-	const { game, seed, end, result, verdict, run, issues } = outcome;
+	const { game, seed, end, result, verdict, run, issues, hand } = outcome;
 	if (json) {
-		io.out(JSON.stringify({ driver: FAKE, game, seed, end, ...(result === undefined ? {} : { result }), log: { ok: verdict.ok, lines: verdict.lines, head: verdict.head }, run, issues }));
+		io.out(JSON.stringify({ driver: FAKE, game, seed, end, ...(result === undefined ? {} : { result }), log: { ok: verdict.ok, lines: verdict.lines, head: verdict.head }, ...(hand === undefined ? {} : { hand }), run, issues }));
 		return;
 	}
 	io.out("fake models: no result");
 	io.out(`${game} seed ${String(seed)}: ${"stopped" in end ? "stopped" : "ended"} after ${String(end.tick)} ticks (${outcome.why})`);
 	if (result !== undefined) io.out(`result ${result.fact}: ${JSON.stringify(result.value)}`);
+	for (const line of handLine(hand)) io.out(line);
 	for (const issue of issues) io.err(formatIssue(issue));
 	if (verdict.ok) io.out(`log verified: ${String(verdict.lines)} lines, head ${verdict.head ?? "none"}`);
 	io.out(`run: ${run}`);
@@ -270,7 +276,10 @@ function openFolder({ game, directory, resumed }: FakePlay, io: CliIo): RunFolde
  * @param play - The game, the folder, the flags of the run loop and, for a resumed run, what it resumes from.
  * @param io - The current directory, the clock and the two outputs.
  * @returns The exit code: 0 the run finished, 1 its log does not verify, 2 it ended with the reason `error`, 3 the
- * loop stopped with the run open (paused with the Human Hand ended, `SWT-X009`, or at `ticks`).
+ * loop stopped with the run open (paused with the Human Hand ended, `SWT-X009`, or at `ticks`). A line of the Human
+ * Hand that the game refused is printed on the error output as it happens and counted in a result line ("Human
+ * Hand: 1 of 3 calls refused"; `hand` in the JSON line); a `--snapshot-at` that wrote no snapshot gets a warning
+ * line. Neither changes the exit code.
  * @throws SwtError `SWT-R002`, `SWT-R015` when `win.fact` names no fact, `SWT-R021` for a snapshot that does not fit
  * its log, `SWT-L007` for a prefix that is not what the checkpoint signed.
  *
@@ -284,12 +293,12 @@ export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
 	const fake = fakeDriver(kernel, game.definition.seed);
 	const driver = resumed === undefined ? fake : resumed.began(kernel, fake);
 	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask: scriptedAsker({}) }) };
-	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt });
-	const { end, issues } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
+	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt, warn: io.err });
+	const { end, issues, hand } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
 	const failed = whyOf(kernel, end) === "error";
 	const verdict = verifyRun(directory);
 	const result = game.win === undefined || failed ? {} : { result: { fact: game.win, value: kernel.fact(game.win) } };
-	print({ game: game.definition.game.id, seed: game.definition.seed, end, why: whyOf(kernel, end), ...result, verdict, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues] }, play.json, io);
+	print({ game: game.definition.game.id, seed: game.definition.seed, end, why: whyOf(kernel, end), ...result, verdict, run: relative(io.cwd, directory), issues: [...issues, ...verdict.issues], ...(hand === undefined ? {} : { hand }) }, play.json, io);
 	return exitOf(failed, verdict.ok, end);
 }
 

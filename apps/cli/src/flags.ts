@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-/** The flags of `swt`: read once from the arguments, and checked into what a fake run and a live run take. */
+/**
+ * The flags of `swt`: the table of the flags and of the commands (`swt --help` is written from it), the flags read
+ * once from the arguments, and checked into what a fake run and a live run take.
+ */
 import { parseArgs } from "node:util";
 import { SwtError, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import type { ThinkingLevel } from "@swarmtales/models";
@@ -7,13 +10,120 @@ import { badUsage } from "./errors.ts";
 
 // A seed is a 32-bit number: the manifest and the log refuse a larger one, and it would play as its remainder.
 const MAX_SEED = 4294967295;
-const text = { type: "string" } as const;
-const OPTIONS = { fake: { type: "boolean" }, json: { type: "boolean" }, seed: text, out: text, set: { type: "string", multiple: true }, provider: text, model: text, thinking: text, budget: text, ledger: text, purpose: text, replicate: text, game: text, hand: text, "snapshot-at": text, snapshot: text, ticks: text, previous: text } as const;
+const on = <W extends string>(what: W) => ({ type: "boolean", what }) as const;
+const text = <V extends string, W extends string>(value: V, what: W) => ({ type: "string", value, what }) as const;
+
+/**
+ * The table of the flags: each as `parseArgs` takes it, with the placeholder of its value and what it does.
+ * `swt --help` is written from this table and from `COMMANDS`.
+ *
+ * @public
+ */
+export const FLAGS = {
+	help: on("print the commands, or with a command its flags and exit codes"),
+	fake: on("play with the fake driver: seeded legal calls, no model, no cost"),
+	json: on("print the result as one JSON line"),
+	seed: text("<n>", "the seed, a whole number from 0 to 4294967295; it wins over the game's own"),
+	set: { ...text("<name=json>", "override one param of a game family; may be repeated"), multiple: true as const },
+	out: text("<dir>", "the folder the run folder is written into"),
+	provider: text("<id>", "the provider of a live run"),
+	model: text("<id>", "a model id or an alias of the provider"),
+	thinking: text("<level>", "how much the model thinks: off, minimal, low, medium, high"),
+	budget: text("<usd>", "the cost cap of a live run in US dollars; a live run needs one"),
+	ledger: text("<file>", "the spend ledger the cap must fit under"),
+	purpose: text("<word>", "what the run is for: smoke (the default), pilot, exploratory, confirmatory"),
+	replicate: text("<n>", "the index of the repetition; 0 when left out"),
+	game: text("<game file>", "the game file of the run"),
+	hand: text("<file>", "the JSON-lines file of the Human Hand, or `-` for standard input"),
+	"snapshot-at": text("<ticks>", "write a snapshot after these numbers of finished ticks, a comma list"),
+	snapshot: text("<file>", "the snapshot to resume from; the latest of the run folder when left out"),
+	ticks: text("<n>", "stop after this many finished ticks"),
+	previous: text("<run dir>", "the run folder this one was resumed from: the continuity is checked too"),
+};
+
+const LOOP = ["hand", "snapshot-at"] as const;
+const ERROR = "an error before the work: the issues are printed";
+
+/**
+ * The table of the commands, by the words before the one argument: the argument, what the command does, the flags
+ * it reads and what its exit codes mean.
+ *
+ * @public
+ */
+export const COMMANDS = {
+	run: {
+		argument: "<game file>",
+		what: "play a game into a new run folder: with `--fake`, or with live models under `--budget`",
+		flags: ["fake", "seed", "set", "out", "json", ...LOOP, "provider", "model", "thinking", "budget", "ledger", "purpose", "replicate"],
+		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written", 4: "a live run wrote a key value into its folder", 5: "a live run ended at its cost cap" },
+	},
+	resume: {
+		argument: "<run dir>",
+		what: "play a fake run on from a snapshot, into a new run folder beside the old one",
+		flags: ["game", "snapshot", "ticks", "out", "json", ...LOOP],
+		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run stopped open: paused with the Human Hand ended (`SWT-X009`), or at `--ticks`" },
+	},
+	"log verify": { argument: "<run dir>", what: "check the hash chain of a run folder", flags: ["previous", "json"], exits: { 0: "the log holds and the run ended", 1: "the log is broken", 3: "the log holds and the run has no end" } },
+	report: { argument: "<run dir>", what: "write the report of a run into its folder", flags: ["game"], exits: { 0: "the report is written", 1: ERROR, 4: "a file of the folder holds a key value (`SWT-X030`)" } },
+	replay: { argument: "<run dir>", what: "replay a run from its log and compare", flags: ["game", "json"], exits: { 0: "the replayed log is equal", 1: "it differs (`SWT-C031`), the run is not replayable (`SWT-T005`, `SWT-T004`), or the folder does not verify" } },
+	scan: { argument: "<folder>", what: "look through every file of a folder for the key values of the environment", flags: ["json"], exits: { 0: "no file holds a held key value", 1: "a file does (`SWT-X030`), or the folder is none", 3: "nothing was scanned: no key variable is set" } },
+	"experiment run": { argument: "<spec file>", what: "play the runs of an experiment that are still missing", flags: ["out", "ledger"], exits: { 0: "the plan is complete", 1: ERROR, 4: "a run wrote a key value into its folder", 6: "stopped at the experiment's cap, or after three failed runs" } },
+	"experiment analyse": { argument: "<experiment dir>", what: "analyse the runs of an experiment against its pass rule", flags: [], exits: { 0: "the pass rule is kept, or the spec has none", 1: ERROR, 3: "the pass rule is not kept", 4: "a file holds a key value", 7: "no verdict: too few runs" } },
+} as const satisfies Readonly<Record<string, CommandRow>>;
+
+interface CommandRow {
+	readonly argument: string;
+	readonly what: string;
+	readonly flags: readonly (keyof typeof FLAGS)[];
+	readonly exits: Readonly<Record<number, string>>;
+}
+
+/**
+ * The words of a command, for example `log verify`.
+ *
+ * @public
+ */
+export type CommandName = keyof typeof COMMANDS;
+
+/**
+ * Says whether the words are a command.
+ *
+ * @param words - The words before the argument, joined by one space.
+ * @returns True for a key of `COMMANDS`.
+ *
+ * @public
+ */
+export function isCommand(words: string): words is CommandName {
+	return Object.hasOwn(COMMANDS, words);
+}
+
+/**
+ * The lines of `swt --help`: every command with its argument, or one command with its flags and exit codes.
+ *
+ * @param command - The command; all of them when left out.
+ * @returns The lines to print.
+ *
+ * @public
+ */
+export function helpOf(command?: CommandName): readonly string[] {
+	const usage = (name: CommandName): string => `swt ${name} ${COMMANDS[name].argument}`;
+	if (command === undefined) {
+		const names = Object.keys(COMMANDS).filter(isCommand);
+		return ["swt: the command line of Swarm Tales", "", "Commands:", ...names.map((name) => `  ${usage(name).padEnd(42)}${COMMANDS[name].what}`), "", "`swt <command> --help` prints the flags and the exit codes of a command; docs/reference/cli.md has the rest."];
+	}
+	const row: CommandRow = COMMANDS[command];
+	const flags = [...row.flags, "help" as const].map((name) => {
+		const flag = FLAGS[name];
+		return `  ${`--${name}${"value" in flag ? ` ${flag.value}` : ""}`.padEnd(24)}${flag.what}`;
+	});
+	return [`${usage(command)} [flags]`, `  ${row.what}`, "", "Flags:", ...flags, "", "Exit codes:", ...Object.entries(row.exits).map(([code, what]) => `  ${code}  ${what}`)];
+}
+
 const THINKING: readonly ThinkingLevel[] = ["off", "minimal", "low", "medium", "high"];
 const PURPOSES: readonly Purpose[] = ["smoke", "pilot", "exploratory", "confirmatory"];
 
 type Purpose = RunManifest["run"]["purpose"];
-type Parsed = ReturnType<typeof parseArgs<{ options: typeof OPTIONS; allowPositionals: true }>>;
+type Parsed = ReturnType<typeof parseArgs<{ options: typeof FLAGS; allowPositionals: true }>>;
 
 /**
  * The flags of a command as they were written, before any check of their values.
@@ -88,7 +198,7 @@ export function unknownWord(input: { readonly flag: string; readonly value: stri
  */
 export function readFlags(args: readonly string[]): { readonly values: Flags; readonly positionals: readonly string[] } {
 	try {
-		return parseArgs({ args: [...args], options: OPTIONS, allowPositionals: true });
+		return parseArgs({ args: [...args], options: FLAGS, allowPositionals: true });
 	} catch (cause) {
 		throw new SwtError(badUsage({ problem: cause instanceof Error ? cause.message : "the arguments cannot be read" }), { cause });
 	}

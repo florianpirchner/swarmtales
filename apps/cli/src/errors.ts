@@ -19,7 +19,7 @@ export function badUsage(input: { readonly problem: string }): SwtIssue {
 		code: "SWT-C003",
 		summary: input.problem,
 		why: "The commands are `swt run <game file>` (with `--fake`, or with `--budget <usd>` for a live run; `--hand <file>` and `--snapshot-at <ticks>` for the Human Hand and snapshots), `swt resume <run dir> --game <game file>` (with `--snapshot <file>`, `--ticks <n>`, `--out <dir>`, `--hand` and `--snapshot-at`), `swt log verify <run dir> [--previous <run dir>]`, `swt report <run dir> [--game <game file>]`, `swt replay <run dir> --game <game file>`, `swt scan <folder>`, `swt experiment run <spec file> [--out dir] [--ledger file]` and `swt experiment analyse <experiment dir>`; a seed is a whole number from 0 to 4294967295.",
-		fix: "Write the command in one of these forms.",
+		fix: "Write the command in one of these forms; `swt --help` lists the commands, and `swt <command> --help` the flags and the exit codes of one.",
 	};
 }
 

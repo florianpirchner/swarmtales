@@ -4,7 +4,7 @@
  * it applies the lines of the Human Hand, holds the run while the fact `humanHand.paused` is true, and writes the
  * snapshots that were asked for. The kernel knows no pause: the loop plays no tick while the fact is true.
  */
-import type { DriverTable, Kernel, RunEnd } from "@swarmtales/contracts";
+import type { DriverTable, Kernel, RunEnd, ToolOutcome } from "@swarmtales/contracts";
 
 const HUMAN = "human";
 const HAND = "humanHand";
@@ -41,6 +41,20 @@ export interface HandSource {
 }
 
 /**
+ * One tool line of the Human Hand as the loop applied it.
+ *
+ * @public
+ */
+export interface HandCall {
+	/** The boundary the call was made at: the number of finished ticks. */
+	readonly tick: number;
+	/** The shown name of the tool. */
+	readonly tool: string;
+	/** What the kernel answered: the reply, or the refusal with its code. */
+	readonly outcome: ToolOutcome;
+}
+
+/**
  * What the run loop plays.
  *
  * @public
@@ -58,6 +72,8 @@ export interface LoopInput {
 	readonly snapshotAt: readonly number[];
 	/** Writes the snapshot of the kernel at the boundary after `tick` finished ticks. */
 	readonly writeSnapshot: (tick: number) => Promise<void>;
+	/** Told of every tool line of the Human Hand, right after its call; nobody when absent. */
+	readonly called?: (call: HandCall) => void;
 }
 
 /**
@@ -73,13 +89,19 @@ export interface LoopStop {
 	readonly tick: number;
 }
 
+// One tool line: the call as the actor `human`, and what the kernel answered to whoever watches.
+async function called(input: LoopInput, tool: string, params: unknown, tick: number): Promise<void> {
+	const outcome = await input.kernel.submit({ actor: HUMAN, as: tool, params });
+	input.called?.({ tick, tool, outcome });
+}
+
 // One tick boundary; true when the run is paused and no line is left that could resume it.
 async function boundary(input: LoopInput, tick: number): Promise<boolean> {
 	const { kernel } = input;
 	const paused = (): boolean => kernel.plugins.includes(HAND) && kernel.fact(`${HAND}.paused`) === true;
 	for (let line = await input.hand?.next(tick, paused()); line !== undefined; line = await input.hand?.next(tick, paused())) {
 		if (line.command === "snapshot") await input.writeSnapshot(tick);
-		else await kernel.submit({ actor: HUMAN, as: line.tool ?? "", params: line.params ?? {} });
+		else await called(input, line.tool ?? "", line.params ?? {}, tick);
 	}
 	if (paused()) {
 		await input.writeSnapshot(tick);

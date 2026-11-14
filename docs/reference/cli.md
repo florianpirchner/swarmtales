@@ -1,0 +1,204 @@
+# The command line `swt`
+
+`swt` plays a game into a run folder, resumes it, checks it, replays it, reports on it, and runs an experiment.
+`swt`, `swt --help` and `swt <command> --help` print what this page says about the commands, from the same table
+(`apps/cli/src/flags.ts`); a test holds the page and the table together.
+
+A command is its words, one argument, and flags in any place: `swt run games/hello/game.ts --fake --seed 7`. A
+relative path starts at the current directory. A command that cannot be read is `SWT-C003`. An error before the
+work is printed as its issues (code, summary, why, fix) on the error output, or with `--json` as
+`{ "issues": [...] }` on the standard output, and the command exits with 1.
+
+## Commands
+
+### `swt run <game file>`
+
+Plays a game into a new run folder `<out>/<game id>-<NNN>`. With `--fake` the fake driver plays seeded legal calls
+(no model, no cost); without it live models play under a cost cap.
+
+| Flag | What |
+|---|---|
+| `--fake` | play with the fake driver |
+| `--seed <n>` | the seed, a whole number from 0 to 4294967295; it wins over the game's own |
+| `--set <name=json>` | override one param of a game family; may be repeated |
+| `--out <dir>` | the folder that holds the run folders; `runs` when left out |
+| `--json` | print the result as one JSON line |
+| `--hand <file>` | the Human Hand: a JSON-lines file, or `-` for standard input (see "The hand file") |
+| `--snapshot-at <ticks>` | write a snapshot after these numbers of finished ticks, a comma list: `--snapshot-at 2,6` |
+| `--provider <id>`, `--model <id>`, `--thinking <level>` | the model of a live run; `--thinking` is one of off, minimal, low, medium, high |
+| `--budget <usd>` | the cost cap of a live run in US dollars; a live run needs one |
+| `--ledger <file>` | the spend ledger the cap must fit under |
+| `--purpose <word>` | smoke (the default), pilot, exploratory or confirmatory |
+| `--replicate <n>` | the index of the repetition; 0 when left out |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the run finished |
+| 1 | an error before the run, or the log does not verify |
+| 2 | the run ended with the reason `error` |
+| 3 | the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written |
+| 4 | a live run wrote a key value into its folder (`SWT-X030`) |
+| 5 | a live run ended at its cost cap |
+
+A snapshot is the file `<run>/snapshots/t<ticks>.json`; it writes no event. A tick boundary is the moment before
+the first tick and after each tick while the run has not ended, so a run that ends after 4 ticks has the boundaries
+0 to 3. A `--snapshot-at` value without a boundary writes nothing and gets a warning line on the error output:
+
+```text
+warning: `--snapshot-at 9` wrote no snapshot: the run ended after 4 ticks and had no tick boundary after 9
+```
+
+The exit code stays what it was.
+
+### `swt resume <run dir>`
+
+Plays a fake run on from a snapshot, into a new run folder beside the old one. The new log starts with the lines
+of the old one up to the snapshot, then the marker `run_resumed`. A run of live models cannot be resumed yet.
+
+| Flag | What |
+|---|---|
+| `--game <game file>` | the game file of the run; required |
+| `--snapshot <file>` | the snapshot to resume from; the latest of the run folder when left out |
+| `--ticks <n>` | stop after this many finished ticks |
+| `--out <dir>` | the folder that holds the new run folder; the one that holds the resumed run when left out |
+| `--json` | print the result as one JSON line |
+| `--hand <file>`, `--snapshot-at <ticks>` | as for `swt run`; the hand file is the one of the resumed run (see "The hand file") |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the run finished |
+| 1 | an error before the run, or the log does not verify |
+| 2 | the run ended with the reason `error` |
+| 3 | the run stopped open: paused with the Human Hand ended (`SWT-X009`), or at `--ticks` |
+
+### `swt log verify <run dir>`
+
+Checks the hash chain of a run folder. With `--previous <run dir>`, the folder the run was resumed from, it also
+checks that the new log continues the old one. `--json` prints the verdict as one JSON line.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the log holds and the run ended |
+| 1 | the log is broken |
+| 3 | the log holds and the run has no end |
+
+### `swt report <run dir>`
+
+Writes the report of a run into its folder. `--game <game file>` gives the game whose mechanics name the metrics.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the report is written |
+| 1 | the run folder cannot be read |
+| 4 | a file of the folder holds a key value (`SWT-X030`) |
+
+### `swt replay <run dir>`
+
+Replays a run from its log with `--game <game file>` and prints `equal, <n> lines`, or the first line that
+differs. `--json` prints one JSON line.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the replayed log is equal |
+| 1 | it differs (`SWT-C031`), the run is not replayable (`SWT-T005` for a log that stops inside a tick, `SWT-T004`), or the folder does not verify |
+
+### `swt scan <folder>`
+
+Looks through every file of a folder, and of the folders below it, for the key values that the environment holds.
+It prints file names and counts, never a value. `--json` prints one JSON line.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | no file holds a held key value |
+| 1 | a file does (`SWT-X030`), or the folder is none |
+| 3 | nothing was scanned: no key variable is set |
+
+Exit code 3 is not "clean". The scan can only look for values it holds, so set the key variable of every provider
+whose runs are in the folder (`SWT_ANTHROPIC_API_KEY` or `ARENA_ANTHROPIC_API_KEY`, `SWT_OPENROUTER_API_KEY` or
+`OPENROUTER_API_KEY`) before you scan.
+
+### `swt experiment run <spec file>`
+
+Plays the runs of an experiment that are still missing, into `--out <dir>` (`runs/<experiment id>` when left out),
+under the spend ledger of `--ledger <file>`.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the plan is complete |
+| 1 | an error before the work |
+| 4 | a run wrote a key value into its folder |
+| 6 | stopped at the experiment's cap, or after three failed runs |
+
+### `swt experiment analyse <experiment dir>`
+
+Analyses the runs of an experiment against its pass rule. It has no flag of its own.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | the pass rule is kept, or the spec has none |
+| 1 | an error before the work |
+| 3 | the pass rule is not kept |
+| 4 | a file holds a key value |
+| 7 | no verdict: too few runs |
+
+Every command takes `--help`.
+
+## The hand file
+
+The Human Hand is a person's interventions in a running game. `--hand <file>` reads them from a file with one JSON
+object per line; empty lines are skipped. `--hand -` reads the same lines from standard input while the run plays.
+The game must have the actor `human`: it has one when its grant `human` holds a tool (the mechanic `humanHand`
+brings `pause` and `resume`).
+
+A line has one of two forms:
+
+```json
+{"at": 7, "tool": "pause", "params": {"reason": "look at the board"}}
+{"at": 7, "command": "snapshot"}
+```
+
+| Field | Meaning |
+|---|---|
+| `at` | the tick boundary of the line: the number of finished ticks, from 0 |
+| `tool` | the shown name of a tool of the grant `human`; the call is made as the actor `human` and is in the log |
+| `params` | the params of the call; `{}` when left out |
+| `command` | only `"snapshot"`: write `<run>/snapshots/t<ticks>.json` at this boundary |
+
+How the lines are applied:
+
+- A line is due at the boundary after `at` finished ticks, or at any later one. A line of standard input is
+  applied at the first boundary after it arrived.
+- At a boundary the order is: the due lines in the order of the file, then the pause check, then `--snapshot-at`,
+  then one tick.
+- While the run is paused (the fact `humanHand.paused`), the next line of the file is taken whatever its `at`. So
+  a `resume` line after a `pause` line ends the pause at the same boundary.
+- When the run is paused and no line is left, the run writes a snapshot and stops with exit code 3 (`SWT-X009`).
+
+Two kinds of line fail, in two ways:
+
+- **A line that is no line of the Human Hand** (no JSON, neither form, a tool the grant `human` does not hold) is
+  `SWT-X008`. A file is checked whole before the run, so no run folder is written; a line of standard input is
+  checked when it arrives and ends the command.
+- **A call that the game refuses** (for example `amendDecision` when no decision is open) does not stop the run.
+  The refusal is in the log, it is printed on the error output as it happens, with the refusal code of the game,
+  and the result lines count it (in the `--json` line: `"hand": { "calls": 3, "refused": 1 }`):
+
+  ```text
+  warning: the Human Hand's call of "amendDecision" after 8 ticks was refused with DECISION_CLOSED: ...
+  Human Hand: 1 of 4 calls refused
+  ```
+
+  The exit code stays what it was. A file is written before the run and cannot know what the run will do; for a
+  hand that depends on the run, give `--hand -` and type the lines while the run is paused.
+
+### Resuming with a hand file
+
+`swt resume` takes **the hand file of the run it resumes**, not a new one. It drops the lines that the run applied
+before the snapshot: the first N tool lines, N being the calls of the actor `human` in the log up to the snapshot,
+and every `snapshot` line with `at` at or below the snapshot's tick. Everything else is applied by the rules
+above.
+
+So to go on after a paused stop (`SWT-X009`): add a `resume` line to the end of the hand file of the stopped run,
+and give that whole file to `swt resume --hand`. A file that holds only the `resume` line is dropped whole (it is
+one of the first N tool lines), and the run stops again where it stopped. Standard input (`--hand -`) is taken as
+it comes; nothing of it is dropped.
