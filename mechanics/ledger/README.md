@@ -184,3 +184,6 @@ bookings per seed through the book and through the old platform's `PointsLedger`
 ([`test/old-points-ledger.ts`](test/old-points-ledger.ts), carried) and compares entries, errors and snapshots.
 [`test/exile.test.ts`](test/exile.test.ts): the burn after `exile.exiled` in the old shape, nothing for a balance of 0,
 and the order against a second listener that declares `after: ["ledger"]`, listed before and after the ledger.
+[`test/sample.test.ts`](test/sample.test.ts): what the fake driver (`swt run --fake`) may call. The `sample` of
+`transferPoints` gives a transfer one time in eight: 1 to 5 points that the balance covers, without a memo, to
+another resident that may act.

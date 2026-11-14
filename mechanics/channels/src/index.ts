@@ -12,6 +12,7 @@ import { ChannelsEvents, ChannelsService } from "./contract.ts";
 import { sendDm } from "./dms.ts";
 import { channelsHead } from "./head.ts";
 import { inboxInputs, news } from "./hooks.ts";
+import { sampleDm, samplePost, sampleRead } from "./samples.ts";
 import { notify, postBoard, postToBoard, readBoard } from "./messages.ts";
 
 export { ChannelsEvents, ChannelsService };
@@ -38,9 +39,9 @@ export const channels = defineMechanic(channelsHead, {
 		},
 	},
 	tools: {
-		readBoard: { run: (params, ctx) => readBoard(ctx, params.afterSeq, params.limit) },
-		postBoard: { run: (params, ctx) => postBoard(ctx, params.message) },
-		sendDM: { run: (params, ctx) => sendDm(ctx, params.target, params.message) },
+		readBoard: { sample: sampleRead, run: (params, ctx) => readBoard(ctx, params.afterSeq, params.limit) },
+		postBoard: { sample: samplePost, run: (params, ctx) => postBoard(ctx, params.message) },
+		sendDM: { sample: sampleDm, run: (params, ctx) => sendDm(ctx, params.target, params.message) },
 	},
 	hooks: { turnInputs: inboxInputs, news },
 	facts: {

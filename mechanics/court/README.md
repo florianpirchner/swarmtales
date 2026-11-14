@@ -182,3 +182,7 @@ verdict with a window of 0 (the event order, and the same log as with a window t
 (proposed at the close, carried out by the settlement); the two tribunal cases of the decision window (the human
 amends the verdict to another resident, who is banished; an amendment outside the schema is refused); and a
 resident banished while the verdict was open.
+
+`test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `vote` gives one vote per
+resident and session, against another resident that may act; a resident that already has votes against it is in
+the draw once more per vote, so the votes gather and a verdict is likelier than a tie.

@@ -247,3 +247,7 @@ the receiver's next activation with the notice for the sender, the old order of 
 suspended resident) and what the old `dm-records.test.ts` asks of the records: another mechanic reads them through
 the service, before and after the delivery and after a resume. `test/emit-in-inputs.test.ts` shows that a
 `turnInputs` hook may write an event.
+
+`test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `readBoard`, `postBoard`
+and `sendDM` (`src/samples.ts`) each gives a call one time in eight: a read since the last read, one of four short
+posts, one of four short messages to another resident that may act. A full mailbox still refuses a sampled message.

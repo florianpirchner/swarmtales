@@ -5,47 +5,27 @@
  * without its marker is the straight log, for seeds 7 and 11 and for the variant in which the human amends the
  * verdict after the snapshot.
  *
- * No tool of the slice has a `sample`, so the residents of a plain `--fake` run call nothing: no vote, no verdict,
- * no exile. The first test proves the commands on that run as it is. For the other tests the fake driver of the
- * command line (and nothing else of it) is replaced by a script of the residents, so that the snapshot holds an
- * open decision and the resumed part holds the settling, the exile and the burns. The Director takes its fallback.
+ * The residents are played by the fake driver itself: the resident tools of the slice have a `sample` (issue 32),
+ * so a plain `--fake` run holds the story: talk, transfers, the votes of the session, a verdict, the exile and the
+ * burns. Nothing of the command line is replaced. The Director takes its fallback. With seeds 7 and 11 the session
+ * ends in a verdict, with seed 4 in a tie. The snapshot after tick 6 holds the open decision, the resumed part holds
+ * the settling. The variant `amended` needs no script either: its amendment names A02, who stands and is not the
+ * verdict of seed 7 (A03), and the test pins both.
  */
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { nameOf, RunManifestSchema } from "@swarmtales/contracts";
+import { RunManifestSchema } from "@swarmtales/contracts";
 import { DIRECTOR_RECORDS } from "@swarmtales/engine";
 import { isGameFamily } from "@swarmtales/sdk";
 import { replay } from "@swarmtales/testkit";
-import type * as Testkit from "@swarmtales/testkit";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadGame } from "../src/load-game.ts";
 import { RUN_RECORDS } from "../src/records.ts";
 import { cli, eventsOf, withoutMarker, type Printed, type StoredEnvelope } from "./support.ts";
-
-const story = vi.hoisted(() => {
-	const call = (tool: string, params: object): { readonly tool: string; readonly params: object } => ({ tool, params });
-	const vote = (target: string): ReturnType<typeof call> => call("vote", { target });
-	const pay = (target: string, amount: number): ReturnType<typeof call> => call("transferPoints", { target, amount });
-	/** Tick to resident to calls: talk and two transfers, five votes (three against A04), and after the exile a transfer to A04. */
-	const script: Readonly<Record<number, Readonly<Record<string, readonly ReturnType<typeof call>[]>>>> = {
-		0: { A01: [call("postBoard", { message: "Who holds which fragment?" })], A04: [call("sendDM", { target: "A01", message: "Watch A02." })] },
-		2: { A01: [pay("A04", 5)] },
-		3: { A06: [pay("A02", 4)] },
-		4: { A01: [vote("A04")], A02: [vote("A04")] },
-		5: { A03: [vote("A04")], A04: [vote("A02")], A05: [vote("A02")] },
-		9: { A01: [pay("A04", 3)], A03: [call("postBoard", { message: "The register is shorter now." })] },
-	};
-	return { on: false, script };
-});
-vi.mock("@swarmtales/testkit", async (original) => {
-	const testkit = await original<typeof Testkit>();
-	const scripted = testkit.scriptedDriver((activation) => story.script[activation.tick]?.[nameOf(activation.actor)] ?? []);
-	return { ...testkit, fakeDriver: (...args: Parameters<typeof testkit.fakeDriver>) => (story.on ? scripted : testkit.fakeDriver(...args)) };
-});
 
 const CITY = fileURLToPath(new URL("../../../games/city-slice/game.ts", import.meta.url));
 const PAUSE = [{ at: 7, tool: "pause", params: { reason: "the court has a verdict" } }, { at: 7, tool: "resume", params: {} }];
@@ -105,31 +85,64 @@ async function proven({ straight, resumed, marker, folders }: Pair, other: strin
 
 const told = (events: readonly StoredEnvelope[], ...types: readonly string[]): readonly unknown[] => events.filter((event) => types.includes(event.type)).map((event) => [event.tick, event.type, event.payload]);
 
+/** The burn of a banished resident's points: the bookings whose reason is the exile. */
+const burns = (events: readonly StoredEnvelope[]): readonly unknown[] => told(events, "ledger_entry").filter((line) => JSON.stringify(line).includes('"reason":"exiled '));
+
+/** The verdict of the straight fake run per seed: who is banished, and the points that burn with them. */
+const VERDICTS = [
+	{ seed: 7, exiled: "A03", tally: { A02: 1, A03: 3, A05: 2 }, burned: 35 },
+	{ seed: 11, exiled: "A05", tally: { A01: 1, A04: 1, A05: 4 }, burned: 23 },
+];
+
 describe("the city slice through the command line", () => {
-	it("a plain fake run (the residents call nothing): the resumed log without its marker is the straight log, and continuity verifies", async () => {
-		const run = await pair("plain", 7, "straight");
-		expect(told(run.straight, "vote_cast", "decision_proposed", "exiled")).toEqual([]);
-		// The snapshot of `--snapshot-at 7` lies after the two calls of the human: the resumed run drops both lines of the hand file.
-		expect(run.resumed.slice(run.marker).filter((event) => event.actor === "human")).toEqual([]);
-		await proven(run, run.folders[0].replace("001", "002"));
+	it.each(VERDICTS)("a plain fake run, seed $seed: no SWT-C010, the residents talk, pay and vote, $exiled is banished, its points and its piece burn", async ({ seed, exiled, tally, burned }) => {
+		const out = `plain-${String(seed)}`;
+		const run = await swt("run", CITY, "--fake", "--seed", String(seed), "--out", out);
+		expect([run.code, run.err, run.out[1]]).toEqual([0, "", `city-slice seed ${String(seed)}: ended after 12 ticks (tick limit)`]);
+		const events = eventsOf(join(cwd, out, "city-slice-001"));
+		for (const type of ["transfer", "board_post", "dm_sent", "dm_delivered"]) expect(events.filter((event) => event.type === type).length, type).toBeGreaterThan(2);
+		expect(events.filter((event) => event.type === "tool_called" && Reflect.get(Object(event.payload), "as") === "readBoard").length).toBeGreaterThan(0);
+		expect(events.filter((event) => event.type === "vote_cast").map((event) => event.tick)).toEqual([4, 4, 4, 4, 4, 4]);
+		expect(told(events, "session_closed", "decision_proposed", "answered", "decision_settled", "exiled", "verdict", "factor_burned")).toMatchObject([
+			[6, "session_closed", { tally }],
+			[6, "decision_proposed", { decision: "D1", proposal: { exiled }, deadline: 8 }],
+			[6, "answered", { fallback: true }],
+			[8, "decision_settled", { changed: false }],
+			[8, "exiled", { agent: exiled, by: "court" }],
+			[8, "verdict", { exiled, decision: "D1" }],
+			[8, "factor_burned", { agent: exiled }],
+		]);
+		expect(burns(events)).toMatchObject([[8, "ledger_entry", { debit: exiled, amount: burned, reason: `exiled ${exiled}` }]]);
+		// The banished resident is not activated again, and the samples leave it alone: nobody pays or writes to it.
+		const later = events.filter((event) => event.tick > 8);
+		expect(later.filter((event) => event.actor === `resident:${exiled}` || ["target", "to"].some((key) => Reflect.get(Object(event.payload), key) === exiled))).toEqual([]);
 	});
 
-	it.each([{ seed: 7 }, { seed: 11 }])("the scripted slice, seed $seed: stopped at the snapshot after tick 6 and resumed, it settles the verdict and banishes A04 as the straight run does", async ({ seed }) => {
-		story.on = true;
-		const run = await pair(`seed-${String(seed)}`, seed, "straight").finally(() => (story.on = false));
+	it("a plain fake run, seed 4: the session ends in a tie, so no verdict is proposed and nobody is banished", async () => {
+		const run = await swt("run", CITY, "--fake", "--seed", "4", "--out", "tie");
+		expect([run.code, run.err]).toEqual([0, ""]);
+		const events = eventsOf(join(cwd, "tie/city-slice-001"));
+		expect(told(events, "session_closed", "decision_proposed", "asked", "exiled", "verdict")).toEqual([[6, "session_closed", { tally: { A01: 1, A02: 2, A03: 1, A06: 2 } }]]);
+	});
+
+	it.each(VERDICTS)("the fake slice with the hand, seed $seed: stopped at the snapshot after tick 6 and resumed, it settles the verdict and banishes $exiled as the straight run does", async ({ seed, exiled }) => {
+		const run = await pair(`seed-${String(seed)}`, seed, "straight");
 		const [before, after] = [run.resumed.slice(0, run.marker), run.resumed.slice(run.marker)];
-		// Before the snapshot: the verdict is proposed and the Director posts (its fallback). After it: the deadline, the exile, the burns, the refusal.
-		expect(told(before, "decision_proposed", "resumed", "answered")).toMatchObject([[6, "decision_proposed", { decision: "D1", proposal: { exiled: "A04" }, deadline: 8 }], [6, "answered", { fallback: true }], [7, "resumed", {}]]);
-		expect(told(after, "decision_settled", "exiled", "ledger_entry", "factor_burned", "tool_refused")).toMatchObject([[8, "decision_settled", { changed: false }], [8, "exiled", { agent: "A04", by: "court" }], [8, "ledger_entry", { debit: "A04", amount: 35 }], [8, "factor_burned", { agent: "A04" }], [9, "tool_refused", { as: "transferPoints", code: "EXILED" }]]);
-		expect(after.length).toBeGreaterThan(80);
-		await proven(run, "plain/city-slice-001");
+		// Before the snapshot: the verdict is proposed, the Director posts (its fallback), the human pauses and resumes. After it: the deadline, the exile, the burns.
+		expect(told(before, "decision_proposed", "resumed", "answered")).toMatchObject([[6, "decision_proposed", { decision: "D1", proposal: { exiled }, deadline: 8 }], [6, "answered", { fallback: true }], [7, "resumed", {}]]);
+		expect(told(after, "decision_settled", "exiled", "verdict", "factor_burned")).toMatchObject([[8, "decision_settled", { changed: false }], [8, "exiled", { agent: exiled, by: "court" }], [8, "verdict", { exiled }], [8, "factor_burned", { agent: exiled }]]);
+		expect(burns(run.resumed)).toMatchObject([[8, "ledger_entry", { debit: exiled, reason: `exiled ${exiled}` }]]);
+		// The snapshot of `--snapshot-at 7` lies after the two calls of the human: the resumed run drops both lines of the hand file, and the residents go on calling.
+		expect(after.filter((event) => event.actor === "human")).toEqual([]);
+		expect(after.filter((event) => event.type === "tool_called").length).toBeGreaterThan(10);
+		await proven(run, `plain-${String(seed)}/city-slice-001`);
 	});
 
-	it("the variant amended: the snapshot is taken while the run is paused; the resumed run resumes, the human amends the verdict to A02, and A02 is banished", async () => {
-		story.on = true;
-		const run = await pair("amended", 7, "amended").finally(() => (story.on = false));
-		const after = run.resumed.slice(run.marker);
-		expect(run.resumed.slice(0, run.marker).filter((event) => event.actor === "human").map((event) => event.type)).toEqual(["tool_called", "paused", "tool_result"]);
+	it("the variant amended: the snapshot is taken while the run is paused; the resumed run resumes, the human amends the verdict from A03 to A02, and A02 is banished", async () => {
+		const run = await pair("amended", 7, "amended");
+		const [before, after] = [run.resumed.slice(0, run.marker), run.resumed.slice(run.marker)];
+		expect(before.filter((event) => event.actor === "human").map((event) => event.type)).toEqual(["tool_called", "paused", "tool_result"]);
+		expect(told(before, "decision_proposed")).toMatchObject([[6, "decision_proposed", { decision: "D1", proposal: { exiled: "A03" } }]]);
 		expect(told(after, "resumed", "decision_amended", "decision_settled", "exiled")).toMatchObject([[7, "resumed", {}], [8, "decision_amended", { by: "human", proposal: { exiled: "A02" } }], [8, "decision_settled", { changed: true, proposal: { exiled: "A02" } }], [8, "exiled", { agent: "A02", by: "court" }]]);
 		// The one difference the marker leaves: `decision_settled` holds the line of the amendment, which lies after the marker.
 		const plain = withoutMarker(run.resumed);
@@ -141,7 +154,7 @@ describe("the city slice through the command line", () => {
 	it("done-when 2 from run folders: replay writes the straight and the resumed log again from the game file and events.jsonl", async () => {
 		const { game } = await loadGame(CITY, cwd);
 		if (isGameFamily(game)) throw new RangeError("the city slice is one game, not a family");
-		for (const folder of ["seed-7/city-slice-001", "seed-11/city-slice-002", "amended/city-slice-002", "plain/city-slice-002"]) {
+		for (const folder of ["seed-7/city-slice-001", "seed-11/city-slice-002", "amended/city-slice-002", "plain-7/city-slice-001", "tie/city-slice-001"]) {
 			const log = eventsOf(join(cwd, folder));
 			const again = await replay({ game, log, records: [DIRECTOR_RECORDS, RUN_RECORDS] });
 			expect([folder, again.firstDifference, again.equal, again.log.length]).toEqual([folder, undefined, true, log.length]);

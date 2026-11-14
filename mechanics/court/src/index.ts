@@ -9,7 +9,7 @@
  */
 import { Type } from "typebox";
 import { Check } from "typebox/value";
-import type { Refusal } from "@swarmtales/contracts";
+import type { RandomSource, Refusal } from "@swarmtales/contracts";
 import { defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { DecisionsEvents, DecisionsService } from "@swarmtales/mechanic-decisions/contract";
@@ -27,6 +27,16 @@ function barred(ctx: CourtToolCtx, target: string): Refusal | undefined {
 	if (target === ctx.resident) return refuse("SELF_VOTE", ctx.prompt("court/replies/self-vote", {}));
 	if (ctx.call(ExileService, "isExiled", { resident: target })) return refuse("EXILED", ctx.prompt("court/replies/exiled", { target }));
 	return undefined;
+}
+
+// A vote the fake driver may cast: one per session, against another resident that may act. A resident that already
+// has votes against it is in the draw once more per vote, so the votes gather and a verdict is likelier than a tie.
+function sampleVote(ctx: CourtToolCtx, random: RandomSource): { target: string } | undefined {
+	const voter = ctx.resident;
+	if (voter === undefined || !ctx.state.open || ctx.state.votes.some((vote) => vote.voter === voter)) return undefined;
+	const others = ctx.residents.ids.filter((id) => id !== voter && ctx.residents.mayAct(id));
+	const named = ctx.state.votes.map((vote) => vote.target).filter((target) => others.includes(target));
+	return others.length === 0 ? undefined : { target: random.pick([...others, ...named]) };
 }
 
 // Carries a verdict out: the city's line, the banishing, `verdict`. A resident banished meanwhile (or no resident at all) is left alone and nothing is written.
@@ -66,6 +76,7 @@ export const court = defineMechanic(courtHead, {
 	tools: {
 		vote: {
 			check: ({ target }, ctx) => barred(ctx, target),
+			sample: sampleVote,
 			run: ({ target }, ctx) => {
 				const voter = ctx.resident ?? ctx.actor;
 				const cast = ctx.state.votes.find((vote) => vote.voter === voter);

@@ -8,7 +8,7 @@
  * @packageDocumentation
  */
 import { Type } from "typebox";
-import type { Refusal } from "@swarmtales/contracts";
+import type { RandomSource, Refusal } from "@swarmtales/contracts";
 import { ExileEvents } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse, reply, RosterService } from "@swarmtales/sdk";
 import { balanceOf, book, memoCarriesDigits, SYSTEM_ACCOUNT, type LedgerEntry } from "./book.ts";
@@ -16,6 +16,9 @@ import { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
 
 export { book, LedgerError, memoCarriesDigits, restored, SYSTEM_ACCOUNT, type BookOptions, type LedgerEntry, type LedgerErrorCode, type LedgerState } from "./book.ts";
 export { ledgerHead, type LedgerCtx, type LedgerToolCtx } from "./head.ts";
+
+const SAMPLE_RATE = 0.125;
+const SAMPLE_MOST = 5;
 
 // The refusals of a transfer in the old order; undefined when nothing stands in the way.
 function checkTransfer(ctx: LedgerToolCtx, to: string, amount: number, memo: string): Refusal | undefined {
@@ -28,6 +31,16 @@ function checkTransfer(ctx: LedgerToolCtx, to: string, amount: number, memo: str
 	if (memoCarriesDigits(memo)) return refuse("MEMO_DIGITS", "memos may not carry numbers of 4+ digits; send codes by message");
 	if (balanceOf(ctx.state, from) < amount) return refuse("INSUFFICIENT_FUNDS");
 	return undefined;
+}
+
+// A transfer the fake driver may make, about one activation in eight: 1 to 5 points that the balance covers, to
+// another resident that may act.
+function sampleTransfer(ctx: LedgerToolCtx, random: RandomSource): { target: string; amount: number } | undefined {
+	const from = ctx.resident;
+	if (from === undefined || random.next() >= SAMPLE_RATE) return undefined;
+	const others = ctx.residents.ids.filter((id) => id !== from && ctx.residents.mayAct(id));
+	const most = Math.min(SAMPLE_MOST, balanceOf(ctx.state, from));
+	return others.length === 0 || most < 1 ? undefined : { target: random.pick(others), amount: random.int(1, most) };
 }
 
 function bookEntry(ctx: LedgerCtx, debit: string, credit: string, amount: number, reason: string, allowNegative: boolean, idempotencyKey?: string): LedgerEntry {
@@ -50,6 +63,7 @@ export const ledger = defineMechanic(ledgerHead, {
 	tools: {
 		transferPoints: {
 			check: ({ target, amount, memo }, ctx) => checkTransfer(ctx, target, amount, memo ?? ""),
+			sample: sampleTransfer,
 			run: ({ target, amount, memo }, ctx) => {
 				const from = ctx.resident;
 				const refused = checkTransfer(ctx, target, amount, memo ?? "");
