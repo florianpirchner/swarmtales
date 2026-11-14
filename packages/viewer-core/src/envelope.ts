@@ -52,6 +52,8 @@ function eventOf(envelope: Line, line: number, at?: string): RunEvent {
 		actor: nameOf(envelope.actor),
 		line,
 		data: { ...fields, ...envelopeFields(envelope, at) },
+		actorId: envelope.actor,
+		payload,
 	};
 }
 

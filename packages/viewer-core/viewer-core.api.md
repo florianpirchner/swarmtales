@@ -13,6 +13,20 @@ import { Static } from 'typebox';
 import { Type } from 'typebox';
 
 // @public
+export interface Activation {
+    readonly actor: string;
+    readonly calls: readonly Call[];
+    readonly closedSeq?: number;
+    readonly firings: readonly Firing[];
+    readonly kind: string;
+    readonly name: string;
+    readonly outcome?: string;
+    readonly records: readonly RunEvent[];
+    readonly seq: number;
+    readonly tick: number;
+}
+
+// @public
 export function actorLanes(events: readonly RunEvent[]): readonly Lane[];
 
 // @public
@@ -25,6 +39,25 @@ export interface ActorRule {
 
 // @public
 export type ActorVocabulary = Readonly<Record<string, ActorRule>>;
+
+// @public
+export interface Call {
+    readonly activation?: number;
+    readonly actor: string;
+    readonly answer?: {
+        readonly seq: number;
+        readonly ok: boolean;
+        readonly text: string;
+        readonly code?: string;
+    };
+    readonly as: string;
+    readonly human: boolean;
+    readonly params: unknown;
+    readonly seq: number;
+    readonly take: boolean;
+    readonly tick: number;
+    readonly tool: string;
+}
 
 // @public
 export interface CompareRow {
@@ -58,6 +91,34 @@ export interface Count {
 }
 
 // @public
+export interface Decision {
+    readonly amendments: readonly {
+        readonly seq: number;
+        readonly tick: number;
+        readonly by: string;
+        readonly reason?: string;
+        readonly proposal: unknown;
+    }[];
+    readonly deadline: number;
+    readonly holders: readonly string[];
+    readonly id: string;
+    readonly kind: string;
+    readonly owner: string;
+    readonly proposal: unknown;
+    readonly seq: number;
+    readonly settled?: {
+        readonly seq: number;
+        readonly tick: number;
+        readonly changed: boolean;
+        readonly proposal: unknown;
+    };
+    readonly tick: number;
+}
+
+// @public
+export const DECISIONS_SOURCE = "@swarmtales/mechanic-decisions/decisions";
+
+// @public
 export function findRuns(source: RunSource, dir?: string, options?: FindRunsOptions): Promise<readonly RunSummary[]>;
 
 // @public
@@ -65,6 +126,14 @@ export interface FindRunsOptions {
     readonly concurrency?: number;
     readonly depth?: number;
     readonly onDetails?: (run: RunSummary) => void;
+}
+
+// @public
+export interface Firing {
+    readonly event: string;
+    readonly payload: unknown;
+    readonly seq: number;
+    readonly tick: number;
 }
 
 // @public
@@ -81,6 +150,12 @@ export { Highlight_2 as Highlight }
 
 // @public
 export function highlightsOf(events: readonly RunEvent[], reports?: readonly string[]): readonly Highlight_2[];
+
+// @public
+export const HUMAN = "human";
+
+// @public
+export const HUMAN_HAND_SOURCE = "@swarmtales/mechanic-human-hand/humanHand";
 
 // @public
 export function indexRun(input: readonly RunEvent[]): RunIndex;
@@ -153,6 +228,19 @@ export interface MessageVocabulary {
 }
 
 // @public
+export interface Pause {
+    readonly by: string;
+    readonly endSeq?: number;
+    readonly endTick?: number;
+    readonly reason?: string;
+    readonly seq: number;
+    readonly tick: number;
+}
+
+// @public
+export function projectRun(events: readonly RunEvent[]): RunProjection;
+
+// @public
 export interface ReportLink {
     readonly end: number;
     readonly event?: RunEvent;
@@ -164,12 +252,25 @@ export interface ReportLink {
 export function reportLinks(markdown: string, index?: RunIndex): readonly ReportLink[];
 
 // @public
+export interface ResumeMarker {
+    readonly from: string;
+    readonly seq: number;
+    readonly snapshotHash: string;
+    readonly tick: number;
+}
+
+// @public
+export const RUN_SOURCE = "@swarmtales/cli/run";
+
+// @public
 export interface RunEvent {
     readonly actor?: string;
+    readonly actorId?: string;
     readonly at?: string;
     readonly data: Readonly<Record<string, unknown>>;
     readonly line: number;
     readonly minute: number;
+    readonly payload?: unknown;
     readonly seq: number;
     readonly subject?: string;
     readonly type: string;
@@ -223,6 +324,18 @@ export interface RunModel {
 }
 
 // @public
+export interface RunProjection {
+    readonly activations: readonly Activation[];
+    readonly attached: ReadonlyMap<number, number>;
+    readonly decisions: readonly Decision[];
+    readonly humanCalls: readonly Call[];
+    readonly humanInfluenced: boolean;
+    readonly pauses: readonly Pause[];
+    readonly resumes: readonly ResumeMarker[];
+    readonly suspensions: readonly Suspension[];
+}
+
+// @public
 export interface RunSource {
     list(dir: string): Promise<readonly RunSourceEntry[]>;
     readText(path: string): Promise<string | undefined>;
@@ -272,6 +385,20 @@ export interface Spread {
     readonly n: number;
     readonly stdev: number;
 }
+
+// @public
+export interface Suspension {
+    readonly actor: string;
+    readonly by: string;
+    readonly endSeq?: number;
+    readonly name: string;
+    readonly reason: string;
+    readonly seq: number;
+    readonly tick: number;
+}
+
+// @public
+export const TAKE_TOOL = "@swarmtales/sdk/directors/take";
 
 // @public
 export function toolCounts(events: readonly RunEvent[], seq?: number): readonly Count[];

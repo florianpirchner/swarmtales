@@ -43,6 +43,10 @@ export interface RunEvent {
 	readonly line: number;
 	/** The whole parsed line. */
 	readonly data: Readonly<Record<string, unknown>>;
+	/** The id of the envelope's actor (`resident:A01`, `director:warden`, `human`, `kernel`); only a line of the envelope reader has one. */
+	readonly actorId?: string;
+	/** The envelope's payload as written, with the fields `data` shadows (`actor` of `actor_suspended`); only a line of the envelope reader has one. */
+	readonly payload?: unknown;
 }
 
 /** The fields that name who acted, in the order they are looked up when a type has no rule of its own. */

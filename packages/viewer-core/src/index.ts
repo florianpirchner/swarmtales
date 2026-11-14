@@ -23,3 +23,5 @@ export { compareRuns, type CompareRow, type Comparison, type RunMetric, type Spr
 export { reportLinks, type ReportLink } from "./report-links.ts";
 export { highlightsOf, type Highlight } from "./highlights.ts";
 export type { Vocabulary } from "./vocabulary.ts";
+export { DECISIONS_SOURCE, HUMAN, HUMAN_HAND_SOURCE, projectRun, RUN_SOURCE, TAKE_TOOL } from "./projection.ts";
+export type { Activation, Call, Decision, Firing, Pause, ResumeMarker, RunProjection, Suspension } from "./projection-model.ts";
