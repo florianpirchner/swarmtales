@@ -62,6 +62,14 @@ describe("the committed plan", () => {
 		}
 	});
 
+	it("B10: the rule missed-decision can see a missed decision of each game: its metric has the name the rule looks for", () => {
+		for (const [file, { metrics, exclusions }] of specs) {
+			expect(exclusions, file).toContain("missed-decision");
+			const missed = metrics.guardrails.map((rail) => rail.metric).filter((key) => /\.missed[A-Z]\w*$/.test(key));
+			expect(missed.filter((key) => METRICS.has(key)), file).toHaveLength(1);
+		}
+	});
+
 	it("holds the two effects of section 8.1 and the caps of 8.4", () => {
 		expect(spec(OPEN)).toMatchObject({ purpose: "confirmatory", design: "paired", seeds: [31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79], replicates: 1, pass: { contrast: ["open", "control"], sign: "positive", minN: 10 } });
 		expect(spec(OPEN).arms).toEqual([{ id: "control", params: {}, control: true }, { id: "open", params: { openHands: true } }]);

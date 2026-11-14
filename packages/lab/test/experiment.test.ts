@@ -5,7 +5,7 @@
  * run, three failed runs stop the series, an excluded run is replaced once, and runs that do not compare stop it.
  */
 import { generateKeyPairSync } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
@@ -43,12 +43,20 @@ function manifestOf(run: Pick<PlannedRun, "arm" | "seed" | "replicate">, experim
 	};
 }
 
-interface Step { readonly reason?: RunEnd["reason"]; readonly costUsd?: number; readonly model?: string; readonly experiment?: string; readonly fail?: boolean | "leak" }
+interface Step { readonly reason?: RunEnd["reason"]; readonly costUsd?: number; readonly model?: string; readonly experiment?: string; readonly fail?: boolean | "leak"; readonly limit?: string; readonly extra?: readonly (readonly [source: string, type: string, payload: unknown])[] }
 const roots: string[] = [];
 afterEach(() => {
 	for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 const root = (): string => roots[roots.push(mkdtempSync(join(tmpdir(), "lab-experiment-"))) - 1] ?? "";
+
+const limitOf = (step: Step): { limit?: string } => (step.limit === undefined ? {} : { limit: step.limit });
+/** The log of a fake run: the start, the score, the extra lines of the step, a reached limit, the end. */
+function linesOf(step: Step, seed: number, reason: RunEnd["reason"]): readonly (readonly [tick: number, source: string, type: string, payload: unknown])[] {
+	const reached = step.limit === undefined ? [] : [["kernel", "limit_reached", { limit: step.limit, reason: "a test" }] as const];
+	const middle = [...(step.extra ?? []), ...reached].map(([source, type, payload]) => [0, source, type, payload] as const);
+	return [[0, "kernel", "run_started", { seed }], [0, SOURCE, "scored", seed * 10], ...middle, [1, "kernel", "run_ended", { reason }]];
+}
 
 /** A fake player: writes a finished run folder per run, as `script` says; counts its calls and the runs in flight. */
 function player(directory: string, script: (run: PlannedRun, call: number) => Step = () => ({})) {
@@ -63,9 +71,9 @@ function player(directory: string, script: (run: PlannedRun, call: number) => St
 		let clock = Date.UTC(2026, 10, 14, 10);
 		const folder = openRunFolder(join(directory, manifest.run.id), manifest, { now: () => new Date((clock += 1000)), keys: KEYS, game: GAME, texts: {} });
 		const reason = step.reason ?? "ticks";
-		const lines = [[0, "kernel", "run_started", { seed: run.seed }], [0, SOURCE, "scored", run.seed * 10], [1, "kernel", "run_ended", { reason }]] as const;
+		const lines = linesOf(step, run.seed, reason);
 		for (const [index, [tick, source, type, payload]] of lines.entries()) folder.sink.write({ seq: index + 1, tick, source, type, actor: "kernel", ...(index === 0 ? {} : { causedBy: index }), payload } satisfies Envelope);
-		folder.sink.close?.({ reason, tick: 1 });
+		folder.sink.close?.({ reason, tick: 1, ...limitOf(step) });
 		folder.close();
 		return { directory: join(directory, manifest.run.id), costUsd: step.costUsd ?? 0.01 };
 	};
@@ -151,6 +159,79 @@ describe("runExperiment", () => {
 		expect(await refusal(runExperiment({ ...SPEC, metrics: { ...SPEC.metrics, secondary: ["guess-number.nope"] } }, play, options))).toMatch(/^SWT-E010 .*"guess-number\.nope"/);
 		expect(await refusal(runExperiment({ ...SPEC, budget: { ...SPEC.budget, totalUsd: 0.03 } }, play, options))).toMatch(/^SWT-E003 .*0\.04 USD, the cap is 0\.03/);
 		expect(seen.calls).toEqual([]);
+	});
+});
+
+describe("runExperiment under attack (M2 review B)", () => {
+	const tight = { ...SPEC, seeds: [1, 2, 3, 4], budget: { ...SPEC.budget, totalUsd: 0.25 } };
+
+	it("B1: a cost that is no number does not switch the cap off", async () => {
+		const directory = root();
+		const { play, seen } = player(directory, () => ({ costUsd: Number.NaN }));
+		expect(await refusal(runExperiment(tight, play, { directory, metrics: METRICS }))).toMatch(/^SWT-E00[47]/);
+		expect(seen.calls.length).toBeLessThanOrEqual(3);
+		expect(readExperimentState(directory)?.runs.every((run) => run.status === "stopped" && run.costUsd === 0.1)).toBe(true);
+	});
+
+	it("B2: a state file whose money was edited (spentUsd, the spec's budget) does not raise the cap", async () => {
+		const directory = root();
+		const first = player(directory, () => ({ costUsd: 0.06 }));
+		expect(await refusal(runExperiment(tight, first.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E004/);
+		const saved = readExperimentState(directory);
+		writeFileSync(join(directory, "experiment.json"), JSON.stringify({ ...saved, spentUsd: 0, spec: { ...saved?.spec, budget: { ...saved?.spec.budget, totalUsd: 100 } } }));
+		const second = player(directory, () => ({ costUsd: 0.06 }));
+		expect(await refusal(runExperiment(tight, second.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E00[46]/);
+		expect(second.seen.calls).toEqual([]);
+	});
+
+	it("B3: the three failures in a row are counted across a continue", async () => {
+		const directory = root();
+		const spec = { ...SPEC, seeds: [1, 2, 3, 4, 5, 6] };
+		const broken = player(directory, () => ({ fail: true }));
+		expect(await refusal(runExperiment(spec, broken.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E007/);
+		expect(await refusal(runExperiment(spec, broken.play, { directory, metrics: METRICS }))).toMatch(/^SWT-E007/);
+		expect(broken.seen.calls).toHaveLength(4);
+		const healthy = player(directory);
+		expect((await runExperiment(spec, healthy.play, { directory, metrics: METRICS })).runs).toHaveLength(12);
+	});
+
+	it("B4: a run whose facts cannot be computed keeps its record and its cost, and the other worker stops", async () => {
+		const directory = root();
+		const metrics: MetricTable = { ...METRICS, "guess-number": [{ id: "score", title: "Score", reads: ["scored"], compute: () => { throw new TypeError("a broken metric"); } }] };
+		const { play, seen } = player(directory, () => ({ costUsd: 0.05 }));
+		const outcome = await refusal(runExperiment({ ...SPEC, seeds: [1, 2, 3, 4, 5, 6], concurrency: 2 }, play, { directory, metrics }));
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		const state = readExperimentState(directory);
+		expect(outcome).toMatch(/^SWT-E007/);
+		expect([seen.calls.length, state?.runs.length, state?.spentUsd.toFixed(2)]).toEqual([seen.calls.length, seen.calls.length, (0.05 * seen.calls.length).toFixed(2)]);
+		expect(seen.calls.length).toBeLessThanOrEqual(4);
+		expect([state?.runs[0]?.status, state?.runs[0]?.reason]).toEqual(["stopped", "a broken metric"]);
+	});
+
+	it("B9: each exclusion rule holds for the facts it names: the cost cap's limit id, a failed request, a missed decision", async () => {
+		const metrics: MetricTable = { ...METRICS, "guess-number": [...(METRICS["guess-number"] ?? []), { id: "missedGuesses", title: "Missed", reads: ["missed"], compute: (events) => events.length }] };
+		const steps: Readonly<Record<number, Step>> = {
+			1: { reason: "limit", limit: "models.budget" },
+			2: { extra: [["@swarmtales/models/resident", "request_failed", {}]] },
+			3: { extra: [[SOURCE, "missed", 1]] },
+			4: { reason: "limit", limit: "guess-number.over" },
+		};
+		const spec: ExperimentSpec = { ...SPEC, arms: [{ id: "control", params: {}, control: true }], seeds: [1, 2, 3, 4], design: "replicates", exclusions: ["failed-request", "missed-decision", "cost-cap", "error-end"] };
+		const directory = root();
+		const { play } = player(directory, (run) => (run.replicate === 0 ? (steps[run.seed] ?? {}) : {}));
+		const state = await runExperiment(spec, play, { directory, metrics });
+		const reasons = Object.fromEntries(state.runs.filter((run) => run.planned.replicate === 0).map((run) => [run.planned.seed, run.reason ?? run.status]));
+		expect(reasons).toEqual({ 1: "cost-cap", 2: "failed-request", 3: "missed-decision", 4: "included" });
+		expect(state.runs).toHaveLength(7);
+	});
+
+	// Finding B5 (open): the cap of the experiment holds only while every run stays under its own cap. The meter of a
+	// run stops before the next request, so a run may report more than `perRunUsd`, and the sum then passes `totalUsd`.
+	it.fails("B5: the sum of what is spent never passes totalUsd, also when a run reports more than its own cap", async () => {
+		const directory = root();
+		const { play } = player(directory, () => ({ costUsd: 0.15 }));
+		await refusal(runExperiment(tight, play, { directory, metrics: METRICS }));
+		expect(readExperimentState(directory)?.spentUsd).toBeLessThanOrEqual(0.25 + 1e-9);
 	});
 });
 

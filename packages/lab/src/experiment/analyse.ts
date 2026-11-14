@@ -3,7 +3,7 @@
  * The analysis of an experiment: from the records of the runner and the facts of the runs to `results.json`. Every
  * estimate is computed twice, over the included runs (the pass rule reads this one) and over every finished run.
  */
-import { analysisTooEarly } from "../errors.ts";
+import { analysisTooEarly, badFile } from "../errors.ts";
 import type { RunFacts } from "../facts/facts.ts";
 import { type Effect, pairedEffect, unpairedEffect } from "../stats/effect.ts";
 import { mean, sd, t95 } from "../stats/summary.ts";
@@ -66,6 +66,16 @@ function effectOf(spec: ExperimentSpec, rows: readonly Row[], metric: string, ov
 	return { estimator: "difference of the arm means, treatment minus control", n, effect: n < 2 ? undefined : unpairedEffect([...a.values()], [...b.values()]) };
 }
 
+// Every deviation from the plan: a run that is not included, and an included run that gives the primary metric no
+// number (the metric is absent, or its facts were not passed in), so that a smaller n is never silent.
+function deviationsOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["deviations"] {
+	return rows.flatMap(({ record, run, facts }) => {
+		if (record.status !== "included") return [{ at: run, what: `the run is ${record.status}${record.replaces === undefined ? "" : ", and it was the one replacement"}`, why: record.reason ?? "no reason recorded" }];
+		if (typeof facts?.values[spec.metrics.primary] === "number") return [];
+		return [{ at: run, what: `the run is included and has no value of ${spec.metrics.primary}`, why: "the metric is absent in the run, or the facts of the run were not read; the run is left out of the estimates" }];
+	});
+}
+
 function estimatesOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["estimates"] {
 	return [spec.metrics.primary, ...spec.metrics.secondary].flatMap((metric, index) =>
 		(["included", "finished"] as const).flatMap((over) => {
@@ -84,6 +94,8 @@ function passOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentResults["
 	const estimate = effect?.estimate ?? 0;
 	const wanted = sign === "positive" ? { word: "greater", kept: estimate > 0 } : { word: "less", kept: estimate < 0 };
 	const rule = `${spec.metrics.primary}, ${contrast[0]} minus ${contrast[1]} over the included runs, is ${wanted.word} than 0; a verdict needs ${minN} ${spec.design === "paired" ? "complete pairs" : "runs in each arm"}`;
+	// A design without a contrast would hand the rule the mean of one arm, and its sign would read as a verdict.
+	if (contrastOf(spec).length < 2) return { rule: `${rule} (the design ${spec.design} has no contrast of two arms: it reads 0)`, estimate: 0, n: 0, verdict: "no-verdict" };
 	if (effect === undefined) return { rule: `${rule} (too few runs for an estimate: it reads 0)`, estimate, n, verdict: "no-verdict" };
 	return { rule, estimate, n, verdict: n < minN ? "no-verdict" : wanted.kept ? "kept" : "not-kept" };
 }
@@ -117,8 +129,11 @@ function guardrailsOf(spec: ExperimentSpec, rows: readonly Row[]): ExperimentRes
 }
 
 function toleranceOf(spec: ExperimentSpec, rows: readonly Row[], baseline: NoiseFloor | undefined): ExperimentResults["tolerance"] {
-	const values = [...cells(rows, contrastOf(spec).at(-1) ?? "", spec.metrics.primary, "included").values()];
+	const arm = contrastOf(spec).at(-1) ?? "";
+	const values = [...cells(rows, arm, spec.metrics.primary, "included").values()];
 	if (baseline === undefined || spec.tolerance === undefined || values.length === 0) return undefined;
+	// A baseline of another metric or arm would give a tolerance of two things that were never the same measure.
+	if (baseline.metric !== spec.metrics.primary || baseline.arm !== arm) throw badFile("noise-floor file", `it holds ${baseline.metric} of the arm "${baseline.arm}", and the experiment compares ${spec.metrics.primary} of the arm "${arm}"`);
 	if (spec.tolerance.kind === "mean") return { kind: "mean", ...withinNoise(baseline.values, values) };
 	return { kind: "share", ...shareWithinNoise(baseline.values, values, spec.tolerance.threshold) };
 }
@@ -131,14 +146,16 @@ function toleranceOf(spec: ExperimentSpec, rows: readonly Row[], baseline: Noise
  * included runs and over every finished run that has a value (excluded ones included; a stopped run never). An
  * estimate that the statistics cannot compute (fewer than two pairs, or two runs in an arm) has no row; the pass
  * rule then reads `no-verdict`, as it does below `pass.minN`. A metric that only one arm exports is `"absent"` in
- * the other and gives no estimate. A guardrail that does not hold never changes the verdict.
+ * the other and gives no estimate. An included run without a number for the primary metric is left out of the
+ * estimates and listed in `deviations`. A guardrail that does not hold never changes the verdict.
  *
  * @param state - The state of the experiment, as `runExperiment` returned it or `readExperimentState` read it.
  * @param facts - The facts of the runs that could be read (`readRun` of each record's folder).
  * @param baseline - The noise floor the control values are compared with, when the spec has a `tolerance`.
  * @returns The results, valid against `ExperimentResultsSchema`.
  * @throws LabError `SWT-E011` when a planned run, or the replacement of an excluded one, has no record yet;
- * `SWT-E010` when no run of the facts has a metric of the spec.
+ * `SWT-E010` when no run of the facts has a metric of the spec; `SWT-E001` when the baseline holds another metric or
+ * another arm than the one the tolerance compares.
  * @example
  * ```ts
  * const results = analyse(state, state.runs.filter((run) => run.status !== "stopped").map((run) => readRun(run.directory, metrics)));
@@ -169,6 +186,6 @@ export function analyse(state: ExperimentState, facts: readonly RunFacts[], base
 		...(pass === undefined ? {} : { pass }),
 		guardrails: guardrailsOf(spec, rows),
 		...(tolerance === undefined ? {} : { tolerance }),
-		deviations: rows.filter(({ record }) => record.status !== "included").map(({ record, run }) => ({ at: run, what: `the run is ${record.status}${record.replaces === undefined ? "" : ", and it was the one replacement"}`, why: record.reason ?? "no reason recorded" })),
+		deviations: deviationsOf(spec, rows),
 	});
 }

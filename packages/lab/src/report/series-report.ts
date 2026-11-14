@@ -54,7 +54,11 @@ function estimates(results: ExperimentResults, spec: ExperimentSpec): readonly s
 			return [...head, shown(found.estimate), shown(found.se), `${shown(found.interval[0])} to ${shown(found.interval[1])}`, String(found.n), shown(found.p), `${found.estimator}; ${found.test}`];
 		}),
 	);
-	return table(["Metric", "Role", "Over", "Estimate", "SE", "95 % interval", "n", "p", "Estimator and test"], rows, "no metric");
+	// The rule `missed-decision` excludes by what residents did, so the gated row is conditioned on their play: the report says so where it applies.
+	const conditioned = spec.exclusions.includes("missed-decision")
+		? ["", "The exclusion `missed-decision` depends on what the residents did, so the rows over the included runs are conditioned on their play. The rows over the finished runs count every finished run that has a value, an excluded run in place of its replacement; read both."]
+		: [];
+	return [...table(["Metric", "Role", "Over", "Estimate", "SE", "95 % interval", "n", "p", "Estimator and test"], rows, "no metric"), ...conditioned];
 }
 
 // The verdict is read from its own field: a result without a verdict prints no estimate, whatever number it carries.

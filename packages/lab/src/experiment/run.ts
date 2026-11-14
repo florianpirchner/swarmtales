@@ -179,6 +179,8 @@ class Series {
 		this.planLength = planRuns(state.spec).length;
 		this.queue = openRuns(state.spec, state.runs);
 		for (const record of state.runs) if (record.status !== "stopped") this.first(manifestOf(record.directory));
+		// The failures in a row at the end of an earlier call still count: a continue of a broken series pays one run, not three.
+		this.failures = state.runs.length - 1 - state.runs.findLastIndex((record) => record.status === "included");
 	}
 
 	private first(manifest: RunManifest): void {
@@ -204,8 +206,8 @@ class Series {
 		try {
 			facts = readRun(base.directory, this.options.metrics);
 		} catch (error) {
-			if (!(error instanceof SwtError)) throw error;
-			return { ...base, status: "stopped", reason: error.message };
+			// Any failure is a record: a run that was paid for never leaves the state file, whatever broke while reading it.
+			return { ...base, status: "stopped", reason: error instanceof Error ? error.message : String(error) };
 		}
 		const manifest = manifestOf(base.directory);
 		const fatal = this.mismatch(base.planned, manifest, base.directory);
@@ -229,6 +231,8 @@ class Series {
 			if (error instanceof SwtError && error.code === LEAK) this.stop ??= seriesBroken(`the run of arm "${planned.arm}" at seed ${planned.seed} reported a leak`);
 			return { planned, directory: "", status: "stopped", reason: error instanceof Error ? error.message : String(error), costUsd: spec.budget.perRunUsd, ...replaces };
 		}
+		// A cost that is no amount would make every later sum pass the cap check: the run counts with its whole cap.
+		if (!Number.isFinite(outcome.costUsd) || outcome.costUsd < 0) return { planned, directory: outcome.directory, status: "stopped", reason: `the player reported the cost ${String(outcome.costUsd)}, which is no amount`, costUsd: spec.budget.perRunUsd, ...replaces };
 		return this.judge({ planned, ...outcome, ...replaces });
 	}
 
@@ -265,8 +269,10 @@ class Series {
  * @remarks
  * Every cap is checked by code before a run starts. A run starts only when what is spent, plus the per-run cap of
  * every run in flight, plus its own per-run cap fits under `budget.totalUsd`; no run is stopped half way. A run
- * whose facts meet a rule of `exclusions` is replaced once (replicate plus 100). A player that fails counts with
- * its whole cap. When the experiment stops, the runs in flight end first and the state file holds them.
+ * whose facts meet a rule of `exclusions` is replaced once (replicate plus 100). A player that fails, or reports a
+ * cost that is no amount, counts with its whole cap. A run whose folder cannot be read keeps a record with its cost.
+ * Of a state file only the records are trusted: the spec is the caller's and what is spent is the sum of the records.
+ * The failures in a row at the end of an earlier call count on. When the experiment stops, the runs in flight end first and the state file holds them.
  *
  * @param spec - The experiment spec.
  * @param play - Plays one planned run.
@@ -292,7 +298,9 @@ export async function runExperiment(spec: ExperimentSpec, play: PlayRun, options
 	if (estimate > spec.budget.totalUsd + EPSILON) throw estimateAboveCap(estimate, spec.budget.totalUsd);
 	const saved = readExperimentState(options.directory);
 	if (saved !== undefined && saved.specHash !== specHash) throw badRunFolder(options.directory, `${STATE_FILE} was written for another spec (hash ${saved.specHash}, not ${specHash})`);
-	const series = new Series(saved ?? { spec, specHash, runs: [], spentUsd: 0 }, play, options);
+	// Of a saved state only the records count: the spec is the caller's (its hash was just checked) and what is spent is their sum, so an edited file cannot raise a cap.
+	const runs = saved?.runs ?? [];
+	const series = new Series({ ...saved, spec, specHash, runs, spentUsd: runs.reduce((sum, record) => sum + record.costUsd, 0) }, play, options);
 	await Promise.all(Array.from({ length: spec.concurrency ?? 1 }, () => series.worker()));
 	if (series.stop !== undefined) throw series.stop;
 	return series.state;

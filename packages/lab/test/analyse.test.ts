@@ -105,6 +105,37 @@ describe("analyse", () => {
 		expect(unpaired.pass).toMatchObject({ n: 3, verdict: "kept" });
 	});
 
+	it("B6: an included run without a value of the primary metric is a deviation, not a silent smaller n", () => {
+		const read = results(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, "absent"]]);
+		expect([read.pass?.n, read.pass?.verdict]).toEqual([2, "no-verdict"]);
+		expect(read.deviations).toEqual([{ at: "open-3-0", what: "the run is included and has no value of toy.score", why: "the metric is absent in the run, or the facts of the run were not read; the run is left out of the estimates" }]);
+		const { state, facts } = table(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31]]);
+		expect(analyse(state, facts.slice(0, 5)).deviations.map((row) => row.at)).toEqual(["open-s3-r0"]);
+	});
+
+	it("B7: a noise floor of another metric or another arm is refused (E001), not compared", () => {
+		const spec: ExperimentSpec = { ...BASE, arms: [{ id: "control", params: {}, control: true }], design: "replicates", metrics: { ...SPEC.metrics, secondary: [] }, tolerance: { kind: "mean" } };
+		const floor: NoiseFloor = { format: "swarmtales-noise-floor", version: 1, game: "toy", arm: "control", seed: 1, metric: "toy.score", platform: "legacy", kernelRevision: 2, values: [12, 22, 26], summary: summarize([12, 22, 26]), guardrails: {} };
+		expect(results(spec, CONTROL, floor).tolerance?.within).toBe(true);
+		expect(() => results(spec, CONTROL, { ...floor, metric: "toy.decisions" })).toThrow(/SWT-E001.*toy\.decisions/);
+		expect(() => results(spec, CONTROL, { ...floor, arm: "open" })).toThrow(/SWT-E001.*"open"/);
+	});
+
+	it("B13: a pass rule over a design without a contrast gives no verdict, not the sign of one arm's mean", () => {
+		const cells: readonly Cell[] = [...CONTROL, ["open", 1, 5], ["open", 2, 7], ["open", 3, 9]];
+		const lone = results({ ...SPEC, design: "replicates" }, cells);
+		expect(lone.estimates[0]).toMatchObject({ contrast: ["control"], estimate: 20 });
+		expect(lone.pass).toMatchObject({ verdict: "no-verdict", n: 0 });
+		expect(lone.pass?.rule).toContain("the design replicates has no contrast");
+		expect(results({ ...SPEC, design: "unpaired" }, cells).pass).toMatchObject({ estimate: -13, verdict: "not-kept" });
+	});
+
+	// Finding B8 (open): a seed listed twice, or 100 replicates and more, share one cell key, and the later run replaces the earlier one without a word.
+	it.fails("B8: a spec with a seed listed twice is refused, or both runs of the seed count", () => {
+		const twice = results({ ...SPEC, seeds: [1, 1, 2], pass: { contrast: ["open", "control"], sign: "positive", minN: 2 } }, [["control", 1, 10], ["control", 1, 20], ["control", 2, 30], ["open", 1, 11], ["open", 1, 21], ["open", 2, 31]]);
+		expect(twice.pass?.n).toBe(3);
+	});
+
 	it("refuses an analysis before every planned run, and the replacement of an excluded one, has a status (E011)", () => {
 		const { state, facts } = table(SPEC, [...CONTROL, ["open", 1, 15], ["open", 2, 23], ["open", 3, 31, "excluded"]]);
 		const code = (run: () => unknown): string => {
