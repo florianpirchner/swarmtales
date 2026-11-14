@@ -10,6 +10,9 @@ something the papers left open, section 15 lists it with its reason; section 16 
 decide. A change of an interface of sections 3 to 8 after its issue is merged needs an issue with the label
 `interface-change`.
 
+**Errata:** [`10-m3-spec-errata.md`](10-m3-spec-errata.md) lists every difference between this file and the code
+that the builders found (G1 to G26); where the two differ, the errata hold.
+
 Words as in the M1 and M2 specifications: an "old" path is a path at the tag `v0-final` (read at
 `/home/user/swarmtales`, commit `87844a7`). "Carried" means copied with at most import changes and the renames of
 M1 section 8.1; carried lines do not count against the 400-line rule. "Ported" means the same design rewritten

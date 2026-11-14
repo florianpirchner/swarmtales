@@ -20,7 +20,8 @@ recalibration is recorded in an issue.
 ## How to fill a row
 
 - **A row** is one issue: the squash commit on `develop` whose subject starts with the issue id (decision A3), in
-  merge order. A later commit with the same id is folded into the row of its issue. A review, a specification and a
+  merge order. A later commit with the same id is folded into the row of its issue or, from row 85 on, gets a row
+  of its own that names the row of its issue. A review, a specification and a
   commit of the integrator without an id get a row of their own, so that every commit on `develop` is in the table.
 - **Tokens (total)** come from the usage report of the sessions that worked on the issue (builder, challenger,
   rework), in millions with two decimals. Where a session reports the four kinds (input, output, cache read, cache
@@ -53,7 +54,8 @@ What the numbers of this table can and cannot say:
   viewer, the ported mechanics, the chain) is not told apart from new source.
 - **Cost is a dash in every row:** the sessions are not billed per token.
 
-All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `0ac3e89` of `rewrite/develop`.
+All merges are of 2026-11-14; the times are UTC. The table is complete up to commit `0ea32af` of `rewrite/develop`
+(M2-24); the rows 85 to 129 were written from the history by issue M3-31, whose own commit has no row yet.
 
 | # | Issue | Title | Milestone | Commit | Merged | Tokens (total, M) | Cost (USD) | Wall time (h) | Agent time (h) | Lines | Source | Tests | Other | Note |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -141,6 +143,51 @@ All merges are of 2026-11-14; the times are UTC. The table is complete up to com
 | 82 | M2-23 | Mechanic README generator; the READMEs of the seven mechanics | M2 | `bfe388d` | 15:15 | 0.20 | - | 0.19 | 0.31 | +2395 -28 | 630 | 156 | 1637 | one session |
 | 83 | M2 review B | the experiment runner holds its cap against a bad cost and an edited state file; analysis, exclusions and report fixes | M2 | `201aefc` | 15:22 | not recorded | - | - | not recorded | +176 -15 | - | - | - | challenger session; the line split is not counted |
 | 84 | M2 review A | held keys redacted before patterns, flag values and limit reasons redacted, a model without a price refused before the folder is written | M2 | `0ac3e89` | 15:32 | not recorded | - | - | not recorded | +372 -10 | - | - | - | challenger session; the line split is not counted |
+| 85 | - | Docs: issue record, games page, folder READMEs | - | `4a0f90b` | 15:43 | not recorded | - | - | not recorded | +268 -27 | 0 | 0 | 295 | integrator's commit, no issue id |
+| 86 | M3 specification | M3 build specification, challenged; decisions A19 to A22; resume note and status lines | M3 | `51dd7cc` | 15:44 | not recorded | - | - | not recorded | +1103 -25 | 0 | 0 | 1128 | specification commit; the usage file ends before its sessions |
+| 87 | M2-22 | CLI: swt report and swt experiment; the binding hash leaves budget and concurrency out (A18) | M2 | `a502d6c` | 15:48 | not recorded | - | 0.53 | not recorded | +533 -36 | 378 | 182 | 4 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 88 | M3-00 | Scaffold of M3: seven mechanic packages and the city slice game, empty | M3 | `f3a4ad4` | 15:57 | not recorded | - | 0.08 | not recorded | +1084 -0 | 119 | 0 | 705 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 89 | M2-22 | follow-up: the experiment test no longer depends on the folder of the checkout | M2 | `11a7e59` | 16:05 | not recorded | - | - | not recorded | +7 -4 | 0 | 11 | 0 | follow-up commit of row 87; kept as its own row |
+| 90 | M3-07 | exile | M3 | `230bd91` | 16:23 | not recorded | - | 0.04 | not recorded | +438 -9 | 146 | 108 | 142 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 91 | M2-25 | Lab follow-ups of the reviews: duplicate seeds refused, shares with Wilson intervals, relative run folders, plan check, a refused run costs nothing | M2 | `1fe52a3` | 16:32 | not recorded | - | 0.54 | not recorded | +469 -167 | 470 | 158 | 0 | follow-up issue of the M2 reviews, beside the plan; tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 92 | M3-08 | decisions 1: propose and settle | M3 | `485387a` | 16:34 | not recorded | - | 0.06 | not recorded | +637 -9 | 227 | 112 | 179 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 93 | M2-26 | Money follow-ups of review A: the meter fails closed, the ledger pairs by id, the report in the canary scan, a confirmatory run needs a clean tree | M2 | `54930f2` | 16:59 | not recorded | - | 0.08 | not recorded | +367 -67 | 171 | 261 | 0 | follow-up issue of the M2 reviews, beside the plan; tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 94 | M3-04 | ledger | M3 | `fff2c21` | 17:00 | not recorded | - | 0.41 | not recorded | +1302 -9 | 426 | 436 | 185 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 95 | M3-05 | channels 1: board and notices | M3 | `5dc3075` | 17:02 | not recorded | - | 0.22 | not recorded | +1074 -9 | 610 | 189 | 192 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 96 | M2-26 | follow-up: the experiment command passes the source tree on; the tree helpers are exported | M2 | `c26f19f` | 17:06 | not recorded | - | - | not recorded | +5 -1 | 6 | 0 | 0 | follow-up commit of row 93; kept as its own row |
+| 97 | M3-01 | Contracts of M3: Director uses, the model port, the snapshot file, the manifest field human | M3 | `03621a0` | 17:08 | not recorded | - | 0.09 | not recorded | +441 -9 | 167 | 204 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 98 | - | Lint runs as three processes: packages, mechanics, the rest | - | `669388a` | 17:18 | not recorded | - | - | not recorded | +1 -1 | 0 | 0 | 2 | integrator's commit, no issue id |
+| 99 | M3-18 | humanHand | M3 | `725ca57` | 17:22 | not recorded | - | 0.63 | not recorded | +321 -7 | 60 | 104 | 152 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 100 | M3-02 | Kernel: resume hardening (O17) | M3 | `04ce094` | 17:36 | not recorded | - | 0.29 | not recorded | +51 -8 | 29 | 30 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 101 | M3-03 | turns: afterBlocks | M3 | `1a5abd0` | 17:37 | not recorded | - | 0.18 | not recorded | +213 -13 | 58 | 167 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 102 | M3-16 | models: the asker | M3 | `c7dbbf1` | 17:39 | not recorded | - | 0.21 | not recorded | +371 -0 | 178 | 181 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 103 | M3-12 | sdk: the actors human and director | M3 | `bd92379` | 17:40 | not recorded | - | 0.10 | not recorded | +224 -20 | 98 | 127 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 104 | M3-09 | decisions 2: amendDecision | M3 | `c46b5a6` | 17:41 | not recorded | - | 0.21 | not recorded | +259 -17 | 65 | 129 | 50 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 105 | M3-06 | channels 2: direct messages | M3 | `d1807ab` | 17:42 | not recorded | - | 0.13 | not recorded | +532 -37 | 266 | 164 | 84 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 106 | M3-09 | follow-up: the human test uses the sdk's actor human | M3 | `7071878` | 17:50 | not recorded | - | - | not recorded | +2 -13 | 0 | 15 | 0 | follow-up commit of row 104; kept as its own row |
+| 107 | - | Econ Lab series: the report gives the share of locked tables per arm (shareAt 1, decision A10) | M2 | `4bb8d76` | 18:05 | not recorded | - | - | not recorded | +1 -0 | 0 | 0 | 1 | integrator's commit, no issue id |
+| 108 | M3-10 | The ledger listens | M3 | `5b105e3` | 18:07 | not recorded | - | 0.23 | not recorded | +125 -3 | 12 | 106 | 10 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 109 | M3-17 | runlog: snapshot file, resumed folder, continuity | M3 | `2327ef2` | 18:08 | not recorded | - | 0.10 | not recorded | +419 -37 | 283 | 140 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 110 | M3-11 | puzzles: deal, hold, burn | M3 | `ec4c654` | 18:10 | not recorded | - | 0.08 | not recorded | +1709 -7 | 931 | 261 | 187 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 111 | M3-19 | court | M3 | `a6692f2` | 18:11 | not recorded | - | 0.10 | not recorded | +690 -7 | 167 | 148 | 189 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 112 | M3-13 | sdk: defineDirector | M3 | `ff2efb4` | 18:12 | not recorded | - | 0.10 | not recorded | +700 -51 | 490 | 115 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 113 | M3-22 | testkit: replay | M3 | `b7de650` | 18:13 | not recorded | - | 0.10 | not recorded | +424 -0 | 227 | 173 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 114 | M3-25 | Oracle proofs 1: deal and burn | M3 | `a69f1cb` | 18:32 | not recorded | - | 0.03 | not recorded | +347 -1 | 134 | 138 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 115 | M3-14 | sdk: the plugin directors | M3 | `d5dbcb6` | 18:34 | not recorded | - | 0.05 | not recorded | +397 -7 | 239 | 142 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 116 | - | Resume note: state of 18:25 UTC | - | `b24bda6` | 18:41 | not recorded | - | - | not recorded | +17 -16 | 0 | 0 | 33 | integrator's commit, no issue id |
+| 117 | M3-15 | engine: the Director's driver | M3 | `38f8e7b` | 18:47 | not recorded | - | 0.05 | not recorded | +290 -1 | 96 | 180 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 118 | M3-26 | Oracle proofs 2: ledger and talk | M3 | `8aa5ea1` | 18:49 | not recorded | - | 0.03 | not recorded | +402 -4 | 63 | 288 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 119 | M3-23 | The game city-slice | M3 | `3667ab3` | 19:01 | not recorded | - | 0.04 | not recorded | +1425 -5 | 206 | 1161 | 63 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the three committed timelines (data) are in "Tests" |
+| 120 | M3-20 | Command line 1: the run loop, --hand, --snapshot-at | M3 | `16fb46a` | 19:09 | not recorded | - | 0.04 | not recorded | +640 -56 | 506 | 190 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 121 | M3-21 | Command line 2: swt resume | M3 | `6b7da27` | 19:26 | not recorded | - | 0.03 | not recorded | +447 -35 | 307 | 175 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 122 | M3-24 | The slice replays and resumes | M3 | `908f899` | 19:39 | not recorded | - | 0.04 | not recorded | +259 -0 | 0 | 259 | 0 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 123 | - | Decisions A23 (what equal means for a resumed log) and A24 (issue M3-32) | M3 | `3efd9af` | 19:39 | not recorded | - | - | not recorded | +3 -1 | 0 | 0 | 4 | integrator's commit, no issue id |
+| 124 | M3-32 | The city slice plays under the fake driver | M3 | `7700c81` | 19:53 | not recorded | - | 0.03 | not recorded | +277 -53 | 85 | 234 | 11 | added by decision A24; tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 125 | - | City slice README: what the fake run plays | M3 | `e075b87` | 19:53 | not recorded | - | - | not recorded | +3 -2 | 0 | 0 | 5 | integrator's commit, no issue id |
+| 126 | M3-27 | Viewer 1: the projection | M3 | `ff92e59` | 19:54 | not recorded | - | 0.09 | not recorded | +1221 -0 | 426 | 648 | 20 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 127 | M3-28 | Viewer 2: Directors and decisions | M3 | `d3d2990` | 20:07 | not recorded | - | 0.04 | not recorded | +374 -33 | 296 | 92 | 19 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 128 | M3-29 | Viewer 3: the human, the pause, the resume | M3 | `a4e7ea7` | 20:20 | not recorded | - | 0.03 | not recorded | +308 -18 | 199 | 100 | 27 | tokens and agent time not recorded: the usage file ends before the sessions of this issue |
+| 129 | M2-24 | The gate of M2: both series keep their sign, 61 live runs for 1.60 USD | M2 | `0ea32af` | 20:27 | not recorded | - | 0.05 | not recorded | +307 -0 | 0 | 0 | 307 | tokens and agent time not recorded: the usage file ends before the sessions of this issue; the lines are the gate's report, the run indexes and the spend ledger (data); the run folders are on `data/runs` |
 
 ## Sessions without a row
 
@@ -165,26 +212,86 @@ Sessions whose name matches no row of the record. By their names their work is t
 
 ## Totals
 
-State at commit `0ac3e89`, 84 rows; the sums below are of the first 82.
+State at commit `0ea32af`, 129 rows. The token sums below are those of the first 82 rows: the usage file of the
+sessions ends there, and the rows 83 to 129 have no number.
 
-| | Planned (A12) | Merged | Note |
+| | Planned | Merged | Note |
 |---|---|---|---|
-| M0 | 14 | not recorded per issue | 3 rows: the root commit squashes the issues of the frame, then the oracle files and the spike paper. The other M0 issues on the old state (the resume note names the noise floor and the chess engine) were merged on `legacy` and have no row |
-| M1 | 37 | 37 | M1-00 to M1-36 |
-| M2 | 25 | 23 | M2-00 to M2-21 and M2-23; M2-22 and M2-24 are open |
-| Sum | 76 | 60 of M1 and M2, plus the 3 rows of M0 | kill line 150 |
+| M0 | 14 (A12) | not recorded per issue | 3 rows: the root commit squashes the issues of the frame, then the oracle files and the spike paper. The other M0 issues on the old state (the resume note names the noise floor and the chess engine) were merged on `legacy` and have no row |
+| M1 | 37 (A12) | 37 | M1-00 to M1-36 |
+| M2 | 25 (A12) | 25 | M2-00 to M2-24; the gate M2-24 merged last (row 129, [`M2-GATE.md`](M2-GATE.md): 61 live runs, 1.60 USD of the live budget of 10 USD). Beside the plan: the follow-up issues M2-25 and M2-26 of the reviews, both merged |
+| Sum of M0 to M2 | 76 | 62 of M1 and M2, plus the 3 rows of M0 | kill line 150 |
+| M3 | 32 (A19), 33 with M3-32 (A24) | 31 | M3-00 to M3-29 and M3-32. Open: M3-30, the live smoke (another session runs it), and M3-31, the gate, whose commit this state precedes. Stop line of A19: above 64 |
 
-Rows beside the plan: 19. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
-milestone), the specification of M2, and ten commits of the integrator without an issue id.
+Rows beside the plan: 33. Four follow-up issues of M1 (M1-37 to M1-40), four reviews of M1 (waves 1 to 3 and the
+milestone), the specifications of M2 and M3, the reviews A and B of M2, the two follow-up issues of M2 (M2-25,
+M2-26), three follow-up commits with the id of their issue (rows 89, 96, 106), and sixteen commits of the
+integrator without an issue id.
 
 | | Recorded | Budget | Share |
 |---|---|---|---|
-| Agent tokens in rows (70 of 82 rows have a number, 12 are "not recorded") | 13.22 million | | |
+| Agent tokens in rows (70 of 129 rows have a number, 59 are "not recorded") | 13.22 million | | |
 | Agent tokens of the 12 sessions without a row | 2.38 million | | |
 | Agent tokens, all 85 session reports | 15.60 million | 300 million | 5.2 % |
 | Agent cost | - | 750 USD | the sessions are not billed per token |
 
-The recorded sum leaves out the integrator's session and counts each session as it reported itself, so it is a lower
-bound of what the work used. The median of the 70 rows with a number is 0.16 million tokens, the largest row 0.64
-million. The one recalibration of D4 (the median of the first ten merged issues replaces the 6 million per issue)
-is not done yet; it needs its issue.
+The recorded sum leaves out the integrator's session, every session after row 82 (the rest of M2 and all of M3)
+and counts each session as it reported itself, so it is a lower bound of what the work used. The median of the 70
+rows with a number is 0.16 million tokens, the largest row 0.64 million. The one recalibration of D4 (the median of
+the first ten merged issues replaces the 6 million per issue) is not done yet; it needs its issue.
+
+## The gate of M3
+
+The six done-whens of `refactoring-before-release/10-m3-spec.md` and the test that proves each. All of them run
+offline, in `pnpm check`. The milestone is closed by its review, after M2 is closed (the gate of M2, M2-24, was merged at 20:27 while
+this was written; its milestone review is open). The live smoke of M3 (M3-30, which does not gate) is run by
+another session and was open when this was written.
+
+| # | Done when | Proven by |
+|---|---|---|
+| 1 | the slice plays and the whole run equals a committed timeline | `games/city-slice/test/city-slice.test.ts`: "plays twelve ticks and the whole log equals the committed timeline" (seeds 7 and 11, the variant `amended`) and the seven moments by name |
+| 2 | replay from the game and `events.jsonl` alone gives the same log | `games/city-slice/test/replay-resume.test.ts`: "done-when 2: replay writes the committed timeline again ..." and its failing twin "a log with one input changed is not replayed equal"; from run folders: `apps/cli/test/city-slice.test.ts`, "done-when 2 from run folders" |
+| 3 | a run stopped at a snapshot and resumed gives the straight log; `swt log verify` proves the continuity | in process: `replay-resume.test.ts`, "done-when 3, in process"; through `swt run`, `swt resume` and `swt log verify --previous`: `apps/cli/test/city-slice.test.ts` (equal as decision A23 reads it) |
+| 4 | `exile` names no other game mechanic | `scripts/gates/exile-alone.test.ts` (this issue): the manifest, every import and every string of `mechanics/exile/src/`, and the head's empty `requires` and `uses`; it fails on fourteen fixtures in which `exile` names `puzzles` or another mechanic |
+| 5 | no service cycle | `games/city-slice/test/city-slice.test.ts`: "resolves without a cycle of services, in the game's own order, and no optional use had to wait" |
+| 6 | the softer check is answered in writing | the next section |
+
+## The softer check of M3
+
+`REWRITE.md` section 7: "if the City slice needs a kernel change that the tabletop games did not need, the kernel
+API is not frozen and M4 waits." Done-when 6 of the M3 specification asks for the answer in writing
+(`10-m3-spec.md` section 10). Measured at commit `a4e7ea7` with the counter of the budget gate
+(`scripts/lib/budget.ts`; the kernel's own gate `packages/kernel/test/budget.test.ts` counts the same 1393):
+
+| | Before M3 (`0ac3e89`) | After M3 | Added | Planned by the specification | Limit |
+|---|---|---|---|---|---|
+| `kernel` | 1381 | 1393 | 12 | at most 15, at most 1396 | gate 1420, hard 1500 |
+| `sdk` | 1705 | 2065 | 360 | about 330, about 2035 | |
+| `engine` | 293 | 360 | 67 | about 230, about 523 | |
+| kernel + sdk + engine | 3379 | 3818 | 439 | about 575, about 3954 | 4100 (A20): 282 left |
+| Issues of M3 | | 33 planned (32, and M3-32 by A24); 32 merged with M3-31, M3-30 open | | 32 | stop above 64 (A19) |
+
+**Which kernel lines M3 added.** All 12 are of one issue, M3-02 (row 100, erratum O17): the function `restore`
+in `packages/kernel/src/kernel.ts` and the factory `noResume` of the code `SWT-R021` in `errors.ts`. After
+`restoreKernel` the kernel refuses a snapshot that is older than its log, that holds a suspension of a plugin that
+is not loaded, or that locks a tool no loaded plugin has. No other issue of M3 touched `packages/kernel/src`.
+
+**Would the tabletop games have needed them?** They could have used them and nothing of the slice forced them: the
+three checks read input that any game can give (a snapshot edited by hand or taken from another game), and every
+game resumes through the same `createKernel(definition, {}, { snapshot, log })`. They
+add no mechanism and no extension point. The kernel's API report (`packages/kernel/kernel.api.md`) and the kernel
+contracts (`packages/contracts/src/kernel/`) have no changed line between `0ac3e89` and `a4e7ea7`.
+
+**What the slice needed and where it lives instead.** The Director (actor, queue, driver), the decision window, the
+Human Hand, the pause, the snapshot file, the resume marker and replay cost 0 kernel lines; they use the extension
+points the table of section 10 of the specification names. The two places where the specification expected a
+possible gap closed without the kernel: a `turnInputs` hook may emit (M3-06), and `Kernel.submit` takes the actor
+`human`, which no scheduler activates (M3-12). No builder reported a missing extension point. What M3 did change
+outside the kernel is in the errata `refactoring-before-release/10-m3-spec-errata.md`: `MechanicContext.actors`
+and `Setup.actors` in the sdk (G2) are the one addition to an authoring interface that a mechanic asked for.
+
+**Answer.** The City slice needed no kernel change that the tabletop games did not need. The check passes; the
+kernel interface stands and M4 does not wait. The reserved returns of M1 1.4 were not taken (decision 20 of the
+specification, A20). Limits of this answer: the slice is six scripted residents and seven cut mechanics, not the
+City; the judge, hooks for blocks above 1 and a stop inside a tick are M5 and are the next test of the same
+question.

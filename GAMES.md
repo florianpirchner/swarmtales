@@ -1,8 +1,9 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Four games run on the new platform today, each with a scripted
-or sampled player in place of a model. **No live run has happened on this platform yet, so no card carries a finding
-or a recorded moment:** a finding appears on a card only when it is reproduced on this platform.
+The catalogue of the games that run on Swarm Tales. Five games run on the new platform today, each with a scripted
+or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
+([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
+on a card only when it is reproduced on this platform, with n, standard error and a link.
 
 A new game adds a card here, never a line to the [`README.md`](README.md).
 
@@ -16,8 +17,9 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Tic-tac-toe teams](#tic-tac-toe-teams) | board games, all information public | 6 (two teams of three) | `grid-game`, `consensus`, `team-channel`, `strategy-brain`, `optimal-referee` | none; variants are options of `tictactoeGame` | nine oracle files match at level 3 |
 | [Quarry](#quarry) | markets, bids and economics | 4 | `draft-rounds`, `strategy-brain` | a game family with seven params | six oracle files match at level 3 |
 | [Econ Lab](#econ-lab) | markets, bids and economics | 4 | `econ-games`, `strategy-brain` | a game family with four params | five oracle files match at level 3 |
+| [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 
-No game on the new platform has a Director yet. An oracle file is one configuration with one seed, recorded on the
+The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
 compares the rules, the texts and the scheduling ([`oracles/README.md`](oracles/README.md)).
 
@@ -78,10 +80,30 @@ play and the social optimum, for the report only.
 - Links: [folder](games/econ-lab/), [README](games/econ-lab/README.md), [oracle files](oracles/econ-lab/),
   [experiment specifications](games/econ-lab/experiments/).
 
+## The city slice
+
+The smallest part of the City of Keys that needs talk, a ledger, an exile, a decision with a window, a Director and
+the Human Hand. Six residents (A01 to A06) talk on a board and in direct messages and pay each other points. A
+court takes their votes and proposes to banish the resident with the most; the verdict waits two ticks, in which
+the person at the run or the Director `warden` may change it; then it is carried out. The mechanic `exile` only
+writes that the resident is gone: the ledger burns its points and the puzzles burn its fragments because they
+listen to that one event. It is not the City of Keys (no gate, no tribunal, no progression) and not a port: it is
+played by scripts, offline, and has no briefing. The full recut of the City comes with milestone M5.
+
+- No params. The run of the tests is data (`games/city-slice/src/scripts.ts`): the residents' calls, the person's
+  lines (pause, snapshot, resume; in the variant `amended` a changed verdict) and the answers of the warden's model.
+- Proof: the whole log equals a committed timeline (seeds 7 and 11 and the variant `amended`); the testkit's
+  `replay` writes the log again from the game and `events.jsonl` alone; a run stopped at a snapshot and continued
+  with `swt resume` gives the straight log once the marker line is taken out (decision A23), and `swt log verify`
+  proves the continuity of the two folders. No City oracle file is replayed whole; projections of them prove the
+  ported rules of the ledger, the talk, the deal and the burn ([`oracles/cityofkeys/`](oracles/cityofkeys/)).
+- Links: [folder](games/city-slice/), [README](games/city-slice/README.md), [`game.ts`](games/city-slice/game.ts).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Three are ported so far, marked in bold; the Hello Game is new and is not one of the fifteen.
+five families. Three are ported so far, marked in bold; the Hello Game and the city slice are new and are
+not among the fifteen.
 
 | Family | Games |
 |---|---|

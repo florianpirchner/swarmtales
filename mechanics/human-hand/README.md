@@ -127,13 +127,24 @@ This mechanic has no prompt files.
 
 ## Example
 
-No game of this repository lists it yet; `games/city-slice` will. In a game's `mechanics` list:
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
-humanHand(),
+mechanics: [
+	// ...
+	decisions({ holders: ["human", "director:warden"] }),
+	humanHand(),
+	// ...
+],
+// ...
+grants: {
+	// ...
+	human: ["pause", "resume", "amendDecision"],
+},
 ```
 
-It takes no options. The tools go to the grant `human` without an entry in the game's `grants`.
+It takes no options. The grant `human` holds its two tools and, from `decisions`, `amendDecision`; the person's
+lines come from the hand file of `swt run --hand`.
 
 ## Lessons and loopholes
 

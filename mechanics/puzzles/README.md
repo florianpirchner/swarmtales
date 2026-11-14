@@ -150,22 +150,24 @@ This mechanic has no prompt files.
 
 ## Example
 
-A game lists the levels with their team layout and puzzle (the fragment levels of the City of Keys, which
-[city-slice](../../games/city-slice/README.md) plays a part of, have this shape):
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
+const fragments = (shortest: number, longest: number, overlap: number): { kind: "fragments"; length: [number, number]; overlap: number } => ({ kind: "fragments", length: [shortest, longest], overlap });
+// ...
+// Door 1 is passed alone; doors 2 and 3 need the fragment of a teammate. Everyone stands before door 2.
 puzzles({
 	levels: [
-		{ number: 1, team: { kind: "solo" }, puzzle: { kind: "fragments", length: [6, 10], overlap: 2 } },
-		{ number: 2, team: { kind: "random", size: 2 }, puzzle: { kind: "fragments", length: [6, 10], overlap: 2 } },
-		{ number: 3, team: { kind: "sameAs", level: 2 }, puzzle: { kind: "fragments", length: [12, 14], overlap: 3 } },
+		{ number: 1, team: { kind: "solo" }, puzzle: fragments(6, 10, 2) },
+		{ number: 2, team: { kind: "random", size: 2 }, puzzle: fragments(6, 10, 2) },
+		{ number: 3, team: { kind: "sameAs", level: 2 }, puzzle: fragments(12, 14, 3) },
 	],
-	standings: { A04: { level: 3, passed: [1, 2] } },
-});
+	standings: Object.fromEntries(RESIDENTS.map((id) => [id, { level: 2, passed: [1] }])),
+}),
 ```
 
 Level 1 is played alone (the fragment is the password), level 2 in seeded pairs, level 3 in the pairs of level 2 with
-a longer password. `standings` says that `A04` stands before door 3.
+a longer password. `standings` says that every resident has passed door 1 and stands before door 2.
 
 ## Lessons and loopholes
 

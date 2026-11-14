@@ -38,6 +38,6 @@ at the tag `v0-final`; their words are the old ones (see the retired words in th
 
 `pnpm check` runs, in this order: typecheck, lint (size limits, TSDoc, 4 GB heap), tests (unit tests plus the
 gates under `scripts/gates/`: budgets, kernel word list, English only, README length, name lint, exception format,
-workspace shape), the layer check, the licence gate, the sign-off check, the build and the API reports. The first
+workspace shape, the mechanic READMEs, `exile` names no other mechanic), the layer check, the licence gate, the sign-off check, the build and the API reports. The first
 failure stops it. It prints a summary table and fails above 10 minutes or 6 GB; a gate that is still running when
 the time ends is stopped.

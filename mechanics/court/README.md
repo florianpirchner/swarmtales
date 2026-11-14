@@ -161,14 +161,23 @@ This mechanic exports no metrics.
 
 ## Example
 
-The game [city-slice](../../games/city-slice/README.md) lists it last, after the mechanics whose services it requires:
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
-mechanics: [ledger(), channels(), exile(), decisions({ holders: ["human", "director:warden"] }), humanHand(), puzzles(/* ... */), court({ opensAt: 4, closesAt: 6, window: 2 })],
+mechanics: [
+	ledger({ startPoints: 30 }),
+	channels(),
+	exile(),
+	decisions({ holders: ["human", "director:warden"] }),
+	humanHand(),
+	puzzles({ /* ... */ }),
+	// The session is open during ticks 4 and 5; the verdict of tick 6 is carried out at tick 8 unless a holder amends it.
+	court({ opensAt: 4, closesAt: 6, window: 2 }),
+],
 ```
 
-The session is open during the ticks 4 and 5; the verdict of tick 6 is carried out at tick 8 unless a holder amends
-it. `line` is left out, so the city speaks the line of the old platform.
+The court is listed last, after the mechanics whose services it requires (`decisions`, `exile`, `channels`). `line`
+is left out, so the city speaks the line of the old platform.
 
 ## Lessons and loopholes
 

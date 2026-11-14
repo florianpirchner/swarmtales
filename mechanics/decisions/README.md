@@ -183,12 +183,26 @@ This mechanic exports no metrics.
 
 ## Example
 
-The game `city-slice` (`games/city-slice/`, built by a later issue of M3) loads it with the person and the Director
-`warden` as holders; the mechanic `court` proposes its verdict with a window of 2 ticks:
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
-mechanics: [/* ... */ decisions({ holders: ["human", "director:warden"] }), /* ... */ court()],
+mechanics: [
+	// ...
+	decisions({ holders: ["human", "director:warden"] }),
+	humanHand(),
+	// ...
+	court({ opensAt: 4, closesAt: 6, window: 2 }),
+],
+directors: [{ use: warden }],
+grants: {
+	// ...
+	warden: ["postBoard", "amendDecision"],
+	human: ["pause", "resume", "amendDecision"],
+},
 ```
+
+The person and the Director `warden` hold every decision: each is named in `holders` and has `amendDecision` in its
+grant. The `court` proposes its verdict with a window of 2 ticks, in which a holder may change it.
 
 ## Lessons and loopholes
 

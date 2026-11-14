@@ -216,19 +216,24 @@ This mechanic exports no metrics.
 
 ## Example
 
-No game of the repository lists `channels` yet; `games/city-slice/game.ts` will, in this form:
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
-defineGame({
-	id: "city-slice",
-	residents: 6,
-	mechanics: [channels()],
-	scheduler: { id: "turns", options: { blockSize: 1 } },
-	end: { ticks: 12 },
-});
+mechanics: [
+	ledger({ startPoints: 30 }),
+	channels(),
+	// ...
+],
+directors: [{ use: warden }],
+grants: {
+	resident: ["transferPoints", "readBoard", "postBoard", "sendDM", "vote"],
+	warden: ["postBoard", "amendDecision"],
+	human: ["pause", "resume", "amendDecision"],
+},
 ```
 
-The mechanic takes no options; the game's grants decide who gets `readBoard`, `postBoard` and `sendDM`.
+The mechanic takes no options; the game's grants decide who gets `readBoard`, `postBoard` and `sendDM`. Here the
+residents get all three and the Director `warden` may post on the board.
 
 ## Lessons and loopholes
 

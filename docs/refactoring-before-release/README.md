@@ -26,3 +26,11 @@ The specification of a milestone is written and challenged before its issues sta
 - [`09-m2-spec.md`](09-m2-spec.md): milestone M2, live and measured: models with the key broker, redaction and
   the canary test, the cost cap, the lab, the port of quarry and econ-lab, the experiment protocol of the gate,
   and the issue list with its waves. Challenged on 2026-11-14 (its section 14); decisions A12 to A15.
+- [`10-m3-spec.md`](10-m3-spec.md): milestone M3, the City slice: seven mechanics, the Director, the decision
+  window, the Human Hand, snapshot, resume and replay, and the issue list with its waves. Challenged on
+  2026-11-14 (its section 19); decisions A19 to A24.
+
+What the builders found against a specification is in its errata file:
+[`08-m1-spec-errata.md`](08-m1-spec-errata.md), [`09-m2-spec-errata.md`](09-m2-spec-errata.md),
+[`10-m3-spec-errata.md`](10-m3-spec-errata.md). [`RESUME.md`](RESUME.md) is the integrator's note on where the work
+stands.

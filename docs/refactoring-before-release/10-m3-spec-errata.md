@@ -1,0 +1,54 @@
+# Errata of the M3 specification (kept by the integrator)
+
+Corrections to [`10-m3-spec.md`](10-m3-spec.md) found while building: every difference between the specification
+and the code that a builder of M3 reported. The code on `rewrite/develop` follows this file where the two differ.
+Decisions of principle are in `DECISIONS.md` section 9 (A19 to A24). Written by issue M3-31 from the integrator's
+notes of the merged issues; a difference no builder reported is not here.
+
+## Differences
+
+| No | Where | The specification says | What holds | Found in |
+|---|---|---|---|---|
+| G1 | 3.4, issue row 01 | the codes of 3.4 go "in the catalogue" of the contracts | The contracts package holds no code catalogue. Each owning package adds its codes to its own: sdk `SWT-D001` to `D003`, kernel `SWT-R021`, runlog `SWT-L007` and `L008`, testkit `SWT-T003` and `T004`, the command line `SWT-X008` and `X009` | M3-01 |
+| G2 | 3.2 | `AskModel` lives in `packages/contracts/src/kernel/ask.ts` | `packages/contracts/src/run/ask.ts`; `packages/contracts/src/kernel/` has no changed line at M3. `SnapshotCheckpoint` of the snapshot file has the fields of the chain's `ChainCheckpoint` | M3-01 |
+| G3 | 5.1 | the decision window needs "no sdk change" | `decisions` reads the actors of the run. The sdk got `MechanicContext.actors` (a read-only view) and the actor ids on `Setup` (issue 12). Until then `decisions` wrapped `resolve` and `create` to read `port.actors`; that wrapper in `mechanics/decisions/src/index.ts` is still there (open point P1) | M3-08, M3-12 |
+| G4 | 3.1 | a game with `directors: []` has the hash of the game without the field | It did not: `filledData` (`packages/sdk/src/game/resolve.ts`) kept the empty array. Fixed with a test in issue 12; `filledData` drops an empty `directors` | M3-01, M3-12 |
+| G5 | 2.4 | `banish(input: { resident, by })`, `by` required | `by` is optional; left out, the event carries the id of the calling plugin. Listeners of `exiled` run after `banish` returns, so the resident is suspended already when they run | M3-07 |
+| G6 | 2.4, 5.3 rule 1 | a command "writes nothing" (`banish` of an unknown resident, `propose` with a window of 0) | A command of a service always writes the kernel's `service_called`. "Writes nothing" means: no event of the mechanic | M3-07, M3-08 |
+| G7 | 5.2 | `amendDecision` is a tool of the holders; "the caller is no holder" is `DECISION_NOT_HELD` | Holders are actor ids (`resident:A02`, `human`, `director:warden`). The tool is declared `for: ["human"]`: another holder needs its actor id in `holders` and the tool in its grant. `DECISION_NOT_HELD` is checked against the option `holders`. An id in `holders` that is no actor of the run is refused as an option mismatch before the run starts (open detail 1 of section 18) | M3-08, M3-09 |
+| G8 | 2.4 | `PuzzlesOptions` as old, with `standings` added; `needers` not specified | Level entries are `{ number, team, puzzle }`. The `needers` of `factor_burned` come from `heldPieces`, as the old code did; the oracle agrees. The listener to `exile.exiled` declares `after: ["ledger"]` | M3-11 |
+| G9 | 2.3 | the ledger burns "the whole balance" of a banished resident | It burns only when the balance is above 0 (no entry of 0), and the entry carries a `txId` | M3-10 |
+| G10 | 2.4, 4.5 | the warden calls `channels.postBoard` with `{ text }` | The tool is called by its bare name, `postBoard`, and takes `{ message }`; `sendDM` takes `{ target, message }`. A delivered direct message also writes a `notice` to the sender | M3-05, M3-06, M3-23 |
+| G11 | 2.5 | the tool texts of the ported mechanics are the old texts | Two texts differ by one word, because the name lint retires it: `transferPoints` of `ledger` and `sendDM` of `channels` say "another resident" where the old text has the retired word. The other registered changes of the projections are in `oracles/cityofkeys/README.md`; no comparison of issue 26 was weakened | M3-26 |
+| G12 | 2.4 (`court`) | not said | Residents get no input line that a session is open. Commit order: `board_post`, `exiled`, `actor_suspended`, the listeners of `exiled`, `verdict` | M3-19 |
+| G13 | 6.2 | the mechanic `humanHand` | The mechanic id is `humanHand`, the folder and the package are `human-hand`. `ToolContext.resident` is undefined for `human` and for a Director; `ctx.actor` is the id | M3-18, M3-12 |
+| G14 | 8 | a slot activation has `detail: { slot, pass, block }` | It has that detail and no `reason`. Slots are served per pass: `start` after each `pass_started`, `afterBlock` after each block. A slot actor is woken only by news and needs a driver by id or kind, else `SWT-R011` | M3-03 |
+| G15 | 4.2, 4.3 | `defineDirector(head, body)` returns a `DirectorDefinition`; the plugin answers `{ firings, calls }` | `definition.act` does not check the answer (the driver checks it against `definition.output` first), and `fallback` is always present. The success reply of `take` is JSON text, read with `parseTake` of the sdk. `take` is a counted call. A Director's own acts fire triggers too. Constants: `DIRECTOR_KIND`, `DIRECTORS_PLUGIN`, `DIRECTOR_TAKE` | M3-13, M3-14 |
+| G16 | 4.4 | `answered {ok, fallback, costUsd}` | `answered { ok, fallback, costUsd, reason?, detail? }`. The game declares the records: `DIRECTOR_RECORDS`, and `DIRECTOR_MODEL_RECORDS` when `createAsker` is used; without them the first `asked` throws `SWT-R017`. After a closed meter the asker answers `error` or `limit` | M3-15, M3-16 |
+| G17 | 7.2 | "The scripted asker of a Director reads its position from the answer of `directors.take` (`calls`)" | It does not: the position of a scripted asker is not in the snapshot. A resumed offline run is given the remaining answers. In the slice the warden is asked only at tick 6, before the snapshot | M3-15, M3-23 |
+| G18 | 2.1 | the moments are at ticks 1 to 3, 4 and 5, 6, 7, 8, 9 to 12 | Ticks count from 0. The run has the ticks 0 to 11: talk at 0 to 3, the session at 4 and 5, close and proposal at 6, the settlement at 8, the rest at 9 to 11. The hand lines are `at: 7` (pause, snapshot, resume) and `at: 8` (the amendment); the flag is `--snapshot-at 7` | M3-23 |
+| G19 | 6.3 | a hand line is applied when `at` equals the number of finished ticks; `runLoop` returns `RunEnd` or `{ stopped: "paused", tick }` | A line is due when `at` is at or below the finished ticks. At a boundary the order is: hand lines, the pause check, `--snapshot-at`, one tick. `played(kernel, drivers, loop)` returns `{ end: RunEnd \| LoopStop, issues }`. `runLoop` starts the kernel only when the log has no `run_started`. Exit codes of `swt run`: 0, 1, 2, 3 (paused, the hand ended), 4, 5 | M3-20 |
+| G20 | 7.2 step 5 | a resumed run skips the hand lines "whose `at` is lower than the snapshot's tick" | The resumed run is given the hand file of the straight run. It drops the first N tool lines, N being the number of calls of `human` in the log prefix of the snapshot, and every `snapshot` line with `at` at or below the snapshot's tick; the rest follows the due rule of G19. This is exact for the three ways a snapshot comes to be (a `snapshot` line, `--snapshot-at`, the paused stop) | M3-20, M3-21 |
+| G21 | 7.2 step 1 | `swt resume <run-folder>` reads the game "from the path the manifest names" | The manifest holds no path: `--game <game file>` is required | M3-21 |
+| G22 | 7.1 | `readSnapshotFile(path)` | `readSnapshotFile(path, expected?)`: with `expected` it also refuses a file of another run or game (`SWT-L008`). `openRunFolder(..., { resumedFrom, prefix })` refuses a prefix the checkpoint did not sign with `SWT-L007` | M3-17 |
+| G23 | 7.4 | `ReplayInput.game` is a `ResolvedGame`; the result is `{ log, equal, firstDifference }` | `game` may be resolved, a builder game or a data game; the result also has `issue` (`SWT-T003`); `SWT-T004` is thrown. The slice is replayed from the builder game. A run folder is replayed with `records: [DIRECTOR_RECORDS, RUN_RECORDS]` | M3-22, M3-24 |
+| G24 | done-when 3, 7.2 (E42) | the resumed log, "after the marker line is taken out", is the straight log | Decision A23: equal after the marker is taken out and every log position behind it is moved back by one, also a position inside a payload (today one field, `decision_settled.amendments[].seq`). The resume in process writes no marker and is equal as it is | M3-24 |
+| G25 | 2.1, 7.2 | the command line plays the slice's story | `swt run --fake` plays sampled calls, not the script of the tests; the script lives in the tests' drivers. The fake driver is seeded from the activation's `basis`, so a fake run with a hand differs from one without, and a fake run's Director always takes its fallback. The command-line proof of done-when 3 compares a resumed fake log with a straight fake log; the timelines belong to the proof in process. Decision A24 added issue M3-32: the slice's tools have `sample` functions, so a plain fake run has votes and, with seed 7, a verdict | M3-20, M3-21, M3-24, M3-32 |
+| G26 | 9 | the projection is part of the viewer's run model | `projectRun(model.events)` of `viewer-core` is not wired into `RunModel`: the user interface calls it and memoises it per run | M3-27 |
+
+## Open points
+
+| No | Point | Goes to |
+|---|---|---|
+| P1 | `mechanics/decisions/src/index.ts` still wraps `resolve` and `create` to read `port.actors`, and `test/human.test.ts` its stand-in; the sdk has `ctx.actors` since issue 12 | the next issue that touches `decisions` |
+| P2 | A data game with a Director: `resolveFile` of the command line and `play` of the testkit do not pass `ResolveInput.directors`. Builder games carry their definitions | M5, or the first data game with a Director |
+| P3 | A Director that takes firings after a resume from the command line has log positions in its `take` reply that are one higher than in the straight run (the marker line); the slice's warden is asked before the snapshot, so no test meets it | M5, with the City's Directors |
+| P4 | `packages/sdk/README.md` still says the package is empty | a docs issue; outside the paths of M3-31 |
+
+## Errata of M1 that M3 closed
+
+| No | Closed by | How |
+|---|---|---|
+| O3 (`08-m1-spec-errata.md`) | M3-17, M3-21 | the marker `run_resumed` is a record of the run assembly (`@swarmtales/cli/run`), written by `swt resume`; `swt log verify <dir> --previous <dir>` proves the continuity |
+| O17 | M3-02 | `SWT-R021`: three checks after `restoreKernel`, 12 kernel code lines |
+| E17 (the part left open: `continuity` had no code) | M3-17 | `SWT-L007` |

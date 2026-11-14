@@ -1,7 +1,8 @@
 # Mechanics
 
 One package per mechanic: `mechanics/<name>/`. A mechanic is one rule of a game, shipped as code (state, tools,
-events). Seven mechanics are ported so far; the others follow issue by issue with the games that need them.
+events). Fourteen mechanics are here so far: seven ported with the tabletop games and seven of the city slice (milestone M3);
+the others follow issue by issue with the games that need them.
 
 | Mechanic | Used by |
 |---|---|
@@ -12,6 +13,17 @@ events). Seven mechanics are ported so far; the others follow issue by issue wit
 | [`strategy-brain`](strategy-brain/README.md) | tic-tac-toe teams, Quarry, Econ Lab |
 | [`draft-rounds`](draft-rounds/README.md) | Quarry |
 | [`econ-games`](econ-games/README.md) | Econ Lab |
+| [`ledger`](ledger/README.md) | the city slice |
+| [`channels`](channels/README.md) | the city slice |
+| [`exile`](exile/README.md) | the city slice |
+| [`decisions`](decisions/README.md) | the city slice |
+| [`human-hand`](human-hand/README.md) (mechanic id `humanHand`) | the city slice |
+| [`puzzles`](puzzles/README.md) | the city slice |
+| [`court`](court/README.md) | the city slice; replaced by the tribunal at milestone M5 |
+
+The first five of the city slice are base mechanics; `puzzles` and `court` are game mechanics. `exile` names no
+other mechanic: `ledger` and `puzzles` listen to its one event, and the gate `scripts/gates/exile-alone.test.ts`
+holds that.
 
 [`contracts`](contracts/README.md) is no mechanic: it holds the service contracts that have two providers.
 

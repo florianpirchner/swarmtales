@@ -160,14 +160,25 @@ This mechanic exports no metrics.
 
 ## Example
 
-The game `city-slice` (`games/city-slice`) loads the ledger first of its mechanics; until its game file lands, the
-game of the tests ([`test/support.ts`](test/support.ts)) shows the use:
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
 
 ```ts
-mechanics: [ledger({ startPoints: 10, ...options }), ...extra],
+mechanics: [
+	ledger({ startPoints: 30 }),
+	channels(),
+	exile(),
+	// ...
+],
+// ...
+grants: {
+	resident: ["transferPoints", "readBoard", "postBoard", "sendDM", "vote"],
+	// ...
+},
 ```
 
-Every resident starts with 10 points; `strictAccounts` keeps its default, so other accounts must be opened first.
+Every resident starts with 30 points and may pay another resident with `transferPoints`; `strictAccounts` keeps its
+default, so other accounts must be opened first. With `exile` in the game, the ledger burns the balance of a
+banished resident.
 
 ## Lessons and loopholes
 

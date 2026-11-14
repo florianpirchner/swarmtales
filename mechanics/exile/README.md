@@ -114,7 +114,20 @@ This mechanic has no prompt files.
 
 ## Example
 
-A mechanic that banishes requires the service and calls it (the import is the `/contract` entry, never the mechanic):
+From [`games/city-slice/game.ts`](../../games/city-slice/game.ts):
+
+```ts
+mechanics: [
+	ledger({ startPoints: 30 }),
+	channels(),
+	exile(),
+	// ...
+	court({ opensAt: 4, closesAt: 6, window: 2 }),
+],
+```
+
+`exile` takes no options and has no tool, so no grant names it. The `court` requires its service and banishes;
+`ledger` and `puzzles` listen to `exiled`. A mechanic that banishes imports the `/contract` entry, never the mechanic:
 
 ```ts
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
@@ -122,9 +135,6 @@ import { ExileService } from "@swarmtales/mechanic-exile/contract";
 const done = ctx.call(ExileService, "banish", { resident: "A04" });
 if (!done.ok) return refuse(done.code ?? "REFUSED");
 ```
-
-A game lists the mechanic without options: `mechanics: [ledger(), channels(), exile(), ...]`
-([city-slice](../../games/city-slice/README.md)).
 
 ## Lessons and loopholes
 

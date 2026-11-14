@@ -266,6 +266,11 @@ Confirmed in code by three papers (fact check rows 22 and 23 in the challenge):
 | M5 | City and Whispers | recut of the City cluster, Whispers first; Act I and Act II at six residents; API freeze after this, not before | City plays Act I and II; a new Act I base snapshot is recorded |
 | M6 | Release | samples 2 to 4, the parallel spike of at most three issues and its sample, a mechanic and a Director installed from outside the repository, the rename of original games, `swt doctor --online`, names and publishing | the 1.0 list of section 5 holds |
 
+**State of the milestones** (added while building; the table above is the plan as decided). M1: done. M2: built;
+its gate with the live series is merged ([`../M2-GATE.md`](../M2-GATE.md)), its milestone review is open. M3: built, and its done-when is proven offline by the gate issue
+M3-31 (the tests and the softer check of section 7 are in [`../ISSUE-RECORD.md`](../ISSUE-RECORD.md), "The gate of
+M3"); the milestone closes with its review, after M2.
+
 ### 4.1 Where the rewrite happens
 
 Decided in `DECISIONS.md` section 8, which replaces the repository line of the brief at the owner's request.
