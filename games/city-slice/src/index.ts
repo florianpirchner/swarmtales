@@ -4,6 +4,8 @@
  *
  * @packageDocumentation
  */
-export { default } from "../game.ts";
+export { default, sliceGame, type SliceOptions } from "../game.ts";
+export { sliceFamily } from "../family.ts";
+export { briefing, type BriefingFacts } from "../briefing.ts";
 export { AMENDED_HAND, HAND, SCRIPT, WARDEN_ANSWERS, callsOf, type HandLine, type ScriptedCall } from "./scripts.ts";
 export { WARDEN_FALLBACK, warden } from "./warden.ts";

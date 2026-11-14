@@ -18,6 +18,7 @@ opensAt: Type.TInteger;
 closesAt: Type.TInteger;
 window: Type.TInteger;
 line: Type.TString;
+announce: Type.TOptional<Type.TBoolean>;
 }>, {
 session_opened: Type.TObject<{
 closesAt: Type.TInteger;
@@ -44,6 +45,7 @@ opensAt: Type.TInteger;
 closesAt: Type.TInteger;
 window: Type.TInteger;
 line: Type.TString;
+announce: Type.TOptional<Type.TBoolean>;
 }>, Type.TObject<{
 open: Type.TBoolean;
 votes: Type.TArray<Type.TObject<{
@@ -72,6 +74,7 @@ readonly "court/replies/session-closed": readonly [];
 readonly "court/replies/self-vote": readonly [];
 readonly "court/replies/unknown-resident": readonly ["target"];
 readonly "court/replies/exiled": readonly ["target"];
+readonly "court/notices/session-opened": readonly ["tick", "closesAt"];
 }, readonly [ServiceDefinition<"decisions", {
 readonly propose: {
 readonly kind: "command";

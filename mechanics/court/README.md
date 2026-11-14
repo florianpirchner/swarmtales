@@ -27,7 +27,9 @@ slice for the tribunal of the City of Keys and is replaced when the tribunal is 
 
 1. **The session.** At the start of the tick `opensAt` the court writes `session_opened {closesAt}`. From then
    until the start of the tick `closesAt` a resident may call `vote` with the id of another resident. There is one
-   session in a run.
+   session in a run. With the option `announce` the court also leaves every resident that is not banished a private
+   notice (`notify` of the service `channels`, author `CITY`, the prompt `court/notices/session-opened`), which the
+   resident reads as an input line of its activation in that tick. Without the option nothing is sent.
 2. **A vote.** Each resident has one standing vote; a second vote replaces the first, and each writes `vote_cast`.
    Refusals, in this order: `SESSION_CLOSED` (no session is open), `UNKNOWN_RESIDENT`, `SELF_VOTE`, `EXILED` (the
    target is banished already, asked from the service `exile`).
@@ -48,8 +50,8 @@ slice for the tribunal of the City of Keys and is replaced when the tribunal is 
    was open is left alone: no line, no `verdict`.
 6. **State.** The slice is `{ open, votes }`; the open decision lives in the slice of `decisions`, so a run resumed
    between the close and the deadline carries the verdict out at the same tick.
-7. **What it does not do.** No accused, no factions, no penalty for not voting, no second session, and no line
-   that tells residents a session is open: at M3 scripts play, and the tribunal brings all of this back.
+7. **What it does not do.** No accused, no factions, no penalty for not voting, no second session, and no notice
+   of the close or of the verdict: the tribunal brings all of this back.
 
 ## Tools
 
@@ -122,6 +124,7 @@ Audience: everyone
 | `closesAt` | integer ≥ 0 | required | The tick at whose start the session closes and the votes are counted. |
 | `window` | integer ≥ 0 | required | The ticks the holders of decisions have to amend the verdict; 0: the verdict is carried out when the session closes. |
 | `line` | string | `"The gate has closed. The city has struck {resident} from its register. No one will hear {resident} again."` | The city's line on the board before the banishing; `{resident}` is the id of the banished resident. |
+| `announce` | boolean | unset | True: when the session opens, every resident that is not banished gets a private notice of the service `channels` that says so. Left out or false: no notice. |
 
 <!-- /generated:options -->
 
@@ -156,6 +159,7 @@ This mechanic exports no metrics.
 | [court/replies/self-vote](prompts/court/replies/self-vote.md) | - |
 | [court/replies/unknown-resident](prompts/court/replies/unknown-resident.md) | `target` |
 | [court/replies/exiled](prompts/court/replies/exiled.md) | `target` |
+| [court/notices/session-opened](prompts/court/notices/session-opened.md) | `tick`, `closesAt` |
 
 <!-- /generated:prompts -->
 
@@ -190,7 +194,7 @@ in the place of a seal: the opening, a second vote, the four refusals, a tie and
 verdict with a window of 0 (the event order, and the same log as with a window that nobody holds) and with a window
 (proposed at the close, carried out by the settlement); the two tribunal cases of the decision window (the human
 amends the verdict to another resident, who is banished; an amendment outside the schema is refused); and a
-resident banished while the verdict was open.
+resident banished while the verdict was open; the notice of the option `announce`, and none without it.
 
 `test/sample.test.ts`: what the fake driver (`swt run --fake`) may call. The `sample` of `vote` gives one vote per
 resident and session, against another resident that may act; a resident that already has votes against it is in

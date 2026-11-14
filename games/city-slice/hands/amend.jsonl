@@ -1,0 +1,4 @@
+{"at":7,"tool":"pause","params":{"reason":"the court has a verdict; look before it is carried out"}}
+{"at":7,"command":"snapshot"}
+{"at":7,"tool":"resume","params":{}}
+{"at":8,"tool":"amendDecision","params":{"decision":"D1","proposal":{"exiled":"A02"},"reason":"the person at the run looked again"}}

@@ -47,6 +47,17 @@ function commit(ctx: CourtCtx, exiled: string, decision?: string): void {
 	ctx.emit("verdict", { exiled, ...(decision === undefined ? {} : { decision }) });
 }
 
+// Opens the session; with the option `announce` every resident that is not banished gets a notice, in roster order.
+function openSession(ctx: CourtCtx): void {
+	const { closesAt, announce } = ctx.options;
+	ctx.state.open = true;
+	ctx.emit("session_opened", { closesAt });
+	if (announce !== true) return;
+	const gone = ctx.call(ExileService, "exiled", {});
+	const text = ctx.prompt("court/notices/session-opened", { tick: ctx.tick, closesAt });
+	for (const to of ctx.residents.ids.filter((id) => !gone.includes(id))) ctx.call(ChannelsService, "notify", { to, author: "CITY", text });
+}
+
 // Closes the session: counts the votes, and proposes the resident with the most as the verdict. A tie or no vote: no verdict.
 function close(ctx: CourtCtx): void {
 	const gone = ctx.call(ExileService, "exiled", {});
@@ -89,10 +100,7 @@ export const court = defineMechanic(courtHead, {
 	},
 	hooks: {
 		tickStarted: (ctx) => {
-			if (ctx.tick === ctx.options.opensAt) {
-				ctx.state.open = true;
-				ctx.emit("session_opened", { closesAt: ctx.options.closesAt });
-			}
+			if (ctx.tick === ctx.options.opensAt) openSession(ctx);
 			if (ctx.state.open && ctx.tick >= ctx.options.closesAt) close(ctx);
 		},
 	},

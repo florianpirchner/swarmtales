@@ -72,6 +72,22 @@ describe("the vote", () => {
 		expect(told(test)).toEqual([[1, "session_opened", { closesAt: 3 }], [3, "session_closed", { tally: {} }]]);
 	});
 
+	it("with `announce` leaves every resident that is not banished a notice when the session opens, and none without it", async () => {
+		const game = (announce: boolean) => defineGame({ id: "court-test", seed: 7, residents: 5, mechanics: [channels(), exile(), decisions({ holders: ["human"] }), seal(), court({ opensAt: 1, closesAt: 3, window: 0, ...(announce ? { announce } : {}) })], scheduler: { id: "turns", options: { order: "roster" } }, end: { ticks: 8 } });
+		const test = testKernel(game(true));
+		await test.call("A01", "strike", { target: "A02" });
+		await test.playTicks(idleDriver, 2);
+		const text = "The court is in session since tick 1 and closes at the start of tick 3. Until then every resident may vote for one other resident; a second vote replaces the first. At the close the resident with the most votes is the verdict; a tie or a session without votes gives none.";
+		const log = test.kernel.log.all();
+		expect(log.filter((event) => event.type === "notice").map((event) => [event.tick, event.payload])).toEqual(["A01", "A03", "A04", "A05"].map((to) => [1, { to, author: "CITY", text }]));
+		// The notice is an input line of the resident's activation in the tick of the opening.
+		const inputs = log.filter((event) => event.type === "activation_opened" && event.tick === 1).map((event) => JSON.stringify(event.payload));
+		expect(inputs.map((line) => line.includes(`[CITY] ${text}`))).toEqual([true, true, true, true]);
+		const silent = testKernel(game(false));
+		await silent.playTicks(idleDriver, 2);
+		expect(silent.kernel.log.all().filter((event) => event.type === "notice")).toEqual([]);
+	});
+
 	it("refuses a vote against a banished resident and does not count the votes it had", async () => {
 		const test = start(0);
 		await voted(test, [["A01", "A04"], ["A02", "A04"], ["A03", "A05"]]);

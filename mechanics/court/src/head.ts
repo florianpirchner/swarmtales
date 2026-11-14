@@ -38,6 +38,7 @@ export const courtHead = defineHead({
 		closesAt,
 		window: Type.Integer({ minimum: 0, description: "The ticks the holders of decisions have to amend the verdict; 0: the verdict is carried out when the session closes." }),
 		line: Type.String({ default: CITY_LINE, description: "The city's line on the board before the banishing; `{resident}` is the id of the banished resident." }),
+		announce: Type.Optional(Type.Boolean({ description: "True: when the session opens, every resident that is not banished gets a private notice of the service `channels` that says so. Left out or false: no notice." })),
 	}),
 	state: Type.Object(
 		{
@@ -66,6 +67,7 @@ export const courtHead = defineHead({
 		"court/replies/self-vote": [],
 		"court/replies/unknown-resident": ["target"],
 		"court/replies/exiled": ["target"],
+		"court/notices/session-opened": ["tick", "closesAt"],
 	},
 	tools: { vote: { description: "court/tools/vote", params: Type.Object({ target: Type.String({ description: "The id of the resident to banish." }) }, { description: "A vote in the court's session." }), for: ["resident"] } },
 });
