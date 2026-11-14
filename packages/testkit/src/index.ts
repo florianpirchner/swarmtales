@@ -6,6 +6,7 @@
  */
 export { fakeDriver, idleDriver, scriptedDriver, type CallRecord, type Plan, type PlannedCall } from "./drivers.ts";
 export { play, testKernel, type Played, type PlayOptions, type TestKernel } from "./play.ts";
+export { replay, type ReplayInput, type ReplayResult } from "./replay.ts";
 
 export { checkDeterminism, checkOptionsDocumented, checkPackage, checkSnapshotRoundTrip, type ConformanceOptions } from "./conformance.ts";
 export { guessNumber, guessNumberHead } from "./fixtures/index.ts";

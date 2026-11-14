@@ -18,10 +18,12 @@ import { MechanicHead } from '@swarmtales/sdk';
 import { PromptLookup } from '@swarmtales/contracts';
 import { RecordSource } from '@swarmtales/contracts';
 import { Redact } from '@swarmtales/contracts';
+import { ResolvedGame } from '@swarmtales/sdk';
 import { ResumeInput } from '@swarmtales/contracts';
 import { RunEnd } from '@swarmtales/contracts';
 import { RunLimit } from '@swarmtales/contracts';
 import { Static } from 'typebox';
+import { SwtIssue } from '@swarmtales/contracts';
 import { ToolOutcome } from '@swarmtales/contracts';
 import { TSchema } from 'typebox';
 import { Type } from 'typebox';
@@ -309,6 +311,28 @@ export interface PlayOptions {
 
 // @public
 export function readOracle(path: string): Oracle;
+
+// @public
+export function replay(input: ReplayInput): Promise<ReplayResult>;
+
+// @public
+export interface ReplayInput {
+    readonly game: ResolvedGame | Game | GameData;
+    readonly log: readonly Envelope[];
+    readonly records?: readonly RecordSource[];
+}
+
+// @public
+export interface ReplayResult {
+    readonly equal: boolean;
+    readonly firstDifference?: {
+        readonly line: number;
+        readonly expected: unknown;
+        readonly got: unknown;
+    };
+    readonly issue?: SwtIssue;
+    readonly log: readonly Envelope[];
+}
 
 // @public
 export function runOracle(oracle: Oracle, game: Game | GameData, level?: OracleLevel, options?: Pick<PlayOptions, "installed" | "prompts">): Promise<readonly OracleMismatch[]>;
