@@ -90,6 +90,16 @@ export function checkSchema(game: unknown): {
 };
 
 // @public
+export interface CollectedTexts {
+    readonly issues: readonly SwtIssue[];
+    readonly replies: Readonly<Record<string, string>>;
+    readonly texts: Readonly<Record<string, string>>;
+}
+
+// @public
+export function collectTexts(mechanics: readonly TextSource[], prompts: PromptLookup): CollectedTexts;
+
+// @public
 export function contextFor<M extends MechanicShape>(parts: InstanceParts<M>, actor?: ActorId): ToolContext<M>;
 
 // @public
@@ -567,6 +577,9 @@ export interface ResolvedGrants {
 }
 
 // @public
+export function resolveGame(input: ResolveInput): ResolvedGame;
+
+// @public
 export function resolveGrants(input: GrantsInput): ResolvedGrants;
 
 // @public
@@ -767,6 +780,21 @@ export function stateUnsaved(input: {
     readonly package?: string;
     readonly problem: "no-start" | "no-schema";
 }): SwtIssue;
+
+// @public
+export interface TextSource {
+    readonly mechanic: {
+        readonly id: string;
+        readonly head: {
+            readonly prompts: Readonly<Record<string, readonly string[]>>;
+            readonly tools: readonly {
+                readonly name: string;
+                readonly description: string;
+            }[];
+        };
+    };
+    readonly path: string;
+}
 
 // @public
 export interface ToolContext<M extends MechanicShape> extends MechanicContext<M> {

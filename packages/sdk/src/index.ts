@@ -28,3 +28,6 @@ export { appendRoster, rosterPlugin, RosterService } from "./roster/index.ts";
 
 export { defineHandlers, defineHead } from "./mechanic/define-head.ts";
 export { defineMechanic } from "./mechanic/define-mechanic.ts";
+
+export { resolveGame } from "./game/resolve.ts";
+export { collectTexts, type CollectedTexts, type TextSource } from "./game/texts.ts";
