@@ -3,7 +3,7 @@ import { existsSync, globSync, readFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Value } from "typebox/value";
-import { CATALOG, oraclePath } from "../../scripts/oracles/catalog.ts";
+import { CATALOG, DEFINITIONS, oraclePath } from "../../scripts/oracles/catalog.ts";
 import { OracleSchema, type Oracle } from "../../scripts/oracles/format.ts";
 import { oracleText } from "../../scripts/oracles/record.ts";
 
@@ -42,6 +42,14 @@ describe("oracle files", () => {
 				else if (entry.actor.startsWith("resident:")) expect(entry.reply, file).toBeDefined();
 			}
 		}
+	});
+
+	it("name a story definition that is there and current", () => {
+		for (const file of FILES) {
+			const definition = read(file).setup.definition;
+			if (definition !== undefined) expect(existsSync(resolve(ROOT, dirname(file), definition.file)), file).toBe(true);
+		}
+		for (const definition of DEFINITIONS) expect(readFileSync(resolve(ROOT, definition.path), "utf8"), definition.path).toBe(definition.text());
 	});
 
 	it("hold no wall-clock time, cost or absolute path", () => {

@@ -124,6 +124,11 @@ const Setup = Type.Object(
 			{ additionalProperties: false },
 		),
 		limits: Type.Optional(Json),
+		/**
+		 * A story written as one definition from which the old platform derived the mechanics' options (City of Keys,
+		 * Whispers): `file` is the definition as JSON next to the oracle, `effective` the run dials applied to it.
+		 */
+		definition: Type.Optional(Type.Object({ file: Type.String(), effective: Json }, { additionalProperties: false })),
 	},
 	{ additionalProperties: false },
 );

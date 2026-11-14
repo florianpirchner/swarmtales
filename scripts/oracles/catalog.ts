@@ -4,7 +4,12 @@ import { liveOracle } from "./live.ts";
 import * as players from "./players.ts";
 import type { OracleCut } from "./record.ts";
 import { scriptedOracle } from "./scripted.ts";
-import type { Host, TurnTaker } from "@swarmtales/contracts";
+import type { AnyStory, Host, TurnTaker } from "@swarmtales/contracts";
+import cityOfKeys from "../../stories/cityofkeys/story.ts";
+import whispers, { whispersStory } from "../../stories/whispers/story.ts";
+import { cityActOne, cityGamemaker, whispersGamemaker, whispersResidents } from "./city-scripts.ts";
+import { halfCity } from "./city-act2.ts";
+import { actTwoOracle, composedOracle, definitionText } from "./composed.ts";
 
 export interface CatalogItem {
 	readonly game: string;
@@ -148,6 +153,67 @@ const SALT_MARKET: readonly CatalogItem[] = [
 	live("salt-market", "salt-market-nobrain", 45, `${SALT}/salt-market-nobrain-45/run/events.jsonl`, { cut: SALT_CUT }),
 ];
 
+/** A story definition written next to its oracles (`setup.definition.file`). */
+export interface DefinitionFile {
+	readonly path: string;
+	text(): string;
+}
+
+const definition = (game: string, story: AnyStory, name: string): DefinitionFile => ({ path: `oracles/${game}/setup/${name}.story.json`, text: () => definitionText(story) });
+const RUMOURS = whispersStory(false);
+
+export const DEFINITIONS: readonly DefinitionFile[] = [definition("whispers", whispers, "whispers"), definition("whispers", RUMOURS, "whispers-rumours"), definition("cityofkeys", cityOfKeys, "cityofkeys"), definition("cityofkeys", halfCity(), "cityofkeys-act2")];
+
+const WHISPERS_NOTE = "everyone names the favourite in every vote, the sender greets the whisperer, the whisperer hands the victim a fragment, spreads a rumour three times and forges the sender's receipt; the others open doors; the gamemaker sends the whisperer one notice at minute 13";
+
+function whispersItem(variant: string, story: AnyStory, seed: number): CatalogItem {
+	return {
+		game: "whispers",
+		file: `${variant}-s${String(seed)}.json`,
+		make: () =>
+			composedOracle({
+				game: "whispers",
+				variant,
+				story,
+				definition: `setup/${variant}.story.json`,
+				script: "whispersResidents",
+				note: `20 minutes, one turn per resident and minute: ${WHISPERS_NOTE}`,
+				fixture: { seed, minutes: 20, script: whispersResidents, gamemakerScript: (host) => whispersGamemaker(host, 20) },
+			}),
+	};
+}
+
+const WHISPERS: readonly CatalogItem[] = [whispersItem("whispers", whispers, 7), whispersItem("whispers", whispers, 11), whispersItem("whispers-rumours", RUMOURS, 7)];
+
+const ACT_ONE_NOTE = "six residents, 12 minutes, one turn per resident and minute: board posts, DMs, transfers of a point, status and board reads, wrong codes with their penalty, doors opened with the right code; the gamemaker posts once at minute 6";
+
+function cityActOneItem(seed: number, resumeAfter?: number): CatalogItem {
+	return {
+		game: "cityofkeys",
+		file: `cityofkeys-act1-s${String(seed)}${resumeAfter === undefined ? "" : "-resumed"}.json`,
+		make: () =>
+			composedOracle({
+				game: "cityofkeys",
+				variant: "cityofkeys-act1",
+				story: cityOfKeys,
+				definition: "setup/cityofkeys.story.json",
+				script: "cityActOne",
+				note: resumeAfter === undefined ? ACT_ONE_NOTE : `${ACT_ONE_NOTE}; the run is saved after minute ${String(resumeAfter)} and continued on a fresh instance`,
+				fixture: { agents: 6, minutes: 12, seed, names: true, script: cityActOne, gamemakerScript: (host) => cityGamemaker(host, 12) },
+				...(resumeAfter === undefined ? {} : { resumeAfter }),
+			}),
+	};
+}
+
+const ACT_TWO_NOTE = "six residents continue from a saved first act: two DMs with delivery receipts and two blames judged by a model role, a faction draft, three tribunals with votes, a ransom, a last will, three exiles with kept and passed pieces and contracted levels, and a gamemaker that plans the second tribunal (one plan refused)";
+const cityActTwo: CatalogItem = {
+	game: "cityofkeys",
+	file: "cityofkeys-act2-s7.json",
+	make: () => actTwoOracle({ game: "cityofkeys", variant: "cityofkeys-act2", definition: "setup/cityofkeys-act2.story.json", note: ACT_TWO_NOTE }),
+};
+
+const CITY: readonly CatalogItem[] = [cityActOneItem(7), cityActOneItem(7, 6), cityActOneItem(11), cityActTwo];
+
 export const CATALOG: readonly CatalogItem[] = [
 	...TICTACTOE,
 	...QUARRY_ITEMS,
@@ -162,4 +228,6 @@ export const CATALOG: readonly CatalogItem[] = [
 	...LANTERNS_ITEMS,
 	...MORRIS_ITEMS,
 	...SALT_MARKET,
+	...WHISPERS,
+	...CITY,
 ];

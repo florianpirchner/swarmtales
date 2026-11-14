@@ -8,7 +8,7 @@
  */
 import { existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
-import { CATALOG, oraclePath } from "./oracles/catalog.ts";
+import { CATALOG, DEFINITIONS, oraclePath } from "./oracles/catalog.ts";
 import { liveOracle, liveRun, ROOT } from "./oracles/live.ts";
 import { oracleText } from "./oracles/record.ts";
 
@@ -65,6 +65,18 @@ async function main(): Promise<void> {
 			writeFileSync(path, first);
 		}
 		console.log(`${oraclePath(item)}\t${String(Math.round(first.length / 1024))} KB\t${state}\tdeterministic`);
+	}
+	for (const file of DEFINITIONS) {
+		if (games.length > 0 && !games.some((game) => file.path.startsWith(`oracles/${game}/`))) continue;
+		const path = resolve(ROOT, file.path);
+		const text = file.text();
+		const same = existsSync(path) && readFileSync(path, "utf8") === text;
+		if (!same) stale++;
+		if (!check && !same) {
+			mkdirSync(dirname(path), { recursive: true });
+			writeFileSync(path, text);
+		}
+		console.log(`${file.path}\t${String(Math.round(text.length / 1024))} KB\t${same ? "unchanged" : "changed"}`);
 	}
 	if (check && stale > 0) process.exitCode = 1;
 }

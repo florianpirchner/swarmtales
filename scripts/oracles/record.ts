@@ -17,6 +17,7 @@ const VOLATILE_KEYS = new Set(["costUsd", "durationMs", "elapsedMs", "timestamp"
 const TurnStarted = Type.Object({ resident: Type.String(), pass: Type.Integer(), block: Type.Integer(), inputs: Type.Array(Type.Object({ source: Type.String(), kind: Type.Optional(Type.String()), text: Type.String() })) });
 const TurnSkipped = Type.Object({ resident: Type.String(), pass: Type.Integer(), block: Type.Integer() });
 const ToolCalled = Type.Object({ tool: Type.String(), params: Type.Unknown() });
+const AppToolResult = Type.Object({ agent: Type.String(), tool: Type.String(), text: Type.String() }, { additionalProperties: true });
 const ToolRefused = Type.Object({ tool: Type.String(), stage: Type.String(), code: Type.String(), detail: Type.Optional(Type.String()) });
 
 /** Plain JSON without functions, `undefined` and volatile fields; object keys keep their order. */
@@ -55,6 +56,25 @@ export class OutcomeBook {
 					return outcome;
 				},
 			});
+	}
+
+	/**
+	 * The answers as the app logged them (`tool_result` lines of the residents' runners), for a run that was not
+	 * played through `wrap`: the answer after each resident's `tool_called`, as the text the model read.
+	 */
+	static fromAppEvents(events: readonly EventEnvelope[]): OutcomeBook {
+		const book = new OutcomeBook();
+		const used = new Set<number>();
+		for (const event of events) {
+			if (event.source !== "core" || event.type !== "tool_called" || !event.actor.startsWith("resident:") || !Check(ToolCalled, event.payload)) continue;
+			const { tool } = event.payload;
+			const agent = event.actor.slice("resident:".length);
+			const result = events.find((later) => later.seq > event.seq && later.source === "app" && later.type === "tool_result" && !used.has(later.seq) && Check(AppToolResult, later.payload) && later.payload.agent === agent && later.payload.tool === tool);
+			if (result === undefined || !Check(AppToolResult, result.payload)) continue;
+			used.add(result.seq);
+			book.#bySeq.set(event.seq, { ok: true, reply: result.payload.text });
+		}
+		return book;
 	}
 
 	of(seq: number): ToolOutcome | undefined {

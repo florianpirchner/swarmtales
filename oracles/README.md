@@ -40,6 +40,7 @@ The schema is `OracleSchema` in `scripts/oracles/format.ts` (Typebox). A file ha
 | `locked` | tools every resident starts with locked; the mechanics unlock them |
 | `turns` | `passes` per minute, `blockSize`, `activation` (`onNews`: a resident gets a turn only when it has news or an answer to read) and `order` (`seeded`: a seeded shuffle per pass; `custom`: a rule of the story) |
 | `limits` | the run's own limits (`maxStepsPerMinute`: tool calls per resident and minute, refused ones included) |
+| `definition` | City of Keys and Whispers only: the story is one definition from which the old platform derived the mechanics' options. `file` is that definition as JSON next to the oracles (`setup/<name>.story.json`), `effective` the run dials applied to it; `mechanics[].options` is `null` there |
 
 ### Timeline entries
 
@@ -130,3 +131,50 @@ The catalog of files is `scripts/oracles/catalog.ts`. The test checks every comm
 its own counts and re-derives two of them; `--check` re-derives all. A changed file means the old code's behaviour
 changed: do not regenerate to make a check green.
 
+## Games
+
+| Game | Files | Replays of live runs | Scripted | Cut | Size per file |
+|---|---:|---:|---:|---:|---|
+| [tictactoe](tictactoe/) | 7 | 2 (2 exact) | 5 | 0 | 58-182 KB |
+| [quarry](quarry/) | 4 | 4 (4 exact) | 0 | 1 | 197-271 KB |
+| [econ-lab](econ-lab/) | 3 | 3 (3 exact) | 0 | 0 | 119-178 KB |
+| [liars-dice](liars-dice/) | 4 | 0 | 4 | 3 | 69-282 KB |
+| [blind-bid](blind-bid/) | 4 | 1 (answers exact, 12 of 104 turn inputs reworded) | 3 | 0 | 102-176 KB |
+| [chess](chess/) | 3 | 3 (3 exact) | 0 | 3 | 107-293 KB |
+| [convoy](convoy/) | 3 | 3 (3 exact) | 0 | 3 | 264-357 KB |
+| [ember-tricks](ember-tricks/) | 3 | 3 (2 exact; 1 with answers exact, 4 of 336 turn inputs reworded) | 0 | 2 | 277-294 KB |
+| [harbor-lights](harbor-lights/) | 5 | 5 (5 exact) | 0 | 1 | 115-254 KB |
+| [holdem](holdem/) | 4 | 0 | 4 | 4 | 221-319 KB |
+| [lanterns](lanterns/) | 3 | 3 (3 exact) | 0 | 3 | 250-272 KB |
+| [morris-teams](morris-teams/) | 4 | 4 (4 exact) | 0 | 1 | 109-233 KB |
+| [salt-market](salt-market/) | 3 | 3 (3 exact) | 0 | 3 | 273-316 KB |
+| [whispers](whispers/) | 3 | 0 | 3 | 0 | 231-248 KB |
+| [cityofkeys](cityofkeys/) | 4 | 0 | 4 | 0 | 186-343 KB |
+
+57 files, about 12 MB, plus four story definitions (0.4 MB). "Exact" means: every replayed turn showed the
+recorded inputs and every call got the recorded answer, word for word. Each game folder has a `README.md` with
+the source of its calls, what its files cover and what they do not.
+
+## Gaps
+
+- **Liar's dice and hold'em have no replay of a live run.** All their recorded runs were played at runtime
+  revision 1. Since revision 2 a call may end the caller's turn, so a seat is no longer woken to answer its own
+  tool result, and the recorded turns do not line up with today's turns. Their files come from scripted players,
+  with a few refused calls added. The old runtime can be checked out at the tag `runtime-r1` to replay those
+  runs on it; that was not done here, because the oracle must describe the state that is frozen.
+- **Tic-tac-toe on the 3x3 board and with teams of three has no replay of a live run** for the same kind of
+  reason: the rules and texts changed after those runs (P410). The scripted files cover them; two 5x5 solo runs
+  replay exactly.
+- **Whispers and City of Keys are scripted only.** A live run of them has gamemaker, classifier, judge and guard
+  models whose answers are not tool calls of residents. Replaying one needs those answers scripted too.
+- **The act-two file of City of Keys starts from a saved state** that is not part of the file
+  (`cityofkeys/README.md`).
+- **No file holds a burned puzzle piece or a decision with a window**; see `cityofkeys/README.md` for why.
+- **Timers that act for a silent player** (forfeits, missed bids) appear only where a recorded model was late.
+  No file is built around them; `test/mechanics` covers them.
+- **Eight files are above 300 KB, up to 357 KB** (convoy, hold'em, salt-market, the act-two file): the next smaller
+  natural boundary would have dropped a whole game.
+- **Not every registered variant has a file.** Each game has its default or the variant its recorded runs used,
+  and at least one other; the game READMEs list what is missing.
+- A long game is cut at the end of the minute in which a game (or hand) ended, so a cut file may hold the first
+  events of the next game.
