@@ -22,12 +22,29 @@ No run was excluded or replaced, no request failed, no decision was missed. Ever
 (`swt log verify`) and holds a `REPORT.md` written by `swt report --game`; the leak scan of the repository found
 no held key value in any file.
 
+## M3 live smoke of the city slice (2026-11-14, issue M3-30, decision A21)
+
+Code commit `a4e7ea7dd26766bffa4f35d0b8e79cf61263f2b5`, runtime revision 3, model `anthropic/haiku` resolved to
+`claude-haiku-5-5`, thinking medium, pricing `pi-ai@1.4.0`. 2 runs of at most 3, 0.0114 USD by `m3-ledger.jsonl`
+(cap 1.50; 0.40 per run). Each run folder has its own `README.md` (loopholes, problems, solutions).
+
+| Run | Seed | Flags | Cost (USD) | End | Result |
+|---|---:|---|---:|---|---|
+| `city-slice/smoke/city-slice-001` | 7 | `--snapshot-at 6` | 0.0058 | tick limit (12) | 22 calls, all `readBoard`; no vote, no decision, the Director was not woken |
+| `city-slice/smoke/city-slice-002` | 11 | `--snapshot-at 6 --hand city-slice-002.hand.jsonl` | 0.0056 | tick limit (12) | as 001; the person paused, took a snapshot, resumed; its amendment was refused with `DECISION_CLOSED` |
+
+Both folders verify (`swt log verify`), replay equal (`replay` of the testkit), and hold a `REPORT.md` written
+with `--game`; the leak scan found no held key value. No `error` end, no cap reached, no failed request. The smoke
+did not exercise the Director's model port: without a briefing no resident voted (P450). A third run was not
+started, because it would have shown the same. Loopholes: none seen (`city-slice-001` was read line by line).
+Problems: rows P450 to P455 in `docs/LESSONS-LEARNED.md` on `develop`.
+
 ## Loopholes
 
-None seen. The reviewer read the facts table of every run, and by script the brains, the reasons of the picks and
+None seen (M2 gate). The reviewer read the facts table of every run, and by script the brains, the reasons of the picks and
 choices, the refusals and the free texts of the runs; no log was read line by line.
 
-## Problems
+## Problems of the M2 gate
 
 Recorded as rows P444 to P449 in `docs/LESSONS-LEARNED.md` on `develop`, with what was proposed and built:
 
