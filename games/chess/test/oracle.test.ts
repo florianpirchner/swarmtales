@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 /**
- * The game against the five oracle files of the default, the fresh context and the compact board: each file is
- * played from its inputs under the game's own scheduler and compared at level 3 (rules, texts, scheduling); a cut
- * file up to its cut. The other seven files of `oracles/chess/` are those of the variants (the lists, the threats,
- * the coach, the teams, no brain, the cap). The old name grammar is not carried, so `VARIANTS` holds the options
- * behind each `variant` of a file (M4 specification 2.2, rule 9); `carried.test.ts` pins it against the old parser.
+ * The game against all twelve oracle files: the five of the default, the fresh context and the compact board
+ * (M4-29), and the seven recorded for M4 (M4-17, the additions 1 to 7 of the M4 specification 2.4: the legal-move
+ * list, the list with the coach, no brain, the cap of 12 plies plain and settled, the teams, the threats). Each file is
+ * played from its inputs under the game's own scheduler and compared at level 3 (rules, texts, scheduling); a cut file
+ * up to its cut. The old name grammar is not carried, so `VARIANTS` holds the options behind each `variant` of a file
+ * (M4 specification 2.2, rule 9); `carried.test.ts` pins it against the old parser.
  *
  * One declared mapping, as for liar's dice: no file of `oracles/` holds `call.endsTurn`, although the old mechanic
  * set it on every accepted `playMove` and `resign` (old `mechanics/chess/src/index.ts`, lines 449 and 578), and so
@@ -19,7 +20,20 @@ import { VARIANTS } from "./support.ts";
 
 const ORACLES = join(import.meta.dirname, "..", "..", "..", "oracles", "chess");
 
-const FILES = ["chess-compact-g4-p80-s41.json", "chess-fresh-compact-g4-p80-s47.json", "chess-g4-p80-s41.json", "chess-s13-silent.json", "chess-s13.json"];
+const FILES = [
+	"chess-compact-g4-p80-s41.json",
+	"chess-fresh-compact-g4-p80-s47.json",
+	"chess-g4-p80-s41.json",
+	"chess-moves-coach-s13.json",
+	"chess-moves-s13.json",
+	"chess-nobrain-s13.json",
+	"chess-p12-s13.json",
+	"chess-s13-silent.json",
+	"chess-s13.json",
+	"chess-settle-p12-s13.json",
+	"chess-teams-s13.json",
+	"chess-threats-s13.json",
+];
 
 const gameOf = (oracle: Oracle) => chessGame({ ...VARIANTS[oracle.variant], seed: oracle.seed });
 
@@ -28,7 +42,7 @@ const ENDS_TURN = new Set(["playMove", "resign"]);
 const withEndsTurn = (oracle: Oracle): Oracle => ({ ...oracle, timeline: oracle.timeline.map((entry) => (entry.k === "call" && entry.ok && ENDS_TURN.has(entry.tool) ? { ...entry, endsTurn: true } : entry)) });
 
 describe("chess against its oracles", () => {
-	it("covers every file of the folder whose variant this game carries, each with the options of its variant", () => {
+	it("covers every file of the folder, each with the options of its variant", () => {
 		const files = readdirSync(ORACLES).filter((file) => file.endsWith(".json"));
 		expect(files.filter((file) => Object.hasOwn(VARIANTS, readOracle(join(ORACLES, file)).variant)).sort()).toEqual(FILES);
 		expect(files).toHaveLength(12);

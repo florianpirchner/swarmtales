@@ -21,7 +21,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [Lanterns](#lanterns) | cooperation under hidden information | 6 (two teams of three) | `clue-grid`, `team-channel`, `strategy-brain` | none; variants are options of `lanternsGame` | four oracle files match at level 3 |
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
-| [Chess](#chess) | board games, all information public | 2 | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | the five oracle files of the default, the fresh context and the compact board match at level 3 |
+| [Chess](#chess) | board games, all information public | 2 (4 with teams) | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | all twelve oracle files match at level 3 |
 | [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the five oracle files without the aid match at level 3 |
 | [Convoy](#convoy) | hidden information and bluff | 6 | `convoy`, `strategy-brain` | none; variants are options of `convoyGame` | four oracle files match at level 3 |
 
@@ -156,17 +156,19 @@ probability baseline, for the report only.
 
 ## Chess
 
-Two solo seats (A01, A02) play a match of chess games with alternating colours. A move is text: chess.js plays a
+Two solo seats (A01, A02), or two teams of two, play a match of chess games with alternating colours. A move is text: chess.js plays a
 legal one, refuses an illegal one (the board stays) and ends the game on mate, stalemate, repetition, the fifty-move
 rule or insufficient material. A move cap scores long games on material, and a seat that does not move gets a
 seeded legal move played for it until three such moves lose the game. Every game starts from a fresh context; a
 seat's only memory is a short private strategy brain. The mechanic scores every move against a one-ply material
 baseline, for the report only.
 
-- Variants are options of `chessGame`: the games, the move cap, a fresh context per move, the compact board. The
-  legal-move list, the loose pieces, the coach, the teams and the control arm follow with the next chess issue.
-- Proof: the five oracle files of these variants match at level 3, three of them up to their cut, with one declared
-  mapping (the files lack the flag `endsTurn`, which every accepted move sets); the briefings are byte-identical.
+- Variants are options of `chessGame`: the games, the move cap and the settled cap, a fresh context per move, the
+  compact board, the legal-move list, the loose pieces, the coach (it needs the brain), two teams of two with a
+  rotating captain and a private chat, and no brain (the control arm).
+- Proof: the twelve oracle files match at level 3, three of them up to their cut, with one declared mapping (the
+  files lack the flag `endsTurn`, which every accepted move sets); the briefings of all four branches are
+  byte-identical.
 - Links: [folder](games/chess/), [README](games/chess/README.md), [oracle files](oracles/chess/).
 
 ## Hold'em

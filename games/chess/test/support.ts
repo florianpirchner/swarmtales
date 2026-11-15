@@ -10,8 +10,8 @@ import type { ChessOptions } from "../game.ts";
 type Logged = Played["events"][number];
 
 /**
- * The options behind every variant name of the default, the fresh context and the compact board that an oracle file
- * or an old runs index uses. The old parser read
+ * The options behind every variant name that an oracle file or the old runs index (`stories/chess/runs/README.md` on
+ * `legacy`) uses. The old parser read
  * `chess[-nobrain][-moves][-threats][-coach][-teams][-fresh][-compact][-settle][-g<games>][-p<plies>]`; the name
  * grammar is not carried.
  */
@@ -22,6 +22,25 @@ export const VARIANTS: Readonly<Record<string, ChessOptions>> = {
 	"chess-fresh-g4-p80": { fresh: true, games: 4, maxPlies: 80 },
 	"chess-compact-g4-p80": { compact: true, games: 4, maxPlies: 80 },
 	"chess-fresh-compact-g4-p80": { fresh: true, compact: true, games: 4, maxPlies: 80 },
+	"chess-moves": { showLegalMoves: true },
+	"chess-moves-coach": { showLegalMoves: true, coach: true },
+	"chess-nobrain": { brain: false },
+	"chess-p12": { maxPlies: 12 },
+	"chess-settle-p12": { settleCap: true, maxPlies: 12 },
+	"chess-teams": { teams: true },
+	"chess-threats": { showThreats: true },
+	"chess-coach-g4-p80": { coach: true, games: 4, maxPlies: 80 },
+	"chess-compact-settle-g4": { compact: true, settleCap: true, games: 4 },
+	"chess-fresh-compact-settle-g4": { fresh: true, compact: true, settleCap: true, games: 4 },
+	"chess-moves-p80": { showLegalMoves: true, maxPlies: 80 },
+	"chess-moves-g4-p80": { showLegalMoves: true, games: 4, maxPlies: 80 },
+	"chess-moves-teams-g4-p80": { showLegalMoves: true, teams: true, games: 4, maxPlies: 80 },
+	"chess-moves-threats-g4-p80": { showLegalMoves: true, showThreats: true, games: 4, maxPlies: 80 },
+	"chess-moves-threats-coach-g4-p80": { showLegalMoves: true, showThreats: true, coach: true, games: 4, maxPlies: 80 },
+	"chess-nobrain-p80": { brain: false, maxPlies: 80 },
+	"chess-nobrain-g4-p80": { brain: false, games: 4, maxPlies: 80 },
+	"chess-teams-p80": { teams: true, maxPlies: 80 },
+	"chess-threats-g4-p80": { showThreats: true, games: 4, maxPlies: 80 },
 };
 
 /** The scripted games: game 1 (A01 White) is the four-move mate, game 2 (A02 White) the two-move mate, A01 mates. */
