@@ -15,7 +15,7 @@ game: the game tells it who is on move and which values are legal.
 | Package | `@swarmtales/mechanic-consensus` |
 | Id | `consensus` |
 | Summary | A team must agree before a gated tool call is released. |
-| Requires | `consensus-source` (from [grid-game](../grid-game/README.md)) |
+| Requires | `consensus-source` (from [grid-game](../grid-game/README.md), [morris](../morris/README.md)) |
 | Uses when loaded | none |
 | Provides | `consensus`, `consensus-agreed` |
 | State | kept, snapshot slice version 1 |

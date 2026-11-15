@@ -4,6 +4,579 @@
 
 ```ts
 
+import { CtxOf } from '@swarmtales/sdk';
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { MechanicHead } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Static } from 'typebox';
+import { Type } from 'typebox';
+import { ViewOf } from '@swarmtales/sdk';
+
+// @public
+export function applyRemove(position: Position, point: number): Position;
+
+// @public
+export function applyStep(position: Position, step: Step): {
+    readonly position: Position;
+    readonly mill: boolean;
+};
+
+// @public
+export function applyTurn(position: Position, turn: Turn): Position;
+
+// @public
+export const Cell: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<".">]>;
+
+// @public
+export type Cell = Static<typeof Cell>;
+
+// @public
+export function classify(score: TurnScore): MoveClass;
+
+// @public
+export function decodeStep(code: number): Step | undefined;
+
+// @public
+export function emptyBoard(): Cell[];
+
+// Warning: (ae-forgotten-export) The symbol "Reason" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type EndReason = Static<typeof Reason>;
+
+// @public
+export const ENGINE = "engine";
+
+// @public
+export function freePoints(board: readonly Cell[]): readonly number[];
+
+// @public
+export const GameRecord: Type.TObject<{
+    game: Type.TInteger;
+    result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+    reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+    turns: Type.TInteger;
+    moves: Type.TArray<Type.TInteger>;
+}>;
+
+// @public
+export type GameRecord = Static<typeof GameRecord>;
+
+// @public
+export function hasLost(position: Position, side: Side, flying: boolean): boolean;
+
+// @public
+export function inMill(board: readonly Cell[], point: number): boolean;
+
+// @public
+export function legalSteps(position: Position, flying: boolean): readonly Step[];
+
+// @public
+export function legalTurns(position: Position, flying: boolean): readonly Turn[];
+
+// @public
+export const MILLS: readonly (readonly [number, number, number])[];
+
+// @public
+export function millsText(): string;
+
+// @public
+export const morris: MechanicDefinition<"morris", Type.TObject<{
+games: Type.TInteger;
+pieces: Type.TInteger;
+flying: Type.TBoolean;
+maxTurns: Type.TInteger;
+maxQuietTurns: Type.TInteger;
+repetitions: Type.TInteger;
+alternateStart: Type.TBoolean;
+fixedCaptain: Type.TBoolean;
+wakeTeam: Type.TBoolean;
+teams: Type.TOptional<Type.TObject<{
+X: Type.TArray<Type.TString>;
+O: Type.TArray<Type.TString>;
+}>>;
+engine: Type.TOptional<Type.TObject<{
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+depth: Type.TInteger;
+maxNodes: Type.TInteger;
+}>>;
+}>, {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+xTeam: Type.TArray<Type.TString>;
+oTeam: Type.TArray<Type.TString>;
+pieces: Type.TInteger;
+flying: Type.TBoolean;
+}>;
+readonly move_played: Type.TObject<{
+game: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+by: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"place">, Type.TLiteral<"move">, Type.TLiteral<"fly">, Type.TLiteral<"remove">]>;
+code: Type.TInteger;
+from: Type.TOptional<Type.TInteger>;
+to: Type.TInteger;
+mill: Type.TBoolean;
+turnNo: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+turns: Type.TInteger;
+pieces: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+}>;
+moves: Type.TArray<Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+tally: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+draw: Type.TInteger;
+}>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}, "viewBoard" | "playMove">;
+
+// @public
+export type MorrisCtx = CtxOf<typeof morrisHead>;
+
+// @public
+export const MorrisEvents: EventsDefinition<"morris", {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+xTeam: Type.TArray<Type.TString>;
+oTeam: Type.TArray<Type.TString>;
+pieces: Type.TInteger;
+flying: Type.TBoolean;
+}>;
+readonly move_played: Type.TObject<{
+game: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+by: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"place">, Type.TLiteral<"move">, Type.TLiteral<"fly">, Type.TLiteral<"remove">]>;
+code: Type.TInteger;
+from: Type.TOptional<Type.TInteger>;
+to: Type.TInteger;
+mill: Type.TBoolean;
+turnNo: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+turns: Type.TInteger;
+pieces: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+}>;
+moves: Type.TArray<Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+tally: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+draw: Type.TInteger;
+}>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}>;
+
+// @public
+export const morrisHead: MechanicHead<"morris", Type.TObject<{
+games: Type.TInteger;
+pieces: Type.TInteger;
+flying: Type.TBoolean;
+maxTurns: Type.TInteger;
+maxQuietTurns: Type.TInteger;
+repetitions: Type.TInteger;
+alternateStart: Type.TBoolean;
+fixedCaptain: Type.TBoolean;
+wakeTeam: Type.TBoolean;
+teams: Type.TOptional<Type.TObject<{
+X: Type.TArray<Type.TString>;
+O: Type.TArray<Type.TString>;
+}>>;
+engine: Type.TOptional<Type.TObject<{
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+depth: Type.TInteger;
+maxNodes: Type.TInteger;
+}>>;
+}>, Type.TObject<{
+teams: Type.TObject<{
+X: Type.TArray<Type.TString>;
+O: Type.TArray<Type.TString>;
+}>;
+board: Type.TArray<Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<".">]>>;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+inHand: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+}>;
+game: Type.TInteger;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+moves: Type.TArray<Type.TInteger>;
+turnNo: Type.TInteger;
+removing: Type.TBoolean;
+quiet: Type.TInteger;
+seen: Type.TRecord<"^.*$", Type.TInteger>;
+taken: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+}>;
+results: Type.TArray<Type.TObject<{
+game: Type.TInteger;
+result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+turns: Type.TInteger;
+moves: Type.TArray<Type.TInteger>;
+}>>;
+running: Type.TBoolean;
+finished: Type.TBoolean;
+held: Type.TBoolean;
+due: Type.TBoolean;
+invalid: Type.TOptional<Type.TBoolean>;
+told: Type.TOptional<Type.TString>;
+}>, MorrisState, {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+xTeam: Type.TArray<Type.TString>;
+oTeam: Type.TArray<Type.TString>;
+pieces: Type.TInteger;
+flying: Type.TBoolean;
+}>;
+readonly move_played: Type.TObject<{
+game: Type.TInteger;
+side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+by: Type.TString;
+kind: Type.TUnion<[Type.TLiteral<"place">, Type.TLiteral<"move">, Type.TLiteral<"fly">, Type.TLiteral<"remove">]>;
+code: Type.TInteger;
+from: Type.TOptional<Type.TInteger>;
+to: Type.TInteger;
+mill: Type.TBoolean;
+turnNo: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+turns: Type.TInteger;
+pieces: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+}>;
+moves: Type.TArray<Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+tally: Type.TObject<{
+X: Type.TInteger;
+O: Type.TInteger;
+draw: Type.TInteger;
+}>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}, {
+readonly "morris/tools/viewBoard": readonly [];
+readonly "morris/tools/playMove": readonly [];
+}, [], readonly [ServiceDefinition<"consensus-source", {
+readonly team: {
+readonly kind: "query";
+readonly summary: "The team on move now; an empty string when no team may act.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TString;
+};
+readonly captain: {
+readonly kind: "query";
+readonly summary: "The resident who proposes for the team on move; an empty string when there is none.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TString;
+};
+readonly legalCells: {
+readonly kind: "query";
+readonly summary: "The values the gated parameter may take for the team on move (empty when none or no team is on move).";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TArray<Type.TInteger>;
+};
+readonly playForfeit: {
+readonly kind: "command";
+readonly summary: "Plays `cell` for the team on move as a forfeit (the move timer ran out). False when it could not be played.";
+readonly input: Type.TObject<{
+cell: Type.TInteger;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly invalidate: {
+readonly kind: "command";
+readonly summary: "Ends the match as invalid (nobody played it; forfeits only) so the run ends. False when the match is already over.";
+readonly input: Type.TObject<{
+reason: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>, ServiceDefinition<"brain-source", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly hold: {
+readonly kind: "command";
+readonly summary: "Holds the next game back until `release`. True when a game is still to come and is now held; false after the match's last game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TBoolean;
+};
+readonly release: {
+readonly kind: "command";
+readonly summary: "Lets a held game start. A no-op when nothing is held.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>], readonly [ServiceDefinition<"consensus", {
+readonly reset: {
+readonly kind: "command";
+readonly summary: "Forgets every proposal, vote, agreement and timer (a new game begins); the forfeit counters stay.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TNull;
+};
+}>, ServiceDefinition<"consensus-agreed", {
+readonly agreed: {
+readonly kind: "query";
+readonly summary: "The value a team agreed on and has not played yet; null before the team agreed and for an unknown team. The `sample` of the gated tool reads it, so that the fake driver plays the agreed value.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TUnion<[Type.TNull, Type.TInteger]>;
+};
+}>, ServiceDefinition<"team-channel", {
+readonly newEpoch: {
+readonly kind: "command";
+readonly summary: "Starts a new epoch for a team: readTeam shows only the posts from now on, and posts not yet shown are not announced. False when the team is unknown.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+readonly resetCap: {
+readonly kind: "command";
+readonly summary: "Opens a new round for a team: every member may post again. False when the team is unknown.";
+readonly input: Type.TObject<{
+team: Type.TString;
+}>;
+readonly output: Type.TBoolean;
+};
+}>, ServiceDefinition<"strategy-brain", {
+readonly gameStarted: {
+readonly kind: "command";
+readonly summary: "A game started: every resident of a team gets a fresh context with the briefing at the next turn.";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+first: Type.TString;
+}>;
+readonly output: Type.TNull;
+};
+readonly briefing: {
+readonly kind: "query";
+readonly summary: "The briefing a resident gets with a fresh context (the game, the results so far, its team's brain), for a game that drops a context more often than once per game.";
+readonly input: Type.TObject<{
+resident: Type.TString;
+}>;
+readonly output: Type.TString;
+};
+readonly gameEnded: {
+readonly kind: "command";
+readonly summary: "A game ended: its summary goes into the next briefings, and the retro windows open (unless it was the last game).";
+readonly input: Type.TObject<{
+game: Type.TInteger;
+summary: Type.TString;
+moves: Type.TOptional<Type.TArray<Type.TInteger>>;
+line: Type.TOptional<Type.TArray<Type.TArray<Type.TString>>>;
+review: Type.TOptional<Type.TRecord<"^.*$", Type.TString>>;
+}>;
+readonly output: Type.TNull;
+};
+}>], {
+viewBoard: Type.TObject<{}>;
+playMove: Type.TObject<{
+move: Type.TInteger;
+}>;
+}>;
+
+// @public
+export const MorrisSlice: Type.TObject<{
+    teams: Type.TObject<{
+        X: Type.TArray<Type.TString>;
+        O: Type.TArray<Type.TString>;
+    }>;
+    board: Type.TArray<Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<".">]>>;
+    side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+    inHand: Type.TObject<{
+        X: Type.TInteger;
+        O: Type.TInteger;
+    }>;
+    game: Type.TInteger;
+    startingSide: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+    moves: Type.TArray<Type.TInteger>;
+    turnNo: Type.TInteger;
+    removing: Type.TBoolean;
+    quiet: Type.TInteger;
+    seen: Type.TRecord<"^.*$", Type.TInteger>;
+    taken: Type.TObject<{
+        X: Type.TInteger;
+        O: Type.TInteger;
+    }>;
+    results: Type.TArray<Type.TObject<{
+        game: Type.TInteger;
+        result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+        reason: Type.TUnion<[Type.TLiteral<"pieces">, Type.TLiteral<"blocked">, Type.TLiteral<"repetition">, Type.TLiteral<"quiet">, Type.TLiteral<"turn_limit">]>;
+        turns: Type.TInteger;
+        moves: Type.TArray<Type.TInteger>;
+    }>>;
+    running: Type.TBoolean;
+    finished: Type.TBoolean;
+    held: Type.TBoolean;
+    due: Type.TBoolean;
+    invalid: Type.TOptional<Type.TBoolean>;
+    told: Type.TOptional<Type.TString>;
+}>;
+
+// @public
+export interface MorrisState {
+    board: Cell[];
+    due: boolean;
+    finished: boolean;
+    game: number;
+    held: boolean;
+    inHand: {
+        X: number;
+        O: number;
+    };
+    invalid?: boolean;
+    moves: number[];
+    quiet: number;
+    removing: boolean;
+    results: GameRecord[];
+    running: boolean;
+    seen: Record<string, number>;
+    side: Side;
+    startingSide: Side;
+    taken: {
+        X: number;
+        O: number;
+    };
+    teams: {
+        X: string[];
+        O: string[];
+    };
+    told?: string;
+    turnNo: number;
+}
+
+// @public
+export type MorrisView = ViewOf<typeof morrisHead>;
+
+// @public
+export type MoveClass = "best" | "inaccuracy" | "blunder" | "missed_win";
+
+// @public
+export const NEIGHBOURS: readonly (readonly number[])[];
+
+// @public
+export function neighboursText(): string;
+
+// @public
+export function onBoard(board: readonly Cell[], side: Side): number;
+
+// @public
+export function other(side: Side): Side;
+
+// @public
+export function pass(position: Position): Position;
+
+// @public
+export const PIECES = 9;
+
+// @public
+export const POINTS = 24;
+
+// @public
+export interface Position {
+    readonly board: readonly Cell[];
+    readonly inHand: {
+        readonly X: number;
+        readonly O: number;
+    };
+    readonly side: Side;
+}
+
+// @public
+export function positionKey(position: Position): string;
+
+// @public
+export function removable(board: readonly Cell[], side: Side): readonly number[];
+
+// @public
+export function renderBoard(board: readonly Cell[]): string;
+
+// @public
+export const Result: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">, Type.TLiteral<"draw">]>;
+
+// @public
+export type Result = Static<typeof Result>;
+
+// @public
+export function scoreTurn(position: Position, played: Turn, flying: boolean, maxDepth: number, maxNodes: number): TurnScore | undefined;
+
+// @public
+export const Side: Type.TUnion<[Type.TLiteral<"X">, Type.TLiteral<"O">]>;
+
+// @public
+export type Side = Static<typeof Side>;
+
+// @public
+export type Stage = "place" | "move" | "fly";
+
+// @public
+export function stageOf(position: Position, side: Side, flying: boolean): Stage;
+
+// @public
+export function startPosition(side: Side, pieces?: number): Position;
+
+// @public
+export interface Step {
+    readonly from?: number;
+    readonly to: number;
+}
+
+// @public
+export function stepCode(step: Step): number;
+
+// @public
+export function stepText(step: Step): string;
+
+// @public
+export interface Turn extends Step {
+    readonly remove?: number;
+}
+
+// @public
+export interface TurnScore {
+    readonly alternatives: number;
+    readonly best: number;
+    readonly depth: number;
+    readonly missedMill: boolean;
+    readonly played: number;
+}
+
 // (No @packageDocumentation comment for this package)
 
 ```
