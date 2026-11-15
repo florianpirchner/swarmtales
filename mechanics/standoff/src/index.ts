@@ -75,8 +75,13 @@ function ultimatumSample(ctx: StandoffToolCtx): { readonly a: string; readonly b
 	return pair === undefined || busy(pair) ? undefined : { a: pair.holder, b: pair.needer, minutes: 1 };
 }
 
-/** The old `HOOK_ORDER.minuteStarted`: the motives, the door, the names, the tribunal and the seal tick before the standoff. */
-const BEFORE_STANDOFF = ["motives", "progression", "names", "tribunal", "seal"];
+/**
+ * The old `HOOK_ORDER.minuteStarted`: the motives, the door, the names, the tribunal and the seal tick before the
+ * standoff. The door is the first tick start of `progression`, which loads before the standoff; naming `progression`
+ * would also put its door clock and its second door before the standoff, and the second door waits for
+ * `standoff-tribunal`, which waits for the standoff (a cycle, erratum of M5-38).
+ */
+const BEFORE_STANDOFF = ["motives", "names", "tribunal", "seal"];
 
 /**
  * The standoff: pieces held for others, the hand-overs the city sees, and the city's shop of the pieces of the exiled.

@@ -19,7 +19,7 @@ issues: part 1 (M5-29) holds the blockers, the call and the grace; part 2 (M5-30
 | Uses when loaded | `identity` (from [names](../names/README.md)) |
 | Provides | `cap-exemption` |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

@@ -5,7 +5,7 @@ The catalogue of the games that run on Swarm Tales.
 <!-- generated:status -->
 <!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
 
-Fifteen games run on the new platform today, thirteen of them ports of the games of the old platform.
+Sixteen games run on the new platform today, fourteen of them ports of the games of the old platform.
 
 <!-- /generated:status -->
 
@@ -42,6 +42,7 @@ mechanics, Directors and params of each game's default build. Family and proof c
 | [Salt Market](#salt-market) | markets, bids and economics | 4 | `salt-market`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `spoil`, `maxWords`, `markOwnOffers` | four oracle files match at level 3 |
 | [Blind Bid](#blind-bid) | markets, bids and economics | 4 | `sealed-auction`, `strategy-brain` | none | a game family: `games`, `lots`, `purse`, `brain`, `maxWords`, `quietEnds` | five oracle files match at level 3 |
 | [Ember Tricks](#ember-tricks) | markets, bids and economics | 4 | `card-table`, `trick-play`, `strategy-brain` | none | a game family: `games`, `rounds`, `brain`, `lever`, `maxWords`, `quietEnds` | four oracle files match at level 3 |
+| [Whispers](#whispers) | societies | 6 | `ledger`, `marks`, `names`, `channels`, `petitions`, `receipts`, `whispers`, `motives`, `puzzles`, `progression`, `cast`, `standoff`, `exile`, `standoff-tribunal`, `script`, `arena`, `interpretations` | `confessor`, `gamemaker`, `guard`, `judge` | a game family: `receipts`, `agents`, `minutes`, `lastLevel`, `passesPerMinute`, `activation`, `stopWhenDone`, `stopWhenSeatsDecided`, `gamemaker`, `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection` | three of the four oracle files match at level 3 (the holdout file follows in M5-39); replay and resume give the same log |
 
 <!-- /generated:overview -->
 
@@ -286,6 +287,21 @@ memory across games is its own short notes.
   briefings are byte-identical.
 - Links: [folder](games/ember-tricks/), [README](games/ember-tricks/README.md), [oracle files](oracles/ember-tricks/).
 
+## Whispers
+
+Six residents (A01 to A06) pass the seven doors of ECHO together: every door's password is split into six
+overlapping fragments, one per resident, and fragments travel only by DM, under a cap per window of the clock. The
+first resident through a door gets a bonus, and before each door the city holds a secret popularity vote. One
+resident, the whisperer, is seeded to want discord, not points. Every delivered DM leaves a receipt that quotes it;
+the whisperer can forge one. A gamemaker looks after every round and may put a resident who blocks a door on trial.
+
+- Params of the game family: `receipts` (false: the variant `whispers-rumours`, word against word), `minutes`,
+  `lastLevel`, the pacing (`passesPerMinute`, `activation`) and the dials of the old story (`gamemaker`,
+  `classifier`, `names`, `coreMotives`, `whisperer`, `guards`, `figureDirection`, `gmDirection`).
+- Proof: three of the four oracle files match at level 3, after the registered changes of their README; the story
+  data is byte-identical to the old story files.
+- Links: [folder](games/whispers/), [README](games/whispers/README.md), [oracle files](oracles/whispers/).
+
 ## The games of the old platform
 
 The old platform has fifteen games in five families: thirteen tabletop games, Whispers and City of Keys. The Hello
@@ -294,11 +310,11 @@ Game and the city slice are new and are not among them.
 <!-- generated:families -->
 <!-- Written by `pnpm docs:games` from games/index.ts, the game files and scripts/game-docs/catalogue.ts; edit those, not this block. -->
 
-Thirteen of the fifteen are ported so far, marked in bold, each with its card above.
+Fourteen of the fifteen are ported so far, marked in bold, each with its card above.
 
 | Family | Games |
 |---|---|
-| Societies | City of Keys, Whispers |
+| Societies | City of Keys, **[Whispers](#whispers)** |
 | Board games, all information public | **[Chess](#chess)**, **[Nine men's morris](#nine-mens-morris)**, **[Tic-tac-toe teams](#tic-tac-toe-teams)** |
 | Hidden information and bluff | **[Hold'em](#holdem)**, **[Liar's dice](#liars-dice)**, **[Convoy](#convoy)** |
 | Cooperation under hidden information | **[Harbor Lights](#harbor-lights)**, **[Lanterns](#lanterns)** |

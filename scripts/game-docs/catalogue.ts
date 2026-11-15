@@ -41,6 +41,7 @@ export const CARDS: Readonly<Record<string, CardFacts>> = {
 	"salt-market": { title: "Salt Market", oracles: "salt-market" },
 	"blind-bid": { title: "Blind Bid", oracles: "blind-bid" },
 	"ember-tricks": { title: "Ember Tricks", oracles: "ember-tricks" },
+	whispers: { title: "Whispers", proof: "three of the four oracle files match at level 3 (the holdout file follows in M5-39); replay and resume give the same log" },
 };
 
 /** One game of the old platform: its name there and the folder of its port. */

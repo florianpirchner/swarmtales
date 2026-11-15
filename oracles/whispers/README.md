@@ -32,3 +32,25 @@ tribunal: a grace that is used (`dropped`), a unanimous vote (`banished`), a tri
 struck at its door before, the strike by the city itself after `fallbackMinutes`, an accused drawn among several
 blockers, the accused's DMs exempt from the cap, `blocker_cleared`; runs longer than 26 minutes (doors 5 to 7, the
 final vote), a save and a resume (see `../cityofkeys`).
+
+## Registered changes against the files
+
+The game's oracle test (`games/whispers/test/oracle.test.ts`, issue M5-38) plays `whispers-s7.json`,
+`whispers-s11.json` and `whispers-rumours-s7.json` at level 3 after these mappings of the file
+(`games/whispers/test/support.ts`); nothing else may differ. Each move keeps the order within one source.
+
+| Change | In the file | On the rewritten platform | Why |
+|---|---|---|---|
+| `call.endsTurn` | absent | `false` | no mechanic of the cluster sets it on `legacy` (`12-m5-spec.md` 2.5, rule 3); no mapping is needed, since the flag is `false` on both sides |
+| The whisperer is chosen after the deals | `whisperer_chosen` before `fragments_dealt` | after the last `fragments_dealt` | `whispers` requires `ledger` and `channels` and names no `before` (J150) |
+| A solved level | `level_up`, `submission`, `level_entered`, …, the `levelUp` receipt among the listeners | `level_up`, `level_entered`, `submission`, the script's lines, then the `levelUp` receipt | `progression` writes its events in one go; its listeners follow, the receipt last |
+| The delivery notice names the coming receipt | `receipt_issued` (kind `dm`), then the sender's notice | the notice, then `receipt_issued` | A64: the notice is written after `dm_delivered`, the receipt by the listener of `receipts` |
+| The gamemaker's look after round r | after `arena.round_end` of round r, before the `minute` entry of minute r | after the `minute` entry, the tick-start lines of the mechanics and the staged `directorMinute` of tick r | J126: the look runs in the slot `start` of tick r |
+| The run-start locks | `core.tool_locked` of the six tools of `setup.locked`, `by: "progression"` | none | the game starts them locked (`locked`); the kernel writes `tool_locked` only for a change |
+| The lines under the task | one `task` line of source `progression` | the same text, source `progression+standoff-tribunal+marks` (and `names` where it writes its line) | J31, J102, J187: each owner writes its own line of kind `task`, joined by `{ kind: "task", join: "\n" }` |
+| A receipt of a message delivered as a turn opens | the status line of that turn does not count it | it does (`1 receipt`, the source gains `receipts`) | `channels` delivers in its `turnInputs`, and `receipts` requires `channels`, so its status part runs after the delivery; the old status hook ran before it |
+| The door-open notice (open erratum) | the task with the holdout rule and the marks terms under it | the task alone | `progression`'s `openOnClock` writes the template; the lines of the other owners are not asked (event and input line) |
+
+The comparison of `whispers-holdout-s7.json` is issue M5-39's: its tribunal is called in the look at the start of
+tick 16, and `until` reads that tick (J137); three messages delivered in one turn issue their receipts after all
+three notices.

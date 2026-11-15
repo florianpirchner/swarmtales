@@ -502,7 +502,75 @@ importers:
         specifier: workspace:*
         version: link:../../packages/testkit
 
-  games/whispers: {}
+  games/whispers:
+    dependencies:
+      '@swarmtales/city-directors':
+        specifier: workspace:*
+        version: link:../../mechanics/city-directors
+      '@swarmtales/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@swarmtales/mechanic-arena':
+        specifier: workspace:*
+        version: link:../../mechanics/arena
+      '@swarmtales/mechanic-cast':
+        specifier: workspace:*
+        version: link:../../mechanics/cast
+      '@swarmtales/mechanic-channels':
+        specifier: workspace:*
+        version: link:../../mechanics/channels
+      '@swarmtales/mechanic-exile':
+        specifier: workspace:*
+        version: link:../../mechanics/exile
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:../../mechanics/ledger
+      '@swarmtales/mechanic-marks':
+        specifier: workspace:*
+        version: link:../../mechanics/marks
+      '@swarmtales/mechanic-motives':
+        specifier: workspace:*
+        version: link:../../mechanics/motives
+      '@swarmtales/mechanic-names':
+        specifier: workspace:*
+        version: link:../../mechanics/names
+      '@swarmtales/mechanic-petitions':
+        specifier: workspace:*
+        version: link:../../mechanics/petitions
+      '@swarmtales/mechanic-progression':
+        specifier: workspace:*
+        version: link:../../mechanics/progression
+      '@swarmtales/mechanic-puzzles':
+        specifier: workspace:*
+        version: link:../../mechanics/puzzles
+      '@swarmtales/mechanic-receipts':
+        specifier: workspace:*
+        version: link:../../mechanics/receipts
+      '@swarmtales/mechanic-script':
+        specifier: workspace:*
+        version: link:../../mechanics/script
+      '@swarmtales/mechanic-standoff':
+        specifier: workspace:*
+        version: link:../../mechanics/standoff
+      '@swarmtales/mechanic-standoff-tribunal':
+        specifier: workspace:*
+        version: link:../../mechanics/standoff-tribunal
+      '@swarmtales/mechanic-whispers':
+        specifier: workspace:*
+        version: link:../../mechanics/whispers
+      '@swarmtales/prompts':
+        specifier: workspace:*
+        version: link:../../packages/prompts
+      '@swarmtales/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      typebox:
+        specifier: 1.3.27
+        version: 1.3.27
+    devDependencies:
+      '@swarmtales/testkit':
+        specifier: workspace:*
+        version: link:../../packages/testkit
 
   mechanics/arena:
     dependencies:

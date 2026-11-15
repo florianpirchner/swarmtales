@@ -19,7 +19,7 @@ how a game writes courier lines, the feast and other beats.
 | Uses when loaded | `channels` (from [channels](../channels/README.md)), `progression` (from [progression](../progression/README.md)), `cast` (from [cast](../cast/README.md)), `petitions` (from [petitions](../petitions/README.md)), `ledger` (from [ledger](../ledger/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

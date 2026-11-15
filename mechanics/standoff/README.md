@@ -20,7 +20,7 @@ hand-over, the shop and the last will (M5-27), then the ultimatum and the gamema
 | Uses when loaded | `held-pieces` (from [puzzles](../puzzles/README.md)), `ransom-price` (from [tribunal](../tribunal/README.md)), `trial-risk` (from [tribunal](../tribunal/README.md)), `exile` (from [exile](../exile/README.md)), `identity` (from [names](../names/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

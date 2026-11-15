@@ -21,7 +21,7 @@ away itself.
 | Uses when loaded | `exile-purse` (from [ledger](../ledger/README.md)), `identity` (from [names](../names/README.md)), `notices` (from [channels](../channels/README.md)) |
 | Provides | `exile` |
 | State | kept, snapshot slice version 1 |
-| Games | [city-slice](../../games/city-slice/README.md) |
+| Games | [city-slice](../../games/city-slice/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

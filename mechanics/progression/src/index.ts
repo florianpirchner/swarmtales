@@ -58,8 +58,14 @@ export const progression = defineMechanic(progressionHead, {
 			(ctx) => {
 				if (ctx.tick > 0) openDoor(ctx);
 			},
-			(ctx) => {
-				openOnClock(ctx, ctx.tick);
+			// The door clock after the names, the tribunal, the standoff and the whispers' vote (old
+			// `HOOK_ORDER.minuteStarted` 700): a vote counted at a door's minute comes before the door (erratum of M5-38).
+			// The seal names `progression` in its own `after`, so it ticks after the whole progression here.
+			{
+				after: ["names", "tribunal", "standoff", "whispers"],
+				run: (ctx) => {
+					openOnClock(ctx, ctx.tick);
+				},
 			},
 			// A door may open once the last laggard was banished by the tribunal's or the holdout's tick (J136).
 			{

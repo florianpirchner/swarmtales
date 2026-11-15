@@ -18,7 +18,7 @@ signed and fails at its deadline or at the end of the run, and the script reacts
 | Uses when loaded | none |
 | Provides | `petitions` |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

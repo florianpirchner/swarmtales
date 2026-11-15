@@ -19,7 +19,7 @@ the most liked get points. Ported from the old platform (M5-26).
 | Uses when loaded | `receipt-source` (from [receipts](../receipts/README.md)), `allowance` (from [marks](../marks/README.md)), `identity` (from [names](../names/README.md)), `exile` (from [exile](../exile/README.md)), `deal` (from [puzzles](../puzzles/README.md)) |
 | Provides | `whispers` |
 | State | kept, snapshot slice version 1 |
-| Games | none of the games in this repository |
+| Games | [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 

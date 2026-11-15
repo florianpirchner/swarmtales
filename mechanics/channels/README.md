@@ -24,7 +24,7 @@ mechanics check and record their Director's texts through the service `notes`.
 | Uses when loaded | `ledger` (from [ledger](../ledger/README.md)), `receipt-source` (from [receipts](../receipts/README.md)), `identity` (from [names](../names/README.md)), `allowance` (from [marks](../marks/README.md)), `figures` (from [cast](../cast/README.md)), `cap-exemption` (from [standoff-tribunal](../standoff-tribunal/README.md)) |
 | Provides | `channels`, `notices`, `notes` |
 | State | kept, snapshot slice version 4 |
-| Games | [city-slice](../../games/city-slice/README.md) |
+| Games | [city-slice](../../games/city-slice/README.md), [whispers](../../games/whispers/README.md) |
 
 <!-- /generated:glance -->
 
