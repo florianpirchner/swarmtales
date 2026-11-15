@@ -216,6 +216,7 @@ export const directorContext: (director: ResolvedDirector, at: Pick<DirectorCont
 // @public
 export interface DirectorDefinition {
     act(answer: unknown, ctx: DirectorActContext<unknown>): Promise<void>;
+    readonly acts: "answer" | "tools";
     readonly answers: string | undefined;
     readonly facts: readonly string[];
     fallback(ctx: DirectorContext<unknown>): unknown;
@@ -235,6 +236,7 @@ export function directorGrants(grants: Readonly<Record<string, readonly Canonica
 
 // @public
 export interface DirectorHead<O extends TSchema, A extends TSchema> {
+    readonly acts?: "answer" | "tools";
     readonly answers?: string;
     readonly facts?: readonly string[];
     readonly id: string;
@@ -249,6 +251,7 @@ export interface DirectorHead<O extends TSchema, A extends TSchema> {
 export interface DirectorLimits {
     readonly maxCalls?: number;
     readonly maxCostUsd?: number;
+    readonly maxRequests?: number;
 }
 
 // @public

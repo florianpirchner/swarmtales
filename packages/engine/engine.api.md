@@ -4,9 +4,11 @@
 
 ```ts
 
+import { Activation } from '@swarmtales/contracts';
 import { AskModel } from '@swarmtales/contracts';
 import { DriverTable } from '@swarmtales/contracts';
 import { InputNote } from '@swarmtales/contracts';
+import { ModelQuestion } from '@swarmtales/contracts';
 import { OrderedNote } from '@swarmtales/contracts';
 import { RecordSource } from '@swarmtales/contracts';
 import { ResolvedGame } from '@swarmtales/sdk';
@@ -37,6 +39,7 @@ export interface DirectorDriverInput {
     readonly ask: AskModel;
     readonly facts?: (key: string) => unknown;
     readonly game: ResolvedGame;
+    readonly look?: (activation: Activation, question: ModelQuestion) => Promise<void>;
 }
 
 // @public

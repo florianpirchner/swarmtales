@@ -80,6 +80,8 @@ export interface DirectorLimits {
 	readonly maxCalls?: number;
 	/** The most money its model calls may cost, in US dollars; the asker counts it. */
 	readonly maxCostUsd?: number;
+	/** A Director that acts by tool use (`acts: "tools"`): the most model requests of one look; 2 when left out (the old `modelCallsPerTurn`). */
+	readonly maxRequests?: number;
 }
 
 /**
@@ -134,6 +136,13 @@ export interface DirectorHead<O extends TSchema, A extends TSchema> {
 	readonly limits?: DirectorLimits;
 	/** The answerer of the stage `review` this Director is: it answers the questions of the reviews that name it, its answer fits `output`. */
 	readonly answers?: string;
+	/**
+	 * How it acts (REWRITE 3.6, "the declared exception"): `answer` (the default) asks for one answer that fits
+	 * `output` and hands it to `act`; `tools` gives the model the open tools of its grant, with `system` and `input`
+	 * as the texts of the look, and the model calls them until it calls none or the look reaches `limits.maxRequests`.
+	 * With `tools`, `output`, `act` and `fallback` are not used; its driver is the resident session of the models package.
+	 */
+	readonly acts?: "answer" | "tools";
 }
 
 /**
@@ -175,6 +184,8 @@ export interface DirectorDefinition {
 	readonly limits: DirectorLimits;
 	/** The answerer of the stage `review` it is; undefined: none. */
 	readonly answers: string | undefined;
+	/** How it acts: `answer` (one answer for `act`) or `tools` (a tool loop of its model); `answer` when the head does not say. */
+	readonly acts: "answer" | "tools";
 	/**
 	 * Parses the options of one use and fills the defaults.
 	 *
@@ -251,6 +262,7 @@ export function defineDirector(head: DirectorHead<TSchema, TSchema>, body: Direc
 		output: head.output,
 		limits: head.limits ?? {},
 		answers: head.answers,
+		acts: head.acts ?? "answer",
 		parseOptions: (raw) => parseOptions(head.id, options, raw),
 		system: (ctx) => body.system(ctx),
 		input: (ctx) => body.input(ctx),

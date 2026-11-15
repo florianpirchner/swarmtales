@@ -35,8 +35,18 @@ function isSchema(value: unknown): value is TSchema {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// Why nothing may be sent: the meter's limit (the cap, or a closed meter), then the actor's own limit. A limit that is no amount lets nothing through.
-function over(meter: CostMeter, actor: ActorId, maxCostUsd: number | undefined): string | undefined {
+/**
+ * Why nothing may be sent: the meter's limit (the cap, or a closed meter), then the actor's own limit. A limit that
+ * is no amount lets nothing through.
+ *
+ * @param meter - The cost meter of the run.
+ * @param actor - The actor that would ask.
+ * @param maxCostUsd - Its own limit; left out: only the meter's.
+ * @returns The reason, or undefined when a request may be sent.
+ *
+ * @internal
+ */
+export function over(meter: CostMeter, actor: ActorId, maxCostUsd: number | undefined): string | undefined {
 	const run = meter.limit.check();
 	if (run !== undefined || maxCostUsd === undefined) return run;
 	const spent = meter.byActor[actor]?.costUsd ?? 0;

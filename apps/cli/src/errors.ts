@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
- * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020` and `SWT-C024`. `SWT-C001` and `SWT-C002` are beside the game
+ * The C codes of the commands: `SWT-C003`, `SWT-C010`, `SWT-C020`, `SWT-C024` and `SWT-C026`. `SWT-C001` and `SWT-C002` are beside the game
  * file loader (`load-game.ts`), `SWT-C030` beside the installed table (`installed.ts`).
  */
 import type { SwtIssue } from "@swarmtales/contracts";
@@ -75,5 +75,24 @@ export function experimentNotFound(input: { readonly path: string; readonly what
 		why: "`swt experiment run` reads the spec file of an experiment, and `swt experiment analyse` the folder that `swt experiment run` wrote.",
 		fix: "Give the path of a spec file (for example `games/quarry/experiments/open-quarries.json`), or the folder that holds `experiment.json`.",
 		where: { file: input.path },
+	};
+}
+
+/**
+ * `SWT-C026`: a `--director-model` names no Director of the game.
+ *
+ * @param input - The name and the Directors there are.
+ * @param input.name - The name the flag gave.
+ * @param input.known - The names of the game's Directors.
+ * @returns The issue.
+ *
+ * @public
+ */
+export function noSuchDirector(input: { readonly name: string; readonly known: readonly string[] }): SwtIssue {
+	return {
+		code: "SWT-C026",
+		summary: `\`--director-model ${input.name}=...\` names no Director of the game`,
+		why: "The flag replaces the model of one Director of this game for the run (decision A52); a name of no Director would replace nothing.",
+		fix: input.known.length === 0 ? "The game has no Director: leave the flag out." : `Name one of the game's Directors: ${input.known.join(", ")}.`,
 	};
 }

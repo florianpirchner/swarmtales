@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { EVENTS_FILE } from "@swarmtales/chain";
 import { redactSecrets, RunManifestSchema, StoredEnvelopeSchema, SwtError, type Envelope, type EventSink, type KernelPorts, type RecordSource, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
-import { DIRECTOR_RECORDS } from "@swarmtales/engine";
+import { DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
 import { parseLabFile } from "@swarmtales/lab";
 import { createCostMeter, DIRECTOR_MODEL_RECORDS, RESIDENT_RECORDS } from "@swarmtales/models";
 import { MANIFEST_FILE, verifyRun } from "@swarmtales/runlog";
@@ -88,7 +88,7 @@ export function replayDiffers(input: { readonly file: string; readonly line: num
 // The record sources the run's assembly declared: those of the drivers the manifest names, and the marker of a resumed run.
 function recordsOf(manifest: RunManifest): readonly RecordSource[] {
 	const live = manifest.actors.some((actor) => actor.model !== undefined);
-	return [...(live ? [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS] : [DIRECTOR_RECORDS]), ...(manifest.resumedFrom === undefined ? [] : [RUN_RECORDS])];
+	return [...(live ? [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS] : [DIRECTOR_RECORDS]), REVIEW_RECORDS, ...(manifest.resumedFrom === undefined ? [] : [RUN_RECORDS])];
 }
 
 // The lines of the log; undefined when the file is missing or a line is no event.

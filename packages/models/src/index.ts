@@ -18,4 +18,5 @@ export { createToolsNotice, toolsNotice, type ToolsNotice } from "./driver/notic
 export { parseSavedSessions, SAVED_SESSION_FORMAT, SavedSessionSchema, SavedSessionsSchema, type SavedSession, type SavedSessions } from "./driver/saved.ts";
 export { systemPrompt, type PromptFacts } from "./driver/prompt.ts";
 export { createAsker, DIRECTOR_MODEL_RECORDS, scriptedAsker } from "./director.ts";
+export { createToolDirector, LOOK_REQUESTS, type Look, type LookInput } from "./driver/look.ts";
 export { createModelDrivers, RESIDENT_DRIVER, type ModelDrivers, type ModelDriversInput } from "./driver/create.ts";

@@ -11,15 +11,16 @@ import { readFileSync } from "node:fs";
 import { findPackageJSON } from "node:module";
 import { basename, relative, resolve } from "node:path";
 import { jsonHash } from "@swarmtales/chain";
-import { formatIssue, redactSecrets, redactValue, SwtError, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
-import { createDirectorDrivers, DIRECTOR_RECORDS } from "@swarmtales/engine";
+import { formatIssue, redactSecrets, redactValue, SwtError, type AskModel, type DriverTable, type EventSink, type Kernel, type PromptLookup, type Redact, type RunEnd, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
+import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
 import { createKernel } from "@swarmtales/kernel";
-import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
+import { createAsker, createCostMeter, createKeyBroker, createModelDrivers, createToolDirector, DIRECTOR_MODEL_RECORDS, createModelSource, createProviderRegistry, REQUEST_TIMEOUT_MS, RESIDENT_DRIVER, RESIDENT_RECORDS, resolveModelSettings, systemPrompt, type CostMeter, type KeyBroker, type ModelSettings, type ModelSource, type Spend } from "@swarmtales/models";
 import { nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunVerdict } from "@swarmtales/runlog";
-import { RESIDENT_KIND, type ResolvedGame } from "@swarmtales/sdk";
+import { DIRECTOR_TAKE, RESIDENT_KIND, type ResolvedGame } from "@swarmtales/sdk";
 import { Type } from "typebox";
 import { Check, Parse } from "typebox/value";
 import { loopOf, runManifest } from "./assembly.ts";
+import { actorModels, type ActorModels } from "./director-models.ts";
 import type { LiveFlags } from "./flags.ts";
 import { handOf } from "./hand.ts";
 import { scanFolder } from "./leak-scan.ts";
@@ -113,17 +114,22 @@ function modelOf(settings: ModelSettings): NonNullable<RunManifest["actors"][num
 	return { provider: settings.provider, requestedId: settings.requestedId, resolvedId: settings.modelId, params, pricing: pricing() };
 }
 
-// The model of the run: command line, then environment, then the game. `SWT-X001` when the provider has no key, also with a source of the caller's.
-function settingsOf(input: LiveInput, game: ResolvedGame, broker: KeyBroker): { readonly settings: ModelSettings; readonly source: ModelSource } {
+// The model of the run: command line, then environment, then the game; a Director's by `actorModels`. `SWT-X001` when a provider has no key, also with a source of the caller's.
+function settingsOf(input: LiveInput, game: ResolvedGame, broker: KeyBroker): { readonly settings: ModelSettings; readonly source: ModelSource; readonly actors: ActorModels } {
 	const registry = createProviderRegistry();
 	const overrides = { ...(input.provider === undefined ? {} : { provider: input.provider }), ...(input.modelId === undefined ? {} : { modelId: input.modelId }), ...(input.thinking === undefined ? {} : { thinking: input.thinking }) };
 	const env = { ...(input.env.SWT_PROVIDER === undefined ? {} : { SWT_PROVIDER: input.env.SWT_PROVIDER }), ...(input.env.SWT_MODEL === undefined ? {} : { SWT_MODEL: input.env.SWT_MODEL }) };
 	const settings = resolveModelSettings(overrides, env, game.data.model, registry);
 	broker.auth(settings.provider);
-	const source = input.source ?? createModelSource(settings, registry, broker);
+	const make = (chosen: ModelSettings): ModelSource => {
+		broker.auth(chosen.provider);
+		return input.source ?? createModelSource(chosen, registry, broker);
+	};
+	const actors = actorModels(game, input.directorModels ?? {}, { settings, source: input.source ?? createModelSource(settings, registry, broker) }, make, registry);
+	const { source } = actors;
 	// `SWT-X007` comes from `bind`: every actor a model plays is bound once here and the binding dropped, so a model without a price is refused before the run folder exists.
 	for (const actor of game.definition.actors.filter(({ id }) => id !== "human")) source.bind(actor.id, { maxOutputTokens: settings.maxOutputTokens, timeoutMs: REQUEST_TIMEOUT_MS });
-	return { settings, source };
+	return { settings, source, actors };
 }
 
 interface Outcome {
@@ -194,6 +200,8 @@ interface Prepared {
 	readonly texts: PromptLookup;
 	readonly settings: ModelSettings;
 	readonly source: ModelSource;
+	readonly actors: ActorModels;
+	readonly ask: AskModel;
 	readonly systemPrompts: Readonly<Record<string, string>>;
 	readonly meter: CostMeter;
 	readonly redact: Redact;
@@ -201,19 +209,25 @@ interface Prepared {
 	readonly hand: HandSource | undefined;
 }
 
+// The limits of a Director's use; none for another actor.
+const limitsOf = (game: ResolvedGame, actor: string): { readonly maxCostUsd?: number; readonly maxRequests?: number } => (game.directors ?? []).find((director) => director.actor === actor)?.limits ?? {};
+
 // Steps one and two: the cap, the source tree (a confirmatory run needs an experiment and a clean tree), the resolved game, its model with the key check, the system prompts.
 async function prepared(input: LiveInput, io: CliIo, broker: KeyBroker): Promise<Prepared> {
 	const meter = createCostMeter(input.budget ?? 0);
 	if (input.purpose === "confirmatory" && input.experiment === undefined) throw new SwtError(confirmatoryAlone());
 	const tree = input.tree ?? readSourceTree();
 	if (input.purpose === "confirmatory" && tree.dirty !== false) throw new SwtError(confirmatoryDirty(tree));
-	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS]);
-	return { game, texts, ...settingsOf(input, game, broker), systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, hand: handOf(input.hand, game, io) };
+	const { game, texts } = await resolveFile(input, io, [RESIDENT_RECORDS, DIRECTOR_RECORDS, DIRECTOR_MODEL_RECORDS, REVIEW_RECORDS]);
+	const models = settingsOf(input, game, broker);
+	// A Director asks its model; its cost counts on the meter of the run, under its own `maxCostUsd`.
+	const ask = createAsker(models.source, meter, (actor) => limitsOf(game, actor));
+	return { game, texts, ...models, ask, systemPrompts: promptsOf(game, texts), meter, redact: broker.redact, tree, hand: handOf(input.hand, game, io) };
 }
 
 // Steps three and four: the kernel is created (the manifest holds its tool specs), then the manifest is written with the folder. Nothing is started.
 function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): { readonly kernel: Kernel; readonly folder: RunFolder } {
-	const { game, settings, systemPrompts, meter, redact } = run;
+	const { game, systemPrompts, meter, redact } = run;
 	const { actors } = game.definition;
 	const folders: RunFolder[] = [];
 	const sink: EventSink = {
@@ -226,16 +240,16 @@ function opened(input: LiveInput, io: CliIo, run: Prepared, directory: string): 
 			folders[0]?.sink.close?.(end);
 		},
 	};
-	const kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact });
+	// The answerer of a review is a Director (`answers`), asked through the asker with the facts of the run.
+	const kernel: Kernel = createKernel(game.definition, { sinks: [sink, ...(input.sinks ?? [])], limits: [meter.limit], redact, review: createReviewPort({ game, ask: run.ask, facts: (key) => kernel.fact(key) }) });
 	if (game.win !== undefined) kernel.fact(game.win);
-	const model = modelOf(settings);
 	const facts = {
 		...runFacts(directory, io.now),
 		...run.tree,
 		purpose: input.purpose,
 		replicate: input.replicate,
 		budgetUsd: meter.capUsd,
-		models: Object.fromEntries(actors.filter(({ id }) => id !== "human").map((actor) => [actor.id, model])),
+		models: Object.fromEntries(actors.filter(({ id }) => id !== "human").map((actor) => [actor.id, modelOf(run.actors.settings(actor.id))])),
 		systemPrompts,
 		toolSpecs: Object.fromEntries(actors.map((actor) => [actor.grant, kernel.toolSpecs(actor.grant)])),
 		...(input.experiment === undefined ? {} : { experiment: input.experiment }),
@@ -277,7 +291,7 @@ function codeOf(leak: boolean, end: RunEnd | undefined, verified: boolean, cappe
 // A throw after the start leaves the reservation in the ledger: a crashed run keeps its whole cap, and so does a run whose cost is not known.
 async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace): Promise<LiveResult> {
 	const run = await prepared(input, io, broker);
-	const { game, settings, source, systemPrompts, meter, redact, texts } = run;
+	const { game, settings, source, systemPrompts, meter, redact, texts, ask } = run;
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
 	const name = runName(input, directory);
 	const { kernel, folder, settle } = reserved(input, io, name, meter.capUsd, () => opened(input, io, run, directory));
@@ -286,9 +300,9 @@ async function live(input: LiveInput, io: CliIo, broker: KeyBroker, trace: Trace
 		kernel.start();
 		const models = createModelDrivers({ kernel, actors: game.definition.actors, source, settings, systemPrompts, meter, redact, texts, hash: jsonHash });
 		models.fix();
-		// A Director asks the model of the run; its cost counts on the meter of the run, under its own `maxCostUsd`.
-		const ask = createAsker(source, meter, (actor) => (game.directors ?? []).find((director) => director.actor === actor)?.limits ?? {});
-		const drivers: DriverTable = { ...models.drivers, ...createDirectorDrivers({ game, ask }) };
+		// A Director that acts by tool use looks through a resident session of its own model; it is never given `take`.
+		const look = createToolDirector({ kernel, source, settings: run.actors.settings, limits: (actor) => limitsOf(game, actor), meter, redact, hidden: [game.definition.names[DIRECTOR_TAKE] ?? "take"] });
+		const drivers: DriverTable = { ...models.drivers, ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look }) };
 		return played(kernel, drivers, loopOf(game, kernel, () => folder, { hand: run.hand, snapshotAt: input.snapshotAt, warn: (line) => { io.err(redact(line)); } }));
 	};
 	const { end: last, issues, hand } = await play().finally(() => {

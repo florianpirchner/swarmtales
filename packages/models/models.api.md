@@ -95,6 +95,9 @@ export function createProviderRegistry(extra?: readonly ProviderSpec[]): Provide
 export function createResidentSession(input: SessionInput): ResidentSession;
 
 // @public
+export function createToolDirector(input: LookInput): Look;
+
+// @public
 export function createToolsNotice(texts: PromptLookup, last?: readonly string[]): ToolsNotice;
 
 // @public
@@ -138,6 +141,29 @@ export function limitedStream(models: Models, limits: RequestLimits): StreamFn;
 
 // @public
 export function limitsFor(maxTokens: number, limits: RequestLimits): RequestLimits;
+
+// @public
+export type Look = (activation: Activation, question: {
+    readonly system: string;
+    readonly input: string;
+}) => Promise<void>;
+
+// @public
+export const LOOK_REQUESTS = 2;
+
+// @public
+export interface LookInput {
+    readonly hidden?: readonly string[];
+    readonly kernel: Pick<Kernel, "openTools">;
+    readonly limits: (actor: ActorId) => {
+        readonly maxCostUsd?: number;
+        readonly maxRequests?: number;
+    };
+    readonly meter: CostMeter;
+    readonly redact: Redact;
+    readonly settings: (actor: ActorId) => Pick<ModelSettings, "thinking" | "maxOutputTokens">;
+    readonly source: ModelSource;
+}
 
 // @public
 export const MODEL_DEFAULTS: Readonly<{

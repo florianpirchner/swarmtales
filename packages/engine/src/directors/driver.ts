@@ -5,7 +5,7 @@
  * whose only way into the run is a tool call of the activation. The engine imports no model: the asker is given.
  * Beside it, the answerer port of the stage `review`, which asks the Director that answers a review.
  */
-import type { ActorDriver, AskModel, DriverTable, ModelAnswer, RecordSource, ReviewPort } from "@swarmtales/contracts";
+import type { Activation, ActorDriver, AskModel, DriverTable, ModelAnswer, ModelQuestion, RecordSource, ReviewPort } from "@swarmtales/contracts";
 import { DIRECTOR_TAKE, directorContext, parseTake, type DirectorContext, type ResolvedDirector, type ResolvedGame } from "@swarmtales/sdk";
 import { Type, type Static } from "typebox";
 import { Check } from "typebox/value";
@@ -43,6 +43,8 @@ export interface DirectorDriverInput {
 	readonly ask: AskModel;
 	/** Reads a fact of the run, `(key) => kernel.fact(key)`, for the facts a Director's head lists; left out: a Director reads none. */
 	readonly facts?: (key: string) => unknown;
+	/** The look of a Director that acts by tool use (`acts: "tools"`): the resident session of the models package (`createToolDirector`), or the fake driver; it calls the tools through the activation. Left out: such a Director does nothing after `asked`. */
+	readonly look?: (activation: Activation, question: ModelQuestion) => Promise<void>;
 }
 
 // What the model's answer is worth: the value to act on, when there is one, and the record `answered`.
@@ -54,7 +56,7 @@ function settle(director: ResolvedDirector, ctx: DirectorContext<unknown>, answe
 }
 
 // The driver of one Director; `take` is the name its grant shows for the tool of the plugin `directors`.
-function driverOf(director: ResolvedDirector, take: string, { ask, facts }: DirectorDriverInput): ActorDriver {
+function driverOf(director: ResolvedDirector, take: string, { ask, facts, look }: DirectorDriverInput): ActorDriver {
 	const { definition } = director;
 	return async (activation) => {
 		const taken = await activation.call(take, {});
@@ -63,6 +65,7 @@ function driverOf(director: ResolvedDirector, take: string, { ask, facts }: Dire
 		const ctx = directorContext(director, { tick: activation.tick, firings }, facts);
 		const question = { system: definition.system(ctx), input: definition.input(ctx), output: definition.output };
 		activation.record(DIRECTOR_RECORDS.id, "asked", { firings: firings.map((firing) => firing.n) } satisfies Static<typeof AskedSchema>);
+		if (definition.acts === "tools") return look?.(activation, question);
 		const { value, record } = settle(director, ctx, await ask(activation, question));
 		activation.record(DIRECTOR_RECORDS.id, "answered", record);
 		if (value !== undefined) await definition.act(value, { ...ctx, call: (tool, params) => activation.call(tool, params) });
@@ -73,7 +76,8 @@ function driverOf(director: ResolvedDirector, take: string, { ask, facts }: Dire
  * The drivers of the Directors of a game: one per Director, keyed by its actor id (`director:<name>`).
  *
  * One activation: the driver calls `take`; without a firing it ends. Else it builds `system` and `input`, writes
- * the record `asked`, asks the model, writes the record `answered` and runs `act` on the answer. When the model
+ * the record `asked`, asks the model, writes the record `answered` and runs `act` on the answer; a Director with
+ * `acts: "tools"` is handed to `look` after `asked` instead, and writes no `answered`. When the model
  * gives no answer, or one that does not fit the Director's `output`, the answer is the Director's `fallback`;
  * without one the Director does nothing. `maxCalls` is the plugin's rule and `maxCostUsd` the asker's.
  *

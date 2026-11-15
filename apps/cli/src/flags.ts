@@ -4,7 +4,7 @@
  * once from the arguments, and checked into what a fake run and a live run take.
  */
 import { parseArgs } from "node:util";
-import { SwtError, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
+import { SwtError, type ModelChoice, type RunManifest, type SwtIssue } from "@swarmtales/contracts";
 import type { ThinkingLevel } from "@swarmtales/models";
 import { badUsage } from "./errors.ts";
 
@@ -30,6 +30,7 @@ export const FLAGS = {
 	model: text("<id>", "a model id or an alias of the provider"),
 	thinking: text("<level>", "how much the model thinks: off, minimal, low, medium, high"),
 	budget: text("<usd>", "the cost cap of a live run in US dollars; a live run needs one"),
+	"director-model": { ...text("<name>=<provider>/<model>[:<thinking>[:<output cap>]]", "replace the model of one Director for this run; may be repeated"), multiple: true as const },
 	ledger: text("<file>", "the spend ledger the cap must fit under"),
 	plan: on("print the plan of an experiment and its caps, and play nothing"),
 	purpose: text("<word>", "what the run is for: smoke (the default), pilot, exploratory, confirmatory"),
@@ -56,7 +57,7 @@ export const COMMANDS = {
 	run: {
 		argument: "<game file>",
 		what: "play a game into a new run folder: with `--fake`, or with live models under `--budget`",
-		flags: ["fake", "seed", "set", "out", "json", ...LOOP, "provider", "model", "thinking", "budget", "ledger", "purpose", "replicate"],
+		flags: ["fake", "seed", "set", "out", "json", ...LOOP, "provider", "model", "thinking", "director-model", "budget", "ledger", "purpose", "replicate"],
 		exits: { 0: "the run finished", 1: `${ERROR}; or the log does not verify`, 2: "the run ended with the reason `error`", 3: "the run is paused and the Human Hand has ended (`SWT-X009`); a snapshot is written", 4: "a live run wrote a key value into its folder", 5: "a live run ended at its cost cap" },
 	},
 	resume: {
@@ -155,6 +156,8 @@ export interface LiveFlags {
 	readonly purpose: Purpose;
 	/** `--replicate`: the index of the repetition; 0 when absent. */
 	readonly replicate: number;
+	/** `--director-model`: the model of a Director by its name, which replaces the model of its use for this run (decision A52); none when absent. */
+	readonly directorModels?: Readonly<Record<string, ModelChoice>>;
 }
 
 /**
@@ -261,13 +264,36 @@ function numberOf(flag: string, value: string | undefined, form: RegExp, what: s
 	return Number(value);
 }
 
+// `<name>=<provider>/<model>[:<thinking>[:<output cap>]]`; a model id may hold slashes and colons of its own (`:free`), so only a known thinking level ends it.
+const DIRECTOR_MODEL = /^([^=]+)=([^/=]+\/.+?)(?::(off|minimal|low|medium|high)(?::([1-9]\d{0,8}))?)?$/;
+
+/**
+ * Reads the values of `--director-model`.
+ *
+ * @param values - The values as written.
+ * @returns The model of each named Director, in the form of a game's `model` of a use; the last value of a name wins.
+ * @throws SwtError `SWT-C003` for a value of another form. A suffix that is no thinking level is part of the model id.
+ *
+ * @public
+ */
+export function directorModelsOf(values: readonly string[]): Readonly<Record<string, ModelChoice>> {
+	return Object.fromEntries(
+		values.map((value): [string, ModelChoice] => {
+			const [, name, id, level, cap] = DIRECTOR_MODEL.exec(value) ?? [];
+			if (name === undefined || id === undefined) throw new SwtError(badUsage({ problem: `\`--director-model ${value}\` is no \`<name>=<provider>/<model>[:<thinking>[:<output cap>]]\`` }));
+			const thinking = wordOf("thinking", level, THINKING);
+			return [name, { id, ...(thinking === undefined ? {} : { thinking }), ...(cap === undefined ? {} : { maxOutputTokens: Number(cap) }) }];
+		}),
+	);
+}
+
 /**
  * Checks the flags of a live run.
  *
  * @param flags - The flags as written.
  * @returns The provider, the model and its thinking level, the cost cap, the spend ledger, the purpose and the replicate.
  * @throws SwtError `SWT-C022` for an unknown `--purpose` or `--thinking`; `SWT-C003` for a `--budget` that is no
- * amount in US dollars or a `--replicate` that is no whole number.
+ * amount in US dollars or a `--replicate` that is no whole number; what `directorModelsOf` throws.
  *
  * @public
  */
@@ -282,6 +308,7 @@ export function liveFlags(flags: Flags): LiveFlags {
 		...(flags.ledger === undefined ? {} : { ledger: flags.ledger }),
 		purpose: wordOf("purpose", flags.purpose, PURPOSES) ?? "smoke",
 		replicate: numberOf("replicate", flags.replicate, /^\d{1,9}$/, "whole number from 0") ?? 0,
+		...(flags["director-model"] === undefined ? {} : { directorModels: directorModelsOf(flags["director-model"]) }),
 	};
 }
 

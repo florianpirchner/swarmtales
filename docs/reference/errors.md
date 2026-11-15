@@ -660,6 +660,14 @@ The spend ledger is unreadable, or the run's cap does not fit under the ledger's
 - **Fix:** Use a smaller `--budget`, or have the owner raise `capUsd` in the first line. A line that cannot be read is repaired by hand.
 - **Named in:** `apps/cli`
 
+### SWT-C026
+
+A `--director-model` names no Director of the game.
+
+- **Why:** The flag replaces the model of one Director of this game for the run (decision A52); a name of no Director would replace nothing.
+- **Fix:** Name one of the game's Directors: {value}.
+- **Named in:** `apps/cli`
+
 ### SWT-C030
 
 The installed table cannot be built.

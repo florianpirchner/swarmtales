@@ -7,7 +7,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { EVENTS_FILE, jsonHash } from "@swarmtales/chain";
 import { RunManifestSchema, StoredEnvelopeSchema, SwtError, type SwtIssue } from "@swarmtales/contracts";
-import { DIRECTOR_RECORDS } from "@swarmtales/engine";
+import { DIRECTOR_RECORDS, REVIEW_RECORDS } from "@swarmtales/engine";
 import { MANIFEST_FILE, nextRunFolder, readSnapshotFile, SNAPSHOTS_FOLDER, verifyRun } from "@swarmtales/runlog";
 import { Check, Parse } from "typebox/value";
 import { badUsage } from "./errors.ts";
@@ -96,7 +96,7 @@ export async function resumeRun(input: ResumeRunInput, io: CliIo): Promise<numbe
 	if (manifest.actors.some((actor) => actor.model !== undefined)) throw new SwtError(resumeRefused({ problem: `the run "${manifest.run.id}" was played by live models: live resume is M5`, file: previous }));
 	if (input.game === undefined) throw new SwtError(badUsage({ problem: "`swt resume` needs `--game <game file>`: the manifest names the game by hash, not by path" }));
 	const params = Object.keys(manifest.game.params).length === 0 ? {} : { params: manifest.game.params };
-	const { game } = await resolveFile({ file: input.game, seed: manifest.seed, ...params }, io, [DIRECTOR_RECORDS, RUN_RECORDS]);
+	const { game } = await resolveFile({ file: input.game, seed: manifest.seed, ...params }, io, [DIRECTOR_RECORDS, REVIEW_RECORDS, RUN_RECORDS]);
 	const path = input.snapshot === undefined ? latest(previous) : resolve(io.cwd, input.snapshot);
 	const file = await readSnapshotFile(path, { runId: manifest.run.id, gameHash: game.definition.game.hash });
 	const prefix = readFileSync(join(previous, EVENTS_FILE), "utf8").split("\n").slice(0, file.checkpoint.lines);

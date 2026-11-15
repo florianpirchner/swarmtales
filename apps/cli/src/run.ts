@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatIssue, SwtError, type ActorDriver, type DriverTable, type EventSink, type Kernel, type PromptLookup, type RecordSource, type ResumeInput, type RunEnd, type SwtIssue } from "@swarmtales/contracts";
-import { createDirectorDrivers, DIRECTOR_RECORDS, turns, type ManifestRun } from "@swarmtales/engine";
+import { createDirectorDrivers, createReviewPort, DIRECTOR_RECORDS, REVIEW_RECORDS, turns, type ManifestRun } from "@swarmtales/engine";
 import { createKernel, RUNTIME_REVISION } from "@swarmtales/kernel";
 import { createPromptLookup } from "@swarmtales/prompts";
 import { briefingKey, nextRunFolder, openRunFolder, verifyRun, type RunFolder, type RunFolderOptions, type RunVerdict } from "@swarmtales/runlog";
@@ -271,7 +271,8 @@ function openFolder({ game, directory, resumed }: FakePlay, io: CliIo): RunFolde
 
 /**
  * Plays a resolved game with the fake driver into its run folder, from the start or from a snapshot, verifies the
- * folder and prints the result. A Director acts on its fallback: its model port is a script without an answer.
+ * folder and prints the result. A Director acts on its fallback: its model port is a script without an answer; one
+ * that acts by tool use plays its look with the fake driver, and a review it answers is told no.
  *
  * @param play - The game, the folder, the flags of the run loop and, for a resumed run, what it resumes from.
  * @param io - The current directory, the clock and the two outputs.
@@ -288,11 +289,13 @@ function openFolder({ game, directory, resumed }: FakePlay, io: CliIo): RunFolde
 export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
 	const { game, directory, resumed } = play;
 	const folder = lazyFolder(() => openFolder(play, io));
-	const kernel = createKernel(game.definition, { sinks: [folder.sink] }, resumed?.input);
+	const ask = scriptedAsker({});
+	const kernel: Kernel = createKernel(game.definition, { sinks: [folder.sink], review: createReviewPort({ game, ask, facts: (key) => kernel.fact(key) }) }, resumed?.input);
 	if (game.win !== undefined) kernel.fact(game.win);
 	const fake = fakeDriver(kernel, game.definition.seed);
 	const driver = resumed === undefined ? fake : resumed.began(kernel, fake);
-	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask: scriptedAsker({}) }) };
+	// A Director that acts by tool use plays its look with the fake driver, from the `sample` functions of its tools.
+	const drivers: DriverTable = { ...Object.fromEntries(game.definition.actors.map((actor) => [actor.id, driver])), ...createDirectorDrivers({ game, ask, facts: (key) => kernel.fact(key), look: (activation) => fake(activation).then(() => undefined) }) };
 	const loop = loopOf(game, kernel, folder.opened, { hand: play.hand, snapshotAt: play.snapshotAt, warn: io.err });
 	const { end, issues, hand } = await played(kernel, drivers, { ...loop, ticks: play.ticks ?? loop.ticks }).finally(() => folder.opened()?.close());
 	const failed = whyOf(kernel, end) === "error";
@@ -321,7 +324,7 @@ export async function playFake(play: FakePlay, io: CliIo): Promise<number> {
  * @public
  */
 export async function runFake(input: RunInput, io: CliIo): Promise<number> {
-	const { game, mechanics } = await resolveFile(input, io, [DIRECTOR_RECORDS]);
+	const { game, mechanics } = await resolveFile(input, io, [DIRECTOR_RECORDS, REVIEW_RECORDS]);
 	const hand = handOf(input.hand, game, io);
 	for (const warning of unsampled(game, mechanics)) io.err(formatIssue(warning).replace(/^error /, "warning "));
 	const directory = nextRunFolder(resolve(io.cwd, input.out ?? "runs"), game.definition.game.id);
