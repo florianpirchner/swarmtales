@@ -23,3 +23,10 @@ sampling and must match.
 
 Not covered: the end of a game and of the match at a played table of four (cut before; the silent heads-up file
 has both), the mixed tables of brain seats (`holdem-mixed`), decisions of real models.
+
+Registered difference (M4-39): no file of `oracles/` carries `call.endsTurn`, although the format names it and the
+old mechanic set it on every `act` that passed the turn on or ended the hand (old `mechanics/holdem/src/index.ts`,
+lines 291 and 292). The flag is read from the reply, which level 2 compares ("end your turn now" ends the turn); the
+oracle test of the game (`games/holdem/test/oracle.test.ts`) writes it back into the file's call entries before it
+compares, as for liar's dice. The five files without the aid match at level 3 with that mapping;
+`holdem-aid-mixed-s7.json` is played by M4-40.

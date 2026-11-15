@@ -1,6 +1,6 @@
 # Games
 
-The catalogue of the games that run on Swarm Tales. Nine games run on the new platform today, each with a scripted
+The catalogue of the games that run on Swarm Tales. Ten games run on the new platform today, each with a scripted
 or sampled player in place of a model. The first live runs on this platform are those of the gate of milestone M2
 ([`docs/M2-GATE.md`](docs/M2-GATE.md)). **No card carries a finding or a recorded moment yet:** a finding appears
 on a card only when it is reproduced on this platform, with n, standard error and a link.
@@ -22,6 +22,7 @@ The table is written by hand for now; the plan is to generate it from the regist
 | [The city slice](#the-city-slice) | societies (a slice of City of Keys, not the game) | 6 | `ledger`, `channels`, `exile`, `decisions`, `humanHand`, `puzzles`, `court` | none | three committed timelines; replay and resume give the same log; projections of the City's oracle files prove the ported rules |
 | [Liar's dice](#liars-dice) | hidden information and bluff | 4 (2 to 6) | `liars-dice`, `strategy-brain` | none; variants are options of `liarsDiceGame` | six oracle files match at level 3 |
 | [Chess](#chess) | board games, all information public | 2 | `chess`, `team-channel`, `strategy-brain` | none; variants are options of `chessGame` | the five oracle files of the default, the fresh context and the compact board match at level 3 |
+| [Hold'em](#holdem) | hidden information and bluff | 4 (2 to 6) | `holdem`, `strategy-brain` | none; variants are options of `holdemGame` | the five oracle files without the aid match at level 3 |
 
 The city slice is the one game with a Director and with the Human Hand. An oracle file is one configuration with one seed, recorded on the
 old platform; a game is proven when the new platform replays the file's calls and gives the same outcomes. Level 3
@@ -167,17 +168,32 @@ baseline, for the report only.
   mapping (the files lack the flag `endsTurn`, which every accepted move sets); the briefings are byte-identical.
 - Links: [folder](games/chess/), [README](games/chess/README.md), [oracle files](oracles/chess/).
 
+## Hold'em
+
+Four solo seats (A01 to A04), or two heads-up, play a match of fixed-limit Texas Hold'em: several games of several
+hands. The deals are duplicate: every game replays the same deals with the seats moved one place, so over as many
+games as seats every seat plays every position's cards and the luck of the deal cancels out of the match totals. A
+seat sees only its own cards, and there is no table talk. Every game starts from a fresh context; a seat's only
+memory is a short private strategy brain. The mechanic scores every decision against a simple equity baseline, for
+the report only.
+
+- Variants are options of `holdemGame`: the seats (2 to 6, heads-up at 2), the games, the hands, no brain (the
+  control arm), fresh deals. The mixed tables and the decision aid follow with the next hold'em issue.
+- Proof: the five oracle files without the aid match at level 3, four of them up to their cut, with one declared
+  mapping (the files lack the flag `endsTurn`, which follows from the reply); the briefings are byte-identical.
+- Links: [folder](games/holdem/), [README](games/holdem/README.md), [oracle files](oracles/holdem/).
+
 ## The fifteen games to port
 
 All fifteen games of the old platform are ported: thirteen tabletop games, Whispers and City of Keys. They come in
-five families. Seven are ported so far, marked in bold; the Hello Game and the city slice are new and are
+five families. Eight are ported so far, marked in bold; the Hello Game and the city slice are new and are
 not among the fifteen.
 
 | Family | Games |
 |---|---|
 | Societies | City of Keys, Whispers |
 | Board games, all information public | **chess (ported)**, nine men's morris, **tic-tac-toe teams (ported)** |
-| Hidden information and bluff | Hold'em, **Liar's Dice (ported)**, Convoy |
+| Hidden information and bluff | **Hold'em (ported)**, **Liar's Dice (ported)**, Convoy |
 | Cooperation under hidden information | **Harbor Lights (ported)**, **Lanterns (ported)** |
 | Markets, bids and economics | **Econ Lab (ported)**, Salt Market, Blind Bid, **Quarry (ported)**, Ember Tricks |
 
