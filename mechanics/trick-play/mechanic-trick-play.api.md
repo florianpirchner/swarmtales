@@ -4,6 +4,221 @@
 
 ```ts
 
+import { EventsDefinition } from '@swarmtales/contracts';
+import { MechanicDefinition } from '@swarmtales/sdk';
+import { ServiceDefinition } from '@swarmtales/contracts';
+import { Type } from 'typebox';
+
+// @public
+export const trickPlay: MechanicDefinition<"trick-play", Type.TObject<{
+games: Type.TInteger;
+rounds: Type.TArray<Type.TInteger>;
+trump: Type.TUnion<[Type.TLiteral<"lowestBidderNames">, Type.TLiteral<"none">]>;
+vetoTokens: Type.TInteger;
+scoring: Type.TObject<{
+hit: Type.TInteger;
+perTrick: Type.TInteger;
+miss: Type.TUnion<[Type.TLiteral<"square">, Type.TLiteral<"linear">]>;
+missBase: Type.TOptional<Type.TInteger>;
+}>;
+maxIdleMinutes: Type.TInteger;
+maxConsecutiveForfeits: Type.TInteger;
+briefEveryRound: Type.TBoolean;
+bidSum: Type.TBoolean;
+calibration: Type.TBoolean;
+reference: Type.TUnion<[Type.TLiteral<"off">, Type.TLiteral<"retro">, Type.TLiteral<"bid">]>;
+referenceSamples: Type.TInteger;
+}>, {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+startingSide: Type.TString;
+}>;
+readonly round_started: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+cards: Type.TInteger;
+dealer: Type.TString;
+order: Type.TArray<Type.TString>;
+}>;
+readonly bid_placed: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+bid: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly trump_named: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+suit: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly lead_vetoed: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+leader: Type.TString;
+suit: Type.TString;
+}>;
+readonly card_played: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+card: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly trick_won: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+plays: Type.TArray<Type.TObject<{
+seat: Type.TString;
+card: Type.TString;
+}>>;
+}>;
+readonly round_scored: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trump: Type.TUnion<[Type.TString, Type.TNull]>;
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+tricks: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TInteger>;
+totals: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TString;
+totals: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+wins: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TInteger>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}, "viewTable" | "placeBid" | "nameTrump" | "playCard" | "vetoLead">;
+
+// @public
+export const TrickPlayEvents: EventsDefinition<"trick-play", {
+readonly game_started: Type.TObject<{
+game: Type.TInteger;
+seats: Type.TArray<Type.TString>;
+startingSide: Type.TString;
+}>;
+readonly round_started: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+cards: Type.TInteger;
+dealer: Type.TString;
+order: Type.TArray<Type.TString>;
+}>;
+readonly bid_placed: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+bid: Type.TInteger;
+forfeit: Type.TBoolean;
+}>;
+readonly trump_named: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+seat: Type.TString;
+suit: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly lead_vetoed: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+leader: Type.TString;
+suit: Type.TString;
+}>;
+readonly card_played: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+card: Type.TString;
+forfeit: Type.TBoolean;
+}>;
+readonly trick_won: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trick: Type.TInteger;
+seat: Type.TString;
+plays: Type.TArray<Type.TObject<{
+seat: Type.TString;
+card: Type.TString;
+}>>;
+}>;
+readonly round_scored: Type.TObject<{
+game: Type.TInteger;
+round: Type.TInteger;
+trump: Type.TUnion<[Type.TString, Type.TNull]>;
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+tricks: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TInteger>;
+totals: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+readonly game_ended: Type.TObject<{
+game: Type.TInteger;
+result: Type.TString;
+totals: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+readonly match_ended: Type.TObject<{
+wins: Type.TRecord<"^.*$", Type.TInteger>;
+points: Type.TRecord<"^.*$", Type.TInteger>;
+invalid: Type.TOptional<Type.TBoolean>;
+}>;
+}>;
+
+// @public
+export const TrickPlayService: ServiceDefinition<"trick-play", {
+readonly game: {
+readonly kind: "query";
+readonly summary: "The running (or last) game's number, from 1; 0 before the first game.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly round: {
+readonly kind: "query";
+readonly summary: "The running (or last) round of the game, from 1.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TInteger;
+};
+readonly phase: {
+readonly kind: "query";
+readonly summary: "idle (between rounds or games), bid, trump or play.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TLiteral<"idle">, Type.TLiteral<"bid">, Type.TLiteral<"trump">, Type.TLiteral<"play">]>;
+};
+readonly actor: {
+readonly kind: "query";
+readonly summary: "The seat that must act now, or null.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TUnion<[Type.TString, Type.TNull]>;
+};
+readonly table: {
+readonly kind: "query";
+readonly summary: "The public table: bids so far, the trump, the plays of the trick on the table and the tricks won this round.";
+readonly input: Type.TObject<{}>;
+readonly output: Type.TObject<{
+bids: Type.TRecord<"^.*$", Type.TInteger>;
+trump: Type.TUnion<[Type.TString, Type.TNull]>;
+trick: Type.TArray<Type.TObject<{
+seat: Type.TString;
+card: Type.TString;
+}>>;
+won: Type.TRecord<"^.*$", Type.TInteger>;
+}>;
+};
+}>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
