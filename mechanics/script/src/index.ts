@@ -6,17 +6,20 @@
  * whose tick start came first on `legacy` (old `HOOK_ORDER.minuteStarted.script`, the last): the petitions that
  * expired are resolved before it. Its event triggers are listeners: `level_entered` of `progression` runs the
  * `onEnter`, `onFirstEnter`, `onAllPast` and `onHolderBehind` rules, `petition_resolved` the opening rule's `onPass`
- * or `onFail` and the `onPetitionResolved` rules. A refused `directorMinute` ends the run.
+ * or `onFail` and the `onPetitionResolved` rules, `cast_collected` of `cast` the `onCollect` rules. An action is a
+ * command of the mechanic that owns it, run in the frame of the firing. A refused `directorMinute` ends the run.
  *
  * @packageDocumentation
  */
+import { CastEvents } from "@swarmtales/mechanic-cast/contract";
 import { PetitionsEvents } from "@swarmtales/mechanic-petitions/contract";
 import { ProgressionEvents } from "@swarmtales/mechanic-progression/contract";
 import { defineMechanic, onStaged, reply } from "@swarmtales/sdk";
 import { scriptHead, TimeTriggers, type ScriptCtx } from "./head.ts";
-import { onEnter, onPetitionResolved, runTimeTriggers } from "./triggers.ts";
+import { onCollect, onEnter, onPetitionResolved, runTimeTriggers } from "./triggers.ts";
 
-export { type Occasion } from "./actions.ts";
+export { resolveCount, type Occasion } from "./actions.ts";
+export { standingBands, type StandingBands } from "./standings.ts";
 export { scriptHead, ScriptOptions, TimeTriggers, type ScriptCtx } from "./head.ts";
 export { Action, Condition, CooldownScope, NoticeTarget, Rule, Trigger, type PetitionSpec } from "./rules.ts";
 export { DirectorSlice, FiringState, type OpenedPetition, type Origin } from "./state.ts";
@@ -57,6 +60,10 @@ export const script = defineMechanic(scriptHead, {
 		kit.listen(ProgressionEvents, "level_entered", (payload, ctx) => {
 			onEnter(ctx, payload.agent, payload.level);
 		}, { after: ["cast"] }),
+		// A new sender in collections (old D-2, `immediate`): here after the step that collected it.
+		kit.listen(CastEvents, "cast_collected", (payload, ctx) => {
+			for (const into of payload.into) onCollect(ctx, into, payload.from);
+		}),
 		kit.listen(PetitionsEvents, "petition_opened", (payload, ctx) => {
 			ctx.state.statuses.set(payload.petition, "open");
 		}),

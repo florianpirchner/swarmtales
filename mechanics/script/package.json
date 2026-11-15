@@ -31,8 +31,10 @@
 		"api:update": "api-extractor run --local"
 	},
 	"dependencies": {
+		"@swarmtales/mechanic-cast": "workspace:*",
 		"@swarmtales/mechanic-channels": "workspace:*",
 		"@swarmtales/mechanic-exile": "workspace:*",
+		"@swarmtales/mechanic-ledger": "workspace:*",
 		"@swarmtales/mechanic-petitions": "workspace:*",
 		"@swarmtales/mechanic-progression": "workspace:*",
 		"@swarmtales/sdk": "workspace:*",
@@ -40,7 +42,6 @@
 	},
 	"devDependencies": {
 		"@swarmtales/contracts": "workspace:*",
-		"@swarmtales/mechanic-ledger": "workspace:*",
 		"@swarmtales/testkit": "workspace:*"
 	}
 }

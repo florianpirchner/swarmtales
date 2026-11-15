@@ -1195,12 +1195,18 @@ importers:
 
   mechanics/script:
     dependencies:
+      '@swarmtales/mechanic-cast':
+        specifier: workspace:*
+        version: link:../cast
       '@swarmtales/mechanic-channels':
         specifier: workspace:*
         version: link:../channels
       '@swarmtales/mechanic-exile':
         specifier: workspace:*
         version: link:../exile
+      '@swarmtales/mechanic-ledger':
+        specifier: workspace:*
+        version: link:../ledger
       '@swarmtales/mechanic-petitions':
         specifier: workspace:*
         version: link:../petitions
@@ -1217,9 +1223,6 @@ importers:
       '@swarmtales/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@swarmtales/mechanic-ledger':
-        specifier: workspace:*
-        version: link:../ledger
       '@swarmtales/testkit':
         specifier: workspace:*
         version: link:../../packages/testkit

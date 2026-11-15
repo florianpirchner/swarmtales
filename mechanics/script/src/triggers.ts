@@ -9,7 +9,7 @@ import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { resolveCount, runActions, type Occasion } from "./actions.ts";
 import { need, type ScriptCtx } from "./head.ts";
-import { alive, cast, isExiled, isPlayable, levelOf, teamsOf } from "./reads.ts";
+import { alive, castActive, collectionOf, isExiled, isPlayable, levelOf, teamsOf } from "./reads.ts";
 import type { Condition, CooldownScope, Rule, Trigger } from "./rules.ts";
 
 // The event triggers (`onEnter`, `onFirstEnter`, `onHolderBehind`, `onPetitionResolved`, `onCollect`) do nothing here.
@@ -22,7 +22,7 @@ function timeTrigger(ctx: ScriptCtx, rule: Rule, trigger: Trigger, tick: number)
 		checkUnanswered(ctx, rule, trigger.afterMinutes, tick);
 	} else if (trigger.kind === "onTeamSplit") {
 		checkSplit(ctx, rule, trigger.level, trigger.forMinutes, tick);
-	} else if (trigger.kind === "onCollectionEnd" && cast.collection(trigger.into)?.untilMinute === tick) {
+	} else if (trigger.kind === "onCollectionEnd" && collectionOf(ctx, trigger.into)?.untilMinute === tick) {
 		// Every tick starts once, so the end tick alone marks a collection's end; a resumed run needs no extra state.
 		fire(ctx, rule, {});
 	}
@@ -164,7 +164,7 @@ function levelsHold(ctx: ScriptCtx, condition: Extract<Condition, { readonly kin
 }
 
 function collectionHolds(ctx: ScriptCtx, into: string, open: boolean): boolean {
-	const collection = cast.collection(into);
+	const collection = collectionOf(ctx, into);
 	if (collection === undefined) return false;
 	return open ? ctx.tick < collection.untilMinute && collection.entries < collection.first : ctx.tick >= collection.untilMinute;
 }
@@ -177,7 +177,7 @@ function holds(ctx: ScriptCtx, rule: Rule, condition: Condition, occasion: Occas
 		case "petitionStatus":
 			return ctx.state.statuses.get(condition.petition) === condition.status;
 		case "castActive":
-			return cast.isActive(condition.cast);
+			return castActive(ctx, condition.cast);
 		case "collectionOpen":
 		case "collectionEnded":
 			return collectionHolds(ctx, condition.into, condition.kind === "collectionOpen");
@@ -214,5 +214,5 @@ function seatsOf(ctx: ScriptCtx, rule: Rule): number | undefined {
 		trigger.kind === "onCollect" || trigger.kind === "onCollectionEnd"
 			? trigger.into
 			: rule.when.flatMap((condition) => (condition.kind === "collectionOpen" || condition.kind === "collectionEnded" ? [condition.into] : []))[0];
-	return named === undefined ? undefined : cast.collection(named)?.first;
+	return named === undefined ? undefined : collectionOf(ctx, named)?.first;
 }

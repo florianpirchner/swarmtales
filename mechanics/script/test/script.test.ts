@@ -3,7 +3,7 @@
  * The rules of the script on time and on events (issue M5-31): the staged call `directorMinute` of the actor `script`
  * at every tick start, after the petitions that expired; the time triggers and the event triggers with their
  * conditions and cooldowns, read through the real `progression`, `exile`, `channels` and `petitions` and a stand-in
- * for the pieces; the load check of the grant; replay and resume. What the actions do is issue M5-32: here a firing
+ * for the pieces; the load check of the grant; replay and resume. What the actions do is in `actions.test.ts`: here a firing
  * shows as its `director_action` lines.
  */
 import { createHash } from "node:crypto";
@@ -15,26 +15,11 @@ import { channels } from "@swarmtales/mechanic-channels";
 import { exile } from "@swarmtales/mechanic-exile";
 import { ledger } from "@swarmtales/mechanic-ledger";
 import { petitions, PetitionsService } from "@swarmtales/mechanic-petitions";
-import { LevelPiecesService, progression } from "@swarmtales/mechanic-progression";
+import { progression } from "@swarmtales/mechanic-progression";
 import { defineGame, defineHead, defineMechanic, refuse, reply } from "@swarmtales/sdk";
 import { checkReplay, checkResumeEveryBoundary, idleDriver, scriptedDriver, testKernel, type StandingDrivers } from "@swarmtales/testkit";
 import { script, type Rule } from "../src/index.ts";
-
-const CODES: Readonly<Record<number, string>> = { 1: "ONE1", 2: "TWO2", 3: "THREE3" };
-
-// The pieces: every level dealt, two teams on level 2, and A03 holds what A01 needs on level 2.
-const pieces = defineMechanic(defineHead({ id: "puzzles", package: "@test/puzzles", summary: "Test: fixed codes and teams.", provides: [LevelPiecesService] }), {
-	services: {
-		"level-pieces": {
-			deal: () => null,
-			solutionOf: ({ level }) => CODES[level] ?? null,
-			kindOf: ({ level }) => (level === 3 ? "none" : "fragments"),
-			teamOf: ({ resident, level }) => (level === 2 && resident !== "A04" ? { members: ["A01", "A02", "A03"], leader: "A01" } : { members: [resident], leader: resident }),
-			taskValues: () => ({ length: "4", overlap: "0", fragment: "", digits: "", factors: "" }),
-			holders: ({ resident, level }) => (level === 2 && resident === "A01" ? [{ holder: "A03", piece: "counter-factor", value: "7" }] : []),
-		},
-	},
-});
+import { pieces, solve } from "./support.ts";
 
 // Opens a petition through the service, as a resident's tool for the test (the script's own `openPetition` is M5-32).
 const opener = defineMechanic(
@@ -65,7 +50,6 @@ const game = (ticks = 7, rules: readonly Rule[] = RULES) => defineGame({ id: "sc
 
 const actions = (events: readonly Envelope[]): readonly string[] => events.filter((event) => event.type === "director_action").map((event) => `${String(event.tick)} ${JSON.stringify(event.payload)}`);
 const fired = (events: readonly Envelope[]): readonly string[] => events.filter((event) => event.type === "director_action").map((event) => `${String(event.tick)} ${/"rule":"([^"]+)"/.exec(JSON.stringify(event.payload))?.[1] ?? ""}`);
-const solve = (code: number) => ({ tool: "submitSolution", params: { level: code, code: CODES[code] ?? "" } });
 
 // A01 and A02 climb to level 2 at tick 1, A03 at tick 3, A04 at tick 4; A02 writes to A04, who never answers; P1 opens at tick 0 and fails at tick 2.
 const climbing: StandingDrivers = () => ({

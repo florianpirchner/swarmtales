@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: LicenseRef-SUL-1.0
 /**
  * The head of the `script` mechanic: the game's rules and its cast ids as options, the firing state with its
- * snapshot, the three old events, the staged tool `directorMinute`, and the services it reads. The script calls no
- * command of another mechanic: every service it names is read through `uses` with a query, and a rule that needs a
- * mechanic the game did not load ends the run (old `need`).
+ * snapshot, the three old events, the staged tool `directorMinute`, the standings prompts, and the services it reads
+ * and acts through. Every service is optional (`uses`): a game without a rule for a mechanic need not load it, and a
+ * rule that needs a mechanic the game did not load ends the run (old `need`).
  */
 import { Type } from "typebox";
+import { CastService } from "@swarmtales/mechanic-cast/contract";
 import { ChannelsService } from "@swarmtales/mechanic-channels/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
+import { LedgerService } from "@swarmtales/mechanic-ledger/contract";
+import { PetitionsService } from "@swarmtales/mechanic-petitions/contract";
 import { LevelPiecesService, ProgressionService } from "@swarmtales/mechanic-progression/contract";
-import { defineHead, defineTool, inSchemaOrder, type CtxOf, type QueryMethodName, type ServiceInput, type ServiceOutput, type ShapeOf } from "@swarmtales/sdk";
+import { defineHead, defineTool, inSchemaOrder, type CtxOf, type ServiceInput, type ServiceMethodName, type ServiceOutput, type ShapeOf } from "@swarmtales/sdk";
 import { Rule } from "./rules.ts";
 import { DirectorSlice, FiringState } from "./state.ts";
 
@@ -82,11 +85,18 @@ export const scriptHead = defineHead({
 		},
 	},
 	events,
-	prompts: { "script/tools/directorMinute": [] },
+	prompts: {
+		"script/tools/directorMinute": [],
+		"script/standings-bands": ["minute", "safe", "edge", "out"],
+		"script/standings-bands-exiled": ["minute", "safe", "edge", "out", "exiled"],
+		"script/standings-snapshot": ["minute", "rows"],
+		"script/standings-row": ["rank", "agent", "points", "level"],
+	},
 	tools: { directorMinute: { description: "script/tools/directorMinute", params: TimeTriggers.parameters, for: ["script"] } },
 	// The time triggers are a call of the script: a game grants `directorMinute` to `script` (SWT-G015).
 	stages: ["directorMinute"],
-	uses: [ProgressionService, LevelPiecesService, ExileService, ChannelsService],
+	// Old `uses`: the mechanics the actions go through, and those the rules read.
+	uses: [ChannelsService, ProgressionService, CastService, PetitionsService, LedgerService, LevelPiecesService, ExileService],
 });
 
 /**
@@ -99,18 +109,19 @@ export type ScriptCtx = CtxOf<typeof scriptHead>;
 type Used = ShapeOf<typeof scriptHead>["uses"][number];
 
 /**
- * Reads a query of a service the script uses; a rule that needs a mechanic the game did not load ends the run.
+ * Reads a query of, or runs a command of, a service the script uses (old `need`); a rule that needs a mechanic the game
+ * did not load ends the run.
  *
  * @param ctx - The script's context.
  * @param service - The service.
- * @param method - The query.
+ * @param method - The query or command.
  * @param input - Its input.
  * @returns Its output.
  * @throws RangeError when no loaded mechanic provides the service (the kernel ends the run).
  *
  * @public
  */
-export function need<A extends Used, K extends QueryMethodName<A>>(ctx: ScriptCtx, service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K> {
+export function need<A extends Used, K extends ServiceMethodName<A>>(ctx: ScriptCtx, service: A, method: K, input: ServiceInput<A, K>): ServiceOutput<A, K> {
 	const output = ctx.tryCall(service, method, input);
 	if (output === undefined) throw new RangeError(`script: a rule needs ${service.name}.${method}, but no loaded mechanic provides ${service.name}`);
 	return output;

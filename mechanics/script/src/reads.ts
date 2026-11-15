@@ -2,11 +2,12 @@
 /**
  * What the script reads of the city (old `city.ts` and the old `World` getters), each through a query of the mechanic
  * that owns it: who is in the city (`exile`), levels and bounds (`progression`), a level's teams (`level-pieces`,
- * provided by `puzzles`), the direct messages (`channels`). The old script read the teams, the collections and the
- * petitions from the log; on this platform the teams come from `level-pieces`, the petitions from the script's own
- * listeners (`state.statuses`), and the cast from no source yet: the cast has no contract before issue M5-24, so a
- * game reads as one without `cast` (no collection, and a rule that asks whether a cast member is active ends the run).
+ * provided by `puzzles`), the direct messages (`channels`), the collections and the active members (`cast`). The old
+ * script read the teams, the collections and the petitions from the log; on this platform the teams come from
+ * `level-pieces`, the collections from the query `collection` of `cast`, and the petitions from the script's own
+ * listeners (`state.statuses`).
  */
+import { CastService } from "@swarmtales/mechanic-cast/contract";
 import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { LevelPiecesService, ProgressionService } from "@swarmtales/mechanic-progression/contract";
 import { need, type ScriptCtx } from "./head.ts";
@@ -93,26 +94,25 @@ export interface CollectionView {
 }
 
 /**
- * What the script reads of the cast: a collection by name, and whether a cast member is active.
+ * A collection by name, as the cast shows it (old `cast.collection`); undefined when none was started, also when
+ * `cast` is not loaded (the old script read the collections from the log, so a game without `cast` had none).
  *
- * @public
+ * @param ctx - The script's context.
+ * @param into - The collection.
+ * @returns The collection, or undefined.
  */
-export interface CastReads {
-	/** The collection `into`, or undefined when none was started. */
-	collection(into: string): CollectionView | undefined;
-	/** Whether the cast member is active (old `CastApi.isActive`). */
-	isActive(member: string): boolean;
+export function collectionOf(ctx: ScriptCtx, into: string): CollectionView | undefined {
+	return ctx.tryCall(CastService, "collection", { into }) ?? undefined;
 }
 
 /**
- * The cast as a game without `cast` shows it, until the cast has a contract (issue M5-24): no collection was started,
- * and a rule that asks whether a cast member is active ends the run (old `need`).
+ * Whether the cast member is active (old `CastApi.isActive`).
  *
- * @public
+ * @param ctx - The script's context.
+ * @param member - The id of the cast member.
+ * @returns True when active.
+ * @throws RangeError when `cast` is not loaded.
  */
-export const cast: CastReads = {
-	collection: () => undefined,
-	isActive: (member) => {
-		throw new RangeError(`script: a rule needs cast.isActive for ${member}, but no loaded mechanic provides cast`);
-	},
-};
+export function castActive(ctx: ScriptCtx, member: string): boolean {
+	return need(ctx, CastService, "isActive", { cast: member });
+}

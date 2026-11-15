@@ -16,7 +16,7 @@ how a game writes courier lines, the feast and other beats.
 | Id | `script` |
 | Summary | The director's rules: courier lines, factor releases, the feast, standings and petitions. |
 | Requires | none |
-| Uses when loaded | `progression` (from [progression](../progression/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)), `channels` (from [channels](../channels/README.md)) |
+| Uses when loaded | `channels` (from [channels](../channels/README.md)), `progression` (from [progression](../progression/README.md)), `cast` (from [cast](../cast/README.md)), `petitions` (from [petitions](../petitions/README.md)), `ledger` (from [ledger](../ledger/README.md)), `level-pieces` (from [puzzles](../puzzles/README.md)), `exile` (from [exile](../exile/README.md)) |
 | Provides | none |
 | State | kept, snapshot slice version 1 |
 | Games | none of the games in this repository |
@@ -36,10 +36,30 @@ how a game writes courier lines, the feast and other beats.
    call ends the run.
 3. **Event triggers.** On `level_entered` of `progression` (after the listener of `cast`) the `onEnter`,
    `onFirstEnter`, `onAllPast` and `onHolderBehind` rules run; on `petition_resolved` the opening rule's `onPass` or
-   `onFail` and the `onPetitionResolved` rules. A listener runs after the step that wrote its event, so these lines
-   land after the other lines of the call that caused them (after `submission`), in its frame.
-4. **Actions.** Every action writes `director_action` first. What an action does (a call of another mechanic's tool as
-   the actor `script`, and `director_skipped` when it is skipped) is the second half of the port (M5-32).
+   `onFail` and the `onPetitionResolved` rules; on `cast_collected` of `cast` (a new sender in collections) the
+   `onCollect` rules of each collection. A listener runs after the step that wrote its event, so these lines land
+   after the other lines of the call that caused them (after `submission`), in its frame.
+4. **Actions.** Every action writes `director_action` first, then runs as a command of the mechanic that owns it, at
+   once and in the frame of the firing, and writes `director_skipped` with the old reason when it (or part of it) was
+   skipped:
+
+   | Action | Through | Skipped when |
+   | --- | --- | --- |
+   | `post` | `channels.post` | its author is a cast member that is not active |
+   | `notify` | `channels.notify`, signed `CITY`, per target | the target reaches nobody, or lists unknown ids |
+   | `dm` | `cast.isActive`, then the old `channels.deliver` | the member is not active; else the run ends: `channels` has no command for a message of a sender that is no resident yet |
+   | `grant`, `fine` | `ledger.mint`, `ledger.burn`, per target | as `notify` |
+   | `escrowTransfer` | `cast.escrow`, per target | as `notify`; a refused payment adds `<resident>: <code>` |
+   | `unlockTools` | `progression.unlock`, per target | as `notify` |
+   | `setCastLevel`, `revealCast`, `retireCast` | `cast.setLevel`, `cast.reveal`, `cast.retire` | the member is not hidden, or already retired |
+   | `openPetition` | `petitions.open`; its `onPass` and `onFail` run on `petition_resolved` with `via` | the id was opened before |
+   | `publishStandings` | `progression.ranking` and `bounds`, `exile`, then `channels.post`, then `standings_published` | never |
+   | `collectDms`, `revealCollection`, `lottery` | `cast.startCollection`, `cast.revealCollection`, `cast.drawLottery`; a lottery's `then` runs for the winner with `via` | the collection exists already, does not exist, or has no senders |
+   | `revealFactor` | none yet: the run ends (`puzzles` offers no command for its factors before M5-64) | |
+
+   A target is `actor` (unless banished), `all` (everyone in the city), a list of ids or `{ onLevel }`. A text takes
+   `{actor}` (in a private text the recipient when the firing has none), `{other}`, `{minute}` (the tick), `{level}`,
+   `{survivors}`, `{agents}`, `{otherLevel}`, `{piece}` and `{seats}`; an unknown placeholder ends the run.
 
 ## Tools
 
@@ -142,6 +162,10 @@ This mechanic exports no metrics.
 | Prompt | Variables |
 | --- | --- |
 | [script/tools/directorMinute](prompts/script/tools/directorMinute.md) | - |
+| [script/standings-bands](prompts/script/standings-bands.md) | `minute`, `safe`, `edge`, `out` |
+| [script/standings-bands-exiled](prompts/script/standings-bands-exiled.md) | `minute`, `safe`, `edge`, `out`, `exiled` |
+| [script/standings-snapshot](prompts/script/standings-snapshot.md) | `minute`, `rows` |
+| [script/standings-row](prompts/script/standings-row.md) | `rank`, `agent`, `points`, `level` |
 
 <!-- /generated:prompts -->
 
@@ -158,14 +182,14 @@ script({
 }),
 ```
 
-**What it reads.** The script calls no command of another mechanic; it reads through queries of the services it
-uses: `exile` (who is in the city), `progression` (levels, bounds, the holders behind), `level-pieces` (a level's
-teams, provided by `puzzles`) and `channels` (the direct messages with their numbers and the `answered` mark). A rule
-that needs one of them when no loaded mechanic provides it ends the run. The old script read three things from the
-log: the teams (now `level-pieces`, whose teams come in the order of their first member in the roster, not by the
-deal's team index), a petition's status (now the script's own record of `petition_opened` and `petition_resolved`, in
-its slice as `statuses`) and the cast's collections (the cast has no contract before M5-24: until then the script
-reads as in a game without `cast`).
+**What it reads.** Through queries of the services it uses: `exile` (who is in the city), `progression` (levels,
+bounds, the holders behind, the ranking), `level-pieces` (a level's teams, provided by `puzzles`), `channels` (the
+direct messages with their numbers and the `answered` mark) and `cast` (a collection by name, whether a member is
+active). A rule that needs one of them when no loaded mechanic provides it ends the run; a collection reads as not
+started when `cast` is not loaded. The old script read three things from the log: the teams (now `level-pieces`,
+whose teams come in the order of their first member in the roster, not by the deal's team index), a petition's status
+(now the script's own record of `petition_opened` and `petition_resolved`, in its slice as `statuses`) and the cast's
+collections (now the query `collection` of `cast`).
 
 ## Lessons and loopholes
 
@@ -176,6 +200,10 @@ overshoots (partly fixed).
 What the port of M5-31 changed against the old platform: the services and events come from the providers' contracts,
 not from `mechanics/shared`; the event triggers are listeners that run after the step (the old ones ran at once,
 inside the call); the migration of the old file's version-0 slice is not carried (A56); the slice holds `statuses`.
+M5-32: the actions are commands of the services the script uses, as on `legacy`, not staged tool calls (erratum of
+M5-32: no oracle file holds a call of `script` but `directorMinute`); `onCollect` runs after the step that collected,
+where the old listener ran at once; `dm` and `revealFactor` end the run until `channels` and `puzzles` offer their
+commands.
 
 ## Tests
 
@@ -184,3 +212,9 @@ before the first activation), the load refusal without the grant and the run's e
 description of `directorMinute` by its sha256 on `legacy`; every trigger kind but those of the cast with the
 conditions and cooldowns, through the real `progression`, `exile`, `channels` and `petitions` and a stand-in of the
 pieces; the run's end when a rule needs a mechanic the game did not load; replay and resume from every boundary.
+`test/actions.test.ts` (M5-32, the scenarios of the old `test/mechanics/script/differential.test.ts`, whose old
+engine is gone): every action kind through the real `channels`, `ledger`, `progression`, `petitions`, `exile` and
+`cast`, line for line with the old skip reasons; nested petitions and the lottery with `via`; a collection with
+`onCollect`, `collectionOpen`, `collectionEnded` and `onCollectionEnd`, fed by a stand-in router of a resident's
+message to a member; the texts of a holder behind and the bands with the banished; the run's end on `dm` and
+`revealFactor`; the four standings prompts by their sha256 on `legacy`; replay and resume from every boundary.
