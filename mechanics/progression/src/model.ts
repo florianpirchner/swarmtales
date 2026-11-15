@@ -101,6 +101,8 @@ export interface Standing {
 	readonly solved: number[];
 	/** Minutes of wrong submissions, for the rate limit. */
 	readonly wrongAttempts: number[];
+	/** Wrong codes on the current level (the gamemaker's old `wrongOnLevel`); a solve sets it back to 0. */
+	wrongOnLevel: number;
 	/** The tools a caller opened beyond the level's set. */
 	readonly extraTools: Set<string>;
 }
@@ -144,6 +146,7 @@ const StandingSlice = Type.Object(
 		solved: Type.Array(Int, { description: "The levels solved" }),
 		wrongAttempts: Type.Array(Int, { description: "The minutes of wrong codes in the window" }),
 		extraTools: Type.Array(Type.String({ description: "A tool name" }), { description: "The tools opened beyond the level's set" }),
+		wrongOnLevel: Type.Integer({ minimum: 0, description: "Wrong codes on the current level" }),
 	},
 	{ description: "One resident" },
 );
@@ -189,7 +192,7 @@ export function doorIn(options: Pick<Options, "lastLevel" | "levels" | "holdAfte
  * @returns The state.
  */
 export function freshState(residents: readonly string[], options: Options): ProgressionState {
-	const standings = new Map(residents.map((id): [string, Standing] => [id, { level: options.startLevel, held: false, solved: [], wrongAttempts: [], extraTools: new Set() }]));
+	const standings = new Map(residents.map((id): [string, Standing] => [id, { level: options.startLevel, held: false, solved: [], wrongAttempts: [], extraTools: new Set(), wrongOnLevel: 0 }]));
 	return { standings, door: doorIn(options), doorReleased: false, actStarts: new Map(), endedActs: new Set(), solves: [], offences: new Map(), delivered: new Map() };
 }
 
@@ -205,7 +208,7 @@ export function saveState(state: ProgressionState): Slice {
 		actStarts: [...state.actStarts].map(([fromLevel, tick]) => ({ fromLevel, tick })),
 		endedActs: [...state.endedActs],
 		solves: state.solves.map(({ agent, level, tick }) => ({ agent, level, tick })),
-		standings: [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: [...entry.extraTools] })),
+		standings: [...state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: [...entry.extraTools], wrongOnLevel: entry.wrongOnLevel })),
 		offences: [...state.offences].map(([agent, count]) => ({ agent, wrong: count.wrong, blames: count.blames })),
 		delivered: [...state.delivered].map(([agent, entry]) => ({ agent, level: entry.level, finished: entry.finished })),
 	};
@@ -218,7 +221,7 @@ export function saveState(state: ProgressionState): Slice {
  */
 export function loadState(data: Slice): ProgressionState {
 	return {
-		standings: new Map(data.standings.map((entry): [string, Standing] => [entry.agent, { level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: new Set(entry.extraTools) }])),
+		standings: new Map(data.standings.map((entry): [string, Standing] => [entry.agent, { level: entry.level, held: entry.held, solved: [...entry.solved], wrongAttempts: [...entry.wrongAttempts], extraTools: new Set(entry.extraTools), wrongOnLevel: entry.wrongOnLevel }])),
 		door: data.door,
 		doorReleased: data.doorReleased,
 		actStarts: new Map(data.actStarts.map((entry) => [entry.fromLevel, entry.tick])),

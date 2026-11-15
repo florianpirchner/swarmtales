@@ -67,12 +67,18 @@ the levels into acts and keeps the ranking. Ported from the old platform in two 
    penalties and the charge of a lost blame (`chargeBlame`, booked by the caller), the holders behind, the door clock
    and the bounds (`startLevel`, `lastLevel`, `survivors`). `listAgents` adds the figures of `cast-extras` when a
    provider is loaded.
+10. **Facts.** `levels` and `door`; for the gamemaker's report (decisions A73, A74), `section` (the old header, the
+   "Residents:" lines and the input of the wait lines, in the shape of the gamemaker's schema; its `minute` is the
+   minute of the round the look follows, the tick minus one, erratum J147) and `tracks` (per resident the tick it
+   entered its level and its wrong codes there, erratum J148). The tick-start door runs after the tick of
+   `tribunal` and of `standoff-tribunal` (J136).
 
 **Not done here.** The lines the old task carried under it (the names line, the holdout rule, the marks terms) are
 the lines of those mechanics (erratum J31). `getStatus` reads the unread direct messages and the window line from
 `channels` (`pendingDms`, `dmWindow`; errata J32, J75, built with M5-22). The old `firstSolveMinute` is not
 offered: `cast` reads the first solve of a level from `submission`, because `progression` asks `cast-extras`. The
-gamemaker's fact `section` of the old progression is left to the gamemaker's issue.
+renderers of the report stay with the gamemaker (`mechanics/city-directors`), and a resident's last call is the
+fact `active` of `directors` (M5-67).
 
 ## Tools
 

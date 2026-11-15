@@ -75,6 +75,7 @@ function solved(ctx: ProgressionCtx, agent: string, entry: Standing, level: numb
 	entry.solved.push(level);
 	ctx.state.solves.push({ agent, level, tick: ctx.tick });
 	entry.wrongAttempts.length = 0;
+	entry.wrongOnLevel = 0;
 	const receipt = ctx.tryCall(ReceiptSourceService, "ofLevel", { resident: agent, level }) ?? "none";
 	if (level === ctx.state.door) {
 		// The log marks the pass now; the entry into the next level waits for the door.
@@ -92,6 +93,7 @@ function wrong(ctx: ProgressionCtx, agent: string, entry: Standing, level: numbe
 	offencesOf(ctx, agent).wrong += 1;
 	if (penalty > 0) ctx.call(LedgerService, "burn", { account: agent, amount: penalty, reason: `level ${String(level)} wrong submission` });
 	entry.wrongAttempts.push(ctx.tick);
+	entry.wrongOnLevel += 1;
 	return { status: "incorrect", penalty, attemptsRemaining: Math.max(0, ctx.options.maxAttemptsPerWindow - entry.wrongAttempts.length), nextPenalty: nextPenalty(ctx, agent) };
 }
 

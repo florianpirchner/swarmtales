@@ -220,6 +220,7 @@ held: Type.TBoolean;
 solved: Type.TArray<Type.TInteger>;
 wrongAttempts: Type.TArray<Type.TInteger>;
 extraTools: Type.TArray<Type.TString>;
+wrongOnLevel: Type.TInteger;
 }>>;
 offences: Type.TArray<Type.TObject<{
 agent: Type.TString;
@@ -989,6 +990,46 @@ export const ProgressionOptions: Type.TObject<{
 }>;
 
 // @public
+export const ProgressionSectionFact: Type.TObject<{
+    minute: Type.TInteger;
+    rules: Type.TObject<{
+        penalty: Type.TUnion<[Type.TInteger, Type.TArray<Type.TInteger>]>;
+        maxAttemptsPerWindow: Type.TInteger;
+        attemptWindowMinutes: Type.TInteger;
+        rewards: Type.TArray<Type.TObject<{
+            level: Type.TInteger;
+            reward: Type.TNumber;
+        }>>;
+        survivors: Type.TInteger;
+        residents: Type.TInteger;
+    }>;
+    ranking: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        points: Type.TNumber;
+        rank: Type.TInteger;
+        level: Type.TInteger;
+        standing: Type.TUnion<[Type.TObject<{
+            kind: Type.TLiteral<"alive">;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"gate">;
+            until: Type.TInteger;
+        }>, Type.TObject<{
+            kind: Type.TLiteral<"exiled">;
+        }>]>;
+        finished: Type.TBoolean;
+        waiting: Type.TUnion<[Type.TInteger, Type.TNull]>;
+        nextPenalty: Type.TNumber;
+        open: Type.TNumber;
+    }>>;
+    alive: Type.TArray<Type.TString>;
+    standing: Type.TArray<Type.TObject<{
+        agent: Type.TString;
+        level: Type.TInteger;
+        teamPlaceholders: Type.TBoolean;
+    }>>;
+}>;
+
+// @public
 export const ProgressionService: ServiceDefinition<"progression", {
 readonly levelOf: {
 readonly kind: "query";
@@ -1226,12 +1267,19 @@ export const progressionTools: {
 };
 
 // @public
+export const ProgressionTracksFact: Type.TArray<Type.TObject<{
+    agent: Type.TString;
+    levelSince: Type.TInteger;
+    wrongOnLevel: Type.TInteger;
+}>>;
+
+// @public
 export const TOOL_ORDER: readonly ["getStatus", "getProblem", "submitSolution", "listAgents", "readBoard", "postBoard", "sendDM", "transferPoints", "createGroup", "addGroupMember", "removeGroupMember", "leaveGroup", "listMyGroups", "postGroup", "readGroup", "depositGroup", "withdrawGroup", "setTreasurer", "showReceipt", "signPetition", "listPetitions", "blame", "vote", "payRansom", "lastWill", "nominate", "join", "refuse", "chooseName", "bid", "permaDeath", "defy", "claimPiece", "forgeReceipt", "nameFavourite", "tribunalVote", "activeTools"];
 
 // Warnings were encountered during analysis:
 //
-// dist/index.d.ts:910:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
-// dist/index.d.ts:926:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:969:5 - (ae-forgotten-export) The symbol "sampleLook" needs to be exported by the entry point index.d.ts
+// dist/index.d.ts:985:5 - (ae-forgotten-export) The symbol "sampleSubmit" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

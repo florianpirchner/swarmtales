@@ -14,6 +14,7 @@ import { ExileService } from "@swarmtales/mechanic-exile/contract";
 import { defineMechanic, refuse } from "@swarmtales/sdk";
 import { endAct, noteActStarts, syncLocks } from "./acts.ts";
 import { progressionHead } from "./head.ts";
+import { computeSection, computeTracks, ProgressionSectionFact, ProgressionTracksFact } from "./section.ts";
 import { progressionService } from "./services.ts";
 import { openDoor, openOnClock } from "./submit.ts";
 import { hasNewTask, markTaskShown, statusParts, taskLines } from "./task.ts";
@@ -22,6 +23,7 @@ import { progressionTools } from "./tools.ts";
 export { CastExtrasService, LevelPiecesService, ProgressionEvents, ProgressionService } from "./contract.ts";
 export { progressionHead, type ProgressionCtx, type ProgressionToolCtx } from "./head.ts";
 export { ProgressionOptions, type ProgressionState } from "./model.ts";
+export { ProgressionSectionFact, ProgressionTracksFact } from "./section.ts";
 export { progressionTools, TOOL_ORDER } from "./tools.ts";
 
 /**
@@ -59,9 +61,9 @@ export const progression = defineMechanic(progressionHead, {
 			(ctx) => {
 				openOnClock(ctx, ctx.tick);
 			},
-			// A door may open once the last laggard was banished by the tribunal's tick.
+			// A door may open once the last laggard was banished by the tribunal's or the holdout's tick (J136).
 			{
-				after: ["tribunal"],
+				after: ["tribunal", "standoff-tribunal"],
 				run: (ctx) => {
 					if (ctx.tick > 0) openDoor(ctx);
 				},
@@ -83,5 +85,8 @@ export const progression = defineMechanic(progressionHead, {
 			compute: (view) => [...view.state.standings].map(([agent, entry]) => ({ agent, level: entry.level, held: entry.held })),
 		},
 		door: { output: Type.Union([Type.Integer({ description: "The level" }), Type.Null({ description: "None" })], { description: "The level whose door is shut" }), compute: (view) => view.state.door ?? null },
+		// The gamemaker's report (A73, A74): its header, "Residents:" and the input of its wait lines, and the tracks.
+		section: { output: ProgressionSectionFact, compute: computeSection },
+		tracks: { output: ProgressionTracksFact, compute: computeTracks },
 	},
 });
